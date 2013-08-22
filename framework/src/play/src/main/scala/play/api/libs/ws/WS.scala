@@ -386,6 +386,13 @@ object WS {
     }
 
     /**
+     * Adds a single string part, with an optional character set defaulting to "UTF-8"
+     */
+    def withStringPart(name: String, value: String, charSet: String = "UTF-8"): WSRequestHolder = {
+      this.copy(parts = Some(parts.getOrElse(Nil) :+ new NingStringPart(new AHCStringPart(name, value, charSet))))
+    }
+
+    /**
      * Adds a file part to the request.
      */
     def withFilePart(name: String, file: File, mimeType: String, charSet: String): WSRequestHolder = {
@@ -725,7 +732,7 @@ trait StringPart extends Part {
   /**
    * The character set, defaults to UTF-8.
    */
-  def charSet: String = "UTF-8"
+  def charSet: String
 }
 
 /**
@@ -806,6 +813,11 @@ private class NingStringPart(ahcStringPart: AHCStringPart) extends StringPart {
    * The value of the string.
    */
   def value: String = ahcStringPart.getValue
+
+  /**
+   * The character set of the string.
+   */
+  def charSet: String = ahcStringPart.getCharset
 }
 
 /**

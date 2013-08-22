@@ -27,14 +27,32 @@ object WSSpec extends Specification with Mockito {
     "upload a file with a string part" in {
       val request = WS.url("http://example.com")
         .withHeaders("Content-Type" -> "multipart/form-data")
-        .withStringParts("foo" -> "bar")
+        .withStringPart("foo", "bar", "EBCDIC")
         .prepare("POST").build
 
-      val expected = new AHCStringPart("foo", "bar")
+      val expected = new AHCStringPart("foo", "bar", "EBCDIC")
       val actual = request.getParts.get(0).asInstanceOf[AHCStringPart]
 
       actual.getName must beEqualTo(expected.getName)
       actual.getValue must beEqualTo(expected.getValue)
+      actual.getCharset must beEqualTo(expected.getCharset)
+    }
+
+    "upload a file with multiple string bits" in {
+      val request = WS.url("http://example.com")
+        .withHeaders("Content-Type" -> "multipart/form-data")
+        .withStringParts("foo" -> "bar", "baz" -> "quuz")
+        .prepare("POST").build()
+
+      val parts = request.getParts
+
+      val one = parts.get(0).asInstanceOf[AHCStringPart]
+      one.getName must beEqualTo("foo")
+      one.getValue must beEqualTo("bar")
+
+      val two = parts.get(1).asInstanceOf[AHCStringPart]
+      two.getName must beEqualTo("baz")
+      two.getValue must beEqualTo("quuz")
     }
 
     "upload a file with a file part" in {
