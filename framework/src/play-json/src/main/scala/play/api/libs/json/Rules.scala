@@ -95,10 +95,8 @@ object Rules extends play.api.data.validation.DefaultRules {
       .fmap{ case JsObject(fs) => fs }
       .compose(Rule[Seq[(String, JsValue)], Map[String, O]]{ fs =>
         val validations = fs.map{ f =>
-          r.validate(f._2)
-            .fail.map { _.map { case (p, es) =>
-              ((Path() \ f._1) ++ p) -> es
-            }}
+          r.repath((Path() \ f._1) ++ _)
+            .validate(f._2)
             .map(f._1 -> _)
         }
         Validation.sequence(validations)

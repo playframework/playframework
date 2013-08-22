@@ -6,20 +6,26 @@ case class Rule[I, O](m: Mapping[(Path, Seq[ValidationError]), I, O]) {
   def compose[P](path: Path)(sub: Rule[O, P]): Rule[I, P] = {
     val rp = this
     Rule{ d =>
-      val v = rp.validate(d)
+      val v = rp.repath(path ++ _).validate(d)
       v.fold(
-        es => Failure(es.map{ case (p, errs) => (path ++ p) -> errs }),
-        s  => sub.validate(s).fail.map{ _.map {
-          case (p, errs) => (path ++ p) -> errs
-        }})
+        es => Failure(es),
+        s  => sub.repath(path ++ _).validate(s))
     }
   }
 
-  // would be nie to have Kleisli in play
+  // would be nice to have Kleisli in play
   def compose[P](sub: Rule[O, P]): Rule[I, P] = compose(Path())(sub)
   def compose[P](m: Mapping[ValidationError, O, P]): Rule[I, P] = compose(Rule.fromMapping(m))
 
   //TODO: repath
+  def repath(f: Path => Path): Rule[I, O] = {
+    val rp = this
+    Rule { d =>
+      rp.validate(d).fail.map{ _.map {
+        case (p, errs) => f(p) -> errs
+      }}
+    }
+  }
 }
 
 object Rule {

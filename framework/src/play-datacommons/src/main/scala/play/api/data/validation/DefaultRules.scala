@@ -32,14 +32,9 @@ trait DefaultRules {
 
   def seq[I, O](r: Rule[I, O]): Rule[Seq[I], Seq[O]] =
     Rule { case is =>
-      val vs = is.map(r.validate _)
-      val withI = vs.zipWithIndex.map { case (v, i) =>
-          v.fail.map { errs =>
-            errs.map { case (p, es) =>
-              ((Path() \ i) ++ p) -> es // XXX: not a big fan of this "as". Feels like casting
-            }
-          }
-        }
+      val withI = is.zipWithIndex.map { case (v, i) =>
+        r.repath((Path() \ i) ++ _).validate(v)
+      }
       Validation.sequence(withI)
     }
 
