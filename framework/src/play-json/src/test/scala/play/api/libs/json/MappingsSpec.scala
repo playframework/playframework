@@ -132,11 +132,10 @@ object MappingsSpec extends Specification {
       }
 
       "Option" in {
-        skipped("There's a problem here. How to handle JsNull ?? Empty values ??")
         (__ \ "n").read(option(boolean)).validate(Json.obj("n" -> true)) mustEqual(Success(Some(true)))
         (__ \ "n").read(option(boolean)).validate(Json.obj("n" -> JsNull)) mustEqual(Success(None))
         (__ \ "n").read(option(boolean)).validate(Json.obj("foo" -> "bar")) mustEqual(Success(None))
-        (__ \ "n").read(option(boolean)).validate(Json.obj("n" -> "bar")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Option[Boolean]")))))
+        (__ \ "n").read(option(boolean)).validate(Json.obj("n" -> "bar")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Boolean")))))
       }
 
       "Map[String, V]" in {

@@ -19,14 +19,13 @@ case class Rule[I, O](m: Mapping[(Path, Seq[ValidationError]), I, O]) {
   def compose[P](sub: Rule[O, P]): Rule[I, P] = compose(Path())(sub)
   def compose[P](m: Mapping[ValidationError, O, P]): Rule[I, P] = compose(Rule.fromMapping(m))
 
-  def repath(f: Path => Path): Rule[I, O] = {
-    val rp = this
+  def repath(f: Path => Path): Rule[I, O] =
     Rule { d =>
-      rp.validate(d).fail.map{ _.map {
+      this.validate(d).fail.map{ _.map {
         case (p, errs) => f(p) -> errs
       }}
     }
-  }
+
 }
 
 object Rule {

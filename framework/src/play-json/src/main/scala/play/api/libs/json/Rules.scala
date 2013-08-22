@@ -89,6 +89,14 @@ object Rules extends play.api.data.validation.DefaultRules {
     case JsNumber(v) => Success(v.bigDecimal)
   }("BigDecimal")
 
+  private def isNull[I]: I => Boolean = {
+    case JsNull => true
+    case _ => false
+  }
+
+  override def option[I, J, O](r: Rule[J, O], noneValues: (J => Boolean)*)(implicit pick: Path => Rule[I, J]): Path => Rule[I, Option[O]]
+    = super.option(r, (isNull +: noneValues):_*)
+
   //TODO: refactor
   def map[O](r: Rule[JsValue, O]): Rule[JsValue, Map[String, O]] = {
     jsObject

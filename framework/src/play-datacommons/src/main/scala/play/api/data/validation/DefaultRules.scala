@@ -11,12 +11,13 @@ trait DefaultRules {
     def identity = noConstraint[T]
   }
 
-  def option[I, J, O](r: Rule[J, O])(implicit pick: Path => Rule[I, J]) = (path: Path) =>
+  def option[I, J, O](r: Rule[J, O], noneValues: (J => Boolean)*)(implicit pick: Path => Rule[I, J]) = (path: Path) =>
     Rule[I, Option[O]] {
       (d: I) =>
         (pick(path).validate(d).map(Some.apply) | Success(None))
           .flatMap {
             case None => Success(None)
+            case Some(i) if noneValues.exists(_(i)) => Success(None)
             case Some(i) => r.validate(i).map(Some.apply)
           }
     }
