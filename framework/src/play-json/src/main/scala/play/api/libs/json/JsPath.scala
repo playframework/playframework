@@ -150,7 +150,7 @@ object IdxPathNode {
 
 object JsPath extends JsPath(List.empty) {
 
-  def apply(p: Path[JsValue]) = new JsPath(p.path.map {
+  def apply(p: Path) = new JsPath(p.path.map {
     case k: DKeyPathNode => PathNode(k)
     case i: DIdxPathNode => PathNode(i)
     case s: DRecursiveSearch => PathNode(s)
@@ -188,7 +188,7 @@ object JsPath extends JsPath(List.empty) {
   }
 }
 
-case class JsPath(override val path: List[DPathNode with PathNode] = List()) extends Path[JsValue](path) {
+case class JsPath(override val path: List[DPathNode with PathNode] = List()) extends Path(path) {
 
   override def \(child: String) = JsPath(path :+ KeyPathNode(child))
   def \(child: Symbol) = JsPath(path :+ KeyPathNode(child.name))

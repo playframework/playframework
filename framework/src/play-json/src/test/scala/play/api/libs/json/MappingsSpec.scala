@@ -10,7 +10,7 @@ object MappingsSpec extends Specification {
 
   "Json Mappings" should {
     import play.api.libs.json.Rules._
-    val __ = Path[JsValue]()
+    val __ = Path()
 
     val valid = Json.obj(
     "firstname" -> "Julien",
@@ -31,66 +31,64 @@ object MappingsSpec extends Specification {
         "phones" -> Seq("01.23.45.67.89", "98.76.54.32.10")))
 
     "extract data" in {
-      (__ \ "firstname").read[String].validate(valid) mustEqual(Success("Julien"))
+      (__ \ "firstname").read(string).validate(valid) mustEqual(Success("Julien"))
       val errPath = __ \ "foo"
       val error = Failure(Seq(errPath -> Seq(ValidationError("validation.required"))))
-      errPath.read[String].validate(invalid) mustEqual(error)
+      errPath.read(string).validate(invalid) mustEqual(error)
     }
 
     "support all types of Json values" in {
 
-      val __ = Path[JsValue]()
-
       "Int" in {
-        (__ \ "n").read[Int].validate(Json.obj("n" -> 4)) mustEqual(Success(4))
-        (__ \ "n").read[Int].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Int")))))
-        (__ \ "n").read[Int].validate(Json.obj("n" -> 4.8)) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Int")))))
-        (__ \ "n" \ "o").read[Int].validate(Json.obj("n" -> Json.obj("o" -> 4))) mustEqual(Success(4))
-        (__ \ "n" \ "o").read[Int].validate(Json.obj("n" -> Json.obj("o" -> "foo"))) mustEqual(Failure(Seq(__ \ "n" \ "o" -> Seq(ValidationError("validation.type-mismatch", "Int")))))
+        (__ \ "n").read(int).validate(Json.obj("n" -> 4)) mustEqual(Success(4))
+        (__ \ "n").read(int).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Int")))))
+        (__ \ "n").read(int).validate(Json.obj("n" -> 4.8)) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Int")))))
+        (__ \ "n" \ "o").read(int).validate(Json.obj("n" -> Json.obj("o" -> 4))) mustEqual(Success(4))
+        (__ \ "n" \ "o").read(int).validate(Json.obj("n" -> Json.obj("o" -> "foo"))) mustEqual(Failure(Seq(__ \ "n" \ "o" -> Seq(ValidationError("validation.type-mismatch", "Int")))))
 
-        (__ \ "n" \ "o" \ "p" ).read[Int].validate(Json.obj("n" -> Json.obj("o" -> Json.obj("p" -> 4)))) mustEqual(Success(4))
-        (__ \ "n" \ "o" \ "p").read[Int].validate(Json.obj("n" -> Json.obj("o" -> Json.obj("p" -> "foo")))) mustEqual(Failure(Seq(__ \ "n" \ "o" \ "p" -> Seq(ValidationError("validation.type-mismatch", "Int")))))
+        (__ \ "n" \ "o" \ "p" ).read(int).validate(Json.obj("n" -> Json.obj("o" -> Json.obj("p" -> 4)))) mustEqual(Success(4))
+        (__ \ "n" \ "o" \ "p").read(int).validate(Json.obj("n" -> Json.obj("o" -> Json.obj("p" -> "foo")))) mustEqual(Failure(Seq(__ \ "n" \ "o" \ "p" -> Seq(ValidationError("validation.type-mismatch", "Int")))))
 
         val errPath = __ \ "foo"
         val error = Failure(Seq(errPath -> Seq(ValidationError("validation.required"))))
-        errPath.read[Int].validate(Json.obj("n" -> 4)) mustEqual(error)
+        errPath.read(int).validate(Json.obj("n" -> 4)) mustEqual(error)
       }
 
       "Short" in {
-        (__ \ "n").read[Short].validate(Json.obj("n" -> 4)) mustEqual(Success(4))
-        (__ \ "n").read[Short].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Short")))))
-        (__ \ "n").read[Short].validate(Json.obj("n" -> 4.8)) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Short")))))
+        (__ \ "n").read(short).validate(Json.obj("n" -> 4)) mustEqual(Success(4))
+        (__ \ "n").read(short).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Short")))))
+        (__ \ "n").read(short).validate(Json.obj("n" -> 4.8)) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Short")))))
       }
 
       "Long" in {
-        (__ \ "n").read[Long].validate(Json.obj("n" -> 4)) mustEqual(Success(4))
-        (__ \ "n").read[Long].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Long")))))
-        (__ \ "n").read[Long].validate(Json.obj("n" -> 4.8)) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Long")))))
+        (__ \ "n").read(long).validate(Json.obj("n" -> 4)) mustEqual(Success(4))
+        (__ \ "n").read(long).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Long")))))
+        (__ \ "n").read(long).validate(Json.obj("n" -> 4.8)) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Long")))))
       }
 
       "Float" in {
-        (__ \ "n").read[Float].validate(Json.obj("n" -> 4)) mustEqual(Success(4))
-        (__ \ "n").read[Float].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Float")))))
-        (__ \ "n").read[Float].validate(Json.obj("n" -> 4.8)) mustEqual(Success(4.8F))
+        (__ \ "n").read(float).validate(Json.obj("n" -> 4)) mustEqual(Success(4))
+        (__ \ "n").read(float).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Float")))))
+        (__ \ "n").read(float).validate(Json.obj("n" -> 4.8)) mustEqual(Success(4.8F))
       }
 
       "Double" in {
-        (__ \ "n").read[Double].validate(Json.obj("n" -> 4)) mustEqual(Success(4))
-        (__ \ "n").read[Double].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Double")))))
-        (__ \ "n").read[Double].validate(Json.obj("n" -> 4.8)) mustEqual(Success(4.8))
+        (__ \ "n").read(double).validate(Json.obj("n" -> 4)) mustEqual(Success(4))
+        (__ \ "n").read(double).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Double")))))
+        (__ \ "n").read(double).validate(Json.obj("n" -> 4.8)) mustEqual(Success(4.8))
       }
 
       "java BigDecimal" in {
         import java.math.{ BigDecimal => jBigDecimal }
-        (__ \ "n").read[jBigDecimal].validate(Json.obj("n" -> 4)) mustEqual(Success(new jBigDecimal("4")))
-        (__ \ "n").read[jBigDecimal].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "BigDecimal")))))
-        (__ \ "n").read[jBigDecimal].validate(Json.obj("n" -> 4.8)) mustEqual(Success(new jBigDecimal("4.8")))
+        (__ \ "n").read(javaBigDecimal).validate(Json.obj("n" -> 4)) mustEqual(Success(new jBigDecimal("4")))
+        (__ \ "n").read(javaBigDecimal).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "BigDecimal")))))
+        (__ \ "n").read(javaBigDecimal).validate(Json.obj("n" -> 4.8)) mustEqual(Success(new jBigDecimal("4.8")))
       }
 
       "scala BigDecimal" in {
-        (__ \ "n").read[BigDecimal].validate(Json.obj("n" -> 4)) mustEqual(Success(BigDecimal(4)))
-        (__ \ "n").read[BigDecimal].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "BigDecimal")))))
-        (__ \ "n").read[BigDecimal].validate(Json.obj("n" -> 4.8)) mustEqual(Success(BigDecimal(4.8)))
+        (__ \ "n").read(bigDecimal).validate(Json.obj("n" -> 4)) mustEqual(Success(BigDecimal(4)))
+        (__ \ "n").read(bigDecimal).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "BigDecimal")))))
+        (__ \ "n").read(bigDecimal).validate(Json.obj("n" -> 4.8)) mustEqual(Success(BigDecimal(4.8)))
       }
 
       "date" in { skipped }
@@ -99,106 +97,106 @@ object MappingsSpec extends Specification {
       "sql date" in { skipped }
 
       "Boolean" in {
-        (__ \ "n").read[Boolean].validate(Json.obj("n" -> true)) mustEqual(Success(true))
-        (__ \ "n").read[Boolean].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Boolean")))))
+        (__ \ "n").read(boolean).validate(Json.obj("n" -> true)) mustEqual(Success(true))
+        (__ \ "n").read(boolean).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Boolean")))))
       }
 
       "String" in {
-        (__ \ "n").read[String].validate(Json.obj("n" -> "foo")) mustEqual(Success("foo"))
-        (__ \ "n").read[String].validate(Json.obj("n" -> 42)) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "String")))))
-        (__ \ "n").read[String].validate(Json.obj("n" -> Seq("foo"))) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "String")))))
-        (__ \ "o").read[String].validate(Json.obj("o" -> Json.obj("n" -> "foo"))) mustEqual(Failure(Seq(__ \ "o" -> Seq(ValidationError("validation.type-mismatch", "String")))))
+        (__ \ "n").read(string).validate(Json.obj("n" -> "foo")) mustEqual(Success("foo"))
+        (__ \ "n").read(string).validate(Json.obj("n" -> 42)) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "String")))))
+        (__ \ "n").read(string).validate(Json.obj("n" -> Seq("foo"))) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "String")))))
+        (__ \ "o").read(string).validate(Json.obj("o" -> Json.obj("n" -> "foo"))) mustEqual(Failure(Seq(__ \ "o" -> Seq(ValidationError("validation.type-mismatch", "String")))))
       }
 
       "JsObject" in {
-        (__ \ "o").read[JsObject].validate(Json.obj("o" -> Json.obj("n" -> "foo"))) mustEqual(Success(JsObject(Seq("n" -> JsString("foo")))))
-        (__ \ "n").read[JsObject].validate(Json.obj("n" -> 42)) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Object")))))
-        (__ \ "n").read[JsObject].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Object")))))
-        (__ \ "n").read[JsObject].validate(Json.obj("n" -> Seq("foo"))) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Object")))))
+        (__ \ "o").read(jsObject).validate(Json.obj("o" -> Json.obj("n" -> "foo"))) mustEqual(Success(JsObject(Seq("n" -> JsString("foo")))))
+        (__ \ "n").read(jsObject).validate(Json.obj("n" -> 42)) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Object")))))
+        (__ \ "n").read(jsObject).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Object")))))
+        (__ \ "n").read(jsObject).validate(Json.obj("n" -> Seq("foo"))) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Object")))))
       }
 
       "JsString" in {
-        (__ \ "n").read[JsString].validate(Json.obj("n" -> "foo")) mustEqual(Success(JsString("foo")))
-        (__ \ "n").read[JsString].validate(Json.obj("n" -> 42)) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "String")))))
+        (__ \ "n").read(jsString).validate(Json.obj("n" -> "foo")) mustEqual(Success(JsString("foo")))
+        (__ \ "n").read(jsString).validate(Json.obj("n" -> 42)) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "String")))))
       }
 
       "JsNumber" in {
-        (__ \ "n").read[JsNumber].validate(Json.obj("n" -> 4)) mustEqual(Success(JsNumber(4)))
-        (__ \ "n").read[JsNumber].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Number")))))
-        (__ \ "n").read[JsNumber].validate(Json.obj("n" -> 4.8)) mustEqual(Success(JsNumber(4.8)))
+        (__ \ "n").read(jsNumber).validate(Json.obj("n" -> 4)) mustEqual(Success(JsNumber(4)))
+        (__ \ "n").read(jsNumber).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Number")))))
+        (__ \ "n").read(jsNumber).validate(Json.obj("n" -> 4.8)) mustEqual(Success(JsNumber(4.8)))
       }
 
       "JsBoolean" in {
-        (__ \ "n").read[JsBoolean].validate(Json.obj("n" -> true)) mustEqual(Success(JsBoolean(true)))
-        (__ \ "n").read[JsBoolean].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Boolean")))))
+        (__ \ "n").read(jsBoolean).validate(Json.obj("n" -> true)) mustEqual(Success(JsBoolean(true)))
+        (__ \ "n").read(jsBoolean).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Boolean")))))
       }
 
       "Option" in {
         skipped("There's a problem here. How to handle JsNull ?? Empty values ??")
-        (__ \ "n").read[Option[Boolean]].validate(Json.obj("n" -> true)) mustEqual(Success(Some(true)))
-        (__ \ "n").read[Option[Boolean]].validate(Json.obj("n" -> JsNull)) mustEqual(Success(None))
-        (__ \ "n").read[Option[Boolean]].validate(Json.obj("foo" -> "bar")) mustEqual(Success(None))
-        (__ \ "n").read[Option[Boolean]].validate(Json.obj("n" -> "bar")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Option[Boolean]")))))
+        (__ \ "n").read(option(boolean)).validate(Json.obj("n" -> true)) mustEqual(Success(Some(true)))
+        (__ \ "n").read(option(boolean)).validate(Json.obj("n" -> JsNull)) mustEqual(Success(None))
+        (__ \ "n").read(option(boolean)).validate(Json.obj("foo" -> "bar")) mustEqual(Success(None))
+        (__ \ "n").read(option(boolean)).validate(Json.obj("n" -> "bar")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Option[Boolean]")))))
       }
 
       "Map[String, V]" in {
-        (__ \ "n").read[Map[String, String]].validate(Json.obj("n" -> Json.obj("foo" -> "bar"))) mustEqual(Success(Map("foo" -> "bar")))
-        (__ \ "n").read[Map[String, Int]].validate(Json.obj("n" -> Json.obj("foo" -> 4, "bar" -> 5))) mustEqual(Success(Map("foo" -> 4, "bar" -> 5)))
-        (__ \ "n").read[Map[String, Int]].validate(Json.obj("n" -> Json.obj("foo" -> 4, "bar" -> "frack"))) mustEqual(Failure(Seq(__ \ "n" \ "bar" -> Seq(ValidationError("validation.type-mismatch", "Int")))))
+        (__ \ "n").read(Rules.map(string)).validate(Json.obj("n" -> Json.obj("foo" -> "bar"))) mustEqual(Success(Map("foo" -> "bar")))
+        (__ \ "n").read(Rules.map(int)).validate(Json.obj("n" -> Json.obj("foo" -> 4, "bar" -> 5))) mustEqual(Success(Map("foo" -> 4, "bar" -> 5)))
+        (__ \ "n").read(Rules.map(int)).validate(Json.obj("n" -> Json.obj("foo" -> 4, "bar" -> "frack"))) mustEqual(Failure(Seq(__ \ "n" \ "bar" -> Seq(ValidationError("validation.type-mismatch", "Int")))))
       }
 
       "Traversable" in {
-        (__ \ "n").read[Traversable[String]].validate(Json.obj("n" -> Seq("foo"))).get.toSeq must haveTheSameElementsAs(Seq("foo"))
-        (__ \ "n").read[Traversable[Int]].validate(Json.obj("n" -> Seq(1, 2, 3))).get.toSeq must haveTheSameElementsAs(Seq(1, 2, 3))
-        (__ \ "n").read[Traversable[String]].validate(Json.obj("n" -> "paf")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Array")))))
+        (__ \ "n").read(Rules.traversable(string)).validate(Json.obj("n" -> Seq("foo"))).get.toSeq must haveTheSameElementsAs(Seq("foo"))
+        (__ \ "n").read(Rules.traversable(int)).validate(Json.obj("n" -> Seq(1, 2, 3))).get.toSeq must haveTheSameElementsAs(Seq(1, 2, 3))
+        (__ \ "n").read(Rules.traversable(string)).validate(Json.obj("n" -> "paf")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Array")))))
       }
 
       "Array" in {
-        (__ \ "n").read[Array[String]].validate(Json.obj("n" -> Seq("foo"))).get.toSeq must haveTheSameElementsAs(Seq("foo"))
-        (__ \ "n").read[Array[Int]].validate(Json.obj("n" -> Seq(1, 2, 3))).get.toSeq must haveTheSameElementsAs(Seq(1, 2, 3))
-        (__ \ "n").read[Array[String]].validate(Json.obj("n" -> "paf")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Array")))))
+        (__ \ "n").read(array(string)).validate(Json.obj("n" -> Seq("foo"))).get.toSeq must haveTheSameElementsAs(Seq("foo"))
+        (__ \ "n").read(array(int)).validate(Json.obj("n" -> Seq(1, 2, 3))).get.toSeq must haveTheSameElementsAs(Seq(1, 2, 3))
+        (__ \ "n").read(array(string)).validate(Json.obj("n" -> "paf")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Array")))))
       }
 
       "Seq" in {
-        (__ \ "n").read[Seq[String]].validate(Json.obj("n" -> Seq("foo"))).get must haveTheSameElementsAs(Seq("foo"))
-        (__ \ "n").read[Seq[Int]].validate(Json.obj("n" -> Seq(1, 2, 3))).get must haveTheSameElementsAs(Seq(1, 2, 3))
-        (__ \ "n").read[Seq[String]].validate(Json.obj("n" -> "paf")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Array")))))
-        (__ \ "n").read[Seq[String]].validate(Json.parse("""{"n":["foo", 2]}""")) mustEqual(Failure(Seq(__ \ "n" \ 1 -> Seq(ValidationError("validation.type-mismatch", "String")))))
+        (__ \ "n").read(seq(string)).validate(Json.obj("n" -> Seq("foo"))).get must haveTheSameElementsAs(Seq("foo"))
+        (__ \ "n").read(seq(int)).validate(Json.obj("n" -> Seq(1, 2, 3))).get must haveTheSameElementsAs(Seq(1, 2, 3))
+        (__ \ "n").read(seq(string)).validate(Json.obj("n" -> "paf")) mustEqual(Failure(Seq(__ \ "n" -> Seq(ValidationError("validation.type-mismatch", "Array")))))
+        (__ \ "n").read(seq(string)).validate(Json.parse("""{"n":["foo", 2]}""")) mustEqual(Failure(Seq(__ \ "n" \ 1 -> Seq(ValidationError("validation.type-mismatch", "String")))))
       }
 
     }
 
     "validate data" in {
-      (__ \ "firstname").read(nonEmptyText).validate(valid) mustEqual(Success("Julien"))
+      (__ \ "firstname").read(string compose notEmpty).validate(valid) mustEqual(Success("Julien"))
 
       val p = (__ \ "informations" \ "label")
-      p.read(nonEmptyText).validate(valid) mustEqual(Success("Personal"))
-      p.read(nonEmptyText).validate(invalid) mustEqual(Failure(Seq(p -> Seq(ValidationError("validation.nonemptytext")))))
+      p.read(string compose notEmpty).validate(valid) mustEqual(Success("Personal"))
+      p.read(string compose notEmpty).validate(invalid) mustEqual(Failure(Seq(p -> Seq(ValidationError("validation.nonemptytext")))))
     }
 
     "validate optional" in {
-      (__ \ "firstname").read[Option[String]].validate(valid) mustEqual(Success(Some("Julien")))
-      (__ \ "foobar").read[Option[String]].validate(valid) mustEqual(Success(None))
+      (__ \ "firstname").read(option(string)).validate(valid) mustEqual(Success(Some("Julien")))
+      (__ \ "foobar").read(option(string)).validate(valid) mustEqual(Success(None))
     }
 
     "validate deep" in {
       val p = (__ \ "informations" \ "label")
 
       (__ \ "informations").read(
-        (__ \ "label").read(nonEmptyText)).validate(valid) mustEqual(Success("Personal"))
+        (__ \ "label").read(string compose notEmpty)).validate(valid) mustEqual(Success("Personal"))
 
       (__ \ "informations").read(
-        (__ \ "label").read(nonEmptyText)).validate(invalid) mustEqual(Failure(Seq(p -> Seq(ValidationError("validation.nonemptytext")))))
+        (__ \ "label").read(string compose notEmpty)).validate(invalid) mustEqual(Failure(Seq(p -> Seq(ValidationError("validation.nonemptytext")))))
     }
 
     "coerce type" in {
-      (__ \ "age").read[Int].validate(valid) mustEqual(Success(27))
-      (__ \ "firstname").read[Int].validate(valid) mustEqual(Failure(Seq((__ \ "firstname") -> Seq(ValidationError("validation.type-mismatch", "Int")))))
+      (__ \ "age").read(int).validate(valid) mustEqual(Success(27))
+      (__ \ "firstname").read(int).validate(valid) mustEqual(Failure(Seq((__ \ "firstname") -> Seq(ValidationError("validation.type-mismatch", "Int")))))
     }
 
     "compose constraints" in {
       // TODO: create MonoidOps
-      val composed = monoidConstraint.append(nonEmptyText, minLength(3))
+      val composed = string compose monoidConstraint.append(notEmpty, minLength(3))
       (__ \ "firstname").read(composed).validate(valid) mustEqual(Success("Julien"))
 
       val p = __ \ "informations" \ "label"
@@ -209,6 +207,7 @@ object MappingsSpec extends Specification {
     "compose validations" in {
       import play.api.libs.functional.syntax._
 
+      val nonEmptyText = string compose notEmpty
       ((__ \ "firstname").read(nonEmptyText) ~
        (__ \ "lastname").read(nonEmptyText)){ _ -> _ }
          .validate(valid) mustEqual Success("Julien" -> "Tournay")
@@ -220,6 +219,7 @@ object MappingsSpec extends Specification {
     }
 
     "lift validations to seq validations" in {
+      val nonEmptyText = string compose notEmpty
       (__ \ "foo").read(seq(nonEmptyText)).validate(Json.obj("foo" -> Seq("bar")))
         .get must haveTheSameElementsAs(Seq("bar"))
 
@@ -264,15 +264,17 @@ object MappingsSpec extends Specification {
           "email" -> "fakecontact@gmail.com",
           "phones" -> Seq("01.23.45.67.89", "98.76.54.32.10"))))
 
+      val nonEmptyText = string compose notEmpty
+
       val infoValidation =
        ((__ \ "label").read(nonEmptyText) ~
-        (__ \ "email").read(optional(email)) ~
+        (__ \ "email").read(option(string compose email)) ~
         (__ \ "phones").read(seq(nonEmptyText))) (ContactInformation.apply _)
 
       val contactValidation =
        ((__ \ "firstname").read(nonEmptyText) ~
         (__ \ "lastname").read(nonEmptyText) ~
-        (__ \ "company").read[Option[String]] ~
+        (__ \ "company").read(option(string)) ~
         (__ \ "informations").read(seq(infoValidation))) (Contact.apply _)
 
       val expected =

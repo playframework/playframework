@@ -48,7 +48,7 @@ class JsError(override val errors: Seq[(JsPath, Seq[ValidationError])]) extends 
 
 object JsError {
 
-  def apply(errors: Seq[(Path[JsValue], Seq[ValidationError])]): JsError = new JsError(errors.map{
+  def apply(errors: Seq[(Path, Seq[ValidationError])]): JsError = new JsError(errors.map{
     case (JsPath(p), errs) => JsPath(p) -> errs
     case (p, errs) => JsPath(p) -> errs
   })

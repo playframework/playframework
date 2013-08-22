@@ -7,7 +7,7 @@ object Rules extends play.api.data.validation.DefaultRules {
 
   import play.api.data.validation._ // We need that import to shadow Json PathNodes types
   import play.api.libs.json.{ KeyPathNode => JSKeyPathNode, IdxPathNode => JIdxPathNode}
-  private def pathToJsPath(p: Path[JsValue]) =
+  private def pathToJsPath(p: Path) =
     play.api.libs.json.JsPath(p.path.map{
       case KeyPathNode(key) => JSKeyPathNode(key)
       case IdxPathNode(i) => JIdxPathNode(i)
@@ -18,46 +18,46 @@ object Rules extends play.api.data.validation.DefaultRules {
       f.orElse{ case j => Failure(Seq(ValidationError("validation.type-mismatch", args: _*)))
     })
 
-  implicit def jsonAsString = jsonAs[String] {
+  def string = jsonAs[String] {
     case JsString(v) => Success(v)
   }("String")
 
-  implicit def jsonAsBoolean = jsonAs[Boolean]{
+  def boolean = jsonAs[Boolean]{
     case JsBoolean(v) => Success(v)
   }("Boolean")
 
   // Note: Mappings of JsNumber to Number are validating that the JsNumber is indeed valid
   // in the target type. i.e: JsNumber(4.5) is not considered parseable as an Int.
   // That's a bit stricter than the "old" Read, which just cast to the target type, possibly loosing data.
-  implicit def jsonAsInt = jsonAs[Int]{
+  def int = jsonAs[Int]{
     case JsNumber(v) if v.isValidInt => Success(v.toInt)
   }("Int")
 
-  implicit def jsonAsShort = jsonAs[Short]{
+  def short = jsonAs[Short]{
     case JsNumber(v) if v.isValidShort => Success(v.toShort)
   }("Short")
 
-  implicit def jsonAsLong = jsonAs[Long]{
+  def long = jsonAs[Long]{
     case JsNumber(v) if v.isValidLong => Success(v.toLong)
   }("Long")
 
-  implicit def jsonAsJsNumber = jsonAs[JsNumber]{
+  def jsNumber = jsonAs[JsNumber]{
     case v@JsNumber(_) => Success(v)
   }("Number")
 
-  implicit def jsonAsJsBoolean = jsonAs[JsBoolean]{
+  def jsBoolean = jsonAs[JsBoolean]{
     case v@JsBoolean(_) => Success(v)
   }("Boolean")
 
-  implicit def jsonAsJsString = jsonAs[JsString] {
+  def jsString = jsonAs[JsString] {
     case v@JsString(_) => Success(v)
   }("String")
 
-  implicit def jsonAsJsObject = jsonAs[JsObject] {
+  def jsObject = jsonAs[JsObject] {
     case v@JsObject(_) => Success(v)
   }("Object")
 
-  implicit def jsonAsJsArray = jsonAs[JsArray] {
+  def jsArray = jsonAs[JsArray] {
     case v@JsArray(_) => Success(v)
   }("Array")
 
@@ -67,7 +67,7 @@ object Rules extends play.api.data.validation.DefaultRules {
     val d = bd.toFloat
     !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(jl.Float.toString(d), bd.mc)) == 0
   }
-  implicit def jsonAsFloat = jsonAs[Float] {
+  def float = jsonAs[Float] {
     case JsNumber(v) if isValidFloat(v) => Success(v.toFloat)
   }("Float")
 
@@ -76,36 +76,28 @@ object Rules extends play.api.data.validation.DefaultRules {
     val d = bd.toDouble
     !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(jl.Double.toString(d), bd.mc)) == 0
   }
-  implicit def jsonADouble =jsonAs[Double] {
+  def double =jsonAs[Double] {
     case JsNumber(v) if isValidDouble(v) => Success(v.toDouble)
   }("Double")
 
-  implicit def jsonAsBigDecimal = jsonAs[BigDecimal] {
+  def bigDecimal = jsonAs[BigDecimal] {
     case JsNumber(v) => Success(v)
   }("BigDecimal")
 
   import java.{ math => jm }
-  implicit def jsonAsJavaBigDecimal = jsonAs[jm.BigDecimal] {
+  def javaBigDecimal = jsonAs[jm.BigDecimal] {
     case JsNumber(v) => Success(v.bigDecimal)
   }("BigDecimal")
 
-  implicit def jsonAsArray[O: scala.reflect.ClassTag](implicit r: Rule[JsValue, O]): Rule[JsValue, Array[O]] =
-    jsonAsSeq(r).fmap(_.toArray)
-
-
-  implicit def jsonAsTraversable[O](implicit r: Rule[JsValue, O]): Rule[JsValue, Traversable[O]] =
-    jsonAsSeq(r).fmap(_.toTraversable)
-
-
   //TODO: refactor
-  implicit def jsonAsMap[O](implicit r: Rule[JsValue, O]): Rule[JsValue, Map[String, O]] = {
-    jsonAsJsObject
+  def map[O](r: Rule[JsValue, O]): Rule[JsValue, Map[String, O]] = {
+    jsObject
       .fmap{ case JsObject(fs) => fs }
-      .compose(Path[JsValue]())(Rule{ fs =>
+      .compose(Rule[Seq[(String, JsValue)], Map[String, O]]{ fs =>
         val validations = fs.map{ f =>
           r.validate(f._2)
             .fail.map { _.map { case (p, es) =>
-              ((Path[Seq[(String, JsValue)]]() \ f._1) ++ p.as[Seq[(String, JsValue)]]) -> es
+              ((Path() \ f._1) ++ p) -> es
             }}
             .map(f._1 -> _)
         }
@@ -114,19 +106,16 @@ object Rules extends play.api.data.validation.DefaultRules {
       })
   }
 
-
-  implicit def jsonAsSeq[O](implicit r: Rule[JsValue, O]): Rule[JsValue, Seq[O]] =
-    jsonAsJsArray
-      .fmap{ case JsArray(is) => is }
-      .compose(Path[JsValue]())(seq(r))
-
   // Is that thing really just a Lens ?
-  implicit def pickInJson[O](p: Path[JsValue])(implicit m: Rule[JsValue, O]): Rule[JsValue, O] =
+  implicit def pickInJson(p: Path) =
     Rule[JsValue, JsValue] { json =>
       pathToJsPath(p)(json) match {
-        case Nil => Failure(Seq(Path[JsValue]() -> Seq(ValidationError("validation.required"))))
+        case Nil => Failure(Seq(Path() -> Seq(ValidationError("validation.required"))))
         case js :: _ => Success(js)
       }
-    }.compose(Path[JsValue]())(m)
+    }
+
+  implicit def pickSInJson(p: Path) =
+    pickInJson(p).compose(jsArray).fmap{ case JsArray(fs) => fs }
 
 }
