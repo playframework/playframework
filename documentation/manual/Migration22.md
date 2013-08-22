@@ -64,7 +64,7 @@ def asyncAction = Action {
 }
 ```
 
-You can now use the `Action.async` builder:
+You can now use the [`Action.async`](api/scala/index.html#play.api.mvc.ActionBuilder) builder:
 
 ```scala
 def asyncAction = Action.async {
@@ -74,7 +74,7 @@ def asyncAction = Action.async {
 
 ### Working with chunked results
 
-Previously the `stream` method on `Status` was used to produce chunked results.  This has been deprecated, replaced with a `chunked` method, that makes it clear that the result is going to be chunked.  For example:
+Previously the `stream` method on `Status` was used to produce chunked results.  This has been deprecated, replaced with a [`chunked`](api/scala/index.html#play.api.mvc.Results$Status) method, that makes it clear that the result is going to be chunked.  For example:
 
 ```scala
 def cometAction = Action {
@@ -86,9 +86,9 @@ Advanced uses that created or used `ChunkedResult` directly should be replaced w
 
 ### Action composition
 
-We are now recommending that action composition be done at the `EssentialAction` level, not the `Action` level, and that end users write their own `ActionBuilder` implementations for building actions.
+We are now recommending that action composition be done using [`ActionBuilder`](api/scala/index.html#play.api.mvc.ActionBuilder) implementations for building actions.
 
-TODO: Update/write documentation on how to do this, best practices etc.
+Details on how to do these can be found [here|ScalaActionsComposition].
 
 ### Filters
 

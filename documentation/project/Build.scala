@@ -1,3 +1,4 @@
+import java.util.jar.JarFile
 import play.console.Colors
 import play.core.server.ServerWithStop
 import sbt._
@@ -101,10 +102,14 @@ object ApplicationBuild extends Build {
       }
 
       val projectPath = extracted.get(baseDirectory)
+      val docsJarFile = {
+        val f = classpath.map(_.data).filter(_.getName.startsWith("play-docs")).head
+        new JarFile(f)
+      }
       val sbtDocHandler = {
         val docHandlerFactoryClass = classloader.loadClass("play.docs.SBTDocHandlerFactory")
-        val fromDirectoryMethod = docHandlerFactoryClass.getMethod("fromDirectory", classOf[java.io.File])
-        fromDirectoryMethod.invoke(null, projectPath)
+        val fromDirectoryMethod = docHandlerFactoryClass.getMethod("fromDirectoryAndJar", classOf[java.io.File], classOf[JarFile], classOf[String])
+        fromDirectoryMethod.invoke(null, projectPath, docsJarFile, "play/docs/content")
       }
 
       val clazz = classloader.loadClass("play.docs.DocumentationServer")
