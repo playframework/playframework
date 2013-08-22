@@ -15,6 +15,9 @@ case class Rule[I, O](m: Mapping[(Path, Seq[ValidationError]), I, O]) {
           r => r.validate(d))
     }
 
+  def orElse[OO >: O](t: => Rule[I, OO]): Rule[I, OO] =
+    Rule(d => this.validate(d) orElse t.validate(d))
+
   // would be nice to have Kleisli in play
   def compose[P](sub: Rule[O, P]): Rule[I, P] = compose(Path())(sub)
   def compose[P](m: Mapping[ValidationError, O, P]): Rule[I, P] = compose(Rule.fromMapping(m))
@@ -55,6 +58,7 @@ object Rule {
   implicit def functorRule[I] = new Functor[({type λ[O] = Rule[I, O]})#λ] {
     def fmap[A, B](m: Rule[I, A], f: A => B): Rule[I, B] = applicativeRule[I].map(m, f)
   }
+
 
   // XXX: Helps the compiler a bit
   import play.api.libs.functional.syntax._

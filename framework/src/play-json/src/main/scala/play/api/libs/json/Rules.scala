@@ -1,6 +1,6 @@
 package play.api.libs.json
 
-object Rules extends play.api.data.validation.DefaultRules {
+object Rules extends play.api.data.validation.DefaultRules[JsValue, JsValue] {
   import scala.language.implicitConversions
   import play.api.libs.functional._
   import play.api.libs.functional.syntax._
@@ -89,13 +89,12 @@ object Rules extends play.api.data.validation.DefaultRules {
     case JsNumber(v) => Success(v.bigDecimal)
   }("BigDecimal")
 
-  private def isNull[I]: I => Boolean = {
-    case JsNull => true
-    case _ => false
-  }
+  private def jsNull = jsonAs[JsValue] {
+    case JsNull => Success(JsNull)
+  }("null")
 
-  override def option[I, J, O](r: Rule[J, O], noneValues: (J => Boolean)*)(implicit pick: Path => Rule[I, J]): Path => Rule[I, Option[O]]
-    = super.option(r, (isNull +: noneValues):_*)
+  override def option[O](r: Rule[JsValue, O], noneValues: Rule[JsValue, JsValue]*)(implicit pick: Path => Rule[JsValue, JsValue]): Path => Rule[JsValue, Option[O]]
+    = super.option(r, (jsNull +: noneValues):_*)
 
   //TODO: refactor
   def map[O](r: Rule[JsValue, O]): Rule[JsValue, Map[String, O]] = {

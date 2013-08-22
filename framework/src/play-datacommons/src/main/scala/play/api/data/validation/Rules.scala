@@ -1,6 +1,6 @@
 package play.api.data.validation
 
-object Rules extends DefaultRules {
+object Rules extends DefaultRules[Map[String, Seq[String]], Seq[String]] {
   import scala.language.implicitConversions
   import play.api.libs.functional._
   import play.api.libs.functional.syntax._
