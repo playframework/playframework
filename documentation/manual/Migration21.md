@@ -61,6 +61,8 @@ object ApplicationBuild extends Build {
 
     val appDependencies = Seq(
        javaCore, javaJdbc, javaEbean
+       "extern_app" %% "information" % "version_number",
+       "extern_app2" %% "information" % "version_number"
     )
 
     val main = play.Project(appName, appVersion, appDependencies).settings(
