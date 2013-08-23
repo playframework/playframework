@@ -74,7 +74,7 @@ The `mainLang` parameter for the project is not required anymore. The main langu
 
 ## play.mvc.Controller.form() renamed to play.data.Form.form()
 
-Also related to modularization, the `play.data` package and its dependencies were moved out from play core to `javaCore` artifact. As a consequence of this, `play.mvc.Controller#form` was moved to `play.data.Form#form`
+Also related to modularization, the `play.data` package and its dependencies were moved out from play core to `javaCore` artifact. As a consequence of this, `play.mvc.Controller#form` was moved to `play.data.Form#form`.
 Additionally you have to import the new package in Java statically: 
 
 ```
