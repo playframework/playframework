@@ -6,7 +6,7 @@ import play.api._
 
 object LessCompiler {
 
-  val lessScript = "less-1.3.1.js"
+  val lessScript = "less-1.4.1.js"
 
   import org.mozilla.javascript._
   import org.mozilla.javascript.tools.shell._
@@ -111,12 +111,12 @@ object LessCompiler {
 
     (source: File) => {
       val result = Context.call(null, compilerFunction, scope, scope, Array(source)).asInstanceOf[Scriptable]
-      val css = ScriptableObject.getProperty(result, "css").asInstanceOf[String]
+      val css = ScriptableObject.getProperty(result, "css").toString
       val dependencies = ScriptableObject.getProperty(result, "dependencies").asInstanceOf[NativeArray]
 
       css -> (0 until dependencies.getLength.toInt).map(ScriptableObject.getProperty(dependencies, _) match {
-        case f: File => f
-        case o: NativeJavaObject => o.unwrap.asInstanceOf[File]
+        case f: File => f.getCanonicalFile
+        case o: NativeJavaObject => o.unwrap.asInstanceOf[File].getCanonicalFile
       })
     }
   }
