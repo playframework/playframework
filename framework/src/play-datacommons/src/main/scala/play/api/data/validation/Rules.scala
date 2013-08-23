@@ -6,7 +6,7 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
   import play.api.libs.functional.syntax._
   // import play.api.mvc.Request
 
-  def string: Rule[String, String] = IasI
+  def string = IasI[String]
 
   private def stringAs[T](f: PartialFunction[BigDecimal, Validation[ValidationError, T]])(args: Any*) =
     Rule.fromMapping[String, T]{

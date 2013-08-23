@@ -3,8 +3,6 @@ package play.api.data.validation
 import scala.language.higherKinds
 import scala.language.implicitConversions
 
-object __ extends Path(Nil)
-
 sealed trait PathNode
 case class KeyPathNode(key: String) extends PathNode {
   override def toString = key
@@ -30,10 +28,13 @@ object \: {
 object Path {
   def apply(path: String) = new Path(KeyPathNode(path) :: Nil)
 	def apply(path: List[PathNode] = Nil) = new Path(path)
+
+  def \(path: String) = new Path(KeyPathNode(path) :: Nil)
+  def \(path: List[PathNode] = Nil) = new Path(path)
+
 	def unapply(p: Path): Option[List[PathNode]] = Some(p.path)
 }
 
-// XXX: There's variance going on on I to get rid if `as`
 class Path(val path: List[PathNode]) {
 
   def \(key: String): Path = this \ KeyPathNode(key)

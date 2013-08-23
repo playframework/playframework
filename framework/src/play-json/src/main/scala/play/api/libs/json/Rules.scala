@@ -1,5 +1,16 @@
 package play.api.libs.json
 
+// Backward compat
+trait WithRepath[A] {
+  import play.api.data.validation._
+  val self: Validation[(JsPath, Seq[ValidationError]), A]
+
+  def repath(path: JsPath): JsResult[A] = self match {
+    case JsSuccess(a, p) => JsSuccess(a, path ++ p)
+    case JsError(es) => JsError(es.map { case (p, s) => path ++ p -> s })
+  }
+}
+
 object Rules extends play.api.data.validation.DefaultRules[JsValue] {
   import scala.language.implicitConversions
   import play.api.libs.functional._
@@ -89,27 +100,18 @@ object Rules extends play.api.data.validation.DefaultRules[JsValue] {
     case JsNumber(v) => Success(v.bigDecimal)
   }("BigDecimal")
 
-  private def jsNull = jsonAs[JsValue] {
+  def jsNull = isJsNull[JsValue]
+
+  private def isJsNull[J] = Rule.fromMapping[J, J]{
     case JsNull => Success(JsNull)
-  }("null")
-
-  override def option[O](r: Rule[JsValue, O], noneValues: Rule[JsValue, JsValue]*)(implicit pick: Path => Rule[JsValue, JsValue]): Path => Rule[JsValue, Option[O]]
-    = super.option(r, (jsNull +: noneValues):_*)
-
-  //TODO: refactor
-  def map[O](r: Rule[JsValue, O]): Rule[JsValue, Map[String, O]] = {
-    jsObject
-      .fmap{ case JsObject(fs) => fs }
-      .compose(Rule[Seq[(String, JsValue)], Map[String, O]]{ fs =>
-        val validations = fs.map{ f =>
-          r.repath((Path() \ f._1) ++ _)
-            .validate(f._2)
-            .map(f._1 -> _)
-        }
-        Validation.sequence(validations)
-          .map(_.toMap)
-      })
+    case _ => Failure(Seq(ValidationError("validation.type-mismatch", "null")))
   }
+
+  override def option[J, O](r: Rule[J, O], noneValues: Rule[J, J]*)(implicit pick: Path => Rule[JsValue, J]): Path => Rule[JsValue, Option[O]]
+    = super.option[J, O](r, (isJsNull[J] +: noneValues):_*)
+
+  def map[O](r: Rule[JsValue, O]): Rule[JsValue, Map[String, O]] =
+    super.map[JsValue, O](r, jsObject.fmap{ case JsObject(fs) => fs })
 
   // Is that thing really just a Lens ?
   implicit def pickInJson(p: Path) =

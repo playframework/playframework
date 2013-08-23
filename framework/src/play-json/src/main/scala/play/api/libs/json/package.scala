@@ -40,16 +40,6 @@ package object json {
 
   import play.api.data.validation.{ Path, Validation, ValidationError }
   type JsResult[O] = Validation[(JsPath, Seq[ValidationError]), O]
-
-  // Backward compat
-  trait WithRepath[A] {
-    val self: Validation[(JsPath, Seq[ValidationError]), A]
-
-    def repath(path: JsPath): JsResult[A] = self match {
-      case JsSuccess(a, p) => JsSuccess(a, path ++ p)
-      case JsError(es) => JsError(es.map { case (p, s) => path ++ p -> s })
-    }
-  }
   import scala.language.implicitConversions
   @scala.deprecated("JsResult.repath will be deleted", "2.3.0")
   implicit def jsValidationToWithRepath[A](v: Validation[(JsPath, Seq[ValidationError]), A]): WithRepath[A] = new WithRepath[A] {
