@@ -1,9 +1,9 @@
-package sbt
+package play
 
+import sbt._
+import sbt.Keys._
 import Keys._
-import PlayKeys._
 import PlayExceptions._
-import play.api.PlayException
 
 // ----- Assets
 trait PlayAssetsCompiler {

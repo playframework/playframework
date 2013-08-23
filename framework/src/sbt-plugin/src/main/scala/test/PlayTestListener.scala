@@ -1,9 +1,10 @@
-package sbt
+package play
 
+import sbt._
 import sbt.testing.{ Event => TEvent, Status => TStatus }
 import test.SbtOptionalThrowable
 
-private[sbt] class PlayTestListener extends TestsListener {
+private[play] class PlayTestListener extends TestsListener {
 
   private var skipped, errors, passed, failures = 0
 
@@ -13,6 +14,7 @@ private[sbt] class PlayTestListener extends TestsListener {
       case TStatus.Success => passed += 1
       case TStatus.Failure => failures += 1
       case TStatus.Skipped => skipped += 1
+      case _ => ()
     }
   }
 
@@ -63,6 +65,7 @@ private[sbt] class PlayTestListener extends TestsListener {
                     "\n" + e.getStackTrace.mkString("\n at ", "\n at ", "")))
                 case TStatus.Skipped =>
                   playReport("test", "ignored" -> te.fullyQualifiedName)
+                case _ => ()
               }
           }
         }

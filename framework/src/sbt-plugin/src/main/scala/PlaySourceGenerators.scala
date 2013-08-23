@@ -1,6 +1,7 @@
-package sbt
+package play
 
-import sbt.PlayExceptions.{ TemplateCompilationException, RoutesCompilationException }
+import sbt._
+import PlayExceptions.{ TemplateCompilationException, RoutesCompilationException }
 import play.api.PlayException
 
 trait PlaySourceGenerators {
@@ -19,7 +20,7 @@ trait PlaySourceGenerators {
       case RoutesCompilationError(source, message, line, column) => {
         throw reportCompilationError(state, RoutesCompilationException(source, message, line, column.map(_ - 1)))
       }
-      case e => throw e
+      case e: Throwable => throw e
     }
 
     (scalaRoutes.get ++ javaRoutes.get).map(_.getAbsoluteFile)

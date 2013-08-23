@@ -91,6 +91,7 @@ class JUnitXmlTestsListener(val outputDir: String, logger: Logger) extends Tests
         case TStatus.Failure => logWith(Colors.yellow("x"))
         case TStatus.Skipped => logWith(Colors.yellow("o"))
         case TStatus.Success => logWith(Colors.green("+"))
+        case _ => ()
       }
     }
 
