@@ -6,33 +6,25 @@ It will be helpful to read the [SBT documentation on multi-project builds](http:
 
 ## Adding a simple library sub-project
 
-You can make your application depend on a simple library project. Just add another sbt project definition in your `project/Build.scala` build file:
+You can make your application depend on a simple library project. Just add another sbt project definition in your `build.sbt` file:
 
 ```
-import sbt._
-import Keys._
 import play.Project._
 
-object ApplicationBuild extends Build {
+import play.Project._
 
-  val appName         = "my-first-application"
-  val appVersion      = "1.0"
+name := "my-first-application"
 
-  val appDependencies = Seq(
-    //if it's a java project add javaCore, javaJdbc, jdbc etc.
-  )
-  
-  val mySubProject = play.Project("my-library", file("myLibrary"))
+version := "1.0"
 
-  val main = play.Project(
-    appName, appVersion, appDependencies, path = file("myProject")
-  ).dependsOn(mySubProject)
+playScalaSettings
 
-
-}
+lazy val myLibrary = project
 ```
 
-Here we have defined a sub-project in the application’s `myLibrary` folder. This sub-project is a standard sbt project, using the default layout:
+The lowercased `project` on the last line is a Scala Macro which will use the name of the val it is being assigned to in order to determine the project's name and folder.
+
+The above example defines a sub-project in the application’s `myLibrary` folder. This sub-project is a standard sbt project, using the default layout:
 
 ```
 myProject
@@ -73,7 +65,9 @@ When you run your Play application in dev mode, the dependent projects are autom
 
 As a Play application is just a standard sbt project with a default configuration, it can depend on another Play application. 
 
-The configuration is very close to the previous one. Simply configure your sub-project as a `play.Project`:
+> The following example uses a `build.scala` file to declare a `play.Project`. This approach was the way Play applications were defined prior to version 2.2. The approach is retained in order to support backward compatibility. We recommend that you convert to the `build.sbt` based approach or, if using a `build.scala`, you use sbt's `Project` type and `project` macro.
+
+Configure your sub-project as a `play.Project`:
 
 ```
 import sbt._
@@ -185,19 +179,19 @@ project
 `conf/routes`:
 
 ```
-GET /index                          controllers.Application.index()
+GET /index                  controllers.Application.index()
 
 ->  /admin admin.Routes
 
-GET     /assets/*file               controllers.Assets.at(path="/public", file)
+GET     /assets/*file       controllers.Assets.at(path="/public", file)
 ```
 
 `modules/admin/conf/admin.routes`:
 
 ```
-GET /index                           controllers.admin.Application.index()
+GET /index                  controllers.admin.Application.index()
 
-GET     /assets/*file               controllers.admin.Assets.at(path="/public", file)
+GET /assets/*file           controllers.admin.Assets.at(path="/public", file)
 
 ```
 

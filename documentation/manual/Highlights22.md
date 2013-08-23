@@ -22,7 +22,23 @@
 
 ## sbt 0.13 support
 
-Various usability and performance improvements. For more information please refer to the [sbt 0.13 release notes](http://www.scala-sbt.org/0.13.0/docs/Community/ChangeSummary_0.13.0.html)
+There have been various usability and performance improvements. 
+
+One usability improvement is that we now support `build.sbt` files for building Play projects e.g. `samples/java/helloworld/build.sbt`:
+
+```scala
+import play.Project._
+
+name := "helloworld"
+
+version := "1.0"
+
+playJavaSettings
+```
+
+The `playJavaSettings` now declares all that is required for a Java project. Similarly `playScalaSettings` exists for Play Scala projects. Check out the sample projects for examples of this new build configuration. Note that the previous method of using build.scala along with `play.Project` is still supported.
+
+For more information on what has changed for sbt 0.13 please refer to its [release notes](http://www.scala-sbt.org/0.13.0/docs/Community/ChangeSummary_0.13.0.html)
 
 ## New stage and dist tasks
 

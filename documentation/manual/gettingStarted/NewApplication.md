@@ -49,25 +49,16 @@ Be sure to replace `2.1.0` here by the exact version you want to use. If you wan
 resolvers += "Typesafe Snapshots" at "http://repo.typesafe.com/typesafe/snapshots/"
 ```
 
-In `project/Build.scala`:
+In `build.sbt`:
 
 ```scala
-import sbt._
-import Keys._
 import play.Project._
- 
-object ApplicationBuild extends Build {
- 
-  val appName         = "My first application"
-  val appVersion      = "1.0"
- 
-  val appDependencies = Nil
- 
-  val main = play.Project(
-    appName, appVersion, appDependencies
-  ) 
- 
-}
+
+name := "My first application"
+
+version := "1.0"
+
+playScalaSettings
 ```
 
 You can then launch the sbt console in this directory:

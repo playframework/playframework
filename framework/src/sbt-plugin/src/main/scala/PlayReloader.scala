@@ -1,8 +1,9 @@
-package sbt
+package play
 
 import play.api._
 import play.core._
-import Keys._
+import sbt.{ Project => SbtProject, _ }
+import sbt.Keys._
 import PlayExceptions._
 
 trait PlayReloader {
@@ -12,7 +13,7 @@ trait PlayReloader {
 
   def newReloader(state: State, playReload: TaskKey[sbt.inc.Analysis], createClassLoader: ClassLoaderCreator, classpathTask: TaskKey[Classpath], baseLoader: ClassLoader) = {
 
-    val extracted = Project.extract(state)
+    val extracted = SbtProject.extract(state)
 
     new SBTLink {
 
@@ -144,7 +145,7 @@ trait PlayReloader {
 
       lazy val settings = {
         import scala.collection.JavaConverters._
-        extracted.get(PlayKeys.devSettings).toMap.asJava
+        extracted.get(Keys.devSettings).toMap.asJava
       }
 
       // ---
@@ -236,7 +237,7 @@ trait PlayReloader {
             val JavacErrorInfo = """\[error\]\s*([a-z ]+):(.*)""".r
             val JavacErrorPosition = """\[error\](\s*)\^\s*""".r
 
-            Project.runTask(streamsManager, state).map(_._2).get.toEither.right.toOption.map { streamsManager =>
+            SbtProject.runTask(streamsManager, state).map(_._2).get.toEither.right.toOption.map { streamsManager =>
               var first: (Option[(String, String, String)], Option[Int]) = (None, None)
               var parsed: (Option[(String, String, String)], Option[Int]) = (None, None)
               Output.lastLines(i.node.get.asInstanceOf[ScopedKey[_]], streamsManager).map(_.replace(scala.Console.RESET, "")).map(_.replace(scala.Console.RED, "")).collect {
@@ -278,7 +279,7 @@ trait PlayReloader {
       private def newClassLoader = {
         val version = classLoaderVersion.incrementAndGet
         val name = "ReloadableClassLoader(v" + version + ")"
-        val classpath = Project.runTask(classpathTask, state).map(_._2).get.toEither.right.get
+        val classpath = SbtProject.runTask(classpathTask, state).map(_._2).get.toEither.right.get
         val urls = Path.toURLs(classpath.files)
         val loader = createClassLoader(name, urls, baseLoader)
         currentApplicationClassLoader = Some(loader)
@@ -291,7 +292,7 @@ trait PlayReloader {
 
           if (jnotify.hasChanged || hasChangedFiles) {
             jnotify.reloaded()
-            Project.runTask(playReload, state).map(_._2).get.toEither
+            SbtProject.runTask(playReload, state).map(_._2).get.toEither
               .left.map { incomplete =>
                 jnotify.changed()
                 Incomplete.allExceptions(incomplete).headOption.map {
@@ -329,7 +330,7 @@ trait PlayReloader {
       def runTask(task: String): AnyRef = {
         val parser = Act.scopedKeyParser(state)
         val Right(sk) = complete.DefaultParsers.result(parser, task)
-        val result = Project.runTask(sk.asInstanceOf[Def.ScopedKey[Task[AnyRef]]], state).map(_._2)
+        val result = SbtProject.runTask(sk.asInstanceOf[Def.ScopedKey[Task[AnyRef]]], state).map(_._2)
 
         result.flatMap(_.toEither.right.toOption).getOrElse(null)
       }

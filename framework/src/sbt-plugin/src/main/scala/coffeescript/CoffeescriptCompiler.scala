@@ -1,7 +1,7 @@
 package play.core.coffeescript
 
 import java.io._
-import sbt.PlayExceptions.AssetCompilationException
+import play.PlayExceptions.AssetCompilationException
 
 object CoffeescriptCompiler {
 

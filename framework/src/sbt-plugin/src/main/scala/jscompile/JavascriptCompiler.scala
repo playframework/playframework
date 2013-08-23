@@ -1,6 +1,6 @@
 package play.core.jscompile
 
-import sbt.PlayExceptions.AssetCompilationException
+import play.PlayExceptions.AssetCompilationException
 import java.io._
 import play.api._
 import scala.collection.JavaConverters._
