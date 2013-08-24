@@ -8,8 +8,7 @@ import play.api.libs.iteratee._
 import Play.current
 
 import java.io._
-import java.net.JarURLConnection
-import scalax.io.{ Resource }
+import java.net.{ URI, JarURLConnection }
 import org.joda.time.format.{ DateTimeFormatter, DateTimeFormat }
 import org.joda.time.DateTimeZone
 import collection.JavaConverters._
@@ -60,11 +59,10 @@ class AssetsBuilder extends Controller {
   /**
    * Generates an `Action` that serves a static resource.
    *
-   * @param path the root folder for searching the static resource files, such as `"/public"`
-   * @param file the file part extracted from the URL
+   * @param path the root folder for searching the static resource files, such as `"/public"`. Not URL encoded.
+   * @param file the file part extracted from the URL. May be URL encoded (note that %2F decodes to literal /).
    */
   def at(path: String, file: String): Action[AnyContent] = Action { request =>
-
     def parseDate(date: String): Option[java.util.Date] = try {
       //jodatime does not parse timezones, so we handle that manually
       val d = dfp.parseDateTime(date.replace(parsableTimezoneCode, "")).toDate
@@ -73,7 +71,7 @@ class AssetsBuilder extends Controller {
       case NonFatal(_) => None
     }
 
-    val resourceName = Option(path + "/" + file).map(name => if (name.startsWith("/")) name else ("/" + name)).get
+    val resourceName = (if (path.startsWith("/")) path else "/" + path) + new URI(file).getPath
 
     if (new File(resourceName).isDirectory || !new File(resourceName).getCanonicalPath.startsWith(new File(path).getCanonicalPath)) {
       NotFound
