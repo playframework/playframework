@@ -26,8 +26,6 @@ import java.nio.channels.ClosedChannelException
 
 private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
 
-  implicit val internalExecutionContext =  play.core.Execution.internalContext
-
   private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
 
   /**
@@ -160,6 +158,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           //execute normal action
           case Right((action: EssentialAction, app)) =>
             val a = EssentialAction { rh =>
+              import play.api.libs.iteratee.Execution.Implicits.trampoline
               Iteratee.flatten(action(rh).unflatten.map(_.it).recover {
                 case error => Done(app.handleError(requestHeader, error),Input.Empty): Iteratee[Array[Byte],SimpleResult]
               })
@@ -190,6 +189,8 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           val bodyParser = Iteratee.flatten(
             scala.concurrent.Future(action(requestHeader))(play.api.libs.concurrent.Execution.defaultContext)
           )
+
+          import play.api.libs.iteratee.Execution.Implicits.trampoline
 
           val expectContinue: Option[_] = requestHeader.headers.get("Expect").filter(_.equalsIgnoreCase("100-continue"))
 
@@ -236,13 +237,13 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                   // Connection must be set to close because whatever comes next in the stream is either the request
                   // body, because the client waited too long for our response, or the next request, and there's no way
                   // for us to know which.  See RFC2616 Section 8.2.3.
-                  Future.successful(result.copy(connection = HttpConnection.Close), 0)
+                  Future.successful((result.copy(connection = HttpConnection.Close), 0))
                 }
                 case Step.Error(msg, _) => {
                   e.getChannel.setReadable(true)
                   val error = new RuntimeException("Body parser iteratee in error: " + msg)
                   val result = app.map(_.handleError(requestHeader, error)).getOrElse(DefaultGlobal.onError(requestHeader, error))
-                  Future.successful(result.copy(connection = HttpConnection.Close), 0)
+                  Future.successful((result.copy(connection = HttpConnection.Close), 0))
                 }
               }
             }
@@ -282,6 +283,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         case Empty => Cont(step(future))
       }
 
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
     Enumeratee.breakE[A](_ => !channel.isConnected()).transform(Cont(step(None)))
   }
 
