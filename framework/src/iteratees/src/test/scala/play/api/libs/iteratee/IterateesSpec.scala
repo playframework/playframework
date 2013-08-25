@@ -17,6 +17,10 @@ object IterateesSpec extends Specification
     }
   }
 
+  def checkUnflattenResult[A, E](i: Iteratee[A, E], expected: Step[A, E]) = {
+    await(i.unflatten) must equalTo(expected)
+  }
+
   def checkImmediateFoldFailure[A, E](i: Iteratee[A, E]) = {
     mustExecute(1) { foldEC =>
       val e = new Exception("exception")
@@ -52,6 +56,10 @@ object IterateesSpec extends Specification
 
     "return future fold errors in promise" in {
       checkFutureFoldFailure(i)
+    }
+
+    "support unflattening their state" in {
+      checkUnflattenResult(i, Step.Done(1, Input.El("x")))
     }
 
   }
@@ -106,6 +114,10 @@ object IterateesSpec extends Specification
           _ => ???,
           (_, _) => ???)(foldEC))
       }
+    }
+
+    "support unflattening their state" in {
+      checkUnflattenResult(i, Step.Done(1, Input.El("x")))
     }
 
     "flatMap directly to result when no remaining input" in {
@@ -172,6 +184,10 @@ object IterateesSpec extends Specification
       checkFutureFoldFailure(i)
     }
 
+    "support unflattening their state" in {
+      checkUnflattenResult(i, Step.Cont(k))
+    }
+
     "flatMap recursively" in {
       mustExecute(1) { flatMapEC =>
         await(Iteratee.flatten(Cont[Int, Int](_ => Done(3)).flatMap((x: Int) => Done[Int, Int](x * 2))(flatMapEC).feed(Input.El(11))).unflatten) must equalTo(Step.Done(6, Input.Empty))
@@ -196,6 +212,10 @@ object IterateesSpec extends Specification
       checkFutureFoldFailure(i)
     }
 
+    "support unflattening their state" in {
+      checkUnflattenResult(i, Step.Error("msg", Input.El("x")))
+    }
+
     "flatMap to an error" in {
       mustExecute(0) { flatMapEC =>
         await(Error("msg", Input.El("bad")).flatMap((x: Int) => Done("done"))(flatMapEC).unflatten) must equalTo(Step.Error("msg", Input.El("bad")))
@@ -206,12 +226,14 @@ object IterateesSpec extends Specification
 
   "Iteratees fed multiple inputs" should {
 
+    // TODO: mapDone is deprecated, remove in 2.3.
     "map the final iteratee's result (with mapDone)" in {
       mustExecute(4, 1) { (foldEC, mapEC) =>
         await(Enumerator(1, 2, 3, 4) |>>> Iteratee.fold[Int, Int](0)(_ + _)(foldEC).mapDone(_ * 2)(mapEC)) must equalTo(20)
       }
     }
 
+    // TODO: mapDone is deprecated, remove in 2.3.
     "map the final iteratee's result (with mapDone)" in {
       mustExecute(4, 1) { (foldEC, mapEC) =>
         await(Enumerator(1, 2, 3, 4) |>>> Iteratee.fold[Int, Int](0)(_ + _)(foldEC).mapDone(_ * 2)(mapEC)) must equalTo(20)

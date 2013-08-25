@@ -217,7 +217,7 @@ object Concurrent {
   }
 
   /**
-   * Enumeratee that times out if the iteratee it feeds to takes to long to consume available input.
+   * Enumeratee that times out if the iteratee it feeds to takes too long to consume available input.
    *
    * @param timeout The timeout period
    * @param unit the time unit

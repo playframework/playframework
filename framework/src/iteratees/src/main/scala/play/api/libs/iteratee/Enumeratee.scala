@@ -126,9 +126,9 @@ object Enumeratee {
    */
   def zipWith[E, A, B, C](inner1: Iteratee[E, A], inner2: Iteratee[E, B])(zipper: (A, B) => C)(implicit ec: ExecutionContext): Iteratee[E, C] = {
     val pec = ec.prepare()
+    import Execution.Implicits.{ defaultExecutionContext => ec } // Shadow ec to make this the only implicit EC in scope
 
     def getNext(it1: Iteratee[E, A], it2: Iteratee[E, B]): Iteratee[E, C] = {
-      import ExecutionContext.Implicits.global
       val eventuallyIter =
         for (
           (a1, it1_) <- getInside(it1);
@@ -145,7 +145,6 @@ object Enumeratee {
     }
 
     def step(it1: Iteratee[E, A], it2: Iteratee[E, B])(in: Input[E]) = {
-      import ExecutionContext.Implicits.global
       Iteratee.flatten(
         for (
           it1_ <- it1.feed(in);

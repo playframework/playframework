@@ -35,7 +35,7 @@ object Traversable {
                 case (toPush, left) => Done(k(Input.El(toPush)), Input.El(left))
               }
               case _ => Done(inner, in)
-            }(ExecutionContext.global)
+            }
 
           case Input.EOF => Done(inner, Input.EOF)
 
@@ -59,9 +59,9 @@ object Traversable {
                 case Step.Done(_, _) => Cont(step(inner, (leftToTake - all.size)))
                 case Step.Cont(k) => Cont(step(k(Input.El(all)), (leftToTake - all.size)))
                 case Step.Error(_, _) => Cont(step(inner, (leftToTake - all.size)))
-              }(ExecutionContext.global)
+              }
               case (x, left) if x.isEmpty => Done(inner, Input.El(left))
-              case (toPush, left) => Done(inner.pureFlatFold { case Step.Cont(k) => k(Input.El(toPush)); case _ => inner }(ExecutionContext.global), Input.El(left))
+              case (toPush, left) => Done(inner.pureFlatFold { case Step.Cont(k) => k(Input.El(toPush)); case _ => inner }, Input.El(left))
             }
 
           case Input.EOF => Done(inner, Input.EOF)
@@ -121,7 +121,7 @@ object Traversable {
                 it.pureFlatFold {
                   case Step.Cont(k) => Enumeratee.passAlong.applyOn(k(toPass))
                   case _ => Done(it, toPass)
-                }(ExecutionContext.global)
+                }
             }
           case Input.Empty => Cont(step(it, leftToDrop))
 
