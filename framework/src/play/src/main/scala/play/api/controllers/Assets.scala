@@ -71,7 +71,7 @@ class AssetsBuilder extends Controller {
       case NonFatal(_) => None
     }
 
-    val resourceName = (if (path.startsWith("/")) path else "/" + path) + new URI(file).getPath
+    val resourceName = resourceNameFor(path, file)
 
     if (new File(resourceName).isDirectory || !new File(resourceName).getCanonicalPath.startsWith(new File(path).getCanonicalPath)) {
       NotFound
@@ -162,6 +162,19 @@ class AssetsBuilder extends Controller {
       }.getOrElse(NotFound)
 
     }
+  }
+
+  /**
+   * Get the name of the resource for a static resource. Used by `at`.
+   *
+   * @param path the root folder for searching the static resource files, such as `"/public"`. Not URL encoded.
+   * @param file the file part extracted from the URL. May be URL encoded (note that %2F decodes to literal /).
+   */
+  def resourceNameFor(path: String, file: String): String = {
+    // TODO: Decode file directly, rather than jumping through a URI
+    val slashPath = if (path.startsWith("/")) path else ("/" + path)
+    val encodedPath = new File(slashPath).toURI.getRawPath // Encode so we can decode safely
+    new URI(encodedPath + "/" + file).getPath
   }
 
   // -- LastModified handling
