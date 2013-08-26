@@ -1,6 +1,7 @@
 # Play 2.1 migration guide
 
 To migrate a **Play 2.0.x** application to **Play 2.1.x** first update Play's `sbt-plugin` in the `project/plugins.sbt` file:
+You have to replace the **x** by the current version of Play you are updating to.
 
 ```
 addSbtPlugin("play" % "sbt-plugin" % "2.1.x")
