@@ -2,6 +2,7 @@ package play.api.mvc
 
 import scala.language.reflectiveCalls
 import java.io._
+import scala.concurrent.Future
 import scala.xml._
 import play.api._
 import play.api.libs.json._
@@ -12,8 +13,6 @@ import play.api.libs.Files.TemporaryFile
 import MultipartFormData._
 import scala.collection.mutable.ListBuffer
 import scalax.io.Resource
-
-import play.core.Execution.Implicits.internalContext
 
 /**
  * A request body that adapts automatically according the request Content-Type.
@@ -295,6 +294,7 @@ trait BodyParsers {
      * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
      */
     def tolerantText(maxLength: Int): BodyParser[String] = BodyParser("text, maxLength=" + maxLength) { request =>
+      import Execution.Implicits.trampoline
       Traversable.takeUpTo[Array[Byte]](maxLength)
         .transform(Iteratee.consume[Array[Byte]]().map(c => new String(c, request.charset.getOrElse("utf-8"))))
         .flatMap(Iteratee.eofOrElse(Results.EntityTooLarge))
@@ -329,6 +329,7 @@ trait BodyParsers {
      * @param memoryThreshold If the content size is bigger than this limit, the content is stored as file.
      */
     def raw(memoryThreshold: Int): BodyParser[RawBuffer] = BodyParser("raw, memoryThreshold=" + memoryThreshold) { request =>
+      import play.core.Execution.Implicits.internalContext // Cannot run on same thread as may need to write to a file
       val buffer = RawBuffer(memoryThreshold)
       Iteratee.foreach[Array[Byte]](bytes => buffer.push(bytes)).map { _ =>
         buffer.close()
@@ -349,6 +350,7 @@ trait BodyParsers {
      * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
      */
     def tolerantJson(maxLength: Int): BodyParser[JsValue] = BodyParser("json, maxLength=" + maxLength) { request =>
+      import play.api.libs.iteratee.Execution.Implicits.trampoline
       Traversable.takeUpTo[Array[Byte]](maxLength).apply(Iteratee.consume[Array[Byte]]().map { bytes =>
         scala.util.control.Exception.allCatch[JsValue].either {
           Json.parse(new String(bytes, request.charset.getOrElse("utf-8")))
@@ -403,6 +405,7 @@ trait BodyParsers {
      * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
      */
     def tolerantXml(maxLength: Int): BodyParser[NodeSeq] = BodyParser("xml, maxLength=" + maxLength) { request =>
+      import play.api.libs.iteratee.Execution.Implicits.trampoline // XML parser doesn't perform IO
       Traversable.takeUpTo[Array[Byte]](maxLength).apply(Iteratee.consume[Array[Byte]]().map { bytes =>
         scala.util.control.Exception.allCatch[NodeSeq].either {
           XML.loadString(new String(bytes, request.charset.getOrElse("utf-8")))
@@ -449,6 +452,7 @@ trait BodyParsers {
      * @param to The file used to store the content.
      */
     def file(to: File): BodyParser[File] = BodyParser("file, to=" + to) { request =>
+      import play.core.Execution.Implicits.internalContext
       Iteratee.fold[Array[Byte], FileOutputStream](new FileOutputStream(to)) { (os, data) =>
         os.write(data)
         os
@@ -462,8 +466,10 @@ trait BodyParsers {
      * Store the body content into a temporary file.
      */
     def temporaryFile: BodyParser[TemporaryFile] = BodyParser("temporaryFile") { request =>
-      val tempFile = TemporaryFile("requestBody", "asTemporaryFile")
-      file(tempFile.file)(request).map(_ => Right(tempFile))
+      Iteratee.flatten(Future {
+        val tempFile = TemporaryFile("requestBody", "asTemporaryFile")
+        file(tempFile.file)(request).map(_ => Right(tempFile))(play.api.libs.iteratee.Execution.trampoline)
+      }(play.core.Execution.internalContext))
     }
 
     // -- FormUrlEncoded
@@ -477,6 +483,7 @@ trait BodyParsers {
 
       import play.core.parsers._
       import scala.collection.JavaConverters._
+      import play.api.libs.iteratee.Execution.Implicits.trampoline
 
       Traversable.takeUpTo[Array[Byte]](maxLength).apply(Iteratee.consume[Array[Byte]]().map { c =>
         scala.util.control.Exception.allCatch[Map[String, Seq[String]]].either {
@@ -521,6 +528,7 @@ trait BodyParsers {
      * Guess the body content by checking the Content-Type header.
      */
     def anyContent: BodyParser[AnyContent] = BodyParser("anyContent") { request =>
+      import play.api.libs.iteratee.Execution.Implicits.trampoline
       request.contentType match {
         case _ if request.method == "GET" || request.method == "HEAD" => {
           Play.logger.trace("Parsing AnyContent as empty")
@@ -566,6 +574,7 @@ trait BodyParsers {
      * @param filePartHandler Handles file parts.
      */
     def multipartFormData[A](filePartHandler: Multipart.PartHandler[FilePart[A]]): BodyParser[MultipartFormData[A]] = BodyParser("multipartFormData") { request =>
+      import play.api.libs.iteratee.Execution.Implicits.trampoline
       val handler: Multipart.PartHandler[Either[Part, FilePart[A]]] =
         Multipart.handleDataPart.andThen(_.map(Left(_)))
           .orElse({ case Multipart.FileInfoMatcher(partName, fileName, _) if fileName.trim.isEmpty => Done(Left(MissingFilePart(partName)), Input.Empty) }: Multipart.PartHandler[Either[Part, FilePart[A]]])
@@ -595,6 +604,8 @@ trait BodyParsers {
         maybeBoundary.map { boundary =>
 
           BodyParser { request =>
+
+            import play.api.libs.iteratee.Execution.Implicits.trampoline
 
             val CRLF = "\r\n".getBytes
             val CRLFCRLF = CRLF ++ CRLF
@@ -644,6 +655,7 @@ trait BodyParsers {
         handleFilePart {
           case FileInfo(partName, filename, contentType) =>
             val tempFile = TemporaryFile("multipartBody", "asTemporaryFile")
+            import play.core.Execution.Implicits.internalContext
             Iteratee.fold[Array[Byte], FileOutputStream](new java.io.FileOutputStream(tempFile.file)) { (os, data) =>
               os.write(data)
               os
@@ -724,6 +736,7 @@ trait BodyParsers {
       def handleFilePart[A](handler: FileInfo => Iteratee[Array[Byte], A]): PartHandler[FilePart[A]] = {
         case FileInfoMatcher(partName, fileName, contentType) =>
           val safeFileName = fileName.split('\\').takeRight(1).mkString
+          import play.api.libs.iteratee.Execution.Implicits.trampoline
           handler(FileInfo(partName, safeFileName, contentType)).map(a => FilePart(partName, safeFileName, contentType, a))
       }
 
@@ -751,6 +764,7 @@ trait BodyParsers {
 
       def handleDataPart: PartHandler[Part] = {
         case headers @ PartInfoMatcher(partName) if !FileInfoMatcher.unapply(headers).isDefined =>
+          import play.api.libs.iteratee.Execution.Implicits.trampoline
           Traversable.takeUpTo[Array[Byte]](DEFAULT_MAX_TEXT_LENGTH)
             .transform(Iteratee.consume[Array[Byte]]().map(bytes => DataPart(partName, new String(bytes, "utf-8"))))
             .flatMap { data =>
@@ -779,6 +793,7 @@ trait BodyParsers {
      * @param parser The BodyParser to wrap
      */
     def maxLength[A](maxLength: Int, parser: BodyParser[A]): BodyParser[Either[MaxSizeExceeded, A]] = BodyParser("maxLength=" + maxLength + ", wrapping=" + parser.toString) { request =>
+      import play.api.libs.iteratee.Execution.Implicits.trampoline
       Traversable.takeUpTo[Array[Byte]](maxLength).transform(parser(request)).flatMap(Iteratee.eofOrElse(MaxSizeExceeded(maxLength))).map {
         case Right(Right(result)) => Right(Right(result))
         case Right(Left(badRequest)) => Left(badRequest)

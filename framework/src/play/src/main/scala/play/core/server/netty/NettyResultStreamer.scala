@@ -20,8 +20,6 @@ import scala.util.{ Failure, Success }
  */
 object NettyResultStreamer {
 
-  implicit val internalExecutionContext = play.core.Execution.internalContext
-
   // A channel status holds whether the connection must be closed and the last subsequence sent
   class ChannelStatus(val closeConnection: Boolean, val lastSubsequence: Int)
 
@@ -60,6 +58,7 @@ object NettyResultStreamer {
     }
 
     // Clean up
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
     val sentResponse = result.body |>>> bodyIteratee
     sentResponse.onComplete {
       case Success(cs: ChannelStatus) =>
@@ -97,6 +96,8 @@ object NettyResultStreamer {
       // We reached EOF, which means we either have one or zero chunks
       case Input.EOF => Done(Right(chunk))
     }
+
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
 
     takeUpToOneChunk(None).flatMap {
       case Right(chunk) => {
@@ -184,6 +185,7 @@ object NettyResultStreamer {
   def nextWhenComplete[E, A](future: ChannelFuture, step: (Input[E]) => Iteratee[E, A], done: A)(implicit ctx: ChannelHandlerContext): Iteratee[E, A] = {
     // If the channel isn't currently connected, then this future will never be redeemed.  This is racey, and impossible
     // to 100% detect, but it's better to fail fast if possible than to sit there waiting forever
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
     if (!ctx.getChannel.isConnected) {
       Done(done)
     } else {
