@@ -73,7 +73,7 @@ object ApplicationBuild extends Build {
 }
 ```
 
-The `mainLang` parameter for the project is not required anymore. The main language is determined based on the dependencies added to the project. If dependencies contains `javaCore` then the language is set to `JAVA` otherwise `SCALA`.Notice the modularized dependencies in the `appDependencies` section. Furthermore you have to add a comma after every depedency, also the extern ones, where it wasn't required in **play 2.0.x**.
+The `mainLang` parameter for the project is not required anymore. The main language is determined based on the dependencies added to the project. If dependencies contains `javaCore` then the language is set to `JAVA` otherwise `SCALA`.Notice the modularized dependencies in the `appDependencies` section. Furthermore you have to add a comma after every dependency, also the extern ones, where it wasn't required in **play 2.0.x**.
 
 ## play.mvc.Controller.form() renamed to play.data.Form.form()
 
