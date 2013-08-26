@@ -238,7 +238,7 @@ object Enumeratee {
 
       def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
         case Input.El(e) =>
-          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(Future(f(e))(pec).flatMap(_(Cont(k)))(dec))
+          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(Future(f(e))(pec).flatMap(_.apply(Cont(k)))(dec))
 
         case in @ Input.Empty =>
           new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(in)
@@ -258,11 +258,12 @@ object Enumeratee {
      * @param f Used to transform each input into an Enumerator.
      * $paramEcSingle
      */
-    def apply[To](f: Input[From] => Enumerator[To]) = new CheckDone[From, To] {
+    def apply[To](f: Input[From] => Enumerator[To])(implicit ec: ExecutionContext) = new CheckDone[From, To] {
+      val pec = ec.prepare()
 
       def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
         case in =>
-          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(f(in)(Cont(k)))
+          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(Future(f(in))(pec).flatMap(_.apply(Cont(k)))(dec))
       }
 
       def continue[A](k: K[To, A]) = Cont(step(k))
