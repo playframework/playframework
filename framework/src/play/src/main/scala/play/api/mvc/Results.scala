@@ -3,6 +3,7 @@ package play.api.mvc
 import play.api.libs.iteratee._
 import play.api.http._
 import play.api.http.HeaderNames._
+import play.api.http.HttpProtocol._
 import play.api.{ Application, Play }
 import play.api.i18n.Lang
 
@@ -648,7 +649,6 @@ object Results extends Results {
 trait Results {
 
   import play.api.http.Status._
-  import play.api.http.HeaderNames._
 
   /**
    * Generates default `SimpleResult` from a content type, headers and content.
