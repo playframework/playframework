@@ -5,7 +5,6 @@ import sbt.Keys._
 import play.Keys._
 import play.core.{ SBTDocHandler, SBTLink, PlayVersion }
 import play.PlaySourceGenerators._
-import scala.Some
 
 object ApplicationBuild extends Build {
 
