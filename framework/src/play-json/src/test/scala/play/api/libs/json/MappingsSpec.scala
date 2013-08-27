@@ -195,6 +195,10 @@ object MappingsSpec extends Specification {
 
     "coerce type" in {
       (Path \ "age").read(int).validate(valid) mustEqual(Success(27))
+      (Path \ "age").read(int compose min(20)).validate(valid) mustEqual(Success(27))
+      (Path \ "age").read(int compose max(50)).validate(valid) mustEqual(Success(27))
+      (Path \ "age").read(int compose min(50)).validate(valid) mustEqual(Failure(Seq((Path \ "age") -> Seq(ValidationError("validation.min", 50)))))
+      (Path \ "age").read(int compose max(0)).validate(valid) mustEqual(Failure(Seq((Path \ "age") -> Seq(ValidationError("validation.max", 0)))))
       (Path \ "firstname").read(int).validate(valid) mustEqual(Failure(Seq((Path \ "firstname") -> Seq(ValidationError("validation.type-mismatch", "Int")))))
     }
 

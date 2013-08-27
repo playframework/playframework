@@ -28,8 +28,8 @@ trait GenericRules {
   }
 
   def notEmpty = validateWith[String]("validation.nonemptytext"){ !_.isEmpty }
-  def min[A](m: Ordered[A]) = validateWith[Ordered[A]]("validation.min", m){ _ >= m.asInstanceOf[A] }
-  def max[A](m: Ordered[A]) = validateWith[Ordered[A]]("validation.max", m){ _ <= m.asInstanceOf[A] }
+  def min[T](m: T)(implicit o: Ordering[T]) = validateWith[T]("validation.min", m){ x => o.gteq(x, m) }
+  def max[T](m: T)(implicit o: Ordering[T]) = validateWith[T]("validation.max", m){ x => o.lteq(x, m) }
   def minLength(l: Int) = validateWith[String]("validation.minLength", l){ _.size >= l }
   def maxLength(l: Int) = validateWith[String]("validation.maxLength", l){ _.size <= l }
   def pattern(regex: scala.util.matching.Regex) = validateWith("validation.pattern", regex){regex.unapplySeq(_: String).isDefined}
