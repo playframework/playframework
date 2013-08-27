@@ -243,7 +243,15 @@ object EnumeratorsSpec extends Specification
         Await.result(enumerator |>>> Iteratee.fold[Int, String]("")(_ + _)(foldEC), Duration.Inf) must equalTo("123456789101112")
       }
     }
+  }
 
+  "Enumerator.unfold" should {
+    "unfolds a value into input for an enumerator" in {
+      mustExecute(5) { unfoldEC =>
+        val enumerator = Enumerator.unfold[Int, Int](0)(s => if (s > 3) None else Some((s + 1, s)))(unfoldEC)
+        mustEnumerateTo(0, 1, 2, 3)(enumerator)
+      }
+    }
   }
 
   "Enumerator.repeat" should {
