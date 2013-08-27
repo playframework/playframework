@@ -132,7 +132,7 @@ Each time you make a modification you can run all the tests from the play test r
 
 ## The Project class
 
-The `Project` class will represents projects that tasks can be a part of.  A project also has a list of members that can be assigned to tasks in the project.  Let's do a first implementation:
+The `Project` class will represent projects that tasks can be a part of.  A project also has a list of members that can be assigned to tasks in the project.  Let's do a first implementation:
 
 ```java
 package models;
@@ -174,9 +174,9 @@ public class Project extends Model {
 }
 ```
 
-A project has a name, a folder that it belongs to, and members.  This time you can see that we again have the `@Entity` annotation on the class, extending `Model`, `@Id` on our `id` field and `find` for running queries.  We have also declared a relation with the `User` class, declaring it as `@ManyToMany`.  This means that each user can have be members of many projects, and each project can have many users.
+A project has a name, a folder that it belongs to, and members.  This time you can see that we again have the `@Entity` annotation on the class, extending `Model`, `@Id` on our `id` field and `find` for running queries.  We have also declared a relation with the `User` class, declaring it as `@ManyToMany`.  This means that each user can be member of many projects, and each project can have many users.
 
-We have also implemented a create method.  Note that the many to many `members` association has to saved explicitly. Note also that we never actually assign the `id` property.  This is because we are going to let the database generate an id for us.
+We have also implemented a create method.  Note that the many to many `members` association has to be saved explicitly. Note also that we never actually assign the `id` property.  This is because we are going to let the database generate an id for us.
 
 Finally we have implemented another query method, one that finds all projects involving a particular user.  You can see how the dot notation has been used to refer to the `email` property of `User` in the `members` list.
 
