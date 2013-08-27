@@ -1,7 +1,8 @@
 ### HTTP form
 
-- [[Form definitions | ScalaForms]]
-- [[Using the form template helpers | ScalaFormHelpers]]
+- [[Form definitions|ScalaForms]]
+- [[Using the form template helpers|ScalaFormHelpers]]
+- [[Protecting against CSRF|ScalaCsrf]]
 
 ### Main concepts
 

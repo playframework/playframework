@@ -109,7 +109,7 @@ Now you have to generate as many inputs for the `emails` field as the form conta
 
 Use the `min` parameter to display a minimum number of fields, even if the corresponding form data are empty.
 
-> **Next:** [[Working with JSON| JavaJsonRequests]]
+> **Next:** [[Protecting against CSRF|JavaCsrf]]
 
 
 
