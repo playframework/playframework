@@ -17,7 +17,8 @@ object ApplicationBuild extends Build {
       component("play-test") % "test",
       component("play-java") % "test",
       component("play-cache") % "test",
-      component("play-docs") % "runtime"
+      component("filters-helpers") % "test",
+      component("play-docs")
     ),
 
     javaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "javaGuide" ** "code").get),

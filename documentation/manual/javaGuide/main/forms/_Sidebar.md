@@ -2,6 +2,7 @@
 
 - [[Form definitions | JavaForms]]
 - [[Using the form template helpers | JavaFormHelpers]]
+- [[Protecting against CSRF|JavaCsrf]]
 
 ### Main concepts
 
