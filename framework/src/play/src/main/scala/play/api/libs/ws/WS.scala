@@ -44,45 +44,49 @@ object WS {
 
   private val clientHolder: AtomicReference[Option[AsyncHttpClient]] = new AtomicReference(None)
 
+  private[play] def newClient(): AsyncHttpClient = {
+    val playConfig = play.api.Play.maybeApplication.map(_.configuration)
+    val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
+      .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
+      .setRequestTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
+      .setFollowRedirects(playConfig.flatMap(_.getBoolean("ws.followRedirects")).getOrElse(true))
+      .setUseProxyProperties(playConfig.flatMap(_.getBoolean("ws.useProxyProperties")).getOrElse(true))
+
+    playConfig.flatMap(_.getString("ws.useragent")).map { useragent =>
+      asyncHttpConfig.setUserAgent(useragent)
+    }
+    if (!playConfig.flatMap(_.getBoolean("ws.acceptAnyCertificate")).getOrElse(false)) {
+      asyncHttpConfig.setSSLContext(SSLContext.getDefault)
+    }
+
+    new AsyncHttpClient(asyncHttpConfig.build())
+  }
+
   /**
    * resets the underlying AsyncHttpClient
    */
   private[play] def resetClient(): Unit = {
-    val oldClient = clientHolder.getAndSet(None)
-    oldClient.map { clientRef =>
-      clientRef.close()
-    }
+    clientHolder.getAndSet(None).map(oldClient => oldClient.close())
   }
 
   /**
    * retrieves or creates underlying HTTP client.
    */
-  def client = {
-    clientHolder.get.getOrElse {
-      // Note, the following code may execute more than once, if there are several
-      // simultaneous calls to this function on different threads.  In that case,
-      // it's possible that an AsyncHttpClient will be created by the following
-      // code, but then discarded, because another thread was able to create one
-      // and store it in `clientHolder` first.
-      val playConfig = play.api.Play.maybeApplication.map(_.configuration)
-      val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
-        .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
-        .setRequestTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
-        .setFollowRedirects(playConfig.flatMap(_.getBoolean("ws.followRedirects")).getOrElse(true))
-        .setUseProxyProperties(playConfig.flatMap(_.getBoolean("ws.useProxyProperties")).getOrElse(true))
+  def client: AsyncHttpClient = {
+    clientHolder.get.getOrElse({
+      // A critical section of code. Only one caller has the opportuntity of creating a new client.
+      synchronized {
+        clientHolder.get match {
+          case None => {
+            val client = newClient()
+            clientHolder.set(Some(client))
+            client
+          }
+          case Some(client) => client
+        }
 
-      playConfig.flatMap(_.getString("ws.useragent")).map { useragent =>
-        asyncHttpConfig.setUserAgent(useragent)
       }
-      if (playConfig.flatMap(_.getBoolean("ws.acceptAnyCertificate")).getOrElse(false) == false) {
-        asyncHttpConfig.setSSLContext(SSLContext.getDefault)
-      }
-      val innerClient = new AsyncHttpClient(asyncHttpConfig.build())
-      // Only use our newly created AsyncHttpClient if clientHolder is still None, that is,
-      // if no other thread has snuck in and stored a different one in clientHolder.
-      clientHolder.compareAndSet(None, Some(innerClient))
-      clientHolder.get.get
-    }
+    })
   }
 
   /**
@@ -116,7 +120,7 @@ object WS {
      * Add http auth headers. Defaults to HTTP Basic.
      */
     private def auth(username: String, password: String, scheme: AuthScheme = AuthScheme.BASIC): WSRequest = {
-      this.setRealm((new RealmBuilder())
+      this.setRealm((new RealmBuilder)
         .setScheme(scheme)
         .setPrincipal(username)
         .setPassword(password)
@@ -292,7 +296,7 @@ object WS {
         }
 
         override def onCompleted() = {
-          Option(iteratee).map(iterateeP.success(_))
+          Option(iteratee).map(iterateeP.success)
         }
 
         override def onThrowable(t: Throwable) = {
@@ -336,7 +340,7 @@ object WS {
     def withHeaders(hdrs: (String, String)*): WSRequestHolder = {
       val headers = hdrs.foldLeft(this.headers)((m, hdr) =>
         if (m.contains(hdr._1)) m.updated(hdr._1, m(hdr._1) :+ hdr._2)
-        else (m + (hdr._1 -> Seq(hdr._2)))
+        else m + (hdr._1 -> Seq(hdr._2))
       )
       this.copy(headers = headers)
     }
@@ -438,7 +442,7 @@ object WS {
       val request = new WSRequest(method, auth, calc).setUrl(url)
         .setHeaders(headers)
         .setQueryString(queryString)
-      followRedirects.map(request.setFollowRedirects(_))
+      followRedirects.map(request.setFollowRedirects)
       timeout.map { t: Int =>
         val config = new PerRequestConfig()
         config.setRequestTimeoutInMs(t)
@@ -452,7 +456,6 @@ object WS {
 
     private[play] def prepare(method: String, body: File) = {
       import com.ning.http.client.generators.FileBodyGenerator
-      import java.nio.ByteBuffer
 
       val bodyGenerator = new FileBodyGenerator(body);
 
@@ -460,7 +463,7 @@ object WS {
         .setHeaders(headers)
         .setQueryString(queryString)
         .setBody(bodyGenerator)
-      followRedirects.map(request.setFollowRedirects(_))
+      followRedirects.map(request.setFollowRedirects)
       timeout.map { t: Int =>
         val config = new PerRequestConfig()
         config.setRequestTimeoutInMs(t)
@@ -478,7 +481,7 @@ object WS {
         .setHeaders(Map("Content-Type" -> Seq(ct.mimeType.getOrElse("text/plain"))) ++ headers)
         .setQueryString(queryString)
         .setBody(wrt.transform(body))
-      followRedirects.map(request.setFollowRedirects(_))
+      followRedirects.map(request.setFollowRedirects)
       timeout.map { t: Int =>
         val config = new PerRequestConfig()
         config.setRequestTimeoutInMs(t)
