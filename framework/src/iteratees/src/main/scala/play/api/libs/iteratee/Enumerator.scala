@@ -384,13 +384,15 @@ object Enumerator {
    * @param s The value to unfold
    * @param f The unfolding function. This will take the value, and return some tuple of the next value to unfold and
    *          the next input, or none if the value is completely unfolded.
+   * $paramEcSingle
    */
-  def unfold[S, E](s: S)(f: S => Option[(S, E)]): Enumerator[E] = checkContinue1(s)(new TreatCont1[E, S] {
+  def unfold[S, E](s: S)(f: S => Option[(S, E)])(implicit ec: ExecutionContext): Enumerator[E] = checkContinue1(s)(new TreatCont1[E, S] {
+    val pec = ec.prepare()
 
-    def apply[A](loop: (Iteratee[E, A], S) => Future[Iteratee[E, A]], s: S, k: Input[E] => Iteratee[E, A]): Future[Iteratee[E, A]] = f(s) match {
+    def apply[A](loop: (Iteratee[E, A], S) => Future[Iteratee[E, A]], s: S, k: Input[E] => Iteratee[E, A]): Future[Iteratee[E, A]] = Future(f(s))(pec).flatMap {
       case Some((s, e)) => loop(k(Input.El(e)), s)
       case None => Future.successful(Cont(k))
-    }
+    }(dec)
   })
 
   /**
