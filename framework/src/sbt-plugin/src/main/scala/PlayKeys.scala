@@ -9,6 +9,8 @@ trait Keys {
 
   val anorm = "com.typesafe.play" %% "anorm" % play.core.PlayVersion.current
 
+  val twitterBootstrap = "com.typesafe.play" %% "twitter-bootstrap" % play.core.PlayVersion.current
+
   val javaCore = "com.typesafe.play" %% "play-java" % play.core.PlayVersion.current
 
   val javaJdbc = "com.typesafe.play" %% "play-java-jdbc" % play.core.PlayVersion.current
