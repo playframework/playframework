@@ -46,7 +46,7 @@ Open a new command line and type:
 
     ~$ play new zentasks
 
-It will prompt you for the application full name.  Type **'Zen Tasks'**.  It will then prompt you for a template to use.  We are creating a Java application, so type **2**.
+It will prompt you for the application full name.  Type **'ZenTasks'**.  It will then prompt you for a template to use.  We are creating a Java application, so type **2**.
 
 > Whether you select Java or Scala now, you can always change it later.
 
