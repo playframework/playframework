@@ -34,7 +34,7 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
     case s if s.isValidLong => Success(s.toLong)
   }("Long")
 
-   // BigDecimal.isValidFloat is buggy, see [SI-6699]
+  // BigDecimal.isValidFloat is buggy, see [SI-6699]
   import java.{lang => jl}
   private def isValidFloat(bd: BigDecimal) = {
     val d = bd.toFloat
@@ -68,6 +68,11 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
 
   type M = Map[String, Seq[String]]
 
+  def map[O](r: Rule[Seq[String], O]): Rule[M, Map[String, O]] = {
+    val toSeq = Rule.zero[M].fmap(_.toSeq)
+    super.map[Seq[String], O](r,  toSeq)
+  }
+
   private def toMapKey(p: Path) = p.path.head.toString + p.path.tail.foldLeft("") {
     case (path, IdxPathNode(i)) => path + s"[$i]"
     case (path, KeyPathNode(k)) => path + "." + k
@@ -86,7 +91,6 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
   }
 
   implicit def pickOne[O](p: Path) =  pickInMap(p) compose seqAsString
-
 
   implicit def mapPickMap(p: Path) = Rule.fromMapping[M, M] { data =>
     val prefix = toMapKey(p) + "."
