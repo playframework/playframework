@@ -134,10 +134,10 @@ object LessCompiler {
       case e: JavaScriptException => {
 
         val error = e.getValue.asInstanceOf[Scriptable]
-        val filename = ScriptableObject.getProperty(error, "filename").asInstanceOf[String]
+        val filename = ScriptableObject.getProperty(error, "filename").toString
         val file = new File(filename)
         throw AssetCompilationException(Some(file),
-          ScriptableObject.getProperty(error, "message").asInstanceOf[String],
+          ScriptableObject.getProperty(error, "message").toString,
           Some(ScriptableObject.getProperty(error, "line").asInstanceOf[Double].intValue),
           Some(ScriptableObject.getProperty(error, "column").asInstanceOf[Double].intValue))
       }
