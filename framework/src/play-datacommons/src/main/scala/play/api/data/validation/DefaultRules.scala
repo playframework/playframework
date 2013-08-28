@@ -1,7 +1,9 @@
 package play.api.data.validation
 
 trait GenericRules {
-   def IasI[I] = Rule[I, I](i => Success(i))
+  def IasI[I] = Rule[I, I](i => Success(i))
+
+  def ignored[I, O](x: O) = Rule[I, O](_ => Success(x))
 
   def validateWith[From](msg: String, args: Any*)(pred: From => Boolean): Constraint[From] =
     v => if(!pred(v)) Failure(Seq(ValidationError(msg, args: _*))) else Success(v)

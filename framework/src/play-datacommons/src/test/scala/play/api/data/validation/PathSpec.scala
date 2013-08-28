@@ -61,6 +61,12 @@ object PathSpec extends Specification {
       errPath.read(string).validate(invalid) mustEqual(error)
     }
 
+    "ingore values" in {
+      val v = string compose notEmpty
+      val r = ((Path \ "firstname").read(v) ~ (Path \ "test").read(ignored(42))).tuppled
+      r.validate(valid) mustEqual(Success("Julien" -> 42))
+    }
+
     "support primitives types" in {
 
       "Int" in {
