@@ -66,7 +66,7 @@ Now we need to pass this form into our template, to render.  Modify the `login` 
 And now declare the form as a parameter for the login template to accept, in `app/views/login.scala.html`:
 
 ```html
-@(form: Form[Application.Login]
+@(form: Form[Application.Login])
 
 <html>
 ...
@@ -107,7 +107,7 @@ public static Result authenticate() {
 }
 ```
 
-> Make sure you add an import statement for `play.data.*` to `Application.java`
+> Make sure you add the import statements `import play.data.*;` and `import static play.data.Form.*;` to `Application.java`
 
 ### Validating a form
 
