@@ -151,10 +151,9 @@ object Dependencies {
 
     "net.contentobjects.jnotify" % "jnotify" % "0.94",
 
-    // Once we upgrade to SBT 0.13.0, we can use the build version of SBT here
-    "com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.3.0" extra("sbtVersion" -> "0.13", "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
-    "com.github.mpeltonen" % "sbt-idea" % "1.5.1" extra("sbtVersion" -> "0.13", "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
-    "com.typesafe.sbt" % "sbt-native-packager" % "0.6.0" extra("sbtVersion" ->  "0.13", "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
+    "com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.3.0" extra("sbtVersion" -> BuildSettings.buildSbtVersionBinaryCompatible, "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
+    "com.github.mpeltonen" % "sbt-idea" % "1.5.1" extra("sbtVersion" -> BuildSettings.buildSbtVersionBinaryCompatible, "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
+    "com.typesafe.sbt" % "sbt-native-packager" % "0.6.1" extra("sbtVersion" ->  BuildSettings.buildSbtVersionBinaryCompatible, "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
 
     specsSbt
   )
