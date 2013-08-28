@@ -1,5 +1,7 @@
 package play
 
+import jline.console.ConsoleReader
+
 trait PlayInteractionMode {
   /**
    * This is our means of blocking a `play run` call until
@@ -23,10 +25,9 @@ trait PlayInteractionMode {
  */
 object PlayConsoleInteractionMode extends PlayInteractionMode {
 
-  private val consoleReader = new jline.console.ConsoleReader
-
   private def waitForKey(): Unit = {
     def waitEOF(): Unit = {
+      val consoleReader = new ConsoleReader
       consoleReader.readCharacter() match {
         case 4 | -1 =>
         // Note: we have to listen to -1 for jline2, for some reason...
@@ -40,6 +41,7 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
     doWithoutEcho(waitEOF())
   }
   override def doWithoutEcho(f: => Unit): Unit = {
+    val consoleReader = new ConsoleReader
     consoleReader.getTerminal.setEchoEnabled(false)
     try f
     finally consoleReader.getTerminal.setEchoEnabled(true)
