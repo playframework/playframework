@@ -3,8 +3,6 @@ package play.api.data.validation
 trait GenericRules {
   def IasI[I] = Rule[I, I](i => Success(i))
 
-  def ignored[I, O](x: O) = Rule[I, O](_ => Success(x))
-
   def validateWith[From](msg: String, args: Any*)(pred: From => Boolean): Constraint[From] =
     v => if(!pred(v)) Failure(Seq(ValidationError(msg, args: _*))) else Success(v)
 
@@ -47,6 +45,8 @@ trait DefaultRules[I] extends GenericRules {
     def append(c1: Constraint[T], c2: Constraint[T]) = v => c1(v) *> (c2(v))
     def identity = noConstraint[T]
   }
+
+  def ignored[O](x: O) = Rule[I, O](_ => Success(x))
 
   def date(format: String = "yyyy-MM-dd", corrector: String => String = identity) = Rule.fromMapping[String, java.util.Date]{ s =>
     def parseDate(input: String): Option[java.util.Date] = {

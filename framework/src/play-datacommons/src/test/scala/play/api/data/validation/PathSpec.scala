@@ -63,7 +63,7 @@ object PathSpec extends Specification {
 
     "ingore values" in {
       val v = string compose notEmpty
-      val r = ((Path \ "firstname").read(v) ~ (Path \ "test").read(ignored(42))).tuppled
+      val r = ((Path \ "firstname").read(v) ~ (Path \ "test").read(ignored(42))).tupled
       r.validate(valid) mustEqual(Success("Julien" -> 42))
     }
 
