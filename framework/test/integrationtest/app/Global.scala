@@ -4,10 +4,11 @@ import play.api.mvc.{RequestHeader, SimpleResult}
 import play.api.mvc.Results.InternalServerError
 import play.api.{Logger, Configuration}
 import com.typesafe.config.ConfigFactory
+import scala.concurrent.Future
 
 object Global extends GlobalSettings {
-  override def onError(r: RequestHeader, e: Throwable): SimpleResult = {
-    InternalServerError("Something went wrong.")
+  override def onError(r: RequestHeader, e: Throwable): Future[SimpleResult] = {
+    Future.successful(InternalServerError("Something went wrong."))
   }
 
   // Ensure that the Evolutions code uses the same configuration as the running application
