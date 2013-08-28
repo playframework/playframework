@@ -96,7 +96,13 @@ object MappingsSpec extends Specification {
         (Path \ "n").read(bigDecimal).validate(Json.obj("n" -> 4.8)) mustEqual(Success(BigDecimal(4.8)))
       }
 
-      "date" in { skipped }
+      "date" in {
+        val f = new java.text.SimpleDateFormat("yyyy-MM-dd")
+
+        (Path \ "n").read(string compose date).validate(Json.obj("n" -> "1985-09-10")) mustEqual(Success(f.parse("1985-09-10")))
+        (Path \ "n").read(string compose date).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.date", "yyyy-MM-dd")))))
+      }
+
       "joda date" in { skipped }
       "joda local data" in { skipped }
       "sql date" in { skipped }

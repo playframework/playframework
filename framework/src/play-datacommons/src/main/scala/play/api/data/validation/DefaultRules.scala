@@ -48,6 +48,43 @@ trait DefaultRules[I] extends GenericRules {
     def identity = noConstraint[T]
   }
 
+  def date(format: String = "yyyy-MM-dd", corrector: String => String = identity) = Rule.fromMapping[String, java.util.Date]{ s =>
+    def parseDate(input: String): Option[java.util.Date] = {
+      // REMEMBER THAT SIMPLEDATEFORMAT IS NOT THREADSAFE
+      val df = new java.text.SimpleDateFormat(format)
+      df.setLenient(false)
+      try { Some(df.parse(input)) } catch {
+        case _: java.text.ParseException => None
+      }
+    }
+
+    parseDate(corrector(s)) match {
+      case Some(d) => Success(d)
+      case None => Failure(Seq(ValidationError("validation.date", format)))
+    }
+  }
+
+  val date: Rule[String, java.util.Date] = date()
+
+  /**
+   * ISO 8601 Reads
+   */
+  val isoDate = date("yyyy-MM-dd'T'HH:mm:ssz", { input =>
+    // NOTE: SimpleDateFormat uses GMT[-+]hh:mm for the TZ so need to refactor a bit
+    // 1994-11-05T13:15:30Z -> 1994-11-05T13:15:30GMT-00:00
+    // 1994-11-05T08:15:30-05:00 -> 1994-11-05T08:15:30GMT-05:00
+    if (input.endsWith("Z")) {
+      input.substring(0, input.length() - 1) + "GMT-00:00"
+    } else {
+      val inset = 6
+
+      val s0 = input.substring(0, input.length - inset)
+      val s1 = input.substring(input.length - inset, input.length)
+
+      s0 + "GMT" + s1
+    }
+  })
+
   def option[J, O](r: Rule[J, O], noneValues: Rule[J, J]*)(implicit pick: Path => Rule[I, J]) = (path: Path) =>
     Rule[I, Option[O]] {
       (d: I) =>
