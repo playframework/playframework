@@ -3,6 +3,7 @@ import Keys._
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
 import com.typesafe.tools.mima.plugin.MimaKeys.previousArtifact
 import com.typesafe.sbt.SbtScalariform.defaultScalariformSettings
+import com.typesafe.sbt.pgp.PgpSettings
 
 object BuildSettings {
   import Resolvers._
@@ -50,6 +51,12 @@ object BuildSettings {
     testOptions in Test += Tests.Filter(!_.endsWith("Benchmark")),
     testOptions in PerformanceTest ~= (_.filterNot(_.isInstanceOf[Tests.Filter]) :+ Tests.Filter(_.endsWith("Benchmark"))),
     parallelExecution in PerformanceTest := false
+  )
+
+  val dontPublishSettings = Seq(
+    publishArtifact := false,
+    // Needed for sbt-pgp's publish-signed-configuration task, even though there are no artifacts
+    publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo")))
   )
 
   def PlaySharedJavaProject(name: String, dir: String, testBinaryCompatibility: Boolean = false): Project = {
@@ -277,6 +284,7 @@ object PlayBuild extends Build {
   import RepositoryBuilder._
   lazy val RepositoryProject = Project(
       "Play-Repository", file("repository"))
+    .settings(dontPublishSettings:_*)
     .settings(localRepoCreationSettings:_*)
     .settings(
       localRepoProjectsPublished <<= (publishedProjects map (publishLocal in _)).dependOn,
@@ -285,10 +293,9 @@ object PlayBuild extends Build {
         "org.scala-lang" % "scala-compiler" % BuildSettings.buildScalaVersion,
         "org.scala-lang" % "scala-compiler" % BuildSettings.buildScalaVersionForSbt,
         "org.scala-sbt" % "sbt" % BuildSettings.buildSbtVersion
-      ),
-      publish := {}
+      )
     )
-    
+
   lazy val publishedProjects = Seq[ProjectReference](
     PlayProject,
     SbtLinkProject,
@@ -319,11 +326,11 @@ object PlayBuild extends Build {
     "Root",
     file("."))
     .settings(playCommonSettings: _*)
+    .settings(dontPublishSettings:_*)
     .settings(
       libraryDependencies := (runtime ++ jdbcDeps),
       Docs.apiDocsInclude := false,
       Docs.apiDocsIncludeManaged := false,
-      publish := {},
       generateDistTask
     )
     .aggregate(publishedProjects: _*)
