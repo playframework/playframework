@@ -2,7 +2,7 @@ package play.api.libs.json
 
 // Backward compat
 trait WithRepath[A] {
-  import play.api.data.validation._
+  import play.api.data.mapping._
   val self: Validation[(JsPath, Seq[ValidationError]), A]
 
   def repath(path: JsPath): JsResult[A] = self match {
@@ -11,12 +11,12 @@ trait WithRepath[A] {
   }
 }
 
-object Rules extends play.api.data.validation.DefaultRules[JsValue] {
+object Rules extends play.api.data.mapping.DefaultRules[JsValue] {
   import scala.language.implicitConversions
   import play.api.libs.functional._
   import play.api.libs.functional.syntax._
 
-  import play.api.data.validation._ // We need that import to shadow Json PathNodes types
+  import play.api.data.mapping._ // We need that import to shadow Json PathNodes types
   import play.api.libs.json.{ KeyPathNode => JSKeyPathNode, IdxPathNode => JIdxPathNode}
   private def pathToJsPath(p: Path) =
     play.api.libs.json.JsPath(p.path.map{

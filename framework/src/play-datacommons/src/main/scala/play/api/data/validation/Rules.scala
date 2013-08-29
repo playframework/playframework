@@ -1,4 +1,4 @@
-package play.api.data.validation
+package play.api.data.mapping
 
 object Rules extends DefaultRules[Map[String, Seq[String]]] {
   import scala.language.implicitConversions

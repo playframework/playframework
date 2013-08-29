@@ -1,4 +1,4 @@
-package play.api.data.validation
+package play.api.data.mapping
 
 /**
 * Validation[E, A] is the result of a validation, where E is the type of each error, and A is the type of the result if the validation is successful

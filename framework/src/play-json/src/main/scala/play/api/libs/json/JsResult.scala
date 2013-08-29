@@ -1,7 +1,7 @@
 package play.api.libs.json
 
 import Json._
-import play.api.data.validation._
+import play.api.data.mapping._
 
 class JsSuccess[T](override val value: T, val path: JsPath = JsPath()) extends Success[(JsPath, Seq[ValidationError]), T](value) {
   override def toString = s"JsSuccess($value, $path)"

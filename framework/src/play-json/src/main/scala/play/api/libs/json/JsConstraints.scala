@@ -1,6 +1,6 @@
 package play.api.libs.json
 
-import play.api.data.validation.ValidationError
+import play.api.data.mapping.ValidationError
 import Json._
 
 trait ConstraintFormat {

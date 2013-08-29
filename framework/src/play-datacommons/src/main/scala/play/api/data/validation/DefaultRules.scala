@@ -1,4 +1,4 @@
-package play.api.data.validation
+package play.api.data.mapping
 
 trait GenericRules {
   def IasI[I] = Rule[I, I](i => Success(i))

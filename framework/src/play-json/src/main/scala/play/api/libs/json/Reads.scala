@@ -5,7 +5,7 @@ import scala.language.higherKinds
 import scala.collection._
 import Json._
 import scala.annotation.implicitNotFound
-import play.api.data.validation.ValidationError
+import play.api.data.mapping.ValidationError
 import reflect.ClassTag
 
 /**

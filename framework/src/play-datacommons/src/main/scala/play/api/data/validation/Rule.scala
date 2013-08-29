@@ -1,4 +1,4 @@
-package play.api.data.validation
+package play.api.data.mapping
 
 case class Rule[I, O](m: Mapping[(Path, Seq[ValidationError]), I, O]) {
   def validate(data: I): VA[I, O] = m(data)

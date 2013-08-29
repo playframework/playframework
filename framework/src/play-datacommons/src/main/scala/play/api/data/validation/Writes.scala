@@ -1,4 +1,4 @@
-package play.api.data.validation
+package play.api.data.mapping
 
 import scala.language.implicitConversions
 

@@ -1,6 +1,6 @@
 package play.api.libs.json
 
-import play.api.data.validation.{ ValidationError, Path, PathNode => DPathNode, KeyPathNode => DKeyPathNode, IdxPathNode => DIdxPathNode, RecursiveSearch => DRecursiveSearch }
+import play.api.data.mapping.{ ValidationError, Path, PathNode => DPathNode, KeyPathNode => DKeyPathNode, IdxPathNode => DIdxPathNode, RecursiveSearch => DRecursiveSearch }
 
 sealed trait PathNode { self: DPathNode =>
   def apply(json: JsValue): List[JsValue]
