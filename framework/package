@@ -95,7 +95,7 @@ then
     $DIR/build clean
 fi
 
-$DIR/build -Dplay.version=${PLAY_VERSION} $PUBLISHCMD create-dist
+$DIR/build $PUBLISHCMD create-dist
 
 if [ $PUBLISH -eq 0 ]
 then
