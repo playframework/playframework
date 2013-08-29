@@ -433,8 +433,8 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
 
 /**
  * Provides an interface for retreiving the jdbc driver's implementation of java.sql.Connection
- * from a "decorated" Connection (such as the Connection that DB.withConnection provides). Upcasting 
- * to this trait should be used with caution since exposing the internal jdbc connection can violate the 
+ * from a "decorated" Connection (such as the Connection that DB.withConnection provides). Upcasting
+ * to this trait should be used with caution since exposing the internal jdbc connection can violate the
  * guarantees Play otherwise makes (like automatically closing jdbc statements created from the connection)
  */
 trait HasInternalJdbcConnection {
