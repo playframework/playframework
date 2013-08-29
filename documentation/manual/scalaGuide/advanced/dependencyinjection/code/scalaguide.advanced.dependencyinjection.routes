@@ -1,0 +1,3 @@
+# #di-routes
+GET     /                  @controllers.SomeController.index()
+# #di-routes
