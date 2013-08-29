@@ -1,0 +1,3 @@
+GET        /withInt/:i        controllers.Application.withInt(i: Int)
+GET        /normal            controllers.Application.normal
+GET        /error             controllers.Application.error
