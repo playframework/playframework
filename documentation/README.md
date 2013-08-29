@@ -7,11 +7,6 @@ project.
 
 This project depends on [play-doc](http://github.com/playframework/play-doc].  If you want to tweak the format or change the includes, you should do so there.
 
-## Output
-
-The output from this project is pushed to [play-doc](http://github.com/playframework/play-generated-docs], and eventually appears on http://www.playframework.com/documentation/2.2-SNAPSHOT/Home
-(depending on the Play version).
-
 ## Existing Docs
 
 All the documentation is under the /manual folder, and is in [Markdown](http://daringfireball.net/projects/markdown/syntax) format with an extension that looks like this
@@ -38,7 +33,7 @@ And this code snippet is included in the generated documentation.
 
 ## Code
 
-Any directory under /manual called "code" is treated as a root of a test directory.  You can put configuration files, Java files, or Scala files in there.  Source files do not have to be part of a test suite, but it is highly encouraged to ensure that all included code snippets both compile and pass.
+Any directory under /manual called "code" is treated as a root of a test directory.  You can put configuration files, Java files, or Scala files in there.  Source files do not have to be part of a test suite, but it is highly encouraged to ensure that all included code snippets can compile and pass some internal checks.
 
 ## IDE integration
 
@@ -57,21 +52,20 @@ You can run the test suite for the documentation using:
 
 ## Packaging
 
-```
-./build package
-```
-
-## Publishing
+There is no distinct packaging of HTML files in the project.  Instead, the main project has a `/project/Docs` SBT file that will package the documentation with the rest of the application.
 
 ```
-./build publish-local
+cd $PLAY_HOME/framework
+./build compile doc package
 ```
+
+All Play projects can see documentation embedded by going to [http://localhost:9000/@documentation](http://localhost:9000/@documentation).  Internally, the @documentation route goes to `DocumentationServer` in the play-docs subproject, which relies on [play-doc](http://github.com/playframework/play-s] for generating HTML from the raw Markdown.  
 
 ## Running
 
-You can run a built-in documentation server.  This will give you quick access to the documentation without having
-to build everything.  It is available at http://localhost:9000 by default.
+You can run a built-in documentation server directly from the documentation project, without packaging.  This will give you quick access to the documentation without having to build everything.  It is available at [http://localhost:9000](http://localhost:9000).
 
 ```
+cd documentation
 ./build run
 ```
