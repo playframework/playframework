@@ -106,7 +106,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           untaggedRequestHeader
         }
 
-        val (requestHeader, handler: Either[SimpleResult,(Handler,Application)]) = Exception
+        val (requestHeader, handler: Either[Future[SimpleResult],(Handler,Application)]) = Exception
             .allCatch[RequestHeader].either(tryToCreateRequest)
             .fold(
               e => {
@@ -160,7 +160,10 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             val a = EssentialAction { rh =>
               import play.api.libs.iteratee.Execution.Implicits.trampoline
               Iteratee.flatten(action(rh).unflatten.map(_.it).recover {
-                case error => Done(app.handleError(requestHeader, error),Input.Empty): Iteratee[Array[Byte],SimpleResult]
+                case error =>
+                  Iteratee.flatten(
+                    app.handleError(requestHeader, error).map(result => Done(result, Input.Empty))
+                  ): Iteratee[Array[Byte],SimpleResult]
               })
             }
             handleAction(a, Some(app))
@@ -178,7 +181,8 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
           case Left(e) =>
             Play.logger.trace("No handler, got direct result: " + e)
-            val a = EssentialAction(_ => Done(e,Input.Empty))
+            import play.api.libs.iteratee.Execution.Implicits.trampoline
+            val a = EssentialAction(_ => Iteratee.flatten(e.map(result => Done(result, Input.Empty))))
             handleAction(a,None)
 
         }
@@ -243,18 +247,20 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                   e.getChannel.setReadable(true)
                   val error = new RuntimeException("Body parser iteratee in error: " + msg)
                   val result = app.map(_.handleError(requestHeader, error)).getOrElse(DefaultGlobal.onError(requestHeader, error))
-                  Future.successful((result.copy(connection = HttpConnection.Close), 0))
+                  result.map(r => (r.copy(connection = HttpConnection.Close), 0))
                 }
               }
             }
             case None => eventuallyResult.map((_, 0))
           }
 
-          val sent = eventuallyResultWithSequence.recover {
+          val sent = eventuallyResultWithSequence.recoverWith {
             case error =>
               Play.logger.error("Cannot invoke the action, eventually got an error: " + error)
               e.getChannel.setReadable(true)
-              (app.map(_.handleError(requestHeader, error)).getOrElse(DefaultGlobal.onError(requestHeader, error)), 0)
+              app.map(_.handleError(requestHeader, error))
+                .getOrElse(DefaultGlobal.onError(requestHeader, error))
+                .map((_, 0))
           }.flatMap {
             case (result, sequence) =>
               NettyResultStreamer.sendResult(cleanFlashCookie(result), !keepAlive, nettyVersion, sequence)

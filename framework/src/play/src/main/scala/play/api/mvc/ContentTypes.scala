@@ -316,7 +316,7 @@ trait BodyParsers {
     def text(maxLength: Int): BodyParser[String] = when(
       _.contentType.exists(_.equalsIgnoreCase("text/plain")),
       tolerantText(maxLength),
-      request => Play.maybeApplication.map(_.global.onBadRequest(request, "Expecting text/plain body")).getOrElse(Results.BadRequest)
+      createBadResult("Expecting text/plain body")
     )
 
     /**
@@ -352,26 +352,13 @@ trait BodyParsers {
      *
      * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
      */
-    def tolerantJson(maxLength: Int): BodyParser[JsValue] = BodyParser("json, maxLength=" + maxLength) { request =>
-      import play.api.libs.iteratee.Execution.Implicits.trampoline
-      Traversable.takeUpTo[Array[Byte]](maxLength).apply(Iteratee.consume[Array[Byte]]().map { bytes =>
-        scala.util.control.Exception.allCatch[JsValue].either {
-          // Encoding notes: RFC 4627 requires that JSON be encoded in Unicode, and states that whether that's
-          // UTF-8, UTF-16 or UTF-32 can be auto detected by reading the first two bytes. So we ignore the declared
-          // charset and don't decode, we passing the byte array as is because Jackson supports auto detection.
-          Json.parse(bytes)
-        }.left.map { e =>
-          (Play.maybeApplication.map(_.global.onBadRequest(request, "Invalid Json")).getOrElse(Results.BadRequest), bytes)
-        }
-      }).flatMap(Iteratee.eofOrElse(Results.EntityTooLarge))
-        .flatMap {
-          case Left(b) => Done(Left(b), Empty)
-          case Right(it) => it.flatMap {
-            case Left((r, in)) => Done(Left(r), El(in))
-            case Right(json) => Done(Right(json), Empty)
-          }
-        }
-    }
+    def tolerantJson(maxLength: Int): BodyParser[JsValue] =
+      tolerantBodyParser[JsValue]("json", maxLength, "Invalid Json") { (request, bytes) =>
+        // Encoding notes: RFC 4627 requires that JSON be encoded in Unicode, and states that whether that's
+        // UTF-8, UTF-16 or UTF-32 can be auto detected by reading the first two bytes. So we ignore the declared
+        // charset and don't decode, we passing the byte array as is because Jackson supports auto detection.
+        Json.parse(bytes)
+      }
 
     /**
      * Parse the body as Json without checking the Content-Type.
@@ -386,7 +373,7 @@ trait BodyParsers {
     def json(maxLength: Int): BodyParser[JsValue] = when(
       _.contentType.exists(m => m.equalsIgnoreCase("text/json") || m.equalsIgnoreCase("application/json")),
       tolerantJson(maxLength),
-      request => Play.maybeApplication.map(_.global.onBadRequest(request, "Expecting text/json or application/json body")).getOrElse(Results.BadRequest)
+      createBadResult("Expecting text/json or application/json body")
     )
 
     /**
@@ -410,43 +397,30 @@ trait BodyParsers {
      *
      * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
      */
-    def tolerantXml(maxLength: Int): BodyParser[NodeSeq] = BodyParser("xml, maxLength=" + maxLength) { request =>
-      import play.api.libs.iteratee.Execution.Implicits.trampoline // XML parser doesn't perform IO
-      Traversable.takeUpTo[Array[Byte]](maxLength).apply(Iteratee.consume[Array[Byte]]().map { bytes =>
-        scala.util.control.Exception.allCatch[NodeSeq].either {
-          val inputSource = new InputSource(new ByteArrayInputStream(bytes))
+    def tolerantXml(maxLength: Int): BodyParser[NodeSeq] =
+      tolerantBodyParser[NodeSeq]("xml", maxLength, "Invalid XML") { (request, bytes) =>
+        val inputSource = new InputSource(new ByteArrayInputStream(bytes))
 
-          // Encoding notes: RFC 3023 is the RFC for XML content types.  Comments below reflect what it says.
+        // Encoding notes: RFC 3023 is the RFC for XML content types.  Comments below reflect what it says.
 
-          // An externally declared charset takes precedence
-          request.charset.orElse(
-            // If omitted, maybe select a default charset, based on the media type.
-            request.mediaType.collect {
-              // According to RFC 3023, the default encoding for text/xml is us-ascii. This contradicts RFC 2616, which
-              // states that the default for text/* is ISO-8859-1.  An RFC 3023 conforming client will send US-ASCII,
-              // in that case it is safe for us to use US-ASCII or ISO-8859-1.  But a client that knows nothing about
-              // XML, and therefore nothing about RFC 3023, but rather conforms to RFC 2616, will send ISO-8859-1.
-              // Since decoding as ISO-8859-1 works for both clients that conform to RFC 3023, and clients that conform
-              // to RFC 2616, we use that.
-              case mt if mt.mediaType == "text" => "iso-8859-1"
-              // Otherwise, there should be no default, it will be detected by the XML parser.
-            }
-          ).foreach { charset =>
-              inputSource.setEncoding(charset)
-            }
-          XML.load(inputSource)
-        }.left.map { e =>
-          (Play.maybeApplication.map(_.global.onBadRequest(request, "Invalid XML")).getOrElse(Results.BadRequest), bytes)
-        }
-      }).flatMap(Iteratee.eofOrElse(Results.EntityTooLarge))
-        .flatMap {
-          case Left(b) => Done(Left(b), Empty)
-          case Right(it) => it.flatMap {
-            case Left((r, in)) => Done(Left(r), El(in))
-            case Right(xml) => Done(Right(xml), Empty)
+        // An externally declared charset takes precedence
+        request.charset.orElse(
+          // If omitted, maybe select a default charset, based on the media type.
+          request.mediaType.collect {
+            // According to RFC 3023, the default encoding for text/xml is us-ascii. This contradicts RFC 2616, which
+            // states that the default for text/* is ISO-8859-1.  An RFC 3023 conforming client will send US-ASCII,
+            // in that case it is safe for us to use US-ASCII or ISO-8859-1.  But a client that knows nothing about
+            // XML, and therefore nothing about RFC 3023, but rather conforms to RFC 2616, will send ISO-8859-1.
+            // Since decoding as ISO-8859-1 works for both clients that conform to RFC 3023, and clients that conform
+            // to RFC 2616, we use that.
+            case mt if mt.mediaType == "text" => "iso-8859-1"
+            // Otherwise, there should be no default, it will be detected by the XML parser.
           }
-        }
-    }
+        ).foreach { charset =>
+            inputSource.setEncoding(charset)
+          }
+        XML.load(inputSource)
+      }
 
     /**
      * Parse the body as Xml without checking the Content-Type.
@@ -464,7 +438,7 @@ trait BodyParsers {
         tl.startsWith("text/xml") || tl.startsWith("application/xml") || ApplicationXmlMatcher.pattern.matcher(tl).matches()
       },
       tolerantXml(maxLength),
-      request => Play.maybeApplication.map(_.global.onBadRequest(request, "Expecting xml body")).getOrElse(Results.BadRequest)
+      createBadResult("Expecting xml body")
     )
 
     /**
@@ -507,27 +481,11 @@ trait BodyParsers {
      *
      * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
      */
-    def tolerantFormUrlEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] = BodyParser("urlFormEncoded, maxLength=" + maxLength) { request =>
-
-      import play.core.parsers._
-      import scala.collection.JavaConverters._
-      import play.api.libs.iteratee.Execution.Implicits.trampoline
-
-      Traversable.takeUpTo[Array[Byte]](maxLength).apply(Iteratee.consume[Array[Byte]]().map { c =>
-        scala.util.control.Exception.allCatch[Map[String, Seq[String]]].either {
-          FormUrlEncodedParser.parse(new String(c, request.charset.getOrElse("utf-8")), request.charset.getOrElse("utf-8"))
-        }.left.map { e =>
-          Play.maybeApplication.map(_.global.onBadRequest(request, "Error parsing application/x-www-form-urlencoded")).getOrElse(Results.BadRequest)
-        }
-      }).flatMap(Iteratee.eofOrElse(Results.EntityTooLarge))
-        .flatMap {
-          case Left(b) => Done(Left(b), Empty)
-          case Right(it) => it.flatMap {
-            case Left(r) => Done(Left(r), Empty)
-            case Right(urlEncoded) => Done(Right(urlEncoded), Empty)
-          }
-        }
-    }
+    def tolerantFormUrlEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] =
+      tolerantBodyParser("urlFormEncoded", maxLength, "Error parsing application/x-www-form-urlencoded") { (request, bytes) =>
+        import play.core.parsers._
+        FormUrlEncodedParser.parse(new String(bytes, request.charset.getOrElse("utf-8")), request.charset.getOrElse("utf-8"))
+      }
 
     /**
      * Parse the body as form url encoded without checking the Content-Type.
@@ -542,7 +500,7 @@ trait BodyParsers {
     def urlFormEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] = when(
       _.contentType.exists(_.equalsIgnoreCase("application/x-www-form-urlencoded")),
       tolerantFormUrlEncoded(maxLength),
-      request => Play.maybeApplication.map(_.global.onBadRequest(request, "Expecting application/x-www-form-urlencoded body")).getOrElse(Results.BadRequest)
+      createBadResult("Expecting application/x-www-form-urlencoded body")
     )
 
     /**
@@ -675,7 +633,7 @@ trait BodyParsers {
 
           }
 
-        }.getOrElse(parse.error(Play.maybeApplication.map(_.global.onBadRequest(request, "Missing boundary header")).getOrElse(Results.BadRequest)))
+        }.getOrElse(parse.error(createBadResult("Missing boundary header")(request)))
 
       }
 
@@ -834,8 +792,9 @@ trait BodyParsers {
     /**
      * A body parser that always returns an error.
      */
-    def error[A](result: SimpleResult): BodyParser[A] = BodyParser("error, result=" + result) { request =>
-      Done(Left(result), Empty)
+    def error[A](result: Future[SimpleResult]): BodyParser[A] = BodyParser("error, result=" + result) { request =>
+      import play.api.libs.iteratee.Execution.Implicits.trampoline
+      Iteratee.flatten(result.map(r => Done(Left(r), Empty)))
     }
 
     /**
@@ -848,16 +807,45 @@ trait BodyParsers {
     /**
      * Create a conditional BodyParser.
      */
-    def when[A](predicate: RequestHeader => Boolean, parser: BodyParser[A], badResult: RequestHeader => SimpleResult): BodyParser[A] = {
+    def when[A](predicate: RequestHeader => Boolean, parser: BodyParser[A], badResult: RequestHeader => Future[SimpleResult]): BodyParser[A] = {
       BodyParser("conditional, wrapping=" + parser.toString) { request =>
         if (predicate(request)) {
           parser(request)
         } else {
-          Done(Left(badResult(request)), Empty)
+          import play.api.libs.iteratee.Execution.Implicits.trampoline
+          Iteratee.flatten(badResult(request).map(result => Done(Left(result), Empty)))
         }
       }
     }
 
+    private def createBadResult(msg: String): RequestHeader => Future[SimpleResult] = { request =>
+      Play.maybeApplication.map(_.global.onBadRequest(request, "Expecting xml body"))
+        .getOrElse(Future.successful(Results.BadRequest))
+    }
+
+    private def tolerantBodyParser[A](name: String, maxLength: Int, errorMessage: String)(parser: (RequestHeader, Array[Byte]) => A): BodyParser[A] =
+      BodyParser(name + ", maxLength=" + maxLength) { request =>
+        import play.api.libs.iteratee.Execution.Implicits.trampoline
+        import scala.util.control.Exception._
+
+        val bodyParser: Iteratee[Array[Byte], Either[SimpleResult, Either[Future[SimpleResult], A]]] =
+          Traversable.takeUpTo[Array[Byte]](maxLength).transform(
+            Iteratee.consume[Array[Byte]]().map { bytes =>
+              allCatch[A].either {
+                parser(request, bytes)
+              }.left.map { e =>
+                Play.logger.debug(errorMessage, e)
+                createBadResult(errorMessage)(request)
+              }
+            }
+          ).flatMap(Iteratee.eofOrElse(Results.EntityTooLarge))
+
+        bodyParser.mapM {
+          case Left(tooLarge) => Future.successful(Left(tooLarge))
+          case Right(Left(badResult)) => badResult.map(Left.apply)
+          case Right(Right(body)) => Future.successful(Right(body))
+        }
+      }
   }
 
 }

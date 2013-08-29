@@ -96,7 +96,7 @@ object GzipSpec extends Specification {
     }
 
     "gunzip large repeating input in small chunks" in {
-      test(Seq.fill(1000)("Hello world").mkString(""), gzip = Gzip.gzip(10))
+      test(Seq.fill(1000)("Hello world").mkString(""), gzip = Gzip.gzip(100))
     }
 
     "gunzip large random input" in {
@@ -104,7 +104,7 @@ object GzipSpec extends Specification {
     }
 
     "gunzip large random input in small chunks" in {
-      test(scala.util.Random.nextString(10000), gzip = Gzip.gzip(10))
+      test(scala.util.Random.nextString(10000), gzip = Gzip.gzip(100))
     }
   }
 }

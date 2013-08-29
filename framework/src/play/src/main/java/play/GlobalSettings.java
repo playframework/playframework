@@ -45,7 +45,7 @@ public class GlobalSettings {
      * @param t is any throwable
      * @return null as the default implementation
      */
-    public SimpleResult onError(RequestHeader request, Throwable t) {
+    public F.Promise<SimpleResult> onError(RequestHeader request, Throwable t) {
         return null;
     }
     
@@ -92,7 +92,7 @@ public class GlobalSettings {
      * @param request the HTTP request
      * @return null in the default implementation, you can return your own custom Result in your Global class.
      */
-    public SimpleResult onHandlerNotFound(RequestHeader request) {
+    public F.Promise<SimpleResult> onHandlerNotFound(RequestHeader request) {
         return null;
     }
     
@@ -107,7 +107,7 @@ public class GlobalSettings {
      * @param request the HTTP request
      * @return null in the default implementation, you can return your own custom Result in your Global class.
      */
-    public SimpleResult onBadRequest(RequestHeader request, String error) {
+    public F.Promise<SimpleResult> onBadRequest(RequestHeader request, String error) {
         return null;
     }
 
@@ -133,6 +133,9 @@ public class GlobalSettings {
         return null;
     }
 
+    /**
+     * Get the filters that should be used to handle each request.
+     */
     public <T extends play.api.mvc.EssentialFilter> Class<T>[] filters() {
         return new Class[0];
     }
