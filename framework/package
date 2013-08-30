@@ -126,7 +126,7 @@ then
     git merge origin/$GITBRANCH
 
     rm -r *
-    cp -r $OLDDIR/target/dist/play-$PLAY_VERSION/documentation/api api
+    cp -r $OLDDIR/src/play-docs/target/apidocs api
     git add --all
     git commit -m "Publishing $PLAY_VERSION docs"
     git tag -a -m "Publishing $PLAY_VERSION docs" $PLAY_VERSION
