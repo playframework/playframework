@@ -28,10 +28,8 @@ A simple way to execute a block of code asynchronously and to get a `Promise` is
 
 ## AsyncResult
 
-While we were using `Results.Status` until now, to send an asynchronous result we need a `Results.AsyncResult` that wraps the actual result:
+While we have been simply returning `Result` until now, to send an asynchronous result we need to return `Promise<Result>` from our action:
 
 @[async](code/javaguide/async/Application.java)
-
-> **Note:** `async()` is an helper method building an `AsyncResult` from a `Promise<Result>`.
 
 > **Next:** [[Streaming HTTP responses | JavaStream]]
