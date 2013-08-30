@@ -2,15 +2,30 @@
 
 ## New results structure for Java and Scala
 
-*TODO*
+Previously, results could be either plain or async, chunked or simple.  Having to deal with all these different types made action composition and filters hard to implement, since often there was functionality that needed to be applied to all types of results, but code had to implemented to recursively unwrap asynchronous results and to apply the same logic to chunked and simple results.
+
+It also created an artificial distinction between asynchronous and synchronous actions in Play, which caused confusion, leading people to think that Play could operate in a synchronous and asynchronous modes.  In fact, Play is 100% asynchronous, the only thing that differentiates whether a result is returned asynchronously or not is whether other asynchronous actions, such as IO, need to be done during action processing.
+
+So we've simplified the structure for results in Java and Scala.  There is now only one result type, `SimpleResult`.  The `Result` superclass still works in many places but is deprecated.
+
+In Java applications, this means actions can now just return `Promise<SimpleResult>` if they wish to do asynchronous processing during a request, while Scala applications can use the `async` action builder, like this:
+
+```scala
+def index = Action.async {
+  val foo: Future[Foo] = getFoo()
+  foo.map(f => Ok(foo))
+}
+```
 
 ## Better control over buffering and keep alive
 
-*TODO*
+How and when Play buffers results is now better expressed in the Scala API, [`SimpleResult`](api/scala/index.html#play.api.mvc.SimpleResult) has a new property called `connection`, which is of type [`HttpConnection`](api/scala/index.html#play.api.mvc.HttpConnection$).
+
+If set to `Close`, the response will be closed once the body is sent, and no buffering will be attempted.  If set to `KeepAlive`, Play will make a best effort attempt to keep the connection alive, in accordance to the HTTP spec, buffering the response if only no transfer encoding or content length is specified.
 
 ## New action composition and action builder methods
 
-We now provide an [`ActionBuilder`](api/scala/index.html#play.api.mvc.ActionBuilder) trait that allows more powerful building of action stacks.  For example:
+We now provide an [`ActionBuilder`](api/scala/index.html#play.api.mvc.ActionBuilder) trait for Scala applications that allows more powerful building of action stacks.  For example:
 
 ```scala
 object MyAction extends ActionBuilder[AuthenticatedRequest] {
