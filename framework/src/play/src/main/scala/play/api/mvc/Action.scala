@@ -334,6 +334,12 @@ trait ActionBuilder[R[_]] {
    */
   protected def composeParser[A](bodyParser: BodyParser[A]): BodyParser[A] = bodyParser
 
+  /**
+   * Compose the action with other actions.  This allows mixing in of various actions together.
+   *
+   * @param action The action to compose
+   * @return The composed action
+   */
   protected def composeAction[A](action: Action[A]): Action[A] = action
 
   /**
