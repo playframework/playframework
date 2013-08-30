@@ -40,8 +40,6 @@ Play uses a number of different thread pools for different purposes:
 
 All actions in Play Framework use the default thread pool.  When doing certain asynchronous operations, for example, calling `map` or `flatMap` on a future, you may need to provide an implicit execution context to execute the given functions in.  An execution context is basically another name for a thread pool.
 
-> When using the Java promise API, for most operations you don't get a choice as to which execution context will be used, the Play default execution context will always be used.
-
 In most situations, the appropriate execution context to use will be the Play default thread pool.  This can be used by importing it into your Scala source file:
 
 @[global-thread-pool](code/ThreadPools.scala)
@@ -66,7 +64,7 @@ In this case, we are using Akka to create the execution context, but you could a
 
 @[my-context-config](code/ThreadPools.scala)
 
-To use this excecution context in Scala, you would simply use the scala `Future` companion object function:
+To use this execution context in Scala, you would simply use the scala `Future` companion object function:
 
 @[my-context-explicit](code/ThreadPools.scala)
 
@@ -77,6 +75,8 @@ or you could just use it implicitly:
 ## Best practices
 
 How you should best divide work in your application between different thread pools greatly depends on the types work that your application is doing, and the control you want to have over how much of which work can be done in parallel.  There is no one size fits all solution to the problem, and the best decision for you will come from understanding the blocking IO requirements of your application and the implications they have on your thread pools.  It may help to do load testing on your application to tune and verify your configuration.
+
+> Given the fact that JDBC is blocking thread pools can be sized to the # of connections available to a db pool assuming that the thread pool is used exclusively for database access. Any lesser amount of threads will not consume the number of connections available. Any more threads than the number of connections available could be wasteful given contention for the connections.
 
 Below we outline a few common profiles that people may want to use in Play Framework:
 
