@@ -228,6 +228,10 @@
 * **Documentation:** <https://github.com/joscha/play-authenticate/blob/master/README.md>
 * **Short description:** A highly customizable authentication module for Play
 
+## play2-sprites
+* **Website:** <https://github.com/koofr/play2-sprites/>
+* **Short description:** play2-sprites is an sbt plugin that generates sprites from images.
+
 ## play-jaxrs (Java)
 * **Website (docs, sample):** [play-jaxrs](https://github.com/pk11/play-jaxrs/)
 * **Short description:** a JAX-RS router plugin for play java apps 
