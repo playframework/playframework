@@ -1,7 +1,7 @@
 # Build documentation
 
-This is the Play documentation project.  It does not build with the rest of the Play document, and has its own sbt
-project.
+This is the Play documentation project.  It does not build with the rest of the Play projects, and uses its own sbt
+project instead.
 
 ## Dependencies
 
