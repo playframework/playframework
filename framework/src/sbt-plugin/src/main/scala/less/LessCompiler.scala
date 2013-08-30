@@ -6,7 +6,7 @@ import play.api._
 
 object LessCompiler {
 
-  val lessScript = "less-1.4.1.js"
+  val lessScript = "less-1.4.2.js"
 
   import org.mozilla.javascript._
   import org.mozilla.javascript.tools.shell._
