@@ -1,5 +1,5 @@
 /*
- * LESS - Leaner CSS v1.4.1
+ * LESS - Leaner CSS v1.4.2
  * http://lesscss.org
  *
  * Copyright (c) 2009-2013, Alexis Sellier
@@ -1596,7 +1596,7 @@ less.Parser = function Parser(env) {
             property: function () {
                 var name;
 
-                if (name = $(/^(\*?-?[_a-z0-9-]+)\s*:/)) {
+                if (name = $(/^(\*?-?[_a-zA-Z0-9-]+)\s*:/)) {
                     return name[1];
                 }
             }
@@ -3906,7 +3906,7 @@ tree.Rule.prototype = {
     },
     eval: function (env) {
         var strictMathBypass = false;
-        if (this.name === "font" && env.strictMath === false) {
+        if (this.name === "font" && !env.strictMath) {
             strictMathBypass = true;
             env.strictMath = true;
         }
@@ -5481,7 +5481,7 @@ function extractUrlParts(url, baseUrl) {
     // urlParts[4] = filename
     // urlParts[5] = parameters
 
-    var urlPartsRegex = /^((?:[a-z-]+:)?\/+?(?:[^\/\?#]*\/)|([\/\\]))?((?:[^\/\\\?#]*[\/\\])*)([^\/\\\?#]*)([#\?].*)?$/,
+    var urlPartsRegex = /^((?:[a-z-]+:)?\/+?(?:[^\/\?#]*\/)|([\/\\]))?((?:[^\/\\\?#]*[\/\\])*)([^\/\\\?#]*)([#\?].*)?$/i,
         urlParts = url.match(urlPartsRegex),
         returner = {}, directories = [], i, baseUrlParts;
 
@@ -5502,7 +5502,7 @@ function extractUrlParts(url, baseUrl) {
     }
     
     if (urlParts[3]) {
-        directories = urlParts[3].replace("\\", "/").split("/");
+        directories = urlParts[3].replace(/\\/g, "/").split("/");
 
         // extract out . before .. so .. doesn't absorb a non-directory
         for(i = 0; i < directories.length; i++) {
