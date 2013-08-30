@@ -437,14 +437,14 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
  * to this trait should be used with caution since exposing the internal jdbc connection can violate the
  * guarantees Play otherwise makes (like automatically closing jdbc statements created from the connection)
  */
-trait HasInternalJdbcConnection {
-  def getInternalJdbcConnection(): Connection
+trait HasInternalConnection {
+  def getInternalConnection(): Connection
 }
 
 /**
  * A connection that automatically releases statements on close
  */
-private class AutoCleanConnection(connection: Connection) extends Connection with HasInternalJdbcConnection {
+private class AutoCleanConnection(connection: Connection) extends Connection with HasInternalConnection {
 
   private val statements = scala.collection.mutable.ListBuffer.empty[Statement]
 
@@ -461,7 +461,7 @@ private class AutoCleanConnection(connection: Connection) extends Connection wit
     statements.clear()
   }
 
-  override def getInternalJdbcConnection(): Connection = connection match {
+  override def getInternalConnection(): Connection = connection match {
     case bonecpConn: com.jolbox.bonecp.ConnectionHandle =>
       bonecpConn.getInternalConnection()
     case x => x
