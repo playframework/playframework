@@ -103,7 +103,7 @@ public Admin extends Controller {
 }
 ```
 
-## Passing objects from action to contoller
+## Passing objects from action to controller
 
 You can pass an object from an action to a controller by utilizing the context args map.
 
@@ -112,6 +112,7 @@ public class SecurityAction extends Action<Verbose> {
 
   public Result call(Http.Context ctx) {
     ctx.args.put("user", User.findById(1234));
+    return delegate.call(ctx);
   }
 }
 ```
