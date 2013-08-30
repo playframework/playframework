@@ -52,11 +52,13 @@ def save(id: String) MyAction(parse.formUrlEncoded) = { request =>
 
 ## Improved Java promise API
 
-*TODO*
+The Java Promise class has been improved in order to bring its functionality closer to Scala's Future and Promise. In particular execution contexts can now be passed into a Promise's methods.
 
-## Iteratee execution context passing
+## Iteratee library execution context passing
 
-*TODO*
+Execution contexts are now required when calling on methods of Iteratee, Enumeratee and Enumerator. Having execution contexts exposed for the Iteratee library provides finer-grained control over where execution occurs and can lead to performance improvements in some cases.
+
+Execution contexts can be supplied implicitly which means that there is little impact on the code that uses Iteratees.
 
 ## sbt 0.13 support
 
