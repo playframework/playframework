@@ -251,12 +251,12 @@ object RoutesCompiler {
   case class GeneratedSource(file: File) {
 
     val lines = if (file.exists) Path(file).string.split('\n').toList else Nil
-    val source = lines.headOption.filter(_.startsWith("// @SOURCE:")).map(m => Path.fromString(m.trim.drop(11)))
+    val source = lines.find(_.startsWith("// @SOURCE:")).map(m => Path.fromString(m.trim.drop(11)))
 
     def isGenerated: Boolean = source.isDefined
 
     def sync(): Boolean = {
-      if (!source.get.exists) file.delete() else false
+      if (!source.exists(_.exists)) file.delete() else false
     }
 
     def needsRecompilation(imports: Seq[String]): Boolean = {

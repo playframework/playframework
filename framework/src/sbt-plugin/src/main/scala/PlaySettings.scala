@@ -94,12 +94,14 @@ trait Settings {
 
     namespaceReverseRouter := false,
 
-    sourceGenerators in Compile <+= (state, confDirectory, sourceManaged in Compile, routesImport, generateReverseRouter, namespaceReverseRouter) map RouteFiles,
+    sourceGenerators in Compile <+= (state, confDirectory, sourceManaged in Compile, routesImport, generateReverseRouter, namespaceReverseRouter) map { (s, cd, sm, ri, grr, nrr) =>
+      RouteFiles(s, Seq(cd), sm, ri, grr, nrr)
+    },
 
     // Adds config directory's source files to continuous hot reloading
     watchSources <+= confDirectory map { all => all },
 
-    sourceGenerators in Compile <+= (state, sourceDirectory in Compile, sourceManaged in Compile, templatesTypes, templatesImport) map ScalaTemplates,
+    sourceGenerators in Compile <+= (state, unmanagedSourceDirectories in Compile, sourceManaged in Compile, templatesTypes, templatesImport) map ScalaTemplates,
 
     // Adds app directory's source files to continuous hot reloading
     watchSources <++= baseDirectory map { path => ((path / "app") ** "*" --- (path / "app/assets") ** "*").get },
