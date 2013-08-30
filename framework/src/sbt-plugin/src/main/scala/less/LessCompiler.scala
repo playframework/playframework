@@ -84,9 +84,6 @@ object LessCompiler {
                             contents:env.contents,
                             dumpLineNumbers:window.less.dumpLineNumbers
                         }).parse(input, function (e, root) {
-                            if(e instanceof Object) {
-                                throw e;
-                            }
                             fn(e, root, input);
 
                             context.pop();
@@ -94,7 +91,7 @@ object LessCompiler {
                     }
 
                     new(window.less.Parser)({optimization:3, filename:String(source.getCanonicalPath())}).parse(String(LessCompiler.readContent(source)), function (e,root) {
-                        if(e instanceof Object) {
+                        if (e) {
                             throw e;
                         }
                         compiled = root.toCSS({compress: """ + (if (minify) "true" else "false") + """})
