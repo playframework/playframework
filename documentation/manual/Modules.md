@@ -104,6 +104,12 @@
 * **Repository:** <http://joergviola.github.com/releases/>
 * **Short description** Simplifies writing functional test using Page Driver classes.
 
+## Flyway plugin
+
+* **Website:** <https://github.com/tototoshi/play-flyway>
+* **Documentation:** <https://github.com/tototoshi/play-flyway/blob/master/README.md>
+* **Short Description:** Supports database migration with Flyway.
+
 ## Geolocation (Java)
 
 * **Website:** <https://github.com/blabluble/play-geolocation-module>
