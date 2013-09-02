@@ -8,7 +8,7 @@ import org.jboss.netty.channel.group._
 import org.jboss.netty.handler.ssl._
 
 import java.security._
-import java.net.{ InetSocketAddress }
+import java.net.InetSocketAddress
 import javax.net.ssl._
 import java.util.concurrent._
 
@@ -269,11 +269,17 @@ object NettyServer {
    * @param args
    */
   def main(args: Array[String]) {
-    args.headOption.orElse(
-      Option(System.getProperty("user.dir"))).map(new File(_)).filter(p => p.exists && p.isDirectory).map { applicationPath =>
-        createServer(applicationPath).getOrElse(System.exit(-1))
+    args.headOption
+      .orElse(Option(System.getProperty("user.dir")))
+      .map { applicationPath =>
+        val applicationFile = new File(applicationPath)
+        if (!(applicationFile.exists && applicationFile.isDirectory)) {
+          println("Bad application path: " + applicationPath)
+        } else {
+          createServer(applicationFile).getOrElse(System.exit(-1))
+        }
       }.getOrElse {
-        println("Not a valid Play application")
+        println("No application path supplied")
       }
   }
 
