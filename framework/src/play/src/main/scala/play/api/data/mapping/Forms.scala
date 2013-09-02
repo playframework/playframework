@@ -24,7 +24,7 @@ object Form {
     case KeyPathNode(k) => k
   }
 
-  def asKey(p: Path): String = p.path.headOption.toList.map(asNodeKey).mkString ++ p.path.foldLeft("") {
+  def asKey(p: Path): String = p.path.headOption.toList.map(asNodeKey).mkString ++ p.path.tail.foldLeft("") {
     case (path, n@IdxPathNode(i)) => path + asNodeKey(n)
     case (path, n@KeyPathNode(k)) => path + "." + asNodeKey(n)
   }
@@ -68,16 +68,19 @@ class Field(private val form: Form[_], val path: Path, override val value: Optio
     apply(Path() \ index)
 
   override val errors =
-    form.errors.filter{ e =>
-        e._1.path.startsWith(path.path)
-      }
-      .flatMap { case (p, errs) =>
-        errs.map(e => d.FormError(Form.asKey(p), e.message))
+    form.errors
+      .flatMap {
+        case (p, errs) if p.path.startsWith(path.path) =>
+          errs.map(e => d.FormError(Form.asKey(p), e.message))
+        case _ => Nil
       }
 
   def apply(_path: Path): Field = {
     val p = path ++ _path
-    val d = form.dataP.filter(_._1.path.startsWith(p.path)).map(_._2).flatten
+    val d = form.dataP.flatMap {
+      case (pa, errs) if pa.path.startsWith(p.path) => errs
+      case _ => Nil
+    }
     Field(form, p, d.headOption)
   }
 
@@ -85,8 +88,10 @@ class Field(private val form: Form[_], val path: Path, override val value: Optio
 
   override lazy val indexes: Seq[Int] = {
     form.dataP.keys
-      .filter(_.path.startsWith(path.path))
-      .map(_.path.drop(path.path.length).head)
+      .collect {
+        case p if p.path.startsWith(path.path) =>
+          p.path.drop(path.path.length).head
+      }
       .flatMap{
         case IdxPathNode(i) => Seq(i)
         case _ => Seq()
