@@ -154,7 +154,7 @@ def index = Action {
   val data = getDataStream
   val dataContent: Enumerator[Array[Byte]] = Enumerator.fromStream(data)
   
-  Ok.stream(dataContent)
+  Ok.chunked(dataContent)
 }
 ```
 
@@ -162,7 +162,7 @@ Of course, we can use any `Enumerator` to specify the chunked data:
 
 ```scala
 def index = Action {
-  Ok.stream(
+  Ok.chunked(
     Enumerator("kiki", "foo", "bar").andThen(Enumerator.eof)
   )
 }
