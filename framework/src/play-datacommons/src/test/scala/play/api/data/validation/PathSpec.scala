@@ -26,12 +26,12 @@ object PathSpec extends Specification {
       val path = Path \ "foo" \ "bar" \ "baz"
 
       val (h \: t) = path
-      h must equalTo(KeyPathNode("foo"))
+      h must equalTo(Path \ "foo")
       t must equalTo(Path \ "bar" \ "baz")
 
       val (h1 \: h2 \: t2) = path
-      h1 must equalTo(KeyPathNode("foo"))
-      h2 must equalTo(KeyPathNode("bar"))
+      h1 must equalTo(Path \ "foo")
+      h2 must equalTo(Path \ "bar")
       t2 must equalTo(Path \ "baz")
     }
 
@@ -224,6 +224,58 @@ object PathSpec extends Specification {
       (Path \ "lastname").read(string compose notEmpty) ~
       (Path \ "informations" \ "label").read(string compose notEmpty)){ (_, _, _) }
        .validate(invalid) mustEqual Failure(Seq((Path \ "informations" \ "label") -> Seq(ValidationError("validation.nonemptytext"))))
+    }
+
+    "perform complex validation" in {
+      import play.api.libs.functional.syntax._
+
+      case class Contact(
+        firstname: String,
+        lastname: String,
+        company: Option[String],
+        informations: Seq[ContactInformation])
+
+      case class ContactInformation(
+        label: String,
+        email: Option[String],
+        phones: Seq[String])
+
+      val validM = Map(
+        "firstname" -> Seq("Julien"),
+        "lastname" -> Seq("Tournay"),
+        "age" -> Seq("27"),
+        "informations[0].label" -> Seq("Personal"),
+        "informations[0].email" -> Seq("fakecontact@gmail.com"),
+        "informations[0].phones" -> Seq("01.23.45.67.89", "98.76.54.32.10"))
+
+      val invalidM = Map(
+        "firstname" -> Seq("Julien"),
+        "lastname" -> Seq("Tournay"),
+        "age" -> Seq("27"),
+        "informations[0].label" -> Seq(""),
+        "informations[0].email" -> Seq("fakecontact@gmail.com"),
+        "informations[0].phones" -> Seq("01.23.45.67.89", "98.76.54.32.10"))
+
+      val nonEmptyText = string compose notEmpty
+
+      val infoValidation =
+       ((Path \ "label").read(nonEmptyText) ~
+        (Path \ "email").read(option(string compose email)) ~
+        (Path \ "phones").read(seq(nonEmptyText))) (ContactInformation.apply _)
+
+      val contactValidation =
+       ((Path \ "firstname").read(nonEmptyText) ~
+        (Path \ "lastname").read(nonEmptyText) ~
+        (Path \ "company").read(option(string)) ~
+        (Path \ "informations").read[M, Seq[M], Seq[ContactInformation]](seq(infoValidation))) (Contact.apply _)
+
+      val expected =
+        Contact("Julien", "Tournay", None, Seq(
+          ContactInformation("Personal", Some("fakecontact@gmail.com"), List("01.23.45.67.89", "98.76.54.32.10"))))
+
+      contactValidation.validate(validM) mustEqual(Success(expected))
+      contactValidation.validate(invalidM) mustEqual(Failure(Seq(
+        (Path \ "informations" \ 0 \"label") -> Seq(ValidationError("validation.nonemptytext")))))
     }
   }
 }
