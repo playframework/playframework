@@ -5,6 +5,7 @@ import sbt.Keys._
 import Keys._
 import PlayEclipse._
 import com.typesafe.sbt.SbtNativePackager._
+import com.typesafe.sbt.packager.Keys._
 
 trait Settings {
   this: PlayCommands with PlayPositionMapper with PlayRun with PlaySourceGenerators =>
@@ -251,7 +252,10 @@ trait Settings {
           readmeFile: File =>
             readmeFile -> readmeFile.getName
         }
-    }
+    },
+
+    // Adds the Play application directory to the command line args passed to Play
+    bashScriptExtraDefines += "addJava \"-Duser.dir=$(cd \"${app_home}/..\"; pwd -P)\"\n"
 
   )
 }
