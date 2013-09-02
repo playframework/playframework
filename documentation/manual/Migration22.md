@@ -88,7 +88,7 @@ Advanced uses that created or used `ChunkedResult` directly should be replaced w
 
 We are now recommending that action composition be done using [`ActionBuilder`](api/scala/index.html#play.api.mvc.ActionBuilder) implementations for building actions.
 
-Details on how to do these can be found [here|ScalaActionsComposition].
+Details on how to do these can be found [[here|ScalaActionsComposition]].
 
 ### Filters
 
