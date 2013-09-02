@@ -17,10 +17,9 @@ case class RecursiveSearch(key: String) extends PathNode {
 }
 
 object \: {
-  def unapply(path: Path): Option[(PathNode, Path)] = {
+  def unapply(path: Path): Option[(Path, Path)] = {
     path match {
-      case Path(Nil) => None
-      case Path(n :: ns) => Some(n -> Path(ns))
+      case Path(n :: ns) => Some((Path() \ n) -> Path(ns))
     }
   }
 }
@@ -85,7 +84,9 @@ class Path(val path: List[PathNode]) {
   * @param m a lookup function. This function finds data in a structure of type I, and coerce it to tyoe O
   * @return A Rule validating the presence of data at this Path
   */
-  def write[In, O](implicit w: Path => Writes[In, O]) = w(this)
+  def write[I, O](implicit w: Path => Writes[I, O]): Writes[I, O] = w(this)
+  def write[I, J, O](format: Writes[J, O])(implicit w: Path => Writes[I, J]): Writes[I, O] =
+    Writes((format.writes _) compose (w(this).writes _))
 
   override def toString = this.path match {
     case Nil => "/"
