@@ -172,7 +172,7 @@ class GzipFilter(gzip: Enumeratee[Array[Byte], Array[Byte]] = Gzip.gzip(GzipFilt
   private def isNotAlreadyCompressed(header: ResponseHeader) = header.headers.get(Names.CONTENT_ENCODING).isEmpty
 
   private def setupHeader(header: Map[String, String]): Map[String, String] = {
-    header.filter(_._1 == Names.CONTENT_LENGTH) + (Names.CONTENT_ENCODING -> "gzip") + (Names.VARY -> Names.ACCEPT_ENCODING)
+    header.filterNot(_._1 == Names.CONTENT_LENGTH) + (Names.CONTENT_ENCODING -> "gzip") + (Names.VARY -> Names.ACCEPT_ENCODING)
   }
 }
 
