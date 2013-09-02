@@ -1,7 +1,7 @@
 package play.filters.gzip
 
 import play.api.test._
-import play.api.mvc.{ResponseHeader, Action, SimpleResult}
+import play.api.mvc.{HttpConnection, ResponseHeader, Action, SimpleResult}
 import play.api.mvc.Results._
 import java.util.zip.GZIPInputStream
 import java.io.ByteArrayInputStream
@@ -49,13 +49,20 @@ object GzipFilterSpec extends PlaySpecification {
       checkNotGzipped(makeGzipRequest, "foobar")
     }
 
-    "filter content length headers" in withApplication(Ok("hello").withHeaders(CONTENT_LENGTH -> Integer.toString(328974))) {
-      checkGzippedBody(makeGzipRequest, "hello")
+    "filter content length headers" in withApplication(
+      Ok("hello")
+        .withHeaders(CONTENT_LENGTH -> Integer.toString(328974))
+        // http connection close will trigger the gzip filter not to buffer
+        .copy(connection = HttpConnection.Close)
+    ) {
+      val result = makeGzipRequest
+      checkGzipped(result)
+      header(CONTENT_LENGTH, result) must beNone
     }
 
     val body = Random.nextString(1000)
 
-    "not buffer more than the configured threshold" in withApplication(Ok(body)) {
+    "not buffer more than the configured threshold" in withApplication(Ok(body).withHeaders(CONTENT_LENGTH -> "1000")) {
       val result = makeGzipRequest
       checkGzipped(result)
       header(CONTENT_LENGTH, result) must beNone
@@ -65,6 +72,12 @@ object GzipFilterSpec extends PlaySpecification {
 
     "buffer the first chunk even if it exceeds the threshold" in withApplication(Ok("foobarblah"), 15) {
       checkGzippedBody(makeGzipRequest, "foobarblah")
+    }
+
+    "preserve original headers" in withApplication(Redirect("/foo")) {
+      val result = makeGzipRequest
+      checkGzipped(result)
+      header(LOCATION, result) must beSome("/foo")
     }
   }
 
