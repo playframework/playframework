@@ -20,6 +20,9 @@ trait GenericRules {
       Validation.sequence(withI)
     }
 
+  def list[I, O](r: Rule[I, O]): Rule[Seq[I], List[O]] =
+    seq[I, O](r).fmap(_.toList)
+
   def not[I, O](r: Rule[I, O]) = Rule[I, I] { d =>
     r.validate(d) match {
       case Success(_) => Failure(Nil)
