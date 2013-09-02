@@ -29,7 +29,7 @@ object Tasks {
         generateDistribution(repo, bd, t, v)
     }
 
-  def generateDistribution(repo: File, bd: File, target: File, version: String): File = {
+  def generateDistribution(repoReport: RepositoryBuilder.LocalRepoReport, bd: File, target: File, version: String): File = {
     // Go down to the play checkout and get rid of the dumbness.
     val playBase = bd.getParentFile
     // Assert if we have the right directory...
@@ -104,7 +104,7 @@ object Tasks {
 
     // Copy the core files
     copyMaintainPerms(coreFiles map (f => f -> (dist / f.getName)))
-    IO.copyDirectory(repo, dist / "repository" / "local", true, false)
+    IO.copyDirectory(repoReport.localRepo, dist / "repository" / "local", true, false)
 
     // Update versions
     def updatePlayVersion(file: File) {
