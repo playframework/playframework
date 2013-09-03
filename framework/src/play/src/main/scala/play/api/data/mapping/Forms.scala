@@ -10,13 +10,13 @@ object Form {
 
 case class Form[T](data: Map[String, Seq[String]] = Map.empty, validation: Validation[(Path, Seq[ValidationError]), T] = Failure(Nil)) {lazy val hasErrors: Boolean = !errors.isEmpty
 
-  val dataP = Form.toPM(data)
+  val dataP = PM.toPM(data)
   lazy val errors: Seq[(Path, Seq[ValidationError])] =
     validation.fold(identity, _ => Nil)
   lazy val value: Option[T] =
     validation.fold(_ => None, Some(_))
 
-  def apply(key: String): Field = apply(Form.asPath(key))
+  def apply(key: String): Field = apply(PM.asPath(key))
 
   def apply(path: Path): Field = {
     val value = dataP.get(path).flatMap(_.headOption)
@@ -34,7 +34,7 @@ class Field(private val form: Form[_], val path: Path, override val value: Optio
   override val format = None
 
   override def apply(key: String): Field =
-    apply(Form.asPath(key))
+    apply(PM.asPath(key))
 
   def apply(index: Int): Field =
     apply(Path() \ index)
@@ -43,34 +43,27 @@ class Field(private val form: Form[_], val path: Path, override val value: Optio
     form.errors
       .flatMap {
         case (p, errs) if p.path.startsWith(path.path) =>
-          errs.map(e => d.FormError(Form.asKey(p), e.message))
+          errs.map(e => d.FormError(PM.asKey(p), e.message))
         case _ => Nil
       }
 
   def apply(_path: Path): Field = {
     val p = path ++ _path
-    val d = form.dataP.flatMap {
-      case (pa, errs) if pa.path.startsWith(p.path) => errs
-      case _ => Nil
-    }
-    Field(form, p, d.headOption)
+    val d = PM.find(p)(form.dataP).get(Path()).flatMap(_.headOption)
+    Field(form, p, d)
   }
 
-  override val name = Form.asKey(path)
+  override val name = PM.asKey(path)
 
   override lazy val indexes: Seq[Int] = {
-    form.dataP.keys
-      .collect {
-        case p if p.path.startsWith(path.path) =>
-          p.path.drop(path.path.length).head
-      }
+    PM.find(path)(form.dataP).keys
       .flatMap{
-        case IdxPathNode(i) => Seq(i)
+        case Path(Seq(IdxPathNode(i))) \: _ => Seq(i)
         case _ => Seq()
       }.toSeq
   }
 
-  override def toString = s"Field($form, ${path.path}, $value)"
+  override def toString = s"Field($form, $path, $value)"
 }
 
 object Field {

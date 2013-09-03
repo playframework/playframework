@@ -1,6 +1,8 @@
 package play.api.data.mapping
 
 object PM {
+  import Rules.PM
+
   import scala.util.parsing.combinator.{ Parsers, RegexParsers }
   object PathParser extends RegexParsers {
     override type Elem = Char
@@ -11,6 +13,13 @@ object PM {
     def path  = (opt(idx) ~ repsep(node, ".")) ^^ { case i ~ ns => Path(i.toList ::: ns.flatten) }
 
     def parse(s: String) = parseAll(path, new scala.util.parsing.input.CharArrayReader(s.toArray))
+  }
+
+  def find(path: Path)(data: PM): PM = data.flatMap {
+    case (p, errs) if p.path.startsWith(path.path) =>
+      Map(Path(p.path.drop(path.path.length)) -> errs)
+    case _ =>
+      Map.empty[Path, Seq[String]]
   }
 
   def toPM(m: Map[String, Seq[String]]) =
@@ -112,7 +121,7 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
 
   implicit def pickInMap(p: Path) = Rule.fromMapping[M, Seq[String]] {
     data =>
-      find(p)(PM.toPM(data)).toSeq.flatMap {
+      PM.find(p)(PM.toPM(data)).toSeq.flatMap {
         case (Path(Nil) | Path(Seq(IdxPathNode(_))), ds) => ds
         case _ => Nil
       } match {
@@ -128,19 +137,12 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
   implicit def pickOne[O](p: Path): Rule[M, String] =
     pickInMap(p) compose seqAsString
 
-  private def find(path: Path)(data: PM): PM = data.flatMap {
-    case (p, errs) if p.path.startsWith(path.path) =>
-      Map(Path(p.path.drop(path.path.length)) -> errs)
-    case _ =>
-      Map.empty[Path, Seq[String]]
-  }
-
   implicit def mapPickMap(path: Path) = Rule.fromMapping[M, M] { data =>
-    Success(PM.toM(find(path)(PM.toPM(data))))
+    Success(PM.toM(PM.find(path)(PM.toPM(data))))
   }
 
   implicit def mapPickSeqMap(p: Path) = Rule.fromMapping[M, Seq[M]]({ data =>
-    val grouped = find(p)(PM.toPM(data)).toSeq.flatMap {
+    val grouped = PM.find(p)(PM.toPM(data)).toSeq.flatMap {
       case (Path(IdxPathNode(i) :: Nil) \: t, vs) => Seq(i -> Map(t -> vs))
       case _ => Nil
     }.groupBy(_._1).mapValues(_.map(_._2)) // returns all the submap, grouped by index

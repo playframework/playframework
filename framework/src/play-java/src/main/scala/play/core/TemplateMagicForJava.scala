@@ -28,7 +28,7 @@ object PlayMagicForJava {
    */
   implicit def javaFieldtoScalaField(jField: play.data.Form.Field): play.api.data.Field = {
 
-    new play.api.data.Field(
+    new play.api.data.FormField(
       null,
       jField.name,
       jField.constraints.asScala.map { jT =>

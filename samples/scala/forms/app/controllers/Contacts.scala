@@ -71,7 +71,7 @@ object Contacts extends Controller {
     val r = contactValidation.validate(request.body)
     r match {
       case Failure(_) => BadRequest(html.contact.form(Form(request.body, r)))
-      case Success(_) => Ok(html.contact.form(Form(request.body, r)))
+      case Success(contact) => Ok(html.contact.summary(contact))
     }
   }
 
