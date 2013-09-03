@@ -2,48 +2,47 @@ package controllers
 
 import play.api._
 import play.api.mvc._
-import play.api.data._
-import play.api.data.Forms._
-import play.api.data.validation.Constraints._
+import play.api.data.mapping._
+import play.api.data.mapping.Rules._
+import play.api.libs.functional.syntax._
 
 import views._
-
 import models._
 
 object Contacts extends Controller {
-  
-  /**
-   * Contact Form definition.
-   */
-  val contactForm: Form[Contact] = Form(
-    
-    // Defines a mapping that will handle Contact values
-    mapping(
-      "firstname" -> nonEmptyText,
-      "lastname" -> nonEmptyText,
-      "company" -> optional(text),
-      
-      // Defines a repeated mapping
-      "informations" -> seq(
-        mapping(
-          "label" -> nonEmptyText,
-          "email" -> optional(email),
-          "phones" -> list(
-            text verifying pattern("""[0-9.+]+""".r, error="A valid phone number is required")
-          ) 
-        )(ContactInformation.apply)(ContactInformation.unapply)
-      )
-      
-    )(Contact.apply)(Contact.unapply)
-  )
-  
+
+  val nonEmptyText = string compose notEmpty
+  val infoValidation =
+   ((Path \ "label").read(nonEmptyText) ~
+    (Path \ "email").read(option(string compose email)) ~
+    (Path \ "phones").read(list(nonEmptyText))) (ContactInformation.apply _)
+
+  val contactValidation =
+   ((Path \ "firstname").read(nonEmptyText) ~
+    (Path \ "lastname").read(nonEmptyText) ~
+    (Path \ "company").read(option(string)) ~
+    (Path \ "informations").read(seq(infoValidation))) (Contact.apply _)
+
+  // implicit def contactWrite = {
+  //  import play.api.libs.functional.syntax.unlift
+  //  implicit val infoWrites =
+  //   ((Path \ "label").write[String] ~
+  //    (Path \ "email").write[Option[String]] ~
+  //    (Path \ "phones").write[Seq[String]]) (unlift(ContactInformation.unapply _))
+
+  //   ((Path \ "firstname").write[String] ~
+  //    (Path \ "lastname").write[String] ~
+  //    (Path \ "company").write[Option[String]] ~
+  //    (Path \ "informations").write[Seq[ContactInformation]]) (unlift(Contact.unapply _))
+  // }
+
   /**
    * Display an empty form.
    */
   def form = Action {
-    Ok(html.contact.form(contactForm));
+    Ok(html.contact.form(Form[Contact]()));
   }
-  
+
   /**
    * Display a form pre-filled with an existing Contact.
    */
@@ -61,17 +60,22 @@ object Contacts extends Controller {
         )
       )
     )
-    Ok(html.contact.form(contactForm.fill(existingContact)))
+    //Ok(html.contact.form(Form.fill(existingContact)))
+    Ok(html.contact.form(Form[Contact]()))
   }
-  
+
   /**
    * Handle form submission.
    */
-  def submit = Action { implicit request =>
-    contactForm.bindFromRequest.fold(
-      errors => BadRequest(html.contact.form(errors)),
-      contact => Ok(html.contact.summary(contact))
-    )
+  def submit = Action(parse.urlFormEncoded) { implicit request =>
+    val r = contactValidation.validate(request.body)
+    println(request.body)
+    println(r)
+    println()
+    r match {
+      case Failure(_) => BadRequest(html.contact.form(Form(request.body, r)))
+      case Success(_) => Ok(html.contact.form(Form(request.body, r)))
+    }
   }
-  
+
 }
