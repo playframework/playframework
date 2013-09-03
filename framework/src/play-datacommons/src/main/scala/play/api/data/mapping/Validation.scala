@@ -1,5 +1,7 @@
 package play.api.data.mapping
 
+
+// TODO: Validation should be a comonad
 /**
 * Validation[E, A] is the result of a validation, where E is the type of each error, and A is the type of the result if the validation is successful
 * The only two possible implementations are Success[E, A](value: A), or Failure[E, A](errors: Seq[E])

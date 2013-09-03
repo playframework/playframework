@@ -100,4 +100,19 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
     Success(submap)
   }
 
+  implicit def mapPickSeqMap(p: Path) = Rule.fromMapping[M, Seq[M]]({ data =>
+    val prefix = toMapKey(p)
+    val r = prefix + """\[([0-9]+)\]*\.(.*)"""
+
+    // XXX: ugly and clearly not efficient
+    val submaps: Seq[M] = data.filterKeys(_.matches(r)).groupBy { case (k, v) =>
+      val r.r(index, name) = k
+      index.toInt
+    }.toSeq.sortBy(_._1).map(_._2).map( _.map{ case (k, v) =>
+        val r.r(index, name) = k
+        name -> v
+    })
+    Success(submaps)
+  })
+
 }

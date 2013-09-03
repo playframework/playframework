@@ -2,6 +2,7 @@ package play.api.data.mapping
 
 import scala.language.implicitConversions
 
+// TODO: this is really just a function...
 trait Writes[I, O] {
   def writes(i: I): O
 }
@@ -28,6 +29,9 @@ trait DefaultWrites {
   implicit def jsonWrites[I](implicit w: JSWrites[I]) =
     Writes((i: I) => w.writes(i))
   */
+
+  implicit def writeI[I]: Writes[I, I] =
+    Writes(identity[I] _)
 
   implicit def writeInt: Writes[Int, String] =
     Writes((i: Int) => i.toString)
