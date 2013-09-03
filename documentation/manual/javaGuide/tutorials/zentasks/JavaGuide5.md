@@ -230,4 +230,4 @@ Run these tests to make sure they work.  We've now seen a little bit more of how
 
 Commit your work to git.
 
-> Go to the [next part](JavaGuide6)
+> Go to the [[next part|JavaGuide6]]

@@ -212,7 +212,7 @@ Now edit the `app/views/Application/index.scala.html` template to replace the we
 
 Like for the Java code changes, just refresh the page in the browser to see the modification.
 
-> We will now start to code the tasks application.  You can either continue to work with a text editor or open the project in a Java IDE like Eclipse or Netbeans.  If you want to set up a Java IDE, please check [this page](IDE).
+> We will now start to code the tasks application.  You can either continue to work with a text editor or open the project in a Java IDE like Eclipse or Netbeans.  If you want to set up a Java IDE, please check [[this page|IDE]].
 
 One more thing before starting to code.  For the task engine, we will need a database.  For development purposes, play comes with a standalone SQL database managements system called HSQLDB.  This is the best way to start a project before switching to a more robust database if needed.  You can choose to have either an in-memory database or a filesystem database that will keep your data between application restarts.
 
@@ -241,4 +241,4 @@ Finally you can commit your changes:
 
 Our initial version is committed, and we have a solid foundation for our project.
 
-> Go to the [next part](JavaGuide2)
+> Go to the [[next part|JavaGuide2]]

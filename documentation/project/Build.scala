@@ -6,6 +6,7 @@ import sbt.Keys._
 import play.Keys._
 import play.core.{ SBTDocHandler, SBTLink, PlayVersion }
 import play.PlaySourceGenerators._
+import DocValidation._
 
 object ApplicationBuild extends Build {
 
@@ -59,7 +60,9 @@ object ApplicationBuild extends Build {
 
     run <<= docsRunSetting,
 
-    DocValidation.validateDocs <<= DocValidation.ValidateDocsTask,
+    generateMarkdownReport <<= GenerateMarkdownReportTask,
+    validateDocs <<= ValidateDocsTask,
+    validateExternalLinks <<= ValidateExternalLinksTask,
 
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true", "junitxml", "console"),
     testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "--ignore-runners=org.specs2.runner.JUnitRunner"),

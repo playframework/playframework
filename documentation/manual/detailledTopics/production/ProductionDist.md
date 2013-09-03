@@ -4,7 +4,7 @@
 
 The simplest way to deploy a Play application is to retrieve the source (typically via a git workflow) on the server and to use either `play start` or `play stage` to start it in place.
 
-However, you sometimes need to build a binary version of your application and deploy it to the server without any dependencies on Play itself. You can do this with the `dist` task.
+However, you sometimes need to build a binary version of your application and deploy it to the server without any dependency on Play itself. You can do this with the `dist` task.
 
 In the Play console, simply type `dist`:
 
@@ -75,3 +75,5 @@ Then in the Play console, use the `publish` task:
 ```
 
 > Check the [sbt documentation](http://www.scala-sbt.org/release/docs/index.html) to get more information about the resolvers and credentials definition.
+
+> **Next:** [[Production configuration|ProductionConfiguration]]

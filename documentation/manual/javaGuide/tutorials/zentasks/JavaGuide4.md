@@ -400,4 +400,4 @@ We can now see the currently logged in user, and only the projects that the user
 
 As always, commit your work to git.
 
-> Go to the [next part](JavaGuide5)
+> Go to the [[next part|JavaGuide5]]

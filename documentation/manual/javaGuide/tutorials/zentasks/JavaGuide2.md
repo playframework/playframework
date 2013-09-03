@@ -331,4 +331,4 @@ As you can see, some new files are not under version control.  Add all the files
     git add .
     git commit -m "The model layer is ready"
 
-> Go to the [next part](JavaGuide3).
+> Go to the [[next part|JavaGuide3]].
