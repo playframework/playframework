@@ -11,7 +11,7 @@ Play comes with a few plugins predefined for all applications, these plugins are
 
 However, one can easily add a new plugin to an application by following these steps:
 
-* implement `play.Plugin` (see [this](https://github.com/playframework/playframework/blob/master/framework/src/play/src/main/java/play/db/ebean/EbeanPlugin.java) for an example)
+* implement `play.Plugin` (see [this](https://github.com/playframework/playframework/blob/master/framework/src/play-java-ebean/src/main/java/play/db/ebean/EbeanPlugin.java) for an example)
 * this plugin should be available in the application either through pulling in it from a maven repository and referencing it
 as an app dependency or the plugin code can be part of a play application
 * you can access it like 

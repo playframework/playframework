@@ -58,3 +58,5 @@ $ target/universal/stage/bin/foo -Dconfig.file=/full/path/to/conf/application-pr
 ```
 
 For a full description of usage invoke the start script with a "-h" option.
+
+> **Next:** [[Creating a standalone distribution|ProductionDist]]

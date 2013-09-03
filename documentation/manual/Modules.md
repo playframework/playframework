@@ -48,12 +48,6 @@
 * **Documentation:** <https://github.com/orefalo/play2-authenticitytoken/blob/master/README.md>
 * **Short description:** Brings back play1 authenticity token - provides a way around CSRF attacks
 
-## Cache Utilities
-* **Website:** <http://hakandilek.github.com/play2-cache/>
-* **Documentation:** <https://github.com/hakandilek/play2-cache/blob/master/README.md>
-* **Repository:** <http://hakandilek.github.com/play2-cache/releases/>
-* **Repository(snapshot):** <http://hakandilek.github.com/play2-cache/snapshots/>
-* **Short description:** Utilities for simplifying caching
 
 ## ClojureScript Plugin
 
@@ -88,7 +82,7 @@
 
 * **Website:** <https://github.com/cleverage/play2-elasticsearch>
 * **Documentation:** <https://github.com/cleverage/play2-elasticsearch/blob/master/README.md>
-* **Repository:** <http://cleverage.github.com/play2-elasticsearch/releases/>
+* **Repository:** <http://cleverage.github.io/play2-elasticsearch/releases/>
 * **Short description** Indexing/Requesting Object in Embedded ElasticSearch Server or remote(s) Node(s). 
 
 ## Ember.js
@@ -101,7 +95,7 @@
 
 * **Website:** <https://github.com/joergviola/funcy>
 * **Documentation:** <https://github.com/joergviola/funcy/blob/master/README.md>
-* **Repository:** <http://joergviola.github.com/releases/>
+* **Repository:** <http://www.joergviola.de/releases/>
 * **Short description** Simplifies writing functional test using Page Driver classes.
 
 ## Geolocation (Java)
@@ -138,7 +132,7 @@
 * **Short description:** provides a simple validation API for Play
 
 ## JackRabbit Plugin (Java and Scala)
-* **Website (docs, sample):** [JackRabbit Plugin GitHub](http://goo.gl/2OXEp)
+* **Website (docs, sample):** [JackRabbit Plugin GitHub](https://github.com/sgougi/play21-jackrabbit-plugin)
 * **Short description:** Apache JackRabbit Plugin for play! framework 2
 
 ## Japid module
@@ -212,14 +206,14 @@
 * **Short description:** provides a typesafe way to query SQL databases with a special emphasis on selective querying
 
 ## Origami: OrientDB O/G Mapper (Java and Scala)
-* **Website (docs, sample):** [Origami Plugin GitHub](http://goo.gl/KEmWU)
+* **Website (docs, sample):** [Origami Plugin GitHub](https://github.com/sgougi/play21-origami-plugin)
 * **Short description:** Origami plugin is a Java O/G mapper for the OrientDB with Play! Framework 2.
 
 ## PDF module (Java)
 
 * **Website:** <https://github.com/joergviola/play20-pdf>
 * **Documentation:** <https://github.com/joergviola/play20-pdf/blob/master/README.md>
-* **Repository:** <http://joergviola.github.com/releases/>
+* **Repository:** <http://www.joergviola.de/releases/>
 * **Short description** Generate PDF output from HTML templates
 
 ## Play! Authenticate (Java)
@@ -309,8 +303,8 @@ your Play application.
 
 ## socket.io.play (scala only, pre-alpha)
 
-* **Website:** <https://github.com/rohit-tingendab/socket.io.play>
-* **Documentation:** <https://github.com/rohit-tingendab/socket.io.play/blob/master/README.md>
+* **Website:** <https://github.com/milliondreams/socket.io.play>
+* **Documentation:** <https://github.com/milliondreams/socket.io.play/blob/master/README.md>
 
 ## Spring Module 
 
@@ -333,7 +327,7 @@ your Play application.
 * **Short description:** Support for [Stylus](https://github.com/learnboost/stylus) CSS compilation
 
 ## TinkerPop Frames O/G Mapper Plugins (Java)
-* **Website (docs, sample):** GitHub: [Frames-Neo4j Plugin](http://goo.gl/S9xB7) / [Frames-OrientDB Plugin](http://goo.gl/H3tiz) / [Frames-Titan Plugin](http://goo.gl/5YBCI)
+* **Website (docs, sample):** GitHub: [Frames-Neo4j Plugin](https://github.com/sgougi/play21-frames-neo4j-plugin) / [Frames-OrientDB Plugin](https://github.com/sgougi/play21-frames-orientdb-plugin) / [Frames-Titan Plugin](https://github.com/sgougi/play21-frames-titan-plugin)
 * **Short description:** Java O/G mapper plugins for GraphDBs
 
 ## Typesafe util Plugin (Scala)
@@ -356,8 +350,8 @@ your Play application.
 
 ## XForward module
 
-* **Website:** <https://github.com/orefalo/play2-xforward>
-* **Documentation:** <https://github.com/orefalo/play2-xforward/blob/master/Readme.md>
+* **Website:** <https://github.com/olsego/play2-xforward>
+* **Documentation:** <https://github.com/olsego/play2-xforward/blob/master/Readme.md>
 * **Short description:** This module brings back the missing Proxy forwarding settings from Play1.
 
 ## XWiki Rendering module (Scala)
