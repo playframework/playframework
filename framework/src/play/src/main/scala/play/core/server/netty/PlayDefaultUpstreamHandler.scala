@@ -21,7 +21,7 @@ import scala.util.control.Exception
 import com.typesafe.netty.http.pipelining.{OrderedDownstreamChannelEvent, OrderedUpstreamMessageEvent}
 import scala.concurrent.Future
 import java.net.URI
-import java.nio.channels.ClosedChannelException
+import java.io.IOException
 
 
 private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
@@ -37,7 +37,9 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
   override def exceptionCaught(ctx: ChannelHandlerContext, event: ExceptionEvent) {
     event.getCause match {
-      case e: ClosedChannelException => nettyExceptionLogger.trace("Benign exception caught in Netty", e)
+      // IO exceptions happen all the time, it usually just means that the client has closed the connection before fully
+      // sending/receiving the response.
+      case e: IOException => nettyExceptionLogger.trace("Benign IO exception caught in Netty", e)
       case e => nettyExceptionLogger.error("Exception caught in Netty", e)
     }
     event.getChannel.close()
