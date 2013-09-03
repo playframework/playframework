@@ -110,8 +110,7 @@ object Dependencies {
     "com.novocode" % "junit-interface" % "0.10" % "test" exclude("junit", "junit-dep"),
 
     ("org.fluentlenium" % "fluentlenium-festassert" % "0.9.0" % "test")
-      .exclude("org.jboss.netty", "netty")
-      .exclude("comm.google.guava","guava"),
+      .exclude("org.jboss.netty", "netty"),
 
     "org.scala-lang" % "scala-reflect" % BuildSettings.buildScalaVersion,
 
