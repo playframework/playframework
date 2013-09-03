@@ -24,7 +24,7 @@ object \: {
   }
 }
 
-object Path {
+case object Path {
   def apply(path: String) = new Path(KeyPathNode(path) :: Nil)
 	def apply(path: List[PathNode] = Nil) = new Path(path)
 

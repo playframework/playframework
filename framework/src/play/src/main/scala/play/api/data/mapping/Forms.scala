@@ -1,40 +1,9 @@
 package play.api.data.mapping
 
 import play.api.{ data => d }
+import play.api.data.mapping.PM._
 
 object Form {
-
-	import scala.util.parsing.combinator.{ Parsers, RegexParsers }
-	object PathParser extends RegexParsers {
-	  override type Elem = Char
-	  def int 	= """\d""".r ^^ { _.toInt }
-	  def idx 	= "[" ~> int <~ "]" ^^ { IdxPathNode(_) }
-    def key   = rep1(not("." | idx) ~> ".".r) ^^ { ks => KeyPathNode(ks.mkString) }
-	  def node  = key ~ opt(idx) ^^ { case k ~ i => k :: i.toList }
-	  def path  = (opt(idx) ~ repsep(node, ".")) ^^ { case i ~ ns => Path(i.toList ::: ns.flatten) }
-
-    def parse(s: String) = parseAll(path, new scala.util.parsing.input.CharArrayReader(s.toArray))
-	}
-
-  def toPM(m: Map[String, Seq[String]]) =
-    m.map { case (p, v) => asPath(p) -> v }
-
-  def asNodeKey(n: PathNode): String = n match {
-    case IdxPathNode(i) => s"[$i]"
-    case KeyPathNode(k) => k
-  }
-
-  def asKey(p: Path): String = p.path.headOption.toList.map(asNodeKey).mkString ++ p.path.tail.foldLeft("") {
-    case (path, n@IdxPathNode(i)) => path + asNodeKey(n)
-    case (path, n@KeyPathNode(k)) => path + "." + asNodeKey(n)
-  }
-
-  def asPath(k: String): Path = PathParser.parse(k) match {
-    case PathParser.Failure(m, _) => throw new RuntimeException(s"Invalid field name $k: $m")
-    case PathParser.Error(m, _) => throw new RuntimeException(s"Invalid field name $k: $m")
-    case PathParser.Success(r, _) => r
-  }
-
   // def fill[T](t: T)(implicit w: Writes[T, Map[Path, Seq[String]]]) =
   //   Form(w.writes(t))
 }
