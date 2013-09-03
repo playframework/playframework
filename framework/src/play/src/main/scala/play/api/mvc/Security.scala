@@ -96,7 +96,7 @@ object Security {
    *
    * {{{
    * // in a Security trait
-   * object Authenticated extends AuthenticationBuilder(req => getUserFromRequest(req))
+   * object Authenticated extends AuthenticatedBuilder(req => getUserFromRequest(req))
    *
    * // then in a controller
    * def index = Authenticated { implicit request =>
@@ -151,7 +151,7 @@ object Security {
    *
    * {{{
    * // in a Security trait
-   * object Authenticated extends AuthenticationBuilder(req => getUserFromRequest(req))
+   * object Authenticated extends AuthenticatedBuilder(req => getUserFromRequest(req))
    *
    * // then in a controller
    * def index = Authenticated { implicit request =>
