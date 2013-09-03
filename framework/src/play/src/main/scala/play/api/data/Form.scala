@@ -271,12 +271,15 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
  * @param errors the errors associated to this field
  * @param value the field value, if any
  */
-case class Field(private val form: Form[_], name: String, constraints: Seq[(String, Seq[Any])], format: Option[(String, Seq[Any])], errors: Seq[FormError], value: Option[String]) {
 
-  /**
-   * The field ID - the same as the field name but with '.' replaced by '_'.
+trait Field {
+   /**
+   * Retrieve a field from the same form, using a key relative to this field key.
+   *
+   * @param key Relative key.
    */
-  lazy val id: String = name.replace('.', '_').replace('[', '_').replace(']', '_')
+  def apply(key: String): Field
+  val errors: Seq[FormError]
 
   /**
    * Returns the first error associated with this field, if it exists.
@@ -285,27 +288,43 @@ case class Field(private val form: Form[_], name: String, constraints: Seq[(Stri
    */
   lazy val error: Option[FormError] = errors.headOption
 
-  /**
-   * Check if this field has errors.
-   */
-  lazy val hasErrors: Boolean = !errors.isEmpty
-
-  /**
-   * Retrieve a field from the same form, using a key relative to this field key.
-   *
-   * @param key Relative key.
-   */
-  def apply(key: String): Field = {
-    form(Option(name).filterNot(_.isEmpty).map(_ + (if (key(0) == '[') "" else ".")).getOrElse("") + key)
-  }
+  val name: String
 
   /**
    * Retrieve available indexes defined for this field (if this field is repeated).
    */
+  val indexes: Seq[Int]
+
+  /**
+   * The field ID - the same as the field name but with '.' replaced by '_'.
+   */
+  lazy val id: String = name.replace('.', '_').replace('[', '_').replace(']', '_')
+  /**
+   * Check if this field has errors.
+   */
+  lazy val hasErrors: Boolean = !errors.isEmpty
+  val constraints: Seq[(String, Seq[Any])]
+  val format: Option[(String, Seq[Any])]
+  val value: Option[String]
+}
+
+object Field {
+  def apply(form: Form[_], name: String, constraints: Seq[(String, Seq[Any])], format: Option[(String, Seq[Any])], errors: Seq[FormError], value: Option[String]) =
+    new FormField(form, name, constraints, format, errors, value)
+
+  def unapply(f: Field) =
+    Some((f.name, f.constraints, f.format, f.errors, f.value))
+}
+
+class FormField(private val form: Form[_], override val name: String, override val constraints: Seq[(String, Seq[Any])], override val format: Option[(String, Seq[Any])], override val errors: Seq[FormError], override val value: Option[String]) extends Field {
+
+  def apply(key: String): Field = {
+    form(Option(name).filterNot(_.isEmpty).map(_ + (if (key(0) == '[') "" else ".")).getOrElse("") + key)
+  }
+
   lazy val indexes: Seq[Int] = {
     RepeatedMapping.indexes(name, form.data)
   }
-
 }
 
 /**

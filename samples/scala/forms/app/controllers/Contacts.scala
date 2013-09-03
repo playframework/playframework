@@ -69,9 +69,6 @@ object Contacts extends Controller {
    */
   def submit = Action(parse.urlFormEncoded) { implicit request =>
     val r = contactValidation.validate(request.body)
-    println(request.body)
-    println(r)
-    println()
     r match {
       case Failure(_) => BadRequest(html.contact.form(Form(request.body, r)))
       case Success(_) => Ok(html.contact.form(Form(request.body, r)))

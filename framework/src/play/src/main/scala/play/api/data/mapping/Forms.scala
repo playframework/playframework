@@ -59,7 +59,10 @@ case class Form[T](data: Map[String, Seq[String]] = Map.empty, validation: Valid
 }
 
 class Field(private val form: Form[_], val path: Path, override val value: Option[String])
-	extends d.Field(null, Form.asKey(path), Nil, None, Nil, value) { // TODO: find something better than this ugly null, handle constraints and format
+	extends d.Field {
+
+  override val constraints = Nil
+  override val format = None
 
   override def apply(key: String): Field =
     apply(Form.asPath(key))
