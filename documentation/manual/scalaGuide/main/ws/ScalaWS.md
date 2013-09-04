@@ -2,81 +2,96 @@
 
 Sometimes we would like to call other HTTP services from within a Play application. Play supports this via its [WS library](api/scala/index.html#play.api.libs.ws.package), which provides a way to make asynchronous HTTP calls.
 
-## Imports
+There are two important parts to using the WS API: making a request, and processing the response.  We'll discuss how to make both GET and POST HTTP requests first, and then show how to process the response from WS.  Finally, we'll discuss some common use cases.
 
-To use WS, import the following:
+## Making a Request
+
+To use WS, first import the following:
 
 ```scala
 import play.api.libs.ws._
 import scala.concurrent.Future
 ```
 
-## Making an HTTP call
-
-To send an HTTP request you start with `WS.url()` to specify the URL.  This returns an object called [WSRequestHolder](api/scala/index.html#play.api.libs.ws.WS$$WSRequestHolder) that you can use to specify various HTTP options, such as setting headers. You end by calling a final method corresponding to the HTTP method you want to use.
-
-For example:
+To build an HTTP request, you start with `WS.url()` to specify the URL.
 
 ```scala
-WS.url("http://mysite.com").get()
+val holder : WSRequestHolder = WS.url(url)
 ```
 
-Or:
+This returns a [WSRequestHolder](api/scala/index.html#play.api.libs.ws.WS$$WSRequestHolder) that you can use to specify various HTTP options, such as setting headers.  You can chain calls together to construct complex requests.
 
 ```scala
-WS.url("http://localhost:9001/post").post("content")
+val complexHolder : WSRequestHolder = holder.withHeaders(...)
+                                            .withTimeout(...)
+                                            .withQueryString(...)
 ```
 
-### Calling with authentication
+You end by calling a method corresponding to the HTTP method you want to use.  This ends the chain, and uses all the options defined on the built request in the `WSRequestHolder`.
+
+```scala
+val futureResponse : Future[Response] = complexHolder.get()
+```
+
+This returns a `Future[Response]` where the [Response](api/scala/index.html#play.api.libs.ws.Response) contains the data returned from the server.
+
+### Request with authentication
 
 If you need to use HTTP authentication, you can specify it in the builder, using a username, password, and an [AuthScheme](http://sonatype.github.io/async-http-client/apidocs/reference/com/ning/http/client/Realm.AuthScheme.html).  Options for the AuthScheme are `BASIC`, `DIGEST`, `KERBEROS`, `NONE`, `NTLM`, and `SPNEGO`.
 
 ```scala
 import com.ning.http.client.Realm.AuthScheme
-WS.url("http://example.com/protectedfile").withAuth(user, password, AuthScheme.BASIC).get()
+
+WS.url(url).withAuth(user, password, AuthScheme.BASIC).get()
 ```
 
-### Calling with redirects
+### Request with follow redirects
 
 If an HTTP call results in a 302 or a 301 redirect, you can automatically follow the redirect without having to make another call.
 
 ```scala
-WS.url("http://example.com/returns302").withFollowRedirects(true).get()
+WS.url(url).withFollowRedirects(true).get()
 ```
 
-### Calling with query parameters
+### Request with query parameters
 
 Parameters can be specified as a series of key/value tuples.
 
 ```scala
-WS.url("http://localhost:9000").withQueryString("paramKey" -> "paramValue").get()
+WS.url(url).withQueryString("paramKey" -> "paramValue").get()
 ```
 
-### Calling with additional headers
+### Request with additional headers
 
 Headers can be specified as a series of key/value tuples.
 
 ```scala
-WS.url("http://localhost:9000").withHeaders("headerKey" -> "headerValue").get()
+WS.url(url).withHeaders("headerKey" -> "headerValue").get()
 ```
 
-### Calling with virtual host
+If you are sending plain text in a particular format, you may want to define the content type explicitly.
+
+```scala
+WS.url(url).withHeaders("Content-Type" -> "text-xml").post(xmlString)
+```
+
+### Request with virtual host
 
 A virtual host can be specified as a string.
 
 ```scala
-WS.url("http://localhost:9000").withVirtualHost("192.168.1.1").get()
+WS.url(url).withVirtualHost("192.168.1.1").get()
 ```
 
-### Calling with time out
+### Request with time out
 
 If you need to give a server more time to process, you can use `withTimeout` to set a value in milliseconds.  You may want to use this for extremely large files.
 
 ```scala
-WS.url(dataUrl).withTimeout(1000).get()
+WS.url(url).withTimeout(1000).get()
 ```
 
-### Using POST with url-form-encoded data
+### Submitting form data
 
 To post url-form-encoded data a `Map[String, Seq[String]]` needs to be passed into `post`.
 
@@ -84,46 +99,67 @@ To post url-form-encoded data a `Map[String, Seq[String]]` needs to be passed in
 WS.url(url).post(Map("key" -> Seq("value")))
 ```
 
-### Using POST with JSON data
+### Submitting JSON data
 
-???
+The easiest way to post JSON data is to use the [[JSON|ScalaJson]] library.
 
-```scala
-WS.url(url).post()
-```
+@[scalaws-post-json](code/ScalaWSSpec.scala)
 
-## Retrieving the HTTP response
+### Submitting XML data
 
-Any calls made by `WS` should return a `Future[Response]` which we can later handle with Play’s asynchronous mechanisms.
+The easiest way to post XML data is to use XML literals.  XML literals are convenient, but not very fast.  For efficiency, consider using an XML view template, or a JAXB library.
 
-### Processing a response as JSON or XML
+@[scalaws-post-xml](code/ScalaWSSpec.scala)
 
-???
+## Processing the Response
 
-### Processing a response to a controller
+Working with the [Response](api/scala/index.html#play.api.libs.ws.Response) is easily done by mapping inside the [Future](http://www.scala-lang.org/api/current/index.html#scala.concurrent.Future).
 
-You can compose several promises and end with a `Future[Result]` that can be handled directly by the Play server, using the `Async` method
+The examples given below have some common dependencies that will be shown once here for brevity.
 
-```scala
-def feedTitle(feedUrl: String) = Action {
-  Async {
-    WS.url(feedUrl).get().map { response =>
-      Ok("Feed title: " + (response.json \ "title").as[String])
-    }
-  }  
-}
-```
+An execution context, required for Future.map:
+
+@[scalaws-context](code/ScalaWSSpec.scala)
+
+and a case class that will be used for serialization / deserialization:
+
+@[scalaws-person](code/ScalaWSSpec.scala)
+
+### Processing a response as JSON
+
+You can process the response as a [JSON object](api/scala/index.html#play.api.libs.json.JsValue) by calling `response.json`.
+
+@[scalaws-process-json](code/ScalaWSSpec.scala)
+
+The JSON library has a [[useful feature|ScalaJsonCombinators]] that will map an implicit [`Reads[T]`](api/scala/index.html#play.api.libs.json.Reads) directly to a class:
+
+@[scalaws-process-json-with-implicit](code/ScalaWSSpec.scala)
+
+### Processing a response as XML
+
+You can process the response as an [XML literal](http://www.scala-lang.org/api/current/index.html#scala.xml.NodeSeq) by calling `response.xml`.
+
+@[scalaws-process-xml](code/ScalaWSSpec.scala)
 
 ### Processing large responses
 
-Calling `get` or `post` by default will cause the body of the request to be loaded into memory before the response is made available.  When you are downloading with large, multi-gigabyte files, this may result in unwelcome garbage collection or even out of memory errors.  `WS` lets you deal with the download as a stream using [[iteratees|Iteratees]].
+Calling `get()` or `post()` will cause the body of the request to be loaded into memory before the response is made available.  When you are downloading with large, multi-gigabyte files, this may result in unwelcome garbage collection or even out of memory errors.
+
+`WS` lets you use the response incrementally by using an [[iteratee|Iteratees]].
 
 @[scalaws-fileupload](code/ScalaWSSpec.scala)
 
-POST and PUT use a slightly different API: instead of `post`, you call `postAndRetrieveStream`:
+This is an iteratee that will receive a portion of the file as an array of bytes, write those bytes to an OutputStream, and close the stream when it receives the `EOF` signal.  Until it receives an `EOF` signal, the iteratee will keep running.
+
+`WS` doesn't send `EOF` to the iteratee when it's finished -- instead, it redeems the returned future.
+In fact, `WS` has no right to feed `EOF`, since it doesn't control the input.  You may want to feed the result of multiple WS calls into that iteratee (maybe you're building a tar file on the fly), and if `WS` feeds `EOF`, the stream will close unexpectedly.  Sending `EOF` to the stream is the caller's responsibility.
+
+We do this by calling [Iteratee.run](http://www.playframework.com/documentation/2.1.x/api/scala/index.html#play.api.libs.iteratee.Iteratee) which will push an `EOF` into the iteratee when the future is redeemed.
+
+`POST` and `PUT` calls use a slightly different API than `GET` calls: instead of `post()`, you call `postAndRetrieveStream(body)` which has the same effect.
 
 ```scala
-WS.url("http://example.com/largedata").postAndRetrieveStream(body) { headers =>
+WS.url(url).postAndRetrieveStream(body) { headers =>
   Iteratee.foreach { bytes => logger.info("Received bytes: " + bytes.length) }
 }
 ```
@@ -132,27 +168,23 @@ WS.url("http://example.com/largedata").postAndRetrieveStream(body) { headers =>
 
 ### Chaining WS calls
 
-Using for comprehensions is a good way to chain conversations of WS calls.
+Using for comprehensions is a good way to chain WS calls in a trusted environment.  You should use for comprehensions together with [Future.recover](http://www.scala-lang.org/api/current/index.html#scala.concurrent.Future) to handle possible failure.
+
+@[scalaws-forcomprehension](code/ScalaWSSpec.scala)
+
+### Using in a controller
+
+You can compose several promises and end with a `Future[Result]` that can be handled directly by the Play server, using the `Async` method defined in [[Handling Asynchronous Results|ScalaAsync]].
 
 ```scala
-  for {
-    jsonPayload <- WS.url("http://example.com/first").get()
-    reply = constructReply(jsonPayload)
-    response <- WS.url("http://example.com/post").post(reply)
-  } yield response
-```
-
-### Using Recover
-
-Recover is technically part of the Future, but is widely used to return values.
-
-```
-  WS.url("http://example.com").get().recover {
-    WS.url("http://backup.example.com").get()
+def feedTitle(feedUrl: String) = Action {
+  Async {
+    WS.url(feedUrl).get().map { response =>
+      Ok("Feed title: " + (response.json \ "title").as[String])
+    }
   }
+}
 ```
-
-??? How to use with for comprehensions?
 
 ## Advanced Usage
 
@@ -164,11 +196,10 @@ import com.ning.http.client.AsyncHttpClient
 val client:AsyncHttpClient = WS.client
 ```
 
-## Limitations
+This is important in a couple of cases.  WS has a couple of limitations that require access to the client:
 
-* `WS` does not support multi part form upload directly.  You can use the underlying client.
-* `WS` does not support mutual TLS.
-* `WS` does not support faking a user agent.
+* `WS` does not support multi part form upload directly.  You can use the underlying client with [RequestBuilder.addBodyPart](http://asynchttpclient.github.io/async-http-client/apidocs/com/ning/http/client/RequestBuilder.html).
+* `WS` does not support client certificates (aka mutual TLS / MTLS / client authentication).  You should set the `SSLContext` directly in an instance of [AsyncHttpClientConfig](http://asynchttpclient.github.io/async-http-client/apidocs/com/ning/http/client/AsyncHttpClientConfig.html) and set up the appropriate KeyStore and TrustStore.
 
 ## Configuring WS 
 
@@ -182,4 +213,4 @@ Use the following properties to configure the WS client
 
  
 
-> **Next:** [[OpenID Support in Play | ScalaOpenID]]
+> **Next:** [[OpenID Support in Play|ScalaOpenID]]
