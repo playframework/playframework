@@ -113,11 +113,11 @@ object Security {
    *
    * object Authenticated extends ActionBuilder[AuthenticatedDbRequest] {
    *   def invokeBlock[A](request: Request[A], block: (AuthenticatedDbRequest[A]) => Future[SimpleResult]) = {
-   *     AuthenticatedBuilder(req => getUserFromRequest(req)).authenticate(request, { authRequest =>
+   *     AuthenticatedBuilder(req => getUserFromRequest(req)).authenticate(request, { authRequest: AuthenticatedRequest[A, User] =>
    *       DB.withConnection { conn =>
-   *         new AuthenticatedDbRequest(authRequest.user, conn, request)
-   *       })
-   *     }
+   *         block(new AuthenticatedDbRequest[A](authRequest.user, conn, request))
+   *       }
+   *     })
    *   }
    * }
    * }}}
@@ -168,11 +168,11 @@ object Security {
    *
    * object Authenticated extends ActionBuilder[AuthenticatedDbRequest] {
    *   def invokeBlock[A](request: Request[A], block: (AuthenticatedDbRequest[A]) => Future[SimpleResult]) = {
-   *     AuthenticatedBuilder(req => getUserFromRequest(req)).authenticate(request, { authRequest =>
+   *     AuthenticatedBuilder(req => getUserFromRequest(req)).authenticate(request, { authRequest: AuthenticatedRequest[A, User] =>
    *       DB.withConnection { conn =>
-   *         new AuthenticatedDbRequest(authRequest.user, conn, request)
-   *       })
-   *     }
+   *         block(new AuthenticatedDbRequest[A](authRequest.user, conn, request))
+   *       }
+   *     })
    *   }
    * }
    * }}}
