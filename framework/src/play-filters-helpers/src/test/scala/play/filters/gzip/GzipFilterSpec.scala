@@ -1,14 +1,13 @@
 package play.filters.gzip
 
 import play.api.test._
-import play.api.mvc.{HttpConnection, ResponseHeader, Action, SimpleResult}
+import play.api.mvc.{HttpConnection, Action, SimpleResult}
 import play.api.mvc.Results._
 import java.util.zip.GZIPInputStream
 import java.io.ByteArrayInputStream
 import org.apache.commons.io.IOUtils
 import scala.concurrent.Future
-import play.api.libs.iteratee.{Iteratee, Enumeratee, Enumerator}
-import scala.concurrent.ExecutionContext.Implicits._
+import play.api.libs.iteratee.{Iteratee, Enumerator}
 import scala.util.Random
 
 object GzipFilterSpec extends PlaySpecification {
@@ -93,7 +92,7 @@ object GzipFilterSpec extends PlaySpecification {
 
   def gunzip(bytes: Array[Byte]): String = {
     val is = new GZIPInputStream(new ByteArrayInputStream(bytes))
-    val result = IOUtils.toString(is)
+    val result = IOUtils.toString(is, "UTF-8")
     is.close()
     result
   }
