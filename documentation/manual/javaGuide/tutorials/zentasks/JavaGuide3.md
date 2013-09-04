@@ -116,7 +116,7 @@ Open the `app/views/index.scala.html` template and modify it to accept and displ
 }
 ```
 
-You can read more about the [template language here](JavaTemplates).  Basically, it allows you to access your java objects in a type safe manner.  Under the hood we use Scala.  Most of the pretty constructs you see (like `map`, `case` and `=>`) come from Scala.  But you don't really need to learn Scala to write play templates, just a small amount will allow you to do almost anything.
+You can read more about the [[template language here|JavaTemplates]].  Basically, it allows you to access your java objects in a type safe manner.  Under the hood we use Scala.  Most of the pretty constructs you see (like `map`, `case` and `=>`) come from Scala.  But you don't really need to learn Scala to write play templates, just a small amount will allow you to do almost anything.
 
 Ok, now refresh the dashboard.
 
@@ -259,7 +259,7 @@ LESS stylesheets need to be compiled to CSS before they can be used.  Just like 
 
 Since there is a `app/assets/stylesheets/main.less` file, Play will automatically compile this to replace our old `public/assets/stylesheets/main.css` file, so there is no need to make any changes to our templates (make sure you deleted the old `main.css` file though).
 
-Our stylesheets also depend on some images.  You can download a tarball of these [here](javaGuide/tutorials/zentasks/files/public-assets.tar.gz), which you can also extract from the root folder of your project.  This will create a `public` folder with all the images and Javascript dependencies required by the project.
+Our stylesheets also depend on some images.  You can download a tarball of these [here](resources/manual/javaGuide/tutorials/zentasks/files/public-assets.tar.gz), which you can also extract from the root folder of your project.  This will create a `public` folder with all the images and Javascript dependencies required by the project.
 
 Refresh the home page and you should now see a styled page.
 
@@ -273,4 +273,4 @@ The first iteration of the tasks dashboard is now finished.  As usual we can com
     $ git add .
     $ git commit -m "Dashboard"
 
-> Go to the [next part](JavaGuide4).
+> Go to the [[next part|JavaGuide4]].
