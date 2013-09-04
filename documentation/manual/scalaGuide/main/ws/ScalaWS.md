@@ -86,10 +86,16 @@ WS.url(url).post(Map("key" -> Seq("value")))
 
 ### Using POST with JSON data
 
-???
+To post JSON data, a `play.api.libs.json.JsObject` needs to be passed into `post`.
 
 ```scala
-WS.url(url).post()
+import play.api.libs.json.Json
+
+val data = Json.obj(
+  "key1" -> "value1",
+  "key2" -> "value2"
+)
+WS.url(url).post(data)
 ```
 
 ## Retrieving the HTTP response
