@@ -1,7 +1,7 @@
 package play.api.data.mapping
 
-case class Rule[I, O](m: Mapping[(Path, Seq[ValidationError]), I, O]) {
-  def validate(data: I): VA[I, O] = m(data)
+trait Rule[I, O] {
+  def validate(data: I): VA[I, O]
 
   def compose[P](path: Path)(sub: Rule[O, P]): Rule[I, P] =
     this.flatMap{ o => Rule(_ => sub.validate(o)) }.repath(path ++ _)
@@ -37,15 +37,19 @@ object Rule {
 
   def zero[O] = Rule[O, O](Success.apply)
 
+  def apply[I, O](m: Mapping[(Path, Seq[ValidationError]), I, O]) = new Rule[I, O] {
+    def validate(data: I): VA[I, O] = m(data)
+  }
+
   def fromMapping[I, O](f: Mapping[ValidationError, I, O]) =
-    new Rule[I, O](f(_).fail.map(errs => Seq(Path() -> errs)))
+    Rule[I, O](f(_).fail.map(errs => Seq(Path() -> errs)))
 
   implicit def applicativeRule[I] = new Applicative[({type λ[O] = Rule[I, O]})#λ] {
     override def pure[A](a: A): Rule[I, A] =
       Rule(_ => Success(a))
 
     override def map[A, B](m: Rule[I, A], f: A => B): Rule[I, B] =
-      Rule(d => m.m(d).map(f))
+      Rule(d => m.validate(d).map(f))
 
     override def apply[A, B](mf: Rule[I, A => B], ma: Rule[I, A]): Rule[I, B] =
       Rule{ d =>

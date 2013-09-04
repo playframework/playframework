@@ -84,9 +84,9 @@ class Path(val path: List[PathNode]) {
   * @param m a lookup function. This function finds data in a structure of type I, and coerce it to tyoe O
   * @return A Rule validating the presence of data at this Path
   */
-  def write[I, O](implicit w: Path => Writes[I, O]): Writes[I, O] = w(this)
-  def write[I, J, O](format: Writes[J, O])(implicit w: Path => Writes[I, J]): Writes[I, O] =
-    Writes((format.writes _) compose (w(this).writes _))
+  def write[I, O](w: Path => Write[I, O]): Write[I, O] = w(this)
+  def write[I, J, O](format: Write[I, J])(implicit w: Path => Write[J, O]): Write[I, O] =
+    Write((w(this).writes _) compose (format.writes _))
 
   override def toString = this.path match {
     case Nil => "/"

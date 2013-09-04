@@ -8,7 +8,9 @@ object Form {
   //   Form(w.writes(t))
 }
 
-case class Form[T](data: Map[String, Seq[String]] = Map.empty, validation: Validation[(Path, Seq[ValidationError]), T] = Failure(Nil)) {lazy val hasErrors: Boolean = !errors.isEmpty
+case class Form[T](data: Map[String, Seq[String]] = Map.empty, validation: Validation[(Path, Seq[ValidationError]), T] = Failure(Nil)) {
+
+  lazy val hasErrors: Boolean = !errors.isEmpty
 
   val dataP = PM.toPM(data)
   lazy val errors: Seq[(Path, Seq[ValidationError])] =
