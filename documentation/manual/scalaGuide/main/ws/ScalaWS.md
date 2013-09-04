@@ -96,7 +96,27 @@ WS.url(url).post()
 
 Any calls made by `WS` should return a `Future[Response]` which we can later handle with Play’s asynchronous mechanisms.
 
-### Processing a response as JSON or XML
+### Processing a response as JSON
+
+```scala
+def getData(url: String): Future[String] = { 
+  WS.url(url).get().map { response =>
+    (response.json \ "title").as[String]
+  }
+}
+```
+
+For a class of type T, if you define an implicit [`Reads[T]`](api/scala/index.html#play.api.libs.json.Reads), then a JSON response can directly be deserialized to a new instance of the class T
+
+```scala
+def getData(url: String): Future[MyData] = { 
+  WS.url(url).get().map { response =>
+    response.json \ "title".as[MyData]
+  }
+}
+```
+
+### Processing a response as XML
 
 ???
 
