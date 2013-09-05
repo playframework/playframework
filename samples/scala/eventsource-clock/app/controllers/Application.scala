@@ -8,6 +8,7 @@ import play.api.libs.iteratee._
 import play.api.libs.concurrent._
 
 import scala.concurrent.duration._
+import scala.language.postfixOps
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 object Application extends Controller {
@@ -33,7 +34,7 @@ object Application extends Controller {
   }
   
   def liveClock = Action {
-    Ok.stream(clock &> EventSource()).as("text/event-stream")
+    Ok.chunked(clock &> EventSource()).as("text/event-stream")
   }
   
 }
