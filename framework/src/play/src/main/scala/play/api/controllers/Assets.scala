@@ -167,7 +167,8 @@ class AssetsBuilder extends Controller {
    * @param file the file part extracted from the URL. May be URL encoded (note that %2F decodes to literal /).
    */
   private[controllers] def resourceNameAt(path: String, file: String): Option[String] = {
-    val resourceName = Option(path + "/" + file).map(name => if (name.startsWith("/")) name else ("/" + name)).get
+    val decodedFile = UriEncoding.decodePath(file, "utf-8")
+    val resourceName = Option(path + "/" + decodedFile).map(name => if (name.startsWith("/")) name else ("/" + name)).get
     if (new File(resourceName).isDirectory || !new File(resourceName).getCanonicalPath.startsWith(new File(path).getCanonicalPath)) {
       None
     } else {
