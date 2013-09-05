@@ -128,7 +128,7 @@ trait DefaultAwaitTimeout {
   /**
    * The default await timeout.  Override this to change it.
    */
-  implicit def defaultAwaitTimeout: Timeout = 5 seconds
+  implicit def defaultAwaitTimeout: Timeout = 5.seconds
 }
 
 trait FutureAwaits {
