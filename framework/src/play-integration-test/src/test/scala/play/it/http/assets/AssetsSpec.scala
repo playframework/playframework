@@ -164,37 +164,5 @@ object AssetsSpec extends PlaySpecification {
       result.body must beEmpty
     }
 
-    "look up assets with the the correct resource name" in {
-      Assets.resourceNameFor("a", "") must_== "/a/"
-      Assets.resourceNameFor("a", "b") must_== "/a/b"
-      Assets.resourceNameFor("a", "/") must_== "/a//"
-      Assets.resourceNameFor("a", "/b") must_== "/a//b"
-      Assets.resourceNameFor("a", "/b/c") must_== "/a//b/c"
-      Assets.resourceNameFor("a", "/b/") must_== "/a//b/"
-      Assets.resourceNameFor("/a", "") must_== "/a/"
-      Assets.resourceNameFor("/a", "b") must_== "/a/b"
-      Assets.resourceNameFor("/a", "/") must_== "/a//"
-      Assets.resourceNameFor("/a", "/b") must_== "/a//b"
-      Assets.resourceNameFor("/a", "/b/c") must_== "/a//b/c"
-      Assets.resourceNameFor("/a", "/b/") must_== "/a//b/"
-    }
-
-    "look up assets without changing the base path encoding" in {
-      Assets.resourceNameFor(" ", "x") must_== "/ /x"
-      Assets.resourceNameFor("/1 + 2 = 3", "x") must_== "/1 + 2 = 3/x"
-      Assets.resourceNameFor("/1%20+%202%20=%203", "x") must_== "/1%20+%202%20=%203/x"
-    }
-
-    "look up assets with encoded file paths" in {
-      Assets.resourceNameFor("/a", "1%20+%202%20=%203") must_== "/a/1 + 2 = 3"
-      Assets.resourceNameFor("/a", "b%2Fc") must_== "/a/b/c" // Don't worry about encoded /s
-    }
-
-    "look up assets even if the file path is a valid URI" in {
-      Assets.resourceNameFor("/a", "http://localhost/x") must_== "/a/http://localhost/x"
-      Assets.resourceNameFor("/a", "//localhost/x") must_== "/a///localhost/x"
-      Assets.resourceNameFor("/a", "../") must_== "/a/../"
-    }
-
   }
 }
