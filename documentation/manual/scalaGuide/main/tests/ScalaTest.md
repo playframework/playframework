@@ -1,77 +1,123 @@
 # Testing your application
 
-Test source files must be placed in your application’s `test` folder. You can run them from the Play console using the ``test` (run all tests) and `test-only` (run one test class: `test-only my.namespace.MySpec`) tasks.
+Writing tests for your application can be an involved process.  Play provides a default test framework for you, and provides helpers and application stubs to make testing your application as easy as possible.
+
+## Overview
+
+The location for tests is in the "test" folder.  There are two sample test files created in the test folder which can be used as templates.
+
+You can run tests from the Play console.
+
+* To run all tests, run `test`.
+* To run only one test class, run `test-only` followed by the name of the class i.e. `test-only my.namespace.MySpec`.
+* To run only the tests that have failed, run `test-quick`.
+* To run tests continually, run a command with a tilde in front, i.e. `~test-quick`.
+
+Testing in Play is based on SBT, and a full description is available in the [testing SBT](http://www.scala-sbt.org/0.13.0/docs/Detailed-Topics/Testing) chapter.
 
 ## Using specs2
 
-The default way to test a Play application is by using [specs2](http://etorreborre.github.com/specs2/).
+The default way to test in Play is using [specs2](http://etorreborre.github.io/specs2/).  In specs2, tests are organized into specifications, which contain examples which run the system under test through various different code paths.
 
-Unit specifications extend the `org.specs2.mutable.Specification` trait and are using the should/in format:
+Specifications extend the [`Specification`](http://etorreborre.github.io/specs2/api/SPECS2-2.2/index.html#org.specs2.mutable.Specification) trait and are using the should/in format:
+
+@[scalatest-helloworldspec](code/HelloWorldSpec.scala)
+
+Specifications can be run in either IntelliJ IDEA (using the [Scala plugin](http://blog.jetbrains.com/scala/)) or in Eclipse (using the [Scala IDE](http://scala-ide.org/)).  Please see the [[IDE page|IDE]] for more details.
+
+NOTE: Due to a bug in the [presentation compiler](https://scala-ide-portfolio.assembla.com/spaces/scala-ide/support/tickets/1001843-specs2-tests-with-junit-runner-are-not-recognized-if-there-is-package-directory-mismatch#/activity/ticket:), tests must be defined in a specific format to work with Eclipse:
+
+* The package must be exactly the same as the directory path.
+* The specification must be annotated with `@RunWith(classOf[JUnitRunner])`.
+
+Here is an example specification for Eclipse:
 
 ```scala
+package models // this file must be in a directory called "models"
+
 import org.specs2.mutable._
+import org.specs2.runner._
+import org.junit.runner._
 
-import play.api.test._
-import play.api.test.Helpers._
-
-class HelloWorldSpec extends Specification {
-
-  "The 'Hello world' string" should {
-    "contain 11 characters" in {
-      "Hello world" must have size(11)
-    }
-    "start with 'Hello'" in {
-      "Hello world" must startWith("Hello")
-    }
-    "end with 'world'" in {
-      "Hello world" must endWith("world")
-    }
-  }
+@RunWith(classOf[JUnitRunner])
+class ApplicationSpec extends Specification {
+  ...
 }
 ```
 
-## Running multiple examples inside the same specification
+### Matchers
 
-In Unit specifications (see the first part of this page) you use ``should`` method to create groups of ``Example`` and the ``in`` method to create an ``Example`` , which contains a ``Result``. If you want to create a group of Examples where multiple examples needs a Play! application to be running, you cannot share the application and you have to provide a new one to each example like the following:
+[`Matchers`](http://etorreborre.github.io/specs2/guide/org.specs2.guide.Matchers.html) are used to indicate the result of an example.
+
+The most useful matchers are the [match results](http://etorreborre.github.io/specs2/guide/org.specs2.guide.Matchers.html#Match+results).  These are used to check for equality, determine the result of Option and Either, and even check if exceptions are thrown.
+
+There are also [optional matchers](http://etorreborre.github.io/specs2/guide/org.specs2.guide.Matchers.html#Optional) that allow for XML and JSON matching in tests.
+
+### Mockito
+
+Mocks are used to isolate unit tests against external dependencies.  For example, if your class depends on an external `DataService` class, you can feed appropriate data to your class without instantiating a `DataService` object.
+
+[Mockito](https://code.google.com/p/mockito/) is integrated into specs2 as the default [mocking library](http://etorreborre.github.io/specs2/guide/org.specs2.guide.Matchers.html#Mock+expectations).
+
+To use Mockito, add the following:
 
 ```scala
-"Computer model" should {
-
-  "be retrieved by id" in new WithApplication {
-    // your test code
-  }
-  "be retrieved by email" in new WithApplication {
-    // your test code
-  }
-}
+import org.specs2.mock._
 ```
 
-In some cases, you want to run some operations with the application started before executing your example. Using Specs2
-you can factor out your code by implementing your own ``org.specs2.specification.Around``, this can even extend one of
-the built in arounds like in the following example:
+and then add the [library dependency](http://mvnrepository.com/artifact/org.mockito/mockito-core) to the build.
+
+Using Mockito, you can mock out references to classes like so:
+
+@[scalaws-mockito](code/ExampleMockitoSpec.scala)
+
+Mocking is especially useful for testing the public methods of classes.  Mocking objects and private methods is possible, but considerably harder.
+
+## Unit Testing Models
+
+Play does not require models to use a particular database data access layer.  However, if the application uses Anorm or Slick, then frequently the Model will have a reference to database access internally.
 
 ```scala
-abstract class WithDbData extends WithApplication {
-  override def around[T](t: => T)(implicit evidence: (T) => Result) = super.around {
-    prepareDbWithData() 
-    t
-  }
+import anorm._
+import anorm.SqlParser._
+
+case class User(id: String, name: String, email: String) {
+   def roles = DB.withConnection { implicit connection =>
+      ...
+    }
 }
+```
 
-"Computer model" should {
+For unit testing, this approach can make mocking out the `roles` method tricky.
 
-  "be retrieved by id" in new WithDbData {
-       // your test code
-  }
-  "be retrieved by email" in new WithDbData {
-       // your test code
+A common approach is to keep the models isolated from the database and as much logic as possible, and abstract database access behind a repository layer.
+
+@[scalatest-models](code/models/User.scala)
+
+@[scalatest-repository](code/services/UserRepository.scala)
+
+```scala
+class AnormUserRepository extends UserRepository {
+  import anorm._
+  import anorm.SqlParser._
+
+  def roles(user:User) : Set[Role] = {
+    ...
   }
 }
 ```
+
+and then access them through services:
+
+@[scalatest-userservice](code/services/UserService.scala)
+
+In this way, the `isAdmin` method can be tested by mocking out the `UserRepository` reference and passing it into the service:
+
+@[scalatest-userservicespec](code/UserServiceSpec.scala)
 
 ## Unit Testing Controllers
 
-Controllers are defined as objects in Play, and so can be trickier to unit test.  In Play this can be alleviated by [[dependency injection|ScalaDependencyInjection]]. Another way to finesse unit testing with a controller is to use a trait with an [explicitly typed self reference](http://www.naildrivin5.com/scalatour/wiki_pages/ExplcitlyTypedSelfReferences) to the controller:
+Controllers are defined as objects in Play, and so can be trickier to unit test.  In Play this can be alleviated by [[dependency injection|ScalaDependencyInjection]] using [`getControllerInstance`](api/scala/index.html#play.api.GlobalSettings@getControllerInstance).  Another way to finesse unit testing with a controller is to use a trait with an [explicitly typed self reference](http://www.naildrivin5.com/scalatour/wiki_pages/ExplcitlyTypedSelfReferences) to the controller:
 
 ```scala
 trait ExampleController {
@@ -102,7 +148,5 @@ object ExampleControllerSpec extends Specification {
   }
 }
 ```
-
-This approach can be extended with your choice of dependency injection framework (Subcut/Spring/Guice/Cake Pattern) to set up and inject mocks into the trait.
 
 > **Next:** [[Writing functional tests|ScalaFunctionalTest]]
