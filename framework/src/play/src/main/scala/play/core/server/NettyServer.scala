@@ -128,7 +128,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
 
   // Our upStream handler is stateless. Let's use this instance for every new connection
   val defaultUpStreamHandler = {
-    val value = Option(System.getProperty("http.netty.keepAliveDisabled")).getOrElse("")
+    val value = Option(System.getProperty("http.keepAliveDisabled")).getOrElse("")
     val keepAliveDisabled = value == "yes" || value == "true" || value == "1"
     new PlayDefaultUpstreamHandler(this, allChannels, keepAliveDisabled)
   }

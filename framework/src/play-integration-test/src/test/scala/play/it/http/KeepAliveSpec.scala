@@ -17,9 +17,9 @@ object KeepAliveSpec extends PlaySpecification {
         val port = testServerPort
 
         if (keepAliveDisabled)
-          System.setProperty("http.netty.keepAliveDisabled", "yes")
+          System.setProperty("http.keepAliveDisabled", "yes")
         else
-          System.setProperty("http.netty.keepAliveDisabled", "no")
+          System.setProperty("http.keepAliveDisabled", "no")
 
         running(TestServer(port, FakeApplication(
           withRoutes = {
@@ -30,7 +30,7 @@ object KeepAliveSpec extends PlaySpecification {
         }
       }
       finally {
-        System.clearProperty("http.netty.keepAliveDisabled")
+        System.clearProperty("http.keepAliveDisabled")
       }
 
     "Keep-Alive connections by default" in
@@ -50,7 +50,7 @@ object KeepAliveSpec extends PlaySpecification {
         }
       }
 
-    "honour http.netty.keepAliveDisable=yes and close all connections" in
+    "honour http.keepAliveDisabled=yes and close all connections" in
       withServer(Action(Results.Ok), keepAliveDisabled = true) { port =>
         val client = new BasicHttpClient(testServerPort)
         try {
