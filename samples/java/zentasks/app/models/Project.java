@@ -4,8 +4,6 @@ import java.util.*;
 import javax.persistence.*;
 
 import play.db.ebean.*;
-import play.data.format.*;
-import play.data.validation.*;
 
 import com.avaje.ebean.*;
 
@@ -15,7 +13,9 @@ import com.avaje.ebean.*;
 @Entity 
 public class Project extends Model {
 
-    @Id
+    private static final long serialVersionUID = 1L;
+
+	@Id
     public Long id;
     
     public String name;
@@ -33,7 +33,7 @@ public class Project extends Model {
     
     // -- Queries
     
-    public static Model.Finder<Long,Project> find = new Model.Finder(Long.class, Project.class);
+    public static Model.Finder<Long,Project> find = new Model.Finder<Long,Project>(Long.class, Project.class);
     
     /**
      * Retrieve project for user

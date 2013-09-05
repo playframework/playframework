@@ -6,6 +6,8 @@ import play.api.Play.current
 import anorm._
 import anorm.SqlParser._
 
+import scala.language.postfixOps
+
 case class User(email: String, name: String, password: String)
 
 object User {

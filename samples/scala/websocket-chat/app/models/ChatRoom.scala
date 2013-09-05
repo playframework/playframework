@@ -2,6 +2,7 @@ package models
 
 import akka.actor._
 import scala.concurrent.duration._
+import scala.language.postfixOps
 
 import play.api._
 import play.api.libs.json._
