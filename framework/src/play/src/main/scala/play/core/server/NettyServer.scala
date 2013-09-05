@@ -54,9 +54,11 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
           newPipeline.addLast("ssl", new SslHandler(sslEngine))
         }
       }
-      val maxInitialLineLength = Option(System.getProperty("http.netty.maxInitialLineLength")).map(Integer.parseInt(_)).getOrElse(4096)
-      val maxHeaderSize = Option(System.getProperty("http.netty.maxHeaderSize")).map(Integer.parseInt(_)).getOrElse(8192)
-      val maxChunkSize = Option(System.getProperty("http.netty.maxChunkSize")).map(Integer.parseInt(_)).getOrElse(8192)
+
+      val maxInitialLineLength = Option(System.getProperty("http.netty.maxInitialLineLength")).map(Integer.parseInt).getOrElse(4096)
+      val maxHeaderSize = Option(System.getProperty("http.netty.maxHeaderSize")).map(Integer.parseInt).getOrElse(8192)
+      val maxChunkSize = Option(System.getProperty("http.netty.maxChunkSize")).map(Integer.parseInt).getOrElse(8192)
+
       newPipeline.addLast("decoder", new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
       newPipeline.addLast("decompressor", new HttpContentDecompressor())
@@ -125,7 +127,11 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
   val allChannels = new DefaultChannelGroup
 
   // Our upStream handler is stateless. Let's use this instance for every new connection
-  val defaultUpStreamHandler = new PlayDefaultUpstreamHandler(this, allChannels)
+  val defaultUpStreamHandler = {
+    val value = Option(System.getProperty("http.netty.keepAliveDisabled")).getOrElse("")
+    val keepAliveDisabled = value == "yes" || value == "true" || value == "1"
+    new PlayDefaultUpstreamHandler(this, allChannels, keepAliveDisabled)
+  }
 
   // The HTTP server channel
   val HTTP = port.map { port =>
@@ -242,7 +248,7 @@ object NettyServer {
       val server = new NettyServer(
         new StaticApplication(applicationPath),
         Option(System.getProperty("http.port")).fold(Option(9000))(p => if (p == "disabled") Option.empty[Int] else Option(Integer.parseInt(p))),
-        Option(System.getProperty("https.port")).map(Integer.parseInt(_)),
+        Option(System.getProperty("https.port")).map(Integer.parseInt),
         Option(System.getProperty("http.address")).getOrElse("0.0.0.0")
       )
 
