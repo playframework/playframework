@@ -145,6 +145,9 @@ Iteratee.foreach[String] { msg =>
 }
 ```
 
+## Jackson Json
+We have upgraded Jackson to version 2 which means that the package name is now `com.fasterxml.jackson.core` instead of `org.codehaus.jackson`.
+
 ## Preparing a distribution
 
 The _stage_ and _dist_ tasks have been completely re-written in Play 2.2 so that they use the [Native Packager Plugin](https://github.com/sbt/sbt-native-packager). 
