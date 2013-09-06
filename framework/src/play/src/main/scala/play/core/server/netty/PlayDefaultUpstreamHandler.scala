@@ -24,7 +24,8 @@ import java.net.URI
 import java.io.IOException
 
 
-private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
+private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup, keepAliveDisabled: Boolean = false)
+  extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
 
   private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
 
@@ -68,9 +69,9 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
       case nettyHttpRequest: HttpRequest =>
 
         Play.logger.trace("Http request received by netty: " + nettyHttpRequest)
-        val keepAlive = isKeepAlive(nettyHttpRequest)
+        val keepAlive = !keepAliveDisabled && isKeepAlive(nettyHttpRequest)
         val websocketableRequest = websocketable(nettyHttpRequest)
-        var nettyVersion = nettyHttpRequest.getProtocolVersion
+        val nettyVersion = nettyHttpRequest.getProtocolVersion
         val nettyUri = new QueryStringDecoder(nettyHttpRequest.getUri)
         val rHeaders = getHeaders(nettyHttpRequest)
 
@@ -133,7 +134,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         // attach the cleanup function to the channel context for after cleaning
         ctx.setAttachment(cleanup _)
 
-        // It is a pre-requesite that we're using the http pipelining capabilities provided and that we have a
+        // It is a pre-requisite that we're using the http pipelining capabilities provided and that we have a
         // handler downstream from this one that produces these events.
         implicit val msgCtx = ctx
         implicit val oue = e.asInstanceOf[OrderedUpstreamMessageEvent]
@@ -143,7 +144,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
           val flashCookie = {
             header.headers.get(SET_COOKIE)
-            .map(Cookies.decode(_))
+            .map(Cookies.decode)
             .flatMap(_.find(_.name == Flash.COOKIE_NAME)).orElse {
               Option(requestHeader.flash).filterNot(_.isEmpty).map { _ =>
                 Flash.discard.toCookie

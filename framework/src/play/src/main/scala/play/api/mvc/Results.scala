@@ -242,6 +242,7 @@ object HttpConnection extends Enumeration {
    * - The client has sent a `Connection: close` header.
    * - There is no `Content-Length` or `Transfer-Encoding` header present, the enumerator contains more than one chunk,
    *   and the protocol the client is using is HTTP 1.0, hence chunked encoding can't be used as a fallback.
+   * - Keep-Alive connections are disabled globally using the http.keepAliveDisabled setting.
    */
   val KeepAlive = Value
 
