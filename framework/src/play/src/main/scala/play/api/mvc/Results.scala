@@ -29,7 +29,6 @@ case class ResponseHeader(status: Int, headers: Map[String, String] = Map.empty)
 /**
  * Any Action result.
  */
-@deprecated("Result will become SimpleResult in Play 2.3", "2.2.0")
 sealed trait Result extends NotNull with WithHeaders[Result]
 
 sealed trait WithHeaders[+A <: Result] {

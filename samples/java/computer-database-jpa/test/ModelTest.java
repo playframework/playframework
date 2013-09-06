@@ -2,9 +2,6 @@ import org.junit.*;
 
 import java.util.*;
 
-import play.mvc.*;
-import play.test.*;
-import play.libs.F.*;
 import play.db.jpa.*;
 
 import static play.test.Helpers.*;

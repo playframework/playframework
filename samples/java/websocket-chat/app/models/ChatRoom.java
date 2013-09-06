@@ -7,7 +7,6 @@ import play.libs.F.*;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 import akka.actor.*;
-import akka.dispatch.*;
 import static akka.pattern.Patterns.ask;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -26,7 +25,7 @@ import static java.util.concurrent.TimeUnit.*;
 public class ChatRoom extends UntypedActor {
     
     // Default room.
-    static ActorRef defaultRoom = Akka.system().actorOf(new Props(ChatRoom.class));
+    static ActorRef defaultRoom = Akka.system().actorOf(Props.create(ChatRoom.class));
     
     // Create a Robot, just for fun.
     static {

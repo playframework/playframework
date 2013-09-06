@@ -5,7 +5,6 @@ import play.mvc.*;
 import play.libs.*;
 import play.libs.F.*;
 
-import akka.util.*;
 import akka.actor.*;
 
 import java.util.*;
@@ -13,8 +12,6 @@ import java.text.*;
 import scala.concurrent.duration.Duration;
 
 import static java.util.concurrent.TimeUnit.*;
-
-import scala.concurrent.ExecutionContext$;
 
 import views.html.*;
 
@@ -36,7 +33,7 @@ public class Application extends Controller {
     
     public static class Clock extends UntypedActor {
         
-        static ActorRef instance = Akka.system().actorOf(new Props(Clock.class));
+        static ActorRef instance = Akka.system().actorOf(Props.create(Clock.class));
         
         // Send a TICK message every 100 millis
         static {
@@ -58,7 +55,7 @@ public class Application extends Controller {
                 final EventSource eventSource = (EventSource)message;
                 
                 if(sockets.contains(eventSource)) {                    
-                    // Brower is disconnected
+                    // Browser is disconnected
                     sockets.remove(eventSource);
                     Logger.info("Browser disconnected (" + sockets.size() + " browsers currently connected)");
                     

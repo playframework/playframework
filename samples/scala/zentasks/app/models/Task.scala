@@ -8,6 +8,8 @@ import play.api.Play.current
 import anorm._
 import anorm.SqlParser._
 
+import scala.language.postfixOps
+
 case class Task(id: Pk[Long], folder: String, project: Long, title: String, done: Boolean, dueDate: Option[Date], assignedTo: Option[String])
 
 object Task {
