@@ -79,7 +79,7 @@ trait PathReads {
     Reads[JsObject](js => js match {
       case o: JsObject =>
         path.asSingleJsResult(o)
-          .flatMap(js => reads.reads(js))
+          .flatMap(js => reads.reads(js).repath(path))
           .map(jsv => JsPath.createObj(path -> jsv))
           .map(opath => o.deepMerge(opath))
       case _ =>
