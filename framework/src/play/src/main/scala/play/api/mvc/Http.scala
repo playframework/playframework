@@ -664,7 +664,7 @@ package play.api.mvc {
   /**
    * The HTTP cookies set.
    */
-  trait Cookies {
+  trait Cookies extends Traversable[Cookie] {
 
     /**
      * Optionally returns the cookie associated with a key.
@@ -698,6 +698,9 @@ package play.api.mvc {
       def get(name: String) = cookies.get(name)
       override def toString = cookies.toString
 
+      def foreach[U](f: (Cookie) => U) {
+        cookies.values.foreach(f)
+      }
     }
 
     /**
