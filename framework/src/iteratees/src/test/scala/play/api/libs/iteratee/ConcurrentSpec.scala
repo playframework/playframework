@@ -232,6 +232,14 @@ object ConcurrentSpec extends Specification
       await(result) must_== Seq("foo", "bar")
       await(unitResult) must_== ()
     }
+    "break early from infinite enumerators" in {
+      val (iteratee, enumerator) = Concurrent.joined[String]
+      val infinite = Enumerator.repeat("foo")
+      val unitResult = infinite |>>> iteratee
+      val head = enumerator |>>> Iteratee.head
+      await(head) must beSome("foo")
+      await(unitResult) must_== ()
+    }
   }
 
   "Concurrent.runPartial" should {
