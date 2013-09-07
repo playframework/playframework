@@ -5,6 +5,7 @@ import scala.language.{ postfixOps, reflectiveCalls }
 import MayErr._
 import java.util.Date
 import collection.TraversableOnce
+import java.util.UUID
 
 abstract class SqlRequestError
 case class ColumnNotFound(columnName: String, possibilities: List[String]) extends SqlRequestError {
@@ -124,6 +125,14 @@ object Column {
       case int: Int => Right(BigInteger.valueOf(int))
       case long: Long => Right(BigInteger.valueOf(long))
       case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to BigInteger for column " + qualified))
+    }
+  }
+
+  implicit def rowToUUID: Column[UUID] = Column.nonNull { (value, meta) =>
+    val MetaDataItem(qualified, nullable, clazz) = meta
+    value match {
+      case d: UUID => Right(d)
+      case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to UUID for column " + qualified))
     }
   }
 
@@ -352,6 +361,10 @@ object ToStatement {
         case None => s.setObject(index, null)
       }
     }
+  }
+
+  implicit val uuidToStatement = new ToStatement[UUID] {
+    def set(s: java.sql.PreparedStatement, index: Int, aValue: UUID): Unit = s.setObject(index, aValue)
   }
 
   implicit def pkToStatement[A](implicit ts: ToStatement[A]): ToStatement[Pk[A]] = new ToStatement[Pk[A]] {
