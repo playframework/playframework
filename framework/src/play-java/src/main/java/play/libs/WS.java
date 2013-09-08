@@ -1,13 +1,8 @@
 package play.libs;
 
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.AsyncCompletionHandler;
-import com.ning.http.client.FluentCaseInsensitiveStringsMap;
-import com.ning.http.client.PerRequestConfig;
-import com.ning.http.client.RequestBuilderBase;
+import com.ning.http.client.*;
 import com.ning.http.client.Realm.AuthScheme;
 import com.ning.http.client.Realm.RealmBuilder;
-import com.ning.http.client.FluentStringsMap;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -171,6 +166,7 @@ public class WS {
         private final String url;
         private Map<String, Collection<String>> headers = new HashMap<String, Collection<String>>();
         private Map<String, Collection<String>> queryParameters = new HashMap<String, Collection<String>>();
+        private List<Part> parts = new ArrayList<Part>();
 
         private String username = null;
         private String password = null;
@@ -217,6 +213,31 @@ public class WS {
                 values.add(value);
                 queryParameters.put(name, values);
             }
+            return this;
+        }
+
+        /**
+         * Sets a file part, for multipart file upload.
+         */
+        public WSRequestHolder setFilePart(String name, File file, String mimeType, String charSet) {
+            Part p = new NingFilePart(new com.ning.http.client.FilePart(name, file, mimeType, charSet));
+            parts.add(p);
+            return this;
+        }
+
+        /**
+         * Sets a byte array part, for multi part file upload.
+         */
+        public WSRequestHolder setByteArrayPart(String name, String fileName, byte[] data, String mimeType, String charSet) {
+            Part p = new NingByteArrayPart(new com.ning.http.client.ByteArrayPart(name, fileName, data, mimeType, charSet));
+            parts.add(p);
+            return this;
+        }
+
+
+        public WSRequestHolder setStringPart(String name, String value, String charSet) {
+            Part p = new NingStringPart(new com.ning.http.client.StringPart(name, value, charSet));
+            parts.add(p);
             return this;
         }
 
@@ -519,6 +540,11 @@ public class WS {
                 req.auth(this.username, this.password, this.scheme);
             if (this.calculator != null)
                 this.calculator.sign(req);
+
+            for (Part part : this.parts) {
+                req.addBodyPart((com.ning.http.client.Part) part.getUnderlying());
+            }
+
             return req.execute();
         }
     }
@@ -597,6 +623,134 @@ public class WS {
             return ahcCookie.getVersion();
         }
     }
+
+    /**
+     * A simple body part.
+     */
+    public static interface Part {
+        /**
+         * The name of the part.
+         */
+        public String getName();
+
+        /**
+         * Returns the underlying "native" object for the part.
+         */
+        public Object getUnderlying();
+    }
+
+    public static interface FilePart extends Part {
+
+        public java.io.File getFile();
+
+        public String getMimeType();
+
+        public String getCharSet();
+    }
+
+    public static interface ByteArrayPart extends Part {
+
+        public String getFilename();
+
+        public byte[] getData();
+
+        public String getMimeType();
+
+        public String getCharSet();
+    }
+
+    public static interface StringPart extends Part {
+
+        public String getValue();
+
+        public String getCharSet();
+    }
+
+    private static class NingFilePart implements FilePart {
+        private final com.ning.http.client.FilePart ahcFilePart;
+
+        public NingFilePart(com.ning.http.client.FilePart ahcFilePart) {
+            this.ahcFilePart = ahcFilePart;
+        }
+
+        public File getFile() {
+            return ahcFilePart.getFile();
+        }
+
+        public String getMimeType() {
+            return ahcFilePart.getMimeType();
+        }
+
+        public String getCharSet() {
+            return ahcFilePart.getCharSet();
+        }
+
+        public String getName() {
+            return ahcFilePart.getName();
+        }
+
+        public Object getUnderlying() {
+            return ahcFilePart;
+        }
+    }
+
+    private static class NingByteArrayPart implements ByteArrayPart {
+        private final com.ning.http.client.ByteArrayPart ahcByteArrayPart;
+
+        public NingByteArrayPart(com.ning.http.client.ByteArrayPart ahcByteArrayPart) {
+            this.ahcByteArrayPart = ahcByteArrayPart;
+        }
+
+        public String getFilename() {
+            return ahcByteArrayPart.getFileName();
+        }
+
+        public byte[] getData() {
+            return ahcByteArrayPart.getData();
+        }
+
+        public String getMimeType() {
+            return ahcByteArrayPart.getMimeType();
+        }
+
+        public String getCharSet() {
+            return ahcByteArrayPart.getCharSet();
+        }
+
+        public String getName() {
+            return ahcByteArrayPart.getName();
+        }
+
+        public Object getUnderlying() {
+            return ahcByteArrayPart;
+        }
+    }
+
+    private static class NingStringPart implements StringPart {
+
+        private final com.ning.http.client.StringPart ahcStringPart;
+
+        public NingStringPart(com.ning.http.client.StringPart ahcStringPart) {
+            this.ahcStringPart = ahcStringPart;
+        }
+
+        public String getValue() {
+            return ahcStringPart.getValue();
+        }
+
+        public String getCharSet() {
+            return ahcStringPart.getCharset();
+        }
+
+        public String getName() {
+            return ahcStringPart.getName();
+        }
+
+        public Object getUnderlying() {
+            return ahcStringPart;
+        }
+    }
+
 
     /**
      * A WS response.

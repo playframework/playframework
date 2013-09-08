@@ -16,7 +16,11 @@ import com.ning.http.client.{
   HttpResponseStatus,
   Response => AHCResponse,
   Cookie => AHCCookie,
-  PerRequestConfig
+  PerRequestConfig,
+  FilePart => AHCFilePart,
+  StringPart => AHCStringPart,
+  ByteArrayPart => AHCByteArrayPart,
+  Part => AHCPart
 }
 import collection.immutable.TreeMap
 import play.core.utils.CaseInsensitiveOrdered
@@ -94,7 +98,7 @@ object WS {
    *
    * @param url the URL to request
    */
-  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None, None)
+  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None, None, None)
 
   /**
    * A WS Request.
@@ -174,6 +178,7 @@ object WS {
           result.success(Response(response))
           response
         }
+
         override def onThrowable(t: Throwable) = {
           result.failure(t)
         }
@@ -252,6 +257,7 @@ object WS {
       var iteratee: Iteratee[Array[Byte], A] = null
 
       WS.client.executeRequest(this.build(), new AsyncHandler[Unit]() {
+
         import com.ning.http.client.AsyncHandler.STATE
 
         override def onStatusReceived(status: HttpResponseStatus) = {
@@ -318,7 +324,8 @@ object WS {
       auth: Option[Tuple3[String, String, AuthScheme]],
       followRedirects: Option[Boolean],
       timeout: Option[Int],
-      virtualHost: Option[String]) {
+      virtualHost: Option[String],
+      parts: Option[Seq[Part[_]]]) {
 
     /**
      * sets the signature calculator for the request
@@ -365,8 +372,60 @@ object WS {
     def withTimeout(timeout: Int): WSRequestHolder =
       this.copy(timeout = Some(timeout))
 
+    /**
+     * Sets the virtual host.
+     */
     def withVirtualHost(vh: String): WSRequestHolder = {
       this.copy(virtualHost = Some(vh))
+    }
+
+    /**
+     * Adds a file part to the request.
+     * @tparam A the part type: either File, String or Array[Byte]
+     */
+    def withPart[A](name: String, data: A, mimeType: String, charSet: String = "UTF-8"): WSRequestHolder = {
+      val part = extractPart(name, data, mimeType, charSet)
+      this.copy(parts = Some(parts.getOrElse(Nil) :+ part))
+    }
+
+    private[play] def extractPart[A](name: String, data: A, mimeType: String, charSet: String): Part[_] = {
+      val part: Part[_] = data match {
+        case file: File =>
+          new NingFilePart(new AHCFilePart(name, file, mimeType, charSet))
+
+        case string: String =>
+          new NingStringPart(new AHCStringPart(name, string, charSet)) // note mimeType is ignored
+
+        case byteArray: Array[Byte] =>
+          val fileName: String = name
+          new NingByteArrayPart(new AHCByteArrayPart(name, fileName, byteArray, mimeType, charSet))
+
+        case _ =>
+          scala.sys.error("Unrecognized part type: must be File, String or Array[Byte]!")
+      }
+      part
+    }
+
+    /**
+     * Adds any number of body parts.  The mime type and charset are required.
+     */
+    def withParts[A](mimeType: String, charSet: String, newParts: (String, A)*): WSRequestHolder = {
+      val stringParts: Seq[Part[_]] = newParts.foldLeft(parts.getOrElse(Nil)) {
+        case (m, (k, v)) => m :+ extractPart(k, v, mimeType, charSet)
+      }
+      this.copy(parts = Some(stringParts))
+    }
+
+    /**
+     * Adds any number of string parts, assuming charset=UTF-8.
+     */
+    def withStringParts(newParts: (String, String)*): WSRequestHolder = {
+      val mimeType = "text/plain"
+      val charSet = "UTF-8"
+      val stringParts: Seq[Part[_]] = newParts.foldLeft(parts.getOrElse(Nil)) {
+        case (m, (k, v)) => m :+ extractPart(k, v, mimeType, charSet)
+      }
+      this.copy(parts = Some(stringParts))
     }
 
     /**
@@ -451,6 +510,12 @@ object WS {
       virtualHost.map { v =>
         request.setVirtualHost(v)
       }
+      parts.map { someParts =>
+        someParts.foreach { p =>
+          request.addBodyPart(p.underlying.asInstanceOf[AHCPart])
+        }
+      }
+
       request
     }
 
@@ -473,6 +538,13 @@ object WS {
         request.setVirtualHost(v)
       }
 
+      // XXX would you ever use parts together with body?
+      parts.map { someParts =>
+        someParts.foreach { p =>
+          request.addBodyPart(p.underlying.asInstanceOf[AHCPart])
+        }
+      }
+
       request
     }
 
@@ -490,9 +562,18 @@ object WS {
       virtualHost.map { v =>
         request.setVirtualHost(v)
       }
+
+      // XXX would you ever use parts together with body?
+      parts.map { someParts =>
+        someParts.foreach { p =>
+          request.addBodyPart(p.underlying.asInstanceOf[AHCPart])
+        }
+      }
+
       request
     }
   }
+
 }
 
 /**
@@ -596,6 +677,120 @@ private class NingCookie(ahcCookie: AHCCookie) extends Cookie {
    */
 
   override def toString: String = ahcCookie.toString
+}
+
+/**
+ * A WS Part.  This is a trait so we are not tied to a single library.
+ */
+trait Part[A] {
+
+  /** The name of the part. */
+  def name: String
+
+  /** The "payload" of the part */
+  def data: A
+
+  /**
+   * The underlying "raw" class implementation.
+   */
+  def underlying: AnyRef
+
+  /**
+   * The character set.
+   */
+  def charSet: String
+}
+
+trait MimeType {
+  /**
+   * The MIME type.
+   */
+  def mimeType: String
+}
+
+/**
+ * Ning implementation of FilePart.
+ */
+private class NingFilePart(ahcFilePart: AHCFilePart) extends Part[File] with MimeType {
+  /** The name of the part. */
+  def name: String = ahcFilePart.getName
+
+  /**
+   * The underlying "raw" class implementation.
+   */
+  def underlying: AnyRef = ahcFilePart
+
+  /**
+   * The file object.
+   */
+  def data: File = ahcFilePart.getFile
+
+  /**
+   * The MIME type.
+   */
+  def mimeType: String = ahcFilePart.getMimeType
+
+  /**
+   * The character set.
+   */
+  def charSet: String = ahcFilePart.getCharSet
+}
+
+/**
+ * Ning implementation of ByteArrayPart.
+ */
+private class NingByteArrayPart(ahcByteArrayPart: AHCByteArrayPart) extends Part[Array[Byte]] with MimeType {
+  /** The name of the part. */
+  def name: String = ahcByteArrayPart.getName
+
+  /**
+   * The underlying "raw" class implementation.
+   */
+  def underlying: AnyRef = ahcByteArrayPart
+
+  /**
+   * The filename (not same as name).
+   */
+  def fileName: String = ahcByteArrayPart.getFileName
+
+  /**
+   * The data payload.
+   */
+  def data: Array[Byte] = ahcByteArrayPart.getData
+
+  /**
+   * The MIME type.
+   */
+  def mimeType: String = ahcByteArrayPart.getMimeType
+
+  /**
+   * The character set.
+   */
+  def charSet: String = ahcByteArrayPart.getCharSet
+}
+
+/**
+ * Ning implementation of StringPart.
+ */
+private class NingStringPart(ahcStringPart: AHCStringPart) extends Part[String] {
+
+  /**
+   * The underlying "raw" class implementation.
+   */
+  def underlying: AnyRef = ahcStringPart
+
+  /** The name of the part. */
+  def name: String = ahcStringPart.getName
+
+  /**
+   * The value of the string.
+   */
+  def data: String = ahcStringPart.getValue
+
+  /**
+   * The character set of the string.
+   */
+  def charSet: String = ahcStringPart.getCharset
 }
 
 /**
