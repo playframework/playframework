@@ -321,7 +321,7 @@ object WS {
       followRedirects: Option[Boolean],
       timeout: Option[Int],
       virtualHost: Option[String],
-      parts: Option[Seq[Part]]) {
+      parts: Option[Seq[Part[_]]]) {
 
     /**
      * sets the signature calculator for the request
@@ -386,26 +386,25 @@ object WS {
     }
 
     /**
-     * Adds a single string part, with an optional character set defaulting to "UTF-8"
-     */
-    def withStringPart(name: String, value: String, charSet: String = "UTF-8"): WSRequestHolder = {
-      this.copy(parts = Some(parts.getOrElse(Nil) :+ new NingStringPart(new AHCStringPart(name, value, charSet))))
-    }
-
-    /**
      * Adds a file part to the request.
+     * @tparam A the part type: either File, String or Array[Byte]
      */
-    def withFilePart(name: String, file: File, mimeType: String, charSet: String): WSRequestHolder = {
-      val filePart = new NingFilePart(new AHCFilePart(name, file, mimeType, charSet))
-      this.copy(parts = Some(parts.getOrElse(Nil) :+ filePart))
-    }
+    def withPart[A](name: String, data: A, mimeType: String, charSet: String = "UTF-8"): WSRequestHolder = {
+      val part = data match {
+        case file:File =>
+          new NingFilePart(new AHCFilePart(name, file, mimeType, charSet))
 
-    /**
-     * Adds a byte array part for file upload.
-     */
-    def withByteArrayPart(name: String, fileName: String, data: Array[Byte], mimeType: String, charSet: String): WSRequestHolder = {
-      val byteArrayPart = new NingByteArrayPart(new AHCByteArrayPart(name, fileName, data, mimeType, charSet))
-      this.copy(parts = Some(parts.getOrElse(Nil) :+ byteArrayPart))
+        case string:String =>
+          new NingStringPart(new AHCStringPart(name, string, charSet))
+
+        case byteArray:Array[Byte] =>
+          val fileName: String = name
+          new NingByteArrayPart(new AHCByteArrayPart(name, fileName, byteArray, mimeType, charSet))
+
+        case _ =>
+          scala.sys.error("Unrecognized part type: must be File, String or Array[Byte]!")
+      }
+      this.copy(parts = Some(parts.getOrElse(Nil) :+ part))
     }
 
     /**
@@ -663,76 +662,50 @@ private class NingCookie(ahcCookie: AHCCookie) extends Cookie {
 /**
  * A WS Part.  This is a trait so we are not tied to a single library.
  */
-trait Part {
+trait Part[A] {
 
   /** The name of the part. */
   def name: String
+
+  /** The "payload" of the part */
+  def data: A
 
   /**
    * The underlying "raw" class implementation.
    */
   def underlying: AnyRef
+
+  /**
+   * The character set.
+   */
+  def charSet: String
+}
+
+trait MimeType {
+  /**
+   * The MIME type.
+   */
+  def mimeType: String
 }
 
 /**
  * A part representing a file.
  */
-trait FilePart extends Part {
-  /**
-   * The file object.
-   */
-  def file: File
-
-  /**
-   * The MIME type.
-   */
-  def mimeType: String
-
-  /**
-   * The character set.
-   */
-  def charSet: String
-}
-
-/**
- * A part representing an array of bytes.
- */
-trait ByteArrayPart extends Part {
-  /**
-   * The filename (not same as name).
-   */
-  def fileName: String
-
-  /**
-   * The data payload.
-   */
-  def data: Array[Byte]
-
-  /**
-   * The MIME type.
-   */
-  def mimeType: String
-
-  /**
-   * The character set.
-   */
-  def charSet: String
-}
+trait FilePart extends Part[File] with MimeType
 
 /**
  * A part representing a key value pair.
  */
-trait StringPart extends Part {
+trait StringPart extends Part[String]
 
+/**
+ * A part representing an array of bytes.
+ */
+trait ByteArrayPart extends Part[Array[Byte]] with MimeType {
   /**
-   * The value of the string.
+   * The filename (not same as name).
    */
-  def value: String
-
-  /**
-   * The character set, defaults to UTF-8.
-   */
-  def charSet: String
+  def fileName: String
 }
 
 /**
@@ -750,7 +723,7 @@ private class NingFilePart(ahcFilePart: AHCFilePart) extends FilePart {
   /**
    * The file object.
    */
-  def file: File = ahcFilePart.getFile
+  def data: File = ahcFilePart.getFile
 
   /**
    * The MIME type.
@@ -812,7 +785,7 @@ private class NingStringPart(ahcStringPart: AHCStringPart) extends StringPart {
   /**
    * The value of the string.
    */
-  def value: String = ahcStringPart.getValue
+  def data: String = ahcStringPart.getValue
 
   /**
    * The character set of the string.

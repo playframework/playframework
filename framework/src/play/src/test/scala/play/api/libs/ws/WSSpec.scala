@@ -27,7 +27,7 @@ object WSSpec extends Specification with Mockito {
     "upload a file with a string part" in {
       val request = WS.url("http://example.com")
         .withHeaders("Content-Type" -> "multipart/form-data")
-        .withStringPart("foo", "bar", "EBCDIC")
+        .withPart("foo", "bar", "text/plain", "EBCDIC")
         .prepare("POST").build
 
       val expected = new AHCStringPart("foo", "bar", "EBCDIC")
@@ -58,7 +58,7 @@ object WSSpec extends Specification with Mockito {
     "upload a file with a file part" in {
       val request = WS.url("http://example.com")
         .withHeaders("Content-Type" -> "multipart/form-data")
-        .withFilePart("name", new java.io.File("somefile.txt"), "text/plain", "UTF-8")
+        .withPart("name", new java.io.File("somefile.txt"), "text/plain", "UTF-8")
         .prepare("POST").build
 
       val expected = new AHCFilePart("name", new java.io.File("somefile.txt"), "text/plain", "UTF-8")
@@ -73,14 +73,14 @@ object WSSpec extends Specification with Mockito {
     "upload a file with a byte array part" in {
       val request = WS.url("http://example.com")
         .withHeaders("Content-Type" -> "multipart/form-data")
-        .withByteArrayPart("name", "filename", "data".getBytes("UTF-8"), "text/plain", "UTF-8")
+        .withPart("name", "data".getBytes("UTF-8"), "text/plain", "UTF-8")
         .prepare("POST").build
-      beAnInstanceOf
-      val expected = new AHCByteArrayPart("name", "filename", "data".getBytes("UTF-8"), "text/plain", "UTF-8")
+      val name = "name" // name and filename must be the same
+      val expected = new AHCByteArrayPart(name, name, "data".getBytes("UTF-8"), "text/plain", "UTF-8")
       val actual = request.getParts.get(0).asInstanceOf[AHCByteArrayPart]
 
       actual.getName must beEqualTo(expected.getName)
-      actual.getFileName must beEqualTo(expected.getFileName)
+      actual.getFileName must beEqualTo(expected.getName)
       actual.getData must beEqualTo(expected.getData)
       actual.getCharSet must beEqualTo(expected.getCharSet)
       actual.getMimeType must beEqualTo(expected.getMimeType)
@@ -91,8 +91,8 @@ object WSSpec extends Specification with Mockito {
         .withHeaders("Content-Type" -> "multipart/form-data")
         .withStringParts("foo" -> "bar")
         .withStringParts("baz" -> "quuz")
-        .withFilePart("name", new java.io.File("somefile.txt"), "text/plain", "UTF-8")
-        .withByteArrayPart("name", "filename", "data".getBytes("UTF-8"), "text/plain", "UTF-8")
+        .withPart("name", new java.io.File("somefile.txt"), "text/plain", "UTF-8")
+        .withPart("name", "data".getBytes("UTF-8"), "text/plain", "UTF-8")
         .prepare("POST").build()
 
       val parts = request.getParts
