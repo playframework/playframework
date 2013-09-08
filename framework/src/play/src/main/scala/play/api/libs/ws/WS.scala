@@ -3,30 +3,26 @@
  */
 package play.api.libs.ws
 
+import collection.immutable.TreeMap
+
+import scala.concurrent.{ Future, Promise }
+
 import java.io.File
 import java.util.concurrent.atomic.AtomicReference
-import scala.concurrent.{ Future, Promise }
-import play.api.libs.iteratee._
-import play.api.libs.iteratee.Input._
-import play.api.http.{ Writeable, ContentTypeOf }
-import com.ning.http.client.{
-  AsyncHttpClient,
-  AsyncHttpClientConfig,
-  RequestBuilderBase,
-  FluentCaseInsensitiveStringsMap,
-  HttpResponseBodyPart,
-  HttpResponseHeaders,
-  HttpResponseStatus,
-  Response => AHCResponse,
-  Cookie => AHCCookie,
-  PerRequestConfig
-}
-import collection.immutable.TreeMap
-import play.core.utils.CaseInsensitiveOrdered
-import com.ning.http.util.AsyncHttpProviderUtils
 
+import play.api.http.{ Writeable, ContentTypeOf }
+import play.api.libs.iteratee._
+import play.api.libs.iteratee.Input.El
+
+import play.core.utils.CaseInsensitiveOrdered
 import play.core.Execution.Implicits.internalContext
 import play.api.Play
+
+import com.ning.http.client.{ Response => AHCResponse, Cookie => AHCCookie, ProxyServer => AHCProxyServer, _ }
+
+import com.ning.http.util.AsyncHttpProviderUtils
+import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
+import javax.net.ssl.SSLContext
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -41,18 +37,25 @@ import play.api.Play
  * and you should use Play's asynchronous mechanisms to use this response.
  *
  */
-object WS {
+object WS extends WSRequestBuilder {
 
   import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
   import javax.net.ssl.SSLContext
 
+  //to avoid changing code throughout play we first keep this type
+  type WSRequest = play.api.libs.ws.WSRequest
+
   private val clientHolder: AtomicReference[Option[AsyncHttpClient]] = new AtomicReference(None)
 
-  private[play] def newClient(): AsyncHttpClient = {
+  /**
+   * The  builder AsncBuilder for default play app
+   */
+  def asyncBuilder: AsyncHttpClientConfig.Builder = {
     val playConfig = play.api.Play.maybeApplication.map(_.configuration)
+    val wsTimeout = playConfig.flatMap(_.getMilliseconds("ws.timeout"))
     val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
-      .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout.connection")).getOrElse(120000L).toInt)
-      .setIdleConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout.idle")).getOrElse(120000L).toInt)
+      .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout.connection")).orElse(wsTimeout).getOrElse(120000L).toInt)
+      .setIdleConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout.idle")).orElse(wsTimeout).getOrElse(120000L).toInt)
       .setRequestTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout.request")).getOrElse(120000L).toInt)
       .setFollowRedirects(playConfig.flatMap(_.getBoolean("ws.followRedirects")).getOrElse(true))
       .setUseProxyProperties(playConfig.flatMap(_.getBoolean("ws.useProxyProperties")).getOrElse(true))
@@ -63,8 +66,11 @@ object WS {
     if (!playConfig.flatMap(_.getBoolean("ws.acceptAnyCertificate")).getOrElse(false)) {
       asyncHttpConfig.setSSLContext(SSLContext.getDefault)
     }
+    asyncHttpConfig
+  }
 
-    new AsyncHttpClient(asyncHttpConfig.build())
+  private[play] def newClient(): AsyncHttpClient = {
+    new AsyncHttpClient(asyncBuilder.build())
   }
 
   /**
@@ -93,24 +99,22 @@ object WS {
       }
     })
   }
-
-  /**
-   * Prepare a new request. You can then construct it by chaining calls.
-   *
-   * @param url the URL to request
-   */
-  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None, None)
-
+}
   /**
    * A WS Request.
    */
-  class WSRequest(_method: String, _auth: Option[Tuple3[String, String, AuthScheme]], _calc: Option[SignatureCalculator]) extends RequestBuilderBase[WSRequest](classOf[WSRequest], _method, false) {
+  class WSRequest(_method: String, _auth: Option[Tuple3[String, String, AuthScheme]], _calc: Option[SignatureCalculator])(implicit client: AsyncHttpClient)
+      extends RequestBuilderBase[WSRequest](classOf[WSRequest], _method, false) {
 
     import scala.collection.JavaConverters._
 
     def getStringData = body.getOrElse("")
     protected var body: Option[String] = None
-    override def setBody(s: String) = { this.body = Some(s); super.setBody(s) }
+ 
+    override def setBody(s: String) = {
+      this.body = Some(s);
+      super.setBody(s)
+    }
 
     protected var calculator: Option[SignatureCalculator] = _calc
 
@@ -174,7 +178,7 @@ object WS {
       import com.ning.http.client.AsyncCompletionHandler
       var result = Promise[Response]()
       calculator.map(_.sign(this))
-      WS.client.executeRequest(this.build(), new AsyncCompletionHandler[AHCResponse]() {
+      client.executeRequest(this.build(), new AsyncCompletionHandler[AHCResponse]() {
         override def onCompleted(response: AHCResponse) = {
           result.success(Response(response))
           response
@@ -313,6 +317,26 @@ object WS {
 
   }
 
+
+
+/**
+ * A WS instance that allows one to fine tune the application directly using AsyncHttpClient
+ * Eg: if one wants to make requests to different servers with different client certificates...
+ * @param client
+ */
+case class WSx(client: AsyncHttpClient) extends WSRequestBuilder
+
+trait WSRequestBuilder {
+
+  def client: AsyncHttpClient
+
+  /**
+   * Prepare a new request. You can then construct it by chaining calls.
+   *
+   * @param url the URL to request
+   */
+  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None, None, None)
+
   /**
    * A WS Request builder.
    */
@@ -323,7 +347,8 @@ object WS {
       auth: Option[Tuple3[String, String, AuthScheme]],
       followRedirects: Option[Boolean],
       requestTimeout: Option[Int],
-      virtualHost: Option[String]) {
+      virtualHost: Option[String],
+      proxyServer: Option[ProxyServer]) {
 
     /**
      * sets the signature calculator for the request
@@ -333,7 +358,9 @@ object WS {
 
     /**
      * sets the authentication realm
-     * @param calc
+     * @param username
+     * @param password
+     * @param scheme
      */
     def withAuth(username: String, password: String, scheme: AuthScheme): WSRequestHolder =
       this.copy(auth = Some((username, password, scheme)))
@@ -377,6 +404,10 @@ object WS {
 
     def withVirtualHost(vh: String): WSRequestHolder = {
       this.copy(virtualHost = Some(vh))
+    }
+
+    def withProxyServer(proxyServer: ProxyServer): WSRequestHolder = {
+      this.copy(proxyServer = Some(proxyServer))
     }
 
     /**
@@ -461,6 +492,42 @@ object WS {
       virtualHost.map { v =>
         request.setVirtualHost(v)
       }
+
+      proxyServer.map {
+        p =>
+          import com.ning.http.client.ProxyServer.Protocol
+          val protocol: Protocol = p.protocol.getOrElse("http").toLowerCase match {
+            case "http" => Protocol.HTTP
+            case "https" => Protocol.HTTPS
+            case "kerberos" => Protocol.KERBEROS
+            case "ntlm" => Protocol.NTLM
+            case "spnego" => Protocol.SPNEGO
+            case _ => scala.sys.error("Unrecognized protocol!")
+          }
+
+          val proxyServer = new AHCProxyServer(
+            protocol,
+            p.host,
+            p.port,
+            p.principal.getOrElse(null),
+            p.password.getOrElse(null))
+
+          p.encoding.map { e =>
+            proxyServer.setEncoding(e)
+          }
+
+          p.nonProxyHosts.map { nonProxyHosts =>
+            nonProxyHosts.foreach { nonProxyHost =>
+              proxyServer.addNonProxyHost(nonProxyHost)
+            }
+          }
+
+          p.ntlmDomain.map { ntlm =>
+            proxyServer.setNtlmDomain(ntlm)
+          }
+
+          request.setProxyServer(proxyServer)
+      }
       request
     }
 
@@ -504,6 +571,31 @@ object WS {
     }
   }
 }
+
+/**
+ * A WS proxy.
+ */
+case class ProxyServer(
+  /** The hostname of the proxy server. */
+  host: String,
+
+  /** The port of the proxy server. */
+  port: Int,
+
+  /** The protocol of the proxy server.  Use "http" or "https".  Defaults to "http" if not specified. */
+  protocol: Option[String] = None,
+
+  /** The principal (aka username) of the credentials for the proxy server. */
+  principal: Option[String] = None,
+
+  /** The password for the credentials for the proxy server. */
+  password: Option[String] = None,
+
+  ntlmDomain: Option[String] = None,
+
+  encoding: Option[String] = None,
+
+  nonProxyHosts: Option[Seq[String]] = None)
 
 /**
  * A WS Cookie.  This is a trait so that we are not tied to a specific client.
