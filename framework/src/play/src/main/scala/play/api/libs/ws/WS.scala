@@ -473,6 +473,12 @@ object WS {
           request.setVirtualHost(v)
       }
 
+      prepareProxy(request)
+
+      request
+    }
+
+    private[play] def prepareProxy(request:WSRequest) {
       proxyServer.map {
         p =>
           import com.ning.http.client.ProxyServer.Protocol
@@ -508,7 +514,6 @@ object WS {
 
           request.setProxyServer(proxyServer)
       }
-      request
     }
 
     private[play] def prepare(method: String, body: File) = {
@@ -531,6 +536,8 @@ object WS {
           request.setVirtualHost(v)
       }
 
+      prepareProxy(request)
+
       request
     }
 
@@ -549,6 +556,8 @@ object WS {
         v =>
           request.setVirtualHost(v)
       }
+      prepareProxy(request)
+
       request
     }
   }
