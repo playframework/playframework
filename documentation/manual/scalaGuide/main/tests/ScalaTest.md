@@ -30,7 +30,7 @@ NOTE: Due to a bug in the [presentation compiler](https://scala-ide-portfolio.as
 * The package must be exactly the same as the directory path.
 * The specification must be annotated with `@RunWith(classOf[JUnitRunner])`.
 
-Here is an example specification for Eclipse:
+Here is a valid specification for Eclipse:
 
 ```scala
 package models // this file must be in a directory called "models"
@@ -47,7 +47,13 @@ class ApplicationSpec extends Specification {
 
 ### Matchers
 
-[`Matchers`](http://etorreborre.github.io/specs2/guide/org.specs2.guide.Matchers.html) are used to indicate the result of an example.
+When you use an example, you must return an example result. Usually, you will see a statement containing a `must`:
+
+```scala
+"Hello world" must endWith("world")
+```
+
+The expression that follows the `must` keyword are known as [`matchers`](http://etorreborre.github.io/specs2/guide/org.specs2.guide.Matchers.html). Matchers return an example result, typically Success or Failure.  The example will not compile if it does not return a result.
 
 The most useful matchers are the [match results](http://etorreborre.github.io/specs2/guide/org.specs2.guide.Matchers.html#Match+results).  These are used to check for equality, determine the result of Option and Either, and even check if exceptions are thrown.
 
@@ -119,34 +125,10 @@ In this way, the `isAdmin` method can be tested by mocking out the `UserReposito
 
 Controllers are defined as objects in Play, and so can be trickier to unit test.  In Play this can be alleviated by [[dependency injection|ScalaDependencyInjection]] using [`getControllerInstance`](api/scala/index.html#play.api.GlobalSettings@getControllerInstance).  Another way to finesse unit testing with a controller is to use a trait with an [explicitly typed self reference](http://www.naildrivin5.com/scalatour/wiki_pages/ExplcitlyTypedSelfReferences) to the controller:
 
-```scala
-trait ExampleController {
-  this: Controller =>
-
-  def index() = {
-     ...
-  }
-}
-
-object ExampleController extends Controller with ExampleController
-```
+@[scalatest-examplecontroller](code/ExampleControllerSpec.scala)
 
 and then test the trait:
 
-```scala
-object ExampleControllerSpec extends Specification {
-
-  class TestController() extends Controller with ExampleController
-
-  "Example Page#index" should {
-    "should be valid" in {
-          val controller = new TestController()          
-          val result = controller.index()          
-          result must not beNull
-      }
-    }
-  }
-}
-```
+@[scalatest-examplecontrollerspec](code/ExampleControllerSpec.scala)
 
 > **Next:** [[Writing functional tests|ScalaFunctionalTest]]

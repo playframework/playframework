@@ -71,29 +71,13 @@ Like [`WithServer`](api/scala/index.html#play.api.test.WithServer), you can chan
 
 Since a template is a standard Scala function, you can execute it from your test, and check the result:
 
-```scala
-"render index template" in new WithApplication {
-  val html = views.html.index("Coco")
-  
-  contentType(html) must equalTo("text/html")
-  contentAsString(html) must contain("Hello Coco")
-}
-```
+@[scalatest-functionaltemplatespec](code/FunctionalTemplateSpec.scala)
 
 ## Testing a controller
 
 You can call any `Action` code by providing a [`FakeRequest`](api/scala/index.html#play.api.test.FakeRequest):
 
-```scala
-"respond to the index Action" in new WithApplication {
-  val result = controllers.Application.index("Bob")(FakeRequest())
-  
-  status(result) must equalTo(OK)
-  contentType(result) must beSome("text/html")
-  charset(result) must beSome("utf-8")
-  contentAsString(result) must contain("Hello Bob")
-}
-```
+@[scalatest-functionalexamplecontrollerspec](code/FunctionalExampleControllerSpec.scala)
 
 ## Testing the router
 
