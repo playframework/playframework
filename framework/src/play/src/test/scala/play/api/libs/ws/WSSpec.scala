@@ -38,7 +38,7 @@ object WSSpec extends Specification with Mockito {
       actual.getCharset must beEqualTo(expected.getCharset)
     }
 
-    "upload a file with multiple string bits" in {
+    "upload a file with multiple string parts" in {
       val request = WS.url("http://example.com")
         .withHeaders("Content-Type" -> "multipart/form-data")
         .withStringParts("foo" -> "bar", "baz" -> "quuz")
@@ -53,6 +53,30 @@ object WSSpec extends Specification with Mockito {
       val two = parts.get(1).asInstanceOf[AHCStringPart]
       two.getName must beEqualTo("baz")
       two.getValue must beEqualTo("quuz")
+    }
+
+    "upload a file with multiple file parts" in {
+      val request = WS.url("http://example.com")
+        .withHeaders("Content-Type" -> "multipart/form-data")
+        .withParts("text/plain", "UTF-8",
+                   "somefile" -> new java.io.File("somefile.txt"),
+                   "otherfile" -> new java.io.File("otherfile.txt"))
+        .prepare("POST").build
+
+      val expectedOne = new AHCFilePart("somefile", new java.io.File("somefile.txt"), "text/plain", "UTF-8")
+      val expectedTwo = new AHCFilePart("otherfile", new java.io.File("otherfile.txt"), "text/plain", "UTF-8")
+
+      val actualOne = request.getParts.get(0).asInstanceOf[AHCFilePart]
+      actualOne.getName must beEqualTo(expectedOne.getName)
+      actualOne.getFile must beEqualTo(expectedOne.getFile)
+      actualOne.getCharSet must beEqualTo(expectedOne.getCharSet)
+      actualOne.getMimeType must beEqualTo(expectedOne.getMimeType)
+
+      val actualTwo = request.getParts.get(1).asInstanceOf[AHCFilePart]
+      actualTwo.getName must beEqualTo(expectedTwo.getName)
+      actualTwo.getFile must beEqualTo(expectedTwo.getFile)
+      actualTwo.getCharSet must beEqualTo(expectedTwo.getCharSet)
+      actualTwo.getMimeType must beEqualTo(expectedTwo.getMimeType)
     }
 
     "upload a file with a file part" in {

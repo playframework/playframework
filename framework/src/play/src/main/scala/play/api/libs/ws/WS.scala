@@ -376,35 +376,52 @@ object WS {
     }
 
     /**
-     * Adds any number of string body parts.
-     */
-    def withStringParts(strs: (String, String)*): WSRequestHolder = {
-      val stringParts = strs.foldLeft(parts.getOrElse(Nil)) {
-        case (m, (k, v)) => m :+ new NingStringPart(new AHCStringPart(k, v))
-      }
-      this.copy(parts = Some(stringParts))
-    }
-
-    /**
      * Adds a file part to the request.
      * @tparam A the part type: either File, String or Array[Byte]
      */
     def withPart[A](name: String, data: A, mimeType: String, charSet: String = "UTF-8"): WSRequestHolder = {
-      val part = data match {
-        case file:File =>
+      val part = extractPart(name, data, mimeType, charSet)
+      this.copy(parts = Some(parts.getOrElse(Nil) :+ part))
+    }
+
+    private[play] def extractPart[A](name: String, data: A, mimeType: String, charSet: String): Part[_] = {
+      val part: Part[_] = data match {
+        case file: File =>
           new NingFilePart(new AHCFilePart(name, file, mimeType, charSet))
 
-        case string:String =>
-          new NingStringPart(new AHCStringPart(name, string, charSet))
+        case string: String =>
+          new NingStringPart(new AHCStringPart(name, string, charSet)) // note mimeType is ignored
 
-        case byteArray:Array[Byte] =>
+        case byteArray: Array[Byte] =>
           val fileName: String = name
           new NingByteArrayPart(new AHCByteArrayPart(name, fileName, byteArray, mimeType, charSet))
 
         case _ =>
           scala.sys.error("Unrecognized part type: must be File, String or Array[Byte]!")
       }
-      this.copy(parts = Some(parts.getOrElse(Nil) :+ part))
+      part
+    }
+
+    /**
+     * Adds any number of body parts.  The mime type and charset are required.
+     */
+    def withParts[A](mimeType: String, charSet: String, newParts: (String, A)*): WSRequestHolder = {
+      val stringParts: Seq[Part[_]] = newParts.foldLeft(parts.getOrElse(Nil)) {
+        case (m, (k, v)) => m :+ extractPart(k, v, mimeType, charSet)
+      }
+      this.copy(parts = Some(stringParts))
+    }
+
+    /**
+     * Adds any number of string parts, assuming charset=UTF-8.
+     */
+    def withStringParts(newParts: (String, String)*): WSRequestHolder = {
+      val mimeType = "text/plain"
+      val charSet = "UTF-8"
+      val stringParts: Seq[Part[_]] = newParts.foldLeft(parts.getOrElse(Nil)) {
+        case (m, (k, v)) => m :+ extractPart(k, v, mimeType, charSet)
+      }
+      this.copy(parts = Some(stringParts))
     }
 
     /**
@@ -689,29 +706,9 @@ trait MimeType {
 }
 
 /**
- * A part representing a file.
- */
-trait FilePart extends Part[File] with MimeType
-
-/**
- * A part representing a key value pair.
- */
-trait StringPart extends Part[String]
-
-/**
- * A part representing an array of bytes.
- */
-trait ByteArrayPart extends Part[Array[Byte]] with MimeType {
-  /**
-   * The filename (not same as name).
-   */
-  def fileName: String
-}
-
-/**
  * Ning implementation of FilePart.
  */
-private class NingFilePart(ahcFilePart: AHCFilePart) extends FilePart {
+private class NingFilePart(ahcFilePart: AHCFilePart) extends Part[File] with MimeType {
   /** The name of the part. */
   def name: String = ahcFilePart.getName
 
@@ -739,7 +736,7 @@ private class NingFilePart(ahcFilePart: AHCFilePart) extends FilePart {
 /**
  * Ning implementation of ByteArrayPart.
  */
-private class NingByteArrayPart(ahcByteArrayPart: AHCByteArrayPart) extends ByteArrayPart {
+private class NingByteArrayPart(ahcByteArrayPart: AHCByteArrayPart) extends Part[Array[Byte]] with MimeType {
   /** The name of the part. */
   def name: String = ahcByteArrayPart.getName
 
@@ -772,7 +769,7 @@ private class NingByteArrayPart(ahcByteArrayPart: AHCByteArrayPart) extends Byte
 /**
  * Ning implementation of StringPart.
  */
-private class NingStringPart(ahcStringPart: AHCStringPart) extends StringPart {
+private class NingStringPart(ahcStringPart: AHCStringPart) extends Part[String] {
 
   /**
    * The underlying "raw" class implementation.
