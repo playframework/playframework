@@ -1,14 +1,11 @@
 package scalaguide.tests
 
 import play.api.libs.ws._
-import scala.concurrent.Future
 
 import play.api.mvc._
 import play.api.test._
-import play.api.test.Helpers._
 
-import java.io._
-import play.core.Router
+import play.api.{GlobalSettings, Application}
 
 /**
  *
@@ -24,6 +21,12 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
 
   "Scala Functional Test" should {
 
+    // #scalatest-fakeApplication
+    val fakeApplicationWithGlobal = FakeApplication(withGlobal = Some(new GlobalSettings() {
+      override def onStart(app: Application) { println("Hello world!") }
+    }))
+    // #scalatest-fakeApplication
+
     val fakeApplication = FakeApplication(withRoutes = {
       case ("GET", "/Bob") =>
         Action {
@@ -32,7 +35,7 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
     })
 
     // #scalafunctionaltest-respondtoroute
-    "respond to the index Action" in running(fakeApplication) {
+    "respond to the index Action" in new WithApplication(fakeApplication) {
       val Some(result) = route(FakeRequest(GET, "/Bob"))
 
       status(result) must equalTo(OK)
