@@ -6,7 +6,7 @@ There is one case which requires explicit configuration, which involves how cont
 
 ## Controller Injection
 
-In Play, routes which start with `@` are managed by [play.api.GlobalSettings#getControllerInstance](http://www.playframework.com/documentation/api/2.1.x/scala/index.html#play.api.GlobalSettings@getControllerInstance),
+In Play, routes which start with `@` are managed by [play.api.GlobalSettings#getControllerInstance](api/scala/index.html#play.api.GlobalSettings),
 
 Given the following route definition:
 
