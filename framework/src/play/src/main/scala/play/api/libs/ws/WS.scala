@@ -493,6 +493,12 @@ trait WSRequestBuilder {
         request.setVirtualHost(v)
       }
 
+      prepareProxy(request)
+
+      request
+    }
+
+    private[play] def prepareProxy(request:WSRequest) {
       proxyServer.map {
         p =>
           import com.ning.http.client.ProxyServer.Protocol
@@ -528,7 +534,6 @@ trait WSRequestBuilder {
 
           request.setProxyServer(proxyServer)
       }
-      request
     }
 
     private[play] def prepare(method: String, body: File) = {
@@ -550,6 +555,8 @@ trait WSRequestBuilder {
         request.setVirtualHost(v)
       }
 
+      prepareProxy(request)
+
       request
     }
 
@@ -567,6 +574,8 @@ trait WSRequestBuilder {
       virtualHost.map { v =>
         request.setVirtualHost(v)
       }
+      prepareProxy(request)
+
       request
     }
   }
