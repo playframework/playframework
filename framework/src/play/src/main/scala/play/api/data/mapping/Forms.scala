@@ -4,8 +4,8 @@ import play.api.{ data => d }
 import play.api.data.mapping.PM._
 
 object Form {
-  // def fill[T](t: T)(implicit w: Writes[T, Map[Path, Seq[String]]]) =
-  //   Form(w.writes(t))
+  def fill[T](t: T)(implicit w: Write[T, Map[String, Seq[String]]]) =
+    Form().fill(t)
 }
 
 case class Form[T](data: Map[String, Seq[String]] = Map.empty, validation: Validation[(Path, Seq[ValidationError]), T] = Failure(Nil)) {
@@ -25,8 +25,8 @@ case class Form[T](data: Map[String, Seq[String]] = Map.empty, validation: Valid
     Field(this, path, value)
   }
 
-  // def fill(t: T)(implicit w: Writes[T, Map[Path, Seq[String]]]) =
-  //   Form.fill(t)
+  def fill(t: T)(implicit w: Write[T, Map[String, Seq[String]]]) =
+    this.copy(data = w.writes(t))
 }
 
 class Field(private val form: Form[_], val path: Path, override val value: Option[String])

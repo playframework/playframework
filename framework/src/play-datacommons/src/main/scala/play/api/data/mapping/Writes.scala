@@ -56,48 +56,6 @@ trait DefaultWrites {
 
   def writeI[I]: Write[I, I] =
     Write(identity[I] _)
-
-  // implicit def writeI[I]: Write[I, I] =
-  //   Write(identity[I] _)
-
-  // implicit def writeInt: Write[Int, String] =
-  //   Write((i: Int) => i.toString)
-
-  // implicit def writeString: Write[String, String] =
-  //   Write((i: String) => i)
-
-  // implicit def writeAsSeq[I, O](implicit w: Write[I, O]): Write[I, Seq[O]] =
-  //   Write((i: I) => Seq(w.writes(i)))
-
-  // implicit def writeOpt[I, O](implicit w: Write[I, O]): Write[Option[I], Seq[O]] =
-  //   Write((i: Option[I]) => i.map(w.writes).toSeq)
-
-  // implicit def writeToMap[I](p: Path)(implicit w: Write[I, Seq[String]]) =
-  //   Write((i: I) => Map(asKey(p) -> w.writes(i)))
-
-  // implicit def writeFromMapToMap[I](p: Path)(implicit w: Write[I, Map[String, Seq[String]]]): Write[I, Map[String, Seq[String]]] =
-  //   Write((i: I) => w.writes(i).map { case (k, v) =>
-  //     (asKey(p) + "." + k) -> v
-  //   })
-
-  // implicit def writeSeq[I](p: Path)(implicit w: Write[I, Seq[String]]): Write[Seq[I], Map[String, Seq[String]]] =
-  //   Write{(is: Seq[I]) =>
-  //     is.zipWithIndex.map { case (i, index) =>
-  //       val prefix = asKey(p \ index)
-  //       prefix -> w.writes(i)
-  //     }.toMap
-  //   }
-
-  // // implicit def writeJson[I](p: Path[JsValue])(implicit w: Write[I, JsValue]): Write[I, JsValue] = ???
-
-  // implicit def writeSeqToMap[I](p: Path)(implicit w: Write[I, Map[String, Seq[String]]]): Write[Seq[I], Map[String, Seq[String]]] =
-  //   Write{(is: Seq[I]) =>
-  //     val ms = is.zipWithIndex.map { case (i, index) =>
-  //       val prefix = asKey(p \ index)
-  //       w.writes(i).map{ case (k, v) => (prefix + "." + k) -> v }
-  //     }
-  //     ms.foldLeft(Map.empty[String, Seq[String]])((acc, m) => acc ++ m)
-  //   }
 }
 
 object Write extends DefaultWrites with DefaultMonoids {

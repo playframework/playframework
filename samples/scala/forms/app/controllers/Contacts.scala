@@ -23,18 +23,19 @@ object Contacts extends Controller {
     (Path \ "company").read(option(string)) ~
     (Path \ "informations").read(seq(infoValidation))) (Contact.apply _)
 
-  // implicit def contactWrite = {
-  //  import play.api.libs.functional.syntax.unlift
-  //  implicit val infoWrites =
-  //   ((Path \ "label").write[String] ~
-  //    (Path \ "email").write[Option[String]] ~
-  //    (Path \ "phones").write[Seq[String]]) (unlift(ContactInformation.unapply _))
+  implicit def contactWrite = {
+    import play.api.data.mapping.Write._
+    import play.api.libs.functional.syntax.unlift
+    val contactInformation =
+      ((Path \ "label").write(string) ~
+       (Path \ "email").write(option(string)) ~
+       (Path \ "phones").write(seq(string))) (unlift(ContactInformation.unapply _))
 
-  //   ((Path \ "firstname").write[String] ~
-  //    (Path \ "lastname").write[String] ~
-  //    (Path \ "company").write[Option[String]] ~
-  //    (Path \ "informations").write[Seq[ContactInformation]]) (unlift(Contact.unapply _))
-  // }
+      ((Path \ "firstname").write(string) ~
+       (Path \ "lastname").write(string) ~
+       (Path \ "company").write(option(string)) ~
+       (Path \ "informations").write(seq(contactInformation))) (unlift(Contact.unapply _))
+    }
 
   /**
    * Display an empty form.
@@ -60,8 +61,7 @@ object Contacts extends Controller {
         )
       )
     )
-    //Ok(html.contact.form(Form.fill(existingContact)))
-    Ok(html.contact.form(Form[Contact]()))
+    Ok(html.contact.form(Form.fill(existingContact)))
   }
 
   /**
