@@ -22,7 +22,6 @@ class WritesSpec extends Specification {
   val contactMap = Map(
     "firstname" -> Seq("Julien"),
     "lastname" -> Seq("Tournay"),
-    "company" -> Seq(),
     "informations[0].label" -> Seq("Personal"),
     "informations[0].email" -> Seq("fakecontact@gmail.com"),
     "informations[0].phones[0]" -> Seq("01.23.45.67.89"),
@@ -51,23 +50,22 @@ class WritesSpec extends Specification {
       w.writes(Nil) mustEqual Map.empty
     }
 
-    // "write Map" in {
-    //   implicit def contactWrite = {
+    "write Map" in {
+      def contactWrite = {
+        import play.api.libs.functional.syntax.unlift
+        val contactInformation =
+          ((Path \ "label").write(string) ~
+           (Path \ "email").write(option(string)) ~
+           (Path \ "phones").write(seq(string))) (unlift(ContactInformation.unapply _))
 
-    //     import play.api.libs.functional.syntax.unlift
-    //     implicit val contactInformation =
-    //       ((Path \ "label").write(string) ~
-    //        (Path \ "email").write(option(string)) ~
-    //        (Path \ "phones").write(seq(string))) (unlift(ContactInformation.unapply _))
+        ((Path \ "firstname").write(string) ~
+         (Path \ "lastname").write(string) ~
+         (Path \ "company").write(option(string)) ~
+         (Path \ "informations").write(seq(contactInformation))) (unlift(Contact.unapply _))
+      }
 
-    //     ((Path \ "firstname").write(string) ~
-    //      (Path \ "lastname").write(string) ~
-    //      (Path \ "company").write(option(string)) ~
-    //      (Path \ "informations").write(seq(contactInformation))) (unlift(Contact.unapply _))
-    //   }
-
-    //   Writes[Contact, M](contactWrite).writes(contact) mustEqual contactMap
-    // }
+      contactWrite.writes(contact) mustEqual contactMap
+    }
 
   }
 

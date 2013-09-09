@@ -30,19 +30,32 @@ trait DefaultWrites {
     Writes((i: I) => w.writes(i))
   */
 
-  implicit def writeString(p: Path) = Write {
-    x: String => Map(asKey(p) -> Seq(x))
+  implicit def writeString(p: Path) = Write { x: String =>
+    Map(asKey(p) -> Seq(x))
   }
 
-  def seq[I, O](w: Write[I, O])(implicit pw: Path => Write[O, Map[String, Seq[String]]]) = (p: Path) => Write {
-    ms: Seq[I] => ms.zipWithIndex.toMap.flatMap {
-      case (m, i) => pw(p \ i).writes(w.writes(m))
-    }
+  implicit def writeSeq[O](p: Path)(implicit w: Path => Write[O, Rules.M]) = Write{ os: Seq[O] =>
+    os.zipWithIndex
+      .toMap
+      .flatMap{ case(o, i) =>
+        w(p \ i).writes(o)
+      }
+  }
+
+  implicit def writeMap(path: Path) = Write{ m: Map[String, Seq[String]] =>
+    toM(toPM(m).map{ case (p, v) => (path ++ p) -> v })
+  }
+
+  def seq[I, O](w: Write[I, O]) = Write {
+    (_: Seq[I]).map(w.writes _)
   }
 
   def option[I, O](w: Write[I, O]) = (p: Path) => Write {
     m: Option[I] => m.map(s => Map(asKey(p) -> Seq(w.writes(s)))).getOrElse(Map.empty)
   }
+
+  def writeI[I]: Write[I, I] =
+    Write(identity[I] _)
 
   // implicit def writeI[I]: Write[I, I] =
   //   Write(identity[I] _)
