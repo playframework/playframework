@@ -4,17 +4,15 @@ import play.api._
 import play.api.mvc._
 import play.api.libs._
 import play.api.libs.iteratee._
-
 import Play.current
-
 import java.io._
 import java.net.{ URI, JarURLConnection }
 import org.joda.time.format.{ DateTimeFormatter, DateTimeFormat }
 import org.joda.time.DateTimeZone
 import collection.JavaConverters._
 import scala.util.control.NonFatal
-
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.utils.UriEncoding
 
 /**
  * Controller that serves static resources.
@@ -73,11 +71,7 @@ class AssetsBuilder extends Controller {
       case NonFatal(_) => None
     }
 
-    val resourceName = resourceNameFor(path, file)
-
-    if (new File(resourceName).isDirectory || !new File(resourceName).getCanonicalPath.startsWith(new File(path).getCanonicalPath)) {
-      NotFound
-    } else {
+    resourceNameAt(path, file).map { resourceName =>
 
       val gzippedResource = Play.resource(resourceName + ".gz")
 
@@ -163,7 +157,7 @@ class AssetsBuilder extends Controller {
 
       }.getOrElse(NotFound)
 
-    }
+    }.getOrElse(NotFound)
   }
 
   /**
@@ -172,11 +166,14 @@ class AssetsBuilder extends Controller {
    * @param path the root folder for searching the static resource files, such as `"/public"`. Not URL encoded.
    * @param file the file part extracted from the URL. May be URL encoded (note that %2F decodes to literal /).
    */
-  def resourceNameFor(path: String, file: String): String = {
-    // TODO: Decode file directly, rather than jumping through a URI
-    val slashPath = if (path.startsWith("/")) path else ("/" + path)
-    val encodedPath = new File(slashPath).toURI.getRawPath // Encode so we can decode safely
-    new URI(encodedPath + "/" + file).getPath
+  private[controllers] def resourceNameAt(path: String, file: String): Option[String] = {
+    val decodedFile = UriEncoding.decodePath(file, "utf-8")
+    val resourceName = Option(path + "/" + decodedFile).map(name => if (name.startsWith("/")) name else ("/" + name)).get
+    if (new File(resourceName).isDirectory || !new File(resourceName).getCanonicalPath.startsWith(new File(path).getCanonicalPath)) {
+      None
+    } else {
+      Some(resourceName)
+    }
   }
 
   // -- LastModified handling

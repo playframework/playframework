@@ -43,20 +43,30 @@ object AssetsSpec extends PlaySpecification {
       result.header(CACHE_CONTROL) must_== defaultCacheControl
     }
 
+    "serve an asset in a subdirectory" in withServer {
+      val result = await(wsUrl("/subdir/baz.txt").get())
+
+      result.status must_== OK
+      result.body must_== "Content of baz.txt."
+      result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+      result.header(ETAG) must beSome
+      result.header(LAST_MODIFIED) must beSome
+      result.header(VARY) must beNone
+      result.header(CONTENT_ENCODING) must beNone
+      result.header(CACHE_CONTROL) must_== defaultCacheControl
+    }
+
     "serve an asset with spaces in the name" in withServer {
       val result = await(wsUrl("/foo%20bar.txt").get())
 
       result.status must_== OK
       result.body must_== "This is a test asset with spaces."
       result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
-    }
-
-    "serve an asset with URL-encoded characters" in withServer {
-      val result = await(wsUrl("/" + UriEncoding.encodePathSegment("foo+bar: baz.txt", "UTF-8")).get())
-
-      result.status must_== OK
-      result.body must_== "This is a test asset."
-      result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+      result.header(ETAG) must beSome
+      result.header(LAST_MODIFIED) must beSome
+      result.header(VARY) must beNone
+      result.header(CONTENT_ENCODING) must beNone
+      result.header(CACHE_CONTROL) must_== defaultCacheControl
     }
 
     "serve a non gzipped asset when gzip is available but not requested" in withServer {
@@ -164,36 +174,11 @@ object AssetsSpec extends PlaySpecification {
       result.body must beEmpty
     }
 
-    "look up assets with the the correct resource name" in {
-      Assets.resourceNameFor("a", "") must_== "/a/"
-      Assets.resourceNameFor("a", "b") must_== "/a/b"
-      Assets.resourceNameFor("a", "/") must_== "/a//"
-      Assets.resourceNameFor("a", "/b") must_== "/a//b"
-      Assets.resourceNameFor("a", "/b/c") must_== "/a//b/c"
-      Assets.resourceNameFor("a", "/b/") must_== "/a//b/"
-      Assets.resourceNameFor("/a", "") must_== "/a/"
-      Assets.resourceNameFor("/a", "b") must_== "/a/b"
-      Assets.resourceNameFor("/a", "/") must_== "/a//"
-      Assets.resourceNameFor("/a", "/b") must_== "/a//b"
-      Assets.resourceNameFor("/a", "/b/c") must_== "/a//b/c"
-      Assets.resourceNameFor("/a", "/b/") must_== "/a//b/"
-    }
+    "return 404 for files that don't exist" in withServer {
+      val result = await(wsUrl("/nosuchfile.txt").get())
 
-    "look up assets without changing the base path encoding" in {
-      Assets.resourceNameFor(" ", "x") must_== "/ /x"
-      Assets.resourceNameFor("/1 + 2 = 3", "x") must_== "/1 + 2 = 3/x"
-      Assets.resourceNameFor("/1%20+%202%20=%203", "x") must_== "/1%20+%202%20=%203/x"
-    }
-
-    "look up assets with encoded file paths" in {
-      Assets.resourceNameFor("/a", "1%20+%202%20=%203") must_== "/a/1 + 2 = 3"
-      Assets.resourceNameFor("/a", "b%2Fc") must_== "/a/b/c" // Don't worry about encoded /s
-    }
-
-    "look up assets even if the file path is a valid URI" in {
-      Assets.resourceNameFor("/a", "http://localhost/x") must_== "/a/http://localhost/x"
-      Assets.resourceNameFor("/a", "//localhost/x") must_== "/a///localhost/x"
-      Assets.resourceNameFor("/a", "../") must_== "/a/../"
+      result.status must_== NOT_FOUND
+      result.body must beEmpty
     }
 
   }
