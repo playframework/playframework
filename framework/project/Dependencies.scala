@@ -102,6 +102,8 @@ object Dependencies {
     "com.fasterxml.jackson.core" % "jackson-annotations" % "2.2.2",
     "com.fasterxml.jackson.core" % "jackson-databind" % "2.2.2",
 
+    "xerces" % "xercesImpl" % "2.11.0",
+
     "javax.transaction" % "jta" % "1.1",
 
     specsBuild % "test",

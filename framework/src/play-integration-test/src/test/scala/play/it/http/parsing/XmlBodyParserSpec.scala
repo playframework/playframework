@@ -4,6 +4,8 @@ import play.api.test._
 import play.api.mvc.{BodyParser, BodyParsers}
 import play.api.libs.iteratee.Enumerator
 import scala.xml.NodeSeq
+import java.io.File
+import org.apache.commons.io.{FileUtils, IOUtils}
 
 object XmlBodyParserSpec extends PlaySpecification {
 
@@ -84,6 +86,19 @@ object XmlBodyParserSpec extends PlaySpecification {
       parse("<foo", Some("text/xml; charset=utf-8"), "utf-8", BodyParsers.parse.xml) must beLeft
     }
 
+    "parse XML bodies without loading in a related schema" in new WithApplication() {
+      val f = File.createTempFile("xxe", "txt")
+      FileUtils.writeStringToFile(f, "I shouldn't be there!")
+      f.deleteOnExit()
+      val xml = s"""<?xml version="1.0" encoding="ISO-8859-1"?>
+                  | <!DOCTYPE foo [
+                  |   <!ELEMENT foo ANY >
+                  |   <!ENTITY xxe SYSTEM "${f.toURI}" >]><foo>hello&xxe;</foo>""".stripMargin
+
+      parse(xml, Some("text/xml; charset=iso-8859-1"), "iso-8859-1") must beRight.like {
+        case xml => xml.text must_== "hello"
+      }
+    }
   }
 
 }
