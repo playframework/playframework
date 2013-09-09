@@ -478,7 +478,7 @@ object WS {
       request
     }
 
-    private[play] def prepareProxy(request:WSRequest) {
+    private[play] def prepareProxy(request: WSRequest) {
       proxyServer.map {
         p =>
           import com.ning.http.client.ProxyServer.Protocol
