@@ -23,6 +23,7 @@ import play.core.utils.CaseInsensitiveOrdered
 import com.ning.http.util.AsyncHttpProviderUtils
 
 import play.core.Execution.Implicits.internalContext
+import play.api.Play
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -659,7 +660,7 @@ case class Response(ahcResponse: AHCResponse) {
   /**
    * The response body as Xml.
    */
-  lazy val xml: Elem = XML.loadString(body)
+  lazy val xml: Elem = Play.XML.loadString(body)
 
   /**
    * The response body as Json.

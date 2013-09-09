@@ -419,7 +419,7 @@ trait BodyParsers {
         ).foreach { charset =>
             inputSource.setEncoding(charset)
           }
-        XML.load(inputSource)
+        Play.XML.load(inputSource)
       }
 
     /**
