@@ -139,9 +139,9 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
         lazy val file = {
           Option(System.getProperty("config.file")).map(f => new File(f)).getOrElse(new File("conf/application.conf"))
         }
-        
+
         val config = Option(System.getProperty("config.resource"))
-        .map(ConfigFactory.parseResources(_)).getOrElse(ConfigFactory.parseFileAnySyntax(file))
+          .map(ConfigFactory.parseResources(_)).getOrElse(ConfigFactory.parseFileAnySyntax(file))
 
         val models = try {
           config.getConfig("ebean").entrySet.asScala.map(_.getValue.unwrapped).toSet.mkString(",")
