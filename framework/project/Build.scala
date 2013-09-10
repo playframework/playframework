@@ -518,6 +518,8 @@ object PlayBuild extends Build {
             "org.codehaus.jackson"              %    "jackson-core-asl"         %   "1.9.10",
             "org.codehaus.jackson"              %    "jackson-mapper-asl"       %   "1.9.10",
 
+            "xerces"                            %    "xercesImpl"               %   "2.11.0",
+
             "net.sf.ehcache"                    %    "ehcache-core"             %   "2.6.0",
 
             "javax.transaction"                 %    "jta"                      %   "1.1",
