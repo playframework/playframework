@@ -112,7 +112,7 @@ public static List<Task> findByProject(Long project) {
 }
 ```
 
-We're now almost ready, we just need to provide a link to click on to get to this action.  Our new coffee script file that we've downloaded uses the backbone router to handle AJAX requests to pages, so if we create a link using the format `#/some/path`, it will update the page for that.  So we can use the reverse router to render these links for us.  Let's do that now, first in the navigation drawer, in `app/views/projects/item.scala.html`:
+We're now almost ready, we just need to provide a link to click on to get to this action.  Our new Coffeescript file that we've downloaded uses the backbone router to handle AJAX requests to pages, so if we create a link using the format `#/some/path`, it will update the page for that.  So we can use the reverse router to render these links for us.  Let's do that now, first in the navigation drawer, in `app/views/projects/item.scala.html`:
 
 ```html
 ...
@@ -137,7 +137,7 @@ Now reload the screen, and you should be able to click the projects in the navig
 
 ## Adding a task
 
-Let's now implement the ability to add a task.  We'll start off again with the template, we'll need to modify the `app/views/tasks/folder.scala.html` template we added before to include a form for adding tasks.  Place the form after the list of tasks in the folder, and before the folders closing div:
+Let's now implement the ability to add a task.  We'll start off again with the template, we'll need to modify the `app/views/tasks/folder.scala.html` template we added before to include a form for adding tasks.  Place the form after the list of tasks in the folder, and before the folders closing `<div>`:
 
 ```html
 ...

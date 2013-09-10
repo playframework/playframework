@@ -10,7 +10,7 @@ Here is a mock of what we want to achieve:
 
 In fact before coding the first screen we need one more thing.  Working on a web application without test data is not fun.  You can't even test what you're doing.  But because we haven't developed the screens for managing tasks yet, we can't populate the task dashboard with tasks ourselves.
 
-One way to inject default data into the task management system is to load a YAML file at application load time, the same way we did for testing.  To do that we will hook into Plays startup to bootstrap the application with data.  Hooking into Plays startup is as simple as creating a class called `Global` that implements `GlobalSettings` in the root package, and overriding the `onStart()` method.  Let's do that now, by creating the `app/Global.java` file:
+One way to inject default data into the task management system is to load a YAML file at application load time, the same way we did for testing.  To do that we will hook into Play's startup to bootstrap the application with data.  Hooking into Play's startup is as simple as creating a class called `Global` that implements `GlobalSettings` in the root package, and overriding the `onStart()` method.  Let's do that now, by creating the `app/Global.java` file:
 
 ```java
 import play.*;
@@ -30,9 +30,9 @@ public class Global extends GlobalSettings {
 }
 ```
 
-Now this will be called whenever play starts up.
+Now this will be called whenever Play starts up.
 
-> In fact this job will be run differently in dev or prod modes.  In dev mode, play waits for a first request to start. So this job will be executed synchronously at the first request.  That way, if the job fails, you will get the error message in your browser.  In prod mode however, the job will be executed at application start (synchronously with the `start` command) and will prevent the application from starting in case of an error.
+> In fact this job will be run differently in dev or prod modes.  In dev mode, Play waits for a first request to start. So this job will be executed synchronously at the first request.  That way, if the job fails, you will get the error message in your browser.  In prod mode however, the job will be executed at application start (synchronously with the `start` command) and will prevent the application from starting in case of an error.
 
 You have to create an `initial-data.yml` in the `conf` directory.  You can of course reuse the `test-data.yml` content that we just used for tests previously.
 
@@ -116,13 +116,13 @@ Open the `app/views/index.scala.html` template and modify it to accept and displ
 }
 ```
 
-You can read more about the [[template language here|JavaTemplates]].  Basically, it allows you to access your java objects in a type safe manner.  Under the hood we use Scala.  Most of the pretty constructs you see (like `map`, `case` and `=>`) come from Scala.  But you don't really need to learn Scala to write play templates, just a small amount will allow you to do almost anything.
+You can read more about the [[template language here|JavaTemplates]].  Basically, it allows you to access your java objects in a type safe manner.  Under the hood we use Scala.  Most of the pretty constructs you see (like `map`, `case` and `=>`) come from Scala.  But you don't really need to learn Scala to write Play templates, just a small amount will allow you to do almost anything.
 
 Ok, now refresh the dashboard.
 
 [[images/dashboard1.png]]
 
-Not pretty but it works!
+Not pretty, but it works!
 
 As we write more pages, we are probably going to run into cases where we need to render tasks again, and all that code to render a single task is going to end up being duplicated.  Let's use the template composition concept we learnt earlier to pull this logic into something like a function that we can call from many places.
 
@@ -251,9 +251,9 @@ And now refresh the page to make sure it all works.  We should see the list of p
 
 Now the first version of the dashboard is almost done, but it's not very pretty.  We'll add some style to make it shinier.  As you have seen, the main template file `main.scala.html` includes the `public/stylesheets/main.css`.  The first thing to do is delete this stylesheet, because we are not going to use it.  Rather, we are going to implement our stylesheets using LESS.
 
-> There is nothing stopping you from using plain CSS for your stylesheets, but Play framework comes in built with LESS support, which allows you to define stylesheets in a more dynamic fashion, using varaibles, mixins, functions etc.
+> There is nothing stopping you from using plain CSS for your stylesheets, but the Play framework comes in built with LESS support, which allows you to define stylesheets in a more dynamic fashion, using varaibles, mixins, functions, etc.
 
-Explaining CSS and LESS is beyond the scope of this tutorial, so for now we'll just get you to download the stylesheets that we've already written.  These stylesheets should contain all the styles needed to build the rest of the site.  You can download a tarball of these files [here](resources/manual/javaGuide/tutorials/zentasks/files/less-stylesheets.tar.gz), which you can extract from the root folder of your project, this will place a number of `*.less` files in the `app/assets/stylesheets` directory.
+Explaining CSS and LESS is beyond the scope of this tutorial, so for now we'll just get you to download the stylesheets that we've already written.  These stylesheets should contain all the styles needed to build the rest of the site.  You can download a tarball of these files [here](resources/manual/javaGuide/tutorials/zentasks/files/less-stylesheets.tar.gz), which you can extract from the root folder of your project. This will place a number of `*.less` files in the `app/assets/stylesheets` directory.
 
 LESS stylesheets need to be compiled to CSS before they can be used.  Just like Play automatically compiles the routes, Java code and templates, when Play sees LESS files on your classpath, it will automatically compile them, and recompile them each time you change them.  And again, it displays errors beautifully in your browser if a compile error is encountered.
 
@@ -269,8 +269,10 @@ Refresh the home page and you should now see a styled page.
 
 The first iteration of the tasks dashboard is now finished.  As usual we can commit this version to git:
 
-    $ git status
-    $ git add .
-    $ git commit -m "Dashboard"
+```bash
+$ git status
+$ git add .
+$ git commit -m "Dashboard"
+```
 
 > Go to the [[next part|JavaGuide4]].
