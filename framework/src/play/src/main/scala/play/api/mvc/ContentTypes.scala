@@ -389,7 +389,7 @@ trait BodyParsers {
     def tolerantXml(maxLength: Int): BodyParser[NodeSeq] = BodyParser("xml, maxLength=" + maxLength) { request =>
       Traversable.takeUpTo[Array[Byte]](maxLength).apply(Iteratee.consume[Array[Byte]]().mapDone { bytes =>
         scala.util.control.Exception.allCatch[NodeSeq].either {
-          XML.loadString(new String(bytes, request.charset.getOrElse("utf-8")))
+          Play.XML.loadString(new String(bytes, request.charset.getOrElse("utf-8")))
         }.left.map { e =>
           (Play.maybeApplication.map(_.global.onBadRequest(request, "Invalid XML")).getOrElse(Results.BadRequest), bytes)
         }

@@ -1,5 +1,6 @@
 package play.api.libs.ws
 
+import play.api.Play
 import play.api.libs.concurrent._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
@@ -441,7 +442,7 @@ case class Response(ahcResponse: AHCResponse) {
   /**
    * The response body as Xml.
    */
-  lazy val xml: Elem = XML.loadString(body)
+  lazy val xml: Elem = Play.XML.loadString(body)
 
   /**
    * The response body as Json.

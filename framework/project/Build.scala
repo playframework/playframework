@@ -271,6 +271,9 @@ object PlayBuild extends Build {
             ,
             
             "javax.servlet"                     %    "javax.servlet-api"        %   "3.0.1",
+            
+            "xerces"                            %    "xercesImpl"               %   "2.11.0",
+            
             "javax.transaction"                 %    "jta"                      %   "1.1",
             "tyrex"                             %    "tyrex"                    %   "1.0.1",
             
