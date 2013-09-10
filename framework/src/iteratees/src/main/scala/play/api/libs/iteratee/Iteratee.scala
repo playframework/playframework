@@ -93,6 +93,13 @@ object Iteratee {
   }
 
   /**
+   * A partially-applied function returned by the `consume` method.
+   */
+  trait Consume[E] {
+    def apply[B, That]()(implicit t: E => TraversableOnce[B], bf: scala.collection.generic.CanBuildFrom[E, B, That]): Iteratee[E, That]
+  }
+
+  /**
    * Create an [[play.api.libs.iteratee.Iteratee]] which consumes and concatenates all Input chunks
    *
    * Example:
@@ -104,7 +111,7 @@ object Iteratee {
    * Chunks type should be viewable as TraversableOnce
    *
    */
-  def consume[E] = new {
+  def consume[E] = new Consume[E] {
     def apply[B, That]()(implicit t: E => TraversableOnce[B], bf: scala.collection.generic.CanBuildFrom[E, B, That]): Iteratee[E, That] = {
       fold[E, Seq[E]](Seq.empty) { (els, chunk) =>
         chunk +: els
@@ -145,8 +152,10 @@ object Iteratee {
     cont
   }
 
-  def eofOrElse[E] = new {
-
+  /**
+   * A partially-applied function returned by the `eofOrElse` method.
+   */
+  trait EofOrElse[E] {
     /**
      * @param otherwise Value if the input is not [[play.api.libs.iteratee.Input.EOF]]
      * @param eofValue Value if the input is [[play.api.libs.iteratee.Input.EOF]]
@@ -154,6 +163,10 @@ object Iteratee {
      * @tparam B Type of `otherwise`
      * @return An `Iteratee[E, Either[B, A]]` that consumes one input and produces a `Right(eofValue)` if this input is [[play.api.libs.iteratee.Input.EOF]] otherwise it produces a `Left(otherwise)`
      */
+    def apply[A, B](otherwise: B)(eofValue: A): Iteratee[E, Either[B, A]]
+  }
+
+  def eofOrElse[E] = new EofOrElse[E] {
     def apply[A, B](otherwise: B)(eofValue: A): Iteratee[E, Either[B, A]] = {
       def cont: Iteratee[E, Either[B, A]] = Cont((in: Input[E]) => {
         in match {
