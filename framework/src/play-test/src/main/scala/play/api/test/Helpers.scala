@@ -1,6 +1,10 @@
 package play.api.test
 
 import scala.language.reflectiveCalls
+
+import akka.util.Timeout
+import scala.concurrent.{ Await, Future }
+import scala.concurrent.duration._
 import scala.xml.NodeSeq
 
 import play.api._
@@ -17,6 +21,32 @@ import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._
 
 import scala.concurrent.ExecutionContext.Implicits.global
+
+trait DefaultAwaitTimeout {
+
+  /**
+   * The default await timeout.  Override this to change it.
+   */
+  implicit def defaultAwaitTimeout: Timeout = 5.seconds
+}
+
+trait FutureAwaits {
+  self: DefaultAwaitTimeout =>
+
+  import java.util.concurrent.TimeUnit
+
+  /**
+   * Block until a Promise is redeemed.
+   */
+  def await[T](future: Future[T])(implicit timeout: Timeout): T = Await.result(future, timeout.duration)
+
+  /**
+   * Block until a Promise is redeemed with the specified timeout.
+   */
+  def await[T](future: Future[T], timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): T =
+    Await.result(future, Duration(timeout, unit))
+
+}
 
 /**
  * Helper functions to run tests.
