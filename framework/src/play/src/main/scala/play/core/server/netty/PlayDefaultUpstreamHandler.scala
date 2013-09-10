@@ -37,12 +37,23 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
   override def exceptionCaught(ctx: ChannelHandlerContext, event: ExceptionEvent) {
     event.getCause match {
+      // When an SSLException happens and both play and netty call close, a deadlock often happens.
+      // If netty can guarantee that calling close on a closed channel with SSL is ok, we could restore the close
+      case e: javax.net.ssl.SSLException => {
+        nettyExceptionLogger.error("Exception caught in Netty, not calling close on channel because its SSL", e)
+        // no close.
+      }
       // IO exceptions happen all the time, it usually just means that the client has closed the connection before fully
       // sending/receiving the response.
-      case e: IOException => nettyExceptionLogger.trace("Benign IO exception caught in Netty", e)
-      case e => nettyExceptionLogger.error("Exception caught in Netty", e)
+      case e: IOException => {
+        nettyExceptionLogger.trace("Benign IO exception caught in Netty", e)
+        event.getChannel.close()
+      }
+      case e => {
+        nettyExceptionLogger.error("Exception caught in Netty", e)
+        event.getChannel.close()
+      }
     }
-    event.getChannel.close()
   }
 
   override def channelConnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
