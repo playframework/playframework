@@ -1,7 +1,7 @@
 package play.api.data.mapping
 
 trait GenericRules {
-  def IasI[I] = Rule[I, I](i => Success(i))
+  implicit def IasI[I] = Rule[I, I](i => Success(i))
 
   def validateWith[From](msg: String, args: Any*)(pred: From => Boolean): Constraint[From] =
     v => if(!pred(v)) Failure(Seq(ValidationError(msg, args: _*))) else Success(v)

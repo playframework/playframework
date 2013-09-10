@@ -24,6 +24,41 @@ object \: {
   }
 }
 
+
+// TODO: cleanup
+case class Reader[I](path: Path = Path(Nil)) {
+  /**
+  * When applied, the rule will lookup for data at the given path, and apply the given Constraint on it
+  * {{{
+  *   val __ = Path[JsValue]()
+  *   val json = Json.parse("""{
+  *      "informations": {
+  *        "label": "test"
+  *      }
+  *   }""")
+  *   val infoValidation = (__ \ "label").read(nonEmptyText)
+  *   val v = (__ \ "informations").read(infoValidation))
+  *   v.validate(json) == Success("test")
+  * }}}
+  * @param sub the constraint to apply on the subdata
+  * @param l a lookup function. This function finds data in a structure of type I, and coerce it to tyoe O
+  * @return A Rule validating the presence and validity of data at this Path
+  */
+  def read[J, O](sub: Rule[J, O])(implicit r: Path => Rule[I, J]): Rule[I, O] =
+    r(path).compose(path)(sub)
+
+  def read[O](implicit r: Path => Rule[I, O]): Rule[I, O] =
+    read(Rule.zero[O])(r)
+
+  def read[O](m: Constraint[O])(implicit r: Path => Rule[I, O]): Rule[I, O] =
+    read[O, O](Rule.fromMapping(m))
+
+  def \(key: String): Reader[I] = Reader(path \ key)
+  def \(idx: Int): Reader[I] = Reader(path \ idx)
+  def \(child: PathNode): Reader[I] = Reader(path \ child)
+
+}
+
 case object Path {
   def apply(path: String) = new Path(KeyPathNode(path) :: Nil)
 	def apply(path: List[PathNode] = Nil) = new Path(path)
@@ -49,29 +84,6 @@ class Path(val path: List[PathNode]) {
   */
   def compose(p: Path): Path = Path(this.path ++ p.path)
   def ++(other: Path) = this compose other
-
-  /**
-  * When applied, the rule will lookup for data at the given path, and apply the given Constraint on it
-  * {{{
-  *   val __ = Path[JsValue]()
-  *   val json = Json.parse("""{
-  *      "informations": {
-  *        "label": "test"
-  *      }
-  *   }""")
-  *   val infoValidation = (__ \ "label").read(nonEmptyText)
-  *   val v = (__ \ "informations").read(infoValidation))
-  *   v.validate(json) == Success("test")
-  * }}}
-  * @param sub the constraint to apply on the subdata
-  * @param l a lookup function. This function finds data in a structure of type I, and coerce it to tyoe O
-  * @return A Rule validating the presence and validity of data at this Path
-  */
-  def read[I, J, O](sub: Rule[J, O])(implicit r: Path => Rule[I, J]): Rule[I, O] =
-    r(this).compose(this)(sub)
-
-  def read[I, O](r: Path => Rule[I, O]): Rule[I, O] =
-    read(Rule.zero[O])(r)
 
   /**
   * Creates a Writes the serialize data to the desired type

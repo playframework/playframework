@@ -61,21 +61,21 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
         .getOrElse(Failure(Seq(ValidationError("validation.type-mismatch", args: _*))))
     }
 
-  def int = stringAs {
+  implicit def int = stringAs {
     case s if s.isValidInt => Success(s.toInt)
   }("Int")
 
-  def short = stringAs {
+  implicit def short = stringAs {
     case s if s.isValidShort => Success(s.toShort)
   }("Short")
 
-  def boolean = Rule.fromMapping[String, Boolean]{
+  implicit def boolean = Rule.fromMapping[String, Boolean]{
     pattern("""(?iu)true|false""".r)(_: String)
       .map(java.lang.Boolean.parseBoolean)
       .fail.map(_ => Seq(ValidationError("validation.type-mismatch", "Boolean")))
   }
 
-  def long = stringAs {
+  implicit def long = stringAs {
     case s if s.isValidLong => Success(s.toLong)
   }("Long")
 
@@ -85,7 +85,7 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
     val d = bd.toFloat
     !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(jl.Float.toString(d), bd.mc)) == 0
   }
-  def float = stringAs {
+  implicit def float = stringAs {
     case s if isValidFloat(s) => Success(s.toFloat)
   }("Float")
 
@@ -94,16 +94,16 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
     val d = bd.toDouble
     !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(jl.Double.toString(d), bd.mc)) == 0
   }
-  def double = stringAs {
+  implicit def double = stringAs {
     case s if isValidDouble(s) => Success(s.toDouble)
   }("Double")
 
   import java.{ math => jm }
-  def javaBigDecimal = stringAs {
+  implicit def javaBigDecimal = stringAs {
     case s => Success(s.bigDecimal)
   }("BigDecimal")
 
-  def bigDecimal = stringAs {
+  implicit def bigDecimal = stringAs {
     case s => Success(s)
   }("BigDecimal")
 
@@ -134,8 +134,8 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
     _.headOption.map(Success[ValidationError, String](_)).getOrElse(Failure[ValidationError, String](Seq(ValidationError("validation.required"))))
   }
 
-  implicit def pickOne[O](p: Path): Rule[M, String] =
-    pickInMap(p) compose seqAsString
+  implicit def pickOne[O](p: Path)(implicit r: Rule[String, O]): Rule[M, O] =
+    pickInMap(p) compose seqAsString compose r
 
   implicit def mapPickMap(path: Path) = Rule.fromMapping[M, M] { data =>
     Success(PM.toM(PM.find(path)(PM.toPM(data))))
