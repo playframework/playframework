@@ -4,7 +4,6 @@ import play.api.libs.iteratee.Execution.Implicits.{ defaultExecutionContext => d
 import play.api.libs.iteratee.internal.{ eagerFuture, executeFuture }
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.{ Try, Success, Failure }
-import scala.language.reflectiveCalls
 
 /**
  * A producer which pushes input to an [[play.api.libs.iteratee.Iteratee]].
