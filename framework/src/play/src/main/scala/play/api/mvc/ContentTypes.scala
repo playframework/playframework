@@ -819,7 +819,7 @@ trait BodyParsers {
     }
 
     private def createBadResult(msg: String): RequestHeader => Future[SimpleResult] = { request =>
-      Play.maybeApplication.map(_.global.onBadRequest(request, "Expecting xml body"))
+      Play.maybeApplication.map(_.global.onBadRequest(request, msg))
         .getOrElse(Future.successful(Results.BadRequest))
     }
 
