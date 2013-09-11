@@ -178,12 +178,12 @@ object PlayBuild extends Build {
         
         val typesafe = "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
         
-        val typesafeReleases = "Typesafe Releases Repository" at "http://typesafe.artifactoryonline.com/typesafe/maven-releases/"
-        val typesafeSnapshot = "Typesafe Snapshots Repository" at "http://typesafe.artifactoryonline.com/typesafe/maven-snapshots/"
+        val typesafeReleases = "Typesafe Releases Repository" at "https://private-repo.typesafe.com/typesafe/maven-releases/"
+        val typesafeSnapshot = "Typesafe Snapshots Repository" at "https://private-repo.typesafe.com/typesafe/maven-snapshots/"
         val playRepository = if (buildVersion.endsWith("SNAPSHOT")) typesafeSnapshot else typesafeReleases
         
-        val typesafeIvyReleases = Resolver.url("Typesafe Ivy Releases Repository", url("http://typesafe.artifactoryonline.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns) 
-        val typesafeIvySnapshot = Resolver.url("Typesafe Ivy Snapshots Repository", url("http://typesafe.artifactoryonline.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns) 
+        val typesafeIvyReleases = Resolver.url("Typesafe Ivy Releases Repository", url("https://private-repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns) 
+        val typesafeIvySnapshot = Resolver.url("Typesafe Ivy Snapshots Repository", url("https://private-repo.typesafe.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns) 
         val playIvyRepository = if (buildVersion.endsWith("SNAPSHOT")) typesafeIvySnapshot else typesafeIvyReleases
     }
 
