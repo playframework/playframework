@@ -41,6 +41,7 @@ object JavascriptCompiler {
         case "checkControlStructures" => defaultOptions.setCheckControlStructures(true)
         case "checkTypes" => defaultOptions.setCheckTypes(true)
         case "checkSymbols" => defaultOptions.setCheckSymbols(true)
+        case "ecmascript5" => defaultOptions.setLanguageIn(CompilerOptions.LanguageMode.ECMASCRIPT5)
         case _ => Unit // Unknown option
       })
       defaultOptions
