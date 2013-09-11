@@ -96,7 +96,7 @@ object Security {
    *
    * {{{
    * // in a Security trait
-   * object Authenticated extends AuthenticationBuilder(req => getUserFromRequest(req))
+   * object Authenticated extends AuthenticatedBuilder(req => getUserFromRequest(req))
    *
    * // then in a controller
    * def index = Authenticated { implicit request =>
@@ -109,15 +109,15 @@ object Security {
    * {{{
    * class AuthenticatedDbRequest[A](val user: User,
    *                                 val conn: Connection,
-   *                                 request: Request[A]) extends WrappedRequest[A)(request)
+   *                                 request: Request[A]) extends WrappedRequest[A](request)
    *
    * object Authenticated extends ActionBuilder[AuthenticatedDbRequest] {
    *   def invokeBlock[A](request: Request[A], block: (AuthenticatedDbRequest[A]) => Future[SimpleResult]) = {
-   *     AuthenticatedBuilder(req => getUserFromRequest(req)).authenticate(request, { authRequest =>
+   *     AuthenticatedBuilder(req => getUserFromRequest(req)).authenticate(request, { authRequest: AuthenticatedRequest[A, User] =>
    *       DB.withConnection { conn =>
-   *         new AuthenticatedDbRequest(authRequest.user, conn, request)
-   *       })
-   *     }
+   *         block(new AuthenticatedDbRequest[A](authRequest.user, conn, request))
+   *       }
+   *     })
    *   }
    * }
    * }}}
@@ -151,7 +151,7 @@ object Security {
    *
    * {{{
    * // in a Security trait
-   * object Authenticated extends AuthenticationBuilder(req => getUserFromRequest(req))
+   * object Authenticated extends AuthenticatedBuilder(req => getUserFromRequest(req))
    *
    * // then in a controller
    * def index = Authenticated { implicit request =>
@@ -164,15 +164,15 @@ object Security {
    * {{{
    * class AuthenticatedDbRequest[A](val user: User,
    *                                 val conn: Connection,
-   *                                 request: Request[A]) extends WrappedRequest[A)(request)
+   *                                 request: Request[A]) extends WrappedRequest[A](request)
    *
    * object Authenticated extends ActionBuilder[AuthenticatedDbRequest] {
    *   def invokeBlock[A](request: Request[A], block: (AuthenticatedDbRequest[A]) => Future[SimpleResult]) = {
-   *     AuthenticatedBuilder(req => getUserFromRequest(req)).authenticate(request, { authRequest =>
+   *     AuthenticatedBuilder(req => getUserFromRequest(req)).authenticate(request, { authRequest: AuthenticatedRequest[A, User] =>
    *       DB.withConnection { conn =>
-   *         new AuthenticatedDbRequest(authRequest.user, conn, request)
-   *       })
-   *     }
+   *         block(new AuthenticatedDbRequest[A](authRequest.user, conn, request))
+   *       }
+   *     })
    *   }
    * }
    * }}}
