@@ -1,7 +1,5 @@
 package play.api.libs.iteratee
 
-import scala.language.reflectiveCalls
-
 import org.specs2.mutable._
 import java.io.OutputStream
 import java.util.concurrent.{ CountDownLatch, TimeUnit }

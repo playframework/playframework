@@ -7,7 +7,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import play.api.libs.iteratee.Execution.Implicits.{ defaultExecutionContext => dec }
 import scala.concurrent.{Promise, Future, Await}
 import scala.concurrent.duration.Duration
-import scala.language.reflectiveCalls
 
 object EnumeratorsSpec extends Specification
   with IterateeSpecification with ExecutionSpecification {

@@ -1,7 +1,5 @@
 package play.api.libs.json
 
-import scala.language.reflectiveCalls
-
 import play.api.libs.iteratee.Execution.Implicits.defaultExecutionContext
 
 /**
