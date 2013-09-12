@@ -28,7 +28,7 @@ The pace of development and the myriad of options even within a single DI framew
 
 [Spring](http://www.springsource.org/) is a popular application development for Java that has a dependency injection framework at its core.  There is also an additional project [Spring Scala](https://github.com/SpringSource/spring-scala), which provides additional integration options using Scala and Spring.
 
-There is an [Activator](http://www.typesafe.com/activator) project available for Spring.  You can download it from Activator [directly](http://typesafe.com/activator/template/play-spring), or clone it from [https://github.com/typesafehub/play-spring-data-jpa](https://github.com/typesafehub/play-spring-data-jpa).
+There is an [Activator](http://www.typesafe.com/activator) project available for Spring.  You can download it from Activator [directly](http://typesafe.com/activator/template/play-spring-data-jpa), or clone it from [https://github.com/typesafehub/play-spring-data-jpa](https://github.com/typesafehub/play-spring-data-jpa).
 
 ### Subcut
 
@@ -46,4 +46,4 @@ There is an [Activator](http://www.typesafe.com/activator) project available for
 
 [Guice](https://code.google.com/p/google-guice/) is a lightweight dependency injection framework designed for Java.
 
-There is an [Activator](http://www.typesafe.com/activator) project available for Guice.  You can download it from Activator [directly](http://typesafe.com/activator/template/macwire-activator), or clone it from [https://github.com/typesafehub/play-guice](https://github.com/typesafehub/play-guice).
+There is an [Activator](http://www.typesafe.com/activator) project available for Guice.  You can download it from Activator [directly](http://typesafe.com/activator/template/play-guice), or clone it from [https://github.com/typesafehub/play-guice](https://github.com/typesafehub/play-guice).
