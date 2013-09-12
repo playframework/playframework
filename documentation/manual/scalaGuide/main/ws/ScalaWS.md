@@ -212,5 +212,24 @@ Use the following properties to configure the WS client
 * `ws.acceptAnyCertificate` set it to false to use the default SSLContext
 
  
+### Timeouts
+
+There ore 3 different timeouts in WS. Reaching a timeout causes the WS request to interrupt.
+
+* **Connection Timeout**: The maximum time to wait when connecting to the remote host *(default is **120 seconds**)*.
+* **Connection Idle Timeout**: The maximum time the request can stay idle (connexion is established but waiting for more data) *(default is **120 seconds**)*.
+* **Request Timeout**: The total time you accept a request to take (it will be interrupted, whatever if the remote host is still sending data) *(default is **none**, to allow stream consuming)*.
+
+You can define each timeout in `application.conf` with respectively: `ws.timeout.connection`, `ws.timeout.idle`, `ws.timeout.request`.
+
+Alternatively, `ws.timeout` can be defined to target both *Connection Timeout* and *Connection Idle Timeout*.
+
+The request timeout can be specified for a given connection with `withRequestTimeout`.
+
+Example:
+
+```scala
+WS.url("http://playframework.org/").withRequestTimeout(10000 /* in milliseconds */)
+```
 
 > **Next:** [[OpenID Support in Play|ScalaOpenID]]
