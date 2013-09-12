@@ -51,8 +51,6 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
   import play.api.libs.functional.syntax._
   // import play.api.mvc.Request
 
-  def string = IasI[String]
-
   private def stringAs[T](f: PartialFunction[BigDecimal, Validation[ValidationError, T]])(args: Any*) =
     Rule.fromMapping[String, T]{
       val toB: PartialFunction[String, BigDecimal] = { case s if s.matches("""[-+]?[0-9]*\.?[0-9]+""") => BigDecimal(s) }
@@ -70,7 +68,7 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
   }("Short")
 
   implicit def boolean = Rule.fromMapping[String, Boolean]{
-    pattern("""(?iu)true|false""".r)(_: String)
+    pattern("""(?iu)true|false""".r).validate(_: String)
       .map(java.lang.Boolean.parseBoolean)
       .fail.map(_ => Seq(ValidationError("validation.type-mismatch", "Boolean")))
   }
@@ -114,12 +112,18 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
   type M  = Map[String, Seq[String]]
   type PM = Map[Path, Seq[String]]
 
-  def map[O](r: Rule[Seq[String], O]): Rule[M, Map[String, O]] = {
+  implicit def map[O](implicit r: Rule[Seq[String], O]): Rule[M, Map[String, O]] = {
     val toSeq = Rule.zero[M].fmap(_.toSeq)
     super.map[Seq[String], O](r,  toSeq)
   }
 
-  implicit def pickInMap(p: Path) = Rule.fromMapping[M, Seq[String]] {
+  implicit def option[O](implicit pick: Path => Rule[M, Seq[String]], coerce: Rule[Seq[String], O]): Path => Rule[M, Option[O]] =
+    super.option(coerce)
+
+  implicit def option[J, O](r: Rule[J, O])(implicit pick: Path => Rule[M, Seq[String]], coerce: Rule[Seq[String], J]): Path => Rule[M, Option[O]] =
+    super.option(coerce compose r)
+
+  implicit def pickInMap[O](p: Path)(implicit r: Rule[Seq[String], O]) = Rule.fromMapping[M, Seq[String]] {
     data =>
       PM.find(p)(PM.toPM(data)).toSeq.flatMap {
         case (Path(Nil) | Path(Seq(IdxPathNode(_))), ds) => ds
@@ -128,18 +132,11 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
         case Nil => Failure[ValidationError, Seq[String]](Seq(ValidationError("validation.required")))
         case m => Success[ValidationError, Seq[String]](m)
       }
-  }
+  }.compose(r)
 
-  private def seqAsString = Rule.fromMapping[Seq[String], String] {
-    _.headOption.map(Success[ValidationError, String](_)).getOrElse(Failure[ValidationError, String](Seq(ValidationError("validation.required"))))
-  }
-
-  implicit def pickOne[O](p: Path)(implicit r: Rule[String, O]): Rule[M, O] =
-    pickInMap(p) compose seqAsString compose r
-
-  implicit def mapPickMap(path: Path) = Rule.fromMapping[M, M] { data =>
+  implicit def mapPick[O](path: Path)(implicit r: Rule[M, O]): Rule[M, O] = Rule.fromMapping[M, M] { data =>
     Success(PM.toM(PM.find(path)(PM.toPM(data))))
-  }
+  }.compose(r)
 
   implicit def mapPickSeqMap(p: Path) = Rule.fromMapping[M, Seq[M]]({ data =>
     val grouped = PM.find(p)(PM.toPM(data)).toSeq.flatMap {
@@ -151,7 +148,7 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
       case (i, ms) => i -> ms.foldLeft(Map.empty[Path, Seq[String]]) { _ ++ _ } // merge the submaps by index
     }.sortBy(_._1).map(e => PM.toM(e._2))
 
-    Success(submaps)
+    Success(submaps) // TODO: fail if empty
   })
 
 }

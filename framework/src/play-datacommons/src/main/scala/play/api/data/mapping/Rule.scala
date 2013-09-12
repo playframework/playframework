@@ -22,6 +22,14 @@ trait Rule[I, O] {
   def compose[P](sub: Rule[O, P]): Rule[I, P] = compose(Path())(sub)
   def compose[P](m: Mapping[ValidationError, O, P]): Rule[I, P] = compose(Rule.fromMapping(m))
 
+  def |+|(r2: Rule[I, O]) = Rule[I, O]{ v =>
+    (this.validate(v) *> r2.validate(v)).fail.map {
+      _.groupBy(_._1).map{ case (path, errs) =>
+        path -> errs.flatMap(_._2)
+      }.toSeq
+    }
+  }
+
   def repath(f: Path => Path): Rule[I, O] =
     Rule { d =>
       this.validate(d).fail.map{ _.map {
@@ -35,6 +43,7 @@ object Rule {
 
   import play.api.libs.functional._
 
+  implicit def IasI[I] = Rule[I, I](i => Success(i))
   def zero[O] = Rule[O, O](Success.apply)
 
   def apply[I, O](m: Mapping[(Path, Seq[ValidationError]), I, O]) = new Rule[I, O] {

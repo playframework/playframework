@@ -1,18 +1,18 @@
 package play.api.data.mapping
 
 trait GenericRules {
-  implicit def IasI[I] = Rule[I, I](i => Success(i))
 
-  def validateWith[From](msg: String, args: Any*)(pred: From => Boolean): Constraint[From] =
+  def validateWith[From](msg: String, args: Any*)(pred: From => Boolean) = Rule.fromMapping[From, From] {
     v => if(!pred(v)) Failure(Seq(ValidationError(msg, args: _*))) else Success(v)
+  }
 
-  def array[I, O: scala.reflect.ClassTag](r: Rule[I, O]): Rule[Seq[I], Array[O]] =
+  implicit def array[I, O: scala.reflect.ClassTag](implicit r: Rule[I, O]): Rule[Seq[I], Array[O]] =
     seq[I, O](r).fmap(_.toArray)
 
-  def traversable[I, O](r: Rule[I, O]): Rule[Seq[I], Traversable[O]] =
+  implicit def traversable[I, O](implicit r: Rule[I, O]): Rule[Seq[I], Traversable[O]] =
     seq[I, O](r).fmap(_.toTraversable)
 
-  def seq[I, O](r: Rule[I, O]): Rule[Seq[I], Seq[O]] =
+  implicit def seq[I, O](implicit r: Rule[I, O]): Rule[Seq[I], Seq[O]] =
     Rule { case is =>
       val withI = is.zipWithIndex.map { case (v, i) =>
         r.repath((Path() \ i) ++ _).validate(v)
@@ -22,6 +22,11 @@ trait GenericRules {
 
   def list[I, O](r: Rule[I, O]): Rule[Seq[I], List[O]] =
     seq[I, O](r).fmap(_.toList)
+
+  implicit def headAs[I, O](implicit c: Rule[I, O]) = Rule.fromMapping[Seq[I], I] {
+    _.headOption.map(Success[ValidationError, I](_))
+      .getOrElse(Failure[ValidationError, I](Seq(ValidationError("validation.required"))))
+  }.compose(c)
 
   def not[I, O](r: Rule[I, O]) = Rule[I, I] { d =>
     r.validate(d) match {
@@ -36,7 +41,10 @@ trait GenericRules {
   def minLength(l: Int) = validateWith[String]("validation.minLength", l){ _.size >= l }
   def maxLength(l: Int) = validateWith[String]("validation.maxLength", l){ _.size <= l }
   def pattern(regex: scala.util.matching.Regex) = validateWith("validation.pattern", regex){regex.unapplySeq(_: String).isDefined}
-  def email = pattern("""\b[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\b""".r)(_: String).fail.map(_ => Seq(ValidationError("validation.email")))
+  def email = Rule.fromMapping[String, String](
+    pattern("""\b[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\b""".r)
+      .validate(_: String)
+      .fail.map(_ => Seq(ValidationError("validation.email"))))
   def noConstraint[From]: Constraint[From] = Success(_)
 }
 
@@ -88,7 +96,7 @@ trait DefaultRules[I] extends GenericRules {
     }
   })
 
-  def option[J, O](r: Rule[J, O], noneValues: Rule[J, J]*)(implicit pick: Path => Rule[I, J]) = (path: Path) =>
+  protected def option[J, O](r: Rule[J, O], noneValues: Rule[J, J]*)(implicit pick: Path => Rule[I, J]) = (path: Path) =>
     Rule[I, Option[O]] {
       (d: I) =>
         val isNone = not(noneValues.foldLeft(Rule.zero[J])(_ compose not(_))).fmap(_ => None)

@@ -22,6 +22,7 @@ package object mapping {
 	def ValidationError(message: String, args: Any*): ValidationError =
 		play.api.data.validation.ValidationError.apply(message, args:_*)
 
+	// TODO: use a trait
 	def In[I] = new {
     def apply[O](f: Reader[I] => Rule[I, O]) =
       f(Reader[I]())
