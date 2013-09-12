@@ -203,6 +203,9 @@ class GlobalPlugin(app: Application) extends Plugin {
    * Called when the application starts.
    */
   override def onStart() {
+    // Force initialization of routes
+    // https://github.com/playframework/Play20/issues/845
+    app.routes()
     app.global.onStart(app)
   }
 
