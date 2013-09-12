@@ -32,7 +32,7 @@ playScalaSettings
 The Play console and all of its development features like live reloading are implemented via an sbt plugin. It is registered in the `plugins.sbt` file:
 
 ```scala
-addSbtPlugin("play" % "sbt-plugin" % "2.1.1")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % playVersion) // where version is the current Play version, i.e. playVersion := "2.2.0" 
 ```
 
 > Note that `build.properties` and `plugins.sbt` have to be manually updated when you are changing the play version.
