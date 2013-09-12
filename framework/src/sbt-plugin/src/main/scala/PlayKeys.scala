@@ -5,23 +5,25 @@ import sbt.Keys._
 
 trait Keys {
 
-  val jdbc = "com.typesafe.play" %% "play-jdbc" % play.core.PlayVersion.current
-
-  val anorm = "com.typesafe.play" %% "anorm" % play.core.PlayVersion.current
-
-  val javaCore = "com.typesafe.play" %% "play-java" % play.core.PlayVersion.current
-
-  val javaJdbc = "com.typesafe.play" %% "play-java-jdbc" % play.core.PlayVersion.current
-
-  val javaEbean = "com.typesafe.play" %% "play-java-ebean" % play.core.PlayVersion.current
-
-  val javaJpa = "com.typesafe.play" %% "play-java-jpa" % play.core.PlayVersion.current
-
   def component(id: String) = "com.typesafe.play" %% id % play.core.PlayVersion.current
 
-  val filters = "com.typesafe.play" %% "filters-helpers" % play.core.PlayVersion.current
+  val jdbc = component("play-jdbc")
 
-  val cache = "com.typesafe.play" %% "play-cache" % play.core.PlayVersion.current
+  val anorm = component("anorm")
+
+  val javaCore = component("play-java")
+
+  val javaJdbc = component("play-java-jdbc")
+
+  val javaEbean = component("play-java-ebean")
+
+  val javaJpa = component("play-java-jpa")
+
+  val filters = component("filters-helpers")
+
+  val cache = component("play-cache")
+
+  val json = component("play-json")
 
   val playVersion = SettingKey[String]("play-version")
 
