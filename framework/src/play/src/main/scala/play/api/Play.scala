@@ -82,6 +82,9 @@ object Play {
 
     _currentApp = app
 
+    // Ensure routes are eagerly loaded, so that the reverse routers are correctly initialised before plugins are
+    // started.
+    app.routes
     Threads.withContextClassLoader(classloader(app)) {
       app.plugins.foreach(_.onStart())
     }
