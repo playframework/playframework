@@ -10,6 +10,8 @@ As we will use the command line a lot, it’s better to use a Unix-like OS. If y
 
 You will of course need a text editor. If you are used-to a fully-featured Java IDE, such as Eclipse or IntelliJ, you can of course use it. However, with Play you can have fun working with a simple text editor like TextMate, Emacs or vi. This is because the framework manages compilation and the deployment process itself.
 
+> **Note:** Read more about [[Setting-up your preferred IDE | IDE]].
+
 ## Project creation
 
 Now that Play is correctly installed, it’s time to create the new application. Creating a Play application is pretty easy and fully managed by the Play command line utility. This encourages a standard project layout across all Play applications.
@@ -33,6 +35,7 @@ The `play new` command creates a new directory `todolist/` and populates it with
 * `test/` contains all the application tests. Tests can be written as JUnit tests.
 
 > Because Play uses UTF-8 as the single encoding, it’s very important that all text files hosted in these directories use this encoding. Make sure to configure your text editor accordingly. In the windows system the editor configuration must be ANSI encode
+> **Note:** Read more about [[Anatomy of a Play application | Anatomy]].
 
 ## Using the Play console
 
@@ -91,7 +94,7 @@ You see that `controllers.Application.index()` returns a `Result`. All action me
 
 > **Note:** Read more about [[Actions|JavaActions]].
 
-Here, the action returns a **200 OK** response with an HTML response body. The HTML content is provided by a template. Play templates are compiled to standard Java methods, here as `views.html.index.render(String message)`.
+Here, the action returns a **200 OK** response with a HTML response body. The HTML content is provided by a template. Play templates are compiled to standard Java methods, here as `views.html.index.render(String message)`.
 
 This template is defined in the `app/views/index.scala.html` source file:
 
@@ -107,7 +110,7 @@ This template is defined in the `app/views/index.scala.html` source file:
 
 The first line defines the function signature. Here it takes a single `String` parameter. Then the template content mixes HTML (or any text-based language) with Scala statements. The Scala statements start with the special `@` character.
 
-> **Note:** Don’t worry about the template engine using Scala as its expression language. This is not a problem for a Java developer, and you can almost use it as if the language was Java.
+> **Note:** Don’t worry about the template engine using Scala as its expression language. This is not a problem for a Java developer, and you can almost use it as if the language was Java. We explain the templating system in a bit more deatil below.
 
 ## Development work-flow
 
@@ -279,7 +282,7 @@ We also imported `helper._` that give us the form creation helpers, typically th
 
 ## The task form
 
-A `Form` object encapsulates an HTML form definition, including validation constraints. Let’s create a form for our `Task` class. Add this to your `Application` controller:
+A `Form` object encapsulates a HTML form definition, including validation constraints. Let’s create a form for our `Task` class. Add this to your `Application` controller:
 
 ```
 static Form<Task> taskForm = Form.form(Task.class);
