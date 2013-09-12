@@ -114,6 +114,83 @@ List<Task> tasks = find.where()
     .getPage(1);
 ```
 
+## Database Column Encryption
+
+To use the `@Encrypted` Ebean column annotation, you must first create and register in `application.conf` an `EncryptKeyManager`:
+
+```
+package models;
+
+import com.avaje.ebean.config.ServerConfig;
+import com.avaje.ebean.event.ServerConfigStartup;
+import com.avaje.ebean.config.EncryptKey;  
+import com.avaje.ebean.config.EncryptKeyManager;
+
+class BasicEncryptKeyManager implements EncryptKeyManager{
+
+    @Override
+  public EncryptKey getEncryptKey(String tableName, String columnName) {
+		return new CustomEncryptKey(tableName, columnName);
+	}
+
+	@Override
+	public void initialise() {
+		//Do nothing
+	}
+}
+
+class CustomEncryptKey implements EncryptKey{
+	
+	private String tableName;
+	
+	private String columnName;
+	
+	public CustomEncryptKey(String tableName, String columnName){
+		this.tableName = tableName;
+		this.columnName = columnName;
+	}
+
+	@Override
+	public String getStringValue() {
+        //This is just an example and may not be the most secure or efficient way to do this
+		return play.Configuration.root().getString("application.secret") + "::" + this.tableName + "::" + this.columnName; 
+	}
+	
+}
+
+```
+
+Then, in `application.conf` or `ebean.properties` add:
+
+```
+ebean.encryptKeyManager="models.BasicEncryptKeyManager"
+```
+
+Now you can use the `@Encrypted` field annotation to encrypt data as noted in the [[Ebean documentation | http://www.avaje.org/ebean/encryption.html]]:
+
+```
+package models;
+
+import javax.persistence.*;
+import play.db.ebean.*;
+import com.avaje.ebean.annotation.*;
+
+@Entity 
+@Table(name="patient")  
+public class Patient extends Model {
+
+    @Id
+	public Long id;
+
+	@Encrypted
+	String name;
+    
+    @Encrypted
+    Date dob;
+    
+}
+```
+
 ## Transactional actions
 
 By default Ebean will use transactions. However this transactions will be created before and commited or rollbacked after every single query, update, create or delete, as you can see here:
