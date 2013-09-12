@@ -31,7 +31,7 @@ object WebSocketHandshake {
 
   def shake(ctx: ChannelHandlerContext, req: HttpRequest): Unit = {
     val factory = new WebSocketServerHandshakerFactory(getWebSocketLocation(req),
-      null, /* subprotocols */
+      "wamp", /* subprotocol CSV list */
       true /* allowExtensions */ )
 
     val shaker = factory.newHandshaker(req)
