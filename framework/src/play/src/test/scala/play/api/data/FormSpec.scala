@@ -13,23 +13,23 @@ object FormSpec extends Specification {
   "A form" should {
     "have an error due to a malformed email" in {
       val f5 = ScalaForms.emailForm.fillAndValidate("john@", "John")
-      f5.errors.size must equalTo (1)
+      f5.errors must haveSize(1)
       f5.errors.find(_.message == "error.email") must beSome
 
       val f6 = ScalaForms.emailForm.fillAndValidate("john@zen.....com", "John")
-      f6.errors.size must equalTo (1)
+      f6.errors must haveSize(1)
       f6.errors.find(_.message == "error.email") must beSome
     }
 
     "be valid with a well-formed email" in {
       val f7 = ScalaForms.emailForm.fillAndValidate("john@zen.com", "John")
-      f7.errors.size must equalTo (0)
+      f7.errors must beEmpty
 
       val f8 = ScalaForms.emailForm.fillAndValidate("john@zen.museum", "John")
-      f8.errors.size must equalTo (0)
+      f8.errors must beEmpty
 
       val f9 = ScalaForms.emailForm.fillAndValidate("john@mail.zen.com", "John")
-      f9.errors.size must equalTo(0)
+      f9.errors must beEmpty
 
       ScalaForms.emailForm.fillAndValidate("o'flynn@example.com", "O'Flynn").errors must beEmpty
     }
@@ -37,54 +37,54 @@ object FormSpec extends Specification {
     "apply constraints on wrapped mappings" in {
       "when it binds data" in {
         val f1 = ScalaForms.form.bind(Map("foo"->"0"))
-        f1.errors.size must equalTo (1)
+        f1.errors must haveSize(1)
         f1.errors.find(_.message == "first.digit") must beSome
 
         val f2 = ScalaForms.form.bind(Map("foo"->"3"))
-        f2.errors.size must equalTo (0)
+        f2.errors must beEmpty
 
         val f3 = ScalaForms.form.bind(Map("foo"->"50"))
-        f3.errors.size must equalTo (1) // Only one error because "number.42" can’t be applied since wrapped bind failed
+        f3.errors must haveSize(1) // Only one error because "number.42" can’t be applied since wrapped bind failed
         f3.errors.find(_.message == "first.digit") must beSome
 
         val f4 = ScalaForms.form.bind(Map("foo"->"333"))
-        f4.errors.size must equalTo (1)
+        f4.errors must haveSize(1)
         f4.errors.find(_.message == "number.42") must beSome
       }
 
       "when it is filled with data" in {
         val f1 = ScalaForms.form.fillAndValidate(0)
-        f1.errors.size must equalTo (1)
+        f1.errors must haveSize(1)
         f1.errors.find(_.message == "first.digit") must beSome
 
         val f2 = ScalaForms.form.fillAndValidate(3)
-        f2.errors.size must equalTo (0)
+        f2.errors must beEmpty
 
         val f3 = ScalaForms.form.fillAndValidate(50)
-        f3.errors.size must equalTo (2)
+        f3.errors must haveSize(2)
         f3.errors.find(_.message == "first.digit") must beSome
         f3.errors.find(_.message == "number.42") must beSome
 
         val f4 = ScalaForms.form.fillAndValidate(333)
-        f4.errors.size must equalTo (1)
+        f4.errors must haveSize(1)
         f4.errors.find(_.message == "number.42") must beSome
       }
     }
 
     "apply constraints on longNumber fields" in {
-      val f1 = ScalaForms.longNumberForm.fillAndValidate(0);
-      f1.errors.size must equalTo(1)
+      val f1 = ScalaForms.longNumberForm.fillAndValidate(0)
+      f1.errors must haveSize(1)
       f1.errors.find(_.message == "error.min") must beSome
 
-      val f2 = ScalaForms.longNumberForm.fillAndValidate(9000);
-      f2.errors.size must equalTo(1)
+      val f2 = ScalaForms.longNumberForm.fillAndValidate(9000)
+      f2.errors must haveSize(1)
       f2.errors.find(_.message == "error.max") must beSome
 
-      val f3 = ScalaForms.longNumberForm.fillAndValidate(10);
-      f3.errors.size must equalTo(0)
+      val f3 = ScalaForms.longNumberForm.fillAndValidate(10)
+      f3.errors must beEmpty
 
-      val f4 = ScalaForms.longNumberForm.fillAndValidate(42);
-      f3.errors.size must equalTo(0)
+      val f4 = ScalaForms.longNumberForm.fillAndValidate(42)
+      f4.errors must beEmpty
     }
 
     "not even attempt to validate on fill" in {
@@ -110,7 +110,7 @@ object FormSpec extends Specification {
     ScalaForms.defaultValuesForm.bindFromRequest( Map("pos" -> Seq("123"), "name" -> Seq("another text")) ).get must equalTo(123, "another text")
 
     val f1 = ScalaForms.defaultValuesForm.bindFromRequest( Map("pos" -> Seq("abc")) )
-    f1.errors.size must equalTo (1)
+    f1.errors must haveSize(1)
   }
 
   "support repeated values" in {
@@ -152,6 +152,27 @@ object FormSpec extends Specification {
         case error => error.message must equalTo("some.error")
       }
   }
+
+  "find nested error on unbind" in {
+    case class Item(text: String)
+    case class Items(seq: Seq[Item])
+    val itemForm = Form[Items](
+      mapping(
+        "seq" -> seq(
+          mapping("text" -> nonEmptyText)(Item)(Item.unapply)
+        )
+      )(Items)(Items.unapply)
+    )
+
+    val filled = itemForm.fillAndValidate(Items(Seq(Item(""))))
+    val result = filled.fold(
+      errors => false,
+      success => true
+    )
+
+    result should beFalse
+  }
+
 }
 
 object ScalaForms {
