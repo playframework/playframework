@@ -94,7 +94,7 @@ You see that `controllers.Application.index()` returns a `Result`. All action me
 
 > **Note:** Read more about [[Actions|JavaActions]].
 
-Here, the action returns a **200 OK** response with a HTML response body. The HTML content is provided by a template. Play templates are compiled to standard Java methods, here as `views.html.index.render(String message)`.
+Here, the action returns a **200 OK** response with an HTML response body. The HTML content is provided by a template. Play templates are compiled to standard Java methods, here as `views.html.index.render(String message)`.
 
 This template is defined in the `app/views/index.scala.html` source file:
 
@@ -282,7 +282,7 @@ We also imported `helper._` that give us the form creation helpers, typically th
 
 ## The task form
 
-A `Form` object encapsulates a HTML form definition, including validation constraints. Let’s create a form for our `Task` class. Add this to your `Application` controller:
+A `Form` object encapsulates an HTML form definition, including validation constraints. Let’s create a form for our `Task` class. Add this to your `Application` controller:
 
 ```
 static Form<Task> taskForm = Form.form(Task.class);
