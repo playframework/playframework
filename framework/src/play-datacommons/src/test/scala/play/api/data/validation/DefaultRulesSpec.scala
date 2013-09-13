@@ -12,16 +12,18 @@ object DefaultRulesSpec extends Specification {
 
   "DefaultRules" should {
 
+    def failure(m: String, args: Any*) = Failure(Seq(Path() -> Seq(ValidationError(m, args:_*))))
+
     "validate non emptyness" in {
       notEmpty.validate("foo") mustEqual(Success("foo"))
-      notEmpty.validate("") mustEqual(Failure(List(ValidationError("validation.nonemptytext"))))
+      notEmpty.validate("") mustEqual(failure("validation.nonemptytext"))
     }
 
     "validate min" in {
       min(4).validate(5) mustEqual(Success(5))
       min(4).validate(4) mustEqual(Success(4))
-      min(4).validate(1) mustEqual(Failure(List(ValidationError("validation.min", 4))))
-      min(4).validate(-10) mustEqual(Failure(List(ValidationError("validation.min", 4))))
+      min(4).validate(1) mustEqual(failure("validation.min", 4))
+      min(4).validate(-10) mustEqual(failure("validation.min", 4))
 
       min("a").validate("b") mustEqual(Success("b"))
     }
@@ -29,8 +31,8 @@ object DefaultRulesSpec extends Specification {
     "validate max" in {
       max(8).validate(5) mustEqual(Success(5))
       max(5).validate(5) mustEqual(Success(5))
-      max(0).validate(1) mustEqual(Failure(List(ValidationError("validation.max", 0))))
-      max(-30).validate(-10) mustEqual(Failure(List(ValidationError("validation.max", -30))))
+      max(0).validate(1) mustEqual(failure("validation.max", 0))
+      max(-30).validate(-10) mustEqual(failure("validation.max", -30))
     }
 
   }

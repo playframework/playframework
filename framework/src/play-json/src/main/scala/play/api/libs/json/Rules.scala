@@ -29,46 +29,46 @@ object Rules extends play.api.data.mapping.DefaultRules[JsValue] {
       f.orElse{ case j => Failure(Seq(ValidationError("validation.type-mismatch", args: _*)))
     })
 
-  def string = jsonAs[String] {
+  implicit def string = jsonAs[String] {
     case JsString(v) => Success(v)
   }("String")
 
-  def boolean = jsonAs[Boolean]{
+  implicit def boolean = jsonAs[Boolean]{
     case JsBoolean(v) => Success(v)
   }("Boolean")
 
   // Note: Mappings of JsNumber to Number are validating that the JsNumber is indeed valid
   // in the target type. i.e: JsNumber(4.5) is not considered parseable as an Int.
   // That's a bit stricter than the "old" Read, which just cast to the target type, possibly loosing data.
-  def int = jsonAs[Int]{
+  implicit def int = jsonAs[Int]{
     case JsNumber(v) if v.isValidInt => Success(v.toInt)
   }("Int")
 
-  def short = jsonAs[Short]{
+  implicit def short = jsonAs[Short]{
     case JsNumber(v) if v.isValidShort => Success(v.toShort)
   }("Short")
 
-  def long = jsonAs[Long]{
+  implicit def long = jsonAs[Long]{
     case JsNumber(v) if v.isValidLong => Success(v.toLong)
   }("Long")
 
-  def jsNumber = jsonAs[JsNumber]{
+  implicit def jsNumber = jsonAs[JsNumber]{
     case v@JsNumber(_) => Success(v)
   }("Number")
 
-  def jsBoolean = jsonAs[JsBoolean]{
+  implicit def jsBoolean = jsonAs[JsBoolean]{
     case v@JsBoolean(_) => Success(v)
   }("Boolean")
 
-  def jsString = jsonAs[JsString] {
+  implicit def jsString = jsonAs[JsString] {
     case v@JsString(_) => Success(v)
   }("String")
 
-  def jsObject = jsonAs[JsObject] {
+  implicit def jsObject = jsonAs[JsObject] {
     case v@JsObject(_) => Success(v)
   }("Object")
 
-  def jsArray = jsonAs[JsArray] {
+  implicit def jsArray = jsonAs[JsArray] {
     case v@JsArray(_) => Success(v)
   }("Array")
 
@@ -78,7 +78,7 @@ object Rules extends play.api.data.mapping.DefaultRules[JsValue] {
     val d = bd.toFloat
     !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(jl.Float.toString(d), bd.mc)) == 0
   }
-  def float = jsonAs[Float] {
+  implicit def float = jsonAs[Float] {
     case JsNumber(v) if isValidFloat(v) => Success(v.toFloat)
   }("Float")
 
@@ -87,42 +87,44 @@ object Rules extends play.api.data.mapping.DefaultRules[JsValue] {
     val d = bd.toDouble
     !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(jl.Double.toString(d), bd.mc)) == 0
   }
-  def double =jsonAs[Double] {
+  implicit def double =jsonAs[Double] {
     case JsNumber(v) if isValidDouble(v) => Success(v.toDouble)
   }("Double")
 
-  def bigDecimal = jsonAs[BigDecimal] {
+  implicit def bigDecimal = jsonAs[BigDecimal] {
     case JsNumber(v) => Success(v)
   }("BigDecimal")
 
   import java.{ math => jm }
-  def javaBigDecimal = jsonAs[jm.BigDecimal] {
+  implicit def javaBigDecimal = jsonAs[jm.BigDecimal] {
     case JsNumber(v) => Success(v.bigDecimal)
   }("BigDecimal")
 
-  def jsNull = isJsNull[JsValue]
+  implicit def jsNull = isJsNull[JsValue].fmap(_ => JsNull)
 
   private def isJsNull[J] = Rule.fromMapping[J, J]{
     case JsNull => Success(JsNull)
     case _ => Failure(Seq(ValidationError("validation.type-mismatch", "null")))
   }
 
+  implicit def option[O](implicit pick: Path => Rule[JsValue, JsValue], coerce: Rule[JsValue, O]): Path => Rule[JsValue, Option[O]] =
+    option(coerce)
+
   override def option[J, O](r: Rule[J, O], noneValues: Rule[J, J]*)(implicit pick: Path => Rule[JsValue, J]): Path => Rule[JsValue, Option[O]]
     = super.option[J, O](r, (isJsNull[J] +: noneValues):_*)
 
-  def map[O](r: Rule[JsValue, O]): Rule[JsValue, Map[String, O]] =
+  implicit def map[O](implicit r: Rule[JsValue, O]): Rule[JsValue, Map[String, O]] =
     super.map[JsValue, O](r, jsObject.fmap{ case JsObject(fs) => fs })
 
-  // Is that thing really just a Lens ?
-  implicit def pickInJson(p: Path) =
+  implicit def pickInJson[O](p: Path)(implicit r: Rule[JsValue, O]): Rule[JsValue, O] =
     Rule[JsValue, JsValue] { json =>
       pathToJsPath(p)(json) match {
         case Nil => Failure(Seq(Path() -> Seq(ValidationError("validation.required"))))
         case js :: _ => Success(js)
       }
-    }
+    }.compose(r)
 
-  implicit def pickSInJson(p: Path) =
-    pickInJson(p).compose(jsArray).fmap{ case JsArray(fs) => fs }
+  implicit def pickSInJson[O](p: Path)(implicit r: Rule[Seq[JsValue], Seq[O]]): Rule[JsValue, Seq[O]] =
+    pickInJson(p)(jsArray).fmap{ case JsArray(fs) => fs }.compose(r)
 
 }

@@ -50,9 +50,6 @@ case class Reader[I](path: Path = Path(Nil)) {
   def read[O](implicit r: Path => Rule[I, O]): Rule[I, O] =
     read(Rule.zero[O])(r)
 
-  def read[O](m: Constraint[O])(implicit r: Path => Rule[I, O]): Rule[I, O] =
-    read[O, O](Rule.fromMapping(m))
-
   def \(key: String): Reader[I] = Reader(path \ key)
   def \(idx: Int): Reader[I] = Reader(path \ idx)
   def \(child: PathNode): Reader[I] = Reader(path \ child)
@@ -84,6 +81,12 @@ class Path(val path: List[PathNode]) {
   */
   def compose(p: Path): Path = Path(this.path ++ p.path)
   def ++(other: Path) = this compose other
+
+  def read[I, J, O](sub: Rule[J, O])(implicit r: Path => Rule[I, J]): Rule[I, O] =
+    Reader[I](this).read(sub)
+
+  def read[I, O](implicit r: Path => Rule[I, O]): Rule[I, O] =
+    Reader[I](this).read[O]
 
   /**
   * Creates a Writes the serialize data to the desired type

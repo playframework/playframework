@@ -120,7 +120,7 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
   implicit def option[O](implicit pick: Path => Rule[M, Seq[String]], coerce: Rule[Seq[String], O]): Path => Rule[M, Option[O]] =
     super.option(coerce)
 
-  implicit def option[J, O](r: Rule[J, O])(implicit pick: Path => Rule[M, Seq[String]], coerce: Rule[Seq[String], J]): Path => Rule[M, Option[O]] =
+  def option[J, O](r: Rule[J, O])(implicit pick: Path => Rule[M, Seq[String]], coerce: Rule[Seq[String], J]): Path => Rule[M, Option[O]] =
     super.option(coerce compose r)
 
   implicit def pickInMap[O](p: Path)(implicit r: Rule[Seq[String], O]) = Rule.fromMapping[M, Seq[String]] {

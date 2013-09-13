@@ -20,7 +20,7 @@ trait GenericRules {
       Validation.sequence(withI)
     }
 
-  def list[I, O](r: Rule[I, O]): Rule[Seq[I], List[O]] =
+  implicit def list[I, O](implicit r: Rule[I, O]): Rule[Seq[I], List[O]] =
     seq[I, O](r).fmap(_.toList)
 
   implicit def headAs[I, O](implicit c: Rule[I, O]) = Rule.fromMapping[Seq[I], I] {
