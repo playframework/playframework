@@ -76,7 +76,7 @@ This field constructor generates HTML like the following:
   <div class="input">
     <input type="text" name="email" id="email" value="">
     <span class="help-inline">This field is required!, Another error</span>
-    <span class="help-block">Required, Another constraint</d</span> 
+    <span class="help-block">Required, Another constraint</span> 
   </div>
 </div>
 ```
