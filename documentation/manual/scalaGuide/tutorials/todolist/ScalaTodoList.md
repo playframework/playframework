@@ -10,6 +10,8 @@ As we will use the command line a lot, it’s better to use a Unix-like OS. If y
 
 You will of course need a text editor. You can also use a Scala IDE such as Eclipse or IntelliJ if you like. However, with Play you can have fun working with a simple text editor like Textmate, Emacs or vi. This is because the framework manages the compilation and the deployment process itself.
 
+> **Note:** Read more about [[Setting-up your preferred IDE | IDE]].
+
 ## Project creation
 
 Now that Play is correctly installed, it’s time to create the new application. Creating a Play application is pretty easy and fully managed by the Play command line utility. That allows for standard project layouts between all Play applications.
@@ -33,6 +35,7 @@ The `play new` command creates a new directory `todolist/` and populates it with
 - `test/` contains all the application tests. Tests are written as Specs2 specifications.
 
 > Because Play uses UTF-8 as single encoding, it’s very important that all text files hosted in these directories are encoded using this charset. Make sure to configure your text editor accordingly.
+> **Note:** Read more about [[Anatomy of a Play application | Anatomy]].
 
 ## Using the Play console
 
