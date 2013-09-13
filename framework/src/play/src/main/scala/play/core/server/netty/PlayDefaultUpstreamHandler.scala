@@ -26,7 +26,7 @@ import com.typesafe.netty.http.pipelining.{OrderedDownstreamChannelEvent, Ordere
 import scala.concurrent.Future
 
 
-private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with Helpers with WebSocketHandler with RequestBodyHandler {
+private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with Helpers with WebSocketHandler with RequestBodyHandler {
 
   implicit val internalExecutionContext =  play.core.Execution.internalContext
 
@@ -208,9 +208,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                       nettyResponse.setHeader(CONTENT_LENGTH, buffer.readableBytes)
                       nettyResponse.setContent(buffer)
                       val f = sendDownstream(startSequence, true, nettyResponse)
-                      if (closeConnection) f.addListener(ChannelFutureListener.CLOSE)
-                      val p = NettyPromise(f)
-                      p
+                      NettyPromise(f)
                   })
                   p.flatMap(identity).extend1 {
                     case Redeemed(_) =>
