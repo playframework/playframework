@@ -36,6 +36,10 @@ object TemplateParserSpec extends Specification {
         parse("simple.scala.html") must beLike({ case parser.Success(_, rest) => if (rest.atEnd) ok else ko })
       }
 
+      "import.scala.html" in {
+        parse("import.scala.html") must beLike({ case parser.Success(_, rest) => if (rest.atEnd) ok else ko })
+      }
+
       "complicated.scala.html" in {
         parse("complicated.scala.html") must beLike({ case parser.Success(_, rest) => if (rest.atEnd) ok else ko })
       }
