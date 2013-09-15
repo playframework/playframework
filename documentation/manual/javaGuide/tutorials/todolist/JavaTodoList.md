@@ -73,22 +73,7 @@ That simply tells Play that when the web server receives a GET request for the `
 
 Let’s see what the `controllers.Application.index` method looks like. Open the `todolist/app/controllers/Application.java` source file:
 
-```
-package controllers;
-
-import play.*;
-import play.mvc.*;
-
-import views.html.*;
-
-public class Application extends Controller {
-  
-  public static Result index() {
-    return ok(index.render("Your new application is ready."));
-  }
-  
-}
-```
+@[controller-application](code/controllers/Application.java)
 
 You see that `controllers.Application.index()` returns a `Result`. All action methods must return a `Result`, which represents the HTTP response to send back to the web browser.
 
@@ -98,15 +83,7 @@ Here, the action returns a **200 OK** response with a HTML response body. The HT
 
 This template is defined in the `app/views/index.scala.html` source file:
 
-```
-@(message: String)
-
-@main("Welcome to Play") {
-    
-    @play20.welcome(message, style = "Java")
-    
-}
-```
+@[index-welcome](code/views/todo.scala.html)
 
 The first line defines the function signature. Here it takes a single `String` parameter. Then the template content mixes HTML (or any text-based language) with Scala statements. The Scala statements start with the special `@` character.
 
@@ -146,15 +123,7 @@ For our todo list application, we need a few actions and the corresponding URLs.
 
 Edit the `conf/routes` file:
 
-```
-# Home page
-GET     /                       controllers.Application.index()
-                                
-# Tasks          
-GET     /tasks                  controllers.Application.tasks()
-POST    /tasks                  controllers.Application.newTask()
-POST    /tasks/:id/delete       controllers.Application.deleteTask(id: Long)
-```
+@[base-routes](code/conf/routes)
 
 We create a route to list all tasks, and a couple of others to handle task creation and deletion. The route to handle task deletion defines a variable argument `id` in the URL path. This value is then passed to the `deleteTask` action method.
 
@@ -164,27 +133,7 @@ Now if your reload in your browser, you will see that Play cannot compile your r
 
 This is because the routes reference non-existent action methods. So let’s add them to the `Application.java` file:
 
-```
-public class Application extends Controller {
-  
-  public static Result index() {
-    return ok(index.render("Your new application is ready."));
-  }
-  
-  public static Result tasks() {
-    return TODO;
-  }
-  
-  public static Result newTask() {
-    return TODO;
-  }
-  
-  public static Result deleteTask(Long id) {
-    return TODO;
-  }
-  
-}
-```
+@[full-controller-with-todos](code/controllers/ToDoApplication.java)
 
 As you see we use `TODO` as result in our actions implementation. Because we don’t want to write the actions implementation yet, we can use the built-in `TODO` result that will return a `501 Not Implemented` response. 
 
@@ -208,28 +157,7 @@ As you see we use `redirect` instead of `ok` to specify a `303 See Other` respon
 
 Before continuing the implementation we need to define what a `Task` looks like in our application. Create a `class` for it in the `app/models/Task.java` file:
 
-```
-package models;
-
-import java.util.*;
-
-public class Task {
-    
-  public Long id;
-  public String label;
-  
-  public static List<Task> all() {
-    return new ArrayList<Task>();
-  }
-  
-  public static void create(Task task) {
-  }
-  
-  public static void delete(Long id) {
-  }
-    
-}
-```
+@[model-base-task](code/models/Task.java)
 
 We have also created a bunch of static methods to manage `Task` operations. For now we wrote dummy implementation for each operation, but later in this tutorial we will write implementations that will store the tasks into a relational database.
 
