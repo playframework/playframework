@@ -124,7 +124,12 @@ object Rules extends play.api.data.mapping.DefaultRules[JsValue] {
       }
     }.compose(r)
 
-  implicit def pickSInJson[O](p: Path)(implicit r: Rule[Seq[JsValue], Seq[O]]): Rule[JsValue, Seq[O]] =
-    pickInJson(p)(jsArray).fmap{ case JsArray(fs) => fs }.compose(r)
+
+  // XXX: a bit of boilerplate
+  private def pickInS[T](implicit r: Rule[Seq[JsValue], T]): Rule[JsValue, T] =
+    jsArray.fmap{ case JsArray(fs) => fs }.compose(r)
+  implicit def pickSeq[O](implicit r: Rule[Seq[JsValue], Seq[O]]) = pickInS[Seq[O]](r)
+  implicit def pickArray[O](implicit r: Rule[Seq[JsValue], Array[O]]) = pickInS[Array[O]](r)
+  implicit def pickTraversable[O](implicit r: Rule[Seq[JsValue], Traversable[O]]) = pickInS[Traversable[O]](r)
 
 }

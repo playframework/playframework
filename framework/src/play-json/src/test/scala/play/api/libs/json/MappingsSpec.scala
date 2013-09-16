@@ -164,11 +164,11 @@ object MappingsSpec extends Specification {
       //   (Path \ "n").read[JsValue, Traversable[String]].validate(Json.obj("n" -> "paf")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.type-mismatch", "Array")))))
       // }
 
-      // "Array" in {
-      //   (Path \ "n").read[JsValue, Array[String]].validate(Json.obj("n" -> Seq("foo"))).get.toSeq must haveTheSameElementsAs(Seq("foo"))
-      //   (Path \ "n").read[JsValue, Array[Int]].validate(Json.obj("n" -> Seq(1, 2, 3))).get.toSeq must haveTheSameElementsAs(Seq(1, 2, 3))
-      //   (Path \ "n").read[JsValue, Array[String]].validate(Json.obj("n" -> "paf")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.type-mismatch", "Array")))))
-      // }
+      "Array" in {
+        (Path \ "n").read[JsValue, Array[String]].validate(Json.obj("n" -> Seq("foo"))).get.toSeq must haveTheSameElementsAs(Seq("foo"))
+        (Path \ "n").read[JsValue, Array[Int]].validate(Json.obj("n" -> Seq(1, 2, 3))).get.toSeq must haveTheSameElementsAs(Seq(1, 2, 3))
+        (Path \ "n").read[JsValue, Array[String]].validate(Json.obj("n" -> "paf")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.type-mismatch", "Array")))))
+      }
 
       "Seq" in {
         (Path \ "n").read[JsValue, Seq[String]].validate(Json.obj("n" -> Seq("foo"))).get must haveTheSameElementsAs(Seq("foo"))
@@ -291,14 +291,14 @@ object MappingsSpec extends Specification {
 
       val infoValidation = In[JsValue] { __ =>
          ((__ \ "label").read(nonEmptyText) ~
-          (__ \ "email").read(option(string compose email)) ~
+          (__ \ "email").read(option(email)) ~
           (__ \ "phones").read(seq(nonEmptyText))) (ContactInformation.apply _)
       }
 
       val contactValidation = In[JsValue] { __ =>
         ((__ \ "firstname").read(nonEmptyText) ~
          (__ \ "lastname").read(nonEmptyText) ~
-         (__ \ "company").read(option(string)) ~
+         (__ \ "company").read[Option[String]] ~
          (__ \ "informations").read(seq(infoValidation))) (Contact.apply _)
       }
 
