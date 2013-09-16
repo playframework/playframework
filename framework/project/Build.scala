@@ -27,8 +27,8 @@ object BuildSettings {
   val buildOrganization = "com.typesafe.play"
   val buildVersion = propOr("play.version", "2.3-SNAPSHOT")
   val buildWithDoc = boolProp("generate.doc")
-  val previousVersion = "2.1.0"
-  val buildScalaVersion = propOr("scala.version", "2.10.3")
+  val previousVersion = "2.2.0"
+  val buildScalaVersion = propOr("scala.version", "2.10.2")
   // TODO - Try to compute this from SBT... or not.
   val buildScalaVersionForSbt = propOr("play.sbt.scala.version", "2.10.3")
   val buildScalaBinaryVersionForSbt = CrossVersion.binaryScalaVersion(buildScalaVersionForSbt)
@@ -36,7 +36,7 @@ object BuildSettings {
   val buildSbtMajorVersion = "0.13"
   val buildSbtVersionBinaryCompatible = CrossVersion.binarySbtVersion(buildSbtVersion)
   // Used by api docs generation to link back to the correct branch on GitHub, only when version is a SNAPSHOT
-  val sourceCodeBranch = propOr("git.branch", "master")
+  val sourceCodeBranch = propOr("git.branch", "2.2.x")
 
   lazy val PerformanceTest = config("pt") extend(Test)
 
