@@ -124,12 +124,11 @@ object Rules extends play.api.data.mapping.DefaultRules[JsValue] {
       }
     }.compose(r)
 
-
-  // XXX: a bit of boilerplate
+  // // XXX: a bit of boilerplate
   private def pickInS[T](implicit r: Rule[Seq[JsValue], T]): Rule[JsValue, T] =
     jsArray.fmap{ case JsArray(fs) => fs }.compose(r)
-  implicit def pickSeq[O](implicit r: Rule[Seq[JsValue], Seq[O]]) = pickInS[Seq[O]](r)
-  implicit def pickArray[O](implicit r: Rule[Seq[JsValue], Array[O]]) = pickInS[Array[O]](r)
-  implicit def pickTraversable[O](implicit r: Rule[Seq[JsValue], Traversable[O]]) = pickInS[Traversable[O]](r)
+  implicit def pickSeq[O](implicit r: Rule[JsValue, O]) = pickInS(seq[JsValue, O])
+  implicit def pickArray[O: scala.reflect.ClassTag](implicit r: Rule[JsValue, O]) = pickInS(array[JsValue, O])
+  implicit def pickTraversable[O](implicit r: Rule[JsValue, O]) = pickInS(traversable[JsValue, O])
 
 }

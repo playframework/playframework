@@ -35,6 +35,7 @@ trait GenericRules {
     }
   }
 
+  def equalTo[T](t: T) = validateWith[T]("validation.equals", t){ _.equals(t) }
   def notEmpty = validateWith[String]("validation.nonemptytext"){ !_.isEmpty }
   def min[T](m: T)(implicit o: Ordering[T]) = validateWith[T]("validation.min", m){ x => o.gteq(x, m) }
   def max[T](m: T)(implicit o: Ordering[T]) = validateWith[T]("validation.max", m){ x => o.lteq(x, m) }

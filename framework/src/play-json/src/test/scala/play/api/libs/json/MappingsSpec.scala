@@ -158,11 +158,12 @@ object MappingsSpec extends Specification {
         (Path \ "n").read[JsValue, Map[String, Int]].validate(Json.obj("n" -> Json.obj("foo" -> 4, "bar" -> "frack"))) mustEqual(Failure(Seq(Path \ "n" \ "bar" -> Seq(ValidationError("validation.type-mismatch", "Int")))))
       }
 
-      // "Traversable" in {
-      //   (Path \ "n").read[JsValue, Traversable[String]].validate(Json.obj("n" -> Seq("foo"))).get.toSeq must haveTheSameElementsAs(Seq("foo"))
-      //   (Path \ "n").read[JsValue, Traversable[Int]].validate(Json.obj("n" -> Seq(1, 2, 3))).get.toSeq must haveTheSameElementsAs(Seq(1, 2, 3))
-      //   (Path \ "n").read[JsValue, Traversable[String]].validate(Json.obj("n" -> "paf")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.type-mismatch", "Array")))))
-      // }
+      "Traversable" in {
+        implicitly[Rule[JsValue, Traversable[String]]]
+        (Path \ "n").read[JsValue, Traversable[String]].validate(Json.obj("n" -> Seq("foo"))).get.toSeq must haveTheSameElementsAs(Seq("foo"))
+        (Path \ "n").read[JsValue, Traversable[Int]].validate(Json.obj("n" -> Seq(1, 2, 3))).get.toSeq must haveTheSameElementsAs(Seq(1, 2, 3))
+        (Path \ "n").read[JsValue, Traversable[String]].validate(Json.obj("n" -> "paf")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.type-mismatch", "Array")))))
+      }
 
       "Array" in {
         (Path \ "n").read[JsValue, Array[String]].validate(Json.obj("n" -> Seq("foo"))).get.toSeq must haveTheSameElementsAs(Seq("foo"))
@@ -241,18 +242,94 @@ object MappingsSpec extends Specification {
     }
 
     "lift validations to seq validations" in {
-      val nonEmptyText = string compose notEmpty
-      (Path \ "foo").read(seq(nonEmptyText)).validate(Json.obj("foo" -> Seq("bar")))
+      (Path \ "foo").read(seq(notEmpty)).validate(Json.obj("foo" -> Seq("bar")))
         .get must haveTheSameElementsAs(Seq("bar"))
 
       In[JsValue]{ __ =>
         (__ \ "foo").read(
-          (__ \ "foo").read(seq(nonEmptyText)))
+          (__ \ "foo").read(seq(notEmpty)))
       }.validate(Json.obj("foo" -> Json.obj("foo" -> Seq("bar"))))
         .get must haveTheSameElementsAs(Seq("bar"))
 
-      (Path \ "n").read(seq(nonEmptyText))
+      (Path \ "n").read(seq(notEmpty))
         .validate(Json.parse("""{"n":["foo", ""]}""")) mustEqual(Failure(Seq(Path \ "n" \ 1 -> Seq(ValidationError("validation.nonemptytext")))))
+    }
+
+    "validate dependent fields" in {
+      val v = Json.obj(
+        "login" -> "Alice",
+        "password" -> "s3cr3t",
+        "verify" -> "s3cr3t")
+
+      val i1 = Json.obj(
+        "login" -> "Alice",
+        "password" -> "s3cr3t",
+        "verify" -> "")
+
+      val i2 = Json.obj(
+        "login" -> "Alice",
+        "password" -> "s3cr3t",
+        "verify" -> "bam")
+
+      // XXX: that's ugly
+      val passRule = In[JsValue] { __ =>
+        import play.api.libs.json.{ Rules => R }
+        ((__ \ "password").read(notEmpty) ~ (__ \ "verify").read(notEmpty))
+          .tupled.compose(Rule[(String, String), String]{ t => R.equalTo(t._1).validate(t._2) }.repath(_ => (Path \ "verify")))
+      }
+
+      val rule = In[JsValue] { __ =>
+        ((__ \ "login").read(notEmpty) ~ passRule).tupled
+      }
+
+      rule.validate(v).mustEqual(Success("Alice" -> "s3cr3t"))
+      rule.validate(i1).mustEqual(Failure(Seq(Path \ "verify" -> Seq(ValidationError("validation.nonemptytext")))))
+      rule.validate(i2).mustEqual(Failure(Seq(Path \ "verify" -> Seq(ValidationError("validation.equals", "s3cr3t")))))
+    }
+
+    "validate subclasses (and parse the concrete class)" in {
+
+      trait A { val name: String }
+      case class B(name: String, foo: Int) extends A
+      case class C(name: String, bar: Int) extends A
+
+      val b = Json.obj("name" -> "B", "foo" -> 4)
+      val c = Json.obj("name" -> "C", "bar" -> 6)
+      val e = Json.obj("name" -> "E", "eee" -> 6)
+
+      val typeFailure = Failure(Seq(Path() -> Seq(ValidationError("validation.unknownType"))))
+
+      "by trying all possible Rules" in {
+        val rb: Rule[JsValue, A] = In[JsValue]{ __ =>
+          ((__ \ "name").read[String] ~ (__ \ "foo").read[Int])(B.apply _)
+        }
+
+        val rc: Rule[JsValue, A] = In[JsValue]{ __ =>
+          ((__ \ "name").read[String] ~ (__ \ "bar").read[Int])(C.apply _)
+        }
+
+        val rule = rb orElse rc orElse Rule(_ => typeFailure)
+
+        rule.validate(b) mustEqual(Success(B("B", 4)))
+        rule.validate(c) mustEqual(Success(C("C", 6)))
+        rule.validate(e) mustEqual(Failure(Seq(Path() -> Seq(ValidationError("validation.unknownType")))))
+      }
+
+      "by dicriminating on fields" in {
+
+        val rule = In[JsValue] { __ =>
+          (__ \ "name").read[String].flatMap[A] {
+            case "B" => ((__ \ "name").read[String] ~ (__ \ "foo").read[Int])(B.apply _)
+            case "C" => ((__ \ "name").read[String] ~ (__ \ "bar").read[Int])(C.apply _)
+            case _ => Rule(_ => typeFailure)
+          }
+        }
+
+        rule.validate(b) mustEqual(Success(B("B", 4)))
+        rule.validate(c) mustEqual(Success(C("C", 6)))
+        rule.validate(e) mustEqual(Failure(Seq(Path() -> Seq(ValidationError("validation.unknownType")))))
+      }
+
     }
 
     "perform complex validation" in {
