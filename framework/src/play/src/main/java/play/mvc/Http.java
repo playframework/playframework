@@ -982,4 +982,52 @@ public class Http {
         int HTTP_VERSION_NOT_SUPPORTED = 505;
     }
 
+    /** Common HTTP MIME types */
+    public static interface MimeTypes {
+
+        /**
+         * Content-Type of text.
+         */
+        String TEXT = "text/plain";
+
+        /**
+        * Content-Type of html.
+        */
+        String HTML = "text/html";
+
+        /**
+        * Content-Type of json.
+        */
+        String JSON = "application/json";
+
+        /**
+        * Content-Type of xml.
+        */
+        String XML = "application/xml";
+
+        /**
+        * Content-Type of css.
+        */
+        String CSS = "text/css";
+
+        /**
+        * Content-Type of javascript.
+        */
+        String JAVASCRIPT = "text/javascript";
+
+        /**
+        * Content-Type of form-urlencoded.
+        */
+        String FORM = "application/x-www-form-urlencoded";
+
+        /**
+        * Content-Type of server sent events.
+        */
+        String EVENT_STREAM = "text/event-stream";
+
+        /**
+        * Content-Type of binary data.
+        */
+        String BINARY = "application/octet-stream";
+    }
 }
