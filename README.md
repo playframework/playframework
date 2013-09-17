@@ -2,7 +2,7 @@
 
 The Play Framework combines productivity and performance making it easy to build scalable web applications with Java and Scala.  Play is developer friendly with a "just hit refresh" workflow and built-in testing support.  With Play, applications scale predictably due to a stateless and non-blocking architecture.  By being RESTful by default, including assets compilers, JSON & WebSocket support, Play is a perfect fit for modern web & mobile applications.
 
-[![Launch with Cloudify](http://ranwidget.gsdev.info/embed/img/0b5b10eb-a939-41c8-b560-b000b25b7bfc)](http://ranwidget.gsdev.info/widget/single/0b5b10eb-a939-41c8-b560-b000b25b7bfc)
+[![Launch with Cloudify](http://rantav.github.io/cloudify-widget-pages/img/gh-button.png)](http://rantav.github.io/cloudify-widget-pages/play.html)
 
 ### Learn More
 - [www.playframework.com](http://www.playframework.com)
