@@ -358,7 +358,7 @@ public class Constraints {
     public static class EmailValidator extends Validator<String> implements ConstraintValidator<Email, String> {
         
         final static public String message = "error.email";
-        final static java.util.regex.Pattern regex = java.util.regex.Pattern.compile("\\b[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*\\b");
+        final static public java.util.regex.Pattern regex = java.util.regex.Pattern.compile("\\b[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*\\b");
         
         public EmailValidator() {}
         
