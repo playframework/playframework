@@ -22,7 +22,7 @@ trait Rule[I, O] {
   def compose[P](sub: Rule[O, P]): Rule[I, P] = compose(Path())(sub)
   def compose[P](m: Mapping[ValidationError, O, P]): Rule[I, P] = compose(Rule.fromMapping(m))
 
-  def |+|(r2: Rule[I, O]) = Rule[I, O]{ v =>
+  def |+|[OO <: O](r2: Rule[I, OO]) = Rule[I, O]{ v =>
     (this.validate(v) *> r2.validate(v)).fail.map {
       _.groupBy(_._1).map{ case (path, errs) =>
         path -> errs.flatMap(_._2)

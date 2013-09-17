@@ -241,6 +241,82 @@ object PathSpec extends Specification {
       }.validate(invalid) mustEqual Failure(Seq((Path \ "informations" \ "label") -> Seq(ValidationError("validation.nonemptytext"))))
     }
 
+    "validate dependent fields" in {
+      val v = Map(
+        "login" -> Seq("Alice"),
+        "password" -> Seq("s3cr3t"),
+        "verify" -> Seq("s3cr3t"))
+
+      val i1 = Map(
+        "login" -> Seq("Alice"),
+        "password" -> Seq("s3cr3t"),
+        "verify" -> Seq(""))
+
+      val i2 = Map(
+        "login" -> Seq("Alice"),
+        "password" -> Seq("s3cr3t"),
+        "verify" -> Seq("bam"))
+
+      // XXX: that's ugly
+      val passRule = In[M] { __ =>
+        ((__ \ "password").read(notEmpty) ~ (__ \ "verify").read(notEmpty))
+          .tupled.compose(Rule[(String, String), String]{ t => Rules.equalTo(t._1).validate(t._2) }.repath(_ => (Path \ "verify")))
+      }
+
+      val rule = In[M] { __ =>
+        ((__ \ "login").read(notEmpty) ~ passRule).tupled
+      }
+
+      rule.validate(v).mustEqual(Success("Alice" -> "s3cr3t"))
+      rule.validate(i1).mustEqual(Failure(Seq(Path \ "verify" -> Seq(ValidationError("validation.nonemptytext")))))
+      rule.validate(i2).mustEqual(Failure(Seq(Path \ "verify" -> Seq(ValidationError("validation.equals", "s3cr3t")))))
+    }
+
+    "validate subclasses (and parse the concrete class)" in {
+
+      trait A { val name: String }
+      case class B(name: String, foo: Int) extends A
+      case class C(name: String, bar: Int) extends A
+
+      val b = Map("name" -> Seq("B"), "foo" -> Seq("4"))
+      val c = Map("name" -> Seq("C"), "bar" -> Seq("6"))
+      val e = Map("name" -> Seq("E"), "eee" -> Seq("6"))
+
+      val typeFailure = Failure(Seq(Path() -> Seq(ValidationError("validation.unknownType"))))
+
+      "by trying all possible Rules" in {
+        val rb: Rule[M, A] = In[M]{ __ =>
+          ((__ \ "name").read[String] ~ (__ \ "foo").read[Int])(B.apply _)
+        }
+
+        val rc: Rule[M, A] = In[M]{ __ =>
+          ((__ \ "name").read[String] ~ (__ \ "bar").read[Int])(C.apply _)
+        }
+
+        val rule = rb orElse rc orElse Rule(_ => typeFailure)
+
+        rule.validate(b) mustEqual(Success(B("B", 4)))
+        rule.validate(c) mustEqual(Success(C("C", 6)))
+        rule.validate(e) mustEqual(Failure(Seq(Path() -> Seq(ValidationError("validation.unknownType")))))
+      }
+
+      "by dicriminating on fields" in {
+
+        val rule = In[M] { __ =>
+          (__ \ "name").read[String].flatMap[A] {
+            case "B" => ((__ \ "name").read[String] ~ (__ \ "foo").read[Int])(B.apply _)
+            case "C" => ((__ \ "name").read[String] ~ (__ \ "bar").read[Int])(C.apply _)
+            case _ => Rule(_ => typeFailure)
+          }
+        }
+
+        rule.validate(b) mustEqual(Success(B("B", 4)))
+        rule.validate(c) mustEqual(Success(C("C", 6)))
+        rule.validate(e) mustEqual(Failure(Seq(Path() -> Seq(ValidationError("validation.unknownType")))))
+      }
+
+    }
+
     "perform complex validation" in {
       import play.api.libs.functional.syntax._
 

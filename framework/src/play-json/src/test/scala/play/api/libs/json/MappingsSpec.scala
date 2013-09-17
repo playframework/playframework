@@ -273,9 +273,8 @@ object MappingsSpec extends Specification {
 
       // XXX: that's ugly
       val passRule = In[JsValue] { __ =>
-        import play.api.libs.json.{ Rules => R }
         ((__ \ "password").read(notEmpty) ~ (__ \ "verify").read(notEmpty))
-          .tupled.compose(Rule[(String, String), String]{ t => R.equalTo(t._1).validate(t._2) }.repath(_ => (Path \ "verify")))
+          .tupled.compose(Rule[(String, String), String]{ t => Rules.equalTo(t._1).validate(t._2) }.repath(_ => (Path \ "verify")))
       }
 
       val rule = In[JsValue] { __ =>
