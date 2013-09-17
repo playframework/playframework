@@ -12,7 +12,6 @@ The first thing we'll do is implement the ability to view the tasks in a project
 Let's start by writing some more templates.  We'll implement an index template for the tasks in `app/views/tasks/index.scala.html`:
 
 ```html
-dd@(project: Project, tasks: List[Task])
 @(project: Project, tasks: List[Task])
 
 <header>
