@@ -60,15 +60,16 @@ object RepositoryBuilder {
                              ivy: IvySbt,
                              log: Logger): Map[String, Seq[License]] = ivy.withIvy(log) { ivy =>
 
-    println("Creating local repository with modules: " + modules)
-
     // This helper method installs a particular module and transitive dependencies.
     def installModule(module: ModuleID): Option[ResolveReport] = {
-      println("Intsalling module: " + module)
       // TODO - Use SBT's default ModuleID -> ModuleRevisionId
       val mrid = IvySbtCheater toID module
       val name = ivy.getResolveEngine.getSettings.getResolverName(mrid)
       log.debug("Module: " + mrid + " should use resolver: " + name)
+
+      // This is a bit of a hack, scala-compiler is published under the "master" configuration, so we set the
+      // configuration to it for master in the localRepoArtifacts setting.
+      val configurations = (module.configurations.toSeq :+ "runtime").toArray
       try Some(ivy.install(mrid, name, localRepoName,
         new InstallOptions()
           .setTransitive(true)
@@ -76,7 +77,7 @@ object RepositoryBuilder {
           .setOverwrite(true)
           .setMatcherName(PatternMatcher.EXACT)
           .setArtifactFilter(FilterHelper.NO_FILTER)
-          .setConfs(Array("runtime"))
+          .setConfs(configurations)
       ))
       catch {
         case e: Exception =>
@@ -86,7 +87,7 @@ object RepositoryBuilder {
       }
     }
     // Grab all Artifacts
-    val reports = (modules flatMap installModule).toSeq
+    val reports = (modules.distinct flatMap installModule).toSeq
 
     val projects = reports.flatMap { report =>
       // The first dependency is the module
