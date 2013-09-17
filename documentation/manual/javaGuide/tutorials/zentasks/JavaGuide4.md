@@ -58,7 +58,7 @@ Now we need to pass this form into our template, to render.  Modify the `login` 
 ```java
     public static Result login() {
         return ok(
-            login.render(form(Login.class))
+            login.render(Form.form(Login.class))
         );
     }
 ```
@@ -66,7 +66,7 @@ Now we need to pass this form into our template, to render.  Modify the `login` 
 And now declare the form as a parameter for the login template to accept, in `app/views/login.scala.html`:
 
 ```html
-@(form: Form[Application.Login]
+@(form: Form[Application.Login])
 
 <html>
 ...
@@ -102,12 +102,12 @@ Now implement the method in `app/controllers/Application.java`:
 
 ```java
 public static Result authenticate() {
-    Form<Login> loginForm = form(Login.class).bindFromRequest();
+    Form<Login> loginForm = Form.form(Login.class).bindFromRequest();
     return ok();
 }
 ```
 
-> Make sure you add an import statement for `play.data.*` to `Application.java`
+> Make sure you add an import statement for `play.data.*` to `Application.java`.
 
 ### Validating a form
 
@@ -128,7 +128,7 @@ We can now use this validation by using the `hasErrors()` method on our `Form` o
 
 ```java
 public static Result authenticate() {
-    Form<Login> loginForm = form(Login.class).bindFromRequest();
+    Form<Login> loginForm = Form.form(Login.class).bindFromRequest();
     if (loginForm.hasErrors()) {
         return badRequest(login.render(loginForm));
     } else {
@@ -191,8 +191,6 @@ public class LoginTest extends WithApplication {
 }
 ```
 
-> Notice that this time we've passed a `fakeGlobal()` to the fake application when we set it up.  In fact, since creating our "real" `Global.java`, the `ModelsTest` we wrote earlier has been broken because it is loading the initial data when the test starts.  So it too should be updated to use `fakeGlobal()`.
-
 Now let's write a test that tests what happens when we authenticate successfully:
 
 ```java
@@ -204,18 +202,18 @@ public void authenticateSuccess() {
             "email", "bob@example.com",
             "password", "secret"))
     );
-    assertEquals(303, status(result));
+    assertEquals(Http.Status.SEE_OTHER, status(result)); // = redirection
     assertEquals("bob@example.com", session(result).get("email"));
 }
 ```
 
-There are a few new concepts introduced here.  The first is the user of Plays "ref" reverse router.  This allows us to get a reference to an action, which we then pass to `callAction` to invoke.  In our case, we've got a reference to the `Application.authenticate` action.
+There are a few new concepts introduced here.  The first is the usage of Plays "ref" reverse router.  This allows us to get a reference to an action, which we then pass to `callAction` to invoke.  In our case, we've got a reference to the `Application.authenticate` action.
 
 We are also creating a fake request.  We are giving this a form body with the email and password to authenticate with.
 
 Finally, we are using the `status` and `session` helper methods to get the status and the session of the result.  We ensure that the successful login occurred with Bob's email address being added to the session.  There are other helper methods available to get access to other parts of the result, such as the headers and the body.  You might wonder why we can't just directly get the result.  The reason for this is that the result may, for example, be asynchronous, and so Play needs to unwrap it if necessary in order to access it.
 
-Run the test to make sure it passes.  Now let's write another test, this time to ensure that if an invalid email and password are supplied, that we don't get logged in.
+Run the test to make sure it passes.  Now let's write another test, this time to ensure that we don't get logged in if an invalid combination of email and password is supplied.
 
 ```java
 @Test
@@ -226,7 +224,7 @@ public void authenticateFailure() {
             "email", "bob@example.com",
             "password", "badpassword"))
     );
-    assertEquals(400, status(result));
+    assertEquals(Http.Status.BAD_REQUEST, status(result));
     assertNull(session(result).get("email"));
 }
 ```
@@ -283,7 +281,7 @@ public void authenticated() {
         controllers.routes.ref.Application.index(),
         fakeRequest().withSession("email", "bob@example.com")
     );
-    assertEquals(200, status(result));
+    assertEquals(Http.Status.OK, status(result));
 }    
 ```
 
@@ -296,7 +294,7 @@ public void notAuthenticated() {
         controllers.routes.ref.Application.index(),
         fakeRequest()
     );
-    assertEquals(303, status(result));
+    assertEquals(Http.Status.SEE_OTHER, status(result));
     assertEquals("/login", header("Location", result));
 }
 ```
