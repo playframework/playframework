@@ -242,11 +242,8 @@ Play already comes with a built in authenticator action, which we will extend to
 ```java
 package controllers;
 
-import play.*;
 import play.mvc.*;
 import play.mvc.Http.*;
-
-import models.*;
 
 public class Secured extends Security.Authenticator {
 
