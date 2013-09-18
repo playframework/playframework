@@ -55,6 +55,8 @@ public class Lang extends play.api.i18n.Lang {
     
     /**
      * Create a Lang value from a code (such as fr or en-US).
+     * Returns null if the code is not recognized.
+     *
      */
     public static Lang forCode(String code) {
         try {
