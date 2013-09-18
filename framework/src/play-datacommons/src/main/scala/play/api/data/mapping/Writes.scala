@@ -24,7 +24,9 @@ trait DefaultWrites {
 
   import PM._
 
-  def int = Write((i: Int) => i.toString)
+  implicit def anyval[T <: AnyVal] = Write((i: T) => i.toString)
+  implicit def scalanumber[T <: scala.math.ScalaNumber] = Write((i: T) => i.toString)
+  implicit def javanumber[T <: java.lang.Number] = Write((i: T) => i.toString)
 
   // TODO
   /*
@@ -32,11 +34,15 @@ trait DefaultWrites {
     Writes((i: I) => w.writes(i))
   */
 
-  implicit def writeM[O](implicit w: Write[O, M]) = Write[O, PM] {
+  implicit def opm[O](implicit w: Write[O, M]) = Write[O, PM] {
     o => toPM(w.writes(o))
   }
 
-  implicit def writeSeq[O](implicit w: Write[O, PM]) =
+  implicit def map[I](implicit w: Write[I, Seq[String]]) = Write[Map[String, I], PM] {
+    m => toPM(m.mapValues(w.writes))
+  }
+
+  implicit def spm[O](implicit w: Write[O, PM]) =
     Write[Seq[O], PM]{ os =>
       os.zipWithIndex
         .toMap
@@ -45,19 +51,25 @@ trait DefaultWrites {
         }
     }
 
+  implicit def seq[I, O](implicit w: Write[I, O]) = Write[Seq[I], Seq[O]] {
+    _.map(w.writes)
+  }
+
+  implicit def array[O](implicit w: Write[Seq[O], PM]) =
+    Write((w.writes _) compose ((_: Array[O]).toSeq))
+
+  implicit def traversable[O](implicit w: Write[Seq[O], PM]) =
+    Write((w.writes _) compose ((_: Traversable[O]).toSeq))
+
   implicit def write[I](path: Path)(implicit w: Write[I, PM]) = Write[I, M] { i =>
     toM(repathPM(w.writes(i), path ++ _))
   }
 
-  implicit def writePM[I](implicit w: Write[I, Seq[String]]) = Write[I, PM]{ i =>
+  implicit def ospm[I](implicit w: Write[I, Seq[String]]) = Write[I, PM]{ i =>
     Map(Path() -> w.writes(i))
   }
 
   implicit def head[I, O](implicit w: Write[I, O]): Write[I, Seq[O]] = w.map(Seq(_))
-
-  // def seq[I, O](implicit w: Write[I, O]) = Write {
-  //   (_: Seq[I]).map(w.writes _)
-  // }
 
   implicit def option[I](implicit w: Write[I, Seq[String]]) = Write[Option[I], PM] { m =>
     m.map(s => Map(Path() -> w.writes(s)))

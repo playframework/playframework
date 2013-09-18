@@ -51,6 +51,120 @@ class WritesSpec extends Specification {
       w.writes(Nil) mustEqual Map.empty
     }
 
+    "support primitives types" in {
+
+      "Int" in {
+        To[M] { __ => (__ \ "n").write[Int] }.writes(4) mustEqual(Map("n" -> Seq("4")))
+        To[M] { __ => (__ \ "n" \ "o").write[Int] }.writes(4) mustEqual(Map("n.o" -> Seq("4")))
+        To[M] { __ => (__ \ "n" \ "o" \ "p").write[Int] }.writes(4) mustEqual(Map("n.o.p" -> Seq("4")))
+      }
+
+      "Short" in {
+        To[M] { __ => (__ \ "n").write[Short] }.writes(4) mustEqual(Map("n" -> Seq("4")))
+        To[M] { __ => (__ \ "n" \ "o").write[Short] }.writes(4) mustEqual(Map("n.o" -> Seq("4")))
+        To[M] { __ => (__ \ "n" \ "o" \ "p").write[Short] }.writes(4) mustEqual(Map("n.o.p" -> Seq("4")))
+      }
+
+      "Long" in {
+        To[M] { __ => (__ \ "n").write[Long] }.writes(4) mustEqual(Map("n" -> Seq("4")))
+        To[M] { __ => (__ \ "n" \ "o").write[Long] }.writes(4) mustEqual(Map("n.o" -> Seq("4")))
+        To[M] { __ => (__ \ "n" \ "o" \ "p").write[Long] }.writes(4) mustEqual(Map("n.o.p" -> Seq("4")))
+      }
+
+      "Float" in {
+        To[M] { __ => (__ \ "n").write[Float] }.writes(4) mustEqual(Map("n" -> Seq("4.0")))
+        To[M] { __ => (__ \ "n" \ "o").write[Float] }.writes(4.8F) mustEqual(Map("n.o" -> Seq("4.8")))
+        To[M] { __ => (__ \ "n" \ "o" \ "p").write[Float] }.writes(4.8F) mustEqual(Map("n.o.p" -> Seq("4.8")))
+      }
+
+      "Double" in {
+        To[M] { __ => (__ \ "n").write[Double] }.writes(4) mustEqual(Map("n" -> Seq("4.0")))
+        To[M] { __ => (__ \ "n" \ "o").write[Double] }.writes(4.8D) mustEqual(Map("n.o" -> Seq("4.8")))
+        To[M] { __ => (__ \ "n" \ "o" \ "p").write[Double] }.writes(4.8D) mustEqual(Map("n.o.p" -> Seq("4.8")))
+      }
+
+      "java BigDecimal" in {
+        import java.math.{ BigDecimal => jBigDecimal }
+        To[M] { __ => (__ \ "n").write[jBigDecimal] }.writes(new jBigDecimal("4.0")) mustEqual(Map("n" -> Seq("4.0")))
+        To[M] { __ => (__ \ "n" \ "o").write[jBigDecimal] }.writes(new jBigDecimal("4.8")) mustEqual(Map("n.o" -> Seq("4.8")))
+        To[M] { __ => (__ \ "n" \ "o" \ "p").write[jBigDecimal] }.writes(new jBigDecimal("4.8")) mustEqual(Map("n.o.p" -> Seq("4.8")))
+      }
+
+      "scala BigDecimal" in {
+        To[M] { __ => (__ \ "n").write[BigDecimal] }.writes(BigDecimal("4.0")) mustEqual(Map("n" -> Seq("4.0")))
+        To[M] { __ => (__ \ "n" \ "o").write[BigDecimal] }.writes(BigDecimal("4.8")) mustEqual(Map("n.o" -> Seq("4.8")))
+        To[M] { __ => (__ \ "n" \ "o" \ "p").write[BigDecimal] }.writes(BigDecimal("4.8")) mustEqual(Map("n.o.p" -> Seq("4.8")))
+      }
+
+      "date" in { skipped }
+      "joda date" in { skipped }
+      "joda local data" in { skipped }
+      "sql date" in { skipped }
+
+      "Boolean" in {
+        To[M] { __ => (__ \ "n").write[Boolean] }.writes(true) mustEqual(Map("n" -> Seq("true")))
+        To[M] { __ => (__ \ "n" \ "o").write[Boolean] }.writes(false) mustEqual(Map("n.o" -> Seq("false")))
+        To[M] { __ => (__ \ "n" \ "o" \ "p").write[Boolean] }.writes(true) mustEqual(Map("n.o.p" -> Seq("true")))
+      }
+
+      "String" in {
+        To[M] { __ => (__ \ "n").write[String] }.writes("foo") mustEqual(Map("n" -> Seq("foo")))
+        To[M] { __ => (__ \ "n" \ "o").write[String] }.writes("foo") mustEqual(Map("n.o" -> Seq("foo")))
+        To[M] { __ => (__ \ "n" \ "o" \ "p").write[String] }.writes("foo") mustEqual(Map("n.o.p" -> Seq("foo")))
+      }
+
+      "Option" in {
+        To[M] { __ => (__ \ "n").write[Option[String]] }.writes(Some("foo")) mustEqual(Map("n" -> Seq("foo")))
+        To[M] { __ => (__ \ "n" \ "o").write[Option[String]] }.writes(Some("foo")) mustEqual(Map("n.o" -> Seq("foo")))
+        To[M] { __ => (__ \ "n" \ "o" \ "p").write[Option[String]] }.writes(Some("foo")) mustEqual(Map("n.o.p" -> Seq("foo")))
+
+        To[M] { __ => (__ \ "n").write[Option[String]] }.writes(None) mustEqual(Map.empty)
+        To[M] { __ => (__ \ "n" \ "o").write[Option[String]] }.writes(None) mustEqual(Map.empty)
+        To[M] { __ => (__ \ "n" \ "o" \ "p").write[Option[String]] }.writes(None) mustEqual(Map.empty)
+      }
+
+      "Map[String, Seq[V]]" in {
+        import Rules.{ map => mm }
+
+        To[M] { __ => (__ \ "n").write[Map[String, Seq[String]]] }.writes(Map("foo" -> Seq("bar"))) mustEqual((Map("n.foo" -> Seq("bar"))))
+        To[M] { __ => (__ \ "n").write[Map[String, Seq[Int]]] }.writes(Map("foo" -> Seq(4))) mustEqual((Map("n.foo" -> Seq("4"))))
+        To[M] { __ => (__ \ "n" \ "o").write[Map[String, Seq[Int]]] }.writes(Map("foo" -> Seq(4))) mustEqual((Map("n.o.foo" -> Seq("4"))))
+        To[M] { __ => (__ \ "n" \ "o").write[Map[String, Int]] }.writes(Map("foo" -> 4)) mustEqual((Map("n.o.foo" -> Seq("4"))))
+        To[M] { __ => (__ \ "n" \ "o").write[Map[String, Int]] }.writes(Map.empty) mustEqual(Map.empty)
+      }
+
+      "Traversable" in {
+        import Rules.{ traversable => tr } // avoid shadowing caused by specs
+        To[M] { __ => (__ \ "n").write[Traversable[String]] }.writes(Array("foo", "bar").toTraversable) mustEqual((Map("n[0]" -> Seq("foo"), "n[1]" -> Seq("bar"))))
+        To[M] { __ => (__ \ "n" \ "o").write[Traversable[String]] }.writes(Array("foo", "bar").toTraversable) mustEqual((Map("n.o[0]" -> Seq("foo"), "n.o[1]" -> Seq("bar"))))
+        To[M] { __ => (__ \ "n" \ "o" \ "p").write[Traversable[String]] }.writes(Array("foo", "bar").toTraversable) mustEqual((Map("n.o.p[0]" -> Seq("foo"), "n.o.p[1]" -> Seq("bar"))))
+
+        To[M] { __ => (__ \ "n").write[Traversable[String]] }.writes(Array().toTraversable) mustEqual(Map.empty)
+        To[M] { __ => (__ \ "n" \ "o").write[Traversable[String]] }.writes(Array().toTraversable) mustEqual(Map.empty)
+        To[M] { __ => (__ \ "n" \ "o" \ "p").write[Traversable[String]] }.writes(Array().toTraversable) mustEqual(Map.empty)
+      }
+
+      "Array" in {
+        To[M] { __ => (__ \ "n").write[Array[String]] }.writes(Array("foo", "bar")) mustEqual((Map("n[0]" -> Seq("foo"), "n[1]" -> Seq("bar"))))
+        To[M] { __ => (__ \ "n" \ "o").write[Array[String]] }.writes(Array("foo", "bar")) mustEqual((Map("n.o[0]" -> Seq("foo"), "n.o[1]" -> Seq("bar"))))
+        To[M] { __ => (__ \ "n" \ "o" \ "p").write[Array[String]] }.writes(Array("foo", "bar")) mustEqual((Map("n.o.p[0]" -> Seq("foo"), "n.o.p[1]" -> Seq("bar"))))
+
+        To[M] { __ => (__ \ "n").write[Array[String]] }.writes(Array()) mustEqual(Map.empty)
+        To[M] { __ => (__ \ "n" \ "o").write[Array[String]] }.writes(Array()) mustEqual(Map.empty)
+        To[M] { __ => (__ \ "n" \ "o" \ "p").write[Array[String]] }.writes(Array()) mustEqual(Map.empty)
+      }
+
+      "Seq" in {
+        To[M] { __ => (__ \ "n").write[Seq[String]] }.writes(Seq("foo", "bar")) mustEqual((Map("n[0]" -> Seq("foo"), "n[1]" -> Seq("bar"))))
+        To[M] { __ => (__ \ "n" \ "o").write[Seq[String]] }.writes(Seq("foo", "bar")) mustEqual((Map("n.o[0]" -> Seq("foo"), "n.o[1]" -> Seq("bar"))))
+        To[M] { __ => (__ \ "n" \ "o" \ "p").write[Seq[String]] }.writes(Seq("foo", "bar")) mustEqual((Map("n.o.p[0]" -> Seq("foo"), "n.o.p[1]" -> Seq("bar"))))
+
+        To[M] { __ => (__ \ "n").write[Seq[String]] }.writes(Nil) mustEqual(Map.empty)
+        To[M] { __ => (__ \ "n" \ "o").write[Seq[String]] }.writes(Nil) mustEqual(Map.empty)
+        To[M] { __ => (__ \ "n" \ "o" \ "p").write[Seq[String]] }.writes(Nil) mustEqual(Map.empty)
+      }
+    }
+
     "compose" in {
       val w = To[M] { __ =>
         ((__ \ "email").write[Option[String]] ~
