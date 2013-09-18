@@ -276,9 +276,10 @@ object PlayBuild extends Build {
   // This project is just for testing Play, not really a public artifact
   lazy val PlayIntegrationTestProject = PlayRuntimeProject("Play-Integration-Test", "play-integration-test")
     .settings(
-      parallelExecution in Test := false
+      parallelExecution in Test := false,
+      libraryDependencies := integrationTestDependencies
     )
-    .dependsOn(PlayProject, PlayTestProject)
+    .dependsOn(PlayProject % "test->test", PlayTestProject)
 
   lazy val PlayCacheProject = PlayRuntimeProject("Play-Cache", "play-cache")
     .settings(libraryDependencies := playCacheDeps)
