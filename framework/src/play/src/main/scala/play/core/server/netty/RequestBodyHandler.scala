@@ -95,9 +95,12 @@ private[server] trait RequestBodyHandler {
         }
       }
 
-      override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-        e.getCause().printStackTrace();
-        e.getChannel().close(); /*really? */
+      override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) = {
+        e.getCause match {
+          case e: NullPointerException => Play.logger.debug("NPE thrown in RequestBodyHandler, parsing probably ended early", e)
+          case other => Play.logger.error("Error in request body handler", e.getCause)
+        }
+        e.getChannel.close() /*really? */
       }
       override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
         pushChunk(ctx, EOF)
