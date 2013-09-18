@@ -271,10 +271,9 @@ object MappingsSpec extends Specification {
         "password" -> "s3cr3t",
         "verify" -> "bam")
 
-      // XXX: that's ugly
       val passRule = In[JsValue] { __ =>
         ((__ \ "password").read(notEmpty) ~ (__ \ "verify").read(notEmpty))
-          .tupled.compose(Rule[(String, String), String]{ t => Rules.equalTo(t._1).validate(t._2) }.repath(_ => (Path \ "verify")))
+          .tupled.compose(Rule.uncurry(Rules.equalTo[String]).repath(_ => (Path \ "verify")))
       }
 
       val rule = In[JsValue] { __ =>

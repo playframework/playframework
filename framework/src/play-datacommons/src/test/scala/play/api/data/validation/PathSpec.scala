@@ -38,6 +38,7 @@ object PathSpec extends Specification {
     }
 
     import Rules._
+    import PM._
     val valid: M = Map(
       "firstname" -> Seq("Julien"),
       "lastname" -> Seq("Tournay"),
@@ -257,10 +258,9 @@ object PathSpec extends Specification {
         "password" -> Seq("s3cr3t"),
         "verify" -> Seq("bam"))
 
-      // XXX: that's ugly
       val passRule = In[M] { __ =>
         ((__ \ "password").read(notEmpty) ~ (__ \ "verify").read(notEmpty))
-          .tupled.compose(Rule[(String, String), String]{ t => Rules.equalTo(t._1).validate(t._2) }.repath(_ => (Path \ "verify")))
+          .tupled.compose(Rule.uncurry(Rules.equalTo[String]).repath(_ => (Path \ "verify")))
       }
 
       val rule = In[M] { __ =>

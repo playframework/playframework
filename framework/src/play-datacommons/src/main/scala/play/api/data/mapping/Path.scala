@@ -26,7 +26,7 @@ object \: {
 
 
 // TODO: cleanup
-case class Reader[I](path: Path = Path(Nil)) {
+case class Formatter[I](path: Path = Path(Nil)) {
   /**
   * When applied, the rule will lookup for data at the given path, and apply the given Constraint on it
   * {{{
@@ -50,9 +50,13 @@ case class Reader[I](path: Path = Path(Nil)) {
   def read[O](implicit r: Path => Rule[I, O]): Rule[I, O] =
     read(Rule.zero[O])(r)
 
-  def \(key: String): Reader[I] = Reader(path \ key)
-  def \(idx: Int): Reader[I] = Reader(path \ idx)
-  def \(child: PathNode): Reader[I] = Reader(path \ child)
+  def write[O](implicit w: Path => Write[O, I]): Write[O, I] = w(path)
+  def write[J, O](format: Write[O, J])(implicit w: Path => Write[J, I]): Write[O, I] =
+    Write((w(path).writes _) compose (format.writes _))
+
+  def \(key: String): Formatter[I] = Formatter(path \ key)
+  def \(idx: Int): Formatter[I] = Formatter(path \ idx)
+  def \(child: PathNode): Formatter[I] = Formatter(path \ child)
 
 }
 
@@ -83,10 +87,10 @@ class Path(val path: List[PathNode]) {
   def ++(other: Path) = this compose other
 
   def read[I, J, O](sub: Rule[J, O])(implicit r: Path => Rule[I, J]): Rule[I, O] =
-    Reader[I](this).read(sub)
+    Formatter[I](this).read(sub)
 
   def read[I, O](implicit r: Path => Rule[I, O]): Rule[I, O] =
-    Reader[I](this).read[O]
+    Formatter[I](this).read[O]
 
   /**
   * Creates a Writes the serialize data to the desired type
@@ -99,9 +103,10 @@ class Path(val path: List[PathNode]) {
   * @param m a lookup function. This function finds data in a structure of type I, and coerce it to tyoe O
   * @return A Rule validating the presence of data at this Path
   */
-  def write[I, O](w: Path => Write[I, O]): Write[I, O] = w(this)
+  def write[I, O](implicit w: Path => Write[I, O]): Write[I, O] =
+    Formatter[O](this).write(w)
   def write[I, J, O](format: Write[I, J])(implicit w: Path => Write[J, O]): Write[I, O] =
-    Write((w(this).writes _) compose (format.writes _))
+    Formatter[O](this).write(format)
 
   override def toString = this.path match {
     case Nil => "/"

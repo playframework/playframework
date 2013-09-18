@@ -24,8 +24,12 @@ package object mapping {
 
 	// TODO: use a trait
 	def In[I] = new {
-    def apply[O](f: Reader[I] => Rule[I, O]) =
-      f(Reader[I]())
+    def apply[O](f: Formatter[I] => Rule[I, O]) =
+      f(Formatter[I]())
+  }
+  def To[I] = new {
+    def apply[O](f: Formatter[I] => Write[O, I]) =
+      f(Formatter[I]())
   }
 
 }

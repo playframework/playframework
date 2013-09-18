@@ -2,9 +2,12 @@ package play.api.data.mapping
 
 import scala.language.implicitConversions
 
-// TODO: this is really just a function...
 trait Write[I, O] {
   def writes(i: I): O
+
+  def map[B](f: O => B) = Write[I, B] {
+    f compose (this.writes _)
+  }
 }
 
 trait DefaultMonoids {
@@ -21,7 +24,6 @@ trait DefaultWrites {
 
   import PM._
 
-  def string = Write(identity[String] _)
   def int = Write((i: Int) => i.toString)
 
   // TODO
@@ -30,32 +32,38 @@ trait DefaultWrites {
     Writes((i: I) => w.writes(i))
   */
 
-  implicit def writeString(p: Path) = Write { x: String =>
-    Map(asKey(p) -> Seq(x))
+  implicit def writeM[O](implicit w: Write[O, M]) = Write[O, PM] {
+    o => toPM(w.writes(o))
   }
 
-  implicit def writeSeq[O](p: Path)(implicit w: Path => Write[O, Rules.M]) = Write{ os: Seq[O] =>
-    os.zipWithIndex
-      .toMap
-      .flatMap{ case(o, i) =>
-        w(p \ i).writes(o)
-      }
+  implicit def writeSeq[O](implicit w: Write[O, PM]) =
+    Write[Seq[O], PM]{ os =>
+      os.zipWithIndex
+        .toMap
+        .flatMap{ case(o, i) =>
+          repathPM(w.writes(o), (Path() \ i) ++ _)
+        }
+    }
+
+  implicit def write[I](path: Path)(implicit w: Write[I, PM]) = Write[I, M] { i =>
+    toM(repathPM(w.writes(i), path ++ _))
   }
 
-  implicit def writeMap(path: Path) = Write{ m: Map[String, Seq[String]] =>
-    toM(toPM(m).map{ case (p, v) => (path ++ p) -> v })
+  implicit def writePM[I](implicit w: Write[I, Seq[String]]) = Write[I, PM]{ i =>
+    Map(Path() -> w.writes(i))
   }
 
-  def seq[I, O](w: Write[I, O]) = Write {
-    (_: Seq[I]).map(w.writes _)
+  implicit def head[I, O](implicit w: Write[I, O]): Write[I, Seq[O]] = w.map(Seq(_))
+
+  // def seq[I, O](implicit w: Write[I, O]) = Write {
+  //   (_: Seq[I]).map(w.writes _)
+  // }
+
+  implicit def option[I](implicit w: Write[I, Seq[String]]) = Write[Option[I], PM] { m =>
+    m.map(s => Map(Path() -> w.writes(s)))
+     .getOrElse(Map.empty)
   }
 
-  def option[I, O](w: Write[I, O]) = (p: Path) => Write {
-    m: Option[I] => m.map(s => Map(asKey(p) -> Seq(w.writes(s)))).getOrElse(Map.empty)
-  }
-
-  def writeI[I]: Write[I, I] =
-    Write(identity[I] _)
 }
 
 object Write extends DefaultWrites with DefaultMonoids {
@@ -64,8 +72,7 @@ object Write extends DefaultWrites with DefaultMonoids {
     def writes(i: I) = w(i)
   }
 
-  def apply[I, O](i: I)(implicit w: Write[I, O]): O =
-    w.writes(i)
+  implicit def zero[I]: Write[I, I] = Write(identity[I] _)
 
   import play.api.libs.functional._
   implicit def functionalCanBuildWrite[O](implicit m: Monoid[O]) = new FunctionalCanBuild[({type f[I] = Write[I, O]})#f] {

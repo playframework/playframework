@@ -1,7 +1,6 @@
 package play.api.data.mapping
 
 object PM {
-  import Rules.PM
 
   import scala.util.parsing.combinator.{ Parsers, RegexParsers }
   object PathParser extends RegexParsers {
@@ -15,6 +14,9 @@ object PM {
     def parse(s: String) = parseAll(path, new scala.util.parsing.input.CharArrayReader(s.toArray))
   }
 
+  type M  = Map[String, Seq[String]]
+  type PM = Map[Path, Seq[String]]
+
   def find(path: Path)(data: PM): PM = data.flatMap {
     case (p, errs) if p.path.startsWith(path.path) =>
       Map(Path(p.path.drop(path.path.length)) -> errs)
@@ -22,10 +24,16 @@ object PM {
       Map.empty[Path, Seq[String]]
   }
 
-  def toPM(m: Map[String, Seq[String]]) =
+  def repathPM(m: PM, f: Path => Path): PM
+    = m.map{ case (p, v) => f(p) -> v }
+
+  def repath(m: M, f: Path => Path): M
+    = toM(repathPM(toPM(m), f))
+
+  def toPM(m: Map[String, Seq[String]]): PM =
     m.map { case (p, v) => asPath(p) -> v }
 
-  def toM(m: Map[Path, Seq[String]]) =
+  def toM(m: Map[Path, Seq[String]]): M =
     m.map { case (p, v) => asKey(p) -> v }
 
   private def asNodeKey(n: PathNode): String = n match {
@@ -50,6 +58,8 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
   import play.api.libs.functional._
   import play.api.libs.functional.syntax._
   // import play.api.mvc.Request
+
+  import PM._
 
   private def stringAs[T](f: PartialFunction[BigDecimal, Validation[ValidationError, T]])(args: Any*) =
     Rule.fromMapping[String, T]{
@@ -108,9 +118,6 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
 
   // implicit def pickInRequest[I, O](p: Path[Request[I]])(implicit pick: Path[I] => Mapping[String, I, O]): Mapping[String, Request[I], O] =
   //   request => pick(Path[I](p.path))(request.body)
-
-  type M  = Map[String, Seq[String]]
-  type PM = Map[Path, Seq[String]]
 
   implicit def map[O](implicit r: Rule[Seq[String], O]): Rule[M, Map[String, O]] = {
     val toSeq = Rule.zero[M].fmap(_.toSeq)

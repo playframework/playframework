@@ -41,10 +41,12 @@ trait Rule[I, O] {
 
 object Rule {
 
+  def uncurry[A, B, C](f: A => Rule[B, C]): Rule[(A, B), C] =
+    Rule{ case (a, b) => f(a).validate(b) }
+
   import play.api.libs.functional._
 
-  implicit def IasI[I] = Rule[I, I](i => Success(i))
-  def zero[O] = Rule[O, O](Success.apply)
+  implicit def zero[O] = Rule[O, O](Success.apply)
 
   def apply[I, O](m: Mapping[(Path, Seq[ValidationError]), I, O]) = new Rule[I, O] {
     def validate(data: I): VA[I, O] = m(data)
