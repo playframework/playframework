@@ -22,7 +22,7 @@ import java.net.URI
 import java.io.IOException
 
 
-private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
+private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
 
   private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
 
