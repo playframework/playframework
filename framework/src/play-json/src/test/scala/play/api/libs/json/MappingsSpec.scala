@@ -100,15 +100,28 @@ object MappingsSpec extends Specification {
 
       "date" in {
         import java.util.Date
-        val f = new java.text.SimpleDateFormat("yyyy-MM-dd")
-
+        val f = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE)
         (Path \ "n").read(date).validate(Json.obj("n" -> "1985-09-10")) mustEqual(Success(f.parse("1985-09-10")))
         (Path \ "n").read(date).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.date", "yyyy-MM-dd")))))
       }
 
+      "iso date" in {
+        import java.util.Date
+        val f = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE)
+        (Path \ "n").read(isoDate).validate(Json.obj("n" -> "1985-09-10T00:00:00+02:00")) mustEqual(Success(f.parse("1985-09-10")))
+        (Path \ "n").read(isoDate).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.iso8601")))))
+      }
+
       "joda date" in { skipped }
       "joda local data" in { skipped }
-      "sql date" in { skipped }
+
+      "sql date" in {
+        import java.util.Date
+        val f = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE)
+        val dd = f.parse("1985-09-10")
+        val ds = new java.sql.Date(dd.getTime())
+        (Path \ "n").read(sqlDate).validate(Json.obj("n" -> "1985-09-10")) mustEqual(Success(ds))
+      }
 
       "Boolean" in {
         (Path \ "n").read[JsValue, Boolean].validate(Json.obj("n" -> true)) mustEqual(Success(true))

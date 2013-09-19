@@ -1,5 +1,45 @@
 package play.api.data.mapping
 
+trait DateRules {
+
+  def date(format: String = "yyyy-MM-dd", corrector: String => String = identity) = Rule.fromMapping[String, java.util.Date]{ s =>
+    def parseDate(input: String): Option[java.util.Date] = {
+      // REMEMBER THAT SIMPLEDATEFORMAT IS NOT THREADSAFE
+      val df = new java.text.SimpleDateFormat(format)
+      df.setLenient(false)
+      try { Some(df.parse(input)) } catch {
+        case _: java.text.ParseException => None
+      }
+    }
+
+    parseDate(corrector(s)) match {
+      case Some(d) => Success(d)
+      case None => Failure(Seq(ValidationError("validation.date", format)))
+    }
+  }
+
+  implicit val date: Rule[String, java.util.Date] = date()
+
+  /**
+  * ISO 8601 Reads
+  */
+  val isoDate = Rule.fromMapping[String, java.util.Date]{ s =>
+    import scala.util.Try
+    import java.util.Date
+    import org.joda.time.format.ISODateTimeFormat
+    val parser = ISODateTimeFormat.dateOptionalTimeParser()
+    Try(parser.parseDateTime(s).toDate())
+      .map(Success.apply)
+      .getOrElse(Failure(Seq(ValidationError("validation.iso8601"))))
+  }
+
+  def sqlDateRule(pattern: String, corrector: String => String = identity): Rule[String, java.sql.Date] =
+    date(pattern, corrector).fmap(d => new java.sql.Date(d.getTime))
+
+  implicit val sqlDate = sqlDateRule("yyyy-MM-dd")
+
+}
+
 trait GenericRules {
 
   def validateWith[From](msg: String, args: Any*)(pred: From => Boolean) = Rule.fromMapping[From, From] {
@@ -49,7 +89,7 @@ trait GenericRules {
   def noConstraint[From]: Constraint[From] = Success(_)
 }
 
-trait DefaultRules[I] extends GenericRules {
+trait DefaultRules[I] extends GenericRules with DateRules {
   import scala.language.implicitConversions
   import play.api.libs.functional._
 
@@ -59,43 +99,6 @@ trait DefaultRules[I] extends GenericRules {
   }
 
   def ignored[O](x: O) = Rule[I, O](_ => Success(x))
-
-  def date(format: String = "yyyy-MM-dd", corrector: String => String = identity) = Rule.fromMapping[String, java.util.Date]{ s =>
-    def parseDate(input: String): Option[java.util.Date] = {
-      // REMEMBER THAT SIMPLEDATEFORMAT IS NOT THREADSAFE
-      val df = new java.text.SimpleDateFormat(format)
-      df.setLenient(false)
-      try { Some(df.parse(input)) } catch {
-        case _: java.text.ParseException => None
-      }
-    }
-
-    parseDate(corrector(s)) match {
-      case Some(d) => Success(d)
-      case None => Failure(Seq(ValidationError("validation.date", format)))
-    }
-  }
-
-  implicit val date: Rule[String, java.util.Date] = date()
-
-  /**
-   * ISO 8601 Reads
-   */
-  val isoDate = date("yyyy-MM-dd'T'HH:mm:ssz", { input =>
-    // NOTE: SimpleDateFormat uses GMT[-+]hh:mm for the TZ so need to refactor a bit
-    // 1994-11-05T13:15:30Z -> 1994-11-05T13:15:30GMT-00:00
-    // 1994-11-05T08:15:30-05:00 -> 1994-11-05T08:15:30GMT-05:00
-    if (input.endsWith("Z")) {
-      input.substring(0, input.length() - 1) + "GMT-00:00"
-    } else {
-      val inset = 6
-
-      val s0 = input.substring(0, input.length - inset)
-      val s1 = input.substring(input.length - inset, input.length)
-
-      s0 + "GMT" + s1
-    }
-  })
 
   protected def option[J, O](r: Rule[J, O], noneValues: Rule[J, J]*)(implicit pick: Path => Rule[I, J]) = (path: Path) =>
     Rule[I, Option[O]] {
