@@ -21,6 +21,33 @@ trait DateRules {
   implicit val date: Rule[String, java.util.Date] = date()
 
   /**
+   * Rule for the `org.joda.time.DateTime` type.
+   *
+   * @param pattern a date pattern, as specified in `java.text.SimpleDateFormat`.
+   * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks
+   */
+  def jodaDateRule(pattern: String, corrector: String => String = identity) = Rule.fromMapping[String, org.joda.time.DateTime] { s =>
+    import scala.util.Try
+    import org.joda.time.DateTime
+
+    val df = org.joda.time.format.DateTimeFormat.forPattern(pattern)
+    Try(df.parseDateTime(corrector(s)))
+      .map(Success.apply)
+      .getOrElse(Failure(Seq(ValidationError("validation.expected.jodadate.format", pattern))))
+  }
+
+  implicit def jodaTime = Rule.fromMapping[Long, org.joda.time.DateTime] { d =>
+    import org.joda.time.DateTime
+    Success(new DateTime(d.toLong))
+  }
+
+  /**
+   * the default implicit JodaDate reads
+   */
+  implicit val jodaDate = jodaDateRule("yyyy-MM-dd")
+
+
+  /**
   * ISO 8601 Reads
   */
   val isoDate = Rule.fromMapping[String, java.util.Date]{ s =>

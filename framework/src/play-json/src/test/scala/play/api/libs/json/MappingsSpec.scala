@@ -112,8 +112,24 @@ object MappingsSpec extends Specification {
         (Path \ "n").read(isoDate).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.iso8601")))))
       }
 
-      "joda date" in { skipped }
-      "joda local data" in { skipped }
+      "joda" in {
+        import org.joda.time.DateTime
+        val f = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE)
+        val dd = f.parse("1985-09-10")
+        val jd = new DateTime(dd)
+
+        "date" in {
+          (Path \ "n").read(jodaDate).validate(Json.obj("n" -> "1985-09-10")) mustEqual(Success(jd))
+          (Path \ "n").read(jodaDate).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.expected.jodadate.format", "yyyy-MM-dd")))))
+        }
+
+        "time" in {
+          (Path \ "n").read(jodaTime).validate(Json.obj("n" -> dd.getTime)) mustEqual(Success(jd))
+          (Path \ "n").read(jodaDate).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.expected.jodadate.format", "yyyy-MM-dd")))))
+        }
+      }
+
+      "joda local date" in { skipped }
 
       "sql date" in {
         import java.util.Date
