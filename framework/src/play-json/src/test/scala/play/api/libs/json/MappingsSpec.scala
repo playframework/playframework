@@ -99,10 +99,11 @@ object MappingsSpec extends Specification {
       }
 
       "date" in {
+        import java.util.Date
         val f = new java.text.SimpleDateFormat("yyyy-MM-dd")
 
-        (Path \ "n").read(string compose date).validate(Json.obj("n" -> "1985-09-10")) mustEqual(Success(f.parse("1985-09-10")))
-        (Path \ "n").read(string compose date).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.date", "yyyy-MM-dd")))))
+        (Path \ "n").read(date).validate(Json.obj("n" -> "1985-09-10")) mustEqual(Success(f.parse("1985-09-10")))
+        (Path \ "n").read(date).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.date", "yyyy-MM-dd")))))
       }
 
       "joda date" in { skipped }
@@ -196,12 +197,12 @@ object MappingsSpec extends Specification {
     "validate deep" in {
       val p = (Path \ "informations" \ "label")
 
-      In[JsValue] { __ =>
+      From[JsValue] { __ =>
         (__ \ "informations").read(
           (__ \ "label").read(notEmpty))
       }.validate(valid) mustEqual(Success("Personal"))
 
-      In[JsValue] { __ =>
+      From[JsValue] { __ =>
         (__ \ "informations").read(
           (__ \ "label").read(notEmpty))
       }.validate(invalid) mustEqual(Failure(Seq(p -> Seq(ValidationError("validation.nonemptytext")))))
@@ -228,13 +229,12 @@ object MappingsSpec extends Specification {
     "compose validations" in {
       import play.api.libs.functional.syntax._
 
-      val nonEmptyText = string compose notEmpty
-      In[JsValue]{ __ =>
+      From[JsValue]{ __ =>
         ((__ \ "firstname").read(notEmpty) ~
          (__ \ "lastname").read(notEmpty)).tupled
       }.validate(valid) mustEqual Success("Julien" -> "Tournay")
 
-      In[JsValue]{ __ =>
+      From[JsValue]{ __ =>
         ((__ \ "firstname").read(notEmpty) ~
          (__ \ "lastname").read(notEmpty) ~
          (__ \ "informations" \ "label").read(notEmpty)).tupled
@@ -245,7 +245,7 @@ object MappingsSpec extends Specification {
       (Path \ "foo").read(seq(notEmpty)).validate(Json.obj("foo" -> Seq("bar")))
         .get must haveTheSameElementsAs(Seq("bar"))
 
-      In[JsValue]{ __ =>
+      From[JsValue]{ __ =>
         (__ \ "foo").read(
           (__ \ "foo").read(seq(notEmpty)))
       }.validate(Json.obj("foo" -> Json.obj("foo" -> Seq("bar"))))
@@ -271,12 +271,12 @@ object MappingsSpec extends Specification {
         "password" -> "s3cr3t",
         "verify" -> "bam")
 
-      val passRule = In[JsValue] { __ =>
+      val passRule = From[JsValue] { __ =>
         ((__ \ "password").read(notEmpty) ~ (__ \ "verify").read(notEmpty))
           .tupled.compose(Rule.uncurry(Rules.equalTo[String]).repath(_ => (Path \ "verify")))
       }
 
-      val rule = In[JsValue] { __ =>
+      val rule = From[JsValue] { __ =>
         ((__ \ "login").read(notEmpty) ~ passRule).tupled
       }
 
@@ -298,11 +298,11 @@ object MappingsSpec extends Specification {
       val typeFailure = Failure(Seq(Path() -> Seq(ValidationError("validation.unknownType"))))
 
       "by trying all possible Rules" in {
-        val rb: Rule[JsValue, A] = In[JsValue]{ __ =>
+        val rb: Rule[JsValue, A] = From[JsValue]{ __ =>
           ((__ \ "name").read[String] ~ (__ \ "foo").read[Int])(B.apply _)
         }
 
-        val rc: Rule[JsValue, A] = In[JsValue]{ __ =>
+        val rc: Rule[JsValue, A] = From[JsValue]{ __ =>
           ((__ \ "name").read[String] ~ (__ \ "bar").read[Int])(C.apply _)
         }
 
@@ -315,7 +315,7 @@ object MappingsSpec extends Specification {
 
       "by dicriminating on fields" in {
 
-        val rule = In[JsValue] { __ =>
+        val rule = From[JsValue] { __ =>
           (__ \ "name").read[String].flatMap[A] {
             case "B" => ((__ \ "name").read[String] ~ (__ \ "foo").read[Int])(B.apply _)
             case "C" => ((__ \ "name").read[String] ~ (__ \ "bar").read[Int])(C.apply _)
@@ -362,17 +362,15 @@ object MappingsSpec extends Specification {
           "email" -> "fakecontact@gmail.com",
           "phones" -> Seq("01.23.45.67.89", "98.76.54.32.10"))))
 
-      val nonEmptyText = string compose notEmpty
-
-      val infoValidation = In[JsValue] { __ =>
-         ((__ \ "label").read(nonEmptyText) ~
+      val infoValidation = From[JsValue] { __ =>
+         ((__ \ "label").read(notEmpty) ~
           (__ \ "email").read(option(email)) ~
-          (__ \ "phones").read(seq(nonEmptyText))) (ContactInformation.apply _)
+          (__ \ "phones").read(seq(notEmpty))) (ContactInformation.apply _)
       }
 
-      val contactValidation = In[JsValue] { __ =>
-        ((__ \ "firstname").read(nonEmptyText) ~
-         (__ \ "lastname").read(nonEmptyText) ~
+      val contactValidation = From[JsValue] { __ =>
+        ((__ \ "firstname").read(notEmpty) ~
+         (__ \ "lastname").read(notEmpty) ~
          (__ \ "company").read[Option[String]] ~
          (__ \ "informations").read(seq(infoValidation))) (Contact.apply _)
       }

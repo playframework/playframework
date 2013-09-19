@@ -1,9 +1,9 @@
 package play.api.data.mapping
 
-trait In[I] {
+trait From[I] {
 	def apply[O](f: Formatter[I] => Rule[I, O]) = f(Formatter[I]())
 }
-object In { def apply[I] = new In[I]{} }
+object From { def apply[I] = new From[I]{} }
 
 trait To[I] {
 	def apply[O](f: Formatter[I] => Write[O, I]) = f(Formatter[I]())

@@ -76,7 +76,7 @@ trait DefaultRules[I] extends GenericRules {
     }
   }
 
-  val date: Rule[String, java.util.Date] = date()
+  implicit val date: Rule[String, java.util.Date] = date()
 
   /**
    * ISO 8601 Reads

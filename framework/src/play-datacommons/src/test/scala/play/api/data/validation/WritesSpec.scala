@@ -2,7 +2,6 @@ package play.api.data.mapping
 
 import org.specs2.mutable._
 import play.api.libs.functional.syntax._
-import scala.language.reflectiveCalls
 
 class WritesSpec extends Specification {
 
