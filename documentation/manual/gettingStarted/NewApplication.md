@@ -39,10 +39,10 @@ In `project/plugins.sbt`, add:
 resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
 
 // Use the Play sbt plugin for Play projects
-addSbtPlugin("play" % "sbt-plugin" % "2.1.0")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "%PLAY_VERSION%")
 ```
 
-Be sure to replace `2.1.0` here by the exact version you want to use. If you want to use a snapshot version, you will have to specify this additional resolver: 
+Be sure to replace %PLAY_VERSION% here with the exact version you want to use. If you want to use a snapshot version, you will have to specify this additional resolver: 
 
 ```
 // Typesafe snapshots
