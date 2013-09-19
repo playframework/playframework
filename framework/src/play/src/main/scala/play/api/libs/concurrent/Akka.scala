@@ -1,7 +1,7 @@
 package play.api.libs.concurrent
 
 import play.api._
-
+import play.core.ClosableLazy
 import scala.concurrent.Future
 import akka.actor.ActorSystem
 
@@ -48,21 +48,27 @@ object Akka {
  */
 class AkkaPlugin(app: Application) extends Plugin {
 
-  private var applicationSystemEnabled = false
+  private val lazySystem = new ClosableLazy[ActorSystem] {
 
-  lazy val applicationSystem: ActorSystem = {
-    applicationSystemEnabled = true
-    val system = ActorSystem("application", app.configuration.underlying, app.classloader)
-    Play.logger.info("Starting application default Akka system.")
-    system
+    protected type ResourceToClose = ActorSystem
+
+    protected def create(): CreateResult = {
+      val system = ActorSystem("application", app.configuration.underlying, app.classloader)
+      Play.logger.info("Starting application default Akka system.")
+      CreateResult(system, system)
+    }
+
+    protected def close(systemToClose: ActorSystem) = {
+      Play.logger.info("Shutdown application default Akka system.")
+      systemToClose.shutdown()
+      systemToClose.awaitTermination()
+    }
   }
 
+  def applicationSystem: ActorSystem = lazySystem.get()
+
   override def onStop() {
-    if (applicationSystemEnabled) {
-      Play.logger.info("Shutdown application default Akka system.")
-      applicationSystem.shutdown()
-      applicationSystem.awaitTermination()
-    }
+    lazySystem.close()
   }
 
 }
