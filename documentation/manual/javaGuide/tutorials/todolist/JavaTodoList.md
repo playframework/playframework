@@ -392,7 +392,18 @@ public class Task extends Model {
 
 We made the `Task` class extend the `play.db.ebean.Model` super class to have access to Play built-in Ebean helper. We also added proper persistence annotations, and created a `find` helper to initiate queries.
 
-Let’s implement the CRUD operations:
+Next there need to be done some changes in the configuration file. Open `application.conf` and uncomment the following lines:
+
+```
+#db.default.driver=org.h2.Driver
+#db.default.url="jdbc:h2:mem:play"
+#db.default.user=sa
+#db.default.password=""
+
+#ebean.default="models.*"
+```
+
+Finally, let’s implement the CRUD operations:
 
 ```
 public static List<Task> all() {
@@ -407,6 +418,10 @@ public static void delete(Long id) {
   find.ref(id).delete();
 }
 ```
+
+When you now reload the web page you shoud see the following error message: `Database 'default' needs evolution!`
+
+Click the button `Apply this script now!`, to instruct play to create all necessary database files.
 
 Now you can play again with the application, creating new tasks should work.
 
