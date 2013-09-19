@@ -13,7 +13,8 @@ object ApplicationBuild extends Build {
     cache)
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
-                  requireJs += "main.js"
+                  requireJs += "main.js",
+                  play.Project.emojiLogs
              )
 }
             
