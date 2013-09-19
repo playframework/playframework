@@ -21,15 +21,4 @@ package object mapping {
 	type ValidationError = play.api.data.validation.ValidationError
 	def ValidationError(message: String, args: Any*): ValidationError =
 		play.api.data.validation.ValidationError.apply(message, args:_*)
-
-	// TODO: use a trait
-	def In[I] = new {
-    def apply[O](f: Formatter[I] => Rule[I, O]) =
-      f(Formatter[I]())
-  }
-  def To[I] = new {
-    def apply[O](f: Formatter[I] => Write[O, I]) =
-      f(Formatter[I]())
-  }
-
 }
