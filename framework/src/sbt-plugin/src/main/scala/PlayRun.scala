@@ -22,29 +22,6 @@ trait PlayRun extends PlayInternalKeys {
    */
   val DocsApplication = config("docs") hide
 
-  // For some reason, jline disables echo when it creates a new console reader.
-  // When we use the reader, we also enabled echo after using it, so as long as this is lazy, and that holds true,
-  // then we won't exit SBT with echo disabled.
-  private lazy val consoleReader = new jline.console.ConsoleReader
-
-  private def waitForKey() = {
-    def waitEOF() {
-      consoleReader.readCharacter() match {
-        case 4 => // STOP
-        case 11 => consoleReader.clearScreen(); waitEOF()
-        case 10 => println(); waitEOF()
-        case _ => waitEOF()
-      }
-
-    }
-    consoleReader.getTerminal.setEchoEnabled(false)
-    try {
-      waitEOF()
-    } finally {
-      consoleReader.getTerminal.setEchoEnabled(true)
-    }
-  }
-
   private def parsePort(portString: String): Int = {
     try {
       Integer.parseInt(portString)
