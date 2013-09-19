@@ -51,7 +51,7 @@ case class Formatter[I](path: Path = Path(Nil)) {
     read(Rule.zero[O])(r)
 
   def write[O](implicit w: Path => Write[O, I]): Write[O, I] = w(path)
-  def write[J, O](format: Write[O, J])(implicit w: Path => Write[J, I]): Write[O, I] =
+  def write[O, J](format: Write[O, J])(implicit w: Path => Write[J, I]): Write[O, I] =
     Write((w(path).writes _) compose (format.writes _))
 
   def \(key: String): Formatter[I] = Formatter(path \ key)
@@ -103,10 +103,11 @@ class Path(val path: List[PathNode]) {
   * @param m a lookup function. This function finds data in a structure of type I, and coerce it to tyoe O
   * @return A Rule validating the presence of data at this Path
   */
-  def write[I, O](implicit w: Path => Write[I, O]): Write[I, O] =
-    Formatter[O](this).write(w)
-  def write[I, J, O](format: Write[I, J])(implicit w: Path => Write[J, O]): Write[I, O] =
-    Formatter[O](this).write(format)
+  def write[O, I](implicit w: Path => Write[O, I]): Write[O, I] =
+    Formatter[I](this).write(w)
+
+  def write[O, J, I](format: Write[O, J])(implicit w: Path => Write[J, I]): Write[O, I] =
+    Formatter[I](this).write(format)
 
   override def toString = this.path match {
     case Nil => "/"

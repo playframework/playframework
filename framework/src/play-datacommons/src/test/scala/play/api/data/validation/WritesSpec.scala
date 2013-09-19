@@ -165,6 +165,20 @@ class WritesSpec extends Specification {
       }
     }
 
+    "format data" in {
+      val formatter = Write[Double, String]{ money =>
+        import java.text.NumberFormat
+        import java.util.Locale
+        val f = NumberFormat.getCurrencyInstance(Locale.FRANCE)
+        f.format(money)
+      }
+      val w = (Path \ "foo").write(formatter)
+      w.writes(500d) mustEqual(Map("foo" -> List("500,00 €")))
+
+      val w2 = To[M] { __ => (__ \ "foo").write(formatter) }
+      w2.writes(500d) mustEqual(Map("foo" -> List("500,00 €")))
+    }
+
     "compose" in {
       val w = To[M] { __ =>
         ((__ \ "email").write[Option[String]] ~
