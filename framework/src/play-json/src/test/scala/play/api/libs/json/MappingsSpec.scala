@@ -127,6 +127,13 @@ object MappingsSpec extends Specification {
           (Path \ "n").read(jodaTime).validate(Json.obj("n" -> dd.getTime)) mustEqual(Success(jd))
           (Path \ "n").read(jodaDate).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.expected.jodadate.format", "yyyy-MM-dd")))))
         }
+
+        "local date" in {
+          import org.joda.time.LocalDate
+          val ld = new LocalDate()
+          (Path \ "n").read(jodaLocalDate).validate(Json.obj("n" -> ld.toString())) mustEqual(Success(ld))
+          (Path \ "n").read(jodaLocalDate).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.expected.jodadate.format", "")))))
+        }
       }
 
       "joda local date" in { skipped }

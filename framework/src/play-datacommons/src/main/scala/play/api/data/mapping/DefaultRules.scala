@@ -46,6 +46,20 @@ trait DateRules {
    */
   implicit val jodaDate = jodaDateRule("yyyy-MM-dd")
 
+  implicit def jodaLocalDateRule(pattern: String, corrector: String => String = identity) = Rule.fromMapping[String, org.joda.time.LocalDate] { s =>
+    import scala.util.Try
+    import org.joda.time.LocalDate
+    import org.joda.time.format.{ DateTimeFormat, ISODateTimeFormat }
+
+    val df = if (pattern == "") ISODateTimeFormat.localDateParser else DateTimeFormat.forPattern(pattern)
+    Try(LocalDate.parse(corrector(s), df))
+      .map(Success.apply)
+      .getOrElse(Failure(Seq(ValidationError("validation.expected.jodadate.format", pattern))))
+  }
+  /**
+   * the default implicit joda.time.LocalDate reads
+   */
+  implicit val jodaLocalDate = jodaLocalDateRule("")
 
   /**
   * ISO 8601 Reads
@@ -64,7 +78,6 @@ trait DateRules {
     date(pattern, corrector).fmap(d => new java.sql.Date(d.getTime))
 
   implicit val sqlDate = sqlDateRule("yyyy-MM-dd")
-
 }
 
 trait GenericRules {
