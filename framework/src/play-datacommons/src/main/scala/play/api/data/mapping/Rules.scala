@@ -173,7 +173,10 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
   }.compose(r)
 
   implicit def mapPick[O](path: Path)(implicit r: Rule[M, O]): Rule[M, O] = Rule.fromMapping[M, M] { data =>
-    Success(PM.toM(PM.find(path)(PM.toPM(data))))
+    PM.toM(PM.find(path)(PM.toPM(data))) match {
+      case s if s.isEmpty => Failure(Seq(ValidationError("validation.required")))
+      case s => Success(s)
+    }
   }.compose(r)
 
   implicit def mapPickSeqMap(p: Path) = Rule.fromMapping[M, Seq[M]]({ data =>
@@ -186,7 +189,10 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
       case (i, ms) => i -> ms.foldLeft(Map.empty[Path, Seq[String]]) { _ ++ _ } // merge the submaps by index
     }.sortBy(_._1).map(e => PM.toM(e._2))
 
-    Success(submaps) // TODO: fail if empty
+    submaps match {
+      case s if s.isEmpty => Failure(Seq(ValidationError("validation.required")))
+      case s => Success(s)
+    }
   })
 
 }

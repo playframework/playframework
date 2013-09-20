@@ -138,7 +138,7 @@ trait DefaultRules[I] extends GenericRules with DateRules {
     def identity = noConstraint[T]
   }
 
-  def ignored[O](x: O) = Rule[I, O](_ => Success(x))
+  def ignored[O](x: O) = (_: Path) => Rule[I, O](_ => Success(x))
 
   protected def option[J, O](r: Rule[J, O], noneValues: Rule[J, J]*)(implicit pick: Path => Rule[I, J]) = (path: Path) =>
     Rule[I, Option[O]] {

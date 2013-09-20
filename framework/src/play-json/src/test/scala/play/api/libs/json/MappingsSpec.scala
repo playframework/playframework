@@ -190,6 +190,7 @@ object MappingsSpec extends Specification {
         import Rules.{ map => mm }
         (Path \ "n").read[JsValue, Map[String, String]].validate(Json.obj("n" -> Json.obj("foo" -> "bar"))) mustEqual(Success(Map("foo" -> "bar")))
         (Path \ "n").read[JsValue, Map[String, Int]].validate(Json.obj("n" -> Json.obj("foo" -> 4, "bar" -> 5))) mustEqual(Success(Map("foo" -> 4, "bar" -> 5)))
+        (Path \ "x").read[JsValue, Map[String, Int]].validate(Json.obj("n" -> Json.obj("foo" -> 4, "bar" -> "frack"))) mustEqual(Failure(Seq(Path \ "x" -> Seq(ValidationError("validation.required")))))
         (Path \ "n").read[JsValue, Map[String, Int]].validate(Json.obj("n" -> Json.obj("foo" -> 4, "bar" -> "frack"))) mustEqual(Failure(Seq(Path \ "n" \ "bar" -> Seq(ValidationError("validation.type-mismatch", "Int")))))
       }
 
