@@ -15,14 +15,13 @@ case class Formatter[I](path: Path = Path(Nil)) {
   /**
   * When applied, the rule will lookup for data at the given path, and apply the given Constraint on it
   * {{{
-  *   val __ = Path[JsValue]()
   *   val json = Json.parse("""{
   *      "informations": {
   *        "label": "test"
   *      }
   *   }""")
-  *   val infoValidation = (__ \ "label").read(nonEmptyText)
-  *   val v = (__ \ "informations").read(infoValidation))
+  *   val infoValidation = From[JsValue]{ __ => (__ \ "label").read(nonEmptyText) }
+  *   val v = From[JsValue]{ __ => (__ \ "informations").read(infoValidation)) }
   *   v.validate(json) == Success("test")
   * }}}
   * @param sub the constraint to apply on the subdata

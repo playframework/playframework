@@ -126,10 +126,51 @@ object PathSpec extends Specification {
         From[M] { __ => (__ \ "n").read[BigDecimal] }.validate(Map("n" -> Seq("4.8"))) mustEqual(Success(BigDecimal(4.8)))
       }
 
-      "date" in { skipped }
-      "joda date" in { skipped }
-      "joda local data" in { skipped }
-      "sql date" in { skipped }
+      "date" in {
+        import java.util.Date
+        val f = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE)
+        (Path \ "n").read(date).validate(Map("n" -> Seq("1985-09-10"))) mustEqual(Success(f.parse("1985-09-10")))
+        (Path \ "n").read(date).validate(Map("n" -> Seq("foo"))) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.date", "yyyy-MM-dd")))))
+      }
+
+      "iso date" in {
+        import java.util.Date
+        val f = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE)
+        (Path \ "n").read(isoDate).validate(Map("n" -> Seq("1985-09-10T00:00:00+02:00"))) mustEqual(Success(f.parse("1985-09-10")))
+        (Path \ "n").read(isoDate).validate(Map("n" -> Seq("foo"))) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.iso8601")))))
+      }
+
+      "joda" in {
+        import org.joda.time.DateTime
+        val f = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE)
+        val dd = f.parse("1985-09-10")
+        val jd = new DateTime(dd)
+
+        "date" in {
+          (Path \ "n").read(jodaDate).validate(Map("n" -> Seq("1985-09-10"))) mustEqual(Success(jd))
+          (Path \ "n").read(jodaDate).validate(Map("n" -> Seq("foo"))) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.expected.jodadate.format", "yyyy-MM-dd")))))
+        }
+
+        "time" in {
+          (Path \ "n").read(jodaTime).validate(Map("n" -> Seq(dd.getTime.toString))) mustEqual(Success(jd))
+          (Path \ "n").read(jodaDate).validate(Map("n" -> Seq("foo"))) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.expected.jodadate.format", "yyyy-MM-dd")))))
+        }
+
+        "local date" in {
+          import org.joda.time.LocalDate
+          val ld = new LocalDate()
+          (Path \ "n").read(jodaLocalDate).validate(Map("n" -> Seq(ld.toString()))) mustEqual(Success(ld))
+          (Path \ "n").read(jodaLocalDate).validate(Map("n" -> Seq("foo"))) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.expected.jodadate.format", "")))))
+        }
+      }
+
+      "sql date" in {
+        import java.util.Date
+        val f = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE)
+        val dd = f.parse("1985-09-10")
+        val ds = new java.sql.Date(dd.getTime())
+        (Path \ "n").read(sqlDate).validate(Map("n" -> Seq("1985-09-10"))) mustEqual(Success(ds))
+      }
 
       "Boolean" in {
         From[M] { __ => (__ \ "n").read[Boolean] }.validate(Map("n" -> Seq("true"))) mustEqual(Success(true))

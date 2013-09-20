@@ -35,7 +35,7 @@ object MappingsSpec extends Specification {
       (Path \ "firstname").read[JsValue, String].validate(valid) mustEqual(Success("Julien"))
       val errPath = Path \ "foo"
       val error = Failure(Seq(errPath -> Seq(ValidationError("validation.required"))))
-      errPath.read(string).validate(invalid) mustEqual(error)
+      errPath.read[JsValue, String].validate(invalid) mustEqual(error)
     }
 
     "support all types of Json values" in {
@@ -135,8 +135,6 @@ object MappingsSpec extends Specification {
           (Path \ "n").read(jodaLocalDate).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.expected.jodadate.format", "")))))
         }
       }
-
-      "joda local date" in { skipped }
 
       "sql date" in {
         import java.util.Date
