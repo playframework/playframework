@@ -17,7 +17,8 @@ trait PlayAssetsCompiler {
     filesSetting: sbt.SettingKey[PathFinder],
     naming: (String, Boolean) => String,
     compile: (File, Seq[String]) => (String, Option[String], Seq[File]),
-    optionsSettings: sbt.SettingKey[Seq[String]]) =
+    optionsSettings: sbt.SettingKey[Seq[String]],
+    determineDestinationFolder:  String => String) =
     (state, sourceDirectory in Compile, resourceManaged in Compile, cacheDirectory, optionsSettings, filesSetting, requireJs) map { (state, src, resources, cache, options, files, requireJs) =>
 
       val requireSupport = if (!requireJs.isEmpty) {
@@ -47,16 +48,17 @@ trait PlayAssetsCompiler {
          */
         val generated: Seq[(File, java.io.File)] = (files x relativeTo(Seq(src / "assets"))).flatMap {
           case (sourceFile, name) => {
-            if (changedFiles.contains(sourceFile) || dependencies.contains(new File(resources, "public/" + naming(name, false)))) {
+            val destinationFolder = determineDestinationFolder(name)
+            if (changedFiles.contains(sourceFile) || dependencies.contains(new File(resources, destinationFolder + naming(name, false)))) {
               val (debug, min, dependencies) = try {
                 compile(sourceFile, options ++ requireSupport)
               } catch {
                 case e: AssetCompilationException => throw PlaySourceGenerators.reportCompilationError(state, e)
               }
-              val out = new File(resources, "public/" + naming(name, false))
+              val out = new File(resources, destinationFolder + naming(name, false))
               IO.write(out, debug)
               (dependencies ++ Seq(sourceFile)).toSet[File].map(_ -> out) ++ min.map { minified =>
-                val outMin = new File(resources, "public/" + naming(name, true))
+                val outMin = new File(resources, destinationFolder + naming(name, true))
                 IO.write(outMin, minified)
                 (dependencies ++ Seq(sourceFile)).map(_ -> outMin)
               }.getOrElse(Nil)
@@ -80,6 +82,20 @@ trait PlayAssetsCompiler {
       }
 
     }
+
+  def AssetsCompiler(name: String,
+    watch: File => PathFinder,
+    filesSetting: sbt.SettingKey[PathFinder],
+    naming: (String, Boolean) => String,
+    compile: (File, Seq[String]) => (String, Option[String], Seq[File]),
+    optionsSettings: sbt.SettingKey[Seq[String]]): sbt.Project.Initialize[sbt.Task[Seq[java.io.File]]] = AssetsCompiler(name,
+        watch,
+        filesSetting,
+        naming,
+        compile,
+        optionsSettings,
+        (nameval: String) => "public/"
+    )
 
   val LessCompiler = AssetsCompiler("less",
     (_ ** "*.less"),
