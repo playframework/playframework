@@ -22,7 +22,7 @@ object ThreadPoolsSpec extends PlaySpecification {
       val config = """#default-config
         play {
           akka {
-            event-handlers = ["akka.event.Logging$DefaultLogger", "akka.event.slf4j.Slf4jEventHandler"]
+            akka.loggers = ["akka.event.Logging$DefaultLogger", "akka.event.slf4j.Slf4jLogger"]
             loglevel = WARNING
             actor {
               default-dispatcher = {
@@ -80,7 +80,7 @@ object ThreadPoolsSpec extends PlaySpecification {
       val config = ConfigFactory.parseString("""#highly-synchronous
       play {
         akka {
-          event-handlers = ["akka.event.slf4j.Slf4jEventHandler"]
+          akka.loggers = ["akka.event.slf4j.Slf4jLogger"]
           loglevel = WARNING
           actor {
             default-dispatcher = {
