@@ -337,7 +337,8 @@ object PlayBuild extends Build {
         "org.scala-lang" % "jline" % BuildSettings.buildScalaVersion % "master",
         "org.scala-lang" % "scala-compiler" % BuildSettings.buildScalaVersionForSbt % "master",
         "org.scala-lang" % "jline" % BuildSettings.buildScalaVersionForSbt % "master",
-        "org.scala-sbt" % "sbt" % BuildSettings.buildSbtVersion
+        "org.scala-sbt" % "sbt" % BuildSettings.buildSbtVersion,
+        "org.fusesource.jansi" % "jansi" % "1.11" % "master"
       )
     )
 
