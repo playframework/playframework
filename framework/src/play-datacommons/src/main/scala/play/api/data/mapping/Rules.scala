@@ -1,8 +1,17 @@
 package play.api.data.mapping
 
+/**
+* Play provides you a `Map[String, Seq[String]]` in request body for urlFormEncodedRequest.
+* It's generally a lot more convenient to work on `Map[Path, Seq[String]]` for defining Rules
+* This object contains methods used to convert `Map[String, Seq[String]]` <-> `Map[Path, Seq[String]]`
+*/
 object PM {
 
   import scala.util.parsing.combinator.{ Parsers, RegexParsers }
+  /**
+  * A parser converting a key of a Map[String, [Seq[String]]] to a Path instance
+  * `foo.bar[0].baz` becomes `Path \ "foo" \ "bar" \ 0 \ "baz"`
+  */
   object PathParser extends RegexParsers {
     override type Elem = Char
     def int   = """\d""".r ^^ { _.toInt }
@@ -17,6 +26,12 @@ object PM {
   type M  = Map[String, Seq[String]]
   type PM = Map[Path, Seq[String]]
 
+  /**
+  * Find a sub-Map of all the elements at a Path starting with `path`
+  * @param path The prefix to look for
+  * @param data The map in which you want to lookup
+  * @return a sub Map. If no key of `data` starts with `path`, this map will be empty
+  */
   def find(path: Path)(data: PM): PM = data.flatMap {
     case (p, errs) if p.path.startsWith(path.path) =>
       Map(Path(p.path.drop(path.path.length)) -> errs)
@@ -24,9 +39,15 @@ object PM {
       Map.empty[Path, Seq[String]]
   }
 
+  /**
+  * Apply `f` to all the keys of `m`
+  */
   def repathPM(m: PM, f: Path => Path): PM
     = m.map{ case (p, v) => f(p) -> v }
 
+  /**
+  * Apply `f` to all the keys of `m`
+  */
   def repath(m: M, f: Path => Path): M
     = toM(repathPM(toPM(m), f))
 
@@ -41,11 +62,21 @@ object PM {
     case KeyPathNode(k) => k
   }
 
+  /**
+  * Convert a Path to a String key
+  * @param p The path to convert
+  * @return A String representation of `p`
+  */
   def asKey(p: Path): String = p.path.headOption.toList.map(asNodeKey).mkString ++ p.path.tail.foldLeft("") {
     case (path, n@IdxPathNode(i)) => path + asNodeKey(n)
     case (path, n@KeyPathNode(k)) => path + "." + asNodeKey(n)
   }
 
+  /**
+  * Convert a String key to a Path using `PathParser`
+  * @param k The String representation of path to convert
+  * @return a `Path`
+  */
   def asPath(k: String): Path = PathParser.parse(k) match {
     case PathParser.Failure(m, _) => throw new RuntimeException(s"Invalid field name $k: $m")
     case PathParser.Error(m, _) => throw new RuntimeException(s"Invalid field name $k: $m")

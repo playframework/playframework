@@ -244,14 +244,6 @@ object Validation {
    // XXX: Helps the compiler a bit
   import play.api.libs.functional.syntax._
   implicit def cba[E] = functionalCanBuildApplicative[({type λ[A] = Validation[E, A]})#λ]
-
-  // TODO
-  /*
-  import play.api.libs.json._
-  implicit def pathWrite[I, O](implicit w: Writes[O]) = Writes[(Path[I], O)]{
-    case (p, o) => Json.obj("path" -> p.toString, "errors" -> w.writes(o))
-  }
-  */
 }
 
 final case class FailProjection[+E, +A](v: Validation[E, A]) {

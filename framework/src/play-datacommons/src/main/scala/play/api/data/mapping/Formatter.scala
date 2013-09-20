@@ -13,7 +13,7 @@ object To { def apply[I] = new To[I]{} }
 
 case class Formatter[I](path: Path = Path(Nil)) {
   /**
-  * When applied, the rule will lookup for data at the given path, and apply the given Constraint on it
+  * When applied, the rule will lookup for data at the given path, and apply the given Rule on it
   * {{{
   *   val json = Json.parse("""{
   *      "informations": {
@@ -25,12 +25,28 @@ case class Formatter[I](path: Path = Path(Nil)) {
   *   v.validate(json) == Success("test")
   * }}}
   * @param sub the constraint to apply on the subdata
-  * @param l a lookup function. This function finds data in a structure of type I, and coerce it to tyoe O
-  * @return A Rule validating the presence and validity of data at this Path
+  * @param l a lookup function. This function finds data in a structure of type I, and coerce it to type O
+  * @return A Rule validating the existence and validity of data at `path`
   */
   def read[J, O](sub: Rule[J, O])(implicit r: Path => Rule[I, J]): Rule[I, O] =
     r(path).compose(path)(sub)
 
+
+  /**
+  * Try to convert the data at `Path` to type `O`
+  * {{{
+  *   val json = Json.parse("""{
+  *      "informations": {
+  *        "label": "test"
+  *      }
+  *   }""")
+  *   implicit val infoValidation = From[JsValue]{ __ => (__ \ "label").read[String] }
+  *   val v = From[JsValue]{ __ => (__ \ "informations").read[Informations]) }
+  *   v.validate(json) == Success("test")
+  * }}}
+  * @param r a lookup function. This function finds data in a structure of type I, and coerce it to type O
+  * @return A Rule validating the existence and validity of data at `path`.
+  */
   def read[O](implicit r: Path => Rule[I, O]): Rule[I, O] =
     read(Rule.zero[O])(r)
 
