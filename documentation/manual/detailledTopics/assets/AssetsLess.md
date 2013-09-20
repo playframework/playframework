@@ -18,6 +18,8 @@ You can split your LESS source into several libraries, and use the LESS `import`
 
 To prevent library files from being compiled individually (or imported) we need them to be skipped by the compiler. To do this, partial source files must be prefixed with the underscore (`_`) character, for example: `_myLibrary.less`. To configure this behavior, see the _Configuration_ section at the end of this page.
 
+> **Warning:** There is a known issue ([issue #1086](https://github.com/playframework/playframework/issues/1086)) that makes Play not trigger recompilation of LESS assets if only partial LESS source files changed. When this happens `play clean` should be used. Alternatively, if you are comfortable requiring Node.js, you can use the [play-lessc](https://github.com/jmparsons/play-lessc) module.
+
 ## Layout
 
 Here is an example layout for using LESS in your project:
