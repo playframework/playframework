@@ -1,1 +1,5 @@
-GET   /login              controllers.Application.home
+GET         /home/:id        controllers.Application.home(id:Int)
+
+POST        /user            controllers.Application.userPost
+
+POST        /submit          controllers.Application.submit

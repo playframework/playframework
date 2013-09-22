@@ -1,0 +1,40 @@
+@(myForm: Form[User])
+
+@import views.html.helper.FieldConstructor
+
+@* #import-myhelper *@
+@import MyHelpers._
+@* #import-myhelper *@
+
+<div>
+    @* #form-field-options *@
+        '_label -> "Custom label"
+        '_id -> "idForTheTopDlElement"
+        '_help -> "Custom help"
+        '_showConstraints -> false
+        '_error -> "Force an error"
+        '_showErrors -> false
+    @* #form-field-options *@
+</div>
+
+<div>
+    @* #form-bootstrap-generated *@
+    <div class="clearfix error" id="username_field">
+        <label for="username">Username:</label>
+        <div class="input">
+            <input type="text" name="username" id="username" value="">
+            <span class="help-inline">This field is required!, Another error</span>
+            <span class="help-block">Required, Another constraint</span>
+        </div>
+    </div>
+    @* #form-bootstrap-generated *@
+</div>
+
+@* #form-myfield-helper *@
+@helper.inputText(myForm("username"))
+@* #form-myfield-helper *@
+
+
+@* #import-myhelper-implicit *@
+@implicitField = @{ FieldConstructor(myFieldConstructorTemplate.f) }
+@* #import-myhelper-implicit *@
