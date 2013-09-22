@@ -4,7 +4,7 @@ Play provides several helpers for rendering form fields in HTML templates.
 
 ## Create a `<form>` tag
     
-The first thing is to be able to create the `<form>` tag. It is a pretty simple helper that has no more value than automatically setting the `action` and `method` tag parameters according to the reverse route you pass in:
+The first thing is to be able to create the `<form>` tag. It is a simple helper that has no more value than automatically setting the `action` and `method` tag parameters according to the reverse route you pass in:
 
 @[form-tag](code/scalaguide/forms/scalaformhelper/views/login.scala.html)
 
@@ -44,26 +44,9 @@ All input helpers take an implicit `FieldConstructor` that handles this part. Th
 
 @[form-user-generated](code/scalaguide/forms/scalaformhelper/views/user.scala.html)
 
-
 This default field constructor supports additional options you can pass in the input helper arguments:
 
 @[form-field-options](code/scalaguide/forms/scalaformhelper/views/user.scala.html)
-
-## Twitter bootstrap field constructor
-
-There is also another built-in field constructor that can be used with [TwitterBootstrap](http://twitter.github.com/bootstrap/) 1.4.  (Note: 2.0.2 will support LESS 1.3 and Bootstrap 2.0.)
-
-To use it, just import it in the current scope:
-
-@[import-twitterbootstrap](code/scalaguide/forms/scalaformhelper/views/user.scala.html)
-
-
-It generates Html like:
-
-@[form-bootstrap-generated](code/scalaguide/forms/scalaformhelper/views/user.scala.html)
-
-
-It supports the same set of options as the default field constructor (see below).
 
 ## Writing your own field constructor
 
