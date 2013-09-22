@@ -456,9 +456,6 @@ trait Iteratee[E, +A] {
     cont: (Input[E] => Iteratee[E, A]) => Future[Iteratee[B, C]],
     error: (String, Input[E]) => Future[Iteratee[B, C]])(implicit ec: ExecutionContext): Iteratee[B, C] = Iteratee.flatten(fold1(done, cont, error)(ec))
 
-  @scala.deprecated("use Iteratee.map instead", "2.2.0")
-  def mapDone[B](f: A => B)(implicit ec: ExecutionContext): Iteratee[E, B] = prepared(ec)(pec => map(f)(pec))
-
   /**
    *
    * Uses the provided function to transform the Iteratee's computed result when the Iteratee is done.

@@ -26,7 +26,7 @@ To handle a WebSocket request, use a `WebSocket` instead of an `Action`:
 def index = WebSocket.using[String] { request => 
   
   // Log events to the console
-  val in = Iteratee.foreach[String](println).mapDone { _ =>
+  val in = Iteratee.foreach[String](println).map { _ =>
     println("Disconnected")
   }
   
