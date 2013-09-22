@@ -113,4 +113,4 @@ The following options can be configured in `application.conf`:
 * `csrf.body.bufferSize` - In order to read tokens out of the body, Play must first buffer the body and potentially parse it.  This sets the maximum buffer size that will be used to buffer the body.  Defaults to 100k.
 * `csrf.sign.tokens` - Whether Play should use signed CSRF tokens.  Signed CSRF tokens ensure that the token value is randomised per request, thus defeating BREACH style attacks.
 
-> **Next:** [[Working with JSON|ScalaJson]]
+> **Next:** [[Custom Validations|ScalaCustomValidations]]
