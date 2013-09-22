@@ -171,7 +171,7 @@ object BodyParser {
    * Example:
    * {{{
    * val bodySize = BodyParser { request =>
-   *   Iteratee.fold(0) { (state, chunk) => state + chunk.size } mapDone(size => Right(size))
+   *   Iteratee.fold(0) { (state, chunk) => state + chunk.size } map(size => Right(size))
    * }
    * }}}
    */
@@ -185,7 +185,7 @@ object BodyParser {
    * Example:
    * {{{
    * val bodySize = BodyParser("Body size") { request =>
-   *   Iteratee.fold(0) { (state, chunk) => state + chunk.size } mapDone(size => Right(size))
+   *   Iteratee.fold(0) { (state, chunk) => state + chunk.size } map(size => Right(size))
    * }
    * }}}
    */
