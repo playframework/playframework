@@ -60,7 +60,7 @@ resolvers ++= Seq(
   ...
 )
 
-addSbtPlugin("play" % "sbt-plugin" % "2.2-SNAPSHOT")
+addSbtPlugin("play" % "sbt-plugin" % "2.3-SNAPSHOT")
 ```
 
 to project/plugins.sbt. 

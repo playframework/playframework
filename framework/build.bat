@@ -2,7 +2,7 @@
 
 setlocal enabledelayedexpansion
 
-set PLAY_VERSION="2.2-SNAPSHOT"
+set PLAY_VERSION="2.3-SNAPSHOT"
 
 if defined JPDA_PORT set DEBUG_PARAM="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=%JPDA_PORT%"
 
