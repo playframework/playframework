@@ -11,7 +11,8 @@ import scala.language.reflectiveCalls
 object MappingsSpec extends Specification {
 
   "Json Mappings" should {
-    import play.api.libs.json.Rules._
+    import play.api.data.mapping.json.Rules
+    import Rules._
 
     val valid = Json.obj(
     "firstname" -> "Julien",

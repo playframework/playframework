@@ -22,17 +22,20 @@ trait DefaultMonoids {
 trait DefaultWrites {
   import play.api.libs.functional.Monoid
 
+  implicit def seq[I, O](implicit w: Write[I, O]) = Write[Seq[I], Seq[O]] {
+    _.map(w.writes)
+  }
+
+  implicit def head[I, O](implicit w: Write[I, O]): Write[I, Seq[O]] = w.map(Seq(_))
+}
+
+object Writes extends DefaultWrites {
+
   import PM._
 
   implicit def anyval[T <: AnyVal] = Write((i: T) => i.toString)
   implicit def scalanumber[T <: scala.math.ScalaNumber] = Write((i: T) => i.toString)
   implicit def javanumber[T <: java.lang.Number] = Write((i: T) => i.toString)
-
-  // TODO
-  /*
-  implicit def jsonWrites[I](implicit w: JSWrites[I]) =
-    Writes((i: I) => w.writes(i))
-  */
 
   implicit def opm[O](implicit w: Write[O, M]) = Write[O, PM] {
     o => toPM(w.writes(o))
@@ -51,17 +54,13 @@ trait DefaultWrites {
         }
     }
 
-  implicit def seq[I, O](implicit w: Write[I, O]) = Write[Seq[I], Seq[O]] {
-    _.map(w.writes)
-  }
-
   implicit def array[O](implicit w: Write[Seq[O], PM]) =
     Write((w.writes _) compose ((_: Array[O]).toSeq))
 
   implicit def traversable[O](implicit w: Write[Seq[O], PM]) =
     Write((w.writes _) compose ((_: Traversable[O]).toSeq))
 
-  implicit def write[I](path: Path)(implicit w: Write[I, PM]) = Write[I, M] { i =>
+  implicit def writeM[I](path: Path)(implicit w: Write[I, PM]) = Write[I, M] { i =>
     toM(repathPM(w.writes(i), path ++ _))
   }
 
@@ -69,16 +68,13 @@ trait DefaultWrites {
     Map(Path() -> w.writes(i))
   }
 
-  implicit def head[I, O](implicit w: Write[I, O]): Write[I, Seq[O]] = w.map(Seq(_))
-
   implicit def option[I](implicit w: Write[I, Seq[String]]) = Write[Option[I], PM] { m =>
     m.map(s => Map(Path() -> w.writes(s)))
      .getOrElse(Map.empty)
   }
-
 }
 
-object Write extends DefaultWrites with DefaultMonoids {
+object Write extends DefaultMonoids {
 
   def apply[I, O](w: I => O): Write[I, O] = new Write[I, O] {
     def writes(i: I) = w(i)
@@ -101,5 +97,4 @@ object Write extends DefaultWrites with DefaultMonoids {
 
   import play.api.libs.functional.syntax._
   implicit def fbow[I, O](a: Write[I, O])(implicit m: Monoid[O]) = toFunctionalBuilderOps[({type f[I] = Write[I, O]})#f, I](a)
-
 }

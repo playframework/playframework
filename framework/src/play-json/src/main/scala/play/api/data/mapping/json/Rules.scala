@@ -1,4 +1,6 @@
-package play.api.libs.json
+package play.api.data.mapping.json
+
+import play.api.libs.json._
 
 // Backward compat
 trait WithRepath[A] {

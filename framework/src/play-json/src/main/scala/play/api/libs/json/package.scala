@@ -39,6 +39,7 @@ package object json {
   val __ = JsPath
 
   import play.api.data.mapping.{ Path, Validation, ValidationError }
+  import play.api.data.mapping.json.WithRepath
   type JsResult[O] = Validation[(JsPath, Seq[ValidationError]), O]
   import scala.language.implicitConversions
   @scala.deprecated("JsResult.repath will be deleted", "2.3.0")

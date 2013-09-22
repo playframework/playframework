@@ -27,9 +27,9 @@ class WritesSpec extends Specification {
     "informations[0].phones[0]" -> Seq("01.23.45.67.89"),
     "informations[0].phones[1]" -> Seq("98.76.54.32.10"))
 
-  import Write._
+  import Write._ // TODO: Why do I need this ?
+  import Writes._
   import PM._
-
 
   "Writes" should {
 
@@ -123,7 +123,7 @@ class WritesSpec extends Specification {
       }
 
       "Map[String, Seq[V]]" in {
-        import Rules.{ map => mm }
+        import Writes.{ map => mm }
 
         To[M] { __ => (__ \ "n").write[Map[String, Seq[String]]] }.writes(Map("foo" -> Seq("bar"))) mustEqual((Map("n.foo" -> Seq("bar"))))
         To[M] { __ => (__ \ "n").write[Map[String, Seq[Int]]] }.writes(Map("foo" -> Seq(4))) mustEqual((Map("n.foo" -> Seq("4"))))
@@ -133,7 +133,7 @@ class WritesSpec extends Specification {
       }
 
       "Traversable" in {
-        import Rules.{ traversable => tr } // avoid shadowing caused by specs
+        import Writes.{ traversable => tr }
         To[M] { __ => (__ \ "n").write[Traversable[String]] }.writes(Array("foo", "bar").toTraversable) mustEqual((Map("n[0]" -> Seq("foo"), "n[1]" -> Seq("bar"))))
         To[M] { __ => (__ \ "n" \ "o").write[Traversable[String]] }.writes(Array("foo", "bar").toTraversable) mustEqual((Map("n.o[0]" -> Seq("foo"), "n.o[1]" -> Seq("bar"))))
         To[M] { __ => (__ \ "n" \ "o" \ "p").write[Traversable[String]] }.writes(Array("foo", "bar").toTraversable) mustEqual((Map("n.o.p[0]" -> Seq("foo"), "n.o.p[1]" -> Seq("bar"))))
