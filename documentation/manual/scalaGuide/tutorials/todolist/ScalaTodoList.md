@@ -435,10 +435,13 @@ web: target/start -Dhttp.port=${PORT} -DapplyEvolutions.default=true -Ddb.defaul
 
 We use system properties to override the application configuration, when running on Heroku. Since Heroku provides a PostgreSQL database, we need to add the required driver to our application dependencies. 
 
-Specify it into the `project/Build.scala` file:
+Specify it into the `build.sbt` file:
 
-```
-val appDependencies = Seq(
+```scala
+libraryDependencies ++= Seq(
+  jdbc,
+  anorm,
+  cache,
   "postgresql" % "postgresql" % "8.4-702.jdbc4"
 )
 ```
