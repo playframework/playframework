@@ -185,6 +185,12 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
     // Release the HTTPS server if needed
     HTTPS.foreach(_._1.releaseExternalResources())
 
+    mode match {
+      case Mode.Dev =>
+        Invoker.lazySystem.close()
+        Execution.lazyContext.close()
+      case _ => ()
+    }
   }
 
   override lazy val mainAddress = {
