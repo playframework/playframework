@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
+
 // TODO Get rid of this file which just demonstrates how harmful copy-pasting is.
 
 package play.api.templates {

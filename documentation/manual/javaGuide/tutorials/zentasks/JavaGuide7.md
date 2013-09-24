@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # More backend tasks
 
 In this stage of the tutorial we are going to refine our skills at writing backend controllers.  We won't write anymore CoffeeScript, instead we'll use a script that's already been written for us.  You can download this script from here:

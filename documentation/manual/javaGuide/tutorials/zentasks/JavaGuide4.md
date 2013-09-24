@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Adding authentication
 
 We can now display a dashboard. But before we can go on to allow users to create, work on and assign tasks, we need a way for users to identify themselves.

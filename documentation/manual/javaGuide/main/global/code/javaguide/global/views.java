@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package javaguide.global;
 
 // Hack to allow example Globals to refer to templates in the views.html package without them actually being in that

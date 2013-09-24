@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Invoking actions from Javascript
 
 In the last chapter of the tutorial, we implemented a number of new actions for the navigation drawer that are served by the backend. In this chapter we'll add the client side code necessary to complete the behavior for the navigation drawer.

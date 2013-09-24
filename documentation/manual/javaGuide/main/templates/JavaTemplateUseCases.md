@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Common template use cases
 
 Templates, being simple functions, can be composed in any way you want. Below are a few examples of some common scenarios.
