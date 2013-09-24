@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Using the form template helpers
 
 Play provides several helpers for rendering form fields in HTML templates.

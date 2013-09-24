@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Your first Play application
 
 Let’s write a simple to do list application with Play and deploy it to the cloud.

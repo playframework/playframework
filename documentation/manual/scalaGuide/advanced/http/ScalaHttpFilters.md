@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Filters
 
 Play provides a simple filter API for applying global filters to each request.

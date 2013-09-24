@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Additional configuration
 
 When running an application in production mode you can override any configuration. This section covers the more common use cases.

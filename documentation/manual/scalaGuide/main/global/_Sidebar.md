@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 ### The application Global object
 
 - [[Application global settings | ScalaGlobal]]

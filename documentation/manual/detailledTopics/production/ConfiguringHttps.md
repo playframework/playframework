@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Configuring HTTPS
 
 Play can configured to serve HTTPS.  To enable this, simply tell Play which port to listen using the `https.port` system property.  For example:

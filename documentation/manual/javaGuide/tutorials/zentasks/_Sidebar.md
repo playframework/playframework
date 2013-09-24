@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 - [[Starting up the project|JavaGuide1]]
 - [[A first iteration for the data model|JavaGuide2]]
 - [[Building the first screen|JavaGuide3]]

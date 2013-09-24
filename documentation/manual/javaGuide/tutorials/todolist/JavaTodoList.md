@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Your first Play application
 
 Let’s write a simple task list application with Play and deploy it to the cloud. This is a very small example which can be managed in a few hours.

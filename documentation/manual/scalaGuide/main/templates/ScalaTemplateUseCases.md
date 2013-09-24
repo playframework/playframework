@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Scala templates common use cases
 
 Templates, being simple functions, can be composed in any way you want. Below are examples of some common scenarios.
