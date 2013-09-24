@@ -222,6 +222,10 @@ object RepositoryBuilder {
 
 }
 
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
+
 // THIS PIECE OF HACKERY IS AMAZING.
 // We need access to "toID" which is private[sbt].  If SBT changes, this may need to change, but
 // it has been stable for a while.

@@ -1,5 +1,7 @@
 #! /usr/bin/env sh
 
+# Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+
 echo "[info] Cleaning everything..."
 
 `dirname $0`/clean

@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Play for Java developers
 
 The Java API for the Play application developers is available in the `play` package. 
