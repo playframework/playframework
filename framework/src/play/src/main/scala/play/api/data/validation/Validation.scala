@@ -74,7 +74,7 @@ trait Constraints {
    * '''error'''[error.required]
    */
   def nonEmpty: Constraint[String] = Constraint[String]("constraint.required") { o =>
-    if (o.trim.isEmpty) Invalid(ValidationError("error.required")) else Valid
+    if (o == null) Invalid(ValidationError("error.required")) else if (o.trim.isEmpty) Invalid(ValidationError("error.required")) else Valid
   }
 
   /**
@@ -112,7 +112,8 @@ trait Constraints {
    * '''error'''[error.minLength(length)]
    */
   def minLength(length: Int): Constraint[String] = Constraint[String]("constraint.minLength", length) { o =>
-    if (o.size >= length) Valid else Invalid(ValidationError("error.minLength", length))
+    require(length >= 0, "string minLength must not be negative")
+    if (o == null) Invalid(ValidationError("error.minLength", length)) else if (o.size >= length) Valid else Invalid(ValidationError("error.minLength", length))
   }
 
   /**
@@ -122,7 +123,8 @@ trait Constraints {
    * '''error'''[error.maxLength(length)]
    */
   def maxLength(length: Int): Constraint[String] = Constraint[String]("constraint.maxLength", length) { o =>
-    if (o.size <= length) Valid else Invalid(ValidationError("error.maxLength", length))
+    require(length >= 0, "string maxLength must not be negative")
+    if (o == null) Invalid(ValidationError("error.maxLength", length)) else if (o.size <= length) Valid else Invalid(ValidationError("error.maxLength", length))
   }
 
   /**
@@ -132,7 +134,11 @@ trait Constraints {
    * '''error'''[error.pattern(regex)] or defined by the error parameter.
    */
   def pattern(regex: => scala.util.matching.Regex, name: String = "constraint.pattern", error: String = "error.pattern"): Constraint[String] = Constraint[String](name, () => regex) { o =>
-    regex.unapplySeq(o).map(_ => Valid).getOrElse(Invalid(ValidationError(error, regex)))
+    require(regex != null, "regex must not be null")
+    require(name != null, "name must not be null")
+    require(error != null, "error must not be null")
+
+    if (o == null) Invalid(ValidationError(error, regex)) else regex.unapplySeq(o).map(_ => Valid).getOrElse(Invalid(ValidationError(error, regex)))
   }
 
 }
