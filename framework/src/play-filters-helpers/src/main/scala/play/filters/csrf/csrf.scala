@@ -79,6 +79,7 @@ object CSRF {
       token.map(Token.apply)
     }
   }
+<<<<<<< HEAD
 
   /**
    * A token provider, for generating and comparing tokens.
@@ -92,6 +93,21 @@ object CSRF {
     def compareTokens(tokenA: String, tokenB: String): Boolean
   }
 
+=======
+
+  /**
+   * A token provider, for generating and comparing tokens.
+   *
+   * This abstraction allows the use of randomised tokens.
+   */
+  trait TokenProvider {
+    /** Generate a token */
+    def generateToken: String
+    /** Compare two tokens */
+    def compareTokens(tokenA: String, tokenB: String): Boolean
+  }
+
+>>>>>>> Fixes for the CSRF filter
   object SignedTokenProvider extends TokenProvider {
     def generateToken = Crypto.generateSignedToken
     def compareTokens(tokenA: String, tokenB: String) = Crypto.compareSignedTokens(tokenA, tokenB)
