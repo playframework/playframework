@@ -487,13 +487,15 @@ object Forms {
   /**
    * Constructs a simple mapping for an e-mail field.
    *
+   * @see http://www.w3.org/TR/html5/forms.html#e-mail-state-(type=email)
+   *
    * For example:
    * {{{
    *   Form("email" -> email)
    * }}}
    */
   val email: Mapping[String] = of[String] verifying Constraints.pattern(
-    """\b[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\b""".r,
+    """\b[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\b""".r,
     "constraint.email",
     "error.email")
 
