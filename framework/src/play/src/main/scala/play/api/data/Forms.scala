@@ -235,7 +235,6 @@ object Forms {
    * @param maxLength maximum text length
    */
   def text(minLength: Int = 0, maxLength: Int = Int.MaxValue): Mapping[String] = (minLength, maxLength) match {
-    case (0, Int.MaxValue) => text
     case (min, Int.MaxValue) => text verifying Constraints.minLength(min)
     case (0, max) => text verifying Constraints.maxLength(max)
     case (min, max) => text verifying (Constraints.minLength(min), Constraints.maxLength(max))
