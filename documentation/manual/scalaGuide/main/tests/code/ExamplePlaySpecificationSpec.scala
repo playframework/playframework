@@ -2,7 +2,7 @@ package scalaguide.tests
 
 import play.api.test._
 
-// #scalatest-playspecification
+// #scalafunctionaltest-playspecification
 object ExamplePlaySpecificationSpec extends PlaySpecification {
   "The specification" should {
 
@@ -15,4 +15,4 @@ object ExamplePlaySpecificationSpec extends PlaySpecification {
     }
   }
 }
-// #scalatest-playspecification
+// #scalafunctionaltest-playspecification
