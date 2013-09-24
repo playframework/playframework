@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # The template engine
 
 ## A type safe template engine based on Scala

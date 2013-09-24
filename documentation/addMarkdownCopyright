@@ -1,0 +1,20 @@
+#! /bin/sh
+
+# Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+
+year=`date +%Y`
+cd manual
+for f in `find . -name '*.md'`
+do
+  echo "<!--- Copyright (C) 2009-$year Typesafe Inc. <http://www.typesafe.com> -->" > /tmp/mdcw
+  if head -n 1 $f | grep -q "Typesafe Inc. <http://www.typesafe.com>"
+  then
+    tail -n +2 $f >> /tmp/mdcw
+  else
+    cat $f >> /tmp/mdcw
+  fi
+  cp /tmp/mdcw $f
+  rm /tmp/mdcw
+  echo Updated $f
+done
+    

@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # The Play WS API
 
 Sometimes we would like to call other HTTP services from within a Play application. Play supports this via its [WS library](api/scala/index.html#play.api.libs.ws.package), which provides a way to make asynchronous HTTP calls.
@@ -174,14 +175,12 @@ Using for comprehensions is a good way to chain WS calls in a trusted environmen
 
 ### Using in a controller
 
-You can compose several promises and end with a `Future[Result]` that can be handled directly by the Play server, using the `Async` method defined in [[Handling Asynchronous Results|ScalaAsync]].
+You can compose several promises and end with a `Future[Result]` that can be handled directly by the Play server, using the `Action.async` builder defined in [[Handling Asynchronous Results|ScalaAsync]].
 
 ```scala
-def feedTitle(feedUrl: String) = Action {
-  Async {
-    WS.url(feedUrl).get().map { response =>
-      Ok("Feed title: " + (response.json \ "title").as[String])
-    }
+def feedTitle(feedUrl: String) = Action.async {
+  WS.url(feedUrl).get().map { response =>
+    Ok("Feed title: " + (response.json \ "title").as[String])
   }
 }
 ```

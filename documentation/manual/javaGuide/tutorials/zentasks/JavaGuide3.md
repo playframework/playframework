@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Building the first screen
 
 Now that we have built a first data model, it's time to start to create the first page of the application.  This page will be the dashboard, and it will show a summary of all projects and the todo tasks for those projects.

@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Adding some AJAX actions
 
 Now that we can log in, let's start writing functionality for our application.  We'll start simple, by adding dynamic functionality to the navigation drawer, that is, the sidebar with the list of projects.

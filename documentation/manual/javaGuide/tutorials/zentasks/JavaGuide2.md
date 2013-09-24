@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # A first iteration for the data model
 
 Here we will start to write the model for our task management system.

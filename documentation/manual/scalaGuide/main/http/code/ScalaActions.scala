@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package scalaguide.http.scalaactions {
 
 import play.api.mvc._

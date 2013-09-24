@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Writing functional tests
 
 Play provides a number of classes and convenience methods that assist with functional testing.  Most of these can be found either in the [`play.api.test`](api/scala/index.html#play.api.test.package) package or in the [`Helpers`](api/scala/index.html#play.api.test.Helpers$) object.
@@ -27,11 +28,11 @@ Because [`WithApplication`](api/scala/index.html#play.api.test.WithApplication) 
 
 ## WithServer
 
-Sometimes you want to test the real HTTP stack from with your test, in which case you can start a test server using [`WithServer`](api/scala/index.html#play.api.test.WithServer):
+Sometimes you want to test the real HTTP stack from within your test, in which case you can start a test server using [`WithServer`](api/scala/index.html#play.api.test.WithServer):
 
 @[scalafunctionaltest-testpaymentgateway](code/ScalaFunctionalTestSpec.scala)
 
-The `port` value contains the port number the server is running on.  By default this is 19001, however you can change this either by passing the port into the with [`WithServer`](api/scala/index.html#play.api.test.WithServer) constructor, or by setting the system property `testserver.port`.  This can be useful for integrating with continuous integration servers, so that ports can be dynamically reserved for each build.
+The `port` value contains the port number the server is running on.  By default this is 19001, however you can change this either by passing the port into [`WithServer`](api/scala/index.html#play.api.test.WithServer), or by setting the system property `testserver.port`.  This can be useful for integrating with continuous integration servers, so that ports can be dynamically reserved for each build.
 
 A [`FakeApplication`](api/scala/index.html#play.api.test.FakeApplication) can also be passed to the test server, which is useful for setting up custom routes and testing WS calls:
 

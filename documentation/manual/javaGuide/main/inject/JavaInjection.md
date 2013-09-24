@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 By default Play binds URLs to controller methods _statically_, that is, Controller instances are created by the framework and then the appropriate static method is invoked depending on the given URL. In certain situations, however, you may want to manage controller creation and that's when the new routing syntax comes handy. 
 
 Route definitions starting with ```@``` will be managed by ```play.GlobalSettings#getControllerInstance``` method, so given the following route definition: 

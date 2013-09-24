@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.it.auth
 
 import play.api.test._

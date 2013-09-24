@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 A big THANK YOU! to these sponsors for their support of open source projects.
 
 # Continuous Integration
