@@ -1,6 +1,5 @@
 package play.filters.csrf;
 
-import play.api.libs.Crypto;
 import play.api.mvc.RequestHeader;
 import play.libs.F;
 import play.mvc.Action;
@@ -13,6 +12,7 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
     private final String tokenName = CSRFConf$.MODULE$.TokenName();
     private final Option<String> cookieName = CSRFConf$.MODULE$.CookieName();
     private final CSRFAction$ CSRFAction = CSRFAction$.MODULE$;
+    private final CSRF.TokenProvider tokenProvider = CSRFConf$.MODULE$.defaultTokenProvider();
 
     @Override
     public F.Promise<SimpleResult> call(Http.Context ctx) throws Throwable {
@@ -47,10 +47,7 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
                 }
 
                 if (tokenToCheck != null) {
-                    Option<String> extractedToken = Crypto.extractSignedToken(tokenToCheck);
-                    if (extractedToken.isDefined() && Crypto.constantTimeEquals(extractedToken.get(),
-                            headerToken.get())) {
-                        // Allow through
+                    if (tokenProvider.compareTokens(tokenToCheck, headerToken.get())) {
                         return delegate.call(ctx);
                     } else {
                         return F.Promise.pure((SimpleResult) forbidden("CSRF tokens don't match"));
