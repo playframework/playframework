@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.mvc
 
 import play.api.libs.iteratee._
@@ -171,7 +174,7 @@ object BodyParser {
    * Example:
    * {{{
    * val bodySize = BodyParser { request =>
-   *   Iteratee.fold(0) { (state, chunk) => state + chunk.size } mapDone(size => Right(size))
+   *   Iteratee.fold(0) { (state, chunk) => state + chunk.size } map(size => Right(size))
    * }
    * }}}
    */
@@ -185,7 +188,7 @@ object BodyParser {
    * Example:
    * {{{
    * val bodySize = BodyParser("Body size") { request =>
-   *   Iteratee.fold(0) { (state, chunk) => state + chunk.size } mapDone(size => Right(size))
+   *   Iteratee.fold(0) { (state, chunk) => state + chunk.size } map(size => Right(size))
    * }
    * }}}
    */

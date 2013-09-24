@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Configuring the JDBC pool.
 
 The Play JDBC datasource is managed by [BoneCP](http://jolbox.com/). 

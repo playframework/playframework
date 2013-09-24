@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Deploying to Cloudbees
 
 CloudBees support Play dists natively - with Jenkins and continuous deployment - you can read more about this [here](https://developer.cloudbees.com/bin/view/RUN/Playframework) - yes, you can run it for free.

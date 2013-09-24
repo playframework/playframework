@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Sample applications
 
 The Play binary package comes with a comprehensive set of sample applications written in both Java and Scala. This is a very good place to look for code snippets and examples.

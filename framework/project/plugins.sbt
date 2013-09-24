@@ -1,6 +1,8 @@
+// Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+
 logLevel := Level.Warn
 
-addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.1.3")
+addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.1.5")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-scalariform" % "1.0.1")
 

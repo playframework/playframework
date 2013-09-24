@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 import sbt._
 import Keys._
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
@@ -21,12 +24,12 @@ object BuildSettings {
   val experimental = Option(System.getProperty("experimental")).filter(_ == "true").map(_ => true).getOrElse(false)
 
   val buildOrganization = "com.typesafe.play"
-  val buildVersion = propOr("play.version", "2.2-SNAPSHOT")
+  val buildVersion = propOr("play.version", "2.3-SNAPSHOT")
   val buildWithDoc = boolProp("generate.doc")
   val previousVersion = "2.1.0"
-  val buildScalaVersion = propOr("scala.version", "2.10.2")
+  val buildScalaVersion = propOr("scala.version", "2.10.3-RC3")
   // TODO - Try to compute this from SBT... or not.
-  val buildScalaVersionForSbt = propOr("play.sbt.scala.version", "2.10.2")
+  val buildScalaVersionForSbt = propOr("play.sbt.scala.version", "2.10.3-RC3")
   val buildScalaBinaryVersionForSbt = CrossVersion.binaryScalaVersion(buildScalaVersionForSbt)
   val buildSbtVersion = propOr("play.sbt.version", "0.13.0")
   val buildSbtMajorVersion = "0.13"
@@ -60,7 +63,7 @@ object BuildSettings {
 
   def PlaySharedJavaProject(name: String, dir: String, testBinaryCompatibility: Boolean = false): Project = {
     val bcSettings: Seq[Setting[_]] = if (testBinaryCompatibility) {
-      mimaDefaultSettings ++ Seq(previousArtifact := Some(buildOrganization % name % previousVersion))
+      mimaDefaultSettings ++ Seq(previousArtifact := Some(buildOrganization % StringUtilities.normalize(name) % previousVersion))
     } else Nil
     Project(name, file("src/" + dir))
       .configs(PerformanceTest)
@@ -85,7 +88,8 @@ object BuildSettings {
   }
 
   def playRuntimeSettings(name: String): Seq[Setting[_]] = Seq(
-    previousArtifact := Some(buildOrganization %% name % previousVersion),
+    previousArtifact := Some(buildOrganization %
+      (StringUtilities.normalize(name) + "_" + CrossVersion.binaryScalaVersion(buildScalaVersion)) % previousVersion),
     scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
     publishArtifact in packageDoc := buildWithDoc,
     publishArtifact in (Compile, packageSrc) := true,
@@ -277,7 +281,8 @@ object PlayBuild extends Build {
   lazy val PlayIntegrationTestProject = PlayRuntimeProject("Play-Integration-Test", "play-integration-test")
     .settings(
       parallelExecution in Test := false,
-      libraryDependencies := integrationTestDependencies
+      libraryDependencies := integrationTestDependencies,
+      previousArtifact := None
     )
     .dependsOn(PlayProject % "test->test", PlayTestProject)
 
@@ -298,7 +303,8 @@ object PlayBuild extends Build {
         "org.scala-lang" % "jline" % BuildSettings.buildScalaVersion % "master",
         "org.scala-lang" % "scala-compiler" % BuildSettings.buildScalaVersionForSbt % "master",
         "org.scala-lang" % "jline" % BuildSettings.buildScalaVersionForSbt % "master",
-        "org.scala-sbt" % "sbt" % BuildSettings.buildSbtVersion
+        "org.scala-sbt" % "sbt" % BuildSettings.buildSbtVersion,
+        "org.fusesource.jansi" % "jansi" % "1.11" % "master"
       )
     )
 

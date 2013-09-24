@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play
 
 import sbt.{ Project => SbtProject, _ }
@@ -21,29 +24,6 @@ trait PlayRun extends PlayInternalKeys {
    * that application. Hidden so that it isn't exposed when the user application is published.
    */
   val DocsApplication = config("docs") hide
-
-  // For some reason, jline disables echo when it creates a new console reader.
-  // When we use the reader, we also enabled echo after using it, so as long as this is lazy, and that holds true,
-  // then we won't exit SBT with echo disabled.
-  private lazy val consoleReader = new jline.console.ConsoleReader
-
-  private def waitForKey() = {
-    def waitEOF() {
-      consoleReader.readCharacter() match {
-        case 4 => // STOP
-        case 11 => consoleReader.clearScreen(); waitEOF()
-        case 10 => println(); waitEOF()
-        case _ => waitEOF()
-      }
-
-    }
-    consoleReader.getTerminal.setEchoEnabled(false)
-    try {
-      waitEOF()
-    } finally {
-      consoleReader.getTerminal.setEchoEnabled(true)
-    }
-  }
 
   private def parsePort(portString: String): Int = {
     try {

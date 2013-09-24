@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # The Build System
 
 The Play build system is [sbt](http://www.scala-sbt.org/), a non-intrusive build tool for Scala and Java projects.

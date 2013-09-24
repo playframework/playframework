@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.libs.iteratee
 
 import scala.concurrent.{ ExecutionContext, Future, Promise }
@@ -455,9 +458,6 @@ trait Iteratee[E, +A] {
   def flatFold[B, C](done: (A, Input[E]) => Future[Iteratee[B, C]],
     cont: (Input[E] => Iteratee[E, A]) => Future[Iteratee[B, C]],
     error: (String, Input[E]) => Future[Iteratee[B, C]])(implicit ec: ExecutionContext): Iteratee[B, C] = Iteratee.flatten(fold1(done, cont, error)(ec))
-
-  @scala.deprecated("use Iteratee.map instead", "2.2.0")
-  def mapDone[B](f: A => B)(implicit ec: ExecutionContext): Iteratee[E, B] = prepared(ec)(pec => map(f)(pec))
 
   /**
    *
