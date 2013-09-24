@@ -10,11 +10,14 @@ import play.api.mvc._
 import play.api.libs.json.Json
 import play.api.test.{FakeApplication, TestServer}
 import scala.util.Random
+import play.api.libs.Crypto
 
 /**
  * Specs for the global CSRF filter
  */
 object CSRFFilterSpec extends CSRFCommonSpecs {
+
+  sequential
 
   import CSRFConf._
 
@@ -22,26 +25,26 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
 
     // conditions for adding a token
     "not add a token to non GET requests" in {
-      csrfAddToken(_.put(""))(_.status must_== NOT_FOUND)
+      buildCsrfAddToken()(_.put(""))(_.status must_== NOT_FOUND)
     }
     "not add a token to GET requests that don't accept HTML" in {
-      csrfAddToken(_.withHeaders(ACCEPT -> "application/json").get())(_.status must_== NOT_FOUND)
+      buildCsrfAddToken()(_.withHeaders(ACCEPT -> "application/json").get())(_.status must_== NOT_FOUND)
     }
     "add a token to GET requests that accept HTML" in {
-      csrfAddToken(_.withHeaders(ACCEPT -> "text/html").get())(_.status must_== OK)
+      buildCsrfAddToken()(_.withHeaders(ACCEPT -> "text/html").get())(_.status must_== OK)
     }
 
     // extra conditions for not doing a check
     "not check non form bodies" in {
-      csrfCheckRequest(_.post(Json.obj("foo" -> "bar")))(_.status must_== OK)
+      buildCsrfCheckRequest()(_.post(Json.obj("foo" -> "bar")))(_.status must_== OK)
     }
     "not check safe methods" in {
-      csrfCheckRequest(_.put(Map("foo" -> "bar")))(_.status must_== OK)
+      buildCsrfCheckRequest()(_.put(Map("foo" -> "bar")))(_.status must_== OK)
     }
 
     // other
     "feed the body once a check has been done and passes" in {
-      withServer {
+      withServer(Nil) {
         case _ => CSRFFilter()(Action(
           _.body.asFormUrlEncoded
             .flatMap(_.get("foo"))
@@ -49,7 +52,7 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
             .map(Results.Ok(_))
             .getOrElse(Results.NotFound)))
       } {
-        val token = generate
+        val token = Crypto.generateSignedToken
         await(WS.url("http://localhost:" + testServerPort).withSession(TokenName -> token)
           .post(Map("foo" -> "bar", TokenName -> token))).body must_== "bar"
       }
@@ -65,7 +68,7 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
             .getOrElse(Results.NotFound)))
       }
     ))) {
-      val token = generate
+      val token = Crypto.generateSignedToken
       val response = await(WS.url("http://localhost:" + testServerPort).withSession(TokenName -> token)
         .withHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded")
         .post(
@@ -81,18 +84,22 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
       response.status must_== OK
       response.body must_== "bar"
     }
+    "be possible to instantiate when there is no running application" in {
+      CSRFFilter() must beAnInstanceOf[AnyRef]
+    }
   }
 
-  def csrfCheckRequest[T](makeRequest: (WSRequestHolder) => Future[Response])(handleResponse: Response => T) = {
-    withServer {
+
+  def buildCsrfCheckRequest(configuration: (String, String)*) = new CsrfTester {
+    def apply[T](makeRequest: (WSRequestHolder) => Future[Response])(handleResponse: (Response) => T) = withServer(configuration) {
       case _ => CSRFFilter()(Action(Results.Ok))
     } {
       handleResponse(await(makeRequest(WS.url("http://localhost:" + testServerPort))))
     }
   }
 
-  def csrfAddToken[T](makeRequest: (WSRequestHolder) => Future[Response])(handleResponse: Response => T) = {
-    withServer {
+  def buildCsrfAddToken(configuration: (String, String)*) = new CsrfTester {
+    def apply[T](makeRequest: (WSRequestHolder) => Future[Response])(handleResponse: (Response) => T) = withServer(configuration) {
       case _ => CSRFFilter()(Action { implicit req =>
         CSRF.getToken(req).map { token =>
           Results.Ok(token.value)
