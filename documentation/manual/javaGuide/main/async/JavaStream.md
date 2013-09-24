@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Streaming HTTP responses
 
 ## Standard responses and Content-Length header
