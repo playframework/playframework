@@ -3,7 +3,6 @@
  */
 package play.filters.csrf;
 
-import play.api.libs.Crypto;
 import play.api.mvc.RequestHeader;
 import play.api.mvc.Session;
 import play.libs.F;
@@ -20,6 +19,7 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
     private final boolean secureCookie = CSRFConf$.MODULE$.SecureCookie();
     private final String requestTag = CSRF.Token$.MODULE$.RequestTag();
     private final CSRFAction$ CSRFAction = CSRFAction$.MODULE$;
+    private final CSRF.TokenProvider tokenProvider = CSRFConf$.MODULE$.defaultTokenProvider();
 
     @Override
     public F.Promise<SimpleResult> call(Http.Context ctx) throws Throwable {
@@ -27,7 +27,7 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
 
         if (CSRFAction.getTokenFromHeader(request, tokenName, cookieName).isEmpty()) {
             // No token in header and we have to create one if not found, so create a new token
-            String newToken = Crypto.generateSignedToken();
+            String newToken = tokenProvider.generateToken();
 
             // Place this token into the context
             ctx.args.put(requestTag, newToken);
@@ -44,7 +44,7 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
                     ctx.args);
             Http.Context.current.set(newCtx);
 
-            // Also add it to the repsonse
+            // Also add it to the response
             if (cookieName.isDefined()) {
                 Option<String> domain = Session.domain();
                 ctx.response().setCookie(cookieName.get(), newToken, null, Session.path(),
