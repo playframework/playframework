@@ -9,6 +9,9 @@ import play.api.mvc._
 import play.api.test._
 
 import play.api.{GlobalSettings, Application}
+import play.api.test.Helpers._
+import scala.Some
+import play.api.test.FakeApplication
 
 /**
  *
@@ -24,11 +27,11 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
 
   "Scala Functional Test" should {
 
-    // #scalatest-fakeApplication
+    // #scalafunctionaltest-fakeApplication
     val fakeApplicationWithGlobal = FakeApplication(withGlobal = Some(new GlobalSettings() {
       override def onStart(app: Application) { println("Hello world!") }
     }))
-    // #scalatest-fakeApplication
+    // #scalafunctionaltest-fakeApplication
 
     val fakeApplication = FakeApplication(withRoutes = {
       case ("GET", "/Bob") =>
@@ -48,6 +51,14 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
     }
     // #scalafunctionaltest-respondtoroute
 
+    // #scalafunctionaltest-testview
+    "render index template" in new WithApplication {
+      val html = views.html.index("Coco")
+
+      contentAsString(html) must contain("Hello Coco")
+    }
+    // #scalafunctionaltest-testview
+
     // #scalafunctionaltest-testmodel
     val appWithMemoryDatabase = FakeApplication(additionalConfiguration = inMemoryDatabase("test"))
     "run an application" in new WithApplication(appWithMemoryDatabase) {
@@ -58,6 +69,46 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
       macintosh.introduced must beSome.which(_ must beEqualTo("1984-01-24"))
     }
     // #scalafunctionaltest-testmodel
+
+    // #scalafunctionaltest-testwithbrowser
+    val fakeApplicationWithBrowser = FakeApplication(withRoutes = {
+      case ("GET", "/") =>
+        Action {
+          Ok(
+            """
+              |<html>
+              |<body>
+              |  <div id="title">Hello Guest</div>
+              |  <a href="/login">click me</a>
+              |</body>
+              |</html>
+            """.stripMargin) as "text/html"
+        }
+      case ("GET", "/login") =>
+        Action {
+          Ok(
+            """
+              |<html>
+              |<body>
+              |  <div id="title">Hello Coco</div>
+              |</body>
+              |</html>
+            """.stripMargin) as "text/html"
+        }
+    })
+
+    "run in a browser" in new WithBrowser(webDriver = HTMLUNIT, app = fakeApplicationWithBrowser) {
+      browser.goTo("/")
+
+      // Check the page
+      browser.$("#title").getTexts().get(0) must equalTo("Hello Guest")
+
+      browser.$("a").click()
+
+      browser.url must equalTo("/login")
+      browser.$("#title").getTexts().get(0) must equalTo("Hello Coco")
+    }
+    // #scalafunctionaltest-testwithbrowser
 
     val testPaymentGatewayURL = "http://example.com/"
     val myPublicAddress = "localhost:19001"
