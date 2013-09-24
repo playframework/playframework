@@ -60,7 +60,7 @@ object BuildSettings {
 
   def PlaySharedJavaProject(name: String, dir: String, testBinaryCompatibility: Boolean = false): Project = {
     val bcSettings: Seq[Setting[_]] = if (testBinaryCompatibility) {
-      mimaDefaultSettings ++ Seq(previousArtifact := Some(buildOrganization % name % previousVersion))
+      mimaDefaultSettings ++ Seq(previousArtifact := Some(buildOrganization % StringUtilities.normalize(name) % previousVersion))
     } else Nil
     Project(name, file("src/" + dir))
       .configs(PerformanceTest)
@@ -85,7 +85,8 @@ object BuildSettings {
   }
 
   def playRuntimeSettings(name: String): Seq[Setting[_]] = Seq(
-    previousArtifact := Some(buildOrganization %% name % previousVersion),
+    previousArtifact := Some(buildOrganization %
+      (StringUtilities.normalize(name) + "_" + CrossVersion.binaryScalaVersion(buildScalaVersion)) % previousVersion),
     scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
     publishArtifact in packageDoc := buildWithDoc,
     publishArtifact in (Compile, packageSrc) := true,
@@ -276,7 +277,8 @@ object PlayBuild extends Build {
   // This project is just for testing Play, not really a public artifact
   lazy val PlayIntegrationTestProject = PlayRuntimeProject("Play-Integration-Test", "play-integration-test")
     .settings(
-      parallelExecution in Test := false
+      parallelExecution in Test := false,
+      previousArtifact := None
     )
     .dependsOn(PlayProject, PlayTestProject)
 
