@@ -54,6 +54,10 @@ object Application extends Controller {
     Ok("Welcome")
   }
 
+  def login = Action {
+    Ok("Welcome")
+  }
+
   def home = Action{
     Ok("Welcome!")
   }

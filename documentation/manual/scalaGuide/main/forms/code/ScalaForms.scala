@@ -73,12 +73,14 @@ class ScalaFormsSpec extends Specification with Controller {
 
       val anyData = Json.parse( """{"email":"bob@gmail.com","password":"secret"}""")
 
-      //#loginForm-handling-failure
       implicit val request = FakeRequest().withBody(anyData)
+      //#loginForm-handling-failure
       loginForm.bindFromRequest.fold(
-        formWithErrors => // binding failure, you retrieve the form containing errors,
+        formWithErrors =>
+          // binding failure, you retrieve the form containing errors:
           BadRequest(views.html.login(formWithErrors)),
-        value => // binding success, you get the actual value
+        value =>
+          // binding success, you get the actual value.
           Redirect(routes.Application.home).flashing(("message" ,"Welcome!" + value._1))
       )
       //#loginForm-handling-failure

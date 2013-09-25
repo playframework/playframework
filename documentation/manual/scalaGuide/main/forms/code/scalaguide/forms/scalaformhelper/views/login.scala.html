@@ -2,8 +2,9 @@
 @import scalaguide.forms.scalaformhelper.controllers.routes
 
 @* #form-tag *@
-@helper.form(action = routes.Application.submit) {
-
+@helper.form(action = routes.Application.login) {
+  @helper.inputText(loginForm("email"))
+  @helper.inputPassword(loginForm("password"))
 }
 @* #form-tag *@
 

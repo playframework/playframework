@@ -55,7 +55,6 @@ Often you will need to write your own field constructor. Start by writing a temp
 
 @[form-myfield](code/scalaguide/forms/scalaformhelper/views/user.scala.html)
 
-
 > **Note:** This is just a sample. You can make it as complicated as you need. You also have access to the original field using `@elements.field`.
 
 Now create a `FieldConstructor` using this template function:
@@ -78,19 +77,6 @@ It will then use your field constructor to render the input text.
 >@[import-myhelper-implicit](code/scalaguide/forms/scalaformhelper/views/user.scala.html)
 >
 >@[form-myfield-helper](code/scalaguide/forms/scalaformhelper/views/user.scala.html)
-
-## Handling repeated values
-
-The last helper makes it easier to generate inputs for repeated values. Let’s say you have this kind of form definition:
-
-@[userForm-repeated](code/ScalaForms.scala)
-
-
-Now you have to generate as many inputs for the `emails` field as the form contains. Just use the `repeat` helper for that:
-
-@[form-field-repeat](code/scalaguide/forms/scalaformhelper/views/register.scala.html)
-
-The `min` parameter allows you to display a minimum number of fields even if the corresponding form data are empty.
 
 > **Next:** [[Protecting against CSRF|ScalaCsrf]]
 
