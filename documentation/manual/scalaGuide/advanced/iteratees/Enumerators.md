@@ -123,7 +123,7 @@ In the same manner we can construct an `Enumerator` that would fetch a url every
 Combining this, callback Enumerator, with an imperative `Iteratee.foreach` we can println a stream of time values periodically:
 
 ```scala
-val timeStream = Enumerator.fromCallback { () => 
+val timeStream = Enumerator.generateM {
   Promise.timeout(Some(new Date), 100 milliseconds)
 }
 
@@ -156,13 +156,13 @@ Indeed one interesting way of organizing a streamful application is by creating 
 ```scala
 object AvailableStreams {
 
-  val cpu: Enumerator[JsValue] = Enumerator.fromCallback(/* code here */)
+  val cpu: Enumerator[JsValue] = Enumerator.generateM(/* code here */)
 
-  val memory: Enumerator[JsValue] = Enumerator.fromCallback(/* code here */)
+  val memory: Enumerator[JsValue] = Enumerator.generateM(/* code here */)
 
-  val threads: Enumerator[JsValue] = Enumerator.fromCallback(/* code here */)
+  val threads: Enumerator[JsValue] = Enumerator.generateM(/* code here */)
 
-  val heap: Enumerator[JsValue] = Enumerator.fromCallback(/* code here */)
+  val heap: Enumerator[JsValue] = Enumerator.generateM(/* code here */)
 
 }
 
