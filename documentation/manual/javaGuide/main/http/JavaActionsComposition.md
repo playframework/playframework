@@ -4,17 +4,19 @@ This chapter introduces several ways to define generic action functionality.
 
 ## Reminder about actions
 
-Previously, we said that an action is a Java method that returns a `play.mvc.Result` value. Actually, Play manages internally actions as functions. Because Java doesn't support first class functions, an action provided by the Java API is an instance of `play.mvc.Action`:
+Previously, we said that an action is a Java method that returns a `play.mvc.Result` value. Actually, Play manages internally actions as functions. Because Java doesn't yet support first class functions, an action provided by the Java API is an instance of `play.mvc.Action`:
 
 ```java
 public abstract class Action {
     
-  public abstract Result call(Http.Context ctx);    
+  public abstract Promise<SimpleResult> call(Http.Context ctx);    
     
 }
 ```
 
 Play builds a root action for you that just calls the proper action method. This allows for more complicated action composition.
+
+Notice that the `call` method returns `Promise<SimpleResult>`, this was introduced in [[version 2.2|Highlights22]] to improve handling different result type such as chunked, plain or async. 
 
 ## Composing actions
 
