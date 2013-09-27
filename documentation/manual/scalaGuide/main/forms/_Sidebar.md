@@ -1,8 +1,10 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 ### HTTP form
 
-- [[Form definitions|ScalaForms]]
-- [[Using the form template helpers|ScalaFormHelpers]]
+- [[Forms|ScalaForms]]
+- [[Basic Forms|ScalaBasicForms]]
+- [[Intermediate Forms|ScalaIntermediateForms]]
+- [[Advanced Forms|ScalaAdvancedForms]]
 - [[Protecting against CSRF|ScalaCsrf]]
 
 ### Main concepts
