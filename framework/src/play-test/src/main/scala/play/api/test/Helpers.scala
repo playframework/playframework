@@ -88,6 +88,7 @@ trait PlayRunners {
    * testserver.port
    */
   lazy val testServerPort = Option(System.getProperty("testserver.port")).map(_.toInt).getOrElse(19001)
+  lazy val testServerSSLPort = Option(System.getProperty("testserver.port.ssl")).map(_.toInt)
 
   /**
    * Constructs a in-memory (h2) database configuration to add to a FakeApplication.

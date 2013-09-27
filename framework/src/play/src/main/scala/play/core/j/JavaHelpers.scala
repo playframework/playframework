@@ -6,6 +6,7 @@ import play.mvc.Http.{ Context => JContext, Request => JRequest, Cookies => JCoo
 import play.libs.F
 import scala.concurrent.Future
 import play.api.libs.iteratee.Execution.trampoline
+import java.security.cert.Certificate
 
 class EitherToFEither[A, B]() extends play.libs.F.Function[Either[A, B], play.libs.F.Either[A, B]] {
 
@@ -52,7 +53,7 @@ trait JavaHelpers {
 
   /**
    * creates a java request (with an empty body) from a scala RequestHeader
-   * @param request incoming requestHeader
+   * @param req incoming requestHeader
    */
   def createJavaRequest(req: RequestHeader): JRequest = {
     new JRequest {
@@ -90,6 +91,16 @@ trait JavaHelpers {
           yield new JCookie(cookie.name, cookie.value, cookie.maxAge.map(i => new Integer(i)).orNull, cookie.path, cookie.domain.orNull, cookie.secure, cookie.httpOnly)).getOrElse(null)
       }
 
+      def certs(required: Boolean) = F.Promise.wrap(req.certs(required)).map(
+        new F.Function[scala.Seq[Certificate], java.util.List[Certificate]]() {
+
+          @Override
+          def apply(s: scala.Seq[Certificate]): java.util.List[Certificate] = {
+            import collection.convert._
+            s.asJava
+          }
+        })
+
       override def toString = req.toString
 
     }
@@ -97,7 +108,7 @@ trait JavaHelpers {
 
   /**
    * creates a java context from a scala RequestHeader
-   * @param request
+   * @param req
    */
   def createJavaContext(req: RequestHeader): JContext = {
     new JContext(
@@ -112,7 +123,7 @@ trait JavaHelpers {
 
   /**
    * creates a java context from a scala Request[RequestBody]
-   * @param request
+   * @param req
    */
   def createJavaContext(req: Request[RequestBody]): JContext = {
     new JContext(req.id, req, new JRequest {
@@ -149,6 +160,16 @@ trait JavaHelpers {
         def get(name: String) = (for (cookie <- req.cookies.get(name))
           yield new JCookie(cookie.name, cookie.value, cookie.maxAge.map(i => new Integer(i)).orNull, cookie.path, cookie.domain.orNull, cookie.secure, cookie.httpOnly)).getOrElse(null)
       }
+
+      def certs(required: Boolean) = F.Promise.wrap(req.certs(required)).map(
+        new F.Function[scala.Seq[Certificate], java.util.List[Certificate]]() {
+
+          @Override
+          def apply(s: scala.Seq[Certificate]): java.util.List[Certificate] = {
+            import collection.convert._
+            s.asJava
+          }
+        })
 
       override def toString = req.toString
 

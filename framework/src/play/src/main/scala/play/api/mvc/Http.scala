@@ -7,6 +7,8 @@ package play.api.mvc {
   import play.api.libs.Crypto
 
   import scala.annotation._
+  import scala.concurrent.Future
+  import java.security.cert.Certificate
   import scala.util.control.NonFatal
   import java.net.{ URLDecoder, URLEncoder }
 
@@ -55,6 +57,40 @@ package play.api.mvc {
      * The HTTP headers.
      */
     def headers: Headers
+
+    /**
+     * Request a client certificate from the user.
+     *
+     * Calling this method will request the user to select an X509 Certificate from their key chain if they have one,
+     * or return a cached certificate chain if the user has already selected one during the current TLS session.
+     * Since requesting something of the user could take a lot of time, this is returned immediately as a Future.
+     * The first element of the Certificate is the user's Certificate, the other elements of the chain if any, are the
+     * certificates that were used to sign the first one (which is the usual Certificate Authority based approach).
+     *
+     * For example:
+     * {{{
+     * import play.api.libs.concurrent._
+     * def index = Action { req =>
+     *   Async {
+     *     //timeouts should be set as transport specific options as explained in Netty's ChannelFuture
+     *     //if done that way, then timeouts will break the connection anyway.
+     *     req.certs().extend1 {
+     *       case Redeemed(certs) => Ok("your certs are: \n\n "+certs )
+     *       case Thrown(e) => InternalServerError("received error: \n"+e )
+     *     }
+     *   }
+     * }
+     * }}}
+     *
+     * @param required Whether a certificate is required or is optional.  If required, the server will close the SSL
+     *                 connection if the client doesn't provide a certificate.  Note that until this bug is fixed:
+     *                 https://bugs.openjdk.java.net/show_bug.cgi?id=100281, it is recommended that you always use
+     *                 required, since in some circumstances (varies from browser to browser) Java won't request a
+     *                 certificate at all, which will result in this method always returning no certificate.
+     * @return a Promise of the Certificate Chain, whose first element identifies the user. The promise will
+     *         contain an Error if something went wrong (eg: the request is not made on an httpS connection)
+     */
+    def certs(required: Boolean): Future[Seq[Certificate]]
 
     /**
      * The client IP address.
@@ -184,8 +220,9 @@ package play.api.mvc {
       version: String = this.version,
       queryString: Map[String, Seq[String]] = this.queryString,
       headers: Headers = this.headers,
-      remoteAddress: String = this.remoteAddress): RequestHeader = {
-      val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress) = (id, tags, uri, path, method, version, queryString, headers, remoteAddress)
+      remoteAddress: String = this.remoteAddress,
+      certs: Boolean => Future[Seq[Certificate]] = this.certs): RequestHeader = {
+      val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress, _certs) = (id, tags, uri, path, method, version, queryString, headers, remoteAddress, certs)
       new RequestHeader {
         val id = _id
         val tags = _tags
@@ -196,6 +233,7 @@ package play.api.mvc {
         val queryString = _queryString
         val headers = _headers
         val remoteAddress = _remoteAddress
+        def certs(required: Boolean) = _certs(required)
       }
     }
 
@@ -234,6 +272,7 @@ package play.api.mvc {
       def path = self.path
       def method = self.method
       def version = self.version
+      def certs(required: Boolean) = self.certs(required)
       def queryString = self.queryString
       def headers = self.headers
       def remoteAddress = self.remoteAddress
@@ -253,6 +292,7 @@ package play.api.mvc {
       def version = rh.version
       def queryString = rh.queryString
       def headers = rh.headers
+      def certs(required: Boolean) = rh.certs(required)
       lazy val remoteAddress = rh.remoteAddress
       def username = None
       val body = a
@@ -268,6 +308,7 @@ package play.api.mvc {
     def body = request.body
     def headers = request.headers
     def queryString = request.queryString
+    def certs(required: Boolean) = request.certs(required)
     def path = request.path
     def uri = request.uri
     def method = request.method

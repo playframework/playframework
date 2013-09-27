@@ -22,4 +22,3 @@
 ### Tutorials
 
 - [[Your first application | JavaTodoList]]
-- [[Zentask | JavaGuide1]]

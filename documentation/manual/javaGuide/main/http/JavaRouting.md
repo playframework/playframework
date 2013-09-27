@@ -47,7 +47,7 @@ The URI pattern defines the route’s request path. Some parts of the request pa
 For example, to exactly match `GET /clients/all` incoming requests, you can define this route:
 
 ```
-GET   /clients/all          controllers.Clients.list()
+GET   /clients              controllers.Clients.list()
 ```
 
 ### Dynamic parts 
@@ -208,6 +208,14 @@ public static Result index() {
 }
 ```
 
-> **Note:** There is a `routes` subpackage for each controller package. So the action `controllers.admin.Application.hello` can be reversed via `controllers.admin.routes.Application.hello`.
+
+##Imports
+If you are tired to always write `controller.Application`, then you can define  default import
+
+```scala
+val main = PlayProject(…).settings(
+  routesImport += "controller._"
+)
+```
 
 > **Next:** [[Manipulating the response | JavaResponse]]

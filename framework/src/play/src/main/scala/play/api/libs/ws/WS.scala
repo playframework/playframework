@@ -20,6 +20,7 @@ import com.ning.http.client.{
 }
 import collection.immutable.TreeMap
 import play.core.utils.CaseInsensitiveOrdered
+import com.ning.http.client.Realm.{ RealmBuilder, AuthScheme }
 import com.ning.http.util.AsyncHttpProviderUtils
 
 import play.core.Execution.Implicits.internalContext
@@ -38,14 +39,17 @@ import play.api.Play
  * and you should use Play's asynchronous mechanisms to use this response.
  *
  */
-object WS {
+object WS extends WSTrait {
 
   import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
   import javax.net.ssl.SSLContext
 
   private val clientHolder: AtomicReference[Option[AsyncHttpClient]] = new AtomicReference(None)
 
-  private[play] def newClient(): AsyncHttpClient = {
+  /**
+   * The  builder AsncBuilder for default play app
+   */
+  def asyncBuilder: AsyncHttpClientConfig.Builder = {
     val playConfig = play.api.Play.maybeApplication.map(_.configuration)
     val wsTimeout = playConfig.flatMap(_.getMilliseconds("ws.timeout"))
     val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
@@ -58,11 +62,15 @@ object WS {
     playConfig.flatMap(_.getString("ws.useragent")).map { useragent =>
       asyncHttpConfig.setUserAgent(useragent)
     }
-    if (!playConfig.flatMap(_.getBoolean("ws.acceptAnyCertificate")).getOrElse(false)) {
-      asyncHttpConfig.setSSLContext(SSLContext.getDefault)
-    }
+    //TODO: if one does this then one cannot later reset it it seems... it breaks the FunctionalSpec
+    //    if (!playConfig.flatMap(_.getBoolean("ws.acceptAnyCertificate")).getOrElse(false)) {
+    //      asyncHttpConfig.setSSLContext(SSLContext.getDefault)
+    //    }
+    asyncHttpConfig
+  }
 
-    new AsyncHttpClient(asyncHttpConfig.build())
+  private[play] def newClient(): AsyncHttpClient = {
+    new AsyncHttpClient(asyncBuilder.build())
   }
 
   /**
@@ -93,16 +101,10 @@ object WS {
   }
 
   /**
-   * Prepare a new request. You can then construct it by chaining calls.
-   *
-   * @param url the URL to request
-   */
-  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None, None)
-
-  /**
    * A WS Request.
    */
-  class WSRequest(_method: String, _auth: Option[Tuple3[String, String, AuthScheme]], _calc: Option[SignatureCalculator]) extends RequestBuilderBase[WSRequest](classOf[WSRequest], _method, false) {
+  class WSRequest(_method: String, _auth: Option[Tuple3[String, String, AuthScheme]], _calc: Option[SignatureCalculator])(implicit client: AsyncHttpClient)
+      extends RequestBuilderBase[WSRequest](classOf[WSRequest], _method, false) {
 
     import scala.collection.JavaConverters._
 
@@ -311,6 +313,26 @@ object WS {
 
   }
 
+}
+
+/**
+ * A WS for fine tuning.
+ * Eg: if one wants to make requests to different servers with different client certificates...
+ * @param client
+ */
+case class WSx(client: AsyncHttpClient) extends WSTrait
+
+trait WSTrait {
+
+  implicit def client: AsyncHttpClient
+
+  /**
+   * Prepare a new request. You can then construct it by chaining calls.
+   *
+   * @param url the URL to request
+   */
+  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None, None)
+
   /**
    * A WS Request builder.
    */
@@ -323,6 +345,7 @@ object WS {
       requestTimeout: Option[Int],
       virtualHost: Option[String]) {
 
+    import WS.WSRequest
     /**
      * sets the signature calculator for the request
      * @param calc

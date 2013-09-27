@@ -65,60 +65,110 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
       newPipeline
     }
 
-    lazy val sslContext: Option[SSLContext] = //the sslContext should be reused on each connection
-      Option(System.getProperty("https.keyStore")) map { path =>
+    lazy val sslContext: Option[SSLContext] = { //the sslContext should be reused on each connection
+      for (
+        keyStore <- loadKeyStore();
+        keyManagers <- loadKeyManagers(keyStore);
+        trustManagers <- loadTrustManagers(keyStore)
+      ) yield {
+        // Configure the SSL context
+        val sslContext = SSLContext.getInstance("TLS")
+        sslContext.init(keyManagers, trustManagers, null)
+        sslContext
+      }
+    }
+  }
+
+  private def loadKeyStore() =
+    Option(System.getProperty("https.keyStore")) match {
+      case Some(path) => {
         // Load the configured key store
         val keyStore = KeyStore.getInstance(System.getProperty("https.keyStoreType", "JKS"))
         val password = System.getProperty("https.keyStorePassword", "").toCharArray
         val algorithm = System.getProperty("https.keyStoreAlgorithm", KeyManagerFactory.getDefaultAlgorithm)
         val file = new File(path)
         if (file.isFile) {
-          try {
-            for (in <- resource.managed(new FileInputStream(file))) {
-              keyStore.load(in, password)
-            }
-            Play.logger.debug("Using HTTPS keystore at " + file.getAbsolutePath)
-            val kmf = KeyManagerFactory.getInstance(algorithm)
-            kmf.init(keyStore, password)
-            Some(kmf)
-          } catch {
-            case NonFatal(e) => {
-              Play.logger.error("Error loading HTTPS keystore from " + file.getAbsolutePath, e)
-              None
-            }
+          for (in <- resource.managed(new FileInputStream(file))) {
+            keyStore.load(in, password)
           }
+          Logger("play").debug("Using HTTPS keystore at " + file.getAbsolutePath)
+          Some(keyStore)
         } else {
-          Play.logger.error("Unable to find HTTPS keystore at \"" + file.getAbsolutePath + "\"")
+          Logger("play").error("Unable to find HTTPS keystore at \"" + file.getAbsolutePath + "\"")
           None
         }
-      } orElse {
-
-        // Load a generated key store
-        Play.logger.warn("Using generated key with self signed certificate for HTTPS. This should not be used in production.")
-        Some(FakeKeyStore.keyManagerFactory(applicationProvider.path))
-
-      } flatMap { a => a } map { kmf =>
-        // Load the configured trust manager
-        val tm = Option(System.getProperty("https.trustStore")).map {
-          case "noCA" => {
-            Play.logger.warn("HTTPS configured with no client " +
-              "side CA verification. Requires http://webid.info/ for client certifiate verification.")
-            Array[TrustManager](noCATrustManager)
-          }
-          case _ => {
-            Play.logger.debug("Using default trust store for client side CA verification")
-            null
-          }
-        }.getOrElse {
-          Play.logger.debug("Using default trust store for client side CA verification")
-          null
-        }
-
-        // Configure the SSL context
-        val sslContext = SSLContext.getInstance("TLS")
-        sslContext.init(kmf.getKeyManagers, tm, null)
-        sslContext
       }
+      case None => {
+        Logger("play").warn("Using generated key with self signed certificate for HTTPS. This should not be used in production.")
+        FakeKeyStore.keyStore(applicationProvider.path)
+      }
+    }
+
+  private def loadKeyManagers(keyStore: KeyStore) = {
+    try {
+      val algorithm = System.getProperty("https.keyStoreAlgorithm", KeyManagerFactory.getDefaultAlgorithm)
+      val kmf = KeyManagerFactory.getInstance(algorithm)
+      val password = System.getProperty("https.keyStoreKeyPassword", System.getProperty("https.keyStorePassword", "")).toCharArray
+      kmf.init(keyStore, password)
+      Some(kmf.getKeyManagers)
+    } catch {
+      case NonFatal(e) => {
+        Logger("play").error("Error loading HTTPS trust store", e)
+        None
+      }
+    }
+  }
+
+  private def loadTrustManagers(keyStore: KeyStore): Option[Array[TrustManager]] = {
+    val algorithm = System.getProperty("https.trustStoreAlgorithm", TrustManagerFactory.getDefaultAlgorithm)
+
+    System.getProperty("https.trustStore", "keystore") match {
+      case "noCA" => {
+        Logger("play").warn("HTTPS configured with no client " +
+          "side CA verification. Requires http://webid.info/ for client certifiate verification.")
+        Some(Array[TrustManager](noCATrustManager))
+      }
+      case "keystore" => {
+        Logger("play").debug("Using configured key store as the trust store")
+        try {
+          val tmf = TrustManagerFactory.getInstance(algorithm)
+          tmf.init(keyStore)
+          Some(tmf.getTrustManagers)
+        } catch {
+          case e: Exception => {
+            Logger("play").error("Error loading trust managers", e)
+            None
+          }
+        }
+      }
+      case "default" => Some(null) // Use the Java default trust store
+      case className => {
+        try {
+          val clazz = Class.forName(className)
+          if (clazz.getInterfaces.toTraversable.exists(_ == classOf[X509TrustManager])) {
+            try {
+              val res = Some(Array(clazz.newInstance().asInstanceOf[TrustManager]))
+              Logger("play").info("Loaded TLS Trust Manager implementation " + clazz)
+              res
+            } catch {
+              case e: InstantiationException => {
+                Logger("play").error("could not instantiate " + className)
+                None
+              }
+            }
+          } else {
+            Logger("play").error("TrustManager class " + className + " does not implement javax.net.ssl.TrustManager")
+            None
+          }
+        } catch {
+          case e: Exception => {
+            Logger("play").error("Unknown trust store type, must be one of [keystore, noCA, default, class.Name]: "
+              + className + " was not found." + e.getMessage)
+            None
+          }
+        }
+      }
+    }
   }
 
   // Keep a reference on all opened channels (useful to close everything properly, especially in DEV mode)

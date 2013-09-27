@@ -2,12 +2,12 @@
 
 ## Specifying languages supported by your application
 
-To specify your application’s languages, you need a valid language code, specified by a valid **ISO Language Code**, optionally followed by a valid **ISO Country Code**. For example, `fr` or `en-US`.
+The specify your application’s languages, you need a valid language code, specified by a valid **ISO Language Code**, optionally followed by a valid **ISO Country Code**. For example, `fr` or `en-US`.
 
 To start, you need to specify the languages that your application supports in its `conf/application.conf` file:
 
 ```
-application.langs="en,en-US,fr"
+application.langs=en,en-US,fr
 ```
 
 ## Externalizing messages
@@ -28,13 +28,8 @@ You can also specify the language explicitly:
 String title = Messages.get(new Lang(Lang.forCode("fr")), "home.title")
 ```
 
-> **Note:** If you have a `Request` in the scope, it will provide a default `Lang` value corresponding to the preferred language extracted from the `Accept-Language` header and matching one of the application’s supported languages. You should also add a `Lang` implicit parameter to your template like this: `@()(implicit lang: Lang)`.
+> **Note:** If you have a `Request` in the scope, it will provide a default `Lang` value corresponding to the preferred language extracted from the `Accept-Language` header and matching one the application’s supported languages.
 
-## Use in templates
-```
-@import play.i18n._
-@Messages.get("key")
-```
 ## Formatting messages
 
 Messages can be formatted using the `java.text.MessageFormat` library. For example, if you have defined a message like this:

@@ -2,6 +2,7 @@ package play.api.mvc
 
 import org.specs2.mutable.Specification
 import play.api.i18n.Lang
+import scala.concurrent.Future
 
 class RequestHeaderSpec extends Specification {
 
@@ -50,5 +51,6 @@ class RequestHeaderSpec extends Specification {
     def queryString = Map()
     def remoteAddress = ""
     lazy val headers = new Headers { val data = headersMap.toSeq }
+    def certs(required: Boolean) = Future.failed(new NotImplementedError("certs not implemented"))
   }
 }

@@ -24,7 +24,7 @@ So there is another Action builder that takes as an argument a function `Request
 
 @[request-action](code/ScalaActions.scala)
 
-It is often useful to mark the `request` parameter as `implicit` so it can be implicitly used by other APIs that need it:
+It is often useful to mark the `request` parameter as `implicit` so it can be implicitely used by other APIs that need it:
 
 @[implicit-request-action](code/ScalaActions.scala)
 
