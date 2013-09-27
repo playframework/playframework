@@ -4,7 +4,7 @@
 
 First you need to tell play that your project need javaJpa plugin which provide JDBC and JPA api dependencies.
 
-There is no built-in JPA implementation in Play 2.0; you can choose any available implementation. For example, to use Hibernate, just add the dependency to your project:
+There is no built-in JPA implementation in Play; you can choose any available implementation. For example, to use Hibernate, just add the dependency to your project:
 
 ```
 val appDependencies = Seq(

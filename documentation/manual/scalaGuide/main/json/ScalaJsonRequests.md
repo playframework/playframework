@@ -175,7 +175,7 @@ Content-Length: 47
 
 ## Sending JSON directly
 
-Sending the list of Todos with Play 2.1 and JSON is very simple:
+Sending the list of Todos with Play and JSON is very simple:
 
 ```scala
 import play.api.libs.json.Json

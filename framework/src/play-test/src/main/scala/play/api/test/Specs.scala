@@ -17,7 +17,7 @@ import org.specs2.execute.{ AsResult, Result }
 abstract class WithApplication(val app: FakeApplication = FakeApplication()) extends Around with Scope {
   implicit def implicitApp = app
   override def around[T: AsResult](t: => T): Result = {
-    Helpers.running(app)(AsResult(t))
+    Helpers.running(app)(AsResult.effectively(t))
   }
 }
 
@@ -30,10 +30,10 @@ abstract class WithApplication(val app: FakeApplication = FakeApplication()) ext
 abstract class WithServer(val app: FakeApplication = FakeApplication(),
                           val port: Int = Helpers.testServerPort,
                           val sslPort: Option[Int] = Helpers.testServerSSLPort) extends Around with Scope {
-  implicit lazy val implicitApp = app
+  implicit def implicitApp = app
   implicit def implicitPort: Port = port
 
-  override def around[T: AsResult](t: => T): Result = Helpers.running(TestServer(port, app, sslPort))(AsResult(t))
+  override def around[T: AsResult](t: => T): Result = Helpers.running(TestServer(port, app, sslPort))(AsResult.effectively(t))
 }
 
 /**
@@ -56,7 +56,7 @@ abstract class WithBrowser[WEBDRIVER <: WebDriver](
 
   override def around[T: AsResult](t: => T): Result = {
     try {
-      Helpers.running(TestServer(port, app, sslPort))(AsResult(t))
+      Helpers.running(TestServer(port, app, sslPort))(AsResult.effectively(t))
     } finally {
       browser.quit()
     }

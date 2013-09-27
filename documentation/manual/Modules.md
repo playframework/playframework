@@ -1,4 +1,4 @@
-# Play 2.0 Modules
+# Play Modules
 
 > This is a temporary location for listing modules, until there will be a location to register them on the Play website.
 
@@ -14,25 +14,25 @@
 
 * **Website:** <https://github.com/Rhinofly/play-libraries/tree/master/apis/sts>
 * **Documentation:** <https://github.com/Rhinofly/play-libraries/tree/master/apis/sts/README.md>
-* **Short description:** STS (Security Token Service) API wrapper for Play 2.0
+* **Short description:** STS (Security Token Service) API wrapper for Play
 
 ## Amazon SES module (Scala)
 
 * **Website:** <https://github.com/Rhinofly/play-libraries/tree/master/apis/ses>
 * **Documentation:** <https://github.com/Rhinofly/play-libraries/tree/master/apis/ses/README.md>
-* **Short description:** SES (Simple Email Service) API wrapper for Play 2.0
+* **Short description:** SES (Simple Email Service) API wrapper for Play
 
 ## Amazon S3 module (Scala)
 
 * **Website:** <https://github.com/Rhinofly/play-libraries/tree/master/apis/s3>
 * **Documentation:** <https://github.com/Rhinofly/play-libraries/tree/master/apis/s3/README.md>
-* **Short description:** S3 (Simple Storage Service) API wrapper for Play 2.0
+* **Short description:** S3 (Simple Storage Service) API wrapper for Play
 
 ## Amf module (Scala)
 
 * **Website:** <https://github.com/Rhinofly/play-libraries/tree/master/amf>
 * **Documentation:** <https://github.com/Rhinofly/play-libraries/blob/master/amf/README.md>
-* **Short description:** AMF (ActionScript Message Format) support for Play 2.0
+* **Short description:** AMF (ActionScript Message Format) support for Play
 
 ## Authentication and Authorization module (Scala)
 
@@ -48,12 +48,6 @@
 * **Documentation:** <https://github.com/orefalo/play2-authenticitytoken/blob/master/README.md>
 * **Short description:** Brings back play1 authenticity token - provides a way around CSRF attacks
 
-## Cache Utilities
-* **Website:** <http://hakandilek.github.com/play2-cache/>
-* **Documentation:** <https://github.com/hakandilek/play2-cache/blob/master/README.md>
-* **Repository:** <http://hakandilek.github.com/play2-cache/releases/>
-* **Repository(snapshot):** <http://hakandilek.github.com/play2-cache/snapshots/>
-* **Short description:** Utilities for simplifying caching
 
 ## ClojureScript Plugin
 
@@ -70,7 +64,7 @@
 
 * **Website:** <https://github.com/blabluble/play-currency-converter-module>
 * **Documentation:** <https://github.com/blabluble/play-currency-converter-module/blob/master/README.md>
-* **Short description:** Currency converter for Play 2.1. It uses web services to get the current exchange rate.
+* **Short description:** Currency converter for Play. It uses web services to get the current exchange rate.
 
 ## Deadbolt 2 Plugin
 * **Website (docs, sample):** <https://github.com/schaloner/deadbolt-2>
@@ -88,7 +82,7 @@
 
 * **Website:** <https://github.com/cleverage/play2-elasticsearch>
 * **Documentation:** <https://github.com/cleverage/play2-elasticsearch/blob/master/README.md>
-* **Repository:** <http://cleverage.github.com/play2-elasticsearch/releases/>
+* **Repository:** <http://cleverage.github.io/play2-elasticsearch/releases/>
 * **Short description** Indexing/Requesting Object in Embedded ElasticSearch Server or remote(s) Node(s). 
 
 ## Ember.js
@@ -101,7 +95,7 @@
 
 * **Website:** <https://github.com/joergviola/funcy>
 * **Documentation:** <https://github.com/joergviola/funcy/blob/master/README.md>
-* **Repository:** <http://joergviola.github.com/releases/>
+* **Repository:** <http://www.joergviola.de/releases/>
 * **Short description** Simplifies writing functional test using Page Driver classes.
 
 ## Geolocation (Java)
@@ -120,7 +114,7 @@
 
 * **Website:** <https://github.com/mbknor/gt-engine-play2>
 * **Documentation:** <https://github.com/mbknor/gt-engine-play2/blob/master/README.markdown>
-* **Short description:** This module brings the Groovy Template engine from play 1 to Play 2. It uses gt-engine which is used by the Play 1 module "Faster Groovy Templates" <http://www.playframework.com/modules/fastergt>
+* **Short description:** This module brings the Groovy Template engine from play 1 to Play. It uses gt-engine which is used by the Play 1 module "Faster Groovy Templates" <http://www.playframework.com/modules/fastergt>
 * **Samples:** <https://github.com/mbknor/gt-engine-play2/tree/master/samples>
 
 ## Guice Plugin (Java and Scala)
@@ -130,22 +124,22 @@
 ## HTML5 Tags module (Java and Scala)
 * **Website:** <https://github.com/loicdescotte/Play2-HTML5Tags>
 * **Documentation:** <https://github.com/loicdescotte/Play2-HTML5Tags/blob/master/README.md>
-* **Short description:** This tags add client side validation capabilities, based on model contraints (e.g required, email pattern, max|min lentgh...) and specific input fields (date, telephone number, url...) to Play 2.0 templates
+* **Short description:** This tags add client side validation capabilities, based on model contraints (e.g required, email pattern, max|min lentgh...) and specific input fields (date, telephone number, url...) to Play templates
 
 ## InputValidator (Scala)
 
 * **Website:** <https://github.com/seratch/inputvalidator/tree/master/play-module>
-* **Short description:** provides a simple validation API for Play20
+* **Short description:** provides a simple validation API for Play
 
 ## JackRabbit Plugin (Java and Scala)
-* **Website (docs, sample):** [JackRabbit Plugin GitHub](http://goo.gl/2OXEp)
+* **Website (docs, sample):** [JackRabbit Plugin GitHub](https://github.com/sgougi/play21-jackrabbit-plugin)
 * **Short description:** Apache JackRabbit Plugin for play! framework 2
 
 ## Japid module
 
 * **Website:** <https://github.com/branaway/japid42>
 * **Documentation:** <https://github.com/branaway/japid42>
-* **Short description:** This module provides Japid java templates for play 2
+* **Short description:** This module provides Japid java templates for Play
 
 ## JsMessages
 
@@ -212,21 +206,25 @@
 * **Short description:** provides a typesafe way to query SQL databases with a special emphasis on selective querying
 
 ## Origami: OrientDB O/G Mapper (Java and Scala)
-* **Website (docs, sample):** [Origami Plugin GitHub](http://goo.gl/KEmWU)
+* **Website (docs, sample):** [Origami Plugin GitHub](https://github.com/sgougi/play21-origami-plugin)
 * **Short description:** Origami plugin is a Java O/G mapper for the OrientDB with Play! Framework 2.
 
 ## PDF module (Java)
 
 * **Website:** <https://github.com/joergviola/play20-pdf>
 * **Documentation:** <https://github.com/joergviola/play20-pdf/blob/master/README.md>
-* **Repository:** <http://joergviola.github.com/releases/>
+* **Repository:** <http://www.joergviola.de/releases/>
 * **Short description** Generate PDF output from HTML templates
 
 ## Play! Authenticate (Java)
 
 * **Website:** <http://joscha.github.com/play-authenticate/>
 * **Documentation:** <https://github.com/joscha/play-authenticate/blob/master/README.md>
-* **Short description:** A highly customizable authentication module for Play 2.0
+* **Short description:** A highly customizable authentication module for Play
+
+## play2-sprites
+* **Website:** <https://github.com/koofr/play2-sprites/>
+* **Short description:** play2-sprites is an sbt plugin that generates sprites from images.
 
 ## play-jaxrs (Java)
 * **Website (docs, sample):** [play-jaxrs](https://github.com/pk11/play-jaxrs/)
@@ -235,7 +233,7 @@
 ## Play-pac4j (Java and Scala)
 * **Website:** <https://github.com/leleuj/play-pac4j>
 * **Documentation:** <https://github.com/leleuj/play-pac4j/blob/master/README.md>
-* **Short description:** Play 2.x client in Scala and Java which supports OAuth/CAS/OpenID/HTTP authentication and user profile retrieval
+* **Short description:** Play client in Scala and Java which supports OAuth/CAS/OpenID/HTTP authentication and user profile retrieval
 
 ## Play Plovr Plugin
 * **Website (docs, sample):** <https://github.com/benmccann/play-plovr-plugin>
@@ -243,12 +241,12 @@
 
 ## Play-Slick
 * **Website (docs, sample):** <https://github.com/freekh/play-slick>
-* **Short description:** This plugin makes Slick a first-class citizen of Play 2.1.
+* **Short description:** This plugin makes Slick a first-class citizen of Play.
 
 ## Pusher
 * **Website:** https://github.com/tindr/Play2Pusher
 * **Short description:** Easily interact with the [Pusher Service](http://www.pusher.com) within 
-your Play 2 application.
+your Play application.
 
 ## Qunit (Java)
 
@@ -280,7 +278,7 @@ your Play 2 application.
 ## ScalikeJDBC Plugin (Scala)
 
 * **Website:** <https://github.com/seratch/scalikejdbc/tree/master/scalikejdbc-play-plugin>
-* **Short description:** provides yet another database access API for Play20
+* **Short description:** provides yet another database access API for Play
 
 ## SecureSocial (Java and Scala)
 
@@ -291,13 +289,13 @@ your Play 2 application.
 
 * **Website:** <https://github.com/Rhinofly/play-libraries/tree/master/session-cache>
 * **Documentation:** <https://github.com/Rhinofly/play-libraries/tree/master/session-cache/README.md>
-* **Short description:** Session cache for Play 2.0 
+* **Short description:** Session cache for Play 
 
 ## Sitemap Generator (Java)
 
 * **Website:** <https://github.com/blabluble/play-sitemap-module>
 * **Documentation:** <https://github.com/blabluble/play-sitemap-module/blob/master/README.md>
-* **Short description:** Automatic [sitemaps](http://www.sitemaps.org/) generator for Play 2.1
+* **Short description:** Automatic [sitemaps](http://www.sitemaps.org/) generator for Play
 
 ## Snapshot Plugin (Java and Scala)
 * **Website (docs, sample):** <https://github.com/vznet/play-snapshot>
@@ -305,14 +303,14 @@ your Play 2 application.
 
 ## socket.io.play (scala only, pre-alpha)
 
-* **Website:** <https://github.com/rohit-tingendab/socket.io.play>
-* **Documentation:** <https://github.com/rohit-tingendab/socket.io.play/blob/master/README.md>
+* **Website:** <https://github.com/milliondreams/socket.io.play>
+* **Documentation:** <https://github.com/milliondreams/socket.io.play/blob/master/README.md>
 
 ## Spring Module 
 
 * **Website:** <https://github.com/wsargent/play-2.0-spring-module>
 * **Documentation:** <https://github.com/wsargent/play-2.0-spring-module/blob/master/README.md>
-* **Short description:** Updated version of the original Spring module for Play 2.0
+* **Short description:** Updated version of the original Spring module for Play
 
 ## Stateless client authentication (Scala)
 * **Website:** <https://github.com/blendlabs/play20-stateless-auth>
@@ -329,7 +327,7 @@ your Play 2 application.
 * **Short description:** Support for [Stylus](https://github.com/learnboost/stylus) CSS compilation
 
 ## TinkerPop Frames O/G Mapper Plugins (Java)
-* **Website (docs, sample):** GitHub: [Frames-Neo4j Plugin](http://goo.gl/S9xB7) / [Frames-OrientDB Plugin](http://goo.gl/H3tiz) / [Frames-Titan Plugin](http://goo.gl/5YBCI)
+* **Website (docs, sample):** GitHub: [Frames-Neo4j Plugin](https://github.com/sgougi/play21-frames-neo4j-plugin) / [Frames-OrientDB Plugin](https://github.com/sgougi/play21-frames-orientdb-plugin) / [Frames-Titan Plugin](https://github.com/sgougi/play21-frames-titan-plugin)
 * **Short description:** Java O/G mapper plugins for GraphDBs
 
 ## Typesafe util Plugin (Scala)
@@ -352,12 +350,12 @@ your Play 2 application.
 
 ## XForward module
 
-* **Website:** <https://github.com/orefalo/play2-xforward>
-* **Documentation:** <https://github.com/orefalo/play2-xforward/blob/master/Readme.md>
+* **Website:** <https://github.com/olsego/play2-xforward>
+* **Documentation:** <https://github.com/olsego/play2-xforward/blob/master/Readme.md>
 * **Short description:** This module brings back the missing Proxy forwarding settings from Play1.
 
 ## XWiki Rendering module (Scala)
 
 * **Website:** http://literalice.github.com/play-xwiki-rendering/
 * **Documentation:** https://github.com/literalice/play-xwiki-rendering/
-* **Short description:** XWiki Rendering Framework integration for Play 2.0
+* **Short description:** XWiki Rendering Framework integration for Play

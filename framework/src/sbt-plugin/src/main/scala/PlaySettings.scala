@@ -1,23 +1,14 @@
-package sbt
+package play
 
+import sbt.{ Project => SbtProject, _ }
+import sbt.Keys._
 import Keys._
-import PlayKeys._
 import PlayEclipse._
-import com.typesafe.sbt.packager.Keys._
 import com.typesafe.sbt.SbtNativePackager._
+import com.typesafe.sbt.packager.Keys._
 
-trait PlaySettings {
+trait Settings {
   this: PlayCommands with PlayPositionMapper with PlayRun with PlaySourceGenerators =>
-
-  protected def whichLang(name: String): Seq[Setting[_]] = {
-    if (name == JAVA) {
-      defaultJavaSettings
-    } else if (name == SCALA) {
-      defaultScalaSettings
-    } else {
-      Seq.empty
-    }
-  }
 
   lazy val defaultJavaSettings = Seq[Setting[_]](
 
@@ -40,6 +31,11 @@ trait PlaySettings {
     resourceGenerators in Compile <+= LessCompiler,
     resourceGenerators in Compile <+= CoffeescriptCompiler
   )
+
+  /** Ask SBT to manage the classpath for the given configuration. */
+  def manageClasspath(config: Configuration) = managedClasspath in config <<= (classpathTypes in config, update) map { (ct, report) =>
+    Classpaths.managedJars(config, ct, report)
+  }
 
   lazy val defaultSettings = Seq[Setting[_]](
 
@@ -75,8 +71,11 @@ trait PlaySettings {
       else
         d
     },
-
     libraryDependencies += "com.typesafe.play" %% "play-test" % play.core.PlayVersion.current % "test",
+
+    ivyConfigurations += DocsApplication,
+    libraryDependencies += "com.typesafe.play" %% "play-docs" % play.core.PlayVersion.current % DocsApplication.name,
+    manageClasspath(DocsApplication),
 
     parallelExecution in Test := false,
 
@@ -96,19 +95,22 @@ trait PlaySettings {
 
     namespaceReverseRouter := false,
 
-    sourceGenerators in Compile <+= (state, confDirectory, sourceManaged in Compile, routesImport, generateReverseRouter, namespaceReverseRouter) map RouteFiles,
+    sourceGenerators in Compile <+= (state, confDirectory, sourceManaged in Compile, routesImport, generateReverseRouter, namespaceReverseRouter) map { (s, cd, sm, ri, grr, nrr) =>
+      RouteFiles(s, Seq(cd), sm, ri, grr, nrr)
+    },
 
     // Adds config directory's source files to continuous hot reloading
     watchSources <+= confDirectory map { all => all },
 
-    sourceGenerators in Compile <+= (state, sourceDirectory in Compile, sourceManaged in Compile, templatesTypes, templatesImport) map ScalaTemplates,
+    sourceGenerators in Compile <+= (state, unmanagedSourceDirectories in Compile, sourceManaged in Compile, templatesTypes, templatesImport) map ScalaTemplates,
 
     // Adds app directory's source files to continuous hot reloading
     watchSources <++= baseDirectory map { path => ((path / "app") ** "*" --- (path / "app/assets") ** "*").get },
 
     commands ++= Seq(shCommand, playCommand, playStartCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
 
-    run <<= playRunSetting,
+    // THE `in Compile` IS IMPORTANT!
+    run in Compile <<= playRunSetting,
 
     shellPrompt := playPrompt,
 
@@ -118,11 +120,23 @@ trait PlaySettings {
 
     compile in (Compile) <<= PostCompile(scope = Compile),
 
+    compile in Test <<= PostCompile(Test),
+
     computeDependencies <<= computeDependenciesTask,
 
     playVersion := play.core.PlayVersion.current,
 
+    // all dependencies from outside the project (all dependency jars)
+    playDependencyClasspath <<= externalDependencyClasspath in Runtime,
+
+    // all user classes, in this project and any other subprojects that it depends on
+    playReloaderClasspath <<= Classpaths.concatDistinct(exportedProducts in Runtime, internalDependencyClasspath in Runtime),
+
     playCommonClassloader <<= playCommonClassloaderTask,
+
+    playDependencyClassLoader := createURLClassLoader,
+
+    playReloaderClassLoader := createDelegatedResourcesClassLoader,
 
     playCopyAssets <<= playCopyAssetsTask,
 
@@ -130,7 +144,7 @@ trait PlaySettings {
 
     playReload <<= playReloadTask,
 
-    logManager <<= extraLoggers(PlayLogManager.default(playPositionMapper)),
+    sourcePositionMappers += playPositionMapper,
 
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
 
@@ -140,9 +154,23 @@ trait PlaySettings {
 
     playDefaultPort := 9000,
 
+    // Default hooks
+
     playOnStarted := Nil,
 
     playOnStopped := Nil,
+
+    playRunHooks := Nil,
+
+    playRunHooks <++= playOnStarted map { funcs =>
+      funcs map play.PlayRunHook.makeRunHookFromOnStarted
+    },
+
+    playRunHooks <++= playOnStopped map { funcs =>
+      funcs map play.PlayRunHook.makeRunHookFromOnStopped
+    },
+
+    playInteractionMode := play.PlayConsoleInteractionMode,
 
     // Assets
 
@@ -184,7 +212,7 @@ trait PlaySettings {
 
     templatesImport := defaultTemplatesImport,
 
-    scalaIdePlay2Prefs <<= (state, thisProjectRef, baseDirectory) map { (s, r, baseDir) => saveScalaIdePlay2Prefs(r, Project structure s, baseDir) },
+    scalaIdePlay2Prefs <<= (state, thisProjectRef, baseDirectory) map { (s, r, baseDir) => saveScalaIdePlay2Prefs(r, SbtProject structure s, baseDir) },
 
     templatesTypes := Map(
       "html" -> "play.api.templates.HtmlFormat",
@@ -226,8 +254,10 @@ trait PlaySettings {
           readmeFile: File =>
             readmeFile -> readmeFile.getName
         }
-    }
+    },
+
+    // Adds the Play application directory to the command line args passed to Play
+    bashScriptExtraDefines += "addJava \"-Duser.dir=$(cd \"${app_home}/..\"; pwd -P)\"\n"
 
   )
-
 }

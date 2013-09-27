@@ -23,16 +23,16 @@ object BuildSettings {
   val buildOrganization = "com.typesafe.play"
   val buildVersion = propOr("play.version", "2.2-SNAPSHOT")
   val buildWithDoc = boolProp("generate.doc")
-  val previousVersion = "2.1.0"
+  val previousVersion = "2.2.0"
   val buildScalaVersion = propOr("scala.version", "2.10.2")
   // TODO - Try to compute this from SBT... or not.
   val buildScalaVersionForSbt = propOr("play.sbt.scala.version", "2.10.2")
   val buildScalaBinaryVersionForSbt = CrossVersion.binaryScalaVersion(buildScalaVersionForSbt)
-  val buildSbtVersion = propOr("play.sbt.version", "0.13.0-RC1")
+  val buildSbtVersion = propOr("play.sbt.version", "0.13.0")
   val buildSbtMajorVersion = "0.13"
   val buildSbtVersionBinaryCompatible = CrossVersion.binarySbtVersion(buildSbtVersion)
   // Used by api docs generation to link back to the correct branch on GitHub, only when version is a SNAPSHOT
-  val sourceCodeBranch = propOr("git.branch", "master")
+  val sourceCodeBranch = propOr("git.branch", "2.2.x")
 
   lazy val PerformanceTest = config("pt") extend(Test)
 
@@ -50,6 +50,12 @@ object BuildSettings {
     testOptions in Test += Tests.Filter(!_.endsWith("Benchmark")),
     testOptions in PerformanceTest ~= (_.filterNot(_.isInstanceOf[Tests.Filter]) :+ Tests.Filter(_.endsWith("Benchmark"))),
     parallelExecution in PerformanceTest := false
+  )
+
+  val dontPublishSettings = Seq(
+    publishArtifact := false,
+    // Needed for sbt-pgp's publish-signed-configuration task, even though there are no artifacts
+    publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo")))
   )
 
   def PlaySharedJavaProject(name: String, dir: String, testBinaryCompatibility: Boolean = false): Project = {
@@ -83,7 +89,7 @@ object BuildSettings {
     scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
     publishArtifact in packageDoc := buildWithDoc,
     publishArtifact in (Compile, packageSrc) := true,
-    ApiDocs.apiDocsInclude := true
+    Docs.apiDocsInclude := true
   )
 
   def PlaySbtProject(name: String, dir: String): Project = {
@@ -108,10 +114,10 @@ object Resolvers {
   val typesafeSnapshots = "Typesafe Snapshots Repository" at "http://repo.typesafe.com/typesafe/snapshots/"
   val typesafeIvyReleases = Resolver.url("Typesafe Ivy Releases Repository", url("http://repo.typesafe.com/typesafe/ivy-releases"))(Resolver.ivyStylePatterns)
   val typesafeIvySnapshots = Resolver.url("Typesafe Ivy Snapshots Repository", url("http://repo.typesafe.com/typesafe/ivy-snapshots"))(Resolver.ivyStylePatterns)
-  val publishTypesafeMavenReleases = "Typesafe Maven Releases Repository for publishing" at "https://typesafe.artifactoryonline.com/typesafe/maven-releases/"
-  val publishTypesafeMavenSnapshots = "Typesafe Maven Snapshots Repository for publishing" at "https://typesafe.artifactoryonline.com/typesafe/maven-snapshots/"
-  val publishTypesafeIvyReleases = Resolver.url("Typesafe Ivy Releases Repository for publishing", url("https://typesafe.artifactoryonline.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
-  val publishTypesafeIvySnapshots = Resolver.url("Typesafe Ivy Snapshots Repository for publishing", url("https://typesafe.artifactoryonline.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns)
+  val publishTypesafeMavenReleases = "Typesafe Maven Releases Repository for publishing" at "https://private-repo.typesafe.com/typesafe/maven-releases/"
+  val publishTypesafeMavenSnapshots = "Typesafe Maven Snapshots Repository for publishing" at "https://private-repo.typesafe.com/typesafe/maven-snapshots/"
+  val publishTypesafeIvyReleases = Resolver.url("Typesafe Ivy Releases Repository for publishing", url("https://private-repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
+  val publishTypesafeIvySnapshots = Resolver.url("Typesafe Ivy Snapshots Repository for publishing", url("https://private-repo.typesafe.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns)
 
   val sonatypeSnapshots = "Sonatype snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"
 
@@ -168,7 +174,7 @@ object PlayBuild extends Build {
       libraryDependencies := runtime,
       sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
       mappings in(Compile, packageSrc) <++= scalaTemplateSourceMappings,
-      ApiDocs.apiDocsIncludeManaged := true,
+      Docs.apiDocsIncludeManaged := true,
       parallelExecution in Test := false,
       sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
     ).dependsOn(SbtLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject % "test->test;compile->compile", JsonProject)
@@ -215,6 +221,12 @@ object PlayBuild extends Build {
     .settings(libraryDependencies := javaDeps)
     .dependsOn(PlayProject)
     .dependsOn(PlayTestProject % "test")
+
+  lazy val PlayDocsProject = PlayRuntimeProject("Play-Docs", "play-docs")
+    .settings(Docs.settings: _*)
+    .settings(
+      libraryDependencies := playDocsDependencies
+    ).dependsOn(PlayProject)
   
   import ScriptedPlugin._
 
@@ -223,8 +235,6 @@ object PlayBuild extends Build {
       sbtPlugin := true,
       publishMavenStyle := false,
       libraryDependencies := sbtDependencies,
-      // Remove once there are releases for IDE plugins against 0.13
-      resolvers += sonatypeSnapshots,
       sbtVersion in GlobalScope := buildSbtVersion,
       sbtBinaryVersion in GlobalScope := buildSbtVersionBinaryCompatible,
       sbtDependency <<= sbtDependency { dep =>
@@ -235,7 +245,11 @@ object PlayBuild extends Build {
           d.organization + ":" + d.name + ":" + d.revision
         }.sorted.foreach(println)
       },
-      publishTo := Some(publishingIvyRepository)
+      publishTo := Some(publishingIvyRepository),
+      // Must be false, because due to the way SBT integrates with test libraries, and the way SBT uses Java object
+      // serialisation to communicate with forked processes, and because this plugin will have SBT 0.13 on the forked
+      // processes classpath while it's actually being run by SBT 0.12... if it forks you get serialVersionUID errors.
+      fork in Test := false
     ).settings(scriptedSettings: _*)
     .settings(
       scriptedLaunchOpts <++= (baseDirectory in ThisBuild) { baseDir =>
@@ -257,10 +271,13 @@ object PlayBuild extends Build {
     )
 
   lazy val PlayFiltersHelpersProject = PlayRuntimeProject("Filters-Helpers", "play-filters-helpers")
-    .dependsOn(PlayProject)
+    .dependsOn(PlayProject, PlayTestProject % "test", PlayJavaProject % "test")
 
   // This project is just for testing Play, not really a public artifact
   lazy val PlayIntegrationTestProject = PlayRuntimeProject("Play-Integration-Test", "play-integration-test")
+    .settings(
+      parallelExecution in Test := false
+    )
     .dependsOn(PlayProject, PlayTestProject)
 
   lazy val PlayCacheProject = PlayRuntimeProject("Play-Cache", "play-cache")
@@ -270,17 +287,20 @@ object PlayBuild extends Build {
   import RepositoryBuilder._
   lazy val RepositoryProject = Project(
       "Play-Repository", file("repository"))
+    .settings(dontPublishSettings:_*)
     .settings(localRepoCreationSettings:_*)
     .settings(
       localRepoProjectsPublished <<= (publishedProjects map (publishLocal in _)).dependOn,
       addProjectsToRepository(publishedProjects),
       localRepoArtifacts ++= Seq(
-        "org.scala-lang" % "scala-compiler" % BuildSettings.buildScalaVersion,
-        "org.scala-lang" % "scala-compiler" % BuildSettings.buildScalaVersionForSbt,
+        "org.scala-lang" % "scala-compiler" % BuildSettings.buildScalaVersion % "master",
+        "org.scala-lang" % "jline" % BuildSettings.buildScalaVersion % "master",
+        "org.scala-lang" % "scala-compiler" % BuildSettings.buildScalaVersionForSbt % "master",
+        "org.scala-lang" % "jline" % BuildSettings.buildScalaVersionForSbt % "master",
         "org.scala-sbt" % "sbt" % BuildSettings.buildSbtVersion
       )
     )
-    
+
   lazy val publishedProjects = Seq[ProjectReference](
     PlayProject,
     SbtLinkProject,
@@ -302,6 +322,7 @@ object PlayBuild extends Build {
     ConsoleProject,
     PlayTestProject,
     PlayExceptionsProject,
+    PlayDocsProject,
     PlayFiltersHelpersProject,
     PlayIntegrationTestProject
   )
@@ -310,12 +331,13 @@ object PlayBuild extends Build {
     "Root",
     file("."))
     .settings(playCommonSettings: _*)
-    .settings(ApiDocs.settings: _*)
+    .settings(dontPublishSettings:_*)
     .settings(
       libraryDependencies := (runtime ++ jdbcDeps),
-      cleanFiles ++= Seq(file("../dist"), file("../repository/local")),
-      publish := {},
+      Docs.apiDocsInclude := false,
+      Docs.apiDocsIncludeManaged := false,
       generateDistTask
     )
     .aggregate(publishedProjects: _*)
+    .aggregate(RepositoryProject)
 }

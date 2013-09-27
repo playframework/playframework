@@ -1,11 +1,11 @@
 package play.core.j
 
-import play.api.mvc._
 import play.mvc.{ SimpleResult => JSimpleResult }
-import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => JBody, Cookies => JCookies, Cookie => JCookie }
+import play.mvc.Http.{ Context => JContext, Request => JRequest, Cookies => JCookies, Cookie => JCookie }
 
-import scala.collection.JavaConverters._
 import play.libs.F
+import scala.concurrent.Future
+import play.api.libs.iteratee.Execution.trampoline
 import java.security.cert.Certificate
 
 class EitherToFEither[A, B]() extends play.libs.F.Function[Either[A, B], play.libs.F.Either[A, B]] {
@@ -192,11 +192,11 @@ trait JavaHelpers {
    * @param f The function to invoke
    * @return The result
    */
-  def invokeWithContext(request: RequestHeader, f: JRequest => Option[JSimpleResult]): Option[SimpleResult] = {
+  def invokeWithContext(request: RequestHeader, f: JRequest => Option[F.Promise[JSimpleResult]]): Option[Future[SimpleResult]] = {
     val javaContext = createJavaContext(request)
     try {
       JContext.current.set(javaContext)
-      f(javaContext.request()).map(result => createResult(javaContext, result))
+      f(javaContext.request()).map(_.wrapped.map(createResult(javaContext, _))(trampoline))
     } finally {
       JContext.current.remove()
     }

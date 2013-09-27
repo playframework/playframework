@@ -1,7 +1,7 @@
 package play.core.coffeescript
 
 import java.io._
-import sbt.PlayExceptions.AssetCompilationException
+import play.PlayExceptions.AssetCompilationException
 
 object CoffeescriptCompiler {
 
@@ -30,7 +30,7 @@ object CoffeescriptCompiler {
           val options = ctx.newObject(scope)
           options.put("bare", options, bare)
           compilerFunction.call(ctx, scope, scope, Array(coffeeCode, options))
-        }.asInstanceOf[String]
+        }.toString
       }
 
   }
@@ -83,7 +83,7 @@ object CoffeescriptCompiler {
         val line = """.*on line ([0-9]+).*""".r
         val error = e.getValue.asInstanceOf[Scriptable]
 
-        throw ScriptableObject.getProperty(error, "message").asInstanceOf[String] match {
+        throw ScriptableObject.getProperty(error, "message").toString match {
           case msg @ line(l) => AssetCompilationException(Some(source), msg, Some(Integer.parseInt(l)), None)
           case msg => AssetCompilationException(Some(source), msg, None, None)
         }

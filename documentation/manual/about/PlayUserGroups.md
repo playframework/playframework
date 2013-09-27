@@ -1,9 +1,6 @@
 ## New York
 http://www.meetup.com/Play-NYC/
 
-## Boston
-http://www.meetup.com/boston-play-framework-group/
-
 ## Berlin
 http://www.meetup.com/Play-Berlin-Brandenburg/
 
@@ -21,9 +18,6 @@ http://www.meetup.com/play-argentina/
 
 ## Stockholm
 http://www.meetup.com/play-stockholm/
-
-## Montpellier
-http://www.meetup.com/Play-Montpellier/
 
 ## Belgium
 http://www.play-be.org

@@ -6,19 +6,7 @@ One important aspect of  the ```GlobalSettings``` class is that it provides a wa
 
 For example:
 
-```java
-import play.*;
-
-public class Global extends GlobalSettings {
-
-@Override
-public Action onRequest(Request request, Method actionMethod) {
-   System.out.println("before each request..." + request.toString());
-   return super.onRequest(request, actionMethod);
-}
-
-}
-```
+@[global](code/javaguide/global/intercept/Global.java)
 
 It’s also possible to intercept a specific action method. This can be achieved via [[Action composition| JavaActionsComposition]].
 

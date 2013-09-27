@@ -6,6 +6,7 @@ GET     /                           controllers.Application.index(name = "Guest"
 GET     /key                        controllers.Application.key
 GET     /async                      controllers.Application.asyncResult
 GET     /lang/:code                 controllers.Application.setLang(code)
+GET     /unsetLang                  controllers.Application.unsetLang()
 GET     /hello                      controllers.Application.hello()
 GET     /clientCert                 controllers.Application.clientCert()
 POST    /json                       controllers.Application.getIdenticalJson()

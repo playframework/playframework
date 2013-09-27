@@ -92,10 +92,10 @@ fi
 
 if [ $CLEAN -eq 0 ]
 then
-    $DIR/build clean Play-Repository:clean
+    $DIR/build clean
 fi
 
-$DIR/build -Dplay.version=${PLAY_VERSION} $PUBLISHCMD create-dist
+$DIR/build $PUBLISHCMD create-dist
 
 if [ $PUBLISH -eq 0 ]
 then
@@ -126,7 +126,7 @@ then
     git merge origin/$GITBRANCH
 
     rm -r *
-    cp -r $OLDDIR/target/dist/play-$PLAY_VERSION/documentation/api api
+    cp -r $OLDDIR/src/play-docs/target/apidocs api
     git add --all
     git commit -m "Publishing $PLAY_VERSION docs"
     git tag -a -m "Publishing $PLAY_VERSION docs" $PLAY_VERSION

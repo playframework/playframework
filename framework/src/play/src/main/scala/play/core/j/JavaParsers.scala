@@ -156,7 +156,7 @@ object JavaParsers extends BodyParsers {
     )
   }
 
-  def raw(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.raw(Integer.MAX_VALUE)).map { body =>
+  def raw(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.raw).map { body =>
     body
       .left.map(_ => DefaultRequestBody(isMaxSizeExceeded = true))
       .right.map { raw =>

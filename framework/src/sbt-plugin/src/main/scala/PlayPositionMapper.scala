@@ -1,5 +1,6 @@
-package sbt
+package play
 
+import sbt._
 import xsbti.Position
 
 /**

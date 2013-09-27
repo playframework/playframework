@@ -1,7 +1,5 @@
 package play.core.server.netty
 
-import scala.language.reflectiveCalls
-
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.handler.codec.http.HttpHeaders._
@@ -29,16 +27,22 @@ import scala.util.control.Exception
 import com.typesafe.netty.http.pipelining.{OrderedDownstreamChannelEvent, OrderedUpstreamMessageEvent}
 import scala.concurrent.Future
 import java.net.URI
+import java.io.IOException
 
 
 private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
 
-  implicit val internalExecutionContext =  play.core.Execution.internalContext
-
   private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
 
-  override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-    e.getCause match {
+  /**
+   * We don't know what the consequence of changing logging exceptions from trace to error will be.  We hope that it
+   * won't have any impact, but in case it turns out that there are many exceptions that are normal occurrences, we
+   * want to give people the opportunity to turn it off.
+   */
+  val nettyExceptionLogger = Logger("play.nettyException")
+
+  override def exceptionCaught(ctx: ChannelHandlerContext, event: ExceptionEvent) {
+    event.getCause match {
       case e: ClosedChannelException => {
         // One example of when this happens is when renegotiating SSL to use peer certificates in Chrome,
         // Chrome doesn't support renegotiation properly, so it just closes the channel and reconnects.
@@ -48,9 +52,12 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         // This could be thrown when requesting a peer certificate, and none is provided
         Logger.trace("SSL Handshake exception", e)
       }
-      case _ => Logger.debug("Exception caught in Netty", e.getCause)
+      // IO exceptions happen all the time, it usually just means that the client has closed the connection before fully
+      // sending/receiving the response.
+      case e: IOException => nettyExceptionLogger.trace("Benign IO exception caught in Netty", e)
+      case e => nettyExceptionLogger.error("Exception caught in Netty", e)
     }
-    e.getChannel.close()
+    event.getChannel.close()
   }
 
   override def channelConnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
@@ -124,7 +131,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             val remoteAddress = ra.getAddress.getHostAddress
             (for {
               xff <- rHeaders.get(X_FORWARDED_FOR)
-              app <- server.applicationProvider.get.right.toOption
+              app <- server.applicationProvider.get.toOption
               trustxforwarded <- app.configuration.getBoolean("trustxforwarded").orElse(Some(false))
               if remoteAddress == "127.0.0.1" || trustxforwarded
             } yield xff).getOrElse(remoteAddress)
@@ -154,12 +161,12 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           untaggedRequestHeader
         }
 
-        val (requestHeader, handler: Either[SimpleResult,(Handler,Application)]) = Exception
+        val (requestHeader, handler: Either[Future[SimpleResult],(Handler,Application)]) = Exception
             .allCatch[RequestHeader].either(tryToCreateRequest)
             .fold(
               e => {
                 val rh = createRequestHeader()
-                val r = server.applicationProvider.get.fold(e => DefaultGlobal, a => a.global).onBadRequest(rh, e.getMessage)
+                val r = server.applicationProvider.get.map(_.global).getOrElse(DefaultGlobal).onBadRequest(rh, e.getMessage)
                 (rh, Left(r))
               },
               rh => server.getHandlerFor(rh) match {
@@ -172,10 +179,10 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         val alreadyClean = new java.util.concurrent.atomic.AtomicBoolean(false)
         def cleanup() {
           if (!alreadyClean.getAndSet(true)) {
-            play.api.Play.maybeApplication.foreach(_.global.onRequestCompletion(requestHeader))            
+            play.api.Play.maybeApplication.foreach(_.global.onRequestCompletion(requestHeader))
           }
         }
-        
+
         // attach the cleanup function to the channel context for after cleaning
         ctx.setAttachment(cleanup _)
 
@@ -206,8 +213,12 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           //execute normal action
           case Right((action: EssentialAction, app)) =>
             val a = EssentialAction { rh =>
+              import play.api.libs.iteratee.Execution.Implicits.trampoline
               Iteratee.flatten(action(rh).unflatten.map(_.it).recover {
-                case error => Done(app.handleError(requestHeader, error),Input.Empty): Iteratee[Array[Byte],SimpleResult]
+                case error =>
+                  Iteratee.flatten(
+                    app.handleError(requestHeader, error).map(result => Done(result, Input.Empty))
+                  ): Iteratee[Array[Byte],SimpleResult]
               })
             }
             handleAction(a, Some(app))
@@ -225,7 +236,8 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
           case Left(e) =>
             Play.logger.trace("No handler, got direct result: " + e)
-            val a = EssentialAction(_ => Done(e,Input.Empty))
+            import play.api.libs.iteratee.Execution.Implicits.trampoline
+            val a = EssentialAction(_ => Iteratee.flatten(e.map(result => Done(result, Input.Empty))))
             handleAction(a,None)
 
         }
@@ -236,6 +248,8 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           val bodyParser = Iteratee.flatten(
             scala.concurrent.Future(action(requestHeader))(play.api.libs.concurrent.Execution.defaultContext)
           )
+
+          import play.api.libs.iteratee.Execution.Implicits.trampoline
 
           val expectContinue: Option[_] = requestHeader.headers.get("Expect").filter(_.equalsIgnoreCase("100-continue"))
 
@@ -282,24 +296,26 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                   // Connection must be set to close because whatever comes next in the stream is either the request
                   // body, because the client waited too long for our response, or the next request, and there's no way
                   // for us to know which.  See RFC2616 Section 8.2.3.
-                  Future.successful(result.copy(connection = HttpConnection.Close), 0)
+                  Future.successful((result.copy(connection = HttpConnection.Close), 0))
                 }
                 case Step.Error(msg, _) => {
                   e.getChannel.setReadable(true)
                   val error = new RuntimeException("Body parser iteratee in error: " + msg)
                   val result = app.map(_.handleError(requestHeader, error)).getOrElse(DefaultGlobal.onError(requestHeader, error))
-                  Future.successful(result.copy(connection = HttpConnection.Close), 0)
+                  result.map(r => (r.copy(connection = HttpConnection.Close), 0))
                 }
               }
             }
             case None => eventuallyResult.map((_, 0))
           }
 
-          val sent = eventuallyResultWithSequence.recover {
+          val sent = eventuallyResultWithSequence.recoverWith {
             case error =>
               Play.logger.error("Cannot invoke the action, eventually got an error: " + error)
               e.getChannel.setReadable(true)
-              (app.map(_.handleError(requestHeader, error)).getOrElse(DefaultGlobal.onError(requestHeader, error)), 0)
+              app.map(_.handleError(requestHeader, error))
+                .getOrElse(DefaultGlobal.onError(requestHeader, error))
+                .map((_, 0))
           }.flatMap {
             case (result, sequence) =>
               NettyResultStreamer.sendResult(cleanFlashCookie(result), !keepAlive, nettyVersion, sequence)
@@ -328,6 +344,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
         case Empty => Cont(step(future))
       }
 
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
     Enumeratee.breakE[A](_ => !channel.isConnected()).transform(Cont(step(None)))
   }
 

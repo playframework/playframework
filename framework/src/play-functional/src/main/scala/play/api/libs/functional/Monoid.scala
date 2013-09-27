@@ -7,6 +7,10 @@ trait Monoid[A] {
 
 }
 
+class MonoidOps[A](m1: A)(implicit m: Monoid[A]) {
+  def |+|(m2: A): A = m.append(m1, m2)
+}
+
 /* A practical variant of monoid act/action/operator (search on wikipedia)
  * - allows to take an element A to create a B
  * - allows a prepend/append a A to a B

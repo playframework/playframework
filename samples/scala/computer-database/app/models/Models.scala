@@ -8,6 +8,8 @@ import play.api.Play.current
 import anorm._
 import anorm.SqlParser._
 
+import scala.language.postfixOps
+
 case class Company(id: Pk[Long] = NotAssigned, name: String)
 case class Computer(id: Pk[Long] = NotAssigned, name: String, introduced: Option[Date], discontinued: Option[Date], companyId: Option[Long])
 

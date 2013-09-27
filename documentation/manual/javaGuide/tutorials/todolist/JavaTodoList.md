@@ -1,6 +1,6 @@
 # Your first Play application
 
-Let’s write a simple task list application with Play 2.1 and deploy it to the cloud. This is a very small example which can be managed in a few hours.
+Let’s write a simple task list application with Play and deploy it to the cloud. This is a very small example which can be managed in a few hours.
 
 ## Prerequisites
 
@@ -9,6 +9,8 @@ First of all, make sure that you have a [[working Play installation|Installing]]
 As we will use the command line a lot, it’s better to use a Unix-like OS. If you run a Windows system, it will also work fine; you’ll just have to type a few commands in the command prompt.
 
 You will of course need a text editor. If you are used-to a fully-featured Java IDE, such as Eclipse or IntelliJ, you can of course use it. However, with Play you can have fun working with a simple text editor like TextMate, Emacs or vi. This is because the framework manages compilation and the deployment process itself.
+
+> **Note:** Read more about [[Setting-up your preferred IDE | IDE]].
 
 ## Project creation
 
@@ -33,6 +35,7 @@ The `play new` command creates a new directory `todolist/` and populates it with
 * `test/` contains all the application tests. Tests can be written as JUnit tests.
 
 > Because Play uses UTF-8 as the single encoding, it’s very important that all text files hosted in these directories use this encoding. Make sure to configure your text editor accordingly. In the windows system the editor configuration must be ANSI encode
+> **Note:** Read more about [[Anatomy of a Play application | Anatomy]].
 
 ## Using the Play console
 
@@ -98,7 +101,7 @@ This template is defined in the `app/views/index.scala.html` source file:
 ```
 @(message: String)
 
-@main("Welcome to Play 2.1") {
+@main("Welcome to Play") {
     
     @play20.welcome(message, style = "Java")
     
@@ -107,7 +110,7 @@ This template is defined in the `app/views/index.scala.html` source file:
 
 The first line defines the function signature. Here it takes a single `String` parameter. Then the template content mixes HTML (or any text-based language) with Scala statements. The Scala statements start with the special `@` character.
 
-> **Note:** Don’t worry about the template engine using Scala as its expression language. This is not a problem for a Java developer, and you can almost use it as if the language was Java.
+> **Note:** Don’t worry about the template engine using Scala as its expression language. This is not a problem for a Java developer, and you can almost use it as if the language was Java. We explain the templating system in a bit more deatil below.
 
 ## Development work-flow
 

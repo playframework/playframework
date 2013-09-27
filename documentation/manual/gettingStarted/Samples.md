@@ -26,7 +26,7 @@ This is a classic CRUD application, backed by a JDBC database. It demonstrates:
 - table pagination and CRUD forms
 - integrating with a CSS framework ([Twitter Bootstrap](http://twitter.github.com/bootstrap/)).
 
-Twitter Bootstrap requires a different form layout to the default layout provided by the Play 2.0 form helper, so this application also provides an example of integrating a custom form input constructor.
+Twitter Bootstrap requires a different form layout to the default layout provided by the Play form helper, so this application also provides an example of integrating a custom form input constructor.
 
 ## Forms
 

@@ -39,35 +39,26 @@ In `project/plugins.sbt`, add:
 resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
 
 // Use the Play sbt plugin for Play projects
-addSbtPlugin("play" % "sbt-plugin" % "2.1.0")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "%PLAY_VERSION%")
 ```
 
-Be sure to replace `2.1.0` here by the exact version you want to use. If you want to use a snapshot version, you will have to specify this additional resolver: 
+Be sure to replace %PLAY_VERSION% here with the exact version you want to use. If you want to use a snapshot version, you will have to specify this additional resolver: 
 
 ```
 // Typesafe snapshots
 resolvers += "Typesafe Snapshots" at "http://repo.typesafe.com/typesafe/snapshots/"
 ```
 
-In `project/Build.scala`:
+In `build.sbt`:
 
 ```scala
-import sbt._
-import Keys._
 import play.Project._
- 
-object ApplicationBuild extends Build {
- 
-  val appName         = "My first application"
-  val appVersion      = "1.0"
- 
-  val appDependencies = Nil
- 
-  val main = play.Project(
-    appName, appVersion, appDependencies
-  ) 
- 
-}
+
+name := "My first application"
+
+version := "1.0"
+
+playScalaSettings
 ```
 
 You can then launch the sbt console in this directory:

@@ -39,6 +39,13 @@ object `package` {
 
   }
 
+  implicit def functionMonoid[A] = new Monoid[A => A] {
+    override def append(f1: A => A, f2: A => A) = f2 compose f1
+    override def identity = Predef.identity
+  }
+
+  implicit def toMonoidOps[A](a: A)(implicit m: Monoid[A]): MonoidOps[A] = new MonoidOps(a)
+
   implicit def toFunctorOps[M[_], A](ma: M[A])(implicit fu: Functor[M]): FunctorOps[M, A] = new FunctorOps(ma)
   implicit def toContraFunctorOps[M[_], A](ma: M[A])(implicit fu: ContravariantFunctor[M]): ContravariantFunctorOps[M, A] = new ContravariantFunctorOps(ma)
   implicit def toInvariantFunctorOps[M[_], A](ma: M[A])(implicit fu: InvariantFunctor[M]): InvariantFunctorOps[M, A] = new InvariantFunctorOps(ma)
@@ -48,4 +55,3 @@ object `package` {
   def unlift[A, B](f: A => Option[B]): A => B = Function.unlift(f)
 
 }
-

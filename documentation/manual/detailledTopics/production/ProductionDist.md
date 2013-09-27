@@ -2,9 +2,9 @@
 
 ## Using the dist task
 
-The simplest way to deploy a Play 2 application is to retrieve the source (typically via a git workflow) on the server and to use either `play start` or `play stage` to start it in place.
+The simplest way to deploy a Play application is to retrieve the source (typically via a git workflow) on the server and to use either `play start` or `play stage` to start it in place.
 
-However, you sometimes need to build a binary version of your application and deploy it to the server without any dependencies on Play itself. You can do this with the `dist` task.
+However, you sometimes need to build a binary version of your application and deploy it to the server without any dependency on Play itself. You can do this with the `dist` task.
 
 In the Play console, simply type `dist`:
 
@@ -56,20 +56,16 @@ Please consult the [documentation](http://www.scala-sbt.org/sbt-native-packager)
 
 You can also publish your application to a Maven repository. This publishes both the JAR file containing your application and the corresponding POM file.
 
-You have to configure the repository you want to publish to, in the `project/Build.scala` file:
+You have to configure the repository you want to publish to, in your `build.sbt` file:
 
 ```scala
-val main = play.Project(appName, appVersion, appDependencies).settings(
-
-  publishTo := Some(
-    "My resolver" at "http://mycompany.com/repo"
-  ),
-  
-  credentials += Credentials(
-    "Repo", "http://mycompany.com/repo", "admin", "admin123"
-  )
-  
-)
+ publishTo := Some(
+   "My resolver" at "http://mycompany.com/repo"
+ ),
+ 
+ credentials += Credentials(
+   "Repo", "http://mycompany.com/repo", "admin", "admin123"
+ )
 ```
 
 Then in the Play console, use the `publish` task:
@@ -79,3 +75,5 @@ Then in the Play console, use the `publish` task:
 ```
 
 > Check the [sbt documentation](http://www.scala-sbt.org/release/docs/index.html) to get more information about the resolvers and credentials definition.
+
+> **Next:** [[Production configuration|ProductionConfiguration]]

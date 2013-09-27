@@ -129,7 +129,7 @@ trait DefaultAwaitTimeout {
   /**
    * The default await timeout.  Override this to change it.
    */
-  implicit def defaultAwaitTimeout: Timeout = 5 seconds
+  implicit def defaultAwaitTimeout: Timeout = 5.seconds
 }
 
 trait FutureAwaits {
@@ -365,6 +365,7 @@ trait ResultExtractors {
 object Helpers extends PlayRunners
   with HeaderNames
   with Status
+  with HttpProtocol
   with DefaultAwaitTimeout
   with ResultExtractors
   with Writeables

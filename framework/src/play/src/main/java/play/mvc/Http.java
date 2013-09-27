@@ -28,7 +28,7 @@ public class Http {
          */
         public static Context current() {
             Context c = current.get();
-            if (c == null) {
+            if(c == null) {
                 throw new RuntimeException("There is no HTTP Context available from here.");
             }
             return c;
@@ -49,18 +49,18 @@ public class Http {
         /**
          * Creates a new HTTP context.
          *
-         * @param request     the HTTP request
+         * @param request the HTTP request
          * @param sessionData the session data extracted from the session cookie
-         * @param flashData   the flash data extracted from the flash cookie
+         * @param flashData the flash data extracted from the flash cookie
          */
-        public Context(Long id, play.api.mvc.RequestHeader header, Request request, Map<String, String> sessionData, Map<String, String> flashData, Map<String, Object> args) {
+        public Context(Long id, play.api.mvc.RequestHeader header, Request request, Map<String,String> sessionData, Map<String,String> flashData, Map<String,Object> args) {
             this.id = id;
             this.header = header;
             this.request = request;
             this.response = new Response();
             this.session = new Session(sessionData);
             this.flash = new Flash(flashData);
-            this.args = new HashMap<String, Object>(args);
+            this.args = new HashMap<String,Object>(args);
         }
 
         /**
@@ -140,6 +140,14 @@ public class Http {
         }
 
         /**
+         * Clear the lang for the current user.
+         */
+        public void clearLang() {
+            this.lang = null;
+            response.discardCookie(Play.langCookieName());
+        }
+
+        /**
          * Free space to store your request specific data
          */
         public Map<String, Object> args;
@@ -205,14 +213,14 @@ public class Http {
          */
         public abstract String uri();
 
-        /**
-         * The HTTP Method.
-         */
-        public abstract String method();
+      /**
+       * The HTTP Method.
+       */
+      public abstract String method();
 
-        /**
-         * The HTTP version.
-         */
+       /**
+        * The HTTP version.
+        */
         public abstract String version();
 
         /**
@@ -261,7 +269,7 @@ public class Http {
         /**
          * The query string content.
          */
-        public abstract Map<String, String[]> queryString();
+        public abstract Map<String,String[]> queryString();
 
         /**
          * Helper method to access a queryString parameter.
@@ -288,20 +296,20 @@ public class Http {
          *
          * @return headers
          */
-        public abstract java.util.Map<String, String[]> headers();
+        public abstract java.util.Map<String,String[]> headers();
 
         /**
          * Retrieves a single header.
          */
         public String getHeader(String headerName) {
             String[] headers = null;
-            for (String h : headers().keySet()) {
-                if (headerName.toLowerCase().equals(h.toLowerCase())) {
+            for(String h: headers().keySet()) {
+                if(headerName.toLowerCase().equals(h.toLowerCase())) {
                     headers = headers().get(h);
                     break;
                 }
             }
-            if (headers == null || headers.length == 0) {
+            if(headers == null || headers.length == 0) {
                 return null;
             }
             return headers[0];
@@ -444,7 +452,7 @@ public class Http {
         /**
          * Extract the data parts as Form url encoded.
          */
-        public abstract Map<String, String[]> asFormUrlEncoded();
+        public abstract Map<String,String[]> asFormUrlEncoded();
 
         /**
          * Retrieves all file parts.
@@ -455,8 +463,8 @@ public class Http {
          * Access a file part.
          */
         public FilePart getFile(String key) {
-            for (FilePart filePart : getFiles()) {
-                if (filePart.getKey().equals(key)) {
+            for(FilePart filePart: getFiles()) {
+                if(filePart.getKey().equals(key)) {
                     return filePart;
                 }
             }
@@ -484,7 +492,7 @@ public class Http {
         /**
          * The request content parsed as URL form-encoded.
          */
-        public Map<String, String[]> asFormUrlEncoded() {
+        public Map<String,String[]> asFormUrlEncoded() {
             return null;
         }
 
@@ -521,8 +529,8 @@ public class Http {
          */
         @SuppressWarnings("unchecked")
         public <T> T as(Class<T> tType) {
-            if (this.getClass().isAssignableFrom(tType)) {
-                return (T) this;
+            if(this.getClass().isAssignableFrom(tType)) {
+                return (T)this;
             } else {
                 return null;
             }
@@ -535,25 +543,30 @@ public class Http {
      */
     public static class Response implements HeaderNames {
 
-        private final Map<String, String> headers = new HashMap<String, String>();
+        private final Map<String,String> headers = new HashMap<String,String>();
         private final List<Cookie> cookies = new ArrayList<Cookie>();
 
         /**
          * Adds a new header to the response.
+         *
+         * @param name The name of the header. Must not be null.
+         * @param value The value of the header. Must not be null.
          */
-        public void setHeader(String name, String Stringue) {
-            this.headers.put(name, Stringue);
+        public void setHeader(String name, String value) {
+            this.headers.put(name, value);
         }
 
         /**
          * Gets the current response headers.
          */
-        public Map<String, String> getHeaders() {
+        public Map<String,String> getHeaders() {
             return headers;
         }
 
         /**
          * Sets the content-type of the response.
+         *
+         * @param contentType The content type.  Must not be null.
          */
         public void setContentType(String contentType) {
             setHeader(CONTENT_TYPE, contentType);
@@ -565,9 +578,8 @@ public class Http {
          * <pre>
          * response().setCookie("theme", "blue");
          * </pre>
-         *
-         * @param name  Cookie name
-         * @param value Cookie value
+         * @param name Cookie name.  Must not be null.
+         * @param value Cookie value.
          */
         public void setCookie(String name, String value) {
             setCookie(name, value, null);
@@ -575,10 +587,9 @@ public class Http {
 
         /**
          * Set a new cookie with path “/”
-         *
-         * @param name   Cookie name
-         * @param value  Cookie value
-         * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
+         * @param name Cookie name.  Must not be null.
+         * @param value Cookie value.
+         * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now).
          */
         public void setCookie(String name, String value, Integer maxAge) {
             setCookie(name, value, maxAge, "/");
@@ -586,11 +597,10 @@ public class Http {
 
         /**
          * Set a new cookie
-         *
-         * @param name   Cookie name
-         * @param value  Cookie value
+         * @param name Cookie name.  Must not be null.
+         * @param value Cookie value
          * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
-         * @param path   Cookie path
+         * @param path Cookie path
          */
         public void setCookie(String name, String value, Integer maxAge, String path) {
             setCookie(name, value, maxAge, path, null);
@@ -598,11 +608,10 @@ public class Http {
 
         /**
          * Set a new cookie
-         *
-         * @param name   Cookie name
-         * @param value  Cookie value
+         * @param name Cookie name.  Must not be null.
+         * @param value Cookie value
          * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
-         * @param path   Cookie path
+         * @param path Cookie path
          * @param domain Cookie domain
          */
         public void setCookie(String name, String value, Integer maxAge, String path, String domain) {
@@ -611,13 +620,12 @@ public class Http {
 
         /**
          * Set a new cookie
-         *
-         * @param name     Cookie name
-         * @param value    Cookie value
-         * @param maxAge   Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
-         * @param path     Cookie path
-         * @param domain   Cookie domain
-         * @param secure   Whether the cookie is secured (for HTTPS requests)
+         * @param name Cookie name.  Must not be null.
+         * @param value Cookie value
+         * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
+         * @param path Cookie path
+         * @param domain Cookie domain
+         * @param secure Whether the cookie is secured (for HTTPS requests)
          * @param httpOnly Whether the cookie is HTTP only (i.e. not accessible from client-side JavaScript code)
          */
         public void setCookie(String name, String value, Integer maxAge, String path, String domain, boolean secure, boolean httpOnly) {
@@ -634,12 +642,12 @@ public class Http {
          * This only discards cookies on the default path ("/") with no domain and that didn't have secure set.  To
          * discard other cookies, use the discardCookie method.
          *
-         * @param names Names of the cookies to discard
+         * @param names Names of the cookies to discard.  Must not be null.
          * @deprecated Use the discardCookie methods instead
          */
         @Deprecated
         public void discardCookies(String... names) {
-            for (String name : names) {
+            for (String name: names) {
                 discardCookie(name);
             }
         }
@@ -647,7 +655,7 @@ public class Http {
         /**
          * Discard a cookie on the default path ("/") with no domain and that's not secure
          *
-         * @param name The name of the cookie to discard
+         * @param name The name of the cookie to discard.  Must not be null.
          */
         public void discardCookie(String name) {
             discardCookie(name, "/", null, false);
@@ -656,7 +664,7 @@ public class Http {
         /**
          * Discard a cookie on the give path with no domain and not that's secure
          *
-         * @param name The name of the cookie to discard
+         * @param name The name of the cookie to discard.  Must not be null.
          * @param path The path of the cookie te discard, may be null
          */
         public void discardCookie(String name, String path) {
@@ -666,8 +674,8 @@ public class Http {
         /**
          * Discard a cookie on the given path and domain that's not secure
          *
-         * @param name   The name of the cookie to discard
-         * @param path   The path of the cookie te discard, may be null
+         * @param name The name of the cookie to discard.  Must not be null.
+         * @param path The path of the cookie te discard, may be null
          * @param domain The domain of the cookie to discard, may be null
          */
         public void discardCookie(String name, String path, String domain) {
@@ -677,8 +685,8 @@ public class Http {
         /**
          * Discard a cookie in this result
          *
-         * @param name   The name of the cookie to discard
-         * @param path   The path of the cookie te discard, may be null
+         * @param name The name of the cookie to discard.  Must not be null.
+         * @param path The path of the cookie te discard, may be null
          * @param domain The domain of the cookie to discard, may be null
          * @param secure Whether the cookie to discard is secure
          */
@@ -698,11 +706,11 @@ public class Http {
      * <p/>
      * Session data are encoded into an HTTP cookie, and can only contain simple <code>String</code> values.
      */
-    public static class Session extends HashMap<String, String> {
+    public static class Session extends HashMap<String,String>{
 
         public boolean isDirty = false;
 
-        public Session(Map<String, String> data) {
+        public Session(Map<String,String> data) {
             super(data);
         }
 
@@ -728,7 +736,7 @@ public class Http {
          * Adds the given values to the session.
          */
         @Override
-        public void putAll(Map<? extends String, ? extends String> values) {
+        public void putAll(Map<? extends String,? extends String> values) {
             isDirty = true;
             super.putAll(values);
         }
@@ -749,11 +757,11 @@ public class Http {
      * <p/>
      * Flash data are encoded into an HTTP cookie, and can only contain simple String values.
      */
-    public static class Flash extends HashMap<String, String> {
+    public static class Flash extends HashMap<String,String>{
 
         public boolean isDirty = false;
 
-        public Flash(Map<String, String> data) {
+        public Flash(Map<String,String> data) {
             super(data);
         }
 
@@ -779,7 +787,7 @@ public class Http {
          * Adds the given values to the flash scope.
          */
         @Override
-        public void putAll(Map<? extends String, ? extends String> values) {
+        public void putAll(Map<? extends String,? extends String> values) {
             isDirty = true;
             super.putAll(values);
         }
@@ -808,7 +816,7 @@ public class Http {
         private final boolean httpOnly;
 
         public Cookie(String name, String value, Integer maxAge, String path,
-                      String domain, boolean secure, boolean httpOnly) {
+                String domain, boolean secure, boolean httpOnly) {
             this.name = name;
             this.value = value;
             this.maxAge = maxAge;
@@ -834,7 +842,7 @@ public class Http {
 
         /**
          * @return the cookie expiration date in seconds, null for a transient cookie, a value less than zero for a
-         *         cookie that expires now
+         * cookie that expires now
          */
         public Integer maxAge() {
             return maxAge;

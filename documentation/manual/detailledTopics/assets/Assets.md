@@ -2,7 +2,7 @@
 
 This section covers serving your application’s static resources such as JavaScript, CSS and images.
 
-Serving a public resource in Play 2.0 is the same as serving any other HTTP request. It uses the same routing as regular resources: using the controller/action path to distribute CSS, JavaScript or image files to the client.
+Serving a public resource in Play is the same as serving any other HTTP request. It uses the same routing as regular resources: using the controller/action path to distribute CSS, JavaScript or image files to the client.
 
 ## The public/ folder
 
@@ -23,7 +23,7 @@ During the build process, the contents of the `public` folder are processed and 
 
 ## The Assets controller
 
-Play 2.0 comes with a built-in controller to serve public assets. By default, this controller provides caching, ETag, gzip compression and JavaScript minification support.
+Play comes with a built-in controller to serve public assets. By default, this controller provides caching, ETag, gzip compression and JavaScript minification support.
 
 The controller is available in the default Play JAR as `controllers.Assets`, and defines a single `at` action with two parameters:
 
@@ -124,11 +124,6 @@ Usually, using Etag is enough to have proper caching. However if you want to spe
 ## Managed assets
 
 By default play compiles all managed assets that are kept in the ```app/assets``` folder. The compilation process will clean and recompile all managed assets regardless of the change. This is the safest strategy since tracking dependencies can be very tricky with front end technologies. 
-
->Note if you are dealing with a lot of managed assets this strategy can be very slow. For this reason there is a way to recompile only the change file and its supposed dependencies. You can turn on this experimental feature by adding the following to your settings:
-```
-incrementalAssetsCompilation := true
-```
 
 You will learn more about managed assets on the next few pages.
 

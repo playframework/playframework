@@ -302,7 +302,7 @@ package play.templates {
       }
 
       def parentheses: Parser[String] = {
-        "(" ~ (several((parentheses | not(")") ~> any))) ~ commit(")") ^^ {
+        "(" ~ several(stringLiteral | parentheses | not(")") ~> any) ~ commit(")") ^^ {
           case p1 ~ charList ~ p2 => p1 + charList.mkString + p2
         }
       }

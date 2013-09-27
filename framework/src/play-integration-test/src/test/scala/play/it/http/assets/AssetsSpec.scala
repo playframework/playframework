@@ -7,7 +7,7 @@ import java.util.zip.GZIPInputStream
 import java.io.ByteArrayInputStream
 import play.api.{Configuration, Mode}
 import play.api.mvc.Handler
-import play.utils.Threads
+import play.utils.{UriEncoding, Threads}
 
 object AssetsSpec extends PlaySpecification {
   "Assets controller" should {
@@ -18,7 +18,7 @@ object AssetsSpec extends PlaySpecification {
 
     def withServer[T](block: => T): T = {
       val routes: PartialFunction[(String, String), Handler] = {
-        case (_, path) => Assets.at("/testassets", path)
+        case (_, path) => Assets.at("/testassets", path.substring(1))
       }
       running(TestServer(port, new FakeApplication(withRoutes = routes) {
         // setting prod mode ensures caching headers get set, gzip is turned on, etc
@@ -35,6 +35,32 @@ object AssetsSpec extends PlaySpecification {
 
       result.status must_== OK
       result.body must_== "This is a test asset."
+      result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+      result.header(ETAG) must beSome
+      result.header(LAST_MODIFIED) must beSome
+      result.header(VARY) must beNone
+      result.header(CONTENT_ENCODING) must beNone
+      result.header(CACHE_CONTROL) must_== defaultCacheControl
+    }
+
+    "serve an asset in a subdirectory" in withServer {
+      val result = await(wsUrl("/subdir/baz.txt").get())
+
+      result.status must_== OK
+      result.body must_== "Content of baz.txt."
+      result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+      result.header(ETAG) must beSome
+      result.header(LAST_MODIFIED) must beSome
+      result.header(VARY) must beNone
+      result.header(CONTENT_ENCODING) must beNone
+      result.header(CACHE_CONTROL) must_== defaultCacheControl
+    }
+
+    "serve an asset with spaces in the name" in withServer {
+      val result = await(wsUrl("/foo%20bar.txt").get())
+
+      result.status must_== OK
+      result.body must_== "This is a test asset with spaces."
       result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
       result.header(ETAG) must beSome
       result.header(LAST_MODIFIED) must beSome
@@ -145,6 +171,13 @@ object AssetsSpec extends PlaySpecification {
       val result = await(wsUrl("/empty.txt").get())
 
       result.status must_== OK
+      result.body must beEmpty
+    }
+
+    "return 404 for files that don't exist" in withServer {
+      val result = await(wsUrl("/nosuchfile.txt").get())
+
+      result.status must_== NOT_FOUND
       result.body must beEmpty
     }
 

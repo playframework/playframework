@@ -1,12 +1,13 @@
-package test
-
 import org.specs2.mutable._
+import org.specs2.runner._
+import org.junit.runner._
 
 import play.api.test._
 import play.api.test.Helpers._
 
 import org.fluentlenium.core.filter.FilterConstructor._
 
+@RunWith(classOf[JUnitRunner])
 class IntegrationSpec extends Specification {
   
   "Application" should {
@@ -15,7 +16,7 @@ class IntegrationSpec extends Specification {
       running(TestServer(3333), HTMLUNIT) { browser =>
         browser.goTo("http://localhost:3333/")
         
-        browser.$("header h1").first.getText must equalTo("Play 2.0 sample application — Computer database")
+        browser.$("header h1").first.getText must equalTo("Play sample application — Computer database")
         browser.$("section h1").first.getText must equalTo("574 computers found")
         
         browser.$("#pagination li.current").first.getText must equalTo("Displaying 1 to 10 of 574")
