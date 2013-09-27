@@ -92,7 +92,7 @@ trait JavaHelpers {
       }
 
       def certs(required: Boolean) = F.Promise.wrap(req.certs(required)).map(
-        new F.Function[scala.Seq[Certificate],java.util.List[Certificate]]() {
+        new F.Function[scala.Seq[Certificate], java.util.List[Certificate]]() {
 
           @Override
           def apply(s: scala.Seq[Certificate]): java.util.List[Certificate] = {
@@ -162,7 +162,7 @@ trait JavaHelpers {
       }
 
       def certs(required: Boolean) = F.Promise.wrap(req.certs(required)).map(
-        new F.Function[scala.Seq[Certificate],java.util.List[Certificate]]() {
+        new F.Function[scala.Seq[Certificate], java.util.List[Certificate]]() {
 
           @Override
           def apply(s: scala.Seq[Certificate]): java.util.List[Certificate] = {
@@ -170,7 +170,6 @@ trait JavaHelpers {
             s.asJava
           }
         })
-
 
       override def toString = req.toString
 

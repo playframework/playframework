@@ -65,7 +65,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
       newPipeline
     }
 
-    lazy val sslContext: Option[SSLContext] = {  //the sslContext should be reused on each connection
+    lazy val sslContext: Option[SSLContext] = { //the sslContext should be reused on each connection
       for (
         keyStore <- loadKeyStore();
         keyManagers <- loadKeyManagers(keyStore);
@@ -88,9 +88,9 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
         val algorithm = System.getProperty("https.keyStoreAlgorithm", KeyManagerFactory.getDefaultAlgorithm)
         val file = new File(path)
         if (file.isFile) {
-            for (in <- resource.managed(new FileInputStream(file))) {
-              keyStore.load(in, password)
-            }
+          for (in <- resource.managed(new FileInputStream(file))) {
+            keyStore.load(in, password)
+          }
           Logger("play").debug("Using HTTPS keystore at " + file.getAbsolutePath)
           Some(keyStore)
         } else {
@@ -104,32 +104,30 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
       }
     }
 
-
-
   private def loadKeyManagers(keyStore: KeyStore) = {
-          try {
+    try {
       val algorithm = System.getProperty("https.keyStoreAlgorithm", KeyManagerFactory.getDefaultAlgorithm)
-            val kmf = KeyManagerFactory.getInstance(algorithm)
+      val kmf = KeyManagerFactory.getInstance(algorithm)
       val password = System.getProperty("https.keyStoreKeyPassword", System.getProperty("https.keyStorePassword", "")).toCharArray
-            kmf.init(keyStore, password)
+      kmf.init(keyStore, password)
       Some(kmf.getKeyManagers)
-          } catch {
-            case NonFatal(e) => {
-              Logger("play").error("Error loading HTTPS trust store", e)
-              None
-            }
-          }
-        }
+    } catch {
+      case NonFatal(e) => {
+        Logger("play").error("Error loading HTTPS trust store", e)
+        None
+      }
+    }
+  }
 
   private def loadTrustManagers(keyStore: KeyStore): Option[Array[TrustManager]] = {
     val algorithm = System.getProperty("https.trustStoreAlgorithm", TrustManagerFactory.getDefaultAlgorithm)
 
     System.getProperty("https.trustStore", "keystore") match {
-          case "noCA" => {
-              Logger("play").warn("HTTPS configured with no client " +
-              "side CA verification. Requires http://webid.info/ for client certifiate verification.")
+      case "noCA" => {
+        Logger("play").warn("HTTPS configured with no client " +
+          "side CA verification. Requires http://webid.info/ for client certifiate verification.")
         Some(Array[TrustManager](noCATrustManager))
-          }
+      }
       case "keystore" => {
         Logger("play").debug("Using configured key store as the trust store")
         try {
@@ -150,16 +148,16 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
           if (clazz.getInterfaces.toTraversable.exists(_ == classOf[X509TrustManager])) {
             try {
               val res = Some(Array(clazz.newInstance().asInstanceOf[TrustManager]))
-              Logger("play").info("Loaded TLS Trust Manager implementation "+clazz)
+              Logger("play").info("Loaded TLS Trust Manager implementation " + clazz)
               res
             } catch {
               case e: InstantiationException => {
-                Logger("play").error("could not instantiate "+className)
+                Logger("play").error("could not instantiate " + className)
                 None
-  }
+              }
             }
           } else {
-            Logger("play").error("TrustManager class " + className+ " does not implement javax.net.ssl.TrustManager")
+            Logger("play").error("TrustManager class " + className + " does not implement javax.net.ssl.TrustManager")
             None
           }
         } catch {

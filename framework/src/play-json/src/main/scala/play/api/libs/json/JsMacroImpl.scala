@@ -4,7 +4,6 @@ import scala.language.reflectiveCalls
 import scala.reflect.macros.Context
 import language.experimental.macros
 
-
 object JsMacroImpl {
   def readsImpl[A: c.WeakTypeTag](c: Context): c.Expr[Reads[A]] = {
     import c.universe._

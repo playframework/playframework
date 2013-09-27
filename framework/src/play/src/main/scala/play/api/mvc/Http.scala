@@ -12,7 +12,6 @@ package play.api.mvc {
   import scala.util.control.NonFatal
   import java.net.{ URLDecoder, URLEncoder }
 
-
   /**
    * The HTTP request header. Note that it doesn’t contain the request body yet.
    */
@@ -91,7 +90,7 @@ package play.api.mvc {
      * @return a Promise of the Certificate Chain, whose first element identifies the user. The promise will
      *         contain an Error if something went wrong (eg: the request is not made on an httpS connection)
      */
-    def certs(required:Boolean): Future[Seq[Certificate]]
+    def certs(required: Boolean): Future[Seq[Certificate]]
 
     /**
      * The client IP address.
@@ -222,8 +221,7 @@ package play.api.mvc {
       queryString: Map[String, Seq[String]] = this.queryString,
       headers: Headers = this.headers,
       remoteAddress: String = this.remoteAddress,
-      certs: Boolean => Future[Seq[Certificate]] = this.certs
-    ): RequestHeader = {
+      certs: Boolean => Future[Seq[Certificate]] = this.certs): RequestHeader = {
       val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress, _certs) = (id, tags, uri, path, method, version, queryString, headers, remoteAddress, certs)
       new RequestHeader {
         val id = _id
@@ -235,7 +233,7 @@ package play.api.mvc {
         val queryString = _queryString
         val headers = _headers
         val remoteAddress = _remoteAddress
-        def certs(required:Boolean) = _certs(required)
+        def certs(required: Boolean) = _certs(required)
       }
     }
 
@@ -274,7 +272,7 @@ package play.api.mvc {
       def path = self.path
       def method = self.method
       def version = self.version
-      def certs(required:Boolean) = self.certs(required)
+      def certs(required: Boolean) = self.certs(required)
       def queryString = self.queryString
       def headers = self.headers
       def remoteAddress = self.remoteAddress
@@ -294,7 +292,7 @@ package play.api.mvc {
       def version = rh.version
       def queryString = rh.queryString
       def headers = rh.headers
-      def certs(required:Boolean) = rh.certs(required)
+      def certs(required: Boolean) = rh.certs(required)
       lazy val remoteAddress = rh.remoteAddress
       def username = None
       val body = a
@@ -310,7 +308,7 @@ package play.api.mvc {
     def body = request.body
     def headers = request.headers
     def queryString = request.queryString
-    def certs(required:Boolean) = request.certs(required)
+    def certs(required: Boolean) = request.certs(required)
     def path = request.path
     def uri = request.uri
     def method = request.method

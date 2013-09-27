@@ -27,7 +27,6 @@ object DynamicPart {
   def apply(name: String, constraint: String) = new DynamicPart(name, constraint)
 }
 
-
 case class StaticPart(value: String) extends PathPart {
   override def toString = """StaticPart("""" + value + """")"""
 }
