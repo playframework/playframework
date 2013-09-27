@@ -94,8 +94,24 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
           }
         }
         val res: Option[Future[Seq[Certificate]]] = Option(ctx.getPipeline.get(classOf[SslHandler])).map { sslh =>
+        //to avoid having to import an ExecutionContext, and as the code is very close to NettyPromise with the minor
+        //twist of a map of getCerts(sslh).getOrElse(IndexedSeq[Certificate]()). But these Channels don't allow map,
+        //so we need to copy the code.
+          def promise(channelPromise: ChannelFuture): Future[IndexedSeq[Certificate]] = {
+            val p = scala.concurrent.Promise[IndexedSeq[Certificate]]()
+            channelPromise.addListener(new ChannelFutureListener {
+              def operationComplete(future: ChannelFuture) {
+                if (future.isSuccess()) {
+                  p.success( getCerts(sslh).getOrElse(IndexedSeq[Certificate]()))
+                } else {
+                  p.failure(future.getCause())
+                }
+              }
+            })
+            p.future
+          }
           getCerts(sslh).map { res=>
-            Future[IndexedSeq[Certificate]](res)
+            Future.successful[IndexedSeq[Certificate]](res)
           } getOrElse  {
             Logger("play").debug("attempting to request certs from client")
             //need to make use of the certificate sessions in the setup process
@@ -106,9 +122,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             } else {
               sslh.getEngine.setWantClientAuth(true)
             }
-            NettyPromise(sslh.handshake()).map{ _ =>
-              getCerts(sslh).getOrElse(Nil)
-            }
+            promise(sslh.handshake())
           }
          }
          res.getOrElse(Future.failed(new SSLException("No SSLHandler!")))

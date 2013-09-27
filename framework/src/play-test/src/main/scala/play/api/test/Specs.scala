@@ -48,7 +48,6 @@ abstract class WithBrowser[WEBDRIVER <: WebDriver](
         implicit val app: FakeApplication = FakeApplication(),
         val port: Int = Helpers.testServerPort,
         val sslPort: Option[Int] = Helpers.testServerSSLPort ) extends Around with Scope {
-  implicit lazy val implicitApp = app
 
   lazy val browser: TestBrowser = TestBrowser.of(webDriver, Some("http://localhost:" + port))
   lazy val browserSecure: Option[TestBrowser] =

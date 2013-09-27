@@ -5,6 +5,10 @@ import play.api.test.WithApplication
 import play.mvc._
 import play.mvc.Http.Context
 import scala.collection.JavaConverters._
+import scala.concurrent.Future
+import java.security.cert.Certificate
+import play.libs.F
+import java.util
 
 object FormSpec extends Specification {
 
@@ -113,6 +117,9 @@ class DummyRequest(data: Map[String, Array[String]]) extends play.mvc.Http.Reque
   }
   def queryString: java.util.Map[String, Array[String]] = new java.util.HashMap()
   setUsername("peter")
+
+  def certs(required: Boolean) =
+    F.Promise.wrap(Future.successful(new util.LinkedList[Certificate]()))
 }
 
 

@@ -46,7 +46,10 @@ object WS extends WSTrait {
 
   private val clientHolder: AtomicReference[Option[AsyncHttpClient]] = new AtomicReference(None)
 
-  private[play] def newClient(): AsyncHttpClient = {
+  /**
+   * The  builder AsncBuilder for default play app
+   **/
+  def asyncBuilder: AsyncHttpClientConfig.Builder = {
     val playConfig = play.api.Play.maybeApplication.map(_.configuration)
     val wsTimeout = playConfig.flatMap(_.getMilliseconds("ws.timeout"))
     val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
@@ -63,8 +66,11 @@ object WS extends WSTrait {
 //    if (!playConfig.flatMap(_.getBoolean("ws.acceptAnyCertificate")).getOrElse(false)) {
 //      asyncHttpConfig.setSSLContext(SSLContext.getDefault)
 //    }
+    asyncHttpConfig
+  }
 
-    new AsyncHttpClient(asyncHttpConfig.build())
+  private[play] def newClient(): AsyncHttpClient = {
+    new AsyncHttpClient(asyncBuilder.build())
   }
 
   /**

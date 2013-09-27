@@ -9,6 +9,11 @@ import play.mvc.Http;
 import play.mvc.SimpleResult;
 import scala.Option;
 import scala.Tuple2;
+import scala.collection.Seq;
+import scala.concurrent.Future;
+import scala.runtime.AbstractFunction1;
+
+import java.security.cert.Certificate;
 
 public class AddCSRFTokenAction extends Action<AddCSRFToken> {
 
@@ -20,7 +25,7 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
 
     @Override
     public F.Promise<SimpleResult> call(Http.Context ctx) throws Throwable {
-        RequestHeader request = ctx._requestHeader();
+        final RequestHeader request = ctx._requestHeader();
 
         if (CSRFAction.getTokenFromHeader(request, tokenName, cookieName).isEmpty()) {
             // No token in header and we have to create one if not found, so create a new token
@@ -33,7 +38,11 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
             RequestHeader newRequest = request.copy(request.id(),
                     request.tags().$plus(new Tuple2<String, String>(requestTag, newToken)),
                     request.uri(), request.path(), request.method(), request.version(), request.queryString(),
-                    request.headers(), request.remoteAddress());
+                    request.headers(), request.remoteAddress(), new AbstractFunction1<Object, Future<Seq<Certificate>>>(){
+                public scala.concurrent.Future<scala.collection.Seq<Certificate>> apply(final Object required) {
+                  return request.certs((Boolean)required);
+                }
+            });
 
             // Create a new context that will have the new RequestHeader.  This ensures that the CSRF.getToken call
             // used in templates will find the token.
