@@ -495,7 +495,15 @@ package play.templates {
         case head :: tail =>
           val tripleQuote = "\"\"\""
           visit(tail, head match {
-            case p @ Plain(text) => (if (previous.isEmpty) Nil else previous :+ ",") :+ "format.raw" :+ Source("(", p.pos) :+ tripleQuote :+ text :+ tripleQuote :+ ")"
+            case p @ Plain(text) =>
+
+              // String literals may not be longer than 65536 bytes. They are encoded as UTF-8 in the classfile, each
+              // UTF-16 2 byte char could end up becoming up to 3 bytes, so that puts an upper limit of somewhere
+              // over 20000 characters. 20000 characters is a nice round number, use that.
+              val grouped = StringGrouper(text, 20000)
+              (if (previous.isEmpty) Nil else previous :+ ",") :+
+                "format.raw" :+ Source("(", p.pos) :+ tripleQuote :+ grouped.head :+ tripleQuote :+ ")" :+
+                grouped.tail.flatMap { t => Seq(",\nformat.raw(", tripleQuote, t, tripleQuote, ")") }
             case Comment(msg) => previous
             case Display(exp) => (if (previous.isEmpty) Nil else previous :+ ",") :+ "_display_(Seq[Any](" :+ visit(Seq(exp), Nil) :+ "))"
             case ScalaExp(parts) => previous :+ parts.map {
@@ -772,4 +780,31 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
 
   }
 
+  /**
+   * Groups sub sections of Strings.  Basically implements String.grouped, except that it guarantees that it won't break
+   * surrogate pairs.
+   */
+  private[play] object StringGrouper {
+
+    /**
+     * Group the given string by the given size.
+     *
+     * @param s The string to group.
+     * @param n The size of the groups.
+     * @return A list of strings, grouped by the specific size.
+     */
+    def apply(s: String, n: Int): List[String] = {
+      if (s.length <= n + 1 /* because we'll split at n + 1 if character n - 1 is a high surrogate */ ) {
+        List(s)
+      } else {
+        val parts = if (s.charAt(n - 1).isHighSurrogate) {
+          s.splitAt(n + 1)
+        } else {
+          s.splitAt(n)
+        }
+        parts._1 :: apply(parts._2, n)
+      }
+    }
+
+  }
 }
