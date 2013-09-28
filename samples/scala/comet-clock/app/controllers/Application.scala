@@ -3,7 +3,7 @@ package controllers
 import play.api._
 import play.api.mvc._
 
-import play.api.libs.{ Comet }
+import play.api.libs.Comet
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
 
@@ -33,7 +33,7 @@ object Application extends Controller {
   }
   
   def liveClock = Action {
-    Ok.stream(clock &> Comet(callback = "parent.clockChanged"))
+    Ok.chunked(clock &> Comet(callback = "parent.clockChanged"))
   }
   
 }

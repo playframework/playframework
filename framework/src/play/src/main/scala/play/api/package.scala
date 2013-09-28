@@ -1,7 +1,11 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
+
 /**
  * Play framework.
  *
- * == Play 2.1 ==
+ * == Play ==
  * [[http://www.playframework.com http://www.playframework.com]]
  */
 package object play

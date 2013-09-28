@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.db
 
 import scala.language.reflectiveCalls
@@ -432,9 +435,19 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
 }
 
 /**
- * A connection releasing automatically statements on close
+ * Provides an interface for retreiving the jdbc driver's implementation of java.sql.Connection
+ * from a "decorated" Connection (such as the Connection that DB.withConnection provides). Upcasting
+ * to this trait should be used with caution since exposing the internal jdbc connection can violate the
+ * guarantees Play otherwise makes (like automatically closing jdbc statements created from the connection)
  */
-private class AutoCleanConnection(connection: Connection) extends Connection {
+trait HasInternalConnection {
+  def getInternalConnection(): Connection
+}
+
+/**
+ * A connection that automatically releases statements on close
+ */
+private class AutoCleanConnection(connection: Connection) extends Connection with HasInternalConnection {
 
   private val statements = scala.collection.mutable.ListBuffer.empty[Statement]
 
@@ -449,6 +462,12 @@ private class AutoCleanConnection(connection: Connection) extends Connection {
       statement.close()
     }
     statements.clear()
+  }
+
+  override def getInternalConnection(): Connection = connection match {
+    case bonecpConn: com.jolbox.bonecp.ConnectionHandle =>
+      bonecpConn.getInternalConnection()
+    case x => x
   }
 
   def createStatement() = registering(connection.createStatement())

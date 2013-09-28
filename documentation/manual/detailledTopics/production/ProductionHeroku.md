@@ -1,11 +1,12 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Deploying to Heroku
 
-[Heroku](http://www.heroku.com/) is a cloud application platform – a way of building and deploying web apps.
+[Heroku](https://www.heroku.com/) is a cloud application platform – a way of building and deploying web apps.
 
 To get started:
 
-1. [Install the Heroku Toolbelt](http://toolbelt.heroku.com)
-2. [Sign up for a Heroku account](http://heroku.com/signup)
+1. [Install the Heroku Toolbelt](https://toolbelt.heroku.com)
+2. [Sign up for a Heroku account](https://id.heroku.com/signup)
 
 
 ## Store your application in git
@@ -90,7 +91,7 @@ $ heroku open
 
 ## Connecting to a database
 
-Heroku provides a number of relational and NoSQL databases through [Heroku Add-ons](http://addons.heroku.com).  Play applications on Heroku are automatically provisioned a [Heroku Postgres](https://addons.heroku.com/heroku-postgresql) database.  To configure your Play 2 application to use the Heroku Postgres database, first add the PostgreSQL JDBC driver to your application dependencies (`project/Build.scala`):
+Heroku provides a number of relational and NoSQL databases through [Heroku Add-ons](https://addons.heroku.com).  Play applications on Heroku are automatically provisioned a [Heroku Postgres](https://addons.heroku.com/heroku-postgresql) database.  To configure your Play application to use the Heroku Postgres database, first add the PostgreSQL JDBC driver to your application dependencies (`project/Build.scala`):
 
 ```scala
 "postgresql" % "postgresql" % "9.1-901-1.jdbc4"
@@ -107,10 +108,10 @@ This instructs Heroku that for the process named `web` it will run Play and over
 
 ## Further learning resources
 
-* [Play 2 Tutorial for Java](https://github.com/jamesward/play2torial/blob/master/JAVA.md)
-* [Getting Started with Play 2, Scala, and Squeryl](http://www.artima.com/articles/play2_scala_squeryl.html)
-* [Edge Caching With Play 2, Heroku, and CloudFront](http://www.jamesward.com/2012/08/08/edge-caching-with-play2-heroku-cloudfront)
-* [Optimizing Play 2 for Database-Driven Apps](http://www.jamesward.com/2012/06/25/optimizing-play-2-for-database-driven-apps)
-* [Play 2 Scala Console on Heroku](http://www.jamesward.com/2012/06/11/play-2-scala-console-on-heroku)
-* [Play 2 App with a Scheduled Job on Heroku](https://github.com/jamesward/play2-scheduled-job-demo)
-* [Using Amazon S3 for File Uploads with Java and Play 2](https://devcenter.heroku.com/articles/using-amazon-s3-for-file-uploads-with-java-and-play-2)
+* [Play Tutorial for Java](https://github.com/jamesward/play2torial/blob/master/JAVA.md)
+* [Getting Started with Play, Scala, and Squeryl](http://www.artima.com/articles/play2_scala_squeryl.html)
+* [Edge Caching With Play, Heroku, and CloudFront](http://www.jamesward.com/2012/08/08/edge-caching-with-play2-heroku-cloudfront)
+* [Optimizing Play for Database-Driven Apps](http://www.jamesward.com/2012/06/25/optimizing-play-2-for-database-driven-apps)
+* [Play Scala Console on Heroku](http://www.jamesward.com/2012/06/11/play-2-scala-console-on-heroku)
+* [Play App with a Scheduled Job on Heroku](https://github.com/jamesward/play2-scheduled-job-demo)
+* [Using Amazon S3 for File Uploads with Java and Play](https://devcenter.heroku.com/articles/using-amazon-s3-for-file-uploads-with-java-and-play-2)

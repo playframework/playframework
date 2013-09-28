@@ -1,7 +1,11 @@
-package sbt
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
+package play
 
+import sbt.{ Project => SbtProject, _ }
+import sbt.Keys._
 import Keys._
-import PlayKeys._
 
 import java.io.{ FileWriter, Writer }
 import java.util.Properties
@@ -150,7 +154,7 @@ object PlayEclipse {
         }
       }
 
-    Project.getProject(ref, structure).foreach { p =>
+    SbtProject.getProject(ref, structure).foreach { p =>
       (templatesImport in ref get structure.data).foreach { imports =>
         val value = imports.mkString("import ", "\nimport ", "\n")
         val properties = Seq(("eclipse.preferences.version", "1"), ("templateImports", value))

@@ -1,10 +1,19 @@
-# Using the Play 2.0 console
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+# Using the Play console
 
 ## Launching the console
 
-The Play 2.0 console is a development console based on sbt that allows you to manage a Play application’s complete development cycle.
+The Play console is a development console based on sbt that allows you to manage a Play application’s complete development cycle.
 
-To launch the console, enter any existing Play application directory and run the `play` script:
+### Launching the console using Typesafe Activator
+
+The preferred method for launching the Play development environment when using Typesafe Activator is using the in built browser based UI.  However, if you would prefer to use a console based environment, then change to the application directory, and run `activator`.
+
+You may need to ensure that your Activator installation directory is in your system `PATH`.
+
+### Launching the console using Play standalone
+
+If you have installed Play using the standalone distribution, enter any existing Play application directory and run the `play` script:
 
 ```bash
 $ cd /path/to/any/application
@@ -41,7 +50,7 @@ To stop the server, type `Crtl+D` key, and you will be returned to the Play cons
 
 ## Compiling
 
-In Play 2.0 you can also compile your application without running the server. Just use the `compile` command:
+In Play you can also compile your application without running the server. Just use the `compile` command:
 
 ```bash
 [My first application] $ compile
@@ -55,6 +64,11 @@ Type `console` to enter the interactive Scala console, which allows you to test 
 
 ```bash
 [My first application] $ console
+```
+
+To start application inside scala console (e.g to access database):
+```bash
+scala> new play.core.StaticApplication(new java.io.File("."))
 ```
 
 [[images/consoleEval.png]] 

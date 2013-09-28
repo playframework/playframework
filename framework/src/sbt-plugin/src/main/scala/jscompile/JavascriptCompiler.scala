@@ -1,6 +1,9 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.core.jscompile
 
-import sbt.PlayExceptions.AssetCompilationException
+import play.PlayExceptions.AssetCompilationException
 import java.io._
 import play.api._
 import scala.collection.JavaConverters._
@@ -41,6 +44,7 @@ object JavascriptCompiler {
         case "checkControlStructures" => defaultOptions.setCheckControlStructures(true)
         case "checkTypes" => defaultOptions.setCheckTypes(true)
         case "checkSymbols" => defaultOptions.setCheckSymbols(true)
+        case "ecmascript5" => defaultOptions.setLanguageIn(CompilerOptions.LanguageMode.ECMASCRIPT5)
         case _ => Unit // Unknown option
       })
       defaultOptions

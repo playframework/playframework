@@ -1,5 +1,8 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 import java.io.{InputStreamReader, FileInputStream, File}
-import java.net.{HttpURLConnection, URL}
+import java.net.{HttpURLConnection, URL, URLConnection, Socket}
 import java.security.cert.X509Certificate
 import java.security.KeyStore
 import javax.net.ssl._
@@ -26,7 +29,6 @@ class SslSpec extends Specification {
       conn.getResponseCode must_== 200
       conn.getPeerPrincipal must_== new X500Principal(FakeKeyStore.DnName)
     }
-
     "use a configured keystore" in new Ssl(keyStore = Some("conf/testkeystore.jks"), password = Some("password")) {
       val conn = createConn
       conn.getResponseCode must_== 200
@@ -69,7 +71,7 @@ class SslSpec extends Specification {
         setOrUnset("https.keyStore", keyStore)
         setOrUnset("https.keyStorePassword", password)
         setOrUnset("https.trustStore", trustStore)
-        Helpers.running(TestServer(Helpers.testServerPort, app, Some(SslPort)))(AsResult(t))
+        Helpers.running(TestServer(Helpers.testServerPort, app, Some(SslPort)))(AsResult.effectively(t))
       } finally {
         props.remove("https.keyStore")
         props.remove("https.keyStorePassword")

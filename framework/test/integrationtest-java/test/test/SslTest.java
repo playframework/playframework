@@ -31,7 +31,7 @@ public class SslTest {
     @Test
     public void testClientCerts() {
         System.setProperty("https.trustStore", "noCA");
-        running(new TestServer(Helpers.testServerPort(), fakeApplication(), SSL_PORT), new Runnable() {
+        running(new TestServer(-1, fakeApplication(), SSL_PORT), new Runnable() {
             @Override
             public void run() {
                 try {

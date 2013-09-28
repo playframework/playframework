@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play;
 
 /**
@@ -10,6 +13,25 @@ package play;
  * Example, logging with a custom logger:
  * <pre>
  * Logger.of("my.logger").info("Hello!")</pre>
+ *
+ * Each of the logging methods is overloaded to be able to take an array of arguments.  These are formatted into the
+ * message String, replacing occurrences of '{}'.  For example:
+ *
+ * <pre>
+ * Logger.info("A {} request was received at {}", request.method(), request.uri());
+ * </pre>
+ *
+ * This might print out:
+ *
+ * <pre>
+ * A POST request was received at /api/items
+ * </pre>
+ *
+ * This saves on the cost of String construction when logging is turned off.
+ *
+ * This API is intended as a simple logging API to meet 99% percent of the most common logging needs with minimal code
+ * overhead.  For more complex needs, the underlying() methods may be used to get the underlying SLF4J logger, or
+ * SLF4J may be used directly.
  */
 public class Logger {
 
@@ -33,6 +55,13 @@ public class Logger {
      */
     public static ALogger of(Class<?> clazz) {
         return new ALogger(play.api.Logger.apply(clazz));
+    }
+
+    /**
+     * Get the underlying application SLF4J logger.
+     */
+    public static org.slf4j.Logger underlying() {
+        return logger.underlying();
     }
 
     /**
@@ -75,8 +104,18 @@ public class Logger {
      *
      * @param message message to log
      */
-    public static void trace(String message) { 
+    public static void trace(String message) {
         logger.trace(message);
+    }
+
+    /**
+     * Log a message with the TRACE level.
+     *
+     * @param message message to log
+     * @param args The arguments to apply to the message String
+     */
+    public static void trace(String message, Object... args) {
+        logger.trace(message, args);
     }
 
     /**
@@ -85,7 +124,7 @@ public class Logger {
      * @param message message to log
      * @param error associated exception
      */
-    public static void trace(String message, Throwable error) { 
+    public static void trace(String message, Throwable error) {
         logger.trace(message, error);
     }
 
@@ -94,8 +133,18 @@ public class Logger {
      *
      * @param message message to log
      */
-    public static void debug(String message) { 
+    public static void debug(String message) {
         logger.debug(message);
+    }
+
+    /**
+     * Log a message with the DEBUG level.
+     *
+     * @param message message to log
+     * @param args The arguments to apply to the message String
+     */
+    public static void debug(String message, Object... args) {
+        logger.debug(message, args);
     }
 
     /**
@@ -104,7 +153,7 @@ public class Logger {
      * @param message message to log
      * @param error associated exception
      */
-    public static void debug(String message, Throwable error) { 
+    public static void debug(String message, Throwable error) {
         logger.debug(message, error);
     }
 
@@ -113,8 +162,18 @@ public class Logger {
      *
      * @param message message to log
      */
-    public static void info(String message) { 
+    public static void info(String message) {
         logger.info(message);
+    }
+
+    /**
+     * Log a message with the INFO level.
+     *
+     * @param message message to log
+     * @param args The arguments to apply to the message string
+     */
+    public static void info(String message, Object... args) {
+        logger.info(message, args);
     }
 
     /**
@@ -123,7 +182,7 @@ public class Logger {
      * @param message message to log
      * @param error associated exception
      */
-    public static void info(String message, Throwable error) { 
+    public static void info(String message, Throwable error) {
         logger.info(message, error);
     }
 
@@ -132,8 +191,18 @@ public class Logger {
      *
      * @param message message to log
      */
-    public static void warn(String message) { 
+    public static void warn(String message) {
         logger.warn(message);
+    }
+
+    /**
+     * Log a message with the WARN level.
+     *
+     * @param message message to log
+     * @param args The arguments to apply to the message string
+     */
+    public static void warn(String message, Object... args) {
+        logger.warn(message, args);
     }
 
     /**
@@ -142,7 +211,7 @@ public class Logger {
      * @param message message to log
      * @param error associated exception
      */
-    public static void warn(String message, Throwable error) { 
+    public static void warn(String message, Throwable error) {
         logger.warn(message, error);
     }
 
@@ -151,8 +220,18 @@ public class Logger {
      *
      * @param message message to log
      */
-    public static void error(String message) { 
+    public static void error(String message) {
         logger.error(message);
+    }
+
+    /**
+     * Log a message with the ERROR level.
+     *
+     * @param message message to log
+     * @param args The arguments to apply to the message string
+     */
+    public static void error(String message, Object... args) {
+        logger.error(message, args);
     }
 
     /**
@@ -161,7 +240,7 @@ public class Logger {
      * @param message message to log
      * @param error associated exception
      */
-    public static void error(String message, Throwable error) { 
+    public static void error(String message, Throwable error) {
         logger.error(message, error);
     }
 
@@ -174,6 +253,13 @@ public class Logger {
 
         public ALogger(play.api.Logger logger) {
             this.logger = logger;
+        }
+
+        /**
+         * Get the underlying SLF4J logger.
+         */
+        public org.slf4j.Logger underlying() {
+            return logger.underlyingLogger();
         }
 
         /**
@@ -216,8 +302,18 @@ public class Logger {
          *
          * @param message message to log
          */
-        public void trace(String message) { 
+        public void trace(String message) {
             logger.underlyingLogger().trace(message);
+        }
+
+        /**
+         * Logs a message with the TRACE level.
+         *
+         * @param message message to log
+         * @param args The arguments to apply to the message string
+         */
+        public void trace(String message, Object... args) {
+            logger.underlyingLogger().trace(message, args);
         }
 
         /**
@@ -226,7 +322,7 @@ public class Logger {
          * @param message message to log
          * @param error associated exception
          */
-        public void trace(String message, Throwable error) { 
+        public void trace(String message, Throwable error) {
             logger.underlyingLogger().trace(message, error);
         }
 
@@ -235,8 +331,18 @@ public class Logger {
          *
          * @param message Message to log
          */
-        public void debug(String message) { 
+        public void debug(String message) {
             logger.underlyingLogger().debug(message);
+        }
+
+        /**
+         * Logs a message with the DEBUG level.
+         *
+         * @param message Message to log
+         * @param args The arguments to apply to the message string
+         */
+        public void debug(String message, Object... args) {
+            logger.underlyingLogger().debug(message, args);
         }
 
         /**
@@ -245,7 +351,7 @@ public class Logger {
          * @param message Message to log
          * @param error associated exception
          */
-        public void debug(String message, Throwable error) { 
+        public void debug(String message, Throwable error) {
             logger.underlyingLogger().debug(message, error);
         }
 
@@ -254,8 +360,18 @@ public class Logger {
          *
          * @param message message to log
          */
-        public void info(String message) { 
+        public void info(String message) {
             logger.underlyingLogger().info(message);
+        }
+
+        /**
+         * Logs a message with the INFO level.
+         *
+         * @param message message to log
+         * @param args The arguments to apply to the message string
+         */
+        public void info(String message, Object... args) {
+            logger.underlyingLogger().info(message, args);
         }
 
         /**
@@ -264,7 +380,7 @@ public class Logger {
          * @param message message to log
          * @param error associated exception
          */
-        public void info(String message, Throwable error) { 
+        public void info(String message, Throwable error) {
             logger.underlyingLogger().info(message, error);
         }
 
@@ -273,8 +389,18 @@ public class Logger {
          *
          * @param message message to log
          */
-        public void warn(String message) { 
+        public void warn(String message) {
             logger.underlyingLogger().warn(message);
+        }
+
+        /**
+         * Log a message with the WARN level.
+         *
+         * @param message message to log
+         * @param args The arguments to apply to the message string
+         */
+        public void warn(String message, Object... args) {
+            logger.underlyingLogger().warn(message, args);
         }
 
         /**
@@ -283,7 +409,7 @@ public class Logger {
          * @param message message to log
          * @param error associated exception
          */
-        public void warn(String message, Throwable error) { 
+        public void warn(String message, Throwable error) {
             logger.underlyingLogger().warn(message, error);
         }
 
@@ -292,8 +418,18 @@ public class Logger {
          *
          * @param message message to log
          */
-        public void error(String message) { 
+        public void error(String message) {
             logger.underlyingLogger().error(message);
+        }
+
+        /**
+         * Log a message with the ERROR level.
+         *
+         * @param message message to log
+         * @param args The arguments to apply to the message string
+         */
+        public void error(String message, Object... args) {
+            logger.underlyingLogger().error(message, args);
         }
 
         /**
@@ -302,7 +438,7 @@ public class Logger {
          * @param message message to log
          * @param error associated exception
          */
-        public void error(String message, Throwable error) { 
+        public void error(String message, Throwable error) {
             logger.underlyingLogger().error(message, error);
         }
 

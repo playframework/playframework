@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.data
 
 import scala.language.existentials
@@ -368,7 +371,7 @@ private[data] object FormUtils {
       values.zipWithIndex.map { case (value, i) => fromJson(prefix + "[" + i + "]", value) }.foldLeft(Map.empty[String, String])(_ ++ _)
     }
     case JsNull => Map.empty
-    case JsUndefined(_) => Map.empty
+    case JsUndefined() => Map.empty
     case JsBoolean(value) => Map(prefix -> value.toString)
     case JsNumber(value) => Map(prefix -> value.toString)
     case JsString(value) => Map(prefix -> value.toString)

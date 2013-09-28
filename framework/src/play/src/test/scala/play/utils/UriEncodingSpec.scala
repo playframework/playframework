@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.utils
 
 import org.specs2.mutable._
@@ -8,7 +11,35 @@ import org.specs2.mutable._
 object UriEncodingSpec extends Specification {
   import UriEncoding._
 
-  "Path segment encoding" should {
+  sealed trait EncodingResult
+  // Good behaviour
+  case object NotEncoded extends EncodingResult
+  case class PercentEncoded(encoded: String) extends EncodingResult
+  // Bad behaviour
+  case class NotEncodedButDecodeDifferent(decodedEncoded: String) extends EncodingResult
+  case class PercentEncodedButDecodeDifferent(encoded: String, decodedEncoded: String) extends EncodingResult
+  case class PercentEncodedButDecodedInvalid(encoded: String) extends EncodingResult
+
+  def encodingFor(in: String, inCharset: String): EncodingResult = {
+    val encoded = encodePathSegment(in, inCharset)
+    if (encoded == in) {
+      val decodedEncoded = decodePathSegment(encoded, inCharset)
+      if (decodedEncoded != in) return NotEncodedButDecodeDifferent(decodedEncoded)
+      NotEncoded
+    } else {
+      val decodedEncoded = decodePathSegment(encoded, inCharset)
+      if (decodedEncoded != in) return PercentEncodedButDecodeDifferent(encoded, decodedEncoded)
+      try {
+        decodePathSegment(in, inCharset)
+        return PercentEncodedButDecodedInvalid(encoded) // Decoding should have failed
+      } catch {
+        case _: InvalidUriEncodingException => () // This is expected behaviour
+      }
+      PercentEncoded(encoded)
+    }
+  }
+
+  "Path segment encoding and decoding" should {
 
 /*
 RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
@@ -36,30 +67,30 @@ RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
 
       pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
 */
-    "percent-encode reserved characters, except those allowed in path segment" in {
+    "percent-encode reserved characters that aren't allowed in a path segment" in {
       // Not allowed (gen-delims, except ":" / "@")
-      encodePathSegment("/", "utf-8") must equalTo("%2F")
-      encodePathSegment("?", "utf-8") must equalTo("%3F")
-      encodePathSegment("#", "utf-8") must equalTo("%23")
-      encodePathSegment("[", "utf-8") must equalTo("%5B")
-      encodePathSegment("]", "utf-8") must equalTo("%5D")
+      encodingFor("/", "utf-8") must_== PercentEncoded("%2F")
+      encodingFor("?", "utf-8") must_== PercentEncoded("%3F")
+      encodingFor("#", "utf-8") must_== PercentEncoded("%23")
+      encodingFor("[", "utf-8") must_== PercentEncoded("%5B")
+      encodingFor("]", "utf-8") must_== PercentEncoded("%5D")
     }
 
-    "not percent-encode reserved characters that are allowed in path segment" in {
+    "not percent-encode reserved characters that are allowed in a path segment" in {
       // Allowed (sub-delims / ":" / "@")
-      encodePathSegment("!", "utf-8") must equalTo("!")
-      encodePathSegment("$", "utf-8") must equalTo("$")
-      encodePathSegment("&", "utf-8") must equalTo("&")
-      encodePathSegment("'", "utf-8") must equalTo("'")
-      encodePathSegment("(", "utf-8") must equalTo("(")
-      encodePathSegment(")", "utf-8") must equalTo(")")
-      encodePathSegment("*", "utf-8") must equalTo("*")
-      encodePathSegment("+", "utf-8") must equalTo("+")
-      encodePathSegment(",", "utf-8") must equalTo(",")
-      encodePathSegment(";", "utf-8") must equalTo(";")
-      encodePathSegment("=", "utf-8") must equalTo("=")
-      encodePathSegment(":", "utf-8") must equalTo(":")
-      encodePathSegment("@", "utf-8") must equalTo("@")
+      encodingFor("!", "utf-8") must_== NotEncoded
+      encodingFor("$", "utf-8") must_== NotEncoded
+      encodingFor("&", "utf-8") must_== NotEncoded
+      encodingFor("'", "utf-8") must_== NotEncoded
+      encodingFor("(", "utf-8") must_== NotEncoded
+      encodingFor(")", "utf-8") must_== NotEncoded
+      encodingFor("*", "utf-8") must_== NotEncoded
+      encodingFor("+", "utf-8") must_== NotEncoded
+      encodingFor(",", "utf-8") must_== NotEncoded
+      encodingFor(";", "utf-8") must_== NotEncoded
+      encodingFor("=", "utf-8") must_== NotEncoded
+      encodingFor(":", "utf-8") must_== NotEncoded
+      encodingFor("@", "utf-8") must_== NotEncoded
     }
 
 /*
@@ -73,16 +104,16 @@ RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
    corresponding unreserved characters by URI normalizers.
 */
     "not percent-encode unreserved characters" in {
-      encodePathSegment("a", "utf-8") must equalTo("a")
-      encodePathSegment("z", "utf-8") must equalTo("z")
-      encodePathSegment("A", "utf-8") must equalTo("A")
-      encodePathSegment("Z", "utf-8") must equalTo("Z")
-      encodePathSegment("0", "utf-8") must equalTo("0")
-      encodePathSegment("9", "utf-8") must equalTo("9")
-      encodePathSegment("-", "utf-8") must equalTo("-")
-      encodePathSegment(".", "utf-8") must equalTo(".")
-      encodePathSegment("_", "utf-8") must equalTo("_")
-      encodePathSegment("~", "utf-8") must equalTo("~")
+      encodingFor("a", "utf-8") must_== NotEncoded
+      encodingFor("z", "utf-8") must_== NotEncoded
+      encodingFor("A", "utf-8") must_== NotEncoded
+      encodingFor("Z", "utf-8") must_== NotEncoded
+      encodingFor("0", "utf-8") must_== NotEncoded
+      encodingFor("9", "utf-8") must_== NotEncoded
+      encodingFor("-", "utf-8") must_== NotEncoded
+      encodingFor(".", "utf-8") must_== NotEncoded
+      encodingFor("_", "utf-8") must_== NotEncoded
+      encodingFor("~", "utf-8") must_== NotEncoded
     }
 
 /*
@@ -93,28 +124,28 @@ RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
    allowed set...
 */
     "percent-encode any characters that aren't specifically allowed in a path segment" in {
-      encodePathSegment("\000", "US-ASCII") must equalTo("%00")
-      encodePathSegment("\037", "US-ASCII") must equalTo("%1F")
-      encodePathSegment(" ", "US-ASCII") must equalTo("%20")
-      encodePathSegment("\"", "US-ASCII") must equalTo("%22")
-      encodePathSegment("%", "US-ASCII") must equalTo("%25")
-      encodePathSegment("<", "US-ASCII") must equalTo("%3C")
-      encodePathSegment(">", "US-ASCII") must equalTo("%3E")
-      encodePathSegment("\\", "US-ASCII") must equalTo("%5C")
-      encodePathSegment("^", "US-ASCII") must equalTo("%5E")
-      encodePathSegment("`", "US-ASCII") must equalTo("%60")
-      encodePathSegment("{", "US-ASCII") must equalTo("%7B")
-      encodePathSegment("|", "US-ASCII") must equalTo("%7C")
-      encodePathSegment("}", "US-ASCII") must equalTo("%7D")
-      encodePathSegment("\177", "ISO-8859-1") must equalTo("%7F")
-      encodePathSegment("\377", "ISO-8859-1") must equalTo("%FF")
+      encodingFor("\000", "US-ASCII") must_== PercentEncoded("%00")
+      encodingFor("\037", "US-ASCII") must_== PercentEncoded("%1F")
+      encodingFor(" ", "US-ASCII") must_== PercentEncoded("%20")
+      encodingFor("\"", "US-ASCII") must_== PercentEncoded("%22")
+      encodingFor("%", "US-ASCII") must_== PercentEncoded("%25")
+      encodingFor("<", "US-ASCII") must_== PercentEncoded("%3C")
+      encodingFor(">", "US-ASCII") must_== PercentEncoded("%3E")
+      encodingFor("\\", "US-ASCII") must_== PercentEncoded("%5C")
+      encodingFor("^", "US-ASCII") must_== PercentEncoded("%5E")
+      encodingFor("`", "US-ASCII") must_== PercentEncoded("%60")
+      encodingFor("{", "US-ASCII") must_== PercentEncoded("%7B")
+      encodingFor("|", "US-ASCII") must_== PercentEncoded("%7C")
+      encodingFor("}", "US-ASCII") must_== PercentEncoded("%7D")
+      encodingFor("\177", "ISO-8859-1") must_== PercentEncoded("%7F")
+      encodingFor("\377", "ISO-8859-1") must_== PercentEncoded("%FF")
     }
 
     "percent-encode UTF-8 strings by encoding each octet not allowed in a path segment" in {
-      encodePathSegment("£0.25", "UTF-8") must equalTo("%C2%A30.25")
-      encodePathSegment("€100", "UTF-8") must equalTo("%E2%82%AC100")
-      encodePathSegment("«küßî»", "UTF-8") must equalTo("%C2%ABk%C3%BC%C3%9F%C3%AE%C2%BB")
-      encodePathSegment("“ЌύБЇ”", "UTF-8") must equalTo("%E2%80%9C%D0%8C%CF%8D%D0%91%D0%87%E2%80%9D")
+      encodingFor("£0.25", "UTF-8") must_== PercentEncoded("%C2%A30.25")
+      encodingFor("€100", "UTF-8") must_== PercentEncoded("%E2%82%AC100")
+      encodingFor("«küßî»", "UTF-8") must_== PercentEncoded("%C2%ABk%C3%BC%C3%9F%C3%AE%C2%BB")
+      encodingFor("“ЌύБЇ”", "UTF-8") must_== PercentEncoded("%E2%80%9C%D0%8C%CF%8D%D0%91%D0%87%E2%80%9D")
     }
 
 /*
@@ -134,36 +165,115 @@ RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
    encodings.    
 */
     "percent-encode to triplets with upper-case hex" in {
-      encodePathSegment("\000", "ISO-8859-1") must equalTo("%00")
-      encodePathSegment("\231", "ISO-8859-1") must equalTo("%99")
-      encodePathSegment("\252", "ISO-8859-1") must equalTo("%AA")
-      encodePathSegment("\377", "ISO-8859-1") must equalTo("%FF")
+      encodingFor("\000", "ISO-8859-1") must_== PercentEncoded("%00")
+      encodingFor("\231", "ISO-8859-1") must_== PercentEncoded("%99")
+      encodingFor("\252", "ISO-8859-1") must_== PercentEncoded("%AA")
+      encodingFor("\377", "ISO-8859-1") must_== PercentEncoded("%FF")
     }
 
     // Misc tests
 
     "handle strings of different lengths" in {
-      encodePathSegment("", "UTF-8") must equalTo("")
-      encodePathSegment("1", "UTF-8") must equalTo("1")
-      encodePathSegment("12", "UTF-8") must equalTo("12")
-      encodePathSegment("123", "UTF-8") must equalTo("123")
-      encodePathSegment("1234567890", "UTF-8") must equalTo("1234567890")
+      encodingFor("", "UTF-8") must_== NotEncoded
+      encodingFor("1", "UTF-8") must_== NotEncoded
+      encodingFor("12", "UTF-8") must_== NotEncoded
+      encodingFor("123", "UTF-8") must_== NotEncoded
+      encodingFor("1234567890", "UTF-8") must_== NotEncoded
     }
 
     "handle strings needing partial percent-encoding" in {
-      encodePathSegment("Hello world", "US-ASCII") must equalTo("Hello%20world")
-      encodePathSegment("/home/foo", "US-ASCII") must equalTo("%2Fhome%2Ffoo")
+      encodingFor("Hello world", "US-ASCII") must_== PercentEncoded("Hello%20world")
+      encodingFor("/home/foo", "US-ASCII") must_== PercentEncoded("%2Fhome%2Ffoo")
     }
 
     // Path segment encoding differs from query string encoding, which is
     // "application/x-www-form-urlencoded". One difference is the encoding
     // of the "+" and space characters.
     "percent-encode spaces, but not + characters" in {
-      encodePathSegment(" ", "US-ASCII") must equalTo("%20") // vs "+" for query strings
-      encodePathSegment("+", "US-ASCII") must equalTo("+") // vs "%2B" for query strings
-      encodePathSegment(" +", "US-ASCII") must equalTo("%20+") // vs "+%2B" for query strings
-      encodePathSegment("1+2=3", "US-ASCII") must equalTo("1+2=3")
-      encodePathSegment("1 + 2 = 3", "US-ASCII") must equalTo("1%20+%202%20=%203")
+      encodingFor(" ", "US-ASCII") must_== PercentEncoded("%20") // vs "+" for query strings
+      encodingFor("+", "US-ASCII") must_== NotEncoded // vs "%2B" for query strings
+      encodingFor(" +", "US-ASCII") must_== PercentEncoded("%20+") // vs "+%2B" for query strings
+      encodingFor("1+2=3", "US-ASCII") must_== NotEncoded
+      encodingFor("1 + 2 = 3", "US-ASCII") must_== PercentEncoded("1%20+%202%20=%203")
+    }
+
+    "decode characters percent-encoded with upper and lowercase hex digits" in {
+      decodePathSegment("%aa", "ISO-8859-1") must_== "\252"
+      decodePathSegment("%aA", "ISO-8859-1") must_== "\252"
+      decodePathSegment("%Aa", "ISO-8859-1") must_== "\252"
+      decodePathSegment("%AA", "ISO-8859-1") must_== "\252"
+      decodePathSegment("%ff", "ISO-8859-1") must_== "\377"
+      decodePathSegment("%fF", "ISO-8859-1") must_== "\377"
+      decodePathSegment("%Ff", "ISO-8859-1") must_== "\377"
+      decodePathSegment("%FF", "ISO-8859-1") must_== "\377"
+    }
+
+    "decode percent-encoded characters that don't really need to be encoded" in {
+      decodePathSegment("%21", "utf-8") must_== "!"
+      decodePathSegment("%61", "utf-8") must_== "a"
+      decodePathSegment("%31%32%33", "UTF-8") must_== "123"
+      // Encoded by MIME type "application/x-www-form-urlencoded"
+      decodePathSegment("%2b", "US-ASCII") must_== "+"
+      decodePathSegment("%7e", "US-ASCII") must_== "~"
     }
   }
+
+  "Path decoding" should {
+
+    "decode basic paths" in {
+      decodePath("", "utf-8") must_== ""
+      decodePath("/", "utf-8") must_== "/"
+      decodePath("/abc", "utf-8") must_== "/abc"
+      decodePath("/css/stylesheet.css", "utf-8") must_== "/css/stylesheet.css"
+    }
+
+    "decode paths with encoded characters" in {
+      decodePath("/hello%20world", "utf-8") must_== "/hello world"
+    }
+
+    "decode encoded slashes (although they can't be distinguished from unencoded slashes)" in {
+      decodePath("/a%2fb", "utf-8") must_== "/a/b"
+      decodePath("/a%2fb/c%2fd", "utf-8") must_== "/a/b/c/d"
+    }
+
+    "not decode badly encoded paths" in {
+      decodePath("/a|b/", "utf-8") must throwA[InvalidUriEncodingException]
+      decodePath("/hello world", "utf-8") must throwA[InvalidUriEncodingException]
+    }
+
+    "not perform normalization of dot-segments" in {
+      decodePath("a/..", "utf-8") must_== "a/.."
+      decodePath("a/.", "utf-8") must_== "a/."
+    }
+
+    "not perform normalization of duplicate slashes" in {
+      decodePath("//a", "utf-8") must_== "//a"
+      decodePath("a//b", "utf-8") must_== "a//b"
+      decodePath("a//", "utf-8") must_== "a//"
+    }
+
+    "decode complex UTF-8 octets" in {
+      decodePath("/path/%C2%ABk%C3%BC%C3%9F%C3%AE%C2%BB", "UTF-8") must_== "/path/«küßî»"
+      decodePath("/path/%E2%80%9C%D0%8C%CF%8D%D0%91%D0%87%E2%80%9D", "UTF-8") must_== "/path/“ЌύБЇ”"
+    }
+
+  }
+
+  // Internal methods
+
+  "Internal UriEncoding methods" should {
+
+    "know how to split strings" in {
+      splitString("", '/') must_== Seq("")
+      splitString("/", '/') must_== Seq("", "")
+      splitString("a", '/') must_== Seq("a")
+      splitString("a/b", '/') must_== Seq("a", "b")
+      splitString("a//b", '/') must_== Seq("a", "", "b")
+      splitString("/a", '/') must_== Seq("", "a")
+      splitString("/a/b", '/') must_== Seq("", "a", "b")
+      splitString("/a/b/", '/') must_== Seq("", "a", "b", "")
+      splitString("/abc/xyz", '/') must_== Seq("", "abc", "xyz")
+    }
+  }
+
 }

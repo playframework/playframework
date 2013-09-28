@@ -1,7 +1,10 @@
-package sbt
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
+package play
 
+import sbt._
 import play.api._
-import play.core._
 
 trait PlayExceptions {
 

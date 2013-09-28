@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.libs.json
 
 import org.specs2.mutable._
@@ -324,6 +327,29 @@ object JsonValidSpec extends Specification {
       val reads2 = ((__ \ 'field32).read[Int] and (__ \ 'field31).read[String]).tupled
 
       js.validate(reads1 andThen reads2).get must beEqualTo(345 -> "beta")
+    }
+
+    "Apply min/max correctly on any numeric type" in {
+      case class Numbers(i: Int, l: Long, f: Float, d: Double, bd: BigDecimal)
+
+      implicit val numbersFormat = (
+        (__ \ 'i).format[Int](Reads.min(5) andKeep Reads.max(100)) and
+        (__ \ 'l).format[Long](Reads.min(5L) andKeep Reads.max(100L)) and
+        (__ \ 'f).format[Float](Reads.min(13.0F) andKeep Reads.max(14.0F)) and
+        (__ \ 'd).format[Double](Reads.min(0.1) andKeep Reads.max(1.0)) and
+        (__ \ 'bd).format[BigDecimal](Reads.min(BigDecimal(5)) andKeep Reads.max(BigDecimal(100)))
+      )(Numbers.apply _, unlift(Numbers.unapply))
+
+      val ok = Numbers(42, 55L, 13.5F, 0.3, BigDecimal(33.5))
+      val fail = Numbers(42, 55L, 10.5F, 1.3, BigDecimal(33.5))
+      val jsOk = Json.toJson(ok)
+      val jsFail = Json.toJson(fail)
+
+      jsOk.validate[Numbers] must equalTo(JsSuccess(ok))
+      jsFail.validate[Numbers] must equalTo(
+        JsError((__ \ 'f), ValidationError("error.min", 13.0F)) ++
+        JsError((__ \ 'd), ValidationError("error.max", 1.0))
+      )
     }
 
   }

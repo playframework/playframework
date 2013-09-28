@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
+
 /**
  * From https://github.com/hydrasi/junit_xml_listener
  */
@@ -91,6 +95,7 @@ class JUnitXmlTestsListener(val outputDir: String, logger: Logger) extends Tests
         case TStatus.Failure => logWith(Colors.yellow("x"))
         case TStatus.Skipped => logWith(Colors.yellow("o"))
         case TStatus.Success => logWith(Colors.green("+"))
+        case _ => ()
       }
     }
 

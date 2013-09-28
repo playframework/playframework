@@ -1,6 +1,5 @@
 import org.junit.*;
 
-import play.mvc.*;
 import play.test.*;
 import play.libs.F.*;
 
@@ -17,7 +16,7 @@ public class IntegrationTest {
             public void invoke(TestBrowser browser) {
                 browser.goTo("http://localhost:3333");
                 
-                assertThat(browser.$("header h1").first().getText()).isEqualTo("Play 2.0 sample application — Computer database");
+                assertThat(browser.$("header h1").first().getText()).isEqualTo("Play sample application — Computer database");
                 assertThat(browser.$("section h1").first().getText()).isEqualTo("574 computers found");
 
                 assertThat(browser.$("#pagination li.current").first().getText()).isEqualTo("Displaying 1 to 10 of 574");

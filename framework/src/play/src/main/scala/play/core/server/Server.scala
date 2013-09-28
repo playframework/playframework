@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.core.server
 
 import scala.language.postfixOps
@@ -5,18 +8,11 @@ import scala.language.postfixOps
 import play.api._
 import play.core._
 import play.api.mvc._
-import play.api.libs.iteratee._
-import play.api.libs.iteratee._
-import play.api.libs.iteratee.Input._
-import play.api.libs.concurrent._
 
-import akka.actor._
-import akka.actor.Actor._
-import akka.routing._
-import akka.pattern.Patterns.ask
 import scala.concurrent.duration._
-import akka.util.Timeout
+import scala.util.{ Try, Success, Failure }
 import scala.util.control.NonFatal
+import scala.concurrent.Future
 
 trait WebSocketable {
   def getHeader(header: String): String
@@ -47,13 +43,13 @@ trait Server {
 
   def mode: Mode.Mode
 
-  def getHandlerFor(request: RequestHeader): Either[SimpleResult, (RequestHeader, Handler, Application)] = {
+  def getHandlerFor(request: RequestHeader): Either[Future[SimpleResult], (RequestHeader, Handler, Application)] = {
 
     import scala.util.control.Exception
 
-    def sendHandler: Either[Throwable, (RequestHeader, Handler, Application)] = {
+    def sendHandler: Try[(RequestHeader, Handler, Application)] = {
       try {
-        applicationProvider.get.right.map { application =>
+        applicationProvider.get.map { application =>
           application.global.onRequestReceived(request) match {
             case (requestHeader, handler) => (requestHeader, handler, application)
           }
@@ -61,7 +57,7 @@ trait Server {
       } catch {
         case e: ThreadDeath => throw e
         case e: VirtualMachineError => throw e
-        case e: Throwable => Left(e)
+        case e: Throwable => Failure(e)
       }
     }
 
@@ -82,11 +78,14 @@ trait Server {
     }
 
     Exception
-      .allCatch[Option[SimpleResult]]
-      .either(applicationProvider.handleWebCommand(request))
+      .allCatch[Option[Future[SimpleResult]]]
+      .either(applicationProvider.handleWebCommand(request).map(Future.successful))
       .left.map(logExceptionAndGetResult)
       .right.flatMap(maybeResult => maybeResult.toLeft(())).right.flatMap { _ =>
-        sendHandler.left.map(logExceptionAndGetResult)
+        sendHandler match {
+          case Failure(e) => Left(logExceptionAndGetResult(e))
+          case Success(v) => Right(v)
+        }
       }
 
   }

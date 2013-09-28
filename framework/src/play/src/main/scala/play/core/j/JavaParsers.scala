@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.core.j
 
 import play.api.mvc._
@@ -156,7 +159,7 @@ object JavaParsers extends BodyParsers {
     )
   }
 
-  def raw(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.raw(Integer.MAX_VALUE)).map { body =>
+  def raw(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.raw).map { body =>
     body
       .left.map(_ => DefaultRequestBody(isMaxSizeExceeded = true))
       .right.map { raw =>

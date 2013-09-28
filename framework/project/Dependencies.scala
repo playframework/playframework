@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 import sbt._
 import sbt.Keys._
 
@@ -68,9 +71,9 @@ object Dependencies {
     specsBuild % "test")
 
   val runtime = Seq(
-    "io.netty" % "netty" % "3.6.6.Final",
+    "io.netty" % "netty" % "3.7.0.Final",
 
-    "com.typesafe.netty" % "netty-http-pipelining" % "1.1.1",
+    "com.typesafe.netty" % "netty-http-pipelining" % "1.1.2",
 
     "org.slf4j" % "slf4j-api" % "1.7.5",
     "org.slf4j" % "jul-to-slf4j" % "1.7.5",
@@ -102,20 +105,20 @@ object Dependencies {
     "com.fasterxml.jackson.core" % "jackson-annotations" % "2.2.2",
     "com.fasterxml.jackson.core" % "jackson-databind" % "2.2.2",
 
+    "xerces" % "xercesImpl" % "2.11.0",
+
     "javax.transaction" % "jta" % "1.1",
 
     specsBuild % "test",
 
     "org.mockito" % "mockito-all" % "1.9.5" % "test",
-    "com.novocode" % "junit-interface" % "0.10-M4" % "test",
+    "com.novocode" % "junit-interface" % "0.10" % "test" exclude("junit", "junit-dep"),
 
     ("org.fluentlenium" % "fluentlenium-festassert" % "0.9.0" % "test")
-      .exclude("org.jboss.netty", "netty")
-      .exclude("comm.google.guava","guava"),
+      .exclude("org.jboss.netty", "netty"),
 
     "org.scala-lang" % "scala-reflect" % BuildSettings.buildScalaVersion,
 
-    "org.databene" % "contiperf" % "2.2.0" % "test",
     "junit" % "junit" % "4.11" % "test")
 
   val link = Seq(
@@ -148,16 +151,18 @@ object Dependencies {
 
     "com.h2database" % "h2" % "1.3.172",
     "org.javassist" % "javassist" % "3.18.0-GA",
-    "com.typesafe.play" %% "play-doc" % "1.0.1",
 
     "net.contentobjects.jnotify" % "jnotify" % "0.94",
 
-    // Once we upgrade to SBT 0.13.0, we can use the build version of SBT here
-    "com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.2.0" extra("sbtVersion" -> "0.13", "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
-    "com.github.mpeltonen" % "sbt-idea" % "1.5.0-SNAPSHOT" extra("sbtVersion" -> "0.13", "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
-    "com.typesafe.sbt" % "sbt-native-packager" % "0.6.0" extra("sbtVersion" ->  "0.13", "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
+    "com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.3.0" extra("sbtVersion" -> BuildSettings.buildSbtVersionBinaryCompatible, "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
+    "com.github.mpeltonen" % "sbt-idea" % "1.5.1" extra("sbtVersion" -> BuildSettings.buildSbtVersionBinaryCompatible, "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
+    "com.typesafe.sbt" % "sbt-native-packager" % "0.6.2" extra("sbtVersion" ->  BuildSettings.buildSbtVersionBinaryCompatible, "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
 
     specsSbt
+  )
+
+  val playDocsDependencies = Seq(
+    "com.typesafe.play" %% "play-doc" % "1.0.3"
   )
 
   val consoleDependencies = Seq(
@@ -187,12 +192,16 @@ object Dependencies {
   val testDependencies = Seq(
     "junit" % "junit" % "4.11",
     specsBuild,
-    "com.novocode" % "junit-interface" % "0.10-M4",
+    "com.novocode" % "junit-interface" % "0.10" exclude("junit", "junit-dep"),
     guava,
     findBugs,
     ("org.fluentlenium" % "fluentlenium-festassert" % "0.8.0")
       .exclude("org.jboss.netty", "netty")
       .exclude("com.google.guava","guava"))
+
+  val integrationTestDependencies = Seq(
+    "org.databene" % "contiperf" % "2.2.0" % "test"
+  )
 
   val playCacheDeps = Seq(
     "net.sf.ehcache" % "ehcache-core" % "2.6.6",

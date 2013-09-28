@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Handling form submission
 
 ## Defining a form
@@ -30,7 +31,7 @@ You can also define an ad-hoc validation by adding a `validate` method to your t
 
 @[user](code/javaguide/forms/u3/User.java)
 
-The message returned in the above example will becemoe a global error.
+The message returned in the above example will become a global error.
 
 The `validate`-method can return the following types: `String`, `List<ValidationError>` or `Map<String,List<ValidationError>>`
 

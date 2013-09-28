@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Handling asynchronous results
 
 ## Why asynchronous results?
@@ -24,13 +25,11 @@ Here is a simple way to execute a block of code asynchronously and to get a `Fut
 
 It's important to understand which thread code runs on with futures.  In the two code blocks above, there is an import on Plays default execution context.  This is an implicit parameter that gets passed to all methods on the future API that accept callbacks.  The execution context will often be equivalent to a thread pool, though not necessarily.
 
-## AsyncResult
+## Returning futures
 
-While we were using `SimpleResult` until now, to send an asynchronous result, we need an `AsyncResult` to wrap the actual `SimpleResult`:
+While we were using the `Action.apply` builder methods to build actions until now, to send an asynchronous result, we need to use the `Action.async` buider method:
 
 @[async-result](code/ScalaAsync.scala)
-
-> **Note:** `Async { }` is an helper method that builds an `AsyncResult` from a `Future[Result]`.
 
 ## Handling time-outs
 

@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.test
 
 import play.api._
@@ -130,6 +133,8 @@ case class TestServer(port: Int, application: FakeApplication = FakeApplication(
 
   private var server: play.core.server.NettyServer = _
 
+  val insecurePort: Option[Int] = if (port <= 0) None else Some(port)
+
   /**
    * Starts this server.
    */
@@ -139,7 +144,7 @@ case class TestServer(port: Int, application: FakeApplication = FakeApplication(
     }
     //play.core.Invoker.uninit()
     try {
-      server = new play.core.server.NettyServer(new play.core.TestApplication(application), Option(port), sslPort = sslPort, mode = Mode.Test)
+      server = new play.core.server.NettyServer(new play.core.TestApplication(application), insecurePort, sslPort = sslPort, mode = Mode.Test)
     } catch {
       case t: Throwable =>
         t.printStackTrace

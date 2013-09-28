@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Using the form template helpers
 
 Play provides several helpers for rendering form fields in HTML templates.
@@ -108,7 +109,7 @@ Now you have to generate as many inputs for the `emails` field as the form conta
 
 The `min` parameter allows you to display a minimum number of fields even if the corresponding form data are empty.
 
-> **Next:** [[Working with JSON| ScalaJson]]
+> **Next:** [[Protecting against CSRF|ScalaCsrf]]
 
 
 

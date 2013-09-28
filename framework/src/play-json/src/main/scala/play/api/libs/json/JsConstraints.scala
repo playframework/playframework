@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.libs.json
 
 import play.api.data.validation.ValidationError
@@ -79,7 +82,7 @@ trait PathReads {
     Reads[JsObject](js => js match {
       case o: JsObject =>
         path.asSingleJsResult(o)
-          .flatMap(js => reads.reads(js))
+          .flatMap(js => reads.reads(js).repath(path))
           .map(jsv => JsPath.createObj(path -> jsv))
           .map(opath => o.deepMerge(opath))
       case _ =>
@@ -112,11 +115,19 @@ trait ConstraintReads {
   def seq[A](implicit reads: Reads[A]): Reads[Seq[A]] = Reads.traversableReads[Seq, A]
   def map[A](implicit reads: Reads[A]): Reads[collection.immutable.Map[String, A]] = Reads.mapReads[A]
 
-  def min(m: Int)(implicit reads: Reads[Int]) =
-    filterNot[Int](ValidationError("error.min", m))(_ < m)(reads)
+  /**
+   * Defines a minimum value for a numeric Reads. Combine with `max` using `or`, e.g.
+   * `.read(Reads.min(0) or Reads.max(100))`.
+   */
+  def min[N](m: N)(implicit reads: Reads[N], num: Numeric[N]) =
+    filterNot[N](ValidationError("error.min", m))(num.lt(_, m))(reads)
 
-  def max(m: Int)(implicit reads: Reads[Int]) =
-    filterNot[Int](ValidationError("error.max", m))(_ > m)(reads)
+  /**
+   * Defines a maximum value for a numeric Reads. Combine with `min` using `or`, e.g.
+   * `.read(Reads.min(0.1) or Reads.max(1.0))`.
+   */
+  def max[N](m: N)(implicit reads: Reads[N], num: Numeric[N]) =
+    filterNot[N](ValidationError("error.max", m))(num.gt(_, m))(reads)
 
   def filterNot[A](error: ValidationError)(p: A => Boolean)(implicit reads: Reads[A]) =
     Reads[A](js => reads.reads(js).filterNot(error)(p))

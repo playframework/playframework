@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Detailed topics
 
 1. [[The Build system | Build]]
@@ -18,8 +19,8 @@
     1. [[Additional configuration | ProductionConfiguration]]
     1. [[Deploying to Heroku | ProductionHeroku]]
     1. [[Set-up a front-end HTTP server | HTTPServer]]
-1. Hacking Play 2.0
-    1. [[Building Play 2.0 from source | BuildingFromSource]]
+1. Hacking Play
+    1. [[Building Play from source | BuildingFromSource]]
     1. [[Third party tools | ThirdPartyTools]]
     1. [[Repositories | Repositories]]
     1. [[Issue tracker | Issues]]

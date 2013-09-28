@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.libs;
 
 import com.ning.http.client.AsyncHttpClient;
@@ -524,6 +527,81 @@ public class WS {
     }
 
     /**
+     * A WS Cookie.
+     */
+    public static interface Cookie {
+
+        /**
+         * Returns the underlying "native" object for the cookie.
+         */
+        public Object getUnderlying();
+
+        public String getDomain();
+
+        public String getName();
+
+        public String getValue();
+
+        public String getPath();
+
+        public Integer getMaxAge();
+
+        public Boolean isSecure();
+
+        public Integer getVersion();
+
+        // Cookie ports should not be used; cookies for a given host are shared across
+        // all the ports on that host.
+    }
+
+    /**
+     * The Ning implementation of a WS cookie.
+     */
+    private static class NingCookie implements Cookie {
+
+        private final com.ning.http.client.Cookie ahcCookie;
+
+        public NingCookie(com.ning.http.client.Cookie ahcCookie) {
+            this.ahcCookie = ahcCookie;
+        }
+
+        /**
+         * Returns the underlying "native" object for the cookie.
+         */
+        public Object getUnderlying() {
+            return ahcCookie;
+        }
+
+        public String getDomain() {
+            return ahcCookie.getDomain();
+        }
+
+        public String getName() {
+            return ahcCookie.getName();
+        }
+
+        public String getValue() {
+            return ahcCookie.getValue();
+        }
+
+        public String getPath() {
+            return ahcCookie.getPath();
+        }
+
+        public Integer getMaxAge() {
+            return ahcCookie.getMaxAge();
+        }
+
+        public Boolean isSecure() {
+            return ahcCookie.isSecure();
+        }
+
+        public Integer getVersion() {
+            return ahcCookie.getVersion();
+        }
+    }
+
+    /**
      * A WS response.
      */
     public static class Response {
@@ -553,6 +631,30 @@ public class WS {
          */
         public String getHeader(String key) {
             return ahcResponse.getHeader(key);
+        }
+
+        /**
+         * Get all the cookies.
+         */
+        public List<Cookie> getCookies() {
+            List<Cookie> cookieList = new ArrayList<Cookie>();
+            for (com.ning.http.client.Cookie ahcCookie : ahcResponse.getCookies()) {
+                cookieList.add(new NingCookie(ahcCookie));
+            }
+            return cookieList;
+        }
+
+        /**
+         * Get only one cookie, using the cookie name.
+         */
+        public Cookie getCookie(String name) {
+            for (com.ning.http.client.Cookie ahcCookie : ahcResponse.getCookies()) {
+                // safe -- cookie.getName() will never return null
+                if (ahcCookie.getName().equals(name)) {
+                    return new NingCookie(ahcCookie);
+                }
+            }
+            return null;
         }
 
         /**

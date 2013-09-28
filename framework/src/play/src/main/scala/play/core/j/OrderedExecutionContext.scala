@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.core.j
 
 import akka.actor.{ Actor, ActorSystem, Props }
@@ -11,7 +14,7 @@ import scala.concurrent.ExecutionContext
  * with the current thread then that id will be used to dispatch work to the same
  * actor every time, resulting in ordered execution of work for that context.
  *
- * The ExecutionContext preserves the execution behaviour of F.Promise from Play 2.1.
+ * The ExecutionContext preserves the execution behaviour of F.Promise from Play.
  */
 class OrderedExecutionContext(actorSystem: ActorSystem, size: Int) extends ExecutionContext {
   private val actors = Array.fill(size)(actorSystem.actorOf(Props[OrderedExecutionContext.RunActor]))

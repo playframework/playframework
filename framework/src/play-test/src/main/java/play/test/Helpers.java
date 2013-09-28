@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.test;
 
 import play.*;
@@ -162,6 +165,20 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      */
     public static FakeApplication fakeApplication(Map<String, ? extends Object> additionalConfiguration, List<String> additionalPlugin, GlobalSettings global) {
         return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, additionalPlugin, global);
+    }
+
+    /**
+     * Build a new fake application.
+     */
+    public static FakeApplication fakeApplication(Map<String, ? extends Object> additionalConfiguration, List<String> additionalPlugins, List<String> withoutPlugins) {
+        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, additionalPlugins, withoutPlugins, null);
+    }
+
+    /**
+     * Build a new fake application.
+     */
+    public static FakeApplication fakeApplication(Map<String, ? extends Object> additionalConfiguration, List<String> additionalPlugins, List<String> withoutPlugins, GlobalSettings global) {
+        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, additionalPlugins, withoutPlugins, global);
     }
 
     /**
@@ -417,6 +434,10 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             startedServer = server;
             browser = testBrowser(webDriver);
             block.invoke(browser);
+        } catch(Error e) {
+            throw e;
+        } catch(RuntimeException re) {
+            throw re;
         } catch(Throwable t) {
             throw new RuntimeException(t);
         } finally {

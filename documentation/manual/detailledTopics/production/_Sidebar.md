@@ -1,13 +1,12 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 ### Deploying your application
 
-- [[Deploying your application | Production]]
-- [[Creating a standalone version | ProductionDist]]
-- [[Additional configuration | ProductionConfiguration]]
-- [[Set-up a front-end HTTP server | HTTPServer]]
-- [[Deploying to Clever Cloud | Deploying-CleverCloud]]
-- [[Deploying to Heroku | ProductionHeroku]]
-- [[Deploying to Cloudbees | Deploying-to-CloudBees]]
-- [[Deploying to Cloud Foundry | Deploying-CloudFoundry]]
+- [[Deploying your application|Production]]
+- [[Creating a standalone version|ProductionDist]]
+- [[Production configuration|ProductionConfiguration]]
+- [[Setting up a front end HTTP server|HTTPServer]]
+- [[Configuring HTTPS|ConfiguringHttps]]
+- [[Deploying to a cloud service|DeployingCloud]]
 
 ### Getting started
 

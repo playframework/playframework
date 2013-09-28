@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Additional configuration
 
 When running an application in production mode you can override any configuration. This section covers the more common use cases.
@@ -118,9 +119,18 @@ $ /path/to/bin/<project-name> -Dlogger.url=http://conf.mycompany.com/logger.xml
 
 ## Changing the path of RUNNING_PID
 
-It is possible to change the file path to the created RUNNING_PID file which contains the process id of the started application. Normally this file is placed in the root directory of your play project.
+It is possible to change the path to the file that contains the process id of the started application. Normally this file is placed in the root directory of your play project, however it is advised that you put it somewhere where it will be automatically cleared on restart, such as `/var/run`:
 
 ```
-$ /path/to/bin/<project-name> -Dpidfile.path=instance1
+$ /path/to/bin/<project-name> -Dpidfile.path=/var/run/play.pid
 ```
-This changes the directory relative to the root folder. You could also use absolute paths. With this option it is possible to start multiple play instances without colliding RUNNING_PID files (actually play won't start another instance). Don't forget to create the directory.
+
+> Make sure that the directory exists and that the user that runs the Play application has write permission for it.
+
+Using this file, you can stop your application using the `kill` command, for example:
+
+```
+$ kill $(cat /var/run/play.pid)
+```
+
+> **Next:** [[Setting up a front end HTTP server|HTTPServer]]

@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # RequireJS
 
 According to [RequireJS](http://requirejs.org/)' website 
@@ -58,13 +59,12 @@ create `app/views/index.scala.html`:
 @helper.requireJs(core = routes.Assets.at("javascripts/require.js").url, module = routes.Assets.at("javascripts/main").url)
 ```
 
-In `project/Build.scala` add:
+In your `build.sbt` add:
 
 ```
-val main = play.Project(appName, appVersion, appDependencies).settings(
-    	requireJs += "main.js",
-    	requireJsShim += "main.js"
-    )	
+requireJs += "main.js"
+
+requireJsShim += "main.js"
 ```
 
 After rendering the page in Dev mode you should see: ```9``` popping up in an alert

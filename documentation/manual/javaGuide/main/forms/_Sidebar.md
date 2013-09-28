@@ -1,7 +1,9 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 ### HTTP forms
 
 - [[Form definitions | JavaForms]]
 - [[Using the form template helpers | JavaFormHelpers]]
+- [[Protecting against CSRF|JavaCsrf]]
 
 ### Main concepts
 

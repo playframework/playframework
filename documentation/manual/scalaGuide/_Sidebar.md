@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 ### Main concepts
 
 - [[HTTP programming | ScalaActions]]
@@ -20,6 +21,7 @@
 - [[Handling data streams reactively | Iteratees]]
 - [[HTTP API | HttpApi]]
 - [[HTTP Filters | ScalaHttpFilters]]
+- [[Dependency Injection | ScalaDependencyInjection]]
 - [[Extending Play|ScalaPlugins]]
 
 ### Tutorials

@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.libs.functional
 
 trait Monoid[A] {
@@ -5,6 +8,10 @@ trait Monoid[A] {
   def append(a1: A, a2: A): A
   def identity: A
 
+}
+
+class MonoidOps[A](m1: A)(implicit m: Monoid[A]) {
+  def |+|(m2: A): A = m.append(m1, m2)
 }
 
 /* A practical variant of monoid act/action/operator (search on wikipedia)

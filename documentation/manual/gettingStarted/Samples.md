@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Sample applications
 
 The Play binary package comes with a comprehensive set of sample applications written in both Java and Scala. This is a very good place to look for code snippets and examples.
@@ -26,7 +27,7 @@ This is a classic CRUD application, backed by a JDBC database. It demonstrates:
 - table pagination and CRUD forms
 - integrating with a CSS framework ([Twitter Bootstrap](http://twitter.github.com/bootstrap/)).
 
-Twitter Bootstrap requires a different form layout to the default layout provided by the Play 2.0 form helper, so this application also provides an example of integrating a custom form input constructor.
+Twitter Bootstrap requires a different form layout to the default layout provided by the Play form helper, so this application also provides an example of integrating a custom form input constructor.
 
 ## Forms
 

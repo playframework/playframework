@@ -1,8 +1,9 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Accessing an SQL database
 
 ## Configuring JDBC connection pools
 
-Play 2.0 provides a plug-in for managing JDBC connection pools. You can configure as many databases as you need.
+Play provides a plug-in for managing JDBC connection pools. You can configure as many databases as you need.
 
 
 To enable the database plug-in, add jdbc in your build dependencies :
@@ -85,7 +86,7 @@ db.customers.url="jdbc:h2:mem:customers"
 
 ## Configuring the JDBC Driver
 
-Play 2.0 is bundled only with an [H2](http://www.h2database.com) database driver. Consequently, to deploy in production you will need to add your database driver as a dependency.
+Play is bundled only with an [H2](http://www.h2database.com) database driver. Consequently, to deploy in production you will need to add your database driver as a dependency.
 
 For example, if you use MySQL5, you need to add a [[dependency | SBTDependencies]] for the connector:
 

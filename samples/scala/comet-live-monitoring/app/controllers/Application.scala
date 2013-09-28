@@ -21,7 +21,7 @@ object Application extends Controller {
   }
 
   def monitoring = Action {
-   Ok.stream(
+   Ok.chunked(
      Streams.getRequestsPerSecond >-
      Streams.getCPU >-
      Streams.getHeap &>

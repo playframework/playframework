@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.libs
 
 /**
@@ -523,7 +526,7 @@ object MimeTypes {
         wmlc=application/vnd.wap.wmlc
         wmls=text/vnd.wap.wmlscript
         wmlsc=application/vnd.wap.wmlscriptc
-        woff=application/x-font-woff
+        woff=application/font-woff
         word=application/msword
         wp5=application/wordperfect
         wp6=application/wordperfect

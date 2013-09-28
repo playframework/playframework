@@ -1,6 +1,7 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Your first Play application
 
-Let’s write a simple to do list application with Play 2.0 and deploy it to the cloud.
+Let’s write a simple to do list application with Play and deploy it to the cloud.
 
 ## Prerequisites
 
@@ -9,6 +10,8 @@ First of all, make sure that you have a [[working Play installation|Installing]]
 As we will use the command line a lot, it’s better to use a Unix-like OS. If you run a Windows system, it will also work fine; you’ll just have to type a few commands in the command prompt.
 
 You will of course need a text editor. You can also use a Scala IDE such as Eclipse or IntelliJ if you like. However, with Play you can have fun working with a simple text editor like Textmate, Emacs or vi. This is because the framework manages the compilation and the deployment process itself.
+
+> **Note:** Read more about [[Setting-up your preferred IDE | IDE]].
 
 ## Project creation
 
@@ -33,6 +36,7 @@ The `play new` command creates a new directory `todolist/` and populates it with
 - `test/` contains all the application tests. Tests are written as Specs2 specifications.
 
 > Because Play uses UTF-8 as single encoding, it’s very important that all text files hosted in these directories are encoded using this charset. Make sure to configure your text editor accordingly.
+> **Note:** Read more about [[Anatomy of a Play application | Anatomy]].
 
 ## Using the Play console
 
@@ -96,7 +100,7 @@ This template is defined in the `app/views/index.scala.html` source file:
 ```
 @(message: String)
 
-@main("Welcome to Play 2.1") {
+@main("Welcome to Play") {
     
     @play20.welcome(message)
     
@@ -432,10 +436,13 @@ web: target/start -Dhttp.port=${PORT} -DapplyEvolutions.default=true -Ddb.defaul
 
 We use system properties to override the application configuration, when running on Heroku. Since Heroku provides a PostgreSQL database, we need to add the required driver to our application dependencies. 
 
-Specify it into the `project/Build.scala` file:
+Specify it into the `build.sbt` file:
 
-```
-val appDependencies = Seq(
+```scala
+libraryDependencies ++= Seq(
+  jdbc,
+  anorm,
+  cache,
   "postgresql" % "postgresql" % "8.4-702.jdbc4"
 )
 ```

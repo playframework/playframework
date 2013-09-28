@@ -1,9 +1,11 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 ### Configuration
 
 - [[Configuration file syntax and features | Configuration]]
 - [[Configuring the JDBC connection pool | SettingsJDBC]]
 - [[Configuring Play's thread pools | ThreadPools]]
 - [[Configuring logging | SettingsLogger]]
+- [[Configuring gzip encoding|GzipEncoding]]
 
 ### Getting started
 

@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package controllers
 
 import play.api.mvc._
@@ -203,6 +206,10 @@ object Application extends Controller {
   }
 
   def routetest(parameter: String) = Action {
+    Ok("")
+  }
+  
+  def route2(parameter: String) = Action {
     Ok("")
   }
 

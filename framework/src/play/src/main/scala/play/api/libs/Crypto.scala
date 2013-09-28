@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.libs
 
 import javax.crypto._
@@ -5,6 +8,8 @@ import javax.crypto.spec.SecretKeySpec
 
 import play.api.Play
 import play.api.PlayException
+import java.security.SecureRandom
+import org.apache.commons.codec.binary.Hex
 
 /**
  * Cryptographic utilities.
@@ -27,6 +32,8 @@ object Crypto {
   private lazy val provider: Option[String] = getConfig("application.crypto.provider")
 
   private lazy val transformation: String = getConfig("application.crypto.aes.transformation").getOrElse("AES")
+
+  private val random = new SecureRandom()
 
   /**
    * Signs the given String with HMAC-SHA1 using the given key.
@@ -56,6 +63,76 @@ object Crypto {
   def sign(message: String): String = {
     secret.map(secret => sign(message, secret.getBytes("utf-8"))).getOrElse {
       throw new PlayException("Configuration error", "Missing application.secret")
+    }
+  }
+
+  /**
+   * Sign a token.  This produces a new token, that has this token signed with a nonce.
+   *
+   * This primarily exists to defeat the BREACH vulnerability, as it allows the token to effectively be random per
+   * request, without actually changing the value.
+   *
+   * @param token The token to sign
+   * @return The signed token
+   */
+  def signToken(token: String): String = {
+    val nonce = System.currentTimeMillis()
+    val joined = nonce + "-" + token
+    sign(joined) + "-" + joined
+  }
+
+  /**
+   * Extract a signed token that was signed by [[play.api.libs.Crypto.signToken]].
+   *
+   * @param token The signed token to extract.
+   * @return The verified raw token, or None if the token isn't valid.
+   */
+  def extractSignedToken(token: String): Option[String] = {
+    token.split("-", 3) match {
+      case Array(signature, nonce, raw) if constantTimeEquals(signature, sign(nonce + "-" + raw)) => Some(raw)
+      case _ => None
+    }
+  }
+
+  /**
+   * Generate a cryptographically secure token
+   */
+  def generateToken = {
+    val bytes = new Array[Byte](12)
+    random.nextBytes(bytes)
+    new String(Hex.encodeHex(bytes))
+  }
+
+  /**
+   * Generate a signed token
+   */
+  def generateSignedToken = signToken(generateToken)
+
+  /**
+   * Compare two signed tokens
+   */
+  def compareSignedTokens(tokenA: String, tokenB: String) = {
+    (for {
+      rawA <- extractSignedToken(tokenA)
+      rawB <- extractSignedToken(tokenB)
+    } yield constantTimeEquals(rawA, rawB)).getOrElse(false)
+  }
+
+  /**
+   * Constant time equals method.
+   *
+   * Given a length that both Strings are equal to, this method will always run in constant time.  This prevents
+   * timing attacks.
+   */
+  def constantTimeEquals(a: String, b: String) = {
+    if (a.length != b.length) {
+      false
+    } else {
+      var equal = 0
+      for (i <- 0 until a.length) {
+        equal |= a(i) ^ b(i)
+      }
+      equal == 0
     }
   }
 

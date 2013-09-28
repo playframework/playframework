@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Manipulating Results
 
 ## Changing the default Content-Type
@@ -51,7 +52,7 @@ Also, to discard a Cookie previously stored on the Web browser:
 
 For text based HTTP response it is very important to handle the charset correctly. Play handles that for you and uses `utf-8` by default.
 
-The charset is used to both convert the text response to the corresponding bytes to send over the network socket, and to alterate the `Content-Type` header with the proper `;charset=xxx` extension.
+The charset is used to both convert the text response to the corresponding bytes to send over the network socket, and to update the `Content-Type` header with the proper `;charset=xxx` extension.
 
 The charset is handled automatically via the `play.api.mvc.Codec` type class. Just import an implicit instance of `play.api.mvc.Codec` in the current scope to change the charset that will be used by all operations:
 

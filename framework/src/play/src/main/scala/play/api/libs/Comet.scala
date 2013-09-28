@@ -1,6 +1,7 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.libs
-
-import scala.language.reflectiveCalls
 
 import org.apache.commons.lang3.StringEscapeUtils
 import play.api.mvc._

@@ -1,14 +1,15 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.libs.iteratee
 
 import org.specs2.mutable._
-
-import java.io.OutputStream
+import java.io.{ ByteArrayInputStream, File, FileOutputStream, OutputStream }
 import java.util.concurrent.{CountDownLatch, TimeUnit}
 import java.util.concurrent.atomic.AtomicInteger
 import play.api.libs.iteratee.Execution.Implicits.{ defaultExecutionContext => dec }
 import scala.concurrent.{Promise, Future, Await}
 import scala.concurrent.duration.Duration
-import scala.language.reflectiveCalls
 
 object EnumeratorsSpec extends Specification
   with IterateeSpecification with ExecutionSpecification {
@@ -53,7 +54,7 @@ object EnumeratorsSpec extends Specification
       mustExecute(1, 2) { (onDoneEC, unfoldEC) =>
         val firstDone = Promise[Unit]
         val e1 = Enumerator(1, 2, 3, 4).onDoneEnumerating(firstDone.success(Unit))(onDoneEC)
-        val e2 = Enumerator.unfoldM[Boolean, Int](true) { first => if (first) firstDone.future.map(_ => Some(false, 5)) else Future.successful(None) }(unfoldEC)
+        val e2 = Enumerator.unfoldM[Boolean, Int](true) { first => if (first) firstDone.future.map(_ => Some((false, 5))) else Future.successful(None) }(unfoldEC)
         val result = Await.result((e1 interleave e2) |>>> Iteratee.getChunks[Int], Duration.Inf)
         result must_== Seq(1, 2, 3, 4, 5)
       }
@@ -115,7 +116,20 @@ object EnumeratorsSpec extends Specification
   }
 
 }*/
-  
+
+  "Enumerator.apply" should {
+    "enumerate zero args" in {
+      mustEnumerateTo()(Enumerator())
+    }
+    "enumerate 1 arg" in {
+      mustEnumerateTo(1)(Enumerator(1))
+    }
+    "enumerate more than 1 arg" in {
+      mustEnumerateTo(1, 2)(Enumerator(1, 2))
+      mustEnumerateTo(1, 2, 3)(Enumerator(1, 2, 3))
+    }
+  }
+
   "Enumerator" should {
     
     "call onDoneEnumerating callback" in {
@@ -195,6 +209,34 @@ object EnumeratorsSpec extends Specification
     }
   }
 
+  "Enumerator.fromStream" should {
+    "read bytes from a stream" in {
+      mustExecute(3) { fromStreamEC =>
+        val s = "hello"
+        val enumerator = Enumerator.fromStream(new ByteArrayInputStream(s.getBytes))(fromStreamEC).map(new String(_))
+        mustEnumerateTo(s)(enumerator)
+      }
+    }
+  }
+
+  "Enumerator.fromFile" should {
+    "read bytes from a file" in {
+      mustExecute(3) { fromFileEC =>
+        val f = File.createTempFile("EnumeratorSpec", "fromFile")
+        try {
+          val s = "hello"
+          val out = new FileOutputStream(f)
+          out.write(s.getBytes)
+          out.close()
+          val enumerator = Enumerator.fromFile(f)(fromFileEC).map(new String(_))
+          mustEnumerateTo(s)(enumerator)
+        } finally {
+          f.delete()
+        }
+      }
+    }
+  }
+
   "Enumerator.unfoldM" should {
     "Can be composed with another enumerator (doesn't send EOF)" in {
       mustExecute(12, 12) { (foldEC, unfoldEC) =>
@@ -203,9 +245,17 @@ object EnumeratorsSpec extends Specification
         Await.result(enumerator |>>> Iteratee.fold[Int, String]("")(_ + _)(foldEC), Duration.Inf) must equalTo("123456789101112")
       }
     }
-
   }
-  
+
+  "Enumerator.unfold" should {
+    "unfolds a value into input for an enumerator" in {
+      mustExecute(5) { unfoldEC =>
+        val enumerator = Enumerator.unfold[Int, Int](0)(s => if (s > 3) None else Some((s + 1, s)))(unfoldEC)
+        mustEnumerateTo(0, 1, 2, 3)(enumerator)
+      }
+    }
+  }
+
   "Enumerator.repeat" should {
     "supply input from a by-name arg" in {
       mustExecute(3) { repeatEC =>

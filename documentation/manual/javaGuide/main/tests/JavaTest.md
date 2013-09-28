@@ -1,10 +1,11 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Testing your application
 
 Test source files must be placed in your application’s `test` folder. You can run tests from the Play console using the `test` and `test-only` tasks.
 
 ## Using JUnit
 
-The default way to test a Play 2 application is with [JUnit](http://www.junit.org/).
+The default way to test a Play application is with [JUnit](http://www.junit.org/).
 
 ```
 package test;

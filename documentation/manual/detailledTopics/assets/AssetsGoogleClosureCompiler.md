@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Using Google Closure Compiler
 
 The [Closure Compiler](http://code.google.com/p/closure-compiler/) is a tool for making JavaScript download and run faster. It is a true compiler for JavaScript - though instead of compiling from a source language to machine code, it compiles JavaScript to better JavaScript. It parses your JavaScript, analyzes it, removes dead code and rewrites and minimizes what’s left.
@@ -34,6 +35,23 @@ The default definition is:
 javascriptEntryPoints <<= (sourceDirectory in Compile)(base =>
    ((base / "assets" ** "*.js") --- (base / "assets" ** "_*")).get
 )
+```
+
+## Options
+
+ClosureCompiler compilation can be configured in your project’s `Build.scala` file (in the settings part of the `PlayProject`). There are several currently supported options:
+
+- *advancedOptimizations* Achieves extra compressions by being more aggressive in the ways that it transforms code and renames symbols. However, this more aggressive approach means that you must take greater care when you use ADVANCED_OPTIMIZATIONS to ensure that the output code works the same way as the input code.
+- *checkCaja* Checks Caja control structures.
+- *checkControlStructures* Checks for invalid control structures.
+- *checkTypes* Checks for invalid types.
+- *checkSymbols* Checks for invalid symbols.
+- *ecmascript5* Sets the input- and output-language to the newer ECMAScript version 5. Might break code on older browsers.
+
+Example:
+
+```
+closureCompilerOptions += "ecmascript5"
 ```
 
 > **Next:** [[Using require.js to manage dependencies | RequireJS-support]]

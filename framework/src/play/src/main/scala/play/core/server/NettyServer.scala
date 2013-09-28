@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.core.server
 
 import org.jboss.netty.channel._
@@ -8,7 +11,7 @@ import org.jboss.netty.channel.group._
 import org.jboss.netty.handler.ssl._
 
 import java.security._
-import java.net.{ InetSocketAddress }
+import java.net.InetSocketAddress
 import javax.net.ssl._
 import java.util.concurrent._
 
@@ -65,7 +68,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
       newPipeline
     }
 
-    lazy val sslContext: Option[SSLContext] = {  //the sslContext should be reused on each connection
+    lazy val sslContext: Option[SSLContext] = { //the sslContext should be reused on each connection
       for (
         keyStore <- loadKeyStore();
         keyManagers <- loadKeyManagers(keyStore);
@@ -88,9 +91,9 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
         val algorithm = System.getProperty("https.keyStoreAlgorithm", KeyManagerFactory.getDefaultAlgorithm)
         val file = new File(path)
         if (file.isFile) {
-            for (in <- resource.managed(new FileInputStream(file))) {
-              keyStore.load(in, password)
-            }
+          for (in <- resource.managed(new FileInputStream(file))) {
+            keyStore.load(in, password)
+          }
           Logger("play").debug("Using HTTPS keystore at " + file.getAbsolutePath)
           Some(keyStore)
         } else {
@@ -104,32 +107,30 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
       }
     }
 
-
-
   private def loadKeyManagers(keyStore: KeyStore) = {
-          try {
+    try {
       val algorithm = System.getProperty("https.keyStoreAlgorithm", KeyManagerFactory.getDefaultAlgorithm)
-            val kmf = KeyManagerFactory.getInstance(algorithm)
+      val kmf = KeyManagerFactory.getInstance(algorithm)
       val password = System.getProperty("https.keyStoreKeyPassword", System.getProperty("https.keyStorePassword", "")).toCharArray
-            kmf.init(keyStore, password)
+      kmf.init(keyStore, password)
       Some(kmf.getKeyManagers)
-          } catch {
-            case NonFatal(e) => {
-              Logger("play").error("Error loading HTTPS trust store", e)
-              None
-            }
-          }
-        }
+    } catch {
+      case NonFatal(e) => {
+        Logger("play").error("Error loading HTTPS trust store", e)
+        None
+      }
+    }
+  }
 
   private def loadTrustManagers(keyStore: KeyStore): Option[Array[TrustManager]] = {
     val algorithm = System.getProperty("https.trustStoreAlgorithm", TrustManagerFactory.getDefaultAlgorithm)
 
     System.getProperty("https.trustStore", "keystore") match {
-          case "noCA" => {
-              Logger("play").warn("HTTPS configured with no client " +
-              "side CA verification. Requires http://webid.info/ for client certifiate verification.")
+      case "noCA" => {
+        Logger("play").warn("HTTPS configured with no client " +
+          "side CA verification. Requires http://webid.info/ for client certifiate verification.")
         Some(Array[TrustManager](noCATrustManager))
-          }
+      }
       case "keystore" => {
         Logger("play").debug("Using configured key store as the trust store")
         try {
@@ -150,16 +151,16 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
           if (clazz.getInterfaces.toTraversable.exists(_ == classOf[X509TrustManager])) {
             try {
               val res = Some(Array(clazz.newInstance().asInstanceOf[TrustManager]))
-              Logger("play").info("Loaded TLS Trust Manager implementation "+clazz)
+              Logger("play").info("Loaded TLS Trust Manager implementation " + clazz)
               res
             } catch {
               case e: InstantiationException => {
-                Logger("play").error("could not instantiate "+className)
+                Logger("play").error("could not instantiate " + className)
                 None
-  }
+              }
             }
           } else {
-            Logger("play").error("TrustManager class " + className+ " does not implement javax.net.ssl.TrustManager")
+            Logger("play").error("TrustManager class " + className + " does not implement javax.net.ssl.TrustManager")
             None
           }
         } catch {
@@ -237,6 +238,12 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
     // Release the HTTPS server if needed
     HTTPS.foreach(_._1.releaseExternalResources())
 
+    mode match {
+      case Mode.Dev =>
+        Invoker.lazySystem.close()
+        Execution.lazyContext.close()
+      case _ => ()
+    }
   }
 
   override lazy val mainAddress = {
@@ -321,29 +328,44 @@ object NettyServer {
    * @param args
    */
   def main(args: Array[String]) {
-    args.headOption.orElse(
-      Option(System.getProperty("user.dir"))).map(new File(_)).filter(p => p.exists && p.isDirectory).map { applicationPath =>
-        createServer(applicationPath).getOrElse(System.exit(-1))
+    args.headOption
+      .orElse(Option(System.getProperty("user.dir")))
+      .map { applicationPath =>
+        val applicationFile = new File(applicationPath)
+        if (!(applicationFile.exists && applicationFile.isDirectory)) {
+          println("Bad application path: " + applicationPath)
+        } else {
+          createServer(applicationFile).getOrElse(System.exit(-1))
+        }
       }.getOrElse {
-        println("Not a valid Play application")
+        println("No application path supplied")
       }
   }
 
-  def mainDevOnlyHttpsMode(sbtLink: SBTLink, httpsPort: Int): NettyServer = {
-    mainDev(sbtLink, None, Some(httpsPort))
+  /**
+   * Provides an HTTPS-only NettyServer for the dev environment.
+   *
+   * <p>This method uses simple Java types so that it can be used with reflection by code
+   * compiled with different versions of Scala.
+   */
+  def mainDevOnlyHttpsMode(sbtLink: SBTLink, sbtDocHandler: SBTDocHandler, httpsPort: Int): NettyServer = {
+    mainDev(sbtLink, sbtDocHandler, None, Some(httpsPort))
   }
 
   /**
-   * provides a NettyServer for the dev environment
+   * Provides an HTTP NettyServer for the dev environment
+   *
+   * <p>This method uses simple Java types so that it can be used with reflection by code
+   * compiled with different versions of Scala.
    */
-  def mainDevHttpMode(sbtLink: SBTLink, httpPort: Int): NettyServer = {
-    mainDev(sbtLink, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt(_)))
+  def mainDevHttpMode(sbtLink: SBTLink, sbtDocHandler: SBTDocHandler, httpPort: Int): NettyServer = {
+    mainDev(sbtLink, sbtDocHandler, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt(_)))
   }
 
-  private def mainDev(sbtLink: SBTLink, httpPort: Option[Int], httpsPort: Option[Int]): NettyServer = {
+  private def mainDev(sbtLink: SBTLink, sbtDocHandler: SBTDocHandler, httpPort: Option[Int], httpsPort: Option[Int]): NettyServer = {
     play.utils.Threads.withContextClassLoader(this.getClass.getClassLoader) {
       try {
-        val appProvider = new ReloadableApplication(sbtLink)
+        val appProvider = new ReloadableApplication(sbtLink, sbtDocHandler)
         new NettyServer(appProvider, httpPort,
           httpsPort,
           mode = Mode.Dev)

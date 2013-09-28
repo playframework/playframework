@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Form template helpers
 
 Play provides several helpers to help you render form fields in HTML templates.
@@ -76,7 +77,7 @@ This field constructor generates HTML like the following:
   <div class="input">
     <input type="text" name="email" id="email" value="">
     <span class="help-inline">This field is required!, Another error</span>
-    <span class="help-block">Required, Another constraint</d</span> 
+    <span class="help-block">Required, Another constraint</span> 
   </div>
 </div>
 ```
@@ -109,7 +110,7 @@ Now you have to generate as many inputs for the `emails` field as the form conta
 
 Use the `min` parameter to display a minimum number of fields, even if the corresponding form data are empty.
 
-> **Next:** [[Working with JSON| JavaJsonRequests]]
+> **Next:** [[Protecting against CSRF|JavaCsrf]]
 
 
 

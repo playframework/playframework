@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Play for Scala developers
 
 The Scala API for Play application developers is available in the `play.api` package. 
@@ -65,6 +66,9 @@ The Scala API for Play application developers is available in the `play.api` pac
 1. [[HTTP Architecture | HttpApi]]
     1. [[HTTP API | HttpApi]]
     1. [[HTTP Filters | ScalaHttpFilters]]
+1. [[Dependency Injection | ScalaDependencyInjection]]
+    1. [[Controller Injection | ScalaDependencyInjection]]
+    1. [[Example Projects | ScalaDependencyInjection]]
 1. [[Reverse routing | ScalaJavascriptRouting]]
     1. [[Javascript Routing | ScalaJavascriptRouting]]
 1. [[Extending Play|ScalaPlugins]]

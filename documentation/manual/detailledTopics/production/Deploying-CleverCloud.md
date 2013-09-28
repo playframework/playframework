@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Deploying to Clever Cloud
 [Clever Cloud](http://www.clever-cloud.com/en) is a Platform as a Service solution. You can deploy on it Scala, Java, PHP, Python and Node.js applications. Its main particularity is that it supports **automatic vertical and horizontal scaling**.
 
@@ -5,7 +6,7 @@ Clever Cloud supports Play! 2 applications natively. The present guide explains 
 
 ## Create a new application on Clever Cloud
 
-Create your Play! application on Clever Cloud [dashboard](http://console.clever-cloud.com).
+Create your Play! application on Clever Cloud [dashboard](https://console.clever-cloud.com).
 
 ## Deploy your application
 

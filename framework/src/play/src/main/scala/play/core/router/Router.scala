@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.core
 
 import play.api.mvc._
@@ -12,6 +15,7 @@ import scala.util.control.Exception
 import scala.collection.concurrent.TrieMap
 import play.core.j.JavaActionAnnotations
 import play.utils.UriEncoding
+import play.api.Plugin
 
 trait PathPart
 
@@ -25,7 +29,6 @@ case class DynamicPart(name: String, constraint: String, encodeable: Boolean) ex
 object DynamicPart {
   def apply(name: String, constraint: String) = new DynamicPart(name, constraint)
 }
-
 
 case class StaticPart(value: String) extends PathPart {
   override def toString = """StaticPart("""" + value + """")"""
@@ -79,12 +82,24 @@ case class PathPattern(parts: Seq[PathPart]) {
 }
 
 /**
+ * The javaActionAnnotations map holds references to Java classes.  The map is needed for performance reasons
+ * (introspecting actions on every request is very slow), but in dev mode, this causes classloader leaks.
+ *
+ * This "plugin" hooks into the Play lifecycle to clear the map when Play shuts down.
+ */
+class RouterCacheLifecycle(app: play.api.Application) extends Plugin {
+  override def onStop() {
+    Router.javaActionAnnotations.clear()
+  }
+}
+
+/**
  * provides Play's router implementation
  */
 object Router {
 
   // Cache of annotation information for improving Java performance.
-  private val javaActionAnnotations = new TrieMap[HandlerDef, JavaActionAnnotations]
+  private[core] val javaActionAnnotations = new TrieMap[HandlerDef, JavaActionAnnotations]
 
   object Route {
 
@@ -222,7 +237,7 @@ object Router {
 
     //
 
-    def badRequest(error: String) = Action { request =>
+    def badRequest(error: String) = Action.async { request =>
       play.api.Play.maybeApplication.map(_.global.onBadRequest(request, error)).getOrElse(play.api.DefaultGlobal.onBadRequest(request, error))
     }
 

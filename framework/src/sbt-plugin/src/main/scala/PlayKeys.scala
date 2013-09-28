@@ -1,6 +1,12 @@
-package sbt
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
+package play
 
-trait PlayKeys {
+import sbt._
+import sbt.Keys._
+
+trait Keys {
 
   val jdbc = "com.typesafe.play" %% "play-jdbc" % play.core.PlayVersion.current
 
@@ -32,9 +38,17 @@ trait PlayKeys {
 
   val requireNativePath = SettingKey[Option[String]]("play-require-native-path")
 
+  /** Our means of hooking the run task with additional behavior. */
+  val playRunHooks = TaskKey[Seq[play.PlayRunHook]]("play-run-hooks")
+
+  @deprecated("2.2", "Please use playRunHooks setting instead.")
   val playOnStarted = SettingKey[Seq[(java.net.InetSocketAddress) => Unit]]("play-onStarted")
 
+  @deprecated("2.2", "Please use playRunHooks setting instead.")
   val playOnStopped = SettingKey[Seq[() => Unit]]("play-onStopped")
+
+  /** A hook to configure how play blocks on user input while running. */
+  val playInteractionMode = SettingKey[play.PlayInteractionMode]("play-interaction-mode")
 
   val playAssetsDirectories = SettingKey[Seq[File]]("play-assets-directories")
 
@@ -110,10 +124,16 @@ trait PlayKeys {
   val defaultTemplatesImport = Seq("play.api.templates._", "play.api.templates.PlayMagic._")
 
 }
-object PlayKeys extends PlayKeys
+object Keys extends Keys
 
 trait PlayInternalKeys {
+  type ClassLoaderCreator = (String, Array[URL], ClassLoader) => ClassLoader
+
+  val playDependencyClasspath = TaskKey[Classpath]("play-dependency-classpath")
+  val playReloaderClasspath = TaskKey[Classpath]("play-reloader-classpath")
   val playCommonClassloader = TaskKey[ClassLoader]("play-common-classloader")
+  val playDependencyClassLoader = TaskKey[ClassLoaderCreator]("play-dependency-classloader")
+  val playReloaderClassLoader = TaskKey[ClassLoaderCreator]("play-reloader-classloader")
   val playReload = TaskKey[sbt.inc.Analysis]("play-reload")
   val buildRequire = TaskKey[Seq[(File, File)]]("play-build-require-assets")
   val playCompileEverything = TaskKey[Seq[sbt.inc.Analysis]]("play-compile-everything")

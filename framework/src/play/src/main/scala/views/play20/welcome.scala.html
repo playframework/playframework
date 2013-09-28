@@ -71,7 +71,7 @@ GET     /               controllers.Application.index</code></pre>
 
 <pre><code>@@(message: String)
 
-@@main("Welcome to Play 2.1") {
+@@main("Welcome to Play") {
 
     @@play20.welcome(message)
 
@@ -86,7 +86,7 @@ GET     /               controllers.Application.index</code></pre>
             <h2>Is this your first time?</h2>
 
             <p>
-                You can now continue with the <a href="/@@documentation/ScalaTodoList">first tutorial</a>, which will guide you through the basics of creating a Play 2.1 application.
+                You can now continue with the <a href="/@@documentation/ScalaTodoList">first tutorial</a>, which will guide you through the basics of creating a Play application.
             </p>
 
             <h2>Need to set up an IDE?</h2>
@@ -113,12 +113,11 @@ db.default.url="jdbc:h2:mem:play"</code></pre>
 
             <p>
                 If you need to connect to another JDBC-compliant database, first add the corresponding driver library 
-                to your application dependencies:
+                to your application dependencies in build.sbt e.g.:
             </p>
 
-<pre><code>val appDependencies = Seq(
-  "mysql" % "mysql-connector-java" % "5.1.18"
-)</code></pre>
+<pre><code>libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.18"
+</code></pre>
 
             <p>
                 Then add the corresponding JDBC configuration to the <code>conf/application.conf</code> file:
@@ -160,7 +159,7 @@ db.pass=secret</code></pre>
 
         <article>
 
-            <h1>Welcome to Play 2.1</h1>
+            <h1>Welcome to Play</h1>
 
             <p>
                 Congratulations, you’ve just created a new Play application. This page will help you with the next few steps.
@@ -200,7 +199,7 @@ GET     /               controllers.Application.index()</code></pre>
 
 <pre><code>@@(message: String)
 
-@@main("Welcome to Play 2.1") {
+@@main("Welcome to Play") {
 
     @@play20.welcome(message, style = "Java")
 
@@ -221,7 +220,7 @@ GET     /               controllers.Application.index()</code></pre>
             <h2>Is this your first time?</h2>
 
             <p>
-                You can now continue with the <a href="/@@documentation/JavaTodoList">first tutorial</a>, which will guide you through the basics of creating a Play 2.1 application.
+                You can now continue with the <a href="/@@documentation/JavaTodoList">first tutorial</a>, which will guide you through the basics of creating a Play application.
             </p>
 
             <h2>Need to set up an IDE?</h2>
@@ -248,12 +247,11 @@ db.default.url="jdbc:h2:mem:play"</code></pre>
 
             <p>
                 If you need to connect to another JDBC-compliant database, first add the corresponding driver library 
-                to your application dependencies:
+                to your application dependencies in build.sbt e.g.:
             </p>
 
-<pre><code>val appDependencies = Seq(
-  "mysql" % "mysql-connector-java" % "5.1.18"
-)</code></pre>
+<pre><code>libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.18"
+</code></pre>
 
             <p>
                 Then add the corresponding JDBC configuration to the <code>conf/application.conf</code> file:

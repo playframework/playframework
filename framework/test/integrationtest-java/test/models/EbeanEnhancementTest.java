@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package models;
 
 import org.junit.Test;
@@ -60,6 +63,9 @@ public class EbeanEnhancementTest {
                 HelloWorld result = HelloWorld.find.byId(hw.id);
                 assertEquals(result.field1, "Hi, I'm field1!");
                 assertEquals(result.field2, "Hi, I'm field2!");
+
+                result.field1 = "newName1";
+                assertEquals(result._ebean_getIntercept().isDirty(), true);
             }
         });
     }

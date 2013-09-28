@@ -1,18 +1,19 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.libs.json
 
 import com.fasterxml.jackson.core.{ JsonGenerator, JsonToken, JsonParser }
-import com.fasterxml.jackson.databind.JavaType
 import com.fasterxml.jackson.databind._
-import com.fasterxml.jackson.databind.`type`.{ TypeFactory, ArrayType }
+import com.fasterxml.jackson.databind.`type`.TypeFactory
 import com.fasterxml.jackson.databind.deser.Deserializers
 import com.fasterxml.jackson.databind.ser.Serializers
 
 import scala.collection._
+import scala.collection.mutable.ListBuffer
 
-import scala.collection.immutable.Stack
 import scala.annotation.tailrec
 import play.api.data.validation.ValidationError
-import java.io.ByteArrayInputStream
 
 case class JsResultException(errors: Seq[(JsPath, Seq[ValidationError])]) extends RuntimeException("JsResultException(errors:%s)".format(errors))
 
@@ -20,7 +21,6 @@ case class JsResultException(errors: Seq[(JsPath, Seq[ValidationError])]) extend
  * Generic json value
  */
 sealed trait JsValue {
-  import scala.util.control.Exception._
 
   /**
    * Return the property corresponding to the fieldName, supposing we have a JsObject.
@@ -34,7 +34,7 @@ sealed trait JsValue {
    * Return the element at a given index, supposing we have a JsArray.
    *
    * @param idx the index to lookup
-   * @param the resulting JsValue. If the current node is not a JsArray or the index is out of bounds, a JsUndefined will be returned.
+   * @return the resulting JsValue. If the current node is not a JsArray or the index is out of bounds, a JsUndefined will be returned.
    */
   def apply(idx: Int): JsValue = JsUndefined(this.toString + " is not an array")
 
@@ -55,7 +55,7 @@ sealed trait JsValue {
     invalid = _ => None,
     valid = v => Some(v)
   ).filter {
-      case JsUndefined(_) => false
+      case JsUndefined() => false
       case _ => true
     }
 
@@ -95,7 +95,15 @@ case object JsNull extends JsValue
 /**
  * Represent a missing Json value.
  */
-case class JsUndefined(error: String) extends JsValue
+class JsUndefined(err: => String) extends JsValue {
+  def error = err
+  override def toString = "JsUndefined(" + err + ")"
+}
+
+object JsUndefined {
+  def apply(err: => String) = new JsUndefined(err)
+  def unapply(o: Object): Boolean = o.isInstanceOf[JsUndefined]
+}
 
 /**
  * Represent a Json boolean value.
@@ -315,7 +323,7 @@ private[json] class JsValueSerializer extends JsonSerializer[JsValue] {
         json.writeEndObject()
       }
       case JsNull => json.writeNull()
-      case JsUndefined(error) => {
+      case JsUndefined() => {
         json.writeNull()
       }
     }
@@ -326,19 +334,19 @@ private[json] sealed trait DeserializerContext {
   def addValue(value: JsValue): DeserializerContext
 }
 
-private[json] case class ReadingList(content: List[JsValue]) extends DeserializerContext {
+private[json] case class ReadingList(content: ListBuffer[JsValue]) extends DeserializerContext {
   override def addValue(value: JsValue): DeserializerContext = {
-    ReadingList(content :+ value)
+    ReadingList(content += value)
   }
 }
 
 // Context for reading an Object
-private[json] case class KeyRead(content: List[(String, JsValue)], fieldName: String) extends DeserializerContext {
-  def addValue(value: JsValue): DeserializerContext = ReadingMap(content :+ (fieldName -> value))
+private[json] case class KeyRead(content: ListBuffer[(String, JsValue)], fieldName: String) extends DeserializerContext {
+  def addValue(value: JsValue): DeserializerContext = ReadingMap(content += (fieldName -> value))
 }
 
 // Context for reading one item of an Object (we already red fieldName)
-private[json] case class ReadingMap(content: List[(String, JsValue)]) extends DeserializerContext {
+private[json] case class ReadingMap(content: ListBuffer[(String, JsValue)]) extends DeserializerContext {
 
   def setField(fieldName: String) = KeyRead(content, fieldName)
   def addValue(value: JsValue): DeserializerContext = throw new Exception("Cannot add a value on an object without a key, malformed JSON object!")
@@ -376,13 +384,13 @@ private[json] class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) e
 
       case (JsonToken.VALUE_NULL, c) => (Some(JsNull), c)
 
-      case (JsonToken.START_ARRAY, c) => (None, (ReadingList(List())) +: c)
+      case (JsonToken.START_ARRAY, c) => (None, (ReadingList(ListBuffer())) +: c)
 
       case (JsonToken.END_ARRAY, ReadingList(content) :: stack) => (Some(JsArray(content)), stack)
 
       case (JsonToken.END_ARRAY, _) => throw new RuntimeException("We should have been reading list, something got wrong")
 
-      case (JsonToken.START_OBJECT, c) => (None, ReadingMap(List()) +: c)
+      case (JsonToken.START_OBJECT, c) => (None, ReadingMap(ListBuffer()) +: c)
 
       case (JsonToken.FIELD_NAME, (c: ReadingMap) :: stack) => (None, c.setField(jp.getCurrentName) +: stack)
 
@@ -454,7 +462,7 @@ private[json] object JacksonJson {
 
   private[this] val classLoader = Thread.currentThread().getContextClassLoader
 
-  private[this] val mapper = new ObjectMapper
+  private[this] val mapper = (new ObjectMapper).registerModule(module)
 
   object module extends SimpleModule("PlayJson", Version.unknownVersion()) {
     override def setupModule(context: SetupContext) {
@@ -462,16 +470,14 @@ private[json] object JacksonJson {
       context.addSerializers(new PlaySerializers)
     }
   }
-  mapper.registerModule(module)
 
   private[this] lazy val jsonFactory = new com.fasterxml.jackson.core.JsonFactory(mapper)
 
-  private[this] def stringJsonGenerator(out: java.io.StringWriter) = jsonFactory.createJsonGenerator(out)
+  private[this] def stringJsonGenerator(out: java.io.StringWriter) = jsonFactory.createGenerator(out)
 
-  private[this] def jsonParser(c: String): JsonParser = jsonFactory.createJsonParser(c)
+  private[this] def jsonParser(c: String): JsonParser = jsonFactory.createParser(c)
 
-  // Pass in ByteArrayInputStream to work around https://github.com/FasterXML/jackson-core/issues/42
-  private[this] def jsonParser(data: Array[Byte]): JsonParser = jsonFactory.createJsonParser(new ByteArrayInputStream(data))
+  private[this] def jsonParser(data: Array[Byte]): JsonParser = jsonFactory.createParser(data)
 
   def parseJsValue(data: Array[Byte]): JsValue = {
     mapper.readValue(jsonParser(data), classOf[JsValue])
@@ -485,7 +491,7 @@ private[json] object JacksonJson {
     val sw = new java.io.StringWriter
     val gen = stringJsonGenerator(sw)
     mapper.writeValue(gen, jsValue)
-    sw.flush
+    sw.flush()
     sw.getBuffer.toString
   }
 
@@ -495,7 +501,7 @@ private[json] object JacksonJson {
       new com.fasterxml.jackson.core.util.DefaultPrettyPrinter()
     )
     mapper.writerWithDefaultPrettyPrinter().writeValue(gen, jsValue)
-    sw.flush
+    sw.flush()
     sw.getBuffer.toString
   }
 

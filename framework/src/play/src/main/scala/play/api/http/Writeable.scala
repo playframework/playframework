@@ -1,10 +1,12 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.http
 
 import play.api.mvc._
 import play.api.libs.json._
 
 import scala.annotation._
-import scala.language.reflectiveCalls
 import play.api.libs.iteratee.Enumeratee
 import play.api.libs.concurrent.Execution
 

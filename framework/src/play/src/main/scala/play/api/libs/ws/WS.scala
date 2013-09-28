@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.libs.ws
 
 import java.io.File
@@ -15,14 +18,16 @@ import com.ning.http.client.{
   HttpResponseHeaders,
   HttpResponseStatus,
   Response => AHCResponse,
+  Cookie => AHCCookie,
   PerRequestConfig
 }
 import collection.immutable.TreeMap
 import play.core.utils.CaseInsensitiveOrdered
-import com.ning.http.client.Realm.{RealmBuilder, AuthScheme}
+import com.ning.http.client.Realm.{ RealmBuilder, AuthScheme }
 import com.ning.http.util.AsyncHttpProviderUtils
 
 import play.core.Execution.Implicits.internalContext
+import play.api.Play
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -45,53 +50,64 @@ object WS extends WSTrait {
   private val clientHolder: AtomicReference[Option[AsyncHttpClient]] = new AtomicReference(None)
 
   /**
+   * The  builder AsncBuilder for default play app
+   */
+  def asyncBuilder: AsyncHttpClientConfig.Builder = {
+    val playConfig = play.api.Play.maybeApplication.map(_.configuration)
+    val wsTimeout = playConfig.flatMap(_.getMilliseconds("ws.timeout"))
+    val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
+      .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout.connection")).orElse(wsTimeout).getOrElse(120000L).toInt)
+      .setIdleConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout.idle")).orElse(wsTimeout).getOrElse(120000L).toInt)
+      .setRequestTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout.request")).getOrElse(120000L).toInt)
+      .setFollowRedirects(playConfig.flatMap(_.getBoolean("ws.followRedirects")).getOrElse(true))
+      .setUseProxyProperties(playConfig.flatMap(_.getBoolean("ws.useProxyProperties")).getOrElse(true))
+
+    playConfig.flatMap(_.getString("ws.useragent")).map { useragent =>
+      asyncHttpConfig.setUserAgent(useragent)
+    }
+    //TODO: if one does this then one cannot later reset it it seems... it breaks the FunctionalSpec
+    //    if (!playConfig.flatMap(_.getBoolean("ws.acceptAnyCertificate")).getOrElse(false)) {
+    //      asyncHttpConfig.setSSLContext(SSLContext.getDefault)
+    //    }
+    asyncHttpConfig
+  }
+
+  private[play] def newClient(): AsyncHttpClient = {
+    new AsyncHttpClient(asyncBuilder.build())
+  }
+
+  /**
    * resets the underlying AsyncHttpClient
    */
   private[play] def resetClient(): Unit = {
-    val oldClient = clientHolder.getAndSet(None)
-    oldClient.map { clientRef =>
-      clientRef.close()
-    }
+    clientHolder.getAndSet(None).map(oldClient => oldClient.close())
   }
 
   /**
    * retrieves or creates underlying HTTP client.
    */
-  def client = {
-    clientHolder.get.getOrElse {
-      val innerClient = new AsyncHttpClient(asyncBuilder.build())
-      clientHolder.compareAndSet(None, Some(innerClient))
-      clientHolder.get.get
-    }
-  }
+  def client: AsyncHttpClient = {
+    clientHolder.get.getOrElse({
+      // A critical section of code. Only one caller has the opportuntity of creating a new client.
+      synchronized {
+        clientHolder.get match {
+          case None => {
+            val client = newClient()
+            clientHolder.set(Some(client))
+            client
+          }
+          case Some(client) => client
+        }
 
-  /**
-   * The  builder AsncBuilder for default play app
-   **/
-  def asyncBuilder: AsyncHttpClientConfig.Builder = {
-      val playConfig = play.api.Play.maybeApplication.map(_.configuration)
-      val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
-        .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
-        .setRequestTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
-        .setFollowRedirects(playConfig.flatMap(_.getBoolean("ws.followRedirects")).getOrElse(true))
-        .setUseProxyProperties(playConfig.flatMap(_.getBoolean("ws.useProxyProperties")).getOrElse(true))
-
-      playConfig.flatMap(_.getString("ws.useragent")).map { useragent =>
-        asyncHttpConfig.setUserAgent(useragent)
       }
-//TODO: if one does this then one cannot later reset it it seems... it breaks the FunctionalSpec
-//      if (playConfig.flatMap(_.getBoolean("ws.acceptAnyCertificate")).getOrElse(false) == false) {
-//        asyncHttpConfig.setSSLContext(SSLContext.getDefault)
-//      }
-    asyncHttpConfig
+    })
   }
 
   /**
    * A WS Request.
    */
-  class WSRequest(_method: String, _auth: Option[Tuple3[String, String, AuthScheme]], _calc: Option[SignatureCalculator])
-                 (implicit client: AsyncHttpClient)
-    extends RequestBuilderBase[WSRequest](classOf[WSRequest], _method, false) {
+  class WSRequest(_method: String, _auth: Option[Tuple3[String, String, AuthScheme]], _calc: Option[SignatureCalculator])(implicit client: AsyncHttpClient)
+      extends RequestBuilderBase[WSRequest](classOf[WSRequest], _method, false) {
 
     import scala.collection.JavaConverters._
 
@@ -112,7 +128,7 @@ object WS extends WSTrait {
      * Add http auth headers. Defaults to HTTP Basic.
      */
     private def auth(username: String, password: String, scheme: AuthScheme = AuthScheme.BASIC): WSRequest = {
-      this.setRealm((new RealmBuilder())
+      this.setRealm((new RealmBuilder)
         .setScheme(scheme)
         .setPrincipal(username)
         .setPassword(password)
@@ -288,7 +304,7 @@ object WS extends WSTrait {
         }
 
         override def onCompleted() = {
-          Option(iteratee).map(iterateeP.success(_))
+          Option(iteratee).map(iterateeP.success)
         }
 
         override def onThrowable(t: Throwable) = {
@@ -302,18 +318,16 @@ object WS extends WSTrait {
 
 }
 
-  /**
+/**
  * A WS for fine tuning.
  * Eg: if one wants to make requests to different servers with different client certificates...
  * @param client
  */
 case class WSx(client: AsyncHttpClient) extends WSTrait
 
-
-trait  WSTrait {
+trait WSTrait {
 
   implicit def client: AsyncHttpClient
-
 
   /**
    * Prepare a new request. You can then construct it by chaining calls.
@@ -321,7 +335,6 @@ trait  WSTrait {
    * @param url the URL to request
    */
   def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None, None)
-
 
   /**
    * A WS Request builder.
@@ -332,7 +345,7 @@ trait  WSTrait {
       calc: Option[SignatureCalculator],
       auth: Option[Tuple3[String, String, AuthScheme]],
       followRedirects: Option[Boolean],
-      timeout: Option[Int],
+      requestTimeout: Option[Int],
       virtualHost: Option[String]) {
 
     import WS.WSRequest
@@ -356,7 +369,7 @@ trait  WSTrait {
     def withHeaders(hdrs: (String, String)*): WSRequestHolder = {
       val headers = hdrs.foldLeft(this.headers)((m, hdr) =>
         if (m.contains(hdr._1)) m.updated(hdr._1, m(hdr._1) :+ hdr._2)
-        else (m + (hdr._1 -> Seq(hdr._2)))
+        else m + (hdr._1 -> Seq(hdr._2))
       )
       this.copy(headers = headers)
     }
@@ -375,11 +388,16 @@ trait  WSTrait {
     def withFollowRedirects(follow: Boolean): WSRequestHolder =
       this.copy(followRedirects = Some(follow))
 
-    /**
-     * Sets the request timeout in milliseconds
-     */
+    @scala.deprecated("use withRequestTimeout instead", "2.1.0")
     def withTimeout(timeout: Int): WSRequestHolder =
-      this.copy(timeout = Some(timeout))
+      this.withRequestTimeout(timeout)
+
+    /**
+     * Sets the maximum time in millisecond you accept the request to take.
+     * Warning: a stream consumption will be interrupted when this time is reached.
+     */
+    def withRequestTimeout(timeout: Int): WSRequestHolder =
+      this.copy(requestTimeout = Some(timeout))
 
     def withVirtualHost(vh: String): WSRequestHolder = {
       this.copy(virtualHost = Some(vh))
@@ -458,8 +476,8 @@ trait  WSTrait {
       val request = new WSRequest(method, auth, calc).setUrl(url)
         .setHeaders(headers)
         .setQueryString(queryString)
-      followRedirects.map(request.setFollowRedirects(_))
-      timeout.map { t: Int =>
+      followRedirects.map(request.setFollowRedirects)
+      requestTimeout.map { t: Int =>
         val config = new PerRequestConfig()
         config.setRequestTimeoutInMs(t)
         request.setPerRequestConfig(config)
@@ -472,7 +490,6 @@ trait  WSTrait {
 
     private[play] def prepare(method: String, body: File) = {
       import com.ning.http.client.generators.FileBodyGenerator
-      import java.nio.ByteBuffer
 
       val bodyGenerator = new FileBodyGenerator(body);
 
@@ -480,8 +497,8 @@ trait  WSTrait {
         .setHeaders(headers)
         .setQueryString(queryString)
         .setBody(bodyGenerator)
-      followRedirects.map(request.setFollowRedirects(_))
-      timeout.map { t: Int =>
+      followRedirects.map(request.setFollowRedirects)
+      requestTimeout.map { t: Int =>
         val config = new PerRequestConfig()
         config.setRequestTimeoutInMs(t)
         request.setPerRequestConfig(config)
@@ -498,8 +515,8 @@ trait  WSTrait {
         .setHeaders(Map("Content-Type" -> Seq(ct.mimeType.getOrElse("text/plain"))) ++ headers)
         .setQueryString(queryString)
         .setBody(wrt.transform(body))
-      followRedirects.map(request.setFollowRedirects(_))
-      timeout.map { t: Int =>
+      followRedirects.map(request.setFollowRedirects)
+      requestTimeout.map { t: Int =>
         val config = new PerRequestConfig()
         config.setRequestTimeoutInMs(t)
         request.setPerRequestConfig(config)
@@ -510,6 +527,109 @@ trait  WSTrait {
       request
     }
   }
+}
+
+/**
+ * A WS Cookie.  This is a trait so that we are not tied to a specific client.
+ */
+trait Cookie {
+
+  /**
+   * The underlying "native" cookie object for the client.
+   */
+  def underlying: AnyRef
+
+  /**
+   * The domain.
+   */
+  def domain: String
+
+  /**
+   * The cookie name.
+   */
+  def name: Option[String]
+
+  /**
+   * The cookie value.
+   */
+  def value: Option[String]
+
+  /**
+   * The path.
+   */
+  def path: String
+
+  /**
+   * The maximum age.
+   */
+  def maxAge: Int
+
+  /**
+   * If the cookie is secure.
+   */
+  def secure: Boolean
+
+  /**
+   * The cookie version.
+   */
+  def version: Int
+}
+
+/**
+ * The Ning implementation of a WS cookie.
+ */
+private class NingCookie(ahcCookie: AHCCookie) extends Cookie {
+
+  private def noneIfEmpty(value: String): Option[String] = {
+    if (value.isEmpty) None else Some(value)
+  }
+
+  /**
+   * The underlying cookie object for the client.
+   */
+  def underlying = ahcCookie
+
+  /**
+   * The domain.
+   */
+  def domain: String = ahcCookie.getDomain
+
+  /**
+   * The cookie name.
+   */
+  def name: Option[String] = noneIfEmpty(ahcCookie.getName)
+
+  /**
+   * The cookie value.
+   */
+  def value: Option[String] = noneIfEmpty(ahcCookie.getValue)
+
+  /**
+   * The path.
+   */
+  def path: String = ahcCookie.getPath
+
+  /**
+   * The maximum age.
+   */
+  def maxAge: Int = ahcCookie.getMaxAge
+
+  /**
+   * If the cookie is secure.
+   */
+  def secure: Boolean = ahcCookie.isSecure
+
+  /**
+   * The cookie version.
+   */
+  def version: Int = ahcCookie.getVersion
+
+  /*
+   * Cookie ports should not be used; cookies for a given host are shared across
+   * all the ports on that host.
+   */
+
+  override def toString: String = ahcCookie.toString
 }
 
 /**
@@ -541,6 +661,19 @@ case class Response(ahcResponse: AHCResponse) {
   def header(key: String): Option[String] = Option(ahcResponse.getHeader(key))
 
   /**
+   * Get all the cookies.
+   */
+  def cookies: Seq[Cookie] = {
+    import scala.collection.JavaConverters._
+    ahcResponse.getCookies.asScala.map(new NingCookie(_))
+  }
+
+  /**
+   * Get only one cookie, using the cookie name.
+   */
+  def cookie(name: String): Option[Cookie] = cookies.find(_.name == Option(name))
+
+  /**
    * The response body as String.
    */
   lazy val body: String = {
@@ -560,7 +693,7 @@ case class Response(ahcResponse: AHCResponse) {
   /**
    * The response body as Xml.
    */
-  lazy val xml: Elem = XML.loadString(body)
+  lazy val xml: Elem = Play.XML.loadString(body)
 
   /**
    * The response body as Json.

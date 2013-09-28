@@ -1,5 +1,7 @@
 #! /bin/bash
 
+# Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+
 # Usage: deployApiDocs <branch> [ <tag> ]
 #
 # If you have checked out a tag, then you must supply the branch to deploy the docs to.
@@ -26,6 +28,7 @@ fi
 # build the docs
 ./build $PLAYVERSION -Dgit.branch=$BRANCH api-docs
 
+mkdir -p target 
 cd target
 # clone the git repo if it's not already there
 if [ -d play-generated-docs ]
@@ -47,7 +50,7 @@ else
 fi
 
 rm -r *
-mv ../apidocs api
+mv ../../src/play-docs/target/apidocs api
 if ! git diff -w --quiet
 then
     git add --all

@@ -1,12 +1,13 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Invoking actions from Javascript
 
-In the last chapter of the tutorial we implemented a number of new actions for the navigation drawer that are served by the backend. In this chapter we'll add the client side code necessary to complete the behavior for the navigation drawer.
+In the last chapter of the tutorial, we implemented a number of new actions for the navigation drawer that are served by the backend. In this chapter we'll add the client side code necessary to complete the behavior for the navigation drawer.
 
 ## Javascript routes
 
 The first thing we need to do is implement a Javascript router. While you could always just make AJAX calls using hard coded URLs, Play provides a client side router that will supply these URLs for your AJAX requests. Building URLs to make AJAX calls can be quite fragile, and if you change your URL structure or parameter names at all, it can be easy to miss things when you update your Javascript code. For this reason Play has a Javascript router that lets us call actions on the server from Javascript; as if we were invoking them directly.
 
-A Javascript router needs to be generated from our code to say what actions it should include. It can be implemented as a regular action that your client side code can download using a script tag. Alternatively Play has support for embedding the router in a template. For now though we'll just use the action method. Write a Javascript router action in `app/controllers/Application.java`:
+A Javascript router needs to be generated from our code to say what actions it should include. It can be implemented as a regular action that your client side code can download using a script tag. Alternatively, Play has support for embedding the router in a template. For now though we'll just use the action method. Write a Javascript router action in `app/controllers/Application.java`:
 
 ```java
 public static Result javascriptRoutes() {
@@ -22,7 +23,7 @@ public static Result javascriptRoutes() {
 }
 ```
 
-We've set the response content type to be `text/javascript` because the router will be a Javascript file. We've then used `Routes.javascriptRouter` to generate the routes. The first parameter that we've passed to it is `jsRoutes`. Our Javascript/CoffeeScript code will be able to access the router using that variable name. We've then passed the list of actions that we want in the router.
+We've set the response content type to be `text/javascript` because the router will be a Javascript file. We've then used `Routes.javascriptRouter()` to generate the routes. The first parameter that we've passed to it is `jsRoutes`. Our Javascript/CoffeeScript code will be able to access the router using that variable name. We've then passed the list of actions that we want in the router.
 
 Of course, we need to add a route for that in the `conf/routes` file:
 
@@ -162,7 +163,7 @@ class Group extends Backbone.View
                 $.error("Error: " + err)
 ```
 
-Now you can see that are are using the `jsRoutes` Javascript router that we created before. It almost looks like we are just making an ordinary call to the `Projects.add` action. Invoking this actually returns an object that gives us a url and type (method) for making ajax requests.
+Now you can see that are are using the `jsRoutes` Javascript router that we created before. It almost looks like we are just making an ordinary call to the `Projects.add` action. Invoking this actually returns an object that gives us a url and type (method) for making AJAX requests.
 
 > You don't have to use jQuery with the Javascript router. The router is simply resolving urls and types (methods) for you.
 
@@ -199,7 +200,7 @@ class Project extends Backbone.View
             @el.children(".loader").hide()
 ```
 
-First we've declared the name of our project to be editable in place, using the helper function we added earlier, and passing the `renameProject` method as the callback. In our `renameProject` method, we've again used the Javascript router, this time passing a parameter, the id of the project that we are to rename. Try it out now to see if you can rename a project, by double clicking on the project.
+First we've declared the name of our project to be editable in place, using the helper function we added earlier, and passing the `renameProject()` method as the callback. In our `renameProject()` method we've again used the Javascript router, this time passing a parameter, the id of the project that we are to rename. Try it out now to see if you can rename a project by double clicking on the project.
 
 The last thing we want to implement for projects is the remove method, binding to the remove button. Add the following CoffeeScript to the `Project` backbone class:
 
@@ -288,7 +289,7 @@ public class Login extends FluentPage {
 }
 ```
 
-You can see three methods here. Firstly, we've declared the URL of our page conveniently using the reverse router to get this. Then we've implemented an `isAt` method, this runs some assertions on the page to make sure that we are at this page. FluentLenium will use this when we go to the page to make sure everything is as expected. We've written a simple assertion here to ensure that the heading is the login page heading. Finally, we've implemented an action on the page which fills the login form with the users email and password and then clicks the login button.
+You can see three methods here. Firstly, we've declared the URL of our page conveniently using the reverse router to get this. Then we've implemented an `isAt()` method that runs some assertions on the page to make sure that we are at this page. FluentLenium will use this when we go to the page to make sure everything is as expected. We've written a simple assertion here to ensure that the heading is the login page heading. Finally, we've implemented an action on the page which fills the login form with the users email and password and then clicks the login button.
 
 > You can read more about FluentLenium and the APIs it provides [here](https://github.com/FluentLenium/FluentLenium). We won't go into any more details in this tutorial.
 
@@ -485,7 +486,7 @@ public class DrawerTest extends WithBrowser {
 }
 ```
 
-This time we've made our test case extend `WithBrowser` which gives us a mock web browser to work with. The default browser is HtmlUnit, a Java based headless browser, but you can also use other browsers such as Firefox and Chrome. In our `setUp` method we've called `start()`, which starts both the browser and the server. We've then created a login page, navigated to it, logged in, and then we've created a dashboard page and retrieved the drawer. We're now ready to write our first test case:
+This time we've made our test case extend `WithBrowser` which gives us a mock web browser to work with. The default browser is HtmlUnit, a Java based headless browser, but you can also use other browsers such as Firefox and Chrome. In our `setUp()` method we've called `start()`, which starts both the browser and the server. We've then created a login page, navigated to it, logged in, and then we've created a dashboard page and retrieved the drawer. We're now ready to write our first test case:
 
 ```java
     @Test

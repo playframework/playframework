@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.it.http
 
 import java.net.Socket
@@ -14,17 +17,18 @@ object BasicHttpClient {
    *
    * @param port The port to connect to
    * @param checkClosed Whether to check if the channel is closed after receiving the responses
+   * @param trickleFeed A timeout to use between sending request body chunks
    * @param requests The requests to make
    * @return The parsed number of responses.  This may be more than the number of requests, if continue headers are sent.
    */
-  def makeRequests(port: Int, checkClosed: Boolean, requests: BasicRequest*): Seq[BasicResponse] = {
+  def makeRequests(port: Int, checkClosed: Boolean = false, trickleFeed: Option[Long] = None)(requests: BasicRequest*): Seq[BasicResponse] = {
     val client = new BasicHttpClient(port)
 
     try {
       var requestNo = 0
       val responses = requests.flatMap { request =>
         requestNo += 1
-        client.sendRequest(request, requestNo.toString, waitForResponses = true)
+        client.sendRequest(request, requestNo.toString, trickleFeed = trickleFeed)
       }
 
       if (checkClosed) {
@@ -70,10 +74,13 @@ class BasicHttpClient(port: Int) {
    *
    * @param request The request to send
    * @param waitForResponses Whether we should wait for responses
+   * @param trickleFeed Whether bodies should be trickle fed.  Trickle feeding will simulate a more realistic network
+   *                    environment.
    * @return The responses (may be more than one if Expect: 100-continue header is present) if requested to wait for
    *         them
    */
-  def sendRequest(request: BasicRequest, requestDesc: String, waitForResponses: Boolean): Seq[BasicResponse] = {
+  def sendRequest(request: BasicRequest, requestDesc: String, waitForResponses: Boolean = true,
+                  trickleFeed: Option[Long] = None): Seq[BasicResponse] = {
     out.write(s"${request.method} ${request.uri} ${request.version}\r\n")
     out.write("Host: localhost\r\n")
     request.headers.foreach { header =>
@@ -81,9 +88,18 @@ class BasicHttpClient(port: Int) {
     }
     out.write("\r\n")
 
-    def writeBody = {
+    def writeBody() = {
       if (request.body.length > 0) {
-        out.write(request.body)
+        trickleFeed match {
+          case Some(timeout) =>
+            request.body.grouped(8192).foreach { chunk =>
+              out.write(chunk)
+              out.flush()
+              Thread.sleep(timeout)
+            }
+          case None =>
+            out.write(request.body)
+        }
       }
       out.flush()
     }
@@ -93,17 +109,17 @@ class BasicHttpClient(port: Int) {
         out.flush()
         val response = readResponse(requestDesc + " continue")
         if (response.status == 100) {
-          writeBody
+          writeBody()
           Seq(response, readResponse(requestDesc))
         } else {
           Seq(response)
         }
       } getOrElse {
-        writeBody
+        writeBody()
         Seq(readResponse(requestDesc))
       }
     } else {
-      writeBody
+      writeBody()
       Nil
     }
   }

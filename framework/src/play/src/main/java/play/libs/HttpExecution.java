@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.libs;
 
 import play.core.Invoker;
@@ -39,7 +42,7 @@ public class HttpExecution {
      * current thread's context ClassLoader and Http.Context are captured when
      * this method is called and preserved for all executed tasks.
      * 
-     * This ExecutionContext gives the legacy behaviour of Play 2.1's F.Promise
+     * This ExecutionContext gives the legacy behaviour of Play's F.Promise
      * class.
      */
     public static ExecutionContextExecutor orderedContext() {

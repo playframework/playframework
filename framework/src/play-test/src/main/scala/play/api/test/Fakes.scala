@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.test
 
 import play.api.mvc._
@@ -104,7 +107,7 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
     _copy(body = AnyContentAsFormUrlEncoded(data.groupBy(_._1).mapValues(_.map(_._2))))
   }
 
-  def certs(required:Boolean) = Future.successful(Seq.empty)
+  def certs(required: Boolean) = Future.successful(Seq.empty)
 
   /**
    * Sets a JSON body to this request.

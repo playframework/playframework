@@ -1,4 +1,5 @@
-# Set-up a front-end HTTP server
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+# Setting up a front end HTTP server
 
 You can easily deploy your application as a stand-alone server by setting the application HTTP port to 80:
 
@@ -8,13 +9,13 @@ $ /path/to/bin/<project-name> -Dhttp.port=80
 
 > Note that you probably need root permissions to bind a process on this port.
 
-But if you plan to host several applications in the same server or load balance several instances of your application for scalability or fault tolerance, you can use a front-end HTTP server.
+However, if you plan to host several applications in the same server or load balance several instances of your application for scalability or fault tolerance, you can use a front end HTTP server.
 
-Note that using a front-end HTTP server will rarely give you better performance than using Play server directly.  However, HTTP servers are very good at handling HTTPS, conditional GET requests and static assets,  and many services assume a front end HTTP server is part of your architecture.
+Note that using a front end HTTP server will rarely give you better performance than using Play server directly.  However, HTTP servers are very good at handling HTTPS, conditional GET requests and static assets, and many services assume a front end HTTP server is part of your architecture.
 
-## Set-up with lighttpd
+## Set up with lighttpd
 
-This example shows you how to configure [lighttpd](http://www.lighttpd.net/) as a front-end web server. Note that you can do the same with Apache, but if you only need virtual hosting or load balancing, lighttpd is a very good choice and much easier to configure!
+This example shows you how to configure [lighttpd](http://www.lighttpd.net/) as a front end web server. Note that you can do the same with Apache, but if you only need virtual hosting or load balancing, lighttpd is a very good choice and much easier to configure!
 
 The `/etc/lighttpd/lighttpd.conf` file should define things like this:
 
@@ -38,9 +39,9 @@ $HTTP["host"] =~ "www.loadbalancedapp.com" {
 }
 ```
 
-## Set-up with nginx
+## Set up with nginx
 
-This example shows you how to configure [nginx](http://wiki.nginx.org/Main) as a front-end web server. Note that you can do the same with Apache, but if you only need virtual hosting or load balancing, nginx is a very good choice and much easier to configure!
+This example shows you how to configure [nginx](http://wiki.nginx.org/Main) as a front end web server. Note that you can do the same with Apache, but if you only need virtual hosting or load balancing, nginx is a very good choice and much easier to configure!
 
 The `/etc/nginx/nginx.conf` file should define things like this:
 
@@ -76,11 +77,11 @@ http {
 }
 ```
 
-> *Note* Make sure you are using version > 1.2 of Nginx otherwise chunked responses won't work properly.
+> *Note* Make sure you are using version 1.2 or greater of Nginx otherwise chunked responses won't work properly.
 
-## Set-up with Apache
+## Set up with Apache
 
-The example below shows a simple set-up with [Apache httpd server](http://httpd.apache.org/) running in front of a standard Play configuration.
+The example below shows a simple set up with [Apache httpd server](http://httpd.apache.org/) running in front of a standard Play configuration.
 
 ```
 LoadModule proxy_module modules/mod_proxy.so
@@ -158,11 +159,12 @@ In Apache, I have the following configuration:
 </VirtualHost>
 ```
 
-The important part is balancer://mycluster. This declares a load balancer. The +H option means that the second Play application is on stand-by. But you can also instruct it to load-balance.
+The important part is `balancer://mycluster`. This declares a load balancer. The +H option means that the second Play application is on standby. But you can also instruct it to load balance.
 
-Apache also provides a way to view the status of your cluster. Simply point your browser to /balancer-manager to view the current status of your clusters.
+Apache also provides a way to view the status of your cluster. Simply point your browser to `/balancer-manager` to view the current status of your clusters.
 
 Because Play is completely stateless you don’t have to manage sessions between the 2 clusters. You can actually easily scale to more than 2 Play instances.
 
-Note that [Apache does not support Websockets](https://issues.apache.org/bugzilla/show_bug.cgi?id=47485), and so you may wish to use another front end proxy (such as haproxy or nginx) that does implement this functionality.
+Note that [Apache does not support Websockets](https://issues.apache.org/bugzilla/show_bug.cgi?id=47485), so you may wish to use another front end proxy (such as haproxy or nginx) that does implement this functionality.
 
+> **Next:** [[Configuring HTTPS|ConfiguringHttps]]

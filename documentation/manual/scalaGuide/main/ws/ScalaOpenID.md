@@ -1,6 +1,7 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # OpenID Support in Play
 
-OpenID is a protocol for users to access several services with a single account. As a web developer, you can use OpenID to offer users a way to log in using an account they already have, such as their [Google account](http://code.google.com/apis/accounts/docs/OpenID.html). In the enterprise, you may be able to use OpenID to connect to a company’s SSO server.
+OpenID is a protocol for users to access several services with a single account. As a web developer, you can use OpenID to offer users a way to log in using an account they already have, such as their [Google account](https://developers.google.com/accounts/docs/OpenID). In the enterprise, you may be able to use OpenID to connect to a company’s SSO server.
 
 ## The OpenID flow in a nutshell
 

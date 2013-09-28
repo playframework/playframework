@@ -1,7 +1,9 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 ### HTTP form
 
-- [[Form definitions | ScalaForms]]
-- [[Using the form template helpers | ScalaFormHelpers]]
+- [[Form definitions|ScalaForms]]
+- [[Using the form template helpers|ScalaFormHelpers]]
+- [[Protecting against CSRF|ScalaCsrf]]
 
 ### Main concepts
 

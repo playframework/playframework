@@ -1,8 +1,9 @@
-# Introduction to Play 2 HTTP API
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+# Introduction to Play HTTP API
 
 ## What is EssentialAction?
 
-The EssentialAction is the new simpler type replacing the old Action[A]. To understand EssentialAction we need to understand the Play 2 architecture.
+The EssentialAction is the new simpler type replacing the old Action[A]. To understand EssentialAction we need to understand the Play architecture.
 
 The core of Play2 is really small, surrounded by a fair amount of useful APIs, services and structure to make Web Programming tasks easier.
 

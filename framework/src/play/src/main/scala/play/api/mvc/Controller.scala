@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.mvc
 
 import play.api.http._
@@ -18,7 +21,7 @@ import play.api.Play
  * }
  * }}}
  */
-trait Controller extends Results with BodyParsers with Status with HeaderNames with ContentTypes with RequestExtractors with Rendering {
+trait Controller extends Results with BodyParsers with HttpProtocol with Status with HeaderNames with ContentTypes with RequestExtractors with Rendering {
 
   /**
    * Provides an empty `Action` implementation: the result is a standard ‘Not implemented yet’ result page.

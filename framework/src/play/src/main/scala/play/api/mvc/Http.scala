@@ -1,16 +1,19 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.mvc {
 
   import play.api._
-  import play.api.http.{ MediaRange, HeaderNames }
+  import play.api.http.{ MediaType, MediaRange, HeaderNames }
   import play.api.i18n.Lang
   import play.api.libs.iteratee._
   import play.api.libs.Crypto
 
   import scala.annotation._
-  import java.security.cert.Certificate
   import scala.concurrent.Future
-
-import util.control.NonFatal
+  import java.security.cert.Certificate
+  import scala.util.control.NonFatal
+  import java.net.{ URLDecoder, URLEncoder }
 
   /**
    * The HTTP request header. Note that it doesn’t contain the request body yet.
@@ -90,7 +93,7 @@ import util.control.NonFatal
      * @return a Promise of the Certificate Chain, whose first element identifies the user. The promise will
      *         contain an Error if something went wrong (eg: the request is not made on an httpS connection)
      */
-    def certs(required:Boolean): Future[Seq[Certificate]]
+    def certs(required: Boolean): Future[Seq[Certificate]]
 
     /**
      * The client IP address.
@@ -142,10 +145,7 @@ import util.control.NonFatal
      * @return The media types list of the request’s Accept header, sorted by preference (preferred first).
      */
     lazy val acceptedTypes: Seq[play.api.http.MediaRange] = {
-      val mediaTypes = acceptHeader(HeaderNames.ACCEPT).collect {
-        case (q, MediaRange.parse(mediaRange)) => (q, mediaRange)
-      }
-      mediaTypes.sorted.map(_._2).reverse
+      headers.get(HeaderNames.ACCEPT).toSeq.flatMap(MediaRange.parse.apply)
     }
 
     /**
@@ -193,14 +193,23 @@ import util.control.NonFatal
     lazy val rawQueryString: String = uri.split('?').drop(1).mkString("?")
 
     /**
-     * Returns the value of the Content-Type header (without the ;charset= part if exists)
+     * The media type of this request.  Same as contentType, except returns a fully parsed media type with parameters.
      */
-    lazy val contentType: Option[String] = headers.get(play.api.http.HeaderNames.CONTENT_TYPE).flatMap(_.split(';').headOption).map(_.toLowerCase)
+    lazy val mediaType: Option[MediaType] = headers.get(HeaderNames.CONTENT_TYPE).flatMap(MediaType.parse.apply)
+
+    /**
+     * Returns the value of the Content-Type header (without the parameters (eg charset))
+     */
+    lazy val contentType: Option[String] = mediaType.map(mt => mt.mediaType + "/" + mt.mediaSubType)
 
     /**
      * Returns the charset of the request for text-based body
      */
-    lazy val charset: Option[String] = headers.get(play.api.http.HeaderNames.CONTENT_TYPE).flatMap(_.split(';').tail.headOption).map(_.toLowerCase.trim).filter(_.startsWith("charset=")).flatMap(_.split('=').tail.headOption.map(_.replaceAll("""^"|"$""", "")))
+    lazy val charset: Option[String] = for {
+      mt <- mediaType
+      param <- mt.parameters.find(_._1.equalsIgnoreCase("charset"))
+      charset <- param._2
+    } yield charset
 
     /**
      * Copy the request.
@@ -215,8 +224,7 @@ import util.control.NonFatal
       queryString: Map[String, Seq[String]] = this.queryString,
       headers: Headers = this.headers,
       remoteAddress: String = this.remoteAddress,
-      certs: Boolean => Future[Seq[Certificate]] = this.certs
-    ): RequestHeader = {
+      certs: Boolean => Future[Seq[Certificate]] = this.certs): RequestHeader = {
       val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress, _certs) = (id, tags, uri, path, method, version, queryString, headers, remoteAddress, certs)
       new RequestHeader {
         val id = _id
@@ -228,7 +236,7 @@ import util.control.NonFatal
         val queryString = _queryString
         val headers = _headers
         val remoteAddress = _remoteAddress
-        def certs(required:Boolean) = _certs(required)
+        def certs(required: Boolean) = _certs(required)
       }
     }
 
@@ -267,7 +275,7 @@ import util.control.NonFatal
       def path = self.path
       def method = self.method
       def version = self.version
-      def certs(required:Boolean) = self.certs(required)
+      def certs(required: Boolean) = self.certs(required)
       def queryString = self.queryString
       def headers = self.headers
       def remoteAddress = self.remoteAddress
@@ -287,7 +295,7 @@ import util.control.NonFatal
       def version = rh.version
       def queryString = rh.queryString
       def headers = rh.headers
-      def certs(required:Boolean) = rh.certs(required)
+      def certs(required: Boolean) = rh.certs(required)
       lazy val remoteAddress = rh.remoteAddress
       def username = None
       val body = a
@@ -303,7 +311,7 @@ import util.control.NonFatal
     def body = request.body
     def headers = request.headers
     def queryString = request.queryString
-    def certs(required:Boolean) = request.certs(required)
+    def certs(required: Boolean) = request.certs(required)
     def path = request.path
     def uri = request.uri
     def method = request.method
@@ -445,7 +453,9 @@ import util.control.NonFatal
      * Encodes the data as a `String`.
      */
     def encode(data: Map[String, String]): String = {
-      val encoded = java.net.URLEncoder.encode(data.filterNot(_._1.contains(":")).map(d => d._1 + ":" + d._2).mkString("\u0000"), "UTF-8")
+      val encoded = data.map {
+        case (k, v) => URLEncoder.encode(k, "UTF-8") + "=" + URLEncoder.encode(v, "UTF-8")
+      }.mkString("&")
       if (isSigned)
         Crypto.sign(encoded) + "-" + encoded
       else
@@ -457,7 +467,13 @@ import util.control.NonFatal
      */
     def decode(data: String): Map[String, String] = {
 
-      def urldecode(data: String) = java.net.URLDecoder.decode(data, "UTF-8").split("\u0000").map(_.split(":")).map(p => p(0) -> p.drop(1).mkString(":")).toMap
+      def urldecode(data: String) = {
+        data
+          .split("&")
+          .map(_.split("=", 2))
+          .map(p => URLDecoder.decode(p(0), "UTF-8") -> URLDecoder.decode(p(1), "UTF-8"))
+          .toMap
+      }
 
       // Do not change this unless you understand the security issues behind timing attacks.
       // This method intentionally runs in constant time if the two strings have the same length.
@@ -476,7 +492,7 @@ import util.control.NonFatal
 
       try {
         if (isSigned) {
-          val splitted = data.split("-")
+          val splitted = data.split("-", 2)
           val message = splitted.tail.mkString("-")
           if (safeEquals(splitted(0), Crypto.sign(message)))
             urldecode(message)
@@ -552,7 +568,10 @@ import util.control.NonFatal
      * @param kv the key-value pair to add
      * @return the modified session
      */
-    def +(kv: (String, String)) = copy(data + kv)
+    def +(kv: (String, String)) = {
+      require(kv._2 != null, "Cookie values cannot be null")
+      copy(data + kv)
+    }
 
     /**
      * Removes any value from the session.
@@ -620,7 +639,10 @@ import util.control.NonFatal
      * @param kv the key-value pair to add
      * @return the modified flash scope
      */
-    def +(kv: (String, String)) = copy(data + kv)
+    def +(kv: (String, String)) = {
+      require(kv._2 != null, "Cookie values cannot be null")
+      copy(data + kv)
+    }
 
     /**
      * Removes a value from the flash scope.
@@ -648,7 +670,7 @@ import util.control.NonFatal
   object Flash extends CookieBaker[Flash] {
 
     val COOKIE_NAME = Play.maybeApplication.flatMap(_.configuration.getString("flash.cookieName")).getOrElse("PLAY_FLASH")
-    override val path = Play.maybeApplication.flatMap(_.configuration.getString("application.context")).getOrElse("/")
+    override def path = Play.maybeApplication.flatMap(_.configuration.getString("application.context")).getOrElse("/")
 
     val emptyCookie = new Flash
 
@@ -686,7 +708,7 @@ import util.control.NonFatal
   /**
    * The HTTP cookies set.
    */
-  trait Cookies {
+  trait Cookies extends Traversable[Cookie] {
 
     /**
      * Optionally returns the cookie associated with a key.
@@ -720,6 +742,9 @@ import util.control.NonFatal
       def get(name: String) = cookies.get(name)
       override def toString = cookies.toString
 
+      def foreach[U](f: (Cookie) => U) {
+        cookies.values.foreach(f)
+      }
     }
 
     /**

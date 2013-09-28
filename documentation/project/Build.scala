@@ -1,12 +1,15 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
+import java.util.jar.JarFile
 import play.console.Colors
 import play.core.server.ServerWithStop
-import play.doc._
 import sbt._
 import sbt.Keys._
-import PlayKeys._
-import play.core.{SBTLink, PlayVersion}
-import PlaySourceGenerators._
-import scala.Some
+import play.Keys._
+import play.core.{ SBTDocHandler, SBTLink, PlayVersion }
+import play.PlaySourceGenerators._
+import DocValidation._
 
 object ApplicationBuild extends Build {
 
@@ -17,7 +20,10 @@ object ApplicationBuild extends Build {
       component("play") % "test",
       component("play-test") % "test",
       component("play-java") % "test",
-      component("play-cache") % "test"
+      component("play-cache") % "test",
+      component("filters-helpers") % "test",
+      "org.mockito" % "mockito-core" % "1.9.5" % "test",
+      component("play-docs")
     ),
 
     javaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "javaGuide" ** "code").get),
@@ -39,17 +45,17 @@ object ApplicationBuild extends Build {
 
     // Need to ensure that templates in the Java docs get Java imports, and in the Scala docs get Scala imports
     sourceGenerators in Test <+= (state, javaManualSourceDirectories, sourceManaged in Test, templatesTypes) map { (s, ds, g, t) =>
-      ds.flatMap(d => ScalaTemplates(s, d, g, t, defaultTemplatesImport ++ defaultJavaTemplatesImport))
+      ScalaTemplates(s, ds, g, t, defaultTemplatesImport ++ defaultJavaTemplatesImport)
     },
     sourceGenerators in Test <+= (state, scalaManualSourceDirectories, sourceManaged in Test, templatesTypes) map { (s, ds, g, t) =>
-      ds.flatMap(d => ScalaTemplates(s, d, g, t, defaultTemplatesImport ++ defaultScalaTemplatesImport))
+      ScalaTemplates(s, ds, g, t, defaultTemplatesImport ++ defaultScalaTemplatesImport)
     },
 
     sourceGenerators in Test <+= (state, javaManualSourceDirectories, sourceManaged in Test) map  { (s, ds, g) =>
-      ds.flatMap(d => RouteFiles(s, d, g, Seq("play.libs.F"), true, true))
+      RouteFiles(s, ds, g, Seq("play.libs.F"), true, true)
     },
     sourceGenerators in Test <+= (state, scalaManualSourceDirectories, sourceManaged in Test) map  { (s, ds, g) =>
-      ds.flatMap(d => RouteFiles(s, d, g, Seq(), true, true))
+      RouteFiles(s, ds, g, Seq(), true, true)
     },
 
     templatesTypes := Map(
@@ -58,7 +64,9 @@ object ApplicationBuild extends Build {
 
     run <<= docsRunSetting,
 
-    DocValidation.validateDocs <<= DocValidation.ValidateDocsTask,
+    generateMarkdownReport <<= GenerateMarkdownReportTask,
+    validateDocs <<= ValidateDocsTask,
+    validateExternalLinks <<= ValidateExternalLinksTask,
 
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true", "junitxml", "console"),
     testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "--ignore-runners=org.specs2.runner.JUnitRunner"),
@@ -82,6 +90,7 @@ object ApplicationBuild extends Build {
       val classloader = new java.net.URLClassLoader(classpath.map(_.data.toURI.toURL).toArray, null /* important here, don't depend of the sbt classLoader! */) {
         val sharedClasses = Seq(
           classOf[play.core.SBTLink].getName,
+          classOf[play.core.SBTDocHandler].getName,
           classOf[play.core.server.ServerWithStop].getName,
           classOf[play.api.UsefulException].getName,
           classOf[play.api.PlayException].getName,
@@ -99,32 +108,20 @@ object ApplicationBuild extends Build {
         }
       }
 
-      import scala.collection.JavaConverters._
-      // create sbt link
-      val sbtLink = new SBTLink {
-        def runTask(name: String) = null
-        def reload() = null
-        def projectPath() = extracted.currentProject.base
-        def settings() = Map.empty[String, String].asJava
-        def forceReload() {}
-        def findSource(className: String, line: java.lang.Integer) = null
-        private val markdownRenderer = {
-          val repo = new FilesystemRepository(new java.io.File(extracted.get(baseDirectory), "manual"))
-          new PlayDoc(repo, repo, "resources/manual")
-        }
-
-        def markdownToHtml(page: String) = {
-          markdownRenderer.renderPage(page) match {
-            case Some((page, Some(sidebar))) => Array(page, sidebar)
-            case Some((page, None)) => Array(page)
-            case None => Array[String]()
-          }
-        }
+      val projectPath = extracted.get(baseDirectory)
+      val docsJarFile = {
+        val f = classpath.map(_.data).filter(_.getName.startsWith("play-docs")).head
+        new JarFile(f)
+      }
+      val sbtDocHandler = {
+        val docHandlerFactoryClass = classloader.loadClass("play.docs.SBTDocHandlerFactory")
+        val fromDirectoryMethod = docHandlerFactoryClass.getMethod("fromDirectoryAndJar", classOf[java.io.File], classOf[JarFile], classOf[String])
+        fromDirectoryMethod.invoke(null, projectPath, docsJarFile, "play/docs/content")
       }
 
-      val clazz = classloader.loadClass("play.core.system.DocumentationServer")
-      val constructor = clazz.getConstructor(classOf[SBTLink], classOf[java.lang.Integer])
-      val server = constructor.newInstance(sbtLink, new java.lang.Integer(port)).asInstanceOf[ServerWithStop]
+      val clazz = classloader.loadClass("play.docs.DocumentationServer")
+      val constructor = clazz.getConstructor(classOf[File], classOf[SBTDocHandler], classOf[java.lang.Integer])
+      val server = constructor.newInstance(projectPath, sbtDocHandler, new java.lang.Integer(port)).asInstanceOf[ServerWithStop]
 
       println()
       println(Colors.green("Documentation server started, you can now view the docs by going to http://localhost:" + port))
@@ -138,7 +135,12 @@ object ApplicationBuild extends Build {
     state
   }
 
-  private val consoleReader = new jline.console.ConsoleReader
+  private lazy val consoleReader = {
+    val cr = new jline.console.ConsoleReader
+    // Because jline, whenever you create a new console reader, turns echo off. Stupid thing.
+    cr.getTerminal.setEchoEnabled(true)
+    cr
+  }
 
   private def waitForKey() = {
     consoleReader.getTerminal.setEchoEnabled(false)

@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.libs.json
 
 import play.api.data.validation.ValidationError
@@ -16,11 +19,11 @@ sealed trait PathNode {
 case class RecursiveSearch(key: String) extends PathNode {
   def apply(json: JsValue): List[JsValue] = json match {
     case obj: JsObject => (json \\ key).toList.filterNot {
-      case JsUndefined(_) => true
+      case JsUndefined() => true
       case _ => false
     }
     case arr: JsArray => (json \\ key).toList.filterNot {
-      case JsUndefined(_) => true
+      case JsUndefined() => true
       case _ => false
     }
     case _ => List()
@@ -63,7 +66,7 @@ case class KeyPathNode(key: String) extends PathNode {
 
   def apply(json: JsValue): List[JsValue] = json match {
     case obj: JsObject => List(json \ key).filterNot {
-      case JsUndefined(_) => true
+      case JsUndefined() => true
       case _ => false
     }
     case _ => List()
@@ -270,7 +273,7 @@ case class JsPath(path: List[PathNode] = List()) {
    * It runs through JsValue following all JsPath nodes on JsValue except last node:
    * - If one node in JsPath is not found before last node => returns JsError( "missing-path" )
    * - If all nodes are found till last node, it runs through JsValue with last node =>
-   *   - If last node if not found => returns None
+   *   - If last node is not found => returns None
    *   - If last node is found with value "null" => returns None
    *   - If last node is found => applies implicit Reads[T]
    */
@@ -447,8 +450,8 @@ case class JsPath(path: List[PathNode] = List()) {
      * Example :
      * {{{
      * val js = Json.obj("key1" -> "value1", "key2" -> 123)
-     * js.validate( (__ \ 'key2).json.pick[JsNumber] )
-     * => JsSuccess(JsNumber(123))
+     * js.validate((__ \ 'key2).json.pick[JsNumber])
+     * => JsSuccess(JsNumber(123),/key2)
      * }}}
      */
     def pick[A <: JsValue](implicit r: Reads[A]): Reads[A] = Reads.jsPick(self)
@@ -464,8 +467,8 @@ case class JsPath(path: List[PathNode] = List()) {
      * Example :
      * {{{
      * val js = Json.obj("key1" -> "value1", "key2" -> "value2")
-     * js.validate( (__ \ 'key2).json.pick )
-     * => JsSuccess(JsString("value2"))
+     * js.validate((__ \ 'key2).json.pick)
+     * => JsSuccess("value2",/key2)
      * }}}
      */
     def pick: Reads[JsValue] = pick[JsValue]
@@ -482,8 +485,8 @@ case class JsPath(path: List[PathNode] = List()) {
      * Example :
      * {{{
      * val js = Json.obj("key1" -> "value1", "key2" -> Json.obj( "key21" -> "value2") )
-     * js.validate( (__ \ 'key2).json.pickBranch[JsString]( (__ \ 'key21').json.pick[JsString].map( (js: JsString) => JsString(js.value ++ "3456") ) ) )
-     * => JsSuccess(JsObject(Seq( ("key2", JsString(value23456")) )))
+     * js.validate( (__ \ 'key2).json.pickBranch[JsString]( (__ \ 'key21).json.pick[JsString].map( (js: JsString) => JsString(js.value ++ "3456") ) ) )
+     * => JsSuccess({"key2":"value23456"},/key2/key21)
      * }}}
      */
     def pickBranch[A <: JsValue](reads: Reads[A]): Reads[JsObject] = Reads.jsPickBranch[A](self)(reads)
@@ -500,7 +503,7 @@ case class JsPath(path: List[PathNode] = List()) {
      * {{{
      * val js = Json.obj("key1" -> "value1", "key2" -> Json.obj( "key21" -> "value2") )
      * js.validate( (__ \ 'key2).json.pickBranch )
-     * => JsSuccess(JsObject(Seq( ("key2", Json.obj("key21" -> "value2")) )))
+     * => JsSuccess({"key2":{"key21":"value2"}},/key2)
      * }}}
      */
     def pickBranch: Reads[JsObject] = Reads.jsPickBranch[JsValue](self)
@@ -516,8 +519,8 @@ case class JsPath(path: List[PathNode] = List()) {
      * Example :
      * {{{
      * val js = Json.obj("key1" -> "value1", "key2" -> "value2")
-     * js.validate( (__ \ 'key3).put( { JsNumber((new java.util.Date).getTime()) } ) )
-     * => JsSuccess(JsObject(Seq( ("key3", JsNumber(123364687568756)) )))
+     * js.validate( (__ \ 'key3).json.put( { JsNumber((new java.util.Date).getTime()) } ) )
+     * => JsSuccess({"key3":1376419773171},)
      * }}}
      */
     def put(a: => JsValue): Reads[JsObject] = Reads.jsPut(self, a)
@@ -532,8 +535,8 @@ case class JsPath(path: List[PathNode] = List()) {
      * Example :
      * {{{
      * val js = Json.obj("key1" -> "value1", "key2" -> "value2")
-     * js.validate( (__ \ 'key3).copyFrom( (__ \ 'key2).json.pick
-     * => JsSuccess(JsObject(Seq( ("key3", JsString("value2")) )))
+     * js.validate( (__ \ 'key3).json.copyFrom((__ \ 'key2).json.pick))
+     * => JsSuccess({"key3":"value2"},/key2)
      * }}}
      */
     def copyFrom[A <: JsValue](reads: Reads[A]): Reads[JsObject] = Reads.jsCopyTo(self)(reads)
@@ -549,8 +552,8 @@ case class JsPath(path: List[PathNode] = List()) {
      * Example :
      * {{{
      * val js = Json.obj("key1" -> "value1", "key2" -> "value2")
-     * js.validate( (__ \ 'key3).update( (__ \ 'key3).write("value3") )
-     * => JsSuccess(JsObject(Seq( ("key1", JsString("value1")), ("key2", JsString("value2")), ("key3", JsString("value3")) )))
+     * js.validate(__.json.update((__ \ 'key3).json.put(JsString("value3"))))
+     * => JsSuccess({"key1":"value1","key2":"value2","key3":"value3"},)
      * }}}
      */
     def update[A <: JsValue](reads: Reads[A]): Reads[JsObject] = Reads.jsUpdate(self)(reads)
@@ -561,8 +564,8 @@ case class JsPath(path: List[PathNode] = List()) {
      * Example :
      * {{{
      * val js = Json.obj("key1" -> "value1", "key2" -> "value2")
-     * js.validate( (__ \ 'key2).prune
-     * => JsSuccess(JsObject(Seq( ("key1", JsString("value1")) )))
+     * js.validate( (__ \ 'key2).json.prune )
+     * => JsSuccess({"key1":"value1"},/key2)
      * }}}
      */
     def prune: Reads[JsObject] = Reads.jsPrune(self)

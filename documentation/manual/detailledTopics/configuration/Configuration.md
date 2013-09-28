@@ -1,8 +1,9 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Configuration file syntax and features
 
 > The configuration file used by Play is based on the [Typesafe config library](https://github.com/typesafehub/config).
 
-The default configuration file of a Play 2.0 application must be defined in `conf/application.conf`. It uses the HOCON format ( "Human-Optimized Config Object Notation").
+The default configuration file of a Play application must be defined in `conf/application.conf`. It uses the HOCON format ( "Human-Optimized Config Object Notation").
 
 ## Specifying an alternative configuration file
 
@@ -16,7 +17,7 @@ These system properties specify a replacement for `application.conf`, not an add
 
 ## Using with Akka
 
-Akka 2.0 will use the same configuration file as the one defined for your Play 2.0 application. Meaning that you can configure anything in Akka in the `application.conf` directory.
+Akka 2.0 will use the same configuration file as the one defined for your Play application. Meaning that you can configure anything in Akka in the `application.conf` directory.
 
 ## HOCON Syntax
 

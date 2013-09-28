@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package scalaguide.async.scalaasync
 
 import scala.concurrent.Future
@@ -62,11 +65,9 @@ object ScalaAsyncSamples extends Controller {
     //#async-result
     import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-    def index = Action {
+    def index = Action.async {
       val futureInt = scala.concurrent.Future { intensiveComputation() }
-      Async {
-        futureInt.map(i => Ok("Got result: " + i))
-      }
+      futureInt.map(i => Ok("Got result: " + i))
     }
     //#async-result
 
@@ -82,14 +83,12 @@ object ScalaAsyncSamples extends Controller {
     import play.api.libs.concurrent.Execution.Implicits.defaultContext
     import scala.concurrent.duration._
 
-    def index = Action {
+    def index = Action.async {
       val futureInt = scala.concurrent.Future { intensiveComputation() }
       val timeoutFuture = play.api.libs.concurrent.Promise.timeout("Oops", 1.second)
-      Async {
-        Future.firstCompletedOf(Seq(futureInt, timeoutFuture)).map {
-          case i: Int => Ok("Got result: " + i)
-          case t: String => InternalServerError(t)
-        }
+      Future.firstCompletedOf(Seq(futureInt, timeoutFuture)).map {
+        case i: Int => Ok("Got result: " + i)
+        case t: String => InternalServerError(t)
       }
     }
     //#timeout

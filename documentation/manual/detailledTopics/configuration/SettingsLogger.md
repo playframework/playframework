@@ -1,6 +1,7 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Configuring logging
 
-Play 2.0 uses [logback](http://logback.qos.ch/) as its logging engine.
+Play uses [logback](http://logback.qos.ch/) as its logging engine.
 
 ## Configuration logging level in application.conf
 
