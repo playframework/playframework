@@ -36,7 +36,7 @@ class SslSpec extends Specification {
     }
     "report a tampered keystore" in new Ssl(keyStore = Some("conf/badKeystore.jks"), password = Some("password")) {
       val conn = createConn
-      conn.getResponseCode must throwA[javax.net.ssl.SSLHandshakeException]
+      conn.getResponseCode must throwA[java.io.IOException] //different VMs return different exceptions here.
     }
     
   }
