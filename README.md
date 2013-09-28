@@ -17,7 +17,7 @@ The Play Framework combines productivity and performance making it easy to build
 ## TLS differences
 
 This branch differs from the main play branch in that it supports TLS client authentication as well
-as server authentivation. The `RequestHeader` trait has a cert method that allows you to request a client
+as server authentication. The `RequestHeader` trait has a cert method that allows you to request a client
 certificate asynchronously - the client will be asked for his certificate if he has one.
 
 ```scala
