@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.core.server
 
 import org.jboss.netty.channel._
@@ -235,6 +238,12 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
     // Release the HTTPS server if needed
     HTTPS.foreach(_._1.releaseExternalResources())
 
+    mode match {
+      case Mode.Dev =>
+        Invoker.lazySystem.close()
+        Execution.lazyContext.close()
+      case _ => ()
+    }
   }
 
   override lazy val mainAddress = {

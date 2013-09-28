@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 import java.net.{HttpURLConnection, URLConnection}
 import java.util.concurrent.Executors
 import org.pegdown.ast._

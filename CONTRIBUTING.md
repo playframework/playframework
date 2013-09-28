@@ -38,6 +38,9 @@ This is the process for a contributor (that is, a non Play core developer) to co
             * wrap core API for scala users ([example]  (https://github.com/playframework/playframework/blob/master/framework/src/play-cache/src/main/scala/play/api/cache/Cache.scala#L69))
             * wrap scala API for java users ([example](https://github.com/playframework/playframework/blob/master/framework/src/play-cache/src/main/java/play/cache/Cache.java))
         * Features are forever, always think about whether a new feature really belongs to the core framework or it should be implemented as a plugin
+    6. New files must:
+       *  Have a Typesafe copyright header in the style of ``Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>``.
+       * Not use ``@author`` tags since it does not encourage [Collective Code Ownership](http://www.extremeprogramming.org/rules/collective.html).
 3. Submit a pull request.  If an issue already exists for the pull request, then follow [these](http://opensoul.org/blog/archives/2012/11/09/convert-a-github-issue-into-a-pull-request/) instructions for converting an issue into a pull request.
 
 If the pull request does not meet the above requirements then the code should **not** be merged into master, or even reviewed - regardless of how good or important it is. No exceptions.
@@ -65,7 +68,7 @@ To discuss features, proposal and pull-requests, use the dedicated group at http
 
 ## Documentation
 
-The documentation live as markdown pages into the `documentation/manual` directory. Each Play branch has it own documentation version.
+The documentation lives as markdown pages in the `documentation/manual` directory. Each Play branch has it own documentation version.  The documentation must conform to the Play [documentation guidelines](http://www.playframework.com/documentation/latest/Documentation).
 
 ## Work In Progress
 
@@ -91,4 +94,15 @@ Example:
       * Details 1
       * Details 2
       * Details 3
+
+## Backporting policy
+
+Generally, all bug fixes, improvements and new features will go to the master branch.  Backports and other commits to stable branches will only be accepted if they meet the following conditions:
+
+* The change only affects the documentation
+* The change fixes a regression that was introduced in a previous stable release from that branch
+* The change fixes a bug that impacts significant number of members of the open source community with no simple work arounds available
+* Any other reason that Typesafe deems appropriate
+
+All backports and other commits to stable branches, in addition to satisfying the regular contributor guidelines, must also be binary and source compatible with previous releases on that branch.  The only exception to this is if a serious bug is impossible to fix without breaking the API, for example, a particular feature is not possible to use due to flaws in the API.
 

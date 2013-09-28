@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Writing Plugins
 
 Play comes with a few plugins predefined for all applications, these plugins are the following: 

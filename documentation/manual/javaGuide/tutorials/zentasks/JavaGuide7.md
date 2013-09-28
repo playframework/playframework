@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # More backend tasks
 
 In this stage of the tutorial we are going to refine our skills at writing backend controllers.  We won't write anymore CoffeeScript, instead we'll use a script that's already been written for us.  You can download this script from here:
@@ -12,7 +13,6 @@ The first thing we'll do is implement the ability to view the tasks in a project
 Let's start by writing some more templates.  We'll implement an index template for the tasks in `app/views/tasks/index.scala.html`:
 
 ```html
-dd@(project: Project, tasks: List[Task])
 @(project: Project, tasks: List[Task])
 
 <header>

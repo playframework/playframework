@@ -1,18 +1,18 @@
-import java.io.{InputStreamReader, FileInputStream, File}
-import java.net.{HttpURLConnection, URL}
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
+import java.io.File
+import java.net.{URL, URLConnection, Socket}
 import java.security.cert.X509Certificate
 import java.security.KeyStore
-import javax.net.ssl._
+import javax.net.ssl.{HttpsURLConnection, SSLSocket, SSLContext, X509TrustManager}
 import javax.security.auth.x500.X500Principal
 import org.specs2.execute.{Result, AsResult}
 import org.specs2.matcher.{Expectable, Matcher}
 import org.specs2.mutable.{Around, Specification}
 import org.specs2.specification.Scope
-import play.api.test.FakeApplication
-import play.api.test.TestServer
 import play.api.test.{Helpers, FakeApplication, TestServer}
 import play.core.server.netty.FakeKeyStore
-import scala.Some
 
 class SslSpec extends Specification {
 
@@ -26,7 +26,6 @@ class SslSpec extends Specification {
       conn.getResponseCode must_== 200
       conn.getPeerPrincipal must_== new X500Principal(FakeKeyStore.DnName)
     }
-
     "use a configured keystore" in new Ssl(keyStore = Some("conf/testkeystore.jks"), password = Some("password")) {
       val conn = createConn
       conn.getResponseCode must_== 200

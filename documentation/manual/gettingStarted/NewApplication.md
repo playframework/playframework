@@ -1,8 +1,13 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Creating a new application
 
-## Create a new application with the play command
+## Create a new application using Typesafe Activator
 
-The easiest way to create a new application is to use the `play new` command.
+If you installed Play Framework using [Typesafe Activator](http://typesafe.com/activator), then follow the instructions [here](http://typesafe.com/platform/getstarted) on how to create a new application.
+
+## Create a new application with the Play standalone distribution
+
+The Play standalone distribution comes with a script called `play`, which can easily be used to create a new application.
 
 ```bash
 $ play new myFirstApp
@@ -42,7 +47,7 @@ resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/release
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "%PLAY_VERSION%")
 ```
 
-Be sure to replace %PLAY_VERSION% here with the exact version you want to use. If you want to use a snapshot version, you will have to specify this additional resolver: 
+Be sure to replace `%PLAY_VERSION%` here by the exact version you want to use. If you want to use a snapshot version, you will have to specify this additional resolver: 
 
 ```
 // Typesafe snapshots

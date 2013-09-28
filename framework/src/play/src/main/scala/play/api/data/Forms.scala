@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.data
 
 import play.api.data.format._
@@ -232,7 +235,6 @@ object Forms {
    * @param maxLength maximum text length
    */
   def text(minLength: Int = 0, maxLength: Int = Int.MaxValue): Mapping[String] = (minLength, maxLength) match {
-    case (0, Int.MaxValue) => text
     case (min, Int.MaxValue) => text verifying Constraints.minLength(min)
     case (0, max) => text verifying Constraints.maxLength(max)
     case (min, max) => text verifying (Constraints.minLength(min), Constraints.maxLength(max))
@@ -484,13 +486,15 @@ object Forms {
   /**
    * Constructs a simple mapping for an e-mail field.
    *
+   * @see http://www.w3.org/TR/html5/forms.html#e-mail-state-(type=email)
+   *
    * For example:
    * {{{
    *   Form("email" -> email)
    * }}}
    */
   val email: Mapping[String] = of[String] verifying Constraints.pattern(
-    """\b[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\b""".r,
+    """\b[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\b""".r,
     "constraint.email",
     "error.email")
 
