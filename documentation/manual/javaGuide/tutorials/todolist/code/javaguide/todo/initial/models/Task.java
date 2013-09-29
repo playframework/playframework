@@ -1,5 +1,6 @@
 //#model-base-task
-package models;
+//###replace: package models;
+package javaguide.todo.initial.models;
 
 import java.util.*;
 
