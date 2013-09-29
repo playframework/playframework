@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Building the first screen
 
 Now that we have built a first data model, it's time to start to create the first page of the application.  This page will be the dashboard, and it will show a summary of all projects and the todo tasks for those projects.
@@ -36,7 +37,16 @@ Now this will be called whenever Play starts up.
 
 You have to create an `initial-data.yml` in the `conf` directory.  You can of course reuse the `test-data.yml` content that we just used for tests previously.
 
-Now run the application using `play run` and display the <http://localhost:9000> page in the browser.
+Since the database now always contains data, the model tests you wrote [[earlier|JavaGuide2]] are currently broken. To get them back working, all you need to do is adding a call to `fakeGlobal()` to the test setup for overriding the default behavior when using a fake application:
+
+```java
+@Before
+public void setUp() {
+	start(fakeApplication(inMemoryDatabase(), fakeGlobal()));
+}
+```
+
+After verifying with `play test` that all tests are fine again, run the application using `play run` and display the <http://localhost:9000> page in the browser.
 
 ## The dashboard
 

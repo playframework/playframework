@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
+
 //#full-controller
 //###replace: package controllers;
 package javaguide.http.full;

@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 import sbt._
 import sbt.Keys._
 
@@ -116,7 +119,6 @@ object Dependencies {
 
     "org.scala-lang" % "scala-reflect" % BuildSettings.buildScalaVersion,
 
-    "org.databene" % "contiperf" % "2.2.0" % "test",
     "junit" % "junit" % "4.11" % "test")
 
   val link = Seq(
@@ -196,6 +198,10 @@ object Dependencies {
     ("org.fluentlenium" % "fluentlenium-festassert" % "0.8.0")
       .exclude("org.jboss.netty", "netty")
       .exclude("com.google.guava","guava"))
+
+  val integrationTestDependencies = Seq(
+    "org.databene" % "contiperf" % "2.2.0" % "test"
+  )
 
   val playCacheDeps = Seq(
     "net.sf.ehcache" % "ehcache-core" % "2.6.6",

@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Your first Play application
 
 Let’s write a simple task list application with Play and deploy it to the cloud. This is a very small example which can be managed in a few hours.
@@ -79,7 +80,7 @@ You see that `controllers.Application.index()` returns a `Result`. All action me
 
 > **Note:** Read more about [[Actions|JavaActions]].
 
-Here, the action returns a **200 OK** response with a HTML response body. The HTML content is provided by a template. Play templates are compiled to standard Java methods, here as `views.html.index.render(String message)`.
+Here, the action returns a **200 OK** response with an HTML response body. The HTML content is provided by a template. Play templates are compiled to standard Java methods, here as `views.html.index.render(String message)`.
 
 This template is defined in the `app/views/index.scala.html` source file:
 
@@ -210,7 +211,7 @@ We also imported `helper._` that give us the form creation helpers, typically th
 
 ## The task form
 
-A `Form` object encapsulates a HTML form definition, including validation constraints. Let’s create a form for our `Task` class. Add this to your `Application` controller:
+A `Form` object encapsulates an HTML form definition, including validation constraints. Let’s create a form for our `Task` class. Add this to your `Application` controller:
 
 ```
 static Form<Task> taskForm = Form.form(Task.class);
@@ -320,7 +321,18 @@ public class Task extends Model {
 
 We made the `Task` class extend the `play.db.ebean.Model` super class to have access to Play built-in Ebean helper. We also added proper persistence annotations, and created a `find` helper to initiate queries.
 
-Let’s implement the CRUD operations:
+Next there need to be done some changes in the configuration file. Open `application.conf` and uncomment the following lines:
+
+```
+#db.default.driver=org.h2.Driver
+#db.default.url="jdbc:h2:mem:play"
+#db.default.user=sa
+#db.default.password=""
+
+#ebean.default="models.*"
+```
+
+Finally, let’s implement the CRUD operations:
 
 ```
 public static List<Task> all() {
@@ -335,6 +347,10 @@ public static void delete(Long id) {
   find.ref(id).delete();
 }
 ```
+
+When you now reload the web page you shoud see the following error message: `Database 'default' needs evolution!`
+
+Click the button `Apply this script now!`, to instruct play to create all necessary database files.
 
 Now you can play again with the application, creating new tasks should work.
 
@@ -365,10 +381,13 @@ web: target/start -Dhttp.port=${PORT} -DapplyEvolutions.default=true -Ddb.defaul
 
 Using system properties we override the application configuration when running on Heroku. But since heroku provides a PostgreSQL database we’ll have to add the required driver to our application dependencies. 
 
-Specify it into the `project/Build.scala` file:
+Specify it into the `build.sbt` file:
 
-```
-val appDependencies = Seq(
+```scala
+libraryDependencies ++= Seq(
+  javaJdbc,
+  javaEbean,
+  cache,
   "postgresql" % "postgresql" % "8.4-702.jdbc4"
 )
 ```

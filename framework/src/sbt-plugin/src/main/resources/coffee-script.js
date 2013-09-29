@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 /**
  * CoffeeScript Compiler v1.4.0
  * http://coffeescript.org

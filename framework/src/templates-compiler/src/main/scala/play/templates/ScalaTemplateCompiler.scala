@@ -1,5 +1,8 @@
 import scala.util.parsing.input.OffsetPosition
 
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.templates {
 
   import scalax.file._

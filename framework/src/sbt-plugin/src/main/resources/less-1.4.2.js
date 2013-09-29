@@ -1,11 +1,5 @@
 /*
- * LESS - Leaner CSS v1.4.2
- * http://lesscss.org
- *
- * Copyright (c) 2009-2013, Alexis Sellier
- * Licensed under the Apache 2.0 License.
- *
- * @licence
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
 (function (window, undefined) {
 //

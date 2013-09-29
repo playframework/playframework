@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Starting your application in production mode
 
 There are several ways to deploy a Play application in production mode. Let's start by using the simplest way, using a local Play installation.

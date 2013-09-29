@@ -1,7 +1,9 @@
 #! /usr/bin/env sh
 
+# Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+
 if [ -z "${PLAY_VERSION}" ]; then
-  PLAY_VERSION="2.2-SNAPSHOT"
+  PLAY_VERSION="2.3-SNAPSHOT"
 fi
 
 if [ -z "$JAVA_HOME" ]; then

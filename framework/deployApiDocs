@@ -1,5 +1,7 @@
 #! /bin/bash
 
+# Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+
 # Usage: deployApiDocs <branch> [ <tag> ]
 #
 # If you have checked out a tag, then you must supply the branch to deploy the docs to.

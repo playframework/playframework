@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.core.server.netty
 
 import org.jboss.netty.channel._
@@ -22,7 +25,7 @@ import java.net.URI
 import java.io.IOException
 
 
-private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
+private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
 
   private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
 

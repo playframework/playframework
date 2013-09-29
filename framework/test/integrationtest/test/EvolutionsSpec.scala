@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 import anorm._
 import org.specs2.mutable._
 import play.api.db.DB

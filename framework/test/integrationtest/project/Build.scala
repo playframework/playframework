@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 import sbt._
 import play.Project._
 
@@ -13,7 +16,8 @@ object ApplicationBuild extends Build {
     cache)
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
-                  requireJs += "main.js"
+                  requireJs += "main.js",
+                  play.Project.emojiLogs
              )
 }
             

@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # What's new in Play 2.1?
 
 ## Migration to Scala 2.10 

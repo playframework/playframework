@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
+
 /**
  * From https://github.com/hydrasi/junit_xml_listener
  */

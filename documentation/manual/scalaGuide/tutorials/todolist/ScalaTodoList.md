@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Your first Play application
 
 Let’s write a simple to do list application with Play and deploy it to the cloud.
@@ -435,10 +436,13 @@ web: target/start -Dhttp.port=${PORT} -DapplyEvolutions.default=true -Ddb.defaul
 
 We use system properties to override the application configuration, when running on Heroku. Since Heroku provides a PostgreSQL database, we need to add the required driver to our application dependencies. 
 
-Specify it into the `project/Build.scala` file:
+Specify it into the `build.sbt` file:
 
-```
-val appDependencies = Seq(
+```scala
+libraryDependencies ++= Seq(
+  jdbc,
+  anorm,
+  cache,
   "postgresql" % "postgresql" % "8.4-702.jdbc4"
 )
 ```

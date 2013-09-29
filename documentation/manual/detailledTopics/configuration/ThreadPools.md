@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Understanding Play thread pools
 
 Play framework is, from the bottom up, an asynchronous web framework.  Streams are handled asynchronously using iteratees.  Thread pools are tuned to be low, in comparison to traditional web frameworks, since IO in play-core never blocks.
@@ -50,7 +51,7 @@ The default thread pool can be configured using standard Akka configuration in `
 
 @[default-config](code/ThreadPools.scala)
 
-This configuration instructs Akka to create one thread per available processor, with a maximum of 24 threads in the pool.  The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/2.1.0/general/configuration.html#Listing_of_the_Reference_Configuration).
+This configuration instructs Akka to create one thread per available processor, with a maximum of 24 threads in the pool.  The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/2.2.0/general/configuration.html#Listing_of_the_Reference_Configuration).
 
 > Note that this configuration is separate from the configuration that the Play Akka plugin uses.  The Play Akka plugin is configured separately, by configuring akka in the root namespace (without the play { } surrounding it).
 

@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Action composition
 
 This chapter introduces several ways of defining generic action functionality.

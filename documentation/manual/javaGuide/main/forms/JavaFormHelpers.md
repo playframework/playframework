@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Form template helpers
 
 Play provides several helpers to help you render form fields in HTML templates.
@@ -76,7 +77,7 @@ This field constructor generates HTML like the following:
   <div class="input">
     <input type="text" name="email" id="email" value="">
     <span class="help-inline">This field is required!, Another error</span>
-    <span class="help-block">Required, Another constraint</d</span> 
+    <span class="help-block">Required, Another constraint</span> 
   </div>
 </div>
 ```

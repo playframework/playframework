@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.mvc
 
 import scala.language.reflectiveCalls
@@ -14,6 +17,7 @@ import MultipartFormData._
 import scala.collection.mutable.ListBuffer
 import scalax.io.Resource
 import java.util.Locale
+import scala.util.control.NonFatal
 
 /**
  * A request body that adapts automatically according the request Content-Type.
@@ -833,9 +837,11 @@ trait BodyParsers {
             Iteratee.consume[Array[Byte]]().map { bytes =>
               allCatch[A].either {
                 parser(request, bytes)
-              }.left.map { e =>
-                Play.logger.debug(errorMessage, e)
-                createBadResult(errorMessage)(request)
+              }.left.map {
+                case NonFatal(e) =>
+                  Play.logger.debug(errorMessage, e)
+                  createBadResult(errorMessage)(request)
+                case t => throw t
               }
             }
           ).flatMap(Iteratee.eofOrElse(Results.EntityTooLarge))

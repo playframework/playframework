@@ -1,13 +1,18 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.libs.concurrent
+
+import play.core.Invoker
+import scala.concurrent.ExecutionContext
 
 object Execution {
 
   object Implicits {
-    implicit lazy val defaultContext: scala.concurrent.ExecutionContext =
-      play.core.Invoker.executionContext: scala.concurrent.ExecutionContext
+    implicit def defaultContext: ExecutionContext = Execution.defaultContext
   }
 
-  val defaultContext = Implicits.defaultContext
+  def defaultContext: ExecutionContext = Invoker.executionContext
 
 }
 

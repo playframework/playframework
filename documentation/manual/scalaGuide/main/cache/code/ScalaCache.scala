@@ -1,4 +1,7 @@
 
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package scalaguide.cache {
 
 import org.junit.runner.RunWith

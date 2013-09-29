@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Handling data streams reactively
 
 ## Enumerators
@@ -99,24 +100,20 @@ val fileEnumerator: Enumerator[Array[Byte]] = {
 
 Or more generally enumerating a `java.io.InputStream` using `Enumerator.fromStream`. It is important to note that input won't be read until the iteratee this `Enumerator` is applied on is ready to take more input.
 
-Actually both methods are based on the more generic `Enumerator.fromCallback` that has the following signature:
+Actually both methods are based on the more generic `Enumerator.generateM` that has the following signature:
 
 ```scala
-def fromCallback[E](
-  retriever: () => Future[Option[E]],
-  onComplete: () => Unit = () => (),
-  onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ()
-): Enumerator[E] = {
+def generateM[E](e: => Future[Option[E]]) = {
   ... 
 }
 ```
 
-This method defined on the `Enumerator` object is one of the most important methods for creating `Enumerator`s from imperative logic. Looking closely at the signature, this method takes a callback function `retriever: () => Future[Option[E]]` that will be called each time the iteratee this `Enumerator` is applied to is ready to take some input. 
+This method defined on the `Enumerator` object is one of the most important methods for creating `Enumerator`s from imperative logic. Looking closely at the signature, this method takes a callback function `e: => Future[Option[E]]` that will be called each time the iteratee this `Enumerator` is applied to is ready to take some input.
 
 It can be easily used to create an `Enumerator` that represents a stream of time values every 100 millisecond using the opportunity that we can return a promise, like the following:
 
 ```scala
-Enumerator.fromCallback { () =>
+Enumerator.generateM {
   Promise.timeout(Some(new Date), 100 milliseconds)
 }
 ```
@@ -126,7 +123,7 @@ In the same manner we can construct an `Enumerator` that would fetch a url every
 Combining this, callback Enumerator, with an imperative `Iteratee.foreach` we can println a stream of time values periodically:
 
 ```scala
-val timeStream = Enumerator.fromCallback { () => 
+val timeStream = Enumerator.generateM {
   Promise.timeout(Some(new Date), 100 milliseconds)
 }
 
@@ -135,18 +132,18 @@ val printlnSink = Iteratee.foreach[Date](date => println(date))
 timeStream |>> printlnSink
 ```
 
-Another, more imperative, way of creating an `Enumerator` is by using `Enumerator.pushee` which once it is ready will give a `Pushee` interface on which defined methods `push` and `close`:
+Another, more imperative, way of creating an `Enumerator` is by using `Concurrent.unicast` which once it is ready will give a `Channel` interface on which defined methods `push` and `end`:
 
 ```scala
-val channel = Enumerator.pushee[String] { onStart = pushee =>
-  pushee.push("Hello")
-  pushee.push("World")
-}
+val enumerator = Concurrent.unicast[String](onStart = channel => {
+  channel.push("Hello")
+  channel.push("World")
+})
 
-channel |>> Iteratee.foreach(println)
+enumerator |>> Iteratee.foreach(println)
 ```
 
-The `onStart` function will be called each time the `Enumerator` is applied to an `Iteratee`. In some applications, a chatroom for instance, it makes sense to assign the pushee to a synchronized global value (using STMs for example) that will contain a list of listeners. `Enumerator.pushee` accepts two other functions, `onComplete` and `onError`.
+The `onStart` function will be called each time the `Enumerator` is applied to an `Iteratee`. In some applications, a chatroom for instance, it makes sense to assign the `enumerator` to a synchronized global value (using STMs for example) that will contain a list of listeners. `Concurrent.unicast` accepts two other functions, `onComplete` and `onError`.
 
 One more interesting method is the `interleave` or `>-` method which as the name says, itrerleaves two Enumerators. For reactive `Enumerator`s Input will be passed as it happens from any of the interleaved `Enumerator`s
 
@@ -159,13 +156,13 @@ Indeed one interesting way of organizing a streamful application is by creating 
 ```scala
 object AvailableStreams {
 
-  val cpu: Enumerator[JsValue] = Enumerator.fromCallback(/* code here */)
+  val cpu: Enumerator[JsValue] = Enumerator.generateM(/* code here */)
 
-  val memory: Enumerator[JsValue] = Enumerator.fromCallback(/* code here */)
+  val memory: Enumerator[JsValue] = Enumerator.generateM(/* code here */)
 
-  val threads: Enumerator[JsValue] = Enumerator.fromCallback(/* code here */)
+  val threads: Enumerator[JsValue] = Enumerator.generateM(/* code here */)
 
-  val heap: Enumerator[JsValue] = Enumerator.fromCallback(/* code here */)
+  val heap: Enumerator[JsValue] = Enumerator.generateM(/* code here */)
 
 }
 

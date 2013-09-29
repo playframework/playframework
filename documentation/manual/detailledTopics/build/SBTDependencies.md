@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Managing library dependencies
 
 ## Unmanaged dependencies
@@ -70,7 +71,7 @@ resolvers += name at location
 For example:
 
 ```scala
-resolvers += "Scala-Tools Maven2 Snapshots Repository" at "http://scala-tools.org/repo-snapshots"
+resolvers += "sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
 ```
 
 sbt can search your local Maven repository if you add it as a repository:

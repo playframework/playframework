@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Dependency Injection
 
 Play does not use any dependency injection framework under the hood, and leaves the choice of DI framework (if any) in your hands.  Models, Services and Configuration objects can all be handled transparently, and do not need explicit configuration to work in Play.
