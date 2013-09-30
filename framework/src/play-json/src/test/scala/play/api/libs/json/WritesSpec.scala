@@ -35,18 +35,18 @@ class WritesSpec extends Specification {
   "Writes" should {
 
     "write string" in {
-      val w = (Path \ "label").write[String, JsValue]
+      val w = (Path \ "label").write[String, JsObject]
       w.writes("Hello World") mustEqual Json.obj("label" -> "Hello World")
     }
 
     "write option" in {
-      val w = (Path \ "email").write[Option[String], JsValue]
+      val w = (Path \ "email").write[Option[String], JsObject]
       w.writes(Some("Hello World")) mustEqual Json.obj("email" -> "Hello World")
       w.writes(None) mustEqual Json.obj()
     }
 
     "write seq" in {
-      val w = (Path \ "phones").write[Seq[String], JsValue]
+      val w = (Path \ "phones").write[Seq[String], JsObject]
       w.writes(Seq("01.23.45.67.89", "98.76.54.32.10")) mustEqual Json.obj("phones" -> Seq("01.23.45.67.89", "98.76.54.32.10"))
       w.writes(Nil) mustEqual Json.obj("phones" -> Seq[String]())
     }
@@ -54,46 +54,46 @@ class WritesSpec extends Specification {
     "support primitives types" in {
 
       "Int" in {
-        (Path \ "n").write[Int, JsValue].writes(4) mustEqual(Json.obj("n" -> 4))
-        (Path \ "n" \ "o").write[Int, JsValue].writes(4) mustEqual(Json.obj("n" -> Json.obj("o"-> 4)))
-        (Path \ "n" \ "o" \ "p").write[Int, JsValue].writes(4) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> 4))))
+        (Path \ "n").write[Int, JsObject].writes(4) mustEqual(Json.obj("n" -> 4))
+        (Path \ "n" \ "o").write[Int, JsObject].writes(4) mustEqual(Json.obj("n" -> Json.obj("o"-> 4)))
+        (Path \ "n" \ "o" \ "p").write[Int, JsObject].writes(4) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> 4))))
       }
 
       "Short" in {
-        (Path \ "n").write[Short, JsValue].writes(4) mustEqual(Json.obj("n" -> 4))
-        (Path \ "n" \ "o").write[Short, JsValue].writes(4) mustEqual(Json.obj("n" -> Json.obj("o"-> 4)))
-        (Path \ "n" \ "o" \ "p").write[Short, JsValue].writes(4) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> 4))))
+        (Path \ "n").write[Short, JsObject].writes(4) mustEqual(Json.obj("n" -> 4))
+        (Path \ "n" \ "o").write[Short, JsObject].writes(4) mustEqual(Json.obj("n" -> Json.obj("o"-> 4)))
+        (Path \ "n" \ "o" \ "p").write[Short, JsObject].writes(4) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> 4))))
       }
 
       "Long" in {
-        (Path \ "n").write[Long, JsValue].writes(4) mustEqual(Json.obj("n" -> 4))
-        (Path \ "n" \ "o").write[Long, JsValue].writes(4) mustEqual(Json.obj("n" -> Json.obj("o"-> 4)))
-        (Path \ "n" \ "o" \ "p").write[Long, JsValue].writes(4) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> 4))))
+        (Path \ "n").write[Long, JsObject].writes(4) mustEqual(Json.obj("n" -> 4))
+        (Path \ "n" \ "o").write[Long, JsObject].writes(4) mustEqual(Json.obj("n" -> Json.obj("o"-> 4)))
+        (Path \ "n" \ "o" \ "p").write[Long, JsObject].writes(4) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> 4))))
       }
 
       "Float" in {
-        (Path \ "n").write[Float, JsValue].writes(4.8f) mustEqual(Json.obj("n" -> 4.8))
-        (Path \ "n" \ "o").write[Float, JsValue].writes(4.8f) mustEqual(Json.obj("n" -> Json.obj("o"-> 4.8)))
-        (Path \ "n" \ "o" \ "p").write[Float, JsValue].writes(4.8f) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> 4.8))))
+        (Path \ "n").write[Float, JsObject].writes(4.8f) mustEqual(Json.obj("n" -> 4.8))
+        (Path \ "n" \ "o").write[Float, JsObject].writes(4.8f) mustEqual(Json.obj("n" -> Json.obj("o"-> 4.8)))
+        (Path \ "n" \ "o" \ "p").write[Float, JsObject].writes(4.8f) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> 4.8))))
       }
 
       "Double" in {
-        (Path \ "n").write[Double, JsValue].writes(4d) mustEqual(Json.obj("n" -> 4.0))
-        (Path \ "n" \ "o").write[Double, JsValue].writes(4.8d) mustEqual(Json.obj("n" -> Json.obj("o"-> 4.8)))
-        (Path \ "n" \ "o" \ "p").write[Double, JsValue].writes(4.8d) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> 4.8))))
+        (Path \ "n").write[Double, JsObject].writes(4d) mustEqual(Json.obj("n" -> 4.0))
+        (Path \ "n" \ "o").write[Double, JsObject].writes(4.8d) mustEqual(Json.obj("n" -> Json.obj("o"-> 4.8)))
+        (Path \ "n" \ "o" \ "p").write[Double, JsObject].writes(4.8d) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> 4.8))))
       }
 
       "java BigDecimal" in {
         import java.math.{ BigDecimal => jBigDecimal }
-        (Path \ "n").write[jBigDecimal, JsValue].writes(new jBigDecimal("4.0")) mustEqual(Json.obj("n" -> 4.0))
-        (Path \ "n" \ "o").write[jBigDecimal, JsValue].writes(new jBigDecimal("4.8")) mustEqual(Json.obj("n" -> Json.obj("o"-> 4.8)))
-        (Path \ "n" \ "o" \ "p").write[jBigDecimal, JsValue].writes(new jBigDecimal("4.8")) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> 4.8))))
+        (Path \ "n").write[jBigDecimal, JsObject].writes(new jBigDecimal("4.0")) mustEqual(Json.obj("n" -> 4.0))
+        (Path \ "n" \ "o").write[jBigDecimal, JsObject].writes(new jBigDecimal("4.8")) mustEqual(Json.obj("n" -> Json.obj("o"-> 4.8)))
+        (Path \ "n" \ "o" \ "p").write[jBigDecimal, JsObject].writes(new jBigDecimal("4.8")) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> 4.8))))
       }
 
       "scala BigDecimal" in {
-        (Path \ "n").write[BigDecimal, JsValue].writes(BigDecimal("4.0")) mustEqual(Json.obj("n" -> 4.0))
-        (Path \ "n" \ "o").write[BigDecimal, JsValue].writes(BigDecimal("4.8")) mustEqual(Json.obj("n" -> Json.obj("o"-> 4.8)))
-        (Path \ "n" \ "o" \ "p").write[BigDecimal, JsValue].writes(BigDecimal("4.8")) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> 4.8))))
+        (Path \ "n").write[BigDecimal, JsObject].writes(BigDecimal("4.0")) mustEqual(Json.obj("n" -> 4.0))
+        (Path \ "n" \ "o").write[BigDecimal, JsObject].writes(BigDecimal("4.8")) mustEqual(Json.obj("n" -> Json.obj("o"-> 4.8)))
+        (Path \ "n" \ "o" \ "p").write[BigDecimal, JsObject].writes(BigDecimal("4.8")) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> 4.8))))
       }
 
     //   "date" in { skipped }
@@ -101,27 +101,27 @@ class WritesSpec extends Specification {
     //   "joda local data" in { skipped }
     //   "sql date" in { skipped }
 
-    //   "Boolean" in {
-    //     To[M] { __ => (__ \ "n").write[Boolean] }.writes(true) mustEqual(Map("n" -> Seq("true")))
-    //     To[M] { __ => (__ \ "n" \ "o").write[Boolean] }.writes(false) mustEqual(Map("n.o" -> Seq("false")))
-    //     To[M] { __ => (__ \ "n" \ "o" \ "p").write[Boolean] }.writes(true) mustEqual(Map("n.o.p" -> Seq("true")))
-    //   }
-
-      "String" in {
-        (Path \ "n").write[String, JsValue].writes("foo") mustEqual(Json.obj("n" -> "foo"))
-        (Path \ "n" \ "o").write[String, JsValue].writes("foo") mustEqual(Json.obj("n" -> Json.obj("o"-> "foo")))
-        (Path \ "n" \ "o" \ "p").write[String, JsValue].writes("foo") mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> "foo"))))
+      "Boolean" in {
+        (Path \ "n").write[Boolean, JsObject].writes(true) mustEqual(Json.obj("n" -> true))
+        (Path \ "n" \ "o").write[Boolean, JsObject].writes(false) mustEqual(Json.obj("n" -> Json.obj("o"-> false)))
+        (Path \ "n" \ "o" \ "p").write[Boolean, JsObject].writes(true) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> true))))
       }
 
-    //   "Option" in {
-    //     To[M] { __ => (__ \ "n").write[Option[String]] }.writes(Some("foo")) mustEqual(Map("n" -> Seq("foo")))
-    //     To[M] { __ => (__ \ "n" \ "o").write[Option[String]] }.writes(Some("foo")) mustEqual(Map("n.o" -> Seq("foo")))
-    //     To[M] { __ => (__ \ "n" \ "o" \ "p").write[Option[String]] }.writes(Some("foo")) mustEqual(Map("n.o.p" -> Seq("foo")))
+      "String" in {
+        (Path \ "n").write[String, JsObject].writes("foo") mustEqual(Json.obj("n" -> "foo"))
+        (Path \ "n" \ "o").write[String, JsObject].writes("foo") mustEqual(Json.obj("n" -> Json.obj("o"-> "foo")))
+        (Path \ "n" \ "o" \ "p").write[String, JsObject].writes("foo") mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> "foo"))))
+      }
 
-    //     To[M] { __ => (__ \ "n").write[Option[String]] }.writes(None) mustEqual(Map.empty)
-    //     To[M] { __ => (__ \ "n" \ "o").write[Option[String]] }.writes(None) mustEqual(Map.empty)
-    //     To[M] { __ => (__ \ "n" \ "o" \ "p").write[Option[String]] }.writes(None) mustEqual(Map.empty)
-    //   }
+      "Option" in {
+        (Path \ "n").write[Option[String], JsObject].writes(Some("foo")) mustEqual(Json.obj("n" -> "foo"))
+        (Path \ "n" \ "o").write[Option[String], JsObject].writes(Some("foo")) mustEqual(Json.obj("n" -> Json.obj("o"-> "foo")))
+        (Path \ "n" \ "o" \ "p").write[Option[String], JsObject].writes(Some("foo")) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> "foo"))))
+
+        (Path \ "n").write[Option[String], JsObject].writes(None) mustEqual(Json.obj())
+        (Path \ "n" \ "o").write[Option[String], JsObject].writes(None) mustEqual(Json.obj())
+        (Path \ "n" \ "o" \ "p").write[Option[String], JsObject].writes(None) mustEqual(Json.obj())
+      }
 
     //   "Map[String, Seq[V]]" in {
     //     import Rules.{ map => mm }
@@ -133,36 +133,36 @@ class WritesSpec extends Specification {
     //     To[M] { __ => (__ \ "n" \ "o").write[Map[String, Int]] }.writes(Map.empty) mustEqual(Map.empty)
     //   }
 
-    //   "Traversable" in {
-    //     import Rules.{ traversable => tr } // avoid shadowing caused by specs
-    //     To[M] { __ => (__ \ "n").write[Traversable[String]] }.writes(Array("foo", "bar").toTraversable) mustEqual((Map("n[0]" -> Seq("foo"), "n[1]" -> Seq("bar"))))
-    //     To[M] { __ => (__ \ "n" \ "o").write[Traversable[String]] }.writes(Array("foo", "bar").toTraversable) mustEqual((Map("n.o[0]" -> Seq("foo"), "n.o[1]" -> Seq("bar"))))
-    //     To[M] { __ => (__ \ "n" \ "o" \ "p").write[Traversable[String]] }.writes(Array("foo", "bar").toTraversable) mustEqual((Map("n.o.p[0]" -> Seq("foo"), "n.o.p[1]" -> Seq("bar"))))
+      "Traversable" in {
+        import play.api.data.mapping.json.Writes.{ traversable => tr }
+        (Path \ "n").write[Traversable[String], JsObject].writes(Array("foo", "bar")) mustEqual(Json.obj("n" -> Seq("foo", "bar")))
+        (Path \ "n" \ "o").write[Traversable[String], JsObject].writes(Array("foo", "bar")) mustEqual(Json.obj("n" -> Json.obj("o"-> Seq("foo", "bar"))))
+        (Path \ "n" \ "o" \ "p").write[Traversable[String], JsObject].writes(Array("foo", "bar")) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> Seq("foo", "bar")))))
 
-    //     To[M] { __ => (__ \ "n").write[Traversable[String]] }.writes(Array().toTraversable) mustEqual(Map.empty)
-    //     To[M] { __ => (__ \ "n" \ "o").write[Traversable[String]] }.writes(Array().toTraversable) mustEqual(Map.empty)
-    //     To[M] { __ => (__ \ "n" \ "o" \ "p").write[Traversable[String]] }.writes(Array().toTraversable) mustEqual(Map.empty)
-    //   }
+        (Path \ "n").write[Traversable[String], JsObject].writes(Array[String]()) mustEqual(Json.obj("n" -> Seq[String]()))
+        (Path \ "n" \ "o").write[Traversable[String], JsObject].writes(Array[String]()) mustEqual(Json.obj("n" -> Json.obj("o"-> Seq[String]())))
+        (Path \ "n" \ "o" \ "p").write[Traversable[String], JsObject].writes(Array[String]()) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> Seq[String]()))))
+      }
 
-    //   "Array" in {
-    //     To[M] { __ => (__ \ "n").write[Array[String]] }.writes(Array("foo", "bar")) mustEqual((Map("n[0]" -> Seq("foo"), "n[1]" -> Seq("bar"))))
-    //     To[M] { __ => (__ \ "n" \ "o").write[Array[String]] }.writes(Array("foo", "bar")) mustEqual((Map("n.o[0]" -> Seq("foo"), "n.o[1]" -> Seq("bar"))))
-    //     To[M] { __ => (__ \ "n" \ "o" \ "p").write[Array[String]] }.writes(Array("foo", "bar")) mustEqual((Map("n.o.p[0]" -> Seq("foo"), "n.o.p[1]" -> Seq("bar"))))
+      "Array" in {
+        (Path \ "n").write[Array[String], JsObject].writes(Array("foo", "bar")) mustEqual(Json.obj("n" -> Seq("foo", "bar")))
+        (Path \ "n" \ "o").write[Array[String], JsObject].writes(Array("foo", "bar")) mustEqual(Json.obj("n" -> Json.obj("o"-> Seq("foo", "bar"))))
+        (Path \ "n" \ "o" \ "p").write[Array[String], JsObject].writes(Array("foo", "bar")) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> Seq("foo", "bar")))))
 
-    //     To[M] { __ => (__ \ "n").write[Array[String]] }.writes(Array()) mustEqual(Map.empty)
-    //     To[M] { __ => (__ \ "n" \ "o").write[Array[String]] }.writes(Array()) mustEqual(Map.empty)
-    //     To[M] { __ => (__ \ "n" \ "o" \ "p").write[Array[String]] }.writes(Array()) mustEqual(Map.empty)
-    //   }
+        (Path \ "n").write[Array[String], JsObject].writes(Array()) mustEqual(Json.obj("n" -> Seq[String]()))
+        (Path \ "n" \ "o").write[Array[String], JsObject].writes(Array()) mustEqual(Json.obj("n" -> Json.obj("o"-> Seq[String]())))
+        (Path \ "n" \ "o" \ "p").write[Array[String], JsObject].writes(Array()) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> Seq[String]()))))
+      }
 
-    //   "Seq" in {
-    //     To[M] { __ => (__ \ "n").write[Seq[String]] }.writes(Seq("foo", "bar")) mustEqual((Map("n[0]" -> Seq("foo"), "n[1]" -> Seq("bar"))))
-    //     To[M] { __ => (__ \ "n" \ "o").write[Seq[String]] }.writes(Seq("foo", "bar")) mustEqual((Map("n.o[0]" -> Seq("foo"), "n.o[1]" -> Seq("bar"))))
-    //     To[M] { __ => (__ \ "n" \ "o" \ "p").write[Seq[String]] }.writes(Seq("foo", "bar")) mustEqual((Map("n.o.p[0]" -> Seq("foo"), "n.o.p[1]" -> Seq("bar"))))
+      "Seq" in {
+        (Path \ "n").write[Seq[String], JsObject].writes(Seq("foo", "bar")) mustEqual(Json.obj("n" -> Seq("foo", "bar")))
+        (Path \ "n" \ "o").write[Seq[String], JsObject].writes(Seq("foo", "bar")) mustEqual(Json.obj("n" -> Json.obj("o"-> Seq("foo", "bar"))))
+        (Path \ "n" \ "o" \ "p").write[Seq[String], JsObject].writes(Seq("foo", "bar")) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> Seq("foo", "bar")))))
 
-    //     To[M] { __ => (__ \ "n").write[Seq[String]] }.writes(Nil) mustEqual(Map.empty)
-    //     To[M] { __ => (__ \ "n" \ "o").write[Seq[String]] }.writes(Nil) mustEqual(Map.empty)
-    //     To[M] { __ => (__ \ "n" \ "o" \ "p").write[Seq[String]] }.writes(Nil) mustEqual(Map.empty)
-    //   }
+        (Path \ "n").write[Seq[String], JsObject].writes(Nil) mustEqual(Json.obj("n" -> Seq[String]()))
+        (Path \ "n" \ "o").write[Seq[String], JsObject].writes(Nil) mustEqual(Json.obj("n" -> Json.obj("o"-> Seq[String]())))
+        (Path \ "n" \ "o" \ "p").write[Seq[String], JsObject].writes(Nil) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> Seq[String]()))))
+      }
     }
 
     // "format data" in {
@@ -179,34 +179,35 @@ class WritesSpec extends Specification {
     //   w2.writes(500d) mustEqual(Map("foo" -> List("500,00 €")))
     // }
 
-    // "compose" in {
-    //   val w = To[M] { __ =>
-    //     ((__ \ "email").write[Option[String]] ~
-    //      (__ \ "phones").write[Seq[String]]).tupled
-    //   }
+    "compose" in {
+      import play.api.libs.functional._
 
-    //   val v =  Some("jto@foobar.com") -> Seq("01.23.45.67.89", "98.76.54.32.10")
+      val w = To[JsObject] { __ =>
+        ((__ \ "email").write[Option[String]] ~
+         (__ \ "phones").write[Seq[String]]).tupled
+      }
 
-    //   w.writes(v) mustEqual Map("email" -> Seq("jto@foobar.com"), "phones[0]" -> Seq("01.23.45.67.89"), "phones[1]" -> Seq("98.76.54.32.10"))
-    //   w.writes(Some("jto@foobar.com") -> Nil) mustEqual Map("email" -> Seq("jto@foobar.com"))
-    //   w.writes(None -> Nil) mustEqual Map.empty
-    // }
+      val v =  Some("jto@foobar.com") -> Seq("01.23.45.67.89", "98.76.54.32.10")
+
+      w.writes(v) mustEqual Json.obj("email" -> "jto@foobar.com", "phones" -> Seq("01.23.45.67.89", "98.76.54.32.10"))
+      w.writes(Some("jto@foobar.com") -> Nil) mustEqual Json.obj("email" -> "jto@foobar.com", "phones" -> Seq[String]())
+      w.writes(None -> Nil) mustEqual Json.obj("phones" -> Seq[String]())
+    }
 
     // "write Map" in {
-    //   def contactWrite = {
-    //     import play.api.libs.functional.syntax.unlift
-    //     implicit val contactInformation = To[M] { __ =>
-    //       ((__ \ "label").write[String] ~
-    //        (__ \ "email").write[Option[String]] ~
-    //        (__ \ "phones").write[Seq[String]]) (unlift(ContactInformation.unapply _))
-    //     }
+    //   import play.api.libs.functional.syntax.unlift
 
-    //     To[M] { __ =>
-    //       ((__ \ "firstname").write[String] ~
-    //        (__ \ "lastname").write[String] ~
-    //        (__ \ "company").write[Option[String]] ~
-    //        (__ \ "informations").write[Seq[ContactInformation]]) (unlift(Contact.unapply _))
-    //     }
+    //   implicit val contactInformation = To[JsObject] { __ =>
+    //     ((__ \ "label").write[String] ~
+    //       (__ \ "email").write[Option[String]] ~
+    //       (__ \ "phones").write[Seq[String]]) (unlift(ContactInformation.unapply _))
+    //   }
+
+    //   implicit val contactWrite = To[JsObject] { __ =>
+    //     ((__ \ "firstname").write[String] ~
+    //      (__ \ "lastname").write[String] ~
+    //      (__ \ "company").write[Option[String]] ~
+    //      (__ \ "informations").write[Seq[ContactInformation]]) (unlift(Contact.unapply _))
     //   }
 
     //   contactWrite.writes(contact) mustEqual contactMap

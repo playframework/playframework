@@ -8,6 +8,9 @@ trait Write[I, O] {
   def map[B](f: O => B) = Write[I, B] {
     f compose (this.writes _)
   }
+
+  def compose[P](w: Write[O, P]) =
+    Write((w.writes _) compose (this.writes _))
 }
 
 trait DefaultMonoids {
@@ -17,6 +20,33 @@ trait DefaultMonoids {
     def append(a1: Map[String, Seq[String]], a2: Map[String, Seq[String]]) = a1 ++ a2
     def identity = Map.empty
   }
+}
+
+object Write {
+
+  def apply[I, O](w: I => O): Write[I, O] = new Write[I, O] {
+    def writes(i: I) = w(i)
+  }
+
+  implicit def zero[I]: Write[I, I] = Write(identity[I] _)
+
+  import play.api.libs.functional._
+  implicit def functionalCanBuildWrite[O](implicit m: Monoid[O]) = new FunctionalCanBuild[({type λ[I] = Write[I, O]})#λ] {
+    def apply[A, B](wa: Write[A, O], wb: Write[B, O]): Write[A ~ B, O] = Write[A ~ B, O] { (x: A ~ B) =>
+      x match {
+        case a ~ b => m.append(wa.writes(a), wb.writes(b))
+      }
+    }
+  }
+
+  implicit def contravariantfunctorWrite[O] = new ContravariantFunctor[({type λ[I] = Write[I, O]})#λ] {
+    def contramap[A, B](wa: Write[A, O], f: B => A): Write[B, O] = Write[B, O]( (b: B) => wa.writes(f(b)) )
+  }
+
+   // XXX: Helps the compiler a bit
+  import play.api.libs.functional.syntax._
+  implicit def fbo[I, O: Monoid](a: Write[I, O]) =
+    toFunctionalBuilderOps[({type λ[I] = Write[I, O]})#λ, I](a)
 }
 
 trait DefaultWrites {
@@ -29,7 +59,15 @@ trait DefaultWrites {
   implicit def head[I, O](implicit w: Write[I, O]): Write[I, Seq[O]] = w.map(Seq(_))
 }
 
-object Writes extends DefaultWrites {
+trait GenericWrites[O] {
+  implicit def array[I](implicit w: Write[Seq[I], O]) =
+    Write((_: Array[I]).toSeq) compose w
+
+  implicit def traversable[I](implicit w: Write[Seq[I], O]) =
+    Write((_: Traversable[I]).toSeq) compose w
+}
+
+object Writes extends DefaultWrites with GenericWrites[PM.PM] with DefaultMonoids {
 
   import PM._
 
@@ -54,12 +92,6 @@ object Writes extends DefaultWrites {
         }
     }
 
-  implicit def array[O](implicit w: Write[Seq[O], PM]) =
-    Write((w.writes _) compose ((_: Array[O]).toSeq))
-
-  implicit def traversable[O](implicit w: Write[Seq[O], PM]) =
-    Write((w.writes _) compose ((_: Traversable[O]).toSeq))
-
   implicit def writeM[I](path: Path)(implicit w: Write[I, PM]) = Write[I, M] { i =>
     toM(repathPM(w.writes(i), path ++ _))
   }
@@ -72,29 +104,4 @@ object Writes extends DefaultWrites {
     m.map(s => Map(Path() -> w.writes(s)))
      .getOrElse(Map.empty)
   }
-}
-
-object Write extends DefaultMonoids {
-
-  def apply[I, O](w: I => O): Write[I, O] = new Write[I, O] {
-    def writes(i: I) = w(i)
-  }
-
-  implicit def zero[I]: Write[I, I] = Write(identity[I] _)
-
-  import play.api.libs.functional._
-  implicit def functionalCanBuildWrite[O](implicit m: Monoid[O]) = new FunctionalCanBuild[({type f[I] = Write[I, O]})#f] {
-    def apply[A, B](wa: Write[A, O], wb: Write[B, O]): Write[A ~ B, O] = Write[A ~ B, O] { (x: A ~ B) =>
-      x match {
-        case a ~ b => m.append(wa.writes(a), wb.writes(b))
-      }
-    }
-  }
-
-  implicit def contravariantfunctorOWrite[O] = new ContravariantFunctor[({type f[I] = Write[I, O]})#f] {
-    def contramap[A, B](wa: Write[A, O], f: B => A): Write[B, O] = Write[B, O]( (b: B) => wa.writes(f(b)) )
-  }
-
-  import play.api.libs.functional.syntax._
-  implicit def fbow[I, O](a: Write[I, O])(implicit m: Monoid[O]) = toFunctionalBuilderOps[({type f[I] = Write[I, O]})#f, I](a)
 }
