@@ -70,7 +70,7 @@ It supports the same set of options as the default field constructor (see below)
 
 Often you will need to write your own field constructor. Start by writing a template like:
 
-@[form-myfield](code/scalaguide/forms/scalaformhelper/views/user.scala.html)
+@[form-myfield](code/scalaguide/forms/scalaformhelper/views/myFieldConstructorTemplate.scala.html)
 
 
 > **Note:** This is just a sample. You can make it as complicated as you need. You also have access to the original field using `@elements.field`.
