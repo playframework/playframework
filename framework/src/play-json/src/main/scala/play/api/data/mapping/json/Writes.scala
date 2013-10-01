@@ -20,6 +20,34 @@ object Writes extends DefaultWrites with DefaultMonoids with GenericWrites[JsVal
     case KeyPathNode(key) => Json.obj(key -> j)
   }
 
+  implicit val validationError = Write[ValidationError, JsValue] { err =>
+    Json.obj(
+      "msg" -> err.message,
+      "args" -> err.args.foldLeft(Json.arr()) { (arr, arg) =>
+        arr :+ (arg match {
+          case s: String => JsString(s)
+          case nb: Int => JsNumber(nb)
+          case nb: Short => JsNumber(nb)
+          case nb: Long => JsNumber(nb)
+          case nb: Double => JsNumber(nb)
+          case nb: Float => JsNumber(nb)
+          case b: Boolean => JsBoolean(b)
+          case js: JsValue => js
+          case x => JsString(x.toString)
+      })
+    })
+  }
+
+  implicit def errors(implicit wErrs: Write[Seq[ValidationError], JsValue]) = Write[(Path, Seq[ValidationError]), JsObject] { case (p, errs) =>
+    Json.obj(p.toString -> wErrs.writes(errs))
+  }
+
+  implicit def failure[O](implicit w: Write[(Path, Seq[ValidationError]), JsObject]) = Write[Failure[(Path, Seq[ValidationError]), O], JsObject] {
+    case Failure(errs) =>
+      errs.map(w.writes).reduce(_ ++ _)
+  }
+
+
   implicit val string: Write[String, JsValue] =
     Write(s => JsString(s))
 
@@ -49,7 +77,7 @@ object Writes extends DefaultWrites with DefaultMonoids with GenericWrites[JsVal
         val h = ps.head
         val o = writeObj(w.writes(i), h)
         ps.tail.foldLeft(o)(writeObj).asInstanceOf[JsObject]
-      case _ => throw new RuntimeException(s"path $path is not a path of JsObject") // XXX: should be a compile error
+      case _ => throw new RuntimeException(s"path $path is not a path of JsObject") // XXX: should be a compile time error
     }
   }
 }

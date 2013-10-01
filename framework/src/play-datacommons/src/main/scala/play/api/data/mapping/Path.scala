@@ -20,6 +20,7 @@ object \: {
   def unapply(path: Path): Option[(Path, Path)] = {
     path match {
       case Path(n :: ns) => Some((Path() \ n) -> Path(ns))
+      case Path(Nil) => None
     }
   }
 }

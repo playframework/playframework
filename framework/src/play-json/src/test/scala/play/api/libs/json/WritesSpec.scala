@@ -230,6 +230,17 @@ class WritesSpec extends Specification {
       w.writes(None -> Nil) mustEqual Json.obj("phones" -> Seq[String]())
     }
 
+    "write Failure" in {
+      import play.api.data.mapping.json.Writes.{ failure => ff }
+      val f = Failure[(Path, Seq[ValidationError]), String](Seq(Path \ "n" -> Seq(ValidationError("validation.type-mismatch", "Int"))))
+
+      implicitly[Write[(Path, Seq[ValidationError]), JsObject]]
+      implicitly[Write[Failure[(Path, Seq[ValidationError]), String], JsObject]]
+
+      (Path \ "errors").write[Failure[(Path, Seq[ValidationError]), String], JsObject]
+        .writes(f) mustEqual(Json.parse("""{"errors":{"/n":[{"msg":"validation.type-mismatch","args":["Int"]}]}}"""))
+    }
+
     "write Map" in {
       import play.api.libs.functional.syntax.unlift
 
