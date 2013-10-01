@@ -39,6 +39,10 @@ object Writes extends DefaultWrites with DefaultMonoids with GenericWrites[JsVal
        .getOrElse(Json.obj())
     }
 
+  implicit def map[I](implicit w: Write[I, JsValue]) = Write[Map[String, I], JsObject] { m =>
+    JsObject(m.mapValues(w.writes).toSeq)
+  }
+
   implicit def writeJson[I](path: Path)(implicit w: Write[I, JsValue]): Write[I, JsObject] = Write { i =>
     path match {
       case Path(KeyPathNode(x) :: _) \: _ =>

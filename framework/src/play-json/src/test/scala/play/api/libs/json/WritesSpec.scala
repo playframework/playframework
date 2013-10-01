@@ -122,15 +122,14 @@ class WritesSpec extends Specification {
         (Path \ "n" \ "o" \ "p").write[Option[String], JsObject].writes(None) mustEqual(Json.obj())
       }
 
-    //   "Map[String, Seq[V]]" in {
-    //     import Rules.{ map => mm }
-
-    //     To[M] { __ => (__ \ "n").write[Map[String, Seq[String]]] }.writes(Map("foo" -> Seq("bar"))) mustEqual((Map("n.foo" -> Seq("bar"))))
-    //     To[M] { __ => (__ \ "n").write[Map[String, Seq[Int]]] }.writes(Map("foo" -> Seq(4))) mustEqual((Map("n.foo" -> Seq("4"))))
-    //     To[M] { __ => (__ \ "n" \ "o").write[Map[String, Seq[Int]]] }.writes(Map("foo" -> Seq(4))) mustEqual((Map("n.o.foo" -> Seq("4"))))
-    //     To[M] { __ => (__ \ "n" \ "o").write[Map[String, Int]] }.writes(Map("foo" -> 4)) mustEqual((Map("n.o.foo" -> Seq("4"))))
-    //     To[M] { __ => (__ \ "n" \ "o").write[Map[String, Int]] }.writes(Map.empty) mustEqual(Map.empty)
-    //   }
+      "Map[String, Seq[V]]" in {
+        import play.api.data.mapping.json.Writes.{ map => mm }
+        (Path \ "n").write[Map[String, Seq[String]], JsObject].writes(Map("foo" -> Seq("bar"))) mustEqual(Json.obj("n" -> Json.obj("foo" -> Seq("bar"))))
+        (Path \ "n").write[Map[String, Seq[Int]], JsObject].writes(Map("foo" -> Seq(4))) mustEqual(Json.obj("n" -> Json.obj("foo" -> Seq(4))))
+        (Path \ "n" \ "o").write[Map[String, Seq[Int]], JsObject].writes(Map("foo" -> Seq(4))) mustEqual(Json.obj("n" -> Json.obj("o" -> Json.obj("foo" -> Seq(4)))))
+        (Path \ "n" \ "o").write[Map[String, Int], JsObject].writes(Map("foo" -> 4)) mustEqual(Json.obj("n" -> Json.obj("o" -> Json.obj("foo" -> 4))))
+        (Path \ "n" \ "o").write[Map[String, Int], JsObject].writes(Map.empty) mustEqual(Json.obj("n" -> Json.obj("o" -> Json.obj())))
+      }
 
       "Traversable" in {
         import play.api.data.mapping.json.Writes.{ traversable => tr }
@@ -164,19 +163,19 @@ class WritesSpec extends Specification {
       }
     }
 
-    // "format data" in {
-    //   val formatter = Write[Double, String]{ money =>
-    //     import java.text.NumberFormat
-    //     import java.util.Locale
-    //     val f = NumberFormat.getCurrencyInstance(Locale.FRANCE)
-    //     f.format(money)
-    //   }
-    //   val w = (Path \ "foo").write(formatter)
-    //   w.writes(500d) mustEqual(Map("foo" -> List("500,00 €")))
+    "format data" in {
+      val formatter = Write[Double, String]{ money =>
+        import java.text.NumberFormat
+        import java.util.Locale
+        val f = NumberFormat.getCurrencyInstance(Locale.FRANCE)
+        f.format(money)
+      }
+      val w = (Path \ "foo").write(formatter)
+      w.writes(500d) mustEqual(Json.obj("foo" -> "500,00 €"))
 
-    //   val w2 = To[M] { __ => (__ \ "foo").write(formatter) }
-    //   w2.writes(500d) mustEqual(Map("foo" -> List("500,00 €")))
-    // }
+      val w2 = To[JsValue] { __ => (__ \ "foo").write(formatter) }
+      w2.writes(500d) mustEqual(Json.obj("foo" -> "500,00 €"))
+    }
 
     "compose" in {
       import play.api.libs.functional._
