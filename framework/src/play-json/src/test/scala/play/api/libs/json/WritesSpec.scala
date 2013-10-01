@@ -95,10 +95,48 @@ class WritesSpec extends Specification {
         (Path \ "n" \ "o" \ "p").write[BigDecimal, JsObject].writes(BigDecimal("4.8")) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> 4.8))))
       }
 
-    //   "date" in { skipped }
-    //   "joda date" in { skipped }
-    //   "joda local data" in { skipped }
-    //   "sql date" in { skipped }
+      "date" in {
+        import java.util.Date
+        val f = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE)
+        val d = f.parse("1985-09-10")
+        (Path \ "n").write(date).writes(d) mustEqual(Json.obj("n" -> "1985-09-10"))
+      }
+
+      "iso date" in {
+        import java.util.Date
+        val f = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE)
+        val d = f.parse("1985-09-10")
+        (Path \ "n").write(isoDate).writes(d) mustEqual(Json.obj("n" -> "1985-09-10T00:00:00+02:00"))
+      }
+
+      "joda" in {
+        import org.joda.time.DateTime
+        val f = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE)
+        val dd = f.parse("1985-09-10")
+        val jd = new DateTime(dd)
+
+        "date" in {
+          (Path \ "n").write(jodaDate).writes(jd) mustEqual(Json.obj("n" -> "1985-09-10"))
+        }
+
+        "time" in {
+          (Path \ "n").write(jodaTime).writes(jd) mustEqual(Json.obj("n" -> dd.getTime))
+        }
+
+        "local date" in {
+          import org.joda.time.LocalDate
+          val ld = new LocalDate()
+          (Path \ "n").write(jodaLocalDate).writes(ld) mustEqual(Json.obj("n" -> ld.toString))
+        }
+      }
+
+      "sql date" in {
+        import java.util.Date
+        val f = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE)
+        val dd = f.parse("1985-09-10")
+        val ds = new java.sql.Date(dd.getTime())
+        (Path \ "n").write(sqlDate).writes(ds) mustEqual(Json.obj("n" -> "1985-09-10"))
+      }
 
       "Boolean" in {
         (Path \ "n").write[Boolean, JsObject].writes(true) mustEqual(Json.obj("n" -> true))

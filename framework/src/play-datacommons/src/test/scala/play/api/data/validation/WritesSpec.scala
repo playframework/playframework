@@ -95,10 +95,48 @@ class WritesSpec extends Specification {
         To[M] { __ => (__ \ "n" \ "o" \ "p").write[BigDecimal] }.writes(BigDecimal("4.8")) mustEqual(Map("n.o.p" -> Seq("4.8")))
       }
 
-      "date" in { skipped }
-      "joda date" in { skipped }
-      "joda local data" in { skipped }
-      "sql date" in { skipped }
+      "date" in {
+        import java.util.Date
+        val f = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE)
+        val d = f.parse("1985-09-10")
+        To[M] { __ => (__ \ "n").write(date) }.writes(d) mustEqual(Map("n" -> Seq("1985-09-10")))
+      }
+
+      "iso date" in {
+        import java.util.Date
+        val f = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE)
+        val d = f.parse("1985-09-10")
+        To[M] { __ => (__ \ "n").write(isoDate) }.writes(d) mustEqual(Map("n" -> Seq("1985-09-10T00:00:00+02:00")))
+      }
+
+      "joda" in {
+        import org.joda.time.DateTime
+        val f = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE)
+        val dd = f.parse("1985-09-10")
+        val jd = new DateTime(dd)
+
+        "date" in {
+          To[M] { __ => (__ \ "n").write(jodaDate) }.writes(jd) mustEqual(Map("n" -> Seq("1985-09-10")))
+        }
+
+        "time" in {
+          To[M] { __ => (__ \ "n").write(jodaTime) }.writes(jd) mustEqual(Map("n" -> Seq(dd.getTime.toString)))
+        }
+
+        "local date" in {
+          import org.joda.time.LocalDate
+          val ld = new LocalDate()
+          To[M] { __ => (__ \ "n").write(jodaLocalDate) }.writes(ld) mustEqual(Map("n" -> Seq(ld.toString)))
+        }
+      }
+
+      "sql date" in {
+        import java.util.Date
+        val f = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE)
+        val dd = f.parse("1985-09-10")
+        val ds = new java.sql.Date(dd.getTime())
+        To[M] { __ => (__ \ "n").write(sqlDate) }.writes(ds) mustEqual(Map("n" -> Seq("1985-09-10")))
+      }
 
       "Boolean" in {
         To[M] { __ => (__ \ "n").write[Boolean] }.writes(true) mustEqual(Map("n" -> Seq("true")))

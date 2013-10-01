@@ -45,11 +45,60 @@ object Write {
 
    // XXX: Helps the compiler a bit
   import play.api.libs.functional.syntax._
-  implicit def fbo[I, O: Monoid](a: Write[I, O]) =
-    toFunctionalBuilderOps[({type λ[I] = Write[I, O]})#λ, I](a)
+  implicit def fbo[I, O: Monoid](a: Write[I, O]) = toFunctionalBuilderOps[({type λ[I] = Write[I, O]})#λ, I](a)
+  implicit def cfo[I, O](a: Write[I, O]) = toContraFunctorOps[({type λ[I] = Write[I, O]})#λ, I](a)
+
 }
 
-trait DefaultWrites {
+trait DateWrites {
+  /**
+   * Serializer for java.util.Date
+   * @param pattern the pattern used by SimpleDateFormat
+   */
+  def dateWrite(pattern: String = "yyyy-MM-dd") = Write[java.util.Date, String] {
+    (d: java.util.Date) => new java.text.SimpleDateFormat(pattern).format(d)
+  }
+
+  implicit val date = dateWrite()
+
+  val isoDate = Write[java.util.Date, String]{ d =>
+    import java.util.Date
+    import org.joda.time.format.ISODateTimeFormat
+    val fmt = ISODateTimeFormat.dateTimeNoMillis()
+    fmt.print(d.getTime)
+  }
+
+  def jodaDateWrite(pattern: String) = Write[org.joda.time.DateTime, String] { d =>
+    val fmt = org.joda.time.format.DateTimeFormat.forPattern(pattern)
+    fmt.print(d)
+  }
+
+  implicit def jodaTime = Write[org.joda.time.DateTime, Long] { d =>
+    d.getMillis
+  }
+
+  def jodaLocalDateWrite(pattern: String) = Write[org.joda.time.LocalDate, String] { d =>
+    import org.joda.time.format.{ DateTimeFormat, ISODateTimeFormat }
+    val fmt =  if (pattern == "") ISODateTimeFormat.date else DateTimeFormat.forPattern(pattern)
+    fmt.print(d)
+  }
+  /**
+   * the default implicit joda.time.LocalDate reads
+   */
+  implicit val jodaLocalDate = jodaLocalDateWrite("")
+
+  /**
+   * the default implicit JodaDate write
+   */
+  implicit val jodaDate = jodaDateWrite("yyyy-MM-dd")
+
+  def sqlDateWrite(pattern: String): Write[java.sql.Date, String] =
+    dateWrite(pattern).contramap((d: java.sql.Date) => new java.util.Date(d.getTime))
+
+  implicit val sqlDate = sqlDateWrite("yyyy-MM-dd")
+}
+
+trait DefaultWrites extends DateWrites {
   import play.api.libs.functional.Monoid
 
   implicit def seq[I, O](implicit w: Write[I, O]) = Write[Seq[I], Seq[O]] {
