@@ -322,7 +322,7 @@ object PathSpec extends Specification {
       val c = Map("name" -> Seq("C"), "bar" -> Seq("6"))
       val e = Map("name" -> Seq("E"), "eee" -> Seq("6"))
 
-      val typeFailure = Failure(Seq(Path() -> Seq(ValidationError("validation.unknownType"))))
+      val typeFailure = Failure(Seq(Path -> Seq(ValidationError("validation.unknownType"))))
 
       "by trying all possible Rules" in {
         val rb: Rule[M, A] = From[M]{ __ =>
@@ -337,7 +337,7 @@ object PathSpec extends Specification {
 
         rule.validate(b) mustEqual(Success(B("B", 4)))
         rule.validate(c) mustEqual(Success(C("C", 6)))
-        rule.validate(e) mustEqual(Failure(Seq(Path() -> Seq(ValidationError("validation.unknownType")))))
+        rule.validate(e) mustEqual(Failure(Seq(Path -> Seq(ValidationError("validation.unknownType")))))
       }
 
       "by dicriminating on fields" in {
@@ -352,7 +352,7 @@ object PathSpec extends Specification {
 
         rule.validate(b) mustEqual(Success(B("B", 4)))
         rule.validate(c) mustEqual(Success(C("C", 6)))
-        rule.validate(e) mustEqual(Failure(Seq(Path() -> Seq(ValidationError("validation.unknownType")))))
+        rule.validate(e) mustEqual(Failure(Seq(Path -> Seq(ValidationError("validation.unknownType")))))
       }
 
     }

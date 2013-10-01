@@ -95,7 +95,7 @@ trait GenericRules {
   implicit def seq[I, O](implicit r: Rule[I, O]): Rule[Seq[I], Seq[O]] =
     Rule { case is =>
       val withI = is.zipWithIndex.map { case (v, i) =>
-        r.repath((Path() \ i) ++ _).validate(v)
+        r.repath((Path \ i) ++ _).validate(v)
       }
       Validation.sequence(withI)
     }
@@ -152,10 +152,10 @@ trait DefaultRules[I] extends GenericRules with DateRules {
     }
 
   def map[K, O](r: Rule[K, O], p: Rule[I, Seq[(String, K)]]): Rule[I, Map[String, O]] = {
-    p.compose(Path())(
+    p.compose(Path)(
       Rule{ fs =>
         val validations = fs.map{ f =>
-          r.repath((Path() \ f._1) ++ _)
+          r.repath((Path \ f._1) ++ _)
             .validate(f._2)
             .map(f._1 -> _)
         }

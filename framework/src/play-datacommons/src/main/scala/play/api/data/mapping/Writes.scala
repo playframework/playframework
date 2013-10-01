@@ -89,7 +89,7 @@ object Writes extends DefaultWrites with GenericWrites[PM.PM] with DefaultMonoid
       os.zipWithIndex
         .toMap
         .flatMap{ case(o, i) =>
-          repathPM(w.writes(o), (Path() \ i) ++ _)
+          repathPM(w.writes(o), (Path \ i) ++ _)
         }
     }
 
@@ -98,7 +98,7 @@ object Writes extends DefaultWrites with GenericWrites[PM.PM] with DefaultMonoid
   }
 
   implicit def ospm[I](implicit w: Write[I, Seq[String]]) = Write[I, PM]{ i =>
-    Map(Path() -> w.writes(i))
+    Map(Path -> w.writes(i))
   }
 
   implicit def option[I](implicit w: Write[I, Seq[String]]) = Write[Option[I], PM] { m =>

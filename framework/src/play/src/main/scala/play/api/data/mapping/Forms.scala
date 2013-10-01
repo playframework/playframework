@@ -39,7 +39,7 @@ class Field(private val form: Form[_], val path: Path, override val value: Optio
     apply(PM.asPath(key))
 
   def apply(index: Int): Field =
-    apply(Path() \ index)
+    apply(Path \ index)
 
   override val errors =
     form.errors
@@ -51,7 +51,7 @@ class Field(private val form: Form[_], val path: Path, override val value: Optio
 
   def apply(_path: Path): Field = {
     val p = path ++ _path
-    val d = PM.find(p)(form.dataP).get(Path()).flatMap(_.headOption)
+    val d = PM.find(p)(form.dataP).get(Path).flatMap(_.headOption)
     Field(form, p, d)
   }
 

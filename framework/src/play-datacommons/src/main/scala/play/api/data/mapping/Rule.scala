@@ -55,7 +55,7 @@ trait Rule[I, O] {
     Rule(d => this.validate(d) orElse t.validate(d))
 
   // would be nice to have Kleisli in play
-  def compose[P](sub: Rule[O, P]): Rule[I, P] = compose(Path())(sub)
+  def compose[P](sub: Rule[O, P]): Rule[I, P] = compose(Path)(sub)
   def compose[P](m: Mapping[ValidationError, O, P]): Rule[I, P] = compose(Rule.fromMapping(m))
 
   /**
@@ -112,7 +112,7 @@ object Rule {
   }
 
   def fromMapping[I, O](f: Mapping[ValidationError, I, O]) =
-    Rule[I, O](f(_).fail.map(errs => Seq(Path() -> errs)))
+    Rule[I, O](f(_).fail.map(errs => Seq(Path -> errs)))
 
   implicit def applicativeRule[I] = new Applicative[({type λ[O] = Rule[I, O]})#λ] {
     override def pure[A](a: A): Rule[I, A] =

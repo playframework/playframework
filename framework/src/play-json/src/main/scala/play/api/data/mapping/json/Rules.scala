@@ -121,7 +121,7 @@ object Rules extends play.api.data.mapping.DefaultRules[JsValue] {
   implicit def pickInJson[O](p: Path)(implicit r: Rule[JsValue, O]): Rule[JsValue, O] =
     Rule[JsValue, JsValue] { json =>
       pathToJsPath(p)(json) match {
-        case Nil => Failure(Seq(Path() -> Seq(ValidationError("validation.required"))))
+        case Nil => Failure(Seq(Path -> Seq(ValidationError("validation.required"))))
         case js :: _ => Success(js)
       }
     }.compose(r)

@@ -19,19 +19,15 @@ case class RecursiveSearch(key: String) extends PathNode {
 object \: {
   def unapply(path: Path): Option[(Path, Path)] = {
     path match {
-      case Path(n :: ns) => Some((Path() \ n) -> Path(ns))
+      case Path(n :: ns) => Some((Path \ n) -> Path(ns))
       case Path(Nil) => None
     }
   }
 }
 
-case object Path {
+case object Path extends Path(Nil) {
   def apply(path: String) = new Path(KeyPathNode(path) :: Nil)
 	def apply(path: List[PathNode] = Nil) = new Path(path)
-
-  def \(path: String) = new Path(KeyPathNode(path) :: Nil)
-  def \(path: List[PathNode] = Nil) = new Path(path)
-
 	def unapply(p: Path): Option[List[PathNode]] = Some(p.path)
 }
 
