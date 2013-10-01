@@ -19,14 +19,13 @@ class WritesSpec extends Specification {
   val contact = Contact("Julien", "Tournay", None, Seq(
     ContactInformation("Personal", Some("fakecontact@gmail.com"), Seq("01.23.45.67.89", "98.76.54.32.10"))))
 
-  val contactJson =Json.obj(
+  val contactJson = Json.obj(
     "firstname" -> "Julien",
     "lastname" -> "Tournay",
-    "age" -> 27,
-    "informations" -> Json.obj(
+    "informations" -> Seq(Json.obj(
       "label" -> "Personal",
       "email" -> "fakecontact@gmail.com",
-      "phones" -> Seq("01.23.45.67.89", "98.76.54.32.10")))
+      "phones" -> Seq("01.23.45.67.89", "98.76.54.32.10"))))
 
   import play.api.data.mapping._
   import play.api.data.mapping.json._
@@ -194,24 +193,24 @@ class WritesSpec extends Specification {
       w.writes(None -> Nil) mustEqual Json.obj("phones" -> Seq[String]())
     }
 
-    // "write Map" in {
-    //   import play.api.libs.functional.syntax.unlift
+    "write Map" in {
+      import play.api.libs.functional.syntax.unlift
 
-    //   implicit val contactInformation = To[JsObject] { __ =>
-    //     ((__ \ "label").write[String] ~
-    //       (__ \ "email").write[Option[String]] ~
-    //       (__ \ "phones").write[Seq[String]]) (unlift(ContactInformation.unapply _))
-    //   }
+      implicit val contactInformation = To[JsObject] { __ =>
+        ((__ \ "label").write[String] ~
+          (__ \ "email").write[Option[String]] ~
+          (__ \ "phones").write[Seq[String]]) (unlift(ContactInformation.unapply _))
+      }
 
-    //   implicit val contactWrite = To[JsObject] { __ =>
-    //     ((__ \ "firstname").write[String] ~
-    //      (__ \ "lastname").write[String] ~
-    //      (__ \ "company").write[Option[String]] ~
-    //      (__ \ "informations").write[Seq[ContactInformation]]) (unlift(Contact.unapply _))
-    //   }
+      implicit val contactWrite = To[JsObject] { __ =>
+        ((__ \ "firstname").write[String] ~
+         (__ \ "lastname").write[String] ~
+         (__ \ "company").write[Option[String]] ~
+         (__ \ "informations").write[Seq[ContactInformation]]) (unlift(Contact.unapply _))
+      }
 
-    //   contactWrite.writes(contact) mustEqual contactMap
-    // }
+      contactWrite.writes(contact) mustEqual contactJson
+    }
 
   }
 

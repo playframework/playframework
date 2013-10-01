@@ -2,14 +2,14 @@ package play.api.data.mapping
 
 import scala.language.implicitConversions
 
-trait Write[I, O] {
+trait Write[I, +O] {
   def writes(i: I): O
 
   def map[B](f: O => B) = Write[I, B] {
     f compose (this.writes _)
   }
 
-  def compose[P](w: Write[O, P]) =
+  def compose[OO >: O, P](w: Write[OO, P]) =
     Write((w.writes _) compose (this.writes _))
 }
 
