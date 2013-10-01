@@ -38,7 +38,7 @@ case class TestBrowser(webDriver: WebDriver, baseUrl: Option[String]) extends Fl
       case (fieldName, fieldValue) =>
         fill(s"${selector} *[name=${fieldName}]").`with`(fieldValue)
     }
-    submit(selector)
+    super.submit(selector)
   }
 
   /**
