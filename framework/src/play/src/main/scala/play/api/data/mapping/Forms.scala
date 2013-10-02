@@ -27,6 +27,11 @@ case class Form[T](data: Map[String, Seq[String]] = Map.empty, validation: Valid
 
   def fill(t: T)(implicit w: Write[T, Map[String, Seq[String]]]) =
     this.copy(data = w.writes(t))
+
+  def fold = validation.fold _
+
+  lazy val globalError: Option[ValidationError] = globalErrors.headOption
+  lazy val globalErrors: Seq[ValidationError] = errors.filter(_._1 == Path).flatMap(_._2)
 }
 
 class Field(private val form: Form[_], val path: Path, override val value: Option[String])
