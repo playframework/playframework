@@ -2,8 +2,9 @@ package controllers
 
 import play.api._
 import play.api.mvc._
-import play.api.data.{ mapping => _, _ }
-import play.api.data.Forms._
+
+import play.api.data.mapping._
+import play.api.libs.functional.syntax._
 
 import views._
 
@@ -11,62 +12,69 @@ import models._
 
 object SignUp extends Controller {
 
-  /**
-   * Sign Up Form definition.
-   *
-   * Once defined it handle automatically, ,
-   * validation, submission, errors, redisplaying, ...
-   */
-  val signupForm: Form[User] = Form(
+  implicit val profileValidation = From[Map[String, Seq[String]]] { __ =>
+    import Rules._
+    // Create a validation that will handle UserProfile values
+    ((__ \ "country").read(notEmpty) ~
+     (__ \ "address").read[Option[String]] ~
+     (__ \ "age").read(option(min(18) |+| max(100)))) (UserProfile.apply _)
+  }
 
-    // Define a mapping that will handle User values
-    mapping(
-      "username" -> text(minLength = 4),
-      "email" -> email,
+  implicit val profileW = To[Map[String, Seq[String]]] { __ =>
+    import Writes._
+    // Create a validation that will handle UserProfile values
+    ((__ \ "country").write[String] ~
+     (__ \ "address").write[Option[String]] ~
+     (__ \ "age").write[Option[Int]]) (unlift(UserProfile.unapply _))
+  }
 
-      // Create a tuple mapping for the password/confirm
-      "password" -> tuple(
-        "main" -> text(minLength = 6),
-        "confirm" -> text
-      ).verifying(
-        // Add an additional constraint: both passwords must match
-        "Passwords don't match", passwords => passwords._1 == passwords._2
-      ),
+  // Nn additional constraint: The username must not be taken (you could do an SQL request here)
+  val isAvailable = Rules.validateWith[User]("This username is not available"){ user =>
+    !Seq("admin", "guest").contains(user.username)
+  }
 
-      // Create a mapping that will handle UserProfile values
-      "profile" -> mapping(
-        "country" -> nonEmptyText,
-        "address" -> optional(text),
-        "age" -> optional(number(min = 18, max = 100))
+  def ignored[O](x: O) = Write[O, O](_ => x)
+  def checked[I](implicit b: Rule[I, Boolean]) = b compose Rules.equalTo(true)
+
+  implicit val signupValidation = From[Map[String, Seq[String]]] { __ =>
+    import Rules._
+    (
+      // Define a mapping that will handle User values
+      (__ \ "username").read(minLength(4)) ~
+
+       // Create a tuple mapping for the password/confirm
+      (__ \ "password").read(
+        ((__ \ "main").read(minLength(6)) ~
+         (__ \ "confirm").read[String]).tupled
       )
-      // The mapping signature matches the UserProfile case class signature,
-      // so we can use default apply/unapply functions here
-      (UserProfile.apply)(UserProfile.unapply),
+      // Add an additional constraint: both passwords must match
+      .compose(Rule.uncurry(equalTo[String])).repath(_ => Path \ "password") ~
 
-      "accept" -> checked("You must accept the conditions")
+      (__ \ "email").read(email) ~
 
-    )
-    // The mapping signature doesn't match the User case class signature,
-    // so we have to define custom binding/unbinding functions
-    {
-      // Binding: Create a User from the mapping result (ignore the second password and the accept field)
-      (username, email, passwords, profile, _) => User(username, passwords._1, email, profile)
-    }
-    {
-      // Unbinding: Create the mapping values from an existing User value
-      user => Some(user.username, user.email, (user.password, ""), user.profile, false)
-    }.verifying(
-      // Add an additional constraint: The username must not be taken (you could do an SQL request here)
-      "This username is not available",
-      user => !Seq("admin", "guest").contains(user.username)
-    )
-  )
+      (__ \ "profile").read[UserProfile] ~
+      (__ \ "accept").read(checked)
+    )((username, password, email, profile, _) => User(username, password, email, profile))
+  }.compose(isAvailable)
+
+  implicit val userW: Write[User, Map[String, Seq[String]]] = To[Map[String, Seq[String]]] { __ =>
+    import Writes._
+    // Create a validation that will handle UserProfile values
+    ((__ \ "username").write[String] ~
+     (__ \ "password").write(
+      ((__ \ "main").write[String] ~
+       (__ \ "confirm").write[String]).tupled
+     ) ~
+     (__ \ "email").write[String] ~
+     (__ \ "profile").write[UserProfile] ~
+     (__ \ "accept").write[Boolean]) (u => (u.username, ("", ""), u.email, u.profile, true))
+  }
 
   /**
    * Display an empty form.
    */
   def form = Action {
-    Ok(html.signup.form(signupForm));
+    Ok(html.signup.form(Form()));
   }
 
   /**
@@ -77,17 +85,17 @@ object SignUp extends Controller {
       "fakeuser", "secret", "fake@gmail.com",
       UserProfile("France", None, Some(30))
     )
-    Ok(html.signup.form(signupForm.fill(existingUser)))
+    Ok(html.signup.form(Form.fill(existingUser)))
   }
 
   /**
    * Handle form submission.
    */
-  def submit = Action { implicit request =>
-    signupForm.bindFromRequest.fold(
+  def submit = Action(parse.urlFormEncoded) { implicit request =>
+    val r = signupValidation.validate(request.body)
+    r.fold(
       // Form has errors, redisplay it
-      errors => BadRequest(html.signup.form(errors)),
-
+      errors => BadRequest(html.signup.form(Form(request.body, r))),
       // We got a valid User value, display the summary
       user => Ok(html.signup.summary(user))
     )
