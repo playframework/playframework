@@ -2,8 +2,9 @@ package controllers
 
 import play.api._
 import play.api.mvc._
-import play.api.data._
-import play.api.data.Forms._
+
+import play.api.data.mapping._
+import Rules._
 
 import java.util.{Date}
 
@@ -28,43 +29,46 @@ object Tasks extends Controller with Secured {
     }.getOrElse(NotFound)
   }
 
-  val taskForm = Form(
-    tuple(
-      "title" -> nonEmptyText,
-      "dueDate" -> optional(date("MM/dd/yy")),
-      "assignedTo" -> optional(text)
-    )
-  )
+  val taskValidation = From[Map[String, Seq[String]]] { __ =>
+    import Rules._
+    ((__ \ "title").read(notEmpty) ~
+     (__ \ "dueDate").read(option(date("MM/dd/yy"))) ~
+     (__ \ "assignedTo").read[Option[String]]).tupled
+  }
 
   // -- Tasks
 
   /**
    * Create a task in this project.
-   */  
+   */
   def add(project: Long, folder: String) =  IsMemberOf(project) { _ => implicit request =>
-    taskForm.bindFromRequest.fold(
-      errors => BadRequest,
-      {
-        case (title, dueDate, assignedTo) => 
-          val task =  Task.create(
-            Task(NotAssigned, folder, project, title, false, dueDate, assignedTo)
-          )
-          Ok(html.tasks.item(task))
-      }
-    )
+    taskValidation
+      .validate(request.body.asFormUrlEncoded.getOrElse(Map.empty))
+      .fold(
+        errors => BadRequest,
+        {
+          case (title, dueDate, assignedTo) =>
+            val task =  Task.create(
+              Task(NotAssigned, folder, project, title, false, dueDate, assignedTo)
+            )
+            Ok(html.tasks.item(task))
+        }
+      )
   }
 
   /**
    * Update a task
    */
   def update(task: Long) = IsOwnerOf(task) { _ => implicit request =>
-    Form("done" -> boolean).bindFromRequest.fold(
-      errors => BadRequest,
-      isDone => { 
-        Task.markAsDone(task, isDone)
-        Ok 
-      }
-    )
+    (Path \ "done").read(boolean)
+      .validate(request.body.asFormUrlEncoded.getOrElse(Map.empty))
+      .fold(
+        errors => BadRequest,
+        isDone => {
+          Task.markAsDone(task, isDone)
+          Ok
+        }
+      )
   }
 
   /**
@@ -96,13 +100,15 @@ object Tasks extends Controller with Secured {
    * Rename a tasks folder.
    */
   def renameFolder(project: Long, folder: String) = IsMemberOf(project) { _ => implicit request =>
-    Form("name" -> nonEmptyText).bindFromRequest.fold(
-      errors => BadRequest,
-      newName => { 
-        Task.renameFolder(project, folder, newName) 
-        Ok(newName) 
-      }
-    )
+    (Path \ "name").read(notEmpty)
+      .validate(request.body.asFormUrlEncoded.getOrElse(Map.empty))
+      .fold(
+        errors => BadRequest,
+        newName => {
+          Task.renameFolder(project, folder, newName)
+          Ok(newName)
+        }
+      )
   }
 
 }

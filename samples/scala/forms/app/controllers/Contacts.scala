@@ -11,14 +11,14 @@ import models._
 object Contacts extends Controller {
 
   implicit val infoValidation = From[Map[String, Seq[String]]] { __ =>
-    import play.api.data.mapping.Rules._
+    import Rules._
     ((__ \ "label").read(notEmpty) ~
      (__ \ "email").read(option(email)) ~
      (__ \ "phones").read(list(notEmpty))) (ContactInformation.apply _)
   }
 
   implicit val contactValidation = From[Map[String, Seq[String]]] { __ =>
-    import play.api.data.mapping.Rules._
+    import Rules._
     ((__ \ "firstname").read(notEmpty) ~
      (__ \ "lastname").read(notEmpty) ~
      (__ \ "company").read[Option[String]] ~
@@ -26,13 +26,13 @@ object Contacts extends Controller {
   }
 
   implicit val contactInformationW = To[Map[String, Seq[String]]] { __ =>
-    import play.api.data.mapping.Writes._
+    import Writes._
     ((__ \ "label").write[String] ~
      (__ \ "email").write[Option[String]] ~
      (__ \ "phones").write[Seq[String]]) (unlift(ContactInformation.unapply _))
   }
   implicit def contactW = To[Map[String, Seq[String]]] { __ =>
-    import play.api.data.mapping.Writes._
+    import Writes._
     ((__ \ "firstname").write[String] ~
      (__ \ "lastname").write[String] ~
      (__ \ "company").write[Option[String]] ~
