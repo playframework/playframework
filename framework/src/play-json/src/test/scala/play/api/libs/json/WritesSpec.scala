@@ -42,6 +42,9 @@ class WritesSpec extends Specification {
       val w = (Path \ "email").write[Option[String], JsObject]
       w.writes(Some("Hello World")) mustEqual Json.obj("email" -> "Hello World")
       w.writes(None) mustEqual Json.obj()
+
+      (Path \ "n").write(option(anyval[Int])).writes(Some(5)) mustEqual Json.obj("n" -> 5)
+      (Path \ "n").write(option(anyval[Int])).writes(None) mustEqual Json.obj()
     }
 
     "write seq" in {

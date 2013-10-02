@@ -47,7 +47,6 @@ object Writes extends DefaultWrites with DefaultMonoids with GenericWrites[JsVal
       errs.map(w.writes).reduce(_ ++ _)
   }
 
-
   implicit val string: Write[String, JsValue] =
     Write(s => JsString(s))
 
@@ -60,11 +59,11 @@ object Writes extends DefaultWrites with DefaultMonoids with GenericWrites[JsVal
   implicit def seqToJsArray[I](implicit w: Write[I, JsValue]): Write[Seq[I], JsValue] =
     Write(ss => JsArray(ss.map(w.writes _)))
 
-  implicit def option[I](path: Path)(implicit w: Path => Write[I, JsObject]) =
-    Write[Option[I], JsObject]{
-      _.map(o => w(path).writes(o))
-       .getOrElse(Json.obj())
-    }
+  def option[I, J](r: Write[I, J])(implicit w: Path => Write[J, JsObject]): Path => Write[Option[I], JsObject] =
+    super.option[I, J, JsObject](r, Json.obj())
+
+  implicit def option[I](implicit w: Path => Write[I, JsObject]): Path => Write[Option[I], JsObject] =
+    option(Write.zero[I])
 
   implicit def map[I](implicit w: Write[I, JsValue]) = Write[Map[String, I], JsObject] { m =>
     JsObject(m.mapValues(w.writes).toSeq)

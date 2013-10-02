@@ -42,6 +42,9 @@ class WritesSpec extends Specification {
       val w = (Path \ "email").write[Option[String], M]
       w.writes(Some("Hello World")) mustEqual Map("email" -> Seq("Hello World"))
       w.writes(None) mustEqual Map.empty
+
+      (Path \ "n").write(option(anyval[Int])).writes(Some(5)) mustEqual Map("n" -> Seq("5"))
+      (Path \ "n").write(option(anyval[Int])).writes(None) mustEqual Map.empty
     }
 
     "write seq" in {

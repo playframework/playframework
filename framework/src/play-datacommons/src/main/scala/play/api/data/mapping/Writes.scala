@@ -7,11 +7,10 @@ trait DateWrites {
    * Serializer for java.util.Date
    * @param pattern the pattern used by SimpleDateFormat
    */
-  def dateWrite(pattern: String = "yyyy-MM-dd") = Write[java.util.Date, String] {
+  def date(pattern: String = "yyyy-MM-dd") = Write[java.util.Date, String] {
     (d: java.util.Date) => new java.text.SimpleDateFormat(pattern).format(d)
   }
-
-  implicit val date = dateWrite()
+  implicit val date: Write[java.util.Date, String] = date()
 
   val isoDate = Write[java.util.Date, String]{ d =>
     import java.util.Date
@@ -20,7 +19,7 @@ trait DateWrites {
     fmt.print(d.getTime)
   }
 
-  def jodaDateWrite(pattern: String) = Write[org.joda.time.DateTime, String] { d =>
+  def jodaDate(pattern: String) = Write[org.joda.time.DateTime, String] { d =>
     val fmt = org.joda.time.format.DateTimeFormat.forPattern(pattern)
     fmt.print(d)
   }
@@ -29,7 +28,7 @@ trait DateWrites {
     d.getMillis
   }
 
-  def jodaLocalDateWrite(pattern: String) = Write[org.joda.time.LocalDate, String] { d =>
+  def jodaLocalDate(pattern: String) = Write[org.joda.time.LocalDate, String] { d =>
     import org.joda.time.format.{ DateTimeFormat, ISODateTimeFormat }
     val fmt =  if (pattern == "") ISODateTimeFormat.date else DateTimeFormat.forPattern(pattern)
     fmt.print(d)
@@ -37,21 +36,27 @@ trait DateWrites {
   /**
    * the default implicit joda.time.LocalDate reads
    */
-  implicit val jodaLocalDate = jodaLocalDateWrite("")
+  implicit val jodaLocalDate: Write[org.joda.time.LocalDate, String] = jodaLocalDate("")
 
   /**
    * the default implicit JodaDate write
    */
-  implicit val jodaDate = jodaDateWrite("yyyy-MM-dd")
+  implicit val jodaDate: Write[org.joda.time.DateTime, String] = jodaDate("yyyy-MM-dd")
 
-  def sqlDateWrite(pattern: String): Write[java.sql.Date, String] =
-    dateWrite(pattern).contramap((d: java.sql.Date) => new java.util.Date(d.getTime))
+  def sqlDate(pattern: String): Write[java.sql.Date, String] =
+    date(pattern).contramap((d: java.sql.Date) => new java.util.Date(d.getTime))
 
-  val sqlDate = sqlDateWrite("yyyy-MM-dd")
+  val sqlDate: Write[java.sql.Date, String] = sqlDate("yyyy-MM-dd")
 }
 
 trait DefaultWrites extends DateWrites {
   import play.api.libs.functional.Monoid
+
+  protected def option[I, J, O](r: Write[I, J], empty: O)(implicit w: Path => Write[J, O]) = (p: Path) => Write[Option[I], O] { maybeI =>
+    maybeI.map{ i =>
+      w(p).contramap(r.writes).writes(i)
+    }.getOrElse(empty)
+  }
 
   implicit def seq[I, O](implicit w: Write[I, O]) = Write[Seq[I], Seq[O]] {
     _.map(w.writes)
@@ -61,6 +66,7 @@ trait DefaultWrites extends DateWrites {
 }
 
 trait GenericWrites[O] {
+
   implicit def array[I](implicit w: Write[Seq[I], O]) =
     Write((_: Array[I]).toSeq) compose w
 
@@ -105,4 +111,7 @@ object Writes extends DefaultWrites with GenericWrites[PM.PM] with DefaultMonoid
     m.map(s => Map(Path() -> w.writes(s)))
      .getOrElse(Map.empty)
   }
+
+  def option[I, J](r: Write[I, J])(implicit w: Path => Write[J, M]) =
+    super.option[I, J, M](r, Map.empty)
 }
