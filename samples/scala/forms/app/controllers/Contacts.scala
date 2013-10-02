@@ -3,7 +3,6 @@ package controllers
 import play.api._
 import play.api.mvc._
 import play.api.data.mapping._
-import play.api.data.mapping.Rules._
 import play.api.libs.functional.syntax._
 
 import views._
@@ -11,31 +10,35 @@ import models._
 
 object Contacts extends Controller {
 
-  val nonEmptyText = string compose notEmpty
-  val infoValidation =
-   ((Path \ "label").read(nonEmptyText) ~
-    (Path \ "email").read(option(string compose email)) ~
-    (Path \ "phones").read(list(nonEmptyText))) (ContactInformation.apply _)
+  implicit val infoValidation = From[Map[String, Seq[String]]] { __ =>
+    import play.api.data.mapping.Rules._
+    ((__ \ "label").read(notEmpty) ~
+     (__ \ "email").read(option(email)) ~
+     (__ \ "phones").read(list(notEmpty))) (ContactInformation.apply _)
+  }
 
-  val contactValidation =
-   ((Path \ "firstname").read(nonEmptyText) ~
-    (Path \ "lastname").read(nonEmptyText) ~
-    (Path \ "company").read(option(string)) ~
-    (Path \ "informations").read(seq(infoValidation))) (Contact.apply _)
+  implicit val contactValidation = From[Map[String, Seq[String]]] { __ =>
+    import play.api.data.mapping.Rules._
+    ((__ \ "firstname").read(notEmpty) ~
+     (__ \ "lastname").read(notEmpty) ~
+     (__ \ "company").read[Option[String]] ~
+     (__ \ "informations").read(seq(infoValidation))) (Contact.apply _)
+  }
 
-  implicit def contactWrite = {
-    import play.api.data.mapping.Write._
-    import play.api.libs.functional.syntax.unlift
-    val contactInformation =
-      ((Path \ "label").write(string) ~
-       (Path \ "email").write(option(string)) ~
-       (Path \ "phones").write(seq(string))) (unlift(ContactInformation.unapply _))
+  implicit val contactInformationW = To[Map[String, Seq[String]]] { __ =>
+    import play.api.data.mapping.Writes._
+    ((__ \ "label").write[String] ~
+     (__ \ "email").write[Option[String]] ~
+     (__ \ "phones").write[Seq[String]]) (unlift(ContactInformation.unapply _))
+  }
+  implicit def contactW = To[Map[String, Seq[String]]] { __ =>
+    import play.api.data.mapping.Writes._
+    ((__ \ "firstname").write[String] ~
+     (__ \ "lastname").write[String] ~
+     (__ \ "company").write[Option[String]] ~
+     (__ \ "informations").write[Seq[ContactInformation]]) (unlift(Contact.unapply _))
+  }
 
-      ((Path \ "firstname").write(string) ~
-       (Path \ "lastname").write(string) ~
-       (Path \ "company").write(option(string)) ~
-       (Path \ "informations").write(seq(contactInformation))) (unlift(Contact.unapply _))
-    }
 
   /**
    * Display an empty form.
