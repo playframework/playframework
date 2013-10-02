@@ -25,6 +25,9 @@ case class Form[T](data: Map[String, Seq[String]] = Map.empty, validation: Valid
     Field(this, path, value)
   }
 
+  def error(key: String) = apply(key).errors.headOption
+  def error(key: Path) = apply(key).errors.headOption
+
   def fill(t: T)(implicit w: Write[T, Map[String, Seq[String]]]) =
     this.copy(data = w.writes(t))
 
