@@ -16,8 +16,8 @@ trait Write[I, +O] {
 trait DefaultMonoids {
   import play.api.libs.functional.Monoid
 
-  implicit def mapMonoid = new Monoid[Map[String, Seq[String]]] {
-    def append(a1: Map[String, Seq[String]], a2: Map[String, Seq[String]]) = a1 ++ a2
+  implicit def mapMonoid = new Monoid[UrlFormEncoded] {
+    def append(a1: UrlFormEncoded, a2: UrlFormEncoded) = a1 ++ a2
     def identity = Map.empty
   }
 }

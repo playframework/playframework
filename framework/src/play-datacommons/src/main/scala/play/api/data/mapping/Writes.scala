@@ -84,7 +84,7 @@ object Writes extends DefaultWrites with GenericWrites[PM.PM] with DefaultMonoid
   implicit def scalanumber[T <: scala.math.ScalaNumber] = Write((i: T) => i.toString)
   implicit def javanumber[T <: java.lang.Number] = Write((i: T) => i.toString)
 
-  implicit def opm[O](implicit w: Write[O, M]) = Write[O, PM] {
+  implicit def opm[O](implicit w: Write[O, UrlFormEncoded]) = Write[O, PM] {
     o => toPM(w.writes(o))
   }
 
@@ -101,7 +101,7 @@ object Writes extends DefaultWrites with GenericWrites[PM.PM] with DefaultMonoid
         }
     }
 
-  implicit def writeM[I](path: Path)(implicit w: Write[I, PM]) = Write[I, M] { i =>
+  implicit def writeM[I](path: Path)(implicit w: Write[I, PM]) = Write[I, UrlFormEncoded] { i =>
     toM(repathPM(w.writes(i), path ++ _))
   }
 
@@ -114,6 +114,6 @@ object Writes extends DefaultWrites with GenericWrites[PM.PM] with DefaultMonoid
      .getOrElse(Map.empty)
   }
 
-  def option[I, J](r: Write[I, J])(implicit w: Path => Write[J, M]) =
-    super.option[I, J, M](r, Map.empty)
+  def option[I, J](r: Write[I, J])(implicit w: Path => Write[J, UrlFormEncoded]) =
+    super.option[I, J, UrlFormEncoded](r, Map.empty)
 }

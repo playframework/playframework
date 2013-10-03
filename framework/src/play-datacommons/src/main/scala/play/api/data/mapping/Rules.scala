@@ -23,7 +23,6 @@ object PM {
     def parse(s: String) = parseAll(path, new scala.util.parsing.input.CharArrayReader(s.toArray))
   }
 
-  type M  = Map[String, Seq[String]]
   type PM = Map[Path, Seq[String]]
 
   /**
@@ -48,13 +47,13 @@ object PM {
   /**
   * Apply `f` to all the keys of `m`
   */
-  def repath(m: M, f: Path => Path): M
+  def repath(m: UrlFormEncoded, f: Path => Path): UrlFormEncoded
     = toM(repathPM(toPM(m), f))
 
   def toPM(m: Map[String, Seq[String]]): PM =
     m.map { case (p, v) => asPath(p) -> v }
 
-  def toM(m: Map[Path, Seq[String]]): M =
+  def toM(m: Map[Path, Seq[String]]): UrlFormEncoded =
     m.map { case (p, v) => asKey(p) -> v }
 
   private def asNodeKey(n: PathNode): String = n match {
@@ -150,18 +149,18 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
   // implicit def pickInRequest[I, O](p: Path[Request[I]])(implicit pick: Path[I] => Mapping[String, I, O]): Mapping[String, Request[I], O] =
   //   request => pick(Path[I](p.path))(request.body)
 
-  implicit def map[O](implicit r: Rule[Seq[String], O]): Rule[M, Map[String, O]] = {
-    val toSeq = Rule.zero[M].fmap(_.toSeq)
+  implicit def map[O](implicit r: Rule[Seq[String], O]): Rule[UrlFormEncoded, Map[String, O]] = {
+    val toSeq = Rule.zero[UrlFormEncoded].fmap(_.toSeq)
     super.map[Seq[String], O](r,  toSeq)
   }
 
-  implicit def option[O](implicit pick: Path => Rule[M, Seq[String]], coerce: Rule[Seq[String], O]): Path => Rule[M, Option[O]] =
+  implicit def option[O](implicit pick: Path => Rule[UrlFormEncoded, Seq[String]], coerce: Rule[Seq[String], O]): Path => Rule[UrlFormEncoded, Option[O]] =
     super.option(coerce)
 
-  def option[J, O](r: Rule[J, O])(implicit pick: Path => Rule[M, Seq[String]], coerce: Rule[Seq[String], J]): Path => Rule[M, Option[O]] =
+  def option[J, O](r: Rule[J, O])(implicit pick: Path => Rule[UrlFormEncoded, Seq[String]], coerce: Rule[Seq[String], J]): Path => Rule[UrlFormEncoded, Option[O]] =
     super.option(coerce compose r)
 
-  implicit def pickInMap[O](p: Path)(implicit r: Rule[Seq[String], O]) = Rule.fromMapping[M, Seq[String]] {
+  implicit def pickInMap[O](p: Path)(implicit r: Rule[Seq[String], O]) = Rule.fromMapping[UrlFormEncoded, Seq[String]] {
     data =>
       PM.find(p)(PM.toPM(data)).toSeq.flatMap {
         case (Path(Nil) | Path(Seq(IdxPathNode(_))), ds) => ds
@@ -172,14 +171,14 @@ object Rules extends DefaultRules[Map[String, Seq[String]]] {
       }
   }.compose(r)
 
-  implicit def mapPick[O](path: Path)(implicit r: Rule[M, O]): Rule[M, O] = Rule.fromMapping[M, M] { data =>
+  implicit def mapPick[O](path: Path)(implicit r: Rule[UrlFormEncoded, O]): Rule[UrlFormEncoded, O] = Rule.fromMapping[UrlFormEncoded, UrlFormEncoded] { data =>
     PM.toM(PM.find(path)(PM.toPM(data))) match {
       case s if s.isEmpty => Failure(Seq(ValidationError("validation.required")))
       case s => Success(s)
     }
   }.compose(r)
 
-  implicit def mapPickSeqMap(p: Path) = Rule.fromMapping[M, Seq[M]]({ data =>
+  implicit def mapPickSeqMap(p: Path) = Rule.fromMapping[UrlFormEncoded, Seq[UrlFormEncoded]]({ data =>
     val grouped = PM.find(p)(PM.toPM(data)).toSeq.flatMap {
       case (Path(IdxPathNode(i) :: Nil) \: t, vs) => Seq(i -> Map(t -> vs))
       case _ => Nil

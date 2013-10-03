@@ -16,7 +16,7 @@ object Application extends Controller {
     case (email, password) => User.authenticate(email, password).isDefined
   }
 
-  implicit val loginValidation = From[Map[String, Seq[String]]] { __ =>
+  implicit val loginValidation = From[UrlFormEncoded] { __ =>
     import Rules._
     ((__ \ "email").read(notEmpty) ~
      (__ \ "password").read(notEmpty)).tupled

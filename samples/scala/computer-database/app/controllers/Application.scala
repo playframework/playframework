@@ -20,7 +20,7 @@ object Application extends Controller {
    */
   val Home = Redirect(routes.Application.list(0, 2, ""))
 
-  implicit val computerValidation = From[Map[String, Seq[String]]] { __ =>
+  implicit val computerValidation = From[UrlFormEncoded] { __ =>
     import play.api.data.mapping.Rules._
     ((__ \ "id").read(ignored(NotAssigned:Pk[Long])) ~
      (__ \ "name").read(notEmpty) ~
@@ -32,7 +32,7 @@ object Application extends Controller {
   implicit def pkW[I, O](implicit w: Path => Write[Option[I], O]) =
     (p: Path) => w(p).contramap((_: Pk[I]).toOption)
 
-  implicit val computerW = To[Map[String, Seq[String]]] { __ =>
+  implicit val computerW = To[UrlFormEncoded] { __ =>
     import play.api.data.mapping.Writes._
     ((__ \ "id").write[Pk[Long]] ~
      (__ \ "name").write[String] ~

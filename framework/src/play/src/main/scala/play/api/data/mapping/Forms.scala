@@ -4,11 +4,11 @@ import play.api.{ data => d }
 import play.api.data.mapping.PM._
 
 object Form {
-  def fill[T](t: T)(implicit w: Write[T, Map[String, Seq[String]]]) =
+  def fill[T](t: T)(implicit w: Write[T, UrlFormEncoded]) =
     Form().fill(t)
 }
 
-case class Form[T](data: Map[String, Seq[String]] = Map.empty, validation: Validation[(Path, Seq[ValidationError]), T] = Failure(Nil)) {
+case class Form[T](data: UrlFormEncoded = Map.empty, validation: Validation[(Path, Seq[ValidationError]), T] = Failure(Nil)) {
 
   lazy val hasErrors: Boolean = !errors.isEmpty
 
@@ -28,7 +28,7 @@ case class Form[T](data: Map[String, Seq[String]] = Map.empty, validation: Valid
   def error(key: String) = apply(key).errors.headOption
   def error(key: Path) = apply(key).errors.headOption
 
-  def fill(t: T)(implicit w: Write[T, Map[String, Seq[String]]]) =
+  def fill(t: T)(implicit w: Write[T, UrlFormEncoded]) =
     this.copy(data = w.writes(t))
 
   def fold = validation.fold _

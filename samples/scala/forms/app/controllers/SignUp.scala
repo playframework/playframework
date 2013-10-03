@@ -12,7 +12,7 @@ import models._
 
 object SignUp extends Controller {
 
-  implicit val profileValidation = From[Map[String, Seq[String]]] { __ =>
+  implicit val profileValidation = From[UrlFormEncoded] { __ =>
     import Rules._
     // Create a validation that will handle UserProfile values
     ((__ \ "country").read(notEmpty) ~
@@ -20,7 +20,7 @@ object SignUp extends Controller {
      (__ \ "age").read(option(min(18) |+| max(100)))) (UserProfile.apply _)
   }
 
-  implicit val profileW = To[Map[String, Seq[String]]] { __ =>
+  implicit val profileW = To[UrlFormEncoded] { __ =>
     import Writes._
     // Create a validation that will handle UserProfile values
     ((__ \ "country").write[String] ~
@@ -33,7 +33,7 @@ object SignUp extends Controller {
     !Seq("admin", "guest").contains(user.username)
   }
 
-  implicit val signupValidation = From[Map[String, Seq[String]]] { __ =>
+  implicit val signupValidation = From[UrlFormEncoded] { __ =>
     import Rules._
     (
       // Define a mapping that will handle User values
@@ -45,7 +45,7 @@ object SignUp extends Controller {
          (__ \ "confirm").read[String]).tupled
       )
       // Add an additional constraint: both passwords must match
-      .compose(Rule.uncurry(equalTo[String])) ~
+      .compose(Path \ "password")(Rule.uncurry(equalTo[String])) ~
 
       (__ \ "email").read(email) ~
 
@@ -54,7 +54,7 @@ object SignUp extends Controller {
     )((username, password, email, profile, _) => User(username, password, email, profile))
   }.compose(isAvailable)
 
-  implicit val userW: Write[User, Map[String, Seq[String]]] = To[Map[String, Seq[String]]] { __ =>
+  implicit val userW = To[UrlFormEncoded] { __ =>
     import Writes._
     // Create a validation that will handle UserProfile values
     ((__ \ "username").write[String] ~
@@ -64,7 +64,7 @@ object SignUp extends Controller {
      ) ~
      (__ \ "email").write[String] ~
      (__ \ "profile").write[UserProfile] ~
-     (__ \ "accept").write[Boolean]) (u => (u.username, ("", ""), u.email, u.profile, true))
+     (__ \ "accept").write[Boolean]) ((u: User) => (u.username, ("", ""), u.email, u.profile, true))
   }
 
   /**

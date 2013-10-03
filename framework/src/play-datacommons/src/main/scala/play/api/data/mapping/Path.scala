@@ -57,9 +57,9 @@ class Path(val path: List[PathNode]) {
   * Creates a Writes the serialize data to the desired type
   * {{{
   *   val contact = Contact("Julien", "Tournay")
-  *   val __ = Path[Map[String, Seq[String]]]()
+  *   val __ = Path()
   *   implicit def contactWrite = (__ \ "firstname").write[String]
-  *   Writes[Contact, Map[String, Seq[String]]](contact) mustEqual Map("firstname" -> "Julien")
+  *   contactWrite.writes(contact) mustEqual Map("firstname" -> "Julien")
   * }}}
   * @param m a lookup function. This function finds data in a structure of type I, and coerce it to tyoe O
   * @return A Rule validating the presence of data at this Path

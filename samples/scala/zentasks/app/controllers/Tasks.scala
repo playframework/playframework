@@ -29,7 +29,7 @@ object Tasks extends Controller with Secured {
     }.getOrElse(NotFound)
   }
 
-  val taskValidation = From[Map[String, Seq[String]]] { __ =>
+  val taskValidation = From[UrlFormEncoded] { __ =>
     import Rules._
     ((__ \ "title").read(notEmpty) ~
      (__ \ "dueDate").read(option(date("MM/dd/yy"))) ~
