@@ -71,7 +71,7 @@ class TestApplication(application: Application) extends ApplicationProvider {
 }
 
 /**
- * represents an application that can be reloaded in Dev Mode
+ * Represents an application that can be reloaded in Dev Mode.
  */
 class ReloadableApplication(sbtLink: SBTLink, sbtDocHandler: SBTDocHandler) extends ApplicationProvider {
 
