@@ -8,9 +8,9 @@ import play.api.data.mapping._
 
 import scala.language.reflectiveCalls
 
-object MappingsSpec extends Specification {
+object RulesSpec extends Specification {
 
-  "Json Mappings" should {
+  "Json Rules" should {
     import play.api.data.mapping.json.Rules
     import Rules._
 
