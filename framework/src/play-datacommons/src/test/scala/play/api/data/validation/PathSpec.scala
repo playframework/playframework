@@ -64,6 +64,14 @@ object PathSpec extends Specification {
       }.validate(invalid) mustEqual(error)
     }
 
+    "support checked" in {
+      val js = Map("issmth" -> Seq("true"))
+      val p = Path \ "issmth"
+      p.read(checked).validate(js) mustEqual(Success(true))
+      p.read(checked).validate(Map.empty) mustEqual(Failure(Seq(Path \ "issmth" -> Seq(ValidationError("validation.required")))))
+      p.read(checked).validate(Map("issmth" -> Seq("false"))) mustEqual(Failure(Seq(Path \ "issmth" -> Seq(ValidationError("validation.equals", true)))))
+    }
+
     "ignore values" in {
       val r = From[M]{ __ =>
         ((__ \ "firstname").read(notEmpty) ~

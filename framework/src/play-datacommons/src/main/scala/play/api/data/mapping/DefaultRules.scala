@@ -127,6 +127,8 @@ trait GenericRules {
       .validate(_: String)
       .fail.map(_ => Seq(ValidationError("validation.email"))))
   def noConstraint[From]: Constraint[From] = Success(_)
+
+  def checked[I](implicit b: Rule[I, Boolean]) = b compose Rules.equalTo(true)
 }
 
 trait DefaultRules[I] extends GenericRules with DateRules {

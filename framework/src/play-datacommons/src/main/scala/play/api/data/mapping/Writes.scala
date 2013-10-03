@@ -63,6 +63,8 @@ trait DefaultWrites extends DateWrites {
   }
 
   implicit def head[I, O](implicit w: Write[I, O]): Write[I, Seq[O]] = w.map(Seq(_))
+
+  def ignored[O](x: O) = Write[O, O](_ => x)
 }
 
 trait GenericWrites[O] {

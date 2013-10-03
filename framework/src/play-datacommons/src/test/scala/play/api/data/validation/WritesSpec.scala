@@ -38,6 +38,11 @@ class WritesSpec extends Specification {
       w.writes("Hello World") mustEqual Map("label" -> Seq("Hello World"))
     }
 
+    "ignore values" in {
+      (Path \ "n").write(ignored("foo")).writes("test") mustEqual Map("n" -> Seq("foo"))
+      (Path \ "n").write(ignored(42)).writes(0) mustEqual Map("n" -> Seq("42"))
+    }
+
     "write option" in {
       val w = (Path \ "email").write[Option[String], M]
       w.writes(Some("Hello World")) mustEqual Map("email" -> Seq("Hello World"))

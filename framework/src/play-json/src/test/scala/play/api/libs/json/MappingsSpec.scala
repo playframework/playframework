@@ -39,6 +39,14 @@ object MappingsSpec extends Specification {
       errPath.read[JsValue, String].validate(invalid) mustEqual(error)
     }
 
+    "support checked" in {
+      val js = Json.obj("issmth" -> true)
+      val p = Path \ "issmth"
+      p.read(checked).validate(js) mustEqual(Success(true))
+      p.read(checked).validate(Json.obj()) mustEqual(Failure(Seq(Path \ "issmth" -> Seq(ValidationError("validation.required")))))
+      p.read(checked).validate(Json.obj("issmth" -> false)) mustEqual(Failure(Seq(Path \ "issmth" -> Seq(ValidationError("validation.equals", true)))))
+    }
+
     "support all types of Json values" in {
 
       "null" in {

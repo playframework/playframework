@@ -38,6 +38,11 @@ class WritesSpec extends Specification {
       w.writes("Hello World") mustEqual Json.obj("label" -> "Hello World")
     }
 
+    "ignore values" in {
+      (Path \ "n").write(ignored("foo")).writes("test") mustEqual Json.obj("n" -> "foo")
+      (Path \ "n").write(ignored(42)).writes(0) mustEqual Json.obj("n" -> 42)
+    }
+
     "write option" in {
       val w = (Path \ "email").write[Option[String], JsObject]
       w.writes(Some("Hello World")) mustEqual Json.obj("email" -> "Hello World")
