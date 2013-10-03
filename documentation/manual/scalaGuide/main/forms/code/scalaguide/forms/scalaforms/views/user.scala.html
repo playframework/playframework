@@ -1,0 +1,59 @@
+@* #form-define *@
+@(userForm: Form[controllers.UserData])
+@* #form-define *@
+
+@import scalaguide.forms.scalaforms._
+
+@import scalaguide.forms.scalaforms.controllers.routes
+
+@* #form-user *@
+@helper.form(action = routes.Application.home) {
+  @helper.inputText(userForm("name"))
+  @helper.inputText(userForm("age"))
+}
+@* #form-user *@
+
+@helper.form(action = routes.Application.home) {
+  @* #form-user-parameters *@
+  @helper.inputText(userForm("name"), 'id -> "name", 'size -> 30)
+  @* #form-user-parameters *@
+  @helper.inputText(userForm("age"))
+}
+
+<div>
+    @* #form-user-generated *@
+    <dl class="error" id="age_field">
+        <dt><label for="age">Age:</label></dt>
+        <dd><input type="text" name="age" id="age" value=""></dd>
+        <dd class="error">This field is required!</dd>
+        <dd class="error">Another error</dd>
+        <dd class="info">Required</dd>
+        <dd class="info">Another constraint</dd>
+    </dl>
+    @* #form-user-generated *@
+</div>
+
+<div>
+    @* #form-field-options *@
+    '_label -> "Custom label"
+    '_id -> "idForTheTopDlElement"
+    '_help -> "Custom help"
+    '_showConstraints -> false
+    '_error -> "Force an error"
+    '_showErrors -> false
+    @* #form-field-options *@
+</div>
+
+<div>
+    @* #form-bootstrap-generated *@
+    <div class="clearfix error" id="username_field">
+        <label for="username">Username:</label>
+        <div class="input">
+            <input type="text" name="username" id="username" value="">
+            <span class="help-inline">This field is required!, Another error</span>
+            <span class="help-block">Required, Another constraint</span>
+        </div>
+    </div>
+    @* #form-bootstrap-generated *@
+</div>
+

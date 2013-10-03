@@ -1,1 +1,3 @@
-GET   /login              controllers.Application.home
+GET         /home/:id        controllers.Application.home(id:Int)
+
+POST        /user            controllers.Application.user
