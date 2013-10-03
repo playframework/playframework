@@ -13,7 +13,7 @@ object To { def apply[I] = new To[I]{} }
 
 case class Formatter[I](path: Path = Path(Nil)) {
   /**
-  * When applied, the rule will lookup for data at the given path, and apply the given Rule on it
+  * When applied, the rule will lookup for data at the given path, and apply the `sub` Rule on it
   * {{{
   *   val json = Json.parse("""{
   *      "informations": {
@@ -50,7 +50,26 @@ case class Formatter[I](path: Path = Path(Nil)) {
   def read[O](implicit r: Path => Rule[I, O]): Rule[I, O] =
     read(Rule.zero[O])(r)
 
+  /**
+  * Create a Write that convert data to type `I`, and put it at Path `path`
+  * {{{
+  *   val w = To[JsObject] { __ =>
+  *      (__ \ "informations").write[Seq[String]])
+  *   }
+  *   w.writes(Seq("foo", "bar")) == Json.obj("informations" -> Seq("foo", "bar"))
+  * }}}
+  */
   def write[O](implicit w: Path => Write[O, I]): Write[O, I] = w(path)
+
+  /**
+  * When applied, the rule will lookup for data at the given path, and apply the `sub` Rule on it
+  * {{{
+  *   val w = To[JsObject] { __ =>
+  *      (__ \ "date").write(date("yyyy-MM-dd""))
+  *   }
+  *   w.writes(new Date()) == Json.obj("date" -> "2013-10-3")
+  * }}}
+  */
   def write[O, J](format: Write[O, J])(implicit w: Path => Write[J, I]): Write[O, I] =
     Write((w(path).writes _) compose (format.writes _))
 

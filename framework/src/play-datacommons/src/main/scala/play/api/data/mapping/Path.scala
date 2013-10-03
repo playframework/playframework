@@ -53,18 +53,23 @@ class Path(val path: List[PathNode]) {
     Formatter[I](this).read[O]
 
   /**
-  * Creates a Writes the serialize data to the desired type
+  * Creates a Writes the serialize data to the desired output type
   * {{{
   *   val contact = Contact("Julien", "Tournay")
   *   implicit def contactWrite = (Path \ "firstname").write[String, UrlFormEncoded]
   *   contactWrite.writes(contact) mustEqual Map("firstname" -> "Julien")
   * }}}
-  * @param m a lookup function. This function finds data in a structure of type I, and coerce it to tyoe O
-  * @return A Rule validating the presence of data at this Path
   */
   def write[O, I](implicit w: Path => Write[O, I]): Write[O, I] =
     Formatter[I](this).write(w)
 
+  /**
+  * Creates a Writes the serialize data to the desired output type using a provided format.
+  ** {{{
+  *   val w = (Path \ "date").write(date("yyyy-MM-dd""))
+  *   w.writes(new Date()) == Json.obj("date" -> "2013-10-3")
+  * }}}
+  */
   def write[O, J, I](format: Write[O, J])(implicit w: Path => Write[J, I]): Write[O, I] =
     Formatter[I](this).write(format)
 

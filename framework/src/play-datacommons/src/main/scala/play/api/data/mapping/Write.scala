@@ -3,12 +3,26 @@ package play.api.data.mapping
 import scala.language.implicitConversions
 
 trait Write[I, +O] {
+
+  /**
+   * "Serialize" `i` to the output type
+   */
   def writes(i: I): O
 
+  /**
+   * returns a new Write that applies function `f` to the result of this write.
+   * {{{
+   *  val w = Writes.int.map("Number: " + _)
+   *  w.writes(42) == "Number: 42"
+   * }}}
+   */
   def map[B](f: O => B) = Write[I, B] {
     f compose (this.writes _)
   }
 
+  /**
+   * Returns a new Write that applies `this` Write, and then applies `w` to its result
+   */
   def compose[OO >: O, P](w: Write[OO, P]) =
     Write((w.writes _) compose (this.writes _))
 }

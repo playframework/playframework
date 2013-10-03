@@ -1,9 +1,10 @@
 package play.api.data.mapping
 
 /**
-* Play provides you a `Map[String, Seq[String]]` in request body for urlFormEncodedRequest.
-* It's generally a lot more convenient to work on `Map[Path, Seq[String]]` for defining Rules
+* Play provides you a `Map[String, Seq[String]]` (aliased as `UrlFormEncoded`) in request body for urlFormEncoded requests.
+* It's generally a lot more convenient to work on `Map[Path, Seq[String]]` to define Rules.
 * This object contains methods used to convert `Map[String, Seq[String]]` <-> `Map[Path, Seq[String]]`
+* @note We use the alias `UrlFormEncoded`, which is just a `Map[String, Seq[String]]`
 */
 object PM {
 
@@ -50,10 +51,16 @@ object PM {
   def repath(m: UrlFormEncoded, f: Path => Path): UrlFormEncoded
     = toM(repathPM(toPM(m), f))
 
-  def toPM(m: Map[String, Seq[String]]): PM =
+  /**
+  * Convert a Map[String, Seq[String]] to a Map[Path, Seq[String]]
+  */
+  def toPM(m: UrlFormEncoded): PM =
     m.map { case (p, v) => asPath(p) -> v }
 
-  def toM(m: Map[Path, Seq[String]]): UrlFormEncoded =
+  /**
+  * Convert a Map[Path, Seq[String]] to a Map[String, Seq[String]]
+  */
+  def toM(m: PM): UrlFormEncoded =
     m.map { case (p, v) => asKey(p) -> v }
 
   private def asNodeKey(n: PathNode): String = n match {
@@ -83,11 +90,13 @@ object PM {
   }
 }
 
-object Rules extends DefaultRules[Map[String, Seq[String]]] {
+/**
+ * This object provides Rules for Map[String, Seq[String]]
+ */
+object Rules extends DefaultRules[UrlFormEncoded] {
   import scala.language.implicitConversions
   import play.api.libs.functional._
   import play.api.libs.functional.syntax._
-  // import play.api.mvc.Request
 
   import PM._
 
