@@ -100,4 +100,14 @@ Then you can minimise the boiler plate code necessary to write actions:
 
 @[csrf-actions](code/ScalaCsrf.scala)
 
+## CSRF configuration options
+
+The following options can be configured in `application.conf`:
+
+* `csrf.token.name` - The name of the token to use both in the session and in the request body/query string. Defaults to `csrfToken`.
+* `csrf.cookie.name` - If configured, Play will store the CSRF token in a cookie with the given name, instead of in the session.
+* `csrf.cookie.secure` - If `csrf.cookie.name` is set, whether the CSRF cookie should have the secure flag set.  Defaults to the same value as `session.secure`.
+* `csrf.body.bufferSize` - In order to read tokens out of the body, Play must first buffer the body and potentially parse it.  This sets the maximum buffer size that will be used to buffer the body.  Defaults to 100k.
+* `csrf.sign.tokens` - Whether Play should use signed CSRF tokens.  Signed CSRF tokens ensure that the token value is randomised per request, thus defeating BREACH style attacks.
+
 > **Next:** [[Working with JSON|ScalaJson]]
