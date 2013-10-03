@@ -40,8 +40,7 @@ class Path(val path: List[PathNode]) {
   /**
   * Aggregate 2 paths
   * {{{
-  *   val __ = Path[JsValue]()
-  *   (__ \ "foo" \ "bar").compose(__ \ "baz") == (__ \ "foo" \ "bar" \ "baz")
+  *   (Path \ "foo" \ "bar").compose(Path \ "baz") == (Path \ "foo" \ "bar" \ "baz")
   * }}}
   */
   def compose(p: Path): Path = Path(this.path ++ p.path)
@@ -57,8 +56,7 @@ class Path(val path: List[PathNode]) {
   * Creates a Writes the serialize data to the desired type
   * {{{
   *   val contact = Contact("Julien", "Tournay")
-  *   val __ = Path()
-  *   implicit def contactWrite = (__ \ "firstname").write[String]
+  *   implicit def contactWrite = (Path \ "firstname").write[String, UrlFormEncoded]
   *   contactWrite.writes(contact) mustEqual Map("firstname" -> "Julien")
   * }}}
   * @param m a lookup function. This function finds data in a structure of type I, and coerce it to tyoe O
