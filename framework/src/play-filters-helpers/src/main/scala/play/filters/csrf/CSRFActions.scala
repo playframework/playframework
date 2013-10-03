@@ -4,7 +4,6 @@ import play.api.mvc._
 import play.api.http.HeaderNames._
 import play.filters.csrf.CSRF._
 import play.api.libs.iteratee._
-import play.api.libs.Crypto
 import play.api.mvc.Results._
 import play.api.mvc.BodyParsers.parse._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -19,13 +18,15 @@ import scala.concurrent.Future
  *                     whether the session cookie is configured to be secure.
  * @param createIfNotFound Whether a new CSRF token should be created if it's not found.  Default creates one if it's
  *                         a GET request that accepts HTML.
+ * @param tokenProvider A token provider to use.
  * @param next The composed action that is being protected.
  */
 class CSRFAction(next: EssentialAction,
     tokenName: String = CSRFConf.TokenName,
     cookieName: Option[String] = CSRFConf.CookieName,
     secureCookie: Boolean = CSRFConf.SecureCookie,
-    createIfNotFound: RequestHeader => Boolean = CSRFConf.defaultCreateIfNotFound) extends EssentialAction {
+    createIfNotFound: RequestHeader => Boolean = CSRFConf.defaultCreateIfNotFound,
+    tokenProvider: TokenProvider = CSRFConf.defaultTokenProvider) extends EssentialAction {
 
   import CSRFAction._
 
@@ -50,7 +51,7 @@ class CSRFAction(next: EssentialAction,
           // First check if there's a token in the query string or header, if we find one, don't bother handling the body
           getTokenFromQueryString(request, tokenName).map { queryStringToken =>
 
-            if (Crypto.extractSignedToken(queryStringToken).exists(rawToken => Crypto.constantTimeEquals(rawToken, headerToken))) {
+            if (tokenProvider.compareTokens(headerToken, queryStringToken)) {
               filterLogger.trace("[CSRF] Valid token found in query string")
               continue
             } else {
@@ -82,7 +83,7 @@ class CSRFAction(next: EssentialAction,
     } else if (getTokenFromHeader(request, tokenName, cookieName).isEmpty && createIfNotFound(request)) {
 
       // No token in header and we have to create one if not found, so create a new token
-      val newToken = Crypto.generateSignedToken
+      val newToken = tokenProvider.generateToken
 
       // The request
       val requestWithNewToken = request.copy(tags = request.tags + (Token.RequestTag -> newToken))
@@ -118,9 +119,8 @@ class CSRFAction(next: EssentialAction,
           // extract the token and verify
           body => (for {
             values <- extractor(body).get(tokenName)
-            signedToken <- values.headOption
-            rawToken <- Crypto.extractSignedToken(signedToken)
-          } yield Crypto.constantTimeEquals(rawToken, tokenFromHeader)).getOrElse(false)
+            token <- values.headOption
+          } yield tokenProvider.compareTokens(token, tokenFromHeader)).getOrElse(false)
         )
 
         if (validToken) {
@@ -134,6 +134,7 @@ class CSRFAction(next: EssentialAction,
       })
     }
   }
+
 }
 
 object CSRFAction {
@@ -141,7 +142,6 @@ object CSRFAction {
   private[csrf] def getTokenFromHeader(request: RequestHeader, tokenName: String, cookieName: Option[String]) = {
     cookieName.flatMap(cookie => request.cookies.get(cookie).map(_.value))
       .orElse(request.session.get(tokenName))
-      .flatMap(Crypto.extractSignedToken)
   }
 
   private[csrf] def getTokenFromQueryString(request: RequestHeader, tokenName: String) = {
@@ -195,7 +195,8 @@ object CSRFAction {
  */
 object CSRFCheck {
 
-  private class CSRFCheckAction[A](tokenName: String, cookieName: Option[String], wrapped: Action[A]) extends Action[A] {
+  private class CSRFCheckAction[A](tokenName: String, cookieName: Option[String], tokenProvider: TokenProvider,
+      wrapped: Action[A]) extends Action[A] {
     def parser = wrapped.parser
     def apply(request: Request[A]) = {
 
@@ -218,11 +219,9 @@ object CSRFCheck {
               }
               form.get(tokenName).flatMap(_.headOption)
             })
-            // Extract
-            .flatMap(Crypto.extractSignedToken)
             // Execute if it matches
             .collect {
-              case `headerToken` => wrapped(request)
+              case queryToken if tokenProvider.compareTokens(queryToken, headerToken) => wrapped(request)
             }
         }.getOrElse(Future.successful(Forbidden("CSRF token check failed")))
       }
@@ -233,7 +232,7 @@ object CSRFCheck {
    * Wrap an action in a CSRF check.
    */
   def apply[A](action: Action[A]): Action[A] =
-    new CSRFCheckAction(CSRFConf.TokenName, CSRFConf.CookieName, action)
+    new CSRFCheckAction(CSRFConf.TokenName, CSRFConf.CookieName, CSRFConf.defaultTokenProvider, action)
 }
 
 /**
@@ -244,12 +243,12 @@ object CSRFCheck {
 object CSRFAddToken {
 
   private class CSRFAddTokenAction[A](tokenName: String, cookieName: Option[String], secureCookie: Boolean,
-      wrapped: Action[A]) extends Action[A] {
+      tokenProvider: TokenProvider, wrapped: Action[A]) extends Action[A] {
     def parser = wrapped.parser
     def apply(request: Request[A]) = {
       if (CSRFAction.getTokenFromHeader(request, tokenName, cookieName).isEmpty) {
         // No token in header and we have to create one if not found, so create a new token
-        val newToken = Crypto.generateSignedToken
+        val newToken = tokenProvider.generateToken
 
         // The request
         val requestWithNewToken = new WrappedRequest(request) {
@@ -269,5 +268,6 @@ object CSRFAddToken {
    * Wrap an action in an action that ensures there is a CSRF token.
    */
   def apply[A](action: Action[A]): Action[A] =
-    new CSRFAddTokenAction(CSRFConf.TokenName, CSRFConf.CookieName, CSRFConf.SecureCookie, action)
+    new CSRFAddTokenAction(CSRFConf.TokenName, CSRFConf.CookieName, CSRFConf.SecureCookie,
+      CSRFConf.defaultTokenProvider, action)
 }

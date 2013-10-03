@@ -10,16 +10,16 @@ import play.api.mvc._
  */
 object ScalaCSRFActionSpec extends CSRFCommonSpecs {
 
-  def csrfCheckRequest[T](makeRequest: (WSRequestHolder) => Future[Response])(handleResponse: Response => T) = {
-    withServer {
+  def buildCsrfCheckRequest(configuration: (String, String)*) = new CsrfTester {
+    def apply[T](makeRequest: (WSRequestHolder) => Future[Response])(handleResponse: (Response) => T) = withServer(configuration) {
       case _ => CSRFCheck(Action(Results.Ok))
     } {
       handleResponse(await(makeRequest(WS.url("http://localhost:" + testServerPort))))
     }
   }
 
-  def csrfAddToken[T](makeRequest: (WSRequestHolder) => Future[Response])(handleResponse: Response => T) = {
-    withServer {
+  def buildCsrfAddToken(configuration: (String, String)*) = new CsrfTester {
+    def apply[T](makeRequest: (WSRequestHolder) => Future[Response])(handleResponse: (Response) => T) = withServer(configuration) {
       case _ => CSRFAddToken(Action { implicit req =>
         CSRF.getToken(req).map { token =>
           Results.Ok(token.value)
@@ -29,5 +29,4 @@ object ScalaCSRFActionSpec extends CSRFCommonSpecs {
       handleResponse(await(makeRequest(WS.url("http://localhost:" + testServerPort))))
     }
   }
-
 }
