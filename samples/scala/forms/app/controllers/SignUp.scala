@@ -33,22 +33,19 @@ object SignUp extends Controller {
     !Seq("admin", "guest").contains(user.username)
   }
 
-  def ignored[O](x: O) = Write[O, O](_ => x)
-  def checked[I](implicit b: Rule[I, Boolean]) = b compose Rules.equalTo(true)
-
   implicit val signupValidation = From[Map[String, Seq[String]]] { __ =>
     import Rules._
     (
       // Define a mapping that will handle User values
       (__ \ "username").read(minLength(4)) ~
 
-       // Create a tuple mapping for the password/confirm
+      // Create a tuple mapping for the password/confirm
       (__ \ "password").read(
         ((__ \ "main").read(minLength(6)) ~
          (__ \ "confirm").read[String]).tupled
       )
       // Add an additional constraint: both passwords must match
-      .compose(Rule.uncurry(equalTo[String])).repath(_ => Path \ "password") ~
+      .compose(Rule.uncurry(equalTo[String])) ~
 
       (__ \ "email").read(email) ~
 
