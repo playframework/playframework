@@ -68,7 +68,7 @@ $ /path/to/bin/<project-name> -Dconfig.url=http://conf.mycompany.com/conf/prod.c
 
 ## Overriding specific configuration keys
 
-Sometimes you don't want to specify another complete configuration file, but just override a bunch of specific keys. You can do that by specifying then as Java System properties:
+Sometimes you don't want to specify another complete configuration file, but just override a bunch of specific keys. You can do that by specifying them as Java System properties:
 
 ```
 $ /path/to/bin/<project-name> -Dapplication.secret=verysecretkey -Ddb.default.password=toto
