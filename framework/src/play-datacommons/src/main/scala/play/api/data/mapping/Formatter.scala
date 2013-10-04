@@ -62,16 +62,17 @@ case class Formatter[I](path: Path = Path(Nil)) {
   def write[O](implicit w: Path => Write[O, I]): Write[O, I] = w(path)
 
   /**
-  * When applied, the rule will lookup for data at the given path, and apply the `sub` Rule on it
+  * Create a Write that convert data to type `I`, and put it at Path `path`
   * {{{
   *   val w = To[JsObject] { __ =>
   *      (__ \ "date").write(date("yyyy-MM-dd""))
   *   }
   *   w.writes(new Date()) == Json.obj("date" -> "2013-10-3")
   * }}}
+  * @note since `format` is a by name parameter, this method works fine with recursive writes
   */
-  def write[O, J](format: Write[O, J])(implicit w: Path => Write[J, I]): Write[O, I] =
-    Write((w(path).writes _) compose (format.writes _))
+  def write[O, J](format: => Write[O, J])(implicit w: Path => Write[J, I]): Write[O, I] =
+    w(path).contramap(x => format.writes(x))
 
   def \(key: String): Formatter[I] = Formatter(path \ key)
   def \(idx: Int): Formatter[I] = Formatter(path \ idx)

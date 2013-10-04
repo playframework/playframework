@@ -199,7 +199,6 @@ object MacroSpec extends Specification {
     "create a Write[RecUser]" in {
 
       implicit val catWrite = Write.gen[Cat, UrlFormEncoded]
-
       catWrite.writes(Cat("minou")) must beEqualTo(Map("name" -> Seq("minou")))
 
       // implicit val recUserWrite = Write.gen[RecUser, UrlFormEncoded]

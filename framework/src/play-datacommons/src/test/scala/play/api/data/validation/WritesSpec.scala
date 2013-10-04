@@ -263,6 +263,24 @@ class WritesSpec extends Specification {
       contactWrite.writes(contact) mustEqual contactMap
     }
 
+    "write recursive" in {
+      case class RecUser(name: String, friends: List[RecUser] = Nil)
+      val u = RecUser(
+        "bob",
+        List(RecUser("tom")))
+
+      implicit lazy val w: Write[RecUser, UrlFormEncoded] = To[UrlFormEncoded]{ __ =>
+        ((__ \ "name").write[String] ~
+         (__ \ "friends").write(seq(w)))(unlift(RecUser.unapply _))
+      }
+
+      val m = Map(
+        "name" -> Seq("bob"),
+        "friends[0].name" -> Seq("tom"))
+
+      w.writes(u) mustEqual m
+    }
+
   }
 
 }

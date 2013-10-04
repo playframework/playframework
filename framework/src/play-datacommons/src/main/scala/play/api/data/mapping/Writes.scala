@@ -72,6 +72,9 @@ trait GenericWrites[O] {
   implicit def array[I](implicit w: Write[Seq[I], O]) =
     Write((_: Array[I]).toSeq) compose w
 
+  implicit def list[I](implicit w: Write[Seq[I], O]) =
+    Write((_: List[I]).toSeq) compose w
+
   implicit def traversable[I](implicit w: Write[Seq[I], O]) =
     Write((_: Traversable[I]).toSeq) compose w
 }
@@ -105,14 +108,9 @@ object Writes extends DefaultWrites with GenericWrites[PM.PM] with DefaultMonoid
     toM(repathPM(w.writes(i), path ++ _))
   }
 
-  implicit def ospm[I](implicit w: Write[I, Seq[String]]) = Write[I, PM]{ i =>
-    Map(Path -> w.writes(i))
+  implicit def ospm[I](implicit w: Write[I, String]) = Write[I, PM]{ i =>
+    Map(Path -> Seq(w.writes(i)))
   }
-
-  // implicit def option[I](implicit w: Write[I, Seq[String]]) = Write[Option[I], PM] { m =>
-  //   m.map(s => Map(Path() -> w.writes(s)))
-  //    .getOrElse(Map.empty)
-  // }
 
   implicit def opt[I](implicit w: Path => Write[I, UrlFormEncoded]) =
     option[I, I](Write.zero[I])
