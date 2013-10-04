@@ -50,6 +50,12 @@ class WritesSpec extends Specification {
 
       (Path \ "n").write(option(anyval[Int])).writes(Some(5)) mustEqual Map("n" -> Seq("5"))
       (Path \ "n").write(option(anyval[Int])).writes(None) mustEqual Map.empty
+
+      case class Foo(name: String)
+      implicit val wf = (Path \ "name").write[String, UrlFormEncoded].contramap((_: Foo).name)
+      val wmf = (Path \ "maybe").write[Option[Foo], UrlFormEncoded]
+      wmf.writes(Some(Foo("bar"))) mustEqual Map("maybe.name" -> Seq("bar"))
+      wmf.writes(None) mustEqual Map.empty
     }
 
     "write seq" in {
