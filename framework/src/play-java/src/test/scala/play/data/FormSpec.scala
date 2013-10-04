@@ -111,7 +111,10 @@ class DummyRequest(data: Map[String, Array[String]]) extends play.mvc.Http.Reque
   def cookies() = new play.mvc.Http.Cookies {
     def get(name: String) = null
 
-    def iterator: java.util.Iterator[play.mvc.Http.Cookie] = java.util.Collections.emptyIterator()
+    def iterator: java.util.Iterator[play.mvc.Http.Cookie] = {
+      val cookieList = new java.util.ArrayList[play.mvc.Http.Cookie]()
+      cookieList.iterator()
+    }
   }
   def queryString: java.util.Map[String, Array[String]] = new java.util.HashMap()
   setUsername("peter")
