@@ -857,7 +857,7 @@ public class Http {
     /**
      * HTTP Cookies set
      */
-    public interface Cookies {
+    public interface Cookies extends Iterable<Cookie> {
 
         /**
          * @param name Name of the cookie to retrieve

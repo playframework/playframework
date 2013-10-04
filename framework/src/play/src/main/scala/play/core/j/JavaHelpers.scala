@@ -86,8 +86,28 @@ trait JavaHelpers {
       def accepts(mediaType: String) = req.accepts(mediaType)
 
       def cookies = new JCookies {
-        def get(name: String) = (for (cookie <- req.cookies.get(name))
-          yield new JCookie(cookie.name, cookie.value, cookie.maxAge.map(i => new Integer(i)).orNull, cookie.path, cookie.domain.orNull, cookie.secure, cookie.httpOnly)).getOrElse(null)
+        def get(name: String): JCookie = {
+          req.cookies.get(name).map {
+            cookie => makeJavaCookie(cookie)
+          }.getOrElse(null)
+        }
+
+        private def makeJavaCookie(cookie: Cookie): JCookie = {
+          new JCookie(cookie.name,
+            cookie.value,
+            cookie.maxAge.map(i => new Integer(i)).orNull,
+            cookie.path,
+            cookie.domain.orNull,
+            cookie.secure,
+            cookie.httpOnly)
+        }
+
+        def iterator: java.util.Iterator[JCookie] = {
+          import scala.collection.JavaConversions._
+          req.cookies.toIterator.map {
+            cookie => makeJavaCookie(cookie)
+          }
+        }
       }
 
       override def toString = req.toString
@@ -146,8 +166,28 @@ trait JavaHelpers {
       }
 
       def cookies = new JCookies {
-        def get(name: String) = (for (cookie <- req.cookies.get(name))
-          yield new JCookie(cookie.name, cookie.value, cookie.maxAge.map(i => new Integer(i)).orNull, cookie.path, cookie.domain.orNull, cookie.secure, cookie.httpOnly)).getOrElse(null)
+        def get(name: String): JCookie = {
+          req.cookies.get(name).map {
+            cookie => makeJavaCookie(cookie)
+          }.getOrElse(null)
+        }
+
+        private def makeJavaCookie(cookie: Cookie): JCookie = {
+          new JCookie(cookie.name,
+            cookie.value,
+            cookie.maxAge.map(i => new Integer(i)).orNull,
+            cookie.path,
+            cookie.domain.orNull,
+            cookie.secure,
+            cookie.httpOnly)
+        }
+
+        def iterator: java.util.Iterator[JCookie] = {
+          import scala.collection.JavaConversions._
+          req.cookies.toIterator.map {
+            cookie => makeJavaCookie(cookie)
+          }
+        }
       }
 
       override def toString = req.toString
