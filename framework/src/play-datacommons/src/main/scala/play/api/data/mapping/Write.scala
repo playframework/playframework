@@ -101,24 +101,22 @@ object MappingMacros {
       p <- g
     ) yield {
       val term = p.asTerm
-      q"""(Path \ ${c.literal(term.name.toString)}).write[${term.typeSignature}, ${weakTypeOf[O].normalize}]"""
+      q"""(__ \ ${c.literal(term.name.toString)}).write[${term.typeSignature}]"""
     }
 
-    writes match {
+    // TODO: check return type, should be Option[X]
+    val TypeRef(_, _, ps) = unapply.returnType
+    val t = tq"${weakTypeOf[I].normalize} => ${ps.head}"
+    val body = writes match {
       case w1 :: w2 :: ts =>
         val typeApply = ts.foldLeft(q"$w1 ~ $w2"){ (t1, t2) => q"$t1 ~ $t2" }
-        // TODO: check return type, should be Option[X]
-        val TypeRef(_, _, ps) = unapply.returnType
-        val t = tq"${weakTypeOf[I].normalize} => ${ps.head}"
-        c.Expr[Write[I, O]](q"($typeApply).apply(unlift($unapply(_)): $t)")
+        q"($typeApply).apply(unlift($unapply(_)): $t)"
 
       case w1 :: Nil =>
-        // TODO: check return type, should be Option[X]
-        val TypeRef(_, _, ps) = unapply.returnType
-        val t = tq"${weakTypeOf[I].normalize} => ${ps.head}"
-        c.Expr[Write[I, O]](q"$w1.contramap(unlift($unapply(_)): $t)")
+        q"$w1.contramap(unlift($unapply(_)): $t)"
     }
 
+    c.Expr[Write[I, O]](q"To[${weakTypeOf[O].normalize}] { __ => $body }")
   }
 }
 

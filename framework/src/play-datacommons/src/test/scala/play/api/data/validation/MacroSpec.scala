@@ -80,7 +80,7 @@ case class Dog(name: String, master: User)
 
 case class Cat(name: String)
 
-case class RecUser(name: String, cat: Option[Cat] = None, hobbies: List[String] = List(), friends: List[RecUser] = List())
+case class RecUser(name: String, cat: Option[Cat] = None, hobbies: Seq[String] = Seq(), friends: Seq[RecUser] = Seq())
 
 case class User1(name: String, friend: Option[User1] = None)
 
@@ -201,14 +201,14 @@ object MacroSpec extends Specification {
       implicit val catWrite = Write.gen[Cat, UrlFormEncoded]
       catWrite.writes(Cat("minou")) must beEqualTo(Map("name" -> Seq("minou")))
 
-      // implicit val recUserWrite = Write.gen[RecUser, UrlFormEncoded]
+      // implicit lazy val recUserWrite = Write.gen[RecUser, UrlFormEncoded]
 
       // recUserWrite.writes(
       //   RecUser(
       //     "bob",
       //     Some(Cat("minou")),
-      //     List("bobsleig", "manhunting"),
-      //     List(RecUser("tom"))
+      //     Seq("bobsleig", "manhunting"),
+      //     Seq(RecUser("tom"))
       //   )
       // ) must beEqualTo(
       //   Map(
@@ -243,25 +243,25 @@ object MacroSpec extends Specification {
     //   )
     // }
 
-    // "create a writes[User1]" in {
-    //   import play.api.libs.json.Json
+    /*
+    "create a writes[User1]" in {
 
-    //   implicit val userWrites = Json.writes[User1]
+      implicit val userWrites = Write.gen[User1, UrlFormEncoded]
 
+      userWrites.writes(
+        User1(
+          "bob",
+          Some(User1("tom"))
+        )
+      ) must beEqualTo(
+        Map(
+          "name" -> Seq("bob"),
+          "friend.name" -> Seq("tom" )
+        )
+      )
 
-    //   Json.toJson(
-    //     User1(
-    //       "bob",
-    //       Some(User1("tom"))
-    //     )
-    //   ) must beEqualTo(
-    //     Json.obj(
-    //       "name" -> "bob",
-    //       "friend" -> Json.obj( "name" -> "tom" )
-    //     )
-    //   )
-
-    // }
+    }
+    */
 
     // "create a format[User1]" in {
     //   import play.api.libs.json.Json
