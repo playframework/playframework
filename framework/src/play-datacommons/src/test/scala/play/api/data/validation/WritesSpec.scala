@@ -269,16 +269,31 @@ class WritesSpec extends Specification {
         "bob",
         List(RecUser("tom")))
 
-      implicit lazy val w: Write[RecUser, UrlFormEncoded] = To[UrlFormEncoded]{ __ =>
-        ((__ \ "name").write[String] ~
-         (__ \ "friends").write(seq(w)))(unlift(RecUser.unapply _))
-      }
-
       val m = Map(
         "name" -> Seq("bob"),
         "friends[0].name" -> Seq("tom"))
 
-      w.writes(u) mustEqual m
+      "using explicit notation" in {
+        lazy val w: Write[RecUser, UrlFormEncoded] = To[UrlFormEncoded]{ __ =>
+          ((__ \ "name").write[String] ~
+           (__ \ "friends").write(seq(w)))(unlift(RecUser.unapply _))
+        }
+        w.writes(u) mustEqual m
+
+        lazy val w2: Write[RecUser, UrlFormEncoded] =
+          ((Path \ "name").write[String, UrlFormEncoded] ~
+           (Path \ "friends").write(seq(w2)))(unlift(RecUser.unapply _))
+        w2.writes(u) mustEqual m
+      }
+
+      "using implicit notation" in {
+        implicit lazy val w: Write[RecUser, UrlFormEncoded] = To[UrlFormEncoded]{ __ =>
+          ((__ \ "name").write[String] ~
+           (__ \ "friends").write[Seq[RecUser]])(unlift(RecUser.unapply _))
+        }
+        w.writes(u) mustEqual m
+      }
+
     }
 
   }

@@ -63,8 +63,10 @@ case class Writer[I](path: Path = Path(Nil)) {
   *   }
   *   w.writes(Seq("foo", "bar")) == Json.obj("informations" -> Seq("foo", "bar"))
   * }}}
+  * @note This method works fine with recursive writes
   */
-  def write[O](implicit w: Path => Write[O, I]): Write[O, I] = w(path)
+  def write[O](implicit w: Path => Write[O, I]): Write[O, I] =
+    Write{ x => w(path).writes(x) } // makes it lazy evaluated. Allows recursive writes
 
   /**
   * Create a Write that convert data to type `I`, and put it at Path `path`
@@ -74,7 +76,7 @@ case class Writer[I](path: Path = Path(Nil)) {
   *   }
   *   w.writes(new Date()) == Json.obj("date" -> "2013-10-3")
   * }}}
-  * @note since `format` is a by name parameter, this method works fine with recursive writes
+  * @note This method works fine with recursive writes
   */
   def write[O, J](format: => Write[O, J])(implicit w: Path => Write[J, I]): Write[O, I] =
     w(path).contramap(x => format.writes(x))

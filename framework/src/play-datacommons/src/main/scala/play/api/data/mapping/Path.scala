@@ -70,7 +70,7 @@ class Path(val path: List[PathNode]) {
   *   w.writes(new Date()) == Json.obj("date" -> "2013-10-3")
   * }}}
   */
-  def write[O, J, I](format: Write[O, J])(implicit w: Path => Write[J, I]): Write[O, I] =
+  def write[O, J, I](format: => Write[O, J])(implicit w: Path => Write[J, I]): Write[O, I] =
     Writer[I](this).write(format)
 
   override def toString = this.path match {
