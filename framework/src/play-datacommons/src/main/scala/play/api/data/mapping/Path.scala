@@ -47,10 +47,10 @@ class Path(val path: List[PathNode]) {
   def ++(other: Path) = this compose other
 
   def read[I, J, O](sub: Rule[J, O])(implicit r: Path => Rule[I, J]): Rule[I, O] =
-    Formatter[I](this).read(sub)
+    Reader[I](this).read(sub)
 
   def read[I, O](implicit r: Path => Rule[I, O]): Rule[I, O] =
-    Formatter[I](this).read[O]
+    Reader[I](this).read[O]
 
   /**
   * Creates a Writes the serialize data to the desired output type
@@ -61,7 +61,7 @@ class Path(val path: List[PathNode]) {
   * }}}
   */
   def write[O, I](implicit w: Path => Write[O, I]): Write[O, I] =
-    Formatter[I](this).write(w)
+    Writer[I](this).write(w)
 
   /**
   * Creates a Writes the serialize data to the desired output type using a provided format.
@@ -71,7 +71,7 @@ class Path(val path: List[PathNode]) {
   * }}}
   */
   def write[O, J, I](format: Write[O, J])(implicit w: Path => Write[J, I]): Write[O, I] =
-    Formatter[I](this).write(format)
+    Writer[I](this).write(format)
 
   override def toString = this.path match {
     case Nil => "/"

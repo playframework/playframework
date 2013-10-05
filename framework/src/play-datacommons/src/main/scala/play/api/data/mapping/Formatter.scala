@@ -1,17 +1,16 @@
 package play.api.data.mapping
 
 trait From[I] {
-	def apply[O](f: Formatter[I] => Rule[I, O]) = f(Formatter[I]())
+	def apply[O](f: Reader[I] => Rule[I, O]) = f(Reader[I]())
 }
 object From { def apply[I] = new From[I]{} }
 
 trait To[I] {
-	def apply[O](f: Formatter[I] => Write[O, I]) = f(Formatter[I]())
+	def apply[O](f: Writer[I] => Write[O, I]) = f(Writer[I]())
 }
 object To { def apply[I] = new To[I]{} }
 
-
-case class Formatter[I](path: Path = Path(Nil)) {
+case class Reader[I](path: Path = Path(Nil)) {
   /**
   * When applied, the rule will lookup for data at the given path, and apply the `sub` Rule on it
   * {{{
@@ -50,7 +49,13 @@ case class Formatter[I](path: Path = Path(Nil)) {
   def read[O](implicit r: Path => Rule[I, O]): Rule[I, O] =
     read(Rule.zero[O])(r)
 
-  /**
+  def \(key: String): Reader[I] = Reader(path \ key)
+  def \(idx: Int): Reader[I] = Reader(path \ idx)
+  def \(child: PathNode): Reader[I] = Reader(path \ child)
+}
+
+case class Writer[I](path: Path = Path(Nil)) {
+   /**
   * Create a Write that convert data to type `I`, and put it at Path `path`
   * {{{
   *   val w = To[JsObject] { __ =>
@@ -74,8 +79,7 @@ case class Formatter[I](path: Path = Path(Nil)) {
   def write[O, J](format: => Write[O, J])(implicit w: Path => Write[J, I]): Write[O, I] =
     w(path).contramap(x => format.writes(x))
 
-  def \(key: String): Formatter[I] = Formatter(path \ key)
-  def \(idx: Int): Formatter[I] = Formatter(path \ idx)
-  def \(child: PathNode): Formatter[I] = Formatter(path \ child)
-
+  def \(key: String): Writer[I] = Writer(path \ key)
+  def \(idx: Int): Writer[I] = Writer(path \ idx)
+  def \(child: PathNode): Writer[I] = Writer(path \ child)
 }
