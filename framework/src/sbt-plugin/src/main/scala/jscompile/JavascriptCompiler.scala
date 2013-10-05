@@ -32,7 +32,7 @@ object JavascriptCompiler {
       defaultOptions.closurePass = true
       if (!simpleCheck) {
         defaultOptions.setProcessCommonJSModules(true)
-        defaultOptions.setCommonJSModulePathPrefix(source.getParent() + File.separator)
+        defaultOptions.setCommonJSModulePathPrefix(new File(source.getParent(), File.separator).toURI.getPath)
         defaultOptions.setManageClosureDependencies(Seq(toModuleName(source.getName())).asJava)
       }
       simpleCompilerOptions.foreach(_ match {
