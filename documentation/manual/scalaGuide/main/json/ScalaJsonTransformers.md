@@ -510,6 +510,7 @@ Ok let's write a JSON transformer to do this transformation
 
 ```
 import play.api.libs.json._
+import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
 
 val gizmo2gremlin = (
