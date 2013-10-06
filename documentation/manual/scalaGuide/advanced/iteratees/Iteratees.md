@@ -26,7 +26,9 @@ An iteratee has one of three states, `Cont` meaning accepting more input, `Error
 ```scala
 def fold[B](folder: Step[E, A] => Future[B]): Future[B]
 ```
-where `Step`  object has 3 states :
+
+where the `Step` object has 3 states :
+
 ```scala
 object Step {
   case class Done[+A, E](a: A, remaining: Input[E]) extends Step[E, A]
