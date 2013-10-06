@@ -253,7 +253,7 @@ Now the first version of the dashboard is almost done, but it's not very pretty.
 
 > There is nothing stopping you from using plain CSS for your stylesheets, but Play framework comes in built with LESS support, which allows you to define stylesheets in a more dynamic fashion, using varaibles, mixins, functions etc.
 
-Explaining CSS and LESS is beyond the scope of this tutorial, so for now we'll just get you to download the stylesheets that we've already written.  These stylesheets should contain all the styles needed to build the rest of the site.  You can download a tarball of these files [here](javaGuide/tutorials/zentasks/files/less-stylesheets.tar.gz), which you can extract from the root folder of your project, this will place a number of `*.less` files in the `app/assets/stylesheets` directory.
+Explaining CSS and LESS is beyond the scope of this tutorial, so for now we'll just get you to download the stylesheets that we've already written.  These stylesheets should contain all the styles needed to build the rest of the site.  You can download a tarball of these files [here](resources/manual/javaGuide/tutorials/zentasks/files/less-stylesheets.tar.gz), which you can extract from the root folder of your project, this will place a number of `*.less` files in the `app/assets/stylesheets` directory.
 
 LESS stylesheets need to be compiled to CSS before they can be used.  Just like Play automatically compiles the routes, Java code and templates, when Play sees LESS files on your classpath, it will automatically compile them, and recompile them each time you change them.  And again, it displays errors beautifully in your browser if a compile error is encountered.
 
