@@ -201,25 +201,23 @@ object MacroSpec extends Specification {
       implicit val catWrite = Write.gen[Cat, UrlFormEncoded]
       catWrite.writes(Cat("minou")) must beEqualTo(Map("name" -> Seq("minou")))
 
-      // implicit lazy val recUserWrite = Write.gen[RecUser, UrlFormEncoded]
+      implicit lazy val recUserWrite: Write[RecUser, UrlFormEncoded] = Write.gen[RecUser, UrlFormEncoded]
 
-      // recUserWrite.writes(
-      //   RecUser(
-      //     "bob",
-      //     Some(Cat("minou")),
-      //     Seq("bobsleig", "manhunting"),
-      //     Seq(RecUser("tom"))
-      //   )
-      // ) must beEqualTo(
-      //   Map(
-      //     "name" -> Seq("bob"),
-      //     "cat.name" -> Seq("minou"),
-      //     "hobbies[0]" -> Seq("bobsleig"),
-      //     "hobbies[1]" -> Seq("manhunting"),
-      //     "friends[0].name" -> Seq("tom"),
-      //     "friends[0].hobbies" -> Seq(),
-      //     "friends[0].friends" -> Seq())
-      // )
+      recUserWrite.writes(
+        RecUser(
+          "bob",
+          Some(Cat("minou")),
+          Seq("bobsleig", "manhunting"),
+          Seq(RecUser("tom"))
+        )
+      ) must beEqualTo(
+        Map(
+          "name" -> Seq("bob"),
+          "cat.name" -> Seq("minou"),
+          "hobbies[0]" -> Seq("bobsleig"),
+          "hobbies[1]" -> Seq("manhunting"),
+          "friends[0].name" -> Seq("tom"))
+      )
 
     }
 
@@ -243,25 +241,20 @@ object MacroSpec extends Specification {
     //   )
     // }
 
-    /*
-    "create a writes[User1]" in {
 
-      implicit val userWrites = Write.gen[User1, UrlFormEncoded]
+    "create a writes[User1]" in {
+      implicit lazy val userWrites: Write[User1, UrlFormEncoded] = Write.gen[User1, UrlFormEncoded]
 
       userWrites.writes(
         User1(
           "bob",
-          Some(User1("tom"))
-        )
+          Some(User1("tom")))
       ) must beEqualTo(
         Map(
           "name" -> Seq("bob"),
-          "friend.name" -> Seq("tom" )
-        )
-      )
-
+          "friend.name" -> Seq("tom" )))
     }
-    */
+
 
     // "create a format[User1]" in {
     //   import play.api.libs.json.Json

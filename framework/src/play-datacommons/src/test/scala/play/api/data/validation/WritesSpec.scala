@@ -273,6 +273,12 @@ class WritesSpec extends Specification {
         "name" -> Seq("bob"),
         "friends[0].name" -> Seq("tom"))
 
+      case class User1(name: String, friend: Option[User1] = None)
+      val u1 = User1("bob", Some(User1("tom")))
+      val m1 = Map(
+        "name" -> Seq("bob"),
+        "friend.name" -> Seq("tom"))
+
       "using explicit notation" in {
         lazy val w: Write[RecUser, UrlFormEncoded] = To[UrlFormEncoded]{ __ =>
           ((__ \ "name").write[String] ~
@@ -284,6 +290,12 @@ class WritesSpec extends Specification {
           ((Path \ "name").write[String, UrlFormEncoded] ~
            (Path \ "friends").write(seq(w2)))(unlift(RecUser.unapply _))
         w2.writes(u) mustEqual m
+
+        lazy val w3: Write[User1, UrlFormEncoded] = To[UrlFormEncoded]{ __ =>
+          ((__ \ "name").write[String] ~
+           (__ \ "friend").write(option(w3)))(unlift(User1.unapply _))
+        }
+        w3.writes(u1) mustEqual m1
       }
 
       "using implicit notation" in {
@@ -292,6 +304,12 @@ class WritesSpec extends Specification {
            (__ \ "friends").write[Seq[RecUser]])(unlift(RecUser.unapply _))
         }
         w.writes(u) mustEqual m
+
+        implicit lazy val w3: Write[User1, UrlFormEncoded] = To[UrlFormEncoded]{ __ =>
+          ((__ \ "name").write[String] ~
+           (__ \ "friend").write[Option[User1]])(unlift(User1.unapply _))
+        }
+        w3.writes(u1) mustEqual m1
       }
 
     }
