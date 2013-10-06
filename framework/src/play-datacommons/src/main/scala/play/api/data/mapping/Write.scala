@@ -17,14 +17,14 @@ trait Write[I, +O] {
    * }}}
    */
   def map[B](f: O => B) = Write[I, B] {
-    f compose (this.writes _)
+    f.compose(x => this.writes(x))
   }
 
   /**
    * Returns a new Write that applies `this` Write, and then applies `w` to its result
    */
   def compose[OO >: O, P](w: Write[OO, P]) =
-    Write((w.writes _) compose (this.writes _))
+    this.map(o => w.writes(o))
 }
 
 trait DefaultMonoids {
@@ -104,9 +104,12 @@ object MappingMacros {
       q"""(__ \ ${c.literal(term.name.toString)}).write[${term.typeSignature}]"""
     }
 
+    val typeI = weakTypeOf[I].normalize
+    val typeO = weakTypeOf[O].normalize
+
     // TODO: check return type, should be Option[X]
     val TypeRef(_, _, ps) = unapply.returnType
-    val t = tq"${weakTypeOf[I].normalize} => ${ps.head}"
+    val t = tq"${typeI} => ${ps.head}"
     val body = writes match {
       case w1 :: w2 :: ts =>
         val typeApply = ts.foldLeft(q"$w1 ~ $w2"){ (t1, t2) => q"$t1 ~ $t2" }
@@ -116,7 +119,12 @@ object MappingMacros {
         q"$w1.contramap(unlift($unapply(_)): $t)"
     }
 
-    c.Expr[Write[I, O]](q"To[${weakTypeOf[O].normalize}] { __ => $body }")
+    // XXX: recursive values need the user to use explcitly typed implicit val
+    c.Expr[Write[I, O]](q"""To[${typeO}] { __ => $body }""")
+  }
+
+  def rule[I: c.WeakTypeTag, O: c.WeakTypeTag](c: Context): c.Expr[Rule[I, O]] = {
+    ???
   }
 }
 

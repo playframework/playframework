@@ -52,11 +52,12 @@ trait DateWrites {
 trait DefaultWrites extends DateWrites {
   import play.api.libs.functional.Monoid
 
-  protected def option[I, J, O](r: Write[I, J], empty: O)(implicit w: Path => Write[J, O]) = (p: Path) => Write[Option[I], O] { maybeI =>
-    maybeI.map{ i =>
-      w(p).contramap(r.writes).writes(i)
-    }.getOrElse(empty)
-  }
+  protected def option[I, J, O](r: => Write[I, J], empty: O)(implicit w: Path => Write[J, O]) =
+    (p: Path) => Write[Option[I], O] { maybeI =>
+      maybeI.map{ i =>
+        w(p).contramap(r.writes).writes(i)
+      }.getOrElse(empty)
+    }
 
   implicit def seq[I, O](implicit w: Write[I, O]) = Write[Seq[I], Seq[O]] {
     _.map(w.writes)
@@ -115,6 +116,6 @@ object Writes extends DefaultWrites with GenericWrites[PM.PM] with DefaultMonoid
   implicit def opt[I](implicit w: Path => Write[I, UrlFormEncoded]) =
     option[I, I](Write.zero[I])
 
-  def option[I, J](r: Write[I, J])(implicit w: Path => Write[J, UrlFormEncoded]) =
+  def option[I, J](r: => Write[I, J])(implicit w: Path => Write[J, UrlFormEncoded]) =
     super.option[I, J, UrlFormEncoded](r, Map.empty)
 }
