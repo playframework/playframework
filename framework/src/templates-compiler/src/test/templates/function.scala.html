@@ -1,0 +1,2 @@
+@(arg1:String, arg2: => String, arg3:String *)(arg4:String, arg5: => String, arg6:String *)(arg7:List[String], arg8: => List[String], arg9:List[String] *)(implicit arg10:String)
+@arg1,@arg2,@arg3.mkString(","),@arg4,@arg5,@arg6.mkString(","),@arg7.mkString,@arg8.mkString,@arg9.map(_.mkString).mkString(","),@arg10
