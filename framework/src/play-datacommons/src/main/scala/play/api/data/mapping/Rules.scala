@@ -200,6 +200,7 @@ object Rules extends DefaultRules[PM.PM] {
 
   implicit def mapPickSeqMap(p: Path) = Rule.fromMapping[UrlFormEncoded, Seq[UrlFormEncoded]]({ data =>
     val grouped = PM.find(p)(PM.toPM(data)).toSeq.flatMap {
+      case (Path, vs) => Seq(0 -> Map(Path -> vs))
       case (Path(IdxPathNode(i) :: Nil) \: t, vs) => Seq(i -> Map(t -> vs))
       case _ => Nil
     }.groupBy(_._1).mapValues(_.map(_._2)) // returns all the submap, grouped by index
