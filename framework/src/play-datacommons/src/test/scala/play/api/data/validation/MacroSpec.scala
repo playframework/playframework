@@ -124,20 +124,19 @@ object Program {
 //   implicit val person2Fmt = Json.format[Person2]
 // }
 
-
 object MacroSpec extends Specification {
 
   import Writes._
+  import Rules._
 
   "MappingMacros" should {
-    // "create a reads[User]" in {
-    //   import play.api.libs.json.Json
 
-    //   //object User {def apply(age:Int):User = User(age,"")}
-    //   implicit val userReads = Json.reads[User]
+    "create a Rule[User]" in {
+      //object User {def apply(age:Int):User = User(age,"")}
+      implicit val userReads = Rule.gen[UrlFormEncoded, User]
 
-    //   Json.fromJson[User](Json.obj("name" -> "toto", "age" -> 45)) must beEqualTo(JsSuccess(User(45, "toto")))
-    // }
+      userReads.validate(Map("name" -> Seq("toto"), "age" -> Seq("45"))) must beEqualTo(Success(User(45, "toto")))
+    }
 
     "create a Write[User]" in {
       implicit val userWrites = Write.gen[User, UrlFormEncoded]

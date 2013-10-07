@@ -90,6 +90,9 @@ trait Rule[I, O] {
 }
 
 object Rule {
+  import scala.language.experimental.macros
+
+  def gen[I, O]: Rule[I, O] = macro MappingMacros.rule[I, O]
 
   /**
   * Turn a `A => Rule[B, C]` into a `Rule[(A, B), C]`
