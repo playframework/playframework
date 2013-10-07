@@ -143,22 +143,19 @@ object MacroSpec extends Specification {
       userWrites.writes(User(45, "toto")) must beEqualTo(Map("name" -> Seq("toto"), "age" -> Seq("45")))
     }
 
-    // "create a Rule[Dog]" in {
-    //   implicit val userRule = Rule.gen[UrlFormEncoded, User]
+    "create a Rule[Dog]" in {
+      implicit val userRule = Rule.gen[UrlFormEncoded, User]
+      implicit val dogRule = Rule.gen[UrlFormEncoded, Dog]
 
-    //   implicitly[Rule[UrlFormEncoded, User]]
+      dogRule.validate(
+        Map(
+          "name" -> Seq("medor"),
+          "master.name" -> Seq("toto"),
+          "master.age" -> Seq("45")
+        )
+      ) must beEqualTo(Success(Dog("medor", User(45, "toto"))))
 
-    //   implicit val dogRule = Rule.gen[UrlFormEncoded, Dog]
-
-    //   dogRule.validate(
-    //     Map(
-    //       "name" -> Seq("medor"),
-    //       "master.name" -> Seq("toto"),
-    //       "master.age" -> Seq("45")
-    //     )
-    //   ) must beEqualTo(Success(Dog("medor", User(45, "toto"))))
-
-    // }
+    }
 
     "create a Write[Dog]" in {
       implicit val userWrite = Write.gen[User, UrlFormEncoded]

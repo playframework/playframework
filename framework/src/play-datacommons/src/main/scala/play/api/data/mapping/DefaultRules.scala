@@ -266,6 +266,65 @@ trait GenericRules {
   def checked[I](implicit b: Rule[I, Boolean]) = b compose Rules.equalTo(true)
 }
 
+trait ParsingRules {
+
+  self: GenericRules =>
+
+  private def stringAs[T](f: PartialFunction[BigDecimal, Validation[ValidationError, T]])(args: Any*) =
+    Rule.fromMapping[String, T]{
+      val toB: PartialFunction[String, BigDecimal] = { case s if s.matches("""[-+]?[0-9]*\.?[0-9]+""") => BigDecimal(s) }
+      toB.lift(_)
+        .flatMap(f.lift)
+        .getOrElse(Failure(Seq(ValidationError("validation.type-mismatch", args: _*))))
+    }
+
+  implicit def int = stringAs {
+    case s if s.isValidInt => Success(s.toInt)
+  }("Int")
+
+  implicit def short = stringAs {
+    case s if s.isValidShort => Success(s.toShort)
+  }("Short")
+
+  implicit def boolean = Rule.fromMapping[String, Boolean]{
+    pattern("""(?iu)true|false""".r).validate(_: String)
+      .map(java.lang.Boolean.parseBoolean)
+      .fail.map(_ => Seq(ValidationError("validation.type-mismatch", "Boolean")))
+  }
+
+  implicit def long = stringAs {
+    case s if s.isValidLong => Success(s.toLong)
+  }("Long")
+
+  // BigDecimal.isValidFloat is buggy, see [SI-6699]
+  import java.{lang => jl}
+  private def isValidFloat(bd: BigDecimal) = {
+    val d = bd.toFloat
+    !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(jl.Float.toString(d), bd.mc)) == 0
+  }
+  implicit def float = stringAs {
+    case s if isValidFloat(s) => Success(s.toFloat)
+  }("Float")
+
+  // BigDecimal.isValidDouble is buggy, see [SI-6699]
+  private def isValidDouble(bd: BigDecimal) = {
+    val d = bd.toDouble
+    !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(jl.Double.toString(d), bd.mc)) == 0
+  }
+  implicit def double = stringAs {
+    case s if isValidDouble(s) => Success(s.toDouble)
+  }("Double")
+
+  import java.{ math => jm }
+  implicit def javaBigDecimal = stringAs {
+    case s => Success(s.bigDecimal)
+  }("BigDecimal")
+
+  implicit def bigDecimal = stringAs {
+    case s => Success(s)
+  }("BigDecimal")
+}
+
 /**
 * DefaultRules provides basic rules implementations for inputs of type `I`
 * Extends this trait if your implementing a new set of Rules for `I`.

@@ -93,67 +93,12 @@ object PM {
 /**
  * This object provides Rules for Map[String, Seq[String]]
  */
-object Rules extends DefaultRules[PM.PM] {
+object Rules extends DefaultRules[PM.PM] with ParsingRules {
   import scala.language.implicitConversions
   import play.api.libs.functional._
   import play.api.libs.functional.syntax._
 
   import PM._
-
-  private def stringAs[T](f: PartialFunction[BigDecimal, Validation[ValidationError, T]])(args: Any*) =
-    Rule.fromMapping[String, T]{
-      val toB: PartialFunction[String, BigDecimal] = { case s if s.matches("""[-+]?[0-9]*\.?[0-9]+""") => BigDecimal(s) }
-      toB.lift(_)
-        .flatMap(f.lift)
-        .getOrElse(Failure(Seq(ValidationError("validation.type-mismatch", args: _*))))
-    }
-
-  implicit def int = stringAs {
-    case s if s.isValidInt => Success(s.toInt)
-  }("Int")
-
-  implicit def short = stringAs {
-    case s if s.isValidShort => Success(s.toShort)
-  }("Short")
-
-  implicit def boolean = Rule.fromMapping[String, Boolean]{
-    pattern("""(?iu)true|false""".r).validate(_: String)
-      .map(java.lang.Boolean.parseBoolean)
-      .fail.map(_ => Seq(ValidationError("validation.type-mismatch", "Boolean")))
-  }
-
-  implicit def long = stringAs {
-    case s if s.isValidLong => Success(s.toLong)
-  }("Long")
-
-  // BigDecimal.isValidFloat is buggy, see [SI-6699]
-  import java.{lang => jl}
-  private def isValidFloat(bd: BigDecimal) = {
-    val d = bd.toFloat
-    !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(jl.Float.toString(d), bd.mc)) == 0
-  }
-  implicit def float = stringAs {
-    case s if isValidFloat(s) => Success(s.toFloat)
-  }("Float")
-
-  // BigDecimal.isValidDouble is buggy, see [SI-6699]
-  private def isValidDouble(bd: BigDecimal) = {
-    val d = bd.toDouble
-    !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(jl.Double.toString(d), bd.mc)) == 0
-  }
-  implicit def double = stringAs {
-    case s if isValidDouble(s) => Success(s.toDouble)
-  }("Double")
-
-  import java.{ math => jm }
-  implicit def javaBigDecimal = stringAs {
-    case s => Success(s.bigDecimal)
-  }("BigDecimal")
-
-  implicit def bigDecimal = stringAs {
-    case s => Success(s)
-  }("BigDecimal")
-
 
   // implicit def pickInRequest[I, O](p: Path[Request[I]])(implicit pick: Path[I] => Mapping[String, I, O]): Mapping[String, Request[I], O] =
   //   request => pick(Path[I](p.path))(request.body)
