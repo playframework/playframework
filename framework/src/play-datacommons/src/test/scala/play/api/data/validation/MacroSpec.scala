@@ -143,18 +143,20 @@ object MacroSpec extends Specification {
       userWrites.writes(User(45, "toto")) must beEqualTo(Map("name" -> Seq("toto"), "age" -> Seq("45")))
     }
 
-    // "create a reads[Dog]" in {
-    //   import play.api.libs.json.Json
+    // "create a Rule[Dog]" in {
+    //   implicit val userRule = Rule.gen[UrlFormEncoded, User]
 
-    //   implicit val userReads = Json.reads[User]
-    //   implicit val dogReads = Json.reads[Dog]
+    //   implicitly[Rule[UrlFormEncoded, User]]
 
-    //   Json.fromJson[Dog](
-    //     Json.obj(
-    //       "name" -> "medor",
-    //       "master" -> Json.obj("name" -> "toto", "age" -> 45)
+    //   implicit val dogRule = Rule.gen[UrlFormEncoded, Dog]
+
+    //   dogRule.validate(
+    //     Map(
+    //       "name" -> Seq("medor"),
+    //       "master.name" -> Seq("toto"),
+    //       "master.age" -> Seq("45")
     //     )
-    //   ) must beEqualTo(JsSuccess(Dog("medor", User(45, "toto"))))
+    //   ) must beEqualTo(Success(Dog("medor", User(45, "toto"))))
 
     // }
 
@@ -169,18 +171,28 @@ object MacroSpec extends Specification {
           "master.age" -> Seq("45")))
     }
 
-    // "create a reads[RecUser]" in {
-    //   import play.api.libs.json.Json
+    // "create a Rule[RecUser]" in {
+    //   implicit val catRule = Rule.gen[UrlFormEncoded, Cat]
 
-    //   implicit val catReads = Json.reads[Cat]
-    //   implicit val recUserReads = Json.reads[RecUser]
+    //   // implicitly[Rule[UrlFormEncoded, Cat]]
+    //   // implicitly[Rule[PM.PM, PM.PM]]
+    //   // implicitly[Rule[PM.PM, Cat]]
+    //   // implicitly[Rule[PM.PM, Option[Cat]]]
+    //   // implicitly[Rule[UrlFormEncoded, Option[Cat]]]
 
-    //   Json.fromJson[RecUser](
-    //     Json.obj(
-    //       "name" -> "bob",
-    //       "cat" -> Json.obj("name" -> "minou"),
-    //       "hobbies" -> Json.arr("bobsleig", "manhunting"),
-    //       "friends" -> Json.arr(Json.obj( "name" -> "tom", "hobbies" -> Json.arr(), "friends" -> Json.arr() ))
+    //   catRule.validate(
+    //     Map("name" -> Seq("minou"))
+    //   ) must beEqualTo(Success(Cat("minou")))
+
+    //   implicit val recUserRule = Rule.gen[UrlFormEncoded, RecUser]
+
+    //   recUserRule.validate(
+    //     Map(
+    //       "name" -> Seq("bob"),
+    //       "cat.name" -> Seq("minou"),
+    //       "hobbies[0]" -> Seq("bobsleig"),
+    //       "hobbies[1]" -> Seq("manhunting"),
+    //       "friends[0].name" -> Seq("tom")
     //     )
     //   ) must beEqualTo(
     //     JsSuccess(

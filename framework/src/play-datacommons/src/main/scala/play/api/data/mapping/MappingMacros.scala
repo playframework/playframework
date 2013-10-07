@@ -115,17 +115,16 @@ object MappingMacros {
 
     val xs: List[Ident] = apply.paramss.head.map(s => Ident(s.name))
     val vs: List[ValDef] = apply.paramss.head.map(s => ValDef(Modifiers(PARAM), newTermName(s.name.encoded), TypeTree(), EmptyTree))
-    val applyƒ = q"{ (..$vs) => $apply(..$xs) }"
-
     val companionSymbol = weakTypeOf[O].typeSymbol.companionSymbol
+    val applyƒ = q"{ (..$vs) => ${companionSymbol.typeSignature}.apply(..$xs) }"
 
     val body = writes match {
       case w1 :: w2 :: ts =>
         val typeApply = ts.foldLeft(q"$w1 ~ $w2"){ (t1, t2) => q"$t1 ~ $t2" }
-        q"($typeApply).apply{ (age, name) => ${companionSymbol.typeSignature}.apply(age, name) }"
+        q"($typeApply).apply($applyƒ)"
 
       case w1 :: Nil =>
-        q"$w1.contramap($applyƒ)"
+        q"$w1.fmap($applyƒ)"
     }
 
     // XXX: recursive values need the user to use explcitly typed implicit val

@@ -93,7 +93,7 @@ object PM {
 /**
  * This object provides Rules for Map[String, Seq[String]]
  */
-object Rules extends DefaultRules[UrlFormEncoded] {
+object Rules extends DefaultRules[PM.PM] {
   import scala.language.implicitConversions
   import play.api.libs.functional._
   import play.api.libs.functional.syntax._
@@ -158,34 +158,45 @@ object Rules extends DefaultRules[UrlFormEncoded] {
   // implicit def pickInRequest[I, O](p: Path[Request[I]])(implicit pick: Path[I] => Mapping[String, I, O]): Mapping[String, Request[I], O] =
   //   request => pick(Path[I](p.path))(request.body)
 
-  implicit def map[O](implicit r: Rule[Seq[String], O]): Rule[UrlFormEncoded, Map[String, O]] = {
-    val toSeq = Rule.zero[UrlFormEncoded].fmap(_.toSeq)
+  implicit def map[O](implicit r: Rule[Seq[String], O]): Rule[PM, Map[String, O]] = {
+    val toSeq = Rule.zero[PM].fmap(_.toSeq.map { case (k, v) =>  asKey(k) -> v })
     super.map[Seq[String], O](r,  toSeq)
   }
 
-  implicit def option[O](implicit pick: Path => Rule[UrlFormEncoded, Seq[String]], coerce: Rule[Seq[String], O]): Path => Rule[UrlFormEncoded, Option[O]] =
-    super.option(coerce)
+  def pmPick[O](implicit p: Path => Rule[UrlFormEncoded, O]): Path => Rule[PM, O] =
+    path => Rule { pm => p(path).validate(toM(pm)) }
 
-  def option[J, O](r: Rule[J, O])(implicit pick: Path => Rule[UrlFormEncoded, Seq[String]], coerce: Rule[Seq[String], J]): Path => Rule[UrlFormEncoded, Option[O]] =
-    super.option(coerce compose r)
+  implicit def conv = Rule[PM, UrlFormEncoded] { pm => Success(toM(pm))}
 
-  implicit def pickInMap[O](p: Path)(implicit r: Rule[Seq[String], O]) = Rule.fromMapping[UrlFormEncoded, Seq[String]] {
-    data =>
-      PM.find(p)(PM.toPM(data)).toSeq.flatMap {
-        case (Path(Nil) | Path(Seq(IdxPathNode(_))), ds) => ds
-        case _ => Nil
-      } match {
-        case Nil => Failure[ValidationError, Seq[String]](Seq(ValidationError("validation.required")))
-        case m => Success[ValidationError, Seq[String]](m)
-      }
-  }.compose(r)
-
-  implicit def mapPick[O](path: Path)(implicit r: Rule[UrlFormEncoded, O]): Rule[UrlFormEncoded, O] = Rule.fromMapping[UrlFormEncoded, UrlFormEncoded] { data =>
-    PM.toM(PM.find(path)(PM.toPM(data))) match {
-      case s if s.isEmpty => Failure(Seq(ValidationError("validation.required")))
-      case s => Success(s)
+  implicit def option[O](implicit coerce: Rule[PM, O]): Path => Rule[UrlFormEncoded, Option[O]] =
+    path => {
+      Rule.zero[UrlFormEncoded].fmap(toPM)
+        .compose{
+          val pick = pmPick(mapPick(Rule.zero[PM]))
+          super.option(coerce)(pick)(path)
+        }
     }
+
+  def option[J, O](r: Rule[J, O])(implicit coerce: Rule[PM, J]): Path => Rule[UrlFormEncoded, Option[O]] =
+    this.option(coerce compose r)
+
+  implicit def pick[O](implicit r: Rule[Seq[String], O]): Rule[PM, O] = Rule[PM, Seq[String]] { pm =>
+    val vs = pm.toSeq.flatMap {
+      case (Path, vs) => Seq(0 -> vs)
+      case (Path(Seq(IdxPathNode(i))), vs) => Seq(i -> vs)
+      case _ => Seq()
+    }.sortBy(_._1).flatMap(_._2)
+    Success(vs)
   }.compose(r)
+
+  implicit def mapPick[O](implicit r: Rule[PM, O]): Path => Rule[UrlFormEncoded, O] =
+    (path: Path) =>
+      Rule.fromMapping[UrlFormEncoded, PM] { data =>
+        PM.find(path)(toPM(data)) match {
+          case s if s.isEmpty => Failure(Seq(ValidationError("validation.required")))
+          case s => Success(s)
+        }
+      }.compose(r)
 
   implicit def mapPickSeqMap(p: Path) = Rule.fromMapping[UrlFormEncoded, Seq[UrlFormEncoded]]({ data =>
     val grouped = PM.find(p)(PM.toPM(data)).toSeq.flatMap {
