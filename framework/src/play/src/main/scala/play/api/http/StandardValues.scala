@@ -54,6 +54,11 @@ trait ContentTypes {
   def EVENT_STREAM(implicit codec: Codec) = withCharset(MimeTypes.EVENT_STREAM)
 
   /**
+   * Content-Type of application cache.
+   */
+  val CACHE_MANIFEST = withCharset(MimeTypes.CACHE_MANIFEST)(Codec.utf_8)
+
+  /**
    * Content-Type of binary data.
    */
   val BINARY = MimeTypes.BINARY
@@ -115,6 +120,11 @@ trait MimeTypes {
    * Content-Type of binary data.
    */
   val BINARY = "application/octet-stream"
+
+  /**
+   * Content-Type of application cache.
+   */
+  val CACHE_MANIFEST = "text/cache-manifest"
 
 }
 
