@@ -1,18 +1,21 @@
 /*
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
-import java.io.File
-import java.net.{URL, URLConnection, Socket}
+import java.io.{InputStreamReader, FileInputStream, File}
+import java.net.{HttpURLConnection, URL, URLConnection, Socket}
 import java.security.cert.X509Certificate
 import java.security.KeyStore
-import javax.net.ssl.{HttpsURLConnection, SSLSocket, SSLContext, X509TrustManager}
+import javax.net.ssl._
 import javax.security.auth.x500.X500Principal
 import org.specs2.execute.{Result, AsResult}
 import org.specs2.matcher.{Expectable, Matcher}
 import org.specs2.mutable.{Around, Specification}
 import org.specs2.specification.Scope
+import play.api.test.FakeApplication
+import play.api.test.TestServer
 import play.api.test.{Helpers, FakeApplication, TestServer}
 import play.core.server.netty.FakeKeyStore
+import scala.Some
 
 class SslSpec extends Specification {
 
@@ -33,15 +36,9 @@ class SslSpec extends Specification {
     }
     "report a tampered keystore" in new Ssl(keyStore = Some("conf/badKeystore.jks"), password = Some("password")) {
       val conn = createConn
-      conn.getResponseCode must throwA[java.io.IOException].like {
-        case e => e.getMessage must startWith("Remote host closed connection during handshake")        
-        /*
-          What I'd really like to test for is that the log contains "Keystore was tampered with, or password was incorrect"
-          but I don't know how to do that...
-        */
-      }
+      conn.getResponseCode must throwA[java.io.IOException] //different VMs return different exceptions here.
     }
-    
+
   }
 
   abstract class Ssl(keyStore: Option[String] = None,
@@ -77,15 +74,45 @@ class SslSpec extends Specification {
     }
   }
 
+  def contentAsString(conn: HttpURLConnection) = {
+    resource.managed(new InputStreamReader(conn.getInputStream)).acquireAndGet { in =>
+      val buf = new Array[Char](1024)
+      var i = 0
+      val answer = new StringBuffer()
+      while( i!= -1) {
+        answer.append(buf,0,i)
+        i = in.read(buf)
+      }
+      answer.toString
+    }
+  }
+
   def createConn = {
     val conn = new URL("https://localhost:" + SslPort + "/json").openConnection().asInstanceOf[HttpsURLConnection]
-    conn.setSSLSocketFactory(sslFactory)
+    conn.setSSLSocketFactory(sslFactory())
     conn
   }
 
-  def sslFactory = {
+  def clientCertRequest(withClientCert: Boolean = true) = {
+    val conn = new URL("https://localhost:" + SslPort + "/clientCert").openConnection().asInstanceOf[HttpsURLConnection]
+    conn.setSSLSocketFactory(sslFactory(withClientCert))
+    conn
+  }
+
+  def sslFactory(withClientCert: Boolean = true) = {
+    val kms = if (withClientCert) {
+      val ks = KeyStore.getInstance("PKCS12")
+      val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm)
+      for (in <- resource.managed(new FileInputStream("conf/bobclient.p12"))) {
+        ks.load(in, "password".toCharArray)
+      }
+      kmf.init(ks, "password".toCharArray)
+      kmf.getKeyManagers
+    } else {
+      null
+    }
     val ctx = SSLContext.getInstance("TLS")
-    ctx.init(null, Array(MockTrustManager()), null)
+    ctx.init(kms, Array(MockTrustManager()), null)
     ctx.getSocketFactory
   }
 

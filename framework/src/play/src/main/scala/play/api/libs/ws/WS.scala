@@ -3,26 +3,30 @@
  */
 package play.api.libs.ws
 
-import collection.immutable.TreeMap
-
-import scala.concurrent.{ Future, Promise }
-
 import java.io.File
 import java.util.concurrent.atomic.AtomicReference
-
-import play.api.http.{ Writeable, ContentTypeOf }
+import scala.concurrent.{ Future, Promise }
 import play.api.libs.iteratee._
-import play.api.libs.iteratee.Input.El
-
+import play.api.libs.iteratee.Input._
+import play.api.http.{ Writeable, ContentTypeOf }
+import com.ning.http.client.{
+  AsyncHttpClient,
+  AsyncHttpClientConfig,
+  RequestBuilderBase,
+  FluentCaseInsensitiveStringsMap,
+  HttpResponseBodyPart,
+  HttpResponseHeaders,
+  HttpResponseStatus,
+  Response => AHCResponse,
+  Cookie => AHCCookie,
+  PerRequestConfig
+}
+import collection.immutable.TreeMap
 import play.core.utils.CaseInsensitiveOrdered
+import com.ning.http.util.AsyncHttpProviderUtils
+
 import play.core.Execution.Implicits.internalContext
 import play.api.Play
-
-import com.ning.http.client.{ Response => AHCResponse, Cookie => AHCCookie, ProxyServer => AHCProxyServer, _ }
-
-import com.ning.http.util.AsyncHttpProviderUtils
-import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
-import javax.net.ssl.SSLContext
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -335,7 +339,7 @@ trait WSRequestBuilder {
    *
    * @param url the URL to request
    */
-  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None, None, None)
+  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None, None)
 
   /**
    * A WS Request builder.
@@ -347,9 +351,9 @@ trait WSRequestBuilder {
       auth: Option[Tuple3[String, String, AuthScheme]],
       followRedirects: Option[Boolean],
       requestTimeout: Option[Int],
-      virtualHost: Option[String],
-      proxyServer: Option[ProxyServer]) {
+      virtualHost: Option[String]) {
 
+    import WS.WSRequest
     /**
      * sets the signature calculator for the request
      * @param calc
@@ -358,9 +362,7 @@ trait WSRequestBuilder {
 
     /**
      * sets the authentication realm
-     * @param username
-     * @param password
-     * @param scheme
+     * @param calc
      */
     def withAuth(username: String, password: String, scheme: AuthScheme): WSRequestHolder =
       this.copy(auth = Some((username, password, scheme)))
