@@ -110,7 +110,7 @@ object Writes extends DefaultWrites with GenericWrites[PM.PM] with DefaultMonoid
   }
 
   implicit def ospm[I](implicit w: Write[I, String]) = Write[I, PM]{ i =>
-    Map(Path -> Seq(w.writes(i)))
+    Map(Path -> w.writes(i))
   }
 
   implicit def opt[I](implicit w: Path => Write[I, UrlFormEncoded]) =

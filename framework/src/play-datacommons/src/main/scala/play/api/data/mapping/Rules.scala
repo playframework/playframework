@@ -24,7 +24,7 @@ object PM {
     def parse(s: String) = parseAll(path, new scala.util.parsing.input.CharArrayReader(s.toArray))
   }
 
-  type PM = Map[Path, Seq[String]]
+  type PM = Map[Path, String]
 
   /**
   * Find a sub-Map of all the elements at a Path starting with `path`
@@ -33,10 +33,10 @@ object PM {
   * @return a sub Map. If no key of `data` starts with `path`, this map will be empty
   */
   def find(path: Path)(data: PM): PM = data.flatMap {
-    case (p, errs) if p.path.startsWith(path.path) =>
-      Map(Path(p.path.drop(path.path.length)) -> errs)
+    case (p, v) if p.path.startsWith(path.path) =>
+      Map(Path(p.path.drop(path.path.length)) -> v)
     case _ =>
-      Map.empty[Path, Seq[String]]
+      Map.empty[Path, String]
   }
 
   /**
@@ -55,13 +55,18 @@ object PM {
   * Convert a Map[String, Seq[String]] to a Map[Path, Seq[String]]
   */
   def toPM(m: UrlFormEncoded): PM =
-    m.map { case (p, v) => asPath(p) -> v }
+    m.toSeq.flatMap { case (p, vs) =>
+      vs match {
+        case v :: Nil => vs.map{ asPath(p) -> _ }
+        case _ => vs.zipWithIndex.map{ case (v, i) => (asPath(p) \ i) -> v }
+      }
+    }.toMap
 
   /**
   * Convert a Map[Path, Seq[String]] to a Map[String, Seq[String]]
   */
   def toM(m: PM): UrlFormEncoded =
-    m.map { case (p, v) => asKey(p) -> v }
+    m.map { case (p, v) => asKey(p) -> Seq(v) }
 
   private def asNodeKey(n: PathNode): String = n match {
     case IdxPathNode(i) => s"[$i]"
@@ -114,25 +119,30 @@ object Rules extends DefaultRules[PM.PM] with ParsingRules {
       Rule.zero[UrlFormEncoded].fmap(toPM).compose(o)
     }
 
-  implicit def parse[O](implicit r: Rule[String, O]): Rule[PM, O] =
+  implicit def parse[O](implicit r: Rule[String, O]): Rule[PM, O] = {
+    val find = Rule[Option[String], String] {
+      _.map(Success(_)).getOrElse(Failure(Seq(Path -> Seq(ValidationError("validation.required")))))
+    }
     Rule.zero[PM]
-      .fmap(_.get(Path).toSeq.flatten)
-      .compose(headAs(r))
+      .fmap(_.get(Path))
+      .compose(find)
+      .compose(r)
+  }
+
 
   implicit def inArray[O: scala.reflect.ClassTag](implicit r: Rule[Seq[PM], Array[O]]): Rule[PM, Array[O]] =
     inT[O, Traversable](r.fmap(_.toTraversable)).fmap(_.toArray)
 
-  // PM should be Map[Path, String] and not Map[Path, Seq[String]]
   implicit def inT[O, T[_] <: Traversable[_]](implicit r: Rule[Seq[PM], T[O]]): Rule[PM, T[O]] =
     Rule.zero[PM].fmap { pm =>
       val grouped = pm.toSeq.flatMap {
-        case (Path, vs) => Seq(0 -> Map(Path -> vs))
-        case (Path(IdxPathNode(i) :: Nil) \: t, vs) => Seq(i -> Map(t -> vs))
+        case (Path, v) => Seq(0 -> Map(Path -> v))
+        case (Path(IdxPathNode(i) :: Nil) \: t, v) => Seq(i -> Map(t -> v))
         case _ => Nil
       }.groupBy(_._1).mapValues(_.map(_._2)) // returns all the submap, grouped by index
 
       val e: Seq[PM] = grouped.toSeq.map {
-        case (i, ms) => i -> ms.foldLeft(Map.empty[Path, Seq[String]]) { _ ++ _ } // merge the submaps by index
+        case (i, ms) => i -> ms.foldLeft(Map.empty[Path, String]) { _ ++ _ } // merge the submaps by index
       }
       .sortBy(_._1)
       .map(e => e._2)
@@ -140,8 +150,8 @@ object Rules extends DefaultRules[PM.PM] with ParsingRules {
       // split Root path
       e.flatMap { m =>
         val (roots, others) = m.partition(_._1 == Path)
-        val rs: Seq[PM] = roots.toSeq.flatMap { case (_, vs) =>
-          vs.map(v => Map(Path() -> Seq(v)))
+        val rs: Seq[PM] = roots.toSeq.flatMap { case (_, v) =>
+          Seq(Map(Path() -> v))
         }
 
         (Seq(others) ++ rs).filter(!_.isEmpty)
