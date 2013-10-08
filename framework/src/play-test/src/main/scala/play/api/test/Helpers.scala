@@ -6,7 +6,7 @@ package play.api.test
 import scala.language.reflectiveCalls
 
 import play.api._
-import libs.ws.WS
+import play.api.libs.ws._
 import play.api.mvc._
 import play.api.http._
 
@@ -23,6 +23,21 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import akka.util.Timeout
+import com.ning.http.client.AsyncHttpClient
+import javax.net.ssl.{ SSLSession, HostnameVerifier }
+import scala.Array
+import play.core.server.noCATrustManager
+import play.api.mvc.AnyContentAsRaw
+import scala.Some
+import play.api.mvc.SimpleResult
+import play.api.mvc.ResponseHeader
+import play.api.mvc.AnyContentAsText
+import play.api.mvc.AnyContentAsFormUrlEncoded
+import play.api.mvc.AnyContentAsXml
+import play.api.test.FakeHeaders
+import play.api.test.TestServer
+import play.api.mvc.Call
+import play.api.mvc.AnyContentAsJson
 
 /**
  * Helper functions to run tests.
@@ -48,7 +63,7 @@ trait PlayRunners {
         block
       } finally {
         Play.stop()
-        play.api.libs.ws.WS.resetClient()
+        play.api.libs.ws.resetClient()
       }
     }
   }
@@ -91,6 +106,12 @@ trait PlayRunners {
    * testserver.port
    */
   lazy val testServerPort = Option(System.getProperty("testserver.port")).map(_.toInt).getOrElse(19001)
+
+  /**
+   * The port to use for a test server. Defaults to 19043. May be configured using the system property
+   * testserver.port.ssl
+   */
+  lazy val testServerSSLPort = Option(System.getProperty("testserver.port.ssl")).map(_.toInt).orElse(Some(19043))
 
   /**
    * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
@@ -139,7 +160,8 @@ trait DefaultAwaitTimeout {
    *
    * NegativeTimeout is a separate type to a normal Timeout because we'll want to
    * set it to a lower value. This is because in normal usage we'll need to wait
-   * for the full length of time to show that nothing has happened in that time.
+   * for the full length of time to show that no
+   * thing has happened in that time.
    * If the value is too high then we'll spend a lot of time waiting during normal
    * usage. If it is too low, however, we may miss events that occur after the
    * timeout has finished. This is a necessary tradeoff.
@@ -173,6 +195,15 @@ trait FutureAwaits {
 
 trait WsTestClient {
 
+  val trustAllservers = {
+    val sslctxt = javax.net.ssl.SSLContext.getInstance("TLS");
+    sslctxt.init(null, Array(noCATrustManager), null);
+    sslctxt
+  }
+
+  val wssClient: WSClient = new NingWSClient(new AsyncHttpClient(NingUtil.defaultBuilder.setSSLContext(trustAllservers).setHostnameVerifier(new HostnameVerifier {
+    def verify(p1: String, p2: SSLSession) = true
+  }).build))
   /**
    * Construct a WS request for the given reverse route.
    *
@@ -184,9 +215,25 @@ trait WsTestClient {
   def wsCall(call: Call)(implicit port: Port): WS.WSRequestHolder = wsUrl(call.url)
 
   /**
+   * Construct a WS request for the given reverse route on a secure port
+   *
+   * For example:
+   * {{{
+   *   wssCall(controllers.routes.Application.index()).get()
+   * }}}
+   */
+  def wssCall(call: Call)(implicit port: Port): WS.WSRequestHolder = wssUrl(call.url)
+
+  /**
    * Construct a WS request for the given relative URL.
    */
   def wsUrl(url: String)(implicit port: Port): WS.WSRequestHolder = WS.url("http://localhost:" + port + url)
+
+  /**
+   * Construct a WS request for the given relative URL on a secure port
+   */
+  def wssUrl(url: String)(implicit port: Port): WS.WSRequestHolder = WS.url("https://localhost:" + port + url)(wssClient)
+
 }
 
 trait RouteInvokers {

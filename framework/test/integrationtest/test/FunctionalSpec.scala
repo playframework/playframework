@@ -12,15 +12,40 @@ import java.util.Locale
 import play.api.libs.iteratee.Iteratee
 import play.api.libs.ws.ResponseHeaders
 import scala.concurrent.ExecutionContext.Implicits.global
+import play.core.server.noCATrustManager
+import com.ning.http.client.AsyncHttpClient
+import javax.net.ssl.{SSLSession, HostnameVerifier}
 
 class FunctionalSpec extends PlaySpecification {
   "an Application" should {
     
 
-    "charset should be defined" in new WithServer() {
+
+    def cal = Calendar.getInstance()
+
+    val startDate = cal.getTime()
+
+    //
+    // Due to following bug one has to specify the FakeApplication()
+    // http://play.lighthouseapp.com/projects/82401/tickets/860-21-rc1-playapitestwithserver-fails-when-port-is-given
+    //
+    "charset should be defined"  in {
+
+      "when connecting unsecured" in new WithServer(app=FakeApplication(), port=19001,sslPort=Some(19002)) {
       val h = await(WS.url("http://localhost:" + port + "/public/stylesheets/main.css").get)
-      h.header("Content-Type").get must equalTo("text/css; charset=utf-8")
+        h.header("Content-Type").get must equalTo("text/css; charset=utf-8")
     }
+
+      "when connecting secured" in new WithServer(app=FakeApplication(), port=19001,sslPort=Some(19002)) {
+        val url = s"https://localhost:${sslPort.get}/public/stylesheets/main.css"
+        val req = WS.url("https://localhost:" + sslPort.get + "/public/stylesheets/main.css")
+        val h = await(req.get)
+        h.header("Content-Type").get must equalTo("text/css; charset=utf-8")
+      }
+
+    }
+
+
     "call onClose for Ok.sendFile responses" in new WithBrowser() {
       import java.io.File
       def file = new File("onClose.tmp")

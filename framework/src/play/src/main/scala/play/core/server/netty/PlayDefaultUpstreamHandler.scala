@@ -17,7 +17,15 @@ import play.api.mvc._
 import play.api.http.HeaderNames.X_FORWARDED_FOR
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
+import play.api.libs.concurrent._
 import scala.collection.JavaConverters._
+import scala.collection.immutable
+import java.security.cert.Certificate
+import collection.immutable.Nil
+import javax.net.ssl.{SSLHandshakeException, SSLException}
+import scala.concurrent.Future
+import java.nio.channels.ClosedChannelException
+import scala.util.control.NonFatal
 import scala.util.control.Exception
 import com.typesafe.netty.http.pipelining.{OrderedDownstreamChannelEvent, OrderedUpstreamMessageEvent}
 import scala.concurrent.Future
@@ -38,6 +46,15 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
 
   override def exceptionCaught(ctx: ChannelHandlerContext, event: ExceptionEvent) {
     event.getCause match {
+      case e: ClosedChannelException => {
+        // One example of when this happens is when renegotiating SSL to use peer certificates in Chrome,
+        // Chrome doesn't support renegotiation properly, so it just closes the channel and reconnects.
+        Logger.trace("Channel closed early", e)
+      }
+      case e: SSLHandshakeException => {
+        // This could be thrown when requesting a peer certificate, and none is provided
+        Logger.trace("SSL Handshake exception", e)
+      }
       // IO exceptions happen all the time, it usually just means that the client has closed the connection before fully
       // sending/receiving the response.
       case e: IOException => nettyExceptionLogger.trace("Benign IO exception caught in Netty", e)
@@ -64,6 +81,57 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
 
 
   override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
+
+    trait Certs { req: RequestHeader =>
+
+      def certs(required:Boolean): Future[Seq[Certificate]] = {
+        import org.jboss.netty.handler.ssl.SslHandler
+        import scala.util.control.Exception._
+        import javax.net.ssl.SSLPeerUnverifiedException
+        val sslCatcher = catching(classOf[SSLPeerUnverifiedException])
+
+        def getCerts(sslh: SslHandler): Option[IndexedSeq[Certificate]] = {
+          Play.logger.debug("checking for certs in ssl session")
+          sslCatcher.opt {
+            sslh.getEngine.getSession.getPeerCertificates.toIndexedSeq
+          }
+        }
+        val res: Option[Future[Seq[Certificate]]] = Option(ctx.getPipeline.get(classOf[SslHandler])).map { sslh =>
+        //to avoid having to import an ExecutionContext, and as the code is very close to NettyPromise with the minor
+        //twist of a map of getCerts(sslh).getOrElse(IndexedSeq[Certificate]()). But these Channels don't allow map,
+        //so we need to copy the code.
+          def promise(channelPromise: ChannelFuture): Future[IndexedSeq[Certificate]] = {
+            val p = scala.concurrent.Promise[IndexedSeq[Certificate]]()
+            channelPromise.addListener(new ChannelFutureListener {
+              def operationComplete(future: ChannelFuture) {
+                if (future.isSuccess()) {
+                  p.success( getCerts(sslh).getOrElse(IndexedSeq[Certificate]()))
+                } else {
+                  p.failure(future.getCause())
+                }
+              }
+            })
+            p.future
+          }
+          getCerts(sslh).map { res=>
+            Future.successful[IndexedSeq[Certificate]](res)
+          } getOrElse  {
+            Play.logger.debug("attempting to request certs from client")
+            //need to make use of the certificate sessions in the setup process
+            //see http://stackoverflow.com/questions/8731157/netty-https-tls-session-duration-why-is-renegotiation-needed
+            sslh.setEnableRenegotiation(true)
+            if (required) {
+              sslh.getEngine.setNeedClientAuth(true)
+            } else {
+              sslh.getEngine.setWantClientAuth(true)
+            }
+            promise(sslh.handshake())
+          }
+         }
+         res.getOrElse(Future.failed(new SSLException("No SSLHandler!")))
+      }
+    }
+
     e.getMessage match {
 
       case nettyHttpRequest: HttpRequest =>
@@ -94,7 +162,8 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
 
         def createRequestHeader(parameters: Map[String, Seq[String]] = Map.empty[String, Seq[String]]) = {
           //mapping netty request to Play's
-          val untaggedRequestHeader = new RequestHeader {
+
+        val untaggedRequestHeader = new RequestHeader with Certs {
             val id = requestIDs.incrementAndGet
             val tags = Map.empty[String,String]
             def uri = nettyHttpRequest.getUri

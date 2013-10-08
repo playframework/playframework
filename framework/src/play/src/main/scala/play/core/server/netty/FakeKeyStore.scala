@@ -20,7 +20,7 @@ object FakeKeyStore {
   val GeneratedKeyStore = "conf/generated.keystore"
   val DnName = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
 
-  def keyManagerFactory(appPath: File): Option[KeyManagerFactory] = {
+  def keyStore(appPath: File): Option[KeyStore] = {
     try {
       val keyStore = KeyStore.getInstance("JKS")
       val keyStoreFile = new File(appPath, GeneratedKeyStore)
@@ -43,11 +43,7 @@ object FakeKeyStore {
       } else {
         for (in <- resource.managed(new FileInputStream(keyStoreFile))) { keyStore.load(in, "".toCharArray) }
       }
-
-      // Load the key and certificate into a key manager factory
-      val kmf = KeyManagerFactory.getInstance("SunX509")
-      kmf.init(keyStore, "".toCharArray)
-      Some(kmf)
+      Some(keyStore)
     } catch {
       case NonFatal(e) => {
         Play.logger.error("Error loading fake key store", e)
