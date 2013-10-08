@@ -15,12 +15,16 @@ import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input.El
 
 import play.core.utils.CaseInsensitiveOrdered
+import com.ning.http.util.AsyncHttpProviderUtils
+
 import play.core.Execution.Implicits.internalContext
 import play.api.Play
 
 import com.ning.http.client.{ Response => AHCResponse, Cookie => AHCCookie, ProxyServer => AHCProxyServer, _ }
 
 import com.ning.http.util.AsyncHttpProviderUtils
+import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
+import javax.net.ssl.SSLContext
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -35,31 +39,40 @@ import com.ning.http.util.AsyncHttpProviderUtils
  * and you should use Play's asynchronous mechanisms to use this response.
  *
  */
-object WS {
+object WS extends WSRequestBuilder {
 
   import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
   import javax.net.ssl.SSLContext
 
+  //to avoid changing code throughout play we first keep this type
+  type WSRequest = play.api.libs.ws.WSRequest
+
   private val clientHolder: AtomicReference[Option[AsyncHttpClient]] = new AtomicReference(None)
 
-  private[play] def newClient(): AsyncHttpClient = {
+  /**
+   * The  builder AsncBuilder for default play app
+   */
+  def asyncBuilder: AsyncHttpClientConfig.Builder = {
     val playConfig = play.api.Play.maybeApplication.map(_.configuration)
+    val wsTimeout = playConfig.flatMap(_.getMilliseconds("ws.timeout"))
     val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
-      .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout.connection")).getOrElse(120000L).toInt)
-      .setIdleConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout.idle")).getOrElse(120000L).toInt)
+      .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout.connection")).orElse(wsTimeout).getOrElse(120000L).toInt)
+      .setIdleConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout.idle")).orElse(wsTimeout).getOrElse(120000L).toInt)
       .setRequestTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout.request")).getOrElse(120000L).toInt)
       .setFollowRedirects(playConfig.flatMap(_.getBoolean("ws.followRedirects")).getOrElse(true))
       .setUseProxyProperties(playConfig.flatMap(_.getBoolean("ws.useProxyProperties")).getOrElse(true))
 
-    playConfig.flatMap(_.getString("ws.useragent")).map {
-      useragent =>
-        asyncHttpConfig.setUserAgent(useragent)
+    playConfig.flatMap(_.getString("ws.useragent")).map { useragent =>
+      asyncHttpConfig.setUserAgent(useragent)
     }
     if (!playConfig.flatMap(_.getBoolean("ws.acceptAnyCertificate")).getOrElse(false)) {
       asyncHttpConfig.setSSLContext(SSLContext.getDefault)
     }
+    asyncHttpConfig
+  }
 
-    new AsyncHttpClient(asyncHttpConfig.build())
+  private[play] def newClient(): AsyncHttpClient = {
+    new AsyncHttpClient(asyncBuilder.build())
   }
 
   /**
@@ -88,25 +101,18 @@ object WS {
       }
     })
   }
-
-  /**
-   * Prepare a new request. You can then construct it by chaining calls.
-   *
-   * @param url the URL to request
-   */
-  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None, None, None)
-
+}
   /**
    * A WS Request.
    */
-  class WSRequest(_method: String, _auth: Option[Tuple3[String, String, AuthScheme]], _calc: Option[SignatureCalculator]) extends RequestBuilderBase[WSRequest](classOf[WSRequest], _method, false) {
+  class WSRequest(_method: String, _auth: Option[Tuple3[String, String, AuthScheme]], _calc: Option[SignatureCalculator])(implicit client: AsyncHttpClient)
+      extends RequestBuilderBase[WSRequest](classOf[WSRequest], _method, false) {
 
     import scala.collection.JavaConverters._
 
     def getStringData = body.getOrElse("")
-
     protected var body: Option[String] = None
-
+ 
     override def setBody(s: String) = {
       this.body = Some(s);
       super.setBody(s)
@@ -170,17 +176,15 @@ object WS {
       //todo: wrap the case insensitive ning map instead of creating a new one (unless perhaps immutabilty is important)
       TreeMap(res.toSeq: _*)(CaseInsensitiveOrdered)
     }
-
     private[libs] def execute: Future[Response] = {
       import com.ning.http.client.AsyncCompletionHandler
       var result = Promise[Response]()
       calculator.map(_.sign(this))
-      WS.client.executeRequest(this.build(), new AsyncCompletionHandler[AHCResponse]() {
+      client.executeRequest(this.build(), new AsyncCompletionHandler[AHCResponse]() {
         override def onCompleted(response: AHCResponse) = {
           result.success(Response(response))
           response
         }
-
         override def onThrowable(t: Throwable) = {
           result.failure(t)
         }
@@ -259,7 +263,6 @@ object WS {
       var iteratee: Iteratee[Array[Byte], A] = null
 
       WS.client.executeRequest(this.build(), new AsyncHandler[Unit]() {
-
         import com.ning.http.client.AsyncHandler.STATE
 
         override def onStatusReceived(status: HttpResponseStatus) = {
@@ -316,6 +319,26 @@ object WS {
 
   }
 
+
+
+/**
+ * A WS instance that allows one to fine tune the application directly using AsyncHttpClient
+ * Eg: if one wants to make requests to different servers with different client certificates...
+ * @param client
+ */
+case class WSx(client: AsyncHttpClient) extends WSRequestBuilder
+
+trait WSRequestBuilder {
+
+  implicit def client: AsyncHttpClient
+
+  /**
+   * Prepare a new request. You can then construct it by chaining calls.
+   *
+   * @param url the URL to request
+   */
+  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None, None, None)
+
   /**
    * A WS Request builder.
    */
@@ -337,7 +360,9 @@ object WS {
 
     /**
      * sets the authentication realm
-     * @param calc
+     * @param username
+     * @param password
+     * @param scheme
      */
     def withAuth(username: String, password: String, scheme: AuthScheme): WSRequestHolder =
       this.copy(auth = Some((username, password, scheme)))
@@ -466,10 +491,8 @@ object WS {
         config.setRequestTimeoutInMs(t)
         request.setPerRequestConfig(config)
       }
-
-      virtualHost.map {
-        v =>
-          request.setVirtualHost(v)
+      virtualHost.map { v =>
+        request.setVirtualHost(v)
       }
 
       prepareProxy(request)
@@ -530,9 +553,8 @@ object WS {
         config.setRequestTimeoutInMs(t)
         request.setPerRequestConfig(config)
       }
-      virtualHost.map {
-        v =>
-          request.setVirtualHost(v)
+      virtualHost.map { v =>
+        request.setVirtualHost(v)
       }
 
       prepareProxy(request)
@@ -551,16 +573,14 @@ object WS {
         config.setRequestTimeoutInMs(t)
         request.setPerRequestConfig(config)
       }
-      virtualHost.map {
-        v =>
-          request.setVirtualHost(v)
+      virtualHost.map { v =>
+        request.setVirtualHost(v)
       }
       prepareProxy(request)
 
       request
     }
   }
-
 }
 
 /**
