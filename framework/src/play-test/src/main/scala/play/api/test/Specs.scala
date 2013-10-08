@@ -31,11 +31,12 @@ abstract class WithApplication(val app: FakeApplication = FakeApplication()) ext
  * @param port The port to run the server on
  */
 abstract class WithServer(val app: FakeApplication = FakeApplication(),
-    val port: Int = Helpers.testServerPort) extends Around with Scope {
+    val port: Int = Helpers.testServerPort,
+    val sslPort: Option[Int] = None) extends Around with Scope {
   implicit def implicitApp = app
   implicit def implicitPort: Port = port
 
-  override def around[T: AsResult](t: => T): Result = Helpers.running(TestServer(port, app))(AsResult.effectively(t))
+  override def around[T: AsResult](t: => T): Result = Helpers.running(TestServer(port, app, sslPort))(AsResult.effectively(t))
 }
 
 /**
@@ -47,17 +48,20 @@ abstract class WithServer(val app: FakeApplication = FakeApplication(),
  */
 abstract class WithBrowser[WEBDRIVER <: WebDriver](
     val webDriver: Class[WEBDRIVER] = Helpers.HTMLUNIT,
-    val app: FakeApplication = FakeApplication(),
-    val port: Int = Helpers.testServerPort) extends Around with Scope {
+    implicit val app: FakeApplication = FakeApplication(),
+    val port: Int = Helpers.testServerPort,
+    val sslPort: Option[Int] = Helpers.testServerSSLPort) extends Around with Scope {
 
   implicit def implicitApp = app
   implicit def implicitPort: Port = port
 
   lazy val browser: TestBrowser = TestBrowser.of(webDriver, Some("http://localhost:" + port))
+  lazy val browserSecure: Option[TestBrowser] =
+    sslPort.map(p => TestBrowser.of(webDriver, Some("https://localhost:" + p)))
 
   override def around[T: AsResult](t: => T): Result = {
     try {
-      Helpers.running(TestServer(port, app))(AsResult.effectively(t))
+      Helpers.running(TestServer(port, app, sslPort))(AsResult.effectively(t))
     } finally {
       browser.quit()
     }

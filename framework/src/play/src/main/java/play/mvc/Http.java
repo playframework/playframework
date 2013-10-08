@@ -12,6 +12,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import play.i18n.Lang;
 import play.Play;
 
+import java.security.cert.Certificate;
+
 /**
  * Defines HTTP standard objects.
  */
@@ -312,6 +314,25 @@ public class Http {
             }
             return headers[0];
         }
+
+        /**
+         * Request a client certificate from the user.
+         * <p/>
+         * Calling this method will request the user to select an X509 Certificate from their key chain if they have one,
+         * or return a cached certificate chain if the user has already selected one during the current TLS session.
+         * Since requesting something of the user could take a lot of time, this is returned immediately as a Future.
+         * The first element of the Certificate is the user's Certificate, the other elements of the chain if any, are the
+         * certificates that were used to sign the first one (which is the usual Certificate Authority based approach).
+         *
+         * @param required Whether a certificate is required or is optional.  If required, the server will close the SSL
+         *                 connection if the client doesn't provide a certificate.  Note that until this bug is fixed:
+         *                 https://bugs.openjdk.java.net/show_bug.cgi?id=100281, it is recommended that you always use
+         *                 required, since in some circumstances (varies from browser to browser) Java won't request a
+         *                 certificate at all, which will result in this method always returning no certificate.
+         * @return a Promise of the Certificate Chain, whose first element identifies the user. The promise will
+         *         contain an Error if something went wrong (eg: the request is not made on an httpS connection)
+         */
+        public abstract play.libs.F.Promise<List<Certificate>> certs(boolean required);
 
     }
 

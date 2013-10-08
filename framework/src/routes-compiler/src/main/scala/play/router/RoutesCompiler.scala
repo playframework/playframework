@@ -149,7 +149,7 @@ object RoutesCompiler {
       }
     }
 
-    def httpVerb: Parser[HttpVerb] = namedError("GET" | "POST" | "PUT" | "PATCH" | "HEAD" | "DELETE" | "OPTIONS", "HTTP Verb expected") ^^ {
+    def httpVerb: Parser[HttpVerb] = namedError("GET" | "POST" | "PUT" | "PATCH" | "HEAD" | "DELETE" | "OPTIONS" | "MKCOL", "HTTP Verb expected") ^^ {
       case v => HttpVerb(v)
     }
 
