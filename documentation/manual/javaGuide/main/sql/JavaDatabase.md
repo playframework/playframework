@@ -54,7 +54,6 @@ You can retrieve a JDBC connection the same way:
 ```
 Connection connection = DB.getConnection();
 ```
-It is important to note that resulting Connections are not automatically disposed at the end of the request cycle. In other words, you are responsible for calling their close() method somewhere in your code so that they can be immediately returned to the pool.
 
 ## Exposing the datasource through JNDI
 

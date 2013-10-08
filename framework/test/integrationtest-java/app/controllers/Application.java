@@ -70,6 +70,11 @@ public class Application extends Controller {
     public static Result user(User user) {
         return ok(user.email);
     }
+   
+    @With(ClientCertAction.class)
+    public static Result clientCert() {
+        return ok(request().username());
+    }
 
     public static Result thread() {
         return ok(Thread.currentThread().getName());

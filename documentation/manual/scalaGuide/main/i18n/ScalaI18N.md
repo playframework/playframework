@@ -29,7 +29,7 @@ All internationalization API calls take an implicit `play.api.i18.Lang` argument
 val title = Messages("home.title")(Lang("fr"))
 ```
 
-> **Note:** If you have an implicit `Request` in the scope, it will provide an implicit `Lang` value corresponding to the preferred language extracted from the `Accept-Language` header and matching one of the application supported languages. You should add a `Lang` implicit parameter to your template like this: `@()(implicit lang: Lang)`.
+> **Note:** If you have an implicit `Request` in the scope, it will provide an implicit `Lang` value corresponding to the preferred language extracted from the `Accept-Language` header and matching one the application supported languages.
 
 ## Messages format
 

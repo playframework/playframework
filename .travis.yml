@@ -1,0 +1,23 @@
+language: scala
+jdk:
+  # Choosing Oracle JDK as the default system one
+  # see https://github.com/travis-ci/travis-cookbooks/issues/35
+  - oraclejdk7
+scala:
+  - 2.10.0
+env:
+  global:
+  - secure: "B31N/x8X/avfwpZ38scUXh+m2KNFCk2j1b6mhbZQ99AgRB90rhrad58goYAY\nNcjJwEYtkKwHKA/yKpUmvQIyIeixQ5ebtkR3MTT8BttcHoKtOAJRu4i1cJc8\nsirCCQA2fKTrNeIgs0kHU+uPlQR3mR/+GlmRzmcIDtNvRz14Hgc="
+script: cd framework ; ./runtests
+after_success:
+  - sudo apt-get install -qq ncftp
+  - PLAY_VERSION="2-TLS-`git log -n 1 --pretty=format:%H`"
+  - ./package.sh ${PLAY_VERSION} incremental
+  - ncftpput -v -u "travis" -p "${FTP_PASSWORD}" mail.spiroid.org /play/releases /tmp/play-${PLAY_VERSION}.tar.bz2
+notifications:
+  # Email notifications are disabled to not annoy anybody.
+  # See http://about.travis-ci.org/docs/user/build-configuration/ to learn more
+  # about configuring notification recipients and more.
+  email:
+    - jonathan.dray@gmail.com
+    - henry.story@bblfish.net

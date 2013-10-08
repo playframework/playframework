@@ -7,13 +7,13 @@ The result content type is automatically inferred from the Java value you specif
 
 For example:
 
-```java
+```
 Result textResult = ok("Hello World!");
 ```
 
 Will automatically set the `Content-Type` header to `text/plain`, while:
 
-```java
+```
 Result jsonResult = ok(jerksonObject);
 ```
 
@@ -21,13 +21,13 @@ will set the `Content-Type` header to `application/json`.
 
 This is pretty useful, but sometimes you want to change it. Just use the `as(newContentType)` method on a result to create a new similiar result with a different `Content-Type` header:
 
-```java
+```
 Result htmlResult = ok("<h1>Hello World!</h1>").as("text/html");
 ```
 
 You can also set the content type on the HTTP response:
 
-```java
+```
 public static Result index() {
   response().setContentType("text/html");
   return ok("<h1>Hello World!</h1>");
@@ -38,7 +38,7 @@ public static Result index() {
 
 You can add (or update) any HTTP response header:
 
-```java
+```
 public static Result index() {
   response().setContentType("text/html");
   response().setHeader(CACHE_CONTROL, "max-age=3600");
@@ -55,13 +55,13 @@ Cookies are just a special form of HTTP headers, but Play provides a set of help
 
 You can easily add a Cookie to the HTTP response:
 
-```java
+```
 response().setCookie("theme", "blue");
 ```
 
 Also, to discard a Cookie previously stored on the Web browser:
 
-```java
+```
 response().discardCookies("theme");
 ```
 
@@ -73,7 +73,7 @@ The encoding is used to both convert the text response to the corresponding byte
 
 The encoding can be specified when you are generating the `Result` value:
 
-```java
+```
 public static Result index() {
   response().setContentType("text/html; charset=iso-8859-1");
   return ok("<h1>Hello World!</h1>", "iso-8859-1");

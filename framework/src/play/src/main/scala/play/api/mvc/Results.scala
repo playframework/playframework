@@ -14,6 +14,7 @@ import scala.concurrent.{ Future, ExecutionContext, Promise }
 
 import play.core.Execution.Implicits._
 import play.api.libs.concurrent.Execution.defaultContext
+import scala.language.reflectiveCalls
 
 /**
  * A simple HTTP response header, used for standard responses.

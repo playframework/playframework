@@ -20,7 +20,14 @@ import play.api.Plugin
 trait PathPart
 
 case class DynamicPart(name: String, constraint: String, encodeable: Boolean) extends PathPart {
-  override def toString = """DynamicPart("""" + name + "\", \"\"\"" + constraint + "\"\"\")" // "
+  // Backwards binary compatible
+  def this(name: String, constraint: String) = this(name, constraint, false)
+
+  override def toString = """DynamicPart("""" + name + "\", \"\"\"" + constraint + "\"\"\")"
+}
+
+object DynamicPart {
+  def apply(name: String, constraint: String) = new DynamicPart(name, constraint)
 }
 
 case class StaticPart(value: String) extends PathPart {

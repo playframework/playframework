@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Testing your application
 
-Test source files must be placed in your application’s `test` folder. You can run tests from the Play console using the `test` (run all tests) and `test-only` (run one test class: `test-only my.namespace.MySpec`) tasks.
+Test source files must be placed in your application’s `test` folder. You can run tests from the Play console using the `test` and `test-only` tasks.
 
 ## Using JUnit
 
