@@ -133,6 +133,8 @@ case class TestServer(port: Int, application: FakeApplication = FakeApplication(
 
   private var server: play.core.server.NettyServer = _
 
+  val insecurePort: Option[Int] = if (port <= 0) None else Some(port)
+
   /**
    * Starts this server.
    */
