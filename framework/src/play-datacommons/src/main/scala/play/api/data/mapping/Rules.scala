@@ -124,7 +124,7 @@ object Rules extends DefaultRules[PM.PM] with ParsingRules {
         }
     }
 
-  def option[J, O](r: Rule[J, O])(implicit coerce: Rule[PM, J]): Path => Rule[UrlFormEncoded, Option[O]] =
+  def option[J, O](r: => Rule[J, O])(implicit coerce: Rule[PM, J]): Path => Rule[UrlFormEncoded, Option[O]] =
     this.option(coerce compose r)
 
   implicit def pick[O](implicit r: Rule[Seq[String], O]): Rule[PM, O] = Rule[PM, Seq[String]] { pm =>

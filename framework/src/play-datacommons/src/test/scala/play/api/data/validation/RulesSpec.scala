@@ -422,16 +422,16 @@ object RulesSpec extends Specification {
         }
         w.validate(m) mustEqual Success(u)
 
-        // lazy val w2: Rule[UrlFormEncoded, RecUser] =
-        //   ((Path \ "name").read[UrlFormEncoded, String] ~
-        //    (Path \ "friends").read(seq(w2)))(RecUser.apply _)
-        // w2.validate(m) mustEqual Success(u)
+        lazy val w2: Rule[UrlFormEncoded, RecUser] =
+          ((Path \ "name").read[UrlFormEncoded, String] ~
+           (Path \ "friends").read(seq(w2)))(RecUser.apply _)
+        w2.validate(m) mustEqual Success(u)
 
-        // lazy val w3: Rule[UrlFormEncoded, User1] = From[UrlFormEncoded]{ __ =>
-        //   ((__ \ "name").read[String] ~
-        //    (__ \ "friend").read(option(w3)))(User1.apply _)
-        // }
-        // w3.validate(m1) mustEqual Success(u1)
+        lazy val w3: Rule[UrlFormEncoded, User1] = From[UrlFormEncoded]{ __ =>
+          ((__ \ "name").read[String] ~
+           (__ \ "friend").read(option(w3)))(User1.apply _)
+        }
+        w3.validate(m1) mustEqual Success(u1)
       }
 
       // "using implicit notation" in {
