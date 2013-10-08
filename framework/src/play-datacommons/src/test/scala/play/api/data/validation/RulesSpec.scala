@@ -46,13 +46,13 @@ object RulesSpec extends Specification {
       p.read[UrlFormEncoded, String, Boolean](checked).validate(Map("issmth" -> Seq("false"))) mustEqual(Failure(Seq(Path \ "issmth" -> Seq(ValidationError("validation.equals", true)))))
     }
 
-    // "ignore values" in {
-    //   val r = From[UrlFormEncoded]{ __ =>
-    //     ((__ \ "firstname").read(notEmpty) ~
-    //      (__ \ "test").read(ignored(42))).tupled
-    //   }
-    //   r.validate(valid) mustEqual(Success("Julien" -> 42))
-    // }
+  //   // "ignore values" in {
+  //   //   val r = From[UrlFormEncoded]{ __ =>
+  //   //     ((__ \ "firstname").read(notEmpty) ~
+  //   //      (__ \ "test").read(ignored(42))).tupled
+  //   //   }
+  //   //   r.validate(valid) mustEqual(Success("Julien" -> 42))
+  //   // }
 
     "support primitives types" in {
 
@@ -111,15 +111,25 @@ object RulesSpec extends Specification {
       "date" in {
         import java.util.Date
         val f = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE)
-        (Path \ "n").read(date).validate(Map("n" -> Seq("1985-09-10"))) mustEqual(Success(f.parse("1985-09-10")))
-        (Path \ "n").read(date).validate(Map("n" -> Seq("foo"))) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.date", "yyyy-MM-dd")))))
+        From[UrlFormEncoded] { __ =>
+          (__ \ "n").read(date)
+        }.validate(Map("n" -> Seq("1985-09-10"))) mustEqual(Success(f.parse("1985-09-10")))
+
+        From[UrlFormEncoded] { __ =>
+          (__ \ "n").read(date)
+        }.validate(Map("n" -> Seq("foo"))) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.date", "yyyy-MM-dd")))))
       }
 
       "iso date" in {
         import java.util.Date
         val f = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE)
-        (Path \ "n").read(isoDate).validate(Map("n" -> Seq("1985-09-10T00:00:00+02:00"))) mustEqual(Success(f.parse("1985-09-10")))
-        (Path \ "n").read(isoDate).validate(Map("n" -> Seq("foo"))) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.iso8601")))))
+        From[UrlFormEncoded] { __ =>
+          (__ \ "n").read(isoDate)
+        }.validate(Map("n" -> Seq("1985-09-10T00:00:00+02:00"))) mustEqual(Success(f.parse("1985-09-10")))
+
+        From[UrlFormEncoded] { __ =>
+          (__ \ "n").read(isoDate)
+        }.validate(Map("n" -> Seq("foo"))) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.iso8601")))))
       }
 
       "joda" in {
@@ -129,20 +139,36 @@ object RulesSpec extends Specification {
         val jd = new DateTime(dd)
 
         "date" in {
-          (Path \ "n").read(jodaDate).validate(Map("n" -> Seq("1985-09-10"))) mustEqual(Success(jd))
-          (Path \ "n").read(jodaDate).validate(Map("n" -> Seq("foo"))) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.expected.jodadate.format", "yyyy-MM-dd")))))
+          From[UrlFormEncoded] { __ =>
+            (__ \ "n").read(jodaDate)
+          }.validate(Map("n" -> Seq("1985-09-10"))) mustEqual(Success(jd))
+
+          From[UrlFormEncoded] { __ =>
+            (__ \ "n").read(jodaDate)
+          }.validate(Map("n" -> Seq("foo"))) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.expected.jodadate.format", "yyyy-MM-dd")))))
         }
 
         "time" in {
-          (Path \ "n").read(jodaTime).validate(Map("n" -> Seq(dd.getTime.toString))) mustEqual(Success(jd))
-          (Path \ "n").read(jodaDate).validate(Map("n" -> Seq("foo"))) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.expected.jodadate.format", "yyyy-MM-dd")))))
+          From[UrlFormEncoded] { __ =>
+            (__ \ "n").read(jodaTime)
+          }.validate(Map("n" -> Seq(dd.getTime.toString))) mustEqual(Success(jd))
+
+          From[UrlFormEncoded] { __ =>
+            (__ \ "n").read(jodaDate)
+          }.validate(Map("n" -> Seq("foo"))) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.expected.jodadate.format", "yyyy-MM-dd")))))
         }
 
         "local date" in {
           import org.joda.time.LocalDate
           val ld = new LocalDate()
-          (Path \ "n").read(jodaLocalDate).validate(Map("n" -> Seq(ld.toString()))) mustEqual(Success(ld))
-          (Path \ "n").read(jodaLocalDate).validate(Map("n" -> Seq("foo"))) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.expected.jodadate.format", "")))))
+
+          From[UrlFormEncoded] { __ =>
+            (__ \ "n").read(jodaLocalDate)
+          }.validate(Map("n" -> Seq(ld.toString()))) mustEqual(Success(ld))
+
+          From[UrlFormEncoded] { __ =>
+            (__ \ "n").read(jodaLocalDate)
+          }.validate(Map("n" -> Seq("foo"))) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.expected.jodadate.format", "")))))
         }
       }
 
@@ -151,7 +177,10 @@ object RulesSpec extends Specification {
         val f = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE)
         val dd = f.parse("1985-09-10")
         val ds = new java.sql.Date(dd.getTime())
-        (Path \ "n").read(sqlDate).validate(Map("n" -> Seq("1985-09-10"))) mustEqual(Success(ds))
+
+        From[UrlFormEncoded] { __ =>
+          (__ \ "n").read(sqlDate)
+        }.validate(Map("n" -> Seq("1985-09-10"))) mustEqual(Success(ds))
       }
 
       "Boolean" in {
@@ -195,6 +224,11 @@ object RulesSpec extends Specification {
       "Seq" in {
         From[UrlFormEncoded] { __ => (__ \ "n").read[Seq[String]] }.validate(Map("n" -> Seq("foo"))).get must haveTheSameElementsAs(Seq("foo"))
         From[UrlFormEncoded] { __ => (__ \ "n").read[Seq[Int]] }.validate(Map("n" -> Seq("1", "2", "3"))).get must haveTheSameElementsAs(Seq(1, 2, 3))
+        From[UrlFormEncoded] { __ => (__ \ "n").read[Seq[Int]] }.validate(Map(
+          "n[0]" -> Seq("1"),
+          "n[1]" -> Seq("2"),
+          "n[3]" -> Seq("3")
+        )).get must haveTheSameElementsAs(Seq(1, 2, 3))
         From[UrlFormEncoded] { __ => (__ \ "n").read[Seq[Int]] }.validate(Map("n" -> Seq("1", "paf"))) mustEqual(Failure(Seq(Path \ "n" \ 1 -> Seq(ValidationError("validation.type-mismatch", "Int")))))
       }
     }
@@ -422,16 +456,16 @@ object RulesSpec extends Specification {
         }
         w.validate(m) mustEqual Success(u)
 
-        lazy val w2: Rule[UrlFormEncoded, RecUser] =
-          ((Path \ "name").read[UrlFormEncoded, String] ~
-           (Path \ "friends").read(seq(w2)))(RecUser.apply _)
-        w2.validate(m) mustEqual Success(u)
+        // lazy val w2: Rule[UrlFormEncoded, RecUser] =
+        //   ((Path \ "name").read[UrlFormEncoded, String] ~
+        //    (Path \ "friends").read(seq(w2)))(RecUser.apply _)
+        // w2.validate(m) mustEqual Success(u)
 
-        lazy val w3: Rule[UrlFormEncoded, User1] = From[UrlFormEncoded]{ __ =>
-          ((__ \ "name").read[String] ~
-           (__ \ "friend").read(option(w3)))(User1.apply _)
-        }
-        w3.validate(m1) mustEqual Success(u1)
+        // lazy val w3: Rule[UrlFormEncoded, User1] = From[UrlFormEncoded]{ __ =>
+        //   ((__ \ "name").read[String] ~
+        //    (__ \ "friend").read(option(w3)))(User1.apply _)
+        // }
+        // w3.validate(m1) mustEqual Success(u1)
       }
 
       // "using implicit notation" in {

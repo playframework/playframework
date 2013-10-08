@@ -124,6 +124,7 @@ object Program {
 //   implicit val person2Fmt = Json.format[Person2]
 // }
 
+/*
 object MacroSpec extends Specification {
 
   import Writes._
@@ -418,3 +419,4 @@ object MacroSpec extends Specification {
   }
 
 }
+*/

@@ -339,7 +339,7 @@ trait DefaultRules[I] extends GenericRules with DateRules {
   */
   def ignored[O](o: O) = (_: Path) => Rule[I, O](_ => Success(o))
 
-  protected def option[J, O](r: Rule[J, O], noneValues: Rule[J, J]*)(implicit pick: Path => Rule[I, J]) = (path: Path) =>
+  protected def opt[J, O](r: Rule[J, O], noneValues: Rule[J, J]*)(implicit pick: Path => Rule[I, J]) = (path: Path) =>
     Rule[I, Option[O]] {
       (d: I) =>
         val isNone = not(noneValues.foldLeft(Rule.zero[J])(_ compose not(_))).fmap(_ => None)

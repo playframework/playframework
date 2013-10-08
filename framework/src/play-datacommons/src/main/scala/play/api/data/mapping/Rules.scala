@@ -95,68 +95,73 @@ object PM {
  */
 object Rules extends DefaultRules[PM.PM] with ParsingRules {
   import scala.language.implicitConversions
+  import scala.language.higherKinds
+
   import play.api.libs.functional._
   import play.api.libs.functional.syntax._
 
   import PM._
 
-  // implicit def pickInRequest[I, O](p: Path[Request[I]])(implicit pick: Path[I] => Mapping[String, I, O]): Mapping[String, Request[I], O] =
-  //   request => pick(Path[I](p.path))(request.body)
+  implicit def map[O](implicit r: Rule[Seq[String], O]): Rule[PM, Map[String, O]] =
+    super.map[Seq[String], O](r, Rule.zero[PM].fmap{ toM(_).toSeq })
 
-  implicit def map[O](implicit r: Rule[Seq[String], O]): Rule[PM, Map[String, O]] = {
-    val toSeq = Rule.zero[PM].fmap(_.toSeq.map { case (k, v) =>  asKey(k) -> v })
-    super.map[Seq[String], O](r,  toSeq)
-  }
+  implicit def option[O](implicit pick: Path => Rule[PM, PM], coerce: Rule[PM, O]): Path => Rule[PM, Option[O]] =
+    opt(coerce)
 
-  def pmPick[O](implicit p: Path => Rule[UrlFormEncoded, O]): Path => Rule[PM, O] =
-    path => Rule { pm => p(path).validate(toM(pm)) }
-
-  implicit def conv = Rule[PM, UrlFormEncoded] { pm => Success(toM(pm))}
-  implicit def conv2[O](implicit r: Rule[UrlFormEncoded, O]) =
-    Rule.zero[PM].fmap(toM _).compose(r)
-
-  implicit def option[O](implicit coerce: Rule[PM, O]): Path => Rule[UrlFormEncoded, Option[O]] =
+  def option[J, O](r: Rule[J, O], noneValues: Rule[J, J]*)(implicit pick: Path => Rule[PM, J]): Path => Rule[UrlFormEncoded, Option[O]] =
     path => {
-      Rule.zero[UrlFormEncoded].fmap(toPM)
-        .compose{
-          val pick = pmPick(mapPick(Rule.zero[PM]))
-          super.option(coerce)(pick)(path)
-        }
+      val o = opt[J, O](r, noneValues: _*)(pick)(path)
+      Rule.zero[UrlFormEncoded].fmap(toPM).compose(o)
     }
 
-  def option[J, O](r: => Rule[J, O])(implicit coerce: Rule[PM, J]): Path => Rule[UrlFormEncoded, Option[O]] =
-    this.option(coerce compose r)
+  implicit def parse[O](implicit r: Rule[String, O]): Rule[PM, O] =
+    Rule.zero[PM]
+      .fmap(_.get(Path).toSeq.flatten)
+      .compose(headAs(r))
 
-  implicit def pick[O](implicit r: Rule[Seq[String], O]): Rule[PM, O] = Rule[PM, Seq[String]] { pm =>
-    val vs = pm.toSeq.flatMap {
-      case (Path, vs) => Seq(0 -> vs)
-      case (Path(Seq(IdxPathNode(i))), vs) => Seq(i -> vs)
-      case _ => Seq()
-    }.sortBy(_._1).flatMap(_._2)
-    Success(vs)
-  }.compose(r)
+  implicit def inArray[O: scala.reflect.ClassTag](implicit r: Rule[Seq[PM], Array[O]]): Rule[PM, Array[O]] =
+    inT[O, Traversable](r.fmap(_.toTraversable)).fmap(_.toArray)
 
-  implicit def mapPick[O](implicit r: Rule[PM, O]): Path => Rule[UrlFormEncoded, O] =
-    (path: Path) =>
-      Rule.fromMapping[UrlFormEncoded, PM] { data =>
-        PM.find(path)(toPM(data)) match {
-          case s if s.isEmpty => Failure(Seq(ValidationError("validation.required")))
-          case s => Success(s)
+  // PM should be Map[Path, String] and not Map[Path, Seq[String]]
+  implicit def inT[O, T[_] <: Traversable[_]](implicit r: Rule[Seq[PM], T[O]]): Rule[PM, T[O]] =
+    Rule.zero[PM].fmap { pm =>
+      val grouped = pm.toSeq.flatMap {
+        case (Path, vs) => Seq(0 -> Map(Path -> vs))
+        case (Path(IdxPathNode(i) :: Nil) \: t, vs) => Seq(i -> Map(t -> vs))
+        case _ => Nil
+      }.groupBy(_._1).mapValues(_.map(_._2)) // returns all the submap, grouped by index
+
+      val e: Seq[PM] = grouped.toSeq.map {
+        case (i, ms) => i -> ms.foldLeft(Map.empty[Path, Seq[String]]) { _ ++ _ } // merge the submaps by index
+      }
+      .sortBy(_._1)
+      .map(e => e._2)
+
+      // split Root path
+      e.flatMap { m =>
+        val (roots, others) = m.partition(_._1 == Path)
+        val rs: Seq[PM] = roots.toSeq.flatMap { case (_, vs) =>
+          vs.map(v => Map(Path() -> Seq(v)))
         }
-      }.compose(r)
 
-  implicit def mapPickSeqMap(p: Path) = Rule.fromMapping[UrlFormEncoded, Seq[UrlFormEncoded]]({ data =>
-    val grouped = PM.find(p)(PM.toPM(data)).toSeq.flatMap {
-      case (Path, vs) => Seq(0 -> Map(Path -> vs))
-      case (Path(IdxPathNode(i) :: Nil) \: t, vs) => Seq(i -> Map(t -> vs))
-      case _ => Nil
-    }.groupBy(_._1).mapValues(_.map(_._2)) // returns all the submap, grouped by index
+        (Seq(others) ++ rs).filter(!_.isEmpty)
+      }
+    }.compose(r)
 
-    val submaps = grouped.toSeq.map {
-      case (i, ms) => i -> ms.foldLeft(Map.empty[Path, Seq[String]]) { _ ++ _ } // merge the submaps by index
-    }.sortBy(_._1).map(e => PM.toM(e._2))
+  implicit def pickInPM[O](p: Path)(implicit r: Rule[PM, O]): Rule[PM, O] =
+    Rule[PM, PM] { pm =>
+      PM.find(p)(pm) match {
+        case sub if sub.isEmpty => Failure(Seq(Path -> Seq(ValidationError("validation.required"))))
+        case sub => Success(sub)
+      }
+    }.compose(r)
 
-    Success(submaps)
-  })
+  // Convert Rules exploring PM, to Rules exploring UrlFormEncoded
+  implicit def pickInM[O](p: Path)(implicit r: Path => Rule[PM, O]): Rule[UrlFormEncoded, O] =
+    Rule.zero[UrlFormEncoded]
+      .fmap(toPM)
+      .compose(r(p))
 
+  implicit def convert: Rule[PM, UrlFormEncoded] =
+    Rule.zero[PM].fmap(toM)
 }
