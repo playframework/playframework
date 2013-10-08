@@ -135,27 +135,16 @@ object Rules extends DefaultRules[PM.PM] with ParsingRules {
 
   implicit def inT[O, T[_] <: Traversable[_]](implicit r: Rule[Seq[PM], T[O]]): Rule[PM, T[O]] =
     Rule.zero[PM].fmap { pm =>
-      val grouped = pm.toSeq.flatMap {
-        case (Path, v) => Seq(0 -> Map(Path -> v))
+      val (root, others) = pm.partition(_._1 == Path)
+      val arrays = others.toSeq.flatMap{
         case (Path(IdxPathNode(i) :: Nil) \: t, v) => Seq(i -> Map(t -> v))
         case _ => Nil
-      }.groupBy(_._1).mapValues(_.map(_._2)) // returns all the submap, grouped by index
-
-      val e: Seq[PM] = grouped.toSeq.map {
-        case (i, ms) => i -> ms.foldLeft(Map.empty[Path, String]) { _ ++ _ } // merge the submaps by index
+      }.groupBy(_._1).toSeq.sortBy(_._1)
+      .map{ case (i, pms) =>
+        pms.map(_._2).foldLeft(Map.empty[Path, String]) { _ ++ _ }
       }
-      .sortBy(_._1)
-      .map(e => e._2)
 
-      // split Root path
-      e.flatMap { m =>
-        val (roots, others) = m.partition(_._1 == Path)
-        val rs: Seq[PM] = roots.toSeq.flatMap { case (_, v) =>
-          Seq(Map(Path() -> v))
-        }
-
-        (Seq(others) ++ rs).filter(!_.isEmpty)
-      }
+      (root +: arrays).filter(!_.isEmpty)
     }.compose(r)
 
   implicit def pickInPM[O](p: Path)(implicit r: Rule[PM, O]): Rule[PM, O] =
