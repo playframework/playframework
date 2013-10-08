@@ -156,10 +156,7 @@ object Rules extends DefaultRules[PM.PM] with ParsingRules {
       case (i, ms) => i -> ms.foldLeft(Map.empty[Path, Seq[String]]) { _ ++ _ } // merge the submaps by index
     }.sortBy(_._1).map(e => PM.toM(e._2))
 
-    submaps match {
-      case s if s.isEmpty => Failure(Seq(ValidationError("validation.required")))
-      case s => Success(s)
-    }
+    Success(submaps)
   })
 
 }
