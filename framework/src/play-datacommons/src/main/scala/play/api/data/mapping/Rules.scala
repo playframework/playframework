@@ -112,6 +112,8 @@ object Rules extends DefaultRules[PM.PM] with ParsingRules {
     path => Rule { pm => p(path).validate(toM(pm)) }
 
   implicit def conv = Rule[PM, UrlFormEncoded] { pm => Success(toM(pm))}
+  implicit def conv2[O](implicit r: Rule[UrlFormEncoded, O]) =
+    Rule.zero[PM].fmap(toM _).compose(r)
 
   implicit def option[O](implicit coerce: Rule[PM, O]): Path => Rule[UrlFormEncoded, Option[O]] =
     path => {

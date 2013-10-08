@@ -41,9 +41,9 @@ object RulesSpec extends Specification {
     "support checked" in {
       val js = Map("issmth" -> Seq("true"))
       val p = Path \ "issmth"
-      p.read(checked).validate(js) mustEqual(Success(true))
-      p.read(checked).validate(Map.empty) mustEqual(Failure(Seq(Path \ "issmth" -> Seq(ValidationError("validation.required")))))
-      p.read(checked).validate(Map("issmth" -> Seq("false"))) mustEqual(Failure(Seq(Path \ "issmth" -> Seq(ValidationError("validation.equals", true)))))
+      p.read[UrlFormEncoded, String, Boolean](checked).validate(js) mustEqual(Success(true))
+      p.read[UrlFormEncoded, String, Boolean](checked).validate(Map.empty) mustEqual(Failure(Seq(Path \ "issmth" -> Seq(ValidationError("validation.required")))))
+      p.read[UrlFormEncoded, String, Boolean](checked).validate(Map("issmth" -> Seq("false"))) mustEqual(Failure(Seq(Path \ "issmth" -> Seq(ValidationError("validation.equals", true)))))
     }
 
     // "ignore values" in {
@@ -213,8 +213,6 @@ object RulesSpec extends Specification {
     }
 
     "validate optional" in {
-      implicitly[Path => Rule[UrlFormEncoded, Seq[String]]]
-      implicitly[Rule[Seq[String], String]]
       From[UrlFormEncoded] { __ => (__ \ "firstname").read[Option[String]] }.validate(valid) mustEqual(Success(Some("Julien")))
       From[UrlFormEncoded] { __ => (__ \ "firstname").read[Option[Int]] }.validate(valid) mustEqual(Failure(Seq(Path \ "firstname" -> Seq(ValidationError("validation.type-mismatch", "Int")))))
       From[UrlFormEncoded] { __ => (__ \ "foobar").read[Option[String]] }.validate(valid) mustEqual(Success(None))
@@ -398,7 +396,58 @@ object RulesSpec extends Specification {
       contactValidation.validate(validM) mustEqual(Success(expected))
       contactValidation.validate(validWithPhones) mustEqual(Success(expected))
       contactValidation.validate(invalidM) mustEqual(Failure(Seq(
-        (Path \ "informations" \ 0 \"label") -> Seq(ValidationError("validation.nonemptytext")))))
+        (Path \ "informations" \ 0 \ "label") -> Seq(ValidationError("validation.nonemptytext")))))
+    }
+
+    "read recursive" in {
+      case class RecUser(name: String, friends: Seq[RecUser] = Nil)
+      val u = RecUser(
+        "bob",
+        Seq(RecUser("tom")))
+
+      val m = Map(
+        "name" -> Seq("bob"),
+        "friends[0].name" -> Seq("tom"))
+
+      case class User1(name: String, friend: Option[User1] = None)
+      val u1 = User1("bob", Some(User1("tom")))
+      val m1 = Map(
+        "name" -> Seq("bob"),
+        "friend.name" -> Seq("tom"))
+
+      "using explicit notation" in {
+        lazy val w: Rule[UrlFormEncoded, RecUser] = From[UrlFormEncoded]{ __ =>
+          ((__ \ "name").read[String] ~
+           (__ \ "friends").read(seq(w)))(RecUser.apply _)
+        }
+        w.validate(m) mustEqual Success(u)
+
+        // lazy val w2: Rule[UrlFormEncoded, RecUser] =
+        //   ((Path \ "name").read[UrlFormEncoded, String] ~
+        //    (Path \ "friends").read(seq(w2)))(RecUser.apply _)
+        // w2.validate(m) mustEqual Success(u)
+
+        // lazy val w3: Rule[UrlFormEncoded, User1] = From[UrlFormEncoded]{ __ =>
+        //   ((__ \ "name").read[String] ~
+        //    (__ \ "friend").read(option(w3)))(User1.apply _)
+        // }
+        // w3.validate(m1) mustEqual Success(u1)
+      }
+
+      // "using implicit notation" in {
+      //   implicit lazy val w: Rule[UrlFormEncoded, RecUser] = From[UrlFormEncoded]{ __ =>
+      //     ((__ \ "name").read[String] ~
+      //      (__ \ "friends").read[Seq[RecUser]])(RecUser.apply _)
+      //   }
+      //   w.validate(m) mustEqual Success(u)
+
+      //   implicit lazy val w3: Rule[UrlFormEncoded, User1] = From[UrlFormEncoded]{ __ =>
+      //     ((__ \ "name").read[String] ~
+      //      (__ \ "friend").read[Option[User1]])(User1.apply _)
+      //   }
+      //   w3.validate(m1) mustEqual Success(u1)
+      // }
+
     }
   }
 }

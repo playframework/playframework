@@ -168,41 +168,38 @@ object MacroSpec extends Specification {
           "master.age" -> Seq("45")))
     }
 
-    // "create a Rule[RecUser]" in {
-    //   implicit val catRule = Rule.gen[UrlFormEncoded, Cat]
+    "create a Rule[RecUser]" in {
+      import Rules.{ option => opt } // scala specs...
 
-    //   // implicitly[Rule[UrlFormEncoded, Cat]]
-    //   // implicitly[Rule[PM.PM, PM.PM]]
-    //   // implicitly[Rule[PM.PM, Cat]]
-    //   // implicitly[Rule[PM.PM, Option[Cat]]]
-    //   // implicitly[Rule[UrlFormEncoded, Option[Cat]]]
+      implicit val catRule = Rule.gen[UrlFormEncoded, Cat]
 
-    //   catRule.validate(
-    //     Map("name" -> Seq("minou"))
-    //   ) must beEqualTo(Success(Cat("minou")))
+      catRule.validate(
+        Map("name" -> Seq("minou"))
+      ) must beEqualTo(Success(Cat("minou")))
 
-    //   implicit val recUserRule = Rule.gen[UrlFormEncoded, RecUser]
+      // implicit lazy val recUserRule: Rule[UrlFormEncoded, RecUser] =
+      //   Rule.gen[UrlFormEncoded, RecUser]
 
-    //   recUserRule.validate(
-    //     Map(
-    //       "name" -> Seq("bob"),
-    //       "cat.name" -> Seq("minou"),
-    //       "hobbies[0]" -> Seq("bobsleig"),
-    //       "hobbies[1]" -> Seq("manhunting"),
-    //       "friends[0].name" -> Seq("tom")
-    //     )
-    //   ) must beEqualTo(
-    //     JsSuccess(
-    //       RecUser(
-    //         "bob",
-    //         Some(Cat("minou")),
-    //         List("bobsleig", "manhunting"),
-    //         List(RecUser("tom"))
-    //       )
-    //     )
-    //   )
+      // recUserRule.validate(
+      //   Map(
+      //     "name" -> Seq("bob"),
+      //     "cat.name" -> Seq("minou"),
+      //     "hobbies[0]" -> Seq("bobsleig"),
+      //     "hobbies[1]" -> Seq("manhunting"),
+      //     "friends[0].name" -> Seq("tom")
+      //   )
+      // ) must beEqualTo(
+      //   JsSuccess(
+      //     RecUser(
+      //       "bob",
+      //       Some(Cat("minou")),
+      //       List("bobsleig", "manhunting"),
+      //       List(RecUser("tom"))
+      //     )
+      //   )
+      // )
 
-    // }
+    }
 
     "create a Write[RecUser]" in {
 

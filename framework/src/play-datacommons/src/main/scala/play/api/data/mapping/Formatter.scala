@@ -27,7 +27,7 @@ case class Reader[I](path: Path = Path(Nil)) {
   * @param l a lookup function. This function finds data in a structure of type I, and coerce it to type O
   * @return A Rule validating the existence and validity of data at `path`
   */
-  def read[J, O](sub: Rule[J, O])(implicit r: Path => Rule[I, J]): Rule[I, O] =
+  def read[J, O](sub: => Rule[J, O])(implicit r: Path => Rule[I, J]): Rule[I, O] =
     r(path).compose(path)(sub)
 
 

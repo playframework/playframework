@@ -24,7 +24,7 @@ trait Rule[I, O] {
   * @param sub the second Rule to apply
   * @return The combination of the two Rules
   */
-  def compose[P](path: Path)(sub: Rule[O, P]): Rule[I, P] =
+  def compose[P](path: Path)(sub: => Rule[O, P]): Rule[I, P] =
     this.flatMap{ o => Rule(_ => sub.validate(o)) }.repath(path ++ _)
 
   def flatMap[B](f: O => Rule[I, B]): Rule[I, B] =
@@ -55,7 +55,7 @@ trait Rule[I, O] {
     Rule(d => this.validate(d) orElse t.validate(d))
 
   // would be nice to have Kleisli in play
-  def compose[P](sub: Rule[O, P]): Rule[I, P] = compose(Path)(sub)
+  def compose[P](sub: => Rule[O, P]): Rule[I, P] = compose(Path)(sub)
   def compose[P](m: Mapping[ValidationError, O, P]): Rule[I, P] = compose(Rule.fromMapping(m))
 
   /**
