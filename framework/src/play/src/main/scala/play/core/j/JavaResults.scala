@@ -54,9 +54,7 @@ object JavaResultExtractor {
       private val cookies = Cookies(headers(result).get(HeaderNames.SET_COOKIE))
 
       def get(name: String): JCookie = {
-        cookies.get(name).map {
-          cookie => makeJavaCookie(cookie)
-        }.getOrElse(null)
+        cookies.get(name).map(makeJavaCookie).orNull
       }
 
       private def makeJavaCookie(cookie: Cookie): JCookie = {
@@ -70,10 +68,7 @@ object JavaResultExtractor {
       }
 
       def iterator: java.util.Iterator[JCookie] = {
-        import scala.collection.JavaConversions._
-        cookies.toIterator.map {
-          cookie => makeJavaCookie(cookie)
-        }
+        cookies.toIterator.map(makeJavaCookie).asJava
       }
     }
 

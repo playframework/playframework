@@ -87,9 +87,7 @@ trait JavaHelpers {
 
       def cookies = new JCookies {
         def get(name: String): JCookie = {
-          req.cookies.get(name).map {
-            cookie => makeJavaCookie(cookie)
-          }.getOrElse(null)
+          req.cookies.get(name).map(makeJavaCookie).orNull
         }
 
         private def makeJavaCookie(cookie: Cookie): JCookie = {
@@ -103,10 +101,7 @@ trait JavaHelpers {
         }
 
         def iterator: java.util.Iterator[JCookie] = {
-          import scala.collection.JavaConversions._
-          req.cookies.toIterator.map {
-            cookie => makeJavaCookie(cookie)
-          }
+          req.cookies.toIterator.map(makeJavaCookie).asJava
         }
       }
 
@@ -167,9 +162,7 @@ trait JavaHelpers {
 
       def cookies = new JCookies {
         def get(name: String): JCookie = {
-          req.cookies.get(name).map {
-            cookie => makeJavaCookie(cookie)
-          }.getOrElse(null)
+          req.cookies.get(name).map(makeJavaCookie).orNull
         }
 
         private def makeJavaCookie(cookie: Cookie): JCookie = {
@@ -183,10 +176,7 @@ trait JavaHelpers {
         }
 
         def iterator: java.util.Iterator[JCookie] = {
-          import scala.collection.JavaConversions._
-          req.cookies.toIterator.map {
-            cookie => makeJavaCookie(cookie)
-          }
+          req.cookies.toIterator.map(makeJavaCookie).asJava
         }
       }
 
