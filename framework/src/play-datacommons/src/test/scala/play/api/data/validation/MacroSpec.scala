@@ -202,18 +202,6 @@ object MacroSpec extends Specification {
           "friend.name" -> Seq("tom" )))
     }
 
-    // "manage Map[String, User]" in {
-    //   import Rules._
-
-    //   implicit val userRule = Rule.gen[UrlFormEncoded, UserMap]
-
-    //   Json.fromJson[UserMap](
-    //     Json.obj("name" -> "toto", "friends" -> Json.obj("tutu" -> Json.obj("name" -> "tutu", "friends" -> Json.obj())))
-    //   ) must beEqualTo(
-    //     JsSuccess(UserMap("toto", Map("tutu" -> UserMap("tutu"))))
-    //   )
-    // }
-
     "manage Boxed class" in {
       import play.api.libs.functional.syntax._
       import Rules._
@@ -303,59 +291,56 @@ object MacroSpec extends Specification {
       }
     }
 
-    // "test case class 1 field set" in {
-    //   "Rule" in {
-    //     import Rules._
-    //     implicit val toto4Rule = Rule.gen[UrlFormEncoded, Toto4]
-    //     success
-    //   }
+    "test case class 1 field set" in {
+      "Rule" in {
+        import Rules._
+        implicit val toto4Rule = Rule.gen[UrlFormEncoded, Toto4]
+        success
+      }
 
-    //   "Write" in {
-    //     import Writes._
-    //     implicit val toto4Write = Write.gen[Toto4, UrlFormEncoded]
-    //     success
-    //   }
-    // }
+      "Write" in {
+        import Writes._
+        implicit val toto4Write = Write.gen[Toto4, UrlFormEncoded]
+        success
+      }
+    }
 
-    // "test case class 1 field map" in {
-    //   "Rule" in {
-    //     import Rules._
-    //     implicit val toto5Rule = Rule.gen[UrlFormEncoded, Toto5]
-    //     success
-    //   }
+    "test case class 1 field map" in {
+      "Rule" in {
+        import Rules.{ map => mmm , _}
+        implicit val toto5Rule = Rule.gen[UrlFormEncoded, Toto5]
+        success
+      }
 
-    //   "Write" in {
-    //     import Writes._
-    //     implicit val toto5Write = Write.gen[Toto5, UrlFormEncoded]
-    //     success
-    //   }
-    // }
+      "Write" in {
+        import Writes.{ map => mmm , _}
+        implicit val toto5Write = Write.gen[Toto5, UrlFormEncoded]
+        success
+      }
+    }
 
-    // "test case class 1 field seq[Dog]" in {
-    //   implicit val userFormat = Json.format[User]
-    //   implicit val dogFormat = Json.format[Dog]
-    //   implicit val toto6Reads = Json.reads[Toto6]
-    //   implicit val toto6Writes = Json.writes[Toto6]
-    //   implicit val toto6Format = Json.format[Toto6]
+    "test case class 1 field seq[Dog]" in {
+      import Rules._
 
-    //   val js = Json.obj("name" -> Json.arr(
-    //     Json.obj(
-    //       "name" -> "medor",
-    //       "master" -> Json.obj("name" -> "toto", "age" -> 45)
-    //     ),
-    //     Json.obj(
-    //       "name" -> "brutus",
-    //       "master" -> Json.obj("name" -> "tata", "age" -> 23)
-    //     )
-    //   ))
+      implicit val userRule = Rule.gen[UrlFormEncoded, User]
+      implicit val dogRule = Rule.gen[UrlFormEncoded, Dog]
+      implicit val toto6Rule = Rule.gen[UrlFormEncoded, Toto6]
 
-    //   Json.fromJson[Toto6](js).get must beEqualTo(
-    //     Toto6(Seq(
-    //       Dog("medor", User(45, "toto")),
-    //       Dog("brutus", User(23, "tata"))
-    //     ))
-    //   )
-    // }
+      val map = Map(
+        "name[0].name" -> Seq("medor"),
+        "name[0].master.name" -> Seq("toto"),
+        "name[0].master.age" -> Seq("45"),
+        "name[1].name" -> Seq("brutus"),
+        "name[1].master.name" -> Seq("tata"),
+        "name[1].master.age" -> Seq("23"))
+
+      toto6Rule.validate(map) must beEqualTo(Success(
+        Toto6(Seq(
+          Dog("medor", User(45, "toto")),
+          Dog("brutus", User(23, "tata"))
+        ))
+      ))
+    }
 
     "test case reads in companion object" in {
       From[UrlFormEncoded, Person](

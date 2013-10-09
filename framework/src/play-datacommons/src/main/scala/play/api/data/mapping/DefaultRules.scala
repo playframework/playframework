@@ -150,6 +150,17 @@ trait GenericRules {
   implicit def traversable[I, O](implicit r: Rule[I, O]): Rule[Seq[I], Traversable[O]] =
     seq[I, O](r).fmap(_.toTraversable)
 
+  /**
+  * lift a `Rule[I, O]` to a Rule of `Rule[Seq[I], Set[O]]`
+  * {{{
+  *   (Path \ "foo").read(set(notEmpty)) // create a Rules validating that a Set contains non-empty Strings
+  * }}}
+  * @param r A Rule[I, O] to lift
+  * @return A new Rule
+  */
+  implicit def set[I, O](implicit r: Rule[I, O]): Rule[Seq[I], Set[O]] =
+    seq[I, O](r).fmap(_.toSet)
+
 
   /**
   * lift a `Rule[I, O]` to a Rule of `Rule[Seq[I], Seq[O]]`

@@ -78,6 +78,9 @@ trait GenericWrites[O] {
 
   implicit def traversable[I](implicit w: Write[Seq[I], O]) =
     Write((_: Traversable[I]).toSeq) compose w
+
+  implicit def set[I](implicit w: Write[Seq[I], O]) =
+    Write((_: Set[I]).toSeq) compose w
 }
 
 object Writes extends DefaultWrites with GenericWrites[PM.PM] with DefaultMonoids {
