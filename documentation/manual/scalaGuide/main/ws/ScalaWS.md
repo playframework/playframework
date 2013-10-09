@@ -204,7 +204,6 @@ This is important in a couple of cases.  WS has a couple of limitations that req
 
 Use the following properties to configure the WS client
 
-* `ws.timeout` sets both the connection and request timeout in milliseconds
 * `ws.followRedirects` configures the client to follow 301 and 302 redirects
 * `ws.useProxyProperties`to use the system http proxy settings(http.proxyHost, http.proxyPort) 
 * `ws.useragent` to configure the User-Agent header field
@@ -220,8 +219,6 @@ There ore 3 different timeouts in WS. Reaching a timeout causes the WS request t
 * **Request Timeout**: The total time you accept a request to take (it will be interrupted, whatever if the remote host is still sending data) *(default is **none**, to allow stream consuming)*.
 
 You can define each timeout in `application.conf` with respectively: `ws.timeout.connection`, `ws.timeout.idle`, `ws.timeout.request`.
-
-Alternatively, `ws.timeout` can be defined to target both *Connection Timeout* and *Connection Idle Timeout*.
 
 The request timeout can be specified for a given connection with `withRequestTimeout`.
 
