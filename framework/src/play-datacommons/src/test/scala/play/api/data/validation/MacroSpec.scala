@@ -5,76 +5,6 @@ import scala.util.control.Exception._
 import play.api.libs.functional._
 import play.api.libs.functional.syntax._
 
-// object MacroSpec extends Specification {
-
-//   case class Contact(
-//     firstname: String,
-//     lastname: String,
-//     company: Option[String],
-//     informations: Seq[ContactInformation])
-
-//   case class ContactInformation(
-//     label: String,
-//     email: Option[String],
-//     phones: Seq[String])
-
-//   val contact = Contact("Julien", "Tournay", None, Seq(
-//     ContactInformation("Personal", Some("fakecontact@gmail.com"), Seq("01.23.45.67.89", "98.76.54.32.10"))))
-
-//   case class Foo(name: String, i: Int)
-//   object Foo {
-//     implicit val fooW = To[UrlFormEncoded] { __ =>
-//       import Writes._
-//       ((__ \ "n").write[String] ~
-//        (__ \ "i").write[Int]) (unlift(Foo.unapply _))
-//     }
-//   }
-//   case class Bar(name: String, foo: Foo)
-
-//   "MappingMacros" should {
-//     import Writes._
-
-//     "generate Write" in {
-//       val w = Write.generate[ContactInformation, UrlFormEncoded]
-
-//       val info = Map(
-//         "label" -> Seq("Personal"),
-//         "email" -> Seq("fakecontact@gmail.com"),
-//         "phones[0]" -> Seq("01.23.45.67.89"),
-//         "phones[1]" -> Seq("98.76.54.32.10"))
-
-//       w.writes(contact.informations.head) mustEqual(info)
-//     }
-
-//     "find user defined Writes" in {
-//       implicit val wc = Write.generate[ContactInformation, UrlFormEncoded]
-//       val wu = Write.generate[Contact, UrlFormEncoded]
-
-//       val contactMap = Map(
-//         "firstname" -> Seq("Julien"),
-//         "lastname" -> Seq("Tournay"),
-//         "informations[0].label" -> Seq("Personal"),
-//         "informations[0].email" -> Seq("fakecontact@gmail.com"),
-//         "informations[0].phones[0]" -> Seq("01.23.45.67.89"),
-//         "informations[0].phones[1]" -> Seq("98.76.54.32.10"))
-
-//       wu.writes(contact) mustEqual contactMap
-//     }
-
-//     "find implicit writes in companion" in {
-//       val wu = Write.generate[Bar, UrlFormEncoded]
-
-//       val m = Map(
-//         "name" -> Seq("bar"),
-//         "foo.n" -> Seq("foo"),
-//         "foo.i" -> Seq("42"))
-
-//       wu.writes(Bar("bar", Foo("foo", 42))) mustEqual(m)
-//     }
-
-//   }
-// }
-
 case class User(age: Int, name: String)
 case class Dog(name: String, master: User)
 
@@ -110,41 +40,50 @@ object Program {
   def programs = List.empty[Program]
 }
 
-// case class Person(name: String, age: Int)
-// object Person {
-//   implicit val personReads = Json.reads[Person]
-//   implicit val personWrites = Json.writes[Person]
-// }
+case class Person(name: String, age: Int)
+object Person {
+  implicit val personRule = {
+    import Rules._
+    Rule.gen[UrlFormEncoded, Person]
+  }
+  implicit val personWrite = {
+    import Writes._
+    Write.gen[Person, UrlFormEncoded]
+  }
+}
 
-// import play.api.libs.json._
+case class Person2(names: List[String])
 
-// case class Person2(names: List[String])
+object Person2{
+  implicit val personRule = {
+    import Rules._
+    Rule.gen[UrlFormEncoded, Person2]
+  }
+  implicit val personWrite = {
+    import Writes._
+    Write.gen[Person2, UrlFormEncoded]
+  }
+}
 
-// object Person2{
-//   implicit val person2Fmt = Json.format[Person2]
-// }
 
-/*
 object MacroSpec extends Specification {
-
-  import Writes._
-  import Rules._
 
   "MappingMacros" should {
 
     "create a Rule[User]" in {
-      //object User {def apply(age:Int):User = User(age,"")}
+      import Rules._
       implicit val userReads = Rule.gen[UrlFormEncoded, User]
-
       userReads.validate(Map("name" -> Seq("toto"), "age" -> Seq("45"))) must beEqualTo(Success(User(45, "toto")))
     }
 
     "create a Write[User]" in {
+      import Writes._
       implicit val userWrites = Write.gen[User, UrlFormEncoded]
       userWrites.writes(User(45, "toto")) must beEqualTo(Map("name" -> Seq("toto"), "age" -> Seq("45")))
     }
 
     "create a Rule[Dog]" in {
+      import Rules._
       implicit val userRule = Rule.gen[UrlFormEncoded, User]
       implicit val dogRule = Rule.gen[UrlFormEncoded, Dog]
 
@@ -159,6 +98,7 @@ object MacroSpec extends Specification {
     }
 
     "create a Write[Dog]" in {
+      import Writes._
       implicit val userWrite = Write.gen[User, UrlFormEncoded]
       implicit val dogWrite = Write.gen[Dog, UrlFormEncoded]
 
@@ -170,7 +110,7 @@ object MacroSpec extends Specification {
     }
 
     "create a Rule[RecUser]" in {
-      import Rules.{ option => opt } // scala specs...
+      import Rules._
 
       implicit val catRule = Rule.gen[UrlFormEncoded, Cat]
 
@@ -178,31 +118,32 @@ object MacroSpec extends Specification {
         Map("name" -> Seq("minou"))
       ) must beEqualTo(Success(Cat("minou")))
 
-      // implicit lazy val recUserRule: Rule[UrlFormEncoded, RecUser] =
-      //   Rule.gen[UrlFormEncoded, RecUser]
+      implicit lazy val recUserRule: Rule[UrlFormEncoded, RecUser] =
+        Rule.gen[UrlFormEncoded, RecUser]
 
-      // recUserRule.validate(
-      //   Map(
-      //     "name" -> Seq("bob"),
-      //     "cat.name" -> Seq("minou"),
-      //     "hobbies[0]" -> Seq("bobsleig"),
-      //     "hobbies[1]" -> Seq("manhunting"),
-      //     "friends[0].name" -> Seq("tom")
-      //   )
-      // ) must beEqualTo(
-      //   JsSuccess(
-      //     RecUser(
-      //       "bob",
-      //       Some(Cat("minou")),
-      //       List("bobsleig", "manhunting"),
-      //       List(RecUser("tom"))
-      //     )
-      //   )
-      // )
+      recUserRule.validate(
+        Map(
+          "name" -> Seq("bob"),
+          "cat.name" -> Seq("minou"),
+          "hobbies[0]" -> Seq("bobsleig"),
+          "hobbies[1]" -> Seq("manhunting"),
+          "friends[0].name" -> Seq("tom")
+        )
+      ) must beEqualTo(
+        Success(
+          RecUser(
+            "bob",
+            Some(Cat("minou")),
+            List("bobsleig", "manhunting"),
+            List(RecUser("tom"))
+          )
+        )
+      )
 
     }
 
     "create a Write[RecUser]" in {
+      import Writes._
 
       implicit val catWrite = Write.gen[Cat, UrlFormEncoded]
       catWrite.writes(Cat("minou")) must beEqualTo(Map("name" -> Seq("minou")))
@@ -227,28 +168,28 @@ object MacroSpec extends Specification {
 
     }
 
-    // "create a reads[User1]" in {
-    //   import play.api.libs.json.Json
+    "create a Rule[User1]" in {
+      import Rules._
 
-    //   implicit val userReads = Json.reads[User1]
+      implicit lazy val userRule: Rule[UrlFormEncoded, User1] = Rule.gen[UrlFormEncoded, User1]
 
-    //   Json.fromJson[User1](
-    //     Json.obj(
-    //       "name" -> "bob",
-    //       "friend" -> Json.obj( "name" -> "tom" )
-    //     )
-    //   ) must beEqualTo(
-    //     JsSuccess(
-    //       User1(
-    //         "bob",
-    //         Some(User1("tom"))
-    //       )
-    //     )
-    //   )
-    // }
+      userRule.validate(
+        Map(
+          "name" -> Seq("bob"),
+          "friend.name" -> Seq("tom"))
+      ) must beEqualTo(
+        Success(
+          User1(
+            "bob",
+            Some(User1("tom"))
+          )
+        )
+      )
+    }
 
 
     "create a writes[User1]" in {
+      import Writes._
       implicit lazy val userWrites: Write[User1, UrlFormEncoded] = Write.gen[User1, UrlFormEncoded]
 
       userWrites.writes(
@@ -261,44 +202,10 @@ object MacroSpec extends Specification {
           "friend.name" -> Seq("tom" )))
     }
 
-
-    // "create a format[User1]" in {
-    //   import play.api.libs.json.Json
-
-    //   implicit val userFormat = Json.format[User1]
-
-    //   Json.fromJson[User1](
-    //     Json.obj(
-    //       "name" -> "bob",
-    //       "friend" -> Json.obj( "name" -> "tom" )
-    //     )
-    //   ) must beEqualTo(
-    //     JsSuccess(
-    //       User1(
-    //         "bob",
-    //         Some(User1("tom"))
-    //       )
-    //     )
-    //   )
-
-    //   Json.toJson(
-    //     User1(
-    //       "bob",
-    //       Some(User1("tom"))
-    //     )
-    //   ) must beEqualTo(
-    //     Json.obj(
-    //       "name" -> "bob",
-    //       "friend" -> Json.obj( "name" -> "tom" )
-    //     )
-    //   )
-
-    // }
-
     // "manage Map[String, User]" in {
-    //   import play.api.libs.json.Json
+    //   import Rules._
 
-    //   implicit val userReads = Json.reads[UserMap]
+    //   implicit val userRule = Rule.gen[UrlFormEncoded, UserMap]
 
     //   Json.fromJson[UserMap](
     //     Json.obj("name" -> "toto", "friends" -> Json.obj("tutu" -> Json.obj("name" -> "tutu", "friends" -> Json.obj())))
@@ -307,79 +214,121 @@ object MacroSpec extends Specification {
     //   )
     // }
 
-    // "manage Boxed class" in {
-    //   import play.api.libs.functional.syntax._
+    "manage Boxed class" in {
+      import play.api.libs.functional.syntax._
+      import Rules._
 
-    //   implicit def idReads[A](implicit rds: Reads[A]): Reads[Id[A]] =
-    //     Reads[Id[A]] { js => rds.reads(js).map( Id[A](_) ) }
+      implicit def idRule[A]: Rule[A, Id[A]] =
+        Rule.zero[A].fmap{ Id[A](_) }
 
-    //   //val c2Reads1 = Json.reads[C2]
+      implicit def c1Rule[A](implicit rds: Rule[A, Id[A]], e: Path => Rule[UrlFormEncoded, A]) =
+        From[UrlFormEncoded]{ __ =>
+          ((__ \ "id").read(rds) and
+           (__ \ "name").read[String])( (id, name) => C1[A](id, name) )
+        }
 
-    //   implicit def c1Reads[A](implicit rds: Reads[Id[A]]) = {
-    //     (
-    //       (__ \ 'id).read(rds) and
-    //       (__ \ 'name).read[String]
-    //     )( (id, name) => C1[A](id, name) )
-    //   }
+      val map = Map(
+        "id" -> Seq("123"),
+        "name" -> Seq("toto"))
 
-    //   val js = Json.obj("id" -> 123L, "name" -> "toto")
+      c1Rule[Long].validate(map) must beEqualTo(Success(C1[Long](Id[Long](123L), "toto")))
+    }
 
-    //   js.validate(c1Reads[Long]).get must beEqualTo(C1[Long](Id[Long](123L), "toto"))
-    // }
+    /* // test to validate it doesn't compile if missing implicit
+    "fail if missing " in {
+      import Rules._
+      implicit val userReads = Rule.gen[UrlFormEncoded, UserFail]
+      success
+    }*/
 
-    // /** test to validate it doesn't compile if missing implicit
-    // "fail if missing " in {
-    //   import play.api.libs.json.Json
+    "test 21 fields" in {
+      "Rule" in {
+        import Rules._
+        implicit val XRule = Rule.gen[UrlFormEncoded, X]
+        success
+      }
 
-    //   implicit val userReads = Json.reads[UserFail]
+      "Write" in {
+        import Writes._
+        implicit val XWrites = Write.gen[X, UrlFormEncoded]
+        success
+      }
+    }
 
-    //   success
-    // }*/
-    // "test 21 fields" in {
-    //   implicit val XReads = Json.reads[X]
-    //   implicit val XWrites = Json.writes[X]
-    //   implicit val XFormat = Json.format[X]
-    //   success
-    // }
+    "test inception with overriden object" in {
+      import Rules._
+      implicit val programFormat = Rule.gen[UrlFormEncoded, Program]
+      success
+    }
 
-    // "test inception with overriden object" in {
-    //   implicit val programFormat = Json.reads[Program]
-    //   success
-    // }
+    "test case class 1 field" in {
+      "Rule" in {
+        import Rules._
+        implicit val totoRule = Rule.gen[UrlFormEncoded, Toto]
+        success
+      }
 
-    // "test case class 1 field" in {
-    //   implicit val totoReads = Json.reads[Toto]
-    //   implicit val totoWrites = Json.writes[Toto]
-    //   implicit val totoFormat = Json.format[Toto]
-    //   success
-    // }
+      "Write" in {
+        import Writes._
+        implicit val totoWrite = Write.gen[Toto, UrlFormEncoded]
+        success
+      }
+    }
 
-    // "test case class 1 field option" in {
-    //   implicit val toto2Reads = Json.reads[Toto2]
-    //   implicit val toto2Writes = Json.writes[Toto2]
-    //   implicit val toto2Format = Json.format[Toto2]
-    //   success
-    // }
+    "test case class 1 field option" in {
+      "Rule" in {
+        import Rules._
+        implicit val toto2Rule = Rule.gen[UrlFormEncoded, Toto2]
+        success
+      }
 
-    // "test case class 1 field list" in {
-    //   implicit val toto3Reads = Json.reads[Toto3]
-    //   implicit val toto3Writes = Json.writes[Toto3]
-    //   implicit val toto3Format = Json.format[Toto3]
-    //   success
-    // }
+      "Write" in {
+        import Writes._
+        implicit val toto2Write = Write.gen[Toto2, UrlFormEncoded]
+        success
+      }
+    }
+
+    "test case class 1 field list" in {
+      "Rule" in {
+        import Rules._
+        implicit val toto3Rule = Rule.gen[UrlFormEncoded, Toto3]
+        success
+      }
+
+      "Write" in {
+        import Writes._
+        implicit val toto3Write = Write.gen[Toto3, UrlFormEncoded]
+        success
+      }
+    }
 
     // "test case class 1 field set" in {
-    //   implicit val toto4Reads = Json.reads[Toto4]
-    //   implicit val toto4Writes = Json.writes[Toto4]
-    //   implicit val toto4Format = Json.format[Toto4]
-    //   success
+    //   "Rule" in {
+    //     import Rules._
+    //     implicit val toto4Rule = Rule.gen[UrlFormEncoded, Toto4]
+    //     success
+    //   }
+
+    //   "Write" in {
+    //     import Writes._
+    //     implicit val toto4Write = Write.gen[Toto4, UrlFormEncoded]
+    //     success
+    //   }
     // }
 
     // "test case class 1 field map" in {
-    //   implicit val toto5Reads = Json.reads[Toto5]
-    //   implicit val toto5Writes = Json.writes[Toto5]
-    //   implicit val toto5Format = Json.format[Toto5]
-    //   success
+    //   "Rule" in {
+    //     import Rules._
+    //     implicit val toto5Rule = Rule.gen[UrlFormEncoded, Toto5]
+    //     success
+    //   }
+
+    //   "Write" in {
+    //     import Writes._
+    //     implicit val toto5Write = Write.gen[Toto5, UrlFormEncoded]
+    //     success
+    //   }
     // }
 
     // "test case class 1 field seq[Dog]" in {
@@ -408,15 +357,18 @@ object MacroSpec extends Specification {
     //   )
     // }
 
-    // "test case reads in companion object" in {
-    //   Json.fromJson[Person](Json.toJson(Person("bob", 15))).get must beEqualTo(Person("bob", 15))
-    // }
+    "test case reads in companion object" in {
+      From[UrlFormEncoded, Person](
+        To[Person, UrlFormEncoded](Person("bob", 15))
+      ) must beEqualTo(Success(Person("bob", 15)))
+    }
 
-    // "test case single-field in companion object" in {
-    //   Json.fromJson[Person2](Json.toJson(Person2(List("bob", "bobby")))).get must beEqualTo(Person2(List("bob", "bobby")))
-    // }
+    "test case single-field in companion object" in {
+      From[UrlFormEncoded, Person2](
+        To[Person2, UrlFormEncoded](Person2(List("bob", "bobby")))
+      ) must beEqualTo(Success(Person2(List("bob", "bobby"))))
+    }
 
   }
 
 }
-*/

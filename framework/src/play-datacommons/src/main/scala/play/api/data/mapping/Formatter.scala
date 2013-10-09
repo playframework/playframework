@@ -3,12 +3,20 @@ package play.api.data.mapping
 trait From[I] {
 	def apply[O](f: Reader[I] => Rule[I, O]) = f(Reader[I]())
 }
-object From { def apply[I] = new From[I]{} }
+object From {
+  def apply[I] = new From[I]{}
+  def apply[I, O](i: I)(implicit r: Rule[I, O]) =
+    r.validate(i)
+}
 
 trait To[I] {
 	def apply[O](f: Writer[I] => Write[O, I]) = f(Writer[I]())
 }
-object To { def apply[I] = new To[I]{} }
+object To {
+  def apply[I] = new To[I]{}
+  def apply[O, I](o: O)(implicit w: Write[O, I]) =
+    w.writes(o)
+}
 
 case class Reader[I](path: Path = Path(Nil)) {
   /**

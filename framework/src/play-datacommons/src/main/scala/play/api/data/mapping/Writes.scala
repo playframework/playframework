@@ -113,9 +113,10 @@ object Writes extends DefaultWrites with GenericWrites[PM.PM] with DefaultMonoid
     Map(Path -> w.writes(i))
   }
 
-  implicit def opt[I](implicit w: Path => Write[I, UrlFormEncoded]) =
+  implicit def opt[I](implicit w: Path => Write[I, UrlFormEncoded]): Path => Write[Option[I], UrlFormEncoded]=
     option[I, I](Write.zero[I])
 
   def option[I, J](r: => Write[I, J])(implicit w: Path => Write[J, UrlFormEncoded]) =
     super.option[I, J, UrlFormEncoded](r, Map.empty)
+
 }
