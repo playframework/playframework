@@ -113,7 +113,7 @@ object Rules extends DefaultRules[PM.PM] with ParsingRules {
   implicit def option[O](implicit pick: Path => Rule[PM, PM], coerce: Rule[PM, O]): Path => Rule[PM, Option[O]] =
     opt(coerce)
 
-  def option[J, O](r: Rule[J, O], noneValues: Rule[J, J]*)(implicit pick: Path => Rule[PM, J]): Path => Rule[UrlFormEncoded, Option[O]] =
+  def option[J, O](r: => Rule[J, O], noneValues: Rule[J, J]*)(implicit pick: Path => Rule[PM, J]): Path => Rule[UrlFormEncoded, Option[O]] =
     path => {
       val o = opt[J, O](r, noneValues: _*)(pick)(path)
       Rule.zero[UrlFormEncoded].fmap(toPM).compose(o)
@@ -129,23 +129,25 @@ object Rules extends DefaultRules[PM.PM] with ParsingRules {
       .compose(r)
   }
 
+  implicit def inArray[O: scala.reflect.ClassTag](implicit r: Rule[Seq[PM], Array[O]]): Path => Rule[PM, Array[O]] =
+    inT[O, Traversable](r.fmap(_.toTraversable))(_).fmap(_.toArray)
 
-  implicit def inArray[O: scala.reflect.ClassTag](implicit r: Rule[Seq[PM], Array[O]]): Rule[PM, Array[O]] =
-    inT[O, Traversable](r.fmap(_.toTraversable)).fmap(_.toArray)
+  implicit def inT[O, T[_] <: Traversable[_]](implicit r: Rule[Seq[PM], T[O]]): Path => Rule[PM, T[O]] =
+    path =>
+      pickInPM(path)(Rule.zero).orElse(Rule[PM, PM](_ => Success(Map.empty)))
+      .fmap { pm =>
+        val (root, others) = pm.partition(_._1 == Path)
+        val arrays = others.toSeq.flatMap{
+          case (Path(IdxPathNode(i) :: Nil) \: t, v) => Seq(i -> Map(t -> v))
+          case _ => Nil
+        }
+        .groupBy(_._1).toSeq.sortBy(_._1)
+        .map{ case (i, pms) =>
+          pms.map(_._2).foldLeft(Map.empty[Path, String]) { _ ++ _ }
+        }
 
-  implicit def inT[O, T[_] <: Traversable[_]](implicit r: Rule[Seq[PM], T[O]]): Rule[PM, T[O]] =
-    Rule.zero[PM].fmap { pm =>
-      val (root, others) = pm.partition(_._1 == Path)
-      val arrays = others.toSeq.flatMap{
-        case (Path(IdxPathNode(i) :: Nil) \: t, v) => Seq(i -> Map(t -> v))
-        case _ => Nil
-      }.groupBy(_._1).toSeq.sortBy(_._1)
-      .map{ case (i, pms) =>
-        pms.map(_._2).foldLeft(Map.empty[Path, String]) { _ ++ _ }
-      }
-
-      (root +: arrays).filter(!_.isEmpty)
-    }.compose(r)
+        (root +: arrays).filter(!_.isEmpty)
+      }.compose(r)
 
   implicit def pickInPM[O](p: Path)(implicit r: Rule[PM, O]): Rule[PM, O] =
     Rule[PM, PM] { pm =>
@@ -156,11 +158,11 @@ object Rules extends DefaultRules[PM.PM] with ParsingRules {
     }.compose(r)
 
   // Convert Rules exploring PM, to Rules exploring UrlFormEncoded
-  implicit def pickInM[O](p: Path)(implicit r: Path => Rule[PM, O]): Rule[UrlFormEncoded, O] =
+  implicit def convertToInM[O](p: Path)(implicit r: Path => Rule[PM, O]): Rule[UrlFormEncoded, O] =
     Rule.zero[UrlFormEncoded]
       .fmap(toPM)
       .compose(r(p))
 
-  implicit def convert: Rule[PM, UrlFormEncoded] =
-    Rule.zero[PM].fmap(toM)
+  implicit def convertRule[O](implicit r: Rule[UrlFormEncoded, O]): Rule[PM, O] =
+    Rule.zero[PM].fmap(toM).compose(r)
 }

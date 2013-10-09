@@ -47,7 +47,7 @@ case class Reader[I](path: Path = Path(Nil)) {
   * @return A Rule validating the existence and validity of data at `path`.
   */
   def read[O](implicit r: Path => Rule[I, O]): Rule[I, O] =
-    read(Rule.zero[O])(r)
+    Rule{ i => read(Rule.zero[O])(r).validate(i) }// makes it lazy evaluated. Allows recursive writes
 
   def \(key: String): Reader[I] = Reader(path \ key)
   def \(idx: Int): Reader[I] = Reader(path \ idx)

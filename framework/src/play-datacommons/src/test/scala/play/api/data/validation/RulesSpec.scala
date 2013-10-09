@@ -242,8 +242,11 @@ object RulesSpec extends Specification {
     }
 
     "validate seq" in {
+      def isNotEmpty[T <: Traversable[_]] = validateWith[T]("validation.notEmpty"){ !_.isEmpty }
+
       From[UrlFormEncoded] { __ => (__ \ "firstname").read[Seq[String]] }.validate(valid) mustEqual(Success(Seq("Julien")))
-      From[UrlFormEncoded] { __ => (__ \ "foobar").read[Seq[String]] }.validate(valid) mustEqual(Failure(Seq(Path \ "foobar" -> Seq(ValidationError("validation.required")))))
+      From[UrlFormEncoded] { __ => (__ \ "foobar").read[Seq[String]] }.validate(valid) mustEqual(Success(Seq()))
+      From[UrlFormEncoded] { __ => (__ \ "foobar").read(isNotEmpty[Seq[Int]]) }.validate(valid) mustEqual(Failure(Seq(Path \ "foobar" -> Seq(ValidationError("validation.notEmpty")))))
     }
 
     "validate optional" in {
@@ -441,7 +444,8 @@ object RulesSpec extends Specification {
 
       val m = Map(
         "name" -> Seq("bob"),
-        "friends[0].name" -> Seq("tom"))
+        "friends[0].name" -> Seq("tom"),
+        "friends[0].friends" -> Seq())
 
       case class User1(name: String, friend: Option[User1] = None)
       val u1 = User1("bob", Some(User1("tom")))
@@ -456,31 +460,31 @@ object RulesSpec extends Specification {
         }
         w.validate(m) mustEqual Success(u)
 
-        // lazy val w2: Rule[UrlFormEncoded, RecUser] =
-        //   ((Path \ "name").read[UrlFormEncoded, String] ~
-        //    (Path \ "friends").read(seq(w2)))(RecUser.apply _)
-        // w2.validate(m) mustEqual Success(u)
+        lazy val w2: Rule[UrlFormEncoded, RecUser] =
+          ((Path \ "name").read[UrlFormEncoded, String] ~
+           (Path \ "friends").read(seq(w2)))(RecUser.apply _)
+        w2.validate(m) mustEqual Success(u)
 
-        // lazy val w3: Rule[UrlFormEncoded, User1] = From[UrlFormEncoded]{ __ =>
-        //   ((__ \ "name").read[String] ~
-        //    (__ \ "friend").read(option(w3)))(User1.apply _)
-        // }
-        // w3.validate(m1) mustEqual Success(u1)
+        lazy val w3: Rule[UrlFormEncoded, User1] = From[UrlFormEncoded]{ __ =>
+          ((__ \ "name").read[String] ~
+           (__ \ "friend").read(option(w3)))(User1.apply _)
+        }
+        w3.validate(m1) mustEqual Success(u1)
       }
 
-      // "using implicit notation" in {
-      //   implicit lazy val w: Rule[UrlFormEncoded, RecUser] = From[UrlFormEncoded]{ __ =>
-      //     ((__ \ "name").read[String] ~
-      //      (__ \ "friends").read[Seq[RecUser]])(RecUser.apply _)
-      //   }
-      //   w.validate(m) mustEqual Success(u)
+      "using implicit notation" in {
+        implicit lazy val w: Rule[UrlFormEncoded, RecUser] = From[UrlFormEncoded]{ __ =>
+          ((__ \ "name").read[String] ~
+           (__ \ "friends").read[Seq[RecUser]])(RecUser.apply _)
+        }
+        w.validate(m) mustEqual Success(u)
 
-      //   implicit lazy val w3: Rule[UrlFormEncoded, User1] = From[UrlFormEncoded]{ __ =>
-      //     ((__ \ "name").read[String] ~
-      //      (__ \ "friend").read[Option[User1]])(User1.apply _)
-      //   }
-      //   w3.validate(m1) mustEqual Success(u1)
-      // }
+        implicit lazy val w3: Rule[UrlFormEncoded, User1] = From[UrlFormEncoded]{ __ =>
+          ((__ \ "name").read[String] ~
+           (__ \ "friend").read[Option[User1]])(User1.apply _)
+        }
+        w3.validate(m1) mustEqual Success(u1)
+      }
 
     }
   }
