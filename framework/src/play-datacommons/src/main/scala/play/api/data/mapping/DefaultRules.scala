@@ -208,6 +208,12 @@ trait GenericRules {
   }
 
   /**
+  * Create a "constant" Rule which is always a success returning value `o`
+  * (Path \ "x").read(ignored(42))
+  */
+  def ignored[I, O](o: O) = (_: Path) => Rule[I, O](_ => Success(o))
+
+  /**
   * Create a Rule of equality
   * {{{
   *   (Path \ "foo").read(equalTo("bar"))
@@ -343,12 +349,6 @@ trait ParsingRules {
 trait DefaultRules[I] extends GenericRules with DateRules {
   import scala.language.implicitConversions
   import play.api.libs.functional._
-
-  /**
-  * Create a "constant" Rule which is always a success returning value `o`
-  * (Path \ "x").read(ignored(42))
-  */
-  def ignored[O](o: O) = (_: Path) => Rule[I, O](_ => Success(o))
 
   protected def opt[J, O](r: => Rule[J, O], noneValues: Rule[J, J]*)(implicit pick: Path => Rule[I, J]) = (path: Path) =>
     Rule[I, Option[O]] {

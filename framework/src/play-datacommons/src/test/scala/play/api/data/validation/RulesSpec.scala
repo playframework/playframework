@@ -46,13 +46,13 @@ object RulesSpec extends Specification {
       p.read[UrlFormEncoded, String, Boolean](checked).validate(Map("issmth" -> Seq("false"))) mustEqual(Failure(Seq(Path \ "issmth" -> Seq(ValidationError("validation.equals", true)))))
     }
 
-  //   // "ignore values" in {
-  //   //   val r = From[UrlFormEncoded]{ __ =>
-  //   //     ((__ \ "firstname").read(notEmpty) ~
-  //   //      (__ \ "test").read(ignored(42))).tupled
-  //   //   }
-  //   //   r.validate(valid) mustEqual(Success("Julien" -> 42))
-  //   // }
+    "ignore values" in {
+      val r = From[UrlFormEncoded]{ __ =>
+        ((__ \ "firstname").read(notEmpty) ~
+         (__ \ "test").read(ignored[UrlFormEncoded, Int](42))).tupled
+      }
+      r.validate(valid) mustEqual(Success("Julien" -> 42))
+    }
 
     "support primitives types" in {
 
