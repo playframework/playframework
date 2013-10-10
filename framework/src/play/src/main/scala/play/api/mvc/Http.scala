@@ -62,35 +62,54 @@ package play.api.mvc {
     def headers: Headers
 
     /**
-     * Request a client certificate from the user.
+     * Request a client certificate from the user.<p>
      *
-     * Calling this method will request the user to select an X509 Certificate from their key chain if they have one,
-     * or return a cached certificate chain if the user has already selected one during the current TLS session.
+     * Calling this method on an https connection will request the user to select an X509 Certificate from their
+     * key chain if they have one, or if the user has already selected a client certificate during the current TLS
+     * session it will return the cached certificate chain.<p>
      * Since requesting something of the user could take a lot of time, this is returned immediately as a Future.
-     * The first element of the Certificate is the user's Certificate, the other elements of the chain if any, are the
-     * certificates that were used to sign the first one (which is the usual Certificate Authority based approach).
+     * The first element of the returned certificates is the user's Certificate, the other elements of the chain if any,
+     * are the certificates that were used to sign the first one (which is the usual Certificate Authority based
+     * approach). Whether the CA checks have been made depend on the X509TrustManager that was used when setting
+     * up the server. The server can be set up with a noCATrustManager, which does not do any verification of the
+     * Certificate chain, in which case the only thing that will be known is that the user is identified by the public
+     * key in the first certificate.
      *
      * For example:
      * {{{
-     * import play.api.libs.concurrent._
-     * def index = Action { req =>
-     *   Async {
+     * def index = Action.async { request =>
      *     //timeouts should be set as transport specific options as explained in Netty's ChannelFuture
      *     //if done that way, then timeouts will break the connection anyway.
-     *     req.certs().extend1 {
-     *       case Redeemed(certs) => Ok("your certs are: \n\n "+certs )
-     *       case Thrown(e) => InternalServerError("received error: \n"+e )
+     *     request.certs(sslBrowserType(request)).
+     *         map(certs => Ok("your certificate is: \n\n "+certs(0) )).
+     *         recover( err => InternalServerError("received error: \n"+e )
      *     }
-     *   }
      * }
      * }}}
      *
-     * @param required Whether a certificate is required or is optional.  If required, the server will close the SSL
-     *                 connection if the client doesn't provide a certificate.  Note that until this bug is fixed:
-     *                 https://bugs.openjdk.java.net/show_bug.cgi?id=100281, it is recommended that you always use
-     *                 required, since in some circumstances (varies from browser to browser) Java won't request a
-     *                 certificate at all, which will result in this method always returning no certificate.
-     * @return a Promise of the Certificate Chain, whose first element identifies the user. The promise will
+     * Where sslBrowserType is a function that determines if the users' browser can work correctly in WANT mode
+     * or requires TLS NEED mode to send a certificate.
+     *
+     * @param required Whether a certificate is required (a.k.a. NEED mode) or is optional (a.k.a WANT mode). Which to
+     *                 use depends on the browser making the request. <ul>
+     *                 <li>If the requesting browser allows <pre>required</pre> to be <pre>false</pre>, then the server
+     *                 connection will not be broken if the client fails to provide a certificate, and other methods
+     *                 of authentication can be used on the same HTTP connection.
+     *                 <li>But some browsers (eg Opera, Safari, curl) never return a certificate unless
+     *                 <pre>required=true</pre> is set. The problem here is that in <pre>required=true</pre> mode
+     *                 the server will close the SSL connection if the client doesn't provide a certificate.
+     *                 This can be a very ugly experience for the user, akin to slamming the door shut in front of
+     *                 someone if they fail to identify themselves. This can be hidden by having JavaScript code make a
+     *                 login request on a resource in REQUIRE mode: if the request fails, the JS can capture the error,
+     *                 and present other login options to the user.
+     *                 </ul>
+     *
+     *                 Note that until this bug is fixed:
+     *                 https://bugs.openjdk.java.net/show_bug.cgi?id=100281, java clients need to be asked for the
+     *                 certificate in REQUIRE mode. A clever trick for such clients would be for them to tell the server
+     *                 through an HTTP header if they are willing to authenticate using a client certificate.
+     *
+     *@return a Future of the Certificate Chain, whose first element identifies the user. The future will
      *         contain an Error if something went wrong (eg: the request is not made on an httpS connection)
      */
     def certs(required: Boolean): Future[Seq[Certificate]]
