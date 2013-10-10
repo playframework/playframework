@@ -319,11 +319,13 @@ class WSRequest(_method: String, _auth: Option[Tuple3[String, String, AuthScheme
 }
 
 /**
- * A WS instance that allows one to fine tune the application directly using AsyncHttpClient
- * Eg: if one wants to make requests to different servers with different client certificates...
+ * Instances of WSNing act like WS, but each instance can be configured differently.
+ * For example one instance of WSNing can be set to authenticate with one client certificate, another instance
+ * with another client certificate.
+ *
  * @param client
  */
-case class WSx(client: AsyncHttpClient) extends WSRequestBuilder
+case class WSNing(client: AsyncHttpClient) extends WSRequestBuilder
 
 trait WSRequestBuilder {
 
