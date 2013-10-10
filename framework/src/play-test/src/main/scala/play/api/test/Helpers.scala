@@ -6,7 +6,7 @@ package play.api.test
 import scala.language.reflectiveCalls
 
 import play.api._
-import play.api.libs.ws.{WSNing, WS}
+import play.api.libs.ws.{ WSNing, WS }
 import play.api.mvc._
 import play.api.http._
 
@@ -24,7 +24,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import akka.util.Timeout
 import com.ning.http.client.AsyncHttpClient
-import javax.net.ssl.{SSLSession, HostnameVerifier}
+import javax.net.ssl.{ SSLSession, HostnameVerifier }
 import scala.Array
 import play.core.server.noCATrustManager
 
@@ -183,9 +183,9 @@ trait FutureAwaits {
 
 trait WsTestClient {
 
-  val  trustAllservers = {
+  val trustAllservers = {
     val sslctxt = javax.net.ssl.SSLContext.getInstance("TLS");
-    sslctxt.init(null, Array(noCATrustManager),null);
+    sslctxt.init(null, Array(noCATrustManager), null);
     sslctxt
   }
   val ws = WSNing(new AsyncHttpClient(WS.asyncBuilder.setSSLContext(trustAllservers).setHostnameVerifier(new HostnameVerifier {
@@ -210,7 +210,6 @@ trait WsTestClient {
    * }}}
    */
   def wssCall(call: Call)(implicit port: Port): WS.WSRequestHolder = wssUrl(call.url)
-
 
   /**
    * Construct a WS request for the given relative URL.

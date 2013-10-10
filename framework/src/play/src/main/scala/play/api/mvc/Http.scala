@@ -109,7 +109,7 @@ package play.api.mvc {
      *                 certificate in REQUIRE mode. A clever trick for such clients would be for them to tell the server
      *                 through an HTTP header if they are willing to authenticate using a client certificate.
      *
-     *@return a Future of the Certificate Chain, whose first element identifies the user. The future will
+     * @return a Future of the Certificate Chain, whose first element identifies the user. The future will
      *         contain an Error if something went wrong (eg: the request is not made on an httpS connection)
      */
     def certs(required: Boolean): Future[Seq[Certificate]]

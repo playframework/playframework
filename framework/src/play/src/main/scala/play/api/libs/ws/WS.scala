@@ -345,14 +345,14 @@ trait WSRequestBuilder {
  * A WS Request builder.
  */
 case class WSRequestHolder(url: String,
-                           headers: Map[String, Seq[String]],
-                           queryString: Map[String, Seq[String]],
-                           calc: Option[SignatureCalculator],
-                           auth: Option[Tuple3[String, String, AuthScheme]],
-                           followRedirects: Option[Boolean],
-                           requestTimeout: Option[Int],
-                           virtualHost: Option[String],
-                           proxyServer: Option[ProxyServer])(implicit client: AsyncHttpClient) {
+    headers: Map[String, Seq[String]],
+    queryString: Map[String, Seq[String]],
+    calc: Option[SignatureCalculator],
+    auth: Option[Tuple3[String, String, AuthScheme]],
+    followRedirects: Option[Boolean],
+    requestTimeout: Option[Int],
+    virtualHost: Option[String],
+    proxyServer: Option[ProxyServer])(implicit client: AsyncHttpClient) {
 
   /**
    * sets the signature calculator for the request
@@ -583,7 +583,6 @@ case class WSRequestHolder(url: String,
     request
   }
 }
-
 
 /**
  * A WS proxy.
