@@ -62,7 +62,7 @@ object Write {
 
    // XXX: Helps the compiler a bit
   import play.api.libs.functional.syntax._
-  implicit def fbo[I, O: Monoid](a: Write[I, O]) = toFunctionalBuilderOps[({type λ[I] = Write[I, O]})#λ, I](a)
-  implicit def cfo[I, O](a: Write[I, O]) = toContraFunctorOps[({type λ[I] = Write[I, O]})#λ, I](a)
+  implicit def fboWrite[I, O: Monoid](a: Write[I, O]) = toFunctionalBuilderOps[({type λ[I] = Write[I, O]})#λ, I](a)
+  implicit def cfoWrite[I, O](a: Write[I, O]) = toContraFunctorOps[({type λ[I] = Write[I, O]})#λ, I](a)
 
 }

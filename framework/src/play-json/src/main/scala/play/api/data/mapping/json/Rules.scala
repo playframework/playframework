@@ -110,10 +110,10 @@ object Rules extends play.api.data.mapping.DefaultRules[JsValue] {
   }
 
   implicit def option[O](implicit pick: Path => Rule[JsValue, JsValue], coerce: Rule[JsValue, O]): Path => Rule[JsValue, Option[O]] =
-    option(coerce)
+    opt(coerce)
 
-  override def option[J, O](r: Rule[J, O], noneValues: Rule[J, J]*)(implicit pick: Path => Rule[JsValue, J]): Path => Rule[JsValue, Option[O]]
-    = super.option[J, O](r, (isJsNull[J] +: noneValues):_*)
+  def option[J, O](r: => Rule[J, O], noneValues: Rule[J, J]*)(implicit pick: Path => Rule[JsValue, J]): Path => Rule[JsValue, Option[O]]
+    = super.opt[J, O](r, (isJsNull[J] +: noneValues):_*)
 
   implicit def map[O](implicit r: Rule[JsValue, O]): Rule[JsValue, Map[String, O]] =
     super.map[JsValue, O](r, jsObject.fmap{ case JsObject(fs) => fs })
@@ -130,6 +130,8 @@ object Rules extends play.api.data.mapping.DefaultRules[JsValue] {
   private def pickInS[T](implicit r: Rule[Seq[JsValue], T]): Rule[JsValue, T] =
     jsArray.fmap{ case JsArray(fs) => fs }.compose(r)
   implicit def pickSeq[O](implicit r: Rule[JsValue, O]) = pickInS(seq[JsValue, O])
+  implicit def pickSet[O](implicit r: Rule[JsValue, O]) = pickInS(set[JsValue, O])
+  implicit def pickList[O](implicit r: Rule[JsValue, O]) = pickInS(list[JsValue, O])
   implicit def pickArray[O: scala.reflect.ClassTag](implicit r: Rule[JsValue, O]) = pickInS(array[JsValue, O])
   implicit def pickTraversable[O](implicit r: Rule[JsValue, O]) = pickInS(traversable[JsValue, O])
 

@@ -27,7 +27,6 @@ class WritesSpec extends Specification {
     "informations[0].phones[0]" -> Seq("01.23.45.67.89"),
     "informations[0].phones[1]" -> Seq("98.76.54.32.10"))
 
-  import Write._ // TODO: Why do I need this ?
   import Writes._
   import PM._
 
