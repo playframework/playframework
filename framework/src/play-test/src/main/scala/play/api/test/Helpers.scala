@@ -6,7 +6,7 @@ package play.api.test
 import scala.language.reflectiveCalls
 
 import play.api._
-import libs.ws.WS
+import play.api.libs.ws.{WSNing, WS}
 import play.api.mvc._
 import play.api.http._
 
@@ -23,6 +23,10 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import akka.util.Timeout
+import com.ning.http.client.AsyncHttpClient
+import javax.net.ssl.{SSLSession, HostnameVerifier}
+import scala.Array
+import play.core.server.noCATrustManager
 
 /**
  * Helper functions to run tests.
@@ -91,7 +95,12 @@ trait PlayRunners {
    * testserver.port
    */
   lazy val testServerPort = Option(System.getProperty("testserver.port")).map(_.toInt).getOrElse(19001)
-  lazy val testServerSSLPort = Option(System.getProperty("testserver.port.ssl")).map(_.toInt)
+
+  /**
+   * The port to use for a test server. Defaults to 19043. May be configured using the system property
+   * testserver.port.ssl
+   */
+  lazy val testServerSSLPort = Option(System.getProperty("testserver.port.ssl")).map(_.toInt).orElse(Some(19043))
 
   /**
    * Constructs a in-memory (h2) database configuration to add to a FakeApplication.
@@ -174,6 +183,14 @@ trait FutureAwaits {
 
 trait WsTestClient {
 
+  val  trustAllservers = {
+    val sslctxt = javax.net.ssl.SSLContext.getInstance("TLS");
+    sslctxt.init(null, Array(noCATrustManager),null);
+    sslctxt
+  }
+  val ws = WSNing(new AsyncHttpClient(WS.asyncBuilder.setSSLContext(trustAllservers).setHostnameVerifier(new HostnameVerifier {
+    def verify(p1: String, p2: SSLSession) = true
+  }).build))
   /**
    * Construct a WS request for the given reverse route.
    *
@@ -185,9 +202,26 @@ trait WsTestClient {
   def wsCall(call: Call)(implicit port: Port): WS.WSRequestHolder = wsUrl(call.url)
 
   /**
+   * Construct a WS request for the given reverse route on a secure port
+   *
+   * For example:
+   * {{{
+   *   wssCall(controllers.routes.Application.index()).get()
+   * }}}
+   */
+  def wssCall(call: Call)(implicit port: Port): WS.WSRequestHolder = wssUrl(call.url)
+
+
+  /**
    * Construct a WS request for the given relative URL.
    */
   def wsUrl(url: String)(implicit port: Port): WS.WSRequestHolder = WS.url("http://localhost:" + port + url)
+
+  /**
+   * Construct a WS request for the given relative URL on a secure port
+   */
+  def wssUrl(url: String)(implicit port: Port): WS.WSRequestHolder = ws.url("https://localhost:" + port + url)
+
 }
 
 trait RouteInvokers {

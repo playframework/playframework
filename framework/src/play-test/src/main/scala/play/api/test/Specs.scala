@@ -32,7 +32,7 @@ abstract class WithApplication(val app: FakeApplication = FakeApplication()) ext
  */
 abstract class WithServer(val app: FakeApplication = FakeApplication(),
     val port: Int = Helpers.testServerPort,
-    val sslPort: Option[Int] = Helpers.testServerSSLPort) extends Around with Scope {
+    val sslPort: Option[Int] = None) extends Around with Scope {
   implicit def implicitApp = app
   implicit def implicitPort: Port = port
 

@@ -46,6 +46,7 @@ object WS extends WSRequestBuilder {
 
   //to avoid changing code throughout play we first keep this type
   type WSRequest = play.api.libs.ws.WSRequest
+  type WSRequestHolder = play.api.libs.ws.WSRequestHolder
 
   private val clientHolder: AtomicReference[Option[AsyncHttpClient]] = new AtomicReference(None)
 
@@ -336,251 +337,253 @@ trait WSRequestBuilder {
    *
    * @param url the URL to request
    */
-  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None, None, None)
+  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None, None, None)(client)
+
+}
+
+/**
+ * A WS Request builder.
+ */
+case class WSRequestHolder(url: String,
+                           headers: Map[String, Seq[String]],
+                           queryString: Map[String, Seq[String]],
+                           calc: Option[SignatureCalculator],
+                           auth: Option[Tuple3[String, String, AuthScheme]],
+                           followRedirects: Option[Boolean],
+                           requestTimeout: Option[Int],
+                           virtualHost: Option[String],
+                           proxyServer: Option[ProxyServer])(implicit client: AsyncHttpClient) {
 
   /**
-   * A WS Request builder.
+   * sets the signature calculator for the request
+   * @param calc
    */
-  case class WSRequestHolder(url: String,
-      headers: Map[String, Seq[String]],
-      queryString: Map[String, Seq[String]],
-      calc: Option[SignatureCalculator],
-      auth: Option[Tuple3[String, String, AuthScheme]],
-      followRedirects: Option[Boolean],
-      requestTimeout: Option[Int],
-      virtualHost: Option[String],
-      proxyServer: Option[ProxyServer]) {
+  def sign(calc: SignatureCalculator): WSRequestHolder = this.copy(calc = Some(calc))
 
-    /**
-     * sets the signature calculator for the request
-     * @param calc
-     */
-    def sign(calc: SignatureCalculator): WSRequestHolder = this.copy(calc = Some(calc))
+  /**
+   * sets the authentication realm
+   * @param username
+   * @param password
+   * @param scheme
+   */
+  def withAuth(username: String, password: String, scheme: AuthScheme): WSRequestHolder =
+    this.copy(auth = Some((username, password, scheme)))
 
-    /**
-     * sets the authentication realm
-     * @param username
-     * @param password
-     * @param scheme
-     */
-    def withAuth(username: String, password: String, scheme: AuthScheme): WSRequestHolder =
-      this.copy(auth = Some((username, password, scheme)))
+  /**
+   * adds any number of HTTP headers
+   * @param hdrs
+   */
+  def withHeaders(hdrs: (String, String)*): WSRequestHolder = {
+    val headers = hdrs.foldLeft(this.headers)((m, hdr) =>
+      if (m.contains(hdr._1)) m.updated(hdr._1, m(hdr._1) :+ hdr._2)
+      else m + (hdr._1 -> Seq(hdr._2))
+    )
+    this.copy(headers = headers)
+  }
 
-    /**
-     * adds any number of HTTP headers
-     * @param hdrs
-     */
-    def withHeaders(hdrs: (String, String)*): WSRequestHolder = {
-      val headers = hdrs.foldLeft(this.headers)((m, hdr) =>
-        if (m.contains(hdr._1)) m.updated(hdr._1, m(hdr._1) :+ hdr._2)
-        else m + (hdr._1 -> Seq(hdr._2))
-      )
-      this.copy(headers = headers)
+  /**
+   * adds any number of query string parameters to the
+   */
+  def withQueryString(parameters: (String, String)*): WSRequestHolder =
+    this.copy(queryString = parameters.foldLeft(queryString) {
+      case (m, (k, v)) => m + (k -> (v +: m.get(k).getOrElse(Nil)))
+    })
+
+  /**
+   * Sets whether redirects (301, 302) should be followed automatically
+   */
+  def withFollowRedirects(follow: Boolean): WSRequestHolder =
+    this.copy(followRedirects = Some(follow))
+
+  @scala.deprecated("use withRequestTimeout instead", "2.1.0")
+  def withTimeout(timeout: Int): WSRequestHolder =
+    this.withRequestTimeout(timeout)
+
+  /**
+   * Sets the maximum time in millisecond you accept the request to take.
+   * Warning: a stream consumption will be interrupted when this time is reached.
+   */
+  def withRequestTimeout(timeout: Int): WSRequestHolder =
+    this.copy(requestTimeout = Some(timeout))
+
+  def withVirtualHost(vh: String): WSRequestHolder = {
+    this.copy(virtualHost = Some(vh))
+  }
+
+  def withProxyServer(proxyServer: ProxyServer): WSRequestHolder = {
+    this.copy(proxyServer = Some(proxyServer))
+  }
+
+  /**
+   * performs a get with supplied body
+   */
+
+  def get(): Future[Response] = prepare("GET").execute
+
+  /**
+   * performs a get with supplied body
+   * @param consumer that's handling the response
+   */
+  def get[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Future[Iteratee[Array[Byte], A]] =
+    prepare("GET").executeStream(consumer)
+
+  /**
+   * Perform a POST on the request asynchronously.
+   */
+  def post[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Response] = prepare("POST", body).execute
+
+  /**
+   * Perform a POST on the request asynchronously.
+   * Request body won't be chunked
+   */
+  def post(body: File): Future[Response] = prepare("POST", body).execute
+
+  /**
+   * performs a POST with supplied body
+   * @param consumer that's handling the response
+   */
+  def postAndRetrieveStream[A, T](body: T)(consumer: ResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Iteratee[Array[Byte], A]] = prepare("POST", body).executeStream(consumer)
+
+  /**
+   * Perform a PUT on the request asynchronously.
+   */
+  def put[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Response] = prepare("PUT", body).execute
+
+  /**
+   * Perform a PUT on the request asynchronously.
+   * Request body won't be chunked
+   */
+  def put(body: File): Future[Response] = prepare("PUT", body).execute
+
+  /**
+   * performs a PUT with supplied body
+   * @param consumer that's handling the response
+   */
+  def putAndRetrieveStream[A, T](body: T)(consumer: ResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Iteratee[Array[Byte], A]] = prepare("PUT", body).executeStream(consumer)
+
+  /**
+   * Perform a DELETE on the request asynchronously.
+   */
+  def delete(): Future[Response] = prepare("DELETE").execute
+
+  /**
+   * Perform a HEAD on the request asynchronously.
+   */
+  def head(): Future[Response] = prepare("HEAD").execute
+
+  /**
+   * Perform a OPTIONS on the request asynchronously.
+   */
+  def options(): Future[Response] = prepare("OPTIONS").execute
+
+  /**
+   * Execute an arbitrary method on the request asynchronously.
+   *
+   * @param method The method to execute
+   */
+  def execute(method: String): Future[Response] = prepare(method).execute
+
+  private[play] def prepare(method: String) = {
+    val request = new WSRequest(method, auth, calc).setUrl(url)
+      .setHeaders(headers)
+      .setQueryString(queryString)
+    followRedirects.map(request.setFollowRedirects)
+    requestTimeout.map { t: Int =>
+      val config = new PerRequestConfig()
+      config.setRequestTimeoutInMs(t)
+      request.setPerRequestConfig(config)
+    }
+    virtualHost.map { v =>
+      request.setVirtualHost(v)
     }
 
-    /**
-     * adds any number of query string parameters to the
-     */
-    def withQueryString(parameters: (String, String)*): WSRequestHolder =
-      this.copy(queryString = parameters.foldLeft(queryString) {
-        case (m, (k, v)) => m + (k -> (v +: m.get(k).getOrElse(Nil)))
-      })
+    prepareProxy(request)
 
-    /**
-     * Sets whether redirects (301, 302) should be followed automatically
-     */
-    def withFollowRedirects(follow: Boolean): WSRequestHolder =
-      this.copy(followRedirects = Some(follow))
+    request
+  }
 
-    @scala.deprecated("use withRequestTimeout instead", "2.1.0")
-    def withTimeout(timeout: Int): WSRequestHolder =
-      this.withRequestTimeout(timeout)
+  private[play] def prepareProxy(request: WSRequest) {
+    proxyServer.map {
+      p =>
+        import com.ning.http.client.ProxyServer.Protocol
+        val protocol: Protocol = p.protocol.getOrElse("http").toLowerCase match {
+          case "http" => Protocol.HTTP
+          case "https" => Protocol.HTTPS
+          case "kerberos" => Protocol.KERBEROS
+          case "ntlm" => Protocol.NTLM
+          case "spnego" => Protocol.SPNEGO
+          case _ => scala.sys.error("Unrecognized protocol!")
+        }
 
-    /**
-     * Sets the maximum time in millisecond you accept the request to take.
-     * Warning: a stream consumption will be interrupted when this time is reached.
-     */
-    def withRequestTimeout(timeout: Int): WSRequestHolder =
-      this.copy(requestTimeout = Some(timeout))
+        val proxyServer = new AHCProxyServer(
+          protocol,
+          p.host,
+          p.port,
+          p.principal.getOrElse(null),
+          p.password.getOrElse(null))
 
-    def withVirtualHost(vh: String): WSRequestHolder = {
-      this.copy(virtualHost = Some(vh))
-    }
+        p.encoding.map { e =>
+          proxyServer.setEncoding(e)
+        }
 
-    def withProxyServer(proxyServer: ProxyServer): WSRequestHolder = {
-      this.copy(proxyServer = Some(proxyServer))
-    }
-
-    /**
-     * performs a get with supplied body
-     */
-
-    def get(): Future[Response] = prepare("GET").execute
-
-    /**
-     * performs a get with supplied body
-     * @param consumer that's handling the response
-     */
-    def get[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Future[Iteratee[Array[Byte], A]] =
-      prepare("GET").executeStream(consumer)
-
-    /**
-     * Perform a POST on the request asynchronously.
-     */
-    def post[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Response] = prepare("POST", body).execute
-
-    /**
-     * Perform a POST on the request asynchronously.
-     * Request body won't be chunked
-     */
-    def post(body: File): Future[Response] = prepare("POST", body).execute
-
-    /**
-     * performs a POST with supplied body
-     * @param consumer that's handling the response
-     */
-    def postAndRetrieveStream[A, T](body: T)(consumer: ResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Iteratee[Array[Byte], A]] = prepare("POST", body).executeStream(consumer)
-
-    /**
-     * Perform a PUT on the request asynchronously.
-     */
-    def put[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Response] = prepare("PUT", body).execute
-
-    /**
-     * Perform a PUT on the request asynchronously.
-     * Request body won't be chunked
-     */
-    def put(body: File): Future[Response] = prepare("PUT", body).execute
-
-    /**
-     * performs a PUT with supplied body
-     * @param consumer that's handling the response
-     */
-    def putAndRetrieveStream[A, T](body: T)(consumer: ResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Iteratee[Array[Byte], A]] = prepare("PUT", body).executeStream(consumer)
-
-    /**
-     * Perform a DELETE on the request asynchronously.
-     */
-    def delete(): Future[Response] = prepare("DELETE").execute
-
-    /**
-     * Perform a HEAD on the request asynchronously.
-     */
-    def head(): Future[Response] = prepare("HEAD").execute
-
-    /**
-     * Perform a OPTIONS on the request asynchronously.
-     */
-    def options(): Future[Response] = prepare("OPTIONS").execute
-
-    /**
-     * Execute an arbitrary method on the request asynchronously.
-     *
-     * @param method The method to execute
-     */
-    def execute(method: String): Future[Response] = prepare(method).execute
-
-    private[play] def prepare(method: String) = {
-      val request = new WSRequest(method, auth, calc).setUrl(url)
-        .setHeaders(headers)
-        .setQueryString(queryString)
-      followRedirects.map(request.setFollowRedirects)
-      requestTimeout.map { t: Int =>
-        val config = new PerRequestConfig()
-        config.setRequestTimeoutInMs(t)
-        request.setPerRequestConfig(config)
-      }
-      virtualHost.map { v =>
-        request.setVirtualHost(v)
-      }
-
-      prepareProxy(request)
-
-      request
-    }
-
-    private[play] def prepareProxy(request: WSRequest) {
-      proxyServer.map {
-        p =>
-          import com.ning.http.client.ProxyServer.Protocol
-          val protocol: Protocol = p.protocol.getOrElse("http").toLowerCase match {
-            case "http" => Protocol.HTTP
-            case "https" => Protocol.HTTPS
-            case "kerberos" => Protocol.KERBEROS
-            case "ntlm" => Protocol.NTLM
-            case "spnego" => Protocol.SPNEGO
-            case _ => scala.sys.error("Unrecognized protocol!")
+        p.nonProxyHosts.map { nonProxyHosts =>
+          nonProxyHosts.foreach { nonProxyHost =>
+            proxyServer.addNonProxyHost(nonProxyHost)
           }
+        }
 
-          val proxyServer = new AHCProxyServer(
-            protocol,
-            p.host,
-            p.port,
-            p.principal.getOrElse(null),
-            p.password.getOrElse(null))
+        p.ntlmDomain.map { ntlm =>
+          proxyServer.setNtlmDomain(ntlm)
+        }
 
-          p.encoding.map { e =>
-            proxyServer.setEncoding(e)
-          }
-
-          p.nonProxyHosts.map { nonProxyHosts =>
-            nonProxyHosts.foreach { nonProxyHost =>
-              proxyServer.addNonProxyHost(nonProxyHost)
-            }
-          }
-
-          p.ntlmDomain.map { ntlm =>
-            proxyServer.setNtlmDomain(ntlm)
-          }
-
-          request.setProxyServer(proxyServer)
-      }
-    }
-
-    private[play] def prepare(method: String, body: File) = {
-      import com.ning.http.client.generators.FileBodyGenerator
-
-      val bodyGenerator = new FileBodyGenerator(body);
-
-      val request = new WSRequest(method, auth, calc).setUrl(url)
-        .setHeaders(headers)
-        .setQueryString(queryString)
-        .setBody(bodyGenerator)
-      followRedirects.map(request.setFollowRedirects)
-      requestTimeout.map { t: Int =>
-        val config = new PerRequestConfig()
-        config.setRequestTimeoutInMs(t)
-        request.setPerRequestConfig(config)
-      }
-      virtualHost.map { v =>
-        request.setVirtualHost(v)
-      }
-
-      prepareProxy(request)
-
-      request
-    }
-
-    private[play] def prepare[T](method: String, body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]) = {
-      val request = new WSRequest(method, auth, calc).setUrl(url)
-        .setHeaders(Map("Content-Type" -> Seq(ct.mimeType.getOrElse("text/plain"))) ++ headers)
-        .setQueryString(queryString)
-        .setBody(wrt.transform(body))
-      followRedirects.map(request.setFollowRedirects)
-      requestTimeout.map { t: Int =>
-        val config = new PerRequestConfig()
-        config.setRequestTimeoutInMs(t)
-        request.setPerRequestConfig(config)
-      }
-      virtualHost.map { v =>
-        request.setVirtualHost(v)
-      }
-      prepareProxy(request)
-
-      request
+        request.setProxyServer(proxyServer)
     }
   }
+
+  private[play] def prepare(method: String, body: File) = {
+    import com.ning.http.client.generators.FileBodyGenerator
+
+    val bodyGenerator = new FileBodyGenerator(body);
+
+    val request = new WSRequest(method, auth, calc).setUrl(url)
+      .setHeaders(headers)
+      .setQueryString(queryString)
+      .setBody(bodyGenerator)
+    followRedirects.map(request.setFollowRedirects)
+    requestTimeout.map { t: Int =>
+      val config = new PerRequestConfig()
+      config.setRequestTimeoutInMs(t)
+      request.setPerRequestConfig(config)
+    }
+    virtualHost.map { v =>
+      request.setVirtualHost(v)
+    }
+
+    prepareProxy(request)
+
+    request
+  }
+
+  private[play] def prepare[T](method: String, body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]) = {
+    val request = new WSRequest(method, auth, calc).setUrl(url)
+      .setHeaders(Map("Content-Type" -> Seq(ct.mimeType.getOrElse("text/plain"))) ++ headers)
+      .setQueryString(queryString)
+      .setBody(wrt.transform(body))
+    followRedirects.map(request.setFollowRedirects)
+    requestTimeout.map { t: Int =>
+      val config = new PerRequestConfig()
+      config.setRequestTimeoutInMs(t)
+      request.setPerRequestConfig(config)
+    }
+    virtualHost.map { v =>
+      request.setVirtualHost(v)
+    }
+    prepareProxy(request)
+
+    request
+  }
 }
+
 
 /**
  * A WS proxy.

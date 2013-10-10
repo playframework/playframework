@@ -16,23 +16,31 @@ object WsSpec extends Specification {
 
     "handle the charset correctly" in {
 
-      "respect the charset when specified" in new WithServer() {
+      "respect the charset when specified" in new WithServer(sslPort = Helpers.testServerSSLPort) {
         slave(ToReturn(headers = Map("Content-Type" -> "text/plain; charset=utf-16"),
                        body = Some("äöü!".getBytes("utf-16")))).body must_== "äöü!"
+        sslave(ToReturn(headers = Map("Content-Type" -> "text/plain; charset=utf-16"),
+          body = Some("äöü!".getBytes("utf-16"))))(sslPort.get).body must_== "äöü!"
       }
 
-      "default to ISO8859-1 for text mime subtypes when no charset specified" in new WithServer() {
+
+      "default to ISO8859-1 for text mime subtypes when no charset specified" in new WithServer(sslPort = Helpers.testServerSSLPort) {
         slave(ToReturn(headers = Map("Content-Type" -> "text/plain"),
           body = Some("äöü!".getBytes("iso8859-1")))).body must_== "äöü!"
+        sslave(ToReturn(headers = Map("Content-Type" -> "text/plain"),
+          body = Some("äöü!".getBytes("iso8859-1"))))(sslPort.get).body must_== "äöü!"
       }
 
-      "default to UTF-8 for non text mime subtypes when no charset specified" in new WithServer() {
+      "default to UTF-8 for non text mime subtypes when no charset specified" in new WithServer(sslPort = Helpers.testServerSSLPort) {
         slave(ToReturn(headers = Map("Content-Type" -> "application/json"),
           body = Some("äöü!".getBytes("utf-8")))).body must_== "äöü!"
+        sslave(ToReturn(headers = Map("Content-Type" -> "application/json"),
+          body = Some("äöü!".getBytes("utf-8"))))(sslPort.get).body must_== "äöü!"
       }
 
-      "default to utf-8 for when no content type specified" in new WithServer() {
+      "default to utf-8 for when no content type specified" in new WithServer(sslPort = Helpers.testServerSSLPort) {
         slave(ToReturn(body = Some("äöü!".getBytes("utf-8")))).body must_== "äöü!"
+        sslave(ToReturn(body = Some("äöü!".getBytes("utf-8"))))(sslPort.get).body must_== "äöü!"
       }
     }
 
@@ -50,5 +58,8 @@ object WsSpec extends Specification {
 
   def slave(toReturn: ToReturn)(implicit port: Port): Response =
     Helpers.await(wsCall(controllers.routes.TestController.slave()).post(Json.toJson(toReturn)))
+
+  def sslave(toReturn: ToReturn)(implicit port: Port): Response =
+    Helpers.await(wssCall(controllers.routes.TestController.slave()).post(Json.toJson(toReturn)))
 
 }
