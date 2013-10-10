@@ -170,25 +170,25 @@ object MacroSpec extends Specification {
 
     }
 
-    // "create a Rule[User1]" in {
-    //   import Rules._
+    "create a Rule[User1]" in {
+      import Rules._
 
-    //   implicit lazy val userRule: Rule[JsValue, User1] = Rule.gen[JsValue, User1]
+      implicit lazy val userRule: Rule[JsValue, User1] = Rule.gen[JsValue, User1]
 
-    //   userRule.validate(
-    //     Json.obj(
-    //       "name" -> "bob",
-    //       "friend" -> Json.obj( "name" -> "tom" )
-    //     )
-    //   ) must beEqualTo(
-    //     Success(
-    //       User1(
-    //         "bob",
-    //         Some(User1("tom"))
-    //       )
-    //     )
-    //   )
-    // }
+      userRule.validate(
+        Json.obj(
+          "name" -> "bob",
+          "friend" -> Json.obj( "name" -> "tom" )
+        )
+      ) must beEqualTo(
+        Success(
+          User1(
+            "bob",
+            Some(User1("tom"))
+          )
+        )
+      )
+    }
 
 
     "create a writes[User1]" in {

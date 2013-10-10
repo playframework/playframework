@@ -109,8 +109,8 @@ object Rules extends play.api.data.mapping.DefaultRules[JsValue] {
     case _ => Failure(Seq(ValidationError("validation.type-mismatch", "null")))
   }
 
-  implicit def option[O](implicit pick: Path => Rule[JsValue, JsValue], coerce: Rule[JsValue, O]): Path => Rule[JsValue, Option[O]] =
-    opt(coerce)
+  implicit def ooo[O](p: Path)(implicit pick: Path => Rule[JsValue, JsValue], coerce: Rule[JsValue, O]): Rule[JsValue, Option[O]] =
+    option(coerce).apply(p)
 
   def option[J, O](r: => Rule[J, O], noneValues: Rule[J, J]*)(implicit pick: Path => Rule[JsValue, J]): Path => Rule[JsValue, Option[O]]
     = super.opt[J, O](r, (isJsNull[J] +: noneValues):_*)

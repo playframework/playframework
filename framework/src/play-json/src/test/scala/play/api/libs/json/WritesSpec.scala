@@ -268,6 +268,57 @@ class WritesSpec extends Specification {
       contactWrite.writes(contact) mustEqual contactJson
     }
 
+    "write recursive" in {
+      case class RecUser(name: String, friends: List[RecUser] = Nil)
+      val u = RecUser(
+        "bob",
+        List(RecUser("tom")))
+
+      val m = Json.obj(
+        "name" -> "bob",
+        "friends" -> Seq(Json.obj("name" -> "tom", "friends" -> Seq[JsObject]())))
+
+      case class User1(name: String, friend: Option[User1] = None)
+      val u1 = User1("bob", Some(User1("tom")))
+      val m1 = Json.obj(
+        "name" -> "bob",
+        "friend" -> Json.obj("name" -> "tom"))
+
+      "using explicit notation" in {
+        lazy val w: Write[RecUser, JsObject] = To[JsObject]{ __ =>
+          ((__ \ "name").write[String] ~
+           (__ \ "friends").write(seq(w)))(unlift(RecUser.unapply _))
+        }
+        w.writes(u) mustEqual m
+
+        lazy val w2: Write[RecUser, JsObject] =
+          ((Path \ "name").write[String, JsObject] ~
+           (Path \ "friends").write(seq(w2)))(unlift(RecUser.unapply _))
+        w2.writes(u) mustEqual m
+
+        lazy val w3: Write[User1, JsObject] = To[JsObject]{ __ =>
+          ((__ \ "name").write[String] ~
+           (__ \ "friend").write(option(w3)))(unlift(User1.unapply _))
+        }
+        w3.writes(u1) mustEqual m1
+      }
+
+      "using implicit notation" in {
+        implicit lazy val w: Write[RecUser, JsObject] = To[JsObject]{ __ =>
+          ((__ \ "name").write[String] ~
+           (__ \ "friends").write[Seq[RecUser]])(unlift(RecUser.unapply _))
+        }
+        w.writes(u) mustEqual m
+
+        implicit lazy val w3: Write[User1, JsObject] = To[JsObject]{ __ =>
+          ((__ \ "name").write[String] ~
+           (__ \ "friend").write[Option[User1]])(unlift(User1.unapply _))
+        }
+        w3.writes(u1) mustEqual m1
+      }
+
+    }
+
   }
 
 }

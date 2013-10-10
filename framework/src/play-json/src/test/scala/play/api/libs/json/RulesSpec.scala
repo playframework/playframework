@@ -425,7 +425,58 @@ object RulesSpec extends Specification {
 
       contactValidation.validate(validJson) mustEqual(Success(expected))
       contactValidation.validate(invalidJson) mustEqual(Failure(Seq(
-        (Path \ "informations" \ 0 \"label") -> Seq(ValidationError("validation.nonemptytext")))))
+        (Path \ "informations" \ 0 \ "label") -> Seq(ValidationError("validation.nonemptytext")))))
+    }
+
+    "read recursive" in {
+      case class RecUser(name: String, friends: Seq[RecUser] = Nil)
+      val u = RecUser(
+        "bob",
+        Seq(RecUser("tom")))
+
+      val m = Json.obj(
+        "name" -> "bob",
+        "friends" -> Seq(Json.obj("name" -> "tom", "friends" -> Seq[JsObject]())))
+
+      case class User1(name: String, friend: Option[User1] = None)
+      val u1 = User1("bob", Some(User1("tom")))
+      val m1 = Json.obj(
+        "name" -> "bob",
+        "friend" -> Json.obj("name" -> "tom"))
+
+      "using explicit notation" in {
+        lazy val w: Rule[JsValue, RecUser] = From[JsValue]{ __ =>
+          ((__ \ "name").read[String] ~
+           (__ \ "friends").read(seq(w)))(RecUser.apply _)
+        }
+        w.validate(m) mustEqual Success(u)
+
+        lazy val w2: Rule[JsValue, RecUser] =
+          ((Path \ "name").read[JsValue, String] ~
+           (Path \ "friends").read(seq(w2)))(RecUser.apply _)
+        w2.validate(m) mustEqual Success(u)
+
+        lazy val w3: Rule[JsValue, User1] = From[JsValue]{ __ =>
+          ((__ \ "name").read[String] ~
+           (__ \ "friend").read(option(w3)))(User1.apply _)
+        }
+        w3.validate(m1) mustEqual Success(u1)
+      }
+
+      "using implicit notation" in {
+        implicit lazy val w: Rule[JsValue, RecUser] = From[JsValue]{ __ =>
+          ((__ \ "name").read[String] ~
+           (__ \ "friends").read[Seq[RecUser]])(RecUser.apply _)
+        }
+        w.validate(m) mustEqual Success(u)
+
+        implicit lazy val w3: Rule[JsValue, User1] = From[JsValue]{ __ =>
+          ((__ \ "name").read[String] ~
+           (__ \ "friend").read[Option[User1]])(User1.apply _)
+        }
+        w3.validate(m1) mustEqual Success(u1)
+      }
+
     }
 
   }

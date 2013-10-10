@@ -59,7 +59,7 @@ object Writes extends DefaultWrites with DefaultMonoids with GenericWrites[JsVal
   implicit def seqToJsArray[I](implicit w: Write[I, JsValue]): Write[Seq[I], JsValue] =
     Write(ss => JsArray(ss.map(w.writes _)))
 
-  def option[I, J](r: Write[I, J])(implicit w: Path => Write[J, JsObject]): Path => Write[Option[I], JsObject] =
+  def option[I, J](r: => Write[I, J])(implicit w: Path => Write[J, JsObject]): Path => Write[Option[I], JsObject] =
     super.option[I, J, JsObject](r, Json.obj())
 
   implicit def option[I](implicit w: Path => Write[I, JsObject]): Path => Write[Option[I], JsObject] =
