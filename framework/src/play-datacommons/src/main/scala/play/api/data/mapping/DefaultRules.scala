@@ -350,14 +350,14 @@ trait DefaultRules[I] extends GenericRules with DateRules {
   import scala.language.implicitConversions
   import play.api.libs.functional._
 
-  protected def opt[J, O](r: => Rule[J, O], noneValues: Rule[J, J]*)(implicit pick: Path => Rule[I, J]) = (path: Path) =>
+  protected def opt[J, O](r: => Rule[J, O], noneValues: Rule[I, I]*)(implicit pick: Path => Rule[I, I], coerce: Rule[I, J]) = (path: Path) =>
     Rule[I, Option[O]] {
       (d: I) =>
-        val isNone = not(noneValues.foldLeft(Rule.zero[J])(_ compose not(_))).fmap(_ => None)
+        val isNone = not(noneValues.foldLeft(Rule.zero[I])(_ compose not(_))).fmap(_ => None)
         (pick(path).validate(d).map(Some.apply) orElse Success(None))
           .flatMap {
             case None => Success(None)
-            case Some(i) => (isNone orElse r.fmap[Option[O]](Some.apply)).validate(i)
+            case Some(i) => isNone.orElse(coerce.compose(r).fmap[Option[O]](Some.apply)).validate(i)
           }
     }
 

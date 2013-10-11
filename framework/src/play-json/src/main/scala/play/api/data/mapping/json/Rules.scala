@@ -102,18 +102,15 @@ object Rules extends play.api.data.mapping.DefaultRules[JsValue] {
     case JsNumber(v) => Success(v.bigDecimal)
   }("BigDecimal")
 
-  implicit def jsNull = isJsNull[JsValue].fmap(_ => JsNull)
-
-  private def isJsNull[J] = Rule.fromMapping[J, J]{
+  implicit val jsNull = jsonAs[JsNull.type] {
     case JsNull => Success(JsNull)
-    case _ => Failure(Seq(ValidationError("validation.type-mismatch", "null")))
-  }
+  }("null")
 
   implicit def ooo[O](p: Path)(implicit pick: Path => Rule[JsValue, JsValue], coerce: Rule[JsValue, O]): Rule[JsValue, Option[O]] =
-    option(coerce).apply(p)
+    option(Rule.zero[O])(pick, coerce)(p)
 
-  def option[J, O](r: => Rule[J, O], noneValues: Rule[J, J]*)(implicit pick: Path => Rule[JsValue, J]): Path => Rule[JsValue, Option[O]]
-    = super.opt[J, O](r, (isJsNull[J] +: noneValues):_*)
+  def option[J, O](r: => Rule[J, O], noneValues: Rule[JsValue, JsValue]*)(implicit pick: Path => Rule[JsValue, JsValue], coerce: Rule[JsValue, J]): Path => Rule[JsValue, Option[O]]
+    = super.opt[J, O](r, (jsNull.fmap(n => n: JsValue) +: noneValues):_*)
 
   implicit def map[O](implicit r: Rule[JsValue, O]): Rule[JsValue, Map[String, O]] =
     super.map[JsValue, O](r, jsObject.fmap{ case JsObject(fs) => fs })

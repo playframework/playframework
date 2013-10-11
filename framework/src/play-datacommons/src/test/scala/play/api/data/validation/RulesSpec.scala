@@ -396,6 +396,29 @@ object RulesSpec extends Specification {
         "informations[0].email" -> Seq("fakecontact@gmail.com"),
         "informations[0].phones" -> Seq("01.23.45.67.89", "98.76.54.32.10"))
 
+      val validNoMail1 = Map(
+        "firstname" -> Seq("Julien"),
+        "lastname" -> Seq("Tournay"),
+        "age" -> Seq("27"),
+        "informations[0].label" -> Seq("Personal"),
+        "informations[0].email" -> Seq(),
+        "informations[0].phones" -> Seq("01.23.45.67.89", "98.76.54.32.10"))
+
+      val validNoMail3 = Map(
+        "firstname" -> Seq("Julien"),
+        "lastname" -> Seq("Tournay"),
+        "age" -> Seq("27"),
+        "informations[0].label" -> Seq("Personal"),
+        "informations[0].email" -> Seq(""),
+        "informations[0].phones" -> Seq("01.23.45.67.89", "98.76.54.32.10"))
+
+      val validNoMail2 = Map(
+        "firstname" -> Seq("Julien"),
+        "lastname" -> Seq("Tournay"),
+        "age" -> Seq("27"),
+        "informations[0].label" -> Seq("Personal"),
+        "informations[0].phones" -> Seq("01.23.45.67.89", "98.76.54.32.10"))
+
       val validWithPhones = Map(
         "firstname" -> Seq("Julien"),
         "lastname" -> Seq("Tournay"),
@@ -430,8 +453,15 @@ object RulesSpec extends Specification {
         Contact("Julien", "Tournay", None, Seq(
           ContactInformation("Personal", Some("fakecontact@gmail.com"), List("01.23.45.67.89", "98.76.54.32.10"))))
 
+      val expectedNoMail =
+        Contact("Julien", "Tournay", None, Seq(
+          ContactInformation("Personal", None, List("01.23.45.67.89", "98.76.54.32.10"))))
+
       contactValidation.validate(validM) mustEqual(Success(expected))
       contactValidation.validate(validWithPhones) mustEqual(Success(expected))
+      contactValidation.validate(validNoMail1) mustEqual(Success(expectedNoMail))
+      contactValidation.validate(validNoMail2) mustEqual(Success(expectedNoMail))
+      contactValidation.validate(validNoMail3) mustEqual(Success(expectedNoMail))
       contactValidation.validate(invalidM) mustEqual(Failure(Seq(
         (Path \ "informations" \ 0 \ "label") -> Seq(ValidationError("validation.nonemptytext")))))
     }
