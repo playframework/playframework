@@ -42,11 +42,12 @@ class FunctionalSpec extends PlaySpecification {
     }
 
       "when connecting secured" in new WithServer(app=FakeApplication(), port=19001,sslPort=Some(19002)) {
-        val ws = WSNing(new AsyncHttpClient(WS.asyncBuilder.setSSLContext(trustAllservers).setHostnameVerifier(new HostnameVerifier {
+        implicit val wssClient: WSClient = new NingWSClient(new AsyncHttpClient(NingUtil.defaultBuilder.setSSLContext(trustAllservers).setHostnameVerifier(new HostnameVerifier {
           def verify(p1: String, p2: SSLSession) = true
         }).build))
+
         val url = s"https://localhost:${sslPort.get}/public/stylesheets/main.css"
-        val req = ws.url("https://localhost:" + sslPort.get + "/public/stylesheets/main.css")
+        val req = WS.url("https://localhost:" + sslPort.get + "/public/stylesheets/main.css")
         val h = await(req.get)
         h.header("Content-Type").get must equalTo("text/css; charset=utf-8")
       }
