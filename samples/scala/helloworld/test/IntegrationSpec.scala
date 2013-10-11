@@ -18,7 +18,7 @@ class IntegrationSpec extends Specification {
           browser.pageSource contains ("Hello world")
         }
 
-        browser.$("h1").first.getText.contains("Configure your 'Hello world':") must beTrue
+        browser.$("h1").first.getText must contain("Configure your 'Hello world':")
 
         browser.$("#name").text("Bob")
         browser.$("#submit").click()
