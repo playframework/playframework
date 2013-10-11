@@ -6,7 +6,7 @@ package play.api.test
 import scala.language.reflectiveCalls
 
 import play.api._
-import play.api.libs.ws.{ WSNing, WS }
+import play.api.libs.ws._
 import play.api.mvc._
 import play.api.http._
 
@@ -27,6 +27,17 @@ import com.ning.http.client.AsyncHttpClient
 import javax.net.ssl.{ SSLSession, HostnameVerifier }
 import scala.Array
 import play.core.server.noCATrustManager
+import play.api.mvc.AnyContentAsRaw
+import scala.Some
+import play.api.mvc.SimpleResult
+import play.api.mvc.ResponseHeader
+import play.api.mvc.AnyContentAsText
+import play.api.mvc.AnyContentAsFormUrlEncoded
+import play.api.mvc.AnyContentAsXml
+import play.api.test.FakeHeaders
+import play.api.test.TestServer
+import play.api.mvc.Call
+import play.api.mvc.AnyContentAsJson
 
 /**
  * Helper functions to run tests.
@@ -52,7 +63,7 @@ trait PlayRunners {
         block
       } finally {
         Play.stop()
-        play.api.libs.ws.WS.resetClient()
+        play.api.libs.ws.resetClient()
       }
     }
   }
@@ -149,7 +160,8 @@ trait DefaultAwaitTimeout {
    *
    * NegativeTimeout is a separate type to a normal Timeout because we'll want to
    * set it to a lower value. This is because in normal usage we'll need to wait
-   * for the full length of time to show that nothing has happened in that time.
+   * for the full length of time to show that no
+   * thing has happened in that time.
    * If the value is too high then we'll spend a lot of time waiting during normal
    * usage. If it is too low, however, we may miss events that occur after the
    * timeout has finished. This is a necessary tradeoff.
@@ -188,7 +200,8 @@ trait WsTestClient {
     sslctxt.init(null, Array(noCATrustManager), null);
     sslctxt
   }
-  val ws = WSNing(new AsyncHttpClient(WS.asyncBuilder.setSSLContext(trustAllservers).setHostnameVerifier(new HostnameVerifier {
+
+  val wssClient: WSClient = new NingWSClient(new AsyncHttpClient(NingUtil.defaultBuilder.setSSLContext(trustAllservers).setHostnameVerifier(new HostnameVerifier {
     def verify(p1: String, p2: SSLSession) = true
   }).build))
   /**
@@ -219,7 +232,7 @@ trait WsTestClient {
   /**
    * Construct a WS request for the given relative URL on a secure port
    */
-  def wssUrl(url: String)(implicit port: Port): WS.WSRequestHolder = ws.url("https://localhost:" + port + url)
+  def wssUrl(url: String)(implicit port: Port): WS.WSRequestHolder = WS.url("https://localhost:" + port + url)(wssClient)
 
 }
 
