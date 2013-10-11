@@ -119,7 +119,7 @@ object Rules extends DefaultRules[PM.PM] with ParsingRules {
       Rule.zero[UrlFormEncoded].fmap(toPM).compose(o)
     }
 
-  implicit def parse[O](implicit r: Rule[String, O]): Rule[PM, O] = {
+  implicit def parseString[O](implicit r: Rule[String, O]): Rule[PM, O] = {
     val find = Rule[Option[String], String] {
       _.map(Success(_)).getOrElse(Failure(Seq(Path -> Seq(ValidationError("validation.required")))))
     }

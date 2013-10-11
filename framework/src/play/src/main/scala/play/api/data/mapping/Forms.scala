@@ -21,7 +21,7 @@ case class Form[T](data: UrlFormEncoded = Map.empty, validation: Validation[(Pat
   def apply(key: String): Field = apply(PM.asPath(key))
 
   def apply(path: Path): Field = {
-    val value = dataP.get(path).flatMap(_.headOption)
+    val value = dataP.get(path)
     Field(this, path, value)
   }
 
@@ -59,7 +59,7 @@ class Field(private val form: Form[_], val path: Path, override val value: Optio
 
   def apply(_path: Path): Field = {
     val p = path ++ _path
-    val d = PM.find(p)(form.dataP).get(Path).flatMap(_.headOption)
+    val d = PM.find(p)(form.dataP).get(Path)
     Field(form, p, d)
   }
 

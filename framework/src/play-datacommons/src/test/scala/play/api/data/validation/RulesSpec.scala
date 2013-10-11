@@ -1,4 +1,4 @@
-  package play.api.data.mapping
+package play.api.data.mapping
 
 import org.specs2.mutable._
 import scala.util.control.Exception._
