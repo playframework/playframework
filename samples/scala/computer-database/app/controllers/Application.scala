@@ -22,7 +22,7 @@ object Application extends Controller {
 
   implicit val computerValidation = From[UrlFormEncoded] { __ =>
     import play.api.data.mapping.Rules._
-    ((__ \ "id").read(ignored(NotAssigned:Pk[Long])) ~
+    ((__ \ "id").read(ignored[UrlFormEncoded, Pk[Long]](NotAssigned)) ~
      (__ \ "name").read(notEmpty) ~
      (__ \ "introduced").read(option(date("yyyy-MM-dd"))) ~
      (__ \ "discontinued").read(option(date("yyyy-MM-dd"))) ~

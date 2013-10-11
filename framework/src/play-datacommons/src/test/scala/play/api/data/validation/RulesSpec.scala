@@ -196,6 +196,7 @@ object RulesSpec extends Specification {
 
       "Option" in {
         From[UrlFormEncoded] { __ => (__ \ "n").read[Option[Boolean]] }.validate(Map("n" -> Seq("true"))) mustEqual(Success(Some(true)))
+        From[UrlFormEncoded] { __ => (__ \ "n").read[Option[Boolean]] }.validate(Map("n" -> Seq(""))) mustEqual(Success(None))
         From[UrlFormEncoded] { __ => (__ \ "n").read[Option[Boolean]] }.validate(Map("foo" -> Seq("bar"))) mustEqual(Success(None))
         From[UrlFormEncoded] { __ => (__ \ "n").read[Option[Boolean]] }.validate(Map("n" -> Seq("bar"))) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.type-mismatch", "Boolean")))))
       }

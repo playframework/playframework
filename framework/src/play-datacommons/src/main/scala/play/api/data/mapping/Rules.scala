@@ -110,15 +110,16 @@ object Rules extends DefaultRules[PM.PM] with ParsingRules {
   implicit def map[O](implicit r: Rule[Seq[String], O]): Rule[PM, Map[String, O]] =
     super.map[Seq[String], O](r, Rule.zero[PM].fmap{ toM(_).toSeq })
 
+
+  private val isEmpty = validateWith[PM]("validation.empty"){ pm =>
+    pm.filter{ case (_, vs) => !vs.isEmpty }.isEmpty
+  }
   implicit def option[O](implicit pick: Path => Rule[PM, PM], coerce: Rule[PM, O]): Path => Rule[PM, Option[O]] =
-    opt(coerce)
+    opt(coerce, isEmpty)
 
   def option[J, O](r: => Rule[J, O], noneValues: Rule[PM, PM]*)(implicit pick: Path => Rule[PM, PM], coerce: Rule[PM, J]): Path => Rule[UrlFormEncoded, Option[O]] =
     path => {
-      val empty = validateWith[PM]("validation.empty"){ pm =>
-        pm.filter{ case (_, vs) => !vs.isEmpty }.isEmpty
-      }
-      val nones = empty +: noneValues
+      val nones = isEmpty +: noneValues
       val o = opt[J, O](r, nones:_*)(pick, coerce)(path)
       Rule.zero[UrlFormEncoded].fmap(toPM).compose(o)
     }
