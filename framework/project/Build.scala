@@ -320,10 +320,15 @@ object PlayBuild extends Build {
     .dependsOn(PlayProject % "test->test", PlayTestProject)
 
   lazy val PlayCacheProject = PlayRuntimeProject("Play-Cache", "play-cache")
+<<<<<<< HEAD
     .settings(
       libraryDependencies := playCacheDeps,
       parallelExecution in Test := false
     ).dependsOn(PlayProject)
+=======
+    .settings(libraryDependencies := playCacheDeps)
+    .dependsOn(PlayProject)
+>>>>>>> Cache the result, not the iteratee in cached action
     .dependsOn(PlayTestProject % "test")
 
   import RepositoryBuilder._
