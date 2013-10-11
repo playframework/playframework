@@ -2,7 +2,7 @@ package play.api.data.mapping
 
 /**
 * This trait provides default Rule implementations,
-* from String to various dates types and format
+* from String to various date types and format
 */
 trait DateRules {
 

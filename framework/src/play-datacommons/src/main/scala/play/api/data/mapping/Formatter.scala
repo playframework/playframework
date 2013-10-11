@@ -4,7 +4,26 @@ trait From[I] {
 	def apply[O](f: Reader[I] => Rule[I, O]) = f(Reader[I]())
 }
 object From {
+  /**
+  * {{{
+  *   val r = From[UrlFormEncoded]{ __ =>
+  *     ((__ \ "firstname").read(notEmpty) ~
+  *      (__ \ "age").read(min(1)).tupled
+  *   }
+  *   r.validate(valid) == Success("Julien" -> 28)
+  * }}}
+  */
   def apply[I] = new From[I]{}
+
+  /**
+  * Validate type `I` as an  using the implicit `Write` w
+  * {{{
+  *   val m = Map(
+  *     "name" -> Seq("bob"),
+  *     "friend.name" -> Seq("bobby"))
+  *   From[UrlFormEncoded, Person](m) == Success(Person(List("bob", "bobby")))
+  * }}}
+  */
   def apply[I, O](i: I)(implicit r: Rule[I, O]) =
     r.validate(i)
 }
@@ -13,7 +32,32 @@ trait To[I] {
 	def apply[O](f: Writer[I] => Write[O, I]) = f(Writer[I]())
 }
 object To {
+
+  /**
+  * {{{
+  *   val w = To[UrlFormEncoded] { __ =>
+  *     ((__ \ "email").write[Option[String]] ~
+  *      (__ \ "phone").write[String]).tupled
+  *   }
+  *
+  *   val v =  Some("jto@foobar.com") -> "01.23.45.67.89"
+  *
+  *    w.writes(v) == Map(
+  *      "email" -> Seq("jto@foobar.com"),
+  *      "phone" -> Seq("01.23.45.67.89"))
+  * }}}
+  */
   def apply[I] = new To[I]{}
+
+  /**
+  * "Serialize" type `O` to type `I` using the implicit `Write` w
+  * {{{
+  *   To[Person2, UrlFormEncoded](Person(List("bob", "bobby"))) ==
+  *      Map(
+  *      "name" -> Seq("bob"),
+  *      "friend.name" -> Seq("bobby"))
+  * }}}
+  */
   def apply[O, I](o: O)(implicit w: Write[O, I]) =
     w.writes(o)
 }
