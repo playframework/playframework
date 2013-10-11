@@ -52,8 +52,9 @@ object WS extends WSRequestBuilder {
 
   /**
    * The  builder AsncBuilder for default play app
+   * method is private to play - but there is demand for this functionality to made available to advanced users.
    */
-  def asyncBuilder: AsyncHttpClientConfig.Builder = {
+  private[play] def asyncBuilder: AsyncHttpClientConfig.Builder = {
     val playConfig = play.api.Play.maybeApplication.map(_.configuration)
     val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
       .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout.connection")).getOrElse(120000L).toInt)
@@ -324,9 +325,11 @@ class WSRequest(_method: String, _auth: Option[Tuple3[String, String, AuthScheme
  * For example one instance of WSNing can be set to authenticate with one client certificate, another instance
  * with another client certificate.
  *
+ * note: private play for the moment but please make functionality available for advanced users.
+ *
  * @param client
  */
-case class WSNing(client: AsyncHttpClient) extends WSRequestBuilder
+private[play] case class WSNing(client: AsyncHttpClient) extends WSRequestBuilder
 
 trait WSRequestBuilder {
 
