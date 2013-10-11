@@ -13,14 +13,14 @@ object Application extends Controller {
    * Describes the hello form.
    */
   implicit val helloValidation = From[UrlFormEncoded] { __ =>
-    import play.api.data.mapping.Rules._
+    import Rules._
     ((__ \ "name").read(notEmpty) ~
      (__ \ "repeat").read(min(1) |+| max(100)) ~
      (__ \ "color").read[Option[String]]).tupled
   }
 
   implicit val computerW = To[UrlFormEncoded] { __ =>
-    import play.api.data.mapping.Writes._
+    import Writes._
     ((__ \ "name").write[String] ~
      (__ \ "repeat").write[Int] ~
      (__ \ "color").write[Option[String]]).tupled

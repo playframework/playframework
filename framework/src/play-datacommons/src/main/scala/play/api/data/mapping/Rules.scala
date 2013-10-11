@@ -57,7 +57,7 @@ object PM {
   def toPM(m: UrlFormEncoded): PM =
     m.toSeq.flatMap { case (p, vs) =>
       vs match {
-        case v :: Nil => vs.map{ asPath(p) -> _ }
+        case Seq(v) => vs.map{ asPath(p) -> _ }
         case _ => vs.zipWithIndex.map{ case (v, i) => (asPath(p) \ i) -> v }
       }
     }.toMap
