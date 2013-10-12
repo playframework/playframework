@@ -14,14 +14,14 @@ import play.core._
 import server.Server
 import play.api._
 import play.api.mvc._
-import play.api.http.HeaderNames.X_FORWARDED_FOR
+import play.api.http.HeaderNames.{X_FORWARDED_FOR, X_FORWARDED_PROTO}
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import scala.collection.JavaConverters._
 import scala.util.control.Exception
 import com.typesafe.netty.http.pipelining.{OrderedDownstreamChannelEvent, OrderedUpstreamMessageEvent}
 import scala.concurrent.Future
-import java.net.URI
+import java.net.{SocketAddress, URI}
 import java.io.IOException
 
 
@@ -76,16 +76,28 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
         val rHeaders = getHeaders(nettyHttpRequest)
 
         def rRemoteAddress = e.getRemoteAddress match {
-          case ra: java.net.InetSocketAddress => {
+          case ra: java.net.InetSocketAddress =>
             val remoteAddress = ra.getAddress.getHostAddress
-            (for {
-              xff <- rHeaders.get(X_FORWARDED_FOR)
-              app <- server.applicationProvider.get.toOption
-              trustxforwarded <- app.configuration.getBoolean("trustxforwarded").orElse(Some(false))
-              if remoteAddress == "127.0.0.1" || trustxforwarded
-            } yield xff).getOrElse(remoteAddress)
-          }
+            forwardedHeader(remoteAddress, X_FORWARDED_FOR).getOrElse(remoteAddress)
         }
+
+        def rSecure = e.getRemoteAddress match {
+          case ra: java.net.InetSocketAddress =>
+            val remoteAddress = ra.getAddress.getHostAddress
+            val fh = forwardedHeader(remoteAddress, X_FORWARDED_PROTO)
+            fh.map(_ == "https").getOrElse(ctx.getPipeline.get(classOf[SslHandler]) != null)
+        }
+
+        /**
+         * Gets the value of a header, if the remote address is localhost or
+         * if the trustxforwarded configuration property is true
+         */
+        def forwardedHeader(remoteAddress: String, headerName: String) = for {
+          headerValue <- rHeaders.get(headerName)
+          app <- server.applicationProvider.get.toOption
+          trustxforwarded <- app.configuration.getBoolean("trustxforwarded").orElse(Some(false))
+          if remoteAddress == "127.0.0.1" || trustxforwarded
+        } yield headerValue
 
         def tryToCreateRequest = {
           val parameters = Map.empty[String, Seq[String]] ++ nettyUri.getParameters.asScala.mapValues(_.asScala)
@@ -104,6 +116,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
             def queryString = parameters
             def headers = rHeaders
             lazy val remoteAddress = rRemoteAddress
+            lazy val secure = rSecure
             def username = None
           }
           untaggedRequestHeader

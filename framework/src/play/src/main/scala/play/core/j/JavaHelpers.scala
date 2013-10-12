@@ -68,6 +68,8 @@ trait JavaHelpers {
 
       def remoteAddress = req.remoteAddress
 
+      def secure = req.secure
+
       def host = req.host
 
       def path = req.path
@@ -127,6 +129,8 @@ trait JavaHelpers {
       def version = req.version
 
       def remoteAddress = req.remoteAddress
+
+      def secure = req.secure
 
       def host = req.host
 

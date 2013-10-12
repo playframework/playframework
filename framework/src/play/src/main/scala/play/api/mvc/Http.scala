@@ -68,6 +68,15 @@ package play.api.mvc {
      */
     def remoteAddress: String
 
+    /**
+     * Is the client using SSL?
+     *
+     * If the <code>X-Forwarded-Proto</code> header is present, then this method will return true
+     * if the value in that header is "https", if either the local address is 127.0.0.1, or if
+     * <code>trustxforwarded</code> is configured to be true in the application configuration file.
+     */
+    def secure: Boolean
+
     // -- Computed
 
     /**
@@ -187,8 +196,9 @@ package play.api.mvc {
       version: String = this.version,
       queryString: Map[String, Seq[String]] = this.queryString,
       headers: Headers = this.headers,
-      remoteAddress: String = this.remoteAddress): RequestHeader = {
-      val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress) = (id, tags, uri, path, method, version, queryString, headers, remoteAddress)
+      remoteAddress: String = this.remoteAddress,
+      secure: Boolean = this.secure): RequestHeader = {
+      val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress, _secure) = (id, tags, uri, path, method, version, queryString, headers, remoteAddress, secure)
       new RequestHeader {
         val id = _id
         val tags = _tags
@@ -199,6 +209,7 @@ package play.api.mvc {
         val queryString = _queryString
         val headers = _headers
         val remoteAddress = _remoteAddress
+        val secure = _secure
       }
     }
 
@@ -240,6 +251,7 @@ package play.api.mvc {
       def queryString = self.queryString
       def headers = self.headers
       def remoteAddress = self.remoteAddress
+      def secure = self.secure
       lazy val body = f(self.body)
     }
 
@@ -257,6 +269,7 @@ package play.api.mvc {
       def queryString = rh.queryString
       def headers = rh.headers
       lazy val remoteAddress = rh.remoteAddress
+      lazy val secure = rh.secure
       def username = None
       val body = a
     }
@@ -276,6 +289,7 @@ package play.api.mvc {
     def method = request.method
     def version = request.version
     def remoteAddress = request.remoteAddress
+    def secure = request.secure
   }
 
   /**

@@ -52,6 +52,7 @@ class RequestHeaderSpec extends Specification {
     def version = ""
     def queryString = Map()
     def remoteAddress = ""
+    def secure = false
     lazy val headers = new Headers { val data = headersMap.toSeq }
   }
 }
