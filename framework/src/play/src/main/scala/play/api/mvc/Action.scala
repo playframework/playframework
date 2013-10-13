@@ -161,6 +161,24 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
     override def toString = self.toString
   }
 
+  /**
+   * Validate the result of this BodyParser[A] to create a BodyParser[B]
+   *
+   * Example:
+   * {{{
+   *   def validateJson[A : Reads] = parse.json.validate(
+   *     _.validate[A].asEither.left.map(e => BadRequest(JsError.toFlatJson(e)))
+   *   )
+   * }}}
+   */
+  def validate[B](f: A => Either[SimpleResult, B]): BodyParser[B] = new BodyParser[B] {
+    def apply(request: RequestHeader) = self(request).flatMap {
+      case Left(e) => Done(Left(e), Input.Empty)
+      case Right(a) => Done(f(a), Input.Empty)
+    }
+    override def toString = self.toString
+  }
+
 }
 
 /**
