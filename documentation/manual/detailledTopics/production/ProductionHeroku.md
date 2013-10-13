@@ -81,6 +81,16 @@ $ heroku logs
 ...
 ```
 
+We can also tail the logs in the same manner as we could do at a regular command line.  This is useful for debugging:
+```bash
+$ heroku logs -t --app floating-lightning-8044
+2011-08-18T00:13:41+00:00 heroku[web.1]: Starting process with command `target/start`
+2011-08-18T00:14:18+00:00 app[web.1]: Starting on port:28328
+2011-08-18T00:14:18+00:00 app[web.1]: Started.
+2011-08-18T00:14:19+00:00 heroku[web.1]: State changed from starting to up
+...
+```
+
 Looks good. We can now visit the app by running:
 
 ```bash
@@ -103,7 +113,7 @@ web: target/start -Dhttp.port=${PORT} ${JAVA_OPTS} -DapplyEvolutions.default=tru
 ```
 
 This instructs Heroku that for the process named `web` it will run Play and override the `applyEvolutions.default`, `db.default.driver`, and `db.default.url` configuration parameters.  Note that the `Procfile` command can be maximum 255 characters long.  Alternatively, use the `-Dconfig.resource=` or `-Dconfig.file=` mentioned in [[production configuration|ProductionConfiguration]] page.
-
+Note that the creation of a Procfile is not actually required by Heroku, as Heroku will look in your play application's conf directory for an application.conf file in order to determine that it is a play application.
 
 ## Further learning resources
 
