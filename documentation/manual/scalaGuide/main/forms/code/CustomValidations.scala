@@ -20,8 +20,8 @@ class CustomValidationsSpec extends Specification {
   val passwordCheckConstraint: Constraint[String] = Constraint("constraints.passwordcheck")({
     plainText =>
       val errors = plainText match {
-        case `allNumbers` => Seq(ValidationError("Password is all numbers"))
-        case `allLetters` => Seq(ValidationError("Password is all letters"))
+        case allNumbers() => Seq(ValidationError("Password is all numbers"))
+        case allLetters() => Seq(ValidationError("Password is all letters"))
         case _ => Nil
       }
       if (errors.isEmpty) {
@@ -50,7 +50,7 @@ class CustomValidationsSpec extends Specification {
     }
 
     "return valid with both letters and numbers" in {
-      passwordCheckConstraint("12324").must(be_==(Valid))
+      passwordCheckConstraint("abc123").must(be_==(Valid))
     }
 
   }

@@ -96,7 +96,8 @@ object User {
 
 }
 
-package controllers {
+// We are sneaky and want these classes available without exposing our test package structure.
+package views.html {
 
 //#userData-define
 case class UserData(name: String, age: Int)
@@ -116,6 +117,10 @@ case class UserListData(name: String, emails: List[String])
 case class UserOptionalData(name: String, email: Option[String])
 // #userData-optional
 
+}
+
+package views.html.contact {
+
 // #contact-define
 case class Contact(firstname: String,
                    lastname: String,
@@ -126,6 +131,13 @@ case class ContactInformation(label: String,
                               email: Option[String],
                               phones: List[String])
 // #contact-define
+
+}
+
+package controllers {
+
+import views.html._
+import views.html.contact._
 
 object Application extends Controller {
 
@@ -139,7 +151,7 @@ object Application extends Controller {
   }
   // #form-render
 
-  def userPost() = Action {
+  def userPost() = Action { implicit request =>
     val userForm = controllers.Application.userFormConstraints
 
     //#userForm-handling-failure
@@ -157,6 +169,10 @@ object Application extends Controller {
     )
     //#userForm-handling-failure
 
+  }
+
+  def submit = Action { implicit request =>
+    BadRequest("Not used")
   }
 
   //#userForm-define
