@@ -71,6 +71,8 @@ class ScalaFormsSpec extends Specification with Controller {
       controllers.Application.userFormOptionalEmail === None
 
       controllers.Application.userFormStaticId === 23
+
+      controllers.Application.userFormTupleName === "bob"
     }
 
     "handling binding failure" in {
@@ -98,14 +100,44 @@ package controllers {
 
 //#userData-define
 case class UserData(name: String, age: Int)
-
 //#userData-define
+
+// #userData-nested
+case class AddressData(street: String, city: String)
+
+case class UserAddressData(name: String, address: AddressData)
+// #userData-nested
+
+// #userListData
+case class UserListData(name: String, emails: List[String])
+// #userListData
+
+// #userData-optional
+case class UserOptionalData(name: String, email: Option[String])
+// #userData-optional
+
+// #contact-define
+case class Contact(firstname: String,
+                   lastname: String,
+                   company: Option[String],
+                   informations: Seq[ContactInformation])
+
+case class ContactInformation(label: String,
+                              email: Option[String],
+                              phones: List[String])
+// #contact-define
 
 object Application extends Controller {
 
   def home(id: Int = 0) = Action {
     Ok("Welcome!")
   }
+
+  // #form-render
+  def index = Action {
+    Ok(views.html.user(userForm))
+  }
+  // #form-render
 
   def userPost() = Action {
     val userForm = controllers.Application.userFormConstraints
@@ -224,10 +256,6 @@ object Application extends Controller {
     formData.name
   }
 
-  case class AddressData(street: String, city: String)
-
-  case class UserAddressData(name: String, address: AddressData)
-
   //#userForm-nested
   val userFormNested: Form[UserAddressData] = Form(
     mapping(
@@ -246,10 +274,6 @@ object Application extends Controller {
     user.address.city
   }
 
-  // #userListData
-  case class UserListData(name: String, emails: List[String])
-  // #userListData
-
   //#userForm-repeated
   val userFormRepeated = Form(
     mapping(
@@ -265,8 +289,6 @@ object Application extends Controller {
 
     user.emails
   }
-
-  case class UserOptionalData(name: String, email: Option[String])
 
   //#userForm-optional
   val userFormOptional = Form(
@@ -303,6 +325,64 @@ object Application extends Controller {
     user.id
   }
 
+  // #userForm-tuple
+  val userFormTuple = Form(
+    tuple(
+      "name" -> text,
+      "age" -> number
+    ) // tuples come with built-in apply/unapply
+  )
+  // #userForm-tuple
+
+  val userFormTupleName = {
+    // #userForm-tuple-example
+    val anyData = Map("name" -> "bob", "age" -> "25")
+    val (name, age) = userFormTuple.bind(anyData).get
+    // #userForm-tuple-example
+    name
+  }
+
+  // #contact-form
+  val contactForm: Form[Contact] = Form(
+
+    // Defines a mapping that will handle Contact values
+    mapping(
+      "firstname" -> nonEmptyText,
+      "lastname" -> nonEmptyText,
+      "company" -> optional(text),
+
+      // Defines a repeated mapping
+      "informations" -> seq(
+        mapping(
+          "label" -> nonEmptyText,
+          "email" -> optional(email),
+          "phones" -> list(
+            text verifying pattern("""[0-9.+]+""".r, error="A valid phone number is required")
+          )
+        )(ContactInformation.apply)(ContactInformation.unapply)
+      )
+    )(Contact.apply)(Contact.unapply)
+  )
+  // #contact-form
+
+  // #contact-edit-form
+  def editForm = Action {
+    val existingContact = Contact(
+      "Fake", "Contact", Some("Fake company"), informations = List(
+        ContactInformation(
+          "Personal", Some("fakecontact@gmail.com"), List("01.23.45.67.89", "98.76.54.32.10")
+        ),
+        ContactInformation(
+          "Professional", Some("fakecontact@company.com"), List("01.23.45.67.89")
+        ),
+        ContactInformation(
+          "Previous", Some("fakecontact@oldcompany.com"), List()
+        )
+      )
+    )
+    Ok(views.html.contact.form(contactForm.fill(existingContact)))
+  }
+  // #contact-edit-form
 
 }
 

@@ -90,13 +90,11 @@ package models {
 package controllers {
 
 import javaguide.forms.html.myFieldConstructorTemplate
-import views.html.helper.FieldConstructor
 
 //#form-myfield-helper
 object MyHelpers {
-
+  import views.html.helper.FieldConstructor
   implicit val myFields = FieldConstructor(myFieldConstructorTemplate.f)
-
 }
 //#form-myfield-helper
 

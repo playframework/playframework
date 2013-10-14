@@ -101,4 +101,4 @@ Then you can minimise the boiler plate code necessary to write actions:
 
 @[csrf-actions](code/ScalaCsrf.scala)
 
-> **Next:** [[Working with JSON|ScalaJson]]
+> **Next:** [[Custom Validations|ScalaCustomValidations]]

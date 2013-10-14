@@ -2,10 +2,9 @@
 ### HTTP form
 
 - [[Forms|ScalaForms]]
-- [[Basic Forms|ScalaBasicForms]]
-- [[Intermediate Forms|ScalaIntermediateForms]]
-- [[Advanced Forms|ScalaAdvancedForms]]
 - [[Protecting against CSRF|ScalaCsrf]]
+- [[Custom Validations|ScalaCustomValidations]]
+- [[Custom Field Constructors|ScalaCustomFieldConstructors]]
 
 ### Main concepts
 
