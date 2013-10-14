@@ -27,6 +27,8 @@ import com.ning.http.util.AsyncHttpProviderUtils;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.w3c.dom.Document;
 
+import play.api.libs.ws.NingWSClient;
+import play.api.libs.ws.package$;
 import play.libs.F.Promise;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -40,7 +42,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class WS {
 
     private static AsyncHttpClient client() {
-        return play.api.libs.ws.WS.client();
+        return ((NingWSClient)package$.MODULE$.wsclient()).client();
     }
 
     /**

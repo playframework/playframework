@@ -3,3 +3,4 @@ project/project
 project/target
 target
 tmp
+conf/generated.keystore
