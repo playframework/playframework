@@ -324,6 +324,7 @@ object PlayBuild extends Build {
   lazy val PlayCacheProject = PlayRuntimeProject("Play-Cache", "play-cache")
     .settings(libraryDependencies := playCacheDeps)
     .dependsOn(PlayProject)
+    .dependsOn(PlayTestProject % "test")
 
   import RepositoryBuilder._
   lazy val RepositoryProject = Project(
