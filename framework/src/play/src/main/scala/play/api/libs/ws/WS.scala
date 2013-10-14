@@ -21,11 +21,11 @@ import com.ning.http.client.{ Response => AHCResponse, Cookie => AHCCookie, Prox
 
 import com.ning.http.util.AsyncHttpProviderUtils
 import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
-import javax.net.ssl.SSLContext
+import javax.net.ssl.{SSLSession, HostnameVerifier, SSLContext}
 import scala.collection.JavaConverters._
 import play.api.libs.iteratee.Input.El
-import scala.Some
-import scala.Tuple3
+import scala.{Array, Some, Tuple3}
+import play.core.server.noCATrustManager
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -58,7 +58,7 @@ object WS {
 trait WSClient {
   def execute(req: WSRequest): Future[Response]
   def executeStream[A](req: WSRequest, consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Future[Iteratee[Array[Byte], A]]
-  def close()
+  def close(): Unit
 }
 
 object NingUtil {
@@ -88,16 +88,27 @@ object NingUtil {
       asyncHttpConfig.setUserAgent(useragent)
     }
     //  we cannot set the SSLContext more than once. So if it is set here, it can never be set again.
-    //    if (!playConfig.flatMap(_.getBoolean("ws.acceptAnyCertificate")).getOrElse(false)) {
-    //      asyncHttpConfig.setSSLContext(SSLContext.getDefault)
-    //    }
+    playConfig.flatMap(_.getString("ws.acceptCertificate",Some(Set("any","noca")))).map { str =>
+      def trustAllservers = {
+        val sslctxt = javax.net.ssl.SSLContext.getInstance("TLS");
+        sslctxt.init(null, Array(noCATrustManager), null);
+        sslctxt
+      }
+      def noHostnameVerifier = new HostnameVerifier {
+        def verify(p1: String, p2: SSLSession) = true
+      }
+      str.toLowerCase match {
+        case "any" => asyncHttpConfig.setSSLContext(trustAllservers).setHostnameVerifier(noHostnameVerifier)
+        case "noca" => asyncHttpConfig.setSSLContext(trustAllservers)
+      }
+    }
     asyncHttpConfig
   }
 
   /**
    * build a new default NingWSClient
    */
-  def newClient: NingWSClient = {
+  def newClient: WSClient = {
     new NingWSClient(new AsyncHttpClient(defaultBuilder.build()))
   }
 

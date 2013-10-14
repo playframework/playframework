@@ -19,11 +19,6 @@ import javax.net.ssl.{SSLSession, HostnameVerifier}
 class FunctionalSpec extends PlaySpecification {
   "an Application" should {
     
-    val  trustAllservers = {
-      val sslctxt = javax.net.ssl.SSLContext.getInstance("TLS");
-      sslctxt.init(null, Array(noCATrustManager),null);
-      sslctxt
-    }
 
 
     def cal = Calendar.getInstance()
@@ -42,10 +37,6 @@ class FunctionalSpec extends PlaySpecification {
     }
 
       "when connecting secured" in new WithServer(app=FakeApplication(), port=19001,sslPort=Some(19002)) {
-        implicit val wssClient: WSClient = new NingWSClient(new AsyncHttpClient(NingUtil.defaultBuilder.setSSLContext(trustAllservers).setHostnameVerifier(new HostnameVerifier {
-          def verify(p1: String, p2: SSLSession) = true
-        }).build))
-
         val url = s"https://localhost:${sslPort.get}/public/stylesheets/main.css"
         val req = WS.url("https://localhost:" + sslPort.get + "/public/stylesheets/main.css")
         val h = await(req.get)
