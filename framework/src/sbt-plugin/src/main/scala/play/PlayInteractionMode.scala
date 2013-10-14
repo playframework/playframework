@@ -51,9 +51,8 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
   def doWithoutEcho(f: => Unit): Unit = {
     withConsoleReader { consoleReader =>
       val terminal = consoleReader.getTerminal
-      val oldEcho = terminal.isEchoEnabled
       terminal.setEchoEnabled(false)
-      try f finally terminal.setEchoEnabled(oldEcho)
+      try f finally terminal.restore()
     }
   }
   override def waitForCancel(): Unit = waitForKey()
