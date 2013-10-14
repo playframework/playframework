@@ -322,8 +322,10 @@ object PlayBuild extends Build {
     .dependsOn(PlayProject % "test->test", PlayTestProject)
 
   lazy val PlayCacheProject = PlayRuntimeProject("Play-Cache", "play-cache")
-    .settings(libraryDependencies := playCacheDeps)
-    .dependsOn(PlayProject)
+    .settings(
+      libraryDependencies := playCacheDeps,
+      parallelExecution in Test := false
+    ).dependsOn(PlayProject)
     .dependsOn(PlayTestProject % "test")
 
   import RepositoryBuilder._
