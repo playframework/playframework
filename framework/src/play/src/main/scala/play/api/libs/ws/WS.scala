@@ -21,10 +21,10 @@ import com.ning.http.client.{ Response => AHCResponse, Cookie => AHCCookie, Prox
 
 import com.ning.http.util.AsyncHttpProviderUtils
 import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
-import javax.net.ssl.{SSLSession, HostnameVerifier, SSLContext}
+import javax.net.ssl.{ SSLSession, HostnameVerifier, SSLContext }
 import scala.collection.JavaConverters._
 import play.api.libs.iteratee.Input.El
-import scala.{Array, Some, Tuple3}
+import scala.{ Array, Some, Tuple3 }
 import play.core.server.noCATrustManager
 
 /**
@@ -88,7 +88,7 @@ object NingUtil {
       asyncHttpConfig.setUserAgent(useragent)
     }
     //  we cannot set the SSLContext more than once. So if it is set here, it can never be set again.
-    playConfig.flatMap(_.getString("ws.acceptCertificate",Some(Set("any","noca")))).map { str =>
+    playConfig.flatMap(_.getString("ws.acceptCertificate", Some(Set("any", "noca")))).map { str =>
       def trustAllservers = {
         val sslctxt = javax.net.ssl.SSLContext.getInstance("TLS");
         sslctxt.init(null, Array(noCATrustManager), null);
