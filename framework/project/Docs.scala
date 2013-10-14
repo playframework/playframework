@@ -17,7 +17,7 @@ object Docs {
     apiDocsScalaSources <<= (thisProjectRef, buildStructure) flatMap allScalaSources(Compile),
     apiDocsClasspath <<= (thisProjectRef, buildStructure) flatMap allClasspaths,
     apiDocsJavaSourceDirectories <<= (thisProjectRef, buildStructure) map allJavaSourceDirectories(Compile),
-    apiDocs <<= (apiDocsScalaSources, apiDocsJavaSourceDirectories, apiDocsClasspath, baseDirectory, compilers, streams) map apiDocsTask,
+    apiDocs <<= (apiDocsScalaSources, apiDocsJavaSourceDirectories, apiDocsClasspath, baseDirectory in ThisBuild, baseDirectory, compilers, streams) map apiDocsTask,
     mappings in (Compile, packageBin) <++= (baseDirectory, apiDocs) map { (base, apiBase) =>
       // Include documentation and API docs in main binary JAR
       val docBase = base / "../../../documentation"
@@ -31,7 +31,7 @@ object Docs {
     }
   )
 
-  def apiDocsTask(scalaSources: Seq[File], javaSourceDirectories: Seq[File], classpath: Seq[File], base: File, compilers: Compiler.Compilers, streams: TaskStreams): File = {
+  def apiDocsTask(scalaSources: Seq[File], javaSourceDirectories: Seq[File], classpath: Seq[File], buildBase: File, projectBase: File, compilers: Compiler.Compilers, streams: TaskStreams): File = {
 
     val version = BuildSettings.buildVersion
     val sourceTree = if (version.endsWith("-SNAPSHOT")) {
@@ -40,11 +40,18 @@ object Docs {
       version
     }
 
-    val apiTarget = new File(base, "target/apidocs")
+    val apiTarget = new File(projectBase, "target/apidocs")
 
     val options = Seq(
-      "-sourcepath", base.getAbsolutePath,
+      // Note, this is used by the doc-source-url feature to determine the relative path of a given source file.
+      // If it's not a prefix of a the absolute path of the source file, the absolute path of that file will be put
+      // into the FILE_SOURCE variable below, which is definitely not what we want.
+      // Hence it needs to be the base directory for the build, not the base directory for the play-docs project.
+      "-sourcepath", buildBase.getAbsolutePath,
       "-doc-source-url", "https://github.com/playframework/playframework/tree/" + sourceTree + "/framework€{FILE_PATH}.scala")
+
+    // Update to SBT 0.13 notes - there will be a Doc.scaladoc method that allows you to pass a cache file, passing
+    // that cache file may greatly speed up our builds.
     new Scaladoc(10, compilers.scalac)("Play " + BuildSettings.buildVersion + " Scala API", scalaSources, classpath,
       apiTarget / "scala", options, streams.log)
 
