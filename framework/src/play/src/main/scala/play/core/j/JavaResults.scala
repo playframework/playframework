@@ -54,10 +54,24 @@ object JavaResultExtractor {
 
   def getCookies(result: play.mvc.SimpleResult): JCookies =
     new JCookies {
-      def get(name: String) = {
-        Cookies(headers(result).get(HeaderNames.SET_COOKIE)).get(name).map { cookie =>
-          new JCookie(cookie.name, cookie.value, cookie.maxAge.map(i => new Integer(i)).orNull, cookie.path, cookie.domain.orNull, cookie.secure, cookie.httpOnly)
-        }.getOrElse(null)
+      private val cookies = Cookies(headers(result).get(HeaderNames.SET_COOKIE))
+
+      def get(name: String): JCookie = {
+        cookies.get(name).map(makeJavaCookie).orNull
+      }
+
+      private def makeJavaCookie(cookie: Cookie): JCookie = {
+        new JCookie(cookie.name,
+          cookie.value,
+          cookie.maxAge.map(i => new Integer(i)).orNull,
+          cookie.path,
+          cookie.domain.orNull,
+          cookie.secure,
+          cookie.httpOnly)
+      }
+
+      def iterator: java.util.Iterator[JCookie] = {
+        cookies.toIterator.map(makeJavaCookie).asJava
       }
     }
 
