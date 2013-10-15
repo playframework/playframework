@@ -27,6 +27,7 @@ class CachedSpec extends PlaySpecification {
       val invoked = new AtomicInteger()
       val action =  Cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
       val result1 = action(FakeRequest()).run
+      status(result1) must_== 200
       invoked.get() must_== 1
       val etag = header(ETAG, result1)
       etag must beSome
@@ -39,6 +40,7 @@ class CachedSpec extends PlaySpecification {
       val invoked = new AtomicInteger()
       val action =  Cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
       val result1 = action(FakeRequest()).run
+      status(result1) must_== 200
       invoked.get() must_== 1
       val result2 = action(FakeRequest().withHeaders(IF_NONE_MATCH -> "*")).run
       status(result2) must_== NOT_MODIFIED
