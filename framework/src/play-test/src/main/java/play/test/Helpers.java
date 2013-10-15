@@ -374,7 +374,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      */
     public static void stop(FakeApplication fakeApplication) {
         play.api.Play.stop();
-        play.api.libs.ws.WS$.MODULE$.resetClient();
+        play.api.libs.ws.package$.MODULE$.resetClient();
     }
 
     /**
