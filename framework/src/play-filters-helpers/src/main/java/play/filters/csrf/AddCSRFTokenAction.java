@@ -36,7 +36,7 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
             RequestHeader newRequest = request.copy(request.id(),
                     request.tags().$plus(new Tuple2<String, String>(requestTag, newToken)),
                     request.uri(), request.path(), request.method(), request.version(), request.queryString(),
-                    request.headers(), request.remoteAddress());
+                    request.headers(), request.remoteAddress(), request.secure());
 
             // Create a new context that will have the new RequestHeader.  This ensures that the CSRF.getToken call
             // used in templates will find the token.

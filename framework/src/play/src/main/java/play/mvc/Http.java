@@ -233,6 +233,15 @@ public class Http {
         public abstract String remoteAddress();
 
         /**
+         * Is the client using SSL?
+         *
+         * If the <code>X-Forwarded-Proto</code> header is present, then this method will return true
+         * if the value in that header is "https", if either the local address is 127.0.0.1, or if
+         * <code>trustxforwarded</code> is configured to be true in the application configuration file.
+         */
+        public abstract boolean secure();
+
+        /**
          * The request host.
          */
         public abstract String host();
