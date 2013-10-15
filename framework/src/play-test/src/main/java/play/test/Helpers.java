@@ -210,10 +210,17 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * * Extracts a Cookie value from this Result value
+     * Extracts a Cookie value from this Result value
      */
     public static play.mvc.Http.Cookie cookie(String name, Result result) {
         return play.core.j.JavaResultExtractor.getCookies(unwrapJavaResult(result)).get(name);
+    }
+
+    /**
+     * Extracts the Cookies (an iterator) from this result value.
+     */
+    public static play.mvc.Http.Cookies cookies(Result result) {
+       return play.core.j.JavaResultExtractor.getCookies(unwrapJavaResult(result));
     }
 
     /**
