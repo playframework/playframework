@@ -40,3 +40,5 @@ OpenID.redirectURL(
 ```
 
 Attributes will then be available in the `UserInfo` provided by the OpenID server.
+
+> **Next:** [[OAuth | JavaOAuth]]
