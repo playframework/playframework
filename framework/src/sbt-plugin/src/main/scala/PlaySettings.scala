@@ -6,7 +6,6 @@ package play
 import sbt.{ Project => SbtProject, _ }
 import sbt.Keys._
 import Keys._
-import PlayEclipse._
 import com.typesafe.sbt.SbtNativePackager._
 import com.typesafe.sbt.packager.Keys._
 import java.io.{ Writer, PrintWriter }
@@ -216,8 +215,6 @@ trait Settings {
     // Templates
 
     templatesImport := defaultTemplatesImport,
-
-    scalaIdePlay2Prefs <<= (state, thisProjectRef, baseDirectory) map { (s, r, baseDir) => saveScalaIdePlay2Prefs(r, SbtProject structure s, baseDir) },
 
     templatesTypes := Map(
       "html" -> "play.api.templates.HtmlFormat",
