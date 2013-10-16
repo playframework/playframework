@@ -113,9 +113,8 @@ object Dependencies {
 
     "org.mockito" % "mockito-all" % "1.9.5" % "test",
     "com.novocode" % "junit-interface" % "0.10" % "test" exclude("junit", "junit-dep"),
-
-    ("org.fluentlenium" % "fluentlenium-festassert" % "0.9.0" % "test")
-      .exclude("org.jboss.netty", "netty"),
+    "org.easytesting" % "fest-assert" % "1.4" % "test",
+    guava % "test",
 
     "org.scala-lang" % "scala-reflect" % BuildSettings.buildScalaVersion,
 
@@ -195,9 +194,9 @@ object Dependencies {
     "com.novocode" % "junit-interface" % "0.10" exclude("junit", "junit-dep"),
     guava,
     findBugs,
-    ("org.fluentlenium" % "fluentlenium-festassert" % "0.8.0")
+    ("org.fluentlenium" % "fluentlenium-festassert" % "0.9.0")
       .exclude("org.jboss.netty", "netty")
-      .exclude("com.google.guava","guava"))
+  )
 
   val integrationTestDependencies = Seq(
     "org.databene" % "contiperf" % "2.2.0" % "test"
