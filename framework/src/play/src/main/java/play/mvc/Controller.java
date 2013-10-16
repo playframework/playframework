@@ -43,6 +43,15 @@ public abstract class Controller extends Results implements Status, HeaderNames 
     }
 
     /**
+     * Change durably the lang for the current user
+     * @param lang New Lang object to use
+     * @return true if the requested lang was supported by the application, otherwise false.
+     */
+    public static boolean changeLang(Lang lang) {
+        return Http.Context.current().changeLang(lang);
+    }
+
+    /**
      * Clear the lang for the current user.
      */
     public static void clearLang() {

@@ -129,10 +129,18 @@ public class Http {
          * @return true if the requested lang was supported by the application, otherwise false.
          */
         public boolean changeLang(String code) {
-            Lang lang = Lang.forCode(code);
+            return changeLang(Lang.forCode(code));
+        }
+
+        /**
+         * Change durably the lang for the current user.
+         * @param lang New Lang object to use.
+         * @return true if the requested lang was supported by the application, otherwise false.
+         */
+        public boolean changeLang(Lang lang) {
             if (Lang.availables().contains(lang)) {
                 this.lang = lang;
-                response.setCookie(Play.langCookieName(), code);
+                response.setCookie(Play.langCookieName(), lang.code());
                 return true;
             } else {
                 return false;
