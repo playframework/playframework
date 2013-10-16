@@ -42,9 +42,9 @@ object RulesSpec extends Specification {
     "support checked" in {
       val js = Json.obj("issmth" -> true)
       val p = Path \ "issmth"
-      p.read(checked).validate(js) mustEqual(Success(true))
-      p.read(checked).validate(Json.obj()) mustEqual(Failure(Seq(Path \ "issmth" -> Seq(ValidationError("validation.required")))))
-      p.read(checked).validate(Json.obj("issmth" -> false)) mustEqual(Failure(Seq(Path \ "issmth" -> Seq(ValidationError("validation.equals", true)))))
+      p.from[JsValue](checked).validate(js) mustEqual(Success(true))
+      p.from[JsValue](checked).validate(Json.obj()) mustEqual(Failure(Seq(Path \ "issmth" -> Seq(ValidationError("validation.required")))))
+      p.from[JsValue](checked).validate(Json.obj("issmth" -> false)) mustEqual(Failure(Seq(Path \ "issmth" -> Seq(ValidationError("validation.equals", true)))))
     }
 
     "support all types of Json values" in {
@@ -110,15 +110,15 @@ object RulesSpec extends Specification {
       "date" in {
         import java.util.Date
         val f = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE)
-        (Path \ "n").read(date).validate(Json.obj("n" -> "1985-09-10")) mustEqual(Success(f.parse("1985-09-10")))
-        (Path \ "n").read(date).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.date", "yyyy-MM-dd")))))
+        (Path \ "n").from[JsValue](date).validate(Json.obj("n" -> "1985-09-10")) mustEqual(Success(f.parse("1985-09-10")))
+        (Path \ "n").from[JsValue](date).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.date", "yyyy-MM-dd")))))
       }
 
       "iso date" in {
         import java.util.Date
         val f = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE)
-        (Path \ "n").read(isoDate).validate(Json.obj("n" -> "1985-09-10T00:00:00+02:00")) mustEqual(Success(f.parse("1985-09-10")))
-        (Path \ "n").read(isoDate).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.iso8601")))))
+        (Path \ "n").from[JsValue](isoDate).validate(Json.obj("n" -> "1985-09-10T00:00:00+02:00")) mustEqual(Success(f.parse("1985-09-10")))
+        (Path \ "n").from[JsValue](isoDate).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.iso8601")))))
       }
 
       "joda" in {
@@ -128,20 +128,20 @@ object RulesSpec extends Specification {
         val jd = new DateTime(dd)
 
         "date" in {
-          (Path \ "n").read(jodaDate).validate(Json.obj("n" -> "1985-09-10")) mustEqual(Success(jd))
-          (Path \ "n").read(jodaDate).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.expected.jodadate.format", "yyyy-MM-dd")))))
+          (Path \ "n").from[JsValue](jodaDate).validate(Json.obj("n" -> "1985-09-10")) mustEqual(Success(jd))
+          (Path \ "n").from[JsValue](jodaDate).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.expected.jodadate.format", "yyyy-MM-dd")))))
         }
 
         "time" in {
-          (Path \ "n").read(jodaTime).validate(Json.obj("n" -> dd.getTime)) mustEqual(Success(jd))
-          (Path \ "n").read(jodaDate).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.expected.jodadate.format", "yyyy-MM-dd")))))
+          (Path \ "n").from[JsValue](jodaTime).validate(Json.obj("n" -> dd.getTime)) mustEqual(Success(jd))
+          (Path \ "n").from[JsValue](jodaDate).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.expected.jodadate.format", "yyyy-MM-dd")))))
         }
 
         "local date" in {
           import org.joda.time.LocalDate
           val ld = new LocalDate()
-          (Path \ "n").read(jodaLocalDate).validate(Json.obj("n" -> ld.toString())) mustEqual(Success(ld))
-          (Path \ "n").read(jodaLocalDate).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.expected.jodadate.format", "")))))
+          (Path \ "n").from[JsValue](jodaLocalDate).validate(Json.obj("n" -> ld.toString())) mustEqual(Success(ld))
+          (Path \ "n").from[JsValue](jodaLocalDate).validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.expected.jodadate.format", "")))))
         }
       }
 
@@ -150,7 +150,7 @@ object RulesSpec extends Specification {
         val f = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE)
         val dd = f.parse("1985-09-10")
         val ds = new java.sql.Date(dd.getTime())
-        (Path \ "n").read(sqlDate).validate(Json.obj("n" -> "1985-09-10")) mustEqual(Success(ds))
+        (Path \ "n").from[JsValue](sqlDate).validate(Json.obj("n" -> "1985-09-10")) mustEqual(Success(ds))
       }
 
       "Boolean" in {
@@ -204,7 +204,7 @@ object RulesSpec extends Specification {
       }
 
       "Traversable" in {
-        implicitly[Rule[JsValue, Traversable[String]]]
+
         (Path \ "n").read[JsValue, Traversable[String]].validate(Json.obj("n" -> Seq("foo"))).get.toSeq must haveTheSameElementsAs(Seq("foo"))
         (Path \ "n").read[JsValue, Traversable[Int]].validate(Json.obj("n" -> Seq(1, 2, 3))).get.toSeq must haveTheSameElementsAs(Seq(1, 2, 3))
         (Path \ "n").read[JsValue, Traversable[String]].validate(Json.obj("n" -> "paf")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("validation.type-mismatch", "Array")))))
@@ -226,11 +226,11 @@ object RulesSpec extends Specification {
     }
 
     "validate data" in {
-      (Path \ "firstname").read(notEmpty).validate(valid) mustEqual(Success("Julien"))
+      (Path \ "firstname").from[JsValue](notEmpty).validate(valid) mustEqual(Success("Julien"))
 
       val p = (Path \ "informations" \ "label")
-      p.read(notEmpty).validate(valid) mustEqual(Success("Personal"))
-      p.read(notEmpty).validate(invalid) mustEqual(Failure(Seq(p -> Seq(ValidationError("validation.nonemptytext")))))
+      p.from[JsValue](notEmpty).validate(valid) mustEqual(Success("Personal"))
+      p.from[JsValue](notEmpty).validate(invalid) mustEqual(Failure(Seq(p -> Seq(ValidationError("validation.nonemptytext")))))
     }
 
     "validate optional" in {
@@ -254,20 +254,20 @@ object RulesSpec extends Specification {
 
     "coerce type" in {
       (Path \ "age").read[JsValue, Int].validate(valid) mustEqual(Success(27))
-      (Path \ "age").read(min(20)).validate(valid) mustEqual(Success(27))
-      (Path \ "age").read(max(50)).validate(valid) mustEqual(Success(27))
-      (Path \ "age").read(min(50)).validate(valid) mustEqual(Failure(Seq((Path \ "age") -> Seq(ValidationError("validation.min", 50)))))
-      (Path \ "age").read(max(0)).validate(valid) mustEqual(Failure(Seq((Path \ "age") -> Seq(ValidationError("validation.max", 0)))))
+      (Path \ "age").from[JsValue](min(20)).validate(valid) mustEqual(Success(27))
+      (Path \ "age").from[JsValue](max(50)).validate(valid) mustEqual(Success(27))
+      (Path \ "age").from[JsValue](min(50)).validate(valid) mustEqual(Failure(Seq((Path \ "age") -> Seq(ValidationError("validation.min", 50)))))
+      (Path \ "age").from[JsValue](max(0)).validate(valid) mustEqual(Failure(Seq((Path \ "age") -> Seq(ValidationError("validation.max", 0)))))
       (Path \ "firstname").read[JsValue, Int].validate(valid) mustEqual(Failure(Seq((Path \ "firstname") -> Seq(ValidationError("validation.type-mismatch", "Int")))))
     }
 
     "compose constraints" in {
       val composed = notEmpty |+| minLength(3)
-      (Path \ "firstname").read(composed).validate(valid) mustEqual(Success("Julien"))
+      (Path \ "firstname").from[JsValue](composed).validate(valid) mustEqual(Success("Julien"))
 
       val p = Path \ "informations" \ "label"
       val err = Failure(Seq(p -> Seq(ValidationError("validation.nonemptytext"), ValidationError("validation.minLength", 3))))
-      p.read(composed).validate(invalid) mustEqual(err)
+      p.from[JsValue](composed).validate(invalid) mustEqual(err)
     }
 
     "compose validations" in {
@@ -286,7 +286,7 @@ object RulesSpec extends Specification {
     }
 
     "lift validations to seq validations" in {
-      (Path \ "foo").read(seq(notEmpty)).validate(Json.obj("foo" -> Seq("bar")))
+      (Path \ "foo").from[JsValue](seq(notEmpty)).validate(Json.obj("foo" -> Seq("bar")))
         .get must haveTheSameElementsAs(Seq("bar"))
 
       From[JsValue]{ __ =>
@@ -295,7 +295,7 @@ object RulesSpec extends Specification {
       }.validate(Json.obj("foo" -> Json.obj("foo" -> Seq("bar"))))
         .get must haveTheSameElementsAs(Seq("bar"))
 
-      (Path \ "n").read(seq(notEmpty))
+      (Path \ "n").from[JsValue](seq(notEmpty))
         .validate(Json.parse("""{"n":["foo", ""]}""")) mustEqual(Failure(Seq(Path \ "n" \ 1 -> Seq(ValidationError("validation.nonemptytext")))))
     }
 
@@ -453,7 +453,7 @@ object RulesSpec extends Specification {
 
         lazy val w2: Rule[JsValue, RecUser] =
           ((Path \ "name").read[JsValue, String] ~
-           (Path \ "friends").read(seq(w2)))(RecUser.apply _)
+           (Path \ "friends").from[JsValue](seq(w2)))(RecUser.apply _)
         w2.validate(m) mustEqual Success(u)
 
         lazy val w3: Rule[JsValue, User1] = From[JsValue]{ __ =>
