@@ -1,3 +1,15 @@
+### Working with Json
+
+- [[Play data validation Basics | ScalaValidation]]
+- [[Json Rules/Writes Combinators | ScalaValidation]]
+- [[Validating Json | ScalaValidationJson]]
+- [[Validation Forms | ScalaValidationForm]]
+- [[Supporting new types | ScalaValidation]]
+- [[Macro Inception | ScalaValidation]]
+- [[Migration from the Json API | ScalaValidation]]
+- [[Migration from the Form API | ScalaValidation]]
+- [[Handling and serving Json requests | ScalaValidation]]
+
 ### Main concepts
 
 - [[HTTP programming | ScalaActions]]
@@ -18,9 +30,6 @@
 ### Advanced topics
 
 - [[Handling data streams reactively | Iteratees]]
-- [[HTTP API | HttpApi]]
-- [[HTTP Filters | ScalaHttpFilters]]
-- [[Extending Play|ScalaPlugins]]
 
 ### Tutorials
 
