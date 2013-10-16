@@ -37,7 +37,7 @@ object Projects extends Controller with Secured {
    * Add a project.
    */
   def add = IsAuthenticated { username => implicit request =>
-    (Path \ "group").read(notEmpty)
+    (Path \ "group").from[UrlFormEncoded](notEmpty)
       .validate(request.body.asFormUrlEncoded.getOrElse(Map.empty))
       .fold(
         errors => BadRequest,
@@ -64,7 +64,7 @@ object Projects extends Controller with Secured {
    * Rename a project.
    */
   def rename(project: Long) = IsMemberOf(project) { _ => implicit request =>
-    (Path \ "name").read(notEmpty)
+    (Path \ "name").from[UrlFormEncoded](notEmpty)
       .validate(request.body.asFormUrlEncoded.getOrElse(Map.empty))
       .fold(
         errors => BadRequest,
@@ -96,7 +96,7 @@ object Projects extends Controller with Secured {
    * Rename a project group.
    */
   def renameGroup(folder: String) = IsAuthenticated { _ => implicit request =>
-    (Path \ "name").read(notEmpty)
+    (Path \ "name").from[UrlFormEncoded](notEmpty)
       .validate(request.body.asFormUrlEncoded.getOrElse(Map.empty))
       .fold(
         errors => BadRequest,
@@ -110,7 +110,7 @@ object Projects extends Controller with Secured {
    * Add a project member.
    */
   def addUser(project: Long) = IsMemberOf(project) { _ => implicit request =>
-    (Path \ "user").read(notEmpty)
+    (Path \ "user").from[UrlFormEncoded](notEmpty)
       .validate(request.body.asFormUrlEncoded.getOrElse(Map.empty))
       .fold(
         errors => BadRequest,
@@ -122,7 +122,7 @@ object Projects extends Controller with Secured {
    * Remove a project member.
    */
   def removeUser(project: Long) = IsMemberOf(project) { _ => implicit request =>
-    (Path \ "user").read(notEmpty)
+    (Path \ "user").from[UrlFormEncoded](notEmpty)
       .validate(request.body.asFormUrlEncoded.getOrElse(Map.empty))
       .fold(
         errors => BadRequest,

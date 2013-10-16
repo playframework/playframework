@@ -60,7 +60,7 @@ object Tasks extends Controller with Secured {
    * Update a task
    */
   def update(task: Long) = IsOwnerOf(task) { _ => implicit request =>
-    (Path \ "done").read(boolean)
+    (Path \ "done").read[UrlFormEncoded, Boolean]
       .validate(request.body.asFormUrlEncoded.getOrElse(Map.empty))
       .fold(
         errors => BadRequest,
@@ -100,7 +100,7 @@ object Tasks extends Controller with Secured {
    * Rename a tasks folder.
    */
   def renameFolder(project: Long, folder: String) = IsMemberOf(project) { _ => implicit request =>
-    (Path \ "name").read(notEmpty)
+    (Path \ "name").from[UrlFormEncoded](notEmpty)
       .validate(request.body.asFormUrlEncoded.getOrElse(Map.empty))
       .fold(
         errors => BadRequest,
