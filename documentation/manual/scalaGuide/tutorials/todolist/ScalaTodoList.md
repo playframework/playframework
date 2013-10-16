@@ -264,7 +264,7 @@ We changed the template signature to take two parameters:
 
 We also imported `helper._` that gives us the form creation helpers, typically the `form` function, which creates an HTML `<form>` with filled `action` and `method` attributes, and the `inputText` function that creates an HTML input for a form field.
     
-> **Note:** Read more about the [[Templating system|ScalaTemplates]] and [[Forms helper|ScalaFormHelpers]].
+> **Note:** Read more about the [[Templating system|ScalaTemplates]] and [[form helpers|ScalaForms]].
     
 ## The task form
 
