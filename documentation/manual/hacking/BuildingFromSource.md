@@ -50,18 +50,18 @@ $ ./runtests
 
 Creating projects using the Play version you have built from source works much the same as a regular Play application.
 
-export PATH=$PATH:<projdir>/playframework
+export PATH=$PATH:<projdir>/
 
 If you have an existing Play application that you are upgrading, please add
 
 ```
 resolvers ++= Seq(
   ...
-  Resolver.file("Local Repository", file("<projdir>/playframework/repository/local"))(Resolver.ivyStylePatterns),
+  Resolver.file("Local Repository", file("<projdir>/repository/local"))(Resolver.ivyStylePatterns),
   ...
 )
 
-addSbtPlugin("play" % "sbt-plugin" % "2.3-SNAPSHOT")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.3-SNAPSHOT")
 ```
 
 to project/plugins.sbt. 
