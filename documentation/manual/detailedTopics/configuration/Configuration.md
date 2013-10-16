@@ -9,7 +9,7 @@ The default configuration file of a Play application must be defined in `conf/ap
 
 System properties can be used to force a different config source:
 
-* `config.resource` specifies a resource name - not a basename, i.e. application and not application.conf
+* `config.resource` specifies a resource name including the extension, i.e. `application.conf` and not just `application`
 * `config.file` specifies a filesystem path, again it should include the extension, not be a basename
 * `config.url` specifies a URL
 
