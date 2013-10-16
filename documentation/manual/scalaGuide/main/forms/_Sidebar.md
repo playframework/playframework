@@ -1,9 +1,10 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
-### HTTP form
+### Forms
 
-- [[Form definitions|ScalaForms]]
-- [[Using the form template helpers|ScalaFormHelpers]]
+- [[Handling form submission|ScalaForms]]
 - [[Protecting against CSRF|ScalaCsrf]]
+- [[Custom Validations|ScalaCustomValidations]]
+- [[Custom Field Constructors|ScalaCustomFieldConstructors]]
 
 ### Main concepts
 
