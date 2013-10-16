@@ -7,7 +7,15 @@ A call made by `play.libs.WS` should return a `Promise<WS.Response>`, which you 
 
 ## Imports
 
-To use WS, first import the following packages:
+To use WS, first add `javaWs` to your `build.sbt` file:
+
+```scala
+libraryDependencies ++= Seq(
+  javaWs
+)
+```
+
+Then, import the following packages:
 
 @[ws-imports](code/javaguide/ws/JavaWS.java)
 

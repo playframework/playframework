@@ -13,6 +13,7 @@ object Dependencies {
 
   val guava = "com.google.guava" % "guava" % "15.0"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "2.0.2" // Needed by guava
+  val mockitoAll = "org.mockito" % "mockito-all" % "1.9.5"
 
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
@@ -88,12 +89,6 @@ object Dependencies {
 
     "org.apache.commons" % "commons-lang3" % "3.1",
 
-    ("com.ning" % "async-http-client" % "1.7.21" notTransitive ())
-      .exclude("org.jboss.netty", "netty"),
-
-    "oauth.signpost" % "signpost-core" % "1.2.1.2",
-    "oauth.signpost" % "signpost-commonshttp4" % "1.2.1.2",
-
     "com.fasterxml.jackson.core" % "jackson-core" % "2.2.2",
     "com.fasterxml.jackson.core" % "jackson-annotations" % "2.2.2",
     "com.fasterxml.jackson.core" % "jackson-databind" % "2.2.2",
@@ -104,7 +99,7 @@ object Dependencies {
 
     specsBuild % "test",
 
-    "org.mockito" % "mockito-all" % "1.9.5" % "test",
+    mockitoAll % "test",
     "com.novocode" % "junit-interface" % "0.10" % "test" exclude("junit", "junit-dep"),
     "org.easytesting" % "fest-assert" % "1.4" % "test",
     guava % "test",
@@ -198,6 +193,17 @@ object Dependencies {
   val playCacheDeps = Seq(
     "net.sf.ehcache" % "ehcache-core" % "2.6.6",
     specsBuild % "test"
+  )
+
+  val playWsDeps = Seq(
+    guava,
+    ("com.ning" % "async-http-client" % "1.7.21" notTransitive ())
+      .exclude("org.jboss.netty", "netty"),
+    "oauth.signpost" % "signpost-core" % "1.2.1.2",
+    "oauth.signpost" % "signpost-commonshttp4" % "1.2.1.2",
+
+    specsBuild % "test",
+    mockitoAll % "test"
   )
 
 }

@@ -12,6 +12,16 @@ OpenID is a protocol for users to access several services with a single account.
 
 Step 1 may be omitted if all your users are using the same OpenID provider (for example if you decide to rely completely on Google accounts).
 
+## Usage
+
+To use OpenId, first add `ws`  to your `build.sbt` file:
+
+```scala
+libraryDependencies ++= Seq(
+  ws
+)
+```
+
 ## OpenID in Play
 
 The OpenID API has two important functions:

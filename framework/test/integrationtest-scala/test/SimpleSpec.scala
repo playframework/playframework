@@ -11,7 +11,7 @@ import play.api.libs.json.{JsValue, Json, JsObject}
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
 
-class SimpleSpec extends Specification {
+class SimpleSpec extends Specification with WsTestClient {
   
   "my application" should {
     

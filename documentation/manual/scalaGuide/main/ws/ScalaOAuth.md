@@ -5,6 +5,16 @@
 
 There are 2 very different versions of OAuth: [OAuth 1.0](http://tools.ietf.org/html/rfc5849) and [OAuth 2.0](http://oauth.net/2/). Version 2 is simple enough to be implemented easily without library or helpers, so Play only provides support for OAuth 1.0.
 
+## Usage
+
+To use OAuth, first add `ws`  to your `build.sbt` file:
+
+```scala
+libraryDependencies ++= Seq(
+  ws
+)
+```
+
 ## Required Information
 
 OAuth requires you to register your application to the service provider. Make sure to check the callback URL that you provide, because the service provider may reject your calls if they don't match. When working locally, you can use `/etc/hosts` to fake a domain on your local machine.

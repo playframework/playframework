@@ -3,6 +3,16 @@
 
 OpenID is a protocol for users to access several services with a single account. As a web developer, you can use OpenID to offer users a way to login with an account they already have (their [Google account](https://developers.google.com/accounts/docs/OpenID) for example). In the enterprise, you can use OpenID to connect to a company's SSO server if it supports it.
 
+## Usage
+
+To use OpenId, first add `javaWs`  to your `build.sbt` file:
+
+```scala
+libraryDependencies ++= Seq(
+  javaWs
+)
+```
+
 ## The OpenID flow in a nutshell
 
 1. The user gives you his OpenID (a URL)

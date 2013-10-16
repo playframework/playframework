@@ -23,6 +23,5 @@ trait PlaySpecification extends Specification
     with ResultExtractors
     with Writeables
     with RouteInvokers
-    with WsTestClient
     with FutureAwaits {
 }

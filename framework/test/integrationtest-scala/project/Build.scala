@@ -11,7 +11,7 @@ object ApplicationBuild extends Build {
     val appVersion      = "1.0"
 
     val appDependencies = Seq(
-      // Add your project dependencies here,
+       ws
     )
 
     val main = play.Project(appName, appVersion, appDependencies).settings(

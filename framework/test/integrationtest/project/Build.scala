@@ -12,6 +12,7 @@ object ApplicationBuild extends Build {
   val appDependencies = Seq(
     javaJdbc,
     javaCore,
+    javaWs,
     anorm,
     cache)
 
