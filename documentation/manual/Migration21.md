@@ -1,10 +1,11 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Play 2.1 migration guide
 
-To migrate a **Play 2.0.x** application to **Play 2.1.0** first update Play's `sbt-plugin` in the `project/plugins.sbt` file:
+To migrate a **Play 2.0.x** application to **Play 2.1.x** first update Play's `sbt-plugin` in the `project/plugins.sbt` file:
+You have to replace the **x** by the current version of Play you are updating to.
 
 ```
-addSbtPlugin("play" % "sbt-plugin" % "2.1.0")
+addSbtPlugin("play" % "sbt-plugin" % "2.1.x")
 ```
 
 Now update the `project/Build.scala` file to use the new `play.Project` class instead of the `PlayProject` class:
@@ -27,7 +28,7 @@ Lastly, update your `project/build.properties` file:
 sbt.version=0.12.2
 ```
 
-Then clean and re-compile your project using the `play` command in the **Play 2.1.0** distribution:
+Then clean and re-compile your project using the `play` command in the **Play 2.1.x** distribution:
 
 ```
 play clean
@@ -61,7 +62,9 @@ object ApplicationBuild extends Build {
     val appVersion      = "1.0"
 
     val appDependencies = Seq(
-       javaCore, javaJdbc, javaEbean
+       javaCore, javaJdbc, javaEbean,
+       "extern_app" %% "information" % "version_number",
+       "extern_app2" %% "information" % "version_number"
     )
 
     val main = play.Project(appName, appVersion, appDependencies).settings(
@@ -71,11 +74,17 @@ object ApplicationBuild extends Build {
 }
 ```
 
-The `mainLang` parameter for the project is not required anymore. The main language is determined based on the dependencies added to the project. If dependencies contains `javaCore` then the language is set to `JAVA` otherwise `SCALA`.Notice the modularized dependencies in the `appDependencies` section. 
+The `mainLang` parameter for the project is not required anymore. The main language is determined based on the dependencies added to the project. If dependencies contains `javaCore` then the language is set to `JAVA` otherwise `SCALA`.Notice the modularized dependencies in the `appDependencies` section.
 
 ## play.mvc.Controller.form() renamed to play.data.Form.form()
 
-Also related to modularization, the `play.data` package and its dependencies were moved out from play core to `javaCore` artifact. As a consequence of this, `play.mvc.Controller#form` was moved to `play.data.Form#form`
+Also related to modularization, the `play.data` package and its dependencies were moved out from play core to `javaCore` artifact. As a consequence of this, `play.mvc.Controller#form` was moved to `play.data.Form#form`.
+Additionally you have to import the new package in Java statically: 
+
+```
+import static play.data.Form.*
+```
+
 
 ## play.db.ebean.Model.Finder.join() renamed to fetch()
 
