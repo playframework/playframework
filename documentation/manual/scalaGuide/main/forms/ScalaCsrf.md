@@ -33,6 +33,8 @@ To allow simple protection for non browser requests, such as requests made throu
 Play provides a global CSRF filter that can be applied to all requests.  This is the simplest way to add CSRF protection to an application.  To enable the global filter, add the Play filters helpers dependency to your project in `Build.scala`:
 
 ```scala
+import play.Keys._
+
 val appDependencies = Seq(
   filters
 )
