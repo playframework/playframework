@@ -1,5 +1,23 @@
 #! /usr/bin/env sh
 
+case `uname` in
+  CYGWIN*)
+    function dirname {
+      cygpath -m `command dirname $@`
+    }
+    typeset -fx dirname
+    export BOOTPROP="file:///"
+    ;;
+  MINGW32*)
+    function dirname { (cd `command dirname $@`; pwd -W) }
+    typeset -fx dirname
+    export BOOTPROP="file:///"
+    ;;
+  *)
+    export BOOTPROP=""
+    ;;
+esac
+
 PRG="$0"
 # resolve relative/absolute symlinks
 while [ -h "$PRG" ] ; do
@@ -67,5 +85,5 @@ if [ -f conf/application.conf -o -f conf/reference.conf ] || [ -d project ]; the
   fi
   
 else
-  "$JAVA" -Dplay.home=$dir/framework -Dsbt.boot.properties=$dir/framework/sbt/play.boot.properties ${PLAY_OPTS} -jar $dir/framework/sbt/sbt-launch.jar "$@"
+  "$JAVA" -Dplay.home=$dir/framework -Dsbt.boot.properties=$BOOTPROP$dir/framework/sbt/play.boot.properties ${PLAY_OPTS} -jar $dir/framework/sbt/sbt-launch.jar "$@"
 fi
