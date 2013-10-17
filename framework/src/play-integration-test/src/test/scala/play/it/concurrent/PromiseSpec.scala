@@ -26,4 +26,18 @@ class PromiseSpec extends PlaySpecification {
 
   }
 
+  "Promise timeouts" should {
+
+    "yield their message" in new WithApplication() {
+      val future = Promise.timeout("hello", 10)
+      await(future) must_== "hello"
+    }
+
+    "yield any exceptions thrown when generating a message" in new WithApplication() {
+      val future = Promise.timeout[Unit](throw new Exception("error!"), 10)
+      await(future) must throwAn[Exception](message = "error!")
+    }
+
+  }
+
 }
