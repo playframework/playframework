@@ -87,6 +87,7 @@ object Writes extends DefaultWrites with GenericWrites[PM.PM] with DefaultMonoid
 
   import PM._
 
+  // TODO: accept a format ?
   implicit def anyval[T <: AnyVal] = Write((i: T) => i.toString)
   implicit def scalanumber[T <: scala.math.ScalaNumber] = Write((i: T) => i.toString)
   implicit def javanumber[T <: java.lang.Number] = Write((i: T) => i.toString)

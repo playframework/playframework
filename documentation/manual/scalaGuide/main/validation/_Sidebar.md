@@ -1,7 +1,10 @@
 ### Play data validation API
 
-- [[Play data validation Basics | ScalaValidation]]
-- [[Json Rules/Writes Combinators | ScalaValidation]]
+- [[Introduction | ScalaValidation]]
+- [[Validation and transformation with Rule | ScalaValidationRule]]
+- [[Complex validation | ScalaValidationRuleCombinators]]
+- [[Serialization with Write | ScalaValidationWrite]]
+- [[ Complex serialization | ScalaValidationWriteCombinators]]
 - [[Validating Json | ScalaValidationJson]]
 - [[Validation Forms | ScalaValidationForm]]
 - [[Macro Inception | ScalaValidation]]
