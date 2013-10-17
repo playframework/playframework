@@ -220,7 +220,7 @@ object BodyParser {
 /**
  * Provides helpers for creating `Action` values.
  */
-trait ActionBuilder[R[_]] {
+trait ActionBuilder[+R[_]] {
   self =>
 
   /**
