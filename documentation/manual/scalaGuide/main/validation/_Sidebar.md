@@ -2,16 +2,17 @@
 
 - [[Introduction | ScalaValidation]]
 - [[Validation and transformation with Rule | ScalaValidationRule]]
-- [[Complex validation | ScalaValidationRuleCombinators]]
+- [[Complex validation: combining Rules | ScalaValidationRuleCombinators]]
 - [[Serialization with Write | ScalaValidationWrite]]
-- [[ Complex serialization | ScalaValidationWriteCombinators]]
+- [[Complex serialization: combining Writes | ScalaValidationWriteCombinators]]
 - [[Validating Json | ScalaValidationJson]]
 - [[Validation Forms | ScalaValidationForm]]
+- [[Forms template helpers | ScalaValidationForm]]
 - [[Macro Inception | ScalaValidation]]
 - [[Supporting new types | ScalaValidation]]
-- [[Migration from the Json API | ScalaValidation]]
-- [[Migration from the Form API | ScalaValidation]]
-- [[Handling and serving Json requests | ScalaValidation]]
+- [[Migration from 2.1.x Json API | ScalaValidation]]
+- [[Migration from 2.1.x Form API | ScalaValidation]]
+
 
 ### Main concepts
 

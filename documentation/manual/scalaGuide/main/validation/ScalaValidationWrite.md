@@ -89,7 +89,7 @@ Let's test our new `Write`:
 
 ```scala
 scala> productAsPrice.writes(Product("Awesome product", 9.99))
-res48: String = 9,99 €
+res1: String = 9,99 €
 ```
 
 > **Next:** [[ Complex serialization with Writes combinators | ScalaValidationWriteCombinators]]
