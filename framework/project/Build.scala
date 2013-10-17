@@ -127,7 +127,7 @@ object Resolvers {
   val sonatypeSnapshots = "Sonatype snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"
 
   val isSnapshotBuild = buildVersion.endsWith("SNAPSHOT")
-  val typesafeResolvers = if (isSnapshotBuild) Seq(typesafeReleases, typesafeSnapshots) else Seq(typesafeReleases)
+  val typesafeResolvers = if (isSnapshotBuild) Seq(typesafeReleases, typesafeIvyReleases, typesafeSnapshots, typesafeIvySnapshots) else Seq(typesafeReleases, typesafeIvyReleases)
   val publishingMavenRepository = if (isSnapshotBuild) publishTypesafeMavenSnapshots else publishTypesafeMavenReleases
   val publishingIvyRepository = if (isSnapshotBuild) publishTypesafeIvySnapshots else publishTypesafeIvyReleases
 }
@@ -270,7 +270,6 @@ object PlayBuild extends Build {
 
   lazy val ConsoleProject = PlaySbtProject("Console", "console")
     .settings(
-      resolvers += typesafeIvyReleases,
       libraryDependencies := consoleDependencies,
       sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion
     )
