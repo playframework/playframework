@@ -1,11 +1,11 @@
-### Working with Json
+### Play data validation API
 
 - [[Play data validation Basics | ScalaValidation]]
 - [[Json Rules/Writes Combinators | ScalaValidation]]
 - [[Validating Json | ScalaValidationJson]]
 - [[Validation Forms | ScalaValidationForm]]
-- [[Supporting new types | ScalaValidation]]
 - [[Macro Inception | ScalaValidation]]
+- [[Supporting new types | ScalaValidation]]
 - [[Migration from the Json API | ScalaValidation]]
 - [[Migration from the Form API | ScalaValidation]]
 - [[Handling and serving Json requests | ScalaValidation]]
