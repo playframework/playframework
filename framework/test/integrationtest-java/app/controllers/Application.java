@@ -9,7 +9,7 @@ import models.User;
 import com.fasterxml.jackson.databind.JsonNode;
 import play.*;
 import play.libs.Akka;
-import play.libs.F.Function;
+import play.libs.F.*;
 import play.mvc.*;
 
 import views.html.*;
@@ -32,9 +32,9 @@ public class Application extends Controller {
     }
 
     public static Result asyncResult() {
-        return async(Akka.future(new Callable<String>() {
+        return async(Promise.promise(new Function0<String>() {
             @Override
-            public String call() {
+            public String apply() {
                 return "success";
             }
         }).map(new Function<String, Result>() {

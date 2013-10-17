@@ -11,13 +11,15 @@ import play.api.cache.Cache
 import play.api.libs.json._
 import play.api.libs.json.Json._
 import play.api.libs.Jsonp
-import play.api.libs.concurrent.Promise
 
 import models._
 import models.Protocol._
 
 import play.cache.{Cache=>JCache}
 import play.api.i18n._
+import scala.concurrent.Future
+
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 object Application extends Controller {
 
@@ -160,10 +162,8 @@ object Application extends Controller {
     Ok
   }
 
-  def asyncError = Action {
-    Async {
-      Promise.pure[Result](sys.error("Error"))
-    }
+  def asyncError = Action.async {
+    Future[SimpleResult](sys.error("Error"))
   }
 
   def route(parameter: String) = Action {
