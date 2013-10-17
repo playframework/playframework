@@ -18,6 +18,7 @@ import scala.collection._
 import scala.collection.generic.CanBuildFrom
 import java.util.concurrent.TimeoutException
 import play.core.Execution.internalContext
+import scala.util.Try
 import scala.util.control.NonFatal
 
 /**
@@ -310,7 +311,7 @@ object Promise {
     val p = SPromise[A]()
     import play.api.Play.current
     Akka.system.scheduler.scheduleOnce(FiniteDuration(duration, unit)) {
-      p.success(message)
+      p.complete(Try(message))
     }
     p.future
   }
