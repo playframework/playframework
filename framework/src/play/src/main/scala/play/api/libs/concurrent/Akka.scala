@@ -29,21 +29,6 @@ object Akka {
     }
   }
 
-  /**
-   * Executes a block of code asynchronously in the application Akka Actor system.
-   *
-   * Example:
-   * {{{
-   * val promiseOfResult = Akka.future {
-   *    intensiveComputing()
-   * }
-   * }}}
-   */
-  @scala.deprecated("Use scala.concurrent.Future() instead.", "2.2")
-  def future[T](body: => T)(implicit app: Application): Future[T] = {
-    Future(body)(system.dispatcher)
-  }
-
 }
 
 /**
