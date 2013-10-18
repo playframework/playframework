@@ -243,7 +243,7 @@ case class Configuration(underlying: Config) {
    * For example:
    * {{{
    * val configuration = Configuration.load()
-   * val engineConfig = configuration.getSub("engine")
+   * val engineConfig = configuration.getConfig("engine")
    * }}}
    *
    * The root key of this new configuration will be ‘engine’, and you can access any sub-keys relatively.
