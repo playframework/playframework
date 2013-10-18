@@ -25,7 +25,7 @@ object ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient {
         withRoutes = {
           case _ => Action(result)
         }
-      ))) {
+      ),instrumentationFactory = play.core.utils.DevNullPlayInstrumentationFactory)) {
         block(port)
       }
     }

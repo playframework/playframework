@@ -738,7 +738,7 @@ trait Results {
         ResponseHeader(OK, Map(
           CONTENT_LENGTH -> content.length.toString,
           CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(name).getOrElse(play.api.http.ContentTypes.BINARY)
-        ) ++ (if (inline) Map.empty else Map(CONTENT_DISPOSITION -> ("""attachment; filename="%s"""".format(name))))),
+        ) ++ (if (inline) Map.empty else Map(CONTENT_DISPOSITION -> ("""attachment; filename="%s" """.format(name))))),
         Enumerator.fromFile(content) &> Enumeratee.onIterateeDone(onClose)(defaultContext)
       )
     }

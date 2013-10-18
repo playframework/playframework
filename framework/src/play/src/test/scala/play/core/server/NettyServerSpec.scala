@@ -12,7 +12,7 @@ import scala.util.Random
 import play.api.Application
 import scala.concurrent.Await
 import scala.concurrent.duration._
-
+import play.core.utils.InstrumentationLoader
 
 object NettyServerSpec extends Specification {
 
@@ -25,6 +25,7 @@ object NettyServerSpec extends Specification {
   "NettyServer" should {
     "fail when no https.port and http.port is missing" in {
       new NettyServer(
+        InstrumentationLoader.getFactory(None),
         new Fake,
         None,
         None

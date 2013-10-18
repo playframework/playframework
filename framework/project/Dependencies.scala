@@ -200,4 +200,7 @@ object Dependencies {
     "acolyte" %% "acolyte-scala" % "1.0.10" % "test"
   )
 
+  val tracingDependencies = Seq(
+    "com.eaio.uuid" % "uuid" % "3.4"
+  )
 }

@@ -12,6 +12,9 @@ import org.jboss.netty.handler.codec.http._
 import play.api.mvc._
 import play.api.test._
 import scala.concurrent.duration._
+import play.instrumentation.spi.{PlayInstrumentationFactory,PlayInstrumentation}
+import play.core.server.netty.ChannelAttachment
+import play.core.utils.InstrumentationLoader
 
 /**
  * A specification for testing Play's Netty integration.
@@ -44,7 +47,10 @@ trait NettySpecification extends PlaySpecification with NettyRunners {
     }
     withDownstreamHandler(downstreamHandler, action) { pipeline =>
       val qc = new QueueingChannel(pipeline, remoteAddress)
-      block(qc)
+      qc.setAttachment(ChannelAttachment(instrumentation = InstrumentationLoader.getFactory(None).createPlayInstrumentation()))
+      val r = block(qc)
+      qc.setAttachment(null)
+      r
     }
   }
 

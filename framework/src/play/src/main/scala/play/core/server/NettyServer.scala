@@ -23,6 +23,8 @@ import java.security.cert.X509Certificate
 import java.io.{ File, FileInputStream }
 import scala.util.control.NonFatal
 import com.typesafe.netty.http.pipelining.HttpPipeliningHandler
+import play.instrumentation.spi.PlayInstrumentationFactory
+import play.core.utils.InstrumentationLoader
 
 /**
  * provides a stopable Server
@@ -35,7 +37,7 @@ trait ServerWithStop {
 /**
  * creates a Server implementation based Netty
  */
-class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: Option[Int] = None, address: String = "0.0.0.0", val mode: Mode.Mode = Mode.Prod) extends Server with ServerWithStop {
+class NettyServer(instrumentationFactory: PlayInstrumentationFactory, appProvider: ApplicationProvider, port: Option[Int], sslPort: Option[Int] = None, address: String = "0.0.0.0", val mode: Mode.Mode = Mode.Prod) extends Server with ServerWithStop {
 
   require(port.isDefined || sslPort.isDefined, "Neither http.port nor https.port is specified")
 
@@ -60,8 +62,8 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
       val maxInitialLineLength = Option(System.getProperty("http.netty.maxInitialLineLength")).map(Integer.parseInt(_)).getOrElse(4096)
       val maxHeaderSize = Option(System.getProperty("http.netty.maxHeaderSize")).map(Integer.parseInt(_)).getOrElse(8192)
       val maxChunkSize = Option(System.getProperty("http.netty.maxChunkSize")).map(Integer.parseInt(_)).getOrElse(8192)
-      newPipeline.addLast("decoder", new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
-      newPipeline.addLast("encoder", new HttpResponseEncoder())
+      newPipeline.addLast("decoder", new PlayHttpRequestDecoder(instrumentationFactory, maxInitialLineLength, maxHeaderSize, maxChunkSize))
+      newPipeline.addLast("encoder", new PlayHttpResponseEncoder())
       newPipeline.addLast("decompressor", new HttpContentDecompressor())
       newPipeline.addLast("http-pipelining", new HttpPipeliningHandler())
       newPipeline.addLast("handler", defaultUpStreamHandler)
@@ -249,6 +251,7 @@ object NettyServer {
 
     try {
       val server = new NettyServer(
+        InstrumentationLoader.getFactory(Option(System.getProperty("instrumentationClass"))),
         new StaticApplication(applicationPath),
         Option(System.getProperty("http.port")).fold(Option(9000))(p => if (p == "disabled") Option.empty[Int] else Option(Integer.parseInt(p))),
         Option(System.getProperty("https.port")).map(Integer.parseInt(_)),
@@ -316,7 +319,9 @@ object NettyServer {
     play.utils.Threads.withContextClassLoader(this.getClass.getClassLoader) {
       try {
         val appProvider = new ReloadableApplication(sbtLink, sbtDocHandler)
-        new NettyServer(appProvider, httpPort,
+        new NettyServer(InstrumentationLoader.getFactory(Option(System.getProperty("instrumentationClass"))),
+          appProvider,
+          httpPort,
           httpsPort,
           mode = Mode.Dev)
       } catch {
