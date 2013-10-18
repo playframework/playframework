@@ -345,7 +345,7 @@ trait PlayRun extends PlayInternalKeys {
           SbtProject.runTask(buildRequire, state).get._2
 
           val systemProperties = SbtProject.runTask(javaOptions in Runtime, state).get._2.toEither.right.getOrElse(Seq[String]())
-          
+
           val classpath = dependencies.map(_.data).map(_.getCanonicalPath).reduceLeft(_ + java.io.File.pathSeparator + _)
 
           import java.lang.{ ProcessBuilder => JProcessBuilder }
