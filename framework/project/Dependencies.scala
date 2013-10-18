@@ -95,7 +95,7 @@ object Dependencies {
 
     "org.apache.commons" % "commons-lang3" % "3.1",
 
-    ("com.ning" % "async-http-client" % "1.7.20" notTransitive ())
+    ("com.ning" % "async-http-client" % "1.7.21" notTransitive ())
       .exclude("org.jboss.netty", "netty"),
 
     "oauth.signpost" % "signpost-core" % "1.2.1.2",
