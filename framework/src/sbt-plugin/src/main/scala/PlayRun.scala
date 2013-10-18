@@ -69,7 +69,15 @@ trait PlayRun extends PlayInternalKeys {
     override def toString = name + "{" + getURLs.map(_.toString).mkString(", ") + "}"
   }
 
-  val playRunSetting: SbtProject.Initialize[InputTask[Unit]] = playRunTask(playRunHooks, javaOptions in Runtime, playDependencyClasspath, playDependencyClassLoader, playReloaderClasspath, playReloaderClassLoader)
+  val playRunSetting: SbtProject.Initialize[InputTask[Unit]] = playRunTask(playRunHooks, playDependencyClasspath, playDependencyClassLoader, playReloaderClasspath, playReloaderClassLoader)
+
+  def playRunTask(
+    runHooks: TaskKey[Seq[play.PlayRunHook]],
+    dependencyClasspath: TaskKey[Classpath], dependencyClassLoader: TaskKey[ClassLoaderCreator],
+    reloaderClasspath: TaskKey[Classpath], reloaderClassLoader: TaskKey[ClassLoaderCreator]): SbtProject.Initialize[InputTask[Unit]] = {
+
+    playRunTask(runHooks, javaOptions in Runtime, dependencyClasspath, dependencyClassLoader, reloaderClasspath, reloaderClassLoader)
+  }
 
   def playRunTask(
     runHooks: TaskKey[Seq[play.PlayRunHook]], javaOptions: TaskKey[Seq[String]],
