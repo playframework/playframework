@@ -6,7 +6,7 @@ We've already explained what a `Rule` is in [[the previous chapter | ScalaValida
 
 In the validation API, we create complex object rules by combining simple rules. This chapter details the creation of those complex rules.
 
-> All the examples below are validating Json objects. The API is not dedicated only to Json, it can be used on any type. Please refer to [[Validating Json | ScalaValidationJson]], [[Validating Forms|ScalaValidationJson]], or [[Supporting new types|ScalaValidationExtension]] for more informations.
+> All the examples below are validating Json objects. The API is not dedicated only to Json, it can be used on any type. Please refer to [[Validating Json | ScalaValidationJson]], [[Validating Forms|ScalaValidationJson]], and [[Supporting new types|ScalaValidationExtension]] for more informations.
 
 ## Path
 
@@ -55,11 +55,11 @@ val js: JsValue = Json.parse("""{
 
 The first step before trying to validate anything is be capable of accessing a fragment of the object.
 
-Assuming you'd like to validate that `friend` exists and is valid in this json, you first need to acess the object located at `user.friend`.
+Assuming you'd like to validate that `friend` exists and is valid in this json, you first need to access the object located at `user.friend`.
 
 #### The `read` method
 
-We start by creating a `Path` representing the location of the interesting data in our json:
+We start by creating a `Path` representing the location of the data we're interested in:
 
 ```scala
 scala> import play.api.data.mapping._
@@ -67,7 +67,7 @@ scala> val location: Path = Path \ "user" \ "friend"
 location: play.api.data.mapping.Path = /user/friend
 ```
 
-`Path` has a `read[I, O]` method. `I` represents the input we're trying to parse, and `O` is the output type. For example, `(Path \ "foo").read[JsValue, Int]`, means we want to try to read a value located at path `/foo` in a `JsValue` as an `Int`.
+`Path` has a `read[I, O]` method, where `I` represents the input we're trying to parse, and `O` is the output type. For example, `(Path \ "foo").read[JsValue, Int]`, means we want to try to read a value located at path `/foo` in a `JsValue` as an `Int`.
 
 But let's try something much easier for now:
 
@@ -174,7 +174,7 @@ scala> (Path \ "user" \ "name").read[JsValue, Int].validate(js)
 res8: VA[JsValue,Int] = Failure(List((/user/name,List(ValidationError(validation.type-mismatch,WrappedArray(Int))))))
 ```
 
-So scala *automagically* figures out how transform a `JsValue` into an `Int`. How does this happens ?
+So scala *automagically* figures out how to transform a `JsValue` into an `Int`. How does this happens ?
 
 It's fairly simple, the definition of `read` looks like this:
 
@@ -187,7 +187,7 @@ So when use `(Path \ "user" \ "age").read[JsValue, Int]`, the compiler looks for
 
 ### Validation
 
-So var we've managed to lookup for a `JsValue` and transform that `JsValue` into an `Int`. Problem is: not every `Int` is a valid age. An age should always be a positive `Int`.
+So far we've managed to lookup for a `JsValue` and transform that `JsValue` into an `Int`. Problem is: not every `Int` is a valid age. An age should always be a positive `Int`.
 
 ```scala
 val js = Json.parse("""{
@@ -266,10 +266,44 @@ age.validate(js) // Success(25)
 
 ## Combining Rules
 
-## Real world example
+So far we've validated only fragments of our json object.
+Now we'd like to validate the entire object, and turn it into a instance of the `User` class defined below:
 
-## Cookbook
+```scala
+case class User(
+	name: String,
+	age: Int,
+	email: Option[String],
+	isAlive: Boolean)
+```
 
-### Dependant values
-### Recursive types
-### Read keys
+We need to create a `Rule[JsValue, User]`. Creating this Rule is simply a matter of combining together the rules parsing each field of the json.
+
+```scala
+import play.api.libs.json._
+import play.api.data.mapping._
+
+val userRule = From[JsValue] { __ =>
+	import play.api.data.mapping.json.Rules._
+	((__ \ "name").read[String] and
+	 (__ \ "age").read[Int] and
+	 (__ \ "email").read[Option[String]] and
+	 (__ \ "isAlive").read[Boolean])(User.apply _)
+}
+```
+
+> **Important:** Note that we're importing `Rules._` **inside** the `From[I]{...}` block.
+It is recommended to always follow this pattern, as it nicely scopes the implicits, avoiding conflicts and accidental shadowing.
+
+`From[JsValue]` defines the `I` type of the rules we're combining. We could have written:
+
+```scala
+ (Path \ "name").read[JsValue, String] and
+ (Path \ "age").read[JsValue, Int] and
+ //...
+```
+
+but repeating `JsValue` all over the place is just not very DRY.
+
+> **Next:** - [[Serialization with Write | ScalaValidationWrite]]
+> **For more examples and snippets:** - [[Cookbook | ScalaValidationCookbook]]

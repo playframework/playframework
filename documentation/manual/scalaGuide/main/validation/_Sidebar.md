@@ -8,10 +8,11 @@
 - [[Validating Json | ScalaValidationJson]]
 - [[Validation Forms | ScalaValidationForm]]
 - [[Forms template helpers | ScalaValidationForm]]
-- [[Macro Inception | ScalaValidation]]
-- [[Supporting new types | ScalaValidation]]
-- [[Migration from 2.1.x Json API | ScalaValidation]]
-- [[Migration from 2.1.x Form API | ScalaValidation]]
+- [[Macro Inception | ScalaValidationMacros]]
+- [[Supporting new types | ScalaValidationExtensions]]
+- [[Migration from 2.1.x Json API | ScalaValidationMigrationJson]]
+- [[Migration from 2.1.x Form API | ScalaValidationMigrationForm]]
+- [[Cookbook | ScalaValidationCookbook]]
 
 
 ### Main concepts
