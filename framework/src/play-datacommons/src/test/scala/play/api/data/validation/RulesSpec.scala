@@ -41,9 +41,9 @@ object RulesSpec extends Specification {
     "support checked" in {
       val js = Map("issmth" -> Seq("true"))
       val p = Path \ "issmth"
-      p.read[UrlFormEncoded, String, Boolean](checked).validate(js) mustEqual(Success(true))
-      p.read[UrlFormEncoded, String, Boolean](checked).validate(Map.empty) mustEqual(Failure(Seq(Path \ "issmth" -> Seq(ValidationError("validation.required")))))
-      p.read[UrlFormEncoded, String, Boolean](checked).validate(Map("issmth" -> Seq("false"))) mustEqual(Failure(Seq(Path \ "issmth" -> Seq(ValidationError("validation.equals", true)))))
+      p.from[UrlFormEncoded](checked).validate(js) mustEqual(Success(true))
+      p.from[UrlFormEncoded](checked).validate(Map.empty) mustEqual(Failure(Seq(Path \ "issmth" -> Seq(ValidationError("validation.required")))))
+      p.from[UrlFormEncoded](checked).validate(Map("issmth" -> Seq("false"))) mustEqual(Failure(Seq(Path \ "issmth" -> Seq(ValidationError("validation.equals", true)))))
     }
 
     "ignore values" in {
@@ -493,7 +493,7 @@ object RulesSpec extends Specification {
 
         lazy val w2: Rule[UrlFormEncoded, RecUser] =
           ((Path \ "name").read[UrlFormEncoded, String] ~
-           (Path \ "friends").read(seq(w2)))(RecUser.apply _)
+           (Path \ "friends").from[UrlFormEncoded](seq(w2)))(RecUser.apply _)
         w2.validate(m) mustEqual Success(u)
 
         lazy val w3: Rule[UrlFormEncoded, User1] = From[UrlFormEncoded]{ __ =>
