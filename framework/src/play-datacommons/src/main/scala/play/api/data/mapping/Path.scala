@@ -46,13 +46,12 @@ class Path(val path: List[PathNode]) {
   def compose(p: Path): Path = Path(this.path ++ p.path)
   def ++(other: Path) = this compose other
 
-  def from[I] = {
-    val p = this
-    new {
-      def apply[J, O](sub: => Rule[J, O])(implicit r: Path => Rule[I, J]): Rule[I, O] =
-        Reader[I](p).read(sub)
-    }
+  class Deferred[I] private[Path] (reader: Reader[I]) {
+    def apply[J, O](sub: => Rule[J, O])(implicit r: Path => Rule[I, J]): Rule[I, O] =
+        reader.read(sub)
   }
+
+  def from[I] = new Deferred(Reader[I](this))
 
   // def read[I, J, O](sub: => Rule[J, O])(implicit r: Path => Rule[I, J]): Rule[I, O] =
   //   Reader[I](this).read(sub)
