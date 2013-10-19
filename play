@@ -62,9 +62,9 @@ if [ -f conf/application.conf -o -f conf/reference.conf ] || [ -d project ]; the
   fi
 
   if [ -n "$1" ]; then
-    JPDA_PORT="${JPDA_PORT}" $dir/framework/build "$@"
+    JPDA_PORT="${JPDA_PORT}" "$dir/framework/build" "$@"
   else
-    JPDA_PORT="${JPDA_PORT}" $dir/framework/build play
+    JPDA_PORT="${JPDA_PORT}" "$dir/framework/build" play
   fi
   
 else
