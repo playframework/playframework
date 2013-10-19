@@ -2,8 +2,6 @@ package play.api.libs.json
 
 import org.specs2.mutable._
 import scala.util.control.Exception._
-import play.api.libs.functional._
-import play.api.libs.functional.syntax._
 import play.api.data.mapping._
 
 import scala.language.reflectiveCalls
@@ -271,8 +269,6 @@ object RulesSpec extends Specification {
     }
 
     "compose validations" in {
-      import play.api.libs.functional.syntax._
-
       From[JsValue]{ __ =>
         ((__ \ "firstname").read(notEmpty) ~
          (__ \ "lastname").read(notEmpty)).tupled
@@ -375,7 +371,6 @@ object RulesSpec extends Specification {
     }
 
     "perform complex validation" in {
-      import play.api.libs.functional.syntax._
 
       case class Contact(
         firstname: String,

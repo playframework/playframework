@@ -2,8 +2,6 @@ package play.api.data.mapping
 
 import org.specs2.mutable._
 import scala.util.control.Exception._
-import play.api.libs.functional._
-import play.api.libs.functional.syntax._
 
 object RulesSpec extends Specification {
 
@@ -286,8 +284,6 @@ object RulesSpec extends Specification {
     }
 
     "compose validations" in {
-      import play.api.libs.functional.syntax._
-
       From[UrlFormEncoded] { __ =>
         ((__ \ "firstname").read(notEmpty) ~
          (__ \ "lastname").read(notEmpty)){ _ -> _ }
@@ -376,8 +372,6 @@ object RulesSpec extends Specification {
     }
 
     "perform complex validation" in {
-      import play.api.libs.functional.syntax._
-
       case class Contact(
         firstname: String,
         lastname: String,
