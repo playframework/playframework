@@ -69,6 +69,15 @@ object JsonBodyParserSpec extends PlaySpecification {
       parse("""{"a":1}""", Some("application/json"), "utf-8", fooParser) must beLeft
     }
 
+    "validate json content using implicit reads" in new WithApplication() {
+      parse("""{"a":1,"b":"bar"}""", Some("application/json"), "utf-8", BodyParsers.parse.json[Foo]) must beRight.like {
+        case foo => foo must_== Foo(1, "bar")
+      }
+      parse("""{"foo":"bar"}""", Some("application/json"), "utf-8", BodyParsers.parse.json[Foo]) must beLeft
+      parse("""{"a":1}""", Some("application/json"), "utf-8", BodyParsers.parse.json[Foo]) must beLeft
+      parse("""{"foo:}""", Some("application/json"), "utf-8", BodyParsers.parse.json[Foo]) must beLeft
+    }
+
   }
 
   private case class Foo(a: Int, b: String)
