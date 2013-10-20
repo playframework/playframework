@@ -334,7 +334,17 @@ class ApplicationSpec extends PlaySpecification {
         await(wsUrl("/xml").withHeaders("Content-Type" -> "application/xml").post(<foo>bar</foo>)).header("Content-Type").get must startWith("application/xml")
       }
     }
-    
+
+    "execute Java Promise" in new WithApplication() {
+      val Some(result) = route(FakeRequest(GET, "/promised"))
+      status(result) must equalTo(OK)
+    }
+
+    "execute Java Promise in controller instance" in new WithApplication() {
+      val Some(result) = route(FakeRequest(GET, "/promisedInstance"))
+      status(result) must equalTo(OK)
+    }
+
   }
 
 }
