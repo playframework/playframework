@@ -179,7 +179,9 @@ object Dependencies {
   )
 
   val integrationTestDependencies = Seq(
-    "org.databene" % "contiperf" % "2.2.0" % "test"
+    "org.databene" % "contiperf" % "2.2.0" % "test",
+    "org.specs2" %% "specs2-scalacheck" % specsVersion % "test",
+    "org.scalacheck" %% "scalacheck" % "1.11.3" % "test"
   )
 
   val playCacheDeps = "net.sf.ehcache" % "ehcache-core" % "2.6.6" +: 

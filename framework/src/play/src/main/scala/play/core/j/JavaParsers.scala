@@ -6,6 +6,7 @@ package play.core.j
 import play.api.mvc._
 import play.api.libs.json._
 import play.api.libs.Files.{ TemporaryFile }
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.xml._
 import scala.collection.JavaConverters._
