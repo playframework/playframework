@@ -5,6 +5,7 @@ import java.util.*;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import play.*;
+import play.libs.F.Promise;
 import play.libs.Json;
 import play.mvc.*;
 import play.mvc.Http.Cookie;
@@ -80,5 +81,9 @@ public class JavaApi extends Controller {
             return badRequest();
         }
     }
-}
 
+    public static Promise<Result> promised() {
+        return Promise.<Result>pure(ok("x"));
+    }
+
+}
