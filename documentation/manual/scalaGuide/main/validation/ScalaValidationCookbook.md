@@ -4,20 +4,65 @@
 
 ### Dependant values
 
+A common example of this use case is the validation of `password` and `password confirmation` field in a signup form.
+
+1. First, you need to validate that each field is valid independently
+2. Then, given the two values, you need to validate that they are equals.
+
+
 ```scala
+import play.api.libs.json._
+import play.api.libs.functional._
+import play.api.libs.functional.syntax._
+
+import play.api.data.mapping._
+
 val passRule = From[JsValue] { __ =>
+	import play.api.data.mapping.json.Rules._
+
   ((__ \ "password").read(notEmpty) ~
    (__ \ "verify").read(notEmpty)).tupled
     .compose(Rule.uncurry(Rules.equalTo[String])
     .repath(_ => (Path \ "verify")))
 }
+```
 
-val rule = From[JsValue] { __ =>
-  ((__ \ "login").read(notEmpty) ~ passRule).tupled
-}
+Splitting up the code:
+
+```scala
+((__ \ "password").read(notEmpty) ~
+   (__ \ "verify").read(notEmpty)).tupled
+```
+
+This code creates a `Rule[JsValue, (String, String)]` each of of the String must be non-empty
+
+```scala
+Rule.uncurry(Rules.equalTo[String])
+```
+We then create a `Rule[(String, String), String]` validating that given a `(String, String)`, both strings are equals. Those rules are then composed together.
+
+In case of `Failure`, we want to control the field holding the errors. We change the `Path` of errors using `repath`:
+
+```scala
+.repath(_ => (Path \ "verify")))
+```
+
+Let's test it:
+
+```scala
+passRule.validate(Json.obj("password" -> "foo", "verify" -> "foo")) // Success(foo)
+passRule.validate(Json.obj("password" -> "", "verify" -> "foo")) // Failure(List((/password,List(ValidationError(validation.nonemptytext,WrappedArray())))))
+passRule.validate(Json.obj("password" -> "foo", "verify" -> "")) // Failure(List((/verify,List(ValidationError(validation.nonemptytext,WrappedArray())))))
+passRule.validate(Json.obj("password" -> "", "verify" -> "")) // Failure(List((/password,List(ValidationError(validation.nonemptytext,WrappedArray()))), (/verify,List(ValidationError(validation.nonemptytext,WrappedArray())))))
+passRule.validate(Json.obj("password" -> "foo", "verify" -> "bar")) // Failure(List((/verify,List(ValidationError(validation.equals,WrappedArray(foo))))))
 ```
 
 ### Recursive types
+
+When validating recursive types:
+
+- Use the `lazy` keyword to allow forward reference.
+- As with any recursive definition, the type of the `Rule` **must** be explicitly given.
 
 ```scala
 case class User(
@@ -32,12 +77,15 @@ case class User(
 import play.api.libs.json._
 import play.api.data.mapping._
 
-implicit lazy val userRule = From[JsValue] { __ =>
-	(__ \ "name").read[String] and
-	(__ \ "age").read[Int] and
-	(__ \ "email").read[Option[String]] and
-	(__ \ "isAlive").read[Boolean] and
-	(__ \ "friend").read[Option[User]]
+// Note the lazy keyword, and the explicit typing
+implicit lazy val userRule: Rule[JsValue, User] = From[JsValue] { __ =>
+	import play.api.data.mapping.json.Rules._
+
+	((__ \ "name").read[String] and
+	 (__ \ "age").read[Int] and
+	 (__ \ "email").read[Option[String]] and
+	 (__ \ "isAlive").read[Boolean] and
+	 (__ \ "friend").read[Option[User]])(User.apply _)
 }
 ```
 
@@ -46,8 +94,122 @@ or using macros:
 ```scala
 import play.api.libs.json._
 import play.api.data.mapping._
+import play.api.data.mapping.json.Rules._
 
-implicit lazy val userRule = Rule.gen[JsValue, User]
+// Note the lazy keyword, and the explicit typing
+implicit lazy val userRule: Rule[JsValue, User] = Rule.gen[JsValue, User]
 ```
 
 ### Read keys
+
+```scala
+import play.api.libs.json._
+import play.api.data.mapping._
+
+val js = Json.parse("""
+{
+	"values": [
+		{ "foo": "bar" },
+		{ "bar": "baz" }
+	]
+}
+""")
+
+val r = From[JsValue] { __ =>
+	import play.api.data.mapping.json.Rules._
+	val tupleR = Rule.fromMapping[JsValue, (String, String)]{
+		case JsObject((key, JsString(value)) :: Nil) =>  Success(key -> value)
+		case _ => Failure(Seq(ValidationError("BAAAM")))
+	}
+
+	(__ \ "values").read(seq(tupleR))
+}
+
+r.validate(js) // Success(List((foo,bar), (bar,baz)))
+```
+
+### Validate subclasses (and parse the concrete class)
+
+Consider the following class definitions:
+
+```scala
+trait A { val name: String }
+case class B(name: String, foo: Int) extends A
+case class C(name: String, bar: Int) extends A
+
+val b = Json.obj("name" -> "B", "foo" -> 4)
+val c = Json.obj("name" -> "C", "bar" -> 6)
+val e = Json.obj("name" -> "E", "eee" -> 6)
+```
+
+#### Trying all the implementations rules
+
+```scala
+
+val rb: Rule[JsValue, A] = From[JsValue]{ __ =>
+  ((__ \ "name").read[String] ~ (__ \ "foo").read[Int])(B.apply _)
+}
+
+val rc: Rule[JsValue, A] = From[JsValue]{ __ =>
+  ((__ \ "name").read[String] ~ (__ \ "bar").read[Int])(C.apply _)
+}
+
+val typeFailure = Failure(Seq(Path -> Seq(ValidationError("validation.unknownType"))))
+val rule = rb orElse rc orElse Rule(_ => typeFailure)
+
+rule.validate(b) // Success(B("B", 4))
+rule.validate(c) // Success(C("C", 6))
+rule.validate(e) // Failure(Seq(Path -> Seq(ValidationError("validation.unknownType"))))
+```
+
+#### Using class discovery based on discriminant field
+
+```scala
+ val typeFailure = Failure(Seq(Path -> Seq(ValidationError("validation.unknownType"))))
+
+ val rule = From[JsValue] { __ =>
+  (__ \ "name").read[String].flatMap[A] {
+    case "B" => ((__ \ "name").read[String] ~ (__ \ "foo").read[Int])(B.apply _)
+    case "C" => ((__ \ "name").read[String] ~ (__ \ "bar").read[Int])(C.apply _)
+    case _ => Rule(_ => typeFailure)
+  }
+}
+
+rule.validate(b) // Success(B("B", 4))
+rule.validate(c) // Success(C("C", 6))
+rule.validate(e) // Failure(Seq(Path -> Seq(ValidationError("validation.unknownType"))))
+```
+
+## Writes
+
+### Adding static values to a `Write`
+
+```scala
+import play.api.libs.json._
+import play.api.libs.functional._
+import play.api.libs.functional.syntax._
+
+import play.api.data.mapping._
+
+case class LatLong(lat: Float, long: Float)
+object LatLong {
+	import play.api.data.mapping.json.Writes._
+	implicit val write = Write.gen[LatLong, JsObject]
+}
+
+case class Point(coords: LatLong)
+object Point {
+	import play.api.data.mapping.json.Writes._
+  implicit val write =
+    (Write.gen[Point, JsObject] ~
+     (Path \ "type").write[String, JsObject])((_: Point) -> "point")
+}
+
+val p = Point(LatLong(123.3F, 334.5F))
+Point.write.writes(p) // {"coords":{"lat":123.3,"long":334.5},"type":"point"}
+```
+
+
+
+
+
