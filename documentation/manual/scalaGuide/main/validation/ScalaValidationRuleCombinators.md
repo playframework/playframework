@@ -76,7 +76,7 @@ import play.api.libs.json.JsValue
 import play.api.data.mapping._
 
 val location: Path = Path \ "user" \ "friend"
-val findFriend: Rule[JsValue, JsValue] = location.read[JsValue, JsValue]                                                             ^
+val findFriend: Rule[JsValue, JsValue] = location.read[JsValue, JsValue]
 ```
 
 `location.read[JsValue, JsValue]` means the we're trying to lookup at `location` in a `JsValue`, and we expect to find a `JsValue` there. Effectively, we're just defining a `Rule` that is picking a subtree in a `JsValue`.
@@ -176,7 +176,7 @@ res8: VA[JsValue,Int] = Failure(List((/user/name,List(ValidationError(validation
 
 So scala *automagically* figures out how to transform a `JsValue` into an `Int`. How does this happens ?
 
-It's fairly simple, the definition of `read` looks like this:
+It's fairly simple. The definition of `read` looks like this:
 
 ```scala
 def read[I, O](implicit r: Path => Rule[I, O]): Rule[I, O]
