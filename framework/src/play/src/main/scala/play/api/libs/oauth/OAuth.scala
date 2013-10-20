@@ -135,7 +135,11 @@ case class OAuthCalculator(consumerKey: ConsumerKey, token: RequestToken) extend
       request.setHeader(name, value)
     }
 
-    override def getRequestUrl() = request.url
+    /**
+     * Returns the full URL with query string for correct signing.
+     * @return a URL with query string attached.
+     */
+    override def getRequestUrl() = request.urlWithQueryString
 
     override def setRequestUrl(url: String) {
       request.setUrl(url)
