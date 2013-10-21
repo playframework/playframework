@@ -50,4 +50,13 @@ object BindersSpec extends Specification {
       subject.bind("key", pathString) must equalTo(Right(pathString))
     }
   }
+
+  "QueryStringBindable.bindableString" should {
+    "unbind with null values" in {
+      import QueryStringBindable._
+      val boundValue = bindableString.unbind("key", null)
+      boundValue must beEqualTo("key=")
+    }
+  }
+
 }
