@@ -283,7 +283,7 @@ object Enumerator {
     def apply[A](it: Iteratee[E2, A]): Future[Iteratee[E2, A]] = {
 
       val iter: Ref[Iteratee[E2, A]] = Ref(it)
-      val attending: Ref[Option[(Boolean, Boolean)]] = Ref(Some(true, true))
+      val attending: Ref[Option[(Boolean, Boolean)]] = Ref(Some(true -> true))
       val result = Promise[Iteratee[E2, A]]()
 
       def redeemResultIfNotYet(r: Iteratee[E2, A]) {
