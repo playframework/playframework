@@ -83,10 +83,10 @@ object MappingMacros {
     val body = writes match {
       case w1 :: w2 :: ts =>
         val typeApply = ts.foldLeft(q"$w1 ~ $w2"){ (t1, t2) => q"$t1 ~ $t2" }
-        q"($typeApply).apply(unlift($unapply(_)): $t)"
+        q"($typeApply).apply(play.api.libs.functional.syntax.unlift($unapply(_)): $t)"
 
       case w1 :: Nil =>
-        q"$w1.contramap(unlift($unapply(_)): $t)"
+        q"$w1.contramap(play.api.libs.functional.syntax.unlift($unapply(_)): $t)"
     }
 
     // XXX: recursive values need the user to use explcitly typed implicit val
