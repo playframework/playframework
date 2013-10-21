@@ -385,6 +385,29 @@ trait BodyParsers {
      */
     def json: BodyParser[JsValue] = json(DEFAULT_MAX_TEXT_LENGTH)
 
+    /**
+     * Parse the body as Json if the Content-Type is text/json or application/json,
+     * validating the result with the Json reader.
+     *
+     * @tparam A the type to read and validate from the body.
+     * @param reader a Json reader for type A.
+     */
+    def json[A](implicit reader: Reads[A]): BodyParser[A] =
+      BodyParser("json reader") { request =>
+        import play.api.libs.iteratee.Execution.Implicits.trampoline
+        json(request) mapM {
+          case Left(simpleResult) =>
+            Future.successful(Left(simpleResult))
+          case Right(jsValue) =>
+            jsValue.validate(reader) map { a =>
+              Future.successful(Right(a))
+            } recoverTotal { jsError =>
+              val msg = s"Json validation error ${JsError.toFlatForm(jsError)}"
+              createBadResult(msg)(request) map Left.apply
+            }
+        }
+      }
+
     // -- Empty parser
 
     /**
