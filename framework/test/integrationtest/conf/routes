@@ -32,6 +32,9 @@ GET     /jsonWithCharset        controllers.Application.jsonWithContentTypeAndCh
 GET     /index_java_cache       controllers.Application.index_java_cache()
 GET     /conf                   controllers.Application.conf()
 
+GET     /promised               controllers.JavaApi.promised()
+GET     /promisedInstance       @controllers.JavaControllerInstance.promised()
+
 # Test that the regex is properly escaped in the generated code
 GET     /escapes/$i<\d+>        controllers.Application.takeInt(i: Int)
 
