@@ -496,7 +496,7 @@ object Enumerator {
     val pec = ec.prepare()
     def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
 
-      var iterateeP = Promise[Iteratee[E, A]]()
+      val iterateeP = Promise[Iteratee[E, A]]()
 
       def step(it: Iteratee[E, A], initial: Boolean = false) {
 
