@@ -72,17 +72,14 @@ trait GlobalSettings {
    * Default is: route, tag request, then apply filters
    */
   def onRequestReceived(request: RequestHeader): (RequestHeader, Handler) = {
-    onRouteRequest(request)
-      .map {
-        case handler: RequestTaggingHandler => (handler.tagRequest(request), handler)
-        case handler => (request, handler)
-      }
-      .map {
-        case (taggedRequest, handler) => (taggedRequest, doFilter(rh => handler)(taggedRequest))
-      }
-      .getOrElse {
-        (request, Action.async(BodyParsers.parse.empty)(_ => this.onHandlerNotFound(request)))
-      }
+    val (routedRequest, handler) = onRouteRequest(request) map {
+      case handler: RequestTaggingHandler => (handler.tagRequest(request), handler)
+      case otherHandler => (request, otherHandler)
+    } getOrElse {
+      (request, Action.async(BodyParsers.parse.empty)(_ => this.onHandlerNotFound(request)))
+    }
+
+    (routedRequest, doFilter(rh => handler)(routedRequest))
   }
 
   /**
