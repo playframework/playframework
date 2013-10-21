@@ -72,7 +72,7 @@ object Parsing {
           Iteratee.flatten(inner.fold1((a, e) => Future.successful(Done(Done(a, e), inputOrEmpty(rest))),
             k => {
               val (result, suffix) = scan(Nil, all, 0)
-              val fed = result.filter(!_.content.isEmpty).foldLeft(Future.successful(Array[Byte](), Cont(k))) { (p, m) =>
+              val fed = result.filter(!_.content.isEmpty).foldLeft(Future.successful(Array[Byte]() -> Cont(k))) { (p, m) =>
                 p.flatMap(i => i._2.fold1((a, e) => Future.successful((i._1 ++ m.content, Done(a, e))),
                   k => Future.successful((i._1, k(Input.El(m)))),
                   (err, e) => throw new Exception())(dec)
