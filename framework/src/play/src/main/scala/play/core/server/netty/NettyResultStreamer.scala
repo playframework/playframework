@@ -32,10 +32,17 @@ object NettyResultStreamer {
    * @return A Future that will be redeemed when the result is completely sent
    */
   def sendResult(result: SimpleResult, closeConnection: Boolean, httpVersion: HttpVersion, startSequence: Int)(implicit ctx: ChannelHandlerContext, oue: OrderedUpstreamMessageEvent): Future[_] = {
-    val nettyResponse = createNettyResponse(result.header, closeConnection, httpVersion)
-
     // Result of this iteratee is a completion status
     val sentResponse: Future[ChannelStatus] = result match {
+
+      case res if res.header.headers.exists(_._2 == null) => {
+        // Make sure enumerator knows it's done, so that any resources it uses can be cleaned up
+        result.body |>> Done(())
+
+        Play.logger.debug("Response with headers set to null, sending 500 response.")
+        val error = Results.InternalServerError("")
+        error.body |>>> nettyStreamIteratee(createNettyResponse(error.header, true, httpVersion), startSequence, true)
+      }
 
       // Sanitisation: ensure that we don't send chunked responses to HTTP 1.0 requests
       case UsesTransferEncoding() if httpVersion == HttpVersion.HTTP_1_0 => {
@@ -48,21 +55,22 @@ object NettyResultStreamer {
       }
 
       case CloseConnection() => {
-        result.body |>>> nettyStreamIteratee(nettyResponse, startSequence, true)
+        result.body |>>> nettyStreamIteratee(createNettyResponse(result.header, closeConnection, httpVersion), startSequence, true)
       }
 
       case EndOfBodyInProtocol() => {
-        result.body |>>> nettyStreamIteratee(nettyResponse, startSequence, closeConnection)
+        result.body |>>> nettyStreamIteratee(createNettyResponse(result.header, closeConnection, httpVersion), startSequence, closeConnection)
       }
 
       case _ => {
-        result.body |>>> bufferingIteratee(nettyResponse, startSequence, closeConnection, httpVersion)
+        result.body |>>> bufferingIteratee(createNettyResponse(result.header, closeConnection, httpVersion), startSequence, closeConnection, httpVersion)
       }
 
     }
 
     // Clean up
     import play.api.libs.iteratee.Execution.Implicits.trampoline
+
     sentResponse.onComplete {
       case Success(cs: ChannelStatus) =>
         if (cs.closeConnection) {
