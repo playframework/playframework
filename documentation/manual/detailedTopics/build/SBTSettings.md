@@ -12,11 +12,11 @@ confDirectory := "myConfFolder"
 
 ## Default settings for Java applications
 
-Play defines a default set of settings suitable for Java-based applications. To enable them add the `playJavaSettings` set of settings to your `build.sbt` file. These settings mostly define the default imports for generated templates e.g. importing `java.lang.*` so types like `Long` are the Java ones by default instead of the Scala ones. `playJavaSettings` also imports `java.util.*` so that the default collection library will be the Java one.
+Play defines a default set of settings suitable for Java-based applications. To enable them add the `play.Project.playJavaSettings` set of settings to your `build.sbt` file. These settings mostly define the default imports for generated templates e.g. importing `java.lang.*` so types like `Long` are the Java ones by default instead of the Scala ones. `play.Project.playJavaSettings` also imports `java.util.*` so that the default collection library will be the Java one.
 
 ## Default settings for Scala applications
 
-Play defines a default set of settings suitable for Scala-based applications. To enable them add the `playScalaSettings` set of settings to your `build.sbt` file. These default settings define the default imports for generated templates (such as internationalized messages, and core APIs).
+Play defines a default set of settings suitable for Scala-based applications. To enable them add the `play.Project.playScalaSettings` set of settings to your `build.sbt` file. These default settings define the default imports for generated templates (such as internationalized messages, and core APIs).
 
 ## Play project settings with their default value
 
