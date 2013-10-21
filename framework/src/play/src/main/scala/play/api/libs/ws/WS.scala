@@ -160,6 +160,8 @@ object WS {
      */
     def url: String = _url
 
+    def urlWithQueryString: String = request.asInstanceOf[com.ning.http.client.Request].getUrl
+
     private def ningHeadersToMap(headers: java.util.Map[String, java.util.Collection[String]]) =
       mapAsScalaMapConverter(headers).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
 
