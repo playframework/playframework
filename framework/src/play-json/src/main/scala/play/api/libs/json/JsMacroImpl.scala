@@ -315,6 +315,8 @@ object JsMacroImpl {
       case s =>
         val unapply = s.asMethod
         val unapplyReturnTypes = unapply.returnType match {
+          case TypeRef(_, _, Nil) =>
+            c.abort(c.enclosingPosition, s"Unapply of ${companionSymbol} has no parameters")
           case TypeRef(_, _, args) =>
             args.head match {
               case t @ TypeRef(_, _, Nil) => Some(List(t))
