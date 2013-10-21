@@ -579,7 +579,7 @@ object Concurrent {
                   p.success(Done(a, e))
                   commitDone.single.transform(_ :+ index)
                 }
-                case Step.Cont(k) => commitReady.single.transform(_ :+ (index, (Cont(k), p)))
+                case Step.Cont(k) => commitReady.single.transform(_ :+ (index -> (Cont(k) -> p)))
                 case Step.Error(msg, e) => {
                   p.success(Error(msg, e))
                   commitDone.single.transform(_ :+ index)
