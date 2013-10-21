@@ -92,3 +92,11 @@ More information can be found in the [[Creating a standalone version of your app
 ## Built in gzip support
 
 Play now has built in support for gzipping all responses.  For information on how to enable this, see [[Configuring gzip encoding|GzipEncoding]].
+
+## Documentation JAR
+
+Play's distribution now stores its documentation in a JAR file rather than in a directory. A JAR file provides better support for tooling.
+
+Just like in Play 2.1, you can view the documentation when you [[run your Play application in development mode|PlayConsole]] by visiting the special [`/@documentation`](http://localhost:9000/@documentation) address.
+
+If you want to access the raw files, they can now be found in the `play-docs` JAR file contained in the distribution.
