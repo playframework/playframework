@@ -5,6 +5,7 @@
 - [[About sbt settings | SBTSettings]]
 - [[Manage application dependencies | SBTDependencies]]
 - [[Working with sub-projects | SBTSubProjects]]
+- [[Improving Compilation Times | CompilationSpeed]]
 
 ### Getting started
 
