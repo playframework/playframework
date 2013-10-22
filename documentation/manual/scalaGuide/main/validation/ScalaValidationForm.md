@@ -83,3 +83,5 @@ implicit val computerValidation = From[UrlFormEncoded] { __ =>
      (__ \ "company").read[Option[Long]]) (Computer.apply _)
   }
 ```
+
+> **Next:** - [[Validation Inception|ScalaValidationMacros]]
