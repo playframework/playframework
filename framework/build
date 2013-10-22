@@ -18,4 +18,5 @@ else
   DEBUG_PARAM="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=${JPDA_PORT}"
 fi
 
-"$JAVA" ${DEBUG_PARAM} -Xms512M -Xmx1536M -Xss1M -XX:ReservedCodeCacheSize=192m -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=512M ${JAVA_OPTS} -Dfile.encoding=UTF-8 -Dplay.version="${PLAY_VERSION}" -Dplay.home=`dirname $0` -Dsbt.boot.properties=`dirname $0`/sbt/sbt.boot.properties ${PLAY_OPTS} -jar `dirname $0`/sbt/sbt-launch.jar "$@"
+DIR=`dirname "$0"`
+"$JAVA" ${DEBUG_PARAM} -Xms512M -Xmx1536M -Xss1M -XX:ReservedCodeCacheSize=192m -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=512M ${JAVA_OPTS} -Dfile.encoding=UTF-8 -Dplay.version="${PLAY_VERSION}" -Dplay.home="$DIR" -Dsbt.boot.properties="$DIR/sbt/sbt.boot.properties" ${PLAY_OPTS} -jar "$DIR/sbt/sbt-launch.jar" "$@"

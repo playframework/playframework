@@ -8,9 +8,9 @@ echo "[info]"
 
 set -e
 export CURRENT=`pwd`
-export SCRIPT=`dirname $0`
+export SCRIPT=`dirname "$0"`
 
-cd $SCRIPT
+cd "$SCRIPT"
 export PLAY=`pwd`/../play
 
 ./build "$@" publish-local test

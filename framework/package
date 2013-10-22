@@ -4,7 +4,7 @@
 
 set -e
 
-DIR=`dirname $0`
+DIR=`dirname "$0"`
 
 PUBLISH=1
 TAG=1
@@ -94,10 +94,10 @@ fi
 
 if [ $CLEAN -eq 0 ]
 then
-    $DIR/build clean
+    "$DIR/build" clean
 fi
 
-$DIR/build $PUBLISHCMD create-dist
+"$DIR/build" $PUBLISHCMD create-dist
 
 if [ $PUBLISH -eq 0 ]
 then
@@ -128,7 +128,7 @@ then
     git merge origin/$GITBRANCH
 
     rm -r *
-    cp -r $OLDDIR/src/play-docs/target/apidocs api
+    cp -r "$OLDDIR/src/play-docs/target/apidocs" api
     git add --all
     git commit -m "Publishing $PLAY_VERSION docs"
     git tag -a -m "Publishing $PLAY_VERSION docs" $PLAY_VERSION
@@ -138,7 +138,7 @@ then
     then
         git push origin $PLAY_VERSION
     fi
-    cd $OLDDIR
+    cd "$OLDDIR"
 fi
     
 

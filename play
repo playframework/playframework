@@ -8,10 +8,11 @@ while [ -h "$PRG" ] ; do
   if expr "$link" : '/.*' > /dev/null; then
     PRG="$link"
   else
-    PRG="`dirname "$PRG"`/$link"
+    dir=`dirname "$PRG"`
+    PRG="$dir/$link"
   fi
 done
-dir=`dirname $PRG`
+dir=`dirname "$PRG"`
 
 if [ -z "$JAVA_HOME" ]; then
   JAVA="java"
@@ -61,11 +62,11 @@ if [ -f conf/application.conf -o -f conf/reference.conf ] || [ -d project ]; the
   fi
 
   if [ -n "$1" ]; then
-    JPDA_PORT="${JPDA_PORT}" $dir/framework/build "$@"
+    JPDA_PORT="${JPDA_PORT}" "$dir/framework/build" "$@"
   else
-    JPDA_PORT="${JPDA_PORT}" $dir/framework/build play
+    JPDA_PORT="${JPDA_PORT}" "$dir/framework/build" play
   fi
   
 else
-  "$JAVA" -Dplay.home=$dir/framework -Dsbt.boot.properties=$dir/framework/sbt/play.boot.properties ${PLAY_OPTS} -jar $dir/framework/sbt/sbt-launch.jar "$@"
+  "$JAVA" -Dplay.home="$dir/framework" -Dsbt.boot.properties="$dir/framework/sbt/play.boot.properties" ${PLAY_OPTS} -jar "$dir/framework/sbt/sbt-launch.jar" "$@"
 fi
