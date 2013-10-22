@@ -43,16 +43,21 @@ object MappingMacros {
         val companionSymbol = companioned.companionSymbol
         val companionType = companionSymbol.typeSignature
 
-        val unapply = getMethod(companionType, "unapply")
-          .getOrElse(context.abort(context.enclosingPosition, s"No unapply method found"))
+        companionType match {
+          case NoSymbol =>
+            context.abort(context.enclosingPosition, s"No companion object found for $companioned")
+          case _ =>
+            val unapply = getMethod(companionType, "unapply")
+              .getOrElse(context.abort(context.enclosingPosition, s"No unapply method found for $companionSymbol"))
 
-        val rts = getReturnTypes(unapply)
-        val app = getMethod(companionType, "apply")
-          .getOrElse(context.abort(context.enclosingPosition, s"No apply method found"))
-        val apply = findAltMethod(app, rts)
-          .getOrElse(context.abort(context.enclosingPosition, s"No apply method matching the unapply method found"))
+            val rts = getReturnTypes(unapply)
+            val app = getMethod(companionType, "apply")
+              .getOrElse(context.abort(context.enclosingPosition, s"No apply method found"))
+            val apply = findAltMethod(app, rts)
+              .getOrElse(context.abort(context.enclosingPosition, s"No apply method matching the unapply method found"))
 
-        (apply, unapply)
+            (apply, unapply)
+        }
       }
 
   }
