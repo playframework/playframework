@@ -1,6 +1,6 @@
-# Migration from the Form API
+# Form API migration
 
-Although the new Validation API is rather different than the `Form` API, migrating to to new API is straightforward.
+Although the new Validation API differs significantly from the `Form` API, migrating to to new API is straightforward.
 This example is a case study of the migration of one of play sample application: "computer database".
 
 We'll consider `Application.scala`. This controller take care of Computer creation, and edition. The models are defined in `Models.scala`

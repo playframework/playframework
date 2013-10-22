@@ -30,7 +30,7 @@ All you have to do is import the default Rules.
 scala> import play.api.data.mapping.Rules
 import play.api.data.mapping.Rules
 
-scala> :t Rules.float
+scala> :t Rules.float                   // the :t command shows the type
 play.api.data.mapping.Rule[String,Float]
 ```
 
@@ -53,14 +53,14 @@ scala> Rules.float.validate(Seq(32))
                                       ^
 ```
 
-As you already noticed, "abc" is not a valid `Float`, but no exception was thrown. Instead of relying on exceptions, `validate` is returning an object of type `Validation` (here `VA` is just a fancy alias for a special kind of validation).
+"abc" is not a valid `Float` but no exception was thrown. Instead of relying on exceptions, `validate` is returning an object of type `Validation` (here `VA` is just a fancy alias for a special kind of validation).
 
 `Validation` represents possible outcomes of Rule application, it can be either :
 
-- A `Success`, containing the value you just validated
+- A `Success`, holding the value being validated
   When we use `Rule.float` on "1", since "1" is a valid representation of a `Float`, it returns `Success(1.0)`
 - A `Failure`, containing all the errors.
-  When we use `Rule.float` on "abc", since "abc" is *not* a valid representation of a `Float`, it returns `Failure(List((/,List(ValidationError(validation.type-mismatch,WrappedArray(Float))))))`. That `Failure` tells us all there is to know: it give us a nice message explaining what has failed, and even gives us a parameter `"Float"`, indicating the type the `Rule` is expecting to find.
+  When we use `Rule.float` on "abc", since "abc" is *not* a valid representation of a `Float`, it returns `Failure(List((/,List(ValidationError(validation.type-mismatch,WrappedArray(Float))))))`. That `Failure` tells us all there is to know: it give us a nice message explaining what has failed, and even gives us a parameter `"Float"`, indicating which type the `Rule` expected to find.
 
 > Note that `Validation` is a parameterized type. Just like `Rule`, it keeps track of the input and output types.
 The method `validate` of a `Rule[I, O]` always return a `VA[I, O]`
@@ -68,11 +68,11 @@ The method `validate` of a `Rule[I, O]` always return a `VA[I, O]`
 ## Defining your own Rules
 
 Creating a new `Rule` is almost as simple as creating a new function.
-This example creates a new `Rule` trying to get the first element of a `List[Int]`.
+All there is to do it to pass a function `I => Validation[I, O]` to `Rule.fromMapping`.
 
-Of course, it must handle the case of an empty `List[Int]`.
+This example creates a new `Rule` trying to get the first element of a `List[Int]`. 
+In case of an empty `List[Int]`, the rule should return a `Failure`.
 
-All there is to do it to pass a function `I => Validation[I, O]` to `Rule.fromMapping`:
 
 @[rule-headInt](code/ScalaValidationRule.scala)
 
