@@ -86,6 +86,9 @@ trait Keys {
 
   val devSettings = SettingKey[Seq[(String, String)]]("play-dev-settings")
 
+  // An SBT scope used when the Play app is in run in "production mode" using the "play start" command
+  val Production = config("production")
+
   // Constants that may be useful elsewhere
   val defaultJavaTemplatesImport = Seq(
     "models._",
