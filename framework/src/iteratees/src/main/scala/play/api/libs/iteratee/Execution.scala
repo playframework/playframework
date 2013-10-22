@@ -33,7 +33,7 @@ private[play] object Execution {
     private val local = new ThreadLocal[Deque[Runnable]]
 
     def execute(runnable: Runnable): Unit = {
-      var queue = local.get()
+      @volatile var queue = local.get()
       if (queue == null) {
         // Since there is no local queue, we need to install one and
         // start our trampolining loop.
