@@ -85,6 +85,12 @@ trait Settings {
 
     testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "--ignore-runners=org.specs2.runner.JUnitRunner"),
 
+    // Make sure Specs2 is at the end of the list of test frameworks, so that it gets priority over
+    // JUnit. This is a hack/workaround to prevent Specs2 tests with @RunsWith annotations being
+    // picked up by JUnit. We don't want JUnit to run the tests since JUnit ignores the Specs2
+    // runnner, which means the tests run but their results are ignored by SBT.
+    testFrameworks ~= { tf => tf.filter(_ != TestFrameworks.Specs2).:+(TestFrameworks.Specs2) },
+
     testListeners <<= (target, streams).map((t, s) => Seq(new eu.henkelmann.sbt.JUnitXmlTestsListener(t.getAbsolutePath, s.log))),
 
     testResultReporter <<= testResultReporterTask,
