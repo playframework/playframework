@@ -196,3 +196,7 @@ Another thing that has changed is the location of the Unix script that starts a 
 > Please note that the format of the arguments passed to the `start` script has changed. Please issue a `-h` on the `start` script to see the arguments now accepted.
 
 Please consult the [["Starting your application in production mode"|Production]] documentation for more information on the new `stage` and `dist` tasks.
+
+## Upgrade from Akka 2.1 to 2.2
+
+The migration guide for upgrading from Akka 2.1 to 2.2 can be found [here](http://doc.akka.io/docs/akka/2.2.0/project/migration-guide-2.1.x-2.2.x.html).
