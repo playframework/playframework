@@ -8,6 +8,7 @@ package play.api.mvc {
 
   import scala.annotation._
   import scala.util.control.NonFatal
+  import scala.util.Try
   import java.net.{ URLDecoder, URLEncoder }
 
   /**
@@ -732,10 +733,17 @@ package play.api.mvc {
      * @param cookieHeader the Set-Cookie header value
      * @return decoded cookies
      */
+
+    private lazy val decoder = new CookieDecoder()
     def decode(cookieHeader: String): Seq[Cookie] = {
-      new CookieDecoder().decode(cookieHeader).asScala.map { c =>
-        Cookie(c.getName, c.getValue, if (c.getMaxAge == Integer.MIN_VALUE) None else Some(c.getMaxAge), Option(c.getPath).getOrElse("/"), Option(c.getDomain), c.isSecure, c.isHttpOnly)
-      }.toSeq
+      Try {
+        decoder.decode(cookieHeader).asScala.map { c =>
+          Cookie(c.getName, c.getValue, if (c.getMaxAge == Integer.MIN_VALUE) None else Some(c.getMaxAge), Option(c.getPath).getOrElse("/"), Option(c.getDomain), c.isSecure, c.isHttpOnly)
+        }.toSeq
+      }.getOrElse{
+        Play.logger.debug(s"Couldn't decode the Cookie header containing: $cookieHeader")
+        Nil
+      }
     }
 
     /**
