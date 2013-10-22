@@ -21,7 +21,7 @@ implicit val creatureRule = From[JsValue]{ __ =>
 	  (__ \ "name").read[String] ~
 	  (__ \ "isDead").read[Boolean] ~
 	  (__ \ "weight").read[Float]
-	)(Creature)
+	)(Creature.apply _)
 }
 
 val js = Json.obj( "name" -> "gremlins", "isDead" -> false, "weight" -> 1.0F)
@@ -34,9 +34,9 @@ From[JsValue, Creature](Json.obj())
 //	(/weight, List(ValidationError(validation.required,WrappedArray())))))
 ```
 
-### Dependant values
+### Dependent values
 
-A common example of this use case is the validation of `password` and `password confirmation` field in a signup form.
+A common example of this use case is the validation of `password` and `password confirmation` fields in a signup form.
 
 1. First, you need to validate that each field is valid independently
 2. Then, given the two values, you need to validate that they are equals.

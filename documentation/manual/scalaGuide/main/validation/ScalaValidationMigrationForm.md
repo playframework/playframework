@@ -182,3 +182,4 @@ def save = Action(parse.urlFormEncoded) { implicit request =>
 }
 ```
 
+> **Next:** - [[Cookbook | ScalaValidationCookbook]]

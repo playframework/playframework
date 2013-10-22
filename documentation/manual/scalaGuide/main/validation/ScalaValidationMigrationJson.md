@@ -2,6 +2,8 @@
 
 The Json API and the new validation API are really similar. One could see the new Validation API as just an evolution of the Json API.
 
+> The json validation API **still works just fine** but we recommend you use the new validation API for new code, and to port your old code whenever it's possible.
+
 ## `Reads` migration
 
 The equivalent of a Json `Reads` is a `Rule`. The key difference is that `Reads` assumes Json input, while `Rule` is more generic, and therefore has one more type parameter.
@@ -29,7 +31,7 @@ implicit val creatureReads = (
   (__ \ "name").read[String] ~
   (__ \ "isDead").read[Boolean] ~
   (__ \ "weight").read[Float]
-)(Creature)
+)(Creature.apply _)
 
 val js = Json.obj( "name" -> "gremlins", "isDead" -> false, "weight" -> 1.0F)
 val c = Json.fromJson[Creature] // JsSuccess(Creature(gremlins,false,1.0))
@@ -47,14 +49,14 @@ implicit val creatureRule = From[JsValue]{ __ =>
 	  (__ \ "name").read[String] ~
 	  (__ \ "isDead").read[Boolean] ~
 	  (__ \ "weight").read[Float]
-	)(Creature)
+	)(Creature.apply _)
 }
 
 val js = Json.obj( "name" -> "gremlins", "isDead" -> false, "weight" -> 1.0F)
 val c = From[JsValue, Creature](js) // Success(Creature(gremlins,false,1.0))
 ```
 
-Which appart from the extra imports is very similar.
+Which appart from the extra imports is very similar. Notice the `From[JsValue]{...}` block, that's one of the nice features of the new validation API. Not only it avoids type repetition, but it also scopes the implicits.
 
 > **Important:** Note that we're importing `Rules._` **inside** the `From[JsValue]{...}` block.
 It is recommended to always follow this pattern, as it nicely scopes the implicits, avoiding conflicts and accidental shadowing.
