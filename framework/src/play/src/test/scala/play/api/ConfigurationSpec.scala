@@ -40,11 +40,11 @@ object ConfigurationSpec extends Specification {
     }
 
     "make all get accessible using scala" in {
-      exampleConfig.getScalaBooleanList("blah.0").get must ===(Seq(true, false, true))
-      exampleConfig.getScalaIntList("blah.1").get     must ===(Seq(1, 2, 3))
-      exampleConfig.getScalaDoubleList("blah.2").get  must ===(Seq(1.1, 2.2, 3.3))
-      exampleConfig.getScalaLongList("blah.3").get    must ===(Seq(1L, 2L, 3L))
-      exampleConfig.getScalaStringList("blah.4").get  must contain(exactly("one", "two", "three"))
+      exampleConfig.getBooleanSeq("blah.0").get must ===(Seq(true, false, true))
+      exampleConfig.getIntSeq("blah.1").get     must ===(Seq(1, 2, 3))
+      exampleConfig.getDoubleSeq("blah.2").get  must ===(Seq(1.1, 2.2, 3.3))
+      exampleConfig.getLongSeq("blah.3").get    must ===(Seq(1L, 2L, 3L))
+      exampleConfig.getStringSeq("blah.4").get  must contain(exactly("one", "two", "three"))
     }
 
   }
