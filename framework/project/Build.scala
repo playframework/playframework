@@ -106,7 +106,7 @@ object BuildSettings {
         scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
         publishTo := Some(publishingMavenRepository),
         publishArtifact in packageDoc := false,
-        publishArtifact in (Compile, packageSrc) := false,
+        publishArtifact in (Compile, packageSrc) := true,
         scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked"))
   }
 }
