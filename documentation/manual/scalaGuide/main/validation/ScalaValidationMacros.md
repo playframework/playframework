@@ -87,3 +87,5 @@ personWrite.writes(Person("Julien", 28, true)) // {"name":"Julien","age":28,"lov
  - **Don’t override the apply method of the companion object.** The macro inspects the `apply` method to generate `Rule`/`Write`. Overloading the `apply` method creates an ambiguity the compiler will complain about.
  - **Macros only work when `apply` and `unapply` have corresponding input/output types**: This is naturally the case for case classes. But if you want to the same with a trait, you must implement the same  `apply`/`unapply` you would have in a case class.
 - **Validation Macros accept `Option`/`Seq`/`List`/`Set` & `Map[String, _]`**. For other generic types, test and if it's not working, define your `Rule`/`Write` manually.
+
+> **Next:** - [[Supporting new types | ScalaValidationExtensions]]
