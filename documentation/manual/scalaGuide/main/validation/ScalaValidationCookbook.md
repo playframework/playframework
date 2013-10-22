@@ -1,6 +1,38 @@
 # Cookbook
 
-## Rules
+> All the examples below are validating Json objects. The API is not dedicated only to Json, it can be used on any type. Please refer to [[Validating Json | ScalaValidationJson]], [[Validating Forms|ScalaValidationJson]], and [[Supporting new types|ScalaValidationExtension]] for more informations.
+
+## `Rule`
+
+### Typical case class validation
+
+```scala
+import play.api.libs.json._
+import play.api.data.mapping._
+
+case class Creature(
+  name: String,
+  isDead: Boolean,
+  weight: Float)
+
+implicit val creatureRule = From[JsValue]{ __ =>
+	import play.api.data.mapping.json.Rules._
+	(
+	  (__ \ "name").read[String] ~
+	  (__ \ "isDead").read[Boolean] ~
+	  (__ \ "weight").read[Float]
+	)(Creature)
+}
+
+val js = Json.obj( "name" -> "gremlins", "isDead" -> false, "weight" -> 1.0F)
+From[JsValue, Creature](js) // Success(Creature(gremlins,false,1.0))
+
+From[JsValue, Creature](Json.obj())
+// Failure(List(
+//	(/name, List(ValidationError(validation.required,WrappedArray()))),
+//	(/isDead, List(ValidationError(validation.required,WrappedArray()))),
+//	(/weight, List(ValidationError(validation.required,WrappedArray())))))
+```
 
 ### Dependant values
 
@@ -142,7 +174,7 @@ val c = Json.obj("name" -> "C", "bar" -> 6)
 val e = Json.obj("name" -> "E", "eee" -> 6)
 ```
 
-#### Trying all the implementations rules
+#### Trying all the possible rules implementations
 
 ```scala
 
@@ -162,7 +194,7 @@ rule.validate(c) // Success(C("C", 6))
 rule.validate(e) // Failure(Seq(Path -> Seq(ValidationError("validation.unknownType"))))
 ```
 
-#### Using class discovery based on discriminant field
+#### Using class discovery based on field discrimination
 
 ```scala
  val typeFailure = Failure(Seq(Path -> Seq(ValidationError("validation.unknownType"))))
@@ -180,7 +212,31 @@ rule.validate(c) // Success(C("C", 6))
 rule.validate(e) // Failure(Seq(Path -> Seq(ValidationError("validation.unknownType"))))
 ```
 
-## Writes
+## `Write`
+
+### typical case class `Write`
+
+```scala
+import play.api.libs.json._
+import play.api.data.mapping._
+import play.api.libs.functional.syntax.unlift
+
+case class Creature(
+  name: String,
+  isDead: Boolean,
+  weight: Float)
+
+implicit val creatureWrite = To[JsObject]{ __ =>
+	import play.api.data.mapping.json.Writes._
+	(
+	  (__ \ "name").write[String] ~
+	  (__ \ "isDead").write[Boolean] ~
+	  (__ \ "weight").write[Float]
+	)(unlift(Creature.unapply _))
+}
+
+val c = To[Creature, JsObject](Creature("gremlins", false, 1f)) // {"name":"gremlins","isDead":false,"weight":1.0}
+```
 
 ### Adding static values to a `Write`
 

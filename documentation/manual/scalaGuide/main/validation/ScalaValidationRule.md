@@ -50,7 +50,7 @@ res3: play.api.data.mapping.VA[String,Float] =
   Failure(List((/,List(ValidationError(validation.type-mismatch,WrappedArray(Float))))))
 ```
 
-> `Rule` is typesafe. You can't apply a `Rule` on an unsuported type, the compiler won't let you:
+> `Rule` is typesafe. You can't apply a `Rule` on an unsupported type, the compiler won't let you:
 >
 ```scala
 scala> :t Rules.float
