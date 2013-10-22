@@ -152,6 +152,17 @@ object ScalaResultsHandlingSpec extends PlaySpecification {
       response.body must beLeft("abcdefghi")
     }
 
+    "Strip malformed cookies" in withServer(
+      Results.Ok
+    ) { port =>
+      val response = BasicHttpClient.makeRequests(port)(
+        BasicRequest("GET", "/", "HTTP/1.1", Map("Cookie" -> """£"""), "")
+      )(0)
+
+      response.status must_== 200
+      response.body must beLeft
+    }
+
     "reject HTTP 1.0 requests for chunked results" in withServer(
       Results.Ok.chunked(Enumerator("a", "b", "c"))
     ) { port =>
