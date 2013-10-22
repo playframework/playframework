@@ -21,21 +21,6 @@ else
 fi
 
 if [ -f conf/application.conf -o -f conf/reference.conf ] || [ -d project ]; then
-  if test "$1" = "clean-all"; then
-    rm -rf target
-    rm -rf tmp
-    rm -rf logs
-    rm -rf dist
-    rm -rf project/project
-    rm -rf project/target
-    if [ $# -ne 1 ]
-    then  
-     shift
-    else
-      echo "[info] Done!"
-      exit 0
-    fi
-  fi
   if test "$1" = "stop"; then
     if [ -f RUNNING_PID ]; then
       echo "[info] Stopping application (with PID `cat RUNNING_PID`)..."
