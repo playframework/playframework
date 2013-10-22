@@ -38,7 +38,7 @@ String title = Messages.get(new Lang(Lang.forCode("fr")), "home.title")
 ```
 ## Formatting messages
 
-Messages can be formatted using the `java.text.MessageFormat` library. For example, if you have defined a message like this:
+Messages are formatted using the `java.text.MessageFormat` library. For example, if you have defined a message like this:
 
 ```
 files.summary=The disk {1} contains {0} file(s).
@@ -49,6 +49,20 @@ You can then specify parameters as:
 ```
 Messages.get("files.summary", d.files.length, d.name)
 ```
+
+## Notes on apostrophes
+
+Since Messages uses `java.text.MessageFormat`, please be aware that single quotes are used as a meta-character for escaping parameter substitutions.
+
+For example, if you have the following messages defined:
+
+@[single-apostrophe](code/javaguide/i18n/messages)
+@[parameter-escaping](code/javaguide/i18n/messages)
+
+you should expect the following results:
+
+@[single-apostrophe](code/javaguide/i18n/JavaI18N.java)
+@[parameter-escaping](code/javaguide/i18n/JavaI18N.java)
 
 ## Retrieving supported languages from an HTTP request
 
