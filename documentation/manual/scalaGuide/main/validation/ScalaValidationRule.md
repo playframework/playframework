@@ -9,10 +9,8 @@ The API is designed around the concept of `Rule`. A `Rule[I, O]` defines a way t
 Let's say you want to coerce a `String` into an `Float`.
 All you need to do is to define a `Rule` from String to Float:
 
-```scala
-import play.api.data.mapping._
-def isFloat: Rule[String, Float] = ???
-```
+@[rule-first-ex](code/ScalaValidationRule.scala)
+
 When a `String` is parsed into an `Float`, two scenario are possible, either:
 
 - The `String` can be parsed as a `Float`.
@@ -38,17 +36,7 @@ play.api.data.mapping.Rule[String,Float]
 
 Let's now test it against different String values:
 
-```scala
-scala> Rules.float.validate("1")
-res1: play.api.data.mapping.VA[String,Float] = Success(1.0)
-
-scala> Rules.float.validate("-13.7")
-res2: play.api.data.mapping.VA[String,Float] = Success(-13.7)
-
-scala> Rules.float.validate("abc")
-res3: play.api.data.mapping.VA[String,Float] =
-  Failure(List((/,List(ValidationError(validation.type-mismatch,WrappedArray(Float))))))
-```
+@[rule-defaults](code/ScalaValidationRule.scala)
 
 > `Rule` is typesafe. You can't apply a `Rule` on an unsupported type, the compiler won't let you:
 >
@@ -86,43 +74,15 @@ Of course, it must handle the case of an empty `List[Int]`.
 
 All there is to do it to pass a function `I => Validation[I, O]` to `Rule.fromMapping`:
 
-```scala
-import play.api.data.mapping._
+@[rule-headInt](code/ScalaValidationRule.scala)
 
-val headInt: Rule[List[Int], Int] = Rule.fromMapping {
-  case Nil => Failure(Seq(ValidationError("validation.emptyList")))
-  case head :: _ => Success(head)
-}
-```
-
-```scala
-scala> headInt.validate(List(1, 2, 3, 4, 5))
-res1: play.api.data.mapping.VA[List[Int],Int] = Success(1)
-
-scala> headInt.validate(Nil)
-res2: play.api.data.mapping.VA[List[Int],Int] =
-  Failure(List((/,List(ValidationError(validation.emptyList,WrappedArray())))))
-```
+@[rule-headInt-test](code/ScalaValidationRule.scala)
 
 We can make this rule a bit more generic:
 
-```scala
-import play.api.data.mapping._
+@[rule-head](code/ScalaValidationRule.scala)
 
-def head[T]: Rule[List[T], T] = Rule.fromMapping {
-  case Nil => Failure(Seq(ValidationError("validation.emptyList")))
-  case head :: _ => Success(head)
-}
-```
-
-```scala
-scala> head.validate(List('a', 'b', 'c', 'd'))
-res1: play.api.data.mapping.VA[List[Char],Char] = Success(a)
-
-scala> head.validate(List[Char]())
-res2: play.api.data.mapping.VA[List[Char],Char] =
-  Failure(List((/,List(ValidationError(validation.emptyList,WrappedArray())))))
-```
+@[rule-head-test](code/ScalaValidationRule.scala)
 
 ## Composing Rules
 
@@ -145,34 +105,17 @@ We've done almost all the work already. We just have to create a new `Rule` the 
 
 It would be fairly easy to create such a `Rule` "manually", but we don't have to. A method doing just that is already available:
 
-```scala
-scala> val firstFloat = head.compose(float)
-firstFloat: play.api.data.mapping.Rule[List[String],Float] = play.api.data.mapping.Rule$$anon$2@33ea649e
-```
+@[rule-firstFloat](code/ScalaValidationRule.scala)
 
-```scala
-scala> firstFloat.validate(List("1", "2"))
-res1: play.api.data.mapping.VA[List[String],Float] = Success(1.0)
-
-scala> firstFloat.validate(List("1.2", "foo"))
-res2: play.api.data.mapping.VA[List[String],Float] = Success(1.2)
-```
+@[rule-firstFloat-test1](code/ScalaValidationRule.scala)
 
 If the list is empty, we get the error from `head`
 
-```scala
-scala> firstFloat.validate(List())
-res4: play.api.data.mapping.VA[List[String],Float] =
-  Failure(List((/,List(ValidationError(validation.emptyList,WrappedArray())))))
-```
+@[rule-firstFloat-test2](code/ScalaValidationRule.scala)
 
 If the first element is not parseable, we get the error from `Rules.float`.
 
-```scala
-scala> firstFloat.validate(List("foo", "2"))
-res3: play.api.data.mapping.VA[List[String],Float] =
-  Failure(List((/,List(ValidationError(validation.type-mismatch,WrappedArray(Float))))))
-```
+@[rule-firstFloat-test3](code/ScalaValidationRule.scala)
 
 Of course everything is still typesafe:
 
@@ -192,14 +135,7 @@ When a parsing error happens, the `Failure` does not tells us that it happened o
 
 To fix that, we can pass  an additionnal parameter to `compose`:
 
-```scala
-scala> val firstFloat2 = head.compose(Path \ 0)(Rules.float)
-firstFloat2: play.api.data.mapping.Rule[List[String],Float] = play.api.data.mapping.Rule$$anon$2@2e083a3a
-
-scala> firstFloat2.validate(List("foo", "2"))
-res19: play.api.data.mapping.VA[List[String],Float] = Failure(List(([0],List(ValidationError(validation.type-mismatch,WrappedArray(Float))))))
-//                                             NOTICE THE INDEX HERE ^
-```
+@[rule-firstFloat-repath](code/ScalaValidationRule.scala)
 
 ### "Parallel" composition
 
@@ -210,36 +146,15 @@ This form of composition if almost exclusively used for the particular case of r
 Consider the following example: We want to write a `Rule` that given a `Int`, check that this `Int` is positive and even.
 The validation API already provides `Rules.min`, we have to define `even` ourselves:
 
-```scala
-scala> val positive = Rules.min(0)
-positive: play.api.data.mapping.Rule[Int,Int] = play.api.data.mapping.Rule$$anon$2@2ec3f27e
-
-scala> val even = Rules.validateWith[Int]("validation.even"){ _ % 2 == 0 }
-even: play.api.data.mapping.Rule[Int,Int] = play.api.data.mapping.Rule$$anon$2@46a660f2
-```
+@[par-composition-def](code/ScalaValidationRule.scala)
 
 Now we can compose those rules using `|+|`
 
-```scala
-scala> val positiveAndEven = positive |+| even
-positiveAndEven: play.api.data.mapping.Rule[Int,Int] = play.api.data.mapping.Rule$$anon$2@65b1c15d
-```
+@[par-composition-comp](code/ScalaValidationRule.scala)
 
 Let's test our new `Rule`:
 
-```scala
-scala> positiveAndEven.validate(12)
-res1: play.api.data.mapping.VA[Int,Int] = Success(12)
-
-scala> positiveAndEven.validate(-12)
-res2: play.api.data.mapping.VA[Int,Int] = Failure(ArrayBuffer((/,List(ValidationError(validation.min,WrappedArray(0))))))
-
-scala> positiveAndEven.validate(13)
-res3: play.api.data.mapping.VA[Int,Int] = Failure(ArrayBuffer((/,List(ValidationError(validation.even,WrappedArray())))))
-
-scala> positiveAndEven.validate(-13)
-res3: play.api.data.mapping.VA[Int,Int] = Failure(ArrayBuffer((/,List(ValidationError(validation.min,WrappedArray(0)), ValidationError(validation.even,WrappedArray())))))
-```
+@[par-composition-test](code/ScalaValidationRule.scala)
 
 Note that both rules are applied. If both fail, we get two `ValidationError`.
 

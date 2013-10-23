@@ -5,7 +5,7 @@ package scalaguide.validation
 
 import org.specs2.mutable.Specification
 
-object ScalaValidationMacrosSpec extends Specification with play.api.mvc.Controller {
+object ScalaValidationMacrosSpec extends Specification {
 
   //#macro-person-def
   case class Person(name: String, age: Int, lovesChocolate: Boolean)
