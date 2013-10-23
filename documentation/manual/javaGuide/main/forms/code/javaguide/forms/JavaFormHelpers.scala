@@ -42,8 +42,8 @@ object JavaFormHelpers extends Specification {
 
       "allow repeated form fields" in {
         val input = segment("repeat")
-        input must contain("emails[0]")
-        input must contain("emails[1]")
+        input must contain("emails.0")
+        input must contain("emails.1")
       }
     }
 
