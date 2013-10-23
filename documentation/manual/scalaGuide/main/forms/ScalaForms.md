@@ -238,7 +238,7 @@ A form mapping can define repeated values using [`Forms.list`](api/scala/index.h
 
 When you are using repeated data like this, the form values sent by the browser must be named `emails[0]`, `emails[1]`, `emails[2]`, etc.
 
-Now you have to generate as many inputs for the `emails` field as the form contains, using the[`repeat`](api/scala/index.html#views.html.helper.repeat$) helper:
+Now you have to generate as many inputs for the `emails` field as the form contains, using the [`repeat`](api/scala/index.html#views.html.helper.repeat$) helper:
 
 @[form-field-repeat](code/scalaguide/forms/scalaforms/views/repeat.scala.html)
 
