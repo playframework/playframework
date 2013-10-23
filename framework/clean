@@ -1,14 +1,18 @@
 #! /usr/bin/env sh
 
+# Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+
 echo "[info] Cleaning target directories..."
 
-rm -rf `dirname $0`/target
-rm -rf `dirname $0`/project/project
-rm -rf `dirname $0`/project/target
-rm -rf `dirname $0`/logs
-rm -rf `dirname $0`/src/anorm/target
-rm -rf `dirname $0`/src/play/target
-rm -rf `dirname $0`/src/templates/target
-rm -rf `dirname $0`/src/sbt-plugin/target
-rm -rf `dirname $0`/src/console/target
-rm -rf `dirname $0`/sbt/boot/scala-2.9.1/play
+DIR=`dirname "$0"`
+rm -rf "$DIR/target"
+rm -rf "$DIR/project/project"
+rm -rf "$DIR/project/target"
+rm -rf "$DIR/logs"
+rm -rf "$DIR/src/anorm/target"
+rm -rf "$DIR/src/play/target"
+rm -rf "$DIR/src/templates/target"
+rm -rf "$DIR/src/sbt-plugin/target"
+rm -rf "$DIR/src/console/target"
+rm -rf "$DIR/sbt/boot/scala-2.9.1/play"
+

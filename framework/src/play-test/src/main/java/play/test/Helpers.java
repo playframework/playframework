@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.test;
 
 import play.*;
@@ -45,7 +48,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         if (result == null) {
             return null;
         } else {
-            final play.api.mvc.SimpleResult simpleResult = new Promise<play.api.mvc.SimpleResult>(result).get();
+            final play.api.mvc.SimpleResult simpleResult = new Promise<play.api.mvc.SimpleResult>(result).get(10000);
             return new SimpleResult() {
                 public play.api.mvc.SimpleResult getWrappedSimpleResult() {
                     return simpleResult;
@@ -165,6 +168,20 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
+     * Build a new fake application.
+     */
+    public static FakeApplication fakeApplication(Map<String, ? extends Object> additionalConfiguration, List<String> additionalPlugins, List<String> withoutPlugins) {
+        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, additionalPlugins, withoutPlugins, null);
+    }
+
+    /**
+     * Build a new fake application.
+     */
+    public static FakeApplication fakeApplication(Map<String, ? extends Object> additionalConfiguration, List<String> additionalPlugins, List<String> withoutPlugins, GlobalSettings global) {
+        return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(), additionalConfiguration, additionalPlugins, withoutPlugins, global);
+    }
+
+    /**
      * Extracts the Status code of this Result value.
      */
     public static int status(Result result) {
@@ -193,10 +210,17 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * * Extracts a Cookie value from this Result value
+     * Extracts a Cookie value from this Result value
      */
     public static play.mvc.Http.Cookie cookie(String name, Result result) {
         return play.core.j.JavaResultExtractor.getCookies(unwrapJavaResult(result)).get(name);
+    }
+
+    /**
+     * Extracts the Cookies (an iterator) from this result value.
+     */
+    public static play.mvc.Http.Cookies cookies(Result result) {
+       return play.core.j.JavaResultExtractor.getCookies(unwrapJavaResult(result));
     }
 
     /**
@@ -417,6 +441,10 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             startedServer = server;
             browser = testBrowser(webDriver);
             block.invoke(browser);
+        } catch(Error e) {
+            throw e;
+        } catch(RuntimeException re) {
+            throw re;
         } catch(Throwable t) {
             throw new RuntimeException(t);
         } finally {

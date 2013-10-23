@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.mvc
 
 import org.specs2.mutable.Specification
@@ -49,6 +52,7 @@ class RequestHeaderSpec extends Specification {
     def version = ""
     def queryString = Map()
     def remoteAddress = ""
+    def secure = false
     lazy val headers = new Headers { val data = headersMap.toSeq }
   }
 }

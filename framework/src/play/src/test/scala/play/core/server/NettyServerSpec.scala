@@ -1,16 +1,20 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.core.server
 
+import scala.util.{ Try, Failure }
+
 import org.specs2.mutable.Specification
-import play.core.{ApplicationProvider}
+import play.core.ApplicationProvider
 import java.io.File
 import play.api.Application
-import play.api.mvc.Result
 
 object NettyServerSpec extends Specification {
 
   class Fake extends ApplicationProvider {
     def path: File = new File(".")
-    def get: Either[Throwable, Application] = Left(new RuntimeException)
+    def get: Try[Application] = Failure(new RuntimeException)
   }
 
   "NettyServer" should {

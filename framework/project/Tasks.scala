@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 import sbt._
 import Keys._
 import sbt.File
@@ -24,12 +27,12 @@ object Tasks {
   // ----- Generate Distribution
   lazy val generateDist = TaskKey[Unit]("create-dist")
   val generateDistTask: Setting[_] = 
-    generateDist <<= (ApiDocs.apiDocs, RepositoryBuilder.localRepoCreated in PlayBuild.RepositoryProject, baseDirectory in ThisBuild, target, version) map {
-      (_, repo, bd, t, v) =>
+    generateDist <<= (RepositoryBuilder.localRepoCreated in PlayBuild.RepositoryProject, baseDirectory in ThisBuild, target, version) map {
+      (repo, bd, t, v) =>
         generateDistribution(repo, bd, t, v)
     }
 
-  def generateDistribution(repo: File, bd: File, target: File, version: String): File = {
+  def generateDistribution(repoReport: RepositoryBuilder.LocalRepoReport, bd: File, target: File, version: String): File = {
     // Go down to the play checkout and get rid of the dumbness.
     val playBase = bd.getParentFile
     // Assert if we have the right directory...
@@ -101,12 +104,10 @@ object Tasks {
     }
     copyDist("framework")
     copyDist("samples")
-    copyDist("documentation")
 
     // Copy the core files
     copyMaintainPerms(coreFiles map (f => f -> (dist / f.getName)))
-    IO.copyDirectory(repo, dist / "repository" / "local", true, false)
-    IO.move(target / "apidocs", dist / "documentation" / "api")
+    IO.copyDirectory(repoReport.localRepo, dist / "repository" / "local", true, false)
 
     // Update versions
     def updatePlayVersion(file: File) {

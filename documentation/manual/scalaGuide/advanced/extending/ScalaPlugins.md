@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Writing Plugins
 
 Play comes with a few plugins predefined for all applications, these plugins are the following: 
@@ -11,15 +12,15 @@ Play comes with a few plugins predefined for all applications, these plugins are
 
 However, one can easily add a new plugin to an application.
 
-1. first step is to implement play.api.Plugin trait which has three methods: onStart, onStop and enabled - [for example](https://github.com/playframework/playframework/blob/master/framework/src/play/src/main/scala/play/api/cache/Cache.scala))
+1. first step is to implement play.api.Plugin trait which has three methods: onStart, onStop and enabled - [for example](https://github.com/playframework/playframework/blob/master/framework/src/play-cache/src/main/scala/play/api/cache/Cache.scala))
 2. this plugin should be available in the application either through pulling in it from a maven repository and referencing it
 as an app dependency or the plugin code can be part of a play application
-3. you can use it directly like `app.plugin[MyPlugin].map(_.api.mymethod).getOrElse(throwMyerror)` (where `app` is  a reference to the current application which can be obtain by importing play.api.Play.current) however, it's recommended to wrap it for convenience (for example, see [this](https://github.com/playframework/playframework/blob/master/framework/src/play/src/main/scala/play/api/cache/Cache.scala))
+3. you can use it directly like `app.plugin[MyPlugin].map(_.api.mymethod).getOrElse(throwMyerror)` (where `app` is  a reference to the current application which can be obtain by importing play.api.Play.current) however, it's recommended to wrap it for convenience (for example, see [this](https://github.com/playframework/playframework/blob/master/framework/src/play-cache/src/main/scala/play/api/cache/Cache.scala))
 4. in your app create a file: `conf/play.plugins` and add a reference to your plugin:
 
     5000:com.example.MyPlugin
 
 The number represents the plugin loading order, by setting it to > 10000 we can make sure it's loaded after the global plugins.
 
-_Tip: If you are a scala developer but you want to share your plugin with java developers, you will need make sure your API is wrapped for Java users (see [this](https://github.com/playframework/playframework/blob/master/framework/src/play/src/main/scala/play/api/cache/Cache.scala) and [this](https://github.com/playframework/playframework/blob/master/framework/src/play/src/main/java/play/cache/Cache.java) for an example)_
+_Tip: If you are a scala developer but you want to share your plugin with java developers, you will need make sure your API is wrapped for Java users (see [this](https://github.com/playframework/playframework/blob/master/framework/src/play-cache/src/main/scala/play/api/cache/Cache.scala) and [this](https://github.com/playframework/playframework/blob/master/framework/src/play-cache/src/main/java/play/cache/Cache.java) for an example)_
 

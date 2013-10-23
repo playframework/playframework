@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.i18n
 
 import scala.language.postfixOps
@@ -188,7 +191,7 @@ object Messages {
 
     def comment = """#.*""".r ^^ { case s => Comment(s) }
 
-    def messageKey = namedError("""[a-zA-Z0-9_.]+""".r, "Message key expected")
+    def messageKey = namedError("""[a-zA-Z0-9_.-]+""".r, "Message key expected")
 
     def messagePattern = namedError(
       rep(

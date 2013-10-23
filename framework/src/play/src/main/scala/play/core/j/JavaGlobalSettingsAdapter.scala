@@ -1,9 +1,13 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.core.j
 
 import play.api._
 import play.api.mvc._
-import play.mvc.Http.{ RequestHeader => JRequestHeader }
 import java.io.File
+import scala.concurrent.Future
+import play.api.libs.iteratee._
 
 /** Adapter that holds the Java `GlobalSettings` and acts as a Scala `GlobalSettings` for the framework. */
 class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends GlobalSettings {
@@ -26,17 +30,17 @@ class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends Glo
     Option(underlying.onRouteRequest(r)).map(Some(_)).getOrElse(super.onRouteRequest(request))
   }
 
-  override def onError(request: RequestHeader, ex: Throwable): SimpleResult = {
+  override def onError(request: RequestHeader, ex: Throwable): Future[SimpleResult] = {
     JavaHelpers.invokeWithContext(request, req => Option(underlying.onError(req, ex)))
       .getOrElse(super.onError(request, ex))
   }
 
-  override def onHandlerNotFound(request: RequestHeader): SimpleResult = {
+  override def onHandlerNotFound(request: RequestHeader): Future[SimpleResult] = {
     JavaHelpers.invokeWithContext(request, req => Option(underlying.onHandlerNotFound(req)))
       .getOrElse(super.onHandlerNotFound(request))
   }
 
-  override def onBadRequest(request: RequestHeader, error: String): SimpleResult = {
+  override def onBadRequest(request: RequestHeader, error: String): Future[SimpleResult] = {
     JavaHelpers.invokeWithContext(request, req => Option(underlying.onBadRequest(req, error)))
       .getOrElse(super.onBadRequest(request, error))
   }
@@ -55,7 +59,10 @@ class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends Glo
     try {
       Filters(super.doFilter(a), underlying.filters.map(_.newInstance: play.api.mvc.EssentialFilter): _*)
     } catch {
-      case e: Throwable => EssentialAction(req => play.api.libs.iteratee.Done(onError(req, e)))
+      case e: Throwable => {
+        import play.api.libs.iteratee.Execution.Implicits.trampoline
+        EssentialAction(req => Iteratee.flatten(onError(req, e).map(result => Done(result, Input.Empty))))
+      }
     }
   }
 

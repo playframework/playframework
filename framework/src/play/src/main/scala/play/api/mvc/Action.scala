@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.mvc
 
 import play.api.libs.iteratee._
@@ -158,6 +161,24 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
     override def toString = self.toString
   }
 
+  /**
+   * Validate the result of this BodyParser[A] to create a BodyParser[B]
+   *
+   * Example:
+   * {{{
+   *   def validateJson[A : Reads] = parse.json.validate(
+   *     _.validate[A].asEither.left.map(e => BadRequest(JsError.toFlatJson(e)))
+   *   )
+   * }}}
+   */
+  def validate[B](f: A => Either[SimpleResult, B]): BodyParser[B] = new BodyParser[B] {
+    def apply(request: RequestHeader) = self(request).flatMap {
+      case Left(e) => Done(Left(e), Input.Empty)
+      case Right(a) => Done(f(a), Input.Empty)
+    }
+    override def toString = self.toString
+  }
+
 }
 
 /**
@@ -171,7 +192,7 @@ object BodyParser {
    * Example:
    * {{{
    * val bodySize = BodyParser { request =>
-   *   Iteratee.fold(0) { (state, chunk) => state + chunk.size } mapDone(size => Right(size))
+   *   Iteratee.fold(0) { (state, chunk) => state + chunk.size } map(size => Right(size))
    * }
    * }}}
    */
@@ -185,7 +206,7 @@ object BodyParser {
    * Example:
    * {{{
    * val bodySize = BodyParser("Body size") { request =>
-   *   Iteratee.fold(0) { (state, chunk) => state + chunk.size } mapDone(size => Right(size))
+   *   Iteratee.fold(0) { (state, chunk) => state + chunk.size } map(size => Right(size))
    * }
    * }}}
    */
@@ -200,6 +221,7 @@ object BodyParser {
  * Provides helpers for creating `Action` values.
  */
 trait ActionBuilder[R[_]] {
+  self =>
 
   /**
    * Constructs an `Action`.
@@ -216,7 +238,7 @@ trait ActionBuilder[R[_]] {
    * @param block the action code
    * @return an action
    */
-  def apply[A](bodyParser: BodyParser[A])(block: R[A] => Result): Action[A] = async(bodyParser) { req: R[A] =>
+  final def apply[A](bodyParser: BodyParser[A])(block: R[A] => Result): Action[A] = async(bodyParser) { req: R[A] =>
     block(req) match {
       case simple: SimpleResult => Future.successful(simple)
       case async: AsyncResult => async.unflatten
@@ -236,7 +258,7 @@ trait ActionBuilder[R[_]] {
    * @param block the action code
    * @return an action
    */
-  def apply(block: R[AnyContent] => Result): Action[AnyContent] = apply(BodyParsers.parse.anyContent)(block)
+  final def apply(block: R[AnyContent] => Result): Action[AnyContent] = apply(BodyParsers.parse.anyContent)(block)
 
   /**
    * Constructs an `Action` with default content, and no request parameter.
@@ -251,7 +273,7 @@ trait ActionBuilder[R[_]] {
    * @param block the action code
    * @return an action
    */
-  def apply(block: => Result): Action[AnyContent] = apply(_ => block)
+  final def apply(block: => Result): Action[AnyContent] = apply(_ => block)
 
   /**
    * Constructs an `Action` that returns a future of a result, with default content, and no request parameter.
@@ -268,7 +290,7 @@ trait ActionBuilder[R[_]] {
    * @param block the action code
    * @return an action
    */
-  def async(block: => Future[SimpleResult]): Action[AnyContent] = async(_ => block)
+  final def async(block: => Future[SimpleResult]): Action[AnyContent] = async(_ => block)
 
   /**
    * Constructs an `Action` that returns a future of a result, with default content.
@@ -285,7 +307,7 @@ trait ActionBuilder[R[_]] {
    * @param block the action code
    * @return an action
    */
-  def async(block: R[AnyContent] => Future[SimpleResult]): Action[AnyContent] = async(BodyParsers.parse.anyContent)(block)
+  final def async(block: R[AnyContent] => Future[SimpleResult]): Action[AnyContent] = async(BodyParsers.parse.anyContent)(block)
 
   /**
    * Constructs an `Action` that returns a future of a result, with default content.
@@ -302,7 +324,7 @@ trait ActionBuilder[R[_]] {
    * @param block the action code
    * @return an action
    */
-  def async[A](bodyParser: BodyParser[A])(block: R[A] => Future[SimpleResult]): Action[A] = new Action[A] {
+  final def async[A](bodyParser: BodyParser[A])(block: R[A] => Future[SimpleResult]): Action[A] = composeAction(new Action[A] {
     def parser = composeParser(bodyParser)
     def apply(request: Request[A]) = try {
       invokeBlock(request, block)
@@ -313,7 +335,7 @@ trait ActionBuilder[R[_]] {
       case e: LinkageError => throw new RuntimeException(e)
     }
     override def executionContext = ActionBuilder.this.executionContext
-  }
+  })
 
   /**
    * Invoke the block.  This is the main method that an ActionBuilder has to implement, at this stage it can wrap it in
@@ -323,7 +345,7 @@ trait ActionBuilder[R[_]] {
    * @param block The block of code to invoke
    * @return A future of the result
    */
-  def invokeBlock[A](request: Request[A], block: R[A] => Future[SimpleResult]): Future[SimpleResult]
+  protected def invokeBlock[A](request: Request[A], block: R[A] => Future[SimpleResult]): Future[SimpleResult]
 
   /**
    * Compose the parser.  This allows the action builder to potentially intercept requests before they are parsed.
@@ -331,14 +353,22 @@ trait ActionBuilder[R[_]] {
    * @param bodyParser The body parser to compose
    * @return The composed body parser
    */
-  def composeParser[A](bodyParser: BodyParser[A]): BodyParser[A] = bodyParser
+  protected def composeParser[A](bodyParser: BodyParser[A]): BodyParser[A] = bodyParser
+
+  /**
+   * Compose the action with other actions.  This allows mixing in of various actions together.
+   *
+   * @param action The action to compose
+   * @return The composed action
+   */
+  protected def composeAction[A](action: Action[A]): Action[A] = action
 
   /**
    * Get the execution context to run the request in.  Override this if you want a custom execution context
    *
    * @return The execution context
    */
-  def executionContext: ExecutionContext = play.api.libs.concurrent.Execution.defaultContext
+  protected def executionContext: ExecutionContext = play.api.libs.concurrent.Execution.defaultContext
 }
 
 /**

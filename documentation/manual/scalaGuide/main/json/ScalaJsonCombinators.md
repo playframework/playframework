@@ -1,6 +1,7 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # JSON Reads[T]/Writes[T]/Format[T] Combinators
 
-> Please note this documentation was initially published as an article by Pascal Voitot ([@mandubian](http://www.github.com/mandubian)) on [mandubian.com](http://mandubian.com/2012/09/08/unveiling-play-2-dot-1-json-api-part1-jspath-reads-combinators/) 
+> Please note this documentation was initially published as an article by Pascal Voitot ([@mandubian](https://github.com/mandubian)) on [mandubian.com](http://mandubian.com/2012/09/08/unveiling-play-2-dot-1-json-api-part1-jspath-reads-combinators/)
 
 ## Summary of main new features added in <code>Play2.1</code>
 
@@ -437,7 +438,7 @@ Reads[String] AND Reads[Boolean] AND Reads[Float]
 > **THE READS combinators with JsPath**
 <br/>
 
-> If you want more theoretical aspects about the way it was implemented based on generic functional structures adapted to our needs, you can read this post ["Applicatives are too restrictive, breaking Applicatives and introducing Functional Builders"](http://sadache.tumblr.com/post/30955704987/applicatives-are-too-restrictive-breaking-applicativesfrom) written by [@sadache](http://www.github.com/sadache) 
+> If you want more theoretical aspects about the way it was implemented based on generic functional structures adapted to our needs, you can read this post ["Applicatives are too restrictive, breaking Applicatives and introducing Functional Builders"](http://sadache.tumblr.com/post/30955704987/applicatives-are-too-restrictive-breaking-applicativesfrom) written by [@sadache](https://github.com/sadache)
 
 
 ## Writing Reads[T] combinators
@@ -792,7 +793,7 @@ So what's the difference?
 As presented in Part 1, `Reads` could be combined using simple logical operators.  
 Using functional Scala power, we were able to **provide combinators for `Writes[T]`**.
 
-> If you want more theoretical aspects about the way it was implemented based on generic functional structures adapted to our needs, you can read this post ["Applicatives are too restrictive, breaking Applicatives and introducing Functional Builders"](http://sadache.tumblr.com/post/30955704987/applicatives-are-too-restrictive-breaking-applicativesfrom) written by [@sadache](http://www.github.com/sadache)  
+> If you want more theoretical aspects about the way it was implemented based on generic functional structures adapted to our needs, you can read this post ["Applicatives are too restrictive, breaking Applicatives and introducing Functional Builders"](http://sadache.tumblr.com/post/30955704987/applicatives-are-too-restrictive-breaking-applicativesfrom) written by [@sadache](https://github.com/sadache)
 
 ## <a name="writes-combined">Writes main change: *combinators*</a>
 

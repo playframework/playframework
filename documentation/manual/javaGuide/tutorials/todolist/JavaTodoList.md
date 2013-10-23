@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Your first Play application
 
 Let’s write a simple task list application with Play and deploy it to the cloud. This is a very small example which can be managed in a few hours.
@@ -9,6 +10,8 @@ First of all, make sure that you have a [[working Play installation|Installing]]
 As we will use the command line a lot, it’s better to use a Unix-like OS. If you run a Windows system, it will also work fine; you’ll just have to type a few commands in the command prompt.
 
 You will of course need a text editor. If you are used-to a fully-featured Java IDE, such as Eclipse or IntelliJ, you can of course use it. However, with Play you can have fun working with a simple text editor like TextMate, Emacs or vi. This is because the framework manages compilation and the deployment process itself.
+
+> **Note:** Read more about [[Setting-up your preferred IDE | IDE]].
 
 ## Project creation
 
@@ -33,6 +36,7 @@ The `play new` command creates a new directory `todolist/` and populates it with
 * `test/` contains all the application tests. Tests can be written as JUnit tests.
 
 > Because Play uses UTF-8 as the single encoding, it’s very important that all text files hosted in these directories use this encoding. Make sure to configure your text editor accordingly. In the windows system the editor configuration must be ANSI encode
+> **Note:** Read more about [[Anatomy of a Play application | Anatomy]].
 
 ## Using the Play console
 
@@ -107,7 +111,7 @@ This template is defined in the `app/views/index.scala.html` source file:
 
 The first line defines the function signature. Here it takes a single `String` parameter. Then the template content mixes HTML (or any text-based language) with Scala statements. The Scala statements start with the special `@` character.
 
-> **Note:** Don’t worry about the template engine using Scala as its expression language. This is not a problem for a Java developer, and you can almost use it as if the language was Java.
+> **Note:** Don’t worry about the template engine using Scala as its expression language. This is not a problem for a Java developer, and you can almost use it as if the language was Java. We explain the templating system in a bit more deatil below.
 
 ## Development work-flow
 
@@ -389,7 +393,18 @@ public class Task extends Model {
 
 We made the `Task` class extend the `play.db.ebean.Model` super class to have access to Play built-in Ebean helper. We also added proper persistence annotations, and created a `find` helper to initiate queries.
 
-Let’s implement the CRUD operations:
+Next there need to be done some changes in the configuration file. Open `application.conf` and uncomment the following lines:
+
+```
+#db.default.driver=org.h2.Driver
+#db.default.url="jdbc:h2:mem:play"
+#db.default.user=sa
+#db.default.password=""
+
+#ebean.default="models.*"
+```
+
+Finally, let’s implement the CRUD operations:
 
 ```
 public static List<Task> all() {
@@ -404,6 +419,10 @@ public static void delete(Long id) {
   find.ref(id).delete();
 }
 ```
+
+When you now reload the web page you shoud see the following error message: `Database 'default' needs evolution!`
+
+Click the button `Apply this script now!`, to instruct play to create all necessary database files.
 
 Now you can play again with the application, creating new tasks should work.
 
@@ -434,10 +453,13 @@ web: target/start -Dhttp.port=${PORT} -DapplyEvolutions.default=true -Ddb.defaul
 
 Using system properties we override the application configuration when running on Heroku. But since heroku provides a PostgreSQL database we’ll have to add the required driver to our application dependencies. 
 
-Specify it into the `project/Build.scala` file:
+Specify it into the `build.sbt` file:
 
-```
-val appDependencies = Seq(
+```scala
+libraryDependencies ++= Seq(
+  javaJdbc,
+  javaEbean,
+  cache,
   "postgresql" % "postgresql" % "8.4-702.jdbc4"
 )
 ```

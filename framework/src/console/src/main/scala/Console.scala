@@ -1,9 +1,13 @@
 
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.console
 
 import java.io._
 import scalax.file._
 import scala.annotation.tailrec
+import jline.UnixTerminal
 
 /**
  * provides the console infrastructure for all play apps
@@ -13,14 +17,14 @@ object Console {
   val consoleReader = new jline.console.ConsoleReader
 
   val logo = Colors.yellow(
-    """|       _            _
-           | _ __ | | __ _ _  _| |
-           || '_ \| |/ _' | || |_|
-           ||  __/|_|\____|\__ (_)
+    """|       _
+           | _ __ | | __ _ _  _
+           || '_ \| |/ _' | || |
+           ||  __/|_|\____|\__ /
            ||_|            |__/
            |
            |""".stripMargin) +
-    ("play! " + play.core.PlayVersion.current +
+    ("play " + play.core.PlayVersion.current +
       " built with Scala " + play.core.PlayVersion.scalaVersion +
       " (running Java " + System.getProperty("java.version") + ")," +
       " http://www.playframework.com")
@@ -53,7 +57,7 @@ object Console {
       from = Path(new File(System.getProperty("play.home") + "/skeletons/" + template)),
       target = Path(path))
 
-    replace(new File(path, "project/Build.scala"),
+    replace(new File(path, "build.sbt"),
       "APPLICATION_NAME" -> name)
     replace(new File(path, "project/plugins.sbt"),
       "PLAY_VERSION" -> play.core.PlayVersion.current)
@@ -155,7 +159,10 @@ object Console {
             |You can also browse the complete documentation at http://www.playframework.com.""".stripMargin, 0)
   }
 
-  def main(args: Array[String]) {
+  /**
+   * This is a general main method that runs the console and returns an exit code.
+   */
+  def run(args: Array[String]): Int = {
     println(logo)
 
     val (text, status) = args.headOption.collect {
@@ -174,19 +181,28 @@ object Console {
     println(text)
     println()
 
-    System.exit(status)
+    consoleReader.getTerminal.restore()
+
+    status
   }
 
+  /**
+   * If play is run as an application then this will be the entry point.
+   */
+  def main(args: Array[String]): Unit = {
+    val status = run(args)
+    System.exit(status)
+  }
 }
 
 /**
- * this is the SBT entry point for Play's console implementation
+ * this is the sbt entry point for Play's console implementation
  */
 class Console extends xsbti.AppMain {
 
   def run(app: xsbti.AppConfiguration): Exit = {
-    Console.main(app.arguments)
-    Exit(0)
+    val status = Console.run(app.arguments)
+    Exit(status)
   }
 
   case class Exit(val code: Int) extends xsbti.Exit

@@ -1,6 +1,7 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.libs.iteratee
-
-import scala.language.reflectiveCalls
 
 import org.specs2.mutable._
 import java.io.OutputStream
@@ -15,6 +16,10 @@ object IterateesSpec extends Specification
     mustExecute(1) { foldEC =>
       await(i.fold(s => Future.successful(s))(foldEC)) must equalTo(expected)
     }
+  }
+
+  def checkUnflattenResult[A, E](i: Iteratee[A, E], expected: Step[A, E]) = {
+    await(i.unflatten) must equalTo(expected)
   }
 
   def checkImmediateFoldFailure[A, E](i: Iteratee[A, E]) = {
@@ -52,6 +57,10 @@ object IterateesSpec extends Specification
 
     "return future fold errors in promise" in {
       checkFutureFoldFailure(i)
+    }
+
+    "support unflattening their state" in {
+      checkUnflattenResult(i, Step.Done(1, Input.El("x")))
     }
 
   }
@@ -106,6 +115,10 @@ object IterateesSpec extends Specification
           _ => ???,
           (_, _) => ???)(foldEC))
       }
+    }
+
+    "support unflattening their state" in {
+      checkUnflattenResult(i, Step.Done(1, Input.El("x")))
     }
 
     "flatMap directly to result when no remaining input" in {
@@ -172,6 +185,10 @@ object IterateesSpec extends Specification
       checkFutureFoldFailure(i)
     }
 
+    "support unflattening their state" in {
+      checkUnflattenResult(i, Step.Cont(k))
+    }
+
     "flatMap recursively" in {
       mustExecute(1) { flatMapEC =>
         await(Iteratee.flatten(Cont[Int, Int](_ => Done(3)).flatMap((x: Int) => Done[Int, Int](x * 2))(flatMapEC).feed(Input.El(11))).unflatten) must equalTo(Step.Done(6, Input.Empty))
@@ -196,6 +213,10 @@ object IterateesSpec extends Specification
       checkFutureFoldFailure(i)
     }
 
+    "support unflattening their state" in {
+      checkUnflattenResult(i, Step.Error("msg", Input.El("x")))
+    }
+
     "flatMap to an error" in {
       mustExecute(0) { flatMapEC =>
         await(Error("msg", Input.El("bad")).flatMap((x: Int) => Done("done"))(flatMapEC).unflatten) must equalTo(Step.Error("msg", Input.El("bad")))
@@ -205,18 +226,6 @@ object IterateesSpec extends Specification
   }
 
   "Iteratees fed multiple inputs" should {
-
-    "map the final iteratee's result (with mapDone)" in {
-      mustExecute(4, 1) { (foldEC, mapEC) =>
-        await(Enumerator(1, 2, 3, 4) |>>> Iteratee.fold[Int, Int](0)(_ + _)(foldEC).mapDone(_ * 2)(mapEC)) must equalTo(20)
-      }
-    }
-
-    "map the final iteratee's result (with mapDone)" in {
-      mustExecute(4, 1) { (foldEC, mapEC) =>
-        await(Enumerator(1, 2, 3, 4) |>>> Iteratee.fold[Int, Int](0)(_ + _)(foldEC).mapDone(_ * 2)(mapEC)) must equalTo(20)
-      }
-    }
 
     "map the final iteratee's result (with map)" in {
       mustExecute(4, 1) { (foldEC, mapEC) =>
@@ -295,6 +304,19 @@ object IterateesSpec extends Specification
     "return its input as a list" in {
       val s = List(1, 2, 3, 4, 5)
       await(Enumerator.enumerateSeq1(s) |>>> Iteratee.getChunks[Int]) must equalTo(s)
+    }
+
+  }
+
+  "Iteratee.ignore" should {
+
+    "never throw an OutOfMemoryError when consuming large input" in {
+      // Work out how many arrays we'd need to create to trigger an OutOfMemoryError
+      val arraySize = 1000000
+      val tooManyArrays = (Runtime.getRuntime.maxMemory / arraySize).toInt + 1
+      val iterator = Iterator.range(0, tooManyArrays).map(_ => new Array[Byte](arraySize))
+      import play.api.libs.iteratee.Execution.Implicits.defaultExecutionContext
+      await(Enumerator.enumerate(iterator) |>>> Iteratee.ignore[Array[Byte]]) must_== ()
     }
 
   }

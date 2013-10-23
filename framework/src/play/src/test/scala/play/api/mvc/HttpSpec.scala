@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.mvc
 
 import org.specs2.mutable._
@@ -38,7 +41,7 @@ class HttpSpec extends Specification {
 
   "RequestHeader" should {
     "parse quoted and unquoted charset" in {
-      case class TestRequestHeader(headers: Headers, method: String = "GET", uri: String = "/", path: String = "", remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1", id: Long = 666, tags: Map[String, String] = Map.empty[String, String], queryString: Map[String, Seq[String]] = Map()) extends RequestHeader
+      case class TestRequestHeader(headers: Headers, method: String = "GET", uri: String = "/", path: String = "", remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1", id: Long = 666, tags: Map[String, String] = Map.empty[String, String], queryString: Map[String, Seq[String]] = Map(), secure: Boolean = false) extends RequestHeader
 
       TestRequestHeader(headers = new Headers {
         val data = Seq(play.api.http.HeaderNames.CONTENT_TYPE -> Seq("""text/xml; charset="utf-8""""))

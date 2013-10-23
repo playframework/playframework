@@ -1,6 +1,9 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.core.jscompile
 
-import sbt.PlayExceptions.AssetCompilationException
+import play.PlayExceptions.AssetCompilationException
 import java.io._
 import play.api._
 import scala.collection.JavaConverters._
@@ -23,24 +26,25 @@ object JavascriptCompiler {
   def compile(source: File, simpleCompilerOptions: Seq[String], fullCompilerOptions: Option[CompilerOptions]): (String, Option[String], Seq[File]) = {
     import scala.util.control.Exception._
 
-    val simpleCheck = simpleCompilerOptions.contains("rjs")
+    val requireJsMode = simpleCompilerOptions.contains("rjs")
 
     val origin = Path(source).string
 
     val options = fullCompilerOptions.getOrElse {
       val defaultOptions = new CompilerOptions()
       defaultOptions.closurePass = true
-      if (!simpleCheck) {
-        defaultOptions.setProcessCommonJSModules(true)
-        defaultOptions.setCommonJSModulePathPrefix(source.getParent() + File.separator)
-        defaultOptions.setManageClosureDependencies(Seq(toModuleName(source.getName())).asJava)
-      }
       simpleCompilerOptions.foreach(_ match {
         case "advancedOptimizations" => CompilationLevel.ADVANCED_OPTIMIZATIONS.setOptionsForCompilationLevel(defaultOptions)
         case "checkCaja" => defaultOptions.setCheckCaja(true)
         case "checkControlStructures" => defaultOptions.setCheckControlStructures(true)
         case "checkTypes" => defaultOptions.setCheckTypes(true)
         case "checkSymbols" => defaultOptions.setCheckSymbols(true)
+        case "commonJs" if !requireJsMode =>
+          defaultOptions.setProcessCommonJSModules(true)
+          // The compiler always expects forward slashes even on Windows.
+          defaultOptions.setCommonJSModulePathPrefix((source.getParent() + File.separator).replaceAll("\\\\", "/"))
+          defaultOptions.setManageClosureDependencies(Seq(toModuleName(source.getName())).asJava)
+        case "ecmascript5" => defaultOptions.setLanguageIn(CompilerOptions.LanguageMode.ECMASCRIPT5)
         case _ => Unit // Unknown option
       })
       defaultOptions
@@ -48,10 +52,10 @@ object JavascriptCompiler {
 
     val compiler = new Compiler()
     lazy val all = allSiblings(source)
-    val input = if (!simpleCheck) all.map(f => JSSourceFile.fromFile(f)).toArray else Array(JSSourceFile.fromFile(source))
+    val input = if (!requireJsMode) all.map(f => JSSourceFile.fromFile(f)).toArray else Array(JSSourceFile.fromFile(source))
 
     catching(classOf[Exception]).either(compiler.compile(Array[JSSourceFile](), input, options).success) match {
-      case Right(true) => (origin, { if (!simpleCheck) Some(compiler.toSource()) else None }, Nil)
+      case Right(true) => (origin, { if (!requireJsMode) Some(compiler.toSource()) else None }, Nil)
       case Right(false) => {
         val error = compiler.getErrors().head
         val errorFile = all.find(f => f.getAbsolutePath() == error.sourceName)

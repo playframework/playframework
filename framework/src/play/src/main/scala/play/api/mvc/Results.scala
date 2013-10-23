@@ -1,8 +1,12 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.mvc
 
 import play.api.libs.iteratee._
 import play.api.http._
 import play.api.http.HeaderNames._
+import play.api.http.HttpProtocol._
 import play.api.{ Application, Play }
 import play.api.i18n.Lang
 
@@ -28,7 +32,6 @@ case class ResponseHeader(status: Int, headers: Map[String, String] = Map.empty)
 /**
  * Any Action result.
  */
-@deprecated("Result will become SimpleResult in Play 2.3", "2.2.0")
 sealed trait Result extends NotNull with WithHeaders[Result]
 
 sealed trait WithHeaders[+A <: Result] {
@@ -124,7 +127,7 @@ sealed trait WithHeaders[+A <: Result] {
   def withNewSession: A
 
   /**
-   * Sets the users language permanently for future requests by storing it in a cookie.
+   * Sets the user's language permanently for future requests by storing it in a cookie.
    *
    * For example:
    * {{{
@@ -136,6 +139,18 @@ sealed trait WithHeaders[+A <: Result] {
    * @return the new result
    */
   def withLang(lang: Lang)(implicit app: Application): A = withCookies(Cookie(Play.langCookieName, lang.code))
+
+  /**
+   * Clears the user's language by discarding the language cookie set by withLang
+   *
+   * For example:
+   * {{{
+   * Ok(Messages("hello.world")).clearingLang
+   * }}}
+   *
+   * @return the new result
+   */
+  def clearingLang(implicit app: Application): A = discardingCookies(DiscardingCookie(Play.langCookieName))
 
   /**
    * Adds values to the flash scope for this result.
@@ -636,7 +651,6 @@ object Results extends Results {
 trait Results {
 
   import play.api.http.Status._
-  import play.api.http.HeaderNames._
 
   /**
    * Generates default `SimpleResult` from a content type, headers and content.

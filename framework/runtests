@@ -1,12 +1,16 @@
+#! /bin/bash
+
+# Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+
 echo "[info]"
 echo "[info] ---- PLAYFRAMEWORK CORE TEST RUNNER"
 echo "[info]"
 
 set -e
 export CURRENT=`pwd`
-export SCRIPT=`dirname $0`
+export SCRIPT=`dirname "$0"`
 
-cd $SCRIPT
+cd "$SCRIPT"
 export PLAY=`pwd`/../play
 
 ./build "$@" publish-local test
@@ -51,15 +55,6 @@ cd ./test/integrationtest-scala
 
 echo "[info]"
 echo "[info] ---- RUNNING SCALA INTEGRATION TEST"
-echo "[info]"
-
-$PLAY "$@" clean-all test
-cd $CURRENT
-
-cd ./test/csrftest-scala
-
-echo "[info]"
-echo "[info] ---- RUNNING CSRF TEST"
 echo "[info]"
 
 $PLAY "$@" clean-all test

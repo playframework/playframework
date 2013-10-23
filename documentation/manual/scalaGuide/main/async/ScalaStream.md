@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Streaming HTTP responses
 
 ## Standard responses and Content-Length header
@@ -86,7 +87,7 @@ def index = Action {
 
 This helper will also compute the `Content-Type` header from the file name, and add the `Content-Disposition` header to specify how the web browser should handle this response. The default is to ask the web browser to download this file by adding the header `Content-Disposition: attachment; filename=fileToServe.pdf` to the HTTP response.
 
-You also provide your own file name:
+You can also provide your own file name:
 
 ```scala
 def index = Action {
@@ -154,7 +155,7 @@ def index = Action {
   val data = getDataStream
   val dataContent: Enumerator[Array[Byte]] = Enumerator.fromStream(data)
   
-  Ok.stream(dataContent)
+  Ok.chunked(dataContent)
 }
 ```
 
@@ -162,7 +163,7 @@ Of course, we can use any `Enumerator` to specify the chunked data:
 
 ```scala
 def index = Action {
-  Ok.stream(
+  Ok.chunked(
     Enumerator("kiki", "foo", "bar").andThen(Enumerator.eof)
   )
 }

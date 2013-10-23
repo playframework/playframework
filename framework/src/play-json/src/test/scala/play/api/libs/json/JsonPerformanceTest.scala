@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.libs.json
 
 import concurrent.{Await, Future, ExecutionContext}
@@ -23,6 +26,14 @@ object JsonPerformanceTest extends App {
   println("Deserialization run 2: " + testDeserialization() + "ms")
   println("Deserialization run 3: " + testDeserialization() + "ms")
 
+  println("Large Array Deserialization run 1: " + testLargeArrayDeserialization() + "ms")
+  println("Large Array Deserialization run 2: " + testLargeArrayDeserialization() + "ms")
+  println("Large Array Deserialization run 3: " + testLargeArrayDeserialization() + "ms")
+  
+  println("Large Object Deserialization run 1: " + testLargeObjectDeserialization() + "ms")
+  println("Large Object Deserialization run 2: " + testLargeObjectDeserialization() + "ms")
+  println("Large Object Deserialization run 3: " + testLargeObjectDeserialization() + "ms")
+  
   lazy val jsvalue = Json.obj(
     "f1" -> Json.obj(
       "f1" -> "string",
@@ -54,6 +65,16 @@ object JsonPerformanceTest extends App {
 
   lazy val json = Json.stringify(jsvalue)
 
+  lazy val largeArrayJsValue = Json.obj(
+    "f1" -> Json.toJson((1 to 65536))
+  )
+
+  lazy val largeArrayJson = Json.stringify(largeArrayJsValue)
+
+  lazy val largeObjectJsValue = (1 to 8192).map(i => Json.obj("f" + i -> "obj")).reduce(_++_)
+
+  lazy val largeObjectJson = Json.stringify(largeObjectJsValue)
+
   def testSerialization(times: Int = 10000000, threads: Int = 100): Long = {
     runTest(times, threads) {
       Json.stringify(jsvalue)
@@ -63,6 +84,18 @@ object JsonPerformanceTest extends App {
   def testDeserialization(times: Int = 1000000, threads: Int = 100): Long = {
     runTest(times, threads) {
       Json.parse(json)
+    }
+  }
+
+  def testLargeArrayDeserialization(times: Int = 100, threads: Int = 10): Long = {
+    runTest(times, threads) {
+      Json.parse(largeArrayJson)
+    }
+  }
+
+  def testLargeObjectDeserialization(times: Int = 100, threads: Int = 100): Long = {
+    runTest(times, threads) {
+      Json.parse(largeObjectJson)
     }
   }
 
@@ -90,3 +123,5 @@ object JsonPerformanceTest extends App {
   }
 
 }
+
+

@@ -1,9 +1,13 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.mvc
 
 import play.api._
 import play.api.mvc.Results._
 
 import play.api.libs.iteratee._
+import scala.concurrent.Future
 
 /**
  * Helpers to create secure actions.
@@ -81,5 +85,116 @@ object Security {
     req => req.session.get(username),
     _ => Unauthorized(views.html.defaultpages.unauthorized()))(action)
 
+  /**
+   * An authenticated request
+   *
+   * @param user The user that made the request
+   */
+  class AuthenticatedRequest[A, U](val user: U, request: Request[A]) extends WrappedRequest[A](request)
+
+  /**
+   * An authenticated action builder.
+   *
+   * This can be used to create an action builder, like so:
+   *
+   * {{{
+   * // in a Security trait
+   * object Authenticated extends AuthenticatedBuilder(req => getUserFromRequest(req))
+   *
+   * // then in a controller
+   * def index = Authenticated { implicit request =>
+   *   Ok("Hello " + request.user)
+   * }
+   * }}}
+   *
+   * It can also be used from an action builder, for example:
+   *
+   * {{{
+   * class AuthenticatedDbRequest[A](val user: User,
+   *                                 val conn: Connection,
+   *                                 request: Request[A]) extends WrappedRequest[A](request)
+   *
+   * object Authenticated extends ActionBuilder[AuthenticatedDbRequest] {
+   *   def invokeBlock[A](request: Request[A], block: (AuthenticatedDbRequest[A]) => Future[SimpleResult]) = {
+   *     AuthenticatedBuilder(req => getUserFromRequest(req)).authenticate(request, { authRequest: AuthenticatedRequest[A, User] =>
+   *       DB.withConnection { conn =>
+   *         block(new AuthenticatedDbRequest[A](authRequest.user, conn, request))
+   *       }
+   *     })
+   *   }
+   * }
+   * }}}
+   *
+   * @param userinfo The function that looks up the user info.
+   * @param onUnauthorized The function to get the result for when no authenticated user can be found.
+   */
+  class AuthenticatedBuilder[U](userinfo: RequestHeader => Option[U],
+    onUnauthorized: RequestHeader => SimpleResult = _ => Unauthorized(views.html.defaultpages.unauthorized()))
+      extends ActionBuilder[({ type R[A] = AuthenticatedRequest[A, U] })#R] {
+
+    def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A, U]) => Future[SimpleResult]) =
+      authenticate(request, block)
+
+    /**
+     * Authenticate the given block.
+     */
+    def authenticate[A](request: Request[A], block: (AuthenticatedRequest[A, U]) => Future[SimpleResult]) = {
+      userinfo(request).map { user =>
+        block(new AuthenticatedRequest(user, request))
+      } getOrElse {
+        Future.successful(onUnauthorized(request))
+      }
+    }
+  }
+
+  /**
+   * An authenticated action builder.
+   *
+   * This can be used to create an action builder, like so:
+   *
+   * {{{
+   * // in a Security trait
+   * object Authenticated extends AuthenticatedBuilder(req => getUserFromRequest(req))
+   *
+   * // then in a controller
+   * def index = Authenticated { implicit request =>
+   *   Ok("Hello " + request.user)
+   * }
+   * }}}
+   *
+   * It can also be used from an action builder, for example:
+   *
+   * {{{
+   * class AuthenticatedDbRequest[A](val user: User,
+   *                                 val conn: Connection,
+   *                                 request: Request[A]) extends WrappedRequest[A](request)
+   *
+   * object Authenticated extends ActionBuilder[AuthenticatedDbRequest] {
+   *   def invokeBlock[A](request: Request[A], block: (AuthenticatedDbRequest[A]) => Future[SimpleResult]) = {
+   *     AuthenticatedBuilder(req => getUserFromRequest(req)).authenticate(request, { authRequest: AuthenticatedRequest[A, User] =>
+   *       DB.withConnection { conn =>
+   *         block(new AuthenticatedDbRequest[A](authRequest.user, conn, request))
+   *       }
+   *     })
+   *   }
+   * }
+   * }}}
+   */
+  object AuthenticatedBuilder {
+
+    /**
+     * Create an authenticated builder
+     *
+     * @param userinfo The function that looks up the user info.
+     * @param onUnauthorized The function to get the result for when no authenticated user can be found.
+     */
+    def apply[U](userinfo: RequestHeader => Option[U],
+      onUnauthorized: RequestHeader => SimpleResult = _ => Unauthorized(views.html.defaultpages.unauthorized())): AuthenticatedBuilder[U] = new AuthenticatedBuilder(userinfo, onUnauthorized)
+
+    /**
+     * Simple authenticated action builder that looks up the username from the session
+     */
+    def apply(): AuthenticatedBuilder[String] = apply[String](req => req.session.get(username))
+  }
 }
 

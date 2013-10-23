@@ -1,6 +1,7 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.libs.json
-
-import scala.language.reflectiveCalls
 
 import play.api.libs.iteratee.Execution.Implicits.defaultExecutionContext
 

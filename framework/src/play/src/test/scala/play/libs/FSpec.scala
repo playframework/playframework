@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.libs
 
 import java.util.Arrays
@@ -21,21 +24,15 @@ object FSpec extends Specification
 
     "yield its value" in {
       val fp = F.Promise.pure(1)
-      fp.get() must equalTo(1) // deprecated
       fp.get(5000) must equalTo(1)
-      fp.get(new java.lang.Long(5000)) must equalTo(1) // deprecated
       fp.get(5, SECONDS) must equalTo(1)
-      fp.get(new java.lang.Long(5), SECONDS) must equalTo(1) // deprecated
     }
 
     "throw its exception" in {
       val e = new RuntimeException("x")
       val fp = F.Promise.throwing[Int](e)
-      fp.get() must throwA(e) // deprecated
       fp.get(5000) must throwA(e)
-      fp.get(new java.lang.Long(5000)) must throwA(e) // deprecated
       fp.get(5, SECONDS) must throwA(e)
-      fp.get(new java.lang.Long(5), SECONDS) must throwA(e) // deprecated
       fp.get(5, SECONDS) must throwA(e)
     }
 
@@ -180,6 +177,46 @@ object FSpec extends Specification
         import F.Promise.pure
         F.Promise.sequence[Int](Arrays.asList(pure(1), pure(2), pure(3)): java.lang.Iterable[F.Promise[_ <: Int]], ec).get(5, SECONDS) must equalTo(Arrays.asList(1, 2, 3))
       }
+    }
+
+    "combine a sequence of promises from a iterable" in {
+      mustExecute(8) { ec =>
+        import F.Promise.pure
+        F.Promise.sequence[Int](Arrays.asList(pure(1), pure(2), pure(3)): java.lang.Iterable[F.Promise[_ <: Int]], ec).get(5, SECONDS) must equalTo(Arrays.asList(1, 2, 3))
+      }
+    }
+
+    "zip with another promise" in {
+      val pa = F.Promise.pure(1)
+      val pb = F.Promise.pure("hello")
+      val tup = pa.zip(pb).get(1, SECONDS)
+      tup._1 must equalTo(1)
+      tup._2 must equalTo("hello")
+    }
+
+    def orDriver(): (Promise[Int], Promise[String], F.Promise[F.Either[Int, String]]) = {
+      val pl = Promise[Int]()
+      val pr = Promise[String]()
+      val por = F.Promise.wrap(pl.future).or(F.Promise.wrap(pr.future))
+      (pl, pr, por)
+    }
+
+    "combine with another promise with 'or'" in {
+      val (pl, pr, por) = orDriver()
+      por.wrapped.isCompleted must beFalse
+      pl.success(1)
+      val result = por.get(1, SECONDS)
+      result.left.get must equalTo(1)
+      result.right.isDefined must beFalse
+    }
+
+    "combine with another promise with 'or'" in {
+      val (pl, pr, por) = orDriver()
+      por.wrapped.isCompleted must beFalse
+      pr.success("x")
+      val result = por.get(1, SECONDS)
+      result.left.isDefined must beFalse
+      result.right.get must equalTo("x")
     }
 
   }

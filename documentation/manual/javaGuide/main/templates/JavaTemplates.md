@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # The template engine
 
 ## A type safe template engine based on Scala
@@ -154,7 +155,7 @@ Note that you can also declare reusable pure code blocks:
 <h1>@title("hello world")</h1>
 ```
 
-> **Note:** Declaring code block this way in a template can be sometime useful but keep in mind that a template is not the best place to write complex logic. It is often better to externalize these kind of code in a Java class (that you can store under the `views/` package as well if your want).
+> **Note:** Declaring code block this way in a template can be sometime useful but keep in mind that a template is not the best place to write complex logic. It is often better to externalize these kind of code in a Java class (that you can store under the `views/` package as well if you want).
 
 By convention a reusable block defined with a name starting with **implicit** will be marked as `implicit`:
 
@@ -190,12 +191,10 @@ To make an absolute resolution, use **_root_** prefix in the import statement.
 @import _root_.company.product.core._
 ```
 
-If you have common imports, which you need in all templates, you can declare in `project/Build.scala`
+If you have common imports, which you need in all templates, you can declare in `build.sbt`
 
-```
-val main = play.Project(…).settings(
-  templatesImport += "com.abc.backend._"
-)
+```scala
+templatesImport += "com.abc.backend._"
 ```
 
 ## Comments

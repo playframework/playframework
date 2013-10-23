@@ -1,19 +1,21 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package controllers
 
 import play.api._
 import play.api.mvc._
 import play.api.libs._
 import play.api.libs.iteratee._
-
 import Play.current
-
 import java.io._
-import java.net.JarURLConnection
-import scalax.io.{ Resource }
+import java.net.{ URI, JarURLConnection }
 import org.joda.time.format.{ DateTimeFormatter, DateTimeFormat }
 import org.joda.time.DateTimeZone
 import collection.JavaConverters._
 import scala.util.control.NonFatal
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.utils.UriEncoding
 
 /**
  * Controller that serves static resources.
@@ -60,11 +62,10 @@ class AssetsBuilder extends Controller {
   /**
    * Generates an `Action` that serves a static resource.
    *
-   * @param path the root folder for searching the static resource files, such as `"/public"`
-   * @param file the file part extracted from the URL
+   * @param path the root folder for searching the static resource files, such as `"/public"`. Not URL encoded.
+   * @param file the file part extracted from the URL. May be URL encoded (note that %2F decodes to literal /).
    */
   def at(path: String, file: String): Action[AnyContent] = Action { request =>
-
     def parseDate(date: String): Option[java.util.Date] = try {
       //jodatime does not parse timezones, so we handle that manually
       val d = dfp.parseDateTime(date.replace(parsableTimezoneCode, "")).toDate
@@ -73,11 +74,7 @@ class AssetsBuilder extends Controller {
       case NonFatal(_) => None
     }
 
-    val resourceName = Option(path + "/" + file).map(name => if (name.startsWith("/")) name else ("/" + name)).get
-
-    if (new File(resourceName).isDirectory || !new File(resourceName).getCanonicalPath.startsWith(new File(path).getCanonicalPath)) {
-      NotFound
-    } else {
+    resourceNameAt(path, file).map { resourceName =>
 
       val gzippedResource = Play.resource(resourceName + ".gz")
 
@@ -163,6 +160,22 @@ class AssetsBuilder extends Controller {
 
       }.getOrElse(NotFound)
 
+    }.getOrElse(NotFound)
+  }
+
+  /**
+   * Get the name of the resource for a static resource. Used by `at`.
+   *
+   * @param path the root folder for searching the static resource files, such as `"/public"`. Not URL encoded.
+   * @param file the file part extracted from the URL. May be URL encoded (note that %2F decodes to literal /).
+   */
+  private[controllers] def resourceNameAt(path: String, file: String): Option[String] = {
+    val decodedFile = UriEncoding.decodePath(file, "utf-8")
+    val resourceName = Option(path + "/" + decodedFile).map(name => if (name.startsWith("/")) name else ("/" + name)).get
+    if (new File(resourceName).isDirectory || !new File(resourceName).getCanonicalPath.startsWith(new File(path).getCanonicalPath)) {
+      None
+    } else {
+      Some(resourceName)
     }
   }
 

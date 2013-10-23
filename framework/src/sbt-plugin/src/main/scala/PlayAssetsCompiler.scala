@@ -1,9 +1,12 @@
-package sbt
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
+package play
 
+import sbt._
+import sbt.Keys._
 import Keys._
-import PlayKeys._
 import PlayExceptions._
-import play.api.PlayException
 
 // ----- Assets
 trait PlayAssetsCompiler {

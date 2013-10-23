@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.libs.iteratee
 
 import play.api.libs.iteratee.Execution.Implicits.{ defaultExecutionContext => dec }
@@ -126,9 +129,9 @@ object Enumeratee {
    */
   def zipWith[E, A, B, C](inner1: Iteratee[E, A], inner2: Iteratee[E, B])(zipper: (A, B) => C)(implicit ec: ExecutionContext): Iteratee[E, C] = {
     val pec = ec.prepare()
+    import Execution.Implicits.{ defaultExecutionContext => ec } // Shadow ec to make this the only implicit EC in scope
 
     def getNext(it1: Iteratee[E, A], it2: Iteratee[E, B]): Iteratee[E, C] = {
-      import ExecutionContext.Implicits.global
       val eventuallyIter =
         for (
           (a1, it1_) <- getInside(it1);
@@ -145,7 +148,6 @@ object Enumeratee {
     }
 
     def step(it1: Iteratee[E, A], it2: Iteratee[E, B])(in: Input[E]) = {
-      import ExecutionContext.Implicits.global
       Iteratee.flatten(
         for (
           it1_ <- it1.feed(in);
@@ -178,16 +180,23 @@ object Enumeratee {
   }
 
   /**
+   * A partially-applied function returned by the `mapInput` method.
+   */
+  trait MapInput[From] {
+    /**
+     * @param f Used to transform each input element.
+     * $paramEcSingle
+     */
+    def apply[To](f: Input[From] => Input[To])(implicit ec: ExecutionContext): Enumeratee[From, To]
+  }
+
+  /**
    * Create an Enumeratee that transforms its input using the given function.
    *
    * This is like the `map` function, except that it allows the Enumeratee to, for example, send EOF to the inner
    * iteratee before EOF is encountered.
    */
-  def mapInput[From] = new {
-    /**
-     * @param f Used to transform each input element.
-     * $paramEcSingle
-     */
+  def mapInput[From] = new MapInput[From] {
     def apply[To](f: Input[From] => Input[To])(implicit ec: ExecutionContext) = new CheckDone[From, To] {
       val pec = ec.prepare()
 
@@ -204,41 +213,62 @@ object Enumeratee {
   }
 
   /**
-   * Create an enumeratee that transforms its input into a sequence of inputs for the target iteratee.
+   * A partially-applied function returned by the `mapConcatInput` method.
    */
-  def mapConcatInput[From] = new {
+  trait MapConcatInput[From] {
     /**
      * @param f Used to transform each input element into a sequence of inputs.
      * $paramEcSingle
      */
+    def apply[To](f: From => Seq[Input[To]])(implicit ec: ExecutionContext): Enumeratee[From, To]
+  }
+
+  /**
+   * Create an enumeratee that transforms its input into a sequence of inputs for the target iteratee.
+   */
+  def mapConcatInput[From] = new MapConcatInput[From] {
     def apply[To](f: From => Seq[Input[To]])(implicit ec: ExecutionContext) = mapFlatten[From](in => Enumerator.enumerateSeq2(f(in)))(ec)
+  }
+
+  /**
+   * A partially-applied function returned by the `mapConcat` method.
+   */
+  trait MapConcat[From] {
+    /**
+     * @param f Used to transform each input element into a sequence of input elements.
+     * $paramEcSingle
+     */
+    def apply[To](f: From => Seq[To])(implicit ec: ExecutionContext): Enumeratee[From, To]
   }
 
   /**
    * Create an Enumeratee that transforms its input elements into a sequence of input elements for the target Iteratee.
    */
-  def mapConcat[From] = new {
+  def mapConcat[From] = new MapConcat[From] {
+    def apply[To](f: From => Seq[To])(implicit ec: ExecutionContext) = mapFlatten[From](in => Enumerator.enumerateSeq1(f(in)))(ec)
+  }
+
+  /**
+   * A partially-applied function returned by the `mapFlatten` method.
+   */
+  trait MapFlatten[From] {
     /**
-     * @param f Used to transform each input element into a sequence of input elements.
+     * @param f Used to transform each input element into an Enumerator.
      * $paramEcSingle
      */
-    def apply[To](f: From => Seq[To])(implicit ec: ExecutionContext) = mapFlatten[From](in => Enumerator.enumerateSeq1(f(in)))(ec)
+    def apply[To](f: From => Enumerator[To])(implicit ec: ExecutionContext): Enumeratee[From, To]
   }
 
   /**
    * Create an Enumeratee that transforms its input elements into an Enumerator that is fed into the target Iteratee.
    */
-  def mapFlatten[From] = new {
-    /**
-     * @param f Used to transform each input element into an Enumerator.
-     * $paramEcSingle
-     */
+  def mapFlatten[From] = new MapFlatten[From] {
     def apply[To](f: From => Enumerator[To])(implicit ec: ExecutionContext) = new CheckDone[From, To] {
       val pec = ec.prepare()
 
       def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
         case Input.El(e) =>
-          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(Future(f(e))(pec).flatMap(_(Cont(k)))(dec))
+          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(Future(f(e))(pec).flatMap(_.apply(Cont(k)))(dec))
 
         case in @ Input.Empty =>
           new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(in)
@@ -251,18 +281,26 @@ object Enumeratee {
   }
 
   /**
-   * Create an Enumeratee that transforms its input into an Enumerator that is fed into the target Iteratee.
+   * A partially-applied function returned by the `mapInputFlatten` method.
    */
-  def mapInputFlatten[From] = new {
+  trait MapInputFlatten[From] {
     /**
      * @param f Used to transform each input into an Enumerator.
      * $paramEcSingle
      */
-    def apply[To](f: Input[From] => Enumerator[To]) = new CheckDone[From, To] {
+    def apply[To](f: Input[From] => Enumerator[To])(implicit ec: ExecutionContext): Enumeratee[From, To]
+  }
+
+  /**
+   * Create an Enumeratee that transforms its input into an Enumerator that is fed into the target Iteratee.
+   */
+  def mapInputFlatten[From] = new MapInputFlatten[From] {
+    def apply[To](f: Input[From] => Enumerator[To])(implicit ec: ExecutionContext) = new CheckDone[From, To] {
+      val pec = ec.prepare()
 
       def step[A](k: K[To, A]): K[From, Iteratee[To, A]] = {
         case in =>
-          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(f(in)(Cont(k)))
+          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(Future(f(in))(pec).flatMap(_.apply(Cont(k)))(dec))
       }
 
       def continue[A](k: K[To, A]) = Cont(step(k))
@@ -270,13 +308,20 @@ object Enumeratee {
   }
 
   /**
-   * Like `mapInput`, but allows the map function to asynchronously return the mapped input.
+   * A partially-applied function returned by the `mapInputM` method.
    */
-  def mapInputM[From] = new {
+  trait MapInputM[From] {
     /**
      * @param f Used to transform each input.
      * $paramEcSingle
      */
+    def apply[To](f: Input[From] => Future[Input[To]])(implicit ec: ExecutionContext): Enumeratee[From, To]
+  }
+
+  /**
+   * Like `mapInput`, but allows the map function to asynchronously return the mapped input.
+   */
+  def mapInputM[From] = new MapInputM[From] {
     def apply[To](f: Input[From] => Future[Input[To]])(implicit ec: ExecutionContext) = new CheckDone[From, To] {
       val pec = ec.prepare()
 
@@ -292,13 +337,20 @@ object Enumeratee {
   }
 
   /**
-   * Like `map`, but allows the map function to asynchronously return the mapped element.
+   * A partially-applied function returned by the `mapM` method.
    */
-  def mapM[E] = new {
+  trait MapM[E] {
     /**
      * @param f Used to transform each input element.
      * $paramEcSingle
      */
+    def apply[NE](f: E => Future[NE])(implicit ec: ExecutionContext): Enumeratee[E, NE]
+  }
+
+  /**
+   * Like `map`, but allows the map function to asynchronously return the mapped element.
+   */
+  def mapM[E] = new MapM[E] {
     def apply[NE](f: E => Future[NE])(implicit ec: ExecutionContext): Enumeratee[E, NE] = mapInputM[E] {
       case Input.Empty => Future.successful(Input.Empty)
       case Input.EOF => Future.successful(Input.EOF)
@@ -307,13 +359,20 @@ object Enumeratee {
   }
 
   /**
-   * Create an Enumeratee which transforms its input using a given function
+   * A partially-applied function returned by the `map` method.
    */
-  def map[E] = new {
+  trait Map[E] {
     /**
      * @param f A function to transform input elements.
      * $paramEcSingle
      */
+    def apply[NE](f: E => NE)(implicit ec: ExecutionContext): Enumeratee[E, NE]
+  }
+
+  /**
+   * Create an Enumeratee which transforms its input using a given function
+   */
+  def map[E] = new Map[E] {
     def apply[NE](f: E => NE)(implicit ec: ExecutionContext): Enumeratee[E, NE] = mapInput[E](in => in.map(f))(ec)
   }
 
@@ -343,7 +402,14 @@ object Enumeratee {
 
   }
 
-  def scanLeft[From] = new {
+  /**
+   * A partially-applied function returned by the `scanLeft` method.
+   */
+  trait ScanLeft[From] {
+    def apply[To](seed: To)(f: (To, From) => To): Enumeratee[From, To]
+  }
+
+  def scanLeft[From] = new ScanLeft[From] {
 
     def apply[To](seed: To)(f: (To, From) => To): Enumeratee[From, To] = new CheckDone[From, To] {
 
@@ -362,6 +428,13 @@ object Enumeratee {
 
       def continue[A](k: K[To, A]) = Cont(step(seed)(k))
     }
+  }
+
+  /**
+   * A partially-applied function returned by the `grouped` method.
+   */
+  trait Grouped[From] {
+    def apply[To](folder: Iteratee[From, To]): Enumeratee[From, To]
   }
 
   /**
@@ -384,7 +457,7 @@ object Enumeratee {
    * def asLines = Enumeratee.grouped(takeLine)
    * }}}
    */
-  def grouped[From] = new {
+  def grouped[From] = new Grouped[From] {
 
     def apply[To](folder: Iteratee[From, To]): Enumeratee[From, To] = new CheckDone[From, To] {
 
@@ -447,15 +520,21 @@ object Enumeratee {
   def filterNot[E](predicate: E => Boolean)(implicit ec: ExecutionContext): Enumeratee[E, E] = filter[E](e => !predicate(e))(ec)
 
   /**
-   * Create an Enumeratee that both filters and transforms its input. The input is transformed by the given
-   * PartialFunction. If the PartialFunction isn't defined for an input element then that element is discarded.
+   * A partially-applied function returned by the `collect` method.
    */
-  def collect[From] = new {
-
+  trait Collect[From] {
     /**
      * @param transformer A function to transform and filter the input elements with.
      * $paramSingleEc
      */
+    def apply[To](transformer: PartialFunction[From, To])(implicit ec: ExecutionContext): Enumeratee[From, To]
+  }
+
+  /**
+   * Create an Enumeratee that both filters and transforms its input. The input is transformed by the given
+   * PartialFunction. If the PartialFunction isn't defined for an input element then that element is discarded.
+   */
+  def collect[From] = new Collect[From] {
     def apply[To](transformer: PartialFunction[From, To])(implicit ec: ExecutionContext): Enumeratee[From, To] = new CheckDone[From, To] {
       val pec = ec.prepare()
 

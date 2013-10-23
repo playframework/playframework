@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.libs {
 
   /**
@@ -21,13 +24,19 @@ package play.api.libs.iteratee {
     /**
      * Executes code immediately on the current thread, returning a successful or failed Future depending on
      * the result.
+     *
+     * TODO: Rename to `tryFuture`.
      */
     def eagerFuture[A](body: => A): Future[A] = try Future.successful(body) catch { case NonFatal(e) => Future.failed(e) }
 
     /**
      * Executes code in the given ExecutionContext, flattening the resulting Future.
      */
-    def executeFuture[A](body: => Future[A])(implicit ec: ExecutionContext): Future[A] = Future(body)(ec).flatMap(identity)(Execution.sameThreadExecutionContext)
+    def executeFuture[A](body: => Future[A])(implicit ec: ExecutionContext): Future[A] = {
+      Future {
+        body
+      }(ec /* Future.apply will prepare */ ).flatMap(identityFunc.asInstanceOf[Future[A] => Future[A]])(Execution.overflowingExecutionContext)
+    }
 
     /**
      * Executes code in the given ExecutionContext, flattening the resulting Iteratee.
@@ -47,5 +56,7 @@ package play.api.libs.iteratee {
       val pec = ec.prepare()
       f(pec)
     }
+
+    val identityFunc: (Any => Any) = (x: Any) => x
   }
 }

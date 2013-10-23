@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.libs.ws
 
 import org.specs2.mutable._
@@ -20,6 +23,31 @@ object WSSpec extends Specification with Mockito {
        req.getQueryParams.get("foo").contains("foo2") must beTrue
        req.getQueryParams.get("foo").size must equalTo (2)
     }
+
+    "support a proxy server" in {
+      val proxy = ProxyServer(protocol = Some("https"), host = "localhost", port = 8080, principal = Some("principal"), password = Some("password"))
+      val req = WS.url("http://playframework.com/").withProxyServer(proxy).prepare("GET").build
+      val actual = req.getProxyServer
+
+      actual.getProtocolAsString must be equalTo "https"
+      actual.getHost must be equalTo "localhost"
+      actual.getPort must be equalTo 8080
+      actual.getPrincipal must be equalTo "principal"
+      actual.getPassword must be equalTo "password"
+    }
+
+    "support a proxy server" in {
+      val proxy = ProxyServer(host = "localhost", port = 8080)
+      val req = WS.url("http://playframework.com/").withProxyServer(proxy).prepare("GET").build
+      val actual = req.getProxyServer
+
+      actual.getProtocolAsString must be equalTo "http"
+      actual.getHost must be equalTo "localhost"
+      actual.getPort must be equalTo 8080
+      actual.getPrincipal must beNull
+      actual.getPassword must beNull
+    }
+
   }
 
   "WS Response" should {

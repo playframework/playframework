@@ -6,6 +6,8 @@ import play.api.Play.current
 import anorm._
 import anorm.SqlParser._
 
+import scala.language.postfixOps
+
 case class Project(id: Pk[Long], folder: String, name: String)
 
 object Project {

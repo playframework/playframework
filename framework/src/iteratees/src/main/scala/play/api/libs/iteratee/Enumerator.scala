@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.libs.iteratee
 
 import play.api.libs.iteratee.Execution.Implicits.{ defaultExecutionContext => dec }
@@ -141,9 +144,9 @@ trait Enumerator[E] {
    */
   def flatMap[U](f: E => Enumerator[U])(implicit ec: ExecutionContext): Enumerator[U] = {
     val pec = ec.prepare()
+    import Execution.Implicits.{ defaultExecutionContext => ec } // Shadow ec to make this the only implicit EC in scope
     new Enumerator[U] {
       def apply[A](iteratee: Iteratee[U, A]): Future[Iteratee[U, A]] = {
-        import ExecutionContext.Implicits.global
         val folder = Iteratee.fold2[E, Iteratee[U, A]](iteratee) { (it, e) =>
           for {
             en <- Future(f(e))(pec)
@@ -202,7 +205,6 @@ object Enumerator {
   def interleave[E](es: Seq[Enumerator[E]]): Enumerator[E] = new Enumerator[E] {
 
     import scala.concurrent.stm._
-    import ExecutionContext.Implicits.global
 
     def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
 
@@ -277,12 +279,11 @@ object Enumerator {
   def interleave[E1, E2 >: E1](e1: Enumerator[E1], e2: Enumerator[E2]): Enumerator[E2] = new Enumerator[E2] {
 
     import scala.concurrent.stm._
-    import ExecutionContext.Implicits.global
 
     def apply[A](it: Iteratee[E2, A]): Future[Iteratee[E2, A]] = {
 
       val iter: Ref[Iteratee[E2, A]] = Ref(it)
-      val attending: Ref[Option[(Boolean, Boolean)]] = Ref(Some(true, true))
+      val attending: Ref[Option[(Boolean, Boolean)]] = Ref(Some(true -> true))
       val result = Promise[Iteratee[E2, A]]()
 
       def redeemResultIfNotYet(r: Iteratee[E2, A]) {
@@ -386,13 +387,15 @@ object Enumerator {
    * @param s The value to unfold
    * @param f The unfolding function. This will take the value, and return some tuple of the next value to unfold and
    *          the next input, or none if the value is completely unfolded.
+   * $paramEcSingle
    */
-  def unfold[S, E](s: S)(f: S => Option[(S, E)]): Enumerator[E] = checkContinue1(s)(new TreatCont1[E, S] {
+  def unfold[S, E](s: S)(f: S => Option[(S, E)])(implicit ec: ExecutionContext): Enumerator[E] = checkContinue1(s)(new TreatCont1[E, S] {
+    val pec = ec.prepare()
 
-    def apply[A](loop: (Iteratee[E, A], S) => Future[Iteratee[E, A]], s: S, k: Input[E] => Iteratee[E, A]): Future[Iteratee[E, A]] = f(s) match {
+    def apply[A](loop: (Iteratee[E, A], S) => Future[Iteratee[E, A]], s: S, k: Input[E] => Iteratee[E, A]): Future[Iteratee[E, A]] = Future(f(s))(pec).flatMap {
       case Some((s, e)) => loop(k(Input.El(e)), s)
       case None => Future.successful(Cont(k))
-    }
+    }(dec)
   })
 
   /**
@@ -493,7 +496,7 @@ object Enumerator {
     val pec = ec.prepare()
     def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = {
 
-      var iterateeP = Promise[Iteratee[E, A]]()
+      val iterateeP = Promise[Iteratee[E, A]]()
 
       def step(it: Iteratee[E, A], initial: Boolean = false) {
 
@@ -537,7 +540,8 @@ object Enumerator {
    * @param input The input stream
    * @param chunkSize The size of chunks to read from the stream.
    */
-  def fromStream(input: java.io.InputStream, chunkSize: Int = 1024 * 8): Enumerator[Array[Byte]] = {
+  def fromStream(input: java.io.InputStream, chunkSize: Int = 1024 * 8)(implicit ec: ExecutionContext): Enumerator[Array[Byte]] = {
+    implicit val pec = ec.prepare()
     generateM({
       val buffer = new Array[Byte](chunkSize)
       val chunk = input.read(buffer) match {
@@ -548,7 +552,7 @@ object Enumerator {
           Some(input)
       }
       Future.successful(chunk)
-    })(dec).onDoneEnumerating(input.close)(dec)
+    })(pec).onDoneEnumerating(input.close)(pec)
   }
 
   /**
@@ -559,14 +563,14 @@ object Enumerator {
    * @param file The file to create the enumerator from.
    * @param chunkSize The size of chunks to read from the file.
    */
-  def fromFile(file: java.io.File, chunkSize: Int = 1024 * 8): Enumerator[Array[Byte]] = {
-    fromStream(new java.io.FileInputStream(file), chunkSize)
+  def fromFile(file: java.io.File, chunkSize: Int = 1024 * 8)(implicit ec: ExecutionContext): Enumerator[Array[Byte]] = {
+    fromStream(new java.io.FileInputStream(file), chunkSize)(ec)
   }
 
   /**
    * Create an Enumerator of bytes with an OutputStream.
    *
-   * Not that calls to write will not block, so if the iteratee that is being fed to is slow to consume the input, the
+   * Note that calls to write will not block, so if the iteratee that is being fed to is slow to consume the input, the
    * OutputStream will not push back.  This means it should not be used with large streams since there is a risk of
    * running out of memory.
    *
@@ -607,10 +611,17 @@ object Enumerator {
    *   val enumerator: Enumerator[String] = Enumerator("kiki", "foo", "bar")
    * }}}
    */
-  def apply[E](in: E*): Enumerator[E] = new Enumerator[E] {
-
-    def apply[A](i: Iteratee[E, A]): Future[Iteratee[E, A]] = enumerateSeq(in, i)
-
+  def apply[E](in: E*): Enumerator[E] = in.length match {
+    case 0 => Enumerator.empty
+    case 1 => new Enumerator[E] {
+      def apply[A](i: Iteratee[E, A]): Future[Iteratee[E, A]] = i.pureFoldNoEC {
+        case Step.Cont(k) => k(Input.El(in.head))
+        case _ => i
+      }
+    }
+    case _ => new Enumerator[E] {
+      def apply[A](i: Iteratee[E, A]): Future[Iteratee[E, A]] = enumerateSeq(in, i)
+    }
   }
 
   /**

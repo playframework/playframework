@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.core.server
 
 import org.jboss.netty.channel._
@@ -8,7 +11,7 @@ import org.jboss.netty.channel.group._
 import org.jboss.netty.handler.ssl._
 
 import java.security._
-import java.net.{ InetSocketAddress }
+import java.net.InetSocketAddress
 import javax.net.ssl._
 import java.util.concurrent._
 
@@ -185,6 +188,12 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
     // Release the HTTPS server if needed
     HTTPS.foreach(_._1.releaseExternalResources())
 
+    mode match {
+      case Mode.Dev =>
+        Invoker.lazySystem.close()
+        Execution.lazyContext.close()
+      case _ => ()
+    }
   }
 
   override lazy val mainAddress = {
@@ -269,29 +278,44 @@ object NettyServer {
    * @param args
    */
   def main(args: Array[String]) {
-    args.headOption.orElse(
-      Option(System.getProperty("user.dir"))).map(new File(_)).filter(p => p.exists && p.isDirectory).map { applicationPath =>
-        createServer(applicationPath).getOrElse(System.exit(-1))
+    args.headOption
+      .orElse(Option(System.getProperty("user.dir")))
+      .map { applicationPath =>
+        val applicationFile = new File(applicationPath)
+        if (!(applicationFile.exists && applicationFile.isDirectory)) {
+          println("Bad application path: " + applicationPath)
+        } else {
+          createServer(applicationFile).getOrElse(System.exit(-1))
+        }
       }.getOrElse {
-        println("Not a valid Play application")
+        println("No application path supplied")
       }
   }
 
-  def mainDevOnlyHttpsMode(sbtLink: SBTLink, httpsPort: Int): NettyServer = {
-    mainDev(sbtLink, None, Some(httpsPort))
+  /**
+   * Provides an HTTPS-only NettyServer for the dev environment.
+   *
+   * <p>This method uses simple Java types so that it can be used with reflection by code
+   * compiled with different versions of Scala.
+   */
+  def mainDevOnlyHttpsMode(sbtLink: SBTLink, sbtDocHandler: SBTDocHandler, httpsPort: Int): NettyServer = {
+    mainDev(sbtLink, sbtDocHandler, None, Some(httpsPort))
   }
 
   /**
-   * provides a NettyServer for the dev environment
+   * Provides an HTTP NettyServer for the dev environment
+   *
+   * <p>This method uses simple Java types so that it can be used with reflection by code
+   * compiled with different versions of Scala.
    */
-  def mainDevHttpMode(sbtLink: SBTLink, httpPort: Int): NettyServer = {
-    mainDev(sbtLink, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt(_)))
+  def mainDevHttpMode(sbtLink: SBTLink, sbtDocHandler: SBTDocHandler, httpPort: Int): NettyServer = {
+    mainDev(sbtLink, sbtDocHandler, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt(_)))
   }
 
-  private def mainDev(sbtLink: SBTLink, httpPort: Option[Int], httpsPort: Option[Int]): NettyServer = {
+  private def mainDev(sbtLink: SBTLink, sbtDocHandler: SBTDocHandler, httpPort: Option[Int], httpsPort: Option[Int]): NettyServer = {
     play.utils.Threads.withContextClassLoader(this.getClass.getClassLoader) {
       try {
-        val appProvider = new ReloadableApplication(sbtLink)
+        val appProvider = new ReloadableApplication(sbtLink, sbtDocHandler)
         new NettyServer(appProvider, httpPort,
           httpsPort,
           mode = Mode.Dev)

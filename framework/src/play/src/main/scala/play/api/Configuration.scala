@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api
 
 import java.io._
@@ -98,6 +101,7 @@ object Configuration {
     }
   }
 
+  private[Configuration] def asScalaList[A](l: java.util.List[A]): Seq[A] = asScalaBufferConverter(l).asScala.toList
 }
 
 /**
@@ -108,6 +112,7 @@ object Configuration {
  * @param underlying the underlying Config implementation
  */
 case class Configuration(underlying: Config) {
+  import Configuration.asScalaList
 
   /**
    * Merge 2 configurations.
@@ -243,7 +248,7 @@ case class Configuration(underlying: Config) {
    * For example:
    * {{{
    * val configuration = Configuration.load()
-   * val engineConfig = configuration.getSub("engine")
+   * val engineConfig = configuration.getConfig("engine")
    * }}}
    *
    * The root key of this new configuration will be ‘engine’, and you can access any sub-keys relatively.
@@ -322,6 +327,26 @@ case class Configuration(underlying: Config) {
   def getBooleanList(path: String): Option[java.util.List[java.lang.Boolean]] = readValue(path, underlying.getBooleanList(path))
 
   /**
+   * Retrieves a configuration value as a Seq of `Boolean`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val switches = configuration.getBooleanSeq("board.switches")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * board.switches = [true, true, false]
+   * }}}
+   *
+   * A configuration error will be thrown if the configuration value is not a valid `Boolean`.
+   * Authorized vales are `yes/no or true/false.
+   */
+  def getBooleanSeq(path: String): Option[Seq[java.lang.Boolean]] = getBooleanList(path).map(asScalaList)
+
+  /**
    * Retrieves a configuration value as a List of `Bytes`.
    *
    * For example:
@@ -339,6 +364,23 @@ case class Configuration(underlying: Config) {
   def getBytesList(path: String): Option[java.util.List[java.lang.Long]] = readValue(path, underlying.getBytesList(path))
 
   /**
+   * Retrieves a configuration value as a Seq of `Bytes`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val maxSizes = configuration.getBytesSeq("engine.maxSizes")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * engine.maxSizes = [512k, 256k, 256k]
+   * }}}
+   */
+  def getBytesSeq(path: String): Option[Seq[java.lang.Long]] = getBytesList(path).map(asScalaList)
+
+  /**
    * Retrieves a List of sub-configurations, i.e. a configuration instance for each key that matches the path.
    *
    * For example:
@@ -350,6 +392,19 @@ case class Configuration(underlying: Config) {
    * The root key of this new configuration will be "engine", and you can access any sub-keys relatively.
    */
   def getConfigList(path: String): Option[java.util.List[Configuration]] = readValue[java.util.List[_ <: Config]](path, underlying.getConfigList(path)).map { configs => configs.asScala.map(Configuration(_)).asJava }
+
+  /**
+   * Retrieves a Seq of sub-configurations, i.e. a configuration instance for each key that matches the path.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val engineConfigs = configuration.getConfigSeq("engine")
+   * }}}
+   *
+   * The root key of this new configuration will be "engine", and you can access any sub-keys relatively.
+   */
+  def getConfigSeq(path: String): Option[Seq[Configuration]] = getConfigList(path).map(asScalaList)
 
   /**
    * Retrieves a configuration value as a List of `Double`.
@@ -369,6 +424,23 @@ case class Configuration(underlying: Config) {
   def getDoubleList(path: String): Option[java.util.List[java.lang.Double]] = readValue(path, underlying.getDoubleList(path))
 
   /**
+   * Retrieves a configuration value as a Seq of `Double`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val maxSizes = configuration.getDoubleSeq("engine.maxSizes")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * engine.maxSizes = [5.0, 3.34, 2.6]
+   * }}}
+   */
+  def getDoubleSeq(path: String): Option[Seq[java.lang.Double]] = getDoubleList(path).map(asScalaList)
+
+  /**
    * Retrieves a configuration value as a List of `Integer`.
    *
    * For example:
@@ -384,6 +456,23 @@ case class Configuration(underlying: Config) {
    * }}}
    */
   def getIntList(path: String): Option[java.util.List[java.lang.Integer]] = readValue(path, underlying.getIntList(path))
+
+  /**
+   * Retrieves a configuration value as a Seq of `Integer`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val maxSizes = configuration.getIntSeq("engine.maxSizes")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * engine.maxSizes = [100, 500, 2]
+   * }}}
+   */
+  def getIntSeq(path: String): Option[Seq[java.lang.Integer]] = getIntList(path).map(asScalaList)
 
   /**
    * Gets a list value (with any element type) as a ConfigList, which implements java.util.List<ConfigValue>.
@@ -420,6 +509,23 @@ case class Configuration(underlying: Config) {
   def getLongList(path: String): Option[java.util.List[java.lang.Long]] = readValue(path, underlying.getLongList(path))
 
   /**
+   * Retrieves a configuration value as a Seq of `Long`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val maxSizes = configuration.getLongSeq("engine.maxSizes")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * engine.maxSizes = [10000000000000, 500, 2000]
+   * }}}
+   */
+  def getLongSeq(path: String): Option[Seq[java.lang.Long]] = getLongList(path).map(asScalaList)
+
+  /**
    * Retrieves a configuration value as List of `Milliseconds`.
    *
    * For example:
@@ -435,6 +541,23 @@ case class Configuration(underlying: Config) {
    * }}}
    */
   def getMillisecondsList(path: String): Option[java.util.List[java.lang.Long]] = readValue(path, underlying.getMillisecondsList(path))
+
+  /**
+   * Retrieves a configuration value as Seq of `Milliseconds`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val timeouts = configuration.getMillisecondsSeq("engine.timeouts")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * engine.timeouts = [1 second, 1 second]
+   * }}}
+   */
+  def getMillisecondsSeq(path: String): Option[Seq[java.lang.Long]] = getMillisecondsList(path).map(asScalaList)
 
   /**
    * Retrieves a configuration value as List of `Nanoseconds`.
@@ -454,6 +577,23 @@ case class Configuration(underlying: Config) {
   def getNanosecondsList(path: String): Option[java.util.List[java.lang.Long]] = readValue(path, underlying.getNanosecondsList(path))
 
   /**
+   * Retrieves a configuration value as Seq of `Nanoseconds`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val timeouts = configuration.getNanosecondsSeq("engine.timeouts")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * engine.timeouts = [1 second, 1 second]
+   * }}}
+   */
+  def getNanosecondsSeq(path: String): Option[Seq[java.lang.Long]] = getNanosecondsList(path).map(asScalaList)
+
+  /**
    * Retrieves a configuration value as a List of `Number`.
    *
    * For example:
@@ -469,6 +609,23 @@ case class Configuration(underlying: Config) {
    * }}}
    */
   def getNumberList(path: String): Option[java.util.List[java.lang.Number]] = readValue(path, underlying.getNumberList(path))
+
+  /**
+   * Retrieves a configuration value as a Seq of `Number`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val maxSizes = configuration.getNumberSeq("engine.maxSizes")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * engine.maxSizes = [50, 500, 5000]
+   * }}}
+   */
+  def getNumberSeq(path: String): Option[Seq[java.lang.Number]] = getNumberList(path).map(asScalaList)
 
   /**
    * Retrieves a configuration value as a List of `ConfigObject`.
@@ -503,6 +660,23 @@ case class Configuration(underlying: Config) {
    * }}}
    */
   def getStringList(path: String): Option[java.util.List[java.lang.String]] = readValue(path, underlying.getStringList(path))
+
+  /**
+   * Retrieves a configuration value as a Seq of `String`.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * val names = configuration.getStringSeq("names")
+   * }}}
+   *
+   * The configuration must be provided as:
+   *
+   * {{{
+   * names = ["Jim", "Bob", "Steve"]
+   * }}}
+   */
+  def getStringSeq(path: String): Option[Seq[java.lang.String]] = getStringList(path).map(asScalaList)
 
   /**
    * Retrieves a ConfigObject for this path, which implements Map<String,ConfigValue>

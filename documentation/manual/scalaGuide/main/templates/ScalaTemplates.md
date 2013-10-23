@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # The template engine
 
 ## A type safe template engine based on Scala
@@ -123,12 +124,10 @@ To make an absolute resolution, use **_root_** prefix in the import statement.
 
 @[absolute](code/scalaguide/templates/importStatement.scala.html)
 
-If you have common imports, which you need in all templates, you can declare in `project/Build.scala`
+If you have common imports, which you need in all templates, you can declare in `build.sbt`
 
 ```scala
-val main = play.Project(…).settings(
-  templatesImport += "com.abc.backend._"
-)
+templatesImport += "com.abc.backend._"
 ```
 
 ## Comments

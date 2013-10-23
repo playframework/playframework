@@ -1,8 +1,9 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Starting up the project
 
 ## Introduction
 
-In this tutorial you will learn the Play Framework by coding a real web application, from start to finish.  In this application, we will try to use everything you would need in a real project, while introducing good practices for play application development.
+In this tutorial you will learn the Play Framework by coding a real web application, from start to finish.  In this application, we will try to use everything you would need in a real project, while introducing good practices for Play application development.
 
 We have split the tutorial into several independent parts.  Each part will introduce more complex features, and provide everything that a real project needs: validation, error handling, a complete security framework, an automated test suite, a shiny web interface, an administration area etc.
 
@@ -16,7 +17,7 @@ We will call this task engine project **ZenTasks**.
 
 [[images/zentasks.png]]
 
-> This tutorial is also destributed as a sample application. You can find the final code in the `samples/java/zentasks` directory of your play installation.
+> This tutorial is also distributed as a sample application. You can find the final code in the `samples/java/zentasks` directory of your Play installation.
 
 ## Prerequisites
 
@@ -26,25 +27,27 @@ As we will use the command line a lot, it's better to use a Unix-like OS.  If yo
 
 We will assume that you already have knowledge of Java and Web development (especially HTML, CSS and Javascript). However you don't need to have a deep knowledge of all the JEE components.  Play is a 'full stack' Java framework and it provides or encapsulates all the parts of the Java API that you will need.  No need to know how to configure a JPA entity manager or deploy a JEE component.
 
-You will of course need a text editor.  If you are accustomed to using a full featured Java IDE like Eclipse or IntelliJ you can of course use it.  However with play you can have fun working with a simple text editor like Textmate, Emacs or VI.  This is because the framework manages the compilation and the deployment process itself, as we will soon see...
+You will, of course, need a text editor.  If you are accustomed to using a full featured Java IDE like Eclipse or IntelliJ you can, of course, use it.  However with Play you can have fun working with a simple text editor like Textmate, Emacs or VI.  This is because the framework manages the compilation and the deployment process itself, as we will soon see...
 
-Later in this tutorial we will use Lighttpd and MySql to show how to deploy a play application in 'production' mode. But Play can work without these components so if you can't install them, it's not a problem.
+Later in this tutorial we will use Lighttpd and MySql to show how to deploy a Play application in 'production' mode. But Play can work without these components so if you can't install them, it's not a problem.
 
-## Installation of the play framework
+## Installation of the Play Framework
 
 Installation is very simple.  Just download the latest binary backage from the download page and unzip it to any path.
 
-> If you're using windows, it is generally a good idea to avoid space characters in the path, so for example `c:\play` would be a better choice than `c:\Documents And Settings\user\play.`
+> If you're using Windows, it is generally a good idea to avoid space characters in the path, so for example `c:\play` would be a better choice than `c:\Documents And Settings\user\play.`
 
-To work efficiently, you need to add the play directory to your working path.  It allows you to just type `play` at the command prompt to use the play utility.  To check that the installation worked, just open a new command line and type `play`; it should show you the play basic usage help.
+To work efficiently, you need to add the Play directory to your working path.  It allows you to just type `play` at the command prompt to use the Play utility.  To check that the installation worked, just open a new command line and type `play`; it should show you the Play basic usage help.
 
 ## Project creation
 
-Now that play is correctly installed, it's time to create the task application.  Creating a play application is pretty easy and fully managed by the play command line utility.  That allows for standard project layouts between all play applications.
+Now that Play is correctly installed, it's time to create the task application.  Creating a Play application is pretty easy and fully managed by the Play command line utility.  That allows for standard project layouts between all Play applications.
 
 Open a new command line and type:
 
-    ~$ play new zentasks
+```bash
+$ play new zentasks
+```
 
 It will prompt you for the application full name.  Type **'ZenTasks'**.  It will then prompt you for a template to use.  We are creating a Java application, so type **2**.
 
@@ -60,17 +63,17 @@ The `play new` command creates a new directory `zentasks/` and populates it with
 
 `public/` contains all the publicly available resources, which includes Javascript files, stylesheets and images directories.
 
-`project/` contains the project build files, which is in particular where you can declare dependencies on other libraries and plugins for the play framework.
+`project/` contains the project build files, which is in particular where you can declare dependencies on other libraries and plugins for the Play Framework.
 
 `test/` contains all the application tests.  Tests are written either as Java JUnit tests or as Selenium tests.
 
-> Because **play uses UTF-8** as the single encoding, it's very important that all text files hosted in these directories are encoded using this charset.  Make sure to configure your text editor accordingly.
+> Because **Play uses UTF-8** as the single encoding, it's very important that all text files hosted in these directories are encoded using this charset.  Make sure to configure your text editor accordingly.
 
-Now if you're a seasoned Java developer, you may wonder where all the .class files go.  The answer is nowhere: play doesn't use any class files; instead it reads the java source files directly.  Under the hood we use the SBT compiler to compile Java sources on the fly.
+Now if you're a seasoned Java developer, you may wonder where all the .class files go.  The answer is nowhere: Play doesn't use any class files; instead it reads the java source files directly.  Under the hood we use the SBT compiler to compile Java sources on the fly.
 
-That allows two very important things in the development process.  The first one is that play will detect changes you make to any Java source file and automatically reload them at runtime.  The second is that when a Java exception occurs, play will create better error reports showing you the exact source code.
+That allows two very important things in the development process.  The first one is that Play will detect changes you make to any Java source file and automatically reload them at runtime.  The second is that when a Java exception occurs, Play will create better error reports showing you the exact source code.
 
-> In fact play can keep a bytecode cache in the application `/target` directory, but only to speed up things between restart on large applications.  You can discard this cache using the `play clean` command if needed.
+> In fact Play can keep a bytecode cache in the application `/target` directory, but only to speed up things between restart on large applications.  You can discard this cache using the `play clean` command if needed.
 
 ## Running the application
 
@@ -86,7 +89,7 @@ The main entry point of your application is the `conf/routes` file.  This file d
 
     GET     /                           controllers.Application.index()
 
-That simply tells play that when the web server receives a `GET` request for the `/` path, it must call the `controllers.Application.index()` Java method.
+That simply tells Play that when the web server receives a `GET` request for the `/` path, it must call the `controllers.Application.index()` Java method.
 
 When you create standalone Java applications you generally use a single entry point defined by a method such as:
 
@@ -96,7 +99,7 @@ public static void main(String[] args) {
 } 
 ```
 
-A play application has several entry points, one for each URL.  We call these methods **'action'** methods. Action methods are defined in special classes that we call **'controllers'**.
+A Play application has several entry points, one for each URL.  We call these methods **'action'** methods. Action methods are defined in special classes that we call **'controllers'**.
 
 Let's see what the `controllers.Application` controller looks like.  Open the `app/controllers/Application.java` source file:
 
@@ -175,7 +178,7 @@ Note the argument declaration, this time we are accepting a `title` parameter, a
 
 The `content` argument is obtained by executing the block inside the curly braces after the `@main` directive.  You can see `@content` is then inserted between the `<body>` tags, in this way we have used template composition to wrap content from one template in another template.
 
-We can try to edit the controller file to see how play automatically reloads it.  Open the `app/controllers/Application.java` file in a text editor, and add a mistake by removing the trailing semicolon after the `ok()` call:
+We can try to edit the controller file to see how Play automatically reloads it.  Open the `app/controllers/Application.java` file in a text editor, and add a mistake by removing the trailing semicolon after the `ok()` call:
 
 ```java
 public static Result index() {
@@ -183,7 +186,7 @@ public static Result index() {
 }
 ```
 
-Go to the browser and refresh the page.  You can see that play detected the change and tried to reload the `Application` controller.  But because you made a mistake, you get a compilation error.
+Go to the browser and refresh the page.  You can see that Play detected the change and tried to reload the `Application` controller.  But because you made a mistake, you get a compilation error.
 
 [[images/compileerror.png]]
 
@@ -196,7 +199,7 @@ public static Result index() {
 }
 ```
 
-This time, play has correctly reloaded the controller and replaced the old code in the JVM.  The heading on the page now contains the updated text that you modified.
+This time, Play has correctly reloaded the controller and replaced the old code in the JVM.  The heading on the page now contains the updated text that you modified.
 
 Now edit the `app/views/Application/index.scala.html` template to replace the welcome message:
 
@@ -212,9 +215,9 @@ Now edit the `app/views/Application/index.scala.html` template to replace the we
 
 Like for the Java code changes, just refresh the page in the browser to see the modification.
 
-> We will now start to code the tasks application.  You can either continue to work with a text editor or open the project in a Java IDE like Eclipse or Netbeans.  If you want to set up a Java IDE, please check [this page](IDE).
+> We will now start to code the tasks application.  You can either continue to work with a text editor or open the project in a Java IDE like Eclipse or Netbeans.  If you want to set up a Java IDE, please check [[this page|IDE]].
 
-One more thing before starting to code.  For the task engine, we will need a database.  For development purposes, play comes with a standalone SQL database managements system called HSQLDB.  This is the best way to start a project before switching to a more robust database if needed.  You can choose to have either an in-memory database or a filesystem database that will keep your data between application restarts.
+One more thing before starting to code.  For the task engine, we will need a database.  For development purposes, Play comes with a standalone SQL database management system called HSQLDB.  This is the best way to start a project before switching to a more robust database if needed.  You can choose to have either an in-memory database or a filesystem database that will keep your data between application restarts.
 
 At the beginning, we will do a lot of testing and changes in the application model.  For that reason, it's better to use an in-memory database so we always start with a fresh data set.
 
@@ -227,18 +230,24 @@ Define a default Ebean server following instructions on [[Using the Ebean ORM pa
 
 When you work on a project, it's highly recommended to store your source code in a VCS.  It allows you to revert to a previous version if a change breaks something, work with several people and give access to all the successive versions of the application.  Of course, you can use any VCS to store your project, but here we will use Git as an example.  Git is a distributed source version control system, and Play has built in support for configuring a Play application inside a Git repository.
 
-Installing Git is out of the scope of this tutorial but it is very easy on any system.  Once you have a working installation of Git, go to the zentasks directory and init the application versioning by typing:
+Installing Git is out of the scope of this tutorial but it is very easy on any system.  Once you have a working installation of Git, go to the `zentasks/` directory and init the application versioning by typing:
 
-    $ git init
+```bash
+$ git init
+```
 
 Now add the root directory to the repository.  You don't need to worry about ignoring any files, Play has already automatically generated a `.gitignore` file that contains the appropriate list of files to ignore:
 
-    $ git add .
+```bash
+$ git add .
+```
 
 Finally you can commit your changes:
 
-    $ git commit -m "ZenTasks initial commit":
+```bash
+$ git commit -m "ZenTasks initial commit":
+```
 
 Our initial version is committed, and we have a solid foundation for our project.
 
-> Go to the [next part](JavaGuide2)
+> Go to the [[next part|JavaGuide2]]

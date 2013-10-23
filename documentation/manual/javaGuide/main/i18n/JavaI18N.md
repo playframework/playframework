@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Externalising messages and internationalization
 
 ## Specifying languages supported by your application
@@ -25,7 +26,7 @@ String title = Messages.get("home.title")
 You can also specify the language explicitly:
 
 ```
-String title = Messages.get(new Lang("fr"), "home.title")
+String title = Messages.get(new Lang(Lang.forCode("fr")), "home.title")
 ```
 
 > **Note:** If you have a `Request` in the scope, it will provide a default `Lang` value corresponding to the preferred language extracted from the `Accept-Language` header and matching one of the application’s supported languages. You should also add a `Lang` implicit parameter to your template like this: `@()(implicit lang: Lang)`.

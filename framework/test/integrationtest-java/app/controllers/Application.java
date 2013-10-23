@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package controllers;
 
 import java.util.concurrent.Callable;
@@ -6,19 +9,19 @@ import models.User;
 import com.fasterxml.jackson.databind.JsonNode;
 import play.*;
 import play.libs.Akka;
-import play.libs.F.Function;
+import play.libs.F.*;
 import play.mvc.*;
 
 import views.html.*;
 
 public class Application extends Controller {
-  
+
     public static Result index(String name) {
         Http.Context.current().args.put("name",name);
         String n = (String)Http.Context.current().args.get("name");
         return ok(index.render(n));
     }
-    
+
     public static Result key() {
         return ok("Key=" + Play.application().configuration().getString("key"));
     }
@@ -29,9 +32,9 @@ public class Application extends Controller {
     }
 
     public static Result asyncResult() {
-        return async(Akka.future(new Callable<String>() {
+        return async(Promise.promise(new Function0<String>() {
             @Override
-            public String call() {
+            public String apply() {
                 return "success";
             }
         }).map(new Function<String, Result>() {
@@ -48,6 +51,11 @@ public class Application extends Controller {
 
     public static Result setLang(String code) {
         changeLang(code);
+        return ok(lang().code());
+    }
+
+    public static Result unsetLang() {
+        clearLang();
         return ok(lang().code());
     }
 

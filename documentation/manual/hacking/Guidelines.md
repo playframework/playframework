@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Developer & Contributor Guidelines
 
 ## General Workflow
@@ -45,8 +46,8 @@ For a Pull Request to be considered at all it has to meet these requirements:
    * Java and Scala APIs should be implemented the following way:
      * implement the core API in scala (```play.api.xxx```)
      * if your component requires life cycle management or needs to be swappable, create a plugin, otherwise skip this step
-     * wrap core API for scala users ([example]  (https://github.com/playframework/playframework/blob/master/framework/src/play/src/main/scala/play/api/cache/Cache.scala#L69))
-     * wrap scala API for java users ([example](https://github.com/playframework/playframework/blob/master/framework/src/play/src/main/java/play/cache/Cache.java))
+     * wrap core API for scala users ([example](https://github.com/playframework/playframework/blob/master/framework/src/play-cache/src/main/scala/play/api/cache/Cache.scala#L69))
+     * wrap scala API for java users ([example](https://github.com/playframework/playframework/blob/master/framework/src/play-cache/src/main/java/play/cache/Cache.java))
    * Features are forever, always think about whether a new feature really belongs to the core framework or it should be implemented as a plugin
 
 If these requirements are not met then the code should **not** be merged into master, or even reviewed - regardless of how good or important it is. No exceptions.
@@ -65,7 +66,7 @@ Also, to facilitate both well-formed commits and working together, the ``wip`` a
 
 Follow these guidelines when creating public commits and writing commit messages.
 
-1. If your work spans multiple local commits (for example; if you do safe point commits while working in a feature branch or work in a branch for long time doing merges/rebases etc.) then please do not commit it all but rewrite the history by squashing the commits into a single big commit which you write a good commit message for (like discussed in the following sections). For more info read this article: [Git Workflow](http://sandofsky.com/blog/git-workflow.html). Every commit should be able to be used in isolation, cherry picked etc.
+1. If your work spans multiple local commits (for example; if you do safe point commits while working in a feature branch or work in a branch for long time doing merges/rebases etc.) then please do not commit it all but rewrite the history by squashing the commits into a single big commit which you write a good commit message for (like discussed in the following sections). For more info read this article: [Git Workflow](https://sandofsky.com/blog/git-workflow.html). Every commit should be able to be used in isolation, cherry picked etc.
 2. First line should be a descriptive sentence what the commit is doing. It should be possible to fully understand what the commit does by just reading this single line. It is **not ok** to only list the ticket number, type "minor fix" or similar. Include reference to ticket number, prefixed with #, at the end of the first line. If the commit is a small fix, then you are done. If not, go to 3.
 3. Following the single line description should be a blank line followed by an enumerated list with the details of the commit.
 4. Add keywords for your commit (depending on the degree of automation we reach, the list may change over time):

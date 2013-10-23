@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api
 
 import play.core._
@@ -7,13 +10,12 @@ import play.api.mvc._
 
 import java.io._
 
-import scala.collection.JavaConverters._
-
 import annotation.implicitNotFound
 
 import java.lang.reflect.InvocationTargetException
 import reflect.ClassTag
 import scala.util.control.NonFatal
+import scala.concurrent.Future
 
 trait WithDefaultGlobal {
   self: Application with WithDefaultConfiguration =>
@@ -136,6 +138,11 @@ trait WithDefaultPlugins {
             val plugin = classloader.loadClass(className).getConstructor(classOf[play.Application]).newInstance(new play.Application(this)).asInstanceOf[Plugin]
             if (plugin.enabled) Some(plugin) else { Play.logger.warn("Plugin [" + className + "] is disabled"); None }
           } catch {
+            case e: java.lang.NoSuchMethodException =>
+              throw new PlayException("Cannot load plugin",
+                "Could not find an appropriate constructor to instantiate plugin [" + className +
+                  "]. All Play plugins must define a constructor that accepts a single argument either of type " +
+                  "play.Application for Java plugins or play.api.Application for Scala plugins.")
             case e: PlayException => throw e
             case e: VirtualMachineError => throw e
             case e: ThreadDeath => throw e
@@ -279,7 +286,7 @@ trait Application {
   /**
    * Handle a runtime error during the execution of an action
    */
-  private[play] def handleError(request: RequestHeader, e: Throwable): SimpleResult = try {
+  private[play] def handleError(request: RequestHeader, e: Throwable): Future[SimpleResult] = try {
     e match {
       case e: UsefulException => throw e
       case e: Throwable => {

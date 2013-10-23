@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Building Play from sources
 
 To benefit from the latest improvements and bug fixes after the initial beta release, you may want to compile Play from sources. You’ll need a [Git client](http://git-scm.com/) to fetch the sources.
@@ -49,18 +50,18 @@ $ ./runtests
 
 Creating projects using the Play version you have built from source works much the same as a regular Play application.
 
-export PATH=$PATH:<projdir>/playframework
+export PATH=$PATH:<projdir>/
 
 If you have an existing Play application that you are upgrading, please add
 
 ```
 resolvers ++= Seq(
   ...
-  Resolver.file("Local Repository", file("<projdir>/playframework/repository/local"))(Resolver.ivyStylePatterns),
+  Resolver.file("Local Repository", file("<projdir>/repository/local"))(Resolver.ivyStylePatterns),
   ...
 )
 
-addSbtPlugin("play" % "sbt-plugin" % "2.2-SNAPSHOT")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.3-SNAPSHOT")
 ```
 
 to project/plugins.sbt. 

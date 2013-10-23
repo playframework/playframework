@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.test
 
 import org.specs2.mutable.Around
@@ -17,7 +20,7 @@ import org.specs2.execute.{ AsResult, Result }
 abstract class WithApplication(val app: FakeApplication = FakeApplication()) extends Around with Scope {
   implicit def implicitApp = app
   override def around[T: AsResult](t: => T): Result = {
-    Helpers.running(app)(AsResult(t))
+    Helpers.running(app)(AsResult.effectively(t))
   }
 }
 
@@ -32,7 +35,7 @@ abstract class WithServer(val app: FakeApplication = FakeApplication(),
   implicit def implicitApp = app
   implicit def implicitPort: Port = port
 
-  override def around[T: AsResult](t: => T): Result = Helpers.running(TestServer(port, app))(AsResult(t))
+  override def around[T: AsResult](t: => T): Result = Helpers.running(TestServer(port, app))(AsResult.effectively(t))
 }
 
 /**
@@ -54,7 +57,7 @@ abstract class WithBrowser[WEBDRIVER <: WebDriver](
 
   override def around[T: AsResult](t: => T): Result = {
     try {
-      Helpers.running(TestServer(port, app))(AsResult(t))
+      Helpers.running(TestServer(port, app))(AsResult.effectively(t))
     } finally {
       browser.quit()
     }

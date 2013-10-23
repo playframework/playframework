@@ -1,16 +1,17 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package scalaguide.global.scalaglobal {
 
-import play.api.mvc._
 import play.api.test._
 import play.api.test.Helpers._
 import org.specs2.mutable.Specification
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import play.core.Router
-import play.api.GlobalSettings
 
 @RunWith(classOf[JUnitRunner])
-class ScalaGlobalSpec extends Specification with Controller {
+class ScalaGlobalSpec extends Specification {
 
   "A scala global" should {
 
@@ -45,14 +46,15 @@ class ScalaGlobalSpec extends Specification with Controller {
       //#global-hooking-error
       import play.api._
       import play.api.mvc._
-      //import play.api.mvc.Results._
+      import play.api.mvc.Results._
+      import scala.concurrent.Future
 
       object Global extends GlobalSettings {
 
         override def onError(request: RequestHeader, ex: Throwable) = {
-          InternalServerError(
+          Future.successful(InternalServerError(
             views.html.errorPage(ex)
-          )
+          ))
         }
 
       }
@@ -70,14 +72,15 @@ class ScalaGlobalSpec extends Specification with Controller {
       //#global-hooking-notfound
       import play.api._
       import play.api.mvc._
-      //import play.api.mvc.Results._
+      import play.api.mvc.Results._
+      import scala.concurrent.Future
 
       object Global extends GlobalSettings {
 
-        override def onHandlerNotFound(request: RequestHeader): SimpleResult = {
-          NotFound(
+        override def onHandlerNotFound(request: RequestHeader) = {
+          Future.successful(NotFound(
             views.html.notFoundPage(request.path)
-          )
+          ))
         }
 
       }
@@ -93,12 +96,13 @@ class ScalaGlobalSpec extends Specification with Controller {
       //#global-hooking-bad-request
       import play.api._
       import play.api.mvc._
-      //import play.api.mvc.Results._
+      import play.api.mvc.Results._
+      import scala.concurrent.Future
 
       object Global extends GlobalSettings {
 
         override def onBadRequest(request: RequestHeader, error: String) = {
-          BadRequest("Bad Request: " + error)
+          Future.successful(BadRequest("Bad Request: " + error))
         }
 
       }
@@ -111,10 +115,14 @@ class ScalaGlobalSpec extends Specification with Controller {
 
   }
 
-  def contentOf(rh: RequestHeader, router: Router.Routes = Routes,g:GlobalSettings) = running(FakeApplication(withGlobal=Some(g)))(contentAsString(router.routes(rh) match {
+  import play.api.mvc._
+  import play.api.GlobalSettings
+
+  def contentOf(rh: RequestHeader, router: Router.Routes = Routes,g:GlobalSettings) = running(
+    FakeApplication(withGlobal=Some(g))
+  )(contentAsString(router.routes(rh) match {
     case e: EssentialAction => e(rh).run
   }))
-
 
 }
 

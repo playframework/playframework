@@ -1,28 +1,26 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.libs.ws
+
+import collection.immutable.TreeMap
+
+import scala.concurrent.{ Future, Promise }
 
 import java.io.File
 import java.util.concurrent.atomic.AtomicReference
-import scala.concurrent.{ Future, Promise }
-import play.api.libs.iteratee._
-import play.api.libs.iteratee.Input._
-import play.api.http.{ Writeable, ContentTypeOf }
-import com.ning.http.client.{
-  AsyncHttpClient,
-  AsyncHttpClientConfig,
-  RequestBuilderBase,
-  FluentCaseInsensitiveStringsMap,
-  HttpResponseBodyPart,
-  HttpResponseHeaders,
-  HttpResponseStatus,
-  Response => AHCResponse,
-  Cookie => AHCCookie,
-  PerRequestConfig
-}
-import collection.immutable.TreeMap
-import play.core.utils.CaseInsensitiveOrdered
-import com.ning.http.util.AsyncHttpProviderUtils
 
+import play.api.http.{ Writeable, ContentTypeOf }
+import play.api.libs.iteratee._
+import play.api.libs.iteratee.Input.El
+
+import play.core.utils.CaseInsensitiveOrdered
 import play.core.Execution.Implicits.internalContext
+import play.api.Play
+
+import com.ning.http.client.{ Response => AHCResponse, Cookie => AHCCookie, ProxyServer => AHCProxyServer, _ }
+
+import com.ning.http.util.AsyncHttpProviderUtils
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -44,45 +42,51 @@ object WS {
 
   private val clientHolder: AtomicReference[Option[AsyncHttpClient]] = new AtomicReference(None)
 
+  private[play] def newClient(): AsyncHttpClient = {
+    val playConfig = play.api.Play.maybeApplication.map(_.configuration)
+    val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
+      .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout.connection")).getOrElse(120000L).toInt)
+      .setIdleConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout.idle")).getOrElse(120000L).toInt)
+      .setRequestTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout.request")).getOrElse(120000L).toInt)
+      .setFollowRedirects(playConfig.flatMap(_.getBoolean("ws.followRedirects")).getOrElse(true))
+      .setUseProxyProperties(playConfig.flatMap(_.getBoolean("ws.useProxyProperties")).getOrElse(true))
+
+    playConfig.flatMap(_.getString("ws.useragent")).map {
+      useragent =>
+        asyncHttpConfig.setUserAgent(useragent)
+    }
+    if (!playConfig.flatMap(_.getBoolean("ws.acceptAnyCertificate")).getOrElse(false)) {
+      asyncHttpConfig.setSSLContext(SSLContext.getDefault)
+    }
+
+    new AsyncHttpClient(asyncHttpConfig.build())
+  }
+
   /**
    * resets the underlying AsyncHttpClient
    */
   private[play] def resetClient(): Unit = {
-    val oldClient = clientHolder.getAndSet(None)
-    oldClient.map { clientRef =>
-      clientRef.close()
-    }
+    clientHolder.getAndSet(None).map(oldClient => oldClient.close())
   }
 
   /**
    * retrieves or creates underlying HTTP client.
    */
-  def client = {
-    clientHolder.get.getOrElse {
-      // Note, the following code may execute more than once, if there are several
-      // simultaneous calls to this function on different threads.  In that case,
-      // it's possible that an AsyncHttpClient will be created by the following
-      // code, but then discarded, because another thread was able to create one
-      // and store it in `clientHolder` first.
-      val playConfig = play.api.Play.maybeApplication.map(_.configuration)
-      val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
-        .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
-        .setRequestTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout")).getOrElse(120000L).toInt)
-        .setFollowRedirects(playConfig.flatMap(_.getBoolean("ws.followRedirects")).getOrElse(true))
-        .setUseProxyProperties(playConfig.flatMap(_.getBoolean("ws.useProxyProperties")).getOrElse(true))
+  def client: AsyncHttpClient = {
+    clientHolder.get.getOrElse({
+      // A critical section of code. Only one caller has the opportuntity of creating a new client.
+      synchronized {
+        clientHolder.get match {
+          case None => {
+            val client = newClient()
+            clientHolder.set(Some(client))
+            client
+          }
+          case Some(client) => client
+        }
 
-      playConfig.flatMap(_.getString("ws.useragent")).map { useragent =>
-        asyncHttpConfig.setUserAgent(useragent)
       }
-      if (playConfig.flatMap(_.getBoolean("ws.acceptAnyCertificate")).getOrElse(false) == false) {
-        asyncHttpConfig.setSSLContext(SSLContext.getDefault)
-      }
-      val innerClient = new AsyncHttpClient(asyncHttpConfig.build())
-      // Only use our newly created AsyncHttpClient if clientHolder is still None, that is,
-      // if no other thread has snuck in and stored a different one in clientHolder.
-      clientHolder.compareAndSet(None, Some(innerClient))
-      clientHolder.get.get
-    }
+    })
   }
 
   /**
@@ -90,7 +94,7 @@ object WS {
    *
    * @param url the URL to request
    */
-  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None, None)
+  def url(url: String): WSRequestHolder = WSRequestHolder(url, Map(), Map(), None, None, None, None, None, None)
 
   /**
    * A WS Request.
@@ -100,8 +104,13 @@ object WS {
     import scala.collection.JavaConverters._
 
     def getStringData = body.getOrElse("")
+
     protected var body: Option[String] = None
-    override def setBody(s: String) = { this.body = Some(s); super.setBody(s) }
+
+    override def setBody(s: String) = {
+      this.body = Some(s);
+      super.setBody(s)
+    }
 
     protected var calculator: Option[SignatureCalculator] = _calc
 
@@ -116,7 +125,7 @@ object WS {
      * Add http auth headers. Defaults to HTTP Basic.
      */
     private def auth(username: String, password: String, scheme: AuthScheme = AuthScheme.BASIC): WSRequest = {
-      this.setRealm((new RealmBuilder())
+      this.setRealm((new RealmBuilder)
         .setScheme(scheme)
         .setPrincipal(username)
         .setPassword(password)
@@ -161,6 +170,7 @@ object WS {
       //todo: wrap the case insensitive ning map instead of creating a new one (unless perhaps immutabilty is important)
       TreeMap(res.toSeq: _*)(CaseInsensitiveOrdered)
     }
+
     private[libs] def execute: Future[Response] = {
       import com.ning.http.client.AsyncCompletionHandler
       var result = Promise[Response]()
@@ -170,6 +180,7 @@ object WS {
           result.success(Response(response))
           response
         }
+
         override def onThrowable(t: Throwable) = {
           result.failure(t)
         }
@@ -248,6 +259,7 @@ object WS {
       var iteratee: Iteratee[Array[Byte], A] = null
 
       WS.client.executeRequest(this.build(), new AsyncHandler[Unit]() {
+
         import com.ning.http.client.AsyncHandler.STATE
 
         override def onStatusReceived(status: HttpResponseStatus) = {
@@ -292,7 +304,7 @@ object WS {
         }
 
         override def onCompleted() = {
-          Option(iteratee).map(iterateeP.success(_))
+          Option(iteratee).map(iterateeP.success)
         }
 
         override def onThrowable(t: Throwable) = {
@@ -313,8 +325,9 @@ object WS {
       calc: Option[SignatureCalculator],
       auth: Option[Tuple3[String, String, AuthScheme]],
       followRedirects: Option[Boolean],
-      timeout: Option[Int],
-      virtualHost: Option[String]) {
+      requestTimeout: Option[Int],
+      virtualHost: Option[String],
+      proxyServer: Option[ProxyServer]) {
 
     /**
      * sets the signature calculator for the request
@@ -336,7 +349,7 @@ object WS {
     def withHeaders(hdrs: (String, String)*): WSRequestHolder = {
       val headers = hdrs.foldLeft(this.headers)((m, hdr) =>
         if (m.contains(hdr._1)) m.updated(hdr._1, m(hdr._1) :+ hdr._2)
-        else (m + (hdr._1 -> Seq(hdr._2)))
+        else m + (hdr._1 -> Seq(hdr._2))
       )
       this.copy(headers = headers)
     }
@@ -355,14 +368,23 @@ object WS {
     def withFollowRedirects(follow: Boolean): WSRequestHolder =
       this.copy(followRedirects = Some(follow))
 
-    /**
-     * Sets the request timeout in milliseconds
-     */
+    @scala.deprecated("use withRequestTimeout instead", "2.1.0")
     def withTimeout(timeout: Int): WSRequestHolder =
-      this.copy(timeout = Some(timeout))
+      this.withRequestTimeout(timeout)
+
+    /**
+     * Sets the maximum time in millisecond you accept the request to take.
+     * Warning: a stream consumption will be interrupted when this time is reached.
+     */
+    def withRequestTimeout(timeout: Int): WSRequestHolder =
+      this.copy(requestTimeout = Some(timeout))
 
     def withVirtualHost(vh: String): WSRequestHolder = {
       this.copy(virtualHost = Some(vh))
+    }
+
+    def withProxyServer(proxyServer: ProxyServer): WSRequestHolder = {
+      this.copy(proxyServer = Some(proxyServer))
     }
 
     /**
@@ -438,21 +460,63 @@ object WS {
       val request = new WSRequest(method, auth, calc).setUrl(url)
         .setHeaders(headers)
         .setQueryString(queryString)
-      followRedirects.map(request.setFollowRedirects(_))
-      timeout.map { t: Int =>
+      followRedirects.map(request.setFollowRedirects)
+      requestTimeout.map { t: Int =>
         val config = new PerRequestConfig()
         config.setRequestTimeoutInMs(t)
         request.setPerRequestConfig(config)
       }
-      virtualHost.map { v =>
-        request.setVirtualHost(v)
+
+      virtualHost.map {
+        v =>
+          request.setVirtualHost(v)
       }
+
+      prepareProxy(request)
+
       request
+    }
+
+    private[play] def prepareProxy(request: WSRequest) {
+      proxyServer.map {
+        p =>
+          import com.ning.http.client.ProxyServer.Protocol
+          val protocol: Protocol = p.protocol.getOrElse("http").toLowerCase match {
+            case "http" => Protocol.HTTP
+            case "https" => Protocol.HTTPS
+            case "kerberos" => Protocol.KERBEROS
+            case "ntlm" => Protocol.NTLM
+            case "spnego" => Protocol.SPNEGO
+            case _ => scala.sys.error("Unrecognized protocol!")
+          }
+
+          val proxyServer = new AHCProxyServer(
+            protocol,
+            p.host,
+            p.port,
+            p.principal.getOrElse(null),
+            p.password.getOrElse(null))
+
+          p.encoding.map { e =>
+            proxyServer.setEncoding(e)
+          }
+
+          p.nonProxyHosts.map { nonProxyHosts =>
+            nonProxyHosts.foreach { nonProxyHost =>
+              proxyServer.addNonProxyHost(nonProxyHost)
+            }
+          }
+
+          p.ntlmDomain.map { ntlm =>
+            proxyServer.setNtlmDomain(ntlm)
+          }
+
+          request.setProxyServer(proxyServer)
+      }
     }
 
     private[play] def prepare(method: String, body: File) = {
       import com.ning.http.client.generators.FileBodyGenerator
-      import java.nio.ByteBuffer
 
       val bodyGenerator = new FileBodyGenerator(body);
 
@@ -460,15 +524,18 @@ object WS {
         .setHeaders(headers)
         .setQueryString(queryString)
         .setBody(bodyGenerator)
-      followRedirects.map(request.setFollowRedirects(_))
-      timeout.map { t: Int =>
+      followRedirects.map(request.setFollowRedirects)
+      requestTimeout.map { t: Int =>
         val config = new PerRequestConfig()
         config.setRequestTimeoutInMs(t)
         request.setPerRequestConfig(config)
       }
-      virtualHost.map { v =>
-        request.setVirtualHost(v)
+      virtualHost.map {
+        v =>
+          request.setVirtualHost(v)
       }
+
+      prepareProxy(request)
 
       request
     }
@@ -478,19 +545,48 @@ object WS {
         .setHeaders(Map("Content-Type" -> Seq(ct.mimeType.getOrElse("text/plain"))) ++ headers)
         .setQueryString(queryString)
         .setBody(wrt.transform(body))
-      followRedirects.map(request.setFollowRedirects(_))
-      timeout.map { t: Int =>
+      followRedirects.map(request.setFollowRedirects)
+      requestTimeout.map { t: Int =>
         val config = new PerRequestConfig()
         config.setRequestTimeoutInMs(t)
         request.setPerRequestConfig(config)
       }
-      virtualHost.map { v =>
-        request.setVirtualHost(v)
+      virtualHost.map {
+        v =>
+          request.setVirtualHost(v)
       }
+      prepareProxy(request)
+
       request
     }
   }
+
 }
+
+/**
+ * A WS proxy.
+ */
+case class ProxyServer(
+  /** The hostname of the proxy server. */
+  host: String,
+
+  /** The port of the proxy server. */
+  port: Int,
+
+  /** The protocol of the proxy server.  Use "http" or "https".  Defaults to "http" if not specified. */
+  protocol: Option[String] = None,
+
+  /** The principal (aka username) of the credentials for the proxy server. */
+  principal: Option[String] = None,
+
+  /** The password for the credentials for the proxy server. */
+  password: Option[String] = None,
+
+  ntlmDomain: Option[String] = None,
+
+  encoding: Option[String] = None,
+
+  nonProxyHosts: Option[Seq[String]] = None)
 
 /**
  * A WS Cookie.  This is a trait so that we are not tied to a specific client.
@@ -656,7 +752,7 @@ case class Response(ahcResponse: AHCResponse) {
   /**
    * The response body as Xml.
    */
-  lazy val xml: Elem = XML.loadString(body)
+  lazy val xml: Elem = Play.XML.loadString(body)
 
   /**
    * The response body as Json.

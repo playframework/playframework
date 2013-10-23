@@ -1,0 +1,50 @@
+@* #form-define *@
+@(userForm: Form[UserData])
+@* #form-define *@
+
+@import scalaguide.forms.scalaforms._
+@import scalaguide.forms.scalaforms.controllers.routes
+
+<div>
+    @* #form-user-generated *@
+    <dl class="error" id="age_field">
+        <dt><label for="age">Age:</label></dt>
+        <dd><input type="text" name="age" id="age" value=""></dd>
+        <dd class="error">This field is required!</dd>
+        <dd class="error">Another error</dd>
+        <dd class="info">Required</dd>
+        <dd class="info">Another constraint</dd>
+    </dl>
+    @* #form-user-generated *@
+</div>
+
+@* #form-user *@
+@helper.form(action = routes.Application.userPost()) {
+  @helper.inputText(userForm("name"))
+  @helper.inputText(userForm("age"))
+}
+@* #form-user *@
+
+@* #global-errors *@
+@if(userForm.hasGlobalErrors) {
+    <ul>
+    @userForm.globalErrors.foreach { error =>
+        <li>error.message</li>
+    }
+    </ul>
+}
+@* #global-errors *@
+
+@helper.form(action = routes.Application.userPost()) {
+  @* #form-user-parameters *@
+  @helper.inputText(userForm("name"), 'id -> "name", 'size -> 30)
+  @* #form-user-parameters *@
+  @helper.inputText(userForm("age"))
+  @* #form-user-parameters-html *@
+  @helper.input(userForm("name")) { (id, name, value, args) =>
+      <input type="text" name="@name" id="@id" @toHtmlArgs(args)>
+  }
+  @* #form-user-parameters-html *@
+}
+
+

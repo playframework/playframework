@@ -1,3 +1,6 @@
+#
+# Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+#
 # Routes
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
@@ -28,6 +31,9 @@ GET     /jsonWithContentType    controllers.Application.jsonWithContentType()
 GET     /jsonWithCharset        controllers.Application.jsonWithContentTypeAndCharset()
 GET     /index_java_cache       controllers.Application.index_java_cache()
 GET     /conf                   controllers.Application.conf()
+
+GET     /promised               controllers.JavaApi.promised()
+GET     /promisedInstance       @controllers.JavaControllerInstance.promised()
 
 # Test that the regex is properly escaped in the generated code
 GET     /escapes/$i<\d+>        controllers.Application.takeInt(i: Int)

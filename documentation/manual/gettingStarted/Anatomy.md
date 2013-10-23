@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Anatomy of a Play application
 
 ## The standard application layout
@@ -12,6 +13,7 @@ app                      → Application sources
  └ controllers           → Application controllers
  └ models                → Application business layer
  └ views                 → Templates
+build.sbt                → Application build script
 conf                     → Configurations files and other non-compiled resources (on classpath)
  └ application.conf      → Main configuration file
  └ routes                → Routes definition
@@ -21,8 +23,7 @@ public                   → Public assets
  └ images                → Image files
 project                  → sbt configuration files
  └ build.properties      → Marker for sbt project
- └ Build.scala           → Application build script
- └ plugins.sbt           → sbt plugins
+ └ plugins.sbt           → sbt plugins including the declaration for Play itself
 lib                      → Unmanaged libraries dependencies
 logs                     → Standard logs folder
  └ application.log       → Default log file
@@ -75,12 +76,15 @@ If a library needs a specific configuration file, try to file it under the `conf
 
 The `lib` directory is optional and contains unmanaged library dependencies, ie. all JAR files you want to manually manage outside the build system. Just drop any JAR files here and they will be added to your application classpath.
 
+## The build.sbt file
+
+Your project's main build declarations are generally found in `build.sbt` at the root of the project. `.scala` files in the `project/` directory can also be used to declare your project's build.
+
 ## The project/ directory
 
 The `project` directory contains the sbt build definitions:
 
 - `plugins.sbt` defines sbt plugins used by this project
-- `Build.scala` defines your application build script.
 - `build.properties` contains the sbt version to use to build your app.
 
 ## The target/ directory

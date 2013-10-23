@@ -1,32 +1,36 @@
-package sbt
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
+package play
 
-import sbt.PlayExceptions.{ TemplateCompilationException, RoutesCompilationException }
+import sbt._
+import PlayExceptions.{ TemplateCompilationException, RoutesCompilationException }
 import play.api.PlayException
 
 trait PlaySourceGenerators {
 
-  val RouteFiles = (state: State, confDirectory: File, generatedDir: File, additionalImports: Seq[String], reverseRouter: Boolean, namespaceReverseRouter: Boolean) => {
+  val RouteFiles = (state: State, sourceDirectories: Seq[File], generatedDir: File, additionalImports: Seq[String], reverseRouter: Boolean, namespaceReverseRouter: Boolean) => {
     import play.router.RoutesCompiler._
 
     val javaRoutes = (generatedDir ** "routes.java")
     val scalaRoutes = (generatedDir ** "routes_*.scala")
     (javaRoutes.get ++ scalaRoutes.get).map(GeneratedSource(_)).foreach(_.sync())
     try {
-      { (confDirectory * "*.routes").get ++ (confDirectory * "routes").get }.map { routesFile =>
+      { (sourceDirectories * "*.routes").get ++ (sourceDirectories * "routes").get }.map { routesFile =>
         compile(routesFile, generatedDir, additionalImports, reverseRouter, namespaceReverseRouter)
       }
     } catch {
       case RoutesCompilationError(source, message, line, column) => {
         throw reportCompilationError(state, RoutesCompilationException(source, message, line, column.map(_ - 1)))
       }
-      case e => throw e
+      case e: Throwable => throw e
     }
 
     (scalaRoutes.get ++ javaRoutes.get).map(_.getAbsoluteFile)
 
   }
 
-  val ScalaTemplates = (state: State, sourceDirectory: File, generatedDir: File, templateTypes: Map[String, String], additionalImports: Seq[String]) => {
+  val ScalaTemplates = (state: State, sourceDirectories: Seq[File], generatedDir: File, templateTypes: Map[String, String], additionalImports: Seq[String]) => {
     import play.templates._
 
     val templateExt: PartialFunction[File, (File, String, String)] = {
@@ -38,14 +42,16 @@ trait PlaySourceGenerators {
     (generatedDir ** "*.template.scala").get.map(GeneratedSource(_)).foreach(_.sync())
     try {
 
-      (sourceDirectory ** "*.scala.*").get.collect(templateExt).foreach {
-        case (template, extension, format) =>
-          ScalaTemplateCompiler.compile(
-            template,
-            sourceDirectory,
-            generatedDir,
-            format,
-            additionalImports.map("import " + _.replace("%format%", extension)).mkString("\n"))
+      sourceDirectories.foreach { sourceDirectory =>
+        (sourceDirectory ** "*.scala.*").get.collect(templateExt).foreach {
+          case (template, extension, format) =>
+            ScalaTemplateCompiler.compile(
+              template,
+              sourceDirectory,
+              generatedDir,
+              format,
+              additionalImports.map("import " + _.replace("%format%", extension)).mkString("\n"))
+        }
       }
     } catch {
       case TemplateCompilationError(source, message, line, column) => {

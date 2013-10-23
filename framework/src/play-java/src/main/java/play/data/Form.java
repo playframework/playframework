@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.data;
 
 import javax.validation.*;
@@ -556,7 +559,7 @@ public class Form<T> {
      *
      * @param key the error key
      * @param error the error message
-     * @param args the errot arguments
+     * @param args the error arguments
      */
     public void reject(String key, String error, List<Object> args) {
         reject(new ValidationError(key, error, args));

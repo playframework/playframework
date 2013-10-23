@@ -1,13 +1,16 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.core
 
 import java.io._
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.util.{ Try, Success, Failure }
 
 import play.api._
 import play.api.mvc._
 import scala.util.control.NonFatal
-import system.DocumentationHandler
 
 /**
  * provides source code to be displayed on error pages
@@ -33,7 +36,7 @@ trait DevSettings {
  */
 trait ApplicationProvider {
   def path: File
-  def get: Either[Throwable, Application]
+  def get: Try[Application]
   def handleWebCommand(requestHeader: play.api.mvc.RequestHeader): Option[SimpleResult] = None
 }
 
@@ -51,7 +54,7 @@ class StaticApplication(applicationPath: File) extends ApplicationProvider {
 
   Play.start(application)
 
-  def get = Right(application)
+  def get = Success(application)
   def path = applicationPath
 }
 
@@ -63,14 +66,14 @@ class TestApplication(application: Application) extends ApplicationProvider {
 
   Play.start(application)
 
-  def get = Right(application)
+  def get = Success(application)
   def path = application.path
 }
 
 /**
- * represents an application that can be reloaded in Dev Mode
+ * Represents an application that can be reloaded in Dev Mode.
  */
-class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
+class ReloadableApplication(sbtLink: SBTLink, sbtDocHandler: SBTDocHandler) extends ApplicationProvider {
 
   // Use plain Java call here in case of scala classloader mess
   {
@@ -83,12 +86,11 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
   }
 
   lazy val path = sbtLink.projectPath
-  private lazy val documentationHandler = new DocumentationHandler(sbtLink.markdownToHtml _)
 
   println(play.utils.Colors.magenta("--- (Running the application from SBT, auto-reloading is enabled) ---"))
   println()
 
-  var lastState: Either[Throwable, Application] = Left(new PlayException("Not initialized", "?"))
+  var lastState: Try[Application] = Failure(new PlayException("Not initialized", "?"))
 
   def get = {
 
@@ -103,17 +105,17 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
       Await.result(scala.concurrent.Future {
 
         val reloaded = sbtLink.reload match {
-          case t: Throwable => Left(t)
-          case cl: ClassLoader => Right(Some(cl))
-          case null => Right(None)
+          case t: Throwable => Failure(t)
+          case cl: ClassLoader => Success(Some(cl))
+          case null => Success(None)
         }
 
-        reloaded.right.flatMap { maybeClassLoader =>
+        reloaded.flatMap { maybeClassLoader =>
 
-          val maybeApplication: Option[Either[Throwable, Application]] = maybeClassLoader.map { projectClassloader =>
+          val maybeApplication: Option[Try[Application]] = maybeClassLoader.map { projectClassloader =>
             try {
 
-              if (lastState.isRight) {
+              if (lastState.isSuccess) {
                 println()
                 println(play.utils.Colors.magenta("--- (RELOAD) ---"))
                 println()
@@ -139,25 +141,25 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
               Play.start(newApplication)
 
-              Right(newApplication)
+              Success(newApplication)
             } catch {
               case e: PlayException => {
-                lastState = Left(e)
+                lastState = Failure(e)
                 lastState
               }
               case NonFatal(e) => {
-                lastState = Left(UnexpectedException(unexpected = Some(e)))
+                lastState = Failure(UnexpectedException(unexpected = Some(e)))
                 lastState
               }
               case e: LinkageError => {
-                lastState = Left(UnexpectedException(unexpected = Some(e)))
+                lastState = Failure(UnexpectedException(unexpected = Some(e)))
                 lastState
               }
             }
           }
 
-          maybeApplication.flatMap(_.right.toOption).foreach { app =>
-            lastState = Right(app)
+          maybeApplication.flatMap(_.toOption).foreach { app =>
+            lastState = Success(app)
           }
 
           maybeApplication.getOrElse(lastState)
@@ -169,7 +171,7 @@ class ReloadableApplication(sbtLink: SBTLink) extends ApplicationProvider {
 
   override def handleWebCommand(request: play.api.mvc.RequestHeader): Option[SimpleResult] = {
 
-    documentationHandler.maybeHandleDocumentationRequest(request).orElse(
+    sbtDocHandler.maybeHandleDocRequest(request).asInstanceOf[Option[SimpleResult]].orElse(
       for {
         app <- Play.maybeApplication
         result <- app.plugins.foldLeft(Option.empty[SimpleResult]) {

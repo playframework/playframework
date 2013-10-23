@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.libs;
 
 /**
@@ -39,6 +42,65 @@ public class Crypto {
      */
     public static String sign(String message) {
         return play.api.libs.Crypto.sign(message);
+    }
+
+    /**
+     * Sign a token.  This produces a new token, that has this token signed with a nonce.
+     *
+     * This primarily exists to defeat the BREACH vulnerability, as it allows the token to effectively be random per
+     * request, without actually changing the value.
+     *
+     * @param token The token to sign
+     * @return The signed token
+     */
+    public static String signToken(String token) {
+        return play.api.libs.Crypto.signToken(token);
+    }
+
+    /**
+     * Extract a signed token that was signed by {@link #signToken(String)}.
+     *
+     * @param token The signed token to extract.
+     * @return The verified raw token, or null if the token isn't valid.
+     */
+    public static String extractSignedToken(String token) {
+        scala.Option<String> extracted = play.api.libs.Crypto.extractSignedToken(token);
+        if (extracted.isDefined()) {
+            return extracted.get();
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Generate a cryptographically secure token
+     */
+    public static String generateToken() {
+        return play.api.libs.Crypto.generateToken();
+    }
+
+    /**
+     * Generate a signed token
+     */
+    public static String generateSignedToken() {
+        return play.api.libs.Crypto.generateSignedToken();
+    }
+
+    /**
+     * Compare two signed tokens
+     */
+    public static boolean compareSignedTokens(String tokenA, String tokenB) {
+        return play.api.libs.Crypto.compareSignedTokens(tokenA, tokenB);
+    }
+
+    /**
+     * Constant time equals method.
+     *
+     * Given a length that both Strings are equal to, this method will always run in constant time.  This prevents
+     * timing attacks.
+     */
+    public static boolean constantTimeEquals(String a, String b) {
+        return play.api.libs.Crypto.constantTimeEquals(a, b);
     }
 
     /**

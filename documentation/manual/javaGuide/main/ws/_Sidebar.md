@@ -1,7 +1,9 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 ### Calling WebServices
 
 - [[The Play WS API  | JavaWS]]
 - [[Connect to OpenID servers | JavaOpenID]]
+- [[Accessing resources protected by OAuth | JavaOAuth]]
 
 ### Main concepts
 

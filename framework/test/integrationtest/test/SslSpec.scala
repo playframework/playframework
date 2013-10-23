@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 import java.io.File
 import java.net.{URL, URLConnection, Socket}
 import java.security.cert.X509Certificate
@@ -65,7 +68,7 @@ class SslSpec extends Specification {
         setOrUnset("https.keyStore", keyStore)
         setOrUnset("https.keyStorePassword", password)
         setOrUnset("https.trustStore", trustStore)
-        Helpers.running(TestServer(Helpers.testServerPort, app, Some(SslPort)))(AsResult(t))
+        Helpers.running(TestServer(Helpers.testServerPort, app, Some(SslPort)))(AsResult.effectively(t))
       } finally {
         props.remove("https.keyStore")
         props.remove("https.keyStorePassword")

@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package test;
 
 import controllers.TestController;
@@ -116,7 +119,7 @@ public class WsTest extends WithServer {
     }
 
     private Echo getEcho(Promise<Response> response) {
-        return Json.fromJson(response.get().asJson(), Echo.class);
+        return Json.fromJson(response.get(10000).asJson(), Echo.class);
     }
 
     private WSRequestHolder echo() {
@@ -124,6 +127,6 @@ public class WsTest extends WithServer {
     }
 
     private Response slave(ToReturn toReturn) {
-        return url("http://localhost:" + port + "/test/slave").post(Json.toJson(toReturn)).get();
+        return url("http://localhost:" + port + "/test/slave").post(Json.toJson(toReturn)).get(10000);
     }
 }

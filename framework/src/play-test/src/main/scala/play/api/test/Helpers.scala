@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.test
 
 import scala.language.reflectiveCalls
@@ -38,10 +41,10 @@ trait PlayRunners {
   /**
    * Executes a block of code in a running application.
    */
-  def running[T](fakeApp: FakeApplication)(block: => T): T = {
+  def running[T](app: Application)(block: => T): T = {
     synchronized {
       try {
-        Play.start(fakeApp)
+        Play.start(app)
         block
       } finally {
         Play.stop()
@@ -128,7 +131,26 @@ trait DefaultAwaitTimeout {
   /**
    * The default await timeout.  Override this to change it.
    */
-  implicit def defaultAwaitTimeout: Timeout = 5 seconds
+  implicit def defaultAwaitTimeout: Timeout = 5.seconds
+
+  /**
+   * How long we should wait for something that we expect *not* to happen, e.g.
+   * waiting to make sure that a channel is *not* closed by some concurrent process.
+   *
+   * NegativeTimeout is a separate type to a normal Timeout because we'll want to
+   * set it to a lower value. This is because in normal usage we'll need to wait
+   * for the full length of time to show that nothing has happened in that time.
+   * If the value is too high then we'll spend a lot of time waiting during normal
+   * usage. If it is too low, however, we may miss events that occur after the
+   * timeout has finished. This is a necessary tradeoff.
+   *
+   * Where possible, tests should avoid using a NegativeTimeout. Tests will often
+   * know exactly when an event should occur. In this case they can perform a
+   * check for the event immediately rather than using using NegativeTimeout.
+   */
+  case class NegativeTimeout(t: Timeout)
+  implicit val defaultNegativeTimeout = NegativeTimeout(200.millis)
+
 }
 
 trait FutureAwaits {
@@ -364,6 +386,7 @@ trait ResultExtractors {
 object Helpers extends PlayRunners
   with HeaderNames
   with Status
+  with HttpProtocol
   with DefaultAwaitTimeout
   with ResultExtractors
   with Writeables

@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.cache
 
 import play.api._
@@ -32,12 +35,13 @@ case class Cached(key: RequestHeader => String, duration: Int)(action: Essential
     val notModified = for {
       requestEtag <- request.headers.get(IF_NONE_MATCH)
       etag <- Cache.getAs[String](etagKey)
-      if etag == requestEtag
+      if requestEtag == "*" || etag == requestEtag
     } yield Done[Array[Byte], SimpleResult](NotModified)
 
-    notModified.getOrElse {
+    notModified.orElse(
       // Otherwise try to serve the resource from the cache, if it has not yet expired
-      Cache.getOrElse(resultKey, duration) {
+      Cache.getAs[SimpleResult](resultKey).map(Done[Array[Byte], SimpleResult](_))
+    ).getOrElse {
         // The resource was not in the cache, we have to run the underlying action
         val iterateeResult = action(request)
         val durationMilliseconds = if (duration == 0) 1000 * 60 * 60 * 24 * 365 else duration * 1000 // Set client cache expiration to one year for “eternity” duration
@@ -46,11 +50,12 @@ case class Cached(key: RequestHeader => String, duration: Int)(action: Essential
         val etag = expirationDate // Use the expiration date as ETAG
         // Add cache information to the response, so clients can cache its content
         iterateeResult.map { result =>
+          val resultWithHeaders = result.withHeaders(ETAG -> etag, EXPIRES -> expirationDate)
           Cache.set(etagKey, etag, duration) // Cache the new ETAG of the resource
-          result.withHeaders(ETAG -> etag, EXPIRES -> expirationDate)
+          Cache.set(resultKey, resultWithHeaders, duration) // Cache the new SimpleResult of the resource
+          resultWithHeaders
         }
       }
-    }
   }
 
 }

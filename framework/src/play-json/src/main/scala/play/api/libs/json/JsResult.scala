@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.libs.json
 
 import Json._
@@ -73,27 +76,13 @@ object JsError {
   //def toJson: JsValue = original // TODO
   //def toJsonErrorsOnly: JsValue = original // TODO
 
-  def toFlatForm(e: JsError): Seq[(String, Seq[ValidationError])] = e.errors.map { case (path, seq) => path.toJsonString -> seq }
+  def toFlatForm[O](e: Failure[(Path, Seq[ValidationError]), O]) = e.errors.map { case (path, seq) => JsPath(path).toJsonString -> seq }
   def toFlatJson(e: JsError): JsObject = toFlatJson(e.errors)
-  def toFlatJson(errors: Seq[(JsPath, Seq[ValidationError])]): JsObject =
+  def toFlatJson[O](e: Failure[(Path, Seq[ValidationError]), O]): JsObject = toFlatJson(e.errors)
+  def toFlatJson(errors: Seq[(Path, Seq[ValidationError])]): JsObject =
     errors.foldLeft(Json.obj()) { (obj, error) =>
-      obj ++ Json.obj(error._1.toJsonString -> error._2.foldLeft(Json.arr()) { (arr, err) =>
-        arr :+ Json.obj(
-          "msg" -> err.message,
-          "args" -> err.args.foldLeft(Json.arr()) { (arr, arg) =>
-            arr :+ (arg match {
-              case s: String => JsString(s)
-              case nb: Int => JsNumber(nb)
-              case nb: Short => JsNumber(nb)
-              case nb: Long => JsNumber(nb)
-              case nb: Double => JsNumber(nb)
-              case nb: Float => JsNumber(nb)
-              case b: Boolean => JsBoolean(b)
-              case js: JsValue => js
-              case x => JsString(x.toString)
-            })
-          }
-        )
+      obj ++ Json.obj(JsPath(error._1).toJsonString -> error._2.foldLeft(Json.arr()) { (arr, err) =>
+        arr :+ play.api.data.mapping.json.Writes.validationError.writes(err)
       })
     }
 }

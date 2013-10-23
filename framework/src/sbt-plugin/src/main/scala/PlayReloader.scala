@@ -1,19 +1,22 @@
-package sbt
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
+package play
 
 import play.api._
 import play.core._
-import Keys._
+import sbt.{ Project => SbtProject, _ }
+import sbt.Keys._
 import PlayExceptions._
-import play.doc.{ PlayDoc, FilesystemRepository }
 
 trait PlayReloader {
   this: PlayCommands with PlayPositionMapper =>
 
   // ----- Reloader
 
-  def newReloader(state: State, playReload: TaskKey[sbt.inc.Analysis], baseLoader: ClassLoader) = {
+  def newReloader(state: State, playReload: TaskKey[sbt.inc.Analysis], createClassLoader: ClassLoaderCreator, classpathTask: TaskKey[Classpath], baseLoader: ClassLoader) = {
 
-    val extracted = Project.extract(state)
+    val extracted = SbtProject.extract(state)
 
     new SBTLink {
 
@@ -145,7 +148,7 @@ trait PlayReloader {
 
       lazy val settings = {
         import scala.collection.JavaConverters._
-        extracted.get(PlayKeys.devSettings).toMap.asJava
+        extracted.get(Keys.devSettings).toMap.asJava
       }
 
       // ---
@@ -237,7 +240,7 @@ trait PlayReloader {
             val JavacErrorInfo = """\[error\]\s*([a-z ]+):(.*)""".r
             val JavacErrorPosition = """\[error\](\s*)\^\s*""".r
 
-            Project.runTask(streamsManager, state).map(_._2).get.toEither.right.toOption.map { streamsManager =>
+            SbtProject.runTask(streamsManager, state).map(_._2).get.toEither.right.toOption.map { streamsManager =>
               var first: (Option[(String, String, String)], Option[Int]) = (None, None)
               var parsed: (Option[(String, String, String)], Option[Int]) = (None, None)
               Output.lastLines(i.node.get.asInstanceOf[ScopedKey[_]], streamsManager).map(_.replace(scala.Console.RESET, "")).map(_.replace(scala.Console.RED, "")).collect {
@@ -277,25 +280,11 @@ trait PlayReloader {
       private val classLoaderVersion = new java.util.concurrent.atomic.AtomicInteger(0)
 
       private def newClassLoader = {
-        val loader = new java.net.URLClassLoader(
-          Project.runTask(dependencyClasspath in Runtime, state).map(_._2).get.toEither.right.get.map(_.data.toURI.toURL).toArray, baseLoader) {
-
-          val version = classLoaderVersion.incrementAndGet
-
-          override def getResources(name: String): java.util.Enumeration[java.net.URL] = {
-            import scala.collection.JavaConverters._
-            new java.util.Vector[java.net.URL](
-              super.getResources(name).asScala.toList.distinct.asJava
-            ).elements
-          }
-
-          override def toString = {
-            "ReloadableClassLoader(v" + version + ") {" + {
-              getURLs.map(_.toString).mkString(", ")
-            } + "}"
-          }
-
-        }
+        val version = classLoaderVersion.incrementAndGet
+        val name = "ReloadableClassLoader(v" + version + ")"
+        val classpath = SbtProject.runTask(classpathTask, state).map(_._2).get.toEither.right.get
+        val urls = Path.toURLs(classpath.files)
+        val loader = createClassLoader(name, urls, baseLoader)
         currentApplicationClassLoader = Some(loader)
         loader
       }
@@ -306,7 +295,7 @@ trait PlayReloader {
 
           if (jnotify.hasChanged || hasChangedFiles) {
             jnotify.reloaded()
-            Project.runTask(playReload, state).map(_._2).get.toEither
+            SbtProject.runTask(playReload, state).map(_._2).get.toEither
               .left.map { incomplete =>
                 jnotify.changed()
                 Incomplete.allExceptions(incomplete).headOption.map {
@@ -344,23 +333,11 @@ trait PlayReloader {
       def runTask(task: String): AnyRef = {
         val parser = Act.scopedKeyParser(state)
         val Right(sk) = complete.DefaultParsers.result(parser, task)
-        val result = Project.runTask(sk.asInstanceOf[Def.ScopedKey[Task[AnyRef]]], state).map(_._2)
+        val result = SbtProject.runTask(sk.asInstanceOf[Def.ScopedKey[Task[AnyRef]]], state).map(_._2)
 
         result.flatMap(_.toEither.right.toOption).getOrElse(null)
       }
 
-      private val markdownRenderer = Option(System.getProperty("play.home")).map { playHome =>
-        val repo = new FilesystemRepository(new java.io.File(playHome, "../documentation/manual"))
-        new PlayDoc(repo, repo, "resources/manual")
-      }
-
-      def markdownToHtml(page: String) = {
-        markdownRenderer.map(_.renderPage(page) match {
-          case Some((page, Some(sidebar))) => Array(page, sidebar)
-          case Some((page, None)) => Array(page)
-          case None => Array[String]()
-        }).getOrElse(Array[String]())
-      }
     }
 
   }

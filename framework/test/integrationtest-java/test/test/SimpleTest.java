@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package test;
 
 import java.util.ArrayList;
@@ -303,7 +306,7 @@ public class SimpleTest {
     public void actionShouldBeExecutedInCorrectThread() {
         running(testServer(3333), new Runnable() {
             public void run() {
-                WS.Response response = WS.url("http://localhost:3333/thread").get().get();
+                WS.Response response = WS.url("http://localhost:3333/thread").get().get(10000);
                 assertThat(response.getBody()).startsWith("play-akka.actor.default-dispatcher-");
             }
         });

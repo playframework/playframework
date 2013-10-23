@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.libs;
 
 import java.util.Collection;
@@ -8,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.Arrays;
 
-import play.api.libs.concurrent.PlayPromise;
 import play.core.j.FPromiseHelper;
 import scala.concurrent.ExecutionContext;
 import scala.concurrent.Future;
@@ -126,18 +128,6 @@ public class F {
         }
 
         /**
-         * Combine the given promises into a single promise for the list of results.
-         *
-         * @param promises The promises to combine
-         * @return A single promise whose methods act on the list of redeemed promises
-         * @deprecated Since 2.1. Use {@link #sequence(Promise...)} instead.
-         */
-        @Deprecated
-        public static <A> Promise<List<A>> waitAll(Promise<? extends A>... promises){
-            return sequence(promises);
-        }
-
-        /**
          * Create a Promise that is redeemed after a timeout.
          *
          * @param message The message to use to redeem the Promise.
@@ -152,49 +142,10 @@ public class F {
          * Create a Promise that is redeemed after a timeout.
          *
          * @param message The message to use to redeem the Promise.
-         * @param delay The delay (expressed with the corresponding unit).
-         * @param unit The Unit.
-         * @deprecated Since 2.2. Use {@link #timeout(Object, long, TimeUnit)} instead.
-         */
-        @Deprecated
-        public static <A> Promise<A> timeout(A message, Long delay, TimeUnit unit) {
-            return FPromiseHelper.timeout(message, delay, unit);
-        }
-
-        /**
-         * Create a Promise timer that throws a TimeoutException after the
-         * default timeout duration expires.
-         *
-         * The returned Promise is usually combined with other Promises.
-         *
-         * @return a promise without a real value
-         * @deprecated Since 2.2. Use {@link #timeout(long)} or {@link #timeout(long, TimeUnit)} instead.
-         */
-        @Deprecated
-        public static Promise<scala.Unit> timeout() throws TimeoutException {
-            return FPromiseHelper.timeout(FPromiseHelper.defaultTimeout(), TimeUnit.MILLISECONDS);
-        }
-
-        /**
-         * Create a Promise that is redeemed after a timeout.
-         *
-         * @param message The message to use to redeem the Promise.
          * @param delay The delay expressed in milliseconds.
          */
         public static <A> Promise<A> timeout(A message, long delay) {
             return timeout(message, delay, TimeUnit.MILLISECONDS);
-        }
-
-        /**
-         * Create a Promise that is redeemed after a timeout.
-         *
-         * @param message The message to use to redeem the Promise.
-         * @param delay The delay expressed in milliseconds.
-         * @deprecated Since 2.2. Use {@link #timeout(Object, long)} instead.
-         */
-        @Deprecated
-        public static <A> Promise<A> timeout(A message, Long delay) {
-            return timeout(message, delay.longValue(), TimeUnit.MILLISECONDS);
         }
 
         /**
@@ -228,7 +179,7 @@ public class F {
          * Combine the given promises into a single promise for the list of results.
          *
          * The sequencing operations are performed in the default ExecutionContext.
-
+         *
          * @param promises The promises to combine
          * @return A single promise whose methods act on the list of redeemed promises
          */
@@ -245,18 +196,6 @@ public class F {
          */
         public static <A> Promise<List<A>> sequence(Iterable<Promise<? extends A>> promises, ExecutionContext ec){
             return FPromiseHelper.<A>sequence(promises, ec);
-        }
-
-        /**
-         * Combine the given promises into a single promise for the list of results.
-         *
-         * @param promises The promises to combine
-         * @return A single promise whose methods act on the list of redeemed promises
-         * @deprecated Since 2.1. Use {@link #sequence(Iterable)} instead.
-         */
-        @Deprecated
-        public static <A> Promise<List<A>> waitAll(Iterable<Promise<? extends A>> promises){
-            return sequence(promises);
         }
 
         /**
@@ -325,33 +264,6 @@ public class F {
         }
 
         /**
-         * Awaits for the promise to get the result using a default timeout
-         * (currently 10000 milliseconds).
-         *
-         * @return The promised object
-         * @throws Throwable if the calculation providing the promise threw an exception
-         * @deprecated Since 2.2. Use {@link #get(long, TimeUnit)} or {@link #get(long)} instead.
-         */
-        @Deprecated
-        public A get() {
-            return FPromiseHelper.get(this, FPromiseHelper.defaultTimeout(), TimeUnit.MILLISECONDS);
-        }
-
-        /**
-         * Awaits for the promise to get the result.
-         *
-         * @param timeout A user defined timeout
-         * @param unit timeout for timeout
-         * @return The promised result
-         * @throws Throwable if the calculation providing the promise threw an exception
-         * @deprecated Since 2.2. Use {@link #get(long, TimeUnit)} instead.
-         */
-        @Deprecated
-        public A get(Long timeout, TimeUnit unit) {
-            return FPromiseHelper.get(this, timeout, unit);
-        }
-
-        /**
          * Awaits for the promise to get the result.
          *
          * @param timeout A user defined timeout
@@ -361,19 +273,6 @@ public class F {
          */
         public A get(long timeout, TimeUnit unit) {
             return FPromiseHelper.get(this, timeout, unit);
-        }
-
-        /**
-         * Awaits for the promise to get the result.
-         *
-         * @param timeout A user defined timeout in milliseconds
-         * @return The promised result
-         * @throws Throwable if the calculation providing the promise threw an exception
-         * @deprecated Since 2.2. Use {{@link #get(long)} instead.
-         */
-        @Deprecated
-        public A get(Long timeout) {
-            return FPromiseHelper.get(this, timeout, TimeUnit.MILLISECONDS);
         }
 
         /**
@@ -392,9 +291,7 @@ public class F {
          * @param another 
          */
         public <B> Promise<Either<A,B>> or(Promise<B> another) {
-            return (wrap(new PlayPromise(this.future).or(another.wrapped()))).map(
-              new  play.core.j.EitherToFEither<A,B>()
-            );
+            return FPromiseHelper.or(this, another);
         }
 
         /**
@@ -423,7 +320,7 @@ public class F {
          * soon as the promise is redeemed.
          *
          * The function will be run in the default execution context.
-
+         *
          * @param function The function to map <code>A</code> to <code>B</code>.
          * @return A wrapped promise that maps the type from <code>A</code> to <code>B</code>.
          */
@@ -447,7 +344,7 @@ public class F {
          * Wraps this promise in a promise that will handle exceptions thrown by this Promise.
          *
          * The function will be run in the default execution context.
-
+         *
          * @param function The function to handle the exception. This may, for example, convert the exception into something
          *      of type <code>T</code>, or it may throw another exception, or it may do some other handling.
          * @return A wrapped promise that will only throw an exception if the supplied <code>function</code> throws an
@@ -537,17 +434,6 @@ public class F {
          */
         public Future<A> wrapped() {
             return future;
-        }
-
-        /**
-         * Gets the Scala Future wrapped by this Promise.
-         *
-         * @return The Scala Future
-         * @deprecated Since 2.2. Use {@link #wrapped()} instead.
-         */
-        @Deprecated
-        public Future<A> getWrappedPromise() {
-            return wrapped();
         }
 
     }

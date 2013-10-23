@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Installing Play
 
 ## Prerequisites
@@ -12,7 +13,13 @@ Be sure to have the `java` and `javac` commands in the current path (you can che
 
 ## Download the binary package
 
-Download the latest [Play binary package](http://www.playframework.com/download) (take the latest official version) and extract the archive to a location where you have both read **and write** access. (Running `play` writes some files to directories within the archive, so don't install to `/opt`, `/usr/local` or anywhere else you’d need special permission to write to.)
+### Using Typesafe Activator
+
+Play can be installed using [Typesafe Activator](http://typesafe.com/activator).  The documentation on this page is about installing the Play standalone distribution.  If you would like to use Typesafe Activator, then follow the instructions [here](http://typesafe.com/platform/getstarted) to install Play.
+
+### Using Play standalone
+
+Download the latest [Play standalone distribution](http://www.playframework.com/download) and extract the archive to a location where you have both read **and write** access. (Running `play` writes some files to directories within the archive, so don't install to `/opt`, `/usr/local` or anywhere else you’d need special permission to write to.)
 
 ## Add the play script to your PATH
 

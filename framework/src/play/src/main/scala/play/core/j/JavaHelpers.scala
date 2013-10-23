@@ -1,11 +1,14 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.core.j
 
-import play.api.mvc._
 import play.mvc.{ SimpleResult => JSimpleResult }
-import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => JBody, Cookies => JCookies, Cookie => JCookie }
+import play.mvc.Http.{ Context => JContext, Request => JRequest, Cookies => JCookies, Cookie => JCookie }
 
-import scala.collection.JavaConverters._
 import play.libs.F
+import scala.concurrent.Future
+import play.api.libs.iteratee.Execution.trampoline
 
 class EitherToFEither[A, B]() extends play.libs.F.Function[Either[A, B], play.libs.F.Either[A, B]] {
 
@@ -65,6 +68,8 @@ trait JavaHelpers {
 
       def remoteAddress = req.remoteAddress
 
+      def secure = req.secure
+
       def host = req.host
 
       def path = req.path
@@ -86,8 +91,23 @@ trait JavaHelpers {
       def accepts(mediaType: String) = req.accepts(mediaType)
 
       def cookies = new JCookies {
-        def get(name: String) = (for (cookie <- req.cookies.get(name))
-          yield new JCookie(cookie.name, cookie.value, cookie.maxAge.map(i => new Integer(i)).orNull, cookie.path, cookie.domain.orNull, cookie.secure, cookie.httpOnly)).getOrElse(null)
+        def get(name: String): JCookie = {
+          req.cookies.get(name).map(makeJavaCookie).orNull
+        }
+
+        private def makeJavaCookie(cookie: Cookie): JCookie = {
+          new JCookie(cookie.name,
+            cookie.value,
+            cookie.maxAge.map(i => new Integer(i)).orNull,
+            cookie.path,
+            cookie.domain.orNull,
+            cookie.secure,
+            cookie.httpOnly)
+        }
+
+        def iterator: java.util.Iterator[JCookie] = {
+          req.cookies.toIterator.map(makeJavaCookie).asJava
+        }
       }
 
       override def toString = req.toString
@@ -125,6 +145,8 @@ trait JavaHelpers {
 
       def remoteAddress = req.remoteAddress
 
+      def secure = req.secure
+
       def host = req.host
 
       def path = req.path
@@ -146,8 +168,23 @@ trait JavaHelpers {
       }
 
       def cookies = new JCookies {
-        def get(name: String) = (for (cookie <- req.cookies.get(name))
-          yield new JCookie(cookie.name, cookie.value, cookie.maxAge.map(i => new Integer(i)).orNull, cookie.path, cookie.domain.orNull, cookie.secure, cookie.httpOnly)).getOrElse(null)
+        def get(name: String): JCookie = {
+          req.cookies.get(name).map(makeJavaCookie).orNull
+        }
+
+        private def makeJavaCookie(cookie: Cookie): JCookie = {
+          new JCookie(cookie.name,
+            cookie.value,
+            cookie.maxAge.map(i => new Integer(i)).orNull,
+            cookie.path,
+            cookie.domain.orNull,
+            cookie.secure,
+            cookie.httpOnly)
+        }
+
+        def iterator: java.util.Iterator[JCookie] = {
+          req.cookies.toIterator.map(makeJavaCookie).asJava
+        }
       }
 
       override def toString = req.toString
@@ -170,11 +207,11 @@ trait JavaHelpers {
    * @param f The function to invoke
    * @return The result
    */
-  def invokeWithContext(request: RequestHeader, f: JRequest => Option[JSimpleResult]): Option[SimpleResult] = {
+  def invokeWithContext(request: RequestHeader, f: JRequest => Option[F.Promise[JSimpleResult]]): Option[Future[SimpleResult]] = {
     val javaContext = createJavaContext(request)
     try {
       JContext.current.set(javaContext)
-      f(javaContext.request()).map(result => createResult(javaContext, result))
+      f(javaContext.request()).map(_.wrapped.map(createResult(javaContext, _))(trampoline))
     } finally {
       JContext.current.remove()
     }

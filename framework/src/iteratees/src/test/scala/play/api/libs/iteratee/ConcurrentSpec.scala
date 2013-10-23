@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.libs.iteratee
 
 import java.util.concurrent.CountDownLatch
@@ -7,7 +10,6 @@ import org.specs2.mutable._
 import scala.concurrent._
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.language.reflectiveCalls
 
 object ConcurrentSpec extends Specification
   with IterateeSpecification with ExecutionSpecification {
@@ -204,6 +206,54 @@ object ConcurrentSpec extends Specification
       }
     }
   }
-  
 
+  "Concurrent.joined" should {
+    "join the iteratee and enumerator if the enumerator is applied first" in {
+      val (iteratee, enumerator) = Concurrent.joined[String]
+      val result = enumerator |>>> Iteratee.getChunks[String]
+      val unitResult = Enumerator("foo", "bar") |>>> iteratee
+      await(result) must_== Seq("foo", "bar")
+      await(unitResult) must_== ()
+    }
+    "join the iteratee and enumerator if the iteratee is applied first" in {
+      val (iteratee, enumerator) = Concurrent.joined[String]
+      val unitResult = Enumerator("foo", "bar") |>>> iteratee
+      val result = enumerator |>>> Iteratee.getChunks[String]
+      await(result) must_== Seq("foo", "bar")
+      await(unitResult) must_== ()
+    }
+    "join the iteratee and enumerator if the enumerator is applied during the iteratees run" in {
+      val (iteratee, enumerator) = Concurrent.joined[String]
+      val (broadcast, channel) = Concurrent.broadcast[String]
+      val unitResult = broadcast |>>> iteratee
+      channel.push("foo")
+      Thread.sleep(10)
+      val result = enumerator |>>> Iteratee.getChunks[String]
+      channel.push("bar")
+      channel.end()
+      await(result) must_== Seq("foo", "bar")
+      await(unitResult) must_== ()
+    }
+    "break early from infinite enumerators" in {
+      val (iteratee, enumerator) = Concurrent.joined[String]
+      val infinite = Enumerator.repeat("foo")
+      val unitResult = infinite |>>> iteratee
+      val head = enumerator |>>> Iteratee.head
+      await(head) must beSome("foo")
+      await(unitResult) must_== ()
+    }
+  }
+
+  "Concurrent.runPartial" should {
+    "redeem the iteratee with the result and the partial enumerator" in {
+      val (a, remaining) = await(Concurrent.runPartial(Enumerator("foo", "bar"), Iteratee.head[String]))
+      a must beSome("foo")
+      await(remaining |>>> Iteratee.getChunks[String]) must_== Seq("bar")
+    }
+    "work when there is no input left in the enumerator" in {
+      val (a, remaining) = await(Concurrent.runPartial(Enumerator("foo", "bar"), Iteratee.getChunks[String]))
+      a must_== Seq("foo", "bar")
+      await(remaining |>>> Iteratee.getChunks[String]) must_== Nil
+    }
+  }
 }

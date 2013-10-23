@@ -1,5 +1,8 @@
 import scala.util.parsing.input.OffsetPosition
 
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.templates {
 
   import scalax.file._
@@ -302,7 +305,7 @@ package play.templates {
       }
 
       def parentheses: Parser[String] = {
-        "(" ~ (several((parentheses | not(")") ~> any))) ~ commit(")") ^^ {
+        "(" ~ several(stringLiteral | parentheses | not(")") ~> any) ~ commit(")") ^^ {
           case p1 ~ charList ~ p2 => p1 + charList.mkString + p2
         }
       }

@@ -1,12 +1,13 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Handling asynchronous results
 
 ## Why asynchronous results?
 
 Until now, we have been able to compute the result to send to the web client directly. This is not always the case: the result may depend on an expensive computation or on a long web service call.
 
-Because of the way Play works, action code must be as fast as possible (i.e. non blocking). So what should we return as result if we are not yet able to compute it? The response should be a promise of a result!
+Because of the way Play works, action code must be as fast as possible (i.e. non blocking). So what should we return from our action if we are not yet able to compute the result? We should return the *promise* of a result!
 
-A `Promise<Result>` will eventually be redeemed with a value of type `Result`. By giving a `Promise<Result>` instead of a normal `Result`, we are able to compute the result quickly without blocking anything. Play will then serve this result as soon as the promise is redeemed. 
+A `Promise<Result>` will eventually be redeemed with a value of type `Result`. By using a `Promise<Result>` instead of a normal `Result`, we are able to return from our action quickly without blocking anything. Play will then serve the result as soon as the promise is redeemed.
 
 The web client will be blocked while waiting for the response but nothing will be blocked on the server, and server resources can be used to serve other clients.
 
@@ -26,12 +27,10 @@ A simple way to execute a block of code asynchronously and to get a `Promise` is
 
 > **Note:** Here, the intensive computation will just be run on another thread. It is also possible to run it remotely on a cluster of backend servers using Akka remote.
 
-## AsyncResult
+## Async results
 
-While we were using `Results.Status` until now, to send an asynchronous result we need a `Results.AsyncResult` that wraps the actual result:
+We have been returning `Result` up until now. To send an asynchronous result our action needs to return a `Promise<Result>`:
 
 @[async](code/javaguide/async/Application.java)
-
-> **Note:** `async()` is an helper method building an `AsyncResult` from a `Promise<Result>`.
 
 > **Next:** [[Streaming HTTP responses | JavaStream]]

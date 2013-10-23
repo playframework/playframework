@@ -1,0 +1,12 @@
+@(userFormNested: Form[UserAddressData])
+
+@import scalaguide.forms.scalaforms.controllers._
+@import scalaguide.forms.scalaforms.controllers.routes
+
+@helper.form(action = routes.Application.submit) {
+    @* #form-field-nested *@
+    @helper.inputText(userFormNested("name"))
+    @helper.inputText(userFormNested("address.street"))
+    @helper.inputText(userFormNested("address.city"))
+    @* #form-field-nested *@
+})

@@ -1,121 +1,99 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Action composition
 
 This chapter introduces several ways of defining generic action functionality.
 
-## Basic action composition
+## Custom action builders
 
-Let’s start with the simple example of a logging decorator: we want to log each call to this action.
+We saw [[previously|ScalaActions]] that there are multiple ways to declare an action - with a request parameter, without a request parameter, with a body parser etc.  In fact there are more than this, as we'll see in the chapter on [[asynchronous programming|ScalaAsync]].
 
-The first way is not to define our own Action, but just to provide a helper method building a standard Action:
+These methods for building actions are actually all defined by a trait called [`ActionBuilder`](api/scala/index.html#play.api.mvc.ActionBuilder), and the [`Action`](api/scala/index.html#play.api.mvc.Action$) object that we use to declare our actions is just an instance of this trait.  By implementing your own `ActionBuilder`, you can declare reusable action stacks, that can then be used to build actions.
+
+Let’s start with the simple example of a logging decorator, we want to log each call to this action.
+
+The first way is to implement this functionality in the `invokeBlock` method, which is called for every action built by the `ActionBuilder`:
 
 @[basic-logging](code/ScalaActionsComposition.scala)
- 
 
-That you can use as:
+Now we can use it the same way we use `Action`:
 
 @[basic-logging-index](code/ScalaActionsComposition.scala)
  
-
-This is simple but it works only with the default `parse.anyContent` body parser as we don't have a way to specify our own body parser. We can of course define an additional helper method:
+Since `ActionBuilder` provides all the different methods of building actions, this also works with, for example, declaring a custom body parser:
 
 @[basic-logging-parse](code/ScalaActionsComposition.scala)
- 
 
-And then:
 
-@[basic-logging-parse-index](code/ScalaActionsComposition.scala)
- 
+## Composing actions
 
-## Wrapping existing actions
+In most applications, we will want to have multiple action builders, some that do different types of authentication, some that provide different types of generic functionality, etc.  In which case, we won't want to rewrite our logging action code for each type of action builder, we will want to define it in a reuseable way.
 
-Another way is to define our own `LoggingAction` that would be a wrapper over another `Action`:
+Reusable action code can be implemented by wrapping actions:
 
 @[actions-class-wrapping](code/ScalaActionsComposition.scala)
- 
 
-Now you can use it to wrap any other action value:
+We can also use the `Action` action builder to build actions without defining our own action class:
+
+@[actions-def-wrapping](code/ScalaActionsComposition.scala)
+
+Actions can be mixed in to action builders using the `composeAction` method:
+
+@[actions-wrapping-builder](code/ScalaActionsComposition.scala)
+
+Now the builder can be used in the same way as before:
 
 @[actions-wrapping-index](code/ScalaActionsComposition.scala)
- 
 
-Note that it will just re-use the wrapped action body parser as is, so you can of course write:
+We can also mix in wrapping actions without the action builder:
 
-@[actions-wrapping-index-parse](code/ScalaActionsComposition.scala) 
+@[actions-wrapping-direct](code/ScalaActionsComposition.scala)
 
-> Another way to write the same thing but without defining the `Logging` class, would be:
-> 
-> @[actions-def-wrapping](code/ScalaActionsComposition.scala)
+## More complicated actions
+
+So far we've only shown actions that don't impact the request at all.  Of course, we can also read and modify the incoming request object:
+
+@[modify-request](code/ScalaActionsComposition.scala)
+
+> **Note:** Play already has built in support for X-Forwarded-For headers.
+
+We could block the request:
+
+@[block-request](code/ScalaActionsComposition.scala)
+
+And finally we can also modify the returned result:
+
+@[modify-result](code/ScalaActionsComposition.scala)
+
+## Different request types
+
+The `ActionBuilder` trait is parameterised to allow building actions using different request types.  The `invokeBlock` method can translate the incoming request to whatever request type it wants.  This is useful for many things, for example, authentication, to attach a user object to the current request, or to share logic to load objects from a database.
+
+Let's consider a REST API that works with objects of type `Item`.  There may be many routes under the `/item/:itemId` path, and each of these need to look up the item.  They may also share the same authorisation properties.  In this case, it may be useful to put this logic into an action builder.
+
+First of all, we'll create a request object that adds an `Item`:
+
+@[request-with-item](code/ScalaActionsComposition.scala)
+
+Now we'll create an action builder that looks up that item when the request is made.  Note that this action builder is defined inside a method that takes the id of the item:
+
+@[item-action-builder](code/ScalaActionsComposition.scala)
+
+Now we can use this action builder for each item:
+
+@[item-action-use](code/ScalaActionsComposition.scala)
+
+## Authentication
+
+One of the most common use cases for action composition is authentication.  We can easily implement our own authentication action builder like this:
+
+@[authenticated-action-builder](code/ScalaActionsComposition.scala)
+
+Play also provides a built in authentication action builder.  Information on this and how to use it can be found [here](api/scala/index.html#play.api.mvc.Security$$AuthenticatedBuilder$).
+
+> **Note:** The built in authentication action builder is just a convenience helper to minimise the code necessary to implement authentication for simple cases, its implementation is very similar to the example above.
 >
+> If you have more complex requirements than can be met by the built in authentication action, then implementing your own is not only simple, it is recommended.
 
-
-The following example is wrapping an existing action to add session variable:
-
-@[actions-def-addSessionVar](code/ScalaActionsComposition.scala)
-
-
-
-## A more complicated example
-
-Let’s look at the more complicated but common example of an authenticated action. The main problem is that we need to pass the authenticated user to the wrapped action.
-
-@[authenticated-essentialaction](code/ScalaActionsComposition.scala)
- 
-
-You can use it like this:
-
-@[authenticated-essentialaction-index](code/ScalaActionsComposition.scala)
-  
-
-> **Note:** There is already an `Authenticated` action in `play.api.mvc.Security.Authenticated` with a more generic implementation than this example.
-
-In the [[previous section | ScalaBodyParsers]] we said that an `Action[A]` was a `Request[A] => Result` function but this is not entirely true. Actually the `Action[A]` trait is defined as follows:
-
-@[Source-Code-Action](code/ScalaActionsComposition.scala)
-  
-
-An `EssentialAction` is a function that takes the request headers and gives an `Iteratee` that will eventually parse the request body and produce a HTTP result. `Action[A]` implements `EssentialAction` as follow: it parses the request body using its body parser, gives the built `Request[A]` object to the action code and returns the action code’s result. An `Action[A]` can still be thought of as a `Request[A] => Result` function because it has an `apply(request: Request[A]): Result` method.
-
-The `EssentialAction` trait is useful to compose actions with code that requires to read some information from the request headers before parsing the request body.
-
-Our `Authenticated` implementation above tries to find a user id in the request session and calls the wrapped action with this user if found, otherwise it returns a `401 UNAUTHORIZED` status without even parsing the request body.
-
-## Another way to create the Authenticated action
-
-Let’s see how to write the previous example without wrapping the whole action:
-
-@[authenticated-action-param](code/ScalaActionsComposition.scala)
-
-
-To use this:
-
-@[authenticated-action-param-index](code/ScalaActionsComposition.scala)
-  
-
-A problem here is that you can't mark the `request` parameter as `implicit` anymore. You can solve that using currying:
-
-@[authenticated-action-currying](code/ScalaActionsComposition.scala)
- 
-
-Then you can do this:
-
-@[authenticated-action-currying-index](code/ScalaActionsComposition.scala)
- 
-
-Another (probably simpler) way is to define our own subclass of `Request` as `AuthenticatedRequest` (so we are merging both parameters into a single parameter):
-
-@[authenticated-request](code/ScalaActionsComposition.scala)
-  
-
-And then:
-
-@[authenticated-request-index](code/ScalaActionsComposition.scala)
-   
-
-We can of course extend this last example and make it more generic by making it possible to specify a body parser:
-
-@[authenticated-request-parser](code/ScalaActionsComposition.scala)
-  
-
-> Play also provides a [[global filter API | ScalaHttpFilters]], which is useful for global cross cutting concerns.
+Play also provides a [[global filter API | ScalaHttpFilters]], which is useful for global cross cutting concerns.
 
 > **Next:** [[Content negotiation | ScalaContentNegotiation]]

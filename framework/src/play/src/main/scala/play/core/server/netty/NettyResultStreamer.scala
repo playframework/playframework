@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.core.server.netty
 
 import play.api.mvc._
@@ -20,8 +23,6 @@ import scala.util.{ Failure, Success }
  */
 object NettyResultStreamer {
 
-  implicit val internalExecutionContext = play.core.Execution.internalContext
-
   // A channel status holds whether the connection must be closed and the last subsequence sent
   class ChannelStatus(val closeConnection: Boolean, val lastSubsequence: Int)
 
@@ -34,33 +35,34 @@ object NettyResultStreamer {
     val nettyResponse = createNettyResponse(result.header, closeConnection, httpVersion)
 
     // Result of this iteratee is a completion status
-    val bodyIteratee: Iteratee[Array[Byte], ChannelStatus] = result match {
+    val sentResponse: Future[ChannelStatus] = result match {
 
       // Sanitisation: ensure that we don't send chunked responses to HTTP 1.0 requests
       case UsesTransferEncoding() if httpVersion == HttpVersion.HTTP_1_0 => {
         // Make sure enumerator knows it's done, so that any resources it uses can be cleaned up
         result.body |>> Done(())
 
+        Play.logger.debug("Chunked response to HTTP/1.0 request, sending 505 response.")
         val error = Results.HttpVersionNotSupported("The response to this request is chunked and hence requires HTTP 1.1 to be sent, but this is a HTTP 1.0 request.")
-        nettyStreamIteratee(createNettyResponse(error.header, closeConnection, httpVersion), startSequence, closeConnection)
+        error.body |>>> nettyStreamIteratee(createNettyResponse(error.header, closeConnection, httpVersion), startSequence, closeConnection)
       }
 
       case CloseConnection() => {
-        nettyStreamIteratee(nettyResponse, startSequence, true)
+        result.body |>>> nettyStreamIteratee(nettyResponse, startSequence, true)
       }
 
       case EndOfBodyInProtocol() => {
-        nettyStreamIteratee(nettyResponse, startSequence, closeConnection)
+        result.body |>>> nettyStreamIteratee(nettyResponse, startSequence, closeConnection)
       }
 
       case _ => {
-        bufferingIteratee(nettyResponse, startSequence, closeConnection, httpVersion)
+        result.body |>>> bufferingIteratee(nettyResponse, startSequence, closeConnection, httpVersion)
       }
 
     }
 
     // Clean up
-    val sentResponse = result.body |>>> bodyIteratee
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
     sentResponse.onComplete {
       case Success(cs: ChannelStatus) =>
         if (cs.closeConnection) {
@@ -97,6 +99,8 @@ object NettyResultStreamer {
       // We reached EOF, which means we either have one or zero chunks
       case Input.EOF => Done(Right(chunk))
     }
+
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
 
     takeUpToOneChunk(None).flatMap {
       case Right(chunk) => {
@@ -184,6 +188,7 @@ object NettyResultStreamer {
   def nextWhenComplete[E, A](future: ChannelFuture, step: (Input[E]) => Iteratee[E, A], done: A)(implicit ctx: ChannelHandlerContext): Iteratee[E, A] = {
     // If the channel isn't currently connected, then this future will never be redeemed.  This is racey, and impossible
     // to 100% detect, but it's better to fail fast if possible than to sit there waiting forever
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
     if (!ctx.getChannel.isConnected) {
       Done(done)
     } else {

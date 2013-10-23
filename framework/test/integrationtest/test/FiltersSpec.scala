@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package test
 
 import org.specs2.mutable.Specification
@@ -12,8 +15,10 @@ object FiltersSpec extends Specification {
   "filters should" should {
     "be able to access request tags" in {
 
+      val notFoundText = "MockGlobal returned 404"
+      
       object MockGlobal extends WithFilters(Filter { (f, rh) =>
-        Future.successful(rh.tags.get(Routes.ROUTE_VERB).map(verb => Results.Ok(verb)).getOrElse(Results.NotFound))
+        Future.successful(rh.tags.get(Routes.ROUTE_VERB).map(verb => Results.Ok(verb)).getOrElse(Results.NotFound(notFoundText)))
       })
 
       "helpers routing" in new WithApplication(FakeApplication(withGlobal = Some(MockGlobal))) {
@@ -26,6 +31,12 @@ object FiltersSpec extends Specification {
         val response = Await.result(wsCall(controllers.routes.Application.index()).get(), Duration.Inf)
         response.status must_== 200
         response.body must_== "GET"
+      }
+
+      "filters fire for every single request, even those not matching a route" in new WithServer(FakeApplication(withGlobal = Some(MockGlobal))) {
+        val response = Await.result(wsUrl("/not-a-real-route").get(), Duration.Inf)
+        response.status must_== 404
+        response.body must_== notFoundText
       }
 
       object MockGlobal2 extends play.api.GlobalSettings {

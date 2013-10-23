@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Handling and serving JSON requests
 
 ## Handling a JSON request
@@ -15,7 +16,7 @@ public static Result sayHello() {
   if(json == null) {
     return badRequest("Expecting Json data");
   } else {
-    String name = json.findPath("name").getTextValue();
+    String name = json.findPath("name").textValue();
     if(name == null) {
       return badRequest("Missing parameter [name]");
     } else {
@@ -35,7 +36,7 @@ import play.mvc.BodyParser;
 @BodyParser.Of(BodyParser.Json.class)
 public static Result sayHello() {
   JsonNode json = request().body().asJson();
-  String name = json.findPath("name").getTextValue();
+  String name = json.findPath("name").textValue();
   if(name == null) {
     return badRequest("Missing parameter [name]");
   } else {
@@ -79,7 +80,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 public static Result sayHello() {
   JsonNode json = request().body().asJson();
   ObjectNode result = Json.newObject();
-  String name = json.findPath("name").getTextValue();
+  String name = json.findPath("name").textValue();
   if(name == null) {
     result.put("status", "KO");
     result.put("message", "Missing parameter [name]");

@@ -1,25 +1,26 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 ### Getting started
 
-- [[Installing Play | Installing]]
-- [[Creating a new application | NewApplication]]
-- [[Anatomy of a Play application | Anatomy]]
-- [[Using the Play console | PlayConsole ]]
-- [[Setting-up your preferred IDE | IDE]]
-- [[Sample applications | Samples]]
+- [[Installing Play|Installing]]
+- [[Creating a new application|NewApplication]]
+- [[Anatomy of a Play application|Anatomy]]
+- [[Using the Play console|PlayConsole ]]
+- [[Setting-up your preferred IDE|IDE]]
+- [[Sample applications|Samples]]
 - [Security policy](http://www.playframework.com/code/security)
 
 ### Working with Play
 
-- [[Play for Scala developers | ScalaHome]]
-- [[Play for Java developers | JavaHome]]
+- [[Play for Scala developers|ScalaHome]]
+- [[Play for Java developers|JavaHome]]
 
 ### Detailed topics
 
-- [[The Build system | Build]]
-- [[Working with public assets | Assets]]
-- [[Managing database evolutions | Evolutions]]
-- [[Configuration | Configuration]]
-- [[Deploying your application | Production]]
+- [[The Build system|Build]]
+- [[Working with public assets|Assets]]
+- [[Managing database evolutions|Evolutions]]
+- [[Configuration|Configuration]]
+- [[Deploying your application|Production]]
 
 ### Additional documentation
 

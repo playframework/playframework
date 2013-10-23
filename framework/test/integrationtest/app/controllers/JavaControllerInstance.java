@@ -1,8 +1,12 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package controllers;
 
 import java.util.*;
 
 import play.*;
+import play.libs.F.Promise;
 import play.mvc.*;
 
 import static play.libs.Json.toJson;
@@ -14,6 +18,10 @@ public class JavaControllerInstance extends Controller {
     d.put("peter", "foo");
     d.put("yay", "value");
     return ok(toJson(d));
+  }
+
+  public Promise<Result> promised() {
+    return Promise.<Result>pure(ok("x"));
   }
 
 }

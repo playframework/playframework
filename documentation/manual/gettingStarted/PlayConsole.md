@@ -1,10 +1,19 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Using the Play console
 
 ## Launching the console
 
 The Play console is a development console based on sbt that allows you to manage a Play application’s complete development cycle.
 
-To launch the console, enter any existing Play application directory and run the `play` script:
+### Launching the console using Typesafe Activator
+
+The preferred method for launching the Play development environment when using Typesafe Activator is using the in built browser based UI.  However, if you would prefer to use a console based environment, then change to the application directory, and run `activator`.
+
+You may need to ensure that your Activator installation directory is in your system `PATH`.
+
+### Launching the console using Play standalone
+
+If you have installed Play using the standalone distribution, enter any existing Play application directory and run the `play` script:
 
 ```bash
 $ cd /path/to/any/application

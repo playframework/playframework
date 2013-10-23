@@ -1,9 +1,13 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.core.j
 
 import java.lang.{ Iterable => JIterable }
 import java.util.{ List => JList, Timer, TimerTask }
 import java.util.concurrent.{ Callable, TimeoutException, TimeUnit }
 import play.api.libs.concurrent.{ Promise => DeprecatedPlayPromise }
+import play.api.libs.iteratee.Execution
 import play.libs.F
 import scala.collection.JavaConverters
 import scala.concurrent.{ Await, ExecutionContext, Future, Promise }
@@ -19,8 +23,6 @@ import play.core.Execution.internalContext
 private[play] object FPromiseHelper {
 
   private val timer = new Timer()
-
-  val defaultTimeout = DeprecatedPlayPromise.defaultTimeout
 
   def pure[A](a: A): F.Promise[A] = F.Promise.wrap(Future.successful(a))
 
@@ -42,7 +44,6 @@ private[play] object FPromiseHelper {
     F.Promise.wrap[A](p.future)
   }
 
-  // For deprecated method in play.libs.Akka
   def delayed[A](callable: Callable[A], duration: Long, unit: TimeUnit, ec: ExecutionContext): F.Promise[A] =
     delayedWith(callable.call(), duration, unit, ec)
 
@@ -51,6 +52,24 @@ private[play] object FPromiseHelper {
 
   def get[A](promise: F.Promise[A], timeout: Long, unit: TimeUnit): A =
     Await.result(promise.wrapped(), Duration(timeout, unit))
+
+  def or[A, B](left: F.Promise[A], right: F.Promise[B]): F.Promise[F.Either[A, B]] = {
+    implicit val ec = Execution.overflowingExecutionContext
+    val p = Promise[F.Either[A, B]]
+    left.wrapped.onComplete {
+      case tryA => p.tryComplete(tryA.map(F.Either.Left[A, B](_)))
+    }
+    right.wrapped.onComplete {
+      case tryB => p.tryComplete(tryB.map(F.Either.Right[A, B](_)))
+    }
+    F.Promise.wrap(p.future)
+  }
+
+  def zip[A, B](pa: F.Promise[A], pb: F.Promise[B]): F.Promise[F.Tuple[A, B]] = {
+    implicit val ec = Execution.overflowingExecutionContext
+    val future = pa.wrapped.zip(pb.wrapped).map { case (a, b) => new F.Tuple(a, b) }
+    F.Promise.wrap(future)
+  }
 
   def sequence[A](promises: JIterable[F.Promise[_ <: A]], ec: ExecutionContext): F.Promise[JList[A]] = {
     val futures = JavaConverters.iterableAsScalaIterableConverter(promises).asScala.toBuffer.map((_: F.Promise[_ <: A]).wrapped)
@@ -87,5 +106,4 @@ private[play] object FPromiseHelper {
   def onFailure[A](promise: F.Promise[A], action: F.Callback[Throwable], ec: ExecutionContext) {
     promise.wrapped().onFailure { case t => action.invoke(t) }(ec.prepare())
   }
-
 }

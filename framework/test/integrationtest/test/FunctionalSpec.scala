@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package test
 
 import play.api.test._
@@ -58,7 +61,7 @@ class FunctionalSpec extends PlaySpecification {
       contentForm must contain ("foo")
 
        val jpromise: play.libs.F.Promise[play.libs.WS.Response] = play.libs.WS.url("http://localhost:" + port + "/post").setHeader("Content-Type","application/x-www-form-urlencoded").post("param1=foo")
-      val contentJava: String = jpromise.get().getBody()
+      val contentJava: String = jpromise.get(10000).getBody()
       contentJava must contain ("param1")
       contentJava must contain ("AnyContentAsFormUrlEncoded")
       contentJava must contain ("foo")

@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Setting up your preferred IDE
 
 Working with Play is easy. You don’t even need a sophisticated IDE, because Play compiles and refreshes the modifications you make to your source files automatically, so you can easily work using a simple text editor.
@@ -153,11 +154,11 @@ $ play netbeans
 
 ### Install ENSIME
 
-Follow the installation instructions at http://github.com/aemoncannon/ensime
+Follow the installation instructions at <https://github.com/aemoncannon/ensime>
 
 ### Generate configuration
 
-Edit your project/plugins.sbt file, and add the following line (you should first check http://github.com/aemoncannon/ensime-sbt-cmd for the latest version of the plugin):
+Edit your project/plugins.sbt file, and add the following line (you should first check <https://github.com/aemoncannon/ensime-sbt-cmd> for the latest version of the plugin):
 
 ```
 addSbtPlugin("org.ensime" % "ensime-sbt-cmd" % "0.1.0")
@@ -211,22 +212,22 @@ That's all there is to it. You should now get type-checking, completion, etc. fo
 
 ### More Information
 
-Check out the ENSIME manual at http://aemoncannon.github.com/ensime/index.html
-If you have questions, post them in the ensime group at https://groups.google.com/forum/?fromgroups=#!forum/ensime
+Check out the ENSIME manual at <http://aemoncannon.github.com/ensime/index.html>
+If you have questions, post them in the ensime group at <https://groups.google.com/forum/?fromgroups=#!forum/ensime>
 
 
 ## All Scala Plugins if needed
 
 Scala is a newer programming language, so the functionality is provided in plugins rather than in the core IDE.
 
-- Eclipse Scala IDE: http://scala-ide.org/
-- NetBeans Scala Plugin: http://java.net/projects/nbscala
-- IntelliJ IDEA Scala Plugin: http://confluence.jetbrains.net/display/SCA/Scala+Plugin+for+IntelliJ+IDEA
+- Eclipse Scala IDE: <http://scala-ide.org/>
+- NetBeans Scala Plugin: <https://java.net/projects/nbscala>
+- IntelliJ IDEA Scala Plugin: <http://confluence.jetbrains.net/display/SCA/Scala+Plugin+for+IntelliJ+IDEA>
 - IntelliJ IDEA's plugin is under active development, and so using the nightly build may give you additional functionality at the cost of some minor hiccups.
-- Nika (11.x) Plugin Repository: http://www.jetbrains.com/idea/plugins/scala-nightly-nika.xml
-- Leda (12.x) Plugin Repository: http://www.jetbrains.com/idea/plugins/scala-nightly-leda.xml
-- IntelliJ IDEA Play plugin (available only for Leda 12.x): http://plugins.intellij.net/plugin/?idea&pluginId=7080
-- ENSIME - Scala IDE Mode for Emacs: https://github.com/aemoncannon/ensime
+- Nika (11.x) Plugin Repository: <http://www.jetbrains.com/idea/plugins/scala-nightly-nika.xml>
+- Leda (12.x) Plugin Repository: <http://www.jetbrains.com/idea/plugins/scala-nightly-leda.xml>
+- IntelliJ IDEA Play plugin (available only for Leda 12.x): <http://plugins.intellij.net/plugin/?idea&pluginId=7080>
+- ENSIME - Scala IDE Mode for Emacs: <https://github.com/aemoncannon/ensime>
 (see below for ENSIME/Play instructions)
 
 &nbsp;

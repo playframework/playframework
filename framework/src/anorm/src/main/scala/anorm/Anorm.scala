@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package anorm
 
 import scala.language.{ postfixOps, reflectiveCalls }
@@ -400,6 +403,8 @@ case class SimpleSql[T](sql: SqlQuery, params: Seq[(String, ParameterValue[_])],
   }
 
   def using[U](p: RowParser[U]): SimpleSql[U] = SimpleSql(sql, params, p)
+
+  def map[A](f: T => A): SimpleSql[A] = this.copy(defaultParser = defaultParser.map(f))
 
   def withQueryTimeout(seconds: Option[Int]): SimpleSql[T] = this.copy(sql = sql.withQueryTimeout(seconds))
 }

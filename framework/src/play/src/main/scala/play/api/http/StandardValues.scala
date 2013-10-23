@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.http
 
 /**
@@ -49,6 +52,11 @@ trait ContentTypes {
    * Content-Type of server sent events.
    */
   def EVENT_STREAM(implicit codec: Codec) = withCharset(MimeTypes.EVENT_STREAM)
+
+  /**
+   * Content-Type of application cache.
+   */
+  val CACHE_MANIFEST = withCharset(MimeTypes.CACHE_MANIFEST)(Codec.utf_8)
 
   /**
    * Content-Type of binary data.
@@ -112,6 +120,11 @@ trait MimeTypes {
    * Content-Type of binary data.
    */
   val BINARY = "application/octet-stream"
+
+  /**
+   * Content-Type of application cache.
+   */
+  val CACHE_MANIFEST = "text/cache-manifest"
 
 }
 
@@ -242,7 +255,6 @@ trait HeaderNames {
   val TE = "Te"
   val TRAILER = "Trailer"
   val TRANSFER_ENCODING = "Transfer-Encoding"
-  val CHUNKED = "chunked"
 
   val UPGRADE = "Upgrade"
   val USER_AGENT = "User-Agent"
@@ -268,4 +280,21 @@ trait HeaderNames {
   val ORIGIN = "Origin"
   val ACCESS_CONTROL_REQUEST_METHOD = "Access-Control-Request-Method"
   val ACCESS_CONTROL_REQUEST_HEADERS = "Access-Control-Request-Headers"
+}
+
+/**
+ * Defines HTTP protocol constants
+ */
+object HttpProtocol extends HttpProtocol
+
+/**
+ * Defines HTTP protocol constants
+ */
+trait HttpProtocol {
+  // Versions
+  val HTTP_1_0 = "HTTP/1.0"
+  val HTTP_1_1 = "HTTP/1.1"
+
+  // Other HTTP protocol values
+  val CHUNKED = "chunked"
 }

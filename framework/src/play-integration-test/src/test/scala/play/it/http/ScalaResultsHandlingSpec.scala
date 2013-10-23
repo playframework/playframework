@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.it.http
 
 import play.api.mvc._
@@ -147,6 +150,27 @@ object ScalaResultsHandlingSpec extends PlaySpecification {
       response.headers.keySet must not contain TRANSFER_ENCODING
       response.headers.keySet must not contain CONTENT_LENGTH
       response.body must beLeft("abcdefghi")
+    }
+
+    "Strip malformed cookies" in withServer(
+      Results.Ok
+    ) { port =>
+      val response = BasicHttpClient.makeRequests(port)(
+        BasicRequest("GET", "/", "HTTP/1.1", Map("Cookie" -> """£"""), "")
+      )(0)
+
+      response.status must_== 200
+      response.body must beLeft
+    }
+
+    "reject HTTP 1.0 requests for chunked results" in withServer(
+      Results.Ok.chunked(Enumerator("a", "b", "c"))
+    ) { port =>
+      val response = BasicHttpClient.makeRequests(port)(
+        BasicRequest("GET", "/", "HTTP/1.0", Map(), "")
+      )(0)
+      response.status must_== HTTP_VERSION_NOT_SUPPORTED
+      response.body must beLeft("The response to this request is chunked and hence requires HTTP 1.1 to be sent, but this is a HTTP 1.0 request.")
     }
   }
 

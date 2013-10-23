@@ -1,3 +1,5 @@
+// Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+
 // Comment to get more information during initialization
 logLevel := Level.Warn
 
@@ -5,4 +7,6 @@ logLevel := Level.Warn
 resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
 
 // Use the Play sbt plugin for Play projects
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % Option(System.getProperty("play.version")).getOrElse("2.0"))
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % Option(System.getProperty("play.version")).get)
+
+libraryDependencies += "com.typesafe.play" %% "play-doc" % "1.0.3"

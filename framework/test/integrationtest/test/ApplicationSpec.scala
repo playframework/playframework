@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package test
 
 import play.api.test._
@@ -267,18 +270,18 @@ class ApplicationSpec extends PlaySpecification {
       import play.api.http.MediaRange
       val r1 = FakeRequest(GET, "/foo").withHeaders(ACCEPT -> "text/*, text/html, text/html;level=1, */*")
       r1.acceptedTypes must equalTo (Seq(
-        MediaRange("text", "html", Some("level=1")),
-        MediaRange("text", "html", None),
-        MediaRange("text", "*", None),
-        MediaRange("*", "*", None)
+        new MediaRange("text", "html", Seq("level" -> Some("1")), None, Nil),
+        new MediaRange("text", "html", Nil, None, Nil),
+        new MediaRange("text", "*", Nil, None, Nil),
+        new MediaRange("*", "*", Nil, None, Nil)
       ))
       val r2 = FakeRequest(GET, "/foo").withHeaders(ACCEPT -> "text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5")
       r2.acceptedTypes must equalTo (Seq(
-        MediaRange("text", "html", Some("level=1")),
-        MediaRange("text", "html", None),
-        MediaRange("*", "*", None),
-        MediaRange("text", "html", Some("level=2")),
-        MediaRange("text", "*", None)
+        new MediaRange("text", "html", Seq("level" -> Some("1")), None, Nil),
+        new MediaRange("text", "html", Nil, Some(0.7f), Nil),
+        new MediaRange("*", "*", Nil, Some(0.5f), Nil),
+        new MediaRange("text", "html", Seq("level" -> Some("2")), Some(0.4f), Nil),
+        new MediaRange("text", "*", Nil, Some(0.3f), Nil)
       ))
     }
 
@@ -331,7 +334,17 @@ class ApplicationSpec extends PlaySpecification {
         await(wsUrl("/xml").withHeaders("Content-Type" -> "application/xml").post(<foo>bar</foo>)).header("Content-Type").get must startWith("application/xml")
       }
     }
-    
+
+    "execute Java Promise" in new WithApplication() {
+      val Some(result) = route(FakeRequest(GET, "/promised"))
+      status(result) must equalTo(OK)
+    }
+
+    "execute Java Promise in controller instance" in new WithApplication() {
+      val Some(result) = route(FakeRequest(GET, "/promisedInstance"))
+      status(result) must equalTo(OK)
+    }
+
   }
 
 }

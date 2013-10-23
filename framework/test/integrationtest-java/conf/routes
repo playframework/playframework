@@ -1,3 +1,6 @@
+#
+# Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+#
 # Routes
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
@@ -6,6 +9,7 @@ GET     /                           controllers.Application.index(name = "Guest"
 GET     /key                        controllers.Application.key
 GET     /async                      controllers.Application.asyncResult
 GET     /lang/:code                 controllers.Application.setLang(code)
+GET     /unsetLang                  controllers.Application.unsetLang()
 GET     /hello                      controllers.Application.hello()
 POST    /json                       controllers.Application.getIdenticalJson()
 GET     /paged                      controllers.Application.paged(p: controllers.Pager)

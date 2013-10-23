@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -56,7 +59,7 @@ public class BodyParsersTest {
             @Override
             public void run() {
                 WS.Response r = WS.url("http://localhost:9001" + url).setHeader("Content-Type", "application/json")
-                        .post(Json.stringify(json)).get();
+                        .post(Json.stringify(json)).get(10000);
                 r.getBody();
                 response.set(r);
             }

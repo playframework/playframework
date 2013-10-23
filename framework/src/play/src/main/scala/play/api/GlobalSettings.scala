@@ -1,8 +1,12 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api
 
 import play.api.mvc._
 import java.io.File
 import scala.util.control.NonFatal
+import scala.concurrent.Future
 
 /**
  * Defines an application’s global settings.
@@ -71,17 +75,14 @@ trait GlobalSettings {
    * Default is: route, tag request, then apply filters
    */
   def onRequestReceived(request: RequestHeader): (RequestHeader, Handler) = {
-    onRouteRequest(request)
-      .map {
-        case handler: RequestTaggingHandler => (handler.tagRequest(request), handler)
-        case handler => (request, handler)
-      }
-      .map {
-        case (taggedRequest, handler) => (taggedRequest, doFilter(rh => handler)(taggedRequest))
-      }
-      .getOrElse {
-        (request, Action(BodyParsers.parse.empty)(_ => this.onHandlerNotFound(request)))
-      }
+    val (routedRequest, handler) = onRouteRequest(request) map {
+      case handler: RequestTaggingHandler => (handler.tagRequest(request), handler)
+      case otherHandler => (request, otherHandler)
+    } getOrElse {
+      (request, Action.async(BodyParsers.parse.empty)(_ => this.onHandlerNotFound(request)))
+    }
+
+    (routedRequest, doFilter(rh => handler)(routedRequest))
   }
 
   /**
@@ -124,9 +125,9 @@ trait GlobalSettings {
    * @param ex The exception
    * @return The result to send to the client
    */
-  def onError(request: RequestHeader, ex: Throwable): SimpleResult = {
+  def onError(request: RequestHeader, ex: Throwable): Future[SimpleResult] = {
     try {
-      InternalServerError(Play.maybeApplication.map {
+      Future.successful(InternalServerError(Play.maybeApplication.map {
         case app if app.mode != Mode.Prod => views.html.defaultpages.devError.f
         case app => views.html.defaultpages.error.f
       }.getOrElse(views.html.defaultpages.devError.f) {
@@ -134,11 +135,11 @@ trait GlobalSettings {
           case e: UsefulException => e
           case NonFatal(e) => UnexpectedException(unexpected = Some(e))
         }
-      })
+      }))
     } catch {
       case e: Throwable => {
         Logger.error("Error while rendering default error page", e)
-        InternalServerError
+        Future.successful(InternalServerError)
       }
     }
   }
@@ -151,11 +152,11 @@ trait GlobalSettings {
    * @param request the HTTP request header
    * @return the result to send to the client
    */
-  def onHandlerNotFound(request: RequestHeader): SimpleResult = {
-    NotFound(Play.maybeApplication.map {
+  def onHandlerNotFound(request: RequestHeader): Future[SimpleResult] = {
+    Future.successful(NotFound(Play.maybeApplication.map {
       case app if app.mode != Mode.Prod => views.html.defaultpages.devNotFound.f
       case app => views.html.defaultpages.notFound.f
-    }.getOrElse(views.html.defaultpages.devNotFound.f)(request, Play.maybeApplication.flatMap(_.routes)))
+    }.getOrElse(views.html.defaultpages.devNotFound.f)(request, Play.maybeApplication.flatMap(_.routes))))
   }
 
   /**
@@ -166,8 +167,8 @@ trait GlobalSettings {
    * @param request the HTTP request header
    * @return the result to send to the client
    */
-  def onBadRequest(request: RequestHeader, error: String): SimpleResult = {
-    BadRequest(views.html.defaultpages.badRequest(request, error))
+  def onBadRequest(request: RequestHeader, error: String): Future[SimpleResult] = {
+    Future.successful(BadRequest(views.html.defaultpages.badRequest(request, error)))
   }
 
   def onRequestCompletion(request: RequestHeader) {

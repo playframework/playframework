@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Play for Scala developers
 
 The Scala API for Play application developers is available in the `play.api` package. 
@@ -22,9 +23,11 @@ The Scala API for Play application developers is available in the `play.api` pac
 1. [[The template engine | ScalaTemplates]]
     1. [[Templates syntax | ScalaTemplates]]
     1. [[Common use cases | ScalaTemplateUseCases]]
-1. [[HTTP form submission and validation | ScalaForms]]
-    1. [[Form definitions | ScalaForms]]
-    1. [[Using the form template helpers | ScalaFormHelpers]]
+1. [[Form submission and validation | ScalaForms]]
+    1. [[Handling form submission | ScalaForms]]
+    1. [[Protecting against CSRF|ScalaCsrf]]
+    1. [[Custom Validations|ScalaCustomValidations]]
+    1. [[Custom Field Constructors|ScalaCustomFieldConstructors]]
 1. [[Working with Json | ScalaJson]]
     1. [[Play Json Basics | ScalaJson]]
     1. [[Json Reads/Writes/Format Combinators | ScalaJsonCombinators]]
@@ -65,6 +68,9 @@ The Scala API for Play application developers is available in the `play.api` pac
 1. [[HTTP Architecture | HttpApi]]
     1. [[HTTP API | HttpApi]]
     1. [[HTTP Filters | ScalaHttpFilters]]
+1. [[Dependency Injection | ScalaDependencyInjection]]
+    1. [[Controller Injection | ScalaDependencyInjection]]
+    1. [[Example Projects | ScalaDependencyInjection]]
 1. [[Reverse routing | ScalaJavascriptRouting]]
     1. [[Javascript Routing | ScalaJavascriptRouting]]
 1. [[Extending Play|ScalaPlugins]]
