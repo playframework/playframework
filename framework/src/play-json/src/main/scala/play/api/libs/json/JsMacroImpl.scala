@@ -31,6 +31,8 @@ object JsMacroImpl {
       case s =>
         val unapply = s.asMethod
         val unapplyReturnTypes = unapply.returnType match {
+          case TypeRef(_, _, Nil) =>
+            c.abort(c.enclosingPosition, s"Apply of ${companionSymbol} has no parameters. Are you using an empty case class?")
           case TypeRef(_, _, args) =>
             args.head match {
               case t @ TypeRef(_, _, Nil) => Some(List(t))
@@ -313,6 +315,8 @@ object JsMacroImpl {
       case s =>
         val unapply = s.asMethod
         val unapplyReturnTypes = unapply.returnType match {
+          case TypeRef(_, _, Nil) =>
+            c.abort(c.enclosingPosition, s"Unapply of ${companionSymbol} has no parameters. Are you using an empty case class?")
           case TypeRef(_, _, args) =>
             args.head match {
               case t @ TypeRef(_, _, Nil) => Some(List(t))
@@ -594,6 +598,8 @@ object JsMacroImpl {
       case s =>
         val unapply = s.asMethod
         val unapplyReturnTypes = unapply.returnType match {
+          case TypeRef(_, _, Nil) =>
+            c.abort(c.enclosingPosition, s"Unapply of ${companionSymbol} has no parameters. Are you using an empty case class?")
           case TypeRef(_, _, args) =>
             args.head match {
               case t @ TypeRef(_, _, Nil) => Some(List(t))
