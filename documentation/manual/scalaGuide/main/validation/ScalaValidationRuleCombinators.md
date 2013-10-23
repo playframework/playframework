@@ -14,44 +14,19 @@ The validation API defines a class named `Path`. A `Path` represents a location.
 
 A `Path` is declared using this syntax:
 
-```scala
-scala> import play.api.data.mapping.Path
-import play.api.data.mapping.Path
-
-scala> val p = Path \ "foo" \ "bar"
-p: play.api.data.mapping.Path = /foo/bar
-```
+@[combinators-path](code/ScalaValidationRuleCombinators.scala)
 
 `Path` here is the empty `Path` object. One may call it the root path.
 
 A path can also reference an index:
 
-```scala
-scala> val p = Path \ "foo" \ 0
-p: play.api.data.mapping.Path = /foo[0]
-```
+@[combinators-path-index](code/ScalaValidationRuleCombinators.scala)
 
 ### Extracting data using `Path`
 
 Consider the following json:
 
-```json
-import play.api.libs.json.Json
-
-val js: JsValue = Json.parse("""{
-  "user": {
-    "name" : "toto",
-    "age" : 25,
-    "email" : "toto@jmail.com",
-    "isAlive" : true,
-    "friend" : {
-  	  "name" : "tata",
-  	  "age" : 20,
-  	  "email" : "tata@coldmail.com"
-    }
-  }
-}""")
-```
+@[combinators-js](code/ScalaValidationRuleCombinators.scala)
 
 The first step before trying to validate anything is be capable of accessing a fragment of the object.
 
@@ -61,23 +36,13 @@ Assuming you'd like to validate that `friend` exists and is valid in this json, 
 
 We start by creating a `Path` representing the location of the data we're interested in:
 
-```scala
-scala> import play.api.data.mapping._
-scala> val location: Path = Path \ "user" \ "friend"
-location: play.api.data.mapping.Path = /user/friend
-```
+@[combinators-path-location](code/ScalaValidationRuleCombinators.scala)
 
 `Path` has a `read[I, O]` method, where `I` represents the input we're trying to parse, and `O` is the output type. For example, `(Path \ "foo").read[JsValue, Int]`, means we want to try to read a value located at path `/foo` in a `JsValue` as an `Int`.
 
 But let's try something much easier for now:
 
-```scala
-import play.api.libs.json.JsValue
-import play.api.data.mapping._
-
-val location: Path = Path \ "user" \ "friend"
-val findFriend: Rule[JsValue, JsValue] = location.read[JsValue, JsValue]
-```
+@[rule-extract](code/ScalaValidationRuleCombinators.scala)
 
 `location.read[JsValue, JsValue]` means the we're trying to lookup at `location` in a `JsValue`, and we expect to find a `JsValue` there. Effectively, we're just defining a `Rule` that is picking a subtree in a `JsValue`.
 
@@ -93,86 +58,52 @@ The Scala compiler is complaining about not finding an implicit function of type
 
 Fortunately, such method already exists. All you have to do is import it:
 
-```scala
-scala> import play.api.data.mapping.json.Rules._
-import play.api.data.mapping.json.Rules._
-```
+@[rule-extract-import](code/ScalaValidationRuleCombinators.scala)
 
 > By convention, all useful validation methods for a given type are to be found in an object called `Rules`. That object contains a bunch of implicits defining how to lookup in the data, and how to coerce some of the possible values of those data into Scala types.
 
 With those implicits in scope, we can finally create our `Rule`:
 
-```scala
-scala> import play.api.data.mapping.json.Rules._
-import play.api.data.mapping.json.Rules._
-
-scala> val findFriend: Rule[JsValue, JsValue] = location.read[JsValue, JsValue]
-findFriend: Rule[JsValue, JsValue] = play.api.data.mapping.Rule$$anon$2@294d2c21
-```
+@[rule-extract](code/ScalaValidationRuleCombinators.scala)
 
 Alright, so far we've defined a `Rule` looking for some data of type `JsValue`, located at `/user/friend` in an object of type `JsValue`.
 
 Now we need to apply this `Rule` to our data:
 
-```scala
-scala> findFriend.validate(js)
-res1: play.api.data.mapping.VA[JsValue, JsValue] = Success({"name":"tata","age":20,"email":"tata@coldmail.com"})
-```
+@[rule-extract-test](code/ScalaValidationRuleCombinators.scala)
 
 If we can't find anything, applying a `Rule` leads to a `Failure`:
 
-```scala
-scala> (Path \ "foobar").read[JsValue, JsValue].validate(js)
-res1: VA[JsValue, JsValue] = Failure(List((/foobar,List(ValidationError(validation.required,WrappedArray())))))
-```
+@[rule-extract-fail](code/ScalaValidationRuleCombinators.scala)
 
 ### Type coercion
 
 We now are capable of extracting data at a given `Path`. Let's do it again on a different sub-tree:
 
-```scala
-import play.api.data.mapping._
-import play.api.data.mapping.json.Rules._
-
-val age = (Path \ "user" \ "age").read[JsValue, JsValue]
-```
+@[rule-extract-age](code/ScalaValidationRuleCombinators.scala)
 
 And if we apply this new `Rule`:
 
-```scala
-scala> age.validate(js)
-res1: play.api.data.mapping.VA[JsValue, JsValue] = Success(25)
-```
+@[rule-extract-age-test](code/ScalaValidationRuleCombinators.scala)
 
 Again, if the json is invalid:
 
-```scala
-scala> age.validate(Json.obj())
-res5: play.api.data.mapping.VA[JsValue, JsValue] = Failure(List((/user/age,List(ValidationError(validation.required,WrappedArray())))))
-```
+@[rule-extract-age-fail](code/ScalaValidationRuleCombinators.scala)
 
 The `Failure` tells us that it could not find `/user/age` in that `JsValue`.
 
 That example is nice, but we'd certainly prefer ton extract `age` as an `Int` rather than a `JsValue`.
 All we have to do is to change the output type in our `Rule` definition:
 
-```scala
-val age = (Path \ "user" \ "age").read[JsValue, Int]
-```
+@[rule-extract-ageInt](code/ScalaValidationRuleCombinators.scala)
 
 And apply it:
 
-```scala
-scala> age.validate(js)
-res1: play.api.data.mapping.VA[JsValue, Int] = Success(25)
-```
+@[rule-extract-ageInt-test](code/ScalaValidationRuleCombinators.scala)
 
 If we try to parse something that's not an `Int`, we get a `Failure` with the appropriate Path and error:
 
-```scala
-scala> (Path \ "user" \ "name").read[JsValue, Int].validate(js)
-res8: VA[JsValue,Int] = Failure(List((/user/name,List(ValidationError(validation.type-mismatch,WrappedArray(Int))))))
-```
+@[rule-extract-ageInt-fail](code/ScalaValidationRuleCombinators.scala)
 
 So scala *automagically* figures out how to transform a `JsValue` into an `Int`. How does this happens ?
 
@@ -189,108 +120,46 @@ So when use `(Path \ "user" \ "age").read[JsValue, Int]`, the compiler looks for
 
 So far we've managed to lookup for a `JsValue` and transform that `JsValue` into an `Int`. Problem is: not every `Int` is a valid age. An age should always be a positive `Int`.
 
-```scala
-val js = Json.parse("""{
-  "user": {
-    "age" : -33
-  }
-}""")
-
-val age = (Path \ "user" \ "age").read[JsValue, Int]
-```
+@[rule-validate-js](code/ScalaValidationRuleCombinators.scala)
 
 Our current implementation of `age` is rather unsatisfying...
 
-```scala
-scala> age.validate(js)
-res1: VA[JsValue, Int] = Success(-33)
-```
+@[rule-validate-testNeg](code/ScalaValidationRuleCombinators.scala)
 
 We can fix that very simply using `from`, and a built-in `Rule`:
 
-```scala
-scala> val age = (Path \ "user" \ "age").from[JsValue](min(0))
-age: Rule[JsValue, Int] = play.api.data.mapping.Rule$$anon$2@6ae9b01
-```
+@[rule-validate-pos](code/ScalaValidationRuleCombinators.scala)
 
 Let's try that again:
 
-```scala
-scala> age.validate(js)
-res1: VA[JsValue, Int] = Failure(List((/user/age,List(ValidationError(validation.min,WrappedArray(0))))))
-```
+@[rule-validate-pos-test](code/ScalaValidationRuleCombinators.scala)
+
 That's better, but still not perfect: 8765 is considered valid:
 
-```scala
-val js = Json.parse("""{ "user": { "age" : 8765 } }""")
-age.validate(js) // Success(8765)
-```
+@[rule-validate-pos-big](code/ScalaValidationRuleCombinators.scala)
 
 Let's fix our `age` `Rule`:
 
-```scala
-val age = (Path \ "user" \ "age").from[JsValue](min(0) |+| max(130))
-```
+@[rule-validate-proper](code/ScalaValidationRuleCombinators.scala)
 
 and test it:
 
-```scala
-val js = Json.parse("""{ "user": { "age" : 8765 } }""")
-age.validate(js) // Failure(ArrayBuffer((/user/age,List(ValidationError(validation.max,WrappedArray(130))))))
-```
+@[rule-validate-proper-test](code/ScalaValidationRuleCombinators.scala)
 
 ### Full example
 
-```scala
-import play.api.libs.json.Json
-import play.api.data.mapping._
-import play.api.data.mapping.json.Rules._
-
-val js = Json.parse("""{
-  "user": {
-    "name" : "toto",
-    "age" : 25,
-    "email" : "toto@jmail.com",
-    "isAlive" : true,
-    "friend" : {
-  	  "name" : "tata",
-  	  "age" : 20,
-  	  "email" : "tata@coldmail.com"
-    }
-  }
-}""")
-
-val age = (Path \ "user" \ "age").from[JsValue](min(0) |+| max(130))
-age.validate(js) // Success(25)
-```
+@[rule-validate-full](code/ScalaValidationRuleCombinators.scala)
 
 ## Combining Rules
 
 So far we've validated only fragments of our json object.
 Now we'd like to validate the entire object, and turn it into a instance of the `User` class defined below:
 
-```scala
-case class User(
-	name: String,
-	age: Int,
-	email: Option[String],
-	isAlive: Boolean)
-```
+@[rule-combine-user](code/ScalaValidationRuleCombinators.scala)
 
 We need to create a `Rule[JsValue, User]`. Creating this Rule is simply a matter of combining together the rules parsing each field of the json.
 
-```scala
-import play.api.libs.json._
-import play.api.data.mapping._
-
-val userRule = From[JsValue] { __ =>
-	import play.api.data.mapping.json.Rules._
-	((__ \ "name").read[String] and
-	 (__ \ "age").read[Int] and
-	 (__ \ "email").read[Option[String]] and
-	 (__ \ "isAlive").read[Boolean])(User.apply _)
-}
-```
+@[rule-combine-rule](code/ScalaValidationRuleCombinators.scala)
 
 > **Important:** Note that we're importing `Rules._` **inside** the `From[I]{...}` block.
 It is recommended to always follow this pattern, as it nicely scopes the implicits, avoiding conflicts and accidental shadowing.

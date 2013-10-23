@@ -16,23 +16,13 @@ In the validation API, we create complex object writes by combining simple write
 
 We start by creating a Path representing the location at which we'd like to serialize our data:
 
-```scala
-scala> import play.api.data.mapping._
-scala> val location: Path = Path \ "user" \ "friend"
-location: play.api.data.mapping.Path = /user/friend
-```
+@[combinators-location](code/ScalaValidationWriteCombinators.scala)
 
 `Path` has a `write[I, O]` method, where `I` represents the input we’re trying to serialize, and `O` is the output type. For example, `(Path \ "foo").write[Int, JsObject]`, means we want to try to serialize a value of type `Int` into a `JsObject` at `/foo`.
 
 But let's try something much easier for now:
 
-```scala
-import play.api.libs.json.JsValue
-import play.api.data.mapping._
-
-val location: Path = Path \ "user" \ "friend"
-val serializeFriend: Write[JsValue, JsObject] = location.write[JsValue, JsObject]
-```
+@[write-serializeFriend](code/ScalaValidationWriteCombinators.scala)
 
 `location.write[JsValue, JsObject]` means the we're trying to serialize a `JsValue` to `location` in a `JsObject`. Effectively, we're just defining a `Write` that is putting a `JsValue` into a `JsObject` at the given location.
 
@@ -48,65 +38,38 @@ The Scala compiler is complaining about not finding an implicit function of type
 
 Fortunately, such method already exists. All you have to do is import it:
 
-```scala
-scala> import play.api.data.mapping.json.Writes._
-import play.api.data.mapping.json.Writes._
-```
+@[write-serializeFriend-import](code/ScalaValidationWriteCombinators.scala)
 
 > By convention, all useful serialization methods for a given type are to be found in an object called `Writes`. That object contains a bunch of implicits defining how to serialize primitives Scala types into the expected output types.
 
 With those implicits in scope, we can finally create our `Write`:
 
-```scala
-scala> import play.api.data.mapping.json.Writes._
-import play.api.data.mapping.json.Writes._
-
-scala> val serializeFriend: Write[JsValue, JsObject] = location.write[JsValue, JsObject]
-serializeFriend: Write[JsValue, JsObject] = play.api.data.mapping.Write$$anon$4@5a370c51
-```
+@[write-serializeFriend](code/ScalaValidationWriteCombinators.scala)
 
 Alright, so far we've defined a `Write` looking for some data of type `JsValue`, located at `/user/friend` in a `JsObject`.
 
 Now we need to apply this `Write` on our data:
 
-```scala
-import play.api.libs.json._
-
-scala> serializeFriend.writes(JsString("Julien"))
-res1: play.api.libs.json.JsValue = {"user":{"friend":"Julien"}}
-```
+@[write-serializeFriend-test](code/ScalaValidationWriteCombinators.scala)
 
 ### Type coercion
 
 We now are capable of serializing data to a given `Path`. Let's do it again on a different sub-tree:
 
-```scala
-import play.api.data.mapping._
-import play.api.data.mapping.json.Writes._
-
-val age = (Path \ "user" \ "age").write[JsValue, JsObject]
-```
+@[write-coerce](code/ScalaValidationWriteCombinators.scala)
 
 And if we apply this new `Write`:
 
-```scala
-scala> age.writes(JsNumber(28))
-res1: play.api.libs.json.JsObject = {"user":{"age":28}}
-```
+@[write-coerce-test](code/ScalaValidationWriteCombinators.scala)
 
 That example is nice, but chances are `age` in not a `JsNumber`, but an `Int`.
 All we have to do is to change the input type in our `Write` definition:
 
-```scala
-val age = (Path \ "user" \ "age").write[Int, JsObject]
-```
+@[write-coerce-age](code/ScalaValidationWriteCombinators.scala)
 
 And apply it:
 
-```scala
-scala> age.writes(28)
-res1: play.api.libs.json.JsObject = {"user":{"age":28}}
-```
+@[write-coerce-age-test](code/ScalaValidationWriteCombinators.scala)
 
 So scala *automagically* figures out how to transform a `Int` into an `JsObject`. How does this happens ?
 
@@ -120,70 +83,19 @@ So when you use `(Path \ "user" \ "age").write[Int, JsObject]`, the compiler loo
 
 ### Full example
 
-```scala
-import play.api.libs.json.Json
-import play.api.data.mapping._
-import play.api.data.mapping.json.Writes._
-
-val age = (Path \ "user" \ "age").write[Int, JsObject]
-age.writes(28) // {"user":{"age":28}}
-```
+@[write-full](code/ScalaValidationWriteCombinators.scala)
 
 ## Combining Writes
 
 So far we've serialized only primitives types.
 Now we'd like to serialize an entire `User` object defined below, and transform it into a `JsObject`:
 
-```scala
-case class User(
-	name: String,
-	age: Int,
-	email: Option[String],
-	isAlive: Boolean)
-```
+@[write-combine-user](code/ScalaValidationWriteCombinators.scala)
 
 We need to create a `Write[User, JsValue]`. Creating this `Write` is simply a matter of combining together the writes serializing each field of the class.
 
-```scala
-import play.api.libs.json._
-import play.api.data.mapping._
-import play.api.data.mapping.json.Writes._
+@[write-combine](code/ScalaValidationWriteCombinators.scala)
 
-val userWrite = To[JsObject] { __ =>
-	import play.api.data.mapping.json.Writes._
-	((__ \ "name").write[String] and
-	 (__ \ "age").write[Int] and
-	 (__ \ "email").write[Option[String]] and
-	 (__ \ "isAlive").write[Boolean])(unlift(User.unapply _))
-}
-```
-
-If you try this example, the following compilation error happens:
-
-```scala
-<console>:35: error: value and is not a member of play.api.data.mapping.Write[String,play.api.libs.json.JsObject]
-       ((__ \ "name").write[String] and
-```
-
-Indeed, the `and` method is part of a typeclass defined in `play.api.libs.functional.syntax`.
-You need to import `play.api.libs.functional.syntax._`
-
-```scala
-import play.api.libs.json._
-import play.api.data.mapping._
-import play.api.data.mapping.json.Writes._
-
-// DON'T FORGET TO IMPORT THIS
-import play.api.libs.functional.syntax._
-
-val userWrite = To[JsObject] { __ =>
-  import play.api.data.mapping.json.Writes._
-  ((__ \ "name").write[String] and
-   (__ \ "age").write[Int] and
-   (__ \ "email").write[Option[String]] and
-   (__ \ "isAlive").write[Boolean])(unlift(User.unapply _)) // unlift is defined in play.api.libs.functional.syntax
-}
-```
 
 > **Important:** Note that we're importing `Writes._` **inside** the `To[I]{...}` block.
 It is recommended to always follow this pattern, as it nicely scopes the implicits, avoiding conflicts and accidental shadowing.
@@ -200,10 +112,7 @@ but repeating `JsObject` all over the place is just not very DRY.
 
 Let's test it now:
 
-```scala
-scala> userWrite.writes(User("Julien", 28, None, true))
-res1: play.api.libs.json.JsObject = {"name":"Julien","age":28,"isAlive":true}
-```
+@[write-combine-test](code/ScalaValidationWriteCombinators.scala)
 
 > **Next:** - [[Macro Inception | ScalaValidationMacros]]
 > **For more examples and snippets:** - [[Cookbook | ScalaValidationCookbook]]
