@@ -31,6 +31,6 @@ A simple way to execute a block of code asynchronously and to get a `Promise` is
 
 We have been returning `Result` up until now. To send an asynchronous result our action needs to return a `Promise<Result>`:
 
-@[async](code/javaguide/async/Application.java)
+@[async](code/javaguide/async/controllers/Application.java)
 
 > **Next:** [[Streaming HTTP responses | JavaStream]]
