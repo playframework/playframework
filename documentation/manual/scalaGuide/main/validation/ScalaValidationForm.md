@@ -11,28 +11,13 @@ Consider the following example form play sample application "computer database":
 
 The `edit` action renders a form with all the computer data pre-filled. All we have to do is to create a `Form` instance using `Form.fill`:
 
-```scala
-def edit(id: Long) = Action {
-  Computer.findById(id).map { computer =>
-    Ok(html.editForm(id, Form.fill(computer), Company.options))
-  }.getOrElse(NotFound)
-}
-```
+@[form-edit](code/ScalaValidationForm.scala)
 
 > Note we are using `play.api.data.mapping.Form`, **NOT** `play.api.data.Form`
 
 Note that `Form.fill` needs to find an implicit `Write[Computer, UrlFormEncoded]`. In this sample, that `Write` is defined in `Application.scala`:
 
-```scala
-implicit val computerW = To[UrlFormEncoded] { __ =>
-  import play.api.data.mapping.Writes._
-  ((__ \ "id").write[Pk[Long]] ~
-   (__ \ "name").write[String] ~
-   (__ \ "introduced").write(option(date("yyyy-MM-dd"))) ~
-   (__ \ "discontinued").write(option(date("yyyy-MM-dd"))) ~
-   (__ \ "company").write[Option[Long]]) (unlift(Computer.unapply _))
-}
-```
+@[form-computer-write](code/ScalaValidationForm.scala)
 
 The write object is not only used to serialize primitive types, it also formats data.
 For example, we want dates to be display using this format: "yyyy-MM-dd".
@@ -58,30 +43,10 @@ From there, all the [[template helpers|ScalaFormHelpers]] work exactly as they u
 The Form object simply uses a `Rule` to bind and validate data from a request body.
 Here's a example:
 
-```scala
-def update(id: Long) = Action(parse.urlFormEncoded) { implicit request =>
-  val r = computerValidation.validate(request.body)
-  r match {
-    case Failure(_) => BadRequest(html.editForm(id, Form(request.body, r), Company.options))
-    case Success(computer) => {
-      Computer.update(id, computer)
-      Home.flashing("success" -> "Computer %s has been updated".format(computer.name))
-    }
-  }
-}
-```
+@[form-update](code/ScalaValidationForm.scala)
 
 The Rule `computerValidation` is defined bellow:
 
-```scala
-implicit val computerValidation = From[UrlFormEncoded] { __ =>
-    import play.api.data.mapping.Rules._
-    ((__ \ "id").read(ignored[UrlFormEncoded, Pk[Long]](NotAssigned)) ~
-     (__ \ "name").read(notEmpty) ~
-     (__ \ "introduced").read(option(date("yyyy-MM-dd"))) ~
-     (__ \ "discontinued").read(option(date("yyyy-MM-dd"))) ~
-     (__ \ "company").read[Option[Long]]) (Computer.apply _)
-  }
-```
+@[form-computer-rule](code/ScalaValidationForm.scala)
 
 > **Next:** - [[Validation Inception|ScalaValidationMacros]]
