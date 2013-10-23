@@ -74,6 +74,19 @@ object HelpersSpec extends Specification {
       body must contain( """<option value="0" selected>""" )
       body must contain( """<option value="1" selected>""" )
     }
+  }
 
+  "@repeat" should {
+    "Work with i18n" in {
+      import play.api.i18n._
+      implicit val lang = Lang("en-US")
+
+      val roleForm = Form(single("role" -> Forms.text)).fill("foo")
+      val body = repeat.apply(roleForm("bar"), min = 1){ roleField =>
+        select.apply(roleField, Seq("baz" -> "qux"), '_default -> "Role")
+      }.mkString("")
+
+      body must contain("""label for="bar_0">bar.0""")
+    }
   }
 }
