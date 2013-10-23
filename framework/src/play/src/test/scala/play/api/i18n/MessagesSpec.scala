@@ -51,4 +51,38 @@ object MessagesSpec extends Specification {
       isDefinedAt("garbled", "fr", "CH") must be equalTo false
     }
   }
+
+  val testMessageFile = """
+# this is a comment
+simplekey=value
+key.with.dots=value
+multiline.unix=line1\
+line2
+multiline.dos=line1\
+line2
+multiline.inline=line1\nline2
+backslash.escape=\\
+backslash.dummy=\a\b\c\e\f
+
+"""
+
+  "MessagesPlugin" should {
+    "parse file" in {
+      import scalax.io.JavaConverters._
+      import java.io.ByteArrayInputStream
+
+      val is = new ByteArrayInputStream(testMessageFile.getBytes("UTF-8"))
+      val parser = new Messages.MessagesParser(is.asInput, "messages")
+
+      val messages = parser.parse.map(x => x.key -> x.pattern).toMap
+
+      messages("simplekey")        must ===("value")
+      messages("key.with.dots")    must ===("value")
+      messages("multiline.unix")   must ===("line1line2")
+      messages("multiline.dos")    must ===("line1line2")
+      messages("multiline.inline") must ===("line1\nline2")
+      messages("backslash.escape") must ===("\\")
+      messages("backslash.dummy")  must ===("\\a\\b\\c\\e\\f")
+    }
+  }
 }
