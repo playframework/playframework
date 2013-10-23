@@ -757,7 +757,7 @@ package play.api.mvc {
         decoder.decode(cookieHeader).asScala.map { c =>
           Cookie(c.getName, c.getValue, if (c.getMaxAge == Integer.MIN_VALUE) None else Some(c.getMaxAge), Option(c.getPath).getOrElse("/"), Option(c.getDomain), c.isSecure, c.isHttpOnly)
         }.toSeq
-      }.getOrElse{
+      }.getOrElse {
         Play.logger.debug(s"Couldn't decode the Cookie header containing: $cookieHeader")
         Nil
       }
