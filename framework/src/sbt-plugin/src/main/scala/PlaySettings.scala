@@ -112,7 +112,7 @@ trait Settings {
     // Adds config directory's source files to continuous hot reloading
     watchSources <+= confDirectory map { all => all },
 
-    sourceGenerators in Compile <+= (state, unmanagedSourceDirectories in Compile, sourceManaged in Compile, templatesTypes, templatesImport) map ScalaTemplates,
+    sourceGenerators in Compile <+= (state, unmanagedSourceDirectories in Compile, sourceManaged in Compile, templatesTypes, templatesImport, excludeFilter in unmanagedSources) map ScalaTemplates,
 
     // Adds app directory's source files to continuous hot reloading
     watchSources <++= baseDirectory map { path => ((path / "app") ** "*" --- (path / "app/assets") ** "*").get },
