@@ -251,7 +251,7 @@ case class MessagesApi(messages: Map[String, Map[String, String]]) {
    */
   def translate(key: String, args: Seq[Any])(implicit lang: Lang): Option[String] = {
     val langsToTry: List[Lang] =
-      List(lang, Lang(lang.language, ""), Lang("default", ""))
+      List(lang, Lang(lang.language, ""), Lang("default", ""), Lang("default.play", ""))
     val pattern: Option[String] =
       langsToTry.foldLeft[Option[String]](None)((res, lang) =>
         res.orElse(messages.get(lang.code).flatMap(_.get(key))))
@@ -265,7 +265,7 @@ case class MessagesApi(messages: Map[String, Map[String, String]]) {
    * @return a boolean
    */
   def isDefinedAt(key: String)(implicit lang: Lang): Boolean = {
-    val langsToTry: List[Lang] = List(lang, Lang(lang.language, ""), Lang("default", ""))
+    val langsToTry: List[Lang] = List(lang, Lang(lang.language, ""), Lang("default", ""), Lang("default.play", ""))
 
     langsToTry.foldLeft[Boolean](false)({ (acc, lang) =>
       acc || messages.get(lang.code).map(_.isDefinedAt(key)).getOrElse(false)
@@ -296,7 +296,9 @@ class MessagesPlugin(app: Application) extends Plugin {
     MessagesApi {
       Lang.availables(app).map(_.code).map { lang =>
         (lang, loadMessages("messages." + lang))
-      }.toMap + ("default" -> loadMessages("messages"))
+      }.toMap
+        .+("default" -> loadMessages("messages"))
+        .+("default.play" -> loadMessages("messages.default"))
     }
   }
 
