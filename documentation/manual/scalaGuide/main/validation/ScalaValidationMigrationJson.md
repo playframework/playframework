@@ -14,47 +14,15 @@ Migrating a Json `Reads` to a `Rule` is just a matter of modifying imports and s
 
 Let's take a typical example from the Json API documentation:
 
-```scala
-case class Creature(
-  name: String,
-  isDead: Boolean,
-  weight: Float)
-```
+@[migration-creature](code/ScalaValidationMigrationJson.scala)
 
 Using the json API, you would have defined something like:
 
-```scala
-import play.api.libs.json._
-import play.api.libs.functional.syntax._
-
-implicit val creatureReads = (
-  (__ \ "name").read[String] ~
-  (__ \ "isDead").read[Boolean] ~
-  (__ \ "weight").read[Float]
-)(Creature.apply _)
-
-val js = Json.obj( "name" -> "gremlins", "isDead" -> false, "weight" -> 1.0F)
-val c = Json.fromJson[Creature] // JsSuccess(Creature(gremlins,false,1.0))
-```
+@[migration-creature-old](code/ScalaValidationMigrationJson.scala)
 
 Using the new API, this code becomes:
 
-```scala
-import play.api.libs.json._
-import play.api.data.mapping._
-
-implicit val creatureRule = From[JsValue]{ __ =>
-	import play.api.data.mapping.json.Rules._
-	(
-	  (__ \ "name").read[String] ~
-	  (__ \ "isDead").read[Boolean] ~
-	  (__ \ "weight").read[Float]
-	)(Creature.apply _)
-}
-
-val js = Json.obj( "name" -> "gremlins", "isDead" -> false, "weight" -> 1.0F)
-val c = From[JsValue, Creature](js) // Success(Creature(gremlins,false,1.0))
-```
+@[migration-creature-new](code/ScalaValidationMigrationJson.scala)
 
 Which appart from the extra imports is very similar. Notice the `From[JsValue]{...}` block, that's one of the nice features of the new validation API. Not only it avoids type repetition, but it also scopes the implicits.
 
@@ -65,87 +33,27 @@ It is recommended to always follow this pattern, as it nicely scopes the implici
 
 The readNullable method does not exists anymore. Just use a `Rule[JsValue, Option[T]]` instead. `null` and non existing Path will be handled correctly and give you a `None`:
 
-```scala
-import play.api.libs.json._
-import play.api.data.mapping._
-
-val nullableStringRule = From[JsValue]{ __ =>
-	import play.api.data.mapping.json.Rules._
-	(__ \ "foo").read[Option[String]]
-}
-
-val js1 = Json.obj("foo" -> "bar")
-val js2 = Json.obj("foo" -> JsNull)
-val js3 = Json.obj()
-
-val test1 = nullableStringRule.validate(js1) // Success(Some(bar))
-val test2 = nullableStringRule.validate(js2) // Success(None)
-val test3 = nullableStringRule.validate(js3) // Success(None)
-```
+@[migration-readNullable](code/ScalaValidationMigrationJson.scala)
 
 ### keepAnd
 
 The general use for `keepAnd` is to apply two validation on the same `JsValue`, for example:
 
-```scala
-(JsPath \ "key1").read[String](email keepAnd minLength(5))
-```
+@[migration-keepAnd-old](code/ScalaValidationMigrationJson.scala)
 
 You can achieve the same think in the Validation API using [[Rules composition|ScalaValidationRule]]
 
-```scala
-From[JsValue]{ __ =>
-	(__ \ "key1").read[String](email |+| minLength(5))
-}
-
-```
+@[migration-keepAnd-new](code/ScalaValidationMigrationJson.scala)
 
 ### lazy reads
 
 Reads are always lazy in the new validation API, therefore you don't need to use any specific function, even for recursive types:
 
-```scala
-import play.api.libs.json._
-case class User(id: Long, name: String, friend: Option[User] = None)
-
-implicit lazy val UserReads: Reads[User] = (
-  (__ \ 'id).read[Long] and
-  (__ \ 'name).read[String] and
-  (__ \ 'friend).lazyReadNullable(UserReads)
-)(User.apply _)
-
-val js = Json.obj(
-  "id" -> 123L,
-  "name" -> "bob",
-  "friend" -> Json.obj("id" -> 124L, "name" -> "john", "friend" -> JsNull))
-
-Json.fromJson[User](js) // JsSuccess(User(123L, "bob", Some(User(124L, "john", None))))
-```
+@[migration-lazy-old](code/ScalaValidationMigrationJson.scala)
 
 becomes:
 
-```scala
-import play.api.libs.json._
-import play.api.data.mapping._
-
-case class User(id: Long, name: String, friend: Option[User] = None)
-
-implicit lazy val userRule: Rule[JsValue, User] = From[JsValue]{ __ =>
-	import play.api.data.mapping.json.Rules._
-	(
-	  (__ \ "id").read[Long] and
-	  (__ \ "name").read[String] and
-	  (__ \ "friend").read(option(userRule))
-	)(User.apply _)
-}
-
-val js = Json.obj(
-  "id" -> 123L,
-  "name" -> "bob",
-  "friend" -> Json.obj("id" -> 124L, "name" -> "john", "friend" -> JsNull))
-
-From[JsValue, User](js) // Success(User(123L, "bob", Some(User(124L, "john", None)))) // Success(User(123,bob,Some(User(124,john,None))))
-```
+@[migration-lazy-new](code/ScalaValidationMigrationJson.scala)
 
 ### Numeric types
 

@@ -12,41 +12,11 @@ The base of all Rules is the capacity to extract a subset of some input data.
 
 For the type `JsValue`, we need to be able to extract a `JsValue` at a given `Path`:
 
-```scala
-object Rules {
-	import play.api.data.mapping._
-
-	implicit def pickInJson[O](p: Path): Rule[JsValue, JsValue] =
-    Rule[JsValue, JsValue] { json =>
-      pathToJsPath(p)(json) match {
-        case Nil => Failure(Seq(Path -> Seq(ValidationError("validation.required"))))
-        case js :: _ => Success(js)
-      }
-    }
-}
-```
+@[extensions-rules](code/ScalaValidationExtensions.scala)
 
 Now we are able to do this:
 
-```scala
-import play.api.libs.json._
-import play.api.data.mapping._
-
-val js = Json.obj(
-	"field1" -> "alpha",
-	"field2" -> 123L,
-	"field3" -> Json.obj(
-	  "field31" -> "beta",
-	  "field32"-> 345
-	))
-
-val pick = From[JsValue]{ __ =>
-	import play.api.data.mapping.json.Rules._
-	(__ \ "field2").read[JsValue]
-}
-
-pick.validate(js) // Success(JsNumber(123))
-```
+@[extensions-rules-jsvalue](code/ScalaValidationExtensions.scala)
 
 Which is nice, but is would be much more convenient if we could extract that value as an `Int`.
 
