@@ -14,7 +14,7 @@ object Dependencies {
 
 
   val jdbcDeps = Seq(
-    "com.jolbox" % "bonecp" % "0.8.0-rc1" exclude ("com.google.guava", "guava"),
+    "com.jolbox" % "bonecp" % "0.8.0.RELEASE" exclude ("com.google.guava", "guava"),
 
     // bonecp needs it, but due to guavas stupid version numbering of older versions ("r08"), we need to explicitly
     // declare a dependency on the newer version so that ivy can know which one to include
