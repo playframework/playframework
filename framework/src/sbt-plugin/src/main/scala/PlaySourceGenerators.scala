@@ -39,19 +39,24 @@ trait PlaySourceGenerators {
         val exts = templateTypes(extension)
         (p, extension, exts)
     }
+
     (generatedDir ** "*.template.scala").get.map(GeneratedSource(_)).foreach(_.sync())
+    val hiddenFiles = "^\\.".r
     try {
 
       sourceDirectories.foreach { sourceDirectory =>
-        (sourceDirectory ** "*.scala.*").get.collect(templateExt).foreach {
-          case (template, extension, format) =>
-            ScalaTemplateCompiler.compile(
-              template,
-              sourceDirectory,
-              generatedDir,
-              format,
-              additionalImports.map("import " + _.replace("%format%", extension)).mkString("\n"))
-        }
+        (sourceDirectory ** "*.scala.*").get
+          .filter { f =>
+            hiddenFiles.findFirstMatchIn(f.name).isEmpty
+          }.collect(templateExt).foreach {
+            case (template, extension, format) =>
+              ScalaTemplateCompiler.compile(
+                template,
+                sourceDirectory,
+                generatedDir,
+                format,
+                additionalImports.map("import " + _.replace("%format%", extension)).mkString("\n"))
+          }
       }
     } catch {
       case TemplateCompilationError(source, message, line, column) => {
