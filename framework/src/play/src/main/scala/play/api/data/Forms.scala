@@ -493,10 +493,7 @@ object Forms {
    *   Form("email" -> email)
    * }}}
    */
-  val email: Mapping[String] = of[String] verifying Constraints.pattern(
-    """\b[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\b""".r,
-    "constraint.email",
-    "error.email")
+  val email: Mapping[String] = of[String] verifying Constraints.emailAddress
 
   /**
    * Constructs a simple mapping for a Boolean field, such as a check-box.
