@@ -283,6 +283,8 @@ trait GenericRules {
   def checked[I](implicit b: Rule[I, Boolean]) = b compose Rules.equalTo(true)
 }
 
+object GenericRules extends GenericRules
+
 trait ParsingRules {
 
   self: GenericRules =>
