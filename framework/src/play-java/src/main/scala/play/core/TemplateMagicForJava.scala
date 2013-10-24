@@ -41,7 +41,7 @@ object PlayMagicForJava {
       jField.errors.asScala.map { jE =>
         play.api.data.FormError(
           jE.key,
-          jE.message,
+          jE.messages.asScala,
           jE.arguments.asScala)
       },
       Option(jField.value)) {

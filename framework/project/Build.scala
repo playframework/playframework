@@ -225,14 +225,13 @@ object PlayBuild extends Build {
   lazy val PlayJavaProject = PlayRuntimeProject("Play-Java", "play-java")
     .settings(libraryDependencies := javaDeps)
     .dependsOn(PlayProject)
-    .dependsOn(PlayTestProject % "test")
 
   lazy val PlayDocsProject = PlayRuntimeProject("Play-Docs", "play-docs")
     .settings(Docs.settings: _*)
     .settings(
       libraryDependencies := playDocsDependencies
     ).dependsOn(PlayProject)
-  
+
   import ScriptedPlugin._
 
   lazy val SbtPluginProject = PlaySbtProject("SBT-Plugin", "sbt-plugin")
@@ -370,7 +369,7 @@ object PlayBuild extends Build {
     PlayFiltersHelpersProject,
     PlayIntegrationTestProject
   )
-    
+
   lazy val Root = Project(
     "Root",
     file("."))
