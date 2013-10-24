@@ -44,11 +44,11 @@ object ApplicationBuild extends Build {
     javacOptions ++= Seq("-g", "-Xlint:deprecation"),
 
     // Need to ensure that templates in the Java docs get Java imports, and in the Scala docs get Scala imports
-    sourceGenerators in Test <+= (state, javaManualSourceDirectories, sourceManaged in Test, templatesTypes) map { (s, ds, g, t) =>
-      ScalaTemplates(s, ds, g, t, defaultTemplatesImport ++ defaultJavaTemplatesImport)
+    sourceGenerators in Test <+= (state, javaManualSourceDirectories, sourceManaged in Test, templatesTypes, excludeFilter in unmanagedSources in Test) map { (s, ds, g, t, ef) =>
+      ScalaTemplates(s, ds, g, t, defaultTemplatesImport ++ defaultJavaTemplatesImport, ef)
     },
-    sourceGenerators in Test <+= (state, scalaManualSourceDirectories, sourceManaged in Test, templatesTypes) map { (s, ds, g, t) =>
-      ScalaTemplates(s, ds, g, t, defaultTemplatesImport ++ defaultScalaTemplatesImport)
+    sourceGenerators in Test <+= (state, scalaManualSourceDirectories, sourceManaged in Test, templatesTypes, excludeFilter in unmanagedSources in Test) map { (s, ds, g, t, ef) =>
+      ScalaTemplates(s, ds, g, t, defaultTemplatesImport ++ defaultScalaTemplatesImport, ef)
     },
 
     sourceGenerators in Test <+= (state, javaManualSourceDirectories, sourceManaged in Test) map  { (s, ds, g) =>
