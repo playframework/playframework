@@ -13,6 +13,7 @@
             diskPersistent="false"
             diskExpiryThreadIntervalSeconds="120"
             memoryStoreEvictionPolicy="LRU"
+            updateCheck="false"
     /> 
     
 </ehcache>
