@@ -16,26 +16,7 @@ In contrast, [[action composition|ScalaActionsComposition]] is intended for rout
 
 The following is a simple filter that times and logs how long a request takes to execute in Play framework:
 
-```scala
-import play.api.mvc._
-
-object LoggingFilter extends Filter {
-  def apply(next: (RequestHeader) => Result)(rh: RequestHeader) = {
-    val start = System.currentTimeMillis
-
-    def logTime(result: PlainResult): Result = {
-      val time = System.currentTimeMillis - start
-      Logger.info(s"${rh.method} ${rh.uri} took ${time}ms and returned ${result.header.status}")
-      result.withHeaders("Request-Time" -> time.toString)
-    }
-    
-    next(rh) match {
-      case plain: PlainResult => logTime(plain)
-      case async: AsyncResult => async.transform(logTime)
-    }
-  }
-}
-```
+@[simple-filter](code/Filters.scala)
 
 Let's understand what's happening here.  The first thing to notice is the signature of the `apply` method.  It's a curried function, with the first parameter, `next`, being a function that takes a request header and produces a result, and the second parameter, `rh`, being a request header.
 
@@ -47,26 +28,11 @@ The next thing in the code is a function that logs the request.  This function t
 
 Finally the next action is invoked, and pattern matched on the result it returns.  A result can either be a `PlainResult` or a `AsyncResult`, an `AsyncResult` is a result that will eventually be redeemed as a `PlainResult`.  In both cases, the `logTime` function needs to be invoked, but is invoked in a slightly different way for each.  Since if it's a `PlainResult` the result is available now, it just invokes `logTime` directly.  However, if it's `AsyncResult` the result is not yet available.  So, the `logTime` function is passed to the `transform` method to be invoked later, when the `PlainResult` is available.
 
-### A simpler syntax
+### A more concise syntax
 
-You can use a simpler syntax for declaring a filter if you wish:
+You can use a mor concise syntax for declaring a filter if you wish:
 
-```scala
-val loggingFilter = Filter { (next, rh) =>
-  val start = System.currentTimeMillis
-
-  def logTime(result: PlainResult): Result = {
-    val time = System.currentTimeMillis - start
-    Logger.info(s"${rh.method} ${rh.uri} took ${time}ms and returned ${result.header.status}")
-    result.withHeaders("Request-Time" -> time.toString)
-  }
-    
-  next(rh) match {
-    case plain: PlainResult => logTime(plain)
-    case async: AsyncResult => async.transform(logTime)
-  }
-}
-```
+@[concise-filter-syntax](code/Filter.scala)
 
 Since this is a val, this can only be used inside some scope.
 
@@ -74,23 +40,11 @@ Since this is a val, this can only be used inside some scope.
 
 The simplest way to use a filter is to extends the `WithFilters` trait on your `Global` object:
 
-```scala
-import play.api.mvc._
-
-object Global extends WithFilters(LoggingFilter, new GzipFilter()) {
-  ...
-}
-```
+@[filter-trait-example](code/GlobalWithFilters.scala)
 
 You can also invoke a filter manually:
 
-```scala
-import play.api._
-
-object Global extends GlobalSettings {
-  override def doFilter(action: EssentialAction) = LoggingFilter(action)
-}
-```
+@[filter-method-example](code/GlobalWithFilters.scala)
 
 ## Where do filters fit in?
 
@@ -98,14 +52,7 @@ Filters wrap the action after the action has been looked up by the router.  This
 
 Since filters are applied after routing is done, it is possible to access routing information from the request, via the `tags` map on the `RequestHeader`.  For example, you might want to log the time against the action method.  In that case, you might update the `logTime` method to look like this:
 
-```scala
-  def logTime(result: PlainResult): Result = {
-    val time = System.currentTimeMillis - start
-    val action = rh.tags(Routes.ROUTE_CONTROLLER) + "." + rh.tags(Routes.ROUTE_ACTION_METHOD)
-    Logger.info(s"${action} took ${time}ms and returned ${result.header.status}")
-    result.withHeaders("Request-Time" -> time.toString)
-  }
-```
+@[routing-info-access](code/FiltersRouting.scala)
 
 > Routing tags are a feature of the Play router.  If you use a custom router, or return a custom action in `Glodal.onRouteRequest`, these parameters may not be available.
 
@@ -115,28 +62,7 @@ Play provides a lower level filter API called `EssentialFilter` which gives you 
 
 Here is the above filter example rewritten as an `EssentialFilter`:
 
-```scala
-import play.api.mvc._
-
-object LoggingFilter extends EssentialFilter {
-  def apply(next: EssentialAction) = new EssentialAction {
-    def apply(rh: RequestHeader) = {
-      val start = System.currentTimeMillis
-
-      def logTime(result: PlainResult): Result = {
-        val time = System.currentTimeMillis - start
-        Logger.info(s"${rh.method} ${rh.uri} took ${time}ms and returned ${result.header.status}")
-        result.withHeaders("Request-Time" -> time.toString)
-      }
-    
-      next(rh).map {
-        case plain: PlainResult => logTime(plain)
-        case async: AsyncResult => async.transform(logTime)
-      }
-    }
-  }
-}
-```
+@[essential-filter-example](code/EssentialFilter.scala)
 
 The key difference here, apart from creating a new `EssentialAction` to wrap the passed in `next` action, is when we invoke next, we get back an `Iteratee`.  You could wrap this in an `Enumeratee` to do some transformations if you wished.  We then `map` the result of the iteratee, and handle it with a partial function, in the same way as in the simple form.
 
