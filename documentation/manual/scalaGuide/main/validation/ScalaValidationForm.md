@@ -1,6 +1,6 @@
 # Form template helpers
 
-The validation API is compatible with play's existing [[template helpers|ScalaFormHelpers]].
+The validation API is compatible with play's existing [[template helpers|ScalaForms]].
 There's one difference though : **you have to use `play.api.data.mapping.Form`** instead of using `play.api.data.Form`.
 
 This `Form` helpers use `Rule` to validate data, and `Write` to format form data:
@@ -32,7 +32,7 @@ In our example, dates will be displayed in the "yyyy-MM-dd" format.
 }
 ```
 
-From there, all the [[template helpers|ScalaFormHelpers]] work exactly as they used to :
+From there, all the [[template helpers|ScalaForms]] work exactly as they used to :
 
 ```scala
 @inputText(computerForm("name"), '_label -> "Computer name")
