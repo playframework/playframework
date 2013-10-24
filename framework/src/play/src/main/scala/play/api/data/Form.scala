@@ -276,7 +276,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
  */
 
 trait Field {
-   /**
+  /**
    * Retrieve a field from the same form, using a key relative to this field key.
    *
    * @param key Relative key.

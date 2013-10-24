@@ -38,27 +38,27 @@ object MappingMacros {
         case t => context.abort(context.enclosingPosition, s" expected TypeRef, got $t")
       }
 
-      def lookup[T: WeakTypeTag] = {
-        val companioned = weakTypeOf[T].typeSymbol
-        val companionSymbol = companioned.companionSymbol
-        val companionType = companionSymbol.typeSignature
+    def lookup[T: WeakTypeTag] = {
+      val companioned = weakTypeOf[T].typeSymbol
+      val companionSymbol = companioned.companionSymbol
+      val companionType = companionSymbol.typeSignature
 
-        companionType match {
-          case NoSymbol =>
-            context.abort(context.enclosingPosition, s"No companion object found for $companioned")
-          case _ =>
-            val unapply = getMethod(companionType, "unapply")
-              .getOrElse(context.abort(context.enclosingPosition, s"No unapply method found for $companionSymbol"))
+      companionType match {
+        case NoSymbol =>
+          context.abort(context.enclosingPosition, s"No companion object found for $companioned")
+        case _ =>
+          val unapply = getMethod(companionType, "unapply")
+            .getOrElse(context.abort(context.enclosingPosition, s"No unapply method found for $companionSymbol"))
 
-            val rts = getReturnTypes(unapply)
-            val app = getMethod(companionType, "apply")
-              .getOrElse(context.abort(context.enclosingPosition, s"No apply method found"))
-            val apply = findAltMethod(app, rts)
-              .getOrElse(context.abort(context.enclosingPosition, s"No apply method matching the unapply method found"))
+          val rts = getReturnTypes(unapply)
+          val app = getMethod(companionType, "apply")
+            .getOrElse(context.abort(context.enclosingPosition, s"No apply method found"))
+          val apply = findAltMethod(app, rts)
+            .getOrElse(context.abort(context.enclosingPosition, s"No apply method matching the unapply method found"))
 
-            (apply, unapply)
-        }
+          (apply, unapply)
       }
+    }
 
   }
 
@@ -71,7 +71,7 @@ object MappingMacros {
 
     val (apply, unapply) = lookup[I]
 
-    val writes = for(
+    val writes = for (
       g <- apply.paramss.headOption.toList;
       p <- g
     ) yield {
@@ -87,7 +87,7 @@ object MappingMacros {
     val t = tq"${typeI} => ${ps.head}"
     val body = writes match {
       case w1 :: w2 :: ts =>
-        val typeApply = ts.foldLeft(q"$w1 ~ $w2"){ (t1, t2) => q"$t1 ~ $t2" }
+        val typeApply = ts.foldLeft(q"$w1 ~ $w2") { (t1, t2) => q"$t1 ~ $t2" }
         q"($typeApply).apply(play.api.libs.functional.syntax.unlift($unapply(_)): $t)"
 
       case w1 :: Nil =>
@@ -107,7 +107,7 @@ object MappingMacros {
 
     val (apply, unapply) = lookup[O]
 
-    val writes = for(
+    val writes = for (
       g <- apply.paramss.headOption.toList;
       p <- g
     ) yield {
@@ -125,7 +125,7 @@ object MappingMacros {
 
     val body = writes match {
       case w1 :: w2 :: ts =>
-        val typeApply = ts.foldLeft(q"$w1 ~ $w2"){ (t1, t2) => q"$t1 ~ $t2" }
+        val typeApply = ts.foldLeft(q"$w1 ~ $w2") { (t1, t2) => q"$t1 ~ $t2" }
         q"($typeApply).apply($applyƒ)"
 
       case w1 :: Nil =>

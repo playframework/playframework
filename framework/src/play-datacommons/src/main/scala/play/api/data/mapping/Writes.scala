@@ -12,7 +12,7 @@ trait DateWrites {
   }
   implicit val date: Write[java.util.Date, String] = date()
 
-  val isoDate = Write[java.util.Date, String]{ d =>
+  val isoDate = Write[java.util.Date, String] { d =>
     import java.util.Date
     import org.joda.time.format.ISODateTimeFormat
     val fmt = ISODateTimeFormat.dateTimeNoMillis()
@@ -30,7 +30,7 @@ trait DateWrites {
 
   def jodaLocalDate(pattern: String) = Write[org.joda.time.LocalDate, String] { d =>
     import org.joda.time.format.{ DateTimeFormat, ISODateTimeFormat }
-    val fmt =  if (pattern == "") ISODateTimeFormat.date else DateTimeFormat.forPattern(pattern)
+    val fmt = if (pattern == "") ISODateTimeFormat.date else DateTimeFormat.forPattern(pattern)
     fmt.print(d)
   }
   /**
@@ -54,7 +54,7 @@ trait DefaultWrites extends DateWrites {
 
   protected def option[I, J, O](r: => Write[I, J], empty: O)(implicit w: Path => Write[J, O]) =
     (p: Path) => Write[Option[I], O] { maybeI =>
-      maybeI.map{ i =>
+      maybeI.map { i =>
         w(p).contramap(r.writes).writes(i)
       }.getOrElse(empty)
     }
@@ -101,11 +101,12 @@ object Writes extends DefaultWrites with GenericWrites[PM.PM] with DefaultMonoid
   }
 
   implicit def spm[O](implicit w: Write[O, PM]) =
-    Write[Seq[O], PM]{ os =>
+    Write[Seq[O], PM] { os =>
       os.zipWithIndex
         .toMap
-        .flatMap{ case(o, i) =>
-          repathPM(w.writes(o), (Path \ i) ++ _)
+        .flatMap {
+          case (o, i) =>
+            repathPM(w.writes(o), (Path \ i) ++ _)
         }
     }
 
@@ -113,11 +114,11 @@ object Writes extends DefaultWrites with GenericWrites[PM.PM] with DefaultMonoid
     toM(repathPM(w.writes(i), path ++ _))
   }
 
-  implicit def ospm[I](implicit w: Write[I, String]) = Write[I, PM]{ i =>
+  implicit def ospm[I](implicit w: Write[I, String]) = Write[I, PM] { i =>
     Map(Path -> w.writes(i))
   }
 
-  implicit def opt[I](implicit w: Path => Write[I, UrlFormEncoded]): Path => Write[Option[I], UrlFormEncoded]=
+  implicit def opt[I](implicit w: Path => Write[I, UrlFormEncoded]): Path => Write[Option[I], UrlFormEncoded] =
     option[I, I](Write.zero[I])
 
   def option[I, J](r: => Write[I, J])(implicit w: Path => Write[J, UrlFormEncoded]) =

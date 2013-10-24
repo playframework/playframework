@@ -38,7 +38,7 @@ case class Form[T](data: UrlFormEncoded = Map.empty, validation: Validation[(Pat
 }
 
 class Field(private val form: Form[_], val path: Path, override val value: Option[String])
-	extends d.Field {
+    extends d.Field {
 
   override val constraints = Nil
   override val format = None
@@ -67,7 +67,7 @@ class Field(private val form: Form[_], val path: Path, override val value: Optio
 
   override lazy val indexes: Seq[Int] = {
     PM.find(path)(form.dataP).keys
-      .flatMap{
+      .flatMap {
         case Path(Seq(IdxPathNode(i))) \: _ => Seq(i)
         case _ => Seq()
       }.toSeq
@@ -77,6 +77,6 @@ class Field(private val form: Form[_], val path: Path, override val value: Optio
 }
 
 object Field {
-	def apply(form: Form[_], path: Path, value: Option[String]) = new Field(form, path, value)
+  def apply(form: Form[_], path: Path, value: Option[String]) = new Field(form, path, value)
   def unapply(f: Field) = Some((f.form, f.path, f.value))
 }

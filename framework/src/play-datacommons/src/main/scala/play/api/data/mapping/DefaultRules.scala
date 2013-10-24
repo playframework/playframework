@@ -1,9 +1,9 @@
 package play.api.data.mapping
 
 /**
-* This trait provides default Rule implementations,
-* from String to various date types and format
-*/
+ * This trait provides default Rule implementations,
+ * from String to various date types and format
+ */
 trait DateRules {
 
   /**
@@ -12,7 +12,7 @@ trait DateRules {
    * @param pattern a date pattern, as specified in `java.text.SimpleDateFormat`.
    * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks
    */
-  def date(format: String = "yyyy-MM-dd", corrector: String => String = identity) = Rule.fromMapping[String, java.util.Date]{ s =>
+  def date(format: String = "yyyy-MM-dd", corrector: String => String = identity) = Rule.fromMapping[String, java.util.Date] { s =>
     def parseDate(input: String): Option[java.util.Date] = {
       // REMEMBER THAT SIMPLEDATEFORMAT IS NOT THREADSAFE
       val df = new java.text.SimpleDateFormat(format)
@@ -82,7 +82,7 @@ trait DateRules {
   /**
    * ISO 8601 Reads
    */
-  val isoDate = Rule.fromMapping[String, java.util.Date]{ s =>
+  val isoDate = Rule.fromMapping[String, java.util.Date] { s =>
     import scala.util.Try
     import java.util.Date
     import org.joda.time.format.ISODateTimeFormat
@@ -92,7 +92,7 @@ trait DateRules {
       .getOrElse(Failure(Seq(ValidationError("validation.iso8601"))))
   }
 
- /**
+  /**
    * Rule for the `java.sql.Date` type.
    *
    * @param pattern a date pattern, as specified in `java.text.SimpleDateFormat`.
@@ -107,94 +107,94 @@ trait DateRules {
   implicit val sqlDate = sqlDateRule("yyyy-MM-dd")
 }
 
-
 /**
  * GenericRules provides basic constraints, utility methods on Rules, and completely generic Rules.
  * Extends this trait if your implementing a new set of Rules.
  */
 trait GenericRules {
 
- /**
-  * Create a new constraint, verifying that the provided predicate is satisfied.
-  * {{{
-  *   def notEmpty = validateWith[String]("validation.nonemptytext"){ !_.isEmpty }
-  * }}}
-  * @param msg The error message to return if predicate `pred` is not satisfied
-  * @param args Arguments for the `ValidationError`
-  * @param pred A predicate to satify
-  * @return A new Rule validating data of type `I` against a predicate `p`
-  */
+  /**
+   * Create a new constraint, verifying that the provided predicate is satisfied.
+   * {{{
+   *   def notEmpty = validateWith[String]("validation.nonemptytext"){ !_.isEmpty }
+   * }}}
+   * @param msg The error message to return if predicate `pred` is not satisfied
+   * @param args Arguments for the `ValidationError`
+   * @param pred A predicate to satify
+   * @return A new Rule validating data of type `I` against a predicate `p`
+   */
   def validateWith[I](msg: String, args: Any*)(pred: I => Boolean) = Rule.fromMapping[I, I] {
-    v => if(!pred(v)) Failure(Seq(ValidationError(msg, args: _*))) else Success(v)
+    v => if (!pred(v)) Failure(Seq(ValidationError(msg, args: _*))) else Success(v)
   }
 
   /**
-  * lift a `Rule[I, O]` to a Rule of `Rule[Seq[I], Array[O]]`
-  * {{{
-  *   (Path \ "foo").read(array(notEmpty)) // create a Rules validating that an Array contains non-empty Strings
-  * }}}
-  * @param r A Rule[I, O] to lift
-  * @return A new Rule
-  */
+   * lift a `Rule[I, O]` to a Rule of `Rule[Seq[I], Array[O]]`
+   * {{{
+   *   (Path \ "foo").read(array(notEmpty)) // create a Rules validating that an Array contains non-empty Strings
+   * }}}
+   * @param r A Rule[I, O] to lift
+   * @return A new Rule
+   */
   implicit def array[I, O: scala.reflect.ClassTag](implicit r: Rule[I, O]): Rule[Seq[I], Array[O]] =
     seq[I, O](r).fmap(_.toArray)
 
   /**
-  * lift a `Rule[I, O]` to a Rule of `Rule[Seq[I], Traversable[O]]`
-  * {{{
-  *   (Path \ "foo").read(traversable(notEmpty)) // create a Rules validating that an Traversable contains non-empty Strings
-  * }}}
-  * @param r A Rule[I, O] to lift
-  * @return A new Rule
-  */
+   * lift a `Rule[I, O]` to a Rule of `Rule[Seq[I], Traversable[O]]`
+   * {{{
+   *   (Path \ "foo").read(traversable(notEmpty)) // create a Rules validating that an Traversable contains non-empty Strings
+   * }}}
+   * @param r A Rule[I, O] to lift
+   * @return A new Rule
+   */
   implicit def traversable[I, O](implicit r: Rule[I, O]): Rule[Seq[I], Traversable[O]] =
     seq[I, O](r).fmap(_.toTraversable)
 
   /**
-  * lift a `Rule[I, O]` to a Rule of `Rule[Seq[I], Set[O]]`
-  * {{{
-  *   (Path \ "foo").read(set(notEmpty)) // create a Rules validating that a Set contains non-empty Strings
-  * }}}
-  * @param r A Rule[I, O] to lift
-  * @return A new Rule
-  */
+   * lift a `Rule[I, O]` to a Rule of `Rule[Seq[I], Set[O]]`
+   * {{{
+   *   (Path \ "foo").read(set(notEmpty)) // create a Rules validating that a Set contains non-empty Strings
+   * }}}
+   * @param r A Rule[I, O] to lift
+   * @return A new Rule
+   */
   implicit def set[I, O](implicit r: Rule[I, O]): Rule[Seq[I], Set[O]] =
     seq[I, O](r).fmap(_.toSet)
 
-
   /**
-  * lift a `Rule[I, O]` to a Rule of `Rule[Seq[I], Seq[O]]`
-  * {{{
-  *   (Path \ "foo").read(seq(notEmpty)) // create a Rules validating that an Seq contains non-empty Strings
-  * }}}
-  * @param r A Rule[I, O] to lift
-  * @return A new Rule
-  */
+   * lift a `Rule[I, O]` to a Rule of `Rule[Seq[I], Seq[O]]`
+   * {{{
+   *   (Path \ "foo").read(seq(notEmpty)) // create a Rules validating that an Seq contains non-empty Strings
+   * }}}
+   * @param r A Rule[I, O] to lift
+   * @return A new Rule
+   */
   implicit def seq[I, O](implicit r: Rule[I, O]): Rule[Seq[I], Seq[O]] =
-    Rule { case is =>
-      val withI = is.zipWithIndex.map { case (v, i) =>
-        r.repath((Path \ i) ++ _).validate(v)
-      }
-      Validation.sequence(withI)
+    Rule {
+      case is =>
+        val withI = is.zipWithIndex.map {
+          case (v, i) =>
+            r.repath((Path \ i) ++ _).validate(v)
+        }
+        Validation.sequence(withI)
     }
 
   /**
-  * lift a `Rule[I, O]` to a Rule of `Rule[Seq[I], List[O]]`
-  * {{{
-  *   (Path \ "foo").read(list(notEmpty)) // create a Rules validating that an List contains non-empty Strings
-  * }}}
-  * @param r A Rule[I, O] to lift
-  * @return A new Rule
-  */
+   * lift a `Rule[I, O]` to a Rule of `Rule[Seq[I], List[O]]`
+   * {{{
+   *   (Path \ "foo").read(list(notEmpty)) // create a Rules validating that an List contains non-empty Strings
+   * }}}
+   * @param r A Rule[I, O] to lift
+   * @return A new Rule
+   */
   implicit def list[I, O](implicit r: Rule[I, O]): Rule[Seq[I], List[O]] =
     seq[I, O](r).fmap(_.toList)
 
   /**
-  * Create a Rule validation that a Seq[I] is not empty, and attempt to convert it's first element as a `O`
-  * {{{
-  *   (Path \ "foo").read(headAs(int))
-  * }}}
-  */
+   * Create a Rule validation that a Seq[I] is not empty, and attempt to convert it's first element as a `O`
+   * {{{
+   *   (Path \ "foo").read(headAs(int))
+   * }}}
+   */
   implicit def headAs[I, O](implicit c: Rule[I, O]) = Rule.fromMapping[Seq[I], I] {
     _.headOption.map(Success[ValidationError, I](_))
       .getOrElse(Failure[ValidationError, I](Seq(ValidationError("validation.required"))))
@@ -208,78 +208,78 @@ trait GenericRules {
   }
 
   /**
-  * Create a "constant" Rule which is always a success returning value `o`
-  * (Path \ "x").read(ignored(42))
-  */
+   * Create a "constant" Rule which is always a success returning value `o`
+   * (Path \ "x").read(ignored(42))
+   */
   def ignored[I, O](o: O) = (_: Path) => Rule[I, O](_ => Success(o))
 
   /**
-  * Create a Rule of equality
-  * {{{
-  *   (Path \ "foo").read(equalTo("bar"))
-  * }}}
-  */
-  def equalTo[T](t: T) = validateWith[T]("validation.equals", t){ _.equals(t) }
+   * Create a Rule of equality
+   * {{{
+   *   (Path \ "foo").read(equalTo("bar"))
+   * }}}
+   */
+  def equalTo[T](t: T) = validateWith[T]("validation.equals", t) { _.equals(t) }
 
   /**
-  * a Rule validating that a String is not empty.
-  * @note This Rule does '''NOT''' trim the String beforehand
-  * {{{
-  *   (Path \ "foo").read(notEmpty)
-  * }}}
-  */
-  def notEmpty = validateWith[String]("validation.nonemptytext"){ !_.isEmpty }
+   * a Rule validating that a String is not empty.
+   * @note This Rule does '''NOT''' trim the String beforehand
+   * {{{
+   *   (Path \ "foo").read(notEmpty)
+   * }}}
+   */
+  def notEmpty = validateWith[String]("validation.nonemptytext") { !_.isEmpty }
 
   /**
-  * {{{
-  *   (Path \ "foo").read(min(0)) // validate that there's a positive int at (Path \ "foo")
-  * }}}
-  */
-  def min[T](m: T)(implicit o: Ordering[T]) = validateWith[T]("validation.min", m){ x => o.gteq(x, m) }
+   * {{{
+   *   (Path \ "foo").read(min(0)) // validate that there's a positive int at (Path \ "foo")
+   * }}}
+   */
+  def min[T](m: T)(implicit o: Ordering[T]) = validateWith[T]("validation.min", m) { x => o.gteq(x, m) }
   /**
-  * {{{
-  *   (Path \ "foo").read(max(0)) // validate that there's a negative int at (Path \ "foo")
-  * }}}
-  */
-  def max[T](m: T)(implicit o: Ordering[T]) = validateWith[T]("validation.max", m){ x => o.lteq(x, m) }
+   * {{{
+   *   (Path \ "foo").read(max(0)) // validate that there's a negative int at (Path \ "foo")
+   * }}}
+   */
+  def max[T](m: T)(implicit o: Ordering[T]) = validateWith[T]("validation.max", m) { x => o.lteq(x, m) }
   /**
-  * {{{
-  *   (Path \ "foo").read(minLength(5)) // The length of this String must be >= 5
-  * }}}
-  */
-  def minLength(l: Int) = validateWith[String]("validation.minLength", l){ _.size >= l }
+   * {{{
+   *   (Path \ "foo").read(minLength(5)) // The length of this String must be >= 5
+   * }}}
+   */
+  def minLength(l: Int) = validateWith[String]("validation.minLength", l) { _.size >= l }
   /**
-  * {{{
-  *   (Path \ "foo").read(maxLength(5)) // The length of this String must be <= 5
-  * }}}
-  */
-  def maxLength(l: Int) = validateWith[String]("validation.maxLength", l){ _.size <= l }
+   * {{{
+   *   (Path \ "foo").read(maxLength(5)) // The length of this String must be <= 5
+   * }}}
+   */
+  def maxLength(l: Int) = validateWith[String]("validation.maxLength", l) { _.size <= l }
   /**
-  * Validate that a String matches the provided regex
-  * {{{
-  *   (Path \ "foo").read(pattern("[a-z]".r)) // This String contains only letters
-  * }}}
-  */
-  def pattern(regex: scala.util.matching.Regex) = validateWith("validation.pattern", regex){regex.unapplySeq(_: String).isDefined}
+   * Validate that a String matches the provided regex
+   * {{{
+   *   (Path \ "foo").read(pattern("[a-z]".r)) // This String contains only letters
+   * }}}
+   */
+  def pattern(regex: scala.util.matching.Regex) = validateWith("validation.pattern", regex) { regex.unapplySeq(_: String).isDefined }
   /**
-  * Validate that a String is a valid email
-  * {{{
-  *   (Path \ "email").read(email) // This String is an email
-  * }}}
-  */
+   * Validate that a String is a valid email
+   * {{{
+   *   (Path \ "email").read(email) // This String is an email
+   * }}}
+   */
   def email = Rule.fromMapping[String, String](
     pattern("""\b[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\b""".r)
       .validate(_: String)
       .fail.map(_ => Seq(ValidationError("validation.email"))))
 
   /**
-  * A Rule that always succeed
-  */
+   * A Rule that always succeed
+   */
   def noConstraint[From]: Constraint[From] = Success(_)
 
   /**
-  * A Rule for HTML checkboxes
-  */
+   * A Rule for HTML checkboxes
+   */
   def checked[I](implicit b: Rule[I, Boolean]) = b compose Rules.equalTo(true)
 }
 
@@ -290,7 +290,7 @@ trait ParsingRules {
   self: GenericRules =>
 
   private def stringAs[T](f: PartialFunction[BigDecimal, Validation[ValidationError, T]])(args: Any*) =
-    Rule.fromMapping[String, T]{
+    Rule.fromMapping[String, T] {
       val toB: PartialFunction[String, BigDecimal] = { case s if s.matches("""[-+]?[0-9]*\.?[0-9]+""") => BigDecimal(s) }
       toB.lift(_)
         .flatMap(f.lift)
@@ -305,7 +305,7 @@ trait ParsingRules {
     case s if s.isValidShort => Success(s.toShort)
   }("Short")
 
-  implicit def boolean = Rule.fromMapping[String, Boolean]{
+  implicit def boolean = Rule.fromMapping[String, Boolean] {
     pattern("""(?iu)true|false""".r).validate(_: String)
       .map(java.lang.Boolean.parseBoolean)
       .fail.map(_ => Seq(ValidationError("validation.type-mismatch", "Boolean")))
@@ -316,7 +316,7 @@ trait ParsingRules {
   }("Long")
 
   // BigDecimal.isValidFloat is buggy, see [SI-6699]
-  import java.{lang => jl}
+  import java.{ lang => jl }
   private def isValidFloat(bd: BigDecimal) = {
     val d = bd.toFloat
     !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(jl.Float.toString(d), bd.mc)) == 0
@@ -345,9 +345,9 @@ trait ParsingRules {
 }
 
 /**
-* DefaultRules provides basic rules implementations for inputs of type `I`
-* Extends this trait if your implementing a new set of Rules for `I`.
-*/
+ * DefaultRules provides basic rules implementations for inputs of type `I`
+ * Extends this trait if your implementing a new set of Rules for `I`.
+ */
 trait DefaultRules[I] extends GenericRules with DateRules {
   import scala.language.implicitConversions
   import play.api.libs.functional._
@@ -365,8 +365,8 @@ trait DefaultRules[I] extends GenericRules with DateRules {
 
   def map[K, O](r: Rule[K, O], p: Rule[I, Seq[(String, K)]]): Rule[I, Map[String, O]] = {
     p.compose(Path)(
-      Rule{ fs =>
-        val validations = fs.map{ f =>
+      Rule { fs =>
+        val validations = fs.map { f =>
           r.repath((Path \ f._1) ++ _)
             .validate(f._2)
             .map(f._1 -> _)

@@ -27,8 +27,8 @@ object \: {
 
 case object Path extends Path(Nil) {
   def apply(path: String) = new Path(KeyPathNode(path) :: Nil)
-	def apply(path: List[PathNode] = Nil) = new Path(path)
-	def unapply(p: Path): Option[List[PathNode]] = Some(p.path)
+  def apply(path: List[PathNode] = Nil) = new Path(path)
+  def unapply(p: Path): Option[List[PathNode]] = Some(p.path)
 }
 
 class Path(val path: List[PathNode]) {
@@ -38,17 +38,17 @@ class Path(val path: List[PathNode]) {
   def \(child: PathNode): Path = Path(path :+ child)
 
   /**
-  * Aggregate 2 paths
-  * {{{
-  *   (Path \ "foo" \ "bar").compose(Path \ "baz") == (Path \ "foo" \ "bar" \ "baz")
-  * }}}
-  */
+   * Aggregate 2 paths
+   * {{{
+   *   (Path \ "foo" \ "bar").compose(Path \ "baz") == (Path \ "foo" \ "bar" \ "baz")
+   * }}}
+   */
   def compose(p: Path): Path = Path(this.path ++ p.path)
   def ++(other: Path) = this compose other
 
   class Deferred[I] private[Path] (reader: Reader[I]) {
     def apply[J, O](sub: => Rule[J, O])(implicit r: Path => Rule[I, J]): Rule[I, O] =
-        reader.read(sub)
+      reader.read(sub)
   }
 
   def from[I] = new Deferred(Reader[I](this))
@@ -60,23 +60,23 @@ class Path(val path: List[PathNode]) {
     Reader[I](this).read[O]
 
   /**
-  * Creates a Writes the serialize data to the desired output type
-  * {{{
-  *   val contact = Contact("Julien", "Tournay")
-  *   implicit def contactWrite = (Path \ "firstname").write[String, UrlFormEncoded]
-  *   contactWrite.writes(contact) mustEqual Map("firstname" -> "Julien")
-  * }}}
-  */
+   * Creates a Writes the serialize data to the desired output type
+   * {{{
+   *   val contact = Contact("Julien", "Tournay")
+   *   implicit def contactWrite = (Path \ "firstname").write[String, UrlFormEncoded]
+   *   contactWrite.writes(contact) mustEqual Map("firstname" -> "Julien")
+   * }}}
+   */
   def write[O, I](implicit w: Path => Write[O, I]): Write[O, I] =
     Writer[I](this).write(w)
 
   /**
-  * Creates a Writes the serialize data to the desired output type using a provided format.
-  ** {{{
-  *   val w = (Path \ "date").write(date("yyyy-MM-dd""))
-  *   w.writes(new Date()) == Json.obj("date" -> "2013-10-3")
-  * }}}
-  */
+   * Creates a Writes the serialize data to the desired output type using a provided format.
+   * * {{{
+   *   val w = (Path \ "date").write(date("yyyy-MM-dd""))
+   *   w.writes(new Date()) == Json.obj("date" -> "2013-10-3")
+   * }}}
+   */
   def write[O, J, I](format: => Write[O, J])(implicit w: Path => Write[J, I]): Write[O, I] =
     Writer[I](this).write(format)
 
@@ -91,11 +91,10 @@ class Path(val path: List[PathNode]) {
 
   override def hashCode = path.hashCode
   override def equals(o: Any) = {
-    if(canEqual(o)) {
+    if (canEqual(o)) {
       val j = o.asInstanceOf[Path]
       this.path == j.path
-    }
-    else
+    } else
       false
   }
   def canEqual(o: Any) = o.isInstanceOf[Path]

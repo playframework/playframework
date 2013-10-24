@@ -9,11 +9,10 @@ import play.api.data.mapping._
 class JsSuccess[T](override val value: T, val path: JsPath = JsPath()) extends Success[(JsPath, Seq[ValidationError]), T](value) {
   override def toString = s"JsSuccess($value, $path)"
   override def equals(o: Any) = {
-    if(canEqual(o)) {
+    if (canEqual(o)) {
       val j = o.asInstanceOf[JsSuccess[T]]
       this.value == j.value && this.path == j.path
-    }
-    else false
+    } else false
   }
   override def hashCode = 41 * (41 + value.hashCode) + path.hashCode
   override def canEqual(o: Any) = o.isInstanceOf[JsSuccess[T]]
@@ -39,11 +38,10 @@ class JsError(override val errors: Seq[(JsPath, Seq[ValidationError])]) extends 
   override def toString = s"JsError($errors)"
   override def hashCode = errors.hashCode
   override def equals(o: Any) = {
-    if(canEqual(o)) {
+    if (canEqual(o)) {
       val j = o.asInstanceOf[JsError]
       this.errors == j.errors
-    }
-    else false
+    } else false
   }
 
   override def canEqual(o: Any) = o.isInstanceOf[JsError]
@@ -51,7 +49,7 @@ class JsError(override val errors: Seq[(JsPath, Seq[ValidationError])]) extends 
 
 object JsError {
 
-  def apply(errors: Seq[(Path, Seq[ValidationError])]): JsError = new JsError(errors.map{
+  def apply(errors: Seq[(Path, Seq[ValidationError])]): JsError = new JsError(errors.map {
     case (JsPath(p), errs) => JsPath(p) -> errs
     case (p, errs) => JsPath(p) -> errs
   })

@@ -13,7 +13,7 @@ trait DefaultMonoids {
   }
 }
 
-object Writes extends DefaultWrites with DefaultMonoids with GenericWrites[JsValue]{
+object Writes extends DefaultWrites with DefaultMonoids with GenericWrites[JsValue] {
 
   private def writeObj(j: JsValue, n: PathNode) = n match {
     case IdxPathNode(_) => Json.arr(j)
@@ -34,12 +34,13 @@ object Writes extends DefaultWrites with DefaultMonoids with GenericWrites[JsVal
           case b: Boolean => JsBoolean(b)
           case js: JsValue => js
           case x => JsString(x.toString)
+        })
       })
-    })
   }
 
-  implicit def errors(implicit wErrs: Write[Seq[ValidationError], JsValue]) = Write[(Path, Seq[ValidationError]), JsObject] { case (p, errs) =>
-    Json.obj(p.toString -> wErrs.writes(errs))
+  implicit def errors(implicit wErrs: Write[Seq[ValidationError], JsValue]) = Write[(Path, Seq[ValidationError]), JsObject] {
+    case (p, errs) =>
+      Json.obj(p.toString -> wErrs.writes(errs))
   }
 
   implicit def failure[O](implicit w: Write[(Path, Seq[ValidationError]), JsObject]) = Write[Failure[(Path, Seq[ValidationError]), O], JsObject] {
