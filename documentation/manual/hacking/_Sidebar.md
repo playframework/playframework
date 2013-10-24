@@ -7,3 +7,4 @@
 - [[Issues tracker | Issues]]
 - [[Contributor guidelines | Guidelines]]
 - [[Documentation guidelines | Documentation]]
+- [[Custom handler executors|HandlerExecutors]]

@@ -23,6 +23,7 @@ import java.security.cert.X509Certificate
 import java.io.{ File, FileInputStream }
 import scala.util.control.NonFatal
 import com.typesafe.netty.http.pipelining.HttpPipeliningHandler
+import play.core.system.HandlerExecutor
 
 /**
  * provides a stopable Server
@@ -35,7 +36,9 @@ trait ServerWithStop {
 /**
  * creates a Server implementation based Netty
  */
-class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: Option[Int] = None, address: String = "0.0.0.0", val mode: Mode.Mode = Mode.Prod) extends Server with ServerWithStop {
+class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: Option[Int] = None,
+    address: String = "0.0.0.0", val mode: Mode.Mode = Mode.Prod,
+    handlerExecutors: Seq[HandlerExecutor[NettyBackendRequest]] = NettyServer.discoverHandlerExecutors) extends Server with ServerWithStop {
 
   require(port.isDefined || sslPort.isDefined, "Neither http.port nor https.port is specified")
 
@@ -57,9 +60,9 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
           newPipeline.addLast("ssl", new SslHandler(sslEngine))
         }
       }
-      val maxInitialLineLength = Option(System.getProperty("http.netty.maxInitialLineLength")).map(Integer.parseInt(_)).getOrElse(4096)
-      val maxHeaderSize = Option(System.getProperty("http.netty.maxHeaderSize")).map(Integer.parseInt(_)).getOrElse(8192)
-      val maxChunkSize = Option(System.getProperty("http.netty.maxChunkSize")).map(Integer.parseInt(_)).getOrElse(8192)
+      val maxInitialLineLength = Option(System.getProperty("http.netty.maxInitialLineLength")).map(Integer.parseInt).getOrElse(4096)
+      val maxHeaderSize = Option(System.getProperty("http.netty.maxHeaderSize")).map(Integer.parseInt).getOrElse(8192)
+      val maxChunkSize = Option(System.getProperty("http.netty.maxChunkSize")).map(Integer.parseInt).getOrElse(8192)
       newPipeline.addLast("decoder", new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
       newPipeline.addLast("decompressor", new HttpContentDecompressor())
@@ -128,7 +131,7 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
   val allChannels = new DefaultChannelGroup
 
   // Our upStream handler is stateless. Let's use this instance for every new connection
-  val defaultUpStreamHandler = new PlayDefaultUpstreamHandler(this, allChannels)
+  val defaultUpStreamHandler = new PlayDefaultUpstreamHandler(this, allChannels, handlerExecutors)
 
   // The HTTP server channel
   val HTTP = port.map { port =>
@@ -251,7 +254,7 @@ object NettyServer {
       val server = new NettyServer(
         new StaticApplication(applicationPath),
         Option(System.getProperty("http.port")).fold(Option(9000))(p => if (p == "disabled") Option.empty[Int] else Option(Integer.parseInt(p))),
-        Option(System.getProperty("https.port")).map(Integer.parseInt(_)),
+        Option(System.getProperty("https.port")).map(Integer.parseInt),
         Option(System.getProperty("http.address")).getOrElse("0.0.0.0")
       )
 
@@ -309,7 +312,7 @@ object NettyServer {
    * compiled with different versions of Scala.
    */
   def mainDevHttpMode(sbtLink: SBTLink, sbtDocHandler: SBTDocHandler, httpPort: Int): NettyServer = {
-    mainDev(sbtLink, sbtDocHandler, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt(_)))
+    mainDev(sbtLink, sbtDocHandler, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt))
   }
 
   private def mainDev(sbtLink: SBTLink, sbtDocHandler: SBTDocHandler, httpPort: Option[Int], httpsPort: Option[Int]): NettyServer = {
@@ -324,6 +327,11 @@ object NettyServer {
       }
 
     }
+  }
+
+  private[play] def discoverHandlerExecutors = {
+    HandlerExecutor.discoverHandlerExecutors[NettyBackendRequest](this.getClass.getClassLoader, "play.netty.handlers",
+      Seq(NettyEssentialActionExecutor, NettyWebSocketExecutor))
   }
 
 }

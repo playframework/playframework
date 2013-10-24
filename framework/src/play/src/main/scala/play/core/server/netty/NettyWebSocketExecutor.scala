@@ -3,34 +3,47 @@
  */
 package play.core.server.netty
 
-import scala.language.reflectiveCalls
-
-import org.jboss.netty.buffer._
-import org.jboss.netty.channel._
-import org.jboss.netty.bootstrap._
-import org.jboss.netty.channel.Channels._
-import org.jboss.netty.handler.codec.http._
-import org.jboss.netty.channel.socket.nio._
-import org.jboss.netty.handler.stream._
-import org.jboss.netty.handler.codec.http.HttpHeaders._
-import org.jboss.netty.handler.codec.http.HttpHeaders.Names._
-import org.jboss.netty.handler.codec.http.HttpHeaders.Values._
-import org.jboss.netty.handler.codec.http.websocketx._
-import org.jboss.netty.channel.group._
-import play.core._
-import play.core.server.websocket.WebSocketHandshake
-import play.api._
+import play.core.system.{ HandlerExecutorContext, HandlerExecutor }
+import play.api.Play
 import play.api.mvc._
 import play.api.libs.iteratee._
-import play.api.libs.iteratee.Input._
-import scala.collection.JavaConverters._
+import org.jboss.netty.channel._
+import org.jboss.netty.handler.codec.http.{ HttpHeaders, HttpRequest }
+import play.core.server.websocket.WebSocketHandshake
+import play.core.server
 import scala.concurrent.{ Future, Promise }
-import scala.concurrent.stm._
+import org.jboss.netty.handler.codec.http.websocketx.{ CloseWebSocketFrame, WebSocketFrame }
+import play.api.libs.iteratee.Input._
+import scala.concurrent.stm.Ref
 
-import play.core.Execution.Implicits.internalContext
+/**
+ * WebSocket handler for the Netty backend
+ */
+object NettyWebSocketExecutor extends HandlerExecutor[NettyBackendRequest] {
 
-private[server] trait WebSocketHandler {
+  def apply(context: HandlerExecutorContext[NettyBackendRequest], request: RequestHeader, backend: NettyBackendRequest,
+    handler: Handler) = {
+
+    val nettyHttpRequest = backend.event.getMessage.asInstanceOf[HttpRequest]
+    val websocketableRequest = websocketable(nettyHttpRequest)
+
+    handler match {
+      case ws @ WebSocket(f) if websocketableRequest.check =>
+        Play.logger.trace("Serving this request with: " + ws)
+        val enumerator = websocketHandshake(backend.context, nettyHttpRequest, backend.event)(ws.frameFormatter)
+        f(request)(enumerator, socketOut(backend.context)(ws.frameFormatter))
+        Some(NettyPromise(backend.context.getChannel.getCloseFuture))
+      //handle bad websocket request
+      case WebSocket(f) =>
+        Play.logger.trace("Bad websocket request")
+        context.sendResult(request, backend, Future.successful(Results.BadRequest))
+      case _ => None
+    }
+  }
+
   def newWebSocketInHandler[A](frameFormatter: play.api.mvc.WebSocket.FrameFormatter[A]) = {
+
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
 
     val nettyFrameFormatter = frameFormatter.asInstanceOf[play.core.server.websocket.FrameFormatter[A]]
 
@@ -57,9 +70,9 @@ private[server] trait WebSocketHandler {
             val next = k(input)
             next.fold {
               case Step.Done(a, e) =>
-                ctx.getChannel().disconnect();
-                promise.success(next);
-                Play.logger.trace("cleaning for channel " + ctx.getChannel());
+                ctx.getChannel.disconnect()
+                promise.success(next)
+                Play.logger.trace("cleaning for channel " + ctx.getChannel)
                 Future.successful(next)
 
               case Step.Cont(_) => Future.successful(next)
@@ -79,15 +92,15 @@ private[server] trait WebSocketHandler {
             case frame: WebSocketFrame if nettyFrameFormatter.fromFrame.isDefinedAt(frame) => {
               enumerator.frameReceived(ctx, El(nettyFrameFormatter.fromFrame(frame)))
             }
-            case frame: CloseWebSocketFrame => { ctx.getChannel().disconnect(); enumerator.frameReceived(ctx, EOF) }
+            case frame: CloseWebSocketFrame => { ctx.getChannel.disconnect(); enumerator.frameReceived(ctx, EOF) }
             case frame: WebSocketFrame => //
             case _ => //
           }
         }
 
         override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-          e.getCause().printStackTrace();
-          e.getChannel().close();
+          e.getCause.printStackTrace()
+          e.getChannel.close()
         }
 
         override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
@@ -104,8 +117,8 @@ private[server] trait WebSocketHandler {
     WebSocketHandshake.shake(ctx, req)
 
     val (enumerator, handler) = newWebSocketInHandler(frameFormatter)
-    val p: ChannelPipeline = ctx.getChannel().getPipeline();
-    p.replace("handler", "handler", handler);
+    val p: ChannelPipeline = ctx.getChannel.getPipeline
+    p.replace("handler", "handler", handler)
     enumerator
   }
 
@@ -113,6 +126,21 @@ private[server] trait WebSocketHandler {
     def check =
       HttpHeaders.Values.WEBSOCKET.equalsIgnoreCase(req.getHeader(HttpHeaders.Names.UPGRADE))
     def getHeader(header: String) = req.getHeader(header)
+  }
+
+  def socketOut[A](ctx: ChannelHandlerContext)(frameFormatter: play.api.mvc.WebSocket.FrameFormatter[A]): Iteratee[A, Unit] = {
+    val channel = ctx.getChannel
+    val nettyFrameFormatter = frameFormatter.asInstanceOf[play.core.server.websocket.FrameFormatter[A]]
+
+    def step(future: Option[ChannelFuture])(input: Input[A]): Iteratee[A, Unit] =
+      input match {
+        case El(e) => Cont(step(Some(channel.write(nettyFrameFormatter.toFrame(e)))))
+        case e @ EOF => future.map(_.addListener(ChannelFutureListener.CLOSE)).getOrElse(channel.close()); Done((), e)
+        case Empty => Cont(step(future))
+      }
+
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
+    Enumeratee.breakE[A](_ => !channel.isConnected).transform(Cont(step(None)))
   }
 
 }
