@@ -146,6 +146,7 @@ object FormSpec extends Specification {
 }
 
 object ScalaForms {
+  import Forms.mapping
 
   case class User(name: String, age: Int)
 
