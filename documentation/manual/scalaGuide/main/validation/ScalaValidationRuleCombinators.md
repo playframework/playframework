@@ -8,7 +8,7 @@ Those examples were only covering simple rules. However most of the time, rules 
 The validation API allows complex object rules creation by combining simple rules together. This chapter explains how to create complex rules.
 
 > Despite examples below are validating Json objects, the API is not dedicated only to Json and can be used on any type. 
-> Please refer to [[Validating Json | ScalaValidationJson]], [[Validating Forms|ScalaValidationForm]], and [[Supporting new types|ScalaValidationExtension]] for more informations.
+> Please refer to [[Validating Json | ScalaValidationJson]], [[Validating Forms|ScalaValidationForm]], and [[Supporting new types|ScalaValidationExtensions]] for more informations.
 
 ## Path
 
