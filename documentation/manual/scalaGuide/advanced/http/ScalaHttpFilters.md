@@ -17,57 +17,19 @@ In contrast, [[action composition|ScalaActionsComposition]] is intended for rout
 
 The following is a simple filter that times and logs how long a request takes to execute in Play framework:
 
-```scala
-import play.api.mvc._
+@[simple-filter](code/Filters.scala)
 
-object LoggingFilter extends Filter {
-  def apply(next: (RequestHeader) => Result)(rh: RequestHeader) = {
-    val start = System.currentTimeMillis
+Let's understand what's happening here.  The first thing to notice is the signature of the `apply` method.  It's a curried function, with the first parameter, `nextFilter`, being a function that takes a request header and produces a result, and the second parameter, `requestHeader`, being the actual request header of the incoming request.
 
-    def logTime(result: PlainResult): Result = {
-      val time = System.currentTimeMillis - start
-      Logger.info(s"${rh.method} ${rh.uri} took ${time}ms and returned ${result.header.status}")
-      result.withHeaders("Request-Time" -> time.toString)
-    }
-    
-    next(rh) match {
-      case plain: PlainResult => logTime(plain)
-      case async: AsyncResult => async.transform(logTime)
-    }
-  }
-}
-```
+The `nextFilter` parameter represents the next action in the filter chain. Invoking it will cause the action to be invoked.  In most cases you will probably want to invoke this at some point in your future.  You may decide to not invoke it if for some reason you want to block the request.
 
-Let's understand what's happening here.  The first thing to notice is the signature of the `apply` method.  It's a curried function, with the first parameter, `next`, being a function that takes a request header and produces a result, and the second parameter, `rh`, being a request header.
+We save a timestamp before invoking the next filter in the chain. Invoking the next filter returns a `Future[SimpleResult]` that will redeemed eventually. Take a look at the [[Handling asynchronous results|ScalaAsync]] chapter for more details on asynchronous results. We then manipulate the `SimpleResult` in the `Future` by calling the `map` method with a closure that takes a `SimpleResult`. We calculate the time it took for the request, log it and send it back to the client in the response headers by calling `result.withHeaders("Request-Time" -> requestTime.toString)`.
 
-The `next` parameter represents the next action in the filter chain.  Invoking it will cause the action to be invoked.  In most cases you will probably want to invoke this at some point in your future.  You may decide to not invoke it if for some reason you want to block the request.
+### A more concise syntax
 
-The `rh` parameter is the actual request header for the request.
+You can use a more concise syntax for declaring a filter if you wish:
 
-The next thing in the code is a function that logs the request.  This function takes a `PlainResult`, and after logging the request time, adds a header to the response that records the `Request-Time`, and returns that result.
-
-Finally the next action is invoked, and pattern matched on the result it returns.  A result can either be a `PlainResult` or a `AsyncResult`, an `AsyncResult` is a result that will eventually be redeemed as a `PlainResult`.  In both cases, the `logTime` function needs to be invoked, but is invoked in a slightly different way for each.  Since if it's a `PlainResult` the result is available now, it just invokes `logTime` directly.  However, if it's `AsyncResult` the result is not yet available.  So, the `logTime` function is passed to the `transform` method to be invoked later, when the `PlainResult` is available.
-
-### A simpler syntax
-
-You can use a simpler syntax for declaring a filter if you wish:
-
-```scala
-val loggingFilter = Filter { (next, rh) =>
-  val start = System.currentTimeMillis
-
-  def logTime(result: PlainResult): Result = {
-    val time = System.currentTimeMillis - start
-    Logger.info(s"${rh.method} ${rh.uri} took ${time}ms and returned ${result.header.status}")
-    result.withHeaders("Request-Time" -> time.toString)
-  }
-    
-  next(rh) match {
-    case plain: PlainResult => logTime(plain)
-    case async: AsyncResult => async.transform(logTime)
-  }
-}
-```
+@[concise-filter-syntax](code/Filters.scala)
 
 Since this is a val, this can only be used inside some scope.
 
@@ -75,23 +37,11 @@ Since this is a val, this can only be used inside some scope.
 
 The simplest way to use a filter is to extends the `WithFilters` trait on your `Global` object:
 
-```scala
-import play.api.mvc._
-
-object Global extends WithFilters(LoggingFilter, new GzipFilter()) {
-  ...
-}
-```
+@[filter-trait-example](code/GlobalWithFilters.scala)
 
 You can also invoke a filter manually:
 
-```scala
-import play.api._
-
-object Global extends GlobalSettings {
-  override def doFilter(action: EssentialAction) = LoggingFilter(action)
-}
-```
+@[filter-method-example](code/GlobalWithFilters.scala)
 
 ## Where do filters fit in?
 
@@ -99,14 +49,7 @@ Filters wrap the action after the action has been looked up by the router.  This
 
 Since filters are applied after routing is done, it is possible to access routing information from the request, via the `tags` map on the `RequestHeader`.  For example, you might want to log the time against the action method.  In that case, you might update the `logTime` method to look like this:
 
-```scala
-  def logTime(result: PlainResult): Result = {
-    val time = System.currentTimeMillis - start
-    val action = rh.tags(Routes.ROUTE_CONTROLLER) + "." + rh.tags(Routes.ROUTE_ACTION_METHOD)
-    Logger.info(s"${action} took ${time}ms and returned ${result.header.status}")
-    result.withHeaders("Request-Time" -> time.toString)
-  }
-```
+@[routing-info-access](code/FiltersRouting.scala)
 
 > Routing tags are a feature of the Play router.  If you use a custom router, or return a custom action in `Glodal.onRouteRequest`, these parameters may not be available.
 
@@ -116,29 +59,8 @@ Play provides a lower level filter API called `EssentialFilter` which gives you 
 
 Here is the above filter example rewritten as an `EssentialFilter`:
 
-```scala
-import play.api.mvc._
+@[essential-filter-example](code/EssentialFilter.scala)
 
-object LoggingFilter extends EssentialFilter {
-  def apply(next: EssentialAction) = new EssentialAction {
-    def apply(rh: RequestHeader) = {
-      val start = System.currentTimeMillis
+The key difference here, apart from creating a new `EssentialAction` to wrap the passed in `next` action, is when we invoke next, we get back an `Iteratee`.  You could wrap this in an `Enumeratee` to do some transformations if you wished.  We then `map` the result of the iteratee and thus handle it.
 
-      def logTime(result: PlainResult): Result = {
-        val time = System.currentTimeMillis - start
-        Logger.info(s"${rh.method} ${rh.uri} took ${time}ms and returned ${result.header.status}")
-        result.withHeaders("Request-Time" -> time.toString)
-      }
-    
-      next(rh).map {
-        case plain: PlainResult => logTime(plain)
-        case async: AsyncResult => async.transform(logTime)
-      }
-    }
-  }
-}
-```
-
-The key difference here, apart from creating a new `EssentialAction` to wrap the passed in `next` action, is when we invoke next, we get back an `Iteratee`.  You could wrap this in an `Enumeratee` to do some transformations if you wished.  We then `map` the result of the iteratee, and handle it with a partial function, in the same way as in the simple form.
-
-> Although it may seem that there are two different filter APIs, there is only one, `EssentialFilter`.  The simpler `Filter` API in the earlier examples extends `EssentialFilter`, and implements it by creating a new `EssentialAction`.  The passed in callback makes it appear to skip the body parsing by creating a promise for the `Result`, and returning that in an `AsyncResult`, while the body parsing and the rest of the action are executed asynchronously.
+> Although it may seem that there are two different filter APIs, there is only one, `EssentialFilter`.  The simpler `Filter` API in the earlier examples extends `EssentialFilter`, and implements it by creating a new `EssentialAction`.  The passed in callback makes it appear to skip the body parsing by creating a promise for the `Result`, and returning that in a `SimpleResult`, while the body parsing and the rest of the action are executed asynchronously.
