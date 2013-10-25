@@ -43,11 +43,29 @@ NOTE: if you use sbt-idea, the generated project defines "com.typesafe.play" and
 
 ## Testing
 
+Before you run the tests make sure you have the latest snapshot version of the play library in your local repository. For details take a look at 
+
 You can run the test suite for the documentation using:
 
 ```
 ./build
 > test
+```
+
+## Validating
+
+You can validate the integrity of the documentation internal links by calling:
+
+```
+./build
+> validateDocs
+```
+
+To validate the availability of the external links use:
+
+```
+./build
+> validateExternalLinks
 ```
 
 ## Packaging
