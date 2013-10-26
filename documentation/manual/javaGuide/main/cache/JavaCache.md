@@ -18,7 +18,7 @@ Using this simple API you can store data in the cache:
 
 @[simple-set](code/javaguide/cache/JavaCache.java)
 
-Optionally you can specify a expiration (in seconds) for the cache:
+Optionally you can specify an expiration (in seconds) for the cache:
 
 @[time-set](code/javaguide/cache/JavaCache.java)
 
