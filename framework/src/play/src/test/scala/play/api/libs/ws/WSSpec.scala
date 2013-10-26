@@ -7,6 +7,7 @@ import org.specs2.mutable._
 import org.specs2.mock.Mockito
 
 import com.ning.http.client.{
+  FluentCaseInsensitiveStringsMap,
   Response => AHCResponse,
   Cookie => AHCCookie
 }
@@ -90,6 +91,20 @@ object WSSpec extends Specification with Mockito {
         cookie.maxAge must ===(1000)
         cookie.secure must beFalse
       }
+    }
+
+    "get headers from an AHC response" in {
+      val ahcResponse : AHCResponse = mock[AHCResponse]
+      val javaHeaders = new FluentCaseInsensitiveStringsMap()
+      javaHeaders.put("header", util.Arrays.asList("value1","value2"))
+
+      ahcResponse.getHeaders returns javaHeaders
+      
+      val response = Response(ahcResponse)
+
+      val headers = response.allHeaders
+
+      headers must beEqualTo(Map("header" -> Seq("value1", "value2")))
     }
   }
 
