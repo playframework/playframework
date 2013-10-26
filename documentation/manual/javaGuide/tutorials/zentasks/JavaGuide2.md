@@ -233,9 +233,13 @@ public class Task extends Model {
            .findList();
     }
 
-    public static Task create(Task task, Long project, String folder) {
-        task.project = Project.find.ref(project);
+    public static Task create ( Project project, String folder, String title, User assignedTo, boolean resolved) {
+        Task task = new Task();
+        task.project =  project;
         task.folder = folder;
+        task.assignedTo = assignedTo;
+        task.title = title;
+        task.done = resolved;
         task.save();
         return task;
     }
@@ -254,21 +258,16 @@ Let's write a test for this class as well:
         User bob = new User("bob@gmail.com", "Bob", "secret");
         bob.save();
 
-        Project project = Project.create("Play 2", "play", "bob@gmail.com");
-        Task t1 = new Task();
-        t1.title = "Write tutorial";
-        t1.assignedTo = bob;
-        t1.done = true;
-        t1.save();
+        Project project = Project.create("Play 1", "play", "bob@gmail.com");
 
-        Task t2 = new Task();
-        t2.title = "Release next version";
-        t2.project = project;
-        t2.save();
 
-        List<Task> results = Task.findTodoInvolving("bob@gmail.com");
-        assertEquals(1, results.size());
-        assertEquals("Release next version", results.get(0).title);
+        Task.create(project,"play","t1",bob,true);
+        Task.create(project,"play","t2",bob,false);
+
+
+        List<Task> results = Task.findToDoInvolving("bob@gmail.com");
+        assertEquals(1,results.size());
+        assertEquals("t2", results.get(0).title);
     }
 ```
 
