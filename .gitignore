@@ -21,3 +21,4 @@ RUNNING_PID
 *.iml
 documentation/*.pdf
 framework/test/integrationtest-java/conf/evolutions/
+generated.keystore
