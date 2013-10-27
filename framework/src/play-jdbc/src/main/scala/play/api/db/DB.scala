@@ -8,8 +8,6 @@ import scala.language.reflectiveCalls
 import play.api._
 import play.api.libs._
 
-import play.core._
-
 import java.sql._
 import javax.sql._
 
@@ -19,8 +17,6 @@ import scala.util.control.{ NonFatal, ControlThrowable }
 
 /**
  * The Play Database API manages several connection pools.
- *
- * @param datasources the managed data sources
  */
 trait DBApi {
 
@@ -204,8 +200,6 @@ trait DBPlugin extends Plugin {
  */
 class BoneCPPlugin(app: Application) extends DBPlugin {
 
-  private def error = throw new Exception("db keys are missing from application.conf")
-
   lazy val dbConfig = app.configuration.getConfig("db").getOrElse(Configuration.empty)
 
   private def dbURL(conn: Connection): String = {
@@ -231,7 +225,7 @@ class BoneCPPlugin(app: Application) extends DBPlugin {
    * dbplugin=disabled
    * }}}
    */
-  override def enabled = isDisabled == false
+  override def enabled = !isDisabled
 
   /**
    * Retrieves the underlying `DBApi` managing the data sources.
@@ -267,7 +261,7 @@ class BoneCPPlugin(app: Application) extends DBPlugin {
         dbApi.shutdownPool(ds)
       } catch { case NonFatal(_) => }
     }
-    val drivers = DriverManager.getDrivers()
+    val drivers = DriverManager.getDrivers
     while (drivers.hasMoreElements) {
       val driver = drivers.nextElement
       DriverManager.deregisterDriver(driver)
@@ -280,7 +274,7 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
 
   private def error(db: String, message: String = "") = throw configuration.reportError(db, message)
 
-  private val dbNames = configuration.subKeys
+  private val dbNames: Set[String] = configuration.subKeys
 
   private def register(driver: String, c: Configuration) {
     try {
@@ -330,9 +324,9 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
 
       override def onCheckOut(connection: ConnectionHandle) {
         connection.setAutoCommit(autocommit)
-        isolation.map(connection.setTransactionIsolation(_))
+        isolation.map(connection.setTransactionIsolation)
         connection.setReadOnly(readOnly)
-        catalog.map(connection.setCatalog(_))
+        catalog.map(connection.setCatalog)
         if (logger.isTraceEnabled) {
           logger.trace("Check out connection [%s leased]".format(datasource.getTotalLeased))
         }
@@ -368,9 +362,9 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
         throw conf.globalError("Missing url configuration for database [%s]".format(conf))
     }
 
-    conf.getString("user").map(datasource.setUsername(_))
-    conf.getString("pass").map(datasource.setPassword(_))
-    conf.getString("password").map(datasource.setPassword(_))
+    conf.getString("user").map(datasource.setUsername)
+    conf.getString("pass").map(datasource.setPassword)
+    conf.getString("password").map(datasource.setPassword)
 
     // Pool configuration
     datasource.setPartitionCount(conf.getInt("partitionCount").getOrElse(1))
@@ -390,9 +384,9 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
     // we can remove this line.  https://play.lighthouseapp.com/projects/82401/tickets/754-cannot-set-important-bonecp-parameter-in-configuration
     datasource.setReleaseHelperThreads(0)
 
-    conf.getString("initSQL").map(datasource.setInitSQL(_))
-    conf.getBoolean("logStatements").map(datasource.setLogStatementsEnabled(_))
-    conf.getString("connectionTestStatement").map(datasource.setConnectionTestStatement(_))
+    conf.getString("initSQL").map(datasource.setInitSQL)
+    conf.getBoolean("logStatements").map(datasource.setLogStatementsEnabled)
+    conf.getString("connectionTestStatement").map(datasource.setConnectionTestStatement)
 
     // Bind in JNDI
     conf.getString("jndiName").map { name =>
@@ -404,13 +398,13 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
 
   }
 
-  val datasources: List[Tuple2[DataSource, String]] = dbNames.map { dbName =>
+  val datasources: List[(DataSource, String)] = dbNames.toList.map { dbName =>
     val url = configuration.getString(dbName + ".url").getOrElse(error(dbName, "Missing configuration [db." + dbName + ".url]"))
     val driver = configuration.getString(dbName + ".driver").getOrElse(error(dbName, "Missing configuration [db." + dbName + ".driver]"))
     val extraConfig = configuration.getConfig(dbName).getOrElse(error(dbName, "Missing configuration [db." + dbName + "]"))
     register(driver, extraConfig)
     createDataSource(dbName, url, driver, extraConfig) -> dbName
-  }.toList
+  }
 
   def shutdownPool(ds: DataSource) = {
     ds match {
@@ -429,13 +423,13 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
    * @throws an error if the required data source is not registered
    */
   def getDataSource(name: String): DataSource = {
-    datasources.filter(_._2 == name).headOption.map(e => e._1).getOrElse(error(" - could not find datasource for " + name))
+    datasources.find(_._2 == name).map(e => e._1).getOrElse(error(" - could not find datasource for " + name))
   }
 
 }
 
 /**
- * Provides an interface for retreiving the jdbc driver's implementation of java.sql.Connection
+ * Provides an interface for retrieving the jdbc driver's implementation of java.sql.Connection
  * from a "decorated" Connection (such as the Connection that DB.withConnection provides). Upcasting
  * to this trait should be used with caution since exposing the internal jdbc connection can violate the
  * guarantees Play otherwise makes (like automatically closing jdbc statements created from the connection)
@@ -466,7 +460,7 @@ private class AutoCleanConnection(connection: Connection) extends Connection wit
 
   override def getInternalConnection(): Connection = connection match {
     case bonecpConn: com.jolbox.bonecp.ConnectionHandle =>
-      bonecpConn.getInternalConnection()
+      bonecpConn.getInternalConnection
     case x => x
   }
 
@@ -496,17 +490,17 @@ private class AutoCleanConnection(connection: Connection) extends Connection wit
   def createNClob() = connection.createNClob()
   def createSQLXML() = connection.createSQLXML()
   def createStruct(typeName: String, attributes: scala.Array[AnyRef]) = connection.createStruct(typeName, attributes)
-  def getAutoCommit() = connection.getAutoCommit()
-  def getCatalog() = connection.getCatalog()
-  def getClientInfo() = connection.getClientInfo()
+  def getAutoCommit = connection.getAutoCommit
+  def getCatalog = connection.getCatalog
+  def getClientInfo = connection.getClientInfo
   def getClientInfo(name: String) = connection.getClientInfo(name)
-  def getHoldability() = connection.getHoldability()
-  def getMetaData() = connection.getMetaData()
-  def getTransactionIsolation() = connection.getTransactionIsolation()
-  def getTypeMap() = connection.getTypeMap()
-  def getWarnings() = connection.getWarnings()
-  def isClosed() = connection.isClosed()
-  def isReadOnly() = connection.isReadOnly()
+  def getHoldability = connection.getHoldability
+  def getMetaData = connection.getMetaData
+  def getTransactionIsolation = connection.getTransactionIsolation
+  def getTypeMap = connection.getTypeMap
+  def getWarnings = connection.getWarnings
+  def isClosed = connection.isClosed
+  def isReadOnly = connection.isReadOnly
   def isValid(timeout: Int) = connection.isValid(timeout)
   def nativeSQL(sql: String) = connection.nativeSQL(sql)
   def releaseSavepoint(savepoint: Savepoint) { connection.releaseSavepoint(savepoint) }
@@ -526,16 +520,16 @@ private class AutoCleanConnection(connection: Connection) extends Connection wit
   def unwrap[T](iface: Class[T]) = connection.unwrap(iface)
 
   // JDBC 4.1
-  def getSchema() = {
-    connection.asInstanceOf[{ def getSchema(): String }].getSchema()
+  def getSchema = {
+    connection.asInstanceOf[{ def getSchema: String }].getSchema
   }
 
   def setSchema(schema: String) {
     connection.asInstanceOf[{ def setSchema(schema: String): Unit }].setSchema(schema)
   }
 
-  def getNetworkTimeout() = {
-    connection.asInstanceOf[{ def getNetworkTimeout(): Int }].getNetworkTimeout()
+  def getNetworkTimeout = {
+    connection.asInstanceOf[{ def getNetworkTimeout: Int }].getNetworkTimeout
   }
 
   def setNetworkTimeout(executor: java.util.concurrent.Executor, milliseconds: Int) {
