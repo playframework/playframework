@@ -301,8 +301,8 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
     val isolation = conf.getString("isolation").map {
       case "NONE" => Connection.TRANSACTION_NONE
       case "READ_COMMITTED" => Connection.TRANSACTION_READ_COMMITTED
-      case "READ_UNCOMMITTED " => Connection.TRANSACTION_READ_UNCOMMITTED
-      case "REPEATABLE_READ " => Connection.TRANSACTION_REPEATABLE_READ
+      case "READ_UNCOMMITTED" => Connection.TRANSACTION_READ_UNCOMMITTED
+      case "REPEATABLE_READ" => Connection.TRANSACTION_REPEATABLE_READ
       case "SERIALIZABLE" => Connection.TRANSACTION_SERIALIZABLE
       case unknown => throw conf.reportError("isolation", "Unknown isolation level [" + unknown + "]")
     }
