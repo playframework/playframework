@@ -58,7 +58,12 @@ trait Settings {
 
     confDirectory <<= baseDirectory / "conf",
 
-    resourceDirectory in Compile <<= baseDirectory / "conf",
+    // Everything is a resource
+    unmanagedResourceDirectories in Compile <+= baseDirectory / "conf",
+    unmanagedResourceDirectories in Compile <+= baseDirectory / "app",
+    unmanagedResourceDirectories in Compile <+= baseDirectory / "public",
+    // Except for java and scala sources
+    excludeFilter in unmanagedResources <<= (excludeFilter in unmanagedResources).apply(_ || GlobFilter("*.scala") || GlobFilter("*.java")),
 
     scalaSource in Compile <<= baseDirectory / "app",
     scalaSource in Test <<= baseDirectory / "test",
@@ -184,11 +189,7 @@ trait Settings {
 
     // Assets
 
-    playAssetsDirectories := Seq.empty[File],
-
     playExternalAssets := Seq.empty[(File, File => PathFinder, String)],
-
-    playAssetsDirectories <+= baseDirectory / "public",
 
     requireJs := Nil,
 

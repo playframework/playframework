@@ -50,8 +50,6 @@ trait Keys {
   /** A hook to configure how play blocks on user input while running. */
   val playInteractionMode = SettingKey[play.PlayInteractionMode]("play-interaction-mode")
 
-  val playAssetsDirectories = SettingKey[Seq[File]]("play-assets-directories")
-
   val playExternalAssets = SettingKey[Seq[(File, File => PathFinder, String)]]("play-external-assets")
 
   val confDirectory = SettingKey[File]("play-conf")

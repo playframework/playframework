@@ -22,12 +22,8 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
   val NONE = "none"
 
   val playCopyAssets = TaskKey[Seq[(File, File)]]("play-copy-assets")
-  val playCopyAssetsTask = (baseDirectory, managedResources in Compile, resourceManaged in Compile, playAssetsDirectories, playExternalAssets, classDirectory in Compile, cacheDirectory, streams, state) map { (b, resources, resourcesDirectories, r, externals, t, c, s, state) =>
+  val playCopyAssetsTask = (baseDirectory, managedResources in Compile, resourceManaged in Compile, playExternalAssets, classDirectory in Compile, cacheDirectory, streams, state) map { (b, resources, resourcesDirectories, externals, t, c, s, state) =>
     val cacheFile = c / "copy-assets"
-
-    val mappings = (r.map(d => (d ***) --- (d ** HiddenFileFilter ***)).foldLeft(PathFinder.empty)(_ +++ _).filter(_.isFile) x relativeTo(b +: r.filterNot(_.getAbsolutePath.startsWith(b.getAbsolutePath))) map {
-      case (origin, name) => (origin, new java.io.File(t, name))
-    }) ++ (resources x rebase(resourcesDirectories, t))
 
     val externalMappings = externals.map {
       case (root, paths, common) => {
@@ -37,12 +33,10 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
       }
     }.foldLeft(Seq.empty[(java.io.File, java.io.File)])(_ ++ _)
 
-    val assetsMapping = mappings ++ externalMappings
+    s.log.debug("Copy play resource mappings: " + externalMappings.mkString("\n\t", "\n\t", ""))
 
-    s.log.debug("Copy play resource mappings: " + assetsMapping.mkString("\n\t", "\n\t", ""))
-
-    Sync(cacheFile)(assetsMapping)
-    assetsMapping
+    Sync(cacheFile)(externalMappings)
+    externalMappings
   }
 
   //- test reporter
@@ -385,8 +379,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
   val playMonitoredFilesTask = (thisProjectRef, state) map { (ref, state) =>
     val src = inAllDependencies(ref, sourceDirectories in Compile, SbtProject structure state).foldLeft(Seq.empty[File])(_ ++ _)
     val resources = inAllDependencies(ref, resourceDirectories in Compile, SbtProject structure state).foldLeft(Seq.empty[File])(_ ++ _)
-    val assets = inAllDependencies(ref, playAssetsDirectories, SbtProject structure state).foldLeft(Seq.empty[File])(_ ++ _)
-    (src ++ resources ++ assets).map { f =>
+    (src ++ resources).map { f =>
       if (!f.exists) f.mkdirs(); f
     }.map(_.getCanonicalPath).distinct
   }
