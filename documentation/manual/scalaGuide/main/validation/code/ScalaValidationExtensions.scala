@@ -22,7 +22,7 @@ object ScalaValidationExtensionsSpec extends Specification {
     implicit def pickInJson[O](p: Path): Rule[JsValue, JsValue] =
       Rule[JsValue, JsValue] { json =>
         pathToJsPath(p)(json) match {
-          case Nil => Failure(Seq(Path -> Seq(ValidationError("validation.required"))))
+          case Nil => Failure(Seq(Path -> Seq(ValidationError("error.required"))))
           case js :: _ => Success(js)
         }
       }
@@ -66,7 +66,7 @@ object ScalaValidationExtensionsSpec extends Specification {
       //#extensions-rules-primitives
       private def jsonAs[T](f: PartialFunction[JsValue, Validation[ValidationError, T]])(args: Any*) =
         Rule.fromMapping[JsValue, T](
-          f.orElse{ case j => Failure(Seq(ValidationError("validation.type-mismatch", args: _*)))
+          f.orElse{ case j => Failure(Seq(ValidationError("validation.invalid", args: _*)))
         })
 
       implicit def string = jsonAs[String] {
@@ -84,7 +84,7 @@ object ScalaValidationExtensionsSpec extends Specification {
     implicit def pickInJson[O](p: Path)(implicit r: Rule[JsValue, O]): Rule[JsValue, O] =
     Rule[JsValue, JsValue] { json =>
       pathToJsPath(p)(json) match {
-        case Nil => Failure(Seq(Path -> Seq(ValidationError("validation.required"))))
+        case Nil => Failure(Seq(Path -> Seq(ValidationError("error.required"))))
         case js :: _ => Success(js)
       }
     }.compose(r)
@@ -125,7 +125,7 @@ object ScalaValidationExtensionsSpec extends Specification {
       }
 
       maybeEmail.validate(Json.obj("email" -> "foo@bar.com")) === Success(Some("foo@bar.com"))
-      maybeEmail.validate(Json.obj("email" -> "baam!")) === Failure(Seq((Path \ "email", Seq(ValidationError("validation.email")))))
+      maybeEmail.validate(Json.obj("email" -> "baam!")) === Failure(Seq((Path \ "email", Seq(ValidationError("error.email")))))
       maybeEmail.validate(Json.obj("email" -> JsNull)) === Success(None)
       maybeEmail.validate(Json.obj()) === Success(None)
       //#extensions-rules-opt
@@ -137,7 +137,7 @@ object ScalaValidationExtensionsSpec extends Specification {
       }
 
       // maybeEmail.validate(Json.obj("age" -> 28)) === Success(Some(28))
-      maybeAge.validate(Json.obj("age" -> "baam!")) === Failure(Seq((Path \ "age", Seq(ValidationError("validation.type-mismatch", "Int")))))
+      maybeAge.validate(Json.obj("age" -> "baam!")) === Failure(Seq((Path \ "age", Seq(ValidationError("error.invalid", "Int")))))
       maybeAge.validate(Json.obj("age" -> JsNull)) === Success(None)
       maybeAge.validate(Json.obj()) === Success(None)
       //#extensions-rules-opt-int

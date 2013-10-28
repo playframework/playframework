@@ -124,7 +124,7 @@ object Rules extends DefaultRules[PM.PM] with ParsingRules {
 
   implicit def parseString[O](implicit r: Rule[String, O]): Rule[PM, O] = {
     val find = Rule[Option[String], String] {
-      _.map(Success(_)).getOrElse(Failure(Seq(Path -> Seq(ValidationError("validation.required")))))
+      _.map(Success(_)).getOrElse(Failure(Seq(Path -> Seq(ValidationError("error.required")))))
     }
     Rule.zero[PM]
       .fmap(_.get(Path))
@@ -156,7 +156,7 @@ object Rules extends DefaultRules[PM.PM] with ParsingRules {
   implicit def pickInPM[O](p: Path)(implicit r: Rule[PM, O]): Rule[PM, O] =
     Rule[PM, PM] { pm =>
       PM.find(p)(pm) match {
-        case sub if sub.isEmpty => Failure(Seq(Path -> Seq(ValidationError("validation.required"))))
+        case sub if sub.isEmpty => Failure(Seq(Path -> Seq(ValidationError("error.required"))))
         case sub => Success(sub)
       }
     }.compose(r)

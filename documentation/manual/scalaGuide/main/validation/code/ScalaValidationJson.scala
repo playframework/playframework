@@ -48,7 +48,7 @@ object ScalaValidationJsonSpec extends Specification with play.api.mvc.Controlle
       //#validation-json-findfriend-test
 
       //#validation-json-findfriend-fail
-      (Path \ "somenonexistinglocation").read[JsValue, JsValue].validate(json) === Failure(Seq((Path \ "somenonexistinglocation", Seq(ValidationError("validation.required")))))
+      (Path \ "somenonexistinglocation").read[JsValue, JsValue].validate(json) === Failure(Seq((Path \ "somenonexistinglocation", Seq(ValidationError("error.required")))))
       //#validation-json-findfriend-fail
     }
   }

@@ -61,7 +61,7 @@ object ScalaValidationRuleCombinatorsSpec extends Specification {
       //#rule-extract-test
 
       //#rule-extract-fail
-      (Path \ "foobar").read[JsValue, JsValue].validate(js) === Failure(Seq((Path \ "foobar", Seq(ValidationError("validation.required")))))
+      (Path \ "foobar").read[JsValue, JsValue].validate(js) === Failure(Seq((Path \ "foobar", Seq(ValidationError("error.required")))))
       //#rule-extract-fail
     }
 
@@ -78,7 +78,7 @@ object ScalaValidationRuleCombinatorsSpec extends Specification {
       //#rule-extract-age-test
 
       //#rule-extract-age-fail
-      age.validate(Json.obj()) === Failure(Seq((Path \ "user" \ "age", Seq(ValidationError("validation.required")))))
+      age.validate(Json.obj()) === Failure(Seq((Path \ "user" \ "age", Seq(ValidationError("error.required")))))
       //#rule-extract-age-fail
     }
 
@@ -95,7 +95,7 @@ object ScalaValidationRuleCombinatorsSpec extends Specification {
       //#rule-extract-ageInt-test
 
       //#rule-extract-ageInt-fail
-      (Path \ "user" \ "name").read[JsValue, Int].validate(js) === Failure(Seq((Path \ "user" \ "name", Seq(ValidationError("validation.type-mismatch", "Int")))))
+      (Path \ "user" \ "name").read[JsValue, Int].validate(js) === Failure(Seq((Path \ "user" \ "name", Seq(ValidationError("error.invalid", "Int")))))
       //#rule-extract-ageInt-fail
     }
 
@@ -121,7 +121,7 @@ object ScalaValidationRuleCombinatorsSpec extends Specification {
       //#rule-validate-pos
 
       //#rule-validate-pos-test
-      positiveAge.validate(js) === Failure(Seq((Path \ "user" \ "age", Seq(ValidationError("validation.min", 0)))))
+      positiveAge.validate(js) === Failure(Seq((Path \ "user" \ "age", Seq(ValidationError("error.min", 0)))))
       //#rule-validate-pos-test
 
       //#rule-validate-pos-big
@@ -135,7 +135,7 @@ object ScalaValidationRuleCombinatorsSpec extends Specification {
 
       //#rule-validate-proper-test
       val jsBig = Json.parse("""{ "user": { "age" : 8765 } }""")
-      properAge.validate(jsBig) === Failure(Seq((Path \ "user" \ "age", Seq(ValidationError("validation.max", 130)))))
+      properAge.validate(jsBig) === Failure(Seq((Path \ "user" \ "age", Seq(ValidationError("error.max", 130)))))
       //#rule-validate-proper-test
     }
 

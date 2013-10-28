@@ -42,9 +42,9 @@ object ScalaValidationCookbookSpec extends Specification {
 
       From[JsValue, Creature](Json.obj()) ===
        Failure(Seq(
-        (Path \ "name", Seq(ValidationError("validation.required"))),
-        (Path \ "isDead", Seq(ValidationError("validation.required"))),
-        (Path \ "weight", Seq(ValidationError("validation.required")))))
+        (Path \ "name", Seq(ValidationError("error.required"))),
+        (Path \ "isDead", Seq(ValidationError("error.required"))),
+        (Path \ "weight", Seq(ValidationError("error.required")))))
       //#validate-case-class
     }
 
@@ -73,10 +73,10 @@ object ScalaValidationCookbookSpec extends Specification {
 
       //#validate-dependent-tests
       passRule.validate(Json.obj("password" -> "foo", "verify" -> "foo")) === Success("foo")
-      passRule.validate(Json.obj("password" -> "", "verify" -> "foo")) === Failure(Seq((Path \ "password", Seq(ValidationError("validation.nonemptytext")))))
-      passRule.validate(Json.obj("password" -> "foo", "verify" -> "")) === Failure(Seq((Path \ "verify", Seq(ValidationError("validation.nonemptytext")))))
-      passRule.validate(Json.obj("password" -> "", "verify" -> "")) === Failure(Seq((Path \ "password", Seq(ValidationError("validation.nonemptytext"))), (Path \ "verify", List(ValidationError("validation.nonemptytext")))))
-      passRule.validate(Json.obj("password" -> "foo", "verify" -> "bar")) === Failure(Seq((Path \ "verify", Seq(ValidationError("validation.equals", "foo")))))
+      passRule.validate(Json.obj("password" -> "", "verify" -> "foo")) === Failure(Seq((Path \ "password", Seq(ValidationError("error.required")))))
+      passRule.validate(Json.obj("password" -> "foo", "verify" -> "")) === Failure(Seq((Path \ "verify", Seq(ValidationError("error.required")))))
+      passRule.validate(Json.obj("password" -> "", "verify" -> "")) === Failure(Seq((Path \ "password", Seq(ValidationError("error.required"))), (Path \ "verify", List(ValidationError("error.required")))))
+      passRule.validate(Json.obj("password" -> "foo", "verify" -> "bar")) === Failure(Seq((Path \ "verify", Seq(ValidationError("error.equals", "foo")))))
       //#validate-dependent-tests
     }
 

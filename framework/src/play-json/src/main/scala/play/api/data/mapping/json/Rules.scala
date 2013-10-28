@@ -29,7 +29,7 @@ object Rules extends play.api.data.mapping.DefaultRules[JsValue] {
   private def jsonAs[T](f: PartialFunction[JsValue, Validation[ValidationError, T]])(args: Any*) =
     Rule.fromMapping[JsValue, T](
       f.orElse {
-        case j => Failure(Seq(ValidationError("validation.type-mismatch", args: _*)))
+        case j => Failure(Seq(ValidationError("error.invalid", args: _*)))
       })
 
   implicit def string = jsonAs[String] {
@@ -118,7 +118,7 @@ object Rules extends play.api.data.mapping.DefaultRules[JsValue] {
   implicit def pickInJson[O](p: Path)(implicit r: Rule[JsValue, O]): Rule[JsValue, O] =
     Rule[JsValue, JsValue] { json =>
       pathToJsPath(p)(json) match {
-        case Nil => Failure(Seq(Path -> Seq(ValidationError("validation.required"))))
+        case Nil => Failure(Seq(Path -> Seq(ValidationError("error.required"))))
         case js :: _ => Success(js)
       }
     }.compose(r)

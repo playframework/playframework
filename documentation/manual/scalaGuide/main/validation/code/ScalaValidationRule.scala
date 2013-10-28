@@ -21,7 +21,7 @@ object ScalaValidationRuleSpec extends Specification {
       Rules.float.validate("1") === Success(1.0f)
       Rules.float.validate("-13.7") === Success(-13.7f)
 
-      Rules.float.validate("abc") === Failure(Seq((Path,Seq(ValidationError("validation.type-mismatch", "Float")))))
+      Rules.float.validate("abc") === Failure(Seq((Path,Seq(ValidationError("error.number", "Float")))))
       //#rule-defaults
     }
 
@@ -30,14 +30,14 @@ object ScalaValidationRuleSpec extends Specification {
       import play.api.data.mapping._
 
       val headInt: Rule[List[Int], Int] = Rule.fromMapping {
-        case Nil => Failure(Seq(ValidationError("validation.emptyList")))
+        case Nil => Failure(Seq(ValidationError("error.emptyList")))
         case head :: _ => Success(head)
       }
       //#rule-headInt
 
       //#rule-headInt-test
       headInt.validate(List(1, 2, 3, 4, 5)) === Success(1)
-      headInt.validate(Nil) === Failure(Seq((Path, Seq(ValidationError("validation.emptyList")))))
+      headInt.validate(Nil) === Failure(Seq((Path, Seq(ValidationError("error.emptyList")))))
       //#rule-headInt-test
     }
 
@@ -46,14 +46,14 @@ object ScalaValidationRuleSpec extends Specification {
       import play.api.data.mapping._
 
       def head[T]: Rule[List[T], T] = Rule.fromMapping {
-        case Nil => Failure(Seq(ValidationError("validation.emptyList")))
+        case Nil => Failure(Seq(ValidationError("error.emptyList")))
         case head :: _ => Success(head)
       }
       //#rule-head
 
       //#rule-head-test
       head.validate(List('a', 'b', 'c', 'd')) === Success('a')
-      head.validate(List[Char]()) === Failure(Seq((Path, Seq(ValidationError("validation.emptyList")))))
+      head.validate(List[Char]()) === Failure(Seq((Path, Seq(ValidationError("error.emptyList")))))
       //#rule-head-test
     }
 
@@ -62,7 +62,7 @@ object ScalaValidationRuleSpec extends Specification {
       import play.api.data.mapping.Rules._
 
       def head[T]: Rule[List[T], T] = Rule.fromMapping {
-        case Nil => Failure(Seq(ValidationError("validation.emptyList")))
+        case Nil => Failure(Seq(ValidationError("error.emptyList")))
         case head :: _ => Success(head)
       }
 
@@ -76,23 +76,23 @@ object ScalaValidationRuleSpec extends Specification {
       //#rule-firstFloat-test1
 
       //#rule-firstFloat-test2
-      firstFloat.validate(List()) === Failure(Seq((Path,Seq(ValidationError("validation.emptyList")))))
+      firstFloat.validate(List()) === Failure(Seq((Path,Seq(ValidationError("error.emptyList")))))
       //#rule-firstFloat-test2
 
       //#rule-firstFloat-test3
-      firstFloat.validate(List("foo", "2")) === Failure(Seq((Path,Seq(ValidationError("validation.type-mismatch", "Float")))))
+      firstFloat.validate(List("foo", "2")) === Failure(Seq((Path,Seq(ValidationError("error.number", "Float")))))
       //#rule-firstFloat-test3
     }
 
     "repath" in {
       def head[T]: Rule[List[T], T] = Rule.fromMapping {
-        case Nil => Failure(Seq(ValidationError("validation.emptyList")))
+        case Nil => Failure(Seq(ValidationError("error.emptyList")))
         case head :: _ => Success(head)
       }
 
       //#rule-firstFloat-repath
       val firstFloat2: Rule[List[String],Float] = head.compose(Path \ 0)(Rules.float)
-      firstFloat2.validate(List("foo", "2")) === Failure(Seq((Path \ 0, Seq(ValidationError("validation.type-mismatch", "Float")))))
+      firstFloat2.validate(List("foo", "2")) === Failure(Seq((Path \ 0, Seq(ValidationError("error.number", "Float")))))
       //                                       NOTICE THE INDEX HERE ^
       //#rule-firstFloat-repath
     }
@@ -102,7 +102,7 @@ object ScalaValidationRuleSpec extends Specification {
 
       //#par-composition-def
       val positive: Rule[Int,Int] = Rules.min(0)
-      val even: Rule[Int,Int] = Rules.validateWith[Int]("validation.even"){ _ % 2 == 0 }
+      val even: Rule[Int,Int] = Rules.validateWith[Int]("error.even"){ _ % 2 == 0 }
       //#par-composition-def
 
       //#par-composition-comp
@@ -111,9 +111,9 @@ object ScalaValidationRuleSpec extends Specification {
 
       //#par-composition-test
       positiveAndEven.validate(12) === Success(12)
-      positiveAndEven.validate(-12) === Failure(Seq((Path, List(ValidationError("validation.min", 0)))))
-      positiveAndEven.validate(13) === Failure(Seq((Path, List(ValidationError("validation.even")))))
-      positiveAndEven.validate(-13) ===  Failure(Seq((Path,Seq(ValidationError("validation.min",0), ValidationError("validation.even")))))
+      positiveAndEven.validate(-12) === Failure(Seq((Path, List(ValidationError("error.min", 0)))))
+      positiveAndEven.validate(13) === Failure(Seq((Path, List(ValidationError("error.even")))))
+      positiveAndEven.validate(-13) ===  Failure(Seq((Path,Seq(ValidationError("error.min",0), ValidationError("error.even")))))
       //#par-composition-test
     }
 

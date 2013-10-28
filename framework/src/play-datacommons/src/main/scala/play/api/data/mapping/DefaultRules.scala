@@ -24,7 +24,7 @@ trait DateRules {
 
     parseDate(corrector(s)) match {
       case Some(d) => Success(d)
-      case None => Failure(Seq(ValidationError("validation.date", format)))
+      case None => Failure(Seq(ValidationError("error.expected.date", format)))
     }
   }
 
@@ -47,7 +47,7 @@ trait DateRules {
     val df = org.joda.time.format.DateTimeFormat.forPattern(pattern)
     Try(df.parseDateTime(corrector(s)))
       .map(Success.apply)
-      .getOrElse(Failure(Seq(ValidationError("validation.expected.jodadate.format", pattern))))
+      .getOrElse(Failure(Seq(ValidationError("error.expected.jodadate.format", pattern))))
   }
 
   /**
@@ -72,7 +72,7 @@ trait DateRules {
     val df = if (pattern == "") ISODateTimeFormat.localDateParser else DateTimeFormat.forPattern(pattern)
     Try(LocalDate.parse(corrector(s), df))
       .map(Success.apply)
-      .getOrElse(Failure(Seq(ValidationError("validation.expected.jodadate.format", pattern))))
+      .getOrElse(Failure(Seq(ValidationError("error.expected.jodadate.format", pattern))))
   }
   /**
    * the default implicit Rule for `org.joda.time.LocalDate`
@@ -89,7 +89,7 @@ trait DateRules {
     val parser = ISODateTimeFormat.dateOptionalTimeParser()
     Try(parser.parseDateTime(s).toDate())
       .map(Success.apply)
-      .getOrElse(Failure(Seq(ValidationError("validation.iso8601"))))
+      .getOrElse(Failure(Seq(ValidationError("error.expected.date.isoformat"))))
   }
 
   /**
@@ -197,7 +197,7 @@ trait GenericRules {
    */
   implicit def headAs[I, O](implicit c: Rule[I, O]) = Rule.fromMapping[Seq[I], I] {
     _.headOption.map(Success[ValidationError, I](_))
-      .getOrElse(Failure[ValidationError, I](Seq(ValidationError("validation.required"))))
+      .getOrElse(Failure[ValidationError, I](Seq(ValidationError("error.required"))))
   }.compose(c)
 
   def not[I, O](r: Rule[I, O]) = Rule[I, I] { d =>
@@ -219,7 +219,7 @@ trait GenericRules {
    *   (Path \ "foo").read(equalTo("bar"))
    * }}}
    */
-  def equalTo[T](t: T) = validateWith[T]("validation.equals", t) { _.equals(t) }
+  def equalTo[T](t: T) = validateWith[T]("error.equals", t) { _.equals(t) }
 
   /**
    * a Rule validating that a String is not empty.
@@ -228,39 +228,39 @@ trait GenericRules {
    *   (Path \ "foo").read(notEmpty)
    * }}}
    */
-  def notEmpty = validateWith[String]("validation.nonemptytext") { !_.isEmpty }
+  def notEmpty = validateWith[String]("error.required") { !_.isEmpty }
 
   /**
    * {{{
    *   (Path \ "foo").read(min(0)) // validate that there's a positive int at (Path \ "foo")
    * }}}
    */
-  def min[T](m: T)(implicit o: Ordering[T]) = validateWith[T]("validation.min", m) { x => o.gteq(x, m) }
+  def min[T](m: T)(implicit o: Ordering[T]) = validateWith[T]("error.min", m) { x => o.gteq(x, m) }
   /**
    * {{{
    *   (Path \ "foo").read(max(0)) // validate that there's a negative int at (Path \ "foo")
    * }}}
    */
-  def max[T](m: T)(implicit o: Ordering[T]) = validateWith[T]("validation.max", m) { x => o.lteq(x, m) }
+  def max[T](m: T)(implicit o: Ordering[T]) = validateWith[T]("error.max", m) { x => o.lteq(x, m) }
   /**
    * {{{
    *   (Path \ "foo").read(minLength(5)) // The length of this String must be >= 5
    * }}}
    */
-  def minLength(l: Int) = validateWith[String]("validation.minLength", l) { _.size >= l }
+  def minLength(l: Int) = validateWith[String]("error.minLength", l) { _.size >= l }
   /**
    * {{{
    *   (Path \ "foo").read(maxLength(5)) // The length of this String must be <= 5
    * }}}
    */
-  def maxLength(l: Int) = validateWith[String]("validation.maxLength", l) { _.size <= l }
+  def maxLength(l: Int) = validateWith[String]("error.maxLength", l) { _.size <= l }
   /**
    * Validate that a String matches the provided regex
    * {{{
    *   (Path \ "foo").read(pattern("[a-z]".r)) // This String contains only letters
    * }}}
    */
-  def pattern(regex: scala.util.matching.Regex) = validateWith("validation.pattern", regex) { regex.unapplySeq(_: String).isDefined }
+  def pattern(regex: scala.util.matching.Regex) = validateWith("error.pattern", regex) { regex.unapplySeq(_: String).isDefined }
   /**
    * Validate that a String is a valid email
    * {{{
@@ -270,7 +270,7 @@ trait GenericRules {
   def email = Rule.fromMapping[String, String](
     pattern("""\b[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\b""".r)
       .validate(_: String)
-      .fail.map(_ => Seq(ValidationError("validation.email"))))
+      .fail.map(_ => Seq(ValidationError("error.email"))))
 
   /**
    * A Rule that always succeed
@@ -294,7 +294,7 @@ trait ParsingRules {
       val toB: PartialFunction[String, BigDecimal] = { case s if s.matches("""[-+]?[0-9]*\.?[0-9]+""") => BigDecimal(s) }
       toB.lift(_)
         .flatMap(f.lift)
-        .getOrElse(Failure(Seq(ValidationError("validation.type-mismatch", args: _*))))
+        .getOrElse(Failure(Seq(ValidationError("error.number", args: _*))))
     }
 
   implicit def int = stringAs {
@@ -308,7 +308,7 @@ trait ParsingRules {
   implicit def boolean = Rule.fromMapping[String, Boolean] {
     pattern("""(?iu)true|false""".r).validate(_: String)
       .map(java.lang.Boolean.parseBoolean)
-      .fail.map(_ => Seq(ValidationError("validation.type-mismatch", "Boolean")))
+      .fail.map(_ => Seq(ValidationError("error.invalid", "Boolean")))
   }
 
   implicit def long = stringAs {
