@@ -12,6 +12,7 @@ import com.ning.http.client.{
 }
 import java.util
 
+
 object WSSpec extends Specification with Mockito {
 
   "WS" should {
@@ -46,6 +47,18 @@ object WSSpec extends Specification with Mockito {
       actual.getPort must be equalTo 8080
       actual.getPrincipal must beNull
       actual.getPassword must beNull
+    }
+
+    "support patch method" in {
+      import scala.concurrent.Await
+      import scala.concurrent.duration._
+
+      val req = WS.url("http://httpbin.org/patch").patch("body")
+
+      val rep = Await.result(req, Duration(2, SECONDS))
+
+      rep.status must ===(200)
+      (rep.json \ "data").asOpt[String] must beSome("body")
     }
 
   }
