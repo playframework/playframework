@@ -237,21 +237,21 @@ trait Settings {
 
     mappings in Universal <++= (confDirectory) map {
       confDirectory: File =>
-        val confDirectoryLen = confDirectory.getCanonicalPath.length
         val pathFinder = confDirectory ** ("*" -- "routes")
+        val confDirectoryUri = confDirectory.toURI
         pathFinder.get map {
           confFile: File =>
-            confFile -> ("conf/" + confFile.getCanonicalPath.substring(confDirectoryLen))
+            confFile -> (new File("conf", confDirectoryUri.relativize(confFile.toURI).getPath).getPath.replace("\\", "/"))
         }
     },
 
     mappings in Universal <++= (doc in Compile) map {
       docDirectory: File =>
-        val docDirectoryLen = docDirectory.getCanonicalPath.length
         val pathFinder = docDirectory ** "*"
+        val docDirectoryUri = docDirectory.toURI
         pathFinder.get map {
           docFile: File =>
-            docFile -> ("share/doc/api/" + docFile.getCanonicalPath.substring(docDirectoryLen))
+            docFile -> (new File("share/doc/api", docDirectoryUri.relativize(docFile.toURI).getPath).getPath.replace("\\", "/"))
         }
     },
 
