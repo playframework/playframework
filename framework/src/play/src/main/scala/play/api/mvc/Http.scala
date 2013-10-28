@@ -13,6 +13,7 @@ package play.api.mvc {
   import scala.util.control.NonFatal
   import scala.util.Try
   import java.net.{ URLDecoder, URLEncoder }
+  import scala.concurrent.duration._
 
   /**
    * The HTTP request header. Note that it doesn’t contain the request body yet.
@@ -575,7 +576,9 @@ package play.api.mvc {
     val emptyCookie = new Session
     override val isSigned = true
     override def secure = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.secure")).getOrElse(false)
-    override val maxAge = Play.maybeApplication.flatMap(_.configuration.getInt("session.maxAge"))
+    override val maxAge = Play.maybeApplication
+      .flatMap(_.configuration.getMilliseconds("session.maxAge")
+        .map(Duration(_, MILLISECONDS).toSeconds.toInt))
     override val httpOnly = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.httpOnly")).getOrElse(true)
     override def path = Play.maybeApplication.flatMap(_.configuration.getString("application.context")).getOrElse("/")
     override def domain = Play.maybeApplication.flatMap(_.configuration.getString("session.domain"))
