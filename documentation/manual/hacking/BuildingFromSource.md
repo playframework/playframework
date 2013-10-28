@@ -24,13 +24,21 @@ If you want to make changes to the code you can use `publish-local` to rebuild t
 
 ## Build the documentation
 
-Documentation is available at playframework/documentation as Markdown files.  You can generate formatted documentation, javadoc and scaladoc:
+Documentation is available at playframework/documentation as Markdown files.  To see HTML, run the following:
+
+```bash
+$ cd playframework/documentation
+$ ./build run
+```
+
+To see documentation at [http://localhost:9000/@documentation](http://localhost:9000/@documentation)
+
+To build the Scaladoc and Javadoc, run `doc` against the source code:
 
 ```bash
 $ cd playframework/framework
 $ ./build doc
 ```
-If done properly, once you run a project, you should be able to see documentation available locally at [http://localhost:9000/@documentation](http://localhost:9000/@documentation)
 
 ## Run tests
 
