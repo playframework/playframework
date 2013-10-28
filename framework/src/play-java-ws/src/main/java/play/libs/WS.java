@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
 import java.util.HashMap;
@@ -184,7 +185,27 @@ public class WS {
         private Boolean followRedirects = null;
 
         public WSRequestHolder(String url) {
-            this.url = url;
+            try {
+                URL u = new URL(url);
+
+                this.url = u.getProtocol() + "://" + u.getHost() + ((u.getPort() != -1) ? ":" + u.getPort() : "") + u.getPath();
+
+                String userInfo = u.getUserInfo();
+                if (userInfo != null) {
+                    int split = userInfo.indexOf(":");
+                    this.scheme = AuthScheme.BASIC;
+                    this.username = userInfo.substring(0, split);
+                    if (split > -1) {
+                        this.password = userInfo.substring(split + 1);
+                    }
+                }
+                if (u.getQuery() != null) {
+                    this.setQueryString(u.getQuery());
+                }
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+
         }
 
         /**
@@ -201,6 +222,20 @@ public class WS {
                 List<String> values = new ArrayList<String>();
                 values.add(value);
                 headers.put(name, values);
+            }
+            return this;
+        }
+
+        /**
+         * Sets a query string
+         *
+         * @param query
+         */
+        public WSRequestHolder setQueryString(String query) {
+            String[] params = query.split("&");
+            for (String param : params) {
+                String[] keyValue = param.split("=");
+                this.setQueryParameter(keyValue[0], keyValue[1]);
             }
             return this;
         }
