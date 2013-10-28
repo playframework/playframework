@@ -401,6 +401,23 @@ object WS {
       prepare("GET").executeStream(consumer)
 
     /**
+     * Perform a PATCH on the request asynchronously.
+     */
+    def patch[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Response] = prepare("PATCH", body).execute
+
+    /**
+     * Perform a PATCH on the request asynchronously.
+     * Request body won't be chunked
+     */
+    def patch(body: File): Future[Response] = prepare("PATCH", body).execute
+
+    /**
+     * performs a POST with supplied body
+     * @param consumer that's handling the response
+     */
+    def patchAndRetrieveStream[A, T](body: T)(consumer: ResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Iteratee[Array[Byte], A]] = prepare("PATCH", body).executeStream(consumer)
+
+    /**
      * Perform a POST on the request asynchronously.
      */
     def post[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Response] = prepare("POST", body).execute
