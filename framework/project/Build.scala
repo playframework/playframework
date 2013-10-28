@@ -22,15 +22,15 @@ object BuildSettings {
     (x => x == "true" || x == "") map
     (_ => true) getOrElse default
 
-  val experimental = Option(System.getProperty("experimental")).filter(_ == "true").map(_ => true).getOrElse(false)
+  val experimental = Option(System.getProperty("experimental")).exists(_ == "true")
 
   val buildOrganization = "com.typesafe.play"
   val buildVersion = propOr("play.version", "2.3-SNAPSHOT")
   val buildWithDoc = boolProp("generate.doc")
   val previousVersion = "2.1.0"
-  val buildScalaVersion = propOr("scala.version", "2.10.3-RC3")
+  val buildScalaVersion = propOr("scala.version", "2.10.3")
   // TODO - Try to compute this from SBT... or not.
-  val buildScalaVersionForSbt = propOr("play.sbt.scala.version", "2.10.3-RC3")
+  val buildScalaVersionForSbt = propOr("play.sbt.scala.version", "2.10.3")
   val buildScalaBinaryVersionForSbt = CrossVersion.binaryScalaVersion(buildScalaVersionForSbt)
   val buildSbtVersion = propOr("play.sbt.version", "0.13.0")
   val buildSbtMajorVersion = "0.13"

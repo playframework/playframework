@@ -29,7 +29,7 @@ echo "[info]"
 echo "[info] ---- RUNNING INTEGRATION TEST"
 echo "[info]"
 
-$PLAY "$@" clean-all test
+$PLAY "$@" clean test
 
 cd $CURRENT
 
@@ -39,7 +39,7 @@ echo "[info]"
 echo "[info] ---- RUNNING JAVA INTEGRATION TEST"
 echo "[info]"
 
-$PLAY "$@" clean-all test
+$PLAY "$@" clean test
 if [ ! -f target/junit-running ]
 then
   echo "[Error]"
@@ -57,7 +57,7 @@ echo "[info]"
 echo "[info] ---- RUNNING SCALA INTEGRATION TEST"
 echo "[info]"
 
-$PLAY "$@" clean-all test
+$PLAY "$@" clean test
 cd $CURRENT
 
 echo "[info]"
@@ -65,7 +65,7 @@ echo "[info] ---- RUNNING DOCUMENTATION TESTS"
 echo "[info]"
 
 cd ../documentation
-$PLAY "$@" clean-all test validate-docs
+$PLAY "$@" clean test validate-docs
 cd $CURRENT
 
 echo "[info]"
@@ -79,7 +79,7 @@ do
   echo "[info] ---- TESTING ${i/app/}"
   echo "[info]"
   cd ${i/app/}
-  $PLAY "$@" clean-all test
+  $PLAY "$@" clean test
   cd $CURRENT
 done
 

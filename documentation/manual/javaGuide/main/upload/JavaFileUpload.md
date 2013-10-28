@@ -3,7 +3,7 @@
 
 ## Uploading files in a form using `multipart/form-data`
 
-The standard way to upload files in a web application is to use a form with a special `multipart/form-data` encoding, which allows to mix standard form data with file attachments. Please note: the HTTP method for the form have to be POST (not GET). 
+The standard way to upload files in a web application is to use a form with a special `multipart/form-data` encoding, which allows mixing of standard form data with file attachments. Please note: the HTTP method for the form has to be POST (not GET). 
 
 Start by writing an HTML form:
 

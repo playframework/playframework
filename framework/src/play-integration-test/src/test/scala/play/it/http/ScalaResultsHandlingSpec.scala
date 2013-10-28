@@ -172,6 +172,18 @@ object ScalaResultsHandlingSpec extends PlaySpecification {
       response.status must_== HTTP_VERSION_NOT_SUPPORTED
       response.body must beLeft("The response to this request is chunked and hence requires HTTP 1.1 to be sent, but this is a HTTP 1.0 request.")
     }
+
+    "return a 500 error on response with null header" in withServer(
+      Results.Ok("some body").withHeaders("X-Null" -> null)
+    ){ port =>
+      val response = BasicHttpClient.makeRequests(port)(
+        BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
+      )(0)
+
+      response.status must_== 500
+      response.body must beLeft("")
+    }
+
   }
 
 }

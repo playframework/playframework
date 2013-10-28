@@ -30,7 +30,7 @@ trait PlaySourceGenerators {
 
   }
 
-  val ScalaTemplates = (state: State, sourceDirectories: Seq[File], generatedDir: File, templateTypes: Map[String, String], additionalImports: Seq[String]) => {
+  val ScalaTemplates = (state: State, sourceDirectories: Seq[File], generatedDir: File, templateTypes: Map[String, String], additionalImports: Seq[String], excludeFilter: FileFilter) => {
     import play.templates._
 
     val templateExt: PartialFunction[File, (File, String, String)] = {
@@ -43,7 +43,7 @@ trait PlaySourceGenerators {
     try {
 
       sourceDirectories.foreach { sourceDirectory =>
-        (sourceDirectory ** "*.scala.*").get.collect(templateExt).foreach {
+        (sourceDirectory ** "*.scala.*").get.filterNot(excludeFilter.accept(_)).collect(templateExt).foreach {
           case (template, extension, format) =>
             ScalaTemplateCompiler.compile(
               template,

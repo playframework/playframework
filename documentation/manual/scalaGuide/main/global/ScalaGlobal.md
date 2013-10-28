@@ -3,10 +3,9 @@
 
 ## The Global object
 
-Defining a `Global` object in your project allows you to handle global settings for your application. This object must be defined in the default (empty) package.
+Defining a `Global` object in your project allows you to handle global settings for your application. This object must be defined in the default (empty) package and must extend [`GlobalSettings`](api/scala/index.html#play.api.GlobalSettings).
 
 @[global-define](code/ScalaGlobal.scala)
-
 
 > **Tip:** You can also specify a custom `GlobalSettings` implementation class name using the `application.global` configuration key.
 
