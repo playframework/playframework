@@ -157,7 +157,7 @@ sealed trait WithHeaders[+A <: Result] {
    *
    * For example:
    * {{{
-   * Ok("Hello world").flashing(flash + ("success" -> "Done!"))
+   * Redirect(routes.Application.index()).flashing(flash + ("success" -> "Done!"))
    * }}}
    *
    * @param flash the flash scope to set with this result
@@ -170,7 +170,7 @@ sealed trait WithHeaders[+A <: Result] {
    *
    * For example:
    * {{{
-   * Ok("Hello world").flashing("success" -> "Done!")
+   * Redirect(routes.Application.index()).flashing("success" -> "Done!")
    * }}}
    *
    * @param values the flash values to set with this result
@@ -289,7 +289,7 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
    *
    * For example:
    * {{{
-   * Ok("Hello world").withCookies(Cookie("theme", "blue"))
+   * Redirect(routes.Application.index()).withCookies(Cookie("theme", "blue"))
    * }}}
    *
    * @param cookies the cookies to add to this result
@@ -304,7 +304,7 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
    *
    * For example:
    * {{{
-   * Ok("Hello world").discardingCookies("theme")
+   * Redirect(routes.Application.index()).discardingCookies("theme")
    * }}}
    *
    * @param cookies the cookies to discard along to this result
@@ -319,7 +319,7 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
    *
    * For example:
    * {{{
-   * Ok("Hello world").withSession(session + ("saidHello" -> "true"))
+   * Redirect(routes.Application.index()).withSession(session + ("saidHello" -> "true"))
    * }}}
    *
    * @param session the session to set with this result
@@ -334,7 +334,7 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
    *
    * For example:
    * {{{
-   * Ok("Hello world").withSession("saidHello" -> "yes")
+   * Redirect(routes.Application.index()).withSession("saidHello" -> "yes")
    * }}}
    *
    * @param session the session to set with this result
@@ -347,7 +347,7 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
    *
    * For example:
    * {{{
-   * Ok("Hello world").withNewSession
+   * Redirect(routes.Application.index()).withNewSession
    * }}}
    *
    * @return the new result
@@ -359,13 +359,16 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
    *
    * For example:
    * {{{
-   * Ok("Hello world").flashing(flash + ("success" -> "Done!"))
+   * Redirect(routes.Application.index()).flashing(flash + ("success" -> "Done!"))
    * }}}
    *
    * @param flash the flash scope to set with this result
    * @return the new result
    */
   def flashing(flash: Flash): SimpleResult = {
+    if (shouldWarnIfNotRedirect) {
+      logRedirectWarning("flashing")
+    }
     withCookies(Flash.encodeAsCookie(flash))
   }
 
@@ -374,7 +377,7 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
    *
    * For example:
    * {{{
-   * Ok("Hello world").flashing("success" -> "Done!")
+   * Redirect(routes.Application.index()).flashing("success" -> "Done!")
    * }}}
    *
    * @param values the flash values to set with this result
@@ -397,6 +400,22 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
 
   override def toString = {
     "SimpleResult(" + header + ")"
+  }
+
+  /**
+   * Returns true if the status code is not 3xx and the application is in Dev mode.
+   */
+  def shouldWarnIfNotRedirect: Boolean = {
+    play.api.Play.maybeApplication.exists(app =>
+      (app.mode == play.api.Mode.Dev) && (header.status < 300 || header.status > 399))
+  }
+
+  /**
+   * Logs a redirect warning.
+   */
+  def logRedirectWarning(methodName: String) {
+    val status = header.status
+    play.api.Logger("play").warn(s"You are using status code '$status' with $methodName, which should only be used with a redirect status!")
   }
 
 }
