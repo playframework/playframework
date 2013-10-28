@@ -146,6 +146,26 @@ object Messages {
   }
 
   /**
+   * Translates the first defined message.
+   *
+   * Uses `java.text.MessageFormat` internally to format the message.
+   *
+   * @param key the message key
+   * @param args the message arguments
+   * @return the formatted message or a default rendering if the key wasn’t defined
+   */
+  def apply(keys: Seq[String], args: Any*)(implicit lang: Lang): String = {
+    Play.maybeApplication.flatMap { app =>
+      app.plugin[MessagesPlugin].map { plugin =>
+        keys.foldLeft[Option[String]](None) {
+          case (None, key) => plugin.api.translate(key, args)
+          case (acc, _) => acc
+        }
+      }.getOrElse(throw new Exception("this plugin was not registered or disabled"))
+    }.getOrElse(noMatch(keys(keys.length - 1), args))
+  }
+
+  /**
    * Check if a message key is defined.
    * @param key the message key
    * @return a boolean

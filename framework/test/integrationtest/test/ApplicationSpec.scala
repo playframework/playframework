@@ -25,14 +25,14 @@ class ApplicationSpec extends PlaySpecification {
       contentAsString(result) must contain("Hello world")
     }
 
-    "tess custom validator failure" in new WithApplication() {
+    "test custom validator failure" in new WithApplication() {
       import play.data._
        val userForm = new Form(classOf[JUser])
        val anyData = new java.util.HashMap[String,String]
        anyData.put("email", "")
-       userForm.bind(anyData).errors.toString must contain("ValidationError(email,error.invalid,[class validator.NotEmpty]")
+       userForm.bind(anyData).errors.toString must contain("ValidationError(email,[error.invalid],[class validator.NotEmpty]")
     }
-    "tess custom validator passing" in new WithApplication() {
+    "test custom validator passing" in new WithApplication() {
       import play.data._
        val userForm = new Form(classOf[JUser])
        val anyData = new java.util.HashMap[String,String]

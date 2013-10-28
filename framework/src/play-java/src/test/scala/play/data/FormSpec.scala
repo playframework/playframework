@@ -4,7 +4,6 @@
 package play.data
 
 import org.specs2.mutable.Specification
-import play.api.test.WithApplication
 import play.mvc._
 import play.mvc.Http.Context
 import scala.collection.JavaConverters._
@@ -12,35 +11,35 @@ import scala.collection.JavaConverters._
 object FormSpec extends Specification {
 
   "a java form" should {
-    "be valid" in new WithApplication{
+    "be valid" in {
       val req = new DummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "done" -> Array("true"), "dueDate" -> Array("15/12/2009")))
       Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
 
       val myForm = Form.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
     }
-    "be valid with mandatory params passed" in new WithApplication{
+    "be valid with mandatory params passed" in {
       val req = new DummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("15/12/2009")))
       Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
 
       val myForm = Form.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(false)
     }
-    "have an error due to baldy formatted date" in new WithApplication{
+    "have an error due to baldy formatted date" in {
       val req = new DummyRequest(Map("id" -> Array("1234567891"), "name" -> Array("peter"), "dueDate" -> Array("2009/11e/11")))
       Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
 
       val myForm = Form.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(true)
-      myForm.errors.get("dueDate").get(0).message() must beEqualTo("error.invalid.java.util.Date")
+      myForm.errors.get("dueDate").get(0).messages().asScala must contain("error.invalid.java.util.Date")
     }
-    "have an error due to bad value in Id field" in new WithApplication{
+    "have an error due to bad value in Id field" in {
       val req = new DummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter"), "dueDate" -> Array("12/12/2009")))
       Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
 
       val myForm = Form.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(true)
-      myForm.errors.get("id").get(0).message() must beEqualTo("error.invalid")
+      myForm.errors.get("id").get(0).messages().asScala must contain("error.invalid")
     }
 
     "support repeated values for Java binding" in {
