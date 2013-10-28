@@ -105,7 +105,7 @@ object Application extends Controller {
       case Failure(_) => BadRequest(html.createForm(Form(request.body, r), Company.options))
       case Success(computer) => {
         Computer.insert(computer)
-        Home.flashing("success" -> "Computer %s has been updated".format(computer.name))
+        Home.flashing("success" -> "Computer %s has been created".format(computer.name))
       }
     }
   }
