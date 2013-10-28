@@ -720,6 +720,14 @@ case class Response(ahcResponse: AHCResponse) {
   def header(key: String): Option[String] = Option(ahcResponse.getHeader(key))
 
   /**
+   * Get all response headers.
+   */
+  def allHeaders: Map[String, Seq[String]] = {
+    import scala.collection.JavaConverters._
+    mapAsScalaMapConverter(ahcResponse.getHeaders()).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
+  }
+
+  /**
    * Get all the cookies.
    */
   def cookies: Seq[Cookie] = {
