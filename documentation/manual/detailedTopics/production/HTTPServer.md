@@ -52,7 +52,9 @@ http {
   proxy_set_header   X-Scheme $scheme;
   proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
   proxy_set_header   Host $http_host;
- 
+  # proxy_http_version appeared in nginx 1.1.4
+  proxy_http_version 1.1;
+
   upstream my-backend {
     server 127.0.0.1:9000;
   }
