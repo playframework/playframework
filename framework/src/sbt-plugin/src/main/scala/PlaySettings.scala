@@ -241,7 +241,7 @@ trait Settings {
         val pathFinder = confDirectory ** ("*" -- "routes")
         pathFinder.get map {
           confFile: File =>
-            confFile -> ("conf/" + confFile.getCanonicalPath.substring(confDirectoryLen))
+            confFile -> ("conf" + confFile.getCanonicalPath.substring(confDirectoryLen).replace("\\", "/"))
         }
     },
 
@@ -251,7 +251,7 @@ trait Settings {
         val pathFinder = docDirectory ** "*"
         pathFinder.get map {
           docFile: File =>
-            docFile -> ("share/doc/api/" + docFile.getCanonicalPath.substring(docDirectoryLen))
+            docFile -> ("share/doc/api" + docFile.getCanonicalPath.substring(docDirectoryLen).replace("\\", "/"))
         }
     },
 
