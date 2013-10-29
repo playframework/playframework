@@ -2,17 +2,17 @@
 
 ## Introduction
 
-We've already explained what a `Rule` is in [[the previous chapter | ScalaValidationRule]]. 
+We've already explained what a `Rule` is in [[the previous chapter | ScalaValidationRule]].
 Those examples were only covering simple rules. However most of the time, rules are used to validate and transform complex hierarchical objects, like [[Json|ScalaValidationJson]], or [[Forms|ScalaValidationForm]].
 
 The validation API allows complex object rules creation by combining simple rules together. This chapter explains how to create complex rules.
 
-> Despite examples below are validating Json objects, the API is not dedicated only to Json and can be used on any type. 
-> Please refer to [[Validating Json | ScalaValidationJson]], [[Validating Forms|ScalaValidationForm]], and [[Supporting new types|ScalaValidationExtensions]] for more informations.
+> Despite examples below are validating Json objects, the API is not dedicated only to Json and can be used on any type.
+> Please refer to [[Validating Json | ScalaValidationJson]], [[Validating Forms|ScalaValidationForm]], and [[Supporting new types|ScalaValidationExtensions]] for more information.
 
 ## Path
 
-The validation API defines a class named `Path`. A `Path` represents the location of a data among a complex object. 
+The validation API defines a class named `Path`. A `Path` represents the location of a data among a complex object.
 Unlike `JsPath` it is not related to any specific type. It's just a location in some data.
 Most of the time, a `Path` is our entry point into the Validation API.
 
@@ -48,7 +48,7 @@ But let's try something much easier for now:
 
 @[rule-extract](code/ScalaValidationRuleCombinators.scala)
 
-`location.read[JsValue, JsValue]` means we're trying to lookup at `location` in a `JsValue`, and we expect to find a `JsValue` there. 
+`location.read[JsValue, JsValue]` means we're trying to lookup at `location` in a `JsValue`, and we expect to find a `JsValue` there.
 In fact we're defining a `Rule` that is picking a subtree in a `JsValue`.
 
 If you try to run that code, the compiler gives you the following error:

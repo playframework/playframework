@@ -10,6 +10,6 @@ Being based on the same concepts as the Json validation API available in previou
 
 ## Design
 
-The validation API is designed around a core defined in package `play.api.data.mapping`, and "extensions". Each extension provides primitives to validate and serialize data from / to a particular format ([[Json | ScalaValidationJson]], [[form encoded request body | ScalaValidationForm]], etc.). See [[the extensions documentation | ScalaValidationExtensions]] for more informations.
+The validation API is designed around a core defined in package `play.api.data.mapping`, and "extensions". Each extension provides primitives to validate and serialize data from / to a particular format ([[Json | ScalaValidationJson]], [[form encoded request body | ScalaValidationForm]], etc.). See [[the extensions documentation | ScalaValidationExtensions]] for more information.
 
 To learn more about data validation, please consult [[Validation and transformation with Rule|ScalaValidationRule]], for data serialization read [[Serialization with Write | ScalaValidationWrite]]. If you just want to figure all this out by yourself, please see the [[Cookbook|ScalaValidationCookbook]].
