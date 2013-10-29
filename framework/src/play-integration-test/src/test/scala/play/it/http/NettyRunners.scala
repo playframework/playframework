@@ -12,7 +12,7 @@ import play.api.mvc._
 import play.api.test._
 import play.core.ApplicationProvider
 import play.core.Router.Routes
-import play.core.server.Server
+import play.core.server.{NettyServer, Server}
 import play.core.server.netty.PlayDefaultUpstreamHandler
 import scala.util.Success
 
@@ -70,7 +70,7 @@ trait NettyRunners extends PlayRunners {
             def applicationProvider: ApplicationProvider = appProvider
       }
       // Create a PlayDefaultUpstreamHandler and an interface to interact with it
-      val duh = new PlayDefaultUpstreamHandler(server, new DefaultChannelGroup())
+      val duh = new PlayDefaultUpstreamHandler(server, new DefaultChannelGroup(), NettyServer.discoverHandlerExecutors)
       val pipeline = Channels.pipeline()
       pipeline.addFirst("play-upstream-handler", duh)
       pipeline.addFirst("test-downstream-handler", downstreamHandler)
