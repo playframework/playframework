@@ -184,6 +184,17 @@ object ScalaResultsHandlingSpec extends PlaySpecification {
       response.body must beLeft("")
     }
 
+    "return a 400 error on invalid URI" in withServer(
+      Results.Ok
+    ){ port =>
+      val response = BasicHttpClient.makeRequests(port)(
+        BasicRequest("GET", "/[", "HTTP/1.1", Map(), "")
+      )(0)
+
+      response.status must_== 400
+      response.body must beLeft
+    }
+
   }
 
 }
