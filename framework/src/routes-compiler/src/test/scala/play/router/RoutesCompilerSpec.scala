@@ -10,6 +10,8 @@ import org.specs2.execute.Result
 
 object RoutesCompilerSpec extends Specification {
 
+  sequential
+
   "route file parser" should {
 
     def parseRoute(line: String) = {
@@ -125,7 +127,7 @@ object RoutesCompilerSpec extends Specification {
     "throw an error if no include file specified" in parseError("-> /s")
   }
 
-  "route file compiler" should {
+"route file compiler" should {
 
     def withTempDir[T](block: File => T) = {
       val tmp = File.createTempFile("RoutesCompilerSpec", "")
@@ -144,7 +146,15 @@ object RoutesCompilerSpec extends Specification {
       }
     }
 
+    def removeGenerated(routesName: String): Unit = {
+      val generated = new File(tmp, "/%s/routes_routing.scala".format(routesName))
+      if (generated.exists()) generated.delete()
+    }
 
+    def removeRoutesJava(): Unit = {
+      val generated = new File(tmp, "/controllers/routes.java")
+      if (generated.exists()) generated.delete()
+    }
 
     "generate routes classes for route definitions that pass the checks" in withTempDir { tmp =>
       val file = new File(this.getClass.getClassLoader.getResource("generating.routes").toURI)
@@ -157,10 +167,22 @@ object RoutesCompilerSpec extends Specification {
       generatedReverseRoutes.exists() must beTrue
     }
 
+    "not generate reverse ref routing if its disabled" in {
+      removeGenerated("generating")
+      removeRoutesJava()
+
+      val f = new File("src/routes-compiler/src/test/resources/generating.routes")
+      RoutesCompiler.compile(f, tmp, Seq.empty, generateReverseRouter = true, generateRefReverseRouter = false)
+
+      val generatedJavaRoutes = new File(tmp, "controllers/routes.java")
+      val contents = scala.io.Source.fromFile(generatedJavaRoutes).getLines().mkString("")
+      contents.contains("public static class ref") must beFalse
+    }
+
+
     "check if there are no routes using overloaded handler methods" in withTempDir { tmp =>
       val file = new File(this.getClass.getClassLoader.getResource("duplicateHandlers.routes").toURI)
       RoutesCompiler.compile(file, tmp, Seq.empty) must throwA [RoutesCompilationError]
     }
   }
-
 }
