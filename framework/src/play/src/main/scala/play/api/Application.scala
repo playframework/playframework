@@ -15,7 +15,7 @@ import annotation.implicitNotFound
 import java.lang.reflect.InvocationTargetException
 import reflect.ClassTag
 import scala.util.control.NonFatal
-import scala.concurrent.{Future, ExecutionException}
+import scala.concurrent.{ Future, ExecutionException }
 
 trait WithDefaultGlobal {
   self: Application with WithDefaultConfiguration =>
