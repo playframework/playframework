@@ -49,7 +49,6 @@ trait Settings {
       path.replace(sep, '/')
   }
 
-
   lazy val defaultSettings = Seq[Setting[_]](
 
     scalaVersion := play.core.PlayVersion.scalaVersion,
