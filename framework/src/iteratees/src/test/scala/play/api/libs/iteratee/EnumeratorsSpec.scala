@@ -188,6 +188,23 @@ object EnumeratorsSpec extends Specification
   }
 
   "Enumerator.callback1" should {
+    "Call onError on error" in {
+      val it = Error[String]("foo", Input.Empty)
+      val errorCount = new AtomicInteger(0)
+
+      val enum = Enumerator.fromCallback1[String](
+        b => Future.successful(None),
+        () => (),
+        (msg, input) =>
+          errorCount.incrementAndGet()
+        )
+
+      val result = enum |>>> it
+
+      Await.ready(result, Duration(30, TimeUnit.SECONDS))
+      errorCount.get() must equalTo(1)
+    }
+
     "generate a stream of values until the expression is None" in {
       mustExecute(5) { callbackEC =>
         val it = (1 to 3).iterator // FIXME: Probably not thread-safe
