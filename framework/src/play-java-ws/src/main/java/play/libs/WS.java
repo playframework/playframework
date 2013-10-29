@@ -192,12 +192,7 @@ public class WS {
 
                 String userInfo = u.getUserInfo();
                 if (userInfo != null) {
-                    int split = userInfo.indexOf(":");
-                    this.scheme = AuthScheme.BASIC;
-                    this.username = userInfo.substring(0, split);
-                    if (split > -1) {
-                        this.password = userInfo.substring(split + 1);
-                    }
+                    this.setAuth(userInfo);
                 }
                 if (u.getQuery() != null) {
                     this.setQueryString(u.getQuery());
@@ -235,7 +230,15 @@ public class WS {
             String[] params = query.split("&");
             for (String param : params) {
                 String[] keyValue = param.split("=");
-                this.setQueryParameter(keyValue[0], keyValue[1]);
+                if (keyValue.length > 2) {
+                   throw new RuntimeException(new MalformedURLException("QueryString parameter should not have more than 2 = per part"));
+                } else if (keyValue.length >= 2) {
+                   this.setQueryParameter(keyValue[0], keyValue[1]);
+                } else if (keyValue.length == 1 && param.charAt(0) != '=') {
+                   this.setQueryParameter(keyValue[0], null);
+                } else {
+                   throw new RuntimeException(new MalformedURLException("QueryString part should not start with an = and not be empty"));
+                }
             }
             return this;
         }
@@ -255,6 +258,34 @@ public class WS {
                 values.add(value);
                 queryParameters.put(name, values);
             }
+            return this;
+        }
+
+        /**
+         * Sets the authentication header for the current request using BASIC authentication.
+         *
+         * @param userInfo
+         */
+        public WSRequestHolder setAuth(String userInfo) {
+            this.scheme = AuthScheme.BASIC;
+
+            if (userInfo.equals("")) {
+                throw new RuntimeException(new MalformedURLException("userInfo should not be empty"));
+            }
+
+            int split = userInfo.indexOf(":");
+
+            if (split == 0) { // We only have a password without user
+                this.username = "";
+                this.password = userInfo.substring(1);
+            } else if (split == -1) { // We only have a username without password
+                this.username = userInfo;
+                this.password = "";
+            } else {
+                this.username = userInfo.substring(0, split);
+                this.password = userInfo.substring(split + 1);
+            }
+
             return this;
         }
 

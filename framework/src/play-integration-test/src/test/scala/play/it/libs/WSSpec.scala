@@ -48,6 +48,30 @@ object WSSpec extends PlaySpecification {
       rep.asJson().path("authenticated").booleanValue() must beTrue
     }
 
+    "reject invalid query string" in {
+      import java.net.MalformedURLException
+
+      WS.url("http://localhost/get?=&foo") must throwA[RuntimeException].like{
+        case e: RuntimeException => e.getCause must beAnInstanceOf[MalformedURLException]
+      }
+    }
+
+    "reject invalid user password string" in {
+      import java.net.MalformedURLException
+
+      WS.url("http://@localhost/get") must throwA[RuntimeException].like{
+        case e: RuntimeException =>
+          e.getCause must beAnInstanceOf[MalformedURLException]
+      }
+    }
+
+    "accept valid query string" in {
+      import java.net.MalformedURLException
+
+      WS.url("http://localhost/get?foo") must beAnInstanceOf[WS.WSRequestHolder]
+      WS.url("http://localhost/get?foo=bar") must beAnInstanceOf[WS.WSRequestHolder]
+    }
+
 
   }
 
