@@ -7,6 +7,7 @@ import play.api.libs.iteratee.internal.executeFuture
 import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.concurrent.duration.{ Duration, SECONDS }
 import org.specs2.mutable.SpecificationLike
+import scala.util.Try
 
 /**
  * Common functionality for iteratee tests.
@@ -29,6 +30,13 @@ trait IterateeSpecification {
 
   def mustEnumerateTo[E, A](out: A*)(e: Enumerator[E]) = {
     Await.result(enumeratorChunks(e), Duration.Inf) must equalTo(List(out: _*))
+  }
+
+  def mustPropagateFailure[E](e: Enumerator[E]) = {
+    Try(Await.result(
+      e(Cont { case _ => throw new RuntimeException() }),
+      Duration.Inf
+    )) must beAFailedTry
   }
 
 }
