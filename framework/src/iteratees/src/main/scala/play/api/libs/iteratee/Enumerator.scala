@@ -95,7 +95,12 @@ trait Enumerator[E] {
   }
 
   /**
-   * Creates an Enumerator which calls the given callback when its final input has been consumed.
+   * Creates an Enumerator which calls the given callback when a passed in iteratee has either entered the done state,
+   * or if an error is returned.
+   *
+   * This is equivalent to a finally call, and can be used to clean up any resources used by this enumerator.  Note that
+   * if the callback throws an exception, then the future returned by the enumerator will be completed with that
+   * exception.
    *
    * @param callback The callback to call
    * $paramEcSingle
@@ -103,7 +108,11 @@ trait Enumerator[E] {
   def onDoneEnumerating(callback: => Unit)(implicit ec: ExecutionContext) = new Enumerator[E] {
     val pec = ec.prepare()
 
-    def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = parent.apply(it).map { a => callback; a }(pec)
+    def apply[A](it: Iteratee[E, A]): Future[Iteratee[E, A]] = parent.apply(it).andThen {
+      case someTry =>
+        callback
+        someTry.get
+    }(pec)
 
   }
 

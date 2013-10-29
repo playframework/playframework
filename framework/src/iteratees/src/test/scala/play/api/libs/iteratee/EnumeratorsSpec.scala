@@ -136,6 +136,16 @@ object EnumeratorsSpec extends Specification
         count.get() must equalTo(1)
       }
     }
+
+    "call onDoneEnumerating callback when an error is encountered" in {
+      mustExecute(1) { onDoneEC =>
+        val count = new java.util.concurrent.atomic.AtomicInteger()
+        mustPropagateFailure(
+          Enumerator(1, 2, 3).onDoneEnumerating(count.incrementAndGet())(onDoneEC)
+        )
+        count.get() must_== 1
+      }
+    }
     
     "transform input elements with map" in {
       mustExecute(3) { mapEC =>
@@ -212,6 +222,30 @@ object EnumeratorsSpec extends Specification
         val s = "hello"
         val enumerator = Enumerator.fromStream(new ByteArrayInputStream(s.getBytes))(fromStreamEC).map(new String(_))
         mustEnumerateTo(s)(enumerator)
+      }
+    }
+    "close the stream" in {
+      class CloseableByteArrayInputStream(bytes: Array[Byte]) extends ByteArrayInputStream(bytes) {
+        @volatile var closed = false
+
+        override def close() = {
+          closed = true
+        }
+      }
+
+      "when done normally" in {
+        val stream = new CloseableByteArrayInputStream(Array.empty)
+        mustExecute(2) { fromStreamEC =>
+          Await.result(Enumerator.fromStream(stream)(fromStreamEC)(Iteratee.ignore), Duration.Inf)
+          stream.closed must beTrue
+        }
+      }
+      "when completed abnormally" in {
+        val stream = new CloseableByteArrayInputStream("hello".getBytes)
+        mustExecute(2) { fromStreamEC =>
+          mustPropagateFailure(Enumerator.fromStream(stream)(fromStreamEC))
+          stream.closed must beTrue
+        }
       }
     }
   }
