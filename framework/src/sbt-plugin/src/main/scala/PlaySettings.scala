@@ -103,10 +103,12 @@ trait Settings {
 
     generateReverseRouter := true,
 
+    generateRefReverseRouter := true,
+
     namespaceReverseRouter := false,
 
-    sourceGenerators in Compile <+= (state, confDirectory, sourceManaged in Compile, routesImport, generateReverseRouter, namespaceReverseRouter) map { (s, cd, sm, ri, grr, nrr) =>
-      RouteFiles(s, Seq(cd), sm, ri, grr, nrr)
+    sourceGenerators in Compile <+= (state, confDirectory, sourceManaged in Compile, routesImport, generateReverseRouter, generateRefReverseRouter, namespaceReverseRouter) map {
+      (s, cd, sm, ri, grr, grrr, nrr) => RouteFiles(s, Seq(cd), sm, ri, grr, grrr, nrr)
     },
 
     // Adds config directory's source files to continuous hot reloading

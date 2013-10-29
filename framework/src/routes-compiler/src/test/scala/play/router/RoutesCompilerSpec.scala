@@ -10,6 +10,8 @@ import org.specs2.execute.Result
 
 object RoutesCompilerSpec extends Specification {
 
+  sequential
+
   "route file parser" should {
 
     def parseRoute(line: String) = {
@@ -129,13 +131,20 @@ object RoutesCompilerSpec extends Specification {
 
     val tmp = new File("src/routes-compiler/target")
 
-    def removeGenerated(routesName: String) {
+    def removeGenerated(routesName: String): Unit = {
       val generated = new File(tmp, "/%s/routes_routing.scala".format(routesName))
+      if (generated.exists()) generated.delete()
+    }
+
+    def removeRoutesJava(): Unit = {
+      val generated = new File(tmp, "/controllers/routes.java")
       if (generated.exists()) generated.delete()
     }
 
     "generate routes classes for route definitions that pass the checks" in {
       removeGenerated("generating")
+      removeRoutesJava()
+
       val f = new File("src/routes-compiler/src/test/resources/generating.routes")
       RoutesCompiler.compile(f, tmp, Seq.empty)
 
@@ -144,6 +153,23 @@ object RoutesCompilerSpec extends Specification {
 
       val generatedReverseRoutes = new File(tmp, "generating/routes_reverseRouting.scala")
       generatedReverseRoutes.exists() must beTrue
+
+      val generatedJavaRoutes = new File(tmp, "controllers/routes.java")
+      val contents = scala.io.Source.fromFile(generatedJavaRoutes).getLines().mkString("")
+      contents.contains("public static class ref") must beTrue
+
+    }
+
+    "not generate reverse ref routing if its disabled" in {
+      removeGenerated("generating")
+      removeRoutesJava()
+
+      val f = new File("src/routes-compiler/src/test/resources/generating.routes")
+      RoutesCompiler.compile(f, tmp, Seq.empty, generateReverseRouter = true, generateRefReverseRouter = false)
+
+      val generatedJavaRoutes = new File(tmp, "controllers/routes.java")
+      val contents = scala.io.Source.fromFile(generatedJavaRoutes).getLines().mkString("")
+      contents.contains("public static class ref") must beFalse
     }
 
     "check if there are no routes using overloaded handler methods" in {
