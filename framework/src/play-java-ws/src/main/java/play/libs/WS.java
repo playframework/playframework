@@ -186,16 +186,16 @@ public class WS {
 
         public WSRequestHolder(String url) {
             try {
-                URL u = new URL(url);
+                URL reference = new URL(url);
 
-                this.url = u.getProtocol() + "://" + u.getHost() + ((u.getPort() != -1) ? ":" + u.getPort() : "") + u.getPath();
+                this.url = url;
 
-                String userInfo = u.getUserInfo();
+                String userInfo = reference.getUserInfo();
                 if (userInfo != null) {
                     this.setAuth(userInfo);
                 }
-                if (u.getQuery() != null) {
-                    this.setQueryString(u.getQuery());
+                if (reference.getQuery() != null) {
+                    this.setQueryString(reference.getQuery());
                 }
             } catch (MalformedURLException e) {
                 throw new RuntimeException(e);

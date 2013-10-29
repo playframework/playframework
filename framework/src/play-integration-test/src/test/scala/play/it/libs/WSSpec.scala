@@ -65,11 +65,14 @@ object WSSpec extends PlaySpecification {
       }
     }
 
-    "accept valid query string" in {
+    "accept valid query string" in withServer { port =>
       import java.net.MalformedURLException
 
-      WS.url("http://localhost/get?foo") must beAnInstanceOf[WS.WSRequestHolder]
-      WS.url("http://localhost/get?foo=bar") must beAnInstanceOf[WS.WSRequestHolder]
+      var empty = WS.url(s"http://localhost:$port/get?foo").get.get(1000)
+      var bar = WS.url(s"http://localhost:$port/get?foo=bar").get.get(1000)
+
+      empty.asJson.path("args").path("foo").textValue() must equalTo("")
+      bar.asJson.path("args").path("foo").textValue() must equalTo("bar")
     }
 
 
