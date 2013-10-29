@@ -35,6 +35,10 @@
 		        font-size: 14px;
 		        border-bottom: 1px solid #BA7A7A;
 		    }
+		    p#detail.pre {
+		    	white-space: pre;
+		    	font-size: 12px;
+		    }
 		    p#detail input {
 		        background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#AE1113), to(#A31012));
                 border: 1px solid #790000;
@@ -107,19 +111,17 @@
 	<body id="play-error-page">
 		<h1>@error.title</h1>
 
-		<p id="detail">
-		    @error match {
-		        
-		        case description:play.api.PlayException.RichDescription => {
-		            @play.api.templates.Html(description.htmlDescription)
-		        }
-		        
-		        case _ => {
-		            @error.description
-    			}
-		        
-		    }
-		</p>
+		@error match {
+		
+			case description:play.api.PlayException.RichDescription => {
+			    <p id="detail">@play.api.templates.Html(description.htmlDescription)</p>
+			}
+			
+			case _ => {
+			    <p id="detail" class="pre">@error.description</p>
+			}
+		
+		}
 		
 		@error match {
 
