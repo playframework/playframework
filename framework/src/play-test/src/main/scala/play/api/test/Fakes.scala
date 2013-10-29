@@ -5,13 +5,12 @@ package play.api.test
 
 import play.api.mvc._
 import play.api.libs.json.JsValue
-import collection.immutable.TreeMap
-import play.core.utils.CaseInsensitiveOrdered
 import scala.concurrent.Future
 import xml.NodeSeq
 import play.core.Router
 import scala.runtime.AbstractPartialFunction
 import play.api.libs.Files.TemporaryFile
+import scala.collection.immutable.ListMap
 
 /**
  * Fake HTTP headers implementation.
@@ -56,7 +55,8 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
   /**
    * The request query String
    */
-  lazy val queryString: Map[String, Seq[String]] = play.core.parsers.FormUrlEncodedParser.parse(rawQueryString)
+  lazy val queryString: ListMap[String, Seq[String]] =
+    play.core.parsers.FormUrlEncodedParser.parse(rawQueryString)
 
   /**
    * Constructs a new request with additional headers. Any existing headers of the same name will be replaced.
@@ -105,7 +105,7 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
    * Set a Form url encoded body to this request.
    */
   def withFormUrlEncodedBody(data: (String, String)*): FakeRequest[AnyContentAsFormUrlEncoded] = {
-    _copy(body = AnyContentAsFormUrlEncoded(data.groupBy(_._1).mapValues(_.map(_._2))))
+    _copy(body = AnyContentAsFormUrlEncoded(play.utils.OrderPreserving.groupBy(data.toSeq)(_._1)))
   }
 
   def certs = Future.successful(IndexedSeq.empty)
