@@ -331,6 +331,8 @@ object PlayBuild extends Build {
       previousArtifact := None
     )
     .dependsOn(PlayProject % "test->test", PlayWsProject, PlayTestProject)
+    .dependsOn(PlayFiltersHelpersProject)
+    .dependsOn(PlayJavaProject)
 
   lazy val PlayCacheProject = PlayRuntimeProject("Play-Cache", "play-cache")
     .settings(
