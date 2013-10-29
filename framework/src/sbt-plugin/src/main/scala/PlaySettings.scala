@@ -41,6 +41,15 @@ trait Settings {
     Classpaths.managedJars(config, ct, report)
   }
 
+  def normalizePath(path: String) = {
+    val sep = java.io.File.separatorChar
+    if (sep == '/')
+      path
+    else
+      path.replace(sep, '/')
+  }
+
+
   lazy val defaultSettings = Seq[Setting[_]](
 
     scalaVersion := play.core.PlayVersion.scalaVersion,
@@ -238,20 +247,18 @@ trait Settings {
     mappings in Universal <++= (confDirectory) map {
       confDirectory: File =>
         val pathFinder = confDirectory ** ("*" -- "routes")
-        val confDirectoryUri = confDirectory.toURI
         pathFinder.get map {
           confFile: File =>
-            confFile -> (new File("conf", confDirectoryUri.relativize(confFile.toURI).getPath).getPath.replace("\\", "/"))
+            confFile -> (normalizePath(new File("conf", IO.relativize(confDirectory, confFile).getOrElse("")).getPath))
         }
     },
 
     mappings in Universal <++= (doc in Compile) map {
       docDirectory: File =>
         val pathFinder = docDirectory ** "*"
-        val docDirectoryUri = docDirectory.toURI
         pathFinder.get map {
           docFile: File =>
-            docFile -> (new File("share/doc/api", docDirectoryUri.relativize(docFile.toURI).getPath).getPath.replace("\\", "/"))
+            docFile -> (normalizePath(new File("share/doc/api", IO.relativize(docDirectory, docFile).getOrElse("")).getPath))
         }
     },
 
