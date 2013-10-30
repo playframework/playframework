@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
 import java.util.HashMap;
@@ -184,7 +185,22 @@ public class WS {
         private Boolean followRedirects = null;
 
         public WSRequestHolder(String url) {
-            this.url = url;
+            try {
+                URL reference = new URL(url);
+
+                this.url = url;
+
+                String userInfo = reference.getUserInfo();
+                if (userInfo != null) {
+                    this.setAuth(userInfo);
+                }
+                if (reference.getQuery() != null) {
+                    this.setQueryString(reference.getQuery());
+                }
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+
         }
 
         /**
@@ -206,6 +222,28 @@ public class WS {
         }
 
         /**
+         * Sets a query string
+         *
+         * @param query
+         */
+        public WSRequestHolder setQueryString(String query) {
+            String[] params = query.split("&");
+            for (String param : params) {
+                String[] keyValue = param.split("=");
+                if (keyValue.length > 2) {
+                   throw new RuntimeException(new MalformedURLException("QueryString parameter should not have more than 2 = per part"));
+                } else if (keyValue.length >= 2) {
+                   this.setQueryParameter(keyValue[0], keyValue[1]);
+                } else if (keyValue.length == 1 && param.charAt(0) != '=') {
+                   this.setQueryParameter(keyValue[0], null);
+                } else {
+                   throw new RuntimeException(new MalformedURLException("QueryString part should not start with an = and not be empty"));
+                }
+            }
+            return this;
+        }
+
+        /**
          * Sets a query parameter with the given name,this can be called repeatedly.
          *
          * @param name
@@ -220,6 +258,34 @@ public class WS {
                 values.add(value);
                 queryParameters.put(name, values);
             }
+            return this;
+        }
+
+        /**
+         * Sets the authentication header for the current request using BASIC authentication.
+         *
+         * @param userInfo
+         */
+        public WSRequestHolder setAuth(String userInfo) {
+            this.scheme = AuthScheme.BASIC;
+
+            if (userInfo.equals("")) {
+                throw new RuntimeException(new MalformedURLException("userInfo should not be empty"));
+            }
+
+            int split = userInfo.indexOf(":");
+
+            if (split == 0) { // We only have a password without user
+                this.username = "";
+                this.password = userInfo.substring(1);
+            } else if (split == -1) { // We only have a username without password
+                this.username = userInfo;
+                this.password = "";
+            } else {
+                this.username = userInfo.substring(0, split);
+                this.password = userInfo.substring(split + 1);
+            }
+
             return this;
         }
 
