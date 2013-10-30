@@ -166,6 +166,11 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
   def withBody[B](body: B): FakeRequest[B] = {
     _copy(body = body)
   }
+
+  /**
+   * Returns the current method
+   */
+  def getMethod: String = method
 }
 
 /**
