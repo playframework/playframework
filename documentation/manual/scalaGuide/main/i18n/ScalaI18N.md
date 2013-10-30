@@ -33,7 +33,7 @@ val title = Messages("home.title")(Lang("fr"))
 
 ## Messages format
 
-Messages can be formatted using the `java.text.MessageFormat` library. For example, assuming you have message defined like:
+Messages are formatted using the `java.text.MessageFormat` library. For example, assuming you have message defined like:
 
 ```
 files.summary=The disk {1} contains {0} file(s).
@@ -44,6 +44,20 @@ You can then specify parameters as:
 ```scala
 Messages("files.summary", d.files.length, d.name)
 ```
+
+## Notes on apostrophes
+
+Since Messages uses `java.text.MessageFormat`, please be aware that single quotes are used as a meta-character for escaping parameter substitutions.
+
+For example, if you have the following messages defined:
+
+@[apostrophe-messages](code/scalaguide/i18n/messages)
+@[parameter-escaping](code/scalaguide/i18n/messages)
+
+you should expect the following results:
+
+@[apostrophe-messages](code/ScalaI18N.scala)
+@[parameter-escaping](code/ScalaI18N.scala)
 
 ## Retrieving supported language from an HTTP request
 

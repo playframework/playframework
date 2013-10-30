@@ -304,8 +304,15 @@ class MessagesPlugin(app: Application) extends Plugin {
   import scalax.file._
   import scalax.io.JavaConverters._
 
+  private lazy val messagesPrefix = app.configuration.getString("messages.path")
+
+  private def joinPaths(first: Option[String], second: String) = first match {
+    case Some(first) => new java.io.File(first, second).getPath
+    case None => second
+  }
+
   private def loadMessages(file: String): Map[String, String] = {
-    app.classloader.getResources(file).asScala.toList.reverse.map { messageFile =>
+    app.classloader.getResources(joinPaths(messagesPrefix, file)).asScala.toList.reverse.map { messageFile =>
       new Messages.MessagesParser(messageFile.asInput, messageFile.toString).parse.map { message =>
         message.key -> message.pattern
       }.toMap

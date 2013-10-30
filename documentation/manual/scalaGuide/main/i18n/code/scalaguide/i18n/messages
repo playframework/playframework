@@ -1,0 +1,7 @@
+#apostrophe-messages
+info.error=You aren''t logged in!
+#apostrophe-messages
+
+#parameter-escaping
+example.formatting=When using MessageFormat, '''{0}''' is replaced with the first parameter.
+#parameter-escaping
