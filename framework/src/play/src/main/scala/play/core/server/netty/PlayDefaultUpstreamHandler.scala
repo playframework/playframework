@@ -15,6 +15,7 @@ import server.Server
 import play.api._
 import play.api.mvc._
 import play.api.http.HeaderNames.{X_FORWARDED_FOR, X_FORWARDED_PROTO}
+import play.api.libs.concurrent.Execution
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import scala.collection.JavaConverters._
@@ -131,8 +132,17 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
             }.fold(
               e => {
                 val rh = createRequestHeader()
-                val r = server.applicationProvider.get.map(_.global).getOrElse(DefaultGlobal).onBadRequest(rh, e.getMessage)
-                (rh, Left(r))
+                val global = server.applicationProvider.get
+                  .map(_.global)
+                  .getOrElse(DefaultGlobal)
+
+                val result = Future
+                  .successful(()) // Create a dummy future
+                  .flatMap{ _ =>
+                    // Call errorHandler in another context, don't block here
+                    global.onBadRequest(rh, e.getMessage)
+                  }(Execution.defaultContext)
+                (rh, Left(result))
               },
               rh => server.getHandlerFor(rh) match {
                 case directResult @ Left(_) => (rh, directResult)
