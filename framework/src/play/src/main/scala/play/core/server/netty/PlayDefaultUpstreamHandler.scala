@@ -123,8 +123,12 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
         }
 
         val (requestHeader, handler: Either[Future[SimpleResult],(Handler,Application)]) = Exception
-            .allCatch[RequestHeader].either(tryToCreateRequest)
-            .fold(
+            .allCatch[RequestHeader].either{
+              val rh = tryToCreateRequest
+              // Force parsing of uri
+              rh.path
+              rh
+            }.fold(
               e => {
                 val rh = createRequestHeader()
                 val r = server.applicationProvider.get.map(_.global).getOrElse(DefaultGlobal).onBadRequest(rh, e.getMessage)
