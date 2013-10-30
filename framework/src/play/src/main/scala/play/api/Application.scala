@@ -15,7 +15,7 @@ import annotation.implicitNotFound
 import java.lang.reflect.InvocationTargetException
 import reflect.ClassTag
 import scala.util.control.NonFatal
-import scala.concurrent.Future
+import scala.concurrent.{ Future, ExecutionException }
 
 trait WithDefaultGlobal {
   self: Application with WithDefaultConfiguration =>
@@ -289,6 +289,7 @@ trait Application {
   private[play] def handleError(request: RequestHeader, e: Throwable): Future[SimpleResult] = try {
     e match {
       case e: UsefulException => throw e
+      case e: ExecutionException => handleError(request, e.getCause)
       case e: Throwable => {
 
         val source = sources.flatMap(_.sourceFor(e))
