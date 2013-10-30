@@ -188,7 +188,7 @@ object EnumeratorsSpec extends Specification
   }
 
   "Enumerator.callback1" should {
-    "Call onError on error" in {
+    "Call onError on iteratee's error state" in {
       val it = Error[String]("foo", Input.Empty)
       val errorCount = new AtomicInteger(0)
 
@@ -203,6 +203,25 @@ object EnumeratorsSpec extends Specification
 
       Await.ready(result, Duration(30, TimeUnit.SECONDS))
       errorCount.get() must equalTo(1)
+    }
+
+    "Call onError on future failure" in {
+      val it1 = Iteratee.fold1[String, String](Future.successful(""))((_, _) => Future.failed(new RuntimeException()))
+      val it2 = Iteratee.fold1[String, String](Future.failed(new RuntimeException()))((_, _) => Future.failed(new RuntimeException()))
+      val errorCount = new AtomicInteger(0)
+
+      val enum = Enumerator.fromCallback1[String](
+        b => Future.successful(Some("")),
+        () => (),
+        (msg, input) =>
+          errorCount.incrementAndGet()
+        )
+
+      val result1 = enum |>>> it1
+      val result2 = enum |>>> it2
+      Await.ready(result1.zip(result2), Duration(2, TimeUnit.SECONDS))
+
+      errorCount.get() must equalTo(2)
     }
 
     "generate a stream of values until the expression is None" in {

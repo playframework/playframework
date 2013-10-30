@@ -523,6 +523,11 @@ object Enumerator {
             Future.successful(None)
         }(dec)
 
+        next.onFailure {
+          case reason: Exception =>
+            onError(reason.getMessage(), Input.Empty)
+        }(dec)
+
         next.onComplete {
           case Success(Some(i)) => step(i)
 
