@@ -496,7 +496,7 @@ object Enumerator {
    * @param retriever The input function.  Returns a future eventually redeemed with Some value if there is input to pass, or a
    *          future eventually redeemed with None if the end of the stream has been reached.
    * @param onComplete Called when the end of the stream is reached.
-   * @param onError FIXME: Never called.
+   * @param onError Called when an error occured in the iteratee
    * $paramEcMultiple
    */
   def fromCallback1[E](retriever: Boolean => Future[Option[E]],
@@ -523,7 +523,18 @@ object Enumerator {
               }
             }(dec)
           }
-          case _ => { iterateeP.success(it); Future.successful(None) }
+          case Step.Error(msg, in) =>
+            onError(msg, in)
+            iterateeP.success(it)
+            Future.successful(None)
+          case _ =>
+            iterateeP.success(it)
+            Future.successful(None)
+        }(dec)
+
+        next.onFailure {
+          case reason: Exception =>
+            onError(reason.getMessage(), Input.Empty)
         }(dec)
 
         next.onComplete {
