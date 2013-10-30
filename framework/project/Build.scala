@@ -330,7 +330,7 @@ object PlayBuild extends Build {
       libraryDependencies := integrationTestDependencies,
       previousArtifact := None
     )
-    .dependsOn(PlayProject % "test->test", PlayWsProject, PlayTestProject)
+    .dependsOn(PlayProject % "test->test", PlayWsProject, PlayWsJavaProject, PlayTestProject)
     .dependsOn(PlayFiltersHelpersProject)
     .dependsOn(PlayJavaProject)
 
