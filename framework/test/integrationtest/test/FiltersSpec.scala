@@ -11,7 +11,7 @@ import play.api.test.Helpers._
 import scala.concurrent.duration.Duration
 import scala.concurrent._
 
-object FiltersSpec extends Specification {
+object FiltersSpec extends Specification with WsTestClient {
   "filters should" should {
     "be able to access request tags" in {
 

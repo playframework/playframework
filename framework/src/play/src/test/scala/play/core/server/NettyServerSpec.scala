@@ -10,7 +10,6 @@ import play.core.ApplicationProvider
 import java.io.File
 import scala.util.Random
 import play.api.Application
-import play.api.libs.ws.WS
 import scala.concurrent.Await
 import scala.concurrent.duration._
 

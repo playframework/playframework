@@ -7,7 +7,15 @@ There are two important parts to using the WS API: making a request, and process
 
 ## Making a Request
 
-To use WS, first import the following:
+To use WS, first add `ws` to your `build.sbt` file:
+
+```scala
+libraryDependencies ++= Seq(
+  ws
+)
+```
+
+Then import the following:
 
 ```scala
 import play.api.libs.ws._

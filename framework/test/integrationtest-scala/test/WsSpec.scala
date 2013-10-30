@@ -3,16 +3,41 @@
  */
 package test
 
-import org.specs2.mutable.Specification
+import org.specs2.mutable._
 import play.api.libs.ws._
 import controllers.TestController.Model._
 import play.api.libs.json._
 import play.api.test._
 import play.api.test.Helpers._
 
-object WsSpec extends Specification {
+object WsSpec extends Specification with WsTestClient {
 
   "WS responses" should {
+
+    "verify that the WS plugin starts" in {
+      val port: Int = Helpers.testServerPort
+      val server = TestServer(port)
+
+      Helpers.running(server) {
+        val plugin : Option[WSPlugin] = server.application.plugin[WSPlugin]
+        plugin must beSome.which { p =>
+          p.enabled must beTrue
+          p.loaded must beTrue
+        }
+      }
+    }
+
+    "verify that the WS plugin does not start if not loaded" in {
+      val application = FakeApplication(withoutPlugins = Seq("play.api.libs.ws.WSPlugin"))
+      val port: Int = Helpers.testServerPort
+      val server = TestServer(port, application)
+
+      Helpers.running(server) {
+        val plugin : Option[WSPlugin] = server.application.plugin[WSPlugin]
+        plugin must beNone
+      }
+    }
+
 
     "handle the charset correctly" in {
 

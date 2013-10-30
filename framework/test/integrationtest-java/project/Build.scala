@@ -13,6 +13,7 @@ object ApplicationBuild extends Build {
     val appDependencies = Seq(
     	javaCore,
     	javaEbean,
+      javaWs,
       "org.hamcrest" % "hamcrest-all" % "1.3"
     )
 

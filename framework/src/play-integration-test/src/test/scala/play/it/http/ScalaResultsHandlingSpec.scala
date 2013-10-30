@@ -10,7 +10,7 @@ import play.api.libs.iteratee._
 
 import play.api.libs.concurrent.Execution.{defaultContext => ec}
 
-object ScalaResultsHandlingSpec extends PlaySpecification {
+object ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient {
 
   "scala body handling" should {
 

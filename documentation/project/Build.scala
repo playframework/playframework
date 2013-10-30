@@ -21,6 +21,7 @@ object ApplicationBuild extends Build {
       component("play-test") % "test",
       component("play-java") % "test",
       component("play-cache") % "test",
+      component("play-java-ws") % "test",
       component("filters-helpers") % "test",
       "org.mockito" % "mockito-core" % "1.9.5" % "test",
       component("play-docs")

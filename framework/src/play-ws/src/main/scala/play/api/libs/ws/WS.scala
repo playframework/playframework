@@ -16,7 +16,7 @@ import play.api.libs.iteratee.Input.El
 
 import play.core.utils.CaseInsensitiveOrdered
 import play.core.Execution.Implicits.internalContext
-import play.api.Play
+import play.api.{ Application, Plugin, Play }
 
 import com.ning.http.client.{ Response => AHCResponse, Cookie => AHCCookie, ProxyServer => AHCProxyServer, _ }
 
@@ -778,3 +778,23 @@ trait SignatureCalculator {
 
 }
 
+/**
+ * WSPlugin implementation hook.
+ */
+class WSPlugin(app: Application) extends Plugin {
+
+  @volatile var loaded = false
+
+  override lazy val enabled = true
+
+  override def onStart() {
+    loaded = true
+  }
+
+  override def onStop() {
+    if (loaded) {
+      WS.resetClient()
+      loaded = false
+    }
+  }
+}

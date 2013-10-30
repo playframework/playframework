@@ -273,6 +273,19 @@ object PlayBuild extends Build {
       sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion
     )
 
+  lazy val PlayWsProject = PlayRuntimeProject("Play-WS", "play-ws")
+    .settings(
+      libraryDependencies := playWsDeps,
+      parallelExecution in Test := false
+    ).dependsOn(PlayProject)
+    .dependsOn(PlayTestProject % "test")
+
+  lazy val PlayWsJavaProject = PlayRuntimeProject("Play-Java-WS", "play-java-ws")
+      .settings(
+        parallelExecution in Test := false
+      ).dependsOn(PlayProject)
+    .dependsOn(PlayWsProject)
+
   lazy val PlayFiltersHelpersProject = PlayRuntimeProject("Filters-Helpers", "play-filters-helpers")
     .settings(
       binaryIssueFilters ++= Seq(
@@ -308,7 +321,7 @@ object PlayBuild extends Build {
         ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFCheck#CSRFCheckAction.this")
       ),
       parallelExecution in Test := false
-    ).dependsOn(PlayProject, PlayTestProject % "test", PlayJavaProject % "test")
+    ).dependsOn(PlayProject, PlayTestProject % "test", PlayJavaProject % "test", PlayWsProject % "test")
 
   // This project is just for testing Play, not really a public artifact
   lazy val PlayIntegrationTestProject = PlayRuntimeProject("Play-Integration-Test", "play-integration-test")
@@ -317,7 +330,7 @@ object PlayBuild extends Build {
       libraryDependencies := integrationTestDependencies,
       previousArtifact := None
     )
-    .dependsOn(PlayProject % "test->test", PlayTestProject)
+    .dependsOn(PlayProject % "test->test", PlayWsProject, PlayTestProject)
 
   lazy val PlayCacheProject = PlayRuntimeProject("Play-Cache", "play-cache")
     .settings(
@@ -361,6 +374,8 @@ object PlayBuild extends Build {
     PlayJavaJdbcProject,
     PlayEbeanProject,
     PlayJpaProject,
+    PlayWsProject,
+    PlayWsJavaProject,
     SbtPluginProject,
     ConsoleProject,
     PlayTestProject,

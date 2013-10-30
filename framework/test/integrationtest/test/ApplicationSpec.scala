@@ -11,7 +11,7 @@ import module.Routes
 
 import scala.concurrent.Future
 
-class ApplicationSpec extends PlaySpecification {
+class ApplicationSpec extends PlaySpecification with WsTestClient {
 
   "an Application" should {
   
