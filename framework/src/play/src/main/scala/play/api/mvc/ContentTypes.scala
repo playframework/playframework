@@ -15,7 +15,6 @@ import play.api.libs.iteratee.Parsing._
 import play.api.libs.Files.TemporaryFile
 import MultipartFormData._
 import scala.collection.mutable.ListBuffer
-import scala.collection.immutable.ListMap
 import scalax.io.Resource
 import java.util.Locale
 import scala.util.control.NonFatal
@@ -28,7 +27,7 @@ sealed trait AnyContent {
   /**
    * application/form-url-encoded
    */
-  def asFormUrlEncoded: Option[ListMap[String, Seq[String]]] = this match {
+  def asFormUrlEncoded: Option[Map[String, Seq[String]]] = this match {
     case AnyContentAsFormUrlEncoded(data) => Some(data)
     case _ => None
   }
@@ -88,7 +87,7 @@ case class AnyContentAsText(txt: String) extends AnyContent
 /**
  * AnyContent - Form url encoded body
  */
-case class AnyContentAsFormUrlEncoded(data: ListMap[String, Seq[String]]) extends AnyContent
+case class AnyContentAsFormUrlEncoded(data: Map[String, Seq[String]]) extends AnyContent
 
 /**
  * AnyContent - Raw body (give access to the raw data as bytes).
@@ -509,7 +508,7 @@ trait BodyParsers {
      *
      * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
      */
-    def tolerantFormUrlEncoded(maxLength: Int): BodyParser[ListMap[String, Seq[String]]] =
+    def tolerantFormUrlEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] =
       tolerantBodyParser("urlFormEncoded", maxLength, "Error parsing application/x-www-form-urlencoded") { (request, bytes) =>
         import play.core.parsers._
         FormUrlEncodedParser.parse(new String(bytes, request.charset.getOrElse("utf-8")),
@@ -519,14 +518,14 @@ trait BodyParsers {
     /**
      * Parse the body as form url encoded without checking the Content-Type.
      */
-    def tolerantFormUrlEncoded: BodyParser[ListMap[String, Seq[String]]] = tolerantFormUrlEncoded(DEFAULT_MAX_TEXT_LENGTH)
+    def tolerantFormUrlEncoded: BodyParser[Map[String, Seq[String]]] = tolerantFormUrlEncoded(DEFAULT_MAX_TEXT_LENGTH)
 
     /**
      * Parse the body as form url encoded if the Content-Type is application/x-www-form-urlencoded.
      *
      * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
      */
-    def urlFormEncoded(maxLength: Int): BodyParser[ListMap[String, Seq[String]]] = when(
+    def urlFormEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] = when(
       _.contentType.exists(_.equalsIgnoreCase("application/x-www-form-urlencoded")),
       tolerantFormUrlEncoded(maxLength),
       createBadResult("Expecting application/x-www-form-urlencoded body")
@@ -535,7 +534,7 @@ trait BodyParsers {
     /**
      * Parse the body as form url encoded if the Content-Type is application/x-www-form-urlencoded.
      */
-    def urlFormEncoded: BodyParser[ListMap[String, Seq[String]]] = urlFormEncoded(DEFAULT_MAX_TEXT_LENGTH)
+    def urlFormEncoded: BodyParser[Map[String, Seq[String]]] = urlFormEncoded(DEFAULT_MAX_TEXT_LENGTH)
 
     // -- Magic any content
 

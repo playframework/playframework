@@ -8,7 +8,7 @@ import scala.collection.mutable
 
 object OrderPreserving {
 
-  def groupBy[K, V](seq: Seq[(K, V)])(f: ((K, V)) => K): ListMap[K, Seq[V]] = {
+  def groupBy[K, V](seq: Seq[(K, V)])(f: ((K, V)) => K): Map[K, Seq[V]] = {
     // This mutable map will not retain insertion order for the seq, but it is fast for retrieval. The value is
     // a builder for the desired Seq[String] in the final result.
     val m = mutable.Map.empty[K, mutable.Builder[V, Seq[V]]]

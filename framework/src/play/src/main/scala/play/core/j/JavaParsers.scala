@@ -9,7 +9,6 @@ import play.api.libs.Files.{ TemporaryFile }
 
 import scala.xml._
 import scala.collection.JavaConverters._
-import scala.collection.immutable.ListMap
 
 /**
  * provides Java centric BodyParsers
@@ -19,7 +18,7 @@ object JavaParsers extends BodyParsers {
   import play.mvc.Http.{ RequestBody }
 
   case class DefaultRequestBody(
-      urlFormEncoded: Option[ListMap[String, Seq[String]]] = None,
+      urlFormEncoded: Option[Map[String, Seq[String]]] = None,
       raw: Option[RawBuffer] = None,
       text: Option[String] = None,
       json: Option[JsValue] = None,

@@ -9,7 +9,6 @@ import play.api.test.TestServer
 import play.api.libs.ws.WS
 import play.api.libs.ws.WS.WSRequestHolder
 import play.api.test.FakeApplication
-import scala.collection.immutable.ListMap
 
 
 object FormFieldOrderSpec extends PlaySpecification {
@@ -34,7 +33,7 @@ object FormFieldOrderSpec extends PlaySpecification {
       // Check precondition. This needs to be an x-www-form-urlencoded request body
       request.headers.get("Content-Type").getOrElse("") must equalTo(content_type)
       // The following just ingests the request body and converts it to a sequnce of strings of the form name=value
-      val pairs: Seq[String] = { request.body.asFormUrlEncoded map { params: ListMap[String,Seq[String]] =>
+      val pairs: Seq[String] = { request.body.asFormUrlEncoded map { params: Map[String,Seq[String]] =>
         {for ( (key:String,value:Seq[String]) <- params ) yield key + "=" + value.mkString }.toSeq
       }}.getOrElse(Seq.empty[String])
       // And now this just puts it all back into one string separated by & to reincarnate, hopefully, the

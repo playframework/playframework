@@ -4,7 +4,6 @@
 package play.core.parsers
 
 import org.specs2.mutable.Specification
-import scala.collection.immutable.ListMap
 
 object FormUrlEncodedParserSpec extends Specification {
   "FormUrlEncodedParser" should {
@@ -19,7 +18,7 @@ object FormUrlEncodedParserSpec extends Specification {
     }
     "ensure field order is retained, when requested" in {
       val url_encoded = "Zero=zero&One=one&Two=two&Three=three&Four=four&Five=five&Six=six&Seven=seven"
-      val result: ListMap[String, Seq[String]] = FormUrlEncodedParser.parse(url_encoded)
+      val result: Map[String, Seq[String]] = FormUrlEncodedParser.parse(url_encoded)
       val strings = ( for ( k <- result.keysIterator ) yield "&" + k + "=" + result(k).head ).mkString
       val reconstructed = strings.substring(1)
       reconstructed must equalTo(url_encoded)

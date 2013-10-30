@@ -28,7 +28,7 @@ object FormUrlEncodedParser {
    * @param encoding The character encoding of data
    * @return A ListMap of keys to the sequence of values for that key
    */
-  def parse(data: String, encoding: String = "utf-8"): ListMap[String, Seq[String]] = {
+  def parse(data: String, encoding: String = "utf-8"): Map[String, Seq[String]] = {
 
     // Generate the pairs of values from the string.
     val pairs: Seq[(String, String)] = parseToPairs(data, encoding)
