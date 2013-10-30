@@ -511,7 +511,8 @@ trait BodyParsers {
     def tolerantFormUrlEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] =
       tolerantBodyParser("urlFormEncoded", maxLength, "Error parsing application/x-www-form-urlencoded") { (request, bytes) =>
         import play.core.parsers._
-        FormUrlEncodedParser.parse(new String(bytes, request.charset.getOrElse("utf-8")), request.charset.getOrElse("utf-8"))
+        FormUrlEncodedParser.parse(new String(bytes, request.charset.getOrElse("utf-8")),
+          request.charset.getOrElse("utf-8"))
       }
 
     /**
@@ -731,7 +732,7 @@ trait BodyParsers {
             value <- headers.get("content-disposition")
 
             values = split(value).map(_.trim).map {
-              // unescape escaped quotes 
+              // unescape escaped quotes
               case keyValue(key, value) => (key.trim, value.trim.replaceAll("""\\"""", "\""))
               case key => (key.trim, "")
             }.toMap
