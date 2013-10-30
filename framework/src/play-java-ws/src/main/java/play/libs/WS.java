@@ -422,6 +422,15 @@ public class WS {
         }
 
         /**
+         * Perform a PATCH on the request asynchronously.
+         *
+         * @param body represented as String
+         */
+        public Promise<Response> patch(String body) {
+            return executeString("PATCH", body);
+        }
+
+        /**
          * Perform a POST on the request asynchronously.
          *
          * @param body represented as String
@@ -440,6 +449,15 @@ public class WS {
         }
 
         /**
+         * Perform a PATCH on the request asynchronously.
+         *
+         * @param body represented as JSON
+         */
+        public Promise<Response> patch(JsonNode body) {
+            return executeJson("PATCH", body);
+        }
+
+        /**
          * Perform a POST on the request asynchronously.
          *
          * @param body represented as JSON
@@ -455,6 +473,15 @@ public class WS {
          */
         public Promise<Response> put(JsonNode body) {
             return executeJson("PUT", body);
+        }
+
+        /**
+         * Perform a PATCH on the request asynchronously.
+         *
+         * @param body represented as an InputStream
+         */
+        public Promise<Response> patch(InputStream body) {
+            return executeIS("PATCH", body);
         }
 
         /**
