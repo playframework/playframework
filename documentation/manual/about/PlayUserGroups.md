@@ -10,6 +10,12 @@ http://www.meetup.com/Play-Berlin-Brandenburg/
 
 [Xing](http://xing.to/scala) / [Twitter](https://twitter.com/scalacgn)
 
+## Hamburg
+### Play Meetup Group (Scala & Java)
+http://www.meetup.com/Playframework-Hamburg/
+### Scala User Group
+http://www.meetup.com/Scala-Hamburg/
+
 ## London
 http://play.nascency.co.uk/
 
