@@ -64,9 +64,11 @@ object ScalaResultsHandlingSpec extends Specification {
     "close the connection when the connection close header is present" in withServer(
       Results.Ok
     ) { port =>
-      BasicHttpClient.makeRequests(port, true,
+      val response = BasicHttpClient.makeRequests(port, true,
         BasicRequest("GET", "/", "HTTP/1.1", Map("Connection" -> "close"), "")
-      )(0).status must_== 200
+      )(0)
+      response.status must_== 200
+      response.headers.get("Connection") must beSome("close")
     }
 
     "close the connection when the connection when protocol is HTTP 1.0" in withServer(
@@ -85,6 +87,7 @@ object ScalaResultsHandlingSpec extends Specification {
         BasicRequest("GET", "/", "HTTP/1.0", Map(), "")
       )
       responses(0).status must_== 200
+      responses(0).headers.get("Connection") must beSome("keep-alive")
       responses(1).status must_== 200
     }
 

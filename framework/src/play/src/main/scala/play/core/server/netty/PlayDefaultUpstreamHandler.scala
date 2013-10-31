@@ -167,6 +167,8 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
                 // Response header Connection: Keep-Alive is needed for HTTP 1.0
                 if (keepAlive && nettyVersion == HttpVersion.HTTP_1_0) {
                   nettyResponse.setHeader(CONNECTION, KEEP_ALIVE)
+                } else if (!keepAlive && nettyVersion == HttpVersion.HTTP_1_1) {
+                  nettyResponse.setHeader(CONNECTION, CLOSE)
                 }
 
                 // Stream the result
