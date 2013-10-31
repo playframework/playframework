@@ -55,7 +55,7 @@ object NettyResultStreamer {
       }
 
       case CloseConnection() => {
-        result.body |>>> nettyStreamIteratee(createNettyResponse(result.header, closeConnection, httpVersion), startSequence, true)
+        result.body |>>> nettyStreamIteratee(createNettyResponse(result.header, true, httpVersion), startSequence, true)
       }
 
       case EndOfBodyInProtocol() => {
@@ -182,6 +182,8 @@ object NettyResultStreamer {
     // Response header Connection: Keep-Alive is needed for HTTP 1.0
     if (!closeConnection && httpVersion == HttpVersion.HTTP_1_0) {
       nettyResponse.setHeader(CONNECTION, KEEP_ALIVE)
+    } else if (closeConnection && httpVersion == HttpVersion.HTTP_1_1) {
+      nettyResponse.setHeader(CONNECTION, CLOSE)
     }
 
     nettyResponse
