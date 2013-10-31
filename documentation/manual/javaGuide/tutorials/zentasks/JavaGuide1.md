@@ -55,7 +55,7 @@ It will prompt you for the application full name.  Type **'ZenTasks'**.  It will
 
 [[images/new.png]]
 
-The `play new` command creates a new directory `zentasks/` and populates it with a series of files and directories, the most important being:
+The `play new zentasks` command creates a new directory `zentasks/` and populates it with a series of files and directories, the most important being:
 
 `app/` contains the core of the application, split between models, controllers and views directories.  It can contain other Java packages as well.
 
