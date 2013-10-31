@@ -967,6 +967,14 @@ trait Results {
    */
   def TemporaryRedirect(url: String): SimpleResult = Redirect(url, TEMPORARY_REDIRECT)
 
+  /**
+   * Generates a ‘308 PERMANENT_REDIRECT’ simple result.
+   * http://tools.ietf.org/html/draft-reschke-http-status-308 is now in experimental status.
+   *
+   * @param url the URL to redirect to
+   */
+  def PermanentRedirect(url: String): SimpleResult = Redirect(url, PERMANENT_REDIRECT)
+
   /** Generates a ‘400 BAD_REQUEST’ result. */
   val BadRequest = new Status(BAD_REQUEST)
 
@@ -1018,8 +1026,16 @@ trait Results {
   /** Generates a ‘424 FAILED_DEPENDENCY’ result. */
   val FailedDependency = new Status(FAILED_DEPENDENCY)
 
-  /** Generates a ‘429 TOO_MANY_REQUEST’ result. */
-  val TooManyRequest = new Status(TOO_MANY_REQUEST)
+  /**
+   * Generates a ‘429 TOO_MANY_REQUESTS’ result.
+   *
+   * @param retryAfter optionally add ‘Retry-After’ header with number of seconds
+   */
+  def TooManyRequests(retryAfter: Option[Int]) = {
+    val response = new Status(TOO_MANY_REQUESTS)
+    retryAfter.map(x => response.withHeaders(RETRY_AFTER -> x.toString)).getOrElse(response)
+  }
+  val TooManyRequest = TooManyRequests _ // backwards-compatible for poor spelling
 
   /** Generates a ‘500 INTERNAL_SERVER_ERROR’ result. */
   val InternalServerError = new Status(INTERNAL_SERVER_ERROR)

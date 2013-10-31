@@ -157,6 +157,7 @@ trait Status {
   val NOT_MODIFIED = 304
   val USE_PROXY = 305
   val TEMPORARY_REDIRECT = 307
+  val PERMANENT_REDIRECT = 308
 
   val BAD_REQUEST = 400
   val UNAUTHORIZED = 401
@@ -179,7 +180,8 @@ trait Status {
   val UNPROCESSABLE_ENTITY = 422
   val LOCKED = 423
   val FAILED_DEPENDENCY = 424
-  val TOO_MANY_REQUEST = 429
+  val TOO_MANY_REQUESTS = 429
+  val TOO_MANY_REQUEST = 429 //backwards-compatible for poor spelling
 
   val INTERNAL_SERVER_ERROR = 500
   val NOT_IMPLEMENTED = 501
