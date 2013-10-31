@@ -29,8 +29,6 @@ object NettyResultStreamer {
    * @return A Future that will be redeemed when the result is completely sent
    */
   def sendResult(result: SimpleResult, closeConnection: Boolean, httpVersion: HttpVersion, startSequence: Int)(implicit ctx: ChannelHandlerContext, oue: OrderedUpstreamMessageEvent): Future[_] = {
-    val nettyResponse = createNettyResponse(result.header, closeConnection, httpVersion)
-
     // Result of this iteratee is a completion status
     val sentResponse: Future[ChannelStatus] = result match {
 
@@ -45,15 +43,15 @@ object NettyResultStreamer {
       }
 
       case CloseConnection() => {
-        result.body |>>> nettyStreamIteratee(nettyResponse, startSequence, true)
+        result.body |>>> nettyStreamIteratee(createNettyResponse(result.header, true, httpVersion), startSequence, true)
       }
 
       case EndOfBodyInProtocol() => {
-        result.body |>>> nettyStreamIteratee(nettyResponse, startSequence, closeConnection)
+        result.body |>>> nettyStreamIteratee(createNettyResponse(result.header, closeConnection, httpVersion), startSequence, closeConnection)
       }
 
       case _ => {
-        result.body |>>> bufferingIteratee(nettyResponse, startSequence, closeConnection, httpVersion)
+        result.body |>>> bufferingIteratee(createNettyResponse(result.header, closeConnection, httpVersion), startSequence, closeConnection, httpVersion)
       }
 
     }
@@ -171,6 +169,8 @@ object NettyResultStreamer {
     // Response header Connection: Keep-Alive is needed for HTTP 1.0
     if (!closeConnection && httpVersion == HttpVersion.HTTP_1_0) {
       nettyResponse.setHeader(CONNECTION, KEEP_ALIVE)
+    } else if (closeConnection && httpVersion == HttpVersion.HTTP_1_1) {
+      nettyResponse.setHeader(CONNECTION, CLOSE)
     }
 
     nettyResponse
