@@ -82,10 +82,10 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
             result match {
 
               case AsyncResult(p) => p.extend1 {
-                case Redeemed(v) => handle(v)
+                case Redeemed(v) => handle(v, closeConnection)
                 case Thrown(e) => {
                   Logger("play").error("Waiting for a promise, but got an error: " + e.getMessage, e)
-                  handle(Results.InternalServerError)
+                  handle(Results.InternalServerError, closeConnection)
                 }
               }
 
@@ -110,6 +110,8 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
                 // Response header Connection: Keep-Alive is needed for HTTP 1.0
                 if (!closeConnection && version == HttpVersion.HTTP_1_0) {
                   nettyResponse.setHeader(CONNECTION, KEEP_ALIVE)
+                } else if (closeConnection && version == HttpVersion.HTTP_1_1) {
+                  nettyResponse.setHeader(CONNECTION, CLOSE)
                 }
 
                 // Stream the result
@@ -331,7 +333,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
             Logger("play").trace("Bad websocket request")
 
-            response.handle(Results.BadRequest)
+            response.handle(Results.BadRequest, true)
           }
 
           //handle errors
@@ -339,7 +341,7 @@ private[server] class PlayDefaultUpstreamHandler(server: Server, allChannels: De
 
             Logger("play").trace("No handler, got direct result: " + e)
 
-            response.handle(e)
+            response.handle(e, keepAlive)
           }
 
         }
