@@ -44,7 +44,7 @@ $ play clean stage
 ```
 [[images/stage.png]]
 
-This cleans and compiles your application, retrieves the required dependencies and copies them to the `target/universal/staged` directory. It also creates a `bin/<start>` script where `<start>` is the project's name. The script runs the Play server on Unix style systems and there is also a corresponding `bat` file for Windows.
+This cleans and compiles your application, retrieves the required dependencies and copies them to the `target/universal/stage` directory. It also creates a `bin/<start>` script where `<start>` is the project's name. The script runs the Play server on Unix style systems and there is also a corresponding `bat` file for Windows.
 
 For example to start an application of the project 'foo' from the project folder you can:
 
