@@ -5,11 +5,11 @@ package play.it.libs
 
 import play.it.tools.HttpBinApplication
 
+import play.api.libs.iteratee._
 import play.api.test._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-
 
 
 object WSSpec extends PlaySpecification {
@@ -96,6 +96,20 @@ object WSSpec extends PlaySpecification {
 
       rep.status must be equalTo(404)
     }
+
+    "provide an enumerator" in withServer { port =>
+      val _rep = WS.url(s"http://localhost:$port/stream/100").getStream
+      val (rep, enumerator) = Await.result(_rep, Duration(2, SECONDS))
+
+      rep.status must be equalTo(200)
+      rep.headers("transfer-encoding").headOption must beSome("chunked")
+
+      val folder = Iteratee.consume[Array[Byte]]()
+      val content = Await.result(enumerator.run(folder), Duration(6, SECONDS))
+
+      content.count(_ == '\n'.toByte) must equalTo(100)
+    }
+
 
   }
 }
