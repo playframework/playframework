@@ -25,8 +25,8 @@ object Project extends Plugin with PlayExceptions with play.Keys with PlayReload
     case badVersion if badVersion != play.core.PlayVersion.current => {
       println(
         Colors.red("""
-          |This project uses Play %s!
-          |Update the Play sbt-plugin version to %s (usually in project/plugins.sbt)
+          |This project uses Play %1$s while your Play installation uses %2$s!
+          |Update the Play sbt-plugin version to %2$s (usually in project/plugins.sbt) or install Play %1$s
         """.stripMargin.format(play.core.PlayVersion.current, badVersion))
       )
     }
