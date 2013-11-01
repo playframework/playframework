@@ -1,6 +1,12 @@
 # Configuring gzip encoding
 
-Play provides a gzip filter that can be used to gzip responses.  It can be added to the applications filters using the `Global` object.
+Play provides a gzip filter that can be used to gzip responses.  It can be added to the applications filters using the `Global` object. To enable the gzip filter, add the Play filters helpers dependency to your project in Build.scala:
+
+```scala
+val appDependencies = Seq(
+  filters
+)
+```
 
 ## Enabling gzip in Scala
 
