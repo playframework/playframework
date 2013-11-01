@@ -1,0 +1,15 @@
+#! /usr/bin/env sh
+
+# Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+
+set -e
+
+./build clean scalariform-format
+git diff --exit-code || (
+  echo "ERROR: Scalariform check failed, see differences above."
+  echo "To fix, format your sources using ./build scalariform-format before submitting a pull request."
+  echo "Additionally, please squash your commits (eg, use git commit --amend) if you're going to update this pull request."
+  false
+)
+
+./runtests
