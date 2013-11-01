@@ -82,56 +82,62 @@ object Console {
   /**
    * Creates a new play app skeleton either based on local templates on g8 templates fetched from github
    * Also, one can create a g8 template directly like this: play new app_name --g8 githubuser/repo.g8
-   * @param args first parameter is the application name
+   * @param args first parameter is the application name and it must be given
    */
   def newCommand(args: Array[String]): (String, Int) = {
 
-    val path = args.headOption.map(new File(_)).getOrElse(new File(".")).getCanonicalFile
+    args.headOption.map { appName: String =>
 
-    val defaultName = path.getName
+      val path = new File(appName).getCanonicalFile
 
-    println()
-    println(Colors.green("The new application will be created in %s".format(path.getAbsolutePath)))
-    println()
+      val defaultName = path.getName
 
-    if (path.exists) {
-      (Colors.red("The directory already exists, cannot create a new application here."), -1)
-    } else {
-      val template: (String, String) = if (args.length == 3 && args(1) == "--g8") (args.last, defaultName)
-      else {
-        val name = readApplicationName(defaultName)
+      println()
+      println(Colors.green("The new application will be created in %s".format(path.getAbsolutePath)))
+      println()
 
-        consoleReader.println()
-        consoleReader.println("Which template do you want to use for this new application? ")
-        consoleReader.println(
-          """|
-               |  1             - Create a simple Scala application
-               |  2             - Create a simple Java application
-               |""".stripMargin)
+      if (path.exists) {
+        (Colors.red("The directory already exists, cannot create a new application here."), -1)
+      } else {
+        val template: (String, String) = if (args.length == 3 && args(1) == "--g8") (args.last, defaultName)
+        else {
+          val name = readApplicationName(defaultName)
 
-        consoleReader.putString("")
+          consoleReader.println()
+          consoleReader.println("Which template do you want to use for this new application? ")
+          consoleReader.println(
+            """|
+                 |  1             - Create a simple Scala application
+                 |  2             - Create a simple Java application
+                 |""".stripMargin)
 
-        val templateToUse = Option(consoleReader.readLine(Colors.cyan("> "))).map(_.trim).getOrElse("") match {
-          case "1" => "scala-skel"
-          case "2" => "java-skel"
-          case other => other
+          consoleReader.putString("")
+
+          val templateToUse = Option(consoleReader.readLine(Colors.cyan("> "))).map(_.trim).getOrElse("") match {
+            case "1" => "scala-skel"
+            case "2" => "java-skel"
+            case other => other
+          }
+          (templateToUse, name)
         }
-        (templateToUse, name)
-      }
-      try {
-        //either generate templates based on local skeletons or use g8 templates
-        if (template._1.endsWith("-skel")) {
-          generateLocalTemplate(template._1, template._2, path)
-          (haveFun(template._2), 0)
-        } else {
-          ("Unknown option: " + template._1, -1)
+        try {
+          //either generate templates based on local skeletons or use g8 templates
+          if (template._1.endsWith("-skel")) {
+            generateLocalTemplate(template._1, template._2, path)
+            (haveFun(template._2), 0)
+          } else {
+            ("Unknown option: " + template._1, -1)
+          }
+        } catch {
+          case ex: Exception =>
+            ("Ooops - Something went wrong! Exception:" + ex.toString, -1)
         }
-      } catch {
-        case ex: Exception =>
-          ("Ooops - Something went wrong! Exception:" + ex.toString, -1)
       }
+    } getOrElse {
+      (Colors.red("No application name argument was given!") + ("""| 
+           |Use `play new foo` to create a new Play application named `foo` in the current directory,
+           |or go to an existing application and launch the development console using `play`.""".stripMargin), -1)
     }
-
   }
 
   @tailrec
@@ -154,7 +160,7 @@ object Console {
             |These commands are available:
             |-----------------------------
             |license            Display licensing informations.
-            |new [directory]    Create a new Play application in the specified directory.
+            |new directory      Create a new Play application in the specified directory.
             |
             |You can also browse the complete documentation at http://www.playframework.com.""".stripMargin, 0)
   }
@@ -172,7 +178,7 @@ object Console {
       command(args.drop(1))
     }.getOrElse {
       (Colors.red("\nThis is not a play application!\n") + ("""|
-           |Use `play new` to create a new Play application in the current directory,
+           |Use `play new foo` to create a new Play application named `foo` in the current directory,
            |or go to an existing application and launch the development console using `play`.
            |
            |You can also browse the complete documentation at http://www.playframework.com.""".stripMargin), -1)

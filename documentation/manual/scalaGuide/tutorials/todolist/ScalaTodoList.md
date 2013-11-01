@@ -27,7 +27,7 @@ It will prompt you for a few questions. Select the _Create a simple Scala applic
 
 [[images/new.png]]
 
-The `play new` command creates a new directory `todolist/` and populates it with a series of files and directories, the most important being:
+The `play new todolist` command creates a new directory `todolist/` and populates it with a series of files and directories, the most important being:
 
 - `app/` contains the application’s core, split between models, controllers and views directories. This is the directory where .scala source files live.
 - `conf/` contains all the application’s configuration files, especially the main `application.conf` file, the `routes` definition files and the `messages` files used for internationalization.
