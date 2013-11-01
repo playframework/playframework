@@ -24,8 +24,8 @@ object OpenIDSpec extends Specification with Mockito {
 
   // 9.1 Request parameters - http://openid.net/specs/openid-authentication-2_0.html#anchor27
   def isValidOpenIDRequest(query:Params) = {
-    query.get("openid.mode") must beSome(Seq("checkid_setup"))
-    query.get("openid.ns") must beSome(Seq("http://specs.openid.net/auth/2.0"))
+    query.get("openid.mode") must_== Some(Seq("checkid_setup"))
+    query.get("openid.ns") must_== Some(Seq("http://specs.openid.net/auth/2.0"))
   }
 
   "OpenID" should {
@@ -45,7 +45,7 @@ object OpenIDSpec extends Specification with Mockito {
 
       isValidOpenIDRequest(query)
 
-      query.get("openid.return_to") must beSome(Seq("http://foo.bar.com/returnto"))
+      query.get("openid.return_to") must_== Some(Seq("http://foo.bar.com/returnto"))
       query.get("openid.realm") must beNone
     }
 
@@ -59,10 +59,10 @@ object OpenIDSpec extends Specification with Mockito {
 
       isValidOpenIDRequest(query)
 
-      query.get("openid.ax.mode") must beSome(Seq("fetch_request"))
-      query.get("openid.ns.ax") must beSome(Seq("http://openid.net/srv/ax/1.0"))
-      query.get("openid.ax.required") must beSome(Seq("email"))
-      query.get("openid.ax.type.email") must beSome(Seq("http://schema.openid.net/contact/email"))
+      query.get("openid.ax.mode") must_== Some(Seq("fetch_request"))
+      query.get("openid.ns.ax") must_== Some(Seq("http://openid.net/srv/ax/1.0"))
+      query.get("openid.ax.required") must_== Some(Seq("email"))
+      query.get("openid.ax.type.email") must_== Some(Seq("http://schema.openid.net/contact/email"))
     }
 
     "generate a valid redirectUrl with a proper 'if_available' extended attributes request" in {
@@ -75,10 +75,10 @@ object OpenIDSpec extends Specification with Mockito {
 
       isValidOpenIDRequest(query)
 
-      query.get("openid.ax.mode") must beSome(Seq("fetch_request"))
-      query.get("openid.ns.ax") must beSome(Seq("http://openid.net/srv/ax/1.0"))
-      query.get("openid.ax.if_available") must beSome(Seq("email"))
-      query.get("openid.ax.type.email") must beSome(Seq("http://schema.openid.net/contact/email"))
+      query.get("openid.ax.mode") must_== Some(Seq("fetch_request"))
+      query.get("openid.ns.ax") must_== Some(Seq("http://openid.net/srv/ax/1.0"))
+      query.get("openid.ax.if_available") must_== Some(Seq("email"))
+      query.get("openid.ax.type.email") must_== Some(Seq("http://schema.openid.net/contact/email"))
     }
 
     "generate a valid redirectUrl with a proper 'if_available' AND required extended attributes request" in {
@@ -92,12 +92,12 @@ object OpenIDSpec extends Specification with Mockito {
 
       isValidOpenIDRequest(query)
 
-      query.get("openid.ax.mode") must beSome(Seq("fetch_request"))
-      query.get("openid.ns.ax") must beSome(Seq("http://openid.net/srv/ax/1.0"))
-      query.get("openid.ax.required") must beSome(Seq("first"))
-      query.get("openid.ax.type.first") must beSome(Seq("http://axschema.org/namePerson/first"))
-      query.get("openid.ax.if_available") must beSome(Seq("email"))
-      query.get("openid.ax.type.email") must beSome(Seq("http://schema.openid.net/contact/email"))
+      query.get("openid.ax.mode") must_== Some(Seq("fetch_request"))
+      query.get("openid.ns.ax") must_== Some(Seq("http://openid.net/srv/ax/1.0"))
+      query.get("openid.ax.required") must_== Some(Seq("first"))
+      query.get("openid.ax.type.first") must_== Some(Seq("http://axschema.org/namePerson/first"))
+      query.get("openid.ax.if_available") must_== Some(Seq("email"))
+      query.get("openid.ax.type.email") must_== Some(Seq("http://schema.openid.net/contact/email"))
     }
 
     "verify the response" in {
@@ -119,7 +119,7 @@ object OpenIDSpec extends Specification with Mockito {
         val verificationQuery = argument.getValue
 
         "openid.mode was set to check_authentication" in {
-          verificationQuery.get("openid.mode") must beSome(Seq("check_authentication"))
+          verificationQuery.get("openid.mode") must_== Some(Seq("check_authentication"))
         }
 
         "every query parameter apart from openid.mode is used in the verification request" in {

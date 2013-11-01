@@ -14,17 +14,16 @@ import play.core._
 import server.Server
 import play.api._
 import play.api.mvc._
-import play.api.http.HeaderNames.{X_FORWARDED_FOR, X_FORWARDED_PROTO}
+import play.api.http.HeaderNames.{ X_FORWARDED_FOR, X_FORWARDED_PROTO }
 import play.api.libs.concurrent.Execution
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import scala.collection.JavaConverters._
 import scala.util.control.Exception
-import com.typesafe.netty.http.pipelining.{OrderedDownstreamChannelEvent, OrderedUpstreamMessageEvent}
+import com.typesafe.netty.http.pipelining.{ OrderedDownstreamChannelEvent, OrderedUpstreamMessageEvent }
 import scala.concurrent.Future
-import java.net.{SocketAddress, URI}
+import java.net.{ SocketAddress, URI }
 import java.io.IOException
-
 
 private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
 
@@ -55,14 +54,13 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
 
   override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
     val cleanup = ctx.getAttachment
-    if(cleanup != null) cleanup.asInstanceOf[() => Unit]()
+    if (cleanup != null) cleanup.asInstanceOf[() => Unit]()
     ctx.setAttachment(null)
   }
 
   override def channelOpen(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
     allChannels.add(e.getChannel)
   }
-
 
   override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
     e.getMessage match {
@@ -109,7 +107,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
           //mapping netty request to Play's
           val untaggedRequestHeader = new RequestHeader {
             val id = requestIDs.incrementAndGet
-            val tags = Map.empty[String,String]
+            val tags = Map.empty[String, String]
             def uri = nettyHttpRequest.getUri
             def path = new URI(nettyUri.getPath).getRawPath //wrapping into URI to handle absoluteURI
             def method = nettyHttpRequest.getMethod.getName
@@ -123,32 +121,32 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
           untaggedRequestHeader
         }
 
-        val (requestHeader, handler: Either[Future[SimpleResult],(Handler,Application)]) = Exception
-            .allCatch[RequestHeader].either{
-              val rh = tryToCreateRequest
-              // Force parsing of uri
-              rh.path
-              rh
-            }.fold(
-              e => {
-                val rh = createRequestHeader()
-                val global = server.applicationProvider.get
-                  .map(_.global)
-                  .getOrElse(DefaultGlobal)
+        val (requestHeader, handler: Either[Future[SimpleResult], (Handler, Application)]) = Exception
+          .allCatch[RequestHeader].either {
+            val rh = tryToCreateRequest
+            // Force parsing of uri
+            rh.path
+            rh
+          }.fold(
+            e => {
+              val rh = createRequestHeader()
+              val global = server.applicationProvider.get
+                .map(_.global)
+                .getOrElse(DefaultGlobal)
 
-                val result = Future
-                  .successful(()) // Create a dummy future
-                  .flatMap{ _ =>
-                    // Call errorHandler in another context, don't block here
-                    global.onBadRequest(rh, e.getMessage)
-                  }(Execution.defaultContext)
-                (rh, Left(result))
-              },
-              rh => server.getHandlerFor(rh) match {
-                case directResult @ Left(_) => (rh, directResult)
-                case Right((taggedRequestHeader, handler, application)) => (taggedRequestHeader, Right((handler, application)))
-              }
-            )
+              val result = Future
+                .successful(()) // Create a dummy future
+                .flatMap { _ =>
+                  // Call errorHandler in another context, don't block here
+                  global.onBadRequest(rh, e.getMessage)
+                }(Execution.defaultContext)
+              (rh, Left(result))
+            },
+            rh => server.getHandlerFor(rh) match {
+              case directResult @ Left(_) => (rh, directResult)
+              case Right((taggedRequestHeader, handler, application)) => (taggedRequestHeader, Right((handler, application)))
+            }
+          )
 
         // Call onRequestCompletion after all request processing is done. Protected with an AtomicBoolean to ensure can't be executed more than once.
         val alreadyClean = new java.util.concurrent.atomic.AtomicBoolean(false)
@@ -171,12 +169,12 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
 
           val flashCookie = {
             header.headers.get(SET_COOKIE)
-            .map(Cookies.decode(_))
-            .flatMap(_.find(_.name == Flash.COOKIE_NAME)).orElse {
-              Option(requestHeader.flash).filterNot(_.isEmpty).map { _ =>
-                Flash.discard.toCookie
+              .map(Cookies.decode(_))
+              .flatMap(_.find(_.name == Flash.COOKIE_NAME)).orElse {
+                Option(requestHeader.flash).filterNot(_.isEmpty).map { _ =>
+                  Flash.discard.toCookie
+                }
               }
-            }
           }
 
           flashCookie.map { newCookie =>
@@ -193,7 +191,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
                 case error =>
                   Iteratee.flatten(
                     app.handleError(requestHeader, error).map(result => Done(result, Input.Empty))
-                  ): Iteratee[Array[Byte],SimpleResult]
+                  ): Iteratee[Array[Byte], SimpleResult]
               })
             }
             handleAction(a, Some(app))
@@ -206,18 +204,18 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
           //handle bad websocket request
           case Right((WebSocket(_), app)) =>
             Play.logger.trace("Bad websocket request")
-            val a = EssentialAction(_ => Done(Results.BadRequest,Input.Empty))
-            handleAction(a,Some(app))
+            val a = EssentialAction(_ => Done(Results.BadRequest, Input.Empty))
+            handleAction(a, Some(app))
 
           case Left(e) =>
             Play.logger.trace("No handler, got direct result: " + e)
             import play.api.libs.iteratee.Execution.Implicits.trampoline
             val a = EssentialAction(_ => Iteratee.flatten(e.map(result => Done(result, Input.Empty))))
-            handleAction(a,None)
+            handleAction(a, None)
 
         }
 
-        def handleAction(action: EssentialAction, app: Option[Application]){
+        def handleAction(action: EssentialAction, app: Option[Application]) {
           Play.logger.trace("Serving this request with: " + action)
 
           val bodyParser = Iteratee.flatten(
@@ -315,7 +313,8 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
     def step(future: Option[ChannelFuture])(input: Input[A]): Iteratee[A, Unit] =
       input match {
         case El(e) => Cont(step(Some(channel.write(nettyFrameFormatter.toFrame(e)))))
-        case e @ EOF => future.map(_.addListener(ChannelFutureListener.CLOSE)).getOrElse(channel.close()); Done((), e)
+        case e @ EOF =>
+          future.map(_.addListener(ChannelFutureListener.CLOSE)).getOrElse(channel.close()); Done((), e)
         case Empty => Cont(step(future))
       }
 
@@ -328,8 +327,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
     new Headers { val data = pairs.toSeq }
   }
 
-  def sendDownstream(subSequence: Int, last: Boolean, message: Object)
-                    (implicit ctx: ChannelHandlerContext, oue: OrderedUpstreamMessageEvent) = {
+  def sendDownstream(subSequence: Int, last: Boolean, message: Object)(implicit ctx: ChannelHandlerContext, oue: OrderedUpstreamMessageEvent) = {
     val ode = new OrderedDownstreamChannelEvent(oue, subSequence, last, message)
     ctx.sendDownstream(ode)
     ode.getFuture

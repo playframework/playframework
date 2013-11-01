@@ -239,10 +239,10 @@ object DiscoverySpec extends Specification with Mockito {
                                        opLocalIdentifier: Option[String] = None,
                                        realm: Option[String] = None) = {
     "valid request parameters need to be present" in {
-      params.get("openid.ns") must beSome(Seq("http://specs.openid.net/auth/2.0"))
-      params.get("openid.mode") must beSome(Seq("checkid_setup"))
-      params.get("openid.claimed_id") must beSome(Seq(claimedId))
-      params.get("openid.return_to") must beSome(Seq(returnTo))
+      params.get("openid.ns") must_== Some(Seq("http://specs.openid.net/auth/2.0"))
+      params.get("openid.mode") must_== Some(Seq("checkid_setup"))
+      params.get("openid.claimed_id") must_== Some(Seq(claimedId))
+      params.get("openid.return_to") must_== Some(Seq(returnTo))
     }
 
     "realm must be handled correctly (absent if not defined)" in {
@@ -252,7 +252,7 @@ object DiscoverySpec extends Specification with Mockito {
     "OP-Local Identifiers must be handled correctly (if a different OP-Local Identifier is not specified, the claimed identifier MUST be used as the value for openid.identity." in {
       val value = params.get("openid.identity")
       opLocalIdentifier match {
-        case Some(id) => value must beSome(Seq(id))
+        case Some(id) => value must_== Some(Seq(id))
         case _ => value must be equalTo params.get("openid.claimed_id")
       }
     }
@@ -264,7 +264,7 @@ object DiscoverySpec extends Specification with Mockito {
 
   // Define matchers based on the expected value. Param must be absent if the expected value is None, it must match otherwise
   private def verifyOptionalParam(params: Params, key: String, expected: Option[String] = None) = expected match {
-    case Some(value) => params.get(key) must beSome(Seq(value))
+    case Some(value) => params.get(key) must_== Some(Seq(value))
     case _ => params.get(key) must beNone
   }
 }

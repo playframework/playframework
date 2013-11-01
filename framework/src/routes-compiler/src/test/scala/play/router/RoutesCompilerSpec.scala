@@ -78,11 +78,11 @@ object RoutesCompilerSpec extends Specification {
     }
 
     "parse a zero argument method" in {
-      parseRoute("GET /s p.c.m()").call.parameters must beSome(Seq())
+      parseRoute("GET /s p.c.m()").call.parameters must_== Some(Seq())
     }
 
     "parse method with arguments" in {
-      parseRoute("GET /s p.c.m(s1, s2)").call.parameters must beSome(Seq(Parameter("s1", "String", None, None), Parameter("s2", "String", None, None)))
+      parseRoute("GET /s p.c.m(s1, s2)").call.parameters must_== Some(Seq(Parameter("s1", "String", None, None), Parameter("s2", "String", None, None)))
     }
 
     "parse argument type" in {
@@ -127,17 +127,28 @@ object RoutesCompilerSpec extends Specification {
 
   "route file compiler" should {
 
-    val tmp = new File("src/routes-compiler/target")
-
-    def removeGenerated(routesName: String) {
-      val generated = new File(tmp, "/%s/routes_routing.scala".format(routesName))
-      if (generated.exists()) generated.delete()
+    def withTempDir[T](block: File => T) = {
+      val tmp = File.createTempFile("RoutesCompilerSpec", "")
+      tmp.delete()
+      tmp.mkdir()
+      try {
+        block(tmp)
+      } finally {
+        def rm(file: File): Unit = file match {
+          case dir if dir.isDirectory =>
+            dir.listFiles().foreach(rm)
+            dir.delete()
+          case f => f.delete()
+        }
+        rm(tmp)
+      }
     }
 
-    "generate routes classes for route definitions that pass the checks" in {
-      removeGenerated("generating")
-      val f = new File("src/routes-compiler/src/test/resources/generating.routes")
-      RoutesCompiler.compile(f, tmp, Seq.empty)
+
+
+    "generate routes classes for route definitions that pass the checks" in withTempDir { tmp =>
+      val file = new File(this.getClass.getClassLoader.getResource("generating.routes").toURI)
+      RoutesCompiler.compile(file, tmp, Seq.empty)
 
       val generatedRoutes = new File(tmp, "generating/routes_routing.scala")
       generatedRoutes.exists() must beTrue
@@ -146,10 +157,9 @@ object RoutesCompilerSpec extends Specification {
       generatedReverseRoutes.exists() must beTrue
     }
 
-    "check if there are no routes using overloaded handler methods" in {
-      removeGenerated("duplicateHandlers")
-      val f = new File("src/routes-compiler/src/test/resources/duplicateHandlers.routes")
-      RoutesCompiler.compile(f, tmp, Seq.empty) must throwA [RoutesCompilationError]
+    "check if there are no routes using overloaded handler methods" in withTempDir { tmp =>
+      val file = new File(this.getClass.getClassLoader.getResource("duplicateHandlers.routes").toURI)
+      RoutesCompiler.compile(file, tmp, Seq.empty) must throwA [RoutesCompilationError]
     }
   }
 

@@ -34,7 +34,7 @@ if (stagedFiles.isEmpty) {
   info("No staged scala files in main project to check")
 } else {
   // Run scalariform and see if anything changes
-  val rt = Process(Seq("./build", "scalariform-format"), Some(new File("framework"))) ! ProcessLogger { s =>
+  val rt = Process(Seq("./build", "scalariformFormat"), Some(new File("framework"))) ! ProcessLogger { s =>
     // Ignore final success line
     if (!s.contains("success")) {
       println(s)

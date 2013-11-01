@@ -7,7 +7,7 @@ import sbt.Keys._
 object Dependencies {
 
   // Some common dependencies here so they don't need to be declared over and over
-  val specsBuild = "org.specs2" %% "specs2" % "2.1.1"
+  val specsBuild = "org.specs2" %% "specs2" % "2.3.1"
   val specsSbt = specsBuild
   val scalaIoFile = "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2"
 
