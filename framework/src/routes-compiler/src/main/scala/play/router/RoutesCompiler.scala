@@ -503,7 +503,7 @@ object RoutesCompiler {
       additionalImports.map(prefixImport).map("import " + _).mkString("\n"),
       reverseRouting(routes, namespace.filter(_ => namespaceReverseRouter)),
       javaScriptReverseRouting(routes, namespace.filter(_ => namespaceReverseRouter)),
-      if(reverseRefRouter) refReverseRouting(routes, namespace.filter(_ => namespaceReverseRouter)) else ""
+      if (reverseRefRouter) refReverseRouting(routes, namespace.filter(_ => namespaceReverseRouter)) else ""
     )
 
   def generateJavaWrappers(path: String, hash: String, date: String, rules: List[Rule], reverseRefRouter: Boolean, namespace: Option[String]) = {
@@ -526,7 +526,7 @@ object RoutesCompiler {
           }
         }.mkString("\n"))
 
-        def refRoutes ="""
+        def refRoutes = """
             |public static class ref {
             |%s
             |}
@@ -554,7 +554,7 @@ object RoutesCompiler {
             packageName,
             reverseRoutes,
             javaScriptRoutes,
-            if(reverseRefRouter) refRoutes else ""
+            if (reverseRefRouter) refRoutes else ""
           )
         }
       }
