@@ -42,6 +42,7 @@ object JavaGlobalSpec extends PlaySpecification {
     withGlobal = Some(new JavaGlobalSettingsAdapter(global))) {
     override protected def loadRoutes = Some(Routes)
   })) {
+    import play.api.Play.current
     await(WS.url("http://localhost:" + testServerPort + url).get()).body
   }
 }

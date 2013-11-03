@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
-package test
+package play.api.libs.ws
 
 import org.specs2.mutable._
 import play.api.libs.ws._
@@ -28,7 +28,7 @@ object WsSpec extends Specification with WsTestClient {
     }
 
     "verify that the WS plugin does not start if not loaded" in {
-      val application = FakeApplication(withoutPlugins = Seq("play.api.libs.ws.WSPlugin"))
+      val application = FakeApplication(withoutPlugins = Seq("play.api.libs.ws.ning.NingWSPlugin"))
       val port: Int = Helpers.testServerPort
       val server = TestServer(port, application)
 

@@ -21,9 +21,7 @@ import play.data.validation.Constraints.RequiredValidator;
 import play.i18n.Lang;
 import play.libs.F;
 import play.libs.F.*;
-import play.libs.WS;
-
-import play.api.mvc.AsyncResult;
+import play.libs.ws.*;
 
 import models.JCustomer;
 import play.data.Form;
@@ -306,7 +304,7 @@ public class SimpleTest {
     public void actionShouldBeExecutedInCorrectThread() {
         running(testServer(3333), new Runnable() {
             public void run() {
-                WS.Response response = WS.url("http://localhost:3333/thread").get().get(10000);
+                WSResponse response = WS.url("http://localhost:3333/thread").get().get(10000);
                 assertThat(response.getBody()).startsWith("play-akka.actor.default-dispatcher-");
             }
         });

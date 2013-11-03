@@ -1,1 +1,1 @@
-700:play.api.libs.ws.WSPlugin
+700:play.api.libs.ws.ning.NingWSPlugin

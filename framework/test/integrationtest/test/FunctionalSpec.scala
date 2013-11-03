@@ -12,6 +12,7 @@ import java.util.Locale
 import play.api.libs.iteratee.Iteratee
 import play.api.libs.ws.ResponseHeaders
 import scala.concurrent.ExecutionContext.Implicits.global
+import play.api.libs.ws
 
 class FunctionalSpec extends PlaySpecification {
   "an Application" should {
@@ -39,7 +40,7 @@ class FunctionalSpec extends PlaySpecification {
     "pass functional test" in new WithBrowser() {
       val hp = WS.url("http://localhost:" + port + "/jsonWithContentType").
         withHeaders("Accept"-> "application/json").
-        get{ header: ResponseHeaders =>
+        get{ header: WSResponseHeaders =>
         val hdrs = header.headers
         hdrs.get("Content-Type").isDefined must equalTo(true)
         hdrs.get("CONTENT-TYpe").isDefined must equalTo(true)
@@ -60,7 +61,7 @@ class FunctionalSpec extends PlaySpecification {
       contentForm must contain ("AnyContentAsFormUrlEncoded")
       contentForm must contain ("foo")
 
-       val jpromise: play.libs.F.Promise[play.libs.WS.Response] = play.libs.WS.url("http://localhost:" + port + "/post").setHeader("Content-Type","application/x-www-form-urlencoded").post("param1=foo")
+      val jpromise: play.libs.F.Promise[play.libs.ws.WSResponse] = play.libs.ws.WS.url("http://localhost:" + port + "/post").setHeader("Content-Type","application/x-www-form-urlencoded").post("param1=foo")
       val contentJava: String = jpromise.get(10000).getBody()
       contentJava must contain ("param1")
       contentJava must contain ("AnyContentAsFormUrlEncoded")

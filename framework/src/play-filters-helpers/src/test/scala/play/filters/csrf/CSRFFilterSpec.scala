@@ -3,12 +3,11 @@
  */
 package play.filters.csrf
 
-import play.api.libs.ws.WS.WSRequestHolder
 import scala.concurrent.Future
 import play.api.libs.ws._
 import play.api.mvc._
 import play.api.libs.json.Json
-import play.api.test.{FakeApplication, TestServer}
+import play.api.test._
 import scala.util.Random
 import play.api.libs.Crypto
 
@@ -53,11 +52,13 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
             .getOrElse(Results.NotFound)))
       } {
         val token = Crypto.generateSignedToken
+        import play.api.Play.current
         await(WS.url("http://localhost:" + testServerPort).withSession(TokenName -> token)
           .post(Map("foo" -> "bar", TokenName -> token))).body must_== "bar"
       }
     }
-    "feed a not fully buffered body once a check has been done and passes" in running(TestServer(testServerPort, FakeApplication(
+
+    val notBufferedFakeApp = FakeApplication(
       additionalConfiguration = Map("application.secret" -> "foobar", "csrf.body.bufferSize" -> "200"),
       withRoutes = {
         case _ => CSRFFilter()(Action(
@@ -67,9 +68,11 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
             .map(Results.Ok(_))
             .getOrElse(Results.NotFound)))
       }
-    ))) {
+    )
+
+    "feed a not fully buffered body once a check has been done and passes" in new WithServer(notBufferedFakeApp, testServerPort) {
       val token = Crypto.generateSignedToken
-      val response = await(WS.url("http://localhost:" + testServerPort).withSession(TokenName -> token)
+      val response = await(WS.url("http://localhost:" + port).withSession(TokenName -> token)
         .withHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded")
         .post(
           Seq(
@@ -84,6 +87,7 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
       response.status must_== OK
       response.body must_== "bar"
     }
+
     "be possible to instantiate when there is no running application" in {
       CSRFFilter() must beAnInstanceOf[AnyRef]
     }
@@ -91,21 +95,23 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
 
 
   def buildCsrfCheckRequest(configuration: (String, String)*) = new CsrfTester {
-    def apply[T](makeRequest: (WSRequestHolder) => Future[Response])(handleResponse: (Response) => T) = withServer(configuration) {
+    def apply[T](makeRequest: (WSRequestHolder) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
       case _ => CSRFFilter()(Action(Results.Ok))
     } {
+      import play.api.Play.current
       handleResponse(await(makeRequest(WS.url("http://localhost:" + testServerPort))))
     }
   }
 
   def buildCsrfAddToken(configuration: (String, String)*) = new CsrfTester {
-    def apply[T](makeRequest: (WSRequestHolder) => Future[Response])(handleResponse: (Response) => T) = withServer(configuration) {
+    def apply[T](makeRequest: (WSRequestHolder) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
       case _ => CSRFFilter()(Action { implicit req =>
         CSRF.getToken(req).map { token =>
           Results.Ok(token.value)
         } getOrElse Results.NotFound
       })
     } {
+      import play.api.Play.current
       handleResponse(await(makeRequest(WS.url("http://localhost:" + testServerPort))))
     }
   }

@@ -24,7 +24,8 @@ object WSSpec extends PlaySpecification {
   }
 
   "WS@java" should {
-    import play.libs.WS
+    import play.libs.ws.WS
+    import play.libs.ws._
 
     "make GET Requests" in withServer { port =>
       val req = WS.url(s"http://localhost:$port/get").get
@@ -48,15 +49,16 @@ object WSSpec extends PlaySpecification {
       rep.asJson().path("authenticated").booleanValue() must beTrue
     }
 
-    "reject invalid query string" in {
+    "reject invalid query string" in withServer { port =>
       import java.net.MalformedURLException
 
       WS.url("http://localhost/get?=&foo") must throwA[RuntimeException].like{
-        case e: RuntimeException => e.getCause must beAnInstanceOf[MalformedURLException]
+        case e: RuntimeException =>
+          e.getCause must beAnInstanceOf[MalformedURLException]
       }
     }
 
-    "reject invalid user password string" in {
+    "reject invalid user password string" in withServer { port =>
       import java.net.MalformedURLException
 
       WS.url("http://@localhost/get") must throwA[RuntimeException].like{
@@ -66,8 +68,6 @@ object WSSpec extends PlaySpecification {
     }
 
     "accept valid query string" in withServer { port =>
-      import java.net.MalformedURLException
-
       var empty = WS.url(s"http://localhost:$port/get?foo").get.get(1000)
       var bar = WS.url(s"http://localhost:$port/get?foo=bar").get.get(1000)
 
@@ -80,6 +80,7 @@ object WSSpec extends PlaySpecification {
 
   "WS@scala" should {
     import play.api.libs.ws.WS
+    import play.api.Play.current
 
     "make GET Requests" in withServer { port =>
       val req = WS.url(s"http://localhost:$port/get").get
@@ -90,6 +91,7 @@ object WSSpec extends PlaySpecification {
     }
 
     "Get 404 errors" in withServer { port =>
+
       val req = WS.url(s"http://localhost:$port/post").get
 
       val rep = Await.result(req, Duration(1, SECONDS))

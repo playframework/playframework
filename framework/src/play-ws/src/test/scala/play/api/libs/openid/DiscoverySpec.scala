@@ -12,7 +12,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.Await
 import java.util.concurrent.TimeUnit
 import org.specs2.control.NoStackTraceFilter
-import play.api.libs.ws.Response
+import play.api.libs.ws._
 
 object DiscoverySpec extends Specification with Mockito {
 
@@ -91,7 +91,7 @@ object DiscoverySpec extends Specification with Mockito {
     import Discovery._
 
     "parse a Google account response" in {
-      val response = mock[Response]
+      val response = mock[WSResponse]
       response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
       response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/google-account-response.xml"))
       val maybeOpenIdServer = new XrdsResolver().resolve(response)
@@ -99,7 +99,7 @@ object DiscoverySpec extends Specification with Mockito {
     }
 
     "parse an XRDS response with a single Service element" in {
-      val response = mock[Response]
+      val response = mock[WSResponse]
       response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
       response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/simple-op.xml"))
       val maybeOpenIdServer = new XrdsResolver().resolve(response)
@@ -107,7 +107,7 @@ object DiscoverySpec extends Specification with Mockito {
     }
 
     "parse an XRDS response with multiple Service elements" in {
-      val response = mock[Response]
+      val response = mock[WSResponse]
       response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
       response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/multi-service.xml"))
       val maybeOpenIdServer = new XrdsResolver().resolve(response)
@@ -116,7 +116,7 @@ object DiscoverySpec extends Specification with Mockito {
 
     // See 7.3.2.2.  Extracting Authentication Data
     "return the OP Identifier over the Claimed Identifier if both are present" in {
-      val response = mock[Response]
+      val response = mock[WSResponse]
       response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
       response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/multi-service-with-op-and-claimed-id-service.xml"))
       val maybeOpenIdServer = new XrdsResolver().resolve(response)
@@ -124,7 +124,7 @@ object DiscoverySpec extends Specification with Mockito {
     }
 
     "extract and use OpenID Authentication 1.0 service elements from XRDS documents, if Yadis succeeds on an URL Identifier." in {
-      val response = mock[Response]
+      val response = mock[WSResponse]
       response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
       response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/simple-openid-1-op.xml"))
       val maybeOpenIdServer = new XrdsResolver().resolve(response)
@@ -132,7 +132,7 @@ object DiscoverySpec extends Specification with Mockito {
     }
 
     "extract and use OpenID Authentication 1.1 service elements from XRDS documents, if Yadis succeeds on an URL Identifier." in {
-      val response = mock[Response]
+      val response = mock[WSResponse]
       response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
       response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/simple-openid-1.1-op.xml"))
       val maybeOpenIdServer = new XrdsResolver().resolve(response)

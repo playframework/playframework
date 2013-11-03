@@ -1,11 +1,12 @@
 /*
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
-package play.libs;
+package play.libs.openid;
 
 import java.util.Map;
 import java.util.HashMap;
 
+import play.libs.Scala;
 import scala.runtime.AbstractFunction1;
 import scala.collection.JavaConversions;
 

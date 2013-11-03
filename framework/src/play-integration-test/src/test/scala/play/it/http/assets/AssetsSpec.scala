@@ -87,7 +87,8 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
 
       result.header(VARY) must beSome(ACCEPT_ENCODING)
       result.header(CONTENT_ENCODING) must beSome("gzip")
-      val is = new GZIPInputStream(new ByteArrayInputStream(result.getAHCResponse.getResponseBodyAsBytes))
+      val ahcResult : com.ning.http.client.Response = result.underlying.asInstanceOf[com.ning.http.client.Response]
+      val is = new GZIPInputStream(new ByteArrayInputStream(ahcResult.getResponseBodyAsBytes))
       IOUtils.toString(is) must_== "This is a test gzipped asset.\n"
       // release deflate resources
       is.close()

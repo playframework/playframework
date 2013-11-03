@@ -8,13 +8,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
 import org.junit.Test;
 import play.libs.Json;
+import play.libs.ws.*;
 import play.test.WithServer;
 
 import static controllers.TestController.Echo;
 import static controllers.TestController.ToReturn;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
-import static play.libs.WS.*;
 import static play.libs.F.*;
 
 public class WsTest extends WithServer {
@@ -70,7 +70,7 @@ public class WsTest extends WithServer {
         ToReturn toReturn = new ToReturn();
 
         toReturn.body = js.getBytes("utf-8");
-        Response response = slave(toReturn);
+        WSResponse response = slave(toReturn);
         assertThat(Json.stringify(response.asJson()), equalTo(js));
 
         toReturn.body = js.getBytes("utf-16");
@@ -87,7 +87,7 @@ public class WsTest extends WithServer {
         ToReturn toReturn = new ToReturn();
         toReturn.body = "äöü!".getBytes("utf-16");
         toReturn.headers.put("Content-Type", "text/plain; charset=utf-16");
-        Response response = slave(toReturn);
+        WSResponse response = slave(toReturn);
         assertThat(response.getBody(), equalTo("äöü!"));
     }
 
@@ -97,7 +97,7 @@ public class WsTest extends WithServer {
         ToReturn toReturn = new ToReturn();
         toReturn.body = "äöü!".getBytes("iso8859-1");
         toReturn.headers.put("Content-Type", "text/plain");
-        Response response = slave(toReturn);
+        WSResponse response = slave(toReturn);
         assertThat(response.getBody(), equalTo("äöü!"));
     }
 
@@ -106,7 +106,7 @@ public class WsTest extends WithServer {
         ToReturn toReturn = new ToReturn();
         toReturn.body = "äöü!".getBytes("utf-8");
         toReturn.headers.put("Content-Type", "application/json");
-        Response response = slave(toReturn);
+        WSResponse response = slave(toReturn);
         assertThat(response.getBody(), equalTo("äöü!"));
     }
 
@@ -114,19 +114,19 @@ public class WsTest extends WithServer {
     public void noContentTypeResponseShouldDefaultToUtf8() throws Exception {
         ToReturn toReturn = new ToReturn();
         toReturn.body = "äöü!".getBytes("utf-8");
-        Response response = slave(toReturn);
+        WSResponse response = slave(toReturn);
         assertThat(response.getBody(), equalTo("äöü!"));
     }
 
-    private Echo getEcho(Promise<Response> response) {
+    private Echo getEcho(Promise<WSResponse> response) {
         return Json.fromJson(response.get(10000).asJson(), Echo.class);
     }
 
     private WSRequestHolder echo() {
-        return url("http://localhost:" + port + "/test/echo");
+        return WS.url("http://localhost:" + port + "/test/echo");
     }
 
-    private Response slave(ToReturn toReturn) {
-        return url("http://localhost:" + port + "/test/slave").post(Json.toJson(toReturn)).get(10000);
+    private WSResponse slave(ToReturn toReturn) {
+        return WS.url("http://localhost:" + port + "/test/slave").post(Json.toJson(toReturn)).get(10000);
     }
 }

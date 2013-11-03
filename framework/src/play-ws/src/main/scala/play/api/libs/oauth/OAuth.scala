@@ -11,7 +11,6 @@ import _root_.oauth.signpost.{ OAuthConsumer, AbstractOAuthConsumer }
 import oauth._
 
 import play.api.libs.ws._
-import play.api.libs.ws.WS.WSRequest
 
 /**
  * Library to access resources protected by OAuth 1.0a.
@@ -46,7 +45,7 @@ case class OAuth(info: ServiceInfo, use10a: Boolean = true) {
   /**
    * Exchange a request token for an access token.
    *
-   * @param the token/secret pair obtained from a previous call
+   * @param token the token/secret pair obtained from a previous call
    * @param verifier a string you got through your user, with redirection
    * @return A Right(RequestToken) in case of success, Left(OAuthException) otherwise
    */
@@ -71,7 +70,7 @@ case class OAuth(info: ServiceInfo, use10a: Boolean = true) {
       provider.getAuthorizationWebsiteUrl(),
       _root_.oauth.signpost.OAuth.OAUTH_TOKEN,
       token
-    );
+    )
   }
 
 }
@@ -99,7 +98,7 @@ case class ServiceInfo(requestTokenURL: String, accessTokenURL: String, authoriz
  * WS.url("http://example.com/protected").sign(OAuthCalculator(service, tokens)).get()
  * }}}
  */
-case class OAuthCalculator(consumerKey: ConsumerKey, token: RequestToken) extends AbstractOAuthConsumer(consumerKey.key, consumerKey.secret) with SignatureCalculator {
+case class OAuthCalculator(consumerKey: ConsumerKey, token: RequestToken) extends AbstractOAuthConsumer(consumerKey.key, consumerKey.secret) with WSSignatureCalculator {
 
   import _root_.oauth.signpost.http.HttpRequest
 
@@ -107,7 +106,7 @@ case class OAuthCalculator(consumerKey: ConsumerKey, token: RequestToken) extend
 
   override protected def wrap(request: Any) = request match {
     case r: WSRequest => new WSRequestAdapter(r)
-    case _ => throw new IllegalArgumentException("OAuthCalculator expects requests of type play.api.libs.WS.WSRequest")
+    case _ => throw new IllegalArgumentException("OAuthCalculator expects requests of type play.api.libs.ws.WSRequest")
   }
 
   override def sign(request: WSRequest): Unit = sign(wrap(request))
@@ -144,4 +143,3 @@ case class OAuthCalculator(consumerKey: ConsumerKey, token: RequestToken) extend
   }
 
 }
-
