@@ -3,7 +3,7 @@
 
 The built-in template engine supports common template formats (HTML, XML, etc.) but you can easily add support for your own formats, if needed. This page summarizes the steps to follow to support a custom format.
 
-## Overview of the the templating process
+## Overview of the templating process
 
 The template engine builds its result by appending static and dynamic content parts of a template. Consider for instance the following template:
 
