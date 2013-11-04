@@ -23,6 +23,7 @@ The Scala API for Play application developers is available in the `play.api` pac
 1. [[The template engine | ScalaTemplates]]
     1. [[Templates syntax | ScalaTemplates]]
     1. [[Common use cases | ScalaTemplateUseCases]]
+    1. [[Custom format addition | ScalaCustomTemplateFormat]]
 1. [[Form submission and validation | ScalaForms]]
     1. [[Handling form submission | ScalaForms]]
     1. [[Protecting against CSRF|ScalaCsrf]]
