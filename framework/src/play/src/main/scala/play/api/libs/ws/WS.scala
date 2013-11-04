@@ -3,6 +3,7 @@ package play.api.libs.ws
 import java.io.File
 import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.{ Future, Promise }
+import scala.util.Try
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.api.http.{ Writeable, ContentTypeOf }
@@ -23,7 +24,7 @@ import play.core.utils.CaseInsensitiveOrdered
 import com.ning.http.util.AsyncHttpProviderUtils
 
 import play.core.Execution.Implicits.internalContext
-import play.api.Play
+import play.api.{ Configuration, Play }
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -47,11 +48,19 @@ object WS {
 
   private[play] def newClient(): AsyncHttpClient = {
     val playConfig = play.api.Play.maybeApplication.map(_.configuration)
-    val wsTimeout = playConfig.flatMap(_.getMilliseconds("ws.timeout"))
+
+    new AsyncHttpClient(clientConfig(playConfig))
+  }
+
+  private[play] def clientConfig(playConfig: Option[Configuration]): AsyncHttpClientConfig = {
+    def millisFromConfig(path: String) = Try {
+      playConfig.flatMap(_.getMilliseconds(path))
+    }.toOption.flatten
+    val wsTimeout = millisFromConfig("ws.timeout")
     val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
-      .setConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout.connection")).orElse(wsTimeout).getOrElse(120000L).toInt)
-      .setIdleConnectionTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout.idle")).orElse(wsTimeout).getOrElse(120000L).toInt)
-      .setRequestTimeoutInMs(playConfig.flatMap(_.getMilliseconds("ws.timeout.request")).getOrElse(120000L).toInt)
+      .setConnectionTimeoutInMs(millisFromConfig("ws.timeout.connection").orElse(wsTimeout).getOrElse(120000L).toInt)
+      .setIdleConnectionTimeoutInMs(millisFromConfig("ws.timeout.idle").orElse(wsTimeout).getOrElse(120000L).toInt)
+      .setRequestTimeoutInMs(millisFromConfig("ws.timeout.request").getOrElse(120000L).toInt)
       .setFollowRedirects(playConfig.flatMap(_.getBoolean("ws.followRedirects")).getOrElse(true))
       .setUseProxyProperties(playConfig.flatMap(_.getBoolean("ws.useProxyProperties")).getOrElse(true))
 
@@ -61,8 +70,7 @@ object WS {
     if (!playConfig.flatMap(_.getBoolean("ws.acceptAnyCertificate")).getOrElse(false)) {
       asyncHttpConfig.setSSLContext(SSLContext.getDefault)
     }
-
-    new AsyncHttpClient(asyncHttpConfig.build())
+    asyncHttpConfig.build()
   }
 
   /**
