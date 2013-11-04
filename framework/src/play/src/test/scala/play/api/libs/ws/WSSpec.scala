@@ -8,6 +8,7 @@ import com.ning.http.client.{
   Cookie => AHCCookie
 }
 import java.util
+import play.api.Configuration
 
 object WSSpec extends Specification with Mockito {
 
@@ -19,6 +20,23 @@ object WSSpec extends Specification with Mockito {
        req.getQueryParams.get("foo").contains("foo1") must beTrue
        req.getQueryParams.get("foo").contains("foo2") must beTrue
        req.getQueryParams.get("foo").size must equalTo (2)
+    }
+
+    "obey a basic timeout config" in {
+      val config = Some(Configuration.from(Map("ws.timeout" -> 2000)))
+      WS.clientConfig(config).getConnectionTimeoutInMs must equalTo (2000)
+      WS.clientConfig(config).getIdleConnectionTimeoutInMs must equalTo (2000)
+    }
+
+    "obey a detailed timeout.config" in {
+      val config = Some(Configuration.from(Map(
+        "ws.timeout.connection" -> 500,
+        "ws.timeout.idle" -> 5000,
+        "ws.timeout.request" -> 2000
+      )))
+      WS.clientConfig(config).getConnectionTimeoutInMs must equalTo (500)
+      WS.clientConfig(config).getIdleConnectionTimeoutInMs must equalTo (5000)
+      WS.clientConfig(config).getRequestTimeoutInMs must equalTo (2000)
     }
   }
 
@@ -64,5 +82,4 @@ object WSSpec extends Specification with Mockito {
       }
     }
   }
-
 }
