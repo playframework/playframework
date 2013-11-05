@@ -63,6 +63,9 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
     allChannels.add(e.getChannel)
   }
 
+  override def channelClosed(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
+    allChannels.remove(e.getChannel)
+  }
 
   override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
     e.getMessage match {
