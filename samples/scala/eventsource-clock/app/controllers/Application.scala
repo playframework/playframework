@@ -34,7 +34,7 @@ object Application extends Controller {
   }
   
   def liveClock = Action {
-    Ok.chunked(clock &> EventSource()).as("text/event-stream")
+    Ok.chunked(clock &> EventSource()).as(EVENT_STREAM)
   }
   
 }

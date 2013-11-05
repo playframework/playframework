@@ -12,6 +12,7 @@ import java.text.*;
 import scala.concurrent.duration.Duration;
 
 import static java.util.concurrent.TimeUnit.*;
+import static play.libs.EventSource.Event.event;
 
 import views.html.*;
 
@@ -78,7 +79,7 @@ public class Application extends Controller {
                 // Send the current time to all EventSource sockets
                 List<EventSource> shallowCopy = new ArrayList<EventSource>(sockets); //prevent ConcurrentModificationException
                 for(EventSource es: shallowCopy) {
-                    es.sendData(dateFormat.format(new Date()));
+                    es.send(event(dateFormat.format(new Date())));
                 }
                 
             }
