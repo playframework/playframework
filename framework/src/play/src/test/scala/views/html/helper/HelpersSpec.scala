@@ -37,6 +37,20 @@ object HelpersSpec extends Specification {
     }
   }
 
+
+  "@checkboxGroup" should {
+     "allow to check more than one checkbox" in {
+       val form = Form(single("hobbies" -> Forms.list(Forms.text))).fill(List("S", "B"))
+       val body = inputCheckboxGroup.apply(form("hobbies"), Seq(("S", "Surfing"), ("B", "Biking"))).body
+
+       // Append [] to the name for the form binding
+       body must contain( "name=\"hobbies[]\"" )
+
+       body must contain( """<input type="checkbox" id="hobbies_S" name="hobbies[]" value="S" checked >""" )
+       body must contain( """<input type="checkbox" id="hobbies_B" name="hobbies[]" value="B" checked >""" )
+     }
+  }
+
   "@select" should {
 
     "allow setting a custom id" in {

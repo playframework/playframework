@@ -4,14 +4,15 @@
 * Example:
 * {{{
 * @checkboxGroup(
-*           contactForm("gender"),
-*           options = Seq("M"->"Male","F"->"Female"),
-*           '_label -> "Gender",
-*           '_error -> contactForm("gender").error.map(_.withMessage("select gender")))
+*           contactForm("hobbies"),
+*           options = Seq("S" -> "Surfing", "R" -> "Running", "B" -> "Biking","P" -> "Paddling"),
+*           '_label -> "Hobbies",
+*           '_error -> contactForm("hobbies").error.map(_.withMessage("select one or more hobbies")))
 *
 * }}}
 *
 * @param field The form field.
+* @param options Sequence of options as pairs of value and HTML
 * @param args Set of extra HTML attributes.
 * @param handler The field constructor.
 *@
