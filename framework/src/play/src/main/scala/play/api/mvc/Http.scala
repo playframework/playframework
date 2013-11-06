@@ -100,7 +100,7 @@ package play.api.mvc {
      * The Request Langs extracted from the Accept-Language header and sorted by preference (preferred first).
      */
     lazy val acceptLanguages: Seq[play.api.i18n.Lang] = {
-      val langs = acceptHeader(HeaderNames.ACCEPT_LANGUAGE).map(item => (item._1, Lang.get(item._2)))
+      val langs = RequestHeader.acceptHeader(headers, HeaderNames.ACCEPT_LANGUAGE).map(item => (item._1, Lang.get(item._2)))
       langs.sortWith((a, b) => a._1 > b._1).map(_._2).flatten
     }
 
@@ -121,22 +121,6 @@ package play.api.mvc {
      */
     lazy val acceptedTypes: Seq[play.api.http.MediaRange] = {
       headers.get(HeaderNames.ACCEPT).toSeq.flatMap(MediaRange.parse.apply)
-    }
-
-    /**
-     * @return The items of an Accept* header, with their q-value.
-     */
-    private def acceptHeader(headerName: String): Seq[(Double, String)] = {
-      for {
-        header <- headers.get(headerName).toSeq
-        value0 <- header.split(',')
-        value = value0.trim
-      } yield {
-        RequestHeader.qPattern.findFirstMatchIn(value) match {
-          case Some(m) => (m.group(1).toDouble, m.before.toString)
-          case None => (1.0, value) // “The default value is q=1.”
-        }
-      }
     }
 
     /**
@@ -221,9 +205,25 @@ package play.api.mvc {
 
   }
 
-  object RequestHeader {
+  private[play] object RequestHeader {
     // “The first "q" parameter (if any) separates the media-range parameter(s) from the accept-params.”
     val qPattern = ";\\s*q=([0-9.]+)".r
+
+    /**
+     * @return The items of an Accept* header, with their q-value.
+     */
+    def acceptHeader(headers: Headers, headerName: String): Seq[(Double, String)] = {
+      for {
+        header <- headers.get(headerName).toSeq
+        value0 <- header.split(',')
+        value = value0.trim
+      } yield {
+        RequestHeader.qPattern.findFirstMatchIn(value) match {
+          case Some(m) => (m.group(1).toDouble, m.before.toString)
+          case None => (1.0, value) // “The default value is q=1.”
+        }
+      }
+    }
   }
 
   /**
