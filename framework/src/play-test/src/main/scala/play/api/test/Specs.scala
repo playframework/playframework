@@ -46,13 +46,9 @@ abstract class WithServer(val app: FakeApplication = FakeApplication(),
  * @param port The port to run the server on
  */
 abstract class WithBrowser[WEBDRIVER <: WebDriver](
-    val webDriver: WebDriver,
+    val webDriver: WebDriver = WebDriverFactory(Helpers.HTMLUNIT),
     val app: FakeApplication = FakeApplication(),
     val port: Int = Helpers.testServerPort) extends Around with Scope {
-
-  def this(webDriver: Class[WEBDRIVER] = Helpers.HTMLUNIT,
-      app: FakeApplication = FakeApplication(),
-      port: Int = Helpers.testServerPort) = this(WebDriverFactory(webDriver), app, port)
 
   implicit def implicitApp = app
   implicit def implicitPort: Port = port
