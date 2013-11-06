@@ -30,7 +30,13 @@ public class EbeanPlugin extends Plugin {
     // --
     
     private final Map<String,EbeanServer> servers = new HashMap<String,EbeanServer>();
-    
+
+
+    public String defaultServer() {
+        //lookup key to set the default server otherwise the "default" data source is the default server
+        return application.configuration().getString("ebeanconfig.datasource.default", "default");
+    }
+
     /**
      * Reads the configuration file and initialises required Ebean servers.
      */
@@ -53,7 +59,8 @@ public class EbeanPlugin extends Plugin {
                         e
                     );
                 }
-                if(key.equals("default")) {
+
+                if(defaultServer().equals(key)) {
                     config.setDefaultServer(true);
                 }
                 

@@ -24,6 +24,7 @@ import com.avaje.ebean.EbeanServer;
 import com.avaje.ebean.Filter;
 import com.avaje.ebean.QueryResultVisitor;
 
+import play.Play;
 import play.libs.F.*;
 import static play.libs.F.*;
 
@@ -227,7 +228,7 @@ public class Model {
          * Creates a finder for entity of type <code>T</code> with ID of type <code>I</code>.
          */
         public Finder(Class<I> idType, Class<T> type) {
-            this("default", idType, type);
+            this(Play.application().plugin(EbeanPlugin.class).defaultServer(), idType, type);
         }
         
         /**
