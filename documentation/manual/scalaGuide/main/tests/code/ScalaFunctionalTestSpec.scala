@@ -97,7 +97,7 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
         }
     })
 
-    "run in a browser" in new WithBrowser(webDriver = HTMLUNIT, app = fakeApplicationWithBrowser) {
+    "run in a browser" in new WithBrowser(webDriver = WebDriverFactory(HTMLUNIT), app = fakeApplicationWithBrowser) {
       browser.goTo("/")
 
       // Check the page
