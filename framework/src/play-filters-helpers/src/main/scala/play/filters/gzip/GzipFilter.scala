@@ -8,6 +8,7 @@ import play.api.mvc._
 import scala.concurrent.Future
 import play.api.mvc.SimpleResult
 import play.api.mvc.ResponseHeader
+import play.api.mvc.RequestHeader.acceptHeader
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names
 import play.api.http.{ Status, MimeTypes }
 import play.api.libs.concurrent.Execution.Implicits._
@@ -139,8 +140,17 @@ class GzipFilter(gzip: Enumeratee[Array[Byte], Array[Byte]] = Gzip.gzip(GzipFilt
   /**
    * Whether this request may be compressed.
    */
-  private def mayCompress(request: RequestHeader) = request.method != "HEAD" &&
-    request.headers.get(Names.ACCEPT_ENCODING).flatMap(_.split(',').find(_ == "gzip")).isDefined
+  private def mayCompress(request: RequestHeader) =
+    request.method != "HEAD" && gzipIsAcceptedAndPreferredBy(request)
+
+  private def gzipIsAcceptedAndPreferredBy(request: RequestHeader) = {
+    val codings = acceptHeader(request.headers, ACCEPT_ENCODING)
+    def explicitQValue(coding: String) = codings collectFirst { case (q, c) if c equalsIgnoreCase coding => q }
+    def defaultQValue(coding: String) = if (coding == "identity") 1d else 0d
+    def qvalue(coding: String) = explicitQValue(coding) orElse explicitQValue("*") getOrElse defaultQValue(coding)
+
+    qvalue("gzip") > 0d && qvalue("gzip") >= qvalue("identity")
+  }
 
   /**
    * Whether this response should be compressed.  Responses that may not contain content won't be compressed, nor will
