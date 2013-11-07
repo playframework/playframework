@@ -146,7 +146,7 @@ class GzipFilter(gzip: Enumeratee[Array[Byte], Array[Byte]] = Gzip.gzip(GzipFilt
   private def gzipIsAcceptedAndPreferredBy(request: RequestHeader) = {
     val codings = acceptHeader(request.headers, ACCEPT_ENCODING)
     def explicitQValue(coding: String) = codings collectFirst { case (q, c) if c equalsIgnoreCase coding => q }
-    def defaultQValue(coding: String) = if (coding == "identity") 1d else 0d
+    def defaultQValue(coding: String) = if (coding == "identity") 0.001d else 0d
     def qvalue(coding: String) = explicitQValue(coding) orElse explicitQValue("*") getOrElse defaultQValue(coding)
 
     qvalue("gzip") > 0d && qvalue("gzip") >= qvalue("identity")

@@ -205,14 +205,14 @@ package play.api.mvc {
 
   }
 
-  private[play] object RequestHeader {
+  object RequestHeader {
     // “The first "q" parameter (if any) separates the media-range parameter(s) from the accept-params.”
     val qPattern = ";\\s*q=([0-9.]+)".r
 
     /**
      * @return The items of an Accept* header, with their q-value.
      */
-    def acceptHeader(headers: Headers, headerName: String): Seq[(Double, String)] = {
+    private[play] def acceptHeader(headers: Headers, headerName: String): Seq[(Double, String)] = {
       for {
         header <- headers.get(headerName).toSeq
         value0 <- header.split(',')

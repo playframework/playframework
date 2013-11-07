@@ -27,7 +27,8 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
     """gzip a response if (and only if) it is accepted and preferred by the request.
       |Although not explicitly mentioned in RFC 2616 sect. 14.3, the default qvalue
       |is assumed to be 1 for all mentioned codings. If no "*" is present, unmentioned
-      |codings are assigned a qvalue of 0, except the identity coding which gets q=1.
+      |codings are assigned a qvalue of 0, except the identity coding which gets q=0.001,
+      |which is the lowest possible acceptable qvalue.
       |This seems to be the most consistent behaviour with respect to the other "accept"
       |header fields described in sect 14.1-5.""".stripMargin in withApplication(Ok("meep")) {
 
@@ -52,7 +53,8 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
       "*;q=0, gZIP"                         !! gzipped    |
       "compress;q=0.1, *;q=0, gzip"         !! gzipped    |
       "compress;q=0.1, *;q=0, gzip;q=0.005" !! gzipped    |
-      "compress, gzip;q=0.005"              !! plain      |
+      "compress, gzip;q=0.001"              !! gzipped    |
+      "compress, gzip;q=0.002"              !! gzipped    |
       "compress;q=1, *;q=0, gzip;q=0.000"   !! plain      |
       "compress;q=1, *;q=0"                 !! plain      |
       "identity"                            !! plain      |
