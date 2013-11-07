@@ -15,10 +15,12 @@ object Dependencies {
   val findBugs = "com.google.code.findbugs" % "jsr305" % "2.0.2" // Needed by guava
   val mockitoAll = "org.mockito" % "mockito-all" % "1.9.5"
 
+  val h2database = "com.h2database" % "h2" % "1.3.174"
+
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
 
-    "com.h2database" % "h2" % "1.3.172",
+    h2database,
 
     "tyrex" % "tyrex" % "1.0.1",
 
@@ -136,7 +138,7 @@ object Dependencies {
 
     "org.avaje.ebeanorm" % "avaje-ebeanorm-agent" % "3.2.1" exclude ("javax.persistence", "persistence-api"),
 
-    "com.h2database" % "h2" % "1.3.172",
+    h2database,
     "org.javassist" % "javassist" % "3.18.0-GA",
 
     "net.contentobjects.jnotify" % "jnotify" % "0.94",
@@ -204,6 +206,11 @@ object Dependencies {
 
     specsBuild % "test",
     mockitoAll % "test"
+  )
+
+  val anormDependencies = Seq(
+    specsBuild % "test",
+    h2database % "test"
   )
 
 }
