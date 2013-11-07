@@ -264,7 +264,7 @@ object HttpConnection extends Enumeration {
  * @param connection the connection semantics to use
  */
 case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
-    connection: HttpConnection.Connection = HttpConnection.KeepAlive) extends PlainResult {
+    connection: HttpConnection.Connection = HttpConnection.KeepAlive) extends PlainResult with WithHeaders[SimpleResult] {
 
   /**
    * Adds headers to this result.
