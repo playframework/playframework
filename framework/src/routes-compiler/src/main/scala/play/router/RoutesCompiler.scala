@@ -418,6 +418,14 @@ object RoutesCompiler {
     }
   }
 
+  private def prefixImport(i: String): String = {
+    if (!i.startsWith("_root_.")) {
+      "_root_." + i
+    } else {
+      i
+    }
+  }
+
   def generateRouter(path: String, hash: String, date: String, namespace: Option[String], additionalImports: Seq[String], rules: List[Rule]) =
     """ |// @SOURCE:%s
         |// @HASH:%s
@@ -460,7 +468,7 @@ object RoutesCompiler {
       hash,
       date,
       namespace.map("package " + _).getOrElse(""),
-      additionalImports.map("import " + _).mkString("\n"),
+      additionalImports.map(prefixImport).map("import " + _).mkString("\n"),
       rules.collect { case Include(p, r) => "(\"" + p + "\"," + r + ")" }.mkString(","),
       routeDefinitions(rules),
       routing(rules)
@@ -491,7 +499,7 @@ object RoutesCompiler {
       hash,
       date,
       namespace.map(_ + ".").getOrElse(""),
-      additionalImports.map("import " + _).mkString("\n"),
+      additionalImports.map(prefixImport).map("import " + _).mkString("\n"),
       reverseRouting(routes, namespace.filter(_ => namespaceReverseRouter)),
       javaScriptReverseRouting(routes, namespace.filter(_ => namespaceReverseRouter)),
       refReverseRouting(routes, namespace.filter(_ => namespaceReverseRouter))
