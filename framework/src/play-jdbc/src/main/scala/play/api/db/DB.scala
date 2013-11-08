@@ -321,7 +321,7 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
 
       override def onCheckIn(connection: ConnectionHandle) {
         if (logger.isTraceEnabled) {
-          logger.trace("Check in connection [%s leased]".format(datasource.getTotalLeased))
+          logger.trace("Check in connection %s [%s leased]".format(connection.toString, datasource.getTotalLeased))
         }
       }
 
@@ -331,7 +331,7 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
         connection.setReadOnly(readOnly)
         catalog.map(connection.setCatalog(_))
         if (logger.isTraceEnabled) {
-          logger.trace("Check out connection [%s leased]".format(datasource.getTotalLeased))
+          logger.trace("Check out connection %s [%s leased]".format(connection.toString, datasource.getTotalLeased))
         }
       }
 
@@ -382,6 +382,7 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
     datasource.setDisableJMX(conf.getBoolean("disableJMX").getOrElse(true))
     datasource.setStatisticsEnabled(conf.getBoolean("statisticsEnabled").getOrElse(false))
     datasource.setIdleConnectionTestPeriod(conf.getMilliseconds("idleConnectionTestPeriod").getOrElse(1000 * 60), java.util.concurrent.TimeUnit.MILLISECONDS)
+    datasource.setDisableConnectionTracking(conf.getBoolean("disableConnectionTracking").getOrElse(true))
 
     conf.getString("initSQL").map(datasource.setInitSQL(_))
     conf.getBoolean("logStatements").map(datasource.setLogStatementsEnabled(_))
