@@ -12,8 +12,9 @@ import org.apache.commons.io.IOUtils
 import scala.concurrent.Future
 import play.api.libs.iteratee.{Iteratee, Enumerator}
 import scala.util.Random
+import org.specs2.matcher.DataTables
 
-object GzipFilterSpec extends PlaySpecification {
+object GzipFilterSpec extends PlaySpecification with DataTables {
 
   sequential
 
@@ -21,6 +22,51 @@ object GzipFilterSpec extends PlaySpecification {
 
     "gzip responses" in withApplication(Ok("hello")) {
       checkGzippedBody(makeGzipRequest, "hello")
+    }
+
+    """gzip a response if (and only if) it is accepted and preferred by the request.
+      |Although not explicitly mentioned in RFC 2616 sect. 14.3, the default qvalue
+      |is assumed to be 1 for all mentioned codings. If no "*" is present, unmentioned
+      |codings are assigned a qvalue of 0, except the identity coding which gets q=0.001,
+      |which is the lowest possible acceptable qvalue.
+      |This seems to be the most consistent behaviour with respect to the other "accept"
+      |header fields described in sect 14.1-5.""".stripMargin in withApplication(Ok("meep")) {
+
+      val (plain, gzipped) = (None, Some("gzip"))
+
+      "Accept-Encoding of request"          || "Response" |
+      //------------------------------------++------------+
+      "gzip"                                !! gzipped    |
+      "compress,gzip"                       !! gzipped    |
+      "compress, gzip"                      !! gzipped    |
+      "gzip,compress"                       !! gzipped    |
+      "deflate, gzip,compress"              !! gzipped    |
+      "gzip, compress"                      !! gzipped    |
+      "identity, gzip, compress"            !! gzipped    |
+      "GZip"                                !! gzipped    |
+      "*"                                   !! gzipped    |
+      "*;q=0"                               !! plain      |
+      "*; q=0"                              !! plain      |
+      "*;q=0.000"                           !! plain      |
+      "gzip;q=0"                            !! plain      |
+      "gzip; q=0.00"                        !! plain      |
+      "*;q=0, gZIP"                         !! gzipped    |
+      "compress;q=0.1, *;q=0, gzip"         !! gzipped    |
+      "compress;q=0.1, *;q=0, gzip;q=0.005" !! gzipped    |
+      "compress, gzip;q=0.001"              !! gzipped    |
+      "compress, gzip;q=0.002"              !! gzipped    |
+      "compress;q=1, *;q=0, gzip;q=0.000"   !! plain      |
+      "compress;q=1, *;q=0"                 !! plain      |
+      "identity"                            !! plain      |
+      "gzip;q=0.5, identity"                !! plain      |
+      "gzip;q=0.5, identity;q=1"            !! plain      |
+      "gzip;q=0.6, identity;q=0.5"          !! gzipped    |
+      "*;q=0.7, gzip;q=0.6, identity;q=0.4" !! gzipped    |
+      ""                                    !! plain      |> {
+
+      (codings, expectedEncoding) =>
+        header(CONTENT_ENCODING, requestAccepting(codings)) must be equalTo(expectedEncoding)
+      }
     }
 
     "not gzip responses when not requested" in withApplication(Ok("hello")) {
@@ -93,6 +139,8 @@ object GzipFilterSpec extends PlaySpecification {
 
   def makeGzipRequest = route(gzipRequest).get
 
+  def requestAccepting(codings: String) = route(FakeRequest().withHeaders(ACCEPT_ENCODING -> codings)).get
+
   def gunzip(bytes: Array[Byte]): String = {
     val is = new GZIPInputStream(new ByteArrayInputStream(bytes))
     val result = IOUtils.toString(is, "UTF-8")
@@ -115,5 +163,4 @@ object GzipFilterSpec extends PlaySpecification {
     header(CONTENT_ENCODING, result) must beNone
     contentAsString(result) must_== body
   }
-
 }
