@@ -324,7 +324,7 @@ public class F {
          * @param function The function to map <code>A</code> to <code>B</code>.
          * @return A wrapped promise that maps the type from <code>A</code> to <code>B</code>.
          */
-        public <B> Promise<B> map(final Function<A, B> function) {
+        public <B> Promise<B> map(final Function<? super A, B> function) {
             return FPromiseHelper.map(this, function, HttpExecution.defaultContext());
         }
 
@@ -336,7 +336,7 @@ public class F {
          * @param ec The ExecutionContext to execute the function in.
          * @return A wrapped promise that maps the type from <code>A</code> to <code>B</code>.
          */
-        public <B> Promise<B> map(final Function<A, B> function, ExecutionContext ec) {
+        public <B> Promise<B> map(final Function<? super A, B> function, ExecutionContext ec) {
             return FPromiseHelper.map(this, function, ec);
         }
 
@@ -397,7 +397,7 @@ public class F {
          * @param function The function to map <code>A</code> to a promise for <code>B</code>.
          * @return A wrapped promise for a result of type <code>B</code>
          */
-        public <B> Promise<B> flatMap(final Function<A,Promise<B>> function) {
+        public <B> Promise<B> flatMap(final Function<? super A,Promise<B>> function) {
             return FPromiseHelper.flatMap(this, function, HttpExecution.defaultContext());
         }
 
@@ -409,7 +409,7 @@ public class F {
          * @param ec The ExecutionContext to execute the function in.
          * @return A wrapped promise for a result of type <code>B</code>
          */
-        public <B> Promise<B> flatMap(final Function<A,Promise<B>> function, ExecutionContext ec) {
+        public <B> Promise<B> flatMap(final Function<? super A,Promise<B>> function, ExecutionContext ec) {
             return FPromiseHelper.flatMap(this, function, ec);
         }
 
