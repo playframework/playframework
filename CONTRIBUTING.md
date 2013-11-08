@@ -38,6 +38,7 @@ This is the process for a contributor (that is, a non Play core developer) to co
             * wrap core API for scala users ([example]  (https://github.com/playframework/playframework/blob/master/framework/src/play-cache/src/main/scala/play/api/cache/Cache.scala#L69))
             * wrap scala API for java users ([example](https://github.com/playframework/playframework/blob/master/framework/src/play-cache/src/main/java/play/cache/Cache.java))
         * Features are forever, always think about whether a new feature really belongs to the core framework or it should be implemented as a plugin
+        * Code must conform to standard style guidelines and pass all tests (see [validatePullRequest](https://github.com/playframework/playframework/blob/master/framework/validatePullRequest))
     6. New files must:
        *  Have a Typesafe copyright header in the style of ``Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>``.
        * Not use ``@author`` tags since it does not encourage [Collective Code Ownership](http://www.extremeprogramming.org/rules/collective.html).
