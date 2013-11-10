@@ -40,8 +40,10 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
           case 4 | -1 =>
           // Note: we have to listen to -1 for jline2, for some reason...
           // STOP on Ctrl-D or EOF.
-          case 11 => consoleReader.clearScreen(); waitEOF()
-          case 10 => println(); waitEOF()
+          case 11 =>
+            consoleReader.clearScreen(); waitEOF()
+          case 10 =>
+            println(); waitEOF()
           case x => waitEOF()
         }
       }

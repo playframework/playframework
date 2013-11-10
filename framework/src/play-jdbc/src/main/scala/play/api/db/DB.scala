@@ -100,7 +100,8 @@ trait DBApi {
         connection.commit()
         r
       } catch {
-        case e: ControlThrowable => connection.commit(); throw e
+        case e: ControlThrowable =>
+          connection.commit(); throw e
         case NonFatal(e) => connection.rollback(); throw e
       }
     }
