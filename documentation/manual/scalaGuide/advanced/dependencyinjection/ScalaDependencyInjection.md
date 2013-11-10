@@ -48,3 +48,9 @@ There is an [Activator](http://www.typesafe.com/activator) project available for
 [Guice](https://code.google.com/p/google-guice/) is a lightweight dependency injection framework designed for Java.
 
 There is an [Activator](http://www.typesafe.com/activator) project available for Guice.  You can download it from Activator [directly](http://typesafe.com/activator/template/play-guice), or clone it from [https://github.com/typesafehub/play-guice](https://github.com/typesafehub/play-guice).
+
+### Scaldi
+
+[Scaldi](https://github.com/scaldi/scaldi) is a lightweight Scala dependency injection library.
+
+There is an [Activator](http://www.typesafe.com/activator) template available for Scaldi + Play example application. You can download it from Activator [directly](http://typesafe.com/activator/template/scaldi-play-example), or clone it from [https://github.com/scaldi/scaldi-play-example](https://github.com/scaldi/scaldi-play-example). [This article](http://hacking-scala.tumblr.com/post/51407241538/easy-dependency-injection-in-play-framework-with-scaldi) can also help you to make your first steps with Scaldi and Play.
