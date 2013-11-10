@@ -473,6 +473,14 @@ object WS {
      */
     def execute(method: String): Future[Response] = prepare(method).execute
 
+    /**
+     * Execute an arbitrary method with supplied body on the request asynchronously.
+     *
+     * @param method The method to execute
+     * @param body Body of request
+     */
+    def execute[T](method: String, body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Response] = prepare(method, body).execute
+
     private[play] def prepare(method: String) = {
       val request = new WSRequest(method, auth, calc).setUrl(url)
         .setHeaders(headers)
