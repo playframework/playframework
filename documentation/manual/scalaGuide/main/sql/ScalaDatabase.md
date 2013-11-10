@@ -92,7 +92,7 @@ For example, if you use MySQL5, you need to add a [[dependency | SBTDependencies
 
 ```scala
 val appDependencies = Seq(
-  "mysql" % "mysql-connector-java" % "5.1.21"
+  "mysql" % "mysql-connector-java" % "5.1.27"
 )
 ```
 
