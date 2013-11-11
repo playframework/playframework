@@ -112,7 +112,8 @@ List<Task> tasks = find.where()
     .orderBy("dueDate asc")
     .findPagingList(25)
     .setFetchAhead(false)
-    .getPage(1);
+    .getPage(1)
+    .getList();
 ```
 
 ## Transactional actions
