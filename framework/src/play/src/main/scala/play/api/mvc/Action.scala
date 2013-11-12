@@ -107,11 +107,9 @@ trait Action[A] extends EssentialAction {
     case Right(a) =>
       val request = Request(rh, a)
       Play.logger.trace("Invoking action with request: " + request)
-      Play.maybeApplication.map { app =>
-        play.utils.Threads.withContextClassLoader(app.classloader) {
-          apply(request)
-        }
-      }.getOrElse(Future.successful(Results.InternalServerError))
+      Future.successful(()).flatMap { _ =>
+        apply(request)
+      }(executionContext)
   }(executionContext)
 
   /**
