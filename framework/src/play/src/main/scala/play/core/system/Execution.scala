@@ -40,8 +40,7 @@ private[play] object Execution {
         }
       }
 
-      val numberOfThreads = play.api.Play.maybeApplication.map(_.configuration.getInt("internal-threadpool-size")).flatten
-        .getOrElse(Runtime.getRuntime.availableProcessors)
+      val numberOfThreads = PlayConfiguration.NumberOfThreads
 
       val service = new ForkJoinPool(
         numberOfThreads,

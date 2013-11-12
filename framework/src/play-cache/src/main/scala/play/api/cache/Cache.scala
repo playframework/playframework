@@ -155,7 +155,7 @@ class EhCachePlugin(app: Application) extends CachePlugin {
    * }}}
    */
   override lazy val enabled = {
-    !app.configuration.getString("ehcacheplugin").filter(_ == "disabled").isDefined
+    !app.playConfiguration.Ehcacheplugin.filter(_ == "disabled").isDefined
   }
 
   override def onStart() {

@@ -452,7 +452,7 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
    * }}}
    */
   override lazy val enabled = app.configuration.getConfig("db").isDefined && {
-    !app.configuration.getString("evolutionplugin").exists(_ == "disabled")
+    !app.playConfiguration.Evolutionplugin.exists(_ == "disabled")
   }
 
   /**
@@ -495,7 +495,7 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
   }
 
   def withLock(ds: DataSource)(block: => Unit) {
-    if (app.configuration.getBoolean("evolutions.use.locks").getOrElse(false)) {
+    if (app.playConfiguration.EvolutionUseLocks.getOrElse(false)) {
       val c = ds.getConnection
       c.setAutoCommit(false)
       val s = c.createStatement()

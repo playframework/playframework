@@ -96,7 +96,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
         def forwardedHeader(remoteAddress: String, headerName: String) = for {
           headerValue <- rHeaders.get(headerName)
           app <- server.applicationProvider.get.toOption
-          trustxforwarded <- app.configuration.getBoolean("trustxforwarded").orElse(Some(false))
+          trustxforwarded = app.playConfiguration.Trustxforwarded.getOrElse(false)
           if remoteAddress == "127.0.0.1" || trustxforwarded
         } yield headerValue
 

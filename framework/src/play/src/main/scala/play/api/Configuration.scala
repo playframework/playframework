@@ -760,5 +760,5 @@ case class Configuration(underlying: Config) {
   def globalError(message: String, e: Option[Throwable] = None): PlayException = {
     Configuration.configError(underlying.root.origin, message, e)
   }
-
 }
+

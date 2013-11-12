@@ -215,7 +215,7 @@ class BoneCPPlugin(app: Application) extends DBPlugin {
    * plugin is disabled if either configuration is missing or the plugin is explicitly disabled
    */
   private lazy val isDisabled = {
-    app.configuration.getString("dbplugin").filter(_ == "disabled").isDefined || dbConfig.subKeys.isEmpty
+    app.playConfiguration.Dbplugin.filter(_ == "disabled").isDefined || dbConfig.subKeys.isEmpty
   }
 
   /**

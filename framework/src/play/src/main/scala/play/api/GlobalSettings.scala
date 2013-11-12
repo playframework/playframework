@@ -54,7 +54,7 @@ trait GlobalSettings {
 
   /**
    * Additional configuration provided by the application.  This is invoked by the default implementation of
-   * onConfigLoad, so if you override that, this won't be invoked.
+   * onLoadConfig, so if you override that, this won't be invoked.
    */
   def configuration: Configuration = Configuration.empty
 
