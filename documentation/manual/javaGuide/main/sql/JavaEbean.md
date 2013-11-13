@@ -117,7 +117,7 @@ List<Task> tasks = find.where()
 
 ## Transactional actions
 
-By default Ebean will use transactions. However this transactions will be created before and commited or rollbacked after every single query, update, create or delete, as you can see here:
+By default Ebean will use transactions. However these transactions will be created before and commited or rollbacked after every single query, update, create or delete, as you can see here:
 
 ```
 //Created implicit transaction
