@@ -7,7 +7,7 @@ Play includes a simple data access layer called Anorm that uses plain SQL to int
 
 > In the following documentation, we will use the [MySQL world sample database](http://dev.mysql.com/doc/index-other.html). 
 > 
-> If you want to enable it for your application, follow the MySQL website instructions, and configure it as  explained [[on the Scala database page | ScalaDatabase]].
+> If you want to enable it for your application, follow the MySQL website instructions, and configure it as explained [[on the Scala database page | ScalaDatabase]].
 
 ## Overview
 
@@ -150,6 +150,29 @@ val countries = SQL("Select name,population from Country")().collect {
 ```
 
 Note that since `collect(…)` ignores the cases where the partial function isn’t defined, it allows your code to safely ignore rows that you don’t expect.
+
+## Retrieving data along with execution context
+
+Moreover data, query execution involves context information like SQL warnings that may be raised (and may be fatal or not), especially when working with stored SQL procedure.
+
+Way to get context information along with query data is to use `executeQuery()`:
+
+```scala
+import anorm.SqlQueryResult
+
+val res: SqlQueryResult = SQL("EXEC stored_proc {code}").
+  on('code -> code).executeQuery()
+
+// Check execution context (there warnings) before going on
+val str: Option[String] =
+  res.statementWarning match {
+    case Some(warning) =>
+      warning.printStackTrace()
+      None
+
+    case _ => res.as(scalar[String].singleOpt) // go on row parsing
+  }
+```
 
 ## Special data types
 

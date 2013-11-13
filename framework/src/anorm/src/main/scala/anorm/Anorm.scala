@@ -494,6 +494,21 @@ trait Sql {
     Sql.as(generatedKeysParser, execute1(getGeneratedKeys = true)._1.getGeneratedKeys)
   }
 
+  /**
+   * Executes this SQL query, and returns its result.
+   *
+   * {{{
+   * implicit val conn: java.sql.Connection = openConnection
+   * val res: SqlQueryResult =
+   *   SQL("SELECT text_col FROM table WHERE id = {code}").
+   *   on('code -> code).executeQuery()
+   * // Check execution context; e.g. res.statementWarning
+   * val str = res as scalar[String].single // going with row parsing
+   * }}}
+   */
+  def executeQuery()(implicit connection: java.sql.Connection): SqlQueryResult =
+    SqlQueryResult(resultSet())
+
 }
 
 case class SqlQuery(query: String, argsInitialOrder: List[String] = List.empty, queryTimeout: Option[Int] = None) extends Sql {
@@ -510,6 +525,51 @@ case class SqlQuery(query: String, argsInitialOrder: List[String] = List.empty, 
   def asSimple[T](parser: RowParser[T] = defaultParser): SimpleSql[T] = SimpleSql(this, Nil, parser)
 
   def asBatch[T]: BatchSql = BatchSql(this, Nil)
+}
+
+/**
+ * A result from execution of an SQL query, row data and context
+ * (e.g. statement warnings).
+ *
+ * @constructor create a result with a result set
+ * @param resultSet Result set from executed query
+ */
+case class SqlQueryResult(resultSet: java.sql.ResultSet) {
+  import SqlParser._
+
+  /** Query statement already executed */
+  val statement: java.sql.Statement = resultSet.getStatement
+
+  /**
+   * Returns statement warning if there is some for this result.
+   *
+   * {{{
+   * val res = SQL("EXEC stored_proc {p}").on('p -> paramVal).executeQuery()
+   * res.statementWarning match {
+   *   case Some(warning) =>
+   *     warning.printStackTrace()
+   *     None
+   *
+   *   case None =>
+   *     // go on with row parsing ...
+   *     res.as(scalar[String].singleOpt)
+   * }
+   * }}}
+   */
+  def statementWarning: Option[java.sql.SQLWarning] =
+    Option(statement.getWarnings)
+
+  def apply()(implicit connection: java.sql.Connection) = Sql.resultSetToStream(resultSet)
+
+  def as[T](parser: ResultSetParser[T])(implicit connection: java.sql.Connection): T = Sql.as[T](parser, resultSet)
+
+  def list[A](rowParser: RowParser[A])(implicit connection: java.sql.Connection): Seq[A] = as(rowParser *)
+
+  def single[A](rowParser: RowParser[A])(implicit connection: java.sql.Connection): A = as(ResultSetParser.single(rowParser))
+
+  def singleOpt[A](rowParser: RowParser[A])(implicit connection: java.sql.Connection): Option[A] = as(ResultSetParser.singleOpt(rowParser))
+
+  def parse[T](parser: ResultSetParser[T])(implicit connection: java.sql.Connection): T = Sql.parse[T](parser, resultSet)
 }
 
 object Sql {
