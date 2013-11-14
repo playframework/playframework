@@ -53,8 +53,7 @@ You then need to import the application into your Workspace with the **File/Impo
 
 [[images/eclipse.png]] 
 
-You can also start your application with `play debug run` and then you can use the Connect JPDA launcher using **Debug As** to start a debugging session at any time. Stopping the debugging session will not stop the server.
-
+To debug, start your application with `play debug run` and in Eclipse right-click on the project and select **Debug As**, **Debug Configurations**. in the **Debug Configurations** dialog, right-click on **Remote Java Application** and select **New**. Change **Port** to 9999 and click **Apply**. From now on you can click on **Debug** to connect to the running application. Stopping the debugging session will not stop the server.
 
 > **Tip**: You can run your application using `~run` to enable direct compilation on file change. This way scala template files are auto discovered when you create a new template in `view` and auto compiled when the file changes. If you use normal `run` then you have to hit `Refresh` on your browser each time.
 
