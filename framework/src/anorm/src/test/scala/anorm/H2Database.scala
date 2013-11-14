@@ -27,8 +27,4 @@ trait H2Database {
   def createTable(name: String, columns: String*)(implicit conn: Connection): Unit = {
     conn.createStatement().execute("create table " + name + " ( " + columns.mkString(", ") + ");")
   }
-
-  def createAlias(name: String, code: String)(implicit conn: Connection): Unit = {
-    conn.createStatement().execute("CREATE ALIAS %s AS $$%s$$;".format(name, code))
-  }
 }

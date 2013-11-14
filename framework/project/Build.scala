@@ -160,7 +160,8 @@ object PlayBuild extends Build {
     )
 
   lazy val AnormProject = PlayRuntimeProject("Anorm", "anorm")
-    .settings(libraryDependencies ++= anormDependencies)
+    .settings(libraryDependencies ++= anormDependencies,
+      resolvers += "Applicius Releases Repository" at "https://raw.github.com/applicius/mvn-repo/master/releases/")
 
   lazy val IterateesProject = PlayRuntimeProject("Play-Iteratees", "iteratees")
     .settings(libraryDependencies := iterateesDependencies)

@@ -2,8 +2,11 @@ package anorm
 
 import org.specs2.mutable.Specification
 
-object AnormSpec extends Specification with H2Database with AnormTest {
+import acolyte.Acolyte._
+import acolyte.{ Execution, QueryResult }
+import acolyte.RowLists.stringList
 
+object AnormSpec extends Specification with H2Database with AnormTest {
   "anorm" should {
     "allow inserting and retrieving data" in withConnection { implicit c =>
       createTestTable()
@@ -30,13 +33,23 @@ object AnormSpec extends Specification with H2Database with AnormTest {
 
     }
 
-    "returns result data for stored procedure" in withConnection { implicit c =>
-      createAlias("stored_proc", 
-        """String proc(String param) {return "Result for " + param;}""")
+    "executes query for stored procedure" >> {
+      "returns result data" in withQueryResult("Result for test-proc-1") {
+        implicit con =>
 
-      SQL("CALL stored_proc({param})")
-        .on('param -> "test-proc-1").executeQuery()
-        .as(SqlParser.scalar[String].single) must_== "Result for test-proc-1"
+          SQL("EXEC stored_proc({param})")
+            .on('param -> "test-proc-1").executeQuery()
+            .as(SqlParser.scalar[String].single) must_== "Result for test-proc-1"
+      }
+
+      "handles SQL warning" in withQueryResult(QueryResult.Nil.withWarning("Warning for test-proc-2")) { implicit con =>
+
+        SQL("EXEC stored_proc({param})")
+          .on('param -> "test-proc-2").executeQuery()
+          .statementWarning aka "statement warning" must beSome.which { warn =>
+            warn.getMessage aka "message" must_== "Warning for test-proc-2"
+          }
+      }
     }
   }
 }
@@ -47,4 +60,7 @@ sealed trait AnormTest { db: H2Database =>
   val testTableParser = long("id") ~ str("foo") ~ int("bar") map {
     case id ~ foo ~ bar => TestTable(id, foo, bar)
   }
+
+  def withQueryResult[A](r: QueryResult)(f: java.sql.Connection => A): A =
+    f(connection(handleQuery withQueryHandler { _ => r }))
 }
