@@ -328,9 +328,9 @@ object RulesSpec extends Specification {
 
     "validate subclasses (and parse the concrete class)" in {
 
-      trait A { val name: String }
-      case class B(name: String, foo: Int) extends A
-      case class C(name: String, bar: Int) extends A
+      trait A
+      case class B(foo: Int) extends A
+      case class C(bar: Int) extends A
 
       val b = Json.obj("name" -> "B", "foo" -> 4)
       val c = Json.obj("name" -> "C", "bar" -> 6)
@@ -340,17 +340,17 @@ object RulesSpec extends Specification {
 
       "by trying all possible Rules" in {
         val rb: Rule[JsValue, A] = From[JsValue]{ __ =>
-          ((__ \ "name").read[String] ~ (__ \ "foo").read[Int])(B.apply _)
+          (__ \ "name").read(Rules.equalTo("B")) ~> (__ \ "foo").read[Int].fmap(B.apply _)
         }
 
         val rc: Rule[JsValue, A] = From[JsValue]{ __ =>
-          ((__ \ "name").read[String] ~ (__ \ "bar").read[Int])(C.apply _)
+          (__ \ "name").read(Rules.equalTo("C")) ~> (__ \ "bar").read[Int].fmap(C.apply _)
         }
 
         val rule = rb orElse rc orElse Rule(_ => typeFailure)
 
-        rule.validate(b) mustEqual(Success(B("B", 4)))
-        rule.validate(c) mustEqual(Success(C("C", 6)))
+        rule.validate(b) mustEqual(Success(B(4)))
+        rule.validate(c) mustEqual(Success(C(6)))
         rule.validate(e) mustEqual(Failure(Seq(Path -> Seq(ValidationError("validation.unknownType")))))
       }
 
@@ -358,14 +358,14 @@ object RulesSpec extends Specification {
 
         val rule = From[JsValue] { __ =>
           (__ \ "name").read[String].flatMap[A] {
-            case "B" => ((__ \ "name").read[String] ~ (__ \ "foo").read[Int])(B.apply _)
-            case "C" => ((__ \ "name").read[String] ~ (__ \ "bar").read[Int])(C.apply _)
+            case "B" => (__ \ "foo").read[Int].fmap(B.apply _)
+            case "C" => (__ \ "bar").read[Int].fmap(C.apply _)
             case _ => Rule(_ => typeFailure)
           }
         }
 
-        rule.validate(b) mustEqual(Success(B("B", 4)))
-        rule.validate(c) mustEqual(Success(C("C", 6)))
+        rule.validate(b) mustEqual(Success(B(4)))
+        rule.validate(c) mustEqual(Success(C(6)))
         rule.validate(e) mustEqual(Failure(Seq(Path -> Seq(ValidationError("validation.unknownType")))))
       }
 
