@@ -511,25 +511,42 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
     }
   }
 
-  def createLockTableIfNecessary(c: Connection, s: Statement) {
+  def isMySQLDatabase(c: Connection): Boolean = {
     try {
-      val r = s.executeQuery("select `lock` from play_evolutions_lock")
+      val metadata = c.getMetaData();
+      val productName = metadata.getDatabaseProductName
+      return productName.contains("MySQL")
+    } catch {
+      return false;
+    }
+  }
+
+  def getColumnNameQuoted(c: Connection, s: String): String = {
+    val quote = if (isMySQLDatabase(c)) '`' else '"'
+    return quote + s + quote
+  }
+
+  def createLockTableIfNecessary(c: Connection, s: Statement) {
+    val column = getColumnNameQuoted(c, "lock")
+    try {
+      val r = s.executeQuery(s"select $column from play_evolutions_lock")
       r.close()
     } catch {
       case e: SQLException =>
         c.rollback()
-        s.execute("""
+        s.execute(s"""
         create table play_evolutions_lock (
-          `lock` int not null primary key
+          $column int not null primary key
         )
         """)
-        s.executeUpdate("insert into play_evolutions_lock (`lock`) values (1)")
+        s.executeUpdate(s"insert into play_evolutions_lock ($column) values (1)")
     }
   }
 
   def lock(c: Connection, s: Statement, attempts: Int = 5) {
+    val column = getColumnNameQuoted(c, "lock")
     try {
-      s.executeQuery("select `lock` from play_evolutions_lock where `lock` = 1 for update nowait")
+      s.executeQuery(s"select $column from play_evolutions_lock where $column = 1 for update nowait")
     } catch {
       case e: SQLException =>
         if (attempts == 0) throw e
