@@ -72,7 +72,6 @@ object Docs {
 
     val javadoc = Doc.javadoc(label, javaCache, compilers.javac)
     javadoc(javaSources, classpath, apiTarget / "java", javadocOptions, 10, streams.log)
-    "javadoc " + javadocOptions.mkString(" ") ! streams.log
 
     apiTarget
   }
