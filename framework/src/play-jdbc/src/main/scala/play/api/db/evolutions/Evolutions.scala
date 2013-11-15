@@ -513,12 +513,11 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
 
   def isMySQLDatabase(c: Connection): Boolean = {
     try {
-      val metadata = c.getMetaData();
+      val metadata = c.getMetaData()
       val productName = metadata.getDatabaseProductName
       return productName.contains("MySQL")
-    } catch {
-      return false;
-    }
+    } catch { case e: Exception => }
+    false // assume this is not MySQL
   }
 
   def getColumnNameQuoted(c: Connection, s: String): String = {
