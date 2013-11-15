@@ -106,4 +106,27 @@ private[play] object FPromiseHelper {
   def onFailure[A](promise: F.Promise[A], action: F.Callback[Throwable], ec: ExecutionContext) {
     promise.wrapped().onFailure { case t => action.invoke(t) }(ec.prepare())
   }
+
+  def empty[A]() = {
+    Promise[A]()
+  }
+
+  def getFuture[A](promise: Promise[A]): Future[A] = promise.future
+
+  def completeWith[T](promise: Promise[T], other: Future[T], ec: ExecutionContext): Future[Void] = {
+    val p = Promise[Unit]
+    other.onComplete { x =>
+      p.complete(Try(promise complete x))
+    }(ec)
+    p.future.map(_ => null)(ec)
+  }
+
+  def tryCompleteWith[T](promise: Promise[T], other: Future[T], ec: ExecutionContext): Future[Boolean] = {
+    val p = Promise[Boolean]
+    other.onComplete { x =>
+      p.complete(Try(promise tryComplete x))
+    }(ec)
+    p.future
+  }
 }
+
