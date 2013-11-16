@@ -537,8 +537,8 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
   }
 
   def createLockTableIfNecessary(c: Connection, s: Statement) {
+    val column = getColumnNameQuoted(c, "lock")
     try {
-      val column = getColumnNameQuoted(c, "lock")
       val r = s.executeQuery(s"select $column from play_evolutions_lock")
       r.close()
     } catch {
