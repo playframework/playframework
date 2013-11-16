@@ -127,25 +127,7 @@ If you make any important changes to your application, such as changing the clas
 
 ### Generate Configuration
 
-Play does not have native Netbeans project generation support at this time.  For now you can generate a Netbeans Scala project with the [Netbeans SBT plugin](https://github.com/remeniuk/sbt-netbeans-plugin).
-
-First edit the plugins.sbt file
-
-```
-resolvers += {
-  "remeniuk repo" at "http://remeniuk.github.com/maven" 
-}
-
-libraryDependencies += {
-  "org.netbeans" %% "sbt-netbeans-plugin" % "0.1.4"
-}
-```
-
-Now run
-
-```
-$ play netbeans
-```
+Play does not have native Netbeans project generation support at this time.
 
 
 ## ENSIME
