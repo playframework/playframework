@@ -511,23 +511,34 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
     }
   }
 
+  /**
+   * Checks if the connected database is MySQL.
+   *
+   * @param c the database connection
+   * @throws a SQLException error on access error or closed connection
+   */
   def isMySQLDatabase(c: Connection): Boolean = {
-    try {
       val metadata = c.getMetaData()
       val productName = metadata.getDatabaseProductName
       return productName.contains("MySQL")
-    } catch { case e: Exception => }
-    false // assume this is not MySQL
   }
 
+  /**
+   * Get a quoted version of the column name. Backticks are used for MySQL
+   * and double quotes are used for all others.
+   *
+   * @param c the database connection
+   * @param s the column name
+   * @throws a SQLException error on access error or closed connection
+   */
   def getColumnNameQuoted(c: Connection, s: String): String = {
     val quote = if (isMySQLDatabase(c)) '`' else '"'
     return quote + s + quote
   }
 
   def createLockTableIfNecessary(c: Connection, s: Statement) {
-    val column = getColumnNameQuoted(c, "lock")
     try {
+      val column = getColumnNameQuoted(c, "lock")
       val r = s.executeQuery(s"select $column from play_evolutions_lock")
       r.close()
     } catch {
@@ -543,8 +554,8 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
   }
 
   def lock(c: Connection, s: Statement, attempts: Int = 5) {
-    val column = getColumnNameQuoted(c, "lock")
     try {
+      val column = getColumnNameQuoted(c, "lock")
       s.executeQuery(s"select $column from play_evolutions_lock where $column = 1 for update nowait")
     } catch {
       case e: SQLException =>
