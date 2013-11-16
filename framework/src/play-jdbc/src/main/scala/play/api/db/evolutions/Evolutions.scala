@@ -518,9 +518,9 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
    * @throws a SQLException error on access error or closed connection
    */
   def isMySQLDatabase(c: Connection): Boolean = {
-      val metadata = c.getMetaData()
-      val productName = metadata.getDatabaseProductName
-      return productName.contains("MySQL")
+    val metadata = c.getMetaData()
+    val productName = metadata.getDatabaseProductName
+    return productName.contains("MySQL")
   }
 
   /**
