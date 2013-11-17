@@ -49,12 +49,12 @@ Here is a sample configuration file to use with Hibernate:
 Finally you have to tell Play, which persistent unit should be used by your JPA provider. This is done by the `jpa.default` property in your `application.conf`.
 
 ```
-jpa.default=defaultPerstistenceUnit
+jpa.default=defaultPersistenceUnit
 ```
 
 ## Annotating JPA actions with `@Transactional`
 
-Every JPA call must be done in a transaction so, to enable JPA for a particular action, annotate it with `@play.db.jpa.Transactional`. This will compose your action method with a JPA `Action` that manages the transaction for you:
+Every JPA call must be done in a transaction so, to enable JPA for a particular action, annotate it with `@play.db.ebean.Transactional`. This will compose your action method with a JPA `Action` that manages the transaction for you:
 
 ```
 @Transactional
