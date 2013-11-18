@@ -345,6 +345,40 @@ class ApplicationSpec extends PlaySpecification with WsTestClient {
       status(result) must equalTo(OK)
     }
 
+    "break down code adding values to the session" in new WithApplication(FakeApplication(additionalConfiguration = Map("application.secret" -> "foobar"))) {
+      import play.api.mvc.{SimpleResult, RequestHeader, Results}
+
+      implicit val request = FakeRequest(GET, "/").withSession("blah" -> "42", "toto" -> "tata")
+
+      def setFoo(implicit request: RequestHeader) =
+        (result: SimpleResult) => result.addingToSession("foo" -> "bar")
+
+      def setBaz(implicit request: RequestHeader) =
+        (result: SimpleResult) => result.addingToSession("baz" -> "bah")
+
+      def removeBlah(implicit request: RequestHeader) =
+        (result: SimpleResult) => result.removingFromSession("blah")
+
+      val result = (setFoo andThen setBaz andThen removeBlah)(Results.Ok)
+
+      val setCookie = result.header.headers(SET_COOKIE)
+      setCookie must contain ("toto=tata")
+      setCookie must contain ("foo=bar")
+      setCookie must contain ("baz=bah")
+      setCookie must not contain ("blah")
+    }
+
+    "read the session from the request even if another cookie has been set on a result" in new WithApplication(FakeApplication(additionalConfiguration = Map("application.secret" -> "foobar"))) {
+      import play.api.mvc.{Results, Cookie}
+
+      implicit val request = FakeRequest(GET, "/").withSession("foo" -> "bar")
+
+      val session = Results.Ok.withCookies(Cookie("Toto", "titi")).session
+
+      session.get("foo") must equalTo (Some("bar"))
+
+    }
+
   }
 
 }
