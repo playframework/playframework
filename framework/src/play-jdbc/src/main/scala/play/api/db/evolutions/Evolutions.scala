@@ -537,26 +537,26 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
   }
 
   def createLockTableIfNecessary(c: Connection, s: Statement) {
-    val column = getColumnNameQuoted(c, "lock")
+    val lockColumn = getColumnNameQuoted(c, "lock")
     try {
-      val r = s.executeQuery(s"select $column from play_evolutions_lock")
+      val r = s.executeQuery(s"select $lockColumn from play_evolutions_lock")
       r.close()
     } catch {
       case e: SQLException =>
         c.rollback()
         s.execute(s"""
         create table play_evolutions_lock (
-          $column int not null primary key
+          $lockColumn int not null primary key
         )
         """)
-        s.executeUpdate(s"insert into play_evolutions_lock ($column) values (1)")
+        s.executeUpdate(s"insert into play_evolutions_lock ($lockColumn) values (1)")
     }
   }
 
   def lock(c: Connection, s: Statement, attempts: Int = 5) {
     try {
-      val column = getColumnNameQuoted(c, "lock")
-      s.executeQuery(s"select $column from play_evolutions_lock where $column = 1 for update nowait")
+      val lockColumn = getColumnNameQuoted(c, "lock")
+      s.executeQuery(s"select $lockColumn from play_evolutions_lock where $lockColumn = 1 for update nowait")
     } catch {
       case e: SQLException =>
         if (attempts == 0) throw e
