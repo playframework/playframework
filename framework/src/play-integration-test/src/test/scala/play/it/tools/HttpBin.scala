@@ -194,8 +194,8 @@ object HttpBinApplication {
     Action { request =>
       val body = requestHeaderWriter.writes(request).as[JsObject]
 
-      val content = 0.to(param.toInt).map{ index =>
-        body ++ Json.obj("id" -> index)
+      val content = 0.to(param.toInt - 1).map{ index =>
+        (body ++ Json.obj("id" -> index)) + "\n"
       }
 
       Ok.chunked(Enumerator(content :_*)).as("application/json")

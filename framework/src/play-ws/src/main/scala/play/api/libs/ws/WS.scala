@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicReference
 import play.api.http.{ Writeable, ContentTypeOf }
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input.El
+import play.api.libs.iteratee.Input.EOF
 
 import play.core.utils.CaseInsensitiveOrdered
 import play.core.Execution.Implicits.internalContext
@@ -249,6 +250,24 @@ object WS {
       super.setUrl(url)
     }
 
+    private[libs] def executeEnumerator: Future[(ResponseHeaders, Enumerator[Array[Byte]])] = {
+      val (it, enum) = Concurrent.joined[Array[Byte]]
+
+      val promise = Promise[ResponseHeaders]()
+
+      val request = executeStream { headers =>
+        promise.success(headers)
+        it
+      }.map(_.run)
+
+      // Catch errors
+      request.onFailure {
+        case e: Exception => promise.failure(e)
+      }
+
+      promise.future.map(_ -> enum)
+    }
+
     private[libs] def executeStream[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Future[Iteratee[Array[Byte], A]] = {
       import com.ning.http.client.AsyncHandler
       var doneOrError = false
@@ -401,6 +420,12 @@ object WS {
       prepare("GET").executeStream(consumer)
 
     /**
+     * performs a get and gives back a enumerator for the response body
+     */
+    def getStream(): Future[(ResponseHeaders, Enumerator[Array[Byte]])] =
+      prepare("GET").executeEnumerator
+
+    /*
      * Perform a PATCH on the request asynchronously.
      */
     def patch[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Response] = prepare("PATCH", body).execute
