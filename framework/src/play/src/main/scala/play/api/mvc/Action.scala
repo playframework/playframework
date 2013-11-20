@@ -111,7 +111,9 @@ trait Action[A] extends EssentialAction {
         play.utils.Threads.withContextClassLoader(app.classloader) {
           apply(request)
         }
-      }.getOrElse(Future.successful(Results.InternalServerError))
+      }.getOrElse {
+        apply(request)
+      }
   }(executionContext)
 
   /**
