@@ -39,6 +39,7 @@
 - [[Issue tracker|Issues]]
 - [[Contributor guidelines|Guidelines]]
 - [[Documentation guidelines|Documentation]]
+- [[Working with Git|WorkingWithGit]]
 
 ### About Play
 
