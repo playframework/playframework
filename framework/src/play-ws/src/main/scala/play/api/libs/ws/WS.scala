@@ -74,7 +74,7 @@ object WS {
    */
   def client: AsyncHttpClient = {
     clientHolder.get.getOrElse({
-      // A critical section of code. Only one caller has the opportuntity of creating a new client.
+      // A critical section of code. Only one caller has the opportunity of creating a new client.
       synchronized {
         clientHolder.get match {
           case None => {
@@ -99,7 +99,7 @@ object WS {
   /**
    * A WS Request.
    */
-  class WSRequest(_method: String, _auth: Option[Tuple3[String, String, AuthScheme]], _calc: Option[SignatureCalculator]) extends RequestBuilderBase[WSRequest](classOf[WSRequest], _method, false) {
+  class WSRequest(_method: String, _auth: Option[(String, String, AuthScheme)], _calc: Option[SignatureCalculator]) extends RequestBuilderBase[WSRequest](classOf[WSRequest], _method, false) {
 
     import scala.collection.JavaConverters._
 
@@ -108,7 +108,7 @@ object WS {
     protected var body: Option[String] = None
 
     override def setBody(s: String) = {
-      this.body = Some(s);
+      this.body = Some(s)
       super.setBody(s)
     }
 
@@ -137,14 +137,14 @@ object WS {
      * Return the current headers of the request being constructed
      */
     def allHeaders: Map[String, Seq[String]] = {
-      mapAsScalaMapConverter(request.asInstanceOf[com.ning.http.client.Request].getHeaders()).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
+      mapAsScalaMapConverter(request.asInstanceOf[com.ning.http.client.Request].getHeaders).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
     }
 
     /**
      * Return the current query string parameters
      */
     def queryString: Map[String, Seq[String]] = {
-      mapAsScalaMapConverter(request.asInstanceOf[com.ning.http.client.Request].getParams()).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
+      mapAsScalaMapConverter(request.asInstanceOf[com.ning.http.client.Request].getParams).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
     }
 
     /**
@@ -173,7 +173,7 @@ object WS {
 
     private[libs] def execute: Future[Response] = {
       import com.ning.http.client.AsyncCompletionHandler
-      var result = Promise[Response]()
+      val result = Promise[Response]()
       calculator.map(_.sign(this))
       WS.client.executeRequest(this.build(), new AsyncCompletionHandler[AHCResponse]() {
         override def onCompleted(response: AHCResponse) = {
@@ -263,12 +263,12 @@ object WS {
         import com.ning.http.client.AsyncHandler.STATE
 
         override def onStatusReceived(status: HttpResponseStatus) = {
-          statusCode = status.getStatusCode()
+          statusCode = status.getStatusCode
           STATE.CONTINUE
         }
 
         override def onHeadersReceived(h: HttpResponseHeaders) = {
-          val headers = h.getHeaders()
+          val headers = h.getHeaders
           iteratee = consumer(ResponseHeaders(statusCode, ningHeadersToMap(headers)))
           STATE.CONTINUE
         }
@@ -284,7 +284,7 @@ object WS {
               }
 
               case Step.Cont(k) => {
-                k(El(bodyPart.getBodyPartBytes()))
+                k(El(bodyPart.getBodyPartBytes))
               }
 
               case Step.Error(e, input) => {
@@ -323,7 +323,7 @@ object WS {
       headers: Map[String, Seq[String]],
       queryString: Map[String, Seq[String]],
       calc: Option[SignatureCalculator],
-      auth: Option[Tuple3[String, String, AuthScheme]],
+      auth: Option[(String, String, AuthScheme)],
       followRedirects: Option[Boolean],
       requestTimeout: Option[Int],
       virtualHost: Option[String],
@@ -337,7 +337,9 @@ object WS {
 
     /**
      * sets the authentication realm
-     * @param calc
+     * @param username
+     * @param password
+     * @param scheme
      */
     def withAuth(username: String, password: String, scheme: AuthScheme): WSRequestHolder =
       this.copy(auth = Some((username, password, scheme)))
@@ -543,7 +545,7 @@ object WS {
     private[play] def prepare(method: String, body: File) = {
       import com.ning.http.client.generators.FileBodyGenerator
 
-      val bodyGenerator = new FileBodyGenerator(body);
+      val bodyGenerator = new FileBodyGenerator(body)
 
       val request = new WSRequest(method, auth, calc).setUrl(url)
         .setHeaders(headers)
@@ -732,12 +734,12 @@ case class Response(ahcResponse: AHCResponse) {
   /**
    * The response status code.
    */
-  def status: Int = ahcResponse.getStatusCode()
+  def status: Int = ahcResponse.getStatusCode
 
   /**
    * The response status message.
    */
-  def statusText: String = ahcResponse.getStatusText()
+  def statusText: String = ahcResponse.getStatusText
 
   /**
    * Get a response header.
