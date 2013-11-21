@@ -438,6 +438,114 @@ public class F {
 
     }
 
+
+    /**
+     * RedeemablePromise is an object which can be completed with a value or failed with an exception.
+     *
+     * <code>
+     * RedeemablePromise<Int> someFutureInt = RedeemablePromise.empty();
+     *
+     * someFutureInt.map(new Function<Int, Result>{
+     *     public apply(Int i) {
+     *         // This would apply once the redeemable promise succeed
+     *         return new Result("" + i);
+     *     }
+     * });
+     *
+     * // In another thread, you now may complete the RedeemablePromise.
+     * someFutureInt.success(42);
+     * </code>
+     */
+    public static class RedeemablePromise<A> extends Promise<A>{
+
+        private final scala.concurrent.Promise<A> promise;
+
+        private RedeemablePromise(scala.concurrent.Promise<A> promise) {
+            super(FPromiseHelper.getFuture(promise));
+
+            this.promise = promise;
+        }
+
+        /**
+         * Creates a new Promise with no value
+         */
+        public static <A> RedeemablePromise<A> empty() {
+            scala.concurrent.Promise<A> p = FPromiseHelper.empty();
+            return new RedeemablePromise(p);
+        }
+
+        /**
+         * Completes the promise with a value.
+         *
+         * @param a The value to complete with
+         */
+        public void success(A a) {
+            this.promise.success(a);
+        }
+
+        /**
+         * Completes the promise with an exception
+         *
+         * @param t The exception to fail the promise with
+         */
+        public void failure(Throwable t) {
+            this.promise.failure(t);
+        }
+
+        /**
+         * Completes this promise with the specified Promise, once that Promise is completed.
+         *
+         * @param other The value to complete with
+         * @return A promise giving the result of attempting to complete this promise with the other
+         *         promise. If the completion was successful then the result will be a null value,
+         *         if the completion failed then the result will be an IllegalStateException.
+         */
+        public Promise<Void> completeWith(Promise other) {
+            return this.completeWith(other, HttpExecution.defaultContext());
+        }
+
+        /**
+         * Completes this promise with the specified Promise, once that Promise is completed.
+         *
+         * @param other The value to complete with
+         * @param ec An execution context
+         * @return A promise giving the result of attempting to complete this promise with the other
+         *         promise. If the completion was successful then the result will be a null value,
+         *         if the completion failed then the result will be an IllegalStateException.
+         */
+        public Promise<Void> completeWith(Promise other, ExecutionContext ec) {
+            Promise<Void> r = Promise.wrap(FPromiseHelper.completeWith(this.promise, other.future, ec));
+            return r;
+        }
+
+        /**
+         * Completes this promise with the specified Promise, once that Promise is completed.
+         *
+         * @param other The value to complete with
+         * @return A promise giving the result of attempting to complete this promise with the other
+         *         promise. If the completion was successful then the result will be true, if the
+         *         completion couldn't occur then the result will be false.
+         */
+        public Promise<Boolean> tryCompleteWith(Promise other) {
+            return this.tryCompleteWith(other, HttpExecution.defaultContext());
+        }
+
+        /**
+         * Completes this promise with the specified Promise, once that Promise is completed.
+         *
+         * @param other The value to complete with
+         * @param ec An execution context
+         * @return A promise giving the result of attempting to complete this promise with the other
+         *         promise. If the completion was successful then the result will be true, if the
+         *         completion couldn't occur then the result will be false.
+         */
+        public Promise<Boolean> tryCompleteWith(Promise other, ExecutionContext ec) {
+            Promise<Boolean> r = Promise.wrap(FPromiseHelper.tryCompleteWith(this.promise, other.future, ec));
+            return r;
+        }
+    }
+
+
     /**
      * Represents optional values. Instances of <code>Option</code> are either an instance of <code>Some</code> or the object <code>None</code>.
      */

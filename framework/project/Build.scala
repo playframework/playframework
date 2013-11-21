@@ -51,6 +51,7 @@ object BuildSettings {
     javacOptions in doc := Seq("-source", "1.6"),
     resolvers ++= typesafeResolvers,
     fork in Test := true,
+    testListeners in (Test,test) := Nil,
     testOptions in Test += Tests.Filter(!_.endsWith("Benchmark")),
     testOptions in PerformanceTest ~= (_.filterNot(_.isInstanceOf[Tests.Filter]) :+ Tests.Filter(_.endsWith("Benchmark"))),
     parallelExecution in PerformanceTest := false
@@ -159,7 +160,8 @@ object PlayBuild extends Build {
     )
 
   lazy val AnormProject = PlayRuntimeProject("Anorm", "anorm")
-    .settings(libraryDependencies ++= anormDependencies)
+    .settings(libraryDependencies ++= anormDependencies,
+      resolvers += "Applicius Releases Repository" at "https://raw.github.com/applicius/mvn-repo/master/releases/")
 
   lazy val IterateesProject = PlayRuntimeProject("Play-Iteratees", "iteratees")
     .settings(libraryDependencies := iterateesDependencies)
@@ -259,7 +261,6 @@ object PlayBuild extends Build {
     .settings(
       scriptedLaunchOpts <++= (baseDirectory in ThisBuild) { baseDir =>
         Seq(
-          "-Dsbt.ivy.home=" + new File(baseDir.getParent, "repository"),
           "-Dsbt.boot.directory=" + new File(baseDir, "sbt/boot"),
           "-Dplay.home=" + System.getProperty("play.home"),
           "-XX:MaxPermSize=384M",
@@ -289,38 +290,6 @@ object PlayBuild extends Build {
 
   lazy val PlayFiltersHelpersProject = PlayRuntimeProject("Filters-Helpers", "play-filters-helpers")
     .settings(
-      binaryIssueFilters ++= Seq(
-        // When we upgrade to mima with SBT 0.13 we can filter by package...
-        // Basically we had to change CSRFFilter to use by name parameters, which meant it could no
-        // longer be a case class, which is why there's so much breakage here.
-        ProblemFilters.exclude[MissingTypesProblem]("play.filters.csrf.CSRFFilter"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFFilter.copy$default$3"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFFilter.copy"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFFilter.copy$default$1"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFFilter.copy$default$2"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFFilter.toString"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFFilter.productPrefix"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFFilter.createIfNotFound"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFFilter.productArity"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFFilter.this"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFFilter.canEqual"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFFilter.equals"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFFilter.tokenName"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFFilter.productElement"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFFilter.cookieName"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFFilter.hashCode"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFFilter.copy$default$4"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFFilter.secureCookie"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFFilter.productIterator"),
-        ProblemFilters.exclude[MissingTypesProblem]("play.filters.csrf.CSRFFilter$"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFFilter.apply"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFFilter.apply"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFFilter.unapply"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFFilter.toString"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFAction.this"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFAddToken#CSRFAddTokenAction.this"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.filters.csrf.CSRFCheck#CSRFCheckAction.this")
-      ),
       parallelExecution in Test := false
     ).dependsOn(PlayProject, PlayTestProject % "test", PlayJavaProject % "test", PlayWsProject % "test")
 
@@ -394,6 +363,7 @@ object PlayBuild extends Build {
     .settings(playCommonSettings: _*)
     .settings(dontPublishSettings:_*)
     .settings(
+      concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
       libraryDependencies := (runtime ++ jdbcDeps),
       Docs.apiDocsInclude := false,
       Docs.apiDocsIncludeManaged := false,

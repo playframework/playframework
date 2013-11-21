@@ -156,8 +156,7 @@ In Apache, I have the following configuration:
   ProxyPreserveHost On
   ProxyPass /balancer-manager !
   ProxyPass / balancer://mycluster/
-  ProxyPassReverse / http://localhost:9999/
-  ProxyPassReverse / http://localhost:9998/
+  ProxyPassReverse / balancer://mycluster/
 </VirtualHost>
 ```
 
@@ -168,5 +167,11 @@ Apache also provides a way to view the status of your cluster. Simply point your
 Because Play is completely stateless you don’t have to manage sessions between the 2 clusters. You can actually easily scale to more than 2 Play instances.
 
 Note that [Apache does not support Websockets](https://issues.apache.org/bugzilla/show_bug.cgi?id=47485), so you may wish to use another front end proxy (such as haproxy or nginx) that does implement this functionality.
+
+Note that [ProxyPassReverse might rewrite incorrectly headers](https://issues.apache.org/bugzilla/show_bug.cgi?id=51982) adding an extra / to the URIs, so you may wish to use this workaround:
+```
+ProxyPassReverse / http://localhost:9999
+ProxyPassReverse / http://localhost:9998
+```
 
 > **Next:** [[Configuring HTTPS|ConfiguringHttps]]

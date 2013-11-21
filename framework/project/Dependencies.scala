@@ -7,7 +7,7 @@ import sbt.Keys._
 object Dependencies {
 
   // Some common dependencies here so they don't need to be declared over and over
-  val specsBuild = "org.specs2" %% "specs2" % "2.1.1"
+  val specsBuild = "org.specs2" %% "specs2" % "2.3.1"
   val specsSbt = specsBuild
   val scalaIoFile = "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2"
 
@@ -145,7 +145,7 @@ object Dependencies {
 
     "com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.4.0" extra("sbtVersion" -> BuildSettings.buildSbtVersionBinaryCompatible, "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
     "com.github.mpeltonen" % "sbt-idea" % "1.5.1" extra("sbtVersion" -> BuildSettings.buildSbtVersionBinaryCompatible, "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
-    "com.typesafe.sbt" % "sbt-native-packager" % "0.6.2" extra("sbtVersion" ->  BuildSettings.buildSbtVersionBinaryCompatible, "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
+    "com.typesafe.sbt" % "sbt-native-packager" % "0.6.4" extra("sbtVersion" ->  BuildSettings.buildSbtVersionBinaryCompatible, "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
 
     specsSbt
   )
@@ -210,7 +210,8 @@ object Dependencies {
 
   val anormDependencies = Seq(
     specsBuild % "test",
-    h2database % "test"
+    h2database % "test",
+    "acolyte" %% "acolyte-scala" % "1.0.9" % "test"
   )
 
 }

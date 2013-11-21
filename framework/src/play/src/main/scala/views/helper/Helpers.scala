@@ -45,6 +45,12 @@ package views.html.helper {
       args.get('_label).getOrElse(play.api.i18n.Messages(field.name))
     }
 
+    def hasName: Boolean = args.get('_name).isDefined
+
+    def name(implicit lang: play.api.i18n.Lang): Any = {
+      args.get('_name).getOrElse(play.api.i18n.Messages(field.name))
+    }
+
   }
 
   trait FieldConstructor extends NotNull {

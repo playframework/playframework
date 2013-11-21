@@ -774,7 +774,16 @@ package play.api.mvc {
      * @return a valid Set-Cookie header value
      */
     def merge(cookieHeader: String, cookies: Seq[Cookie]): String = {
-      encode(cookies ++ decode(cookieHeader))
+      val tupledCookies = (decode(cookieHeader) ++ cookies).map { c =>
+        // See rfc6265#section-4.1.2
+        // Secure and http-only attributes are not considered when testing if
+        // two cookies are overlapping.
+        (c.name, c.path, c.domain.map(_.toLowerCase)) -> c
+      }
+      // Put cookies in a map
+      // Note: Seq.toMap do not preserve order
+      val uniqCookies = scala.collection.immutable.ListMap(tupledCookies: _*)
+      encode(uniqCookies.values.toSeq)
     }
 
   }
