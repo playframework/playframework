@@ -14,6 +14,7 @@ import validation._
  * For example, a form handling a `User` case class submission:
  * {{{
  * import play.api.data._
+ * import play.api.data.Forms._
  * import play.api.data.format.Formats._
  *
  * val userForm = Form(
@@ -322,7 +323,8 @@ object Form {
    * For example:
    * {{{
    * import play.api.data._
-   * import format.Formats._
+   * import play.api.data.Forms._
+   * import play.api.data.format.Formats._
    *
    * val userForm = Form(
    *   tuple(
@@ -343,6 +345,10 @@ object Form {
    *
    * For example:
    * {{{
+   * import play.api.data._
+   * import play.api.data.Forms._
+   * import play.api.data.format.Formats._
+   *
    * val userForm = Form(
    *   "user" -> tuple(
    *     "name" -> of[String],
