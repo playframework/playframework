@@ -115,6 +115,32 @@ There are several ways to retrieve a JDBC connection. The simplest way is:
 val connection = DB.getConnection()
 ```
 
+Following code show you a JDBC example very simple, working with MySQL 5.*:
+
+```scala
+package controllers
+import play.api.Play.current
+import play.api.mvc._
+import play.api.db._
+
+object Application extends Controller {
+
+  def index = Action {
+    var outString = "Number is "
+    val conn = DB.getConnection()
+    val stmt = conn.createStatement
+    val rs = stmt.executeQuery("SELECT 9 as testkey ")
+    while (rs.next()) {
+       outString += rs.getString("testkey")
+    }
+    conn.close()
+    Ok(outString)
+  }
+
+}
+```
+
+
 But of course you need to call `close()` at some point on the opened connection to return it to the connection pool. Another way is to let Play manage closing the connection for you:
 
 ```scala
