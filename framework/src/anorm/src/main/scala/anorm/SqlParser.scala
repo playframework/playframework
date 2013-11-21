@@ -11,14 +11,23 @@ object SqlParser {
 
   type ResultSet = Stream[Row]
 
-  def scalar[T](implicit transformer: Column[T]): RowParser[T] = RowParser[T] { row =>
-
-    (for {
-      meta <- row.metaData.ms.headOption.toRight(NoColumnsInReturnedResult)
-      value <- row.data.headOption.toRight(NoColumnsInReturnedResult)
-      result <- transformer(value, meta)
-    } yield result).fold(e => Error(e), a => Success(a))
-  }
+  /**
+   * Returns parser for a scalar not-null value.
+   *
+   * {{{
+   * val count = SQL("select count(*) from Country").as(scalar[Long].single)
+   * }}}
+   */
+  def scalar[T](implicit transformer: Column[T]): RowParser[T] =
+    new ScalarRowParser[T] {
+      def apply(row: Row): SqlResult[T] = {
+        (for {
+          meta <- row.metaData.ms.headOption.toRight(NoColumnsInReturnedResult)
+          value <- row.data.headOption.toRight(NoColumnsInReturnedResult)
+          result <- transformer(value, meta)
+        } yield result).fold(e => Error(e), a => Success(a))
+      }
+    }
 
   def flatten[T1, T2, R](implicit f: anorm.TupleFlattener[(T1 ~ T2) => R]): ((T1 ~ T2) => R) = f.f
 
@@ -137,8 +146,22 @@ trait RowParser[+A] extends (Row => SqlResult[A]) {
 
   def single = ResultSetParser.single(parent)
 
-  def singleOpt = ResultSetParser.singleOpt(parent)
+  /**
+   * Returns a result set parser for none or one parsed row.
+   */
+  def singleOpt: ResultSetParser[Option[A]] = ResultSetParser.singleOpt(parent)
 
+}
+
+sealed trait ScalarRowParser[+A] extends RowParser[A] {
+  override def singleOpt: ResultSetParser[Option[A]] = ResultSetParser {
+    case head #:: Stream.Empty if (head.data.headOption == Some(null)) =>
+      // one column present in head row, but column value is null
+      Success(None)
+    case head #:: Stream.Empty => map(Some(_))(head)
+    case Stream.Empty => Success(None)
+    case _ => Error(SqlMappingError("too many rows when expecting a single one"))
+  }
 }
 
 trait ResultSetParser[+A] extends (ResultSet => SqlResult[A]) {
