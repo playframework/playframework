@@ -261,7 +261,6 @@ object PlayBuild extends Build {
     .settings(
       scriptedLaunchOpts <++= (baseDirectory in ThisBuild) { baseDir =>
         Seq(
-          "-Dsbt.ivy.home=" + new File(baseDir.getParent, "repository"),
           "-Dsbt.boot.directory=" + new File(baseDir, "sbt/boot"),
           "-Dplay.home=" + System.getProperty("play.home"),
           "-XX:MaxPermSize=384M",
