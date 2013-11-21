@@ -28,7 +28,7 @@
 @* #global-errors *@
 @if(userForm.hasGlobalErrors) {
     <ul>
-    @userForm.globalErrors.foreach { error =>
+    @userForm.globalErrors.map { error =>
         <li>error.message</li>
     }
     </ul>
