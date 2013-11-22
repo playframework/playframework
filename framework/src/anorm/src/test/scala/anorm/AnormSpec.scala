@@ -33,6 +33,12 @@ object AnormSpec extends Specification with H2Database with AnormTest {
 
     }
 
+    "returns None for missing single value" in withQueryResult(
+      null.asInstanceOf[String]) { implicit c =>
+        SQL("SELECT * FROM test").as(SqlParser.scalar[String].singleOpt).
+          aka("single value") must beNone
+      }
+
     "executes query for stored procedure" >> {
       "returns result data" in withQueryResult("Result for test-proc-1") {
         implicit con =>
