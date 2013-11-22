@@ -483,6 +483,10 @@ object WS {
      */
     def execute[T](method: String, body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Response] = prepare(method, body).execute
 
+    def method = ExecutionBuilder(this)
+
+    def method(name: String) = GenericExecutable(name, this)
+
     private[play] def prepare(method: String) = {
       val request = new WSRequest(method, auth, calc).setUrl(url)
         .setHeaders(headers)
@@ -588,6 +592,46 @@ object WS {
     }
   }
 
+  private[play] case class ExecutionBuilder(request: WSRequestHolder) {
+    def get = new ExecutableWithoutBody("GET", request)
+    def patch = new ExecutableWithBodyBuilder("PATCH", request)
+    def post = new ExecutableWithBodyBuilder("POST", request)
+    def put = new ExecutableWithBodyBuilder("PUT", request)
+    def delete = new ExecutableWithoutBody("DELETE", request)
+    def head = new ExecutableWithoutBody("HEAD", request)
+    def options = new ExecutableWithoutBody("OPTIONS", request)
+  }
+
+  private[play] case class ExecutableWithoutBody(method: String, request: WSRequestHolder) {
+    def execute: Future[Response] = request.prepare(method).execute
+    def executeStream[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Future[Iteratee[Array[Byte], A]] =
+      request.prepare(method).executeStream(consumer)
+  }
+
+  private[play] case class ExecutableWithBodyBuilder(method: String, request: WSRequestHolder) {
+    def body[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]) = ExecutableWithBody(method, request, body)
+    def body(file: File) = ExecutableWithFile(method, request, file)
+  }
+
+  private[play] case class ExecutableWithBody[T](method: String, request: WSRequestHolder, body: T) {
+    def execute(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Response] = request.prepare(method, body).execute
+    def executeStream[A](consumer: (ResponseHeaders) => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Iteratee[Array[Byte], A]] =
+      request.prepare(method, body).executeStream(consumer)
+  }
+
+  private[play] case class ExecutableWithFile(method: String, request: WSRequestHolder, file: File) {
+    def execute: Future[Response] = request.prepare(method, file).execute
+    def executeStream[A](consumer: (ResponseHeaders) => Iteratee[Array[Byte], A]): Future[Iteratee[Array[Byte], A]] =
+      request.prepare(method, file).executeStream(consumer)
+  }
+
+  private[play] case class GenericExecutable(method: String, request: WSRequestHolder) {
+    def execute: Future[Response] = ExecutableWithoutBody(method, request).execute
+    def executeStream[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Future[Iteratee[Array[Byte], A]] =
+      ExecutableWithoutBody(method, request).executeStream[A](consumer)
+    def body[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]) = ExecutableWithBody(method, request, body)
+    def body(file: File) = ExecutableWithFile(method, request, file)
+  }
 }
 
 /**
