@@ -521,7 +521,7 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
    */
   def quoteColumnName(c: Connection, s: String): String = {
     val isMySQL = c.getMetaData.getDatabaseProductName contains "MySQL"
-    if (isMySQL) s"`$s`" else s'"$s"'
+    if (isMySQL) s"`$s`" else s"""\"$s\"""
   }
 
   def createLockTableIfNecessary(c: Connection, s: Statement) {
