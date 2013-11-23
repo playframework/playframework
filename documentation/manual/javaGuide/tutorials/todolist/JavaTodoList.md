@@ -127,7 +127,7 @@ Edit the `conf/routes` file:
 
 We create a route to list all tasks, and a couple of others to handle task creation and deletion. The route to handle task deletion defines a variable argument `id` in the URL path. This value is then passed to the `deleteTask` action method.
 
-Now if your reload in your browser, you will see that Play cannot compile your routes files:
+Now if you reload in your browser, you will see that Play cannot compile your routes files:
 
 [[images/routes.png]]
 
