@@ -67,6 +67,18 @@ object HelpersSpec extends Specification {
       body.substring(body.indexOf(idAttr) + idAttr.length) must not contain(idAttr)
     }
 
+    "allow setting custom data attributes" in {
+      import Implicits.toAttributePair
+
+      val body = select.apply(Form(single("foo" -> Forms.text))("foo"),Seq(("0", "test")), "data-test" -> "test").body
+
+      val dataTestAttr = "data-test=\"test\""
+      body must contain(dataTestAttr)
+
+      // Make sure it doesn't have it twice, issue #478
+      body.substring(body.indexOf(dataTestAttr) + dataTestAttr.length) must not contain(dataTestAttr)
+    }
+
     "Work as a simple select" in {
       val form = Form(single("foo" -> Forms.text)).fill("0")
       val body = select.apply(form("foo"), Seq(("0", "test"), ("1", "test"))).body

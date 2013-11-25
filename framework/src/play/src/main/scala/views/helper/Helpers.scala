@@ -88,4 +88,8 @@ package views.html.helper {
 
   }
 
+  object Implicits {
+    implicit def toAttributePair(pair: (String, String)): (Symbol, String) = Symbol(pair._1) -> pair._2
+  }
+
 }
