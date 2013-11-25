@@ -6,7 +6,7 @@ package play.libs;
 import java.util.*;
 
 /**
- * Class that contains useful java <-> scala conversion helpers.
+ * Class that contains useful java &lt;-&gt; scala conversion helpers.
  */
 public class Scala {
 

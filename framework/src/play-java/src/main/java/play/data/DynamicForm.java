@@ -10,7 +10,7 @@ import static play.libs.F.*;
 import play.data.validation.*;
 
 /**
- * A dynamic form. This form is backed by a simple <code>HashMap&lt;String,String></code>
+ * A dynamic form. This form is backed by a simple <code>HashMap&lt;String,String&gt;</code>
  */
 public class DynamicForm extends Form<DynamicForm.Dynamic> {
 

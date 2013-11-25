@@ -244,7 +244,7 @@ public class F {
          *
          * @param function The function to call to fulfill the Promise.
          * @param delay The time to wait.
-         * @param units The units to use for the delay.
+         * @param unit The units to use for the delay.
          */
         public static <A> Promise<A> delayed(Function0<A> function, long delay, TimeUnit unit) {
             return FPromiseHelper.delayed(function, delay, unit, HttpExecution.defaultContext());
@@ -256,7 +256,7 @@ public class F {
          *
          * @param function The function to call to fulfill the Promise.
          * @param delay The time to wait.
-         * @param units The units to use for the delay.
+         * @param unit The units to use for the delay.
          * @param ec The ExecutionContext to run the Function0 in.
          */
         public static <A> Promise<A> delayed(Function0<A> function, long delay, TimeUnit unit, ExecutionContext ec) {
@@ -265,18 +265,19 @@ public class F {
 
         /**
          * Awaits for the promise to get the result.
+         * Throws a Throwable if the calculation providing the promise threw an exception
          *
          * @param timeout A user defined timeout
          * @param unit timeout for timeout
          * @return The promised result
-         * @throws Throwable if the calculation providing the promise threw an exception
          */
         public A get(long timeout, TimeUnit unit) {
             return FPromiseHelper.get(this, timeout, unit);
         }
 
         /**
-         * Awaits for the promise to get the result.
+         * Awaits for the promise to get the result.<br>
+         * Throws a Throwable if the calculation providing the promise threw an exception
          *
          * @param timeout A user defined timeout in milliseconds
          * @return The promised result

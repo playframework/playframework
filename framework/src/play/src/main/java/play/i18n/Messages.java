@@ -88,7 +88,6 @@ public class Messages {
 
     /**
     * Check if a message key is defined.
-    * @param lang the message lang
     * @param key the message key
     * @return a Boolean
     */
