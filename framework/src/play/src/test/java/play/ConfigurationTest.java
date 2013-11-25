@@ -3,8 +3,10 @@ package play;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValue;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
@@ -34,6 +36,14 @@ public class ConfigurationTest {
             }
         });
         assertThat(keys).containsOnly("foo.bar1", "foo.bar2", "blah");
+    }
+
+    @Test
+    public void makesUnderlyingAccessible() {
+        Config underlying
+            = ConfigFactory.parseMap(ImmutableMap.of("foo.bar1", "value1"));
+        Configuration config = new Configuration(underlying);
+        Assert.assertEquals(underlying, config.underlying());
     }
 
     public Configuration exampleConfig() {

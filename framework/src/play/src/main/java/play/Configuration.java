@@ -276,6 +276,15 @@ public class Configuration {
     }
 
     /**
+     * Returns the underlying Typesafe config object.
+     *
+     * @return The config
+     */
+    public Config underlying() {
+        return conf.underlying();
+    }
+
+    /**
      * Returns the config as a set of full paths to config values.  This is
      * different to {@link asMap()} in that it returns {@link com.typesafe.config.ConfigValue}
      * objects, and keys are recursively expanded to be pull path keys.
