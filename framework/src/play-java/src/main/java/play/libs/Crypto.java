@@ -5,7 +5,7 @@ package play.libs;
 
 /**
  * Cryptographic utilities.
- * <p/>
+ * <br>
  * These utilities are intended as a convenience, however it is important to read each methods documentation and
  * understand the concepts behind encryption to use this class properly.  Safe encryption is hard, and there is no
  * substitute for an adequate understanding of cryptography.  These methods will not be suitable for all encryption
@@ -19,9 +19,9 @@ public class Crypto {
 
     /**
      * Signs the given String with HMAC-SHA1 using the given key.
-     * <p/>
+     * <br>
      * By default this uses the platform default JSSE provider.  This can be overridden by defining
-     * <code>application.crypto.provider</code> in <codeapplication.conf</code>.
+     * <code>application.crypto.provider</code> in <code>application.conf</code>.
      *
      * @param message The message to sign.
      * @param key     The private key to sign with.
@@ -33,9 +33,9 @@ public class Crypto {
 
     /**
      * Signs the given String with HMAC-SHA1 using the application's secret key.
-     * <p/>
+     * <br>
      * By default this uses the platform default JSSE provider.  This can be overridden by defining
-     * <code>application.crypto.provider</code> in <codeapplication.conf</code>.
+     * <code>application.crypto.provider</code> in <code>application.conf</code>.
      *
      * @param message The message to sign.
      * @return A hexadecimal encoded signature.
@@ -105,15 +105,15 @@ public class Crypto {
 
     /**
      * Encrypt a String with the AES encryption standard using the application's secret key.
-     * <p/>
+     * <br>
      * The provider used is by default this uses the platform default JSSE provider.  This can be overridden by defining
      * <code>application.crypto.provider</code> in <code>application.conf</code>.
-     * <p/>
+     * <br>
      * The transformation algorithm used is the provider specific implementation of the <code>AES</code> name.  On
      * Oracles JDK, this is <code>AES/ECB/PKCS5Padding</code>.  This algorithm is suitable for small amounts of data,
      * typically less than 32 bytes, hence is useful for encrypting credit card numbers, passwords etc.  For larger
      * blocks of data, this algorithm may expose patterns and be vulnerable to repeat attacks.
-     * <p/>
+     * <br>
      * The transformation algorithm can be configured by defining <code>application.crypto.aes.transformation</code> in
      * <code>application.conf</code>.  Although any cipher transformation algorithm can be selected here, the secret key
      * spec used is always AES, so only AES transformation algorithms will work.
@@ -127,17 +127,17 @@ public class Crypto {
 
     /**
      * Encrypt a String with the AES encryption standard and the supplied private key.
-     * <p/>
+     * <br>
      * The private key must have a length of 16 bytes.
-     * <p/>
+     * <br>
      * The provider used is by default this uses the platform default JSSE provider.  This can be overridden by defining
      * <code>application.crypto.provider</code> in <code>application.conf</code>.
-     * <p/>
+     * <br>
      * The transformation algorithm used is the provider specific implementation of the <code>AES</code> name.  On
      * Oracles JDK, this is <code>AES/ECB/PKCS5Padding</code>.  This algorithm is suitable for small amounts of data,
      * typically less than 32bytes, hence is useful for encrypting credit card numbers, passwords etc.  For larger
      * blocks of data, this algorithm may expose patterns and be vulnerable to repeat attacks.
-     * <p/>
+     * <br>
      * The transformation algorithm can be configured by defining <code>application.crypto.aes.transformation</code> in
      * <code>application.conf</code>.  Although any cipher transformation algorithm can be selected here, the secret key
      * spec used is always AES, so only AES transformation algorithms will work.
@@ -152,10 +152,10 @@ public class Crypto {
 
     /**
      * Decrypt a String with the AES encryption standard using the application's secret key.
-     * <p/>
+     * <br>
      * The provider used is by default this uses the platform default JSSE provider.  This can be overridden by defining
      * <code>application.crypto.provider</code> in <code>application.conf</code>.
-     * <p/>
+     * <br>
      * The transformation used is by default <code>AES/ECB/PKCS5Padding</code>.  It can be configured by defining
      * <code>application.crypto.aes.transformation</code> in <code>application.conf</code>.  Although any cipher
      * transformation algorithm can be selected here, the secret key spec used is always AES, so only AES transformation
@@ -170,12 +170,12 @@ public class Crypto {
 
     /**
      * Decrypt a String with the AES encryption standard.
-     * <p/>
+     * <br>
      * The private key must have a length of 16 bytes.
-     * <p/>
+     * <br>
      * The provider used is by default this uses the platform default JSSE provider.  This can be overridden by defining
      * <code>application.crypto.provider</code> in <code>application.conf</code>.
-     * <p/>
+     * <br>
      * The transformation used is by default <code>AES/ECB/PKCS5Padding</code>.  It can be configured by defining
      * <code>application.crypto.aes.transformation</code> in <code>application.conf</code>.  Although any cipher
      * transformation algorithm can be selected here, the secret key spec used is always AES, so only AES transformation

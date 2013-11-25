@@ -106,7 +106,7 @@ public class FakeRequest {
     /**
      * Set a Json Body to this request.
      * The <tt>Content-Type</tt> header of the request is set to <tt>application/json</tt>.
-     * @param node the JsValue
+     * @param json the JsValue
      * @param method the HTTP method. <tt>POST</tt> if set to <code>null</code>
      * @return the Fake Request
      */
@@ -199,7 +199,7 @@ public class FakeRequest {
     /**
      * Set a Text to this request.
      * The <tt>Content-Type</tt> header of the request is set to <tt>text/plain</tt>.
-     * @param xml the XML
+     * @param text the text
      * @return the Fake Request
      */
     public FakeRequest withTextBody(String text) {

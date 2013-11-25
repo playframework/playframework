@@ -47,7 +47,7 @@ public class Messages {
     * Uses `java.text.MessageFormat` internally to format the message.
     *
     * @param lang the message lang
-    * @param key the messages keys
+    * @param keys the messages keys
     * @param args the message arguments
     * @return the formatted message or a default rendering if the key wasn't defined
     */
@@ -76,7 +76,7 @@ public class Messages {
     *
     * Uses `java.text.MessageFormat` internally to format the message.
     *
-    * @param key the messages keys
+    * @param keys the messages keys
     * @param args the message arguments
     * @return the formatted message or a default rendering if the key wasn't defined
     */
@@ -98,7 +98,6 @@ public class Messages {
 
     /**
     * Check if a message key is defined.
-    * @param lang the message lang
     * @param key the message key
     * @return a Boolean
     */
