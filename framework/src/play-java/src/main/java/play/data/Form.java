@@ -446,14 +446,14 @@ public class Form<T> {
     }
 
     /**
-     * Returns <code>true<code> if there are any errors related to this form.
+     * Returns <code>true</code> if there are any errors related to this form.
      */
     public boolean hasErrors() {
         return !errors.isEmpty();
     }
 
     /**
-     * Returns <code>true<code> if there any global errors related to this form.
+     * Returns <code>true</code> if there any global errors related to this form.
      */
     public boolean hasGlobalErrors() {
         return errors.containsKey("") && !errors.get("").isEmpty();

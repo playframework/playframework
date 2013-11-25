@@ -220,7 +220,7 @@ public class Configuration {
      * Retrieves a configuration value as an <code>Number</code>.
      *
      * @param key configuration key (relative to configuration root key)
-     * @param defaultLong default value if configuration key doesn't exist
+     * @param defaultNumber default value if configuration key doesn't exist
      * @return a configuration value or the defaultInteger
      */
     public Number getNumber(String key, Number defaultNumber) {
@@ -296,7 +296,7 @@ public class Configuration {
     }
     
     /**
-     * Creates a configuration error for a specific congiguration key.
+     * Creates a configuration error for a specific configuration key.
      *
      * @param key the configuration key, related to this error
      * @param message the error message
@@ -308,7 +308,7 @@ public class Configuration {
     }
     
     /**
-     * Retrieves a configuration value as a <code>List<Boolean></code>.
+     * Retrieves a configuration value as a {@code List<Boolean>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
@@ -318,7 +318,7 @@ public class Configuration {
     }
   
     /**
-     * Retrieves a configuration value as a <code>List<Boolean></code>.
+     * Retrieves a configuration value as a {@code List<Boolean>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
@@ -329,7 +329,7 @@ public class Configuration {
     }
     
     /**
-     * Retrieves a configuration value as a <code>List<Long></code> representing bytes.
+     * Retrieves a configuration value as a {@code List<Long>} representing bytes.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
@@ -339,7 +339,7 @@ public class Configuration {
     }
     
     /**
-     * Retrieves a configuration value as a <code>List<Long></code> representing bytes.
+     * Retrieves a configuration value as a {@code List<Long>} representing bytes.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
@@ -350,7 +350,7 @@ public class Configuration {
     }    
 
     /**
-     * Retrieves a configuration value as a <code>List<Configuration></code>.
+     * Retrieves a configuration value as a {@code List<Configuration>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
@@ -368,7 +368,7 @@ public class Configuration {
     }
     
     /**
-     * Retrieves a configuration value as a <code>List<Configuration></code>.
+     * Retrieves a configuration value as a {@code List<Configuration>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
@@ -383,7 +383,7 @@ public class Configuration {
     }    
 
     /**
-     * Retrieves a configuration value as a <code>List<Double></code>.
+     * Retrieves a configuration value as a {@code List<Double>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
@@ -393,7 +393,7 @@ public class Configuration {
     }
     
     /**
-     * Retrieves a configuration value as a <code>List<Double></code>.
+     * Retrieves a configuration value as a {@code List<Double>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
@@ -404,7 +404,7 @@ public class Configuration {
     }    
     
     /**
-     * Retrieves a configuration value as a <code>List<Integer></code>.
+     * Retrieves a configuration value as a {@code List<Integer>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
@@ -414,7 +414,7 @@ public class Configuration {
     }
     
     /**
-     * Retrieves a configuration value as a <code>List<Integer></code>.
+     * Retrieves a configuration value as a {@code List<Integer>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
@@ -425,7 +425,7 @@ public class Configuration {
     }    
     
     /**
-     * Retrieves a configuration value as a <code>List<Object></code>.
+     * Retrieves a configuration value as a {@code List<Object>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
@@ -438,7 +438,7 @@ public class Configuration {
     }
     
     /**
-     * Retrieves a configuration value as a <code>List<Object></code>.
+     * Retrieves a configuration value as a {@code List<Object>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
@@ -453,7 +453,7 @@ public class Configuration {
     }
     
     /**
-     * Retrieves a configuration value as a <code>List<Long></code>.
+     * Retrieves a configuration value as a {@code List<Long>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
@@ -463,7 +463,7 @@ public class Configuration {
     }
     
     /**
-     * Retrieves a configuration value as a <code>List<Long></code>.
+     * Retrieves a configuration value as a {@code List<Long>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
@@ -474,7 +474,7 @@ public class Configuration {
     }            
     
     /**
-     * Retrieves a configuration value as a <code>List<Long></code> representing Milliseconds.
+     * Retrieves a configuration value as a {@code List<Long>} representing Milliseconds.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
@@ -484,7 +484,7 @@ public class Configuration {
     }
     
     /**
-     * Retrieves a configuration value as a <code>List<Long></code> representing Milliseconds.
+     * Retrieves a configuration value as a {@code List<Long>} representing Milliseconds.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
@@ -495,7 +495,7 @@ public class Configuration {
     }            
     
     /**
-     * Retrieves a configuration value as a <code>List<Long></code> representing Nanoseconds.
+     * Retrieves a configuration value as a {@code List<Long>} representing Nanoseconds.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
@@ -505,7 +505,7 @@ public class Configuration {
     }
     
     /**
-     * Retrieves a configuration value as a <code>List<Long></code> representing Nanoseconds.
+     * Retrieves a configuration value as a {@code List<Long>} representing Nanoseconds.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
@@ -516,7 +516,7 @@ public class Configuration {
     }            
     
     /**
-     * Retrieves a configuration value as a <code>List<Number></code>.
+     * Retrieves a configuration value as a {@code List<Number>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
@@ -526,7 +526,7 @@ public class Configuration {
     }
     
     /**
-     * Retrieves a configuration value as a <code>List<Number></code>.
+     * Retrieves a configuration value as a {@code List<Number>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
@@ -537,7 +537,7 @@ public class Configuration {
     }            
 
     /**
-     * Retrieves a configuration value as a <code>List<Map<String, Object>></code>.
+     * Retrieves a configuration value as a {@code List<Map<String, Object>>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
@@ -554,7 +554,7 @@ public class Configuration {
     }
     
     /**
-     * Retrieves a configuration value as a <code>List<Map<String, Object>></code>.
+     * Retrieves a configuration value as a {@code List<Map<String, Object>>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
@@ -569,7 +569,7 @@ public class Configuration {
     }    
     
     /**
-     * Retrieves a configuration value as a <code>List<String></code>.
+     * Retrieves a configuration value as a {@code List<String>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @return a configuration value or <code>null</code>
@@ -579,7 +579,7 @@ public class Configuration {
     }
     
     /**
-     * Retrieves a configuration value as a <code>List<Number></code>.
+     * Retrieves a configuration value as a {@code List<Number>}.
      *
      * @param key configuration key (relative to configuration root key)
      * @param defaultList default value if configuration key doesn't exist
@@ -606,7 +606,7 @@ public class Configuration {
      * Retrieves a configuration value as a <code>Object</code>.
      *
      * @param key configuration key (relative to configuration root key)
-     * @param defaultList default value if configuration key doesn't exist
+     * @param defaultObject default value if configuration key doesn't exist
      * @return a configuration value or the defaultList
      */        
     public Object getObject(String key, Object defaultObject) {
