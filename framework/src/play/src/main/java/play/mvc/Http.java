@@ -569,7 +569,7 @@ public class Http {
         }
 
         /**
-         * Set a new transient cookie with path “/”<br />
+         * Set a new transient cookie with path “/”<br>
          * For example:
          * <pre>
          * response().setCookie("theme", "blue");
@@ -629,7 +629,7 @@ public class Http {
         }
 
         /**
-         * Discard cookies along this result<br />
+         * Discard cookies along this result<br>
          * For example:
          * <pre>
          * response().discardCookies("theme");

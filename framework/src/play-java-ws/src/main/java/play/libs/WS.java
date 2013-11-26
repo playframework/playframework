@@ -36,7 +36,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Asynchronous API to to query web services, as an http client.
  *
- * The value returned is a Promise<Response>, and you should use Play's asynchronous mechanisms to use this response.
+ * The value returned is a {@code Promise<Response>}, and you should use Play's asynchronous mechanisms to use this response.
  */
 public class WS {
 

@@ -23,12 +23,12 @@ public class Cache {
    * Retrieve a value from the cache, or set it from a default Callable function.
    * 
    * @param key Item key.
-   * @param value to set if key does not exist
+   * @param block block returning value to set if key does not exist
    * @param expiration expiration period in seconds.
    * @return value 
    */
   @SuppressWarnings("unchecked")
-public static <T> T getOrElse(String key, Callable<T> block, int expiration) throws Exception{
+  public static <T> T getOrElse(String key, Callable<T> block, int expiration) throws Exception{
      Object r = play.libs.Scala.orNull(play.api.cache.Cache.get(key,play.api.Play.unsafeApplication()));
      if (r == null) {
          T value = block.call();
@@ -46,10 +46,10 @@ public static <T> T getOrElse(String key, Callable<T> block, int expiration) thr
   public static void set(String key, Object value, int expiration) {
       play.api.cache.Cache.set(key,value,expiration, play.api.Play.unsafeApplication());
   }
-    /**
+
+  /**
    * Sets a value without expiration.
-   * 
-   * @param expiration expiration in seconds
+   *
    */
   public static void set(String key, Object value) {
       play.api.cache.Cache.set(key,value, 0, play.api.Play.unsafeApplication());
