@@ -388,10 +388,22 @@ object WS {
     }
 
     /**
-     * performs a get with supplied body
+     * Perform a GET on the request asynchronously.
      */
 
     def get(): Future[Response] = prepare("GET").execute
+
+    /**
+     * Perform a GET on the request asynchronously.
+     * @param body supplied won't be chunked
+     */
+    def get[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Response] = prepare("GET", body).execute
+
+    /**
+     * Perform a GET on the request asynchronously.
+     * @param body supplied won't be chunked
+     */
+    def get(body: File): Future[Response] = prepare("GET", body).execute
 
     /**
      * performs a get with supplied body
@@ -399,6 +411,22 @@ object WS {
      */
     def get[A](consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Future[Iteratee[Array[Byte], A]] =
       prepare("GET").executeStream(consumer)
+
+    /**
+     * performs a get with supplied body
+     * @param body won't be chunked
+     * @param consumer that's handling the response
+     */
+    def get[A](body: File, consumer: ResponseHeaders => Iteratee[Array[Byte], A]): Future[Iteratee[Array[Byte], A]] =
+      prepare("GET", body).executeStream(consumer)
+
+    /**
+     * performs a get with supplied body
+     * @param body won't be chunked
+     * @param consumer that's handling the response
+     */
+    def get[A, T](body: T, consumer: ResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Iteratee[Array[Byte], A]] =
+      prepare("GET", body).executeStream(consumer)
 
     /**
      * Perform a PATCH on the request asynchronously.
@@ -457,6 +485,18 @@ object WS {
     def delete(): Future[Response] = prepare("DELETE").execute
 
     /**
+     * Perform a DELETE on the request asynchronously.
+     * @param body supplied won't be chunked
+     */
+    def delete[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Response] = prepare("DELETE", body).execute
+
+    /**
+     * Perform a DELETE on the request asynchronously.
+     * @param body supplied won't be chunked
+     */
+    def delete(body: File): Future[Response] = prepare("DELETE", body).execute
+
+    /**
      * Perform a HEAD on the request asynchronously.
      */
     def head(): Future[Response] = prepare("HEAD").execute
@@ -472,6 +512,23 @@ object WS {
      * @param method The method to execute
      */
     def execute(method: String): Future[Response] = prepare(method).execute
+
+    /**
+     * Execute an arbitrary method on the request asynchronously.
+     *
+     * @param method The method to execute
+     * @param body supplied won't be chunked
+     */
+    def execute(method: String, body:File): Future[Response] = prepare(method, body).execute
+
+    /**
+     * Execute an arbitrary method on the request asynchronously.
+     *
+     * @param method The method to execute
+     * @param body supplied won't be chunked
+     */
+    def execute(method: String, body:T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[Response] = prepare(method, body).execute
+
 
     private[play] def prepare(method: String) = {
       val request = new WSRequest(method, auth, calc).setUrl(url)

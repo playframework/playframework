@@ -422,6 +422,15 @@ public class WS {
         }
 
         /**
+         * Perform a GET on the request asynchronously.
+         *
+         * @param body represented as String
+         */
+        public Promise<Response> get(String body) {
+            return executeString("GET", body);
+        }
+
+        /**
          * Perform a PATCH on the request asynchronously.
          *
          * @param body represented as String
@@ -525,6 +534,15 @@ public class WS {
          */
         public Promise<Response> delete() {
             return execute("DELETE");
+        }
+
+        /**
+         * Perform a DELETE on the request asynchronously.
+         *
+         * @param body represented as String
+         */
+        public Promise<Response> delete(String body) {
+            return executeString("DELETE", body);
         }
 
         /**
