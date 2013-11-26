@@ -3,10 +3,10 @@
  */
 package play.it.action
 
+import play.api.libs.json.Json
 import play.api.mvc.{Action, EssentialAction}
 import play.api.mvc.Results._
 import play.api.test.{FakeApplication, PlaySpecification, FakeRequest}
-import play.api.libs.iteratee.Enumerator
 import scala.concurrent.Promise
 
 object EssentialActionSpec extends PlaySpecification {
@@ -19,11 +19,11 @@ object EssentialActionSpec extends PlaySpecification {
         Ok(value)
       }
 
-      val request = FakeRequest(POST, "/").withHeaders(CONTENT_TYPE -> "application/json")
+      val request = FakeRequest(POST, "/").withJsonBody(Json.parse("""{ "field": "value" }"""))
 
-      val requestBody = Enumerator("""{ "field": "value" }""".getBytes) andThen Enumerator.eof
-      val result = requestBody |>>> action(request)
-      status(result) mustEqual  OK
+      val result = call(action, request)
+
+      status(result) mustEqual OK
       contentAsString(result) mustEqual "value"
     }
 
@@ -43,7 +43,7 @@ object EssentialActionSpec extends PlaySpecification {
       running(fakeApplication) {
         // run the test with the classloader of the current thread
         Thread.currentThread.getContextClassLoader must not be applicationClassLoader
-        action.apply(FakeRequest()).run
+        call(action, FakeRequest())
         await(actionClassLoader.future) must be equalTo applicationClassLoader
       }
     }

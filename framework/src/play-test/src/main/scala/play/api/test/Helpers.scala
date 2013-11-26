@@ -176,7 +176,33 @@ trait FutureAwaits {
 
 }
 
-trait RouteInvokers {
+trait EssentialActionCaller {
+  self: Writeables =>
+
+  /**
+   * Execute an [[play.api.mvc.EssentialAction]].
+   *
+   * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
+   */
+  def call[T](action: EssentialAction, req: FakeRequest[T])(implicit w: Writeable[T]): Future[SimpleResult] =
+    call(action, req, req.body)
+
+  /**
+   * Execute an [[play.api.mvc.EssentialAction]].
+   *
+   * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
+   */
+  def call[T](action: EssentialAction, rh: RequestHeader, body: T)(implicit w: Writeable[T]): Future[SimpleResult] = {
+    val rhWithCt = w.contentType.map(ct => rh.copy(
+      headers = FakeHeaders((rh.headers.toMap + ("Content-Type" -> Seq(ct))).toSeq)
+    )).getOrElse(rh)
+
+    val requestBody = Enumerator(body) &> w.toEnumeratee
+    requestBody |>>> action(rhWithCt)
+  }
+}
+
+trait RouteInvokers extends EssentialActionCaller {
   self: Writeables =>
 
   /**
@@ -234,20 +260,15 @@ trait RouteInvokers {
    * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
    */
   def route[T](app: Application, rh: RequestHeader, body: T)(implicit w: Writeable[T]): Option[Future[SimpleResult]] = {
-    val rhWithCt = w.contentType.map(ct => rh.copy(
-      headers = FakeHeaders((rh.headers.toMap + ("Content-Type" -> Seq(ct))).toSeq)
-    )).getOrElse(rh)
-    val handler = app.global.onRouteRequest(rhWithCt)
+    val handler = app.global.onRouteRequest(rh)
     val taggedRh = handler.map({
-      case h: RequestTaggingHandler => h.tagRequest(rhWithCt)
+      case h: RequestTaggingHandler => h.tagRequest(rh)
       case _ => rh
-    }).getOrElse(rhWithCt)
+    }).getOrElse(rh)
     handler.flatMap {
-      case a: EssentialAction => Some(
-        app.global.doFilter(a)(taggedRh)
-          .feed(Input.El(w.transform(body)))
-          .flatMap(_.run)
-      )
+      case a: EssentialAction =>
+        val filteredAction = app.global.doFilter(a)
+        Some(call(filteredAction, taggedRh, body))
 
       case _ => None
     }
@@ -377,5 +398,6 @@ object Helpers extends PlayRunners
   with DefaultAwaitTimeout
   with ResultExtractors
   with Writeables
+  with EssentialActionCaller
   with RouteInvokers
   with FutureAwaits
