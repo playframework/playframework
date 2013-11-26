@@ -445,12 +445,12 @@ public class F {
      *
      * <pre>
      * {@code
-     * RedeemablePromise<Int> someFutureInt = RedeemablePromise.empty();
+     * RedeemablePromise<Integer> someFutureInt = RedeemablePromise.empty();
      *
-     * someFutureInt.map(new Function<Int, Result>{
-     *     public apply(Int i) {
+     * someFutureInt.map(new Function<Integer, Result>() {
+     *     public Result apply(Integer i) {
      *         // This would apply once the redeemable promise succeed
-     *         return new Result("" + i);
+     *         return Results.ok("" + i);
      *     }
      * });
      *
