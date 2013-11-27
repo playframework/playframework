@@ -28,7 +28,7 @@ The type parameter `A` of the format defines the result type of the template ren
 
 For convenience, Play provides a `play.api.templates.BufferedContent<A>` abstract class that implements `play.templates.Appendable<A>` using a `StringBuilder` to build its result and that implements the `play.mvc.Content` interface so Play knows how to serialize it as an HTTP response body.
 
-In short, you need to write to classes: one defining the result (implementing `play.templates.Appendable<A>`) and one defining the text integration process (implementing `play.templates.Format<A>`). For instance, here is how the HTML format could be defined:
+In short, you need to write two classes: one defining the result (implementing `play.templates.Appendable<A>`) and one defining the text integration process (implementing `play.templates.Format<A>`). For instance, here is how the HTML format could be defined:
 
 ```java
 public class Html extends BufferedContent<Html> {
