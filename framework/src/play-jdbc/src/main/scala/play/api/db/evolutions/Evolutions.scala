@@ -511,25 +511,40 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
     }
   }
 
+  /**
+   * Get a quoted version of the column name. Backticks are used for MySQL
+   * and double quotes are used for all others.
+   *
+   * @param c the database connection
+   * @param s the column name
+   * @throws a SQLException error on access error or closed connection
+   */
+  def quoteColumnName(c: Connection, s: String): String = {
+    val isMySQL = c.getMetaData.getDatabaseProductName contains "MySQL"
+    if (isMySQL) s"`$s`" else s"""\"$s\"""
+  }
+
   def createLockTableIfNecessary(c: Connection, s: Statement) {
+    val lockColumn = quoteColumnName(c, "lock")
     try {
-      val r = s.executeQuery("select lock from play_evolutions_lock")
+      val r = s.executeQuery(s"select $lockColumn from play_evolutions_lock")
       r.close()
     } catch {
       case e: SQLException =>
         c.rollback()
-        s.execute("""
+        s.execute(s"""
         create table play_evolutions_lock (
-          lock int not null primary key
+          $lockColumn int not null primary key
         )
         """)
-        s.executeUpdate("insert into play_evolutions_lock (lock) values (1)")
+        s.executeUpdate(s"insert into play_evolutions_lock ($lockColumn) values (1)")
     }
   }
 
   def lock(c: Connection, s: Statement, attempts: Int = 5) {
     try {
-      s.executeQuery("select lock from play_evolutions_lock where lock = 1 for update nowait")
+      val lockColumn = quoteColumnName(c, "lock")
+      s.executeQuery(s"select $lockColumn from play_evolutions_lock where $lockColumn = 1 for update nowait")
     } catch {
       case e: SQLException =>
         if (attempts == 0) throw e
