@@ -1147,8 +1147,8 @@ val creatureReads: Reads[Creature] = (
   	tupled
   ) and
   (__ \ "friends").lazyRead( list[Creature](creatureReads) ) and
-  (__ \ "social").read(optional[String])
-)(Creature)  
+  (__ \ "social").readNullable[String]
+)(Creature)
 
 import play.api.libs.json.Writes._
 
