@@ -381,18 +381,44 @@ object ToStatement {
 }
 
 import SqlParser._
-case class ParameterValue[A](aValue: A, statementSetter: ToStatement[A]) {
-  def set(s: java.sql.PreparedStatement, index: Int) = statementSetter.set(s, index, aValue)
+
+/**
+ * Prepared parameter value.
+ */
+trait ParameterValue {
+
+  /**
+   * Sets this value on given statement at specified index.
+   *
+   * @param s SQL Statement
+   * @param index Parameter index
+   */
+  def set(s: java.sql.PreparedStatement, index: Int): Unit
 }
 
-case class SimpleSql[T](sql: SqlQuery, params: Seq[(String, ParameterValue[_])], defaultParser: RowParser[T]) extends Sql {
+/**
+ * Value factory for parameter.
+ *
+ * {{{
+ * val param = ParameterValue("str", setter)
+ *
+ * SQL("...").onParams(param)
+ * }}}
+ */
+object ParameterValue {
+  def apply[A](value: A, setter: ToStatement[A]) = new ParameterValue {
+    def set(s: java.sql.PreparedStatement, i: Int) = setter.set(s, i, value)
+  }
+}
 
-  def on(args: (Any, ParameterValue[_])*): SimpleSql[T] = this.copy(params = (this.params) ++ args.map {
+case class SimpleSql[T](sql: SqlQuery, params: Seq[(String, ParameterValue)], defaultParser: RowParser[T]) extends Sql {
+
+  def on(args: (Any, ParameterValue)*): SimpleSql[T] = this.copy(params = (this.params) ++ args.map {
     case (s: Symbol, v) => (s.name, v)
     case (k, v) => (k.toString, v)
   })
 
-  def onParams(args: ParameterValue[_]*): SimpleSql[T] = this.copy(params = (this.params) ++ sql.argsInitialOrder.zip(args))
+  def onParams(args: ParameterValue*): SimpleSql[T] = this.copy(params = (this.params) ++ sql.argsInitialOrder.zip(args))
 
   def list()(implicit connection: java.sql.Connection): Seq[T] = as(defaultParser*)
 
@@ -422,13 +448,13 @@ case class SimpleSql[T](sql: SqlQuery, params: Seq[(String, ParameterValue[_])],
   def withQueryTimeout(seconds: Option[Int]): SimpleSql[T] = this.copy(sql = sql.withQueryTimeout(seconds))
 }
 
-case class BatchSql(sql: SqlQuery, params: Seq[Seq[(String, ParameterValue[_])]]) {
+case class BatchSql(sql: SqlQuery, params: Seq[Seq[(String, ParameterValue)]]) {
 
-  def addBatch(args: (String, ParameterValue[_])*): BatchSql = this.copy(params = (this.params) :+ args)
-  def addBatchList(paramsMapList: TraversableOnce[Seq[(String, ParameterValue[_])]]): BatchSql = this.copy(params = (this.params) ++ paramsMapList)
+  def addBatch(args: (String, ParameterValue)*): BatchSql = this.copy(params = (this.params) :+ args)
+  def addBatchList(paramsMapList: TraversableOnce[Seq[(String, ParameterValue)]]): BatchSql = this.copy(params = (this.params) ++ paramsMapList)
 
-  def addBatchParams(args: ParameterValue[_]*): BatchSql = this.copy(params = (this.params) :+ sql.argsInitialOrder.zip(args))
-  def addBatchParamsList(paramsSeqList: TraversableOnce[Seq[ParameterValue[_]]]): BatchSql = this.copy(params = (this.params) ++ paramsSeqList.map(paramsSeq => sql.argsInitialOrder.zip(paramsSeq)))
+  def addBatchParams(args: ParameterValue*): BatchSql = this.copy(params = (this.params) :+ sql.argsInitialOrder.zip(args))
+  def addBatchParamsList(paramsSeqList: TraversableOnce[Seq[ParameterValue]]): BatchSql = this.copy(params = (this.params) ++ paramsSeqList.map(paramsSeq => sql.argsInitialOrder.zip(paramsSeq)))
 
   def getFilledStatement(connection: java.sql.Connection, getGeneratedKeys: Boolean = false) = {
     val statement = if (getGeneratedKeys) connection.prepareStatement(sql.query, java.sql.Statement.RETURN_GENERATED_KEYS)

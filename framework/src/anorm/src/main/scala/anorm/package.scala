@@ -22,8 +22,7 @@ package object anorm {
 
   implicit def implicitID[ID](id: Id[ID] with NotNull): ID = id.id
 
-  implicit def toParameterValue[A](a: A)(implicit p: ToStatement[A]): ParameterValue[A] =
-    ParameterValue(a, p)
+  implicit def toParameterValue[A](a: A)(implicit p: ToStatement[A]): ParameterValue = ParameterValue(a, p)
 
   def SQL(stmt: String) = Sql.sql(stmt)
 
