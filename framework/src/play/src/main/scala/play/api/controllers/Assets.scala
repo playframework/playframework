@@ -171,7 +171,9 @@ class AssetsBuilder extends Controller {
    */
   private[controllers] def resourceNameAt(path: String, file: String): Option[String] = {
     val decodedFile = UriEncoding.decodePath(file, "utf-8")
-    val resourceName = Option(path + "/" + decodedFile).map(name => if (name.startsWith("/")) name else ("/" + name)).get
+    val slashRemover = (input: String) => """//+""".r.replaceAllIn(input, "/")
+    val fullpath = slashRemover(path + "/" + decodedFile)
+    val resourceName = if (fullpath.startsWith("/")) fullpath else ("/" + fullpath)
     if (new File(resourceName).isDirectory || !new File(resourceName).getCanonicalPath.startsWith(new File(path).getCanonicalPath)) {
       None
     } else {

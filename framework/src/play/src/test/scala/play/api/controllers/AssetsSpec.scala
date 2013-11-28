@@ -19,10 +19,10 @@ object AssetsSpec extends Specification {
       Assets.resourceNameAt("a", "/b/") must beNone
       Assets.resourceNameAt("/a", "") must beSome("/a/")
       Assets.resourceNameAt("/a", "b") must beSome("/a/b")
-      Assets.resourceNameAt("/a", "/") must beSome("/a//")
-      Assets.resourceNameAt("/a", "/b") must beSome("/a//b")
-      Assets.resourceNameAt("/a", "/b/c") must beSome("/a//b/c")
-      Assets.resourceNameAt("/a", "/b/") must beSome("/a//b/")
+      Assets.resourceNameAt("/a", "/") must beSome("/a/")
+      Assets.resourceNameAt("/a", "/b") must beSome("/a/b")
+      Assets.resourceNameAt("/a", "/b/c") must beSome("/a/b/c")
+      Assets.resourceNameAt("/a", "/b/") must beSome("/a/b/")
     }
 
     "not look up assets with Windows file separators" in {
@@ -34,10 +34,10 @@ object AssetsSpec extends Specification {
       Assets.resourceNameAt("a\\z", "/b/") must beNone
       Assets.resourceNameAt("/a\\z", "") must beSome("/a\\z/")
       Assets.resourceNameAt("/a\\z", "b") must beSome("/a\\z/b")
-      Assets.resourceNameAt("/a\\z", "/") must beSome("/a\\z//")
-      Assets.resourceNameAt("/a\\z", "/b") must beSome("/a\\z//b")
-      Assets.resourceNameAt("/a\\z", "/b/c") must beSome("/a\\z//b/c")
-      Assets.resourceNameAt("/a\\z", "/b/") must beSome("/a\\z//b/")
+      Assets.resourceNameAt("/a\\z", "/") must beSome("/a\\z/")
+      Assets.resourceNameAt("/a\\z", "/b") must beSome("/a\\z/b")
+      Assets.resourceNameAt("/a\\z", "/b/c") must beSome("/a\\z/b/c")
+      Assets.resourceNameAt("/a\\z", "/b/") must beSome("/a\\z/b/")
       Assets.resourceNameAt("\\a\\z", "") must beNone
       Assets.resourceNameAt("\\a\\z", "b") must beNone
       Assets.resourceNameAt("\\a\\z", "/") must beNone
@@ -65,9 +65,9 @@ object AssetsSpec extends Specification {
     }
 
    "look up assets with percent-encoded file separators" in {
-      Assets.resourceNameAt("/x", "%2f") must beSome("/x//")
+      Assets.resourceNameAt("/x", "%2f") must beSome("/x/")
       Assets.resourceNameAt("/x", "a%2fb") must beSome("/x/a/b")
-      Assets.resourceNameAt("/x", "a/%2fb") must beSome("/x/a//b")
+      Assets.resourceNameAt("/x", "a/%2fb") must beSome("/x/a/b")
     }
 
     "fail when looking up assets with invalid chars in the URL" in {
@@ -77,8 +77,8 @@ object AssetsSpec extends Specification {
     }
 
     "look up assets even if the file path is a valid URI" in {
-      Assets.resourceNameAt("/a", "http://localhost/x") must beSome("/a/http://localhost/x")
-      Assets.resourceNameAt("/a", "//localhost/x") must beSome("/a///localhost/x")
+      Assets.resourceNameAt("/a", "http://localhost/x") must beSome("/a/http:/localhost/x")
+      Assets.resourceNameAt("/a", "//localhost/x") must beSome("/a/localhost/x")
       Assets.resourceNameAt("/a", "../") must beNone
     }
 
