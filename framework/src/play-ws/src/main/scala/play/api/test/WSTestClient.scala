@@ -1,8 +1,10 @@
 package play.api.test
 
-import play.api.libs.ws.WS
+import play.api.libs.ws._
 
 import play.api.mvc.Call
+
+import play.api.Play.current
 
 trait WsTestClient {
 
@@ -16,10 +18,10 @@ trait WsTestClient {
    *   wsCall(controllers.routes.Application.index()).get()
    * }}}
    */
-  def wsCall(call: Call)(implicit port: Port): WS.WSRequestHolder = wsUrl(call.url)
+  def wsCall(call: Call)(implicit port: Port): WSRequestHolder = wsUrl(call.url)
 
   /**
    * Construct a WS request for the given relative URL.
    */
-  def wsUrl(url: String)(implicit port: Port): WS.WSRequestHolder = WS.url("http://localhost:" + port + url)
+  def wsUrl(url: String)(implicit port: Port): WSRequestHolder = WS.url("http://localhost:" + port + url)
 }

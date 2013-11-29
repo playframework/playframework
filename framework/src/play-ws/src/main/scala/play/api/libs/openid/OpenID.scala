@@ -7,14 +7,15 @@ import scala.concurrent.Future
 import scala.util.control.Exception._
 import scala.util.matching.Regex
 import play.api.http.HeaderNames
-import play.api.libs.ws.WS.WSRequestHolder
+import play.api.libs.ws._
 import java.net._
 import play.api.mvc.Request
-import play.api.libs.ws._
 import xml.Node
 
 //TODO do not use Play's internal execution context in libs
 import play.core.Execution.Implicits.internalContext
+
+import play.api.Play.current
 
 case class OpenIDServer(url: String, delegate: Option[String])
 
@@ -193,7 +194,7 @@ private[openid] class Discovery(ws: (String) => WSRequestHolder) {
 private[openid] object Discovery {
 
   trait Resolver {
-    def resolve(response: Response): Option[OpenIDServer]
+    def resolve(response: WSResponse): Option[OpenIDServer]
   }
 
   // TODO: Verify schema, namespace and support verification of XML signatures
@@ -202,7 +203,7 @@ private[openid] object Discovery {
     // OpenID 1 compatibility: http://openid.net/specs/openid-authentication-2_0.html#anchor38
     private val serviceTypeId = Seq("http://specs.openid.net/auth/2.0/server", "http://specs.openid.net/auth/2.0/signon", "http://openid.net/server/1.0", "http://openid.net/server/1.1")
 
-    def resolve(response: Response) = for {
+    def resolve(response: WSResponse) = for {
       _ <- response.header(HeaderNames.CONTENT_TYPE).filter(_.contains("application/xrds+xml"))
       findInXml = findUriWithType(response.xml) _
       uri <- serviceTypeId.flatMap(findInXml(_)).headOption
@@ -220,7 +221,7 @@ private[openid] object Discovery {
     private val localidRegex = new Regex("""<link[^>]+openid2[.]local_id[^>]+>""")
     private val delegateRegex = new Regex("""<link[^>]+openid[.]delegate[^>]+>""")
 
-    def resolve(response: Response) = {
+    def resolve(response: WSResponse) = {
       val serverUrl: Option[String] = providerRegex.findFirstIn(response.body)
         .orElse(serverRegex.findFirstIn(response.body))
         .flatMap(extractHref(_))

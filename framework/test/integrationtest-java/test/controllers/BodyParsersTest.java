@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
 import play.libs.Json;
-import play.libs.WS;
+import play.libs.ws.*;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -18,7 +18,7 @@ public class BodyParsersTest {
     @Test
     public void testJson() {
         JsonNode json = createJson(100);
-        WS.Response response = runJsonTest(json, "/parsers/json");
+        WSResponse response = runJsonTest(json, "/parsers/json");
         assertThat(response.getStatus()).isEqualTo(200);
         assertThat((Object) response.asJson()).isEqualTo(json);
     }
@@ -26,14 +26,14 @@ public class BodyParsersTest {
     @Test
     public void testJsonExceedsDefaultLength() {
         JsonNode json = createJson(110 * 1024);
-        WS.Response response = runJsonTest(json, "/parsers/json");
+        WSResponse response = runJsonTest(json, "/parsers/json");
         assertThat(response.getStatus()).isEqualTo(413);
     }
 
     @Test
     public void testLimitedJson() {
         JsonNode json = createJson(100);
-        WS.Response response = runJsonTest(json, "/parsers/limitedjson");
+        WSResponse response = runJsonTest(json, "/parsers/limitedjson");
         assertThat(response.getStatus()).isEqualTo(200);
         assertThat((Object) response.asJson()).isEqualTo(json);
     }
@@ -41,7 +41,7 @@ public class BodyParsersTest {
     @Test
     public void testLimitedJsonExceedsDefaultLengthButLessThanLimit() {
         JsonNode json = createJson(110 * 1024);
-        WS.Response response = runJsonTest(json, "/parsers/limitedjson");
+        WSResponse response = runJsonTest(json, "/parsers/limitedjson");
         assertThat(response.getStatus()).isEqualTo(200);
         assertThat((Object) response.asJson()).isEqualTo(json);
     }
@@ -49,16 +49,16 @@ public class BodyParsersTest {
     @Test
     public void testLimitedJsonExceedsLimit() {
         JsonNode json = createJson(130 * 1024);
-        WS.Response response = runJsonTest(json, "/parsers/limitedjson");
+        WSResponse response = runJsonTest(json, "/parsers/limitedjson");
         assertThat(response.getStatus()).isEqualTo(413);
     }
 
-    private WS.Response runJsonTest(final JsonNode json, final String url) {
-        final AtomicReference<WS.Response> response = new AtomicReference<WS.Response>();
+    private WSResponse runJsonTest(final JsonNode json, final String url) {
+        final AtomicReference<WSResponse> response = new AtomicReference<WSResponse>();
         running(testServer(9001), new Runnable() {
             @Override
             public void run() {
-                WS.Response r = WS.url("http://localhost:9001" + url).setHeader("Content-Type", "application/json")
+                WSResponse r = WS.url("http://localhost:9001" + url).setHeader("Content-Type", "application/json")
                         .post(Json.stringify(json)).get(10000);
                 r.getBody();
                 response.set(r);

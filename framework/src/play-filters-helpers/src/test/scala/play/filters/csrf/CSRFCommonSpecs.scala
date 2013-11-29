@@ -4,8 +4,7 @@
 package play.filters.csrf
 
 import org.specs2.mutable.Specification
-import play.api.libs.ws.WS.WSRequestHolder
-import play.api.libs.ws.Response
+import play.api.libs.ws._
 import scala.concurrent.Future
 import play.api.mvc.{Handler, Session}
 import play.api.libs.Crypto
@@ -23,7 +22,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
   // This extracts the tests out into different configurations
   def sharedTests(csrfCheckRequest: CsrfTester, csrfAddToken: CsrfTester, generate: => String,
                   addToken: (WSRequestHolder, String) => WSRequestHolder,
-                  getToken: Response => Option[String], compareTokens: (String, String) => MatchResult[Any]) = {
+                  getToken: WSResponse => Option[String], compareTokens: (String, String) => MatchResult[Any]) = {
     // accept/reject tokens
     "accept requests with token in query string" in {
       lazy val token = generate
@@ -108,7 +107,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
       def csrfAddToken = buildCsrfAddToken()
       def generate = Crypto.generateSignedToken
       def addToken(req: WSRequestHolder, token: String) = req.withSession(TokenName -> token)
-      def getToken(response: Response) = {
+      def getToken(response: WSResponse) = {
         val session = response.cookies.find(_.name.exists(_ == Session.COOKIE_NAME)).flatMap(_.value).map(Session.decode)
         session.flatMap(_.get(TokenName))
       }
@@ -142,7 +141,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
       def csrfAddToken = buildCsrfAddToken("csrf.sign.tokens" -> "false")
       def generate = Crypto.generateToken
       def addToken(req: WSRequestHolder, token: String) = req.withSession(TokenName -> token)
-      def getToken(response: Response) = {
+      def getToken(response: WSResponse) = {
         val session = response.cookies.find(_.name.exists(_ == Session.COOKIE_NAME)).flatMap(_.value).map(Session.decode)
         session.flatMap(_.get(TokenName))
       }
@@ -156,7 +155,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
       def csrfAddToken = buildCsrfAddToken("csrf.cookie.name" -> "csrf")
       def generate = Crypto.generateSignedToken
       def addToken(req: WSRequestHolder, token: String) = req.withCookies("csrf" -> token)
-      def getToken(response: Response) = response.cookies.find(_.name.exists(_ == "csrf")).flatMap(_.value)
+      def getToken(response: WSResponse) = response.cookies.find(_.name.exists(_ == "csrf")).flatMap(_.value)
       def compareTokens(a: String, b: String) = Crypto.compareSignedTokens(a, b) must beTrue
 
       sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens)
@@ -167,7 +166,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
       def csrfAddToken = buildCsrfAddToken("csrf.cookie.name" -> "csrf", "csrf.sign.tokens" -> "false")
       def generate = Crypto.generateToken
       def addToken(req: WSRequestHolder, token: String) = req.withCookies("csrf" -> token)
-      def getToken(response: Response) = response.cookies.find(_.name.exists(_ == "csrf")).flatMap(_.value)
+      def getToken(response: WSResponse) = response.cookies.find(_.name.exists(_ == "csrf")).flatMap(_.value)
       def compareTokens(a: String, b: String) = a must_== b
 
       sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens)
@@ -178,7 +177,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
       def csrfAddToken = buildCsrfAddToken("csrf.cookie.name" -> "csrf", "csrf.cookie.secure" -> "true")
       def generate = Crypto.generateSignedToken
       def addToken(req: WSRequestHolder, token: String) = req.withCookies("csrf" -> token)
-      def getToken(response: Response) = {
+      def getToken(response: WSResponse) = {
         response.cookies.find(_.name.exists(_ == "csrf")).flatMap { cookie =>
           cookie.secure must beTrue
           cookie.value
@@ -192,7 +191,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
   }
 
   trait CsrfTester {
-    def apply[T](makeRequest: WSRequestHolder => Future[Response])(handleResponse: Response => T): T
+    def apply[T](makeRequest: WSRequestHolder => Future[WSResponse])(handleResponse: WSResponse => T): T
   }
 
   /**

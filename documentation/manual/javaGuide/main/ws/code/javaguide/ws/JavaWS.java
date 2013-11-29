@@ -6,7 +6,7 @@ package javaguide.ws;
 import javaguide.testhelpers.MockJavaAction;
 
 // #ws-imports
-import play.libs.WS;
+import play.libs.ws.*;
 import play.mvc.Result;
 
 import static play.libs.F.Function;
@@ -21,12 +21,12 @@ public class JavaWS {
         public static void getCallAndRecover() {
             final int timeout = 5000;
             // #get-call
-            Promise<WS.Response> homePage = WS.url("http://example.com").get();
+            Promise<WSResponse> homePage = WS.url("http://example.com").get();
             // #get-call
             // #get-call-and-recover
-            Promise<WS.Response> callWithRecover = homePage.recover(new Function<Throwable, WS.Response>() {
+            Promise<WSResponse> callWithRecover = homePage.recover(new Function<Throwable, WSResponse>() {
                 @Override
-                public WS.Response apply(Throwable throwable) throws Throwable {
+                public WSResponse apply(Throwable throwable) throws Throwable {
                     return WS.url("http://backup.example.com").get().get(timeout);
                 }
             });
@@ -35,15 +35,15 @@ public class JavaWS {
 
         public static void postCall() {
             // #post-call
-            Promise<WS.Response> result = WS.url("http://example.com").post("content");
+            Promise<WSResponse> result = WS.url("http://example.com").post("content");
             // #post-call
         }
 
         // #simple-call
         public static Promise<Result> index() {
             final Promise<Result> resultPromise = WS.url(feedUrl).get().map(
-                    new Function<WS.Response, Result>() {
-                        public Result apply(WS.Response response) {
+                    new Function<WSResponse, Result>() {
+                        public Result apply(WSResponse response) {
                             return ok("Feed title:" + response.asJson().findPath("title"));
                         }
                     }
@@ -58,11 +58,11 @@ public class JavaWS {
         // #composed-call
         public static Promise<Result> index() {
             final Promise<Result> resultPromise = WS.url(feedUrl).get().flatMap(
-                    new Function<WS.Response, Promise<Result>>() {
-                        public Promise<Result> apply(WS.Response response) {
+                    new Function<WSResponse, Promise<Result>>() {
+                        public Promise<Result> apply(WSResponse response) {
                             return WS.url(response.asJson().findPath("commentsUrl").asText()).get().map(
-                                    new Function<WS.Response, Result>() {
-                                        public Result apply(WS.Response response) {
+                                    new Function<WSResponse, Result>() {
+                                        public Result apply(WSResponse response) {
                                             return ok("Number of comments: " + response.asJson().findPath("count").asInt());
                                         }
                                     }
