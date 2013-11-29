@@ -300,7 +300,7 @@ trait Row {
 
 }
 
-case class MockRow(data: List[Any], metaData: MetaData) extends Row
+//case class MockRow(data: List[Any], metaData: MetaData) extends Row
 
 case class SqlRow(metaData: MetaData, data: List[Any]) extends Row {
   override def toString() = "Row(" + metaData.ms.zip(data).map(t => "'" + t._1.column + "':" + t._2 + " as " + t._1.clazz).mkString(", ") + ")"
@@ -310,6 +310,7 @@ object Useful {
 
   case class Var[T](var content: T)
 
+  @deprecated(message = "Use [[scala.collection.immutable.Stream.dropWhile]] directly", since = "2.3.0")
   def drop[A](these: Var[Stream[A]], n: Int): Stream[A] = {
     var count = n
     while (!these.content.isEmpty && count > 0) {
@@ -448,6 +449,7 @@ case class BatchSql(sql: SqlQuery, params: Seq[Seq[(String, ParameterValue[_])]]
     })
   }
 
+  @deprecated(message = "Use [[getFilledStatement]]", since = "2.3.0")
   def filledStatement(implicit connection: java.sql.Connection) = getFilledStatement(connection)
 
   def execute()(implicit connection: java.sql.Connection): Array[Int] = getFilledStatement(connection).executeBatch()
@@ -462,6 +464,7 @@ trait Sql {
 
   def getFilledStatement(connection: java.sql.Connection, getGeneratedKeys: Boolean = false): java.sql.PreparedStatement
 
+  @deprecated(message = "Use [[getFilledStatement]] or [[executeQuery]]", since = "2.3.0")
   def filledStatement(implicit connection: java.sql.Connection) = getFilledStatement(connection)
 
   def apply()(implicit connection: java.sql.Connection) = Sql.resultSetToStream(resultSet())

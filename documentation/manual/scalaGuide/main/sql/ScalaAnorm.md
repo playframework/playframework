@@ -78,8 +78,9 @@ val result: Int = SQL("delete from City where id = 99").executeUpdate()
 If you are inserting data that has an auto-generated `Long` primary key, you can call `executeInsert()`. If you have more than one generated key, or it is not a Long, `executeInsert` can be passed a `ResultSetParser` to return the correct key.
 
 ```scala
-val id: Option[Long] = SQL("insert into City(name, country) values ({name}, {country})")
-              .on('name -> "Cambridge", 'country -> "New Zealand").executeInsert()
+val id: Option[Long] = 
+  SQL("insert into City(name, country) values ({name}, {country})")
+  .on('name -> "Cambridge", 'country -> "New Zealand").executeInsert()
 ```
 Since Scala supports multi-line strings, feel free to use them for complex SQL statements:
 
@@ -257,7 +258,8 @@ val rsParser = scalar[Long].single
 So this parser will parse a result set to return a `Long`. It is useful to parse to result produced by a simple SQL `select count` query:
 
 ```scala
-val count: Long = SQL("select count(*) from Country").as(scalar[Long].single)
+val count: Long = 
+  SQL("select count(*) from Country").as(scalar[Long].single)
 ```
 
 
@@ -266,7 +268,9 @@ val count: Long = SQL("select count(*) from Country").as(scalar[Long].single)
 Let's say you want to retrieve the country_id from the country name, but the query might return null. We'll use the singleOpt parser :
 
 ```scala
-val countryId: Option[Long] = SQL("select country_id from Country C where C.country='France'").as(scalar[Long].singleOpt)
+val countryId: Option[Long] = 
+  SQL("select country_id from Country C where C.country='France'")
+  .as(scalar[Long].singleOpt)
 ```
 
 ### Getting a more complex result
@@ -287,7 +291,8 @@ You can also rewrite the same code as:
 
 ```scala
 val result:List[String~Int] = {
-  SQL("select * from Country").as(get[String]("name")~get[Int]("population")*) 
+  SQL("select * from Country")
+  .as(get[String]("name") ~ get[Int]("population")*) 
 }
 ```
 
