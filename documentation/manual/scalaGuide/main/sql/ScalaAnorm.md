@@ -45,7 +45,7 @@ Writing SQL queries yourself can be tedious for a simple ‘Hello World’ appli
 You will need to add Anorm and jdbc plugin to your dependencies : 
 
 ```scala
-val appDependencies = Seq(
+libraryDependencies ++= Seq(
   jdbc,
   anorm
 )

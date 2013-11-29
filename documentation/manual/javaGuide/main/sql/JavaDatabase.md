@@ -7,9 +7,7 @@ Play provides a plugin for managing JDBC connection pools. You can configure as 
 To enable the database plugin add javaJdbc in your build dependencies :
 
 ```scala
-val appDependencies = Seq(
-  javaJdbc
-)
+libraryDependencies += javaJdbc
 ```
 
 Then you must configure a connection pool in the `conf/application.conf` file. By convention the default JDBC data source must be called `default`:
@@ -72,12 +70,7 @@ Other than for the h2 in-memory database, useful mostly in development mode, Pla
 For example, if you use MySQL5, you need to add a [[dependency| SBTDependencies]] for the connector:
 
 ```
-val appDependencies = Seq(
-     // Add your project dependencies here,
-     ...
-     "mysql" % "mysql-connector-java" % "5.1.18"
-     ...
-)
+libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.18"
 ```
 
 > **Next:** [[Using Ebean to access your database | JavaEbean]]
