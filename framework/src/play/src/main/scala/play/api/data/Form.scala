@@ -104,7 +104,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    */
   def fill(value: T): Form[T] = {
     val result = mapping.unbind(value)
-    this.copy(data = result._1, value = Some(value))
+    this.copy(data = result, value = Some(value))
   }
 
   /**
@@ -114,7 +114,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    * @return a copy of this form filled with the new data
    */
   def fillAndValidate(value: T): Form[T] = {
-    val result = mapping.unbind(value)
+    val result = mapping.unbindAndValidate(value)
     this.copy(data = result._1, errors = result._2, value = Some(value))
   }
 
@@ -454,9 +454,17 @@ trait Mapping[T] {
    * Unbinds this field, i.e. transforms a concrete value to plain data.
    *
    * @param value the value to unbind
-   * @return either the plain data or a set of errors, if the unbinding failed
+   * @return the plain data
    */
-  def unbind(value: T): (Map[String, String], Seq[FormError])
+  def unbind(value: T): Map[String, String]
+
+  /**
+   * Unbinds this field, i.e. transforms a concrete value to plain data, and applies validation.
+   *
+   * @param value the value to unbind
+   * @return the plain data and any errors in the plain data
+   */
+  def unbindAndValidate(value: T): (Map[String, String], Seq[FormError])
 
   /**
    * Constructs a new Mapping based on this one, adding a prefix to the key.
@@ -596,10 +604,18 @@ case class WrappedMapping[A, B](wrapped: Mapping[A], f1: A => B, f2: B => A, val
    * Unbinds this field, i.e. transforms a concrete value to plain data.
    *
    * @param value the value to unbind
-   * @return either the plain data or a set of errors, if the unbinding failed
+   * @return the plain data
    */
-  def unbind(value: B): (Map[String, String], Seq[FormError]) = {
-    (wrapped.unbind(f2(value))._1, collectErrors(value))
+  def unbind(value: B): Map[String, String] = wrapped.unbind(f2(value))
+
+  /**
+   * Unbinds this field, i.e. transforms a concrete value to plain data, and applies validation.
+   *
+   * @param value the value to unbind
+   * @return the plain data and any errors in the plain data
+   */
+  def unbindAndValidate(value: B): (Map[String, String], Seq[FormError]) = {
+    (wrapped.unbindAndValidate(f2(value))._1, collectErrors(value))
   }
 
   /**
@@ -694,10 +710,21 @@ case class RepeatedMapping[T](wrapped: Mapping[T], val key: String = "", val con
    * Unbinds this field, i.e. transforms a concrete value to plain data.
    *
    * @param value the value to unbind
-   * @return either the plain data or a set of errors, if the unbinding failed
+   * @return the plain data
    */
-  def unbind(value: List[T]): (Map[String, String], Seq[FormError]) = {
-    val (datas, errors) = value.zipWithIndex.map { case (t, i) => wrapped.withPrefix(key + "[" + i + "]").unbind(t) }.unzip
+  def unbind(value: List[T]): Map[String, String] = {
+    val datas = value.zipWithIndex.map { case (t, i) => wrapped.withPrefix(key + "[" + i + "]").unbind(t) }
+    datas.foldLeft(Map.empty[String, String])(_ ++ _)
+  }
+
+  /**
+   * Unbinds this field, i.e. transforms a concrete value to plain data, and applies validation.
+   *
+   * @param value the value to unbind
+   * @return the plain data and any errors in the plain data
+   */
+  def unbindAndValidate(value: List[T]): (Map[String, String], Seq[FormError]) = {
+    val (datas, errors) = value.zipWithIndex.map { case (t, i) => wrapped.withPrefix(key + "[" + i + "]").unbindAndValidate(t) }.unzip
     (datas.foldLeft(Map.empty[String, String])(_ ++ _), errors.flatten ++ collectErrors(value))
   }
 
@@ -767,12 +794,22 @@ case class OptionalMapping[T](wrapped: Mapping[T], val constraints: Seq[Constrai
   /**
    * Unbinds this field, i.e. transforms a concrete value to plain data.
    *
-   * @param value The value to unbind.
-   * @return Either the plain data or a set of error if the unbinding failed.
+   * @param value the value to unbind
+   * @return the plain data
    */
-  def unbind(value: Option[T]): (Map[String, String], Seq[FormError]) = {
+  def unbind(value: Option[T]): Map[String, String] = {
+    value.map(wrapped.unbind).getOrElse(Map.empty)
+  }
+
+  /**
+   * Unbinds this field, i.e. transforms a concrete value to plain data, and applies validation.
+   *
+   * @param value the value to unbind
+   * @return the plain data and any errors in the plain data
+   */
+  def unbindAndValidate(value: Option[T]): (Map[String, String], Seq[FormError]) = {
     val errors = collectErrors(value)
-    value.map(wrapped.unbind(_)).map(r => r._1 -> (r._2 ++ errors)).getOrElse(Map.empty -> errors)
+    value.map(wrapped.unbindAndValidate).map(r => r._1 -> (r._2 ++ errors)).getOrElse(Map.empty -> errors)
   }
 
   /**
@@ -845,9 +882,19 @@ case class FieldMapping[T](val key: String = "", val constraints: Seq[Constraint
    * Unbinds this field, i.e. transforms a concrete value to plain data.
    *
    * @param value the value to unbind
-   * @return either the plain data or a set of errors, if unbinding failed
+   * @return the plain data
    */
-  def unbind(value: T): (Map[String, String], Seq[FormError]) = {
+  def unbind(value: T): Map[String, String] = {
+    binder.unbind(key, value)
+  }
+
+  /**
+   * Unbinds this field, i.e. transforms a concrete value to plain data, and applies validation.
+   *
+   * @param value the value to unbind
+   * @return the plain data and any errors in the plain data
+   */
+  def unbindAndValidate(value: T): (Map[String, String], Seq[FormError]) = {
     binder.unbind(key, value) -> collectErrors(value)
   }
 
@@ -894,50 +941,3 @@ trait ObjectMapping {
   }
 
 }
-
-/**
- * Represents an object binding (ie. a binding for several fields).
- *
- * This is used for objects with one field. Other versions exist, e.g. `ObjectMapping2`, `ObjectMapping3`, etc.
- *
- * @tparam T the complex object type
- * @tparam A the first field type
- * @param apply a constructor function that creates a instance of `T` using field `A`
- * @param fa a mapping for field `A`
- * @param constraints constraints associated with this mapping
- */
-case class ObjectMapping1[R, A1](apply: Function1[A1, R], unapply: Function1[R, Option[(A1)]], f1: (String, Mapping[A1]), val key: String = "", val constraints: Seq[Constraint[R]] = Nil) extends Mapping[R] with ObjectMapping {
-
-  val field1 = f1._2.withPrefix(f1._1).withPrefix(key)
-
-  def bind(data: Map[String, String]) = {
-    merge(field1.bind(data)) match {
-      case Left(errors) => Left(errors)
-      case Right(values) => {
-        applyConstraints(apply(
-
-          values(0).asInstanceOf[A1]))
-      }
-    }
-  }
-
-  def unbind(value: R) = {
-    unapply(value).map { fields =>
-      val (v1) = fields
-      val a1 = field1.unbind(v1)
-
-      (a1._1) ->
-        (a1._2)
-    }.getOrElse(Map.empty -> Seq(FormError(key, "unbind.failed")))
-  }
-
-  def withPrefix(prefix: String) = addPrefix(prefix).map(newKey => this.copy(key = newKey)).getOrElse(this)
-
-  def verifying(addConstraints: Constraint[R]*) = {
-    this.copy(constraints = constraints ++ addConstraints.toSeq)
-  }
-
-  val mappings = Seq(this) ++ field1.mappings
-
-}
-
