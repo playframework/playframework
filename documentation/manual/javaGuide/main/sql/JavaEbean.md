@@ -7,9 +7,7 @@ Play comes with the [Ebean](http://www.avaje.org/) ORM. To enable it, add javaEb
 dependencies : 
 
 ```scala
-val appDependencies = Seq(
-  javaEbean
-)
+libraryDependencies += javaEbean
 ```
 
 then add the following line to `conf/application.conf`:

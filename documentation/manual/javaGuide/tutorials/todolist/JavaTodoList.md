@@ -434,7 +434,7 @@ Now you can play again with the application, creating new tasks should work.
 
 Now that we can create tasks, we need to be able to delete them. Very simple, we just need to finish the implementation of the `deleteTask` action:
 
-```
+```java
 public static Result deleteTask(Long id) {
   Task.delete(id);
   return redirect(routes.Application.tasks());
@@ -453,15 +453,10 @@ web: target/universal/stage/bin/{your project name} -Dhttp.port=${PORT} -DapplyE
 
 Using system properties we override the application configuration when running on Heroku. But since heroku provides a PostgreSQL database we’ll have to add the required driver to our application dependencies. 
 
-Specify it into the `build.sbt` file:
+Specify it in the `build.sbt` file:
 
 ```scala
-libraryDependencies ++= Seq(
-  javaJdbc,
-  javaEbean,
-  cache,
-  "postgresql" % "postgresql" % "8.4-702.jdbc4"
-)
+libraryDependencies += "postgresql" % "postgresql" % "8.4-702.jdbc4"
 ```
 
 > **Note:** Read more about [[Dependencies management|SBTDependencies]].
