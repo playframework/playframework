@@ -17,15 +17,13 @@ A minified file is also generated, where `.js` is replaced by `.min.js`. In our 
 
 ## Entry Points
 
-By default, any JavaScript file not prepended by an underscore will be compiled. This behavior can be changed in `project/Build.scala` by overriding the `javascriptEntryPoints` key. This key holds a `PathFinder`.
+By default, any JavaScript file not prepended by an underscore will be compiled. This behavior can be changed in `build.sbt` by overriding the `javascriptEntryPoints` key. This key holds a `PathFinder`.
 
 For example, to compile only `.js` file from the `app/assets/javascripts/main` directory:
 
 ```
-val main = play.Project(appName, appVersion, appDependencies).settings(
-   javascriptEntryPoints <<= baseDirectory(base =>
-      base / "app" / "assets" / "javascripts" / "main" ** "*.js"
-   )
+javascriptEntryPoints <<= baseDirectory(base =>
+    base / "app" / "assets" / "javascripts" / "main" ** "*.js"
 )
 ```
 
@@ -39,7 +37,7 @@ javascriptEntryPoints <<= (sourceDirectory in Compile)(base =>
 
 ## Options
 
-ClosureCompiler compilation can be configured in your project’s `build.sbt` file (in the root of the `PlayProject`). There are several currently supported options:
+ClosureCompiler compilation can be configured in your project’s `build.sbt` file. There are several currently supported options:
 
 - *advancedOptimizations* Achieves extra compressions by being more aggressive in the ways that it transforms code and renames symbols. However, this more aggressive approach means that you must take greater care when you use ADVANCED_OPTIMIZATIONS to ensure that the output code works the same way as the input code.
 - *checkCaja* Checks Caja control structures.

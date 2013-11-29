@@ -62,10 +62,9 @@ GET  /assets/*file               controllers.Assets.at(path="/public", file)
 GET  /liabilities/*file          controllers.Assets.at(path="/foo", file)
 ```
 
-you should add this to the project settings in `project/Build.scala`:
+you should add this to the project settings in `build.sbt`:
 
 ```
-// Add your own project settings here
 playAssetsDirectories <+= baseDirectory / "foo"
 ```
 

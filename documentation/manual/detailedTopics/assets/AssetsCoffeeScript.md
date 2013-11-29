@@ -36,7 +36,7 @@ Two JavaScript files will be compiled: `public/javascripts/main.js` and `public/
 
 ## Options
 
-CoffeeScript compilation can be configured in your project’s `Build.scala` file (in the settings part of the `PlayProject`). The only option currently supported is *bare* mode.
+CoffeeScript compilation can be configured in your project’s `build.sbt` file.  The only option currently supported is *bare* mode.
 
 ```
 coffeescriptOptions := Seq("bare")
