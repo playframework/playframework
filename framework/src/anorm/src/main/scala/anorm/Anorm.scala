@@ -140,7 +140,6 @@ object Column {
   }
 
   implicit def rowToBigDecimal: Column[java.math.BigDecimal] = Column.nonNull { (value, meta) =>
-    import java.math.BigDecimal
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case bi: java.math.BigDecimal => Right(bi)
