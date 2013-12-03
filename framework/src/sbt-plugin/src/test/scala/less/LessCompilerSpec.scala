@@ -70,6 +70,17 @@ object LessCompilerSpec extends Specification {
       }
     }
 
+    "correctly handle missing import files" in {
+      LessCompiler.compile(getFile("importmissing.less")) must throwAn[AssetCompilationException].like {
+        case e: AssetCompilationException =>
+          e.atLine must beSome(5)
+          e.column must beSome(0)
+          e.message must contain("File not found: ")
+          e.message must contain("/missing.less")
+          e.source must beSome(getFile("importmissing.less"))
+      }
+    }
+
   }
 
   def getFile(fileName: String):File = {
