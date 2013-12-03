@@ -70,7 +70,11 @@ object LessCompiler {
 
                         var imported = LessCompiler.resolve(context[context.length - 1], path);
                         var importedName = String(imported.getAbsolutePath());
-                        var input = String(LessCompiler.readContent(imported));
+                        try {
+                          var input = String(LessCompiler.readContent(imported));
+                        } catch (e) {
+                          return fn({ type: "File", message: "File not found: " + importedName });
+                        }
 
                         // Store it in the contents, for error reporting
                         env.contents[importedName] = input;
