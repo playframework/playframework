@@ -18,7 +18,10 @@ object LessCompiler {
 
   import scalax.file._
 
-  private def compiler(minify: Boolean) = {
+  /**
+   * Create a compiler.  Returns a function that can be used to compile less files.
+   */
+  private def createCompiler(minify: Boolean): File => (String, Seq[File]) = {
     val ctx = Context.enter
     val global = new Global; global.init(ctx)
     val scope = ctx.initStandardObjects(global)
@@ -72,7 +75,7 @@ object LessCompiler {
                     window.less.Parser.importer = function(path, paths, fn, env) {
 
                         var imported = LessCompiler.resolve(context[context.length - 1], path);
-                        var importedName = String(imported.getAbsolutePath());
+                        var importedName = String(imported.getCanonicalPath());
                         try {
                           var input = String(LessCompiler.readContent(imported));
                         } catch (e) {
@@ -113,21 +116,27 @@ object LessCompiler {
 
     Context.exit
 
-    (source: File) => {
-      val result = Context.call(null, compilerFunction, scope, scope, Array(source)).asInstanceOf[Scriptable]
-      val css = ScriptableObject.getProperty(result, "css").toString
-      val dependencies = ScriptableObject.getProperty(result, "dependencies").asInstanceOf[NativeArray]
+    // Since SBT executes things in parallel by default, and since the LESS compiler is stateful requiring tracking
+    // context, we need to ensure that access to the compiler is synchronized.
+    val mutex = new Object()
 
-      css -> (0 until dependencies.getLength.toInt).map(ScriptableObject.getProperty(dependencies, _) match {
-        case f: File => f.getCanonicalFile
-        case o: NativeJavaObject => o.unwrap.asInstanceOf[File].getCanonicalFile
-      })
+    (source: File) => {
+      mutex.synchronized {
+        val result = Context.call(null, compilerFunction, scope, scope, Array(source)).asInstanceOf[Scriptable]
+        val css = ScriptableObject.getProperty(result, "css").toString
+        val dependencies = ScriptableObject.getProperty(result, "dependencies").asInstanceOf[NativeArray]
+
+        css -> (0 until dependencies.getLength.toInt).map(ScriptableObject.getProperty(dependencies, _) match {
+          case f: File => f.getCanonicalFile
+          case o: NativeJavaObject => o.unwrap.asInstanceOf[File].getCanonicalFile
+        })
+      }
     }
   }
 
-  private lazy val debugCompiler = compiler(false)
+  private lazy val debugCompiler = createCompiler(false)
 
-  private lazy val minCompiler = compiler(true)
+  private lazy val minCompiler = createCompiler(true)
 
   def compile(source: File): (String, Option[String], Seq[File]) = {
     try {
