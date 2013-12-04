@@ -188,7 +188,7 @@ object Dependencies {
 
   val playWsDeps = Seq(
     guava,
-    ("com.ning" % "async-http-client" % "1.7.21" notTransitive ())
+    ("com.ning" % "async-http-client" % "1.7.22" notTransitive ())
       .exclude("org.jboss.netty", "netty"),
     "oauth.signpost" % "signpost-core" % "1.2.1.2",
     "oauth.signpost" % "signpost-commonshttp4" % "1.2.1.2") ++
