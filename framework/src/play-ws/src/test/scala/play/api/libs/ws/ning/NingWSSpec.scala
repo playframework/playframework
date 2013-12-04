@@ -6,7 +6,7 @@ package play.api.libs.ws.ning
 import org.specs2.mutable._
 import org.specs2.mock.Mockito
 
-import com.ning.http.client.{Response => AHCResponse, Cookie => AHCCookie, RequestBuilder, FluentCaseInsensitiveStringsMap, AsyncHttpClient}
+import com.ning.http.client.{Response => AHCResponse, Cookie => AHCCookie, _}
 
 import play.api.mvc._
 
@@ -18,12 +18,38 @@ object NingWSSpec extends Specification with Mockito {
 
   "Ning WS" should {
 
+    object PairMagnet {
+      implicit def fromPair(pair: Pair[WSClient, java.net.URL]) =
+        new WSRequestHolderMagnet {
+          def apply(): WSRequestHolder = {
+            val (client, netUrl) = pair
+            client.url(netUrl.toString)
+          }
+        }
+    }
+
+    "support ning magnet" in new WithApplication {
+      import scala.language.implicitConversions
+      import PairMagnet._
+
+      val client = WS.client
+      val exampleURL = new java.net.URL("http://example.com")
+      WS.url(client -> exampleURL) must beAnInstanceOf[WSRequestHolder]
+    }
+
+    "support direct client instantiation" in new WithApplication {
+      val sslBuilder = new com.ning.http.client.AsyncHttpClientConfig.Builder()
+      implicit val sslClient = new play.api.libs.ws.ning.NingWSClient(sslBuilder.build())
+      WS.clientUrl("http://example.com/feed") must beAnInstanceOf[WSRequestHolder]
+    }
+
     "NingWSClient.underlying" in new WithApplication {
       val client = WS.client
       client.underlying[AsyncHttpClient] must beAnInstanceOf[AsyncHttpClient]
     }
 
     "NingWSCookie.underlying" in new WithApplication() {
+
       import com.ning.http.client.Cookie
 
       val mockCookie = mock[Cookie]
@@ -42,14 +68,14 @@ object NingWSSpec extends Specification with Mockito {
 
     "NingWSRequest.setHeaders using a builder with direct map" in new WithApplication {
       val request = new NingWSRequest(mock[NingWSClient], "GET", None, None, builder = new RequestBuilder("GET"))
-      val headerMap : Map[String, Seq[String]] = Map("key" -> Seq("value"))
+      val headerMap: Map[String, Seq[String]] = Map("key" -> Seq("value"))
       val ningRequest = request.setHeaders(headerMap).build
       ningRequest.getHeaders.containsKey("key") must beTrue
     }
 
     "NingWSRequest.setQueryString" in new WithApplication {
       val request = new NingWSRequest(mock[NingWSClient], "GET", None, None, builder = new RequestBuilder("GET"))
-      val queryString : Map[String, Seq[String]] = Map("key" -> Seq("value"))
+      val queryString: Map[String, Seq[String]] = Map("key" -> Seq("value"))
       val ningRequest = request.setQueryString(queryString).build
       ningRequest.getQueryParams().containsKey("key") must beTrue
     }
@@ -98,6 +124,7 @@ object NingWSSpec extends Specification with Mockito {
     })
 
     "support patch method" in new WithServer(patchFakeApp) {
+
       import scala.concurrent.Await
       import scala.concurrent.duration._
 

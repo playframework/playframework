@@ -11,7 +11,8 @@ object Dependencies {
   val specsBuild = Seq(
     "org.specs2" %% "specs2-core" % specsVersion,
     "org.specs2" %% "specs2-junit" % specsVersion,
-    "org.specs2" %% "specs2-mock" % specsVersion
+    "org.specs2" %% "specs2-mock" % specsVersion,
+    "org.specs2" %% "specs2-matcher-extra" % specsVersion
   )
   val specsSbt = specsBuild
   val scalaIoFile = "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2"
