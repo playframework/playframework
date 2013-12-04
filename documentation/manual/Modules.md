@@ -11,28 +11,22 @@
 * **Documentation:** <https://github.com/teamon/play-airbrake/blob/master/README.md>
 * **Short description:** Send exception notifications to airbrake.io
 
-## Amazon STS module (Scala)
-
-* **Website:** <https://github.com/Rhinofly/play-libraries/tree/master/apis/sts>
-* **Documentation:** <https://github.com/Rhinofly/play-libraries/tree/master/apis/sts/README.md>
-* **Short description:** STS (Security Token Service) API wrapper for Play
-
 ## Amazon SES module (Scala)
 
-* **Website:** <https://github.com/Rhinofly/play-libraries/tree/master/apis/ses>
-* **Documentation:** <https://github.com/Rhinofly/play-libraries/tree/master/apis/ses/README.md>
+* **Website:** <https://github.com/Rhinofly/play-mailer>
+* **Documentation:** <https://github.com/Rhinofly/play-mailer/blob/master/README.md>
 * **Short description:** SES (Simple Email Service) API wrapper for Play
 
 ## Amazon S3 module (Scala)
 
-* **Website:** <https://github.com/Rhinofly/play-libraries/tree/master/apis/s3>
-* **Documentation:** <https://github.com/Rhinofly/play-libraries/tree/master/apis/s3/README.md>
+* **Website:** <https://github.com/Rhinofly/play-s3>
+* **Documentation:** <https://github.com/Rhinofly/play-s3/blob/master/README.md>
 * **Short description:** S3 (Simple Storage Service) API wrapper for Play
 
 ## Amf module (Scala)
 
-* **Website:** <https://github.com/Rhinofly/play-libraries/tree/master/amf>
-* **Documentation:** <https://github.com/Rhinofly/play-libraries/blob/master/amf/README.md>
+* **Website:** <https://github.com/Rhinofly/play-amf>
+* **Documentation:** <https://github.com/Rhinofly/play-amf/blob/master/README.md>
 * **Short description:** AMF (ActionScript Message Format) support for Play
 
 ## Authentication and Authorization module (Scala)
@@ -297,12 +291,6 @@ your Play application.
 
 * **Website:** <http://www.securesocial.ws/>
 * **Short description:** An authentication module supporting OAuth, OAuth2, OpenID, Username/Password and custom authentication schemes.
- 
-## Session cache (Scala)
-
-* **Website:** <https://github.com/Rhinofly/play-libraries/tree/master/session-cache>
-* **Documentation:** <https://github.com/Rhinofly/play-libraries/tree/master/session-cache/README.md>
-* **Short description:** Session cache for Play 
 
 ## Sitemap Generator (Java)
 
