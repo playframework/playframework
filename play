@@ -17,7 +17,11 @@ dir=`dirname "$PRG"`
 if [ -z "$JAVA_HOME" ]; then
   JAVA="java"
 else
- JAVA="$JAVA_HOME/bin/java"
+  JAVA="$JAVA_HOME/bin/java"
+fi
+
+if [ -z "$SBT_SCALA_VERSION" ]; then
+  SBT_SCALA_VERSION="2.10.3"
 fi
 
 if [ -f conf/application.conf -o -f conf/reference.conf ] || [ -d project ]; then
@@ -47,6 +51,7 @@ if [ -f conf/application.conf -o -f conf/reference.conf ] || [ -d project ]; the
   fi
 
   if [ -n "$1" ]; then
+<<<<<<< HEAD
     JPDA_PORT="${JPDA_PORT}" "$dir/framework/build" "$@"
   else
     JPDA_PORT="${JPDA_PORT}" "$dir/framework/build" play
@@ -54,4 +59,13 @@ if [ -f conf/application.conf -o -f conf/reference.conf ] || [ -d project ]; the
   
 else
   "$JAVA" -Dplay.home="$dir/framework" -Dsbt.boot.properties="$dir/framework/sbt/play.boot.properties" ${PLAY_OPTS} -jar "$dir/framework/sbt/sbt-launch.jar" "$@"
+=======
+    JPDA_PORT="${JPDA_PORT}" SBT_SCALA_VERSION="${SBT_SCALA_VERSION}" $dir/framework/build "$@"
+  else
+    JPDA_PORT="${JPDA_PORT}" SBT_SCALA_VERSION="${SBT_SCALA_VERSION}" $dir/framework/build play
+  fi
+  
+else
+  SBT_SCALA_VERSION="${SBT_SCALA_VERSION}" "$JAVA" -Dplay.home=$dir/framework -Dsbt.boot.properties=$dir/framework/sbt/play.boot.properties -Dsbt.scala.version=${SBT_SCALA_VERSION} ${PLAY_OPTS} -jar $dir/framework/sbt/sbt-launch.jar "$@"
+>>>>>>> Change 'play' command to bootstrap SBT with Scala 2.10.3
 fi

@@ -8,13 +8,14 @@ set p=%p:\=/%
 set fp=file:///!p: =%%20!
 set buildScript="%~dp0framework\build.bat"
 set additionalArgs=%*
+if not defined SBT_SCALA_VERSION set SBT_SCALA_VERSION=2.10.3
 
 if exist "conf\application.conf" goto existingApplication
 if exist "conf\reference.conf" goto existingApplication
 if exist "project" goto existingApplication
 
 :noApplication
-java -Dsbt.ivy.home="%~dp0repository" -Dplay.home="%~dp0framework" -Dsbt.boot.properties="%fp%framework/sbt/play.boot.properties" %PLAY_OPTS% -jar "%~dp0framework\sbt\sbt-launch.jar" %*
+java -Dsbt.ivy.home="%~dp0repository" -Dplay.home="%~dp0framework" -Dsbt.boot.properties="%fp%framework/sbt/play.boot.properties" -Dsbt.scala.version="%SBT_SCALA_VERSION%" %PLAY_OPTS% -jar "%~dp0framework\sbt\sbt-launch.jar" %*
 
 goto end
 
