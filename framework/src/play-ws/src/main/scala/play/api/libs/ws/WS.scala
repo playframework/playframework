@@ -10,9 +10,40 @@ import java.io.File
 import play.api.http.{ Writeable, ContentTypeOf }
 import play.api.libs.iteratee._
 
-import play.api.{ Play, Application, Plugin }
+import play.api._
 import scala.xml.Elem
 import play.api.libs.json.JsValue
+import play.api.libs.ws.ssl.SSLConfig
+
+/**
+ * The WSClient holds the configuration information needed to build a request, and provides a way to get a request holder.
+ */
+trait WSClient {
+
+  /**
+   * The underlying implementation of the client, if any.  You must cast explicitly to the type you want.
+   * @tparam T the type you are expecting (i.e. isInstanceOf)
+   * @return the backing class.
+   */
+  def underlying[T]: T
+
+  /**
+   * Generates a request holder which can be used to build requests.
+   *
+   * @param url The base URL to make HTTP requests to.
+   * @return a WSRequestHolder
+   */
+  def url(url: String): WSRequestHolder
+}
+
+/**
+ * WSRequestHolderMagnet magnet.  Please see the companion object for implicit definitions.
+ *
+ * @see <a href="http://spray.io/blog/2012-12-13-the-magnet-pattern/">The magnet pattern</a>
+ */
+trait WSRequestHolderMagnet {
+  def apply(): WSRequestHolder
+}
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -23,9 +54,25 @@ import play.api.libs.json.JsValue
  * WS.url("http://example.com/item").post("content")
  * }}}
  *
- * The value returned is a Future[Response],
- * and you should use Play's asynchronous mechanisms to use this response.
+ * When greater flexibility is needed, you can also create clients explicitly and pass them into WS:
  *
+ * {{{
+ * implicit val client = new NingWSClient(builder.build())
+ * WS.url("http://example.com/feed").get()
+ * }}}
+ *
+ * Or call the client directly:
+ *
+ * {{{
+ * val client = new NingWSClient(builder.build())
+ * client.url("http://example.com/feed").get()
+ * }}}
+ *
+ * Note that the resolution of URL is done through the magnet pattern defined in
+ * `WSRequestHolderMagnet`.
+ *
+ * The value returned is a {@code Future[WSResponse]}, and you should use Play's asynchronous mechanisms to
+ * use this response.
  */
 object WS {
 
@@ -45,21 +92,95 @@ object WS {
     }
   }
 
+  import scala.language.implicitConversions
+
   /**
-   * retrieves or creates underlying HTTP client.
+   * Retrieves or creates underlying HTTP client.  Note that due to the Plugin architecture, an
+   * implicit application must be in scope.  Most of the time you will want the current app:
+   *
+   * {{{
+   * import play.api.Play.current
+   * val client = WS.client
+   * }}}
    */
   def client(implicit app: Application): WSClient = wsapi.client
 
   /**
-   * Prepare a new request. You can then construct it by chaining calls.
+   * Prepares a new request using an implicit application.  This creates a default client, which you can then
+   * use to construct a request.
+   *
+   * {{{
+   *   import play.api.Play.current
+   *   WS.url("http://localhost/").get()
+   * }}}
    *
    * @param url the URL to request
+   * @param app the implicit application to use.
    */
-  def url(url: String)(implicit app: Application): play.api.libs.ws.WSRequestHolder = wsapi.url(url)
+  def url(url: String)(implicit app: Application): play.api.libs.ws.WSRequestHolder = wsapi(app).url(url)
+
+  /**
+   * Prepares a new request using a provided magnet.  This method gives you the ability to create your own
+   * URL implementations at the cost of some complexity.
+   *
+   * {{{
+   * object PairMagnet {
+   *   implicit def fromPair(pair: Pair[WSClient, java.net.URL]) =
+   *     new WSRequestHolderMagnet {
+   *       def apply(): WSRequestHolder = {
+   *         val (client, netUrl) = pair
+   *         client.url(netUrl.toString)
+   *       }
+   *    }
+   * }
+   * import scala.language.implicitConversions
+   * val client = WS.client
+   * val exampleURL = new java.net.URL("http://example.com")
+   * WS.url(client -> exampleURL).get()
+   * }}}
+   *
+   * @param magnet a magnet pattern.
+   * @see <a href="http://spray.io/blog/2012-12-13-the-magnet-pattern/">The magnet pattern</a>
+   */
+  def url(magnet: WSRequestHolderMagnet): play.api.libs.ws.WSRequestHolder = magnet()
+
+  /**
+   * Prepares a new request using an implicit client.  The client must be in scope and configured, i.e.
+   *
+   * {{{
+   *   val sslBuilder = new com.ning.http.client.AsyncHttpClientConfig.Builder()
+   *   implicit val sslClient = new play.api.libs.ws.ning.NingWSClient(sslBuilder.build())
+   *   WS.clientUrl("http://example.com/feed")
+   * }}}
+   *
+   * @param url the URL to request
+   * @param client the client to use to make the request.
+   */
+  def clientUrl(url: String)(implicit client: WSClient): play.api.libs.ws.WSRequestHolder = client.url(url)
 }
 
 /**
- *
+ * The base WS API trait.  Plugins should extend this.
+ */
+trait WSAPI {
+
+  def client: WSClient
+
+  def url(url: String): WSRequestHolder
+}
+
+/**
+ * The WS plugin.
+ */
+abstract class WSPlugin extends Plugin {
+
+  def api: WSAPI
+
+  private[ws] def loaded: Boolean
+}
+
+/**
+ * WSRequest is used internally.  Please use WSRequestBuilder.
  */
 trait WSRequest {
 
@@ -472,38 +593,5 @@ trait WSSignatureCalculator {
    * Sign it.
    */
   def sign(request: WSRequest)
-
-}
-
-/**
- *
- */
-abstract class WSPlugin extends Plugin {
-
-  def api: WSAPI
-
-  private[ws] def loaded: Boolean
-}
-
-/**
- *
- */
-trait WSClient {
-
-  def underlying[T]: T
-
-  def url(url: String): WSRequestHolder
-
-}
-
-/**
- *
- */
-trait WSAPI {
-
-  def client: WSClient
-
-  def url(url: String): WSRequestHolder
-
 }
 
