@@ -115,6 +115,7 @@ object ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient {
       )
       responses(0).status must_== 200
       responses(0).headers.get(CONNECTION) must beSome("keep-alive")
+      responses(0).headers.get(CONTENT_LENGTH) must beSome("0")
       responses(1).status must_== 200
     }
 
@@ -175,6 +176,20 @@ object ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient {
       )(0)
       response.headers.keySet must not contain TRANSFER_ENCODING
       response.headers.keySet must not contain CONTENT_LENGTH
+      response.headers.get(CONNECTION) must beSome("close")
+      response.body must beLeft("abcdefghi")
+    }
+
+
+    "fall back to simple streaming when content is chunked and close connection" in withServer(
+      Results.Ok.chunked(Enumerator("abc", "def", "ghi") andThen Enumerator.eof)
+    ) { port =>
+      val response = BasicHttpClient.makeRequests(port, checkClosed = true)(
+        BasicRequest("GET", "/", "HTTP/1.0", Map(), "")
+      )(0)
+      response.headers.keySet must not contain TRANSFER_ENCODING
+      response.headers.keySet must not contain CONTENT_LENGTH
+      response.headers.get(CONNECTION) must beSome("close")
       response.body must beLeft("abcdefghi")
     }
 
@@ -187,16 +202,6 @@ object ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient {
 
       response.status must_== 200
       response.body must beLeft
-    }
-
-    "reject HTTP 1.0 requests for chunked results" in withServer(
-      Results.Ok.chunked(Enumerator("a", "b", "c"))
-    ) { port =>
-      val response = BasicHttpClient.makeRequests(port)(
-        BasicRequest("GET", "/", "HTTP/1.0", Map(), "")
-      )(0)
-      response.status must_== HTTP_VERSION_NOT_SUPPORTED
-      response.body must beLeft("The response to this request is chunked and hence requires HTTP 1.1 to be sent, but this is a HTTP 1.0 request.")
     }
 
     "return a 500 error on response with null header" in withServer(
@@ -219,6 +224,28 @@ object ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient {
 
       response.status must_== 400
       response.body must beLeft
+    }
+
+    "Do not serve body on 304 Not Modified response" in withServer(
+      Results.NotModified.copy(body = Enumerator("hidden".toCharArray.map(_.toByte)))
+    ){ port =>
+      val response = BasicHttpClient.makeRequests(port)(
+        BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
+      )(0)
+
+      response.status must_== 304
+      response.body must beLeft("")
+    }
+
+    "Do not serve body on 204 No Content response" in withServer(
+      Results.NoContent.copy(body = Enumerator("hidden".toCharArray.map(_.toByte)))
+    ){ port =>
+      val response = BasicHttpClient.makeRequests(port)(
+        BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
+      )(0)
+
+      response.status must_== 204
+      response.body must beLeft("")
     }
 
   }
