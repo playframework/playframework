@@ -4,7 +4,7 @@ import org.specs2.mutable.Specification
 
 import anorm.{ ParameterValue => Val }
 
-import acolyte.Acolyte._
+import acolyte.Acolyte.{ connection, handleQuery, handleStatement }
 import acolyte.{
   UpdateExecution,
   QueryResult,
@@ -13,6 +13,7 @@ import acolyte.{
 }
 import acolyte.RowLists.{ stringList, rowList1, rowList2, rowList3 }
 import acolyte.Rows.{ row1, row2, row3 }
+import acolyte.Implicits._
 
 object AnormSpec extends Specification with H2Database with AnormTest {
   "Anorm" title
@@ -227,31 +228,60 @@ object AnormSpec extends Specification with H2Database with AnormTest {
 
   { // Parameter specs
     val bg1 = new java.math.BigDecimal(1.234d)
-    val Str = ParameterMetaData.Str
-    val Num1 = ParameterMetaData.Numeric(bg1)
+    val date = new java.util.Date()
+    val SqlStr = ParameterMetaData.Str
+    val SqlBool = ParameterMetaData.Bool
+    val SqlInt = ParameterMetaData.Int
+    val SqlByte = ParameterMetaData.Byte
+    val SqlShort = ParameterMetaData.Short
+    val SqlLong = ParameterMetaData.Long
+    val SqlFloat = ParameterMetaData.Float(1.23f)
+    val SqlDouble = ParameterMetaData.Double(23.456d)
+    val SqlTimestamp = ParameterMetaData.Timestamp
+    val SqlNum1 = ParameterMetaData.Numeric(bg1)
 
-    def withConnection[A](f: java.sql.Connection => A): A =
-      f(connection(handleStatement withUpdateHandler {
-        case UpdateExecution("set-str ?",
-          DParam("string", Str) :: Nil) => 1 /* case ok */
-        case UpdateExecution("set-bg ?",
-          DParam(bg1, Num1) :: Nil) => 1 /* case ok */
-        case UpdateExecution("set-s-bg ?, ?",
-          DParam("string", Str) :: DParam(bg1, Num1) :: Nil) => 1 /* case ok */
-        case UpdateExecution("reorder-s-bg ?, ?",
-          DParam(bg1, Num1) :: DParam("string", Str) :: Nil) => 1 /* case ok */
-        case UpdateExecution("set-str-opt ?",
-          DParam("string", Str) :: Nil) => 1 /* case ok */
-        case UpdateExecution("set-bg-opt ?",
-          DParam(bg1, Num1) :: Nil) => 1 /* case ok */
-        case UpdateExecution("no-param-placeholder", Nil) => 1 /* case ok */
-        case UpdateExecution("no-snd-placeholder ?",
-          DParam("first", Str) :: Nil) => 1 /* case ok */
+    def withConnection[A](ps: (String, String)*)(f: java.sql.Connection => A): A = f(connection(handleStatement withUpdateHandler {
+      case UpdateExecution("set-str ?",
+        DParam("string", SqlStr) :: Nil) => 1 /* case ok */
+      case UpdateExecution("set-false ?",
+        DParam(false, SqlBool) :: Nil) => 1 /* case ok */
+      case UpdateExecution("set-true ?",
+        DParam(true, SqlBool) :: Nil) => 1 /* case ok */
+      case UpdateExecution("set-int ?",
+        DParam(2, SqlInt) :: Nil) => 1 /* case ok */
+      case UpdateExecution("set-short ?",
+        DParam(3, SqlShort) :: Nil) => 1 /* case ok */
+      case UpdateExecution("set-byte ?",
+        DParam(4, SqlByte) :: Nil) => 1 /* case ok */
+      case UpdateExecution("set-long ?",
+        DParam(5l, SqlLong) :: Nil) => 1 /* case ok */
+      case UpdateExecution("set-float ?",
+        DParam(1.23f, SqlFloat) :: Nil) => 1 /* case ok */
+      case UpdateExecution("set-double ?",
+        DParam(23.456d, SqlDouble) :: Nil) => 1 /* case ok */
+      case UpdateExecution("set-bg ?",
+        DParam(bg1, SqlNum1) :: Nil) => 1 /* case ok */
+      case UpdateExecution("set-date ?",
+        DParam(date, SqlTimestamp) :: Nil) => 1 /* case ok */
+      case UpdateExecution("set-s-bg ?, ?",
+        DParam("string", SqlStr) :: DParam(bg1, SqlNum1) :: Nil) =>
+        1 /* case ok */
+      case UpdateExecution("reorder-s-bg ?, ?",
+        DParam(bg1, SqlNum1) :: DParam("string", SqlStr) :: Nil) =>
+        1 /* case ok */
+      case UpdateExecution("set-str-opt ?",
+        DParam("string", SqlStr) :: Nil) => 1 /* case ok */
+      case UpdateExecution("set-bg-opt ?",
+        DParam(bg1, SqlNum1) :: Nil) => 1 /* case ok */
+      case UpdateExecution("set-none ?", DParam(null, _) :: Nil) => 1 /* ok */
+      case UpdateExecution("no-param-placeholder", Nil)          => 1 /* ok */
+      case UpdateExecution("no-snd-placeholder ?",
+        DParam("first", SqlStr) :: Nil) => 1 /* case ok */
 
-      }))
+    }, ps: _*))
 
     "Named parameters" should {
-      "be one string" in withConnection { implicit c =>
+      "be one string" in withConnection() { implicit c =>
         SQL("set-str {p}").on('p -> "string").
           aka("query") must beLike {
             case q @ SimpleSql( // check accross construction
@@ -264,13 +294,47 @@ object AnormSpec extends Specification with H2Database with AnormTest {
           }
       }
 
-      "be one big decimal" in withConnection { implicit c =>
+      "be boolean true" in withConnection() { implicit c =>
+        SQL("set-true {p}").on('p -> true).execute() must beFalse
+      }
+
+      "be boolean false" in withConnection() { implicit c =>
+        SQL("set-false {p}").on('p -> false).execute() must beFalse
+      }
+
+      "be int" in withConnection() { implicit c =>
+        SQL("set-int {p}").on('p -> 2).execute() must beFalse
+      }
+
+      "be short" in withConnection() { implicit c =>
+        SQL("set-short {p}").on('p -> 3.toShort).execute() must beFalse
+      }
+
+      "be byte" in withConnection() { implicit c =>
+        SQL("set-byte {p}").on('p -> 4.toByte).execute() must beFalse
+      }
+
+      "be long" in withConnection() { implicit c =>
+        SQL("set-long {p}").on('p -> 5l).execute() must beFalse
+      }
+
+      "be float" in withConnection() { implicit c =>
+        SQL("set-float {p}").on('p -> 1.23f).execute() must beFalse
+      }
+
+      "be double" in withConnection() { implicit c =>
+        SQL("set-double {p}").on('p -> 23.456d).execute() must beFalse
+      }
+
+      "be one big decimal" in withConnection() { implicit c =>
         SQL("set-bg {p}").on('p -> bg1).execute() must beFalse
       }
 
-      // TODO: single set for other types
+      "be one date" in withConnection() { implicit c =>
+        SQL("set-date {p}").on('p -> date).execute() must beFalse
+      }
 
-      "be multiple (string, big decimal)" in withConnection { implicit c =>
+      "be multiple (string, big decimal)" in withConnection() { implicit c =>
         SQL("set-s-bg {a}, {b}").on("a" -> "string", "b" -> bg1).
           aka("query") must beLike {
             case q @ SimpleSql(
@@ -281,7 +345,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
           }
       }
 
-      "be reordered" in withConnection { implicit c =>
+      "be reordered" in withConnection() { implicit c =>
         SQL("reorder-s-bg ?, ?").copy(argsInitialOrder = List("b", "a")).
           on('a -> "string", 'b -> bg1) aka "query" must beLike {
             case q @ SimpleSql(
@@ -293,18 +357,18 @@ object AnormSpec extends Specification with H2Database with AnormTest {
 
       }
 
-      "be defined string option" in withConnection { implicit c =>
+      "be defined string option" in withConnection() { implicit c =>
         SQL("set-str-opt {p}").on('p -> Some("string")).execute().
           aka("execution") must beFalse
       }
 
-      "be defined big decimal option" in withConnection { implicit c =>
+      "be defined big decimal option" in withConnection() { implicit c =>
         SQL("set-bg-opt {p}").on('p -> Some(bg1)).
           execute() aka "execute" must beFalse
 
       }
 
-      "not be set if placeholder not found in SQL" in withConnection {
+      "not be set if placeholder not found in SQL" in withConnection() {
         implicit c =>
           SQL("no-param-placeholder").on('p -> "not set").execute().
             aka("execution") must beFalse
@@ -312,28 +376,29 @@ object AnormSpec extends Specification with H2Database with AnormTest {
       }
 
       "be partially set if matching placeholder is missing for second one" in {
-        withConnection { implicit c =>
+        withConnection() { implicit c =>
           SQL("no-snd-placeholder {a}")
             .on("a" -> "first", "b" -> "second").execute() must beFalse
 
         }
       }
 
-      /*
-     http://docs.oracle.com/javase/6/docs/api/java/sql/PreparedStatement.html#setObject%28int,%20java.lang.Object%29
-     -> Note: Not all databases allow for a non-typed Null to be sent to the backend. For maximum portability, the setNull or the setObject(int parameterIndex, Object x, int sqlType) method should be used instead of setObject(int parameterIndex, Object x).
-     -> Note: This method throws an exception if there is an ambiguity, for example, if the object is of a class implementing more than one of the interfaces named above. 
-
-    "set null parameter from None" in withConnection { implicit c =>
-      SQL("set-none {p}").on('p -> None).execute() aka "execution" must beFalse
-    }
-     */
+      "set null parameter from None" in withConnection(
+        "acolyte.parameter.untypedNull" -> "true") { implicit c =>
+          /*
+         http://docs.oracle.com/javase/6/docs/api/java/sql/PreparedStatement.html#setObject%28int,%20java.lang.Object%29
+         -> Note: Not all databases allow for a non-typed Null to be sent to the backend. For maximum portability, the setNull or the setObject(int parameterIndex, Object x, int sqlType) method should be used instead of setObject(int parameterIndex, Object x).
+         -> Note: This method throws an exception if there is an ambiguity, for example, if the object is of a class implementing more than one of the interfaces named above. 
+         */
+          SQL("set-none {p}").on('p -> None).
+            execute() aka "execution" must beFalse
+        }
     }
 
     "Indexed parameters" should {
-      "be one string" in withConnection { implicit c =>
-        SQL("set-str ?").copy(argsInitialOrder = List("p")).
-          on('p -> "string") aka "query" must beLike {
+      "be one string" in withConnection() { implicit c =>
+        SQL("set-str ?").copy(argsInitialOrder = "p" :: Nil).
+          onParams(pv("string")) aka "query" must beLike {
             case q @ SimpleSql( // check accross construction
               SqlQuery("set-str ?", List("p"), _),
               Seq(("p", Val("string", _))), _) =>
@@ -344,14 +409,52 @@ object AnormSpec extends Specification with H2Database with AnormTest {
           }
       }
 
-      "be one big decimal" in withConnection { implicit c =>
-        SQL("set-bg {p}").copy(argsInitialOrder = List("p")).
-          on('p -> bg1).execute() must beFalse
+      "be boolean true" in withConnection() { implicit c =>
+        SQL("set-true ?").copy(argsInitialOrder = "p" :: Nil).
+          onParams(pv(true)).execute() must beFalse
       }
 
-      // TODO: single set for other types
+      "be boolean false" in withConnection() { implicit c =>
+        SQL("set-false ?").copy(argsInitialOrder = "p" :: Nil).
+          onParams(pv(false)).execute() must beFalse
+      }
 
-      "be multiple (string, big decimal)" in withConnection { implicit c =>
+      "be short" in withConnection() { implicit c =>
+        SQL("set-short ?").copy(argsInitialOrder = "p" :: Nil).
+          onParams(pv(3.toShort)).execute() must beFalse
+      }
+
+      "be byte" in withConnection() { implicit c =>
+        SQL("set-byte ?").copy(argsInitialOrder = "p" :: Nil).
+          onParams(pv(4.toByte)).execute() must beFalse
+      }
+
+      "be long" in withConnection() { implicit c =>
+        SQL("set-long ?").copy(argsInitialOrder = "p" :: Nil).
+          onParams(pv(5l)).execute() must beFalse
+      }
+
+      "be float" in withConnection() { implicit c =>
+        SQL("set-float ?").copy(argsInitialOrder = "p" :: Nil).
+          onParams(pv(1.23f)).execute() must beFalse
+      }
+
+      "be double" in withConnection() { implicit c =>
+        SQL("set-double ?").copy(argsInitialOrder = "p" :: Nil).
+          onParams(pv(23.456d)).execute() must beFalse
+      }
+
+      "be one big decimal" in withConnection() { implicit c =>
+        SQL("set-bg ?").copy(argsInitialOrder = "p" :: Nil).
+          onParams(pv(bg1)).execute() must beFalse
+      }
+
+      "be one date" in withConnection() { implicit c =>
+        SQL("set-date ?").copy(argsInitialOrder = "p" :: Nil).
+          onParams(pv(date)).execute() must beFalse
+      }
+
+      "be multiple (string, big decimal)" in withConnection() { implicit c =>
         SQL("set-s-bg ?, ?").copy(argsInitialOrder = List("a", "b")).
           onParams(pv("string"), pv(bg1)) aka "query" must beLike {
             case q @ SimpleSql(
@@ -362,18 +465,27 @@ object AnormSpec extends Specification with H2Database with AnormTest {
           }
       }
 
-      "be defined string option" in withConnection { implicit c =>
+      "be defined string option" in withConnection() { implicit c =>
         SQL("set-str-opt ?").copy(argsInitialOrder = List("p")).
           onParams(pv(Some("string"))).execute() aka "execution" must beFalse
       }
 
-      "be defined big decimal option" in withConnection { implicit c =>
-        SQL("set-bg-opt ?").copy(argsInitialOrder = List("p")).
+      "be defined big decimal option" in withConnection() { implicit c =>
+        SQL("set-bg-opt ?").copy(argsInitialOrder = "p" :: Nil).
           onParams(pv(Some(bg1))).execute() aka "execute" must beFalse
 
       }
 
-      "not be set if placeholder not found in SQL" in withConnection {
+      "set null parameter from None" in withConnection(
+        "acolyte.parameter.untypedNull" -> "true") { implicit c =>
+          /*
+         http://docs.oracle.com/javase/6/docs/api/java/sql/PreparedStatement.html#setObject%28int,%20java.lang.Object%29
+         */
+          SQL("set-none ?").copy(argsInitialOrder = "p" :: Nil).
+            onParams(pv(None)).execute() aka "execution" must beFalse
+        }
+
+      "not be set if placeholder not found in SQL" in withConnection() {
         implicit c =>
           SQL("no-param-placeholder").onParams(pv("not set")).execute().
             aka("execution") must beFalse
@@ -381,7 +493,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
       }
 
       "be partially set if matching placeholder is missing for second one" in {
-        withConnection { implicit c =>
+        withConnection() { implicit c =>
           SQL("no-snd-placeholder ?").copy(argsInitialOrder = List("p")).
             onParams(pv("first"), pv("second")).execute() must beFalse
 
@@ -399,7 +511,7 @@ sealed trait AnormTest { db: H2Database =>
   }
 
   def withQueryResult[A](r: QueryResult)(f: java.sql.Connection => A): A =
-    f(connection(handleQuery withQueryHandler { _ => r }))
+    f(connection(handleQuery { _ => r }))
 
   def pv[A](v: A)(implicit t: ToStatement[A]) = Val(v, t)
 }
