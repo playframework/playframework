@@ -17,21 +17,19 @@ import acolyte.Rows.{ row1, row2, row3 }
 object AnormSpec extends Specification with H2Database with AnormTest {
   "Anorm" title
 
-  "Parser" should {
-    lazy val fooBarTable = rowList3(
-      classOf[Long] -> "id", classOf[String] -> "foo", classOf[Int] -> "bar")
+  lazy val fooBarTable = rowList3(
+    classOf[Long] -> "id", classOf[String] -> "foo", classOf[Int] -> "bar")
 
+  "Row parser" should {
     "return newly inserted data" in withConnection { implicit c =>
       createTestTable()
       SQL("insert into test(id, foo, bar) values ({id}, {foo}, {bar})")
         .on('id -> 10L, 'foo -> "Hello", 'bar -> 20)
         .execute()
 
-      SQL("select * from test where id = {id}")
-        .on('id -> 10L)
-        .map(row =>
-          row[String]("foo") -> row[Int]("bar")
-        ).list() must_== List(("Hello", 20))
+      SQL("select * from test where id = {id}").on('id -> 10L)
+        .map(row => row[String]("foo") -> row[Int]("bar"))
+        .single must_== ("Hello" -> 20)
     }
 
     "return case class instance from result" in withConnection { implicit c =>
@@ -122,6 +120,96 @@ object AnormSpec extends Specification with H2Database with AnormTest {
         SQL("SELECT * FROM test").as(SqlParser.scalar[Int].single).
           aka("mismatching type") must throwA[Exception]("TypeDoesNotMatch")
 
+    }
+  }
+
+  "List" should {
+    "be Nil when there is no result" in withQueryResult(QueryResult.Nil) {
+      implicit c => 
+      SQL("EXEC test").as(SqlParser.scalar[Int].*) aka "list" must_== Nil
+    }
+
+    "be parsed from mapped result" in withQueryResult(
+      rowList2(classOf[String] -> "foo", classOf[Int] -> "bar").
+        append("row1", 100) :+ row2("row2", 200)) { implicit c =>
+
+      SQL("SELECT * FROM test").map(row =>
+          row[String]("foo") -> row[Int]("bar")
+        ).list aka "tuple list" must_== List("row1" -> 100, "row2" -> 200)
+    }
+
+    "be parsed from class mapping" in withQueryResult(
+      fooBarTable :+ row3(12L, "World", 101) :+ row3(14L, "Mondo", 3210)) { 
+      implicit c =>
+      SQL("SELECT * FROM test").as(fooBarParser.*).
+        aka("parsed list") must_== List(
+          TestTable(12L, "World", 101), TestTable(14L, "Mondo", 3210))
+
+    }
+
+    "be parsed from mapping with optional column" in withQueryResult(rowList2(
+        classOf[Int] -> "id", classOf[String] -> "val").
+      append(9, null.asInstanceOf[String]) :+ row2(2, "str")) { implicit c =>
+
+      SQL("SELECT * FROM test").as(
+        SqlParser.int("id") ~ SqlParser.str("val").? map {
+          case id ~ v => (id -> v)
+        } *) aka "parsed list" must_== List(9 -> None, 2 -> Some("str"))
+    }
+
+    "include scalar values" in withQueryResult(
+      stringList :+ "A" :+ "B" :+ "C" :+ "D") { implicit c =>
+
+      SQL("SELECT c FROM letters").as(SqlParser.scalar[String].*).
+        aka("string list") must_== List("A", "B", "C", "D")
+    }
+  }
+
+  "Stream" should {
+    "be empty when there is no result" in withQueryResult(QueryResult.Nil) {
+      implicit c => SQL("EXEC test").apply().headOption must beNone
+    }
+
+    "be parsed from mapped result" in withQueryResult(
+      rowList2(classOf[String] -> "foo", classOf[Int] -> "bar").
+        append("row1", 100) :+ row2("row2", 200)) { implicit c =>
+
+      SQL("SELECT * FROM test").apply()
+        .map(row => row[String]("foo") -> row[Int]("bar"))
+        .aka("tuple stream") must_== List("row1" -> 100, "row2" -> 200).toStream
+
+      true must beTrue
+    }
+
+    "be parsed from class mapping" in withQueryResult(
+      fooBarTable :+ row3(12L, "World", 101) :+ row3(14L, "Mondo", 3210)) { 
+      implicit c =>
+      SQL("SELECT * FROM test").apply().map(fooBarParser).
+        aka("parsed stream") must_== List(
+          Success(TestTable(12L, "World", 101)), 
+          Success(TestTable(14L, "Mondo", 3210))).toStream
+
+    }
+
+    "be parsed from mapping with optional column" in withQueryResult(rowList2(
+        classOf[Int] -> "id", classOf[String] -> "val").
+      append(9, null.asInstanceOf[String]) :+ row2(2, "str")) { implicit c =>
+
+      lazy val parser = SqlParser.int("id") ~ SqlParser.str("val").? map {
+        case id ~ v => (id -> v)
+      }
+
+      SQL("SELECT * FROM test").apply().map(parser).
+        aka("parsed stream") must_== List(
+          Success(9 -> None), Success(2 -> Some("str"))).toStream
+    }
+
+    "include scalar values" in withQueryResult(
+      stringList :+ "A" :+ "B" :+ "C" :+ "D") { implicit c =>
+
+      SQL("SELECT c FROM letters").apply().map(SqlParser.scalar[String]).
+        aka("string stream") must_== List(
+          Success("A"), Success("B"), Success("C"), Success("D"))
     }
   }
 
