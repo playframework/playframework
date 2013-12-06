@@ -446,7 +446,7 @@ public static Result deleteTask(Long id) {
 All features are completed. It’s time to deploy our application in production. Let’s deploy it to heroku. First you have to create a `Procfile` for Heroku in the root application directory:
 
 ```
-web: target/start -Dhttp.port=${PORT} -DapplyEvolutions.default=true -Ddb.default.url=${DATABASE_URL} -Ddb.default.driver=org.postgresql.Driver
+web: target/universal/stage/bin/{your project name} -Dhttp.port=${PORT} -DapplyEvolutions.default=true -Ddb.default.url=${DATABASE_URL} -Ddb.default.driver=org.postgresql.Driver
 ```
 
 > **Note:** Read more about [[Deploying to Heroku|ProductionHeroku]].
