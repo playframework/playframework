@@ -11,6 +11,8 @@ object SqlParser {
 
   type ResultSet = Stream[Row]
 
+  private val NoColumnsInReturnedResult = SqlMappingError("No column in result")
+
   /**
    * Returns parser for a scalar not-null value.
    *

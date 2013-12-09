@@ -19,7 +19,6 @@ case class ColumnNotFound(columnName: String, possibilities: List[String]) exten
 
 case class TypeDoesNotMatch(message: String) extends SqlRequestError
 case class UnexpectedNullableFound(on: String) extends SqlRequestError
-case object NoColumnsInReturnedResult extends SqlRequestError
 case class SqlMappingError(msg: String) extends SqlRequestError
 
 abstract class Pk[+ID] {
