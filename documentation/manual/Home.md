@@ -14,7 +14,7 @@
 1. [[Installing Play|Installing]]
 1. [[Creating a new application|NewApplication]]
 1. [[Anatomy of a Play application|Anatomy]]
-1. [[Using the Play console|PlayConsole ]]
+1. [[Using the Play console|PlayConsole]]
 1. [[Setting up your preferred IDE|IDE]]
 1. [[Sample applications|Samples]]
 1. [Security policy](http://www.playframework.com/code/security)
@@ -59,7 +59,7 @@
 ## Hacking Play
 
 1. [[Building Play from source|BuildingFromSource]]
-1. [[3rd Party Tooling|ThirdPartyTools]]
+1. [[3rd Party Tools|ThirdPartyTools]]
 1. [[Repositories|Repositories]]
 1. [[Issue tracker|Issues]]
 1. [[Contributor guidelines|Guidelines]]
