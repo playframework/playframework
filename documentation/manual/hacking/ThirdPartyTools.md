@@ -1,7 +1,9 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+# 3rd Party Tools
+
 A big THANK YOU! to these sponsors for their support of open source projects.
 
-# Continuous Integration
+## Continuous Integration
 
 [[images/cloudbees.png]]
 
@@ -9,7 +11,7 @@ Our continuous integration runs on [Cloudbees](http://www.cloudbees.com/). We no
 
 <https://playframework2.ci.cloudbees.com/>
 
-# Profiling
+## Profiling
 
 [[images/yourkit.png]]
 
