@@ -710,7 +710,7 @@ trait Results {
    *
    * @param status the HTTP response status, e.g ‘200 OK’
    */
-  class Status(status: Int) extends SimpleResult(header = ResponseHeader(status), body = Enumerator.empty,
+  class Status(status: Int) extends SimpleResult(header = ResponseHeader(status, headers = Map("Content-Length" -> "0")), body = Enumerator.empty,
     connection = HttpConnection.KeepAlive) {
 
     /**

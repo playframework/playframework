@@ -35,6 +35,14 @@ object NettyResultStreamer {
     // Result of this iteratee is a completion status
     val sentResponse: Future[ChannelStatus] = result match {
 
+      case NoBody() => {
+        // We're not allowed to reply with a body
+        // Make sure enumerator knows it's done, so that any resources it uses can be cleaned up
+        result.body |>> Done(())
+
+        Enumerator.eof |>>> nettyStreamIteratee(createNettyResponse(result.header, true, httpVersion), startSequence, true)
+      }
+
       case res if res.header.headers.exists(_._2 == null) => {
         // Make sure enumerator knows it's done, so that any resources it uses can be cleaned up
         result.body |>> Done(())
@@ -46,19 +54,20 @@ object NettyResultStreamer {
 
       // Sanitisation: ensure that we don't send chunked responses to HTTP 1.0 requests
       case UsesTransferEncoding() if httpVersion == HttpVersion.HTTP_1_0 => {
-        // Make sure enumerator knows it's done, so that any resources it uses can be cleaned up
-        result.body |>> Done(())
-
-        Play.logger.debug("Chunked response to HTTP/1.0 request, sending 505 response.")
-        val error = Results.HttpVersionNotSupported("The response to this request is chunked and hence requires HTTP 1.1 to be sent, but this is a HTTP 1.0 request.")
-        error.body |>>> nettyStreamIteratee(createNettyResponse(error.header, closeConnection, httpVersion), startSequence, closeConnection)
+        val header = result.header.copy(headers = result.header.headers.filter(_ == TRANSFER_ENCODING) + (CONNECTION -> "close"))
+        result.body &> Results.dechunk |>>> nettyStreamIteratee(createNettyResponse(header, true, httpVersion), startSequence, true)
       }
 
       case CloseConnection() => {
         result.body |>>> nettyStreamIteratee(createNettyResponse(result.header, true, httpVersion), startSequence, true)
       }
 
-      case EndOfBodyInProtocol() => {
+      case NoContentLength() if httpVersion == HttpVersion.HTTP_1_0 => {
+        val header = result.header.copy(headers = result.header.headers + (CONNECTION -> "close"))
+        result.body |>>> nettyStreamIteratee(createNettyResponse(header, true, httpVersion), startSequence, true)
+      }
+
+      case UsesTransferEncoding() => {
         result.body |>>> nettyStreamIteratee(createNettyResponse(result.header, closeConnection, httpVersion), startSequence, closeConnection)
       }
 
@@ -213,13 +222,13 @@ object NettyResultStreamer {
   }
 
   /**
-   * Extractor object that determines whether the end of the body is specified by the protocol
+   * Extractor object that determines whether the result can have a body or not
    */
-  object EndOfBodyInProtocol {
-    def unapply(result: SimpleResult): Boolean = {
-      import result.header.headers
-      headers.contains(TRANSFER_ENCODING) || headers.contains(CONTENT_LENGTH)
-    }
+  object NoBody {
+    def unapply(result: SimpleResult): Boolean =
+      (result.header.status >= 100 && result.header.status < 200) || // Informational
+        result.header.status == 204 || // No content
+        result.header.status == 304 // Not modified
   }
 
   /**
@@ -227,6 +236,13 @@ object NettyResultStreamer {
    */
   object CloseConnection {
     def unapply(result: SimpleResult): Boolean = result.connection == HttpConnection.Close
+  }
+
+  /**
+   * Extractor object that determines whether the result uses Content-Length header
+   */
+  object NoContentLength {
+    def unapply(result: SimpleResult): Boolean = !result.header.headers.contains(CONTENT_LENGTH)
   }
 
   /**
