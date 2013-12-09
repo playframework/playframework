@@ -11,7 +11,8 @@ import acolyte.{
   DefinedParameter => DParam,
   ParameterMetaData
 }
-import acolyte.RowLists.{ stringList, rowList1, rowList2, rowList3 }
+import acolyte.RowLists
+import RowLists.{ stringList, rowList1, rowList2, rowList3 }
 import acolyte.Rows.{ row1, row2, row3 }
 import acolyte.Implicits._
 
@@ -126,30 +127,30 @@ object AnormSpec extends Specification with H2Database with AnormTest {
 
   "List" should {
     "be Nil when there is no result" in withQueryResult(QueryResult.Nil) {
-      implicit c => 
-      SQL("EXEC test").as(SqlParser.scalar[Int].*) aka "list" must_== Nil
+      implicit c =>
+        SQL("EXEC test").as(SqlParser.scalar[Int].*) aka "list" must_== Nil
     }
 
     "be parsed from mapped result" in withQueryResult(
       rowList2(classOf[String] -> "foo", classOf[Int] -> "bar").
         append("row1", 100) :+ row2("row2", 200)) { implicit c =>
 
-      SQL("SELECT * FROM test").map(row =>
+        SQL("SELECT * FROM test").map(row =>
           row[String]("foo") -> row[Int]("bar")
         ).list aka "tuple list" must_== List("row1" -> 100, "row2" -> 200)
-    }
+      }
 
     "be parsed from class mapping" in withQueryResult(
-      fooBarTable :+ row3(12L, "World", 101) :+ row3(14L, "Mondo", 3210)) { 
-      implicit c =>
-      SQL("SELECT * FROM test").as(fooBarParser.*).
-        aka("parsed list") must_== List(
-          TestTable(12L, "World", 101), TestTable(14L, "Mondo", 3210))
+      fooBarTable :+ row3(12L, "World", 101) :+ row3(14L, "Mondo", 3210)) {
+        implicit c =>
+          SQL("SELECT * FROM test").as(fooBarParser.*).
+            aka("parsed list") must_== List(
+              TestTable(12L, "World", 101), TestTable(14L, "Mondo", 3210))
 
-    }
+      }
 
     "be parsed from mapping with optional column" in withQueryResult(rowList2(
-        classOf[Int] -> "id", classOf[String] -> "val").
+      classOf[Int] -> "id", classOf[String] -> "val").
       append(9, null.asInstanceOf[String]) :+ row2(2, "str")) { implicit c =>
 
       SQL("SELECT * FROM test").as(
@@ -161,9 +162,9 @@ object AnormSpec extends Specification with H2Database with AnormTest {
     "include scalar values" in withQueryResult(
       stringList :+ "A" :+ "B" :+ "C" :+ "D") { implicit c =>
 
-      SQL("SELECT c FROM letters").as(SqlParser.scalar[String].*).
-        aka("string list") must_== List("A", "B", "C", "D")
-    }
+        SQL("SELECT c FROM letters").as(SqlParser.scalar[String].*).
+          aka("string list") must_== List("A", "B", "C", "D")
+      }
   }
 
   "Stream" should {
@@ -175,25 +176,25 @@ object AnormSpec extends Specification with H2Database with AnormTest {
       rowList2(classOf[String] -> "foo", classOf[Int] -> "bar").
         append("row1", 100) :+ row2("row2", 200)) { implicit c =>
 
-      SQL("SELECT * FROM test").apply()
-        .map(row => row[String]("foo") -> row[Int]("bar"))
-        .aka("tuple stream") must_== List("row1" -> 100, "row2" -> 200).toStream
+        SQL("SELECT * FROM test").apply()
+          .map(row => row[String]("foo") -> row[Int]("bar"))
+          .aka("tuple stream") must_== List("row1" -> 100, "row2" -> 200).toStream
 
-      true must beTrue
-    }
+        true must beTrue
+      }
 
     "be parsed from class mapping" in withQueryResult(
-      fooBarTable :+ row3(12L, "World", 101) :+ row3(14L, "Mondo", 3210)) { 
-      implicit c =>
-      SQL("SELECT * FROM test").apply().map(fooBarParser).
-        aka("parsed stream") must_== List(
-          Success(TestTable(12L, "World", 101)), 
-          Success(TestTable(14L, "Mondo", 3210))).toStream
+      fooBarTable :+ row3(12L, "World", 101) :+ row3(14L, "Mondo", 3210)) {
+        implicit c =>
+          SQL("SELECT * FROM test").apply().map(fooBarParser).
+            aka("parsed stream") must_== List(
+              Success(TestTable(12L, "World", 101)),
+              Success(TestTable(14L, "Mondo", 3210))).toStream
 
-    }
+      }
 
     "be parsed from mapping with optional column" in withQueryResult(rowList2(
-        classOf[Int] -> "id", classOf[String] -> "val").
+      classOf[Int] -> "id", classOf[String] -> "val").
       append(9, null.asInstanceOf[String]) :+ row2(2, "str")) { implicit c =>
 
       lazy val parser = SqlParser.int("id") ~ SqlParser.str("val").? map {
@@ -208,10 +209,10 @@ object AnormSpec extends Specification with H2Database with AnormTest {
     "include scalar values" in withQueryResult(
       stringList :+ "A" :+ "B" :+ "C" :+ "D") { implicit c =>
 
-      SQL("SELECT c FROM letters").apply().map(SqlParser.scalar[String]).
-        aka("string stream") must_== List(
-          Success("A"), Success("B"), Success("C"), Success("D"))
-    }
+        SQL("SELECT c FROM letters").apply().map(SqlParser.scalar[String]).
+          aka("string stream") must_== List(
+            Success("A"), Success("B"), Success("C"), Success("D"))
+      }
   }
 
   "SQL warning" should {
@@ -227,7 +228,8 @@ object AnormSpec extends Specification with H2Database with AnormTest {
   }
 
   { // Parameter specs
-    val bg1 = new java.math.BigDecimal(1.234d)
+    val jbg1 = new java.math.BigDecimal(1.234d)
+    val sbg1 = BigDecimal(jbg1)
     val date = new java.util.Date()
     val SqlStr = ParameterMetaData.Str
     val SqlBool = ParameterMetaData.Bool
@@ -238,7 +240,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
     val SqlFloat = ParameterMetaData.Float(1.23f)
     val SqlDouble = ParameterMetaData.Double(23.456d)
     val SqlTimestamp = ParameterMetaData.Timestamp
-    val SqlNum1 = ParameterMetaData.Numeric(bg1)
+    val SqlNum1 = ParameterMetaData.Numeric(jbg1)
 
     def withConnection[A](ps: (String, String)*)(f: java.sql.Connection => A): A = f(connection(handleStatement withUpdateHandler {
       case UpdateExecution("set-str ?",
@@ -259,20 +261,24 @@ object AnormSpec extends Specification with H2Database with AnormTest {
         DParam(1.23f, SqlFloat) :: Nil) => 1 /* case ok */
       case UpdateExecution("set-double ?",
         DParam(23.456d, SqlDouble) :: Nil) => 1 /* case ok */
-      case UpdateExecution("set-bg ?",
-        DParam(bg1, SqlNum1) :: Nil) => 1 /* case ok */
+      case UpdateExecution("set-jbg ?",
+        DParam(jbg1, SqlNum1) :: Nil) => 1 /* case ok */
+      case UpdateExecution("set-sbg ?",
+        DParam(sbg1, SqlNum1) :: Nil) => 1 /* case ok */
       case UpdateExecution("set-date ?",
         DParam(date, SqlTimestamp) :: Nil) => 1 /* case ok */
-      case UpdateExecution("set-s-bg ?, ?",
-        DParam("string", SqlStr) :: DParam(bg1, SqlNum1) :: Nil) =>
-        1 /* case ok */
-      case UpdateExecution("reorder-s-bg ?, ?",
-        DParam(bg1, SqlNum1) :: DParam("string", SqlStr) :: Nil) =>
-        1 /* case ok */
+      case UpdateExecution("set-s-jbg ?, ?",
+        DParam("string", SqlStr) :: DParam(jbg1, SqlNum1) :: Nil) => 1 /* ok */
+      case UpdateExecution("set-s-sbg ?, ?",
+        DParam("string", SqlStr) :: DParam(sbg1, SqlNum1) :: Nil) => 1 /* ok */
+      case UpdateExecution("reorder-s-jbg ?, ?",
+        DParam(jbg1, SqlNum1) :: DParam("string", SqlStr) :: Nil) => 1 /* ok */
       case UpdateExecution("set-str-opt ?",
         DParam("string", SqlStr) :: Nil) => 1 /* case ok */
-      case UpdateExecution("set-bg-opt ?",
-        DParam(bg1, SqlNum1) :: Nil) => 1 /* case ok */
+      case UpdateExecution("set-jbg-opt ?",
+        DParam(jbg1, SqlNum1) :: Nil) => 1 /* case ok */
+      case UpdateExecution("set-sbg-opt ?",
+        DParam(sbg1, SqlNum1) :: Nil) => 1 /* case ok */
       case UpdateExecution("set-none ?", DParam(null, _) :: Nil) => 1 /* ok */
       case UpdateExecution("no-param-placeholder", Nil)          => 1 /* ok */
       case UpdateExecution("no-snd-placeholder ?",
@@ -326,35 +332,45 @@ object AnormSpec extends Specification with H2Database with AnormTest {
         SQL("set-double {p}").on('p -> 23.456d).execute() must beFalse
       }
 
-      "be one big decimal" in withConnection() { implicit c =>
-        SQL("set-bg {p}").on('p -> bg1).execute() must beFalse
+      "be one Java big decimal" in withConnection() { implicit c =>
+        SQL("set-jbg {p}").on('p -> jbg1).execute() must beFalse
+      }
+
+      "be one Scala big decimal" in withConnection() { implicit c =>
+        SQL("set-sbg {p}").on('p -> sbg1).execute() must beFalse
       }
 
       "be one date" in withConnection() { implicit c =>
         SQL("set-date {p}").on('p -> date).execute() must beFalse
       }
 
-      "be multiple (string, big decimal)" in withConnection() { implicit c =>
-        SQL("set-s-bg {a}, {b}").on("a" -> "string", "b" -> bg1).
-          aka("query") must beLike {
-            case q @ SimpleSql(
-              SqlQuery("set-s-bg ?, ?", List("a", "b"), _),
-              Seq(("a", Val("string", _)), ("b", Val(bg1, _))), _) =>
-              q.execute() aka "execution" must beFalse
+      "be multiple (string, Java big decimal)" in withConnection() {
+        implicit c =>
+          SQL("set-s-jbg {a}, {b}").on("a" -> "string", "b" -> jbg1).
+            aka("query") must beLike {
+              case q @ SimpleSql(
+                SqlQuery("set-s-jbg ?, ?", List("a", "b"), _),
+                Seq(("a", Val("string", _)), ("b", Val(jbg1, _))), _) =>
+                q.execute() aka "execution" must beFalse
 
-          }
+            }
+      }
+
+      "be multiple (string, Scala big decimal)" in withConnection() {
+        implicit c =>
+          SQL("set-s-sbg {a}, {b}").on("a" -> "string", "b" -> sbg1).
+            execute() aka "execution" must beFalse
       }
 
       "be reordered" in withConnection() { implicit c =>
-        SQL("reorder-s-bg ?, ?").copy(argsInitialOrder = List("b", "a")).
-          on('a -> "string", 'b -> bg1) aka "query" must beLike {
+        SQL("reorder-s-jbg ?, ?").copy(argsInitialOrder = List("b", "a")).
+          on('a -> "string", 'b -> jbg1) aka "query" must beLike {
             case q @ SimpleSql(
-              SqlQuery("reorder-s-bg ?, ?", List("b", "a"), _),
-              Seq(("a", Val("string", _)), ("b", Val(bg1, _))), _) =>
+              SqlQuery("reorder-s-jbg ?, ?", List("b", "a"), _),
+              Seq(("a", Val("string", _)), ("b", Val(jbg1, _))), _) =>
               q.execute() aka "execution" must beFalse
 
           }
-
       }
 
       "be defined string option" in withConnection() { implicit c =>
@@ -362,9 +378,15 @@ object AnormSpec extends Specification with H2Database with AnormTest {
           aka("execution") must beFalse
       }
 
-      "be defined big decimal option" in withConnection() { implicit c =>
-        SQL("set-bg-opt {p}").on('p -> Some(bg1)).
-          execute() aka "execute" must beFalse
+      "be defined Java big decimal option" in withConnection() { implicit c =>
+        SQL("set-jbg-opt {p}").on('p -> Some(jbg1)).
+          execute() aka "execution" must beFalse
+
+      }
+
+      "be defined Scala big decimal option" in withConnection() { implicit c =>
+        SQL("set-sbg-opt {p}").on('p -> Some(sbg1)).
+          execute() aka "execution" must beFalse
 
       }
 
@@ -444,9 +466,14 @@ object AnormSpec extends Specification with H2Database with AnormTest {
           onParams(pv(23.456d)).execute() must beFalse
       }
 
-      "be one big decimal" in withConnection() { implicit c =>
-        SQL("set-bg ?").copy(argsInitialOrder = "p" :: Nil).
-          onParams(pv(bg1)).execute() must beFalse
+      "be one Java big decimal" in withConnection() { implicit c =>
+        SQL("set-jbg ?").copy(argsInitialOrder = "p" :: Nil).
+          onParams(pv(jbg1)).execute() must beFalse
+      }
+
+      "be one Scala big decimal" in withConnection() { implicit c =>
+        SQL("set-sbg ?").copy(argsInitialOrder = "p" :: Nil).
+          onParams(pv(sbg1)).execute() must beFalse
       }
 
       "be one date" in withConnection() { implicit c =>
@@ -454,15 +481,24 @@ object AnormSpec extends Specification with H2Database with AnormTest {
           onParams(pv(date)).execute() must beFalse
       }
 
-      "be multiple (string, big decimal)" in withConnection() { implicit c =>
-        SQL("set-s-bg ?, ?").copy(argsInitialOrder = List("a", "b")).
-          onParams(pv("string"), pv(bg1)) aka "query" must beLike {
-            case q @ SimpleSql(
-              SqlQuery("set-s-bg ?, ?", List("a", "b"), _),
-              Seq(("a", Val("string", _)), ("b", Val(bg1, _))), _) =>
-              q.execute() aka "execution" must beFalse
+      "be multiple (string, Java big decimal)" in withConnection() {
+        implicit c =>
+          SQL("set-s-jbg ?, ?").copy(argsInitialOrder = List("a", "b")).
+            onParams(pv("string"), pv(jbg1)) aka "query" must beLike {
+              case q @ SimpleSql(
+                SqlQuery("set-s-jbg ?, ?", List("a", "b"), _),
+                Seq(("a", Val("string", _)), ("b", Val(jbg1, _))), _) =>
+                q.execute() aka "execution" must beFalse
 
-          }
+            }
+      }
+
+      "be multiple (string, Scala big decimal)" in withConnection() {
+        implicit c =>
+          SQL("set-s-sbg ?, ?").copy(argsInitialOrder = List("a", "b")).
+            onParams(pv("string"), pv(sbg1)).execute().
+            aka("execution") must beFalse
+
       }
 
       "be defined string option" in withConnection() { implicit c =>
@@ -470,9 +506,15 @@ object AnormSpec extends Specification with H2Database with AnormTest {
           onParams(pv(Some("string"))).execute() aka "execution" must beFalse
       }
 
-      "be defined big decimal option" in withConnection() { implicit c =>
-        SQL("set-bg-opt ?").copy(argsInitialOrder = "p" :: Nil).
-          onParams(pv(Some(bg1))).execute() aka "execute" must beFalse
+      "be defined Java big decimal option" in withConnection() { implicit c =>
+        SQL("set-jbg-opt ?").copy(argsInitialOrder = "p" :: Nil).
+          onParams(pv(Some(jbg1))).execute() aka "execute" must beFalse
+
+      }
+
+      "be defined Scala big decimal option" in withConnection() { implicit c =>
+        SQL("set-sbg-opt ?").copy(argsInitialOrder = "p" :: Nil).
+          onParams(pv(Some(sbg1))).execute() aka "execute" must beFalse
 
       }
 
@@ -498,6 +540,106 @@ object AnormSpec extends Specification with H2Database with AnormTest {
             onParams(pv("first"), pv("second")).execute() must beFalse
 
         }
+      }
+    }
+  }
+
+  "Column" >> {
+    val bd = new java.math.BigDecimal("34.5679")
+
+    "mapped as Java big decimal" should {
+      "be parsed from big decimal" in withQueryResult(
+        RowLists.bigDecimalList :+ bd) { implicit con =>
+
+          SQL("SELECT bd").as(SqlParser.scalar[java.math.BigDecimal].single).
+            aka("parsed big decimal") must_== bd
+        }
+
+      "be parsed from double" in withQueryResult(RowLists.doubleList :+ 1.35d) {
+        implicit con =>
+          SQL("SELECT bd").as(SqlParser.scalar[java.math.BigDecimal].single).
+            aka("parsed double") must_== java.math.BigDecimal.valueOf(1.35d)
+
+      }
+
+      "be parsed from long" in withQueryResult(RowLists.longList :+ 5l) {
+        implicit con =>
+          SQL("SELECT bd").as(SqlParser.scalar[java.math.BigDecimal].single).
+            aka("parsed long") must_== java.math.BigDecimal.valueOf(5l)
+
+      }
+    }
+
+    "mapped as Scala big decimal" should {
+      "be parsed from big decimal" in withQueryResult(
+        RowLists.bigDecimalList :+ bd) { implicit con =>
+
+          SQL("SELECT bd").as(SqlParser.scalar[BigDecimal].single).
+            aka("parsed big decimal") must_== BigDecimal(bd)
+        }
+
+      "be parsed from double" in withQueryResult(RowLists.doubleList :+ 1.35d) {
+        implicit con =>
+          SQL("SELECT bd").as(SqlParser.scalar[BigDecimal].single).
+            aka("parsed double") must_== BigDecimal(1.35d)
+
+      }
+
+      "be parsed from long" in withQueryResult(RowLists.longList :+ 5l) {
+        implicit con =>
+          SQL("SELECT bd").as(SqlParser.scalar[BigDecimal].single).
+            aka("parsed long") must_== BigDecimal(5l)
+
+      }
+    }
+
+    val bi = new java.math.BigInteger("1234")
+
+    "mapped as Java big integer" should {
+      "be parsed from big integer" in withQueryResult(
+        rowList1(classOf[java.math.BigInteger]) :+ bi) { implicit con =>
+          // Useless as proper resultset won't return BigInteger
+
+          SQL("SELECT bi").as(SqlParser.scalar[java.math.BigInteger].single).
+            aka("parsed big integer") must_== bi
+        }
+
+      "be parsed from long" in withQueryResult(RowLists.longList :+ 5l) {
+        implicit con =>
+          SQL("SELECT bi").as(SqlParser.scalar[java.math.BigInteger].single).
+            aka("parsed long") must_== java.math.BigInteger.valueOf(5l)
+
+      }
+
+      "be parsed from int" in withQueryResult(RowLists.intList :+ 2) {
+        implicit con =>
+          SQL("SELECT bi").as(SqlParser.scalar[java.math.BigInteger].single).
+            aka("parsed int") must_== java.math.BigInteger.valueOf(2)
+
+      }
+    }
+
+    "mapped as Scala big integer" should {
+      "be parsed from big integer" in withQueryResult(
+        rowList1(classOf[java.math.BigInteger]) :+ bi) { implicit con =>
+          // Useless as proper resultset won't return BigInteger
+
+          SQL("SELECT bi").as(SqlParser.scalar[BigInt].single).
+            aka("parsed big integer") must_== BigInt(bi)
+        }
+
+      "be parsed from long" in withQueryResult(RowLists.longList :+ 5l) {
+        implicit con =>
+          SQL("SELECT bi").as(SqlParser.scalar[BigInt].single).
+            aka("parsed long") must_== BigInt(5l)
+
+      }
+
+      "be parsed from int" in withQueryResult(RowLists.intList :+ 2) {
+        implicit con =>
+          SQL("SELECT bi").as(SqlParser.scalar[BigInt].single).
+            aka("parsed int") must_== BigInt(2)
+
       }
     }
   }

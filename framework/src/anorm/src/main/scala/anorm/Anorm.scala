@@ -66,7 +66,7 @@ object Column {
       value match {
         case string: String => Right(string)
         case clob: java.sql.Clob => Right(clob.getSubString(1, clob.length.asInstanceOf[Int]))
-        case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to String for column " + qualified))
+        case _ => Left(TypeDoesNotMatch(s"Cannot convert $value:${value.asInstanceOf[AnyRef].getClass} to String for column $qualified"))
       }
     }
   }
@@ -120,16 +120,22 @@ object Column {
     }
   }
 
-  implicit def rowToBigInteger: Column[java.math.BigInteger] = Column.nonNull { (value, meta) =>
-    import java.math.BigInteger
+  // Used to convert Java or Scala big integer
+  private def anyToBigInteger(value: Any, meta: MetaDataItem): MayErr[SqlRequestError, java.math.BigInteger] = {
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
-      case bi: BigInteger => Right(bi)
-      case int: Int => Right(BigInteger.valueOf(int))
-      case long: Long => Right(BigInteger.valueOf(long))
-      case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to BigInteger for column " + qualified))
+      case bi: java.math.BigInteger => Right(bi)
+      case int: Int => Right(java.math.BigInteger.valueOf(int))
+      case long: Long => Right(java.math.BigInteger.valueOf(long))
+      case _ => Left(TypeDoesNotMatch(s"Cannot convert $value:${value.asInstanceOf[AnyRef].getClass} to BigInteger for column $qualified"))
     }
   }
+
+  implicit def rowToBigInteger: Column[java.math.BigInteger] =
+    Column.nonNull(anyToBigInteger)
+
+  implicit def rowToBigInt: Column[BigInt] =
+    Column.nonNull((value, meta) => anyToBigInteger(value, meta).map(BigInt(_)))
 
   implicit def rowToUUID: Column[UUID] = Column.nonNull { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
@@ -139,14 +145,23 @@ object Column {
     }
   }
 
-  implicit def rowToBigDecimal: Column[java.math.BigDecimal] = Column.nonNull { (value, meta) =>
+  // Used to convert Java or Scala big decimal
+  private def anyToBigDecimal(value: Any, meta: MetaDataItem): MayErr[SqlRequestError, java.math.BigDecimal] = {
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case bi: java.math.BigDecimal => Right(bi)
-      case double: Double => Right(new java.math.BigDecimal(double))
-      case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to BigDecimal for column " + qualified))
+      case double: Double => Right(java.math.BigDecimal.valueOf(double))
+      case l: Long => Right(java.math.BigDecimal.valueOf(l))
+      case _ => Left(TypeDoesNotMatch(s"Cannot convert $value:${value.asInstanceOf[AnyRef].getClass} to BigDecimal for column $qualified"))
     }
   }
+
+  implicit def rowToJavaBigDecimal: Column[java.math.BigDecimal] =
+    Column.nonNull(anyToBigDecimal)
+
+  implicit def rowToScalaBigDecimal: Column[BigDecimal] =
+    Column.nonNull((value, meta) =>
+      anyToBigDecimal(value, meta).map(BigDecimal(_)))
 
   implicit def rowToDate: Column[Date] = Column.nonNull { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
@@ -333,14 +348,15 @@ object Useful {
 
 trait ToStatement[A] { def set(s: java.sql.PreparedStatement, index: Int, aValue: A): Unit }
 object ToStatement {
+  import java.sql.PreparedStatement
 
   implicit def anyParameter[T] = new ToStatement[T] {
-    private def setAny(index: Int, value: Any, stmt: java.sql.PreparedStatement): java.sql.PreparedStatement = {
+    private def setAny(index: Int, value: Any, stmt: PreparedStatement): PreparedStatement = {
       value match {
-        case Some(bd: java.math.BigDecimal) => stmt.setBigDecimal(index, bd)
-        case Some(o) => stmt.setObject(index, o)
+        case Some(o) => setAny(index, o, stmt)
         case None => stmt.setObject(index, null)
-        case bd: java.math.BigDecimal => stmt.setBigDecimal(index, bd)
+        case jbd: java.math.BigDecimal => stmt.setBigDecimal(index, jbd)
+        case sbd: BigDecimal => stmt.setBigDecimal(index, sbd.bigDecimal)
         case date: java.util.Date => stmt.setTimestamp(index, new java.sql.Timestamp(date.getTime()))
         case Id(id) => stmt.setObject(index, id)
         case NotAssigned => stmt.setObject(index, null)
@@ -349,29 +365,15 @@ object ToStatement {
       stmt
     }
 
-    def set(s: java.sql.PreparedStatement, index: Int, aValue: T): Unit = setAny(index, aValue, s)
-  }
-
-  implicit val dateToStatement = new ToStatement[java.util.Date] {
-    def set(s: java.sql.PreparedStatement, index: Int, aValue: java.util.Date): Unit = s.setTimestamp(index, new java.sql.Timestamp(aValue.getTime()))
-
-  }
-
-  implicit def optionToStatement[A](implicit ts: ToStatement[A]): ToStatement[Option[A]] = new ToStatement[Option[A]] {
-    def set(s: java.sql.PreparedStatement, index: Int, aValue: Option[A]): Unit = {
-      aValue match {
-        case Some(o) => ts.set(s, index, o)
-        case None => s.setObject(index, null)
-      }
-    }
+    def set(s: PreparedStatement, index: Int, v: T): Unit = setAny(index, v, s)
   }
 
   implicit val uuidToStatement = new ToStatement[UUID] {
-    def set(s: java.sql.PreparedStatement, index: Int, aValue: UUID): Unit = s.setObject(index, aValue)
+    def set(s: PreparedStatement, index: Int, aValue: UUID): Unit = s.setObject(index, aValue)
   }
 
   implicit def pkToStatement[A](implicit ts: ToStatement[A]): ToStatement[Pk[A]] = new ToStatement[Pk[A]] {
-    def set(s: java.sql.PreparedStatement, index: Int, aValue: Pk[A]): Unit =
+    def set(s: PreparedStatement, index: Int, aValue: Pk[A]): Unit =
       aValue match {
         case Id(id) => ts.set(s, index, id)
         case NotAssigned => s.setObject(index, null)
