@@ -57,7 +57,8 @@ object Column {
 
   def nonNull[A](transformer: ((Any, MetaDataItem) => MayErr[SqlRequestError, A])): Column[A] = Column[A] {
     case (value, meta @ MetaDataItem(qualified, _, _)) =>
-      if (value != null) transformer(value, meta) else Left(UnexpectedNullableFound(qualified.toString))
+      if (value != null) transformer(value, meta)
+      else Left(UnexpectedNullableFound(qualified.toString))
   }
 
   implicit def rowToString: Column[String] = {

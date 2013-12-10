@@ -131,10 +131,16 @@ trait RowParser[+A] extends (Row => SqlResult[A]) {
     }
   }
 
+  /**
+   * Returns a row parser for optional column,
+   * that will turn missing or null column as None.
+   */
   def ? : RowParser[Option[A]] = RowParser { row =>
     parent(row) match {
       case Success(a) => Success(Some(a))
-      case Error(_) => Success(None)
+      case Error(UnexpectedNullableFound(_)) | Error(ColumnNotFound(_, _)) =>
+        Success(None)
+      case e @ Error(f) => e
     }
   }
 
@@ -144,10 +150,24 @@ trait RowParser[+A] extends (Row => SqlResult[A]) {
 
   def + : ResultSetParser[List[A]] = ResultSetParser.nonEmptyList(parent)
 
+  /**
+   * Returns a result set parser expecting exactly one row to parse.
+   *
+   * {{{
+   * val b: Boolean = SQL("SELECT flag FROM Test WHERE id = :id").
+   *   on("id" -> 1).as(scalar[Boolean].single)
+   * }}}
+   */
   def single = ResultSetParser.single(parent)
 
   /**
    * Returns a result set parser for none or one parsed row.
+   *
+   * {{{
+   * val name: Option[String] =
+   *   SQL("SELECT name FROM Country WHERE lang = :lang")
+   *   .on("lang" -> "notFound").as(scalar[String].singleOpt)
+   * }}}
    */
   def singleOpt: ResultSetParser[Option[A]] = ResultSetParser.singleOpt(parent)
 

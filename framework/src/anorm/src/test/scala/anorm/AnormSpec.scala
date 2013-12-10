@@ -73,6 +73,32 @@ object AnormSpec extends Specification with H2Database with AnormTest {
 
         }
 
+      "throw exception when single result is missing" in withQueryResult(
+        fooBarTable) { implicit c =>
+
+          SQL("SELECT * FROM test").as(fooBarParser.single).
+            aka("mapping") must throwA[Exception].like {
+              case e: Exception => e.getMessage aka "error" mustEqual (
+                "SqlMappingError(No rows when expecting a single one)")
+            }
+        }
+
+      "throw exception when there is more than 1 required or option row" in {
+        withQueryResult(stringList :+ "A" :+ "B") { implicit c =>
+          lazy val sql = SQL("SELECT 1")
+
+          (sql.as(SqlParser.scalar[Int].single)
+            .aka("single parser") must throwA[Exception].like {
+              case e: Exception => e.getMessage aka "error" mustEqual (
+                "SqlMappingError(too many rows when expecting a single one)")
+            }).and(sql.as(SqlParser.scalar[Int].singleOpt)
+              .aka("singleOpt parser") must throwA[Exception].like {
+                case e: Exception => e.getMessage aka "error" mustEqual (
+                  "SqlMappingError(too many rows when expecting a single one)")
+              })
+        }
+      }
+
       "return single string from executed query" in withQueryResult(
         "Result for test-proc-1") { implicit c =>
 
@@ -95,7 +121,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
 
       }
 
-      "return instance with None for option" in withQueryResult(
+      "return instance with None for column not found" in withQueryResult(
         rowList1(classOf[Long] -> "id") :+ 123l) { implicit c =>
 
           SQL("SELECT * FROM test").as(
@@ -104,15 +130,19 @@ object AnormSpec extends Specification with H2Database with AnormTest {
             } single) aka "mapped data" must_== (123l -> None)
 
         }
+
+      "throw exception when type doesn't match" in withQueryResult(
+        fooBarTable :+ (1l, "str", 3)) { implicit c =>
+
+          SQL("SELECT * FROM test").as(
+            SqlParser.long("id") ~ SqlParser.int("foo").? map {
+              case id ~ v => (id -> v)
+            } single) aka "parser" must throwA[Exception].like {
+              case e: Exception => e.getMessage aka "error" must startWith(
+                "TypeDoesNotMatch(Cannot convert str:")
+            }
+        }
     }
-
-    "throw exception when single result is missing" in withQueryResult(
-      fooBarTable) { implicit c =>
-
-        SQL("SELECT * FROM test").as(fooBarParser.single).
-          aka("mapping") must throwA[Exception](
-            "No rows when expecting a single one")
-      }
 
     "throw exception when type doesn't match" in withQueryResult("str") {
       implicit c =>
@@ -176,9 +206,9 @@ object AnormSpec extends Specification with H2Database with AnormTest {
 
         SQL("SELECT * FROM test").apply()
           .map(row => row[String]("foo") -> row[Int]("bar"))
-          .aka("tuple stream") must_== List("row1" -> 100, "row2" -> 200).toStream
-
-        true must beTrue
+          .aka("tuple stream") mustEqual {
+            List("row1" -> 100, "row2" -> 200).toStream
+          }
       }
 
     "be parsed from class mapping" in withQueryResult(
