@@ -87,6 +87,13 @@ class ApplicationSpec extends PlaySpecification with WsTestClient {
       val Some(result) = route(FakeRequest(GET, "/public//"))
       status(result) must equalTo (NOT_FOUND)
     }
+
+    "serve assets" in new WithApplication() {
+      val Some(result1) = route(FakeRequest(GET, "/public/empty.txt"))
+      status(result1) must equalTo (OK)
+      val Some(result2) = route(FakeRequest(GET, "/public//empty.txt"))
+      status(result2) must equalTo (OK)
+    }
    
     "remove cache elements" in new WithApplication() {
       import play.api.cache.Cache
