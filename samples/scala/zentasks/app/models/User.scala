@@ -33,7 +33,7 @@ object User {
   def findByEmail(email: String): Option[User] = {
     DB.withConnection { implicit connection =>
       SQL("select * from user where email = {email}").on(
-        'email -> email
+        "email" -> email
       ).as(User.simple.singleOpt)
     }
   }
@@ -58,8 +58,8 @@ object User {
          email = {email} and password = {password}
         """
       ).on(
-        'email -> email,
-        'password -> password
+        "email" -> email,
+        "password" -> password
       ).as(User.simple.singleOpt)
     }
   }
@@ -76,9 +76,9 @@ object User {
           )
         """
       ).on(
-        'email -> user.email,
-        'name -> user.name,
-        'password -> user.password
+        "email" -> user.email,
+        "name" -> user.name,
+        "password" -> user.password
       ).executeUpdate()
       
       user

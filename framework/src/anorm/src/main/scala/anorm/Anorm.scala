@@ -3,12 +3,13 @@
  */
 package anorm
 
+import java.util.{ Date, UUID }
+import java.sql.Connection
+
 import scala.language.{ postfixOps, reflectiveCalls }
+import scala.collection.TraversableOnce
 
 import MayErr._
-import java.util.Date
-import collection.TraversableOnce
-import java.util.UUID
 
 abstract class SqlRequestError
 case class ColumnNotFound(columnName: String, possibilities: List[String]) extends SqlRequestError {
@@ -233,15 +234,12 @@ case class ColumnName(qualified: String, alias: Option[String])
 
 case class MetaData(ms: List[MetaDataItem]) {
   def get(columnName: String) = {
-    val columnUpper = columnName.toUpperCase()
-    dictionary2.get(columnUpper)
-      .orElse(dictionary.get(columnUpper))
+    val columnUpper = columnName.toUpperCase
+    dictionary2.get(columnUpper).orElse(dictionary.get(columnUpper))
   }
 
-  def getAliased(aliasName: String) = {
-    val columnUpper = aliasName.toUpperCase()
-    aliasedDictionary.get(columnUpper)
-  }
+  def getAliased(aliasName: String): Option[(ColumnName, Boolean, String)] =
+    aliasedDictionary.get(aliasName.toUpperCase)
 
   private lazy val dictionary: Map[String, (ColumnName, Boolean, String)] =
     ms.map(m => (m.column.qualified.toUpperCase(), (m.column, m.nullable, m.clazz))).toMap
@@ -256,15 +254,15 @@ case class MetaData(ms: List[MetaDataItem]) {
   private lazy val aliasedDictionary: Map[String, (ColumnName, Boolean, String)] = {
     ms.flatMap(m => {
       m.column.alias.map { a =>
-        Map(a.toUpperCase() -> (m.column, m.nullable, m.clazz))
+        Map(a.toUpperCase() -> Tuple3(m.column, m.nullable, m.clazz))
       }.getOrElse(Map.empty)
-
     }).toMap
   }
 
   lazy val columnCount = ms.size
 
-  lazy val availableColumns: List[String] = ms.flatMap(i => i.column.qualified :: i.column.alias.toList)
+  lazy val availableColumns: List[String] =
+    ms.flatMap(i => i.column.qualified :: i.column.alias.toList)
 
 }
 
@@ -413,52 +411,121 @@ object ParameterValue {
   }
 }
 
-case class SimpleSql[T](sql: SqlQuery, params: Seq[(String, ParameterValue)], defaultParser: RowParser[T]) extends Sql {
+/** Applied named parameter. */
+sealed case class NamedParameter(name: String, value: ParameterValue)
 
-  def on(args: (Any, ParameterValue)*): SimpleSql[T] = this.copy(params = (this.params) ++ args.map {
-    case (s: Symbol, v) => (s.name, v)
-    case (k, v) => (k.toString, v)
-  })
+/** Companion object for applied named parameter. */
+object NamedParameter {
+  import scala.language.implicitConversions
 
-  def onParams(args: ParameterValue*): SimpleSql[T] = this.copy(params = (this.params) ++ sql.argsInitialOrder.zip(args))
+  /**
+   * Conversion to use tuple, with first element being name
+   * of parameter as string.
+   *
+   * {{{
+   * val p: Parameter = ("name" -> 1l)
+   * }}}
+   */
+  implicit def string[V](t: (String, V))(implicit c: V => ParameterValue): NamedParameter = NamedParameter(t._1, c(t._2))
 
-  def list()(implicit connection: java.sql.Connection): Seq[T] = as(defaultParser*)
+  /**
+   * Conversion to use tuple,
+   * with first element being symbolic name or parameter.
+   *
+   * {{{
+   * val p: Parameter = ('name -> 1l)
+   * }}}
+   */
+  implicit def symbol[V](t: (Symbol, V))(implicit c: V => ParameterValue): NamedParameter = NamedParameter(t._1.name, c(t._2))
 
-  def single()(implicit connection: java.sql.Connection): T = as(ResultSetParser.single(defaultParser))
+}
 
-  def singleOpt()(implicit connection: java.sql.Connection): Option[T] = as(ResultSetParser.singleOpt(defaultParser))
+case class SimpleSql[T](sql: SqlQuery, params: Seq[NamedParameter], defaultParser: RowParser[T]) extends Sql {
 
-  //def first()(implicit connection: java.sql.Connection): Option[T] = parse((guard(acceptMatch("not at end", { case Right(_) => Unit })) ~> commit(defaultParser))?)
+  /**
+   * Returns query prepared with named parameters.
+   *
+   * {{{
+   * import anorm.toParameterValue
+   *
+   * val baseSql = SQL("SELECT * FROM table WHERE id = {id}") // one named param
+   * val preparedSql = baseSql.withParams("id" -> "value")
+   * }}}
+   */
+  def on(args: NamedParameter*): SimpleSql[T] =
+    copy(params = this.params ++ args)
 
-  def getFilledStatement(connection: java.sql.Connection, getGeneratedKeys: Boolean = false) = {
+  // Move down
+  @annotation.tailrec
+  private def zipParams(ns: Seq[String], vs: Seq[ParameterValue], ps: Seq[NamedParameter]): Seq[NamedParameter] = (ns.headOption, vs.headOption) match {
+    case (Some(n), Some(v)) =>
+      zipParams(ns.tail, vs.tail, ps :+ NamedParameter(n, v))
+    case _ => ps
+  }
+
+  /**
+   * Returns query prepared with indexed parameters.
+   *
+   * {{{
+   * import anorm.toParameterValue
+   *
+   * val baseSql = SQL("SELECT * FROM table WHERE id = ?") // one indexed param
+   * val preparedSql = baseSql.onParams("val_for_id")
+   * }}}
+   */
+  def onParams(args: ParameterValue*): SimpleSql[T] =
+    copy(params = this.params ++ zipParams(sql.argsInitialOrder, args, Nil))
+
+  def list()(implicit connection: Connection): Seq[T] = as(defaultParser*)
+
+  def single()(implicit connection: Connection): T = as(ResultSetParser.single(defaultParser))
+
+  def singleOpt()(implicit connection: Connection): Option[T] = as(ResultSetParser.singleOpt(defaultParser))
+
+  def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false) = {
     val s = if (getGeneratedKeys) connection.prepareStatement(sql.query, java.sql.Statement.RETURN_GENERATED_KEYS)
     else connection.prepareStatement(sql.query)
 
     sql.queryTimeout.foreach(timeout => s.setQueryTimeout(timeout))
 
-    val argsMap = Map(params: _*)
+    val argsMap = Map(params.map(p => p.name -> p.value): _*)
     sql.argsInitialOrder.map(argsMap)
       .zipWithIndex
       .map(_.swap)
       .foldLeft(s)((s, e) => { e._2.set(s, e._1 + 1); s })
   }
 
-  def using[U](p: RowParser[U]): SimpleSql[U] = SimpleSql(sql, params, p)
+  /**
+   * Prepares query with given row parser.
+   *
+   * {{{
+   * import anorm.{ SQL, SqlParser }
+   *
+   * val res: Int = SQL("SELECT 1").using(SqlParser.scalar[Int]).single
+   * // Equivalent to: SQL("SELECT 1").as(SqlParser.scalar[Int].single)
+   * }}}
+   */
+  def using[U](p: RowParser[U]): SimpleSql[U] = // Deprecates with .as ?
+    copy(sql, params, p)
 
-  def map[A](f: T => A): SimpleSql[A] = this.copy(defaultParser = defaultParser.map(f))
+  def map[A](f: T => A): SimpleSql[A] =
+    copy(defaultParser = defaultParser.map(f))
 
-  def withQueryTimeout(seconds: Option[Int]): SimpleSql[T] = this.copy(sql = sql.withQueryTimeout(seconds))
+  def withQueryTimeout(seconds: Option[Int]): SimpleSql[T] =
+    copy(sql = sql.withQueryTimeout(seconds))
 }
 
 case class BatchSql(sql: SqlQuery, params: Seq[Seq[(String, ParameterValue)]]) {
 
-  def addBatch(args: (String, ParameterValue)*): BatchSql = this.copy(params = (this.params) :+ args)
-  def addBatchList(paramsMapList: TraversableOnce[Seq[(String, ParameterValue)]]): BatchSql = this.copy(params = (this.params) ++ paramsMapList)
+  def addBatch(args: (String, ParameterValue)*): BatchSql = copy(params = (this.params) :+ args)
+  def addBatchList(paramsMapList: TraversableOnce[Seq[(String, ParameterValue)]]): BatchSql = copy(params = (this.params) ++ paramsMapList)
 
-  def addBatchParams(args: ParameterValue*): BatchSql = this.copy(params = (this.params) :+ sql.argsInitialOrder.zip(args))
-  def addBatchParamsList(paramsSeqList: TraversableOnce[Seq[ParameterValue]]): BatchSql = this.copy(params = (this.params) ++ paramsSeqList.map(paramsSeq => sql.argsInitialOrder.zip(paramsSeq)))
+  def addBatchParams(args: ParameterValue*): BatchSql =
+    copy(params = (this.params) :+ sql.argsInitialOrder.zip(args))
 
-  def getFilledStatement(connection: java.sql.Connection, getGeneratedKeys: Boolean = false) = {
+  def addBatchParamsList(paramsSeqList: TraversableOnce[Seq[ParameterValue]]): BatchSql = copy(params = (this.params) ++ paramsSeqList.map(paramsSeq => sql.argsInitialOrder.zip(paramsSeq)))
+
+  def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false) = {
     val statement = if (getGeneratedKeys) connection.prepareStatement(sql.query, java.sql.Statement.RETURN_GENERATED_KEYS)
     else connection.prepareStatement(sql.query)
 
@@ -477,11 +544,12 @@ case class BatchSql(sql: SqlQuery, params: Seq[Seq[(String, ParameterValue)]]) {
   }
 
   @deprecated(message = "Use [[getFilledStatement]]", since = "2.3.0")
-  def filledStatement(implicit connection: java.sql.Connection) = getFilledStatement(connection)
+  def filledStatement(implicit connection: Connection) = getFilledStatement(connection)
 
-  def execute()(implicit connection: java.sql.Connection): Array[Int] = getFilledStatement(connection).executeBatch()
+  def execute()(implicit connection: Connection): Array[Int] = getFilledStatement(connection).executeBatch()
 
-  def withQueryTimeout(seconds: Option[Int]): BatchSql = this.copy(sql = sql.withQueryTimeout(seconds))
+  def withQueryTimeout(seconds: Option[Int]): BatchSql =
+    copy(sql = sql.withQueryTimeout(seconds))
 }
 
 trait Sql {
@@ -489,38 +557,38 @@ trait Sql {
   import SqlParser._
   import scala.util.control.Exception._
 
-  def getFilledStatement(connection: java.sql.Connection, getGeneratedKeys: Boolean = false): java.sql.PreparedStatement
+  def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false): java.sql.PreparedStatement
 
   @deprecated(message = "Use [[getFilledStatement]] or [[executeQuery]]", since = "2.3.0")
-  def filledStatement(implicit connection: java.sql.Connection) = getFilledStatement(connection)
+  def filledStatement(implicit connection: Connection) = getFilledStatement(connection)
 
-  def apply()(implicit connection: java.sql.Connection) = Sql.resultSetToStream(resultSet())
+  def apply()(implicit connection: Connection) = Sql.resultSetToStream(resultSet())
 
-  def resultSet()(implicit connection: java.sql.Connection) = (getFilledStatement(connection).executeQuery())
+  def resultSet()(implicit connection: Connection) = (getFilledStatement(connection).executeQuery())
 
   import SqlParser._
 
-  def as[T](parser: ResultSetParser[T])(implicit connection: java.sql.Connection): T = Sql.as[T](parser, resultSet())
+  def as[T](parser: ResultSetParser[T])(implicit connection: Connection): T = Sql.as[T](parser, resultSet())
 
-  def list[A](rowParser: RowParser[A])(implicit connection: java.sql.Connection): Seq[A] = as(rowParser *)
+  def list[A](rowParser: RowParser[A])(implicit connection: Connection): Seq[A] = as(rowParser *)
 
-  def single[A](rowParser: RowParser[A])(implicit connection: java.sql.Connection): A = as(ResultSetParser.single(rowParser))
+  def single[A](rowParser: RowParser[A])(implicit connection: Connection): A = as(ResultSetParser.single(rowParser))
 
-  def singleOpt[A](rowParser: RowParser[A])(implicit connection: java.sql.Connection): Option[A] = as(ResultSetParser.singleOpt(rowParser))
+  def singleOpt[A](rowParser: RowParser[A])(implicit connection: Connection): Option[A] = as(ResultSetParser.singleOpt(rowParser))
 
-  def parse[T](parser: ResultSetParser[T])(implicit connection: java.sql.Connection): T = Sql.parse[T](parser, resultSet())
+  def parse[T](parser: ResultSetParser[T])(implicit connection: Connection): T = Sql.parse[T](parser, resultSet())
 
-  def execute()(implicit connection: java.sql.Connection): Boolean = getFilledStatement(connection).execute()
+  def execute()(implicit connection: Connection): Boolean = getFilledStatement(connection).execute()
 
-  def execute1(getGeneratedKeys: Boolean = false)(implicit connection: java.sql.Connection): (java.sql.PreparedStatement, Int) = {
+  def execute1(getGeneratedKeys: Boolean = false)(implicit connection: Connection): (java.sql.PreparedStatement, Int) = {
     val statement = getFilledStatement(connection, getGeneratedKeys)
     (statement, { statement.executeUpdate() })
   }
 
-  def executeUpdate()(implicit connection: java.sql.Connection): Int =
+  def executeUpdate()(implicit connection: Connection): Int =
     getFilledStatement(connection).executeUpdate()
 
-  def executeInsert[A](generatedKeysParser: ResultSetParser[A] = scalar[Long].singleOpt)(implicit connection: java.sql.Connection): A = {
+  def executeInsert[A](generatedKeysParser: ResultSetParser[A] = scalar[Long].singleOpt)(implicit connection: Connection): A = {
     Sql.as(generatedKeysParser, execute1(getGeneratedKeys = true)._1.getGeneratedKeys)
   }
 
@@ -528,31 +596,43 @@ trait Sql {
    * Executes this SQL query, and returns its result.
    *
    * {{{
-   * implicit val conn: java.sql.Connection = openConnection
+   * implicit val conn: Connection = openConnection
    * val res: SqlQueryResult =
    *   SQL("SELECT text_col FROM table WHERE id = {code}").
-   *   on('code -> code).executeQuery()
+   *   on("code" -> code).executeQuery()
    * // Check execution context; e.g. res.statementWarning
    * val str = res as scalar[String].single // going with row parsing
    * }}}
    */
-  def executeQuery()(implicit connection: java.sql.Connection): SqlQueryResult =
+  def executeQuery()(implicit connection: Connection): SqlQueryResult =
     SqlQueryResult(resultSet())
 
 }
 
 case class SqlQuery(query: String, argsInitialOrder: List[String] = List.empty, queryTimeout: Option[Int] = None) extends Sql {
 
-  def getFilledStatement(connection: java.sql.Connection, getGeneratedKeys: Boolean = false): java.sql.PreparedStatement =
+  def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false): java.sql.PreparedStatement =
     asSimple.getFilledStatement(connection, getGeneratedKeys)
 
-  def withQueryTimeout(seconds: Option[Int]): SqlQuery = this.copy(queryTimeout = seconds)
+  def withQueryTimeout(seconds: Option[Int]): SqlQuery =
+    copy(queryTimeout = seconds)
 
   private def defaultParser: RowParser[Row] = RowParser(row => Success(row))
 
-  def asSimple: SimpleSql[Row] = SimpleSql(this, Nil, defaultParser)
+  def asSimple: SimpleSql[Row] = asSimple(defaultParser)
 
-  def asSimple[T](parser: RowParser[T] = defaultParser): SimpleSql[T] = SimpleSql(this, Nil, parser)
+  /**
+   * Prepares query as a simple one.
+   * @param parser Row parser
+   *
+   * {{{
+   * import anorm.{ SQL, SqlParser }
+   *
+   * SQL("SELECT 1").asSimple(SqlParser.scalar[Int])
+   * }}}
+   */
+  def asSimple[T](parser: RowParser[T] = defaultParser): SimpleSql[T] =
+    SimpleSql(this, Nil, parser)
 
   def asBatch[T]: BatchSql = BatchSql(this, Nil)
 }
@@ -574,7 +654,7 @@ case class SqlQueryResult(resultSet: java.sql.ResultSet) {
    * Returns statement warning if there is some for this result.
    *
    * {{{
-   * val res = SQL("EXEC stored_proc {p}").on('p -> paramVal).executeQuery()
+   * val res = SQL("EXEC stored_proc {p}").on("p" -> paramVal).executeQuery()
    * res.statementWarning match {
    *   case Some(warning) =>
    *     warning.printStackTrace()
@@ -589,17 +669,17 @@ case class SqlQueryResult(resultSet: java.sql.ResultSet) {
   def statementWarning: Option[java.sql.SQLWarning] =
     Option(statement.getWarnings)
 
-  def apply()(implicit connection: java.sql.Connection) = Sql.resultSetToStream(resultSet)
+  def apply()(implicit connection: Connection) = Sql.resultSetToStream(resultSet)
 
-  def as[T](parser: ResultSetParser[T])(implicit connection: java.sql.Connection): T = Sql.as[T](parser, resultSet)
+  def as[T](parser: ResultSetParser[T])(implicit connection: Connection): T = Sql.as[T](parser, resultSet)
 
-  def list[A](rowParser: RowParser[A])(implicit connection: java.sql.Connection): Seq[A] = as(rowParser *)
+  def list[A](rowParser: RowParser[A])(implicit connection: Connection): Seq[A] = as(rowParser *)
 
-  def single[A](rowParser: RowParser[A])(implicit connection: java.sql.Connection): A = as(ResultSetParser.single(rowParser))
+  def single[A](rowParser: RowParser[A])(implicit connection: Connection): A = as(ResultSetParser.single(rowParser))
 
-  def singleOpt[A](rowParser: RowParser[A])(implicit connection: java.sql.Connection): Option[A] = as(ResultSetParser.singleOpt(rowParser))
+  def singleOpt[A](rowParser: RowParser[A])(implicit connection: Connection): Option[A] = as(ResultSetParser.singleOpt(rowParser))
 
-  def parse[T](parser: ResultSetParser[T])(implicit connection: java.sql.Connection): T = Sql.parse[T](parser, resultSet)
+  def parse[T](parser: ResultSetParser[T])(implicit connection: Connection): T = Sql.parse[T](parser, resultSet)
 }
 
 object Sql {

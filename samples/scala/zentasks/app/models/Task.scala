@@ -41,7 +41,7 @@ object Task {
   def findById(id: Long): Option[Task] = {
     DB.withConnection { implicit connection =>
       SQL("select * from task where id = {id}").on(
-        'id -> id
+        "id" -> id
       ).as(Task.simple.singleOpt)
     }
   }
@@ -59,7 +59,7 @@ object Task {
           where task.done = false and project_member.user_email = {email}
         """
       ).on(
-        'email -> user
+        "email" -> user
       ).as(Task.simple ~ Project.simple map {
         case task~project => task -> project
       } *)
@@ -77,7 +77,7 @@ object Task {
           where task.project = {project}
         """
       ).on(
-        'project -> project
+        "project" -> project
       ).as(Task.simple *)
     }
   }
@@ -88,7 +88,7 @@ object Task {
   def delete(id: Long) {
     DB.withConnection { implicit connection =>
       SQL("delete from task where id = {id}").on(
-        'id -> id
+        "id" -> id
       ).executeUpdate()
     }
   }
@@ -99,7 +99,7 @@ object Task {
   def deleteInFolder(projectId: Long, folder: String) {
     DB.withConnection { implicit connection =>
       SQL("delete from task where project = {project} and folder = {folder}").on(
-        'project -> projectId, 'folder -> folder
+        "project" -> projectId, "folder" -> folder
       ).executeUpdate()
     }
   }
@@ -110,8 +110,8 @@ object Task {
   def markAsDone(taskId: Long, done: Boolean) {
     DB.withConnection { implicit connection =>
       SQL("update task set done = {done} where id = {id}").on(
-        'id -> taskId,
-        'done -> done
+        "id" -> taskId,
+        "done" -> done
       ).executeUpdate()
     }
   }
@@ -122,7 +122,7 @@ object Task {
   def renameFolder(projectId: Long, folder: String, newName: String) {
     DB.withConnection { implicit connection =>
       SQL("update task set folder = {newName} where folder = {name} and project = {project}").on(
-        'project -> projectId, 'name -> folder, 'newName -> newName
+        "project" -> projectId, "name" -> folder, "newName" -> newName
       ).executeUpdate()
     }
   }
@@ -140,8 +140,8 @@ object Task {
           where project_member.user_email = {email} and task.id = {task}
         """
       ).on(
-        'task -> task,
-        'email -> user
+        "task" -> task,
+        "email" -> user
       ).as(scalar[Boolean].single)
     }
   }
@@ -164,13 +164,13 @@ object Task {
           )
         """
       ).on(
-        'id -> id,
-        'folder -> task.folder,
-        'project -> task.project,
-        'title -> task.title,
-        'done -> task.done,
-        'dueDate -> task.dueDate,
-        'assignedTo -> task.assignedTo
+        "id" -> id,
+        "folder" -> task.folder,
+        "project" -> task.project,
+        "title" -> task.title,
+        "done" -> task.done,
+        "dueDate" -> task.dueDate,
+        "assignedTo" -> task.assignedTo
       ).executeUpdate()
       
       task.copy(id = Id(id))

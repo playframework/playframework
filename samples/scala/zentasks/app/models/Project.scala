@@ -33,7 +33,7 @@ object Project {
   def findById(id: Long): Option[Project] = {
     DB.withConnection { implicit connection =>
       SQL("select * from project where id = {id}").on(
-        'id -> id
+        "id" -> id
       ).as(Project.simple.singleOpt)
     }
   }
@@ -50,7 +50,7 @@ object Project {
           where project_member.user_email = {email}
         """
       ).on(
-        'email -> user
+        "email" -> user
       ).as(Project.simple *)
     }
   }
@@ -61,7 +61,7 @@ object Project {
   def rename(id: Long, newName: String) {
     DB.withConnection { implicit connection =>
       SQL("update project set name = {name} where id = {id}").on(
-        'id -> id, 'name -> newName
+        "id" -> id, "name" -> newName
       ).executeUpdate()
     }
   }
@@ -72,7 +72,7 @@ object Project {
   def delete(id: Long) {
     DB.withConnection { implicit connection => 
       SQL("delete from project where id = {id}").on(
-        'id -> id
+        "id" -> id
       ).executeUpdate()
     }
   }
@@ -83,7 +83,7 @@ object Project {
   def deleteInFolder(folder: String) {
     DB.withConnection { implicit connection => 
       SQL("delete from project where folder = {folder}").on(
-        'folder -> folder
+        "folder" -> folder
       ).executeUpdate()
     }
   }
@@ -94,7 +94,7 @@ object Project {
   def renameFolder(folder: String, newName: String) {
     DB.withConnection { implicit connection =>
       SQL("update project set folder = {newName} where folder = {name}").on(
-        'name -> folder, 'newName -> newName
+        "name" -> folder, "newName" -> newName
       ).executeUpdate()
     }
   }
@@ -111,7 +111,7 @@ object Project {
           where project_member.project_id = {project}
         """
       ).on(
-        'project -> project
+        "project" -> project
       ).as(User.simple *)
     }
   }
@@ -122,8 +122,8 @@ object Project {
   def addMember(project: Long, user: String) {
     DB.withConnection { implicit connection =>
       SQL("insert into project_member values({project}, {user})").on(
-        'project -> project,
-        'user -> user
+        "project" -> project,
+        "user" -> user
       ).executeUpdate()
     }
   }
@@ -134,8 +134,8 @@ object Project {
   def removeMember(project: Long, user: String) {
     DB.withConnection { implicit connection =>
       SQL("delete from project_member where project_id = {project} and user_email = {user}").on(
-        'project -> project,
-        'user -> user
+        "project" -> project,
+        "user" -> user
       ).executeUpdate()
     }
   }
@@ -152,8 +152,8 @@ object Project {
           where project_member.project_id = {project} and user.email = {email}
         """
       ).on(
-        'project -> project,
-        'email -> user
+        "project" -> project,
+        "email" -> user
       ).as(scalar[Boolean].single)
     }
   }
@@ -177,14 +177,14 @@ object Project {
            )
          """
        ).on(
-         'id -> id,
-         'name -> project.name,
-         'folder -> project.folder
+         "id" -> id,
+         "name" -> project.name,
+         "folder" -> project.folder
        ).executeUpdate()
        
        // Add members
        members.foreach { email =>
-         SQL("insert into project_member values ({id}, {email})").on('id -> id, 'email -> email).executeUpdate()
+         SQL("insert into project_member values ({id}, {email})").on("id" -> id, "email" -> email).executeUpdate()
        }
        
        project.copy(id = Id(id))

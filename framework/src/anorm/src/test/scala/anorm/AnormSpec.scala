@@ -23,11 +23,11 @@ object AnormSpec extends Specification with H2Database with AnormTest {
   "Row parser" should {
     "return newly inserted data" in withConnection { implicit c =>
       createTestTable()
-      SQL("insert into test(id, foo, bar) values ({id}, {foo}, {bar})")
-        .on('id -> 10L, 'foo -> "Hello", 'bar -> 20)
+      val x = SQL("insert into test(id, foo, bar) values ({id}, {foo}, {bar})")
+        .on("id" -> 10L, "foo" -> "Hello", "bar" -> 20)
         .execute()
 
-      SQL("select * from test where id = {id}").on('id -> 10L)
+      SQL("select * from test where id = {id}").on("id" -> 10L)
         .map(row => row[String]("foo") -> row[Int]("bar"))
         .single must_== ("Hello" -> 20)
     }
@@ -35,11 +35,11 @@ object AnormSpec extends Specification with H2Database with AnormTest {
     "return case class instance from result" in withConnection { implicit c =>
       createTestTable()
       SQL("insert into test(id, foo, bar) values ({id}, {foo}, {bar})")
-        .on('id -> 11L, 'foo -> "World", 'bar -> 21)
+        .on("id" -> 11L, "foo" -> "World", "bar" -> 21)
         .execute()
 
       SQL("select * from test where id = {id}")
-        .on('id -> 11L).as(fooBarParser.singleOpt)
+        .on("id" -> 11L).as(fooBarParser.singleOpt)
         .aka("result data") must beSome(TestTable(11L, "World", 21))
 
     }
@@ -48,15 +48,17 @@ object AnormSpec extends Specification with H2Database with AnormTest {
       fooBarTable :+ row3(11L, "World", 21)) { implicit c =>
 
         SQL("SELECT * FROM test WHERE id = {id}")
-          .on('id -> 11L).as(fooBarParser.singleOpt)
+          .on("id" -> 11L).as(fooBarParser.singleOpt)
           .aka("result data") must beSome(TestTable(11L, "World", 21))
 
       }
 
     "handle scalar result" >> {
       "return single value" in withQueryResult(20) { implicit c =>
-        SQL("SELECT * FROM test").as(SqlParser.scalar[Int].single).
-          aka("single value") must_== 20
+        (SQL("SELECT * FROM test").as(SqlParser.scalar[Int].single).
+          aka("single value #1") must_== 20).
+          and(SQL("SELECT * FROM test").using(SqlParser.scalar[Int]).
+            single aka "single value #2" must_== 20)
 
       }
 
@@ -77,7 +79,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
         "Result for test-proc-1") { implicit c =>
 
           SQL("EXEC stored_proc({param})")
-            .on('param -> "test-proc-1").executeQuery()
+            .on("param" -> "test-proc-1").executeQuery()
             .as(SqlParser.scalar[String].single)
             .aka("single string") must_== "Result for test-proc-1"
         }
@@ -218,7 +220,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
       QueryResult.Nil.withWarning("Warning for test-proc-2")) { implicit c =>
 
         SQL("EXEC stored_proc({param})")
-          .on('param -> "test-proc-2").executeQuery()
+          .on("param" -> "test-proc-2").executeQuery()
           .statementWarning aka "statement warning" must beSome.which { warn =>
             warn.getMessage aka "message" must_== "Warning for test-proc-2"
           }
@@ -281,16 +283,16 @@ object AnormSpec extends Specification with H2Database with AnormTest {
       case UpdateExecution("no-param-placeholder", Nil)          => 1 /* ok */
       case UpdateExecution("no-snd-placeholder ?",
         DParam("first", SqlStr) :: Nil) => 1 /* case ok */
-
+      case UpdateExecution("set-old ?", DParam(2l, SqlLong) :: Nil) => 1 // ok
     }, ps: _*))
 
     "Named parameters" should {
-      "be one string" in withConnection() { implicit c =>
-        SQL("set-str {p}").on('p -> "string").
+      "be one string with string name" in withConnection() { implicit c =>
+        SQL("set-str {a}").on("a" -> "string").
           aka("query") must beLike {
             case q @ SimpleSql( // check accross construction
-              SqlQuery("set-str ?", List("p"), _),
-              Seq(("p", _)), _) =>
+              SqlQuery("set-str ?", List("a"), _),
+              Seq(NamedParameter("a", _)), _) =>
 
               // execute = false: update ok but returns no resultset
               // see java.sql.PreparedStatement#execute
@@ -298,48 +300,58 @@ object AnormSpec extends Specification with H2Database with AnormTest {
           }
       }
 
+      "be one string with symbol name" in withConnection() { implicit c =>
+        SQL("set-str {b}").on('b -> "string").
+          aka("query") must beLike {
+            case q @ SimpleSql( // check accross construction
+              SqlQuery("set-str ?", List("b"), _),
+              Seq(NamedParameter("b", _)), _) =>
+              q.execute() aka "execution" must beFalse
+          }
+      }
+
       "be boolean true" in withConnection() { implicit c =>
-        SQL("set-true {p}").on('p -> true).execute() must beFalse
+        SQL("set-true {p}").on("p" -> true).execute() must beFalse
       }
 
       "be boolean false" in withConnection() { implicit c =>
-        SQL("set-false {p}").on('p -> false).execute() must beFalse
+        SQL("set-false {p}").on("p" -> false).execute() must beFalse
       }
 
       "be int" in withConnection() { implicit c =>
-        SQL("set-int {p}").on('p -> 2).execute() must beFalse
+        SQL("set-int {p}").on("p" -> 2).execute() must beFalse
       }
 
       "be short" in withConnection() { implicit c =>
-        SQL("set-short {p}").on('p -> 3.toShort).execute() must beFalse
+        SQL("set-short {p}").on("p" -> 3.toShort).execute() must beFalse
       }
 
       "be byte" in withConnection() { implicit c =>
-        SQL("set-byte {p}").on('p -> 4.toByte).execute() must beFalse
+        SQL("set-byte {p}").on("p" -> 4.toByte).execute() must beFalse
       }
 
       "be long" in withConnection() { implicit c =>
-        SQL("set-long {p}").on('p -> 5l).execute() must beFalse
+        SQL("set-long {p}").on("p" -> 5l).execute() must beFalse
       }
 
       "be float" in withConnection() { implicit c =>
-        SQL("set-float {p}").on('p -> 1.23f).execute() must beFalse
+        SQL("set-float {p}").on("p" -> 1.23f).execute() must beFalse
       }
 
       "be double" in withConnection() { implicit c =>
-        SQL("set-double {p}").on('p -> 23.456d).execute() must beFalse
+        SQL("set-double {p}").on("p" -> 23.456d).execute() must beFalse
       }
 
       "be one Java big decimal" in withConnection() { implicit c =>
-        SQL("set-jbg {p}").on('p -> jbg1).execute() must beFalse
+        SQL("set-jbg {p}").on("p" -> jbg1).execute() must beFalse
       }
 
       "be one Scala big decimal" in withConnection() { implicit c =>
-        SQL("set-sbg {p}").on('p -> sbg1).execute() must beFalse
+        SQL("set-sbg {p}").on("p" -> sbg1).execute() must beFalse
       }
 
       "be one date" in withConnection() { implicit c =>
-        SQL("set-date {p}").on('p -> date).execute() must beFalse
+        SQL("set-date {p}").on("p" -> date).execute() must beFalse
       }
 
       "be multiple (string, Java big decimal)" in withConnection() {
@@ -348,7 +360,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
             aka("query") must beLike {
               case q @ SimpleSql(
                 SqlQuery("set-s-jbg ?, ?", List("a", "b"), _),
-                Seq(("a", _), ("b", _)), _) =>
+                Seq(NamedParameter("a", _), NamedParameter("b", _)), _) =>
                 q.execute() aka "execution" must beFalse
 
             }
@@ -362,35 +374,35 @@ object AnormSpec extends Specification with H2Database with AnormTest {
 
       "be reordered" in withConnection() { implicit c =>
         SQL("reorder-s-jbg ?, ?").copy(argsInitialOrder = List("b", "a")).
-          on('a -> "string", 'b -> jbg1) aka "query" must beLike {
+          on("a" -> "string", "b" -> jbg1) aka "query" must beLike {
             case q @ SimpleSql(
               SqlQuery("reorder-s-jbg ?, ?", List("b", "a"), _),
-              Seq(("a", _), ("b", _)), _) =>
+              Seq(NamedParameter("a", _), NamedParameter("b", _)), _) =>
               q.execute() aka "execution" must beFalse
 
           }
       }
 
       "be defined string option" in withConnection() { implicit c =>
-        SQL("set-str-opt {p}").on('p -> Some("string")).execute().
+        SQL("set-str-opt {p}").on("p" -> Some("string")).execute().
           aka("execution") must beFalse
       }
 
       "be defined Java big decimal option" in withConnection() { implicit c =>
-        SQL("set-jbg-opt {p}").on('p -> Some(jbg1)).
+        SQL("set-jbg-opt {p}").on("p" -> Some(jbg1)).
           execute() aka "execution" must beFalse
 
       }
 
       "be defined Scala big decimal option" in withConnection() { implicit c =>
-        SQL("set-sbg-opt {p}").on('p -> Some(sbg1)).
+        SQL("set-sbg-opt {p}").on("p" -> Some(sbg1)).
           execute() aka "execution" must beFalse
 
       }
 
       "not be set if placeholder not found in SQL" in withConnection() {
         implicit c =>
-          SQL("no-param-placeholder").on('p -> "not set").execute().
+          SQL("no-param-placeholder").on("p" -> "not set").execute().
             aka("execution") must beFalse
 
       }
@@ -410,9 +422,22 @@ object AnormSpec extends Specification with H2Database with AnormTest {
          -> Note: Not all databases allow for a non-typed Null to be sent to the backend. For maximum portability, the setNull or the setObject(int parameterIndex, Object x, int sqlType) method should be used instead of setObject(int parameterIndex, Object x).
          -> Note: This method throws an exception if there is an ambiguity, for example, if the object is of a class implementing more than one of the interfaces named above. 
          */
-          SQL("set-none {p}").on('p -> None).
+          SQL("set-none {p}").on("p" -> None).
             execute() aka "execution" must beFalse
         }
+
+      "accept deprecated untyped name" in withConnection() { implicit c =>
+        import anorm.features.parameterWithUntypedName
+
+        val name: Any = "untyped"
+        SQL("set-old {untyped}").on(name -> 2l) aka "query" must beLike {
+          case q @ SimpleSql(
+            SqlQuery("set-old ?", "untyped" :: Nil, _),
+            Seq(NamedParameter("untyped", _)), _) =>
+            q.execute() aka "execution" must beFalse
+
+        }
+      }
     }
 
     "Indexed parameters" should {
@@ -421,7 +446,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
           onParams(pv("string")) aka "query" must beLike {
             case q @ SimpleSql( // check accross construction
               SqlQuery("set-str ?", List("p"), _),
-              Seq(("p", _)), _) =>
+              Seq(NamedParameter("p", _)), _) =>
 
               // execute = false: update ok but returns no resultset
               // see java.sql.PreparedStatement#execute
@@ -485,7 +510,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
             onParams(pv("string"), pv(jbg1)) aka "query" must beLike {
               case q @ SimpleSql(
                 SqlQuery("set-s-jbg ?, ?", List("a", "b"), _),
-                Seq(("a", _), ("b", _)), _) =>
+                Seq(NamedParameter("a", _), NamedParameter("b", _)), _) =>
                 q.execute() aka "execution" must beFalse
 
             }

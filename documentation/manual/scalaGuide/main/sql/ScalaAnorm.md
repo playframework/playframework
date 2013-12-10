@@ -106,6 +106,15 @@ SQL(
 ).on("countryCode" -> "FRA")
 ```
 
+Passing anything different from string or symbol as parameter name is now deprecated. For backward compatibility, you can activate `anorm.features.parameterWithUntypedName`.
+
+```scala
+import anorm.features.parameterWithUntypedName // activate
+
+val untyped: Any = "name" // deprecated
+SQL("SELECT * FROM Country WHERE {p}").on(untyped -> "val")
+```
+
 ## Retrieving data using the Stream API
 
 The first way to access the results of a select query is to use the Stream API.
