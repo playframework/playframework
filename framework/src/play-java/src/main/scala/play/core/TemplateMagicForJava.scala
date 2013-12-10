@@ -6,6 +6,8 @@ package play.core.j
 import play.api.mvc._
 import play.templates._
 
+import scala.util.control.NonFatal
+
 /** Defines a magic helper for Play templates in a Java context. */
 object PlayMagicForJava {
 
@@ -22,7 +24,7 @@ object PlayMagicForJava {
     try {
       play.mvc.Http.Context.Implicit.lang.asInstanceOf[play.api.i18n.Lang]
     } catch {
-      case _: Throwable => play.api.i18n.Lang.defaultLang
+      case NonFatal(_) => play.api.i18n.Lang.defaultLang
     }
   }
 

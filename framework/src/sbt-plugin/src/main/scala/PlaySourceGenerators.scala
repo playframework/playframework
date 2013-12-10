@@ -23,7 +23,6 @@ trait PlaySourceGenerators {
       case RoutesCompilationError(source, message, line, column) => {
         throw reportCompilationError(state, RoutesCompilationException(source, message, line, column.map(_ - 1)))
       }
-      case e: Throwable => throw e
     }
 
     (scalaRoutes.get ++ javaRoutes.get).map(_.getAbsoluteFile)

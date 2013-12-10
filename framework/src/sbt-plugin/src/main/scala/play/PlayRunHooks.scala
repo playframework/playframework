@@ -3,6 +3,7 @@
  */
 package play
 
+import scala.util.control.NonFatal
 import java.net.InetSocketAddress
 
 /**
@@ -50,7 +51,7 @@ object PlayRunHook {
         try {
           f(hook)
         } catch {
-          case e: Throwable =>
+          case NonFatal(e) =>
             // Just save the last failure for now...
             lastFailure = Some(e)
         }
@@ -58,7 +59,7 @@ object PlayRunHook {
       // Throw failure if it occurred....
       if (!suppressFailure) lastFailure foreach (throw _)
     } catch {
-      case e: Throwable if suppressFailure =>
+      case NonFatal(e) if suppressFailure =>
       // Ignoring failure in running hooks... (CCE thrown here)
     }
   }

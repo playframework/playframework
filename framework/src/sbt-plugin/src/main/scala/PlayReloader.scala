@@ -3,6 +3,7 @@
  */
 package play
 
+import scala.util.control.NonFatal
 import play.api._
 import play.core._
 import sbt.{ Project => SbtProject, _ }
@@ -100,7 +101,7 @@ trait PlayReloader {
           nativeWatcher
 
         } catch {
-          case e: Throwable => {
+          case NonFatal(e) => {
 
             println(play.console.Colors.red(
               """|

@@ -129,7 +129,7 @@ class AssetsBuilder extends Controller {
             try {
               (stream.available, Enumerator.fromStream(stream))
             } catch {
-              case _: Throwable => (-1, Enumerator[Array[Byte]]())
+              case NonFatal(_) => (-1, Enumerator[Array[Byte]]())
             }
           }
 

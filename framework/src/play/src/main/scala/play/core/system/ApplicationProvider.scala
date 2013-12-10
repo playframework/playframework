@@ -105,7 +105,7 @@ class ReloadableApplication(sbtLink: SBTLink, sbtDocHandler: SBTDocHandler) exte
       Await.result(scala.concurrent.Future {
 
         val reloaded = sbtLink.reload match {
-          case t: Throwable => Failure(t)
+          case NonFatal(t) => Failure(t)
           case cl: ClassLoader => Success(Some(cl))
           case null => Success(None)
         }

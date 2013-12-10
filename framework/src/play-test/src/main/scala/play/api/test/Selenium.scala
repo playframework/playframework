@@ -14,6 +14,9 @@ import org.fluentlenium.core._
 import java.util.concurrent.TimeUnit
 import com.google.common.base.Function
 import org.openqa.selenium.support.ui.FluentWait
+
+import scala.util.control.NonFatal
+
 /**
  * A test browser (Using Selenium WebDriver) with the FluentLenium API (https://github.com/Fluentlenium/FluentLenium).
  *
@@ -144,7 +147,7 @@ case class TestServer(port: Int, application: FakeApplication = FakeApplication(
     try {
       server = new play.core.server.NettyServer(new play.core.TestApplication(application), Option(port), sslPort = sslPort, mode = Mode.Test)
     } catch {
-      case t: Throwable =>
+      case NonFatal(t) =>
         t.printStackTrace
         throw new RuntimeException(t)
     }

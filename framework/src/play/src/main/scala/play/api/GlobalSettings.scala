@@ -137,7 +137,7 @@ trait GlobalSettings {
         }
       }))
     } catch {
-      case e: Throwable => {
+      case NonFatal(e) => {
         Logger.error("Error while rendering default error page", e)
         Future.successful(InternalServerError)
       }

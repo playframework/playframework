@@ -6,6 +6,7 @@ package play.api.libs.iteratee
 import play.api.libs.iteratee.Execution.Implicits.{ defaultExecutionContext => dec }
 import play.api.libs.iteratee.internal.{ executeIteratee, executeFuture }
 import scala.language.reflectiveCalls
+import scala.util.control.NonFatal
 import scala.concurrent.{ ExecutionContext, Future }
 
 /**
@@ -763,7 +764,7 @@ object Enumeratee {
             }(dec).unflatten.map({ s =>
               s.it
             })(dec).recover({
-              case e: Throwable =>
+              case NonFatal(e) =>
                 f(e, in)
                 Cont(step(it))
             })(pec)
