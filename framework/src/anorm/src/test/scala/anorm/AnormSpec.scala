@@ -2,8 +2,6 @@ package anorm
 
 import org.specs2.mutable.Specification
 
-import anorm.{ ParameterValue => Val }
-
 import acolyte.Acolyte.{ connection, handleQuery, handleStatement }
 import acolyte.{
   UpdateExecution,
@@ -292,7 +290,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
           aka("query") must beLike {
             case q @ SimpleSql( // check accross construction
               SqlQuery("set-str ?", List("p"), _),
-              Seq(("p", Val("string", _))), _) =>
+              Seq(("p", _)), _) =>
 
               // execute = false: update ok but returns no resultset
               // see java.sql.PreparedStatement#execute
@@ -350,7 +348,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
             aka("query") must beLike {
               case q @ SimpleSql(
                 SqlQuery("set-s-jbg ?, ?", List("a", "b"), _),
-                Seq(("a", Val("string", _)), ("b", Val(jbg1, _))), _) =>
+                Seq(("a", _), ("b", _)), _) =>
                 q.execute() aka "execution" must beFalse
 
             }
@@ -367,7 +365,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
           on('a -> "string", 'b -> jbg1) aka "query" must beLike {
             case q @ SimpleSql(
               SqlQuery("reorder-s-jbg ?, ?", List("b", "a"), _),
-              Seq(("a", Val("string", _)), ("b", Val(jbg1, _))), _) =>
+              Seq(("a", _), ("b", _)), _) =>
               q.execute() aka "execution" must beFalse
 
           }
@@ -423,7 +421,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
           onParams(pv("string")) aka "query" must beLike {
             case q @ SimpleSql( // check accross construction
               SqlQuery("set-str ?", List("p"), _),
-              Seq(("p", Val("string", _))), _) =>
+              Seq(("p", _)), _) =>
 
               // execute = false: update ok but returns no resultset
               // see java.sql.PreparedStatement#execute
@@ -487,7 +485,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
             onParams(pv("string"), pv(jbg1)) aka "query" must beLike {
               case q @ SimpleSql(
                 SqlQuery("set-s-jbg ?, ?", List("a", "b"), _),
-                Seq(("a", Val("string", _)), ("b", Val(jbg1, _))), _) =>
+                Seq(("a", _), ("b", _)), _) =>
                 q.execute() aka "execution" must beFalse
 
             }
@@ -655,5 +653,5 @@ sealed trait AnormTest { db: H2Database =>
   def withQueryResult[A](r: QueryResult)(f: java.sql.Connection => A): A =
     f(connection(handleQuery { _ => r }))
 
-  def pv[A](v: A)(implicit t: ToStatement[A]) = Val(v, t)
+  def pv[A](v: A)(implicit t: ToStatement[A]) = ParameterValue(v, t)
 }
