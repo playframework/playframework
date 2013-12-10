@@ -53,6 +53,8 @@ def upload = Action(parse.temporaryFile) { request =>
 }
 ```
 
+> **Note:** You can always wrap the parser in `maxLength` to limit the size of the uploaded file. The section on [[body parsers | ScalaBodyParsers#Max content length]] provides some examples for this approach.
+
 ## Writing your own body parser
 
 If you want to handle the file upload directly without buffering it in a temporary file, you can just write your own `BodyParser`. In this case, you will receive chunks of data that you are free to push anywhere you want.
