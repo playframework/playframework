@@ -40,7 +40,7 @@ object Dependencies {
 
   val javaDeps = Seq(
 
-    "org.yaml" % "snakeyaml" % "1.12",
+    "org.yaml" % "snakeyaml" % "1.13",
     "org.hibernate" % "hibernate-validator" % "5.0.1.Final",
 
     ("org.springframework" % "spring-context" % "3.2.3.RELEASE" notTransitive ())
