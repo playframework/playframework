@@ -4,7 +4,7 @@
 - [[Working with public assets | Assets]]
 - [[Using CoffeeScript | AssetsCoffeeScript]]
 - [[Using LESS CSS | AssetsLess]]
-- [[Using Google Closure Compiler | AssetsGoogleClosureCompiler]]
+- [[Using JSHint | AssetsJSHint]]
 - [[Using RequireJs | RequireJS-support]]
 
 ### Getting started

@@ -280,55 +280,51 @@ trait PlayReloader {
 
       private val classLoaderVersion = new java.util.concurrent.atomic.AtomicInteger(0)
 
-      private def newClassLoader = {
+      private def taskFailureHandler(incomplete: Incomplete): Exception = {
+        jnotify.changed()
+        Incomplete.allExceptions(incomplete).headOption.map {
+          case e: PlayException => e
+          case e: xsbti.CompileFailed => {
+            getProblems(incomplete)
+              .find(_.severity == xsbti.Severity.Error)
+              .map(CompilationException)
+              .getOrElse(UnexpectedException(Some("The compilation failed without reporting any problem!"), Some(e)))
+          }
+          case e: Exception => UnexpectedException(unexpected = Some(e))
+        }.getOrElse {
+          UnexpectedException(Some("The compilation task failed without any exception!"))
+        }
+      }
+
+      private def newClassLoader: Either[Exception, ClassLoader] = {
         val version = classLoaderVersion.incrementAndGet
         val name = "ReloadableClassLoader(v" + version + ")"
-        val classpath = SbtProject.runTask(classpathTask, state).map(_._2).get.toEither.right.get
-        val urls = Path.toURLs(classpath.files)
-        val loader = createClassLoader(name, urls, baseLoader)
-        currentApplicationClassLoader = Some(loader)
-        loader
+        SbtProject.runTask(classpathTask, state).map(_._2).get.toEither
+          .left.map(taskFailureHandler)
+          .right.map {
+            classpath =>
+              val urls = Path.toURLs(classpath.files)
+              val loader = createClassLoader(name, urls, baseLoader)
+              currentApplicationClassLoader = Some(loader)
+              loader
+          }
       }
 
       def reload: AnyRef = {
-
         play.Project.synchronized {
-
           if (jnotify.hasChanged || hasChangedFiles) {
             jnotify.reloaded()
             SbtProject.runTask(playReload, state).map(_._2).get.toEither
-              .left.map { incomplete =>
-                jnotify.changed()
-                Incomplete.allExceptions(incomplete).headOption.map {
-                  case e: PlayException => e
-                  case e: xsbti.CompileFailed => {
-                    getProblems(incomplete)
-                      .filter(_.severity == xsbti.Severity.Error)
-                      .headOption
-                      .map(CompilationException(_))
-                      .getOrElse {
-                        UnexpectedException(Some("The compilation failed without reporting any problem!"), Some(e))
-                      }
-                  }
-                  case e: Exception => UnexpectedException(unexpected = Some(e))
-                }.getOrElse {
-                  UnexpectedException(Some("The compilation task failed without any exception!"))
-                }
-              }
-              .right.map { compilationResult =>
-                updateAnalysis(compilationResult).map { _ =>
-                  newClassLoader
-                }
-              }.fold(
-                oops => oops,
-                maybeClassloader => maybeClassloader.getOrElse(null)
-              )
+              .left.map(taskFailureHandler)
+              .right.map {
+                compilationResult =>
+                  updateAnalysis(compilationResult)
+                  newClassLoader.fold(identity, identity)
+              }.fold(identity, identity)
           } else {
             null
           }
-
         }
-
       }
 
       def runTask(task: String): AnyRef = {

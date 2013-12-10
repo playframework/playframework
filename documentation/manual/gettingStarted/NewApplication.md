@@ -69,16 +69,24 @@ Be sure to replace `%PLAY_VERSION%` here by the exact version you want to use. I
 resolvers += "Typesafe Snapshots" at "http://repo.typesafe.com/typesafe/snapshots/"
 ```
 
-In `build.sbt`:
+In `build.sbt` for Java projects:
 
 ```scala
-import play.Project._
+name := "my-first-app"
 
+version := "1.0"
+
+lazy val root = (project in file(".")).addPlugins(PlayJava)
+```
+
+...or Scala projects:
+
+```scala
 name := "my-first-app"
 
 version := "1.0.0-SNAPSHOT"
 
-playScalaSettings
+lazy val root = (project in file(".")).addPlugins(PlayScala)
 ```
 
 You can then launch the sbt console in this directory:

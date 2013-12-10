@@ -56,10 +56,6 @@ trait Keys {
   /** A hook to configure how play blocks on user input while running. */
   val playInteractionMode = SettingKey[play.PlayInteractionMode]("play-interaction-mode")
 
-  val playAssetsDirectories = SettingKey[Seq[File]]("play-assets-directories")
-
-  val playExternalAssets = SettingKey[Seq[(File, File => PathFinder, String)]]("play-external-assets")
-
   val confDirectory = SettingKey[File]("play-conf")
 
   val templatesImport = SettingKey[Seq[String]]("play-templates-imports")
@@ -150,4 +146,5 @@ trait PlayInternalKeys {
   val playReload = TaskKey[sbt.inc.Analysis]("play-reload")
   val buildRequire = TaskKey[Seq[(File, File)]]("play-build-require-assets")
   val playCompileEverything = TaskKey[Seq[sbt.inc.Analysis]]("play-compile-everything")
+  val playAssetsWithCompilation = TaskKey[sbt.inc.Analysis]("play-assets-with-compilation")
 }

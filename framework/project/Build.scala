@@ -33,7 +33,7 @@ object BuildSettings {
   // TODO - Try to compute this from SBT... or not.
   val buildScalaVersionForSbt = propOr("play.sbt.scala.version", "2.10.4-RC2")
   val buildScalaBinaryVersionForSbt = CrossVersion.binaryScalaVersion(buildScalaVersionForSbt)
-  val buildSbtVersion = propOr("play.sbt.version", "0.13.1")
+  val buildSbtVersion = propOr("play.sbt.version", "0.13.5-M2")
   val buildSbtMajorVersion = "0.13"
   val buildSbtVersionBinaryCompatible = CrossVersion.binarySbtVersion(buildSbtVersion)
   // Used by api docs generation to link back to the correct branch on GitHub, only when version is a SNAPSHOT
@@ -50,7 +50,7 @@ object BuildSettings {
     publishTo := Some(publishingMavenRepository),
     javacOptions ++= makeJavacOptions("1.6"),
     javacOptions in doc := Seq("-source", "1.6"),
-    resolvers ++= typesafeResolvers,
+    resolvers ++= playResolvers,
     fork in Test := true,
     testListeners in (Test,test) := Nil,
     javacOptions in Test := { if (isJavaAtLeast("1.8")) makeJavacOptions("1.8") else makeJavacOptions("1.6") },
@@ -132,9 +132,14 @@ object Resolvers {
   val publishTypesafeIvySnapshots = Resolver.url("Typesafe Ivy Snapshots Repository for publishing", url("https://private-repo.typesafe.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns)
 
   val sonatypeSnapshots = "Sonatype snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"
+  val sbtPluginSnapshots = Resolver.url("sbt plugin snapshots", url("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots"))(Resolver.ivyStylePatterns)
 
   val isSnapshotBuild = buildVersion.endsWith("SNAPSHOT")
-  val typesafeResolvers = if (isSnapshotBuild) Seq(typesafeReleases, typesafeIvyReleases, typesafeSnapshots, typesafeIvySnapshots) else Seq(typesafeReleases, typesafeIvyReleases)
+  val playResolvers = if (isSnapshotBuild) {
+    Seq(typesafeReleases, typesafeIvyReleases, typesafeSnapshots, typesafeIvySnapshots, sonatypeSnapshots, sbtPluginSnapshots)
+  } else {
+    Seq(typesafeReleases, typesafeIvyReleases)
+  }
   val publishingMavenRepository = if (isSnapshotBuild) publishTypesafeMavenSnapshots else publishTypesafeMavenReleases
   val publishingIvyRepository = if (isSnapshotBuild) publishTypesafeIvySnapshots else publishTypesafeIvyReleases
 }

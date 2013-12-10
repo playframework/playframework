@@ -123,6 +123,13 @@ object Dependencies {
   val templatesCompilerDependencies = scalaIoFile +:
     specsSbt.map(_ % "test")
 
+  private def sbtPluginDep(moduleId: ModuleID) = {
+    moduleId.extra(
+      "sbtVersion" -> BuildSettings.buildSbtVersionBinaryCompatible,
+      "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt
+    )
+  }
+
   val sbtDependencies = Seq(
     "org.scala-lang" % "scala-reflect" % BuildSettings.buildScalaVersionForSbt % "provided",
     "com.typesafe" % "config" % "1.2.0",
@@ -143,10 +150,13 @@ object Dependencies {
 
     "net.contentobjects.jnotify" % "jnotify" % "0.94",
 
-    "com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.4.0" extra("sbtVersion" -> BuildSettings.buildSbtVersionBinaryCompatible, "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
-    "com.github.mpeltonen" % "sbt-idea" % "1.5.1" extra("sbtVersion" -> BuildSettings.buildSbtVersionBinaryCompatible, "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt),
-    "com.typesafe.sbt" % "sbt-native-packager" % "0.7.0-RC2" extra("sbtVersion" ->  BuildSettings.buildSbtVersionBinaryCompatible, "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt)) ++
-    specsSbt
+    sbtPluginDep("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.4.0"),
+    sbtPluginDep("com.github.mpeltonen" % "sbt-idea" % "1.5.1"),
+    sbtPluginDep("com.typesafe.sbt" % "sbt-native-packager" % "0.7.0-RC2"),
+
+    sbtPluginDep("com.typesafe.sbt" % "sbt-js-engine" % "1.0.0-M2a"),
+    sbtPluginDep("com.typesafe.sbt" % "sbt-webdriver" % "1.0.0-M2")
+  ) ++ specsSbt
 
   val playDocsDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % "1.0.5",
