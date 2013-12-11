@@ -68,11 +68,18 @@ trait PlayRunners {
    * Executes a block of code in a running server, with a test browser.
    */
   def running[T, WEBDRIVER <: WebDriver](testServer: TestServer, webDriver: Class[WEBDRIVER])(block: TestBrowser => T): T = {
+    running(testServer, WebDriverFactory(webDriver))(block)
+  }
+
+  /**
+   * Executes a block of code in a running server, with a test browser.
+   */
+  def running[T](testServer: TestServer, webDriver: WebDriver)(block: TestBrowser => T): T = {
     var browser: TestBrowser = null
     synchronized {
       try {
         testServer.start()
-        browser = TestBrowser.of(webDriver)
+        browser = TestBrowser(webDriver, None)
         block(browser)
       } finally {
         if (browser != null) {
