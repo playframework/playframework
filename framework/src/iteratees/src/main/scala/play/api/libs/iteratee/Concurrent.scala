@@ -6,7 +6,6 @@ package play.api.libs.iteratee
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.{ Try, Failure, Success }
 import scala.util.control.NonFatal
-import Enumerator.Pushee
 import java.util.concurrent.{ TimeUnit }
 import play.api.libs.iteratee.Execution.Implicits.{ defaultExecutionContext => dec }
 

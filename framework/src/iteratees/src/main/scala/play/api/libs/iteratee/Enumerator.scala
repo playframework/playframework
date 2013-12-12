@@ -354,14 +354,6 @@ object Enumerator {
 
   }
 
-  trait Pushee[E] {
-
-    def push(item: E): Boolean
-
-    def close()
-
-  }
-
   /**
    * Like [[play.api.libs.iteratee.Enumerator.unfold]], but allows the unfolding to be done asynchronously.
    *
