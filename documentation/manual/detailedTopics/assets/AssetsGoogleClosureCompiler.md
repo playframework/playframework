@@ -39,7 +39,7 @@ javascriptEntryPoints <<= (sourceDirectory in Compile)(base =>
 
 ## Options
 
-ClosureCompiler compilation can be configured in your project’s `Build.scala` file (in the settings part of the `PlayProject`). There are several currently supported options:
+ClosureCompiler compilation can be configured in your project’s `build.sbt` file (in the root of the `PlayProject`). There are several currently supported options:
 
 - *advancedOptimizations* Achieves extra compressions by being more aggressive in the ways that it transforms code and renames symbols. However, this more aggressive approach means that you must take greater care when you use ADVANCED_OPTIMIZATIONS to ensure that the output code works the same way as the input code.
 - *checkCaja* Checks Caja control structures.
