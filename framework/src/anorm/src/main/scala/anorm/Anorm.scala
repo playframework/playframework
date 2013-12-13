@@ -169,51 +169,6 @@ object Useful {
 
 }
 
-trait ToStatement[A] { def set(s: java.sql.PreparedStatement, index: Int, aValue: A): Unit }
-object ToStatement {
-  import java.sql.PreparedStatement
-
-  implicit def anyParameter[T] = new ToStatement[T] {
-    private def setAny(index: Int, value: Any, stmt: PreparedStatement): PreparedStatement = {
-      value match {
-        case Some(o) => setAny(index, o, stmt)
-        case None => stmt.setObject(index, null)
-        case jbd: java.math.BigDecimal => stmt.setBigDecimal(index, jbd)
-        case sbd: BigDecimal => stmt.setBigDecimal(index, sbd.bigDecimal)
-        case date: java.util.Date => stmt.setTimestamp(index, new java.sql.Timestamp(date.getTime()))
-        case Id(id) => stmt.setObject(index, id)
-        case NotAssigned => stmt.setObject(index, null)
-        case o => stmt.setObject(index, o)
-      }
-      stmt
-    }
-
-    def set(s: PreparedStatement, index: Int, v: T): Unit = setAny(index, v, s)
-  }
-
-  implicit val charToStatement = new ToStatement[Char] {
-    def set(s: PreparedStatement, index: Int, ch: Char): Unit =
-      s.setString(index, Character.toString(ch))
-  }
-
-  implicit val uuidToStatement = new ToStatement[UUID] {
-    def set(s: PreparedStatement, index: Int, aValue: UUID): Unit = s.setObject(index, aValue)
-  }
-
-  implicit val timestampToStatement = new ToStatement[java.sql.Timestamp] {
-    def set(s: PreparedStatement, index: Int, aValue: java.sql.Timestamp): Unit = s.setTimestamp(index, aValue)
-  }
-
-  implicit def pkToStatement[A](implicit ts: ToStatement[A]): ToStatement[Pk[A]] = new ToStatement[Pk[A]] {
-    def set(s: PreparedStatement, index: Int, aValue: Pk[A]): Unit =
-      aValue match {
-        case Id(id) => ts.set(s, index, id)
-        case NotAssigned => s.setObject(index, null)
-      }
-  }
-
-}
-
 import SqlParser._
 
 /**
