@@ -259,6 +259,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
     val jbg1 = new java.math.BigDecimal(1.234d)
     val sbg1 = BigDecimal(jbg1)
     val date = new java.util.Date()
+    val timestamp = { val t = new java.sql.Timestamp(123l); t.setNanos(123456789); t }
     val SqlStr = ParameterMetaData.Str
     val SqlBool = ParameterMetaData.Bool
     val SqlInt = ParameterMetaData.Int
@@ -295,6 +296,8 @@ object AnormSpec extends Specification with H2Database with AnormTest {
         DParam(sbg1, SqlNum1) :: Nil) => 1 /* case ok */
       case UpdateExecution("set-date ?",
         DParam(date, SqlTimestamp) :: Nil) => 1 /* case ok */
+      case UpdateExecution("set-timestamp ?",
+        DParam(t: java.sql.Timestamp, SqlTimestamp) :: Nil) if t.getNanos == 123456789 => 1 /* case ok */
       case UpdateExecution("set-s-jbg ?, ?",
         DParam("string", SqlStr) :: DParam(jbg1, SqlNum1) :: Nil) => 1 /* ok */
       case UpdateExecution("set-s-sbg ?, ?",
@@ -370,6 +373,10 @@ object AnormSpec extends Specification with H2Database with AnormTest {
 
       "be one date" in withConnection() { implicit c =>
         SQL("set-date {p}").on('p -> date).execute() must beFalse
+      }
+
+      "be one timestamp" in withConnection() { implicit c =>
+        SQL("set-timestamp {p}").on('p -> timestamp).execute() must beFalse
       }
 
       "be multiple (string, Java big decimal)" in withConnection() {

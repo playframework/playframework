@@ -235,6 +235,10 @@ object ToStatement {
     def set(s: PreparedStatement, index: Int, aValue: UUID): Unit = s.setObject(index, aValue)
   }
 
+  implicit val timestampToStatement = new ToStatement[java.sql.Timestamp] {
+    def set(s: PreparedStatement, index: Int, aValue: java.sql.Timestamp): Unit = s.setTimestamp(index, aValue)
+  }
+
   implicit def pkToStatement[A](implicit ts: ToStatement[A]): ToStatement[Pk[A]] = new ToStatement[Pk[A]] {
     def set(s: PreparedStatement, index: Int, aValue: Pk[A]): Unit =
       aValue match {
