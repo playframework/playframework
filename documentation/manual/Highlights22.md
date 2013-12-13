@@ -14,7 +14,7 @@ In Java applications, this means actions can now just return `Promise<SimpleResu
 ```scala
 def index = Action.async {
   val foo: Future[Foo] = getFoo()
-  foo.map(f => Ok(foo))
+  foo.map(f => Ok(f))
 }
 ```
 
