@@ -423,4 +423,25 @@ $ spokenLanguages("FRA")
 )
 ```
 
+### Custom column mapping
+
+Anorm provides common mappings for Scala types from JDBC datatypes.
+
+When needed, it's possible to customize such mappings, for example if underlying DB doesn't support boolean datatype and returns integer instead. To do so, you have to provide a new implicit conversion for `Column[T]`, where `T` is the target Scala type:
+
+```scala
+import anorm.Column
+
+// Custom conversion from JDBC column to Boolean
+implicit def columnToBoolean: Column[Boolean] = 
+  Column.nonNull { (value, meta) =>
+    val MetaDataItem(qualified, nullable, clazz) = meta
+    value match {
+      case bool: Boolean => Right(bool) // Provided-default case
+      case bit: Int      => Right(bit == 1) // Custom conversion
+      case _             => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to Boolean for column $qualified"))
+    }
+  }
+```
+
 > **Next:** [[Integrating with other database access libraries | ScalaDatabaseOthers]]
