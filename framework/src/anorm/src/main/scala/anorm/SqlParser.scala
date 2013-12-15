@@ -31,14 +31,121 @@ object SqlParser {
 
   def flatten[T1, T2, R](implicit f: anorm.TupleFlattener[(T1 ~ T2) => R]): ((T1 ~ T2) => R) = f.f
 
+  /**
+   * Parses specified column as float.
+   *
+   * {{{
+   * import anorm.{ SQL, SqlParser }
+   *
+   * val t: (Float, String) = SQL("SELECT a, b FROM test")
+   *   .as(SqlParser.float("a") ~ SqlParser.str("b") map (
+   *     SqlParser.flatten) single)
+   * }}}
+   */
+  def float(columnName: String): RowParser[Float] = get[Float](columnName)(implicitly[Column[Float]])
+
+  /**
+   * Parses specified column as string.
+   *
+   * {{{
+   * import anorm.{ SQL, SqlParser }
+   *
+   * val t: (Float, String) = SQL("SELECT a, b FROM test")
+   *   .as(SqlParser.float("a") ~ SqlParser.str("b") map (
+   *     SqlParser.flatten) single)
+   * }}}
+   */
   def str(columnName: String): RowParser[String] = get[String](columnName)(implicitly[anorm.Column[String]])
 
+  /**
+   * Parses specified column as boolean.
+   *
+   * {{{
+   * import anorm.{ SQL, SqlParser }
+   *
+   * val t: (Boolean, String) = SQL("SELECT a, b FROM test")
+   *   .as(SqlParser.bool("a") ~ SqlParser.str("b") map (
+   *     SqlParser.flatten) single)
+   * }}}
+   */
   def bool(columnName: String): RowParser[Boolean] = get[Boolean](columnName)(implicitly[Column[Boolean]])
 
+  /**
+   * Parses specified column as byte.
+   *
+   * {{{
+   * import anorm.{ SQL, SqlParser }
+   *
+   * val t: (Byte, String) = SQL("SELECT a, b FROM test")
+   *   .as(SqlParser.byte("a") ~ SqlParser.str("b") map (
+   *     SqlParser.flatten) single)
+   * }}}
+   */
+  def byte(columnName: String): RowParser[Byte] = get[Byte](columnName)(implicitly[Column[Byte]])
+
+  /**
+   * Parses specified column as double.
+   *
+   * {{{
+   * import anorm.{ SQL, SqlParser }
+   *
+   * val t: (Double, String) = SQL("SELECT a, b FROM test")
+   *   .as(SqlParser.double("a") ~ SqlParser.str("b") map (
+   *     SqlParser.flatten) single)
+   * }}}
+   */
+  def double(columnName: String): RowParser[Double] = get[Double](columnName)(implicitly[Column[Double]])
+
+  /**
+   * Parses specified column as short.
+   *
+   * {{{
+   * import anorm.{ SQL, SqlParser }
+   *
+   * val t: (Short, String) = SQL("SELECT a, b FROM test")
+   *   .as(SqlParser.short("a") ~ SqlParser.str("b") map (
+   *     SqlParser.flatten) single)
+   * }}}
+   */
+  def short(columnName: String): RowParser[Short] = get[Short](columnName)(implicitly[Column[Short]])
+
+  /**
+   * Parses specified column as integer.
+   *
+   * {{{
+   * import anorm.{ SQL, SqlParser }
+   *
+   * val t: (Int, String) = SQL("SELECT a, b FROM test")
+   *   .as(SqlParser.int("a") ~ SqlParser.str("b") map (
+   *     SqlParser.flatten) single)
+   * }}}
+   */
   def int(columnName: String): RowParser[Int] = get[Int](columnName)(implicitly[Column[Int]])
 
+  /**
+   * Parses specified column as long.
+   *
+   * {{{
+   * import anorm.{ SQL, SqlParser }
+   *
+   * val t: (Long, String) = SQL("SELECT a, b FROM test")
+   *   .as(SqlParser.long("a") ~ SqlParser.str("b") map (
+   *     SqlParser.flatten) single)
+   * }}}
+   */
   def long(columnName: String): RowParser[Long] = get[Long](columnName)(implicitly[Column[Long]])
 
+  /**
+   * Parses specified column as date.
+   *
+   * {{{
+   * import anorm.{ SQL, SqlParser }
+   *
+   * val t: (Date, String) = SQL("SELECT a, b FROM test")
+   *   .as(SqlParser.date("a") ~ SqlParser.str("b") map (
+   *     SqlParser.flatten) single)
+   * }}}
+   */
   def date(columnName: String): RowParser[Date] = get[Date](columnName)(implicitly[Column[Date]])
 
   def getAliased[T](aliasName: String)(implicit extractor: anorm.Column[T]): RowParser[T] = RowParser { row =>
