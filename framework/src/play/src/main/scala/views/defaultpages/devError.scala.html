@@ -130,9 +130,11 @@
 
 				@Option(source.sourceName).map { name =>
 					<h2>
-						In @name @Option(source.line).map { line =>
-							at line @line.
-						}
+						In @Option(source.line).fold {
+                          @name (line number not found)
+                        }{line =>
+                          @name:@line
+                        }
 					</h2>
 
                     <div id="source-code">
