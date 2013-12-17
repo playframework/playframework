@@ -50,6 +50,11 @@ abstract class WithBrowser[WEBDRIVER <: WebDriver](
     val app: FakeApplication = FakeApplication(),
     val port: Int = Helpers.testServerPort) extends Around with Scope {
 
+  def this(
+    webDriver: Class[WEBDRIVER],
+    app: FakeApplication,
+    port: Int) = this(WebDriverFactory(webDriver), app, port)
+
   implicit def implicitApp = app
   implicit def implicitPort: Port = port
 
