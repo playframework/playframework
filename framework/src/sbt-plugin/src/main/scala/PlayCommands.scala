@@ -12,6 +12,8 @@ import Keys._
 import java.lang.{ ProcessBuilder => JProcessBuilder }
 import sbt.complete.Parsers._
 
+import scala.util.control.NonFatal
+
 trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternalKeys {
   this: PlayReloader =>
 
@@ -153,7 +155,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
         try {
           ft.process(models)
         } catch {
-          case _: Throwable =>
+          case NonFatal(_) =>
         }
 
       } finally {
