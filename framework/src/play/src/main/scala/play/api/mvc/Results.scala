@@ -837,10 +837,16 @@ trait Results {
     // adds the last chunk.
     new Enumeratee[Array[Byte], Array[Byte]] {
       def applyOn[A](inner: Iteratee[Array[Byte], A]) = {
-        // Our inner iteratee will be passed through the chunking enumeratee, and also we don't want to feed EOF to
-        // it yet, instead we want to get it as the result, so that we can then feed the last chunk into it.  We use
-        // the passAlong enumeratee to achieve this.
-        val chunkedInner: Iteratee[Array[Byte], Iteratee[Array[Byte], A]] = formatChunks ><> Enumeratee.passAlong &> inner
+
+        val chunkedInner: Iteratee[Array[Byte], Iteratee[Array[Byte], A]] =
+          // First filter out empty chunks - an empty chunk signifies end of stream in chunked transfer encoding
+          Enumeratee.filterNot[Array[Byte]](_.isEmpty) ><>
+            // Apply the chunked encoding
+            formatChunks ><>
+            // Don't feed EOF into the iteratee - so we can feed the last chunk ourselves later
+            Enumeratee.passAlong &>
+            // And apply the inner iteratee
+            inner
 
         trailers match {
           case Some(trailersIteratee) => {
