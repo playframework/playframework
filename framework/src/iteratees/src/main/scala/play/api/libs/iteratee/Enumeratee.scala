@@ -661,6 +661,10 @@ object Enumeratee {
     }
   }
 
+  /**
+   * An enumeratee that passes all input through until EOF is reached, redeeming the final iteratee with EOF as the
+   * left over input.
+   */
   def passAlong[M] = new Enumeratee.CheckDone[M, M] {
 
     def step[A](k: K[M, A]): K[M, Iteratee[M, A]] = {
