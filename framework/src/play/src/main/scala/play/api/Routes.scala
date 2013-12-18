@@ -46,6 +46,11 @@ package play.api {
       javascriptRouter(name, ajaxMethod, request.host, routes: _*)
     }
 
+    val jsReservedWords = Seq("break", "case", "catch", "continue", "debugger",
+      "default", "delete", "do", "else", "finally", "for", "function", "if",
+      "in", "instanceof", "new", "return", "switch", "this", "throw", "try",
+      "typeof", "var", "void", "while", "with")
+
     // TODO: This JS needs to be re-written as it isn't easily maintained.
     def javascriptRouter(name: String, ajaxMethod: Option[String], host: String, routes: JavascriptReverseRoute*): String = {
       """|var %s = {}; (function(_root){
@@ -63,7 +68,7 @@ package play.api {
         routes.map { route =>
           "_nS('%s'); _root.%s = %s".format(
             route.name.split('.').dropRight(1).mkString("."),
-            route.name,
+            route.name.split('.').map(name => if (jsReservedWords.contains(name)) { "['" + name + "']" } else { "." + name }).mkString("").tail,
             route.f)
         }.mkString("\n"),
         name)
