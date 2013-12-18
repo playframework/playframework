@@ -106,6 +106,35 @@ SQL(
 ).on("countryCode" -> "FRA")
 ```
 
+In case several columns are found with same name in query result, for example columns named `code` in both `Country` and `CountryLanguage` tables, there can be ambiguity. By default a mapping like following one will use the last column:
+
+```scala
+import anorm.{ SQL, SqlParser }
+
+val code: String = SQL(
+  """
+    select * from Country c 
+    join CountryLanguage l on l.CountryCode = c.Code 
+    where c.code = {countryCode};
+  """)
+  .on("countryCode" -> "FRA").as(SqlParser.str("code").single)
+```
+
+If `Country.Code` is 'First' and `CountryLanguage` is 'Second', then in previous example `code` value will be 'Second'. Ambiguity can be resolved using qualified column name, with table name:
+
+```scala
+import anorm.{ SQL, SqlParser }
+
+val code: String = SQL(
+  """
+    select * from Country c 
+    join CountryLanguage l on l.CountryCode = c.Code 
+    where c.code = {countryCode};
+  """)
+  .on("countryCode" -> "FRA").as(SqlParser.str("Country.code").single)
+// code == "First"
+```
+
 Passing anything different from string or symbol as parameter name is now deprecated. For backward compatibility, you can activate `anorm.features.parameterWithUntypedName`.
 
 ```scala
