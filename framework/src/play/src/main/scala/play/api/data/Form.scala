@@ -280,7 +280,7 @@ case class Field(private val form: Form[_], name: String, constraints: Seq[(Stri
   /**
    * The field ID - the same as the field name but with '.' replaced by '_'.
    */
-  lazy val id: String = name.replace('.', '_').replace('[', '_').replace(']', '_')
+  lazy val id: String = name.replace('.', '_').replace('[', '_').replace("]", "")
 
   /**
    * Returns the first error associated with this field, if it exists.
@@ -309,6 +309,11 @@ case class Field(private val form: Form[_], name: String, constraints: Seq[(Stri
   lazy val indexes: Seq[Int] = {
     RepeatedMapping.indexes(name, form.data)
   }
+
+  /**
+   * The label for the field.  Transforms repeat names from foo[0] etc to foo.0.
+   */
+  lazy val label: String = name.replaceAll("\\[(\\d+)\\]", ".$1")
 
 }
 

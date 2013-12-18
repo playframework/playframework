@@ -7,6 +7,7 @@ import org.specs2.mutable.Specification
 import play.api.data.Forms._
 import play.api.data._
 import play.api.i18n.Lang
+import play.api.templates.Html
 
 object HelpersSpec extends Specification {
   import FieldConstructor.defaultField
@@ -103,7 +104,28 @@ object HelpersSpec extends Specification {
   }
 
   "@repeat" should {
-    "Work with i18n" in {
+    val form = Form(single("foo" -> Forms.seq(Forms.text)))
+    def renderFoo(form: Form[_], min: Int = 1) = repeat.apply(form("foo"), min) { f =>
+      Html(f.name + ":" + f.value.getOrElse(""))
+    }.map(_.toString)
+    
+    "render a sequence of fields" in {
+      renderFoo(form.fill(Seq("a", "b", "c"))) must exactly("foo[0]:a", "foo[1]:b", "foo[2]:c")
+    }
+
+    "render a sequence of fields in an unfilled form" in {
+      renderFoo(form, 4) must exactly("foo[0]:", "foo[1]:", "foo[2]:", "foo[3]:")
+    }
+
+    "fill the fields out if less than the min" in {
+      renderFoo(form.fill(Seq("a", "b")), 4) must exactly("foo[0]:a", "foo[1]:b", "foo[2]:", "foo[3]:")
+    }
+
+    "fill the fields out if less than the min but the maximum is high" in {
+      renderFoo(form.bind(Map("foo[0]" -> "a", "foo[123]" -> "b")), 4) must exactly("foo[0]:a", "foo[123]:b", "foo[124]:", "foo[125]:")
+    }
+
+    "work with i18n" in {
       import play.api.i18n._
       implicit val lang = Lang("en-US")
 
