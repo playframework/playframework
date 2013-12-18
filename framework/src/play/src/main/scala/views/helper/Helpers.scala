@@ -42,13 +42,13 @@ package views.html.helper {
     }
 
     def label(implicit lang: play.api.i18n.Lang): Any = {
-      args.get('_label).getOrElse(play.api.i18n.Messages(field.name))
+      args.get('_label).getOrElse(play.api.i18n.Messages(field.label))
     }
 
     def hasName: Boolean = args.get('_name).isDefined
 
     def name(implicit lang: play.api.i18n.Lang): Any = {
-      args.get('_name).getOrElse(play.api.i18n.Messages(field.name))
+      args.get('_name).getOrElse(play.api.i18n.Messages(field.label))
     }
 
   }
@@ -72,10 +72,29 @@ package views.html.helper {
 
   object repeat {
 
-    def apply(field: play.api.data.Field, min: Int = 1)(f: play.api.data.Field => Html) = {
-      (0 until math.max(if (field.indexes.isEmpty) 0 else field.indexes.max + 1, min)).map(i => f(field(i + "")))
-    }
+    /**
+     * Render a field a repeated number of times.
+     *
+     * Useful for repeated fields in forms.
+     *
+     * @param field The field to repeat.
+     * @param min The minimum number of times the field should be repeated.
+     * @param fieldRenderer A function to render the field.
+     * @return The sequence of rendered fields.
+     */
+    def apply(field: play.api.data.Field, min: Int = 1)(fieldRenderer: play.api.data.Field => Html): Seq[Html] = {
+      val indexes = field.indexes match {
+        case Nil => 0 until min
+        case complete if complete.size >= min => field.indexes
+        case partial =>
+          // We don't have enough elements, append indexes starting from the largest
+          val start = field.indexes.max + 1
+          val needed = min - field.indexes.size
+          field.indexes ++ (start until (start + needed))
+      }
 
+      indexes.map(i => fieldRenderer(field("[" + i + "]")))
+    }
   }
 
   object options {
