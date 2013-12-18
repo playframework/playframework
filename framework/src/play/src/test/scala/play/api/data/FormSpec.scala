@@ -86,6 +86,16 @@ object FormSpec extends Specification {
       val f4 = ScalaForms.longNumberForm.fillAndValidate(42);
       f3.errors.size must equalTo(0)
     }
+
+    "not even attempt to validate on fill" in {
+      val failingValidatorForm = Form(
+        "foo" -> Forms.text.verifying("isEmpty", s =>
+          if (s.isEmpty) true
+          else throw new AssertionError("Validation was run when it wasn't meant to")
+        )
+      )
+      failingValidatorForm.fill("foo").errors must beEmpty
+    }
   }
 
   "render form using field[Type] syntax" in {
@@ -142,7 +152,6 @@ object FormSpec extends Specification {
         case error => error.message must equalTo("some.error")
       }
   }
-
 }
 
 object ScalaForms {
