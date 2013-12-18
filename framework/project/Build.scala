@@ -169,6 +169,12 @@ object PlayBuild extends Build {
   lazy val FunctionalProject = PlayRuntimeProject("Play-Functional", "play-functional")
 
   lazy val DataCommonsProject = PlayRuntimeProject("Play-DataCommons", "play-datacommons")
+    .settings(
+      libraryDependencies := dataCommonsDependencies,
+      Docs.apiDocsInclude := false,
+      resolvers += Resolver.sonatypeRepo("snapshots"),
+      addCompilerPlugin("org.scala-lang.plugins" % "macro-paradise" % "2.0.0-SNAPSHOT" cross CrossVersion.full)
+    ).dependsOn(FunctionalProject)
 
   lazy val JsonProject = PlayRuntimeProject("Play-Json", "play-json")
     .settings(libraryDependencies := jsonDependencies)

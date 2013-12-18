@@ -2,8 +2,9 @@ package controllers
 
 import play.api._
 import play.api.mvc._
-import play.api.data._
-import play.api.data.Forms._
+
+import play.api.data.mapping._
+import Rules._
 
 import anorm._
 
@@ -22,8 +23,8 @@ object Projects extends Controller with Secured {
     User.findByEmail(username).map { user =>
       Ok(
         html.dashboard(
-          Project.findInvolving(username), 
-          Task.findTodoInvolving(username), 
+          Project.findInvolving(username),
+          Task.findTodoInvolving(username),
           user
         )
       )
@@ -36,17 +37,19 @@ object Projects extends Controller with Secured {
    * Add a project.
    */
   def add = IsAuthenticated { username => implicit request =>
-    Form("group" -> nonEmptyText).bindFromRequest.fold(
-      errors => BadRequest,
-      folder => Ok(
-        views.html.projects.item(
-          Project.create(
-            Project(NotAssigned, folder, "New project"), 
-            Seq(username)
+    (Path \ "group").from[UrlFormEncoded](notEmpty)
+      .validate(request.body.asFormUrlEncoded.getOrElse(Map.empty))
+      .fold(
+        errors => BadRequest,
+        folder => Ok(
+          views.html.projects.item(
+            Project.create(
+              Project(NotAssigned, folder, "New project"),
+              Seq(username)
+            )
           )
         )
       )
-    )
   }
 
   /**
@@ -61,13 +64,15 @@ object Projects extends Controller with Secured {
    * Rename a project.
    */
   def rename(project: Long) = IsMemberOf(project) { _ => implicit request =>
-    Form("name" -> nonEmptyText).bindFromRequest.fold(
-      errors => BadRequest,
-      newName => { 
-        Project.rename(project, newName) 
-        Ok(newName) 
-      }
-    )
+    (Path \ "name").from[UrlFormEncoded](notEmpty)
+      .validate(request.body.asFormUrlEncoded.getOrElse(Map.empty))
+      .fold(
+        errors => BadRequest,
+        newName => {
+          Project.rename(project, newName)
+          Ok(newName)
+        }
+      )
   }
 
   // -- Project groups
@@ -91,10 +96,12 @@ object Projects extends Controller with Secured {
    * Rename a project group.
    */
   def renameGroup(folder: String) = IsAuthenticated { _ => implicit request =>
-    Form("name" -> nonEmptyText).bindFromRequest.fold(
-      errors => BadRequest,
-      newName => { Project.renameFolder(folder, newName); Ok(newName) }
-    )
+    (Path \ "name").from[UrlFormEncoded](notEmpty)
+      .validate(request.body.asFormUrlEncoded.getOrElse(Map.empty))
+      .fold(
+        errors => BadRequest,
+        newName => { Project.renameFolder(folder, newName); Ok(newName) }
+      )
   }
 
   // -- Members
@@ -103,20 +110,24 @@ object Projects extends Controller with Secured {
    * Add a project member.
    */
   def addUser(project: Long) = IsMemberOf(project) { _ => implicit request =>
-    Form("user" -> nonEmptyText).bindFromRequest.fold(
-      errors => BadRequest,
-      user => { Project.addMember(project, user); Ok }
-    )
+    (Path \ "user").from[UrlFormEncoded](notEmpty)
+      .validate(request.body.asFormUrlEncoded.getOrElse(Map.empty))
+      .fold(
+        errors => BadRequest,
+        user => { Project.addMember(project, user); Ok }
+      )
   }
 
   /**
    * Remove a project member.
    */
   def removeUser(project: Long) = IsMemberOf(project) { _ => implicit request =>
-    Form("user" -> nonEmptyText).bindFromRequest.fold(
-      errors => BadRequest,
-      user => { Project.removeMember(project, user); Ok }
-    )
+    (Path \ "user").from[UrlFormEncoded](notEmpty)
+      .validate(request.body.asFormUrlEncoded.getOrElse(Map.empty))
+      .fold(
+        errors => BadRequest,
+        user => { Project.removeMember(project, user); Ok }
+      )
   }
 
 }

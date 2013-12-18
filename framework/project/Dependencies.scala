@@ -162,6 +162,13 @@ object Dependencies {
     "com.typesafe" % "config" % "1.0.2") ++
     specsBuild.map(_ % "test")
 
+  val dataCommonsDependencies = Seq(
+    "joda-time" % "joda-time" % "2.2",
+    "org.joda" % "joda-convert" % "1.3.1",
+    "org.scala-lang" % "scala-reflect" % BuildSettings.buildScalaVersion,
+    specsBuild % "test"
+  )
+
   val jsonDependencies = Seq(
     "joda-time" % "joda-time" % "2.2",
     "org.joda" % "joda-convert" % "1.3.1",

@@ -1,4 +1,4 @@
-@(helloForm: Form[(String,Int,Option[String])])
+@(helloForm: play.api.data.mapping.Form[(String,Int,Option[String])])
 
 @import helper._
 
@@ -19,7 +19,7 @@
         )
 
         @select(
-            field = helloForm("color"), 
+            field = helloForm("color"),
             options = options(
                 "" -> "Default",
                 "red" -> "Red",

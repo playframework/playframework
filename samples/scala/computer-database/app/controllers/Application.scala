@@ -2,10 +2,10 @@ package controllers
 
 import play.api._
 import play.api.mvc._
-import play.api.data._
-import play.api.data.Forms._
+import play.api.data.mapping._
+import play.api.libs.functional.syntax._
 
-import anorm._
+import anorm.{ Pk, NotAssigned }
 
 import views._
 import models._
@@ -13,33 +13,41 @@ import models._
 /**
  * Manage a database of computers
  */
-object Application extends Controller { 
-  
+object Application extends Controller {
+
   /**
    * This result directly redirect to the application home.
    */
   val Home = Redirect(routes.Application.list(0, 2, ""))
-  
-  /**
-   * Describe the computer form (used in both edit and create screens).
-   */ 
-  val computerForm = Form(
-    mapping(
-      "id" -> ignored(NotAssigned:Pk[Long]),
-      "name" -> nonEmptyText,
-      "introduced" -> optional(date("yyyy-MM-dd")),
-      "discontinued" -> optional(date("yyyy-MM-dd")),
-      "company" -> optional(longNumber)
-    )(Computer.apply)(Computer.unapply)
-  )
-  
+
+  implicit val computerValidation = From[UrlFormEncoded] { __ =>
+    import play.api.data.mapping.Rules._
+    ((__ \ "id").read(ignored[UrlFormEncoded, Pk[Long]](NotAssigned)) ~
+     (__ \ "name").read(notEmpty) ~
+     (__ \ "introduced").read(option(date("yyyy-MM-dd"))) ~
+     (__ \ "discontinued").read(option(date("yyyy-MM-dd"))) ~
+     (__ \ "company").read[Option[Long]]) (Computer.apply _)
+  }
+
+  implicit def pkW[I, O](implicit w: Path => Write[Option[I], O]) =
+    (p: Path) => w(p).contramap((_: Pk[I]).toOption)
+
+  implicit val computerW = To[UrlFormEncoded] { __ =>
+    import play.api.data.mapping.Writes._
+    ((__ \ "id").write[Pk[Long]] ~
+     (__ \ "name").write[String] ~
+     (__ \ "introduced").write(option(date("yyyy-MM-dd"))) ~
+     (__ \ "discontinued").write(option(date("yyyy-MM-dd"))) ~
+     (__ \ "company").write[Option[Long]]) (unlift(Computer.unapply _))
+  }
+
   // -- Actions
 
   /**
    * Handle default path requests, redirect to computers list
-   */  
+   */
   def index = Action { Home }
-  
+
   /**
    * Display the paginated list of computers.
    *
@@ -53,7 +61,7 @@ object Application extends Controller {
       orderBy, filter
     ))
   }
-  
+
   /**
    * Display the 'edit form' of a existing Computer.
    *
@@ -61,45 +69,47 @@ object Application extends Controller {
    */
   def edit(id: Long) = Action {
     Computer.findById(id).map { computer =>
-      Ok(html.editForm(id, computerForm.fill(computer), Company.options))
+      Ok(html.editForm(id, Form.fill(computer), Company.options))
     }.getOrElse(NotFound)
   }
-  
+
   /**
-   * Handle the 'edit form' submission 
+   * Handle the 'edit form' submission
    *
    * @param id Id of the computer to edit
    */
-  def update(id: Long) = Action { implicit request =>
-    computerForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.editForm(id, formWithErrors, Company.options)),
-      computer => {
+  def update(id: Long) = Action(parse.urlFormEncoded) { implicit request =>
+    val r = computerValidation.validate(request.body)
+    r match {
+      case Failure(_) => BadRequest(html.editForm(id, Form(request.body, r), Company.options))
+      case Success(computer) => {
         Computer.update(id, computer)
         Home.flashing("success" -> "Computer %s has been updated".format(computer.name))
       }
-    )
+    }
   }
-  
+
   /**
    * Display the 'new computer form'.
    */
   def create = Action {
-    Ok(html.createForm(computerForm, Company.options))
+    Ok(html.createForm(Form(), Company.options))
   }
-  
+
   /**
    * Handle the 'new computer form' submission.
    */
-  def save = Action { implicit request =>
-    computerForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.createForm(formWithErrors, Company.options)),
-      computer => {
+  def save = Action(parse.urlFormEncoded) { implicit request =>
+    val r = computerValidation.validate(request.body)
+    r match {
+      case Failure(_) => BadRequest(html.createForm(Form(request.body, r), Company.options))
+      case Success(computer) => {
         Computer.insert(computer)
         Home.flashing("success" -> "Computer %s has been created".format(computer.name))
       }
-    )
+    }
   }
-  
+
   /**
    * Handle computer deletion.
    */
@@ -109,4 +119,4 @@ object Application extends Controller {
   }
 
 }
-            
+

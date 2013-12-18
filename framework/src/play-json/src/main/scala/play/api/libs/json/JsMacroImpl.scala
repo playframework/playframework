@@ -59,7 +59,7 @@ object JsMacroImpl {
             }
             apply match {
               case Some(apply) =>
-                //println("apply found:" + apply)    
+                //println("apply found:" + apply)
                 val params = apply.paramss.head //verify there is a single parameter group
 
                 val inferedImplicits = params.map(_.typeSignature).map { implType =>
@@ -343,7 +343,7 @@ object JsMacroImpl {
             }
             apply match {
               case Some(apply) =>
-                //println("apply found:" + apply)    
+                //println("apply found:" + apply)
                 val params = apply.paramss.head //verify there is a single parameter group
 
                 val inferedImplicits = params.map(_.typeSignature).map { implType =>
@@ -626,7 +626,7 @@ object JsMacroImpl {
             }
             apply match {
               case Some(apply) =>
-                //println("apply found:" + apply)    
+                //println("apply found:" + apply)
                 val params = apply.paramss.head //verify there is a single parameter group
 
                 val inferedImplicits = params.map(_.typeSignature).map { implType =>

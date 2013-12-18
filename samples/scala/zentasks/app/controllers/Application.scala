@@ -2,8 +2,8 @@ package controllers
 
 import play.api._
 import play.api.mvc._
-import play.api.data._
-import play.api.data.Forms._
+import play.api.data.mapping._
+import play.api.libs.functional.syntax._
 
 import models._
 import views._
@@ -12,30 +12,32 @@ object Application extends Controller {
 
   // -- Authentication
 
-  val loginForm = Form(
-    tuple(
-      "email" -> text,
-      "password" -> text
-    ) verifying ("Invalid email or password", result => result match {
-      case (email, password) => User.authenticate(email, password).isDefined
-    })
-  )
+  val isAuthenticated = Rules.validateWith[(String, String)]("Invalid email or password"){
+    case (email, password) => User.authenticate(email, password).isDefined
+  }
+
+  implicit val loginValidation = From[UrlFormEncoded] { __ =>
+    import Rules._
+    ((__ \ "email").read(notEmpty) ~
+     (__ \ "password").read(notEmpty)).tupled
+  }.compose(isAuthenticated)
 
   /**
    * Login page.
    */
   def login = Action { implicit request =>
-    Ok(html.login(loginForm))
+    Ok(html.login(Form()))
   }
 
   /**
    * Handle login form submission.
    */
-  def authenticate = Action { implicit request =>
-    loginForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.login(formWithErrors)),
-      user => Redirect(routes.Projects.index).withSession("email" -> user._1)
-    )
+  def authenticate = Action(parse.urlFormEncoded) { implicit request =>
+    val r = loginValidation.validate(request.body)
+    r match {
+      case Failure(_) => BadRequest(html.login(Form(request.body, r)))
+      case Success(user) => Redirect(routes.Projects.index).withSession("email" -> user._1)
+    }
   }
 
   /**
@@ -55,11 +57,11 @@ object Application extends Controller {
       Routes.javascriptRouter("jsRoutes")(
         Projects.add, Projects.delete, Projects.rename,
         Projects.addGroup, Projects.deleteGroup, Projects.renameGroup,
-        Projects.addUser, Projects.removeUser, Tasks.addFolder, 
+        Projects.addUser, Projects.removeUser, Tasks.addFolder,
         Tasks.renameFolder, Tasks.deleteFolder, Tasks.index,
         Tasks.add, Tasks.update, Tasks.delete
       )
-    ).as("text/javascript") 
+    ).as("text/javascript")
   }
 
 }
@@ -68,7 +70,7 @@ object Application extends Controller {
  * Provide security features
  */
 trait Secured {
-  
+
   /**
    * Retrieve the connected user email.
    */
@@ -78,10 +80,10 @@ trait Secured {
    * Redirect to login if the user in not authorized.
    */
   private def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.Application.login)
-  
+
   // --
-  
-  /** 
+
+  /**
    * Action for authenticated users.
    */
   def IsAuthenticated(f: => String => Request[AnyContent] => Result) = Security.Authenticated(username, onUnauthorized) { user =>

@@ -3,7 +3,7 @@
  */
 package play.api.libs.json
 
-import play.api.data.validation.ValidationError
+import play.api.data.mapping.ValidationError
 import Json._
 
 trait ConstraintFormat {
@@ -130,10 +130,22 @@ trait ConstraintReads {
     filterNot[N](ValidationError("error.max", m))(num.gt(_, m))(reads)
 
   def filterNot[A](error: ValidationError)(p: A => Boolean)(implicit reads: Reads[A]) =
-    Reads[A](js => reads.reads(js).filterNot(error)(p))
+    Reads[A] { js =>
+      // Since filterNot returns a Validation[E, A], we need to transform it into a JsResut
+      reads.reads(js) match {
+        case s @ JsSuccess(_, path) => s.filterNot(error)(p).fail.map(_ => Seq(path -> Seq(error)))
+        case f => f
+      }
+    }
 
   def filter[A](otherwise: ValidationError)(p: A => Boolean)(implicit reads: Reads[A]) =
-    Reads[A](js => reads.reads(js).filter(otherwise)(p))
+    Reads[A] { js =>
+      // Since filter returns a Validation[E, A], we need to transform it into a JsResut
+      reads.reads(js) match {
+        case s @ JsSuccess(_, path) => s.filter(otherwise)(p).fail.map(_ => Seq(path -> Seq(otherwise)))
+        case f => f
+      }
+    }
 
   def minLength[M](m: Int)(implicit reads: Reads[M], p: M => scala.collection.TraversableLike[_, M]) =
     filterNot[M](ValidationError("error.minLength", m))(_.size < m)

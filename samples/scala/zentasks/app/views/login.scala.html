@@ -1,4 +1,4 @@
-@(form: Form[(String,String)])(implicit flash: Flash)
+@(form: play.api.data.mapping.Form[(String,String)])(implicit flash: Flash)
 
 <html>
     <head>
@@ -7,27 +7,27 @@
         <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/login.css")">
     </head>
     <body>
-        
+
         <header>
             <a href="@routes.Projects.index" id="logo"><span>Zen</span>tasks</a>
         </header>
-        
+
         @helper.form(routes.Application.authenticate) {
-            
+
             <h1>Sign in</h1>
-            
+
             @form.globalError.map { error =>
                 <p class="error">
                     @error.message
                 </p>
             }
-            
+
             @flash.get("success").map { message =>
                 <p class="success">
                     @message
                 </p>
             }
-            
+
             <p>
                 <input type="email" name="email" placeholder="Email" id="email" value="@form("email").value">
             </p>
@@ -37,15 +37,15 @@
             <p>
                 <button type="submit" id="loginbutton">Login</button>
             </p>
-            
+
         }
-        
+
         <p class="note">
             Try <em>guillaume@@sample.com</em> with <em>secret</em> as password.
         </p>
-            
+
     </body>
 </html>
-    
+
 
 

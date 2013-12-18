@@ -13,7 +13,7 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 
 // #form-imports
-import play.api.data._
+import play.api.data.{mapping => _, _}
 import play.api.data.Forms._
 // #form-imports
 
