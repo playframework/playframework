@@ -22,24 +22,23 @@ object AnormSpec extends Specification with H2Database with AnormTest {
 
   "Row parser" should {
     "return newly inserted data" in withConnection { implicit c =>
-      createTestTable()
-      val x = SQL("insert into test(id, foo, bar) values ({id}, {foo}, {bar})")
-        .on("id" -> 10L, "foo" -> "Hello", "bar" -> 20)
-        .execute()
+      createTest1Table()
+      SQL("insert into test1(id, foo, bar) values ({id}, {foo}, {bar})")
+        .on('id -> 10L, 'foo -> "Hello", 'bar -> 20).execute()
 
-      SQL("select * from test where id = {id}").on("id" -> 10L)
+      SQL("select * from test1 where id = {id}").on('id -> 10L)
         .map(row => row[String]("foo") -> row[Int]("bar"))
         .single must_== ("Hello" -> 20)
     }
 
     "return case class instance from result" in withConnection { implicit c =>
-      createTestTable()
-      SQL("insert into test(id, foo, bar) values ({id}, {foo}, {bar})")
-        .on("id" -> 11L, "foo" -> "World", "bar" -> 21)
+      createTest1Table()
+      SQL("insert into test1(id, foo, bar) values ({id}, {foo}, {bar})")
+        .on('id -> 11L, 'foo -> "World", 'bar -> 21)
         .execute()
 
-      SQL("select * from test where id = {id}")
-        .on("id" -> 11L).as(fooBarParser.singleOpt)
+      SQL("select * from test1 where id = {id}")
+        .on('id -> 11L).as(fooBarParser.singleOpt)
         .aka("result data") must beSome(TestTable(11L, "World", 21))
 
     }
