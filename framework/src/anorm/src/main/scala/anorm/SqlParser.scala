@@ -29,7 +29,18 @@ object SqlParser {
       }
     }
 
-  def flatten[T1, T2, R](implicit f: anorm.TupleFlattener[(T1 ~ T2) => R]): ((T1 ~ T2) => R) = f.f
+  /**
+   * Flatten columns tuple-like.
+   *
+   * {{{
+   * import anorm.SQL
+   * import anorm.SqlParser.{ long, str, int }
+   *
+   * val tuple: (Long, String, Int) = SQL("SELECT a, b, c FROM Test").
+   *   as(long("a") ~ str("b") ~ int("c") map (SqlParser.flatten) single)
+   * }}}
+   */
+  def flatten[T1, T2, R](implicit f: TupleFlattener[(T1 ~ T2) => R]): ((T1 ~ T2) => R) = f.f
 
   /**
    * Parses specified column as float.
@@ -148,7 +159,7 @@ object SqlParser {
    */
   def date(columnName: String): RowParser[Date] = get[Date](columnName)(implicitly[Column[Date]])
 
-  def getAliased[T](aliasName: String)(implicit extractor: anorm.Column[T]): RowParser[T] = RowParser { row =>
+  def getAliased[T](aliasName: String)(implicit extractor: Column[T]): RowParser[T] = RowParser { row =>
     import MayErr._
 
     (for {
@@ -159,7 +170,7 @@ object SqlParser {
     } yield result).fold(e => Error(e), a => Success(a))
   }
 
-  def get[T](columnName: String)(implicit extractor: anorm.Column[T]): RowParser[T] = RowParser { row =>
+  def get[T](columnName: String)(implicit extractor: Column[T]): RowParser[T] = RowParser { row =>
     import MayErr._
 
     (for {
@@ -171,31 +182,28 @@ object SqlParser {
   }
 
   def contains[TT: Column, T <: TT](columnName: String, t: T): RowParser[Unit] =
-    get[TT](columnName)(implicitly[Column[TT]])
-      .collect("Row doesn't contain a column: " + columnName + " with value " + t) { case a if a == t => Unit }
+    get[TT](columnName)(implicitly[Column[TT]]).
+      collect(s"Row doesn't contain a column: $columnName with value $t") {
+        case a if a == t => Unit
+      }
 
 }
 
-case class ~[+A, +B](_1: A, _2: B)
+/** Columns tuple-like */
+// Using List or HList?
+final case class ~[+A, +B](_1: A, _2: B)
 
-trait SqlResult[+A] {
-
-  self =>
+trait SqlResult[+A] { self =>
 
   def flatMap[B](k: A => SqlResult[B]): SqlResult[B] = self match {
-
     case Success(a) => k(a)
     case e @ Error(_) => e
-
   }
 
   def map[B](f: A => B): SqlResult[B] = self match {
-
     case Success(a) => Success(f(a))
     case e @ Error(_) => e
-
   }
-
 }
 
 case class Success[A](a: A) extends SqlResult[A]
@@ -203,38 +211,35 @@ case class Success[A](a: A) extends SqlResult[A]
 case class Error(msg: SqlRequestError) extends SqlResult[Nothing]
 
 object RowParser {
-
   def apply[A](f: Row => SqlResult[A]): RowParser[A] = new RowParser[A] {
-
     def apply(row: Row): SqlResult[A] = f(row)
-
   }
-
 }
 
-trait RowParser[+A] extends (Row => SqlResult[A]) {
-
-  parent =>
+trait RowParser[+A] extends (Row => SqlResult[A]) { parent =>
 
   def map[B](f: A => B): RowParser[B] = RowParser(parent.andThen(_.map(f)))
 
-  def collect[B](otherwise: String)(f: PartialFunction[A, B]): RowParser[B] = RowParser(row => parent(row).flatMap(a => if (f.isDefinedAt(a)) Success(f(a)) else Error(SqlMappingError(otherwise))))
+  def collect[B](otherwise: String)(f: PartialFunction[A, B]): RowParser[B] =
+    RowParser(row => parent(row).flatMap(a =>
+      if (f.isDefinedAt(a)) Success(f(a))
+      else Error(SqlMappingError(otherwise))))
 
-  def flatMap[B](k: A => RowParser[B]): RowParser[B] = RowParser(row => parent(row).flatMap(a => k(a)(row)))
+  def flatMap[B](k: A => RowParser[B]): RowParser[B] =
+    RowParser(row => parent(row).flatMap(a => k(a)(row)))
 
-  def ~[B](p: RowParser[B]): RowParser[A ~ B] = RowParser(row => parent(row).flatMap(a => p(row).map(new ~(a, _))))
+  def ~[B](p: RowParser[B]): RowParser[A ~ B] =
+    RowParser(row => parent(row).flatMap(a => p(row).map(new ~(a, _))))
 
-  def ~>[B](p: RowParser[B]): RowParser[B] = RowParser(row => parent(row).flatMap(a => p(row)))
+  def ~>[B](p: RowParser[B]): RowParser[B] =
+    RowParser(row => parent(row).flatMap(a => p(row)))
 
   def <~[B](p: RowParser[B]): RowParser[A] = parent.~(p).map(_._1)
 
   def |[B >: A](p: RowParser[B]): RowParser[B] = RowParser { row =>
     parent(row) match {
-
       case Error(_) => p(row)
-
       case a => a
-
     }
   }
 
@@ -291,55 +296,53 @@ sealed trait ScalarRowParser[+A] extends RowParser[A] {
   }
 }
 
-trait ResultSetParser[+A] extends (ResultSet => SqlResult[A]) {
-  parent =>
-
-  def map[B](f: A => B): ResultSetParser[B] = ResultSetParser(rs => parent(rs).map(f))
+trait ResultSetParser[+A] extends (ResultSet => SqlResult[A]) { parent =>
+  def map[B](f: A => B): ResultSetParser[B] =
+    ResultSetParser(rs => parent(rs).map(f))
 
 }
 
 object ResultSetParser {
-
-  def apply[A](f: ResultSet => SqlResult[A]): ResultSetParser[A] = new ResultSetParser[A] { rows =>
-
-    def apply(rows: ResultSet): SqlResult[A] = f(rows)
-
-  }
+  def apply[A](f: ResultSet => SqlResult[A]): ResultSetParser[A] =
+    new ResultSetParser[A] { rows =>
+      def apply(rows: ResultSet): SqlResult[A] = f(rows)
+    }
 
   def list[A](p: RowParser[A]): ResultSetParser[List[A]] = {
     // Performance note: sequence produces a List in reverse order, since appending to a
     // List is an O(n) operation, and this is done n times, yielding O(n2) just to convert the
     // result set to a List.  Prepending is O(1), so we use prepend, and then reverse the result
     // in the map function below.
-    @scala.annotation.tailrec
+    @annotation.tailrec
     def sequence(results: SqlResult[List[A]], rows: Stream[Row]): SqlResult[List[A]] = {
-
       (results, rows) match {
-
         case (Success(rs), row #:: tail) => sequence(p(row).map(_ +: rs), tail)
-
         case (r, _) => r
-
       }
-
     }
 
     ResultSetParser { rows => sequence(Success(List()), rows).map(_.reverse) }
   }
 
-  def nonEmptyList[A](p: RowParser[A]): ResultSetParser[List[A]] = ResultSetParser(rows => if (rows.isEmpty) Error(SqlMappingError("Empty Result Set")) else list(p)(rows))
+  def nonEmptyList[A](p: RowParser[A]): ResultSetParser[List[A]] =
+    ResultSetParser(rows =>
+      if (rows.isEmpty) Error(SqlMappingError("Empty Result Set"))
+      else list(p)(rows))
 
   def single[A](p: RowParser[A]): ResultSetParser[A] = ResultSetParser {
     case head #:: Stream.Empty => p(head)
-    case Stream.Empty => Error(SqlMappingError("No rows when expecting a single one"))
-    case _ => Error(SqlMappingError("too many rows when expecting a single one"))
+    case Stream.Empty =>
+      Error(SqlMappingError("No rows when expecting a single one"))
+    case _ =>
+      Error(SqlMappingError("too many rows when expecting a single one"))
 
   }
 
-  def singleOpt[A](p: RowParser[A]): ResultSetParser[Option[A]] = ResultSetParser {
-    case head #:: Stream.Empty => p.map(Some(_))(head)
-    case Stream.Empty => Success(None)
-    case _ => Error(SqlMappingError("too many rows when expecting a single one"))
-  }
+  def singleOpt[A](p: RowParser[A]): ResultSetParser[Option[A]] =
+    ResultSetParser {
+      case head #:: Stream.Empty => p.map(Some(_))(head)
+      case Stream.Empty => Success(None)
+      case _ => Error(SqlMappingError("too many rows when expecting a single one"))
+    }
 
 }

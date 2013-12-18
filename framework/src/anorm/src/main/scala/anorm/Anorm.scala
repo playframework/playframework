@@ -46,52 +46,6 @@ case object NotAssigned extends Pk[Nothing] {
   override def toString() = "NotAssigned"
 }
 
-case class TupleFlattener[F](f: F)
-
-trait PriorityOne {
-  implicit def flattenerTo2[T1, T2]: TupleFlattener[(T1 ~ T2) => (T1, T2)] = TupleFlattener[(T1 ~ T2) => (T1, T2)] { case (t1 ~ t2) => (t1, t2) }
-}
-
-trait PriorityTwo extends PriorityOne {
-  implicit def flattenerTo3[T1, T2, T3]: TupleFlattener[(T1 ~ T2 ~ T3) => (T1, T2, T3)] = TupleFlattener[(T1 ~ T2 ~ T3) => (T1, T2, T3)] { case (t1 ~ t2 ~ t3) => (t1, t2, t3) }
-}
-
-trait PriorityThree extends PriorityTwo {
-  implicit def flattenerTo4[T1, T2, T3, T4]: TupleFlattener[(T1 ~ T2 ~ T3 ~ T4) => (T1, T2, T3, T4)] = TupleFlattener[(T1 ~ T2 ~ T3 ~ T4) => (T1, T2, T3, T4)] { case (t1 ~ t2 ~ t3 ~ t4) => (t1, t2, t3, t4) }
-}
-
-trait PriorityFour extends PriorityThree {
-  implicit def flattenerTo5[T1, T2, T3, T4, T5]: TupleFlattener[(T1 ~ T2 ~ T3 ~ T4 ~ T5) => (T1, T2, T3, T4, T5)] = TupleFlattener[(T1 ~ T2 ~ T3 ~ T4 ~ T5) => (T1, T2, T3, T4, T5)] { case (t1 ~ t2 ~ t3 ~ t4 ~ t5) => (t1, t2, t3, t4, t5) }
-}
-
-trait PriorityFive extends PriorityFour {
-  implicit def flattenerTo6[T1, T2, T3, T4, T5, T6]: TupleFlattener[(T1 ~ T2 ~ T3 ~ T4 ~ T5 ~ T6) => (T1, T2, T3, T4, T5, T6)] = TupleFlattener[(T1 ~ T2 ~ T3 ~ T4 ~ T5 ~ T6) => (T1, T2, T3, T4, T5, T6)] { case (t1 ~ t2 ~ t3 ~ t4 ~ t5 ~ t6) => (t1, t2, t3, t4, t5, t6) }
-}
-
-trait PrioritySix extends PriorityFive {
-  implicit def flattenerTo7[T1, T2, T3, T4, T5, T6, T7]: TupleFlattener[(T1 ~ T2 ~ T3 ~ T4 ~ T5 ~ T6 ~ T7) => (T1, T2, T3, T4, T5, T6, T7)] = TupleFlattener[(T1 ~ T2 ~ T3 ~ T4 ~ T5 ~ T6 ~ T7) => (T1, T2, T3, T4, T5, T6, T7)] { case (t1 ~ t2 ~ t3 ~ t4 ~ t5 ~ t6 ~ t7) => (t1, t2, t3, t4, t5, t6, t7) }
-}
-
-trait PrioritySeven extends PrioritySix {
-  implicit def flattenerTo8[T1, T2, T3, T4, T5, T6, T7, T8]: TupleFlattener[(T1 ~ T2 ~ T3 ~ T4 ~ T5 ~ T6 ~ T7 ~ T8) => (T1, T2, T3, T4, T5, T6, T7, T8)] = TupleFlattener[(T1 ~ T2 ~ T3 ~ T4 ~ T5 ~ T6 ~ T7 ~ T8) => (T1, T2, T3, T4, T5, T6, T7, T8)] { case (t1 ~ t2 ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 ~ t8) => (t1, t2, t3, t4, t5, t6, t7, t8) }
-}
-
-trait PriorityEight extends PrioritySeven {
-  implicit def flattenerTo9[T1, T2, T3, T4, T5, T6, T7, T8, T9]: TupleFlattener[(T1 ~ T2 ~ T3 ~ T4 ~ T5 ~ T6 ~ T7 ~ T8 ~ T9) => (T1, T2, T3, T4, T5, T6, T7, T8, T9)] = TupleFlattener[(T1 ~ T2 ~ T3 ~ T4 ~ T5 ~ T6 ~ T7 ~ T8 ~ T9) => (T1, T2, T3, T4, T5, T6, T7, T8, T9)] { case (t1 ~ t2 ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 ~ t8 ~ t9) => (t1, t2, t3, t4, t5, t6, t7, t8, t9) }
-}
-
-trait PriorityNine extends PriorityEight {
-  implicit def flattenerTo10[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]: TupleFlattener[(T1 ~ T2 ~ T3 ~ T4 ~ T5 ~ T6 ~ T7 ~ T8 ~ T9 ~ T10) => (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)] = TupleFlattener[(T1 ~ T2 ~ T3 ~ T4 ~ T5 ~ T6 ~ T7 ~ T8 ~ T9 ~ T10) => (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)] { case (t1 ~ t2 ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 ~ t8 ~ t9 ~ t10) => (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10) }
-}
-
-object TupleFlattener extends PriorityNine {
-  implicit def flattenerTo11[T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11]: TupleFlattener[(T1 ~ T2 ~ T3 ~ T4 ~ T5 ~ T6 ~ T7 ~ T8 ~ T9 ~ T10 ~ T11) => (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)] = TupleFlattener[(T1 ~ T2 ~ T3 ~ T4 ~ T5 ~ T6 ~ T7 ~ T8 ~ T9 ~ T10 ~ T11) => (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)] { case (t1 ~ t2 ~ t3 ~ t4 ~ t5 ~ t6 ~ t7 ~ t8 ~ t9 ~ t10 ~ t11) => (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11) }
-}
-
-object Row {
-  def unapplySeq(row: Row): Option[List[Any]] = Some(row.asList)
-}
-
 case class MetaDataItem(column: ColumnName, nullable: Boolean, clazz: String)
 case class ColumnName(qualified: String, alias: Option[String])
 
@@ -107,12 +61,11 @@ case class MetaData(ms: List[MetaDataItem]) {
   private lazy val dictionary: Map[String, (ColumnName, Boolean, String)] =
     ms.map(m => (m.column.qualified.toUpperCase(), (m.column, m.nullable, m.clazz))).toMap
 
-  private lazy val dictionary2: Map[String, (ColumnName, Boolean, String)] = {
+  private lazy val dictionary2: Map[String, (ColumnName, Boolean, String)] =
     ms.map(m => {
       val column = m.column.qualified.split('.').last;
       (column.toUpperCase(), (m.column, m.nullable, m.clazz))
     }).toMap
-  }
 
   private lazy val aliasedDictionary: Map[String, (ColumnName, Boolean, String)] = {
     ms.flatMap(m => {
@@ -153,29 +106,36 @@ trait Row {
     case _ => Class.forName(t)
   }
 
-  private lazy val ColumnsDictionary: Map[String, Any] = metaData.ms.map(_.column.qualified.toUpperCase()).zip(data).toMap
-  private lazy val AliasesDictionary: Map[String, Any] = metaData.ms.flatMap(_.column.alias.map(_.toUpperCase())).zip(data).toMap
-  private[anorm] def get1(a: String): MayErr[SqlRequestError, Any] = {
-    for (
-      meta <- metaData.get(a).toRight(ColumnNotFound(a, metaData.availableColumns));
-      (column, nullable, clazz) = meta;
-      result <- ColumnsDictionary.get(column.qualified.toUpperCase()).toRight(ColumnNotFound(column.qualified, metaData.availableColumns))
-    ) yield result
-  }
+  private lazy val ColumnsDictionary: Map[String, Any] =
+    metaData.ms.map(_.column.qualified.toUpperCase()).zip(data).toMap
 
-  private[anorm] def getAliased(a: String): MayErr[SqlRequestError, Any] = {
+  private lazy val AliasesDictionary: Map[String, Any] =
+    metaData.ms.flatMap(_.column.alias.map(_.toUpperCase())).zip(data).toMap
+
+  private[anorm] def get1(a: String): MayErr[SqlRequestError, Any] =
     for (
-      meta <- metaData.getAliased(a).toRight(ColumnNotFound(a, metaData.availableColumns));
+      meta <- metaData.get(a).
+        toRight(ColumnNotFound(a, metaData.availableColumns));
       (column, nullable, clazz) = meta;
-      result <- column.alias.flatMap(a => AliasesDictionary.get(a.toUpperCase())).toRight(ColumnNotFound(column.alias.getOrElse(a), metaData.availableColumns))
+      result <- ColumnsDictionary.get(column.qualified.toUpperCase()).
+        toRight(ColumnNotFound(column.qualified, metaData.availableColumns))
     ) yield result
-  }
+
+  private[anorm] def getAliased(a: String): MayErr[SqlRequestError, Any] =
+    for (
+      meta <- metaData.getAliased(a).
+        toRight(ColumnNotFound(a, metaData.availableColumns));
+      (column, nullable, clazz) = meta;
+      result <- column.alias.
+        flatMap(a => AliasesDictionary.get(a.toUpperCase())).
+        toRight(ColumnNotFound(column.alias.getOrElse(a),
+          metaData.availableColumns))
+
+    ) yield result
 
   def apply[B](a: String)(implicit c: Column[B]): B = get[B](a)(c).get
 
 }
-
-//case class MockRow(data: List[Any], metaData: MetaData) extends Row
 
 case class SqlRow(metaData: MetaData, data: List[Any]) extends Row {
   override def toString() = "Row(" + metaData.ms.zip(data).map(t => "'" + t._1.column + "':" + t._2 + " as " + t._1.clazz).mkString(", ") + ")"
@@ -185,7 +145,9 @@ object Useful {
 
   case class Var[T](var content: T)
 
-  @deprecated(message = "Use [[scala.collection.immutable.Stream.dropWhile]] directly", since = "2.3.0")
+  @deprecated(
+    message = "Use [[scala.collection.immutable.Stream.dropWhile]] directly",
+    since = "2.3.0")
   def drop[A](these: Var[Stream[A]], n: Int): Stream[A] = {
     var count = n
     while (!these.content.isEmpty && count > 0) {
@@ -482,7 +444,7 @@ case class SqlQuery(query: String, argsInitialOrder: List[String] = List.empty, 
     asSimple.getFilledStatement(connection, getGeneratedKeys)
 
   def withQueryTimeout(seconds: Option[Int]): SqlQuery =
-    copy(queryTimeout = seconds)
+    this.copy(queryTimeout = seconds)
 
   private def defaultParser: RowParser[Row] = RowParser(row => Success(row))
 
@@ -583,8 +545,6 @@ object Sql {
     def data(rs: java.sql.ResultSet) = columns.map(nb => rs.getObject(nb))
     Useful.unfold(rs)(rs => if (!rs.next()) { rs.getStatement.close(); None } else Some((new SqlRow(rsMetaData, data(rs)), rs)))
   }
-
-  import SqlParser._
 
   def as[T](parser: ResultSetParser[T], rs: java.sql.ResultSet): T =
     parser(resultSetToStream(rs)) match {

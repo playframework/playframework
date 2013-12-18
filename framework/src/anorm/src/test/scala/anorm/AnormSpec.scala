@@ -605,7 +605,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
 }
 
 sealed trait AnormTest { db: H2Database =>
-  import SqlParser._
+  import SqlParser.{ long, str, int }
 
   val fooBarParser = long("id") ~ str("foo") ~ int("bar") map {
     case id ~ foo ~ bar => TestTable(id, foo, bar)
