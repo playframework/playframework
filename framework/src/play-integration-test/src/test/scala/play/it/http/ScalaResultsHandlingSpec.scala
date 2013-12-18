@@ -221,6 +221,14 @@ object ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient {
       response.body must beLeft
     }
 
+    "not send empty chunks before the end of the enumerator stream" in makeRequest(
+      Results.Ok.chunked(Enumerator("foo", "", "bar"))
+    ) { response =>
+      response.header(TRANSFER_ENCODING) must beSome("chunked")
+      response.header(CONTENT_LENGTH) must beNone
+      response.body must_== "foobar"
+    }
+
   }
 
 }
