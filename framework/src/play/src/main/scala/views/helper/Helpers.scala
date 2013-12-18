@@ -9,6 +9,8 @@ import scala.collection.JavaConverters._
  */
 package views.html.helper {
 
+  import scala.collection.immutable
+
   case class FieldElements(id: String, field: play.api.data.Field, input: Html, args: Map[Symbol, Any], lang: play.api.i18n.Lang) {
 
     def infos(implicit lang: play.api.i18n.Lang): Seq[String] = {
@@ -75,7 +77,7 @@ package views.html.helper {
      * @param fieldRenderer A function to render the field.
      * @return The sequence of rendered fields.
      */
-    def apply(field: play.api.data.Field, min: Int = 1)(fieldRenderer: play.api.data.Field => Html): Seq[Html] = {
+    def apply(field: play.api.data.Field, min: Int = 1)(fieldRenderer: play.api.data.Field => Html): immutable.IndexedSeq[Html] = {
       val indexes = field.indexes match {
         case Nil => 0 until min
         case complete if complete.size >= min => field.indexes
@@ -86,7 +88,7 @@ package views.html.helper {
           field.indexes ++ (start until (start + needed))
       }
 
-      indexes.map(i => fieldRenderer(field("[" + i + "]")))
+      indexes.map(i => fieldRenderer(field("[" + i + "]"))).toIndexedSeq
     }
   }
 
