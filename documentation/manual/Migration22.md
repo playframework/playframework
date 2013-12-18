@@ -118,9 +118,9 @@ Previously, futures in async actions had to be wrapped in the `async` call.  Now
 
 ```java
 public static Promise<Result> myAsyncAction() {
-    Promise<Integer> promiseOfInt = play.libs.Akka.future(
-    new Callable<Integer>() {
-      public Integer call() {
+  Promise<Integer> promiseOfInt = Promise.promise(
+    new Function0<Integer>() {
+      public Integer apply() {
         return intensiveComputation();
       }
     }
@@ -129,7 +129,7 @@ public static Promise<Result> myAsyncAction() {
     new Function<Integer, Result>() {
       public Result apply(Integer i) {
         return ok("Got result: " + i);
-      } 
+      }
     }
   );
 }
