@@ -28,7 +28,7 @@ object Column {
       else Left(UnexpectedNullableFound(qualified.toString))
   }
 
-  implicit def columnToString: Column[String] = {
+  implicit def columnToString: Column[String] =
     Column.nonNull[String] { (value, meta) =>
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
@@ -37,7 +37,16 @@ object Column {
         case _ => Left(TypeDoesNotMatch(s"Cannot convert $value:${value.asInstanceOf[AnyRef].getClass} to String for column $qualified"))
       }
     }
-  }
+
+  implicit def columnToChar: Column[Char] =
+    Column.nonNull[Char] { (value, meta) =>
+      val MetaDataItem(qualified, nullable, clazz) = meta
+      value match {
+        case string: String => Right(string.charAt(0))
+        case clob: java.sql.Clob => Right(clob.getSubString(1, 1).charAt(0))
+        case _ => Left(TypeDoesNotMatch(s"Cannot convert $value:${value.asInstanceOf[AnyRef].getClass} to Char for column $qualified"))
+      }
+    }
 
   implicit def columnToInt: Column[Int] = Column.nonNull { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta

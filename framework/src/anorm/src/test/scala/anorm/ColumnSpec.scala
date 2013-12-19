@@ -1,5 +1,7 @@
 package anorm
 
+import javax.sql.rowset.serial.SerialClob
+
 import acolyte.QueryResult
 import acolyte.RowLists._
 import acolyte.Acolyte.{ connection, handleQuery }
@@ -12,6 +14,19 @@ object ColumnSpec extends org.specs2.mutable.Specification {
 
   val bd = new java.math.BigDecimal("34.5679")
   val bi = new java.math.BigInteger("1234")
+  val clob = new SerialClob(Array[Char]('a', 'b', 'c', 'd', 'e', 'f'))
+
+  "Column mapped as Char" should {
+    "be parsed from string" in withQueryResult(stringList :+ "abc") {
+      implicit con =>
+        SQL("SELECT c").as(scalar[Char].single) aka "parsed char" must_== 'a'
+    }
+
+    "be parsed from clob" in withQueryResult(
+      rowList1(classOf[SerialClob]) :+ clob) { implicit con =>
+        SQL("SELECT c").as(scalar[Char].single) aka "parsed char" must_== 'a'
+      }
+  }
 
   "Column mapped as double" should {
     "be parsed from big decimal" in withQueryResult(bigDecimalList :+ bd) {
