@@ -275,6 +275,8 @@ object AnormSpec extends Specification with H2Database with AnormTest {
     def withConnection[A](ps: (String, String)*)(f: java.sql.Connection => A): A = f(connection(handleStatement withUpdateHandler {
       case UpdateExecution("set-str ?",
         DParam("string", SqlStr) :: Nil) => 1 /* case ok */
+      case UpdateExecution("set-char ?",
+        DParam("a", SqlStr) :: Nil) => 1 /* case ok */
       case UpdateExecution("set-false ?",
         DParam(false, SqlBool) :: Nil) => 1 /* case ok */
       case UpdateExecution("set-true ?",
@@ -340,6 +342,10 @@ object AnormSpec extends Specification with H2Database with AnormTest {
               Seq(NamedParameter("b", _)), _) =>
               q.execute() aka "execution" must beFalse
           }
+      }
+
+      "be character" in withConnection() { implicit c =>
+        SQL("set-char {p}").on("p" -> 'a').execute() must beFalse
       }
 
       "be boolean true" in withConnection() { implicit c =>
@@ -488,6 +494,11 @@ object AnormSpec extends Specification with H2Database with AnormTest {
               // see java.sql.PreparedStatement#execute
               q.execute() aka "execution" must beFalse
           }
+      }
+
+      "be character" in withConnection() { implicit c =>
+        SQL("set-char ?").copy(argsInitialOrder = "p" :: Nil).
+          onParams(pv('a')).execute() must beFalse
       }
 
       "be boolean true" in withConnection() { implicit c =>

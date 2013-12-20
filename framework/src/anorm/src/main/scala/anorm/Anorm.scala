@@ -191,6 +191,11 @@ object ToStatement {
     def set(s: PreparedStatement, index: Int, v: T): Unit = setAny(index, v, s)
   }
 
+  implicit val charToStatement = new ToStatement[Char] {
+    def set(s: PreparedStatement, index: Int, ch: Char): Unit =
+      s.setString(index, Character.toString(ch))
+  }
+
   implicit val uuidToStatement = new ToStatement[UUID] {
     def set(s: PreparedStatement, index: Int, aValue: UUID): Unit = s.setObject(index, aValue)
   }
