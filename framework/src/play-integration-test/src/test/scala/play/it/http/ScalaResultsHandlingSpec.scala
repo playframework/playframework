@@ -199,28 +199,6 @@ object ScalaResultsHandlingSpec extends PlaySpecification {
       response.body must beLeft("The response to this request is chunked and hence requires HTTP 1.1 to be sent, but this is a HTTP 1.0 request.")
     }
 
-    "return a 500 error on response with null header" in withServer(
-      Results.Ok("some body").withHeaders("X-Null" -> null)
-    ){ port =>
-      val response = BasicHttpClient.makeRequests(port)(
-        BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
-      )(0)
-
-      response.status must_== 500
-      response.body must beLeft("")
-    }
-
-    "return a 400 error on invalid URI" in withServer(
-      Results.Ok
-    ){ port =>
-      val response = BasicHttpClient.makeRequests(port)(
-        BasicRequest("GET", "/[", "HTTP/1.1", Map(), "")
-      )(0)
-
-      response.status must_== 400
-      response.body must beLeft
-    }
-
     "not send empty chunks before the end of the enumerator stream" in makeRequest(
       Results.Ok.chunked(Enumerator("foo", "", "bar"))
     ) { response =>
