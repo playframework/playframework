@@ -35,6 +35,13 @@ $ play dist
 > play universal:package-zip-tarball
 > ```
 
+By default, the dist task will include the API documentation in the generated package. If this is not necessary, it can be avoided by including this line in `build.sbt`:
+
+```scala
+doc in Compile <<= target.map(_ / "none")
+```
+For builds with sub-projects, the statement above has to be applied to all sub-project definitions.
+
 ## The Native Packager
 
 Play uses the [SBT Native Packager plugin](http://www.scala-sbt.org/sbt-native-packager/). The native packager plugin declares the `dist` task to create a zip file. Invoking the `dist` task is directly equivalent to invoking the following:
