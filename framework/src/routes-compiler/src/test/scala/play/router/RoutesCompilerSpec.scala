@@ -127,7 +127,7 @@ object RoutesCompilerSpec extends Specification {
     "throw an error if no include file specified" in parseError("-> /s")
   }
 
-"route file compiler" should {
+  "route file compiler" should {
 
     def withTempDir[T](block: File => T) = {
       val tmp = File.createTempFile("RoutesCompilerSpec", "")
@@ -146,6 +146,15 @@ object RoutesCompilerSpec extends Specification {
       }
     }
 
+    "not generate reverse ref routing if its disabled" in withTempDir { tmp =>
+      val f = new File(this.getClass.getClassLoader.getResource("generating.routes").toURI)
+      RoutesCompiler.compile(f, tmp, Seq.empty, generateReverseRouter = true, generateRefReverseRouter = false)
+
+      val generatedJavaRoutes = new File(tmp, "controllers/routes.java")
+      val contents = scala.io.Source.fromFile(generatedJavaRoutes).getLines().mkString("")
+      contents.contains("public static class ref") must beFalse
+    }
+
     "generate routes classes for route definitions that pass the checks" in withTempDir { tmp =>
       val file = new File(this.getClass.getClassLoader.getResource("generating.routes").toURI)
       RoutesCompiler.compile(file, tmp, Seq.empty)
@@ -156,17 +165,6 @@ object RoutesCompilerSpec extends Specification {
       val generatedReverseRoutes = new File(tmp, "generating/routes_reverseRouting.scala")
       generatedReverseRoutes.exists() must beTrue
     }
-
-    "not generate reverse ref routing if its disabled" in withTempDir { tmp =>
-
-      val f = new File(this.getClass.getClassLoader.getResource("generating.routes").toURI)
-      RoutesCompiler.compile(f, tmp, Seq.empty, generateReverseRouter = true, generateRefReverseRouter = false)
-
-      val generatedJavaRoutes = new File(tmp, "controllers/routes.java")
-      val contents = scala.io.Source.fromFile(generatedJavaRoutes).getLines().mkString("")
-      contents.contains("public static class ref") must beFalse
-    }
-
 
     "check if there are no routes using overloaded handler methods" in withTempDir { tmp =>
       val file = new File(this.getClass.getClassLoader.getResource("duplicateHandlers.routes").toURI)
