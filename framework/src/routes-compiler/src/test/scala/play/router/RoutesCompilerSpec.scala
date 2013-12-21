@@ -146,16 +146,6 @@ object RoutesCompilerSpec extends Specification {
       }
     }
 
-    def removeGenerated(routesName: String): Unit = {
-      val generated = new File(tmp, "/%s/routes_routing.scala".format(routesName))
-      if (generated.exists()) generated.delete()
-    }
-
-    def removeRoutesJava(): Unit = {
-      val generated = new File(tmp, "/controllers/routes.java")
-      if (generated.exists()) generated.delete()
-    }
-
     "generate routes classes for route definitions that pass the checks" in withTempDir { tmp =>
       val file = new File(this.getClass.getClassLoader.getResource("generating.routes").toURI)
       RoutesCompiler.compile(file, tmp, Seq.empty)
@@ -167,11 +157,9 @@ object RoutesCompilerSpec extends Specification {
       generatedReverseRoutes.exists() must beTrue
     }
 
-    "not generate reverse ref routing if its disabled" in {
-      removeGenerated("generating")
-      removeRoutesJava()
+    "not generate reverse ref routing if its disabled" in withTempDir { tmp =>
 
-      val f = new File("src/routes-compiler/src/test/resources/generating.routes")
+      val f = new File(this.getClass.getClassLoader.getResource("generating.routes").toURI)
       RoutesCompiler.compile(f, tmp, Seq.empty, generateReverseRouter = true, generateRefReverseRouter = false)
 
       val generatedJavaRoutes = new File(tmp, "controllers/routes.java")
