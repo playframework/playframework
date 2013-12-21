@@ -53,10 +53,10 @@ object ApplicationBuild extends Build {
     },
 
     sourceGenerators in Test <+= (state, javaManualSourceDirectories, sourceManaged in Test) map  { (s, ds, g) =>
-      RouteFiles(s, ds, g, Seq("play.libs.F"), true, true)
+      RouteFiles(s, ds, g, Seq("play.libs.F"), true, true, true)
     },
     sourceGenerators in Test <+= (state, scalaManualSourceDirectories, sourceManaged in Test) map  { (s, ds, g) =>
-      RouteFiles(s, ds, g, Seq(), true, true)
+      RouteFiles(s, ds, g, Seq(), true, true, true)
     },
 
     templatesTypes := Map(

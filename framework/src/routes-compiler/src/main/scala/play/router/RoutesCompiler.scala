@@ -291,7 +291,7 @@ object RoutesCompiler {
 
   }
 
-  def compile(file: File, generatedDir: File, additionalImports: Seq[String], generateReverseRouter: Boolean = true, namespaceReverseRouter: Boolean = false) {
+  def compile(file: File, generatedDir: File, additionalImports: Seq[String], generateReverseRouter: Boolean = true, generateRefReverseRouter: Boolean = true, namespaceReverseRouter: Boolean = false) {
 
     val namespace = Option(Path(file).name).filter(_.endsWith(".routes")).map(_.dropRight(".routes".size))
     val packageDir = namespace.map(pkg => new File(generatedDir, pkg.replace('.', '/'))).getOrElse(generatedDir)
@@ -304,7 +304,7 @@ object RoutesCompiler {
       val routesContent = routeFile.string
 
       (parser.parse(routesContent) match {
-        case parser.Success(parsed, _) => generate(routeFile, namespace, parsed, additionalImports, generateReverseRouter, namespaceReverseRouter)
+        case parser.Success(parsed, _) => generate(routeFile, namespace, parsed, additionalImports, generateReverseRouter, generateRefReverseRouter, namespaceReverseRouter)
         case parser.NoSuccess(message, in) => {
           throw RoutesCompilationError(file, message, Some(in.pos.line), Some(in.pos.column))
         }
@@ -401,7 +401,7 @@ object RoutesCompiler {
   /**
    * Generate the actual Scala code for this router
    */
-  private def generate(file: Path, namespace: Option[String], rules: List[Rule], additionalImports: Seq[String], reverseRouter: Boolean, namespaceReverseRouter: Boolean): Seq[(String, String)] = {
+  private def generate(file: Path, namespace: Option[String], rules: List[Rule], additionalImports: Seq[String], reverseRouter: Boolean, reverseRefRouter: Boolean, namespaceReverseRouter: Boolean): Seq[(String, String)] = {
 
     check(new File(file.path), rules.collect { case r: Route => r })
 
@@ -412,8 +412,8 @@ object RoutesCompiler {
 
     val files = Seq(filePrefix + "_routing.scala" -> generateRouter(path, hash, date, namespace, additionalImports, rules))
     if (reverseRouter) {
-      (files :+ filePrefix + "_reverseRouting.scala" -> generateReverseRouter(path, hash, date, namespace, additionalImports, routes, namespaceReverseRouter)) ++
-        generateJavaWrappers(path, hash, date, rules, namespace.filter(_ => namespaceReverseRouter))
+      (files :+ filePrefix + "_reverseRouting.scala" -> generateReverseRouter(path, hash, date, namespace, additionalImports, routes, reverseRefRouter, namespaceReverseRouter)) ++
+        generateJavaWrappers(path, hash, date, rules, reverseRefRouter, namespace.filter(_ => namespaceReverseRouter))
     } else {
       files
     }
@@ -475,7 +475,7 @@ object RoutesCompiler {
       routing(rules)
     )
 
-  def generateReverseRouter(path: String, hash: String, date: String, namespace: Option[String], additionalImports: Seq[String], routes: List[Route], namespaceReverseRouter: Boolean) =
+  def generateReverseRouter(path: String, hash: String, date: String, namespace: Option[String], additionalImports: Seq[String], routes: List[Route], reverseRefRouter: Boolean, namespaceReverseRouter: Boolean) =
     """ |// @SOURCE:%s
         |// @HASH:%s
         |// @DATE:%s
@@ -503,13 +503,39 @@ object RoutesCompiler {
       additionalImports.map(prefixImport).map("import " + _).mkString("\n"),
       reverseRouting(routes, namespace.filter(_ => namespaceReverseRouter)),
       javaScriptReverseRouting(routes, namespace.filter(_ => namespaceReverseRouter)),
-      refReverseRouting(routes, namespace.filter(_ => namespaceReverseRouter))
+      if (reverseRefRouter) refReverseRouting(routes, namespace.filter(_ => namespaceReverseRouter)) else ""
     )
 
-  def generateJavaWrappers(path: String, hash: String, date: String, rules: List[Rule], namespace: Option[String]) =
+  def generateJavaWrappers(path: String, hash: String, date: String, rules: List[Rule], reverseRefRouter: Boolean, namespace: Option[String]) = {
     rules.collect { case r: Route => r }.groupBy(_.call.packageName).map {
       case (pn, routes) => {
         val packageName = namespace.map(_ + "." + pn).getOrElse(pn)
+        def reverseRoutes = routes.groupBy(_.call.controller).map {
+          case (controller, routes) => {
+            "public static final " + packageName + ".Reverse" + controller + " " + controller + " = new " + packageName + ".Reverse" + controller + "();"
+          }
+        }.mkString("\n")
+
+        def javaScriptRoutes = """
+            |public static class javascript {
+            |%s
+            |}
+          """.stripMargin.format(routes.groupBy(_.call.controller).map {
+          case (controller, _) => {
+            "public static final " + packageName + ".javascript.Reverse" + controller + " " + controller + " = new " + packageName + ".javascript.Reverse" + controller + "();"
+          }
+        }.mkString("\n"))
+
+        def refRoutes = """
+            |public static class ref {
+            |%s
+            |}
+          """.stripMargin.format(routes.groupBy(_.call.controller).map {
+          case (controller, _) => {
+            "public static final " + packageName + ".ref.Reverse" + controller + " " + controller + " = new " + packageName + ".ref.Reverse" + controller + "();"
+          }
+        }.mkString("\n"))
+
         (packageName.replace(".", "/") + "/routes.java") -> {
 
           """ |// @SOURCE:%s
@@ -520,38 +546,20 @@ object RoutesCompiler {
             |
             |public class routes {
             |%s
-            |public static class javascript {
             |%s
-            |}
-            |public static class ref {
             |%s
-            |}
             |}
           """.stripMargin.format(
             path, hash, date,
             packageName,
-
-            routes.groupBy(_.call.controller).map {
-              case (controller, routes) => {
-                "public static final " + packageName + ".Reverse" + controller + " " + controller + " = new " + packageName + ".Reverse" + controller + "();"
-              }
-            }.mkString("\n"),
-
-            routes.groupBy(_.call.controller).map {
-              case (controller, _) => {
-                "public static final " + packageName + ".javascript.Reverse" + controller + " " + controller + " = new " + packageName + ".javascript.Reverse" + controller + "();"
-              }
-            }.mkString("\n"),
-
-            routes.groupBy(_.call.controller).map {
-              case (controller, _) => {
-                "public static final " + packageName + ".ref.Reverse" + controller + " " + controller + " = new " + packageName + ".ref.Reverse" + controller + "();"
-              }
-            }.mkString("\n")
+            reverseRoutes,
+            javaScriptRoutes,
+            if (reverseRefRouter) refRoutes else ""
           )
         }
       }
     }
+  }
 
   /**
    * Generate the reverse routing operations
