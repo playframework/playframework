@@ -323,7 +323,7 @@ public class Dashboard extends FluentPage {
 It is similarly simple, like the login page. Eventually we will add more functionality to this page but for now, since we're only testing the drawer, we just provide a method to get the drawer. Let's see how implementation of the drawer, in `test/components/Drawer.java`:
 
 ```java
-ackage components;
+package components;
 
 import java.util.*;
 
