@@ -6,6 +6,7 @@ package play.router
 import scala.util.parsing.input._
 import scala.util.parsing.combinator._
 import scala.util.matching._
+import scala.collection.immutable.ListMap
 
 /**
  * provides a compiler for routes
@@ -915,28 +916,44 @@ object RoutesCompiler {
                           reverseParameters.map(x => safeKeyword(x._1.name) + ": @unchecked").mkString(", "),
 
                           // route selection
-                          (route +: routes).map { route =>
+                          // We will generate a list of routes. Then we should remove duplicates from them.
+                          // Routes are considered duplicates if parameters and parameters contraints (see
+                          // definition below) are identical.
+                          //
+                          // We will generate a seq of route then pass to ListMap (to preserve order) to have
+                          // a distinctBy we control then get the values of this map.
+                          ListMap((route +: routes).map { route =>
 
                             val localNames = reverseParameters.map {
                               case (lp, i) => route.call.parameters.get(i).name -> lp.name
-                            }.toMap;
+                            }.toMap
 
-                            """ |%s
-                                                            |case (%s) %s => %s
-                                                        """.stripMargin.format(
-                              markLines(route),
-                              reverseParameters.map(x => safeKeyword(x._1.name)).mkString(", "),
+                            val markers = markLines(route)
 
-                              // Fixed constraints
-                              Option(route.call.parameters.getOrElse(Nil).filter { p =>
-                                localNames.contains(p.name) && p.fixed.isDefined
-                              }.map { p =>
-                                p.name + " == " + p.fixed.get
-                              }).filterNot(_.isEmpty).map("if " + _.mkString(" && ")).getOrElse("if true"),
+                            // Routes like /dummy controllers.Application.dummy(foo: String)
+                            // foo is the parameter
+                            val parameters = reverseParameters.map(x => safeKeyword(x._1.name)).mkString(", ")
 
-                              genCall(route, localNames))
+                            // Routes like /dummy controllers.Application.dummy(foo = "bar")
+                            // foo = "bar" is a constraint
+                            val parametersContraints = route.call.parameters.getOrElse(Nil).filter { p =>
+                              localNames.contains(p.name) && p.fixed.isDefined
+                            }.map { p =>
+                              p.name + " == " + p.fixed.get
+                            } match {
+                              case Nil => ""
+                              case nonEmpty => "if " + nonEmpty.mkString(" && ")
+                            }
 
-                          }.mkString("\n"))
+                            val call = genCall(route, localNames)
+
+                            val result = """|%s
+                               |case (%s) %s => %s
+                            """.stripMargin.format(markers, parameters, parametersContraints, call)
+
+                            (parameters -> parametersContraints) -> result
+                          }: _*).values
+                            .mkString("\n"))
                       }
 
                     }
