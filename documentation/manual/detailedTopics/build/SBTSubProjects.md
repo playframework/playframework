@@ -11,8 +11,6 @@ You can make your application depend on a simple library project. Just add anoth
 ```
 import play.Project._
 
-import play.Project._
-
 name := "my-first-application"
 
 version := "1.0"
