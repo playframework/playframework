@@ -75,4 +75,3 @@ If jQuery isn't your thing, or if you'd like to decorate the jQuery ajax method 
 To define this function, in your action pass the ``ajaxMethod`` method parameter, eg:
 
     Routes.javascriptRouter("jsRoutes", Some("myAjaxFunction") ...
-ws = new WebSocket(ws_addr.webSocketURL())
