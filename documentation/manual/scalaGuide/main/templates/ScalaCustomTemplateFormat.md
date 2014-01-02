@@ -30,7 +30,7 @@ The type parameter `A` of the format defines the result type of the template ren
 
 For convenience, Play provides a `play.api.templates.BufferedContent[A]` abstract class that implements `play.templates.Appendable[A]` using a `StringBuilder` to build its result and that implements the `play.api.mvc.Content` trait so Play knows how to serialize it as an HTTP response body (see the last section of this page for details).
 
-In short, you need to write to classes: one defining the result (implementing `play.templates.Appendable[A]`) and one defining the text integration process (implementing `play.templates.Format[A]`). For instance, here is how the HTML format is defined:
+In short, you need to write two classes: one defining the result (implementing `play.templates.Appendable[A]`) and one defining the text integration process (implementing `play.templates.Format[A]`). For instance, here is how the HTML format is defined:
 
 ```scala
 // The `Html` result type. We extend `BufferedContent[Html]` rather than just `Appendable[Html]` so

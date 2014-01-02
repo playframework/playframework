@@ -15,7 +15,7 @@ val appDependencies = Seq(
 
 ## Exposing the datasource through JNDI
 
-JPA requires the datasource to be accessible via JNDI. You can expose any Play-managed datasource via JDNI by adding this configuration in `conf/application.conf`:
+JPA requires the datasource to be accessible via JNDI. You can expose any Play-managed datasource via JNDI by adding this configuration in `conf/application.conf`:
 
 ```
 db.default.driver=org.h2.Driver
