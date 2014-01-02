@@ -41,6 +41,13 @@ object JsonValidSpec extends Specification {
       JsNumber(5.123).validate[BigDecimal] must equalTo(JsSuccess(BigDecimal(5.123)))
     }
 
+    "return JsResult with correct values for isSuccess and isError" in {
+      JsString("s").validate[String].isSuccess must beTrue
+      JsString("s").validate[String].isError must beFalse
+      JsString("s").validate[Long].isSuccess must beFalse
+      JsString("s").validate[Long].isError must beTrue
+    }
+
     "validate JsObject to Map" in {
       Json.obj("key1" -> "value1", "key2" -> "value2").validate[Map[String, String]] must equalTo(JsSuccess(Map("key1" -> "value1", "key2" -> "value2")))
       Json.obj("key1" -> 5, "key2" -> 3).validate[Map[String, Int]] must equalTo(JsSuccess(Map("key1" -> 5, "key2" -> 3)))

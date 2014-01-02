@@ -69,6 +69,9 @@ object JsError {
 
 sealed trait JsResult[+A] { self =>
 
+  def isSuccess: Boolean = this.isInstanceOf[JsSuccess[_]]
+  def isError: Boolean = this.isInstanceOf[JsError]
+
   def fold[X](invalid: Seq[(JsPath, Seq[ValidationError])] => X, valid: A => X): X = this match {
     case JsSuccess(v, _) => valid(v)
     case JsError(e) => invalid(e)
