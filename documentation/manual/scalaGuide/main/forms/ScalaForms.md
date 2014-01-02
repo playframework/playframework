@@ -209,7 +209,7 @@ Sometimes you’ll want to populate a form with existing values, typically for e
 
 @[userForm-filled](code/ScalaForms.scala)
 
-When you use this with a view helper, the value of the element will be filled with with the value:
+When you use this with a view helper, the value of the element will be filled with the value:
 
 ```html
 @helper.inputText(filledForm("name")) @* will render value="Bob" *@
