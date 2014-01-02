@@ -51,12 +51,20 @@ Using jQuery as an example, making a call is as simple as:
       .done( /*...*/ )
       .fail( /*...*/ );
 
-The router also makes a few other properties available including the ``url``, the ``type`` (the HTTP method), the ``absoluteURL`` and the ``webSocketURL``. For example the above call to jQuery's ajax function can also be made like:
+The router also makes a few other properties available including the ``url`` and the ``type`` (the HTTP method). For example the above call to jQuery's ajax function can also be made like:
 
     var r = jsRoutes.controllers.Users.get(someId);
     $.ajax({url: r.url, type: r.type, success: /*...*/, error: /*...*/ });
 
 The above approach is required where other properties need setting such as success, error, context etc.
+
+The ``absoluteURL`` and the ``webSocketURL`` are methods (not properties) which return the complete url string. A Websocket connection can be made like:
+
+    var r = jsRoutes.controllers.Users.list();
+    var ws = new WebSocket(r.webSocketURL());
+    ws.onmessage = function(msg) {
+            /*...*/
+    };
 
 ## jQuery ajax method support
 
@@ -67,4 +75,3 @@ If jQuery isn't your thing, or if you'd like to decorate the jQuery ajax method 
 To define this function, in your action pass the ``ajaxMethod`` method parameter, eg:
 
     Routes.javascriptRouter("jsRoutes", Some("myAjaxFunction") ...
-
