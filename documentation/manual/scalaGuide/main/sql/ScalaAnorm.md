@@ -190,6 +190,21 @@ val countries = SQL("Select name,population from Country")().collect {
 
 Note that since `collect(…)` ignores the cases where the partial function isn’t defined, it allows your code to safely ignore rows that you don’t expect.
 
+## Using for-comprehension
+
+Row parser can be defined as for-comprehension, working with SQL result type. It can be useful when working with lot of column, possibly to work around case class limit.
+
+```scala
+import anorm.SqlParser.{ str, int }
+
+val parser = for {
+  a <- str("colA")
+  b <- int("colB")
+} yield (a -> b)
+
+val parsed: (String, Int) = SELECT("SELECT * FROM Test").as(parser.single)
+```
+
 ## Retrieving data along with execution context
 
 Moreover data, query execution involves context information like SQL warnings that may be raised (and may be fatal or not), especially when working with stored SQL procedure.

@@ -195,23 +195,6 @@ object SqlParser {
 // Using List or HList?
 final case class ~[+A, +B](_1: A, _2: B)
 
-trait SqlResult[+A] { self =>
-
-  def flatMap[B](k: A => SqlResult[B]): SqlResult[B] = self match {
-    case Success(a) => k(a)
-    case e @ Error(_) => e
-  }
-
-  def map[B](f: A => B): SqlResult[B] = self match {
-    case Success(a) => Success(f(a))
-    case e @ Error(_) => e
-  }
-}
-
-case class Success[A](a: A) extends SqlResult[A]
-
-case class Error(msg: SqlRequestError) extends SqlResult[Nothing]
-
 object RowParser {
   def apply[A](f: Row => SqlResult[A]): RowParser[A] = new RowParser[A] {
     def apply(row: Row): SqlResult[A] = f(row)
