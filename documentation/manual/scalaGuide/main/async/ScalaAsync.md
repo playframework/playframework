@@ -27,7 +27,7 @@ It's important to understand which thread code runs on with futures.  In the two
 
 ## Returning futures
 
-While we were using the `Action.apply` builder methods to build actions until now, to send an asynchronous result, we need to use the `Action.async` buider method:
+While we were using the `Action.apply` builder methods to build actions until now, to send an asynchronous result, we need to use the `Action.async` builder method:
 
 @[async-result](code/ScalaAsync.scala)
 
