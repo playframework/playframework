@@ -10,6 +10,8 @@ import org.specs2.execute.Result
 
 object RoutesCompilerSpec extends Specification {
 
+  sequential
+
   "route file parser" should {
 
     def parseRoute(line: String) = {
@@ -144,7 +146,14 @@ object RoutesCompilerSpec extends Specification {
       }
     }
 
+    "not generate reverse ref routing if its disabled" in withTempDir { tmp =>
+      val f = new File(this.getClass.getClassLoader.getResource("generating.routes").toURI)
+      RoutesCompiler.compile(f, tmp, Seq.empty, generateReverseRouter = true, generateRefReverseRouter = false)
 
+      val generatedJavaRoutes = new File(tmp, "controllers/routes.java")
+      val contents = scala.io.Source.fromFile(generatedJavaRoutes).getLines().mkString("")
+      contents.contains("public static class ref") must beFalse
+    }
 
     "generate routes classes for route definitions that pass the checks" in withTempDir { tmp =>
       val file = new File(this.getClass.getClassLoader.getResource("generating.routes").toURI)
@@ -162,5 +171,4 @@ object RoutesCompilerSpec extends Specification {
       RoutesCompiler.compile(file, tmp, Seq.empty) must throwA [RoutesCompilationError]
     }
   }
-
 }
