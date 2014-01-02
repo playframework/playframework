@@ -223,14 +223,14 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
    * TODO : improve because coding is nasty there
    */
   def deepMerge(other: JsObject): JsObject = {
-    def step(fields: List[(String, JsValue)], others: List[(String, JsValue)]): Seq[(String, JsValue)] = {
+    def step(fields: Vector[(String, JsValue)], others: Vector[(String, JsValue)]): Seq[(String, JsValue)] = {
       others match {
-        case List() => fields
-        case List(sv) =>
+        case Vector() => fields
+        case Vector(sv) =>
           var found = false
           val newFields = fields match {
-            case List() => List(sv)
-            case _ => fields.foldLeft(List[(String, JsValue)]()) { (acc, field) =>
+            case Vector() => Vector(sv)
+            case _ => fields.foldLeft(Vector[(String, JsValue)]()) { (acc, field) =>
               field match {
                 case (key, obj: JsObject) if (key == sv._1) =>
                   found = true
@@ -251,11 +251,11 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
           if (!found) fields :+ sv
           else newFields
 
-        case head :: tail =>
+        case head +: tail =>
           var found = false
           val headFields = fields match {
-            case List() => List(head)
-            case _ => fields.foldLeft(List[(String, JsValue)]()) { (acc, field) =>
+            case Vector() => Vector(head)
+            case _ => fields.foldLeft(Vector[(String, JsValue)]()) { (acc, field) =>
               field match {
                 case (key, obj: JsObject) if (key == head._1) =>
                   found = true
@@ -279,7 +279,7 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
       }
     }
 
-    JsObject(step(fields.toList, other.fields.toList))
+    JsObject(step(fields.toVector, other.fields.toVector))
   }
 
   override def equals(other: Any): Boolean =
