@@ -13,17 +13,6 @@ Similarly, the `play.mvc.Http.RequestHeader#acceptedTypes` method gives the list
 
 You can test if a given MIME type is acceptable for the current request using the `play.mvc.Http.RequestHeader#accepts` method:
 
-```
-public static Result list() {
-  List<Item> items = Item.find.all();
-  if (request().accepts("text/html")) {
-    return ok(views.html.Application.list.render(items));
-  } else {
-    ObjectNode result = Json.newObject();
-    ...
-    return ok(result);
-  }
-}
-```
+@[negotiate-content](code/javaguide/http/JavaContentNegotiation.java)
 
 > **Next:** [[Asynchronous HTTP programming | JavaAsync]]
