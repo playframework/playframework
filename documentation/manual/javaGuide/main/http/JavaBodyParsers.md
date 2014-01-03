@@ -11,40 +11,23 @@ An HTTP request (at least for those using the POST and PUT operations) contains 
 
 ## The `BodyParser` Java API
 
+When working with request bodies, ensure that have the following imports in your controller:
+
+@[imports](code/javaguide/http/JavaBodyParsers.java)
+
 In the Java API, all body parsers must generate a `play.mvc.Http.RequestBody` value. This value computed by the body parser can then be retrieved via `request().body()`:
 
-```java
-public static Result index() {
-  RequestBody body = request().body();
-  return ok("Got body: " + body);
-}
-```
+@[request-body](code/javaguide/http/JavaBodyParsers.java)
 
 You can specify the `BodyParser` to use for a particular action using the `@BodyParser.Of` annotation:
 
-```java
-@BodyParser.Of(BodyParser.Json.class)
-public static Result index() {
-  RequestBody body = request().body();
-  return ok("Got json: " + body.asJson());
-}
-```
+@[particular-body-parser](code/javaguide/http/JavaBodyParsers.java)
 
 ## The `Http.RequestBody` API
 
 As we just said all body parsers in the Java API will give you a `play.mvc.Http.RequestBody` value. From this body object you can retrieve the request body content in the most appropriate Java type.
 
-> **Note:** The `RequestBody` methods like `asText()` or `asJson()` will return null if the parser used to compute this request body doesn't support this content type. For example in an action method annotated with `@BodyParser.Of(BodyParser.Json.class)`, calling `asXml()` on the generated body will retun null.
-
-Some parsers can provide a more specific type than `Http.RequestBody` (ie. a subclass of `Http.RequestBody`). You can automatically cast the request body into another type using the `as(...)` helper method:
-
-```java
-@BodyParser.Of(BodyLengthParser.class)
-public static Result index() {
-  BodyLength body = request().body().as(BodyLength.class);
-  ok("Request body length: " + body.getLength());
-}
-```
+> **Note:** The `RequestBody` methods like `asText()` or `asJson()` will return `null` if the parser used to compute this request body doesn't support this content type. For example in an action method annotated with `@BodyParser.Of(BodyParser.Json.class)`, calling `asXml()` on the generated body will return `null`.
 
 ## Default body parser: AnyContent
 
@@ -57,44 +40,20 @@ If you don't specify your own body parser, Play will use the default one guessin
 - **multipart/form-data**: `Http.MultipartFormData`, accessible via `asMultipartFormData()`
 - Any other content type: `Http.RawBuffer`, accessible via `asRaw()`
 
-Example:
+For example:
 
-```java
-public static Result save() {
-  RequestBody body = request().body();
-  String textBody = body.asText();
-  
-  if(textBody != null) {
-    ok("Got: " + text);
-  } else {
-    badRequest("Expecting text/plain request body");
-  }
-}
-```
+@[default-parser](code/javaguide/http/JavaBodyParsers.java)
 
 ## Max content length
 
 Text based body parsers (such as **text**, **json**, **xml** or **formUrlEncoded**) use a max content length because they have to load all the content into memory. 
 
-There is a default content length (the default is 100KB). 
+There is a default maximum content length of 100KB.  It can be overridden by specifying the `parsers.text.maxLength` property in `application.conf`:
 
-> **Tip:** The default content size can be defined in `application.conf`:
-> 
-> `parsers.text.maxLength=128K`
-
+    parsers.text.maxLength=128K
 
 You can also specify a maximum content length via the `@BodyParser.Of` annotation:
 
-```java
-// Accept only 10KB of data.
-@BodyParser.Of(value = BodyParser.Text.class, maxLength = 10 * 1024)
-public static Result index() {
-  if(request().body().isMaxSizeExceeded()) {
-    return badRequest("Too much data!");
-  } else {
-    ok("Got body: " + request().body().asText()); 
-  }
-}
-```
+@[max-length](code/javaguide/http/JavaBodyParsers.java)
 
 > **Next:** [[Actions composition | JavaActionsComposition]]

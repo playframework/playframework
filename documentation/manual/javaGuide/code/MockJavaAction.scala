@@ -5,7 +5,8 @@ package javaguide.testhelpers
 
 import play.core.j.{JavaActionAnnotations, JavaAction}
 import play.mvc.{Controller, Result}
-import play.test.{FakeRequest}
+import play.test.FakeRequest
+import play.api.test.Helpers
 import play.libs.F
 
 abstract class MockJavaAction extends Controller with JavaAction {
@@ -31,6 +32,14 @@ abstract class MockJavaAction extends Controller with JavaAction {
 object MockJavaAction {
   def call(action: JavaAction, request: FakeRequest) = {
     val result = action.apply(request.getWrappedRequest)
+    new Result {
+      def getWrappedResult = result
+      override def toString = result.toString
+    }
+  }
+
+  def callWithStringBody(action: JavaAction, request: FakeRequest, body: String) = {
+    val result = Helpers.call(action, request.getWrappedRequest, body)
     new Result {
       def getWrappedResult = result
       override def toString = result.toString
