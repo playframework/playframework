@@ -3,8 +3,8 @@
  */
 package javaguide.testhelpers
 
-import play.core.j.{JavaActionAnnotations, JavaAction}
-import play.mvc.{Controller, Result}
+import play.core.j.{JavaHelpers, JavaActionAnnotations, JavaAction}
+import play.mvc.{Http, Controller, Result}
 import play.test.FakeRequest
 import play.api.test.Helpers
 import play.libs.F
@@ -45,4 +45,10 @@ object MockJavaAction {
       override def toString = result.toString
     }
   }
+
+  def setContext(request: FakeRequest) = {
+    Http.Context.current.set(JavaHelpers.createJavaContext(request.getWrappedRequest))
+  }
+
+  def removeContext = Http.Context.current.remove()
 }
