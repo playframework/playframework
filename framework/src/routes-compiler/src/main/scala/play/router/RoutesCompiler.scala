@@ -473,7 +473,7 @@ object RoutesCompiler {
       additionalImports.map(prefixImport).map("import " + _).mkString("\n"),
       rules.collect { case Include(p, r) => "(\"" + p + "\"," + r + ")" }.mkString(","),
       routeDefinitions(rules),
-      routing(rules)
+      routing(namespace.getOrElse(""), rules)
     )
 
   def generateReverseRouter(path: String, hash: String, date: String, namespace: Option[String], additionalImports: Seq[String], routes: List[Route], reverseRefRouter: Boolean, namespaceReverseRouter: Boolean) =
@@ -777,13 +777,14 @@ object RoutesCompiler {
                     """
                           |%s
                           |def %s(%s): play.api.mvc.HandlerRef[_] = new play.api.mvc.HandlerRef(
-                          |   %s, HandlerDef(this, "%s", "%s", %s, "%s", %s, _prefix + %s)
+                          |   %s, HandlerDef(this, "%s", "%s", "%s", %s, "%s", %s, _prefix + %s)
                           |)
                       """.stripMargin.format(
                       markLines(route),
                       route.call.method,
                       reverseSignature,
                       controllerCall,
+                      namespace.getOrElse(""),
                       packageName + "." + controller,
                       route.call.method,
                       "Seq(" + { parameters.map("classOf[" + _.typeName + "]").mkString(", ") } + ")",
@@ -1024,7 +1025,7 @@ object RoutesCompiler {
   /**
    * Generate the routing stuff
    */
-  def routing(routes: List[Rule]): String = {
+  def routing(routerPackage: String, routes: List[Rule]): String = {
     Option(routes.zipWithIndex.map {
       case (r @ Include(_, _), i) =>
         """
@@ -1079,7 +1080,7 @@ object RoutesCompiler {
           }.map("(" + _ + ")").getOrElse(""),
 
           // definition
-          """HandlerDef(this, """" + r.call.packageName + "." + r.call.controller + """", """" + r.call.method + """", """ + r.call.parameters.filterNot(_.isEmpty).map { params =>
+          """HandlerDef(this, """" + routerPackage + """", """" + r.call.packageName + "." + r.call.controller + """", """" + r.call.method + """", """ + r.call.parameters.filterNot(_.isEmpty).map { params =>
             params.map("classOf[" + _.typeName + "]").mkString(", ")
           }.map("Seq(" + _ + ")").getOrElse("Nil") + ""","""" + r.verb + """", """ + "\"\"\"" + r.comments.map(_.comment).mkString("\n") + "\"\"\", Routes.prefix + \"\"\"" + r.path + "\"\"\")")
     }.mkString("\n")).filterNot(_.isEmpty).getOrElse {

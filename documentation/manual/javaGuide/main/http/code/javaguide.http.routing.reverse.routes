@@ -1,0 +1,4 @@
+#hello
+# Hello action
+GET   /hello/:name          controllers.Application.hello(name)
+#hello

@@ -20,9 +20,7 @@ Routes are defined in the `conf/routes` file, which is compiled. This means that
 
 Let’s see what a route definition looks like:
 
-```
-GET   /clients/:id          controllers.Clients.show(id: Long)  
-```
+@[clients-show](code/javaguide.http.routing.routes)
 
 > Note that in the action call, the parameter type comes after the parameter name, like in Scala.
 
@@ -30,10 +28,7 @@ Each route starts with the HTTP method, followed by the URI pattern. The last el
 
 You can also add comments to the route file, with the `#` character:
 
-```
-# Display a client.
-GET   /clients/:id          controllers.Clients.show(id: Long)  
-```
+@[clients-show-comment](code/javaguide.http.routing.routes)
 
 ## The HTTP method
 
@@ -47,17 +42,13 @@ The URI pattern defines the route’s request path. Some parts of the request pa
 
 For example, to exactly match `GET /clients/all` incoming requests, you can define this route:
 
-```
-GET   /clients/all          controllers.Clients.list()
-```
+@[static-path](code/javaguide.http.routing.routes)
 
 ### Dynamic parts 
 
 If you want to define a route that, say, retrieves a client by id, you need to add a dynamic part:
 
-```
-GET   /clients/:id          controllers.Clients.show(id: Long)  
-```
+@[clients-show](code/javaguide.http.routing.routes)
 
 > Note that a URI pattern may have more than one dynamic part.
 
@@ -67,9 +58,7 @@ The default matching strategy for a dynamic part is defined by the regular expre
 
 If you want a dynamic part to capture more than one URI path segment, separated by forward slashes, you can define a dynamic part using the `*id` syntax, which uses the `.*` regular expression:
 
-```
-GET   /files/*name          controllers.Application.download(name)  
-```
+@[spanning-path](code/javaguide.http.routing.routes)
 
 Here, for a request like `GET /files/images/logo.png`, the `name` dynamic part will capture the `images/logo.png` value.
 
@@ -77,9 +66,7 @@ Here, for a request like `GET /files/images/logo.png`, the `name` dynamic part w
 
 You can also define your own regular expression for a dynamic part, using the `$id<regex>` syntax:
     
-```
-GET   /clients/$id<[0-9]+>  controllers.Clients.show(id: Long)  
-```
+@[regex-path](code/javaguide.http.routing.routes)
 
 ## Call to action generator method
 
@@ -87,52 +74,29 @@ The last part of a route definition is the call. This part must define a valid c
 
 If the method does not define any parameters, just give the fully-qualified method name:
 
-```
-GET   /                     controllers.Application.homePage()
-```
+@[home-page](code/javaguide.http.routing.routes)
 
 If the action method defines parameters, the corresponding parameter values will be searched for in the request URI, either extracted from the URI path itself, or from the query string.
 
-```
-# Extract the page parameter from the path.
-# i.e. http://myserver.com/index
-GET   /:page                controllers.Application.show(page)
-```
+@[page](code/javaguide.http.routing.routes)
 
 Or:
 
-```
-# Extract the page parameter from the query string.
-# i.e. http://myserver.com/?page=index
-GET   /                     controllers.Application.show(page)
-```
+@[page](code/javaguide.http.routing.query.routes)
 
 Here is the corresponding `show` method definition in the `controllers.Application` controller:
 
-```java
-public static Result show(String page) {
-  String content = Page.getContentOf(page);
-  response().setContentType("text/html");
-  return ok(content);
-}
-```
+@[show-page-action](code/javaguide/http/routing/controllers/Application.java)
 
 ### Parameter types
 
 For parameters of type `String`, the parameter type is optional. If you want Play to transform the incoming parameter into a specific Scala type, you can add an explicit type:
 
-```
-GET   /client/:id           controllers.Clients.show(id: Long)
-```
+@[clients-show](code/javaguide.http.routing.routes)
 
 Then use the same type for the corresponding action method parameter in the controller:
 
-```java
-public static Result show(Long id) {
-  Client client = Client.findById(id);
-  return ok(views.html.Client.show(client));
-}
-```
+@[clients-show-action](code/javaguide/http/routing/controllers/Clients.java)
 
 > **Note:** The parameter types are specified using a suffix syntax. Also The generic types are specified using the `[]` symbols instead of `<>`, as in Java. For example, `List[String]` is the same type as the Java `List<String>`.
 
@@ -140,29 +104,19 @@ public static Result show(Long id) {
 
 Sometimes you’ll want to use a fixed value for a parameter:
 
-```
-# Extract the page parameter from the path, or fix the value for /
-GET   /                     controllers.Application.show(page = "home")
-GET   /:page                controllers.Application.show(page)
-```
+@[page](code/javaguide.http.routing.fixed.routes)
 
 ### Parameters with default values
 
 You can also provide a default value that will be used if no value is found in the incoming request:
 
-```
-# Pagination links, like /clients?page=3
-GET   /clients              controllers.Clients.list(page: Integer ?= 1)
-```
+@[clients](code/javaguide.http.routing.defaultvalue.routes)
 
 ### Optional parameters
 
 You can also specify an optional parameter that does not need to be present in all requests:
 
-```
-# The version parameter is optional. E.g. /api/list-all?version=3.0
-GET   /api/list-all         controllers.Api.list(version ?= null)
-```
+@[optional](code/javaguide.http.routing.routes)
 
 ## Routing priority
 
@@ -178,36 +132,15 @@ The `play.mvc.Call` defines an HTTP call, and provides both the HTTP method and 
 
 For example, if you create a controller like:
 
-```java
-package controllers;
-
-import play.*;
-import play.mvc.*;
-
-public class Application extends Controller {
-    
-  public static Result hello(String name) {
-      return ok("Hello " + name + "!");
-  }
-    
-}
-```
+@[controller](code/javaguide/http/routing/reverse/controllers/Application.java)
 
 And if you map it in the `conf/routes` file:
 
-```
-# Hello action
-GET   /hello/:name          controllers.Application.hello(name)
-```
+@[hello](code/javaguide.http.routing.reverse.routes)
 
 You can then reverse the URL to the `hello` action method, by using the `controllers.routes.Application` reverse controller:
 
-```java
-// Redirect to /hello/Bob
-public static Result index() {
-    return redirect(controllers.routes.Application.hello("Bob")); 
-}
-```
+@[reverse-redirect](code/javaguide/http/routing/controllers/Application.java)
 
 > **Note:** There is a `routes` subpackage for each controller package. So the action `controllers.admin.Application.hello` can be reversed via `controllers.admin.routes.Application.hello`.
 
