@@ -658,7 +658,7 @@ public class Http {
         }
 
         /**
-         * Discard a cookie on the give path with no domain and not that's secure
+         * Discard a cookie on the given path with no domain and not that's secure
          *
          * @param name The name of the cookie to discard.  Must not be null.
          * @param path The path of the cookie te discard, may be null
