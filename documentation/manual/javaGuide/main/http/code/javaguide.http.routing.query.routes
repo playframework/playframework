@@ -1,0 +1,5 @@
+# #page
+# Extract the page parameter from the query string.
+# i.e. http://myserver.com/?page=index
+GET   /                     controllers.Application.show(page)
+# #page

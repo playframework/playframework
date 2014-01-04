@@ -128,7 +128,7 @@ class ServerBenchmark extends NettyRunners {
     def routes: PartialFunction[RequestHeader, Handler] = {
       case hello_world(params) => {
         call {
-          invokeHandler(HelloWorldApp.helloWorld, HandlerDef(this, "hello_world", "index", Nil, "GET", """ Home page""", Routes.prefix + """"""))
+          invokeHandler(HelloWorldApp.helloWorld, HandlerDef(this, "", "hello_world", "index", Nil, "GET", """ Home page""", Routes.prefix + """"""))
         }
       }
 

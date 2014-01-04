@@ -15,47 +15,23 @@ Cookies are signed with a secret key so the client can’t modify the cookie dat
 
 You can retrieve the incoming Session from the HTTP request:
 
-```java
-public static Result index() {
-  String user = session("connected");
-  if(user != null) {
-    return ok("Hello " + user);
-  } else {
-    return unauthorized("Oops, you are not connected");
-  }
-}
-```
+@[read-session](code/javaguide/http/JavaSessionFlash.java)
 
 ## Storing data into the Session
 
 As the Session is just a Cookie, it is also just an HTTP header, but Play provides a helper method to store a session value:
 
-```java
-public static Result index() {
-  session("connected", "user@gmail.com");
-  return ok("Welcome!");
-}
-```
+@[store-session](code/javaguide/http/JavaSessionFlash.java)
 
 The same way, you can remove any value from the incoming session:
 
-```java
-public static Result index() {
-  session().remove("connected");
-  return ok("Bye");
-}
-```
+@[remove-from-session](code/javaguide/http/JavaSessionFlash.java)
 
 ## Discarding the whole session
 
 If you want to discard the whole session, there is special operation:
 
-```java
-public static Result index() {
-  session().clear();
-  return ok("Bye");
-}
-```
+@[discard-whole-session](code/javaguide/http/JavaSessionFlash.java)
 
 ## Flash scope
 
@@ -66,23 +42,12 @@ The Flash scope works exactly like the Session, but with two differences:
 
 > **Important:** The flash scope should only be used to transport success/error messages on simple non-Ajax applications. As the data are just kept for the next request and because there are no guarantees to ensure the request order in a complex Web application, the Flash scope is subject to race conditions.
 
-Here are a few examples using the Flash scope:
+So for example, after saving an item, you might want to redirect the user back to the index page, and you might want to display an error on the index page saying that the save was successful.  In the save action, you would add the success message to the flash scope:
 
-```java
-public static Result index() {
-  String message = flash("success");
-  if(message == null) {
-    message = "Welcome!";
-  }
-  return ok(message);
-}
+@[store-flash](code/javaguide/http/JavaSessionFlash.java)
 
-public static Result save() {
-  flash("success", "The item has been created");
-  return redirect("/home");
-}
-```
+Then in the index action, you could check if the success message existed in the flash scope, and if so, render it:
 
-&nbsp;
+@[read-flash](code/javaguide/http/JavaSessionFlash.java)
 
 > **Next:** [[Body parsers | JavaBodyParsers]]

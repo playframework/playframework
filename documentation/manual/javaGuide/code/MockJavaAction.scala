@@ -3,9 +3,10 @@
  */
 package javaguide.testhelpers
 
-import play.core.j.{JavaActionAnnotations, JavaAction}
-import play.mvc.{Controller, Result}
-import play.test.{FakeRequest}
+import play.core.j.{JavaHelpers, JavaActionAnnotations, JavaAction}
+import play.mvc.{Http, Controller, Result}
+import play.test.FakeRequest
+import play.api.test.Helpers
 import play.libs.F
 
 abstract class MockJavaAction extends Controller with JavaAction {
@@ -36,4 +37,18 @@ object MockJavaAction {
       override def toString = result.toString
     }
   }
+
+  def callWithStringBody(action: JavaAction, request: FakeRequest, body: String) = {
+    val result = Helpers.call(action, request.getWrappedRequest, body)
+    new Result {
+      def getWrappedResult = result
+      override def toString = result.toString
+    }
+  }
+
+  def setContext(request: FakeRequest) = {
+    Http.Context.current.set(JavaHelpers.createJavaContext(request.getWrappedRequest))
+  }
+
+  def removeContext = Http.Context.current.remove()
 }

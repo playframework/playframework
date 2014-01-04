@@ -4,14 +4,10 @@
 package play.core
 
 import play.api.mvc._
-import play.api.mvc.Results._
 import org.apache.commons.lang3.reflect.MethodUtils
 
-import scala.util.parsing.input._
-import scala.util.parsing.combinator._
-import scala.util.matching._
 import java.net.URI
-import scala.util.control.Exception
+import scala.util.control.{ NonFatal, Exception }
 import scala.collection.concurrent.TrieMap
 import play.core.j.JavaActionAnnotations
 import play.utils.UriEncoding
@@ -147,7 +143,7 @@ object Router {
 
   }
 
-  case class HandlerDef(ref: AnyRef, controller: String, method: String, parameterTypes: Seq[Class[_]], verb: String, comments: String, path: String)
+  case class HandlerDef(ref: AnyRef, routerPackage: String, controller: String, method: String, parameterTypes: Seq[Class[_]], verb: String, comments: String, path: String)
 
   def dynamicString(dynamic: String): String = {
     UriEncoding.encodePathSegment(dynamic, "utf-8")
@@ -173,11 +169,31 @@ object Router {
       def call(call: => A, handler: HandlerDef): Handler = call
     }
 
+    private def loadJavaControllerClass(handlerDef: HandlerDef) = {
+      val classLoader = handlerDef.ref.getClass.getClassLoader
+      try {
+        classLoader.loadClass(handlerDef.controller)
+      } catch {
+        case e: ClassNotFoundException => {
+          // Try looking up relative to the routers package name.
+          // This was primarily implemented for the documentation project so that routers could be namespaced and so
+          // they could reference controllers relative to their own package.
+          if (handlerDef.routerPackage.length > 0) {
+            try {
+              classLoader.loadClass(handlerDef.routerPackage + "." + handlerDef.controller)
+            } catch {
+              case NonFatal(_) => throw e
+            }
+          } else throw e
+        }
+      }
+    }
+
     implicit def wrapJava: HandlerInvoker[JResult] = new HandlerInvoker[JResult] {
       def call(call: => JResult, handlerDef: HandlerDef) = {
         new {
           val annotations = javaActionAnnotations.getOrElseUpdate(handlerDef, {
-            val controller = handlerDef.ref.getClass.getClassLoader.loadClass(handlerDef.controller)
+            val controller = loadJavaControllerClass(handlerDef)
             val method = MethodUtils.getMatchingAccessibleMethod(controller, handlerDef.method, handlerDef.parameterTypes: _*)
             new JavaActionAnnotations(controller, method)
           })
@@ -192,7 +208,7 @@ object Router {
       def call(call: => JPromise[JResult], handlerDef: HandlerDef) = {
         new {
           val annotations = javaActionAnnotations.getOrElseUpdate(handlerDef, {
-            val controller = handlerDef.ref.getClass.getClassLoader.loadClass(handlerDef.controller)
+            val controller = loadJavaControllerClass(handlerDef)
             val method = MethodUtils.getMatchingAccessibleMethod(controller, handlerDef.method, handlerDef.parameterTypes: _*)
             new JavaActionAnnotations(controller, method)
           })
