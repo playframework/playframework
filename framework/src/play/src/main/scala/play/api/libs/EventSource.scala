@@ -56,7 +56,7 @@ object EventSource {
      */
     lazy val formatted = {
       val sb = new StringBuilder
-      name.foreach(sb.append("name: ").append(_).append('\n'))
+      name.foreach(sb.append("event: ").append(_).append('\n'))
       id.foreach(sb.append("id: ").append(_).append('\n'))
       for (line <- data.split("(\r?\n)|\r")) {
         sb.append("data: ").append(line).append('\n')

@@ -17,7 +17,7 @@ object EventSourceSpec extends Specification {
     }
 
     "format an event with a name" in {
-      Event("foo", None, Some("message")).formatted must equalTo ("name: message\ndata: foo\n\n")
+      Event("foo", None, Some("message")).formatted must equalTo ("event: message\ndata: foo\n\n")
     }
 
     "split data by lines" in {
