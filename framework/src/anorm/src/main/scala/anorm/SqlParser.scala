@@ -55,7 +55,8 @@ object SqlParser {
    *     SqlParser.flatten) single)
    * }}}
    */
-  def float(columnName: String): RowParser[Float] = get[Float](columnName)(implicitly[Column[Float]])
+  def float(columnName: String): RowParser[Float] =
+    get[Float](columnName)(implicitly[Column[Float]]) // TODO: Review implicit
 
   /**
    * Parses specified column as string.
@@ -68,7 +69,8 @@ object SqlParser {
    *     SqlParser.flatten) single)
    * }}}
    */
-  def str(columnName: String): RowParser[String] = get[String](columnName)(implicitly[anorm.Column[String]])
+  def str(columnName: String): RowParser[String] =
+    get[String](columnName)(implicitly[anorm.Column[String]])
 
   /**
    * Parses specified column as boolean.
@@ -81,7 +83,8 @@ object SqlParser {
    *     SqlParser.flatten) single)
    * }}}
    */
-  def bool(columnName: String): RowParser[Boolean] = get[Boolean](columnName)(implicitly[Column[Boolean]])
+  def bool(columnName: String): RowParser[Boolean] =
+    get[Boolean](columnName)(implicitly[Column[Boolean]])
 
   /**
    * Parses specified column as byte.
@@ -94,7 +97,8 @@ object SqlParser {
    *     SqlParser.flatten) single)
    * }}}
    */
-  def byte(columnName: String): RowParser[Byte] = get[Byte](columnName)(implicitly[Column[Byte]])
+  def byte(columnName: String): RowParser[Byte] =
+    get[Byte](columnName)(implicitly[Column[Byte]])
 
   /**
    * Parses specified column as double.
@@ -107,7 +111,8 @@ object SqlParser {
    *     SqlParser.flatten) single)
    * }}}
    */
-  def double(columnName: String): RowParser[Double] = get[Double](columnName)(implicitly[Column[Double]])
+  def double(columnName: String): RowParser[Double] =
+    get[Double](columnName)(implicitly[Column[Double]])
 
   /**
    * Parses specified column as short.
@@ -120,7 +125,8 @@ object SqlParser {
    *     SqlParser.flatten) single)
    * }}}
    */
-  def short(columnName: String): RowParser[Short] = get[Short](columnName)(implicitly[Column[Short]])
+  def short(columnName: String): RowParser[Short] =
+    get[Short](columnName)(implicitly[Column[Short]])
 
   /**
    * Parses specified column as integer.
@@ -133,7 +139,8 @@ object SqlParser {
    *     SqlParser.flatten) single)
    * }}}
    */
-  def int(columnName: String): RowParser[Int] = get[Int](columnName)(implicitly[Column[Int]])
+  def int(columnName: String): RowParser[Int] =
+    get[Int](columnName)(implicitly[Column[Int]])
 
   /**
    * Parses specified column as long.
@@ -146,7 +153,8 @@ object SqlParser {
    *     SqlParser.flatten) single)
    * }}}
    */
-  def long(columnName: String): RowParser[Long] = get[Long](columnName)(implicitly[Column[Long]])
+  def long(columnName: String): RowParser[Long] =
+    get[Long](columnName)(implicitly[Column[Long]])
 
   /**
    * Parses specified column as date.
@@ -159,7 +167,8 @@ object SqlParser {
    *     SqlParser.flatten) single)
    * }}}
    */
-  def date(columnName: String): RowParser[Date] = get[Date](columnName)(implicitly[Column[Date]])
+  def date(columnName: String): RowParser[Date] =
+    get[Date](columnName)(implicitly[Column[Date]])
 
   def getAliased[T](aliasName: String)(implicit extractor: Column[T]): RowParser[T] = RowParser { row =>
     import MayErr._
@@ -172,6 +181,7 @@ object SqlParser {
     } yield result).fold(e => Error(e), a => Success(a))
   }
 
+  // TODO: Scaladoc
   def get[T](columnName: String)(implicit extractor: Column[T]): RowParser[T] = RowParser { row =>
     import MayErr._
 
