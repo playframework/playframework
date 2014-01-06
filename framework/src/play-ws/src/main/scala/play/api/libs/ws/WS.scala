@@ -3,11 +3,11 @@
  */
 package play.api.libs.ws
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ Future, ExecutionContext }
 
 import java.io.File
 
-import play.api.http.{Writeable, ContentTypeOf}
+import play.api.http.{ Writeable, ContentTypeOf }
 import play.api.libs.iteratee._
 
 import play.api._
@@ -546,26 +546,26 @@ trait WSProxyServer {
  * A WS proxy.
  */
 case class DefaultWSProxyServer(
-                                 /** The hostname of the proxy server. */
-                                 host: String,
+  /** The hostname of the proxy server. */
+  host: String,
 
-                                 /** The port of the proxy server. */
-                                 port: Int,
+  /** The port of the proxy server. */
+  port: Int,
 
-                                 /** The protocol of the proxy server.  Use "http" or "https".  Defaults to "http" if not specified. */
-                                 protocol: Option[String] = None,
+  /** The protocol of the proxy server.  Use "http" or "https".  Defaults to "http" if not specified. */
+  protocol: Option[String] = None,
 
-                                 /** The principal (aka username) of the credentials for the proxy server. */
-                                 principal: Option[String] = None,
+  /** The principal (aka username) of the credentials for the proxy server. */
+  principal: Option[String] = None,
 
-                                 /** The password for the credentials for the proxy server. */
-                                 password: Option[String] = None,
+  /** The password for the credentials for the proxy server. */
+  password: Option[String] = None,
 
-                                 ntlmDomain: Option[String] = None,
+  ntlmDomain: Option[String] = None,
 
-                                 encoding: Option[String] = None,
+  encoding: Option[String] = None,
 
-                                 nonProxyHosts: Option[Seq[String]] = None) extends WSProxyServer
+  nonProxyHosts: Option[Seq[String]] = None) extends WSProxyServer
 
 /**
  * An HTTP response header (the body has not been retrieved yet)

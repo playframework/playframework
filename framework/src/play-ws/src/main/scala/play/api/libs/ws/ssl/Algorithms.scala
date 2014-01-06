@@ -6,7 +6,7 @@
 package play.api.libs.ws.ssl
 
 import javax.crypto.SecretKey
-import java.security.interfaces.{DSAKey, ECKey, RSAKey}
+import java.security.interfaces.{ DSAKey, ECKey, RSAKey }
 import javax.crypto.interfaces.DHKey
 import scala.util.parsing.combinator.RegexParsers
 
@@ -32,7 +32,7 @@ object Algorithms {
   // The closest analogue is jdk.certpath.disabledAlgorithms
   val DEPRECATED_ALGORITHMS = "MD2, MD5, RSA keySize < 1024, DSA keySize < 1024, EC keySize < 160"
 
-  def disabledAlgorithms : String = DEPRECATED_ALGORITHMS
+  def disabledAlgorithms: String = DEPRECATED_ALGORITHMS
 
   /**
    * Returns the keySize of the given key.
@@ -161,7 +161,7 @@ case class AlgorithmConstraint(algorithm: String, constraint: Option[ExpressionS
    * Returns true if the algorithm matches this constraint, or if the keySize matches the expression, false otherwise.
    */
   def matches(algorithm: String, keySize: Int): Boolean = {
-    if (! this.algorithm.equalsIgnoreCase(algorithm)) {
+    if (!this.algorithm.equalsIgnoreCase(algorithm)) {
       return false
     }
 

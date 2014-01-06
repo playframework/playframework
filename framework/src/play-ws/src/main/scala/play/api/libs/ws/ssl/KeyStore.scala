@@ -96,8 +96,8 @@ import KeystoreFormats._
  * Builds a keystore from a string that is passed in.  Currently only supports PEM.
  */
 class StringBasedKeyStoreBuilder(keyStoreType: String,
-                                 data: String,
-                                 password: Option[Array[Char]] = None) extends KeyStoreBuilder {
+    data: String,
+    password: Option[Array[Char]] = None) extends KeyStoreBuilder {
 
   val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 
@@ -150,8 +150,8 @@ class StringBasedKeyStoreBuilder(keyStoreType: String,
  * Builds a keystore from a filepath.
  */
 class FileBasedKeyStoreBuilder(keyStoreType: String,
-                               filePath: String,
-                               password: Option[Array[Char]]) extends KeyStoreBuilder {
+    filePath: String,
+    password: Option[Array[Char]]) extends KeyStoreBuilder {
 
   val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 

@@ -5,11 +5,10 @@
  */
 package play.api.libs.ws.ssl
 
-
 /**
  * @see http://docs.oracle.com/javase/6/docs/technotes/guides/security/certpath/CertPathProgGuide.html
  */
-class JavaSecurityDebugBuilder(c:SSLDebugConfig) {
+class JavaSecurityDebugBuilder(c: SSLDebugConfig) {
 
   def build(): String = {
     if (c.certpath) "certpath" else ""
@@ -90,7 +89,7 @@ class JavaxNetDebugBuilder(c: SSLDebugConfig) {
       b.append(" pluggability")
     }
 
-    if ((! b.isEmpty) || ssl) {
+    if ((!b.isEmpty) || ssl) {
       b.append(" ssl")
     }
 

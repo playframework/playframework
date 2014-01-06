@@ -3,13 +3,13 @@
  */
 package play.api.libs.ws.ning
 
-import com.ning.http.client.{Response => AHCResponse, Cookie => AHCCookie, ProxyServer => AHCProxyServer, _}
-import com.ning.http.client.Realm.{RealmBuilder, AuthScheme}
+import com.ning.http.client.{ Response => AHCResponse, Cookie => AHCCookie, ProxyServer => AHCProxyServer, _ }
+import com.ning.http.client.Realm.{ RealmBuilder, AuthScheme }
 import com.ning.http.util.AsyncHttpProviderUtils
 
 import collection.immutable.TreeMap
 
-import scala.concurrent.{Future, Promise, ExecutionContext}
+import scala.concurrent.{ Future, Promise, ExecutionContext }
 
 import java.io.File
 import java.util.concurrent.atomic.AtomicReference
@@ -17,15 +17,14 @@ import java.util.concurrent.atomic.AtomicReference
 import play.api.libs.ws._
 import play.api.libs.ws.ssl._
 
-import play.api.http.{Writeable, ContentTypeOf}
+import play.api.http.{ Writeable, ContentTypeOf }
 import play.api.libs.iteratee._
-import play.api.{Application, Play}
+import play.api.{ Application, Play }
 import play.core.utils.CaseInsensitiveOrdered
 import play.api.libs.ws.DefaultWSResponseHeaders
 import play.api.libs.iteratee.Input.El
 import javax.net.ssl.SSLParameters
 import org.slf4j.LoggerFactory
-
 
 /**
  * A WS client backed by a Ning AsyncHttpClient.
@@ -51,11 +50,11 @@ class NingWSClient(config: AsyncHttpClientConfig) extends WSClient {
  * A WS Request.
  */
 case class NingWSRequest(client: NingWSClient,
-                         private val _method: String,
-                         private val _auth: Option[(String, String, WSAuthScheme)],
-                         private val _calc: Option[WSSignatureCalculator],
-                         builder: RequestBuilder)
-  extends WSRequest {
+  private val _method: String,
+  private val _auth: Option[(String, String, WSAuthScheme)],
+  private val _calc: Option[WSSignatureCalculator],
+  builder: RequestBuilder)
+    extends WSRequest {
 
   import scala.collection.JavaConverters._
 
@@ -345,15 +344,15 @@ case class NingWSRequest(client: NingWSClient,
  * A WS Request builder.
  */
 case class NingWSRequestHolder(client: NingWSClient,
-                               url: String,
-                               headers: Map[String, Seq[String]],
-                               queryString: Map[String, Seq[String]],
-                               calc: Option[WSSignatureCalculator],
-                               auth: Option[(String, String, WSAuthScheme)],
-                               followRedirects: Option[Boolean],
-                               requestTimeout: Option[Int],
-                               virtualHost: Option[String],
-                               proxyServer: Option[WSProxyServer]) extends WSRequestHolder {
+    url: String,
+    headers: Map[String, Seq[String]],
+    queryString: Map[String, Seq[String]],
+    calc: Option[WSSignatureCalculator],
+    auth: Option[(String, String, WSAuthScheme)],
+    followRedirects: Option[Boolean],
+    requestTimeout: Option[Int],
+    virtualHost: Option[String],
+    proxyServer: Option[WSProxyServer]) extends WSRequestHolder {
 
   /**
    * sets the signature calculator for the request

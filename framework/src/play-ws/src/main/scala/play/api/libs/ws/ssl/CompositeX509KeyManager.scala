@@ -5,16 +5,16 @@
  */
 package play.api.libs.ws.ssl
 
-import javax.net.ssl.{X509ExtendedKeyManager, X509KeyManager}
-import java.security.{Principal, PrivateKey}
-import java.security.cert.{CertificateException, X509Certificate}
+import javax.net.ssl.{ X509ExtendedKeyManager, X509KeyManager }
+import java.security.{ Principal, PrivateKey }
+import java.security.cert.{ CertificateException, X509Certificate }
 import java.net.Socket
 import scala.collection.mutable.ArrayBuffer
 
 /**
  * A keymanager that wraps other X509 key managers.
  */
-class CompositeX509KeyManager(keyManagers:Seq[X509KeyManager]) extends X509ExtendedKeyManager {
+class CompositeX509KeyManager(keyManagers: Seq[X509KeyManager]) extends X509ExtendedKeyManager {
   // Must specify X509ExtendedKeyManager: otherwise you get
   // "X509KeyManager passed to SSLContext.init():  need an X509ExtendedKeyManager for SSLEngine use"
 
@@ -101,7 +101,7 @@ class CompositeX509KeyManager(keyManagers:Seq[X509KeyManager]) extends X509Exten
     null
   }
 
-  private def withKeyManagers[T](block: (X509KeyManager => T)) : Seq[CertificateException] = {
+  private def withKeyManagers[T](block: (X509KeyManager => T)): Seq[CertificateException] = {
     val exceptionList = ArrayBuffer[CertificateException]()
     keyManagers.foreach { keyManager =>
       try {
@@ -114,7 +114,7 @@ class CompositeX509KeyManager(keyManagers:Seq[X509KeyManager]) extends X509Exten
     exceptionList
   }
 
-  private def nullIfEmpty[T](array:Array[T]) = if (array.size == 0) null else array
+  private def nullIfEmpty[T](array: Array[T]) = if (array.size == 0) null else array
 
   override def toString = {
     s"CompositeX509KeyManager(keyManagers = [$keyManagers])"

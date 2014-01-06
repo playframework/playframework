@@ -123,11 +123,8 @@ object DefaultSSLConfigParserSpec extends Specification {
       }
     }
 
-
-
     "parse ws.ssl.trustBuilder section" in {
       val info = parseThis( """
-                              |algorithm=MD5
                               |trustManager = {
                               |  algorithm = "trustme"
                               |  stores = [

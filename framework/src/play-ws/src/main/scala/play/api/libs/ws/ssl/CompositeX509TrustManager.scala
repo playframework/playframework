@@ -15,7 +15,7 @@ import java.security.GeneralSecurityException
  * A trust manager that is a composite of several smaller trust managers.   It is responsible for verifying the
  * credentials received from a peer.
  */
-class CompositeX509TrustManager(trustManagers: Seq[X509TrustManager], certificateValidator:CertificateValidator) extends X509TrustManager {
+class CompositeX509TrustManager(trustManagers: Seq[X509TrustManager], certificateValidator: CertificateValidator) extends X509TrustManager {
 
   protected val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 
@@ -78,10 +78,10 @@ class CompositeX509TrustManager(trustManagers: Seq[X509TrustManager], certificat
         try {
           block(trustManager)
         } catch {
-          case e:CertPathBuilderException =>
+          case e: CertPathBuilderException =>
             logger.debug("No path found to certificate: this usually means the CA is not in the trust store", e)
             exceptionList.append(e)
-          case e:GeneralSecurityException =>
+          case e: GeneralSecurityException =>
             logger.debug("General security exception", e)
             exceptionList.append(e)
           case NonFatal(e) =>

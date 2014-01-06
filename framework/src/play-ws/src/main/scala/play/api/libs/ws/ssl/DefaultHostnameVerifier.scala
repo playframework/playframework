@@ -5,13 +5,12 @@
  */
 package play.api.libs.ws.ssl
 
-import java.security.cert.{CertificateException, X509Certificate}
-import javax.net.ssl.{HostnameVerifier, SSLPeerUnverifiedException, SSLSession}
+import java.security.cert.{ CertificateException, X509Certificate }
+import javax.net.ssl.{ HostnameVerifier, SSLPeerUnverifiedException, SSLSession }
 import javax.security.auth.kerberos.KerberosPrincipal
 import sun.security.util.HostnameChecker
 import org.slf4j.LoggerFactory
 import com.ning.http.util.Base64
-
 
 /**
  * Use the internal sun hostname checker as the hostname verifier.  Thanks to Kevin Locke.
@@ -20,7 +19,6 @@ import com.ning.http.util.Base64
  * @see http://kevinlocke.name/bits/2012/10/03/ssl-certificate-verification-in-dispatch-and-asynchttpclient/
  */
 class DefaultHostnameVerifier extends HostnameVerifier {
-
 
   // AsyncHttpClient issue #197: "SSL host name verification disabled by default"
   // https://github.com/AsyncHttpClient/async-http-client/issues/197
@@ -66,7 +64,7 @@ class DefaultHostnameVerifier extends HostnameVerifier {
   private val logger = LoggerFactory.getLogger(getClass)
 
   def verify(hostname: String, session: SSLSession): Boolean = {
-    logger.debug("verify: hostname = {}, sessionId (base64) = {}", Seq(hostname, Base64.encode(session.getId)):_*)
+    logger.debug("verify: hostname = {}, sessionId (base64) = {}", Seq(hostname, Base64.encode(session.getId)): _*)
 
     val checker = HostnameChecker.getInstance(HostnameChecker.TYPE_TLS)
     val result = try {

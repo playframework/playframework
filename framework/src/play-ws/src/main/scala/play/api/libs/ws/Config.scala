@@ -5,7 +5,7 @@
  */
 package play.api.libs.ws
 
-import play.api.libs.ws.ssl.{DefaultSSLConfig, DefaultSSLConfigParser, SSLConfig}
+import play.api.libs.ws.ssl.{ DefaultSSLConfig, DefaultSSLConfigParser, SSLConfig }
 import play.api.Configuration
 
 /**
@@ -32,13 +32,12 @@ trait WSClientConfig {
  * Default client config option.
  */
 case class DefaultWSClientConfig(connectionTimeout: Option[Long] = None,
-                                 idleTimeout: Option[Long] = None,
-                                 requestTimeout: Option[Long] = None,
-                                 followRedirects: Option[Boolean] = None,
-                                 useProxyProperties: Option[Boolean] = None,
-                                 userAgent: Option[String] = None,
-                                 ssl: Option[SSLConfig] = None) extends WSClientConfig
-
+  idleTimeout: Option[Long] = None,
+  requestTimeout: Option[Long] = None,
+  followRedirects: Option[Boolean] = None,
+  useProxyProperties: Option[Boolean] = None,
+  userAgent: Option[String] = None,
+  ssl: Option[SSLConfig] = None) extends WSClientConfig
 
 /**
  * This class creates a DefaultWSClientConfig object from the play.api.Configuration.

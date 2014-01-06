@@ -4,7 +4,7 @@
 package play.api.libs.ws.ssl
 
 import javax.net.ssl._
-import java.security.{UnrecoverableKeyException, KeyStore, SecureRandom}
+import java.security.{ UnrecoverableKeyException, KeyStore, SecureRandom }
 import java.security.cert._
 import scala.util.control.NonFatal
 import java.util.Locale
@@ -19,9 +19,9 @@ trait SSLContextBuilder {
  * Likewise, if secureRandom is None then null is used.
  */
 class SimpleSSLContextBuilder(protocol: String,
-                              keyManagers: Seq[KeyManager],
-                              trustManagers: Seq[TrustManager],
-                              secureRandom: Option[SecureRandom]) extends SSLContextBuilder {
+    keyManagers: Seq[KeyManager],
+    trustManagers: Seq[TrustManager],
+    secureRandom: Option[SecureRandom]) extends SSLContextBuilder {
 
   def nullIfEmpty[T](array: Array[T]) = {
     if (array.isEmpty) null else array
@@ -88,8 +88,8 @@ class DefaultTrustManagerFactoryWrapper(trustManagerAlgorithm: String) extends T
  * Creates an SSL context builder from info objects.
  */
 class ConfigSSLContextBuilder(info: SSLConfig,
-                              keyManagerFactory: KeyManagerFactoryWrapper,
-                              trustManagerFactory: TrustManagerFactoryWrapper) extends SSLContextBuilder {
+    keyManagerFactory: KeyManagerFactoryWrapper,
+    trustManagerFactory: TrustManagerFactoryWrapper) extends SSLContextBuilder {
 
   protected val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 
@@ -114,9 +114,9 @@ class ConfigSSLContextBuilder(info: SSLConfig,
   }
 
   def buildSSLContext(protocol: String,
-                      keyManagers: Seq[KeyManager],
-                      trustManagers: Seq[TrustManager],
-                      secureRandom: Option[SecureRandom]) = {
+    keyManagers: Seq[KeyManager],
+    trustManagers: Seq[TrustManager],
+    secureRandom: Option[SecureRandom]) = {
     val builder = new SimpleSSLContextBuilder(protocol, keyManagers, trustManagers, secureRandom)
     builder.build()
   }

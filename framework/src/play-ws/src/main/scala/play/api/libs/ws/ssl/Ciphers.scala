@@ -302,7 +302,6 @@ object Ciphers {
       TLS_KRB5_EXPORT_WITH_DES_CBC_40_MD5
      */
 
-
   // 1.7.0_45 sslContext.getDefaultParameters().getCipherSuites()
   /*
   TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
@@ -357,6 +356,5 @@ object Ciphers {
     SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA
     TLS_EMPTY_RENEGOTIATION_INFO_SCSV
    */
-
 
 }

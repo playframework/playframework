@@ -7,7 +7,7 @@ package play.api.libs.ws.ssl
 
 import play.api.libs.ws.WSClientConfig
 
-class SystemProperties(config:WSClientConfig) {
+class SystemProperties(config: WSClientConfig) {
 
   val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 

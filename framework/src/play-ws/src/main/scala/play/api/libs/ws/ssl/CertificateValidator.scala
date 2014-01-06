@@ -10,7 +10,7 @@ import scala.collection.JavaConverters._
 /**
  * Define a certificate validator with our own custom checkers and builders.
  */
-class CertificateValidator(val constraints:Set[AlgorithmConstraint], val revocationEnabled: Boolean) {
+class CertificateValidator(val constraints: Set[AlgorithmConstraint], val revocationEnabled: Boolean) {
   private val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 
   // Add the algorithm checker in here...
@@ -30,8 +30,8 @@ class CertificateValidator(val constraints:Set[AlgorithmConstraint], val revocat
    * Validates a yet to be trusted certificate chain, using the trust manager as the trusted source.
    */
   def validate(chain: Array[X509Certificate],
-               trustedCerts: Traversable[X509Certificate],
-               nameConstraints: Option[Array[Byte]] = None): PKIXCertPathValidatorResult = {
+    trustedCerts: Traversable[X509Certificate],
+    nameConstraints: Option[Array[Byte]] = None): PKIXCertPathValidatorResult = {
     logger.debug(s"validate: chain = $chain, trustedCerts = $trustedCerts")
 
     val trustAnchors = findTrustAnchors(trustedCerts, nameConstraints)
@@ -55,8 +55,8 @@ class CertificateValidator(val constraints:Set[AlgorithmConstraint], val revocat
    * Initializes the builder parameters with the trust anchors and checkers.
    */
   def paramsFrom(trustAnchors: Set[TrustAnchor],
-                 certSelect: Option[X509CertSelector],
-                 nameConstraints: Option[Array[Byte]]): PKIXParameters = {
+    certSelect: Option[X509CertSelector],
+    nameConstraints: Option[Array[Byte]]): PKIXParameters = {
     val params = new PKIXBuilderParameters(trustAnchors.asJava, certSelect.orNull)
 
     // Use the custom cert path checkers we defined...

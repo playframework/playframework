@@ -6,7 +6,7 @@
 package play.api.libs.ws.ning
 
 import play.api.libs.ws.WSClientConfig
-import com.ning.http.client.{SSLEngineFactory, AsyncHttpClientConfig}
+import com.ning.http.client.{ SSLEngineFactory, AsyncHttpClientConfig }
 import javax.net.ssl._
 import play.api.libs.ws.ssl._
 import org.slf4j.LoggerFactory
@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory
  * @param builder a builder, defaults to a new instance.  You can pass in a preconfigured builder here.
  */
 class NingAsyncHttpClientConfigBuilder(config: WSClientConfig,
-                                       builder: AsyncHttpClientConfig.Builder = new AsyncHttpClientConfig.Builder()) {
+    builder: AsyncHttpClientConfig.Builder = new AsyncHttpClientConfig.Builder()) {
 
   val defaultHostnameVerifierClassName = "play.api.libs.ws.ssl.DefaultHostnameVerifier"
 
@@ -98,18 +98,18 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig,
 
     // By DEFAULT, AsyncHttpClient will accept ("trust") absolutely ANY certificate.
     //
-    // AsyncHttpClient issue #352: "SSL/TLS certificate verification disabled"
-    // https://github.com/AsyncHttpClient/async-http-client/issues/352
+    //    AsyncHttpClient issue #352: "SSL/TLS certificate verification disabled"
+    //    https://github.com/AsyncHttpClient/async-http-client/issues/352
     //
-    // From http://kevinlocke.name/bits/2012/10/03/ssl-certificate-verification-in-dispatch-and-asynchttpclient/
+    //      From http://kevinlocke.name/bits/2012/10/03/ssl-certificate-verification-in-dispatch-and-asynchttpclient/
     //
-    // "The SSLContext class is central to the SSL implementation in Java in general and in AsyncHttpClient in particular.
-    // The default SSLContext for AsyncHttpClient is dependent on whether the javax.net.ssl.keyStore system property is set.
-    // If this property is set, AsyncHttpClient will create a TLS SSLContext with a KeyManager based on the specified key
-    // store (and configured based on the values of many other javax.net.ssl properties as described in the
-    // JSEE Reference Guide linked above). Otherwise, it will create a TLS SSLContext with no KeyManager and a
-    // TrustManager which accepts everything. In effect, if javax.net.ssl.keyStore is unspecified, any
-    // ol’ SSL certificate will do."
+    //    "The SSLContext class is central to the SSL implementation in Java in general and in AsyncHttpClient in particular.
+    //    The default SSLContext for AsyncHttpClient is dependent on whether the javax.net.ssl.keyStore system property is set.
+    //    If this property is set, AsyncHttpClient will create a TLS SSLContext with a KeyManager based on the specified key
+    //    store (and configured based on the values of many other javax.net.ssl properties as described in the
+    //    JSEE Reference Guide linked above). Otherwise, it will create a TLS SSLContext with no KeyManager and a
+    //    TrustManager which accepts everything. In effect, if javax.net.ssl.keyStore is unspecified, any
+    //    ol’ SSL certificate will do."
 
     val isOff = sslConfig.off.getOrElse(false)
     if (isOff) {
@@ -195,7 +195,6 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig,
   }
 }
 
-
 /**
  * An SSL engine factory.  This factory is configured to make 1.6 more secure, but ideally you should use 1.7 JSSE as
  * the default settings are much better.  Notably, the cipher list in 1.7 is much improved and Server Name Indication
@@ -209,9 +208,9 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig,
  * @see <a href="http://docs.oracle.com/javase/7/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider">1.7 SunJSSE Provider</a>
  */
 class DefaultSSLEngineFactory(config: SSLConfig,
-                              sslContext: SSLContext,
-                              enabledProtocols: Array[String],
-                              enabledCipherSuites: Array[String]) extends SSLEngineFactory {
+    sslContext: SSLContext,
+    enabledProtocols: Array[String],
+    enabledCipherSuites: Array[String]) extends SSLEngineFactory {
 
   private val logger = LoggerFactory.getLogger(this.getClass)
 
