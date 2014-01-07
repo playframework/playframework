@@ -82,33 +82,50 @@ case class MetaData(ms: List[MetaDataItem]) {
 }
 
 trait Row {
-
   val metaData: MetaData
-
-  import scala.reflect.Manifest
 
   protected[anorm] val data: List[Any]
 
-  lazy val asList = data.zip(metaData.ms.map(_.nullable)).map(i => if (i._2) Option(i._1) else i._1)
-
-  lazy val asMap: scala.collection.Map[String, Any] = metaData.ms.map(_.column.qualified).zip(asList).toMap
-
-  def get[A](a: String)(implicit c: Column[A]): MayErr[SqlRequestError, A] = SqlParser.get(a)(c)(this) match {
-    case Success(a) => Right(a)
-    case Error(e) => Left(e)
+  /**
+   * Returns row as list of column values.
+   *
+   * {{{
+   * // Row first column is string "str", second one is integer 2
+   * val l: List[Any] = row.asList
+   * // l == List[Any]("str", 2)
+   * }}}
+   */
+  lazy val asList: List[Any] = data.foldLeft[List[Any]](Nil) { (l, v) =>
+    if (metaData.ms(l.size).nullable) l :+ Option(v) else l :+ v
   }
 
-  private def getType(t: String) = t match {
-    case "long" => Class.forName("java.lang.Long")
-    case "int" => Class.forName("java.lang.Integer")
-    case "boolean" => Class.forName("java.lang.Boolean")
-    case _ => Class.forName(t)
-  }
+  /**
+   * Returns row as dictionary of value per column name
+   *
+   * {{{
+   * // Row column named 'A' is string "str", column named 'B' is integer 2
+   * val m: Map[String, Any] = row.asMap
+   * // l == Map[String, Any]("table.A" -> "str", "table.B" -> 2)
+   * }}}
+   */
+  lazy val asMap: Map[String, Any] =
+    data.foldLeft[Map[String, Any]](Map.empty) { (m, v) =>
+      val d = metaData.ms(m.size)
+      val k = d.column.qualified
+      if (d.nullable) m + (k -> Option(v)) else m + (k -> v)
+    }
 
-  private lazy val ColumnsDictionary: Map[String, Any] =
+  def get[A](a: String)(implicit c: Column[A]): MayErr[SqlRequestError, A] =
+    SqlParser.get(a)(c)(this) match {
+      case Success(a) => Right(a)
+      case Error(e) => Left(e)
+    }
+
+  // TODO: Optimize
+  private lazy val columnsDictionary: Map[String, Any] =
     metaData.ms.map(_.column.qualified.toUpperCase()).zip(data).toMap
 
-  private lazy val AliasesDictionary: Map[String, Any] =
+  private lazy val aliasesDictionary: Map[String, Any] =
     metaData.ms.flatMap(_.column.alias.map(_.toUpperCase())).zip(data).toMap
 
   private[anorm] def get1(a: String): MayErr[SqlRequestError, Any] =
@@ -116,7 +133,7 @@ trait Row {
       meta <- metaData.get(a).
         toRight(ColumnNotFound(a, metaData.availableColumns));
       (column, nullable, clazz) = meta;
-      result <- ColumnsDictionary.get(column.qualified.toUpperCase()).
+      result <- columnsDictionary.get(column.qualified.toUpperCase()).
         toRight(ColumnNotFound(column.qualified, metaData.availableColumns))
     ) yield result
 
@@ -126,7 +143,7 @@ trait Row {
         toRight(ColumnNotFound(a, metaData.availableColumns));
       (column, nullable, clazz) = meta;
       result <- column.alias.
-        flatMap(a => AliasesDictionary.get(a.toUpperCase())).
+        flatMap(a => aliasesDictionary.get(a.toUpperCase())).
         toRight(ColumnNotFound(column.alias.getOrElse(a),
           metaData.availableColumns))
 
@@ -486,7 +503,7 @@ object Sql {
     MetaData(List.range(1, nbColumns + 1).map(i =>
       MetaDataItem(column = ColumnName({
 
-        // HACK FOR POSTGRES
+        // HACK FOR POSTGRES - Fix in https://github.com/pgjdbc/pgjdbc/pull/107
         if (meta.getClass.getName.startsWith("org.postgresql.")) {
           meta.asInstanceOf[{ def getBaseTableName(i: Int): String }].getBaseTableName(i)
         } else {
