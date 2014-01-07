@@ -64,8 +64,29 @@ object FiltersSpec extends Specification with WsTestClient {
         response2.status must_== 400
         response2.body must_== ("Unexpected path!")
       }
-
-
+      
+      val filterAddedHeaderKey = "CUSTOM_HEADER"
+      val filterAddedHeaderVal = "custom header val"
+      
+      object MockGlobal3 extends WithFilters(new Filter {
+        def apply(next: RequestHeader => Future[SimpleResult])(request: RequestHeader): Future[SimpleResult] = {
+          next(request.copy(headers = addCustomHeader(request.headers)))
+        }
+        def addCustomHeader(originalHeaders: Headers): Headers = {
+          FakeHeaders(originalHeaders.toMap.toSeq :+ (filterAddedHeaderKey -> Seq(filterAddedHeaderVal)))
+        }
+      }) {
+        override def onHandlerNotFound(request: RequestHeader) = {
+          Future.successful(Results.NotFound(request.headers.get(filterAddedHeaderKey).getOrElse("undefined header")))
+        }
+      }
+        
+      "requests not matching a route should receive a RequestHeader modified by upstream filters" in new WithServer(FakeApplication(withGlobal = Some(MockGlobal3))) {
+        val response = Await.result(wsUrl("/not-a-real-route").get(), Duration.Inf)
+        response.status must_== 404
+        response.body must_== filterAddedHeaderVal
+      }
+      
     }
   }
 }
