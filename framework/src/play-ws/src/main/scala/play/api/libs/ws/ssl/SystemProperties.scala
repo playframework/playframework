@@ -39,7 +39,7 @@ object SystemProperties {
     } yield looseAllowUnsafeRenegotiation).getOrElse(false)
     configureUnsafeRenegotiation(allowUnsafeRenegotiation)
 
-    val allowLegacyHelloMessages =(for {
+    val allowLegacyHelloMessages = (for {
       ssl <- config.ssl
       loose <- ssl.loose
       looseAllowLegacyHelloMessages <- loose.allowLegacyHelloMessages
@@ -51,7 +51,7 @@ object SystemProperties {
       loose <- ssl.loose
       looseDisableCheckRevocation <- loose.disableCheckRevocation
     } yield looseDisableCheckRevocation).getOrElse(false)
-    configureCheckRevocation(! disableCheckRevocation)
+    configureCheckRevocation(!disableCheckRevocation)
   }
 
   def configureDebug(d: SSLDebugConfig) {

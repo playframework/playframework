@@ -64,11 +64,11 @@ class DefaultHostnameVerifier extends HostnameVerifier {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  def hostnameChecker : HostnameChecker = HostnameChecker.getInstance(HostnameChecker.TYPE_TLS)
+  def hostnameChecker: HostnameChecker = HostnameChecker.getInstance(HostnameChecker.TYPE_TLS)
 
   def matchKerberos(hostname: String, principal: Principal) = HostnameChecker.`match`(hostname, principal.asInstanceOf[KerberosPrincipal])
 
-  def isKerberos(principal: Principal) : Boolean = principal != null && principal.isInstanceOf[KerberosPrincipal]
+  def isKerberos(principal: Principal): Boolean = principal != null && principal.isInstanceOf[KerberosPrincipal]
 
   def verify(hostname: String, session: SSLSession): Boolean = {
     logger.debug(s"verify: hostname = $hostname, sessionId (base64) = ${Base64.encode(session.getId)}")
