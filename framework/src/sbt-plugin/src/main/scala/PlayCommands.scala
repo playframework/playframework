@@ -12,6 +12,10 @@ import Keys._
 import java.lang.{ ProcessBuilder => JProcessBuilder }
 import sbt.complete.Parsers._
 
+import scala.util.control.NonFatal
+import sbt.inc.{ Analysis, Stamp }
+import sbt.compiler.AggressiveCompile
+
 trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternalKeys {
   this: PlayReloader =>
 
@@ -91,7 +95,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
 
   // ----- Post compile (need to be refactored and fully configurable)
 
-  def PostCompile(scope: Configuration) = (sourceDirectory in scope, dependencyClasspath in scope, compile in scope, javaSource in scope, sourceManaged in scope, classDirectory in scope, cacheDirectory in scope) map { (src, deps, analysis, javaSrc, srcManaged, classes, cacheDir) =>
+  def PostCompile(scope: Configuration) = (sourceDirectory in scope, dependencyClasspath in scope, compile in scope, javaSource in scope, sourceManaged in scope, classDirectory in scope, cacheDirectory in scope, compileInputs in compile in scope) map { (src, deps, analysis, javaSrc, srcManaged, classes, cacheDir, inputs) =>
 
     val classpath = (deps.map(_.data.getAbsolutePath).toArray :+ classes.getAbsolutePath).mkString(java.io.File.pathSeparator)
 
@@ -113,7 +117,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
 
     javaClasses.foreach(play.core.enhancers.PropertiesEnhancer.generateAccessors(classpath, _))
     javaClasses.foreach(play.core.enhancers.PropertiesEnhancer.rewriteAccess(classpath, _))
-    templateClasses.foreach(play.core.enhancers.PropertiesEnhancer.rewriteAccess(classpath, _))
+    val enhancedTemplateClasses = templateClasses.filter(play.core.enhancers.PropertiesEnhancer.rewriteAccess(classpath, _))
 
     IO.write(timestampFile, System.currentTimeMillis.toString)
 
@@ -161,6 +165,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
       }
     }
     // Copy managed classes - only needed in Compile scope
+    // This is done to ease integration with Eclipse, but it's doubtful as to how effective it is.
     if (scope.name.toLowerCase == "compile") {
       val managedClassesDirectory = classes.getParentFile / (classes.getName + "_managed")
 
@@ -174,7 +179,32 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
       // Remove deleted class files
       (managedClassesDirectory ** "*.class").get.filterNot(managedSet.contains(_)).foreach(_.delete())
     }
-    analysis
+
+    if (!enhancedTemplateClasses.isEmpty) {
+      // Since we may have modified some of the products of the incremental compiler, that is, the compiled template
+      // classes, we need to update their timestamps in the incremental compiler, otherwise the incremental compiler will
+      // see that they've changed since it last compiled them, and recompile them.
+      val updatedAnalysis = analysis.copy(stamps = templateClasses.foldLeft(analysis.stamps) { (stamps, classFile) =>
+        stamps.markProduct(classFile, Stamp.lastModified(classFile))
+      })
+
+      // Need to persist the updated analysis.
+      val agg = new AggressiveCompile(inputs.incSetup.cacheFile)
+      // Load the old one. We do this so that we can get a copy of CompileSetup, which is the cache compiler
+      // configuration used to determine when everything should be invalidated. We could calculate it ourselves, but
+      // that would by a heck of a lot of fragile code due to the vast number of things we would have to depend on.
+      // Reading it out of the existing file is good enough.
+      val existing: Option[(Analysis, CompileSetup)] = agg.store.get()
+      // Since we've just done a compile before this task, this should never return None, so don't worry about what to
+      // do when it returns None.
+      existing.foreach {
+        case (_, compileSetup) => agg.store.set(updatedAnalysis, compileSetup)
+      }
+
+      updatedAnalysis
+    } else {
+      analysis
+    }
   }
 
   // ----- Play prompt

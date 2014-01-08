@@ -138,17 +138,17 @@ public class PropertiesEnhancer {
         }
     }
     
-    public static void rewriteAccess(String classpath, File classFile) throws Exception {
+    public static boolean rewriteAccess(String classpath, File classFile) throws Exception {
         ClassPool classPool = new ClassPool();
         classPool.appendSystemPath();
         classPool.appendPathList(classpath);
-        
+
         FileInputStream is = new FileInputStream(classFile);
         try {
             CtClass ctClass = classPool.makeClass(is);
             if(hasAnnotation(ctClass, RewrittenAccessor.class)) {
                 is.close();
-                return;
+                return false;
             }
             
             for (final CtBehavior ctMethod : ctClass.getDeclaredBehaviors()) {
@@ -206,6 +206,7 @@ public class PropertiesEnhancer {
             }
             throw e;
         }
+        return true;
     }
     
     // --
