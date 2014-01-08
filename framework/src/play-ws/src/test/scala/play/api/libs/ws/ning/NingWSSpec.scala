@@ -13,8 +13,11 @@ import play.api.mvc._
 import java.util
 import play.api.libs.ws._
 import play.api.test._
+import play.api.libs.ws.ssl.{SystemProperties, DefaultSSLLooseConfig, DefaultSSLConfig}
 
 object NingWSSpec extends Specification with Mockito {
+
+  sequential
 
   "Ning WS" should {
 
@@ -178,6 +181,84 @@ object NingWSSpec extends Specification with Mockito {
           cookie.path must ===("/")
           cookie.maxAge must ===(1000)
           cookie.secure must beFalse
+      }
+    }
+  }
+
+  "NingWSPlugin" should {
+
+    "run onStart" in {
+      val app = FakeApplication()
+      val plugin = new NingWSPlugin(app)
+      try {
+        plugin.onStart()
+        System.getProperty("ocsp.enable") must be("true")
+        System.getProperty("com.sun.security.enableCRLDP") must be("true")
+        System.getProperty("com.sun.net.ssl.checkRevocation") must be("true")
+
+        System.getProperty("sun.security.ssl.allowLegacyHelloMessages") must be("false")
+        System.getProperty("sun.security.ssl.allowUnsafeRenegotiation") must be("false")
+      } finally {
+        plugin.onStop()
+      }
+    }
+
+    "with loose options" should {
+      "disableCheckRevocation" in {
+        val app = FakeApplication(additionalConfiguration = Map("ws.ssl.loose.disableCheckRevocation" -> "true"))
+        val plugin = new NingWSPlugin(app)
+
+        try {
+          plugin.onStart()
+          // http://stackoverflow.com/a/8507905/5266
+          System.getProperty("ocsp.enable") must be("false")
+          System.getProperty("com.sun.security.enableCRLDP") must be("false")
+          System.getProperty("com.sun.net.ssl.checkRevocation") must be("false")
+        } finally {
+          plugin.onStop()
+        }
+      }.after {
+        SystemProperties.clearProperties()
+      }
+
+      // @see http://www.oracle.com/technetwork/java/javase/documentation/tlsreadme2-176330.html
+      "allowLegacyHelloMessages" in {
+        val app = FakeApplication(additionalConfiguration = Map("ws.ssl.loose.allowLegacyHelloMessages" -> "true"))
+
+        val plugin = new NingWSPlugin(app)
+        try {
+          plugin.onStart()
+
+          System.getProperty("sun.security.ssl.allowLegacyHelloMessages") must be("true")
+        } finally {
+          plugin.onStop()
+        }
+      }.after {
+        SystemProperties.clearProperties()
+      }
+
+      // @see http://www.oracle.com/technetwork/java/javase/documentation/tlsreadme2-176330.html
+      "allowUnsafeRenegotiation" in {
+        val app = FakeApplication(additionalConfiguration = Map("ws.ssl.loose.allowUnsafeRenegotiation" -> "true"))
+
+        val plugin = new NingWSPlugin(app)
+        try {
+          plugin.onStart()
+
+          System.getProperty("sun.security.ssl.allowUnsafeRenegotiation") must be("true")
+        } finally {
+          plugin.onStop()
+        }
+      }.after {
+        SystemProperties.clearProperties()
+      }
+
+      "java.security.debug" in {
+        todo
+      }
+
+      "java.net.debug" in {
+        todo
       }
     }
   }

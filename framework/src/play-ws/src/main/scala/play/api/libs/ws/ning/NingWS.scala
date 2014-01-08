@@ -624,9 +624,7 @@ class NingWSPlugin(app: Application) extends WSPlugin {
 
   override def onStart() {
     loaded = true
-
-    val systemProperties = new SystemProperties(config)
-    systemProperties.configureSystemProperties()
+    SystemProperties.configureSystemProperties(config)
   }
 
   override def onStop() {
