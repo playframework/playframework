@@ -125,7 +125,7 @@ Usually, using Etag is enough to have proper caching. However if you want to spe
 
 ## Managed assets
 
-By default play compiles all managed assets that are kept in the ```app/assets``` folder. The compilation process will clean and recompile all managed assets regardless of the change. This is the safest strategy since tracking dependencies can be very tricky with front end technologies. 
+By default Play compiles all managed assets that are kept in the ```app/assets``` folder. The compilation process will clean and recompile all managed assets regardless of the change. This is the safest strategy since tracking dependencies can be very tricky with front end technologies. 
 
 You will learn more about managed assets on the next few pages.
 
