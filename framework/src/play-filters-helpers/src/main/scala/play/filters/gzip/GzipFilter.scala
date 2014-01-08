@@ -185,7 +185,17 @@ class GzipFilter(gzip: Enumeratee[Array[Byte], Array[Byte]] = Gzip.gzip(GzipFilt
   private def isNotAlreadyCompressed(header: ResponseHeader) = header.headers.get(Names.CONTENT_ENCODING).isEmpty
 
   private def setupHeader(header: Map[String, String]): Map[String, String] = {
-    header.filterNot(_._1 == Names.CONTENT_LENGTH) + (Names.CONTENT_ENCODING -> "gzip") + (Names.VARY -> Names.ACCEPT_ENCODING)
+    header.filterNot(_._1 == Names.CONTENT_LENGTH) + (Names.CONTENT_ENCODING -> "gzip") + addToVaryHeader(header, Names.VARY, Names.ACCEPT_ENCODING)
+  }
+
+  /**
+   * There may be an existing Vary value, which we must add to (comma separated)
+   */
+  private def addToVaryHeader(existingHeaders: Map[String, String], headerName: String, headerValue: String): (String, String) = {
+    existingHeaders.get(headerName) match {
+      case None => (headerName, headerValue)
+      case Some(existing) => (headerName, s"$existing,$headerValue")
+    }
   }
 }
 

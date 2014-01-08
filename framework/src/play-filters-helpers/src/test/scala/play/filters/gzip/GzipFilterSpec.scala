@@ -127,6 +127,12 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
       checkGzipped(result)
       header(LOCATION, result) must beSome("/foo")
     }
+
+    "preserve original Vary header values" in withApplication(Ok("hello").withHeaders(VARY -> "original")) {
+      val result = makeGzipRequest
+      checkGzipped(result)
+      header(VARY, result) must beSome.which(header => header contains "original,")
+    }
   }
 
   def withApplication[T](result: SimpleResult, buffer: Int = 1024)(block: => T): T = {
