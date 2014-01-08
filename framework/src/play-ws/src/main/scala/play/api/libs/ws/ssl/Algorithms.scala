@@ -12,22 +12,34 @@ import scala.util.parsing.combinator.RegexParsers
 
 object Algorithms {
 
-  // http://securitymusings.com/article/1587/algorithm-and-key-length-deprecation
-  // SHA-1 deprecated by Microsoft: http://technet.microsoft.com/en-us/security/advisory/2880823
-  // http://sim.ivi.co/2013/11/harness-ssl-and-jsse-key-size-control.html
-  // http://sim.ivi.co/2012/04/nist-security-strength-time-frames.html
-  // http://sim.ivi.co/2011/07/java-se-7-release-security-enhancements.html
-  // http://sim.ivi.co/2009/06/tls-and-nists-policy-on-hash-functions.html
-  // https://blogs.oracle.com/xuelei/entry/tls_and_nist_s_policy
-  // http://www.oracle.com/technetwork/java/javase/7u40-relnotes-2004172.html
-  // http://news.netcraft.com/archives/2012/09/10/minimum-rsa-public-key-lengths-guidelines-or-rules.html
-  // http://www.keylength.com/en/
-
-  // MD5: "avoid using the MD5 algorithm in any capacity" http://www.kb.cert.org/vuls/id/836068
-  // SHA1: "stop using SHA-1 as soon as practical" http://sim.ivi.co/2009/06/tls-and-nists-policy-on-hash-functions.html
-
-  // http://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html#DisabledAlgorithms
-  // http://docs.oracle.com/javase/7/docs/technotes/guides/security/certpath/CertPathProgGuide.html#AppD
+  //  # The syntax of the disabled algorithm string is described as this Java
+  //  # BNF-style:
+  //  #   DisabledAlgorithms:
+  //  #       " DisabledAlgorithm { , DisabledAlgorithm } "
+  //  #
+  //  #   DisabledAlgorithm:
+  //  #       AlgorithmName [Constraint]
+  //  #
+  //  #   AlgorithmName:
+  //  #       (see below)
+  //  #
+  //  #   Constraint:
+  //  #       KeySizeConstraint
+  //  #
+  //  #   KeySizeConstraint:
+  //  #       "keySize" Operator DecimalInteger
+  //  #
+  //  #   Operator:
+  //  #       <= | < | == | != | >= | >
+  //  #
+  //  #   DecimalInteger:
+  //  #       DecimalDigits
+  //  #
+  //  #   DecimalDigits:
+  //  #       DecimalDigit {DecimalDigit}
+  //  #
+  //  #   DecimalDigit: one of
+  //  #       1 2 3 4 5 6 7 8 9 0
 
   // The closest analogue is jdk.certpath.disabledAlgorithms
   val DEPRECATED_ALGORITHMS = "MD2, MD5, RSA keySize < 1024, DSA keySize < 1024, EC keySize < 160"
@@ -91,35 +103,6 @@ object Algorithms {
   }
 
 }
-
-//  # The syntax of the disabled algorithm string is described as this Java
-//  # BNF-style:
-//  #   DisabledAlgorithms:
-//  #       " DisabledAlgorithm { , DisabledAlgorithm } "
-//  #
-//  #   DisabledAlgorithm:
-//  #       AlgorithmName [Constraint]
-//  #
-//  #   AlgorithmName:
-//  #       (see below)
-//  #
-//  #   Constraint:
-//  #       KeySizeConstraint
-//  #
-//  #   KeySizeConstraint:
-//  #       "keySize" Operator DecimalInteger
-//  #
-//  #   Operator:
-//  #       <= | < | == | != | >= | >
-//  #
-//  #   DecimalInteger:
-//  #       DecimalDigits
-//  #
-//  #   DecimalDigits:
-//  #       DecimalDigit {DecimalDigit}
-//  #
-//  #   DecimalDigit: one of
-//  #       1 2 3 4 5 6 7 8 9 0
 
 sealed abstract class ExpressionSymbol {
   def matches(actualKeySize: Int): Boolean

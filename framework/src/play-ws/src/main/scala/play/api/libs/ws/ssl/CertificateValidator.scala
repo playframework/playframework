@@ -22,8 +22,7 @@ class CertificateValidator(val constraints: Set[AlgorithmConstraint], val revoca
 
   // This follows the model of the 1.6 sun.security.validator.PKIXValidator class, which also
   // manages a CertPathBuilder in the same way.  However... the PKIXValidator doesn't check for
-  // deprecated algorithms and hardcodes revocation checking to be off.  We want to use some custom
-
+  // deprecated algorithms and hardcodes revocation checking to be off.
   private val factory: CertificateFactory = CertificateFactory.getInstance("X.509")
 
   /**

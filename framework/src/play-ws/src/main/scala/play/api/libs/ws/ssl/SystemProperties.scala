@@ -86,12 +86,6 @@ object SystemProperties {
   def configureCheckRevocation(checkRevocation: Boolean) {
     // http://docs.oracle.com/javase/6/docs/technotes/guides/security/certpath/CertPathProgGuide.html#AppC
     // https://blogs.oracle.com/xuelei/entry/enable_ocsp_checking
-    //
-    // http://blogs.nologin.es/rickyepoderi/index.php?/archives/77-BUG-in-Java-OCSP-Implementation-PKIX.html
-    // http://blogs.nologin.es/rickyepoderi/index.php?/archives/79-OCSP-Java-Bug-Part-II.html
-    // http://blogs.nologin.es/rickyepoderi/index.php?/archives/81-OCSP-Java-Bug-Part-III.html
-    // http://blogs.nologin.es/rickyepoderi/index.php?/archives/92-OCSP-Java-Bug-Final-Chapter.html
-    //
     System.setProperty("ocsp.enable", checkRevocation.toString)
     logger.debug("configureCheckRevocation: ocsp.enable = {}", checkRevocation.toString)
 
