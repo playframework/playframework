@@ -7,12 +7,6 @@ package play.api.libs.ws.ssl
 
 object Protocols {
 
-  // 1.6 allProtocols: [SSLv2Hello, SSLv3, TLSv1]
-  // 1.6 enabledProtocols: [SSLv2Hello, SSLv3, TLSv1]
-
-  // 1.7 supported = [SSLv2Hello, SSLv3, TLSv1, TLSv1.1, TLSv1.2]
-  // 1.7 enabled = [SSLv3, TLSv1, TLSv1.1, TLSv1.2]
-
   /**
    * Protocols which are known to be insecure.
    */

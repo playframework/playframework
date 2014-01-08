@@ -23,7 +23,7 @@ object DefaultSSLConfigParserSpec extends Specification {
       val actual = parseThis( """
                                 |off = true
                                 |default = true
-                                |algorithm = TLSv1.2
+                                |protocol = TLSv1.2
                                 |hostnameVerifierClassName = "someHostnameVerifier"
                                 |enabledCipherSuites = [ TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA ]
                                 |enabledProtocols = [ TLSv1.2, TLSv1.1, TLS ]

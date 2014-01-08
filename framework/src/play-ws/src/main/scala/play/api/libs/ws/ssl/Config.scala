@@ -148,60 +148,30 @@ case class SSLDebugConfig(all: Boolean = false,
 
   def withCertPath = this.copy(certpath = true)
 
-  /**
-   * -Djavax.ssl.debug=handshake
-   */
   def withRecord(plaintext: Boolean = false, packet: Boolean = false) = {
     this.copy(record = Some(SSLDebugRecordOptions(plaintext, packet)))
   }
 
-  /**
-   * -Djavax.ssl.debug=handshake
-   */
   def withHandshake(data: Boolean = false, verbose: Boolean = false) = {
     this.copy(handshake = Some(SSLDebugHandshakeOptions(data, verbose)))
   }
 
   def withSSL = this.copy(ssl = true)
 
-  /**
-   * -Djavax.ssl.debug=keygen
-   */
   def withKeygen = this.copy(keygen = true)
 
-  /**
-   * -Djavax.ssl.debug=session
-   */
   def withSession = this.copy(session = true)
 
-  /**
-   * -Djavax.ssl.debug=defaultctx
-   */
   def withDefaultContext = this.copy(defaultctx = true)
 
-  /**
-   * -Djavax.ssl.debug=sslctx
-   */
   def withSSLContext = this.copy(sslctx = true)
 
-  /**
-   * -Djavax.ssl.debug=sessioncache
-   */
   def withSessionCache = this.copy(sessioncache = true)
 
-  /**
-   * -Djavax.ssl.debug=keymanager
-   */
   def withKeyManager = this.copy(keymanager = true)
 
-  /**
-   * -Djavax.ssl.debug=trustmanager
-   */
   def withTrustManager = this.copy(trustmanager = true)
 
-  /**
-   * -Djavax.ssl.debug=pluggability
-   */
   def withPluggability = this.copy(pluggability = true)
 
 }
@@ -241,7 +211,7 @@ class DefaultSSLConfigParser(c: Configuration) {
 
     val default = c.getBoolean("default")
 
-    val algorithm = c.getString("algorithm")
+    val protocol = c.getString("protocol")
 
     val debug = c.getStringSeq("debug").map {
       debugConfig =>
@@ -273,7 +243,7 @@ class DefaultSSLConfigParser(c: Configuration) {
     DefaultSSLConfig(
       off = off,
       default = default,
-      protocol = algorithm,
+      protocol = protocol,
       enabledCipherSuites = ciphers,
       enabledProtocols = protocols,
       keyManagerConfig = keyManagers,

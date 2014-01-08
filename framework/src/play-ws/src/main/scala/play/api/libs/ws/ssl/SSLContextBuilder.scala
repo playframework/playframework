@@ -202,15 +202,6 @@ class ConfigSSLContextBuilder(info: SSLConfig,
   }
 
   /**
-   * Builds a trust manager.  A trust manager determines whether the remote auth credentials should be trusted.
-   */
-
-  // http://docs.oracle.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html#Troubleshooting
-  // XXX Attempt to store trusted certificates in PKCS12 keystore throws java.security.KeyStoreException:
-  // TrustedCertEntry not supported.
-  //  trusted certificates in pkcs12 keystore
-
-  /**
    * Builds trust managers, using a TrustManagerFactory internally.
    */
   def buildTrustManager(constraints: Set[AlgorithmConstraint], tsc: TrustStoreConfig): X509TrustManager = {
