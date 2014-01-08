@@ -9,9 +9,7 @@ Play provides a plug-in for managing JDBC connection pools. You can configure as
 To enable the database plug-in, add jdbc in your build dependencies :
 
 ```scala
-val appDependencies = Seq(
-  jdbc
-)
+libraryDependencies += jdbc
 ```
 
 Then you must configure a connection pool in the `conf/application.conf` file. By convention, the default JDBC data source must be called `default` and the corresponding configuration properties are `db.default.driver` and `db.default.url`.
@@ -91,9 +89,7 @@ Play is bundled only with an [H2](http://www.h2database.com) database driver. Co
 For example, if you use MySQL5, you need to add a [[dependency | SBTDependencies]] for the connector:
 
 ```scala
-val appDependencies = Seq(
-  "mysql" % "mysql-connector-java" % "5.1.27"
-)
+libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.27"
 ```
 
 Or if the driver can't be found from repositories you can drop the driver into your project's [[unmanaged dependencies|Anatomy]] `lib` directory.

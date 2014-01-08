@@ -33,7 +33,7 @@ Multiple dependencies can be added either by multiple declarations like the abov
 libraryDependencies ++= Seq(
   "org.apache.derby" % "derby" % "10.4.1.3",
   "org.hibernate" % "hibernate-entitymanager" % "3.6.9.Final"
-  )
+)
 ```
 
 Of course, sbt (via Ivy) has to know where to download the module. If your module is in one of the default repositories sbt comes with then this will just work.
@@ -45,17 +45,13 @@ If you use `groupID %% artifactID % revision` instead of `groupID % artifactID %
 You could write this without the `%%`:
 
 ```scala
-val appDependencies = Seq(
-  "org.scala-tools" % "scala-stm_2.9.1" % "0.3"
-)
+libraryDependencies += "org.scala-tools" % "scala-stm_2.9.1" % "0.3"
 ```
 
 Assuming the `scalaVersion` for your build is `2.9.1`, the following is identical:
 
 ```scala
-val appDependencies = Seq(
-  "org.scala-tools" %% "scala-stm" % "0.3"
-)
+libraryDependencies += "org.scala-tools" %% "scala-stm" % "0.3"
 ```
 
 ### Resolvers

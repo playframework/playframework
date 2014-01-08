@@ -30,12 +30,16 @@ public class SimpleTest {
 }
 ```
 
-> **Note:** A new process is forked each time `test` or `test-only` is run.  The new process uses default JVM settings.  Custom settings can be added to `play.Project.settings` in `Build.scala`.  For example:  
+> **Note:** A new process is forked each time `test` or `test-only` is run.  The new process uses default JVM settings.  Custom settings can be added to `build.sbt`.  For example:  
 > ```
-> javaOptions in (Test) += "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=9998",
-> javaOptions in (Test) += "-Xms512M",
-> javaOptions in (Test) += "-Xmx1536M",
-> javaOptions in (Test) += "-Xss1M",
+> javaOptions in (Test) += "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=9998"
+>
+> javaOptions in (Test) += "-Xms512M"
+>
+> javaOptions in (Test) += "-Xmx1536M"
+>
+> javaOptions in (Test) += "-Xss1M"
+>
 > javaOptions in (Test) += "-XX:MaxPermSize=384M"
 > ```
 
@@ -62,7 +66,7 @@ You can also pass (or override) additional application configuration, or mock an
 fakeApplication(inMemoryDatabase())
 ```
 
-> **Note:** Applications using Ebean ORM may be written to rely on Play's automatic getter/setter generation.  Play also rewrites field accesses to use the generated getters/setters.  Ebean relies on calls to the setters to do dirty checking.  In order to use these patterns in JUnit tests, you will need to enable Play's field access rewriting in test by adding the following to `play.Project.settings` in `Build.scala`:
+> **Note:** Applications using Ebean ORM may be written to rely on Play's automatic getter/setter generation.  Play also rewrites field accesses to use the generated getters/setters.  Ebean relies on calls to the setters to do dirty checking.  In order to use these patterns in JUnit tests, you will need to enable Play's field access rewriting in test by adding the following to `build.sbt`:
 > ```
 > compile in Test <<= PostCompile(Test)
 > ```  

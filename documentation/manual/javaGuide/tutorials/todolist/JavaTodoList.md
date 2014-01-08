@@ -365,12 +365,10 @@ web: target/universal/stage/bin/{your project name} -Dhttp.port=${PORT} -DapplyE
 
 Using system properties we override the application configuration when running on Heroku. But since heroku provides a PostgreSQL database we’ll have to add the required driver to our application dependencies. 
 
-Specify it into the `project/Build.scala` file:
+Specify it in the `build.sbt` file:
 
 ```
-val appDependencies = Seq(
-  "postgresql" % "postgresql" % "8.4-702.jdbc4"
-)
+libraryDependencies += "postgresql" % "postgresql" % "8.4-702.jdbc4"
 ```
 
 > **Note:** Read more about [[Dependencies management|SBTDependencies]].
