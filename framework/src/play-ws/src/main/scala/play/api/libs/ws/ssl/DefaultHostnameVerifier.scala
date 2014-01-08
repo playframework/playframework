@@ -11,6 +11,7 @@ import javax.security.auth.kerberos.KerberosPrincipal
 import sun.security.util.HostnameChecker
 import org.slf4j.LoggerFactory
 import com.ning.http.util.Base64
+import java.security.Principal
 
 /**
  * Use the internal sun hostname checker as the hostname verifier.  Thanks to Kevin Locke.
@@ -63,10 +64,16 @@ class DefaultHostnameVerifier extends HostnameVerifier {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  def verify(hostname: String, session: SSLSession): Boolean = {
-    logger.debug("verify: hostname = {}, sessionId (base64) = {}", Seq(hostname, Base64.encode(session.getId)): _*)
+  def hostnameChecker : HostnameChecker = HostnameChecker.getInstance(HostnameChecker.TYPE_TLS)
 
-    val checker = HostnameChecker.getInstance(HostnameChecker.TYPE_TLS)
+  def matchKerberos(hostname: String, principal: Principal) = HostnameChecker.`match`(hostname, principal.asInstanceOf[KerberosPrincipal])
+
+  def isKerberos(principal: Principal) : Boolean = principal != null && principal.isInstanceOf[KerberosPrincipal]
+
+  def verify(hostname: String, session: SSLSession): Boolean = {
+    logger.debug(s"verify: hostname = $hostname, sessionId (base64) = ${Base64.encode(session.getId)}")
+
+    val checker = hostnameChecker
     val result = try {
       session.getPeerCertificates match {
         case Array(cert: X509Certificate, _*) =>
@@ -90,14 +97,13 @@ class DefaultHostnameVerifier extends HostnameVerifier {
       case _: SSLPeerUnverifiedException =>
         // Not using certificates for verification, try verifying the principal
         try {
-          session.getPeerPrincipal match {
-            case principal: KerberosPrincipal =>
-              HostnameChecker.`match`(hostname, principal)
-
-            case notMatch =>
-              // Can't verify principal, not Kerberos
-              logger.debug(s"verify: Can't verify principal, not Kerberos: $notMatch")
-              false
+          val principal = session.getPeerPrincipal
+          if (isKerberos(principal)) {
+            matchKerberos(hostname, principal)
+          } else {
+            // Can't verify principal, not Kerberos
+            logger.debug(s"verify: Can't verify principal, not Kerberos")
+            false
           }
         } catch {
           case e: SSLPeerUnverifiedException =>

@@ -9,8 +9,10 @@ import org.specs2.mutable._
 import org.specs2.mock._
 
 import javax.net.ssl.X509KeyManager
-import java.security.Principal
+import java.security.{PrivateKey, Principal}
 import java.net.Socket
+import java.security.cert.X509Certificate
+import scala.Array
 
 object CompositeX509KeyManagerSpec extends Specification with Mockito {
 
@@ -66,11 +68,28 @@ object CompositeX509KeyManagerSpec extends Specification with Mockito {
       serverAlias must be_==("serverAlias")
     }
 
-    "getCertificateChain" in todo
+    "getCertificateChain" in {
+      val mockKeyManager = mock[X509KeyManager]
+      val keyManager = new CompositeX509KeyManager(Seq(mockKeyManager))
+      val alias = "alias"
+      val cert = CertificateGenerator.generateRSAWithSHA256()
 
-    "getPrivateKey" in todo
+      mockKeyManager.getCertificateChain(alias) returns Array(cert)
 
+      val certChain = keyManager.getCertificateChain(alias = alias)
+      certChain must be_==(Array(cert))
+    }
 
+    "getPrivateKey" in {
+      val mockKeyManager = mock[X509KeyManager]
+      val keyManager = new CompositeX509KeyManager(Seq(mockKeyManager))
+      val alias = "alias"
+      val privateKey = mock[PrivateKey]
 
+      mockKeyManager.getPrivateKey(alias) returns privateKey
+
+      val actual = keyManager.getPrivateKey(alias = alias)
+      actual must be_==(privateKey)
+    }
   }
 }

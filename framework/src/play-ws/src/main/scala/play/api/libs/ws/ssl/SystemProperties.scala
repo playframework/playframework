@@ -7,32 +7,51 @@ package play.api.libs.ws.ssl
 
 import play.api.libs.ws.WSClientConfig
 
-class SystemProperties(config: WSClientConfig) {
+object SystemProperties {
 
   val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 
   /**
+   * For use in testing.
+   */
+  def clearProperties() {
+    System.clearProperty("javax.net.debug")
+    System.clearProperty("java.security.debug")
+
+    System.clearProperty("ocsp.enable")
+    System.clearProperty("com.sun.security.enableCRLDP")
+    System.clearProperty("com.sun.net.ssl.checkRevocation")
+
+    System.clearProperty("sun.security.ssl.allowLegacyHelloMessages")
+    System.clearProperty("sun.security.ssl.allowUnsafeRenegotiation")
+  }
+
+  /**
    * Configures global system properties on the JSSE implementation, if defined.
    */
-  def configureSystemProperties() {
-    config.ssl.map {
-      ssl =>
-        ssl.debug.map(configureDebug)
+  def configureSystemProperties(config: WSClientConfig) {
+    config.ssl.map { _.debug.map(configureDebug) }
 
-        // Turn on some secure defaults unless disabled.
-        if (!ssl.off.getOrElse(false)) {
-          val allowUnsafeRenegotiation = ssl.loose.flatMap(_.allowUnsafeRenegotiation).getOrElse(false)
-          configureUnsafeRenegotiation(allowUnsafeRenegotiation)
+    val allowUnsafeRenegotiation = (for {
+      ssl <- config.ssl
+      loose <- ssl.loose
+      looseAllowUnsafeRenegotiation <- loose.allowUnsafeRenegotiation
+    } yield looseAllowUnsafeRenegotiation).getOrElse(false)
+    configureUnsafeRenegotiation(allowUnsafeRenegotiation)
 
-          val allowLegacyHelloMessages = ssl.loose.flatMap(_.allowLegacyHelloMessages).getOrElse(false)
-          configureAllowLegacyHelloMessages(allowLegacyHelloMessages)
+    val allowLegacyHelloMessages =(for {
+      ssl <- config.ssl
+      loose <- ssl.loose
+      looseAllowLegacyHelloMessages <- loose.allowLegacyHelloMessages
+    } yield looseAllowLegacyHelloMessages).getOrElse(false)
+    configureAllowLegacyHelloMessages(allowLegacyHelloMessages)
 
-          val checkRevocation = !ssl.loose.flatMap(_.disableCheckRevocation).getOrElse(false)
-          configureCheckRevocation(checkRevocation)
-        } else {
-          logger.warn("configureSystemProperties: ws.ssl.off is true, disabling all system property configuration")
-        }
-    }
+    val disableCheckRevocation = (for {
+      ssl <- config.ssl
+      loose <- ssl.loose
+      looseDisableCheckRevocation <- loose.disableCheckRevocation
+    } yield looseDisableCheckRevocation).getOrElse(false)
+    configureCheckRevocation(! disableCheckRevocation)
   }
 
   def configureDebug(d: SSLDebugConfig) {
@@ -65,28 +84,24 @@ class SystemProperties(config: WSClientConfig) {
   }
 
   def configureCheckRevocation(checkRevocation: Boolean) {
-    if (checkRevocation) {
-      // http://docs.oracle.com/javase/6/docs/technotes/guides/security/certpath/CertPathProgGuide.html#AppC
-      // https://blogs.oracle.com/xuelei/entry/enable_ocsp_checking
-      //
-      // http://blogs.nologin.es/rickyepoderi/index.php?/archives/77-BUG-in-Java-OCSP-Implementation-PKIX.html
-      // http://blogs.nologin.es/rickyepoderi/index.php?/archives/79-OCSP-Java-Bug-Part-II.html
-      // http://blogs.nologin.es/rickyepoderi/index.php?/archives/81-OCSP-Java-Bug-Part-III.html
-      // http://blogs.nologin.es/rickyepoderi/index.php?/archives/92-OCSP-Java-Bug-Final-Chapter.html
-      //
-      System.setProperty("ocsp.enable", "true")
-      logger.debug("configureCheckRevocation: ocsp.enable = {}", "true")
+    // http://docs.oracle.com/javase/6/docs/technotes/guides/security/certpath/CertPathProgGuide.html#AppC
+    // https://blogs.oracle.com/xuelei/entry/enable_ocsp_checking
+    //
+    // http://blogs.nologin.es/rickyepoderi/index.php?/archives/77-BUG-in-Java-OCSP-Implementation-PKIX.html
+    // http://blogs.nologin.es/rickyepoderi/index.php?/archives/79-OCSP-Java-Bug-Part-II.html
+    // http://blogs.nologin.es/rickyepoderi/index.php?/archives/81-OCSP-Java-Bug-Part-III.html
+    // http://blogs.nologin.es/rickyepoderi/index.php?/archives/92-OCSP-Java-Bug-Final-Chapter.html
+    //
+    System.setProperty("ocsp.enable", checkRevocation.toString)
+    logger.debug("configureCheckRevocation: ocsp.enable = {}", checkRevocation.toString)
 
-      System.setProperty("com.sun.security.enableCRLDP", "true")
-      logger.debug("configureCheckRevocation: com.sun.security.enableCRLDP = {}", "true")
+    System.setProperty("com.sun.security.enableCRLDP", checkRevocation.toString)
+    logger.debug("configureCheckRevocation: com.sun.security.enableCRLDP = {}", checkRevocation.toString)
 
-      // 1.7: Sets up sun.security.validator.PKIXValidator, which then sets up PKIXBuilderParameters.
-      // 1.6: Used by sun.security.ssl.X509TrustManagerImpl
-      System.setProperty("com.sun.net.ssl.checkRevocation", "true")
-      logger.debug("configureCheckRevocation: com.sun.net.ssl.checkRevocation = {}", "true")
-    } else {
-      logger.debug("configureCheckRevocation: checkRevocation = {}", checkRevocation.toString)
-    }
+    // 1.7: Sets up sun.security.validator.PKIXValidator, which then sets up PKIXBuilderParameters.
+    // 1.6: Used by sun.security.ssl.X509TrustManagerImpl
+    System.setProperty("com.sun.net.ssl.checkRevocation", checkRevocation.toString)
+    logger.debug("configureCheckRevocation: com.sun.net.ssl.checkRevocation = {}", checkRevocation.toString)
   }
 }
 
