@@ -201,7 +201,6 @@ object RulesSpec extends Specification {
       }
 
       "Map[String, Seq[V]]" in {
-        import Rules.{ map => mm }
         From[UrlFormEncoded] { __ => (__ \ "n").read[Map[String, Seq[String]]] }.validate(Map("n.foo" -> Seq("bar"))) mustEqual(Success(Map("foo" -> Seq("bar"))))
         From[UrlFormEncoded] { __ => (__ \ "n").read[Map[String, Seq[Int]]] }.validate(Map("n.foo" -> Seq("4"), "n.bar" -> Seq("5"))) mustEqual(Success(Map("foo" -> Seq(4), "bar" -> Seq(5))))
         From[UrlFormEncoded] { __ => (__ \ "x").read[Map[String, Int]] }.validate(Map("n.foo" -> Seq("4"), "n.bar" -> Seq("frack"))) mustEqual(Failure(Seq(Path \ "x" -> Seq(ValidationError("error.required")))))
@@ -209,7 +208,6 @@ object RulesSpec extends Specification {
       }
 
       "Traversable" in {
-        import Rules.{ traversable => tr } // avoid shadowing caused by specs
         From[UrlFormEncoded] { __ => (__ \ "n").read[Traversable[String]] }.validate(Map("n" -> Seq("foo"))).get.toSeq must haveTheSameElementsAs(Seq("foo"))
         From[UrlFormEncoded] { __ => (__ \ "n").read[Traversable[Int]] }.validate(Map("n" -> Seq("1", "2", "3"))).get.toSeq must haveTheSameElementsAs(Seq(1, 2, 3))
         From[UrlFormEncoded] { __ => (__ \ "n").read[Traversable[Int]] }.validate(Map("n" -> Seq("1", "paf"))) mustEqual(Failure(Seq(Path \ "n" \ 1 -> Seq(ValidationError("error.number", "Int")))))
@@ -313,7 +311,7 @@ object RulesSpec extends Specification {
         "password" -> Seq("s3cr3t"),
         "verify" -> Seq("bam"))
 
-      val passRule = From[UrlFormEncoded] { __ =>
+      val passRule: Rule[UrlFormEncoded, String] = From[UrlFormEncoded] { __ =>
         ((__ \ "password").read(notEmpty) ~ (__ \ "verify").read(notEmpty))
           .tupled.compose(Rule.uncurry(Rules.equalTo[String]).repath(_ => (Path \ "verify")))
       }
@@ -434,15 +432,15 @@ object RulesSpec extends Specification {
 
       val infoValidation = From[UrlFormEncoded]{ __ =>
        ((__ \ "label").read(notEmpty) ~
-        (__ \ "email").read(option(email)) ~
-        (__ \ "phones").read(seq(notEmpty))) (ContactInformation.apply _)
+        (__ \ "email").read(optionR(email)) ~
+        (__ \ "phones").read(seqR(notEmpty))) (ContactInformation.apply _)
       }
 
       val contactValidation = From[UrlFormEncoded]{ __ =>
        ((__ \ "firstname").read(notEmpty) ~
         (__ \ "lastname").read(notEmpty) ~
         (__ \ "company").read[Option[String]] ~
-        (__ \ "informations").read(seq(infoValidation))) (Contact.apply _)
+        (__ \ "informations").read(seqR(infoValidation))) (Contact.apply _)
       }
 
       val expected =
@@ -482,18 +480,18 @@ object RulesSpec extends Specification {
       "using explicit notation" in {
         lazy val w: Rule[UrlFormEncoded, RecUser] = From[UrlFormEncoded]{ __ =>
           ((__ \ "name").read[String] ~
-           (__ \ "friends").read(seq(w)))(RecUser.apply _)
+           (__ \ "friends").read(seqR(w)))(RecUser.apply _)
         }
         w.validate(m) mustEqual Success(u)
 
         lazy val w2: Rule[UrlFormEncoded, RecUser] =
           ((Path \ "name").read[UrlFormEncoded, String] ~
-           (Path \ "friends").from[UrlFormEncoded](seq(w2)))(RecUser.apply _)
+           (Path \ "friends").from[UrlFormEncoded](seqR(w2)))(RecUser.apply _)
         w2.validate(m) mustEqual Success(u)
 
         lazy val w3: Rule[UrlFormEncoded, User1] = From[UrlFormEncoded]{ __ =>
           ((__ \ "name").read[String] ~
-           (__ \ "friend").read(option(w3)))(User1.apply _)
+           (__ \ "friend").read(optionR(w3)))(User1.apply _)
         }
         w3.validate(m1) mustEqual Success(u1)
       }

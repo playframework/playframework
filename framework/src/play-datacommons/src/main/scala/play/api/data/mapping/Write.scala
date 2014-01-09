@@ -2,12 +2,18 @@ package play.api.data.mapping
 
 import scala.language.implicitConversions
 
-trait Write[I, +O] {
-
+trait WriteLike[I, +O] {
   /**
    * "Serialize" `i` to the output type
    */
   def writes(i: I): O
+}
+
+object WriteLike {
+  implicit def zero[I]: WriteLike[I, I] = Write(identity[I] _)
+}
+
+trait Write[I, +O] extends WriteLike[I, O] {
 
   /**
    * returns a new Write that applies function `f` to the result of this write.
@@ -23,7 +29,7 @@ trait Write[I, +O] {
   /**
    * Returns a new Write that applies `this` Write, and then applies `w` to its result
    */
-  def compose[OO >: O, P](w: Write[OO, P]) =
+  def compose[OO >: O, P](w: WriteLike[OO, P]) =
     this.map(o => w.writes(o))
 }
 
@@ -43,9 +49,13 @@ object Write {
     def writes(i: I) = w(i)
   }
 
+  def toWrite[I, O](r: WriteLike[I, O]) = new Write[I, O] {
+    def writes(data: I): O = r.writes(data)
+  }
+
   def gen[I, O]: Write[I, O] = macro MappingMacros.write[I, O]
 
-  implicit def zero[I]: Write[I, I] = Write(identity[I] _)
+  implicit def zero[I]: Write[I, I] = toWrite(WriteLike.zero[I])
 
   import play.api.libs.functional._
   implicit def functionalCanBuildWrite[O](implicit m: Monoid[O]) = new FunctionalCanBuild[({ type λ[I] = Write[I, O] })#λ] {

@@ -48,8 +48,8 @@ class WritesSpec extends Specification {
       w.writes(Some("Hello World")) mustEqual Json.obj("email" -> "Hello World")
       w.writes(None) mustEqual Json.obj()
 
-      (Path \ "n").write(option(anyval[Int])).writes(Some(5)) mustEqual Json.obj("n" -> 5)
-      (Path \ "n").write(option(anyval[Int])).writes(None) mustEqual Json.obj()
+      (Path \ "n").write(optionW(anyval[Int])).writes(Some(5)) mustEqual Json.obj("n" -> 5)
+      (Path \ "n").write(optionW(anyval[Int])).writes(None) mustEqual Json.obj()
     }
 
     "write seq" in {
@@ -170,7 +170,6 @@ class WritesSpec extends Specification {
       }
 
       "Map[String, Seq[V]]" in {
-        import play.api.data.mapping.json.Writes.{ map => mm }
         (Path \ "n").write[Map[String, Seq[String]], JsObject].writes(Map("foo" -> Seq("bar"))) mustEqual(Json.obj("n" -> Json.obj("foo" -> Seq("bar"))))
         (Path \ "n").write[Map[String, Seq[Int]], JsObject].writes(Map("foo" -> Seq(4))) mustEqual(Json.obj("n" -> Json.obj("foo" -> Seq(4))))
         (Path \ "n" \ "o").write[Map[String, Seq[Int]], JsObject].writes(Map("foo" -> Seq(4))) mustEqual(Json.obj("n" -> Json.obj("o" -> Json.obj("foo" -> Seq(4)))))
@@ -179,7 +178,6 @@ class WritesSpec extends Specification {
       }
 
       "Traversable" in {
-        import play.api.data.mapping.json.Writes.{ traversable => tr }
         (Path \ "n").write[Traversable[String], JsObject].writes(Array("foo", "bar")) mustEqual(Json.obj("n" -> Seq("foo", "bar")))
         (Path \ "n" \ "o").write[Traversable[String], JsObject].writes(Array("foo", "bar")) mustEqual(Json.obj("n" -> Json.obj("o"-> Seq("foo", "bar"))))
         (Path \ "n" \ "o" \ "p").write[Traversable[String], JsObject].writes(Array("foo", "bar")) mustEqual(Json.obj("n" -> Json.obj("o"-> Json.obj("p"-> Seq("foo", "bar")))))
@@ -288,18 +286,18 @@ class WritesSpec extends Specification {
       "using explicit notation" in {
         lazy val w: Write[RecUser, JsObject] = To[JsObject]{ __ =>
           ((__ \ "name").write[String] ~
-           (__ \ "friends").write(seq(w)))(unlift(RecUser.unapply _))
+           (__ \ "friends").write(seqW(w)))(unlift(RecUser.unapply _))
         }
         w.writes(u) mustEqual m
 
         lazy val w2: Write[RecUser, JsObject] =
           ((Path \ "name").write[String, JsObject] ~
-           (Path \ "friends").write(seq(w2)))(unlift(RecUser.unapply _))
+           (Path \ "friends").write(seqW(w2)))(unlift(RecUser.unapply _))
         w2.writes(u) mustEqual m
 
         lazy val w3: Write[User1, JsObject] = To[JsObject]{ __ =>
           ((__ \ "name").write[String] ~
-           (__ \ "friend").write(option(w3)))(unlift(User1.unapply _))
+           (__ \ "friend").write(optionW(w3)))(unlift(User1.unapply _))
         }
         w3.writes(u1) mustEqual m1
       }

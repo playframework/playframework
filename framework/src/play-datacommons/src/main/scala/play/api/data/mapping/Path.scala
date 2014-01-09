@@ -47,16 +47,16 @@ class Path(val path: List[PathNode]) {
   def ++(other: Path) = this compose other
 
   class Deferred[I] private[Path] (reader: Reader[I]) {
-    def apply[J, O](sub: => Rule[J, O])(implicit r: Path => Rule[I, J]): Rule[I, O] =
+    def apply[J, O](sub: => RuleLike[J, O])(implicit r: Path => RuleLike[I, J]): Rule[I, O] =
       reader.read(sub)
   }
 
   def from[I] = new Deferred(Reader[I](this))
 
-  // def read[I, J, O](sub: => Rule[J, O])(implicit r: Path => Rule[I, J]): Rule[I, O] =
-  //   Reader[I](this).read(sub)
+  def read[I, J, O](sub: => RuleLike[J, O])(implicit r: Path => RuleLike[I, J]): Rule[I, O] =
+    Reader[I](this).read(sub)
 
-  def read[I, O](implicit r: Path => Rule[I, O]): Rule[I, O] =
+  def read[I, O](implicit r: Path => RuleLike[I, O]): Rule[I, O] =
     Reader[I](this).read[O]
 
   /**
@@ -67,7 +67,7 @@ class Path(val path: List[PathNode]) {
    *   contactWrite.writes(contact) mustEqual Map("firstname" -> "Julien")
    * }}}
    */
-  def write[O, I](implicit w: Path => Write[O, I]): Write[O, I] =
+  def write[O, I](implicit w: Path => WriteLike[O, I]): Write[O, I] =
     Writer[I](this).write(w)
 
   /**
@@ -77,7 +77,7 @@ class Path(val path: List[PathNode]) {
    *   w.writes(new Date()) == Json.obj("date" -> "2013-10-3")
    * }}}
    */
-  def write[O, J, I](format: => Write[O, J])(implicit w: Path => Write[J, I]): Write[O, I] =
+  def write[O, J, I](format: => WriteLike[O, J])(implicit w: Path => WriteLike[J, I]): Write[O, I] =
     Writer[I](this).write(format)
 
   override def toString = this.path match {

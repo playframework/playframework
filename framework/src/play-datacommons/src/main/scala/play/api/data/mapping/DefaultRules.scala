@@ -135,8 +135,8 @@ trait GenericRules {
    * @param r A Rule[I, O] to lift
    * @return A new Rule
    */
-  implicit def array[I, O: scala.reflect.ClassTag](implicit r: Rule[I, O]): Rule[Seq[I], Array[O]] =
-    seq[I, O](r).fmap(_.toArray)
+  implicit def arrayR[I, O: scala.reflect.ClassTag](implicit r: RuleLike[I, O]): Rule[Seq[I], Array[O]] =
+    seqR[I, O](r).fmap(_.toArray)
 
   /**
    * lift a `Rule[I, O]` to a Rule of `Rule[Seq[I], Traversable[O]]`
@@ -146,8 +146,8 @@ trait GenericRules {
    * @param r A Rule[I, O] to lift
    * @return A new Rule
    */
-  implicit def traversable[I, O](implicit r: Rule[I, O]): Rule[Seq[I], Traversable[O]] =
-    seq[I, O](r).fmap(_.toTraversable)
+  implicit def traversableR[I, O](implicit r: RuleLike[I, O]): Rule[Seq[I], Traversable[O]] =
+    seqR[I, O](r).fmap(_.toTraversable)
 
   /**
    * lift a `Rule[I, O]` to a Rule of `Rule[Seq[I], Set[O]]`
@@ -157,8 +157,8 @@ trait GenericRules {
    * @param r A Rule[I, O] to lift
    * @return A new Rule
    */
-  implicit def set[I, O](implicit r: Rule[I, O]): Rule[Seq[I], Set[O]] =
-    seq[I, O](r).fmap(_.toSet)
+  implicit def setR[I, O](implicit r: RuleLike[I, O]): Rule[Seq[I], Set[O]] =
+    seqR[I, O](r).fmap(_.toSet)
 
   /**
    * lift a `Rule[I, O]` to a Rule of `Rule[Seq[I], Seq[O]]`
@@ -168,12 +168,12 @@ trait GenericRules {
    * @param r A Rule[I, O] to lift
    * @return A new Rule
    */
-  implicit def seq[I, O](implicit r: Rule[I, O]): Rule[Seq[I], Seq[O]] =
+  implicit def seqR[I, O](implicit r: RuleLike[I, O]): Rule[Seq[I], Seq[O]] =
     Rule {
       case is =>
         val withI = is.zipWithIndex.map {
           case (v, i) =>
-            r.repath((Path \ i) ++ _).validate(v)
+            Rule.toRule(r).repath((Path \ i) ++ _).validate(v)
         }
         Validation.sequence(withI)
     }
@@ -186,8 +186,8 @@ trait GenericRules {
    * @param r A Rule[I, O] to lift
    * @return A new Rule
    */
-  implicit def list[I, O](implicit r: Rule[I, O]): Rule[Seq[I], List[O]] =
-    seq[I, O](r).fmap(_.toList)
+  implicit def listR[I, O](implicit r: RuleLike[I, O]): Rule[Seq[I], List[O]] =
+    seqR[I, O](r).fmap(_.toList)
 
   /**
    * Create a Rule validation that a Seq[I] is not empty, and attempt to convert it's first element as a `O`
@@ -195,12 +195,12 @@ trait GenericRules {
    *   (Path \ "foo").read(headAs(int))
    * }}}
    */
-  implicit def headAs[I, O](implicit c: Rule[I, O]) = Rule.fromMapping[Seq[I], I] {
+  implicit def headAs[I, O](implicit c: RuleLike[I, O]) = Rule.fromMapping[Seq[I], I] {
     _.headOption.map(Success[ValidationError, I](_))
       .getOrElse(Failure[ValidationError, I](Seq(ValidationError("error.required"))))
   }.compose(c)
 
-  def not[I, O](r: Rule[I, O]) = Rule[I, I] { d =>
+  def not[I, O](r: RuleLike[I, O]) = Rule[I, I] { d =>
     r.validate(d) match {
       case Success(_) => Failure(Nil)
       case Failure(_) => Success(d)
@@ -280,7 +280,7 @@ trait GenericRules {
   /**
    * A Rule for HTML checkboxes
    */
-  def checked[I](implicit b: Rule[I, Boolean]) = b compose Rules.equalTo(true)
+  def checked[I](implicit b: RuleLike[I, Boolean]) = Rule.toRule(b) compose Rules.equalTo(true)
 }
 
 object GenericRules extends GenericRules
@@ -297,21 +297,21 @@ trait ParsingRules {
         .getOrElse(Failure(Seq(ValidationError("error.number", args: _*))))
     }
 
-  implicit def int = stringAs {
+  implicit def intR = stringAs {
     case s if s.isValidInt => Success(s.toInt)
   }("Int")
 
-  implicit def short = stringAs {
+  implicit def shortR = stringAs {
     case s if s.isValidShort => Success(s.toShort)
   }("Short")
 
-  implicit def boolean = Rule.fromMapping[String, Boolean] {
+  implicit def booleanR = Rule.fromMapping[String, Boolean] {
     pattern("""(?iu)true|false""".r).validate(_: String)
       .map(java.lang.Boolean.parseBoolean)
       .fail.map(_ => Seq(ValidationError("error.invalid", "Boolean")))
   }
 
-  implicit def long = stringAs {
+  implicit def longR = stringAs {
     case s if s.isValidLong => Success(s.toLong)
   }("Long")
 
@@ -321,7 +321,7 @@ trait ParsingRules {
     val d = bd.toFloat
     !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(jl.Float.toString(d), bd.mc)) == 0
   }
-  implicit def float = stringAs {
+  implicit def floatR = stringAs {
     case s if isValidFloat(s) => Success(s.toFloat)
   }("Float")
 
@@ -330,12 +330,12 @@ trait ParsingRules {
     val d = bd.toDouble
     !d.isInfinity && bd.bigDecimal.compareTo(new java.math.BigDecimal(jl.Double.toString(d), bd.mc)) == 0
   }
-  implicit def double = stringAs {
+  implicit def doubleR = stringAs {
     case s if isValidDouble(s) => Success(s.toDouble)
   }("Double")
 
   import java.{ math => jm }
-  implicit def javaBigDecimal = stringAs {
+  implicit def javaBigDecimalR = stringAs {
     case s => Success(s.bigDecimal)
   }("BigDecimal")
 
@@ -352,22 +352,22 @@ trait DefaultRules[I] extends GenericRules with DateRules {
   import scala.language.implicitConversions
   import play.api.libs.functional._
 
-  protected def opt[J, O](r: => Rule[J, O], noneValues: Rule[I, I]*)(implicit pick: Path => Rule[I, I], coerce: Rule[I, J]) = (path: Path) =>
+  protected def opt[J, O](r: => RuleLike[J, O], noneValues: RuleLike[I, I]*)(implicit pick: Path => RuleLike[I, I], coerce: RuleLike[I, J]) = (path: Path) =>
     Rule[I, Option[O]] {
       (d: I) =>
         val isNone = not(noneValues.foldLeft(Rule.zero[I])(_ compose not(_))).fmap(_ => None)
         (pick(path).validate(d).map(Some.apply) orElse Success(None))
           .flatMap {
             case None => Success(None)
-            case Some(i) => isNone.orElse(coerce.compose(r).fmap[Option[O]](Some.apply)).validate(i)
+            case Some(i) => isNone.orElse(Rule.toRule(coerce).compose(r).fmap[Option[O]](Some.apply)).validate(i)
           }
     }
 
-  def map[K, O](r: Rule[K, O], p: Rule[I, Seq[(String, K)]]): Rule[I, Map[String, O]] = {
-    p.compose(Path)(
+  def mapR[K, O](r: RuleLike[K, O], p: RuleLike[I, Seq[(String, K)]]): Rule[I, Map[String, O]] = {
+    Rule.toRule(p).compose(Path)(
       Rule { fs =>
         val validations = fs.map { f =>
-          r.repath((Path \ f._1) ++ _)
+          Rule.toRule(r).repath((Path \ f._1) ++ _)
             .validate(f._2)
             .map(f._1 -> _)
         }

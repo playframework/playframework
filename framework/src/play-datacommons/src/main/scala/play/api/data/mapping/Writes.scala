@@ -52,34 +52,34 @@ trait DateWrites {
 trait DefaultWrites extends DateWrites {
   import play.api.libs.functional.Monoid
 
-  protected def option[I, J, O](r: => Write[I, J], empty: O)(implicit w: Path => Write[J, O]) =
+  protected def optionW[I, J, O](r: => WriteLike[I, J], empty: O)(implicit w: Path => WriteLike[J, O]) =
     (p: Path) => Write[Option[I], O] { maybeI =>
       maybeI.map { i =>
-        w(p).contramap(r.writes).writes(i)
+        Write.toWrite(w(p)).contramap(r.writes).writes(i)
       }.getOrElse(empty)
     }
 
-  implicit def seq[I, O](implicit w: Write[I, O]) = Write[Seq[I], Seq[O]] {
+  implicit def seqW[I, O](implicit w: WriteLike[I, O]) = Write[Seq[I], Seq[O]] {
     _.map(w.writes)
   }
 
-  implicit def head[I, O](implicit w: Write[I, O]): Write[I, Seq[O]] = w.map(Seq(_))
+  implicit def headW[I, O](implicit w: WriteLike[I, O]): Write[I, Seq[O]] = Write.toWrite(w).map(Seq(_))
 
   def ignored[O](x: O) = Write[O, O](_ => x)
 }
 
 trait GenericWrites[O] {
 
-  implicit def array[I](implicit w: Write[Seq[I], O]) =
+  implicit def arrayW[I](implicit w: WriteLike[Seq[I], O]) =
     Write((_: Array[I]).toSeq) compose w
 
-  implicit def list[I](implicit w: Write[Seq[I], O]) =
+  implicit def listW[I](implicit w: WriteLike[Seq[I], O]) =
     Write((_: List[I]).toSeq) compose w
 
-  implicit def traversable[I](implicit w: Write[Seq[I], O]) =
+  implicit def traversableW[I](implicit w: WriteLike[Seq[I], O]) =
     Write((_: Traversable[I]).toSeq) compose w
 
-  implicit def set[I](implicit w: Write[Seq[I], O]) =
+  implicit def setW[I](implicit w: WriteLike[Seq[I], O]) =
     Write((_: Set[I]).toSeq) compose w
 }
 
@@ -92,15 +92,15 @@ object Writes extends DefaultWrites with GenericWrites[PM.PM] with DefaultMonoid
   implicit def scalanumber[T <: scala.math.ScalaNumber] = Write((i: T) => i.toString)
   implicit def javanumber[T <: java.lang.Number] = Write((i: T) => i.toString)
 
-  implicit def opm[O](implicit w: Write[O, UrlFormEncoded]) = Write[O, PM] {
+  implicit def opm[O](implicit w: WriteLike[O, UrlFormEncoded]) = Write[O, PM] {
     o => toPM(w.writes(o))
   }
 
-  implicit def map[I](implicit w: Write[I, Seq[String]]) = Write[Map[String, I], PM] {
+  implicit def mapW[I](implicit w: WriteLike[I, Seq[String]]) = Write[Map[String, I], PM] {
     m => toPM(m.mapValues(w.writes))
   }
 
-  implicit def spm[O](implicit w: Write[O, PM]) =
+  implicit def spm[O](implicit w: WriteLike[O, PM]) =
     Write[Seq[O], PM] { os =>
       os.zipWithIndex
         .toMap
@@ -110,18 +110,18 @@ object Writes extends DefaultWrites with GenericWrites[PM.PM] with DefaultMonoid
         }
     }
 
-  implicit def writeM[I](path: Path)(implicit w: Write[I, PM]) = Write[I, UrlFormEncoded] { i =>
+  implicit def writeM[I](path: Path)(implicit w: WriteLike[I, PM]) = Write[I, UrlFormEncoded] { i =>
     toM(repathPM(w.writes(i), path ++ _))
   }
 
-  implicit def ospm[I](implicit w: Write[I, String]) = Write[I, PM] { i =>
+  implicit def ospm[I](implicit w: WriteLike[I, String]) = Write[I, PM] { i =>
     Map(Path -> w.writes(i))
   }
 
-  implicit def opt[I](implicit w: Path => Write[I, UrlFormEncoded]): Path => Write[Option[I], UrlFormEncoded] =
-    option[I, I](Write.zero[I])
+  implicit def optW[I](implicit w: Path => WriteLike[I, UrlFormEncoded]): Path => Write[Option[I], UrlFormEncoded] =
+    optionW[I, I](Write.zero[I])
 
-  def option[I, J](r: => Write[I, J])(implicit w: Path => Write[J, UrlFormEncoded]) =
-    super.option[I, J, UrlFormEncoded](r, Map.empty)
+  def optionW[I, J](r: => WriteLike[I, J])(implicit w: Path => WriteLike[J, UrlFormEncoded]) =
+    super.optionW[I, J, UrlFormEncoded](r, Map.empty)
 
 }

@@ -1,16 +1,22 @@
 package play.api.data.mapping
 
-/**
- * A Rule is
- */
-trait Rule[I, O] {
-
+trait RuleLike[I, O] {
   /**
    * Apply the Rule to `data`
    * @param data The data to validate
    * @return The Result of validating the data
    */
   def validate(data: I): VA[I, O]
+}
+
+object RuleLike {
+  implicit def zero[O]: RuleLike[O, O] = Rule[O, O](Success.apply)
+}
+
+/**
+ * A Rule is
+ */
+trait Rule[I, O] extends RuleLike[I, O] {
 
   /**
    * Compose two Rules
@@ -24,7 +30,7 @@ trait Rule[I, O] {
    * @param sub the second Rule to apply
    * @return The combination of the two Rules
    */
-  def compose[P](path: Path)(sub: => Rule[O, P]): Rule[I, P] =
+  def compose[P](path: Path)(sub: => RuleLike[O, P]): Rule[I, P] =
     this.flatMap { o => Rule(_ => sub.validate(o)) }.repath(path ++ _)
 
   def flatMap[B](f: O => Rule[I, B]): Rule[I, B] =
@@ -51,11 +57,11 @@ trait Rule[I, O] {
    * @param t an alternative Rule
    * @return a Rule
    */
-  def orElse[OO >: O](t: => Rule[I, OO]): Rule[I, OO] =
+  def orElse[OO >: O](t: => RuleLike[I, OO]): Rule[I, OO] =
     Rule(d => this.validate(d) orElse t.validate(d))
 
   // would be nice to have Kleisli in play
-  def compose[P](sub: => Rule[O, P]): Rule[I, P] = compose(Path)(sub)
+  def compose[P](sub: => RuleLike[O, P]): Rule[I, P] = compose(Path)(sub)
   def compose[P](m: Mapping[ValidationError, O, P]): Rule[I, P] = compose(Rule.fromMapping(m))
 
   /**
@@ -69,7 +75,7 @@ trait Rule[I, O] {
    *   (Path \ "firstname").read(composed).validate(valid) // Success("Julien")
    *  }}}
    */
-  def |+|[OO <: O](r2: Rule[I, OO]) = Rule[I, O] { v =>
+  def |+|[OO <: O](r2: RuleLike[I, OO]) = Rule[I, O] { v =>
     (this.validate(v) *> r2.validate(v)).fail.map {
       _.groupBy(_._1).map {
         case (path, errs) =>
@@ -111,14 +117,18 @@ object Rule {
 
   import play.api.libs.functional._
 
-  implicit def zero[O] = Rule[O, O](Success.apply)
+  implicit def zero[O] = toRule(RuleLike.zero[O])
 
   def apply[I, O](m: Mapping[(Path, Seq[ValidationError]), I, O]) = new Rule[I, O] {
     def validate(data: I): VA[I, O] = m(data)
   }
 
+  def toRule[I, O](r: RuleLike[I, O]) = new Rule[I, O] {
+    def validate(data: I): VA[I, O] = r.validate(data)
+  }
+
   def fromMapping[I, O](f: Mapping[ValidationError, I, O]) =
-    Rule[I, O](f(_).fail.map(errs => Seq(Path -> errs)))
+    Rule[I, O](f(_: I).fail.map(errs => Seq(Path -> errs)))
 
   implicit def applicativeRule[I] = new Applicative[({ type λ[O] = Rule[I, O] })#λ] {
     override def pure[A](a: A): Rule[I, A] =

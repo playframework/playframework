@@ -47,8 +47,8 @@ class WritesSpec extends Specification {
       w.writes(Some("Hello World")) mustEqual Map("email" -> Seq("Hello World"))
       w.writes(None) mustEqual Map.empty
 
-      (Path \ "n").write(option(anyval[Int])).writes(Some(5)) mustEqual Map("n" -> Seq("5"))
-      (Path \ "n").write(option(anyval[Int])).writes(None) mustEqual Map.empty
+      (Path \ "n").write(optionW(anyval[Int])).writes(Some(5)) mustEqual Map("n" -> Seq("5"))
+      (Path \ "n").write(optionW(anyval[Int])).writes(None) mustEqual Map.empty
 
       case class Foo(name: String)
       implicit val wf = (Path \ "name").write[String, UrlFormEncoded].contramap((_: Foo).name)
@@ -175,8 +175,6 @@ class WritesSpec extends Specification {
       }
 
       "Map[String, Seq[V]]" in {
-        import Writes.{ map => mm }
-
         To[UrlFormEncoded] { __ => (__ \ "n").write[Map[String, Seq[String]]] }.writes(Map("foo" -> Seq("bar"))) mustEqual((Map("n.foo" -> Seq("bar"))))
         To[UrlFormEncoded] { __ => (__ \ "n").write[Map[String, Seq[Int]]] }.writes(Map("foo" -> Seq(4))) mustEqual((Map("n.foo" -> Seq("4"))))
         To[UrlFormEncoded] { __ => (__ \ "n" \ "o").write[Map[String, Seq[Int]]] }.writes(Map("foo" -> Seq(4))) mustEqual((Map("n.o.foo" -> Seq("4"))))
@@ -185,7 +183,6 @@ class WritesSpec extends Specification {
       }
 
       "Traversable" in {
-        import Writes.{ traversable => tr }
         To[UrlFormEncoded] { __ => (__ \ "n").write[Traversable[String]] }.writes(Array("foo", "bar").toTraversable) mustEqual((Map("n[0]" -> Seq("foo"), "n[1]" -> Seq("bar"))))
         To[UrlFormEncoded] { __ => (__ \ "n" \ "o").write[Traversable[String]] }.writes(Array("foo", "bar").toTraversable) mustEqual((Map("n.o[0]" -> Seq("foo"), "n.o[1]" -> Seq("bar"))))
         To[UrlFormEncoded] { __ => (__ \ "n" \ "o" \ "p").write[Traversable[String]] }.writes(Array("foo", "bar").toTraversable) mustEqual((Map("n.o.p[0]" -> Seq("foo"), "n.o.p[1]" -> Seq("bar"))))
@@ -282,18 +279,18 @@ class WritesSpec extends Specification {
       "using explicit notation" in {
         lazy val w: Write[RecUser, UrlFormEncoded] = To[UrlFormEncoded]{ __ =>
           ((__ \ "name").write[String] ~
-           (__ \ "friends").write(seq(w)))(unlift(RecUser.unapply _))
+           (__ \ "friends").write(seqW(w)))(unlift(RecUser.unapply _))
         }
         w.writes(u) mustEqual m
 
         lazy val w2: Write[RecUser, UrlFormEncoded] =
           ((Path \ "name").write[String, UrlFormEncoded] ~
-           (Path \ "friends").write(seq(w2)))(unlift(RecUser.unapply _))
+           (Path \ "friends").write(seqW(w2)))(unlift(RecUser.unapply _))
         w2.writes(u) mustEqual m
 
         lazy val w3: Write[User1, UrlFormEncoded] = To[UrlFormEncoded]{ __ =>
           ((__ \ "name").write[String] ~
-           (__ \ "friend").write(option(w3)))(unlift(User1.unapply _))
+           (__ \ "friend").write(optionW(w3)))(unlift(User1.unapply _))
         }
         w3.writes(u1) mustEqual m1
       }

@@ -312,13 +312,13 @@ object MacroSpec extends Specification {
 
     "test case class 1 field map" in {
       "Rule" in {
-        import Rules.{ map => mmm , _}
+        import Rules._
         implicit val toto5Rule = Rule.gen[JsValue, Toto5]
         success
       }
 
       "Write" in {
-        import js.Writes.{ map => mmm , _}
+        import js.Writes._
         implicit val toto5Write = Write.gen[Toto5, JsObject]
         success
       }

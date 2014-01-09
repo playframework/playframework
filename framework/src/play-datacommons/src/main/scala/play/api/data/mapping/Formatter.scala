@@ -1,7 +1,7 @@
 package play.api.data.mapping
 
 trait From[I] {
-  def apply[O](f: Reader[I] => Rule[I, O]) = f(Reader[I]())
+  def apply[O](f: Reader[I] => RuleLike[I, O]): Rule[I, O] = Rule.toRule(f(Reader[I]()))
 }
 object From {
   /**
@@ -24,12 +24,12 @@ object From {
    *   From[UrlFormEncoded, Person](m) == Success(Person(List("bob", "bobby")))
    * }}}
    */
-  def apply[I, O](i: I)(implicit r: Rule[I, O]) =
+  def apply[I, O](i: I)(implicit r: RuleLike[I, O]) =
     r.validate(i)
 }
 
 trait To[I] {
-  def apply[O](f: Writer[I] => Write[O, I]) = f(Writer[I]())
+  def apply[O](f: Writer[I] => WriteLike[O, I]): Write[O, I] = Write.toWrite(f(Writer[I]()))
 }
 object To {
 
@@ -58,7 +58,7 @@ object To {
    *      "friend.name" -> Seq("bobby"))
    * }}}
    */
-  def apply[O, I](o: O)(implicit w: Write[O, I]) =
+  def apply[O, I](o: O)(implicit w: WriteLike[O, I]) =
     w.writes(o)
 }
 
@@ -79,8 +79,8 @@ case class Reader[I](path: Path = Path(Nil)) {
    * @param l a lookup function. This function finds data in a structure of type I, and coerce it to type O
    * @return A Rule validating the existence and validity of data at `path`
    */
-  def read[J, O](sub: => Rule[J, O])(implicit r: Path => Rule[I, J]): Rule[I, O] =
-    r(path).compose(path)(sub)
+  def read[J, O](sub: => RuleLike[J, O])(implicit r: Path => RuleLike[I, J]): Rule[I, O] =
+    Rule.toRule(r(path)).compose(path)(sub)
 
   /**
    * Try to convert the data at `Path` to type `O`
@@ -97,7 +97,7 @@ case class Reader[I](path: Path = Path(Nil)) {
    * @param r a lookup function. This function finds data in a structure of type I, and coerce it to type O
    * @return A Rule validating the existence and validity of data at `path`.
    */
-  def read[O](implicit r: Path => Rule[I, O]): Rule[I, O] =
+  def read[O](implicit r: Path => RuleLike[I, O]): Rule[I, O] =
     Rule { i => read(Rule.zero[O])(r).validate(i) } // makes it lazy evaluated. Allows recursive writes
 
   def \(key: String): Reader[I] = Reader(path \ key)
@@ -116,7 +116,7 @@ case class Writer[I](path: Path = Path(Nil)) {
    * }}}
    * @note This method works fine with recursive writes
    */
-  def write[O](implicit w: Path => Write[O, I]): Write[O, I] =
+  def write[O](implicit w: Path => WriteLike[O, I]): Write[O, I] =
     Write { x => w(path).writes(x) } // makes it lazy evaluated. Allows recursive writes
 
   /**
@@ -129,10 +129,40 @@ case class Writer[I](path: Path = Path(Nil)) {
    * }}}
    * @note This method works fine with recursive writes
    */
-  def write[O, J](format: => Write[O, J])(implicit w: Path => Write[J, I]): Write[O, I] =
-    w(path).contramap(x => format.writes(x))
+  def write[O, J](format: => WriteLike[O, J])(implicit w: Path => WriteLike[J, I]): Write[O, I] =
+    Write.toWrite(w(path)).contramap(x => format.writes(x))
 
   def \(key: String): Writer[I] = Writer(path \ key)
   def \(idx: Int): Writer[I] = Writer(path \ idx)
   def \(child: PathNode): Writer[I] = Writer(path \ child)
+}
+
+trait Formatting[IR, IW] {
+  def apply[O](f: Formatter[IR, IW] => Format[IR, IW, O]) = f(Formatter[IR, IW]())
+}
+object Formatting {
+  def apply[IR, IW] = new Formatting[IR, IW] {}
+}
+
+case class Formatter[IR, IW](path: Path = Path(Nil)) {
+
+  def format[JJ, J, O](subR: => RuleLike[J, O], subW: => WriteLike[O, JJ])(implicit r: Path => RuleLike[IR, J], w: Path => WriteLike[JJ, IW]): Format[IR, IW, O] = {
+    Format[IR, IW, O](Reader(path).read(subR), Writer(path).write(subW))
+  }
+
+  def format[J, O](subR: => RuleLike[J, O])(implicit r: Path => RuleLike[IR, J], w: Path => WriteLike[O, IW]): Format[IR, IW, O] =
+    format(subR, Write.zero[O])
+
+  // def format[JJ, O](subW: => WriteLike[O, JJ])(implicit r: Path => RuleLike[I, O], w: Path => WriteLike[JJ, I]): Format[I, O] =
+  //   format(Rule.zero[O], subW)
+
+  def format[O](implicit r: Path => RuleLike[IR, O], w: Path => WriteLike[O, IW]): Format[IR, IW, O] = new Format[IR, IW, O] {
+    lazy val f = format(Rule.zero[O], Write.zero[O])
+    def validate(i: IR) = f.validate(i)
+    def writes(o: O) = f.writes(o)
+  }
+
+  def \(key: String): Formatter[IR, IW] = Formatter(path \ key)
+  def \(idx: Int): Formatter[IR, IW] = Formatter(path \ idx)
+  def \(child: PathNode): Formatter[IR, IW] = Formatter(path \ child)
 }

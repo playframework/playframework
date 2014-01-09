@@ -55,13 +55,13 @@ object RulesSpec extends Specification {
 
       "Int" in {
         (Path \ "n").read[JsValue, Int].validate(Json.obj("n" -> 4)) mustEqual(Success(4))
-        (Path \ "n").read[JsValue, Int].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("error.invalid", "Int")))))
-        (Path \ "n").read[JsValue, Int].validate(Json.obj("n" -> 4.8)) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("error.invalid", "Int")))))
+        (Path \ "n").read[JsValue, Int].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("error.number", "Int")))))
+        (Path \ "n").read[JsValue, Int].validate(Json.obj("n" -> 4.8)) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("error.number", "Int")))))
         (Path \ "n" \ "o").read[JsValue, Int].validate(Json.obj("n" -> Json.obj("o" -> 4))) mustEqual(Success(4))
-        (Path \ "n" \ "o").read[JsValue, Int].validate(Json.obj("n" -> Json.obj("o" -> "foo"))) mustEqual(Failure(Seq(Path \ "n" \ "o" -> Seq(ValidationError("error.invalid", "Int")))))
+        (Path \ "n" \ "o").read[JsValue, Int].validate(Json.obj("n" -> Json.obj("o" -> "foo"))) mustEqual(Failure(Seq(Path \ "n" \ "o" -> Seq(ValidationError("error.number", "Int")))))
 
         (Path \ "n" \ "o" \ "p" ).read[JsValue, Int].validate(Json.obj("n" -> Json.obj("o" -> Json.obj("p" -> 4)))) mustEqual(Success(4))
-        (Path \ "n" \ "o" \ "p").read[JsValue, Int].validate(Json.obj("n" -> Json.obj("o" -> Json.obj("p" -> "foo")))) mustEqual(Failure(Seq(Path \ "n" \ "o" \ "p" -> Seq(ValidationError("error.invalid", "Int")))))
+        (Path \ "n" \ "o" \ "p").read[JsValue, Int].validate(Json.obj("n" -> Json.obj("o" -> Json.obj("p" -> "foo")))) mustEqual(Failure(Seq(Path \ "n" \ "o" \ "p" -> Seq(ValidationError("error.number", "Int")))))
 
         val errPath = Path \ "foo"
         val error = Failure(Seq(errPath -> Seq(ValidationError("error.required"))))
@@ -70,38 +70,38 @@ object RulesSpec extends Specification {
 
       "Short" in {
         (Path \ "n").read[JsValue, Short].validate(Json.obj("n" -> 4)) mustEqual(Success(4))
-        (Path \ "n").read[JsValue, Short].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("error.invalid", "Short")))))
-        (Path \ "n").read[JsValue, Short].validate(Json.obj("n" -> 4.8)) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("error.invalid", "Short")))))
+        (Path \ "n").read[JsValue, Short].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("error.number", "Short")))))
+        (Path \ "n").read[JsValue, Short].validate(Json.obj("n" -> 4.8)) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("error.number", "Short")))))
       }
 
       "Long" in {
         (Path \ "n").read[JsValue, Long].validate(Json.obj("n" -> 4)) mustEqual(Success(4))
-        (Path \ "n").read[JsValue, Long].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("error.invalid", "Long")))))
-        (Path \ "n").read[JsValue, Long].validate(Json.obj("n" -> 4.8)) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("error.invalid", "Long")))))
+        (Path \ "n").read[JsValue, Long].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("error.number", "Long")))))
+        (Path \ "n").read[JsValue, Long].validate(Json.obj("n" -> 4.8)) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("error.number", "Long")))))
       }
 
       "Float" in {
         (Path \ "n").read[JsValue, Float].validate(Json.obj("n" -> 4)) mustEqual(Success(4))
-        (Path \ "n").read[JsValue, Float].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("error.invalid", "Float")))))
+        (Path \ "n").read[JsValue, Float].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("error.number", "Float")))))
         (Path \ "n").read[JsValue, Float].validate(Json.obj("n" -> 4.8)) mustEqual(Success(4.8F))
       }
 
       "Double" in {
         (Path \ "n").read[JsValue, Double].validate(Json.obj("n" -> 4)) mustEqual(Success(4))
-        (Path \ "n").read[JsValue, Double].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("error.invalid", "Double")))))
+        (Path \ "n").read[JsValue, Double].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("error.number", "Double")))))
         (Path \ "n").read[JsValue, Double].validate(Json.obj("n" -> 4.8)) mustEqual(Success(4.8))
       }
 
       "java BigDecimal" in {
         import java.math.{ BigDecimal => jBigDecimal }
         (Path \ "n").read[JsValue, jBigDecimal].validate(Json.obj("n" -> 4)) mustEqual(Success(new jBigDecimal("4")))
-        (Path \ "n").read[JsValue, jBigDecimal].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("error.invalid", "BigDecimal")))))
+        (Path \ "n").read[JsValue, jBigDecimal].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("error.number", "BigDecimal")))))
         (Path \ "n").read[JsValue, jBigDecimal].validate(Json.obj("n" -> 4.8)) mustEqual(Success(new jBigDecimal("4.8")))
       }
 
       "scala BigDecimal" in {
         (Path \ "n").read[JsValue, BigDecimal].validate(Json.obj("n" -> 4)) mustEqual(Success(BigDecimal(4)))
-        (Path \ "n").read[JsValue, BigDecimal].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("error.invalid", "BigDecimal")))))
+        (Path \ "n").read[JsValue, BigDecimal].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("error.number", "BigDecimal")))))
         (Path \ "n").read[JsValue, BigDecimal].validate(Json.obj("n" -> 4.8)) mustEqual(Success(BigDecimal(4.8)))
       }
 
@@ -178,7 +178,7 @@ object RulesSpec extends Specification {
 
       "JsNumber" in {
         (Path \ "n").read[JsValue, JsNumber].validate(Json.obj("n" -> 4)) mustEqual(Success(JsNumber(4)))
-        (Path \ "n").read[JsValue, JsNumber].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("error.invalid", "Number")))))
+        (Path \ "n").read[JsValue, JsNumber].validate(Json.obj("n" -> "foo")) mustEqual(Failure(Seq(Path \ "n" -> Seq(ValidationError("error.number", "Number")))))
         (Path \ "n").read[JsValue, JsNumber].validate(Json.obj("n" -> 4.8)) mustEqual(Success(JsNumber(4.8)))
       }
 
@@ -195,11 +195,10 @@ object RulesSpec extends Specification {
       }
 
       "Map[String, V]" in {
-        import Rules.{ map => mm }
         (Path \ "n").read[JsValue, Map[String, String]].validate(Json.obj("n" -> Json.obj("foo" -> "bar"))) mustEqual(Success(Map("foo" -> "bar")))
         (Path \ "n").read[JsValue, Map[String, Int]].validate(Json.obj("n" -> Json.obj("foo" -> 4, "bar" -> 5))) mustEqual(Success(Map("foo" -> 4, "bar" -> 5)))
         (Path \ "x").read[JsValue, Map[String, Int]].validate(Json.obj("n" -> Json.obj("foo" -> 4, "bar" -> "frack"))) mustEqual(Failure(Seq(Path \ "x" -> Seq(ValidationError("error.required")))))
-        (Path \ "n").read[JsValue, Map[String, Int]].validate(Json.obj("n" -> Json.obj("foo" -> 4, "bar" -> "frack"))) mustEqual(Failure(Seq(Path \ "n" \ "bar" -> Seq(ValidationError("error.invalid", "Int")))))
+        (Path \ "n").read[JsValue, Map[String, Int]].validate(Json.obj("n" -> Json.obj("foo" -> 4, "bar" -> "frack"))) mustEqual(Failure(Seq(Path \ "n" \ "bar" -> Seq(ValidationError("error.number", "Int")))))
       }
 
       "Traversable" in {
@@ -257,7 +256,7 @@ object RulesSpec extends Specification {
       (Path \ "age").from[JsValue](max(50)).validate(valid) mustEqual(Success(27))
       (Path \ "age").from[JsValue](min(50)).validate(valid) mustEqual(Failure(Seq((Path \ "age") -> Seq(ValidationError("error.min", 50)))))
       (Path \ "age").from[JsValue](max(0)).validate(valid) mustEqual(Failure(Seq((Path \ "age") -> Seq(ValidationError("error.max", 0)))))
-      (Path \ "firstname").read[JsValue, Int].validate(valid) mustEqual(Failure(Seq((Path \ "firstname") -> Seq(ValidationError("error.invalid", "Int")))))
+      (Path \ "firstname").read[JsValue, Int].validate(valid) mustEqual(Failure(Seq((Path \ "firstname") -> Seq(ValidationError("error.number", "Int")))))
     }
 
     "compose constraints" in {
@@ -283,16 +282,16 @@ object RulesSpec extends Specification {
     }
 
     "lift validations to seq validations" in {
-      (Path \ "foo").from[JsValue](seq(notEmpty)).validate(Json.obj("foo" -> Seq("bar")))
+      (Path \ "foo").from[JsValue](seqR(notEmpty)).validate(Json.obj("foo" -> Seq("bar")))
         .get must haveTheSameElementsAs(Seq("bar"))
 
       From[JsValue]{ __ =>
         (__ \ "foo").read(
-          (__ \ "foo").read(seq(notEmpty)))
+          (__ \ "foo").read(seqR(notEmpty)))
       }.validate(Json.obj("foo" -> Json.obj("foo" -> Seq("bar"))))
         .get must haveTheSameElementsAs(Seq("bar"))
 
-      (Path \ "n").from[JsValue](seq(notEmpty))
+      (Path \ "n").from[JsValue](seqR(notEmpty))
         .validate(Json.parse("""{"n":["foo", ""]}""")) mustEqual(Failure(Seq(Path \ "n" \ 1 -> Seq(ValidationError("error.required")))))
     }
 
@@ -404,15 +403,15 @@ object RulesSpec extends Specification {
 
       val infoValidation = From[JsValue] { __ =>
          ((__ \ "label").read(notEmpty) ~
-          (__ \ "email").read(option(email)) ~
-          (__ \ "phones").read(seq(notEmpty))) (ContactInformation.apply _)
+          (__ \ "email").read(optionR(email)) ~
+          (__ \ "phones").read(seqR(notEmpty))) (ContactInformation.apply _)
       }
 
       val contactValidation = From[JsValue] { __ =>
         ((__ \ "firstname").read(notEmpty) ~
          (__ \ "lastname").read(notEmpty) ~
          (__ \ "company").read[Option[String]] ~
-         (__ \ "informations").read(seq(infoValidation))) (Contact.apply _)
+         (__ \ "informations").read(seqR(infoValidation))) (Contact.apply _)
       }
 
       val expected =
@@ -443,18 +442,18 @@ object RulesSpec extends Specification {
       "using explicit notation" in {
         lazy val w: Rule[JsValue, RecUser] = From[JsValue]{ __ =>
           ((__ \ "name").read[String] ~
-           (__ \ "friends").read(seq(w)))(RecUser.apply _)
+           (__ \ "friends").read(seqR(w)))(RecUser.apply _)
         }
         w.validate(m) mustEqual Success(u)
 
         lazy val w2: Rule[JsValue, RecUser] =
           ((Path \ "name").read[JsValue, String] ~
-           (Path \ "friends").from[JsValue](seq(w2)))(RecUser.apply _)
+           (Path \ "friends").from[JsValue](seqR(w2)))(RecUser.apply _)
         w2.validate(m) mustEqual Success(u)
 
         lazy val w3: Rule[JsValue, User1] = From[JsValue]{ __ =>
           ((__ \ "name").read[String] ~
-           (__ \ "friend").read(option(w3)))(User1.apply _)
+           (__ \ "friend").read(optionR(w3)))(User1.apply _)
         }
         w3.validate(m1) mustEqual Success(u1)
       }
@@ -473,6 +472,39 @@ object RulesSpec extends Specification {
         w3.validate(m1) mustEqual Success(u1)
       }
 
+    }
+
+
+    "completely generic" in {
+      type OptString[In] = Rule[String, String] => Path => Rule[In, Option[String]]
+
+      def genR[In](opt: OptString[In])(implicit exs: Path => Rule[In, String]) =
+        From[In] { __ =>
+          ((__ \ "name").read(notEmpty) ~
+           (__ \ "color").read(opt(notEmpty))).tupled
+        }
+
+      val jsonR = {
+        import play.api.data.mapping.json.Rules._
+        genR[JsValue](optionR(_))
+      }
+
+      val json = Json.obj("name" -> "bob", "color" -> "blue")
+      val invalidJson = Json.obj("color" -> "blue")
+
+      jsonR.validate(json) mustEqual Success(("bob", Some("blue")))
+      jsonR.validate(invalidJson) mustEqual Failure(Seq((Path \ "name", Seq(ValidationError("error.required")))))
+
+
+       val formR = {
+        import play.api.data.mapping.Rules._
+        genR[UrlFormEncoded](optionR(_))
+      }
+      val form = Map("name" -> Seq("bob"), "color" -> Seq("blue"))
+      val invalidForm = Map("color" -> Seq("blue"))
+
+      formR.validate(form) mustEqual Success(("bob", Some("blue")))
+      formR.validate(invalidForm) mustEqual Failure(Seq((Path \ "name", Seq(ValidationError("error.required")))))
     }
 
   }
