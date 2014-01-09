@@ -22,7 +22,7 @@ public abstract class Action<T> extends Results {
     public Action<?> delegate;
     
     /**
-     * Executes this action with the give HTTP context and returns the result.
+     * Executes this action with the given HTTP context and returns the result.
      */
     public abstract Promise<SimpleResult> call(Context ctx) throws Throwable;
     
