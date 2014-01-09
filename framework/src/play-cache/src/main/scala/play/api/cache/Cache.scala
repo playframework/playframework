@@ -85,7 +85,7 @@ object Cache {
    *
    * @param key Item key.
    * @param expiration expiration period in seconds.
-   * @param orElse The default function to invoke if the value was found in cache.
+   * @param orElse The default function to invoke if the value was not found in cache.
    */
   def getOrElse[A](key: String, expiration: Int = 0)(orElse: => A)(implicit app: Application, ct: ClassTag[A]): A = {
     getAs[A](key).getOrElse {
