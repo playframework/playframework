@@ -31,23 +31,11 @@ object AnormSpec extends Specification with H2Database with AnormTest {
         .single must_== ("Hello" -> 20)
     }
 
-    "return case class instance from result" in withConnection { implicit c =>
-      createTest1Table()
-      SQL("insert into test1(id, foo, bar) values ({id}, {foo}, {bar})")
-        .on('id -> 11L, 'foo -> "World", 'bar -> 21)
-        .execute()
-
-      SQL("select * from test1 where id = {id}")
-        .on('id -> 11L).as(fooBarParser.singleOpt)
-        .aka("result data") must beSome(TestTable(11L, "World", 21))
-
-    }
-
     "return defined option of case class" in withQueryResult(
       fooBarTable :+ row3(11L, "World", 21)) { implicit c =>
 
         SQL("SELECT * FROM test WHERE id = {id}")
-          .on("id" -> 11L).as(fooBarParser.singleOpt)
+          .on("id" -> 11L).as(fooBarParser1.singleOpt)
           .aka("result data") must beSome(TestTable(11L, "World", 21))
 
       }
@@ -77,7 +65,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
       "throw exception when single result is missing" in withQueryResult(
         fooBarTable) { implicit c =>
 
-          SQL("SELECT * FROM test").as(fooBarParser.single).
+          SQL("SELECT * FROM test").as(fooBarParser1.single).
             aka("mapping") must throwA[Exception].like {
               case e: Exception => e.getMessage aka "error" mustEqual (
                 "SqlMappingError(No rows when expecting a single one)")
@@ -154,6 +142,59 @@ object AnormSpec extends Specification with H2Database with AnormTest {
     }
   }
 
+  "Instance of case class" should {
+    "be parsed using convience parsers with column names" in withConnection {
+      implicit c =>
+        createTest1Table()
+        SQL("insert into test1(id, foo, bar) values ({id}, {foo}, {bar})")
+          .on('id -> 11L, 'foo -> "World", 'bar -> 21)
+          .execute()
+
+        SQL("select * from test1 where id = {id}")
+          .on('id -> 11L).as(fooBarParser1.singleOpt)
+          .aka("instance") must beSome(TestTable(11L, "World", 21))
+
+    }
+
+    "be parsed using raw 'get' parser with column names" in withQueryResult(
+      fooBarTable :+ row3(11L, "World", 21)) { implicit c =>
+        SQL("insert into test1(id, foo, bar) values ({id}, {foo}, {bar})")
+          .on('id -> 11L, 'foo -> "World", 'bar -> 21)
+          .execute()
+
+        SQL("select * from test1 where id = {id}")
+          .on('id -> 11L).as(fooBarParser2.singleOpt)
+          .aka("instance") must beSome(TestTable(11L, "World", 21))
+
+      }
+
+    "be parsed using convience parsers with column positions" in {
+      withQueryResult(fooBarTable :+ row3(11L, "World", 21)) { implicit c =>
+        SQL("insert into test1(id, foo, bar) values ({id}, {foo}, {bar})")
+          .on('id -> 11L, 'foo -> "World", 'bar -> 21)
+          .execute()
+
+        SQL("select * from test1 where id = {id}")
+          .on('id -> 11L).as(fooBarParser3.singleOpt)
+          .aka("instance") must beSome(TestTable(11L, "World", 21))
+
+      }
+    }
+
+    "be parsed using raw 'get' parser with column positions" in {
+      withQueryResult(fooBarTable :+ row3(11L, "World", 21)) { implicit c =>
+        SQL("insert into test1(id, foo, bar) values ({id}, {foo}, {bar})")
+          .on('id -> 11L, 'foo -> "World", 'bar -> 21)
+          .execute()
+
+        SQL("select * from test1 where id = {id}")
+          .on('id -> 11L).as(fooBarParser4.singleOpt)
+          .aka("instance") must beSome(TestTable(11L, "World", 21))
+
+      }
+    }
+  }
+
   "List" should {
     "be Nil when there is no result" in withQueryResult(QueryResult.Nil) {
       implicit c =>
@@ -172,7 +213,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
     "be parsed from class mapping" in withQueryResult(
       fooBarTable :+ row3(12L, "World", 101) :+ row3(14L, "Mondo", 3210)) {
         implicit c =>
-          SQL("SELECT * FROM test").as(fooBarParser.*).
+          SQL("SELECT * FROM test").as(fooBarParser1.*).
             aka("parsed list") must_== List(
               TestTable(12L, "World", 101), TestTable(14L, "Mondo", 3210))
 
@@ -215,7 +256,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
     "be parsed from class mapping" in withQueryResult(
       fooBarTable :+ row3(12L, "World", 101) :+ row3(14L, "Mondo", 3210)) {
         implicit c =>
-          SQL("SELECT * FROM test").apply().map(fooBarParser).
+          SQL("SELECT * FROM test").apply().map(fooBarParser1).
             aka("parsed stream") must_== List(
               Success(TestTable(12L, "World", 101)),
               Success(TestTable(14L, "Mondo", 3210))).toStream
@@ -258,9 +299,22 @@ object AnormSpec extends Specification with H2Database with AnormTest {
 }
 
 sealed trait AnormTest { db: H2Database =>
-  import SqlParser.{ int, long, str }
+  import SqlParser.{ get, int, long, str }
 
-  val fooBarParser = long("id") ~ str("foo") ~ int("bar") map {
+  val fooBarParser1 = long("id") ~ str("foo") ~ int("bar") map {
+    case id ~ foo ~ bar => TestTable(id, foo, bar)
+  }
+
+  val fooBarParser2 =
+    get[Long]("id") ~ get[String]("foo") ~ get[Int]("bar") map {
+      case id ~ foo ~ bar => TestTable(id, foo, bar)
+    }
+
+  val fooBarParser3 = long(1) ~ str(2) ~ int(3) map {
+    case id ~ foo ~ bar => TestTable(id, foo, bar)
+  }
+
+  val fooBarParser4 = get[Long](1) ~ get[String](2) ~ get[Int](3) map {
     case id ~ foo ~ bar => TestTable(id, foo, bar)
   }
 

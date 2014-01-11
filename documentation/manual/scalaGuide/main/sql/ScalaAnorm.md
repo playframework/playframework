@@ -135,6 +135,19 @@ val code: String = SQL(
 // code == "First"
 ```
 
+Columns can also be specified by position, rather than name:
+
+```scala
+// Parsing column by name or position
+val parser = 
+  SqlParser(str("name") ~ float(3) /* third column as float */ map {
+    case name ~ f => (name -> f)
+  }
+
+val product: (String, Float) = SQL("SELECT * FROM prod WHERE id = {id}").
+  on('id -> "p").as(parser.single)
+```
+
 Passing anything different from string or symbol as parameter name is now deprecated. For backward compatibility, you can activate `anorm.features.parameterWithUntypedName`.
 
 ```scala
