@@ -64,7 +64,8 @@ By implementing the iteratee, and more specifically its fold method, we can now 
 
 ```scala
 val doneIteratee = new Iteratee[String,Int] {
-  def fold[B](folder: Step[String,Int] => Future[B]): Future[B] = folder(Step.Done(1, Input.Empty))
+  def fold[B](folder: Step[String,Int] => Future[B])(implicit ec: ExecutionContext) : Future[B] = 
+    folder(Step.Done(1, Input.Empty))
 }
 ```
 
@@ -102,7 +103,7 @@ Creating a `Done` iteratee is simple, and sometimes useful, but it does not cons
 ```scala
 val consumeOneInputAndEventuallyReturnIt = new Iteratee[String,Int] {
     
-def fold[B](folder: Step[String,Int] => Future[B]): Future[B] = {
+def fold[B](folder: Step[String,Int] => Future[B])(implicit ec: ExecutionContext): Future[B] = {
      folder(Step.Cont {
        case Input.EOF => Done(0, Input.EOF) //Assuming 0 for default value
        case Input.Empty => this
