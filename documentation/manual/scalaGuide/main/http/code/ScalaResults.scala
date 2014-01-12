@@ -62,6 +62,12 @@ package scalaguide.http.scalaresults {
         val result2 = result.discardingCookies(DiscardingCookie("theme"))
         //#discarding-cookies
         testHeader(result2, SET_COOKIE, "theme=;")
+        //#setting-discarding-cookies
+        val result3 = result.withCookies(Cookie("theme", "blue")).discardingCookies(DiscardingCookie("skin"))
+        //#setting-discarding-cookies
+        testHeader(result3, SET_COOKIE, "skin=;")
+        testHeader(result3, SET_COOKIE, "theme=blue;")
+        
       }
 
       "Changing the charset for text based HTTP responses" in {
