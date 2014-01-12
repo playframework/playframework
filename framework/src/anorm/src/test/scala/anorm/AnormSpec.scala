@@ -44,7 +44,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
     }
 
     "return defined option of case class" in withQueryResult(
-      fooBarTable :+ row3(11L, "World", 21)) { implicit c =>
+      fooBarTable :+ (11L, "World", 21)) { implicit c =>
 
         SQL("SELECT * FROM test WHERE id = {id}")
           .on("id" -> 11L).as(fooBarParser.singleOpt)
@@ -112,7 +112,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
 
     "handle optional property in case class" >> {
       "return instance with defined option" in withQueryResult(rowList2(
-        classOf[Int] -> "id", classOf[String] -> "val") :+ row2(2, "str")) {
+        classOf[Int] -> "id", classOf[String] -> "val") :+ (2, "str")) {
         implicit c =>
 
           SQL("SELECT * FROM test").as(
@@ -133,7 +133,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
         }
 
       "throw exception when type doesn't match" in withQueryResult(
-        fooBarTable :+ row3(1l, "str", 3)) { implicit c =>
+        fooBarTable :+ (1l, "str", 3)) { implicit c =>
 
           SQL("SELECT * FROM test").as(
             SqlParser.long("id") ~ SqlParser.int("foo").? map {
@@ -162,7 +162,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
 
     "be parsed from mapped result" in withQueryResult(
       rowList2(classOf[String] -> "foo", classOf[Int] -> "bar").
-        append("row1", 100) :+ row2("row2", 200)) { implicit c =>
+        append("row1", 100) :+ ("row2", 200)) { implicit c =>
 
         SQL("SELECT * FROM test").map(row =>
           row[String]("foo") -> row[Int]("bar")
@@ -170,7 +170,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
       }
 
     "be parsed from class mapping" in withQueryResult(
-      fooBarTable :+ row3(12L, "World", 101) :+ row3(14L, "Mondo", 3210)) {
+      fooBarTable :+ (12L, "World", 101) :+ (14L, "Mondo", 3210)) {
         implicit c =>
           SQL("SELECT * FROM test").as(fooBarParser.*).
             aka("parsed list") must_== List(
@@ -180,7 +180,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
 
     "be parsed from mapping with optional column" in withQueryResult(rowList2(
       classOf[Int] -> "id", classOf[String] -> "val").
-      append(9, null.asInstanceOf[String]) :+ row2(2, "str")) { implicit c =>
+      append(9, null.asInstanceOf[String]) :+ (2, "str")) { implicit c =>
 
       SQL("SELECT * FROM test").as(
         SqlParser.int("id") ~ SqlParser.str("val").? map {
@@ -203,7 +203,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
 
     "be parsed from mapped result" in withQueryResult(
       rowList2(classOf[String] -> "foo", classOf[Int] -> "bar").
-        append("row1", 100) :+ row2("row2", 200)) { implicit c =>
+        append("row1", 100) :+ ("row2", 200)) { implicit c =>
 
         SQL("SELECT * FROM test").apply()
           .map(row => row[String]("foo") -> row[Int]("bar"))
@@ -213,7 +213,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
       }
 
     "be parsed from class mapping" in withQueryResult(
-      fooBarTable :+ row3(12L, "World", 101) :+ row3(14L, "Mondo", 3210)) {
+      fooBarTable :+ (12L, "World", 101) :+ (14L, "Mondo", 3210)) {
         implicit c =>
           SQL("SELECT * FROM test").apply().map(fooBarParser).
             aka("parsed stream") must_== List(
@@ -224,7 +224,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
 
     "be parsed from mapping with optional column" in withQueryResult(rowList2(
       classOf[Int] -> "id", classOf[String] -> "val").
-      append(9, null.asInstanceOf[String]) :+ row2(2, "str")) { implicit c =>
+      append(9, null.asInstanceOf[String]) :+ (2, "str")) { implicit c =>
 
       lazy val parser = SqlParser.int("id") ~ SqlParser.str("val").? map {
         case id ~ v => (id -> v)

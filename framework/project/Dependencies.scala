@@ -197,7 +197,7 @@ object Dependencies {
 
   val anormDependencies = specsBuild.map(_ % "test") ++ Seq(
     h2database % "test",
-    "org.eu.acolyte" %% "acolyte-scala" % "1.0.11-1" % "test"
+    "org.eu.acolyte" %% "acolyte-scala" % "1.0.12" % "test"
   )
 
 }

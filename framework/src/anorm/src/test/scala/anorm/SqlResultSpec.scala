@@ -23,7 +23,7 @@ object SqlResultSpec extends org.specs2.mutable.Specification {
       }
 
       "returning expected mandatory single result" in withQueryResult(
-        rowList2(classOf[String] -> "a", classOf[Int] -> "b") :+ ("str" -> 2)) {
+        rowList2(classOf[String] -> "a", classOf[Int] -> "b") :+ ("str", 2)) {
           implicit c =>
             lazy val parser = for {
               a <- SqlParser.str("a")
