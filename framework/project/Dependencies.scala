@@ -2,12 +2,11 @@
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
 import sbt._
-import sbt.Keys._
 
 object Dependencies {
 
   // Some common dependencies here so they don't need to be declared over and over
-  val specsVersion = "2.3.4"
+  val specsVersion = "2.3.7"
   val specsBuild = Seq(
     "org.specs2" %% "specs2-core" % specsVersion,
     "org.specs2" %% "specs2-junit" % specsVersion,
@@ -82,20 +81,20 @@ object Dependencies {
 
     scalaIoFile,
 
-    "com.typesafe.akka" %% "akka-actor" % "2.2.0",
-    "com.typesafe.akka" %% "akka-slf4j" % "2.2.0",
+    "com.typesafe.akka" %% "akka-actor" % "2.2.3",
+    "com.typesafe.akka" %% "akka-slf4j" % "2.2.3",
 
     "org.scala-stm" %% "scala-stm" % "0.7",
-    "commons-codec" % "commons-codec" % "1.7",
+    "commons-codec" % "commons-codec" % "1.9",
 
-    "joda-time" % "joda-time" % "2.2",
-    "org.joda" % "joda-convert" % "1.3.1",
+    "joda-time" % "joda-time" % "2.3",
+    "org.joda" % "joda-convert" % "1.5",
 
     "org.apache.commons" % "commons-lang3" % "3.1",
 
-    "com.fasterxml.jackson.core" % "jackson-core" % "2.2.2",
-    "com.fasterxml.jackson.core" % "jackson-annotations" % "2.2.2",
-    "com.fasterxml.jackson.core" % "jackson-databind" % "2.2.2",
+    "com.fasterxml.jackson.core" % "jackson-core" % "2.3.1",
+    "com.fasterxml.jackson.core" % "jackson-annotations" % "2.3.0",
+    "com.fasterxml.jackson.core" % "jackson-databind" % "2.3.0",
 
     "xerces" % "xercesImpl" % "2.11.0",
 
@@ -165,9 +164,9 @@ object Dependencies {
   val jsonDependencies = Seq(
     "joda-time" % "joda-time" % "2.2",
     "org.joda" % "joda-convert" % "1.3.1",
-    "com.fasterxml.jackson.core" % "jackson-annotations" % "2.2.2",
-    "com.fasterxml.jackson.core" % "jackson-core" % "2.2.2",
-    "com.fasterxml.jackson.core" % "jackson-databind" % "2.2.2",
+    "com.fasterxml.jackson.core" % "jackson-annotations" % "2.3.0",
+    "com.fasterxml.jackson.core" % "jackson-core" % "2.3.1",
+    "com.fasterxml.jackson.core" % "jackson-databind" % "2.3.0",
     "org.scala-lang" % "scala-reflect" % BuildSettings.buildScalaVersion) ++
     specsBuild.map(_ % "test")
 
@@ -188,7 +187,7 @@ object Dependencies {
 
   val playWsDeps = Seq(
     guava,
-    ("com.ning" % "async-http-client" % "1.7.21" notTransitive ())
+    ("com.ning" % "async-http-client" % "1.7.23" notTransitive ())
       .exclude("org.jboss.netty", "netty"),
     "oauth.signpost" % "signpost-core" % "1.2.1.2",
     "oauth.signpost" % "signpost-commonshttp4" % "1.2.1.2") ++
