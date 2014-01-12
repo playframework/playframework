@@ -48,6 +48,10 @@ Also, to discard a Cookie previously stored on the Web browser:
 
 @[discarding-cookies](code/ScalaResults.scala)
 
+You can also set and remove cookies as part of the same response:
+
+@[setting-discarding-cookies](code/ScalaResults.scala)
+
 ## Changing the charset for text based HTTP responses.
 
 For text based HTTP response it is very important to handle the charset correctly. Play handles that for you and uses `utf-8` by default.
