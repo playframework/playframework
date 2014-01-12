@@ -7,7 +7,7 @@ First you need to tell play that your project need javaJpa plugin which provide 
 There is no built-in JPA implementation in Play; you can choose any available implementation. For example, to use Hibernate, just add the dependency to your project:
 
 ```
-val appDependencies = Seq(
+libraryDependencies ++= Seq(
   javaJpa,
   "org.hibernate" % "hibernate-entitymanager" % "3.6.9.Final" // replace by your jpa implementation
 )
@@ -15,7 +15,7 @@ val appDependencies = Seq(
 
 ## Exposing the datasource through JNDI
 
-JPA requires the datasource to be accessible via JNDI. You can expose any Play-managed datasource via JDNI by adding this configuration in `conf/application.conf`:
+JPA requires the datasource to be accessible via JNDI. You can expose any Play-managed datasource via JNDI by adding this configuration in `conf/application.conf`:
 
 ```
 db.default.driver=org.h2.Driver

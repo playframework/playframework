@@ -11,34 +11,40 @@ You can make your application depend on a simple library project. Just add anoth
 ```
 import play.Project._
 
-import play.Project._
-
 name := "my-first-application"
 
 version := "1.0"
 
 playScalaSettings
 
+lazy val myFirstApplication = project.in(file("."))
+    .aggregate(myLibrary)
+    .depends(myLibrary)
+
 lazy val myLibrary = project
 ```
 
 The lowercased `project` on the last line is a Scala Macro which will use the name of the val it is being assigned to in order to determine the project's name and folder.
 
+The `myFirstApplication` project declares the base project.  If you don't have any sub projects, this is already implied, however when declaring sub projects, it's usually required to declare it so that you can ensure that it aggregates (that is, runs things like compile/test etc on the sub projects when run in the base project) and depends on (that is, adds the sub projects to the main projects classpath) the sub projects.
+
 The above example defines a sub-project in the application’s `myLibrary` folder. This sub-project is a standard sbt project, using the default layout:
 
 ```
 myProject
+ └ build.sbt
  └ app
  └ conf
  └ public
-myLibrary
- └ src
-    └ main
+ └ myLibrary
+   └ build.sbt
+   └ src
+     └ main
        └ java
        └ scala
-project
- └ Build.scala
 ```
+
+`myLibrary` has its own `build.sbt` file, this is where it can declare its own settings, dependencies etc.
 
 When you have a sub-project enabled in your build, you can focus on this project and compile, test or run it individually. Just use the `projects` command in the Play console prompt to display all projects:
 
@@ -61,100 +67,77 @@ When you run your Play application in dev mode, the dependent projects are autom
 
 [[subprojectError.png]]
 
-## Splitting your web application into several parts
+## Sharing common variables and code
 
-As a Play application is just a standard sbt project with a default configuration, it can depend on another Play application. 
+If you want your sub projects and root projects to share some common settings or code, then these can be placed in a Scala file in the `project` directory of the root project.  For example, in `project/Common.scala` you might have:
 
-> The following example uses a `build.scala` file to declare a `play.Project`. This approach was the way Play applications were defined prior to version 2.2. The approach is retained in order to support backward compatibility. We recommend that you convert to the `build.sbt` based approach or, if using a `build.scala`, you use sbt's `Project` type and `project` macro.
-
-Configure your sub-project as a `play.Project`:
-
-```
+```scala
 import sbt._
 import Keys._
-import play.Project._
 
-object ApplicationBuild extends Build {
+object Common {
+  val settings: Seq[Setting[_]] = {
+    organization := "com.example",
+    version := "1.2.3-SNAPSHOT"
+  }
 
-  val appName = "zenexity.com"
-  val appVersion = "1.2"
-
-  val common = play.Project(
-    appName + "-common", appVersion, path = file("common")
-  )
-  
-  val website = play.Project(
-    appName + "-website", appVersion, path = file("website")
-  ).dependsOn(common)
-  
-  val adminArea = play.Project(
-    appName + "-admin", appVersion, path = file("admin")
-  ).dependsOn(common)
-  
-  val main = play.Project(
-    appName, appVersion, path = file("main")
-  ).dependsOn(
-    website, adminArea
-  )
+  val fooDependency = "com.foo" %% "foo" % "2.4"
 }
 ```
 
-Here we define a complete project split in two main parts: the website and the admin area. Moreover these two parts depend themselves on a common module.
+Then in each of your `build.sbt` files, you can reference anything declared in the file:
 
-If you would like the dependent projects to be recompiled and tested when you recompile and test the main project then you will need to add an "aggregate" clause.
+```scala
+name := "my-sub-module"
 
+Common.settings
+
+libraryDependencies += fooDependency
 ```
-val main = play.Project(
-  appName, appVersion, appDependencies
-).dependsOn(
-  website, adminArea
-).aggregate(
-  website, adminArea
-)
-```
+
+## Splitting your web application into several parts
+
+As a Play application is just a standard sbt project with a default configuration, it can depend on another Play application.  You can make any sub module a Play application by including `playScalaSettings` or `playJavaSettings`, depending on whether your project is a Java or Scala project, in its corresponding `build.sbt` file.
 
 > Note: in order to avoid naming collision, make sure your controllers, including the Assets controller in your subprojects are using a different name space than the main project
 
 ## Splitting the route file
 
-As of `play 2.1` it's also possible to split the route file into smaller pieces. This is a very handy feature if you want to create a robust, reusable multi-module play application
+It's also possible to split the route file into smaller pieces. This is a very handy feature if you want to create a robust, reusable multi-module play application
 
-### Consider the following build file
+### Consider the following build configuration
 
-`project/Build.scala`:
+`build.sbt`:
 
 ```scala
-import sbt._
-import Keys._
-import play.Project._
+name := "myproject"
 
-object ApplicationBuild extends Build {
+playScalaSettings
 
-    val appName         = "myproject"
-    val appVersion      = "1.0-SNAPSHOT"
+lazy val admin = project.in(file("modules/admin"))
 
-    val adminDeps = Seq(
-      // Add your project dependencies here,
-       "mysql" % "mysql-connector-java" % "5.1.18",
-      jdbc,
-      anorm
-    )
-
-    val mainDeps = Seq()
-  
-    lazy val admin = play.Project(appName + "-admin", appVersion, adminDeps, path = file("modules/admin"))
-
-
-    lazy  val main = play.Project(appName, appVersion, mainDeps).settings(
-      // Add your own project settings here      
-    ).dependsOn(admin).aggregate(admin)
-
-}
+lazy val main = project.in(file("."))
+    .dependsOn(admin).aggregate(admin)
 ```
 
-### project structure
+`modules/admin/build.sbt`
+
+```scala
+name := "myadmin"
+
+playScalaSettings
+
+libraryDependencies ++= Seq(
+  "mysql" % "mysql-connector-java" % "5.1.18",
+  jdbc,
+  anorm
+)
+```
+
+### Project structure
 
 ```
+build.sbt
 app
   └ controllers
   └ models
@@ -163,14 +146,16 @@ conf
   └ application.conf
   └ routes
 modules
+ └ build.sbt
   └ admin
-    └ conf/admin.routes
-    └ app/controllers
-    └ app/models
-    └ app/views     
+    └ conf
+      └ admin.routes
+    └ app
+      └ controllers
+      └ models
+      └ views     
 project
  └ build.properties
- └ Build.scala
  └ plugins.sbt
 ```
 
@@ -275,4 +260,3 @@ triggers
 ```
 controllers.admin.Application.index
 ```
-

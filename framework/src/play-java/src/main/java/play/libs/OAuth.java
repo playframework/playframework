@@ -59,7 +59,7 @@ public class OAuth {
     /**
      * Exchange a request token for an access token.
      *
-     * @param the token/secret pair obtained from a previous call
+     * @param token the token/secret pair obtained from a previous call
      * @param verifier a string you got through your user, with redirection
      * @return A Right(RequestToken) in case of success, Left(OAuthException) otherwise
      */
