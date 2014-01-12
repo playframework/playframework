@@ -11,10 +11,14 @@ import scala.collection.TraversableOnce
 
 import MayErr._
 
-abstract class SqlRequestError
-case class ColumnNotFound(columnName: String, possibilities: List[String]) extends SqlRequestError {
-  override def toString = columnName + " not found, available columns : " + possibilities.map { p => p.dropWhile(c => c == '.') }
-    .mkString(", ")
+/** Error from processing SQL */
+sealed trait SqlRequestError
+
+case class ColumnNotFound(column: String, possibilities: List[String])
+    extends SqlRequestError {
+
+  override lazy val toString = s"$column not found, available columns : " +
+    possibilities.map { p => p.dropWhile(c => c == '.') }.mkString(", ")
 }
 
 case class TypeDoesNotMatch(message: String) extends SqlRequestError
@@ -48,12 +52,14 @@ case object NotAssigned extends Pk[Nothing] {
 case class MetaDataItem(column: ColumnName, nullable: Boolean, clazz: String)
 case class ColumnName(qualified: String, alias: Option[String])
 
-case class MetaData(ms: List[MetaDataItem]) {
-  def get(columnName: String) = {
+private[anorm] case class MetaData(ms: List[MetaDataItem]) {
+  // Use MetaDataItem rather than (ColumnName, Boolean, String)?
+  def get(columnName: String): Option[(ColumnName, Boolean, String)] = {
     val columnUpper = columnName.toUpperCase
     dictionary2.get(columnUpper).orElse(dictionary.get(columnUpper))
   }
 
+  // Use MetaDataItem rather than (ColumnName, Boolean, String)?
   def getAliased(aliasName: String): Option[(ColumnName, Boolean, String)] =
     aliasedDictionary.get(aliasName.toUpperCase)
 
@@ -79,82 +85,6 @@ case class MetaData(ms: List[MetaDataItem]) {
   lazy val availableColumns: List[String] =
     ms.flatMap(i => i.column.qualified :: i.column.alias.toList)
 
-}
-
-trait Row {
-  val metaData: MetaData
-
-  protected[anorm] val data: List[Any]
-
-  /**
-   * Returns row as list of column values.
-   *
-   * {{{
-   * // Row first column is string "str", second one is integer 2
-   * val l: List[Any] = row.asList
-   * // l == List[Any]("str", 2)
-   * }}}
-   */
-  lazy val asList: List[Any] = data.foldLeft[List[Any]](Nil) { (l, v) =>
-    if (metaData.ms(l.size).nullable) l :+ Option(v) else l :+ v
-  }
-
-  /**
-   * Returns row as dictionary of value per column name
-   *
-   * {{{
-   * // Row column named 'A' is string "str", column named 'B' is integer 2
-   * val m: Map[String, Any] = row.asMap
-   * // l == Map[String, Any]("table.A" -> "str", "table.B" -> 2)
-   * }}}
-   */
-  lazy val asMap: Map[String, Any] =
-    data.foldLeft[Map[String, Any]](Map.empty) { (m, v) =>
-      val d = metaData.ms(m.size)
-      val k = d.column.qualified
-      if (d.nullable) m + (k -> Option(v)) else m + (k -> v)
-    }
-
-  def get[A](a: String)(implicit c: Column[A]): MayErr[SqlRequestError, A] =
-    SqlParser.get(a)(c)(this) match {
-      case Success(a) => Right(a)
-      case Error(e) => Left(e)
-    }
-
-  // TODO: Optimize
-  private lazy val columnsDictionary: Map[String, Any] =
-    metaData.ms.map(_.column.qualified.toUpperCase()).zip(data).toMap
-
-  private lazy val aliasesDictionary: Map[String, Any] =
-    metaData.ms.flatMap(_.column.alias.map(_.toUpperCase())).zip(data).toMap
-
-  private[anorm] def get1(a: String): MayErr[SqlRequestError, Any] =
-    for (
-      meta <- metaData.get(a).
-        toRight(ColumnNotFound(a, metaData.availableColumns));
-      (column, nullable, clazz) = meta;
-      result <- columnsDictionary.get(column.qualified.toUpperCase()).
-        toRight(ColumnNotFound(column.qualified, metaData.availableColumns))
-    ) yield result
-
-  private[anorm] def getAliased(a: String): MayErr[SqlRequestError, Any] =
-    for (
-      meta <- metaData.getAliased(a).
-        toRight(ColumnNotFound(a, metaData.availableColumns));
-      (column, nullable, clazz) = meta;
-      result <- column.alias.
-        flatMap(a => aliasesDictionary.get(a.toUpperCase())).
-        toRight(ColumnNotFound(column.alias.getOrElse(a),
-          metaData.availableColumns))
-
-    ) yield result
-
-  def apply[B](a: String)(implicit c: Column[B]): B = get[B](a)(c).get
-
-}
-
-case class SqlRow(metaData: MetaData, data: List[Any]) extends Row {
-  override def toString() = "Row(" + metaData.ms.zip(data).map(t => "'" + t._1.column + "':" + t._2 + " as " + t._1.clazz).mkString(", ") + ")"
 }
 
 object Useful {
@@ -281,10 +211,13 @@ case class SimpleSql[T](sql: SqlQuery, params: Seq[NamedParameter], defaultParse
   def onParams(args: ParameterValue*): SimpleSql[T] =
     copy(params = this.params ++ zipParams(sql.argsInitialOrder, args, Nil))
 
+  // TODO: Scaladoc, add to specs as `as` equivalent
   def list()(implicit connection: Connection): Seq[T] = as(defaultParser*)
 
+  // TODO: Scaladoc, add to specs as `as` equivalent
   def single()(implicit connection: Connection): T = as(ResultSetParser.single(defaultParser))
 
+  // TODO: Scaladoc, add to specs as `as` equivalent
   def singleOpt()(implicit connection: Connection): Option[T] = as(ResultSetParser.singleOpt(defaultParser))
 
   def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false) = {
@@ -515,23 +448,26 @@ object Sql {
         clazz = meta.getColumnClassName(i))))
   }
 
-  def resultSetToStream(rs: java.sql.ResultSet): Stream[SqlRow] = {
+  def resultSetToStream(rs: ResultSet): Stream[Row] = {
     val rsMetaData = metaData(rs)
     val columns = List.range(1, rsMetaData.columnCount + 1)
-    def data(rs: java.sql.ResultSet) = columns.map(nb => rs.getObject(nb))
+    def data(rs: ResultSet) = columns.map(nb => rs.getObject(nb))
     Useful.unfold(rs)(rs => if (!rs.next()) { rs.getStatement.close(); None } else Some((new SqlRow(rsMetaData, data(rs)), rs)))
   }
 
-  def as[T](parser: ResultSetParser[T], rs: java.sql.ResultSet): T =
+  def as[T](parser: ResultSetParser[T], rs: ResultSet): T =
     parser(resultSetToStream(rs)) match {
       case Success(a) => a
       case Error(e) => sys.error(e.toString)
     }
 
-  def parse[T](parser: ResultSetParser[T], rs: java.sql.ResultSet): T =
+  def parse[T](parser: ResultSetParser[T], rs: ResultSet): T =
     parser(resultSetToStream(rs)) match {
       case Success(a) => a
       case Error(e) => sys.error(e.toString)
     }
 
+  private case class SqlRow(metaData: MetaData, data: List[Any]) extends Row {
+    override lazy val toString = "Row(" + metaData.ms.zip(data).map(t => "'" + t._1.column + "':" + t._2 + " as " + t._1.clazz).mkString(", ") + ")"
+  }
 }
