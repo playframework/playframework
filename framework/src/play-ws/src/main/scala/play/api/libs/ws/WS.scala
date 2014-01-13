@@ -64,6 +64,18 @@ trait WSRequestHolderMagnet {
  * Or call the client directly:
  *
  * {{{
+ * import com.typesafe.config.ConfigFactory
+ * import play.api.libs.ws._
+ * import play.api.libs.ws.ning._
+ *
+ * val configuration = play.api.Configuration(ConfigFactory.load(
+ * """
+ *   |ws.ssl.trustManager = ...
+ * """.stripMargin))
+ * val parser = new DefaultWSConfigParser(configuration)
+ * val builder = new NingAsyncHttpClientConfigBuilder(parser.parse())
+ * val secureClient : WSClient = new NingWSClient(builder.build())
+ * val response = secureClient.url("https://secure.com").get()
  * val client = new NingWSClient(builder.build())
  * client.url("http://example.com/feed").get()
  * }}}
@@ -148,9 +160,8 @@ object WS {
    * Prepares a new request using an implicit client.  The client must be in scope and configured, i.e.
    *
    * {{{
-   *   val sslBuilder = new com.ning.http.client.AsyncHttpClientConfig.Builder()
-   *   implicit val sslClient = new play.api.libs.ws.ning.NingWSClient(sslBuilder.build())
-   *   WS.clientUrl("http://example.com/feed")
+   * implicit val sslClient = new play.api.libs.ws.ning.NingWSClient(sslBuilder.build())
+   * WS.clientUrl("http://example.com/feed")
    * }}}
    *
    * @param url the URL to request

@@ -9,22 +9,16 @@ import org.specs2.mutable._
 
 import org.specs2.mock._
 
-import java.security.{Principal, PrivateKey, KeyStore}
 import javax.net.ssl._
-import scala.Some
+import java.security.{Principal, PrivateKey, KeyStore}
 import java.security.cert.X509Certificate
 import java.net.Socket
-import play.api.libs.ws.ssl.AlgorithmConstraint
-import play.api.libs.ws.ssl.AlgorithmConstraint
 
 object ConfigSSLContextBuilderSpec extends Specification with Mockito {
 
   val CACERTS = s"${System.getProperty("java.home")}/lib/security/cacerts"
 
   "ConfigSSLContentBuilder" should {
-
-    // builder.build() -> SSLContext
-    "build" in todo
 
     "should have the right protocol by default" in {
       val info = DefaultSSLConfig()
@@ -34,18 +28,32 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
       val builder = new ConfigSSLContextBuilder(info, keyManagerFactory, trustManagerFactory)
 
       val actual: SSLContext = builder.build
-      actual.getProtocol must_== (Protocols.recommendedProtocol)
+      actual.getProtocol must_== Protocols.recommendedProtocol
     }
 
-    "should have an explicit protocol" in {
-      val info = DefaultSSLConfig()
+    "with protocol" should {
 
-      val keyManagerFactory = mock[KeyManagerFactoryWrapper]
-      val trustManagerFactory = mock[TrustManagerFactoryWrapper]
-      val builder = new ConfigSSLContextBuilder(info, keyManagerFactory, trustManagerFactory)
+      "should default to Protocols.recommendedProtocols" in {
+        val info = DefaultSSLConfig()
 
-      val actual: SSLContext = builder.build()
-      actual.getProtocol must_== Protocols.recommendedProtocol
+        val keyManagerFactory = mock[KeyManagerFactoryWrapper]
+        val trustManagerFactory = mock[TrustManagerFactoryWrapper]
+        val builder = new ConfigSSLContextBuilder(info, keyManagerFactory, trustManagerFactory)
+
+        val actual: SSLContext = builder.build
+        actual.getProtocol must_== Protocols.recommendedProtocol
+      }
+
+      "should have an explicit protocol if defined" in {
+        val info = DefaultSSLConfig(protocol = Some("TLS"))
+
+        val keyManagerFactory = mock[KeyManagerFactoryWrapper]
+        val trustManagerFactory = mock[TrustManagerFactoryWrapper]
+        val builder = new ConfigSSLContextBuilder(info, keyManagerFactory, trustManagerFactory)
+
+        val actual: SSLContext = builder.build
+        actual.getProtocol must_== "TLS"
+      }
     }
 
     "with a certificate validator" should {
@@ -87,6 +95,7 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
 
       val keyStoreConfig = DefaultKeyStoreConfig(storeType, filePath, None, None)
 
+      // XXX replace with mock?
       keyManagerFactory.getKeyManagers returns Array {
         new X509ExtendedKeyManager() {
           def getClientAliases(keyType: String, issuers: Array[Principal]): Array[String] = ???
@@ -118,6 +127,7 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
       val filePath = Some(CACERTS)
       val trustStoreConfig = DefaultTrustStoreConfig(storeType, filePath, None)
 
+      // XXX replace with mock?
       trustManagerFactory.getTrustManagers returns Array {
         new X509TrustManager {
           def getAcceptedIssuers: Array[X509Certificate] = ???
@@ -127,7 +137,7 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
           def checkServerTrusted(chain: Array[X509Certificate], authType: String): Unit = ???
         }
       }
-      val actual = builder.buildTrustManager(disabledAlgorithms, trustStoreConfig)
+      val actual = builder.buildTrustManager(disabledAlgorithms, trustStoreConfig, false)
       actual must beAnInstanceOf[javax.net.ssl.X509TrustManager]
     }
 
@@ -154,7 +164,7 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
       val trustManagerConfig = DefaultTrustManagerConfig()
       val certificateValidator = new CertificateValidator(disabledAlgorithms, false)
 
-      val actual = builder.buildCompositeTrustManager(disabledAlgorithms, trustManagerConfig, certificateValidator)
+      val actual = builder.buildCompositeTrustManager(disabledAlgorithms, trustManagerConfig, certificateValidator, false)
       actual must beAnInstanceOf[CompositeX509TrustManager]
     }
 

@@ -43,8 +43,10 @@ class CompositeX509TrustManager(trustManagers: Seq[X509TrustManager], certificat
       trustManager =>
         certificates.appendAll(trustManager.getAcceptedIssuers)
     }
+    // getAcceptedIssuers should never throw an exception.
     if (!exceptionList.isEmpty) {
-      logger.warn("getAcceptedIssuers, exceptionList = {}", exceptionList)
+      val msg = exceptionList(0).getMessage
+      throw new CompositeCertificateException(msg, exceptionList.toArray)
     }
     certificates.toArray
   }

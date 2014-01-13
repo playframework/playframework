@@ -99,16 +99,6 @@ object NingAsyncHttpClientConfigBuilderSpec extends Specification with Mockito {
 
     "with SSL options" should {
 
-      // I hate this option so much.
-      "use the totally insecure async httpclient default if off is passed in" in {
-        val config = defaultConfig.copy(ssl = Some(DefaultSSLConfig(off = Some(true))))
-        val builder = new NingAsyncHttpClientConfigBuilder(config)
-
-        val asyncClientConfig = builder.build()
-        val sslContext = asyncClientConfig.getSSLContext
-        sslContext must beNull
-      }
-
       // The ConfigSSLContextBuilder does most of the work here, but there are a couple of things outside of the
       // SSL context proper...
 
@@ -197,7 +187,7 @@ object NingAsyncHttpClientConfigBuilderSpec extends Specification with Mockito {
           actual.toSeq must containTheSameElementsAs(Seq("derp", "baz", "quux"))
         }
 
-        "filter out deprecated protocols from explicit list" in {
+        "throw exception on deprecated protocols from explicit list" in {
           val deprecatedProtocol = Protocols.deprecatedProtocols.head
 
           // the enabled protocol list has a deprecated protocol in it.
@@ -210,13 +200,10 @@ object NingAsyncHttpClientConfigBuilderSpec extends Specification with Mockito {
           // The existing protocols is larger than the enabled list, and out of order.
           val existingProtocols = Array("goodTwo", "badOne", "badTwo", deprecatedProtocol, "goodOne")
 
-          val actual = builder.configureProtocols(existingProtocols, sslConfig)
-
-          // We should only have the list in order.
-          actual.toSeq must containTheSameElementsAs(Seq("goodOne", "goodTwo"))
+          builder.configureProtocols(existingProtocols, sslConfig).must(throwAn[IllegalStateException])
         }
 
-        "not filter out deprecated protocols from list if allowWeakProtocols is enabled" in {
+        "not throw exception on deprecated protocols from list if allowWeakProtocols is enabled" in {
           val deprecatedProtocol = Protocols.deprecatedProtocols.head
 
           // the enabled protocol list has a deprecated protocol in it.
@@ -267,7 +254,7 @@ object NingAsyncHttpClientConfigBuilderSpec extends Specification with Mockito {
           actual.toSeq must containTheSameElementsAs(Seq("goodone", "goodtwo"))
         }
 
-        "filter out deprecated ciphers from the explicit cipher list" in {
+        "throw exception on deprecated ciphers from the explicit cipher list" in {
           val enabledCiphers = Seq(Ciphers.deprecatedCiphers.head, "goodone", "goodtwo")
 
           val sslConfig = DefaultSSLConfig(enabledCipherSuites = Some(enabledCiphers))
@@ -275,13 +262,10 @@ object NingAsyncHttpClientConfigBuilderSpec extends Specification with Mockito {
           val builder = new NingAsyncHttpClientConfigBuilder(config)
           val existingCiphers = enabledCiphers.toArray
 
-          val actual = builder.configureCipherSuites(existingCiphers, sslConfig)
-
-          actual.toSeq must not contain (Ciphers.deprecatedCiphers)
-          actual.toSeq must containTheSameElementsAs(Seq("goodone", "goodtwo"))
+          builder.configureCipherSuites(existingCiphers, sslConfig).must(throwAn[IllegalStateException])
         }
 
-        "not filter out deprecated ciphers if allowWeakCiphers is enabled" in {
+        "not throw exception on deprecated ciphers if allowWeakCiphers is enabled" in {
           // User specifies list with deprecated ciphers...
           val enabledCiphers = Seq("badone", "goodone", "goodtwo")
 

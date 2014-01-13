@@ -18,78 +18,106 @@ object CompositeX509KeyManagerSpec extends Specification with Mockito {
 
   "CompositeX509KeyManager" should {
 
-    "chooseClientAlias" in {
-      val mockKeyManager = mock[X509KeyManager]
-      val keyManager = new CompositeX509KeyManager(Seq(mockKeyManager))
-      val keyType = Array("derp")
-      val issuers = Array[Principal]()
-      val socket = mock[Socket]
+    "chooseClientAlias" should {
+       "return a result" in {
+         val mockKeyManager = mock[X509KeyManager]
+         val keyManager = new CompositeX509KeyManager(Seq(mockKeyManager))
+         val keyType = Array("derp")
+         val issuers = Array[Principal]()
+         val socket = mock[Socket]
 
-      mockKeyManager.chooseClientAlias(keyType, issuers, socket) returns "clientAlias"
+         mockKeyManager.chooseClientAlias(keyType, issuers, socket) returns "clientAlias"
 
-      val serverAlias = keyManager.chooseClientAlias(keyType = keyType, issuers = issuers, socket = socket)
-      serverAlias must be_==("clientAlias")
+         val serverAlias = keyManager.chooseClientAlias(keyType = keyType, issuers = issuers, socket = socket)
+         serverAlias must be_==("clientAlias")
+       }
+
+      "return null" in todo
     }
 
-    "getClientAliases" in {
-      val mockKeyManager = mock[X509KeyManager]
-      val keyManager = new CompositeX509KeyManager(Seq(mockKeyManager))
-      val keyType = "derp"
-      val issuers = Array[Principal]()
+    "getClientAliases" should {
 
-      mockKeyManager.getClientAliases(keyType, issuers) returns Array("clientAliases")
+      "return a result" in {
+        val mockKeyManager = mock[X509KeyManager]
+        val keyManager = new CompositeX509KeyManager(Seq(mockKeyManager))
+        val keyType = "derp"
+        val issuers = Array[Principal]()
 
-      val clientAliases = keyManager.getClientAliases(keyType = keyType, issuers = issuers)
-      clientAliases must be_==(Array("clientAliases"))
+        mockKeyManager.getClientAliases(keyType, issuers) returns Array("clientAliases")
+
+        val clientAliases = keyManager.getClientAliases(keyType = keyType, issuers = issuers)
+        clientAliases must be_==(Array("clientAliases"))
+      }
+
+      "return null" in todo
     }
 
-    "getServerAliases" in {
-      val mockKeyManager = mock[X509KeyManager]
-      val keyManager = new CompositeX509KeyManager(Seq(mockKeyManager))
-      val keyType = "derp"
-      val issuers = Array[Principal]()
+    "getServerAliases" should {
+      "return a result" in {
+        val mockKeyManager = mock[X509KeyManager]
+        val keyManager = new CompositeX509KeyManager(Seq(mockKeyManager))
+        val keyType = "derp"
+        val issuers = Array[Principal]()
 
-      mockKeyManager.getServerAliases(keyType, issuers) returns Array("serverAliases")
+        mockKeyManager.getServerAliases(keyType, issuers) returns Array("serverAliases")
 
-      val serverAliases = keyManager.getServerAliases(keyType = keyType, issuers = issuers)
-      serverAliases must be_==(Array("serverAliases"))
+        val serverAliases = keyManager.getServerAliases(keyType = keyType, issuers = issuers)
+        serverAliases must be_==(Array("serverAliases"))
+      }
+
+      "return null" in todo
     }
 
-    "chooseServerAlias" in {
-      val mockKeyManager = mock[X509KeyManager]
-      val keyManager = new CompositeX509KeyManager(Seq(mockKeyManager))
-      val keyType = "derp"
-      val issuers = Array[Principal]()
-      val socket = mock[Socket]
+    "chooseServerAlias" should {
+      "work fine" in {
+        val mockKeyManager = mock[X509KeyManager]
+        val keyManager = new CompositeX509KeyManager(Seq(mockKeyManager))
+        val keyType = "derp"
+        val issuers = Array[Principal]()
+        val socket = mock[Socket]
 
-      mockKeyManager.chooseServerAlias(keyType, issuers, socket) returns "serverAlias"
+        mockKeyManager.chooseServerAlias(keyType, issuers, socket) returns "serverAlias"
 
-      val serverAlias = keyManager.chooseServerAlias(keyType = keyType, issuers = issuers, socket = socket)
-      serverAlias must be_==("serverAlias")
+        val serverAlias = keyManager.chooseServerAlias(keyType = keyType, issuers = issuers, socket = socket)
+        serverAlias must be_==("serverAlias")
+      }
+
+      "return null" in todo
     }
 
-    "getCertificateChain" in {
-      val mockKeyManager = mock[X509KeyManager]
-      val keyManager = new CompositeX509KeyManager(Seq(mockKeyManager))
-      val alias = "alias"
-      val cert = CertificateGenerator.generateRSAWithSHA256()
+    "getCertificateChain" should {
+      "work fine" in {
+        val mockKeyManager = mock[X509KeyManager]
+        val keyManager = new CompositeX509KeyManager(Seq(mockKeyManager))
+        val alias = "alias"
+        val cert = CertificateGenerator.generateRSAWithSHA256()
 
-      mockKeyManager.getCertificateChain(alias) returns Array(cert)
+        mockKeyManager.getCertificateChain(alias) returns Array(cert)
 
-      val certChain = keyManager.getCertificateChain(alias = alias)
-      certChain must be_==(Array(cert))
+        val certChain = keyManager.getCertificateChain(alias = alias)
+        certChain must be_==(Array(cert))
+      }
+
+      "return null" in todo
     }
 
-    "getPrivateKey" in {
-      val mockKeyManager = mock[X509KeyManager]
-      val keyManager = new CompositeX509KeyManager(Seq(mockKeyManager))
-      val alias = "alias"
-      val privateKey = mock[PrivateKey]
+    "getPrivateKey" should {
+      "work fine" in {
+        val mockKeyManager = mock[X509KeyManager]
+        val keyManager = new CompositeX509KeyManager(Seq(mockKeyManager))
+        val alias = "alias"
+        val privateKey = mock[PrivateKey]
 
-      mockKeyManager.getPrivateKey(alias) returns privateKey
+        mockKeyManager.getPrivateKey(alias) returns privateKey
 
-      val actual = keyManager.getPrivateKey(alias = alias)
-      actual must be_==(privateKey)
+        val actual = keyManager.getPrivateKey(alias = alias)
+        actual must be_==(privateKey)
+      }
+
+      "return null" in {
+        todo
+      }
     }
+
   }
 }

@@ -21,7 +21,6 @@ object DefaultSSLConfigParserSpec extends Specification {
 
     "parse ws.ssl base section" in {
       val actual = parseThis( """
-                                |off = true
                                 |default = true
                                 |protocol = TLSv1.2
                                 |hostnameVerifierClassName = "someHostnameVerifier"
@@ -30,13 +29,13 @@ object DefaultSSLConfigParserSpec extends Specification {
                                 |disabledAlgorithms = "md2, md4, md5"
                               """.stripMargin)
 
-      actual.off must beSome.which(_ must beTrue)
       actual.default must beSome.which(_ must beTrue)
       actual.protocol must beSome.which(_ must beEqualTo("TLSv1.2"))
       actual.hostnameVerifierClassName must beSome.which(_ must_== "someHostnameVerifier")
       actual.enabledCipherSuites must beSome.which(_ must containTheSameElementsAs(Seq("TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA")))
       actual.enabledProtocols must beSome.which(_ must containTheSameElementsAs(Seq("TLSv1.2", "TLSv1.1", "TLS")))
       actual.disabledAlgorithms must beSome.which(_ must beEqualTo("md2, md4, md5"))
+      actual.secureRandom must beSome
     }
 
     "parse ws.ssl.loose section" in {
