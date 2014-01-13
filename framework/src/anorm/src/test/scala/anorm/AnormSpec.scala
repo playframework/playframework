@@ -157,7 +157,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
     }
 
     "be parsed using raw 'get' parser with column names" in withQueryResult(
-      fooBarTable :+ row3(11L, "World", 21)) { implicit c =>
+      fooBarTable :+ (11L, "World", 21)) { implicit c =>
         SQL("insert into test1(id, foo, bar) values ({id}, {foo}, {bar})")
           .on('id -> 11L, 'foo -> "World", 'bar -> 21)
           .execute()
@@ -169,7 +169,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
       }
 
     "be parsed using convience parsers with column positions" in {
-      withQueryResult(fooBarTable :+ row3(11L, "World", 21)) { implicit c =>
+      withQueryResult(fooBarTable :+ (11L, "World", 21)) { implicit c =>
         SQL("insert into test1(id, foo, bar) values ({id}, {foo}, {bar})")
           .on('id -> 11L, 'foo -> "World", 'bar -> 21)
           .execute()
@@ -182,7 +182,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
     }
 
     "be parsed using raw 'get' parser with column positions" in {
-      withQueryResult(fooBarTable :+ row3(11L, "World", 21)) { implicit c =>
+      withQueryResult(fooBarTable :+ (11L, "World", 21)) { implicit c =>
         SQL("insert into test1(id, foo, bar) values ({id}, {foo}, {bar})")
           .on('id -> 11L, 'foo -> "World", 'bar -> 21)
           .execute()
