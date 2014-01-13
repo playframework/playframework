@@ -62,8 +62,6 @@ trait TrustManagerConfig {
  */
 trait SSLConfig {
 
-  def off: Option[Boolean]
-
   def default: Option[Boolean]
 
   def protocol: Option[String]
@@ -180,14 +178,15 @@ case class SSLDebugHandshakeOptions(data: Boolean = false, verbose: Boolean = fa
 
 case class SSLDebugRecordOptions(plaintext: Boolean = false, packet: Boolean = false)
 
-case class DefaultSSLLooseConfig(allowWeakCiphers: Option[Boolean] = None,
+case class DefaultSSLLooseConfig(
+  allowWeakCiphers: Option[Boolean] = None,
   allowWeakProtocols: Option[Boolean] = None,
   allowLegacyHelloMessages: Option[Boolean] = None,
   allowUnsafeRenegotiation: Option[Boolean] = None,
   disableCheckRevocation: Option[Boolean] = None,
   disableHostnameVerification: Option[Boolean] = None) extends SSLLooseConfig
 
-case class DefaultSSLConfig(off: Option[Boolean] = None,
+case class DefaultSSLConfig(
   default: Option[Boolean] = None,
   protocol: Option[String] = None,
   enabledCipherSuites: Option[Seq[String]] = None,
@@ -207,7 +206,6 @@ trait SSLConfigParser {
 class DefaultSSLConfigParser(c: Configuration) {
 
   def parse(): SSLConfig = {
-    val off = c.getBoolean("off")
 
     val default = c.getBoolean("default")
 
@@ -240,8 +238,14 @@ class DefaultSSLConfigParser(c: Configuration) {
         parseTrustManager(trustStoreConfig)
     }
 
+    val secureRandom = new SecureRandom()
+    // SecureRandom needs to be seeded, and calling nextInt immediately after being
+    // called ensures a seed.  We do it here rather than waiting for JSSE because
+    // seeding can chew through entropy and occasionally block the thread until it's finished.
+    // Better to do it using parsing rather than in the middle of an HTTPS call.
+    secureRandom.nextInt()
+
     DefaultSSLConfig(
-      off = off,
       default = default,
       protocol = protocol,
       enabledCipherSuites = ciphers,
@@ -250,7 +254,7 @@ class DefaultSSLConfigParser(c: Configuration) {
       hostnameVerifierClassName = hostnameVerifierClassName,
       disabledAlgorithms = disabledAlgorithms,
       trustManagerConfig = trustManagers,
-      secureRandom = None,
+      secureRandom = Some(secureRandom),
       debug = debug,
       loose = looseOptions)
   }

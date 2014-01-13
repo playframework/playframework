@@ -81,7 +81,7 @@ class DefaultTrustManagerFactoryWrapper(trustManagerAlgorithm: String) extends T
     instance.init(spec)
   }
 
-  def getTrustManagers: Array[TrustManager] = instance.getTrustManagers()
+  def getTrustManagers: Array[TrustManager] = instance.getTrustManagers
 }
 
 /**
@@ -93,12 +93,14 @@ class ConfigSSLContextBuilder(info: SSLConfig,
 
   protected val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 
-  def build(): SSLContext = {
+  def build: SSLContext = {
     val protocol = info.protocol.getOrElse(Protocols.recommendedProtocol)
 
     val certificateValidator = buildCertificateValidator(info)
 
     val disabledAlgorithms = info.disabledAlgorithms.getOrElse(Algorithms.disabledAlgorithms)
+    val disableCheckRevocation = info.loose.exists(_.disableCheckRevocation.getOrElse(false))
+    val checkRevocation = !disableCheckRevocation
 
     val keyManagers: Seq[KeyManager] = info.keyManagerConfig.map {
       val constraints = parseAll(line, disabledAlgorithms).get.toSet
@@ -107,7 +109,7 @@ class ConfigSSLContextBuilder(info: SSLConfig,
 
     val trustManagers: Seq[TrustManager] = info.trustManagerConfig.map {
       val constraints = parseAll(line, disabledAlgorithms).get.toSet
-      tmc => Seq(buildCompositeTrustManager(constraints, tmc, certificateValidator))
+      tmc => Seq(buildCompositeTrustManager(constraints, tmc, certificateValidator, checkRevocation))
     }.getOrElse(Nil)
 
     buildSSLContext(protocol, keyManagers, trustManagers, info.secureRandom)
@@ -138,10 +140,13 @@ class ConfigSSLContextBuilder(info: SSLConfig,
     new CompositeX509KeyManager(keyManagers)
   }
 
-  def buildCompositeTrustManager(constraints: Set[AlgorithmConstraint], trustManagerInfo: TrustManagerConfig, certificateValidator: CertificateValidator) = {
+  def buildCompositeTrustManager(constraints: Set[AlgorithmConstraint],
+    trustManagerInfo: TrustManagerConfig,
+    certificateValidator: CertificateValidator,
+    checkRevocation: Boolean) = {
     val trustManagers = trustManagerInfo.trustStoreConfigs.map {
       tsc =>
-        buildTrustManager(constraints, tsc)
+        buildTrustManager(constraints, tsc, checkRevocation)
     }
 
     new CompositeX509TrustManager(trustManagers, certificateValidator)
@@ -204,15 +209,12 @@ class ConfigSSLContextBuilder(info: SSLConfig,
   /**
    * Builds trust managers, using a TrustManagerFactory internally.
    */
-  def buildTrustManager(constraints: Set[AlgorithmConstraint], tsc: TrustStoreConfig): X509TrustManager = {
+  def buildTrustManager(constraints: Set[AlgorithmConstraint], tsc: TrustStoreConfig, revocationEnabled: Boolean): X509TrustManager = {
     val factory = trustManagerFactory
     val certSelect: X509CertSelector = new X509CertSelector
 
     val trustStore = trustStoreBuilder(tsc).build()
     val pkixParameters = new PKIXBuilderParameters(trustStore, certSelect)
-
-    // XXX Fix this so it is configurable
-    val revocationEnabled = true
     pkixParameters.setRevocationEnabled(revocationEnabled)
 
     validateTrustStore(constraints, tsc, trustStore)

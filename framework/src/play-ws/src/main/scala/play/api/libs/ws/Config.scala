@@ -27,6 +27,8 @@ trait WSClientConfig {
 
   def compressionEnabled: Option[Boolean]
 
+  def acceptAnyCertificate: Option[Boolean]
+
   def ssl: Option[SSLConfig]
 }
 
@@ -40,6 +42,7 @@ case class DefaultWSClientConfig(connectionTimeout: Option[Long] = None,
   useProxyProperties: Option[Boolean] = None,
   userAgent: Option[String] = None,
   compressionEnabled: Option[Boolean] = None,
+  acceptAnyCertificate: Option[Boolean] = None,
   ssl: Option[SSLConfig] = None) extends WSClientConfig
 
 /**
@@ -63,9 +66,7 @@ class DefaultWSConfigParser(configuration: Configuration) {
 
     val compressionEnabled = configuration.getBoolean("ws.compressionEnabled")
 
-    if (configuration.getString("ws.acceptAnyCertificate").isDefined) {
-      throw new IllegalArgumentException("ws.acceptAnyCertificate is deprecated, use ws.ssl.off = true")
-    }
+    val acceptAnyCertificate = configuration.getBoolean("ws.acceptAnyCertificate")
 
     val sslConfig = configuration.getConfig("ws.ssl").map { sslConfig =>
       val sslContextParser = new DefaultSSLConfigParser(sslConfig)
@@ -80,6 +81,7 @@ class DefaultWSConfigParser(configuration: Configuration) {
       useProxyProperties = useProxyProperties,
       userAgent = userAgent,
       compressionEnabled = compressionEnabled,
+      acceptAnyCertificate = acceptAnyCertificate,
       ssl = sslConfig)
   }
 }
