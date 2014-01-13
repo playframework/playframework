@@ -220,7 +220,7 @@ trait HeaderNames {
 
   val DATE = "Date"
 
-  val ETAG = "Etag"
+  val ETAG = "ETag"
   val EXPECT = "Expect"
   val EXPIRES = "Expires"
 
