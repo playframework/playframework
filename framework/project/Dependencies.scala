@@ -153,7 +153,9 @@ object Dependencies {
     "jline" % "jline" % "2.11"
   )
 
-  val templatesDependencies = scalaIoFile +:
+  val templatesDependencies = Seq(
+    scalaIoFile,
+    "org.owasp.encoder" % "encoder" % "1.1") ++
     specsBuild.map(_ % "test")
 
   val iterateesDependencies = Seq(

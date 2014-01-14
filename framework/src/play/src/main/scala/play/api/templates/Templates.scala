@@ -172,7 +172,7 @@ object XmlFormat extends Format[Xml] {
   /**
    * Creates an escaped XML fragment.
    */
-  def escape(text: String) = Xml(org.apache.commons.lang3.StringEscapeUtils.escapeXml(text))
+  def escape(text: String) = Xml(org.owasp.encoder.Encode.forXml(text))
 
 }
 
