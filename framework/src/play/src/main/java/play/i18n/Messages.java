@@ -3,6 +3,7 @@
  */
 package play.i18n;
 
+import org.apache.commons.lang3.ArrayUtils;
 import scala.collection.mutable.Buffer;
 
 import java.util.Arrays;
@@ -27,6 +28,36 @@ public class Messages {
     }
 
     /**
+     * Converts the varargs to a scala buffer, 
+     * takes care of wrapping varargs into a intermediate list if necessary
+     * 
+     * @param args the message arguments 
+     * @return scala type for message processing
+     */
+    private static Buffer<Object> convertArgsToScalaBuffer(final Object... args) {
+        return scala.collection.JavaConverters.asScalaBufferConverter(wrapArgsToListIfNeeded(args)).asScala();
+    }
+
+    /**
+     * Wraps arguments passed into a list if necessary. 
+     *
+     * Returns the first value as is if it is the only argument and a subtype of `java.util.List` 
+     * Otherwise, it calls Arrays.asList on args
+     * @param args arguments as a List
+     */
+    static <T> List<T> wrapArgsToListIfNeeded(final T... args) {
+        List<T> out = null;
+        if (ArrayUtils.isNotEmpty(args)
+            && args.length == 1
+            && args[0] instanceof List){
+            out = (List<T>) args[0];
+        }else{
+            out = Arrays.asList(args);
+        }
+        return out;
+    }
+
+    /**
     * Translates a message.
     *
     * Uses `java.text.MessageFormat` internally to format the message.
@@ -37,7 +68,7 @@ public class Messages {
     * @return the formatted message or a default rendering if the key wasn't defined
     */
     public static String get(Lang lang, String key, Object... args) {
-        Buffer<Object> scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter(Arrays.asList(args)).asScala();
+        Buffer<Object> scalaArgs = convertArgsToScalaBuffer(args);
         return play.api.i18n.Messages.apply(key, scalaArgs, lang);
     }
 
@@ -53,7 +84,7 @@ public class Messages {
     */
     public static String get(Lang lang, List<String> keys, Object... args) {
         Buffer<String> keyArgs = scala.collection.JavaConverters.asScalaBufferConverter(keys).asScala();
-        Buffer<Object> scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter(Arrays.asList(args)).asScala();
+        Buffer<Object> scalaArgs = convertArgsToScalaBuffer(args);
         return play.api.i18n.Messages.apply(keyArgs.toSeq(), scalaArgs, lang);
     }
 
@@ -67,7 +98,7 @@ public class Messages {
     * @return the formatted message or a default rendering if the key wasn't defined
     */
     public static String get(String key, Object... args) {
-        Buffer<Object> scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter(Arrays.asList(args)).asScala();
+        Buffer<Object> scalaArgs = convertArgsToScalaBuffer(args);
         return play.api.i18n.Messages.apply(key, scalaArgs, getLang());
     }
 
@@ -82,7 +113,7 @@ public class Messages {
     */
     public static String get(List<String> keys, Object... args) {
         Buffer<String> keyArgs = scala.collection.JavaConverters.asScalaBufferConverter(keys).asScala();
-        Buffer<Object> scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter(Arrays.asList(args)).asScala();
+        Buffer<Object> scalaArgs = convertArgsToScalaBuffer(args);
         return play.api.i18n.Messages.apply(keyArgs.toSeq(), scalaArgs, getLang());
     }
 
