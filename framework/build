@@ -1,16 +1,58 @@
 #! /usr/bin/env sh
 
-# Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+# preserve the ENV parameters, since they will be used to overwrite the /etc/defaults
+ENV_JVM_MEMORY_INITIAL="$JVM_MEMORY_INITIAL"
+ENV_JVM_MEMORY_MAX="$JVM_MEMORY_MAX"
+ENV_JVM_STACK_SIZE="$JVM_STACK_SIZE"
+ENV_JVM_MAX_PERM_SIZE="$JVM_MAX_PERM_SIZE"
+ENV_JVM_EXTRA_ARGS="$JVM_EXTRA_ARGS"
+ENV_SYSTEM_EXTRA_ARGS="$SYSTEM_EXTRA_ARGS"
+ENV_JAR_EXTRA_ARGS="$JAR_EXTRA_ARGS"
 
-if [ -z "${PLAY_VERSION}" ]; then
-  PLAY_VERSION="2.3-SNAPSHOT"
+# use play defaults for any unset variables
+if [ -z "$JVM_MEMORY_INITIAL" ]; then
+  JVM_MEMORY_INITIAL="512m"
+fi
+if [ -z "$JVM_MEMORY_MAX" ]; then
+  JVM_MEMORY_MAX="1536m"
+fi
+if [ -z "$JVM_STACK_SIZE" ]; then
+  JVM_STACK_SIZE="1m"
+fi
+if [ -z "$JVM_MAX_PERM_SIZE" ]; then
+  JVM_MAX_PERM_SIZE="384m"
 fi
 
-if [ -z "$JAVA_HOME" ]; then
-  JAVA="java"
-else
- JAVA="$JAVA_HOME/bin/java"
+# allow a global overwrite of play variables
+if [ -f /etc/default/play ]; then
+  . /etc/default/play
 fi
+
+# use ENV parameters as a trump for variables
+if [ -n "$ENV_JVM_MEMORY_INITIAL" ]; then
+  JVM_MEMORY_INITIAL="$ENV_JVM_MEMORY_INITIAL"
+fi
+if [ -n "$ENV_JVM_MEMORY_MAX" ]; then
+  JVM_MEMORY_MAX="$ENV_JVM_MEMORY_MAX"
+fi
+if [ -n "$ENV_JVM_STACK_SIZE" ]; then
+  JVM_STACK_SIZE="$ENV_JVM_STACK_SIZE"
+fi
+if [ -n "$ENV_JVM_MAX_PERM_SIZE" ]; then
+  JVM_MAX_PERM_SIZE="$ENV_JVM_MAX_PERM_SIZE"
+fi
+if [ -n "$ENV_JVM_EXTRA_ARGS" ]; then
+  JVM_EXTRA_ARGS="$ENV_JVM_EXTRA_ARGS"
+fi
+if [ -n "$ENV_SYSTEM_EXTRA_ARGS" ]; then
+  SYSTEM_EXTRA_ARGS="$ENV_SYSTEM_EXTRA_ARGS"
+fi
+if [ -n "$ENV_JAR_EXTRA_ARGS" ]; then
+  JAR_EXTRA_ARGS="$ENV_JAR_EXTRA_ARGS"
+fi
+
+# resume normal play stuff
+PLAY_VERSION="2.1.1"
 
 if [ -z "${JPDA_PORT}" ]; then
   DEBUG_PARAM=""
@@ -18,5 +60,5 @@ else
   DEBUG_PARAM="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=${JPDA_PORT}"
 fi
 
-DIR=`dirname "$0"`
-"$JAVA" ${DEBUG_PARAM} -Xms512M -Xmx1536M -Xss1M -XX:ReservedCodeCacheSize=192m -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=512M ${JAVA_OPTS} -Dfile.encoding=UTF-8 -Dplay.version="${PLAY_VERSION}" -Dplay.home="$DIR" -Dsbt.boot.properties="$DIR/sbt/sbt.boot.properties" ${PLAY_OPTS} -jar "$DIR/sbt/sbt-launch.jar" "$@"
+java ${DEBUG_PARAM} -Xms${JVM_MEMORY_INITIAL} -Xmx${JVM_MEMORY_MAX} -Xss${JVM_STACK_SIZE} -XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=${JVM_MAX_PERM_SIZE} ${JVM_EXTRA_ARGS} -Dfile.encoding=UTF8 -Dplay.version="${PLAY_VERSION}" -Dsbt.ivy.home=`dirname $0`/../repository -Dplay.home=`dirname $0` -Dsbt.boot.properties=`dirname $0`/sbt/sbt.boot.properties ${SYSTEM_EXTRA_ARGS} -jar `dirname $0`/sbt/sbt-launch.jar "$@" ${JAR_EXTRA_ARGS}
+
