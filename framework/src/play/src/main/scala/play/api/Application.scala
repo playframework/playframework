@@ -148,7 +148,7 @@ trait WithDefaultPlugins {
             case e: ThreadDeath => throw e
             case e: Throwable => throw new PlayException(
               "Cannot load plugin",
-              "Plugin [" + className + "] cannot been instantiated.",
+              "Plugin [" + className + "] cannot be instantiated.",
               e)
           }
         }
@@ -161,7 +161,7 @@ trait WithDefaultPlugins {
         case e: VirtualMachineError => throw e
         case e: Throwable => throw new PlayException(
           "Cannot load plugin",
-          "Plugin [" + className + "] cannot been instantiated.",
+          "Plugin [" + className + "] cannot be instantiated.",
           e)
       }
     }.flatten
