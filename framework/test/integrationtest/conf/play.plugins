@@ -1,0 +1,3 @@
+# These comments should be ignored
+# 9999:com.example.FakePlugin
+10000:play.api.GlobalPlugin
