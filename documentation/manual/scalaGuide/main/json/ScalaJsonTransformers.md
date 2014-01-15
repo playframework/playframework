@@ -369,6 +369,7 @@ Please note the resulting JsObject hasn't same keys order as input JsObject. Thi
 
 ```
 import play.api.libs.json._
+import play.api.libs.json.Reads._
 
 val jsonTransformer = (__ \ 'key2).json.pickBranch(
   (__ \ 'key21).json.update( 
