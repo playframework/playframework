@@ -172,7 +172,13 @@ object XmlFormat extends Format[Xml] {
   /**
    * Creates an escaped XML fragment.
    */
-  def escape(text: String) = Xml(org.owasp.encoder.Encode.forXml(text))
+  def escape(text: String) = {
+    // Why not org.owasp.encoder.Encode.forXml(text)? Because
+    // https://code.google.com/p/owasp-java-encoder/issues/detail?id=4
+    val writer = new java.io.StringWriter
+    org.owasp.encoder.Encode.forXml(writer, text)
+    Xml(writer.toString)
+  }
 
 }
 
