@@ -82,9 +82,16 @@ if you want to grab the available source jars (this will take longer and it's po
 [My first application] $ idea with-sources=yes
 ```
 
-This will create the configuration files IntelliJ needs to open your play application as a project. The files are named <project>.iml and <project>-build.iml. The file menu (IntelliJ 11.1 CE) contains the Open Project command.
+This will create the configuration files IntelliJ needs to open your play application as a project. The files are named <project>.iml and <project>-build.iml. 
+Now we can open the project in IntelliJ. To do this select, 'File > Open...' (IntelliJ 12.1.6) and select the "My first application" folder. 
 
 > Tip: There is an [Intellij IDEA issue](http://devnet.jetbrains.net/thread/433870) regarding building Java based Play2 apps while having the Scala plugin installed. Until it's fixed, the recommended workaround is to disable the Scala plugin.
+
+Let's go ahead and run our app in debug mode. As we are already running the Play console we will need to first stop it:
+
+```
+[My first application] $ exit
+```
 
 To debug, first add a debug configuration
 
