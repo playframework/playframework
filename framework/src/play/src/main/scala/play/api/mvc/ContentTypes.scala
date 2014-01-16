@@ -631,9 +631,9 @@ trait BodyParsers {
             val maxHeaderBuffer = Traversable.takeUpTo[Array[Byte]](4 * 1024) transform Iteratee.consume[Array[Byte]]()
 
             val collectHeaders = maxHeaderBuffer.map { buffer =>
-              val (headerBytes, rest) = Option(buffer.drop(2)).map(b => b.splitAt(b.indexOfSlice(CRLFCRLF))).get
+              val (headerBytes, rest) = Option(buffer).map(b => b.splitAt(b.indexOfSlice(CRLFCRLF))).get
 
-              val headerString = new String(headerBytes, "utf-8")
+              val headerString = new String(headerBytes, "utf-8").trim
               val headers = headerString.lines.map { header =>
                 val key :: value = header.trim.split(":").toList
                 (key.trim.toLowerCase, value.mkString.trim)
