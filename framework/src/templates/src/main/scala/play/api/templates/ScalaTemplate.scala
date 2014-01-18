@@ -35,13 +35,11 @@ package play.templates {
   import reflect.ClassTag
 
   /**
-   * A type that has a binary `+=` operation.
+   * A type that works with BaseScalaTemplate
+   * This used to support +=, but no longer is required to.
+   * @todo Change name to reflect not appendable
    */
-  trait Appendable[T] {
-    def +=(other: T): T
-    override def equals(x: Any): Boolean = super.equals(x) // FIXME Why do we need these overrides?
-    override def hashCode() = super.hashCode()
-  }
+  trait Appendable[T]
 
   /**
    * A template format defines how to properly integrate content for a type `T` (e.g. to prevent cross-site scripting attacks)
@@ -61,22 +59,40 @@ package play.templates {
      * @param text Text to integrate
      */
     def escape(text: String): T
+
+    /**
+     * Generate an empty appendable
+     */
+    def empty: T
+
+    /**
+     * Fill an appendable with the elements
+     */
+    def fill(elements: TraversableOnce[T]): T
   }
 
   case class BaseScalaTemplate[T <: Appendable[T], F <: Format[T]](format: F) {
 
+    // The overloaded methods are here for speed. The compiled templates
+    // can take advantage of them for a 12% performance boost
+    def _display_(x: AnyVal): T = format.escape(x.toString)
+    def _display_(x: String): T = format.escape(x)
+    def _display_(x: Unit): T = format.empty
+    def _display_(x: scala.xml.NodeSeq): T = format.raw(x.toString)
+    def _display_(x: T): T = x
+
     def _display_(o: Any)(implicit ct: ClassTag[T]): T = {
       o match {
         case escaped if escaped != null && escaped.getClass == ct.runtimeClass => escaped.asInstanceOf[T]
-        case () => format.raw("")
-        case None => format.raw("")
+        case () => format.empty
+        case None => format.empty
         case Some(v) => _display_(v)
         case xml: scala.xml.NodeSeq => format.raw(xml.toString)
-        case escapeds: TraversableOnce[_] => escapeds.foldLeft(format.raw(""))(_ += _display_(_))
-        case escapeds: Array[_] => escapeds.foldLeft(format.raw(""))(_ += _display_(_))
+        case escapeds: TraversableOnce[_] => format.fill(escapeds.map(_display_(_)))
+        case escapeds: Array[_] => format.fill(escapeds.toIterator.map(_display_(_)))
         case string: String => format.escape(string)
-        case v if v != null => _display_(v.toString)
-        case _ => format.raw("")
+        case v if v != null => format.escape(v.toString)
+        case _ => format.empty
       }
     }
 
