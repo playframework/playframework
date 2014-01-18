@@ -115,12 +115,10 @@ object Useful {
 
 }
 
-import SqlParser._
-
 /**
  * Prepared parameter value.
  */
-trait ParameterValue {
+sealed trait ParameterValue {
 
   /**
    * Sets this value on given statement at specified index.
