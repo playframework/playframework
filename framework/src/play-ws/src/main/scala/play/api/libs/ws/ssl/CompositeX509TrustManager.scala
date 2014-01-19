@@ -17,7 +17,23 @@ import java.security.GeneralSecurityException
  */
 class CompositeX509TrustManager(trustManagers: Seq[X509TrustManager], certificateValidator: CertificateValidator) extends X509TrustManager {
 
+  // In 1.6, sun.security.ssl.X509TrustManagerImpl extends from com.sun.net.ssl.internal.ssl.X509ExtendedTrustManager
+  // In 1.7, sun.security.ssl.X509TrustManagerImpl extends from javax.net.ssl.X509ExtendedTrustManager.
+  // The two X509ExtendedTrustManager contain different method signatures, and both are available in 1.7, which means
+  // it's really hard to keep something backwards compatible if something is calling trustManager.asInstanceOf[X509ExtendedTrustManager]
+  // internally.  For now, we have to trust that the internal API holds to the X509TrustManager interface.
+  //
+  //def checkClientTrusted(chain: Array[X509Certificate], authType: String, hostname: String, algorithm: String): Unit = ???
+  //def checkServerTrusted(chain: Array[X509Certificate], authType: String, hostname: String, algorithm: String): Unit = ???
+
   protected val logger = org.slf4j.LoggerFactory.getLogger(getClass)
+
+  // When we instantiate the trust manager, we go through all the trust managers immediately, so we can see
+  // if there are any weak certificate in the trust store:
+  for (trustManager <- trustManagers) {
+    val chain = trustManager.getAcceptedIssuers
+    certificateValidator.validate(chain, trustManager.getAcceptedIssuers)
+  }
 
   def checkClientTrusted(chain: Array[X509Certificate], authType: String) {
     logger.debug("checkClientTrusted: chain = {}", debugChain(chain))
@@ -97,5 +113,4 @@ class CompositeX509TrustManager(trustManagers: Seq[X509TrustManager], certificat
   override def toString = {
     s"CompositeX509TrustManager(trustManagers = [$trustManagers])"
   }
-
 }

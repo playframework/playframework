@@ -10,6 +10,9 @@ import com.ning.http.client.{ SSLEngineFactory, AsyncHttpClientConfig }
 import javax.net.ssl._
 import play.api.libs.ws.ssl._
 import org.slf4j.LoggerFactory
+import java.security.KeyStore
+import java.security.cert.CertPathValidatorException
+import scala.util.control.NonFatal
 
 /**
  * Builds a valid AsyncHttpClientConfig object from config.
@@ -110,6 +113,7 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig,
     val useDefault = sslConfig.default.getOrElse(false)
     val sslContext = if (useDefault) {
       logger.info("buildSSLContext: ws.ssl.default is true, using default SSLContext")
+      validateDefaultTrustManager(sslConfig)
       SSLContext.getDefault
     } else {
       // break out the static methods as much as we can...
@@ -168,6 +172,40 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig,
     } catch {
       case e: Exception =>
         throw new IllegalStateException("Cannot configure hostname verifier", e)
+    }
+  }
+
+  def validateDefaultTrustManager(sslConfig:SSLConfig) {
+    // If we are using a default SSL context, we can't filter out certificates with weak algorithms
+    // We ALSO don't have access to the trust manager from the SSLContext without doing horrible things
+    // with reflection.
+    //
+    // However, given that the default SSLContextImpl will call out to the TrustManagerFactory and any
+    // configuration with system properties will also apply with the factory, we can use the factory
+    // method to recreate the trust manager and validate the trust certificates that way.
+    //
+    // http://grepcode.com/file/repository.grepcode.com/java/root/jdk/openjdk/7-b147/sun/security/ssl/SSLContextImpl.java#79
+
+    val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
+    tmf.init(null.asInstanceOf[KeyStore])
+    val trustManager : X509TrustManager = tmf.getTrustManagers()(0).asInstanceOf[X509TrustManager]
+
+    val disabledAlgorithms = sslConfig.disabledAlgorithms.getOrElse(Algorithms.disabledAlgorithms)
+    val constraints = AlgorithmConstraintsParser.parseAll(AlgorithmConstraintsParser.line, disabledAlgorithms).get.toSet
+    val algorithmChecker = new AlgorithmChecker(constraints)
+    try {
+      for (cert <- trustManager.getAcceptedIssuers) {
+        cert.checkValidity()
+        algorithmChecker.check(cert, unresolvedCritExts = java.util.Collections.emptySet())
+      }
+    } catch {
+      case NonFatal(e) =>
+        val msg =
+          """
+            |You have ws.ssl.default = true in your configuration, and there is a certificate in your trust store
+            |that matches a constraint in ws.ssl.disabledAlgorithms, or the certificate is expired.
+          """.stripMargin
+        throw new IllegalStateException(msg, e)
     }
   }
 

@@ -33,7 +33,10 @@ class CompositeX509KeyManager(keyManagers: Seq[X509KeyManager]) extends X509Exte
 
     val clientAliases = new ArrayBuffer[String]
     withKeyManagers { keyManager =>
-      clientAliases.appendAll(keyManager.getClientAliases(keyType, issuers))
+      val aliases = keyManager.getClientAliases(keyType, issuers)
+      if (aliases != null) {
+        clientAliases.appendAll(aliases)
+      }
     }
     logger.debug(s"getCertificateChain: clientAliases = $clientAliases")
 
@@ -58,7 +61,10 @@ class CompositeX509KeyManager(keyManagers: Seq[X509KeyManager]) extends X509Exte
 
     val serverAliases = new ArrayBuffer[String]
     withKeyManagers { keyManager =>
-      serverAliases.appendAll(keyManager.getServerAliases(keyType, issuers))
+      val aliases = keyManager.getServerAliases(keyType, issuers)
+      if (aliases != null) {
+        serverAliases.appendAll(aliases)
+      }
     }
     logger.debug(s"getServerAliases: serverAliases = $serverAliases")
 

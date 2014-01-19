@@ -123,8 +123,9 @@ object NingAsyncHttpClientConfigBuilderSpec extends Specification with Mockito {
           asyncClientConfig.getSSLContext must not beNull
         }
 
-        "use the default SSL context if sslConfig.context is passed in" in {
-          val config = defaultConfig.copy(ssl = Some(DefaultSSLConfig(default = Some(true))))
+        "use the default with MD5 disabled successfully " in {
+          val algorithms = "MD2"
+          val config = defaultConfig.copy(ssl = Some(DefaultSSLConfig(default = Some(true), disabledAlgorithms = Some(algorithms))))
           val builder = new NingAsyncHttpClientConfigBuilder(config)
 
           val asyncClientConfig = builder.build()
@@ -132,6 +133,14 @@ object NingAsyncHttpClientConfigBuilderSpec extends Specification with Mockito {
           sslContext must beEqualTo(SSLContext.getDefault)
         }
 
+        "use the default SSL context if sslConfig.default is passed in with MD5 enabled" in {
+          // Because the default 1.6 and 1.7 JDK have certificates signed with MD5 in their trust store, using the
+          // default disabledAlgorithms will throw an exception (we can't filter it out here due to the API).
+          val config = defaultConfig.copy(ssl = Some(DefaultSSLConfig(default = Some(true))))
+          val builder = new NingAsyncHttpClientConfigBuilder(config)
+
+          builder.build().must(throwAn[IllegalStateException])
+        }
       }
 
       "with hostname verifier" should {
