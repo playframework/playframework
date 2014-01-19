@@ -3,7 +3,7 @@
 
 ## Make controllers asynchronous
 
-Internally, Play Framework is asynchronous from the bottom up. Play always handles requests in an asynchronous, non-blocking way.
+Internally, Play Framework is asynchronous from the bottom up. Play handles every request in an asynchronous, non-blocking way.
 
 The default configuration is tuned for asynchronous controllers. In other words, the application code should avoid blocking in controllers, i.e., having the controller code wait for an operation. Common examples of such blocking operations are JDBC calls, streaming API, HTTP requests and long computations.
 
