@@ -6,9 +6,7 @@ package play.api.libs.ws.ssl
 import javax.net.ssl._
 import java.security.{ UnrecoverableKeyException, KeyStore, SecureRandom }
 import java.security.cert._
-import scala.util.control.NonFatal
 import java.util.Locale
-import play.api.libs.ws.ssl.AlgorithmConstraintsParser._
 
 trait SSLContextBuilder {
   def build(): SSLContext
@@ -103,12 +101,12 @@ class ConfigSSLContextBuilder(info: SSLConfig,
     val checkRevocation = !disableCheckRevocation
 
     val keyManagers: Seq[KeyManager] = info.keyManagerConfig.map {
-      val constraints = parseAll(line, disabledAlgorithms).get.toSet
+      val constraints = AlgorithmConstraintsParser.parseAll(AlgorithmConstraintsParser.line, disabledAlgorithms).get.toSet
       kmc => Seq(buildCompositeKeyManager(constraints, kmc))
     }.getOrElse(Nil)
 
     val trustManagers: Seq[TrustManager] = info.trustManagerConfig.map {
-      val constraints = parseAll(line, disabledAlgorithms).get.toSet
+      val constraints = AlgorithmConstraintsParser.parseAll(AlgorithmConstraintsParser.line, disabledAlgorithms).get.toSet
       tmc => Seq(buildCompositeTrustManager(constraints, tmc, certificateValidator, checkRevocation))
     }.getOrElse(Nil)
 
@@ -128,7 +126,7 @@ class ConfigSSLContextBuilder(info: SSLConfig,
     val disabledAlgorithms = info.disabledAlgorithms.getOrElse(Algorithms.disabledAlgorithms)
     val disableCheckRevocation = info.loose.flatMap(_.disableCheckRevocation).getOrElse(false)
 
-    val constraints = parseAll(line, disabledAlgorithms).get.toSet
+    val constraints = AlgorithmConstraintsParser.parseAll(AlgorithmConstraintsParser.line, disabledAlgorithms).get.toSet
     new CertificateValidator(constraints, revocationEnabled = !disableCheckRevocation)
   }
 
@@ -232,12 +230,14 @@ class ConfigSSLContextBuilder(info: SSLConfig,
   def validateTrustStore(constraints: Set[AlgorithmConstraint], tsc: TrustStoreConfig, store: KeyStore) {
     import scala.collection.JavaConverters._
     logger.debug(s"validateTrustStore: store = $store, type = ${store.getType}, size = ${store.size}")
+
+    val checker = createAlgorithmChecker(constraints)
     store.aliases().asScala.foreach {
       alias =>
         Option(store.getCertificate(alias)).map {
           x509Cert =>
             try {
-              validateCertificate(constraints, x509Cert)
+              validateCertificate(checker, x509Cert)
             } catch {
               case e: CertificateException =>
                 logger.warn(s"validateTrustStore: Skipping failed certificate with alias $alias from $tsc: " + e.getMessage)
@@ -251,15 +251,17 @@ class ConfigSSLContextBuilder(info: SSLConfig,
    * Tests each trusted certificate in the store, and warns if the certificate is not valid.  Does not throw
    * exceptions.
    */
-  def validateKeyStore(disabledAlgorithms: Set[AlgorithmConstraint], ksc: KeyStoreConfig, store: KeyStore) {
+  def validateKeyStore(constraints: Set[AlgorithmConstraint], ksc: KeyStoreConfig, store: KeyStore) {
     import scala.collection.JavaConverters._
     logger.debug(s"validateKeyStore: store = $store, type = ${store.getType}, size = ${store.size}")
+
+    val checker = createAlgorithmChecker(constraints)
     store.aliases().asScala.foreach {
       alias =>
         Option(store.getCertificate(alias)).map {
           c =>
             try {
-              validateCertificate(disabledAlgorithms, c)
+              validateCertificate(checker, c)
             } catch {
               case e: CertificateException =>
                 logger.warn(s"validateKeyStore: Skipping failed certificate with alias $alias from $ksc:" + e.getMessage)
@@ -269,23 +271,10 @@ class ConfigSSLContextBuilder(info: SSLConfig,
     }
   }
 
-  def validateCertificate(disabledAlgorithms: Set[AlgorithmConstraint], x509Cert: X509Certificate) {
+  def createAlgorithmChecker(constraints:Set[AlgorithmConstraint]) : AlgorithmChecker = new AlgorithmChecker(constraints)
+
+  def validateCertificate(algorithmChecker:AlgorithmChecker, x509Cert: X509Certificate) {
     x509Cert.checkValidity()
-
-    val key = x509Cert.getPublicKey
-    val keySize = Algorithms.keySize(key)
-
-    val lowerCaseAlgorithmName: String = x509Cert.getSigAlgName.toLowerCase(Locale.ENGLISH)
-    logger.debug(s"validateTrustStore: lowerCaseAlgorithmName = $lowerCaseAlgorithmName, keySize = $keySize, disabledAlgorithms = $disabledAlgorithms")
-
-    for (a <- Algorithms.decomposes(lowerCaseAlgorithmName)) {
-      for (constraint <- disabledAlgorithms)
-        if (constraint.matches(a, keySize)) {
-          logger.debug(s"validateTrustStore: cert = $x509Cert failed on constraint $constraint")
-          val msg = s"Certificate failed: algorithm $a with keySize $keySize matched disabledAlgorithm constraint $constraint"
-          throw new CertificateException(msg)
-        }
-    }
+    algorithmChecker.check(x509Cert, unresolvedCritExts = java.util.Collections.emptySet())
   }
-
 }

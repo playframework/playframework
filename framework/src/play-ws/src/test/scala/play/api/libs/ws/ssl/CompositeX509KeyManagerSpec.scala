@@ -32,7 +32,18 @@ object CompositeX509KeyManagerSpec extends Specification with Mockito {
          serverAlias must be_==("clientAlias")
        }
 
-      "return null" in todo
+      "return null" in {
+        val mockKeyManager = mock[X509KeyManager]
+        val keyManager = new CompositeX509KeyManager(Seq(mockKeyManager))
+        val keyType = Array("derp")
+        val issuers = Array[Principal]()
+        val socket = mock[Socket]
+
+        mockKeyManager.chooseClientAlias(keyType, issuers, socket) returns null
+
+        val serverAlias = keyManager.chooseClientAlias(keyType = keyType, issuers = issuers, socket = socket)
+        serverAlias must beNull
+      }
     }
 
     "getClientAliases" should {
@@ -49,7 +60,17 @@ object CompositeX509KeyManagerSpec extends Specification with Mockito {
         clientAliases must be_==(Array("clientAliases"))
       }
 
-      "return null" in todo
+      "return null" in {
+        val mockKeyManager = mock[X509KeyManager]
+        val keyManager = new CompositeX509KeyManager(Seq(mockKeyManager))
+        val keyType = "derp"
+        val issuers = Array[Principal]()
+
+        mockKeyManager.getClientAliases(keyType, issuers) returns null
+
+        val clientAliases = keyManager.getClientAliases(keyType = keyType, issuers = issuers)
+        clientAliases must beNull
+      }
     }
 
     "getServerAliases" should {
@@ -65,7 +86,17 @@ object CompositeX509KeyManagerSpec extends Specification with Mockito {
         serverAliases must be_==(Array("serverAliases"))
       }
 
-      "return null" in todo
+      "return null" in {
+        val mockKeyManager = mock[X509KeyManager]
+        val keyManager = new CompositeX509KeyManager(Seq(mockKeyManager))
+        val keyType = "derp"
+        val issuers = Array[Principal]()
+
+        mockKeyManager.getServerAliases(keyType, issuers) returns null
+
+        val serverAliases = keyManager.getServerAliases(keyType = keyType, issuers = issuers)
+        serverAliases must beNull
+      }
     }
 
     "chooseServerAlias" should {
@@ -82,7 +113,18 @@ object CompositeX509KeyManagerSpec extends Specification with Mockito {
         serverAlias must be_==("serverAlias")
       }
 
-      "return null" in todo
+      "return null" in {
+        val mockKeyManager = mock[X509KeyManager]
+        val keyManager = new CompositeX509KeyManager(Seq(mockKeyManager))
+        val keyType = "derp"
+        val issuers = Array[Principal]()
+        val socket = mock[Socket]
+
+        mockKeyManager.chooseServerAlias(keyType, issuers, socket) returns null
+
+        val serverAlias = keyManager.chooseServerAlias(keyType = keyType, issuers = issuers, socket = socket)
+        serverAlias must beNull
+      }
     }
 
     "getCertificateChain" should {
@@ -98,7 +140,16 @@ object CompositeX509KeyManagerSpec extends Specification with Mockito {
         certChain must be_==(Array(cert))
       }
 
-      "return null" in todo
+      "return null" in {
+        val mockKeyManager = mock[X509KeyManager]
+        val keyManager = new CompositeX509KeyManager(Seq(mockKeyManager))
+        val alias = "alias"
+
+        mockKeyManager.getCertificateChain(alias) returns null
+
+        val certChain = keyManager.getCertificateChain(alias = alias)
+        certChain must beNull
+      }
     }
 
     "getPrivateKey" should {
@@ -115,7 +166,14 @@ object CompositeX509KeyManagerSpec extends Specification with Mockito {
       }
 
       "return null" in {
-        todo
+        val mockKeyManager = mock[X509KeyManager]
+        val keyManager = new CompositeX509KeyManager(Seq(mockKeyManager))
+        val alias = "alias"
+
+        mockKeyManager.getPrivateKey(alias) returns null
+
+        val actual = keyManager.getPrivateKey(alias = alias)
+        actual must beNull
       }
     }
 
