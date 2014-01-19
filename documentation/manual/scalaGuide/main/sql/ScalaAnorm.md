@@ -218,6 +218,32 @@ val parser = for {
 val parsed: (String, Int) = SELECT("SELECT * FROM Test").as(parser.single)
 ```
 
+## Using multi-value parameter
+
+Anorm parameter can be multi-value, like a sequence of string.
+In such case, values will be prepared to be passed to JDBC.
+
+```scala
+// With default formatting (", " as separator)
+SQL("SELECT * FROM Test WHERE cat IN ({categories})").
+  on('categories -> Seq("a", "b", "c")
+// -> SELECT * FROM Test WHERE cat IN ('a', 'b', 'c')
+
+// With custom formatting
+import anorm.SeqParameter
+SQL("SELECT * FROM Test t WHERE {categories}").
+  on('categories -> SeqParameter(
+    values = Seq("a", "b", "c"), separator = " OR ", 
+    pre = "EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name=",
+    post = ")"))
+/* ->
+SELECT * FROM Test t WHERE 
+EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name='a') 
+OR EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name='b') 
+OR EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name='c')
+*/
+```
+
 ## Retrieving data along with execution context
 
 Moreover data, query execution involves context information like SQL warnings that may be raised (and may be fatal or not), especially when working with stored SQL procedure.
