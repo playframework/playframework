@@ -1,6 +1,5 @@
 package play.api.data.mapping
 
-// TODO: Validation should be a comonad
 /**
  * Validation[E, A] is the result of a validation, where E is the type of each error, and A is the type of the result if the validation is successful
  * The only two possible implementations are Success[E, A](value: A), or Failure[E, A](errors: Seq[E])
@@ -169,7 +168,7 @@ sealed trait Validation[+E, +A] { self =>
   /**
    * Returns None if this is a Failure or a Some containing the value if this is a Success.
    */
-  def asOpt = this match {
+  def asOpt: Option[A] = this match {
     case Success(v) => Some(v)
     case Failure(_) => None
   }
@@ -177,7 +176,7 @@ sealed trait Validation[+E, +A] { self =>
   /**
    * Returns Left containing the errors if this is a Failure or a Right containing the value if this is a Success.
    */
-  def asEither = this match {
+  def asEither: Either[Seq[E], A] = this match {
     case Success(v) => Right(v)
     case Failure(e) => Left(e)
   }

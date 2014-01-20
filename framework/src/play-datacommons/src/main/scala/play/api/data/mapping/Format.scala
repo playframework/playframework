@@ -4,10 +4,7 @@ import scala.annotation.implicitNotFound
 import scala.language.implicitConversions
 
 @implicitNotFound("No Format found for types ${IR},${IW}, ${O}. Try to implement an implicit Format[${IR}, ${IW}, ${O}].")
-trait Format[IR, IW, O] extends RuleLike[IR, O] with WriteLike[O, IW] {
-  // TODO
-  // def bimap = ???
-}
+trait Format[IR, IW, O] extends RuleLike[IR, O] with WriteLike[O, IW]
 
 /**
  * Default formatters.
