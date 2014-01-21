@@ -4,7 +4,7 @@
 package anorm
 
 import java.util.{ Date, UUID }
-import java.sql.Connection
+import java.sql.{ Connection, PreparedStatement }
 
 import scala.language.{ postfixOps, reflectiveCalls }
 import scala.collection.TraversableOnce
@@ -116,9 +116,105 @@ object Useful {
 }
 
 /**
- * Prepared parameter value.
+ * Wrapper to use [[Seq]] as SQL parameter, with custom formatting.
+ *
+ * {{{
+ * SQL("SELECT * FROM t WHERE %s").
+ *   on(SeqParameter(Seq("a", "b"), " OR ", Some("cat = ")))
+ * // Will execute as:
+ * // SELECT * FROM t WHERE cat = 'a' OR cat = 'b'
+ * }}}
  */
-sealed trait ParameterValue {
+sealed trait SeqParameter[A] {
+  def values: Seq[A]
+  def separator: String
+  def before: Option[String]
+  def after: Option[String]
+}
+
+/** SeqParameter factory */
+object SeqParameter {
+  def apply[A](
+    seq: Seq[A], sep: String = ", ",
+    pre: String = "", post: String = ""): SeqParameter[A] =
+    new SeqParameter[A] {
+      val values = seq
+      val separator = sep
+      val before = Option(pre)
+      val after = Option(post)
+    }
+}
+
+/** Set value as prepared SQL statement fragment. */
+trait ToSql[A] {
+
+  /**
+   * Prepares SQL fragment for value,
+   * using [[java.sql.PreparedStatement]] syntax (with '?').
+   *
+   * @return SQL fragment and count of "?" placeholders in it
+   */
+  def fragment(value: A): (String, Int)
+}
+
+/** Provided ToSql implementations. */
+object ToSql {
+  import scala.language.implicitConversions
+
+  /**
+   * Returns fragment for each value, separated by ", ".
+   *
+   * {{{
+   * seqToSql(Seq("A", "B", "C"))
+   * // "?, ?, ?"
+   * }}}
+   */
+  implicit def seqToSql[A](implicit conv: ToSql[A] = null) =
+    new ToSql[Seq[A]] {
+      def fragment(values: Seq[A]): (String, Int) = {
+        val c: A => (String, Int) =
+          if (conv == null) _ => ("?" -> 1) else conv.fragment
+
+        values.foldLeft("" -> 0) { (s, v) =>
+          val frag = c(v)
+          val st = if (s._2 > 0) ", " + frag._1 else frag._1
+          (s._1 + st, s._2 + frag._2)
+        }
+      }
+    }
+
+  /** Returns fragment for each value, with custom formatting. */
+  implicit def seqParamToSql[A](implicit conv: ToSql[A] = null) =
+    new ToSql[SeqParameter[A]] {
+      def fragment(p: SeqParameter[A]): (String, Int) = {
+        val before = p.before.getOrElse("")
+        val after = p.after.getOrElse("")
+        val c: A => (String, Int) =
+          if (conv == null) _ => ("?" -> 1) else conv.fragment
+
+        p.values.foldLeft("" -> 0) { (s, v) =>
+          val frag = c(v)
+          val st =
+            if (s._2 > 0) p.separator + before + frag._1 else before + frag._1
+          (s._1 + st + after, s._2 + frag._2)
+        }
+      }
+    }
+}
+
+/** Prepared parameter value. */
+trait ParameterValue {
+
+  /**
+   * Writes placeholder(s) in [[java.sql.PreparedStatement]] syntax
+   * (with '?') for this parameter in initial statement (with % placeholder).
+   *
+   * @param stmt SQL statement (with %s placeholders)
+   * @param offset Position offset for this parameter
+   * @return Update statement with '?' placeholder(s) for parameter,
+   * with offset for next parameter
+   */
+  def toSql(stmt: String, offset: Int): (String, Int)
 
   /**
    * Sets this value on given statement at specified index.
@@ -126,7 +222,7 @@ sealed trait ParameterValue {
    * @param s SQL Statement
    * @param index Parameter index
    */
-  def set(s: java.sql.PreparedStatement, index: Int): Unit
+  def set(s: PreparedStatement, index: Int): Unit
 }
 
 /**
@@ -138,14 +234,26 @@ sealed trait ParameterValue {
  * SQL("...").onParams(param)
  * }}}
  */
-object ParameterValue {
-  def apply[A](value: A, setter: ToStatement[A]) = new ParameterValue {
-    def set(s: java.sql.PreparedStatement, i: Int) = setter.set(s, i, value)
-  }
+object ParameterValue { // TODO: Improve implicits
+  def apply[A](value: A, s: ToSql[A], toStmt: ToStatement[A]) =
+    new ParameterValue {
+      def toSql(stmt: String, o: Int): (String, Int) = {
+        val frag: (String, Int) =
+          if (s == null) ("?" -> 1) else s.fragment(value)
+
+        Sql.rewrite(stmt, frag._1).fold[(String, Int)](
+          /* ignore extra parameter */ stmt -> o)(rw =>
+            (rw, o + frag._2))
+      }
+
+      def set(s: PreparedStatement, i: Int) = toStmt.set(s, i, value)
+    }
 }
 
 /** Applied named parameter. */
-sealed case class NamedParameter(name: String, value: ParameterValue)
+sealed case class NamedParameter(name: String, value: ParameterValue) {
+  lazy val tupled: (String, ParameterValue) = (name, value)
+}
 
 /** Companion object for applied named parameter. */
 object NamedParameter {
@@ -173,7 +281,8 @@ object NamedParameter {
 
 }
 
-case class SimpleSql[T](sql: SqlQuery, params: Seq[NamedParameter], defaultParser: RowParser[T]) extends Sql {
+/** Simple/plain SQL. */
+case class SimpleSql[T](sql: SqlQuery, params: Map[String, ParameterValue], defaultParser: RowParser[T]) extends Sql {
 
   /**
    * Returns query prepared with named parameters.
@@ -186,49 +295,51 @@ case class SimpleSql[T](sql: SqlQuery, params: Seq[NamedParameter], defaultParse
    * }}}
    */
   def on(args: NamedParameter*): SimpleSql[T] =
-    copy(params = this.params ++ args)
-
-  // Move down
-  @annotation.tailrec
-  private def zipParams(ns: Seq[String], vs: Seq[ParameterValue], ps: Seq[NamedParameter]): Seq[NamedParameter] = (ns.headOption, vs.headOption) match {
-    case (Some(n), Some(v)) =>
-      zipParams(ns.tail, vs.tail, ps :+ NamedParameter(n, v))
-    case _ => ps
-  }
+    copy(params = this.params ++ args.map(_.tupled))
 
   /**
-   * Returns query prepared with indexed parameters.
+   * Returns query prepared with parameters using initial order
+   * of placeholder in statement.
    *
    * {{{
    * import anorm.toParameterValue
    *
-   * val baseSql = SQL("SELECT * FROM table WHERE id = ?") // one indexed param
-   * val preparedSql = baseSql.onParams("val_for_id")
+   * val baseSql =
+   *   SQL("SELECT * FROM table WHERE name = {name} AND lang = {lang}")
+   *
+   * val preparedSql = baseSql.onParams("1st", "2nd")
+   * // 1st param = name, 2nd param = lang
    * }}}
    */
   def onParams(args: ParameterValue*): SimpleSql[T] =
-    copy(params = this.params ++ zipParams(sql.argsInitialOrder, args, Nil))
+    copy(params = this.params ++ Sql.zipParams(
+      sql.argsInitialOrder, args, Map.empty))
 
   // TODO: Scaladoc, add to specs as `as` equivalent
   def list()(implicit connection: Connection): Seq[T] = as(defaultParser*)
 
   // TODO: Scaladoc, add to specs as `as` equivalent
-  def single()(implicit connection: Connection): T = as(ResultSetParser.single(defaultParser))
+  def single()(implicit connection: Connection): T =
+    as(ResultSetParser.single(defaultParser))
 
   // TODO: Scaladoc, add to specs as `as` equivalent
-  def singleOpt()(implicit connection: Connection): Option[T] = as(ResultSetParser.singleOpt(defaultParser))
+  def singleOpt()(implicit connection: Connection): Option[T] =
+    as(ResultSetParser.singleOpt(defaultParser))
 
   def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false) = {
-    val s = if (getGeneratedKeys) connection.prepareStatement(sql.query, java.sql.Statement.RETURN_GENERATED_KEYS)
-    else connection.prepareStatement(sql.query)
+    val st: (String, Seq[(Int, ParameterValue)]) =
+      Sql.prepareQuery(sql.query, 0, sql.argsInitialOrder.map(params), Nil)
 
-    sql.queryTimeout.foreach(timeout => s.setQueryTimeout(timeout))
+    val stmt = if (getGeneratedKeys) connection.prepareStatement(st._1, java.sql.Statement.RETURN_GENERATED_KEYS) else connection.prepareStatement(st._1)
 
-    val argsMap = Map(params.map(p => p.name -> p.value): _*)
-    sql.argsInitialOrder.map(argsMap)
-      .zipWithIndex
-      .map(_.swap)
-      .foldLeft(s)((s, e) => { e._2.set(s, e._1 + 1); s })
+    sql.queryTimeout.foreach(timeout => stmt.setQueryTimeout(timeout))
+
+    st._2 foreach { p =>
+      val (i, v) = p
+      v.set(stmt, i + 1)
+    }
+
+    stmt
   }
 
   /**
@@ -241,48 +352,73 @@ case class SimpleSql[T](sql: SqlQuery, params: Seq[NamedParameter], defaultParse
    * // Equivalent to: SQL("SELECT 1").as(SqlParser.scalar[Int].single)
    * }}}
    */
-  def using[U](p: RowParser[U]): SimpleSql[U] = // Deprecates with .as ?
-    copy(sql, params, p)
+  def using[U](p: RowParser[U]): SimpleSql[U] = copy(sql, params, p)
+  // Deprecates with .as ?
 
   def map[A](f: T => A): SimpleSql[A] =
     copy(defaultParser = defaultParser.map(f))
 
   def withQueryTimeout(seconds: Option[Int]): SimpleSql[T] =
     copy(sql = sql.withQueryTimeout(seconds))
+
 }
 
-case class BatchSql(sql: SqlQuery, params: Seq[Seq[(String, ParameterValue)]]) {
+case class BatchSql(sql: SqlQuery, params: Seq[Map[String, ParameterValue]]) {
+  def addBatch(args: NamedParameter*): BatchSql =
+    copy(params = this.params :+ (args.foldLeft(Map[String, ParameterValue]())(
+      (m, np) => m + np.tupled)))
 
-  def addBatch(args: (String, ParameterValue)*): BatchSql = copy(params = (this.params) :+ args)
-  def addBatchList(paramsMapList: TraversableOnce[Seq[(String, ParameterValue)]]): BatchSql = copy(params = (this.params) ++ paramsMapList)
+  def addBatchList(paramsMap: TraversableOnce[Seq[NamedParameter]]): BatchSql =
+    copy(params = this.params ++ paramsMap.map(_.foldLeft(Map[String, ParameterValue]()) { (m, p) =>
+      m + p.tupled
+    }))
 
   def addBatchParams(args: ParameterValue*): BatchSql =
-    copy(params = (this.params) :+ sql.argsInitialOrder.zip(args))
+    copy(params = this.params :+ Sql.
+      zipParams(sql.argsInitialOrder, args, Map.empty))
 
-  def addBatchParamsList(paramsSeqList: TraversableOnce[Seq[ParameterValue]]): BatchSql = copy(params = (this.params) ++ paramsSeqList.map(paramsSeq => sql.argsInitialOrder.zip(paramsSeq)))
+  def addBatchParamsList(paramsSeqList: TraversableOnce[Seq[ParameterValue]]): BatchSql = copy(params = this.params ++ paramsSeqList.map(Sql.zipParams(sql.argsInitialOrder, _, Map.empty)))
 
-  def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false) = {
-    val statement = if (getGeneratedKeys) connection.prepareStatement(sql.query, java.sql.Statement.RETURN_GENERATED_KEYS)
-    else connection.prepareStatement(sql.query)
-
-    sql.queryTimeout.foreach(timeout => statement.setQueryTimeout(timeout))
-
-    params.foldLeft(statement)((s, ps) => {
-      val argsMap = Map(ps: _*)
-      val result = sql.argsInitialOrder
-        .map(argsMap)
-        .zipWithIndex
-        .map(_.swap)
-        .foldLeft(s)((s, e) => { e._2.set(s, e._1 + 1); s })
-      s.addBatch()
-      result
-    })
+  /** Add batch parameters to given statement. */
+  private def addBatchParams(stmt: PreparedStatement, ps: Seq[(Int, ParameterValue)]): PreparedStatement = {
+    ps foreach { p =>
+      val (i, v) = p
+      v.set(stmt, i + 1)
+    }
+    stmt.addBatch()
+    stmt
   }
 
-  @deprecated(message = "Use [[getFilledStatement]]", since = "2.3.0")
-  def filledStatement(implicit connection: Connection) = getFilledStatement(connection)
+  @annotation.tailrec
+  private def fill(con: Connection, statement: PreparedStatement, getGeneratedKeys: Boolean = false, pm: Seq[Map[String, ParameterValue]]): PreparedStatement =
+    (statement, pm.headOption) match {
+      case (null, Some(ps)) => { // First
+        val st: (String, Seq[(Int, ParameterValue)]) =
+          Sql.prepareQuery(sql.query, 0, sql.argsInitialOrder.map(ps), Nil)
 
-  def execute()(implicit connection: Connection): Array[Int] = getFilledStatement(connection).executeBatch()
+        val stmt = if (getGeneratedKeys) con.prepareStatement(sql.query, java.sql.Statement.RETURN_GENERATED_KEYS) else con.prepareStatement(sql.query)
+
+        sql.queryTimeout.foreach(timeout => stmt.setQueryTimeout(timeout))
+
+        fill(con, addBatchParams(stmt, st._2), getGeneratedKeys, pm.tail)
+      }
+      case (stmt, Some(ps)) => {
+        val vs: Seq[(Int, ParameterValue)] =
+          Sql.prepareQuery(sql.query, 0, sql.argsInitialOrder.map(ps), Nil)._2
+
+        fill(con, addBatchParams(stmt, vs), getGeneratedKeys, pm.tail)
+      }
+      case _ => statement
+    }
+
+  def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false) = fill(connection, null, getGeneratedKeys, params)
+
+  @deprecated(message = "Use [[getFilledStatement]]", since = "2.3.0")
+  def filledStatement(implicit connection: Connection) =
+    getFilledStatement(connection)
+
+  def execute()(implicit connection: Connection): Array[Int] =
+    getFilledStatement(connection).executeBatch()
 
   def withQueryTimeout(seconds: Option[Int]): BatchSql =
     copy(sql = sql.withQueryTimeout(seconds))
@@ -293,7 +429,7 @@ trait Sql {
   import SqlParser._
   import scala.util.control.Exception._
 
-  def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false): java.sql.PreparedStatement
+  def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false): PreparedStatement
 
   @deprecated(message = "Use [[getFilledStatement]] or [[executeQuery]]", since = "2.3.0")
   def filledStatement(implicit connection: Connection) = getFilledStatement(connection)
@@ -301,8 +437,6 @@ trait Sql {
   def apply()(implicit connection: Connection) = Sql.resultSetToStream(resultSet())
 
   def resultSet()(implicit connection: Connection) = (getFilledStatement(connection).executeQuery())
-
-  import SqlParser._
 
   def as[T](parser: ResultSetParser[T])(implicit connection: Connection): T = Sql.as[T](parser, resultSet())
 
@@ -316,7 +450,7 @@ trait Sql {
 
   def execute()(implicit connection: Connection): Boolean = getFilledStatement(connection).execute()
 
-  def execute1(getGeneratedKeys: Boolean = false)(implicit connection: Connection): (java.sql.PreparedStatement, Int) = {
+  def execute1(getGeneratedKeys: Boolean = false)(implicit connection: Connection): (PreparedStatement, Int) = {
     val statement = getFilledStatement(connection, getGeneratedKeys)
     (statement, { statement.executeUpdate() })
   }
@@ -345,17 +479,17 @@ trait Sql {
 
 }
 
+/** Initial SQL query, without parameter values. */
 case class SqlQuery(query: String, argsInitialOrder: List[String] = List.empty, queryTimeout: Option[Int] = None) extends Sql {
 
-  def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false): java.sql.PreparedStatement =
-    asSimple.getFilledStatement(connection, getGeneratedKeys)
+  def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false): PreparedStatement = asSimple.getFilledStatement(connection, getGeneratedKeys)
 
   def withQueryTimeout(seconds: Option[Int]): SqlQuery =
     this.copy(queryTimeout = seconds)
 
   private def defaultParser: RowParser[Row] = RowParser(row => Success(row))
 
-  def asSimple: SimpleSql[Row] = asSimple(defaultParser)
+  private[anorm] def asSimple: SimpleSql[Row] = asSimple(defaultParser)
 
   /**
    * Prepares query as a simple one.
@@ -368,57 +502,12 @@ case class SqlQuery(query: String, argsInitialOrder: List[String] = List.empty, 
    * }}}
    */
   def asSimple[T](parser: RowParser[T] = defaultParser): SimpleSql[T] =
-    SimpleSql(this, Nil, parser)
+    SimpleSql(this, Map.empty, parser)
 
   def asBatch[T]: BatchSql = BatchSql(this, Nil)
 }
 
-/**
- * A result from execution of an SQL query, row data and context
- * (e.g. statement warnings).
- *
- * @constructor create a result with a result set
- * @param resultSet Result set from executed query
- */
-case class SqlQueryResult(resultSet: java.sql.ResultSet) {
-  import SqlParser._
-
-  /** Query statement already executed */
-  val statement: java.sql.Statement = resultSet.getStatement
-
-  /**
-   * Returns statement warning if there is some for this result.
-   *
-   * {{{
-   * val res = SQL("EXEC stored_proc {p}").on("p" -> paramVal).executeQuery()
-   * res.statementWarning match {
-   *   case Some(warning) =>
-   *     warning.printStackTrace()
-   *     None
-   *
-   *   case None =>
-   *     // go on with row parsing ...
-   *     res.as(scalar[String].singleOpt)
-   * }
-   * }}}
-   */
-  def statementWarning: Option[java.sql.SQLWarning] =
-    Option(statement.getWarnings)
-
-  def apply()(implicit connection: Connection) = Sql.resultSetToStream(resultSet)
-
-  def as[T](parser: ResultSetParser[T])(implicit connection: Connection): T = Sql.as[T](parser, resultSet)
-
-  def list[A](rowParser: RowParser[A])(implicit connection: Connection): Seq[A] = as(rowParser *)
-
-  def single[A](rowParser: RowParser[A])(implicit connection: Connection): A = as(ResultSetParser.single(rowParser))
-
-  def singleOpt[A](rowParser: RowParser[A])(implicit connection: Connection): Option[A] = as(ResultSetParser.singleOpt(rowParser))
-
-  def parse[T](parser: ResultSetParser[T])(implicit connection: Connection): T = Sql.parse[T](parser, resultSet)
-}
-
-object Sql {
+object Sql { // TODO: Rename to SQL
 
   def sql(inSql: String): SqlQuery = {
     val (sql, paramsNames) = SqlStatementParser.parse(inSql)
@@ -428,7 +517,7 @@ object Sql {
   import java.sql._
   import java.sql.ResultSetMetaData._
 
-  def metaData(rs: java.sql.ResultSet) = {
+  def metaData(rs: ResultSet) = {
     val meta = rs.getMetaData()
     val nbColumns = meta.getColumnCount()
     MetaData(List.range(1, nbColumns + 1).map(i =>
@@ -467,5 +556,45 @@ object Sql {
 
   private case class SqlRow(metaData: MetaData, data: List[Any]) extends Row {
     override lazy val toString = "Row(" + metaData.ms.zip(data).map(t => "'" + t._1.column + "':" + t._2 + " as " + t._1.clazz).mkString(", ") + ")"
+  }
+
+  @annotation.tailrec
+  private[anorm] def zipParams(ns: Seq[String], vs: Seq[ParameterValue], ps: Map[String, ParameterValue]): Map[String, ParameterValue] = (ns.headOption, vs.headOption) match {
+    case (Some(n), Some(v)) =>
+      zipParams(ns.tail, vs.tail, ps + (n -> v))
+    case _ => ps
+  }
+
+  /**
+   * Rewrites next format placeholder (%s) in statement, with fragment using
+   * [[java.sql.PreparedStatement]] syntax (with one or more '?').
+   *
+   * @param statement SQL statement (with %s placeholders)
+   * @param frag Statement fragment
+   * @return Some rewrited statement, or None if there no available placeholder
+   *
+   * {{{
+   * Sql.rewrite("SELECT * FROM Test WHERE cat IN (%s)", "?, ?")
+   * // Some("SELECT * FROM Test WHERE cat IN (?, ?)")
+   * }}}
+   */
+  private[anorm] def rewrite(stmt: String, frag: String): Option[String] = {
+    val idx = stmt.indexOf("%s")
+
+    if (idx == -1) None
+    else {
+      val parts = stmt.splitAt(idx)
+      Some(parts._1 + frag + parts._2.drop(2))
+    }
+  }
+
+  @annotation.tailrec
+  private[anorm] def prepareQuery(sql: String, i: Int, ps: Seq[ParameterValue], vs: Seq[(Int, ParameterValue)]): (String, Seq[(Int, ParameterValue)]) = {
+    ps.headOption match {
+      case Some(p) =>
+        val st: (String, Int) = p.toSql(sql, i)
+        prepareQuery(st._1, st._2, ps.tail, vs :+ (i -> p))
+      case _ => (sql, vs)
+    }
   }
 }

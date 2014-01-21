@@ -117,4 +117,18 @@ object ToStatement {
       def set(s: PreparedStatement, index: Int, id: Id[A]): Unit =
         c.set(s, index, id.get)
     }
+
+  implicit def seqToStatement[A](implicit c: ToStatement[A]) =
+    new ToStatement[Seq[A]] {
+      def set(s: PreparedStatement, offset: Int, ps: Seq[A]) {
+        ps.foldLeft(offset) { (i, p) => c.set(s, i, p); i + 1 }
+      }
+    }
+
+  implicit def seqParamToStatement[A](implicit c: ToStatement[Seq[A]]) =
+    new ToStatement[SeqParameter[A]] {
+      def set(s: PreparedStatement, offset: Int, ps: SeqParameter[A]): Unit =
+        c.set(s, offset, ps.values)
+
+    }
 }

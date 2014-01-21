@@ -1,13 +1,11 @@
 package anorm
 
-import org.specs2.mutable.Specification
-
 import acolyte.Acolyte.{ connection, handleQuery }
 import acolyte.{ QueryResult, RowLists }
 import RowLists.{ rowList2, rowList1, stringList }
 import acolyte.Implicits._
 
-object RowSpec extends Specification {
+object RowSpec extends org.specs2.mutable.Specification {
   "Row" title
 
   "List of column values" should {

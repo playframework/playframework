@@ -81,7 +81,10 @@ object ParameterSpec extends org.specs2.mutable.Specification {
       DParam("str", SqlStr) :: Nil) => 1 /* ok */
     case UpdateExecution("set-not-assigned ?",
       DParam(null, _) :: Nil) => 1 /* ok */
-
+    case UpdateExecution("set-seq ?, ?, ?",
+      DParam("a", _) :: DParam("b", _) :: DParam("c", _) :: Nil) => 1 /* ok */
+    case UpdateExecution("set-seqp cat = ? OR cat = ? OR cat = ?",
+      DParam(1.2f, _) :: DParam(23.4f, _) :: DParam(5.6f, _) :: Nil) => 1 // ok
   }, ps: _*))
 
   "Named parameters" should {
@@ -89,8 +92,7 @@ object ParameterSpec extends org.specs2.mutable.Specification {
       SQL("set-str {a}").on("a" -> "string").
         aka("query") must beLike {
           case q @ SimpleSql( // check accross construction
-            SqlQuery("set-str ?", List("a"), _),
-            Seq(NamedParameter("a", _)), _) =>
+            SqlQuery("set-str %s", List("a"), _), ps, _) if (ps contains "a") =>
 
             // execute = false: update ok but returns no resultset
             // see java.sql.PreparedStatement#execute
@@ -102,8 +104,7 @@ object ParameterSpec extends org.specs2.mutable.Specification {
       SQL("set-str {b}").on('b -> "string").
         aka("query") must beLike {
           case q @ SimpleSql( // check accross construction
-            SqlQuery("set-str ?", List("b"), _),
-            Seq(NamedParameter("b", _)), _) =>
+            SqlQuery("set-str %s", List("b"), _), ps, _) if (ps contains "b") =>
             q.execute() aka "execution" must beFalse
         }
     }
@@ -171,8 +172,8 @@ object ParameterSpec extends org.specs2.mutable.Specification {
         SQL("set-s-jbg {a}, {b}").on("a" -> "string", "b" -> jbg1).
           aka("query") must beLike {
             case q @ SimpleSql(
-              SqlQuery("set-s-jbg ?, ?", List("a", "b"), _),
-              Seq(NamedParameter("a", _), NamedParameter("b", _)), _) =>
+              SqlQuery("set-s-jbg %s, %s", List("a", "b"), _),
+              ps, _) if (ps.contains("a") && ps.contains("b")) =>
               q.execute() aka "execution" must beFalse
 
           }
@@ -185,11 +186,11 @@ object ParameterSpec extends org.specs2.mutable.Specification {
     }
 
     "be reordered" in withConnection() { implicit c =>
-      SQL("reorder-s-jbg ?, ?").copy(argsInitialOrder = List("b", "a")).
-        on("a" -> "string", "b" -> jbg1) aka "query" must beLike {
+      SQL("reorder-s-jbg {b}, {a}").on("a" -> "string", "b" -> jbg1).
+        aka("query") must beLike {
           case q @ SimpleSql(
-            SqlQuery("reorder-s-jbg ?, ?", List("b", "a"), _),
-            Seq(NamedParameter("a", _), NamedParameter("b", _)), _) =>
+            SqlQuery("reorder-s-jbg %s, %s", List("b", "a"), _),
+            ps, _) if (ps.contains("a") && ps.contains("b")) =>
             q.execute() aka "execution" must beFalse
 
         }
@@ -258,102 +259,108 @@ object ParameterSpec extends org.specs2.mutable.Specification {
       val name: Any = "untyped"
       SQL("set-old {untyped}").on(name -> 2l) aka "query" must beLike {
         case q @ SimpleSql(
-          SqlQuery("set-old ?", "untyped" :: Nil, _),
-          Seq(NamedParameter("untyped", _)), _) =>
-          q.execute() aka "execution" must beFalse
+          SqlQuery("set-old %s", "untyped" :: Nil, _), ps, _) if (
+          ps contains "untyped") => q.execute() aka "execution" must beFalse
 
       }
     }
-  }
 
-  "Indexed parameters" should {
-    "be one string" in withConnection() { implicit c =>
-      SQL("set-str ?").copy(argsInitialOrder = "p" :: Nil).
-        onParams(pv("string")) aka "query" must beLike {
-          case q @ SimpleSql( // check accross construction
-            SqlQuery("set-str ?", List("p"), _),
-            Seq(NamedParameter("p", _)), _) =>
-
-            // execute = false: update ok but returns no resultset
-            // see java.sql.PreparedStatement#execute
+    "set sequence values" in withConnection() { implicit c =>
+      SQL("set-seq {seq}").
+        on('seq -> Seq("a", "b", "c")) aka "query" must beLike {
+          case q @ SimpleSql(
+            SqlQuery("set-seq %s", "seq" :: Nil, _), ps, _) if (
+            ps.size == 1 && ps.contains("seq")) =>
             q.execute() aka "execution" must beFalse
         }
     }
 
+    "set formatted value from sequence" in withConnection() { implicit c =>
+      SQL("set-seqp {p}").on('p ->
+        SeqParameter(Seq(1.2f, 23.4f, 5.6f), " OR ", "cat = ")).
+        aka("query") must beLike {
+          case q @ SimpleSql(
+            SqlQuery("set-seqp %s", "p" :: Nil, _), ps, _) if (
+            ps.size == 1 && ps.contains("p")) =>
+            q.execute() aka "execution" must beFalse
+        }
+    }
+  }
+
+  "Parameter in order" should {
+    "be one string" in withConnection() { implicit c =>
+      SQL("set-str {p}").onParams(pv("string")) aka "query" must beLike {
+        case q @ SimpleSql( // check accross construction
+          SqlQuery("set-str %s", List("p"), _), ps, _) if (ps contains "p") =>
+
+          // execute = false: update ok but returns no resultset
+          // see java.sql.PreparedStatement#execute
+          q.execute() aka "execution" must beFalse
+      }
+    }
+
     "be boolean true" in withConnection() { implicit c =>
-      SQL("set-true ?").copy(argsInitialOrder = "p" :: Nil).
-        onParams(pv(true)).execute() must beFalse
+      SQL("set-true {p}").onParams(pv(true)).execute() must beFalse
     }
 
     "be boolean false" in withConnection() { implicit c =>
-      SQL("set-false ?").copy(argsInitialOrder = "p" :: Nil).
-        onParams(pv(false)).execute() must beFalse
+      SQL("set-false {p}").onParams(pv(false)).execute() must beFalse
     }
 
     "be short" in withConnection() { implicit c =>
-      SQL("set-short ?").copy(argsInitialOrder = "p" :: Nil).
-        onParams(pv(3.toShort)).execute() must beFalse
+      SQL("set-short {p}").onParams(pv(3.toShort)).execute() must beFalse
     }
 
     "be byte" in withConnection() { implicit c =>
-      SQL("set-byte ?").copy(argsInitialOrder = "p" :: Nil).
-        onParams(pv(4.toByte)).execute() must beFalse
+      SQL("set-byte {p}").onParams(pv(4.toByte)).execute() must beFalse
     }
 
     "be long" in withConnection() { implicit c =>
-      SQL("set-long ?").copy(argsInitialOrder = "p" :: Nil).
-        onParams(pv(5l)).execute() must beFalse
+      SQL("set-long {p}").onParams(pv(5l)).execute() must beFalse
     }
 
     "be float" in withConnection() { implicit c =>
-      SQL("set-float ?").copy(argsInitialOrder = "p" :: Nil).
-        onParams(pv(1.23f)).execute() must beFalse
+      SQL("set-float {p}").onParams(pv(1.23f)).execute() must beFalse
     }
 
     "be double" in withConnection() { implicit c =>
-      SQL("set-double ?").copy(argsInitialOrder = "p" :: Nil).
-        onParams(pv(23.456d)).execute() must beFalse
+      SQL("set-double {p}").onParams(pv(23.456d)).execute() must beFalse
     }
 
     "be one Java big decimal" in withConnection() { implicit c =>
-      SQL("set-jbg ?").copy(argsInitialOrder = "p" :: Nil).
-        onParams(pv(jbg1)).execute() must beFalse
+      SQL("set-jbg {p}").onParams(pv(jbg1)).execute() must beFalse
     }
 
     "be one Scala big decimal" in withConnection() { implicit c =>
-      SQL("set-sbg ?").copy(argsInitialOrder = "p" :: Nil).
-        onParams(pv(sbg1)).execute() must beFalse
+      SQL("set-sbg {p}").onParams(pv(sbg1)).execute() must beFalse
     }
 
     "be one date" in withConnection() { implicit c =>
-      SQL("set-date ?").copy(argsInitialOrder = "p" :: Nil).
-        onParams(pv(date)).execute() must beFalse
+      SQL("set-date {p}").onParams(pv(date)).execute() must beFalse
     }
 
     "be one timestamp" in withConnection() { implicit c =>
-      SQL("set-timestamp ?").copy(argsInitialOrder = "p" :: Nil).
-        onParams(pv(timestamp)).execute() must beFalse
+      SQL("set-timestamp {p}").onParams(pv(timestamp)).execute() must beFalse
     }
 
     "be Id of string" in withConnection() { implicit c =>
-      SQL("set-id-str ?").copy(argsInitialOrder = "p" :: Nil).
-        onParams(pv(Id("str"))).execute() must beFalse
+      SQL("set-id-str {p}").onParams(pv(Id("str"))).execute() must beFalse
     }
 
     "be not assigned" in withConnection(
       "acolyte.parameter.untypedNull" -> "true") { implicit c =>
 
-        SQL("set-not-assigned ?").copy(argsInitialOrder = "p" :: Nil).
-          onParams(pv(NotAssigned)).execute() must beFalse
+        SQL("set-not-assigned {p}").onParams(pv(NotAssigned)).
+          execute() must beFalse
       }
 
     "be multiple (string, Java big decimal)" in withConnection() {
       implicit c =>
-        SQL("set-s-jbg ?, ?").copy(argsInitialOrder = List("a", "b")).
-          onParams(pv("string"), pv(jbg1)) aka "query" must beLike {
+        SQL("set-s-jbg {a}, {b}").onParams(pv("string"), pv(jbg1)).
+          aka("query") must beLike {
             case q @ SimpleSql(
-              SqlQuery("set-s-jbg ?, ?", List("a", "b"), _),
-              Seq(NamedParameter("a", _), NamedParameter("b", _)), _) =>
+              SqlQuery("set-s-jbg %s, %s", List("a", "b"), _), ps, _) if (
+              ps.contains("a") && ps.contains("b")) =>
               q.execute() aka "execution" must beFalse
 
           }
@@ -361,9 +368,8 @@ object ParameterSpec extends org.specs2.mutable.Specification {
 
     "be multiple (string, Scala big decimal)" in withConnection() {
       implicit c =>
-        SQL("set-s-sbg ?, ?").copy(argsInitialOrder = List("a", "b")).
-          onParams(pv("string"), pv(sbg1)).execute().
-          aka("execution") must beFalse
+        SQL("set-s-sbg {a}, {b}").onParams(pv("string"), pv(sbg1)).
+          execute() aka "execution" must beFalse
 
     }
 
@@ -376,18 +382,19 @@ object ParameterSpec extends org.specs2.mutable.Specification {
     "be defined string option as Option[String]" in withConnection() {
       implicit c =>
         SQL("set-some-str ?").copy(argsInitialOrder = List("p")).
-          onParams(pv(Option("string"))).execute() aka "execution" must beFalse
+          onParams(pv(Option("string"))).
+          execute() aka "execution" must beFalse
     }
 
     "be defined Java big decimal option" in withConnection() { implicit c =>
-      SQL("set-some-jbg ?").copy(argsInitialOrder = "p" :: Nil).
+      SQL("set-some-jbg {p}").
         onParams(pv(Some(jbg1))).execute() aka "execute" must beFalse
 
     }
 
     "be defined Scala big decimal option" in withConnection() { implicit c =>
-      SQL("set-some-sbg ?").copy(argsInitialOrder = "p" :: Nil).
-        onParams(pv(Some(sbg1))).execute() aka "execute" must beFalse
+      SQL("set-some-sbg {p}").onParams(pv(Some(sbg1))).
+        execute() aka "execute" must beFalse
 
     }
 
@@ -396,15 +403,15 @@ object ParameterSpec extends org.specs2.mutable.Specification {
         /*
        http://docs.oracle.com/javase/6/docs/api/java/sql/PreparedStatement.html#setObject%28int,%20java.lang.Object%29
        */
-        SQL("set-none ?").copy(argsInitialOrder = "p" :: Nil).
-          onParams(pv(None)).execute() aka "execution" must beFalse
+        SQL("set-none {p}").onParams(pv(None)).
+          execute() aka "execution" must beFalse
       }
 
     "set null parameter from empty option" in withConnection(
       "acolyte.parameter.untypedNull" -> "true") { implicit c =>
         val empty: Option[String] = None
-        SQL("set-empty-opt ?").copy(argsInitialOrder = "p" :: Nil).
-          onParams(pv(empty)).execute() aka "execution" must beFalse
+        SQL("set-empty-opt {p}").onParams(pv(empty)).
+          execute() aka "execution" must beFalse
       }
 
     "not be set if placeholder not found in SQL" in withConnection() {
@@ -423,5 +430,6 @@ object ParameterSpec extends org.specs2.mutable.Specification {
     }
   }
 
-  private def pv[A](v: A)(implicit t: ToStatement[A]) = ParameterValue(v, t)
+  private def pv[A](v: A)(implicit s: ToSql[A] = null, p: ToStatement[A]) =
+    ParameterValue(v, s, p)
 }

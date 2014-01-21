@@ -34,7 +34,7 @@ object SqlStatementParser extends JavaTokenParsers {
   private val literal: Parser[(String, Option[String])] = (stringLiteral | simpleQuotes) ^^ { case s => (s, None) }
 
   private val variable = "{" ~> (ident ~ (("." ~> ident)?)) <~ "}" ^^ {
-    case i1 ~ i2 => ("?": String, Some(i1 + i2.map("." + _).getOrElse("")))
+    case i1 ~ i2 => ("%s": String, Some(i1 + i2.map("." + _).getOrElse("")))
   }
 
   private val other: Parser[(String, Option[String])] = """.""".r ^^ {
