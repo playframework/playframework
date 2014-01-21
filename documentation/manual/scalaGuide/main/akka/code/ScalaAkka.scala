@@ -70,7 +70,7 @@ class MyActor extends Actor {
   def receive = {
     case s: String =>
       println(s)
-      sender ! "Hello, " + s
+      sender() ! "Hello, " + s
   }
 }
 

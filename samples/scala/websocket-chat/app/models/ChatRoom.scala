@@ -96,10 +96,10 @@ class ChatRoom extends Actor {
     
     case Join(username) => {
       if(members.contains(username)) {
-        sender ! CannotConnect("This username is already used")
+        sender() ! CannotConnect("This username is already used")
       } else {
         members = members + username
-        sender ! Connected(chatEnumerator)
+        sender() ! Connected(chatEnumerator)
         self ! NotifyJoin(username)
       }
     }

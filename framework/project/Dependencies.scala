@@ -81,8 +81,8 @@ object Dependencies {
 
     scalaIoFile,
 
-    "com.typesafe.akka" %% "akka-actor" % "2.2.3",
-    "com.typesafe.akka" %% "akka-slf4j" % "2.2.3",
+    "com.typesafe.akka" %% "akka-actor" % "2.3.0-RC1",
+    "com.typesafe.akka" %% "akka-slf4j" % "2.3.0-RC1",
 
     "org.scala-stm" %% "scala-stm" % "0.7",
     "commons-codec" % "commons-codec" % "1.9",
