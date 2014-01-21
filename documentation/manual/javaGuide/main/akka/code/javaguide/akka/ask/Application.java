@@ -14,7 +14,7 @@ import static akka.pattern.Patterns.ask;
 public class Application extends Controller {
 
     public static Result index() {
-        ActorRef myActor = Akka.system().actorFor("user/my-actor");
+        ActorSelection myActor = Akka.system().actorSelection("user/my-actor");
         return async(
             Promise.wrap(ask(myActor, "hello", 1000)).map(
                 new Function<Object, Result>() {
