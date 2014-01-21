@@ -9,7 +9,7 @@ import java.security.KeyStore
 
 import java.io._
 import java.security.cert._
-import com.ning.http.util.Base64
+import org.apache.commons.codec.binary.Base64
 import scala.collection.JavaConverters
 
 trait KeyStoreBuilder {
@@ -54,7 +54,8 @@ class StringBasedKeyStoreBuilder(keyStoreType: String,
   def readCertificate(certificateString: String): X509Certificate = {
     val certLines = certificateString.split('\n').iterator
     val data = textBlock(certLines)
-    val binaryData = Base64.decode(data)
+    val base64 = new Base64()
+    val binaryData = base64.decode(data)
 
     val cf = CertificateFactory.getInstance("X.509")
     val bais = new ByteArrayInputStream(binaryData)

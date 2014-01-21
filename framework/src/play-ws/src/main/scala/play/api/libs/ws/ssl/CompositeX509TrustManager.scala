@@ -28,13 +28,6 @@ class CompositeX509TrustManager(trustManagers: Seq[X509TrustManager], certificat
 
   protected val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 
-  // When we instantiate the trust manager, we go through all the trust managers immediately, so we can see
-  // if there are any weak certificate in the trust store:
-  for (trustManager <- trustManagers) {
-    val chain = trustManager.getAcceptedIssuers
-    certificateValidator.validate(chain, trustManager.getAcceptedIssuers)
-  }
-
   def checkClientTrusted(chain: Array[X509Certificate], authType: String) {
     logger.debug("checkClientTrusted: chain = {}", debugChain(chain))
 

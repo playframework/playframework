@@ -189,21 +189,17 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig,
     tmf.init(null.asInstanceOf[KeyStore])
     val trustManager : X509TrustManager = tmf.getTrustManagers()(0).asInstanceOf[X509TrustManager]
 
-    val disabledAlgorithms = sslConfig.disabledAlgorithms.getOrElse(Algorithms.disabledAlgorithms)
-    val constraints = AlgorithmConstraintsParser.parseAll(AlgorithmConstraintsParser.line, disabledAlgorithms).get.toSet
-    val algorithmChecker = new AlgorithmChecker(constraints)
+    //val disabledAlgorithms = sslConfig.disabledAlgorithms.getOrElse(Algorithms.disabledAlgorithms)
+    //val constraints = AlgorithmConstraintsParser.parseAll(AlgorithmConstraintsParser.line, disabledAlgorithms).get.toSet
+    //val algorithmChecker = new AlgorithmChecker(constraints)
     try {
       for (cert <- trustManager.getAcceptedIssuers) {
         cert.checkValidity()
-        algorithmChecker.check(cert, unresolvedCritExts = java.util.Collections.emptySet())
+        //algorithmChecker.check(cert, unresolvedCritExts = java.util.Collections.emptySet())
       }
     } catch {
       case NonFatal(e) =>
-        val msg =
-          """
-            |You have ws.ssl.default = true in your configuration, and there is a certificate in your trust store
-            |that matches a constraint in ws.ssl.disabledAlgorithms, or the certificate is expired.
-          """.stripMargin
+        val msg = "You have ws.ssl.default = true in your configuration, and you have an invalid certificate in your trust store."
         throw new IllegalStateException(msg, e)
     }
   }

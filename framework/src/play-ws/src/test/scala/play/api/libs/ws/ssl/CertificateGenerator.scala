@@ -61,10 +61,9 @@ object CertificateGenerator {
   /**
    * Generates a certificate using RSA (which is available in 1.6).
    */
-  def generateRSAWithSHA256(keySize:Int = 2048) : X509Certificate = {
+  def generateRSAWithSHA256(keySize: Int = 2048, from: Instant = Instant.now, duration: Int = 5000000): X509Certificate = {
     val dn = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
-    val from = Instant.now
-    val to = from.plus(5000000)
+    val to = from.plus(duration)
 
     val keyGen = KeyPairGenerator.getInstance("RSA")
     keyGen.initialize(keySize, new SecureRandom())
@@ -72,10 +71,21 @@ object CertificateGenerator {
     generateCertificate(dn, pair, from.toDate, to.toDate, "SHA256WithRSA", AlgorithmId.sha256WithRSAEncryption_oid)
   }
 
-  def generateRSAWithMD5(keySize:Int = 2048) : X509Certificate = {
+  def toPEM(certificate:X509Certificate) = {
+    import org.apache.commons.codec.binary.Base64
+    val encoder = new Base64(64)
+    val certBegin = "-----BEGIN CERTIFICATE-----\n"
+    val certEnd = "-----END CERTIFICATE-----"
+
+    val derCert = certificate.getEncoded()
+    val pemCertPre = new String(encoder.encode(derCert), "UTF-8")
+    val pemCert = certBegin + pemCertPre + certEnd
+    pemCert
+  }
+
+  def generateRSAWithMD5(keySize: Int = 2048, from: Instant = Instant.now, duration: Int = 5000000): X509Certificate = {
     val dn = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
-    val from = Instant.now
-    val to = from.plus(5000000)
+    val to = from.plus(duration)
 
     val keyGen = KeyPairGenerator.getInstance("RSA")
     keyGen.initialize(keySize, new SecureRandom())

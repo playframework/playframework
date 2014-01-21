@@ -15,36 +15,6 @@ object CompositeX509TrustManagerSpec extends Specification with Mockito {
 
   "CompositeX509TrustManager" should {
 
-    "on initialization" should {
-
-      "init fine with regular certificate" in {
-        val certificate = CertificateGenerator.generateRSAWithSHA256()
-        val chain = Array(certificate)
-        val mockTrustManager = mock[X509TrustManager]
-        val mockValidator = mock[CertificateValidator]
-
-        mockTrustManager.getAcceptedIssuers returns chain
-
-        new CompositeX509TrustManager(trustManagers = Seq(mockTrustManager), certificateValidator = mockValidator)
-
-        there was one(mockValidator).validate(chain, chain)
-      }
-
-      "must fail on a validator failure in initialization" in {
-        val certificate = CertificateGenerator.generateRSAWithSHA256()
-        val chain = Array(certificate)
-
-        val mockTrustManager = mock[X509TrustManager]
-        val mockValidator = mock[CertificateValidator]
-
-        mockTrustManager.getAcceptedIssuers returns chain
-
-        mockValidator.validate(chain, chain) throws new RuntimeException("failed")
-
-        (new CompositeX509TrustManager(trustManagers = Seq(mockTrustManager), certificateValidator = mockValidator)).must(throwA[RuntimeException])
-      }
-    }
-
     "with checkClientTrusted" should {
 
       "throws exception" in {

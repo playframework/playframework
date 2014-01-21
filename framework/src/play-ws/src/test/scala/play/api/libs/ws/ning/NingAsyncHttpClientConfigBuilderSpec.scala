@@ -18,6 +18,7 @@ import javax.net.ssl.SSLContext
 import com.ning.http.client.ProxyServerSelector
 import com.ning.http.util.{ProxyUtils, AllowAllHostnameVerifier}
 import play.api.libs.ws.ssl.DefaultHostnameVerifier
+import org.joda.time.Instant
 
 object NingAsyncHttpClientConfigBuilderSpec extends Specification with Mockito {
 
@@ -123,9 +124,9 @@ object NingAsyncHttpClientConfigBuilderSpec extends Specification with Mockito {
           asyncClientConfig.getSSLContext must not beNull
         }
 
-        "use the default with MD5 disabled successfully " in {
-          val algorithms = "MD2"
-          val config = defaultConfig.copy(ssl = Some(DefaultSSLConfig(default = Some(true), disabledAlgorithms = Some(algorithms))))
+        "use the default with a current certificate" in {
+          val tmc = DefaultTrustManagerConfig()
+          val config = defaultConfig.copy(ssl = Some(DefaultSSLConfig(default = Some(true), trustManagerConfig = Some(tmc))))
           val builder = new NingAsyncHttpClientConfigBuilder(config)
 
           val asyncClientConfig = builder.build()
@@ -133,13 +134,13 @@ object NingAsyncHttpClientConfigBuilderSpec extends Specification with Mockito {
           sslContext must beEqualTo(SSLContext.getDefault)
         }
 
-        "use the default SSL context if sslConfig.default is passed in with MD5 enabled" in {
+        "use the default SSL context if sslConfig.default is passed in with an expired certificate" in {
           // Because the default 1.6 and 1.7 JDK have certificates signed with MD5 in their trust store, using the
           // default disabledAlgorithms will throw an exception (we can't filter it out here due to the API).
-          val config = defaultConfig.copy(ssl = Some(DefaultSSLConfig(default = Some(true))))
-          val builder = new NingAsyncHttpClientConfigBuilder(config)
 
-          builder.build().must(throwAn[IllegalStateException])
+          // I can't think of a way to do this that doesn't involve system properties and an incredible amount of
+          // kludge.
+          todo
         }
       }
 
@@ -233,7 +234,7 @@ object NingAsyncHttpClientConfigBuilderSpec extends Specification with Mockito {
       }
 
       "with ciphers" should {
-
+        //
         //        "provide recommended ciphers if not specified" in {
         //          val sslConfig = DefaultSSLConfig()
         //          val config = defaultConfig.copy(ssl = Some(sslConfig))
