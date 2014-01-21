@@ -24,6 +24,32 @@ object MessagesSpec extends PlaySpecification with Controller {
       msg must ===("Required!")
     }
   }
+  
+  "Messages@Java" should{
+    import play.i18n._
+    import java.util
+    val app = FakeApplication()
+    val enUS: Lang = new play.i18n.Lang(play.api.i18n.Lang("en-US"))
+    "allow translation without parameters" in new WithApplication(app) {
+      val msg = Messages.get(enUS, "constraint.email")
+      
+      msg must ===("Email")
+    }
+    "allow translation with any non-list parameter" in new WithApplication(app) {
+      val msg = Messages.get(enUS, "constraint.min", "Croissant")
+
+      msg must ===("Minimum value: Croissant")
+    }
+    "allow translation with any list parameter" in new WithApplication(app) {
+      val msg = {
+        val list: util.ArrayList[String] = new util.ArrayList[String]()
+        list.add("Croissant")
+        Messages.get(enUS, "constraint.min", list)
+      }
+
+      msg must ===("Minimum value: Croissant")
+    }
+  }
 }
 
 
