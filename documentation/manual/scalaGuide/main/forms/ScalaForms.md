@@ -83,6 +83,7 @@ The out of the box constraints are defined on the [Forms object](api/scala/index
 * [`email`](api/scala/index.html#play.api.data.Forms$@email%3AMapping%5BString%5D): maps to `scala.String`, using an email regular expression.
 * [`boolean`](api/scala/index.html#play.api.data.Forms$@boolean%3AMapping%5BBoolean%5D): maps to `scala.Boolean`.
 * [`checked`](api/scala/index.html#play.api.data.Forms$@checked%3AMapping%5BBoolean%5D): maps to `scala.Boolean`.
+* [`optional`](api/scala/index.html#play.api.data.Forms): maps to `scala.Option`.
 
 ### Defining ad-hoc constraints
 
