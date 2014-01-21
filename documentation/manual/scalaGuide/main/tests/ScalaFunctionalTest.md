@@ -1,5 +1,7 @@
 # Writing functional tests
 
+Play provides a number of classes and convenience methods that assist with functional testing.  Most of these can be found either in the [`play.api.test`](api/scala/index.html#play.api.test.package) package or in the [`Helpers`](api/scala/index.html#play.api.test.Helpers$) object.
+
 ## Testing a template
 
 Since a template is a standard Scala function, you can execute it from your test, and check the result:
@@ -61,7 +63,7 @@ dynamically reserved for each build.
 A custom `FakeApplication` can also be passed to the test server, for example:
 
 ```scala
-"run in a server" in new WithServer(port = 3333, app = FakeApplication(additionalConfiguration = inMemoryDatabase)) {
+"run in a server" in new WithServer(port = 3333, app = FakeApplication(additionalConfiguration = inMemoryDatabase())) {
   await(WS.url("http://localhost:3333").get).status must equalTo(OK)
 }
 ```
