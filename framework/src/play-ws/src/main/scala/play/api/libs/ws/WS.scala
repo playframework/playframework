@@ -68,7 +68,7 @@ trait WSRequestHolderMagnet {
  * import play.api.libs.ws._
  * import play.api.libs.ws.ning._
  *
- * val configuration = play.api.Configuration(ConfigFactory.load(
+ * val configuration = play.api.Configuration(ConfigFactory.parseString(
  * """
  *   |ws.ssl.trustManager = ...
  * """.stripMargin))

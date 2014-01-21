@@ -6,6 +6,8 @@ package play.api.libs.ws.ssl
 import java.security.cert._
 
 import scala.collection.JavaConverters._
+import javax.naming.ldap.{ Rdn, LdapName }
+import javax.naming.InvalidNameException
 
 /**
  * Define a certificate validator with our own custom checkers and builders.
@@ -31,7 +33,7 @@ class CertificateValidator(val constraints: Set[AlgorithmConstraint], val revoca
   def validate(chain: Array[X509Certificate],
     trustedCerts: Traversable[X509Certificate],
     nameConstraints: Option[Array[Byte]] = None): PKIXCertPathValidatorResult = {
-    logger.debug(s"validate: chain = $chain, trustedCerts = $trustedCerts")
+    logger.debug(s"validate: chain = ${debugChain(chain)}, trustedCerts = $trustedCerts")
 
     val trustAnchors = findTrustAnchors(trustedCerts, nameConstraints)
     val params = paramsFrom(trustAnchors, None, nameConstraints)
@@ -46,7 +48,9 @@ class CertificateValidator(val constraints: Set[AlgorithmConstraint], val revoca
    * Maps from the trust manager's accepted issuers to a set of trust anchors.
    */
   def findTrustAnchors(certs: Traversable[X509Certificate], nameConstraints: Option[Array[Byte]]): Set[TrustAnchor] = {
-    val anchors = for { cert <- certs } yield { new TrustAnchor(cert, nameConstraints.orNull) }
+    val anchors = for { cert <- certs } yield {
+      new TrustAnchor(cert, nameConstraints.orNull)
+    }
     anchors.toSet
   }
 
@@ -104,12 +108,12 @@ class AlgorithmChecker(val constraints: Set[AlgorithmConstraint]) extends PKIXCe
   def check(cert: Certificate, unresolvedCritExts: java.util.Collection[String]) {
     cert match {
       case x509Cert: X509Certificate =>
-        logger.debug(s"check: cert = ${x509Cert.getSubjectX500Principal.getName()}, unresolvedCritExts = $unresolvedCritExts")
 
         val key = x509Cert.getPublicKey
-        val keySize = Algorithms.keySize(key)
-
         val algName = x509Cert.getSigAlgName
+        logger.debug(s"check: commonName = ${getCommonName(x509Cert)} subjAltName = ${x509Cert.getSubjectAlternativeNames}, algName = $algName, unresolvedCritExts = $unresolvedCritExts")
+
+        val keySize = Algorithms.keySize(key)
         val algorithms = Algorithms.decomposes(algName)
 
         logger.debug(s"check: algName = $algName, algorithms = $algorithms, keySize = $keySize")
@@ -126,6 +130,26 @@ class AlgorithmChecker(val constraints: Set[AlgorithmConstraint]) extends PKIXCe
         }
       case _ =>
         throw new UnsupportedOperationException("check only works with x509 certificates")
+    }
+  }
+
+  // http://stackoverflow.com/a/18174689/5266
+  def getCommonName(cert: X509Certificate) = {
+    try {
+      val ldapName = new LdapName(cert.getSubjectX500Principal.getName)
+      /*
+       * Looking for the "most specific CN" (i.e. the last).
+       */
+      var cn: String = null
+      for (rdn: Rdn <- ldapName.getRdns.asScala) {
+        if ("CN".equalsIgnoreCase(rdn.getType)) {
+          cn = rdn.getValue.toString
+        }
+      }
+      cn
+    } catch {
+      case e: InvalidNameException =>
+        null
     }
   }
 
