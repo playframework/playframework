@@ -6,7 +6,7 @@ package play.api.libs.ws.ssl
 import java.security.cert._
 
 import scala.collection.JavaConverters._
-import javax.naming.ldap.{Rdn, LdapName}
+import javax.naming.ldap.{ Rdn, LdapName }
 import javax.naming.InvalidNameException
 
 /**
@@ -31,8 +31,8 @@ class CertificateValidator(val constraints: Set[AlgorithmConstraint], val revoca
    * Validates a yet to be trusted certificate chain, using the trust manager as the trusted source.
    */
   def validate(chain: Array[X509Certificate],
-               trustedCerts: Traversable[X509Certificate],
-               nameConstraints: Option[Array[Byte]] = None): PKIXCertPathValidatorResult = {
+    trustedCerts: Traversable[X509Certificate],
+    nameConstraints: Option[Array[Byte]] = None): PKIXCertPathValidatorResult = {
     logger.debug(s"validate: chain = ${debugChain(chain)}, trustedCerts = $trustedCerts")
 
     val trustAnchors = findTrustAnchors(trustedCerts, nameConstraints)
@@ -48,7 +48,7 @@ class CertificateValidator(val constraints: Set[AlgorithmConstraint], val revoca
    * Maps from the trust manager's accepted issuers to a set of trust anchors.
    */
   def findTrustAnchors(certs: Traversable[X509Certificate], nameConstraints: Option[Array[Byte]]): Set[TrustAnchor] = {
-    val anchors = for {cert <- certs} yield {
+    val anchors = for { cert <- certs } yield {
       new TrustAnchor(cert, nameConstraints.orNull)
     }
     anchors.toSet
@@ -58,8 +58,8 @@ class CertificateValidator(val constraints: Set[AlgorithmConstraint], val revoca
    * Initializes the builder parameters with the trust anchors and checkers.
    */
   def paramsFrom(trustAnchors: Set[TrustAnchor],
-                 certSelect: Option[X509CertSelector],
-                 nameConstraints: Option[Array[Byte]]): PKIXParameters = {
+    certSelect: Option[X509CertSelector],
+    nameConstraints: Option[Array[Byte]]): PKIXParameters = {
     val params = new PKIXBuilderParameters(trustAnchors.asJava, certSelect.orNull)
 
     // Use the custom cert path checkers we defined...
@@ -148,10 +148,9 @@ class AlgorithmChecker(val constraints: Set[AlgorithmConstraint]) extends PKIXCe
       }
       cn
     } catch {
-      case e:InvalidNameException =>
-       null
+      case e: InvalidNameException =>
+        null
     }
   }
-
 
 }

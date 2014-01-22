@@ -174,7 +174,7 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig,
     }
   }
 
-  def validateDefaultTrustManager(sslConfig:SSLConfig) {
+  def validateDefaultTrustManager(sslConfig: SSLConfig) {
     // If we are using a default SSL context, we can't filter out certificates with weak algorithms
     // We ALSO don't have access to the trust manager from the SSLContext without doing horrible things
     // with reflection.
@@ -187,7 +187,7 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig,
 
     val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
     tmf.init(null.asInstanceOf[KeyStore])
-    val trustManager : X509TrustManager = tmf.getTrustManagers()(0).asInstanceOf[X509TrustManager]
+    val trustManager: X509TrustManager = tmf.getTrustManagers()(0).asInstanceOf[X509TrustManager]
 
     //val disabledAlgorithms = sslConfig.disabledAlgorithms.getOrElse(Algorithms.disabledAlgorithms)
     //val constraints = AlgorithmConstraintsParser.parseAll(AlgorithmConstraintsParser.line, disabledAlgorithms).get.toSet

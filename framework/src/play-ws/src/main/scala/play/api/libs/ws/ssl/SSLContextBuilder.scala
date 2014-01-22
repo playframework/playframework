@@ -94,7 +94,6 @@ class ConfigSSLContextBuilder(info: SSLConfig,
   def build: SSLContext = {
     val protocol = info.protocol.getOrElse(Protocols.recommendedProtocol)
 
-
     val disableCheckRevocation = info.loose.exists(_.disableCheckRevocation.getOrElse(false))
     val checkRevocation = !disableCheckRevocation
 
