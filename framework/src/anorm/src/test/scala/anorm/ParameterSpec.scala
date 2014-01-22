@@ -1,5 +1,7 @@
 package anorm
 
+import java.lang.{ Boolean => JBool }
+
 import acolyte.{
   DefinedParameter => DParam,
   ParameterMetaData,
@@ -33,6 +35,8 @@ object ParameterSpec extends org.specs2.mutable.Specification {
   def withConnection[A](ps: (String, String)*)(f: java.sql.Connection => A): A = f(connection(handleStatement withUpdateHandler {
     case UpdateExecution("set-str ?",
       DParam("string", SqlStr) :: Nil) => 1 /* case ok */
+    case UpdateExecution("set-char ?",
+      DParam("x", SqlStr) :: Nil) => 1 /* case ok */
     case UpdateExecution("set-false ?",
       DParam(false, SqlBool) :: Nil) => 1 /* case ok */
     case UpdateExecution("set-true ?",
@@ -88,6 +92,10 @@ object ParameterSpec extends org.specs2.mutable.Specification {
   }, ps: _*))
 
   "Named parameters" should {
+    shapeless.test.illTyped {
+      """("str".asInstanceOf[Any] -> 2) : NamedParameter"""
+    }
+
     "be one string with string name" in withConnection() { implicit c =>
       SQL("set-str {a}").on("a" -> "string").
         aka("query") must beLike {
@@ -113,41 +121,63 @@ object ParameterSpec extends org.specs2.mutable.Specification {
       SQL"""set-str ${"string"}""".
         aka("query") must beLike {
           case q @ SimpleSql( // check accross construction
-            SqlQuery("set-str %s", List("_0"), _), ps, _) if (ps contains "_0") =>
-            q.execute() aka "execution" must beFalse
+            SqlQuery("set-str %s", List("_0"), _), ps, _) if (
+            ps contains "_0") => q.execute() aka "execution" must beFalse
+        }
+    }
+
+    "be character 'x'" in withConnection() { implicit c =>
+      SQL("set-char {b}").on('b -> new java.lang.Character('x')).
+        aka("query") must beLike {
+          case q @ SimpleSql( // check accross construction
+            SqlQuery("set-char %s", List("b"), _), ps, _) if (
+            ps contains "b") => q.execute() aka "execution" must beFalse
         }
     }
 
     "be boolean true" in withConnection() { implicit c =>
-      SQL("set-true {p}").on("p" -> true).execute() must beFalse
+      (SQL("set-true {p}").on("p" -> true).execute() must beFalse).
+        and(SQL("set-true {p}").on("p" -> JBool.TRUE).execute() must beFalse)
     }
 
     "be boolean false" in withConnection() { implicit c =>
-      SQL("set-false {p}").on("p" -> false).execute() must beFalse
+      (SQL("set-false {p}").on("p" -> false).execute() must beFalse).
+        and(SQL("set-false {p}").on("p" -> JBool.FALSE).execute() must beFalse)
     }
 
     "be int" in withConnection() { implicit c =>
-      SQL("set-int {p}").on("p" -> 2).execute() must beFalse
+      (SQL("set-int {p}").on("p" -> 2).execute() must beFalse).
+        and(SQL("set-int {p}").on("p" -> new Integer(2)).execute() must beFalse)
     }
 
     "be short" in withConnection() { implicit c =>
-      SQL("set-short {p}").on("p" -> 3.toShort).execute() must beFalse
+      (SQL("set-short {p}").on("p" -> 3.toShort).execute() must beFalse).
+        and(SQL("set-short {p}").on(
+          "p" -> new java.lang.Short("3")).execute() must beFalse)
     }
 
     "be byte" in withConnection() { implicit c =>
-      SQL("set-byte {p}").on("p" -> 4.toByte).execute() must beFalse
+      (SQL("set-byte {p}").on("p" -> 4.toByte).execute() must beFalse).
+        and(SQL("set-byte {p}").on(
+          "p" -> new java.lang.Byte("4")).execute() must beFalse)
     }
 
     "be long" in withConnection() { implicit c =>
-      SQL("set-long {p}").on("p" -> 5l).execute() must beFalse
+      (SQL("set-long {p}").on("p" -> 5l).execute() must beFalse).
+        and(SQL("set-long {p}").on(
+          "p" -> new java.lang.Long(5)).execute() must beFalse)
     }
 
     "be float" in withConnection() { implicit c =>
-      SQL("set-float {p}").on("p" -> 1.23f).execute() must beFalse
+      (SQL("set-float {p}").on("p" -> 1.23f).execute() must beFalse).
+        and(SQL("set-float {p}").on(
+          "p" -> new java.lang.Float(1.23f)).execute() must beFalse)
     }
 
     "be double" in withConnection() { implicit c =>
-      SQL("set-double {p}").on("p" -> 23.456d).execute() must beFalse
+      (SQL("set-double {p}").on("p" -> 23.456d).execute() must beFalse).
+        and(SQL("set-double {p}").on(
+          "p" -> new java.lang.Double(23.456d)).execute() must beFalse)
     }
 
     "be one Java big decimal" in withConnection() { implicit c =>
@@ -268,16 +298,17 @@ object ParameterSpec extends org.specs2.mutable.Specification {
           execute() aka "execution" must beFalse
       }
 
-    "accept deprecated untyped name" in withConnection() { implicit c =>
-      import anorm.features.parameterWithUntypedName
+    "accept deprecated untyped name when feature enabled" in withConnection() {
+      implicit c =>
+        import anorm.features.parameterWithUntypedName
 
-      val name: Any = "untyped"
-      SQL("set-old {untyped}").on(name -> 2l) aka "query" must beLike {
-        case q @ SimpleSql(
-          SqlQuery("set-old %s", "untyped" :: Nil, _), ps, _) if (
-          ps contains "untyped") => q.execute() aka "execution" must beFalse
+        val name: Any = "untyped"
+        SQL("set-old {untyped}").on(name -> 2l) aka "query" must beLike {
+          case q @ SimpleSql(
+            SqlQuery("set-old %s", "untyped" :: Nil, _), ps, _) if (
+            ps contains "untyped") => q.execute() aka "execution" must beFalse
 
-      }
+        }
     }
 
     "set sequence values" in withConnection() { implicit c =>

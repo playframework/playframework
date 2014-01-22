@@ -148,6 +148,8 @@ val product: (String, Float) = SQL("SELECT * FROM prod WHERE id = {id}").
   on('id -> "p").as(parser.single)
 ```
 
+### Edge cases
+
 Passing anything different from string or symbol as parameter name is now deprecated. For backward compatibility, you can activate `anorm.features.parameterWithUntypedName`.
 
 ```scala
@@ -155,6 +157,49 @@ import anorm.features.parameterWithUntypedName // activate
 
 val untyped: Any = "name" // deprecated
 SQL("SELECT * FROM Country WHERE {p}").on(untyped -> "val")
+```
+
+Type of parameter value should be visible, to be properly set on SQL statement.
+Using value as `Any`, explicitly or due to erasure, leads to compilation error `No implicit view available from Any => anorm.ParameterValue`.
+
+```scala
+// Wrong #1
+val p: Any = "strAsAny"
+SQL("SELECT * FROM test WHERE id={id}").
+  on('id -> p) // Erroneous - No conversion Any => ParameterValue
+
+// Right #1
+val p = "strAsString"
+SQL("SELECT * FROM test WHERE id={id}").on('id -> p)
+
+// Wrong #2
+val ps = Seq("a", "b", 3) // inferred as Seq[Any]
+SQL("SELECT * FROM test WHERE (a={a} AND b={b}) OR c={c}").
+  on('a -> ps(0), // ps(0) - No conversion Any => ParameterValue
+    'b -> ps(1), 
+    'c -> ps(2))
+
+// Right #2
+val ps = Seq[anorm.ParameterValue]("a", "b", 3) // Seq[ParameterValue]
+SQL("SELECT * FROM test WHERE (a={a} AND b={b}) OR c={c}").
+  on('a -> ps(0), 'b -> ps(1), 'c -> ps(2))
+
+// Wrong #3
+val ts = Seq( // Seq[(String -> Any)] due to _2
+  "a" -> "1", "b" -> "2", "c" -> 3)
+
+val nps: Seq[NamedParameter] = ts map { t => 
+  val p: NamedParameter = t; p
+  // Erroneous - no conversion (String,Any) => NamedParameter
+}
+
+SQL("SELECT * FROM test WHERE (a={a} AND b={b}) OR c={c}").on(nps :_*) 
+
+// Right #3
+val nps = Seq[NamedParameter]( // Tuples as NamedParameter before Any
+  "a" -> "1", "b" -> "2", "c" -> 3)
+SQL("SELECT * FROM test WHERE (a={a} AND b={b}) OR c={c}").
+  on(nps: _*) // Fail - no conversion (String,Any) => NamedParameter
 ```
 
 ### SQL queries using String Interpolation
