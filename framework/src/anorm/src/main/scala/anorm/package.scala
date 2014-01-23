@@ -33,6 +33,18 @@ package object anorm {
    */
   def SQL(stmt: String): SqlQuery = Sql.sql(stmt)
 
+  /**
+   * Creates an SQL query using String Interpolation feature.
+   * It is a 1-step alternative for SQL().on() functions.
+   *
+   * {{{
+   * val query = SQL"SELECT * FROM Country"
+   * }}}
+   */
+  implicit class SqlStringInterpolation(val sc: StringContext) extends AnyVal {
+    def SQL(args: ParameterValue*) = Sql.sqlFromStringContext(args)(sc)
+  }
+
   /** Activable features */
   object features {
 

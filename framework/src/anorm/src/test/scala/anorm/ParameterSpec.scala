@@ -108,6 +108,15 @@ object ParameterSpec extends org.specs2.mutable.Specification {
             q.execute() aka "execution" must beFalse
         }
     }
+	
+    "be one string with string interpolation" in withConnection() { implicit c =>
+      SQL"""set-str ${"string"}""".
+        aka("query") must beLike {
+          case q @ SimpleSql( // check accross construction
+            SqlQuery("set-str %s", List("_0"), _), ps, _) if (ps contains "_0") =>
+            q.execute() aka "execution" must beFalse
+        }
+    }
 
     "be boolean true" in withConnection() { implicit c =>
       SQL("set-true {p}").on("p" -> true).execute() must beFalse
@@ -182,6 +191,12 @@ object ParameterSpec extends org.specs2.mutable.Specification {
     "be multiple (string, Scala big decimal)" in withConnection() {
       implicit c =>
         SQL("set-s-sbg {a}, {b}").on("a" -> "string", "b" -> sbg1).
+          execute() aka "execution" must beFalse
+    }
+
+    "be multiple (string, Scala big decimal) with string interpolation" in withConnection() {
+      implicit c =>
+        SQL"""set-s-sbg ${"string"}, $sbg1""".
           execute() aka "execution" must beFalse
     }
 
@@ -282,6 +297,16 @@ object ParameterSpec extends org.specs2.mutable.Specification {
           case q @ SimpleSql(
             SqlQuery("set-seqp %s", "p" :: Nil, _), ps, _) if (
             ps.size == 1 && ps.contains("p")) =>
+            q.execute() aka "execution" must beFalse
+        }
+    }
+	
+    "set formatted value from sequence with string interpolation" in withConnection() { implicit c =>
+      SQL"""set-seqp ${SeqParameter(Seq(1.2f, 23.4f, 5.6f), " OR ", "cat = ")}""".
+        aka("query") must beLike {
+          case q @ SimpleSql(
+            SqlQuery("set-seqp %s", "_0" :: Nil, _), ps, _) if (
+            ps.size == 1 && ps.contains("_0")) =>
             q.execute() aka "execution" must beFalse
         }
     }
