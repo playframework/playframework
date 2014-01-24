@@ -10,7 +10,7 @@ import scala.concurrent.ExecutionContext
 /**
  * Contains the default ExecutionContext used by Iteratees.
  */
-private[play] object Execution {
+object Execution {
 
   def defaultExecutionContext: ExecutionContext = Implicits.defaultExecutionContext
 
