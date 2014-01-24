@@ -109,6 +109,23 @@ object MacroSpec extends Specification {
           "master.age" -> Seq("45")))
     }
 
+    "create a Format[Dog]" in {
+      import Rules._
+      import Writes._
+
+      implicit val userRule = Format.gen[UrlFormEncoded, UrlFormEncoded, User]
+      implicit val dogRule = Format.gen[UrlFormEncoded, UrlFormEncoded, Dog]
+
+      dogRule.validate(
+        Map(
+          "name" -> Seq("medor"),
+          "master.name" -> Seq("toto"),
+          "master.age" -> Seq("45")
+        )
+      ) must beEqualTo(Success(Dog("medor", User(45, "toto"))))
+
+    }
+
     "create a Rule[RecUser]" in {
       import Rules._
 
@@ -168,6 +185,38 @@ object MacroSpec extends Specification {
 
     }
 
+    "create a Format[RecUser]" in {
+      import Rules._
+      import Writes._
+
+      implicit val catFormat = Format.gen[UrlFormEncoded, UrlFormEncoded, Cat]
+      val cat = Cat("minou")
+      val catMap = Map("name" -> Seq("minou"))
+
+      catFormat.writes(cat) must beEqualTo(catMap)
+      catFormat.validate(catMap) must beEqualTo(Success(cat))
+
+      implicit lazy val recUserFormat: Format[UrlFormEncoded, UrlFormEncoded, RecUser] =
+        Format.gen[UrlFormEncoded, UrlFormEncoded, RecUser]
+
+      val recMap = Map(
+        "name" -> Seq("bob"),
+        "cat.name" -> Seq("minou"),
+        "hobbies[0]" -> Seq("bobsleig"),
+        "hobbies[1]" -> Seq("manhunting"),
+        "friends[0].name" -> Seq("tom"))
+
+      val u = RecUser(
+        "bob",
+        Some(Cat("minou")),
+        List("bobsleig", "manhunting"),
+        List(RecUser("tom")))
+
+      recUserFormat.validate(recMap) must beEqualTo(Success(u))
+      recUserFormat.writes(u) must beEqualTo(recMap)
+
+    }
+
     "create a Rule[User1]" in {
       import Rules._
 
@@ -200,6 +249,21 @@ object MacroSpec extends Specification {
         Map(
           "name" -> Seq("bob"),
           "friend.name" -> Seq("tom" )))
+    }
+
+    "create a Format[User1]" in {
+      import Rules._
+       import Writes._
+
+      implicit lazy val userFormat: Format[UrlFormEncoded, UrlFormEncoded, User1] = Format.gen[UrlFormEncoded, UrlFormEncoded, User1]
+
+      val userMap = Map(
+        "name" -> Seq("bob"),
+        "friend.name" -> Seq("tom"))
+      val user = User1("bob",Some(User1("tom")))
+
+      userFormat.validate(userMap) must beEqualTo(Success(user))
+      userFormat.writes(user) must beEqualTo(userMap)
     }
 
     "manage Boxed class" in {
@@ -241,6 +305,13 @@ object MacroSpec extends Specification {
         implicit val XWrites = Write.gen[X, UrlFormEncoded]
         success
       }
+
+      "Format" in {
+        import Rules._
+        import Writes._
+        implicit val XWrites = Format.gen[UrlFormEncoded, UrlFormEncoded, X]
+        success
+      }
     }
 
     "test inception with overriden object" in {
@@ -261,6 +332,13 @@ object MacroSpec extends Specification {
         implicit val totoWrite = Write.gen[Toto, UrlFormEncoded]
         success
       }
+
+      "Format" in {
+        import Rules._
+        import Writes._
+        implicit val totoFormat = Format.gen[UrlFormEncoded, UrlFormEncoded, Toto]
+        success
+      }
     }
 
     "test case class 1 field option" in {
@@ -273,6 +351,13 @@ object MacroSpec extends Specification {
       "Write" in {
         import Writes._
         implicit val toto2Write = Write.gen[Toto2, UrlFormEncoded]
+        success
+      }
+
+      "Format" in {
+        import Rules._
+        import Writes._
+        implicit val toto2Format = Format.gen[UrlFormEncoded, UrlFormEncoded, Toto2]
         success
       }
     }
@@ -289,6 +374,13 @@ object MacroSpec extends Specification {
         implicit val toto3Write = Write.gen[Toto3, UrlFormEncoded]
         success
       }
+
+      "Format" in {
+        import Rules._
+        import Writes._
+        implicit val toto3Format = Format.gen[UrlFormEncoded, UrlFormEncoded, Toto3]
+        success
+      }
     }
 
     "test case class 1 field set" in {
@@ -303,6 +395,13 @@ object MacroSpec extends Specification {
         implicit val toto4Write = Write.gen[Toto4, UrlFormEncoded]
         success
       }
+
+      "Format" in {
+        import Rules._
+        import Writes._
+        implicit val toto4Format = Format.gen[UrlFormEncoded, UrlFormEncoded, Toto4]
+        success
+      }
     }
 
     "test case class 1 field map" in {
@@ -315,6 +414,13 @@ object MacroSpec extends Specification {
       "Write" in {
         import Writes._
         implicit val toto5Write = Write.gen[Toto5, UrlFormEncoded]
+        success
+      }
+
+      "Format" in {
+        import Rules._
+        import Writes._
+        implicit val toto5Format = Format.gen[UrlFormEncoded, UrlFormEncoded, Toto5]
         success
       }
     }

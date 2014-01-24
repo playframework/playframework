@@ -18,6 +18,9 @@ object Format {
     }
   }
 
+  import scala.language.experimental.macros
+  def gen[IR, IW, O]: Format[IR, IW, O] = macro MappingMacros.format[IR, IW, O]
+
   import play.api.libs.functional._
 
   implicit def invariantFunctorFormat[IR, IW]: InvariantFunctor[({ type λ[O] = Format[IR, IW, O] })#λ] = new InvariantFunctor[({ type λ[O] = Format[IR, IW, O] })#λ] {
