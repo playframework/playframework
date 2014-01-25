@@ -33,7 +33,7 @@ On Windows you’ll need to set it in the global environment variables. This mea
 
 > If you’re on UNIX, make sure that the `play` script is executable (otherwise do a `chmod a+x play`).
 
-> If you behind a proxy make sure to define it with `set HTTP_PROXY=http://<host>:<port>` on Windows or `export  HTTP_PROXY=http://<host>:<port>` on UNIX.
+> If you're behind a proxy make sure to define it with `set HTTP_PROXY=http://<host>:<port>` on Windows or `export  HTTP_PROXY=http://<host>:<port>` on UNIX.
 
 ## Check that the play command is available
 
