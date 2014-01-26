@@ -45,7 +45,7 @@ If there are any compilation errors you will see the result of the compilation d
 
 [[images/errorPage.png]]
 
-To stop the server, type `Crtl+D` key, and you will be returned to the Play console prompt.
+To stop the server, type `Ctrl+D` key, and you will be returned to the Play console prompt.
 
 ## Compiling
 
