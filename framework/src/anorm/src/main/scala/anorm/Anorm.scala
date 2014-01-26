@@ -514,6 +514,26 @@ object Sql { // TODO: Rename to SQL
     SqlQuery(sql, paramsNames)
   }
 
+  /**
+   * Creates a SimpleSql using String Interpolation feature.
+   * It is a 1-step alternative for SQL().on() functions.
+   *
+   * {{{
+   * SQL"""
+   *   update computer
+   *   set name = ${computer.name}, introduced = ${computer.introduced}, discontinued = ${computer.discontinued}, company_id = ${computer.companyId}
+   *   where id = $id
+   * """.executeUpdate()
+   * }}}
+   */
+  def sqlFromStringContext(params: Seq[ParameterValue])(sc: StringContext) = {
+    // Generates the string query with "%s" as the placeholders for each parameter
+    val sql = sc.parts.mkString("%s")
+    // Generates a list of tupled version of NamedParameters with an arbitrary name
+    val tupledNamedParameters = params.zipWithIndex.map { case (p, i) => ('_'.toString + i, p) }
+    SimpleSql(SqlQuery(sql, tupledNamedParameters.map(_._1).toList), tupledNamedParameters.toMap, defaultParser = RowParser(row => Success(row)))
+  }
+
   import java.sql._
   import java.sql.ResultSetMetaData._
 

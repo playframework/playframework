@@ -157,6 +157,34 @@ val untyped: Any = "name" // deprecated
 SQL("SELECT * FROM Country WHERE {p}").on(untyped -> "val")
 ```
 
+### SQL queries using String Interpolation
+
+Since Scala 2.10 supports custom String Interpolation there is also a 1-step alternative to `SQL(queryString).on(params)` seen before. You can abbreviate the code as: 
+
+```scala
+val name = "Cambridge"
+val country = "New Zealand"
+
+SQL"insert into City(name, country) values ($name, $country)")
+```
+
+It also supports multi-line string and inline expresions:
+
+```scala
+val lang = "French"
+val population = 10000000
+val margin = 500000
+
+val code: String = SQL"""
+  select * from Country c 
+    join CountryLanguage l on l.CountryCode = c.Code 
+    where l.Language = $lang and c.Population >= ${population - margin}
+    order by c.Population desc limit 1"""
+  .as(SqlParser.str("Country.code").single)
+```
+
+This feature tries to make faster, more concise and easier to read the way to retrieve data in Anorm. Please, feel free to use it wherever you see a combination of `SQL().on()` functions (or even an only `SQL()` without parameters).
+
 ## Retrieving data using the Stream API
 
 The first way to access the results of a select query is to use the Stream API.
