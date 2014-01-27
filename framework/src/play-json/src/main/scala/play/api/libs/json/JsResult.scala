@@ -6,6 +6,15 @@ package play.api.libs.json
 import Json._
 import play.api.data.mapping._
 
+trait WithFlatmap[A] {
+  val self: JsResult[A]
+
+  def flatMap[X](f: A => JsResult[X]): JsResult[X] = self match {
+    case JsSuccess(v, path) => f(v).repath(path)
+    case e: JsError => e
+  }
+}
+
 class JsSuccess[T](override val value: T, val path: JsPath = JsPath()) extends Success[(JsPath, Seq[ValidationError]), T](value) {
   override def toString = s"JsSuccess($value, $path)"
   override def equals(o: Any) = {

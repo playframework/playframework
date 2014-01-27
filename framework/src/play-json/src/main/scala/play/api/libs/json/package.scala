@@ -45,8 +45,14 @@ package object json {
   import play.api.data.mapping.json.WithRepath
   type JsResult[O] = Validation[(JsPath, Seq[ValidationError]), O]
   import scala.language.implicitConversions
+
   @scala.deprecated("JsResult.repath will be deleted", "2.3.0")
   implicit def jsValidationToWithRepath[A](v: Validation[(JsPath, Seq[ValidationError]), A]): WithRepath[A] = new WithRepath[A] {
+    val self = v
+  }
+
+  @scala.deprecated("JsResult.flatmap will be deleted", "2.3.0")
+  implicit def jsValidationToWithFlatmap[A](v: JsResult[A]): WithFlatmap[A] = new WithFlatmap[A] {
     val self = v
   }
 }

@@ -21,25 +21,8 @@ sealed trait Validation[+E, +A] { self =>
     case Failure(e) => Failure(e)
   }
 
-  /**
-   * [use case] Builds a new Validation by applying a function to the value of this validation if it's a Success
-   * and using the resulting Validation.
-   * {{{
-   *   val f: Int => Validation[String, Int] = x => Success(x + 2)
-   *   Success(5).flatMap(f) == Success(7)
-   *   Failure(Seq("error")).flatMap(f) == Failure(Seq("error"))
-   *
-   *   val fe: Int => Validation[String, Int] = _ => Failure(Seq("don't panic"))
-   *   Success(5).flatMap(fe) == Failure(Seq("don't panic"))
-   *   Failure(Seq("error")).flatMap(fe) == Failure(Seq("error"))
-   * }}}
-   * @param f the function to apply if this is a `Success`
-   * @return the result of applying the function
-   */
-  def flatMap[EE >: E, AA](f: A => Validation[EE, AA]): Validation[EE, AA] = this match {
-    case Success(v) => f(v)
-    case Failure(e) => Failure(e)
-  }
+  def viaEither[EE, AA](f: Either[Seq[E], A] => Either[Seq[EE], AA]): Validation[EE, AA] =
+    f(asEither).fold(Failure.apply, Success.apply)
 
   /**
    * Applies `invalid` if this is a Failure or `valid` if this is a Success.
@@ -53,10 +36,10 @@ sealed trait Validation[+E, +A] { self =>
   }
 
   def filterNot[EE >: E](error: EE)(p: A => Boolean): Validation[EE, A] =
-    this.flatMap { a => if (p(a)) Failure[EE, A](Seq(error)) else Success[EE, A](a) }
+    viaEither { _.right.flatMap { a => if (p(a)) Left(Seq(error)) else Right(a) } }
 
   def filterNot(p: A => Boolean): Validation[E, A] =
-    this.flatMap { a => if (p(a)) Failure[E, A](Nil) else Success[E, A](a) }
+    viaEither { _.right.flatMap { a => if (p(a)) Left(Nil) else Right(a) } }
 
   /**
    * filter Successful Validation if it does not match the predicate `p`
@@ -64,7 +47,7 @@ sealed trait Validation[+E, +A] { self =>
    * @return a Success if this was a Success and the predicate matched, a Failure otherwise
    */
   def filter(p: A => Boolean): Validation[E, A] =
-    this.flatMap { a => if (p(a)) Success[E, A](a) else Failure[E, A](Nil) }
+    viaEither { _.right.flatMap { a => if (p(a)) Right(a) else Left(Nil) } }
 
   /**
    * filter Successful Validation if it does not match the predicate `p`
@@ -79,7 +62,7 @@ sealed trait Validation[+E, +A] { self =>
    * @return a Success if this was a Success and the predicate matched, a Failure otherwise
    */
   def filter[EE >: E](otherwise: EE)(p: A => Boolean): Validation[EE, A] =
-    this.flatMap { a => if (p(a)) Success[EE, A](a) else Failure[EE, A](Seq(otherwise)) }
+    viaEither { _.right.flatMap { a => if (p(a)) Right(a) else Left(Seq(otherwise)) } }
 
   /**
    * Like `map`, but for partial function. If `p` us not defined for the value, it return a Failure
@@ -93,9 +76,11 @@ sealed trait Validation[+E, +A] { self =>
    * @param p the partial function to apply if this is a `Success`
    * @return a Success if this was a Success and `p` was defined, a Failure otherwise
    */
-  def collect[EE >: E, B](otherwise: EE)(p: PartialFunction[A, B]): Validation[EE, B] = flatMap {
-    case t if p.isDefinedAt(t) => Success(p(t))
-    case _ => Failure(Seq(otherwise))
+  def collect[EE >: E, B](otherwise: EE)(p: PartialFunction[A, B]): Validation[EE, B] = viaEither {
+    _.right.flatMap {
+      case t if p.isDefinedAt(t) => Right(p(t))
+      case _ => Left(Seq(otherwise))
+    }
   }
 
   /**
@@ -202,7 +187,7 @@ sealed trait Validation[+E, +A] { self =>
     case (Success(_), Success(v)) => Success(v)
     case (Success(_), Failure(e)) => Failure(e)
     case (Failure(e), Success(_)) => Failure(e)
-    case (Failure(e1), Failure(e2)) => Failure((e1: Seq[E]) ++ (e2: Seq[EE])) // dafuk??? hy do I need to force types ?
+    case (Failure(e1), Failure(e2)) => Failure((e1: Seq[E]) ++ (e2: Seq[EE])) // dafuk??? why do I need to force types ?
   }
 
   def fail = FailProjection(this)
@@ -211,16 +196,13 @@ sealed trait Validation[+E, +A] { self =>
 
 object Validation {
 
-  // this method should be defined for any instance of Monad
   def sequence[E, A](vs: Seq[Validation[E, A]]): Validation[E, Seq[A]] = {
-    val reversed = vs.foldLeft[Validation[E, Seq[A]]](Success(Nil)) { (acc, va) =>
-      va.flatMap({ a: A =>
-        acc.flatMap({ as: Seq[A] =>
-          Success(a +: as)
-        })
-      })
+    vs.foldLeft[Validation[E, Seq[A]]](Success(Nil)) {
+      case (Success(as), Success(b)) => Success(as ++ Seq(b))
+      case (Success(_), Failure(e)) => Failure(e)
+      case (Failure(e), Success(_)) => Failure(e)
+      case (Failure(e1), Failure(e2)) => Failure(e1 ++ e2)
     }
-    reversed.flatMap({ as: Seq[A] => Success(as.reverse) })
   }
 
   import play.api.libs.functional._

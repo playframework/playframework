@@ -26,25 +26,6 @@ object ValidationSpec extends Specification {
       failure.map(_ + 2) must equalTo(failure)
     }
 
-    "be a Monad" in {
-      val f = (x: Int) => Success[String, Int](x + 2)
-      val g = (x: Int) => Success[String, Int](x * 3)
-
-      // left identity
-      success.flatMap(f) must equalTo(f(5))
-      // right identity
-      success.flatMap(Success(_)) must equalTo(success)
-      failure.flatMap(Success(_)) must equalTo(failure)
-      // associativity
-      success.flatMap(f).flatMap(g) must equalTo(success.flatMap{ x => f(x).flatMap(g) })
-      failure.flatMap(f).flatMap(g) must equalTo(failure.flatMap{ x => f(x).flatMap(g) })
-
-      success.flatMap(f) must equalTo(Success[String, Int](7))
-      failure.flatMap(f) must equalTo(failure)
-      success.flatMap(_ => failure) must equalTo(failure)
-
-    }
-
     "be foldable" in {
       success.fold(
         err => "err",
@@ -132,5 +113,16 @@ object ValidationSpec extends Specification {
       success.asEither must equalTo(Right(5))
       failure.asEither must equalTo(Left("err" :: Nil))
     }
+
+    "sequence" in {
+      val f1: Validation[String, String] = Failure(Seq("err1"))
+      val f2: Validation[String, String] = Failure(Seq("err2"))
+      val s1: Validation[String, String] = Success("1")
+      val s2: Validation[String, String] = Success("2")
+
+      Validation.sequence(Seq(s1, s2)) must equalTo(Success(Seq("1", "2")))
+      Validation.sequence(Seq(f1, f2)) must equalTo(Failure(Seq("err1", "err2")))
+    }
+
   }
 }

@@ -141,7 +141,7 @@ object Rule {
       Rule { d =>
         val a = ma.validate(d)
         val f = mf.validate(d)
-        (f *> a).flatMap(x => f.map(_(x)))
+        (f *> a).viaEither { _.right.flatMap(x => f.asEither.right.map(_(x))) }
       }
   }
 
