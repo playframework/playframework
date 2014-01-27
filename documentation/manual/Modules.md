@@ -173,6 +173,12 @@
 * **Website:** <https://github.com/mumoshu/play2-memcached>
 * **Short description:** provides a memcached based cache implementation
 
+## Messages Compiler Plugin (Scala)
+
+* **Website:** <https://github.com/tegonal/play-messagescompiler>
+* **Documentation:** <https://github.com/tegonal/play-messagescompiler/blob/master/readme.md>
+* **Short description:** Provides type safety for the project's messages.
+
 ## MongoDB Jackson Mapper Plugin (Java)
 
 * **Website (docs, sample):** <https://github.com/vznet/play-mongo-jackson-mapper>
