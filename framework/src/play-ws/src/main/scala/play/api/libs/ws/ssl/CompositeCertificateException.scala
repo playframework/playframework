@@ -16,7 +16,7 @@ class CompositeCertificateException(msg: String, val throwables: Array[Throwable
 
 object CompositeCertificateException {
 
-  def unwrap(e:Throwable)(block : Throwable => Unit) = {
+  def unwrap(e: Throwable)(block: Throwable => Unit) = {
     var cause: Throwable = e
     while (cause != null) {
       cause match {
