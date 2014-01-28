@@ -277,7 +277,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
           plugin.onStop()
         }
       }.after {
-        SystemProperties.clearProperties()
+        new SystemProperties().clearProperties()
       }
 
       // @see http://www.oracle.com/technetwork/java/javase/documentation/tlsreadme2-176330.html
@@ -293,7 +293,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
           plugin.onStop()
         }
       }.after {
-        SystemProperties.clearProperties()
+        new SystemProperties().clearProperties()
       }
 
       // @see http://www.oracle.com/technetwork/java/javase/documentation/tlsreadme2-176330.html
@@ -309,7 +309,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
           plugin.onStop()
         }
       }.after {
-        SystemProperties.clearProperties()
+        new SystemProperties().clearProperties()
       }
 
       "java.security.debug" in {
