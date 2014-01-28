@@ -19,6 +19,7 @@ import com.ning.http.client.ProxyServerSelector
 import com.ning.http.util.{ProxyUtils, AllowAllHostnameVerifier}
 import play.api.libs.ws.ssl.DefaultHostnameVerifier
 import org.joda.time.Instant
+import org.specs2.execute.Result
 
 object NingAsyncHttpClientConfigBuilderSpec extends Specification with Mockito {
 
@@ -125,13 +126,17 @@ object NingAsyncHttpClientConfigBuilderSpec extends Specification with Mockito {
         }
 
         "use the default with a current certificate" in {
-          val tmc = DefaultTrustManagerConfig()
-          val config = defaultConfig.copy(ssl = Some(DefaultSSLConfig(default = Some(true), trustManagerConfig = Some(tmc))))
-          val builder = new NingAsyncHttpClientConfigBuilder(config)
+          foldVersion[Result]({
+            pending("The default trust store will throw an exception because the trust store is too weak, passing")
+          }, {
+            val tmc = DefaultTrustManagerConfig()
+            val config = defaultConfig.copy(ssl = Some(DefaultSSLConfig(default = Some(true), trustManagerConfig = Some(tmc))))
+            val builder = new NingAsyncHttpClientConfigBuilder(config)
 
-          val asyncClientConfig = builder.build()
-          val sslContext = asyncClientConfig.getSSLContext
-          sslContext must beEqualTo(SSLContext.getDefault)
+            val asyncClientConfig = builder.build()
+            val sslContext = asyncClientConfig.getSSLContext
+            sslContext must beEqualTo(SSLContext.getDefault)
+          })
         }
 
         "use the default SSL context if sslConfig.default is passed in with an expired certificate" in {
