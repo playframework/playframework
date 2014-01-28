@@ -3,7 +3,7 @@
  */
 package play.core.server.netty
 
-import play.api.{ Play, Logger, Application }
+import play.api.Play
 import java.security.{ KeyStore, SecureRandom, KeyPairGenerator, KeyPair }
 import sun.security.x509._
 import java.util.Date
@@ -18,15 +18,19 @@ import scala.util.control.NonFatal
  */
 object FakeKeyStore {
   val GeneratedKeyStore = "conf/generated.keystore"
+  val GeneratedTrustStore = "conf/generated.truststore"
   val DnName = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
 
   def keyManagerFactory(appPath: File): Option[KeyManagerFactory] = {
     try {
       val keyStore = KeyStore.getInstance("JKS")
+      val trustStore = KeyStore.getInstance(KeyStore.getDefaultType)
       val keyStoreFile = new File(appPath, GeneratedKeyStore)
       if (!keyStoreFile.exists()) {
 
         Play.logger.info("Generating HTTPS key pair in " + keyStoreFile.getAbsolutePath + " - this may take some time. If nothing happens, try moving the mouse/typing on the keyboard to generate some entropy.")
+
+        val trustStoreFile = new File(appPath, GeneratedTrustStore)
 
         // Generate the key pair
         val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
@@ -39,7 +43,13 @@ object FakeKeyStore {
         // Create the key store, first set the store pass
         keyStore.load(null, "".toCharArray)
         keyStore.setKeyEntry("playgenerated", keyPair.getPrivate, "".toCharArray, Array(cert))
+
+        // Create a trust store with the given certificate (for WS client)
+        trustStore.load(null, "".toCharArray)
+        trustStore.setCertificateEntry("playgenerated", cert)
+
         for (out <- resource.managed(new FileOutputStream(keyStoreFile))) { keyStore.store(out, "".toCharArray) }
+        for (out <- resource.managed(new FileOutputStream(trustStoreFile))) { trustStore.store(out, "".toCharArray) }
       } else {
         for (in <- resource.managed(new FileInputStream(keyStoreFile))) { keyStore.load(in, "".toCharArray) }
       }
