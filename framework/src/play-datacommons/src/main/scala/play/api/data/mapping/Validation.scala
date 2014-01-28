@@ -21,6 +21,13 @@ sealed trait Validation[+E, +A] { self =>
     case Failure(e) => Failure(e)
   }
 
+  def isSuccess = this match {
+    case Success(_) => true
+    case Failure(_) => false
+  }
+
+  def isFailure = !isSuccess
+
   def viaEither[EE, AA](f: Either[Seq[E], A] => Either[Seq[EE], AA]): Validation[EE, AA] =
     f(asEither).fold(Failure.apply, Success.apply)
 
