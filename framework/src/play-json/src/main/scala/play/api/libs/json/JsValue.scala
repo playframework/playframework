@@ -80,6 +80,12 @@ sealed trait JsValue {
   override def toString = Json.stringify(this)
 
   /**
+   * Get the string representation of the JsValue, with all non-ASCII characters escaped.
+   * @return An ascii string representation of the object.
+   */
+  def toAscii = Json.asciiStringify(this)
+
+  /**
    * Prune the Json AST according to the provided JsPath
    */
   //def prune(path: JsPath): JsValue = path.prune(this)
@@ -487,9 +493,12 @@ private[json] object JacksonJson {
     mapper.readValue(jsonParser(input), classOf[JsValue])
   }
 
-  def generateFromJsValue(jsValue: JsValue): String = {
+  def generateFromJsValue(jsValue: JsValue, escapeNonASCII: Boolean = false): String = {
     val sw = new java.io.StringWriter
     val gen = stringJsonGenerator(sw)
+    if (escapeNonASCII) {
+      gen.enable(JsonGenerator.Feature.ESCAPE_NON_ASCII)
+    }
     mapper.writeValue(gen, jsValue)
     sw.flush()
     sw.getBuffer.toString
