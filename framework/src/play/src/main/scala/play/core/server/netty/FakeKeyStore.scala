@@ -24,13 +24,16 @@ object FakeKeyStore {
   def keyManagerFactory(appPath: File): Option[KeyManagerFactory] = {
     try {
       val keyStore = KeyStore.getInstance("JKS")
-      val trustStore = KeyStore.getInstance(KeyStore.getDefaultType)
       val keyStoreFile = new File(appPath, GeneratedKeyStore)
-      if (!keyStoreFile.exists()) {
+      val trustStoreFile = new File(appPath, GeneratedTrustStore)
 
+      // If neither the keystore or the trust store exists, then rebuild a key pair.
+      if (!keyStoreFile.exists() || !trustStoreFile.exists()) {
         Play.logger.info("Generating HTTPS key pair in " + keyStoreFile.getAbsolutePath + " - this may take some time. If nothing happens, try moving the mouse/typing on the keyboard to generate some entropy.")
 
-        val trustStoreFile = new File(appPath, GeneratedTrustStore)
+        // Delete and recreate both files so we start from scratch.
+        keyStoreFile.delete()
+        trustStoreFile.delete()
 
         // Generate the key pair
         val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
@@ -40,16 +43,21 @@ object FakeKeyStore {
         // Generate a self signed certificate
         val cert = createSelfSignedCertificate(keyPair)
 
-        // Create the key store, first set the store pass
-        keyStore.load(null, "".toCharArray)
-        keyStore.setKeyEntry("playgenerated", keyPair.getPrivate, "".toCharArray, Array(cert))
+        // Create the keystore if it doesn't exist.
+        if (!keyStoreFile.exists()) {
+          // Create the key store, first set the store pass
+          keyStore.load(null, "".toCharArray)
+          keyStore.setKeyEntry("playgenerated", keyPair.getPrivate, "".toCharArray, Array(cert))
+          for (out <- resource.managed(new FileOutputStream(keyStoreFile))) { keyStore.store(out, "".toCharArray) }
+        }
 
-        // Create a trust store with the given certificate (for WS client)
-        trustStore.load(null, "".toCharArray)
-        trustStore.setCertificateEntry("playgenerated", cert)
-
-        for (out <- resource.managed(new FileOutputStream(keyStoreFile))) { keyStore.store(out, "".toCharArray) }
-        for (out <- resource.managed(new FileOutputStream(trustStoreFile))) { trustStore.store(out, "".toCharArray) }
+        // Create the trust store if it doesn't exist, for WS client.
+        if (!trustStoreFile.exists()) {
+          val trustStore = KeyStore.getInstance(KeyStore.getDefaultType)
+          trustStore.load(null, "".toCharArray)
+          trustStore.setCertificateEntry("playgenerated", cert)
+          for (out <- resource.managed(new FileOutputStream(trustStoreFile))) { trustStore.store(out, "".toCharArray) }
+        }
       } else {
         for (in <- resource.managed(new FileInputStream(keyStoreFile))) { keyStore.load(in, "".toCharArray) }
       }
