@@ -7,6 +7,7 @@ import play.api.test.FakeApplication
 import play.api.mvc.{Results, Action}
 import com.typesafe.config.ConfigFactory
 import scala.util.control.NonFatal
+import play.core.server.netty.FakeKeyStore
 
 object WsSslSpec extends PlaySpecification with WsTestClient with Results {
 
@@ -16,6 +17,9 @@ object WsSslSpec extends PlaySpecification with WsTestClient with Results {
 
     "run against a local test server configured with SSL" in {
       try {
+        new java.io.File(FakeKeyStore.GeneratedKeyStore).delete()
+        new java.io.File(FakeKeyStore.GeneratedTrustStore).delete()
+
         // FakeKeyStore should provide us with generated.keystore and generated.truststore, we cannot use OCSP here
         val config = """
                        |ws.ssl {
