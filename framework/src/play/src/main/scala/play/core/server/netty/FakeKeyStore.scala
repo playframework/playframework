@@ -28,7 +28,7 @@ object FakeKeyStore {
       val trustStoreFile = new File(appPath, GeneratedTrustStore)
 
       // If neither the keystore or the trust store exists, then rebuild a key pair.
-      if (!keyStoreFile.exists() || !trustStoreFile.exists()) {
+      if (!(keyStoreFile.exists() && trustStoreFile.exists())) {
         Play.logger.info("Generating HTTPS key pair in " + keyStoreFile.getAbsolutePath + " - this may take some time. If nothing happens, try moving the mouse/typing on the keyboard to generate some entropy.")
 
         // Delete and recreate both files so we start from scratch.
