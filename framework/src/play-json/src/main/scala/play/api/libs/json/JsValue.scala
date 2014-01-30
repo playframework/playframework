@@ -80,12 +80,6 @@ sealed trait JsValue {
   override def toString = Json.stringify(this)
 
   /**
-   * Get the string representation of the JsValue, with all non-ASCII characters escaped.
-   * @return An ascii string representation of the object.
-   */
-  def toAscii = Json.asciiStringify(this)
-
-  /**
    * Prune the Json AST according to the provided JsPath
    */
   //def prune(path: JsPath): JsValue = path.prune(this)
