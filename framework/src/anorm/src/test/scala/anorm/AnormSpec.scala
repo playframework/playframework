@@ -195,6 +195,17 @@ object AnormSpec extends Specification with H2Database with AnormTest {
     }
   }
 
+  "Result mixing named and unnamed columns" should {
+    "be parsable using named and positional parsers" in withQueryResult(
+      rowList3(classOf[String], classOf[String], classOf[String]).
+        withLabel(2, "named") :+ ("a", "b", "c")) { implicit con =>
+
+      SQL("SELECT *").as(mixedParser1.single).
+        aka("parsed mixed result") mustEqual(("a", "b", "c"))
+
+    }
+  }
+
   "List" should {
     "be Nil when there is no result" in withQueryResult(QueryResult.Nil) {
       implicit c =>
@@ -316,6 +327,10 @@ sealed trait AnormTest { db: H2Database =>
 
   val fooBarParser4 = get[Long](1) ~ get[String](2) ~ get[Int](3) map {
     case id ~ foo ~ bar => TestTable(id, foo, bar)
+  }
+
+  val mixedParser1 = str(1) ~ str("named") ~ str(3) map {
+    case i ~ j ~ k => (i, j, k)
   }
 
   def withQueryResult[A](r: QueryResult)(f: java.sql.Connection => A): A =
