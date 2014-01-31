@@ -231,6 +231,28 @@ object JsonSpec extends Specification {
     "null root object should be parsed as JsNull" in {
       parse("null") must_== JsNull
     }
+
+    "asciiStringify should escape non-ascii characters" in {
+      val js = Json.obj(
+        "key1" -> "\u2028\u2029\u2030",
+        "key2" -> "\u00E1\u00E9\u00ED\u00F3\u00FA",
+        "key3" -> "\u00A9\u00A3",
+        "key4" -> "\u6837\u54C1"
+      )
+      Json.asciiStringify(js) must beEqualTo(
+        "{\"key1\":\"\\u2028\\u2029\\u2030\","+
+        "\"key2\":\"\\u00E1\\u00E9\\u00ED\\u00F3\\u00FA\","+
+        "\"key3\":\"\\u00A9\\u00A3\","+"" +
+        "\"key4\":\"\\u6837\\u54C1\"}")
+    }
+
+    "asciiStringify should escape ascii characters properly" in {
+      val js = Json.obj(
+        "key1" -> "ab\n\tcd",
+        "key2" -> "\"\r"
+      )
+      Json.asciiStringify(js) must beEqualTo("""{"key1":"ab\n\tcd","key2":"\"\r"}""")
+    }
   }
 
   "JSON Writes" should {

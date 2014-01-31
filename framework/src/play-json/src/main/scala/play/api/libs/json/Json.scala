@@ -50,6 +50,28 @@ object Json {
    */
   def stringify(json: JsValue): String = JacksonJson.generateFromJsValue(json)
 
+  //We use unicode \u005C for a backlash in comments, because Scala will replace unicode escapes during lexing
+  //anywhere in the program.
+  /**
+   * Convert a JsValue to its string representation, escaping all non-ascii characters using \u005CuXXXX syntax.
+   *
+   * This is particularly useful when the output JSON will be executed as javascript, since JSON is not a strict
+   * subset of javascript
+   * (see <a href="http://timelessrepo.com/json-isnt-a-javascript-subset">JSON: The JavaScript subset that isn't</a>).
+   *
+   * {{{
+   * scala> Json.asciiStringify(JsString("some\u005Cu2028text\u005Cu2029"))
+   * res0: String = "some\u005Cu2028text\u005Cu2029"
+   *
+   * scala> Json.stringify(JsString("some\u005Cu2028text\u005Cu2029"))
+   * res1: String = "sometext"
+   * }}}
+   *
+   * @param json the JsValue to convert
+   * @return a String with the json representation with all non-ascii characters escaped.
+   */
+  def asciiStringify(json: JsValue): String = JacksonJson.generateFromJsValue(json, true)
+
   /**
    * Convert a JsValue to its pretty string representation using default Jackson
    * pretty printer (line feeds after each fields and 2-spaces indentation).
