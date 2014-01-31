@@ -2,6 +2,8 @@ package anorm
 
 import java.lang.{ Boolean => JBool }
 
+import java.sql.SQLFeatureNotSupportedException
+
 import acolyte.{
   DefinedParameter => DParam,
   ParameterMetaData,
@@ -94,6 +96,10 @@ object ParameterSpec extends org.specs2.mutable.Specification {
   "Named parameters" should {
     shapeless.test.illTyped {
       """("str".asInstanceOf[Any] -> 2) : NamedParameter"""
+    }
+
+    shapeless.test.illTyped {
+      """"str".asInstanceOf[Any] : ParameterValue"""
     }
 
     "be one string with string name" in withConnection() { implicit c =>
@@ -310,6 +316,35 @@ object ParameterSpec extends org.specs2.mutable.Specification {
             ps contains "untyped") => q.execute() aka "execution" must beFalse
 
         }
+    }
+
+    "accept deprecated untyped value when feature enabled" in withConnection() {
+      implicit c =>
+        import anorm.features.anyToStatement
+
+        val d = new java.util.Date()
+        val params: Seq[NamedParameter] = Seq("mod" -> d, "id" -> "idv")
+        SQL("UPDATE item SET last_modified = {mod} WHERE id = {id}").
+          on(params: _*) aka "update" must beLike {
+            case q @ SimpleSql(
+              SqlQuery("UPDATE item SET last_modified = %s WHERE id = %s",
+                "mod" :: "id" :: Nil, _), ps, _) if (ps.contains("mod") &&
+              ps.contains("id")) => q.execute() aka "execution" must {
+              throwA[SQLFeatureNotSupportedException]/* TODO: 
+                with acolyte update about error message: (
+                message = "Unsupported parameter type: java.util.Date")
+                                                      */
+            }
+          }
+    }
+
+    "accept value wrapped as opaque parameter object" in withConnection() {
+      implicit c =>
+        SQL("set-date {d}").on('d -> anorm.Object(new java.util.Date())).
+          execute aka "execution" must throwA[SQLFeatureNotSupportedException]
+      /* TODO: with acolyte update about error message: (
+       message = "Unsupported parameter type: java.util.Date")
+       */
     }
 
     "set sequence values" in withConnection() { implicit c =>
