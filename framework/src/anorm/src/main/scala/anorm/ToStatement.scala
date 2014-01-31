@@ -170,8 +170,13 @@ object ToStatement { // TODO: Scaladoc
   }
 
   implicit object uuidToStatement extends ToStatement[java.util.UUID] {
-    def set(s: PreparedStatement, index: Int, aValue: java.util.UUID): Unit =
-      s.setObject(index, aValue)
+    def set(s: PreparedStatement, index: Int, id: java.util.UUID): Unit =
+      s.setObject(index, id)
+  }
+
+  implicit object objectToStatement extends ToStatement[anorm.Object] {
+    def set(s: PreparedStatement, index: Int, o: anorm.Object): Unit =
+      s.setObject(index, o.value)
   }
 
   implicit def idToStatement[A](implicit c: ToStatement[A]) =
@@ -193,4 +198,5 @@ object ToStatement { // TODO: Scaladoc
         c.set(s, offset, ps.values)
 
     }
+
 }

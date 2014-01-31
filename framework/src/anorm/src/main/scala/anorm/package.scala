@@ -35,10 +35,16 @@ package object anorm {
 
   /**
    * Creates an SQL query using String Interpolation feature.
-   * It is a 1-step alternative for SQL().on() functions.
+   * It is a 1-step alternative for SQL("...").on(...) functions.
    *
    * {{{
-   * val query = SQL"SELECT * FROM Country"
+   * SQL"""
+   *   UPDATE computer SET name = ${computer.name},
+   *   introduced = ${computer.introduced},
+   *   discontinued = ${computer.discontinued},
+   *   company_id = ${computer.companyId}
+   *   WHERE id = $id
+   * """.executeUpdate()
    * }}}
    */
   implicit class SqlStringInterpolation(val sc: StringContext) extends AnyVal {
@@ -84,5 +90,32 @@ package object anorm {
       since = "2.3.0")
     implicit def parameterWithUntypedName[V](t: (Any, V))(implicit c: V => ParameterValue): NamedParameter = NamedParameter(t._1.toString, c(t._2))
 
+    /**
+     * Unsafe conversion from untyped value to statement parameter.
+     * Value will be passed using setObject.
+     *
+     * It's not recommanded to use it as it can hide conversion issue.
+     *
+     * {{{
+     * // For backward compatibility
+     * import anorm.features.anyToStatement
+     *
+     * val d = new java.util.Date()
+     * val params: Seq[NamedParameter] = Seq("mod" -> d, "id" -> "idv")
+     * // Values as Any as heterogenous
+     *
+     * SQL("UPDATE item SET last_modified = {mod} WHERE id = {id}").
+     *   on(params:_*)
+     * // date and string passed with setObject, rather than
+     * // setDate and setString.
+     * }}}
+     */
+    @deprecated(
+      message = "Do not passed parameter as untyped/Any value",
+      since = "2.3.0")
+    implicit def anyToStatement[T] = new ToStatement[T] {
+      def set(s: java.sql.PreparedStatement, i: Int, any: T): Unit =
+        s.setObject(i, any)
+    }
   }
 }
