@@ -32,9 +32,14 @@ final case class SqlQueryResult(resultSet: java.sql.ResultSet) {
   def statementWarning: Option[java.sql.SQLWarning] =
     Option(statement.getWarnings)
 
-  def apply()(implicit connection: Connection) = Sql.resultSetToStream(resultSet)
+  def apply()(implicit connection: Connection): Stream[Row] =
+    Sql.resultSetToStream(resultSet)
 
-  def as[T](parser: ResultSetParser[T])(implicit connection: Connection): T = Sql.as[T](parser, resultSet)
+  def as[T](parser: ResultSetParser[T])(implicit connection: Connection): T =
+    parser(Sql.resultSetToStream(resultSet)) match {
+      case Success(a) => a
+      case Error(e) => sys.error(e.toString)
+    }
 
   def list[A](rowParser: RowParser[A])(implicit connection: Connection): Seq[A] = as(rowParser.*)
 
@@ -42,5 +47,10 @@ final case class SqlQueryResult(resultSet: java.sql.ResultSet) {
 
   def singleOpt[A](rowParser: RowParser[A])(implicit connection: Connection): Option[A] = as(ResultSetParser.singleOpt(rowParser))
 
-  def parse[T](parser: ResultSetParser[T])(implicit connection: Connection): T = Sql.parse[T](parser, resultSet)
+  def parse[T](parser: ResultSetParser[T])(implicit connection: Connection): T =
+    parser(Sql.resultSetToStream(resultSet)) match {
+      case Success(a) => a
+      case Error(e) => sys.error(e.toString)
+    }
+
 }

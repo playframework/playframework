@@ -9,8 +9,6 @@ import java.sql.{ Connection, PreparedStatement }
 import scala.language.{ postfixOps, reflectiveCalls }
 import scala.collection.TraversableOnce
 
-import MayErr._
-
 /** Error from processing SQL */
 sealed trait SqlRequestError
 
@@ -142,111 +140,6 @@ object SeqParameter {
       val separator = sep
       val before = Option(pre)
       val after = Option(post)
-    }
-}
-
-/** Set value as prepared SQL statement fragment. */
-trait ToSql[A] {
-
-  /**
-   * Prepares SQL fragment for value,
-   * using [[java.sql.PreparedStatement]] syntax (with '?').
-   *
-   * @return SQL fragment and count of "?" placeholders in it
-   */
-  def fragment(value: A): (String, Int)
-}
-
-/** Provided ToSql implementations. */
-object ToSql {
-  import scala.language.implicitConversions
-
-  /**
-   * Returns fragment for each value, separated by ", ".
-   *
-   * {{{
-   * seqToSql(Seq("A", "B", "C"))
-   * // "?, ?, ?"
-   * }}}
-   */
-  implicit def seqToSql[A](implicit conv: ToSql[A] = null) =
-    new ToSql[Seq[A]] {
-      def fragment(values: Seq[A]): (String, Int) = {
-        val c: A => (String, Int) =
-          if (conv == null) _ => ("?" -> 1) else conv.fragment
-
-        values.foldLeft("" -> 0) { (s, v) =>
-          val frag = c(v)
-          val st = if (s._2 > 0) ", " + frag._1 else frag._1
-          (s._1 + st, s._2 + frag._2)
-        }
-      }
-    }
-
-  /** Returns fragment for each value, with custom formatting. */
-  implicit def seqParamToSql[A](implicit conv: ToSql[A] = null) =
-    new ToSql[SeqParameter[A]] {
-      def fragment(p: SeqParameter[A]): (String, Int) = {
-        val before = p.before.getOrElse("")
-        val after = p.after.getOrElse("")
-        val c: A => (String, Int) =
-          if (conv == null) _ => ("?" -> 1) else conv.fragment
-
-        p.values.foldLeft("" -> 0) { (s, v) =>
-          val frag = c(v)
-          val st =
-            if (s._2 > 0) p.separator + before + frag._1 else before + frag._1
-          (s._1 + st + after, s._2 + frag._2)
-        }
-      }
-    }
-}
-
-/** Prepared parameter value. */
-trait ParameterValue {
-
-  /**
-   * Writes placeholder(s) in [[java.sql.PreparedStatement]] syntax
-   * (with '?') for this parameter in initial statement (with % placeholder).
-   *
-   * @param stmt SQL statement (with %s placeholders)
-   * @param offset Position offset for this parameter
-   * @return Update statement with '?' placeholder(s) for parameter,
-   * with offset for next parameter
-   */
-  def toSql(stmt: String, offset: Int): (String, Int)
-
-  /**
-   * Sets this value on given statement at specified index.
-   *
-   * @param s SQL Statement
-   * @param index Parameter index
-   */
-  def set(s: PreparedStatement, index: Int): Unit
-}
-
-/**
- * Value factory for parameter.
- *
- * {{{
- * val param = ParameterValue("str", setter)
- *
- * SQL("...").onParams(param)
- * }}}
- */
-object ParameterValue { // TODO: Improve implicits
-  def apply[A](value: A, s: ToSql[A], toStmt: ToStatement[A]) =
-    new ParameterValue {
-      def toSql(stmt: String, o: Int): (String, Int) = {
-        val frag: (String, Int) =
-          if (s == null) ("?" -> 1) else s.fragment(value)
-
-        Sql.rewrite(stmt, frag._1).fold[(String, Int)](
-          /* ignore extra parameter */ stmt -> o)(rw =>
-            (rw, o + frag._2))
-      }
-
-      def set(s: PreparedStatement, i: Int) = toStmt.set(s, i, value)
     }
 }
 
@@ -537,7 +430,7 @@ object Sql { // TODO: Rename to SQL
   import java.sql._
   import java.sql.ResultSetMetaData._
 
-  def metaData(rs: ResultSet) = {
+  private[anorm] def metaData(rs: ResultSet) = {
     val meta = rs.getMetaData()
     val nbColumns = meta.getColumnCount()
     MetaData(List.range(1, nbColumns + 1).map(i =>
@@ -555,27 +448,33 @@ object Sql { // TODO: Rename to SQL
         clazz = meta.getColumnClassName(i))))
   }
 
-  def resultSetToStream(rs: ResultSet): Stream[Row] = {
-    val rsMetaData = metaData(rs)
-    val columns = List.range(1, rsMetaData.columnCount + 1)
-    def data(rs: ResultSet) = columns.map(nb => rs.getObject(nb))
-    Useful.unfold(rs)(rs => if (!rs.next()) { rs.getStatement.close(); None } else Some((new SqlRow(rsMetaData, data(rs)), rs)))
-  }
-
+  @deprecated(
+    message = "Use [[anorm.SqlQueryResult.as]] directly",
+    since = "2.3.0")
   def as[T](parser: ResultSetParser[T], rs: ResultSet): T =
     parser(resultSetToStream(rs)) match {
       case Success(a) => a
       case Error(e) => sys.error(e.toString)
     }
 
+  @deprecated(
+    message = "Use [[anorm.SqlQueryResult.parse]] directly",
+    since = "2.3.0")
   def parse[T](parser: ResultSetParser[T], rs: ResultSet): T =
     parser(resultSetToStream(rs)) match {
       case Success(a) => a
       case Error(e) => sys.error(e.toString)
     }
 
+  private[anorm] def resultSetToStream(rs: ResultSet): Stream[Row] = {
+    val rsMetaData = metaData(rs)
+    val columns = List.range(1, rsMetaData.columnCount + 1)
+    def data(rs: ResultSet) = columns.map(nb => rs.getObject(nb))
+    Useful.unfold(rs)(rs => if (!rs.next()) { rs.getStatement.close(); None } else Some((new SqlRow(rsMetaData, data(rs)), rs)))
+  }
+
   private case class SqlRow(metaData: MetaData, data: List[Any]) extends Row {
-    override lazy val toString = "Row(" + metaData.ms.zip(data).map(t => "'" + t._1.column + "':" + t._2 + " as " + t._1.clazz).mkString(", ") + ")"
+    override lazy val toString = "Row(" + metaData.ms.zip(data).map(t => s"'${t._1.column}': ${t._2} as ${t._1.clazz}").mkString(", ") + ")"
   }
 
   @annotation.tailrec
