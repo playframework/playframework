@@ -3,7 +3,7 @@
  */
 package play.core.server.netty
 
-import play.api.Play
+import play.api.{ Play, Logger, Application }
 import java.security.{ KeyStore, SecureRandom, KeyPairGenerator, KeyPair }
 import sun.security.x509._
 import java.util.Date
@@ -18,22 +18,15 @@ import scala.util.control.NonFatal
  */
 object FakeKeyStore {
   val GeneratedKeyStore = "conf/generated.keystore"
-  val GeneratedTrustStore = "conf/generated.truststore"
   val DnName = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
 
   def keyManagerFactory(appPath: File): Option[KeyManagerFactory] = {
     try {
       val keyStore = KeyStore.getInstance("JKS")
       val keyStoreFile = new File(appPath, GeneratedKeyStore)
-      val trustStoreFile = new File(appPath, GeneratedTrustStore)
+      if (!keyStoreFile.exists()) {
 
-      // If neither the keystore or the trust store exists, then rebuild a key pair.
-      if (!(keyStoreFile.exists() && trustStoreFile.exists())) {
         Play.logger.info("Generating HTTPS key pair in " + keyStoreFile.getAbsolutePath + " - this may take some time. If nothing happens, try moving the mouse/typing on the keyboard to generate some entropy.")
-
-        // Delete and recreate both files so we start from scratch.
-        keyStoreFile.delete()
-        trustStoreFile.delete()
 
         // Generate the key pair
         val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
@@ -43,21 +36,11 @@ object FakeKeyStore {
         // Generate a self signed certificate
         val cert = createSelfSignedCertificate(keyPair)
 
-        // Create the keystore if it doesn't exist.
-        if (!keyStoreFile.exists()) {
-          // Create the key store, first set the store pass
-          keyStore.load(null, "".toCharArray)
-          keyStore.setKeyEntry("playgenerated", keyPair.getPrivate, "".toCharArray, Array(cert))
-          for (out <- resource.managed(new FileOutputStream(keyStoreFile))) { keyStore.store(out, "".toCharArray) }
-        }
-
-        // Create the trust store if it doesn't exist, for WS client.
-        if (!trustStoreFile.exists()) {
-          val trustStore = KeyStore.getInstance(KeyStore.getDefaultType)
-          trustStore.load(null, "".toCharArray)
-          trustStore.setCertificateEntry("playgenerated", cert)
-          for (out <- resource.managed(new FileOutputStream(trustStoreFile))) { trustStore.store(out, "".toCharArray) }
-        }
+        // Create the key store, first set the store pass
+        keyStore.load(null, "".toCharArray)
+        keyStore.setKeyEntry("playgenerated", keyPair.getPrivate, "".toCharArray, Array(cert))
+        keyStore.setCertificateEntry("playgeneratedtrusted", cert)
+        for (out <- resource.managed(new FileOutputStream(keyStoreFile))) { keyStore.store(out, "".toCharArray) }
       } else {
         for (in <- resource.managed(new FileInputStream(keyStoreFile))) { keyStore.load(in, "".toCharArray) }
       }
