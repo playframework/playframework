@@ -34,7 +34,7 @@ object CertificateGenerator {
     generateCertificate(dn, pair, from.toDate, to.toDate, "SHA256WithRSA", AlgorithmId.sha256WithRSAEncryption_oid)
   }
 
-  def toPEM(certificate:X509Certificate) = {
+  def toPEM(certificate: X509Certificate) = {
     import org.apache.commons.codec.binary.Base64
     val encoder = new Base64(64)
     val certBegin = "-----BEGIN CERTIFICATE-----\n"
