@@ -100,7 +100,7 @@ libraryDependencies += fooDependency
 
 As a Play application is just a standard sbt project with a default configuration, it can depend on another Play application.  You can make any sub module a Play application by including `playScalaSettings` or `playJavaSettings`, depending on whether your project is a Java or Scala project, in its corresponding `build.sbt` file.
 
-> Note: in order to avoid naming collision, make sure your controllers, including the Assets controller in your subprojects are using a different name space than the main project
+> **Note:** In order to avoid naming collision, make sure your controllers, including the Assets controller in your subprojects are using a different name space than the main project
 
 ## Splitting the route file
 
@@ -154,13 +154,13 @@ modules
     └ app
       └ controllers
       └ models
-      └ views     
+      └ views
 project
  └ build.properties
  └ plugins.sbt
 ```
 
-> Note: there is only a single instance of `application.conf`. Also, the route file in `admin` is called `admin.routes`
+> **Note:** Configuration and route file names must be unique in the whole project structure. Particularly, there must be only one `application.conf` file and only one `routes` file. To define additional routes or configuration in sub-projects, use sub-project-specific names. For instance, the route file in `admin` is called `admin.routes`. To use a specific set of settings in development mode for a sub project, it would be even better to put these settings into the build file, e.g. `Keys.devSettings += ("application.router", "admin.Routes")`.
 
 `conf/routes`:
 
@@ -181,7 +181,7 @@ GET /assets/*file           controllers.admin.Assets.at(path="/public", file)
 
 ```
 
-> Note: To export compiled routes to other projects disable reverse ref routing generation using generateRefReverseRouter := false sbt settings. Since routes_reverseRouting depends on every controller disabling the ref routing generation will also improve the compilation speed. 
+> **Note:** To export compiled routes to other projects disable reverse ref routing generation using generateRefReverseRouter := false sbt settings. Since routes_reverseRouting depends on every controller disabling the ref routing generation will also improve the compilation speed.
 
 ### Assets and controller classes should be all defined in the `controllers.admin` package
 
@@ -192,7 +192,7 @@ package controllers.admin
 object Assets extends controllers.AssetsBuilder
 ```
 
-> Note: Java users can do something very similar i.e.
+> **Note:** Java users can do something very similar i.e.:
 
 ```java
 // Assets.java
@@ -232,9 +232,9 @@ in case of a regular controller call:
 
 ```
 controllers.admin.routes.Application.index
-``` 
+```
 
-and for `Assets`: 
+and for `Assets`:
 
 ```
 controllers.admin.routes.Assets.at("...")
@@ -244,9 +244,9 @@ controllers.admin.routes.Assets.at("...")
 
 ```
 http://localhost:9000/index
-``` 
+```
 
-triggers 
+triggers
 
 ```
 controllers.Application.index
@@ -256,9 +256,9 @@ and
 
 ```
 http://localhost:9000/admin/index
-``` 
+```
 
-triggers 
+triggers
 
 ```
 controllers.admin.Application.index
