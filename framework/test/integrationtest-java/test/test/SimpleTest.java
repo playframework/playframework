@@ -210,7 +210,7 @@ public class SimpleTest {
     }
 
     @Test
-    public void nestedContraints() {
+    public void nestedConstraints() {
         Form<JCustomer> customerForm = new Form<JCustomer>(JCustomer.class);
         // email constraints
         assertThat(customerForm.field("email").constraints().size()).as(
