@@ -38,31 +38,29 @@ def login = Action {
   Ok(views.html.login())
 }
 
-def loginPost = Action { implicit request =>
+def loginPost = Action.async { implicit request =>
   Form(single(
     "openid" -> nonEmptyText
   )).bindFromRequest.fold(
-    error => {
+    { error =>
       Logger.info("bad request " + error.toString)
-      BadRequest(error.toString)
+      Future.successful(BadRequest(error.toString))
     },
-    {
-      case (openid) => AsyncResult(OpenID.redirectURL(openid, routes.Application.openIDCallback.absoluteURL())
-        .map( url => Redirect(url))
-        .recover { case Thrown(error) => Redirect(routes.Application.login) }
-      )
+    { openId =>
+      OpenID.redirectURL(openId, routes.Application.openIDCallback.absoluteURL())
+        .map(url => Redirect(url))
+        .recover { case t: Throwable => Redirect(routes.Application.login) }
     }
   )
 }
 
-def openIDCallback = Action { implicit request =>
-  AsyncResult(
-    OpenID.verifiedId.map(info => Ok(info.id + "\n" + info.attributes))
-      .recover { case Thrown(t) =>
-        // Here you should look at the error, and give feedback to the user
-        Redirect(routes.Application.login)
-      }
-  )
+def openIDCallback = Action.async { implicit request =>
+  OpenID.verifiedId.map(info => Ok(info.id + "\n" + info.attributes))
+    .recover {
+      case t: Throwable =>
+      // Here you should look at the error, and give feedback to the user
+      Redirect(routes.Application.login)
+    }
 }
 ```
 
