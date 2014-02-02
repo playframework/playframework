@@ -333,6 +333,12 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
         }
       }
 
+      override def onQueryExecuteTimeLimitExceeded(handle: ConnectionHandle, statement: Statement, sql: String, logParams: java.util.Map[AnyRef, AnyRef], timeElapsedInNs: Long) {
+        val timeMs = timeElapsedInNs / 1000
+        val query = PoolUtil.fillLogParams(sql, logParams)
+        logger.warn(s"Query execute time limit exceeded (${timeMs}ms) - query: ${query}")
+      }
+
     })
 
     val PostgresFullUrl = "^postgres://([a-zA-Z0-9_]+):([^@]+)@([^/]+)/([^\\s]+)$".r
@@ -381,6 +387,7 @@ private[db] class BoneCPApi(configuration: Configuration, classloader: ClassLoad
     datasource.setStatisticsEnabled(conf.getBoolean("statisticsEnabled").getOrElse(false))
     datasource.setIdleConnectionTestPeriod(conf.getMilliseconds("idleConnectionTestPeriod").getOrElse(1000 * 60), java.util.concurrent.TimeUnit.MILLISECONDS)
     datasource.setDisableConnectionTracking(conf.getBoolean("disableConnectionTracking").getOrElse(true))
+    datasource.setQueryExecuteTimeLimitInMs(conf.getMilliseconds("queryExecuteTimeLimit").getOrElse(0))
 
     conf.getString("initSQL").map(datasource.setInitSQL)
     conf.getBoolean("logStatements").map(datasource.setLogStatementsEnabled)
