@@ -926,7 +926,7 @@ object RoutesCompiler {
 
                           // route selection
                           // We will generate a list of routes. Then we should remove duplicates from them.
-                          // Routes are considered duplicates if parameters and parameters contraints (see
+                          // Routes are considered duplicates if parameters and parameters constraints (see
                           // definition below) are identical.
                           //
                           // We will generate a seq of route then pass to ListMap (to preserve order) to have
@@ -945,7 +945,7 @@ object RoutesCompiler {
 
                             // Routes like /dummy controllers.Application.dummy(foo = "bar")
                             // foo = "bar" is a constraint
-                            val parametersContraints = route.call.parameters.getOrElse(Nil).filter { p =>
+                            val parametersConstraints = route.call.parameters.getOrElse(Nil).filter { p =>
                               localNames.contains(p.name) && p.fixed.isDefined
                             }.map { p =>
                               p.name + " == " + p.fixed.get
@@ -958,9 +958,9 @@ object RoutesCompiler {
 
                             val result = """|%s
                                |case (%s) %s => %s
-                            """.stripMargin.format(markers, parameters, parametersContraints, call)
+                            """.stripMargin.format(markers, parameters, parametersConstraints, call)
 
-                            (parameters -> parametersContraints) -> result
+                            (parameters -> parametersConstraints) -> result
                           }: _*).values
                             .mkString("\n"))
                       }

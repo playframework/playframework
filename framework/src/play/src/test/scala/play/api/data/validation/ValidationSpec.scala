@@ -80,7 +80,7 @@ object ValidationSpec extends Specification {
 
   }
 
-  "Email contraint" should {
+  "Email constraint" should {
     val valid = Seq(
       """"Fred Bloggs"@example.com""",
       """"Joe\\Blow"@example.com""",

@@ -125,7 +125,7 @@
 ## HTML5 Tags module (Java and Scala)
 * **Website:** <https://github.com/loicdescotte/Play2-HTML5Tags>
 * **Documentation:** <https://github.com/loicdescotte/Play2-HTML5Tags/blob/master/README.md>
-* **Short description:** This tags add client side validation capabilities, based on model contraints (e.g required, email pattern, max|min lentgh...) and specific input fields (date, telephone number, url...) to Play templates
+* **Short description:** This tags add client side validation capabilities, based on model constraints (e.g required, email pattern, max|min lentgh...) and specific input fields (date, telephone number, url...) to Play templates
 
 ## InputValidator (Scala)
 
