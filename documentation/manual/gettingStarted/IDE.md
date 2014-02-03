@@ -9,18 +9,18 @@ However, using a modern Java or Scala IDE provides cool productivity features li
 
 ### Generate configuration
 
-Play provides a command to simplify Eclipse configuration. To transform a Play application into a working Eclipse project, use the `eclipse` command:
+Play provides a command to simplify Eclipse configuration. To transform a Play application into a working Eclipse project, use the `eclipsify` command:
 
 without the source jars:
 
 ```
-[My first application] $ eclipse
+[My first application] $ eclipsify
 ```
 
 if you want to grab the available source jars (this will take longer and it's possible a few sources might be missing):
 
 ```
-[My first application] $ eclipse with-source=true
+[My first application] $ eclipsify with-source=true
 ```
 
 > Note if you are using sub-projects with aggregate, you would need to set `skipParents` appropriately:
@@ -41,7 +41,7 @@ object ApplicationBuild extends Build {
 or from the play console, type:
 
 ``` 
-[My first application] $ eclipse skip-parents=false
+[My first application] $ eclipsify skip-parents=false
 ```
 
 > Also, if you did not want to trigger a compilation before running `eclipse`, then just add the following to your settings:
@@ -58,7 +58,7 @@ To debug, start your application with `play debug run` and in Eclipse right-clic
 
 > **Tip**: You can run your application using `~run` to enable direct compilation on file change. This way scala template files are auto discovered when you create a new template in `view` and auto compiled when the file changes. If you use normal `run` then you have to hit `Refresh` on your browser each time.
 
-If you make any important changes to your application, such as changing the classpath, use `eclipse` again to regenerate the configuration files.
+If you make any important changes to your application, such as changing the classpath, use `eclipsify` again to regenerate the configuration files.
 
 > **Tip**: Do not commit Eclipse configuration files when you work in a team!
 
