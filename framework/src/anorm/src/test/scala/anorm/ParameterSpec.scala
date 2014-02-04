@@ -116,14 +116,15 @@ object ParameterSpec extends org.specs2.mutable.Specification {
             q.execute() aka "execution" must beFalse
         }
     }
-	
-    "be one string with string interpolation" in withConnection() { implicit c =>
-      SQL"""set-str ${"string"}""".
-        aka("query") must beLike {
-          case q @ SimpleSql( // check accross construction
-            SqlQuery("set-str %s", List("_0"), _), ps, _) if (
-            ps contains "_0") => q.execute() aka "execution" must beFalse
-        }
+
+    "be one string with string interpolation" in withConnection() {
+      implicit c =>
+        SQL"""set-str ${"string"}""".
+          aka("query") must beLike {
+            case q @ SimpleSql( // check accross construction
+              SqlQuery("set-str %s", List("_0"), _), ps, _) if (
+              ps contains "_0") => q.execute() aka "execution" must beFalse
+          }
     }
 
     "be character 'x'" in withConnection() { implicit c =>
@@ -331,7 +332,7 @@ object ParameterSpec extends org.specs2.mutable.Specification {
             q.execute() aka "execution" must beFalse
         }
     }
-	
+
     "set formatted value from sequence with string interpolation" in withConnection() { implicit c =>
       SQL"""set-seqp ${SeqParameter(Seq(1.2f, 23.4f, 5.6f), " OR ", "cat = ")}""".
         aka("query") must beLike {

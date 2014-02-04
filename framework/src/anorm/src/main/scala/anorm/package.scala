@@ -42,7 +42,27 @@ package object anorm {
    * }}}
    */
   implicit class SqlStringInterpolation(val sc: StringContext) extends AnyVal {
-    def SQL(args: ParameterValue*) = Sql.sqlFromStringContext(args)(sc)
+    def SQL(args: ParameterValue*) = prepare(args)
+
+    private def prepare(params: Seq[ParameterValue]) = {
+      // Generates the string query with "%s" for each parameter placeholder
+      val sql = sc.parts.mkString("%s")
+
+      val (ns, ps): (List[String], Map[String, ParameterValue]) =
+        namedParams(params)
+
+      SimpleSql(SqlQuery(sql, ns), ps,
+        defaultParser = RowParser(row => Success(row)))
+    }
+  }
+
+  /* Prepares parameter mappings, arbitrary names and converted values. */
+  @annotation.tailrec
+  private[anorm] def namedParams(params: Seq[ParameterValue], i: Int = 0, names: List[String] = List.empty, named: Map[String, ParameterValue] = Map.empty): (List[String], Map[String, ParameterValue]) = params.headOption match {
+    case Some(p) =>
+      val n = '_'.toString + i
+      namedParams(params.tail, i + 1, names :+ n, named + (n -> p))
+    case _ => (names, named)
   }
 
   /** Activable features */
