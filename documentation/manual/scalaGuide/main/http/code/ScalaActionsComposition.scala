@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
@@ -214,7 +213,7 @@ package scalaguide.http.scalaactionscomposition {
 
         class AuthenticatedRequest[A](val username: String, request: Request[A]) extends WrappedRequest[A](request)
 
-        object Authenticated extends ActionBuilder[AuthenticatedRequest] {
+        object Authenticated extends ActionBuilder[AuthenticatedRequest] with Controller {
           def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A]) => Future[SimpleResult]) = {
             request.session.get("username").map { username =>
               block(new AuthenticatedRequest(username, request))
