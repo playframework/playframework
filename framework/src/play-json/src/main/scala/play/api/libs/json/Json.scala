@@ -101,14 +101,14 @@ object Json {
   def prettyPrint(json: JsValue): String = JacksonJson.prettyPrint(json)
 
   /**
-   * Provided a Reads implicit for its type is available, convert any object into a JsValue.
+   * Provided a Writes implicit for its type is available, convert any object into a JsValue.
    *
    * @param o Value to convert in Json.
    */
   def toJson[T](o: T)(implicit tjs: Writes[T]): JsValue = tjs.writes(o)
 
   /**
-   * Provided a Writes implicit for that type is available, convert a JsValue to any type.
+   * Provided a Reads implicit for that type is available, convert a JsValue to any type.
    *
    * @param json Json value to transform as an instance of T.
    */
