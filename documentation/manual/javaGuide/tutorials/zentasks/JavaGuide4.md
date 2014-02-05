@@ -17,6 +17,7 @@ public static Result login() {
     );
 }
 ```
+>Don't forget to add an import of views.html.login to avoid compile error
 
 In our action, we have referred to a new login template, let's write a skeleton for that template now, in `app/views/login.scala.html`:
 
