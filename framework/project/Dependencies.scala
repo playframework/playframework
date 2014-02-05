@@ -174,7 +174,7 @@ object Dependencies {
     "com.novocode" % "junit-interface" % "0.10" exclude("junit", "junit-dep"),
     guava,
     findBugs,
-    ("org.fluentlenium" % "fluentlenium-festassert" % "0.9.0")
+    ("org.fluentlenium" % "fluentlenium-festassert" % "0.9.2")
       .exclude("org.jboss.netty", "netty")
   )
 
