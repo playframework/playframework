@@ -182,7 +182,7 @@ package scalaguide.http.scalaactionscomposition {
         //#request-with-item
         import play.api.mvc._
 
-        class RequestWithItem[A](val item: Item, request: Request[A]) extends WrappedRequest[A](request)
+        class RequestWithItem[A](item: Item, request: Request[A]) extends WrappedRequest[A](request)
         //#request-with-item
 
         //#item-action-builder
@@ -212,7 +212,7 @@ package scalaguide.http.scalaactionscomposition {
         //#authenticated-action-builder
         import play.api.mvc._
 
-        class AuthenticatedRequest[A](val username: String, request: Request[A]) extends WrappedRequest[A](request)
+        class AuthenticatedRequest[A](username: String, request: Request[A]) extends WrappedRequest[A](request)
 
         object Authenticated extends ActionBuilder[AuthenticatedRequest] {
           def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A]) => Future[SimpleResult]) = {
