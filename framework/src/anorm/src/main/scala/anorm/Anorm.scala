@@ -47,6 +47,15 @@ case object NotAssigned extends Pk[Nothing] {
   override def toString() = "NotAssigned"
 }
 
+/**
+ * Untyped value wrapper.
+ *
+ * {{{
+ * SQL("UPDATE t SET val = {o}").on('o -> anorm.Object(val))
+ * }}}
+ */
+case class Object(value: Any)
+
 case class MetaDataItem(column: ColumnName, nullable: Boolean, clazz: String)
 case class ColumnName(qualified: String, alias: Option[String])
 
@@ -319,9 +328,6 @@ case class BatchSql(sql: SqlQuery, params: Seq[Map[String, ParameterValue]]) {
 
 trait Sql {
 
-  import SqlParser._
-  import scala.util.control.Exception._
-
   def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false): PreparedStatement
 
   @deprecated(message = "Use [[getFilledStatement]] or [[executeQuery]]", since = "2.3.0")
@@ -351,9 +357,9 @@ trait Sql {
   def executeUpdate()(implicit connection: Connection): Int =
     getFilledStatement(connection).executeUpdate()
 
-  def executeInsert[A](generatedKeysParser: ResultSetParser[A] = scalar[Long].singleOpt)(implicit connection: Connection): A = {
-    Sql.as(generatedKeysParser, execute1(getGeneratedKeys = true)._1.getGeneratedKeys)
-  }
+  def executeInsert[A](generatedKeysParser: ResultSetParser[A] = SqlParser.scalar[Long].singleOpt)(implicit connection: Connection): A =
+    Sql.as(generatedKeysParser,
+      execute1(getGeneratedKeys = true)._1.getGeneratedKeys)
 
   /**
    * Executes this SQL query, and returns its result.
