@@ -245,7 +245,7 @@ public class Task extends Model {
 
 Each task has a generated id, a title, a flag to say whether it is done or not, a date that it must be completed by, a user it is assigned to, a folder and a project.  The `assignedTo` and `project` relationships are mapped using `@ManyToOne`.  This means a task may have one user and one project, while each user may have many tasks assigned to them and each project may have many tasks.
 
-We also have a simple query - this time finding all the todo tasks. Tthat is, those tasks that aren't done, assigned to a particular user, and a create method.
+We also have a simple query - this time finding all the todo tasks. That is, those tasks that aren't done, assigned to a particular user, and a create method.
 
 Let's write a test for this class as well:
 
