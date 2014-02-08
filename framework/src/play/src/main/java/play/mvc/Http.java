@@ -314,7 +314,7 @@ public class Http {
         public abstract java.util.Map<String,String[]> headers();
 
         /**
-         * Retrieves a single header.
+         * Retrieves a single header. Case-insensitive.
          */
         public String getHeader(String headerName) {
             String[] headers = null;
@@ -328,6 +328,13 @@ public class Http {
                 return null;
             }
             return headers[0];
+        }
+
+        /**
+         * Checks if the request has the header. Case-insensitive.
+         */
+        public boolean containsHeader(String headerName){
+            return getHeader(headerName) != null;
         }
 
     }
