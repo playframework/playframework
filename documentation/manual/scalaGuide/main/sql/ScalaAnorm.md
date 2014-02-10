@@ -202,6 +202,22 @@ SQL("SELECT * FROM test WHERE (a={a} AND b={b}) OR c={c}").
   on(nps: _*) // Fail - no conversion (String,Any) => NamedParameter
 ```
 
+For backward compatibility, you can activate such unsafe parameter conversion, 
+accepting untyped `Any` value, with `anorm.features.anyToStatement`.
+
+```scala
+import anorm.features.anyToStatement
+
+val d = new java.util.Date()
+val params: Seq[NamedParameter] = Seq("mod" -> d, "id" -> "idv")
+// Values as Any as heterogenous
+
+SQL("UPDATE item SET last_modified = {mod} WHERE id = {id}").on(params:_*)
+```
+
+It's not recommanded because moreover hiding implicit resolution issues, as untyped it could lead to runtime conversion error, with values are passed on statement using `setObject`.
+In previous example, `java.util.Date` is accepted as parameter but would with most databases raise error (as it's not valid JDBC type).
+
 ### SQL queries using String Interpolation
 
 Since Scala 2.10 supports custom String Interpolation there is also a 1-step alternative to `SQL(queryString).on(params)` seen before. You can abbreviate the code as: 
@@ -385,6 +401,27 @@ implicit def columnToBoolean: Column[Boolean] =
       case _             => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to Boolean for column $qualified"))
     }
   }
+```
+
+Custom or specific DB conversion for parameter can also be provided:
+
+```
+import java.sql.PreparedStatement
+import anorm.ToStatement
+
+// Custom conversion to statement for type T
+implicit def customToStatement: ToStatement[T] = new ToStatement[T] {
+  def set(statement: PreparedStatement, i: Int, value: T): Unit =
+    ??? // Sets |value| on |statement|
+}
+```
+
+For DB specific parameter, it can be explicitly passed as opaque value.
+In this case at your own risk, `setObject` will be used on statement.
+
+```scala
+val anyVal: Any = myVal
+SQL("UPDATE t SET v = {opaque}").on('opaque -> anorm.Object(anyVal))
 ```
 
 ## Dealing with Nullable columns
