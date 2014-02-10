@@ -379,7 +379,3 @@ For powers of two, exactly these strings are supported:
  - `E`, `e`, `Ei`, `EiB`, `exbibyte`, `exbibytes`
  - `Z`, `z`, `Zi`, `ZiB`, `zebibyte`, `zebibytes`
  - `Y`, `y`, `Yi`, `YiB`, `yobibyte`, `yobibytes`
-
-## Conventional override by system properties
-
-For an application's config, Java system properties _override_ settings found in the configuration file. This supports specifying config options on the command line.
