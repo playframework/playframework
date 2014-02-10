@@ -27,23 +27,27 @@ object JavascriptCompiler {
     import scala.util.control.Exception._
 
     val requireJsMode = simpleCompilerOptions.contains("rjs")
+    val commonJsMode = simpleCompilerOptions.contains("commonJs") && !requireJsMode
 
     val origin = Path(source).string
 
     val options = fullCompilerOptions.getOrElse {
       val defaultOptions = new CompilerOptions()
       defaultOptions.closurePass = true
+
+      if (commonJsMode) {
+        defaultOptions.setProcessCommonJSModules(true)
+        // The compiler always expects forward slashes even on Windows.
+        defaultOptions.setCommonJSModulePathPrefix((source.getParent() + File.separator).replaceAll("\\\\", "/"))
+        defaultOptions.setManageClosureDependencies(Seq(toModuleName(source.getName())).asJava)
+      }
+
       simpleCompilerOptions.foreach(_ match {
         case "advancedOptimizations" => CompilationLevel.ADVANCED_OPTIMIZATIONS.setOptionsForCompilationLevel(defaultOptions)
         case "checkCaja" => defaultOptions.setCheckCaja(true)
         case "checkControlStructures" => defaultOptions.setCheckControlStructures(true)
         case "checkTypes" => defaultOptions.setCheckTypes(true)
         case "checkSymbols" => defaultOptions.setCheckSymbols(true)
-        case "commonJs" if !requireJsMode =>
-          defaultOptions.setProcessCommonJSModules(true)
-          // The compiler always expects forward slashes even on Windows.
-          defaultOptions.setCommonJSModulePathPrefix((source.getParent() + File.separator).replaceAll("\\\\", "/"))
-          defaultOptions.setManageClosureDependencies(Seq(toModuleName(source.getName())).asJava)
         case "ecmascript5" => defaultOptions.setLanguageIn(CompilerOptions.LanguageMode.ECMASCRIPT5)
         case _ => Unit // Unknown option
       })
@@ -52,7 +56,9 @@ object JavascriptCompiler {
 
     val compiler = new Compiler()
     lazy val all = allSiblings(source)
-    val input = if (!requireJsMode) all.map(f => JSSourceFile.fromFile(f)).toArray else Array(JSSourceFile.fromFile(source))
+    // In commonJsMode, we use all JavaScript sources in the same directory for some reason.
+    // Otherwise, we only look at the current file.
+    val input = if (commonJsMode) all.map(f => JSSourceFile.fromFile(f)).toArray else Array(JSSourceFile.fromFile(source))
 
     catching(classOf[Exception]).either(compiler.compile(Array[JSSourceFile](), input, options).success) match {
       case Right(true) => (origin, { if (!requireJsMode) Some(compiler.toSource()) else None }, Nil)
