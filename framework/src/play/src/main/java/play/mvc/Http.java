@@ -569,7 +569,7 @@ public class Http {
         }
 
         /**
-         * Set a new transient cookie with path “/”<br>
+         * Set a new transient cookie with path "/"<br>
          * For example:
          * <pre>
          * response().setCookie("theme", "blue");
@@ -582,7 +582,7 @@ public class Http {
         }
 
         /**
-         * Set a new cookie with path “/”
+         * Set a new cookie with path "/"
          * @param name Cookie name.  Must not be null.
          * @param value Cookie value.
          * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now).
