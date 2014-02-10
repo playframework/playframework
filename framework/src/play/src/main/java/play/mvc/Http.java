@@ -314,7 +314,9 @@ public class Http {
         public abstract java.util.Map<String,String[]> headers();
 
         /**
-         * Retrieves a single header. Case-insensitive.
+         * Retrieves a single header.
+         *
+         * @param headerName The name of the header (case-insensitive).
          */
         public String getHeader(String headerName) {
             String[] headers = null;
@@ -331,9 +333,11 @@ public class Http {
         }
 
         /**
-         * Checks if the request has the header. Case-insensitive.
+         * Checks if the request has the header.
+         *
+         * @param headerName The name of the header (case-insensitive).
          */
-        public boolean containsHeader(String headerName){
+        public boolean hasHeader(String headerName){
             return getHeader(headerName) != null;
         }
 
