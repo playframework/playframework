@@ -51,7 +51,7 @@ public class PropertiesEnhancer {
     @Retention(RUNTIME)
     public static @interface RewrittenAccessor {}
     
-    public static void generateAccessors(String classpath, File classFile) throws Exception {
+    public static boolean generateAccessors(String classpath, File classFile) throws Exception {
         ClassPool classPool = new ClassPool();
         classPool.appendSystemPath();
         classPool.appendPathList(classpath);
@@ -61,7 +61,7 @@ public class PropertiesEnhancer {
             CtClass ctClass = classPool.makeClass(is);
             if(hasAnnotation(ctClass, GeneratedAccessor.class)) {
                 is.close();
-                return;
+                return false;
             }
             for (CtField ctField : ctClass.getDeclaredFields()) {
                 if(isProperty(ctField)) {
@@ -123,6 +123,7 @@ public class PropertiesEnhancer {
             FileOutputStream os = new FileOutputStream(classFile);
             os.write(ctClass.toBytecode());
             os.close();
+            return true;
             
         } catch(Exception e) {
             e.printStackTrace();
