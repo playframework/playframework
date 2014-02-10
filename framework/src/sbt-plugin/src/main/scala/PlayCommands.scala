@@ -119,6 +119,9 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
     javaClasses.foreach(play.core.enhancers.PropertiesEnhancer.rewriteAccess(classpath, _))
     val enhancedTemplateClasses = templateClasses.filter(play.core.enhancers.PropertiesEnhancer.rewriteAccess(classpath, _))
 
+    // collection of all class files touched by bytecode enhancement logic
+    val rewrittenClasses = javaClasses ++ enhancedTemplateClasses
+
     IO.write(timestampFile, System.currentTimeMillis.toString)
 
     // EBean
@@ -180,11 +183,11 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
       (managedClassesDirectory ** "*.class").get.filterNot(managedSet.contains(_)).foreach(_.delete())
     }
 
-    if (!enhancedTemplateClasses.isEmpty) {
+    if (!rewrittenClasses.isEmpty) {
       // Since we may have modified some of the products of the incremental compiler, that is, the compiled template
-      // classes, we need to update their timestamps in the incremental compiler, otherwise the incremental compiler will
-      // see that they've changed since it last compiled them, and recompile them.
-      val updatedAnalysis = analysis.copy(stamps = templateClasses.foldLeft(analysis.stamps) { (stamps, classFile) =>
+      // classes and compiled Java sources, we need to update their timestamps in the incremental compiler, otherwise
+      // the incremental compiler will see that they've changed since it last compiled them, and recompile them.
+      val updatedAnalysis = analysis.copy(stamps = rewrittenClasses.foldLeft(analysis.stamps) { (stamps, classFile) =>
         stamps.markProduct(classFile, Stamp.lastModified(classFile))
       })
 
