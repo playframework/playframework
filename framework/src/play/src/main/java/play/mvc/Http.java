@@ -315,6 +315,8 @@ public class Http {
 
         /**
          * Retrieves a single header.
+         *
+         * @param headerName The name of the header (case-insensitive).
          */
         public String getHeader(String headerName) {
             String[] headers = null;
@@ -328,6 +330,15 @@ public class Http {
                 return null;
             }
             return headers[0];
+        }
+
+        /**
+         * Checks if the request has the header.
+         *
+         * @param headerName The name of the header (case-insensitive).
+         */
+        public boolean hasHeader(String headerName){
+            return getHeader(headerName) != null;
         }
 
     }
