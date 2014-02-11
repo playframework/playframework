@@ -27,7 +27,7 @@ package play.api.libs
  *       Ok(toJson( User(id.toLong, "myName", friends: List())))
  *    }
  *    def saveUser(jsonString: String)= Action {
- *      val user = play.api.libs.json.parse(jsonString).as[User]
+ *      val user = play.api.libs.json.Json.parse(jsonString).as[User]
  *      myDataStore.save(user)
  *      Ok
  *    }
