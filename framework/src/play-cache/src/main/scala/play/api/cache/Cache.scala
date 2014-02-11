@@ -134,12 +134,15 @@ class EhCachePlugin(app: Application) extends CachePlugin {
 
   @volatile var loaded = false
 
+  lazy val configResource: java.net.URL = {
+    // See if there's an ehcache.xml, or fall back to the built in ehcache-default.xml
+    val resourceName = app.configuration.getString("ehcache.configResource") getOrElse "ehcache.xml"
+    Option(app.classloader.getResource(resourceName)) getOrElse app.classloader.getResource("ehcache-default.xml")
+  }
+
   lazy val manager = {
     loaded = true
-    // See if there's an ehcache.xml, or fall back to the built in ehcache-default.xml
-    val ehcacheXml = Option(app.classloader.getResource("ehcache.xml"))
-      .getOrElse(app.classloader.getResource("ehcache-default.xml"))
-    CacheManager.create(ehcacheXml)
+    CacheManager.create(configResource)
   }
 
   lazy val cache: Ehcache = {
