@@ -15,7 +15,7 @@ object Dependencies {
   val specsSbt = specsBuild
   val scalaIoFile = "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2"
 
-  val guava = "com.google.guava" % "guava" % "15.0"
+  val guava = "com.google.guava" % "guava" % "16.0.1"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "2.0.2" // Needed by guava
   val mockitoAll = "org.mockito" % "mockito-all" % "1.9.5"
 
