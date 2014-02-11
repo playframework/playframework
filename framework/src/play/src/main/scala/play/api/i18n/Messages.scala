@@ -7,6 +7,7 @@ import scala.language.postfixOps
 
 import play.api._
 import play.core._
+import play.utils.Resources
 
 import java.io._
 
@@ -326,7 +327,7 @@ class DefaultMessagesPlugin(app: Application) extends MessagesPlugin {
   }
 
   protected def loadMessages(file: String): Map[String, String] = {
-    app.classloader.getResources(joinPaths(messagesPrefix, file)).asScala.toList.reverse.map { messageFile =>
+    app.classloader.getResources(joinPaths(messagesPrefix, file)).asScala.toList.filterNot(Resources.isDirectory).reverse.map { messageFile =>
       Messages.messages(messageFile.asInput, messageFile.toString).fold(e => throw e, identity)
     }.foldLeft(Map.empty[String, String]) { _ ++ _ }
   }
