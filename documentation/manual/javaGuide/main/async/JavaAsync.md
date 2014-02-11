@@ -47,7 +47,7 @@ We have been returning `Result` up until now. To send an asynchronous result our
 
 Play [[actions|JavaActions]] are asynchronous by default. For instance, in the controller code below, the returned `Result` is internally enclosed in a promise:
 
-@[simple-action](../http/code/javaguide/http/JavaActions.java)
+@[simple-action](/manual/javaGuide/main/http/code/javaguide/http/JavaActions.java)
 
 > **Note:** Whether the action code returns a `Result` or a `Promise<Result>`, both kinds of returned object are handled internally in the same way. There is a single kind of `Action`, which is asynchronous, and not two kinds (a synchronous one and an asynchronous one). Returning a `Promise` is a technique for writing non-blocking code.
 
