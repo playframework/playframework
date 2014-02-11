@@ -92,7 +92,7 @@ class GzipFilter(gzip: Enumeratee[Array[Byte], Array[Byte]] = Gzip.gzip(GzipFilt
         // right means we did buffer it before reaching the threshold, and contains the chunks and the length of data
         def buffer(chunks: List[Array[Byte]], count: Int): Iteratee[Array[Byte], Either[List[Array[Byte]], (List[Array[Byte]], Int)]] = {
           Cont {
-            case Input.EOF => Done(Right((chunks.reverse, count)))
+            case Input.EOF => Done(Right((chunks.reverse, count)), Input.EOF)
             // If we have 10 or less bytes already, then we have so far only seen the gzip header
             case Input.El(data) if count <= GzipFilter.GzipHeaderLength || count + data.length < chunkedThreshold =>
               buffer(data :: chunks, count + data.length)
@@ -104,11 +104,13 @@ class GzipFilter(gzip: Enumeratee[Array[Byte], Array[Byte]] = Gzip.gzip(GzipFilt
         // Run the enumerator partially (means we get an enumerator that contains the rest of the input)
         Concurrent.runPartial(result.body &> gzip, buffer(Nil, 0)).map {
           // We successfully buffered the whole thing, so we have a content length
-          case (Right((chunks, contentLength)), _) =>
+          case (Right((chunks, contentLength)), empty) =>
             SimpleResult(
               header = result.header.copy(headers = setupHeader(result.header.headers)
                 + (CONTENT_LENGTH -> Integer.toString(contentLength))),
-              body = Enumerator.enumerate(chunks),
+              // include the empty enumerator so that it's fully consumed
+              // needed by New Relic monitoring, which tracks all promises within a request
+              body = Enumerator.enumerate(chunks) >>> empty,
               connection = result.connection
             )
           // We still had some input remaining
