@@ -28,27 +28,26 @@ object Column {
       else Left(UnexpectedNullableFound(qualified.toString))
   }
 
-  implicit def columnToString: Column[String] =
-    Column.nonNull[String] { (value, meta) =>
+  implicit val columnToString: Column[String] =
+    nonNull[String] { (value, meta) =>
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case string: String => Right(string)
         case clob: java.sql.Clob => Right(clob.getSubString(1, clob.length.asInstanceOf[Int]))
-        case _ => Left(TypeDoesNotMatch(s"Cannot convert $value:${value.asInstanceOf[AnyRef].getClass} to String for column $qualified"))
+        case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to String for column $qualified"))
       }
     }
 
-  implicit def columnToChar: Column[Char] =
-    Column.nonNull[Char] { (value, meta) =>
-      val MetaDataItem(qualified, nullable, clazz) = meta
-      value match {
-        case string: String => Right(string.charAt(0))
-        case clob: java.sql.Clob => Right(clob.getSubString(1, 1).charAt(0))
-        case _ => Left(TypeDoesNotMatch(s"Cannot convert $value:${value.asInstanceOf[AnyRef].getClass} to Char for column $qualified"))
-      }
+  implicit val columnToChar: Column[Char] = nonNull[Char] { (value, meta) =>
+    val MetaDataItem(qualified, nullable, clazz) = meta
+    value match {
+      case string: String => Right(string.charAt(0))
+      case clob: java.sql.Clob => Right(clob.getSubString(1, 1).charAt(0))
+      case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to Char for column $qualified"))
     }
+  }
 
-  implicit def columnToInt: Column[Int] = Column.nonNull { (value, meta) =>
+  implicit val columnToInt: Column[Int] = nonNull { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case int: Int => Right(int)
@@ -56,7 +55,7 @@ object Column {
     }
   }
 
-  implicit def columnToFloat: Column[Float] = Column.nonNull { (value, meta) =>
+  implicit val columnToFloat: Column[Float] = nonNull { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case f: Float => Right(f)
@@ -68,22 +67,21 @@ object Column {
     }
   }
 
-  implicit def columnToDouble: Column[Double] =
-    Column.nonNull { (value, meta) =>
-      val MetaDataItem(qualified, nullable, clazz) = meta
-      value match {
-        case bg: JBigDec => Right(bg.doubleValue)
-        case d: Double => Right(d)
-        case f: Float => Right(new JBigDec(f.toString).doubleValue)
-        case bi: BigInteger => Right(bi.doubleValue)
-        case i: Int => Right(i.toDouble)
-        case s: Short => Right(s.toDouble)
-        case b: Byte => Right(b.toDouble)
-        case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to Double for column $qualified"))
-      }
+  implicit val columnToDouble: Column[Double] = nonNull { (value, meta) =>
+    val MetaDataItem(qualified, nullable, clazz) = meta
+    value match {
+      case bg: JBigDec => Right(bg.doubleValue)
+      case d: Double => Right(d)
+      case f: Float => Right(new JBigDec(f.toString).doubleValue)
+      case bi: BigInteger => Right(bi.doubleValue)
+      case i: Int => Right(i.toDouble)
+      case s: Short => Right(s.toDouble)
+      case b: Byte => Right(b.toDouble)
+      case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to Double for column $qualified"))
     }
+  }
 
-  implicit def columnToShort: Column[Short] = Column.nonNull { (value, meta) =>
+  implicit val columnToShort: Column[Short] = nonNull { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case b: Byte => Right(b.toShort)
@@ -92,7 +90,7 @@ object Column {
     }
   }
 
-  implicit def columnToByte: Column[Byte] = Column.nonNull { (value, meta) =>
+  implicit val columnToByte: Column[Byte] = nonNull { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case b: Byte => Right(b)
@@ -101,16 +99,15 @@ object Column {
     }
   }
 
-  implicit def columnToBoolean: Column[Boolean] =
-    Column.nonNull { (value, meta) =>
-      val MetaDataItem(qualified, nullable, clazz) = meta
-      value match {
-        case bool: Boolean => Right(bool)
-        case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to Boolean for column $qualified"))
-      }
+  implicit val columnToBoolean: Column[Boolean] = nonNull { (value, meta) =>
+    val MetaDataItem(qualified, nullable, clazz) = meta
+    value match {
+      case bool: Boolean => Right(bool)
+      case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to Boolean for column $qualified"))
     }
+  }
 
-  implicit def columnToLong: Column[Long] = Column.nonNull { (value, meta) =>
+  implicit val columnToLong: Column[Long] = nonNull { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case int: Int => Right(int: Long)
@@ -126,21 +123,21 @@ object Column {
       case bi: BigInteger => Right(bi)
       case int: Int => Right(BigInteger.valueOf(int))
       case long: Long => Right(BigInteger.valueOf(long))
-      case _ => Left(TypeDoesNotMatch(s"Cannot convert $value:${value.asInstanceOf[AnyRef].getClass} to BigInteger for column $qualified"))
+      case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to BigInteger for column $qualified"))
     }
   }
 
-  implicit def columnToBigInteger: Column[BigInteger] =
-    Column.nonNull(anyToBigInteger)
+  implicit val columnToBigInteger: Column[BigInteger] =
+    nonNull(anyToBigInteger)
 
-  implicit def columnToBigInt: Column[BigInt] =
-    Column.nonNull((value, meta) => anyToBigInteger(value, meta).map(BigInt(_)))
+  implicit val columnToBigInt: Column[BigInt] =
+    nonNull((value, meta) => anyToBigInteger(value, meta).map(BigInt(_)))
 
-  implicit def columnToUUID: Column[UUID] = Column.nonNull { (value, meta) =>
+  implicit val columnToUUID: Column[UUID] = nonNull { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case d: UUID => Right(d)
-      case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to UUID for column " + qualified))
+      case _ => Left(TypeDoesNotMatch("Cannot convert $val: ${value.asInstanceOf[AnyRef].getClass} to UUID for column $qualified"))
     }
   }
 
@@ -151,27 +148,27 @@ object Column {
       case bi: JBigDec => Right(bi)
       case double: Double => Right(JBigDec.valueOf(double))
       case l: Long => Right(JBigDec.valueOf(l))
-      case _ => Left(TypeDoesNotMatch(s"Cannot convert $value:${value.asInstanceOf[AnyRef].getClass} to BigDecimal for column $qualified"))
+      case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to BigDecimal for column $qualified"))
     }
   }
 
-  implicit def columnToJavaBigDecimal: Column[JBigDec] =
-    Column.nonNull(anyToBigDecimal)
+  implicit val columnToJavaBigDecimal: Column[JBigDec] =
+    nonNull(anyToBigDecimal)
 
-  implicit def columnToScalaBigDecimal: Column[BigDecimal] =
-    Column.nonNull((value, meta) =>
+  implicit val columnToScalaBigDecimal: Column[BigDecimal] =
+    nonNull((value, meta) =>
       anyToBigDecimal(value, meta).map(BigDecimal(_)))
 
-  implicit def columnToDate: Column[Date] = Column.nonNull { (value, meta) =>
+  implicit val columnToDate: Column[Date] = nonNull { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case date: Date => Right(date)
-      case _ => Left(TypeDoesNotMatch("Cannot convert " + value + ":" + value.asInstanceOf[AnyRef].getClass + " to Date for column " + qualified))
+      case _ => Left(TypeDoesNotMatch("Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to Date for column $qualified"))
     }
   }
 
   implicit def columnToPk[T](implicit c: Column[T]): Column[Pk[T]] =
-    Column.nonNull { (value, meta) => c(value, meta).map(Id(_)) }
+    nonNull { (value, meta) => c(value, meta).map(Id(_)) }
 
   implicit def columnToOption[T](implicit transformer: Column[T]): Column[Option[T]] = Column { (value, meta) =>
     if (value != null) transformer(value, meta).map(Some(_)) else (Right(None): MayErr[SqlRequestError, Option[T]])

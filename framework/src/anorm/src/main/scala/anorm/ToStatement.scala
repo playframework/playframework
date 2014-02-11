@@ -13,27 +13,61 @@ import java.lang.{
 
 import java.sql.PreparedStatement
 
-/** Set value as statement parameter. */
+/** Sets value as statement parameter. */
 trait ToStatement[A] {
-  def set(s: PreparedStatement, index: Int, aValue: A): Unit
+
+  /**
+   * Sets value |v| on statement |s| at specified |index|.
+   */
+  def set(s: PreparedStatement, index: Int, v: A): Unit
 }
 
 /**
  * Provided conversions to set statement parameter.
  */
 object ToStatement { // TODO: Scaladoc
+
+  /**
+   * Sets boolean value on statement.
+   *
+   * {{{
+   * SQL("SELECT * FROM Test WHERE enabled = {b}").on('b -> true)
+   * }}}
+   */
   implicit object booleanToStatement extends ToStatement[Boolean] {
     def set(s: PreparedStatement, i: Int, b: Boolean): Unit = s.setBoolean(i, b)
   }
 
+  /**
+   * Sets Java Boolean object on statement.
+   *
+   * {{{
+   * SQL("SELECT * FROM Test WHERE enabled = {b}").
+   *   on('b -> java.lang.Boolean.TRUE)
+   * }}}
+   */
   implicit object javaBooleanToStatement extends ToStatement[JBool] {
     def set(s: PreparedStatement, i: Int, b: JBool): Unit = s.setBoolean(i, b)
   }
 
+  /**
+   * Sets byte value on statement.
+   *
+   * {{{
+   * SQL("SELECT * FROM Test WHERE flag = {b}").on('b -> 1.toByte)
+   * }}}
+   */
   implicit object byteToStatement extends ToStatement[Byte] {
     def set(s: PreparedStatement, i: Int, b: Byte): Unit = s.setByte(i, b)
   }
 
+  /**
+   * Sets Java Byte object on statement.
+   *
+   * {{{
+   * SQL("SELECT * FROM Test WHERE flag = {b}").on('b -> new java.lang.Byte(1))
+   * }}}
+   */
   implicit object javaByteToStatement extends ToStatement[JByte] {
     def set(s: PreparedStatement, i: Int, b: JByte): Unit = s.setByte(i, b)
   }
@@ -95,7 +129,7 @@ object ToStatement { // TODO: Scaladoc
   }
 
   /**
-   * Sets null for not assigned value
+   * Sets null for not assigned value.
    *
    * {{{
    * SQL("SELECT * FROM Test WHERE category = {c}")

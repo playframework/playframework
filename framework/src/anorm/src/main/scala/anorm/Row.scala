@@ -4,7 +4,7 @@ trait Row {
   val metaData: MetaData
 
   /** Raw data */
-  protected[anorm] val data: List[Any]
+  private[anorm] val data: List[Any]
 
   /**
    * Returns row as list of column values.
@@ -40,8 +40,21 @@ trait Row {
     case Error(e) => Left(e)
   }
 
-  // TODO: Scaladoc -> map(row => row[String]("colName"))
-  def apply[B](a: String)(implicit c: Column[B]): B = get[B](a)(c).get
+  /**
+   * Returns parsed column.
+   *
+   * @param name Column name
+   * @param c Column mapping
+   *
+   * {{{
+   * import anorm.Column.columnToString // mapping column to string
+   *
+   * val res: (String, String) = SQL("SELECT * FROM Test").map(row =>
+   *   row("code") -> row("label") // string columns 'code' and 'label'
+   * )
+   * }}}
+   */
+  def apply[B](name: String)(implicit c: Column[B]): B = get[B](name)(c).get
 
   // TODO: Optimize
   private lazy val columnsDictionary: Map[String, Any] =

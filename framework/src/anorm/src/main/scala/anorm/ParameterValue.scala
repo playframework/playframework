@@ -34,7 +34,7 @@ sealed trait ParameterValue {
  * SQL("...").onParams(param)
  * }}}
  */
-object ParameterValue { // TODO: Improve implicits
+object ParameterValue {
   def apply[A](value: A, s: ToSql[A], toStmt: ToStatement[A]) =
     new ParameterValue {
       def toSql(stmt: String, o: Int): (String, Int) = {
