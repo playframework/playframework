@@ -491,7 +491,7 @@ trait Iteratee[E, +A] {
   def flatMap[B](f: A => Iteratee[E, B])(implicit ec: ExecutionContext): Iteratee[E, B] = {
     self.pureFlatFoldNoEC { // safe: folder either yields value immediately or executes with another EC
       case Step.Done(a, Input.Empty) => executeIteratee(f(a))(ec /* still on same thread; let executeIteratee do preparation */ )
-      case Step.Done(a, e) => executeIteratee(f(a))(ec.prepare /* still on same thread; let executeIteratee do preparation */ ).pureFlatFold {
+      case Step.Done(a, e) => executeIteratee(f(a))(ec /* still on same thread; let executeIteratee do preparation */ ).pureFlatFold {
         case Step.Done(a, _) => Done(a, e)
         case Step.Cont(k) => k(e)
         case Step.Error(msg, e) => Error(msg, e)
