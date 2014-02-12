@@ -13,7 +13,7 @@ import java.lang.{ ProcessBuilder => JProcessBuilder }
 import sbt.complete.Parsers._
 
 import scala.util.control.NonFatal
-import sbt.inc.{ Analysis, Stamp }
+import sbt.inc.{ Analysis, Stamp, Exists, Hash, LastModified }
 import sbt.compiler.AggressiveCompile
 
 trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternalKeys {
@@ -186,11 +186,26 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
     }
 
     if (!enhancedClasses.isEmpty) {
+      /**
+       * Updates stamp of product (class file) by preserving the type of a passed stamp.
+       * This way any stamp incremental compiler chooses to use to mark class files will
+       * be supported.
+       */
+      def updateStampForClassFile(classFile: File, stamp: Stamp): Stamp = stamp match {
+        case _: Exists => Stamp.exists(classFile)
+        case _: LastModified => Stamp.lastModified(classFile)
+        case _: Hash => Stamp.hash(classFile)
+      }
       // Since we may have modified some of the products of the incremental compiler, that is, the compiled template
       // classes and compiled Java sources, we need to update their timestamps in the incremental compiler, otherwise
       // the incremental compiler will see that they've changed since it last compiled them, and recompile them.
       val updatedAnalysis = analysis.copy(stamps = enhancedClasses.foldLeft(analysis.stamps) { (stamps, classFile) =>
-        stamps.markProduct(classFile, Stamp.lastModified(classFile))
+        val existingStamp = stamps.product(classFile)
+        if (existingStamp == Stamp.notPresent) {
+          throw new java.io.IOException("Tried to update a stamp for class file that is not recorded as "
+            + s"product of incremental compiler: $classFile")
+        }
+        stamps.markProduct(classFile, updateStampForClassFile(classFile, existingStamp))
       })
 
       // Need to persist the updated analysis.
