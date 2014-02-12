@@ -16,7 +16,7 @@ class SystemProperties {
    */
   def clearProperties() {
     System.clearProperty("javax.net.debug")
-    System.clearProperty("java.security.debug")
+    JavaSecurityDebugProperties("")
 
     System.clearProperty("ocsp.enable")
     System.clearProperty("com.sun.security.enableCRLDP")
@@ -69,7 +69,7 @@ class SystemProperties {
       logger.warn("configureDebug: java.security.debug system property is not empty, overriding anyway...")
     }
 
-    System.setProperty("java.security.debug", securityOptions)
+    JavaSecurityDebugProperties(securityOptions)
     logger.debug("configureDebug: java.security.debug = {}", securityOptions)
   }
 
@@ -96,6 +96,26 @@ class SystemProperties {
     // 1.6: Used by sun.security.ssl.X509TrustManagerImpl
     System.setProperty("com.sun.net.ssl.checkRevocation", checkRevocation.toString)
     logger.debug("configureCheckRevocation: com.sun.net.ssl.checkRevocation = {}", checkRevocation.toString)
+  }
+
+  // Because java.security.debug goes through sun.security.util.Debug, and the
+  // initialization is done in a static block to a private static final field,
+  // if we want to change the debug option after the program has already started
+  // then we have to do it through super evil unsafe field swapping.
+  object JavaSecurityDebugProperties {
+
+    private val unsafe : sun.misc.Unsafe = {
+      val field = classOf[sun.misc.Unsafe].getDeclaredField("theUnsafe")
+      field.setAccessible(true)
+      field.get(null).asInstanceOf[sun.misc.Unsafe]
+    }
+
+    def apply(options:String) {
+      val argsField = classOf[sun.security.util.Debug].getDeclaredField("args")
+      val base = unsafe.staticFieldBase(argsField)
+      val offset = unsafe.staticFieldOffset(argsField)
+      unsafe.putObject(base, offset, options)
+    }
   }
 }
 
