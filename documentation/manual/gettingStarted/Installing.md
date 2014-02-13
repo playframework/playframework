@@ -31,7 +31,13 @@ export PATH=$PATH:/relativePath/to/play
 
 On Windows you’ll need to set it in the global environment variables. This means update the PATH in the environment variables and don't use a path with spaces.
 
-> If you’re on UNIX, make sure that the `play` script is executable (otherwise do a `chmod a+x play`).
+> If you’re on UNIX, make sure that the `play` script is executable.
+> 
+> Otherwise do a:
+> ```bash
+> chmod a+x play
+> chmod a+x framework/build
+> ```
 
 > If you're behind a proxy make sure to define it with `set HTTP_PROXY=http://<host>:<port>` on Windows or `export  HTTP_PROXY=http://<host>:<port>` on UNIX.
 
