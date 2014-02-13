@@ -136,6 +136,11 @@ trait WSRequest {
 trait WSResponse {
 
   /**
+   * Return the current headers of the request being constructed
+   */
+  def allHeaders: Map[String, Seq[String]]
+
+  /**
    * Get the underlying response object.
    */
   def underlying[T]: T
