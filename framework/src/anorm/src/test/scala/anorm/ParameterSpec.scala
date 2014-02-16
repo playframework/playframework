@@ -330,10 +330,8 @@ object ParameterSpec extends org.specs2.mutable.Specification {
               SqlQuery("UPDATE item SET last_modified = %s WHERE id = %s",
                 "mod" :: "id" :: Nil, _), ps, _) if (ps.contains("mod") &&
               ps.contains("id")) => q.execute() aka "execution" must {
-              throwA[SQLFeatureNotSupportedException]/* TODO: 
-                with acolyte update about error message: (
+              throwA[SQLFeatureNotSupportedException](
                 message = "Unsupported parameter type: java.util.Date")
-                                                      */
             }
           }
     }
@@ -341,10 +339,9 @@ object ParameterSpec extends org.specs2.mutable.Specification {
     "accept value wrapped as opaque parameter object" in withConnection() {
       implicit c =>
         SQL("set-date {d}").on('d -> anorm.Object(new java.util.Date())).
-          execute aka "execution" must throwA[SQLFeatureNotSupportedException]
-      /* TODO: with acolyte update about error message: (
-       message = "Unsupported parameter type: java.util.Date")
-       */
+          execute aka "execution" must throwA[SQLFeatureNotSupportedException](
+            message = "Unsupported parameter type: java.util.Date")
+
     }
 
     "set sequence values" in withConnection() { implicit c =>

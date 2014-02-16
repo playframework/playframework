@@ -408,13 +408,12 @@ case class SqlQuery(query: String, argsInitialOrder: List[String] = List.empty, 
 
 object Sql { // TODO: Rename to SQL
 
-  def sql(inSql: String): SqlQuery = {
+  private[anorm] def sql(inSql: String): SqlQuery = {
     val (sql, paramsNames) = SqlStatementParser.parse(inSql)
     SqlQuery(sql, paramsNames)
   }
 
-  import java.sql._
-  import java.sql.ResultSetMetaData._
+  import java.sql.{ ResultSet, ResultSetMetaData }
 
   private[anorm] def metaData(rs: ResultSet) = {
     val meta = rs.getMetaData()
@@ -430,23 +429,25 @@ object Sql { // TODO: Rename to SQL
         }
 
       } + "." + meta.getColumnName(i), alias = Option(meta.getColumnLabel(i))),
-        nullable = meta.isNullable(i) == columnNullable,
+        nullable = meta.isNullable(i) == ResultSetMetaData.columnNullable,
         clazz = meta.getColumnClassName(i))))
   }
 
+  // TODO: Moves to Sql trait
   @deprecated(
     message = "Use [[anorm.SqlQueryResult.as]] directly",
     since = "2.3.0")
-  def as[T](parser: ResultSetParser[T], rs: ResultSet): T =
+  private def as[T](parser: ResultSetParser[T], rs: ResultSet): T =
     parser(resultSetToStream(rs)) match {
       case Success(a) => a
       case Error(e) => sys.error(e.toString)
     }
 
+  // TODO: Moves to Sql trait
   @deprecated(
-    message = "Use [[anorm.SqlQueryResult.parse]] directly",
+    message = "Use [[anorm.SqlQueryResult.as]] directly",
     since = "2.3.0")
-  def parse[T](parser: ResultSetParser[T], rs: ResultSet): T =
+  private def parse[T](parser: ResultSetParser[T], rs: ResultSet): T =
     parser(resultSetToStream(rs)) match {
       case Success(a) => a
       case Error(e) => sys.error(e.toString)

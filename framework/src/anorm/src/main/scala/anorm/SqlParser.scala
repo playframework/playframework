@@ -428,6 +428,7 @@ trait RowParser[+A] extends (Row => SqlResult[A]) { parent =>
 
 }
 
+/** Parser for scalar row (row of one single column). */
 sealed trait ScalarRowParser[+A] extends RowParser[A] {
   override def singleOpt: ResultSetParser[Option[A]] = ResultSetParser {
     case head #:: Stream.Empty if (head.data.headOption == Some(null)) =>
@@ -445,7 +446,7 @@ trait ResultSetParser[+A] extends (ResultSet => SqlResult[A]) { parent =>
 
 }
 
-object ResultSetParser {
+private[anorm] object ResultSetParser {
   def apply[A](f: ResultSet => SqlResult[A]): ResultSetParser[A] =
     new ResultSetParser[A] { rows =>
       def apply(rows: ResultSet): SqlResult[A] = f(rows)
