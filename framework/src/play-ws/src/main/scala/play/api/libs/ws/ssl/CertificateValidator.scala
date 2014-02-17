@@ -8,6 +8,8 @@ import java.security.cert._
 import scala.collection.JavaConverters._
 import javax.naming.ldap.{ Rdn, LdapName }
 import javax.naming.InvalidNameException
+import scala.util.Try
+import scala.util.control.NonFatal
 
 /**
  * Define a certificate validator with our own custom checkers and builders.
@@ -48,10 +50,23 @@ class CertificateValidator(val constraints: Set[AlgorithmConstraint], val revoca
    * Maps from the trust manager's accepted issuers to a set of trust anchors.
    */
   def findTrustAnchors(certs: Traversable[X509Certificate], nameConstraints: Option[Array[Byte]]): Set[TrustAnchor] = {
-    val anchors = for { cert <- certs } yield {
-      new TrustAnchor(cert, nameConstraints.orNull)
-    }
-    anchors.toSet
+    certs.flatMap { cert =>
+      try {
+        // Believe it or not, the trust store doesn't check for expired root certificates:
+        // https://stackoverflow.com/questions/5206859/java-trustmanager-behavior-on-expired-certificates
+        // checkValidity will throw an exception, and we will filter out the anchors here.
+        cert.checkValidity()
+
+        Some(new TrustAnchor(cert, nameConstraints.orNull))
+      } catch {
+        case e: CertificateException =>
+          logger.warn(s"Invalid root certificate ${cert}", e)
+          None
+        case NonFatal(ex) =>
+          logger.error(s"Exception when creating trust anchor from certificate ${cert}", ex)
+          None
+      }
+    }.toSet
   }
 
   /**

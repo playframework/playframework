@@ -128,7 +128,8 @@ case class DefaultKeyManagerConfig(algorithm: Option[String] = None,
 case class DefaultTrustManagerConfig(algorithm: Option[String] = None,
   trustStoreConfigs: Seq[TrustStoreConfig] = Nil) extends TrustManagerConfig
 
-case class SSLDebugConfig(all: Boolean = false,
+case class SSLDebugConfig(
+    all: Boolean = false,
     ssl: Boolean = false,
     certpath: Boolean = false,
     record: Option[SSLDebugRecordOptions] = None,
@@ -325,7 +326,11 @@ class DefaultSSLConfigParser(c: Configuration) {
 
       val pluggability = list.contains("pluggability")
 
-      SSLDebugConfig(record = record,
+      val ssl = list.contains("ssl")
+
+      SSLDebugConfig(
+        ssl = ssl,
+        record = record,
         handshake = handshake,
         keygen = keygen,
         session = session,

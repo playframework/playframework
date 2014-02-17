@@ -6,7 +6,6 @@ package play.api.libs.ws.ssl
 import javax.net.ssl._
 import java.security.{ UnrecoverableKeyException, KeyStore, SecureRandom }
 import java.security.cert._
-import java.util.Locale
 
 trait SSLContextBuilder {
   def build(): SSLContext
@@ -122,7 +121,7 @@ class ConfigSSLContextBuilder(info: SSLConfig,
     val disabledAlgorithms = info.disabledAlgorithms.getOrElse(Algorithms.disabledAlgorithms)
     val disableCheckRevocation = info.loose.flatMap(_.disableCheckRevocation).getOrElse(false)
 
-    val constraints = AlgorithmConstraintsParser.parseAll(AlgorithmConstraintsParser.line, disabledAlgorithms).get.toSet
+    val constraints = AlgorithmConstraintsParser(disabledAlgorithms).toSet
     new CertificateValidator(constraints, revocationEnabled = !disableCheckRevocation)
   }
 
@@ -271,7 +270,7 @@ class ConfigSSLContextBuilder(info: SSLConfig,
    */
   def validateKeyStore(config: KeyStoreConfig, store: KeyStore) {
     import scala.collection.JavaConverters._
-    logger.debug(s"validateKeyStore: store = $store, type = ${store.getType}, size = ${store.size}")
+    logger.debug(s"validateKeyStore: type = ${store.getType}, size = ${store.size}")
 
     //val checker = createAlgorithmChecker(constraints)
     store.aliases().asScala.foreach {

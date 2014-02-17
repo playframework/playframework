@@ -7,31 +7,14 @@ package play.api.libs.ws.ssl
 
 import play.api.libs.ws.WSClientConfig
 
-class SystemProperties {
+/**
+ * Configures global system properties on the JSSE implementation, if defined.
+ */
+class SystemConfiguration {
 
   val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 
-  /**
-   * For use in testing.
-   */
-  def clearProperties() {
-    System.clearProperty("javax.net.debug")
-    JavaSecurityDebugProperties("")
-
-    System.clearProperty("ocsp.enable")
-    System.clearProperty("com.sun.security.enableCRLDP")
-    System.clearProperty("com.sun.net.ssl.checkRevocation")
-
-    System.clearProperty("sun.security.ssl.allowLegacyHelloMessages")
-    System.clearProperty("sun.security.ssl.allowUnsafeRenegotiation")
-  }
-
-  /**
-   * Configures global system properties on the JSSE implementation, if defined.
-   */
-  def configureSystemProperties(config: WSClientConfig) {
-    config.ssl.map { _.debug.map(configureDebug) }
-
+  def configure(config: WSClientConfig) {
     val allowUnsafeRenegotiation = (for {
       ssl <- config.ssl
       loose <- ssl.loose
@@ -52,25 +35,6 @@ class SystemProperties {
       looseDisableCheckRevocation <- loose.disableCheckRevocation
     } yield looseDisableCheckRevocation).getOrElse(false)
     configureCheckRevocation(!disableCheckRevocation)
-  }
-
-  def configureDebug(d: SSLDebugConfig) {
-    val netDebugOptions = new JavaxNetDebugBuilder(d).build()
-    val securityOptions = new JavaSecurityDebugBuilder(d).build()
-
-    if (Option(System.getProperty("javax.net.debug")).isDefined) {
-      logger.warn("configureDebug: javax.net.debug system property is not empty, overriding anyway...")
-    }
-
-    System.setProperty("javax.net.debug", netDebugOptions)
-    logger.debug("configureDebug: javax.net.debug = {}", netDebugOptions)
-
-    if (Option(System.getProperty("java.security.debug")).isDefined) {
-      logger.warn("configureDebug: java.security.debug system property is not empty, overriding anyway...")
-    }
-
-    JavaSecurityDebugProperties(securityOptions)
-    logger.debug("configureDebug: java.security.debug = {}", securityOptions)
   }
 
   def configureUnsafeRenegotiation(allowUnsafeRenegotiation: Boolean) {
@@ -98,24 +62,16 @@ class SystemProperties {
     logger.debug("configureCheckRevocation: com.sun.net.ssl.checkRevocation = {}", checkRevocation.toString)
   }
 
-  // Because java.security.debug goes through sun.security.util.Debug, and the
-  // initialization is done in a static block to a private static final field,
-  // if we want to change the debug option after the program has already started
-  // then we have to do it through super evil unsafe field swapping.
-  object JavaSecurityDebugProperties {
+  /**
+   * For use in testing.
+   */
+  def clearProperties() {
+    System.clearProperty("ocsp.enable")
+    System.clearProperty("com.sun.security.enableCRLDP")
+    System.clearProperty("com.sun.net.ssl.checkRevocation")
 
-    private val unsafe : sun.misc.Unsafe = {
-      val field = classOf[sun.misc.Unsafe].getDeclaredField("theUnsafe")
-      field.setAccessible(true)
-      field.get(null).asInstanceOf[sun.misc.Unsafe]
-    }
-
-    def apply(options:String) {
-      val argsField = classOf[sun.security.util.Debug].getDeclaredField("args")
-      val base = unsafe.staticFieldBase(argsField)
-      val offset = unsafe.staticFieldOffset(argsField)
-      unsafe.putObject(base, offset, options)
-    }
+    System.clearProperty("sun.security.ssl.allowLegacyHelloMessages")
+    System.clearProperty("sun.security.ssl.allowUnsafeRenegotiation")
   }
 }
 

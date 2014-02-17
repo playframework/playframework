@@ -110,31 +110,37 @@ sealed abstract class ExpressionSymbol {
 
 case class LessThan(x: Int) extends ExpressionSymbol {
   def matches(actualKeySize: Int): Boolean = actualKeySize < x
+
   override def toString = " keySize < " + x
 }
 
 case class LessThanOrEqual(x: Int) extends ExpressionSymbol {
   def matches(actualKeySize: Int): Boolean = actualKeySize <= x
+
   override def toString = " keySize <= " + x
 }
 
 case class NotEqual(x: Int) extends ExpressionSymbol {
   def matches(actualKeySize: Int): Boolean = actualKeySize != x
+
   override def toString = " keySize != " + x
 }
 
 case class Equal(x: Int) extends ExpressionSymbol {
   def matches(actualKeySize: Int): Boolean = actualKeySize == x
+
   override def toString = " keySize ==" + x
 }
 
 case class MoreThan(x: Int) extends ExpressionSymbol {
   def matches(actualKeySize: Int): Boolean = actualKeySize > x
+
   override def toString = " keySize > " + x
 }
 
 case class MoreThanOrEqual(x: Int) extends ExpressionSymbol {
   def matches(actualKeySize: Int): Boolean = actualKeySize >= x
+
   override def toString = " keySize >= " + x
 }
 
@@ -168,7 +174,15 @@ case class AlgorithmConstraint(algorithm: String, constraint: Option[ExpressionS
  * @see http://sim.ivi.co/2011/07/java-se-7-release-security-enhancements.html
  */
 object AlgorithmConstraintsParser extends RegexParsers {
+
   import scala.language.postfixOps
+
+  def apply(input: String): List[AlgorithmConstraint] = parseAll(line, input) match {
+    case Success(result, _) =>
+      result
+    case NoSuccess(message, _) =>
+      throw new IllegalArgumentException(s"Cannot parse string $input: $message")
+  }
 
   def line: Parser[List[AlgorithmConstraint]] = repsep(expression, ",")
 

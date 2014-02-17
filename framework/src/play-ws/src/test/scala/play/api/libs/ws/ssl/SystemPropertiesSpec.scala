@@ -12,14 +12,14 @@ object SystemPropertiesSpec extends Specification {
 
   sequential
 
-  val sp = new SystemProperties()
+  val sp = new SystemConfiguration()
 
   "SystemProperties" should {
 
     "disableCheckRevocation" in {
       val config = DefaultWSClientConfig(ssl = Some(DefaultSSLConfig(loose = Some(DefaultSSLLooseConfig(disableCheckRevocation = Some(true))))))
 
-      sp.configureSystemProperties(config)
+      sp.configure(config)
 
       // http://stackoverflow.com/a/8507905/5266
       System.getProperty("ocsp.enable") must be("false")
@@ -33,7 +33,7 @@ object SystemPropertiesSpec extends Specification {
     "allowLegacyHelloMessages" in {
       val config = DefaultWSClientConfig(ssl = Some(DefaultSSLConfig(loose = Some(DefaultSSLLooseConfig(allowLegacyHelloMessages = Some(true))))))
 
-      sp.configureSystemProperties(config)
+      sp.configure(config)
 
       System.getProperty("sun.security.ssl.allowLegacyHelloMessages") must be("true")
     }.after {
@@ -44,7 +44,7 @@ object SystemPropertiesSpec extends Specification {
     "allowUnsafeRenegotiation" in {
       val config = DefaultWSClientConfig(ssl = Some(DefaultSSLConfig(loose = Some(DefaultSSLLooseConfig(allowUnsafeRenegotiation = Some(true))))))
 
-      sp.configureSystemProperties(config)
+      sp.configure(config)
 
       System.getProperty("sun.security.ssl.allowUnsafeRenegotiation") must be("true")
     }.after {

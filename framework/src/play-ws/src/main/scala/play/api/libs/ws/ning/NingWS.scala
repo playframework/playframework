@@ -26,6 +26,7 @@ import play.api.libs.ws.DefaultWSResponseHeaders
 import play.api.libs.iteratee.Input.El
 import javax.net.ssl.SSLParameters
 import org.slf4j.LoggerFactory
+import play.api.libs.ws.ssl.debug._
 
 import scala.collection.JavaConverters._
 
@@ -623,8 +624,6 @@ class NingWSPlugin(app: Application) extends WSPlugin {
 
   override def onStart() {
     loaded = true
-    val sp = new SystemProperties()
-    sp.configureSystemProperties(config)
   }
 
   override def onStop() {
@@ -644,6 +643,9 @@ class NingWSAPI(app: Application, clientConfig: WSClientConfig) extends WSAPI {
 
   private[play] def newClient(): NingWSClient = {
     val asyncClientConfig = buildAsyncClientConfig(clientConfig)
+
+    new SystemConfiguration().configure(clientConfig)
+    clientConfig.ssl.map { _.debug.map(new DebugConfiguration().configure) }
 
     new NingWSClient(asyncClientConfig)
   }
