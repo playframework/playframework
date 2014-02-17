@@ -6,6 +6,7 @@
 package play.api.libs.ws.ssl
 
 import play.api.libs.ws.WSClientConfig
+import sun.security.provider.certpath.DebugFixer
 
 class SystemProperties {
 
@@ -15,9 +16,6 @@ class SystemProperties {
    * For use in testing.
    */
   def clearProperties() {
-    System.clearProperty("javax.net.debug")
-    JavaSecurityDebugProperties("")
-
     System.clearProperty("ocsp.enable")
     System.clearProperty("com.sun.security.enableCRLDP")
     System.clearProperty("com.sun.net.ssl.checkRevocation")
@@ -111,11 +109,23 @@ class SystemProperties {
     }
 
     def apply(options:String) {
+      // turn on the debug logger if it's in the string
+      if (options.contains("certpath")) {
+        val certpathLogger = org.slf4j.LoggerFactory.getLogger("certpath").asInstanceOf[ch.qos.logback.classic.Logger]
+        certpathLogger.setLevel(ch.qos.logback.classic.Level.DEBUG)
+      }
+
+      // Switch out the args (for loggers that aren't static and final)
       val argsField = classOf[sun.security.util.Debug].getDeclaredField("args")
       val base = unsafe.staticFieldBase(argsField)
       val offset = unsafe.staticFieldOffset(argsField)
       unsafe.putObject(base, offset, options)
+
+      // Then switch out the Debug references to use a subclassed version that will use the logger.
+      val fixer = new DebugFixer()
+      fixer.substituteDebug()
     }
+
   }
 }
 
