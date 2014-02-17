@@ -280,7 +280,7 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * @param headers the headers to add to this result.
    * @return the new result
    */
-  def withHeaders(headers: (String, String)*) = {
+  def withHeaders(headers: (String, String)*): SimpleResult = {
     copy(header = header.copy(headers = header.headers ++ headers))
   }
 

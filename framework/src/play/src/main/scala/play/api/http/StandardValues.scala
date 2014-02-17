@@ -70,6 +70,24 @@ trait ContentTypes {
 
 }
 
+/**
+ * Standard HTTP Verbs
+ */
+object HttpVerbs extends HttpVerbs
+
+/**
+ * Standard HTTP Verbs
+ */
+trait HttpVerbs {
+  val GET = "GET"
+  val POST = "POST"
+  val PUT = "PUT"
+  val PATCH = "PATCH"
+  val DELETE = "DELETE"
+  val HEAD = "HEAD"
+  val OPTIONS = "OPTIONS"
+}
+
 /** Common HTTP MIME types */
 object MimeTypes extends MimeTypes
 
