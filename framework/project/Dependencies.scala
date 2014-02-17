@@ -72,12 +72,12 @@ object Dependencies {
 
     "com.typesafe.netty" % "netty-http-pipelining" % "1.1.2",
 
-    "org.slf4j" % "slf4j-api" % "1.7.5",
-    "org.slf4j" % "jul-to-slf4j" % "1.7.5",
-    "org.slf4j" % "jcl-over-slf4j" % "1.7.5",
+    "org.slf4j" % "slf4j-api" % "1.7.6",
+    "org.slf4j" % "jul-to-slf4j" % "1.7.6",
+    "org.slf4j" % "jcl-over-slf4j" % "1.7.6",
 
-    "ch.qos.logback" % "logback-core" % "1.0.13",
-    "ch.qos.logback" % "logback-classic" % "1.0.13",
+    "ch.qos.logback" % "logback-core" % "1.1.1",
+    "ch.qos.logback" % "logback-classic" % "1.1.1",
 
     scalaIoFile,
 
