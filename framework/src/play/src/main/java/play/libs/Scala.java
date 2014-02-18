@@ -50,7 +50,7 @@ public class Scala {
      * Converts a Scala List to Java.
      */
     public static <T> java.util.List<T> asJava(scala.collection.Seq<T> scalaList) {
-        return scala.collection.JavaConverters.asJavaListConverter(scalaList).asJava();
+        return scala.collection.JavaConverters.seqAsJavaListConverter(scalaList).asJava();
     }
 
     /**
