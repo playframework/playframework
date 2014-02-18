@@ -75,7 +75,8 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
       val dbl = (i: Int) => i * 2
       mustExecute(3) { implicit ec => // three executions from `map`
         run {
-          constant(x).map(inc).map(dbl)
+          constant(x).map(inc)
+                     .map(dbl)
         } must_== run {
           constant(x).map(inc andThen dbl)
         }
@@ -110,9 +111,12 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
          * and one from `Future.flatMapM`
          */
         run {
-          constant(x).mapM(inc)(mapMEC).mapM(dbl)(mapMEC)
+          constant(x).mapM(inc)(mapMEC)
+                     .mapM(dbl)(mapMEC)
         } must_== run {
-          constant(x).mapM(inc(_).flatMap(dbl)(flatMapPEC))(mapMEC)
+          constant(x).mapM { y =>
+            inc(y).flatMap(dbl)(flatMapPEC)
+          }(mapMEC)
         }
       }
     }
@@ -155,7 +159,8 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
       mustExecute(3, 1) { (outerEC, innerEC) => // four executions from `flatMap`
         val innerPEC = innerEC.prepare()
         run {
-          constant(x).flatMap(inc)(outerEC).flatMap(dbl)(outerEC)
+          constant(x).flatMap(inc)(outerEC)
+                     .flatMap(dbl)(outerEC)
         } must_== run {
           constant(x).flatMap { y =>
             inc(y).flatMap(dbl)(innerPEC)
@@ -210,10 +215,13 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
          * and one from `Future.map`
          */
         run {
-          constant(x).flatMapM(inc)(flatMapMEC).flatMapM(dbl)(flatMapMEC)
+          constant(x).flatMapM(inc)(flatMapMEC)
+                     .flatMapM(dbl)(flatMapMEC)
         } must_== run {
           constant(x).flatMapM { y =>
-            inc(y).map(_.flatMapM(dbl)(innerFlatMapMPEC))(innerMapPEC)
+            inc(y).map { z =>
+              z.flatMapM(dbl)(innerFlatMapMPEC)
+            }(innerMapPEC)
           }(flatMapMEC)
         }
       }
@@ -244,7 +252,8 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
       val dbl = (i: Int) => Right(i * 2)
       mustExecute(3) { implicit ec => // three executions from `validate`
         run {
-          constant(x).validate(inc).validate(dbl)
+          constant(x).validate(inc)
+                     .validate(dbl)
         } must_== run {
           constant(x).validate { y =>
             inc(y).right.flatMap(dbl)
