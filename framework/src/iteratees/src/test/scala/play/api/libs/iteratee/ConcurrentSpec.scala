@@ -3,7 +3,7 @@
  */
 package play.api.libs.iteratee
 
-import java.util.concurrent.CountDownLatch
+import java.util.concurrent.{TimeUnit, CountDownLatch}
 import java.util.concurrent.TimeUnit._
 import java.util.concurrent.atomic.AtomicInteger
 import org.specs2.mutable._
@@ -35,6 +35,35 @@ object ConcurrentSpec extends Specification
         pushHere.eofAndEnd()
         Await.result(results, Duration.Inf) must equalTo(Range(1, 20).map(_ => "beepbeep"))
       }
+    }
+    "allow invoking end twice" in {
+      val (broadcaster, pushHere) = Concurrent.broadcast[String]
+      val result = broadcaster |>>> Iteratee.getChunks[String]
+      pushHere.push("beep")
+      pushHere.end()
+      pushHere.end()
+      Await.result(result, Duration.Inf) must_== Seq("beep")
+    }
+    "return the iteratee if already ended before the iteratee is attached" in {
+      val (broadcaster, pushHere) = Concurrent.broadcast[String]
+      pushHere.end()
+      val result = broadcaster |>>> Iteratee.getChunks[String]
+      Await.result(result, Duration.Inf) must_== Nil
+    }
+    "allow ending with an exception" in {
+      val (broadcaster, pushHere) = Concurrent.broadcast[String]
+      val result = broadcaster |>>> Iteratee.getChunks[String]
+      pushHere.end(new RuntimeException("foo"))
+      Await.result(result, Duration.Inf) must throwA[RuntimeException](message = "foo")
+    }
+    "update the end result after end is already called" in {
+      val (broadcaster, pushHere) = Concurrent.broadcast[String]
+      val result1 = broadcaster |>>> Iteratee.getChunks[String]
+      pushHere.end(new RuntimeException("foo"))
+      Await.result(result1, Duration.Inf) must throwA[RuntimeException](message = "foo")
+      pushHere.end()
+      val result2 = broadcaster |>>> Iteratee.getChunks[String]
+      Await.result(result2, Duration.Inf) must_== Nil
     }
   }
 
@@ -171,6 +200,47 @@ object ConcurrentSpec extends Specification
         Await.result(error.future, Duration.Inf) must_== "foo"
       }
     }
+
+    "allow invoking end twice" in {
+      mustExecute(1) { unicastEC =>
+        val endInvokedTwice = new CountDownLatch(1)
+        val enumerator = Concurrent.unicast[String](onStart = { c =>
+          c.end()
+          c.end()
+          endInvokedTwice.countDown()
+        })(unicastEC)
+
+        Await.result(enumerator |>>> Iteratee.getChunks[String], Duration.Inf) must_== Nil
+        endInvokedTwice.await(10, TimeUnit.SECONDS) must_== true
+      }
+    }
+
+    "allow ending with an exception" in {
+      mustExecute(1) { unicastEC =>
+        val enumerator = Concurrent.unicast[String](onStart = { c =>
+          c.end(new RuntimeException("foo"))
+        })(unicastEC)
+
+        val result = enumerator |>>> Iteratee.getChunks[String]
+        Await.result(result, Duration.Inf) must throwA[RuntimeException](message = "foo")
+      }
+    }
+
+    "only use the invocation of the first end" in {
+      mustExecute(1) { unicastEC =>
+        val endInvokedTwice = new CountDownLatch(1)
+        val enumerator = Concurrent.unicast[String](onStart = { c =>
+          c.end()
+          c.end(new RuntimeException("foo"))
+          endInvokedTwice.countDown()
+        })(unicastEC)
+
+        val result = enumerator |>>> Iteratee.getChunks[String]
+        endInvokedTwice.await(10, TimeUnit.SECONDS) must_== true
+        Await.result(result, Duration.Inf) must_== Nil
+      }
+    }
+
   }
 
   "Concurrent.broadcast (2-arg)" should {

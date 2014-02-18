@@ -53,6 +53,11 @@ object Concurrent {
      * Send a failure to this channel.  This results in any promises that the enumerator associated with this channel
      * produced being redeemed with a failure.
      *
+     * Calling this multiple times is ok.  In the case of a broadcast enumerator, any iteratees that are attached
+     * after one of the end methods on this channel are invoked will be redeemed according to the most recent
+     * invocation, that is, subsequent calls to end will change the behaviour of attaching new iteratees to the
+     * broadcast enumerator.
+     *
      * @param e The failure.
      */
     def end(e: Throwable)
@@ -63,6 +68,11 @@ object Concurrent {
      *
      * Note that an EOF won't be sent, so any iteratees consuming this channel will still be able to consume input
      * (if they are in the cont state).
+     *
+     * Calling this multiple times is ok.  In the case of a broadcast enumerator, any iteratees that are attached
+     * after one of the end methods on this channel are invoked will be redeemed according to the most recent
+     * invocation, that is, subsequent calls to end will change the behaviour of attaching new iteratees to the
+     * broadcast enumerator.
      */
     def end()
 
