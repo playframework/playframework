@@ -32,15 +32,15 @@ object AkkaSpec extends Specification {
     "by default wait until the blocking actor is terminated" in {
       val totalTime = testBlockingActor(FakeApplication())
       
-      // the actor blocks shutdown for 1 second
-      totalTime must be between (1000, 1400)
+      // the actor blocks shutdown for 10 seconds
+      totalTime must be greaterThanOrEqualTo 10000
     }
     "be able to be restarted when the Actor is blocking if the config is provided" in {
       val app = FakeApplication(Map("play.akka.shutdown-timeout" -> "500ms"))
       val totalTime = testBlockingActor(app)
 
-      // the actor blocks for 30 seconds but we should be back here in around 500ms
-      totalTime must be between (500, 900)
+      // the actor blocks for 10 seconds but we should be back here in around 500ms
+      totalTime must be between (500, 10000)
     }
   }
 
@@ -50,8 +50,8 @@ class BlockingActor extends Actor {
   
   def receive = {
     case Block =>
-      context.system.log.info("BlockingActor is now blocking for 30 seconds")
-      Thread.sleep(1000)
+      context.system.log.info("BlockingActor is now blocking for 10 seconds")
+      Thread.sleep(10000)
       context.system.log.info("BlockingActor is done blocking")
   }
   
