@@ -8,8 +8,6 @@ import play.api._
 import scala.concurrent._
 import scala.language.higherKinds
 
-import play.core.Execution.Implicits.internalContext
-
 /**
  * An Handler handles a request.
  */
@@ -145,26 +143,109 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
   self =>
 
   /**
-   * Transform this BodyParser[A] to a BodyParser[B]
+   * Uses the provided function to transform the BodyParser's computed result
+   * when the request body has been parsed.
+   *
+   * @param f a function for transforming the computed result
+   * @param ec The context to execute the supplied function with.
+   *        The context is prepared on the calling thread.
+   * @return the transformed body parser
+   * @see [[play.api.libs.iteratee.Iteratee#map]]
    */
-  def map[B](f: A => B): BodyParser[B] = new BodyParser[B] {
-    def apply(request: RequestHeader) = self(request).map(_.right.map(f(_)))
-    override def toString = self.toString
-  }
-
-  /**
-   * Transform this BodyParser[A] to a BodyParser[B]
-   */
-  def flatMap[B](f: A => BodyParser[B]): BodyParser[B] = new BodyParser[B] {
-    def apply(request: RequestHeader) = self(request).flatMap {
-      case Left(e) => Done(Left(e), Input.Empty)
-      case Right(a) => f(a)(request)
+  def map[B](f: A => B)(implicit ec: ExecutionContext): BodyParser[B] = {
+    // prepare execution context as body parser object may cross thread boundary
+    implicit val pec = ec.prepare()
+    new BodyParser[B] {
+      def apply(request: RequestHeader) =
+        self(request).map { _.right.map(f) }(pec)
+      override def toString = self.toString
     }
-    override def toString = self.toString
   }
 
   /**
-   * Validate the result of this BodyParser[A] to create a BodyParser[B]
+   * Like map but allows the map function to execute asynchronously.
+   *
+   * @param f the async function to map the result of the body parser
+   * @param ec The context to execute the supplied function with.
+   *        The context prepared on the calling thread.
+   * @return the transformed body parser
+   * @see [[map]]
+   * @see [[play.api.libs.iteratee.Iteratee#mapM]]
+   */
+  def mapM[B](f: A => Future[B])(implicit ec: ExecutionContext): BodyParser[B] = {
+    // prepare execution context as body parser object may cross thread boundary
+    implicit val pec = ec.prepare()
+    new BodyParser[B] {
+      def apply(request: RequestHeader) = self(request).mapM {
+        case Right(a) =>
+          // safe to execute `Right.apply` in same thread
+          f(a).map(Right.apply)(Execution.overflowingExecutionContext)
+        case left =>
+          Future.successful(left.asInstanceOf[Either[SimpleResult, B]])
+      }(pec)
+      override def toString = self.toString
+    }
+  }
+
+  /**
+   * Uses the provided function to transform the BodyParser’s computed result
+   * into another BodyParser to continue with.
+   *
+   * On Done of the Iteratee produced by this BodyParser, the result is passed
+   * to the provided function, and the resulting BodyParser is given the same
+   * RequestHeader and the Iteratee produced is used to continue consuming
+   * input.
+   *
+   * @param f the function to produce a new body parser from the result of this body parser
+   * @param ec The context to execute the supplied function with.
+   *        The context is prepared on the calling thread.
+   * @return the transformed body parser
+   * @see [[play.api.libs.iteratee.Iteratee#flatMap]]
+   */
+  def flatMap[B](f: A => BodyParser[B])(implicit ec: ExecutionContext): BodyParser[B] = {
+    // prepare execution context as body parser object may cross thread boundary
+    implicit val pec = ec.prepare()
+    new BodyParser[B] {
+      def apply(request: RequestHeader) = self(request).flatMap {
+        case Left(e) => Done(Left(e))
+        case Right(a) => f(a)(request)
+      }(pec)
+      override def toString = self.toString
+    }
+  }
+
+  /**
+   * Like flatMap but allows the flatMap function to execute asynchronously.
+   *
+   * @param f the async function to produce a new body parser from the result of this body parser
+   * @param ec The context to execute the supplied function with.
+   *        The context is prepared on the calling thread.
+   * @return the transformed body parser
+   * @see [[flatMap]]
+   * @see [[play.api.libs.iteratee.Iteratee#flatMapM]]
+   */
+  def flatMapM[B](f: A => Future[BodyParser[B]])(implicit ec: ExecutionContext): BodyParser[B] = {
+    // prepare execution context as body parser object may cross thread boundary
+    implicit val pec = ec.prepare()
+    new BodyParser[B] {
+      def apply(request: RequestHeader) = self(request).flatMapM {
+        case Right(a) =>
+          f(a).map { _.apply(request) }(pec)
+        case left =>
+          Future.successful {
+            Done[Array[Byte], Either[SimpleResult, B]](left.asInstanceOf[Either[SimpleResult, B]])
+          }
+      }(pec)
+      override def toString = self.toString
+    }
+  }
+
+  /**
+   * Uses the provided function to validate the BodyParser's computed result
+   * when the request body has been parsed.
+   *
+   * The provided function can produce either a direct result, which will short
+   * circuit any further Action, or a value of type B.
    *
    * Example:
    * {{{
@@ -172,15 +253,49 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
    *     _.validate[A].asEither.left.map(e => BadRequest(JsError.toFlatJson(e)))
    *   )
    * }}}
+   *
+   * @param f the function to validate the computed result of this body parser
+   * @param ec The context to execute the supplied function with.
+   *        The context is prepared on the calling thread.
+   * @return the transformed body parser
    */
-  def validate[B](f: A => Either[SimpleResult, B]): BodyParser[B] = new BodyParser[B] {
-    def apply(request: RequestHeader) = self(request).flatMap {
-      case Left(e) => Done(Left(e), Input.Empty)
-      case Right(a) => Done(f(a), Input.Empty)
+  def validate[B](f: A => Either[SimpleResult, B])(implicit ec: ExecutionContext): BodyParser[B] = {
+    // prepare execution context as body parser object may cross thread boundary
+    implicit val pec = ec.prepare()
+    new BodyParser[B] {
+      def apply(request: RequestHeader) = self(request).flatMap {
+        case Left(e) => Done(Left(e), Input.Empty)
+        case Right(a) => Done(f(a), Input.Empty)
+      }(pec)
+      override def toString = self.toString
     }
-    override def toString = self.toString
   }
 
+  /**
+   * Like validate but allows the validate function to execute asynchronously.
+   *
+   * @param f the async function to validate the computed result of this body parser
+   * @param ec The context to execute the supplied function with.
+   *        The context is prepared on the calling thread.
+   * @return the transformed body parser
+   * @see [[validate]]
+   */
+  def validateM[B](f: A => Future[Either[SimpleResult, B]])(implicit ec: ExecutionContext): BodyParser[B] = {
+    // prepare execution context as body parser object may cross thread boundary
+    implicit val pec = ec.prepare()
+    new BodyParser[B] {
+      def apply(request: RequestHeader) = self(request).flatMapM {
+        case Right(a) =>
+          // safe to execute `Done.apply` in same thread
+          f(a).map(Done.apply[Array[Byte], Either[SimpleResult, B]](_))(Execution.overflowingExecutionContext)
+        case left =>
+          Future.successful {
+            Done[Array[Byte], Either[SimpleResult, B]](left.asInstanceOf[Either[SimpleResult, B]])
+          }
+      }(pec)
+      override def toString = self.toString
+    }
+  }
 }
 
 /**
