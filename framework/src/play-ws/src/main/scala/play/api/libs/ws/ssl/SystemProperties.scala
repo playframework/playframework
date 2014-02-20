@@ -6,7 +6,6 @@
 package play.api.libs.ws.ssl
 
 import play.api.libs.ws.WSClientConfig
-import sun.security.provider.certpath.DebugFixer
 
 class SystemProperties {
 
@@ -67,8 +66,11 @@ class SystemProperties {
       logger.warn("configureDebug: java.security.debug system property is not empty, overriding anyway...")
     }
 
-    JavaSecurityDebugProperties(securityOptions)
-    logger.debug("configureDebug: java.security.debug = {}", securityOptions)
+    val certpathLogger = org.slf4j.LoggerFactory.getLogger("java.security.debug.certpath").asInstanceOf[ch.qos.logback.classic.Logger]
+    if (securityOptions.contains("certpath")) {
+      certpathLogger.setLevel(ch.qos.logback.classic.Level.DEBUG)
+    }
+    CertificateDebug(new SunSecurityDebugLogger(certpathLogger))
   }
 
   def configureUnsafeRenegotiation(allowUnsafeRenegotiation: Boolean) {
@@ -96,36 +98,5 @@ class SystemProperties {
     logger.debug("configureCheckRevocation: com.sun.net.ssl.checkRevocation = {}", checkRevocation.toString)
   }
 
-  // Because java.security.debug goes through sun.security.util.Debug, and the
-  // initialization is done in a static block to a private static final field,
-  // if we want to change the debug option after the program has already started
-  // then we have to do it through super evil unsafe field swapping.
-  object JavaSecurityDebugProperties {
-
-    private val unsafe : sun.misc.Unsafe = {
-      val field = classOf[sun.misc.Unsafe].getDeclaredField("theUnsafe")
-      field.setAccessible(true)
-      field.get(null).asInstanceOf[sun.misc.Unsafe]
-    }
-
-    def apply(options:String) {
-      // turn on the debug logger if it's in the string
-      if (options.contains("certpath")) {
-        val certpathLogger = org.slf4j.LoggerFactory.getLogger("certpath").asInstanceOf[ch.qos.logback.classic.Logger]
-        certpathLogger.setLevel(ch.qos.logback.classic.Level.DEBUG)
-      }
-
-      // Switch out the args (for loggers that aren't static and final)
-      val argsField = classOf[sun.security.util.Debug].getDeclaredField("args")
-      val base = unsafe.staticFieldBase(argsField)
-      val offset = unsafe.staticFieldOffset(argsField)
-      unsafe.putObject(base, offset, options)
-
-      // Then switch out the Debug references to use a subclassed version that will use the logger.
-      val fixer = new DebugFixer()
-      fixer.substituteDebug()
-    }
-
-  }
 }
 
