@@ -60,7 +60,7 @@ db.default.url="jdbc:postgresql://database.example.com/playdb"
 db.default.driver=com.mysql.jdbc.Driver
 db.default.url="jdbc:mysql://localhost/playdb"
 db.default.user=playdbuser
-db.default.pass="a strong password"
+db.default.password="a strong password"
 ```
 
 ## How to see SQL Statement in the console?
