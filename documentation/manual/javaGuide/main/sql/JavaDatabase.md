@@ -35,6 +35,56 @@ If something isn’t properly configured, you will be notified directly in your 
 
 [[images/dbError.png]]
 
+### H2 database engine connection properties
+
+```properties
+# Default database configuration using H2 database engine in an in-memory mode
+db.default.driver=org.h2.Driver
+db.default.url="jdbc:h2:mem:play"
+```
+
+```properties
+# Default database configuration using H2 database engine in a persistent mode
+db.default.driver=org.h2.Driver
+db.default.url="jdbc:h2:/path/to/db-file"
+```
+
+The details of the H2 database URLs are found from [H2 Database Engine Cheat Sheet](http://www.h2database.com/html/cheatSheet.html).
+
+### SQLite database engine connection properties
+
+```properties
+# Default database configuration using SQLite database engine
+db.default.driver=org.sqlite.JDBC
+db.default.url="jdbc:sqlite:/path/to/db-file"
+```
+
+### PostgreSQL database engine connection properties
+
+```properties
+# Default database configuration using PostgreSQL database engine
+db.default.driver=org.postgresql.Driver
+db.default.url="jdbc:postgresql://database.example.com/playdb"
+```
+
+### MySQL database engine connection properties
+
+```properties
+# Default database configuration using MySQL database engine
+# Connect to playdb as playdbuser
+db.default.driver=com.mysql.jdbc.Driver
+db.default.url="jdbc:mysql://localhost/playdb"
+db.default.user=playdbuser
+db.default.password="a strong password"
+```
+
+## How to see SQL Statement in the console?
+
+```properties
+db.default.logStatements=true
+logger.com.jolbox=DEBUG // for EBean
+```
+
 ## Accessing the JDBC datasource
 
 The `play.db` package provides access to the configured data sources:
