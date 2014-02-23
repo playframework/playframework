@@ -235,4 +235,4 @@ object Person{
 - **Json Macros are known to accept Option/Seq/List/Set & Map[String, _]**. For other generic types, test and if not working, use traditional way of writing Reads/Writes manually.
 
 
-> **Next:** [[Handling and serving JSON requests | ScalaJsonRequests]]
+> **Next:** [[Working with XML | ScalaXmlRequests]]
