@@ -77,6 +77,13 @@ public class F {
     }
 
     /**
+     * A Predicate (boolean-valued function) with a single argument.
+     */
+    public static interface Predicate<A> {
+        public boolean test(A a) throws Throwable;
+    }
+
+    /**
      * A promise to produce a result of type <code>A</code>.
      */
     public static class Promise<A> {
@@ -412,6 +419,29 @@ public class F {
          */
         public <B> Promise<B> flatMap(final Function<? super A,Promise<B>> function, ExecutionContext ec) {
             return FPromiseHelper.flatMap(this, function, ec);
+        }
+
+        /**
+         * Creates a new promise by filtering the value of the current promise with a predicate.
+         * If the predicate fails, the resulting promise will fail with a `NoSuchElementException`.
+         *
+         * @param predicate The predicate to test the current value.
+         * @return A new promise with the current value, if the predicate is satisfied.
+         */
+        public Promise<A> filter(final Predicate<? super A> predicate) {
+            return FPromiseHelper.filter(this, predicate, HttpExecution.defaultContext());
+        }
+
+        /**
+         * Creates a new promise by filtering the value of the current promise with a predicate.
+         * If the predicate fails, the resulting promise will fail with a `NoSuchElementException`.
+         *
+         * @param predicate The predicate to test the current value.
+         * @param ec The ExecutionContext to execute the filtering in.
+         * @return A new promise with the current value, if the predicate is satisfied.
+         */
+        public Promise<A> filter(final Predicate<? super A> predicate, ExecutionContext ec) {
+            return FPromiseHelper.filter(this, predicate, ec);
         }
 
         /**

@@ -100,6 +100,9 @@ private[play] object FPromiseHelper {
   def flatMap[A, B, T >: A](promise: F.Promise[A], function: F.Function[T, F.Promise[B]], ec: ExecutionContext): F.Promise[B] =
     F.Promise.wrap[B](promise.wrapped().flatMap((a: A) => function.apply(a).wrapped())(ec.prepare()))
 
+  def filter[A, T >: A](promise: F.Promise[A], predicate: F.Predicate[T], ec: ExecutionContext): F.Promise[A] =
+    F.Promise.wrap[A](promise.wrapped().filter(predicate.test)(ec.prepare()))
+
   def recover[A](promise: F.Promise[A], function: F.Function[Throwable, A], ec: ExecutionContext): F.Promise[A] =
     F.Promise.wrap[A](promise.wrapped().recover { case t => function.apply(t) }(ec.prepare()))
 
