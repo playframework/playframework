@@ -4,8 +4,8 @@
 package play.api.libs.iteratee
 
 import play.api.libs.iteratee.internal.executeFuture
-import scala.concurrent.{ Await, ExecutionContext, Future }
-import scala.concurrent.duration.{ Duration, SECONDS }
+import scala.concurrent.{ Await, ExecutionContext, Future, Promise }
+import scala.concurrent.duration.{ Duration, SECONDS, MILLISECONDS }
 import org.specs2.mutable.SpecificationLike
 import scala.util.Try
 
@@ -39,4 +39,41 @@ trait IterateeSpecification {
     )) must beAFailedTry
   }
 
+  /**
+   * Convenience function for creating a Done Iteratee that returns the given value
+   */
+  def done(value: String): Iteratee[String, String] = Done[String, String](value)
+  
+  /**
+   * Convenience function for an Error Iteratee that contains the given error message
+   */
+  def error(msg: String): Iteratee[String, String] = Error[String](msg, Input.Empty)
+  
+  /**
+   * Convenience function for creating a Cont Iteratee that feeds its input to the given function
+   */
+  def cont(f: String => Iteratee[String, String]): Iteratee[String, String] = {
+    Cont[String, String]({
+      case Input.El(input: String) => f(input)
+      case unrecognized => throw new IllegalArgumentException(s"Unexpected input for Cont iteratee: $unrecognized")
+    })
+  }
+  
+  /**
+   * Convenience function for creating the given Iteratee after the given delay 
+   */
+  def delayed(it: => Iteratee[String, String], delay: Duration = Duration(5, MILLISECONDS))(implicit ec: ExecutionContext): Iteratee[String, String] = {
+    Iteratee.flatten(timeout(it, delay))
+  }
+  
+  val timer = new java.util.Timer
+  def timeout[A](a: => A, d: Duration)(implicit e: ExecutionContext): Future[A] = {
+    val p = Promise[A]()
+    timer.schedule(new java.util.TimerTask {
+      def run() {
+        p.complete(Try(a))
+      }
+    }, d.toMillis)
+    p.future
+  }  
 }

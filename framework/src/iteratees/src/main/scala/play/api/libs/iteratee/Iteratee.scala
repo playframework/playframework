@@ -548,6 +548,78 @@ trait Iteratee[E, +A] {
     }(dec)
   }
 
+  /**
+   * Creates a new Iteratee that will handle any matching exception the original Iteratee may contain. This lets you
+   * provide a fallback value in case your Iteratee ends up in an error state.
+   *
+   * Example:
+   *
+   * {{{
+   * def it = Iteratee.map(i => 10 / i).recover { case t: Throwable =>
+   *   Logger.error("Must have divided by zero!", t)
+   *   Integer.MAX_VALUE
+   * }
+   *
+   * Enumerator(5).run(it) // => 2
+   * Enumerator(0).run(it) // => returns Integer.MAX_VALUE and logs "Must have divied by zero!"
+   * }}}
+   *
+   * @param pf
+   * @param ec
+   * @tparam B
+   * @return
+   */
+  def recover[B >: A](pf: PartialFunction[Throwable, B])(implicit ec: ExecutionContext): Iteratee[E, B] = {
+    recoverM { case t: Throwable if pf.isDefinedAt(t) => Future.successful(pf(t)) }(ec)
+  }
+
+  /**
+   * A version of `recover` that allows the partial function to return a Future[B] instead of B.
+   *
+   * @param pf
+   * @param ec
+   * @tparam B
+   * @return
+   */
+  def recoverM[B >: A](pf: PartialFunction[Throwable, Future[B]])(implicit ec: ExecutionContext): Iteratee[E, B] = {
+    val pec = ec.prepare()
+    recoverWith { case t: Throwable if pf.isDefinedAt(t) => Iteratee.flatten(pf(t).map(b => Done[E, B](b))(pec)) }(ec)
+  }
+
+  /**
+   * A version of `recover` that allows the partial function to return an Iteratee[E, B] instead of B.
+   *
+   * @param pf
+   * @param ec
+   * @tparam B
+   * @return
+   */
+  def recoverWith[B >: A](pf: PartialFunction[Throwable, Iteratee[E, B]])(implicit ec: ExecutionContext): Iteratee[E, B] = {
+    val pec = ec.prepare()
+
+    def step(it: Iteratee[E, A])(input: Input[E]): Iteratee[E, B] = {
+      val nextIt = it.pureFlatFold[E, B] {
+        case Step.Cont(k) =>
+          val n = k(input)
+          n.pureFlatFold {
+            case Step.Cont(_) => Cont(step(n))
+            case Step.Error(msg, _) => throw new IterateeExeption(msg)
+            case other => other.it
+          }(dec)
+        case Step.Error(msg, _) => throw new IterateeExeption(msg)
+        case other => other.it
+      }(dec)
+
+      Iteratee.flatten(
+        nextIt.unflatten
+          .map(_.it)(dec)
+          .recover(pf)(pec)
+      )
+    }
+
+    Cont(step(this))
+  }
+
   def joinI[AIn](implicit in: A <:< Iteratee[_, AIn]): Iteratee[E, AIn] = {
     this.flatMap { a =>
       val inner = in(a)
@@ -689,3 +761,9 @@ object Error {
    */
   def apply[E](msg: String, e: Input[E]): Iteratee[E, Nothing] = new ErrorIteratee[E](msg, e)
 }
+
+/**
+ * An Exception that represents an Iteratee that ended up in an Error state with the given
+ * error message.
+ */
+class IterateeExeption(msg: String) extends Exception(msg)
