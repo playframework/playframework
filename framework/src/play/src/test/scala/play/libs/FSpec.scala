@@ -172,17 +172,10 @@ object FSpec extends Specification
       }
     }
 
-    "combine a sequence of promises from a iterable" in {
+    "combine a sequence of promises from an iterable" in {
       mustExecute(8) { ec =>
         import F.Promise.pure
-        F.Promise.sequence[Int](Arrays.asList(pure(1), pure(2), pure(3)): java.lang.Iterable[F.Promise[_ <: Int]], ec).get(5, SECONDS) must equalTo(Arrays.asList(1, 2, 3))
-      }
-    }
-
-    "combine a sequence of promises from a iterable" in {
-      mustExecute(8) { ec =>
-        import F.Promise.pure
-        F.Promise.sequence[Int](Arrays.asList(pure(1), pure(2), pure(3)): java.lang.Iterable[F.Promise[_ <: Int]], ec).get(5, SECONDS) must equalTo(Arrays.asList(1, 2, 3))
+        F.Promise.sequence[Int](Arrays.asList(pure(1), pure(2), pure(3)), ec).get(5, SECONDS) must equalTo(Arrays.asList(1, 2, 3))
       }
     }
 
