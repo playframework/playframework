@@ -6,7 +6,7 @@ trait RuleLike[I, O] {
    * @param data The data to validate
    * @return The Result of validating the data
    */
-  def validate(data: I): VA[I, O]
+  def validate(data: I): VA[O]
 }
 
 object RuleLike {
@@ -120,11 +120,11 @@ object Rule {
   implicit def zero[O] = toRule(RuleLike.zero[O])
 
   def apply[I, O](m: Mapping[(Path, Seq[ValidationError]), I, O]) = new Rule[I, O] {
-    def validate(data: I): VA[I, O] = m(data)
+    def validate(data: I): VA[O] = m(data)
   }
 
   def toRule[I, O](r: RuleLike[I, O]) = new Rule[I, O] {
-    def validate(data: I): VA[I, O] = r.validate(data)
+    def validate(data: I): VA[O] = r.validate(data)
   }
 
   def fromMapping[I, O](f: Mapping[ValidationError, I, O]) =
