@@ -5,6 +5,10 @@ package play.api.mvc
 
 import org.specs2.mutable.Specification
 import scalax.io.Resource
+import scala.concurrent.Await
+import scala.concurrent.Future
+import scala.concurrent.duration._
+import play.api.libs.iteratee.Enumerator
 
 object ContentTypesSpec extends Specification {
 
@@ -91,6 +95,49 @@ object ContentTypesSpec extends Specification {
       buffer.size must_== 11
       val file = buffer.asFile
       Resource.fromFile(file).string must_== "hello world"
+    }
+  }
+
+  "Multipart parser" should {
+    
+    "get the file parts" in {
+      testMultiPart("-----------------------------117723558510316372842092349957\r\nContent-Disposition: form-data; name=\"picture\"; filename=\"README\"\r\nContent-Type: application/octet-stream\r\n\r\nThis is your new Play application\r\n=====================================\r\nThis file will be packaged with your application, when using `play dist`.\r\n-----------------------------117723558510316372842092349957--\r\n")
+    }
+
+    "get the file parts with boundary that has no CRLF at start"  in {
+      testMultiPart("-----------------------------117723558510316372842092349957Content-Disposition: form-data; name=\"picture\"; filename=\"README\"\r\nContent-Type: application/octet-stream\r\n\r\nThis is your new Play application\r\n=====================================\r\nThis file will be packaged with your application, when using `play dist`.\r\n-----------------------------117723558510316372842092349957--\r\n")
+    }
+
+    def testMultiPart(testMultipartBody: String) = {
+
+      def await[T](f: Future[T]) = Await.result(f, Duration("5 seconds"))
+    	case class TestRequestHeader(headers: Headers, method: String = "GET", uri: String = "/", path: String = "", remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1", id: Long = 1, tags: Map[String, String] = Map.empty[String, String], queryString: Map[String, Seq[String]] = Map(), secure: Boolean = false) extends RequestHeader
+      val multipartFormDataParser = BodyParsers.parse.multipartFormData
+
+      val rh = TestRequestHeader(headers = new Headers {
+        val data = Seq(play.api.http.HeaderNames.CONTENT_TYPE -> Seq("multipart/form-data; boundary=---------------------------117723558510316372842092349957"), play.api.http.HeaderNames.CONTENT_LENGTH -> Seq("382"))
+      })
+
+      val body = Enumerator(testMultipartBody.getBytes)
+      val parsedResult = await(body run multipartFormDataParser(rh))
+
+      parsedResult.isRight must beTrue
+
+      parsedResult match {
+        case Right(multipartFormData) =>
+          multipartFormData.badParts.isEmpty must beTrue
+          multipartFormData.missingFileParts.isEmpty must beTrue
+          multipartFormData.dataParts.isEmpty must beTrue
+
+          multipartFormData.files.size must_== 1
+          val filePart = multipartFormData.files.head
+          filePart.filename must_== "README"
+          filePart.contentType must beSome("application/octet-stream")
+          filePart.key must_== "picture"
+          success
+        case Left(_) =>
+          failure("must not get a Left result")
+      }
     }
   }
 }
