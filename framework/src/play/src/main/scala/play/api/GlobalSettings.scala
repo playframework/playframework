@@ -77,7 +77,7 @@ trait GlobalSettings {
    * Default is: route, tag request, then apply filters
    */
   def onRequestReceived(request: RequestHeader): (RequestHeader, Handler) = {
-    val notFoundHandler = Action.async(BodyParsers.parse.empty)(_ => this.onHandlerNotFound(request))
+    val notFoundHandler = Action.async(BodyParsers.parse.empty)(this.onHandlerNotFound)
     val (routedRequest, handler) = onRouteRequest(request) map {
       case handler: RequestTaggingHandler => (handler.tagRequest(request), handler)
       case otherHandler => (request, otherHandler)
