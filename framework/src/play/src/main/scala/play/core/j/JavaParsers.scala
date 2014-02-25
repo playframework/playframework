@@ -168,6 +168,10 @@ object JavaParsers extends BodyParsers {
       }.fold(identity, identity)
   }
 
+  def empty(): BodyParser[RequestBody] = parse.empty.map {
+    (_: Unit) => new RequestBody()
+  }
+
   private def orDefault(maxLength: Int) = if (maxLength < 0) BodyParsers.parse.DEFAULT_MAX_TEXT_LENGTH else maxLength
 
 }

@@ -79,4 +79,42 @@ public class BodyParsersTest {
         json.put("string", sb.toString());
         return json;
     }
+
+    @Test
+    public void testEmpty() throws Exception {
+        final AtomicReference<WSResponse> responseRef = new AtomicReference<WSResponse>();
+        running(testServer(9001), new Runnable() {
+            @Override
+            public void run() {
+                WSResponse r = WS.url("http://localhost:9001/parsers/empty").get().get(10000);
+                r.getBody();
+                responseRef.set(r);
+            }
+        });
+        WSResponse response = responseRef.get();
+        assertThat(response.getStatus()).isEqualTo(200);
+        String responseText = new String(response.asByteArray(), "us-ascii");
+        assertThat(responseText).isEqualTo(
+            "multipartFormData: null, " +
+            "formUrlEncoded: null, " +
+            "raw: null, " +
+            "text: null, " +
+            "xml: null, " +
+            "json: null"
+        );
+    }
+
+    private WSResponse runEmptyTest(final JsonNode json, final String url) {
+        final AtomicReference<WSResponse> response = new AtomicReference<WSResponse>();
+        running(testServer(9001), new Runnable() {
+            @Override
+            public void run() {
+                WSResponse r = WS.url("http://localhost:9001" + url).setHeader("Content-Type", "application/json")
+                        .post(Json.stringify(json)).get(10000);
+                r.getBody();
+                response.set(r);
+            }
+        });
+        return response.get();
+    }
 }

@@ -5,6 +5,7 @@ package controllers;
 
 import play.mvc.BodyParser;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 
 public class BodyParsers extends Controller {
@@ -20,5 +21,18 @@ public class BodyParsers extends Controller {
     @BodyParser.Of(value = BodyParser.Json.class, maxLength = 120 * 1024)
     public static Result limitedJson() {
         return json();
+    }
+
+    @BodyParser.Of(BodyParser.Empty.class)
+    public static Result empty() {
+        Http.RequestBody body = request().body();
+        String bodyConversions =
+            "multipartFormData: " + body.asMultipartFormData() + ", " +
+            "formUrlEncoded: " + body.asFormUrlEncoded() + ", " +
+            "raw: " + body.asRaw() + ", " +
+            "text: " + body.asText() + ", " +
+            "xml: " + body.asXml() + ", " +
+            "json: " + body.asJson();
+        return ok(bodyConversions);
     }
 }
