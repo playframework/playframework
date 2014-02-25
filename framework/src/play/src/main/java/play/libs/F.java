@@ -119,7 +119,7 @@ public class F {
          * @param promises The promises to combine
          * @return A single promise whose methods act on the list of redeemed promises
          */
-        public static <A> Promise<List<A>> sequence(Promise<? extends A>... promises){
+        public static <A> Promise<List<A>> sequence(Promise<A>... promises){
             return FPromiseHelper.<A>sequence(java.util.Arrays.asList(promises), HttpExecution.defaultContext());
         }
 
@@ -130,7 +130,7 @@ public class F {
          * @param promises The promises to combine
          * @return A single promise whose methods act on the list of redeemed promises
          */
-        public static <A> Promise<List<A>> sequence(ExecutionContext ec, Promise<? extends A>... promises){
+        public static <A> Promise<List<A>> sequence(ExecutionContext ec, Promise<A>... promises){
             return FPromiseHelper.<A>sequence(java.util.Arrays.asList(promises), ec);
         }
 
@@ -190,7 +190,7 @@ public class F {
          * @param promises The promises to combine
          * @return A single promise whose methods act on the list of redeemed promises
          */
-        public static <A> Promise<List<A>> sequence(Iterable<Promise<? extends A>> promises){
+        public static <A> Promise<List<A>> sequence(Iterable<Promise<A>> promises){
             return FPromiseHelper.<A>sequence(promises, HttpExecution.defaultContext());
         }
 
@@ -201,7 +201,7 @@ public class F {
          * @param ec Used to execute the sequencing operations.
          * @return A single promise whose methods act on the list of redeemed promises
          */
-        public static <A> Promise<List<A>> sequence(Iterable<Promise<? extends A>> promises, ExecutionContext ec){
+        public static <A> Promise<List<A>> sequence(Iterable<Promise<A>> promises, ExecutionContext ec){
             return FPromiseHelper.<A>sequence(promises, ec);
         }
 

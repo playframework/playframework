@@ -3,6 +3,9 @@
  */
 package play;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -115,6 +118,17 @@ public class PromiseTest {
         assertThat(d.get(t)).isEqualTo(false);
 
         assertThat(b.get(t)).isEqualTo(1);
+    }
+
+    @Test
+    public void testCombinePromiseSequence() {
+        F.Promise<Integer> a = F.Promise.pure(1);
+        F.Promise<Integer> b = F.Promise.pure(2);
+        F.Promise<Integer> c = F.Promise.pure(3);
+
+        F.Promise<List<Integer>> combined = F.Promise.sequence(Arrays.asList(a, b, c));
+
+        assertThat(combined.get(t)).isEqualTo(Arrays.asList(1, 2, 3));
     }
 }
 

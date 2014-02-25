@@ -71,8 +71,8 @@ private[play] object FPromiseHelper {
     F.Promise.wrap(future)
   }
 
-  def sequence[A](promises: JIterable[F.Promise[_ <: A]], ec: ExecutionContext): F.Promise[JList[A]] = {
-    val futures = JavaConverters.iterableAsScalaIterableConverter(promises).asScala.toBuffer.map((_: F.Promise[_ <: A]).wrapped)
+  def sequence[A](promises: JIterable[F.Promise[A]], ec: ExecutionContext): F.Promise[JList[A]] = {
+    val futures = JavaConverters.iterableAsScalaIterableConverter(promises).asScala.toBuffer.map((_: F.Promise[A]).wrapped)
     implicit val pec = ec.prepare() // Easiest to provide implicitly so don't need to provide other implicit arg to sequence method
     F.Promise.wrap(Future.sequence(futures).map(az => JavaConverters.bufferAsJavaListConverter(az).asJava))
   }
