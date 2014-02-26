@@ -12,7 +12,7 @@ object SystemPropertiesSpec extends Specification {
 
   sequential
 
-  val sp = new SystemProperties()
+  val sp = new SystemConfiguration()
 
   "SystemProperties" should {
 

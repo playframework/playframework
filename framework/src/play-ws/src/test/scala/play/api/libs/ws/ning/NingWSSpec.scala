@@ -13,7 +13,7 @@ import play.api.mvc._
 import java.util
 import play.api.libs.ws._
 import play.api.test._
-import play.api.libs.ws.ssl.{SystemProperties, DefaultSSLLooseConfig, DefaultSSLConfig}
+import play.api.libs.ws.ssl.{SystemConfiguration, DefaultSSLLooseConfig, DefaultSSLConfig}
 
 object NingWSSpec extends Specification with Mockito {
 
@@ -218,7 +218,7 @@ object NingWSSpec extends Specification with Mockito {
           plugin.onStop()
         }
       }.after {
-        new SystemProperties().clearProperties()
+        new SystemConfiguration().clearProperties()
       }
 
       // @see http://www.oracle.com/technetwork/java/javase/documentation/tlsreadme2-176330.html
@@ -234,7 +234,7 @@ object NingWSSpec extends Specification with Mockito {
           plugin.onStop()
         }
       }.after {
-        new SystemProperties().clearProperties()
+        new SystemConfiguration().clearProperties()
       }
 
       // @see http://www.oracle.com/technetwork/java/javase/documentation/tlsreadme2-176330.html
@@ -250,7 +250,7 @@ object NingWSSpec extends Specification with Mockito {
           plugin.onStop()
         }
       }.after {
-        new SystemProperties().clearProperties()
+        new SystemConfiguration().clearProperties()
       }
 
       "java.security.debug" in {
