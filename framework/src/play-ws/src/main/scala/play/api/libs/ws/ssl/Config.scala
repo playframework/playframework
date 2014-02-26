@@ -5,7 +5,7 @@
  */
 package play.api.libs.ws.ssl
 
-import play.api.{Logger, Configuration}
+import play.api.{ Logger, Configuration }
 import scala.collection.JavaConverters
 import java.security.SecureRandom
 
@@ -109,39 +109,39 @@ trait SSLLooseConfig {
 // Key Store implementation
 
 case class DefaultKeyStoreConfig(storeType: Option[String],
-                                 filePath: Option[String],
-                                 data: Option[String],
-                                 password: Option[String]) extends KeyStoreConfig
+  filePath: Option[String],
+  data: Option[String],
+  password: Option[String]) extends KeyStoreConfig
 
 // Trust Store implementation
 
 case class DefaultTrustStoreConfig(storeType: Option[String],
-                                   filePath: Option[String],
-                                   data: Option[String]) extends TrustStoreConfig
+  filePath: Option[String],
+  data: Option[String]) extends TrustStoreConfig
 
 // Managers and context
 
 case class DefaultKeyManagerConfig(algorithm: Option[String] = None,
-                                   keyStoreConfigs: Seq[KeyStoreConfig] = Nil,
-                                   password: Option[String] = None) extends KeyManagerConfig
+  keyStoreConfigs: Seq[KeyStoreConfig] = Nil,
+  password: Option[String] = None) extends KeyManagerConfig
 
 case class DefaultTrustManagerConfig(algorithm: Option[String] = None,
-                                     trustStoreConfigs: Seq[TrustStoreConfig] = Nil) extends TrustManagerConfig
+  trustStoreConfigs: Seq[TrustStoreConfig] = Nil) extends TrustManagerConfig
 
 case class SSLDebugConfig(
-                           all: Boolean = false,
-                          ssl: Boolean = false,
-                          certpath: Boolean = false,
-                          record: Option[SSLDebugRecordOptions] = None,
-                          handshake: Option[SSLDebugHandshakeOptions] = None,
-                          keygen: Boolean = false,
-                          session: Boolean = false,
-                          defaultctx: Boolean = false,
-                          sslctx: Boolean = false,
-                          sessioncache: Boolean = false,
-                          keymanager: Boolean = false,
-                          trustmanager: Boolean = false,
-                          pluggability: Boolean = false) {
+    all: Boolean = false,
+    ssl: Boolean = false,
+    certpath: Boolean = false,
+    record: Option[SSLDebugRecordOptions] = None,
+    handshake: Option[SSLDebugHandshakeOptions] = None,
+    keygen: Boolean = false,
+    session: Boolean = false,
+    defaultctx: Boolean = false,
+    sslctx: Boolean = false,
+    sessioncache: Boolean = false,
+    keymanager: Boolean = false,
+    trustmanager: Boolean = false,
+    pluggability: Boolean = false) {
 
   def withAll = this.copy(all = true)
 
@@ -180,25 +180,25 @@ case class SSLDebugHandshakeOptions(data: Boolean = false, verbose: Boolean = fa
 case class SSLDebugRecordOptions(plaintext: Boolean = false, packet: Boolean = false)
 
 case class DefaultSSLLooseConfig(
-                                  allowWeakCiphers: Option[Boolean] = None,
-                                  allowWeakProtocols: Option[Boolean] = None,
-                                  allowLegacyHelloMessages: Option[Boolean] = None,
-                                  allowUnsafeRenegotiation: Option[Boolean] = None,
-                                  disableCheckRevocation: Option[Boolean] = None,
-                                  disableHostnameVerification: Option[Boolean] = None) extends SSLLooseConfig
+  allowWeakCiphers: Option[Boolean] = None,
+  allowWeakProtocols: Option[Boolean] = None,
+  allowLegacyHelloMessages: Option[Boolean] = None,
+  allowUnsafeRenegotiation: Option[Boolean] = None,
+  disableCheckRevocation: Option[Boolean] = None,
+  disableHostnameVerification: Option[Boolean] = None) extends SSLLooseConfig
 
 case class DefaultSSLConfig(
-                             default: Option[Boolean] = None,
-                             protocol: Option[String] = None,
-                             enabledCipherSuites: Option[Seq[String]] = None,
-                             enabledProtocols: Option[Seq[String]] = None,
-                             disabledAlgorithms: Option[String] = None,
-                             keyManagerConfig: Option[KeyManagerConfig] = None,
-                             trustManagerConfig: Option[TrustManagerConfig] = None,
-                             hostnameVerifierClassName: Option[String] = None,
-                             secureRandom: Option[SecureRandom] = None,
-                             debug: Option[SSLDebugConfig] = None,
-                             loose: Option[SSLLooseConfig] = None) extends SSLConfig
+  default: Option[Boolean] = None,
+  protocol: Option[String] = None,
+  enabledCipherSuites: Option[Seq[String]] = None,
+  enabledProtocols: Option[Seq[String]] = None,
+  disabledAlgorithms: Option[String] = None,
+  keyManagerConfig: Option[KeyManagerConfig] = None,
+  trustManagerConfig: Option[TrustManagerConfig] = None,
+  hostnameVerifierClassName: Option[String] = None,
+  secureRandom: Option[SecureRandom] = None,
+  debug: Option[SSLDebugConfig] = None,
+  loose: Option[SSLLooseConfig] = None) extends SSLConfig
 
 trait SSLConfigParser {
   def parse(): SSLConfig
@@ -386,7 +386,7 @@ class DefaultSSLConfigParser(c: Configuration) {
 
     val keyStoreInfos = config.getObjectList("stores").map {
       storeList =>
-      // storeList is a java.util.List, not a scala.List
+        // storeList is a java.util.List, not a scala.List
         import JavaConverters._
         for {
           store <- storeList.asScala
@@ -408,7 +408,7 @@ class DefaultSSLConfigParser(c: Configuration) {
 
     val trustStoreInfos = config.getObjectList("stores").map {
       storeList =>
-      // storeList is a java.util.List, not a scala.List
+        // storeList is a java.util.List, not a scala.List
         import JavaConverters._
         for {
           store <- storeList.asScala
