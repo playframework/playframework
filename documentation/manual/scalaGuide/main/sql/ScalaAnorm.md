@@ -501,7 +501,7 @@ Let’s write a more complicated parser:
 `str("name") ~ int("population")`, will create a `RowParser` able to parse a row containing a String `name` column and an Integer `population` column. Then we can create a `ResultSetParser` that will parse as many rows of this kind as it can, using `*`: 
 
 ```scala
-val populations:List[String~Int] = {
+val populations: List[String~Int] = {
   SQL("select * from Country").as( str("name") ~ int("population") * ) 
 }
 ```
@@ -511,16 +511,16 @@ As you see, this query’s result type is `List[String~Int]` - a list of country
 You can also rewrite the same code as:
 
 ```scala
-val result:List[String~Int] = {
+val result: List[String~Int] = {
   SQL("select * from Country")
-  .as(get[String]("name") ~ get[Int]("population")*) 
+  .as(get[String]("name") ~ get[Int]("population") *)
 }
 ```
 
 Now what about the `String~Int` type? This is an **Anorm** type that is not really convenient to use outside of your database access code. You would rather have a simple tuple `(String, Int)` instead. You can use the `map` function on a `RowParser` to transform its result to a more convenient type:
 
 ```scala
-str("name") ~ int("population") map { case n~p => (n,p) }
+val parser = str("name") ~ int("population") map { case n~p => (n,p) }
 ```
 
 > **Note:** We created a tuple `(String,Int)` here, but there is nothing stopping you from transforming the `RowParser` result to any other type, such as a custom case class.
@@ -528,12 +528,11 @@ str("name") ~ int("population") map { case n~p => (n,p) }
 Now, because transforming `A ~ B ~ C` types to `(A, B, C)` is a common task, we provide a `flatten` function that does exactly that. So you finally write:
 
 ```scala
-val result: List[(String, Int)] = {
-  SQL("select * from Country").as(
-    str("name") ~ int("population") map(flatten) *
-  ) 
-}
+val result: List[(String, Int)] = 
+  SQL("select * from Country").as(parser.*)
 ```
+
+If list should not be empty, `parser.+` can be used instead of `parser.*`.
 
 ### A more complicated example
 
