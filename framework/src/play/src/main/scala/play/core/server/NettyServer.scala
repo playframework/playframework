@@ -23,6 +23,9 @@ import java.security.cert.X509Certificate
 import java.io.{ File, FileInputStream }
 import scala.util.control.NonFatal
 import com.typesafe.netty.http.pipelining.HttpPipeliningHandler
+import org.jboss.netty.channel.socket.nio.{ NioWorkerPool, NioServerBossPool }
+import org.jboss.netty.util.ThreadNameDeterminer
+import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory
 
 /**
  * provides a stopable Server
@@ -41,10 +44,18 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
 
   def applicationProvider = appProvider
 
-  private def newBootstrap = new ServerBootstrap(
-    new org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory(
-      Executors.newCachedThreadPool(NamedThreadFactory("netty-boss")),
-      Executors.newCachedThreadPool(NamedThreadFactory("netty-worker"))))
+  private def newBootstrap = {
+    val workerCount = Runtime.getRuntime.availableProcessors * 2
+    //using NioXXXPool so that netty uses the given thread pools names. This will help to identify play netty threads in runtime (for example in profilers)
+    val factory = new NioServerSocketChannelFactory(
+      new NioServerBossPool(Executors.newCachedThreadPool(NamedThreadFactory("play-netty-boss")), 1, ThreadNameDeterminer.CURRENT),
+      new NioWorkerPool(Executors.newCachedThreadPool(NamedThreadFactory("play-netty-worker")), workerCount, ThreadNameDeterminer.CURRENT)
+    )
+    val bootstrap = new ServerBootstrap(factory)
+    //setting the backlog property if available to override the OS dependent default value
+    Option(System.getProperty("play.netty.backlog")).map(Integer.parseInt(_)).foreach(backlog => bootstrap.setOption("backlog", backlog))
+    bootstrap
+  }
 
   class PlayPipelineFactory(secure: Boolean = false) extends ChannelPipelineFactory {
 
