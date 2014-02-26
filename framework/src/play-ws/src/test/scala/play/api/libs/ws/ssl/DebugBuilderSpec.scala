@@ -6,7 +6,6 @@
 package play.api.libs.ws.ssl
 
 import org.specs2.mutable._
-import play.api.libs.ws.ssl.debug.JavaxNetDebugBuilder
 
 object DebugBuilderSpec extends Specification {
 

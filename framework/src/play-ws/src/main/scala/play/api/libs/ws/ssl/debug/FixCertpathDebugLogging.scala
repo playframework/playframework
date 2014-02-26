@@ -21,8 +21,12 @@ import scala.reflect.ClassTag
  */
 object FixCertpathDebugLogging {
 
+  val logger = org.slf4j.LoggerFactory.getLogger("play.api.libs.ssl.debug.FixCertpathDebugLogging")
+
   class MonkeyPatchSunSecurityUtilDebugAction(val newDebug: Debug, val newOptions: String) extends FixLoggingAction
   {
+    val logger = org.slf4j.LoggerFactory.getLogger("play.api.libs.ssl.debug.MonkeyPatchSunSecurityUtilDebugAction")
+
     def initialResource = "/sun/security/provider/certpath/Builder.class"
 
     /**
@@ -40,11 +44,12 @@ object FixCertpathDebugLogging {
 
     def run() {
       val debugType = classOf[Debug]
+      logger.debug(s"run: debugType = ${debugType}")
 
       for (debugClass <- findClasses) {
         for (debugField <- debugClass.getDeclaredFields) {
           if (isValidField(debugField, debugType)) {
-            Console.println(s"Patching field ${debugField} in class $debugClass")
+            logger.debug(s"run: Patching field ${debugField} in class $debugClass")
             monkeyPatchField(debugField, newDebug)
           }
         }
@@ -74,6 +79,7 @@ object FixCertpathDebugLogging {
   }
 
   def apply(newOptions: String, debugOption: Option[Debug] = None) {
+    logger.trace(s"apply: newOptions = ${newOptions}, debugOption = ${debugOption}")
     try {
       val newDebug = debugOption match {
         case Some(d) => d

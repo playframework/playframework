@@ -85,7 +85,7 @@ object DefaultSSLConfigParserSpec extends Specification {
         debug.certpath must beTrue
 
         debug.all must beFalse
-        //debug.ssl must beTrue
+        debug.ssl must beTrue
 
         debug.defaultctx must beTrue
         debug.handshake must beSome.which { handshake =>
@@ -119,6 +119,18 @@ object DefaultSSLConfigParserSpec extends Specification {
 
         // everything else is false, all wins everything.
         debug.all must beTrue
+      }
+    }
+
+    "parse ws.ssl.debug section with ssl" in {
+      val actual = parseThis( """
+                                |debug = [
+                                |"ssl"
+                                |]
+                              """.stripMargin)
+
+      actual.debug must beSome.which { debug =>
+        debug.ssl must beTrue
       }
     }
 

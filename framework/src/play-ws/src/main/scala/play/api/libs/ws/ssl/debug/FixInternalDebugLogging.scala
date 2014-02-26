@@ -15,7 +15,11 @@ import scala.util.control.NonFatal
  */
 object FixInternalDebugLogging {
 
-  class MonkeyPatchInternalSslDebugAction(val newDebug:AnyRef, val newOptions:String) extends FixLoggingAction {
+  private val logger = org.slf4j.LoggerFactory.getLogger("play.api.libs.ssl.debug.FixInternalDebugLogging")
+
+  class MonkeyPatchInternalSslDebugAction(val newOptions: String) extends FixLoggingAction {
+
+    val logger = org.slf4j.LoggerFactory.getLogger("play.api.libs.ssl.debug.MonkeyPatchInternalSslDebugAction")
 
     def initialResource = "/javax/net/ssl/SSLContext.class"
 
@@ -30,12 +34,21 @@ object FixInternalDebugLogging {
     }
 
     def run() {
-      val debugType = newDebug.getClass
+      val debugType: Class[_] = {
+        val debugClassName = foldVersion(
+          run16 = "com.sun.net.ssl.internal.ssl.Debug",
+          runHigher = "sun.security.ssl.Debug"
+        )
+        Thread.currentThread().getContextClassLoader.loadClass(debugClassName)
+      }
+
+      val newDebug: AnyRef = debugType.newInstance().asInstanceOf[AnyRef]
+      logger.debug(s"run: debugType = $debugType")
 
       for (debugClass <- findClasses) {
         for (debugField <- debugClass.getDeclaredFields) {
           if (isValidField(debugField, debugType)) {
-            Console.println(s"Patching field ${debugField} in class $debugClass")
+            logger.debug(s"run: Patching field $debugField in class $debugClass")
 
             monkeyPatchField(debugField, newDebug)
           }
@@ -50,26 +63,15 @@ object FixInternalDebugLogging {
     }
   }
 
-  def classType : Class[_] = {
-    val debugClassName = foldVersion(
-      run16 = "com.sun.net.ssl.internal.ssl.Debug",
-      runHigher = "sun.security.ssl.Debug"
-    )
-    Thread.currentThread().getContextClassLoader.loadClass(debugClassName)
-  }
+  def apply(newOptions: String) {
+    logger.trace(s"apply: newOptions = ${newOptions}")
 
-  def apply(newOptions:String, debugOption: Option[AnyRef] = None) {
     try {
-      val newDebug : AnyRef = debugOption match {
-        case Some(debug) => debug
-        case None => classType.newInstance().asInstanceOf[AnyRef]
-      }
-
-      val action = new MonkeyPatchInternalSslDebugAction(newDebug, newOptions)
+      val action = new MonkeyPatchInternalSslDebugAction(newOptions)
       AccessController.doPrivileged(action)
     } catch {
       case NonFatal(e) =>
-        throw new IllegalStateException("FixInternalDebugLogging configuration error", e)
+        logger.error("Cannot configure debug!", e)
     }
   }
 }

@@ -14,6 +14,8 @@ import java.util.jar.{ JarEntry, JarInputStream }
  */
 trait ClassFinder {
 
+  def logger: org.slf4j.Logger
+
   /**
    * A resource (in a jar file, usually) in the format "/java/lang/String.class".  This returns
    * an initial URL that leads to the JAR file we search for classes.
@@ -30,12 +32,19 @@ trait ClassFinder {
   def isValidClass(className: String): Boolean
 
   def findClasses: Set[Class[_]] = {
+    logger.debug(s"findClasses: using initialResource = ${initialResource}")
+
     val classSet = scala.collection.mutable.Set[Class[_]]()
     val classLoader: ClassLoader = Thread.currentThread.getContextClassLoader
+
     val urlToSource: URL = this.getClass.getResource(initialResource)
+    logger.debug(s"findClasses: urlToSource = ${urlToSource}")
+
     val parts: Array[String] = urlToSource.toString.split("!")
     val jarURLString: String = parts(0).replace("jar:", "")
-    //System.out.println("Loading from " + jarURLString)
+
+    logger.debug(s"findClasses: Loading from ${jarURLString}")
+
     val jar: URL = new URL(jarURLString)
     val jarConnection: URLConnection = jar.openConnection
     val jis: JarInputStream = new JarInputStream(jarConnection.getInputStream)
@@ -46,6 +55,8 @@ trait ClassFinder {
           var className: String = je.getName.substring(0, je.getName.length - 6)
           className = className.replace('/', '.')
           if (isValidClass(className)) {
+            logger.debug(s"findClasses: adding valid class ${className}")
+
             val c: Class[_] = classLoader.loadClass(className)
             classSet.add(c)
           }

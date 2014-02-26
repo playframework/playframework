@@ -10,6 +10,8 @@ import play.api.libs.ws.ssl.debug.FixCertpathDebugLogging.SunSecurityUtilDebugLo
 
 class DebugConfiguration {
 
+  private val logger = org.slf4j.LoggerFactory.getLogger(this.getClass)
+
   def configure(d: SSLDebugConfig) {
     configureJavaxNetDebug(d)
     configureJavaSecurityDebug(d)
@@ -17,6 +19,7 @@ class DebugConfiguration {
 
   def configureJavaxNetDebug(d: SSLDebugConfig) {
     val netDebugOptions = new JavaxNetDebugBuilder(d).build()
+    logger.debug(s"configureJavaxNetDebug: d = ${d}, netDebugOptions = ${netDebugOptions}")
     if (! netDebugOptions.trim.isEmpty) {
       System.setProperty("javax.net.debug", netDebugOptions)
       FixInternalDebugLogging(netDebugOptions)
@@ -25,6 +28,7 @@ class DebugConfiguration {
 
   def configureJavaSecurityDebug(d: SSLDebugConfig) {
     val securityOptions = new JavaSecurityDebugBuilder(d).build()
+    logger.debug(s"configureJavaSecurityDebug: d = ${d}, securityOptions = ${securityOptions}")
     if (! securityOptions.trim.isEmpty) {
       System.setProperty("java.security.debug", securityOptions)
       val certpathLogger = org.slf4j.LoggerFactory.getLogger("java.security.debug")

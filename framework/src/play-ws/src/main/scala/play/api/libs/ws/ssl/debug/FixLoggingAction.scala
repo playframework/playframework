@@ -16,8 +16,6 @@ import scala.reflect.ClassTag
  */
 abstract class FixLoggingAction extends PrivilegedExceptionAction[Unit] with MonkeyPatcher with ClassFinder {
 
-  val newDebug: AnyRef
-
   def newOptions: String
 
   def isValidField(field: Field, definedType: Class[_]): Boolean = {
