@@ -14,7 +14,7 @@ import java.util
 import play.api.libs.ws._
 import play.api.test._
 
-object NingWSSpec extends Specification with Mockito {
+object NingWSSpec extends PlaySpecification with Mockito {
 
   "Ning WS" should {
 
@@ -104,7 +104,7 @@ object NingWSSpec extends Specification with Mockito {
       // NOTE: if you are using a client proxy like Privoxy or Polipo, your proxy may not support PATCH & return 400.
       val req = WS.url("http://localhost:" + port + "/").patch("body")
 
-      val rep = Await.result(req, Duration(2, SECONDS))
+      val rep = await(req)
 
       rep.status must ===(200)
       (rep.json \ "data").asOpt[String] must beSome("body")
