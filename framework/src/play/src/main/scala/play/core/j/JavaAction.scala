@@ -5,13 +5,12 @@ package play.core.j
 
 import scala.language.existentials
 
+import play.api.libs.iteratee.Execution.trampoline
 import play.api.mvc._
 import play.mvc.{ Action => JAction, Result => JResult }
 import play.mvc.Http.{ Context => JContext }
 import play.libs.F.{ Promise => JPromise }
-import scala.concurrent.Future
-
-import play.core.Execution.Implicits.internalContext
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
  * Retains and evaluates what is otherwise expensive reflection work on call by call basis.
@@ -50,7 +49,7 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
 
   def apply(req: Request[play.mvc.Http.RequestBody]): Future[Result] = {
 
-    val javaContext = createJavaContext(req)
+    val javaContext: JContext = createJavaContext(req)
 
     val rootAction = new JAction[Any] {
       def call(ctx: JContext): JPromise[JResult] = invocation
@@ -76,16 +75,14 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
         action
     }
 
-    try {
-      JContext.current.set(javaContext)
-
-      play.libs.F.Promise.pure("").flatMap(new play.libs.F.Function[String, play.libs.F.Promise[JResult]] {
-        def apply(nothing: String) = finalAction.call(javaContext)
-      }).wrapped.map(result => createResult(javaContext, result))
-
-    } finally {
-      JContext.current.remove()
+    val trampolineWithContext: ExecutionContext = {
+      val javaClassLoader = Thread.currentThread.getContextClassLoader
+      new HttpExecutionContext(javaClassLoader, javaContext, trampoline)
     }
+    val actionFuture: Future[Future[JResult]] = Future { finalAction.call(javaContext).wrapped }(trampolineWithContext)
+    val flattenedActionFuture: Future[JResult] = actionFuture.flatMap(identity)(trampoline)
+    val resultFuture: Future[Result] = flattenedActionFuture.map(createResult(javaContext, _))(trampoline)
+    resultFuture
   }
 
 }
