@@ -401,8 +401,13 @@ trait RowParser[+A] extends (Row => SqlResult[A]) { parent =>
 
   def >>[B](f: A => RowParser[B]): RowParser[B] = flatMap(f)
 
+  /** Returns possibly empty list parsed from result. */
   def * : ResultSetParser[List[A]] = ResultSetParser.list(parent)
 
+  /**
+   * Returns non empty list parse from result,
+   * or raise error if there is no result.
+   */
   def + : ResultSetParser[List[A]] = ResultSetParser.nonEmptyList(parent)
 
   /**

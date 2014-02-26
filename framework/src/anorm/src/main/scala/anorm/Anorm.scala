@@ -217,16 +217,15 @@ case class SimpleSql[T](sql: SqlQuery, params: Map[String, ParameterValue], defa
     copy(params = this.params ++ Sql.zipParams(
       sql.argsInitialOrder, args, Map.empty))
 
-  // TODO: Scaladoc, add to specs as `as` equivalent
-  def list()(implicit connection: Connection): Seq[T] = as(defaultParser*)
+  // TODO: Scaladoc as `as` equivalent
+  def list()(implicit connection: Connection): Seq[T] = as(defaultParser.*)
 
-  // TODO: Scaladoc, add to specs as `as` equivalent
-  def single()(implicit connection: Connection): T =
-    as(ResultSetParser.single(defaultParser))
+  // TODO: Scaladoc as `as` equivalent
+  def single()(implicit connection: Connection): T = as(defaultParser.single)
 
   // TODO: Scaladoc, add to specs as `as` equivalent
   def singleOpt()(implicit connection: Connection): Option[T] =
-    as(ResultSetParser.singleOpt(defaultParser))
+    as(defaultParser.singleOpt)
 
   def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false) = {
     val st: (String, Seq[(Int, ParameterValue)]) =
@@ -326,37 +325,69 @@ case class BatchSql(sql: SqlQuery, params: Seq[Map[String, ParameterValue]]) {
     copy(sql = sql.withQueryTimeout(seconds))
 }
 
-trait Sql {
+sealed trait Sql {
 
   def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false): PreparedStatement
 
   @deprecated(message = "Use [[getFilledStatement]] or [[executeQuery]]", since = "2.3.0")
   def filledStatement(implicit connection: Connection) = getFilledStatement(connection)
 
-  def apply()(implicit connection: Connection) = Sql.resultSetToStream(resultSet())
+  /**
+   * Executes this SQL statement as query, returns result as Row stream.
+   */
+  def apply()(implicit connection: Connection): Stream[Row] =
+    Sql.resultSetToStream(resultSet())
 
-  def resultSet()(implicit connection: Connection) = (getFilledStatement(connection).executeQuery())
+  /**
+   * Executes this statement as query (see [[executeQuery]]) and returns result.
+   */
+  private[anorm] def resultSet()(implicit connection: Connection) = (getFilledStatement(connection).executeQuery())
 
-  def as[T](parser: ResultSetParser[T])(implicit connection: Connection): T = Sql.as[T](parser, resultSet())
+  /**
+   * Executes this statement as query and convert result as `T`, using parser.
+   */
+  def as[T](parser: ResultSetParser[T])(implicit connection: Connection): T =
+    Sql.as[T](parser, resultSet())
 
-  def list[A](rowParser: RowParser[A])(implicit connection: Connection): Seq[A] = as(rowParser *)
+  @deprecated(
+    message = "Use [[as]] with rowParser.*",
+    since = "2.3.0")
+  def list[A](rowParser: RowParser[A])(implicit connection: Connection): Seq[A] = as(rowParser.*)
 
-  def single[A](rowParser: RowParser[A])(implicit connection: Connection): A = as(ResultSetParser.single(rowParser))
+  @deprecated(
+    message = "Use [[as]] with rowParser.single",
+    since = "2.3.0")
+  def single[T](rowParser: RowParser[T])(implicit connection: Connection): T = as(rowParser.single)
 
-  def singleOpt[A](rowParser: RowParser[A])(implicit connection: Connection): Option[A] = as(ResultSetParser.singleOpt(rowParser))
+  @deprecated(
+    message = "Use [[as]] with rowParser.singleOpt",
+    since = "2.3.0")
+  def singleOpt[T](rowParser: RowParser[T])(implicit connection: Connection): Option[T] = as(rowParser.singleOpt)
 
-  def parse[T](parser: ResultSetParser[T])(implicit connection: Connection): T = Sql.parse[T](parser, resultSet())
+  @deprecated(message = "Use [[as]]", since = "2.3.0")
+  def parse[T](parser: ResultSetParser[T])(implicit connection: Connection): T = as(parser)
 
+  /**
+   * Executes this SQL statement.
+   * @return true if resultset was returned from execution
+   * (statement is query), or false if it executed update
+   */
   def execute()(implicit connection: Connection): Boolean = getFilledStatement(connection).execute()
 
   def execute1(getGeneratedKeys: Boolean = false)(implicit connection: Connection): (PreparedStatement, Int) = {
     val statement = getFilledStatement(connection, getGeneratedKeys)
-    (statement, { statement.executeUpdate() })
+    (statement, statement.executeUpdate())
   }
 
+  /**
+   * Executes this SQL as an update statement.
+   * @return Count of update row(s)
+   */
+  @throws[java.sql.SQLException]("If statement is query not update")
   def executeUpdate()(implicit connection: Connection): Int =
     getFilledStatement(connection).executeUpdate()
 
+  // TODO: Scaladoc and specs
   def executeInsert[A](generatedKeysParser: ResultSetParser[A] = SqlParser.scalar[Long].singleOpt)(implicit connection: Connection): A =
     Sql.as(generatedKeysParser,
       execute1(getGeneratedKeys = true)._1.getGeneratedKeys)
@@ -384,7 +415,7 @@ case class SqlQuery(query: String, argsInitialOrder: List[String] = List.empty, 
   def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false): PreparedStatement = asSimple.getFilledStatement(connection, getGeneratedKeys)
 
   def withQueryTimeout(seconds: Option[Int]): SqlQuery =
-    this.copy(queryTimeout = seconds)
+    copy(queryTimeout = seconds)
 
   private def defaultParser: RowParser[Row] = RowParser(row => Success(row))
 
@@ -448,10 +479,7 @@ object Sql { // TODO: Rename to SQL
     message = "Use [[anorm.SqlQueryResult.as]] directly",
     since = "2.3.0")
   private def parse[T](parser: ResultSetParser[T], rs: ResultSet): T =
-    parser(resultSetToStream(rs)) match {
-      case Success(a) => a
-      case Error(e) => sys.error(e.toString)
-    }
+    as(parser, rs)
 
   private[anorm] def resultSetToStream(rs: ResultSet): Stream[Row] = {
     val rsMetaData = metaData(rs)
