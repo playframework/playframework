@@ -377,6 +377,7 @@ trait ResultExtractors {
     case ResponseHeader(SEE_OTHER, headers) => headers.get(LOCATION)
     case ResponseHeader(TEMPORARY_REDIRECT, headers) => headers.get(LOCATION)
     case ResponseHeader(MOVED_PERMANENTLY, headers) => headers.get(LOCATION)
+    case ResponseHeader(CREATED, headers) => headers.get(LOCATION)
     case ResponseHeader(_, _) => None
   }
 
