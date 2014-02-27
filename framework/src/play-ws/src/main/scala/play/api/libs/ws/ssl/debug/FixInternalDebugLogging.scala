@@ -71,7 +71,7 @@ object FixInternalDebugLogging {
       AccessController.doPrivileged(action)
     } catch {
       case NonFatal(e) =>
-        logger.error("Cannot configure debug!", e)
+        throw new IllegalStateException("InternalDebug configuration error", e)
     }
   }
 }
