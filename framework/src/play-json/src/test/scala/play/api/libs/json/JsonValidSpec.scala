@@ -139,6 +139,24 @@ object JsonValidSpec extends Specification {
       js.validate[java.util.Date](Reads.IsoDateReads) must beEqualTo(JsSuccess(c.getTime))*/
     }
 
+    "validate UUID" in {
+      "validate correct UUIDs" in {
+        val uuid = java.util.UUID.randomUUID()
+        Json.toJson[java.util.UUID](uuid).validate[java.util.UUID] must beEqualTo(JsSuccess(uuid))
+      }
+
+      "reject malformed UUIDs" in {
+        JsString("bogus string").validate[java.util.UUID].recoverTotal {
+          e => "error"
+        } must beEqualTo("error")
+      }
+      "reject well-formed but incorrect UUIDS in strict mode" in {
+        JsString("0-0-0-0-0").validate[java.util.UUID](Reads.uuidReader(true)).recoverTotal {
+          e => "error"
+        } must beEqualTo("error")
+      }
+    }
+
     "Can reads with nullable" in {
       val json = Json.obj("field" -> JsNull)
 
