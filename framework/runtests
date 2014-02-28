@@ -2,6 +2,18 @@
 
 # Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
 
+unset no_publish
+
+# process arguments
+declare -a args
+while [[ $# -gt 0 ]] ; do
+  case "$1" in
+    --no-publish) no_publish=1; shift ;;
+    *) args=("${args[@]}" "$1"); shift ;;
+  esac
+done
+set -- "${args[@]}" # reset "$@"
+
 echo "[info]"
 echo "[info] ---- PLAYFRAMEWORK CORE TEST RUNNER"
 echo "[info]"
@@ -13,7 +25,13 @@ export SCRIPT=`dirname "$0"`
 cd "$SCRIPT"
 export PLAY=`pwd`/../play
 
-./build "$@" publish-local test
+if [ -n "$no_publish" ] ; then
+  echo "[info] Not publishing locally"
+else
+  ./build "$@" publish-local
+fi
+
+./build "$@" test
 
 echo "[info]"
 echo "[info] ---- SBT PLUGIN TESTS"
