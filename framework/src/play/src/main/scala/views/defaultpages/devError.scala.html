@@ -2,7 +2,7 @@
  * Default page for 500 Internal Server Error responses, in development mode.
  * This page display the error in the source code context.
  *@
-@(error: play.api.UsefulException)
+@(playEditor: Option[String])(error: play.api.UsefulException)
 
 <!DOCTYPE html>
 <html>
@@ -25,7 +25,10 @@
 		        border-bottom: 1px solid #690000;
 		        font-size: 28px;
 		    }
-		    p#detail {
+            a {
+                color: #D36D6D;
+            }
+            p#detail {
 		        margin: 0;
 		        padding: 15px 45px;
 		        background: #F5A0A0;
@@ -129,13 +132,20 @@
 
 				@Option(source.sourceName).map { name =>
 					<h2>
-						In @name @Option(source.line).map { line =>
-							at line @line.
-						}
+						In @Option(source.line).fold {
+                          @name (line number not found)
+                        }{line =>
+                          @playEditor.fold {
+                            @name:@line
+                          } { link =>
+                            <iframe name="_onlyForFiringEditorLink" style="display:none;"></iframe>
+                            <a href="@{link.format(name, line)}" target="_onlyForFiringEditorLink">@name:@line</a>
+                          }
+                        }
 					</h2>
 
                     <div id="source-code">
-    					@Option(source.interestingLines(4)).map { 
+    					@Option(source.interestingLines(4)).map {
 
     						case interesting => {
 

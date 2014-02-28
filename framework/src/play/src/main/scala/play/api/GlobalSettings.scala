@@ -138,11 +138,13 @@ trait GlobalSettings {
    * @return The result to send to the client
    */
   def onError(request: RequestHeader, ex: Throwable): Future[SimpleResult] = {
+    def devError = views.html.defaultpages.devError(Option(System.getProperty("play.editor"))) _
+    def prodError = views.html.defaultpages.error.f
     try {
       Future.successful(InternalServerError(Play.maybeApplication.map {
-        case app if app.mode != Mode.Prod => views.html.defaultpages.devError.f
-        case app => views.html.defaultpages.error.f
-      }.getOrElse(views.html.defaultpages.devError.f) {
+        case app if app.mode == Mode.Prod => prodError
+        case app => devError
+      }.getOrElse(devError) {
         ex match {
           case e: UsefulException => e
           case NonFatal(e) => UnexpectedException(unexpected = Some(e))
