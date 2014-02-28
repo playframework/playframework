@@ -170,6 +170,11 @@ object Dependencies {
     "org.scala-lang" % "scala-reflect" % BuildSettings.buildScalaVersion) ++
     specsBuild.map(_ % "test")
 
+  val scalacheckDependencies = Seq(
+    "org.specs2" %% "specs2-scalacheck" % specsVersion % "test",
+    "org.scalacheck" %% "scalacheck" % "1.11.3" % "test"
+  )
+
   val testDependencies = Seq("junit" % "junit" % "4.11") ++ specsBuild ++ Seq(
     "com.novocode" % "junit-interface" % "0.10" exclude("junit", "junit-dep"),
     guava,
@@ -178,10 +183,8 @@ object Dependencies {
       .exclude("org.jboss.netty", "netty")
   )
 
-  val integrationTestDependencies = Seq(
-    "org.databene" % "contiperf" % "2.2.0" % "test",
-    "org.specs2" %% "specs2-scalacheck" % specsVersion % "test",
-    "org.scalacheck" %% "scalacheck" % "1.11.3" % "test"
+  val integrationTestDependencies = scalacheckDependencies ++ Seq(
+    "org.databene" % "contiperf" % "2.2.0" % "test"
   )
 
   val playCacheDeps = "net.sf.ehcache" % "ehcache-core" % "2.6.6" +: 
