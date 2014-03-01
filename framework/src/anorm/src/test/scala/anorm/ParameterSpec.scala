@@ -15,8 +15,10 @@ import acolyte.Implicits._
 object ParameterSpec extends org.specs2.mutable.Specification {
   "Parameter" title
 
-  val jbg1 = new java.math.BigDecimal(1.234d)
-  val sbg1 = BigDecimal(jbg1)
+  val jbi1 = new java.math.BigInteger("1234")
+  val sbi1 = BigInt(jbi1)
+  val jbd1 = new java.math.BigDecimal(1.234d)
+  val sbd1 = BigDecimal(jbd1)
   val date = new java.util.Date()
   val timestamp = {
     val ts = new java.sql.Timestamp(123l)
@@ -32,7 +34,8 @@ object ParameterSpec extends org.specs2.mutable.Specification {
   val SqlFloat = ParameterMetaData.Float(1.23f)
   val SqlDouble = ParameterMetaData.Double(23.456d)
   val SqlTimestamp = ParameterMetaData.Timestamp
-  val SqlNum1 = ParameterMetaData.Numeric(jbg1)
+  val SqlInt1 = ParameterMetaData.Numeric(new java.math.BigDecimal(jbi1))
+  val SqlDec1 = ParameterMetaData.Numeric(jbd1)
 
   def withConnection[A](ps: (String, String)*)(f: java.sql.Connection => A): A = f(connection(handleStatement withUpdateHandler {
     case UpdateExecution("set-str ?",
@@ -59,28 +62,32 @@ object ParameterSpec extends org.specs2.mutable.Specification {
       DParam(1.23f, SqlFloat) :: Nil) => 1 /* case ok */
     case UpdateExecution("set-double ?",
       DParam(23.456d, SqlDouble) :: Nil) => 1 /* case ok */
-    case UpdateExecution("set-jbg ?",
-      DParam(jbg1, SqlNum1) :: Nil) => 1 /* case ok */
-    case UpdateExecution("set-sbg ?",
-      DParam(sbg1, SqlNum1) :: Nil) => 1 /* case ok */
+    case UpdateExecution("set-jbi ?",
+      DParam(jbi1, SqlInt1) :: Nil) => 1 /* case ok */
+    case UpdateExecution("set-sbi ?",
+      DParam(sbi1, SqlInt1) :: Nil) => 1 /* case ok */
+    case UpdateExecution("set-jbd ?",
+      DParam(jbd1, SqlDec1) :: Nil) => 1 /* case ok */
+    case UpdateExecution("set-sbd ?",
+      DParam(sbd1, SqlDec1) :: Nil) => 1 /* case ok */
     case UpdateExecution("set-date ?",
       DParam(date, SqlTimestamp) :: Nil) => 1 /* case ok */
     case UpdateExecution("set-timestamp ?",
       DParam(t: java.sql.Timestamp, SqlTimestamp) :: Nil) if t.getNanos == 123456789 => 1 /* case ok */
-    case UpdateExecution("set-s-jbg ?, ?",
-      DParam("string", SqlStr) :: DParam(jbg1, SqlNum1) :: Nil) => 1 /* ok */
-    case UpdateExecution("set-s-sbg ?, ?",
-      DParam("string", SqlStr) :: DParam(sbg1, SqlNum1) :: Nil) => 1 /* ok */
-    case UpdateExecution("reorder-s-jbg ?, ?",
-      DParam(jbg1, SqlNum1) :: DParam("string", SqlStr) :: Nil) => 1 /* ok */
+    case UpdateExecution("set-s-jbd ?, ?",
+      DParam("string", SqlStr) :: DParam(jbd1, SqlDec1) :: Nil) => 1 /* ok */
+    case UpdateExecution("set-s-sbd ?, ?",
+      DParam("string", SqlStr) :: DParam(sbd1, SqlDec1) :: Nil) => 1 /* ok */
+    case UpdateExecution("reorder-s-jbd ?, ?",
+      DParam(jbd1, SqlDec1) :: DParam("string", SqlStr) :: Nil) => 1 /* ok */
     case UpdateExecution("set-some-str ?",
       DParam("string", SqlStr) :: Nil) => 1 /* case ok */
     case UpdateExecution("set-str-opt ?",
       DParam("some_str", SqlStr) :: Nil) => 1 /* case ok */
-    case UpdateExecution("set-some-jbg ?",
-      DParam(jbg1, SqlNum1) :: Nil) => 1 /* case ok */
-    case UpdateExecution("set-some-sbg ?",
-      DParam(sbg1, SqlNum1) :: Nil) => 1 /* case ok */
+    case UpdateExecution("set-some-jbd ?",
+      DParam(jbd1, SqlDec1) :: Nil) => 1 /* case ok */
+    case UpdateExecution("set-some-sbd ?",
+      DParam(sbd1, SqlDec1) :: Nil) => 1 /* case ok */
     case UpdateExecution("set-none ?", DParam(null, _) :: Nil)      => 1 /* ok */
     case UpdateExecution("set-empty-opt ?", DParam(null, _) :: Nil) => 1 /*ok*/
     case UpdateExecution("no-param-placeholder", Nil)               => 1 /* ok */
@@ -202,12 +209,20 @@ object ParameterSpec extends org.specs2.mutable.Specification {
           "p" -> new java.lang.Double(23.456d)).execute() must beFalse)
     }
 
+    "be one Java big integer" in withConnection() { implicit c =>
+      SQL("set-jbi {p}").on("p" -> jbi1).execute() must beFalse
+    }
+
+    "be one Scala big integer" in withConnection() { implicit c =>
+      SQL("set-sbi {p}").on("p" -> sbi1).execute() must beFalse
+    }
+
     "be one Java big decimal" in withConnection() { implicit c =>
-      SQL("set-jbg {p}").on("p" -> jbg1).execute() must beFalse
+      SQL("set-jbd {p}").on("p" -> jbd1).execute() must beFalse
     }
 
     "be one Scala big decimal" in withConnection() { implicit c =>
-      SQL("set-sbg {p}").on("p" -> sbg1).execute() must beFalse
+      SQL("set-sbd {p}").on("p" -> sbd1).execute() must beFalse
     }
 
     "be one date" in withConnection() { implicit c =>
@@ -225,15 +240,16 @@ object ParameterSpec extends org.specs2.mutable.Specification {
     "be not assigned" in withConnection(
       "acolyte.parameter.untypedNull" -> "true") { implicit c =>
 
-        SQL("set-not-assigned {p}").on("p" -> NotAssigned).execute() must beFalse
+        SQL("set-not-assigned {p}").on("p" -> NotAssigned).
+          execute() must beFalse
       }
 
     "be multiple (string, Java big decimal)" in withConnection() {
       implicit c =>
-        SQL("set-s-jbg {a}, {b}").on("a" -> "string", "b" -> jbg1).
+        SQL("set-s-jbd {a}, {b}").on("a" -> "string", "b" -> jbd1).
           aka("query") must beLike {
             case q @ SimpleSql(
-              SqlQuery("set-s-jbg %s, %s", List("a", "b"), _),
+              SqlQuery("set-s-jbd %s, %s", List("a", "b"), _),
               ps, _) if (ps.contains("a") && ps.contains("b")) =>
               q.execute() aka "execution" must beFalse
 
@@ -242,21 +258,21 @@ object ParameterSpec extends org.specs2.mutable.Specification {
 
     "be multiple (string, Scala big decimal)" in withConnection() {
       implicit c =>
-        SQL("set-s-sbg {a}, {b}").on("a" -> "string", "b" -> sbg1).
+        SQL("set-s-sbd {a}, {b}").on("a" -> "string", "b" -> sbd1).
           execute() aka "execution" must beFalse
     }
 
     "be multiple (string, Scala big decimal) with string interpolation" in withConnection() {
       implicit c =>
-        SQL"""set-s-sbg ${"string"}, $sbg1""".
+        SQL"""set-s-sbd ${"string"}, $sbd1""".
           execute() aka "execution" must beFalse
     }
 
     "be reordered" in withConnection() { implicit c =>
-      SQL("reorder-s-jbg {b}, {a}").on("a" -> "string", "b" -> jbg1).
+      SQL("reorder-s-jbd {b}, {a}").on("a" -> "string", "b" -> jbd1).
         aka("query") must beLike {
           case q @ SimpleSql(
-            SqlQuery("reorder-s-jbg %s, %s", List("b", "a"), _),
+            SqlQuery("reorder-s-jbd %s, %s", List("b", "a"), _),
             ps, _) if (ps.contains("a") && ps.contains("b")) =>
             q.execute() aka "execution" must beFalse
 
@@ -276,13 +292,13 @@ object ParameterSpec extends org.specs2.mutable.Specification {
     }
 
     "be defined Java big decimal option" in withConnection() { implicit c =>
-      SQL("set-some-jbg {p}").on("p" -> Some(jbg1)).
+      SQL("set-some-jbd {p}").on("p" -> Some(jbd1)).
         execute() aka "execution" must beFalse
 
     }
 
     "be defined Scala big decimal option" in withConnection() { implicit c =>
-      SQL("set-some-sbg {p}").on("p" -> Some(sbg1)).
+      SQL("set-some-sbd {p}").on("p" -> Some(sbd1)).
         execute() aka "execution" must beFalse
 
     }
@@ -431,12 +447,20 @@ object ParameterSpec extends org.specs2.mutable.Specification {
       SQL("set-double {p}").onParams(pv(23.456d)).execute() must beFalse
     }
 
+    "be one Java big integer" in withConnection() { implicit c =>
+      SQL("set-jbi {p}").onParams(pv(jbi1)).execute() must beFalse
+    }
+
+    "be one Scala big integer" in withConnection() { implicit c =>
+      SQL("set-sbi {p}").onParams(pv(sbi1)).execute() must beFalse
+    }
+
     "be one Java big decimal" in withConnection() { implicit c =>
-      SQL("set-jbg {p}").onParams(pv(jbg1)).execute() must beFalse
+      SQL("set-jbd {p}").onParams(pv(jbd1)).execute() must beFalse
     }
 
     "be one Scala big decimal" in withConnection() { implicit c =>
-      SQL("set-sbg {p}").onParams(pv(sbg1)).execute() must beFalse
+      SQL("set-sbd {p}").onParams(pv(sbd1)).execute() must beFalse
     }
 
     "be one date" in withConnection() { implicit c =>
@@ -460,10 +484,10 @@ object ParameterSpec extends org.specs2.mutable.Specification {
 
     "be multiple (string, Java big decimal)" in withConnection() {
       implicit c =>
-        SQL("set-s-jbg {a}, {b}").onParams(pv("string"), pv(jbg1)).
+        SQL("set-s-jbd {a}, {b}").onParams(pv("string"), pv(jbd1)).
           aka("query") must beLike {
             case q @ SimpleSql(
-              SqlQuery("set-s-jbg %s, %s", List("a", "b"), _), ps, _) if (
+              SqlQuery("set-s-jbd %s, %s", List("a", "b"), _), ps, _) if (
               ps.contains("a") && ps.contains("b")) =>
               q.execute() aka "execution" must beFalse
 
@@ -472,7 +496,7 @@ object ParameterSpec extends org.specs2.mutable.Specification {
 
     "be multiple (string, Scala big decimal)" in withConnection() {
       implicit c =>
-        SQL("set-s-sbg {a}, {b}").onParams(pv("string"), pv(sbg1)).
+        SQL("set-s-sbd {a}, {b}").onParams(pv("string"), pv(sbd1)).
           execute() aka "execution" must beFalse
 
     }
@@ -491,13 +515,13 @@ object ParameterSpec extends org.specs2.mutable.Specification {
     }
 
     "be defined Java big decimal option" in withConnection() { implicit c =>
-      SQL("set-some-jbg {p}").
-        onParams(pv(Some(jbg1))).execute() aka "execute" must beFalse
+      SQL("set-some-jbd {p}").
+        onParams(pv(Some(jbd1))).execute() aka "execute" must beFalse
 
     }
 
     "be defined Scala big decimal option" in withConnection() { implicit c =>
-      SQL("set-some-sbg {p}").onParams(pv(Some(sbg1))).
+      SQL("set-some-sbd {p}").onParams(pv(Some(sbd1))).
         execute() aka "execute" must beFalse
 
     }

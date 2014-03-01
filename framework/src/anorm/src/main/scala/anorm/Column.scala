@@ -38,6 +38,16 @@ object Column {
       }
     }
 
+  /**
+   * Column conversion to character.
+   *
+   * {{{
+   * import anorm.SqlParser.scalar
+   * import anorm.Column.columnToChar
+   *
+   * val c: Char = SQL("SELECT char FROM tbl").as(scalar[Char].single)
+   * }}}
+   */
   implicit val columnToChar: Column[Char] = nonNull[Char] { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
@@ -127,9 +137,30 @@ object Column {
     }
   }
 
-  implicit val columnToBigInteger: Column[BigInteger] =
-    nonNull(anyToBigInteger)
+  /**
+   * Column conversion to Java big integer.
+   *
+   * {{{
+   * import anorm.SqlParser.scalar
+   * import anorm.Column.columnToScalaBigInteger
+   *
+   * val c: BigInteger =
+   *   SQL("SELECT COUNT(*) FROM tbl").as(scalar[BigInteger].single)
+   * }}}
+   */
+  implicit val columnToBigInteger: Column[BigInteger] = nonNull(anyToBigInteger)
 
+  /**
+   * Column conversion to big integer.
+   *
+   * {{{
+   * import anorm.SqlParser.scalar
+   * import anorm.Column.columnToBigInt
+   *
+   * val c: BigInt =
+   *   SQL("SELECT COUNT(*) FROM tbl").as(scalar[BigInt].single)
+   * }}}
+   */
   implicit val columnToBigInt: Column[BigInt] =
     nonNull((value, meta) => anyToBigInteger(value, meta).map(BigInt(_)))
 
@@ -152,9 +183,32 @@ object Column {
     }
   }
 
+  /**
+   * Column conversion to Java big decimal.
+   *
+   * {{{
+   * import java.math.{ BigDecimal => JBigDecimal }
+   * import anorm.SqlParser.scalar
+   * import anorm.Column.columnToJavaBigDecimal
+   *
+   * val c: JBigDecimal =
+   *   SQL("SELECT COUNT(*) FROM tbl").as(scalar[JBigDecimal].single)
+   * }}}
+   */
   implicit val columnToJavaBigDecimal: Column[JBigDec] =
     nonNull(anyToBigDecimal)
 
+  /**
+   * Column conversion to big decimal.
+   *
+   * {{{
+   * import anorm.SqlParser.scalar
+   * import anorm.Column.columnToScalaBigDecimal
+   *
+   * val c: BigDecimal =
+   *   SQL("SELECT COUNT(*) FROM tbl").as(scalar[BigDecimal].single)
+   * }}}
+   */
   implicit val columnToScalaBigDecimal: Column[BigDecimal] =
     nonNull((value, meta) =>
       anyToBigDecimal(value, meta).map(BigDecimal(_)))
