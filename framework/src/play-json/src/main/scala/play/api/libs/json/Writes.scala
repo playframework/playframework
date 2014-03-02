@@ -240,5 +240,12 @@ trait DefaultWrites {
     def writes(d: java.sql.Date): JsValue = JsString(new java.text.SimpleDateFormat(pattern).format(d))
   }
 
+  /**
+   * Serializer for java.util.UUID
+   */
+  implicit object UuidWrites extends Writes[java.util.UUID] {
+    def writes(u: java.util.UUID) = JsString(u.toString())
+  }
+
 }
 

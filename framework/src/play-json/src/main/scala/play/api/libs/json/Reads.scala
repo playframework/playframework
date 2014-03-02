@@ -487,4 +487,31 @@ trait DefaultReads {
     def reads(json: JsValue) = json.validate[List[T]].map(_.toArray)
   }
 
+  /**
+   * Deserializer for java.util.UUID
+   */
+  def uuidReader(checkUuuidValidity: Boolean = false): Reads[java.util.UUID] = new Reads[java.util.UUID] {
+    import java.util.UUID
+    import scala.util.Try
+    def check(s: String)(u: UUID): Boolean = (u != null && s == u.toString())
+    def parseUuid(s: String): Option[UUID] = {
+      val uncheckedUuid = Try(UUID.fromString(s)).toOption
+
+      if (checkUuuidValidity) {
+        uncheckedUuid filter check(s)
+      } else {
+        uncheckedUuid
+      }
+    }
+
+    def reads(json: JsValue) = json match {
+      case JsString(s) => {
+        parseUuid(s).map(JsSuccess(_)).getOrElse(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.uuid")))))
+      }
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.uuid"))))
+    }
+  }
+
+  implicit val uuidReads: Reads[java.util.UUID] = uuidReader()
+
 }
