@@ -7,6 +7,7 @@ import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
 import com.typesafe.tools.mima.plugin.MimaKeys.{previousArtifact, binaryIssueFilters}
 import com.typesafe.tools.mima.core._
 import com.typesafe.sbt.SbtScalariform.defaultScalariformSettings
+import scala.util.Properties.isJavaAtLeast
 
 object BuildSettings {
   import Resolvers._
@@ -47,15 +48,19 @@ object BuildSettings {
     scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersion),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
     publishTo := Some(publishingMavenRepository),
-    javacOptions ++= Seq("-source", "1.6", "-target", "1.6", "-encoding", "UTF-8", "-Xlint:-options"),
+    javacOptions ++= makeJavacOptions("1.6"),
     javacOptions in doc := Seq("-source", "1.6"),
     resolvers ++= typesafeResolvers,
     fork in Test := true,
     testListeners in (Test,test) := Nil,
+    javacOptions in Test := { if (isJavaAtLeast("1.8")) makeJavacOptions("1.8") else makeJavacOptions("1.6") },
+    unmanagedSourceDirectories in Test ++= { if (isJavaAtLeast("1.8")) Seq((sourceDirectory in Test).value / "java8") else Nil },
     testOptions in Test += Tests.Filter(!_.endsWith("Benchmark")),
     testOptions in PerformanceTest ~= (_.filterNot(_.isInstanceOf[Tests.Filter]) :+ Tests.Filter(_.endsWith("Benchmark"))),
     parallelExecution in PerformanceTest := false
   )
+
+  def makeJavacOptions(version: String) = Seq("-source", version, "-target", version, "-encoding", "UTF-8", "-Xlint:-options")
 
   val dontPublishSettings = Seq(
     publishArtifact := false,
