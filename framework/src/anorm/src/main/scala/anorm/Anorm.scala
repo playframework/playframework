@@ -264,67 +264,6 @@ case class SimpleSql[T](sql: SqlQuery, params: Map[String, ParameterValue], defa
 
 }
 
-case class BatchSql(sql: SqlQuery, params: Seq[Map[String, ParameterValue]]) {
-  def addBatch(args: NamedParameter*): BatchSql =
-    copy(params = this.params :+ (args.foldLeft(Map[String, ParameterValue]())(
-      (m, np) => m + np.tupled)))
-
-  def addBatchList(paramsMap: TraversableOnce[Seq[NamedParameter]]): BatchSql =
-    copy(params = this.params ++ paramsMap.map(_.foldLeft(Map[String, ParameterValue]()) { (m, p) =>
-      m + p.tupled
-    }))
-
-  def addBatchParams(args: ParameterValue*): BatchSql =
-    copy(params = this.params :+ Sql.
-      zipParams(sql.argsInitialOrder, args, Map.empty))
-
-  def addBatchParamsList(paramsSeqList: TraversableOnce[Seq[ParameterValue]]): BatchSql = copy(params = this.params ++ paramsSeqList.map(Sql.zipParams(sql.argsInitialOrder, _, Map.empty)))
-
-  /** Add batch parameters to given statement. */
-  private def addBatchParams(stmt: PreparedStatement, ps: Seq[(Int, ParameterValue)]): PreparedStatement = {
-    ps foreach { p =>
-      val (i, v) = p
-      v.set(stmt, i + 1)
-    }
-    stmt.addBatch()
-    stmt
-  }
-
-  @annotation.tailrec
-  private def fill(con: Connection, statement: PreparedStatement, getGeneratedKeys: Boolean = false, pm: Seq[Map[String, ParameterValue]]): PreparedStatement =
-    (statement, pm.headOption) match {
-      case (null, Some(ps)) => { // First
-        val st: (String, Seq[(Int, ParameterValue)]) =
-          Sql.prepareQuery(sql.query, 0, sql.argsInitialOrder.map(ps), Nil)
-
-        val stmt = if (getGeneratedKeys) con.prepareStatement(sql.query, java.sql.Statement.RETURN_GENERATED_KEYS) else con.prepareStatement(sql.query)
-
-        sql.queryTimeout.foreach(timeout => stmt.setQueryTimeout(timeout))
-
-        fill(con, addBatchParams(stmt, st._2), getGeneratedKeys, pm.tail)
-      }
-      case (stmt, Some(ps)) => {
-        val vs: Seq[(Int, ParameterValue)] =
-          Sql.prepareQuery(sql.query, 0, sql.argsInitialOrder.map(ps), Nil)._2
-
-        fill(con, addBatchParams(stmt, vs), getGeneratedKeys, pm.tail)
-      }
-      case _ => statement
-    }
-
-  def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false) = fill(connection, null, getGeneratedKeys, params)
-
-  @deprecated(message = "Use [[getFilledStatement]]", since = "2.3.0")
-  def filledStatement(implicit connection: Connection) =
-    getFilledStatement(connection)
-
-  def execute()(implicit connection: Connection): Array[Int] =
-    getFilledStatement(connection).executeBatch()
-
-  def withQueryTimeout(seconds: Option[Int]): BatchSql =
-    copy(sql = sql.withQueryTimeout(seconds))
-}
-
 sealed trait Sql {
 
   def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false): PreparedStatement

@@ -21,12 +21,6 @@ object StatementParserSpec extends org.specs2.mutable.Specification {
         SQL("SELECT name FROM t WHERE id = {id}").apply().
           aka("query") must throwA[java.util.NoSuchElementException]
     }
-
-    "detect missing update parameter" in withQueryResult(stringList :+ "test") {
-      implicit con =>
-        SQL("EXEC proc {lang}, {c}").asBatch.addBatch("lang" -> "en").
-          execute() aka "execute" must throwA[java.util.NoSuchElementException]
-    }
   }
 
   "Value" should {
