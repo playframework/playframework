@@ -59,7 +59,7 @@ object Application extends Controller {
         Tasks.renameFolder, Tasks.deleteFolder, Tasks.index,
         Tasks.add, Tasks.update, Tasks.delete
       )
-    ).as("text/javascript") 
+    )
   }
 
 }
