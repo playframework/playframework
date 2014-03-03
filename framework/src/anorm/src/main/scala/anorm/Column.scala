@@ -159,10 +159,22 @@ object Column {
     nonNull((value, meta) =>
       anyToBigDecimal(value, meta).map(BigDecimal(_)))
 
+  /**
+   * Parses column as Java Date.
+   * Time zone offset is the one of default JVM time zone
+   * (see [[java.util.TimeZone.getDefault]]).
+   *
+   * {{{
+   * import java.util.Date
+   *
+   * val d: Date = SQL("SELECT last_mod FROM tbl").as(scalar[Date].single)
+   * }}}
+   */
   implicit val columnToDate: Column[Date] = nonNull { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case date: Date => Right(date)
+      case time: Long => Right(new Date(time))
       case _ => Left(TypeDoesNotMatch("Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to Date for column $qualified"))
     }
   }
