@@ -3,7 +3,20 @@ package anorm
 import javax.sql.rowset.serial.SerialClob
 
 import acolyte.QueryResult
-import acolyte.RowLists._
+import acolyte.RowLists.{
+  bigDecimalList,
+  byteList,
+  dateList,
+  doubleList,
+  floatList,
+  intList,
+  stringList,
+  longList,
+  rowList1,
+  shortList,
+  timeList,
+  timestampList
+}
 import acolyte.Acolyte.{ connection, handleQuery }
 import acolyte.Implicits._
 
@@ -244,6 +257,30 @@ object ColumnSpec extends org.specs2.mutable.Specification {
       implicit con =>
         SQL("SELECT bi").as(scalar[BigInt].single).
           aka("parsed int") must_== BigInt(2)
+
+    }
+  }
+
+  "Column mapped as date" should {
+    val time = System.currentTimeMillis
+
+    "be parsed from date" in withQueryResult(
+      dateList :+ new java.sql.Date(time)) { implicit con =>
+        SQL("SELECT d").as(scalar[java.util.Date].single).
+          aka("parsed date") must_== new java.util.Date(time)
+      }
+
+    "be parsed from timestamp" in withQueryResult(
+      timestampList :+ new java.sql.Timestamp(time)) { implicit con =>
+        SQL("SELECT ts").as(scalar[java.util.Date].single).
+          aka("parsed date") must beLike {
+            case d => d.getTime aka "time" must_== time
+          }
+      }
+
+    "be parsed from time" in withQueryResult(longList :+ time) { implicit con =>
+      SQL("SELECT time").as(scalar[java.util.Date].single).
+        aka("parsed date") must_== new java.util.Date(time)
 
     }
   }
