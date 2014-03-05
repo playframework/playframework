@@ -1,5 +1,5 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
-# The Play JSON library Basics
+# The Play JSON Library Basics
 
 ## Overview
 
