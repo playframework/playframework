@@ -494,7 +494,11 @@ public class Constraints {
         }
 
         public Tuple<String, Object[]> getErrorMessageKey() {
-            return Tuple(message, new Object[] {});
+            try {
+                return validator.getErrorMessageKey();
+            } catch(Exception e) {
+                throw new RuntimeException(e);
+            }
         }
 
     }
