@@ -208,16 +208,17 @@ This is important in a couple of cases.  WS has a couple of limitations that req
 * `WS` does not support multi part form upload directly.  You can use the underlying client with [RequestBuilder.addBodyPart](http://asynchttpclient.github.io/async-http-client/apidocs/com/ning/http/client/RequestBuilder.html).
 * `WS` does not support client certificates (aka mutual TLS / MTLS / client authentication).  You should set the `SSLContext` directly in an instance of [AsyncHttpClientConfig](http://asynchttpclient.github.io/async-http-client/apidocs/com/ning/http/client/AsyncHttpClientConfig.html) and set up the appropriate KeyStore and TrustStore.
 
-## Configuring WS 
+## Configuring WS
 
 Use the following properties to configure the WS client
 
 * `ws.followRedirects` configures the client to follow 301 and 302 redirects
-* `ws.useProxyProperties`to use the system http proxy settings(http.proxyHost, http.proxyPort) 
+* `ws.useProxyProperties`to use the system http proxy settings(http.proxyHost, http.proxyPort)
 * `ws.useragent` to configure the User-Agent header field
 * `ws.acceptAnyCertificate` set it to false to use the default SSLContext
+* `ws.compressionEnable` set it to true to use gzip/deflater encoding
 
- 
+
 ### Timeouts
 
 There are 3 different timeouts in WS. Reaching a timeout causes the WS request to interrupt.
