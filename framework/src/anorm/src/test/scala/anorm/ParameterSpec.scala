@@ -39,10 +39,14 @@ object ParameterSpec extends org.specs2.mutable.Specification {
       DParam("string", SqlStr) :: Nil) => 1 /* case ok */
     case UpdateExecution("set-char ?",
       DParam("x", SqlStr) :: Nil) => 1 /* case ok */
+    case UpdateExecution("set-null-char ?",
+      DParam(null, t) :: Nil) if (t.sqlTypeName == "CHAR") => 1 /* case ok */
     case UpdateExecution("set-false ?",
       DParam(false, SqlBool) :: Nil) => 1 /* case ok */
     case UpdateExecution("set-true ?",
       DParam(true, SqlBool) :: Nil) => 1 /* case ok */
+    case UpdateExecution("set-null-bool ?",
+      DParam(null, SqlBool) :: Nil) => 1 /* case ok */
     case UpdateExecution("set-int ?",
       DParam(2, SqlInt) :: Nil) => 1 /* case ok */
     case UpdateExecution("set-short ?",
@@ -134,12 +138,18 @@ object ParameterSpec extends org.specs2.mutable.Specification {
     }
 
     "be character 'x'" in withConnection() { implicit c =>
-      SQL("set-char {b}").on('b -> new java.lang.Character('x')).
+      (SQL("set-char {b}").on('b -> new java.lang.Character('x')).
         aka("query") must beLike {
           case q @ SimpleSql( // check accross construction
             SqlQuery("set-char %s", List("b"), _), ps, _) if (
             ps contains "b") => q.execute() aka "execution" must beFalse
-        }
+        }).and(SQL("set-char {b}").on('b -> Character.valueOf('x')).
+          execute() aka "execution" must beFalse)
+    }
+
+    "be null character" in withConnection() { implicit c =>
+      SQL("set-null-char {p}").on("p" -> null.asInstanceOf[Character]).
+        execute() must beFalse
     }
 
     "be boolean true" in withConnection() { implicit c =>
@@ -150,6 +160,11 @@ object ParameterSpec extends org.specs2.mutable.Specification {
     "be boolean false" in withConnection() { implicit c =>
       (SQL("set-false {p}").on("p" -> false).execute() must beFalse).
         and(SQL("set-false {p}").on("p" -> JBool.FALSE).execute() must beFalse)
+    }
+
+    "be boolean NULL" in withConnection() { implicit c =>
+      SQL("set-null-bool {p}").on('p -> null.asInstanceOf[JBool]).execute().
+        aka("execution") must beFalse
     }
 
     "be int" in withConnection() { implicit c =>
