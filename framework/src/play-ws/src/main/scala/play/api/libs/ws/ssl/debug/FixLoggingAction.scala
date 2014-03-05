@@ -7,7 +7,6 @@ package play.api.libs.ws.ssl.debug
 
 import java.lang.reflect.Field
 import java.security.PrivilegedExceptionAction
-import scala.reflect.ClassTag
 
 /**
  * A privileged action that will find relevant classes containing static final fields of type T and replace
