@@ -186,6 +186,9 @@ Using for comprehensions is a good way to chain WS calls in a trusted environmen
 You can compose several promises and end with a `Future[Result]` that can be handled directly by the Play server, using the `Action.async` builder defined in [[Handling Asynchronous Results|ScalaAsync]].
 
 ```scala
+import play.api.Play.current
+import play.api.libs.concurrent.Execution.Implicits._
+
 def feedTitle(feedUrl: String) = Action.async {
   WS.url(feedUrl).get().map { response =>
     Ok("Feed title: " + (response.json \ "title").as[String])
