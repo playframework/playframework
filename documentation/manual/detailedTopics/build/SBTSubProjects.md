@@ -20,7 +20,7 @@ playScalaSettings
 
 lazy val myFirstApplication = project.in(file("."))
     .aggregate(myLibrary)
-    .depends(myLibrary)
+    .dependsOn(myLibrary)
 
 lazy val myLibrary = project
 ```
