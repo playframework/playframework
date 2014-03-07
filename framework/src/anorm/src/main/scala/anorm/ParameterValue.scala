@@ -35,8 +35,12 @@ sealed trait ParameterValue {
  * }}}
  */
 object ParameterValue {
-  def apply[A](value: A, s: ToSql[A], toStmt: ToStatement[A]) =
-    new ParameterValue {
+  private[anorm] trait Wrapper[T] { def value: T }
+
+  def apply[A](v: A, s: ToSql[A], toStmt: ToStatement[A]) =
+    new ParameterValue with Wrapper[A] {
+      val value = v
+
       def toSql(stmt: String, o: Int): (String, Int) = {
         val frag: (String, Int) =
           if (s == null) ("?" -> 1) else s.fragment(value)
@@ -47,5 +51,13 @@ object ParameterValue {
       }
 
       def set(s: PreparedStatement, i: Int) = toStmt.set(s, i, value)
+
+      override lazy val toString = s"ParameterValue($value)"
+      override lazy val hashCode = value.hashCode
+
+      override def equals(that: Any) = that match {
+        case o: Wrapper[A] => (o.value == value)
+        case _ => false
+      }
     }
 }
