@@ -1,11 +1,10 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
-### Working with Json
-
-- [[Play Json Basics | ScalaJson]]
-- [[Json Reads/Writes/Format Combinators | ScalaJsonCombinators]]
-- [[Json Transformers | ScalaJsonTransformers]]
-- [[Json Macro Inception | ScalaJsonInception]]
-- [[Handling and serving Json requests | ScalaJsonRequests]]
+### Working with JSON
+- [[JSON basics | ScalaJson]]
+- [[JSON with HTTP | ScalaJsonHttp]]
+- [[JSON Reads/Writes/Format Combinators | ScalaJsonCombinators]]
+- [[JSON Transformers | ScalaJsonTransformers]]
+- [[JSON Macro Inception | ScalaJsonInception]]
 
 ### Main concepts
 
