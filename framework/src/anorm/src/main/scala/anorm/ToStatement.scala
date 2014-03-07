@@ -11,7 +11,7 @@ import java.lang.{
   Short => JShort
 }
 
-import java.sql.PreparedStatement
+import java.sql.{ PreparedStatement, Types }
 
 /** Sets value as statement parameter. */
 trait ToStatement[A] {
@@ -26,7 +26,6 @@ trait ToStatement[A] {
  * Provided conversions to set statement parameter.
  */
 object ToStatement { // TODO: Scaladoc
-
   /**
    * Sets boolean value on statement.
    *
@@ -47,7 +46,8 @@ object ToStatement { // TODO: Scaladoc
    * }}}
    */
   implicit object javaBooleanToStatement extends ToStatement[JBool] {
-    def set(s: PreparedStatement, i: Int, b: JBool): Unit = s.setBoolean(i, b)
+    def set(s: PreparedStatement, i: Int, b: JBool): Unit =
+      if (b != null) s.setBoolean(i, b) else s.setNull(i, Types.BOOLEAN)
   }
 
   /**
@@ -69,7 +69,8 @@ object ToStatement { // TODO: Scaladoc
    * }}}
    */
   implicit object javaByteToStatement extends ToStatement[JByte] {
-    def set(s: PreparedStatement, i: Int, b: JByte): Unit = s.setByte(i, b)
+    def set(s: PreparedStatement, i: Int, b: JByte): Unit =
+      if (b != null) s.setByte(i, b) else s.setNull(i, Types.SMALLINT)
   }
 
   implicit object doubleToStatement extends ToStatement[Double] {
@@ -77,7 +78,8 @@ object ToStatement { // TODO: Scaladoc
   }
 
   implicit object javaDoubleToStatement extends ToStatement[JDouble] {
-    def set(s: PreparedStatement, i: Int, d: JDouble): Unit = s.setDouble(i, d)
+    def set(s: PreparedStatement, i: Int, d: JDouble): Unit =
+      if (d != null) s.setDouble(i, d) else s.setNull(i, Types.DOUBLE)
   }
 
   implicit object floatToStatement extends ToStatement[Float] {
@@ -85,7 +87,8 @@ object ToStatement { // TODO: Scaladoc
   }
 
   implicit object javaFloatToStatement extends ToStatement[JFloat] {
-    def set(s: PreparedStatement, i: Int, f: JFloat): Unit = s.setFloat(i, f)
+    def set(s: PreparedStatement, i: Int, f: JFloat): Unit =
+      if (f != null) s.setFloat(i, f) else s.setNull(i, Types.FLOAT)
   }
 
   implicit object longToStatement extends ToStatement[Long] {
@@ -93,7 +96,8 @@ object ToStatement { // TODO: Scaladoc
   }
 
   implicit object javaLongToStatement extends ToStatement[JLong] {
-    def set(s: PreparedStatement, i: Int, l: JLong): Unit = s.setLong(i, l)
+    def set(s: PreparedStatement, i: Int, l: JLong): Unit =
+      if (l != null) s.setLong(i, l) else s.setNull(i, Types.BIGINT)
   }
 
   implicit object intToStatement extends ToStatement[Int] {
@@ -101,7 +105,8 @@ object ToStatement { // TODO: Scaladoc
   }
 
   implicit object integerToStatement extends ToStatement[Integer] {
-    def set(s: PreparedStatement, i: Int, v: Integer): Unit = s.setInt(i, v)
+    def set(s: PreparedStatement, i: Int, v: Integer): Unit =
+      if (v != null) s.setInt(i, v) else s.setNull(i, Types.INTEGER)
   }
 
   implicit object shortToStatement extends ToStatement[Short] {
@@ -109,23 +114,25 @@ object ToStatement { // TODO: Scaladoc
   }
 
   implicit object javaShortToStatement extends ToStatement[JShort] {
-    def set(s: PreparedStatement, i: Int, v: JShort): Unit = s.setShort(i, v)
+    def set(s: PreparedStatement, i: Int, v: JShort): Unit =
+      if (v != null) s.setShort(i, v) else s.setNull(i, Types.SMALLINT)
+  }
+
+  @inline private def setChar(s: PreparedStatement, i: Int, ch: Character) {
+    if (ch != null) s.setString(i, ch.toString) else s.setNull(i, Types.CHAR)
   }
 
   implicit object characterToStatement extends ToStatement[Character] {
-    def set(s: PreparedStatement, i: Int, v: Character): Unit =
-      s.setString(i, v.toString)
-
+    def set(s: PreparedStatement, i: Int, v: Character) = setChar(s, i, v)
   }
 
   implicit object stringToStatement extends ToStatement[String] {
-    def set(s: PreparedStatement, index: Int, str: String): Unit =
-      s.setString(index, str)
+    def set(s: PreparedStatement, i: Int, str: String): Unit =
+      if (str != null) s.setString(i, str) else s.setNull(i, Types.VARCHAR)
   }
 
   implicit object charToStatement extends ToStatement[Char] {
-    def set(s: PreparedStatement, index: Int, ch: Char): Unit =
-      s.setString(index, Character.toString(ch))
+    def set(s: PreparedStatement, i: Int, ch: Char): Unit = setChar(s, i, ch)
   }
 
   /**
