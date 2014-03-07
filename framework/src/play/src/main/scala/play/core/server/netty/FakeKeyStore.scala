@@ -12,6 +12,7 @@ import java.security.cert.X509Certificate
 import java.io.{ File, FileInputStream, FileOutputStream }
 import javax.net.ssl.KeyManagerFactory
 import scala.util.control.NonFatal
+import scala.util.Properties.isJavaAtLeast
 
 /**
  * A fake key store
@@ -70,9 +71,12 @@ object FakeKeyStore {
     certInfo.set(X509CertInfo.VALIDITY, validity)
 
     // Subject and issuer
+    // Note: CertificateSubjectName and CertificateIssuerName are removed in Java 8
+    // and when setting the subject or issuer just the X500Name should be used.
     val owner = new X500Name(DnName)
-    certInfo.set(X509CertInfo.SUBJECT, new CertificateSubjectName(owner))
-    certInfo.set(X509CertInfo.ISSUER, new CertificateIssuerName(owner))
+    val justName = isJavaAtLeast("1.8")
+    certInfo.set(X509CertInfo.SUBJECT, if (justName) owner else new CertificateSubjectName(owner))
+    certInfo.set(X509CertInfo.ISSUER, if (justName) owner else new CertificateIssuerName(owner))
 
     // Key and algorithm
     certInfo.set(X509CertInfo.KEY, new CertificateX509Key(keyPair.getPublic))

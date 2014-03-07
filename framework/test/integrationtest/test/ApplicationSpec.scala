@@ -6,6 +6,8 @@ package test
 import play.api.test._
 
 import models._
+import play.api.libs.json.Json
+import play.api.libs.json.JsString
 import play.api.mvc.AnyContentAsEmpty
 import module.Routes
 
@@ -171,7 +173,9 @@ class ApplicationSpec extends PlaySpecification with WsTestClient {
     "instantiate controllers" in {
       "Java controller instance" in new WithApplication() {
         val Some(result) = route(FakeRequest(GET, controllers.routes.JavaControllerInstance.index().url))
-        contentAsString(result) must equalTo("{\"peter\":\"foo\",\"yay\":\"value\"}")
+        val json = Json.parse(contentAsString(result))
+        json \ "peter" must equalTo(JsString("foo"))
+        json \ "yay" must equalTo(JsString("value"))
         contentType(result) must equalTo(Some("application/json"))
       }
       "Scala controller instance" in new WithApplication() {

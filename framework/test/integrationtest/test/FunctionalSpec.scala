@@ -86,7 +86,8 @@ class FunctionalSpec extends PlaySpecification {
       browser.title must beNull
 
       browser.goTo("/json_java")
-      browser.pageSource must contain ("{\"peter\":\"foo\",\"yay\":\"value\"}")
+      browser.pageSource must contain ("\"peter\":\"foo\"")
+      browser.pageSource must contain ("\"yay\":\"value\"")
 
       browser.goTo("/json_from_jsobject")
       browser.pageSource must contain ("{\"blah\":\"foo\"}")
