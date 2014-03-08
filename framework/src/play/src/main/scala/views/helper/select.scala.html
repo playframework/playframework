@@ -24,7 +24,7 @@
                 <option class="blank" value="">@defaultValue</option>
             }
             @options.map { v =>
-                <option value="@v._1" @if(values.contains(v._1)){selected}>@v._2</option>
+                <option value="@v._1" @if(values.contains(v._1)){selected="selected"}>@v._2</option>
             }
         </select>
     }}

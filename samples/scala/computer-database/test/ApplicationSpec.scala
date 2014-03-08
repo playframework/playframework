@@ -61,9 +61,9 @@ class ApplicationSpec extends Specification {
         )
         
         status(badDateFormat) must equalTo(BAD_REQUEST)
-        contentAsString(badDateFormat) must contain("""<option value="1" selected>Apple Inc.</option>""")
-        contentAsString(badDateFormat) must contain("""<input type="text" id="introduced" name="introduced" value="badbadbad" >""")
-        contentAsString(badDateFormat) must contain("""<input type="text" id="name" name="name" value="FooBar" >""")
+        contentAsString(badDateFormat) must contain("""<option value="1" selected="selected">Apple Inc.</option>""")
+        contentAsString(badDateFormat) must contain("""<input type="text" id="introduced" name="introduced" value="badbadbad" />""")
+        contentAsString(badDateFormat) must contain("""<input type="text" id="name" name="name" value="FooBar" />""")
         
         val result = controllers.Application.save(
           FakeRequest().withFormUrlEncodedBody("name" -> "FooBar", "introduced" -> "2011-12-24", "company" -> "1")

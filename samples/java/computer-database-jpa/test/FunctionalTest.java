@@ -64,9 +64,9 @@ public class FunctionalTest {
                 );
                 
                 assertThat(status(result)).isEqualTo(BAD_REQUEST);
-                assertThat(contentAsString(result)).contains("<option value=\"1\" selected>Apple Inc.</option>");
-                assertThat(contentAsString(result)).contains("<input type=\"text\" id=\"introduced\" name=\"introduced\" value=\"badbadbad\" >");
-                assertThat(contentAsString(result)).contains("<input type=\"text\" id=\"name\" name=\"name\" value=\"FooBar\" >");
+                assertThat(contentAsString(result)).contains("<option value=\"1\" selected=\"selected\">Apple Inc.</option>");
+                assertThat(contentAsString(result)).contains("<input type=\"text\" id=\"introduced\" name=\"introduced\" value=\"badbadbad\" />");
+                assertThat(contentAsString(result)).contains("<input type=\"text\" id=\"name\" name=\"name\" value=\"FooBar\" />");
                 
                 data.put("introduced", "2011-12-24");
                 
