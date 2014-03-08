@@ -144,7 +144,7 @@
 
 ## JsMessages
 
-* **Wesite:** <https://github.com/julienrf/play-jsmessages>
+* **Website:** <https://github.com/julienrf/play-jsmessages>
 * **Short description:** Allows to compute localized messages on client side.
 
 ## JSON minification Plugin
