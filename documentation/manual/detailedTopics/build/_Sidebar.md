@@ -6,6 +6,7 @@
 - [[Manage application dependencies | SBTDependencies]]
 - [[Working with sub-projects | SBTSubProjects]]
 - [[Improving Compilation Times | CompilationSpeed]]
+- [[Cookbook | SBTCookbook]]
 
 ### Getting started
 
