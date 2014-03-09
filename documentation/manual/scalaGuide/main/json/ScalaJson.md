@@ -1,251 +1,208 @@
-# The Play JSON library Basics
+<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+# JSON basics
 
-## Overview
+Modern web applications often need to parse and generate data in the JSON (JavaScript Object Notation) format. Play supports this via its [JSON library](api/scala/index.html#play.api.libs.json.package).
 
-The recommended way of dealing with JSON is using Play’s typeclass based JSON library, located at ```play.api.libs.json```. 
-
-For parsing JSON strings, Play uses the super-fast Java based JSON library, [Jackson](http://jackson.codehaus.org/).
-
-The benefit of this approach is that both the Java and the Scala side of Play can share the same underlying library (Jackson), while Scala users can enjoy the extra type safety and functional aspects that Play’s JSON support brings to the table.
-
-## JSON is an AST (_Abstract Syntax Tree_)
-
-Take this JSON for example:
+JSON is a lightweight data-interchange format and looks like this:
 
 ```json
-{ 
-  "user": {
-    "name" : "toto",
-    "age" : 25,
-    "email" : "toto@jmail.com",
-    "isAlive" : true,
-    "friend" : {
-  	  "name" : "tata",
-  	  "age" : 20,
-  	  "email" : "tata@coldmail.com"
-    }
-  } 
+{
+  "name" : "Watership Down",
+  "location" : {
+    "lat" : 51.235685,
+    "long" : -1.309197
+  },
+  "residents" : [ {
+    "name" : "Fiver",
+    "age" : 4,
+    "role" : null
+  }, {
+    "name" : "Bigwig",
+    "age" : 6,
+    "role" : "Owsla"
+  } ]
 }
 ```
 
-This can be seen as a tree structure using the two following structures:
+> To learn more about JSON, see [json.org](http://json.org/).
 
-- **JSON object** contains a set of `name` / `value` pairs:
-    - `name` is a String
-    - `value` can be :
-        - string
-        - number
-        - another JSON object
-        - a JSON array
-        - true/false
-        - null
-- **JSON array** is a sequence of values from the previously listed value types.
-
-> If you want to have more info about the exact JSON standard, please go to [json.org](http://json.org/)
-
-
-## Json Data Types
-
-The [`play.api.libs.json`](api/scala/index.html#play.api.libs.json.package) package contains the seven JSON data types, reflecting this structure.
-
-### [`JsObject`](api/scala/index.html#play.api.libs.json.JsObject)
-
-This is a set of name/value pairs as described in the standard, for example:
-
-```json
-{ "name" : "toto", "age" : 45 }
-```
-
-### [`JsNull`](api/scala/index.html#play.api.libs.json.JsNull)
-
-This represents a `null` value in JSON.
-
-### [`JsBoolean`](api/scala/index.html#play.api.libs.json.JsBoolean)
-
-This is a boolean with a value of `true` or `false`.
-
-### [`JsNumber`](api/scala/index.html#play.api.libs.json.JsNumber)
-
-JSON does NOT discriminate `short`, `int`, `long`, `float`, `double` and `BigDecimal`, so it is represented by a `JsNumber` containing a `BigDecimal`.  The Play JSON API brings more type precision when converting to Scala structures.
-
-### [`JsArray`](api/scala/index.html#play.api.libs.json.JsArray)
-
-An array is a sequence of any Json value types (not necessarily the same type), for example:
-
-```
-[ "alpha", "beta", true, 123.44, 334]
-```
-
-### [`JsString`](api/scala/index.html#play.api.libs.json.JsString)
-
-A classic String.
-
-## Other data types
-
-### [`JsUndefined`](api/scala/index.html#play.api.libs.json.JsUndefined)
-
-This is not part of the JSON standard and is only used internally by the API to represent some error nodes in the AST.
+## The Play JSON library
+The [`play.api.libs.json`](api/scala/index.html#play.api.libs.json.package) package contains data structures for representing JSON data
+and utilities for converting between these data structures and other data representations. Types of interest are:
 
 ### [`JsValue`](api/scala/index.html#play.api.libs.json.JsValue)
 
-This is the super type of all the other types.
+This is a trait representing any JSON value. The JSON library has a case class extending `JsValue` to represent each valid JSON type:
 
-## Working with JSON
+- [`JsString`](api/scala/index.html#play.api.libs.json.JsString)
+- [`JsNumber`](api/scala/index.html#play.api.libs.json.JsNumber)
+- [`JsBoolean`](api/scala/index.html#play.api.libs.json.JsBoolean)
+- [`JsObject`](api/scala/index.html#play.api.libs.json.JsObject)
+- [`JsArray`](api/scala/index.html#play.api.libs.json.JsArray)
+- [`JsNull`](api/scala/index.html#play.api.libs.json.JsNull)
 
-The entry point into Play's JSON API is [`play.api.libs.json.Json`](api/scala/index.html#play.api.libs.json.Json$).  It provides the following methods:
+Using the various JSValue types, you can construct a representation of any JSON structure.
 
-- `Json.parse` : parses a string to JsValue
-- `Json.stringify` : stringifies a JsValue using compact printer (NO line feed/indentation)
-- `Json.prettyPrint` : stringifies a JsValue using pretty printer (line feed + indentation)
-- `Json.toJson[T](t: T)(implicit writes: Writes[T])` : tries to convert a Scala structure to a `JsValue` using the resolved implicit `Writes[T]`
-- `Json.fromJson[T](json: JsValue)(implicit reads: Reads[T])` : tries to convert a `JsValue` to a Scala structure using the resolved implicit `Reads[T]`
-- `Json.obj()` : simplified syntax to create a `JsObject`
-- `Json.arr()` : simplified syntax to create a `JsArray`
+### [`Json`](api/scala/index.html#play.api.libs.json.Json$)
+The Json object provides utilities, primarily for conversion to and from JsValue structures.
 
+### [`JsPath`](api/scala/index.html#play.api.libs.json.JsPath)
+Represents a path into a JSValue structure, analogous to XPath for XML. This is used for traversing JsValue structures and in patterns for implicit converters.
 
-## Parsing a JSON String
+## Converting to a JsValue
 
-You can easily parse any JSON string as a `JsValue`:
+### Using string parsing
 
-@[parse-json](code/ScalaJson.scala)
+@[convert-from-string](code/ScalaJsonSpec.scala)
 
-The `json` value that the result was assigned to is used in subsequent code samples below.
+### Using class construction
 
-## Constructing JSON directly
+@[convert-from-classes](code/ScalaJsonSpec.scala)
 
-### Raw way
+`Json.obj` and `Json.arr` can simplify construction a bit. Note that most values don't need to be explicitly wrapped by JsValue classes, the factory methods use implicit conversion (more on this below).
 
-The previous sample Json object can be created in other ways too.  Here is the raw approach:
+@[convert-from-factory](code/ScalaJsonSpec.scala)
 
-@[construct-json-case-class](code/ScalaJson.scala)
+### Using Writes converters
+Scala to JsValue conversion is performed by the utility method `Json.toJson[T](T)(implicit writes: Writes[T])`. This functionality depends on a converter of type [`Writes[T]`](api/scala/index.html#play.api.libs.json.Writes) which can convert a `T` to a `JsValue`. 
 
-### Preferred way
+The Play JSON API provides implicit `Writes` for most basic types, such as `Int`, `Double`, `String`, and `Boolean`. It also supports `Writes` for collections of any type `T` that a `Writes[T]` exists. 
 
-Play also provides a simplified syntax to build your JSON.  The previous JsObject can be constructed using the following:
+@[convert-from-simple](code/ScalaJsonSpec.scala)
 
-@[construct-json-dsl](code/ScalaJson.scala)
+To convert your own models to JsValues, you must define implicit `Writes` converters and provide them in scope.
 
-## Serializing JSON
+@[sample-model](code/ScalaJsonSpec.scala)
 
-Serializing a `JsValue` to its JSON String representation is easy:
+@[convert-from-model](code/ScalaJsonSpec.scala)
 
-@[serialise-json](code/ScalaJson.scala)
+Alternatively, you can define your `Writes` using the combinator pattern:
 
-## Accessing Path in a JSON tree 
+> Note: The combinator pattern is covered in detail in [[JSON Reads/Writes/Formats Combinators|ScalaJsonCombinators]].
 
-As soon as you have a `JsValue` you can navigate into the JSON tree.  The API looks like the one provided to navigate into XML document by Scala using `NodeSeq` except you retrieve `JsValue`.
+@[convert-from-model-prefwrites](code/ScalaJsonSpec.scala)
+
+## Traversing a JsValue structure
+
+You can traverse a `JsValue` structure and extract specific values. The syntax and functionality is similar to Scala XML processing.
+
+> Note: The following examples are applied to the JsValue structure created in previous examples.
 
 ### Simple path `\`
+Applying the `\` operator to a `JsValue` will return the property corresponding to the field argument, supposing this is a JsObject. 
 
-You can navigate through properties in an object using the `\` method:
-
-@[traverse-path](code/ScalaJson.scala)
+@[traverse-simple-path](code/ScalaJsonSpec.scala)
 
 ### Recursive path `\\`
+Applying the `\\` operator will do a lookup for the field in the current object and all descendants.
 
-@[recursive-traverse-path](code/ScalaJson.scala)
+@[traverse-recursive-path](code/ScalaJsonSpec.scala)
 
-## Converting JsValue to Scala Value
+### Index lookup (for JsArrays)
+You can retrieve a value in a `JsArray` using an apply operator with the index number.
 
-While navigating JSON tree, you retrieve `JsValue`, however you may want to convert the JsValue to a Scala type.  For example, you may want a `JsString` to be converted to a `String`, or a `JsNumber` to be converted to a `Long`.
+@[traverse-array-index](code/ScalaJsonSpec.scala)
 
-### Unsafe conversion with `json.as[T]`
+## Converting from a JsValue
 
-The simplest way to convert it to a value is to use the `as[T]` method, like so:
+### Using String utilities
+Minified:
 
-@[as-method](code/ScalaJson.scala)
+@[convert-to-string](code/ScalaJsonSpec.scala)
 
-This method however is unsafe, if the path is not found, or the conversion is not possible, a `JsResultException` is thrown, containing the error.
+```
+{"name":"Watership Down","location":{"lat":51.235685,"long":-1.309197},"residents":[{"name":"Fiver","age":4,"role":null},{"name":"Bigwig","age":6,"role":"Owsla"}]}
+```
+Readable:
 
-> Please note the error that doesn't return `path.not.found` as you may expect. This is a difference from JSON combinators presented later in the doc. 
-> This is due to the fact that `(json \ "user" \ "nameXXX")` returns `JsNull` and the implicit `Reads[String]` here awaits a `JsString` which explains the detected error.
+@[convert-to-string-pretty](code/ScalaJsonSpec.scala)
 
-### Safer conversion with `Option[T]`
-
-The `asOpt[T]` method is like `as[T]`, however it will return `None` instead of throwing an exception if the path isn't found, or the conversion isn't possible:
-
-@[as-opt](code/ScalaJson.scala)
-
-### Safest conversion with `validate[T]`
-
-`asOpt[T]` is better but you lose the kind of error that was detected.  
-
-`validate[T]` is there to provide the safest and most robust way to convert a `JsValue` by returning a `JsResult[T]`:
-
-- `JsResult[T]` accumulates all detected errors (doesn't stop at 1st error),
-- `JsResult[T]` is a monadic structure providing `map`/`flatMap`/`fold` operations to manipulate, compose it.
-
-#### `JsResult[T]` in a nutshell
-
-`JsResult[T]` can have 2 values:
-
-- `JsSuccess[T](value: T, path: JsPath = JsPath())` contains: 
-    - `value: T` when conversion was OK,
-    - FYI, don't focus on `path` which is mainly an internal field used by the API to represent the current traversed `JsPath`.
-
-> Please note : `JsPath` will be described later but it is just the same as `XMLPath` for JSON. 
-> When you write : 
-> `json \ "user" \ "name"`
-> It can be written as following : 
-> `(JsPath \ "user" \ "name")(json)`
-> _You create a `JsPath` to search `user` then `name` and apply it to a given `json`._
-
-- `JsError(errors: Seq[(JsPath, Seq[ValidationError])])` :  
-    - `errors` is a Sequence of pairs `(JsPath, Seq[ValidationError])`
-    - pair `(JsPath, Seq[ValidationError])` locates one or more detected errors at given `JsPath`
-
-So a successful conversion might look like this:
-
-@[validate-success](code/ScalaJson.scala)
-
-If however the path wasn't found, we get this:
-
-@[validate-failure](code/ScalaJson.scala)
-
-Since `map` and `flatMap` are provided, for comprehensions can easily be used to extract values out:
-
-@[validate-compose](code/ScalaJson.scala)
-
-### Converting Recursive path `\\`
- 
-`\\` recursively searches in the sub-tree and returns a `Seq[JsValue]` of found JsValue which is then a collection with classical Scala functions.
-
-@[recursive-as](code/ScalaJson.scala)
-
-## Converting a Scala value to JsValue
-
-Scala to JSON conversion is performed by function `Json.toJson[T](implicit writes: Writes[T])` based on implicit typeclass `Writes[T]` which is just able to convert a `T` to a `JsValue`. 
-
-### Create very simple JsValue
-
-@[convert-simple-type](code/ScalaJson.scala)
-
-*This conversion is possible because Play JSON API provides an implicit `Writes[Int]`*
-
-### Create a JSON array from a `Seq[T]`
-
-@[convert-seq](code/ScalaJson.scala)
-
-*This conversion is possible because Play JSON API provides an implicit `Writes[Seq[Int]]`*
-
-Here we have no problem to convert a `Seq[Int]` into a Json array. However it is more complicated if the `Seq` contains heterogeneous values:
-
-```scala
-import play.api.libs.json._
-
-val jsonArray = Json.toJson(Seq(1, "Bob", 3, 4))
+```
+{
+  "name" : "Watership Down",
+  "location" : {
+    "lat" : 51.235685,
+    "long" : -1.309197
+  },
+  "residents" : [ {
+    "name" : "Fiver",
+    "age" : 4,
+    "role" : null
+  }, {
+    "name" : "Bigwig",
+    "age" : 6,
+    "role" : "Owsla"
+  } ]
+}
 ```
 
-When we try to compile this, we get the following error:
+### Using JsValue.as/asOpt
 
-    No Json deserializer found for type Seq[Any]. Try to implement an implicit Writes or Format for this type.
+The simplest way to convert a `JsValue` to another type is using `JsValue.as[T](implicit fjs: Reads[T]): T`. This requires an implicit converter of type [`Reads[T]`](api/scala/index.html#play.api.libs.json.Reads) to convert a `JsValue` to `T` (the inverse of `Writes[T]`). As with `Writes`, the JSON API provides `Reads` for basic types.
 
-This is because there is no way to convert a `Seq[Any]` to Json (`Any` could be anything including something not supported by Json right?)
+## Converting from a JsValue
 
-A simple solution is to handle it as a `Seq[JsValue]`:
+### Using String utilities
+Minified:
 
-@[convert-hetro-seq](code/ScalaJson.scala)
+@[convert-to-string](code/ScalaJsonSpec.scala)
 
-*This conversion is possible because Play API JSON provides an implicit `Writes[Seq[JsValue]]`*
+```
+{"name":"Watership Down","location":{"lat":51.235685,"long":-1.309197},"residents":[{"name":"Fiver","age":4,"role":null},{"name":"Bigwig","age":6,"role":"Owsla"}]}
+```
+Readable:
 
-> **Next:** [[JSON Reads/Writes/Formats Combinators | ScalaJsonCombinators]]
+@[convert-to-string-pretty](code/ScalaJsonSpec.scala)
+
+```
+{
+  "name" : "Watership Down",
+  "location" : {
+    "lat" : 51.235685,
+    "long" : -1.309197
+  },
+  "residents" : [ {
+    "name" : "Fiver",
+    "age" : 4,
+    "role" : null
+  }, {
+    "name" : "Bigwig",
+    "age" : 6,
+    "role" : "Owsla"
+  } ]
+}
+```
+
+### Using JsValue.as/asOpt
+
+The simplest way to convert a `JsValue` to another type is using `JsValue.as[T](implicit fjs: Reads[T]): T`. This requires an implicit converter of type [`Reads[T]`](api/scala/index.html#play.api.libs.json.Reads) to convert a `JsValue` to `T` (the inverse of `Writes[T]`). As with `Writes`, the JSON API provides `Reads` for basic types.
+
+@[convert-to-type-as](code/ScalaJsonSpec.scala)
+
+The `as` method will throw a `JsResultException` if the path is not found or the conversion is not possible. A safer method is `JsValue.asOpt[T](implicit fjs: Reads[T]): Option[T]`.
+
+@[convert-to-type-as-opt](code/ScalaJsonSpec.scala)
+
+Although the `asOpt` method is safer, any error information is lost.
+
+### Using validation
+The preferred way to convert from a `JsValue` to another type is by using its `validate` method (which takes an argument of type `Reads`). This performs both validation and conversion, returning a type of [`JsResult`](api/scala/index.html#play.api.libs.json.JsResult). `JsResult` is implemented by two classes:
+
+- [`JsSuccess`](api/scala/index.html#play.api.libs.json.JsSuccess) - Represents a successful validation/conversion and wraps the result.
+- [`JsError`](api/scala/index.html#play.api.libs.json.JsError) - Represents unsuccessful validation/conversion and contains a list of validation errors.
+
+You can apply various patterns for handling a validation result:
+
+@[convert-to-type-validate](code/ScalaJsonSpec.scala)
+
+### JsValue to a model
+
+To convert from JsValue to a model, you must define implicit `Reads[T]` where `T` is the type of your model.
+
+> Note: The pattern used to implement `Reads` and custom validation are covered in detail in [[JSON Reads/Writes/Formats Combinators|ScalaJsonCombinators]].
+
+@[sample-model](code/ScalaJsonSpec.scala)
+
+@[convert-to-model](code/ScalaJsonSpec.scala)
+
+> **Next:** [[JSON with HTTP|ScalaJsonHttp]]
