@@ -148,11 +148,21 @@ object PlayBuild extends Build {
   import Generators._
   import Tasks._
 
+  private def scalaXmlModuleDependency: Setting[Seq[ModuleID]] = libraryDependencies := {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      // if scala 2.11+ is used, add dependency on scala-xml module
+      case Some((2, scalaMajor)) if scalaMajor >= 11 =>
+        libraryDependencies.value :+ "org.scala-lang.modules" %% "scala-xml" % "1.0.0"
+      case _ =>
+        libraryDependencies.value
+    }
+  }
+
   lazy val SbtLinkProject = PlaySharedJavaProject("SBT-link", "sbt-link")
     .settings(libraryDependencies := link)
 
   lazy val TemplatesProject = PlayRuntimeProject("Templates", "templates")
-    .settings(libraryDependencies := templatesDependencies)
+    .settings(libraryDependencies := templatesDependencies, scalaXmlModuleDependency)
 
   lazy val RoutesCompilerProject = PlaySbtProject("Routes-Compiler", "routes-compiler")
     .settings(libraryDependencies := routersCompilerDependencies)
