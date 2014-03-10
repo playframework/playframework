@@ -67,6 +67,12 @@ object Dependencies {
     "javax.servlet" % "javax.servlet-api" % "3.0.1") ++
     specsBuild.map(_ % "test")
 
+  val javaTestDeps = Seq(
+    "junit" % "junit" % "4.11" % "test",
+    "com.novocode" % "junit-interface" % "0.10" % "test" exclude("junit", "junit-dep"),
+    "org.easytesting" % "fest-assert" % "1.4" % "test",
+    mockitoAll % "test")
+
   val runtime = Seq(
     "io.netty" % "netty" % "3.7.0.Final",
 
@@ -98,16 +104,14 @@ object Dependencies {
 
     "xerces" % "xercesImpl" % "2.11.0",
 
-    "javax.transaction" % "jta" % "1.1") ++ specsBuild.map(_ % "test") ++ Seq(
+    "javax.transaction" % "jta" % "1.1",
 
-    mockitoAll % "test",
-    "com.novocode" % "junit-interface" % "0.10" % "test" exclude("junit", "junit-dep"),
-    "org.easytesting" % "fest-assert" % "1.4" % "test",
     guava % "test",
 
-    "org.scala-lang" % "scala-reflect" % BuildSettings.buildScalaVersion,
+    "org.scala-lang" % "scala-reflect" % BuildSettings.buildScalaVersion) ++
+    specsBuild.map(_ % "test") ++
+    javaTestDeps
 
-    "junit" % "junit" % "4.11" % "test")
 
   val link = Seq(
     "org.javassist" % "javassist" % "3.18.0-GA")

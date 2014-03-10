@@ -232,7 +232,7 @@ object PlayBuild extends Build {
     ).dependsOn(PlayProject)
 
   lazy val PlayJavaProject = PlayRuntimeProject("Play-Java", "play-java")
-    .settings(libraryDependencies := javaDeps)
+    .settings(libraryDependencies := javaDeps ++ javaTestDeps)
     .dependsOn(PlayProject)
 
   lazy val PlayDocsProject = PlayRuntimeProject("Play-Docs", "play-docs")
