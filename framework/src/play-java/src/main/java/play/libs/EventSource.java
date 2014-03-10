@@ -100,6 +100,43 @@ public abstract class EventSource extends Chunks<String> {
     }
 
     /**
+     * Creates an EventSource. The abstract {@code onConnected} method is
+     * implemented using the specified {@code F.Callback<EventSource>} and
+     * is invoked with {@code EventSource.this}.
+     *
+     * @param callback the callback used to implement onConnected
+     * @return a new EventSource
+     * @throws NullPointerException if the specified callback is null
+     */
+    public static EventSource whenConnected(F.Callback<EventSource> callback) {
+        return new WhenConnectedEventSource(callback);
+    }
+
+    /**
+     * An extension of EventSource that obtains its onConnected from
+     * the specified {@code F.Callback<EventSource>}.
+     */
+    static final class WhenConnectedEventSource extends EventSource {
+
+        private final F.Callback<EventSource> callback;
+
+        WhenConnectedEventSource(F.Callback<EventSource> callback) {
+            super();
+            if (callback == null) throw new NullPointerException("EventSource onConnected callback cannot be null");
+            this.callback = callback;
+        }
+
+        @Override
+        public void onConnected() {
+            try {
+                callback.invoke(this);
+            } catch (Throwable e) {
+                play.Logger.of("play").error("Exception in EventSource.onConnected", e);
+            }
+        }
+    }
+
+    /**
      * Utility class to build events.
      */
     public static class Event {
