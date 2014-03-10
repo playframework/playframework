@@ -71,7 +71,7 @@ Here is another example in which the input data is logged to standard out and br
 
  def index =  WebSocket.using[String] { request =>
  
-   //Concurernt.broadcast returns (Enumerator, Concurrent.Channel)
+   //Concurrent.broadcast returns (Enumerator, Concurrent.Channel)
     val (out,channel) = Concurrent.broadcast[String]
  
     //log the message to stdout and send response back to client
