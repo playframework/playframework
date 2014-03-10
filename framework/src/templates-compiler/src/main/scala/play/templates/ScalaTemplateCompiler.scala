@@ -671,14 +671,14 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
 
           val settings = new Settings
 
-          val scalaObjectSource = Class.forName("scala.ScalaObject").getProtectionDomain.getCodeSource
+          val scalaPredefSource = Class.forName("scala.Predef").getProtectionDomain.getCodeSource
 
           // is null in Eclipse/OSGI but luckily we don't need it there
-          if (scalaObjectSource != null) {
+          if (scalaPredefSource != null) {
             import java.security.CodeSource
             def toAbsolutePath(cs: CodeSource) = new File(cs.getLocation.toURI).getAbsolutePath
             val compilerPath = toAbsolutePath(Class.forName("scala.tools.nsc.Interpreter").getProtectionDomain.getCodeSource)
-            val libPath = toAbsolutePath(scalaObjectSource)
+            val libPath = toAbsolutePath(scalaPredefSource)
             val pathList = List(compilerPath, libPath)
             val origBootclasspath = settings.bootclasspath.value
             settings.bootclasspath.value = ((origBootclasspath :: pathList) ::: additionalClassPathEntry.toList) mkString File.pathSeparator
