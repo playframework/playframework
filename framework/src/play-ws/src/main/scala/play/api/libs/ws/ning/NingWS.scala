@@ -641,6 +641,7 @@ class NingWSAPI(app: Application) extends WSAPI {
       .setRequestTimeoutInMs(playConfig.getMilliseconds("ws.timeout.request").getOrElse(120000L).toInt)
       .setFollowRedirects(playConfig.getBoolean("ws.followRedirects").getOrElse(true))
       .setUseProxyProperties(playConfig.getBoolean("ws.useProxyProperties").getOrElse(true))
+      .setCompressionEnabled(playConfig.getBoolean("ws.compressionEnabled").getOrElse(false))
 
     playConfig.getString("ws.useragent").map {
       useragent =>

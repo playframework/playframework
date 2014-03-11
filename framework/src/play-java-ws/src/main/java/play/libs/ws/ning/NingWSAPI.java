@@ -35,7 +35,8 @@ public class NingWSAPI implements WSAPI {
                 .setIdleConnectionTimeoutInMs(playConfig.getMilliseconds("ws.timeout.idle", 120000L).intValue())
                 .setRequestTimeoutInMs(playConfig.getMilliseconds("ws.timeout.request", 120000L).intValue())
                 .setFollowRedirects(playConfig.getBoolean("ws.followRedirects", true).booleanValue())
-                .setUseProxyProperties(playConfig.getBoolean("ws.useProxyProperties", true));
+                .setUseProxyProperties(playConfig.getBoolean("ws.useProxyProperties", true))
+                .setCompressionEnabled(playConfig.getBoolean("ws.compressionEnabled", false));
 
         String userAgent = playConfig.getString("ws.useragent");
         if (userAgent != null) {

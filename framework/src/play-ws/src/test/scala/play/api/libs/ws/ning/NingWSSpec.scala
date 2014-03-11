@@ -13,6 +13,8 @@ import play.api.mvc._
 import java.util
 import play.api.libs.ws._
 import play.api.test._
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 object NingWSSpec extends PlaySpecification with Mockito {
 
@@ -98,9 +100,6 @@ object NingWSSpec extends PlaySpecification with Mockito {
     })
 
     "support patch method" in new WithServer(patchFakeApp) {
-      import scala.concurrent.Await
-      import scala.concurrent.duration._
-
       // NOTE: if you are using a client proxy like Privoxy or Polipo, your proxy may not support PATCH & return 400.
       val req = WS.url("http://localhost:" + port + "/").patch("body")
 
@@ -108,6 +107,35 @@ object NingWSSpec extends PlaySpecification with Mockito {
 
       rep.status must ===(200)
       (rep.json \ "data").asOpt[String] must beSome("body")
+    }
+
+    def gzipFakeApp = {
+      import java.io._
+      import java.util.zip._
+      FakeApplication(
+        withRoutes = {
+          case ("GET", "/") => Action { request =>
+            request.headers.get("Accept-Encoding") match {
+              case Some(encoding) if encoding.contains("gzip") =>
+                val os = new ByteArrayOutputStream
+                val gzipOs = new GZIPOutputStream(os)
+                gzipOs.write("gziped response".getBytes("utf-8"))
+                gzipOs.close()
+                Results.Ok(os.toByteArray).as("text/plain").withHeaders("Content-Encoding" -> "gzip")
+              case _ =>
+                Results.Ok("plain response")
+            }
+          }
+        },
+        additionalConfiguration = Map("ws.compressionEnabled" -> true)
+      )
+    }
+
+    "support gziped encoding" in new WithServer(gzipFakeApp) {
+
+      val req = WS.url("http://localhost:" + port + "/").get()
+      val rep = await(req)
+      rep.body must ===("gziped response")
     }
   }
 
