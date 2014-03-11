@@ -209,124 +209,137 @@ trait PlayRun extends PlayInternalKeys {
 
         lazy val reloader = newReloader(state, playReload, createReloader, reloaderClasspath, applicationLoader)
 
-        // Now we're about to start, let's call the hooks:
-        hooks.run(_.beforeStarted())
+        try {
+          // Now we're about to start, let's call the hooks:
+          hooks.run(_.beforeStarted())
 
-        // Get a handler for the documentation. The documentation content lives in play/docs/content
-        // within the play-docs JAR.
-        val docsLoader = new URLClassLoader(urls(docsAppClasspath), applicationLoader)
-        val docsJarFile = {
-          val f = docsAppClasspath.map(_.data).filter(_.getName.startsWith("play-docs")).head
-          new JarFile(f)
-        }
-        val sbtDocHandler = {
-          val docHandlerFactoryClass = docsLoader.loadClass("play.docs.SBTDocHandlerFactory")
-          val factoryMethod = docHandlerFactoryClass.getMethod("fromJar", classOf[JarFile], classOf[String])
-          factoryMethod.invoke(null, docsJarFile, "play/docs/content").asInstanceOf[SBTDocHandler]
-        }
-
-        val server = {
-          val mainClass = applicationLoader.loadClass("play.core.server.NettyServer")
-          if (httpPort.isDefined) {
-            val mainDev = mainClass.getMethod("mainDevHttpMode", classOf[SBTLink], classOf[SBTDocHandler], classOf[Int])
-            mainDev.invoke(null, reloader, sbtDocHandler, httpPort.get: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]
-          } else {
-            val mainDev = mainClass.getMethod("mainDevOnlyHttpsMode", classOf[SBTLink], classOf[SBTDocHandler], classOf[Int])
-            mainDev.invoke(null, reloader, sbtDocHandler, httpsPort.get: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]
+          // Get a handler for the documentation. The documentation content lives in play/docs/content
+          // within the play-docs JAR.
+          val docsLoader = new URLClassLoader(urls(docsAppClasspath), applicationLoader)
+          val docsJarFile = {
+            val f = docsAppClasspath.map(_.data).filter(_.getName.startsWith("play-docs")).head
+            new JarFile(f)
           }
-        }
+          val sbtDocHandler = {
+            val docHandlerFactoryClass = docsLoader.loadClass("play.docs.SBTDocHandlerFactory")
+            val factoryMethod = docHandlerFactoryClass.getMethod("fromJar", classOf[JarFile], classOf[String])
+            factoryMethod.invoke(null, docsJarFile, "play/docs/content").asInstanceOf[SBTDocHandler]
+          }
 
-        // Notify hooks
-        hooks.run(_.afterStarted(server.mainAddress))
-
-        println()
-        println(Colors.green("(Server started, use Ctrl+D to stop and go back to the console...)"))
-        println()
-
-        val ContinuousState = AttributeKey[WatchState]("watch state", "Internal: tracks state for continuous execution.")
-        def isEOF(c: Int): Boolean = c == 4
-
-        @tailrec def executeContinuously(watched: Watched, s: State, reloader: SBTLink, ws: Option[WatchState] = None): Option[String] = {
-          @tailrec def shouldTerminate: Boolean = (System.in.available > 0) && (isEOF(System.in.read()) || shouldTerminate)
-
-          val sourcesFinder = PathFinder { watched watchPaths s }
-          val watchState = ws.getOrElse(s get ContinuousState getOrElse WatchState.empty)
-
-          val (triggered, newWatchState, newState) =
-            try {
-              val (triggered, newWatchState) = SourceModificationWatch.watch(sourcesFinder, watched.pollInterval, watchState)(shouldTerminate)
-              (triggered, newWatchState, s)
-            } catch {
-              case e: Exception =>
-                val log = s.log
-                log.error("Error occurred obtaining files to watch.  Terminating continuous execution...")
-                (false, watchState, s.fail)
+          val server = {
+            val mainClass = applicationLoader.loadClass("play.core.server.NettyServer")
+            if (httpPort.isDefined) {
+              val mainDev = mainClass.getMethod("mainDevHttpMode", classOf[SBTLink], classOf[SBTDocHandler], classOf[Int])
+              mainDev.invoke(null, reloader, sbtDocHandler, httpPort.get: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]
+            } else {
+              val mainDev = mainClass.getMethod("mainDevOnlyHttpsMode", classOf[SBTLink], classOf[SBTDocHandler], classOf[Int])
+              mainDev.invoke(null, reloader, sbtDocHandler, httpsPort.get: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]
             }
+          }
 
-          if (triggered) {
-            //Then launch compile
-            Project.synchronized {
-              val start = System.currentTimeMillis
-              SbtProject.runTask(compile in Compile, newState).get._2.toEither.right.map { _ =>
-                val duration = System.currentTimeMillis - start
-                val formatted = duration match {
-                  case ms if ms < 1000 => ms + "ms"
-                  case s => (s / 1000) + "s"
+          // Notify hooks
+          hooks.run(_.afterStarted(server.mainAddress))
+
+          println()
+          println(Colors.green("(Server started, use Ctrl+D to stop and go back to the console...)"))
+          println()
+
+          val ContinuousState = AttributeKey[WatchState]("watch state", "Internal: tracks state for continuous execution.")
+          def isEOF(c: Int): Boolean = c == 4
+
+          @tailrec def executeContinuously(watched: Watched, s: State, reloader: SBTLink, ws: Option[WatchState] = None): Option[String] = {
+            @tailrec def shouldTerminate: Boolean = (System.in.available > 0) && (isEOF(System.in.read()) || shouldTerminate)
+
+            val sourcesFinder = PathFinder { watched watchPaths s }
+            val watchState = ws.getOrElse(s get ContinuousState getOrElse WatchState.empty)
+
+            val (triggered, newWatchState, newState) =
+              try {
+                val (triggered, newWatchState) = SourceModificationWatch.watch(sourcesFinder, watched.pollInterval, watchState)(shouldTerminate)
+                (triggered, newWatchState, s)
+              } catch {
+                case e: Exception =>
+                  val log = s.log
+                  log.error("Error occurred obtaining files to watch.  Terminating continuous execution...")
+                  (false, watchState, s.fail)
+              }
+
+            if (triggered) {
+              //Then launch compile
+              Project.synchronized {
+                val start = System.currentTimeMillis
+                SbtProject.runTask(compile in Compile, newState).get._2.toEither.right.map { _ =>
+                  val duration = System.currentTimeMillis - start
+                  val formatted = duration match {
+                    case ms if ms < 1000 => ms + "ms"
+                    case s => (s / 1000) + "s"
+                  }
+                  println("[" + Colors.green("success") + "] Compiled in " + formatted)
                 }
-                println("[" + Colors.green("success") + "] Compiled in " + formatted)
+              }
+
+              // Avoid launching too much compilation
+              Thread.sleep(Watched.PollDelayMillis)
+
+              // Call back myself
+              executeContinuously(watched, newState, reloader, Some(newWatchState))
+            } else {
+              // Stop
+              Some("Okay, i'm done")
+            }
+          }
+
+          // If we have both Watched.Configuration and Watched.ContinuousState
+          // attributes and if Watched.ContinuousState.count is 1 then we assume
+          // we're in ~ run mode
+          val maybeContinuous = state.get(Watched.Configuration).map { w =>
+            state.get(Watched.ContinuousState).map { ws =>
+              (ws.count == 1, w, ws)
+            }.getOrElse((false, None, None))
+          }.getOrElse((false, None, None))
+
+          val newState = maybeContinuous match {
+            case (true, w: sbt.Watched, ws) => {
+              // ~ run mode
+              interaction doWithoutEcho {
+                executeContinuously(w, state, reloader, Some(WatchState.empty))
+              }
+
+              // Remove state two first commands added by sbt ~
+              state.copy(remainingCommands = state.remainingCommands.drop(2)).remove(Watched.ContinuousState)
+            }
+            case _ => {
+              // run mode
+              interaction.waitForCancel()
+              state
+            }
+          }
+
+          server.stop()
+          docsJarFile.close()
+          reloader.clean()
+
+          // Notify hooks
+          hooks.run(_.afterStopped())
+
+          // Remove Java properties
+          properties.foreach {
+            case (key, _) => System.clearProperty(key)
+          }
+
+          println()
+        } catch {
+          case e: Throwable =>
+            // Let hooks clean up
+            hooks.foreach { hook =>
+              try {
+                hook.onError()
+              } catch {
+                case e: Throwable => // Swallow any exceptions so that all `onError`s get called.
               }
             }
-
-            // Avoid launching too much compilation
-            Thread.sleep(Watched.PollDelayMillis)
-
-            // Call back myself
-            executeContinuously(watched, newState, reloader, Some(newWatchState))
-          } else {
-            // Stop
-            Some("Okay, i'm done")
-          }
+            throw e
         }
-
-        // If we have both Watched.Configuration and Watched.ContinuousState
-        // attributes and if Watched.ContinuousState.count is 1 then we assume
-        // we're in ~ run mode
-        val maybeContinuous = state.get(Watched.Configuration).map { w =>
-          state.get(Watched.ContinuousState).map { ws =>
-            (ws.count == 1, w, ws)
-          }.getOrElse((false, None, None))
-        }.getOrElse((false, None, None))
-
-        val newState = maybeContinuous match {
-          case (true, w: sbt.Watched, ws) => {
-            // ~ run mode
-            interaction doWithoutEcho {
-              executeContinuously(w, state, reloader, Some(WatchState.empty))
-            }
-
-            // Remove state two first commands added by sbt ~
-            state.copy(remainingCommands = state.remainingCommands.drop(2)).remove(Watched.ContinuousState)
-          }
-          case _ => {
-            // run mode
-            interaction.waitForCancel()
-            state
-          }
-        }
-
-        server.stop()
-        docsJarFile.close()
-        reloader.clean()
-
-        // Notify hooks
-        hooks.run(_.afterStopped())
-
-        // Remove Java properties
-        properties.foreach {
-          case (key, _) => System.clearProperty(key)
-        }
-
-        println()
       }
   }
 
