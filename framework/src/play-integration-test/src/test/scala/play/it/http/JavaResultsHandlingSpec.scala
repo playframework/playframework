@@ -4,14 +4,16 @@
 package play.it.http
 
 import play.api.test._
-import play.api.libs.ws.Response
+import play.api.libs.ws.WSResponse
+import play.libs.EventSource
+import play.libs.EventSource.Event
 import play.mvc.Results
 import play.mvc.Results.Chunks
 
 object JavaResultsHandlingSpec extends PlaySpecification with WsTestClient {
 
   "java body handling" should {
-    def makeRequest[T](controller: MockController)(block: Response => T) = {
+    def makeRequest[T](controller: MockController)(block: WSResponse => T) = {
       implicit val port = testServerPort
       running(TestServer(port, FakeApplication(
         withRoutes = {
@@ -55,6 +57,23 @@ object JavaResultsHandlingSpec extends PlaySpecification with WsTestClient {
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
       response.body must_== "abc"
+    }
+
+    "chunk event source results" in makeRequest(new MockController {
+      def action = {
+        Results.ok(new EventSource() {
+          def onConnected(): Unit = {
+            send(Event.event("a"))
+            send(Event.event("b"))
+            close()
+          }
+        })
+      }
+    }) { response =>
+      response.header(CONTENT_TYPE) must beSome("text/event-stream; charset=utf-8")
+      response.header(TRANSFER_ENCODING) must beSome("chunked")
+      response.header(CONTENT_LENGTH) must beNone
+      response.body must_== "data: a\n\ndata: b\n\n"
     }
   }
 }
