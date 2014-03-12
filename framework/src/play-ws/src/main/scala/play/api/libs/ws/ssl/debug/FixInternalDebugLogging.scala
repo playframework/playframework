@@ -11,46 +11,57 @@ import java.security.AccessController
 import scala.util.control.NonFatal
 
 /**
- * This is provided to fix logging (for either
+ * This fixes logging for the SSL Debug class.  It will worth for both Java 1.6 and Java 1.7 VMs.
  */
 object FixInternalDebugLogging {
 
-  private val logger = org.slf4j.LoggerFactory.getLogger("play.api.libs.ssl.debug.FixInternalDebugLogging")
+  private val logger = org.slf4j.LoggerFactory.getLogger("play.api.libs.ws.ssl.debug.FixInternalDebugLogging")
 
   class MonkeyPatchInternalSslDebugAction(val newOptions: String) extends FixLoggingAction {
 
-    val logger = org.slf4j.LoggerFactory.getLogger("play.api.libs.ssl.debug.MonkeyPatchInternalSslDebugAction")
+    val logger = org.slf4j.LoggerFactory.getLogger("play.api.libs.ws.ssl.debug.FixInternalDebugLogging.MonkeyPatchInternalSslDebugAction")
 
-    def initialResource = "/javax/net/ssl/SSLContext.class"
+    val initialResource = foldVersion(
+      run16 = "/javax/net/ssl/SSLContext.class", // in 1.6 the JSSE classes are in rt.jar
+      runHigher = "/sun/security/ssl/Debug.class" // in 1.7 the JSSE classes are in jsse.jar
+    )
+
+    val debugClassName = foldVersion(
+      run16 = "com.sun.net.ssl.internal.ssl.Debug",
+      runHigher = "sun.security.ssl.Debug"
+    )
 
     /**
-     * Returns true if this class has an instance of {{Debug.getInstance("certpath")}}, false otherwise.
+     * Returns true if this class has an instance of the class returned by debugClassName, false otherwise.
      *
      * @param className the name of the class.
      * @return true if this class should be returned in the set of findClasses, false otherwise.
      */
     def isValidClass(className: String): Boolean = {
-      className.startsWith("com.sun.net.ssl.internal.ssl") || className.startsWith("sun.security.ssl")
+      if (className.startsWith("com.sun.net.ssl.internal.ssl")) return true
+      if (className.startsWith("sun.security.ssl")) return true
+      false
     }
 
+    /**
+     * Returns true if newOptions is not null and newOptions is not empty.  If false, then debug values
+     * @return
+     */
+    def isUsingDebug: Boolean = (newOptions != null) && (!newOptions.isEmpty)
+
     def run() {
-      val debugType: Class[_] = {
-        val debugClassName = foldVersion(
-          run16 = "com.sun.net.ssl.internal.ssl.Debug",
-          runHigher = "sun.security.ssl.Debug"
-        )
-        Thread.currentThread().getContextClassLoader.loadClass(debugClassName)
-      }
+      System.setProperty("javax.net.debug", newOptions)
+
+      val debugType: Class[_] = Thread.currentThread().getContextClassLoader.loadClass(debugClassName)
 
       val newDebug: AnyRef = debugType.newInstance().asInstanceOf[AnyRef]
       logger.debug(s"run: debugType = $debugType")
-
+      val debugValue = if (isUsingDebug) newDebug else null
       for (debugClass <- findClasses) {
         for (debugField <- debugClass.getDeclaredFields) {
           if (isValidField(debugField, debugType)) {
-            logger.debug(s"run: Patching field $debugField in class $debugClass")
-
-            monkeyPatchField(debugField, newDebug)
+            logger.debug(s"run: patching $debugClass with $debugValue")
+            monkeyPatchField(debugField, debugValue)
           }
         }
       }

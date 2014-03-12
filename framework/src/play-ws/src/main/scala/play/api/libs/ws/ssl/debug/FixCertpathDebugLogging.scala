@@ -8,7 +8,6 @@ package play.api.libs.ws.ssl.debug
 import java.security.AccessController
 import scala.util.control.NonFatal
 import sun.security.util.Debug
-import scala.reflect.ClassTag
 
 /**
  * This singleton object turns on "certpath" debug logging (originally based off the "java.security.debug" debug flag),
@@ -21,12 +20,14 @@ import scala.reflect.ClassTag
  */
 object FixCertpathDebugLogging {
 
-  val logger = org.slf4j.LoggerFactory.getLogger("play.api.libs.ssl.debug.FixCertpathDebugLogging")
+  val logger = org.slf4j.LoggerFactory.getLogger("play.api.libs.ws.ssl.debug.FixCertpathDebugLogging")
 
   class MonkeyPatchSunSecurityUtilDebugAction(val newDebug: Debug, val newOptions: String) extends FixLoggingAction {
-    val logger = org.slf4j.LoggerFactory.getLogger("play.api.libs.ssl.debug.MonkeyPatchSunSecurityUtilDebugAction")
+    val logger = org.slf4j.LoggerFactory.getLogger("play.api.libs.ws.ssl.debug.FixCertpathDebugLogging.MonkeyPatchSunSecurityUtilDebugAction")
 
-    def initialResource = "/sun/security/provider/certpath/Builder.class"
+    val initialResource = "/sun/security/provider/certpath/Builder.class"
+
+    val debugType = classOf[Debug]
 
     /**
      * Returns true if this class has an instance of {{Debug.getInstance("certpath")}}, false otherwise.
@@ -41,15 +42,25 @@ object FixCertpathDebugLogging {
       false
     }
 
-    def run() {
-      val debugType = classOf[Debug]
-      logger.debug(s"run: debugType = ${debugType}")
+    /**
+     * Returns true if the new options contains certpath, false otherwise.  If it does not contain certpath,
+     * then set the fields to null (which will disable logging).
+     *
+     * @return
+     */
+    def isUsingDebug: Boolean = (newOptions != null) && newOptions.contains("certpath")
 
+    def run() {
+      System.setProperty("java.security.debug", newOptions)
+
+      logger.debug(s"run: debugType = $debugType")
+
+      val debugValue = if (isUsingDebug) newDebug else null
       for (debugClass <- findClasses) {
         for (debugField <- debugClass.getDeclaredFields) {
           if (isValidField(debugField, debugType)) {
-            logger.debug(s"run: Patching field ${debugField} in class $debugClass")
-            monkeyPatchField(debugField, newDebug)
+            logger.debug(s"run: Patching $debugClass with $debugValue")
+            monkeyPatchField(debugField, debugValue)
           }
         }
       }
@@ -62,8 +73,12 @@ object FixCertpathDebugLogging {
     }
   }
 
+  /**
+   * Extends {{sun.security.util.Debug}} to delegate println to a logger.
+   *
+   * @param logger the logger which will receive debug calls.
+   */
   class SunSecurityUtilDebugLogger(logger: org.slf4j.Logger) extends sun.security.util.Debug {
-
     override def println(message: String) {
       if (logger.isDebugEnabled) {
         logger.debug(message)
@@ -78,7 +93,7 @@ object FixCertpathDebugLogging {
   }
 
   def apply(newOptions: String, debugOption: Option[Debug] = None) {
-    logger.trace(s"apply: newOptions = ${newOptions}, debugOption = ${debugOption}")
+    logger.trace(s"apply: newOptions = $newOptions, debugOption = $debugOption")
     try {
       val newDebug = debugOption match {
         case Some(d) => d

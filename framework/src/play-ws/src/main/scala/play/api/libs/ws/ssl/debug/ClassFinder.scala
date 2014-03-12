@@ -55,7 +55,7 @@ trait ClassFinder {
           var className: String = je.getName.substring(0, je.getName.length - 6)
           className = className.replace('/', '.')
           if (isValidClass(className)) {
-            logger.debug(s"findClasses: adding valid class ${className}")
+            //logger.debug(s"findClasses: adding valid class ${className}")
 
             val c: Class[_] = classLoader.loadClass(className)
             classSet.add(c)
