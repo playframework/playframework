@@ -97,7 +97,7 @@ public abstract class WebSocket<A> {
             try {
                 callback.invoke(in, out);
             } catch (Throwable e) {
-                play.Logger.of("play").error("Exception in WebSocket.onReady", e);
+                play.PlayInternal.logger().error("Exception in WebSocket.onReady", e);
             }
         }
     }

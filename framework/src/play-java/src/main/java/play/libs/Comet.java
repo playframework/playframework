@@ -110,7 +110,7 @@ public abstract class Comet extends Chunks<String> {
             try {
                 callback.invoke(this);
             } catch (Throwable e) {
-                play.Logger.of("play").error("Exception in Comet.onConnected", e);
+                play.PlayInternal.logger().error("Exception in Comet.onConnected", e);
             }
         }
     }
