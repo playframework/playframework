@@ -33,15 +33,22 @@ object JavaPromise {
 
   def timeout: Future[Nothing] = Promise.timeout
 
-  def recover[A](promise: Future[A], f: Throwable => Future[A], ec: ExecutionContext): Future[A] = {
-    promise.extend1 {
-      case Thrown(e) => f(e)
-      case Redeemed(a) => Promise.pure(a)
-    }(ec).flatMap(p => p)(ec)
+  def recover[A](promise: Future[A], f: Throwable => A, ec: ExecutionContext): Future[A] = {
+    promise.recover {
+      case t => f(t)
+    }(ec)
   }
 
   def pure[A](a: A) = Promise.pure(a)
 
   def throwing[A](throwable: Throwable) = Promise.pure[A](throw throwable)
+
+  def functionToScalaFunction[A, B](f: F.Function[A, B]): A => B = a => f.apply(a)
+  def functionToScalaPartialFunction[A, B](f: F.Function[A, B]): PartialFunction[A, B] = {
+    case a => f.apply(a)
+  }
+  def callbackToPartialFunction[A](c: F.Callback[A]): PartialFunction[A, Unit] = {
+    case a => c.invoke(a)
+  }
 
 }
