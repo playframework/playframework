@@ -77,4 +77,42 @@ public abstract class Comet extends Chunks<String> {
         out.close();
     }
 
+    /**
+     * Creates a Comet. The abstract {@code onConnected} method is
+     * implemented using the specified {@code Callback<Comet>} and
+     * is invoked with {@code Comet.this}.
+     *
+     * @param jsMethod the Javascript method to call on each message
+     * @param callback the callback used to implement onConnected
+     * @return a new Comet
+     * @throws NullPointerException if the specified callback is null
+     */
+    public static Comet whenConnected(String jsMethod, Callback<Comet> callback) {
+        return new WhenConnectedComet(jsMethod, callback);
+    }
+
+    /**
+     * An extension of Comet that obtains its onConnected from
+     * the specified {@code Callback<Comet>}.
+     */
+    static final class WhenConnectedComet extends Comet {
+
+        private final Callback<Comet> callback;
+
+        WhenConnectedComet(String jsMethod, Callback<Comet> callback) {
+            super(jsMethod);
+            if (callback == null) throw new NullPointerException("Comet onConnected callback cannot be null");
+            this.callback = callback;
+        }
+
+        @Override
+        public void onConnected() {
+            try {
+                callback.invoke(this);
+            } catch (Throwable e) {
+                play.PlayInternal.logger().error("Exception in Comet.onConnected", e);
+            }
+        }
+    }
+
 }

@@ -1107,7 +1107,7 @@ public class Results {
                         try {
                             callback.invoke();
                         } catch(Throwable e) {
-                            play.Logger.of("play").error("Exception is Chunks disconnected callback", e);
+                            play.PlayInternal.logger().error("Exception is Chunks disconnected callback", e);
                         }
                     }
                 }
