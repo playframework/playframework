@@ -140,43 +140,6 @@ Readable:
 
 The simplest way to convert a `JsValue` to another type is using `JsValue.as[T](implicit fjs: Reads[T]): T`. This requires an implicit converter of type [`Reads[T]`](api/scala/index.html#play.api.libs.json.Reads) to convert a `JsValue` to `T` (the inverse of `Writes[T]`). As with `Writes`, the JSON API provides `Reads` for basic types.
 
-## Converting from a JsValue
-
-### Using String utilities
-Minified:
-
-@[convert-to-string](code/ScalaJsonSpec.scala)
-
-```
-{"name":"Watership Down","location":{"lat":51.235685,"long":-1.309197},"residents":[{"name":"Fiver","age":4,"role":null},{"name":"Bigwig","age":6,"role":"Owsla"}]}
-```
-Readable:
-
-@[convert-to-string-pretty](code/ScalaJsonSpec.scala)
-
-```
-{
-  "name" : "Watership Down",
-  "location" : {
-    "lat" : 51.235685,
-    "long" : -1.309197
-  },
-  "residents" : [ {
-    "name" : "Fiver",
-    "age" : 4,
-    "role" : null
-  }, {
-    "name" : "Bigwig",
-    "age" : 6,
-    "role" : "Owsla"
-  } ]
-}
-```
-
-### Using JsValue.as/asOpt
-
-The simplest way to convert a `JsValue` to another type is using `JsValue.as[T](implicit fjs: Reads[T]): T`. This requires an implicit converter of type [`Reads[T]`](api/scala/index.html#play.api.libs.json.Reads) to convert a `JsValue` to `T` (the inverse of `Writes[T]`). As with `Writes`, the JSON API provides `Reads` for basic types.
-
 @[convert-to-type-as](code/ScalaJsonSpec.scala)
 
 The `as` method will throw a `JsResultException` if the path is not found or the conversion is not possible. A safer method is `JsValue.asOpt[T](implicit fjs: Reads[T]): Option[T]`.
