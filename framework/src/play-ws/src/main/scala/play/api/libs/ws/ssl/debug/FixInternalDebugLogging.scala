@@ -47,7 +47,7 @@ object FixInternalDebugLogging {
      * Returns true if newOptions is not null and newOptions is not empty.  If false, then debug values
      * @return
      */
-    def isUsingDebug : Boolean = (newOptions != null) && (! newOptions.isEmpty)
+    def isUsingDebug: Boolean = (newOptions != null) && (!newOptions.isEmpty)
 
     def run() {
       System.setProperty("javax.net.debug", newOptions)

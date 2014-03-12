@@ -48,7 +48,7 @@ object FixCertpathDebugLogging {
      *
      * @return
      */
-    def isUsingDebug : Boolean = (newOptions != null) && newOptions.contains("certpath")
+    def isUsingDebug: Boolean = (newOptions != null) && newOptions.contains("certpath")
 
     def run() {
       System.setProperty("java.security.debug", newOptions)
