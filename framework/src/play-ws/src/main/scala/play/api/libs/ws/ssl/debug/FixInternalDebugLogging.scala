@@ -11,15 +11,15 @@ import java.security.AccessController
 import scala.util.control.NonFatal
 
 /**
- * This is provided to fix logging (for either
+ * This fixes logging for the SSL Debug class.  It will worth for both Java 1.6 and Java 1.7 VMs.
  */
 object FixInternalDebugLogging {
 
-  private val logger = org.slf4j.LoggerFactory.getLogger("play.api.libs.ssl.debug.FixInternalDebugLogging")
+  private val logger = org.slf4j.LoggerFactory.getLogger("play.api.libs.ws.ssl.debug.FixInternalDebugLogging")
 
   class MonkeyPatchInternalSslDebugAction(val newOptions: String) extends FixLoggingAction {
 
-    val logger = org.slf4j.LoggerFactory.getLogger("play.api.libs.ssl.debug.MonkeyPatchInternalSslDebugAction")
+    val logger = org.slf4j.LoggerFactory.getLogger("play.api.libs.ws.ssl.debug.FixInternalDebugLogging.MonkeyPatchInternalSslDebugAction")
 
     def initialResource = "/javax/net/ssl/SSLContext.class"
 
@@ -33,7 +33,15 @@ object FixInternalDebugLogging {
       className.startsWith("com.sun.net.ssl.internal.ssl") || className.startsWith("sun.security.ssl")
     }
 
+    /**
+     * Returns true if newOptions is not null and newOptions is not empty.  If false, then debug values
+     * @return
+     */
+    def isUsingDebug : Boolean = (newOptions != null) && (! newOptions.isEmpty)
+
     def run() {
+      System.setProperty("javax.net.debug", newOptions)
+
       val debugType: Class[_] = {
         val debugClassName = foldVersion(
           run16 = "com.sun.net.ssl.internal.ssl.Debug",
@@ -45,12 +53,13 @@ object FixInternalDebugLogging {
       val newDebug: AnyRef = debugType.newInstance().asInstanceOf[AnyRef]
       logger.debug(s"run: debugType = $debugType")
 
+      val debugValue = if (isUsingDebug) newDebug else null
       for (debugClass <- findClasses) {
         for (debugField <- debugClass.getDeclaredFields) {
           if (isValidField(debugField, debugType)) {
-            logger.debug(s"run: Patching field $debugField in class $debugClass")
+            logger.debug(s"run: Patching $debugClass with $debugValue")
 
-            monkeyPatchField(debugField, newDebug)
+            monkeyPatchField(debugField, debugValue)
           }
         }
       }
