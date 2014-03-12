@@ -243,7 +243,7 @@ object PlayBuild extends Build {
 
   lazy val PlayJavaProject = PlayRuntimeProject("Play-Java", "play-java")
     .settings(libraryDependencies := javaDeps ++ javaTestDeps)
-    .dependsOn(PlayProject)
+    .dependsOn(PlayProject % "compile;test->test")
 
   lazy val PlayDocsProject = PlayRuntimeProject("Play-Docs", "play-docs")
     .settings(Docs.settings: _*)

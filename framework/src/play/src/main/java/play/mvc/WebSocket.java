@@ -19,17 +19,17 @@ public abstract class WebSocket<A> {
      * @param out The Socket out.
      */
     public abstract void onReady(In<A> in, Out<A> out);
-    
+
     /**
      * A WebSocket out.
      */
     public static interface Out<A> {
-        
+
         /**
          * Writes a frame.
          */
         public void write(A frame);
-        
+
         /**
          * Close this channel.
          */
@@ -45,7 +45,7 @@ public abstract class WebSocket<A> {
          * Callbacks to invoke at each frame.
          */
         public final List<Callback<A>> callbacks = new ArrayList<Callback<A>>();
-        
+
         /**
          * Callbacks to invoke on close.
          */
@@ -57,14 +57,48 @@ public abstract class WebSocket<A> {
         public void onMessage(Callback<A> callback) {
             callbacks.add(callback);
         }
-        
+
         /**
          * Registers a close callback.
-         */ 
+         */
         public void onClose(Callback0 callback) {
             closeCallbacks.add(callback);
         }
 
     }
 
+    /**
+     * Creates a WebSocket. The abstract {@code onReady} method is
+     * implemented using the specified {@code Callback2<In<A>, Out<A>>}
+     *
+     * @param callback the callback used to implement onReady
+     * @return a new WebSocket
+     * @throws NullPointerException if the specified callback is null
+     */
+    public static <A> WebSocket<A> whenReady(Callback2<In<A>, Out<A>> callback) {
+        return new WhenReadyWebSocket<A>(callback);
+    }
+
+    /**
+     * An extension of WebSocket that obtains its onReady from
+     * the specified {@code Callback2<In<A>, Out<A>>}.
+     */
+    static final class WhenReadyWebSocket<A> extends WebSocket<A> {
+
+        private final Callback2<In<A>, Out<A>> callback;
+
+        WhenReadyWebSocket(Callback2<In<A>, Out<A>> callback) {
+            if (callback == null) throw new NullPointerException("WebSocket onReady callback cannot be null");
+            this.callback = callback;
+        }
+
+        @Override
+        public void onReady(In<A> in, Out<A> out) {
+            try {
+                callback.invoke(in, out);
+            } catch (Throwable e) {
+                play.Logger.of("play").error("Exception in WebSocket.onReady", e);
+            }
+        }
+    }
 }
