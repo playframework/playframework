@@ -56,13 +56,21 @@ object FixCertpathDebugLogging {
       logger.debug(s"run: debugType = $debugType")
 
       val debugValue = if (isUsingDebug) newDebug else null
-      for (debugClass <- findClasses) {
-        for (debugField <- debugClass.getDeclaredFields) {
-          if (isValidField(debugField, debugType)) {
-            logger.debug(s"run: Patching $debugClass with $debugValue")
-            monkeyPatchField(debugField, debugValue)
-          }
+      var isPatched = false
+      for (
+        debugClass <- findClasses;
+        debugField <- debugClass.getDeclaredFields
+      ) {
+        if (isValidField(debugField, debugType)) {
+          logger.debug(s"run: Patching $debugClass with $debugValue")
+          monkeyPatchField(debugField, debugValue)
+          isPatched = true
         }
+      }
+
+      // Add an assertion here in case the class location changes, so the tests fail...
+      if (!isPatched) {
+        throw new IllegalStateException("No debug classes found!")
       }
 
       // Switch out the args (for certpath loggers that AREN'T static and final)
