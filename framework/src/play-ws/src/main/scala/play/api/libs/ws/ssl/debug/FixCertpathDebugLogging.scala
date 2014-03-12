@@ -8,7 +8,6 @@ package play.api.libs.ws.ssl.debug
 import java.security.AccessController
 import scala.util.control.NonFatal
 import sun.security.util.Debug
-import scala.reflect.ClassTag
 
 /**
  * This singleton object turns on "certpath" debug logging (originally based off the "java.security.debug" debug flag),
@@ -26,7 +25,9 @@ object FixCertpathDebugLogging {
   class MonkeyPatchSunSecurityUtilDebugAction(val newDebug: Debug, val newOptions: String) extends FixLoggingAction {
     val logger = org.slf4j.LoggerFactory.getLogger("play.api.libs.ws.ssl.debug.FixCertpathDebugLogging.MonkeyPatchSunSecurityUtilDebugAction")
 
-    def initialResource = "/sun/security/provider/certpath/Builder.class"
+    val initialResource = "/sun/security/provider/certpath/Builder.class"
+
+    val debugType = classOf[Debug]
 
     /**
      * Returns true if this class has an instance of {{Debug.getInstance("certpath")}}, false otherwise.
@@ -52,7 +53,6 @@ object FixCertpathDebugLogging {
     def run() {
       System.setProperty("java.security.debug", newOptions)
 
-      val debugType = classOf[Debug]
       logger.debug(s"run: debugType = $debugType")
 
       val debugValue = if (isUsingDebug) newDebug else null

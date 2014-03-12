@@ -20,7 +20,7 @@ abstract class FixLoggingAction extends PrivilegedExceptionAction[Unit] with Mon
   def isValidField(field: Field, definedType: Class[_]): Boolean = {
     import java.lang.reflect.Modifier._
     val modifiers: Int = field.getModifiers
-    field.getType == definedType && isStatic(modifiers) && isFinal(modifiers)
+    field.getType == definedType && isStatic(modifiers)
   }
 
 }

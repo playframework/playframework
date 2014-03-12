@@ -70,7 +70,7 @@ object DebugConfigurationSpec extends Specification {
       System.clearProperty("javax.net.debug")
     }
 
-    "turn off javax.ssl.debug code options" in {
+    "turn off javax.ssl.debug code" in {
       System.setProperty("javax.net.debug", "ssl")
 
       val debugConfig = SSLDebugConfig(ssl = false)
