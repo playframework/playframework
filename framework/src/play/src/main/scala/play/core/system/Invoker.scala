@@ -22,4 +22,9 @@ private[play] object Invoker {
 
   val executionContext: scala.concurrent.ExecutionContext = system.dispatchers.defaultGlobalDispatcher
 
+  lazy val useOrderedExecutionContext = {
+    Play.maybeApplication.flatMap(_.configuration.getBoolean("ordered.execution"))
+      .getOrElse(true)
+  }
+
 }

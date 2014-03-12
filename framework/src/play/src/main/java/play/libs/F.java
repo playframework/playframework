@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import play.core.Invoker;
 
 /**
  * Defines a set of functional programming style helpers.
@@ -86,11 +85,10 @@ public class F {
         }
 
         /*
-         * reset underlying shared actors
-         * useful for mainly in tests
+         * No longer used
          */
+        @Deprecated
         public static void resetActors() {
-            actors = null;
         }
 
         /**
@@ -239,31 +237,8 @@ public class F {
          * @param action The action to perform.
          */
         public void onRedeem(final Callback<A> action) {
-            final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
-            final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-            new play.api.libs.concurrent.PlayPromise<A>(promise).onRedeem(new scala.runtime.AbstractFunction1<A,scala.runtime.BoxedUnit>() {
-                public scala.runtime.BoxedUnit apply(A a) {
-                    try {
-                        run(new Function<A,Object>() {
-                            public Object apply(A a) {
-                                try {
-                                    action.invoke(a);
-                                    return 0;
-                                } catch(RuntimeException e) {
-                                    throw e;
-                                } catch(Throwable t) {
-                                    throw new RuntimeException(t);
-                                }
-                            }
-                        }, a, context, classLoader);
-                    } catch (RuntimeException e) {
-                        throw e;
-                    } catch (Throwable t) {
-                        throw new RuntimeException(t);
-                    }
-                    return null;
-                }
-                },Invoker.executionContext());
+            promise.onSuccess(play.core.j.JavaPromise.callbackToPartialFunction(action),
+                    HttpExecution.defaultContext());
         }
 
         /**
@@ -277,20 +252,8 @@ public class F {
          * @return A wrapped promise that maps the type from <code>A</code> to <code>B</code>.
          */
         public <B> Promise<B> map(final Function<A, B> function) {
-            final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
-            final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             return new Promise<B>(
-                promise.flatMap(new scala.runtime.AbstractFunction1<A,scala.concurrent.Future<B>>() {
-                    public scala.concurrent.Future<B> apply(A a) {
-                        try {
-                            return run(function, a, context, classLoader);
-                        } catch (RuntimeException e) {
-                            throw e;
-                        } catch(Throwable t) {
-                            throw new RuntimeException(t);
-                        }
-                    }
-                    },Invoker.executionContext())
+                promise.map(play.core.j.JavaPromise.functionToScalaFunction(function), HttpExecution.defaultContext())
             );
         }
 
@@ -305,22 +268,11 @@ public class F {
          * @return A wrapped promise that will only throw an exception if the supplied <code>function</code> throws an
          *      exception.
          */
-        public Promise<A> recover(final Function<Throwable,A> function) {
-            final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
-            final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        public Promise<A> recover(final Function<Throwable, A> function) {
             return new Promise<A>(
-                play.core.j.JavaPromise.recover(promise, new scala.runtime.AbstractFunction1<Throwable, scala.concurrent.Future<A>>() {
-                    public scala.concurrent.Future<A> apply(Throwable t) {
-                        try {
-                            return run(function,t, context, classLoader);
-                        } catch (RuntimeException e) {
-                            throw e;
-                        } catch(Throwable e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                    },Invoker.executionContext())
-                    );
+                promise.recover(play.core.j.JavaPromise.functionToScalaPartialFunction(function),
+                        HttpExecution.defaultContext())
+             );
         }
 
         /**
@@ -334,25 +286,18 @@ public class F {
          * @return A wrapped promise for a result of type <code>B</code>
          */
         public <B> Promise<B> flatMap(final Function<A,Promise<B>> function) {
-            final play.mvc.Http.Context context = play.mvc.Http.Context.current.get();
-            final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             return new Promise<B>(
-                promise.flatMap(new scala.runtime.AbstractFunction1<A,scala.concurrent.Future<Promise<B>>>() {
-                    public scala.concurrent.Future<Promise<B>> apply(A a) {
+                promise.flatMap(new scala.runtime.AbstractFunction1<A,scala.concurrent.Future<B>>() {
+                    public scala.concurrent.Future<B> apply(A a) {
                         try {
-                            return run(function, a, context, classLoader);
+                            return function.apply(a).getWrappedPromise();
                         } catch (RuntimeException e) {
                             throw e;
                         } catch(Throwable t) {
                             throw new RuntimeException(t);
                         }
                     }
-                    },Invoker.executionContext()).flatMap(new scala.runtime.AbstractFunction1<Promise<B>,scala.concurrent.Future<B>>() {
-                    public scala.concurrent.Future<B> apply(Promise<B> p) {
-                        return p.promise;
-                    }
-                        },Invoker.executionContext())
-            );
+                }, HttpExecution.defaultContext()));
         }
 
         /**
@@ -362,76 +307,6 @@ public class F {
          */
         public scala.concurrent.Future<A> getWrappedPromise() {
             return promise;
-        }
-
-        // -- Utils
-
-        static Integer nb = 64;
-
-        static List<akka.actor.ActorRef> actors;
-        static {
-            actors = new ArrayList<akka.actor.ActorRef>(nb);
-            for(int i=0; i<nb; i++) {
-                actors.add(play.core.Invoker$.MODULE$.system().actorOf(new akka.actor.Props(PromiseActor.class), "promise-actor-" + i));
-            }
-        }
-        static List<akka.actor.ActorRef> actors() {
-            return actors;
-        }
-
-        static <A,B> scala.concurrent.Future<B> run(Function<A,B> f, A a, play.mvc.Http.Context context, ClassLoader classLoader) {
-            Long id;
-            if(context == null) {
-                id = 0l;
-            } else {
-                id = context.id();
-            }
-            return play.core.j.JavaPromise.akkaAsk(
-                            actors().get((int)(id % actors().size())), 
-                            Tuple4(f, a, context, classLoader),
-                            akka.util.Timeout.apply(60000 * 60 * 1) // Let's wait 1h here. Unfortunately we can't avoid a timeout.
-                   ).map(new scala.runtime.AbstractFunction1<Object,B> () {
-                        public B apply(Object o) {
-                            Either<Throwable,B> r = (Either<Throwable,B>)o;
-                            if(r.left.isDefined()) {
-                                Throwable t = r.left.get();
-                                if(t instanceof RuntimeException) {
-                                    throw (RuntimeException)t;
-                                } else {
-                                    throw new RuntimeException(t);
-                                }
-                            }
-                           
-                            return r.right.get();
-                }
-            },Invoker.executionContext());
-        }
-
-        // Executes the Promise functions (capturing exception), with the given ThreadLocal context.
-        // This Actor is used as Agent to ensure function execution ordering for a given context.
-        public static class PromiseActor extends akka.actor.UntypedActor {
-
-            public void onReceive(Object msg) {
-                if (msg instanceof Tuple4) {
-                    Tuple4 tuple = (Tuple4) msg;
-                    Function f = (Function) tuple._1;
-                    Object a = tuple._2;
-                    play.mvc.Http.Context context = (play.mvc.Http.Context) tuple._3;
-                    ClassLoader classLoader = (ClassLoader) tuple._4;
-                    ClassLoader oldClassLoader = Thread.currentThread().getContextClassLoader();
-                    try {
-                        Thread.currentThread().setContextClassLoader(classLoader);
-                        play.mvc.Http.Context.current.set(context);
-                        getSender().tell(Either.Right(f.apply(a)), null);
-                    } catch(Throwable t) {
-                        getSender().tell(Either.Left(t), null);
-                    } finally {
-                        play.mvc.Http.Context.current.remove();
-                        Thread.currentThread().setContextClassLoader(oldClassLoader);
-                    }
-                }
-            }
-
         }
 
     }

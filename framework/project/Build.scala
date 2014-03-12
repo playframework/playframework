@@ -138,7 +138,8 @@ object PlayBuild extends Build {
               ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.RequestBodyHandler.newRequestBodyHandler"),
               ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.RequestBodyHandler.newRequestBodyUpstreamHandler"),
               ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.PlayDefaultUpstreamHandler.play$core$server$netty$PlayDefaultUpstreamHandler$$bodyEnumerator$1"),
-              ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.PlayDefaultUpstreamHandler.newRequestBodyHandler")
+              ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.PlayDefaultUpstreamHandler.newRequestBodyHandler"),
+              ProblemFilters.exclude[MissingClassProblem]("play.libs.F$Promise$PromiseActor")
             ),
             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
         )
