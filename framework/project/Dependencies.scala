@@ -69,7 +69,7 @@ object Dependencies {
 
   val javaTestDeps = Seq(
     "junit" % "junit" % "4.11" % "test",
-    "com.novocode" % "junit-interface" % "0.10" % "test" exclude("junit", "junit-dep"),
+    "com.novocode" % "junit-interface" % "0.11-RC1" % "test",
     "org.easytesting" % "fest-assert" % "1.4" % "test",
     mockitoAll % "test")
 
