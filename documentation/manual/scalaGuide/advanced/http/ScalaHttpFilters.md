@@ -51,7 +51,7 @@ Since filters are applied after routing is done, it is possible to access routin
 
 @[routing-info-access](code/FiltersRouting.scala)
 
-> Routing tags are a feature of the Play router.  If you use a custom router, or return a custom action in `Glodal.onRouteRequest`, these parameters may not be available.
+> Routing tags are a feature of the Play router.  If you use a custom router, or return a custom action in `Global.onRouteRequest`, these parameters may not be available.
 
 ## More powerful filters
 
