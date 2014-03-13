@@ -87,10 +87,10 @@ object Evolutions {
   /**
    * Apply pending evolutions for the given DB.
    */
-  def applyFor(dbName: String, path: java.io.File = new java.io.File(".")) {
+  def applyFor(dbName: String, path: java.io.File = new java.io.File("."), autocommit: Boolean = true) {
     Play.current.plugin[DBPlugin] map { db =>
       val script = Evolutions.evolutionScript(db.api, path, db.getClass.getClassLoader, dbName)
-      Evolutions.applyScript(db.api, dbName, script)
+      Evolutions.applyScript(db.api, dbName, script, autocommit)
     }
   }
 
@@ -212,7 +212,7 @@ object Evolutions {
    * @param db the database name
    * @param script the script to run
    */
-  def applyScript(api: DBApi, db: String, script: Seq[Script]) {
+  def applyScript(api: DBApi, db: String, script: Seq[Script], autocommit: Boolean) {
     def logBefore(s: Script)(implicit conn: Connection): Unit = {
       s match {
         case UpScript(e, _) => {
@@ -250,19 +250,25 @@ object Evolutions {
       ps.execute()
     }
 
-    implicit val connection = api.getConnection(db, autocommit = true)
+    implicit val connection = api.getConnection(db, autocommit = autocommit)
     checkEvolutionsState(api, db)
 
     var applying = -1
+    var lastScript: Script = null
 
     try {
 
       script.foreach { s =>
+        lastScript = s
         applying = s.evolution.revision
         logBefore(s)
         // Execute script
         s.statements.foreach(execute)
         logAfter(s)
+      }
+
+      if (!autocommit) {
+        connection.commit();
       }
 
     } catch {
@@ -271,7 +277,17 @@ object Evolutions {
           case ex: SQLException => ex.getMessage + " [ERROR:" + ex.getErrorCode + ", SQLSTATE:" + ex.getSQLState + "]"
           case ex => ex.getMessage
         }
-        updateLastProblem(message, applying)
+        if (!autocommit) {
+          Play.logger.error(message)
+
+          connection.rollback();
+
+          val humanScript = "# --- Rev:" + lastScript.evolution.revision + "," + (if (lastScript.isInstanceOf[UpScript]) "Ups" else "Downs") + " - " + lastScript.evolution.hash + "\n\n" + (if (lastScript.isInstanceOf[UpScript]) lastScript.evolution.sql_up else lastScript.evolution.sql_down);
+
+          throw InconsistentDatabase(db, humanScript, message, lastScript.evolution.revision)
+        } else {
+          updateLastProblem(message, applying)
+        }
       }
     } finally {
       connection.close()
@@ -456,6 +472,11 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
   }
 
   /**
+   * Is autocommit enabled.
+   */
+  lazy val autocommit = app.configuration.getBoolean("evolutions.autocommit").getOrElse(true)
+
+  /**
    * Checks the evolutions state.
    */
   override def onStart() {
@@ -470,10 +491,10 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
 
           if (!script.isEmpty) {
             app.mode match {
-              case Mode.Test => Evolutions.applyScript(dbApi, db, script)
-              case Mode.Dev if applyEvolutions => Evolutions.applyScript(dbApi, db, script)
-              case Mode.Prod if !hasDown && applyEvolutions => Evolutions.applyScript(dbApi, db, script)
-              case Mode.Prod if hasDown && applyEvolutions && applyDownEvolutions => Evolutions.applyScript(dbApi, db, script)
+              case Mode.Test => Evolutions.applyScript(dbApi, db, script, autocommit)
+              case Mode.Dev if applyEvolutions => Evolutions.applyScript(dbApi, db, script, autocommit)
+              case Mode.Prod if !hasDown && applyEvolutions => Evolutions.applyScript(dbApi, db, script, autocommit)
+              case Mode.Prod if hasDown && applyEvolutions && applyDownEvolutions => Evolutions.applyScript(dbApi, db, script, autocommit)
               case Mode.Prod if hasDown => {
                 Play.logger.warn("Your production database [" + db + "] needs evolutions, including downs! \n\n" + toHumanReadableScript(script))
                 Play.logger.warn("Run with -DapplyEvolutions." + db + "=true and -DapplyDownEvolutions." + db + "=true if you want to run them automatically, including downs (be careful, especially if your down evolutions drop existing data)")
@@ -560,7 +581,7 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
       case applyEvolutions(db) => {
         Some {
           val script = Evolutions.evolutionScript(dbApi, app.path, app.classloader, db)
-          Evolutions.applyScript(dbApi, db, script)
+          Evolutions.applyScript(dbApi, db, script, autocommit)
           buildLink.forceReload()
           play.api.mvc.Results.Redirect(redirectUrl)
         }
@@ -601,13 +622,13 @@ object OfflineEvolutions {
    * @param classloader the classloader used to load the driver
    * @param dbName the database name
    */
-  def applyScript(appPath: File, classloader: ClassLoader, dbName: String) {
+  def applyScript(appPath: File, classloader: ClassLoader, dbName: String, autocommit: Boolean = true) {
     val dbApi = getDBApi(appPath, classloader)
     val script = Evolutions.evolutionScript(dbApi, appPath, classloader, dbName)
     if (!isTest) {
       Play.logger.warn("Applying evolution script for database '" + dbName + "':\n\n" + Evolutions.toHumanReadableScript(script))
     }
-    Evolutions.applyScript(dbApi, dbName, script)
+    Evolutions.applyScript(dbApi, dbName, script, autocommit)
   }
 
   /**
