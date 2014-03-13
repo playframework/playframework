@@ -71,7 +71,10 @@ class CompositeX509TrustManager(trustManagers: Seq[X509TrustManager], certificat
         logger.debug(s"checkServerTrusted: trustManager $trustManager using authType $authType found a match for ${debugChain(chain).toSeq}")
 
         // Run through the custom path checkers...
-        certificateValidator.validate(chain, trustManager.getAcceptedIssuers)
+        import scala.collection.JavaConverters._
+
+        val issuers = trustManager.getAcceptedIssuers
+        certificateValidator.validate(chain, issuers)
 
         trusted = true
     }

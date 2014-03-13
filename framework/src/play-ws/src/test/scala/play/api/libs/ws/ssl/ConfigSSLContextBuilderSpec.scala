@@ -59,15 +59,16 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
 
     "with a certificate validator" should {
 
-      "build a certificate validator with explicit disabledAlgorithms" in {
-        val info = DefaultSSLConfig(disabledAlgorithms = Some("totally, fake, algorithms"))
+      "build a certificate validator with explicit disabledSignatureAlgorithms" in {
+        val info = DefaultSSLConfig(disabledSignatureAlgorithms = Some("totally, fake, algorithms"), disabledKeyAlgorithms = Some("happy, fun, times"))
         val keyManagerFactory = mock[KeyManagerFactoryWrapper]
         val trustManagerFactory = mock[TrustManagerFactoryWrapper]
         val builder = new ConfigSSLContextBuilder(info, keyManagerFactory, trustManagerFactory)
 
         val actual = builder.buildCertificateValidator(info)
         actual must beAnInstanceOf[CertificateValidator]
-        actual.constraints must containTheSameElementsAs(Seq(AlgorithmConstraint("totally"), AlgorithmConstraint("fake"), AlgorithmConstraint("algorithms")))
+        actual.signatureConstraints must containTheSameElementsAs(Seq(AlgorithmConstraint("totally"), AlgorithmConstraint("fake"), AlgorithmConstraint("algorithms")))
+        actual.keyConstraints must containTheSameElementsAs(Seq(AlgorithmConstraint("happy"), AlgorithmConstraint("fun"), AlgorithmConstraint("times")))
       }
 
       "build a certificate validator with defaults" in {
@@ -79,8 +80,10 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
         val actual = builder.buildCertificateValidator(info)
         actual must beAnInstanceOf[CertificateValidator]
 
-        val defaultAlgorithms = AlgorithmConstraintsParser.parseAll(AlgorithmConstraintsParser.line, Algorithms.disabledAlgorithms).get
-        actual.constraints must containTheSameElementsAs(defaultAlgorithms)
+        val defaultSignatureAlgorithms = AlgorithmConstraintsParser.parseAll(AlgorithmConstraintsParser.line, Algorithms.disabledSignatureAlgorithms).get
+        val defaultKeyAlgorithms = AlgorithmConstraintsParser.parseAll(AlgorithmConstraintsParser.line, Algorithms.disabledKeyAlgorithms).get
+        actual.signatureConstraints must containTheSameElementsAs(defaultSignatureAlgorithms)
+        actual.keyConstraints must containTheSameElementsAs(defaultKeyAlgorithms)
       }
     }
 
@@ -160,11 +163,12 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
       val trustManagerFactory = mock[TrustManagerFactoryWrapper]
       val builder = new ConfigSSLContextBuilder(info, keyManagerFactory, trustManagerFactory)
 
-      val disabledAlgorithms = Set(AlgorithmConstraint("md5"))
+      val disabledSignatureAlgorithms = Set(AlgorithmConstraint("md5"))
+      val disabledKeyAlgorithms = Set(AlgorithmConstraint("RSA < 1024"))
       val trustManagerConfig = DefaultTrustManagerConfig()
-      val certificateValidator = new CertificateValidator(disabledAlgorithms, false)
+      val certificateValidator = new CertificateValidator(disabledSignatureAlgorithms, disabledKeyAlgorithms)
 
-      val actual = builder.buildCompositeTrustManager(trustManagerConfig, certificateValidator, false)
+      val actual = builder.buildCompositeTrustManager(trustManagerConfig, certificateValidator)
       actual must beAnInstanceOf[CompositeX509TrustManager]
     }
 
@@ -179,10 +183,12 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
 
       val trustStoreConfig = DefaultTrustStoreConfig(storeType = Some("PEM"), data = Some(certificateData), filePath = None)
       val trustManagerConfig = DefaultTrustManagerConfig(trustStoreConfigs = Seq(trustStoreConfig))
-      val disabledAlgorithms = Set(AlgorithmConstraint("md5"))
-      val certificateValidator = new CertificateValidator(disabledAlgorithms, false)
 
-      val actual = builder.buildCompositeTrustManager(trustManagerConfig, certificateValidator, false)
+      val disabledSignatureAlgorithms = Set(AlgorithmConstraint("md5"))
+      val disabledKeyAlgorithms = Set(AlgorithmConstraint("RSA < 1024"))
+      val certificateValidator = new CertificateValidator(disabledSignatureAlgorithms, disabledKeyAlgorithms)
+
+      val actual = builder.buildCompositeTrustManager(trustManagerConfig, certificateValidator)
 
       actual must beAnInstanceOf[CompositeX509TrustManager]
       val issuers = actual.getAcceptedIssuers
@@ -201,10 +207,11 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
       val trustStoreConfig = DefaultTrustStoreConfig(storeType = Some("PEM"), data = Some(certificateData), filePath = None)
       val trustManagerConfig = DefaultTrustManagerConfig(trustStoreConfigs = Seq(trustStoreConfig))
 
-      val disabledAlgorithms = Set(AlgorithmConstraint("md5"))
-      val certificateValidator = new CertificateValidator(disabledAlgorithms, false)
+      val disabledSignatureAlgorithms = Set(AlgorithmConstraint("md5"))
+      val disabledKeyAlgorithms = Set(AlgorithmConstraint("RSA < 1024"))
+      val certificateValidator = new CertificateValidator(disabledSignatureAlgorithms, disabledKeyAlgorithms)
 
-      builder.buildCompositeTrustManager(trustManagerConfig, certificateValidator, false).must(throwAn[IllegalStateException])
+      builder.buildCompositeTrustManager(trustManagerConfig, certificateValidator).must(throwAn[IllegalStateException])
     }
 
     "build a file based keystore builder" in {
