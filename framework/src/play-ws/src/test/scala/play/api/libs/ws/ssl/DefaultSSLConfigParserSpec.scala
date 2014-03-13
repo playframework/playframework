@@ -26,7 +26,8 @@ object DefaultSSLConfigParserSpec extends Specification {
                                 |hostnameVerifierClassName = "someHostnameVerifier"
                                 |enabledCipherSuites = [ TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA ]
                                 |enabledProtocols = [ TLSv1.2, TLSv1.1, TLS ]
-                                |disabledAlgorithms = "md2, md4, md5"
+                                |disabledSignatureAlgorithms = "md2, md4, md5"
+                                |disabledKeyAlgorithms = "RSA keySize < 1024"
                               """.stripMargin)
 
       actual.default must beSome.which(_ must beTrue)
@@ -34,7 +35,8 @@ object DefaultSSLConfigParserSpec extends Specification {
       actual.hostnameVerifierClassName must beSome.which(_ must_== "someHostnameVerifier")
       actual.enabledCipherSuites must beSome.which(_ must containTheSameElementsAs(Seq("TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA")))
       actual.enabledProtocols must beSome.which(_ must containTheSameElementsAs(Seq("TLSv1.2", "TLSv1.1", "TLS")))
-      actual.disabledAlgorithms must beSome.which(_ must beEqualTo("md2, md4, md5"))
+      actual.disabledSignatureAlgorithms must beSome.which(_ must beEqualTo("md2, md4, md5"))
+      actual.disabledKeyAlgorithms must beSome.which(_ must beEqualTo("RSA keySize < 1024"))
       actual.secureRandom must beSome
     }
 

@@ -118,11 +118,13 @@ class ConfigSSLContextBuilder(info: SSLConfig,
 
   def buildCertificateValidator(info: SSLConfig): CertificateValidator = {
 
-    val disabledAlgorithms = info.disabledAlgorithms.getOrElse(Algorithms.disabledAlgorithms)
+    val disabledSignatureAlgorithms = info.disabledSignatureAlgorithms.getOrElse(Algorithms.disabledSignatureAlgorithms)
+    val disabledKeyAlgorithms = info.disabledKeyAlgorithms.getOrElse(Algorithms.disabledKeyAlgorithms)
     val disableCheckRevocation = info.loose.flatMap(_.disableCheckRevocation).getOrElse(false)
 
-    val constraints = AlgorithmConstraintsParser(disabledAlgorithms).toSet
-    new CertificateValidator(constraints, revocationEnabled = !disableCheckRevocation)
+    val signatureConstraints = AlgorithmConstraintsParser(disabledSignatureAlgorithms).toSet
+    val keyConstraints = AlgorithmConstraintsParser(disabledKeyAlgorithms).toSet
+    new CertificateValidator(signatureConstraints, keyConstraints, revocationEnabled = !disableCheckRevocation)
   }
 
   def buildCompositeKeyManager(keyManagerConfig: KeyManagerConfig) = {
@@ -133,7 +135,7 @@ class ConfigSSLContextBuilder(info: SSLConfig,
     new CompositeX509KeyManager(keyManagers)
   }
 
-  def buildCompositeTrustManager(trustManagerInfo: TrustManagerConfig, certificateValidator: CertificateValidator, checkRevocation: Boolean) = {
+  def buildCompositeTrustManager(trustManagerInfo: TrustManagerConfig, certificateValidator: CertificateValidator, checkRevocation: Boolean = false) = {
     val trustManagers = trustManagerInfo.trustStoreConfigs.map {
       tsc =>
         buildTrustManager(tsc, checkRevocation)

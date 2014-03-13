@@ -34,8 +34,9 @@ object CertificateValidatorSpec extends Specification {
         caCert
       )
 
-      val disabledAlgorithms = Set(AlgorithmConstraint("md5"))
-      val validator = new CertificateValidator(disabledAlgorithms, revocationEnabled = false)
+      val signatureConstraints = Set(AlgorithmConstraint("md5"))
+      val keyConstraints = Set(AlgorithmConstraint(""))
+      val validator = new CertificateValidator(signatureConstraints, keyConstraints, revocationEnabled = false)
 
       val trustedCerts = Array(caCert)
       validator.validate(chain, trustedCerts).must(throwA[CertPathValidatorException]("basic constraints check failed: this is not a CA certificate"))
@@ -50,8 +51,9 @@ object CertificateValidatorSpec extends Specification {
         pretendingToBeACACert
       )
 
-      val constraints = Set(AlgorithmConstraint("md5"))
-      val validator = new CertificateValidator(constraints, revocationEnabled = false)
+      val signatureConstraints = Set(AlgorithmConstraint("md5"))
+      val keyConstraints = Set(AlgorithmConstraint(""))
+      val validator = new CertificateValidator(signatureConstraints, keyConstraints, revocationEnabled = false)
 
       // pretendingToBeACACert is not one of the trusted certs
       val trustedCerts = defaultTrustedCertificates
@@ -67,8 +69,9 @@ object CertificateValidatorSpec extends Specification {
         trustedCerts(0)
       )
 
-      val constraints = Set(AlgorithmConstraint("md5"))
-      val validator = new CertificateValidator(constraints, revocationEnabled = false)
+      val signatureConstraints = Set(AlgorithmConstraint("md5"))
+      val keyConstraints = Set(AlgorithmConstraint(""))
+      val validator = new CertificateValidator(signatureConstraints, keyConstraints, revocationEnabled = false)
 
       validator.validate(chain, trustedCerts).must(throwA[CertPathValidatorException]("subject/issuer name chaining check failed"))
     }
@@ -79,8 +82,9 @@ object CertificateValidatorSpec extends Specification {
 
       val chain = Array(clientCert)
 
-      val constraints = Set(AlgorithmConstraint("md5"))
-      val validator = new CertificateValidator(constraints, revocationEnabled = false)
+      val signatureConstraints = Set(AlgorithmConstraint("md5"))
+      val keyConstraints = Set(AlgorithmConstraint(""))
+      val validator = new CertificateValidator(signatureConstraints, keyConstraints, revocationEnabled = false)
 
       val result = validator.validate(chain, trustedCerts)
       result must not beNull

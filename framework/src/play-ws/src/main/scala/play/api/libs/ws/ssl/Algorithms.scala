@@ -41,10 +41,19 @@ object Algorithms {
   //  #   DecimalDigit: one of
   //  #       1 2 3 4 5 6 7 8 9 0
 
-  // The closest analogue is jdk.certpath.disabledAlgorithms
-  val DEPRECATED_ALGORITHMS = "MD2, MD5, RSA keySize < 1024, DSA keySize < 1024, EC keySize < 160"
+  // See http://grepcode.com/file/repository.grepcode.com/java/root/jdk/openjdk/7-b147/sun/security/ssl/SSLAlgorithmConstraints.java
+  // http://sim.ivi.co/2013/11/harness-ssl-and-jsse-key-size-control.html
+  // http://marc.info/?l=openjdk-security-dev&m=138932097003284&w=2
+  // http://openjdk.5641.n7.nabble.com/Code-Review-Request-7109274-Consider-disabling-support-for-X-509-certificates-with-RSA-keys-less-thas-td107890.html
+  // http://grokbase.com/t/gg/play-framework/14199wzbgp/2-2-scala-disabling-diffie-hellman-cipher-suites
+  //
+  // The jdk.tls.disabledAlgorithms property applies to TLS handshaking,
+  // and the jdk.certpath.disabledAlgorithms property applies to certification path processing.
 
-  def disabledAlgorithms: String = DEPRECATED_ALGORITHMS
+  // The closest analogue is jdk.certpath.disabledAlgorithms
+  def disabledSignatureAlgorithms: String = "MD2, MD4, MD5"
+
+  def disabledKeyAlgorithms: String = "RSA keySize < 1024, DSA keySize < 1024, EC keySize < 160"
 
   /**
    * Returns the keySize of the given key.
@@ -147,10 +156,17 @@ case class MoreThanOrEqual(x: Int) extends ExpressionSymbol {
 case class AlgorithmConstraint(algorithm: String, constraint: Option[ExpressionSymbol] = None) {
 
   /**
-   * Returns true if the algorithm matches this constraint, or if the keySize matches the expression, false otherwise.
+   * Returns true only if the algorithm matches.  Useful for signature algorithms where we don't care about key size.
+   */
+  def matches(algorithm: String): Boolean = {
+    this.algorithm.equalsIgnoreCase(algorithm)
+  }
+
+  /**
+   * Returns true if the algorithm name matches, and if there's a keySize constraint, will match on that as well.
    */
   def matches(algorithm: String, keySize: Int): Boolean = {
-    if (!this.algorithm.equalsIgnoreCase(algorithm)) {
+    if (!matches(algorithm)) {
       return false
     }
 

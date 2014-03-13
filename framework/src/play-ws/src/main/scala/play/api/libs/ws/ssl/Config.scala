@@ -74,7 +74,9 @@ trait SSLConfig {
 
   def enabledProtocols: Option[Seq[String]]
 
-  def disabledAlgorithms: Option[String]
+  def disabledSignatureAlgorithms: Option[String]
+
+  def disabledKeyAlgorithms: Option[String]
 
   def keyManagerConfig: Option[KeyManagerConfig]
 
@@ -192,7 +194,8 @@ case class DefaultSSLConfig(
   protocol: Option[String] = None,
   enabledCipherSuites: Option[Seq[String]] = None,
   enabledProtocols: Option[Seq[String]] = None,
-  disabledAlgorithms: Option[String] = None,
+  disabledSignatureAlgorithms: Option[String] = None,
+  disabledKeyAlgorithms: Option[String] = None,
   keyManagerConfig: Option[KeyManagerConfig] = None,
   trustManagerConfig: Option[TrustManagerConfig] = None,
   hostnameVerifierClassName: Option[String] = None,
@@ -227,7 +230,9 @@ class DefaultSSLConfigParser(c: Configuration) {
 
     val hostnameVerifierClassName = c.getString("hostnameVerifierClassName")
 
-    val disabledAlgorithms = c.getString("disabledAlgorithms")
+    val disabledSignatureAlgorithms = c.getString("disabledSignatureAlgorithms")
+
+    val disabledKeyAlgorithms = c.getString("disabledKeyAlgorithms")
 
     val keyManagers: Option[KeyManagerConfig] = c.getConfig("keyManager").map {
       keyManagerConfig =>
@@ -253,7 +258,8 @@ class DefaultSSLConfigParser(c: Configuration) {
       enabledProtocols = protocols,
       keyManagerConfig = keyManagers,
       hostnameVerifierClassName = hostnameVerifierClassName,
-      disabledAlgorithms = disabledAlgorithms,
+      disabledSignatureAlgorithms = disabledSignatureAlgorithms,
+      disabledKeyAlgorithms = disabledKeyAlgorithms,
       trustManagerConfig = trustManagers,
       secureRandom = Some(secureRandom),
       debug = debug,
