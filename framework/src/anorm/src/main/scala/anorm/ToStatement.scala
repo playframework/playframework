@@ -11,6 +11,8 @@ import java.lang.{
   Short => JShort
 }
 
+import java.math.{ BigDecimal => JBigDec }
+
 import java.sql.{ PreparedStatement, Types }
 
 /** Sets value as statement parameter. */
@@ -122,6 +124,13 @@ object ToStatement { // TODO: Scaladoc
     if (ch != null) s.setString(i, ch.toString) else s.setNull(i, Types.CHAR)
   }
 
+  /**
+   * Sets character as parameter value.
+   *
+   * {{{
+   * SQL("SELECT * FROM tbl WHERE flag = {c}").on("c" -> 'f')
+   * }}}
+   */
   implicit object characterToStatement extends ToStatement[Character] {
     def set(s: PreparedStatement, i: Int, v: Character) = setChar(s, i, v)
   }
@@ -189,17 +198,64 @@ object ToStatement { // TODO: Scaladoc
       // TODO: Better null handling
     }
 
+  /**
+   * Sets Java big integer on statement.
+   *
+   * {{{
+   * SQL("UPDATE tbl SET max = {m}").on('m -> new java.math.BigInteger(15))
+   * }}}
+   */
+  implicit object javaBigIntegerToStatement
+      extends ToStatement[java.math.BigInteger] {
+    def set(s: PreparedStatement, index: Int, v: java.math.BigInteger): Unit =
+      s.setBigDecimal(index, new JBigDec(v))
+  }
+
+  /**
+   * Sets big integer on statement.
+   *
+   * {{{
+   * SQL("UPDATE tbl SET max = {m}").on('m -> BigInt(15))
+   * }}}
+   */
+  implicit object scalaBigIntegerToStatement extends ToStatement[BigInt] {
+    def set(s: PreparedStatement, index: Int, v: BigInt): Unit =
+      s.setBigDecimal(index, new JBigDec(v.bigInteger))
+  }
+
+  /**
+   * Sets Java big decimal on statement.
+   *
+   * {{{
+   * SQL("UPDATE tbl SET max = {m}").on('m -> new java.math.BigDecimal(10.02f))
+   * }}}
+   */
   implicit object javaBigDecimalToStatement
-      extends ToStatement[java.math.BigDecimal] {
-    def set(s: PreparedStatement, index: Int, v: java.math.BigDecimal): Unit =
+      extends ToStatement[JBigDec] {
+    def set(s: PreparedStatement, index: Int, v: JBigDec): Unit =
       s.setBigDecimal(index, v)
   }
 
+  /**
+   * Sets big decimal on statement.
+   *
+   * {{{
+   * SQL("UPDATE tbl SET max = {m}").on('m -> BigDecimal(10.02f))
+   * }}}
+   */
   implicit object scalaBigDecimalToStatement extends ToStatement[BigDecimal] {
     def set(s: PreparedStatement, index: Int, v: BigDecimal): Unit =
       s.setBigDecimal(index, v.bigDecimal)
   }
 
+  /**
+   * Sets timestamp as statement parameter.
+   *
+   * {{{
+   * SQL("UPDATE tbl SET modified = {ts}").
+   *   on('ts -> new java.sql.Timestamp(date.getTime))
+   * }}}
+   */
   implicit object timestampToStatement extends ToStatement[java.sql.Timestamp] {
     def set(s: PreparedStatement, index: Int, ts: java.sql.Timestamp): Unit =
       s.setTimestamp(index, ts)
@@ -207,7 +263,7 @@ object ToStatement { // TODO: Scaladoc
 
   implicit object dateToStatement extends ToStatement[java.util.Date] {
     def set(s: PreparedStatement, index: Int, date: java.util.Date): Unit =
-      s.setTimestamp(index, new java.sql.Timestamp(date.getTime()))
+      s.setTimestamp(index, new java.sql.Timestamp(date.getTime))
   }
 
   implicit object uuidToStatement extends ToStatement[java.util.UUID] {
