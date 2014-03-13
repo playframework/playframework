@@ -414,27 +414,18 @@ trait DefaultReads {
   implicit def mapReads[V](implicit fmtv: Reads[V]): Reads[collection.immutable.Map[String, V]] = new Reads[collection.immutable.Map[String, V]] {
     def reads(json: JsValue) = json match {
       case JsObject(m) => {
-        // first validates prod separates JsError / JsResult in an Seq[Either( (key, errors, globals), (key, v, jselt) )]
-        // the aim is to find all errors prod then to merge them all
-        var hasErrors = false
 
-        val r = m.map {
-          case (key, value) =>
-            fromJson[V](value)(fmtv) match {
-              case JsSuccess(v, _) => Right((key, v, value))
-              case JsError(e) =>
-                hasErrors = true
-                Left(e.map { case (p, valerr) => (JsPath \ key) ++ p -> valerr })
-            }
-        }
+        type Errors = Seq[(JsPath, Seq[ValidationError])]
+        def locate(e: Errors, key: String) = e.map { case (p, valerr) => (JsPath \ key) ++ p -> valerr }
 
-        // if errors, tries to merge them into a single JsError
-        if (hasErrors) {
-          val fulle = r.filter(_.isLeft).map(_.left.get)
-            .foldLeft(List[(JsPath, Seq[ValidationError])]())((acc, v) => acc ++ v)
-          JsError(fulle)
-        } // no error, rebuilds the map
-        else JsSuccess(r.filter(_.isRight).map(_.right.get).map { v => v._1 -> v._2 }.toMap)
+        m.foldLeft(Right(Map.empty): Either[Errors, Map[String, V]]) {
+          case (acc, (key, value)) => (acc, fromJson[V](value)(fmtv)) match {
+            case (Right(vs), JsSuccess(v, _)) => Right(vs + (key -> v))
+            case (Right(_), JsError(e)) => Left(locate(e, key))
+            case (Left(e), _: JsSuccess[_]) => Left(e)
+            case (Left(e1), JsError(e2)) => Left(e1 ++ locate(e2, key))
+          }
+        }.fold(JsError.apply, res => JsSuccess(res.toMap))
       }
       case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsobject"))))
     }
@@ -445,34 +436,23 @@ trait DefaultReads {
    */
   implicit def traversableReads[F[_], A](implicit bf: generic.CanBuildFrom[F[_], A, F[A]], ra: Reads[A]) = new Reads[F[A]] {
     def reads(json: JsValue) = json match {
-      case JsArray(ts) => {
+      case JsArray(ts) =>
 
-        var hasErrors = false
+        type Errors = Seq[(JsPath, Seq[ValidationError])]
+        def locate(e: Errors, idx: Int) = e.map { case (p, valerr) => (JsPath(idx)) ++ p -> valerr }
 
-        // first validates prod separates JsError / JsResult in an Seq[Either]
-        // the aim is to find all errors prod then to merge them all
-        val r = ts.zipWithIndex.map {
-          case (elt, idx) => fromJson[A](elt)(ra) match {
-            case JsSuccess(v, _) => Right(v)
-            case JsError(e) =>
-              hasErrors = true
-              Left(e.map { case (p, valerr) => (JsPath(idx)) ++ p -> valerr })
+        ts.zipWithIndex.foldLeft(Right(Vector.empty): Either[Errors, Vector[A]]) {
+          case (acc, (elt, idx)) => (acc, fromJson[A](elt)(ra)) match {
+            case (Right(vs), JsSuccess(v, _)) => Right(vs :+ v)
+            case (Right(_), JsError(e)) => Left(locate(e, idx))
+            case (Left(e), _: JsSuccess[_]) => Left(e)
+            case (Left(e1), JsError(e2)) => Left(e1 ++ locate(e2, idx))
           }
-        }
-
-        // if errors, tries to merge them into a single JsError
-        if (hasErrors) {
-          val fulle = r.filter(_.isLeft).map(_.left.get)
-            .foldLeft(List[(JsPath, Seq[ValidationError])]())((acc, v) => (acc ++ v))
-          JsError(fulle)
-        } // no error, rebuilds the map
-        else {
+        }.fold(JsError.apply, { res =>
           val builder = bf()
-          r.foreach(builder += _.right.get)
+          res.foreach(builder.+=)
           JsSuccess(builder.result())
-        }
-
-      }
+        })
       case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsarray"))))
     }
   }
