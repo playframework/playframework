@@ -87,8 +87,7 @@ sealed trait JsValue {
 }
 
 /**
- * Represent a Json null value.
- * with Scala 2.10-M7, this code generates WARNING : https://issues.scala-lang.org/browse/SI-6513
+ * Represents a Json null value.
  */
 case object JsNull extends JsValue
 
