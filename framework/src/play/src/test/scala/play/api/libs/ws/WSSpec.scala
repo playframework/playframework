@@ -20,6 +20,12 @@ object WSSpec extends Specification with Mockito {
        req.getQueryParams.get("foo").contains("foo2") must beTrue
        req.getQueryParams.get("foo").size must equalTo (2)
     }
+
+    "build a hostname verifier" in {
+      WS.buildHostnameVerifier("play.api.libs.ws.ssl.DefaultHostnameVerifier") must beSome.which { verifier =>
+        verifier must beAnInstanceOf[play.api.libs.ws.ssl.DefaultHostnameVerifier]
+      }
+    }
   }
 
   "WS Response" should {

@@ -24,6 +24,8 @@ import com.ning.http.util.AsyncHttpProviderUtils
 
 import play.core.Execution.Implicits.internalContext
 import play.api.Play
+import play.api.libs.ws.ssl.DefaultHostnameVerifier
+import javax.net.ssl.HostnameVerifier
 
 /**
  * Asynchronous API to to query web services, as an http client.
@@ -44,6 +46,8 @@ object WS {
   import javax.net.ssl.SSLContext
 
   private val clientHolder: AtomicReference[Option[AsyncHttpClient]] = new AtomicReference(None)
+
+  private val defaultHostnameVerifierClassName = "play.api.libs.ws.ssl.DefaultHostnameVerifier"
 
   private[play] def newClient(): AsyncHttpClient = {
     val playConfig = play.api.Play.maybeApplication.map(_.configuration)
@@ -68,11 +72,59 @@ object WS {
     playConfig.flatMap(_.getString("ws.useragent")).map { useragent =>
       asyncHttpConfig.setUserAgent(useragent)
     }
+
+    // Set the default to something secure.
+    SSLContext.setDefault(defaultSSLContext)
+
     if (!playConfig.flatMap(_.getBoolean("ws.acceptAnyCertificate")).getOrElse(false)) {
       asyncHttpConfig.setSSLContext(SSLContext.getDefault)
     }
 
+    val hostnameVerifierClassName = playConfig.flatMap(_.getString("ws.ssl.hostnameVerifierClassName")).getOrElse(defaultHostnameVerifierClassName)
+    buildHostnameVerifier(hostnameVerifierClassName).map { hostnameVerifier =>
+      asyncHttpConfig.setHostnameVerifier(hostnameVerifier)
+    }
+
     new AsyncHttpClient(asyncHttpConfig.build())
+  }
+
+  def buildHostnameVerifier(hostnameVerifierClassName: String): Option[HostnameVerifier] = {
+    // Provide people with the option of using their own hostname verifier, and set the apache internal
+    // hostname verifier as the default.
+    try {
+      val verifierClass = Thread.currentThread().getContextClassLoader.loadClass(hostnameVerifierClassName)
+      val hostnameVerifier = verifierClass.newInstance().asInstanceOf[HostnameVerifier]
+      Some(hostnameVerifier)
+    } catch {
+      case t: Throwable =>
+        play.api.Logger.warn("Unable to load default hostname verifier, hostname verification will be disabled", t)
+        None
+    }
+  }
+
+  /**
+   * Provides a default SSL context.  This method provides the highest available TLS protocol as the default,
+   * using
+   * <a href="https://docs.fedoraproject.org/en-US/Fedora_Security_Team//html/Defensive_Coding/sect-Defensive_Coding-TLS-Client-OpenJDK.html">Implementing TLS Clients With OpenJDK</a>
+   * as a reference.
+   */
+  def defaultSSLContext: SSLContext = {
+    val ctx: SSLContext = {
+      System.getProperty("java.specification.version") match {
+        case "1.6" =>
+          SSLContext.getInstance("TLSv1")
+        case higher =>
+          SSLContext.getInstance("TLSv1.2")
+      }
+    }
+    ctx.init(null, null, null)
+
+    // Remove deprecated default SSL protocols.
+    val params = ctx.getDefaultSSLParameters
+    val protocols = params.getProtocols.filterNot(_ == "SSLv2Hello")
+    params.setProtocols(protocols)
+
+    ctx
   }
 
   /**
@@ -267,6 +319,7 @@ object WS {
       var iteratee: Iteratee[Array[Byte], A] = null
 
       WS.client.executeRequest(this.build(), new AsyncHandler[Unit]() {
+
         import com.ning.http.client.AsyncHandler.STATE
 
         override def onStatusReceived(status: HttpResponseStatus) = {
@@ -463,13 +516,15 @@ object WS {
         .setHeaders(headers)
         .setQueryString(queryString)
       followRedirects.map(request.setFollowRedirects)
-      requestTimeout.map { t: Int =>
-        val config = new PerRequestConfig()
-        config.setRequestTimeoutInMs(t)
-        request.setPerRequestConfig(config)
+      requestTimeout.map {
+        t: Int =>
+          val config = new PerRequestConfig()
+          config.setRequestTimeoutInMs(t)
+          request.setPerRequestConfig(config)
       }
-      virtualHost.map { v =>
-        request.setVirtualHost(v)
+      virtualHost.map {
+        v =>
+          request.setVirtualHost(v)
       }
       request
     }
@@ -484,13 +539,15 @@ object WS {
         .setQueryString(queryString)
         .setBody(bodyGenerator)
       followRedirects.map(request.setFollowRedirects)
-      requestTimeout.map { t: Int =>
-        val config = new PerRequestConfig()
-        config.setRequestTimeoutInMs(t)
-        request.setPerRequestConfig(config)
+      requestTimeout.map {
+        t: Int =>
+          val config = new PerRequestConfig()
+          config.setRequestTimeoutInMs(t)
+          request.setPerRequestConfig(config)
       }
-      virtualHost.map { v =>
-        request.setVirtualHost(v)
+      virtualHost.map {
+        v =>
+          request.setVirtualHost(v)
       }
 
       request
@@ -502,17 +559,20 @@ object WS {
         .setQueryString(queryString)
         .setBody(wrt.transform(body))
       followRedirects.map(request.setFollowRedirects)
-      requestTimeout.map { t: Int =>
-        val config = new PerRequestConfig()
-        config.setRequestTimeoutInMs(t)
-        request.setPerRequestConfig(config)
+      requestTimeout.map {
+        t: Int =>
+          val config = new PerRequestConfig()
+          config.setRequestTimeoutInMs(t)
+          request.setPerRequestConfig(config)
       }
-      virtualHost.map { v =>
-        request.setVirtualHost(v)
+      virtualHost.map {
+        v =>
+          request.setVirtualHost(v)
       }
       request
     }
   }
+
 }
 
 /**
