@@ -154,6 +154,24 @@ object FSpec extends Specification
       }
     }
 
+    "fallbackTo another promise" in {
+      val p1 = F.Promise.throwing[Int](new RuntimeException("x"))
+      val p2 = p1.fallbackTo(F.Promise.pure(42))
+      p2.get(5, SECONDS) must equalTo(42)
+    }
+
+    "don't fallbackTo on success" in {
+      val p1 = F.Promise.pure(1)
+      val p2 = p1.fallbackTo(F.Promise.pure(2))
+      p2.get(5, SECONDS) must equalTo(1)
+    }
+
+    "keep first failure when fallbackTo also fails" in {
+      val p1 = F.Promise.throwing[Int](new RuntimeException("1"))
+      val p2 = p1.fallbackTo(F.Promise.throwing[Int](new RuntimeException("2")))
+      p2.get(5, SECONDS) must throwA[RuntimeException]("1")
+    }
+
     "flatMap its value (with default ExecutionContext)" in {
       val p = Promise[Int]()
       val fp = F.Promise.wrap(p.future)

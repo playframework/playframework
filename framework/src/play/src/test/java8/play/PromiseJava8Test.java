@@ -281,6 +281,32 @@ public class PromiseJava8Test extends ExecutionTest {
     }
 
     @Test
+    public void testFallbackTo() {
+        F.Promise<Integer> p1 = F.Promise.throwing(new RuntimeException("x"));
+        F.Promise<Integer> p2 = p1.fallbackTo(F.Promise.pure(42));
+        assertThat(p2.get(t)).isEqualTo(42);
+    }
+
+    @Test
+    public void testUnusedFallback() {
+        F.Promise<Integer> p1 = F.Promise.pure(1);
+        F.Promise<Integer> p2 = p1.fallbackTo(F.Promise.pure(2));
+        assertThat(p2.get(t)).isEqualTo(1);
+    }
+
+    @Test
+    public void testFallbackFailed() {
+        F.Promise<Integer> p1 = F.Promise.throwing(new RuntimeException("1"));
+        F.Promise<Integer> p2 = p1.fallbackTo(F.Promise.throwing(new RuntimeException("2")));
+        try {
+            p2.get(5, SECONDS);
+            fail("Expected promise to throw exception on get");
+        } catch (RuntimeException e){
+            assertThat(e).hasMessage("1");
+        }
+    }
+
+    @Test
     public void testDualSuccess() {
         exception.expect(IllegalStateException.class);
         F.RedeemablePromise<Integer> a = F.RedeemablePromise.empty();

@@ -399,6 +399,18 @@ public class F {
         }
 
         /**
+         * Creates a new promise which holds the result of this promise if it was completed successfully,
+         * otherwise the result of the {@code fallback} promise if it completed successfully.
+         * If both promises failed, the resulting promise holds the throwable of this promise.
+         *
+         * @param fallback The promise to fallback to if this promise has failed
+         * @return A promise that will delegate to another promise on failure
+         */
+        public Promise<A> fallbackTo(final Promise<A> fallback) {
+            return FPromiseHelper.fallbackTo(this, fallback);
+        }
+
+        /**
          * Perform the given <code>action</code> callback if the promise encounters an exception.
          *
          * This action will be run in the default exceution context.

@@ -109,6 +109,9 @@ private[play] object FPromiseHelper {
   def recoverWith[A](promise: F.Promise[A], function: F.Function[Throwable, F.Promise[A]], ec: ExecutionContext): F.Promise[A] =
     F.Promise.wrap[A](promise.wrapped().recoverWith { case t => function.apply(t).wrapped() }(ec.prepare()))
 
+  def fallbackTo[A](promise: F.Promise[A], fallback: F.Promise[A]): F.Promise[A] =
+    F.Promise.wrap[A](promise.wrapped.fallbackTo(fallback.wrapped))
+
   def onFailure[A](promise: F.Promise[A], action: F.Callback[Throwable], ec: ExecutionContext) {
     promise.wrapped().onFailure { case t => action.invoke(t) }(ec.prepare())
   }
