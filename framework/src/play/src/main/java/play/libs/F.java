@@ -296,7 +296,7 @@ public class F {
 
         /**
          * combines the current promise with <code>another</code> promise using `or`
-         * @param another 
+         * @param another
          */
         public <B> Promise<Either<A,B>> or(Promise<B> another) {
             return FPromiseHelper.or(this, another);
@@ -304,7 +304,7 @@ public class F {
 
         /**
          * Perform the given <code>action</code> callback when the Promise is redeemed.
-         * 
+         *
          * The callback will be run in the default execution context.
          *
          * @param action The action to perform.
@@ -373,6 +373,29 @@ public class F {
          */
         public Promise<A> recover(final Function<Throwable,A> function, ExecutionContext ec) {
             return FPromiseHelper.recover(this, function, ec);
+        }
+
+        /**
+         * Creates a new promise that will handle thrown exceptions by assigning to the value of another promise.
+         *
+         * The function will be run in the default execution context.
+         *
+         * @param function The function to handle the exception, and which returns another promise
+         * @return A promise that will delegate to another promise on failure
+         */
+        public Promise<A> recoverWith(final Function<Throwable, Promise<A>> function) {
+            return FPromiseHelper.recoverWith(this, function, HttpExecution.defaultContext());
+        }
+
+        /**
+         * Creates a new promise that will handle thrown exceptions by assigning to the value of another promise.
+         *
+         * @param function The function to handle the exception, and which returns another promise
+         * @param ec The ExecutionContext to execute the function in
+         * @return A promise that will delegate to another promise on failure
+         */
+        public Promise<A> recoverWith(final Function<Throwable, Promise<A>> function, ExecutionContext ec) {
+            return FPromiseHelper.recoverWith(this, function, ec);
         }
 
         /**

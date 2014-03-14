@@ -132,6 +132,28 @@ object FSpec extends Specification
       }
     }
 
+    "recoverWith from a thrown exception (with default ExecutionContext)" in {
+      val p = Promise[Int]()
+      val fp = F.Promise.wrap(p.future)
+      val recovered = fp.recoverWith(new F.Function[Throwable, F.Promise[Int]] {
+        def apply(x: Throwable) = F.Promise.pure(99)
+      })
+      p.failure(new RuntimeException("x"))
+      recovered.get(5, SECONDS) must equalTo(99)
+    }
+
+    "recoverWith from a thrown exception (with explicit ExecutionContext)" in {
+      val p = Promise[Int]()
+      val fp = F.Promise.wrap(p.future)
+      mustExecute(1) { ec =>
+        val recovered = fp.recoverWith(new F.Function[Throwable, F.Promise[Int]] {
+          def apply(x: Throwable) = F.Promise.pure(99)
+        }, ec)
+        p.failure(new RuntimeException("x"))
+        recovered.get(5, SECONDS) must equalTo(99)
+      }
+    }
+
     "flatMap its value (with default ExecutionContext)" in {
       val p = Promise[Int]()
       val fp = F.Promise.wrap(p.future)

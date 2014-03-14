@@ -225,6 +225,22 @@ public class PromiseJava8Test extends ExecutionTest {
     }
 
     @Test
+    public void testRecoverWith() {
+        F.Promise<Integer> p = F.Promise.throwing(new RuntimeException("x"));
+        F.Promise<Integer> recovered = p.recoverWith(x -> F.Promise.pure(99));
+        assertThat(recovered.get(t)).isEqualTo(99);
+    }
+
+    @Test
+    public void testRecoverWithWithEC() {
+        mustExecute(1, ec -> {
+            F.Promise<Integer> p = F.Promise.throwing(new RuntimeException("x"));
+            F.Promise<Integer> recovered = p.recoverWith(x -> F.Promise.pure(99), ec);
+            assertThat(recovered.get(t)).isEqualTo(99);
+        });
+    }
+
+    @Test
     public void testDualSuccess() {
         exception.expect(IllegalStateException.class);
         F.RedeemablePromise<Integer> a = F.RedeemablePromise.empty();
