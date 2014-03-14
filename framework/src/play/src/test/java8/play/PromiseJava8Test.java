@@ -4,10 +4,11 @@
 package play;
 
 import java.util.Arrays;
-import java.util.NoSuchElementException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeoutException;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.stream.Stream;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 import org.junit.Test;
@@ -344,6 +345,13 @@ public class PromiseJava8Test extends ExecutionTest {
 
         F.Promise<List<Integer>> combined = F.Promise.sequence(Arrays.asList(a, b, c));
 
+        assertThat(combined.get(t)).isEqualTo(Arrays.asList(1, 2, 3));
+    }
+
+    @Test
+    public void testSequenceWithStream() {
+        Stream<F.Promise<Integer>> promises = Arrays.asList(1, 2, 3).stream().map(F.Promise::pure);
+        F.Promise<List<Integer>> combined = F.Promise.sequence(promises::iterator);
         assertThat(combined.get(t)).isEqualTo(Arrays.asList(1, 2, 3));
     }
 }
