@@ -29,12 +29,14 @@ sealed trait ParameterValue {
  * Value factory for parameter.
  *
  * {{{
- * val param = ParameterValue("str", setter)
+ * val param = ParameterValue("str", null, setter)
  *
  * SQL("...").onParams(param)
  * }}}
  */
 object ParameterValue {
+  import scala.language.implicitConversions
+
   private[anorm] trait Wrapper[T] { def value: T }
 
   def apply[A](v: A, s: ToSql[A], toStmt: ToStatement[A]) =
@@ -60,4 +62,6 @@ object ParameterValue {
         case _ => false
       }
     }
+
+  implicit def toParameterValue[A](a: A)(implicit s: ToSql[A] = null, p: ToStatement[A]): ParameterValue = apply(a, s, p)
 }
