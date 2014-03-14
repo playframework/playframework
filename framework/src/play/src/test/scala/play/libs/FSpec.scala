@@ -220,6 +220,64 @@ object FSpec extends Specification
       }
     }
 
+    "transform its successful value (with default ExecutionContext)" in {
+      val p = F.Promise.pure(1)
+      val mapped = p.transform(
+        new F.Function[Int, Int] {
+          def apply(x: Int) = 2 * x
+        },
+        new F.Function[Throwable, Throwable] {
+          def apply(t: Throwable) = t
+        }
+      )
+      mapped.get(5, SECONDS) must equalTo(2)
+    }
+
+    "transform its successful value (with explicit ExecutionContext)" in {
+      val p = F.Promise.pure(1)
+      mustExecute(1) { ec =>
+        val mapped = p.transform(
+          new F.Function[Int, Int] {
+            def apply(x: Int) = 2 * x
+          },
+          new F.Function[Throwable, Throwable] {
+            def apply(t: Throwable) = t
+          },
+          ec
+        )
+        mapped.get(5, SECONDS) must equalTo(2)
+      }
+    }
+
+    "transform its failed throwable (with default ExecutionContext)" in {
+      val p = F.Promise.throwing(new RuntimeException("1"))
+      val mapped = p.transform(
+        new F.Function[Int, Int] {
+          def apply(x: Int) = x
+        },
+        new F.Function[Throwable, Throwable] {
+          def apply(t: Throwable) = new RuntimeException("2")
+        }
+      )
+      mapped.get(5, SECONDS) must throwA[RuntimeException]("2")
+    }
+
+    "transform its failed throwable (with explicit ExecutionContext)" in {
+      val p = F.Promise.throwing(new RuntimeException("1"))
+      mustExecute(1) { ec =>
+        val mapped = p.transform(
+          new F.Function[Int, Int] {
+            def apply(x: Int) = x
+          },
+          new F.Function[Throwable, Throwable] {
+            def apply(t: Throwable) = new RuntimeException("2")
+          },
+          ec
+        )
+        mapped.get(5, SECONDS) must throwA[RuntimeException]("2")
+      }
+    }
+
     "yield a timeout value" in {
       F.Promise.timeout(1, 2).get(1, SECONDS) must equalTo(1)
       F.Promise.timeout(1, 2, MILLISECONDS).get(1, SECONDS) must equalTo(1)

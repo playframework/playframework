@@ -468,6 +468,33 @@ public class F {
         }
 
         /**
+         * Creates a new promise by applying the {@code onSuccess} function to a successful result,
+         * or the {@code onFailure} function to a failed result.
+         *
+         * The function will be run in the default execution context.
+         *
+         * @param onSuccess The function to map a successful result from {@code A} to {@code B}
+         * @param onFailure The function to map the {@code Throwable} when failed
+         * @return A new promise mapped by either the {@code onSuccess} or {@code onFailure} functions
+         */
+        public <B> Promise<B> transform(final Function<? super A, B> onSuccess, final Function<Throwable, Throwable> onFailure) {
+            return FPromiseHelper.transform(this, onSuccess, onFailure, HttpExecution.defaultContext());
+        }
+
+        /**
+         * Creates a new promise by applying the {@code onSuccess} function to a successful result,
+         * or the {@code onFailure} function to a failed result.
+         *
+         * @param onSuccess The function to map a successful result from {@code A} to {@code B}
+         * @param onFailure The function to map the {@code Throwable} when failed
+         * @param ec The ExecutionContext to execute functions in
+         * @return A new promise mapped by either the {@code onSuccess} or {@code onFailure} functions
+         */
+        public <B> Promise<B> transform(final Function<? super A, B> onSuccess, final Function<Throwable, Throwable> onFailure, ExecutionContext ec) {
+            return FPromiseHelper.transform(this, onSuccess, onFailure, ec);
+        }
+
+        /**
          * Zips the values of this promise with <code>another</code>, and creates a new promise holding the tuple of their results
          * @param another
          */

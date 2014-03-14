@@ -192,6 +192,46 @@ public class PromiseJava8Test extends ExecutionTest {
     }
 
     @Test
+    public void testTransformOnSuccess() {
+        F.Promise<Integer> p = F.Promise.pure(1);
+        F.Promise<Integer> mapped = p.transform(x -> 2 * x, t -> t);
+        assertThat(mapped.get(5, SECONDS)).isEqualTo(2);
+    }
+
+    @Test
+    public void testTransformOnSuccessWithEC() {
+        mustExecute(1, ec -> {
+            F.Promise<Integer> p = F.Promise.pure(1);
+            F.Promise<Integer> mapped = p.transform(x -> 2 * x, t -> t, ec);
+            assertThat(mapped.get(5, SECONDS)).isEqualTo(2);
+        });
+    }
+
+    @Test
+    public void testTransformOnFailure() {
+        F.Promise<String> p = F.Promise.throwing(new RuntimeException("1"));
+        try {
+            p.transform(x -> x, t -> new RuntimeException("2")).get(5, SECONDS);
+            fail("Expected transformed promise to throw exception on get");
+        } catch (RuntimeException e){
+            assertThat(e).hasMessage("2");
+        }
+    }
+
+    @Test
+    public void testTransformOnFailureWithEC() {
+        mustExecute(1, ec -> {
+            F.Promise<String> p = F.Promise.throwing(new RuntimeException("1"));
+            try {
+                p.transform(x -> x, t -> new RuntimeException("2"), ec).get(5, SECONDS);
+                fail("Expected transformed promise to throw exception on get");
+            } catch (RuntimeException e){
+                assertThat(e).hasMessage("2");
+            }
+        });
+    }
+
+    @Test
     public void testEmpty() {
         F.RedeemablePromise<Integer> a = F.RedeemablePromise.empty();
         F.Promise<String> b = a.map(Object::toString);

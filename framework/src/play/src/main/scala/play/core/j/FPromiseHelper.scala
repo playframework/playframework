@@ -113,6 +113,9 @@ private[play] object FPromiseHelper {
     promise.wrapped().onFailure { case t => action.invoke(t) }(ec.prepare())
   }
 
+  def transform[A, B, T >: A](promise: F.Promise[A], s: F.Function[T, B], f: F.Function[Throwable, Throwable], ec: ExecutionContext): F.Promise[B] =
+    F.Promise.wrap[B](promise.wrapped.transform(s.apply, f.apply)(ec.prepare()))
+
   def empty[A]() = {
     Promise[A]()
   }
