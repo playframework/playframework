@@ -13,6 +13,7 @@ import java.io.{ File, FileInputStream, FileOutputStream }
 import javax.net.ssl.KeyManagerFactory
 import scala.util.control.NonFatal
 import scala.util.Properties.isJavaAtLeast
+import scala.util.{ Failure, Success, Try }
 
 /**
  * A fake key store
@@ -21,7 +22,7 @@ object FakeKeyStore {
   val GeneratedKeyStore = "conf/generated.keystore"
   val DnName = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
 
-  def keyManagerFactory(appPath: File): Option[KeyManagerFactory] = {
+  def keyManagerFactory(appPath: File): Try[KeyManagerFactory] = {
     try {
       val keyStore = KeyStore.getInstance("JKS")
       val keyStoreFile = new File(appPath, GeneratedKeyStore)
@@ -48,11 +49,10 @@ object FakeKeyStore {
       // Load the key and certificate into a key manager factory
       val kmf = KeyManagerFactory.getInstance("SunX509")
       kmf.init(keyStore, "".toCharArray)
-      Some(kmf)
+      Success(kmf)
     } catch {
       case NonFatal(e) => {
-        Play.logger.error("Error loading fake key store", e)
-        None
+        Failure(new Exception("Error loading fake key store", e))
       }
     }
   }
