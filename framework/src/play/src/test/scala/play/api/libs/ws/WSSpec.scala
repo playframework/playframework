@@ -47,7 +47,11 @@ object WSSpec extends Specification with Mockito {
       actual.getPrincipal must beNull
       actual.getPassword must beNull
     }
-
+    "build a hostname verifier" in {
+      WS.buildHostnameVerifier("play.api.libs.ws.ssl.DefaultHostnameVerifier") must beSome.which { verifier =>
+        verifier must beAnInstanceOf[play.api.libs.ws.ssl.DefaultHostnameVerifier]
+      }
+    }
   }
 
   "WS Response" should {
