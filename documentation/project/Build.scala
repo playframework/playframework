@@ -62,6 +62,7 @@ object ApplicationBuild extends Build {
       component("play-java-ws") % "test",
       component("filters-helpers") % "test",
       "org.mockito" % "mockito-core" % "1.9.5" % "test",
+      "org.scalatestplus" %% "play" % "0.8.0-SNAP1" % "test",
       component("play-docs")
     ),
 
