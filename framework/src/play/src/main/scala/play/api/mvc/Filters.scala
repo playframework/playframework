@@ -34,10 +34,10 @@ trait Filter extends EssentialFilter {
 
       def apply(rh: RequestHeader): Iteratee[Array[Byte], SimpleResult] = {
 
-        // Promised result, that is returned to the filter when it invokes the wrapped function
-        val promisedResult = Promise[SimpleResult]
-        // Promised iteratee, that we return to the framework
-        val bodyIteratee = Promise[Iteratee[Array[Byte], SimpleResult]]
+        // Promised result returned to this filter when it invokes the delegate function (the next filter in the chain)
+        val promisedResult = Promise[SimpleResult]()
+        // Promised iteratee returned to the framework
+        val bodyIteratee = Promise[Iteratee[Array[Byte], SimpleResult]]()
 
         // Invoke the filter
         val result = self.apply({ (rh: RequestHeader) =>
@@ -47,18 +47,27 @@ trait Filter extends EssentialFilter {
         })(rh)
 
         result.onComplete({ resultTry =>
-          // If we've got a result, but the body iteratee isn't redeemed, then that means the delegate action
-          // wasn't invoked.  In which case, we need to supply an iteratee to consume the request body.
-          if (!bodyIteratee.isCompleted) {
-            bodyIteratee.complete(resultTry.map(simpleResult => Done(simpleResult)))
-          }
+          // It is possible that the delegate function (the next filter in the chain) was never invoked by this Filter. 
+          // Therefore, as a fallback, we try to redeem the bodyIteratee Promise here with an iteratee that consumes 
+          // the request body.
+          bodyIteratee.tryComplete(resultTry.map(simpleResult => Done(simpleResult)))
         })
 
-        // When the iteratee is done, we can redeem the result that was returned to the filter
-        Iteratee.flatten(bodyIteratee.future.map(_.mapM({ simpleResult =>
-          promisedResult.success(simpleResult)
-          result
-        })))
+        Iteratee.flatten(bodyIteratee.future.map { it =>
+          it.mapM { simpleResult =>
+            // When the iteratee is done, we can redeem the promised result that was returned to the filter
+            promisedResult.success(simpleResult)
+            result
+          }.recoverM {
+            case t: Throwable =>
+              // If the iteratee finishes with an error, fail the promised result that was returned to the 
+              // filter with the same error. Note, we MUST use tryFailure here as it's possible that a) 
+              // promisedResult was already completed successfully in the mapM method above but b) calculating 
+              // the result in that method caused an error, so we ended up in this recover block anyway.
+              promisedResult.tryFailure(t)
+              result
+          }
+        })
       }
 
     }

@@ -14,17 +14,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object ConcurrentSpec extends Specification
   with IterateeSpecification with ExecutionSpecification {
 
-  val timer = new java.util.Timer
-  def timeout[A](a: => A, d: Duration)(implicit e: ExecutionContext): Future[A] = {
-    val p = Promise[A]()
-    timer.schedule(new java.util.TimerTask {
-      def run() {
-        p.success(a)
-      }
-    }, d.toMillis)
-    p.future
-  }
-
   "Concurrent.broadcast (0-arg)" should {
     "broadcast the same to already registered iteratees" in {
       mustExecute(38) { foldEC =>
