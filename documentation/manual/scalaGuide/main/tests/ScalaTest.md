@@ -1,11 +1,11 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
-# Testing your application
+# Testing your application with ScalaTest
 
-Writing tests for your application can be an involved process.  Play provides a default test framework for you, and provides helpers and application stubs to make testing your application as easy as possible.
+Writing tests for your application can be an involved process. Play provides an integration library, [ScalaTest + Play](http://scalatest.org/plus/play), as well as helpers and application stubs to make testing your application as easy as possible.
 
 ## Overview
 
-The location for tests is in the "test" folder.  There are two sample test files created in the test folder which can be used as templates.
+The location for tests is in the "test" folder.  <!-- There are two sample test files created in the test folder which can be used as templates. -->
 
 You can run tests from the Play console.
 
@@ -17,67 +17,43 @@ You can run tests from the Play console.
 
 Testing in Play is based on SBT, and a full description is available in the [testing SBT](http://www.scala-sbt.org/0.13.0/docs/Detailed-Topics/Testing) chapter.
 
-## Using specs2
+## Using ScalaTest + Play
 
-The default way to test in Play is using [specs2](http://etorreborre.github.io/specs2/).  In specs2, tests are organized into specifications, which contain examples which run the system under test through various different code paths.
+In [ScalaTest + Play](http://scalatest.org/plus/play), you define test classes by extending the PlaySpec trait. Here's an example:
 
-Specifications extend the [`Specification`](http://etorreborre.github.io/specs2/api/SPECS2-2.2/index.html#org.specs2.mutable.Specification) trait and are using the should/in format:
+@[scalatest-stackspec](code/StackSpec.scala)
 
-@[scalatest-helloworldspec](code/HelloWorldSpec.scala)
+You can, of course, also [create your own base classes](http://scalatest.org/user_guide/defining_base_classes) instead of using `PlaySpec`.
 
-Specifications can be run in either IntelliJ IDEA (using the [Scala plugin](http://blog.jetbrains.com/scala/)) or in Eclipse (using the [Scala IDE](http://scala-ide.org/)).  Please see the [[IDE page|IDE]] for more details.
-
-NOTE: Due to a bug in the [presentation compiler](https://scala-ide-portfolio.assembla.com/spaces/scala-ide/support/tickets/1001843-specs2-tests-with-junit-runner-are-not-recognized-if-there-is-package-directory-mismatch#/activity/ticket:), tests must be defined in a specific format to work with Eclipse:
-
-* The package must be exactly the same as the directory path.
-* The specification must be annotated with `@RunWith(classOf[JUnitRunner])`.
-
-Here is a valid specification for Eclipse:
-
-```scala
-package models // this file must be in a directory called "models"
-
-import org.specs2.mutable._
-import org.specs2.runner._
-import org.junit.runner._
-
-@RunWith(classOf[JUnitRunner])
-class ApplicationSpec extends Specification {
-  ...
-}
-```
+You can run your tests with Play itself, or in IntelliJ IDEA (using the [Scala plugin](http://blog.jetbrains.com/scala/)) or in Eclipse (using the [Scala IDE](http://scala-ide.org/) and the [ScalaTest Eclipse plugin](http://scalatest.org/user_guide/using_scalatest_with_eclipse)).  Please see the [[IDE page|IDE]] for more details.
 
 ### Matchers
 
-When you use an example, you must return an example result. Usually, you will see a statement containing a `must`:
+`PlaySpec` mixes in ScalaTest's [`MustMatchers`](http://doc.scalatest.org/2.1.0/index.html#org.scalatest.MustMatchers), so you can write assertions using ScalaTest's matchers DSL:
 
 ```scala
-"Hello world" must endWith("world")
+"Hello world" must endWith ("world")
 ```
 
-The expression that follows the `must` keyword are known as [`matchers`](http://etorreborre.github.io/specs2/guide/org.specs2.guide.Matchers.html). Matchers return an example result, typically Success or Failure.  The example will not compile if it does not return a result.
-
-The most useful matchers are the [match results](http://etorreborre.github.io/specs2/guide/org.specs2.guide.Matchers.html#Match+results).  These are used to check for equality, determine the result of Option and Either, and even check if exceptions are thrown.
-
-There are also [optional matchers](http://etorreborre.github.io/specs2/guide/org.specs2.guide.Matchers.html#Optional) that allow for XML and JSON matching in tests.
+For more information, see the documentation for [`MustMatchers`](http://doc.scalatest.org/2.1.0/index.html#org.scalatest.MustMatchers).
 
 ### Mockito
 
-Mocks are used to isolate unit tests against external dependencies.  For example, if your class depends on an external `DataService` class, you can feed appropriate data to your class without instantiating a `DataService` object.
+You can use mocks to isolate unit tests against external dependencies.  For example, if your class depends on an external `DataService` class, you can feed appropriate data to your class without instantiating a `DataService` object.
 
-[Mockito](https://code.google.com/p/mockito/) is integrated into specs2 as the default [mocking library](http://etorreborre.github.io/specs2/guide/org.specs2.guide.Matchers.html#Mock+expectations).
+ScalaTest provides integration with [Mockito](https://code.google.com/p/mockito/) via its [`MockitoSugar`](http://doc.scalatest.org/2.1.0/index.html#org.scalatest.mock.MockitoSugar) trait.
 
-To use Mockito, add the following:
+To use Mockito, mix `MockitoSugar` into your test class:
 
 ```scala
-import org.specs2.mock._
+class ExampleSpec extends PlaySpec with MockitoSugar // ...
 ```
 
 and then add the [library dependency](http://mvnrepository.com/artifact/org.mockito/mockito-core) to the build.
 
 Using Mockito, you can mock out references to classes like so:
 
-@[scalaws-mockito](code/ExampleMockitoSpec.scala)
+@[scalaws-mockitosugar](code/ExampleMockitoSugarSpec.scala)
 
 Mocking is especially useful for testing the public methods of classes.  Mocking objects and private methods is possible, but considerably harder.
 
