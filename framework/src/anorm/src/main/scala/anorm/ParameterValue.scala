@@ -39,8 +39,10 @@ object ParameterValue {
 
   private[anorm] trait Wrapper[T] { def value: T }
 
-  def apply[A](v: A, s: ToSql[A], toStmt: ToStatement[A]) =
-    new ParameterValue with Wrapper[A] {
+  @throws[IllegalArgumentException]("if value `v` is null whereas `toStmt` is marked with [[anorm.NotNullGuard]]") // TODO: MayErr on conversion to parameter values?
+  def apply[A](v: A, s: ToSql[A], toStmt: ToStatement[A]) = (v, toStmt) match {
+    case (null, _: NotNullGuard) => throw new IllegalArgumentException()
+    case _ => new ParameterValue with Wrapper[A] {
       val value = v
 
       def toSql(stmt: String, o: Int): (String, Int) = {
@@ -62,6 +64,7 @@ object ParameterValue {
         case _ => false
       }
     }
+  }
 
   implicit def toParameterValue[A](a: A)(implicit s: ToSql[A] = null, p: ToStatement[A]): ParameterValue = apply(a, s, p)
 }

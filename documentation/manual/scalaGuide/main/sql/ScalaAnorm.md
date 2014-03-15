@@ -148,6 +148,34 @@ val product: (String, Float) = SQL("SELECT * FROM prod WHERE id = {id}").
   on('id -> "p").as(parser.single)
 ```
 
+`java.util.UUID` can be used as parameter, in which case its string value is passed to statement.
+
+### Using multi-value parameter
+
+Anorm parameter can be multi-value, like a sequence of string.
+In such case, values will be prepared to be passed to JDBC.
+
+```scala
+// With default formatting (", " as separator)
+SQL("SELECT * FROM Test WHERE cat IN ({categories})").
+  on('categories -> Seq("a", "b", "c")
+// -> SELECT * FROM Test WHERE cat IN ('a', 'b', 'c')
+
+// With custom formatting
+import anorm.SeqParameter
+SQL("SELECT * FROM Test t WHERE {categories}").
+  on('categories -> SeqParameter(
+    values = Seq("a", "b", "c"), separator = " OR ", 
+    pre = "EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name=",
+    post = ")"))
+/* ->
+SELECT * FROM Test t WHERE 
+EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name='a') 
+OR EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name='b') 
+OR EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name='c')
+*/
+```
+
 ### Edge cases
 
 Passing anything different from string or symbol as parameter name is now deprecated. For backward compatibility, you can activate `anorm.features.parameterWithUntypedName`.
@@ -307,32 +335,6 @@ val parser = for {
 val parsed: (String, Int) = SELECT("SELECT * FROM Test").as(parser.single)
 ```
 
-## Using multi-value parameter
-
-Anorm parameter can be multi-value, like a sequence of string.
-In such case, values will be prepared to be passed to JDBC.
-
-```scala
-// With default formatting (", " as separator)
-SQL("SELECT * FROM Test WHERE cat IN ({categories})").
-  on('categories -> Seq("a", "b", "c")
-// -> SELECT * FROM Test WHERE cat IN ('a', 'b', 'c')
-
-// With custom formatting
-import anorm.SeqParameter
-SQL("SELECT * FROM Test t WHERE {categories}").
-  on('categories -> SeqParameter(
-    values = Seq("a", "b", "c"), separator = " OR ", 
-    pre = "EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name=",
-    post = ")"))
-/* ->
-SELECT * FROM Test t WHERE 
-EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name='a') 
-OR EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name='b') 
-OR EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name='c')
-*/
-```
-
 ## Retrieving data along with execution context
 
 Moreover data, query execution involves context information like SQL warnings that may be raised (and may be fatal or not), especially when working with stored SQL procedure.
@@ -415,6 +417,8 @@ implicit def customToStatement: ToStatement[T] = new ToStatement[T] {
     ??? // Sets |value| on |statement|
 }
 ```
+
+If involved type accept `null` value, it must be appropriately handled in conversion. Even if accepted by type, when `null` must be refused for parameter conversion, marker trait `NotNullGuard` can be used: `new ToStatement[T] with NotNullGuard { /* ... */ }`.
 
 For DB specific parameter, it can be explicitly passed as opaque value.
 In this case at your own risk, `setObject` will be used on statement.

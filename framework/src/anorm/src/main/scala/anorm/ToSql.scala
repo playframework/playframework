@@ -24,19 +24,18 @@ object ToSql {
    * // "?, ?, ?"
    * }}}
    */
-  implicit def seqToSql[A](implicit conv: ToSql[A] = null) =
-    new ToSql[Seq[A]] {
-      def fragment(values: Seq[A]): (String, Int) = {
-        val c: A => (String, Int) =
-          if (conv == null) _ => ("?" -> 1) else conv.fragment
+  implicit def seqToSql[A](implicit conv: ToSql[A] = null) = new ToSql[Seq[A]] {
+    def fragment(values: Seq[A]): (String, Int) = {
+      val c: A => (String, Int) =
+        if (conv == null) _ => ("?" -> 1) else conv.fragment
 
-        values.foldLeft("" -> 0) { (s, v) =>
-          val frag = c(v)
-          val st = if (s._2 > 0) ", " + frag._1 else frag._1
-          (s._1 + st, s._2 + frag._2)
-        }
+      values.foldLeft("" -> 0) { (s, v) =>
+        val frag = c(v)
+        val st = if (s._2 > 0) ", " + frag._1 else frag._1
+        (s._1 + st, s._2 + frag._2)
       }
     }
+  }
 
   /** Returns fragment for each value, with custom formatting. */
   implicit def seqParamToSql[A](implicit conv: ToSql[A] = null) =
