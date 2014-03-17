@@ -1,5 +1,5 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
-# Testing your application
+# Testing your application with specs2
 
 Writing tests for your application can be an involved process.  Play provides a default test framework for you, and provides helpers and application stubs to make testing your application as easy as possible.
 
@@ -142,4 +142,4 @@ For this, the test [`Helpers.call`](api/scala/index.html#play.api.test.Helpers@c
 @[scalatest-exampleessentialactionspec](code/specs2/ExampleEssentialActionSpec.scala)
 
 
-> **Next:** [[Writing functional tests|Specs2FunctionalTest]]
+> **Next:** [[Writing functional tests with specs2|Specs2FunctionalTest]]
