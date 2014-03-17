@@ -11,7 +11,17 @@ package play.api.libs.ws.ssl
 class JavaSecurityDebugBuilder(c: SSLDebugConfig) {
 
   def build(): String = {
-    if (c.certpath) "certpath" else ""
+    val b = new StringBuilder()
+    if (c.certpath) {
+      b.append(" certpath")
+    }
+
+    if (c.ocsp) {
+      // http://grepcode.com/file/repository.grepcode.com/java/root/jdk/openjdk/7u40-b43/sun/security/provider/certpath/OCSPResponse.java#132
+      b.append(" ocsp")
+    }
+
+    b.toString()
   }
 
 }

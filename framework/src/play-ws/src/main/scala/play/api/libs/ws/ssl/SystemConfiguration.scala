@@ -6,35 +6,26 @@
 package play.api.libs.ws.ssl
 
 import play.api.libs.ws.WSClientConfig
+import java.security.{ Security, PrivilegedExceptionAction }
 
 /**
  * Configures global system properties on the JSSE implementation, if defined.
  */
-class SystemConfiguration {
+class SystemConfiguration extends MonkeyPatcher {
 
   val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 
   def configure(config: WSClientConfig) {
-    val allowUnsafeRenegotiation = (for {
-      ssl <- config.ssl
-      loose <- ssl.loose
-      looseAllowUnsafeRenegotiation <- loose.allowUnsafeRenegotiation
-    } yield looseAllowUnsafeRenegotiation).getOrElse(false)
-    configureUnsafeRenegotiation(allowUnsafeRenegotiation)
 
-    val allowLegacyHelloMessages = (for {
-      ssl <- config.ssl
-      loose <- ssl.loose
-      looseAllowLegacyHelloMessages <- loose.allowLegacyHelloMessages
-    } yield looseAllowLegacyHelloMessages).getOrElse(false)
-    configureAllowLegacyHelloMessages(allowLegacyHelloMessages)
-
-    val disableCheckRevocation = (for {
-      ssl <- config.ssl
-      loose <- ssl.loose
-      looseDisableCheckRevocation <- loose.disableCheckRevocation
-    } yield looseDisableCheckRevocation).getOrElse(false)
-    configureCheckRevocation(!disableCheckRevocation)
+    config.ssl.map {
+      ssl =>
+        ssl.loose.map {
+          loose =>
+            loose.allowUnsafeRenegotiation.map(configureUnsafeRenegotiation)
+            loose.allowLegacyHelloMessages.map(configureAllowLegacyHelloMessages)
+        }
+        ssl.checkRevocation.map(configureCheckRevocation)
+    }
   }
 
   def configureUnsafeRenegotiation(allowUnsafeRenegotiation: Boolean) {
@@ -50,16 +41,50 @@ class SystemConfiguration {
   def configureCheckRevocation(checkRevocation: Boolean) {
     // http://docs.oracle.com/javase/6/docs/technotes/guides/security/certpath/CertPathProgGuide.html#AppC
     // https://blogs.oracle.com/xuelei/entry/enable_ocsp_checking
-    System.setProperty("ocsp.enable", checkRevocation.toString)
+    val javaBool: java.lang.Boolean = checkRevocation
+
+    // 1.7: PXIXCertPathValidator.populateVariables, it is dynamic so no override needed.
+    Security.setProperty("ocsp.enable", checkRevocation.toString)
     logger.debug("configureCheckRevocation: ocsp.enable = {}", checkRevocation.toString)
 
-    System.setProperty("com.sun.security.enableCRLDP", checkRevocation.toString)
-    logger.debug("configureCheckRevocation: com.sun.security.enableCRLDP = {}", checkRevocation.toString)
+    // JDK 1.6 & 1.7 are the same
+    java.security.AccessController.doPrivileged(
+      new PrivilegedExceptionAction[Unit] {
+        override def run(): Unit = {
+          // CRL checking
+          System.setProperty("com.sun.security.enableCRLDP", checkRevocation.toString)
+          logger.debug("configureCheckRevocation: com.sun.security.enableCRLDP = {}", checkRevocation.toString)
 
-    // 1.7: Sets up sun.security.validator.PKIXValidator, which then sets up PKIXBuilderParameters.
-    // 1.6: Used by sun.security.ssl.X509TrustManagerImpl
-    System.setProperty("com.sun.net.ssl.checkRevocation", checkRevocation.toString)
-    logger.debug("configureCheckRevocation: com.sun.net.ssl.checkRevocation = {}", checkRevocation.toString)
+          val className = "sun.security.provider.certpath.DistributionPointFetcher"
+          val revocationClassType = Thread.currentThread().getContextClassLoader.loadClass(className)
+          val revocationField = revocationClassType.getDeclaredField("USE_CRLDP")
+          monkeyPatchField(revocationField, javaBool)
+        }
+      }
+    )
+
+    java.security.AccessController.doPrivileged(
+      new PrivilegedExceptionAction[Unit] {
+        override def run(): Unit = {
+          System.setProperty("com.sun.net.ssl.checkRevocation", checkRevocation.toString)
+          foldVersion(run16 = {
+            // 1.6: Used by sun.security.ssl.X509TrustManagerImpl
+            val className = "sun.security.ssl.X509TrustManagerImpl"
+            val revocationClassType = Thread.currentThread().getContextClassLoader.loadClass(className)
+            val revocationField = revocationClassType.getDeclaredField("checkRevocation")
+            monkeyPatchField(revocationField, javaBool)
+          }, runHigher = {
+            // 1.7: Sets up sun.security.validator.PKIXValidator, which then sets up PKIXBuilderParameters.
+            val className = "sun.security.validator.PKIXValidator"
+            val revocationClassType = Thread.currentThread().getContextClassLoader.loadClass(className)
+            val revocationField = revocationClassType.getDeclaredField("checkTLSRevocation")
+            monkeyPatchField(revocationField, javaBool)
+          })
+          logger.debug("configureCheckRevocation: com.sun.net.ssl.checkRevocation = {}", checkRevocation.toString)
+        }
+      }
+    )
+
   }
 
   /**

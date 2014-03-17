@@ -6,6 +6,8 @@ package play.api.libs.ws.ssl
 import javax.net.ssl._
 import java.security.{ UnrecoverableKeyException, KeyStore, SecureRandom }
 import java.security.cert._
+import java.io._
+import java.net.URL
 
 trait SSLContextBuilder {
   def build(): SSLContext
@@ -92,15 +94,14 @@ class ConfigSSLContextBuilder(info: SSLConfig,
 
   def build: SSLContext = {
     val protocol = info.protocol.getOrElse(Protocols.recommendedProtocol)
-
-    val disableCheckRevocation = info.loose.exists(_.disableCheckRevocation.getOrElse(false))
-    val checkRevocation = !disableCheckRevocation
+    val checkRevocation = info.checkRevocation.getOrElse(false)
 
     val keyManagers: Seq[KeyManager] = info.keyManagerConfig.map {
       kmc => Seq(buildCompositeKeyManager(kmc))
     }.getOrElse(Nil)
 
     val certificateValidator = buildCertificateValidator(info)
+
     val trustManagers: Seq[TrustManager] = info.trustManagerConfig.map {
       tmc => Seq(buildCompositeTrustManager(tmc, certificateValidator, checkRevocation))
     }.getOrElse(Nil)
@@ -120,11 +121,12 @@ class ConfigSSLContextBuilder(info: SSLConfig,
 
     val disabledSignatureAlgorithms = info.disabledSignatureAlgorithms.getOrElse(Algorithms.disabledSignatureAlgorithms)
     val disabledKeyAlgorithms = info.disabledKeyAlgorithms.getOrElse(Algorithms.disabledKeyAlgorithms)
-    val disableCheckRevocation = info.loose.flatMap(_.disableCheckRevocation).getOrElse(false)
+    val checkRevocation = info.checkRevocation.getOrElse(false)
 
+    val revocationLists = certificateRevocationList(info)
     val signatureConstraints = AlgorithmConstraintsParser(disabledSignatureAlgorithms).toSet
     val keyConstraints = AlgorithmConstraintsParser(disabledKeyAlgorithms).toSet
-    new CertificateValidator(signatureConstraints, keyConstraints, revocationEnabled = !disableCheckRevocation)
+    new CertificateValidator(signatureConstraints, keyConstraints, checkRevocation, revocationLists)
   }
 
   def buildCompositeKeyManager(keyManagerConfig: KeyManagerConfig) = {
@@ -135,12 +137,13 @@ class ConfigSSLContextBuilder(info: SSLConfig,
     new CompositeX509KeyManager(keyManagers)
   }
 
-  def buildCompositeTrustManager(trustManagerInfo: TrustManagerConfig, certificateValidator: CertificateValidator, checkRevocation: Boolean = false) = {
+  def buildCompositeTrustManager(trustManagerInfo: TrustManagerConfig, certificateValidator: CertificateValidator,
+    checkRevocation: Boolean) = {
+
     val trustManagers = trustManagerInfo.trustStoreConfigs.map {
       tsc =>
         buildTrustManager(tsc, checkRevocation)
     }
-
     new CompositeX509TrustManager(trustManagers, certificateValidator)
   }
 
@@ -202,6 +205,42 @@ class ConfigSSLContextBuilder(info: SSLConfig,
 
     // The JSSE implementation only sends back ONE key manager, X509ExtendedKeyManager
     keyManagers.head.asInstanceOf[X509KeyManager]
+  }
+
+  // Should anyone have any interest in implementing this feature at all, they can implement this method and
+  // submit a patch.
+  def certificateRevocationList(sslConfig: SSLConfig): Option[Seq[CRL]] = {
+    sslConfig.revocationLists.map { urls =>
+      urls.map(generateCRLFromURL)
+    }
+  }
+
+  def generateCRL(inputStream: InputStream): CRL = {
+    val cf = CertificateFactory.getInstance("X509")
+    val crl = cf.generateCRL(inputStream).asInstanceOf[X509CRL]
+    crl
+  }
+
+  def generateCRLFromURL(url: URL): CRL = {
+    val connection = url.openConnection()
+    connection.setDoInput(true)
+    connection.setUseCaches(false)
+    val inStream = new DataInputStream(connection.getInputStream)
+    try {
+      generateCRL(inStream)
+    } finally {
+      inStream.close()
+    }
+  }
+
+  def generateCRLFromFile(file: File): CRL = {
+    val fileStream = new BufferedInputStream(new FileInputStream(file))
+    val inStream = new DataInputStream(fileStream)
+    try {
+      generateCRL(inStream)
+    } finally {
+      inStream.close()
+    }
   }
 
   /**

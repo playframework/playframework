@@ -26,6 +26,14 @@ object DebugBuilderSpec extends Specification {
 
       actual.trim.split("\\s+").toSeq must containTheSameElementsAs(Seq("certpath"))
     }
+
+    "match certpath + ocsp" in {
+      val config = SSLDebugConfig(certpath = true, ocsp = true)
+      val builder = new JavaSecurityDebugBuilder(config)
+      val actual = builder.build()
+
+      actual.trim.split("\\s+").toSeq must containTheSameElementsAs(Seq("certpath", "ocsp"))
+    }
   }
 
   "JavaxNetDebugBuilder" should {

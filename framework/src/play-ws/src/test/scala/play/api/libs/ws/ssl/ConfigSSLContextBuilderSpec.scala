@@ -11,7 +11,7 @@ import org.specs2.mock._
 
 import javax.net.ssl._
 import java.security.{Principal, PrivateKey, KeyStore}
-import java.security.cert.X509Certificate
+import java.security.cert.{X509CRL, X509Certificate}
 import java.net.Socket
 import org.joda.time.Instant
 
@@ -126,10 +126,9 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
       val trustManagerFactory = mock[TrustManagerFactoryWrapper]
       val builder = new ConfigSSLContextBuilder(info, keyManagerFactory, trustManagerFactory)
 
-      val disabledAlgorithms = Set(AlgorithmConstraint("md5"))
       val storeType = Some(KeyStore.getDefaultType)
       val filePath = Some(CACERTS)
-      val trustStoreConfig = DefaultTrustStoreConfig(storeType, filePath, None)
+      val trustStoreConfig = DefaultTrustStoreConfig(storeType = storeType, filePath = filePath, data = None)
 
       // XXX replace with mock?
       trustManagerFactory.getTrustManagers returns Array {
@@ -141,7 +140,7 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
           def checkServerTrusted(chain: Array[X509Certificate], authType: String): Unit = ???
         }
       }
-      val actual = builder.buildTrustManager(trustStoreConfig, false)
+      val actual = builder.buildTrustManager(trustStoreConfig, revocationEnabled = false)
       actual must beAnInstanceOf[javax.net.ssl.X509TrustManager]
     }
 
@@ -166,9 +165,11 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
       val disabledSignatureAlgorithms = Set(AlgorithmConstraint("md5"))
       val disabledKeyAlgorithms = Set(AlgorithmConstraint("RSA < 1024"))
       val trustManagerConfig = DefaultTrustManagerConfig()
-      val certificateValidator = new CertificateValidator(disabledSignatureAlgorithms, disabledKeyAlgorithms)
+      val checkRevocation = false
+      val revocationLists = None
+      val certificateValidator = new CertificateValidator(disabledSignatureAlgorithms, disabledKeyAlgorithms, checkRevocation, revocationLists)
 
-      val actual = builder.buildCompositeTrustManager(trustManagerConfig, certificateValidator)
+      val actual = builder.buildCompositeTrustManager(trustManagerConfig, certificateValidator, checkRevocation)
       actual must beAnInstanceOf[CompositeX509TrustManager]
     }
 
@@ -186,9 +187,11 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
 
       val disabledSignatureAlgorithms = Set(AlgorithmConstraint("md5"))
       val disabledKeyAlgorithms = Set(AlgorithmConstraint("RSA < 1024"))
-      val certificateValidator = new CertificateValidator(disabledSignatureAlgorithms, disabledKeyAlgorithms)
+      val checkRevocation = false
+      val revocationLists = None
+      val certificateValidator = new CertificateValidator(disabledSignatureAlgorithms, disabledKeyAlgorithms, checkRevocation, revocationLists)
 
-      val actual = builder.buildCompositeTrustManager(trustManagerConfig, certificateValidator)
+      val actual = builder.buildCompositeTrustManager(trustManagerConfig, certificateValidator, checkRevocation)
 
       actual must beAnInstanceOf[CompositeX509TrustManager]
       val issuers = actual.getAcceptedIssuers
@@ -209,9 +212,11 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
 
       val disabledSignatureAlgorithms = Set(AlgorithmConstraint("md5"))
       val disabledKeyAlgorithms = Set(AlgorithmConstraint("RSA < 1024"))
-      val certificateValidator = new CertificateValidator(disabledSignatureAlgorithms, disabledKeyAlgorithms)
+      val checkRevocation = false
+      val revocationLists = None
+      val certificateValidator = new CertificateValidator(disabledSignatureAlgorithms, disabledKeyAlgorithms, checkRevocation, revocationLists)
 
-      builder.buildCompositeTrustManager(trustManagerConfig, certificateValidator).must(throwAn[IllegalStateException])
+      builder.buildCompositeTrustManager(trustManagerConfig, certificateValidator, checkRevocation).must(throwAn[IllegalStateException])
     }
 
     "build a file based keystore builder" in {
