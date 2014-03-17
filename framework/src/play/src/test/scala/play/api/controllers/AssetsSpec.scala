@@ -71,9 +71,9 @@ object AssetsSpec extends Specification {
     }
 
     "fail when looking up assets with invalid chars in the URL" in {
-      Assets.resourceNameAt("a", "|") must throwA[InvalidUriEncodingException]
-      Assets.resourceNameAt("a", "hello world") must throwA[InvalidUriEncodingException]
-      Assets.resourceNameAt("a", "b/[c]/d") must throwA[InvalidUriEncodingException]
+      Assets.resourceNameAt("a", "|") must throwAn[InvalidUriEncodingException]
+      Assets.resourceNameAt("a", "hello world") must throwAn[InvalidUriEncodingException]
+      Assets.resourceNameAt("a", "b/[c]/d") must throwAn[InvalidUriEncodingException]
     }
 
     "look up assets even if the file path is a valid URI" in {

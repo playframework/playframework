@@ -15,7 +15,7 @@ import org.joda.time.DateTimeZone
 import collection.JavaConverters._
 import scala.util.control.NonFatal
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.utils.UriEncoding
+import play.utils.{ InvalidUriEncodingException, UriEncoding }
 
 /**
  * Controller that serves static resources.
@@ -74,93 +74,97 @@ class AssetsBuilder extends Controller {
       case NonFatal(_) => None
     }
 
-    resourceNameAt(path, file).map { resourceName =>
+    try {
+      resourceNameAt(path, file).map { resourceName =>
 
-      val gzippedResource = Play.resource(resourceName + ".gz")
+        val gzippedResource = Play.resource(resourceName + ".gz")
 
-      val resource = {
-        gzippedResource.map(_ -> true)
-          .filter(_ => request.headers.get(ACCEPT_ENCODING).map(_.split(',').exists(_.trim == "gzip" && Play.isProd)).getOrElse(false))
-          .orElse(Play.resource(resourceName).map(_ -> false))
-      }
+        val resource = {
+          gzippedResource.map(_ -> true)
+            .filter(_ => request.headers.get(ACCEPT_ENCODING).map(_.split(',').exists(_.trim == "gzip" && Play.isProd)).getOrElse(false))
+            .orElse(Play.resource(resourceName).map(_ -> false))
+        }
 
-      def maybeNotModified(url: java.net.URL) = {
-        // First check etag. Important, if there is an If-None-Match header, we MUST not check the
-        // If-Modified-Since header, regardless of whether If-None-Match matches or not. This is in
-        // accordance with section 14.26 of RFC2616.
-        request.headers.get(IF_NONE_MATCH) match {
-          case Some(etags) => {
-            etagFor(url).filter(etag =>
-              etags.split(",").exists(_.trim == etag)
-            ).map(_ => cacheableResult(url, NotModified))
-          }
-          case None => {
-            request.headers.get(IF_MODIFIED_SINCE).flatMap(parseDate).flatMap { ifModifiedSince =>
-              lastModifiedFor(url).flatMap(parseDate).filterNot(lastModified => lastModified.after(ifModifiedSince))
-            }.map(_ => NotModified.withHeaders(
-              DATE -> df.print({ new java.util.Date }.getTime)))
+        def maybeNotModified(url: java.net.URL) = {
+          // First check etag. Important, if there is an If-None-Match header, we MUST not check the
+          // If-Modified-Since header, regardless of whether If-None-Match matches or not. This is in
+          // accordance with section 14.26 of RFC2616.
+          request.headers.get(IF_NONE_MATCH) match {
+            case Some(etags) => {
+              etagFor(url).filter(etag =>
+                etags.split(",").exists(_.trim == etag)
+              ).map(_ => cacheableResult(url, NotModified))
+            }
+            case None => {
+              request.headers.get(IF_MODIFIED_SINCE).flatMap(parseDate).flatMap { ifModifiedSince =>
+                lastModifiedFor(url).flatMap(parseDate).filterNot(lastModified => lastModified.after(ifModifiedSince))
+              }.map(_ => NotModified.withHeaders(
+                DATE -> df.print({ new java.util.Date }.getTime)))
+            }
           }
         }
-      }
 
-      def cacheableResult[A <: Result](url: java.net.URL, r: A) = {
-        // Add Etag if we are able to compute it
-        val taggedResponse = etagFor(url).map(etag => r.withHeaders(ETAG -> etag)).getOrElse(r)
-        val lastModifiedResponse = lastModifiedFor(url).map(lastModified => taggedResponse.withHeaders(LAST_MODIFIED -> lastModified)).getOrElse(taggedResponse)
+        def cacheableResult[A <: Result](url: java.net.URL, r: A) = {
+          // Add Etag if we are able to compute it
+          val taggedResponse = etagFor(url).map(etag => r.withHeaders(ETAG -> etag)).getOrElse(r)
+          val lastModifiedResponse = lastModifiedFor(url).map(lastModified => taggedResponse.withHeaders(LAST_MODIFIED -> lastModified)).getOrElse(taggedResponse)
 
-        // Add Cache directive if configured
-        val cachedResponse = lastModifiedResponse.withHeaders(CACHE_CONTROL -> {
-          Play.configuration.getString("\"assets.cache." + resourceName + "\"").getOrElse(Play.mode match {
-            case Mode.Prod => Play.configuration.getString("assets.defaultCache").getOrElse("max-age=3600")
-            case _ => "no-cache"
+          // Add Cache directive if configured
+          val cachedResponse = lastModifiedResponse.withHeaders(CACHE_CONTROL -> {
+            Play.configuration.getString("\"assets.cache." + resourceName + "\"").getOrElse(Play.mode match {
+              case Mode.Prod => Play.configuration.getString("assets.defaultCache").getOrElse("max-age=3600")
+              case _ => "no-cache"
+            })
           })
-        })
-        cachedResponse
-      }
-
-      resource.map {
-
-        case (url, _) if new File(url.getFile).isDirectory => NotFound
-
-        case (url, isGzipped) => {
-
-          lazy val (length, resourceData) = {
-            val stream = url.openStream()
-            try {
-              (stream.available, Enumerator.fromStream(stream))
-            } catch {
-              case NonFatal(_) => (-1, Enumerator[Array[Byte]]())
-            }
-          }
-
-          if (length == -1) {
-            NotFound
-          } else {
-            maybeNotModified(url).getOrElse {
-              // Prepare a streamed response
-              val response = Result(
-                ResponseHeader(OK, Map(
-                  CONTENT_LENGTH -> length.toString,
-                  CONTENT_TYPE -> MimeTypes.forFileName(file).map(m => m + addCharsetIfNeeded(m)).getOrElse(BINARY),
-                  DATE -> df.print({ new java.util.Date }.getTime))),
-                resourceData)
-
-              // If there is a gzipped version, even if the client isn't accepting gzip, we need to specify the
-              // Vary header so proxy servers will cache both the gzip and the non gzipped version
-              val gzippedResponse = (gzippedResource.isDefined, isGzipped) match {
-                case (true, true) => response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> "gzip")
-                case (true, false) => response.withHeaders(VARY -> ACCEPT_ENCODING)
-                case _ => response
-              }
-              cacheableResult(url, gzippedResponse)
-            }
-          }
-
+          cachedResponse
         }
 
-      }.getOrElse(NotFound)
+        resource.map {
 
-    }.getOrElse(NotFound)
+          case (url, _) if new File(url.getFile).isDirectory => NotFound
+
+          case (url, isGzipped) => {
+
+            lazy val (length, resourceData) = {
+              val stream = url.openStream()
+              try {
+                (stream.available, Enumerator.fromStream(stream))
+              } catch {
+                case NonFatal(_) => (-1, Enumerator[Array[Byte]]())
+              }
+            }
+
+            if (length == -1) {
+              NotFound
+            } else {
+              maybeNotModified(url).getOrElse {
+                // Prepare a streamed response
+                val response = SimpleResult(
+                  ResponseHeader(OK, Map(
+                    CONTENT_LENGTH -> length.toString,
+                    CONTENT_TYPE -> MimeTypes.forFileName(file).map(m => m + addCharsetIfNeeded(m)).getOrElse(BINARY),
+                    DATE -> df.print({ new java.util.Date }.getTime))),
+                  resourceData)
+
+                // If there is a gzipped version, even if the client isn't accepting gzip, we need to specify the
+                // Vary header so proxy servers will cache both the gzip and the non gzipped version
+                val gzippedResponse = (gzippedResource.isDefined, isGzipped) match {
+                  case (true, true) => response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> "gzip")
+                  case (true, false) => response.withHeaders(VARY -> ACCEPT_ENCODING)
+                  case _ => response
+                }
+                cacheableResult(url, gzippedResponse)
+              }
+            }
+
+          }
+        }.getOrElse(NotFound)
+      }.getOrElse(NotFound)
+    } catch {
+      case e: InvalidUriEncodingException =>
+        Logger.debug("Invalid URI encoding", e)
+        BadRequest
+    }
   }
 
   /**
@@ -173,7 +177,7 @@ class AssetsBuilder extends Controller {
     val decodedFile = UriEncoding.decodePath(file, "utf-8")
     val slashRemover = (input: String) => """//+""".r.replaceAllIn(input, "/")
     val fullpath = slashRemover(path + "/" + decodedFile)
-    val resourceName = if (fullpath.startsWith("/")) fullpath else ("/" + fullpath)
+    val resourceName = if (fullpath startsWith "/") fullpath else "/" + fullpath
     if (new File(resourceName).isDirectory || !new File(resourceName).getCanonicalPath.startsWith(new File(path).getCanonicalPath)) {
       None
     } else {
