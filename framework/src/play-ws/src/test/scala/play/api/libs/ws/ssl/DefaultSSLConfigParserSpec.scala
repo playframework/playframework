@@ -23,6 +23,8 @@ object DefaultSSLConfigParserSpec extends Specification {
       val actual = parseThis( """
                                 |default = true
                                 |protocol = TLSv1.2
+                                |checkRevocation = true
+                                |revocationLists = [ "http://example.com" ]
                                 |hostnameVerifierClassName = "someHostnameVerifier"
                                 |enabledCipherSuites = [ TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA ]
                                 |enabledProtocols = [ TLSv1.2, TLSv1.1, TLS ]
@@ -32,6 +34,10 @@ object DefaultSSLConfigParserSpec extends Specification {
 
       actual.default must beSome.which(_ must beTrue)
       actual.protocol must beSome.which(_ must beEqualTo("TLSv1.2"))
+      actual.checkRevocation must beSome.which(_ must beTrue)
+      actual.revocationLists must beSome.which {
+        _ must beEqualTo(Seq(new java.net.URL("http://example.com")))
+      }
       actual.hostnameVerifierClassName must beSome.which(_ must_== "someHostnameVerifier")
       actual.enabledCipherSuites must beSome.which(_ must containTheSameElementsAs(Seq("TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA")))
       actual.enabledProtocols must beSome.which(_ must containTheSameElementsAs(Seq("TLSv1.2", "TLSv1.1", "TLS")))
@@ -47,7 +53,6 @@ object DefaultSSLConfigParserSpec extends Specification {
                                 | allowUnsafeRenegotiation = true
                                 | allowWeakCiphers = true
                                 | allowWeakProtocols = true
-                                | disableCheckRevocation = true
                                 | disableHostnameVerification = true
                                 |}
                               """.stripMargin)
@@ -56,7 +61,6 @@ object DefaultSSLConfigParserSpec extends Specification {
         loose.allowUnsafeRenegotiation must beSome(true)
         loose.allowWeakCiphers must beSome(true)
         loose.allowWeakProtocols must beSome(true)
-        loose.disableCheckRevocation must beSome(true)
         loose.disableHostnameVerification must beSome(true)
       }
     }

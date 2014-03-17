@@ -13,7 +13,7 @@ import scala.util.control.NonFatal
 /**
  * Define a certificate validator with our own custom checkers and builders.
  */
-class CertificateValidator(val signatureConstraints: Set[AlgorithmConstraint], val keyConstraints: Set[AlgorithmConstraint], val revocationEnabled: Boolean = false) {
+class CertificateValidator(val signatureConstraints: Set[AlgorithmConstraint], val keyConstraints: Set[AlgorithmConstraint], val revocationEnabled: Boolean, revocationLists: Option[Seq[CRL]]) {
   private val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 
   // Add the algorithm checker in here...
@@ -83,6 +83,13 @@ class CertificateValidator(val signatureConstraints: Set[AlgorithmConstraint], v
     // Set revocation based on whether or not it's enabled in this config...
     params.setRevocationEnabled(revocationEnabled)
 
+    // For the sake of completeness, set the static revocation list if it exists...
+    revocationLists.map {
+      crlList =>
+        import scala.collection.JavaConverters._
+        params.addCertStore(CertStore.getInstance("Collection", new CollectionCertStoreParameters(crlList.asJavaCollection)))
+    }
+
     params
   }
 
@@ -122,6 +129,9 @@ class AlgorithmChecker(val signatureConstraints: Set[AlgorithmConstraint], val k
     logger.debug(s"init: forward = $forward")
     // forward is from target to most-trusted CA
     // backwards is from most-trusted CA to target, which means we get the root CA first.
+    if (forward) {
+      throw new CertPathValidatorException("Forward checking not supported")
+    }
   }
 
   def findSignatureConstraint(algorithm: String): Option[AlgorithmConstraint] = {

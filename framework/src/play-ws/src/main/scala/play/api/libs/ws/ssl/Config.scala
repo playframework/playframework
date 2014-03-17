@@ -8,6 +8,7 @@ package play.api.libs.ws.ssl
 import play.api.{ Logger, Configuration }
 import scala.collection.JavaConverters
 import java.security.SecureRandom
+import java.net.URL
 
 /**
  * Contains configuration information for a key store.
@@ -66,6 +67,10 @@ trait SSLConfig {
 
   def protocol: Option[String]
 
+  def checkRevocation: Option[Boolean]
+
+  def revocationLists: Option[Seq[URL]]
+
   def secureRandom: Option[SecureRandom]
 
   def hostnameVerifierClassName: Option[String]
@@ -88,11 +93,6 @@ trait SSLConfig {
 }
 
 trait SSLLooseConfig {
-
-  /**
-   * Disables OCSP revocation checks.
-   */
-  def disableCheckRevocation: Option[Boolean]
 
   // @see http://www.oracle.com/technetwork/java/javase/documentation/tlsreadme2-176330.html
   def allowLegacyHelloMessages: Option[Boolean]
@@ -127,13 +127,15 @@ case class DefaultKeyManagerConfig(algorithm: Option[String] = None,
   keyStoreConfigs: Seq[KeyStoreConfig] = Nil,
   password: Option[String] = None) extends KeyManagerConfig
 
-case class DefaultTrustManagerConfig(algorithm: Option[String] = None,
+case class DefaultTrustManagerConfig(
+  algorithm: Option[String] = None,
   trustStoreConfigs: Seq[TrustStoreConfig] = Nil) extends TrustManagerConfig
 
 case class SSLDebugConfig(
     all: Boolean = false,
     ssl: Boolean = false,
     certpath: Boolean = false,
+    ocsp: Boolean = false,
     record: Option[SSLDebugRecordOptions] = None,
     handshake: Option[SSLDebugHandshakeOptions] = None,
     keygen: Boolean = false,
@@ -148,6 +150,8 @@ case class SSLDebugConfig(
   def withAll = this.copy(all = true)
 
   def withCertPath = this.copy(certpath = true)
+
+  def withOcsp = this.withCertPath.copy(ocsp = true) // technically a part of certpath, only available in 1.7+
 
   def withRecord(plaintext: Boolean = false, packet: Boolean = false) = {
     this.copy(record = Some(SSLDebugRecordOptions(plaintext, packet)))
@@ -186,12 +190,13 @@ case class DefaultSSLLooseConfig(
   allowWeakProtocols: Option[Boolean] = None,
   allowLegacyHelloMessages: Option[Boolean] = None,
   allowUnsafeRenegotiation: Option[Boolean] = None,
-  disableCheckRevocation: Option[Boolean] = None,
   disableHostnameVerification: Option[Boolean] = None) extends SSLLooseConfig
 
 case class DefaultSSLConfig(
   default: Option[Boolean] = None,
   protocol: Option[String] = None,
+  checkRevocation: Option[Boolean] = None,
+  revocationLists: Option[Seq[URL]] = None,
   enabledCipherSuites: Option[Seq[String]] = None,
   enabledProtocols: Option[Seq[String]] = None,
   disabledSignatureAlgorithms: Option[String] = None,
@@ -214,6 +219,17 @@ class DefaultSSLConfigParser(c: Configuration) {
     val default = c.getBoolean("default")
 
     val protocol = c.getString("protocol")
+
+    val checkRevocation = c.getBoolean("checkRevocation")
+
+    val revocationLists: Option[Seq[URL]] = c.getStringSeq("revocationLists").map {
+      urls =>
+        for {
+          revocationURL <- urls
+        } yield {
+          new URL(revocationURL)
+        }
+    }
 
     val debug = c.getStringSeq("debug").map {
       debugConfig =>
@@ -247,13 +263,16 @@ class DefaultSSLConfigParser(c: Configuration) {
     val secureRandom = new SecureRandom()
     // SecureRandom needs to be seeded, and calling nextInt immediately after being
     // called ensures a seed.  We do it here rather than waiting for JSSE because
-    // seeding can chew through entropy and occasionally block the thread until it's finished.
+    // seeding can chew through entropy and occasionally block the thread until
+    // it's finished, if on something too dumb to use /dev/urandom.
     // Better to do it using parsing rather than in the middle of an HTTPS call.
     secureRandom.nextInt()
 
     DefaultSSLConfig(
       default = default,
       protocol = protocol,
+      checkRevocation = checkRevocation,
+      revocationLists = revocationLists,
       enabledCipherSuites = ciphers,
       enabledProtocols = protocols,
       keyManagerConfig = keyManagers,
@@ -279,8 +298,6 @@ class DefaultSSLConfigParser(c: Configuration) {
 
     val allowUnsafeRenegotiation = looseOptions.getBoolean("allowUnsafeRenegotiation")
 
-    val disableCheckRevocation = looseOptions.getBoolean("disableCheckRevocation")
-
     val disableHostnameVerification = looseOptions.getBoolean("disableHostnameVerification")
 
     DefaultSSLLooseConfig(
@@ -288,7 +305,6 @@ class DefaultSSLConfigParser(c: Configuration) {
       allowWeakProtocols = allowWeakProtocols,
       allowLegacyHelloMessages = allowMessages,
       allowUnsafeRenegotiation = allowUnsafeRenegotiation,
-      disableCheckRevocation = disableCheckRevocation,
       disableHostnameVerification = disableHostnameVerification
     )
   }

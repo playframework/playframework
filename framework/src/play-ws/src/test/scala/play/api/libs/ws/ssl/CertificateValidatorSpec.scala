@@ -36,7 +36,9 @@ object CertificateValidatorSpec extends Specification {
 
       val signatureConstraints = Set(AlgorithmConstraint("md5"))
       val keyConstraints = Set(AlgorithmConstraint(""))
-      val validator = new CertificateValidator(signatureConstraints, keyConstraints, revocationEnabled = false)
+      val revocationEnabled = false
+      val revocationLists = None
+      val validator = new CertificateValidator(signatureConstraints, keyConstraints, revocationEnabled, revocationLists)
 
       val trustedCerts = Array(caCert)
       validator.validate(chain, trustedCerts).must(throwA[CertPathValidatorException]("basic constraints check failed: this is not a CA certificate"))
@@ -53,7 +55,9 @@ object CertificateValidatorSpec extends Specification {
 
       val signatureConstraints = Set(AlgorithmConstraint("md5"))
       val keyConstraints = Set(AlgorithmConstraint(""))
-      val validator = new CertificateValidator(signatureConstraints, keyConstraints, revocationEnabled = false)
+      val revocationEnabled = false
+      val revocationLists = None
+      val validator = new CertificateValidator(signatureConstraints, keyConstraints, revocationEnabled, revocationLists)
 
       // pretendingToBeACACert is not one of the trusted certs
       val trustedCerts = defaultTrustedCertificates
@@ -71,7 +75,9 @@ object CertificateValidatorSpec extends Specification {
 
       val signatureConstraints = Set(AlgorithmConstraint("md5"))
       val keyConstraints = Set(AlgorithmConstraint(""))
-      val validator = new CertificateValidator(signatureConstraints, keyConstraints, revocationEnabled = false)
+      val revocationEnabled = false
+      val revocationLists = None
+      val validator = new CertificateValidator(signatureConstraints, keyConstraints, revocationEnabled, revocationLists)
 
       validator.validate(chain, trustedCerts).must(throwA[CertPathValidatorException]("subject/issuer name chaining check failed"))
     }
@@ -84,11 +90,17 @@ object CertificateValidatorSpec extends Specification {
 
       val signatureConstraints = Set(AlgorithmConstraint("md5"))
       val keyConstraints = Set(AlgorithmConstraint(""))
-      val validator = new CertificateValidator(signatureConstraints, keyConstraints, revocationEnabled = false)
+      val revocationEnabled = false
+      val revocationLists = None
+      val validator = new CertificateValidator(signatureConstraints, keyConstraints, revocationEnabled, revocationLists)
 
       val result = validator.validate(chain, trustedCerts)
       result must not beNull
     }
+
+    "work when there is a revocation list" in todo
+
+    "throw exception when the site is found in the revocation list" in todo
 
     "throw exception when there is a certificate chain with an unrecognized critical certificate extension" in todo
 
