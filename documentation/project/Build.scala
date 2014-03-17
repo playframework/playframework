@@ -52,6 +52,7 @@ object ApplicationBuild extends Build {
   }
 
   lazy val main = Project("Play-Documentation", file(".")).settings(
+    resolvers += Resolver.sonatypeRepo("releases"), // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
     version := PlayVersion.current,
     scalaVersion := PlayVersion.scalaVersion,
     libraryDependencies ++= Seq(
@@ -62,7 +63,7 @@ object ApplicationBuild extends Build {
       component("play-java-ws") % "test",
       component("filters-helpers") % "test",
       "org.mockito" % "mockito-core" % "1.9.5" % "test",
-      "org.scalatestplus" %% "play" % "0.8.0-SNAP1" % "test",
+      "org.scalatestplus" %% "play" % "0.8.0-SNAP3" % "test",
       component("play-docs")
     ),
 
