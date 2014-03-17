@@ -21,7 +21,7 @@ Testing in Play is based on SBT, and a full description is available in the [tes
 
 In [ScalaTest + Play](http://scalatest.org/plus/play), you define test classes by extending the PlaySpec trait. Here's an example:
 
-@[scalatest-stackspec](code/StackSpec.scala)
+@[scalatest-stackspec](code/scalatest/StackSpec.scala)
 
 You can, of course, also [create your own base classes](http://scalatest.org/user_guide/defining_base_classes) instead of using `PlaySpec`.
 
@@ -53,7 +53,7 @@ and then add the [library dependency](http://mvnrepository.com/artifact/org.mock
 
 Using Mockito, you can mock out references to classes like so:
 
-@[scalaws-mockitosugar](code/ExampleMockitoSugarSpec.scala)
+@[scalaws-mockitosugar](code/scalatest/ExampleMockitoSugarSpec.scala)
 
 Mocking is especially useful for testing the public methods of classes.  Mocking objects and private methods is possible, but considerably harder.
 
@@ -97,17 +97,17 @@ and then access them through services:
 
 In this way, the `isAdmin` method can be tested by mocking out the `UserRepository` reference and passing it into the service:
 
-@[scalatest-userservicespec](code/UserServiceSpec.scala)
+@[scalatest-userservicespec](code/specs2/UserServiceSpec.scala)
 
 ## Unit Testing Controllers
 
 Controllers are defined as objects in Play, and so can be trickier to unit test.  In Play this can be alleviated by [[dependency injection|ScalaDependencyInjection]] using [`getControllerInstance`](api/scala/index.html#play.api.GlobalSettings@getControllerInstance).  Another way to finesse unit testing with a controller is to use a trait with an [explicitly typed self reference](http://www.naildrivin5.com/scalatour/wiki_pages/ExplcitlyTypedSelfReferences) to the controller:
 
-@[scalatest-examplecontroller](code/ExampleControllerSpec.scala)
+@[scalatest-examplecontroller](code/specs2/ExampleControllerSpec.scala)
 
 and then test the trait:
 
-@[scalatest-examplecontrollerspec](code/ExampleControllerSpec.scala)
+@[scalatest-examplecontrollerspec](code/specs2/ExampleControllerSpec.scala)
 
 ## Unit Testing EssentialAction
 
@@ -115,7 +115,7 @@ Testing [`Action`](api/scala/index.html#play.api.mvc.Action) or [`Filter`](api/s
 
 For this, the test [`Helpers.call`](api/scala/index.html#play.api.test.Helpers@call) can be used like that:
 
-@[scalatest-exampleessentialactionspec](code/ExampleEssentialActionSpec.scala)
+@[scalatest-exampleessentialactionspec](code/specs2/ExampleEssentialActionSpec.scala)
 
 
 > **Next:** [[Writing functional tests|ScalaFunctionalTest]]

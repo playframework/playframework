@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
-package scalaguide.tests
+package scalaguide.tests.specs2
 
 import play.api.test._
 import play.api.test.Helpers._
