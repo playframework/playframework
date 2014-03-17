@@ -103,11 +103,11 @@ In this way, the `isAdmin` method can be tested by mocking out the `UserReposito
 
 Controllers are defined as objects in Play, and so can be trickier to unit test.  In Play this can be alleviated by [[dependency injection|ScalaDependencyInjection]] using [`getControllerInstance`](api/scala/index.html#play.api.GlobalSettings@getControllerInstance).  Another way to finesse unit testing with a controller is to use a trait with an [explicitly typed self reference](http://www.naildrivin5.com/scalatour/wiki_pages/ExplcitlyTypedSelfReferences) to the controller:
 
-@[scalatest-examplecontroller](code/specs2/ExampleControllerSpec.scala)
+@[scalatest-examplecontroller](code/scalatest/ExampleControllerSpec.scala)
 
 and then test the trait:
 
-@[scalatest-examplecontrollerspec](code/specs2/ExampleControllerSpec.scala)
+@[scalatest-examplecontrollerspec](code/scalatest/ExampleControllerSpec.scala)
 
 ## Unit Testing EssentialAction
 
