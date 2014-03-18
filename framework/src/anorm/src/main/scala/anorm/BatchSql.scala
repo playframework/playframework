@@ -24,6 +24,7 @@ sealed trait BatchSql {
   @throws[IllegalArgumentException](BatchSqlErrors.UnexpectedParameterName)
   @throws[IllegalArgumentException](BatchSqlErrors.MissingParameter)
   @throws[IllegalArgumentException](BatchSqlErrors.ParameterNamesNotMatchingPlaceholders)
+  @deprecated(message = "Use [[addBatchParams]]", since = "2.3.0")
   def addBatch(args: NamedParameter*): BatchSql = {
     if (params.isEmpty) { // first parameter map
       val ps = toMap(args)
@@ -40,6 +41,7 @@ sealed trait BatchSql {
   @throws[IllegalArgumentException](BatchSqlErrors.MissingParameter)
   @throws[IllegalArgumentException](BatchSqlErrors.HeterogeneousParameterMaps)
   @throws[IllegalArgumentException](BatchSqlErrors.ParameterNamesNotMatchingPlaceholders)
+  @deprecated(message = "Use [[addBatchParamsList]]", since = "2.3.0")
   def addBatchList(args: Traversable[Seq[NamedParameter]]): BatchSql = {
     if (params.isEmpty) BatchSql.Checked(sql, args.map(_.map(_.tupled).toMap))
     else copy(params = this.params ++ args.map(checkedMap))
@@ -51,7 +53,6 @@ sealed trait BatchSql {
    * placeholder, it will result in a parameter map with smaller size than
    * given arguments (as duplicate entry are removed from map).
    */
-  @deprecated(message = "Use [[addBatch]]", since = "2.3.0")
   @throws[IllegalArgumentException](BatchSqlErrors.MissingParameter)
   @throws[IllegalArgumentException](BatchSqlErrors.ParameterNamesNotMatchingPlaceholders)
   def addBatchParams(args: ParameterValue*): BatchSql = {
@@ -73,7 +74,6 @@ sealed trait BatchSql {
    * placeholder, it will result in parameter maps with smaller size than
    * given arguments (as duplicate entry are removed from map).
    */
-  @deprecated(message = "Use [[addBatchList]]", since = "2.3.0")
   @throws[IllegalArgumentException](BatchSqlErrors.MissingParameter)
   @throws[IllegalArgumentException](BatchSqlErrors.ParameterNamesNotMatchingPlaceholders)
   def addBatchParamsList(args: Traversable[Seq[ParameterValue]]): BatchSql = {
