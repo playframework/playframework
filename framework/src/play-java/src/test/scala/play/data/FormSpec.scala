@@ -7,6 +7,9 @@ import org.specs2.mutable.Specification
 import play.mvc._
 import play.mvc.Http.Context
 import scala.collection.JavaConverters._
+import scala.beans.BeanProperty
+import play.api.templates.Html
+import play.libs.F
 
 object FormSpec extends Specification {
 
@@ -87,8 +90,64 @@ object FormSpec extends Specification {
       userEmail.bind(Map("email" -> "o'flynn@example.com").asJava).errors().asScala must beEmpty
       userEmail.bind(Map("email" -> "john@ex'ample.com").asJava).errors().asScala must not beEmpty
     }
+
+    "work with the @repeat helper" in {
+      val form = Form.form(classOf[JavaForm])
+
+      import play.core.j.PlayMagicForJava._
+
+      def render(form: Form[_], min: Int = 1) = views.html.helper.repeat.apply(form("foo"), min) { f =>
+        val a = f("a")
+        val b = f("b")
+        Html(s"${a.name}=${a.value.getOrElse("")},${b.name}=${b.value.getOrElse("")}")
+      }.map(_.toString)
+
+      def fillNoBind(values: (String, String)*) = {
+        val map = values.zipWithIndex.flatMap {
+          case ((a, b), i) => Seq("foo[" + i + "].a" -> a, "foo[" + i + "].b" -> b)
+        }.toMap
+        // Don't use bind, the point here is to have a form with data that isn't bound, otherwise the mapping indexes
+        // used come from the form, not the input data
+        new Form[JavaForm](null, classOf[JavaForm], map.asJava,
+          Map.empty.asJava, F.None().asInstanceOf[F.Option[JavaForm]], null)
+      }
+
+      "render the right number of fields if there's multiple sub fields at a given index when filled from a value" in {
+        render(
+          form.fill(new JavaForm(List(new JavaSubForm("somea", "someb")).asJava))
+        ) must exactly("foo[0].a=somea,foo[0].b=someb")
+      }
+
+      "render the right number of fields if there's multiple sub fields at a given index when filled from a form" in {
+        render(
+          fillNoBind("somea" -> "someb")
+        ) must exactly("foo[0].a=somea,foo[0].b=someb")
+      }
+
+      "get the order of the fields correct when filled from a value" in {
+        render(
+          form.fill(new JavaForm(List(new JavaSubForm("a", "b"), new JavaSubForm("c", "d"),
+            new JavaSubForm("e", "f"), new JavaSubForm("g", "h")).asJava))
+        ) must exactly("foo[0].a=a,foo[0].b=b", "foo[1].a=c,foo[1].b=d",
+          "foo[2].a=e,foo[2].b=f", "foo[3].a=g,foo[3].b=h").inOrder
+      }
+
+      "get the order of the fields correct when filled from a form" in {
+        render(
+          fillNoBind("a" -> "b", "c" -> "d", "e" -> "f", "g" -> "h")
+        ) must exactly("foo[0].a=a,foo[0].b=b", "foo[1].a=c,foo[1].b=d",
+          "foo[2].a=e,foo[2].b=f", "foo[3].a=g,foo[3].b=h").inOrder
+      }
+    }
   }
 
+}
+
+class JavaForm(@BeanProperty var foo: java.util.List[JavaSubForm]) {
+  def this() = this(null)
+}
+class JavaSubForm(@BeanProperty var a: String, @BeanProperty var b: String) {
+  def this() = this(null, null)
 }
 
 class DummyRequest(data: Map[String, Array[String]]) extends play.mvc.Http.Request {
