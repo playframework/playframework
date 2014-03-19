@@ -115,7 +115,7 @@ Testing [`Action`](api/scala/index.html#play.api.mvc.Action) or [`Filter`](api/s
 
 For this, the test [`Helpers.call`](api/scala/index.html#play.api.test.Helpers@call) can be used like that:
 
-@[scalatest-exampleessentialactionspec](code/specs2/ExampleEssentialActionSpec.scala)
+@[scalatest-exampleessentialactionspec](code/scalatest/ExampleEssentialActionSpec.scala)
 
 
 > **Next:** [[Writing functional tests with ScalaTest|ScalaFunctionalTest]]
