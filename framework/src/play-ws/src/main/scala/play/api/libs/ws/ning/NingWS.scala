@@ -19,7 +19,7 @@ import play.api.libs.ws.ssl._
 
 import play.api.http.{ Writeable, ContentTypeOf }
 import play.api.libs.iteratee._
-import play.api.{ Application, Play }
+import play.api.{ Mode, Application, Play }
 import play.core.utils.CaseInsensitiveOrdered
 import play.api.libs.ws.DefaultWSResponseHeaders
 import play.api.libs.iteratee.Input.El
@@ -646,7 +646,16 @@ class NingWSAPI(app: Application, clientConfig: WSClientConfig) extends WSAPI {
     val asyncClientConfig = buildAsyncClientConfig(clientConfig)
 
     new SystemConfiguration().configure(clientConfig)
-    clientConfig.ssl.map { _.debug.map(new DebugConfiguration().configure) }
+    clientConfig.ssl.map {
+      _.debug.map { debugConfig =>
+        app.mode match {
+          case Mode.Prod =>
+            Play.logger.warn("NingWSAPI: ws.ssl.debug settings enabled in production mode!")
+          case _ => // do nothing
+        }
+        new DebugConfiguration().configure(debugConfig)
+      }
+    }
 
     new NingWSClient(asyncClientConfig)
   }
