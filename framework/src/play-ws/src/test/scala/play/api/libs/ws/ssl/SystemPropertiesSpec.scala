@@ -17,7 +17,6 @@ object SystemPropertiesSpec extends Specification {
 
   "SystemProperties" should {
 
-
     "disableCheckRevocation should not be set normally" in {
       val config = DefaultWSClientConfig(ssl = Some(DefaultSSLConfig(checkRevocation = None)))
 
@@ -31,7 +30,6 @@ object SystemPropertiesSpec extends Specification {
       sp.clearProperties()
     }
 
-
     "disableCheckRevocation is set explicitly" in {
       val config = DefaultWSClientConfig(ssl = Some(DefaultSSLConfig(checkRevocation = Some(true))))
 
@@ -44,7 +42,6 @@ object SystemPropertiesSpec extends Specification {
     }.after {
       sp.clearProperties()
     }
-
 
     // @see http://www.oracle.com/technetwork/java/javase/documentation/tlsreadme2-176330.html
     "allowLegacyHelloMessages is not set" in {
@@ -67,7 +64,6 @@ object SystemPropertiesSpec extends Specification {
     }.after {
       sp.clearProperties()
     }
-
 
     // @see http://www.oracle.com/technetwork/java/javase/documentation/tlsreadme2-176330.html
     "allowUnsafeRenegotiation not set" in {
