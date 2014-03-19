@@ -73,7 +73,7 @@ object WsSpec extends Specification with WsTestClient {
 
   }
 
-  def slave(toReturn: ToReturn)(implicit port: Port): Response =
+  def slave(toReturn: ToReturn)(implicit port: Port): WSResponse =
     Helpers.await(wsCall(controllers.routes.TestController.slave()).post(Json.toJson(toReturn)))
 
 }

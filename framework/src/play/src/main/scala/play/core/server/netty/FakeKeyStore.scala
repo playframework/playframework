@@ -40,6 +40,7 @@ object FakeKeyStore {
         // Create the key store, first set the store pass
         keyStore.load(null, "".toCharArray)
         keyStore.setKeyEntry("playgenerated", keyPair.getPrivate, "".toCharArray, Array(cert))
+        keyStore.setCertificateEntry("playgeneratedtrusted", cert)
         for (out <- resource.managed(new FileOutputStream(keyStoreFile))) { keyStore.store(out, "".toCharArray) }
       } else {
         for (in <- resource.managed(new FileInputStream(keyStoreFile))) { keyStore.load(in, "".toCharArray) }
