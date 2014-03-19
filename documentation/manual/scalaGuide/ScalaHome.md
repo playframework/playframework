@@ -54,7 +54,7 @@ The Scala API for Play application developers is available in the `play.api` pac
 1. [[The application Global object | ScalaGlobal]]
     1. [[Application global settings | ScalaGlobal]]
     1. [[Intercepting requests | ScalaInterceptors]]
-1. [[Testing your application | ScalaTest]]
+1. [[Testing your application | TestingYourApplication]]
     1. [[Writing tests | ScalaTest]]
     1. [[Writing functional tests | ScalaFunctionalTest]]
     
