@@ -5,14 +5,14 @@ package play.libs.ws.ning;
 
 import com.ning.http.client.AsyncHttpClientConfig;
 import play.Application;
-import play.Configuration;
+import play.api.libs.ws.DefaultWSConfigParser;
+import play.api.libs.ws.WSClientConfig;
+import play.api.libs.ws.ning.NingAsyncHttpClientConfigBuilder;
 import play.libs.F;
 import play.libs.ws.WSAPI;
 import play.libs.ws.WSClient;
 import play.libs.ws.WSRequestHolder;
 
-import javax.net.ssl.SSLContext;
-import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -29,28 +29,12 @@ public class NingWSAPI implements WSAPI {
     }
 
     private NingWSClient newClient() {
-        Configuration playConfig = app.configuration();
-        AsyncHttpClientConfig.Builder asyncHttpConfig = new AsyncHttpClientConfig.Builder()
-                .setConnectionTimeoutInMs(playConfig.getMilliseconds("ws.timeout.connection", 120000L).intValue())
-                .setIdleConnectionTimeoutInMs(playConfig.getMilliseconds("ws.timeout.idle", 120000L).intValue())
-                .setRequestTimeoutInMs(playConfig.getMilliseconds("ws.timeout.request", 120000L).intValue())
-                .setFollowRedirects(playConfig.getBoolean("ws.followRedirects", true).booleanValue())
-                .setUseProxyProperties(playConfig.getBoolean("ws.useProxyProperties", true))
-                .setCompressionEnabled(playConfig.getBoolean("ws.compressionEnabled", false));
-
-        String userAgent = playConfig.getString("ws.useragent");
-        if (userAgent != null) {
-            asyncHttpConfig.setUserAgent(userAgent);
-        }
-
-        if (!playConfig.getBoolean("ws.acceptAnyCertificate", false).booleanValue()) {
-            try {
-                asyncHttpConfig.setSSLContext(SSLContext.getDefault());
-            } catch (NoSuchAlgorithmException e) {
-                throw new IllegalStateException(e);
-            }
-        }
-        return new NingWSClient(asyncHttpConfig.build());
+        play.api.Configuration playConfig = app.configuration().getWrappedConfiguration();
+        DefaultWSConfigParser parser = new DefaultWSConfigParser(playConfig);
+        WSClientConfig clientConfig = parser.parse();
+        NingAsyncHttpClientConfigBuilder builder = new NingAsyncHttpClientConfigBuilder(clientConfig, new AsyncHttpClientConfig.Builder());
+        AsyncHttpClientConfig httpClientConfig = builder.build();
+        return new NingWSClient(httpClientConfig);
     }
 
     /**
