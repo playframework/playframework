@@ -1,4 +1,4 @@
-package scalatest.tests
+package scalatest.tests.specs
 
 import org.specs2.mutable._
 

@@ -1,11 +1,8 @@
 /*
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
-package scalaguide.tests
+package scalaguide.tests.scalatest
 
-import org.scalatest._
-import org.scalatest.mock.MockitoSugar
-import org.scalatestplus.play._
 
 import org.mockito.Mockito._
 import java.util._

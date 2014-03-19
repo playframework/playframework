@@ -1,4 +1,4 @@
-package scalaguide.tests
+package scalaguide.tests.specs
 
 import org.specs2.mock._
 import org.specs2.mutable._
