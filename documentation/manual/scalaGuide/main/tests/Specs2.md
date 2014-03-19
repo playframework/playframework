@@ -141,5 +141,4 @@ For this, the test [`Helpers.call`](api/scala/index.html#play.api.test.Helpers@c
 
 @[scalatest-exampleessentialactionspec](code/specs2/ExampleEssentialActionSpec.scala)
 
-
 > **Next:** [[Writing functional tests with specs2|Specs2FunctionalTest]]
