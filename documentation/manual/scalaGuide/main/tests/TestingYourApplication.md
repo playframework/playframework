@@ -3,6 +3,9 @@
 
 Writing tests for your application can be an involved process. Play offers integration with both ScalaTest and specs2 and provides helpers and application stubs to make testing your application as easy as possible.
 
+* [[Testing your Application with ScalaTest|ScalaTest]]
+* [[Testing your Application with specs2|Specs2]]
+
 ## Overview
 
 The location for tests is in the "test" folder.  There are sample test files created in the test folder which can be used as templates.
@@ -19,5 +22,4 @@ Testing in Play is based on SBT, and a full description is available in the [tes
 
 For the details of using your preferred test framework with Play, see the pages on [[ScalaTest|http://www.scalatest.org]] or [[specs2|http://etorreborre.github.io/specs2/]].
 
-* [[Testing your Application with ScalaTest|ScalaTest]]
-* [[Testing your Application with specs2|Specs2]]
+> **Next:** [[Writing functional tests|ScalaFunctionalTest]]
