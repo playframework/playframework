@@ -5,7 +5,6 @@ package scalaguide.tests.scalatest
 
 // #scalatest-stackspec
 import collection.mutable.Stack
-import org.scalatestplus.play._
 
 class ExampleSpec extends PlaySpec {
 
@@ -19,9 +18,9 @@ class ExampleSpec extends PlaySpec {
     }
     "throw NoSuchElementException if an empty stack is popped" in {
       val emptyStack = new Stack[Int]
-      a [NoSuchElementException] must be thrownBy {
+      a [NoSuchElementException] should be thrownBy {
         emptyStack.pop()
-      } 
+      }
     }
   }
 }
