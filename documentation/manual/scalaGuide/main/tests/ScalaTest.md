@@ -51,7 +51,7 @@ and then add the [library dependency](http://mvnrepository.com/artifact/org.mock
 
 Using Mockito, you can mock out references to classes like so:
 
-@[scalaws-mockitosugar](code/scalatest/ExampleMockitoSugarSpec.scala)
+@[scalaws-mockitosugar](code/scalatest/ExampleMockitoSpec.scala)
 
 Mocking is especially useful for testing the public methods of classes.  Mocking objects and private methods is possible, but considerably harder.
 
@@ -95,7 +95,7 @@ and then access them through services:
 
 In this way, the `isAdmin` method can be tested by mocking out the `UserRepository` reference and passing it into the service:
 
-@[scalatest-userservicespec](code/specs2/UserServiceSpec.scala)
+@[scalatest-userservicespec](code/scalatest/UserServiceSpec.scala)
 
 ## Unit Testing Controllers
 
