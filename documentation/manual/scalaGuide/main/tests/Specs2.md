@@ -17,7 +17,7 @@ Testing in Play is based on SBT, and a full description is available in the [tes
 
 ## Using specs2
 
-The default way to test in Play is using [specs2](http://etorreborre.github.io/specs2/).  In specs2, tests are organized into specifications, which contain examples which run the system under test through various different code paths.
+In [specs2](http://etorreborre.github.io/specs2/), tests are organized into specifications, which contain examples which run the system under test through various different code paths.
 
 Specifications extend the [`Specification`](http://etorreborre.github.io/specs2/api/SPECS2-2.2/index.html#org.specs2.mutable.Specification) trait and are using the should/in format:
 
