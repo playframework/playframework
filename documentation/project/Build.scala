@@ -56,7 +56,7 @@ object ApplicationBuild extends Build {
       component("play-cache") % "test",
       component("filters-helpers") % "test",
       "org.mockito" % "mockito-core" % "1.9.5" % "test",
-      "org.scalatestplus" %% "play" % "2.2.0-SNAP1" % "test" exclude("com.typesafe.play", "play-test_2.10"),
+      "org.scalatestplus" %% "play" % "0.8.0-SNAP5" % "test" exclude("com.typesafe.play", "play-test_2.10"),
       component("play-docs")
     ),
 
