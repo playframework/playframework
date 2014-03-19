@@ -52,7 +52,7 @@ class ScalaFunctionalTestSpec extends MixedPlaySpec with Results {
       status(result) mustEqual OK
       contentType(result) mustEqual Some("text/html")
       charset(result) mustEqual Some("utf-8")
-      contentAsString(result) must contain ("Hello Bob")
+      contentAsString(result) must include ("Hello Bob")
     }
     // #scalafunctionaltest-respondtoroute
 
@@ -60,7 +60,7 @@ class ScalaFunctionalTestSpec extends MixedPlaySpec with Results {
     "render index template" in new App {
       val html = views.html.index("Coco")
 
-      contentAsString(html) must contain ("Hello Coco")
+      contentAsString(html) must include ("Hello Coco")
     }
     // #scalafunctionaltest-testview
 
@@ -115,11 +115,10 @@ class ScalaFunctionalTestSpec extends MixedPlaySpec with Results {
     }
     // #scalafunctionaltest-testwithbrowser
 
-    val testPort = 19001
-    val myPublicAddress =  s"localhost:$testPort"
-    val testPaymentGatewayURL = s"http://$myPublicAddress"
     // #scalafunctionaltest-testpaymentgateway
-    "test server logic" in new Server(app = fakeApplicationWithBrowser, port = testPort) {
+    "test server logic" in new Server(app = fakeApplicationWithBrowser, port = 19001) { port =>
+      val myPublicAddress =  s"localhost:$port"
+      val testPaymentGatewayURL = s"http://$myPublicAddress"
       // The test payment gateway requires a callback to this server before it returns a result...
       val callbackURL = s"http://$myPublicAddress/callback"
 
