@@ -5,6 +5,7 @@ package scalaguide.tests.scalatest
 
 // #scalatest-stackspec
 import collection.mutable.Stack
+import org.scalatestplus.play._
 
 class ExampleSpec extends PlaySpec {
 
