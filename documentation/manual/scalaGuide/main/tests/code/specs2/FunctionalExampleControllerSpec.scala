@@ -7,7 +7,7 @@ package scalaguide.tests
 package scalaguide.tests.specs
 >>>>>>> Organized code samples for test into scalatest and specs subdirectories of test/code. Adjusted links on page such to match and verified it with the validate-docs target.:documentation/manual/scalaGuide/main/tests/code/specs2/FunctionalExampleControllerSpec.scala
 
-import controllers._
+import scalaguide.tests.controllers
 
 import play.api.test._
 import play.api.test.Helpers._
