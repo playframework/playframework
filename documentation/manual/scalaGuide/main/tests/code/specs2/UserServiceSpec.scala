@@ -1,7 +1,11 @@
+<<<<<<< HEAD:documentation/manual/scalaGuide/main/tests/code/UserServiceSpec.scala
 /*
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
 package scalaguide.tests
+=======
+package scalaguide.tests.specs
+>>>>>>> Organized code samples for test into scalatest and specs subdirectories of test/code. Adjusted links on page such to match and verified it with the validate-docs target.:documentation/manual/scalaGuide/main/tests/code/specs2/UserServiceSpec.scala
 
 import org.specs2.mock._
 import org.specs2.mutable._
