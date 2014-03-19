@@ -107,4 +107,4 @@ and then test the trait:
 
 @[scalatest-examplecontrollerspec](code/specs2/ExampleControllerSpec.scala)
 
-> **Next:** [[Writing functional tests|ScalaFunctionalTest]]
+> **Next:** [[Writing functional tests with ScalaTest|ScalaFunctionalTest]]
