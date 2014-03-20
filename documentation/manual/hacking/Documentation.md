@@ -109,3 +109,18 @@ To ensure that the docs render correctly, run `./build run` from within the docu
 To ensure that the code samples compile, run and tests pass, run `./build test`.
 
 To validate that the documentation is structurely sound, run `./build validate-docs`.  This checks that there are no broken wiki links, code references or resource links, ensures that all documentation markdown filenames are unique, and ensures that there are no orphaned pages.
+
+## Code samples from external Play modules
+
+To avoid circular dependencies, any documentation that documents a Play module that is not a core part of Play can't include its code samples along with the rest of the Play documentation.  To address this, the documentation for that module can place an entry into the `externalPlayModules` map in `project/Build.scala`, including all the extra settings (namely library dependencies) required to build the code snippets for that module.  For example:
+
+```scala
+val externalPlayModules: Map[String, Seq[Setting[_]]] = Map(
+  "some-module" -> Seq(
+    libraryDependencies += "com.example" %% "some-play-module" % "1.2.3" % "test"
+  ),
+  ...
+)
+```
+
+Now place all code snippets that use that module in `code-some-module`.  Now to run any SBT commands, ensuring that that module is included, run `./build -Dexternal.modules=some-module test`, or to run the tests for all modules, run `./build -Dexternal-modules=all test`.
