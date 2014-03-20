@@ -23,7 +23,7 @@ case class TypeDoesNotMatch(message: String) extends SqlRequestError
 case class UnexpectedNullableFound(on: String) extends SqlRequestError
 case class SqlMappingError(msg: String) extends SqlRequestError
 
-abstract class Pk[+ID] {
+abstract class Pk[+ID] extends NotNull {
 
   def toOption: Option[ID] = this match {
     case Id(x) => Some(x)
@@ -132,7 +132,7 @@ object Useful {
  * // SELECT * FROM t WHERE cat = 'a' OR cat = 'b'
  * }}}
  */
-sealed trait SeqParameter[A] {
+sealed trait SeqParameter[A] extends NotNull {
   def values: Seq[A]
   def separator: String
   def before: Option[String]

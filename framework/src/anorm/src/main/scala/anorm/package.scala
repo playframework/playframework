@@ -22,6 +22,12 @@ package object anorm {
   implicit def implicitID[ID](id: Id[ID] with NotNull): ID = id.id
 
   /**
+   * Marker trait to indicate that even if a type T accept null as value,
+   * it must be refused in some Anorm context.
+   */
+  trait NotNullGuard
+
+  /**
    * Creates an SQL query with given statement.
    * @param stmt SQL statement
    *
