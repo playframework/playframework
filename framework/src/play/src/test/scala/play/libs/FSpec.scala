@@ -132,6 +132,46 @@ object FSpec extends Specification
       }
     }
 
+    "recoverWith from a thrown exception (with default ExecutionContext)" in {
+      val p = Promise[Int]()
+      val fp = F.Promise.wrap(p.future)
+      val recovered = fp.recoverWith(new F.Function[Throwable, F.Promise[Int]] {
+        def apply(x: Throwable) = F.Promise.pure(99)
+      })
+      p.failure(new RuntimeException("x"))
+      recovered.get(5, SECONDS) must equalTo(99)
+    }
+
+    "recoverWith from a thrown exception (with explicit ExecutionContext)" in {
+      val p = Promise[Int]()
+      val fp = F.Promise.wrap(p.future)
+      mustExecute(1) { ec =>
+        val recovered = fp.recoverWith(new F.Function[Throwable, F.Promise[Int]] {
+          def apply(x: Throwable) = F.Promise.pure(99)
+        }, ec)
+        p.failure(new RuntimeException("x"))
+        recovered.get(5, SECONDS) must equalTo(99)
+      }
+    }
+
+    "fallbackTo another promise" in {
+      val p1 = F.Promise.throwing[Int](new RuntimeException("x"))
+      val p2 = p1.fallbackTo(F.Promise.pure(42))
+      p2.get(5, SECONDS) must equalTo(42)
+    }
+
+    "don't fallbackTo on success" in {
+      val p1 = F.Promise.pure(1)
+      val p2 = p1.fallbackTo(F.Promise.pure(2))
+      p2.get(5, SECONDS) must equalTo(1)
+    }
+
+    "keep first failure when fallbackTo also fails" in {
+      val p1 = F.Promise.throwing[Int](new RuntimeException("1"))
+      val p2 = p1.fallbackTo(F.Promise.throwing[Int](new RuntimeException("2")))
+      p2.get(5, SECONDS) must throwA[RuntimeException]("1")
+    }
+
     "flatMap its value (with default ExecutionContext)" in {
       val p = Promise[Int]()
       val fp = F.Promise.wrap(p.future)
@@ -195,6 +235,64 @@ object FSpec extends Specification
         }, ec)
         p.success(-1)
         filtered.get(5, SECONDS) must throwA[NoSuchElementException]
+      }
+    }
+
+    "transform its successful value (with default ExecutionContext)" in {
+      val p = F.Promise.pure(1)
+      val mapped = p.transform(
+        new F.Function[Int, Int] {
+          def apply(x: Int) = 2 * x
+        },
+        new F.Function[Throwable, Throwable] {
+          def apply(t: Throwable) = t
+        }
+      )
+      mapped.get(5, SECONDS) must equalTo(2)
+    }
+
+    "transform its successful value (with explicit ExecutionContext)" in {
+      val p = F.Promise.pure(1)
+      mustExecute(1) { ec =>
+        val mapped = p.transform(
+          new F.Function[Int, Int] {
+            def apply(x: Int) = 2 * x
+          },
+          new F.Function[Throwable, Throwable] {
+            def apply(t: Throwable) = t
+          },
+          ec
+        )
+        mapped.get(5, SECONDS) must equalTo(2)
+      }
+    }
+
+    "transform its failed throwable (with default ExecutionContext)" in {
+      val p = F.Promise.throwing(new RuntimeException("1"))
+      val mapped = p.transform(
+        new F.Function[Int, Int] {
+          def apply(x: Int) = x
+        },
+        new F.Function[Throwable, Throwable] {
+          def apply(t: Throwable) = new RuntimeException("2")
+        }
+      )
+      mapped.get(5, SECONDS) must throwA[RuntimeException]("2")
+    }
+
+    "transform its failed throwable (with explicit ExecutionContext)" in {
+      val p = F.Promise.throwing(new RuntimeException("1"))
+      mustExecute(1) { ec =>
+        val mapped = p.transform(
+          new F.Function[Int, Int] {
+            def apply(x: Int) = x
+          },
+          new F.Function[Throwable, Throwable] {
+            def apply(t: Throwable) = new RuntimeException("2")
+          },
+          ec
+        )
+        mapped.get(5, SECONDS) must throwA[RuntimeException]("2")
       }
     }
 

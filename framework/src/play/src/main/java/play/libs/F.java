@@ -296,7 +296,7 @@ public class F {
 
         /**
          * combines the current promise with <code>another</code> promise using `or`
-         * @param another 
+         * @param another
          */
         public <B> Promise<Either<A,B>> or(Promise<B> another) {
             return FPromiseHelper.or(this, another);
@@ -304,7 +304,7 @@ public class F {
 
         /**
          * Perform the given <code>action</code> callback when the Promise is redeemed.
-         * 
+         *
          * The callback will be run in the default execution context.
          *
          * @param action The action to perform.
@@ -376,6 +376,41 @@ public class F {
         }
 
         /**
+         * Creates a new promise that will handle thrown exceptions by assigning to the value of another promise.
+         *
+         * The function will be run in the default execution context.
+         *
+         * @param function The function to handle the exception, and which returns another promise
+         * @return A promise that will delegate to another promise on failure
+         */
+        public Promise<A> recoverWith(final Function<Throwable, Promise<A>> function) {
+            return FPromiseHelper.recoverWith(this, function, HttpExecution.defaultContext());
+        }
+
+        /**
+         * Creates a new promise that will handle thrown exceptions by assigning to the value of another promise.
+         *
+         * @param function The function to handle the exception, and which returns another promise
+         * @param ec The ExecutionContext to execute the function in
+         * @return A promise that will delegate to another promise on failure
+         */
+        public Promise<A> recoverWith(final Function<Throwable, Promise<A>> function, ExecutionContext ec) {
+            return FPromiseHelper.recoverWith(this, function, ec);
+        }
+
+        /**
+         * Creates a new promise which holds the result of this promise if it was completed successfully,
+         * otherwise the result of the {@code fallback} promise if it completed successfully.
+         * If both promises failed, the resulting promise holds the throwable of this promise.
+         *
+         * @param fallback The promise to fallback to if this promise has failed
+         * @return A promise that will delegate to another promise on failure
+         */
+        public Promise<A> fallbackTo(final Promise<A> fallback) {
+            return FPromiseHelper.fallbackTo(this, fallback);
+        }
+
+        /**
          * Perform the given <code>action</code> callback if the promise encounters an exception.
          *
          * This action will be run in the default exceution context.
@@ -442,6 +477,33 @@ public class F {
          */
         public Promise<A> filter(final Predicate<? super A> predicate, ExecutionContext ec) {
             return FPromiseHelper.filter(this, predicate, ec);
+        }
+
+        /**
+         * Creates a new promise by applying the {@code onSuccess} function to a successful result,
+         * or the {@code onFailure} function to a failed result.
+         *
+         * The function will be run in the default execution context.
+         *
+         * @param onSuccess The function to map a successful result from {@code A} to {@code B}
+         * @param onFailure The function to map the {@code Throwable} when failed
+         * @return A new promise mapped by either the {@code onSuccess} or {@code onFailure} functions
+         */
+        public <B> Promise<B> transform(final Function<? super A, B> onSuccess, final Function<Throwable, Throwable> onFailure) {
+            return FPromiseHelper.transform(this, onSuccess, onFailure, HttpExecution.defaultContext());
+        }
+
+        /**
+         * Creates a new promise by applying the {@code onSuccess} function to a successful result,
+         * or the {@code onFailure} function to a failed result.
+         *
+         * @param onSuccess The function to map a successful result from {@code A} to {@code B}
+         * @param onFailure The function to map the {@code Throwable} when failed
+         * @param ec The ExecutionContext to execute functions in
+         * @return A new promise mapped by either the {@code onSuccess} or {@code onFailure} functions
+         */
+        public <B> Promise<B> transform(final Function<? super A, B> onSuccess, final Function<Throwable, Throwable> onFailure, ExecutionContext ec) {
+            return FPromiseHelper.transform(this, onSuccess, onFailure, ec);
         }
 
         /**
