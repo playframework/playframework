@@ -13,6 +13,42 @@ import DocValidation._
 
 object ApplicationBuild extends Build {
 
+  /*
+   * Circular dependency support.
+   *
+   * We want to build docs with the main build, including in pull requests, etc.  Hence, we can't have any circular
+   * dependencies where the documentation code snippets depend on code external to Play, that itself depends on Play,
+   * in case a new change in Play breaks the external code.
+   *
+   * To address this, we have multiple modes that this build can run in, controlled by an external.modules system
+   * property.
+   *
+   * If this property is not set, or is none, we only compile/test the code snippets that doesn't depend on external
+   * modules.
+   *
+   * If it is all, we compile/test all code snippets.
+   *
+   * If it is a comma separated list of projects, we compile/test that comma separated list of projects.
+   *
+   * To add a new project, let's call it foo, add a new entry to the map below with that projects dependencies keyed
+   * with "foo".  Then place all the code snippets that use that external module in a directory called "code-foo".
+   */
+
+  val externalPlayModules: Map[String, Seq[Setting[_]]] = Map(
+  )
+
+  val enabledExternalPlayModules = Option(System.getProperty("external.modules"))
+
+  val (externalPlayModuleSettings, codeFilter): (Seq[Setting[_]], FileFilter) = enabledExternalPlayModules match {
+    case None | Some("none") => (Nil, new ExactFilter("code"))
+    case Some("all") => (externalPlayModules.toSeq.flatMap(_._2),
+      new ExactFilter("code") || FileFilter.globFilter("code-*"))
+    case Some(explicit) =>
+      val enabled = explicit.split(",")
+      (enabled.flatMap(e => externalPlayModules.get(e).getOrElse(Nil)),
+        enabled.foldLeft[FileFilter](new ExactFilter("code")) { (filter, e) => filter || new ExactFilter("code-" + e) })
+  }
+
   lazy val main = Project("Play-Documentation", file(".")).settings(
     version := PlayVersion.current,
     scalaVersion := PlayVersion.scalaVersion,
@@ -27,16 +63,16 @@ object ApplicationBuild extends Build {
       component("play-docs")
     ),
 
-    javaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "javaGuide" ** "code").get),
-    scalaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "scalaGuide" ** "code").get),
+    javaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "javaGuide" ** codeFilter).get),
+    scalaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "scalaGuide" ** codeFilter).get),
 
     unmanagedSourceDirectories in Test <++= javaManualSourceDirectories,
     unmanagedSourceDirectories in Test <++= scalaManualSourceDirectories,
-    unmanagedSourceDirectories in Test <++= (baseDirectory)(base => (base / "manual" / "detailedTopics" ** "code").get),
+    unmanagedSourceDirectories in Test <++= (baseDirectory)(base => (base / "manual" / "detailedTopics" ** codeFilter).get),
 
     unmanagedResourceDirectories in Test <++= javaManualSourceDirectories,
     unmanagedResourceDirectories in Test <++= scalaManualSourceDirectories,
-    unmanagedResourceDirectories in Test <++= (baseDirectory)(base => (base / "manual" / "detailedTopics" ** "code").get),
+    unmanagedResourceDirectories in Test <++= (baseDirectory)(base => (base / "manual" / "detailedTopics" ** codeFilter).get),
 
     parallelExecution in Test := false,
 
@@ -73,7 +109,7 @@ object ApplicationBuild extends Build {
     testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "--ignore-runners=org.specs2.runner.JUnitRunner"),
     testListeners <<= (target, streams).map((t, s) => Seq(new eu.henkelmann.sbt.JUnitXmlTestsListener(t.getAbsolutePath, s.log)))
 
-  )
+  ).settings(externalPlayModuleSettings:_*)
 
   // Run a documentation server
   val docsRunSetting: Project.Initialize[InputTask[Unit]] = inputTask { (argsTask: TaskKey[Seq[String]]) =>
