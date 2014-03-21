@@ -148,7 +148,9 @@ object Dependencies {
     specsSbt
 
   val playDocsDependencies = Seq(
-    "com.typesafe.play" %% "play-doc" % "1.0.3"
+    "com.typesafe.play" %% "play-doc" % "1.0.5",
+    "org.webjars" % "jquery" % "2.1.0-2" % "webjars",
+    "org.webjars" % "prettify" % "4-Mar-2013" % "webjars"
   )
 
   val consoleDependencies = Seq(
@@ -191,7 +193,7 @@ object Dependencies {
     "org.databene" % "contiperf" % "2.2.0" % "test"
   )
 
-  val playCacheDeps = "net.sf.ehcache" % "ehcache-core" % "2.6.6" +: 
+  val playCacheDeps = "net.sf.ehcache" % "ehcache-core" % "2.6.6" +:
     specsBuild.map(_ % "test")
 
   val playWsDeps = Seq(
