@@ -109,7 +109,7 @@ object ScalaActionsSpec extends Specification with Controller {
       val ok = Ok("Hello world!")
       val notFound = NotFound
       val pageNotFound = NotFound(<h1>Page not found</h1>)
-      val badRequest = BadRequest(views.html.form(formWithErrors))
+      val badRequest = BadRequest(views.html.helper.form(formWithErrors))
       val oops = InternalServerError("Oops")
       val anyStatus = Status(488)("Strange response type")
       //#other-results
