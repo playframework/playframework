@@ -461,32 +461,36 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
   override def onStart() {
     dbApi.datasources.foreach {
       case (ds, db) => {
-        withLock(ds) {
-          val script = evolutionScript(dbApi, app.path, app.classloader, db)
-          val hasDown = script.exists(_.isInstanceOf[DownScript])
 
-          lazy val applyEvolutions = app.configuration.getBoolean("applyEvolutions." + db).getOrElse(false)
-          lazy val applyDownEvolutions = app.configuration.getBoolean("applyDownEvolutions." + db).getOrElse(false)
+        val applyEvolutions = app.configuration.getBoolean("applyEvolutions." + db).getOrElse(false)
 
-          if (!script.isEmpty) {
-            app.mode match {
-              case Mode.Test => Evolutions.applyScript(dbApi, db, script)
-              case Mode.Dev if applyEvolutions => Evolutions.applyScript(dbApi, db, script)
-              case Mode.Prod if !hasDown && applyEvolutions => Evolutions.applyScript(dbApi, db, script)
-              case Mode.Prod if hasDown && applyEvolutions && applyDownEvolutions => Evolutions.applyScript(dbApi, db, script)
-              case Mode.Prod if hasDown => {
-                Play.logger.warn("Your production database [" + db + "] needs evolutions, including downs! \n\n" + toHumanReadableScript(script))
-                Play.logger.warn("Run with -DapplyEvolutions." + db + "=true and -DapplyDownEvolutions." + db + "=true if you want to run them automatically, including downs (be careful, especially if your down evolutions drop existing data)")
+        if (applyEvolutions) {
+          withLock(ds) {
+            val script = evolutionScript(dbApi, app.path, app.classloader, db)
+            val hasDown = script.exists(_.isInstanceOf[DownScript])
 
-                throw InvalidDatabaseRevision(db, toHumanReadableScript(script))
+            lazy val applyDownEvolutions = app.configuration.getBoolean("applyDownEvolutions." + db).getOrElse(false)
+
+            if (!script.isEmpty) {
+              app.mode match {
+                case Mode.Test => Evolutions.applyScript(dbApi, db, script)
+                case Mode.Dev if applyEvolutions => Evolutions.applyScript(dbApi, db, script)
+                case Mode.Prod if !hasDown && applyEvolutions => Evolutions.applyScript(dbApi, db, script)
+                case Mode.Prod if hasDown && applyEvolutions && applyDownEvolutions => Evolutions.applyScript(dbApi, db, script)
+                case Mode.Prod if hasDown => {
+                  Play.logger.warn("Your production database [" + db + "] needs evolutions, including downs! \n\n" + toHumanReadableScript(script))
+                  Play.logger.warn("Run with -DapplyEvolutions." + db + "=true and -DapplyDownEvolutions." + db + "=true if you want to run them automatically, including downs (be careful, especially if your down evolutions drop existing data)")
+
+                  throw InvalidDatabaseRevision(db, toHumanReadableScript(script))
+                }
+                case Mode.Prod => {
+                  Play.logger.warn("Your production database [" + db + "] needs evolutions! \n\n" + toHumanReadableScript(script))
+                  Play.logger.warn("Run with -DapplyEvolutions." + db + "=true if you want to run them automatically (be careful)")
+
+                  throw InvalidDatabaseRevision(db, toHumanReadableScript(script))
+                }
+                case _ => throw InvalidDatabaseRevision(db, toHumanReadableScript(script))
               }
-              case Mode.Prod => {
-                Play.logger.warn("Your production database [" + db + "] needs evolutions! \n\n" + toHumanReadableScript(script))
-                Play.logger.warn("Run with -DapplyEvolutions." + db + "=true if you want to run them automatically (be careful)")
-
-                throw InvalidDatabaseRevision(db, toHumanReadableScript(script))
-              }
-              case _ => throw InvalidDatabaseRevision(db, toHumanReadableScript(script))
             }
           }
         }
