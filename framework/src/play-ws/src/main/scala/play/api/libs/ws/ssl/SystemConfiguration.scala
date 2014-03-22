@@ -59,7 +59,7 @@ class SystemConfiguration {
    * For use in testing.
    */
   def clearProperties() {
-    Security.setProperty("ocsp.enable", null)
+    Security.setProperty("ocsp.enable", "false")
     System.clearProperty("com.sun.security.enableCRLDP")
     System.clearProperty("com.sun.net.ssl.checkRevocation")
 

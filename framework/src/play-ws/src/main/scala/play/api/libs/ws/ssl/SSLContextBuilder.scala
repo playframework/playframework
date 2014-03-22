@@ -8,6 +8,7 @@ import java.security.{ UnrecoverableKeyException, KeyStore, SecureRandom }
 import java.security.cert._
 import java.io._
 import java.net.URL
+import play.api.libs.ws.ssl.AlgorithmConstraint
 
 trait SSLContextBuilder {
   def build(): SSLContext
@@ -94,16 +95,23 @@ class ConfigSSLContextBuilder(info: SSLConfig,
 
   def build: SSLContext = {
     val protocol = info.protocol.getOrElse(Protocols.recommendedProtocol)
-    val checkRevocation = info.checkRevocation.getOrElse(false)
 
     val keyManagers: Seq[KeyManager] = info.keyManagerConfig.map {
       kmc => Seq(buildCompositeKeyManager(kmc))
     }.getOrElse(Nil)
 
-    val certificateValidator = buildCertificateValidator(info)
+    val checkRevocation = info.checkRevocation.getOrElse(false)
+
+    val revocationLists = certificateRevocationList(info)
+
+    val disabledSignatureAlgorithms = info.disabledSignatureAlgorithms.getOrElse(Algorithms.disabledSignatureAlgorithms)
+    val signatureConstraints = AlgorithmConstraintsParser(disabledSignatureAlgorithms).toSet
+
+    val disabledKeyAlgorithms = info.disabledKeyAlgorithms.getOrElse(Algorithms.disabledKeyAlgorithms)
+    val keyConstraints = AlgorithmConstraintsParser(disabledKeyAlgorithms).toSet
 
     val trustManagers: Seq[TrustManager] = info.trustManagerConfig.map {
-      tmc => Seq(buildCompositeTrustManager(tmc, certificateValidator, checkRevocation))
+      tmc => Seq(buildCompositeTrustManager(tmc, checkRevocation, revocationLists, signatureConstraints, keyConstraints))
     }.getOrElse(Nil)
 
     buildSSLContext(protocol, keyManagers, trustManagers, info.secureRandom)
@@ -117,18 +125,6 @@ class ConfigSSLContextBuilder(info: SSLConfig,
     builder.build()
   }
 
-  def buildCertificateValidator(info: SSLConfig): CertificateValidator = {
-
-    val disabledSignatureAlgorithms = info.disabledSignatureAlgorithms.getOrElse(Algorithms.disabledSignatureAlgorithms)
-    val disabledKeyAlgorithms = info.disabledKeyAlgorithms.getOrElse(Algorithms.disabledKeyAlgorithms)
-    val checkRevocation = info.checkRevocation.getOrElse(false)
-
-    val revocationLists = certificateRevocationList(info)
-    val signatureConstraints = AlgorithmConstraintsParser(disabledSignatureAlgorithms).toSet
-    val keyConstraints = AlgorithmConstraintsParser(disabledKeyAlgorithms).toSet
-    new CertificateValidator(signatureConstraints, keyConstraints, checkRevocation, revocationLists)
-  }
-
   def buildCompositeKeyManager(keyManagerConfig: KeyManagerConfig) = {
     val keyManagers = keyManagerConfig.keyStoreConfigs.map {
       ksc =>
@@ -137,14 +133,17 @@ class ConfigSSLContextBuilder(info: SSLConfig,
     new CompositeX509KeyManager(keyManagers)
   }
 
-  def buildCompositeTrustManager(trustManagerInfo: TrustManagerConfig, certificateValidator: CertificateValidator,
-    checkRevocation: Boolean) = {
+  def buildCompositeTrustManager(trustManagerInfo: TrustManagerConfig,
+    revocationEnabled: Boolean,
+    revocationLists: Option[Seq[CRL]],
+    signatureConstraints: Set[AlgorithmConstraint],
+    keyConstraints: Set[AlgorithmConstraint]) = {
 
     val trustManagers = trustManagerInfo.trustStoreConfigs.map {
       tsc =>
-        buildTrustManager(tsc, checkRevocation)
+        buildTrustManager(tsc, revocationEnabled, revocationLists, signatureConstraints, keyConstraints)
     }
-    new CompositeX509TrustManager(trustManagers, certificateValidator)
+    new CompositeX509TrustManager(trustManagers)
   }
 
   // Get either a string or file based keystore builder from config.
@@ -189,8 +188,6 @@ class ConfigSSLContextBuilder(info: SSLConfig,
 
     val factory = keyManagerFactory
     try {
-      validateKeyStore(ksc, keyStore)
-
       factory.init(keyStore, password.orNull)
     } catch {
       case e: UnrecoverableKeyException =>
@@ -210,8 +207,9 @@ class ConfigSSLContextBuilder(info: SSLConfig,
   // Should anyone have any interest in implementing this feature at all, they can implement this method and
   // submit a patch.
   def certificateRevocationList(sslConfig: SSLConfig): Option[Seq[CRL]] = {
-    sslConfig.revocationLists.map { urls =>
-      urls.map(generateCRLFromURL)
+    sslConfig.revocationLists.map {
+      urls =>
+        urls.map(generateCRLFromURL)
     }
   }
 
@@ -243,20 +241,54 @@ class ConfigSSLContextBuilder(info: SSLConfig,
     }
   }
 
-  /**
-   * Builds trust managers, using a TrustManagerFactory internally.
-   */
-  def buildTrustManager(tsc: TrustStoreConfig, revocationEnabled: Boolean): X509TrustManager = {
-    val factory = trustManagerFactory
+  def buildTrustManagerParameters(trustStore: KeyStore,
+    revocationEnabled: Boolean,
+    revocationLists: Option[Seq[CRL]],
+    signatureConstraints: Set[AlgorithmConstraint],
+    keyConstraints: Set[AlgorithmConstraint]): CertPathTrustManagerParameters = {
+    import scala.collection.JavaConverters._
+
     val certSelect: X509CertSelector = new X509CertSelector
-
-    val trustStore = trustStoreBuilder(tsc).build()
-    validateTrustStore(tsc, trustStore)
-
     val pkixParameters = new PKIXBuilderParameters(trustStore, certSelect)
     pkixParameters.setRevocationEnabled(revocationEnabled)
 
-    factory.init(new CertPathTrustManagerParameters(pkixParameters))
+    // For the sake of completeness, set the static revocation list if it exists...
+    revocationLists.map {
+      crlList =>
+        import scala.collection.JavaConverters._
+        pkixParameters.addCertStore(CertStore.getInstance("Collection", new CollectionCertStoreParameters(crlList.asJavaCollection)))
+    }
+
+    // Add the algorithm checker in here...
+    val checkers: Seq[PKIXCertPathChecker] = Seq(
+      new AlgorithmChecker(signatureConstraints, keyConstraints)
+    )
+
+    // Use the custom cert path checkers we defined...
+    pkixParameters.setCertPathCheckers(checkers.asJava)
+    new CertPathTrustManagerParameters(pkixParameters)
+  }
+
+  /**
+   * Builds trust managers, using a TrustManagerFactory internally.
+   */
+  def buildTrustManager(tsc: TrustStoreConfig,
+    revocationEnabled: Boolean,
+    revocationLists: Option[Seq[CRL]],
+    signatureConstraints: Set[AlgorithmConstraint],
+    keyConstraints: Set[AlgorithmConstraint]): X509TrustManager = {
+
+    val factory = trustManagerFactory
+    val trustStore = trustStoreBuilder(tsc).build()
+    val trustManagerParameters = buildTrustManagerParameters(
+      trustStore,
+      revocationEnabled,
+      revocationLists,
+      signatureConstraints,
+      keyConstraints
+    )
+
+    factory.init(trustManagerParameters)
     val trustManagers = factory.getTrustManagers
     if (trustManagers == null) {
       val msg = s"Cannot create trust manager with configuration $tsc"
@@ -267,86 +299,4 @@ class ConfigSSLContextBuilder(info: SSLConfig,
     trustManagers.head.asInstanceOf[X509TrustManager]
   }
 
-  /**
-   * Tests each trusted certificate in the store, and warns if the certificate is not valid.  Does not throw
-   * exceptions.
-   */
-  def validateTrustStore(config: TrustStoreConfig, store: KeyStore) {
-    import scala.collection.JavaConverters._
-    logger.debug(s"validateTrustStore: store = $store, type = ${store.getType}, size = ${store.size}")
-
-    //val checker = createAlgorithmChecker(constraints)
-    store.aliases().asScala.foreach {
-      alias =>
-        Option(store.getCertificate(alias)).map {
-          x509Cert =>
-            try {
-              validateCertificate(x509Cert)
-            } catch {
-              case e: CertificateNotYetValidException =>
-                logger.warn(s"validateTrustStore: Skipping not yet valid certificate with alias $alias from $config: " + e.getMessage)
-                store.deleteEntry(alias)
-              case e: CertificateExpiredException =>
-                logger.warn(s"validateTrustStore: Skipping expired certificate with alias $alias from $config: " + e.getMessage)
-                store.deleteEntry(alias)
-              case e: CertificateException =>
-                logger.warn(s"validateTrustStore: Skipping bad certificate with alias $alias from $config: " + e.getMessage)
-                store.deleteEntry(alias)
-              case e: Exception =>
-                logger.warn(s"validateTrustStore: Skipping unknown exception alias $alias from $config: " + e.getMessage)
-                store.deleteEntry(alias)
-            }
-        }
-    }
-
-    // We completely emptied out the keystore.  That's going to fail when we pass it in to the manager.
-    if (store.size() == 0) {
-      throw new IllegalStateException(s"There are no valid certificates in key store: $config")
-    }
-  }
-
-  /**
-   * Tests each trusted certificate in the store, and warns if the certificate is not valid.  Does not throw
-   * exceptions.
-   */
-  def validateKeyStore(config: KeyStoreConfig, store: KeyStore) {
-    import scala.collection.JavaConverters._
-    logger.debug(s"validateKeyStore: type = ${store.getType}, size = ${store.size}")
-
-    //val checker = createAlgorithmChecker(constraints)
-    store.aliases().asScala.foreach {
-      alias =>
-        Option(store.getCertificate(alias)).map {
-          c =>
-            try {
-              validateCertificate(c)
-            } catch {
-              case e: CertificateNotYetValidException =>
-                logger.warn(s"validateKeyStore: Skipping not yet valid certificate with alias $alias from $config: " + e.getMessage)
-                store.deleteEntry(alias)
-              case e: CertificateExpiredException =>
-                logger.warn(s"validateKeyStore: Skipping expired certificate with alias $alias from $config: " + e.getMessage)
-                store.deleteEntry(alias)
-              case e: CertificateException =>
-                logger.warn(s"validateKeyStore: Skipping bad certificate with alias $alias from $config: " + e.getMessage)
-                store.deleteEntry(alias)
-              case e: Exception =>
-                logger.warn(s"validateKeyStore: Skipping unknown exception $alias from $config: " + e.getMessage)
-                store.deleteEntry(alias)
-            }
-        }
-    }
-
-    // We completely emptied out the keystore.  That's going to fail when we pass it in to the manager.
-    if (store.size() == 0) {
-      throw new IllegalStateException(s"There are no valid certificates in key store: $config")
-    }
-  }
-
-  //def createAlgorithmChecker(constraints:Set[AlgorithmConstraint]) : AlgorithmChecker = new AlgorithmChecker(constraints)
-
-  def validateCertificate(x509Cert: X509Certificate) {
-    x509Cert.checkValidity()
-    //algorithmChecker.check(x509Cert, unresolvedCritExts = java.util.Collections.emptySet())
-  }
 }

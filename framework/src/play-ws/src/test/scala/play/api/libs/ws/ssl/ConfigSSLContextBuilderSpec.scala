@@ -57,43 +57,12 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
       }
     }
 
-    "with a certificate validator" should {
-
-      "build a certificate validator with explicit disabledSignatureAlgorithms" in {
-        val info = DefaultSSLConfig(disabledSignatureAlgorithms = Some("totally, fake, algorithms"), disabledKeyAlgorithms = Some("happy, fun, times"))
-        val keyManagerFactory = mock[KeyManagerFactoryWrapper]
-        val trustManagerFactory = mock[TrustManagerFactoryWrapper]
-        val builder = new ConfigSSLContextBuilder(info, keyManagerFactory, trustManagerFactory)
-
-        val actual = builder.buildCertificateValidator(info)
-        actual must beAnInstanceOf[CertificateValidator]
-        actual.signatureConstraints must containTheSameElementsAs(Seq(AlgorithmConstraint("totally"), AlgorithmConstraint("fake"), AlgorithmConstraint("algorithms")))
-        actual.keyConstraints must containTheSameElementsAs(Seq(AlgorithmConstraint("happy"), AlgorithmConstraint("fun"), AlgorithmConstraint("times")))
-      }
-
-      "build a certificate validator with defaults" in {
-        val info = DefaultSSLConfig()
-        val keyManagerFactory = mock[KeyManagerFactoryWrapper]
-        val trustManagerFactory = mock[TrustManagerFactoryWrapper]
-        val builder = new ConfigSSLContextBuilder(info, keyManagerFactory, trustManagerFactory)
-
-        val actual = builder.buildCertificateValidator(info)
-        actual must beAnInstanceOf[CertificateValidator]
-
-        val defaultSignatureAlgorithms = AlgorithmConstraintsParser.parseAll(AlgorithmConstraintsParser.line, Algorithms.disabledSignatureAlgorithms).get
-        val defaultKeyAlgorithms = AlgorithmConstraintsParser.parseAll(AlgorithmConstraintsParser.line, Algorithms.disabledKeyAlgorithms).get
-        actual.signatureConstraints must containTheSameElementsAs(defaultSignatureAlgorithms)
-        actual.keyConstraints must containTheSameElementsAs(defaultKeyAlgorithms)
-      }
-    }
-
     "build a key manager" in {
       val info = DefaultSSLConfig()
       val keyManagerFactory = mock[KeyManagerFactoryWrapper]
       val trustManagerFactory = mock[TrustManagerFactoryWrapper]
       val builder = new ConfigSSLContextBuilder(info, keyManagerFactory, trustManagerFactory)
 
-      val disabledAlgorithms = Set(AlgorithmConstraint("md5"))
       val storeType = Some(KeyStore.getDefaultType)
       val filePath = Some(CACERTS)
 
@@ -140,7 +109,17 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
           def checkServerTrusted(chain: Array[X509Certificate], authType: String): Unit = ???
         }
       }
-      val actual = builder.buildTrustManager(trustStoreConfig, revocationEnabled = false)
+      val disabledSignatureAlgorithms = Set(AlgorithmConstraint("md5"))
+      val disabledKeyAlgorithms = Set(AlgorithmConstraint("RSA < 1024"))
+      val trustManagerConfig = DefaultTrustManagerConfig()
+      val checkRevocation = false
+      val revocationLists = None
+
+      val actual = builder.buildCompositeTrustManager(trustManagerConfig,
+        checkRevocation,
+        revocationLists,
+        disabledSignatureAlgorithms,
+        disabledKeyAlgorithms)
       actual must beAnInstanceOf[javax.net.ssl.X509TrustManager]
     }
 
@@ -167,9 +146,12 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
       val trustManagerConfig = DefaultTrustManagerConfig()
       val checkRevocation = false
       val revocationLists = None
-      val certificateValidator = new CertificateValidator(disabledSignatureAlgorithms, disabledKeyAlgorithms, checkRevocation, revocationLists)
 
-      val actual = builder.buildCompositeTrustManager(trustManagerConfig, certificateValidator, checkRevocation)
+      val actual = builder.buildCompositeTrustManager(trustManagerConfig,
+        checkRevocation,
+        revocationLists,
+        disabledSignatureAlgorithms,
+        disabledKeyAlgorithms)
       actual must beAnInstanceOf[CompositeX509TrustManager]
     }
 
@@ -189,34 +171,16 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
       val disabledKeyAlgorithms = Set(AlgorithmConstraint("RSA < 1024"))
       val checkRevocation = false
       val revocationLists = None
-      val certificateValidator = new CertificateValidator(disabledSignatureAlgorithms, disabledKeyAlgorithms, checkRevocation, revocationLists)
 
-      val actual = builder.buildCompositeTrustManager(trustManagerConfig, certificateValidator, checkRevocation)
+      val actual = builder.buildCompositeTrustManager(trustManagerConfig,
+        checkRevocation,
+        revocationLists,
+        disabledSignatureAlgorithms,
+        disabledKeyAlgorithms)
 
       actual must beAnInstanceOf[CompositeX509TrustManager]
       val issuers = actual.getAcceptedIssuers
       issuers.size must beEqualTo(1)
-    }
-
-    "throw an exception when an expired certificate is the only cert passed into a trust store" in {
-      val info = DefaultSSLConfig()
-      val keyManagerFactory = new DefaultKeyManagerFactoryWrapper(KeyManagerFactory.getDefaultAlgorithm)
-      val trustManagerFactory = new DefaultTrustManagerFactoryWrapper(TrustManagerFactory.getDefaultAlgorithm)
-      val builder = new ConfigSSLContextBuilder(info, keyManagerFactory, trustManagerFactory)
-
-      val from = new Instant(0)
-      val certificate = CertificateGenerator.generateRSAWithSHA256(from = from, duration = 5000)
-      val certificateData = CertificateGenerator.toPEM(certificate)
-      val trustStoreConfig = DefaultTrustStoreConfig(storeType = Some("PEM"), data = Some(certificateData), filePath = None)
-      val trustManagerConfig = DefaultTrustManagerConfig(trustStoreConfigs = Seq(trustStoreConfig))
-
-      val disabledSignatureAlgorithms = Set(AlgorithmConstraint("md5"))
-      val disabledKeyAlgorithms = Set(AlgorithmConstraint("RSA < 1024"))
-      val checkRevocation = false
-      val revocationLists = None
-      val certificateValidator = new CertificateValidator(disabledSignatureAlgorithms, disabledKeyAlgorithms, checkRevocation, revocationLists)
-
-      builder.buildCompositeTrustManager(trustManagerConfig, certificateValidator, checkRevocation).must(throwAn[IllegalStateException])
     }
 
     "build a file based keystore builder" in {

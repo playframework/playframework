@@ -15,7 +15,7 @@ import java.security.GeneralSecurityException
  * A trust manager that is a composite of several smaller trust managers.   It is responsible for verifying the
  * credentials received from a peer.
  */
-class CompositeX509TrustManager(trustManagers: Seq[X509TrustManager], certificateValidator: CertificateValidator) extends X509TrustManager {
+class CompositeX509TrustManager(trustManagers: Seq[X509TrustManager]) extends X509TrustManager {
 
   // In 1.6, sun.security.ssl.X509TrustManagerImpl extends from com.sun.net.ssl.internal.ssl.X509ExtendedTrustManager
   // In 1.7, sun.security.ssl.X509TrustManagerImpl extends from javax.net.ssl.X509ExtendedTrustManager.
@@ -70,12 +70,7 @@ class CompositeX509TrustManager(trustManagers: Seq[X509TrustManager], certificat
         trustManager.checkServerTrusted(chain, authType)
         logger.debug(s"checkServerTrusted: trustManager $trustManager using authType $authType found a match for ${debugChain(chain).toSeq}")
 
-        // Run through the custom path checkers...
-        import scala.collection.JavaConverters._
-
         val issuers = trustManager.getAcceptedIssuers
-        certificateValidator.validate(chain, issuers)
-
         trusted = true
     }
 
