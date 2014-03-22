@@ -8,92 +8,6 @@ import java.security.cert._
 import scala.collection.JavaConverters._
 import javax.naming.ldap.{ Rdn, LdapName }
 import javax.naming.InvalidNameException
-import scala.util.control.NonFatal
-
-/**
- * Define a certificate validator with our own custom checkers and builders.
- */
-class CertificateValidator(val signatureConstraints: Set[AlgorithmConstraint], val keyConstraints: Set[AlgorithmConstraint], val revocationEnabled: Boolean, revocationLists: Option[Seq[CRL]]) {
-  private val logger = org.slf4j.LoggerFactory.getLogger(getClass)
-
-  // Add the algorithm checker in here...
-  val checkers: Seq[PKIXCertPathChecker] = Seq(
-    new AlgorithmChecker(signatureConstraints, keyConstraints)
-  )
-
-  logger.debug(s"constructor: signatureConstraints = $signatureConstraints, keyConstraints = $keyConstraints, revocationEnabled = $revocationEnabled")
-
-  // This follows the model of the 1.6 sun.security.validator.PKIXValidator class, which also
-  // manages a CertPathBuilder in the same way.  However... the PKIXValidator doesn't check for
-  // deprecated algorithms and hardcodes revocation checking to be off.
-  private val factory: CertificateFactory = CertificateFactory.getInstance("X.509")
-
-  /**
-   * Validates a yet to be trusted certificate chain, using the trust manager as the trusted source.
-   */
-  def validate(chain: Array[X509Certificate],
-    trustedCerts: Traversable[X509Certificate],
-    nameConstraints: Option[Array[Byte]] = None): PKIXCertPathValidatorResult = {
-    logger.debug(s"validate: chain = ${debugChain(chain)}, trustedCerts = $trustedCerts")
-
-    val trustAnchors = findTrustAnchors(trustedCerts, nameConstraints)
-    val params = paramsFrom(trustAnchors, None, nameConstraints)
-    val validator = CertPathValidator.getInstance("PKIX")
-    val path = factory.generateCertPath(chain.toList.asJava)
-    val result = validator.validate(path, params).asInstanceOf[PKIXCertPathValidatorResult]
-
-    result
-  }
-
-  /**
-   * Maps from the trust manager's accepted issuers to a set of trust anchors.
-   */
-  def findTrustAnchors(certs: Traversable[X509Certificate], nameConstraints: Option[Array[Byte]]): Set[TrustAnchor] = {
-    certs.flatMap {
-      cert =>
-        try {
-          // Believe it or not, the trust store doesn't check for expired root certificates:
-          // https://stackoverflow.com/questions/5206859/java-trustmanager-behavior-on-expired-certificates
-          // checkValidity will throw an exception, and we will filter out the anchors here.
-          cert.checkValidity()
-
-          Some(new TrustAnchor(cert, nameConstraints.orNull))
-        } catch {
-          case e: CertificateException =>
-            logger.warn(s"Invalid root certificate ${cert}", e)
-            None
-          case NonFatal(ex) =>
-            logger.error(s"Exception when creating trust anchor from certificate ${cert}", ex)
-            None
-        }
-    }.toSet
-  }
-
-  /**
-   * Initializes the builder parameters with the trust anchors and checkers.
-   */
-  def paramsFrom(trustAnchors: Set[TrustAnchor],
-    certSelect: Option[X509CertSelector],
-    nameConstraints: Option[Array[Byte]]): PKIXParameters = {
-    val params = new PKIXBuilderParameters(trustAnchors.asJava, certSelect.orNull)
-
-    // Use the custom cert path checkers we defined...
-    params.setCertPathCheckers(checkers.asJava)
-
-    // Set revocation based on whether or not it's enabled in this config...
-    params.setRevocationEnabled(revocationEnabled)
-
-    // For the sake of completeness, set the static revocation list if it exists...
-    revocationLists.map {
-      crlList =>
-        import scala.collection.JavaConverters._
-        params.addCertStore(CertStore.getInstance("Collection", new CollectionCertStoreParameters(crlList.asJavaCollection)))
-    }
-
-    params
-  }
-
-}
 
 /**
  * Looks for disabled algorithms in the certificate.  This is because some certificates are signed with
@@ -173,7 +87,7 @@ class AlgorithmChecker(val signatureConstraints: Set[AlgorithmConstraint], val k
     val keyAlgorithmName = key.getAlgorithm
     val keySize = Algorithms.keySize(key)
     val keyAlgorithms = Algorithms.decomposes(keyAlgorithmName)
-    logger.debug(s"checkKeyAlgorithms: keyAlgorithmName = $keyAlgorithmName, keySize = $keySize, keyAlgorithms = $keyAlgorithms")
+    logger.debug(s"lgorithms: keyAlgorithmName = $keyAlgorithmName, keySize = $keySize, keyAlgorithms = $keyAlgorithms")
 
     for (a <- keyAlgorithms) {
       findKeyConstraint(a).map {
