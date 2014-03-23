@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.Collections;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -13,17 +14,19 @@ import java.util.Vector;
 
 public class DelegatingClassLoader extends ClassLoader {
 
-  private static final List<String> buildSharedClasses = new ArrayList<String>();
+  private static final List<String> buildSharedClasses;
   static {
-    buildSharedClasses.add(play.core.BuildLink.class.getName());
-    buildSharedClasses.add(play.core.BuildDocHandler.class.getName());
-    buildSharedClasses.add(play.core.server.ServerWithStop.class.getName());
-    buildSharedClasses.add(play.api.UsefulException.class.getName());
-    buildSharedClasses.add(play.api.PlayException.class.getName());
-    buildSharedClasses.add(play.api.PlayException.InterestingLines.class.getName());
-    buildSharedClasses.add(play.api.PlayException.RichDescription.class.getName());
-    buildSharedClasses.add(play.api.PlayException.ExceptionSource.class.getName());
-    buildSharedClasses.add(play.api.PlayException.ExceptionAttachment.class.getName());
+    List<String> list = new ArrayList<String>();
+    list.add(play.core.BuildLink.class.getName());
+    list.add(play.core.BuildDocHandler.class.getName());
+    list.add(play.core.server.ServerWithStop.class.getName());
+    list.add(play.api.UsefulException.class.getName());
+    list.add(play.api.PlayException.class.getName());
+    list.add(play.api.PlayException.InterestingLines.class.getName());
+    list.add(play.api.PlayException.RichDescription.class.getName());
+    list.add(play.api.PlayException.ExceptionSource.class.getName());
+    list.add(play.api.PlayException.ExceptionAttachment.class.getName());
+    buildSharedClasses = Collections.unmodifiableList(list);
   }
 
   private ClassLoader buildLoader;
@@ -35,9 +38,13 @@ public class DelegatingClassLoader extends ClassLoader {
     this.applicationClassLoaderProvider = applicationClassLoaderProvider;
   }
 
+  public static boolean isSharedClass(String name) {
+    return buildSharedClasses.contains(name);
+  }
+
   @Override
   public Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-    if (buildSharedClasses.contains(name)) {
+    if (isSharedClass(name)) {
       return buildLoader.loadClass(name);
     } else {
       return super.loadClass(name, resolve);

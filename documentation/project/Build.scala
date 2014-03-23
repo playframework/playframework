@@ -125,19 +125,8 @@ object ApplicationBuild extends Build {
     val sbtLoader = this.getClass.getClassLoader
     Project.runTask(dependencyClasspath in Test, state).get._2.toEither.right.map { classpath: Seq[Attributed[File]] =>
       val classloader = new java.net.URLClassLoader(classpath.map(_.data.toURI.toURL).toArray, null /* important here, don't depend of the sbt classLoader! */) {
-        val sharedClasses = Seq(
-          classOf[play.core.BuildLink].getName,
-          classOf[play.core.BuildDocHandler].getName,
-          classOf[play.core.server.ServerWithStop].getName,
-          classOf[play.api.UsefulException].getName,
-          classOf[play.api.PlayException].getName,
-          classOf[play.api.PlayException.InterestingLines].getName,
-          classOf[play.api.PlayException.RichDescription].getName,
-          classOf[play.api.PlayException.ExceptionSource].getName,
-          classOf[play.api.PlayException.ExceptionAttachment].getName)
-
         override def loadClass(name: String): Class[_] = {
-          if (sharedClasses.contains(name)) {
+          if (play.core.classloader.DelegatingClassLoader.isSharedClass(name)) {
             sbtLoader.loadClass(name)
           } else {
             super.loadClass(name)
