@@ -548,7 +548,7 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
     ignoring(classOf[SQLException])(c.close())
   }
 
-  def handleWebCommand(request: play.api.mvc.RequestHeader, sbtLink: play.core.SBTLink, path: java.io.File): Option[play.api.mvc.SimpleResult] = {
+  def handleWebCommand(request: play.api.mvc.RequestHeader, buildLink: play.core.BuildLink, path: java.io.File): Option[play.api.mvc.SimpleResult] = {
 
     val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_]+)""".r
     val resolveEvolutions = """/@evolutions/resolve/([a-zA-Z0-9_]+)/([0-9]+)""".r
@@ -561,7 +561,7 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
         Some {
           val script = Evolutions.evolutionScript(dbApi, app.path, app.classloader, db)
           Evolutions.applyScript(dbApi, db, script)
-          sbtLink.forceReload()
+          buildLink.forceReload()
           play.api.mvc.Results.Redirect(redirectUrl)
         }
       }
@@ -569,7 +569,7 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
       case resolveEvolutions(db, rev) => {
         Some {
           Evolutions.resolve(dbApi, db, rev.toInt)
-          sbtLink.forceReload()
+          buildLink.forceReload()
           play.api.mvc.Results.Redirect(redirectUrl)
         }
       }

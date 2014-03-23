@@ -7,7 +7,7 @@ import play.core.server.ServerWithStop
 import sbt._
 import sbt.Keys._
 import play.Keys._
-import play.core.{ SBTDocHandler, SBTLink, PlayVersion }
+import play.core.{ BuildDocHandler, BuildLink, PlayVersion }
 import play.PlaySourceGenerators._
 import DocValidation._
 
@@ -126,8 +126,8 @@ object ApplicationBuild extends Build {
     Project.runTask(dependencyClasspath in Test, state).get._2.toEither.right.map { classpath: Seq[Attributed[File]] =>
       val classloader = new java.net.URLClassLoader(classpath.map(_.data.toURI.toURL).toArray, null /* important here, don't depend of the sbt classLoader! */) {
         val sharedClasses = Seq(
-          classOf[play.core.SBTLink].getName,
-          classOf[play.core.SBTDocHandler].getName,
+          classOf[play.core.BuildLink].getName,
+          classOf[play.core.BuildDocHandler].getName,
           classOf[play.core.server.ServerWithStop].getName,
           classOf[play.api.UsefulException].getName,
           classOf[play.api.PlayException].getName,
@@ -150,15 +150,15 @@ object ApplicationBuild extends Build {
         val f = classpath.map(_.data).filter(_.getName.startsWith("play-docs")).head
         new JarFile(f)
       }
-      val sbtDocHandler = {
-        val docHandlerFactoryClass = classloader.loadClass("play.docs.SBTDocHandlerFactory")
+      val buildDocHandler = {
+        val docHandlerFactoryClass = classloader.loadClass("play.docs.BuildDocHandlerFactory")
         val fromDirectoryMethod = docHandlerFactoryClass.getMethod("fromDirectoryAndJar", classOf[java.io.File], classOf[JarFile], classOf[String])
         fromDirectoryMethod.invoke(null, projectPath, docsJarFile, "play/docs/content")
       }
 
       val clazz = classloader.loadClass("play.docs.DocumentationServer")
-      val constructor = clazz.getConstructor(classOf[File], classOf[SBTDocHandler], classOf[java.lang.Integer])
-      val server = constructor.newInstance(projectPath, sbtDocHandler, new java.lang.Integer(port)).asInstanceOf[ServerWithStop]
+      val constructor = clazz.getConstructor(classOf[File], classOf[BuildDocHandler], classOf[java.lang.Integer])
+      val server = constructor.newInstance(projectPath, buildDocHandler, new java.lang.Integer(port)).asInstanceOf[ServerWithStop]
 
       println()
       println(Colors.green("Documentation server started, you can now view the docs by going to http://localhost:" + port))

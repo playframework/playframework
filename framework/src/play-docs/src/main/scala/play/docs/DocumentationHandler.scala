@@ -10,7 +10,7 @@ import play.api.http.HeaderNames
 import play.api.libs.concurrent.Execution
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.iteratee.Enumeratee
-import play.core.{ PlayVersion, SBTDocHandler }
+import play.core.{ PlayVersion, BuildDocHandler }
 import play.doc.{ FileRepository, PlayDoc }
 import org.apache.commons.io.IOUtils
 
@@ -19,13 +19,13 @@ import org.apache.commons.io.IOUtils
  * Documentation is located in the given repository - either a JAR file or directly from
  * the filesystem.
  */
-class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository) extends SBTDocHandler {
+class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository) extends BuildDocHandler {
 
   def this(repo: FileRepository) = this(repo, repo)
 
   val markdownRenderer = new PlayDoc(repo, repo, "resources", PlayVersion.current)
 
-  // Method without Scala types. Required by SBTDocHandler to allow communication
+  // Method without Scala types. Required by BuildDocHandler to allow communication
   // between code compiled by different versions of Scala
   override def maybeHandleDocRequest(request: AnyRef): AnyRef = {
     this.maybeHandleDocRequest(request.asInstanceOf[RequestHeader])

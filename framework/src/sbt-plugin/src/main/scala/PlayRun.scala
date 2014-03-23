@@ -6,7 +6,7 @@ package play
 import sbt.{ Project => SbtProject, _ }
 import sbt.Keys._
 import Keys._
-import play.core.{ SBTLink, SBTDocHandler }
+import play.core.{ BuildLink, BuildDocHandler }
 import play.console.Colors
 import annotation.tailrec
 import scala.collection.JavaConverters._
@@ -152,15 +152,15 @@ trait PlayRun extends PlayInternalKeys {
         val sbtLoader = this.getClass.getClassLoader
 
         /**
-         * ClassLoader that delegates loading of shared sbt link classes to the
+         * ClassLoader that delegates loading of shared build link classes to the
          * sbtLoader. Also accesses the reloader resources to make these available
          * to the applicationLoader, creating a full circle for resource loading.
          */
         lazy val delegatingLoader: ClassLoader = new ClassLoader(commonLoader) {
 
           private val sbtSharedClasses = Seq(
-            classOf[play.core.SBTLink].getName,
-            classOf[play.core.SBTDocHandler].getName,
+            classOf[play.core.BuildLink].getName,
+            classOf[play.core.BuildDocHandler].getName,
             classOf[play.core.server.ServerWithStop].getName,
             classOf[play.api.UsefulException].getName,
             classOf[play.api.PlayException].getName,
@@ -220,20 +220,20 @@ trait PlayRun extends PlayInternalKeys {
             val f = docsAppClasspath.map(_.data).filter(_.getName.startsWith("play-docs")).head
             new JarFile(f)
           }
-          val sbtDocHandler = {
-            val docHandlerFactoryClass = docsLoader.loadClass("play.docs.SBTDocHandlerFactory")
+          val buildDocHandler = {
+            val docHandlerFactoryClass = docsLoader.loadClass("play.docs.BuildDocHandlerFactory")
             val factoryMethod = docHandlerFactoryClass.getMethod("fromJar", classOf[JarFile], classOf[String])
-            factoryMethod.invoke(null, docsJarFile, "play/docs/content").asInstanceOf[SBTDocHandler]
+            factoryMethod.invoke(null, docsJarFile, "play/docs/content").asInstanceOf[BuildDocHandler]
           }
 
           val server = {
             val mainClass = applicationLoader.loadClass("play.core.server.NettyServer")
             if (httpPort.isDefined) {
-              val mainDev = mainClass.getMethod("mainDevHttpMode", classOf[SBTLink], classOf[SBTDocHandler], classOf[Int])
-              mainDev.invoke(null, reloader, sbtDocHandler, httpPort.get: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]
+              val mainDev = mainClass.getMethod("mainDevHttpMode", classOf[BuildLink], classOf[BuildDocHandler], classOf[Int])
+              mainDev.invoke(null, reloader, buildDocHandler, httpPort.get: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]
             } else {
-              val mainDev = mainClass.getMethod("mainDevOnlyHttpsMode", classOf[SBTLink], classOf[SBTDocHandler], classOf[Int])
-              mainDev.invoke(null, reloader, sbtDocHandler, httpsPort.get: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]
+              val mainDev = mainClass.getMethod("mainDevOnlyHttpsMode", classOf[BuildLink], classOf[BuildDocHandler], classOf[Int])
+              mainDev.invoke(null, reloader, buildDocHandler, httpsPort.get: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]
             }
           }
 
@@ -247,7 +247,7 @@ trait PlayRun extends PlayInternalKeys {
           val ContinuousState = AttributeKey[WatchState]("watch state", "Internal: tracks state for continuous execution.")
           def isEOF(c: Int): Boolean = c == 4
 
-          @tailrec def executeContinuously(watched: Watched, s: State, reloader: SBTLink, ws: Option[WatchState] = None): Option[String] = {
+          @tailrec def executeContinuously(watched: Watched, s: State, reloader: BuildLink, ws: Option[WatchState] = None): Option[String] = {
             @tailrec def shouldTerminate: Boolean = (System.in.available > 0) && (isEOF(System.in.read()) || shouldTerminate)
 
             val sourcesFinder = PathFinder { watched watchPaths s }

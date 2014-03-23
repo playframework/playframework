@@ -7,15 +7,15 @@ import java.io.*;
 import java.util.*;
 
 /**
- * Interface used by the Play SBT plugin to communicate with an embedded Play
- * server. SBTLink objects are created by the plugin's run command and provided
+ * Interface used by the Play build plugin to communicate with an embedded Play
+ * server. BuildLink objects are created by the plugin's run command and provided
  * to Play's NettyServer devMode methods.
  *
  * <p>This interface is written in Java and uses only Java types so that
  * communication can work even when the plugin and embedded Play server are
  * built with different versions of Scala.
  */
-public interface SBTLink {
+public interface BuildLink {
 
     /**
      * Check if anything has changed, and if so, return an updated classloader.
