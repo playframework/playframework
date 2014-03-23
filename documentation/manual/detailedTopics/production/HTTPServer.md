@@ -66,40 +66,64 @@ http {
   proxy_set_header   Host $http_host;
   proxy_http_version 1.1;
 
+  # Adapted from http://tautt.com/best-nginx-configuration-for-security/
+
+  # tell the browser don't allow hosting in a frame
+  add_header X-Frame-Options DENY;
+
+  # https://www.owasp.org/index.php/List_of_useful_HTTP_headers
+  add_header X-XSS-Protection "1; mode=block";
+
+  # https://www.owasp.org/index.php/List_of_useful_HTTP_headers
+  add_header X-Content-Type-Options nosniff;
+
+   # tell the browser we can only talk to self and google analytics.
+  add_header X-Content-Security-Policy "default-src 'self'; script-src 'self' https://ssl.google-analytics.com; img-src 'self' https://ssl.google-analytics.com";
+  
   upstream my-backend {
      server 127.0.0.1:9000;
   }
 
+  # Redirect to SSL site
   server {
     listen       80;
     server_name www.mysite.com;
-    location / {
-       proxy_pass http://my-backend;
-    }
+    rewrite ^ https://$server_name$request_uri? permanent;
   }
 
-  #server {
-  #  listen               443;
-  #  ssl                  on;
-  #
-  #  # http://www.selfsignedcertificate.com/ is useful for development testing
-  #  ssl_certificate      /etc/ssl/certs/my_ssl.crt;
-  #  ssl_certificate_key  /etc/ssl/private/my_ssl.key;
-  #
-  #  # From https://bettercrypto.org/static/applied-crypto-hardening.pdf
-  #  ssl_prefer_server_ciphers on;
-  #  ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # not possible to do exclusive
-  #  ssl_ciphers 'EDH+CAMELLIA:EDH+aRSA:EECDH+aRSA+AESGCM:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH:+CAMELLIA256:+AES256:+CAMELLIA128:+AES128:+SSLv3:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!DSS:!RC4:!SEED:!ECDSA:CAMELLIA256-SHA:AES256-SHA:CAMELLIA128-SHA:AES128-SHA';
-  #  add_header Strict-Transport-Security max-age=15768000; # six months
-  #  # use this only if all subdomains support HTTPS!
-  #  # add_header Strict-Transport-Security "max-age=15768000; includeSubDomains"
-  #
-  #  keepalive_timeout    70;
-  #  server_name www.mysite.com;
-  #  location / {
-  #    proxy_pass  http://my-backend;
-  #  }
-  #}
+  server {
+    listen               443 ssl;
+    
+    # compile with --with-http_spdy_module for SPDY support
+    # listen               443 ssl spdy;
+
+    add_header Strict-Transport-Security max-age=15768000; # six months
+    # use this only if all subdomains support HTTPS!
+    # add_header Strict-Transport-Security "max-age=15768000; includeSubDomains"
+
+    # http://www.selfsignedcertificate.com/ is useful for development testing
+    ssl_certificate      /etc/ssl/certs/my_ssl.crt;
+    ssl_certificate_key  /etc/ssl/private/my_ssl.key;
+  
+    # From https://bettercrypto.org/static/applied-crypto-hardening.pdf
+    ssl_prefer_server_ciphers on;
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # not possible to do exclusive
+    ssl_ciphers 'EDH+CAMELLIA:EDH+aRSA:EECDH+aRSA+AESGCM:EECDH+aRSA+SHA384:EECDH+aRSA+SHA256:EECDH:+CAMELLIA256:+AES256:+CAMELLIA128:+AES128:+SSLv3:!aNULL:!eNULL:!LOW:!3DES:!MD5:!EXP:!PSK:!DSS:!RC4:!SEED:!ECDSA:CAMELLIA256-SHA:AES256-SHA:CAMELLIA128-SHA:AES128-SHA';
+   
+    ssl_session_cache    shared:SSL:10m;
+    ssl_session_timeout  10m;
+
+    # enable ocsp stapling
+    resolver 8.8.8.8;
+    ssl_stapling on;
+    ssl_trusted_certificate certs.d/example.cer;
+    
+    keepalive_timeout    70;
+    server_name www.mysite.com;
+    location / {
+      proxy_pass  http://my-backend;
+    }
+  }
 }
 ```
 
