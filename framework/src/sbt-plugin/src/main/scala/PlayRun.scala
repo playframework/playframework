@@ -7,6 +7,7 @@ import sbt.{ Project => SbtProject, _ }
 import sbt.Keys._
 import Keys._
 import play.core.{ BuildLink, BuildDocHandler }
+import play.core.classloader._
 import play.console.Colors
 import annotation.tailrec
 import scala.collection.JavaConverters._
@@ -109,7 +110,7 @@ trait PlayRun extends PlayInternalKeys {
        *
        * There are six classloaders:
        *
-       * 1. sbtLoader, the classloader of sbt and the Play sbt plugin.
+       * 1. buildLoader, the classloader of sbt and the Play sbt plugin.
        * 2. commonLoader, a classloader that persists across calls to run.
        *    This classloader is stored inside the
        *    PlayInternalKeys.playCommonClassloader task. This classloader will
@@ -117,7 +118,7 @@ trait PlayRun extends PlayInternalKeys {
        *    classpath. This allows H2's in-memory database state to survive across
        *    calls to run.
        * 3. delegatingLoader, a special classloader that overrides class loading
-       *    to delegate shared classes for sbt link to the sbtLoader, and accesses
+       *    to delegate shared classes for build link to the buildLoader, and accesses
        *    the reloader.currentApplicationClassLoader for resource loading to
        *    make user resources available to dependency classes.
        *    Has the commonLoader as its parent.
@@ -131,7 +132,7 @@ trait PlayRun extends PlayInternalKeys {
        * 6. reloader.currentApplicationClassLoader, contains the user classes
        *    and resources. Has applicationLoader as its parent, where the
        *    application dependencies are found, and which will delegate through
-       *    to the sbtLoader via the delegatingLoader for the shared link.
+       *    to the buildLoader via the delegatingLoader for the shared link.
        *    Resources are actually loaded by the delegatingLoader, where they
        *    are available to both the reloader and the applicationLoader.
        *    This classloader is recreated on reload. See PlayReloader.
@@ -145,65 +146,17 @@ trait PlayRun extends PlayInternalKeys {
 
         // Get the URLs for the resources in a classpath
         def urls(cp: Classpath): Array[URL] = cp.map(_.data.toURI.toURL).toArray
-        // Support method to merge the output of two calls to ClassLoader.getResources(String) into a single result
-        def combineResources(resources1: java.util.Enumeration[URL], resources2: java.util.Enumeration[URL]) =
-          new java.util.Vector[java.net.URL]((resources1.asScala ++ resources2.asScala).toSeq.distinct.asJava).elements
 
-        val sbtLoader = this.getClass.getClassLoader
+        val buildLoader = this.getClass.getClassLoader
 
         /**
          * ClassLoader that delegates loading of shared build link classes to the
-         * sbtLoader. Also accesses the reloader resources to make these available
+         * buildLoader. Also accesses the reloader resources to make these available
          * to the applicationLoader, creating a full circle for resource loading.
          */
-        lazy val delegatingLoader: ClassLoader = new ClassLoader(commonLoader) {
-
-          private val sbtSharedClasses = Seq(
-            classOf[play.core.BuildLink].getName,
-            classOf[play.core.BuildDocHandler].getName,
-            classOf[play.core.server.ServerWithStop].getName,
-            classOf[play.api.UsefulException].getName,
-            classOf[play.api.PlayException].getName,
-            classOf[play.api.PlayException.InterestingLines].getName,
-            classOf[play.api.PlayException.RichDescription].getName,
-            classOf[play.api.PlayException.ExceptionSource].getName,
-            classOf[play.api.PlayException.ExceptionAttachment].getName)
-
-          override def loadClass(name: String, resolve: Boolean): Class[_] = {
-            if (sbtSharedClasses.contains(name)) {
-              sbtLoader.loadClass(name)
-            } else {
-              super.loadClass(name, resolve)
-            }
-          }
-
-          // -- Delegate resource loading. We have to hack here because the default implementation is already recursive.
-          private val findResource = classOf[ClassLoader].getDeclaredMethod("findResource", classOf[String])
-          findResource.setAccessible(true)
-
-          override def getResource(name: String): java.net.URL = {
-            val resource = reloader.currentApplicationClassLoader.map(findResource.invoke(_, name).asInstanceOf[java.net.URL]).orNull
-            if (resource == null) {
-              super.getResource(name)
-            } else {
-              resource
-            }
-          }
-
-          private val findResources = classOf[ClassLoader].getDeclaredMethod("findResources", classOf[String])
-          findResources.setAccessible(true)
-
-          override def getResources(name: String): java.util.Enumeration[java.net.URL] = {
-            val resources1 = reloader.currentApplicationClassLoader.map(findResources.invoke(_, name).asInstanceOf[java.util.Enumeration[java.net.URL]]).getOrElse(new java.util.Vector[java.net.URL]().elements)
-            val resources2 = super.getResources(name)
-            combineResources(resources1, resources2)
-          }
-
-          override def toString = {
-            "DelegatingClassLoader, using parent: " + (getParent)
-          }
-
-        }
+        lazy val delegatingLoader: ClassLoader = new DelegatingClassLoader(commonLoader, buildLoader, new ApplicationClassLoaderProvider {
+          def get: ClassLoader = { reloader.currentApplicationClassLoader.getOrElse(null) }
+        })
 
         lazy val applicationLoader = createClassLoader("PlayDependencyClassLoader", urls(appDependencyClasspath), delegatingLoader)
 
