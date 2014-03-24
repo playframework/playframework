@@ -7,6 +7,7 @@ import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.handler.codec.http.HttpHeaders._
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names._
+import org.jboss.netty.handler.codec.frame.TooLongFrameException
 import org.jboss.netty.handler.ssl._
 
 import org.jboss.netty.channel.group._
@@ -37,13 +38,23 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
   val nettyExceptionLogger = Logger("play.nettyException")
 
   override def exceptionCaught(ctx: ChannelHandlerContext, event: ExceptionEvent) {
+
     event.getCause match {
       // IO exceptions happen all the time, it usually just means that the client has closed the connection before fully
       // sending/receiving the response.
-      case e: IOException => nettyExceptionLogger.trace("Benign IO exception caught in Netty", e)
-      case e => nettyExceptionLogger.error("Exception caught in Netty", e)
+      case e: IOException =>
+        nettyExceptionLogger.trace("Benign IO exception caught in Netty", e)
+        event.getChannel.close()
+      case e: TooLongFrameException =>
+        nettyExceptionLogger.warn("Handling TooLongFrameException", e)
+        val response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.REQUEST_URI_TOO_LONG)
+        response.setHeader(Names.CONNECTION, "close")
+        ctx.getChannel.write(response).addListener(ChannelFutureListener.CLOSE)
+      case e =>
+        nettyExceptionLogger.error("Exception caught in Netty", e)
+        event.getChannel.close()
     }
-    event.getChannel.close()
+
   }
 
   override def channelConnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
