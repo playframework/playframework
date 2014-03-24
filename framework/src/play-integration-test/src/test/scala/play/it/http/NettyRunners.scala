@@ -25,6 +25,7 @@ trait NettyRunners extends PlayRunners {
   class StubChannel(pipeline: ChannelPipeline, remoteAddress: SocketAddress) extends Channel {
     private val closeFuture = new DefaultChannelFuture(this, false)
     final override def getCloseFuture: ChannelFuture = closeFuture
+    private var attachment:AnyRef = null
 
     def getId: Integer = ???
     def getFactory: ChannelFactory = ???
@@ -48,8 +49,8 @@ trait NettyRunners extends PlayRunners {
     def isWritable: Boolean = ???
     def setInterestOps(interestOps: Int): ChannelFuture = ???
     def setReadable(readable: Boolean): ChannelFuture = ???
-    def getAttachment: AnyRef = ???
-    def setAttachment(attachment: Any) { ??? }
+    def getAttachment: AnyRef = attachment
+    def setAttachment(attachment: AnyRef) { this.attachment = attachment }
     def compareTo(o: Channel): Int = ???
   }
 
@@ -77,7 +78,7 @@ trait NettyRunners extends PlayRunners {
       try block(pipeline) finally Play.stop()
     }
   }
-  
+
   /**
    * Test Netty handling against an EssentialAction.
    */

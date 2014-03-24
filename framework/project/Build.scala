@@ -26,7 +26,7 @@ object BuildSettings {
   val experimental = Option(System.getProperty("experimental")).exists(_ == "true")
 
   val buildOrganization = "com.typesafe.play"
-  val buildVersion = propOr("play.version", "2.3-SNAPSHOT")
+  val buildVersion = propOr("play.version", "2.3-SNAPSHOT-JIM")
   val buildWithDoc = boolProp("generate.doc")
   val previousVersion = "2.1.0"
   val buildScalaVersion = propOr("scala.version", "2.10.4-RC2")
@@ -132,6 +132,7 @@ object Resolvers {
   val publishTypesafeIvySnapshots = Resolver.url("Typesafe Ivy Snapshots Repository for publishing", url("https://private-repo.typesafe.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns)
 
   val sonatypeSnapshots = "Sonatype snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"
+  val eaioReleases = "eaio.com" at "http://eaio.com/maven2"
 
   val isSnapshotBuild = buildVersion.endsWith("SNAPSHOT")
   val typesafeResolvers = if (isSnapshotBuild) Seq(typesafeReleases, typesafeIvyReleases, typesafeSnapshots, typesafeIvySnapshots) else Seq(typesafeReleases, typesafeIvyReleases)
@@ -193,6 +194,13 @@ object PlayBuild extends Build {
   lazy val PlayExceptionsProject = PlaySharedJavaProject("Play-Exceptions", "play-exceptions",
     testBinaryCompatibility = true)
 
+  lazy val PlayInstrumentationSpiProject = PlaySharedJavaProject("Play-Instrumentation-Spi", "play-instrumentation-spi")
+
+  lazy val PlayTracingProject = PlayRuntimeProject("Play-Tracing", "play-tracing").settings(
+    libraryDependencies := tracingDependencies,
+    resolvers += eaioReleases
+    ).dependsOn(PlayInstrumentationSpiProject, PlayProject)
+
   lazy val PlayProject = PlayRuntimeProject("Play", "play")
     .settings(
       libraryDependencies := runtime ++ scalacheckDependencies,
@@ -201,7 +209,7 @@ object PlayBuild extends Build {
       Docs.apiDocsIncludeManaged := true,
       parallelExecution in Test := false,
       sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
-    ).dependsOn(SbtLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject % "test->test;compile->compile", JsonProject)
+    ).dependsOn(SbtLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject % "test->test;compile->compile", JsonProject, PlayInstrumentationSpiProject)
 
   lazy val PlayJdbcProject = PlayRuntimeProject("Play-JDBC", "play-jdbc")
     .settings(libraryDependencies := jdbcDeps)
@@ -371,7 +379,9 @@ object PlayBuild extends Build {
     PlayExceptionsProject,
     PlayDocsProject,
     PlayFiltersHelpersProject,
-    PlayIntegrationTestProject
+    PlayInstrumentationSpiProject,
+    PlayIntegrationTestProject,
+    PlayTracingProject
   )
 
   lazy val Root = Project(

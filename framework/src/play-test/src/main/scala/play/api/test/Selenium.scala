@@ -14,8 +14,8 @@ import org.fluentlenium.core._
 import java.util.concurrent.TimeUnit
 import com.google.common.base.Function
 import org.openqa.selenium.support.ui.FluentWait
-
 import scala.util.control.NonFatal
+import play.instrumentation.spi.PlayInstrumentationFactory
 
 /**
  * A test browser (Using Selenium WebDriver) with the FluentLenium API (https://github.com/Fluentlenium/FluentLenium).
@@ -132,7 +132,7 @@ object WebDriverFactory {
  * @param port HTTP port to bind on.
  * @param application The FakeApplication to load in this server.
  */
-case class TestServer(port: Int, application: FakeApplication = FakeApplication(), sslPort: Option[Int] = None) {
+case class TestServer(port: Int, application: FakeApplication = FakeApplication(), sslPort: Option[Int] = None, instrumentationFactory: PlayInstrumentationFactory = play.core.utils.DevNullPlayInstrumentationFactory) {
 
   private var server: play.core.server.NettyServer = _
 
@@ -145,7 +145,11 @@ case class TestServer(port: Int, application: FakeApplication = FakeApplication(
     }
     //play.core.Invoker.uninit()
     try {
-      server = new play.core.server.NettyServer(new play.core.TestApplication(application), Option(port), sslPort = sslPort, mode = Mode.Test)
+      server = new play.core.server.NettyServer(instrumentationFactory,
+        new play.core.TestApplication(application),
+        Option(port),
+        sslPort = sslPort,
+        mode = Mode.Test)
     } catch {
       case NonFatal(t) =>
         t.printStackTrace

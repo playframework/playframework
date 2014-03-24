@@ -209,4 +209,7 @@ object Dependencies {
     "com.chuusai" % "shapeless_2.10.2" % "2.0.0-M1" % "test"
   )
 
+  val tracingDependencies = Seq(
+    "com.eaio.uuid" % "uuid" % "3.4"
+  )
 }

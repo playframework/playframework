@@ -13,7 +13,10 @@ import play.api.libs.iteratee.Input._
 import scala.concurrent.{ Future, Promise }
 import scala.util.{ Try, Success }
 
-private[server] trait RequestBodyHandler {
+import play.instrumentation.spi.PlayInstrumentation
+import play.core.utils.WithInstrumentation
+
+private[server] trait RequestBodyHandler extends WithInstrumentation {
 
   /**
    * Creates a new upstream handler for the purposes of receiving chunked requests. Requests are buffered as an
@@ -26,7 +29,7 @@ private[server] trait RequestBodyHandler {
    */
   def newRequestBodyUpstreamHandler[A](bodyHandler: Iteratee[Array[Byte], A],
     replaceHandler: ChannelUpstreamHandler => Unit,
-    handlerFinished: => Unit): Future[A] = {
+    handlerFinished: => Unit)(implicit instrumentation: PlayInstrumentation): Future[A] = {
 
     implicit val internalContext = play.core.Execution.internalContext
     import scala.concurrent.stm._
@@ -106,7 +109,9 @@ private[server] trait RequestBodyHandler {
 
           case chunk: HttpChunk if !chunk.isLast =>
             val cBuffer = chunk.getContent
-            val bytes = new Array[Byte](cBuffer.readableBytes())
+            val readableBytes = cBuffer.readableBytes()
+            val bytes = new Array[Byte](readableBytes)
+            recordInputBodyBytes(readableBytes)
             cBuffer.readBytes(bytes)
             pushChunk(ctx, El(bytes))
 

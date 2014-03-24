@@ -7,6 +7,7 @@ import java.io.File
 import play.api.Mode
 import play.core.SBTDocHandler
 import play.core.server.NettyServer
+import play.core.utils.InstrumentationLoader
 
 /**
  * A simple Play server that serves documentation. Used by the Play documentation
@@ -14,6 +15,6 @@ import play.core.server.NettyServer
  * to create a server that embeds both the user application and the Play documentation
  * application.
  */
-class DocumentationServer(projectPath: File, sbtDocHandler: SBTDocHandler, port: java.lang.Integer) extends NettyServer(DocumentationApplication(projectPath, sbtDocHandler), Some(port),
+class DocumentationServer(projectPath: File, sbtDocHandler: SBTDocHandler, port: java.lang.Integer) extends NettyServer(InstrumentationLoader.getFactory(Option(System.getProperty("instrumentationClass"))), DocumentationApplication(projectPath, sbtDocHandler), Some(port),
   mode = Mode.Dev
 )

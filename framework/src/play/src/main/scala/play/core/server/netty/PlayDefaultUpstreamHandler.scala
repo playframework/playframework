@@ -19,14 +19,21 @@ import play.api.libs.concurrent.Execution
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 import scala.util.control.Exception
 import com.typesafe.netty.http.pipelining.{ OrderedDownstreamChannelEvent, OrderedUpstreamMessageEvent }
 import scala.concurrent.Future
 import java.net.{ SocketAddress, URI }
 import java.io.IOException
+import java.util.{ Map => JMap, List => JList }
+import scala.util.{ Try, Success, Failure }
 
-private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
+import play.instrumentation.spi.{ PlayInstrumentationFactory, PlayInstrumentation }
+import play.core.utils.{ InstrumentationHelpers, WithInstrumentation, ActionProxy }
 
+private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler
+    with WithInstrumentation {
+  import InstrumentationHelpers._
   private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
 
   /**
@@ -63,10 +70,17 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
   }
 
   override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
+    val attachment: ChannelAttachment = e.getChannel.getAttachment.asInstanceOf[ChannelAttachment]
+    implicit val instrumentation = attachment.instrumentation
     e.getMessage match {
 
       case nettyHttpRequest: HttpRequest =>
-
+        recordInputHeader(toPlayInputHeader(nettyHttpRequest))
+        recordExpectedInputBodyBytes(HttpHeaders.getContentLength(nettyHttpRequest))
+        if (!nettyHttpRequest.isChunked) {
+          val readableBytes = nettyHttpRequest.getContent.readableBytes.intValue
+          recordInputBodyBytes(readableBytes)
+        }
         Play.logger.trace("Http request received by netty: " + nettyHttpRequest)
         val keepAlive = isKeepAlive(nettyHttpRequest)
         val websocketableRequest = websocketable(nettyHttpRequest)
@@ -134,6 +148,9 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
                 .map(_.global)
                 .getOrElse(DefaultGlobal)
 
+              // Being consistent here.  We record action start when the future containing our
+              // result is produced.  May not be the ideal solution.
+              recordActionStart()
               val result = Future
                 .successful(()) // Create a dummy future
                 .flatMap { _ =>
@@ -142,9 +159,18 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
                 }(Execution.defaultContext)
               (rh, Left(result))
             },
-            rh => server.getHandlerFor(rh) match {
-              case directResult @ Left(_) => (rh, directResult)
-              case Right((taggedRequestHeader, handler, application)) => (taggedRequestHeader, Right((handler, application)))
+            rh => {
+              server.getHandlerFor(rh) match {
+                // This case does not generate calls to `recordActionStart` which means we have a dangling
+                // recordActionEnd call later on.  This should be OK
+                // TODO: Figure out how to get the instrumentation context into the call to `getHandlerFor`.
+                case directResult @ Left(_) =>
+                  recordResolved(rh)
+                  (rh, directResult)
+                case Right((taggedRequestHeader, handler, application)) =>
+                  recordResolved(taggedRequestHeader)
+                  (taggedRequestHeader, Right((handler, application)))
+              }
             }
           )
 
@@ -184,7 +210,9 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
 
         handler match {
           //execute normal action
-          case Right((action: EssentialAction, app)) =>
+          case Right((underlying: EssentialAction, app)) =>
+            val action = ActionProxy(underlying)
+            recordRouteRequestResult(PlayInstrumentation.RequestResult.ESSENTIAL_ACTION)
             val a = EssentialAction { rh =>
               import play.api.libs.iteratee.Execution.Implicits.trampoline
               Iteratee.flatten(action(rh).unflatten.map(_.it).recover {
@@ -197,17 +225,21 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
             handleAction(a, Some(app))
 
           case Right((ws @ WebSocket(f), app)) if (websocketableRequest.check) =>
+            recordRouteRequestResult(PlayInstrumentation.RequestResult.WEB_SOCKET)
             Play.logger.trace("Serving this request with: " + ws)
             val enumerator = websocketHandshake(ctx, nettyHttpRequest, e)(ws.frameFormatter)
             f(requestHeader)(enumerator, socketOut(ctx)(ws.frameFormatter))
 
           //handle bad websocket request
           case Right((WebSocket(_), app)) =>
+            recordRouteRequestResult(PlayInstrumentation.RequestResult.WEB_SOCKET)
             Play.logger.trace("Bad websocket request")
             val a = EssentialAction(_ => Done(Results.BadRequest, Input.Empty))
             handleAction(a, Some(app))
 
           case Left(e) =>
+            recordHandlerNotFound()
+            recordRouteRequestResult(PlayInstrumentation.RequestResult.NO_HANDLER)
             Play.logger.trace("No handler, got direct result: " + e)
             import play.api.libs.iteratee.Execution.Implicits.trampoline
             val a = EssentialAction(_ => Iteratee.flatten(e.map(result => Done(result, Input.Empty))))
@@ -219,7 +251,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
           Play.logger.trace("Serving this request with: " + action)
 
           val bodyParser = Iteratee.flatten(
-            scala.concurrent.Future(action(requestHeader))(play.api.libs.concurrent.Execution.defaultContext)
+            scala.concurrent.Future(action.apply(requestHeader))(play.api.libs.concurrent.Execution.defaultContext)
           )
 
           import play.api.libs.iteratee.Execution.Implicits.trampoline
@@ -250,7 +282,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
                 cBuffer.readBytes(bytes)
                 bytes
               }
-              Enumerator(body).andThen(Enumerator.enumInput(EOF))
+              Enumerator(body).andThen { Enumerator.enumInput(EOF) }
             }
 
             bodyEnumerator |>>> bodyParser

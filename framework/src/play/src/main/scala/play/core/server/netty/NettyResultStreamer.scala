@@ -17,11 +17,13 @@ import com.typesafe.netty.http.pipelining.{ OrderedDownstreamChannelEvent, Order
 
 import scala.concurrent.Future
 import scala.util.{ Failure, Success }
+import play.instrumentation.spi.PlayInstrumentation
+import play.core.utils.WithInstrumentation
 
 /**
  * Streams Play results to Netty
  */
-object NettyResultStreamer {
+object NettyResultStreamer extends WithInstrumentation {
 
   // A channel status holds whether the connection must be closed and the last subsequence sent
   class ChannelStatus(val closeConnection: Boolean, val lastSubsequence: Int)
@@ -31,7 +33,9 @@ object NettyResultStreamer {
    *
    * @return A Future that will be redeemed when the result is completely sent
    */
-  def sendResult(result: SimpleResult, closeConnection: Boolean, httpVersion: HttpVersion, startSequence: Int)(implicit ctx: ChannelHandlerContext, oue: OrderedUpstreamMessageEvent): Future[_] = {
+  def sendResult(result: SimpleResult, closeConnection: Boolean, httpVersion: HttpVersion, startSequence: Int)(implicit ctx: ChannelHandlerContext, oue: OrderedUpstreamMessageEvent, instrumentation: PlayInstrumentation): Future[_] = {
+    recordActionEnd()
+    recordOutputProcessingStart()
     // Result of this iteratee is a completion status
     val sentResponse: Future[ChannelStatus] = result match {
 
@@ -73,17 +77,26 @@ object NettyResultStreamer {
 
     sentResponse.onComplete {
       case Success(cs: ChannelStatus) =>
+        val channel = oue.getChannel
         if (cs.closeConnection) {
           // Close in an orderely fashion.
-          val channel = oue.getChannel;
           val closeEvent = new DownstreamChannelStateEvent(
             channel, channel.getCloseFuture, ChannelState.OPEN, java.lang.Boolean.FALSE);
           val ode = new OrderedDownstreamChannelEvent(oue, cs.lastSubsequence + 1, true, closeEvent)
           ctx.sendDownstream(ode)
         }
+        recordOutputProcessingEnd()
+        recordRequestEnd() // This may not be the right place to do this.
+        // May need to consider sending a downstream event
+        // that actually marks the end of the request.
+        channel.setAttachment(null)
       case Failure(ex) =>
+        val channel = oue.getChannel;
         Play.logger.debug(ex.toString)
-        Channels.close(oue.getChannel)
+        Channels.close(channel)
+        recordOutputProcessingEnd()
+        recordRequestEnd()
+        channel.setAttachment(null)
     }
     sentResponse
   }
