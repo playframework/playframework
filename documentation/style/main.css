@@ -48,6 +48,13 @@ article p.note{padding:15px 20px;}
 article table{width:100%;}article table td{padding:8px;}
 article table tr{background:#F4F4F7;border-bottom:1px solid #eee;}
 article table tr:nth-of-type(odd){background:#fafafa;}
+article dl dt{font-weight:bold;}
+article dl.tabbed{position:relative;}
+article dl.tabbed dt{float:left;margin:0 5px 0 0;border:1px solid #ddd;padding:0 20px;line-height:2;border-radius: 5px 5px 0 0;}
+article dl.tabbed dt a{display:block;height:30px;color:#333;text-decoration:none;}
+article dl.tabbed dt.current{background: #f7f7f7;}
+article dl.tabbed dd{position:absolute;width:100%;left:0;top:30px;}
+article dl.tabbed dd pre{margin-top:0;border-top-left-radius:0;}
 a{color:#80c846;}a:hover{color:#6dae38;}
 p{margin:1em 0;}
 h1{-webkit-font-smoothing:antialiased;}
