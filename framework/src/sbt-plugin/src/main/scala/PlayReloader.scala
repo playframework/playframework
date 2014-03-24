@@ -19,7 +19,7 @@ trait PlayReloader {
 
     val extracted = SbtProject.extract(state)
 
-    new SBTLink {
+    new BuildLink {
 
       lazy val projectPath = extracted.currentProject.base
 

@@ -7,15 +7,15 @@ import java.io.*;
 import java.util.*;
 
 /**
- * Interface used by the Play SBT plugin to communicate with an embedded Play
- * server. SBTLink objects are created by the plugin's run command and provided
+ * Interface used by the Play build plugin to communicate with an embedded Play
+ * server. BuildLink objects are created by the plugin's run command and provided
  * to Play's NettyServer devMode methods.
  *
  * <p>This interface is written in Java and uses only Java types so that
  * communication can work even when the plugin and embedded Play server are
  * built with different versions of Scala.
  */
-public interface SBTLink {
+public interface BuildLink {
 
     /**
      * Check if anything has changed, and if so, return an updated classloader.
@@ -31,7 +31,7 @@ public interface SBTLink {
      *     <li>null - If nothing changed.</li>
      * </ul>
      */
-	public Object reload();
+    public Object reload();
 
     /**
      * Find the original source file for the given class name and line number.
@@ -55,14 +55,14 @@ public interface SBTLink {
      *     <li>null - If no source file could be found for the class name.</li>
      * </ul>
      */
-	public Object[] findSource(String className, Integer line);
+    public Object[] findSource(String className, Integer line);
 
     /**
      * Get the path of the project.  This is used by methods such as {@link play.api.Application#getFile}.
      *
      * @return The path of the project.
      */
-	public File projectPath();
+    public File projectPath();
 
     /**
      * Force the application to reload on the next invocation of reload.
@@ -70,14 +70,14 @@ public interface SBTLink {
      * This is invoked by plugins for example that change something on the classpath or something about the application
      * that requires a reload, for example, the evolutions plugin.
      */
-	public void forceReload();
+    public void forceReload();
 
     /**
      * Returns a list of application settings configured in the build system.
      *
      * @return The settings.
      */
-	public Map<String,String> settings();
+    public Map<String,String> settings();
 
     /**
      * Run a task in the build tool.
