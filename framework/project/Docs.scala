@@ -4,8 +4,12 @@
 import sbt._
 import sbt.Keys._
 import sbt.File
+import java.net.URLClassLoader
+import org.webjars.{ FileSystemCache, WebJarExtractor }
 
 object Docs {
+
+  val Webjars = config("webjars").hide
 
   val apiDocsInclude = SettingKey[Boolean]("api-docs-include", "Whether this sub project should be included in the API docs")
   val apiDocsIncludeManaged = SettingKey[Boolean]("api-docs-include-managed", "Whether managed sources from this project should be included in the API docs")
@@ -13,6 +17,7 @@ object Docs {
   val apiDocsJavaSources = TaskKey[Seq[File]]("api-docs-java-sources", "All the Java sources for all projects")
   val apiDocsClasspath = TaskKey[Seq[File]]("api-docs-classpath", "The classpath for API docs generation")
   val apiDocs = TaskKey[File]("api-docs", "Generate the API docs")
+  val extractWebjars = TaskKey[File]("extract-webjars", "Extract webjar contents")
 
   lazy val settings = Seq(
     apiDocsInclude := false,
@@ -21,7 +26,9 @@ object Docs {
     apiDocsClasspath <<= (thisProjectRef, buildStructure) flatMap allClasspaths,
     apiDocsJavaSources <<= (thisProjectRef, buildStructure) flatMap allSources(Compile, ".java"),
     apiDocs <<= (apiDocsScalaSources, apiDocsJavaSources, apiDocsClasspath, baseDirectory in ThisBuild, baseDirectory, compilers, streams) map apiDocsTask,
-    mappings in (Compile, packageBin) <++= (baseDirectory, apiDocs) map { (base, apiBase) =>
+    ivyConfigurations += Webjars,
+    extractWebjars <<= extractWebjarContents,
+    mappings in (Compile, packageBin) <++= (baseDirectory, apiDocs, extractWebjars, version) map { (base, apiBase, webjars, playVersion) =>
       // Include documentation and API docs in main binary JAR
       val docBase = base / "../../../documentation"
       val raw = (docBase \ "manual" ** "*") +++ (docBase \ "style" ** "*")
@@ -30,7 +37,10 @@ object Docs {
 
       val apiDocMappings = (apiBase ** "*").get x rebase(apiBase, "play/docs/content/api")
 
-      docMappings ++ apiDocMappings
+      // The play version is added so that resource paths are versioned
+      val webjarMappings = webjars.*** pair rebase(webjars, "play/docs/content/webjars/" + playVersion)
+
+      docMappings ++ apiDocMappings ++ webjarMappings
     }
   )
 
@@ -118,5 +128,17 @@ object Docs {
     val projects = allApiProjects(projectRef.build, structure)
     val tasks = projects flatMap { dependencyClasspath in Compile in _ get structure.data }
     tasks.join.map(_.flatten.map(_.data).distinct)
+  }
+
+  // Note: webjars are extracted without versions
+  def extractWebjarContents: Def.Initialize[Task[File]] = (update, target, streams) map { (report, targetDir, s) =>
+    val webjars = report.matching(configurationFilter(name = Webjars.name))
+    val webjarsDir = targetDir / "webjars"
+    val cache = new FileSystemCache(s.cacheDirectory / "webjars-cache")
+    val classLoader = new URLClassLoader(Path.toURLs(webjars), null)
+    val extractor = new WebJarExtractor(cache, classLoader)
+    extractor.extractAllWebJarsTo(webjarsDir)
+    cache.save()
+    webjarsDir
   }
 }

@@ -38,6 +38,7 @@ article img{max-width:100%;}
 article pre{margin:10px 0;border:1px solid #ddd;padding:10px;background:#fafafa;color:#666;overflow:auto;border-radius:5px;}
 article code{background:#fafafa;color:#666;font-family:inconsolata, monospace;border:1px solid #ddd;border-radius:3px;height:4px;padding:0;}
 article pre code{border:0;background:inherit;border-radius:0;line-height:inherit;font-size:14px;}
+article pre.prettyprint{border:1px solid #ddd;padding:10px;}
 article blockquote,article blockquote p,article p.note{line-height:20px;color:#4c4742;}
 article blockquote,article .note{margin:0 0 18px;padding:1px 20px;background:#fff7d6;}article blockquote li:before,article .note li:before{color:#e0bc6f;}
 article blockquote code,article .note code{background:#f5d899;border:none;color:inherit;}

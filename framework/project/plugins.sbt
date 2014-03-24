@@ -12,3 +12,4 @@ libraryDependencies <+= sbtVersion { sv =>
   "org.scala-sbt" % "scripted-plugin" % sv
 }
 
+libraryDependencies += "org.webjars" % "webjars-locator" % "0.12"
