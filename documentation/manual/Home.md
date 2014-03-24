@@ -7,7 +7,7 @@
 
 - [[What's new in Play 2.2?|Highlights22]]
 - [[What's new in Play 2.1?|Highlights21]]
-- [[Play 2.2 Migration Guide|Migration22]]
+- [[Play 2.3 Migration Guide|Migration23]]
 
 ## Getting started
 
