@@ -10,6 +10,7 @@ import play.Keys._
 import play.core.{ SBTDocHandler, SBTLink, PlayVersion }
 import play.PlaySourceGenerators._
 import DocValidation._
+import scala.util.Properties.isJavaAtLeast
 
 object ApplicationBuild extends Build {
 
@@ -66,6 +67,10 @@ object ApplicationBuild extends Build {
     javaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "javaGuide" ** codeFilter).get),
     scalaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "scalaGuide" ** codeFilter).get),
 
+    javaManualSourceDirectories <++= (baseDirectory) { base =>
+      if (isJavaAtLeast("1.8")) (base / "manual" / "javaGuide" ** "java8code").get else Nil
+    },
+
     unmanagedSourceDirectories in Test <++= javaManualSourceDirectories,
     unmanagedSourceDirectories in Test <++= scalaManualSourceDirectories,
     unmanagedSourceDirectories in Test <++= (baseDirectory)(base => (base / "manual" / "detailedTopics" ** codeFilter).get),
@@ -106,7 +111,7 @@ object ApplicationBuild extends Build {
     validateExternalLinks <<= ValidateExternalLinksTask,
 
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true", "junitxml", "console"),
-    testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "--ignore-runners=org.specs2.runner.JUnitRunner"),
+    testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "-v", "--ignore-runners=org.specs2.runner.JUnitRunner"),
     testListeners <<= (target, streams).map((t, s) => Seq(new eu.henkelmann.sbt.JUnitXmlTestsListener(t.getAbsolutePath, s.log)))
 
   ).settings(externalPlayModuleSettings:_*)
