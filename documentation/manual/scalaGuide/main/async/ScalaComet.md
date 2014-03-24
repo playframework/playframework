@@ -11,8 +11,6 @@ Let’s write a first proof-of-concept: an enumerator that generates `<script>` 
 
 If you run this action from a web browser, you will see the three events logged in the browser console.
 
-> **Tip:** Writing `events >>> Enumerator.eof` is just another way of writing `events.andThen(Enumerator.eof)`
-
 We can write this in a better way by using `play.api.libs.iteratee.Enumeratee` that is just an adapter to transform an `Enumerator[A]` into another `Enumerator[B]`. Let’s use it to wrap standard messages into the `<script>` tags:
     
 @[enumeratee](code/ScalaComet.scala)
