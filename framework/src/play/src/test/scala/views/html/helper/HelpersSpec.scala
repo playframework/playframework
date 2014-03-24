@@ -50,8 +50,8 @@ object HelpersSpec extends Specification {
        // Append [] to the name for the form binding
        body must contain( "name=\"hobbies[]\"" )
 
-       body must contain( """<input type="checkbox" id="hobbies_S" name="hobbies[]" value="S" checked >""" )
-       body must contain( """<input type="checkbox" id="hobbies_B" name="hobbies[]" value="B" checked >""" )
+       body must contain( """<input type="checkbox" id="hobbies_S" name="hobbies[]" value="S" checked="checked" />""" )
+       body must contain( """<input type="checkbox" id="hobbies_B" name="hobbies[]" value="B" checked="checked" />""" )
      }
   }
 
@@ -86,7 +86,7 @@ object HelpersSpec extends Specification {
 
       body must contain( "name=\"foo\"" )
 
-      body must contain( """<option value="0" selected>""" )
+      body must contain( """<option value="0" selected="selected">""" )
       body must contain( """<option value="1" >""" )
     }
 
@@ -98,8 +98,8 @@ object HelpersSpec extends Specification {
       body must contain( "name=\"foo[]\"" )
       body must contain( "multiple" )
 
-      body must contain( """<option value="0" selected>""" )
-      body must contain( """<option value="1" selected>""" )
+      body must contain( """<option value="0" selected="selected">""" )
+      body must contain( """<option value="1" selected="selected">""" )
     }
   }
 

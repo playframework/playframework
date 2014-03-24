@@ -20,7 +20,7 @@
 @input(field, args.map{ x => if(x._1 == '_label) '_name -> x._2 else x }:_*) { (id, name, value, htmlArgs) =>
   <span class="buttonset" id="@id">
     @options.map { v =>
-      <input type="radio" id="@(id)_@v._1" name="@name" value="@v._1" @(if(value == Some(v._1)) "checked" else "") @toHtmlArgs(htmlArgs)>
+      <input type="radio" id="@(id)_@v._1" name="@name" value="@v._1" @if(value == Some(v._1)){checked="checked"} @toHtmlArgs(htmlArgs)/>
       <label for="@(id)_@v._1">@v._2</label>
     }
   </span>
