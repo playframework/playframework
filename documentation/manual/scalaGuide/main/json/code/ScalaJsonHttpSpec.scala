@@ -43,7 +43,7 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       }
       //#serve-json
       
-      val result: Future[SimpleResult] = listPlaces().apply(FakeRequest())
+      val result: Future[Result] = listPlaces().apply(FakeRequest())
       status(result) === OK
       contentType(result) === Some("application/json")
       contentAsString(result) === """[{"name":"Sandleford","location":{"lat":51.377797,"long":-1.318965}},{"name":"Watership Down","location":{"lat":51.235685,"long":-1.309197}}]"""
@@ -97,7 +97,7 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       }
       """)
       val request = FakeRequest().withHeaders(CONTENT_TYPE -> "application/json").withJsonBody(body)
-      val result: Future[SimpleResult] = savePlace().apply(request)
+      val result: Future[Result] = savePlace().apply(request)
       
       status(result) === OK
       contentType(result) === Some("application/json")
@@ -144,7 +144,7 @@ class ScalaJsonHttpSpec extends PlaySpecification with Results {
       }
       """)
       val request = FakeRequest().withHeaders(CONTENT_TYPE -> "application/json").withBody(body)
-      val result: Future[SimpleResult] = savePlace().apply(request)
+      val result: Future[Result] = savePlace().apply(request)
       val bodyText: String = contentAsString(result)
       status(result) === OK
       contentType(result) === Some("application/json")

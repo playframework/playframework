@@ -6,8 +6,6 @@ package play.filters.gzip
 import play.api.libs.iteratee._
 import play.api.mvc._
 import scala.concurrent.Future
-import play.api.mvc.SimpleResult
-import play.api.mvc.ResponseHeader
 import play.api.mvc.RequestHeader.acceptHeader
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names
 import play.api.http.{ Status, MimeTypes }
@@ -76,11 +74,11 @@ class GzipFilter(gzip: Enumeratee[Array[Byte], Array[Byte]] = Gzip.gzip(GzipFilt
     }
   }
 
-  private def handleResult(request: RequestHeader, result: SimpleResult): Future[SimpleResult] = {
+  private def handleResult(request: RequestHeader, result: Result): Future[Result] = {
     if (shouldCompress(result.header) && shouldGzip(request, result.header)) {
       // If connection is close, don't bother buffering it, we can send it without a content length
       if (result.connection == HttpConnection.Close) {
-        Future.successful(SimpleResult(
+        Future.successful(Result(
           header = result.header.copy(headers = setupHeader(result.header.headers)),
           body = result.body &> gzip,
           connection = result.connection
@@ -105,7 +103,7 @@ class GzipFilter(gzip: Enumeratee[Array[Byte], Array[Byte]] = Gzip.gzip(GzipFilt
         Concurrent.runPartial(result.body &> gzip, buffer(Nil, 0)).map {
           // We successfully buffered the whole thing, so we have a content length
           case (Right((chunks, contentLength)), empty) =>
-            SimpleResult(
+            Result(
               header = result.header.copy(headers = setupHeader(result.header.headers)
                 + (CONTENT_LENGTH -> Integer.toString(contentLength))),
               // include the empty enumerator so that it's fully consumed
@@ -117,14 +115,14 @@ class GzipFilter(gzip: Enumeratee[Array[Byte], Array[Byte]] = Gzip.gzip(GzipFilt
           case (Left(chunks), remaining) => {
             if (request.version == HTTP_1_0) {
               // Don't chunk for HTTP/1.0
-              SimpleResult(
+              Result(
                 header = result.header.copy(headers = setupHeader(result.header.headers)),
                 body = Enumerator.enumerate(chunks) >>> remaining,
                 connection = HttpConnection.Close
               )
             } else {
               // Otherwise chunk
-              SimpleResult(
+              Result(
                 header = result.header.copy(headers = setupHeader(result.header.headers)
                   + (TRANSFER_ENCODING -> CHUNKED)),
                 body = (Enumerator.enumerate(chunks) >>> remaining) &> Results.chunk,

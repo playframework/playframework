@@ -1,12 +1,7 @@
 package play.test
 
 import org.specs2.mutable._
-import play.mvc.Result
-import scala.concurrent.Future
-import play.api.mvc.{Cookie, Results, SimpleResult}
-
 import play.api.libs.json._
-
 
 /**
  *

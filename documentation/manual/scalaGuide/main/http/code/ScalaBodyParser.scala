@@ -108,7 +108,7 @@ package scalaguide.http.scalabodyparsers {
       assertAction(action, request, expectedResponse) { result => success }
     }
 
-    def assertAction[A, T: AsResult](action: EssentialAction, request:  => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Future[SimpleResult] => T) = {
+    def assertAction[A, T: AsResult](action: EssentialAction, request:  => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Future[Result] => T) = {
       running(FakeApplication(additionalConfiguration = Map("application.secret" -> "pass"))) {        
         val result = action(request).run
         status(result) must_== expectedResponse

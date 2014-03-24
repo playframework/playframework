@@ -40,7 +40,7 @@ object ScalaAsyncSamples extends Controller {
     import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
     val futurePIValue: Future[Double] = computePIAsynchronously()
-    val futureResult: Future[SimpleResult] = futurePIValue.map { pi =>
+    val futureResult: Future[Result] = futurePIValue.map { pi =>
       Ok("PI value computed: " + pi)
     }
     //#future-result

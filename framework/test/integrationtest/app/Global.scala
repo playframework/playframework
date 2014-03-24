@@ -3,14 +3,14 @@
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
 import play.api.GlobalSettings
-import play.api.mvc.{RequestHeader, SimpleResult}
+import play.api.mvc.{RequestHeader, Result}
 import play.api.mvc.Results.InternalServerError
 import play.api.{Logger, Configuration}
 import com.typesafe.config.ConfigFactory
 import scala.concurrent.Future
 
 object Global extends GlobalSettings {
-  override def onError(r: RequestHeader, e: Throwable): Future[SimpleResult] = {
+  override def onError(r: RequestHeader, e: Throwable): Future[Result] = {
     Future.successful(InternalServerError("Something went wrong."))
   }
 

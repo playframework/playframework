@@ -10,7 +10,7 @@ import play.api.http.{ HttpProtocol, HeaderNames, DefaultWriteables }
 import play.core.server.netty.NettyResultStreamer.UsesTransferEncoding
 import org.jboss.netty.buffer.ChannelBuffers
 import scala.Some
-import play.api.mvc.SimpleResult
+import play.api.mvc.Result
 import scala.concurrent.Future
 
 /**
@@ -19,13 +19,13 @@ import scala.concurrent.Future
  * @param handler Action for the relevant GET path.
  */
 class HeadAction(handler: Handler) extends EssentialAction with DefaultWriteables with HeaderNames with HttpProtocol {
-  def apply(requestHeader: RequestHeader): Iteratee[Array[Byte], SimpleResult] = {
-    def bodyIterator: Iteratee[Array[Byte], SimpleResult] = handler.asInstanceOf[EssentialAction](requestHeader)
+  def apply(requestHeader: RequestHeader): Iteratee[Array[Byte], Result] = {
+    def bodyIterator: Iteratee[Array[Byte], Result] = handler.asInstanceOf[EssentialAction](requestHeader)
 
-    def createHeadResult(result: SimpleResult): Future[SimpleResult] = result match {
+    def createHeadResult(result: Result): Future[Result] = result match {
       // Respond immediately for bodies which have finished evaluating
       case UsesTransferEncoding() | HasContentLength() =>
-        val newResult = SimpleResult(result.header, Enumerator(Array.emptyByteArray), result.connection)
+        val newResult = Result(result.header, Enumerator(Array.emptyByteArray), result.connection)
         Future.successful(newResult)
       // We need to evaluate the body further to determine appropriate headers (Content-Length or Transfer-Encoding)
       case _ =>
@@ -45,8 +45,8 @@ class HeadAction(handler: Handler) extends EssentialAction with DefaultWriteable
    * @param httpVersion HTTP Version from the RequestHeader to ensure proper response headers
    * @return
    */
-  def singleChunkIteratee(result: SimpleResult, httpVersion: String): Iteratee[Array[Byte], SimpleResult] = {
-    lazy val resultWithEmptyBody = SimpleResult(result.header, Enumerator(Array.emptyByteArray), result.connection)
+  def singleChunkIteratee(result: Result, httpVersion: String): Iteratee[Array[Byte], Result] = {
+    lazy val resultWithEmptyBody = Result(result.header, Enumerator(Array.emptyByteArray), result.connection)
 
     def takeUpToOneChunk(chunk: Option[Array[Byte]]): Iteratee[Array[Byte], Either[Array[Byte], Option[Array[Byte]]]] = Cont {
       // We have a second chunk, fail with left
@@ -71,7 +71,7 @@ class HeadAction(handler: Handler) extends EssentialAction with DefaultWriteable
           CONTENT_LENGTH -> buffer.readableBytes().toString
         )
 
-        Done[Array[Byte], SimpleResult](newResult)
+        Done[Array[Byte], Result](newResult)
 
       case Left(chunk) =>
         // The body is in multiple chunks.
@@ -85,7 +85,7 @@ class HeadAction(handler: Handler) extends EssentialAction with DefaultWriteable
             )
         }
 
-        Done[Array[Byte], SimpleResult](newResult)
+        Done[Array[Byte], Result](newResult)
     }
   }
 }
@@ -94,5 +94,5 @@ class HeadAction(handler: Handler) extends EssentialAction with DefaultWriteable
  * Extractor that determines whether a content-length has been set on a result
  */
 object HasContentLength extends HeaderNames {
-  def unapply(result: SimpleResult): Boolean = result.header.headers.contains(CONTENT_LENGTH)
+  def unapply(result: Result): Boolean = result.header.headers.contains(CONTENT_LENGTH)
 }

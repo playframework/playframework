@@ -132,7 +132,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
           untaggedRequestHeader
         }
 
-        val (requestHeader, handler: Either[Future[SimpleResult], (Handler, Application)]) = Exception
+        val (requestHeader, handler: Either[Future[Result], (Handler, Application)]) = Exception
           .allCatch[RequestHeader].either {
             val rh = tryToCreateRequest
             // Force parsing of uri
@@ -175,7 +175,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
         implicit val msgCtx = ctx
         implicit val oue = e.asInstanceOf[OrderedUpstreamMessageEvent]
 
-        def cleanFlashCookie(result: SimpleResult): SimpleResult = {
+        def cleanFlashCookie(result: Result): Result = {
           val header = result.header
 
           val flashCookie = {
@@ -202,7 +202,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
                 case error =>
                   Iteratee.flatten(
                     app.handleError(requestHeader, error).map(result => Done(result, Input.Empty))
-                  ): Iteratee[Array[Byte], SimpleResult]
+                  ): Iteratee[Array[Byte], Result]
               })
             }
             handleAction(a, Some(app))
@@ -241,7 +241,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
           // Netty thread, so that the handler is replaced in this thread, so that if the client does start sending
           // body chunks (which it might according to the HTTP spec if we're slow to respond), we can handle them.
 
-          val eventuallyResult: Future[SimpleResult] = if (nettyHttpRequest.isChunked) {
+          val eventuallyResult: Future[Result] = if (nettyHttpRequest.isChunked) {
 
             val pipeline = ctx.getChannel.getPipeline
             val result = newRequestBodyUpstreamHandler(bodyParser, { handler =>
@@ -269,7 +269,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
 
           // An iteratee containing the result and the sequence number.
           // Sequence number will be 1 if a 100 continue response has been sent, otherwise 0.
-          val eventuallyResultWithSequence: Future[(SimpleResult, Int)] = expectContinue match {
+          val eventuallyResultWithSequence: Future[(Result, Int)] = expectContinue match {
             case Some(_) => {
               bodyParser.unflatten.flatMap {
                 case Step.Cont(k) =>

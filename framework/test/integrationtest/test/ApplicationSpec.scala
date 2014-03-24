@@ -59,7 +59,7 @@ class ApplicationSpec extends PlaySpecification with WsTestClient {
       contentAsString(result) must contain("{\"id\":1,\"name\":\"Sadek\",\"favThings\":[\"tea\"]}")
     }
 
-    def javaResult(result: Future[play.api.mvc.SimpleResult]) =
+    def javaResult(result: Future[play.api.mvc.Result]) =
       new play.mvc.Result {
         def getWrappedResult = result
       }
@@ -357,18 +357,18 @@ class ApplicationSpec extends PlaySpecification with WsTestClient {
     }
 
     "break down code adding values to the session" in new WithApplication(FakeApplication(additionalConfiguration = Map("application.secret" -> "foobar"))) {
-      import play.api.mvc.{SimpleResult, RequestHeader, Results}
+      import play.api.mvc.{Result, RequestHeader, Results}
 
       implicit val request = FakeRequest(GET, "/").withSession("blah" -> "42", "toto" -> "tata")
 
       def setFoo(implicit request: RequestHeader) =
-        (result: SimpleResult) => result.addingToSession("foo" -> "bar")
+        (result: Result) => result.addingToSession("foo" -> "bar")
 
       def setBaz(implicit request: RequestHeader) =
-        (result: SimpleResult) => result.addingToSession("baz" -> "bah")
+        (result: Result) => result.addingToSession("baz" -> "bah")
 
       def removeBlah(implicit request: RequestHeader) =
-        (result: SimpleResult) => result.removingFromSession("blah")
+        (result: Result) => result.removingFromSession("blah")
 
       val result = (setFoo andThen setBaz andThen removeBlah)(Results.Ok)
 

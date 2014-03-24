@@ -33,6 +33,7 @@ package object mvc {
 
   }
 
+  /*
   @deprecated("SimpleResult has been renamed to Result", "2.3")
   type SimpleResult = Result
 
@@ -49,5 +50,6 @@ package object mvc {
       Result.unapply(result)
     }
   }
+  */
 
 }

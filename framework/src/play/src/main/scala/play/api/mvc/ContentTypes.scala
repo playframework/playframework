@@ -821,7 +821,7 @@ trait BodyParsers {
     /**
      * A body parser that always returns an error.
      */
-    def error[A](result: Future[SimpleResult]): BodyParser[A] = BodyParser("error, result=" + result) { request =>
+    def error[A](result: Future[Result]): BodyParser[A] = BodyParser("error, result=" + result) { request =>
       import play.api.libs.iteratee.Execution.Implicits.trampoline
       Iteratee.flatten(result.map(r => Done(Left(r), Empty)))
     }
@@ -836,7 +836,7 @@ trait BodyParsers {
     /**
      * Create a conditional BodyParser.
      */
-    def when[A](predicate: RequestHeader => Boolean, parser: BodyParser[A], badResult: RequestHeader => Future[SimpleResult]): BodyParser[A] = {
+    def when[A](predicate: RequestHeader => Boolean, parser: BodyParser[A], badResult: RequestHeader => Future[Result]): BodyParser[A] = {
       BodyParser("conditional, wrapping=" + parser.toString) { request =>
         if (predicate(request)) {
           parser(request)
@@ -847,7 +847,7 @@ trait BodyParsers {
       }
     }
 
-    private def createBadResult(msg: String): RequestHeader => Future[SimpleResult] = { request =>
+    private def createBadResult(msg: String): RequestHeader => Future[Result] = { request =>
       Play.maybeApplication.map(_.global.onBadRequest(request, msg))
         .getOrElse(Future.successful(Results.BadRequest))
     }
@@ -857,7 +857,7 @@ trait BodyParsers {
         import play.api.libs.iteratee.Execution.Implicits.trampoline
         import scala.util.control.Exception._
 
-        val bodyParser: Iteratee[Array[Byte], Either[SimpleResult, Either[Future[SimpleResult], A]]] =
+        val bodyParser: Iteratee[Array[Byte], Either[Result, Either[Future[Result], A]]] =
           Traversable.takeUpTo[Array[Byte]](maxLength).transform(
             Iteratee.consume[Array[Byte]]().map { bytes =>
               allCatch[A].either {

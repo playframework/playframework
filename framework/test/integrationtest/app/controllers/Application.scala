@@ -163,7 +163,7 @@ object Application extends Controller {
   }
 
   def asyncError = Action.async {
-    Future[SimpleResult](sys.error("Error"))
+    Future[Result](sys.error("Error"))
   }
 
   def route(parameter: String) = Action {

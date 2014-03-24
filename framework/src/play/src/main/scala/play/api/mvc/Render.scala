@@ -25,11 +25,11 @@ trait Rendering {
      * }
      * }}}
      *
-     * @param f A partial function returning a `SimpleResult` for a given request media range
+     * @param f A partial function returning a `Result` for a given request media range
      * @return A result provided by `f`, if it is defined for the current request media ranges, otherwise NotAcceptable
      */
-    def apply(f: PartialFunction[MediaRange, SimpleResult])(implicit request: RequestHeader): SimpleResult = {
-      def _render(ms: Seq[MediaRange]): SimpleResult = ms match {
+    def apply(f: PartialFunction[MediaRange, Result])(implicit request: RequestHeader): Result = {
+      def _render(ms: Seq[MediaRange]): Result = ms match {
         case Nil => NotAcceptable
         case Seq(m, ms @ _*) =>
           f.applyOrElse(m, (m: MediaRange) => _render(ms))
@@ -56,11 +56,11 @@ trait Rendering {
      * }
      * }}}
      *
-     * @param f A partial function returning a `Future[SimpleResult]` for a given request media range
+     * @param f A partial function returning a `Future[Result]` for a given request media range
      * @return A result provided by `f`, if it is defined for the current request media ranges, otherwise NotAcceptable
      */
-    def async(f: PartialFunction[MediaRange, Future[SimpleResult]])(implicit request: RequestHeader): Future[SimpleResult] = {
-      def _render(ms: Seq[MediaRange]): Future[SimpleResult] = ms match {
+    def async(f: PartialFunction[MediaRange, Future[Result]])(implicit request: RequestHeader): Future[Result] = {
+      def _render(ms: Seq[MediaRange]): Future[Result] = ms match {
         case Nil => Future.successful(NotAcceptable)
         case Seq(m, ms @ _*) =>
           f.applyOrElse(m, (m: MediaRange) => _render(ms))

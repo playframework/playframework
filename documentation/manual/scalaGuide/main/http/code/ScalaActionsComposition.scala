@@ -29,7 +29,7 @@ package scalaguide.http.scalaactionscomposition {
         import play.api.mvc._
 
         object LoggingAction extends ActionBuilder[Request] {
-          def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[SimpleResult]) = {
+          def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
             Logger.info("Calling action")
             block(request)
           }
@@ -61,7 +61,7 @@ package scalaguide.http.scalaactionscomposition {
 
         case class Logging[A](action: Action[A]) extends Action[A] {
 
-          def apply(request: Request[A]): Future[SimpleResult] = {
+          def apply(request: Request[A]): Future[Result] = {
             Logger.info("Calling action")
             action(request)
           }
@@ -72,7 +72,7 @@ package scalaguide.http.scalaactionscomposition {
 
         //#actions-wrapping-builder
         object LoggingAction extends ActionBuilder[Request] {
-          def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[SimpleResult]) = {
+          def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
             block(request)
           }
           override def composeAction[A](action: Action[A]) = new Logging(action)
@@ -187,7 +187,7 @@ package scalaguide.http.scalaactionscomposition {
 
         //#item-action-builder
         def ItemAction(itemId: String) = new ActionBuilder[RequestWithItem] {
-          def invokeBlock[A](request: Request[A], block: (RequestWithItem[A]) => Future[SimpleResult]) = {
+          def invokeBlock[A](request: Request[A], block: (RequestWithItem[A]) => Future[Result]) = {
             ItemDao.findById(itemId).map { item =>
               block(new RequestWithItem(item, request))
             } getOrElse {
@@ -215,7 +215,7 @@ package scalaguide.http.scalaactionscomposition {
         class AuthenticatedRequest[A](val username: String, request: Request[A]) extends WrappedRequest[A](request)
 
         object Authenticated extends ActionBuilder[AuthenticatedRequest] {
-          def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A]) => Future[SimpleResult]) = {
+          def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A]) => Future[Result]) = {
             request.session.get("username").map { username =>
               block(new AuthenticatedRequest(username, request))
             } getOrElse {
@@ -238,7 +238,7 @@ package scalaguide.http.scalaactionscomposition {
       assertAction(action, request, expectedResponse) { result => success }
     }
 
-    def assertAction[A, T: AsResult](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Future[SimpleResult] => T) = {
+    def assertAction[A, T: AsResult](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Future[Result] => T) = {
       running(FakeApplication(additionalConfiguration = Map("application.secret" -> "pass"))) {
         val result = action(request).run
         status(result) must_== expectedResponse

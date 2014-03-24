@@ -69,7 +69,7 @@ object FiltersSpec extends Specification with WsTestClient {
       val filterAddedHeaderVal = "custom header val"
       
       object MockGlobal3 extends WithFilters(new Filter {
-        def apply(next: RequestHeader => Future[SimpleResult])(request: RequestHeader): Future[SimpleResult] = {
+        def apply(next: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
           next(request.copy(headers = addCustomHeader(request.headers)))
         }
         def addCustomHeader(originalHeaders: Headers): Headers = {

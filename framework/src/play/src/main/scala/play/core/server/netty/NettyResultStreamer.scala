@@ -31,7 +31,7 @@ object NettyResultStreamer {
    *
    * @return A Future that will be redeemed when the result is completely sent
    */
-  def sendResult(result: SimpleResult, closeConnection: Boolean, httpVersion: HttpVersion, startSequence: Int)(implicit ctx: ChannelHandlerContext, oue: OrderedUpstreamMessageEvent): Future[_] = {
+  def sendResult(result: Result, closeConnection: Boolean, httpVersion: HttpVersion, startSequence: Int)(implicit ctx: ChannelHandlerContext, oue: OrderedUpstreamMessageEvent): Future[_] = {
     // Result of this iteratee is a completion status
     val sentResponse: Future[ChannelStatus] = result match {
 
@@ -216,7 +216,7 @@ object NettyResultStreamer {
    * Extractor object that determines whether the end of the body is specified by the protocol
    */
   object EndOfBodyInProtocol {
-    def unapply(result: SimpleResult): Boolean = {
+    def unapply(result: Result): Boolean = {
       import result.header.headers
       headers.contains(TRANSFER_ENCODING) || headers.contains(CONTENT_LENGTH)
     }
@@ -226,14 +226,14 @@ object NettyResultStreamer {
    * Extractor object that determines whether the result specifies that the connection should be closed
    */
   object CloseConnection {
-    def unapply(result: SimpleResult): Boolean = result.connection == HttpConnection.Close
+    def unapply(result: Result): Boolean = result.connection == HttpConnection.Close
   }
 
   /**
    * Extractor object that determines whether the result uses a transfer encoding
    */
   object UsesTransferEncoding {
-    def unapply(result: SimpleResult): Boolean = result.header.headers.contains(TRANSFER_ENCODING)
+    def unapply(result: Result): Boolean = result.header.headers.contains(TRANSFER_ENCODING)
   }
 
 }

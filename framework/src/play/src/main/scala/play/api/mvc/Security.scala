@@ -42,7 +42,7 @@ object Security {
    */
   def Authenticated[A](
     userinfo: RequestHeader => Option[A],
-    onUnauthorized: RequestHeader => SimpleResult)(action: A => EssentialAction): EssentialAction = {
+    onUnauthorized: RequestHeader => Result)(action: A => EssentialAction): EssentialAction = {
 
     EssentialAction { request =>
       userinfo(request).map { user =>
@@ -115,7 +115,7 @@ object Security {
    *                                 request: Request[A]) extends WrappedRequest[A](request)
    *
    * object Authenticated extends ActionBuilder[AuthenticatedDbRequest] {
-   *   def invokeBlock[A](request: Request[A], block: (AuthenticatedDbRequest[A]) => Future[SimpleResult]) = {
+   *   def invokeBlock[A](request: Request[A], block: (AuthenticatedDbRequest[A]) => Future[Result]) = {
    *     AuthenticatedBuilder(req => getUserFromRequest(req)).authenticate(request, { authRequest: AuthenticatedRequest[A, User] =>
    *       DB.withConnection { conn =>
    *         block(new AuthenticatedDbRequest[A](authRequest.user, conn, request))
@@ -129,16 +129,16 @@ object Security {
    * @param onUnauthorized The function to get the result for when no authenticated user can be found.
    */
   class AuthenticatedBuilder[U](userinfo: RequestHeader => Option[U],
-    onUnauthorized: RequestHeader => SimpleResult = _ => Unauthorized(views.html.defaultpages.unauthorized()))
+    onUnauthorized: RequestHeader => Result = _ => Unauthorized(views.html.defaultpages.unauthorized()))
       extends ActionBuilder[({ type R[A] = AuthenticatedRequest[A, U] })#R] {
 
-    def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A, U]) => Future[SimpleResult]) =
+    def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A, U]) => Future[Result]) =
       authenticate(request, block)
 
     /**
      * Authenticate the given block.
      */
-    def authenticate[A](request: Request[A], block: (AuthenticatedRequest[A, U]) => Future[SimpleResult]) = {
+    def authenticate[A](request: Request[A], block: (AuthenticatedRequest[A, U]) => Future[Result]) = {
       userinfo(request).map { user =>
         block(new AuthenticatedRequest(user, request))
       } getOrElse {
@@ -170,7 +170,7 @@ object Security {
    *                                 request: Request[A]) extends WrappedRequest[A](request)
    *
    * object Authenticated extends ActionBuilder[AuthenticatedDbRequest] {
-   *   def invokeBlock[A](request: Request[A], block: (AuthenticatedDbRequest[A]) => Future[SimpleResult]) = {
+   *   def invokeBlock[A](request: Request[A], block: (AuthenticatedDbRequest[A]) => Future[Result]) = {
    *     AuthenticatedBuilder(req => getUserFromRequest(req)).authenticate(request, { authRequest: AuthenticatedRequest[A, User] =>
    *       DB.withConnection { conn =>
    *         block(new AuthenticatedDbRequest[A](authRequest.user, conn, request))
@@ -189,7 +189,7 @@ object Security {
      * @param onUnauthorized The function to get the result for when no authenticated user can be found.
      */
     def apply[U](userinfo: RequestHeader => Option[U],
-      onUnauthorized: RequestHeader => SimpleResult = _ => Unauthorized(views.html.defaultpages.unauthorized())): AuthenticatedBuilder[U] = new AuthenticatedBuilder(userinfo, onUnauthorized)
+      onUnauthorized: RequestHeader => Result = _ => Unauthorized(views.html.defaultpages.unauthorized())): AuthenticatedBuilder[U] = new AuthenticatedBuilder(userinfo, onUnauthorized)
 
     /**
      * Simple authenticated action builder that looks up the username from the session
