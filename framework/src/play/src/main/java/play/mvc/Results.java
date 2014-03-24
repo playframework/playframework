@@ -1214,10 +1214,10 @@ public class Results {
             return new AsyncResult(promise.map(f));
         }
 
-        public scala.concurrent.Future<play.api.mvc.SimpleResult> getWrappedResult() {
-            return promise.map(new Function<SimpleResult, play.api.mvc.SimpleResult>() {
+        public scala.concurrent.Future<play.api.mvc.Result> getWrappedResult() {
+            return promise.map(new Function<SimpleResult, play.api.mvc.Result>() {
                 @Override
-                public play.api.mvc.SimpleResult apply(SimpleResult result) throws Throwable {
+                public play.api.mvc.Result apply(SimpleResult result) throws Throwable {
                     return play.core.j.JavaHelpers$.MODULE$.createResult(context, result);
                 }
             }).wrapped();
@@ -1233,7 +1233,7 @@ public class Results {
      */
     public static class Todo extends SimpleResult {
 
-        final private play.api.mvc.SimpleResult wrappedResult;
+        final private play.api.mvc.Result wrappedResult;
 
         public Todo() {
             wrappedResult = play.core.j.JavaResults.NotImplemented().apply(
@@ -1243,7 +1243,7 @@ public class Results {
         }
 
         @Override
-        public play.api.mvc.SimpleResult getWrappedSimpleResult() {
+        public play.api.mvc.Result getWrappedSimpleResult() {
             return this.wrappedResult;
         }
     }
@@ -1253,7 +1253,7 @@ public class Results {
      */
     public static class Status extends SimpleResult {
 
-        private play.api.mvc.SimpleResult wrappedResult;
+        private play.api.mvc.Result wrappedResult;
 
         public Status(play.api.mvc.Results.Status status) {
             wrappedResult = status.apply(
@@ -1344,7 +1344,7 @@ public class Results {
                     );
         }
 
-        public play.api.mvc.SimpleResult getWrappedSimpleResult() {
+        public play.api.mvc.Result getWrappedSimpleResult() {
             return wrappedResult;
         }
 
@@ -1367,13 +1367,13 @@ public class Results {
      */
     public static class Redirect extends SimpleResult {
 
-        final private play.api.mvc.SimpleResult wrappedResult;
+        final private play.api.mvc.Result wrappedResult;
 
         public Redirect(int status, String url) {
             wrappedResult = play.core.j.JavaResults.Redirect(url, status);
         }
 
-        public play.api.mvc.SimpleResult getWrappedSimpleResult() {
+        public play.api.mvc.Result getWrappedSimpleResult() {
             return this.wrappedResult;
         }
 

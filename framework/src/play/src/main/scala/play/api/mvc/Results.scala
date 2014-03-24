@@ -30,202 +30,6 @@ case class ResponseHeader(status: Int, headers: Map[String, String] = Map.empty)
 }
 
 /**
- * Any Action result.
- */
-sealed trait Result extends NotNull with WithHeaders[Result]
-
-sealed trait WithHeaders[+A <: Result] {
-  /**
-   * Adds HTTP headers to this result.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").withHeaders(ETAG -> "0")
-   * }}}
-   *
-   * @param headers the headers to add to this result.
-   * @return the new result
-   */
-  def withHeaders(headers: (String, String)*): A
-
-  /**
-   * Adds cookies to this result.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").withCookies(Cookie("theme", "blue"))
-   * }}}
-   *
-   * @param cookies the cookies to add to this result
-   * @return the new result
-   */
-  def withCookies(cookies: Cookie*): A
-
-  /**
-   * Discards cookies along this result.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").discardingCookies("theme")
-   * }}}
-   *
-   * @param names the names of the cookies to discard along to this result
-   * @return the new result
-   */
-  @deprecated("This method can only discard cookies on the / path with no domain and without secure set.  Use discardingCookies(DiscardingCookie*) instead.", "2.1")
-  def discardingCookies(name: String, names: String*): A = discardingCookies((name :: names.toList).map(n => DiscardingCookie(n)): _*)
-
-  /**
-   * Discards cookies along this result.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").discardingCookies(DiscardingCookie("theme"))
-   * }}}
-   *
-   * @param cookies the cookies to discard along to this result
-   * @return the new result
-   */
-  def discardingCookies(cookies: DiscardingCookie*): A
-
-  /**
-   * Sets a new session for this result.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").withSession(session + ("saidHello" -> "true"))
-   * }}}
-   *
-   * @param session the session to set with this result
-   * @return the new result
-   */
-  def withSession(session: Session): A
-
-  /**
-   * Sets a new session for this result, discarding the existing session.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").withSession("saidHello" -> "yes")
-   * }}}
-   *
-   * @param session the session to set with this result
-   * @return the new result
-   */
-  def withSession(session: (String, String)*): A
-
-  /**
-   * Discards the existing session for this result.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").withNewSession
-   * }}}
-   *
-   * @return the new result
-   */
-  def withNewSession: A
-
-  /**
-   * Sets the user's language permanently for future requests by storing it in a cookie.
-   *
-   * For example:
-   * {{{
-   * implicit val lang = Lang("fr-FR")
-   * Ok(Messages("hello.world")).withLang(lang)
-   * }}}
-   *
-   * @param lang the language to store for the user
-   * @return the new result
-   */
-  def withLang(lang: Lang)(implicit app: Application): A = withCookies(Cookie(Play.langCookieName, lang.code))
-
-  /**
-   * Clears the user's language by discarding the language cookie set by withLang
-   *
-   * For example:
-   * {{{
-   * Ok(Messages("hello.world")).clearingLang
-   * }}}
-   *
-   * @return the new result
-   */
-  def clearingLang(implicit app: Application): A = discardingCookies(DiscardingCookie(Play.langCookieName))
-
-  /**
-   * Adds values to the flash scope for this result.
-   *
-   * For example:
-   * {{{
-   * Redirect(routes.Application.index()).flashing(flash + ("success" -> "Done!"))
-   * }}}
-   *
-   * @param flash the flash scope to set with this result
-   * @return the new result
-   */
-  def flashing(flash: Flash): A
-
-  /**
-   * Adds values to the flash scope for this result.
-   *
-   * For example:
-   * {{{
-   * Redirect(routes.Application.index()).flashing("success" -> "Done!")
-   * }}}
-   *
-   * @param values the flash values to set with this result
-   * @return the new result
-   */
-  def flashing(values: (String, String)*): A
-
-  /**
-   * Changes the result content type.
-   *
-   * For example:
-   * {{{
-   * Ok("<text>Hello world</text>").as("application/xml")
-   * }}}
-   *
-   * @param contentType the new content type.
-   * @return the new result
-   */
-  def as(contentType: String): A
-}
-
-/**
- * Helper utilities for Result values.
- */
-@deprecated("In Play 2.3, SimpleResult will be the only type of result", "2.2.0")
-object PlainResult {
-
-  /**
-   * Extractor:
-   *
-   * {{{
-   * case Result(status, headers) => ...
-   * }}}
-   */
-  def unapply(result: Result): Option[(Int, Map[String, String])] = result match {
-    case r: PlainResult => Some((r.header.status, r.header.headers))
-    case _ => None
-  }
-
-}
-
-/**
- * A plain HTTP result.
- */
-@deprecated("In Play 2.3, SimpleResult will be the only type of result", "2.2.0")
-sealed trait PlainResult extends Result with WithHeaders[PlainResult] {
-
-  /**
-   * The response header
-   */
-  val header: ResponseHeader
-
-}
-
-/**
  * The connection semantics for the result.
  */
 object HttpConnection extends Enumeration {
@@ -266,8 +70,8 @@ object HttpConnection extends Enumeration {
  * @param body the response body
  * @param connection the connection semantics to use
  */
-case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
-    connection: HttpConnection.Connection = HttpConnection.KeepAlive) extends PlainResult with WithHeaders[SimpleResult] {
+case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
+    connection: HttpConnection.Connection = HttpConnection.KeepAlive) {
 
   /**
    * Adds headers to this result.
@@ -280,7 +84,7 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * @param headers the headers to add to this result.
    * @return the new result
    */
-  def withHeaders(headers: (String, String)*): SimpleResult = {
+  def withHeaders(headers: (String, String)*): Result = {
     copy(header = header.copy(headers = header.headers ++ headers))
   }
 
@@ -295,7 +99,7 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * @param cookies the cookies to add to this result
    * @return the new result
    */
-  def withCookies(cookies: Cookie*): SimpleResult = {
+  def withCookies(cookies: Cookie*): Result = {
     withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), cookies))
   }
 
@@ -310,7 +114,7 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * @param cookies the cookies to discard along to this result
    * @return the new result
    */
-  def discardingCookies(cookies: DiscardingCookie*): SimpleResult = {
+  def discardingCookies(cookies: DiscardingCookie*): Result = {
     withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), cookies.map(_.toCookie)))
   }
 
@@ -325,7 +129,7 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * @param session the session to set with this result
    * @return the new result
    */
-  def withSession(session: Session): SimpleResult = {
+  def withSession(session: Session): Result = {
     if (session.isEmpty) discardingCookies(Session.discard) else withCookies(Session.encodeAsCookie(session))
   }
 
@@ -340,7 +144,7 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * @param session the session to set with this result
    * @return the new result
    */
-  def withSession(session: (String, String)*): SimpleResult = withSession(Session(session.toMap))
+  def withSession(session: (String, String)*): Result = withSession(Session(session.toMap))
 
   /**
    * Discards the existing session for this result.
@@ -352,7 +156,7 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
    *
    * @return the new result
    */
-  def withNewSession: SimpleResult = withSession(Session())
+  def withNewSession: Result = withSession(Session())
 
   /**
    * Adds values to the flash scope for this result.
@@ -365,7 +169,7 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * @param flash the flash scope to set with this result
    * @return the new result
    */
-  def flashing(flash: Flash): SimpleResult = {
+  def flashing(flash: Flash): Result = {
     if (shouldWarnIfNotRedirect) {
       logRedirectWarning("flashing")
     }
@@ -383,7 +187,7 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * @param values the flash values to set with this result
    * @return the new result
    */
-  def flashing(values: (String, String)*): SimpleResult = flashing(Flash(values.toMap))
+  def flashing(values: (String, String)*): Result = flashing(Flash(values.toMap))
 
   /**
    * Changes the result content type.
@@ -396,7 +200,7 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * @param contentType the new content type.
    * @return the new result
    */
-  def as(contentType: String): SimpleResult = withHeaders(CONTENT_TYPE -> contentType)
+  def as(contentType: String): Result = withHeaders(CONTENT_TYPE -> contentType)
 
   /**
    * @param request Current request
@@ -417,7 +221,7 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * @param request Current request
    * @return A copy of this result with `values` added to its session scope.
    */
-  def addingToSession(values: (String, String)*)(implicit request: RequestHeader): SimpleResult =
+  def addingToSession(values: (String, String)*)(implicit request: RequestHeader): Result =
     withSession(new Session(session.data ++ values.toMap))
 
   /**
@@ -429,17 +233,45 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * @param request Current request
    * @return A copy of this result with `keys` removed from its session scope.
    */
-  def removingFromSession(keys: String*)(implicit request: RequestHeader): SimpleResult =
+  def removingFromSession(keys: String*)(implicit request: RequestHeader): Result =
     withSession(new Session(session.data -- keys))
 
+  /**
+   * Sets the user's language permanently for future requests by storing it in a cookie.
+   *
+   * For example:
+   * {{{
+   * implicit val lang = Lang("fr-FR")
+   * Ok(Messages("hello.world")).withLang(lang)
+   * }}}
+   *
+   * @param lang the language to store for the user
+   * @return the new result
+   */
+  def withLang(lang: Lang)(implicit app: Application): Result =
+    withCookies(Cookie(Play.langCookieName, lang.code))
+
+  /**
+   * Clears the user's language by discarding the language cookie set by withLang
+   *
+   * For example:
+   * {{{
+   * Ok(Messages("hello.world")).clearingLang
+   * }}}
+   *
+   * @return the new result
+   */
+  def clearingLang(implicit app: Application): Result =
+    discardingCookies(DiscardingCookie(Play.langCookieName))
+
   override def toString = {
-    "SimpleResult(" + header + ")"
+    "Result(" + header + ")"
   }
 
   /**
    * Returns true if the status code is not 3xx and the application is in Dev mode.
    */
-  def shouldWarnIfNotRedirect: Boolean = {
+  private def shouldWarnIfNotRedirect: Boolean = {
     play.api.Play.maybeApplication.exists(app =>
       (app.mode == play.api.Mode.Dev) && (header.status < 300 || header.status > 399))
   }
@@ -447,217 +279,9 @@ case class SimpleResult(header: ResponseHeader, body: Enumerator[Array[Byte]],
   /**
    * Logs a redirect warning.
    */
-  def logRedirectWarning(methodName: String) {
+  private def logRedirectWarning(methodName: String) {
     val status = header.status
     play.api.Logger("play").warn(s"You are using status code '$status' with $methodName, which should only be used with a redirect status!")
-  }
-
-}
-
-/**
- * A chunked result, which defines the response header and a chunks enumerator to send asynchronously to the client.
- *
- * @tparam A the response body content type.
- * @param header the response header, which contains status code and HTTP headers
- * @param chunks the chunks enumerator
- */
-@deprecated("Use SimpleResult with Results.chunk enumeratee instead. Will be removed in Play 2.3.", "2.2.0")
-class ChunkedResult[A](override val header: ResponseHeader, val chunks: Iteratee[A, Unit] => _)(implicit val writeable: Writeable[A]) extends SimpleResult(
-  header = header.copy(headers = header.headers ++ writeable.contentType.map(ct => Map(
-    CONTENT_TYPE -> ct,
-    TRANSFER_ENCODING -> CHUNKED
-  )).getOrElse(Map(
-    TRANSFER_ENCODING -> CHUNKED
-  ))
-  ),
-  body = new Enumerator[A] {
-    // Since chunked result bodies are functions of iteratee to unit, not a future, we need to do this in
-    // a somewhat messy way
-    def apply[C](i: Iteratee[A, C]): Future[Iteratee[A, C]] = {
-      val doneIteratee = Promise[Iteratee[A, C]]
-      chunks(i.map { done =>
-        doneIteratee.success(Done[A, C](done)).asInstanceOf[Unit]
-      })
-      doneIteratee.future
-    }
-  } &> writeable.toEnumeratee &> Results.chunk,
-  connection = HttpConnection.KeepAlive) {
-
-  /** The body content type. */
-  type BODY_CONTENT = A
-}
-
-@deprecated("Use SimpleResult with Results.chunk enumeratee instead. Will be removed in Play 2.3.", "2.2.0")
-object ChunkedResult {
-  @deprecated("Use SimpleResult with Results.chunk enumeratee instead. Will be removed in Play 2.3.", "2.2.0")
-  def apply[A](header: ResponseHeader, chunks: Iteratee[A, Unit] => _)(implicit writeable: Writeable[A]) =
-    new ChunkedResult(header, chunks)
-}
-
-/**
- * An `AsyncResult` handles a `Promise` of result for cases where the result is not ready yet.
- *
- * @param result the promise of result, which can be any other result type
- */
-@deprecated("Use Future[SimpleResult] with Action.async action builder instead. Will be removed in Play 2.3.", "2.2.0")
-case class AsyncResult(result: Future[Result]) extends Result with WithHeaders[AsyncResult] {
-
-  /**
-   * Apply some transformation to this `AsyncResult`
-   *
-   * @param f The transformation function
-   * @return The transformed `AsyncResult`
-   */
-  def transform(f: PlainResult => Result)(implicit ec: ExecutionContext): AsyncResult = {
-    implicit val functionContext = ec.prepare()
-    AsyncResult(result.map {
-      case AsyncResult(r) => AsyncResult(r.map {
-        case r: PlainResult => f(r)
-        case r: AsyncResult => r.transform(f)(functionContext)
-      }(functionContext))
-      case r: PlainResult => f(r)
-    }(functionContext))
-  }
-
-  def unflatten: Future[SimpleResult] = result.flatMap {
-    case r: SimpleResult => Future.successful(r)
-    case r @ AsyncResult(_) => r.unflatten
-  }
-
-  def map(f: Result => Result)(implicit ec: ExecutionContext): AsyncResult = AsyncResult(result.map(f)(ec.prepare()))
-
-  /**
-   * Adds headers to this result.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").withHeaders(ETAG -> "0")
-   * }}}
-   *
-   * @param headers the headers to add to this result.
-   * @return the new result
-   */
-  def withHeaders(headers: (String, String)*): AsyncResult = {
-    map(_.withHeaders(headers: _*))
-  }
-
-  /**
-   * Adds cookies to this result.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").withCookies(Cookie("theme", "blue"))
-   * }}}
-   *
-   * @param cookies the cookies to add to this result
-   * @return the new result
-   */
-  def withCookies(cookies: Cookie*): AsyncResult = {
-    map(_.withCookies(cookies: _*))
-  }
-
-  /**
-   * Discards cookies along this result.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").discardingCookies("theme")
-   * }}}
-   *
-   * @param cookies the cookies to discard along to this result
-   * @return the new result
-   */
-  def discardingCookies(cookies: DiscardingCookie*): AsyncResult = {
-    map(_.discardingCookies(cookies: _*))
-  }
-
-  /**
-   * Sets a new session for this result.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").withSession(session + ("saidHello" -> "true"))
-   * }}}
-   *
-   * @param session the session to set with this result
-   * @return the new result
-   */
-  def withSession(session: Session): AsyncResult = {
-    map(_.withSession(session))
-  }
-
-  /**
-   * Sets a new session for this result, discarding the existing session.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").withSession("saidHello" -> "yes")
-   * }}}
-   *
-   * @param session the session to set with this result
-   * @return the new result
-   */
-  def withSession(session: (String, String)*): AsyncResult = {
-    map(_.withSession(session: _*))
-  }
-
-  /**
-   * Discards the existing session for this result.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").withNewSession
-   * }}}
-   *
-   * @return the new result
-   */
-  def withNewSession: AsyncResult = {
-    map(_.withNewSession)
-  }
-
-  /**
-   * Adds values to the flash scope for this result.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").flashing(flash + ("success" -> "Done!"))
-   * }}}
-   *
-   * @param flash the flash scope to set with this result
-   * @return the new result
-   */
-  def flashing(flash: Flash): AsyncResult = {
-    map(_.flashing(flash))
-  }
-
-  /**
-   * Adds values to the flash scope for this result.
-   *
-   * For example:
-   * {{{
-   * Ok("Hello world").flashing("success" -> "Done!")
-   * }}}
-   *
-   * @param values the flash values to set with this result
-   * @return the new result
-   */
-  def flashing(values: (String, String)*): AsyncResult = {
-    map(_.flashing(values: _*))
-  }
-
-  /**
-   * Changes the result content type.
-   *
-   * For example:
-   * {{{
-   * Ok("<text>Hello world</text>").as("application/xml")
-   * }}}
-   *
-   * @param contentType the new content type.
-   * @return the new result
-   */
-  def as(contentType: String): AsyncResult = {
-    map(_.as(contentType))
   }
 
 }
@@ -706,11 +330,11 @@ trait Results {
   import play.api.http.Status._
 
   /**
-   * Generates default `SimpleResult` from a content type, headers and content.
+   * Generates default `Result` from a content type, headers and content.
    *
    * @param status the HTTP response status, e.g ‘200 OK’
    */
-  class Status(status: Int) extends SimpleResult(header = ResponseHeader(status), body = Enumerator.empty,
+  class Status(status: Int) extends Result(header = ResponseHeader(status), body = Enumerator.empty,
     connection = HttpConnection.KeepAlive) {
 
     /**
@@ -718,8 +342,8 @@ trait Results {
      *
      * @param content The content to send.
      */
-    def apply[C](content: C)(implicit writeable: Writeable[C]): SimpleResult = {
-      SimpleResult(
+    def apply[C](content: C)(implicit writeable: Writeable[C]): Result = {
+      Result(
         ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
         Enumerator(writeable.transform(content))
       )
@@ -732,9 +356,9 @@ trait Results {
      * @param inline Use Content-Disposition inline or attachment.
      * @param fileName function to retrieve the file name (only used for Content-Disposition attachment).
      */
-    def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ()): SimpleResult = {
+    def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ()): Result = {
       val name = fileName(content)
-      SimpleResult(
+      Result(
         ResponseHeader(OK, Map(
           CONTENT_LENGTH -> content.length.toString,
           CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(name).getOrElse(play.api.http.ContentTypes.BINARY)
@@ -749,7 +373,7 @@ trait Results {
      * @param content Enumerator providing the content to stream.
      */
     @deprecated("Use Status.chunked instead", "2.3.0")
-    def stream[C](content: Enumerator[C])(implicit writeable: Writeable[C]): SimpleResult = chunked(content)
+    def stream[C](content: Enumerator[C])(implicit writeable: Writeable[C]): Result = chunked(content)
 
     /**
      * Feed the content as the response, using chunked transfer encoding.
@@ -762,8 +386,8 @@ trait Results {
      *
      * @param content Enumerator providing the content to stream.
      */
-    def chunked[C](content: Enumerator[C])(implicit writeable: Writeable[C]): SimpleResult = {
-      SimpleResult(header = ResponseHeader(status,
+    def chunked[C](content: Enumerator[C])(implicit writeable: Writeable[C]): Result = {
+      Result(header = ResponseHeader(status,
         writeable.contentType.map(ct => Map(
           CONTENT_TYPE -> ct,
           TRANSFER_ENCODING -> CHUNKED
@@ -783,26 +407,13 @@ trait Results {
      *
      * @param content Enumerator providing the content to stream.
      */
-    def feed[C](content: Enumerator[C])(implicit writeable: Writeable[C]): SimpleResult = {
-      SimpleResult(
+    def feed[C](content: Enumerator[C])(implicit writeable: Writeable[C]): Result = {
+      Result(
         header = ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
         body = content &> writeable.toEnumeratee,
         connection = HttpConnection.Close
       )
     }
-
-    /**
-     * Set the result's content as chunked.
-     *
-     * @param content A function that will give you the Iteratee to write in once ready.
-     */
-    @deprecated("Use stream(Enumerator) instead.  Will be removed in Play 2.3.", "2.2.0")
-    def stream[C](content: Iteratee[C, Unit] => Unit)(implicit writeable: Writeable[C]): ChunkedResult[C] = {
-      ChunkedResult(
-        header = ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
-        content)
-    }
-
   }
 
   /**
@@ -946,9 +557,6 @@ trait Results {
       }
   }
 
-  @deprecated("Use Action.async to build async actions instead", "2.2.0")
-  def Async(promise: Future[Result]) = AsyncResult(promise)
-
   /** Generates a ‘200 OK’ result. */
   val Ok = new Status(OK)
 
@@ -962,11 +570,11 @@ trait Results {
   val NonAuthoritativeInformation = new Status(NON_AUTHORITATIVE_INFORMATION)
 
   /** Generates a ‘204 NO_CONTENT’ result. */
-  val NoContent = SimpleResult(header = ResponseHeader(NO_CONTENT), body = Enumerator.empty,
+  val NoContent = Result(header = ResponseHeader(NO_CONTENT), body = Enumerator.empty,
     connection = HttpConnection.KeepAlive)
 
   /** Generates a ‘205 RESET_CONTENT’ result. */
-  val ResetContent = SimpleResult(header = ResponseHeader(RESET_CONTENT), body = Enumerator.empty,
+  val ResetContent = Result(header = ResponseHeader(RESET_CONTENT), body = Enumerator.empty,
     connection = HttpConnection.KeepAlive)
 
   /** Generates a ‘206 PARTIAL_CONTENT’ result. */
@@ -980,24 +588,24 @@ trait Results {
    *
    * @param url the URL to redirect to
    */
-  def MovedPermanently(url: String): SimpleResult = Redirect(url, MOVED_PERMANENTLY)
+  def MovedPermanently(url: String): Result = Redirect(url, MOVED_PERMANENTLY)
 
   /**
    * Generates a ‘302 FOUND’ simple result.
    *
    * @param url the URL to redirect to
    */
-  def Found(url: String): SimpleResult = Redirect(url, FOUND)
+  def Found(url: String): Result = Redirect(url, FOUND)
 
   /**
    * Generates a ‘303 SEE_OTHER’ simple result.
    *
    * @param url the URL to redirect to
    */
-  def SeeOther(url: String): SimpleResult = Redirect(url, SEE_OTHER)
+  def SeeOther(url: String): Result = Redirect(url, SEE_OTHER)
 
   /** Generates a ‘304 NOT_MODIFIED’ result. */
-  val NotModified = SimpleResult(header = ResponseHeader(NOT_MODIFIED), body = Enumerator.empty,
+  val NotModified = Result(header = ResponseHeader(NOT_MODIFIED), body = Enumerator.empty,
     connection = HttpConnection.KeepAlive)
 
   /**
@@ -1005,7 +613,7 @@ trait Results {
    *
    * @param url the URL to redirect to
    */
-  def TemporaryRedirect(url: String): SimpleResult = Redirect(url, TEMPORARY_REDIRECT)
+  def TemporaryRedirect(url: String): Result = Redirect(url, TEMPORARY_REDIRECT)
 
   /** Generates a ‘400 BAD_REQUEST’ result. */
   val BadRequest = new Status(BAD_REQUEST)
@@ -1095,7 +703,7 @@ trait Results {
    * @param url the URL to redirect to
    * @param status HTTP status
    */
-  def Redirect(url: String, status: Int): SimpleResult = Redirect(url, Map.empty, status)
+  def Redirect(url: String, status: Int): Result = Redirect(url, Map.empty, status)
 
   /**
    * Generates a redirect simple result.
@@ -1119,6 +727,6 @@ trait Results {
    *
    * @param call Call defining the URL to redirect to, which typically comes from the reverse router
    */
-  def Redirect(call: Call): SimpleResult = Redirect(call.url)
+  def Redirect(call: Call): Result = Redirect(call.url)
 
 }

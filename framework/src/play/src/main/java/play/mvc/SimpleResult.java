@@ -13,12 +13,12 @@ import scala.concurrent.Future;
 public abstract class SimpleResult implements Result {
 
     @Override
-    public Future<play.api.mvc.SimpleResult> getWrappedResult() {
+    public Future<play.api.mvc.Result> getWrappedResult() {
         return scala.concurrent.Future$.MODULE$.successful(getWrappedSimpleResult());
     }
 
     /**
      * Get the wrapped simple result
      */
-    public abstract play.api.mvc.SimpleResult getWrappedSimpleResult();
+    public abstract play.api.mvc.Result getWrappedSimpleResult();
 }

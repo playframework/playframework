@@ -87,11 +87,11 @@ object ResultsSpec extends Specification {
     }
 
     "allow discarding a cookie by deprecated names method" in {
-      Cookies.decode(Ok.discardingCookies("blah").header.headers("Set-Cookie")).head.name must_== "blah"
+      Cookies.decode(Ok.discardingCookies(DiscardingCookie("blah")).header.headers("Set-Cookie")).head.name must_== "blah"
     }
 
     "allow discarding multiple cookies by deprecated names method" in {
-      val cookies = Cookies.decode(Ok.discardingCookies("foo", "bar").header.headers("Set-Cookie")).map(_.name)
+      val cookies = Cookies.decode(Ok.discardingCookies(DiscardingCookie("foo"), DiscardingCookie("bar")).header.headers("Set-Cookie")).map(_.name)
       cookies must containTheSameElementsAs(Seq("foo", "bar"))
     }
   }

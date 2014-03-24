@@ -31,7 +31,7 @@ trait JavaHelpers {
    * @param javaContext
    * @param javaResult
    */
-  def createResult(javaContext: JContext, javaResult: JSimpleResult): SimpleResult = {
+  def createResult(javaContext: JContext, javaResult: JSimpleResult): Result = {
     val wResult = javaResult.getWrappedSimpleResult.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
       .withCookies((javaContext.response.cookies.asScala.toSeq map { c =>
         Cookie(c.name, c.value,

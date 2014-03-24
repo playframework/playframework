@@ -11,6 +11,6 @@ public interface Result {
     /**
      * Retrieves the real (Scala-based) result.
      */
-    scala.concurrent.Future<play.api.mvc.SimpleResult> getWrappedResult();
+    scala.concurrent.Future<play.api.mvc.Result> getWrappedResult();
     
 }

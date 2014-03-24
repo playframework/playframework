@@ -30,7 +30,6 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
   def contentTypeOfBytes(mimeType: String): ContentTypeOf[Array[Byte]] = ContentTypeOf(Option(mimeType).orElse(Some("application/octet-stream")))
   def emptyHeaders = Map.empty[String, String]
   def empty = Results.EmptyContent()
-  def async(p: scala.concurrent.Future[Result]) = AsyncResult(p)
   def chunked[A](onConnected: play.libs.F.Callback[Channel[A]], onDisconnected: play.libs.F.Callback0): Enumerator[A] = {
     val (enumerator, channel) = Concurrent.broadcast[A]
     new Enumerator[A] {

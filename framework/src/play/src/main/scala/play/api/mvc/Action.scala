@@ -356,10 +356,7 @@ trait ActionBuilder[R[_]] {
    * @return an action
    */
   final def apply[A](bodyParser: BodyParser[A])(block: R[A] => Result): Action[A] = async(bodyParser) { req: R[A] =>
-    block(req) match {
-      case simple: SimpleResult => Future.successful(simple)
-      case async: AsyncResult => async.unflatten
-    }
+    Future.successful(block(req))
   }
 
   /**
