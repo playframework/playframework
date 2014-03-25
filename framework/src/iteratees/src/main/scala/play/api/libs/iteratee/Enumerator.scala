@@ -545,12 +545,13 @@ object Enumerator {
   /**
    * Create an enumerator from the given input stream.
    *
-   * This enumerator will block on reading the input stream, in the default iteratee thread pool.  Care must therefore
-   * be taken to ensure that this isn't a slow stream.  If using this with slow input streams, consider setting the
-   * value of iteratee-threadpool-size to a value appropriate for handling the blocking.
+   * This enumerator will block on reading the input stream, in the supplied ExecutionContext.  Care must therefore
+   * be taken to ensure that this isn't a slow stream.  If using this with slow input streams, make sure the
+   * ExecutionContext is appropriately configured to handle the blocking.
    *
    * @param input The input stream
    * @param chunkSize The size of chunks to read from the stream.
+   * @param ec The ExecutionContext to execute blocking code.
    */
   def fromStream(input: java.io.InputStream, chunkSize: Int = 1024 * 8)(implicit ec: ExecutionContext): Enumerator[Array[Byte]] = {
     implicit val pec = ec.prepare()
