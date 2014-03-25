@@ -30,9 +30,8 @@ In contrast, the following types of IO do not block:
 Play uses a number of different thread pools for different purposes:
 
 * **Netty boss/worker thread pools** - These are used internally by Netty for handling Netty IO.  An applications code should never be executed by a thread in these thread pools.
-* **Iteratee thread pool** - This is used by the iteratees library.  Its size can be configured by setting `iteratee-threadpool-size` in `application.conf`.  It defaults to the number of processors available.
 * **Play Internal Thread Pool** - This is used internally by Play.  No application code should ever be executed by a thread in this thread pool, and no blocking should ever be done in this thread pool.  Its size can be configured by setting `internal-threadpool-size` in `application.conf`, and it defaults to the number of available processors.
-* **Play default thread pool** - This is the default thread pool in which all application code in Play Framework is executed, excluding some iteratees code.  It is an Akka dispatcher, and can be configured by configuring Akka, described below.  By default, it has one thread per processor.
+* **Play default thread pool** - This is the default thread pool in which all application code in Play Framework is executed.  It is an Akka dispatcher, and can be configured by configuring Akka, described below.  By default, it has one thread per processor.
 * **Akka thread pool** - This is used by the Play Akka plugin, and can be configured the same way that you would configure Akka.
 
 
