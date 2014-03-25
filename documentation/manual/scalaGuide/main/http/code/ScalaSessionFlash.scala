@@ -114,17 +114,17 @@ package scalaguide.http.scalasessionflash {
 
     }
 
-    def testFlash(results: Future[SimpleResult], key: String, value: Option[String]) = {
+    def testFlash(results: Future[Result], key: String, value: Option[String]) = {
       val flash = Helpers.flash(results)
       flash.get(key) === value
     }
 
-    def testSession(results: Future[SimpleResult], key: String, value: Option[String]) = {
+    def testSession(results: Future[Result], key: String, value: Option[String]) = {
       val session = Helpers.session(results)
       session.get(key) === value
     }
 
-    def assertAction[A, T: AsResult](action: Action[A], expectedResponse: Int = OK, request: => Request[A] = FakeRequest())(assertions: Future[SimpleResult] => T) = {
+    def assertAction[A, T: AsResult](action: Action[A], expectedResponse: Int = OK, request: => Request[A] = FakeRequest())(assertions: Future[Result] => T) = {
       val fakeApp = FakeApplication(additionalConfiguration = Map("application.secret" -> "pass"))
       running(fakeApp) {
         val result = action(request)

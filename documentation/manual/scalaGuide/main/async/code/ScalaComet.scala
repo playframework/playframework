@@ -79,7 +79,7 @@ object ScalaCometSpec extends PlaySpecification with Controller {
 
   }
 
-  def cometMessages(result: Future[SimpleResult]):Seq[String] = {
+  def cometMessages(result: Future[Result]):Seq[String] = {
     await(await(result).body &> Results.dechunk |>>> Iteratee.getChunks).map(bytes => new String(bytes))
   }
 }

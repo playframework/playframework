@@ -5,9 +5,7 @@ package play.it.mvc
 
 import org.specs2.mutable.Specification
 import play.api.mvc._
-import play.api.Routes
 import play.api.test._
-import play.api.test.Helpers._
 import scala.concurrent.duration.Duration
 import scala.concurrent._
 import play.api.libs.concurrent.Execution.{defaultContext => ec}
@@ -17,7 +15,7 @@ object FiltersSpec extends Specification with WsTestClient {
     "handle errors" in {
           
       object ErrorHandlingFilter extends Filter {                        
-        def apply(next: RequestHeader => Future[SimpleResult])(request: RequestHeader): Future[SimpleResult] = {
+        def apply(next: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
           try {
             next(request).recover { case t: Throwable =>
               Results.InternalServerError(t.getMessage)
@@ -31,7 +29,7 @@ object FiltersSpec extends Specification with WsTestClient {
       object SkipNextFilter extends Filter {
         val expectedText = "This filter does not call next"
         
-        def apply(next: RequestHeader => Future[SimpleResult])(request: RequestHeader): Future[SimpleResult] = {
+        def apply(next: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
           Future.successful(Results.Ok(expectedText))
         }                
       }
@@ -39,7 +37,7 @@ object FiltersSpec extends Specification with WsTestClient {
       object SkipNextWithErrorFilter extends Filter {
         val expectedText = "This filter does not call next and throws an exception"
         
-        def apply(next: RequestHeader => Future[SimpleResult])(request: RequestHeader): Future[SimpleResult] = {
+        def apply(next: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
           Future.failed(new RuntimeException(expectedText))
         }                
       }
@@ -47,7 +45,7 @@ object FiltersSpec extends Specification with WsTestClient {
       object ThrowExceptionFilter extends Filter {
         val expectedText = "This filter calls next and throws an exception afterwords"
 
-        override def apply(next: (RequestHeader) => Future[SimpleResult])(rh: RequestHeader): Future[SimpleResult] = {
+        override def apply(next: (RequestHeader) => Future[Result])(rh: RequestHeader): Future[Result] = {
           next(rh).map { _ =>
             throw new RuntimeException(expectedText)
           }(ec)

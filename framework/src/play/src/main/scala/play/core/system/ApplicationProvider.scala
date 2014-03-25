@@ -37,11 +37,11 @@ trait DevSettings {
 trait ApplicationProvider {
   def path: File
   def get: Try[Application]
-  def handleWebCommand(requestHeader: play.api.mvc.RequestHeader): Option[SimpleResult] = None
+  def handleWebCommand(requestHeader: play.api.mvc.RequestHeader): Option[Result] = None
 }
 
 trait HandleWebCommandSupport {
-  def handleWebCommand(request: play.api.mvc.RequestHeader, sbtLink: play.core.SBTLink, path: java.io.File): Option[SimpleResult]
+  def handleWebCommand(request: play.api.mvc.RequestHeader, sbtLink: play.core.SBTLink, path: java.io.File): Option[Result]
 }
 
 /**
@@ -169,12 +169,12 @@ class ReloadableApplication(sbtLink: SBTLink, sbtDocHandler: SBTDocHandler) exte
     }
   }
 
-  override def handleWebCommand(request: play.api.mvc.RequestHeader): Option[SimpleResult] = {
+  override def handleWebCommand(request: play.api.mvc.RequestHeader): Option[Result] = {
 
-    sbtDocHandler.maybeHandleDocRequest(request).asInstanceOf[Option[SimpleResult]].orElse(
+    sbtDocHandler.maybeHandleDocRequest(request).asInstanceOf[Option[Result]].orElse(
       for {
         app <- Play.maybeApplication
-        result <- app.plugins.foldLeft(Option.empty[SimpleResult]) {
+        result <- app.plugins.foldLeft(Option.empty[Result]) {
           case (None, plugin: HandleWebCommandSupport) => plugin.handleWebCommand(request, sbtLink, path)
           case (result, _) => result
         }

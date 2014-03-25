@@ -29,7 +29,7 @@ case class DocumentationApplication(projectPath: File, sbtDocHandler: SBTDocHand
   override def path = projectPath
   override def get = Success(application)
   override def handleWebCommand(request: RequestHeader) =
-    sbtDocHandler.maybeHandleDocRequest(request).asInstanceOf[Option[SimpleResult]].orElse(
+    sbtDocHandler.maybeHandleDocRequest(request).asInstanceOf[Option[Result]].orElse(
       Some(Results.Redirect("/@documentation"))
     )
 }

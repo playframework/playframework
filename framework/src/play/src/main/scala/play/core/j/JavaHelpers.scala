@@ -31,7 +31,7 @@ trait JavaHelpers {
    * @param javaContext
    * @param javaResult
    */
-  def createResult(javaContext: JContext, javaResult: JSimpleResult): SimpleResult = {
+  def createResult(javaContext: JContext, javaResult: JSimpleResult): Result = {
     val wResult = javaResult.getWrappedSimpleResult.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
       .withCookies((javaContext.response.cookies.asScala.toSeq map { c =>
         Cookie(c.name, c.value,
@@ -207,7 +207,7 @@ trait JavaHelpers {
    * @param f The function to invoke
    * @return The result
    */
-  def invokeWithContext(request: RequestHeader, f: JRequest => Option[F.Promise[JSimpleResult]]): Option[Future[SimpleResult]] = {
+  def invokeWithContext(request: RequestHeader, f: JRequest => Option[F.Promise[JSimpleResult]]): Option[Future[Result]] = {
     val javaContext = createJavaContext(request)
     try {
       JContext.current.set(javaContext)

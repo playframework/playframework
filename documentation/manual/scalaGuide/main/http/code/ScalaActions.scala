@@ -84,7 +84,7 @@ object ScalaActionsSpec extends Specification with Controller {
     "support returning a simple result" in {
       //#simple-result-action
       def index = Action {
-        SimpleResult(
+        Result(
           header = ResponseHeader(200, Map(CONTENT_TYPE -> "text/plain")),
           body = Enumerator("Hello world!".getBytes())
         )
@@ -155,7 +155,7 @@ object ScalaActionsSpec extends Specification with Controller {
     assertAction(action, expectedResponse, request) { result => success }
   }
 
-  def assertAction[A, T: AsResult](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest())(assertions: Future[SimpleResult] => T) = {
+  def assertAction[A, T: AsResult](action: Action[A], expectedResponse: Int = OK, request: Request[A] = FakeRequest())(assertions: Future[Result] => T) = {
     running(FakeApplication()) {
       val result = action(request)
       status(result) must_== expectedResponse

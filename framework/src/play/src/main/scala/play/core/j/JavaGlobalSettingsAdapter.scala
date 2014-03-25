@@ -31,17 +31,17 @@ class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends Glo
     Option(underlying.onRouteRequest(r)).map(Some(_)).getOrElse(super.onRouteRequest(request))
   }
 
-  override def onError(request: RequestHeader, ex: Throwable): Future[SimpleResult] = {
+  override def onError(request: RequestHeader, ex: Throwable): Future[Result] = {
     JavaHelpers.invokeWithContext(request, req => Option(underlying.onError(req, ex)))
       .getOrElse(super.onError(request, ex))
   }
 
-  override def onHandlerNotFound(request: RequestHeader): Future[SimpleResult] = {
+  override def onHandlerNotFound(request: RequestHeader): Future[Result] = {
     JavaHelpers.invokeWithContext(request, req => Option(underlying.onHandlerNotFound(req)))
       .getOrElse(super.onHandlerNotFound(request))
   }
 
-  override def onBadRequest(request: RequestHeader, error: String): Future[SimpleResult] = {
+  override def onBadRequest(request: RequestHeader, error: String): Future[Result] = {
     JavaHelpers.invokeWithContext(request, req => Option(underlying.onBadRequest(req, error)))
       .getOrElse(super.onBadRequest(request, error))
   }

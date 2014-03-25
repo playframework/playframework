@@ -50,13 +50,13 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      */
     public static final long DEFAULT_TIMEOUT = Long.getLong("test.timeout", 30000L);
 
-    private static SimpleResult wrapScalaResult(scala.concurrent.Future<play.api.mvc.SimpleResult> result, long timeout) {
+    private static SimpleResult wrapScalaResult(scala.concurrent.Future<play.api.mvc.Result> result, long timeout) {
         if (result == null) {
             return null;
         } else {
-            final play.api.mvc.SimpleResult simpleResult = new Promise<play.api.mvc.SimpleResult>(result).get(timeout);
+            final play.api.mvc.Result simpleResult = new Promise<play.api.mvc.Result>(result).get(timeout);
             return new SimpleResult() {
-                public play.api.mvc.SimpleResult getWrappedSimpleResult() {
+                public play.api.mvc.Result getWrappedSimpleResult() {
                     return simpleResult;
                 }
             };
@@ -409,7 +409,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
       return route(app, fakeRequest, DEFAULT_TIMEOUT);
     }
     public static Result route(Application app, FakeRequest fakeRequest, long timeout) {
-      final scala.Option<scala.concurrent.Future<play.api.mvc.SimpleResult>> opt = play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.fake);
+      final scala.Option<scala.concurrent.Future<play.api.mvc.Result>> opt = play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.fake);
       return wrapScalaResult(Scala.orNull(opt), timeout);
     }
 

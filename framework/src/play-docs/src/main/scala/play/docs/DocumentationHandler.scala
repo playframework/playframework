@@ -38,13 +38,13 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository) extend
   /**
    * Handle the given request if it is a request for documentation content.
    */
-  def maybeHandleDocRequest(request: RequestHeader): Option[SimpleResult] = {
+  def maybeHandleDocRequest(request: RequestHeader): Option[Result] = {
 
     // Assumes caller consumes result, closing entry
-    def sendFileInline(repo: FileRepository, path: String): Option[SimpleResult] = {
+    def sendFileInline(repo: FileRepository, path: String): Option[Result] = {
       import play.api.libs.concurrent.Execution.Implicits.defaultContext
       repo.handleFile(path) { handle =>
-        SimpleResult(
+        Result(
           ResponseHeader(Status.OK, Map(
             HeaderNames.CONTENT_LENGTH -> handle.size.toString,
             HeaderNames.CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(handle.name).getOrElse(play.api.http.ContentTypes.BINARY)

@@ -4,7 +4,7 @@
 package play.filters.gzip
 
 import play.api.test._
-import play.api.mvc.{HttpConnection, Action, SimpleResult}
+import play.api.mvc.{HttpConnection, Action, Result}
 import play.api.mvc.Results._
 import java.util.zip.GZIPInputStream
 import java.io.ByteArrayInputStream
@@ -135,7 +135,7 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
     }
   }
 
-  def withApplication[T](result: SimpleResult, buffer: Int = 1024)(block: => T): T = {
+  def withApplication[T](result: Result, buffer: Int = 1024)(block: => T): T = {
     running(FakeApplication(withRoutes = {
       case _ => new GzipFilter(gzip = Gzip.gzip(512), chunkedThreshold = buffer).apply(Action(result))
     }))(block)
@@ -154,18 +154,18 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
     result
   }
 
-  def checkGzipped(result: Future[SimpleResult]) = {
+  def checkGzipped(result: Future[Result]) = {
     header(CONTENT_ENCODING, result) must beSome("gzip")
   }
 
-  def checkGzippedBody(result: Future[SimpleResult], body: String) = {
+  def checkGzippedBody(result: Future[Result], body: String) = {
     checkGzipped(result)
     val resultBody = contentAsBytes(result)
     header(CONTENT_LENGTH, result) must beSome(Integer.toString(resultBody.length))
     gunzip(resultBody) must_== body
   }
 
-  def checkNotGzipped(result: Future[SimpleResult], body: String) = {
+  def checkNotGzipped(result: Future[Result], body: String) = {
     header(CONTENT_ENCODING, result) must beNone
     contentAsString(result) must_== body
   }

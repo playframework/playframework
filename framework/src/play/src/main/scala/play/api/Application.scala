@@ -286,7 +286,7 @@ trait Application {
   /**
    * Handle a runtime error during the execution of an action
    */
-  private[play] def handleError(request: RequestHeader, e: Throwable): Future[SimpleResult] = try {
+  private[play] def handleError(request: RequestHeader, e: Throwable): Future[Result] = try {
     e match {
       case e: UsefulException => throw e
       case e: ExecutionException => handleError(request, e.getCause)

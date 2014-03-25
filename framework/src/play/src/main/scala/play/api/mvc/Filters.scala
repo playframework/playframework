@@ -11,7 +11,7 @@ import scala.concurrent.{ Promise, Future }
  * Implement this interface if you want to add a Filter to your application
  * {{{
  * object AccessLog extends Filter {
- *   override def apply(next: RequestHeader => Future[SimpleResult])(request: RequestHeader): Future[SimpleResult] = {
+ *   override def apply(next: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
  * 		 val result = next(request)
  * 		 result.map { r => play.Logger.info(request + "\n\t => " + r; r }
  * 	 }
@@ -26,18 +26,18 @@ trait Filter extends EssentialFilter {
 
   self =>
 
-  def apply(f: RequestHeader => Future[SimpleResult])(rh: RequestHeader): Future[SimpleResult]
+  def apply(f: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result]
 
   def apply(next: EssentialAction): EssentialAction = {
     new EssentialAction {
       import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-      def apply(rh: RequestHeader): Iteratee[Array[Byte], SimpleResult] = {
+      def apply(rh: RequestHeader): Iteratee[Array[Byte], Result] = {
 
         // Promised result returned to this filter when it invokes the delegate function (the next filter in the chain)
-        val promisedResult = Promise[SimpleResult]()
+        val promisedResult = Promise[Result]()
         // Promised iteratee returned to the framework
-        val bodyIteratee = Promise[Iteratee[Array[Byte], SimpleResult]]()
+        val bodyIteratee = Promise[Iteratee[Array[Byte], Result]]()
 
         // Invoke the filter
         val result = self.apply({ (rh: RequestHeader) =>
@@ -75,8 +75,8 @@ trait Filter extends EssentialFilter {
 }
 
 object Filter {
-  def apply(filter: (RequestHeader => Future[SimpleResult], RequestHeader) => Future[SimpleResult]): Filter = new Filter {
-    def apply(f: RequestHeader => Future[SimpleResult])(rh: RequestHeader): Future[SimpleResult] = filter(f, rh)
+  def apply(filter: (RequestHeader => Future[Result], RequestHeader) => Future[Result]): Filter = new Filter {
+    def apply(f: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = filter(f, rh)
   }
 }
 
@@ -102,7 +102,7 @@ class WithFilters(filters: EssentialFilter*) extends GlobalSettings {
 
 object FilterChain {
   def apply[A](action: EssentialAction, filters: List[EssentialFilter]): EssentialAction = new EssentialAction {
-    def apply(rh: RequestHeader): Iteratee[Array[Byte], SimpleResult] = {
+    def apply(rh: RequestHeader): Iteratee[Array[Byte], Result] = {
       val chain = filters.reverse.foldLeft(action) { (a, i) => i(a) }
       chain(rh)
     }

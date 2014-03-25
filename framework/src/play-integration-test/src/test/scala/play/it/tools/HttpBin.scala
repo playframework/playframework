@@ -210,7 +210,7 @@ object HttpBinApplication {
       import scala.concurrent.ExecutionContext.Implicits.global
       import scala.concurrent.duration._
       import scala.util.Try
-      val p = Promise[SimpleResult]()
+      val p = Promise[Result]()
 
       Future{
         Try {

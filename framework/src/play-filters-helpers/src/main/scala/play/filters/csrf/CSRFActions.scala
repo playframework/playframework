@@ -34,7 +34,7 @@ class CSRFAction(next: EssentialAction,
   import CSRFAction._
 
   // An iteratee that returns a forbidden result saying the CSRF check failed
-  private def checkFailed(msg: String): Iteratee[Array[Byte], SimpleResult] = Done(Forbidden(msg))
+  private def checkFailed(msg: String): Iteratee[Array[Byte], Result] = Done(Forbidden(msg))
 
   def apply(request: RequestHeader) = {
 
@@ -171,7 +171,7 @@ object CSRFAction {
   }
 
   private[csrf] def addTokenToResponse(tokenName: String, cookieName: Option[String], secureCookie: Boolean,
-    newToken: String, request: RequestHeader, result: SimpleResult) = {
+    newToken: String, request: RequestHeader, result: Result) = {
     filterLogger.trace("[CSRF] Adding token to result: " + result)
 
     cookieName.map {

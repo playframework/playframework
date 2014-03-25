@@ -14,12 +14,12 @@ object ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient {
 
   "scala body handling" should {
 
-    def makeRequest[T](result: SimpleResult)(block: WSResponse => T) = withServer(result) { implicit port =>
+    def makeRequest[T](result: Result)(block: WSResponse => T) = withServer(result) { implicit port =>
       val response = await(wsUrl("/").get())
       block(response)
     }
 
-    def withServer[T](result: SimpleResult)(block: Port => T) = {
+    def withServer[T](result: Result)(block: Port => T) = {
       val port = testServerPort
       running(TestServer(port, FakeApplication(
         withRoutes = {
@@ -36,7 +36,7 @@ object ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient {
     }
 
     "revert to chunked encoding when enumerator contains more than one item" in makeRequest(
-      SimpleResult(ResponseHeader(200, Map()), Enumerator("abc", "def", "ghi") &> Enumeratee.map[String](_.getBytes)(ec))
+      Result(ResponseHeader(200, Map()), Enumerator("abc", "def", "ghi") &> Enumeratee.map[String](_.getBytes)(ec))
     ) { response =>
         response.header(CONTENT_LENGTH) must beNone
         response.header(TRANSFER_ENCODING) must beSome("chunked")
@@ -150,7 +150,7 @@ object ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient {
     }
 
     "allow sending trailers" in withServer(
-      SimpleResult(ResponseHeader(200, Map(TRANSFER_ENCODING -> CHUNKED, TRAILER -> "Chunks")),
+      Result(ResponseHeader(200, Map(TRANSFER_ENCODING -> CHUNKED, TRAILER -> "Chunks")),
         Enumerator("aa", "bb", "cc") &> Enumeratee.map[String](_.getBytes)(ec) &> Results.chunk(Some(
         Iteratee.fold[Array[Byte], Int](0)((count, in) => count + 1)(ec)
           .map(count => Seq("Chunks" -> count.toString))(ec)
@@ -168,7 +168,7 @@ object ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient {
     }
 
     "fall back to simple streaming when more than one chunk is sent and protocol is HTTP 1.0" in withServer(
-      SimpleResult(ResponseHeader(200, Map()), Enumerator("abc", "def", "ghi") &> Enumeratee.map[String](_.getBytes)(ec))
+      Result(ResponseHeader(200, Map()), Enumerator("abc", "def", "ghi") &> Enumeratee.map[String](_.getBytes)(ec))
     ) { port =>
       val response = BasicHttpClient.makeRequests(port)(
         BasicRequest("GET", "/", "HTTP/1.0", Map(), "")

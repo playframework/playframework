@@ -18,20 +18,20 @@ object ResultsSpec extends Specification {
 
   sequential
 
-  "SimpleResult" should {
+  "Result" should {
 
     "have status" in {
-      val SimpleResult(ResponseHeader(status, _), _, _) = Ok("hello")
+      val Result(ResponseHeader(status, _), _, _) = Ok("hello")
       status must be_==(200)
     }
 
     "support Content-Type overriding" in {
-      val SimpleResult(ResponseHeader(_, headers), _, _) = Ok("hello").as("text/html")
+      val Result(ResponseHeader(_, headers), _, _) = Ok("hello").as("text/html")
       headers must havePair("Content-Type" -> "text/html")
     }
 
     "support headers manipulaton" in {
-      val SimpleResult(ResponseHeader(_, headers), _, _) =
+      val Result(ResponseHeader(_, headers), _, _) =
         Ok("hello").as("text/html").withHeaders("Set-Cookie" -> "yes", "X-YOP" -> "1", "X-YOP" -> "2")
 
       headers.size must be_==(3)
@@ -56,7 +56,7 @@ object ResultsSpec extends Specification {
       newDecodedCookies("preferences").value must be_==("blue")
       newDecodedCookies("lang").value must be_==("fr")
 
-      val SimpleResult(ResponseHeader(_, headers), _, _) =
+      val Result(ResponseHeader(_, headers), _, _) =
         Ok("hello").as("text/html")
           .withCookies(Cookie("session", "items"), Cookie("preferences", "blue"))
           .withCookies(Cookie("lang", "fr"), Cookie("session", "items2"))
@@ -87,11 +87,11 @@ object ResultsSpec extends Specification {
     }
 
     "allow discarding a cookie by deprecated names method" in {
-      Cookies.decode(Ok.discardingCookies("blah").header.headers("Set-Cookie")).head.name must_== "blah"
+      Cookies.decode(Ok.discardingCookies(DiscardingCookie("blah")).header.headers("Set-Cookie")).head.name must_== "blah"
     }
 
     "allow discarding multiple cookies by deprecated names method" in {
-      val cookies = Cookies.decode(Ok.discardingCookies("foo", "bar").header.headers("Set-Cookie")).map(_.name)
+      val cookies = Cookies.decode(Ok.discardingCookies(DiscardingCookie("foo"), DiscardingCookie("bar")).header.headers("Set-Cookie")).map(_.name)
       cookies must containTheSameElementsAs(Seq("foo", "bar"))
     }
   }

@@ -26,7 +26,7 @@ import play.core.Execution.Implicits.internalContext
  */
 case class Cached(key: RequestHeader => String, duration: Int)(action: EssentialAction)(implicit app: Application) extends EssentialAction {
 
-  def apply(request: RequestHeader): Iteratee[Array[Byte], SimpleResult] = {
+  def apply(request: RequestHeader): Iteratee[Array[Byte], Result] = {
 
     val resultKey = key(request)
     val etagKey = s"$resultKey-etag"
@@ -36,11 +36,11 @@ case class Cached(key: RequestHeader => String, duration: Int)(action: Essential
       requestEtag <- request.headers.get(IF_NONE_MATCH)
       etag <- Cache.getAs[String](etagKey)
       if requestEtag == "*" || etag == requestEtag
-    } yield Done[Array[Byte], SimpleResult](NotModified)
+    } yield Done[Array[Byte], Result](NotModified)
 
     notModified.orElse(
       // Otherwise try to serve the resource from the cache, if it has not yet expired
-      Cache.getAs[SimpleResult](resultKey).map(Done[Array[Byte], SimpleResult](_))
+      Cache.getAs[Result](resultKey).map(Done[Array[Byte], Result](_))
     ).getOrElse {
         // The resource was not in the cache, we have to run the underlying action
         val iterateeResult = action(request)

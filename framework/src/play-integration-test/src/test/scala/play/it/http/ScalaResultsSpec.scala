@@ -18,7 +18,7 @@ object ScalaResultsSpec extends PlaySpecification {
     val decodedSession = Session.decode(encodedSession)
 
     decodedSession must_== Map("user" -> "kiki", "langs" -> "fr:en:de")
-    val SimpleResult(ResponseHeader(_, headers), _, _) =
+    val Result(ResponseHeader(_, headers), _, _) =
       Ok("hello").as("text/html")
         .withSession("user" -> "kiki", "langs" -> "fr:en:de")
         .withCookies(Cookie("session", "items"), Cookie("preferences", "blue"))

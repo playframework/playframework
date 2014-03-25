@@ -24,7 +24,7 @@ class ScalaInterceptorsSpec extends Specification with Controller {
       import play.api.mvc._
 
       object AccessLog extends Filter {
-        def apply(next: (RequestHeader) => Future[SimpleResult])(request: RequestHeader): Future[SimpleResult] = {
+        def apply(next: (RequestHeader) => Future[Result])(request: RequestHeader): Future[Result] = {
           val result = next(request)
           play.Logger.info(request + "\n\t => " + result)
           result
@@ -47,7 +47,7 @@ class ScalaInterceptorsSpec extends Specification with Controller {
 
       class AuthorizedFilter(actionNames: Seq[String]) extends Filter {
 
-        def apply(next: (RequestHeader) => Future[SimpleResult])(request: RequestHeader): Future[SimpleResult] = {
+        def apply(next: (RequestHeader) => Future[Result])(request: RequestHeader): Future[Result] = {
           if(authorizationRequired(request)) {
             /* do the auth stuff here */
             println("auth required")

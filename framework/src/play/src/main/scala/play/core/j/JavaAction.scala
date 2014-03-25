@@ -50,7 +50,7 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
   def invocation: JPromise[JResult]
   val annotations: JavaActionAnnotations
 
-  def apply(req: Request[play.mvc.Http.RequestBody]): Future[SimpleResult] = {
+  def apply(req: Request[play.mvc.Http.RequestBody]): Future[Result] = {
 
     val javaContext = createJavaContext(req)
 

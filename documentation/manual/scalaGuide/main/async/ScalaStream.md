@@ -21,7 +21,7 @@ Actually, we previously saw that the response body is specified using a `play.ap
 
 ```scala
 def index = Action {
-  SimpleResult(
+  Result(
     header = ResponseHeader(200),
     body = Enumerator("Hello World")
   )
@@ -49,7 +49,7 @@ def index = Action {
   val file = new java.io.File("/tmp/fileToServe.pdf")
   val fileContent: Enumerator[Array[Byte]] = Enumerator.fromFile(file)    
     
-  SimpleResult(
+  Result(
     header = ResponseHeader(200),
     body = fileContent
   )
@@ -66,7 +66,7 @@ def index = Action {
   val file = new java.io.File("/tmp/fileToServe.pdf")
   val fileContent: Enumerator[Array[Byte]] = Enumerator.fromFile(file)    
     
-  SimpleResult(
+  Result(
     header = ResponseHeader(200, Map(CONTENT_LENGTH -> file.length.toString)),
     body = fileContent
   )

@@ -97,7 +97,7 @@ object ScalaCsrf extends PlaySpecification {
       import play.filters.csrf._
 
       object PostAction extends ActionBuilder[Request] {
-        def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[SimpleResult]) = {
+        def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
           // authentication code here
           block(request)
         }
@@ -105,7 +105,7 @@ object ScalaCsrf extends PlaySpecification {
       }
 
       object GetAction extends ActionBuilder[Request] {
-        def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[SimpleResult]) = {
+        def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = {
           // authentication code here
           block(request)
         }

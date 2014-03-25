@@ -6,7 +6,7 @@ package play.it.http.parsing
 import scala.concurrent.Future
 
 import play.api.libs.iteratee.{Done, Enumerator, ExecutionSpecification, Input}
-import play.api.mvc.{BodyParser, BodyParsers, Results, SimpleResult}
+import play.api.mvc.{BodyParser, BodyParsers, Results, Result}
 import play.api.test.{FakeRequest, PlaySpecification}
 
 import org.specs2.ScalaCheck
@@ -31,12 +31,12 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
       Done(Right(a), Input.Empty)
     }
 
-  def simpleResult(s: SimpleResult): BodyParser[Any] =
+  def simpleResult(s: Result): BodyParser[Any] =
     BodyParser("simple result") { request =>
       Done(Left(s), Input.Empty)
     }
 
-  implicit val arbSimpleResult: Arbitrary[SimpleResult] =
+  implicit val arbResult: Arbitrary[Result] =
     Arbitrary {
       Gen.oneOf(
         Results.Ok,
@@ -83,7 +83,7 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
       }
     }
 
-    "pass through simple result" in prop { (s: SimpleResult) =>
+    "pass through simple result" in prop { (s: Result) =>
       mustExecute(1) { implicit ec => // one execution from `map`
         run {
           simpleResult(s).map(identity)
@@ -121,7 +121,7 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
       }
     }
 
-    "pass through simple result" in prop { (s: SimpleResult) =>
+    "pass through simple result" in prop { (s: Result) =>
       mustExecute(1) { implicit ec => // one execution from `mapM`
         run {
           simpleResult(s).mapM(Future.successful)
@@ -169,7 +169,7 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
       }
     }
 
-    "pass through simple result" in prop { (s: SimpleResult) =>
+    "pass through simple result" in prop { (s: Result) =>
       mustExecute(1) { implicit ec => // one execution from `flatMap`
         run {
           simpleResult(s).flatMap(constant)
@@ -227,7 +227,7 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
       }
     }
 
-    "pass through simple result" in prop { (s: SimpleResult) =>
+    "pass through simple result" in prop { (s: Result) =>
       mustExecute(1) { implicit ec => // one execution from `flatMapM`
         run {
           simpleResult(s).flatMapM { x => Future.successful(constant(x)) }
@@ -262,7 +262,7 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
       }
     }
 
-    "pass through simple result (case 1)" in prop { (s: SimpleResult) =>
+    "pass through simple result (case 1)" in prop { (s: Result) =>
       mustExecute(1) { implicit ec => // one execution from `validate`
         run {
           simpleResult(s).validate(Right.apply)
@@ -270,7 +270,7 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
       }
     }
 
-    "pass through simple result (case 2)" in prop { (s1: SimpleResult, s2: SimpleResult) =>
+    "pass through simple result (case 2)" in prop { (s1: Result, s2: Result) =>
       mustExecute(1) { implicit ec => // one execution from `validate`
         run {
           simpleResult(s1).validate { _ => Left(s2) }
@@ -278,7 +278,7 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
       }
     }
 
-    "fail with simple result" in prop { (s: SimpleResult) =>
+    "fail with simple result" in prop { (s: Result) =>
       mustExecute(1) { implicit ec => // one execution from `validate`
         run {
           constant(0).validate { _ => Left(s) }
@@ -312,7 +312,7 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
       }
     }
 
-    "pass through simple result (case 1)" in prop { (s: SimpleResult) =>
+    "pass through simple result (case 1)" in prop { (s: Result) =>
       mustExecute(1) { implicit ec => // one execution from `validateM`
         run {
           simpleResult(s).validateM { x => Future.successful(Right(x)) }
@@ -320,7 +320,7 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
       }
     }
 
-    "pass through simple result (case 2)" in prop { (s1: SimpleResult, s2: SimpleResult) =>
+    "pass through simple result (case 2)" in prop { (s1: Result, s2: Result) =>
       mustExecute(1) { implicit ec => // one execution from `validateM`
         run {
           simpleResult(s1).validateM { _ => Future.successful(Left(s2)) }
@@ -328,7 +328,7 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
       }
     }
 
-    "fail with simple result" in prop { (s: SimpleResult) =>
+    "fail with simple result" in prop { (s: Result) =>
       mustExecute(1) { implicit ec => // one execution from `validateM`
         run {
           constant(0).validateM { _ => Future.successful(Left(s)) }

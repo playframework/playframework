@@ -137,7 +137,7 @@ trait GlobalSettings {
    * @param ex The exception
    * @return The result to send to the client
    */
-  def onError(request: RequestHeader, ex: Throwable): Future[SimpleResult] = {
+  def onError(request: RequestHeader, ex: Throwable): Future[Result] = {
     def devError = views.html.defaultpages.devError(Option(System.getProperty("play.editor"))) _
     def prodError = views.html.defaultpages.error.f
     try {
@@ -166,7 +166,7 @@ trait GlobalSettings {
    * @param request the HTTP request header
    * @return the result to send to the client
    */
-  def onHandlerNotFound(request: RequestHeader): Future[SimpleResult] = {
+  def onHandlerNotFound(request: RequestHeader): Future[Result] = {
     Future.successful(NotFound(Play.maybeApplication.map {
       case app if app.mode != Mode.Prod => views.html.defaultpages.devNotFound.f
       case app => views.html.defaultpages.notFound.f
@@ -181,7 +181,7 @@ trait GlobalSettings {
    * @param request the HTTP request header
    * @return the result to send to the client
    */
-  def onBadRequest(request: RequestHeader, error: String): Future[SimpleResult] = {
+  def onBadRequest(request: RequestHeader, error: String): Future[Result] = {
     Future.successful(BadRequest(views.html.defaultpages.badRequest(request, error)))
   }
 
