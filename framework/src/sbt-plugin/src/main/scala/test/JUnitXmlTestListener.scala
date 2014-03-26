@@ -26,6 +26,23 @@ class JUnitXmlTestsListener(val outputDir: String, logger: Logger) extends Tests
   /**The dir in which we put all result files. Is equal to the given dir + "/test-reports"*/
   val targetDir = new File(outputDir + "/test-reports/")
 
+  /**
+   * We search from the bottom of the stack trace to the top, dropping elements until one of them doesn't have
+   * a package that starts with one of these prefixes.
+   */
+  val IgnoredStackTraceClasses = Seq(
+    "sbt.",
+    "com.novocode.junit.",
+    "org.junit.",
+    "java.",
+    "sun.reflect.",
+    "org.mockito."
+  )
+
+  def cleanStackTrace(stackTrace: Seq[StackTraceElement]): Seq[StackTraceElement] = {
+    stackTrace.reverse.dropWhile(e => IgnoredStackTraceClasses.exists(e.getClassName.startsWith)).reverse
+  }
+
   /**all system properties as XML*/
   val properties =
     <properties>
@@ -92,6 +109,13 @@ class JUnitXmlTestsListener(val outputDir: String, logger: Logger) extends Tests
         case TStatus.Skipped => logWith(Colors.yellow("o"))
         case TStatus.Success => logWith(Colors.green("+"))
         case _ => ()
+      }
+
+      event.throwable match {
+        case SbtOptionalThrowable(t) =>
+          logger.error(t.toString)
+          logger.error(cleanStackTrace(t.getStackTrace).map("    at " + _).mkString("\n"))
+        case _ =>
       }
     }
 
