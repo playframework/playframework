@@ -103,7 +103,7 @@ trait PlayReloader {
         } catch {
           case NonFatal(e) => {
 
-            println(play.console.Colors.red(
+            println(play.sbtplugin.Colors.red(
               """|
                  |Cannot load the JNotify native library (%s)
                  |Play will check file changes for each request, so expect degraded reloading performace.

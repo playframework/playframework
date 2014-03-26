@@ -258,6 +258,7 @@ object PlayBuild extends Build {
       sbtPlugin := true,
       publishMavenStyle := false,
       libraryDependencies := sbtDependencies,
+      sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
       sbtVersion in GlobalScope := buildSbtVersion,
       sbtBinaryVersion in GlobalScope := buildSbtVersionBinaryCompatible,
       sbtDependency <<= sbtDependency { dep =>
@@ -283,13 +284,7 @@ object PlayBuild extends Build {
           "-Dperformance.log=" + new File(baseDir, "target/sbt-repcomile-performance.properties")
        )
       }
-    ).dependsOn(SbtLinkProject, PlayExceptionsProject, RoutesCompilerProject, TemplatesCompilerProject, ConsoleProject)
-
-  lazy val ConsoleProject = PlaySbtProject("Console", "console")
-    .settings(
-      libraryDependencies := consoleDependencies,
-      sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion
-    )
+    ).dependsOn(SbtLinkProject, PlayExceptionsProject, RoutesCompilerProject, TemplatesCompilerProject)
 
   lazy val PlayWsProject = PlayRuntimeProject("Play-WS", "play-ws")
     .settings(
@@ -366,7 +361,6 @@ object PlayBuild extends Build {
     PlayWsProject,
     PlayWsJavaProject,
     SbtPluginProject,
-    ConsoleProject,
     PlayTestProject,
     PlayExceptionsProject,
     PlayDocsProject,
@@ -383,8 +377,7 @@ object PlayBuild extends Build {
       concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
       libraryDependencies := (runtime ++ jdbcDeps),
       Docs.apiDocsInclude := false,
-      Docs.apiDocsIncludeManaged := false,
-      generateDistTask
+      Docs.apiDocsIncludeManaged := false
     )
     .aggregate(publishedProjects: _*)
     .aggregate(RepositoryProject)

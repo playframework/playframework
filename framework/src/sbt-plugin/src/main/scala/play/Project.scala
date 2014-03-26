@@ -6,7 +6,7 @@ package play
 import sbt.{ Project => _, _ }
 import sbt.Keys._
 
-import play.console.Colors
+import play.sbtplugin.Colors
 import com.typesafe.sbt.SbtNativePackager.packageArchetype
 
 object Project extends Plugin with PlayExceptions with play.Keys with PlayReloader with PlayCommands

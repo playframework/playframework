@@ -17,7 +17,7 @@ import scala.xml.{ Elem, Node, XML }
 import sbt.testing.{ Event => TEvent, Status => TStatus, NestedSuiteSelector, NestedTestSelector, TestSelector }
 import test.SbtOptionalThrowable
 
-import play.console.Colors
+import play.sbtplugin.Colors
 
 /**
  * A tests listener that outputs the results it receives in junit xml

@@ -9,7 +9,7 @@ import Keys._
 import com.typesafe.sbt.SbtNativePackager._
 import com.typesafe.sbt.packager.Keys._
 import java.io.{ Writer, PrintWriter }
-import play.console.Colors
+import play.sbtplugin.Colors
 
 trait Settings {
   this: PlayCommands with PlayPositionMapper with PlayRun with PlaySourceGenerators =>
@@ -119,7 +119,7 @@ trait Settings {
     // Adds app directory's source files to continuous hot reloading
     watchSources <++= baseDirectory map { path => ((path / "app") ** "*" --- (path / "app/assets") ** "*").get },
 
-    commands ++= Seq(shCommand, playCommand, playStartCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
+    commands ++= Seq(shCommand, playStartCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
 
     // THE `in Compile` IS IMPORTANT!
     run in Compile <<= playRunSetting,

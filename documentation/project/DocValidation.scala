@@ -7,7 +7,7 @@ import org.pegdown.ast._
 import org.pegdown.ast.Node
 import org.pegdown.plugins.{ToHtmlSerializerPlugin, PegDownPlugins}
 import org.pegdown._
-import play.console.Colors
+import play.sbtplugin.Colors
 import play.doc.{CodeReferenceNode, CodeReferenceParser}
 import sbt._
 import sbt.Keys._
@@ -15,7 +15,6 @@ import sbt.File
 import scala.collection.mutable
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future, ExecutionContext}
-import scala.Some
 import scala.util.control.NonFatal
 
 // Test that all the docs are renderable and valid

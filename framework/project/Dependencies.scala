@@ -153,12 +153,6 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013" % "webjars"
   )
 
-  val consoleDependencies = Seq(
-    scalaIoFile,
-    "org.scala-sbt" % "launcher-interface" % BuildSettings.buildSbtVersion,
-    "jline" % "jline" % "2.11"
-  )
-
   val templatesDependencies = scalaIoFile +:
     specsBuild.map(_ % "test")
 

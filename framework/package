@@ -97,13 +97,7 @@ then
     "$DIR/build" clean
 fi
 
-"$DIR/build" $PUBLISHCMD create-dist
-
-if [ $PUBLISH -eq 0 ]
-then
-    echo "Publishing artifact to S3"
-    s3cmd put target/play-${PLAY_VERSION}.zip s3://downloads.typesafe.com/play/${PLAY_VERSION}/play-${PLAY_VERSION}.zip
-fi
+"$DIR/build" $PUBLISHCMD
 
 if [ $TAG -eq 0 ]
 then

@@ -23,21 +23,21 @@ export CURRENT=`pwd`
 export SCRIPT=`dirname "$0"`
 
 cd "$SCRIPT"
-export PLAY=`pwd`/../play
+export BUILD=`pwd`/build
 
 if [ -n "$no_publish" ] ; then
   echo "[info] Not publishing locally"
 else
-  ./build "$@" publish-local
+  $BUILD "$@" publish-local
 fi
 
-./build "$@" test
+$BUILD "$@" test
 
 echo "[info]"
 echo "[info] ---- SBT PLUGIN TESTS"
 echo "[info]"
 
-./build "$@" Sbt-Plugin:scripted
+$BUILD "$@" Sbt-Plugin:scripted
 
 rm -rf ./logs
 
@@ -47,7 +47,7 @@ echo "[info]"
 echo "[info] ---- RUNNING INTEGRATION TEST"
 echo "[info]"
 
-$PLAY "$@" clean test
+$BUILD "$@" clean test
 
 cd $CURRENT
 
@@ -57,7 +57,7 @@ echo "[info]"
 echo "[info] ---- RUNNING JAVA INTEGRATION TEST"
 echo "[info]"
 
-$PLAY "$@" clean test
+$BUILD "$@" clean test
 if [ ! -f target/junit-running ]
 then
   echo "[Error]"
@@ -75,7 +75,7 @@ echo "[info]"
 echo "[info] ---- RUNNING SCALA INTEGRATION TEST"
 echo "[info]"
 
-$PLAY "$@" clean test
+$BUILD "$@" clean test
 cd $CURRENT
 
 echo "[info]"
@@ -83,7 +83,7 @@ echo "[info] ---- RUNNING DOCUMENTATION TESTS"
 echo "[info]"
 
 cd ../documentation
-$PLAY "$@" clean test validate-docs
+$BUILD "$@" clean test validate-docs
 cd $CURRENT
 
 echo "[info]"
@@ -97,7 +97,7 @@ do
   echo "[info] ---- TESTING ${i/app/}"
   echo "[info]"
   cd ${i/app/}
-  $PLAY "$@" clean test
+  $BUILD "$@" clean test
   cd $CURRENT
 done
 
