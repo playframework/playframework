@@ -220,10 +220,10 @@ class ScalaWSSpec extends PlaySpecification with Results {
             }
 
             val outputStream: OutputStream = new BufferedOutputStream(new FileOutputStream(file))
-            val futureResponse = WS.url(url).withTimeout(3000).get {
+            val futureResponse: Future[Unit] = WS.url(url).withTimeout(3000).get {
               headers =>
                 fromStream(outputStream)
-            }.map(_.run)
+            }.flatMap(_.run)
             // #scalaws-fileupload
 
             await(futureResponse, 4000)
