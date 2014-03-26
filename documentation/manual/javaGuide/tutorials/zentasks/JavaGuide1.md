@@ -32,7 +32,7 @@ Later in this tutorial we will use Lighttpd and MySql to show how to deploy a Pl
 
 ## Installation of the Play Framework
 
-Installation is very simple.  Just download the latest binary backage from the download page and unzip it to any path.
+Installation is very simple.  Just download the latest binary package from the download page and unzip it to any path.
 
 > If you're using Windows, it is generally a good idea to avoid space characters in the path, so for example `c:\play` would be a better choice than `c:\Documents And Settings\user\play.`
 
