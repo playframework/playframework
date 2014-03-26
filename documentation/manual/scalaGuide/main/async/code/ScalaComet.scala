@@ -15,7 +15,6 @@ object ScalaCometSpec extends PlaySpecification with Controller {
   "play comet" should {
 
     "allow manually sending comet messages" in new WithApplication() {
-      // todo note to self: Make sure I get rid of the Enumerator.eof once that bug is fixed
       //#manual
       def comet = Action {
         val events = Enumerator(
@@ -23,7 +22,7 @@ object ScalaCometSpec extends PlaySpecification with Controller {
           """<script>console.log('foo')</script>""",
           """<script>console.log('bar')</script>"""
         )
-        Ok.stream(events >>> Enumerator.eof).as(HTML)
+        Ok.stream(events).as(HTML)
       }
       //#manual
       val msgs = cometMessages(comet(FakeRequest()))
@@ -42,7 +41,7 @@ object ScalaCometSpec extends PlaySpecification with Controller {
 
       def comet = Action {
         val events = Enumerator("kiki", "foo", "bar")
-        Ok.stream((events &> toCometMessage) >>> Enumerator.eof)
+        Ok.stream(events &> toCometMessage)
       }
       //#enumeratee
 
@@ -55,7 +54,7 @@ object ScalaCometSpec extends PlaySpecification with Controller {
       //#helper
       def comet = Action {
         val events = Enumerator("kiki", "foo", "bar")
-        Ok.stream((events &> Comet(callback = "console.log")) >>> Enumerator.eof)
+        Ok.stream(events &> Comet(callback = "console.log"))
       }
       //#helper
 
@@ -68,7 +67,7 @@ object ScalaCometSpec extends PlaySpecification with Controller {
       //#iframe
       def comet = Action {
         val events = Enumerator("kiki", "foo", "bar")
-        Ok.stream((events &> Comet(callback = "parent.cometMessage")) >>> Enumerator.eof)
+        Ok.stream(events &> Comet(callback = "parent.cometMessage"))
       }
       //#iframe
 
