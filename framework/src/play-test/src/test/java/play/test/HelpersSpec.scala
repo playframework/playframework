@@ -16,11 +16,8 @@ object HelpersSpec extends Specification {
     "test for cookies" in {
 
       val javaResult: play.mvc.Result = new Result() {
-        def getWrappedResult: Future[ScalaResult] = {
-          import scala.concurrent.ExecutionContext.Implicits.global
-          Future {
-            Results.Ok("Hello world").withCookies(Cookie("name1", "value1"))
-          }
+        def toScala: ScalaResult = {
+          Results.Ok("Hello world").withCookies(Cookie("name1", "value1"))
         }
       }
 

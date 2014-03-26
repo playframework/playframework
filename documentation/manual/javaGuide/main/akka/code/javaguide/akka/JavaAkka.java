@@ -10,6 +10,7 @@ import javaguide.testhelpers.MockJavaAction;
 import org.junit.Before;
 import org.junit.Test;
 import play.libs.Akka;
+import play.libs.F;
 import play.mvc.Result;
 import play.test.WithApplication;
 import play.test.Helpers;
@@ -58,7 +59,7 @@ public class JavaAkka extends WithApplication {
     public void ask() throws Exception {
         Akka.system().actorOf(Props.create(EchoActor.class), "my-actor");
         Result result = MockJavaAction.call(new MockJavaAction() {
-            public Result index() {
+            public F.Promise<Result> index() {
                 return javaguide.akka.ask.Application.index();
             }
         }, Helpers.fakeRequest());
@@ -75,7 +76,7 @@ public class JavaAkka extends WithApplication {
     @Test
     public void async() throws Exception {
         Result result = MockJavaAction.call(new MockJavaAction() {
-            public Result index() {
+            public F.Promise<Result> index() {
                 return javaguide.akka.async.Application.index();
             }
         }, Helpers.fakeRequest());

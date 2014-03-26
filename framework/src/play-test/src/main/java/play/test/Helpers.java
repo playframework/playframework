@@ -3,19 +3,23 @@
  */
 package play.test;
 
+import org.openqa.selenium.WebDriver;
 import play.*;
 
+import play.core.j.JavaResultExtractor;
 import play.mvc.*;
 import play.api.test.Helpers$;
 import play.libs.*;
 import play.libs.F.*;
 
-import org.openqa.selenium.*;
 import org.openqa.selenium.firefox.*;
 import org.openqa.selenium.htmlunit.*;
 
 
 import java.util.*;
+
+import static play.core.Router.Routes;
+import static play.mvc.Http.*;
 
 /**
  * Helper functions to run tests.
@@ -37,7 +41,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     @SuppressWarnings(value = "unchecked")
     private static Result invokeHandler(play.api.mvc.Handler handler, FakeRequest fakeRequest, long timeout) {
         if(handler instanceof play.core.j.JavaAction) {
-            play.api.mvc.Action action = (play.api.mvc.Action)handler;
+            play.api.mvc.Action action = (play.api.mvc.Action) handler;
             return wrapScalaResult(action.apply(fakeRequest.getWrappedRequest()), timeout);
         } else {
             throw new RuntimeException("This is not a JavaAction and can't be invoked this way.");
@@ -50,24 +54,16 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      */
     public static final long DEFAULT_TIMEOUT = Long.getLong("test.timeout", 30000L);
 
-    private static SimpleResult wrapScalaResult(scala.concurrent.Future<play.api.mvc.Result> result, long timeout) {
+    private static Result wrapScalaResult(scala.concurrent.Future<play.api.mvc.Result> result, long timeout) {
         if (result == null) {
             return null;
         } else {
-            final play.api.mvc.Result simpleResult = new Promise<play.api.mvc.Result>(result).get(timeout);
-            return new SimpleResult() {
-                public play.api.mvc.Result getWrappedSimpleResult() {
-                    return simpleResult;
+            final play.api.mvc.Result scalaResult = new Promise<play.api.mvc.Result>(result).get(timeout);
+            return new Result() {
+                public play.api.mvc.Result toScala() {
+                    return scalaResult;
                 }
             };
-        }
-    }
-
-    private static SimpleResult unwrapJavaResult(Result result, long timeout) {
-        if (result instanceof SimpleResult) {
-            return (SimpleResult) result;
-        } else {
-            return wrapScalaResult(result.getWrappedResult(), timeout);
         }
     }
 
@@ -79,6 +75,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static Result callAction(HandlerRef actionReference) {
         return callAction(actionReference, DEFAULT_TIMEOUT);
     }
+
     public static Result callAction(HandlerRef actionReference, long timeout) {
         return callAction(actionReference, fakeRequest(), timeout);
     }
@@ -89,6 +86,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static Result callAction(HandlerRef actionReference, FakeRequest fakeRequest) {
         return callAction(actionReference, fakeRequest, DEFAULT_TIMEOUT);
     }
+
     public static Result callAction(HandlerRef actionReference, FakeRequest fakeRequest, long timeout) {
         play.api.mvc.HandlerRef handlerRef = (play.api.mvc.HandlerRef)actionReference;
         return invokeHandler(handlerRef.handler(), fakeRequest, timeout);
@@ -197,80 +195,96 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Extracts the Status code of this Result value.
      */
     public static int status(Result result) {
-        return status(result, DEFAULT_TIMEOUT);
+        return result.toScala().header().status();
     }
+
+    @Deprecated
     public static int status(Result result, long timeout) {
-        return unwrapJavaResult(result, timeout).getWrappedSimpleResult().header().status();
+        return status(result);
     }
 
     /**
      * Extracts the Location header of this Result value if this Result is a Redirect.
      */
     public static String redirectLocation(Result result) {
-        return redirectLocation(result, DEFAULT_TIMEOUT);
+        return header(LOCATION, result);
     }
+
+    @Deprecated
     public static String redirectLocation(Result result, long timeout) {
-        return header(LOCATION, result, timeout);
+        return redirectLocation(result);
     }
 
     /**
      * Extracts the Flash values of this Result value.
      */
-    public static play.mvc.Http.Flash flash(Result result) {
-        return flash(result, DEFAULT_TIMEOUT);
+    public static Flash flash(Result result) {
+        return JavaResultExtractor.getFlash(result);
     }
-    public static play.mvc.Http.Flash flash(Result result, long timeout) {
-        return play.core.j.JavaResultExtractor.getFlash(unwrapJavaResult(result, timeout));
+
+    @Deprecated
+    public static Flash flash(Result result, long timeout) {
+        return flash(result);
     }
 
     /**
      * Extracts the Session of this Result value.
      */
-    public static play.mvc.Http.Session session(Result result) {
-        return session(result, DEFAULT_TIMEOUT);
+    public static Session session(Result result) {
+        return JavaResultExtractor.getSession(result);
     }
-    public static play.mvc.Http.Session session(Result result, long timeout) {
-        return play.core.j.JavaResultExtractor.getSession(unwrapJavaResult(result, timeout));
+
+    @Deprecated
+    public static Session session(Result result, long timeout) {
+        return session(result);
     }
 
     /**
      * Extracts a Cookie value from this Result value
      */
-    public static play.mvc.Http.Cookie cookie(String name, Result result) {
-        return cookie(name, result, DEFAULT_TIMEOUT);
+    public static Cookie cookie(String name, Result result) {
+        return JavaResultExtractor.getCookies(result).get(name);
     }
-    public static play.mvc.Http.Cookie cookie(String name, Result result, long timeout) {
-        return play.core.j.JavaResultExtractor.getCookies(unwrapJavaResult(result, timeout)).get(name);
+
+    @Deprecated
+    public static Cookie cookie(String name, Result result, long timeout) {
+        return cookie(name, result);
     }
 
     /**
      * Extracts the Cookies (an iterator) from this result value.
      */
-    public static play.mvc.Http.Cookies cookies(Result result) {
-       return cookies(result, DEFAULT_TIMEOUT);
+    public static Cookies cookies(Result result) {
+        return play.core.j.JavaResultExtractor.getCookies(result);
     }
-    public static play.mvc.Http.Cookies cookies(Result result, long timeout) {
-       return play.core.j.JavaResultExtractor.getCookies(unwrapJavaResult(result, timeout));
+
+    @Deprecated
+    public static Cookies cookies(Result result, long timeout) {
+        return cookies(result);
     }
 
     /**
      * Extracts an Header value of this Result value.
      */
     public static String header(String header, Result result) {
-        return header(header, result, DEFAULT_TIMEOUT);
+        return JavaResultExtractor.getHeaders(result).get(header);
     }
+
+    @Deprecated
     public static String header(String header, Result result, long timeout) {
-        return play.core.j.JavaResultExtractor.getHeaders(unwrapJavaResult(result, timeout)).get(header);
+        return header(header, result);
     }
 
     /**
      * Extracts all Headers of this Result value.
      */
-    public static Map<String,String> headers(Result result) {
-        return headers(result, DEFAULT_TIMEOUT);
+    public static Map<String, String> headers(Result result) {
+        return JavaResultExtractor.getHeaders(result);
     }
-    public static Map<String,String> headers(Result result, long timeout) {
-        return play.core.j.JavaResultExtractor.getHeaders(unwrapJavaResult(result, timeout));
+
+    @Deprecated
+    public static Map<String, String> headers(Result result, long timeout) {
+        return headers(result);
     }
 
     /**
@@ -284,10 +298,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Extracts the Content-Type of this Result value.
      */
     public static String contentType(Result result) {
-        return contentType(result, DEFAULT_TIMEOUT);
-    }
-    public static String contentType(Result result, long timeout) {
-        String h = header(CONTENT_TYPE, result, timeout);
+        String h = header(CONTENT_TYPE, result);
         if(h == null) return null;
         if(h.contains(";")) {
             return h.substring(0, h.indexOf(";")).trim();
@@ -296,14 +307,16 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
 
+    @Deprecated
+    public static String contentType(Result result, long timeout) {
+        return contentType(result);
+    }
+
     /**
      * Extracts the Charset of this Result value.
      */
     public static String charset(Result result) {
-        return charset(result, DEFAULT_TIMEOUT);
-    }
-    public static String charset(Result result, long timeout) {
-        String h = header(CONTENT_TYPE, result, timeout);
+        String h = header(CONTENT_TYPE, result);
         if(h == null) return null;
         if(h.contains("; charset=")) {
             return h.substring(h.indexOf("; charset=") + 10, h.length()).trim();
@@ -312,14 +325,20 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
 
+    @Deprecated
+    public static String charset(Result result, long timeout) {
+        return charset(result);
+    }
+
     /**
      * Extracts the content as bytes.
      */
     public static byte[] contentAsBytes(Result result) {
         return contentAsBytes(result, DEFAULT_TIMEOUT);
     }
+
     public static byte[] contentAsBytes(Result result, long timeout) {
-        return play.core.j.JavaResultExtractor.getBody(unwrapJavaResult(result, timeout));
+        return JavaResultExtractor.getBody(result, timeout);
     }
 
     /**
@@ -342,9 +361,10 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static String contentAsString(Result result) {
         return contentAsString(result, DEFAULT_TIMEOUT);
     }
+
     public static String contentAsString(Result result, long timeout) {
         try {
-            String charset = charset(result, timeout);
+            String charset = charset(result);
             if(charset == null) {
                 charset = "utf-8";
             }
@@ -364,10 +384,11 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static Result routeAndCall(FakeRequest fakeRequest) {
         return routeAndCall(fakeRequest, DEFAULT_TIMEOUT);
     }
+
     @SuppressWarnings(value = "unchecked")
     public static Result routeAndCall(FakeRequest fakeRequest, long timeout) {
         try {
-            return routeAndCall((Class<? extends play.core.Router.Routes>)FakeRequest.class.getClassLoader().loadClass("Routes"), fakeRequest, timeout);
+            return routeAndCall((Class<? extends Routes>)FakeRequest.class.getClassLoader().loadClass("Routes"), fakeRequest, timeout);
         } catch(RuntimeException e) {
             throw e;
         } catch(Throwable t) {
@@ -380,12 +401,13 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * @deprecated
      * @see #route instead
      */
-    public static Result routeAndCall(Class<? extends play.core.Router.Routes> router, FakeRequest fakeRequest) {
+    public static Result routeAndCall(Class<? extends Routes> router, FakeRequest fakeRequest) {
         return routeAndCall(router, fakeRequest, DEFAULT_TIMEOUT);
     }
-    public static Result routeAndCall(Class<? extends play.core.Router.Routes> router, FakeRequest fakeRequest, long timeout) {
+
+    public static Result routeAndCall(Class<? extends Routes> router, FakeRequest fakeRequest, long timeout) {
         try {
-            play.core.Router.Routes routes = (play.core.Router.Routes)router.getClassLoader().loadClass(router.getName() + "$").getDeclaredField("MODULE$").get(null);
+            Routes routes = (Routes) router.getClassLoader().loadClass(router.getName() + "$").getDeclaredField("MODULE$").get(null);
             if(routes.routes().isDefinedAt(fakeRequest.getWrappedRequest())) {
                 return invokeHandler(routes.routes().apply(fakeRequest.getWrappedRequest()), fakeRequest, timeout);
             } else {
@@ -401,6 +423,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static Result route(FakeRequest fakeRequest) {
       return route(fakeRequest, DEFAULT_TIMEOUT);
     }
+
     public static Result route(FakeRequest fakeRequest, long timeout) {
       return route(play.Play.application(), fakeRequest, timeout);
     }
@@ -408,6 +431,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static Result route(Application app, FakeRequest fakeRequest) {
       return route(app, fakeRequest, DEFAULT_TIMEOUT);
     }
+
     public static Result route(Application app, FakeRequest fakeRequest, long timeout) {
       final scala.Option<scala.concurrent.Future<play.api.mvc.Result>> opt = play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.fake);
       return wrapScalaResult(Scala.orNull(opt), timeout);
@@ -416,6 +440,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static Result route(Application app, FakeRequest fakeRequest, byte[] body) {
       return route(app, fakeRequest, body, DEFAULT_TIMEOUT);
     }
+
     public static Result route(Application app, FakeRequest fakeRequest, byte[] body, long timeout) {
       return wrapScalaResult(Scala.orNull(play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.getWrappedRequest(), body)), timeout);
     }
@@ -423,6 +448,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static Result route(FakeRequest fakeRequest, byte[] body) {
       return route(fakeRequest, body, DEFAULT_TIMEOUT);
     }
+
     public static Result route(FakeRequest fakeRequest, byte[] body, long timeout) {
       return route(play.Play.application(), fakeRequest, body, timeout);
     }

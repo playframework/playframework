@@ -163,7 +163,7 @@ object Router {
   object HandlerInvoker {
 
     import play.libs.F.{ Promise => JPromise }
-    import play.mvc.{ Result => JResult }
+    import play.mvc.{ SimpleResult => JSimpleResult, Result => JResult }
 
     implicit def passThrough[A <: Handler]: HandlerInvoker[A] = new HandlerInvoker[A] {
       def call(call: => A, handler: HandlerDef): Handler = call
@@ -174,7 +174,7 @@ object Router {
       try {
         classLoader.loadClass(handlerDef.controller)
       } catch {
-        case e: ClassNotFoundException => {
+        case e: ClassNotFoundException =>
           // Try looking up relative to the routers package name.
           // This was primarily implemented for the documentation project so that routers could be namespaced and so
           // they could reference controllers relative to their own package.
@@ -185,7 +185,6 @@ object Router {
               case NonFatal(_) => throw e
             }
           } else throw e
-        }
       }
     }
 
@@ -215,6 +214,22 @@ object Router {
         } with play.core.j.JavaAction {
           val parser = annotations.parser
           def invocation = call
+        }
+      }
+    }
+
+    @deprecated("Will be removed when SimpleResult is removed", "2.3.0")
+    implicit def wrapJavaPromiseSimpleResult: HandlerInvoker[JPromise[JSimpleResult]] = new HandlerInvoker[JPromise[JSimpleResult]] {
+      def call(call: => JPromise[JSimpleResult], handlerDef: HandlerDef) = {
+        new {
+          val annotations = javaActionAnnotations.getOrElseUpdate(handlerDef, {
+            val controller = loadJavaControllerClass(handlerDef)
+            val method = MethodUtils.getMatchingAccessibleMethod(controller, handlerDef.method, handlerDef.parameterTypes: _*)
+            new JavaActionAnnotations(controller, method)
+          })
+        } with play.core.j.JavaAction {
+          val parser = annotations.parser
+          def invocation = JPromise.wrap(call.wrapped().mapTo[JResult])
         }
       }
     }

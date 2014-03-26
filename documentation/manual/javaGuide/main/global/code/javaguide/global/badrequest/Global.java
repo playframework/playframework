@@ -13,8 +13,8 @@ import static play.mvc.Results.*;
 
 public class Global extends GlobalSettings {
 
-    public Promise<SimpleResult> onBadRequest(RequestHeader request, String error) {
-        return Promise.<SimpleResult>pure(badRequest("Don't try to hack the URI!"));
+    public Promise<Result> onBadRequest(RequestHeader request, String error) {
+        return Promise.<Result>pure(badRequest("Don't try to hack the URI!"));
     }
 
 }

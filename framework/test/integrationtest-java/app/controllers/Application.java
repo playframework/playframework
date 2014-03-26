@@ -31,8 +31,8 @@ public class Application extends Controller {
         return ok(node);
     }
 
-    public static Result asyncResult() {
-        return async(Promise.promise(new Function0<String>() {
+    public static Promise<Result> asyncResult() {
+        return Promise.promise(new Function0<String>() {
             @Override
             public String apply() {
                 return "success";
@@ -46,7 +46,7 @@ public class Application extends Controller {
                 flash("flash_test", "flash_val");
                 return ok(a);
             };
-        }));
+        });
     }
 
     public static Result setLang(String code) {

@@ -24,7 +24,7 @@ public abstract class Action<T> extends Results {
     /**
      * Executes this action with the given HTTP context and returns the result.
      */
-    public abstract Promise<SimpleResult> call(Context ctx) throws Throwable;
+    public abstract Promise<Result> call(Context ctx) throws Throwable;
     
     /**
      * A simple action with no configuration.

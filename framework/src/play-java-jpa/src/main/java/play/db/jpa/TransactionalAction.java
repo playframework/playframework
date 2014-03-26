@@ -14,12 +14,12 @@ import javax.persistence.*;
  */
 public class TransactionalAction extends Action<Transactional> {
     
-    public F.Promise<SimpleResult> call(final Context ctx) throws Throwable {
+    public F.Promise<Result> call(final Context ctx) throws Throwable {
         return JPA.withTransactionAsync(
             configuration.value(),
             configuration.readOnly(),
-            new play.libs.F.Function0<F.Promise<SimpleResult>>() {
-                public F.Promise<SimpleResult> apply() throws Throwable {
+            new play.libs.F.Function0<F.Promise<Result>>() {
+                public F.Promise<Result> apply() throws Throwable {
                     return delegate.call(ctx);
                 }
             }

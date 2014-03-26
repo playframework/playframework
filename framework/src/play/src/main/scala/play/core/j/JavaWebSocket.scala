@@ -4,8 +4,7 @@
 package play.core.j
 
 import play.api.mvc._
-import play.mvc.{ Action => JAction, Result => JResult }
-import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestBody => JBody, Cookies => JCookies, Cookie => JCookie }
+import play.mvc.Http.{ Context => JContext }
 import scala.collection.JavaConverters._
 
 import play.core.Execution.Implicits.internalContext

@@ -32,26 +32,6 @@ public class Results {
      */
     public static Result TODO = new Todo();
 
-    /**
-     * Handles an Asynchronous result.
-     *
-     * @deprecated Return Promise&lt;Result&gt; from your action instead
-     */
-    @Deprecated
-    public static <R extends Result> AsyncResult async(play.libs.F.Promise<R> p) {
-        return new AsyncResult(p.flatMap(new Function<R, play.libs.F.Promise<SimpleResult>>() {
-            @Override
-            public play.libs.F.Promise<SimpleResult> apply(R result) throws Throwable {
-                if (result instanceof AsyncResult) {
-                    return ((AsyncResult)result).promise;
-                } else {
-                    // Must be a simple result
-                    return play.libs.F.Promise.pure((SimpleResult) result);
-                }
-            }
-        }));
-    }
-
     // -- Status
 
     /**
@@ -987,7 +967,7 @@ public class Results {
      *
      * @param url The url to redirect.
      */
-    public static SimpleResult redirect(String url) {
+    public static Result redirect(String url) {
         return new Redirect(303, url);
     }
 
@@ -996,7 +976,7 @@ public class Results {
      *
      * @param call Call defining the url to redirect (typically comes from reverse router).
      */
-    public static SimpleResult redirect(Call call) {
+    public static Result redirect(Call call) {
         return new Redirect(303, call.url());
     }
 
@@ -1007,7 +987,7 @@ public class Results {
      *
      * @param url The url to redirect.
      */
-    public static SimpleResult found(String url) {
+    public static Result found(String url) {
         return new Redirect(302, url);
     }
 
@@ -1016,7 +996,7 @@ public class Results {
      *
      * @param call Call defining the url to redirect (typically comes from reverse router).
      */
-    public static SimpleResult found(Call call) {
+    public static Result found(Call call) {
         return new Redirect(302, call.url());
     }
 
@@ -1027,7 +1007,7 @@ public class Results {
      *
      * @param url The url to redirect.
      */
-    public static SimpleResult movedPermanently(String url) {
+    public static Result movedPermanently(String url) {
         return new Redirect(301, url);
     }
 
@@ -1036,7 +1016,7 @@ public class Results {
      *
      * @param call Call defining the url to redirect (typically comes from reverse router).
      */
-    public static SimpleResult movedPermanently(Call call) {
+    public static Result movedPermanently(Call call) {
         return new Redirect(301, call.url());
     }
 
@@ -1047,7 +1027,7 @@ public class Results {
      *
      * @param url The url to redirect.
      */
-    public static SimpleResult seeOther(String url) {
+    public static Result seeOther(String url) {
         return new Redirect(303, url);
     }
 
@@ -1056,7 +1036,7 @@ public class Results {
      *
      * @param call Call defining the url to redirect (typically comes from reverse router).
      */
-    public static SimpleResult seeOther(Call call) {
+    public static Result seeOther(Call call) {
         return new Redirect(303, call.url());
     }
 
@@ -1067,7 +1047,7 @@ public class Results {
      *
      * @param url The url to redirect.
      */
-    public static SimpleResult temporaryRedirect(String url) {
+    public static Result temporaryRedirect(String url) {
         return new Redirect(307, url);
     }
 
@@ -1076,7 +1056,7 @@ public class Results {
      *
      * @param call Call defining the url to redirect (typically comes from reverse router).
      */
-    public static SimpleResult temporaryRedirect(Call call) {
+    public static Result temporaryRedirect(Call call) {
         return new Redirect(307, call.url());
     }
 
@@ -1190,48 +1170,9 @@ public class Results {
     }
 
     /**
-     * An asynchronous result.
-     *
-     * @deprecated return Promise&lt;Result&gt; from your actions instead.
-     */
-    @Deprecated
-    public static class AsyncResult implements Result {
-
-        private final F.Promise<SimpleResult> promise;
-        private final Http.Context context = Http.Context.current();
-
-        public AsyncResult(F.Promise<SimpleResult> promise) {
-            this.promise = promise;
-        }
-
-        /**
-         * Transform this asynchronous result
-         *
-         * @param f The transformation function
-         * @return The transformed AsyncResult
-         */
-        public AsyncResult transform(F.Function<SimpleResult, SimpleResult> f) {
-            return new AsyncResult(promise.map(f));
-        }
-
-        public scala.concurrent.Future<play.api.mvc.Result> getWrappedResult() {
-            return promise.map(new Function<SimpleResult, play.api.mvc.Result>() {
-                @Override
-                public play.api.mvc.Result apply(SimpleResult result) throws Throwable {
-                    return play.core.j.JavaHelpers$.MODULE$.createResult(context, result);
-                }
-            }).wrapped();
-        }
-
-        public Promise<SimpleResult> getPromise() {
-            return promise;
-        }
-    }
-
-    /**
      * A 501 NOT_IMPLEMENTED simple result.
      */
-    public static class Todo extends SimpleResult {
+    public static class Todo implements Result {
 
         final private play.api.mvc.Result wrappedResult;
 
@@ -1242,8 +1183,7 @@ public class Results {
                     );
         }
 
-        @Override
-        public play.api.mvc.Result getWrappedSimpleResult() {
+        public play.api.mvc.Result toScala() {
             return this.wrappedResult;
         }
     }
@@ -1251,7 +1191,7 @@ public class Results {
     /**
      * A simple result.
      */
-    public static class Status extends SimpleResult {
+    public static class Status implements Result {
 
         private play.api.mvc.Result wrappedResult;
 
@@ -1344,7 +1284,7 @@ public class Results {
                     );
         }
 
-        public play.api.mvc.Result getWrappedSimpleResult() {
+        public play.api.mvc.Result toScala() {
             return wrappedResult;
         }
 
@@ -1365,7 +1305,7 @@ public class Results {
     /**
      * A redirect result.
      */
-    public static class Redirect extends SimpleResult {
+    public static class Redirect implements Result {
 
         final private play.api.mvc.Result wrappedResult;
 
@@ -1373,7 +1313,7 @@ public class Results {
             wrappedResult = play.core.j.JavaResults.Redirect(url, status);
         }
 
-        public play.api.mvc.Result getWrappedSimpleResult() {
+        public play.api.mvc.Result toScala() {
             return this.wrappedResult;
         }
 

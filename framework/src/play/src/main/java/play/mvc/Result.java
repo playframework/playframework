@@ -6,11 +6,10 @@ package play.mvc;
 /**
  * Any action result.
  */
-public interface Result {
+public interface Result extends SimpleResult {
     
     /**
      * Retrieves the real (Scala-based) result.
      */
-    scala.concurrent.Future<play.api.mvc.Result> getWrappedResult();
-    
+    play.api.mvc.Result toScala();
 }

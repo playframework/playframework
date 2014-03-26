@@ -13,16 +13,14 @@ import static akka.pattern.Patterns.ask;
 
 public class Application extends Controller {
 
-    public static Result index() {
+    public static Promise<Result> index() {
         ActorSelection myActor = Akka.system().actorSelection("user/my-actor");
-        return async(
-            Promise.wrap(ask(myActor, "hello", 1000)).map(
-                new Function<Object, Result>() {
-                    public Result apply(Object response) {
-                        return ok(response.toString());
-                    }
+        return Promise.wrap(ask(myActor, "hello", 1000)).map(
+            new Function<Object, Result>() {
+                public Result apply(Object response) {
+                    return ok(response.toString());
                 }
-            )
+            }
         );
     }
 }

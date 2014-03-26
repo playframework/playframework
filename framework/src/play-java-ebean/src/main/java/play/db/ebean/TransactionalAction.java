@@ -14,9 +14,9 @@ import com.avaje.ebean.*;
  */
 public class TransactionalAction extends Action<Transactional> {
     
-    public F.Promise<SimpleResult> call(final Context ctx) throws Throwable {
-        return Ebean.execute(new TxCallable<F.Promise<SimpleResult>>() {
-            public F.Promise<SimpleResult> call() {
+    public F.Promise<Result> call(final Context ctx) throws Throwable {
+        return Ebean.execute(new TxCallable<F.Promise<Result>>() {
+            public F.Promise<Result> call() {
                 try {
                     return delegate.call(ctx);
                 } catch(RuntimeException e) {

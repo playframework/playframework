@@ -61,7 +61,7 @@ class ApplicationSpec extends PlaySpecification with WsTestClient {
 
     def javaResult(result: Future[play.api.mvc.Result]) =
       new play.mvc.Result {
-        def getWrappedResult = result
+        def toScala = await(result)
       }
 
     "execute json with content type" in new WithApplication() {

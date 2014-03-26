@@ -10,9 +10,10 @@ import play.api.http._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Concurrent._
 import play.mvc.Http.{ Cookies => JCookies, Cookie => JCookie, Session => JSession, Flash => JFlash }
+import play.mvc.{ Result => JResult }
 import scala.collection.JavaConverters._
 import scala.concurrent.Await
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
 import play.core.Execution.Implicits.internalContext
 
@@ -51,7 +52,7 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
 
 object JavaResultExtractor {
 
-  def getCookies(result: play.mvc.SimpleResult): JCookies =
+  def getCookies(result: JResult): JCookies =
     new JCookies {
       private val cookies = Cookies(headers(result).get(HeaderNames.SET_COOKIE))
 
@@ -74,20 +75,20 @@ object JavaResultExtractor {
       }
     }
 
-  def getSession(result: play.mvc.SimpleResult): JSession =
+  def getSession(result: JResult): JSession =
     new JSession(Session.decodeFromCookie(
       Cookies(headers(result).get(HeaderNames.SET_COOKIE)).get(Session.COOKIE_NAME)
     ).data.asJava)
 
-  def getFlash(result: play.mvc.SimpleResult): JFlash = new JFlash(Flash.decodeFromCookie(
+  def getFlash(result: JResult): JFlash = new JFlash(Flash.decodeFromCookie(
     Cookies(headers(result).get(HeaderNames.SET_COOKIE)).get(Flash.COOKIE_NAME)
   ).data.asJava)
 
-  def getHeaders(result: play.mvc.SimpleResult): java.util.Map[String, String] = headers(result).asJava
+  def getHeaders(result: JResult): java.util.Map[String, String] = headers(result).asJava
 
-  def getBody(result: play.mvc.SimpleResult): Array[Byte] =
-    Await.result(result.getWrappedSimpleResult.body |>>> Iteratee.consume[Array[Byte]](), Duration.Inf)
+  def getBody(result: JResult, timeout: Long): Array[Byte] =
+    Await.result(result.toScala.body |>>> Iteratee.consume[Array[Byte]](), timeout.millis)
 
-  private def headers(result: play.mvc.SimpleResult) = result.getWrappedSimpleResult.header.headers
+  private def headers(result: JResult) = result.toScala.header.headers
 
 }

@@ -31,17 +31,13 @@ public class Security {
      */
     public static class AuthenticatedAction extends Action<Authenticated> {
         
-        public F.Promise<SimpleResult> call(Context ctx) {
+        public F.Promise<Result> call(Context ctx) {
             try {
                 Authenticator authenticator = configuration.value().newInstance();
                 String username = authenticator.getUsername(ctx);
                 if(username == null) {
                     Result unauthorized = authenticator.onUnauthorized(ctx);
-                    if (unauthorized instanceof AsyncResult) {
-                        return ((AsyncResult) unauthorized).getPromise();
-                    } else {
-                        return F.Promise.pure((SimpleResult) unauthorized);
-                    }
+                    return F.Promise.pure(unauthorized);
                 } else {
                     try {
                         ctx.request().setUsername(username);
