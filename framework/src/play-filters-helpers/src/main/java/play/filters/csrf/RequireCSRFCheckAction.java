@@ -7,7 +7,7 @@ import play.api.mvc.RequestHeader;
 import play.libs.F;
 import play.mvc.Action;
 import play.mvc.Http;
-import play.mvc.SimpleResult;
+import play.mvc.Result;
 import scala.Option;
 
 public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
@@ -18,7 +18,7 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
     private final CSRF.TokenProvider tokenProvider = CSRFConf$.MODULE$.defaultTokenProvider();
 
     @Override
-    public F.Promise<SimpleResult> call(Http.Context ctx) throws Throwable {
+    public F.Promise<Result> call(Http.Context ctx) throws Throwable {
         RequestHeader request = ctx._requestHeader();
         // Check for bypass
         if (CSRFAction.checkCsrfBypass(request)) {
@@ -53,13 +53,13 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
                     if (tokenProvider.compareTokens(tokenToCheck, headerToken.get())) {
                         return delegate.call(ctx);
                     } else {
-                        return F.Promise.pure((SimpleResult) forbidden("CSRF tokens don't match"));
+                        return F.Promise.pure((Result) forbidden("CSRF tokens don't match"));
                     }
                 } else {
-                    return F.Promise.pure((SimpleResult) forbidden("CSRF token not found in body or query string"));
+                    return F.Promise.pure((Result) forbidden("CSRF token not found in body or query string"));
                 }
             } else {
-                return F.Promise.pure((SimpleResult) forbidden("CSRF token not found in session"));
+                return F.Promise.pure((Result) forbidden("CSRF token not found in session"));
             }
         }
     }

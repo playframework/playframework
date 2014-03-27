@@ -30,19 +30,19 @@ abstract class MockJavaAction extends Controller with JavaAction {
 }
 
 object MockJavaAction {
+  import Helpers.defaultAwaitTimeout
+
   def call(action: JavaAction, request: FakeRequest) = {
-    val result = action.apply(request.getWrappedRequest)
+    val result = Helpers.await(action.apply(request.getWrappedRequest))
     new Result {
-      def getWrappedResult = result
-      override def toString = result.toString
+      def toScala = result
     }
   }
 
   def callWithStringBody(action: JavaAction, request: FakeRequest, body: String) = {
-    val result = Helpers.call(action, request.getWrappedRequest, body)
+    val result = Helpers.await(Helpers.call(action, request.getWrappedRequest, body))
     new Result {
-      def getWrappedResult = result
-      override def toString = result.toString
+      def toScala = result
     }
   }
 

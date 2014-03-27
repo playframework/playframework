@@ -48,7 +48,7 @@ public class GlobalSettings {
      * @param t is any throwable
      * @return null as the default implementation
      */
-    public F.Promise<SimpleResult> onError(RequestHeader request, Throwable t) {
+    public F.Promise<Result> onError(RequestHeader request, Throwable t) {
         return null;
     }
 
@@ -63,7 +63,7 @@ public class GlobalSettings {
     @SuppressWarnings("rawtypes")
     public Action onRequest(Request request, Method actionMethod) {
         return new Action.Simple() {
-            public F.Promise<SimpleResult> call(Context ctx) throws Throwable {
+            public F.Promise<Result> call(Context ctx) throws Throwable {
                 return delegate.call(ctx);
             }
         };
@@ -95,7 +95,7 @@ public class GlobalSettings {
      * @param request the HTTP request
      * @return null in the default implementation, you can return your own custom Result in your Global class.
      */
-    public F.Promise<SimpleResult> onHandlerNotFound(RequestHeader request) {
+    public F.Promise<Result> onHandlerNotFound(RequestHeader request) {
         return null;
     }
 
@@ -110,7 +110,7 @@ public class GlobalSettings {
      * @param request the HTTP request
      * @return null in the default implementation, you can return your own custom Result in your Global class.
      */
-    public F.Promise<SimpleResult> onBadRequest(RequestHeader request, String error) {
+    public F.Promise<Result> onBadRequest(RequestHeader request, String error) {
         return null;
     }
 

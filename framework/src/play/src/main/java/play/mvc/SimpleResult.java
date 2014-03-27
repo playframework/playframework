@@ -3,22 +3,12 @@
  */
 package play.mvc;
 
-import scala.concurrent.Future;
-
 /**
- * A simple result.
+ * This exists only for backwards compatibility.
  *
- * This exists temporarily to distinguish simple results from AsyncResults.
+ * @deprecated Use play.api.mvc.Result instead
  */
-public abstract class SimpleResult implements Result {
-
-    @Override
-    public Future<play.api.mvc.Result> getWrappedResult() {
-        return scala.concurrent.Future$.MODULE$.successful(getWrappedSimpleResult());
-    }
-
-    /**
-     * Get the wrapped simple result
-     */
-    public abstract play.api.mvc.Result getWrappedSimpleResult();
+@Deprecated
+public interface SimpleResult {
+    play.api.mvc.Result toScala();
 }

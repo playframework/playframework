@@ -8,7 +8,7 @@ import play.api.mvc.Session;
 import play.libs.F;
 import play.mvc.Action;
 import play.mvc.Http;
-import play.mvc.SimpleResult;
+import play.mvc.Result;
 import scala.Option;
 import scala.Tuple2;
 
@@ -22,7 +22,7 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
     private final CSRF.TokenProvider tokenProvider = CSRFConf$.MODULE$.defaultTokenProvider();
 
     @Override
-    public F.Promise<SimpleResult> call(Http.Context ctx) throws Throwable {
+    public F.Promise<Result> call(Http.Context ctx) throws Throwable {
         RequestHeader request = ctx._requestHeader();
 
         if (CSRFAction.getTokenFromHeader(request, tokenName, cookieName).isEmpty()) {

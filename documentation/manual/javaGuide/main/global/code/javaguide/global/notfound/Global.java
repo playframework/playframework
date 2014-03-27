@@ -15,8 +15,8 @@ import static play.mvc.Results.*;
 
 public class Global extends GlobalSettings {
 
-    public Promise<SimpleResult> onHandlerNotFound(RequestHeader request) {
-        return Promise.<SimpleResult>pure(notFound(
+    public Promise<Result> onHandlerNotFound(RequestHeader request) {
+        return Promise.<Result>pure(notFound(
             views.html.notFoundPage.render(request.uri())
         ));
     }

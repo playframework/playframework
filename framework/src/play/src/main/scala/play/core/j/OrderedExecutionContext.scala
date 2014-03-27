@@ -5,7 +5,6 @@ package play.core.j
 
 import akka.actor.{ Actor, ActorSystem, Props }
 import play.api.Logger
-import play.core.Invoker
 import play.mvc.Http
 import scala.concurrent.ExecutionContext
 

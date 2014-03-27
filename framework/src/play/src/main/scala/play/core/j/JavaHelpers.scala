@@ -3,7 +3,7 @@
  */
 package play.core.j
 
-import play.mvc.{ SimpleResult => JSimpleResult }
+import play.mvc.{ Result => JResult }
 import play.mvc.Http.{ Context => JContext, Request => JRequest, Cookies => JCookies, Cookie => JCookie }
 
 import play.libs.F
@@ -31,12 +31,12 @@ trait JavaHelpers {
    * @param javaContext
    * @param javaResult
    */
-  def createResult(javaContext: JContext, javaResult: JSimpleResult): Result = {
-    val wResult = javaResult.getWrappedSimpleResult.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
-      .withCookies((javaContext.response.cookies.asScala.toSeq map { c =>
+  def createResult(javaContext: JContext, javaResult: JResult): Result = {
+    val wResult = javaResult.toScala.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
+      .withCookies(javaContext.response.cookies.asScala.toSeq map { c =>
         Cookie(c.name, c.value,
           if (c.maxAge == null) None else Some(c.maxAge), c.path, Option(c.domain), c.secure, c.httpOnly)
-      }): _*)
+      }: _*)
 
     if (javaContext.session.isDirty && javaContext.flash.isDirty) {
       wResult.withSession(Session(javaContext.session.asScala.toMap)).flashing(Flash(javaContext.flash.asScala.toMap))
@@ -117,7 +117,7 @@ trait JavaHelpers {
 
   /**
    * creates a java context from a scala RequestHeader
-   * @param request
+   * @param req
    */
   def createJavaContext(req: RequestHeader): JContext = {
     new JContext(
@@ -132,7 +132,7 @@ trait JavaHelpers {
 
   /**
    * creates a java context from a scala Request[RequestBody]
-   * @param request
+   * @param req
    */
   def createJavaContext(req: Request[RequestBody]): JContext = {
     new JContext(req.id, req, new JRequest {
@@ -207,7 +207,7 @@ trait JavaHelpers {
    * @param f The function to invoke
    * @return The result
    */
-  def invokeWithContext(request: RequestHeader, f: JRequest => Option[F.Promise[JSimpleResult]]): Option[Future[Result]] = {
+  def invokeWithContext(request: RequestHeader, f: JRequest => Option[F.Promise[JResult]]): Option[Future[Result]] = {
     val javaContext = createJavaContext(request)
     try {
       JContext.current.set(javaContext)

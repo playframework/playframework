@@ -51,7 +51,7 @@ public class JavaCometTest {
                 };
                 TestController controller = testController(comet);
                 // Consume body
-                ((SimpleResult)controller.liveClock()).getWrappedSimpleResult().body().apply(Iteratee$.MODULE$.<byte[]>ignore());
+                controller.liveClock().toScala().body().apply(Iteratee$.MODULE$.<byte[]>ignore());
             }
         });
         assertTrue("Connected not invoked", connected.await(5, TimeUnit.SECONDS));

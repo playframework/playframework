@@ -9,13 +9,11 @@ Previously, we said that an action is a Java method that returns a `play.mvc.Res
 
 ```java
 public abstract class Action {
-  public abstract Promise<SimpleResult> call(Context ctx) throws Throwable;
+  public abstract Promise<Result> call(Context ctx) throws Throwable;
 }
 ```
 
 Play builds a root action for you that just calls the proper action method. This allows for more complicated action composition.
-
-Notice that the `call` method returns `Promise<SimpleResult>`, this was introduced in [[version 2.2|Highlights22]] to improve handling different result type such as chunked, plain or async. 
 
 ## Composing actions
 

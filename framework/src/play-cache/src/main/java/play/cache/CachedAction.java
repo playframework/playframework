@@ -12,18 +12,18 @@ import play.mvc.Http.*;
  */
 public class CachedAction extends Action<Cached> {
     
-    public F.Promise<SimpleResult> call(Context ctx) {
+    public F.Promise<Result> call(Context ctx) {
         try {
             final String key = configuration.key();
             final Integer duration = configuration.duration();
-            SimpleResult result = (SimpleResult) Cache.get(key);
-            F.Promise<SimpleResult> promise;
+            Result result = (Result) Cache.get(key);
+            F.Promise<Result> promise;
             if(result == null) {
                 promise = delegate.call(ctx);
-                promise.onRedeem(new F.Callback<SimpleResult>() {
+                promise.onRedeem(new F.Callback<Result>() {
                     @Override
-                    public void invoke(SimpleResult simpleResult) throws Throwable {
-                        Cache.set(key, simpleResult, duration);
+                    public void invoke(Result result) throws Throwable {
+                        Cache.set(key, result, duration);
                     }
                 });
             } else {

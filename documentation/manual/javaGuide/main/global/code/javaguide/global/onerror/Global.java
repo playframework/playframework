@@ -14,8 +14,8 @@ import static play.mvc.Results.*;
 
 public class Global extends GlobalSettings {
 
-    public Promise<SimpleResult> onError(RequestHeader request, Throwable t) {
-        return Promise.<SimpleResult>pure(internalServerError(
+    public Promise<Result> onError(RequestHeader request, Throwable t) {
+        return Promise.<Result>pure(internalServerError(
             views.html.errorPage.render(t)
         ));
     }
