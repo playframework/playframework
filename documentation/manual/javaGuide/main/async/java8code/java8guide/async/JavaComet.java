@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
-package javaguide.async;
+package java8guide.async;
 
 import javaguide.testhelpers.MockJavaAction;
 import org.junit.Before;
@@ -32,17 +32,12 @@ public class JavaComet extends WithApplication {
         //#manual
         public static Result index() {
             // Prepare a chunked text stream
-            Chunks<String> chunks = new StringChunks() {
-
-                // Called when the stream is ready
-                public void onReady(Chunks.Out<String> out) {
-                    out.write("<script>console.log('kiki')</script>");
-                    out.write("<script>console.log('foo')</script>");
-                    out.write("<script>console.log('bar')</script>");
-                    out.close();
-                }
-
-            };
+            Chunks<String> chunks = StringChunks.whenReady(out -> {
+                out.write("<script>console.log('kiki')</script>");
+                out.write("<script>console.log('foo')</script>");
+                out.write("<script>console.log('bar')</script>");
+                out.close();
+            });
 
             response().setContentType("text/html");
             return ok(chunks);
@@ -61,16 +56,12 @@ public class JavaComet extends WithApplication {
     public static class Controller2 extends MockJavaAction {
         //#comet
         public static Result index() {
-            Comet comet = new Comet("console.log") {
-                public void onConnected() {
-                    sendMessage("kiki");
-                    sendMessage("foo");
-                    sendMessage("bar");
-                    close();
-                }
-            };
-
-            return ok(comet);
+            return ok(Comet.whenConnected("console.log", comet -> {
+                comet.sendMessage("kiki");
+                comet.sendMessage("foo");
+                comet.sendMessage("bar");
+                comet.close();
+            }));
         }
         //#comet
     }
@@ -86,16 +77,12 @@ public class JavaComet extends WithApplication {
     public static class Controller3 extends MockJavaAction {
         //#forever-iframe
         public static Result index() {
-            Comet comet = new Comet("parent.cometMessage") {
-                public void onConnected() {
-                    sendMessage("kiki");
-                    sendMessage("foo");
-                    sendMessage("bar");
-                    close();
-                }
-            };
-
-            return ok(comet);
+            return ok(Comet.whenConnected("parent.cometMessage", comet -> {
+                comet.sendMessage("kiki");
+                comet.sendMessage("foo");
+                comet.sendMessage("bar");
+                comet.close();
+            }));
         }
         //#forever-iframe
     }
