@@ -2,7 +2,7 @@
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
 import java.util.jar.JarFile
-import play.console.Colors
+import play.sbtplugin.Colors
 import play.core.server.ServerWithStop
 import sbt._
 import sbt.Keys._

@@ -7,7 +7,7 @@ import sbt.{ Project => SbtProject, _ }
 import sbt.Keys._
 import Keys._
 import play.core.{ SBTLink, SBTDocHandler }
-import play.console.Colors
+import play.sbtplugin.Colors
 import annotation.tailrec
 import scala.collection.JavaConverters._
 import java.net.URLClassLoader

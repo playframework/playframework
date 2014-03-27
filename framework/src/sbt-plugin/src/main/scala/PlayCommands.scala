@@ -6,7 +6,7 @@ package play
 import sbt.{ Project => SbtProject, Settings => SbtSettings, _ }
 import sbt.Keys._
 
-import play.console.Colors
+import play.sbtplugin.Colors
 
 import Keys._
 import java.lang.{ ProcessBuilder => JProcessBuilder }
@@ -337,50 +337,6 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
       IO.delete(buildDesc)
     }
     cr
-  }
-
-  val playCommand = Command.command("play", Help("play", ("play", "Enter the play console"), "Welcome to Play " + play.core.PlayVersion.current + """!
-        |
-        |These commands are available:
-        |-----------------------------
-        |classpath                  Display the project classpath.
-        |clean                      Clean all generated files.
-        |compile                    Compile the current application.
-        |console                    Launch the interactive Scala console (use :quit to exit).
-        |dependencies               Display the dependencies summary.
-        |dist                       Construct standalone application package.
-        |exit                       Exit the console.
-        |h2-browser                 Launch the H2 Web browser.
-        |license                    Display licensing informations.
-        |package                    Package your application as a JAR.
-        |play-version               Display the Play version.
-        |publish                    Publish your application in a remote repository.
-        |publish-local              Publish your application in the local repository.
-        |reload                     Reload the current application build file.
-        |run <port>                 Run the current application in DEV mode.
-        |test                       Run Junit tests and/or Specs from the command line
-        |eclipse                    generate eclipse project file
-        |idea                       generate Intellij IDEA project file
-        |sh <command to run>        execute a shell command 
-        |start <port>               Start the current application in another JVM in PROD mode.
-        |update                     Update application dependencies.
-        |
-        |Type `help` to get the standard sbt help.
-        |""".stripMargin)) { state: State =>
-
-    val extracted = SbtProject.extract(state)
-    import extracted._
-
-    // Display logo
-    println(play.console.Console.logo)
-    println("""
-            |> Type "help play" or "license" for more information.
-            |> Type "exit" or use Ctrl+D to leave this console.
-            |""".stripMargin)
-
-    state.copy(
-      remainingCommands = state.remainingCommands :+ "shell")
-
   }
 
   val h2Command = Command.command("h2-browser") { state: State =>

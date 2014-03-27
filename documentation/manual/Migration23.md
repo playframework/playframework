@@ -3,6 +3,12 @@
 
 This guide is for migrating a Play 2.2 application to Play 2.3.  To migrate from Play 2.1, first follow the [[Play 2.2 Migration Guide|Migration22]].
 
+## Distribution
+
+Play is no longer distributed as a zip file that needs to installed.  Instead, the preferred way to obtain and run Play is using [Typesafe Activator](https://typesafe.com/activator).  Typesafe activator provides an `activator` command, which, like the Play command, delegates to sbt.  So generally, where you previously run commands like `play run`, now you run `activator run`.
+
+To download and get started with Activator, follow the instructions [here](https://typesafe.com/platform/getstarted).
+
 ## Build tasks
 
 sbt-web, autoplugins etc.
