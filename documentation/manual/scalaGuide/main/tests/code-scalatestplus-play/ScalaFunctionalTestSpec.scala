@@ -82,8 +82,9 @@ class ScalaFunctionalTestSpec extends MixedPlaySpec with Results {
           Ok(
             """
               |<html>
+              |<head><title>Hello Guest</title></head>
               |<body>
-              |  <div id="title">Hello Guest</div>
+              |  <div id="title">Hello Guest, welcome to this website.</div>
               |  <a href="/login">click me</a>
               |</body>
               |</html>
@@ -94,8 +95,9 @@ class ScalaFunctionalTestSpec extends MixedPlaySpec with Results {
           Ok(
             """
               |<html>
+              |<head><title>Hello Coco</title></head>
               |<body>
-              |  <div id="title">Hello Coco</div>
+              |  <div id="title">Hello Coco, welcome to this website.</div>
               |</body>
               |</html>
             """.stripMargin) as "text/html"
@@ -105,12 +107,12 @@ class ScalaFunctionalTestSpec extends MixedPlaySpec with Results {
     "run in a browser" in new HtmlUnit(app = fakeApplicationWithBrowser) {
 
       // Check the home page
-      go to "/"
+      go to "http://localhost:" + port
       pageTitle mustEqual "Hello Guest"
 
-      click on "a"
+      click on linkText("click me")
 
-      currentUrl mustEqual "/login"
+      currentUrl mustEqual "http://localhost:" + port + "/login"
       pageTitle mustEqual "Hello Coco"
     }
     // #scalafunctionaltest-testwithbrowser
