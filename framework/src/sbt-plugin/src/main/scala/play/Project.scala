@@ -12,27 +12,6 @@ import com.typesafe.sbt.SbtNativePackager.packageArchetype
 object Project extends Plugin with PlayExceptions with play.Keys with PlayReloader with PlayCommands
     with PlayRun with play.Settings with PlayPositionMapper with PlaySourceGenerators {
 
-  // ~~ Alerts  
-  if (Option(System.getProperty("play.debug.classpath")).filter(_ == "true").isDefined) {
-    println()
-    this.getClass.getClassLoader.asInstanceOf[sbt.PluginManagement.PluginClassLoader].getURLs.foreach { el =>
-      println(Colors.green(el.toString))
-    }
-    println()
-  }
-
-  Option(System.getProperty("play.version")).map {
-    case badVersion if badVersion != play.core.PlayVersion.current => {
-      println(
-        Colors.red("""
-          |This project uses Play %1$s while your Play installation uses %2$s!
-          |Update the Play sbt-plugin version to %2$s (usually in project/plugins.sbt) or install Play %1$s
-        """.stripMargin.format(play.core.PlayVersion.current, badVersion))
-      )
-    }
-    case _ =>
-  }
-
   private lazy val commonSettings: Seq[Setting[_]] =
     packageArchetype.java_application ++
       defaultSettings ++
