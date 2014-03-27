@@ -1156,6 +1156,70 @@ public class Results {
             super(play.core.j.JavaResults.writeString(codec));
         }
 
+        /**
+         * Creates a StringChunks. The abstract {@code onReady} method is
+         * implemented using the specified {@code Callback<Chunks.Out<String>>}.
+         *
+         * Uses UTF-8 by default.
+         *
+         * @param callback the callback used to implement onReady
+         * @return a new StringChunks
+         * @throws NullPointerException if the specified callback is null
+         */
+        public static StringChunks whenReady(Callback<Chunks.Out<String>> callback) {
+            return whenReady(utf8, callback);
+        }
+
+        /**
+         * Creates a StringChunks. The abstract {@code onReady} method is
+         * implemented using the specified {@code Callback<Chunks.Out<String>>}.
+         *
+         * @param codec the Codec charset used
+         * @param callback the callback used to implement onReady
+         * @return a new StringChunks
+         * @throws NullPointerException if the specified callback is null
+         */
+        public static StringChunks whenReady(String codec, Callback<Chunks.Out<String>> callback) {
+            return whenReady(Codec.javaSupported(codec), callback);
+        }
+
+        /**
+         * Creates a StringChunks. The abstract {@code onReady} method is
+         * implemented using the specified {@code Callback<Chunks.Out<String>>}.
+         *
+         * @param codec the Codec used
+         * @param callback the callback used to implement onReady
+         * @return a new StringChunks
+         * @throws NullPointerException if the specified callback is null
+         */
+        public static StringChunks whenReady(Codec codec, Callback<Chunks.Out<String>> callback) {
+            return new WhenReadyStringChunks(codec, callback);
+        }
+
+        /**
+         * An extension of StringChunks that obtains its onReady from
+         * the specified {@code Callback<Chunks.Out<String>>}.
+         */
+        static final class WhenReadyStringChunks extends StringChunks {
+
+            private final Callback<Chunks.Out<String>> callback;
+
+            WhenReadyStringChunks(Codec codec, Callback<Chunks.Out<String>> callback) {
+                super(codec);
+                if (callback == null) throw new NullPointerException("StringChunks onReady callback cannot be null");
+                this.callback = callback;
+            }
+
+            @Override
+            public void onReady(Chunks.Out<String> out) {
+                try {
+                    callback.invoke(out);
+                } catch (Throwable e) {
+                    play.PlayInternal.logger().error("Exception in StringChunks.onReady", e);
+                }
+            }
+        }
+
     }
 
     /**
