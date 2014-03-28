@@ -78,11 +78,24 @@ class ScalaFormsSpec extends Specification with Controller {
     "handling binding failure" in {
       val userForm = controllers.Application.userFormConstraints
 
-      implicit val request = FakeRequest().withBody("name" -> "", "age" -> "25")
+      implicit val request = FakeRequest().withFormUrlEncodedBody("name" -> "", "age" -> "25")
 
       val boundForm = userForm.bindFromRequest
-      boundForm.hasErrors must be_==(true)
+      boundForm.hasErrors must beTrue
     }
+    
+    "display global errors user template" in {
+      val userForm = controllers.Application.userFormConstraintsAdHoc
+      
+      implicit val request = FakeRequest().withFormUrlEncodedBody("name" -> "Johnny Utah", "age" -> "25")
+      
+      val boundForm = userForm.bindFromRequest
+      boundForm.hasGlobalErrors must beTrue
+      
+      val html = views.html.user(boundForm)
+      html.body must contain("Failed form constraints!")
+    }
+    
   }
 }
 

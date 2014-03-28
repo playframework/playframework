@@ -27,11 +27,11 @@
 
 @* #global-errors *@
 @if(userForm.hasGlobalErrors) {
-    <ul>
-    @userForm.globalErrors.map { error =>
-        <li>error.message</li>
-    }
-    </ul>
+  <ul>
+  @for(error <- userForm.globalErrors) {
+    <li>@error.message</li>
+  }
+  </ul>
 }
 @* #global-errors *@
 
