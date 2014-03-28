@@ -22,7 +22,7 @@ public class Application extends Controller {
             }
         });
     }
-    //###skip 1
+    //###skip: 1
     public static int longComputation() { return 2;}
 }
 //#async

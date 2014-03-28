@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
-package javaguide.akka;
+package java8guide.akka;
 
 import akka.actor.*;
 import akka.actor.Props;
@@ -27,32 +27,6 @@ public class JavaAkka extends WithApplication {
     @Before
     public void setUp() throws Exception {
         start();
-    }
-
-    @Test
-    public void actorFor() throws Exception {
-        //#actor-for
-        ActorRef myActor = Akka.system().actorOf(Props.create(MyActor.class));
-        //#actor-for
-
-        latch = new CountDownLatch(1);
-        myActor.tell("hello", null);
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
-    }
-
-    public static class MyActor extends UntypedActor {
-        @Override
-        public void onReceive(Object msg) throws Exception {
-            latch.countDown();
-        }
-    }
-
-    private static volatile CountDownLatch latch;
-
-    @Test
-    public void conf() throws Exception {
-        Config config = ConfigFactory.parseURL(getClass().getResource("akka.conf"));
-        ActorSystem.create("conf", config).shutdown();
     }
 
     @Test
@@ -84,23 +58,6 @@ public class JavaAkka extends WithApplication {
     }
 
     @Test
-    public void scheduleActor() throws Exception {
-        latch = new CountDownLatch(1);
-        ActorRef testActor = Akka.system().actorOf(Props.create(MyActor.class));
-        //#schedule-actor
-        Akka.system().scheduler().schedule(
-                Duration.create(0, TimeUnit.MILLISECONDS), //Initial delay 0 milliseconds
-                Duration.create(30, TimeUnit.MINUTES),     //Frequency 30 minutes
-                testActor,
-                "tick",
-                Akka.system().dispatcher(),
-                null
-        );
-        //#schedule-actor
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
-    }
-
-    @Test
     public void scheduleCode() throws Exception {
         final CountDownLatch latch = new CountDownLatch(1);
         class MockFile {
@@ -112,11 +69,7 @@ public class JavaAkka extends WithApplication {
         //#schedule-code
         Akka.system().scheduler().scheduleOnce(
                 Duration.create(10, TimeUnit.MILLISECONDS),
-                new Runnable() {
-                    public void run() {
-                        file.delete();
-                    }
-                },
+                () -> file.delete(),
                 Akka.system().dispatcher()
         );
         //#schedule-code

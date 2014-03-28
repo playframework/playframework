@@ -27,13 +27,21 @@ The default actor system configuration is read from the Play application configu
 
 When you interact asynchronously with an Akka actor you will get a `Future` object. You can easily convert a `Future` to a Play `Promise` by calling the `play.libs.F.Promise.wrap()` method:
 
-@[ask](code/javaguide/akka/ask/Application.java)
+Java
+: @[ask](code/javaguide/akka/ask/Application.java)
+
+Java 8
+: @[ask](java8code/java8guide/akka/ask/Application.java)
 
 ## Executing a block of code asynchronously
 
 A common use case within Akka is to have some computation performed concurrently without needing the extra utility of an Actor. If you find yourself creating a pool of Actors for the sole reason of performing a calculation in parallel, there is an easier (and faster) way:
 
-@[async](code/javaguide/akka/async/Application.java)
+Java
+: @[async](code/javaguide/akka/async/Application.java)
+
+Java 8
+: @[async](java8code/java8guide/akka/async/Application.java)
 
 ## Scheduling asynchronous tasks
 
@@ -45,6 +53,10 @@ For example, to send a message to the `testActor` every 30 minutes:
 
 Alternatively, to run a block of code ten milliseconds from now:
 
-@[schedule-code](code/javaguide/akka/JavaAkka.java)
+Java
+: @[schedule-code](code/javaguide/akka/JavaAkka.java)
+
+Java 8
+: @[schedule-code](java8code/java8guide/akka/JavaAkka.java)
 
 > **Next:** [[Internationalization | JavaI18N]]
