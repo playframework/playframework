@@ -18,6 +18,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A WS response.
@@ -49,6 +50,14 @@ public class NingWSResponse implements WSResponse {
     @Override
     public String getStatusText() {
         return ahcResponse.getStatusText();
+    }
+
+    /**
+     * Get all the HTTP headers of the response as a case-insensitive map
+     */
+    @Override
+    public Map<String, List<String>> getAllHeaders() {
+        return ahcResponse.getHeaders();
     }
 
     /**

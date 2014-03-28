@@ -181,6 +181,22 @@ object NingWSSpec extends PlaySpecification with Mockito {
           cookie.secure must beFalse
       }
     }
+
+    "get headers from an AHC response in a case insensitive map" in {
+      val ahcResponse: AHCResponse = mock[AHCResponse]
+      val ahcHeaders = new FluentCaseInsensitiveStringsMap()
+      ahcHeaders.add("Foo", "bar")
+      ahcHeaders.add("Foo", "baz")
+      ahcHeaders.add("Bar", "baz")
+      ahcResponse.getHeaders returns ahcHeaders
+      val response = NingWSResponse(ahcResponse)
+      val headers = response.allHeaders
+      headers must beEqualTo(Map("Foo" -> Seq("bar", "baz"), "Bar" -> Seq("baz")))
+      headers.contains("foo") must beTrue
+      headers.contains("Foo") must beTrue
+      headers.contains("BAR") must beTrue
+      headers.contains("Bar") must beTrue
+    }
   }
 
 }

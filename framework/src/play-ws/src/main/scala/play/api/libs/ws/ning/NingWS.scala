@@ -21,6 +21,8 @@ import play.api.libs.iteratee.Input.El
 import play.api.{ Application, Play }
 
 import play.core.utils.CaseInsensitiveOrdered
+import scala.collection.JavaConverters._
+import play.api.libs.ws.DefaultWSResponseHeaders
 
 /**
  * A WS client backed by a Ning AsyncHttpClient.
@@ -48,13 +50,11 @@ case class NingWSRequest(client: NingWSClient,
   builder: RequestBuilder)
     extends WSRequest {
 
-  import scala.collection.JavaConverters._
-
   protected var body: Option[String] = None
 
   protected var calculator: Option[WSSignatureCalculator] = _calc
 
-  protected var headers: Map[String, Seq[String]] = Map()
+  protected var headers: Map[String, Seq[String]] = TreeMap[String, Seq[String]]()(CaseInsensitiveOrdered)
 
   protected var _url: String = null
 
@@ -64,9 +64,7 @@ case class NingWSRequest(client: NingWSClient,
   /**
    * Return the current headers of the request being constructed
    */
-  def allHeaders: Map[String, Seq[String]] = {
-    mapAsScalaMapConverter(builder.build().getHeaders).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
-  }
+  def allHeaders: Map[String, Seq[String]] = headers
 
   /**
    * Return the current query string parameters
@@ -751,6 +749,14 @@ case class NingWSResponse(ahcResponse: AHCResponse) extends WSResponse {
    */
   @deprecated("Use underlying", "2.3.0")
   def getAHCResponse = ahcResponse
+
+  /**
+   * Return the headers of the response as a case-insensitive map
+   */
+  lazy val allHeaders: Map[String, Seq[String]] = {
+    TreeMap[String, Seq[String]]()(CaseInsensitiveOrdered) ++
+      mapAsScalaMapConverter(ahcResponse.getHeaders).asScala.mapValues(_.asScala)
+  }
 
   /**
    * @return The underlying response object.

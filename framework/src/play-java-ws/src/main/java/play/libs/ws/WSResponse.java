@@ -9,13 +9,16 @@ import org.w3c.dom.Document;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
  */
 public interface WSResponse {
 
-    public Object getUnderlying();
+    Map<String, List<String>> getAllHeaders();
+
+    Object getUnderlying();
 
     int getStatus();
 
