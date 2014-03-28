@@ -406,7 +406,7 @@ public class DrawerGroup {
 
 As with `Drawer` we have a method for looking up a project by name. We've also provided a method for checking if a project with a particular name exists and used `Predicate` to capture this. Using `Predicate` will make it easy for us later when we tell FluentLenium to wait until certain conditions are true.
 
-Finally, the last component of our model that we'll build out is `test/componenst/DrawerProject.java`:
+Finally, the last component of our model that we'll build out is `test/components/DrawerProject.java`:
 
 ```java
 package components;
@@ -448,6 +448,7 @@ public class DrawerProject {
             }
         };
     }
+}    
 ```
 
 The `DrawerProject` allows us to lookup the name of the project, rename the project, and has a predicate for checking if the project name is in edit mode. So, it's been a bit of work to get this far with our selenium tests, and we haven't written any tests yet!  The great thing is though is that all of these components and pages are going to be reusable from all of our selenium tests. When something about our markup changes we can just update these components and all the tests will still work.
