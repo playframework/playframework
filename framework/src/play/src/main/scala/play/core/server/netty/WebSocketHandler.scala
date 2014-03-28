@@ -79,7 +79,11 @@ private[server] trait WebSocketHandler {
             case frame: WebSocketFrame if nettyFrameFormatter.fromFrame.isDefinedAt(frame) => {
               enumerator.frameReceived(ctx, El(nettyFrameFormatter.fromFrame(frame)))
             }
-            case frame: CloseWebSocketFrame => { ctx.getChannel().disconnect(); enumerator.frameReceived(ctx, EOF) }
+            case frame: CloseWebSocketFrame => {
+              ctx.getChannel().write(new CloseWebSocketFrame(frame.getStatusCode, ""))
+              ctx.getChannel().disconnect()
+              enumerator.frameReceived(ctx, EOF)
+            }
             case frame: PingWebSocketFrame => { ctx.getChannel().write(new PongWebSocketFrame(frame.getBinaryData)) }
             case frame: WebSocketFrame => //
             case _ => //
