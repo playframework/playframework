@@ -74,7 +74,7 @@ public class NingWSResponse implements WSResponse {
     @Override
     public List<WSCookie> getCookies() {
         List<WSCookie> cookieList = new ArrayList<WSCookie>();
-        for (com.ning.http.client.Cookie ahcCookie : ahcResponse.getCookies()) {
+        for (com.ning.http.client.cookie.Cookie ahcCookie : ahcResponse.getCookies()) {
             cookieList.add(new NingWSCookie(ahcCookie));
         }
         return cookieList;
@@ -85,7 +85,7 @@ public class NingWSResponse implements WSResponse {
      */
     @Override
     public WSCookie getCookie(String name) {
-        for (com.ning.http.client.Cookie ahcCookie : ahcResponse.getCookies()) {
+        for (com.ning.http.client.cookie.Cookie ahcCookie : ahcResponse.getCookies()) {
             // safe -- cookie.getName() will never return null
             if (ahcCookie.getName().equals(name)) {
                 return new NingWSCookie(ahcCookie);

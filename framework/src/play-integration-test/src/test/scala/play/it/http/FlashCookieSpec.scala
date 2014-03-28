@@ -32,16 +32,24 @@ object FlashCookieSpec extends PlaySpecification {
       val response = await(WS.url("http://localhost:3333/flash").withFollowRedirects(false).get())
       response.status must equalTo(SEE_OTHER)
       val flashCookie = readFlashCookie(response)
-      flashCookie must beSome
-      flashCookie.get.maxAge must_== -1
+      flashCookie must beSome.like {
+        case cookie =>
+          cookie.expires must beNone
+          cookie.maxAge must beNone
+      }
     }
 
     "be removed after a redirect" in new WithServer(app = appWithRedirect, port = 3333) {
       val response = await(WS.url("http://localhost:3333/flash").get())
       response.status must equalTo(OK)
       val flashCookie = readFlashCookie(response)
-      flashCookie must beSome
-      flashCookie.get.maxAge must_!= -1
+      flashCookie must beSome.like {
+        case cookie =>
+          cookie.expires must beSome.like {
+            case expires => expires must be lessThan System.currentTimeMillis()
+          }
+          cookie.maxAge must beNone
+      }
     }
   }
 
