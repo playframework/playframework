@@ -156,6 +156,11 @@
 * **Website:** <https://github.com/julienrf/play-jsonp-filter>
 * **Short description:** Enables JSONP on your existing HTTP API.
 
+## LiveScript plugin
+
+* **Website:** https://github.com/SunPj/play-livescript
+* **Short description:** Rudimentary LiveScript 1.2.0 asset handling for Play 2.2.x, implemented as an sbt plugin (very similar to Play's handling of CoffeeScript and LESS), working very similarly to CoffeeScript
+
 ## Manual Dependency Injection Plugin (Java and Scala)
 * **Website (docs, sample):** <https://github.com/typesafehub/play-plugins>
 * **Short description:** provides DI via manual injection
