@@ -22,3 +22,4 @@ RUNNING_PID
 documentation/*.pdf
 framework/test/integrationtest-java/conf/evolutions/
 generated.keystore
+generated.truststore

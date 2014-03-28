@@ -15,18 +15,27 @@ import java.io.File
 import java.util.concurrent.atomic.AtomicReference
 
 import play.api.libs.ws._
+import play.api.libs.ws.ssl._
+
 import play.api.http.{ Writeable, ContentTypeOf }
 import play.api.libs.iteratee._
-import play.api.libs.iteratee.Input.El
-import play.api.{ Application, Play }
-
+import play.api.{ Mode, Application, Play }
 import play.core.utils.CaseInsensitiveOrdered
+import play.api.libs.ws.DefaultWSResponseHeaders
+import play.api.libs.iteratee.Input.El
+import javax.net.ssl.SSLParameters
+import org.slf4j.LoggerFactory
+import play.api.libs.ws.ssl.debug._
 
 /**
  * A WS client backed by a Ning AsyncHttpClient.
- * @param config the config for AsyncHttpClient
+ *
+ * If you need to debug Ning, set logger.com.ning.http.client=DEBUG in your application.conf file.
+ *
+ * @param config a client configuration object
  */
 class NingWSClient(config: AsyncHttpClientConfig) extends WSClient {
+
   private val asyncHttpClient = new AsyncHttpClient(config)
 
   def underlying[T] = asyncHttpClient.asInstanceOf[T]
@@ -610,6 +619,10 @@ class NingWSPlugin(app: Application) extends WSPlugin {
 
   override lazy val enabled = true
 
+  private val config = new DefaultWSConfigParser(app.configuration).parse()
+
+  private lazy val ningAPI = new NingWSAPI(app, config)
+
   override def onStart() {
     loaded = true
   }
@@ -623,49 +636,42 @@ class NingWSPlugin(app: Application) extends WSPlugin {
 
   def api = ningAPI
 
-  private lazy val ningAPI = new NingWSAPI(app)
-
 }
 
-class NingWSAPI(app: Application) extends WSAPI {
-
-  import javax.net.ssl.SSLContext
+class NingWSAPI(app: Application, clientConfig: WSClientConfig) extends WSAPI {
 
   private val clientHolder: AtomicReference[Option[NingWSClient]] = new AtomicReference(None)
 
   private[play] def newClient(): NingWSClient = {
-    val playConfig = app.configuration
-    val asyncHttpConfig = new AsyncHttpClientConfig.Builder()
-      .setConnectionTimeoutInMs(playConfig.getMilliseconds("ws.timeout.connection").getOrElse(120000L).toInt)
-      .setIdleConnectionTimeoutInMs(playConfig.getMilliseconds("ws.timeout.idle").getOrElse(120000L).toInt)
-      .setRequestTimeoutInMs(playConfig.getMilliseconds("ws.timeout.request").getOrElse(120000L).toInt)
-      .setFollowRedirects(playConfig.getBoolean("ws.followRedirects").getOrElse(true))
-      .setUseProxyProperties(playConfig.getBoolean("ws.useProxyProperties").getOrElse(true))
-      .setCompressionEnabled(playConfig.getBoolean("ws.compressionEnabled").getOrElse(false))
+    val asyncClientConfig = buildAsyncClientConfig(clientConfig)
 
-    playConfig.getString("ws.useragent").map {
-      useragent =>
-        asyncHttpConfig.setUserAgent(useragent)
+    new SystemConfiguration().configure(clientConfig)
+    clientConfig.ssl.map {
+      _.debug.map { debugConfig =>
+        app.mode match {
+          case Mode.Prod =>
+            Play.logger.warn("NingWSAPI: ws.ssl.debug settings enabled in production mode!")
+          case _ => // do nothing
+        }
+        new DebugConfiguration().configure(debugConfig)
+      }
     }
-    if (!playConfig.getBoolean("ws.acceptAnyCertificate").getOrElse(false)) {
-      asyncHttpConfig.setSSLContext(SSLContext.getDefault)
-    }
-    new NingWSClient(asyncHttpConfig.build())
+
+    new NingWSClient(asyncClientConfig)
   }
 
   def client: NingWSClient = {
     clientHolder.get.getOrElse({
-      // A critical section of code. Only one caller has the opportuntity of creating a new client.
+      // A critical section of code. Only one caller has the opportunity of creating a default client.
       synchronized {
         clientHolder.get match {
-          case None => {
+          case None =>
             val client = newClient()
             clientHolder.set(Some(client))
             client
-          }
+
           case Some(client) => client
         }
-
       }
     })
   }
@@ -679,6 +685,9 @@ class NingWSAPI(app: Application) extends WSAPI {
     clientHolder.getAndSet(None).map(oldClient => oldClient.close())
   }
 
+  private[play] def buildAsyncClientConfig(wsClientConfig: WSClientConfig): AsyncHttpClientConfig = {
+    new NingAsyncHttpClientConfigBuilder(wsClientConfig).build()
+  }
 }
 
 /**

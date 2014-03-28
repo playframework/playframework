@@ -6,19 +6,49 @@ package play.api.libs.ws.ning
 import org.specs2.mutable._
 import org.specs2.mock.Mockito
 
-import com.ning.http.client.{Response => AHCResponse, Cookie => AHCCookie, RequestBuilder, FluentCaseInsensitiveStringsMap, AsyncHttpClient}
+import com.ning.http.client.{Response => AHCResponse, Cookie => AHCCookie, _}
 
 import play.api.mvc._
 
-import java.util
 import play.api.libs.ws._
+import play.api.libs.ws.ssl.{SystemConfiguration, DefaultSSLLooseConfig, DefaultSSLConfig}
 import play.api.test._
+
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
+import java.util
+
 object NingWSSpec extends PlaySpecification with Mockito {
 
+  sequential
+
   "Ning WS" should {
+
+    object PairMagnet {
+      implicit def fromPair(pair: Pair[WSClient, java.net.URL]) =
+        new WSRequestHolderMagnet {
+          def apply(): WSRequestHolder = {
+            val (client, netUrl) = pair
+            client.url(netUrl.toString)
+          }
+        }
+    }
+
+    "support ning magnet" in new WithApplication {
+      import scala.language.implicitConversions
+      import PairMagnet._
+
+      val client = WS.client
+      val exampleURL = new java.net.URL("http://example.com")
+      WS.url(client -> exampleURL) must beAnInstanceOf[WSRequestHolder]
+    }
+
+    "support direct client instantiation" in new WithApplication {
+      val sslBuilder = new com.ning.http.client.AsyncHttpClientConfig.Builder()
+      implicit val sslClient = new play.api.libs.ws.ning.NingWSClient(sslBuilder.build())
+      WS.clientUrl("http://example.com/feed") must beAnInstanceOf[WSRequestHolder]
+    }
 
     "NingWSClient.underlying" in new WithApplication {
       val client = WS.client
@@ -26,6 +56,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
     }
 
     "NingWSCookie.underlying" in new WithApplication() {
+
       import com.ning.http.client.Cookie
 
       val mockCookie = mock[Cookie]
@@ -44,14 +75,14 @@ object NingWSSpec extends PlaySpecification with Mockito {
 
     "NingWSRequest.setHeaders using a builder with direct map" in new WithApplication {
       val request = new NingWSRequest(mock[NingWSClient], "GET", None, None, builder = new RequestBuilder("GET"))
-      val headerMap : Map[String, Seq[String]] = Map("key" -> Seq("value"))
+      val headerMap: Map[String, Seq[String]] = Map("key" -> Seq("value"))
       val ningRequest = request.setHeaders(headerMap).build
       ningRequest.getHeaders.containsKey("key") must beTrue
     }
 
     "NingWSRequest.setQueryString" in new WithApplication {
       val request = new NingWSRequest(mock[NingWSClient], "GET", None, None, builder = new RequestBuilder("GET"))
-      val queryString : Map[String, Seq[String]] = Map("key" -> Seq("value"))
+      val queryString: Map[String, Seq[String]] = Map("key" -> Seq("value"))
       val ningRequest = request.setQueryString(queryString).build
       ningRequest.getQueryParams().containsKey("key") must beTrue
     }
@@ -100,6 +131,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
     })
 
     "support patch method" in new WithServer(patchFakeApp) {
+
       // NOTE: if you are using a client proxy like Privoxy or Polipo, your proxy may not support PATCH & return 400.
       val req = WS.url("http://localhost:" + port + "/").patch("body")
 
@@ -119,7 +151,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
               case Some(encoding) if encoding.contains("gzip") =>
                 val os = new ByteArrayOutputStream
                 val gzipOs = new GZIPOutputStream(os)
-                gzipOs.write("gziped response".getBytes("utf-8"))
+                gzipOs.write("gzipped response".getBytes("utf-8"))
                 gzipOs.close()
                 Results.Ok(os.toByteArray).as("text/plain").withHeaders("Content-Encoding" -> "gzip")
               case _ =>
@@ -131,11 +163,11 @@ object NingWSSpec extends PlaySpecification with Mockito {
       )
     }
 
-    "support gziped encoding" in new WithServer(gzipFakeApp) {
+    "support gzipped encoding" in new WithServer(gzipFakeApp) {
 
       val req = WS.url("http://localhost:" + port + "/").get()
       val rep = await(req)
-      rep.body must ===("gziped response")
+      rep.body must ===("gzipped response")
     }
   }
 

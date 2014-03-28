@@ -15,8 +15,6 @@ import xml.Node
 //TODO do not use Play's internal execution context in libs
 import play.core.Execution.Implicits.internalContext
 
-import play.api.Play.current
-
 case class OpenIDServer(url: String, delegate: Option[String])
 
 case class UserInfo(id: String, attributes: Map[String, String] = Map.empty)
@@ -61,9 +59,9 @@ object UserInfo {
 /**
  * provides OpenID support
  */
-object OpenID extends OpenIDClient(WS.url)
+object OpenID extends OpenIDClient(WS.client(play.api.Play.current))
 
-private[openid] class OpenIDClient(ws: String => WSRequestHolder) {
+private[openid] class OpenIDClient(ws: WSClient) {
 
   val discovery = new Discovery(ws)
 
@@ -120,8 +118,9 @@ private[openid] class OpenIDClient(ws: String => WSRequestHolder) {
    * Perform direct verification (see 11.4.2. Verifying Directly with the OpenID Provider)
    */
   private def directVerification(queryString: Map[String, Seq[String]])(server: OpenIDServer) = {
+    import play.api.Play.current
     val fields = (queryString - "openid.mode" + ("openid.mode" -> Seq("check_authentication")))
-    ws(server.url).post(fields).map(response => {
+    ws.url(server.url).post(fields).map(response => {
       if (response.status == 200 && response.body.contains("is_valid:true")) {
         UserInfo(queryString)
       } else throw Errors.AUTH_ERROR
@@ -153,7 +152,7 @@ private[openid] class OpenIDClient(ws: String => WSRequestHolder) {
  *
  *   * The Discovery doesn't support XRIs at the moment
  */
-private[openid] class Discovery(ws: (String) => WSRequestHolder) {
+private[openid] class Discovery(ws: WSClient) {
   import Discovery._
 
   case class UrlIdentifier(url: String) {
@@ -184,7 +183,7 @@ private[openid] class Discovery(ws: (String) => WSRequestHolder) {
    */
   def discoverServer(openID: String): Future[OpenIDServer] = {
     val discoveryUrl = normalizeIdentifier(openID)
-    ws(discoveryUrl).get().map(response => {
+    ws.url(discoveryUrl).get().map(response => {
       val maybeOpenIdServer = new XrdsResolver().resolve(response) orElse new HtmlResolver().resolve(response)
       maybeOpenIdServer.getOrElse(throw Errors.NETWORK_ERROR)
     })
