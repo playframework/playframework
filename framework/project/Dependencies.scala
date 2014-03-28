@@ -98,9 +98,9 @@ object Dependencies {
 
     "org.apache.commons" % "commons-lang3" % "3.1",
 
-    "com.fasterxml.jackson.core" % "jackson-core" % "2.3.1",
-    "com.fasterxml.jackson.core" % "jackson-annotations" % "2.3.0",
-    "com.fasterxml.jackson.core" % "jackson-databind" % "2.3.0",
+    "com.fasterxml.jackson.core" % "jackson-core" % "2.3.2",
+    "com.fasterxml.jackson.core" % "jackson-annotations" % "2.3.2",
+    "com.fasterxml.jackson.core" % "jackson-databind" % "2.3.2",
 
     "xerces" % "xercesImpl" % "2.11.0",
 
@@ -164,9 +164,9 @@ object Dependencies {
   val jsonDependencies = Seq(
     "joda-time" % "joda-time" % "2.2",
     "org.joda" % "joda-convert" % "1.3.1",
-    "com.fasterxml.jackson.core" % "jackson-annotations" % "2.3.0",
-    "com.fasterxml.jackson.core" % "jackson-core" % "2.3.1",
-    "com.fasterxml.jackson.core" % "jackson-databind" % "2.3.0",
+    "com.fasterxml.jackson.core" % "jackson-annotations" % "2.3.2",
+    "com.fasterxml.jackson.core" % "jackson-core" % "2.3.2",
+    "com.fasterxml.jackson.core" % "jackson-databind" % "2.3.2",
     "org.scala-lang" % "scala-reflect" % BuildSettings.buildScalaVersion) ++
     specsBuild.map(_ % "test")
 
