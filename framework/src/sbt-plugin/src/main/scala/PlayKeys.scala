@@ -95,6 +95,9 @@ trait Keys {
 
   val devSettings = SettingKey[Seq[(String, String)]]("play-dev-settings")
 
+  val generateSecret = TaskKey[String]("play-generate-secret", "Generate a new application secret", KeyRanks.BTask)
+  val updateSecret = TaskKey[File]("play-update-secret", "Update the application conf to generate an application secret", KeyRanks.BTask)
+
   // An SBT scope used when the Play app is in run in "production mode" using the "play start" command
   val Production = config("production")
 

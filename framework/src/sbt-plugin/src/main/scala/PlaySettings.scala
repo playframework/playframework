@@ -9,7 +9,7 @@ import Keys._
 import com.typesafe.sbt.SbtNativePackager._
 import com.typesafe.sbt.packager.Keys._
 import java.io.{ Writer, PrintWriter }
-import play.sbtplugin.Colors
+import play.sbtplugin.{ ApplicationSecretGenerator, Colors }
 
 trait Settings {
   this: PlayCommands with PlayPositionMapper with PlayRun with PlaySourceGenerators =>
@@ -267,7 +267,10 @@ trait Settings {
     },
 
     // Adds the Play application directory to the command line args passed to Play
-    bashScriptExtraDefines += "addJava \"-Duser.dir=$(cd \"${app_home}/..\"; pwd -P)\"\n"
+    bashScriptExtraDefines += "addJava \"-Duser.dir=$(cd \"${app_home}/..\"; pwd -P)\"\n",
+
+    generateSecret <<= ApplicationSecretGenerator.generateSecretTask,
+    updateSecret <<= ApplicationSecretGenerator.updateSecretTask
 
   )
 

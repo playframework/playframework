@@ -111,3 +111,5 @@ Then in your code, you would create futures and pass the relevant execution cont
 ### Few specific thread pools
 
 This is a combination between the many specific thread pools and the highly synchronized profile.  You would do most simple IO in the default execution context and set the number of threads there to be reasonably high (say 100), but then dispatch certain expensive operations to specific contexts, where you can limit the number of them that are done at one time.
+
+> **Next:** [[Configuring logging|SettingsLogger]]

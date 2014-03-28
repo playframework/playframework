@@ -38,6 +38,7 @@
 1. [[Working with the in-memory H2 database|Developing-with-the-H2-Database]]
 1. [[Managing database evolutions|Evolutions]]
 1. [[Configuration file syntax and features|Configuration]]
+    1. [[Configuring the application secret|ApplicationSecret]]
     1. [[Configuring the JDBC connection pool|SettingsJDBC]]
     1. [[Configuring Play's thread pools|ThreadPools]]
     1. [[Configuring logging|SettingsLogger]]
