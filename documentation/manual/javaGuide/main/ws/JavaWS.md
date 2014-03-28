@@ -31,22 +31,34 @@ Alternatively:
 
 ## Recovery
 
-If you want to recover from an error in the call transparently, you can use `recover` to substitute a response:
+If you want to recover from an error in the call transparently, you can use `recover` or `recoverWith` to substitute a response:
 
-@[get-call-and-recover](code/javaguide/ws/JavaWS.java)
+Java
+: @[get-call-and-recover](code/javaguide/ws/JavaWS.java)
+
+Java 8
+: @[get-call-and-recover](java8code/java8guide/ws/JavaWS.java)
 
 ## Retrieving the HTTP response result
 
 The call is made asynchronously and you need to manipulate it as a `Promise<WS.Response>` to get the actual content. You can compose several promises and end up with a `Promise<Result>` that can be handled directly by the Play server:
 
-@[simple-call](code/javaguide/ws/JavaWS.java)
+Java
+: @[simple-call](code/javaguide/ws/JavaWS.java)
+
+Java 8
+: @[simple-call](java8code/java8guide/ws/JavaWS.java)
 
 
 ## Composing results
 
 If you want to make multiple calls in sequence, this can be achieved using `flatMap`:
 
-@[composed-call](code/javaguide/ws/JavaWS.java)
+Java
+: @[composed-call](code/javaguide/ws/JavaWS.java)
+
+Java 8
+: @[composed-call](java8code/java8guide/ws/JavaWS.java)
 
 ## Configuring the HTTP client
 
