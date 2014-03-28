@@ -29,6 +29,8 @@ Of course, we need to add a route for that in the `conf/routes` file:
 
     GET     /assets/javascripts/routes          controllers.Application.javascriptRoutes()
 
+Note that this should be added before `GET     /assets/*file` line as `/assets/*file` will have higher priority, otherwise you will get `jsRoutes not defined` error.
+
 Now before we implement the client side code, we need to source all the javascript dependencies that we're going to need in the `app/views/main.scala.html`:
 
 ```html
@@ -474,6 +476,8 @@ import components.*;
 public class DrawerTest extends WithBrowser {
 
     public Drawer drawer;
+    
+    public Dashboard dashboard;
 
     @Before
     public void setUp() {
@@ -481,7 +485,8 @@ public class DrawerTest extends WithBrowser {
         Login login = browser.createPage(Login.class);
         login.go();
         login.login("bob@example.com", "secret");
-        drawer = browser.createPage(Dashboard.class).drawer();
+        dashboard = browser.createPage(Dashboard.class);
+        drawer = dashboard.drawer();
     }
 }
 ```
