@@ -6,6 +6,7 @@
 - [[Configuring Play's thread pools | ThreadPools]]
 - [[Configuring logging | SettingsLogger]]
 - [[Configuring gzip encoding|GzipEncoding]]
+- [[Configuring security headers|SecurityHeaders]]
 
 ### Getting started
 
