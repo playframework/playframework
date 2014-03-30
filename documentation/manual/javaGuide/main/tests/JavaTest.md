@@ -25,7 +25,11 @@ The default way to test a Play application is with [JUnit](http://www.junit.org/
 
 If the code you want to test depends on a running application, you can easily create a `FakeApplication` on the fly:
 
-@[fakeapp](code/javaguide/tests/JavaTest.java)
+Java
+: @[fakeapp](code/javaguide/tests/JavaTest.java)
+
+Java 8
+: @[fakeapp](java8code/java8guide/tests/JavaTest.java)
 
 You can also pass (or override) additional application configuration, or mock any plugin. For example to create a `FakeApplication` using a `default` in-memory database:
 

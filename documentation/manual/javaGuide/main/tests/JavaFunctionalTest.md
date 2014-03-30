@@ -25,10 +25,18 @@ Instead of calling the `Action` yourself, you can let the `Router` do it:
 
 Sometimes you want to test the real HTTP stack from with your test. You can do this by starting a test server:
 
-@[test-server](code/javaguide/tests/JavaFunctionalTest.java)
+Java
+: @[test-server](code/javaguide/tests/JavaFunctionalTest.java)
+
+Java 8
+: @[test-server](java8code/java8guide/tests/JavaFunctionalTest.java)
 
 ## Testing from within a web browser
 
 If you want to test your application from with a Web browser, you can use [Selenium WebDriver](http://code.google.com/p/selenium/?redir=1). Play will start the WebDriver for you, and wrap it in the convenient API provided by [FluentLenium](https://github.com/FluentLenium/FluentLenium).
 
-@[with-browser](code/javaguide/tests/JavaFunctionalTest.java)
+Java
+: @[with-browser](code/javaguide/tests/JavaFunctionalTest.java)
+
+Java 8
+: @[with-browser](java8code/java8guide/tests/JavaFunctionalTest.java)
