@@ -3,7 +3,9 @@
  */
 package play.api.libs.iteratee
 
+import java.lang.{ Boolean => JBoolean }
 import java.util.concurrent.LinkedBlockingQueue
+import play.libs.F
 import scala.concurrent.duration._
 
 /**
@@ -37,12 +39,20 @@ class TestChannel[A](defaultTimeout: Duration) extends Concurrent.Channel[A] {
 
   def expect(expected: A): A = expect(expected, defaultTimeout)
 
-  def expect(expected: A, timeout: Duration): A = {
+  def expect(expected: A, timeout: Duration): A = expect(expected, timeout, _ == _)
+
+  def expect(expected: A, test: F.Function2[A, A, JBoolean]): A = expect(expected, defaultTimeout, test)
+
+  def expect(expected: A, timeout: Duration, test: F.Function2[A, A, JBoolean]): A = expect(expected, timeout, test.apply(_, _))
+
+  def expect(expected: A, test: (A, A) => Boolean): A = expect(expected, defaultTimeout, test)
+
+  def expect(expected: A, timeout: Duration, test: (A, A) => Boolean): A = {
     takeChunk(timeout) match {
       case null =>
         throw new AssertionError(s"timeout ($timeout) waiting for $expected")
       case Input.El(input) =>
-        assert(input == expected, s"expected [$expected] but found [$input]")
+        assert(test(expected, input), s"expected [$expected] but found [$input]")
         input
       case other =>
         throw new AssertionError(s"expected Input.El [$expected] but found [$other]")

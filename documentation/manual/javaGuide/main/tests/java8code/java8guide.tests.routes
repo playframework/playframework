@@ -1,0 +1,2 @@
+GET  /          controllers.Application.index(name = "Guest")
+GET  /:name     controllers.Application.index(name)

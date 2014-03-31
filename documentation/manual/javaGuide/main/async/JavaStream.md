@@ -45,7 +45,11 @@ Let’s say that we have a service somewhere that provides a dynamic `InputStrea
 
 You can also set up your own chunked response builder. The Play Java API supports both text and binary chunked streams (via `String` and `byte[]`):
 
-@[chunked](code/javaguide/async/JavaStream.java)
+Java
+: @[chunked](code/javaguide/async/JavaStream.java)
+
+Java 8
+: @[chunked](java8code/java8guide/async/JavaStream.java)
 
 The `onReady` method is called when it is safe to write to this stream. It gives you a `Chunks.Out` channel you can write to.
 
