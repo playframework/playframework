@@ -29,7 +29,7 @@ class ScalaWSSpec extends PlaySpecification with Results {
   val url = "http://localhost:3333/"
 
   // #scalaws-context
-  implicit val context = scala.concurrent.ExecutionContext.Implicits.global
+  implicit val context = play.api.libs.concurrent.Execution.Implicits.defaultContext
   // #scalaws-context
 
   "WS" should {
