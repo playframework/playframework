@@ -163,7 +163,9 @@ object Router {
   object HandlerInvoker {
 
     import play.libs.F.{ Promise => JPromise }
-    import play.mvc.{ SimpleResult => JSimpleResult, Result => JResult }
+    import play.mvc.{ SimpleResult => JSimpleResult, Result => JResult, WebSocket => JWebSocket }
+    import play.core.j.JavaWebSocket
+    import com.fasterxml.jackson.databind.JsonNode
 
     implicit def passThrough[A <: Handler]: HandlerInvoker[A] = new HandlerInvoker[A] {
       def call(call: => A, handler: HandlerDef): Handler = call
@@ -234,16 +236,28 @@ object Router {
       }
     }
 
-    implicit def javaBytesWebSocket: HandlerInvoker[play.mvc.WebSocket[Array[Byte]]] = new HandlerInvoker[play.mvc.WebSocket[Array[Byte]]] {
-      def call(call: => play.mvc.WebSocket[Array[Byte]], handler: HandlerDef): Handler = play.core.j.JavaWebSocket.ofBytes(call)
+    implicit def javaBytesWebSocket: HandlerInvoker[JWebSocket[Array[Byte]]] = new HandlerInvoker[JWebSocket[Array[Byte]]] {
+      def call(call: => JWebSocket[Array[Byte]], handler: HandlerDef): Handler = JavaWebSocket.ofBytes(call)
     }
 
-    implicit def javaStringWebSocket: HandlerInvoker[play.mvc.WebSocket[String]] = new HandlerInvoker[play.mvc.WebSocket[String]] {
-      def call(call: => play.mvc.WebSocket[String], handler: HandlerDef): Handler = play.core.j.JavaWebSocket.ofString(call)
+    implicit def javaStringWebSocket: HandlerInvoker[JWebSocket[String]] = new HandlerInvoker[JWebSocket[String]] {
+      def call(call: => JWebSocket[String], handler: HandlerDef): Handler = JavaWebSocket.ofString(call)
     }
 
-    implicit def javaJsonWebSocket: HandlerInvoker[play.mvc.WebSocket[com.fasterxml.jackson.databind.JsonNode]] = new HandlerInvoker[play.mvc.WebSocket[com.fasterxml.jackson.databind.JsonNode]] {
-      def call(call: => play.mvc.WebSocket[com.fasterxml.jackson.databind.JsonNode], handler: HandlerDef): Handler = play.core.j.JavaWebSocket.ofJson(call)
+    implicit def javaJsonWebSocket: HandlerInvoker[JWebSocket[JsonNode]] = new HandlerInvoker[JWebSocket[JsonNode]] {
+      def call(call: => JWebSocket[JsonNode], handler: HandlerDef): Handler = JavaWebSocket.ofJson(call)
+    }
+
+    implicit def javaBytesPromiseWebSocket: HandlerInvoker[JPromise[JWebSocket[Array[Byte]]]] = new HandlerInvoker[JPromise[JWebSocket[Array[Byte]]]] {
+      def call(call: => JPromise[JWebSocket[Array[Byte]]], handler: HandlerDef): Handler = JavaWebSocket.promiseOfBytes(call)
+    }
+
+    implicit def javaStringPromiseWebSocket: HandlerInvoker[JPromise[JWebSocket[String]]] = new HandlerInvoker[JPromise[JWebSocket[String]]] {
+      def call(call: => JPromise[JWebSocket[String]], handler: HandlerDef): Handler = JavaWebSocket.promiseOfString(call)
+    }
+
+    implicit def javaJsonProsimeWebSocket: HandlerInvoker[JPromise[JWebSocket[JsonNode]]] = new HandlerInvoker[JPromise[JWebSocket[JsonNode]]] {
+      def call(call: => JPromise[JWebSocket[JsonNode]], handler: HandlerDef): Handler = JavaWebSocket.promiseOfJson(call)
     }
 
   }
@@ -418,7 +432,7 @@ object Router {
           def tagRequest(rh: RequestHeader) = doTagRequest(rh, handler)
         }
         case ws @ WebSocket(f) => {
-          WebSocket[ws.FRAMES_TYPE](rh => f(doTagRequest(rh, handler)))(ws.frameFormatter)
+          WebSocket[ws.FramesIn, ws.FramesOut](rh => f(doTagRequest(rh, handler)))(ws.inFormatter, ws.outFormatter)
         }
         case handler => handler
       }

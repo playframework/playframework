@@ -43,10 +43,10 @@ object WebSocketHandshake {
     // an HttpChunkAggregator and throws an exception when it
     // isn't in the pipeline. We just put it in here so it can be
     // taken back out, as a workaround. Needs better fix.
-    val pipeline = ctx.getChannel().getPipeline()
+    val pipeline = ctx.getChannel.getPipeline
     pipeline.addLast("hack-remove-this-chunk-aggregator", new HttpChunkAggregator(Int.MaxValue));
 
-    shaker.handshake(ctx.getChannel(), req)
+    shaker.handshake(ctx.getChannel, req)
 
     // be sure the HttpChunkAggregator goes away, if handshake
     // didn't remove it as expected.
