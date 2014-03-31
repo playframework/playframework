@@ -109,6 +109,11 @@
 * **Documentation:** <https://github.com/blabluble/play-geolocation-module/blob/master/README.md>
 * **Short description:** Module for retrieve Geolocation data based on IP.
 
+## Google's HTML Compressor (Java and Scala)
+* **Website:** <https://github.com/mohiva/play-html-compressor>
+* **Documentation:** <https://github.com/mohiva/play-html-compressor/blob/master/README.md>
+* **Short description:** Google's HTML Compressor for Play 2.
+
 ## Groovy Templates plugin
 
 * **Website:** <https://github.com/manuelbernhardt/play2-groovy-templates>
