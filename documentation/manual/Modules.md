@@ -73,6 +73,10 @@
 * **Website (docs, sample):** [https://github.com/typesafehub/play-plugins/tree/master/dust](https://github.com/typesafehub/play-plugins/tree/master/dust)
 * **Short description:** provides support for the dust client side template language
 
+## Google Closure Template Plugin
+* **Website (docs, sample):** [https://github.com/gawkermedia/play2-closure](https://github.com/gawkermedia/play2-closure)
+* **Short description:** provides support for Google Closure Templates
+
 ## Elasticsearch
 
 * **Website:** [https://github.com/cleverage/play2-elasticsearch]
