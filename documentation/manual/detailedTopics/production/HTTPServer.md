@@ -155,8 +155,7 @@ In Apache, I have the following configuration:
   ProxyPreserveHost On
   ProxyPass /balancer-manager !
   ProxyPass / balancer://mycluster/
-  ProxyPassReverse / http://localhost:9999/
-  ProxyPassReverse / http://localhost:9998/
+  ProxyPassReverse / balancer://mycluster/
 </VirtualHost>
 ```
 
