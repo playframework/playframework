@@ -8,7 +8,6 @@ import java.security.{ UnrecoverableKeyException, KeyStore, SecureRandom }
 import java.security.cert._
 import java.io._
 import java.net.URL
-import play.api.libs.ws.ssl.AlgorithmConstraint
 
 trait SSLContextBuilder {
   def build(): SSLContext
