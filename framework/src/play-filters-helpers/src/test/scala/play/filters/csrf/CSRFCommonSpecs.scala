@@ -22,7 +22,8 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
   // This extracts the tests out into different configurations
   def sharedTests(csrfCheckRequest: CsrfTester, csrfAddToken: CsrfTester, generate: => String,
                   addToken: (WSRequestHolder, String) => WSRequestHolder,
-                  getToken: WSResponse => Option[String], compareTokens: (String, String) => MatchResult[Any]) = {
+                  getToken: WSResponse => Option[String], compareTokens: (String, String) => MatchResult[Any],
+                  errorStatusCode: Int) = {
     // accept/reject tokens
     "accept requests with token in query string" in {
       lazy val token = generate
@@ -64,17 +65,17 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
     "reject requests with different token in body" in {
       csrfCheckRequest(req => addToken(req, generate)
         .post(Map("foo" -> "bar", TokenName -> generate))
-      )(_.status must_== FORBIDDEN)
+      )(_.status must_== errorStatusCode)
     }
     "reject requests with token in session but none elsewhere" in {
       csrfCheckRequest(req => addToken(req, generate)
         .post(Map("foo" -> "bar"))
-      )(_.status must_== FORBIDDEN)
+      )(_.status must_== errorStatusCode)
     }
     "reject requests with token in body but not in session" in {
       csrfCheckRequest(
         _.post(Map("foo" -> "bar", TokenName -> generate))
-      )(_.status must_== FORBIDDEN)
+      )(_.status must_== errorStatusCode)
     }
 
     // add to response
@@ -103,7 +104,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
   "a CSRF filter" should {
 
     "work with signed session tokens" in {
-      def csrfCheckRequest = buildCsrfCheckRequest()
+      def csrfCheckRequest = buildCsrfCheckRequest(false)
       def csrfAddToken = buildCsrfAddToken()
       def generate = Crypto.generateSignedToken
       def addToken(req: WSRequestHolder, token: String) = req.withSession(TokenName -> token)
@@ -113,7 +114,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
       }
       def compareTokens(a: String, b: String) = Crypto.compareSignedTokens(a, b) must beTrue
 
-      sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens)
+      sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens, FORBIDDEN)
 
       "reject requests with unsigned token in body" in {
         csrfCheckRequest(req => addToken(req, generate)
@@ -137,7 +138,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
     }
 
     "work with unsigned session tokens" in {
-      def csrfCheckRequest = buildCsrfCheckRequest("csrf.sign.tokens" -> "false")
+      def csrfCheckRequest = buildCsrfCheckRequest(false, "csrf.sign.tokens" -> "false")
       def csrfAddToken = buildCsrfAddToken("csrf.sign.tokens" -> "false")
       def generate = Crypto.generateToken
       def addToken(req: WSRequestHolder, token: String) = req.withSession(TokenName -> token)
@@ -147,33 +148,33 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
       }
       def compareTokens(a: String, b: String) = a must_== b
 
-      sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens)
+      sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens, FORBIDDEN)
     }
 
     "work with signed cookie tokens" in {
-      def csrfCheckRequest = buildCsrfCheckRequest("csrf.cookie.name" -> "csrf")
+      def csrfCheckRequest = buildCsrfCheckRequest(false, "csrf.cookie.name" -> "csrf")
       def csrfAddToken = buildCsrfAddToken("csrf.cookie.name" -> "csrf")
       def generate = Crypto.generateSignedToken
       def addToken(req: WSRequestHolder, token: String) = req.withCookies("csrf" -> token)
       def getToken(response: WSResponse) = response.cookies.find(_.name.exists(_ == "csrf")).flatMap(_.value)
       def compareTokens(a: String, b: String) = Crypto.compareSignedTokens(a, b) must beTrue
 
-      sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens)
+      sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens, FORBIDDEN)
     }
 
     "work with unsigned cookie tokens" in {
-      def csrfCheckRequest = buildCsrfCheckRequest("csrf.cookie.name" -> "csrf", "csrf.sign.tokens" -> "false")
+      def csrfCheckRequest = buildCsrfCheckRequest(false, "csrf.cookie.name" -> "csrf", "csrf.sign.tokens" -> "false")
       def csrfAddToken = buildCsrfAddToken("csrf.cookie.name" -> "csrf", "csrf.sign.tokens" -> "false")
       def generate = Crypto.generateToken
       def addToken(req: WSRequestHolder, token: String) = req.withCookies("csrf" -> token)
       def getToken(response: WSResponse) = response.cookies.find(_.name.exists(_ == "csrf")).flatMap(_.value)
       def compareTokens(a: String, b: String) = a must_== b
 
-      sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens)
+      sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens, FORBIDDEN)
     }
 
     "work with secure cookie tokens" in {
-      def csrfCheckRequest = buildCsrfCheckRequest("csrf.cookie.name" -> "csrf", "csrf.cookie.secure" -> "true")
+      def csrfCheckRequest = buildCsrfCheckRequest(false, "csrf.cookie.name" -> "csrf", "csrf.cookie.secure" -> "true")
       def csrfAddToken = buildCsrfAddToken("csrf.cookie.name" -> "csrf", "csrf.cookie.secure" -> "true")
       def generate = Crypto.generateSignedToken
       def addToken(req: WSRequestHolder, token: String) = req.withCookies("csrf" -> token)
@@ -185,9 +186,19 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
       }
       def compareTokens(a: String, b: String) = Crypto.compareSignedTokens(a, b) must beTrue
 
-      sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens)
+      sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens, FORBIDDEN)
     }
 
+    "work with checking failed result" in {
+      def csrfCheckRequest = buildCsrfCheckRequest(true, "csrf.cookie.name" -> "csrf")
+      def csrfAddToken = buildCsrfAddToken("csrf.cookie.name" -> "csrf")
+      def generate = Crypto.generateSignedToken
+      def addToken(req: WSRequestHolder, token: String) = req.withCookies("csrf" -> token)
+      def getToken(response: WSResponse) = response.cookies.find(_.name.exists(_ == "csrf")).flatMap(_.value)
+      def compareTokens(a: String, b: String) = Crypto.compareSignedTokens(a, b) must beTrue
+
+      sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens, UNAUTHORIZED)
+    }
   }
 
   trait CsrfTester {
@@ -197,7 +208,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
   /**
    * Set up a request that will go through the CSRF action. The action must return 200 OK if successful.
    */
-  def buildCsrfCheckRequest(configuration: (String, String)*): CsrfTester
+  def buildCsrfCheckRequest(sendUnauthorizedResult: Boolean, configuration: (String, String)*): CsrfTester
 
   /**
    * Make a request that will have a token generated and added to the request and response if not present.  The request

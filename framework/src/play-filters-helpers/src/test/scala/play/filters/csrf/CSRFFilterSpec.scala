@@ -35,10 +35,10 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
 
     // extra conditions for not doing a check
     "not check non form bodies" in {
-      buildCsrfCheckRequest()(_.post(Json.obj("foo" -> "bar")))(_.status must_== OK)
+      buildCsrfCheckRequest(false)(_.post(Json.obj("foo" -> "bar")))(_.status must_== OK)
     }
     "not check safe methods" in {
-      buildCsrfCheckRequest()(_.put(Map("foo" -> "bar")))(_.status must_== OK)
+      buildCsrfCheckRequest(false)(_.put(Map("foo" -> "bar")))(_.status must_== OK)
     }
 
     // other
@@ -94,9 +94,13 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
   }
 
 
-  def buildCsrfCheckRequest(configuration: (String, String)*) = new CsrfTester {
+  def buildCsrfCheckRequest(sendUnauthorizedResult: Boolean, configuration: (String, String)*) = new CsrfTester {
     def apply[T](makeRequest: (WSRequestHolder) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
-      case _ => CSRFFilter()(Action(Results.Ok))
+      case _ => if (sendUnauthorizedResult) {
+        CSRFFilter(errorHandler = new CustomErrorHandler())(Action(Results.Ok))
+      } else {
+        CSRFFilter()(Action(Results.Ok))
+      }
     } {
       import play.api.Play.current
       handleResponse(await(makeRequest(WS.url("http://localhost:" + testServerPort))))
@@ -114,5 +118,10 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
       import play.api.Play.current
       handleResponse(await(makeRequest(WS.url("http://localhost:" + testServerPort))))
     }
+  }
+
+  class CustomErrorHandler extends CSRF.ErrorHandler {
+    import play.api.mvc.Results.Unauthorized
+    def handle(msg: String) = Unauthorized(msg)
   }
 }

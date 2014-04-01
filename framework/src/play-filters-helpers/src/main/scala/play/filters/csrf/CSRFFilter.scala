@@ -4,7 +4,7 @@
 package play.filters.csrf
 
 import play.api.mvc._
-import play.filters.csrf.CSRF.TokenProvider
+import play.filters.csrf.CSRF.{ TokenProvider, ErrorHandler }
 
 /**
  * A filter that provides CSRF protection.
@@ -20,12 +20,14 @@ import play.filters.csrf.CSRF.TokenProvider
  * @param createIfNotFound Whether a new CSRF token should be created if it's not found.  Default creates one if it's
  *                         a GET request that accepts HTML.
  * @param tokenProvider A token provider to use.
+ * @param checkFailedResult handling failed token error.
  */
 class CSRFFilter(tokenName: => String = CSRFConf.TokenName,
     cookieName: => Option[String] = CSRFConf.CookieName,
     secureCookie: => Boolean = CSRFConf.SecureCookie,
     createIfNotFound: (RequestHeader) => Boolean = CSRFConf.defaultCreateIfNotFound,
-    tokenProvider: => TokenProvider = CSRFConf.defaultTokenProvider) extends EssentialFilter {
+    tokenProvider: => TokenProvider = CSRFConf.defaultTokenProvider,
+    errorHandler: => ErrorHandler = CSRFConf.defaultErrorHandler) extends EssentialFilter {
 
   /**
    * Default constructor, useful from Java
@@ -33,7 +35,7 @@ class CSRFFilter(tokenName: => String = CSRFConf.TokenName,
   def this() = this(CSRFConf.TokenName)
 
   def apply(next: EssentialAction): EssentialAction = new CSRFAction(next, tokenName, cookieName, secureCookie,
-    createIfNotFound, tokenProvider)
+    createIfNotFound, tokenProvider, errorHandler)
 }
 
 object CSRFFilter {
@@ -41,7 +43,8 @@ object CSRFFilter {
     cookieName: => Option[String] = CSRFConf.CookieName,
     secureCookie: => Boolean = CSRFConf.SecureCookie,
     createIfNotFound: (RequestHeader) => Boolean = CSRFConf.defaultCreateIfNotFound,
-    tokenProvider: => TokenProvider = CSRFConf.defaultTokenProvider) = {
-    new CSRFFilter(tokenName, cookieName, secureCookie, createIfNotFound, tokenProvider)
+    tokenProvider: => TokenProvider = CSRFConf.defaultTokenProvider,
+    errorHandler: => ErrorHandler = CSRFConf.defaultErrorHandler) = {
+    new CSRFFilter(tokenName, cookieName, secureCookie, createIfNotFound, tokenProvider, errorHandler)
   }
 }
