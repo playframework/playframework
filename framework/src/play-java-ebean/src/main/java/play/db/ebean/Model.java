@@ -124,7 +124,7 @@ public class Model {
     /**
      * Deletes a many-to-many association
      * 
-     * @parama path name of the many-to-many association we want to delete
+     * @param path name of the many-to-many association we want to delete
      */
     public void deleteManyToManyAssociations(String path) {
         Ebean.deleteManyToManyAssociations(this, path);
