@@ -147,8 +147,8 @@ conf
   └ application.conf
   └ routes
 modules
- └ build.sbt
   └ admin
+    └ build.sbt
     └ conf
       └ admin.routes
     └ app
@@ -156,8 +156,8 @@ modules
       └ models
       └ views
 project
- └ build.properties
- └ plugins.sbt
+  └ build.properties
+  └ plugins.sbt
 ```
 
 > **Note:** Configuration and route file names must be unique in the whole project structure. Particularly, there must be only one `application.conf` file and only one `routes` file. To define additional routes or configuration in sub-projects, use sub-project-specific names. For instance, the route file in `admin` is called `admin.routes`. To use a specific set of settings in development mode for a sub project, it would be even better to put these settings into the build file, e.g. `Keys.devSettings += ("application.router", "admin.Routes")`.
