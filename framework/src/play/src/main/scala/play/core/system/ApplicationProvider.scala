@@ -41,7 +41,7 @@ trait ApplicationProvider {
 }
 
 trait HandleWebCommandSupport {
-  def handleWebCommand(request: play.api.mvc.RequestHeader, sbtLink: play.core.SBTLink, path: java.io.File): Option[Result]
+  def handleWebCommand(request: play.api.mvc.RequestHeader, buildLink: play.core.BuildLink, path: java.io.File): Option[Result]
 }
 
 /**
@@ -73,7 +73,7 @@ class TestApplication(application: Application) extends ApplicationProvider {
 /**
  * Represents an application that can be reloaded in Dev Mode.
  */
-class ReloadableApplication(sbtLink: SBTLink, sbtDocHandler: SBTDocHandler) extends ApplicationProvider {
+class ReloadableApplication(buildLink: BuildLink, buildDocHandler: BuildDocHandler) extends ApplicationProvider {
 
   // Use plain Java call here in case of scala classloader mess
   {
@@ -85,7 +85,7 @@ class ReloadableApplication(sbtLink: SBTLink, sbtDocHandler: SBTDocHandler) exte
     }
   }
 
-  lazy val path = sbtLink.projectPath
+  lazy val path = buildLink.projectPath
 
   println(play.utils.Colors.magenta("--- (Running the application from SBT, auto-reloading is enabled) ---"))
   println()
@@ -104,7 +104,7 @@ class ReloadableApplication(sbtLink: SBTLink, sbtDocHandler: SBTDocHandler) exte
       implicit val ec = play.core.Execution.internalContext
       Await.result(scala.concurrent.Future {
 
-        val reloaded = sbtLink.reload match {
+        val reloaded = buildLink.reload match {
           case NonFatal(t) => Failure(t)
           case cl: ClassLoader => Success(Some(cl))
           case null => Success(None)
@@ -128,7 +128,7 @@ class ReloadableApplication(sbtLink: SBTLink, sbtDocHandler: SBTDocHandler) exte
 
               val newApplication = new DefaultApplication(reloadable.path, projectClassloader, Some(new SourceMapper {
                 def sourceOf(className: String, line: Option[Int]) = {
-                  Option(sbtLink.findSource(className, line.map(_.asInstanceOf[java.lang.Integer]).orNull)).flatMap {
+                  Option(buildLink.findSource(className, line.map(_.asInstanceOf[java.lang.Integer]).orNull)).flatMap {
                     case Array(file: java.io.File, null) => Some((file, None))
                     case Array(file: java.io.File, line: java.lang.Integer) => Some((file, Some(line)))
                     case _ => None
@@ -136,7 +136,7 @@ class ReloadableApplication(sbtLink: SBTLink, sbtDocHandler: SBTDocHandler) exte
                 }
               }), Mode.Dev) with DevSettings {
                 import scala.collection.JavaConverters._
-                lazy val devSettings: Map[String, String] = sbtLink.settings.asScala.toMap
+                lazy val devSettings: Map[String, String] = buildLink.settings.asScala.toMap
               }
 
               Play.start(newApplication)
@@ -171,11 +171,11 @@ class ReloadableApplication(sbtLink: SBTLink, sbtDocHandler: SBTDocHandler) exte
 
   override def handleWebCommand(request: play.api.mvc.RequestHeader): Option[Result] = {
 
-    sbtDocHandler.maybeHandleDocRequest(request).asInstanceOf[Option[Result]].orElse(
+    buildDocHandler.maybeHandleDocRequest(request).asInstanceOf[Option[Result]].orElse(
       for {
         app <- Play.maybeApplication
         result <- app.plugins.foldLeft(Option.empty[Result]) {
-          case (None, plugin: HandleWebCommandSupport) => plugin.handleWebCommand(request, sbtLink, path)
+          case (None, plugin: HandleWebCommandSupport) => plugin.handleWebCommand(request, buildLink, path)
           case (result, _) => result
         }
       } yield result

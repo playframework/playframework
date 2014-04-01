@@ -160,6 +160,7 @@ object PlayBuild extends Build {
 
   lazy val SbtLinkProject = PlaySharedJavaProject("SBT-link", "sbt-link")
     .settings(libraryDependencies := link)
+    .dependsOn(PlayExceptionsProject)
 
   lazy val TemplatesProject = PlayRuntimeProject("Templates", "templates")
     .settings(libraryDependencies := templatesDependencies, scalaXmlModuleDependency)

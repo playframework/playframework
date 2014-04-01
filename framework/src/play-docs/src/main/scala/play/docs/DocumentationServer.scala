@@ -5,7 +5,7 @@ package play.docs
 
 import java.io.File
 import play.api.Mode
-import play.core.SBTDocHandler
+import play.core.BuildDocHandler
 import play.core.server.NettyServer
 
 /**
@@ -14,6 +14,6 @@ import play.core.server.NettyServer
  * to create a server that embeds both the user application and the Play documentation
  * application.
  */
-class DocumentationServer(projectPath: File, sbtDocHandler: SBTDocHandler, port: java.lang.Integer) extends NettyServer(DocumentationApplication(projectPath, sbtDocHandler), Some(port),
+class DocumentationServer(projectPath: File, buildDocHandler: BuildDocHandler, port: java.lang.Integer) extends NettyServer(DocumentationApplication(projectPath, buildDocHandler), Some(port),
   mode = Mode.Dev
 )
