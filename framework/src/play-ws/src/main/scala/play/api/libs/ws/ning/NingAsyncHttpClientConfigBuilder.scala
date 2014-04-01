@@ -140,7 +140,7 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig,
       val hostnameVerifier = buildHostnameVerifier(sslConfig)
       builder.setHostnameVerifier(hostnameVerifier)
     } else {
-      logger.debug("buildHostnameVerifier: disabling hostname verification")
+      logger.warn("buildHostnameVerifier: disabling hostname verification")
     }
 
     builder.setSSLContext(sslContext)
