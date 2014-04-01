@@ -148,8 +148,8 @@ conf
   └ application.conf
   └ routes
 modules
- └ build.sbt
   └ admin
+    └ build.sbt
     └ conf
       └ admin.routes
     └ app
@@ -157,8 +157,8 @@ modules
       └ models
       └ views     
 project
- └ build.properties
- └ plugins.sbt
+  └ build.properties
+  └ plugins.sbt
 ```
 
 > Note: there is only a single instance of `application.conf`. Also, the route file in `admin` is called `admin.routes`
