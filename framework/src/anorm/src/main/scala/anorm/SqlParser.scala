@@ -329,7 +329,7 @@ object SqlParser {
    * val res: (Float, String) = // parsing columns #1 & #3
    *   SQL("SELECT * FROM Test").as(get[String](1) ~ get[Float](3) map {
    *     case str ~ f => (f -> str)
-   *   }
+   *   } *)
    * }}}
    */
   def get[T](position: Int)(implicit extractor: Column[T]): RowParser[T] =
@@ -340,11 +340,48 @@ object SqlParser {
       } yield result).fold(e => Error(e), a => Success(a))
     }
 
-  def contains[TT: Column, T <: TT](columnName: String, t: T): RowParser[Unit] =
-    get[TT](columnName)(implicitly[Column[TT]]).
-      collect(s"Row doesn't contain a column: $columnName with value $t") {
-        case a if a == t => Unit
+  /**
+   * Returns row parser which throws exception if specified `column` is either
+   * missing or not matching expected `value`.
+   * If row contains described column, do nothing (Unit).
+   *
+   * {{{
+   * import anorm.SQL
+   * import anorm.SqlParser.{ contains, str }
+   *
+   * val parser = contains("a", true) ~ str("b") map {
+   *   case () ~ str => str
+   * }
+   *
+   * SQL("SELECT * FROM table").as(parser.+)
+   * // Throws exception if there no |a| column or if |a| is not true,
+   * // otherwise parses as non-empty list of |b| strings.
+   * }}}
+   */
+  @throws[RuntimeException](
+    "SqlMappingError(Row doesn't contain a column: f with value 2.34)")
+  @deprecated(message = "Use [[matches]]", since = "2.3.0")
+  def contains[TT: Column, T <: TT](column: String, value: T): RowParser[Unit] =
+    get[TT](column)(implicitly[Column[TT]]).
+      collect(s"Row doesn't contain a column: $column with value $value") {
+        case a if a == value => Unit
       }
+
+  /**
+   * Returns row parser which true if specified `column` is found
+   * and matching expected `value`.
+   *
+   * {{{
+   * import anorm.SQL
+   * import anorm.SqlParser.matches
+   *
+   * val m: Boolean = SQL("SELECT * FROM table").as(matches("a", 1.2f).single)
+   * // true if column |a| is found and matching 1.2f, otherwise false
+   * }}}
+   *
+   * @return true if matches, or false if not
+   */
+  def matches[TT: Column, T <: TT](column: String, value: T)(implicit c: Column[TT]): RowParser[Boolean] = get[TT](column)(c).?.map(_.fold(false)(_ == value))
 
 }
 
@@ -362,6 +399,9 @@ trait RowParser[+A] extends (Row => SqlResult[A]) { parent =>
 
   def map[B](f: A => B): RowParser[B] = RowParser(parent.andThen(_.map(f)))
 
+  /**
+   * @param otherwise Message returned as error if nothing can be collected using `f`.
+   */
   def collect[B](otherwise: String)(f: PartialFunction[A, B]): RowParser[B] =
     RowParser(row => parent(row).flatMap(a =>
       // TODO: Spec + fold f
@@ -401,12 +441,27 @@ trait RowParser[+A] extends (Row => SqlResult[A]) { parent =>
 
   def >>[B](f: A => RowParser[B]): RowParser[B] = flatMap(f)
 
-  /** Returns possibly empty list parsed from result. */
+  /**
+   * Returns possibly empty list parsed from result.
+   *
+   * {{{
+   * val price = 125
+   * SQL"SELECT name FROM item WHERE price < $price".as(scalar[String].*)
+   * }}}
+   */
   def * : ResultSetParser[List[A]] = ResultSetParser.list(parent)
 
   /**
    * Returns non empty list parse from result,
    * or raise error if there is no result.
+   *
+   * {{{
+   * import anorm.SQL
+   * import anorm.SqlParser.str
+   *
+   * val parser = str("title") ~ str("descr")
+   * SQL("SELECT title, descr FROM pages").as(parser.+) // at least 1 page
+   * }}}
    */
   def + : ResultSetParser[List[A]] = ResultSetParser.nonEmptyList(parent)
 
