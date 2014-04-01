@@ -1,10 +1,10 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
-# Building Play from sources
+# Building Play from source
 
-To benefit from the latest improvements and bug fixes after the initial beta release, you may want to compile Play from sources. You’ll need a [Git client](http://git-scm.com/) to fetch the sources.
+To benefit from the latest improvements and bug fixes after the initial beta release, you may want to compile Play from source. You’ll need a [Git client](http://git-scm.com/) to fetch the source.
 
 ## Grab the source
-From the shell, first checkout the Play sources:
+From the shell, first checkout the Play source:
 
 ```bash
 $ git clone git://github.com/playframework/playframework.git
@@ -33,12 +33,7 @@ $ ./build run
 
 To see documentation at [http://localhost:9000/@documentation](http://localhost:9000/@documentation)
 
-To build the Scaladoc and Javadoc, run `doc` against the source code:
-
-```bash
-$ cd playframework/framework
-$ ./build doc
-```
+For more details on developing the Play documentation, see the [[Documentation Guidelines|Documentation]].
 
 ## Run tests
 
