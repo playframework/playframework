@@ -12,7 +12,7 @@ package play.mvc;
  * For example, the following type could be used to bind an Ebean user:
  *
  * <pre>
- * @Entity
+ * &#64;Entity
  * class User extends Model implements PathBindable&lt;User&gt; {
  *     public String email;
  *     public String name;
