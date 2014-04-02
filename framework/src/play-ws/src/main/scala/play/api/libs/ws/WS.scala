@@ -385,19 +385,19 @@ trait WSCookie {
   def path: String
 
   /**
+   * The expiry date.
+   */
+  def expires: Option[Long]
+
+  /**
    * The maximum age.
    */
-  def maxAge: Int
+  def maxAge: Option[Int]
 
   /**
    * If the cookie is secure.
    */
   def secure: Boolean
-
-  /**
-   * The cookie version.
-   */
-  def version: Int
 }
 
 /**

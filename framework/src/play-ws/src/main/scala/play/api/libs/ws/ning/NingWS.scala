@@ -3,7 +3,8 @@
  */
 package play.api.libs.ws.ning
 
-import com.ning.http.client.{ Response => AHCResponse, Cookie => AHCCookie, ProxyServer => AHCProxyServer, _ }
+import com.ning.http.client.{ Response => AHCResponse, ProxyServer => AHCProxyServer, _ }
+import com.ning.http.client.cookie.{ Cookie => AHCCookie }
 import com.ning.http.client.Realm.{ RealmBuilder, AuthScheme }
 import com.ning.http.util.AsyncHttpProviderUtils
 
@@ -714,19 +715,19 @@ private class NingWSCookie(ahcCookie: AHCCookie) extends WSCookie {
   def path: String = ahcCookie.getPath
 
   /**
+   * The expiry date.
+   */
+  def expires: Option[Long] = if (ahcCookie.getExpires == -1) None else Some(ahcCookie.getExpires)
+
+  /**
    * The maximum age.
    */
-  def maxAge: Int = ahcCookie.getMaxAge
+  def maxAge: Option[Int] = if (ahcCookie.getMaxAge == -1) None else Some(ahcCookie.getMaxAge)
 
   /**
    * If the cookie is secure.
    */
   def secure: Boolean = ahcCookie.isSecure
-
-  /**
-   * The cookie version.
-   */
-  def version: Int = ahcCookie.getVersion
 
   /*
    * Cookie ports should not be used; cookies for a given host are shared across

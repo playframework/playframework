@@ -11,9 +11,9 @@ import play.libs.ws.*;
  */
 public class NingWSCookie implements WSCookie {
 
-    private final com.ning.http.client.Cookie ahcCookie;
+    private final com.ning.http.client.cookie.Cookie ahcCookie;
 
-    public NingWSCookie(com.ning.http.client.Cookie ahcCookie) {
+    public NingWSCookie(com.ning.http.client.cookie.Cookie ahcCookie) {
         this.ahcCookie = ahcCookie;
     }
 
@@ -40,15 +40,15 @@ public class NingWSCookie implements WSCookie {
         return ahcCookie.getPath();
     }
 
+    public Long getExpires() {
+        return ahcCookie.getExpires();
+    }
+
     public Integer getMaxAge() {
         return ahcCookie.getMaxAge();
     }
 
     public Boolean isSecure() {
         return ahcCookie.isSecure();
-    }
-
-    public Integer getVersion() {
-        return ahcCookie.getVersion();
     }
 }

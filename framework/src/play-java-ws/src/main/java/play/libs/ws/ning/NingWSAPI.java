@@ -34,7 +34,7 @@ public class NingWSAPI implements WSAPI {
                 .setConnectionTimeoutInMs(playConfig.getMilliseconds("ws.timeout.connection", 120000L).intValue())
                 .setIdleConnectionTimeoutInMs(playConfig.getMilliseconds("ws.timeout.idle", 120000L).intValue())
                 .setRequestTimeoutInMs(playConfig.getMilliseconds("ws.timeout.request", 120000L).intValue())
-                .setFollowRedirects(playConfig.getBoolean("ws.followRedirects", true).booleanValue())
+                .setFollowRedirects(playConfig.getBoolean("ws.followRedirects", true))
                 .setUseProxyProperties(playConfig.getBoolean("ws.useProxyProperties", true))
                 .setCompressionEnabled(playConfig.getBoolean("ws.compressionEnabled", false));
 
@@ -43,7 +43,7 @@ public class NingWSAPI implements WSAPI {
             asyncHttpConfig.setUserAgent(userAgent);
         }
 
-        if (!playConfig.getBoolean("ws.acceptAnyCertificate", false).booleanValue()) {
+        if (!playConfig.getBoolean("ws.acceptAnyCertificate", false)) {
             try {
                 asyncHttpConfig.setSSLContext(SSLContext.getDefault());
             } catch (NoSuchAlgorithmException e) {
