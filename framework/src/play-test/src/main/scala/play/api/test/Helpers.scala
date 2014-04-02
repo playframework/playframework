@@ -136,7 +136,7 @@ trait DefaultAwaitTimeout {
   /**
    * The default await timeout.  Override this to change it.
    */
-  implicit def defaultAwaitTimeout: Timeout = 5.seconds
+  implicit def defaultAwaitTimeout: Timeout = 20.seconds
 
   /**
    * How long we should wait for something that we expect *not* to happen, e.g.
