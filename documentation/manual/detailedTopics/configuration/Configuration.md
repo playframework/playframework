@@ -386,3 +386,5 @@ For powers of two, exactly these strings are supported:
 For an application's config, Java system properties _override_ settings found in the configuration file. This supports specifying config options on the command line. ie. `play -Dkey=value run`
 
 Note : Play forks the JVM for tests - and so to use command line overrides in tests you must add `Keys.fork in Test := false` in `build.sbt` before you can use them for a test.
+
+> **Next:** [[Configuring the application secret|ApplicationSecret]]

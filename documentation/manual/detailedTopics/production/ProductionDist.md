@@ -3,22 +3,22 @@
 
 ## Using the dist task
 
-The simplest way to deploy a Play application is to retrieve the source (typically via a git workflow) on the server and to use either `play start` or `play stage` to start it in place.
+The simplest way to deploy a Play application is to retrieve the source (typically via a git workflow) on the server and to use either `activator start` or `activator stage` to start it in place.
 
 However, you sometimes need to build a binary version of your application and deploy it to the server without any dependency on Play itself. You can do this with the `dist` task.
 
 In the Play console, simply type `dist`:
 
 ```bash
-[My first application] $ dist
+[my-first-app] $ dist
 ```
 
 [[images/dist.png]]
 
-This produces a ZIP file containing all JAR files needed to run your application in the `target/universal` folder of your application. Alternatively you can run `play dist` directly from your OS shell prompt, which does the same thing:
+This produces a ZIP file containing all JAR files needed to run your application in the `target/universal` folder of your application. Alternatively you can run `activator dist` directly from your OS shell prompt, which does the same thing:
 
 ```bash
-$ play dist
+$ activator dist
 ```
 
 > For Windows users a start script will be produced with a .bat file extension. Use this file when running a Play application on Windows.
@@ -32,7 +32,7 @@ $ play dist
 > Alternatively a tar.gz file can be produced instead. Tar files retain permissions. Invoke the `universal:package-zip-tarball` task instead of the `dist` task:
 >
 > ```bash
-> play universal:package-zip-tarball
+> activator universal:package-zip-tarball
 > ```
 
 By default, the dist task will include the API documentation in the generated package. If this is not necessary, it can be avoided by including this line in `build.sbt`:
@@ -47,7 +47,7 @@ For builds with sub-projects, the statement above has to be applied to all sub-p
 Play uses the [SBT Native Packager plugin](http://www.scala-sbt.org/sbt-native-packager/). The native packager plugin declares the `dist` task to create a zip file. Invoking the `dist` task is directly equivalent to invoking the following:
 
 ```bash
-$ play universal:package-bin
+$ activator universal:package-bin
 ```
 
 Many other types of archive can be generated including:
@@ -79,7 +79,7 @@ You have to configure the repository you want to publish to, in your `build.sbt`
 Then in the Play console, use the `publish` task:
 
 ```bash
-[My first application] $ publish
+[my-first-app] $ publish
 ```
 
 > Check the [sbt documentation](http://www.scala-sbt.org/release/docs/index.html) to get more information about the resolvers and credentials definition.

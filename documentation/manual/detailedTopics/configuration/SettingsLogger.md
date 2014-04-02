@@ -88,3 +88,5 @@ Specify another logback configuration file to be loaded from an URL:
 ```
 $ start -Dlogger.url=http://conf.mycompany.com/logger.xml
 ```
+
+> **Next:** [[Configuring gzip encoding|GzipEncoding]]

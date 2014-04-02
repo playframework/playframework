@@ -2,6 +2,7 @@
 ### Configuration
 
 - [[Configuration file syntax and features | Configuration]]
+- [[Configuring the application secret|ApplicationSecret]]
 - [[Configuring the JDBC connection pool | SettingsJDBC]]
 - [[Configuring Play's thread pools | ThreadPools]]
 - [[Configuring logging | SettingsLogger]]

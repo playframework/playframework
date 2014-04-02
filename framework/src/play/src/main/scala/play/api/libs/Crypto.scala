@@ -6,10 +6,10 @@ package play.api.libs
 import javax.crypto._
 import javax.crypto.spec.SecretKeySpec
 
-import play.api.Play
-import play.api.PlayException
+import play.api.{ Mode, Play, PlayException }
 import java.security.SecureRandom
 import org.apache.commons.codec.binary.Hex
+import org.apache.commons.codec.digest.Md5Crypt
 
 /**
  * Cryptographic utilities.
@@ -27,7 +27,57 @@ object Crypto {
 
   private def getConfig(key: String) = Play.maybeApplication.flatMap(_.configuration.getString(key))
 
-  private def secret: Option[String] = getConfig("application.secret")
+  private val Blank = """\s*""".r
+
+  private[play] def secret: String = {
+    /*
+     * The Play secret.
+     *
+     * We want to:
+     *
+     * 1) Encourage the practice of *not* using the same secret in dev and prod.
+     * 2) Make it obvious that the secret should be changed.
+     * 3) Ensure that in dev mode, the secret stays stable across restarts.
+     * 4) Ensure that in dev mode, sessions do not interfere with other applications that may be or have been running
+     *   on localhost.  Eg, if I start Play app 1, and it stores a PLAY_SESSION cookie for localhost:9000, then I stop
+     *   it, and start Play app 2, when it reads the PLAY_SESSION cookie for localhost:9000, it should not see the
+     *   session set by Play app 1.  This can be achieved by using different secrets for the two, since if they are
+     *   different, they will simply ignore the session cookie set by the other.
+     *
+     * To achieve 1 and 2, we will, in Activator templates, set the default secret to be "changeme".  This should make
+     * it obvious that the secret needs to be changed and discourage using the same secret in dev and prod.
+     *
+     * For safety, if the secret is not set, or if it's changeme, and we are in prod mode, then we will fail fatally.
+     * This will further enforce both 1 and 2.
+     *
+     * To achieve 3, if in dev or test mode, if the secret is either changeme or not set, we will generate a secret
+     * based on the location of application.conf.  This should be stable across restarts for a given application.
+     *
+     * To achieve 4, using the location of application.conf to generate the secret should ensure this.
+     */
+
+    val app = Play.current
+
+    app.configuration.getString("application.secret") match {
+      case (Some("changeme") | Some(Blank()) | None) if app.mode == Mode.Prod =>
+        Play.logger.error("The application secret has not been set, and we are in prod mode. Your application is not secure.")
+        Play.logger.error("To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret")
+        throw new PlayException("Configuration error", "Application secret not set")
+      case Some("changeme") | Some(Blank()) | None =>
+        // Try to generate a stable secret. Security is not the issue here, since this is just for tests and dev mode.
+        val applicationConfLocation = app.classloader.getResource("application.conf")
+        val secret = if (applicationConfLocation == null) {
+          // No application.conf?  Oh well, just use something hard coded.
+          "she sells sea shells on the sea shore"
+        } else {
+          applicationConfLocation.toString
+        }
+        val md5Secret = Md5Crypt.md5Crypt(secret.getBytes("utf-8"))
+        Play.logger.debug(s"Generated dev mode secret ${md5Secret} for app at ${Option(applicationConfLocation).getOrElse("unknown location")}")
+        md5Secret
+      case Some(s) => s
+    }
+  }
 
   private lazy val provider: Option[String] = getConfig("application.crypto.provider")
 
@@ -61,9 +111,7 @@ object Crypto {
    * @return A hexadecimal encoded signature.
    */
   def sign(message: String): String = {
-    secret.map(secret => sign(message, secret.getBytes("utf-8"))).getOrElse {
-      throw new PlayException("Configuration error", "Missing application.secret")
-    }
+    sign(message, secret.getBytes("utf-8"))
   }
 
   /**
@@ -155,9 +203,7 @@ object Crypto {
    * @return An hexadecimal encrypted string.
    */
   def encryptAES(value: String): String = {
-    secret.map(secret => encryptAES(value, secret.substring(0, 16))).getOrElse {
-      throw new PlayException("Configuration error", "Missing application.secret")
-    }
+    encryptAES(value, secret.substring(0, 16))
   }
 
   /**
@@ -203,9 +249,7 @@ object Crypto {
    * @return The decrypted String.
    */
   def decryptAES(value: String): String = {
-    secret.map(secret => decryptAES(value, secret.substring(0, 16))).getOrElse {
-      throw new PlayException("Configuration error", "Missing application.secret")
-    }
+    decryptAES(value, secret.substring(0, 16))
   }
 
   /**
