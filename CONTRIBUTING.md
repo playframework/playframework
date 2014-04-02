@@ -5,7 +5,6 @@
 If you wish to report an issue for Play Framework, please ensure you have done the following things:
 
 * If it is a documentation issue with a simple fix, don't raise an issue, just edit the documentation yourself directly in GitHub and submit a pull request.  This will be quicker for you and everybody.
-* If it is documentation for a code sample, extract the code from a working example - more information at [[|Documentation]].
 * If you are not 100% sure that it is a bug, then ask about it on the mailing list first.  You will get a lot more help a lot quicker on the mailing list if you raise it there.  The issue tracker is for verified bugs, not for questions.
 * If you have a feature request, please raise it on the developer mailing list first.  The mailing list is the best forum to discuss new features, and it may be that Play already provides something to achieve what you want to achieve and you didn't realise.
 * If you are sure you have found a bug, then raise an issue.  Please be as specific as possible, including sample code that reproduces the problem, stack traces if there are any exceptions thrown, and versions of Play, OS, Java, etc.
