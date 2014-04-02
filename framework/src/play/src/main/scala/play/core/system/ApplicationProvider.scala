@@ -32,7 +32,7 @@ trait DevSettings {
 }
 
 /**
- * generic layout for initialized Applications
+ * Provides information about a Play Application running inside a Play server.
  */
 trait ApplicationProvider {
   def path: File
