@@ -34,34 +34,79 @@ If the `Future` fails, you can define a fallback, which redirects back the user 
 Here is an example of usage (from a controller):
 
 ```scala
-def login = Action {
-  Ok(views.html.login())
-}
+  import scala.concurrent.ExecutionContext.Implicits.global
+  import scala.concurrent.Future
 
-def loginPost = Action.async { implicit request =>
-  Form(single(
-    "openid" -> nonEmptyText
-  )).bindFromRequest.fold(
-    { error =>
-      Logger.info("bad request " + error.toString)
-      Future.successful(BadRequest(error.toString))
-    },
-    { openId =>
-      OpenID.redirectURL(openId, routes.Application.openIDCallback.absoluteURL())
-        .map(url => Redirect(url))
-        .recover { case t: Throwable => Redirect(routes.Application.login) }
-    }
-  )
-}
+  def index = Action {
+    Ok(views.html.login())
+  }
 
-def openIDCallback = Action.async { implicit request =>
-  OpenID.verifiedId.map(info => Ok(info.id + "\n" + info.attributes))
-    .recover {
-      case t: Throwable =>
-      // Here you should look at the error, and give feedback to the user
-      Redirect(routes.Application.login)
-    }
-}
+  def indexPost = Action { implicit request =>
+    Form(single(
+      "openid" -> nonEmptyText
+    )).bindFromRequest.fold(
+      error => {
+        Logger.info("bad request " + error.toString)
+        BadRequest(error.toString)
+      },
+      {
+        case (openid) => {
+          AsyncResult(OpenID.redirectURL(openid,
+                                         routes.LoginController.callback.absoluteURL(),
+                                         Seq("fullname" -> "http://axschema.org/namePerson",
+                                             "email" -> "http://axschema.org/contact/email",
+                                             "image" -> "http://axschema.org/media/image/default"))
+            .map( url => Redirect(url) )
+            .recover {
+              case e: OpenIDError => {
+                Redirect(routes.LoginController.index).flashing(
+                  "error" -> e.message
+                )
+              }
+            }
+          )
+        }
+
+      }
+    )
+  }
+
+  def callback = Action { implicit request =>
+    AsyncResult(
+
+      OpenID.verifiedId
+
+        .map(info => {
+          println(info.id)
+
+          info.attributes.get("email") match {
+            case None => {
+              Redirect(routes.LoginController.index).flashing(
+                "error" -> "Open ID account did not provide your email address. Please try again or use a different OpenID"
+              )
+            }
+
+            case Some(email: String) => {
+              val fullname = info.attributes.get("fullname")
+              val imageUrl = info.attributes.get("image_url")
+              val user = User.upsert(email, fullname, imageUrl)
+              println("User: " + user)
+              Redirect("/").withSession { "user_guid" -> user.guid.toString }
+            }
+          }
+        })
+
+        .recover {
+          case e: Throwable => {
+            Logger.error("Error authenticating open id user", e)
+            Redirect(routes.LoginController.index).flashing(
+              "error" -> "Error authenticating. Please try again or provide a different OpenID URL"
+            )
+          }
+
+        }
+    )
+  }
 ```
 
 ## Extended Attributes
