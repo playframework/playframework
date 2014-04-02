@@ -23,18 +23,20 @@ import scala.concurrent.Future
  *                         a GET request that accepts HTML.
  * @param tokenProvider A token provider to use.
  * @param next The composed action that is being protected.
+ * @param checkFailedResult handling failed token error.
  */
 class CSRFAction(next: EssentialAction,
     tokenName: String = CSRFConf.TokenName,
     cookieName: Option[String] = CSRFConf.CookieName,
     secureCookie: Boolean = CSRFConf.SecureCookie,
     createIfNotFound: RequestHeader => Boolean = CSRFConf.defaultCreateIfNotFound,
-    tokenProvider: TokenProvider = CSRFConf.defaultTokenProvider) extends EssentialAction {
+    tokenProvider: TokenProvider = CSRFConf.defaultTokenProvider,
+    errorHandler: ErrorHandler = CSRFConf.defaultErrorHandler) extends EssentialAction {
 
   import CSRFAction._
 
   // An iteratee that returns a forbidden result saying the CSRF check failed
-  private def checkFailed(msg: String): Iteratee[Array[Byte], Result] = Done(Forbidden(msg))
+  private def checkFailed(msg: String): Iteratee[Array[Byte], Result] = Done(errorHandler.handle(msg))
 
   def apply(request: RequestHeader) = {
 
@@ -199,7 +201,7 @@ object CSRFAction {
 object CSRFCheck {
 
   private class CSRFCheckAction[A](tokenName: String, cookieName: Option[String], tokenProvider: TokenProvider,
-      wrapped: Action[A]) extends Action[A] {
+      errorHandler: ErrorHandler, wrapped: Action[A]) extends Action[A] {
     def parser = wrapped.parser
     def apply(request: Request[A]) = {
 
@@ -226,7 +228,7 @@ object CSRFCheck {
             .collect {
               case queryToken if tokenProvider.compareTokens(queryToken, headerToken) => wrapped(request)
             }
-        }.getOrElse(Future.successful(Forbidden("CSRF token check failed")))
+        }.getOrElse(Future.successful(errorHandler.handle("CSRF token check failed")))
       }
     }
   }
@@ -234,8 +236,8 @@ object CSRFCheck {
   /**
    * Wrap an action in a CSRF check.
    */
-  def apply[A](action: Action[A]): Action[A] =
-    new CSRFCheckAction(CSRFConf.TokenName, CSRFConf.CookieName, CSRFConf.defaultTokenProvider, action)
+  def apply[A](action: Action[A], errorHandler: ErrorHandler = CSRFConf.defaultErrorHandler): Action[A] =
+    new CSRFCheckAction(CSRFConf.TokenName, CSRFConf.CookieName, CSRFConf.defaultTokenProvider, errorHandler, action)
 }
 
 /**

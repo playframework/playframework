@@ -5,6 +5,7 @@ package play.filters.csrf
 
 import play.api.mvc._
 import play.api._
+import play.api.mvc.Results._
 import play.api.libs.Crypto
 
 private[csrf] object CSRFConf {
@@ -29,6 +30,7 @@ private[csrf] object CSRFConf {
     // CSRF token for it.
     request.method == "GET" && (request.accepts("text/html") || request.accepts("application/xml+xhtml"))
   }
+  def defaultErrorHandler = CSRF.DefaultErrorHandler
   def defaultTokenProvider = {
     if (SignTokens) {
       CSRF.SignedTokenProvider
@@ -100,6 +102,18 @@ object CSRF {
   object UnsignedTokenProvider extends TokenProvider {
     def generateToken = Crypto.generateToken
     def compareTokens(tokenA: String, tokenB: String) = Crypto.constantTimeEquals(tokenA, tokenB)
+  }
+
+  /**
+   * This trait handles the CSRF error.
+   */
+  trait ErrorHandler {
+    /** Handle a result */
+    def handle(msg: String): Result
+  }
+
+  object DefaultErrorHandler extends ErrorHandler {
+    def handle(msg: String) = Forbidden(msg)
   }
 }
 

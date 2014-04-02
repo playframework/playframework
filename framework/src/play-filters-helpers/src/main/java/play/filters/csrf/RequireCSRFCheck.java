@@ -17,4 +17,12 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
 public @interface RequireCSRFCheck {
+
+    /**
+     * Call a implementation class for handling the CSRF error.
+     *
+     * @see play.filters.csrf.CSRFErrorHandler
+     */
+    Class<? extends CSRFErrorHandler> error() default CSRFErrorHandler.DefaultCSRFErrorHandler.class;
+
 }

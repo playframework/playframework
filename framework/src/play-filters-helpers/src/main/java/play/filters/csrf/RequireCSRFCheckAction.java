@@ -53,14 +53,19 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
                     if (tokenProvider.compareTokens(tokenToCheck, headerToken.get())) {
                         return delegate.call(ctx);
                     } else {
-                        return F.Promise.pure((Result) forbidden("CSRF tokens don't match"));
+                        return F.Promise.pure(handleTokenError("CSRF tokens don't match"));
                     }
                 } else {
-                    return F.Promise.pure((Result) forbidden("CSRF token not found in body or query string"));
+                    return F.Promise.pure(handleTokenError("CSRF token not found in body or query string"));
                 }
             } else {
-                return F.Promise.pure((Result) forbidden("CSRF token not found in session"));
+                return F.Promise.pure(handleTokenError("CSRF token not found in session"));
             }
         }
+    }
+
+    private Result handleTokenError(String msg) throws Exception {
+        CSRFErrorHandler handler = configuration.error().newInstance();
+        return handler.handle(msg);
     }
 }
