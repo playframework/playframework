@@ -158,7 +158,7 @@ object PlayBuild extends Build {
     }
   }
 
-  lazy val SbtLinkProject = PlaySharedJavaProject("SBT-link", "sbt-link")
+  lazy val BuildLinkProject = PlaySharedJavaProject("Build-Link", "build-link")
     .settings(libraryDependencies := link)
     .dependsOn(PlayExceptionsProject)
 
@@ -202,7 +202,7 @@ object PlayBuild extends Build {
       Docs.apiDocsIncludeManaged := true,
       parallelExecution in Test := false,
       sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
-    ).dependsOn(SbtLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject % "test->test;compile->compile", JsonProject)
+    ).dependsOn(BuildLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject % "test->test;compile->compile", JsonProject)
 
   lazy val PlayJdbcProject = PlayRuntimeProject("Play-JDBC", "play-jdbc")
     .settings(libraryDependencies := jdbcDeps)
@@ -285,7 +285,7 @@ object PlayBuild extends Build {
           "-Dperformance.log=" + new File(baseDir, "target/sbt-repcomile-performance.properties")
        )
       }
-    ).dependsOn(SbtLinkProject, PlayExceptionsProject, RoutesCompilerProject, TemplatesCompilerProject)
+    ).dependsOn(BuildLinkProject, PlayExceptionsProject, RoutesCompilerProject, TemplatesCompilerProject)
 
   lazy val PlayWsProject = PlayRuntimeProject("Play-WS", "play-ws")
     .settings(
@@ -344,7 +344,7 @@ object PlayBuild extends Build {
 
   lazy val publishedProjects = Seq[ProjectReference](
     PlayProject,
-    SbtLinkProject,
+    BuildLinkProject,
     AnormProject,
     TemplatesProject,
     TemplatesCompilerProject,
