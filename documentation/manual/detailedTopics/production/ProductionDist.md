@@ -56,7 +56,8 @@ Many other types of archive can be generated including:
 * OS X disk images
 * Microsoft Installer (MSI)
 * RPMs
-* Debian files
+* Debian packages
+* System V / init.d services in RPM/Debian packages
 
 Please consult the [documentation](http://www.scala-sbt.org/sbt-native-packager) on the native packager for more information.
 
