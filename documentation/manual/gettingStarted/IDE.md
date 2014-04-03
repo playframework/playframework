@@ -11,37 +11,28 @@ However, using a modern Java or Scala IDE provides cool productivity features li
 
 Play provides a command to simplify Eclipse configuration. To transform a Play application into a working Eclipse project, use the `eclipse` command:
 
-without the source jars:
-
 ```
-[My first application] $ eclipse
+[my-first-app] $ eclipse
 ```
 
-if you want to grab the available source jars (this will take longer and it's possible a few sources might be missing):
+If you want to grab the available source jars (this will take longer and it's possible a few sources might be missing):
 
 ```
-[My first application] $ eclipse with-source=true
+[my-first-app] $ eclipse with-source=true
 ```
 
-> Note if you are using sub-projects with aggregate, you would need to set `skipParents` appropriately:
+> Note if you are using sub-projects with aggregate, you would need to set `skipParents` appropriately in `build.sbt`:
 
 ```
 import com.typesafe.sbteclipse.core.EclipsePlugin.EclipseKeys
 
-object ApplicationBuild extends Build {
-
-  override def settings = super.settings ++ Seq(
-      EclipseKeys.skipParents in ThisBuild := false
-  )
-
-  ...
- 
-}
+EclipseKeys.skipParents in ThisBuild := false
 ```
+
 or from the play console, type:
 
 ``` 
-[My first application] $ eclipse skip-parents=false
+[my-first-app] $ eclipse skip-parents=false
 ```
 
 > Also, if you did not want to trigger a compilation before running `eclipse`, then just add the following to your settings:
@@ -54,7 +45,7 @@ You then need to import the application into your Workspace with the **File/Impo
 
 [[images/eclipse.png]] 
 
-To debug, start your application with `play debug run` and in Eclipse right-click on the project and select **Debug As**, **Debug Configurations**. In the **Debug Configurations** dialog, right-click on **Remote Java Application** and select **New**. Change **Port** to 9999 and click **Apply**. From now on you can click on **Debug** to connect to the running application. Stopping the debugging session will not stop the server.
+To debug, start your application with `activator -jvm-dubug 9999 run` and in Eclipse right-click on the project and select **Debug As**, **Debug Configurations**. In the **Debug Configurations** dialog, right-click on **Remote Java Application** and select **New**. Change **Port** to 9999 and click **Apply**. From now on you can click on **Debug** to connect to the running application. Stopping the debugging session will not stop the server.
 
 > **Tip**: You can run your application using `~run` to enable direct compilation on file change. This way scala template files are auto discovered when you create a new template in `view` and auto compiled when the file changes. If you use normal `run` then you have to hit `Refresh` on your browser each time.
 
@@ -70,32 +61,29 @@ The generated configuration files contain absolute references to your framework 
 
 Play provides a command to simplify Intellij IDEA configuration. To transform a Play application into a working IDEA module, use the idea command from the play console:
 
-without the source jars:
-
 ```
-[My first application] $ idea
+[my-first-app] $ idea
 ```
 
-if you want to grab the available source jars (this will take longer and it's possible a few sources might be missing):
+If you want to grab the available source jars (this will take longer and it's possible a few sources might be missing):
 
 ```
-[My first application] $ idea with-sources=yes
+[my-first-app] $ idea with-sources=yes
 ```
 
-This will create the configuration files IntelliJ needs to open your play application as a project. The files are named <project>.iml and <project>-build.iml. 
-Now we can open the project in IntelliJ. To do this select, 'File > Open...' (IntelliJ 12.1.6) and select the "My first application" folder. 
+This will create the configuration files IntelliJ needs to open your play application as a project. The files are named `<project>.iml` and `<project>-build.iml`. 
 
-> Tip: There is an [Intellij IDEA issue](http://devnet.jetbrains.net/thread/433870) regarding building Java based Play2 apps while having the Scala plugin installed. Until it's fixed, the recommended workaround is to disable the Scala plugin.
+Now we can open the project in IntelliJ. To do this select, File, then Open... (IntelliJ 12.1.6) and select the "my-first-app" folder. 
 
 Let's go ahead and run our app in debug mode. As we are already running the Play console we will need to first stop it:
 
 ```
-[My first application] $ exit
+[my-first-app] $ exit
 ```
 
 To debug, first add a debug configuration
 
-- Open Run/Debug Configurations dialog, then click Run -> Edit Configurations
+- Open Run/Debug Configurations dialog, then click Run, Edit Configurations
 - Add a Remote configuration, then select `Remote`
 - Configure it:
     - Set a name
@@ -109,7 +97,7 @@ To debug, first add a debug configuration
 Start play in debug mode (in a separate command line console, NOT in IDEA's Play console):
 
 ```
-$ play debug
+$ activator -jvm-debug 9999
 ```
 
 which should print: 
@@ -126,7 +114,7 @@ Connected to the target VM, address: 'localhost:9999', transport: 'socket'
 
 Run the web app by executing the task `run` in the Play console. Finally, browse to `http://localhost:9000`. IntelliJ should stop at your breakpoint.
 
-Alternatively, in order not to run more command prompts, first run "play debug run" in IDEA's Play console, then launch debug configuration.
+Alternatively, in order not to run more command prompts, first run `activator -jvm-debug 9999 run` in IDEA's Play console, then launch debug configuration.
 
 If you make any important changes to your application, such as changing the classpath, use `idea` again to regenerate the configuration files.
 
@@ -155,7 +143,7 @@ addSbtPlugin("org.ensime" % "ensime-sbt-cmd" % "0.1.0")
 Start Play:
 
 ```
-$ play
+$ activator
 ```
 
 Enter 'ensime generate' at the play console. The plugin should generate a .ensime file in the root of your Play project.

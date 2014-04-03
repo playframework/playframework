@@ -1,41 +1,56 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Creating a new application
 
-## Create a new application using Typesafe Activator
+## Create a new application with the activator command
 
-If you installed Play Framework using [Typesafe Activator](http://typesafe.com/activator), then follow the instructions [here](http://typesafe.com/platform/getstarted) on how to create a new application.
+The `activator` command can be used to create a new Play application.  Activator allows you to select a template that your new application should be based off.  For vanilla Play projects, the names of these templates are `play-scala` for Scala based Play applications, and `play-java` for Java based Play applications.
 
-## Create a new application with the Play standalone distribution
+> Note that choosing a template for either Scala or Java at this point does not imply that you can’t change language later. For example, you can create a new application using the default Java application template and start adding Scala code whenever you like.
 
-The Play standalone distribution comes with a script called `play`, which can easily be used to create a new application.
+To create a new vanilla Play Scala application, run:
 
 ```bash
-$ play new myFirstApp
+$ activator new my-first-app play-scala
 ```
 
-This will ask for some information.
+To create a new vanilla Play Java application, run:
 
-- The application name (just for display, this name will be used later in several messages).
-- The template to use for this application. You can choose either a default Scala application or a default Java application.
+```bash
+$ activator new my-first-app play-scala
+```
+
+In either case, you can replace `my-first-app` with whatever name you want your application to use.  Activator will use this as the directory name to create the application in.  You can change this name later if you choose.
+
+> *TODO:* Update screenshot when Activator supports specifying the application and template name as arguments to the command.
 
 [[images/playNew.png]]
 
-> Note that choosing a template at this point does not imply that you can’t change language later. For example, you can create a new application using the default Java application template and start adding Scala code whenever you like.
-
-Once the application has been created you can use the `play` command again to enter the [[Play console | PlayConsole]].
+Once the application has been created you can use the `activator` command again to enter the [[Play console|PlayConsole]].
 
 ```bash
-$ cd myFirstApp
-$ play
+$ cd my-first-app
+$ activator
 ```
 
-## Create a new application without having Play installed
+> If you wish to use other Activator templates, you can do this by running `activator new`.  This will prompt you for an application name, and then give you a chance to browse and select an appropriate template.
 
-You can also create a new Play application without installing Play, by using sbt. 
+## Create a new application with the Activator UI
+
+New Play applications can also be created with the Activator UI.  To use the Activator UI, run:
+
+```bash
+$ activator ui
+```
+
+You can read the documentation for using the Activator UI [here](https://typesafe.com/activator/docs).
+
+## Create a new application without Activator
+
+It is also possible to create a new Play application without installing Activator, using sbt directly.
 
 > First install [sbt](http://www.scala-sbt.org/) if needed.
 
-Just create a new directory for your new application and configure your sbt build script with two additions.
+Create a new directory for your new application and configure your sbt build script with two additions.
 
 In `project/plugins.sbt`, add:
 
@@ -59,9 +74,9 @@ In `build.sbt`:
 ```scala
 import play.Project._
 
-name := "My first application"
+name := "my-first-app"
 
-version := "1.0"
+version := "1.0.0-SNAPSHOT"
 
 playScalaSettings
 ```
@@ -69,10 +84,10 @@ playScalaSettings
 You can then launch the sbt console in this directory:
 
 ```bash
-$ cd myFirstApp
+$ cd my-first-app
 $ sbt
 ```
 
 sbt will load your project and fetch the dependencies.
 
-> **Next:** [[Anatomy of a Play application | Anatomy]]
+> **Next:** [[Anatomy of a Play application|Anatomy]]

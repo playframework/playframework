@@ -5,29 +5,21 @@
 
 The Play console is a development console based on sbt that allows you to manage a Play application’s complete development cycle.
 
-### Launching the console using Typesafe Activator
-
-The preferred method for launching the Play development environment when using Typesafe Activator is using the in built browser based UI.  However, if you would prefer to use a console based environment, then change to the application directory, and run `activator`.
-
-You may need to ensure that your Activator installation directory is in your system `PATH`.
-
-### Launching the console using Play standalone
-
-If you have installed Play using the standalone distribution, enter any existing Play application directory and run the `play` script:
+To launch the Play console, change to the directory of your project, and run Activator:
 
 ```bash
-$ cd /path/to/any/application
-$ play 
+$ cd my-first-app
+$ activator
 ```
 
 [[images/console.png]]
 
 ## Getting help
 
-Use the `help play` command to get basic help about the available commands:
+Use the `help` command to get basic help about the available commands.  You can also use this with a specific command to get information about that command:
 
 ```bash
-[My first application] $ help play
+[my-first-app] $ help run
 ```
 
 ## Running the server in development mode
@@ -35,7 +27,7 @@ Use the `help play` command to get basic help about the available commands:
 To run the current application in development mode, use the `run` command:
 
 ```bash
-[My first application] $ run
+[my-first-app] $ run
 ```
 
 [[images/consoleRun.png]]
@@ -53,7 +45,7 @@ To stop the server, type `Crtl+D` key, and you will be returned to the Play cons
 In Play you can also compile your application without running the server. Just use the `compile` command:
 
 ```bash
-[My first application] $ compile
+[my-first-app] $ compile
 ```
 
 [[images/consoleCompile.png]]
@@ -63,7 +55,7 @@ In Play you can also compile your application without running the server. Just u
 Type `console` to enter the interactive Scala console, which allows you to test your code interactively:
 
 ```bash
-[My first application] $ console
+[my-first-app] $ console
 ```
 
 To start application inside scala console (e.g to access database):
@@ -75,10 +67,10 @@ scala> new play.core.StaticApplication(new java.io.File("."))
 
 ## Debugging
 
-You can ask Play to start a **JPDA** debug port when starting the console. You can then connect using Java debugger. Use the `play debug` command to do that:
+You can ask Play to start a **JPDA** debug port when starting the console. You can then connect using Java debugger. Use the `activator -jvm-debug <port>` command to do that:
 
 ```
-$ play debug
+$ activator -jvm-debug 9999
 ```
 
 When a JPDA port is available, the JVM will log this line during boot:
@@ -87,8 +79,6 @@ When a JPDA port is available, the JVM will log this line during boot:
 Listening for transport dt_socket at address: 9999
 ```
 
-> **Note:** Using `play debug` the JPDA socket will be opened on port `9999`. You can also set the `JPDA_PORT` environment variable yourself using `set JPDA_PORT=1234`.
-
 ## Using sbt features
 
 The Play console is just a normal sbt console, so you can use sbt features such as **triggered execution**. 
@@ -96,7 +86,7 @@ The Play console is just a normal sbt console, so you can use sbt features such 
 For example, using `~ compile`
 
 ```bash
-[My first application] $ ~ compile
+[my-first-app] $ ~ compile
 ```
 
 The compilation will be triggered each time you change a source file.
@@ -104,7 +94,7 @@ The compilation will be triggered each time you change a source file.
 If you are using `~ run`
 
 ```bash
-[My first application] $ ~ run
+[my-first-app] $ ~ run
 ```
 
 The triggered compilation will be enabled while a development server is running.
@@ -112,33 +102,25 @@ The triggered compilation will be enabled while a development server is running.
 You can also do the same for `~ test`, to continuously test your project each time you modify a source file:
 
 ```bash
-[My first application] $ ~ test
+[my-first-app] $ ~ test
 ```
 
 ## Using the play commands directly
 
-You can also run commands directly without entering the Play console. For example, enter `play run`:
+You can also run commands directly without entering the Play console. For example, enter `activator run`:
 
 ```bash
-$ play run
-[info] Loading project definition from myFirstApp/project
-[info] Set current project to My first application
+$ activator run
+[info] Loading project definition from /Users/jroper/tmp/my-first-app/project
+[info] Set current project to my-first-app (in build file:/Users/jroper/tmp/my-first-app/)
 
 --- (Running the application from SBT, auto-reloading is enabled) ---
 
-[info] play - Listening for HTTP on port 9000...
+[info] play - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
 
 (Server started, use Ctrl+D to stop and go back to the console...)
 ```
 
 The application starts directly. When you quit the server using `Ctrl+D`, you will come back to your OS prompt.
-
-## Force clean
-
-If something goes wrong and you think that the sbt cache is corrupted, use the `clean-all` command for your OS command line to clean all generated directories.
-
-```
-$ play clean-all
-```
 
 > **Next:** [[Setting-up your preferred IDE | IDE]]
