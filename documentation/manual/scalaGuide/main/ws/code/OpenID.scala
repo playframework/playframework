@@ -18,7 +18,7 @@ object LoginController extends Controller {
   import scala.concurrent.Future
 
   def index = Action {
-    Ok(views.html.login())
+    Ok("HTML LOGIN FORM HERE")
   }
 
   def indexPost = Action.async { implicit request =>
@@ -32,14 +32,14 @@ object LoginController extends Controller {
       {
         case (openid) => {
           OpenID.redirectURL(openid,
-                             routes.LoginController.callback.absoluteURL(),
+                             "http://localhost:9000/login/callback", //routes.LoginController.callback.absoluteURL(),
                              Seq("fullname" -> "http://axschema.org/namePerson",
                                  "email" -> "http://axschema.org/contact/email",
                                  "image" -> "http://axschema.org/media/image/default"))
           .map( url => Redirect(url) )
           .recover {
             case e: OpenIDError => {
-              Redirect(routes.LoginController.index).flashing(
+              Redirect("/login").flashing(
                 "error" -> e.message
               )
             }
@@ -54,7 +54,7 @@ object LoginController extends Controller {
 
       info.attributes.get("email") match {
         case None => {
-          Redirect(routes.LoginController.index).flashing(
+          Redirect("/login").flashing(
             "error" -> "Open ID account did not provide your email address. Please try again or use a different OpenID"
           )
         }
@@ -71,7 +71,7 @@ object LoginController extends Controller {
     .recover {
       case e: Throwable => {
         Logger.error("Error authenticating open id user", e)
-        Redirect(routes.LoginController.index).flashing(
+        Redirect("/login").flashing(
           "error" -> "Error authenticating. Please try again or provide a different OpenID URL"
         )
       }
