@@ -13,7 +13,7 @@ object Project extends Plugin with PlayExceptions with play.Keys with PlayReload
     with PlayRun with play.Settings with PlayPositionMapper with PlaySourceGenerators {
 
   private lazy val commonSettings: Seq[Setting[_]] =
-    packageArchetype.java_application ++
+    packageArchetype.java_server ++
       defaultSettings ++
       intellijCommandSettings ++
       Seq(testListeners += testListener) ++
