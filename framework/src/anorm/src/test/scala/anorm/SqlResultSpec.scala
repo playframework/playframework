@@ -2,7 +2,7 @@ package anorm
 
 import acolyte.QueryResult
 import acolyte.Acolyte.{ connection, handleQuery }
-import acolyte.RowLists.{ rowList1, rowList2 }
+import acolyte.RowLists.{ rowList1, rowList2, stringList }
 import acolyte.Implicits._
 
 object SqlResultSpec extends org.specs2.mutable.Specification {
@@ -120,6 +120,31 @@ object SqlResultSpec extends org.specs2.mutable.Specification {
 
         SQL("SELECT f") as SqlParser.matches("x", 1.2f).single must beFalse
       }
+  }
+
+  "Collecting" should {
+    sealed trait EnumX
+    object Xa extends EnumX
+    object Xb extends EnumX
+    val pf: PartialFunction[String, EnumX] = {
+      case "XA" => Xa
+      case "XB" => Xb
+    }
+
+    "return Xa object" in withQueryResult(stringList :+ "XA") { implicit c =>
+      SQL"SELECT str".as(SqlParser.str(1).collect("ERR")(pf).single).
+        aka("collected") must_== Xa
+    }
+
+    "return Xb object" in withQueryResult(stringList :+ "XB") { implicit c =>
+      SQL"SELECT str".as(SqlParser.str(1).collect("ERR")(pf).single).
+        aka("collected") must_== Xb
+    }
+
+    "fail" in withQueryResult(stringList :+ "XC") { implicit c =>
+      SQL"SELECT str".as(SqlParser.str(1).collect("ERR")(pf).single).
+        aka("collecting") must throwA[Exception]("SqlMappingError\\(ERR\\)")
+    }
   }
 
   def withQueryResult[A](r: QueryResult)(f: java.sql.Connection => A): A =
