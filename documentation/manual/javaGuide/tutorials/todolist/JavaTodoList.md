@@ -30,7 +30,7 @@ The `play new todolist` command creates a new directory `todolist/` and populate
 
 * `app/` contains the application’s core, split between models, controllers and views directories. This is the directory where .java source files live.
 * `conf/` contains all the application’s configuration files, especially the main `application.conf` file, the `routes` definition files and the `messages` files used for internationalization.
-* `project/` contains the build scripts. The build system is based on sbt. But a new play application comes with a default build script that will just works fine for our application.
+* `project/` contains the build scripts. The build system is based on sbt. But a new play application comes with a default build script that will just work fine for our application.
 * `public/` contains all the publicly available resources, which includes JavaScript, stylesheets and images directories.
 * `test/` contains all the application tests. Tests can be written as JUnit tests.
 
