@@ -4,7 +4,10 @@
 package play.mvc;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
+import akka.actor.ActorRef;
+import akka.actor.Props;
 import play.libs.F.*;
 
 /**
@@ -19,6 +22,35 @@ public abstract class WebSocket<A> {
      * @param out The Socket out.
      */
     public abstract void onReady(In<A> in, Out<A> out);
+
+    /**
+     * If this method returns a result, the WebSocket will be rejected with that result.
+     *
+     * This method will be invoked before onReady.
+     *
+     * @return The result to reject the WebSocket with, or null if the WebSocket shouldn't be rejected.
+     */
+    public Result rejectWith() {
+        return null;
+    }
+
+    /**
+     * If this method returns true, then the WebSocket should be handled by an actor.  The actor will be obtained by
+     * passing an ActorRef representing to the actor method, which should return the props for creating the actor.
+     */
+    public boolean isActor() {
+        return false;
+    }
+
+    /**
+     * The props to create the actor to handle this WebSocket.
+     *
+     * @param out The actor to send upstream messages to.
+     * @return The props of the actor to handle the WebSocket.  If isActor returns true, must not return null.
+     */
+    public Props actorProps(ActorRef out) {
+        return null;
+    }
 
     /**
      * A WebSocket out.
@@ -44,12 +76,12 @@ public abstract class WebSocket<A> {
         /**
          * Callbacks to invoke at each frame.
          */
-        public final List<Callback<A>> callbacks = new ArrayList<Callback<A>>();
+        public final List<Callback<A>> callbacks = new CopyOnWriteArrayList<Callback<A>>();
 
         /**
          * Callbacks to invoke on close.
          */
-        public final List<Callback0> closeCallbacks = new ArrayList<Callback0>();
+        public final List<Callback0> closeCallbacks = new CopyOnWriteArrayList<Callback0>();
 
         /**
          * Registers a message callback.
@@ -77,6 +109,49 @@ public abstract class WebSocket<A> {
      */
     public static <A> WebSocket<A> whenReady(Callback2<In<A>, Out<A>> callback) {
         return new WhenReadyWebSocket<A>(callback);
+    }
+
+    /**
+     * Rejects a WebSocket.
+     *
+     * @param result The result that will be returned.
+     * @return A rejected WebSocket.
+     */
+    public static <A> WebSocket<A> reject(final Result result) {
+        return new WebSocket<A>() {
+            public void onReady(In<A> in, Out<A> out) {
+            }
+            public Result rejectWith() {
+                return result;
+            }
+        };
+    }
+
+    /**
+     * Handles a WebSocket with an actor.
+     *
+     * @param props The function used to create the props for the actor.  The passed in argument is the upstream actor.
+     * @return An actor WebSocket.
+     */
+    public static <A> WebSocket<A> withActor(final Function<ActorRef, Props> props) {
+        return new WebSocket<A>() {
+            public void onReady(In<A> in, Out<A> out) {
+            }
+            public boolean isActor() {
+                return true;
+            }
+            public Props actorProps(ActorRef out) {
+                try {
+                    return props.apply(out);
+                } catch (RuntimeException e) {
+                    throw e;
+                } catch (Error e) {
+                    throw e;
+                } catch (Throwable t) {
+                    throw new RuntimeException(t);
+                }
+            }
+        };
     }
 
     /**

@@ -23,8 +23,9 @@ import scala.collection.JavaConverters._
 import scala.util.control.Exception
 import com.typesafe.netty.http.pipelining.{ OrderedDownstreamChannelEvent, OrderedUpstreamMessageEvent }
 import scala.concurrent.Future
-import java.net.{ SocketAddress, URI }
+import java.net.URI
 import java.io.IOException
+import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame
 
 private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
 
@@ -207,10 +208,27 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
             }
             handleAction(a, Some(app))
 
-          case Right((ws @ WebSocket(f), app)) if (websocketableRequest.check) =>
+          case Right((ws @ WebSocket(f), app)) if websocketableRequest.check =>
             Play.logger.trace("Serving this request with: " + ws)
-            val enumerator = websocketHandshake(ctx, nettyHttpRequest, e)(ws.frameFormatter)
-            f(requestHeader)(enumerator, socketOut(ctx)(ws.frameFormatter))
+
+            val executed = Future(f(requestHeader))(play.api.libs.concurrent.Execution.defaultContext)
+
+            import play.api.libs.iteratee.Execution.Implicits.trampoline
+            executed.flatMap(identity).map {
+              case Left(result) =>
+                // WebSocket was rejected, send result
+                val a = EssentialAction(_ => Done(result, Input.Empty))
+                handleAction(a, Some(app))
+              case Right(socket) =>
+                val enumerator = websocketHandshake(ctx, nettyHttpRequest, e)(ws.inFormatter)
+                socket(enumerator, socketOut(ctx)(ws.outFormatter))
+            }.recover {
+              case error =>
+                app.handleError(requestHeader, error).map { result =>
+                  val a = EssentialAction(_ => Done(result, Input.Empty))
+                  handleAction(a, Some(app))
+                }
+            }
 
           //handle bad websocket request
           case Right((WebSocket(_), app)) =>
@@ -318,19 +336,28 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
   }
 
   def socketOut[A](ctx: ChannelHandlerContext)(frameFormatter: play.api.mvc.WebSocket.FrameFormatter[A]): Iteratee[A, Unit] = {
-    val channel = ctx.getChannel()
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
+
+    val channel = ctx.getChannel
     val nettyFrameFormatter = frameFormatter.asInstanceOf[play.core.server.websocket.FrameFormatter[A]]
 
-    def step(future: Option[ChannelFuture])(input: Input[A]): Iteratee[A, Unit] =
-      input match {
-        case El(e) => Cont(step(Some(channel.write(nettyFrameFormatter.toFrame(e)))))
-        case e @ EOF =>
-          future.map(_.addListener(ChannelFutureListener.CLOSE)).getOrElse(channel.close()); Done((), e)
-        case Empty => Cont(step(future))
-      }
+    import NettyFuture._
 
-    import play.api.libs.iteratee.Execution.Implicits.trampoline
-    Enumeratee.breakE[A](_ => !channel.isConnected()).transform(Cont(step(None)))
+    def iteratee: Iteratee[A, _] = Cont {
+      case El(e) =>
+        val frame = nettyFrameFormatter.toFrame(e)
+        Iteratee.flatten(channel.write(frame).toScala.map(_ => iteratee))
+      case e @ EOF =>
+        if (channel.isOpen) {
+          Iteratee.flatten(for {
+            _ <- channel.write(new CloseWebSocketFrame()).toScala
+            _ <- channel.close().toScala
+          } yield Done((), e))
+        } else Done((), e)
+      case Empty => iteratee
+    }
+
+    iteratee.map(_ => ())
   }
 
   def getHeaders(nettyRequest: HttpRequest): Headers = {

@@ -1,42 +1,75 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # WebSockets
 
-## Using WebSockets instead of Comet sockets
+[WebSockets](http://en.wikipedia.org/wiki/WebSocket) are sockets that can be used from a web browser based on a protocol that allows two way full duplex communication.  The client can send messages and the server can receive messages at any time, as long as there is an active WebSocket connection between the server and the client.
 
-A Comet socket is a kind of hack for sending live events to the web browser. Also, it only supports one-way communication from the server to the client. To push events to the server, the web browser has to send Ajax requests.
-
-> **Note:** It is also possible to achieve the same kind of live communication the other way around by using an infinite HTTP request handled by a custom `BodyParser` that receives chunks of input data, but that is far more complicated.
-
-Modern web browsers natively support two-way live communication via WebSockets.
-
->WebSocket is a web technology that provides bi-directional, full-duplex communication channels, over a single Transmission Control Protocol (TCP) socket. The WebSocket API is being standardized by the W3C, and the WebSocket protocol has been standardized by the IETF as RFC 6455.
->
->WebSocket is designed to be implemented in web browsers and web servers, but it can be used by any client or server application. Because ordinary TCP connections to port numbers other than 80 are frequently blocked by administrators outside of home environments, it can be used as a way to circumvent these restrictions and provide similar functionality with some additional protocol overhead while multiplexing several WebSocket services over a single TCP port.
->
->WebSocket is also useful for web applications that require real-time bi-directional communication. Before the implementation of WebSocket, such bi-directional communication was only possible using Comet channels; however, Comet is not trivial to implement reliably, and due to the TCP handshaking and HTTP header overhead, it may be inefficient for small messages. The WebSocket protocol aims to solve these problems without compromising the web’s security assumptions.
->
-> <http://en.wikipedia.org/wiki/WebSocket>
+Modern HTML5 compliant web browsers natively support WebSockets via a JavaScript WebSocket API.  However WebSockets are not limited in just being used by WebBrowsers, there are many WebSocket client libraries available, allowing for example servers to talk to each other, and also native mobile apps to use WebSockets.  Using WebSockets in these contexts has the advantage of being able to reuse the existing TCP port that a Play server uses.
 
 ## Handling WebSockets
 
 Until now, we were using `Action` instances to handle standard HTTP requests and send back standard HTTP responses. WebSockets are a totally different beast and can’t be handled via standard `Action`.
 
+Play provides two different built in mechanisms for handling WebSockets.  The first is using actors, the second is using iteratees.  Both of these mechanisms can be accessed using the builders provided on [WebSocket](api/scala/index.html#play.api.mvc.WebSocket$).
+
+## Handling WebSockets with actors
+
+To handle a WebSocket with an actor, we need to give Play a `akka.actor.Props` object that describes the actor that Play should create when it receives the WebSocket connection.  Play will give us an `akka.actor.ActorRef` to send upstream messages to, so we can use that to help create the `Props` object:
+
+@[actor-accept](code/ScalaWebSockets.scala)
+
+The actor that we're sending to here in this case looks like this:
+
+@[example-actor](code/ScalaWebSockets.scala)
+
+Any messages received from the client will be sent to the actor, and any messages sent to the actor supplied by Play will be sent to the client.  The actor above simply sends every message received from the client back with `I received your message: ` prepended to it.
+
+### Detecting when a WebSocket has closed
+
+When the WebSocket has closed, Play will automatically stop the actor.  This means you can handle this situation by implementing the actors `postStop` method, to clean up any resources the WebSocket might have consumed.  For example:
+
+@[actor-post-stop](code/ScalaWebSockets.scala)
+
+### Closing a WebSocket
+
+Play will automatically close the WebSocket when your actor that handles the WebSocket terminates.  So, to close the WebSocket, send a `PoisonPill` to your own actor:
+
+@[actor-stop](code/ScalaWebSockets.scala)
+
+### Rejecting a WebSocket
+
+Sometimes you may wish to reject a WebSocket request, for example, if the user must be authenticated to connect to the WebSocket, or if the WebSocket is associated with some resource, whose id is passed in the path, but no resource with that id exists.  Play provides `tryAcceptWithActor` to address this, allowing you to return either a result (such as forbidden, or not found), or the actor to handle the WebSocket with:
+
+@[actor-try-accept](code/ScalaWebSockets.scala)
+
+### Handling different types of messages
+
+So far we have only seen handling `String` frames.  Play also has built in handlers for `Array[Byte]` frames, and `JsValue` messages parsed from `String` frames.  You can pass these as the type parameters to the WebSocket creation method, for example:
+
+@[actor-json](code/ScalaWebSockets.scala)
+
+You may have noticed that there are two type parameters, this allows us to handle differently typed messages coming in to messages going out.  This is typically not useful with the lower level frame types, but can be useful if you parse the messages into a higher level type.
+
+For example, let's say we want to receive JSON messages, and we want to parse incoming messages as `InEvent` and format outgoing messages as `OutEvent`.  The first thing we want to do is create JSON formats for out `InEvent` and `OutEvent` types:
+
+@[actor-json-formats](code/ScalaWebSockets.scala)
+
+Now we can create WebSocket `FrameFormatter`'s for these types:
+
+@[actor-json-frames](code/ScalaWebSockets.scala)
+
+And finally, we can use these in our WebSocket:
+
+@[actor-json-in-out](code/ScalaWebSockets.scala)
+
+Now in our actor, we will receive messages of type `InEvent`, and we can send messages of type `OutEvent`.
+
+## Handling WebSockets with iteratees
+
+While actors are a better abstraction for handling discreet messages, iteratees are often a better  abstraction for handling streams.
+
 To handle a WebSocket request, use a `WebSocket` instead of an `Action`:
 
-```scala
-def index = WebSocket.using[String] { request => 
-  
-  // Log events to the console
-  val in = Iteratee.foreach[String](println).map { _ =>
-    println("Disconnected")
-  }
-  
-  // Send a single 'Hello!' message
-  val out = Enumerator("Hello!")
-  
-  (in, out)
-}
-```
+@[iteratee1](code/ScalaWebSockets.scala)
 
 A `WebSocket` has access to the request headers (from the HTTP request that initiates the WebSocket connection), allowing you to retrieve standard headers and session data. However, it doesn’t have access to a request body, nor to the HTTP response.
 
@@ -51,38 +84,10 @@ It this example we are creating a simple iteratee that prints each message to co
 
 Let’s write another example that discards the input data and closes the socket just after sending the **Hello!** message:
 
-```scala
-def index = WebSocket.using[String] { request => 
-  
-  // Just consume and ignore the input
-  val in = Iteratee.consume[String]()
-  
-  // Send a single 'Hello!' message and close
-  val out = Enumerator("Hello!").andThen(Enumerator.eof)
-  
-  (in, out)
-}
-```
+@[iteratee2](code/ScalaWebSockets.scala)
 
 Here is another example in which the input data is logged to standard out and broadcast by to the client utilizing 'Concurrent.broadcast'.
 
-```scala
-//This shows an updated websocket example for play 2.2.0 utilizing Concurrent.broadcast vs Enumerator.imperative, which is now deprecated.
-
- def index =  WebSocket.using[String] { request =>
- 
-   //Concurrent.broadcast returns (Enumerator, Concurrent.Channel)
-    val (out,channel) = Concurrent.broadcast[String]
- 
-    //log the message to stdout and send response back to client
-    val in = Iteratee.foreach[String] {
-      msg => println(msg)
-             //the Enumerator returned by Concurrent.broadcast subscribes to the channel and will 
-             //receive the pushed messages
-             channel push("RESPONSE: " + msg)
-    }
-    (in,out)
-}
-```
+@[iteratee3](code/ScalaWebSockets.scala)
 
 > **Next:** [[The template engine | ScalaTemplates]]
