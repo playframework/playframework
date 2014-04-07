@@ -229,13 +229,13 @@ case class NingWSRequest(client: NingWSClient,
   /**
    * Add http auth headers. Defaults to HTTP Basic.
    */
-  private def auth(username: String, password: String, scheme: AuthScheme = AuthScheme.BASIC): WSRequest = {
-    this.copy(builder = builder.setRealm((new RealmBuilder)
+  private def auth(username: String, password: String, scheme: AuthScheme = AuthScheme.BASIC): Unit = {
+    builder.setRealm((new RealmBuilder)
       .setScheme(scheme)
       .setPrincipal(username)
       .setPassword(password)
       .setUsePreemptiveAuth(true)
-      .build()))
+      .build())
   }
 
   private def ningHeadersToMap(headers: java.util.Map[String, java.util.Collection[String]]) =
