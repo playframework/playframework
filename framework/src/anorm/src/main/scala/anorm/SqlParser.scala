@@ -27,7 +27,7 @@ object SqlParser {
           meta <- row.metaData.ms.headOption.toRight(NoColumnsInReturnedResult)
           value <- row.data.headOption.toRight(NoColumnsInReturnedResult)
           result <- transformer(value, meta)
-        } yield result).fold(e => Error(e), a => Success(a))
+        } yield result).fold(Error(_), Success(_))
       }
     }
 
@@ -304,8 +304,8 @@ object SqlParser {
   def getAliased[T](aliasName: String)(implicit extractor: Column[T]): RowParser[T] = RowParser { row =>
     (for {
       col <- row.getAliased(aliasName)
-      result <- extractor.tupled(col)
-    } yield result).fold(e => Error(e), a => Success(a))
+      res <- extractor.tupled(col)
+    } yield res).fold(Error(_), Success(_))
   }
 
   // TODO: Scaladoc
@@ -313,8 +313,8 @@ object SqlParser {
     RowParser { row =>
       (for {
         col <- row.get1(columnName)
-        result <- extractor.tupled(col)
-      } yield result).fold(e => Error(e), a => Success(a))
+        res <- extractor.tupled(col)
+      } yield res).fold(Error(_), Success(_))
     }
 
   /**
@@ -396,22 +396,24 @@ trait RowParser[+A] extends (Row => SqlResult[A]) { parent =>
   def map[B](f: A => B): RowParser[B] = RowParser(parent.andThen(_.map(f)))
 
   /**
+   * Returns parser which collects information
+   * from already parsed row data using `f`.
+   *
    * @param otherwise Message returned as error if nothing can be collected using `f`.
+   * @param f Collecting function
    */
   def collect[B](otherwise: String)(f: PartialFunction[A, B]): RowParser[B] =
-    RowParser(row => parent(row).flatMap(a =>
-      // TODO: Spec + fold f
-      if (f.isDefinedAt(a)) Success(f(a))
-      else Error(SqlMappingError(otherwise))))
+    RowParser(parent(_).flatMap(f.lift(_).
+      fold[SqlResult[B]](Error(SqlMappingError(otherwise)))(Success(_))))
 
   def flatMap[B](k: A => RowParser[B]): RowParser[B] =
-    RowParser(row => parent(row).flatMap(a => k(a)(row)))
+    RowParser(row => parent(row).flatMap(k(_)(row)))
 
   def ~[B](p: RowParser[B]): RowParser[A ~ B] =
     RowParser(row => parent(row).flatMap(a => p(row).map(new ~(a, _))))
 
   def ~>[B](p: RowParser[B]): RowParser[B] =
-    RowParser(row => parent(row).flatMap(a => p(row)))
+    RowParser(row => parent(row).flatMap(_ => p(row)))
 
   def <~[B](p: RowParser[B]): RowParser[A] = parent.~(p).map(_._1)
 
@@ -426,8 +428,8 @@ trait RowParser[+A] extends (Row => SqlResult[A]) { parent =>
    * Returns a row parser for optional column,
    * that will turn missing or null column as None.
    */
-  def ? : RowParser[Option[A]] = RowParser { row =>
-    parent(row) match {
+  def ? : RowParser[Option[A]] = RowParser {
+    parent(_) match {
       case Success(a) => Success(Some(a))
       case Error(UnexpectedNullableFound(_)) | Error(ColumnNotFound(_, _)) =>
         Success(None)
@@ -492,7 +494,8 @@ sealed trait ScalarRowParser[+A] extends RowParser[A] {
       Success(None)
     case head #:: Stream.Empty => map(Some(_))(head)
     case Stream.Empty => Success(None)
-    case _ => Error(SqlMappingError("too many rows when expecting a single one"))
+    case _ => Error(SqlMappingError(
+      "too many rows when expecting a single one"))
   }
 }
 
@@ -531,10 +534,11 @@ private[anorm] object ResultSetParser {
 
   def single[A](p: RowParser[A]): ResultSetParser[A] = ResultSetParser {
     case head #:: Stream.Empty => p(head)
-    case Stream.Empty =>
-      Error(SqlMappingError("No rows when expecting a single one"))
-    case _ =>
-      Error(SqlMappingError("too many rows when expecting a single one"))
+    case Stream.Empty => Error(SqlMappingError(
+      "No rows when expecting a single one"))
+
+    case _ => Error(SqlMappingError(
+      "too many rows when expecting a single one"))
 
   }
 
@@ -542,7 +546,8 @@ private[anorm] object ResultSetParser {
     ResultSetParser {
       case head #:: Stream.Empty => p.map(Some(_))(head)
       case Stream.Empty => Success(None)
-      case _ => Error(SqlMappingError("too many rows when expecting a single one"))
+      case _ => Error(SqlMappingError(
+        "too many rows when expecting a single one"))
     }
 
 }
