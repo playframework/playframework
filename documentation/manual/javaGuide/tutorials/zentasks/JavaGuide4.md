@@ -12,10 +12,19 @@ To start off, let's implement a screen that allows a user to login.  Create a ne
 And now add the login action to `app/controllers/Application.java`:
 
 ```java
-public static Result login() {
-    return ok(
-        login.render()
-    );
+package controllers;
+
+import play.mvc.Controller;
+import views.html.login;
+
+public class Application extends Controller {
+
+  public static Result login() {
+        return ok(
+            login.render()
+        );
+    }
+
 }
 ```
 
