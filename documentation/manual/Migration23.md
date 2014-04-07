@@ -85,6 +85,31 @@ export SBT_OPTS="$SBT_OPTS -Dsbt.jse.engineType=Node"
 
 An interesting feature of sbt-web is that it is not concerned whether you use "javascripts" or "stylesheets" as your folder names. Any files with the appropriate filename extensions are filtered from within the `app/assets` folder.
 
+The following lists all sbt-web related components and their versions at the time of releasing Play 2.3-M1. Note that any dependency of sbt-js-engine is `1.0.0-M2a` given the accidental release of a snapshot with `"sbt-js-engine" % "1.0.0-M2"`.
+
+#### Libraries
+```scala
+"com.typesafe" %% "webdriver" % "1.0.0-M2"
+"com.typesafe" %% "jse" % "1.0.0-M2"
+"com.typesafe" %% "npm" % "1.0.0-M2"
+```
+
+#### sbt plugins
+```scala
+"com.typesafe.sbt" % "sbt-web" % "1.0.0-M2"
+"com.typesafe.sbt" % "sbt-webdriver" % "1.0.0-M2"
+"com.typesafe.sbt" % "sbt-js-engine" % "1.0.0-M2a"
+
+"com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0-M2a"
+"com.typesafe.sbt" % "sbt-digest" % "1.0.0-M2"
+"com.typesafe.sbt" % "sbt-less" % "1.0.0-M2a"
+"com.typesafe.sbt" % "sbt-jshint" % "1.0.0-M2a"
+"com.typesafe.sbt" % "sbt-mocha" % "1.0.0-M2a"
+"com.typesafe.sbt" % "sbt-rjs" % "1.0.0-M2a"
+```
+
+***
+
 From your perspective we aim to offer feature parity with previous releases of Play. While things have changed significantly under the hood the transition for you should be minor. The remainder of this section looks at each part of Play that has been replaced with sbt-web and describes what should be changed.
 
 #### CoffeeScript
@@ -92,7 +117,7 @@ From your perspective we aim to offer feature parity with previous releases of P
 You must now declare the plugin, typically in your plugins.sbt file:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0-M2")
+addSbtPlugin("com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0-M2a")
 ```
 
 Coffeescript options have changed. The new options are:
@@ -112,7 +137,7 @@ For more information please consult [the plugin's documentation](https://github.
 You must now declare the plugin, typically in your plugins.sbt file:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.0.0-M2")
+addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.0.0-M2a")
 ```
 
 There is no longer any need to declare the "entry points". The new options are:
@@ -148,7 +173,7 @@ The Closure Compiler has been replaced. Its two important functions of validatin
 To use JSHint you must declare it, typically in your plugins.sbt file:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-jshint" % "1.0.0-M2")
+addSbtPlugin("com.typesafe.sbt" % "sbt-jshint" % "1.0.0-M2a")
 ```
 
 Options can be specified in accordance with the [JSHint website](http://www.jshint.com/docs) and they share the same set of defaults. To set an option you can provide a `.jshintrc` file within your project's base directory. If there is no such file then a `.jshintrc` file will be searched for in your home directory. This behaviour can be overridden by using a `JshintKeys.config` setting for the plugin.
@@ -165,7 +190,7 @@ The RequireJS Optimizer (rjs) has been entirely replaced with one that should be
 To use rjs you must declare it, typically in your plugins.sbt file:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-rjs" % "1.0.0-M2")
+addSbtPlugin("com.typesafe.sbt" % "sbt-rjs" % "1.0.0-M2a")
 ```
 
 The options have changed entirely. A standard build profile for the RequireJS optimizer is provided and should suffice for most projects. However if you would prefer to provide your own build profile then create an `app.build.js` file in your project's folder. For more information on build profiles see http://requirejs.org/docs/optimization.html. Note that one requirement for these build profiles is to accept the last line being a line to receive five parameters passed by this plugin. Whether you use them or not is at your discretion, but that last line must be there.
@@ -222,3 +247,17 @@ The following deprecated types and helpers from Play 2.1 have been removed:
 If you have code that is still using these, please see the [[Play 2.2 Migration Guide|Migration22]] to learn how to migrate to the new results structure.
 
 As planned back in 2.2, 2.3 has renamed `play.mvc.SimpleResult` to `play.mvc.Result`.  This should be transparent to most Java code.  The most prominent places where this will impact is in the `Global.java` error callbacks, and in custom actions.
+
+## Play WS
+
+The WS client now exists in its own library. If you are using WS in your code then you must add the library as a dependency to your project. For example with Java:
+
+```scala
+libraryDependencies += PlayKeys.javaWs
+```
+
+...or Scala:
+
+```scala
+libraryDependencies += PlayKeys.ws
+```

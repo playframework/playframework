@@ -29,3 +29,16 @@ Deprecated types have been removed and `play.api.mvc.SimpleResult` has been rena
 ### Java results
 
 Deprecated types have been removed and `play.mvc.SimpleResult` has been renamed to `play.mvc.Result`. 
+
+## Play WS
+
+The WS client has been factored out into its own library in order to further reduce the size of play.core and promote modularization.
+
+## Actor WebSockets
+
+A method to use actors for handling websocket interactions has been incorporated for both Java and Scala e.g. using Scala:
+
+```scala
+   def webSocket = WebSocket.acceptWithActor[JsValue, JsValue] { req => out =>
+     MyWebSocketActor.props(out)
+```
