@@ -197,6 +197,10 @@ Play detects this new evolution that replaces the previous 3 one, and will run t
 
 > In development mode however it is often simpler to simply trash your development database and reapply all evolutions from the beginning.
 
+### Transactional DDL
+
+By default, each statement of each evolution script will be executed immediately. If your database supports [Transactional DDL](https://wiki.postgresql.org/wiki/Transactional_DDL_in_PostgreSQL:_A_Competitive_Analysis) you can set `evolutions.autocommit=false` in application.conf to change this behaviour, causing **all** statements to be executed in **one transaction** only. Now, when an evolution script fails to apply with autocommit disabled, the whole transaction gets rolled back and no changes will be applied at all. So your database stays "clean" and will not become inconsistent. This allows you to easily fix any DDL issues in the evolution scripts without having to modify the database by hand like described above.
+
 ### Evolution storage and limitations
 
 Evolutions are stored in your database in a table called PLAY_EVOLUTIONS.  A Text column stores the actual evolution script.  Your database probably has a 64kb size limit on a text column.  To work around the 64kb limitation you could: manually alter the play_evolutions table structure changing the column type or (prefered) create multiple evolutions scripts less than 64kb in size.
