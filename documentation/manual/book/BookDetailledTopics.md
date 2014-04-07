@@ -8,7 +8,7 @@
 1. [[Working with public assets | Assets]]
     1. [[Using CoffeeScript | AssetsCoffeeScript]]
     1. [[Using LESS CSS | AssetsLess]]
-    1. [[Using Google Closure Compiler | AssetsGoogleClosureCompiler]]
+    1. [[Using JSHint|AssetsJSHint]]
 1. [[Managing database evolutions | Evolutions]]
 1. [[Configuration file syntax and features | Configuration]]
     1. [[Configuring the JDBC connection pool | SettingsJDBC]]

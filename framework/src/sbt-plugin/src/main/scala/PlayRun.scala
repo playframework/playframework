@@ -13,6 +13,8 @@ import annotation.tailrec
 import scala.collection.JavaConverters._
 import java.net.URLClassLoader
 import java.util.jar.JarFile
+import com.typesafe.sbt.SbtNativePackager._
+import com.typesafe.sbt.packager.Keys._
 
 /**
  * Provides mechanisms for running a Play application in SBT
@@ -305,7 +307,7 @@ trait PlayRun extends PlayInternalKeys {
     val (properties, httpPort, httpsPort) = filterArgs(args, defaultHttpPort = extracted.get(playDefaultPort))
     require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
 
-    SbtProject.runTask(compile in Compile, state).get._2.toEither match {
+    SbtProject.runTask(stage, state).get._2.toEither match {
       case Left(_) => {
         println()
         println("Cannot start with errors.")
@@ -313,42 +315,39 @@ trait PlayRun extends PlayInternalKeys {
         state.fail
       }
       case Right(_) => {
+        val stagingBin = Some(extracted.get(stagingDirectory in Universal) / "bin" / extracted.get(normalizedName in Universal)).map {
+          f =>
+            if (System.getProperty("os.name").toLowerCase.contains("win")) f.getAbsolutePath + ".bat" else f.getAbsolutePath
+        }.get
+        val javaProductionOptions = SbtProject.runTask(javaOptions in Production, state).get._2.toEither.right.getOrElse(Seq[String]())
 
-        SbtProject.runTask(dependencyClasspath in Runtime, state).get._2.toEither.right.map { dependencies =>
-          //trigger a require build if needed
-          SbtProject.runTask(buildRequire, state).get._2
+        // Note that I'm unable to pass system properties along with properties... if I do then I receive:
+        //  java.nio.charset.IllegalCharsetNameException: "UTF-8"
+        // Things are working without passing system properties, and I'm unsure that they need to be passed explicitly. If def main(args: Array[String]){
+        // problem occurs in this area then at least we know what to look at.
+        val args = Seq(stagingBin) ++
+          properties.map {
+            case (key, value) => s"""-D$key="$value" """
+          } ++
+          javaProductionOptions ++
+          Seq("-Dhttp.port=" + httpPort.getOrElse("disabled"))
+        val builder = new java.lang.ProcessBuilder(args.asJava)
+        new Thread {
+          override def run {
+            System.exit(Process(builder) !)
+          }
+        }.start()
 
-          val systemProperties = SbtProject.runTask(javaOptions in Production, state).get._2.toEither.right.getOrElse(Seq[String]())
+        println(Colors.green(
+          """|
+            |(Starting server. Type Ctrl+D to exit logs, the server will remain in background)
+            | """.stripMargin))
 
-          val classpath = dependencies.map(_.data).map(_.getCanonicalPath).reduceLeft(_ + java.io.File.pathSeparator + _)
+        interaction.waitForCancel()
 
-          import java.lang.{ ProcessBuilder => JProcessBuilder }
-          val builder = new JProcessBuilder(Seq(
-            "java") ++ (properties ++ System.getProperties.asScala).map { case (key, value) => "-D" + key + "=" + value } ++ systemProperties ++ Seq("-Dhttp.port=" + httpPort.getOrElse("disabled"), "-cp", classpath, "play.core.server.NettyServer", extracted.currentProject.base.getCanonicalPath): _*)
+        println()
 
-          new Thread {
-            override def run {
-              System.exit(Process(builder) !)
-            }
-          }.start()
-
-          println(Colors.green(
-            """|
-              |(Starting server. Type Ctrl+D to exit logs, the server will remain in background)
-              |""".stripMargin))
-
-          interaction.waitForCancel()
-
-          println()
-
-          state.copy(remainingCommands = Seq.empty)
-
-        }.right.getOrElse {
-          println()
-          println("Oops, cannot start the server?")
-          println()
-          state.fail
-        }
+        state.copy(remainingCommands = Seq.empty)
 
       }
     }

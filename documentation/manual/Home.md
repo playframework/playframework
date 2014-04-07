@@ -33,7 +33,7 @@
 1. [[Working with public assets|Assets]]
     1. [[Using CoffeeScript|AssetsCoffeeScript]]
     1. [[Using LESS CSS|AssetsLess]]
-    1. [[Using Google Closure Compiler|AssetsGoogleClosureCompiler]]
+    1. [[Using JSHint|AssetsJSHint]]
     1. [[Using RequireJS|RequireJS-support]]
 1. [[Working with the in-memory H2 database|Developing-with-the-H2-Database]]
 1. [[Managing database evolutions|Evolutions]]

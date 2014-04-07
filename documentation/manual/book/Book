@@ -84,7 +84,7 @@ SBTSubProjects
 Assets
 AssetsCoffeeScript
 AssetsLess
-AssetsGoogleClosureCompiler
+AssetsJSHint
 Evolutions
 Configuration
 SettingsJDBC

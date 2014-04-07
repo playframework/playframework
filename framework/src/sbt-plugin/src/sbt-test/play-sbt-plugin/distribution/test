@@ -3,6 +3,10 @@
 $ exists target/dist/README
 $ exists target/dist/SomeFile.txt
 $ exists target/dist/SomeFolder/SomeOtherFile.txt
+
+> unzip-project-jar
+$ exists target/projectJar/public/main.css
+
 > check-start-script
 $ exists target/dist/conf/application.conf
 -$ exists target/dist/conf/routes

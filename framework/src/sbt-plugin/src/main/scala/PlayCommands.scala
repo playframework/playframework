@@ -6,6 +6,8 @@ package play
 import sbt.{ Project => SbtProject, Settings => SbtSettings, _ }
 import sbt.Keys._
 
+import com.typesafe.sbt.web.SbtWeb.autoImport._
+
 import play.sbtplugin.Colors
 
 import Keys._
@@ -25,30 +27,6 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
   val SCALA = "scala"
   val NONE = "none"
 
-  val playCopyAssets = TaskKey[Seq[(File, File)]]("play-copy-assets")
-  val playCopyAssetsTask = (baseDirectory, managedResources in Compile, resourceManaged in Compile, playAssetsDirectories, playExternalAssets, classDirectory in Compile, cacheDirectory, streams, state) map { (b, resources, resourcesDirectories, r, externals, t, c, s, state) =>
-    val cacheFile = c / "copy-assets"
-
-    val mappings = (r.map(d => (d ***) --- (d ** HiddenFileFilter ***)).foldLeft(PathFinder.empty)(_ +++ _).filter(_.isFile) x relativeTo(b +: r.filterNot(_.getAbsolutePath.startsWith(b.getAbsolutePath))) map {
-      case (origin, name) => (origin, new java.io.File(t, name))
-    }) ++ (resources x rebase(resourcesDirectories, t))
-
-    val externalMappings = externals.map {
-      case (root, paths, common) => {
-        paths(root) x relativeTo(root :: Nil) map {
-          case (origin, name) => (origin, new java.io.File(t, common + "/" + name))
-        }
-      }
-    }.foldLeft(Seq.empty[(java.io.File, java.io.File)])(_ ++ _)
-
-    val assetsMapping = mappings ++ externalMappings
-
-    s.log.debug("Copy play resource mappings: " + assetsMapping.mkString("\n\t", "\n\t", ""))
-
-    Sync(cacheFile)(assetsMapping)
-    assetsMapping
-  }
-
   //- test reporter
   protected lazy val testListener = new PlayTestListener
 
@@ -61,9 +39,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
     testListener.result.clear
   }
 
-  val playReloadTask = (playCopyAssets, playCompileEverything) map { (_, analysises) =>
-    analysises.reduceLeft(_ ++ _)
-  }
+  val playReloadTask = Def.task(playCompileEverything.value.reduceLeft(_ ++ _))
 
   def intellijCommandSettings = {
     import org.sbtidea.SbtIdeaPlugin
@@ -296,7 +272,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
   }
 
   val playCompileEverythingTask = (state, thisProjectRef) flatMap { (s, r) =>
-    inAllDependencies(r, (compile in Compile).task, SbtProject structure s).join
+    inAllDependencies(r, playAssetsWithCompilation.task, SbtProject structure s).join
   }
 
   val buildRequireTask = (copyResources in Compile, crossTarget, requireJs, requireJsFolder, requireJsShim, requireNativePath, streams) map { (cr, crossTarget, requireJs, requireJsFolder, requireJsShim, requireNativePath, s) =>
@@ -401,8 +377,9 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
   val playMonitoredFilesTask = (thisProjectRef, state) map { (ref, state) =>
     val src = inAllDependencies(ref, sourceDirectories in Compile, SbtProject structure state).foldLeft(Seq.empty[File])(_ ++ _)
     val resources = inAllDependencies(ref, resourceDirectories in Compile, SbtProject structure state).foldLeft(Seq.empty[File])(_ ++ _)
-    val assets = inAllDependencies(ref, playAssetsDirectories, SbtProject structure state).foldLeft(Seq.empty[File])(_ ++ _)
-    (src ++ resources ++ assets).map { f =>
+    val assets = inAllDependencies(ref, sourceDirectories in Assets, SbtProject structure state).foldLeft(Seq.empty[File])(_ ++ _)
+    val public = inAllDependencies(ref, resourceDirectories in Assets, SbtProject structure state).foldLeft(Seq.empty[File])(_ ++ _)
+    (src ++ resources ++ assets ++ public).map { f =>
       if (!f.exists) f.mkdirs(); f
     }.map(_.getCanonicalPath).distinct
   }
