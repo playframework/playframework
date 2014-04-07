@@ -209,15 +209,17 @@ object WebSocketSpec extends PlaySpecification with WsTestClient {
 
     "allow handling a WebSocket in java" in {
 
-      import play.core.Router.HandlerInvoker
-      import play.core.Router.HandlerInvoker._
+      import play.core.Router.HandlerInvokerFactory
+      import play.core.Router.HandlerInvokerFactory._
       import play.mvc.{ WebSocket => JWebSocket, Results => JResults }
       import play.libs.F
 
-      implicit def toHandler[J <: AnyRef](javaHandler: J)(implicit invoker: HandlerInvoker[J]): Handler = {
-        invoker.call(javaHandler,
-          new HandlerDef(javaHandler, "package", "controller", "method", Nil, "GET", "", "/stream")
+      implicit def toHandler[J <: AnyRef](javaHandler: J)(implicit factory: HandlerInvokerFactory[J]): Handler = {
+        val invoker = factory.createInvoker(
+          javaHandler,
+          new HandlerDef(javaHandler.getClass.getClassLoader, "package", "controller", "method", Nil, "GET", "", "/stream")
         )
+        invoker.call(javaHandler)
       }
 
       "allow consuming messages" in allowConsumingMessages { _ => consumed =>
