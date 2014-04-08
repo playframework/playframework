@@ -46,7 +46,7 @@ trait Controller extends Results with BodyParsers with HttpProtocol with Status 
    * }
    * }}}
    */
-  implicit def session(implicit request: RequestHeader) = request.session
+  implicit def request2session(implicit request: RequestHeader) = request.session
 
   /**
    * Retrieve the flash scope implicitly from the request.
@@ -59,9 +59,9 @@ trait Controller extends Results with BodyParsers with HttpProtocol with Status 
    * }
    * }}}
    */
-  implicit def flash(implicit request: RequestHeader) = request.flash
+  implicit def request2flash(implicit request: RequestHeader) = request.flash
 
-  implicit def lang(implicit request: RequestHeader) = {
+  implicit def request2lang(implicit request: RequestHeader) = {
     play.api.Play.maybeApplication.map { implicit app =>
       val maybeLangFromCookie = request.cookies.get(Play.langCookieName).flatMap(c => Lang.get(c.value))
       maybeLangFromCookie.getOrElse(play.api.i18n.Lang.preferred(request.acceptLanguages))
@@ -69,4 +69,3 @@ trait Controller extends Results with BodyParsers with HttpProtocol with Status 
   }
 
 }
-
