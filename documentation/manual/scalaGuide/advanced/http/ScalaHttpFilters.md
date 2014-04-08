@@ -8,8 +8,8 @@ Play provides a simple filter API for applying global filters to each request.
 The filter API is intended for cross cutting concerns that are applied indiscriminately to all routes.  For example, here are some common use cases for filters:
 
 * Logging/metrics collection
-* GZIP encoding
-* Blanket security filters
+* [[GZIP encoding|GzipEncoding]]
+* [[Security headers|SecurityHeaders]]
 
 In contrast, [[action composition|ScalaActionsComposition]] is intended for route specific concerns, such as authentication and authorisation, caching and so on.  If your filter is not one that you want applied to every route, consider using action composition instead, it is far more powerful.  And don't forget that you can create your own action builders that compose your own custom defined sets of actions to each route, to minimise boilerplate.
 
