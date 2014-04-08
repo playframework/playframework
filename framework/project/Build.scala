@@ -29,9 +29,9 @@ object BuildSettings {
   val buildVersion = propOr("play.version", "2.3-SNAPSHOT")
   val buildWithDoc = boolProp("generate.doc")
   val previousVersion = "2.1.0"
-  val buildScalaVersion = propOr("scala.version", "2.10.4-RC2")
+  val buildScalaVersion = propOr("scala.version", "2.10.4")
   // TODO - Try to compute this from SBT... or not.
-  val buildScalaVersionForSbt = propOr("play.sbt.scala.version", "2.10.4-RC2")
+  val buildScalaVersionForSbt = propOr("play.sbt.scala.version", "2.10.4")
   val buildScalaBinaryVersionForSbt = CrossVersion.binaryScalaVersion(buildScalaVersionForSbt)
   val buildSbtVersion = propOr("play.sbt.version", "0.13.5-M2")
   val buildSbtMajorVersion = "0.13"
