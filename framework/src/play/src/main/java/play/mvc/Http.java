@@ -114,12 +114,16 @@ public class Http {
             if (lang != null) {
                 return lang;
             } else {
+                List<Lang> candidateLangs = new ArrayList<Lang>();
                 Cookie cookieLang = request.cookie(Play.langCookieName());
                 if (cookieLang != null) {
                     Lang lang = Lang.forCode(cookieLang.value());
-                    if (lang != null) return lang;
+                    if (lang != null) {
+                        candidateLangs.add(lang);
+                    };
                 }
-                return Lang.preferred(request().acceptLanguages());
+                candidateLangs.addAll(request().acceptLanguages());
+                return Lang.preferred(candidateLangs);
             }
         }
 
