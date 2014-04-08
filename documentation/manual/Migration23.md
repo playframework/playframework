@@ -15,14 +15,9 @@ To download and get started with Activator, follow the instructions [here](https
 
 sbt 0.13.5 is now the version used by Play. This version brings a new feature named "auto plugins".
 
-Auto plugins permit sbt plugins to be declared in the `project` folder (typically the `plugins.sbt`) 
-as before. What has changed though is that plugins may now declare their requirements of other
-plugins and what triggers their enablement for a given build. Before auto plugins, plugins added to the 
-build were always available; now plugins are enabled selectively for given modules.
+Auto plugins permit sbt plugins to be declared in the `project` folder (typically the `plugins.sbt`) as before. What has changed though is that plugins may now declare their requirements of other plugins and what triggers their enablement for a given build. Before auto plugins, plugins added to the build were always available; now plugins are enabled selectively for given modules.
 
-What this means for you is that declaring `addSbtPlugin` may not be sufficient for plugins that now
-utilize to the auto plugin functionality. This is a good thing. You may now be selective as to which 
-modules of your project should have which plugins e.g.:
+What this means for you is that declaring `addSbtPlugin` may not be sufficient for plugins that now utilize to the auto plugin functionality. This is a good thing. You may now be selective as to which modules of your project should have which plugins e.g.:
 
 ```scala
 lazy val root = (project in file(".")).addPlugins(SbtWeb)
