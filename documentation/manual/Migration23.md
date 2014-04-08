@@ -25,8 +25,7 @@ lazy val root = (project in file(".")).addPlugins(SbtWeb)
 
 The above example shows `SbtWeb` being added to the root project of a build. In the case of `SbtWeb` there are other plugins that become enabled if it is e.g. if you also had added the `sbt-less-plugin` via `addSbtPlugin` then it will become enabled just because `SbtWeb` has been enabled. `SbtWeb` is thus a "root" plugin for that category of plugins.
 
-Play itself is now added using the auto plugin mechanism. The mechanism used in Play 2.2 where 
-`playJavaSettings` and `playScalaSettings` were used has been deprecated. You should now move toward one of the  following:
+Play itself is now added using the auto plugin mechanism. The mechanism used in Play 2.2 where `playJavaSettings` and `playScalaSettings` were used has been deprecated. You should now move toward one of the  following:
 
 ```java
 lazy val root = (project in file(".")).addPlugins(PlayJava)
@@ -50,8 +49,7 @@ import PlayKeys._
 
 or qualifying them as `PlayKeys.jdbc` or `PlayKeys.anorm`.
 
-Outside of using a `.sbt` file i.e. if you're using Scala to describe your build then you may do the 
-following to have `PlayKeys` within scope:
+Outside of using a `.sbt` file i.e. if you're using Scala to describe your build then you may do the following to have `PlayKeys` within scope:
 
 ```scala
 import play.PlayJava.autoImport._
