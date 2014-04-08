@@ -25,7 +25,7 @@ public interface BodyParser {
     /**
      * Guess the body content by checking the Content-Type header.
      */
-    public static class AnyContent implements BodyParser {        
+    public static class AnyContent implements BodyParser {
         public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
             return play.core.j.JavaParsers.anyContent(maxLength);
         }
@@ -109,6 +109,16 @@ public interface BodyParser {
     public static class MultipartFormData implements BodyParser {
         public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
             return play.core.j.JavaParsers.multipartFormData(maxLength);
+        }
+    }
+
+    /**
+     * Don't parse the body.
+     */
+    public static class Empty implements BodyParser {
+        public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
+            if (maxLength != -1) throw new IllegalArgumentException("Empty BodyParser's maxLength argument is ignored so it must have a value of -1, was: " + maxLength);
+            return play.core.j.JavaParsers.empty();
         }
     }
 

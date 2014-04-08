@@ -414,8 +414,8 @@ trait BodyParsers {
     /**
      * Don't parse the body content.
      */
-    def empty: BodyParser[Option[Any]] = BodyParser("empty") { request =>
-      Done(Right(None), Empty)
+    def empty: BodyParser[Unit] = BodyParser("empty") { request =>
+      Done(Right(()), Empty)
     }
 
     // -- XML parser
