@@ -35,7 +35,7 @@ object SomeFeatureSpec extends Specification {
     "do something" in {
       //#some-label
       val msg = Seq("Hello", "world").mkString(" ")
-      //#same-label
+      //#some-label
       msg must_== "Hello world"
     }
   }
