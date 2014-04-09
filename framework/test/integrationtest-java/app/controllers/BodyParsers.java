@@ -35,4 +35,18 @@ public class BodyParsers extends Controller {
             "json: " + body.asJson();
         return ok(bodyConversions);
     }
+
+    public static class ThreadName implements BodyParser {
+        public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
+            return TestBodyParsers.threadName();
+        }
+    }
+
+    @BodyParser.Of(ThreadName.class)
+    public static Result thread() {
+        Http.RequestBody body = request().body();
+        String threadName = body.asText();
+        return ok(threadName);
+    }
+
 }
