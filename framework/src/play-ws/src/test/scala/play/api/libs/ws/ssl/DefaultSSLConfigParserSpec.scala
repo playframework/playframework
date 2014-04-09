@@ -174,9 +174,6 @@ object DefaultSSLConfigParserSpec extends Specification {
                               |      type: "storeType",
                               |      path: "cacerts",
                               |      password: "password1"
-                              |      filter: [
-                              |        "mybadcertificate"
-                              |      ]
                               |    },
                               |    { type: "PEM", data = "data",  password: "changeit" }
                               |  ]
