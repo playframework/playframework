@@ -32,9 +32,9 @@ If you are on JDK 1.8, you can also set the `jdk.tls.client.protocols` system pr
 
 ## Disabled Protocols
 
-WS recognizes “SSLv3”, “SSLv2” and “SSLv2Hello” as weak protocols with a number of [security issues](https://www.schneier.com/paper-ssl.pdf), and will filter them out of the enabledProtocols list.  Virtually all servers support `TLSv1`, so there is no advantage in using these older protocols.
+WS recognizes “SSLv3”, “SSLv2” and “SSLv2Hello” as weak protocols with a number of [security issues](https://www.schneier.com/paper-ssl.pdf), and will throw an exception if they are in the enabledProtocols list.  Virtually all servers support `TLSv1`, so there is no advantage in using these older protocols.
 
-If you specifically want this behavior, set the loose flag to disable the filter:
+If you specifically want a weak protocol, set the loose flag to disable the check:
 
 ```
 ws.ssl.loose.allowWeakProtocols=true
