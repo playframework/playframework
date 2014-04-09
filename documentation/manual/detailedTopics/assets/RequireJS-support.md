@@ -13,7 +13,7 @@ By convention RequireJS expects a main.js file to bootstrap its module loader.
 
 The RequireJS optimizer doesn't kick-in until it is time to perform a deployment i.e. by running the `start`, `stage` or `dist` tasks.
 
-If you're using WebJars with your build then the RequireJS optimizer plugin will also ensure that any JavaScript resources referenced from within a WebJar are automatically referenced from the [jsdelivr](http://www.jsdelivr.net) CDN. In addition if any `.min.js` file is found then that will be used in place of `.js`. An added bonus here is that there is no change required to your html!
+If you're using WebJars with your build then the RequireJS optimizer plugin will also ensure that any JavaScript resources referenced from within a WebJar are automatically referenced from the [jsdelivr](http://www.jsdelivr.com) CDN. In addition if any `.min.js` file is found then that will be used in place of `.js`. An added bonus here is that there is no change required to your html!
 
 ## Enablement and Configuration
 
