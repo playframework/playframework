@@ -3,7 +3,7 @@
 
 ## Distribution
 
-Play no longer has the `play` command as it is entirely integrated with [Typesafe Activator](https://typesafe.com/activator). If you are particularly adverse to large downloads, you can get a [minimal version of Activator](http://downloads.typesafe.com/typesafe-activator/1.1.0/typesafe-activator-1.1.0-minimal.zip) that will download all its dependencies on demand.
+Play no longer has the `play` command as it is entirely integrated with [Typesafe Activator](https://typesafe.com/activator). If you are particularly adverse to large downloads, you can get a minimal version of [Activator from that page](https://typesafe.com/activator).
 
 Play has always provided an ultra productive development environment both suited well to newcomers and advanced users.  At Typesafe we wanted to take this developer experience further providing a library of community contributed templates, tutorials and resources for getting started, additional developer tools and an even more productive development environment.  But we didn't want to just limit it to Play and so evolved it to something that was bigger and better.  Activator is the next evolution of the Play command.
 
