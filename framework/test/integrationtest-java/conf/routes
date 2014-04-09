@@ -19,6 +19,7 @@ GET     /thread                     controllers.Application.thread
 POST    /parsers/json               controllers.BodyParsers.json()
 POST    /parsers/limitedjson        controllers.BodyParsers.limitedJson()
 GET     /parsers/empty              controllers.BodyParsers.empty()
+GET     /parsers/thread             controllers.BodyParsers.thread()
 
 GET     /test/echo                  controllers.TestController.echo()
 POST    /test/echo                  controllers.TestController.echo()
