@@ -67,24 +67,27 @@ The generated configuration files contain absolute references to your framework 
 
 ### Generate configuration
 
-Play provides a command to simplify Intellij IDEA configuration. To transform a Play application into a working IDEA module, use the idea command from the play console:
+Intellij IDEA lets you quickly create a Play application without using the command prompt. You don't need to configure anything outside of IDE, the SBT build tool takes care of downloading appropriate libraries, resolving dependencies and building a project.
 
-without the source jars:
 
-```
-[My first application] $ idea
-```
+Before you start creating a Play application in IntelliJ IDEA, make sure that the Scala (if you develop with Scala) latest plugin and Play 2 plugin are enabled in IntelliJ IDEA.
 
-if you want to grab the available source jars (this will take longer and it's possible a few sources might be missing):
 
-```
-[My first application] $ idea with-sources=yes
-```
+Open **New Project** wizard, select **Play 2.x** under **Scala** section and click **Next**.
 
-This will create the configuration files IntelliJ needs to open your play application as a project. The files are named <project>.iml and <project>-build.iml. 
-Now we can open the project in IntelliJ. To do this select, 'File > Open...' (IntelliJ 12.1.6) and select the "My first application" folder. 
+Enter your project's information and click **Finish**.
 
-> Tip: There is an [Intellij IDEA issue](http://devnet.jetbrains.net/thread/433870) regarding building Java based Play2 apps while having the Scala plugin installed. Until it's fixed, the recommended workaround is to disable the Scala plugin.
+IntelliJ IDEA creates an empty application using the SBT build tool.
+Check the project's structure, make sure all necessary dependencies are downloaded.
+
+You can use code assistance, navigation and on-the-fly code analysis features.
+
+To run the created application, right-click the Application and on the context menu, select Run Pla2 App.
+
+You can view the output in the default browser `http://localhost:9000`.
+
+For a more detailed information, check the IntelliJ IDEA tutorial.  
+
 
 Let's go ahead and run our app in debug mode. As we are already running the Play console we will need to first stop it:
 
