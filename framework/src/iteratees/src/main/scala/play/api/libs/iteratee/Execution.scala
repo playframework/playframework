@@ -28,7 +28,7 @@ object Execution {
    * Blocking should be strictly avoided as it could hog the current thread.
    * Also, since we're running on a single thread, blocking code risks deadlock.
    */
-  val trampoline: ExecutionContext = new ExecutionContext {
+  object trampoline extends ExecutionContext {
 
     private val local = new ThreadLocal[Deque[Runnable]]
 
@@ -67,7 +67,7 @@ object Execution {
    * Blocking should be strictly avoided as it could hog the current thread.
    * Also, since we're running on a single thread, blocking code risks deadlock.
    */
-  val overflowingExecutionContext: ExecutionContext = new ExecutionContext {
+  object overflowingExecutionContext extends ExecutionContext {
 
     def execute(runnable: Runnable): Unit = {
       runnable.run()
