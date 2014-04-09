@@ -3,7 +3,9 @@
 
 ## Distribution
 
-Play no longer has the `play` command as it is entirely integrated with [Typesafe Activator](https://typesafe.com/activator).
+Play no longer has the `play` command as it is entirely integrated with [Typesafe Activator](https://typesafe.com/activator). If you are particularly adverse to large downloads, you can get a [minimal version of Activator](http://downloads.typesafe.com/typesafe-activator/1.1.0/typesafe-activator-1.1.0-minimal.zip) that will download all its dependencies on demand.
+
+Play has always provided an ultra productive development environment both suited well to newcomers and advanced users.  At Typesafe we wanted to take this developer experience further providing a library of community contributed templates, tutorials and resources for getting started, additional developer tools and an even more productive development environment.  But we didn't want to just limit it to Play and so evolved it to something that was bigger and better.  Activator is the next evolution of the Play command.
 
 ## Build tasks
 
@@ -42,3 +44,13 @@ A method to use actors for handling websocket interactions has been incorporated
    def webSocket = WebSocket.acceptWithActor[JsValue, JsValue] { req => out =>
      MyWebSocketActor.props(out)
 ```
+
+## Java 8
+
+Play 2.3 will work just fine with Java 8; there is nothing special to do other than ensuring that your Java environment is configured for Java 8. There is a new Activator sample available for Java 8:
+
+http://typesafe.com/activator/template/reactive-stocks-java8
+
+Our documentation has been improved with Java examples in general and, where applicable, Java 8 examples.
+
+For a complete overview of going Reactive with Java 8 and Play check out this blog: http://typesafe.com/blog/go-reactive-with-java-8
