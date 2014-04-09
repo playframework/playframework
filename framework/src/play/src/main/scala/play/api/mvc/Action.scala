@@ -5,31 +5,40 @@ package play.api.mvc
 
 import play.api.libs.iteratee._
 import play.api._
+import play.core.Router.{ HandlerInvoker, HandlerInvokerFactory }
 import scala.concurrent._
 import scala.language.higherKinds
 
 /**
- * An Handler handles a request.
+ * An Handler handles a request. Play understands several types of handlers,
+ * for example `EssentialAction`s and `WebSocket`s.
+ *
+ * The `Handler` used to handle the request is controlled by `GlobalSetting`s's
+ * `onRequestReceived` method. The default implementation of
+ * `onRequestReceived` delegates to `onRouteRequest` which calls the default
+ * `Router`.
  */
 trait Handler
 
 /**
- * A handler that is able to tag requests
+ * A handler that is able to tag requests. Usually mixed in to other handlers.
  */
 trait RequestTaggingHandler extends Handler {
   def tagRequest(request: RequestHeader): RequestHeader
 }
 
 /**
- * Reference to an Handler.
+ * Reference to a Handler, useful for contructing handlers from Java code.
  */
-class HandlerRef[T](callValue: => T, handlerDef: play.core.Router.HandlerDef)(implicit handlerInvoker: play.core.Router.HandlerInvoker[T]) extends play.mvc.HandlerRef {
+class HandlerRef[T](call: => T, handlerDef: play.core.Router.HandlerDef)(implicit hif: play.core.Router.HandlerInvokerFactory[T]) extends play.mvc.HandlerRef {
+
+  lazy val invoker: HandlerInvoker[T] = hif.createInvoker(call, handlerDef)
 
   /**
    * Retrieve a real handler behind this ref.
    */
   def handler: play.api.mvc.Handler = {
-    handlerInvoker.call(callValue, handlerDef)
+    invoker.call(call)
   }
 
   /**
@@ -45,6 +54,14 @@ class HandlerRef[T](callValue: => T, handlerDef: play.core.Router.HandlerDef)(im
 
 }
 
+/**
+ * An `EssentialAction` underlies every `Action`. Given a `RequestHeader`, an
+ * `EssentialAction` consumes the request body (an `Array[Byte]`) and returns
+ * a `Result`.
+ *
+ * An `EssentialAction` is a `Handler`, which means it is one of the objects
+ * that Play uses to handle requests.
+ */
 trait EssentialAction extends (RequestHeader => Iteratee[Array[Byte], Result]) with Handler {
 
   /**
@@ -56,6 +73,9 @@ trait EssentialAction extends (RequestHeader => Iteratee[Array[Byte], Result]) w
 
 }
 
+/**
+ * Helper for creating `EssentialAction`s.
+ */
 object EssentialAction {
 
   def apply(f: RequestHeader => Iteratee[Array[Byte], Result]): EssentialAction = new EssentialAction {

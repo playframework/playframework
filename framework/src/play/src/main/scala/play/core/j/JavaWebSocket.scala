@@ -83,18 +83,18 @@ object JavaWebSocket extends JavaHelpers {
 
   // -- Bytes
 
-  def ofBytes(retrieveWebSocket: => JWebSocket[Array[Byte]]): Handler =
+  def ofBytes(retrieveWebSocket: => JWebSocket[Array[Byte]]): WebSocket[Array[Byte], Array[Byte]] =
     webSocketWrapper[Array[Byte]](Future.successful(retrieveWebSocket))
 
-  def promiseOfBytes(retrieveWebSocket: => JPromise[JWebSocket[Array[Byte]]]): Handler =
+  def promiseOfBytes(retrieveWebSocket: => JPromise[JWebSocket[Array[Byte]]]): WebSocket[Array[Byte], Array[Byte]] =
     webSocketWrapper[Array[Byte]](retrieveWebSocket.wrapped())
 
   // -- String
 
-  def ofString(retrieveWebSocket: => JWebSocket[String]): Handler =
+  def ofString(retrieveWebSocket: => JWebSocket[String]): WebSocket[String, String] =
     webSocketWrapper[String](Future.successful(retrieveWebSocket))
 
-  def promiseOfString(retrieveWebSocket: => JPromise[JWebSocket[String]]): Handler =
+  def promiseOfString(retrieveWebSocket: => JPromise[JWebSocket[String]]): WebSocket[String, String] =
     webSocketWrapper[String](retrieveWebSocket.wrapped())
 
   // -- Json (JsonNode)
@@ -103,10 +103,9 @@ object JavaWebSocket extends JavaHelpers {
     play.libs.Json.stringify, play.libs.Json.parse
   )
 
-  def ofJson(retrieveWebSocket: => JWebSocket[JsonNode]): Handler =
+  def ofJson(retrieveWebSocket: => JWebSocket[JsonNode]): WebSocket[JsonNode, JsonNode] =
     webSocketWrapper[JsonNode](Future.successful(retrieveWebSocket))
 
-  def promiseOfJson(retrieveWebSocket: => JPromise[JWebSocket[JsonNode]]): Handler =
+  def promiseOfJson(retrieveWebSocket: => JPromise[JWebSocket[JsonNode]]): WebSocket[JsonNode, JsonNode] =
     webSocketWrapper[JsonNode](retrieveWebSocket.wrapped())
-
 }

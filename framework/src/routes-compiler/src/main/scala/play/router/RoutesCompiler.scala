@@ -436,6 +436,7 @@ object RoutesCompiler {
         |
         |import play.core._
         |import play.core.Router._
+        |import play.core.Router.HandlerInvokerFactory._
         |import play.core.j._
         |
         |import play.api.mvc._
@@ -472,7 +473,7 @@ object RoutesCompiler {
       namespace.map("package " + _).getOrElse(""),
       additionalImports.map(prefixImport).map("import " + _).mkString("\n"),
       rules.collect { case Include(p, r) => "(\"" + p + "\"," + r + ")" }.mkString(","),
-      routeDefinitions(rules),
+      routeDefinitions(namespace.getOrElse(""), rules),
       routing(namespace.getOrElse(""), rules)
     )
 
@@ -484,6 +485,7 @@ object RoutesCompiler {
         |import %sRoutes.{prefix => _prefix, defaultPrefix => _defaultPrefix}
         |import play.core._
         |import play.core.Router._
+        |import play.core.Router.HandlerInvokerFactory._
         |import play.core.j._
         |
         |import play.api.mvc._
@@ -777,7 +779,7 @@ object RoutesCompiler {
                     """
                           |%s
                           |def %s(%s): play.api.mvc.HandlerRef[_] = new play.api.mvc.HandlerRef(
-                          |   %s, HandlerDef(this, "%s", "%s", "%s", %s, "%s", %s, _prefix + %s)
+                          |   %s, HandlerDef(this.getClass.getClassLoader, "%s", "%s", "%s", %s, "%s", %s, _prefix + %s)
                           |)
                       """.stripMargin.format(
                       markLines(route),
@@ -976,21 +978,39 @@ object RoutesCompiler {
 
   }
 
+  private def baseIdent(r: Route, i: Int): String = r.call.packageName.replace(".", "_") + "_" + r.call.controller.replace(".", "_") + "_" + r.call.method + i
+  private def routeIdent(r: Route, i: Int): String = baseIdent(r, i) + "_route"
+  private def invokerIdent(r: Route, i: Int): String = baseIdent(r, i) + "_invoker"
+  private def controllerMethodCall(r: Route, paramFormat: Parameter => String): String = {
+    val methodPart = if (r.call.instantiate) {
+      "play.api.Play.maybeApplication.map(_.global).getOrElse(play.api.DefaultGlobal).getControllerInstance(classOf[" + r.call.packageName + "." + r.call.controller + "])." + r.call.method
+    } else {
+      r.call.packageName + "." + r.call.controller + "." + r.call.method
+    }
+    val paramPart = r.call.parameters.map { params =>
+      params.map(paramFormat).mkString(", ")
+    }.map("(" + _ + ")").getOrElse("")
+    methodPart + paramPart
+  }
+
   /**
    * Generate the routes definitions
    */
-  def routeDefinitions(rules: List[Rule]): String = {
+  def routeDefinitions(routerPackage: String, rules: List[Rule]): String = {
     rules.zipWithIndex.map {
       case (r @ Route(_, _, _, _), i) =>
-        """
-          |%s
-          |private[this] lazy val %s%s = Route("%s", %s)
-        """.stripMargin.format(
-          markLines(r),
-          r.call.packageName.replace(".", "_") + "_" + r.call.controller.replace(".", "_") + "_" + r.call.method,
-          i,
-          r.verb.value,
-          "PathPattern(List(StaticPart(Routes.prefix)" + { if (r.path.parts.isEmpty) "" else """,StaticPart(Routes.defaultPrefix),""" } + r.path.parts.map(_.toString).mkString(",") + "))")
+        val pattern = "PathPattern(List(StaticPart(Routes.prefix)" + { if (r.path.parts.isEmpty) "" else """,StaticPart(Routes.defaultPrefix),""" } + r.path.parts.map(_.toString).mkString(",") + "))"
+        val fakeCall = controllerMethodCall(r, p => s"fakeValue[${p.typeName}]")
+        val handlerDef = """HandlerDef(this.getClass.getClassLoader, """" + routerPackage + """", """" + r.call.packageName + "." + r.call.controller + """", """" + r.call.method + """", """ + r.call.parameters.filterNot(_.isEmpty).map { params =>
+          params.map("classOf[" + _.typeName + "]").mkString(", ")
+        }.map("Seq(" + _ + ")").getOrElse("Nil") + ""","""" + r.verb + """", """ + "\"\"\"" + r.comments.map(_.comment).mkString("\n") + "\"\"\", Routes.prefix + \"\"\"" + r.path + "\"\"\")"
+        s"""
+           |${markLines(r)}
+           |private[this] lazy val ${routeIdent(r, i)} = Route("${r.verb.value}", ${pattern})
+           |private[this] lazy val ${invokerIdent(r, i)} = createInvoker(
+           |${fakeCall},
+           |${handlerDef})
+        """.stripMargin
       case (r @ Include(_, _), i) =>
         """
           |%s
@@ -1037,52 +1057,27 @@ object RoutesCompiler {
           i
         )
       case (r @ Route(_, _, _, _), i) =>
-        """
-            |%s
-            |case %s%s(params) => {
-            |   call%s { %s
-            |        invokeHandler(%s%s, %s)
+        val binding = r.call.parameters.filterNot(_.isEmpty).map { params =>
+          params.map { p =>
+            p.fixed.map { v =>
+              """Param[""" + p.typeName + """]("""" + p.name + """", Right(""" + v + """))"""
+            }.getOrElse {
+              """params.""" + (if (r.path.has(p.name)) "fromPath" else "fromQuery") + """[""" + p.typeName + """]("""" + p.name + """", """ + p.default.map("Some(" + _ + ")").getOrElse("None") + """)"""
+            }
+          }.mkString(", ")
+        }.map("(" + _ + ")").getOrElse("")
+        val localNames = r.call.parameters.filterNot(_.isEmpty).map { params =>
+          params.map(x => safeKeyword(x.name)).mkString(", ")
+        }.map("(" + _ + ") =>").getOrElse("")
+        val call = controllerMethodCall(r, x => safeKeyword(x.name))
+        s"""
+            |${markLines(r)}
+            |case ${routeIdent(r, i)}(params) => {
+            |   call${binding} { ${localNames}
+            |        ${invokerIdent(r, i)}.call(${call})
             |   }
             |}
-        """.stripMargin.format(
-          markLines(r),
-
-          // alias
-          r.call.packageName.replace(".", "_") + "_" + r.call.controller.replace(".", "_") + "_" + r.call.method,
-          i,
-
-          // binding
-          r.call.parameters.filterNot(_.isEmpty).map { params =>
-            params.map { p =>
-              p.fixed.map { v =>
-                """Param[""" + p.typeName + """]("""" + p.name + """", Right(""" + v + """))"""
-              }.getOrElse {
-                """params.""" + (if (r.path.has(p.name)) "fromPath" else "fromQuery") + """[""" + p.typeName + """]("""" + p.name + """", """ + p.default.map("Some(" + _ + ")").getOrElse("None") + """)"""
-              }
-            }.mkString(", ")
-          }.map("(" + _ + ")").getOrElse(""),
-
-          // local names
-          r.call.parameters.filterNot(_.isEmpty).map { params =>
-            params.map(x => safeKeyword(x.name)).mkString(", ")
-          }.map("(" + _ + ") =>").getOrElse(""),
-
-          // call
-          if (r.call.instantiate) {
-            "play.api.Play.maybeApplication.map(_.global).getOrElse(play.api.DefaultGlobal).getControllerInstance(classOf[" + r.call.packageName + "." + r.call.controller + "])." + r.call.method
-          } else {
-            r.call.packageName + "." + r.call.controller + "." + r.call.method
-          },
-
-          // call parameters
-          r.call.parameters.map { params =>
-            params.map(x => safeKeyword(x.name)).mkString(", ")
-          }.map("(" + _ + ")").getOrElse(""),
-
-          // definition
-          """HandlerDef(this, """" + routerPackage + """", """" + r.call.packageName + "." + r.call.controller + """", """" + r.call.method + """", """ + r.call.parameters.filterNot(_.isEmpty).map { params =>
-            params.map("classOf[" + _.typeName + "]").mkString(", ")
-          }.map("Seq(" + _ + ")").getOrElse("Nil") + ""","""" + r.verb + """", """ + "\"\"\"" + r.comments.map(_.comment).mkString("\n") + "\"\"\", Routes.prefix + \"\"\"" + r.path + "\"\"\")")
+        """.stripMargin
     }.mkString("\n")).filterNot(_.isEmpty).getOrElse {
 
       """Map.empty""" // Empty partial function

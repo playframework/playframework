@@ -116,7 +116,11 @@ class ServerBenchmark extends NettyRunners {
       if (Routes.prefix.endsWith("/")) "" else "/"
     }
 
-    private[this] lazy val hello_world = Route("GET", PathPattern(List(StaticPart(Routes.prefix))))
+    private[this] lazy val hello_world_route = Route("GET", PathPattern(List(StaticPart(Routes.prefix))))
+    private[this] lazy val hello_world_invoker = createInvoker(
+      HelloWorldApp.helloWorld,
+      HandlerDef(this.getClass.getClassLoader, "", "hello_world", "index", Nil, "GET", """ Home page""", Routes.prefix + """""")
+    )
 
     def documentation = List(( """GET""", prefix, """hello_world""")).foldLeft(List.empty[(String, String, String)]) {
       (s, e) => e.asInstanceOf[Any] match {
@@ -126,9 +130,9 @@ class ServerBenchmark extends NettyRunners {
     }
 
     def routes: PartialFunction[RequestHeader, Handler] = {
-      case hello_world(params) => {
+      case hello_world_route(params) => {
         call {
-          invokeHandler(HelloWorldApp.helloWorld, HandlerDef(this, "", "hello_world", "index", Nil, "GET", """ Home page""", Routes.prefix + """"""))
+          hello_world_invoker.call(HelloWorldApp.helloWorld)
         }
       }
 
