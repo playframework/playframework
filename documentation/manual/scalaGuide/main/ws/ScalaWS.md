@@ -196,31 +196,87 @@ def feedTitle(feedUrl: String) = Action.async {
 }
 ```
 
-## Advanced Usage
+## Using WSClient
+
+WSClient is a wrapper around the underlying AsyncHttpClient.  It is useful for defining multiple clients with different profiles, or using a mock.
+
+The default client can be called from the WS singleton:
+
+```scala
+val client:WSClient = WS.client
+```
+
+You can define a WS client directly from code, and use implicitly with `WS.clientUrl()`
+
+```scala
+implicit val sslClient:WSClient = new play.api.libs.ws.ning.NingWSClient(builder.build())
+WS.clientUrl("http://example.com/feed").get()
+```
+
+or directly:
+
+```scala
+sslClient.url("http://example.com/feed").get()
+```
+
+Or use a magnet pattern to match up certain clients automatically:
+
+```scala
+object PairMagnet {
+  implicit def fromPair(pair: Pair[WSClient, java.net.URL]) =
+    new WSRequestHolderMagnet {
+      def apply(): WSRequestHolder = {
+        val (client, netUrl) = pair
+        client.url(netUrl.toString)
+      }
+   }
+}
+import scala.language.implicitConversions
+val client = WS.client
+val exampleURL = new java.net.URL("http://example.com")
+WS.url(client -> exampleURL).get()
+```
+
+By default, configuration happens in `application.conf`, but you can also set up the builder directly from configuration:
+
+```scala
+import com.typesafe.config.ConfigFactory
+import play.api.libs.ws._
+import play.api.libs.ws.ning._
+
+val configuration = play.api.Configuration(ConfigFactory.parseString(
+"""
+  |ws.ssl.trustManager = ...
+""".stripMargin))
+val parser = new DefaultWSConfigParser(configuration)
+val builder = new NingAsyncHttpClientConfigBuilder(parser.parse())
+```
 
 You can also get access to the underlying [async client](http://sonatype.github.io/async-http-client/apidocs/reference/com/ning/http/client/AsyncHttpClient.html).
 
 ```scala
 import com.ning.http.client.AsyncHttpClient
 
-val client:AsyncHttpClient = WS.client
+val client:AsyncHttpClient = WS.client.underlying
 ```
 
 This is important in a couple of cases.  WS has a couple of limitations that require access to the client:
 
 * `WS` does not support multi part form upload directly.  You can use the underlying client with [RequestBuilder.addBodyPart](http://asynchttpclient.github.io/async-http-client/apidocs/com/ning/http/client/RequestBuilder.html).
-* `WS` does not support client certificates (aka mutual TLS / MTLS / client authentication).  You should set the `SSLContext` directly in an instance of [AsyncHttpClientConfig](http://asynchttpclient.github.io/async-http-client/apidocs/com/ning/http/client/AsyncHttpClientConfig.html) and set up the appropriate KeyStore and TrustStore.
+* `WS` does not support streaming body upload.  In this case, you should use the `FeedableBodyGenerator` provided by AsyncHttpClient.
 
 ## Configuring WS
 
-Use the following properties to configure the WS client
+Use the following properties to configure the WS client:
 
 * `ws.followRedirects` configures the client to follow 301 and 302 redirects
 * `ws.useProxyProperties`to use the system http proxy settings(http.proxyHost, http.proxyPort)
 * `ws.useragent` to configure the User-Agent header field
-* `ws.acceptAnyCertificate` set it to false to use the default SSLContext
 * `ws.compressionEnable` set it to true to use gzip/deflater encoding
 
+## Configuring WS with SSL
+
+To configure WS for use with HTTP over SSL/TLS (HTTPS), please see [[Configuring WS SSL|WsSSL]].
 
 ### Timeouts
 

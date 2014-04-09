@@ -76,8 +76,6 @@ trait WSRequestHolderMagnet {
  * val builder = new NingAsyncHttpClientConfigBuilder(parser.parse())
  * val secureClient : WSClient = new NingWSClient(builder.build())
  * val response = secureClient.url("https://secure.com").get()
- * val client = new NingWSClient(builder.build())
- * client.url("http://example.com/feed").get()
  * }}}
  *
  * Note that the resolution of URL is done through the magnet pattern defined in

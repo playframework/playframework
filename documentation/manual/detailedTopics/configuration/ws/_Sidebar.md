@@ -1,25 +1,25 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
-### Configuration
+### Configuring WS SSL
 
-- [[Configuration file syntax and features | Configuration]]
-- [[Configuring the application secret|ApplicationSecret]]
-- [[Configuring the JDBC connection pool | SettingsJDBC]]
-- [[Configuring Play's thread pools | ThreadPools]]
-- [[Configuring logging | SettingsLogger]]
-- [[Configuring gzip encoding|GzipEncoding]]
-- [[Configuring security headers|SecurityHeaders]]
 - [[Configuring WS SSL|WsSSL]]
+- [[Configuring Trust Stores and Key Stores|KeyStores]]
+- [[Configuring Protocols|Protocols]]
+- [[Configuring Cipher Suites|CipherSuites]]
+- [[Debugging SSL Connections|DebuggingSSL]]
+- [[Configuring Certificate Validation|CertificateValidation]]
+- [[Configuring Certificate Revocation|CertificateRevocation]]
+- [[Configuring Hostname Verification|HostnameVerification]]
 
 ### Getting started
 
 - [[Installing Play | Installing]]
 - [[Creating a new application | NewApplication]]
 - [[Anatomy of a Play application | Anatomy]]
-- [[Using the Play console | PlayConsole]]
+- [[Using the Play console | PlayConsole ]]
 - [[Setting-up your preferred IDE | IDE]]
 - [[Sample applications | Samples]]
 
-### Working with Play 
+### Working with Play
 - [[Play for Scala developers | ScalaHome]]
 - [[Play for Java developers | JavaHome]]
 

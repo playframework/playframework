@@ -66,4 +66,8 @@ The HTTP client can be configured globally in `application.conf` via a few prope
 
 @[application](code/javaguide/ws/application.conf)
 
+## Configuring WS with SSL
+
+To configure WS for use with HTTP over SSL/TLS (HTTPS), please see [[Configuring WS SSL|WsSSL]].
+
 > **Next:** [[Integrating with Akka | JavaAkka]]
