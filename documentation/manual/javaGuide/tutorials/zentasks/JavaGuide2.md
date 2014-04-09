@@ -76,6 +76,10 @@ import org.junit.*;
 import static org.junit.Assert.*;
 import play.test.WithApplication;
 import static play.test.Helpers.*;
+import java.util.List;
+import com.avaje.ebean.*;
+import play.libs.*;
+
 
 public class ModelsTest extends WithApplication {
     @Before
