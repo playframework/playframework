@@ -114,9 +114,8 @@ private[server] trait WebSocketHandler {
   }
 
   def websocketable(req: HttpRequest) = new server.WebSocketable {
-    def check =
-      HttpHeaders.Values.WEBSOCKET.equalsIgnoreCase(req.getHeader(HttpHeaders.Names.UPGRADE))
-    def getHeader(header: String) = req.getHeader(header)
+    def check = HttpHeaders.Values.WEBSOCKET.equalsIgnoreCase(req.headers().get(HttpHeaders.Names.UPGRADE))
+    def getHeader(header: String) = req.headers().get(header)
   }
 
 }
