@@ -114,7 +114,7 @@ object NettyResultStreamer {
       case Right(chunk) => {
         val buffer = chunk.map(ChannelBuffers.wrappedBuffer).getOrElse(ChannelBuffers.EMPTY_BUFFER)
         // We successfully buffered it, so set the content length and send the whole thing as one buffer
-        nettyResponse.setHeader(CONTENT_LENGTH, buffer.readableBytes)
+        nettyResponse.headers().set(CONTENT_LENGTH, buffer.readableBytes)
         nettyResponse.setContent(buffer)
         val promise = NettyPromise(sendDownstream(startSequence, !closeConnection, nettyResponse))
         val done = Done[Array[Byte], ChannelStatus](new ChannelStatus(closeConnection, startSequence))
@@ -130,7 +130,7 @@ object NettyResultStreamer {
           nettyStreamIteratee(nettyResponse, startSequence, true)
         } else {
           // Chunk it
-          nettyResponse.setHeader(TRANSFER_ENCODING, CHUNKED)
+          nettyResponse.headers().set(TRANSFER_ENCODING, CHUNKED)
           Results.chunk &>> nettyStreamIteratee(nettyResponse, startSequence, closeConnection)
         }
 
@@ -173,17 +173,17 @@ object NettyResultStreamer {
         val cookieValues = Cookies.decode(value).map {
           c: play.api.mvc.Cookie => Cookies.encode(Seq(c))
         }.asJava
-        nettyResponse.setHeader(name, cookieValues)
+        nettyResponse.headers().set(name, cookieValues)
       }
 
-      case (name, value) => nettyResponse.setHeader(name, value)
+      case (name, value) => nettyResponse.headers().set(name, value)
     }
 
     // Response header Connection: Keep-Alive is needed for HTTP 1.0
     if (!closeConnection && httpVersion == HttpVersion.HTTP_1_0) {
-      nettyResponse.setHeader(CONNECTION, KEEP_ALIVE)
+      nettyResponse.headers().set(CONNECTION, KEEP_ALIVE)
     } else if (closeConnection && httpVersion == HttpVersion.HTTP_1_1) {
-      nettyResponse.setHeader(CONNECTION, CLOSE)
+      nettyResponse.headers().set(CONNECTION, CLOSE)
     }
 
     nettyResponse

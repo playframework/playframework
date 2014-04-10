@@ -48,7 +48,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
       case e: TooLongFrameException =>
         nettyExceptionLogger.warn("Handling TooLongFrameException", e)
         val response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.REQUEST_URI_TOO_LONG)
-        response.setHeader(Names.CONNECTION, "close")
+        response.headers().set(Names.CONNECTION, "close")
         ctx.getChannel.write(response).addListener(ChannelFutureListener.CLOSE)
       case e =>
         nettyExceptionLogger.error("Exception caught in Netty", e)
@@ -334,7 +334,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
   }
 
   def getHeaders(nettyRequest: HttpRequest): Headers = {
-    val pairs = nettyRequest.getHeaders.asScala.groupBy(_.getKey).mapValues(_.map(_.getValue))
+    val pairs = nettyRequest.headers().entries().asScala.groupBy(_.getKey).mapValues(_.map(_.getValue))
     new Headers { val data = pairs.toSeq }
   }
 
