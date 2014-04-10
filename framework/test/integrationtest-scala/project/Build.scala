@@ -3,7 +3,9 @@
  */
 import sbt._
 import Keys._
-import play.Project._
+import play.PlayScala
+import play.Play.autoImport._
+import PlayKeys._
 
 object ApplicationBuild extends Build {
 
@@ -14,8 +16,9 @@ object ApplicationBuild extends Build {
        ws
     )
 
-    val main = play.Project(appName, appVersion, appDependencies).settings(
-      // Add your own project settings here      
+    val main = Project(appName, file(".")).addPlugins(PlayScala).settings(
+      version :=  appVersion, 
+      libraryDependencies ++= appDependencies,      
       routesImport += "_root_.utils.BindersRoot",
       routesImport += "utils.Binders"
     )

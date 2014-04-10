@@ -5,7 +5,7 @@ The Play build system uses [sbt](http://www.scala-sbt.org/), a non-intrusive bui
 
 ## Play application directory structure 
 
-Most people get started with Play using the `play new foo` command which produces a directory structure like this:
+Most people get started with Play using the `activator new foo` command which produces a directory structure like this:
 
 - `/`: The root folder of your application
 - `/README`: A text file describing your applicaiont that will get deployed with it.
@@ -20,11 +20,9 @@ For now, we are going to concern ourselves with the `/build.sbt` file and the `/
 
 ## The `/build.sbt` file. 
 
-When you use the `play new foo` command, the build description file, `/build.sbt`, will be generated like this:
+When you use the `activator new foo` command, the build description file, `/build.sbt`, will be generated like this:
 
 ```scala
-import play.Project._
-
 name := "foo"
 
 version := "1.0-SNAPSHOT"
@@ -35,18 +33,16 @@ libraryDependencies ++= Seq(
   cache
 )
 
-play.Project.playScalaSettings
+lazy val root = (project in file(".")).addPlugins(PlayScala)
 ```
 
-The `name` line defines the name of your application and it will be the same as the name of your application's root directory, `/`, which is derived from the argument that you gave to the `play new` command. 
+The `name` line defines the name of your application and it will be the same as the name of your application's root directory, `/`, which is derived from the argument that you gave to the `activator new` command. 
 
 The `version` line provides  the version of your application which is used as part of the name for the artifacts your build will produce.
 
 The `libraryDependencies` line specifies the libraries that your application depends on. More on this below.
 
-You should use `play.Project.playScalaSettings` or `play.Project.playJavaSettings` to configure sbt for Scala or Java respectively.
-
-> Every sbt feature is available to either a Scala or a Play project.
+You should use the `PlayJava` or `PlayScala` plugin to configure sbt for Java or Scala respectively.
 
 ## The `/project` directory
 
@@ -69,15 +65,13 @@ addSbtPlugin("com.typesafe.play" % "sbt-plugin" % playVersion) // where version 
 Adding dependencies is simple as the build file for the `zentasks` Java sample shows:
 
 ```scala
-import play.Project._
-
 name := "zentask"
 
 version := "1.0"
 
 libraryDependencies ++= Seq(javaJdbc, javaEbean)     
 
-play.Project.playJavaSettings
+lazy val root = (project in file(".")).addPlugins(PlayJava)
 ```
 
 ...and so are resolvers for adding in additional repositories:

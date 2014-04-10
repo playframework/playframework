@@ -6,7 +6,8 @@ import play.sbtplugin.Colors
 import play.core.server.ServerWithStop
 import sbt._
 import sbt.Keys._
-import play.Keys._
+import play.Play.autoImport._
+import PlayKeys._
 import play.core.{ BuildDocHandler, BuildLink, PlayVersion }
 import play.PlaySourceGenerators._
 import DocValidation._

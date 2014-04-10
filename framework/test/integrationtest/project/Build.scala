@@ -2,7 +2,9 @@
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
 import sbt._
-import play.Project._
+import Keys._
+import play.PlayJava
+import play.Play.autoImport._
 
 object ApplicationBuild extends Build {
 
@@ -14,11 +16,13 @@ object ApplicationBuild extends Build {
     javaCore,
     javaWs,
     anorm,
-    cache)
+    cache
+  )
 
-  val main = play.Project(appName, appVersion, appDependencies).settings(
-                  requireJs += "main.js",
-                  play.Project.emojiLogs
-             )
+  val main = Project(appName, file(".")).addPlugins(PlayJava).settings(
+    version := appVersion, 
+    libraryDependencies ++= appDependencies,
+    emojiLogs
+  )
 }
             

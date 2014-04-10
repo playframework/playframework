@@ -3,8 +3,7 @@
  */
 import sbt._
 import Keys._
-import play.Project._
-import sbt.inc.Analysis
+import play.Play.autoImport._
 import java.io.Closeable
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -52,7 +51,9 @@ object ApplicationBuild extends Build {
     }
   }
 
-  val main = play.Project(appName, appVersion, appDependencies).settings(
+  val main = Project(appName, file(".")).addPlugins(play.PlayScala).settings(
+    version := appVersion,
+    libraryDependencies ++= appDependencies,
     commands += timedCompile
   )
 

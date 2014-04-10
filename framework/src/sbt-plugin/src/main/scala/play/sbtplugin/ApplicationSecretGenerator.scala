@@ -28,7 +28,7 @@ object ApplicationSecretGenerator {
   private val ApplicationSecret = """\s*application\.secret\s*[=:].*""".r
 
   def updateSecretTask = Def.task[File] {
-    val secret: String = play.Keys.generateSecret.value
+    val secret: String = play.PlayImport.PlayKeys.generateSecret.value
     val baseDir: File = Keys.baseDirectory.value
     val log = Keys.streams.value.log
 
