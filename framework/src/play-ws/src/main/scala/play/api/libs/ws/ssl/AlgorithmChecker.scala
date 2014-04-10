@@ -18,9 +18,6 @@ import javax.naming.InvalidNameException
  */
 class AlgorithmChecker(val signatureConstraints: Set[AlgorithmConstraint], val keyConstraints: Set[AlgorithmConstraint]) extends PKIXCertPathChecker {
 
-  // PKIXCertPathChecker is not thread-safe, so mutability is fine here.
-  private var isRootCert: Boolean = true
-
   private val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 
   private val signatureConstraintsMap: Map[String, AlgorithmConstraint] = {
@@ -87,7 +84,7 @@ class AlgorithmChecker(val signatureConstraints: Set[AlgorithmConstraint], val k
     val keyAlgorithmName = key.getAlgorithm
     val keySize = Algorithms.keySize(key)
     val keyAlgorithms = Algorithms.decomposes(keyAlgorithmName)
-    logger.debug(s"lgorithms: keyAlgorithmName = $keyAlgorithmName, keySize = $keySize, keyAlgorithms = $keyAlgorithms")
+    logger.debug(s"checkKeyAlgorithms: keyAlgorithmName = $keyAlgorithmName, keySize = $keySize, keyAlgorithms = $keyAlgorithms")
 
     for (a <- keyAlgorithms) {
       findKeyConstraint(a).map {
@@ -114,13 +111,7 @@ class AlgorithmChecker(val signatureConstraints: Set[AlgorithmConstraint], val k
         val subAltNames = x509Cert.getSubjectAlternativeNames
         logger.debug(s"check: checking certificate commonName = $commonName, subjAltName = $subAltNames")
 
-        if (isRootCert) {
-          logger.debug(s"checkSignatureAlgorithms: skipping signature checks on trusted root certificate $commonName")
-          isRootCert = false
-        } else {
-          checkSignatureAlgorithms(x509Cert)
-        }
-
+        checkSignatureAlgorithms(x509Cert)
         checkKeyAlgorithms(x509Cert)
       case _ =>
         throw new UnsupportedOperationException("check only works with x509 certificates!")
