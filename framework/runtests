@@ -31,7 +31,7 @@ else
   $BUILD "$@" publish-local
 fi
 
-$BUILD "$@" test
+$BUILD "$@" test:test
 
 echo "[info]"
 echo "[info] ---- SBT PLUGIN TESTS"
