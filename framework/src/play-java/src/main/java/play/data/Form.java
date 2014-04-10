@@ -5,6 +5,7 @@ import javax.validation.metadata.*;
 
 import java.util.*;
 import java.lang.annotation.*;
+import java.util.regex.Pattern;
 
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
@@ -783,7 +784,6 @@ public class Form<T> {
          */
         @SuppressWarnings("rawtypes")
         public List<Integer> indexes() {
-            List<Integer> result = new ArrayList<Integer>();
             if(form.value().isDefined()) {
                 BeanWrapper beanWrapper = new BeanWrapperImpl(form.value().get());
                 beanWrapper.setAutoGrowNestedPaths(true);
@@ -791,6 +791,8 @@ public class Form<T> {
                 if(form.name() != null && name.startsWith(form.name() + ".")) {
                     objectKey = name.substring(form.name().length() + 1);
                 }
+
+                List<Integer> result = new ArrayList<Integer>();
                 if(beanWrapper.isReadableProperty(objectKey)) {
                     Object value = beanWrapper.getPropertyValue(objectKey);
                     if(value instanceof Collection) {
@@ -799,16 +801,24 @@ public class Form<T> {
                         }
                     }
                 }
+
+                return result;
+
             } else {
-                java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("^" + java.util.regex.Pattern.quote(name) + "\\[(\\d+)\\].*$");
+                Set<Integer> result = new HashSet<Integer>();
+                Pattern pattern = Pattern.compile("^" + Pattern.quote(name) + "\\[(\\d+)\\].*$");
+
                 for(String key: form.data().keySet()) {
                     java.util.regex.Matcher matcher = pattern.matcher(key);
                     if(matcher.matches()) {
                         result.add(Integer.parseInt(matcher.group(1)));
                     }
                 }
+
+                List<Integer> sortedResult = new ArrayList<Integer>(result);
+                Collections.sort(sortedResult);
+                return sortedResult;
             }
-            return result;
         }
 
         /**
