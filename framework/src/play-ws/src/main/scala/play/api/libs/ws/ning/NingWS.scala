@@ -498,115 +498,82 @@ case class NingWSRequestHolder(client: NingWSClient,
   def execute(method: String): Future[WSResponse] = prepare(method).execute
 
   private[play] def prepare(method: String): NingWSRequest = {
-    val request: NingWSRequest = new NingWSRequest(client, method, auth, calc, new RequestBuilder(method)).setUrl(url)
-      .setHeaders(headers)
-      .setQueryString(queryString)
-    followRedirects.map(request.setFollowRedirects)
-    requestTimeout.map {
-      t: Int =>
-        val config = new PerRequestConfig()
-        config.setRequestTimeoutInMs(t)
-        request.setPerRequestConfig(config)
-    }
-
-    virtualHost.map {
-      v =>
-        request.setVirtualHost(v)
-    }
-
-    prepareProxy(request)
-
-    request
-  }
-
-  private[play] def prepareProxy(request: NingWSRequest) {
-    proxyServer.map {
-      p =>
-        import com.ning.http.client.ProxyServer.Protocol
-        val protocol: Protocol = p.protocol.getOrElse("http").toLowerCase match {
-          case "http" => Protocol.HTTP
-          case "https" => Protocol.HTTPS
-          case "kerberos" => Protocol.KERBEROS
-          case "ntlm" => Protocol.NTLM
-          case "spnego" => Protocol.SPNEGO
-          case _ => scala.sys.error("Unrecognized protocol!")
-        }
-
-        val proxyServer = new AHCProxyServer(
-          protocol,
-          p.host,
-          p.port,
-          p.principal.getOrElse(null),
-          p.password.getOrElse(null))
-
-        p.encoding.map {
-          e =>
-            proxyServer.setEncoding(e)
-        }
-
-        p.nonProxyHosts.map {
-          nonProxyHosts =>
-            nonProxyHosts.foreach {
-              nonProxyHost =>
-                proxyServer.addNonProxyHost(nonProxyHost)
-            }
-        }
-
-        p.ntlmDomain.map {
-          ntlm =>
-            proxyServer.setNtlmDomain(ntlm)
-        }
-
-        request.setProxyServer(proxyServer)
-    }
+    new NingWSRequest(client, method, auth, calc, createBuilder(method))
   }
 
   private[play] def prepare(method: String, body: File): NingWSRequest = {
     import com.ning.http.client.generators.FileBodyGenerator
 
     val bodyGenerator = new FileBodyGenerator(body)
-
-    val request = new NingWSRequest(client, method, auth, calc, new RequestBuilder(method)).setUrl(url)
-      .setHeaders(headers)
-      .setQueryString(queryString)
-      .setBody(bodyGenerator)
-    followRedirects.map(request.setFollowRedirects)
-    requestTimeout.map {
-      t: Int =>
-        val config = new PerRequestConfig()
-        config.setRequestTimeoutInMs(t)
-        request.setPerRequestConfig(config)
-    }
-    virtualHost.map {
-      v =>
-        request.setVirtualHost(v)
-    }
-
-    prepareProxy(request)
-
-    request
+    val builder = createBuilder(method).setBody(bodyGenerator)
+    new NingWSRequest(client, method, auth, calc, builder)
   }
 
   private[play] def prepare[T](method: String, body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): NingWSRequest = {
-    val request = new NingWSRequest(client, method, auth, calc, new RequestBuilder(method)).setUrl(url)
-      .setHeaders(Map("Content-Type" -> Seq(ct.mimeType.getOrElse("text/plain"))) ++ headers)
-      .setQueryString(queryString)
+    val builder = createBuilder(method)
+      .addHeader("Content-Type", ct.mimeType.getOrElse("text/plain"))
       .setBody(wrt.transform(body))
-    followRedirects.map(request.setFollowRedirects)
-    requestTimeout.map {
-      t: Int =>
-        val config = new PerRequestConfig()
-        config.setRequestTimeoutInMs(t)
-        request.setPerRequestConfig(config)
-    }
-    virtualHost.map {
-      v =>
-        request.setVirtualHost(v)
-    }
-    prepareProxy(request)
 
-    request
+    new NingWSRequest(client, method, auth, calc, builder)
   }
+
+  private def createBuilder(method: String) = {
+    val builder = new RequestBuilder(method).setUrl(url)
+
+    for {
+      header <- headers
+      value <- header._2
+    } builder.addHeader(header._1, value)
+
+    for {
+      (key, values) <- queryString
+      value <- values
+    } builder.addQueryParameter(key, value)
+
+    virtualHost.map(builder.setVirtualHost)
+    followRedirects.map(builder.setFollowRedirects)
+
+    proxyServer.map { p =>
+      builder.setProxyServer(createProxy(p))
+    }
+
+    requestTimeout.map { t =>
+      val config = new PerRequestConfig()
+      config.setRequestTimeoutInMs(t)
+      builder.setPerRequestConfig(config)
+    }
+
+    builder
+  }
+
+  private[play] def createProxy(wsServer: WSProxyServer) = {
+    import com.ning.http.client.ProxyServer.Protocol
+    val protocol: Protocol = wsServer.protocol.getOrElse("http").toLowerCase match {
+      case "http" => Protocol.HTTP
+      case "https" => Protocol.HTTPS
+      case "kerberos" => Protocol.KERBEROS
+      case "ntlm" => Protocol.NTLM
+      case "spnego" => Protocol.SPNEGO
+      case _ => scala.sys.error("Unrecognized protocol!")
+    }
+
+    val ningServer = new AHCProxyServer(
+      protocol,
+      wsServer.host,
+      wsServer.port,
+      wsServer.principal.getOrElse(null),
+      wsServer.password.getOrElse(null))
+
+    wsServer.encoding.map(ningServer.setEncoding(_))
+    wsServer.ntlmDomain.map(ningServer.setNtlmDomain(_))
+    for {
+      hosts <- wsServer.nonProxyHosts
+      host <- hosts
+    } ningServer.addNonProxyHost(host)
+
+    ningServer
+  }
+
 }
 
 /**
