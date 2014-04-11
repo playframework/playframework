@@ -15,7 +15,7 @@ trait PlayRunHook {
   /** Called before the play application is started, but after all "before run" tasks have been completed. */
   def beforeStarted(): Unit = ()
   /**
-   * Called after the play applciation has been started.
+   * Called after the play application has been started.
    *  @param addr  The address/socket that play is listening to.
    */
   def afterStarted(addr: InetSocketAddress): Unit = ()
