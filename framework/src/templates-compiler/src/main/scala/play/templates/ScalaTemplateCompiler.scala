@@ -10,6 +10,8 @@ package play.templates {
   import scala.annotation.tailrec
   import io.Codec
   import scala.reflect.internal.Flags
+  import scala.language.{ postfixOps, reflectiveCalls }
+  import scala.util.control.Exception._
 
   object Hash {
 
@@ -54,26 +56,23 @@ package play.templates {
             }
           }.toMap
         } catch {
-          case _ => Map.empty[String, String]
+          case _: Throwable => Map.empty[String, String]
         }
       }
     }
 
     lazy val matrix: Seq[(Int, Int)] = {
-      for (pos <- meta("MATRIX").split('|'); val c = pos.split("->"))
-        yield try {
-        Integer.parseInt(c(0)) -> Integer.parseInt(c(1))
-      } catch {
-        case _ => (0, 0) // Skip if MATRIX meta is corrupted
-      }
+      meta("MATRIX").split('|').map(splitWithArrow)
     }
 
     lazy val lines: Seq[(Int, Int)] = {
-      for (pos <- meta("LINES").split('|'); val c = pos.split("->"))
-        yield try {
-        Integer.parseInt(c(0)) -> Integer.parseInt(c(1))
-      } catch {
-        case _ => (0, 0) // Skip if LINES meta is corrupted
+      meta("LINES").split('|').map(splitWithArrow)
+    }
+
+    private def splitWithArrow(position: String): (Int, Int) = {
+      allCatch withApply (t => 0 -> 0) apply {
+        val Array(left, right) = position.split("->")
+        left.toInt -> right.toInt
       }
     }
 
@@ -122,7 +121,7 @@ package play.templates {
         val line = Path(source.get).string.substring(0, targetMarker).split('\n').size
         (line, targetMarker)
       } catch {
-        case _ => (0, 0)
+        case _: Throwable => (0, 0)
       }
     }
 
@@ -432,6 +431,7 @@ package play.templates {
               Success(plainString, r)
             }
             case Failure(s, t) => Failure(s, t)
+            case Error(s, t) => Error(s, t)
           }
         }
       }
@@ -596,7 +596,7 @@ object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,For
       import java.io.File
       import scala.tools.nsc.interactive.{ Response, Global }
       import scala.tools.nsc.io.AbstractFile
-      import scala.tools.nsc.util.{ SourceFile, Position, BatchSourceFile }
+      import scala.reflect.internal.util.{ SourceFile, Position, BatchSourceFile }
       import scala.tools.nsc.Settings
       import scala.tools.nsc.reporters.ConsoleReporter
 
