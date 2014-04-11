@@ -1,0 +1,22 @@
+#! /bin/sh
+
+template="$1"
+shift
+
+if [ -z "$template" ]
+then
+    echo "Usage: $0 <template-name> [sbt-command]"
+    exit 1
+fi
+
+templateDir="target/templates/$template"
+
+if [ -d "$templateDir" ]
+then
+    cd "$templateDir"
+    activator $@ 
+else
+    echo "Template not found: $template"
+    echo "Did you run ./build ~sync-templates first?"
+    exit 1
+fi

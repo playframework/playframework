@@ -4,23 +4,24 @@ templateSettings
 
 val playSbtVersion = propOrElse("sbt.version", "0.13.5-M2")
 
-val coffeescriptVersion = propOrElse("coffeescript.version", "1.0.0-M2")
+val coffeescriptVersion = propOrElse("coffeescript.version", "1.0.0-M2a")
 
-val lessVersion = propOrElse("coffeescript.version", "1.0.0-M2")
+val lessVersion = propOrElse("coffeescript.version", "1.0.0-M2a")
 
-val jshintVersion = propOrElse("jshint.version", "1.0.0-M2")
+val jshintVersion = propOrElse("jshint.version", "1.0.0-M2a")
 
-val digestVersion = propOrElse("digest.version", "1.0.0-M2")
+val digestVersion = propOrElse("digest.version", "1.0.0-M2a")
 
-val rjsVersion = propOrElse("rjs.version", "1.0.0-M2")
+val rjsVersion = propOrElse("rjs.version", "1.0.0-M2a")
 
-val mochaVersion = propOrElse("mocha.version", "1.0.0-M2")
+val mochaVersion = propOrElse("mocha.version", "1.0.0-M2a")
 
 templates := {
   val dir = baseDirectory.value
   sys.props.get("templates").map(_.split(",").toSeq).getOrElse(Seq(
     "play-scala",
-    "play-java"
+    "play-java",
+    "play-2.3-highlights"
   )).map(template => dir / template)
 }
 
