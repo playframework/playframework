@@ -196,7 +196,7 @@ implicit val personWrites = Json.writes[Person]
 ```
 import play.api.libs.json._
 
-implicit val personWrites = Json.format[Person]
+implicit val personFmt = Json.format[Person]
 ```
 
 ## <a name="cando">Special patterns</a>
