@@ -6,8 +6,10 @@ package play
 import scala.util.control.NonFatal
 import play.api._
 import play.core._
-import sbt.{ Project => SbtProject, _ }
+import sbt._
 import sbt.Keys._
+import play.PlayImport._
+import PlayKeys._
 import PlayExceptions._
 
 trait PlayReloader {
@@ -17,7 +19,7 @@ trait PlayReloader {
 
   def newReloader(state: State, playReload: TaskKey[sbt.inc.Analysis], createClassLoader: ClassLoaderCreator, classpathTask: TaskKey[Classpath], baseLoader: ClassLoader) = {
 
-    val extracted = SbtProject.extract(state)
+    val extracted = Project.extract(state)
 
     new BuildLink {
 
@@ -149,7 +151,7 @@ trait PlayReloader {
 
       lazy val settings = {
         import scala.collection.JavaConverters._
-        extracted.get(Keys.devSettings).toMap.asJava
+        extracted.get(devSettings).toMap.asJava
       }
 
       // ---
@@ -241,7 +243,7 @@ trait PlayReloader {
             val JavacErrorInfo = """\[error\]\s*([a-z ]+):(.*)""".r
             val JavacErrorPosition = """\[error\](\s*)\^\s*""".r
 
-            SbtProject.runTask(streamsManager, state).map(_._2).get.toEither.right.toOption.map { streamsManager =>
+            Project.runTask(streamsManager, state).map(_._2).get.toEither.right.toOption.map { streamsManager =>
               var first: (Option[(String, String, String)], Option[Int]) = (None, None)
               var parsed: (Option[(String, String, String)], Option[Int]) = (None, None)
               Output.lastLines(i.node.get.asInstanceOf[ScopedKey[_]], streamsManager).map(_.replace(scala.Console.RESET, "")).map(_.replace(scala.Console.RED, "")).collect {
@@ -299,7 +301,7 @@ trait PlayReloader {
       private def newClassLoader: Either[Exception, ClassLoader] = {
         val version = classLoaderVersion.incrementAndGet
         val name = "ReloadableClassLoader(v" + version + ")"
-        SbtProject.runTask(classpathTask, state).map(_._2).get.toEither
+        Project.runTask(classpathTask, state).map(_._2).get.toEither
           .left.map(taskFailureHandler)
           .right.map {
             classpath =>
@@ -311,10 +313,10 @@ trait PlayReloader {
       }
 
       def reload: AnyRef = {
-        play.Project.synchronized {
+        play.Play.synchronized {
           if (jnotify.hasChanged || hasChangedFiles) {
             jnotify.reloaded()
-            SbtProject.runTask(playReload, state).map(_._2).get.toEither
+            Project.runTask(playReload, state).map(_._2).get.toEither
               .left.map(taskFailureHandler)
               .right.map {
                 compilationResult =>
@@ -330,7 +332,7 @@ trait PlayReloader {
       def runTask(task: String): AnyRef = {
         val parser = Act.scopedKeyParser(state)
         val Right(sk) = complete.DefaultParsers.result(parser, task)
-        val result = SbtProject.runTask(sk.asInstanceOf[Def.ScopedKey[Task[AnyRef]]], state).map(_._2)
+        val result = Project.runTask(sk.asInstanceOf[Def.ScopedKey[Task[AnyRef]]], state).map(_._2)
 
         result.flatMap(_.toEither.right.toOption).getOrElse(null)
       }

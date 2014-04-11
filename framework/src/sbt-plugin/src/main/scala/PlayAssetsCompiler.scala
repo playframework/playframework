@@ -4,8 +4,9 @@
 package play
 
 import sbt._
-import sbt.Keys._
 import Keys._
+import play.PlayImport._
+import PlayKeys._
 import PlayExceptions._
 
 // ----- Assets

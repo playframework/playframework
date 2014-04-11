@@ -1,5 +1,3 @@
-import play.Project._
-
 name := "computer-database-jpa"
 
 version := "1.0"
@@ -10,4 +8,4 @@ libraryDependencies ++= Seq(
   "org.hibernate" % "hibernate-entitymanager" % "3.6.9.Final"
   )
 
-playJavaSettings
+lazy val root = (project in file(".")).addPlugins(PlayJava)

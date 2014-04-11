@@ -4,17 +4,16 @@
 package play
 
 import sbt._
-import sbt.Keys._
 import Keys._
+import play.PlayImport._
+import PlayKeys._
 import com.typesafe.sbt.SbtNativePackager._
 import com.typesafe.sbt.packager.Keys._
-import java.io.{ Writer, PrintWriter }
-import play.sbtplugin.{ ApplicationSecretGenerator, Colors }
+import play.sbtplugin.ApplicationSecretGenerator
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 import WebKeys._
-import scala.util.Try
 
-trait Settings {
+trait PlaySettings {
   this: PlayCommands with PlayPositionMapper with PlayRun with PlaySourceGenerators =>
 
   lazy val defaultJavaSettings = Seq[Setting[_]](
@@ -174,21 +173,7 @@ trait Settings {
 
     // Default hooks
 
-    playOnStarted := Nil,
-
-    playOnStopped := Nil,
-
     playRunHooks := Nil,
-
-    playRunHooks <++= playOnStarted map {
-      funcs =>
-        funcs map play.PlayRunHook.makeRunHookFromOnStarted
-    },
-
-    playRunHooks <++= playOnStopped map {
-      funcs =>
-        funcs map play.PlayRunHook.makeRunHookFromOnStopped
-    },
 
     playInteractionMode := play.PlayConsoleInteractionMode,
 
@@ -292,38 +277,4 @@ trait Settings {
 
   )
 
-  /**
-   * Add this to your build.sbt, eg:
-   *
-   * {{{
-   *   play.Project.emojiLogs
-   * }}}
-   *
-   * Note that this setting is not supported and may break or be removed or changed at any time.
-   */
-  lazy val emojiLogs = logManager ~= { lm =>
-    new LogManager {
-      def apply(data: sbt.Settings[Scope], state: State, task: Def.ScopedKey[_], writer: java.io.PrintWriter) = {
-        val l = lm.apply(data, state, task, writer)
-        val FailuresErrors = "(?s).*(\\d+) failures?, (\\d+) errors?.*".r
-        new Logger {
-          def filter(s: String) = {
-            val filtered = s.replace("\033[32m+\033[0m", "\u2705 ")
-              .replace("\033[33mx\033[0m", "\u274C ")
-              .replace("\033[31m!\033[0m", "\uD83D\uDCA5 ")
-            filtered match {
-              case FailuresErrors("0", "0") => filtered + " \uD83D\uDE04"
-              case FailuresErrors(_, _) => filtered + " \uD83D\uDE22"
-              case _ => filtered
-            }
-          }
-          def log(level: Level.Value, message: => String) = l.log(level, filter(message))
-          def success(message: => String) = l.success(message)
-          def trace(t: => Throwable) = l.trace(t)
-
-          override def ansiCodesSupported = l.ansiCodesSupported
-        }
-      }
-    }
-  }
 }

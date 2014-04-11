@@ -1,7 +1,5 @@
-import play.Project._
-
 name := "eventSource-clock"
 
 version := "1.0"
 
-playScalaSettings
+lazy val root = (project in file(".")).addPlugins(PlayScala)
