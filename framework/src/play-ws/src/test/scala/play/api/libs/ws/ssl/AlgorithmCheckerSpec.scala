@@ -45,27 +45,15 @@ object AlgorithmCheckerSpec extends Specification {
       success
     }
 
-    "pass a bad signature algorithm (MD5) that is first, because it's a trust anchor" in {
+    "fail a bad signature algorithm (MD5)" in {
       val disabledSignatureAlgorithms = parseAll(line, "MD5").get.toSet
       val disabledKeyAlgorithms = parseAll(line, "").get.toSet
       val checker = new AlgorithmChecker(disabledSignatureAlgorithms, disabledKeyAlgorithms)
 
-      val rootCert:Certificate = CertificateGenerator.generateRSAWithMD5(2048)
+      val intermediateCert:Certificate = CertificateGenerator.generateRSAWithMD5(2048)
+      //val eeCert:Certificate = CertificateGenerator.generateRSAWithSHA256(2048)
 
-      checker.check(rootCert, emptySet())
-      success
-    }
-
-    "fail a bad signature algorithm (MD5) that is second, because it's a NOT trust anchor" in {
-      val disabledSignatureAlgorithms = parseAll(line, "MD5").get.toSet
-      val disabledKeyAlgorithms = parseAll(line, "").get.toSet
-      val checker = new AlgorithmChecker(disabledSignatureAlgorithms, disabledKeyAlgorithms)
-
-      val rootCert:Certificate = CertificateGenerator.generateRSAWithMD5(2048)
-      val eeCert:Certificate = CertificateGenerator.generateRSAWithMD5(2048)
-
-      checker.check(rootCert, emptySet())
-      checker.check(eeCert, emptySet()).must(throwA[CertPathValidatorException])
+      checker.check(intermediateCert, emptySet()).must(throwA[CertPathValidatorException])
     }
   }
 }
