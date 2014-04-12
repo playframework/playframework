@@ -34,7 +34,7 @@ object SecurityHeadersFilter {
   val X_CONTENT_TYPE_OPTIONS_HEADER = "X-Content-Type-Options"
   val X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER = "X-Permitted-Cross-Domain-Policies"
   val X_CONTENT_SECURITY_POLICY_HEADER = "X-Content-Security-Policy"
-  val CONTENT_SECURITY_POLICY_HEADER = "X-Content-Security-Policy"
+  val CONTENT_SECURITY_POLICY_HEADER = "Content-Security-Policy"
 
   val DEFAULT_FRAME_OPTIONS = "DENY"
   val DEFAULT_XSS_PROTECTION = "1; mode=block"
