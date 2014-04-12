@@ -286,3 +286,5 @@ libraryDependencies += PlayKeys.javaWs
 ```scala
 libraryDependencies += PlayKeys.ws
 ```
+
+The WS API has changed slightly, and `WS.client` now returns an instance of `WSClient` rather than the underlying `AsyncHttpClient` object.  You can get to the `AsyncHttpClient` by calling `WS.client.underlying`.

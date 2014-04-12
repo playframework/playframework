@@ -30,12 +30,14 @@ ws.ssl.enabledProtocols = [
 
 If you are on JDK 1.8, you can also set the `jdk.tls.client.protocols` system property to enable client protocols globally.
 
-## Disabled Protocols
+WS recognizes "SSLv3", "SSLv2" and "SSLv2Hello" as weak protocols with a number of [security issues](https://www.schneier.com/paper-ssl.pdf), and will throw an exception if they are in the `ws.ssl.enabledProtocols` list.  Virtually all servers support `TLSv1`, so there is no advantage in using these older protocols.
 
-WS recognizes “SSLv3”, “SSLv2” and “SSLv2Hello” as weak protocols with a number of [security issues](https://www.schneier.com/paper-ssl.pdf), and will throw an exception if they are in the enabledProtocols list.  Virtually all servers support `TLSv1`, so there is no advantage in using these older protocols.
+## Debugging
 
-If you specifically want a weak protocol, set the loose flag to disable the check:
+The debug options for configuring protocol are:
 
 ```
-ws.ssl.loose.allowWeakProtocols=true
+ws.ssl.debug = [ "ssl", "sslctx", "handshake", "verbose", "data" ]
 ```
+
+> **Next:** [[Configuring Cipher Suites|CipherSuites]]
