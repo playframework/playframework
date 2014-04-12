@@ -9,13 +9,138 @@ import play.api.libs._
 import play.api.libs.iteratee._
 import Play.current
 import java.io._
-import java.net.{ URI, JarURLConnection }
+import java.net.{ URL, JarURLConnection }
 import org.joda.time.format.{ DateTimeFormatter, DateTimeFormat }
 import org.joda.time.DateTimeZone
-import collection.JavaConverters._
-import scala.util.control.NonFatal
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.utils.{ InvalidUriEncodingException, UriEncoding }
+import scala.concurrent.{ ExecutionContext, Promise, Future, blocking }
+import scala.util.Try
+import java.util.Date
+import play.api.libs.iteratee.Execution.Implicits
+import play.api.http.ContentTypes
+import scala.collection.concurrent.TrieMap
+
+/*
+ * A cache designed to prevent the "thundering herds" issue.
+ *
+ * This could be factored out into its own thing, improved and made available more widely. We could also
+ * use spray-cache once it has been re-worked into the Akka code base.
+ *
+ * The essential mechanics of the cache are that all asset requests are remembered, unless their lookup fails in which
+ * case we don't remember them in order to avoid an exploit where we would otherwise run out of memory.
+ *
+ * The population function is executed using the passed-in execution context
+ * which may mean that it is on a separate thread thus permitting long running operations to occur. Other threads
+ * requiring the same resource will be given the future of the result immediately.
+ *
+ * There are no explicit bounds on the cache as it isn't considered likely that the number of distinct asset requests would
+ * result in an overflow of memory. Bounds are implied given the number of distinct assets that are available to be
+ * served by the project.
+ *
+ * Instead of a SelfPopulatingMap, a better strategy would be to furnish the assets controller with all of the asset
+ * information on startup. This shouldn't be that difficult as sbt-web has that information available. Such an
+ * approach would result in an immutable map being used which in theory should be faster.
+ */
+private class SelfPopulatingMap[K, V] {
+  private val store = TrieMap[K, Future[V]]()
+
+  def putIfAbsent(k: K)(pf: K => V)(implicit ec: ExecutionContext): Future[V] = {
+    val p = Promise[V]
+    store.putIfAbsent(k, p.future) match {
+      case Some(f) => f
+      case None =>
+        val f = Future(pf(k))(ec.prepare)
+        f.onFailure {
+          case _ => store.remove(k)
+        }
+        p.completeWith(f)
+        p.future
+    }
+  }
+}
+
+/*
+ * Retains meta information regarding an asset that can be readily cached.
+ */
+private object AssetInfo {
+
+  private lazy val defaultCharSet = Play.configuration.getString("default.charset").getOrElse("utf-8")
+
+  private lazy val defaultCacheControl = Play.configuration.getString("assets.defaultCache").getOrElse("max-age=3600")
+
+  private[controllers] val timeZoneCode = "GMT"
+
+  private val parsableTimezoneCode = " " + timeZoneCode
+
+  private[controllers] val df: DateTimeFormatter =
+    DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss '" + timeZoneCode + "'").withLocale(java.util.Locale.ENGLISH).withZone(DateTimeZone.forID(timeZoneCode))
+
+  private[controllers] val dfp: DateTimeFormatter =
+    DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss").withLocale(java.util.Locale.ENGLISH).withZone(DateTimeZone.forID(timeZoneCode))
+
+  /*
+   * jodatime does not parse timezones, so we handle that manually
+   */
+  private[controllers] def parseDate(date: String): Option[Date] = try {
+    val d = dfp.parseDateTime(date.replace(parsableTimezoneCode, "")).toDate
+    Some(d)
+  } catch {
+    case e: IllegalArgumentException =>
+      Logger.debug(s"An invalidate date was received: $date", e)
+      None
+  }
+}
+
+/*
+ * Retain meta information regarding an asset.
+ */
+private class AssetInfo(
+    val name: String,
+    val url: URL,
+    val gzipUrl: Option[URL]) {
+
+  import AssetInfo._
+
+  private def addCharsetIfNeeded(mimeType: String): String =
+    if (MimeTypes.isText(mimeType)) s"$mimeType; charset=$defaultCharSet" else mimeType
+
+  val cacheControl: String = {
+    Play.configuration.getString("\"assets.cache." + name + "\"").getOrElse(Play.mode match {
+      case Mode.Prod => defaultCacheControl
+      case _ => "no-cache"
+    })
+  }
+
+  val isDirectory: Boolean = new File(url.getFile).isDirectory
+
+  val lastModified: Option[String] = url.getProtocol match {
+    case "file" => Some(df.print(new File(url.getPath).lastModified))
+    case "jar" => {
+      Option(url.openConnection).map {
+        case jarUrlConnection: JarURLConnection =>
+          try {
+            jarUrlConnection.getJarEntry.getTime
+          } finally {
+            jarUrlConnection.getInputStream.close()
+          }
+      }.filterNot(_ == -1).map(df.print)
+    }
+    case _ => None
+  }
+
+  val etag: Option[String] = lastModified.map(_ + " -> " + url.toExternalForm).map("\"" + Codecs.sha1(_) + "\"")
+
+  val mimeType: String = MimeTypes.forFileName(name).fold(ContentTypes.BINARY)(addCharsetIfNeeded)
+
+  val parsedLastModified = lastModified.flatMap(parseDate)
+
+  def url(gzipAvailable: Boolean): URL = {
+    gzipUrl match {
+      case Some(x) => if (gzipAvailable) x else url
+      case None => url
+    }
+  }
+}
 
 /**
  * Controller that serves static resources.
@@ -36,28 +161,90 @@ import play.utils.{ InvalidUriEncodingException, UriEncoding }
  * GET     /assets/\uFEFF*file               controllers.Assets.at(path="/public", file)
  * }}}
  */
-object Assets extends AssetsBuilder
+object Assets extends AssetsBuilder {
+  private[controllers] lazy val assetInfoCacheSize = if (Play.isDev) 0 else Play.configuration.getInt("assets.infoCache.size").getOrElse(500)
+  private[controllers] lazy val assetInfoInitialCapacity = if (Play.isDev) 0 else Play.configuration.getInt("assets.infoCache.initial").getOrElse(100)
+  private[controllers] lazy val assetInfoCache = new SelfPopulatingMap[String, AssetInfo]()
+}
 
 class AssetsBuilder extends Controller {
 
-  private val timeZoneCode = "GMT"
+  import Assets._
+  import AssetInfo._
 
-  //Dateformatter is immutable and threadsafe
-  private val df: DateTimeFormatter =
-    DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss '" + timeZoneCode + "'").withLocale(java.util.Locale.ENGLISH).withZone(DateTimeZone.forID(timeZoneCode))
+  private def assetInfoFromResource(name: String): AssetInfo = {
+    blocking {
+      val url: URL = Play.resource(name).getOrElse(throw new RuntimeException("no resource"))
+      val gzipUrl: Option[URL] = Play.resource(name + ".gz")
+      new AssetInfo(name, url, gzipUrl)
+    }
+  }
 
-  //Dateformatter is immutable and threadsafe
-  private val dfp: DateTimeFormatter =
-    DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss").withLocale(java.util.Locale.ENGLISH).withZone(DateTimeZone.forID(timeZoneCode))
+  private def assetInfo(name: String): Future[AssetInfo] = assetInfoCache.putIfAbsent(name)(assetInfoFromResource)(Implicits.trampoline)
 
-  private val parsableTimezoneCode = " " + timeZoneCode
+  private def assetInfoForRequest(request: Request[_], name: String): Future[(AssetInfo, Boolean)] = {
+    val gzipRequested = request.headers.get(ACCEPT_ENCODING).exists(_.split(',').exists(_.trim == "gzip"))
+    assetInfo(name).map(_ -> gzipRequested)(Implicits.trampoline)
+  }
 
-  private lazy val defaultCharSet = Play.configuration.getString("default.charset").getOrElse("utf-8")
+  private def currentTimeFormatted: String = df.print((new Date).getTime)
 
-  private def addCharsetIfNeeded(mimeType: String): String =
-    if (MimeTypes.isText(mimeType))
-      "; charset=" + defaultCharSet
-    else ""
+  private def maybeNotModified(request: Request[_], assetInfo: AssetInfo): Option[Result] = {
+    // First check etag. Important, if there is an If-None-Match header, we MUST not check the
+    // If-Modified-Since header, regardless of whether If-None-Match matches or not. This is in
+    // accordance with section 14.26 of RFC2616.
+    request.headers.get(IF_NONE_MATCH) match {
+      case Some(etags) =>
+        assetInfo.etag.filter(someEtag => etags.split(',').exists(_.trim == someEtag)).flatMap(_ => Some(cacheableResult(assetInfo, NotModified)))
+      case None =>
+        for {
+          ifModifiedSinceStr <- request.headers.get(IF_MODIFIED_SINCE)
+          ifModifiedSince <- parseDate(ifModifiedSinceStr)
+          lastModified <- assetInfo.parsedLastModified
+          if !lastModified.after(ifModifiedSince)
+        } yield {
+          NotModified.withHeaders(DATE -> currentTimeFormatted)
+        }
+    }
+  }
+
+  private def cacheableResult[A <: Result](assetInfo: AssetInfo, r: A): Result = {
+
+    def addHeaderIfValue(name: String, maybeValue: Option[String], response: Result): Result = {
+      maybeValue.fold(response)(v => response.withHeaders(name -> v))
+    }
+
+    val r1 = addHeaderIfValue(ETAG, assetInfo.etag, r)
+    val r2 = addHeaderIfValue(LAST_MODIFIED, assetInfo.lastModified, r1)
+
+    r2.withHeaders(CACHE_CONTROL -> assetInfo.cacheControl)
+  }
+
+  private def result(file: String,
+    length: Int,
+    mimeType: String,
+    resourceData: Enumerator[Array[Byte]],
+    gzipRequested: Boolean,
+    gzipAvailable: Boolean): Result = {
+
+    val response = Result(
+      ResponseHeader(
+        OK,
+        Map(
+          CONTENT_LENGTH -> length.toString,
+          CONTENT_TYPE -> mimeType,
+          DATE -> currentTimeFormatted
+        )
+      ),
+      resourceData)
+    if (gzipRequested && gzipAvailable) {
+      response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> "gzip")
+    } else if (gzipAvailable) {
+      response.withHeaders(VARY -> ACCEPT_ENCODING)
+    } else {
+      response
+    }
+  }
 
   /**
    * Generates an `Action` that serves a static resource.
@@ -65,106 +252,34 @@ class AssetsBuilder extends Controller {
    * @param path the root folder for searching the static resource files, such as `"/public"`. Not URL encoded.
    * @param file the file part extracted from the URL. May be URL encoded (note that %2F decodes to literal /).
    */
-  def at(path: String, file: String): Action[AnyContent] = Action { request =>
-    def parseDate(date: String): Option[java.util.Date] = try {
-      //jodatime does not parse timezones, so we handle that manually
-      val d = dfp.parseDateTime(date.replace(parsableTimezoneCode, "")).toDate
-      Some(d)
-    } catch {
-      case NonFatal(_) => None
-    }
+  def at(path: String, file: String): Action[AnyContent] = Action.async {
+    implicit request =>
 
-    try {
-      resourceNameAt(path, file).map { resourceName =>
-
-        val gzippedResource = Play.resource(resourceName + ".gz")
-
-        val resource = {
-          gzippedResource.map(_ -> true)
-            .filter(_ => request.headers.get(ACCEPT_ENCODING).map(_.split(',').exists(_.trim == "gzip" && Play.isProd)).getOrElse(false))
-            .orElse(Play.resource(resourceName).map(_ -> false))
-        }
-
-        def maybeNotModified(url: java.net.URL) = {
-          // First check etag. Important, if there is an If-None-Match header, we MUST not check the
-          // If-Modified-Since header, regardless of whether If-None-Match matches or not. This is in
-          // accordance with section 14.26 of RFC2616.
-          request.headers.get(IF_NONE_MATCH) match {
-            case Some(etags) => {
-              etagFor(url).filter(etag =>
-                etags.split(",").exists(_.trim == etag)
-              ).map(_ => cacheableResult(url, NotModified))
+      import Implicits.trampoline
+      val pendingResult: Future[Result] = for {
+        Some(name) <- Future.successful(resourceNameAt(path, file))
+        (assetInfo, gzipRequested) <- assetInfoForRequest(request, name) if !assetInfo.isDirectory
+      } yield {
+        val stream = assetInfo.url(gzipRequested).openStream()
+        Try(stream.available -> Enumerator.fromStream(stream)(Implicits.defaultExecutionContext)).map {
+          case (length, resourceData) =>
+            maybeNotModified(request, assetInfo).getOrElse {
+              cacheableResult(
+                assetInfo,
+                result(file, length, assetInfo.mimeType, resourceData, gzipRequested, assetInfo.gzipUrl.isDefined)
+              )
             }
-            case None => {
-              request.headers.get(IF_MODIFIED_SINCE).flatMap(parseDate).flatMap { ifModifiedSince =>
-                lastModifiedFor(url).flatMap(parseDate).filterNot(lastModified => lastModified.after(ifModifiedSince))
-              }.map(_ => NotModified.withHeaders(
-                DATE -> df.print({ new java.util.Date }.getTime)))
-            }
-          }
-        }
-
-        def cacheableResult[A <: Result](url: java.net.URL, r: A) = {
-          // Add Etag if we are able to compute it
-          val taggedResponse = etagFor(url).map(etag => r.withHeaders(ETAG -> etag)).getOrElse(r)
-          val lastModifiedResponse = lastModifiedFor(url).map(lastModified => taggedResponse.withHeaders(LAST_MODIFIED -> lastModified)).getOrElse(taggedResponse)
-
-          // Add Cache directive if configured
-          val cachedResponse = lastModifiedResponse.withHeaders(CACHE_CONTROL -> {
-            Play.configuration.getString("\"assets.cache." + resourceName + "\"").getOrElse(Play.mode match {
-              case Mode.Prod => Play.configuration.getString("assets.defaultCache").getOrElse("max-age=3600")
-              case _ => "no-cache"
-            })
-          })
-          cachedResponse
-        }
-
-        resource.map {
-
-          case (url, _) if new File(url.getFile).isDirectory => NotFound
-
-          case (url, isGzipped) => {
-
-            lazy val (length, resourceData) = {
-              val stream = url.openStream()
-              try {
-                (stream.available, Enumerator.fromStream(stream))
-              } catch {
-                case NonFatal(_) => (-1, Enumerator[Array[Byte]]())
-              }
-            }
-
-            if (length == -1) {
-              NotFound
-            } else {
-              maybeNotModified(url).getOrElse {
-                // Prepare a streamed response
-                val response = SimpleResult(
-                  ResponseHeader(OK, Map(
-                    CONTENT_LENGTH -> length.toString,
-                    CONTENT_TYPE -> MimeTypes.forFileName(file).map(m => m + addCharsetIfNeeded(m)).getOrElse(BINARY),
-                    DATE -> df.print({ new java.util.Date }.getTime))),
-                  resourceData)
-
-                // If there is a gzipped version, even if the client isn't accepting gzip, we need to specify the
-                // Vary header so proxy servers will cache both the gzip and the non gzipped version
-                val gzippedResponse = (gzippedResource.isDefined, isGzipped) match {
-                  case (true, true) => response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> "gzip")
-                  case (true, false) => response.withHeaders(VARY -> ACCEPT_ENCODING)
-                  case _ => response
-                }
-                cacheableResult(url, gzippedResponse)
-              }
-            }
-
-          }
         }.getOrElse(NotFound)
-      }.getOrElse(NotFound)
-    } catch {
-      case e: InvalidUriEncodingException =>
-        Logger.debug("Invalid URI encoding", e)
-        BadRequest
-    }
+      }
+
+      pendingResult.recover {
+        case e: InvalidUriEncodingException =>
+          Logger.debug(s"Invalid URI encoding for $file at $path", e)
+          BadRequest
+        case e: Throwable =>
+          Logger.debug(s"Unforseen error for $file at $path", e)
+          NotFound
+      }
   }
 
   /**
@@ -175,59 +290,17 @@ class AssetsBuilder extends Controller {
    */
   private[controllers] def resourceNameAt(path: String, file: String): Option[String] = {
     val decodedFile = UriEncoding.decodePath(file, "utf-8")
-    val slashRemover = (input: String) => """//+""".r.replaceAllIn(input, "/")
-    val fullpath = slashRemover(path + "/" + decodedFile)
-    val resourceName = if (fullpath startsWith "/") fullpath else "/" + fullpath
-    if (new File(resourceName).isDirectory || !new File(resourceName).getCanonicalPath.startsWith(new File(path).getCanonicalPath)) {
+    def dblSlashRemover(input: String): String = dblSlashPattern.replaceAllIn(input, "/")
+    val resourceName = dblSlashRemover(s"/$path/$decodedFile")
+    val resourceFile = new File(resourceName)
+    val pathFile = new File(path)
+    if (resourceFile.isDirectory || !resourceFile.getCanonicalPath.startsWith(pathFile.getCanonicalPath)) {
       None
     } else {
       Some(resourceName)
     }
   }
 
-  // -- LastModified handling
-
-  private val lastModifieds = (new java.util.concurrent.ConcurrentHashMap[String, String]()).asScala
-
-  private def lastModifiedFor(resource: java.net.URL): Option[String] = {
-    def formatLastModified(lastModified: Long): String = df.print(lastModified)
-
-    def maybeLastModified(resource: java.net.URL): Option[Long] = {
-      resource.getProtocol match {
-        case "file" => Some(new File(resource.getPath).lastModified)
-        case "jar" => {
-          Option(resource.openConnection)
-            .map(_.asInstanceOf[JarURLConnection].getJarEntry.getTime)
-            .filterNot(_ == -1)
-        }
-        case _ => None
-      }
-    }
-
-    def cachedLastModified(resource: java.net.URL)(orElseAction: => Option[String]): Option[String] =
-      lastModifieds.get(resource.toExternalForm).orElse(orElseAction)
-
-    def setAndReturnLastModified(resource: java.net.URL): Option[String] = {
-      val mlm = maybeLastModified(resource).map(formatLastModified)
-      mlm.foreach(lastModifieds.put(resource.toExternalForm, _))
-      mlm
-    }
-
-    if (Play.isProd) cachedLastModified(resource) { setAndReturnLastModified(resource) }
-    else setAndReturnLastModified(resource)
-  }
-
-  // -- ETags handling
-
-  private val etags = (new java.util.concurrent.ConcurrentHashMap[String, String]()).asScala
-
-  private def etagFor(resource: java.net.URL): Option[String] = {
-    etags.get(resource.toExternalForm).filter(_ => Play.isProd).orElse {
-      val maybeEtag = lastModifiedFor(resource).map(_ + " -> " + resource.toExternalForm).map("\"" + Codecs.sha1(_) + "\"")
-      maybeEtag.foreach(etags.put(resource.toExternalForm, _))
-      maybeEtag
-    }
-  }
-
+  private val dblSlashPattern = """//+""".r
 }
 
