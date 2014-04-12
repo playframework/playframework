@@ -22,7 +22,7 @@ In 1.6, the out of the box list is [out of order](http://op-co.de/blog/posts/and
   "TLS_EMPTY_RENEGOTIATION_INFO_SCSV" // per RFC 5746
 ```
 
-The list of cipher suites can be configured manually using the `ws.ssl.enabledCiphers` flag:
+The list of cipher suites can be configured manually using the `ws.ssl.enabledCiphers` setting:
 
 ```
 ws.ssl.enabledCiphers = [
@@ -38,47 +38,45 @@ Diffie Hellman has been in the news recently because it offers perfect forward s
 
 If you have JDK 1.8, setting the system property `-Djdk.tls.ephemeralDHKeySize=2048` is recommended to ensure stronger keysize in the handshake.  Please see [Customizing Size of Ephemeral Diffie-Hellman Keys](http://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#customizing_dh_keys).
 
-## Disabling Weak Ciphers Globally
+## Disabling Weak Ciphers and Weak Key Sizes Globally
 
-The `jdk.tls.disabledAlgorithms` can be used to prevent weak ciphers, and can also be used to prevent small key sizes from being used in a handshake.  This is a [useful feature](http://sim.ivi.co/2013/11/harness-ssl-and-jsse-key-size-control.html) that is only available in JDK 1.7 and later.
+The `jdk.tls.disabledAlgorithms` can be used to prevent weak ciphers, and can also be used to prevent [small key sizes](http://sim.ivi.co/2011/07/java-se-7-release-security-enhancements.html) from being used in a handshake.  This is a [useful feature](http://sim.ivi.co/2013/11/harness-ssl-and-jsse-key-size-control.html) that is only available in Oracle JDK 1.7 and later.
 
-  // http://marc.info/?l=openjdk-security-dev&m=138932097003284&w=2
-  //
-  //
+The official documentation for disabled algorithms is in the [JSSE Reference Guide](http://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html#DisabledAlgorithms).
 
-The official documentation for disabled algorithms is [here](http://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html#DisabledAlgorithms).
+For TLS, the code will match the first part of the cipher suite after the protocol, i.e. TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384 has ECDHE as the relevant cipher, giving "DHE, ECDH, ECDHE, RSA".  The parameter names to use for the disabled algorithms are not obvious, but are listed in the [Providers documentation](http://docs.oracle.com/javase/7/docs/technotes/guides/security/SunProviders.html) and can be seen in the [source code](http://grepcode.com/file/repository.grepcode.com/java/root/jdk/openjdk/7u40-b43/sun/security/ssl/SSLAlgorithmConstraints.java#265).
 
-The parameter names to use for the disabled algorithms are not obvious, but are listed in the [Providers documentation](http://docs.oracle.com/javase/7/docs/technotes/guides/security/SunProviders.html).
-
-For X.509 certificates, the public key algorithms used in signatures can be RSA, DSA or EC (listed as "ECDSA"):
+To enable `jdk.tls.disabledAlgorithms` or `jdk.certpath.disabledAlgorithms` (which looks at signature algorithms and weak keys in X.509 certificates) you must create a properties file:
 
 ```
-jdk.certpath.disabledAlgorithms="RSA keySize < 2048, DSA keySize < 2048, EC keySize < 224"
+# disabledAlgorithms.properties
+jdk.tls.disabledAlgorithms=EC keySize < 160, RSA keySize < 2048, DSA keySize < 2048
+jdk.certpath.disabledAlgorithms=MD2, MD4, MD5, EC keySize < 160, RSA keySize < 2048, DSA keySize < 2048
 ```
 
-Based off https://www.keylength.com and [mailing list discussion](http://openjdk.5641.n7.nabble.com/Code-Review-Request-7109274-Consider-disabling-support-for-X-509-certificates-with-RSA-keys-less-thas-td107890.html).
-
-The digest algorithms used in signatures can be NONE, MD2, MD4, MD5, SHA1, SHA256, SHA512, SHA384
+And then start up the JVM with [java.security.properties](http://bugs.java.com/bugdatabase/view_bug.do?bug_id=7133344):
 
 ```
-jdk.certpath.disabledAlgorithms="MD2, MD4, MD5, RSA keySize < 2048, DSA keySize < 2048, EC keySize < 224"
+java -Djava.security.properties=disabledAlgorithms.properties
 ```
 
-> NOTE: there are some cases where servers will send a root CA certificate which is self-signed as MD5.  According to RFC 2246, section 7.4.2, "the self-signed certificate which specifies the root certificate authority may optionally be omitted from the chain, under the assumption that the remote end must already possess it in order to validate it in any case", so it is technically possible to have a valid certificate chain fail because it contains a harmless MD5 root certificate.
-
-For TLS, the code will match the first part of the cipher suite after the protocol, i.e. TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384 has ECDHE as the relevant cipher, giving "DHE, ECDH, ECDHE, RSA":
+Alternately, if you wish to set `AlgorithmConstraints` dynamically, you can do so in the [SSLParameters](http://docs.oracle.com/javase/7/docs/api/javax/net/ssl/SSLParameters.html):
 
 ```
-jdk.tls.disabledAlgorithms="DHE keySize < 2048, ECDH keySize < 2048, ECDHE keySize < 2048, RSA keySize < 2048"
+sslParameters.setAlgorithmConstraints(algConstraints);
 ```
 
-This property is not set in WS SSL by default, as it is global to the entire JVM, but it is recommended.  Note that if you set `DHE keySize < 2048`, you will
-also want to set `jdk.tls.ephemeralDHKeySize=2048` (and be running JDK 1.8).
+## Debugging
 
-## Using Weak Ciphers
-
-There are some ciphers which are known to have flaws, and are [disabled](http://sim.ivi.co/2011/08/jsse-oracle-provider-default-disabled.html) in 1.7.  WS will throw an exception if a weak cipher is found in the `ws.ssl.enabledCiphers` list.  If you specifically want a weak cipher, set this flag:
+To debug ciphers and weak keys, turn on the following debug settings:
 
 ```
-ws.ssl.loose.acceptWeakCipher=true
+ws.ssl.debug = [
+ "ssl",
+ "handshake",
+   "verbose",
+   "data",
+]
 ```
+
+> **Next**: [[Configuring Certificate Validation|CertificateValidation]]
