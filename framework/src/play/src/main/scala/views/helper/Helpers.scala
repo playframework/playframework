@@ -88,7 +88,7 @@ package views.html.helper {
         case complete if complete.distinct.size >= min => field.indexes.distinct
         case partial =>
           // We don't have enough elements, append indexes starting from the largest
-          val start = field.indexes.distinct.max + 1
+          val start = field.indexes.max + 1
           val needed = min - field.indexes.distinct.size
           field.indexes.distinct ++ (start until (start + needed))
       }
