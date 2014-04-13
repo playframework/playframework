@@ -94,6 +94,7 @@ package views.html.helper {
       }
 
       indexes.map(i => fieldRenderer(field("[" + i + "]"))).toIndexedSeq
+    }
   }
 
   object options {
