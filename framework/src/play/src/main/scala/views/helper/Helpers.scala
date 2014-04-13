@@ -93,7 +93,7 @@ package views.html.helper {
           field.indexes.distinct ++ (start until (start + needed))
       }
 
-      indexes.map(i => fieldRenderer(field("[" + i + "]"))).toIndexedSeq
+      indexes.map(i => fieldRenderer(field("[" + i + "]")))
     }
   }
 
