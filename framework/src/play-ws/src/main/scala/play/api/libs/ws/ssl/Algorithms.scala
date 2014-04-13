@@ -6,76 +6,130 @@
 package play.api.libs.ws.ssl
 
 import javax.crypto.SecretKey
-import java.security.interfaces.{ DSAKey, ECKey, RSAKey }
+import java.security.interfaces._
 import javax.crypto.interfaces.DHKey
 import scala.util.parsing.combinator.RegexParsers
+import java.security.{ KeyFactory, Key }
+import scala.Some
 
+/**
+ * This singleton object provides the code needed to check for minimum standards of an X.509 certificate.  Over 95% of trusted leaf certificates and 95% of trusted signing certificates use <a href="http://csrc.nist.gov/publications/nistpubs/800-131A/sp800-131A.pdf">NIST recommended key sizes</a>.  Play supports Java 1.6, which does not have built in <a href="http://sim.ivi.co/2013/11/harness-ssl-and-jsse-key-size-control.html">certificate strength checking</a>, so we roll our own here.
+ *
+ * The default settings here are based off <a href="">NIST SP 800-57</a>, using <a href="https://wiki.mozilla.org/CA:MD5and1024">Dates for Phasing out MD5-based signatures and 1024-bit moduli</a> as a practical guide.
+ *
+ * Note that the key sizes are checked on root CA certificates in the trust store.  As the Mozilla document says:
+ *
+ * <blockquote>The other concern that needs to be addressed is that of RSA1024 being too small a modulus to be robust against faster computers. Unlike a signature algorithm, where only intermediate and end-entity certificates are impacted, fast math means we have to disable or remove all instances of 1024-bit moduli, including the root certificates.</blockquote>
+ *
+ * Relevant key sizes:
+ *
+ * <blockquote>
+ * According to NIST SP 800-57 the recommended algorithms and minimum key sizes are as follows:
+ *
+ * Through 2010 (minimum of 80 bits of strength)
+ * FFC (e.g., DSA, D-H) Minimum: L=1024; N=160
+ * IFC (e.g., RSA) Minimum: k=1024
+ * ECC (e.g. ECDSA) Minimum: f=160
+ * Through 2030 (minimum of 112 bits of strength)
+ * FFC (e.g., DSA, D-H) Minimum: L=2048; N=224
+ * IFC (e.g., RSA) Minimum: k=2048
+ * ECC (e.g. ECDSA) Minimum: f=224
+ * Beyond 2030 (minimum of 128 bits of strength)
+ * FFC (e.g., DSA, D-H) Minimum: L=3072; N=256
+ * IFC (e.g., RSA) Minimum: k=3072
+ * ECC (e.g. ECDSA) Minimum: f=256
+ * </blockquote>
+ *
+ * Relevant signature algorithms:
+ *
+ * The known weak signature algorithms are "MD2, MD4, MD5".
+ *
+ * SHA-1 is considered too weak for new certificates, but is <a href="http://csrc.nist.gov/groups/ST/hash/policy.html">still allowed</a> for verifying old certificates in the chain.  The <a href="https://blogs.oracle.com/xuelei/entry/tls_and_nist_s_policy">TLS and NIST'S Policy on Hash Functions</a> blog post by one of the JSSE authors has more details, in particular the "Put it into practice" section.
+ */
 object Algorithms {
 
-  //  # The syntax of the disabled algorithm string is described as this Java
-  //  # BNF-style:
-  //  #   DisabledAlgorithms:
-  //  #       " DisabledAlgorithm { , DisabledAlgorithm } "
-  //  #
-  //  #   DisabledAlgorithm:
-  //  #       AlgorithmName [Constraint]
-  //  #
-  //  #   AlgorithmName:
-  //  #       (see below)
-  //  #
-  //  #   Constraint:
-  //  #       KeySizeConstraint
-  //  #
-  //  #   KeySizeConstraint:
-  //  #       "keySize" Operator DecimalInteger
-  //  #
-  //  #   Operator:
-  //  #       <= | < | == | != | >= | >
-  //  #
-  //  #   DecimalInteger:
-  //  #       DecimalDigits
-  //  #
-  //  #   DecimalDigits:
-  //  #       DecimalDigit {DecimalDigit}
-  //  #
-  //  #   DecimalDigit: one of
-  //  #       1 2 3 4 5 6 7 8 9 0
-
-  // See http://grepcode.com/file/repository.grepcode.com/java/root/jdk/openjdk/7-b147/sun/security/ssl/SSLAlgorithmConstraints.java
-  // http://sim.ivi.co/2013/11/harness-ssl-and-jsse-key-size-control.html
-  // http://marc.info/?l=openjdk-security-dev&m=138932097003284&w=2
-  // http://openjdk.5641.n7.nabble.com/Code-Review-Request-7109274-Consider-disabling-support-for-X-509-certificates-with-RSA-keys-less-thas-td107890.html
-  // http://grokbase.com/t/gg/play-framework/14199wzbgp/2-2-scala-disabling-diffie-hellman-cipher-suites
-  //
-  // The jdk.tls.disabledAlgorithms property applies to TLS handshaking,
-  // and the jdk.certpath.disabledAlgorithms property applies to certification path processing.
-
-  // The closest analogue is jdk.certpath.disabledAlgorithms
+  /**
+   * Disabled signature algorithms are applied to signed certificates in a certificate chain, not including CA certs.
+   *
+   * @return "MD2, MD4, MD5"
+   */
   def disabledSignatureAlgorithms: String = "MD2, MD4, MD5"
 
-  def disabledKeyAlgorithms: String = "RSA keySize < 1024, DSA keySize < 1024, EC keySize < 160"
+  /**
+   * Disabled key algorithms are applied to all certificates, including the root CAs.
+   *
+   * @return "RSA keySize < 2048, DSA keySize < 2048, EC keySize < 224"
+   */
+  def disabledKeyAlgorithms: String = "RSA keySize < 2048, DSA keySize < 2048, EC keySize < 224"
 
   /**
-   * Returns the keySize of the given key.
+   * Returns the keySize of the given key, or None if no key exists.
    */
-  def keySize(key: java.security.Key): Int = {
+  def keySize(key: java.security.Key): Option[Int] = {
     key match {
       case sk: SecretKey =>
         if ((sk.getFormat == "RAW") && sk.getEncoded != null) {
-          sk.getEncoded.length * 8
+          Some(sk.getEncoded.length * 8)
         } else {
-          -1
+          None
         }
       case pubk: RSAKey =>
-        pubk.getModulus.bitLength
+        Some(pubk.getModulus.bitLength)
       case pubk: ECKey =>
-        pubk.getParams.getOrder.bitLength
+        Some(pubk.getParams.getOrder.bitLength())
       case pubk: DSAKey =>
-        pubk.getParams.getP.bitLength
+        Some(pubk.getParams.getP.bitLength)
       case pubk: DHKey =>
-        pubk.getParams.getP.bitLength
-      case _ =>
-        -1
+        Some(pubk.getParams.getP.bitLength)
+      case pubk: Key =>
+        val translatedKey = translateKey(pubk)
+        keySize(translatedKey)
+      case unknownKey =>
+        try {
+          val lengthMethod = unknownKey.getClass.getMethod("length")
+          val l = lengthMethod.invoke(unknownKey).asInstanceOf[Integer]
+          if (l >= 0) Some(l) else None
+        } catch {
+          case _: Throwable =>
+            throw new IllegalStateException(s"unknown key ${key.getClass.getName}")
+        }
+      // None
+    }
+  }
+
+  def getKeyAlgorithmName(pubk: Key): String = {
+    val name = pubk.getAlgorithm
+    if (name == "DH") "DiffieHellman" else name
+  }
+
+  def translateKey(pubk: Key): Key = {
+    val keyAlgName = getKeyAlgorithmName(pubk)
+    foldVersion(
+      run16 = {
+        keyAlgName match {
+          case "EC" =>
+            // If we are on 1.6, then we can't use the EC factory and have to pull it directly.
+            translateECKey(pubk)
+          case _ =>
+            val keyFactory = KeyFactory.getInstance(keyAlgName)
+            keyFactory.translateKey(pubk)
+        }
+      },
+      runHigher = {
+        val keyFactory = KeyFactory.getInstance(keyAlgName)
+        keyFactory.translateKey(pubk)
+      }
+    )
+  }
+
+  def translateECKey(pubk: Key): Key = {
+    val keyFactory = Thread.currentThread().getContextClassLoader.loadClass("sun.security.ec.ECKeyFactory")
+    val method = keyFactory.getMethod("toECKey", classOf[java.security.Key])
+    method.invoke(null, pubk) match {
+      case e: ECPublicKey =>
+        e
+      case e: ECPrivateKey =>
+        e
     }
   }
 
@@ -90,7 +144,7 @@ object Algorithms {
    */
   def decomposes(algorithm: String): Set[String] = {
     if (algorithm == null || algorithm.length == 0) {
-      return Set()
+      throw new IllegalArgumentException("Null or blank algorithm found!")
     }
 
     val withAndPattern = new scala.util.matching.Regex("(?i)with|and")
