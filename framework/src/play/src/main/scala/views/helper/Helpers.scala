@@ -85,16 +85,15 @@ package views.html.helper {
     def apply(field: play.api.data.Field, min: Int = 1)(fieldRenderer: play.api.data.Field => Html): Seq[Html] = {
       val indexes = field.indexes match {
         case Nil => 0 until min
-        case complete if complete.max + 1 >= min => field.indexes.distinct
+        case complete if complete.distinct.size >= min => field.indexes.distinct
         case partial =>
           // We don't have enough elements, append indexes starting from the largest
           val start = field.indexes.max + 1
-          val needed = min - field.indexes.max
+          val needed = min - field.indexes.distinct.size
           field.indexes.distinct ++ (start until (start + needed))
       }
 
       indexes.map(i => fieldRenderer(field("[" + i + "]"))).toIndexedSeq
-    }
   }
 
   object options {
