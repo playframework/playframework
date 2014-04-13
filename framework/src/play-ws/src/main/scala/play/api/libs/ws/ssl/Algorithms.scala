@@ -6,76 +6,89 @@
 package play.api.libs.ws.ssl
 
 import javax.crypto.SecretKey
-import java.security.interfaces.{ DSAKey, ECKey, RSAKey }
+import java.security.interfaces._
 import javax.crypto.interfaces.DHKey
 import scala.util.parsing.combinator.RegexParsers
+import java.security.{ KeyFactory, Key }
+import scala.Some
 
 object Algorithms {
 
-  //  # The syntax of the disabled algorithm string is described as this Java
-  //  # BNF-style:
-  //  #   DisabledAlgorithms:
-  //  #       " DisabledAlgorithm { , DisabledAlgorithm } "
-  //  #
-  //  #   DisabledAlgorithm:
-  //  #       AlgorithmName [Constraint]
-  //  #
-  //  #   AlgorithmName:
-  //  #       (see below)
-  //  #
-  //  #   Constraint:
-  //  #       KeySizeConstraint
-  //  #
-  //  #   KeySizeConstraint:
-  //  #       "keySize" Operator DecimalInteger
-  //  #
-  //  #   Operator:
-  //  #       <= | < | == | != | >= | >
-  //  #
-  //  #   DecimalInteger:
-  //  #       DecimalDigits
-  //  #
-  //  #   DecimalDigits:
-  //  #       DecimalDigit {DecimalDigit}
-  //  #
-  //  #   DecimalDigit: one of
-  //  #       1 2 3 4 5 6 7 8 9 0
-
-  // See http://grepcode.com/file/repository.grepcode.com/java/root/jdk/openjdk/7-b147/sun/security/ssl/SSLAlgorithmConstraints.java
-  // http://sim.ivi.co/2013/11/harness-ssl-and-jsse-key-size-control.html
-  // http://marc.info/?l=openjdk-security-dev&m=138932097003284&w=2
-  // http://openjdk.5641.n7.nabble.com/Code-Review-Request-7109274-Consider-disabling-support-for-X-509-certificates-with-RSA-keys-less-thas-td107890.html
-  // http://grokbase.com/t/gg/play-framework/14199wzbgp/2-2-scala-disabling-diffie-hellman-cipher-suites
-  //
   // The jdk.tls.disabledAlgorithms property applies to TLS handshaking,
   // and the jdk.certpath.disabledAlgorithms property applies to certification path processing.
 
-  // The closest analogue is jdk.certpath.disabledAlgorithms
   def disabledSignatureAlgorithms: String = "MD2, MD4, MD5"
 
   def disabledKeyAlgorithms: String = "RSA keySize < 1024, DSA keySize < 1024, EC keySize < 160"
 
   /**
-   * Returns the keySize of the given key.
+   * Returns the keySize of the given key, or None if no key exists.
    */
-  def keySize(key: java.security.Key): Int = {
+  def keySize(key: java.security.Key): Option[Int] = {
     key match {
       case sk: SecretKey =>
         if ((sk.getFormat == "RAW") && sk.getEncoded != null) {
-          sk.getEncoded.length * 8
+          Some(sk.getEncoded.length * 8)
         } else {
-          -1
+          None
         }
       case pubk: RSAKey =>
-        pubk.getModulus.bitLength
+        Some(pubk.getModulus.bitLength)
       case pubk: ECKey =>
-        pubk.getParams.getOrder.bitLength
+        Some(pubk.getParams.getOrder.bitLength())
       case pubk: DSAKey =>
-        pubk.getParams.getP.bitLength
+        Some(pubk.getParams.getP.bitLength)
       case pubk: DHKey =>
-        pubk.getParams.getP.bitLength
-      case _ =>
-        -1
+        Some(pubk.getParams.getP.bitLength)
+      case pubk: Key =>
+        val translatedKey = translateKey(pubk)
+        keySize(translatedKey)
+      case unknownKey =>
+        try {
+          val lengthMethod = unknownKey.getClass.getMethod("length")
+          val l = lengthMethod.invoke(unknownKey).asInstanceOf[Integer]
+          if (l >= 0) Some(l) else None
+        } catch {
+          case _: Throwable =>
+            throw new IllegalStateException(s"unknown key ${key.getClass.getName}")
+        }
+      // None
+    }
+  }
+
+  def getKeyAlgorithmName(pubk: Key): String = {
+    val name = pubk.getAlgorithm
+    if (name == "DH") "DiffieHellman" else name
+  }
+
+  def translateKey(pubk: Key): Key = {
+    val keyAlgName = getKeyAlgorithmName(pubk)
+    foldVersion(
+      run16 = {
+        keyAlgName match {
+          case "EC" =>
+            // If we are on 1.6, then we can't use the EC factory and have to pull it directly.
+            translateECKey(pubk)
+          case _ =>
+            val keyFactory = KeyFactory.getInstance(keyAlgName)
+            keyFactory.translateKey(pubk)
+        }
+      },
+      runHigher = {
+        val keyFactory = KeyFactory.getInstance(keyAlgName)
+        keyFactory.translateKey(pubk)
+      }
+    )
+  }
+
+  def translateECKey(pubk: Key): Key = {
+    val keyFactory = Thread.currentThread().getContextClassLoader.loadClass("sun.security.ec.ECKeyFactory")
+    val method = keyFactory.getMethod("toECKey", classOf[java.security.Key])
+    method.invoke(null, pubk) match {
+      case e: ECPublicKey =>
+        e
+      case e: ECPrivateKey =>
+        e
     }
   }
 
@@ -90,7 +103,7 @@ object Algorithms {
    */
   def decomposes(algorithm: String): Set[String] = {
     if (algorithm == null || algorithm.length == 0) {
-      return Set()
+      throw new IllegalArgumentException("Null or blank algorithm found!")
     }
 
     val withAndPattern = new scala.util.matching.Regex("(?i)with|and")

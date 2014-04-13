@@ -20,6 +20,7 @@ import com.ning.http.util.{ProxyUtils, AllowAllHostnameVerifier}
 import play.api.libs.ws.ssl.DefaultHostnameVerifier
 import org.joda.time.Instant
 import org.specs2.execute.Result
+import java.security.cert.CertPathValidatorException
 
 object NingAsyncHttpClientConfigBuilderSpec extends Specification with Mockito {
 
@@ -126,26 +127,24 @@ object NingAsyncHttpClientConfigBuilderSpec extends Specification with Mockito {
         }
 
         "use the default with a current certificate" in {
-          foldVersion[Result]({
-            pending("The default trust store will throw an exception because the trust store is too weak, passing")
-          }, {
-            val tmc = DefaultTrustManagerConfig()
-            val config = defaultConfig.copy(ssl = Some(DefaultSSLConfig(default = Some(true), trustManagerConfig = Some(tmc))))
-            val builder = new NingAsyncHttpClientConfigBuilder(config)
+          val tmc = DefaultTrustManagerConfig()
+          val config = defaultConfig.copy(ssl = Some(DefaultSSLConfig(default = Some(true), trustManagerConfig = Some(tmc))))
+          val builder = new NingAsyncHttpClientConfigBuilder(config)
 
-            val asyncClientConfig = builder.build()
-            val sslContext = asyncClientConfig.getSSLContext
-            sslContext must beEqualTo(SSLContext.getDefault)
-          })
+          val asyncClientConfig = builder.build()
+          val sslContext = asyncClientConfig.getSSLContext
+          sslContext must beEqualTo(SSLContext.getDefault)
         }
 
-        "use the default SSL context if sslConfig.default is passed in with an expired certificate" in {
-          // Because the default 1.6 and 1.7 JDK have certificates signed with MD5 in their trust store, using the
-          // default disabledAlgorithms will throw an exception (we can't filter it out here due to the API).
+        "throw exception if sslConfig.default is passed in with an weak certificate" in {
+          // the default trust store will contain certificates that have keysize larger than 1024, so this will fail
+          // on those.
+          val config = defaultConfig.copy(ssl = Some(DefaultSSLConfig(default = Some(true), disabledKeyAlgorithms = Some("RSA keySize < 4096"))))
+          val builder = new NingAsyncHttpClientConfigBuilder(config)
 
-          // I can't think of a way to do this that doesn't involve system properties and an incredible amount of
-          // kludge.
-          todo
+          {
+            builder.build()
+          } must(throwAn[CertPathValidatorException])
         }
       }
 
@@ -239,23 +238,6 @@ object NingAsyncHttpClientConfigBuilderSpec extends Specification with Mockito {
       }
 
       "with ciphers" should {
-        //
-        //        "provide recommended ciphers if not specified" in {
-        //          val sslConfig = DefaultSSLConfig()
-        //          val config = defaultConfig.copy(ssl = Some(sslConfig))
-        //          val builder = new NingAsyncHttpClientConfigBuilder(config)
-        //          val existingCiphers = SSLContext.getDefault.getDefaultSSLParameters.getCipherSuites
-        //
-        //          val actual = builder.configureCipherSuites(existingCiphers, sslConfig)
-        //
-        //          // Even 1.6 has [TLS_RSA_WITH_AES_128_CBC_SHA, TLS_RSA_WITH_AES_256_CBC_SHA, SSL_RSA_WITH_3DES_EDE_CBC_SHA]
-        //
-        //          actual.toSeq must contain(
-        //            atLeast("TLS_RSA_WITH_AES_128_CBC_SHA", "TLS_RSA_WITH_AES_256_CBC_SHA", "SSL_RSA_WITH_3DES_EDE_CBC_SHA")
-        //          )
-        //
-        //          actual.toSeq must not contain (Ciphers.deprecatedCiphers)
-        //        }
 
         "provide explicit ciphers if specified" in {
           val enabledCiphers = Seq("goodone", "goodtwo")

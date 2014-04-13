@@ -184,24 +184,19 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig,
     // configuration with system properties will also apply with the factory, we can use the factory
     // method to recreate the trust manager and validate the trust certificates that way.
     //
+    // This is really a last ditch attempt to satisfy https://wiki.mozilla.org/CA:MD5and1024 on root certificates.
+    //
     // http://grepcode.com/file/repository.grepcode.com/java/root/jdk/openjdk/7-b147/sun/security/ssl/SSLContextImpl.java#79
 
     val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
     tmf.init(null.asInstanceOf[KeyStore])
     val trustManager: X509TrustManager = tmf.getTrustManagers()(0).asInstanceOf[X509TrustManager]
 
-    //val disabledAlgorithms = sslConfig.disabledAlgorithms.getOrElse(Algorithms.disabledAlgorithms)
-    //val constraints = AlgorithmConstraintsParser.parseAll(AlgorithmConstraintsParser.line, disabledAlgorithms).get.toSet
-    //val algorithmChecker = new AlgorithmChecker(constraints)
-    try {
-      for (cert <- trustManager.getAcceptedIssuers) {
-        cert.checkValidity()
-        //algorithmChecker.check(cert, unresolvedCritExts = java.util.Collections.emptySet())
-      }
-    } catch {
-      case NonFatal(e) =>
-        val msg = "You have ws.ssl.default = true in your configuration, and you have an invalid certificate in your trust store."
-        throw new IllegalStateException(msg, e)
+    val disabledKeyAlgorithms = sslConfig.disabledKeyAlgorithms.getOrElse(Algorithms.disabledKeyAlgorithms)
+    val constraints = AlgorithmConstraintsParser.parseAll(AlgorithmConstraintsParser.line, disabledKeyAlgorithms).get.toSet
+    val algorithmChecker = new AlgorithmChecker(keyConstraints = constraints, signatureConstraints = Set())
+    for (cert <- trustManager.getAcceptedIssuers) {
+      algorithmChecker.checkKeyAlgorithms(cert)
     }
   }
 

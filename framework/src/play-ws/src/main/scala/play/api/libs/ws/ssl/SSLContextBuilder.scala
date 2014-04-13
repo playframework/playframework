@@ -95,10 +95,6 @@ class ConfigSSLContextBuilder(info: SSLConfig,
   def build: SSLContext = {
     val protocol = info.protocol.getOrElse(Protocols.recommendedProtocol)
 
-    val keyManagers: Seq[KeyManager] = info.keyManagerConfig.map {
-      kmc => Seq(buildCompositeKeyManager(kmc))
-    }.getOrElse(Nil)
-
     val checkRevocation = info.checkRevocation.getOrElse(false)
 
     val revocationLists = certificateRevocationList(info)
@@ -107,10 +103,14 @@ class ConfigSSLContextBuilder(info: SSLConfig,
     val signatureConstraints = AlgorithmConstraintsParser(disabledSignatureAlgorithms).toSet
 
     val disabledKeyAlgorithms = info.disabledKeyAlgorithms.getOrElse(Algorithms.disabledKeyAlgorithms)
-    val keyConstraints = AlgorithmConstraintsParser(disabledKeyAlgorithms).toSet
+    val keySizeConstraints = AlgorithmConstraintsParser(disabledKeyAlgorithms).toSet
+
+    val keyManagers: Seq[KeyManager] = info.keyManagerConfig.map {
+      kmc => Seq(buildCompositeKeyManager(kmc, keySizeConstraints))
+    }.getOrElse(Nil)
 
     val trustManagers: Seq[TrustManager] = info.trustManagerConfig.map {
-      tmc => Seq(buildCompositeTrustManager(tmc, checkRevocation, revocationLists, signatureConstraints, keyConstraints))
+      tmc => Seq(buildCompositeTrustManager(tmc, checkRevocation, revocationLists, signatureConstraints, keySizeConstraints))
     }.getOrElse(Nil)
 
     buildSSLContext(protocol, keyManagers, trustManagers, info.secureRandom)
@@ -124,10 +124,10 @@ class ConfigSSLContextBuilder(info: SSLConfig,
     builder.build()
   }
 
-  def buildCompositeKeyManager(keyManagerConfig: KeyManagerConfig) = {
+  def buildCompositeKeyManager(keyManagerConfig: KeyManagerConfig, keySizeConstraints: Set[AlgorithmConstraint]) = {
     val keyManagers = keyManagerConfig.keyStoreConfigs.map {
       ksc =>
-        buildKeyManager(ksc)
+        buildKeyManager(ksc, keySizeConstraints)
     }
     new CompositeX509KeyManager(keyManagers)
   }
@@ -180,8 +180,9 @@ class ConfigSSLContextBuilder(info: SSLConfig,
   /**
    * Builds a key manager from a keystore, using the KeyManagerFactory.
    */
-  def buildKeyManager(ksc: KeyStoreConfig): X509KeyManager = {
+  def buildKeyManager(ksc: KeyStoreConfig, keySizeConstraints: Set[AlgorithmConstraint]): X509KeyManager = {
     val keyStore = keyStoreBuilder(ksc).build()
+    validateStore(keyStore, createAlgorithmChecker(keySizeConstraints))
 
     val password = ksc.password.map(_.toCharArray)
 
@@ -279,6 +280,8 @@ class ConfigSSLContextBuilder(info: SSLConfig,
 
     val factory = trustManagerFactory
     val trustStore = trustStoreBuilder(tsc).build()
+    validateStore(trustStore, createAlgorithmChecker(keyConstraints))
+
     val trustManagerParameters = buildTrustManagerParameters(
       trustStore,
       revocationEnabled,
@@ -296,6 +299,36 @@ class ConfigSSLContextBuilder(info: SSLConfig,
 
     // The JSSE implementation only sends back ONE trust manager, X509TrustManager
     trustManagers.head.asInstanceOf[X509TrustManager]
+  }
+
+  /**
+   * Tests each trusted certificate in the store, and warns if the certificate is not valid.  Does not throw
+   * exceptions.
+   */
+  def validateStore(store: KeyStore, algorithmChecker: AlgorithmChecker) {
+    import scala.collection.JavaConverters._
+    logger.debug(s"validateKeyStore: type = ${store.getType}, size = ${store.size}")
+
+    store.aliases().asScala.foreach {
+      alias =>
+        Option(store.getCertificate(alias)).map {
+          c =>
+            try {
+              algorithmChecker.checkKeyAlgorithms(c)
+            } catch {
+              case e: CertPathValidatorException =>
+                logger.warn(s"validateKeyStore: Skipping certificate with weak key size in $alias" + e.getMessage)
+                store.deleteEntry(alias)
+              case e: Exception =>
+                logger.warn(s"validateKeyStore: Skipping unknown exception $alias" + e.getMessage)
+                store.deleteEntry(alias)
+            }
+        }
+    }
+  }
+
+  def createAlgorithmChecker(constraints: Set[AlgorithmConstraint]): AlgorithmChecker = {
+    new AlgorithmChecker(signatureConstraints = Set(), keyConstraints = constraints)
   }
 
 }
