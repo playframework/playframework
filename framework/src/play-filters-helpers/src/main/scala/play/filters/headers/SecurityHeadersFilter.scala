@@ -19,7 +19,7 @@ import play.api.Configuration
  * <li>{{play.filters.headers.xssProtection}} - sets xssProtection.  Some("1; mode=block") by default.
  * <li>{{play.filters.headers.contentTypeOptions}} - sets contentTypeOptions. Some("nosniff") by default.
  * <li>{{play.filters.headers.permittedCrossDomainPolicies}} - sets permittedCrossDomainPolicies. Some("master-only") by default.
- * <li>{{play.filters.headers.contentSecurityPolicy}} - sets contentSecurityPolicy. Some("default-src: 'self'") by default.
+ * <li>{{play.filters.headers.contentSecurityPolicy}} - sets contentSecurityPolicy. Some("default-src 'self'") by default.
  * </ul>
  *
  * @see <a href="https://developer.mozilla.org/en-US/docs/HTTP/X-Frame-Options">X-Frame-Options</a>
@@ -40,7 +40,7 @@ object SecurityHeadersFilter {
   val DEFAULT_XSS_PROTECTION = "1; mode=block"
   val DEFAULT_CONTENT_TYPE_OPTIONS = "nosniff"
   val DEFAULT_PERMITTED_CROSS_DOMAIN_POLICIES = "master-only"
-  val DEFAULT_CONTENT_SECURITY_POLICY = "default-src: 'self'"
+  val DEFAULT_CONTENT_SECURITY_POLICY = "default-src 'self'"
 
   /**
    * Convenience method for creating a SecurityHeadersFilter that reads settings from application.conf.  Generally speaking,
