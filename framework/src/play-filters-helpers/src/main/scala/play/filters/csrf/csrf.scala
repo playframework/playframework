@@ -7,6 +7,7 @@ import play.api.mvc._
 import play.api._
 import play.api.mvc.Results._
 import play.api.libs.Crypto
+import play.core.j.JavaHelpers
 
 private[csrf] object CSRFConf {
   import play.api.Play.current
@@ -30,6 +31,39 @@ private[csrf] object CSRFConf {
     // CSRF token for it.
     request.method == "GET" && (request.accepts("text/html") || request.accepts("application/xml+xhtml"))
   }
+
+  /**
+   * This is used by the noarg constructor of CSRFFilter, so that Java developers can select an error handler.
+   */
+  def defaultJavaErrorHandler: CSRF.ErrorHandler = {
+    c.getString("csrf.error.handler").map { className =>
+      val clazz = try {
+        Play.classloader.loadClass(className)
+      } catch {
+        case c: ClassNotFoundException => throw new RuntimeException("Could not find CSRF error handler " + className, c)
+      }
+      if (classOf[CSRFErrorHandler].isAssignableFrom(clazz)) {
+        import play.mvc.Http.{ Context => JContext }
+        val errorHandler = clazz.newInstance().asInstanceOf[CSRFErrorHandler]
+        new CSRF.ErrorHandler {
+          def handle(req: RequestHeader, msg: String) = {
+            val ctx = JavaHelpers.createJavaContext(req)
+            JContext.current.set(ctx)
+            try {
+              errorHandler.handle(msg).toScala
+            } finally {
+              JContext.current.remove()
+            }
+          }
+        }
+      } else if (classOf[CSRF.ErrorHandler].isAssignableFrom(clazz)) {
+        clazz.newInstance().asInstanceOf[CSRF.ErrorHandler]
+      } else {
+        throw new RuntimeException(s"Error handler must implement ${classOf[CSRFErrorHandler]} or ${classOf[CSRF.ErrorHandler]}")
+      }
+    }.getOrElse(CSRF.DefaultErrorHandler)
+  }
+
   def defaultErrorHandler = CSRF.DefaultErrorHandler
   def defaultTokenProvider = {
     if (SignTokens) {
@@ -109,11 +143,11 @@ object CSRF {
    */
   trait ErrorHandler {
     /** Handle a result */
-    def handle(msg: String): Result
+    def handle(req: RequestHeader, msg: String): Result
   }
 
   object DefaultErrorHandler extends ErrorHandler {
-    def handle(msg: String) = Forbidden(msg)
+    def handle(req: RequestHeader, msg: String) = Forbidden(msg)
   }
 }
 

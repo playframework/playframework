@@ -91,6 +91,18 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
     "be possible to instantiate when there is no running application" in {
       CSRFFilter() must beAnInstanceOf[AnyRef]
     }
+
+    "work with a Java error handler" in {
+      def csrfCheckRequest = buildCsrfCheckRequestWithJavaHandler()
+      def csrfAddToken = buildCsrfAddToken("csrf.cookie.name" -> "csrf")
+      def generate = Crypto.generateSignedToken
+      def addToken(req: WSRequestHolder, token: String) = req.withCookies("csrf" -> token)
+      def getToken(response: WSResponse) = response.cookies.find(_.name.exists(_ == "csrf")).flatMap(_.value)
+      def compareTokens(a: String, b: String) = Crypto.compareSignedTokens(a, b) must beTrue
+
+      sharedTests(csrfCheckRequest, csrfAddToken, generate, addToken, getToken, compareTokens, UNAUTHORIZED)
+    }
+
   }
 
 
@@ -107,6 +119,21 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
     }
   }
 
+  def buildCsrfCheckRequestWithJavaHandler() = new CsrfTester {
+    def apply[T](makeRequest: (WSRequestHolder) => Future[WSResponse])(handleResponse: (WSResponse) => T) = {
+      withServer(Seq(
+        "csrf.cookie.name" -> "csrf",
+        "csrf.error.handler" -> "play.filters.csrf.JavaErrorHandler"
+      )) {
+        case _ => new CSRFFilter().apply(Action(Results.Ok))
+      } {
+        import play.api.Play.current
+        handleResponse(await(makeRequest(WS.url("http://localhost:" + testServerPort))))
+      }
+    }
+  }
+
+
   def buildCsrfAddToken(configuration: (String, String)*) = new CsrfTester {
     def apply[T](makeRequest: (WSRequestHolder) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
       case _ => CSRFFilter()(Action { implicit req =>
@@ -122,6 +149,11 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
 
   class CustomErrorHandler extends CSRF.ErrorHandler {
     import play.api.mvc.Results.Unauthorized
-    def handle(msg: String) = Unauthorized(msg)
+    def handle(req: RequestHeader, msg: String) = Unauthorized(msg)
   }
 }
+
+class JavaErrorHandler extends CSRFErrorHandler {
+  def handle(msg: String) = play.mvc.Results.unauthorized()
+}
+

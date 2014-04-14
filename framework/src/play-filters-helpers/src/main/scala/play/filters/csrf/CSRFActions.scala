@@ -7,7 +7,6 @@ import play.api.mvc._
 import play.api.http.HeaderNames._
 import play.filters.csrf.CSRF._
 import play.api.libs.iteratee._
-import play.api.mvc.Results._
 import play.api.mvc.BodyParsers.parse._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.Future
@@ -23,7 +22,7 @@ import scala.concurrent.Future
  *                         a GET request that accepts HTML.
  * @param tokenProvider A token provider to use.
  * @param next The composed action that is being protected.
- * @param checkFailedResult handling failed token error.
+ * @param errorHandler handling failed token error.
  */
 class CSRFAction(next: EssentialAction,
     tokenName: String = CSRFConf.TokenName,
@@ -31,12 +30,12 @@ class CSRFAction(next: EssentialAction,
     secureCookie: Boolean = CSRFConf.SecureCookie,
     createIfNotFound: RequestHeader => Boolean = CSRFConf.defaultCreateIfNotFound,
     tokenProvider: TokenProvider = CSRFConf.defaultTokenProvider,
-    errorHandler: ErrorHandler = CSRFConf.defaultErrorHandler) extends EssentialAction {
+    errorHandler: => ErrorHandler = CSRFConf.defaultErrorHandler) extends EssentialAction {
 
   import CSRFAction._
 
   // An iteratee that returns a forbidden result saying the CSRF check failed
-  private def checkFailed(msg: String): Iteratee[Array[Byte], Result] = Done(errorHandler.handle(msg))
+  private def checkFailed(req: RequestHeader, msg: String): Iteratee[Array[Byte], Result] = Done(errorHandler.handle(req, msg))
 
   def apply(request: RequestHeader) = {
 
@@ -61,7 +60,7 @@ class CSRFAction(next: EssentialAction,
               continue
             } else {
               filterLogger.trace("[CSRF] Check failed because invalid token found in query string: " + queryStringToken)
-              checkFailed("Bad CSRF token found in query String")
+              checkFailed(request, "Bad CSRF token found in query String")
             }
 
           } getOrElse {
@@ -73,7 +72,7 @@ class CSRFAction(next: EssentialAction,
               // No way to extract token from text plain body
               case Some("text/plain") => {
                 filterLogger.trace("[CSRF] Check failed because text/plain request")
-                checkFailed("No CSRF token found for text/plain body")
+                checkFailed(request, "No CSRF token found for text/plain body")
               }
             }
 
@@ -81,7 +80,7 @@ class CSRFAction(next: EssentialAction,
         } getOrElse {
 
           filterLogger.trace("[CSRF] Check failed because no token found in headers")
-          checkFailed("No CSRF token found in headers")
+          checkFailed(request, "No CSRF token found in headers")
 
         }
       }
@@ -134,7 +133,7 @@ class CSRFAction(next: EssentialAction,
           Iteratee.flatten(Enumerator(bytes) |>> next(request))
         } else {
           filterLogger.trace("[CSRF] Check failed because no or invalid token found in body")
-          checkFailed("Invalid token found in form body")
+          checkFailed(request, "Invalid token found in form body")
         }
       })
     }
@@ -228,7 +227,7 @@ object CSRFCheck {
             .collect {
               case queryToken if tokenProvider.compareTokens(queryToken, headerToken) => wrapped(request)
             }
-        }.getOrElse(Future.successful(errorHandler.handle("CSRF token check failed")))
+        }.getOrElse(Future.successful(errorHandler.handle(request, "CSRF token check failed")))
       }
     }
   }

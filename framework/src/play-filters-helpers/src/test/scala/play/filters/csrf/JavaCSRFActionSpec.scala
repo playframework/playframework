@@ -5,8 +5,8 @@ package play.filters.csrf
 
 import scala.concurrent.Future
 import play.api.libs.ws._
-import play.mvc.{Results, Result, Controller}
-import play.core.j.{JavaActionAnnotations, JavaAction}
+import play.mvc.{ Results, Result, Controller }
+import play.core.j.{ JavaActionAnnotations, JavaAction }
 import play.libs.F
 
 /**
