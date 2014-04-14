@@ -101,7 +101,7 @@ You can run the created application and view the resulst in the default browser 
 You can easily start a debugger session for a Play application using default **Run/Debug Configuration** settings.
 
 
-For a more detailed information, see the Play Framework 2.0  tutorial at the following URL:
+For more detailed information, see the Play Framework 2.0  tutorial at the following URL:
 
 <http://confluence.jetbrains.com/display/IntelliJIDEA/Play+Framework+2.0>  
 
