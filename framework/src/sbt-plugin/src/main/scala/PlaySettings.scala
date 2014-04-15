@@ -12,6 +12,7 @@ import com.typesafe.sbt.packager.Keys._
 import play.sbtplugin.ApplicationSecretGenerator
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 import WebKeys._
+import scala.language.postfixOps
 
 trait PlaySettings {
   this: PlayCommands with PlayPositionMapper with PlayRun with PlaySourceGenerators =>
@@ -53,20 +54,20 @@ trait PlaySettings {
       "Typesafe Releases Repository" at "http://repo.typesafe.com/typesafe/releases/"
     ),
 
-    target <<= baseDirectory / "target",
+    target <<= baseDirectory(_ / "target"),
 
-    sourceDirectory in Compile <<= baseDirectory / "app",
-    sourceDirectory in Test <<= baseDirectory / "test",
+    sourceDirectory in Compile <<= baseDirectory(_ / "app"),
+    sourceDirectory in Test <<= baseDirectory(_ / "test"),
 
-    confDirectory <<= baseDirectory / "conf",
+    confDirectory <<= baseDirectory(_ / "conf"),
 
-    resourceDirectory in Compile <<= baseDirectory / "conf",
+    resourceDirectory in Compile <<= baseDirectory(_ / "conf"),
 
-    scalaSource in Compile <<= baseDirectory / "app",
-    scalaSource in Test <<= baseDirectory / "test",
+    scalaSource in Compile <<= baseDirectory(_ / "app"),
+    scalaSource in Test <<= baseDirectory(_ / "test"),
 
-    javaSource in Compile <<= baseDirectory / "app",
-    javaSource in Test <<= baseDirectory / "test",
+    javaSource in Compile <<= baseDirectory(_ / "app"),
+    javaSource in Test <<= baseDirectory(_ / "test"),
 
     javacOptions in (Compile, doc) := List("-encoding", "utf8"),
 
