@@ -26,6 +26,8 @@ object NettyResultStreamer {
   // A channel status holds whether the connection must be closed and the last subsequence sent
   class ChannelStatus(val closeConnection: Boolean, val lastSubsequence: Int)
 
+  import NettyFuture._
+
   /**
    * Send the result to netty
    *
@@ -116,7 +118,7 @@ object NettyResultStreamer {
         // We successfully buffered it, so set the content length and send the whole thing as one buffer
         nettyResponse.setHeader(CONTENT_LENGTH, buffer.readableBytes)
         nettyResponse.setContent(buffer)
-        val promise = NettyPromise(sendDownstream(startSequence, !closeConnection, nettyResponse))
+        val promise = sendDownstream(startSequence, !closeConnection, nettyResponse).toScala
         val done = Done[Array[Byte], ChannelStatus](new ChannelStatus(closeConnection, startSequence))
         Iteratee.flatten(promise.map(_ => done).recover {
           case _ => done
@@ -203,7 +205,7 @@ object NettyResultStreamer {
       Done(done)
     } else {
       Iteratee.flatten(
-        NettyPromise(future).map[Iteratee[E, A]] {
+        future.toScala.map[Iteratee[E, A]] {
           _ => if (ctx.getChannel.isConnected()) Cont(step) else Done(done)
         }.recover[Iteratee[E, A]] {
           case _ => Done(done)

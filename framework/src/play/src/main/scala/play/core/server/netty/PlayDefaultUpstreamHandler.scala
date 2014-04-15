@@ -23,6 +23,7 @@ import com.typesafe.netty.http.pipelining.{OrderedDownstreamChannelEvent, Ordere
 import scala.concurrent.Future
 import java.net.{SocketAddress, URI}
 import java.io.IOException
+import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame
 
 
 private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
@@ -186,7 +187,9 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
 
           case Right((ws @ WebSocket(f), app)) if (websocketableRequest.check) =>
             Play.logger.trace("Serving this request with: " + ws)
-            val enumerator = websocketHandshake(ctx, nettyHttpRequest, e)(ws.frameFormatter)
+            val bufferLimit = app.configuration.getBytes("play.websocket.buffer.limit").getOrElse(65536L)
+
+            val enumerator = websocketHandshake(ctx, nettyHttpRequest, e, bufferLimit)(ws.frameFormatter)
             f(requestHeader)(enumerator, socketOut(ctx)(ws.frameFormatter))
 
           //handle bad websocket request
@@ -295,18 +298,28 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
   }
 
   def socketOut[A](ctx: ChannelHandlerContext)(frameFormatter: play.api.mvc.WebSocket.FrameFormatter[A]): Iteratee[A, Unit] = {
-    val channel = ctx.getChannel()
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
+
+    val channel = ctx.getChannel
     val nettyFrameFormatter = frameFormatter.asInstanceOf[play.core.server.websocket.FrameFormatter[A]]
 
-    def step(future: Option[ChannelFuture])(input: Input[A]): Iteratee[A, Unit] =
-      input match {
-        case El(e) => Cont(step(Some(channel.write(nettyFrameFormatter.toFrame(e)))))
-        case e @ EOF => future.map(_.addListener(ChannelFutureListener.CLOSE)).getOrElse(channel.close()); Done((), e)
-        case Empty => Cont(step(future))
-      }
+    import NettyFuture._
 
-    import play.api.libs.iteratee.Execution.Implicits.trampoline
-    Enumeratee.breakE[A](_ => !channel.isConnected()).transform(Cont(step(None)))
+    def iteratee: Iteratee[A, _] = Cont {
+      case El(e) =>
+        val frame = nettyFrameFormatter.toFrame(e)
+        Iteratee.flatten(channel.write(frame).toScala.map(_ => iteratee))
+      case e @ EOF =>
+        if (channel.isOpen) {
+          Iteratee.flatten(for {
+            _ <- channel.write(new CloseWebSocketFrame(WebSocketNormalClose, "")).toScala
+            _ <- channel.close().toScala
+          } yield Done((), e))
+        } else Done((), e)
+      case Empty => iteratee
+    }
+
+    iteratee.map(_ => ())
   }
 
   def getHeaders(nettyRequest: HttpRequest): Headers = {

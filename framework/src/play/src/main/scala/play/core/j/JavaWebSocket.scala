@@ -42,15 +42,15 @@ object JavaWebSocket extends JavaHelpers {
       }
       val socketIn = new play.mvc.WebSocket.In[A]
 
+      enumerator |>> out
+
+      javaWebSocket.onReady(socketIn, socketOut)
+
       in |>> {
         Iteratee.foreach[A](msg => socketIn.callbacks.asScala.foreach(_.invoke(msg))).map { _ =>
           socketIn.closeCallbacks.asScala.foreach(_.invoke())
         }
       }
-
-      enumerator |>> out
-
-      javaWebSocket.onReady(socketIn, socketOut)
 
   }
 
