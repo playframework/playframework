@@ -60,7 +60,7 @@ package play.templates {
     }
 
     lazy val matrix: Seq[(Int, Int)] = {
-      for (pos <- meta("MATRIX").split('|'); val c = pos.split("->"))
+      for (pos <- meta("MATRIX").split('|'); c = pos.split("->"))
         yield try {
         Integer.parseInt(c(0)) -> Integer.parseInt(c(1))
       } catch {
@@ -69,7 +69,7 @@ package play.templates {
     }
 
     lazy val lines: Seq[(Int, Int)] = {
-      for (pos <- meta("LINES").split('|'); val c = pos.split("->"))
+      for (pos <- meta("LINES").split('|'); c = pos.split("->"))
         yield try {
         Integer.parseInt(c(0)) -> Integer.parseInt(c(1))
       } catch {
@@ -161,7 +161,7 @@ package play.templates {
     abstract class ScalaExpPart
 
     case class Params(code: String) extends Positional
-    case class Template(name: PosString, comment: Option[Comment], params: PosString, imports: Seq[Simple], defs: Seq[Def], sub: Seq[Template], content: Seq[TemplateTree]) extends Positional
+    case class Template(name: PosString, comment: Option[Comment], params: PosString, topImports: Seq[Simple], imports: Seq[Simple], defs: Seq[Def], sub: Seq[Template], content: Seq[TemplateTree]) extends Positional
     case class PosString(str: String) extends Positional {
       override def toString = str
     }
@@ -444,7 +444,7 @@ package play.templates {
       def template: Parser[Template] = {
         templateDeclaration ~ """[ \t]*=[ \t]*[{]""".r ~ templateContent <~ "}" ^^ {
           case declaration ~ assign ~ content => {
-            Template(declaration._1, None, declaration._2, content._1, content._2, content._3, content._4)
+            Template(declaration._1, None, declaration._2, Nil, content._1, content._2, content._3, content._4)
           }
         }
       }
@@ -479,9 +479,9 @@ package play.templates {
       }
 
       def parser: Parser[Template] = {
-        opt(comment) ~ opt(whiteSpace) ~ opt(at ~> positioned((parentheses+) ^^ { case s => PosString(s.mkString) })) ~ templateContent ^^ {
-          case comment ~ _ ~ args ~ content => {
-            Template(PosString(""), comment, args.getOrElse(PosString("()")), content._1, content._2, content._3, content._4)
+        several(importExpression) ~ opt(whiteSpace) ~ opt(comment) ~ opt(whiteSpace) ~ opt(at ~> positioned((parentheses+) ^^ { case s => PosString(s.mkString) })) ~ templateContent ^^ {
+          case imports ~ _ ~ comment ~ _ ~ args ~ content => {
+            Template(PosString(""), comment, args.getOrElse(PosString("()")), imports, content._1, content._2, content._3, content._4)
           }
         }
       }
@@ -555,7 +555,7 @@ package """ :+ packageName :+ """
 import play.templates._
 import play.templates.TemplateMagic._
 
-""" :+ additionalImports :+ """
+""" :+ additionalImports :+ "\n" :+ root.topImports.map(_.code).mkString("\n") :+ """
 /*""" :+ root.comment.map(_.msg).getOrElse("") :+ """*/
 object """ :+ name :+ """ extends BaseScalaTemplate[""" :+ resultType :+ """,Format[""" :+ resultType :+ """]](""" :+ formatterType :+ """) with """ :+ extra._3 :+ """ {
 
