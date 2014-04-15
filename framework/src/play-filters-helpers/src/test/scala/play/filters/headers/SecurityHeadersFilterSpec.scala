@@ -48,8 +48,8 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
       header(X_XSS_PROTECTION_HEADER, result) must beSome("1; mode=block")
       header(X_CONTENT_TYPE_OPTIONS_HEADER, result) must beSome("nosniff")
       header(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, result) must beSome("master-only")
-      header(X_CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src: 'self'")
-      header(CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src: 'self'")
+      header(X_CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src 'self'")
+      header(CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src 'self'")
     }
 
     "work with singleton apply method using configuration" in {
@@ -69,8 +69,8 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
       header(X_XSS_PROTECTION_HEADER, result) must beSome("1; mode=block")
       header(X_CONTENT_TYPE_OPTIONS_HEADER, result) must beSome("nosniff")
       header(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, result) must beSome("master-only")
-      header(X_CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src: 'self'")
-      header(CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src: 'self'")
+      header(X_CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src 'self'")
+      header(CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src 'self'")
     }
 
     "work with new zero argument constructor for Java option" in new WithApplication() {
@@ -87,8 +87,8 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
       header(X_XSS_PROTECTION_HEADER, result) must beSome("1; mode=block")
       header(X_CONTENT_TYPE_OPTIONS_HEADER, result) must beSome("nosniff")
       header(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, result) must beSome("master-only")
-      header(X_CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src: 'self'")
-      header(CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src: 'self'")
+      header(X_CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src 'self'")
+      header(CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src 'self'")
     }
 
     "frame options" should {
