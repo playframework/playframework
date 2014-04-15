@@ -178,7 +178,28 @@ object PlayBuild extends Build {
       mappings in(Compile, packageSrc) <++= scalaTemplateSourceMappings,
       Docs.apiDocsIncludeManaged := true,
       parallelExecution in Test := false,
-      sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
+      sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates,
+      binaryIssueFilters ++= Seq(
+        // Internal refactoring to WebSocket support
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.websocket.WebSocketHandshake.shake"),
+        ProblemFilters.exclude[MissingClassProblem]("play.core.server.netty.NettyPromise$"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.WebSocketHandler.websocketHandshake"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.WebSocketHandler.newWebSocketInHandler"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.WebSocketHandler.websocketHandshake"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.WebSocketHandler.newWebSocketInHandler"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.WebSocketHandler.WebSocketNormalClose"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.WebSocketHandler.WebSocketMessageTooLong"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.WebSocketHandler.play$core$server$netty$WebSocketHandler$_setter_$WebSocketUnacceptable_="),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.WebSocketHandler.play$core$server$netty$WebSocketHandler$_setter_$play$core$server$netty$WebSocketHandler$$MaxInFlight_="),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.WebSocketHandler.play$core$server$netty$WebSocketHandler$$MaxInFlight"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.WebSocketHandler.play$core$server$netty$WebSocketHandler$_setter_$WebSocketNormalClose_="),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.WebSocketHandler.WebSocketUnacceptable"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.WebSocketHandler.play$core$server$netty$WebSocketHandler$_setter_$WebSocketMessageTooLong_="),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.PlayDefaultUpstreamHandler.newWebSocketInHandler"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.PlayDefaultUpstreamHandler.websocketHandshake"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.server.netty.PlayDefaultUpstreamHandler.play$core$server$netty$PlayDefaultUpstreamHandler$$step$1"),
+        ProblemFilters.exclude[MissingClassProblem]("play.core.server.netty.NettyPromise")
+      )
     ).dependsOn(SbtLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject % "test->test;compile->compile", JsonProject)
 
   lazy val PlayJdbcProject = PlayRuntimeProject("Play-JDBC", "play-jdbc")
