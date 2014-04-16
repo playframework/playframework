@@ -87,7 +87,7 @@ If you want to test your application using a browser, you can use [[Selenium Web
 Like `WithServer`, you can change the port, `FakeApplication`, and you can also select the web browser to use:
 
 ```scala
-"run in a browser" in new WithBrowser(browser = FIREFOX) {
+"run in a browser" in new WithBrowser(webDriver = FIREFOX) {
   ...
 }
 ```
