@@ -26,7 +26,9 @@ class CompositeX509TrustManager(trustManagers: Seq[X509TrustManager]) extends X5
   //def checkClientTrusted(chain: Array[X509Certificate], authType: String, hostname: String, algorithm: String): Unit = ???
   //def checkServerTrusted(chain: Array[X509Certificate], authType: String, hostname: String, algorithm: String): Unit = ???
 
-  protected val logger = org.slf4j.LoggerFactory.getLogger(getClass)
+  private val logger = org.slf4j.LoggerFactory.getLogger(getClass)
+
+  logger.debug(s"CompositeX509TrustManager start: trustManagers = $trustManagers")
 
   def checkClientTrusted(chain: Array[X509Certificate], authType: String) {
     logger.debug("checkClientTrusted: chain = {}", debugChain(chain))

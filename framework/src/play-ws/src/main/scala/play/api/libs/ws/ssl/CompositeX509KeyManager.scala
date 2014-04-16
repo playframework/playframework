@@ -5,7 +5,7 @@
  */
 package play.api.libs.ws.ssl
 
-import javax.net.ssl.{ X509ExtendedKeyManager, X509KeyManager }
+import javax.net.ssl.{ SSLEngine, X509ExtendedKeyManager, X509KeyManager }
 import java.security.{ Principal, PrivateKey }
 import java.security.cert.{ CertificateException, X509Certificate }
 import java.net.Socket
@@ -19,6 +19,8 @@ class CompositeX509KeyManager(keyManagers: Seq[X509KeyManager]) extends X509Exte
   // "X509KeyManager passed to SSLContext.init():  need an X509ExtendedKeyManager for SSLEngine use"
 
   private val logger = org.slf4j.LoggerFactory.getLogger(getClass)
+
+  logger.debug(s"CompositeX509KeyManager start: keyManagers = $keyManagers")
 
   // You would think that from the method signature that you could use multiple key managers and trust managers
   // by passing them as an array in the init method.  However, the fine print explicitly says:
@@ -51,6 +53,41 @@ class CompositeX509KeyManager(keyManagers: Seq[X509KeyManager]) extends X509Exte
       if (clientAlias != null) {
         logger.debug(s"chooseClientAlias: using clientAlias $clientAlias with keyManager $keyManager")
         return clientAlias
+      }
+    }
+    null
+  }
+
+  override def chooseEngineClientAlias(keyType: Array[String], issuers: Array[Principal], engine: SSLEngine): String = {
+    logger.debug(s"chooseEngineClientAlias: keyType = ${keyType.toSeq}, issuers = ${issuers.toSeq}, engine = $engine")
+    withKeyManagers { keyManager: X509KeyManager =>
+      keyManager match {
+        case extendedKeyManager: X509ExtendedKeyManager =>
+          val clientAlias = extendedKeyManager.chooseEngineClientAlias(keyType, issuers, engine)
+          if (clientAlias != null) {
+            logger.debug(s"chooseEngineClientAlias: using clientAlias $clientAlias with keyManager $extendedKeyManager")
+            return clientAlias
+          }
+        case _ =>
+        // do nothing
+      }
+    }
+    null
+  }
+
+  override def chooseEngineServerAlias(keyType: String, issuers: Array[Principal], engine: SSLEngine): String = {
+    logger.debug(s"chooseEngineServerAlias: keyType = ${keyType.toSeq}, issuers = ${issuers.toSeq}, engine = $engine")
+
+    withKeyManagers { keyManager: X509KeyManager =>
+      keyManager match {
+        case extendedKeyManager: X509ExtendedKeyManager =>
+          val clientAlias = extendedKeyManager.chooseEngineServerAlias(keyType, issuers, engine)
+          if (clientAlias != null) {
+            logger.debug(s"chooseEngineServerAlias: using clientAlias $clientAlias with keyManager $extendedKeyManager")
+            return clientAlias
+          }
+        case _ =>
+        // do nothing
       }
     }
     null
