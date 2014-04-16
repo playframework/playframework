@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Welcome to Play 2.3</title>
+        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+        <script data-main="@routes.Assets.at("javascripts/main.js")"
+            src="@routes.Assets.at("lib/requirejs/require.js")" type="text/javascript"></script>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Welcome to Play 2.3</h1>
+
+            <p>
+                The following is a demo showing some CoffeeScript code involving multiple
+                files using RequireJS.  This code is also unit tested using mocha.
+            </p>
+
+            <p class="source-maps">
+                To see Play's source map support, inspect this paragraph with your browsers developer tools.  Locate
+                the place where the <code>source-maps</code> style is defined, and browse to the source code.  You
+                should find yourself looking at the declaration in <code>main.less</code>.
+            </p>
+
+            <p>
+                Similarly with CoffeeScript, if you use your browsers script developer tools to open
+                <code>Controller.coffee</code>, then you should be able to set a breakpoint in there.
+            </p>
+
+            <div id="login">
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input id="password" class="form-control" type="text" value="secret"/>
+                </div>
+                <button class="btn btn-default" id="connect">Connect</button>
+            </div>
+
+            <div id="connecting">Connecting...</div>
+
+            <div id="sum">
+                <div class="form-group">
+                    <label for="sumValues">Sum the following comma separated values:</label>
+                    <input id="sumValues" class="form-control" type="text" value="1,2,3"/>
+                </div>
+                <dl>
+                    <dt>Result</dt>
+                    <dd id="sumResult"></dd>
+                </dl>
+
+                <button class="btn btn-default" id="submitSum">Sum</button>
+                <button class="btn btn-default" id="disconnect">Disconnect</button>
+            </div>
+
+        </div>
+    </body>
+</html>
