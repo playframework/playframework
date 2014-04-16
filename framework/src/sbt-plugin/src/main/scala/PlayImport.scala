@@ -37,7 +37,7 @@ object PlayImport {
 
   val javaWs = "com.typesafe.play" %% "play-java-ws" % play.core.PlayVersion.current
 
-  val defaultJavaTemplatesImport = Seq(
+  val defaultJavaTemplateImports = Seq(
     "models._",
     "controllers._",
 
@@ -58,7 +58,7 @@ object PlayImport {
 
     "views.%format%._")
 
-  val defaultScalaTemplatesImport = Seq(
+  val defaultScalaTemplateImports = Seq(
     "models._",
     "controllers._",
 
@@ -69,7 +69,7 @@ object PlayImport {
 
     "views.%format%._")
 
-  val defaultTemplatesImport = Seq("play.api.templates._", "play.api.templates.PlayMagic._")
+  val defaultTemplateImports = Seq("play.api.templates.PlayMagic._")
 
   /**
    * Add this to your build.sbt, eg:
@@ -125,8 +125,6 @@ object PlayImport {
 
     val confDirectory = SettingKey[File]("play-conf")
 
-    val templatesImport = SettingKey[Seq[String]]("play-templates-imports")
-
     val routesImport = SettingKey[Seq[String]]("play-routes-imports")
 
     val generateReverseRouter = SettingKey[Boolean]("play-generate-reverse-router",
@@ -139,8 +137,6 @@ object PlayImport {
       "Whether the reverse router should be namespaced. Useful if you have many routers that use the same actions.")
 
     val ebeanEnabled = SettingKey[Boolean]("play-ebean-enabled")
-
-    val templatesTypes = SettingKey[Map[String, String]]("play-templates-formats")
 
     val closureCompilerOptions = SettingKey[Seq[String]]("play-closure-compiler-options")
 

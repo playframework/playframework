@@ -7,7 +7,7 @@ import org.specs2.mutable.Specification
 import play.api.data.Forms._
 import play.api.data._
 import play.api.i18n.Lang
-import play.api.templates.Html
+import play.twirl.api.Html
 import scala.beans.BeanProperty
 
 object HelpersSpec extends Specification {

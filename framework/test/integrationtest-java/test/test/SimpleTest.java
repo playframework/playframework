@@ -22,6 +22,7 @@ import play.i18n.Lang;
 import play.libs.F;
 import play.libs.F.*;
 import play.libs.ws.*;
+import play.twirl.api.Content;
 
 import models.JCustomer;
 import play.data.Form;

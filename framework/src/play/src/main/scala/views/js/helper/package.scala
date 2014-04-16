@@ -3,8 +3,8 @@
  */
 package views.js
 
-import play.api.templates.JavaScript
 import play.api.libs.json.{ Writes, Json }
+import play.twirl.api.JavaScript
 
 /**
  * Contains helpers intended to be used in JavaScript templates

@@ -32,7 +32,7 @@ trait Controller extends Results with BodyParsers with HttpProtocol with Status 
    * }}}
    */
   val TODO = Action {
-    NotImplemented[play.api.templates.Html](views.html.defaultpages.todo())
+    NotImplemented[play.twirl.api.Html](views.html.defaultpages.todo())
   }
 
   /**

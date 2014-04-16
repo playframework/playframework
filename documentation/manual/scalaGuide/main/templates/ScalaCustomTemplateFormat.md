@@ -25,13 +25,13 @@ In summary, to support your own template format you need to perform the followin
 
 ## Implement a format
 
-Implement the `play.templates.Format[A]` trait that has the methods `raw(text: String): A` and `escape(text: String): A` that will be used to integrate static and dynamic template parts, respectively.
+Implement the `play.twirl.api.Format[A]` trait that has the methods `raw(text: String): A` and `escape(text: String): A` that will be used to integrate static and dynamic template parts, respectively.
 
-The type parameter `A` of the format defines the result type of the template rendering, e.g. `Html` for a HTML template. This type must be a subtype of the `play.templates.Appendable[A]` trait that defines how to concatenates parts together.
+The type parameter `A` of the format defines the result type of the template rendering, e.g. `Html` for a HTML template. This type must be a subtype of the `play.twirl.api.Appendable[A]` trait that defines how to concatenates parts together.
 
-For convenience, Play provides a `play.api.templates.BufferedContent[A]` abstract class that implements `play.templates.Appendable[A]` using a `StringBuilder` to build its result and that implements the `play.api.mvc.Content` trait so Play knows how to serialize it as an HTTP response body (see the last section of this page for details).
+For convenience, Play provides a `play.twirl.api.BufferedContent[A]` abstract class that implements `play.twirl.api.Appendable[A]` using a `StringBuilder` to build its result and that implements the `play.twirl.api.Content` trait so Play knows how to serialize it as an HTTP response body (see the last section of this page for details).
 
-In short, you need to write to classes: one defining the result (implementing `play.templates.Appendable[A]`) and one defining the text integration process (implementing `play.templates.Format[A]`). For instance, here is how the HTML format is defined:
+In short, you need to write to classes: one defining the result (implementing `play.twirl.api.Appendable[A]`) and one defining the text integration process (implementing `play.twirl.api.Format[A]`). For instance, here is how the HTML format is defined:
 
 ```scala
 // The `Html` result type. We extend `BufferedContent[Html]` rather than just `Appendable[Html]` so
@@ -48,13 +48,13 @@ object HtmlFormat extends Format[Html] {
 
 ## Associate a file extension to the format
 
-The templates are compiled into a `.scala` files by the build process just before compiling the whole application sources. The `sbt.PlayKeys.templatesTypes` key is a sbt setting of type `Map[String, String]` defining the mapping between file extensions and template formats. For instance, if HTML was not supported out of the box by Play, you would have to write the following in your build file to associate the `.scala.html` files to the `play.api.templates.HtmlFormat` format:
+The templates are compiled into a `.scala` files by the build process just before compiling the whole application sources. The `sbt.PlayKeys.templatesTypes` key is a sbt setting of type `Map[String, String]` defining the mapping between file extensions and template formats. For instance, if HTML was not supported out of the box by Play, you would have to write the following in your build file to associate the `.scala.html` files to the `play.twirl.api.HtmlFormat` format:
 
 ```scala
-templatesTypes += ("html" -> "play.api.templates.HtmlFormat")
+templatesTypes += ("html" -> "play.twirl.api.HtmlFormat")
 ```
 
-Note that the right side of the arrow contains the fully qualified name of a value of type `play.templates.Format[_]`.
+Note that the right side of the arrow contains the fully qualified name of a value of type `play.twirl.api.Format[_]`.
 
 ## Tell Play how to make an HTTP result from a template result type
 
@@ -65,7 +65,7 @@ implicit def writableHttp(implicit codec: Codec): Writeable[Http] =
   Writeable[Http](result => codec.encode(result.body), Some(ContentTypes.HTTP))
 ```
 
-> **Note:** if your template result type extends `play.api.templates.BufferedContent` you only need to define an
+> **Note:** if your template result type extends `play.twirl.api.BufferedContent` you only need to define an
 > implicit `play.api.http.ContentTypeOf` value:
 > ```scala
 > implicit def contentTypeHttp(implicit codec: Codec): ContentTypeOf[Http] =

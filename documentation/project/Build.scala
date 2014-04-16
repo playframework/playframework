@@ -87,11 +87,11 @@ object ApplicationBuild extends Build {
     javacOptions ++= Seq("-g", "-Xlint:deprecation"),
 
     // Need to ensure that templates in the Java docs get Java imports, and in the Scala docs get Scala imports
-    sourceGenerators in Test <+= (state, javaManualSourceDirectories, sourceManaged in Test, templatesTypes, excludeFilter in unmanagedSources in Test) map { (s, ds, g, t, ef) =>
-      ScalaTemplates(s, ds, g, t, defaultTemplatesImport ++ defaultJavaTemplatesImport, ef)
+    sourceGenerators in Test <+= (javaManualSourceDirectories, sourceManaged in Test, streams) map { (from, to, s) =>
+      compileTemplates(from, to, defaultTemplateImports ++ defaultJavaTemplateImports, s.log)
     },
-    sourceGenerators in Test <+= (state, scalaManualSourceDirectories, sourceManaged in Test, templatesTypes, excludeFilter in unmanagedSources in Test) map { (s, ds, g, t, ef) =>
-      ScalaTemplates(s, ds, g, t, defaultTemplatesImport ++ defaultScalaTemplatesImport, ef)
+    sourceGenerators in Test <+= (scalaManualSourceDirectories, sourceManaged in Test, streams) map { (from, to, s) =>
+      compileTemplates(from, to, defaultTemplateImports ++ defaultScalaTemplateImports, s.log)
     },
 
     sourceGenerators in Test <+= (state, javaManualSourceDirectories, sourceManaged in Test) map  { (s, ds, g) =>
@@ -100,10 +100,6 @@ object ApplicationBuild extends Build {
     sourceGenerators in Test <+= (state, scalaManualSourceDirectories, sourceManaged in Test) map  { (s, ds, g) =>
       RouteFiles(s, ds, g, Seq(), true, true, true)
     },
-
-    templatesTypes := Map(
-      "html" -> "play.api.templates.HtmlFormat"
-    ),
 
     run <<= docsRunSetting,
 
@@ -116,6 +112,13 @@ object ApplicationBuild extends Build {
     testListeners <<= (target, streams).map((t, s) => Seq(new eu.henkelmann.sbt.JUnitXmlTestsListener(t.getAbsolutePath, s.log)))
 
   ).settings(externalPlayModuleSettings:_*)
+
+  val templateFormats = Map("html" -> "play.twirl.api.HtmlFormat")
+  val templateFilter = "*.scala.*"
+
+  def compileTemplates(sourceDirectories: Seq[File], target: File, imports: Seq[String], log: Logger) = {
+    play.twirl.sbt.TemplateCompiler.compile(sourceDirectories, target, templateFormats, imports, templateFilter, HiddenFileFilter, false, log)
+  }
 
   // Run a documentation server
   val docsRunSetting: Project.Initialize[InputTask[Unit]] = inputTask { (argsTask: TaskKey[Seq[String]]) =>

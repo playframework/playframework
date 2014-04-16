@@ -44,9 +44,9 @@ object Writeable extends DefaultWriteables {
 trait LowPriorityWriteables {
 
   /**
-   * `Writeable` for `Content` values.
+   * `Writeable` for `play.twirl.api.Content` values.
    */
-  implicit def writeableOf_Content[C <: Content](implicit codec: Codec, ct: ContentTypeOf[C]): Writeable[C] = {
+  implicit def writeableOf_Content[C <: play.twirl.api.Content](implicit codec: Codec, ct: ContentTypeOf[C]): Writeable[C] = {
     Writeable(content => codec.encode(content.body))
   }
 

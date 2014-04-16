@@ -1,4 +1,4 @@
-import play.api.templates._
+import play.twirl.api._
 
 import scala.language.implicitConversions
 
