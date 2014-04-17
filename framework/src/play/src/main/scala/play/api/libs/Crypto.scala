@@ -9,7 +9,7 @@ import javax.crypto.spec.SecretKeySpec
 import play.api.{ Mode, Play, PlayException }
 import java.security.SecureRandom
 import org.apache.commons.codec.binary.Hex
-import org.apache.commons.codec.digest.Md5Crypt
+import org.apache.commons.codec.digest.DigestUtils
 
 /**
  * Cryptographic utilities.
@@ -72,7 +72,7 @@ object Crypto {
         } else {
           applicationConfLocation.toString
         }
-        val md5Secret = Md5Crypt.md5Crypt(secret.getBytes("utf-8"))
+        val md5Secret = DigestUtils.md5Hex(secret)
         Play.logger.debug(s"Generated dev mode secret ${md5Secret} for app at ${Option(applicationConfLocation).getOrElse("unknown location")}")
         md5Secret
       case Some(s) => s
