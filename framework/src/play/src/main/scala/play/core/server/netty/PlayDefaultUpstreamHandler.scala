@@ -220,7 +220,9 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
                 val a = EssentialAction(_ => Done(result, Input.Empty))
                 handleAction(a, Some(app))
               case Right(socket) =>
-                val enumerator = websocketHandshake(ctx, nettyHttpRequest, e)(ws.inFormatter)
+                val bufferLimit = app.configuration.getBytes("play.websocket.buffer.limit").getOrElse(65536L)
+
+                val enumerator = websocketHandshake(ctx, nettyHttpRequest, e, bufferLimit)(ws.inFormatter)
                 socket(enumerator, socketOut(ctx)(ws.outFormatter))
             }.recover {
               case error =>
@@ -350,7 +352,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
       case e @ EOF =>
         if (channel.isOpen) {
           Iteratee.flatten(for {
-            _ <- channel.write(new CloseWebSocketFrame()).toScala
+            _ <- channel.write(new CloseWebSocketFrame(WebSocketNormalClose, "")).toScala
             _ <- channel.close().toScala
           } yield Done((), e))
         } else Done((), e)

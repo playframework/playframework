@@ -76,7 +76,7 @@ object WebSocketClient {
   
   private class DefaultWebSocketClient extends WebSocketClient {
     val bootstrap = new ClientBootstrap(new NioClientSocketChannelFactory(Executors.newSingleThreadExecutor(),
-      Executors.newSingleThreadExecutor()))
+      Executors.newSingleThreadExecutor(), 1, 1))
 
     bootstrap.setPipelineFactory(new ChannelPipelineFactory {
       def getPipeline = {
@@ -132,12 +132,13 @@ object WebSocketClient {
 
     override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
       disconnected.trySuccess(())
-      ctx.sendUpstream(e)
+      ctx.sendDownstream(e)
     }
 
     override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
       disconnected.tryFailure(e.getCause)
       ctx.getChannel.close()
+      ctx.sendDownstream(e)
     }
   }
   
