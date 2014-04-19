@@ -1,4 +1,4 @@
-package javaguide.todo.initial.controllrs;
+package javaguide.todo.initial.controllers;
 
 import play.*;
 import play.mvc.*;
