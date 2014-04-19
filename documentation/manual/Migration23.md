@@ -286,3 +286,38 @@ libraryDependencies += PlayKeys.javaWs
 ```scala
 libraryDependencies += PlayKeys.ws
 ```
+
+## Anorm
+
+There are various changes included for Anorm in this new release.
+
+For improved type safety, type of query parameter must be visible, so that it [can be properly converted](https://github.com/playframework/playframework/blob/master/documentation/manual/scalaGuide/main/sql/ScalaAnorm.md#edge-cases). Now using `Any` as parameter value, explicitly or due to erasure, leads to compilation error `No implicit view available from Any => anorm.ParameterValue`.
+
+```scala
+// Wrong
+val p: Any = "strAsAny"
+SQL("SELECT * FROM test WHERE id={id}").
+  on('id -> p) // Erroneous - No conversion Any => ParameterValue
+
+// Right
+val p = "strAsString"
+SQL("SELECT * FROM test WHERE id={id}").on('id -> p)
+
+// Wrong
+val ps = Seq("a", "b", 3) // inferred as Seq[Any]
+SQL("SELECT * FROM test WHERE (a={a} AND b={b}) OR c={c}").
+  on('a -> ps(0), // ps(0) - No conversion Any => ParameterValue
+    'b -> ps(1), 
+    'c -> ps(2))
+
+// Right
+val ps = Seq[anorm.ParameterValue]("a", "b", 3) // Seq[ParameterValue]
+SQL("SELECT * FROM test WHERE (a={a} AND b={b}) OR c={c}").
+  on('a -> ps(0), 'b -> ps(1), 'c -> ps(2))
+```
+
+If passing value without safe conversion is required, `anorm.Object(anyVal)` can be used to set an opaque parameter.
+
+Moreover, erasure issues about parameter value is fixed: type is no longer `ParameterValue[_]` but simply `ParameterValue`.
+
+Types for parameter names are also unified (when using `.on(...)`). Only `String` and `Symbol` are now supported as name.

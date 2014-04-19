@@ -231,5 +231,22 @@
 
 </div>
 
+<div>
+    <h2>Improved Anorm</h2>
+
+    <p>
+        There are various fixes included in new Anorm (type safety, option parsing, error handling, ...) and new interesting features.
+    </p>
+
+    <ul>
+        <li>String interpolation is available to write SQL statements more easily, with less verbosity (passing arguments) and performance improvements (up to x7 faster processing parameters). e.g. <tt>SQL"SELECT * FROM table WHERE id = $id"</tt>.</li>
+        <li>Multi-value (sequence/list) can be passed as parameter. e.g. <tt>SQL"""SELECT * FROM Test WHERE cat IN (${Seq("a", "b", "c")})"""</tt></li>
+        <li>It's now possible to parse column by position. e.g. <tt>val parser = long(1) ~ str(2) map { case l ~ s => ??? }</tt></li>
+        <li>Query results include not only data, but execution context (with SQL warning).</li>
+        <li>More types are supported as parameter and as column: <tt>java.util.UUID</tt>, numeric types (Java/Scala big decimal and integer, more column conversions between numerics), temporal types (`java.sql.Timestamp`), character types.</li>
+    </ul>
+
+</div>
+
 </body>
 </html>
