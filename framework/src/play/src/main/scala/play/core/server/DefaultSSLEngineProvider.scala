@@ -1,8 +1,8 @@
 package play.core.server
 
-import play.server.api.SSLContextProvider
+import play.server.api.SSLEngineProvider
 import play.core.ApplicationProvider
-import javax.net.ssl.{ TrustManager, KeyManagerFactory, SSLContext }
+import javax.net.ssl.{ TrustManager, KeyManagerFactory, SSLEngine, SSLContext }
 import java.security.KeyStore
 import java.io.{ FileInputStream, File }
 import play.api.Play
@@ -11,8 +11,18 @@ import scala.util.control.NonFatal
 import scala.util.{ Try, Failure, Success }
 import play.utils.PlayIO
 
-class DefaultSSLContextProvider extends SSLContextProvider {
-  override def createSSLContext(applicationProvider: ApplicationProvider): SSLContext = {
+/**
+ * This class calls sslContext.createSSLEngine() with no parameters and returns the result.
+ */
+class DefaultSSLEngineProvider(appProvider: ApplicationProvider) extends SSLEngineProvider {
+
+  val sslContext: SSLContext = createSSLContext(appProvider)
+
+  override def createSSLEngine: SSLEngine = {
+    sslContext.createSSLEngine()
+  }
+
+  def createSSLContext(applicationProvider: ApplicationProvider): SSLContext = {
     val keyManagerFactory: Try[KeyManagerFactory] = Option(System.getProperty("https.keyStore")) match {
       case Some(path) => {
         // Load the configured key store

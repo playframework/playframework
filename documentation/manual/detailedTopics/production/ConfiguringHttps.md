@@ -20,25 +20,25 @@ Having created your keystore, the following system properties can be used to con
 * **https.keyStorePassword** - The password, defaults to a blank password
 * **https.keyStoreAlgorithm** - The key store algorithm, defaults to the platforms default algorithm
 
-### SSL Certificates from a custom SSL Context
+### SSL Certificates from a custom SSL Engine
 
-Another alternative to configure the SSL certificates is to provide a custom [SSLContext](http://docs.oracle.com/javase/7/docs/api/javax/net/ssl/SSLContext.html).
+Another alternative to configure the SSL certificates is to provide a custom [SSLEngine](http://docs.oracle.com/javase/7/docs/api/javax/net/ssl/SSLEngine.html).  This is also useful in cases where a customized SSLEngine is required, such as in the case of client authentication.
 
-#### in Java, an implementation must be provided for [`play.server.SSLContextProvider`](api/java/play/server/SSLContextProvider.html)
+#### in Java, an implementation must be provided for [`play.server.SSLEngineProvider`](api/java/play/server/SSLEngineProvider.html)
 
-@[javaexample](code/java/CustomSSLContextProvider.java)
+@[javaexample](code/java/CustomSSLEngineProvider.java)
 
-#### in Scala, an implementation must be provided for [`play.server.api.SSLContextProvider`](api/scala/index.html#play.server.api.SSLContextProvider)
+#### in Scala, an implementation must be provided for [`play.server.api.SSLEngineProvider`](api/scala/index.html#play.server.api.SSLEngineProvider)
 
-@[scalaexample](code/scala/CustomSSLContextProvider.scala)
+@[scalaexample](code/scala/CustomSSLEngineProvider.scala)
 
-Having created an implementation for `play.server.SSLContextProvider` or `play.server.api.SSLContextProvider`, the following system property configures Play to use it:
+Having created an implementation for `play.server.SSLEngineProvider` or `play.server.api.SSLEngineProvider`, the following system property configures Play to use it:
 
-* **play.http.sslcontextprovider** - The path to the class implementing `play.server.SSLContextProvider` or `play.server.api.SSLContextProvider`:
+* **play.http.sslengineprovider** - The path to the class implementing `play.server.SSLEngineProvider` or `play.server.api.SSLEngineProvider`:
 
 Example:
 
-    ./start -Dhttps.port=9443 -Dplay.http.sslcontextprovider=mypackage.CustomSSLContextProvider
+    ./start -Dhttps.port=9443 -Dplay.http.sslengineprovider=mypackage.CustomSSLEngineProvider
 
 
 ## Turning HTTP off
