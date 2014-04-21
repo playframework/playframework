@@ -149,11 +149,11 @@ Coffeescript options have changed. The new options are:
 
 * `sourceMaps` When set, generates sourceMap files. Defaults to `true`.
 
-  `CoffeeScriptKeys.sourceMaps := true`
+  `CoffeescriptKeys.sourceMap := true`
 
 * `bare` When set, generates JavaScript without the [top-level function safety wrapper](http://coffeescript.org/#lexical-scope). Defaults to `false`.
 
-  `CoffeeScriptKeys.bare := false`
+  `CoffeescriptKeys.bare := false`
 
 For more information please consult [the plugin's documentation](https://github.com/sbt/sbt-coffeescript#sbt-coffeescript).
 
