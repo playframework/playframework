@@ -40,6 +40,18 @@ To see the behavior of WS, you can configuring the SLF4J logger for debug output
 logger.play.api.libs.ws.ssl=DEBUG
 ```
 
+## Integration Tests
+
+If you want confirmation that your client is correctly configured, you can call out to [HowsMySSL](https://www.howsmyssl.com/s/api.html), which has an API to check JSSE settings.
+
+@[context](code/HowsMySSLSpec.scala)
+
+Note that if you are writing tests that involve custom configuration such as revocation checking, you may need to pass system properties into SBT:
+
+```
+javaOptions in Test ++= Seq("-Dcom.sun.security.enableCRLDP=true", "-Dcom.sun.net.ssl.checkRevocation=true", "-Djavax.net.debug=all")
+```
+
 ## Further reading
 
 Oracle has a number of sections on debugging JSSE issues:
