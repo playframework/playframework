@@ -76,7 +76,7 @@ package scalaguide.http.scalasessionflash {
         //#using-flash
         def index = Action { implicit request =>
           Ok {
-            flash.get("success").getOrElse("Welcome!")
+            request.flash.get("success").getOrElse("Welcome!")
           }
         }
 
