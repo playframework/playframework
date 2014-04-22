@@ -12,13 +12,54 @@ import scala.util.parsing.combinator.RegexParsers
 import java.security.{ KeyFactory, Key }
 import scala.Some
 
+/**
+ * This singleton object provides the code needed to check for minimum standards of an X.509 certificate.  Over 95% of trusted leaf certificates and 95% of trusted signing certificates use <a href="http://csrc.nist.gov/publications/nistpubs/800-131A/sp800-131A.pdf">NIST recommended key sizes</a>.  Play supports Java 1.6, which does not have built in <a href="http://sim.ivi.co/2013/11/harness-ssl-and-jsse-key-size-control.html">certificate strength checking</a>, so we roll our own here.
+ *
+ * The default settings here are based off <a href="">NIST SP 800-57</a>, using <a href="https://wiki.mozilla.org/CA:MD5and1024">Dates for Phasing out MD5-based signatures and 1024-bit moduli</a> as a practical guide.
+ *
+ * Note that the key sizes are checked on root CA certificates in the trust store.  As the Mozilla document says:
+ *
+ * <blockquote>The other concern that needs to be addressed is that of RSA1024 being too small a modulus to be robust against faster computers. Unlike a signature algorithm, where only intermediate and end-entity certificates are impacted, fast math means we have to disable or remove all instances of 1024-bit moduli, including the root certificates.</blockquote>
+ *
+ * Relevant key sizes:
+ *
+ * <blockquote>
+ * According to NIST SP 800-57 the recommended algorithms and minimum key sizes are as follows:
+ *
+ * Through 2010 (minimum of 80 bits of strength)
+ * FFC (e.g., DSA, D-H) Minimum: L=1024; N=160
+ * IFC (e.g., RSA) Minimum: k=1024
+ * ECC (e.g. ECDSA) Minimum: f=160
+ * Through 2030 (minimum of 112 bits of strength)
+ * FFC (e.g., DSA, D-H) Minimum: L=2048; N=224
+ * IFC (e.g., RSA) Minimum: k=2048
+ * ECC (e.g. ECDSA) Minimum: f=224
+ * Beyond 2030 (minimum of 128 bits of strength)
+ * FFC (e.g., DSA, D-H) Minimum: L=3072; N=256
+ * IFC (e.g., RSA) Minimum: k=3072
+ * ECC (e.g. ECDSA) Minimum: f=256
+ * </blockquote>
+ *
+ * Relevant signature algorithms:
+ *
+ * The known weak signature algorithms are "MD2, MD4, MD5".
+ *
+ * SHA-1 is considered too weak for new certificates, but is <a href="http://csrc.nist.gov/groups/ST/hash/policy.html">still allowed</a> for verifying old certificates in the chain.  The <a href="https://blogs.oracle.com/xuelei/entry/tls_and_nist_s_policy">TLS and NIST'S Policy on Hash Functions</a> blog post by one of the JSSE authors has more details, in particular the "Put it into practice" section.
+ */
 object Algorithms {
 
-  // The jdk.tls.disabledAlgorithms property applies to TLS handshaking,
-  // and the jdk.certpath.disabledAlgorithms property applies to certification path processing.
-
+  /**
+   * Disabled signature algorithms are applied to signed certificates in a certificate chain, not including CA certs.
+   *
+   * @return "MD2, MD4, MD5"
+   */
   def disabledSignatureAlgorithms: String = "MD2, MD4, MD5"
 
+  /**
+   * Disabled key algorithms are applied to all certificates, including the root CAs.
+   *
+   * @return "RSA keySize < 1024, DSA keySize < 1024, EC keySize < 160"
+   */
   def disabledKeyAlgorithms: String = "RSA keySize < 1024, DSA keySize < 1024, EC keySize < 160"
 
   /**
