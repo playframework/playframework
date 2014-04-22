@@ -76,4 +76,16 @@ If you are using an SQL database, you can replace the database connection with a
 
 @[scalafunctionaltest-testmodel](code/ScalaFunctionalTestSpec.scala)
 
+## Testing WS calls
+
+If you are calling a web service, you can use [`WSTestClient`](api/scala/index.html#play.api.test.WsTestClient).  There are two calls available, `wsCall` and `wsUrl` that will take a Call or a string, respectively.  Note that they expect to be called in the context of `WithApplication`.
+
+```
+wsCall(controllers.routes.Application.index()).get()
+```
+
+```
+wsUrl("http://localhost:9000").get()
+```
+
 > **Next:** [[Advanced topics|Iteratees]]
