@@ -267,22 +267,6 @@ object WebSocketSpec extends PlaySpecification with WsTestClient {
         }
       }
 
-      "close the websocket when the wrong type of frame is received" in {
-        withServer(app => WebSocket.using[Array[Byte]] { req =>
-          (Iteratee.ignore, Enumerator.empty)
-        }) {
-          val frames = runWebSocket { (in, out) =>
-            Enumerator[WebSocketFrame](
-              new TextWebSocketFrame("foo"),
-              new CloseWebSocketFrame(1000, "")) |>> out
-            in |>>> Iteratee.getChunks[WebSocketFrame]
-          }
-          frames must contain(exactly(
-            closeFrame(1003)
-          ))
-        }
-      }
-
     }
 
     "allow handling a WebSocket in java" in {
