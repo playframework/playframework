@@ -58,9 +58,9 @@ object Algorithms {
   /**
    * Disabled key algorithms are applied to all certificates, including the root CAs.
    *
-   * @return "RSA keySize < 1024, DSA keySize < 1024, EC keySize < 160"
+   * @return "RSA keySize < 2048, DSA keySize < 2048, EC keySize < 224"
    */
-  def disabledKeyAlgorithms: String = "RSA keySize < 1024, DSA keySize < 1024, EC keySize < 160"
+  def disabledKeyAlgorithms: String = "RSA keySize < 2048, DSA keySize < 2048, EC keySize < 224"
 
   /**
    * Returns the keySize of the given key, or None if no key exists.
