@@ -4,7 +4,7 @@
 
 Public key certificates are a solution to the problem of identity.  Encryption alone is enough to set up a secure connection, but there's no guarantee that you are talking to the server that you think you are talking to.  Without some means to verify the identity of a remote server, an attacker could still present itself as the remote server and then forward the secure connection onto the remote server.  Public key certificates solve this problem.
 
-The best way to think about public key certificates is as a passport system. Certificates are used to establish information about the bearer of that information in a way that is difficult to forge. This is why certificate verification is so important: accepting any certificate means that an attacker's certificate will be blindly accepted.
+The best way to think about public key certificates is as a passport system. Certificates are used to establish information about the bearer of that information in a way that is difficult to forge. This is why certificate verification is so important: accepting **any** certificate means that even an attacker's certificate will be blindly accepted.
 
 ## Using Keytool
 
@@ -14,7 +14,7 @@ keytool comes in several versions:
 * [1.7](http://docs.oracle.com/javase/7/docs/technotes/tools/solaris/keytool.html)
 * [1.6](http://docs.oracle.com/javase/6/docs/technotes/tools/solaris/keytool.html)
 
-The examples provided below use keytool 1.7, as 1.6 does not support the required `-ext` parameter needed for hostname verification.
+The examples below use keytool 1.7, as 1.6 does not support the minimum required certificate extensions needed for marking a certificate for CA usage or for a hostname.
 
 ## Generating a random password
 
@@ -90,7 +90,7 @@ There are two parts to setting up a client -- configuring a trust store, and con
 
 ### Configuring a Trust Store
 
-The client needs to know that it can trust the example CA before it will complete a connection.
+Any clients need to see that the server's example.com certificate is trusted, but don't need to see the private key.  Generate a trust store which contains only the certificate and hand that out to clients.  Many java clients prefer to have the trust store in JKS format.
 
 @[context](code/gentruststore.sh)
 
@@ -162,9 +162,9 @@ ws.ssl {
 
 ## Certificate Management Tools
 
-If you want to examine certificates in a graphical tool than a command line tool, you can use [Keystore Explorer](http://keystore-explorer.sourceforge.net/) or [xca](http://sourceforge.net/projects/xca/).
+If you want to examine certificates in a graphical tool than a command line tool, you can use [Keystore Explorer](http://keystore-explorer.sourceforge.net/) or [xca](http://sourceforge.net/projects/xca/).  [Keystore Explorer](http://keystore-explorer.sourceforge.net/) is especially convenient as it recognizes JKS format.  It works better as a manual installation, and requires some tweaking to the export policy.
 
-[Keystore Explorer](http://keystore-explorer.sourceforge.net/) is especially convenient as it recognizes JKS format.  It works better as a manual installation, and requires some tweaking to the export policy.
+If you want to use a command line tool with more flexibility than keytool, try [java-keyutil](https://code.google.com/p/java-keyutil/), which understands multi-part PEM formatted certificates and JKS.
 
 ## Certificate Settings
 
@@ -174,7 +174,7 @@ If you want the best security, consider using [ECDSA](http://blog.cloudflare.com
 
 ### Compatible
 
-For compatibility with older systems, use RSA with 2048 bit keys and SHA256 as the signature algorithm.
+For compatibility with older systems, use RSA with 2048 bit keys and SHA256 as the signature algorithm.  If you are creating your own CA certificate, use 4096 bits for the root.
 
 ## Further Reading
 

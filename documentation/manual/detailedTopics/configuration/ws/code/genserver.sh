@@ -12,7 +12,6 @@ keytool -genkeypair -v \
   -storepass:env PW \
   -keyalg RSA \
   -keysize 2048 \
-  -ext SAN="DNS:example.com" \
   -validity 385
 
 # Create a certificate signing request for example.com
@@ -23,8 +22,9 @@ keytool -certreq -v \
   -keystore example.com.jks \
   -file example.com.csr
 
-# Tell exampleCA to sign the example.com certificate.
-# Technically, digitalSignature for DHE or ECDHE, keyEncipherment for RSA
+# Tell exampleCA to sign the example.com certificate. Note the extension is on the request, not the
+# original certificate.
+# Technically, keyUsage should be digitalSignature for DHE or ECDHE, keyEncipherment for RSA.
 keytool -gencert -v \
   -alias exampleca \
   -keypass:env PW \
@@ -34,6 +34,7 @@ keytool -gencert -v \
   -outfile example.com.crt \
   -ext KeyUsage:critical="digitalSignature,keyEncipherment" \
   -ext EKU="serverAuth" \
+  -ext SAN="DNS:example.com" \
   -rfc
 
 # Tell example.com.jks it can trust exampleca as a signer.
@@ -46,7 +47,7 @@ keytool -import -v \
 yes
 EOF
 
-# Import the signed certificate back into example.com.jks
+# Import the signed certificate back into example.com.jks 
 keytool -import -v \
   -alias example.com \
   -file example.com.crt \
@@ -54,9 +55,8 @@ keytool -import -v \
   -storetype JKS \
   -storepass:env PW
 
-# List out the contents of example.com.jks just to confirm it.
+# List out the contents of example.com.jks just to confirm it.  
+# If you are using Play as a TLS termination point, this is the key store you should present as the server.
 keytool -list -v \
   -keystore example.com.jks \
   -storepass:env PW
-
-# #context

@@ -5,18 +5,18 @@ export PW=`cat password`
 
 # Create a self signed certificate & private key to create a root certificate authority.
 keytool -genkeypair -v \
-  -alias clientCA \
+  -alias clientca \
   -keystore client.jks \
-  -dname "CN=clientCA, OU=Example Org, O=Example Company, L=San Francisco, ST=California, C=US" \
+  -dname "CN=clientca, OU=Example Org, O=Example Company, L=San Francisco, ST=California, C=US" \
   -keypass:env PW \
   -storepass:env PW \
   -keyalg RSA \
-  -keysize 2048 \
+  -keysize 4096 \
   -ext KeyUsage:critical="keyCertSign" \
   -ext BasicConstraints:critical="ca:true" \
-  -validity 365
+  -validity 9999
 
-# Create another key pair that will act as the client.  We want this signed by the client CA.
+# Create another key pair that will act as the client.
 keytool -genkeypair -v \
   -alias client \
   -keystore client.jks \
@@ -36,7 +36,7 @@ keytool -certreq -v \
 
 # Make clientCA create a certificate chain saying that client is signed by clientCA.
 keytool -gencert -v \
-  -alias clientCA \
+  -alias clientca \
   -keypass:env PW \
   -storepass:env PW \
   -keystore client.jks \
@@ -48,7 +48,7 @@ keytool -gencert -v \
 # Export the client-ca certificate from the keystore.  This goes to nginx under "ssl_client_certificate"
 # and is presented in the CertificateRequest.
 keytool -export -v \
-  -alias clientCA \
+  -alias clientca \
   -file clientca.crt \
   -storepass:env PW \
   -keystore client.jks \
@@ -63,18 +63,28 @@ keytool -import -v \
   -storetype JKS \
   -storepass:env PW
 
-# Export the client CA to pkcs12, so it's safe.
+# Export the client CA's certificate and private key to pkcs12, so it's safe.
 keytool -importkeystore -v \
-  -srcalias clientCA \
+  -srcalias clientca \
   -srckeystore client.jks \
   -srcstorepass:env PW \
   -destkeystore clientca.p12 \
   -deststorepass:env PW \
   -deststoretype PKCS12
 
-# Then, strip out the client CA from client.jks.
+# Import the client CA's public certificate into a JKS store for Play Server to read.  We don't use
+# the PKCS12 because it's got the CA private key and we don't want that.
+keytool -import -v \
+  -alias clientca \
+  -file clientca.crt \
+  -keystore clientca.jks \
+  -storepass:env PW << EOF
+yes
+EOF
+
+# Then, strip out the client CA alias from client.jks, just leaving the signed certificate.
 keytool -delete -v \
- -alias clientCA \
+ -alias clientca \
  -storepass:env PW \
  -keystore client.jks
 
@@ -82,5 +92,3 @@ keytool -delete -v \
 keytool -list -v \
   -keystore client.jks \
   -storepass:env PW
-
-# #context
