@@ -177,6 +177,11 @@ public class NingWSRequest implements WSRequest {
         return setBuilder(getBuilder().setBody(body));
     }
 
+    // intentionally package private.
+    NingWSRequest setVirtualHost(String virtualHost) {
+        return setBuilder(getBuilder().setVirtualHost(virtualHost));
+    }
+
     public RequestBuilder getBuilder() {
         return builder;
     }

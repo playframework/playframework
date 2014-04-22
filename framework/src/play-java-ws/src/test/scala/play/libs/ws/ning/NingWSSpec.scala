@@ -9,6 +9,18 @@ import com.ning.http.client.{FluentCaseInsensitiveStringsMap, Response}
 
 object NingWSSpec extends Specification with Mockito {
 
+  "NingWSRequestHolder" should {
+
+    "set virtualHost correctly" in {
+      val client = mock[NingWSClient]
+      val holder = new NingWSRequestHolder(client, "http://example.com")
+      holder.setVirtualHost("foo.com")
+      val actual = holder.getVirtualHost
+      actual must beEqualTo("foo.com")
+    }
+
+  }
+
   "NingWSRequest" should {
 
     "should respond to getMethod" in {
@@ -28,6 +40,14 @@ object NingWSSpec extends Specification with Mockito {
       val headers = request.getAllHeaders
       headers.get("foo").asScala must_== Seq("a", "b", "b")
       headers.get("BAR").asScala must_== Seq("baz")
+    }
+
+    "should set virtualHost appropriately" in {
+      val client = mock[NingWSClient]
+      val request = new NingWSRequest(client, "GET")
+      request.setVirtualHost("foo.com")
+      val actual = request.getBuilder().build().getVirtualHost()
+      actual must beEqualTo("foo.com")
     }
 
   }

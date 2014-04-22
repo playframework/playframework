@@ -5,9 +5,7 @@ package play.libs.ws;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.ning.http.client.Realm;
 import play.libs.F;
-import play.libs.ws.ning.NingWSRequestHolder;
 
 import java.io.File;
 import java.io.InputStream;
@@ -75,6 +73,8 @@ public interface WSRequestHolder {
     WSRequestHolder sign(WSSignatureCalculator calculator);
 
     WSRequestHolder setFollowRedirects(Boolean followRedirects);
+
+    WSRequestHolder setVirtualHost(String virtualHost);
 
     WSRequestHolder setTimeout(int timeout);
 
