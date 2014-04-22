@@ -21,12 +21,6 @@ You can retrieve the incoming Session from the HTTP request:
 
 @[index-retrieve-incoming-session](code/ScalaSessionFlash.scala)
 
-
-Alternatively you can retrieve the Session implicitly from a request:
-
-@[index-retrieve-incoming-session-implicitly](code/ScalaSessionFlash.scala)
-
-
 ## Storing data in the Session
 
 As the Session is just a Cookie, it is also just an HTTP header. You can manipulate the session data the same way you manipulate other results properties:
