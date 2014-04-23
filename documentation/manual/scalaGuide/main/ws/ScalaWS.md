@@ -278,7 +278,7 @@ Use the following properties to configure the WS client:
 
 To configure WS for use with HTTP over SSL/TLS (HTTPS), please see [[Configuring WS SSL|WsSSL]].
 
-### Timeouts
+## Timeouts
 
 There are 3 different timeouts in WS. Reaching a timeout causes the WS request to interrupt.
 
