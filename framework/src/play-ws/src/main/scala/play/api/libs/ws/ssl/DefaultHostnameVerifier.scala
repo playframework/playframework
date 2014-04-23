@@ -56,7 +56,8 @@ class DefaultHostnameVerifier extends HostnameVerifier {
           } catch {
             case e: CertificateException =>
               // Certificate does not match hostname
-              logger.debug("verify: Certificate does not match hostname", e)
+              val subjectAltNames = cert.getSubjectAlternativeNames
+              logger.debug(s"verify: Certificate does not match hostname! subjectAltNames = $subjectAltNames, hostName = $hostname", e)
               false
           }
 

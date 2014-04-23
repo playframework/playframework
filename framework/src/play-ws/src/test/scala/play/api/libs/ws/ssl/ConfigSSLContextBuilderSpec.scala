@@ -10,10 +10,9 @@ import org.specs2.mutable._
 import org.specs2.mock._
 
 import javax.net.ssl._
-import java.security.{Principal, PrivateKey, KeyStore}
-import java.security.cert.{X509CRL, X509Certificate}
+import java.security._
 import java.net.Socket
-import org.joda.time.Instant
+import java.security.cert.X509Certificate
 
 object ConfigSSLContextBuilderSpec extends Specification with Mockito {
 
@@ -87,6 +86,25 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
 
       val actual = builder.buildKeyManager(keyStoreConfig)
       actual must beAnInstanceOf[X509KeyManager]
+    }
+
+    "build a key manager that throws exception in the factory" in {
+
+      val info = DefaultSSLConfig()
+      val keyManagerFactory = mock[KeyManagerFactoryWrapper]
+      val trustManagerFactory = mock[TrustManagerFactoryWrapper]
+      val builder = new ConfigSSLContextBuilder(info, keyManagerFactory, trustManagerFactory)
+
+      val storeType = Some(KeyStore.getDefaultType)
+      val filePath = Some(CACERTS)
+
+      val keyStoreConfig = DefaultKeyStoreConfig(storeType, filePath, None, None)
+
+      keyManagerFactory.init(any[KeyStore], any[Array[Char]]) throws new UnrecoverableKeyException("no password set")
+
+      {
+        builder.buildKeyManager(keyStoreConfig)
+      }.must(throwAn[IllegalStateException])
     }
 
     "build a trust manager" in {
