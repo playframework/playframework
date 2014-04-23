@@ -1,3 +1,5 @@
+resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
+
 addSbtPlugin("com.typesafe.sbt" % "sbt-s3" % "0.5")
 
 val playVersion = Option(System.getProperty("play.version")).getOrElse {

@@ -39,7 +39,8 @@ trait WithDefaultGlobal {
   } catch {
     case e: ClassNotFoundException if !initialConfiguration.getString("application.global").isDefined => DefaultGlobal
     case e if initialConfiguration.getString("application.global").isDefined => {
-      throw initialConfiguration.reportError("application.global", "Cannot initialize the custom Global object (%s) (perhaps it's a wrong reference?)", Some(e))
+      throw initialConfiguration.reportError("application.global",
+        s"Cannot initialize the custom Global object ($globalClass) (perhaps it's a wrong reference?)", Some(e))
     }
   }
 

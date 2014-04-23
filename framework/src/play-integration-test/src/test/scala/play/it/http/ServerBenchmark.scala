@@ -86,12 +86,12 @@ class ServerBenchmark extends NettyRunners {
   // Test fixtures
 
   val SimpleRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/")
-  SimpleRequest.addHeader("Host", "localhost")
-  SimpleRequest.addHeader("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) Gecko/20130501 Firefox/30.0 AppleWebKit/600.00 Chrome/30.0.0000.0 Trident/10.0 Safari/600.00")
-  SimpleRequest.addHeader("Cookie", "uid=12345678901234567890; __utma=1.1234567890.1234567890.1234567890.1234567890.12; wd=2560x1600")
-  SimpleRequest.addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-  SimpleRequest.addHeader("Accept-Language", "en-US,en;q=0.5")
-  SimpleRequest.addHeader("Connection", "keep-alive")
+  SimpleRequest.headers().add("Host", "localhost")
+  SimpleRequest.headers().add("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) Gecko/20130501 Firefox/30.0 AppleWebKit/600.00 Chrome/30.0.0000.0 Trident/10.0 Safari/600.00")
+  SimpleRequest.headers().add("Cookie", "uid=12345678901234567890; __utma=1.1234567890.1234567890.1234567890.1234567890.12; wd=2560x1600")
+  SimpleRequest.headers().add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+  SimpleRequest.headers().add("Accept-Language", "en-US,en;q=0.5")
+  SimpleRequest.headers().add("Connection", "keep-alive")
 
   object HelloWorldApp extends Controller {
     def helloWorld = Action {

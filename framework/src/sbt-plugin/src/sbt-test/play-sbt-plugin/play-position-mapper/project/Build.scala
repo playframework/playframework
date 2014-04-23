@@ -46,7 +46,8 @@ object ApplicationBuild extends Build {
     Project.runTask(compile in Compile, state)
   }
 
-  val main = play.Project(appName, appVersion).settings(
+  val main = Project(appName, file(".")).addPlugins(play.PlayScala).settings(
+    version := appVersion,
     extraLoggers ~= { currentFunction =>
       (key: ScopedKey[_]) => {
         bufferLogger +: currentFunction(key)

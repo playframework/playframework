@@ -10,15 +10,12 @@ It will be helpful to read the [SBT documentation on multi-project builds](http:
 You can make your application depend on a simple library project. Just add another sbt project definition in your `build.sbt` file:
 
 ```
-import play.Project._
-
 name := "my-first-application"
 
 version := "1.0"
 
-playScalaSettings
-
-lazy val myFirstApplication = project.in(file("."))
+lazy val myFirstApplication = (project in file("."))
+    .addPlugins(PlayScala)
     .aggregate(myLibrary)
     .dependsOn(myLibrary)
 
@@ -98,7 +95,7 @@ libraryDependencies += fooDependency
 
 ## Splitting your web application into several parts
 
-As a Play application is just a standard sbt project with a default configuration, it can depend on another Play application.  You can make any sub module a Play application by including `playScalaSettings` or `playJavaSettings`, depending on whether your project is a Java or Scala project, in its corresponding `build.sbt` file.
+As a Play application is just a standard sbt project with a default configuration, it can depend on another Play application.  You can make any sub module a Play application by adding the `PlayJava` or `PlayScala` plugins, depending on whether your project is a Java or Scala project, in its corresponding `build.sbt` file.
 
 > **Note:** In order to avoid naming collision, make sure your controllers, including the Assets controller in your subprojects are using a different name space than the main project
 
@@ -113,20 +110,16 @@ It's also possible to split the route file into smaller pieces. This is a very h
 ```scala
 name := "myproject"
 
-playScalaSettings
+lazy val admin = (project in file("modules/admin")).addPlugins(PlayScala)
 
-lazy val admin = project.in(file("modules/admin"))
-
-lazy val main = project.in(file("."))
-    .dependsOn(admin).aggregate(admin)
+lazy val main = (project in file("."))
+    .addPlugins(PlayScala).dependsOn(admin).aggregate(admin)
 ```
 
 `modules/admin/build.sbt`
 
 ```scala
 name := "myadmin"
-
-playScalaSettings
 
 libraryDependencies ++= Seq(
   "mysql" % "mysql-connector-java" % "5.1.18",

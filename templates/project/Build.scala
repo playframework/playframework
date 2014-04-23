@@ -10,6 +10,9 @@ object Templates {
   val templateParameters = SettingKey[Map[String, String]]("template-parameters")
   val gitHash = TaskKey[String]("git-hash")
 
+  val syncTemplateDir = SettingKey[File]("sync-template-dir")
+  val syncTemplates = TaskKey[Seq[File]]("sync-templates")
+
   val prepareTemplates = TaskKey[Seq[File]]("prepare-templates")
   val testTemplates = TaskKey[Unit]("test-templates")
   val zipTemplates = TaskKey[Seq[File]]("zip-templates")
@@ -20,41 +23,55 @@ object Templates {
   val templateSettings: Seq[Setting[_]] = s3Settings ++ Seq(
     templates := Nil,
     templateParameters := Map.empty,
+    syncTemplateDir := target.value / "templates",
+
+    watchSources := templates.value.flatMap(_.***.get),
+
+    syncTemplates := {
+      val templates: Seq[File] = prepareTemplates.value
+      val templateDir: File = syncTemplateDir.value
+      val mappings = templates.flatMap { template =>
+        (template.***.filter(!_.isDirectory) x relativeTo(template)).map(f => (f._1, templateDir / template.getName / f._2))
+      }
+
+      Sync(streams.value.cacheDirectory / "prepared-templates")(mappings)
+
+      templates.map { template =>
+        templateDir / template.getName
+      }.toSeq
+    },
 
     prepareTemplates := {
       streams.value.log.info("Preparing templates...")
-      val templateDirs = templates.value
-      val params = templateParameters.value
-      val outDir = target.value / "templates"
-      templateDirs.map { template =>
-        val destDir = outDir / template.getName
-        val rebaser = rebase(template, destDir)
-       
-        // First delete the destination directory
-        IO.delete(destDir)
+      val templateDirs: Seq[File] = templates.value
+      val params: Map[String, String] = templateParameters.value
+      val outDir: File = target.value / "prepared-templates"
 
-        def subParams(files: Seq[File]): Unit = {
-          files.headOption match {
-            case Some(dir) if dir.isDirectory => subParams(files.tail ++ dir.listFiles())
-            case Some(file) =>
-              val contents = IO.read(file)
-              val newContents = params.foldLeft(contents) { (str, param) =>
-                str.replace("%" + param._1 + "%", param._2)
-              }
-              val dest = rebaser(file).getOrElse(throw new RuntimeException("???"))
-              IO.write(dest, newContents)
-              subParams(files.tail)
-            case None => ()
-          }
-        }
-        subParams(template.listFiles())
-
-        destDir
+      val mappings = templateDirs.flatMap { template =>
+        (template.***.filter(!_.isDirectory) x relativeTo(template)).map(f => (f._1, outDir / template.getName / f._2))
       }
+
+      Sync(streams.value.cacheDirectory / "prepared-templates")(mappings)
+
+      mappings.foreach {
+        case (_, file) =>
+          val contents = IO.read(file)
+          val newContents = params.foldLeft(contents) { (str, param) =>
+            str.replace("%" + param._1 + "%", param._2)
+          }
+          if (newContents != contents) {
+            IO.write(file, newContents)
+          }
+        case _ =>
+      }
+
+      templateDirs.map { template =>
+        outDir / template.getName
+      }.toSeq
     },
 
     testTemplates := {
-      val preparedTemplates = prepareTemplates.value
+      val preparedTemplates = syncTemplates.value
       val testDir = target.value / "template-tests"
       val build = (baseDirectory.value.getParentFile / "framework" / "build").getCanonicalPath
       preparedTemplates.foreach { template =>
@@ -75,7 +92,7 @@ object Templates {
     zipTemplates := {
       streams.value.log.info("Packaging templates...")
       val preparedTemplates = prepareTemplates.value
-      val distDir = target.value / "template-dist"
+      val distDir = target.value / "dist-templates"
       preparedTemplates.map { template =>
         val zipFile = distDir / (template.getName + ".zip")
         val files = template.***.filter(!_.isDirectory) x relativeTo(template)

@@ -22,7 +22,8 @@ object NettyHandlingSpec extends NettySpecification {
       val responseMessage = qc.receive.asInstanceOf[Message]
       val httpResponse = responseMessage.msg.asInstanceOf[DefaultHttpResponse]
       httpResponse.getStatus.getCode must_== OK
-      httpResponse.getHeader(HttpHeaders.Names.CONTENT_LENGTH) must_== "0"
+      httpResponse.headers().get(HttpHeaders.Names.CONTENT_LENGTH) must_== "0"
+
       qc.succeed
 
       qc.dontReceive // Must not close connection
@@ -30,13 +31,13 @@ object NettyHandlingSpec extends NettySpecification {
 
     "handle HTTP/1.1 requests with 'Connection: Keep-Alive' headers" in withQueuingChannel(Action(Results.Ok)) { qc =>
       val request = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/")
-      request.addHeader(CONNECTION, "Keep-Alive")
+      request.headers().add(CONNECTION, "Keep-Alive")
       qc.sendOrderedMessage(request)
 
       val responseMessage = qc.receive.asInstanceOf[Message]
       val httpResponse = responseMessage.msg.asInstanceOf[DefaultHttpResponse]
       httpResponse.getStatus.getCode must_== OK
-      httpResponse.getHeader(HttpHeaders.Names.CONTENT_LENGTH) must_== "0"
+      httpResponse.headers().get(HttpHeaders.Names.CONTENT_LENGTH) must_== "0"
       qc.succeed
 
       qc.dontReceive // Must not close connection
@@ -44,13 +45,13 @@ object NettyHandlingSpec extends NettySpecification {
 
     "handle HTTP/1.1 requests with 'Connection: Close' headers" in withQueuingChannel(Action(Results.Ok)) { qc =>
       val request = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/")
-      request.addHeader(CONNECTION, "Close")
+      request.headers().add(CONNECTION, "Close")
       qc.sendOrderedMessage(request)
 
       val responseMessage = qc.receive.asInstanceOf[Message]
       val httpResponse = responseMessage.msg.asInstanceOf[DefaultHttpResponse]
       httpResponse.getStatus.getCode must_== OK
-      httpResponse.getHeader(HttpHeaders.Names.CONTENT_LENGTH) must_== "0"
+      httpResponse.headers().get(HttpHeaders.Names.CONTENT_LENGTH) must_== "0"
       qc.succeed
 
       qc.receive.asInstanceOf[Close.type]
@@ -59,13 +60,13 @@ object NettyHandlingSpec extends NettySpecification {
 
     "handle HTTP/1.1 requests with 'Connection: Close' headers when an error occurs sending a response" in withQueuingChannel(Action(Results.Ok)) { qc =>
       val request = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/")
-      request.addHeader(CONNECTION, "Close")
+      request.headers().add(CONNECTION, "Close")
       qc.sendOrderedMessage(request)
 
       val responseMessage = qc.receive.asInstanceOf[Message]
       val httpResponse = responseMessage.msg.asInstanceOf[DefaultHttpResponse]
       httpResponse.getStatus.getCode must_== OK
-      httpResponse.getHeader(HttpHeaders.Names.CONTENT_LENGTH) must_== "0"
+      httpResponse.headers().get(HttpHeaders.Names.CONTENT_LENGTH) must_== "0"
       qc.fail(new Exception("Dummy exception sending"))
 
       qc.receive.asInstanceOf[Close.type]
@@ -79,7 +80,7 @@ object NettyHandlingSpec extends NettySpecification {
       val responseMessage = qc.receive.asInstanceOf[Message]
       val httpResponse = responseMessage.msg.asInstanceOf[DefaultHttpResponse]
       httpResponse.getStatus.getCode must_== OK
-      httpResponse.getHeader(HttpHeaders.Names.CONTENT_LENGTH) must_== "0"
+      httpResponse.headers().get(HttpHeaders.Names.CONTENT_LENGTH) must_== "0"
       qc.succeed
 
       qc.receive.asInstanceOf[Close.type]
@@ -88,13 +89,13 @@ object NettyHandlingSpec extends NettySpecification {
 
     "handle HTTP/1.0 requests with 'Connection: Keep-Alive' headers" in withQueuingChannel(Action(Results.Ok)) { qc =>
       val request = new DefaultHttpRequest(HttpVersion.HTTP_1_0, HttpMethod.GET, "/")
-      request.addHeader(CONNECTION, "Keep-Alive")
+      request.headers().add(CONNECTION, "Keep-Alive")
       qc.sendOrderedMessage(request)
 
       val responseMessage = qc.receive.asInstanceOf[Message]
       val httpResponse = responseMessage.msg.asInstanceOf[DefaultHttpResponse]
       httpResponse.getStatus.getCode must_== OK
-      httpResponse.getHeader(HttpHeaders.Names.CONTENT_LENGTH) must_== "0"
+      httpResponse.headers().get(HttpHeaders.Names.CONTENT_LENGTH) must_== "0"
       qc.succeed
 
       qc.dontReceive // Must not close connection
@@ -102,13 +103,13 @@ object NettyHandlingSpec extends NettySpecification {
 
     "handle HTTP/1.0 requests with 'Connection: Close' headers" in withQueuingChannel(Action(Results.Ok)) { qc =>
       val request = new DefaultHttpRequest(HttpVersion.HTTP_1_0, HttpMethod.GET, "/")
-      request.addHeader(CONNECTION, "Close")
+      request.headers().add(CONNECTION, "Close")
       qc.sendOrderedMessage(request)
 
       val responseMessage = qc.receive.asInstanceOf[Message]
       val httpResponse = responseMessage.msg.asInstanceOf[DefaultHttpResponse]
       httpResponse.getStatus.getCode must_== OK
-      httpResponse.getHeader(HttpHeaders.Names.CONTENT_LENGTH) must_== "0"
+      httpResponse.headers().get(HttpHeaders.Names.CONTENT_LENGTH) must_== "0"
       qc.succeed
 
       qc.receive.asInstanceOf[Close.type]

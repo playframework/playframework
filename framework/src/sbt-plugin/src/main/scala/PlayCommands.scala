@@ -3,8 +3,10 @@
  */
 package play
 
-import sbt.{ Project => SbtProject, Settings => SbtSettings, _ }
+import sbt._
 import sbt.Keys._
+import play.PlayImport._
+import PlayKeys._
 
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 
@@ -58,7 +60,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
     SbtIdeaPlugin.settings ++ Seq(
       commands += Command("idea")(_ => args) { (state, args) =>
         // Firstly, attempt to compile the project, but ignore the result
-        SbtProject.runTask(compile in Compile, state)
+        Project.runTask(compile in Compile, state)
 
         SbtIdeaPlugin.doCommand(state, if (!args.contains(WithSources) && !(args.contains(NoSources) || args.contains(NoClassifiers))) {
           args :+ NoClassifiers
@@ -217,7 +219,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
 
   val playPrompt = { state: State =>
 
-    val extracted = SbtProject.extract(state)
+    val extracted = Project.extract(state)
     import extracted._
 
     (name in currentRef get structure.data).map { name =>
@@ -242,14 +244,14 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
   }
 
   // -- Utility methods for 0.10-> 0.11 migration
-  def inAllDeps[T](base: ProjectRef, deps: ProjectRef => Seq[ProjectRef], key: SettingKey[T], data: SbtSettings[Scope]): Seq[T] =
+  def inAllDeps[T](base: ProjectRef, deps: ProjectRef => Seq[ProjectRef], key: SettingKey[T], data: Settings[Scope]): Seq[T] =
     inAllProjects(Dag.topologicalSort(base)(deps), key, data)
-  def inAllProjects[T](allProjects: Seq[Reference], key: SettingKey[T], data: SbtSettings[Scope]): Seq[T] =
+  def inAllProjects[T](allProjects: Seq[Reference], key: SettingKey[T], data: Settings[Scope]): Seq[T] =
     allProjects.flatMap { p => key in p get data }
 
   def inAllDependencies[T](base: ProjectRef, key: SettingKey[T], structure: Load.BuildStructure): Seq[T] = {
     def deps(ref: ProjectRef): Seq[ProjectRef] =
-      SbtProject.getProject(ref, structure).toList.flatMap { p =>
+      Project.getProject(ref, structure).toList.flatMap { p =>
         p.dependencies.map(_.project) ++ p.aggregate
       }
     inAllDeps(base, deps, key, structure.data)
@@ -272,7 +274,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
   }
 
   val playCompileEverythingTask = (state, thisProjectRef) flatMap { (s, r) =>
-    inAllDependencies(r, playAssetsWithCompilation.task, SbtProject structure s).join
+    inAllDependencies(r, playAssetsWithCompilation.task, Project structure s).join
   }
 
   val buildRequireTask = (copyResources in Compile, crossTarget, requireJs, requireJsFolder, requireJsShim, requireNativePath, streams) map { (cr, crossTarget, requireJs, requireJsFolder, requireJsShim, requireNativePath, s) =>
@@ -317,7 +319,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
 
   val h2Command = Command.command("h2-browser") { state: State =>
     try {
-      val commonLoader = SbtProject.runTask(playCommonClassloader, state).get._2.toEither.right.get
+      val commonLoader = Project.runTask(playCommonClassloader, state).get._2.toEither.right.get
       val h2ServerClass = commonLoader.loadClass(classOf[org.h2.tools.Server].getName)
       h2ServerClass.getMethod("main", classOf[Array[String]]).invoke(null, Array.empty[String])
     } catch {
@@ -350,9 +352,9 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
 
   val classpathCommand = Command.command("classpath") { state: State =>
 
-    val extracted = SbtProject.extract(state)
+    val extracted = Project.extract(state)
 
-    SbtProject.runTask(dependencyClasspath in Runtime, state).get._2.toEither match {
+    Project.runTask(dependencyClasspath in Runtime, state).get._2.toEither match {
       case Left(_) => {
         println()
         println("Cannot compute the classpath")
@@ -375,10 +377,10 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
 
   val playMonitoredFiles = TaskKey[Seq[String]]("play-monitored-files")
   val playMonitoredFilesTask = (thisProjectRef, state) map { (ref, state) =>
-    val src = inAllDependencies(ref, sourceDirectories in Compile, SbtProject structure state).foldLeft(Seq.empty[File])(_ ++ _)
-    val resources = inAllDependencies(ref, resourceDirectories in Compile, SbtProject structure state).foldLeft(Seq.empty[File])(_ ++ _)
-    val assets = inAllDependencies(ref, sourceDirectories in Assets, SbtProject structure state).foldLeft(Seq.empty[File])(_ ++ _)
-    val public = inAllDependencies(ref, resourceDirectories in Assets, SbtProject structure state).foldLeft(Seq.empty[File])(_ ++ _)
+    val src = inAllDependencies(ref, sourceDirectories in Compile, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
+    val resources = inAllDependencies(ref, resourceDirectories in Compile, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
+    val assets = inAllDependencies(ref, sourceDirectories in Assets, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
+    val public = inAllDependencies(ref, resourceDirectories in Assets, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
     (src ++ resources ++ assets ++ public).map { f =>
       if (!f.exists) f.mkdirs(); f
     }.map(_.getCanonicalPath).distinct
@@ -417,9 +419,9 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
 
   val computeDependenciesCommand = Command.command("dependencies") { state: State =>
 
-    val extracted = SbtProject.extract(state)
+    val extracted = Project.extract(state)
 
-    SbtProject.runTask(computeDependencies, state).get._2.toEither match {
+    Project.runTask(computeDependencies, state).get._2.toEither match {
       case Left(_) => {
         println()
         println("Cannot compute dependencies")

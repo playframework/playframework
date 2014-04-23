@@ -16,14 +16,14 @@ object JsMacroImpl {
     val companionSymbol = companioned.companionSymbol
     val companionType = companionSymbol.typeSignature
 
-    val libsPkg = Select(Select(Ident(newTermName("play")), "api"), "libs")
-    val jsonPkg = Select(libsPkg, "json")
-    val functionalSyntaxPkg = Select(Select(libsPkg, "functional"), "syntax")
-    val utilPkg = Select(jsonPkg, "util")
+    val libsPkg = Select(Select(Ident(newTermName("play")), newTermName("api")), newTermName("libs"))
+    val jsonPkg = Select(libsPkg, newTermName("json"))
+    val functionalSyntaxPkg = Select(Select(libsPkg, newTermName("functional")), newTermName("syntax"))
+    val utilPkg = Select(jsonPkg, newTermName("util"))
 
-    val jsPathSelect = Select(jsonPkg, "JsPath")
-    val readsSelect = Select(jsonPkg, "Reads")
-    val unliftIdent = Select(functionalSyntaxPkg, "unlift")
+    val jsPathSelect = Select(jsonPkg, newTermName("JsPath"))
+    val readsSelect = Select(jsonPkg, newTermName("Reads"))
+    val unliftIdent = Select(functionalSyntaxPkg, newTermName("unlift"))
     val lazyHelperSelect = Select(utilPkg, newTypeName("LazyHelper"))
 
     companionType.declaration(stringToTermName("unapply")) match {
@@ -88,7 +88,7 @@ object JsMacroImpl {
                     val namedImplicits = params.map(_.name).zip(inferedImplicits)
                     //println("Found implicits:"+namedImplicits)
 
-                    val helperMember = Select(This(tpnme.EMPTY), "lazyStuff")
+                    val helperMember = Select(This(tpnme.EMPTY), newTermName("lazyStuff"))
 
                     var hasRec = false
 
@@ -97,7 +97,7 @@ object JsMacroImpl {
                       case (name, (t, impl, rec, tpe)) =>
                         // inception of (__ \ name).read(impl)
                         val jspathTree = Apply(
-                          Select(jsPathSelect, scala.reflect.NameTransformer.encode("\\")),
+                          Select(jsPathSelect, newTermName(scala.reflect.NameTransformer.encode("\\"))),
                           List(Literal(Constant(name.decoded)))
                         )
 
@@ -105,11 +105,11 @@ object JsMacroImpl {
                           val readTree =
                             if (t.typeConstructor <:< typeOf[Option[_]].typeConstructor)
                               Apply(
-                                Select(jspathTree, "readNullable"),
+                                Select(jspathTree, newTermName("readNullable")),
                                 List(impl)
                               )
                             else Apply(
-                              Select(jspathTree, "read"),
+                              Select(jspathTree, newTermName("read")),
                               List(impl)
                             )
 
@@ -119,10 +119,10 @@ object JsMacroImpl {
                           val readTree =
                             if (t.typeConstructor <:< typeOf[Option[_]].typeConstructor)
                               Apply(
-                                Select(jspathTree, "readNullable"),
+                                Select(jspathTree, newTermName("readNullable")),
                                 List(
                                   Apply(
-                                    Select(Apply(jsPathSelect, List()), "lazyRead"),
+                                    Select(Apply(jsPathSelect, List()), newTermName("lazyRead")),
                                     List(helperMember)
                                   )
                                 )
@@ -130,32 +130,32 @@ object JsMacroImpl {
 
                             else {
                               Apply(
-                                Select(jspathTree, "lazyRead"),
+                                Select(jspathTree, newTermName("lazyRead")),
                                 if (tpe.typeConstructor <:< typeOf[List[_]].typeConstructor)
                                   List(
                                   Apply(
-                                    Select(readsSelect, "list"),
+                                    Select(readsSelect, newTermName("list")),
                                     List(helperMember)
                                   )
                                 )
                                 else if (tpe.typeConstructor <:< typeOf[Set[_]].typeConstructor)
                                   List(
                                   Apply(
-                                    Select(readsSelect, "set"),
+                                    Select(readsSelect, newTermName("set")),
                                     List(helperMember)
                                   )
                                 )
                                 else if (tpe.typeConstructor <:< typeOf[Seq[_]].typeConstructor)
                                   List(
                                   Apply(
-                                    Select(readsSelect, "seq"),
+                                    Select(readsSelect, newTermName("seq")),
                                     List(helperMember)
                                   )
                                 )
                                 else if (tpe.typeConstructor <:< typeOf[Map[_, _]].typeConstructor)
                                   List(
                                   Apply(
-                                    Select(readsSelect, "map"),
+                                    Select(readsSelect, newTermName("map")),
                                     List(helperMember)
                                   )
                                 )
@@ -167,7 +167,7 @@ object JsMacroImpl {
                         }
                     }.reduceLeft { (acc, r) =>
                       Apply(
-                        Select(acc, "and"),
+                        Select(acc, newTermName("and")),
                         List(r)
                       )
                     }
@@ -196,12 +196,12 @@ object JsMacroImpl {
                     // if case class has one single field, needs to use inmap instead of canbuild.apply
                     val finalTree = if (params.length > 1) {
                       Apply(
-                        Select(canBuild, "apply"),
+                        Select(canBuild, newTermName("apply")),
                         List(applyMethod)
                       )
                     } else {
                       Apply(
-                        Select(canBuild, "map"),
+                        Select(canBuild, newTermName("map")),
                         List(applyMethod)
                       )
                     }
@@ -300,14 +300,14 @@ object JsMacroImpl {
     val companionSymbol = companioned.companionSymbol
     val companionType = companionSymbol.typeSignature
 
-    val libsPkg = Select(Select(Ident(newTermName("play")), "api"), "libs")
-    val jsonPkg = Select(libsPkg, "json")
-    val functionalSyntaxPkg = Select(Select(libsPkg, "functional"), "syntax")
-    val utilPkg = Select(jsonPkg, "util")
+    val libsPkg = Select(Select(Ident(newTermName("play")), newTermName("api")), newTermName("libs"))
+    val jsonPkg = Select(libsPkg, newTermName("json"))
+    val functionalSyntaxPkg = Select(Select(libsPkg, newTermName("functional")), newTermName("syntax"))
+    val utilPkg = Select(jsonPkg, newTermName("util"))
 
-    val jsPathSelect = Select(jsonPkg, "JsPath")
-    val writesSelect = Select(jsonPkg, "Writes")
-    val unliftIdent = Select(functionalSyntaxPkg, "unlift")
+    val jsPathSelect = Select(jsonPkg, newTermName("JsPath"))
+    val writesSelect = Select(jsonPkg, newTermName("Writes"))
+    val unliftIdent = Select(functionalSyntaxPkg, newTermName("unlift"))
     val lazyHelperSelect = Select(utilPkg, newTypeName("LazyHelper"))
 
     companionType.declaration(stringToTermName("unapply")) match {
@@ -372,7 +372,7 @@ object JsMacroImpl {
                     val namedImplicits = params.map(_.name).zip(inferedImplicits)
                     //println("Found implicits:"+namedImplicits)
 
-                    val helperMember = Select(This(tpnme.EMPTY), "lazyStuff")
+                    val helperMember = Select(This(tpnme.EMPTY), newTermName("lazyStuff"))
 
                     var hasRec = false
 
@@ -381,7 +381,7 @@ object JsMacroImpl {
                       case (name, (t, impl, rec, tpe)) =>
                         // inception of (__ \ name).read(impl)
                         val jspathTree = Apply(
-                          Select(jsPathSelect, scala.reflect.NameTransformer.encode("\\")),
+                          Select(jsPathSelect, newTermName(scala.reflect.NameTransformer.encode("\\"))),
                           List(Literal(Constant(name.decoded)))
                         )
 
@@ -389,11 +389,11 @@ object JsMacroImpl {
                           val writesTree =
                             if (t.typeConstructor <:< typeOf[Option[_]].typeConstructor)
                               Apply(
-                                Select(jspathTree, "writeNullable"),
+                                Select(jspathTree, newTermName("writeNullable")),
                                 List(impl)
                               )
                             else Apply(
-                              Select(jspathTree, "write"),
+                              Select(jspathTree, newTermName("write")),
                               List(impl)
                             )
 
@@ -403,10 +403,10 @@ object JsMacroImpl {
                           val writesTree =
                             if (t.typeConstructor <:< typeOf[Option[_]].typeConstructor)
                               Apply(
-                                Select(jspathTree, "writeNullable"),
+                                Select(jspathTree, newTermName("writeNullable")),
                                 List(
                                   Apply(
-                                    Select(Apply(jsPathSelect, List()), "lazyWrite"),
+                                    Select(Apply(jsPathSelect, List()), newTermName("lazyWrite")),
                                     List(helperMember)
                                   )
                                 )
@@ -414,32 +414,32 @@ object JsMacroImpl {
 
                             else {
                               Apply(
-                                Select(jspathTree, "lazyWrite"),
+                                Select(jspathTree, newTermName("lazyWrite")),
                                 if (tpe.typeConstructor <:< typeOf[List[_]].typeConstructor)
                                   List(
                                   Apply(
-                                    Select(writesSelect, "list"),
+                                    Select(writesSelect, newTermName("list")),
                                     List(helperMember)
                                   )
                                 )
                                 else if (tpe.typeConstructor <:< typeOf[Set[_]].typeConstructor)
                                   List(
                                   Apply(
-                                    Select(writesSelect, "set"),
+                                    Select(writesSelect, newTermName("set")),
                                     List(helperMember)
                                   )
                                 )
                                 else if (tpe.typeConstructor <:< typeOf[Seq[_]].typeConstructor)
                                   List(
                                   Apply(
-                                    Select(writesSelect, "seq"),
+                                    Select(writesSelect, newTermName("seq")),
                                     List(helperMember)
                                   )
                                 )
                                 else if (tpe.typeConstructor <:< typeOf[Map[_, _]].typeConstructor)
                                   List(
                                   Apply(
-                                    Select(writesSelect, "map"),
+                                    Select(writesSelect, newTermName("map")),
                                     List(helperMember)
                                   )
                                 )
@@ -451,7 +451,7 @@ object JsMacroImpl {
                         }
                     }.reduceLeft { (acc, r) =>
                       Apply(
-                        Select(acc, "and"),
+                        Select(acc, newTermName("and")),
                         List(r)
                       )
                     }
@@ -481,12 +481,12 @@ object JsMacroImpl {
                     // if case class has one single field, needs to use inmap instead of canbuild.apply
                     val finalTree = if (params.length > 1) {
                       Apply(
-                        Select(canBuild, "apply"),
+                        Select(canBuild, newTermName("apply")),
                         List(unapplyMethod)
                       )
                     } else {
                       Apply(
-                        Select(canBuild, "contramap"),
+                        Select(canBuild, newTermName("contramap")),
                         List(unapplyMethod)
                       )
                     }
@@ -582,15 +582,15 @@ object JsMacroImpl {
     val companionSymbol = companioned.companionSymbol
     val companionType = companionSymbol.typeSignature
 
-    val libsPkg = Select(Select(Ident(newTermName("play")), "api"), "libs")
-    val jsonPkg = Select(libsPkg, "json")
-    val functionalSyntaxPkg = Select(Select(libsPkg, "functional"), "syntax")
-    val utilPkg = Select(jsonPkg, "util")
+    val libsPkg = Select(Select(Ident(newTermName("play")), newTermName("api")), newTermName("libs"))
+    val jsonPkg = Select(libsPkg, newTermName("json"))
+    val functionalSyntaxPkg = Select(Select(libsPkg, newTermName("functional")), newTermName("syntax"))
+    val utilPkg = Select(jsonPkg, newTermName("util"))
 
-    val jsPathSelect = Select(jsonPkg, "JsPath")
-    val readsSelect = Select(jsonPkg, "Reads")
-    val writesSelect = Select(jsonPkg, "Writes")
-    val unliftIdent = Select(functionalSyntaxPkg, "unlift")
+    val jsPathSelect = Select(jsonPkg, newTermName("JsPath"))
+    val readsSelect = Select(jsonPkg, newTermName("Reads"))
+    val writesSelect = Select(jsonPkg, newTermName("Writes"))
+    val unliftIdent = Select(functionalSyntaxPkg, newTermName("unlift"))
     val lazyHelperSelect = Select(utilPkg, newTypeName("LazyHelper"))
 
     companionType.declaration(stringToTermName("unapply")) match {
@@ -655,7 +655,7 @@ object JsMacroImpl {
                     val namedImplicits = params.map(_.name).zip(inferedImplicits)
                     //println("Found implicits:"+namedImplicits)
 
-                    val helperMember = Select(This(tpnme.EMPTY), "lazyStuff")
+                    val helperMember = Select(This(tpnme.EMPTY), newTermName("lazyStuff"))
 
                     var hasRec = false
 
@@ -664,7 +664,7 @@ object JsMacroImpl {
                       case (name, (t, impl, rec, tpe)) =>
                         // inception of (__ \ name).read(impl)
                         val jspathTree = Apply(
-                          Select(jsPathSelect, scala.reflect.NameTransformer.encode("\\")),
+                          Select(jsPathSelect, newTermName(scala.reflect.NameTransformer.encode("\\"))),
                           List(Literal(Constant(name.decoded)))
                         )
 
@@ -672,11 +672,11 @@ object JsMacroImpl {
                           val formatTree =
                             if (t.typeConstructor <:< typeOf[Option[_]].typeConstructor)
                               Apply(
-                                Select(jspathTree, "formatNullable"),
+                                Select(jspathTree, newTermName("formatNullable")),
                                 List(impl)
                               )
                             else Apply(
-                              Select(jspathTree, "format"),
+                              Select(jspathTree, newTermName("format")),
                               List(impl)
                             )
 
@@ -686,10 +686,10 @@ object JsMacroImpl {
                           val formatTree =
                             if (t.typeConstructor <:< typeOf[Option[_]].typeConstructor)
                               Apply(
-                                Select(jspathTree, "formatNullable"),
+                                Select(jspathTree, newTermName("formatNullable")),
                                 List(
                                   Apply(
-                                    Select(Apply(jsPathSelect, List()), "lazyFormat"),
+                                    Select(Apply(jsPathSelect, List()), newTermName("lazyFormat")),
                                     List(helperMember)
                                   )
                                 )
@@ -697,48 +697,48 @@ object JsMacroImpl {
 
                             else {
                               Apply(
-                                Select(jspathTree, "lazyFormat"),
+                                Select(jspathTree, newTermName("lazyFormat")),
                                 if (tpe.typeConstructor <:< typeOf[List[_]].typeConstructor)
                                   List(
                                   Apply(
-                                    Select(readsSelect, "list"),
+                                    Select(readsSelect, newTermName("list")),
                                     List(helperMember)
                                   ),
                                   Apply(
-                                    Select(writesSelect, "list"),
+                                    Select(writesSelect, newTermName("list")),
                                     List(helperMember)
                                   )
                                 )
                                 else if (tpe.typeConstructor <:< typeOf[Set[_]].typeConstructor)
                                   List(
                                   Apply(
-                                    Select(readsSelect, "set"),
+                                    Select(readsSelect, newTermName("set")),
                                     List(helperMember)
                                   ),
                                   Apply(
-                                    Select(writesSelect, "set"),
+                                    Select(writesSelect, newTermName("set")),
                                     List(helperMember)
                                   )
                                 )
                                 else if (tpe.typeConstructor <:< typeOf[Seq[_]].typeConstructor)
                                   List(
                                   Apply(
-                                    Select(readsSelect, "seq"),
+                                    Select(readsSelect, newTermName("seq")),
                                     List(helperMember)
                                   ),
                                   Apply(
-                                    Select(writesSelect, "seq"),
+                                    Select(writesSelect, newTermName("seq")),
                                     List(helperMember)
                                   )
                                 )
                                 else if (tpe.typeConstructor <:< typeOf[Map[_, _]].typeConstructor)
                                   List(
                                   Apply(
-                                    Select(readsSelect, "map"),
+                                    Select(readsSelect, newTermName("map")),
                                     List(helperMember)
                                   ),
                                   Apply(
-                                    Select(writesSelect, "map"),
+                                    Select(writesSelect, newTermName("map")),
                                     List(helperMember)
                                   )
                                 )
@@ -750,7 +750,7 @@ object JsMacroImpl {
                         }
                     }.reduceLeft { (acc, r) =>
                       Apply(
-                        Select(acc, "and"),
+                        Select(acc, newTermName("and")),
                         List(r)
                       )
                     }
@@ -780,12 +780,12 @@ object JsMacroImpl {
                     // if case class has one single field, needs to use inmap instead of canbuild.apply
                     val finalTree = if (params.length > 1) {
                       Apply(
-                        Select(canBuild, "apply"),
+                        Select(canBuild, newTermName("apply")),
                         List(applyMethod, unapplyMethod)
                       )
                     } else {
                       Apply(
-                        Select(canBuild, "inmap"),
+                        Select(canBuild, newTermName("inmap")),
                         List(applyMethod, unapplyMethod)
                       )
                     }

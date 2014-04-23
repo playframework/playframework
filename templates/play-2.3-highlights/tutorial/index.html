@@ -1,0 +1,235 @@
+<html>
+<head>
+    <title>Play 2.3 Feature Tour</title>
+</head>
+<body>
+<div>
+
+    <h2>Welcome to Play 2.3</h2>
+
+    <p>
+        This template showcases a few of the new features in Play 2.3.
+    </p>
+
+    <p>
+        You can navigate this tutorial to see some of the new features using the arrows above, or you can jump
+        to any particular feature at any time by clicking the title of the current part of the tutorial, which will
+        open a drop down.
+    </p>
+
+</div>
+<div>
+
+    <h2>sbt-web</h2>
+
+    <p>
+        The largest new feature for Play 2.3 is the introduction of
+        <a href="https://github.com/sbt/sbt-web#sbt-web" target="_blank">sbt-web</a>. In summary sbt-web allows HTML,
+        CSS and JavaScript functionality to be factored out of Play's core into a family of pure sbt plugins. There are
+        two major advantages to you:
+    </p>
+
+    <ul>
+        <li>Play is less opinionated on the HTML, CSS and JavaScript; and</li>
+        <li>sbt-web can have its own community and thrive in parallel to Play's.</li>
+    </ul>
+
+    <p>
+        There are other advantages including the fact that sbt-web plugins are able to run within the JVM via
+        <a href="https://github.com/apigee/trireme#trireme" target="_blank">Trireme</a>, or natively using
+        <a href="http://nodejs.org/" target="_blank">Node.js</a>.
+    </p>
+
+    <p>
+        Browse to <a href="#code/project/plugins.sbt" class="shortcut">plugins.sbt</a>.  You can see that we have quite
+        a number of SBT web plugins installed, from LESS to CoffeeScript to RequireJS to Mocha testing.  The
+        configuration you see here is all that is needed to enable these plugins, their default settings will be
+        included in any project that is using sbt-web (and this includes any project that is using Play).  This is
+        utilising the new sbt auto plugins functionality.
+    </p>
+
+    <p>
+        Of course, this is not the complete list of sbt-web plugins that are available, you can see that list
+        <a href="https://github.com/sbt/sbt-web#available-plugins" target="_blank">here</a>.
+    </p>
+
+    <p>
+        As we said earlier, it is possible to switch between using a completely in JVM JavaScript engine based on
+        Trireme, or running natively on Node.  If you browse to <a href="#code/build.sbt" class="shortcut">build.sbt</a>,
+        you can see a configuration setting for the engine type commented out.  If you uncomment this, and then restart
+        Activator, sbt-web will use Node instead (assuming you have a <code>node</code> command on your <code>PATH</code>).
+    </p>
+
+    <p>
+        Of course, tying a particular build to a particular runtime is probably not a good idea, so we recommend that
+        rather than putting this configuration in your build file, you add it to your environment via the <code>SBT_OPTS</code>
+        environment variable, like so:
+    </p>
+
+    <pre><code>export SBT_OPTS="$SBT_OPTS -Dsbt.jse.engineType=Node"</code></pre>
+
+</div>
+
+<div>
+
+    <h2>WebJars</h2>
+
+    <p>
+        sbt-web comes with built in support for <a href="http://webjars.org" target="_blank">WebJars</a>.  WebJars allow
+        you to manage your client side dependencies, such as jQuery and Bootstrap, as a normal dependency in your build
+        tool, with support for transitive dependencies.
+    </p>
+
+    <p>
+        Browse to <a href="#code/build.sbt" class="shortcut">build.sbt</a>.  In the list of library dependencies you can
+        see that we add in both bootstrap and jquery. All of the regular benefits in using sbt to declare dependencies
+        are available here e.g. resolving dependencies that may otherwise clash with each other. In addition you can
+        leverage any existing infrastructure such as Sonatype and Artifactory repositories.
+    </p>
+
+    <p>
+        Browse to <a href="#code/app/views/main.scala.html" class="shortcut">main.scala.html</a>. sbt-web will
+        automatically expand the contents of each of the declared WebJars into a folder that is referenced using
+        "lib". The next directory on this path is the name of the WebJars artifact e.g.
+        <code>"org.webjars" % "bootstrap" % "3.1.1"</code> is referenced starting with <code>"lib/bootstrap"</code>.
+    </p>
+
+    <p>
+        When WebJars are used other parts of sbt-web can perform certain optimizations e.g. the RequireJS Optimzer is
+        able to automatically resolve access to WebJar based assets to a CDN; all with no explicit configuration
+        being required on your part. More on that later.
+    </p>
+
+    <p>
+        WebJars can also be used in combination with just about every other sbt-web plugin.  For example, browse
+        to <a href="#code/app/assets/stylesheets/main.less" class="shortcut">main.less</a> to see how
+        you might integrate the LESS files provided with Bootstrap into your own LESS files.
+    </p>
+</div>
+
+<div>
+
+    <h2>Source Map support</h2>
+
+    <p>
+        Many of the sbt-web plugins come with built in
+        <a href=" http://www.html5rocks.com/en/tutorials/developertools/sourcemaps/" target="_blank">Source Map</a>
+        support, enabled by default.  If you
+        <a href="#run" class="shortcut">run</a> this application, and then visit the index page, you'll notice in your
+        browsers developer tools (if it supports source maps) that you can click on references to less files when
+        looking at computed styles, and also that you can set break points in CoffeeScript files.
+    </p>
+
+</div>
+
+<div>
+
+    <h2>Mocha Testing</h2>
+
+    <p>
+        If you open <a href="#code/app/assets/javascripts/Controller.coffee" class="shortcut">Controller.coffee</a>, you'll
+        notice a lot of fragile logic regarding the state of the page, the WebSocket, and so on.  You'll also notice
+        that we've implemented this in such a way that all the logic in talking to the DOM, as well as all the logic
+        in how to actually connect and talk to the WebSocket have been abstracted away into other services.
+    </p>
+
+    <p>
+        This practice of separating our client side logic from the DOM and other APIs is a best practice recommended
+        by ThoughtWorks in their <a href="http://www.thoughtworks.com/radar/#/techniques/698" target="_blank">January 2014 Technology Radar</a>.
+        And because we've followed it, we can easily unit test it, using Play's new in built Mocha test support.
+    </p>
+
+    <p>
+        If you run the tests on the command line (using <code>activator test</code>) you can see a few tests being run.
+        These tests are declared in <a href="#code/test/assets/ControllerSpec.coffee" class="shortcut">ControllerSpec.coffee</a>.
+    </p>
+
+    <p>
+        By default, all code that compiles to JavaScript files <code>*Spec.js</code> or <code>*Test.js</code>
+        in the the <code>test/assets</code> directory will be executed as tests.
+    </p>
+
+    <p>
+        You can see here we're also using <code>Squire.js</code> to mock RequireJS dependencies.  This setup for using
+        RequireJS and Squire on node is done in the
+        <a href="#code/test/assets/Setup.coffee" class="shortcut">Setup.coffee</a> file, which is configured to be loaded
+        for all test runs in <a href="#code/build.sbt" class="shortcut">build.sbt</a>.
+    </p>
+
+</div>
+
+
+<div>
+
+    <h2>RequireJS</h2>
+
+    <p>
+        Play includes much better support for RequireJS than it did before.
+        <a href="http://requirejs.org/" target="_blank">RequireJS</a> is a module loading system for the browser.
+        To demonstrate, let's start Play in
+        production mode.  Stop the currently running app in Activator, and then on the command line, run
+        <code>activator start</code>, and then visit <a href="http://localhost:9000" target="_blank">http://localhost:9000</a>.
+    </p>
+
+
+    <p>
+        If you look at the network resources that your application has loaded, first you'll see that with no changes,
+        your application is only loading one of your JavaScript files, <code>main.js</code>, and inspecting that file,
+        you'll see it incorporates all the other files.  This is expected from RequireJS optimization.
+    </p>
+
+    <p>
+        However, you may also notice that it is loading jquery from
+        <a href="http://cdn.jsdelivr.net/webjars/jquery/2.1.0/jquery.min.js" target="_blank">http://cdn.jsdelivr.net/webjars/jquery/2.1.0/jquery.min.js</a>.
+        In dev mode, it was loading jquery from the local server, but in production mode it has automatically switched
+        to the minified version from a CDN.  This CDN is one that all WebJars are deployed to.  This is the default for
+        WebJars, however it is possible to change this behaviour by setting:
+    </p>
+
+    <pre><code>RjsKeys.webJarCdn := None</code></pre>
+
+</div>
+
+<div>
+
+    <h2>Improved WebSockets support</h2>
+
+    <p>
+        There are three main new features in Play's WebSocket support.  The first is that it is now possible to reject
+        a WebSocket with an HTTP response such as Not Found or Forbidden.  The second is that you can now specify
+        different frame formatters for incoming and outgoing message types.  And the final feature is that
+        there is now a very easy to use method for handling a WebSocket as an actor.
+    </p>
+
+    <p>
+        Open <a href="#code/app/controllers/SumController.scala" class="shortcut">SumController.scala</a> to see a
+        WebSocket that demonstrates all three of these.
+    </p>
+
+    <p>
+        Firstly we are authenticating based on the passed in password, if it's secret, we accept the WebSocket with
+        <code>Right</code>, if it's not, we send <code>Left</code> with the failed result.
+    </p>
+
+    <p>
+        Secondly, you can see we've declared it to handle <code>Sum</code> messages for incoming messages, and
+        <code>SumResult</code> messages for outgoing messages.  The frame formatters for these are declared in
+        <a href="#code/app/actors/SumActor.scala" class="shortcut">SumActor.scala</a>, they're parsing the messages
+        as JSON.
+    </p>
+
+    <p>
+        Finally, actually handling the messages is done by an actor, this is done by returning a function that takes
+        the <code>ActorRef</code> to send out going messages to, and returns the <code>Props</code> of an actor to
+        handle the WebSocket.
+    </p>
+
+    <p>
+        Have a look at <a href="#code/app/actors/SumActor.scala" class="shortcut">SumActor.scala</a>, you can see
+        the actor is very simple.
+    </p>
+
+</div>
+
+</body>
+</html>

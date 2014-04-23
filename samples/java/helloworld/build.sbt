@@ -1,7 +1,5 @@
-import play.Project._
-
 name := "helloworld"
 
 version := "1.0"
 
-playJavaSettings
+lazy val root = (project in file(".")).addPlugins(PlayJava)

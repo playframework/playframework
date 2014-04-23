@@ -49,7 +49,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
       case e: TooLongFrameException =>
         nettyExceptionLogger.warn("Handling TooLongFrameException", e)
         val response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.REQUEST_URI_TOO_LONG)
-        response.setHeader(Names.CONNECTION, "close")
+        response.headers().set(Names.CONNECTION, "close")
         ctx.getChannel.write(response).addListener(ChannelFutureListener.CLOSE)
       case e =>
         nettyExceptionLogger.error("Exception caught in Netty", e)
@@ -220,7 +220,9 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
                 val a = EssentialAction(_ => Done(result, Input.Empty))
                 handleAction(a, Some(app))
               case Right(socket) =>
-                val enumerator = websocketHandshake(ctx, nettyHttpRequest, e)(ws.inFormatter)
+                val bufferLimit = app.configuration.getBytes("play.websocket.buffer.limit").getOrElse(65536L)
+
+                val enumerator = websocketHandshake(ctx, nettyHttpRequest, e, bufferLimit)(ws.inFormatter)
                 socket(enumerator, socketOut(ctx)(ws.outFormatter))
             }.recover {
               case error =>
@@ -350,7 +352,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
       case e @ EOF =>
         if (channel.isOpen) {
           Iteratee.flatten(for {
-            _ <- channel.write(new CloseWebSocketFrame()).toScala
+            _ <- channel.write(new CloseWebSocketFrame(WebSocketNormalClose, "")).toScala
             _ <- channel.close().toScala
           } yield Done((), e))
         } else Done((), e)
@@ -361,7 +363,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
   }
 
   def getHeaders(nettyRequest: HttpRequest): Headers = {
-    val pairs = nettyRequest.getHeaders.asScala.groupBy(_.getKey).mapValues(_.map(_.getValue))
+    val pairs = nettyRequest.headers().entries().asScala.groupBy(_.getKey).mapValues(_.map(_.getValue))
     new Headers { val data = pairs.toSeq }
   }
 

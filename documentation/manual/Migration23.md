@@ -25,7 +25,7 @@ lazy val root = (project in file(".")).addPlugins(SbtWeb)
 
 The above example shows `SbtWeb` being added to the root project of a build. In the case of `SbtWeb` there are other plugins that become enabled if it is e.g. if you also had added the `sbt-less-plugin` via `addSbtPlugin` then it will become enabled just because `SbtWeb` has been enabled. `SbtWeb` is thus a "root" plugin for that category of plugins.
 
-Play itself is now added using the auto plugin mechanism. The mechanism used in Play 2.2 where `playJavaSettings` and `playScalaSettings` were used has been deprecated. You should now move toward one of the  following:
+Play itself is now added using the auto plugin mechanism. The mechanism used in Play 2.2 where `playJavaSettings` and `playScalaSettings` were used has been removed. You now use one of the following instead:
 
 ```java
 lazy val root = (project in file(".")).addPlugins(PlayJava)
@@ -37,29 +37,61 @@ or
 lazy val root = (project in file(".")).addPlugins(PlayScala)
 ```
 
-> *It is important to note that using the new method of `addPlugins` with `PlayJava` or `PlayScala` is incompatible with `playJavaSettings`, `playScalaSettings` or the use of `play.Project`. While the latter methods are deprecated they may still be used for the time being. However we strongly encourage you to adopt the `addPlugins` with `PlayJava` or `PlayScala` method.*
+If you were previously using play.Project, for example a Scala project:
+
+```scala
+object ApplicationBuild extends Build {
+
+  val appName = "myproject"
+  val appVersion = "1.0-SNAPSHOT"
+
+  val appDependencies = Seq()
+
+  val main = play.Project(appName, appVersion, appDependencies).settings(
+  )
+
+}
+```
+
+...then you can continue to use a similar approach via native sbt:
+
+```scala
+object ApplicationBuild extends Build {
+
+  val appName = "myproject"
+  val appVersion = "1.0-SNAPSHOT"
+
+  val appDependencies = Seq()
+
+  val main = Project(appName, file(".")).addPlugins(play.PlayScala).settings(
+    version := appVersion,
+    libraryDependencies ++= appDependencies
+  )
+
+}
+```
 
 By moving to the above style settings are now automatically imported when a plugin is enabled.
 
-The keys provided by Play must now also be referenced within the `PlayKeys` object. For example to reference `jdbc` or `anorm` you must do so either by importing:
+The keys provided by Play must now also be referenced within the `PlayKeys` object. For example to reference `playVersion` you must do so either by importing:
 
 ```scala
 import PlayKeys._
 ```
 
-or qualifying them as `PlayKeys.jdbc` or `PlayKeys.anorm`.
+or qualifying it with `PlayKeys.playVersion`.
 
 Outside of using a `.sbt` file i.e. if you're using Scala to describe your build then you may do the following to have `PlayKeys` within scope:
 
 ```scala
-import play.PlayJava.autoImport._
+import play.Play.autoImport._
 import PlayKeys._
 ```
 
 or
 
 ```scala
-import play.PlayScala.autoImport._
+import play.Play.autoImport._
 import PlayKeys._
 ```
 

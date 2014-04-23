@@ -14,7 +14,7 @@ import scala.io.Source
 
 object JavascriptCompiler {
 
-  import com.google.javascript.jscomp.{ Compiler, CompilerOptions, JSSourceFile, CompilationLevel }
+  import com.google.javascript.jscomp.{ Compiler, CompilerOptions, SourceFile, CompilationLevel }
 
   /**
    * Compile a JS file with its dependencies
@@ -58,9 +58,9 @@ object JavascriptCompiler {
     lazy val all = allSiblings(source)
     // In commonJsMode, we use all JavaScript sources in the same directory for some reason.
     // Otherwise, we only look at the current file.
-    val input = if (commonJsMode) all.map(f => JSSourceFile.fromFile(f)).toArray else Array(JSSourceFile.fromFile(source))
+    val input = if (commonJsMode) all.map(f => SourceFile.fromFile(f)).toList else List(SourceFile.fromFile(source))
 
-    catching(classOf[Exception]).either(compiler.compile(Array[JSSourceFile](), input, options).success) match {
+    catching(classOf[Exception]).either(compiler.compile(List[SourceFile]().asJava, input.asJava, options).success) match {
       case Right(true) => (origin, { if (!requireJsMode) Some(compiler.toSource()) else None }, Nil)
       case Right(false) => {
         val error = compiler.getErrors().head
@@ -81,9 +81,9 @@ object JavascriptCompiler {
     val compiler = new Compiler()
     val options = new CompilerOptions()
 
-    val input = Array[JSSourceFile](JSSourceFile.fromCode(name.getOrElse("unknown"), source))
+    val input = List[SourceFile](SourceFile.fromCode(name.getOrElse("unknown"), source))
 
-    compiler.compile(Array[JSSourceFile](), input, options).success match {
+    compiler.compile(List[SourceFile]().asJava, input.asJava, options).success match {
       case true => compiler.toSource()
       case false => {
         val error = compiler.getErrors().head

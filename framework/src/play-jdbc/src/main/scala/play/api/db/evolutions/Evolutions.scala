@@ -170,7 +170,7 @@ object Evolutions {
               )
           """)
       } catch {
-        case NonFatal(ex) => Logger.warn("play_evolutions table already existed")
+        case NonFatal(ex) => Logger.warn("could not create play_evolutions table", ex)
       }
     }
 

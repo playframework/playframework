@@ -3,9 +3,10 @@
  */
 package play
 
-import sbt.{ Project => SbtProject, _ }
-import sbt.Keys._
+import sbt._
 import Keys._
+import play.PlayImport._
+import PlayKeys._
 import play.sbtplugin.Colors
 import play.core.{ BuildLink, BuildDocHandler }
 import play.core.classloader._
@@ -72,12 +73,12 @@ trait PlayRun extends PlayInternalKeys {
     override def toString = name + "{" + getURLs.map(_.toString).mkString(", ") + "}"
   }
 
-  val playRunSetting: SbtProject.Initialize[InputTask[Unit]] = playRunTask(playRunHooks, playDependencyClasspath, playDependencyClassLoader, playReloaderClasspath, playReloaderClassLoader)
+  val playRunSetting: Project.Initialize[InputTask[Unit]] = playRunTask(playRunHooks, playDependencyClasspath, playDependencyClassLoader, playReloaderClasspath, playReloaderClassLoader)
 
   def playRunTask(
     runHooks: TaskKey[Seq[play.PlayRunHook]],
     dependencyClasspath: TaskKey[Classpath], dependencyClassLoader: TaskKey[ClassLoaderCreator],
-    reloaderClasspath: TaskKey[Classpath], reloaderClassLoader: TaskKey[ClassLoaderCreator]): SbtProject.Initialize[InputTask[Unit]] = {
+    reloaderClasspath: TaskKey[Classpath], reloaderClassLoader: TaskKey[ClassLoaderCreator]): Project.Initialize[InputTask[Unit]] = {
 
     playRunTask(runHooks, javaOptions in Runtime, dependencyClasspath, dependencyClassLoader, reloaderClasspath, reloaderClassLoader)
   }
@@ -85,12 +86,12 @@ trait PlayRun extends PlayInternalKeys {
   def playRunTask(
     runHooks: TaskKey[Seq[play.PlayRunHook]], javaOptions: TaskKey[Seq[String]],
     dependencyClasspath: TaskKey[Classpath], dependencyClassLoader: TaskKey[ClassLoaderCreator],
-    reloaderClasspath: TaskKey[Classpath], reloaderClassLoader: TaskKey[ClassLoaderCreator]): SbtProject.Initialize[InputTask[Unit]] = inputTask { (argsTask: TaskKey[Seq[String]]) =>
+    reloaderClasspath: TaskKey[Classpath], reloaderClassLoader: TaskKey[ClassLoaderCreator]): Project.Initialize[InputTask[Unit]] = inputTask { (argsTask: TaskKey[Seq[String]]) =>
     (
       argsTask, state, playCommonClassloader, managedClasspath in DocsApplication,
       dependencyClasspath, dependencyClassLoader, reloaderClassLoader, javaOptions
     ) map { (args, state, commonLoader, docsAppClasspath, appDependencyClasspath, createClassLoader, createReloader, javaOptions) =>
-        val extracted = SbtProject.extract(state)
+        val extracted = Project.extract(state)
 
         val (_, hooks) = extracted.runTask(runHooks, state)
         val interaction = extracted.get(playInteractionMode)
@@ -223,7 +224,7 @@ trait PlayRun extends PlayInternalKeys {
               //Then launch compile
               Project.synchronized {
                 val start = System.currentTimeMillis
-                SbtProject.runTask(compile in Compile, newState).get._2.toEither.right.map { _ =>
+                Project.runTask(compile in Compile, newState).get._2.toEither.right.map { _ =>
                   val duration = System.currentTimeMillis - start
                   val formatted = duration match {
                     case ms if ms < 1000 => ms + "ms"
@@ -300,14 +301,14 @@ trait PlayRun extends PlayInternalKeys {
 
   val playStartCommand = Command.args("start", "<port>") { (state: State, args: Seq[String]) =>
 
-    val extracted = SbtProject.extract(state)
+    val extracted = Project.extract(state)
 
     val interaction = extracted.get(playInteractionMode)
     // Parse HTTP port argument
     val (properties, httpPort, httpsPort) = filterArgs(args, defaultHttpPort = extracted.get(playDefaultPort))
     require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
 
-    SbtProject.runTask(stage, state).get._2.toEither match {
+    Project.runTask(stage, state).get._2.toEither match {
       case Left(_) => {
         println()
         println("Cannot start with errors.")
@@ -319,7 +320,7 @@ trait PlayRun extends PlayInternalKeys {
           f =>
             if (System.getProperty("os.name").toLowerCase.contains("win")) f.getAbsolutePath + ".bat" else f.getAbsolutePath
         }.get
-        val javaProductionOptions = SbtProject.runTask(javaOptions in Production, state).get._2.toEither.right.getOrElse(Seq[String]())
+        val javaProductionOptions = Project.runTask(javaOptions in Production, state).get._2.toEither.right.getOrElse(Seq[String]())
 
         // Note that I'm unable to pass system properties along with properties... if I do then I receive:
         //  java.nio.charset.IllegalCharsetNameException: "UTF-8"
