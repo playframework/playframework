@@ -1,11 +1,11 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Play 2.3 Migration Guide
 
-This guide is for migrating a Play 2.2 application to Play 2.3.  To migrate from Play 2.1, first follow the [[Play 2.2 Migration Guide|Migration22]].
+This guide is for migrating to Play 2.3 from Play 2.2. To migrate to Play 2.2, first follow the [[Play 2.2 Migration Guide|Migration22]].
 
 ## Distribution
 
-Play is no longer distributed as a zip file that needs to installed.  Instead, the preferred way to obtain and run Play is using [Typesafe Activator](https://typesafe.com/activator).  Typesafe activator provides an `activator` command, which, like the Play command, delegates to sbt.  So generally, where you previously run commands like `play run`, now you run `activator run`.
+Play is no longer distributed as a zip file that needs to installed.  Instead, the preferred way to obtain and run Play is using [Typesafe Activator](https://typesafe.com/activator).  Typesafe Activator provides an `activator` command, which, like the Play command, delegates to sbt.  So generally, where you previously run commands like `play run`, now you run `activator run`.
 
 To download and get started with Activator, follow the instructions [here](https://typesafe.com/platform/getstarted).
 
@@ -245,7 +245,7 @@ Here is the default app.build.js profile which you should use as a basis for any
 
 For more information please consult [the plugin's documentation](https://github.com/sbt/sbt-rjs#sbt-rjs).
 
-## Results structure
+## Results restructure
 
 In Play 2.2, a number of result types were deprecated, and to facilitate migration to the new results structure, some new types introduced.  Play 2.3 finishes this restructuring.
 

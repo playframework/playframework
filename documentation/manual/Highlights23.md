@@ -1,36 +1,55 @@
 <!--- Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com> -->
 # What's new in Play 2.3
 
-## Distribution
+## Activator
 
-Play no longer has the `play` command as it is entirely integrated with [Typesafe Activator](https://typesafe.com/activator). If you are particularly adverse to large downloads, you can get a minimal version of [Activator from that page](https://typesafe.com/activator).
+The first thing you'll notice about Play 2.3 is that the `play` command has become the `activator` command. Play has moved to use [Typesafe Activator](https://typesafe.com/activator) so that we can:
 
-Play has always provided an ultra productive development environment both suited well to newcomers and advanced users.  At Typesafe we wanted to take this developer experience further providing a library of community contributed templates, tutorials and resources for getting started, additional developer tools and an even more productive development environment.  But we didn't want to just limit it to Play and so evolved it to something that was bigger and better.  Activator is the next evolution of the Play command.
+* Extend the range of templates we provide for getting started with Play projects. Activator supports a much [richer library](https://typesafe.com/activator/templates) of project templates. Templates can also include tutorials and other resources for getting started. The Play community can [contribute templates](https://typesafe.com/activator/template/contribute) too.
+* Provide a nice web UI for getting started with Play, especially for newcomers who are unfamiliar with command line interfaces. Users can write code and run tests through the web UI. The command line interface is still available though!
+* Make Play's high productivity development approach available to other projects. Activator isn't just for Play. Other projects can use Activator too.
+* In the future Activator is likely to get even more features to aid developer productivity, and these features will automatically benefit Play and other projects that use Activator. [Activator is open source](https://github.com/typesafehub/activator), so the community can contribute to its evolution.
 
-## Build tasks
+### Activator command
 
-### Auto Plugins
+All the features that were available with the `play` command are still available with the `activator` command.
 
-sbt 0.13.5 is now the version used by Play. This version brings a new feature named "auto plugins" which, in essence permit a large reduction in settings oriented code for your build files.
+* `activator new` to create a new project. See [[Creating a new application|NewApplication]].
+* `activator` to run the console. See [[Using the Play console|PlayConsole]].
+* `activator ui` is a new command that launches a web user interface.
+
+### Activator distribution
+
+Play is distributed as an Activator distribution that contains all Play's dependencies. You can download this distribution from the [Play download](http://www.playframework.com/download) page. If you prefer, you can also download a minimal (1MB) version of Activator from the [Activator site](https://typesafe.com/activator). The minimal version will only download dependencies when they're needed.
+
+## Build improvements
 
 ### sbt-web
 
-The largest new feature for Play 2.3 is the introduction of [sbt-web](https://github.com/sbt/sbt-web#sbt-web). In summary sbt-web allows Html, CSS and JavaScript functionality to be factored out of Play's core into a family of pure sbt plugins. There are two major advantages to you:
+The largest new feature for Play 2.3 is the introduction of [sbt-web](https://github.com/sbt/sbt-web#sbt-web). In summary sbt-web allows HTML, CSS and JavaScript functionality to be factored out of Play's core into a family of pure sbt plugins. There are two major advantages to you:
 
-* Play is less opinionated on the Html, CSS and JavaScript; and
+* Play is less opinionated on the HTML, CSS and JavaScript; and
 * sbt-web can have its own community and thrive in parallel to Play's.
 
-## Results structure
+### Auto Plugins
 
-In Play 2.2, a number of result types were deprecated, and to facilitate migration to the new results structure, some new types introduced.  Play 2.3 finishes this restructuring.
+Play now uses sbt 0.13.5. This version brings a new feature named "auto plugins" which, in essence permits a large reduction in settings-oriented code for your build files.
 
-### Scala results
+## Java improvements
 
-Deprecated types have been removed and `play.api.mvc.SimpleResult` has been renamed to `play.api.mvc.Result`, replacing the existing `Result` trait.
+### Java 8
 
-### Java results
+Play 2.3 will work just fine with Java 8; there is nothing special to do other than ensuring that your Java environment is configured for Java 8. There is a new Activator sample available for Java 8:
 
-Deprecated types have been removed and `play.mvc.SimpleResult` has been renamed to `play.mvc.Result`. 
+http://typesafe.com/activator/template/reactive-stocks-java8
+
+Our documentation has been improved with Java examples in general and, where applicable, Java 8 examples. Check out some [[examples of asynchronous programming with Java 8|JavaAsync]].
+
+For a complete overview of going Reactive with Java 8 and Play check out this blog: http://typesafe.com/blog/go-reactive-with-java-8
+
+### Java performance
+
+We've worked on Java performance. Compared to Play 2.2, throughput of simple Java actions has increased by 40-90%.
 
 ## Play WS
 
@@ -45,12 +64,6 @@ A method to use actors for handling websocket interactions has been incorporated
      MyWebSocketActor.props(out)
 ```
 
-## Java 8
+## Results restructuring completed
 
-Play 2.3 will work just fine with Java 8; there is nothing special to do other than ensuring that your Java environment is configured for Java 8. There is a new Activator sample available for Java 8:
-
-http://typesafe.com/activator/template/reactive-stocks-java8
-
-Our documentation has been improved with Java examples in general and, where applicable, Java 8 examples.
-
-For a complete overview of going Reactive with Java 8 and Play check out this blog: http://typesafe.com/blog/go-reactive-with-java-8
+In Play 2.2, a number of new result types were introduced and old results types deprecated. Play 2.3 finishes this restructuring. See *Results restructure* in the [[Migration Guide|Migration23]] for more information.
