@@ -82,7 +82,8 @@ class AlgorithmChecker(val signatureConstraints: Set[AlgorithmConstraint], val k
   def checkKeyAlgorithms(x509Cert: X509Certificate): Unit = {
     val key = x509Cert.getPublicKey
     val keyAlgorithmName = key.getAlgorithm
-    val keySize = Algorithms.keySize(key)
+    val keySize = Algorithms.keySize(key).getOrElse(throw new IllegalStateException(s"No keySize found for $key"))
+
     val keyAlgorithms = Algorithms.decomposes(keyAlgorithmName)
     logger.debug(s"checkKeyAlgorithms: keyAlgorithmName = $keyAlgorithmName, keySize = $keySize, keyAlgorithms = $keyAlgorithms")
 
@@ -90,9 +91,10 @@ class AlgorithmChecker(val signatureConstraints: Set[AlgorithmConstraint], val k
       findKeyConstraint(a).map {
         constraint =>
           if (constraint.matches(a, keySize)) {
-            logger.debug(s"checkKeyAlgorithms: cert = $x509Cert failed on constraint $constraint")
+            val certName = getCommonName(x509Cert)
+            logger.debug(s"""checkKeyAlgorithms: cert = "$certName" failed on constraint $constraint, algorithm = $a, keySize = $keySize""")
 
-            val msg = s"Certificate failed: $a matched constraint $constraint"
+            val msg = s"""Certificate failed: cert = "$certName" failed on constraint $constraint, algorithm = $a, keySize = $keySize"""
             throw new CertPathValidatorException(msg)
           }
       }

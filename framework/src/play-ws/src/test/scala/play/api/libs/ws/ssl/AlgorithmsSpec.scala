@@ -28,7 +28,7 @@ object AlgorithmsSpec extends Specification {
       val cert = CertificateGenerator.generateCertificate(dn, pair, from.toDate, to.toDate, "SHA1WithRSA", AlgorithmId.sha1WithRSAEncryption_oid)
 
       // RSA is getModulus.bitLength
-      keySize(cert.getPublicKey) must_== 1024
+      keySize(cert.getPublicKey) must_== Some(1024)
     }
 
     "show a keysize of 1024 for DSA" in {
@@ -43,7 +43,7 @@ object AlgorithmsSpec extends Specification {
       val cert = CertificateGenerator.generateCertificate(dn, pair, from.toDate, to.toDate, "SHA1WithDSA", AlgorithmId.sha1WithDSA_oid)
 
       // DSA is getP.bitLength
-      keySize(cert.getPublicKey) must_== 1024
+      keySize(cert.getPublicKey) must_== Some(1024)
     }
 
   }

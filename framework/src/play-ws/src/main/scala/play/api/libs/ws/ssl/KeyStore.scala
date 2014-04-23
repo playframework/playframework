@@ -21,6 +21,7 @@ object KeystoreFormats {
   def loadCertificate(cert: X509Certificate): KeyStore = {
     val alias = cert.getSubjectX500Principal.getName
 
+    // Must be JKS internally, to enable trusted certificates in JDK 1.6
     val keystore = KeyStore.getInstance(KeyStore.getDefaultType)
     keystore.load(null)
     keystore.setCertificateEntry(alias, cert)
