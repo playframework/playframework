@@ -263,7 +263,9 @@ object Input {
  */
 sealed trait Step[E, +A] {
 
-  lazy val it: Iteratee[E, A] = this match {
+  // This version is not called by Step implementations in Play,
+  // but could be called by custom implementations.
+  def it: Iteratee[E, A] = this match {
     case Step.Done(a, e) => Done(a, e)
     case Step.Cont(k) => Cont(k)
     case Step.Error(msg, e) => Error(msg, e)
@@ -405,7 +407,7 @@ trait Iteratee[E, +A] {
   /**
    * A version of `fold` that runs `folder` in the current thread rather than in a
    * supplied ExecutionContext, called in several places where we are sure the stack
-   * cannot overflow. This method is designed to be overridden by `ImmediateIteratee`,
+   * cannot overflow. This method is designed to be overridden by `StepIteratee`,
    * which can execute the `folder` function immediately.
    */
   protected[play] def foldNoEC[B](folder: Step[E, A] => Future[B]): Future[B] =
@@ -421,7 +423,7 @@ trait Iteratee[E, +A] {
   /**
    * A version of `pureFold` that runs `folder` in the current thread rather than in a
    * supplied ExecutionContext, called in several places where we are sure the stack
-   * cannot overflow. This method is designed to be overridden by `ImmediateIteratee`,
+   * cannot overflow. This method is designed to be overridden by `StepIteratee`,
    * which can execute the `folder` function immediately.
    */
   protected[play] def pureFoldNoEC[B](folder: Step[E, A] => B): Future[B] =
@@ -437,7 +439,7 @@ trait Iteratee[E, +A] {
   /**
    * A version of `pureFlatFold` that runs `folder` in the current thread rather than in a
    * supplied ExecutionContext, called in several places where we are sure the stack
-   * cannot overflow. This method is designed to be overridden by `ImmediateIteratee`,
+   * cannot overflow. This method is designed to be overridden by `StepIteratee`,
    * which can execute the `folder` function immediately.
    */
   protected[play] def pureFlatFoldNoEC[B, C](folder: Step[E, A] => Iteratee[B, C]): Iteratee[B, C] =
@@ -656,9 +658,10 @@ trait Iteratee[E, +A] {
  * Several performance improvements are possible when an iteratee's
  * state is immediately available.
  */
-private trait ImmediateIteratee[E, A] extends Iteratee[E, A] {
+private trait StepIteratee[E, A] extends Iteratee[E, A] with Step[E, A] {
 
-  def immediateUnflatten: Step[E, A]
+  final override def it: Iteratee[E, A] = this
+  final def immediateUnflatten: Step[E, A] = this
 
   final override def unflatten: Future[Step[E, A]] = Future.successful(immediateUnflatten)
 
@@ -691,8 +694,7 @@ private trait ImmediateIteratee[E, A] extends Iteratee[E, A] {
 /**
  * An iteratee in the "done" state.
  */
-private final class DoneIteratee[E, A](a: A, e: Input[E]) extends ImmediateIteratee[E, A] {
-  def immediateUnflatten = Step.Done(a, e)
+private final class DoneIteratee[E, A](a: A, e: Input[E]) extends Step.Done[A, E](a, e) with StepIteratee[E, A] {
 
   /**
    * Use an optimized implementation because this method is called by Play when running an
@@ -709,19 +711,17 @@ private final class DoneIteratee[E, A](a: A, e: Input[E]) extends ImmediateItera
 /**
  * An iteratee in the "cont" state.
  */
-private final class ContIteratee[E, A](k: Input[E] => Iteratee[E, A]) extends ImmediateIteratee[E, A] {
-  def immediateUnflatten = Step.Cont(k)
+private final class ContIteratee[E, A](k: Input[E] => Iteratee[E, A]) extends Step.Cont[E, A](k) with StepIteratee[E, A] {
 }
 
 /**
  * An iteratee in the "error" state.
  */
-private final class ErrorIteratee[E](msg: String, e: Input[E]) extends ImmediateIteratee[E, Nothing] {
-  def immediateUnflatten = Step.Error(msg, e)
+private final class ErrorIteratee[E](msg: String, e: Input[E]) extends Step.Error[E](msg, e) with StepIteratee[E, Nothing] {
 }
 
 /**
- * An iteratee whose state is provided in a Future, vs [[ImmediateIteratee]].
+ * An iteratee whose state is provided in a Future, vs [[StepIteratee]].
  * Used by `Iteratee.flatten`.
  */
 private final class FutureIteratee[E, A](itFut: Future[Iteratee[E, A]]) extends Iteratee[E, A] {
