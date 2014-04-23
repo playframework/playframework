@@ -36,6 +36,15 @@ Deprecated types have been removed and `play.mvc.SimpleResult` has been renamed 
 
 The WS client has been factored out into its own library in order to further reduce the size of play.core and promote modularization.
 
+It is now possible to use WS outside of the context of an application:
+
+```
+val client:WSClient = new NingWSClient(new Builder().build())
+client.url("http://example.com").get()
+```
+
+The WS client also comes with comprehensive SSL/TLS configuration options and configures JSSE to be secure by default.
+
 ## Actor WebSockets
 
 A method to use actors for handling websocket interactions has been incorporated for both Java and Scala e.g. using Scala:

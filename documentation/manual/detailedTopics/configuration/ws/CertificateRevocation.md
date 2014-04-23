@@ -3,6 +3,8 @@
 
 Certificate Revocation in JSSE can be done through two means: certificate revocation lists (CRLs) and OCSP.
 
+Certificate Revocation can be very useful in situations where a server's private keys are compromised, as in the case of [Heartbleed](http://heartbleed.com).
+
 Certificate Revocation is disabled by default in JSSE.  It is defined in two places:
 
 * [PKI Programmer's Guide, Appendix C](http://docs.oracle.com/javase/6/docs/technotes/guides/security/certpath/CertPathProgGuide.html#AppC)
@@ -28,13 +30,15 @@ java.security.Security.setProperty("ocsp.enable", "true")
 
 And this will set OCSP checking when making HTTPS requests.
 
-> NOTE: OCSP has a notable effect on HTTPS calls, and can make calls up to [33% slower](http://blog.cloudflare.com/ocsp-stapling-how-cloudflare-just-made-ssl-30).  JSSE does not support OCSP stapling.
+> NOTE: Enabling OCSP requires a round trip to the OCSP responder.  This adds a notable overhead on HTTPS calls, and can make calls up to [33% slower](http://blog.cloudflare.com/ocsp-stapling-how-cloudflare-just-made-ssl-30).  The mitigation technique, OCSP stapling, is not supported in JSSE.
 
 Or, if you wish to use a static CRL list, you can define a list of URLs:
 
 ```
 ws.ssl.revocationLists = [ "http://example.com/crl" ]
 ```
+
+## Debugging
 
 To test certificate revocation is enabled, set the following options:
 
@@ -60,3 +64,9 @@ certpath: Verified signature of OCSP Response
 certpath: Response's validity interval is from Wed Mar 19 13:57:32 PDT 2014 until Wed Mar 26 13:57:32 PDT 2014
 certpath: -checker7 validation succeeded
 ```
+
+## Further Reading
+
+* [Fixing Certificate Revocation](http://tersesystems.com/2014/03/22/fixing-certificate-revocation/)
+
+> **Next:** [[Configuring Hostname Verification|HostnameVerification]]

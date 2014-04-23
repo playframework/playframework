@@ -269,16 +269,16 @@ This is important in a couple of cases.  WS has a couple of limitations that req
 
 Use the following properties to configure the WS client:
 
-* `ws.followRedirects` configures the client to follow 301 and 302 redirects
-* `ws.useProxyProperties`to use the system http proxy settings(http.proxyHost, http.proxyPort)
-* `ws.useragent` to configure the User-Agent header field
-* `ws.compressionEnable` set it to true to use gzip/deflater encoding
+* `ws.followRedirects` configures the client to follow 301 and 302 redirects.
+* `ws.useProxyProperties`to use the system http proxy settings (`http.proxyHost`, `http.proxyPort`).
+* `ws.useragent` to configure the User-Agent header field.
+* `ws.compressionEnable` set it to true to use gzip/deflater encoding.
 
-## Configuring WS with SSL
+### Configuring WS with SSL
 
 To configure WS for use with HTTP over SSL/TLS (HTTPS), please see [[Configuring WS SSL|WsSSL]].
 
-### Timeouts
+### Configuring Timeouts
 
 There are 3 different timeouts in WS. Reaching a timeout causes the WS request to interrupt.
 

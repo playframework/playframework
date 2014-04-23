@@ -51,7 +51,7 @@ To disable binding on the HTTP port, set the `http.port` system property to be `
 
 If Play is serving HTTPS in production, it should be running JDK 1.8.  JDK 1.8 provides a number of new features that make JSSE feasible as a [TLS termination layer](http://blog.ivanristic.com/2014/03/ssl-tls-improvements-in-java-8.html).  If not using JDK 1.8, using a [[reverse proxy|HTTPServer]] in front of Play will give better control and security of HTTPS.
 
-* **[`SSLParameters.setUseCipherSuiteorder()`](http://download.java.net/jdk8/docs/technotes/guides/security/jsse/JSSERefGuide.html#cipher_suite_preference)** - Reorders cipher suite order to the server's preference.
+* **[`SSLParameters.setUseCipherSuiteorder()`](http://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#cipher_suite_preference)** - Reorders cipher suite order to the server's preference.
 * **-Djdk.tls.ephemeralDHKeySize=2048** - Increases the key size in a DH key exchange.
 * **-Djdk.tls.rejectClientInitiatedRenegotiation=true** - Rejects client renegotiation.
 
