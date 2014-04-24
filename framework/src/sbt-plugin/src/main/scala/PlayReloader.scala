@@ -43,18 +43,11 @@ trait PlayReloader {
 
           var _changed = true
 
-          // --
-
           var jnotifyJarFile = this.getClass.getClassLoader.asInstanceOf[java.net.URLClassLoader].getURLs
             .map(_.getFile)
             .find(_.contains("/jnotify"))
             .map(new File(_))
             .getOrElse(sys.error("Missing JNotify?"))
-
-          val sbtLoader = this.getClass.getClassLoader.getParent.asInstanceOf[java.net.URLClassLoader]
-          val method = classOf[java.net.URLClassLoader].getDeclaredMethod("addURL", classOf[java.net.URL])
-          method.setAccessible(true)
-          method.invoke(sbtLoader, jnotifyJarFile.toURI.toURL)
 
           val targetDirectory = extracted.get(target)
           val nativeLibrariesDirectory = new File(targetDirectory, "native_libraries")
@@ -72,16 +65,13 @@ trait PlayReloader {
               existing + java.io.File.pathSeparator + libs
             }.getOrElse(libs)
           })
-          import java.lang.reflect._
-          val fieldSysPath = classOf[ClassLoader].getDeclaredField("sys_paths")
-          fieldSysPath.setAccessible(true)
-          fieldSysPath.set(null, null)
 
-          val jnotifyClass = sbtLoader.loadClass("net.contentobjects.jnotify.JNotify")
-          val jnotifyListenerClass = sbtLoader.loadClass("net.contentobjects.jnotify.JNotifyListener")
+          val buildSystemLoader = this.getClass.getClassLoader.getParent.asInstanceOf[java.net.URLClassLoader]
+          val jnotifyClass = buildSystemLoader.loadClass("net.contentobjects.jnotify.JNotify")
+          val jnotifyListenerClass = buildSystemLoader.loadClass("net.contentobjects.jnotify.JNotifyListener")
           val addWatchMethod = jnotifyClass.getMethod("addWatch", classOf[String], classOf[Int], classOf[Boolean], jnotifyListenerClass)
           val removeWatchMethod = jnotifyClass.getMethod("removeWatch", classOf[Int])
-          val listener = java.lang.reflect.Proxy.newProxyInstance(sbtLoader, Seq(jnotifyListenerClass).toArray, new java.lang.reflect.InvocationHandler {
+          val listener = java.lang.reflect.Proxy.newProxyInstance(buildSystemLoader, Seq(jnotifyListenerClass).toArray, new java.lang.reflect.InvocationHandler {
             def invoke(proxy: AnyRef, m: java.lang.reflect.Method, args: scala.Array[AnyRef]): AnyRef = {
               _changed = true
               null
