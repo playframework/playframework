@@ -32,7 +32,7 @@ object ScalaCometSpec extends PlaySpecification with Controller {
 
     "allow a smarter way of manually sending comet messages" in new WithApplication() {
       //#enumeratee
-      import play.api.templates.Html
+      import play.twirl.api.Html
 
       // Transform a String message into an Html script tag
       val toCometMessage = Enumeratee.map[String] { data =>

@@ -5,9 +5,9 @@ package detailedtopics.configuration.gzipencoding
 
 import play.api.test._
 import play.filters.gzip.GzipFilter
-import play.api.templates.Html
 import play.api.mvc.Results
 import play.core.j.JavaGlobalSettingsAdapter
+import play.twirl.api.Html
 
 object GzipEncoding extends PlaySpecification {
 

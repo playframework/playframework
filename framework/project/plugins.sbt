@@ -2,6 +2,10 @@
 
 logLevel := Level.Warn
 
+resolvers += Resolver.typesafeRepo("releases")
+
+addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.0-M1")
+
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.1.6")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-scalariform" % "1.2.0")

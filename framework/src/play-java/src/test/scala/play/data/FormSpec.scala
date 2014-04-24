@@ -8,8 +8,8 @@ import play.mvc._
 import play.mvc.Http.Context
 import scala.collection.JavaConverters._
 import scala.beans.BeanProperty
-import play.api.templates.Html
 import play.libs.F
+import play.twirl.api.Html
 
 object FormSpec extends Specification {
 

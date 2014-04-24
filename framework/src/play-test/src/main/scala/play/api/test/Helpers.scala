@@ -12,6 +12,8 @@ import play.api.http._
 import play.api.libs.iteratee._
 import play.api.libs.json.{ Json, JsValue }
 
+import play.twirl.api.Content
+
 import org.openqa.selenium._
 import org.openqa.selenium.firefox._
 import org.openqa.selenium.htmlunit._

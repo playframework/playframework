@@ -159,8 +159,8 @@ object RepositoryBuilder {
     println()
 
     val categorisedProjects = localRepoReport.licenses.groupBy {
-      case ("play" | "play-java" | "play-iteratees" | "play-functional" | "play-datacommons" | "play-json" | "play-exceptions" | "templates", _) => "core"
-      case ("sbt-plugin" | "templates-compiler" | "routes-compiler" | "console" | "build-link", _) => "dev"
+      case ("play" | "play-java" | "play-iteratees" | "play-functional" | "play-datacommons" | "play-json" | "play-exceptions", _) => "core"
+      case ("sbt-plugin" | "routes-compiler" | "console" | "build-link", _) => "dev"
       case ("play-test", _) => "test"
       case ("play-integration-test" | "play-docs", _) => "ignore"
       case _ => "module"

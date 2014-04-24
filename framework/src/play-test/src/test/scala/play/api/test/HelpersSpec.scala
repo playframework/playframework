@@ -7,6 +7,7 @@ import play.api.test._
 import play.api.test.Helpers._
 import play.api.mvc._
 import play.api.mvc.Results._
+import play.twirl.api.Content
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

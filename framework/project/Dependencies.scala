@@ -121,9 +121,6 @@ object Dependencies {
   val routersCompilerDependencies = scalaIoFile +:
     specsSbt.map(_ % "test")
 
-  val templatesCompilerDependencies = scalaIoFile +:
-    specsSbt.map(_ % "test")
-
   private def sbtPluginDep(moduleId: ModuleID) = {
     moduleId.extra(
       "sbtVersion" -> BuildSettings.buildSbtVersionBinaryCompatible,
@@ -151,6 +148,8 @@ object Dependencies {
 
     "net.contentobjects.jnotify" % "jnotify" % "0.94",
 
+    sbtPluginDep("com.typesafe.sbt" % "sbt-twirl" % "1.0-M1"),
+
     sbtPluginDep("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.4.0"),
     sbtPluginDep("com.github.mpeltonen" % "sbt-idea" % "1.5.1"),
     sbtPluginDep("com.typesafe.sbt" % "sbt-native-packager" % "0.7.0-RC2"),
@@ -164,9 +163,6 @@ object Dependencies {
     "org.webjars" % "jquery" % "2.1.0-2" % "webjars",
     "org.webjars" % "prettify" % "4-Mar-2013" % "webjars"
   )
-
-  val templatesDependencies = scalaIoFile +:
-    specsBuild.map(_ % "test")
 
   val iterateesDependencies = Seq(
     "org.scala-stm" %% "scala-stm" % "0.7",

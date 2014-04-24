@@ -11,6 +11,7 @@ import play.api.libs.iteratee._
 import play.api.libs.iteratee.Concurrent._
 import play.mvc.Http.{ Cookies => JCookies, Cookie => JCookie, Session => JSession, Flash => JFlash }
 import play.mvc.{ Result => JResult }
+import play.twirl.api.Content
 import scala.collection.JavaConverters._
 import scala.concurrent.Await
 import scala.concurrent.duration._

@@ -11,6 +11,7 @@ import play.mvc.*;
 import play.api.test.Helpers$;
 import play.libs.*;
 import play.libs.F.*;
+import play.twirl.api.Content;
 
 import org.openqa.selenium.firefox.*;
 import org.openqa.selenium.htmlunit.*;
