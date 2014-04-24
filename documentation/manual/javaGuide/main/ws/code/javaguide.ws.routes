@@ -1,0 +1,10 @@
+# #ws-openid-routes
+GET     /openID/login               controllers.OpenIDController.login()
+POST    /openID/login               controllers.OpenIDController.loginPost()
+GET     /openID/callback            controllers.OpenIDController.openIDCallback()
+# #ws-openid-routes
+
+# #ws-oauth-routes
+GET     /twitter/homeTimeline controllers.Twitter.homeTimeline()
+GET     /twitter/auth         controllers.Twitter.auth()
+# #ws-oauth-routes

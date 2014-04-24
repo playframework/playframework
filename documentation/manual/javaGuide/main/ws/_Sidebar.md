@@ -2,7 +2,7 @@
 ### Calling WebServices
 
 - [[The Play WS API  | JavaWS]]
-- [[Connect to OpenID servers | JavaOpenID]]
+- [[Connecting to OpenID services | JavaOpenID]]
 - [[Accessing resources protected by OAuth | JavaOAuth]]
 
 ### Main concepts

@@ -82,4 +82,4 @@ OpenID.redirectURL(
 
 Attributes will then be available in the `UserInfo` provided by the OpenID server.
 
-> **Next:** [[OAuth | ScalaOAuth]]
+> **Next:** [[Accessing resources protected by OAuth|ScalaOAuth]]

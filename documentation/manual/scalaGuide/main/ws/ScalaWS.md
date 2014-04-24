@@ -94,10 +94,10 @@ WS.url(url).withVirtualHost("192.168.1.1").get()
 
 ### Request with time out
 
-If you need to give a server more time to process, you can use `withTimeout` to set a value in milliseconds.  You may want to use this for extremely large files.
+If you wish to specify a request timeout, you can use `withRequestTimeout` to set a value in milliseconds.
 
 ```scala
-WS.url(url).withTimeout(1000).get()
+WS.url(url).withRequestTimeout(1000).get()
 ```
 
 ### Submitting form data
@@ -267,33 +267,25 @@ This is important in a couple of cases.  WS has a couple of limitations that req
 
 ## Configuring WS
 
-Use the following properties to configure the WS client:
+Use the following properties in `application.conf` to configure the WS client:
 
-* `ws.followRedirects` configures the client to follow 301 and 302 redirects
-* `ws.useProxyProperties`to use the system http proxy settings(http.proxyHost, http.proxyPort)
-* `ws.useragent` to configure the User-Agent header field
-* `ws.compressionEnable` set it to true to use gzip/deflater encoding
-
-## Configuring WS with SSL
-
-To configure WS for use with HTTP over SSL/TLS (HTTPS), please see [[Configuring WS SSL|WsSSL]].
+* `ws.followRedirects`: Configures the client to follow 301 and 302 redirects *(default is **true**)*.
+* `ws.useProxyProperties`: To use the system http proxy settings(http.proxyHost, http.proxyPort) *(default is **true**)*. 
+* `ws.useragent`: To configure the User-Agent header field.
+* `ws.compressionEnable`: Set it to true to use gzip/deflater encoding *(default is **false**)*.
 
 ## Timeouts
 
 There are 3 different timeouts in WS. Reaching a timeout causes the WS request to interrupt.
 
-* **Connection Timeout**: The maximum time to wait when connecting to the remote host *(default is **120 seconds**)*.
-* **Connection Idle Timeout**: The maximum time the request can stay idle (connexion is established but waiting for more data) *(default is **120 seconds**)*.
-* **Request Timeout**: The total time you accept a request to take (it will be interrupted, whatever if the remote host is still sending data) *(default is **none**, to allow stream consuming)*.
+* `ws.timeout.connection`: The maximum time to wait when connecting to the remote host *(default is **120 seconds**)*.
+* `ws.timeout.idle`: The maximum time the request can stay idle (connection is established but waiting for more data) *(default is **120 seconds**)*.
+* `ws.timeout.request`: The total time you accept a request to take (it will be interrupted even if the remote host is still sending data) *(default is **none**, to allow stream consuming)*.
 
-You can define each timeout in `application.conf` with respectively: `ws.timeout.connection`, `ws.timeout.idle`, `ws.timeout.request`.
+The request timeout can be overridden for a specific connection with `withRequestTimeout()` (see "Making a Request" section).
 
-The request timeout can be specified for a given connection with `withRequestTimeout`.
+## Configuring WS with SSL
 
-Example:
-
-```scala
-WS.url("http://playframework.org/").withRequestTimeout(10000 /* in milliseconds */)
-```
+To configure WS for use with HTTP over SSL/TLS (HTTPS), please see [[Configuring WS SSL|WsSSL]].
 
 > **Next:** [[OpenID Support in Play|ScalaOpenID]]
