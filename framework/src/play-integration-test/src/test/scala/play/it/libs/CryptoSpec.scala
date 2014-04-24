@@ -51,6 +51,9 @@ object CryptoSpec extends PlaySpecification {
       "generate a secret if secret is empty in dev" in new WithApplication(fakeApp(Mode.Dev, Some(""))) {
         Crypto.secret must_!= ""
       }
+      "generate a stable secret in dev" in new WithApplication(fakeApp(Mode.Dev, Some("changeme"))) {
+        Crypto.secret must_== Crypto.secret
+      }
     }
   }
 
