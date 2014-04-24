@@ -34,7 +34,7 @@ trait Writes[-A] {
 }
 
 @implicitNotFound(
-  "No Json serializer as JsObject found for type ${A}. Try to implement an implicit OWrites or Format for this type."
+  "No Json serializer as JsObject found for type ${A}. Try to implement an implicit OWrites or OFormat for this type."
 )
 trait OWrites[-A] extends Writes[A] {
 
