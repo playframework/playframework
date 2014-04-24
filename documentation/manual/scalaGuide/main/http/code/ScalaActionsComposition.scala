@@ -172,8 +172,29 @@ package scalaguide.http.scalaactionscomposition {
       }
 
       "allow action builders with different request types" in {
+
+        //#authenticated-action-builder
+        import play.api.mvc._
+
+        class UserRequest[A](val username: Option[String], request: Request[A]) extends WrappedRequest[A](request)
+
+        object UserAction extends
+            ActionBuilder[UserRequest] with ActionTransformer[Request, UserRequest] {
+          def transform[A](request: Request[A]) = Future.successful {
+            new UserRequest(request.session.get("username"), request)
+          }
+        }
+        //#authenticated-action-builder
+
+        def currentUser = UserAction { request =>
+          Ok("The current user is " + request.username.getOrElse("anonymous"))
+        }
+
+        testAction(currentUser)
+
         case class Item(id: String) {
           def addTag(tag: String) = ()
+          def accessibleByUser(user: Option[String]) = user.isDefined
         }
         object ItemDao {
           def findById(id: String) = Some(Item(id))
@@ -182,55 +203,43 @@ package scalaguide.http.scalaactionscomposition {
         //#request-with-item
         import play.api.mvc._
 
-        class RequestWithItem[A](val item: Item, request: Request[A]) extends WrappedRequest[A](request)
+        class ItemRequest[A](val item: Item, request: UserRequest[A]) extends WrappedRequest[A](request) {
+          def username = request.username
+        }
         //#request-with-item
 
         //#item-action-builder
-        def ItemAction(itemId: String) = new ActionBuilder[RequestWithItem] {
-          def invokeBlock[A](request: Request[A], block: (RequestWithItem[A]) => Future[Result]) = {
-            ItemDao.findById(itemId).map { item =>
-              block(new RequestWithItem(item, request))
-            } getOrElse {
-              Future.successful(NotFound)
-            }
+        def ItemAction(itemId: String) = new ActionRefiner[UserRequest, ItemRequest] {
+          def refine[A](input: UserRequest[A]) = Future.successful {
+            ItemDao.findById(itemId)
+              .map(new ItemRequest(_, input))
+              .toRight(NotFound)
           }
         }
         //#item-action-builder
 
-        //#item-action-use
-        def tagItem(itemId: String, tag: String) = ItemAction(itemId) { request =>
-          request.item.addTag(tag)
-          Ok
-        }
-        //#item-action-use
-
-        testAction(tagItem("foo", "bar"))
-      }
-
-      "allow writing an authentication action builder" in {
-
-        //#authenticated-action-builder
-        import play.api.mvc._
-
-        class AuthenticatedRequest[A](val username: String, request: Request[A]) extends WrappedRequest[A](request)
-
-        object Authenticated extends ActionBuilder[AuthenticatedRequest] {
-          def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A]) => Future[Result]) = {
-            request.session.get("username").map { username =>
-              block(new AuthenticatedRequest(username, request))
-            } getOrElse {
-              Future.successful(Forbidden)
-            }
+        //#permission-check-action
+        object PermissionCheckAction extends ActionFilter[ItemRequest] {
+          def filter[A](input: ItemRequest[A]) = Future.successful {
+            if (!input.item.accessibleByUser(input.username))
+              Some(Forbidden)
+            else
+              None
           }
         }
+        //#permission-check-action
 
-        def currentUser = Authenticated { request =>
-          Ok("The current user is " + request.username)
-        }
-        //#authenticated-action-builder
+        //#item-action-use
+        def tagItem(itemId: String, tag: String) =
+          (UserAction andThen ItemAction(itemId) andThen PermissionCheckAction) { request =>
+            request.item.addTag(tag)
+            Ok("User " + request.username + " tagged " + request.item.id)
+          }
+        //#item-action-use
 
-        testAction(action = currentUser, expectedResponse = FORBIDDEN)
+        testAction(tagItem("foo", "bar"), expectedResponse = FORBIDDEN)
       }
+
     }
 
     import play.api.mvc._

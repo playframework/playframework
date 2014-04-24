@@ -24,7 +24,7 @@ Since `ActionBuilder` provides all the different methods of building actions, th
 @[basic-logging-parse](code/ScalaActionsComposition.scala)
 
 
-## Composing actions
+### Composing actions
 
 In most applications, we will want to have multiple action builders, some that do different types of authentication, some that provide different types of generic functionality, etc.  In which case, we won't want to rewrite our logging action code for each type of action builder, we will want to define it in a reuseable way.
 
@@ -48,7 +48,7 @@ We can also mix in wrapping actions without the action builder:
 
 @[actions-wrapping-direct](code/ScalaActionsComposition.scala)
 
-## More complicated actions
+### More complicated actions
 
 So far we've only shown actions that don't impact the request at all.  Of course, we can also read and modify the incoming request object:
 
@@ -66,25 +66,20 @@ And finally we can also modify the returned result:
 
 ## Different request types
 
-The `ActionBuilder` trait is parameterised to allow building actions using different request types.  The `invokeBlock` method can translate the incoming request to whatever request type it wants.  This is useful for many things, for example, authentication, to attach a user object to the current request, or to share logic to load objects from a database.
+While action composition allows you to perform additional processing at the HTTP request and response level, often you want to build pipelines of data transformations that add context to or perform validation on the request itself.  `ActionFunction` can be thought of as a function on the request, parameterized over both the input request type and the output type passed on to the next layer.  Each action function may represent modular processing such as authentication, database lookups for objects, permission checks, or other operations that you wish to compose and reuse across actions.
 
-Let's consider a REST API that works with objects of type `Item`.  There may be many routes under the `/item/:itemId` path, and each of these need to look up the item.  They may also share the same authorisation properties.  In this case, it may be useful to put this logic into an action builder.
+There are a few pre-defined traits implementing `ActionFunction` that are useful for different types of processing:
 
-First of all, we'll create a request object that adds an `Item`:
+* [`ActionTransformer`](api/scala/index.html#play.api.mvc.ActionTransformer) can change the request, for example by adding additional information.
+* [`ActionFilter`](api/scala/index.html#play.api.mvc.ActionFilter) can selectively intercept requests, for example to produce errors, without changing the request value.
+* [`ActionRefiner`](api/scala/index.html#play.api.mvc.ActionRefiner) is the general case of both of the above.
+* [`ActionBuilder`](api/scala/index.html#play.api.mvc.ActionBuilder) is the special case of functions that take `Request` as input, and thus can build actions.
 
-@[request-with-item](code/ScalaActionsComposition.scala)
+You can also define your own arbitrary `ActionFunction` by implementing the `invokeBlock` method.  Often it is convenient to make the input and output types instances of `Request` (using `WrappedRequest`), but this is not strictly necessary.
 
-Now we'll create an action builder that looks up that item when the request is made.  Note that this action builder is defined inside a method that takes the id of the item:
+### Authentication
 
-@[item-action-builder](code/ScalaActionsComposition.scala)
-
-Now we can use this action builder for each item:
-
-@[item-action-use](code/ScalaActionsComposition.scala)
-
-## Authentication
-
-One of the most common use cases for action composition is authentication.  We can easily implement our own authentication action builder like this:
+One of the most common use cases for action functions is authentication.  We can easily implement our own authentication action transformer that determines the user from the original request and adds it to a new `UserRequest`.  Note that this is also an `ActionBuilder` because it takes a simple `Request` as input:
 
 @[authenticated-action-builder](code/ScalaActionsComposition.scala)
 
@@ -93,6 +88,31 @@ Play also provides a built in authentication action builder.  Information on thi
 > **Note:** The built in authentication action builder is just a convenience helper to minimise the code necessary to implement authentication for simple cases, its implementation is very similar to the example above.
 >
 > If you have more complex requirements than can be met by the built in authentication action, then implementing your own is not only simple, it is recommended.
+
+### Adding information to requests
+
+Now let's consider a REST API that works with objects of type `Item`.  There may be many routes under the `/item/:itemId` path, and each of these need to look up the item.  In this case, it may be useful to put this logic into an action function.
+
+First of all, we'll create a request object that adds an `Item` to our `UserRequest`:
+
+@[request-with-item](code/ScalaActionsComposition.scala)
+
+Now we'll create an action refiner that looks up that item and returns `Either` an error (`Left`) or a new `ItemRequest` (`Right`).  Note that this action refiner is defined inside a method that takes the id of the item:
+
+@[item-action-builder](code/ScalaActionsComposition.scala)
+
+### Validating requests
+
+Finally, we may want an action function that validates whether a request should continue.  For example, perhaps we want to check whether the user from `UserAction` has permission to access the item from `ItemAction`, and if not return an error:
+
+@[permission-check-action](code/ScalaActionsComposition.scala)
+
+### Putting it all together
+
+Now we can chain these action functions together (starting with an `ActionBuilder`) using `andThen` to create an action:
+
+@[item-action-use](code/ScalaActionsComposition.scala)
+
 
 Play also provides a [[global filter API | ScalaHttpFilters]], which is useful for global cross cutting concerns.
 
