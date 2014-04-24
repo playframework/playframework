@@ -165,7 +165,9 @@ object Dependencies {
     "org.webjars" % "prettify" % "4-Mar-2013" % "webjars"
   )
 
-  val templatesDependencies = scalaIoFile +:
+  val templatesDependencies = Seq(
+    scalaIoFile,
+    "org.owasp.encoder" % "encoder" % "1.1") ++
     specsBuild.map(_ % "test")
 
   val iterateesDependencies = Seq(
