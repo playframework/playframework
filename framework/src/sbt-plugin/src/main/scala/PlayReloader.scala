@@ -3,18 +3,14 @@
  */
 package play
 
-import java.lang.reflect.Field
-import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
-import java.lang.reflect.Proxy
 import java.net.URL
 import java.net.URLClassLoader
 import scala.util.control.NonFatal
 
-import net.contentobjects.jnotify.JNotify
 import play.api._
 import play.core._
-import play.core.watcher.FileSystemWatcher
+import play.core.watcher._
 import play.PlayImport._
 import PlayKeys._
 import PlayExceptions._
@@ -44,13 +40,9 @@ trait PlayReloader {
       var currentProducts = Map.empty[java.io.File, Long]
       var currentAnalysis = Option.empty[sbt.inc.Analysis]
 
-      // --- USING jnotify to detect file change (TODO: Use Java 7 standard API if available)
-
-      lazy val jnotify = { // This create a fully dynamic version of JNotify that support reloading 
+      lazy val watcher = {
 
         try {
-
-          var _changed: Boolean = true
 
           var jnotifyJarFile: File = this.getClass.getClassLoader.asInstanceOf[URLClassLoader].getURLs
             .map(_.getFile)
@@ -58,56 +50,24 @@ trait PlayReloader {
             .map(new File(_))
             .getOrElse(sys.error("Missing JNotify?"))
 
-          val sbtLoader: URLClassLoader = this.getClass.getClassLoader.getParent.asInstanceOf[URLClassLoader]
+          val buildLoader: URLClassLoader = this.getClass.getClassLoader.getParent.asInstanceOf[URLClassLoader]
           val method: Method = classOf[URLClassLoader].getDeclaredMethod("addURL", classOf[URL])
           method.setAccessible(true)
-          method.invoke(sbtLoader, jnotifyJarFile.toURI.toURL)
+          method.invoke(buildLoader, jnotifyJarFile.toURI.toURL)
 
-          val targetDirectory: File = extracted.get(target)
-          val nativeLibrariesDirectory: File = new File(targetDirectory, "native_libraries")
+          val targetDirectory = extracted.get(target)
+          val nativeLibrariesDirectory = new File(targetDirectory, "native_libraries")
 
           if (!nativeLibrariesDirectory.exists) {
             // Unzip native libraries from the jnotify jar to target/native_libraries
             IO.unzip(jnotifyJarFile, targetDirectory, (name: String) => name.startsWith("native_libraries"))
           }
 
-          val libs: String = new File(nativeLibrariesDirectory, System.getProperty("sun.arch.data.model") + "bits").getAbsolutePath
-
-          // Hack to set java.library.path
-          System.setProperty("java.library.path", {
-            Option(System.getProperty("java.library.path")).map { existing =>
-              existing + java.io.File.pathSeparator + libs
-            }.getOrElse(libs)
-          })
-          val fieldSysPath: Field = classOf[ClassLoader].getDeclaredField("sys_paths")
-          fieldSysPath.setAccessible(true)
-          fieldSysPath.set(null, null)
-
-          val jnotifyClass: Class[_] = sbtLoader.loadClass("net.contentobjects.jnotify.JNotify")
-          val jnotifyListenerClass: Class[_] = sbtLoader.loadClass("net.contentobjects.jnotify.JNotifyListener")
-          val addWatchMethod: Method = jnotifyClass.getMethod("addWatch", classOf[String], classOf[Int], classOf[Boolean], jnotifyListenerClass)
-          val removeWatchMethod: Method = jnotifyClass.getMethod("removeWatch", classOf[Int])
-          val listener: Object = Proxy.newProxyInstance(sbtLoader, Seq(jnotifyListenerClass).toArray, new InvocationHandler {
-            def invoke(proxy: AnyRef, m: Method, args: scala.Array[AnyRef]): AnyRef = {
-              _changed = true
-              null
-            }
-          })
-
-          val nativeWatcher: FileSystemWatcher = new FileSystemWatcher {
-            def addWatch(directoryToWatch: String): Int = {
-              addWatchMethod.invoke(null, directoryToWatch, 15: java.lang.Integer, true: java.lang.Boolean, listener).asInstanceOf[Int]
-            }
-            def removeWatch(id: Int): Unit = removeWatchMethod.invoke(null, id.asInstanceOf[AnyRef])
-            def reloaded() { _changed = false }
-            def changed() { _changed = true }
-            def hasChanged = _changed
-          }
+          val nativeWatcher: FileSystemWatcher = new FileSystemWatcherFactory(nativeLibrariesDirectory).createWatcher()
 
           ( /* Try it */ nativeWatcher.removeWatch(0))
 
           nativeWatcher
-
         } catch {
           case NonFatal(e) => {
 
@@ -118,13 +78,7 @@ trait PlayReloader {
                  |""".format(e.getMessage).stripMargin
             ))
 
-            new FileSystemWatcher {
-              def addWatch(directoryToWatch: String): Int = 0
-              def removeWatch(id: Int): Unit = ()
-              def reloaded(): Unit = ()
-              def changed(): Unit = ()
-              def hasChanged = true
-            }
+            FileSystemWatcherFactory.createFakeWatcher()
           }
         }
 
@@ -152,7 +106,7 @@ trait PlayReloader {
         fileChanged
       }
 
-      val watchChanges: Seq[Int] = monitoredDirs.map(f => jnotify.addWatch(f.getAbsolutePath))
+      val watchChanges: Seq[Int] = monitoredDirs.map(f => watcher.addWatch(f.getAbsolutePath))
 
       lazy val settings = {
         import scala.collection.JavaConverters._
@@ -163,14 +117,14 @@ trait PlayReloader {
 
       def forceReload() {
         reloadNextTime = true
-        jnotify.changed()
+        watcher.changed()
       }
 
       def clean() {
         currentApplicationClassLoader = None
         currentProducts = Map.empty[java.io.File, Long]
         currentAnalysis = None
-        watchChanges.foreach(jnotify.removeWatch)
+        watchChanges.foreach(watcher.removeWatch)
       }
 
       def updateAnalysis(newAnalysis: sbt.inc.Analysis) = {
@@ -288,7 +242,7 @@ trait PlayReloader {
       private val classLoaderVersion = new java.util.concurrent.atomic.AtomicInteger(0)
 
       private def taskFailureHandler(incomplete: Incomplete): Exception = {
-        jnotify.changed()
+        watcher.changed()
         Incomplete.allExceptions(incomplete).headOption.map {
           case e: PlayException => e
           case e: xsbti.CompileFailed => {
@@ -319,8 +273,8 @@ trait PlayReloader {
 
       def reload: AnyRef = {
         play.Play.synchronized {
-          if (jnotify.hasChanged || hasChangedFiles) {
-            jnotify.reloaded()
+          if (watcher.hasChanged || hasChangedFiles) {
+            watcher.reloaded()
             Project.runTask(playReload, state).map(_._2).get.toEither
               .left.map(taskFailureHandler)
               .right.map {
