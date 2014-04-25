@@ -3,14 +3,23 @@
  */
 package play
 
+import java.lang.reflect.Field
+import java.lang.reflect.InvocationHandler
+import java.lang.reflect.Method
+import java.lang.reflect.Proxy
+import java.net.URL
+import java.net.URLClassLoader
 import scala.util.control.NonFatal
+
+import net.contentobjects.jnotify.JNotify
 import play.api._
 import play.core._
-import sbt._
-import sbt.Keys._
+import play.core.watcher.FileSystemWatcher
 import play.PlayImport._
 import PlayKeys._
 import PlayExceptions._
+import sbt._
+import sbt.Keys._
 
 trait PlayReloader {
   this: PlayCommands with PlayPositionMapper =>
@@ -41,30 +50,28 @@ trait PlayReloader {
 
         try {
 
-          var _changed = true
+          var _changed: Boolean = true
 
-          // --
-
-          var jnotifyJarFile = this.getClass.getClassLoader.asInstanceOf[java.net.URLClassLoader].getURLs
+          var jnotifyJarFile: File = this.getClass.getClassLoader.asInstanceOf[URLClassLoader].getURLs
             .map(_.getFile)
             .find(_.contains("/jnotify"))
             .map(new File(_))
             .getOrElse(sys.error("Missing JNotify?"))
 
-          val sbtLoader = this.getClass.getClassLoader.getParent.asInstanceOf[java.net.URLClassLoader]
-          val method = classOf[java.net.URLClassLoader].getDeclaredMethod("addURL", classOf[java.net.URL])
+          val sbtLoader: URLClassLoader = this.getClass.getClassLoader.getParent.asInstanceOf[URLClassLoader]
+          val method: Method = classOf[URLClassLoader].getDeclaredMethod("addURL", classOf[URL])
           method.setAccessible(true)
           method.invoke(sbtLoader, jnotifyJarFile.toURI.toURL)
 
-          val targetDirectory = extracted.get(target)
-          val nativeLibrariesDirectory = new File(targetDirectory, "native_libraries")
+          val targetDirectory: File = extracted.get(target)
+          val nativeLibrariesDirectory: File = new File(targetDirectory, "native_libraries")
 
           if (!nativeLibrariesDirectory.exists) {
             // Unzip native libraries from the jnotify jar to target/native_libraries
             IO.unzip(jnotifyJarFile, targetDirectory, (name: String) => name.startsWith("native_libraries"))
           }
 
-          val libs = new File(nativeLibrariesDirectory, System.getProperty("sun.arch.data.model") + "bits").getAbsolutePath
+          val libs: String = new File(nativeLibrariesDirectory, System.getProperty("sun.arch.data.model") + "bits").getAbsolutePath
 
           // Hack to set java.library.path
           System.setProperty("java.library.path", {
@@ -72,23 +79,22 @@ trait PlayReloader {
               existing + java.io.File.pathSeparator + libs
             }.getOrElse(libs)
           })
-          import java.lang.reflect._
-          val fieldSysPath = classOf[ClassLoader].getDeclaredField("sys_paths")
+          val fieldSysPath: Field = classOf[ClassLoader].getDeclaredField("sys_paths")
           fieldSysPath.setAccessible(true)
           fieldSysPath.set(null, null)
 
-          val jnotifyClass = sbtLoader.loadClass("net.contentobjects.jnotify.JNotify")
-          val jnotifyListenerClass = sbtLoader.loadClass("net.contentobjects.jnotify.JNotifyListener")
-          val addWatchMethod = jnotifyClass.getMethod("addWatch", classOf[String], classOf[Int], classOf[Boolean], jnotifyListenerClass)
-          val removeWatchMethod = jnotifyClass.getMethod("removeWatch", classOf[Int])
-          val listener = java.lang.reflect.Proxy.newProxyInstance(sbtLoader, Seq(jnotifyListenerClass).toArray, new java.lang.reflect.InvocationHandler {
-            def invoke(proxy: AnyRef, m: java.lang.reflect.Method, args: scala.Array[AnyRef]): AnyRef = {
+          val jnotifyClass: Class[_] = sbtLoader.loadClass("net.contentobjects.jnotify.JNotify")
+          val jnotifyListenerClass: Class[_] = sbtLoader.loadClass("net.contentobjects.jnotify.JNotifyListener")
+          val addWatchMethod: Method = jnotifyClass.getMethod("addWatch", classOf[String], classOf[Int], classOf[Boolean], jnotifyListenerClass)
+          val removeWatchMethod: Method = jnotifyClass.getMethod("removeWatch", classOf[Int])
+          val listener: Object = Proxy.newProxyInstance(sbtLoader, Seq(jnotifyListenerClass).toArray, new InvocationHandler {
+            def invoke(proxy: AnyRef, m: Method, args: scala.Array[AnyRef]): AnyRef = {
               _changed = true
               null
             }
           })
 
-          val nativeWatcher = new {
+          val nativeWatcher: FileSystemWatcher = new FileSystemWatcher {
             def addWatch(directoryToWatch: String): Int = {
               addWatchMethod.invoke(null, directoryToWatch, 15: java.lang.Integer, true: java.lang.Boolean, listener).asInstanceOf[Int]
             }
@@ -112,14 +118,13 @@ trait PlayReloader {
                  |""".format(e.getMessage).stripMargin
             ))
 
-            new {
+            new FileSystemWatcher {
               def addWatch(directoryToWatch: String): Int = 0
               def removeWatch(id: Int): Unit = ()
               def reloaded(): Unit = ()
               def changed(): Unit = ()
               def hasChanged = true
             }
-
           }
         }
 
