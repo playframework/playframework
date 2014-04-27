@@ -108,6 +108,13 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
+     * Build a new fake request corresponding to a given route call
+     */
+    public static FakeRequest fakeRequest(Call call) {
+        return fakeRequest(call.method(), call.url());
+    }
+
+    /**
      * Build a new fake application.
      */
     public static FakeApplication fakeApplication() {

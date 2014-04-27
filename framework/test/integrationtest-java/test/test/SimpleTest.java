@@ -77,24 +77,32 @@ public class SimpleTest {
     
     @Test
     public void badRoute() {
-        Result result = routeAndCall(fakeRequest(GET, "/xx/Kiki"));
-        assertThat(result).isNull();
+        running(fakeApplication(), new Runnable() {
+            public void run() {
+                Result result = route(fakeRequest(GET, "/xx/Kiki"));
+                assertThat(result).isNull();
+            }
+        });
     }
     
     @Test
     public void routeIndex() {
-        Result result = routeAndCall(fakeRequest(GET, "/Kiki"));
-        assertThat(status(result)).isEqualTo(OK);
-        assertThat(contentType(result)).isEqualTo("text/html");
-        assertThat(charset(result)).isEqualTo("utf-8");
-        assertThat(contentAsString(result)).contains("Hello Kiki");
+        running(fakeApplication(), new Runnable() {
+            public void run() {
+                Result result = route(fakeRequest(controllers.routes.Application.index("Kiki")));
+                assertThat(status(result)).isEqualTo(OK);
+                assertThat(contentType(result)).isEqualTo("text/html");
+                assertThat(charset(result)).isEqualTo("utf-8");
+                assertThat(contentAsString(result)).contains("Hello Kiki");
+            }
+        });
     }
     
     @Test
     public void inApp() {  
         running(fakeApplication(), new Runnable() {
             public void run() {
-                Result result = routeAndCall(fakeRequest(GET, "/key"));
+                Result result = route(fakeRequest(controllers.routes.Application.key()));
                 assertThat(status(result)).isEqualTo(OK);
                 assertThat(contentType(result)).isEqualTo("text/plain");
                 assertThat(charset(result)).isEqualTo("utf-8");
@@ -150,7 +158,7 @@ public class SimpleTest {
                 map.put("key2", 2);
                 map.put("key3", true);
                 JsonNode node = Json.toJson(map);
-                Result result = routeAndCall(fakeRequest("POST", "/json").withJsonBody(node));
+                Result result = route(fakeRequest(controllers.routes.Application.getIdenticalJson()).withJsonBody(node));
                 assertThat(status(result)).isEqualTo(OK);
                 assertThat(contentType(result)).isEqualTo("application/json");
                 JsonNode node2 = Json.parse(contentAsString(result));
@@ -194,7 +202,7 @@ public class SimpleTest {
             @Override
             public void run() {
                 Result result = route(fakeRequest(
-                        GET, "/async"));
+                        controllers.routes.Application.asyncResult()));
                 assertThat(status(result)).isEqualTo(OK);
                 assertThat(charset(result)).isEqualTo("utf-8");
                 assertThat(contentAsString(result)).isEqualTo("success");
