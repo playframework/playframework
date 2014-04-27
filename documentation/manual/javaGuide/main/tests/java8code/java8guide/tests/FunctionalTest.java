@@ -18,6 +18,12 @@ public class FunctionalTest extends WithApplication {
 
     int timeout = 5000;
 
+    private TestServer testServer() {
+        Map<String, String> config = new HashMap<String, String>();
+        config.put("application.router", "javaguide.tests.Routes");
+        return Helpers.testServer(fakeApplication(config));
+    }
+
     private TestServer testServer(int port) {
         Map<String, String> config = new HashMap<String, String>();
         config.put("application.router", "javaguide.tests.Routes");
@@ -38,11 +44,11 @@ public class FunctionalTest extends WithApplication {
     //#with-browser
     @Test
     public void runInBrowser() {
-        running(testServer(3333), HTMLUNIT, browser -> {
-            browser.goTo("http://localhost:3333");
-            assertThat(browser.$("#title").getText()).isEqualTo("Hello Guest");
+        running(testServer(), HTMLUNIT, browser -> {
+            browser.goTo("/");
+            assertThat(browser.$("#title").getText()).isEqualTo("Welcome to Play!");
             browser.$("a").click();
-            assertThat(browser.url()).isEqualTo("http://localhost:3333/login");
+            assertThat(browser.url()).isEqualTo("/login");
         });
     }
     //#with-browser

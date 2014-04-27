@@ -490,6 +490,20 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
 
     /**
+     * Creates a new Test server listening on port defined by configuration setting "testserver.port" (defaults to 19001).
+     */
+    public static TestServer testServer() {
+        return testServer(play.api.test.Helpers.testServerPort());
+    }
+
+    /**
+     * Creates a new Test server listening on port defined by configuration setting "testserver.port" (defaults to 19001) and using the given FakeApplication.
+     */
+    public static TestServer testServer(FakeApplication app) {
+        return testServer(play.api.test.Helpers.testServerPort(), app);
+    }
+
+    /**
      * Creates a new Test server.
      */
     public static TestServer testServer(int port) {
