@@ -16,11 +16,6 @@ import static org.fest.assertions.Assertions.*;
 
 public class JavaFunctionalTest extends WithApplication {
 
-    @Before
-    public void setUp() throws Exception {
-        start();
-    }
-
     int timeout = 5000;
 
     private TestServer testServer(int port) {

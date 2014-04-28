@@ -20,10 +20,6 @@ import static org.junit.Assert.*;
 import static play.test.Helpers.*;
 
 public class JavaBodyParsers extends WithApplication {
-    @Before
-    public void setUp() {
-        start();
-    }
 
     @Test
     public void accessRequestBody() {
