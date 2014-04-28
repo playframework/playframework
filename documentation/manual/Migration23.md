@@ -1,11 +1,11 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Play 2.3 Migration Guide
 
-This guide is for migrating a Play 2.2 application to Play 2.3.  To migrate from Play 2.1, first follow the [[Play 2.2 Migration Guide|Migration22]].
+This guide is for migrating to Play 2.3 from Play 2.2. To migrate to Play 2.2, first follow the [[Play 2.2 Migration Guide|Migration22]].
 
 ## Distribution
 
-Play is no longer distributed as a zip file that needs to installed.  Instead, the preferred way to obtain and run Play is using [Typesafe Activator](https://typesafe.com/activator).  Typesafe activator provides an `activator` command, which, like the Play command, delegates to sbt.  So generally, where you previously run commands like `play run`, now you run `activator run`.
+Play is no longer distributed as a zip file that needs to installed.  Instead, the preferred way to obtain and run Play is using [Typesafe Activator](https://typesafe.com/activator).  Typesafe Activator provides an `activator` command, which, like the Play command, delegates to sbt.  So generally, where you previously run commands like `play run`, now you run `activator run`.
 
 To download and get started with Activator, follow the instructions [here](https://typesafe.com/platform/getstarted).
 
@@ -245,7 +245,7 @@ Here is the default app.build.js profile which you should use as a basis for any
 
 For more information please consult [the plugin's documentation](https://github.com/sbt/sbt-rjs#sbt-rjs).
 
-## Results structure
+## Results restructure
 
 In Play 2.2, a number of result types were deprecated, and to facilitate migration to the new results structure, some new types introduced.  Play 2.3 finishes this restructuring.
 
@@ -286,3 +286,38 @@ libraryDependencies += PlayKeys.javaWs
 ```scala
 libraryDependencies += PlayKeys.ws
 ```
+
+## Anorm
+
+There are various changes included for Anorm in this new release.
+
+For improved type safety, type of query parameter must be visible, so that it [can be properly converted](https://github.com/playframework/playframework/blob/master/documentation/manual/scalaGuide/main/sql/ScalaAnorm.md#edge-cases). Now using `Any` as parameter value, explicitly or due to erasure, leads to compilation error `No implicit view available from Any => anorm.ParameterValue`.
+
+```scala
+// Wrong
+val p: Any = "strAsAny"
+SQL("SELECT * FROM test WHERE id={id}").
+  on('id -> p) // Erroneous - No conversion Any => ParameterValue
+
+// Right
+val p = "strAsString"
+SQL("SELECT * FROM test WHERE id={id}").on('id -> p)
+
+// Wrong
+val ps = Seq("a", "b", 3) // inferred as Seq[Any]
+SQL("SELECT * FROM test WHERE (a={a} AND b={b}) OR c={c}").
+  on('a -> ps(0), // ps(0) - No conversion Any => ParameterValue
+    'b -> ps(1), 
+    'c -> ps(2))
+
+// Right
+val ps = Seq[anorm.ParameterValue]("a", "b", 3) // Seq[ParameterValue]
+SQL("SELECT * FROM test WHERE (a={a} AND b={b}) OR c={c}").
+  on('a -> ps(0), 'b -> ps(1), 'c -> ps(2))
+```
+
+If passing value without safe conversion is required, `anorm.Object(anyVal)` can be used to set an opaque parameter.
+
+Moreover, erasure issues about parameter value is fixed: type is no longer `ParameterValue[_]` but simply `ParameterValue`.
+
+Types for parameter names are also unified (when using `.on(...)`). Only `String` and `Symbol` are now supported as name.

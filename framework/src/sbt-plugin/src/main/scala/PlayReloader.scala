@@ -197,7 +197,7 @@ trait PlayReloader {
             }
           }.headOption.map {
             case (source, maybeLine) => {
-              play.templates.MaybeGeneratedSource.unapply(source).map { generatedSource =>
+              play.twirl.compiler.MaybeGeneratedSource.unapply(source).map { generatedSource =>
                 generatedSource.source.get -> Option(maybeLine).map(l => generatedSource.mapLine(l): java.lang.Integer).orNull
               }.getOrElse(source -> maybeLine)
             }

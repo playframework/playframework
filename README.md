@@ -13,7 +13,7 @@ The Play Framework combines productivity and performance making it easy to build
 - [Get help](http://stackoverflow.com/questions/tagged/playframework)
 - [Contribute](http://www.playframework.com/documentation/latest/Guidelines)
 
-### Licence
+### License
 
 This software is licensed under the Apache 2 license, quoted below.
 

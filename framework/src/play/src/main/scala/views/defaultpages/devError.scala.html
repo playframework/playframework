@@ -117,7 +117,7 @@
 		@error match {
 		
 			case description:play.api.PlayException.RichDescription => {
-			    <p id="detail">@play.api.templates.Html(description.htmlDescription)</p>
+			    <p id="detail">@play.twirl.api.Html(description.htmlDescription)</p>
 			}
 			
 			case _ => {

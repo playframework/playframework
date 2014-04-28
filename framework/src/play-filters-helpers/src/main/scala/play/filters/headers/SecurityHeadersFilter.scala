@@ -33,7 +33,6 @@ object SecurityHeadersFilter {
   val X_XSS_PROTECTION_HEADER = "X-XSS-Protection"
   val X_CONTENT_TYPE_OPTIONS_HEADER = "X-Content-Type-Options"
   val X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER = "X-Permitted-Cross-Domain-Policies"
-  val X_CONTENT_SECURITY_POLICY_HEADER = "X-Content-Security-Policy"
   val CONTENT_SECURITY_POLICY_HEADER = "Content-Security-Policy"
 
   val DEFAULT_FRAME_OPTIONS = "DENY"
@@ -169,7 +168,6 @@ class SecurityHeadersFilter(config: SecurityHeadersConfig) extends Filter {
           config.xssProtection.map(X_XSS_PROTECTION_HEADER -> _),
           config.contentTypeOptions.map(X_CONTENT_TYPE_OPTIONS_HEADER -> _),
           config.permittedCrossDomainPolicies.map(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER -> _),
-          config.contentSecurityPolicy.map(X_CONTENT_SECURITY_POLICY_HEADER -> _),
           config.contentSecurityPolicy.map(CONTENT_SECURITY_POLICY_HEADER -> _)
         ).flatten
         r.withHeaders(headers: _*)

@@ -5,8 +5,8 @@ package play.libs;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import play.mvc.Content;
 import play.libs.Json;
+import play.twirl.api.Content;
 
 /**
  * The JSONP Content renders a JavaScript call of a JSON object.<br>

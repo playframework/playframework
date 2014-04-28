@@ -13,13 +13,15 @@ import play.sbtplugin.ApplicationSecretGenerator
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 import WebKeys._
 import scala.language.postfixOps
+import play.twirl.sbt.Import.TwirlKeys
 
 trait PlaySettings {
   this: PlayCommands with PlayPositionMapper with PlayRun with PlaySourceGenerators =>
 
   lazy val defaultJavaSettings = Seq[Setting[_]](
 
-    templatesImport ++= defaultJavaTemplatesImport,
+    TwirlKeys.templateImports in Compile ++= defaultJavaTemplateImports,
+    TwirlKeys.templateImports in Test ++= defaultJavaTemplateImports,
 
     routesImport ++= Seq(
       "play.libs.F"
@@ -30,7 +32,8 @@ trait PlaySettings {
   )
 
   lazy val defaultScalaSettings = Seq[Setting[_]](
-    templatesImport ++= defaultScalaTemplatesImport
+    TwirlKeys.templateImports in Compile ++= defaultScalaTemplateImports,
+    TwirlKeys.templateImports in Test ++= defaultScalaTemplateImports
   )
 
   def closureCompilerSettings(optionCompilerOptions: com.google.javascript.jscomp.CompilerOptions) = Seq[Setting[_]](
@@ -68,6 +71,9 @@ trait PlaySettings {
 
     javaSource in Compile <<= baseDirectory(_ / "app"),
     javaSource in Test <<= baseDirectory(_ / "test"),
+
+    sourceDirectories in (Compile, TwirlKeys.compileTemplates) := Seq((sourceDirectory in Compile).value),
+    sourceDirectories in (Test, TwirlKeys.compileTemplates) := Seq((sourceDirectory in Test).value),
 
     javacOptions in (Compile, doc) := List("-encoding", "utf8"),
 
@@ -121,8 +127,6 @@ trait PlaySettings {
     watchSources <+= confDirectory map {
       all => all
     },
-
-    sourceGenerators in Compile <+= (state, unmanagedSourceDirectories in Compile, sourceManaged in Compile, templatesTypes, templatesImport, excludeFilter in unmanagedSources) map ScalaTemplates,
 
     // Adds app directory's source files to continuous hot reloading
     watchSources <++= baseDirectory map {
@@ -228,14 +232,8 @@ trait PlaySettings {
 
     // Templates
 
-    templatesImport := defaultTemplatesImport,
-
-    templatesTypes := Map(
-      "html" -> "play.api.templates.HtmlFormat",
-      "txt" -> "play.api.templates.TxtFormat",
-      "xml" -> "play.api.templates.XmlFormat",
-      "js" -> "play.api.templates.JavaScriptFormat"
-    ),
+    TwirlKeys.templateImports in Compile ++= defaultTemplateImports,
+    TwirlKeys.templateImports in Test ++= defaultTemplateImports,
 
     // Native packaging
 

@@ -37,6 +37,7 @@ public class NingWSRequestHolder implements WSRequestHolder {
 
     private int timeout = 0;
     private Boolean followRedirects = null;
+    private String virtualHost = null;
 
     public NingWSRequestHolder(NingWSClient client, String url) {
         try {
@@ -195,6 +196,15 @@ public class NingWSRequestHolder implements WSRequestHolder {
     }
 
     /**
+     * Sets the virtual host.
+     */
+    @Override
+    public WSRequestHolder setVirtualHost(String virtualHost) {
+        this.virtualHost = virtualHost;
+        return this;
+    }
+
+    /**
      * Sets the request timeout in milliseconds.
      *
      * @param timeout
@@ -286,6 +296,11 @@ public class NingWSRequestHolder implements WSRequestHolder {
     @Override
     public Boolean getFollowRedirects() {
         return this.followRedirects;
+    }
+
+    // Intentionally package public.
+    String getVirtualHost() {
+        return this.virtualHost;
     }
 
     /**
@@ -500,6 +515,9 @@ public class NingWSRequestHolder implements WSRequestHolder {
         }
         if (this.followRedirects != null) {
             req.setFollowRedirects(this.followRedirects);
+        }
+        if (this.virtualHost != null) {
+            req.setVirtualHost(this.virtualHost);
         }
         if (this.username != null && this.password != null && this.scheme != null)
             req.auth(this.username, this.password, this.scheme);

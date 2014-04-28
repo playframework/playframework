@@ -4,10 +4,11 @@
 package play.api.libs.ws.ssl
 
 import javax.net.ssl._
-import java.security.{ UnrecoverableKeyException, KeyStore, SecureRandom }
+import java.security._
 import java.security.cert._
 import java.io._
 import java.net.URL
+import play.api.libs.ws.ssl.AlgorithmConstraint
 
 trait SSLContextBuilder {
   def build(): SSLContext
@@ -51,6 +52,9 @@ class SimpleSSLContextBuilder(protocol: String,
 
 trait KeyManagerFactoryWrapper {
 
+  @throws[KeyStoreException]
+  @throws[NoSuchAlgorithmException]
+  @throws[UnrecoverableKeyException]
   def init(keystore: KeyStore, password: Array[Char]): Unit
 
   def getKeyManagers: Array[KeyManager]
@@ -58,6 +62,7 @@ trait KeyManagerFactoryWrapper {
 
 trait TrustManagerFactoryWrapper {
 
+  @throws[InvalidAlgorithmParameterException]
   def init(spec: ManagerFactoryParameters): Unit
 
   def getTrustManagers: Array[TrustManager]
@@ -190,7 +195,8 @@ class ConfigSSLContextBuilder(info: SSLConfig,
       factory.init(keyStore, password.orNull)
     } catch {
       case e: UnrecoverableKeyException =>
-        e.getCause
+        logger.error(s"Unrecoverable key in keystore $ksc")
+        throw new IllegalStateException(e)
     }
 
     val keyManagers = factory.getKeyManagers

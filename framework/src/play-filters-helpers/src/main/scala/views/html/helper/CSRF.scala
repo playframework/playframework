@@ -4,7 +4,7 @@
 package views.html.helper
 
 import play.api.mvc._
-import play.api.templates.{ HtmlFormat, Html }
+import play.twirl.api.{ Html, HtmlFormat }
 
 /**
  * CSRF helper for Play calls

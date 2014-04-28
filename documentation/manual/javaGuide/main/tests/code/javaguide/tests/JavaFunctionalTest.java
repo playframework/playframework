@@ -10,6 +10,7 @@ import play.test.*;
 import play.libs.F.*;
 import play.libs.ws.*;
 import play.test.Helpers;
+import play.twirl.api.Content;
 
 import static play.test.Helpers.*;
 import static org.fest.assertions.Assertions.*;

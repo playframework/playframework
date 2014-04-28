@@ -22,13 +22,13 @@ In summary, to support your own template format you need to perform the followin
 
 ## Implement a format
 
-Implement the `play.templates.Format<A>` interface that has the methods `A raw(String text)` and `A escape(String text)` that will be used to integrate static and dynamic template parts, respectively.
+Implement the `play.twirl.api.Format<A>` interface that has the methods `A raw(String text)` and `A escape(String text)` that will be used to integrate static and dynamic template parts, respectively.
 
-The type parameter `A` of the format defines the result type of the template rendering, e.g. `Html` for a HTML template. This type must be a subtype of the `play.templates.Appendable<A>` trait that defines how to concatenates parts together.
+The type parameter `A` of the format defines the result type of the template rendering, e.g. `Html` for a HTML template. This type must be a subtype of the `play.twirl.api.Appendable<A>` trait that defines how to concatenates parts together.
 
-For convenience, Play provides a `play.api.templates.BufferedContent<A>` abstract class that implements `play.templates.Appendable<A>` using a `StringBuilder` to build its result and that implements the `play.mvc.Content` interface so Play knows how to serialize it as an HTTP response body.
+For convenience, Play provides a `play.twirl.api.BufferedContent<A>` abstract class that implements `play.twirl.api.Appendable<A>` using a `StringBuilder` to build its result and that implements the `play.twirl.api.Content` interface so Play knows how to serialize it as an HTTP response body.
 
-In short, you need to write two classes: one defining the result (implementing `play.templates.Appendable<A>`) and one defining the text integration process (implementing `play.templates.Format<A>`). For instance, here is how the HTML format could be defined:
+In short, you need to write two classes: one defining the result (implementing `play.twirl.api.Appendable<A>`) and one defining the text integration process (implementing `play.twirl.api.Format<A>`). For instance, here is how the HTML format could be defined:
 
 ```java
 public class Html extends BufferedContent<Html> {
@@ -55,6 +55,6 @@ The templates are compiled into a `.scala` files by the build process just befor
 templatesTypes += ("html" -> "my.HtmlFormat.instance")
 ```
 
-Note that the right side of the arrow contains the fully qualified name of a static value of type `play.templates.Format<?>`.
+Note that the right side of the arrow contains the fully qualified name of a static value of type `play.twirl.api.Format<?>`.
 
 > **Next:** [[HTTP form submission and validation | JavaForms]]

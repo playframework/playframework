@@ -4,7 +4,7 @@
 package scalaguide.templates
 
 import org.specs2.mutable.Specification
-import play.api.templates.Html
+import play.twirl.api.Html
 
 // These have to be in the same package as the template
 package views.html.Application {

@@ -48,7 +48,6 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
       header(X_XSS_PROTECTION_HEADER, result) must beSome("1; mode=block")
       header(X_CONTENT_TYPE_OPTIONS_HEADER, result) must beSome("nosniff")
       header(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, result) must beSome("master-only")
-      header(X_CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src 'self'")
       header(CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src 'self'")
     }
 
@@ -69,7 +68,6 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
       header(X_XSS_PROTECTION_HEADER, result) must beSome("1; mode=block")
       header(X_CONTENT_TYPE_OPTIONS_HEADER, result) must beSome("nosniff")
       header(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, result) must beSome("master-only")
-      header(X_CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src 'self'")
       header(CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src 'self'")
     }
 
@@ -87,7 +85,6 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
       header(X_XSS_PROTECTION_HEADER, result) must beSome("1; mode=block")
       header(X_CONTENT_TYPE_OPTIONS_HEADER, result) must beSome("nosniff")
       header(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER, result) must beSome("master-only")
-      header(X_CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src 'self'")
       header(CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src 'self'")
     }
 
@@ -171,14 +168,12 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
         """.stripMargin))) {
         val result = route(FakeRequest()).get
 
-        header(X_CONTENT_SECURITY_POLICY_HEADER, result) must beSome("some content security policy")
         header(CONTENT_SECURITY_POLICY_HEADER, result) must beSome("some content security policy")
       }
 
       "work with none" in withApplication(Ok("hello"), SecurityHeadersFilter(defaultConfig.copy(contentSecurityPolicy = None))) {
         val result = route(FakeRequest()).get
 
-        header(X_CONTENT_SECURITY_POLICY_HEADER, result) must beNone
         header(CONTENT_SECURITY_POLICY_HEADER, result) must beNone
       }
     }

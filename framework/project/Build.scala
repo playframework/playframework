@@ -8,6 +8,8 @@ import com.typesafe.tools.mima.plugin.MimaKeys.{previousArtifact, binaryIssueFil
 import com.typesafe.tools.mima.core._
 import com.typesafe.sbt.SbtScalariform.defaultScalariformSettings
 import scala.util.Properties.isJavaAtLeast
+import play.twirl.sbt.SbtTwirl
+import play.twirl.sbt.Import.TwirlKeys
 
 object BuildSettings {
   import Resolvers._
@@ -153,33 +155,12 @@ object PlayBuild extends Build {
   import Generators._
   import Tasks._
 
-  private def scalaXmlModuleDependency: Setting[Seq[ModuleID]] = libraryDependencies := {
-    CrossVersion.partialVersion(scalaVersion.value) match {
-      // if scala 2.11+ is used, add dependency on scala-xml module
-      case Some((2, scalaMajor)) if scalaMajor >= 11 =>
-        libraryDependencies.value :+ "org.scala-lang.modules" %% "scala-xml" % "1.0.0"
-      case _ =>
-        libraryDependencies.value
-    }
-  }
-
   lazy val BuildLinkProject = PlaySharedJavaProject("Build-Link", "build-link")
     .settings(libraryDependencies := link)
     .dependsOn(PlayExceptionsProject)
 
-  lazy val TemplatesProject = PlayRuntimeProject("Templates", "templates")
-    .settings(libraryDependencies := templatesDependencies, scalaXmlModuleDependency)
-
   lazy val RoutesCompilerProject = PlaySbtProject("Routes-Compiler", "routes-compiler")
     .settings(libraryDependencies := routersCompilerDependencies)
-
-  lazy val TemplatesCompilerProject = PlaySbtProject("Templates-Compiler", "templates-compiler")
-    .settings(
-      libraryDependencies := templatesCompilerDependencies,
-      libraryDependencies <+= scalaVersion apply { sv =>
-        "org.scala-lang" % "scala-compiler" % sv
-      }
-    )
 
   lazy val AnormProject = PlayRuntimeProject("Anorm", "anorm")
     .settings(libraryDependencies ++= anormDependencies,
@@ -200,14 +181,16 @@ object PlayBuild extends Build {
     testBinaryCompatibility = true)
 
   lazy val PlayProject = PlayRuntimeProject("Play", "play")
+    .addPlugins(SbtTwirl)
     .settings(
-      libraryDependencies := runtime ++ scalacheckDependencies,
+      libraryDependencies ++= runtime ++ scalacheckDependencies,
       sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
-      mappings in(Compile, packageSrc) <++= scalaTemplateSourceMappings,
+      sourceDirectories in (Compile, TwirlKeys.compileTemplates) := (unmanagedSourceDirectories in Compile).value,
+      TwirlKeys.templateImports in Compile += "play.api.templates.PlayMagic._",
+      mappings in (Compile, packageSrc) <++= scalaTemplateSourceMappings,
       Docs.apiDocsIncludeManaged := true,
-      parallelExecution in Test := false,
-      sourceGenerators in Compile <+= (dependencyClasspath in TemplatesCompilerProject in Runtime, packageBin in TemplatesCompilerProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates
-    ).dependsOn(BuildLinkProject, PlayExceptionsProject, TemplatesProject, IterateesProject % "test->test;compile->compile", JsonProject)
+      parallelExecution in Test := false
+    ).dependsOn(BuildLinkProject, PlayExceptionsProject, IterateesProject % "test->test;compile->compile", JsonProject)
 
   lazy val PlayJdbcProject = PlayRuntimeProject("Play-JDBC", "play-jdbc")
     .settings(libraryDependencies := jdbcDeps)
@@ -290,7 +273,7 @@ object PlayBuild extends Build {
           "-Dperformance.log=" + new File(baseDir, "target/sbt-repcomile-performance.properties")
        )
       }
-    ).dependsOn(BuildLinkProject, PlayExceptionsProject, RoutesCompilerProject, TemplatesCompilerProject)
+    ).dependsOn(BuildLinkProject, PlayExceptionsProject, RoutesCompilerProject)
 
   lazy val PlayWsProject = PlayRuntimeProject("Play-WS", "play-ws")
     .settings(
@@ -351,8 +334,6 @@ object PlayBuild extends Build {
     PlayProject,
     BuildLinkProject,
     AnormProject,
-    TemplatesProject,
-    TemplatesCompilerProject,
     IterateesProject,
     FunctionalProject,
     DataCommonsProject,

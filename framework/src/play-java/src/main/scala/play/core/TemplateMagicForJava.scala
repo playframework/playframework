@@ -4,7 +4,6 @@
 package play.core.j
 
 import play.api.mvc._
-import play.templates._
 
 import scala.util.control.NonFatal
 

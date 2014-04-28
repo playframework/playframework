@@ -6,7 +6,7 @@ package play.api.libs
 import org.apache.commons.lang3.StringEscapeUtils
 import play.api.mvc._
 import play.api.libs.iteratee._
-import play.api.templates._
+import play.twirl.api._
 
 import play.core.Execution.Implicits.internalContext
 
