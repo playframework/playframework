@@ -317,10 +317,10 @@ class ConfigSSLContextBuilder(info: SSLConfig,
               algorithmChecker.checkKeyAlgorithms(c)
             } catch {
               case e: CertPathValidatorException =>
-                logger.warn(s"validateKeyStore: Skipping certificate with weak key size in $alias" + e.getMessage)
+                logger.warn(s"validateKeyStore: Skipping certificate with weak key size in $alias: " + e.getMessage)
                 store.deleteEntry(alias)
               case e: Exception =>
-                logger.warn(s"validateKeyStore: Skipping unknown exception $alias" + e.getMessage)
+                logger.warn(s"validateKeyStore: Skipping unknown exception $alias: " + e.getMessage)
                 store.deleteEntry(alias)
             }
         }
