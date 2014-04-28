@@ -105,12 +105,14 @@ class ConfigSSLContextBuilder(info: SSLConfig,
     val disabledKeyAlgorithms = info.disabledKeyAlgorithms.getOrElse(Algorithms.disabledKeyAlgorithms)
     val keySizeConstraints = AlgorithmConstraintsParser(disabledKeyAlgorithms).toSet
 
+    val algorithmChecker = new AlgorithmChecker(signatureConstraints, keySizeConstraints)
+
     val keyManagers: Seq[KeyManager] = info.keyManagerConfig.map {
-      kmc => Seq(buildCompositeKeyManager(kmc, keySizeConstraints))
+      kmc => Seq(buildCompositeKeyManager(kmc, algorithmChecker))
     }.getOrElse(Nil)
 
     val trustManagers: Seq[TrustManager] = info.trustManagerConfig.map {
-      tmc => Seq(buildCompositeTrustManager(tmc, checkRevocation, revocationLists, signatureConstraints, keySizeConstraints))
+      tmc => Seq(buildCompositeTrustManager(tmc, checkRevocation, revocationLists, algorithmChecker))
     }.getOrElse(Nil)
 
     buildSSLContext(protocol, keyManagers, trustManagers, info.secureRandom)
@@ -124,25 +126,23 @@ class ConfigSSLContextBuilder(info: SSLConfig,
     builder.build()
   }
 
-  def buildCompositeKeyManager(keyManagerConfig: KeyManagerConfig, keySizeConstraints: Set[AlgorithmConstraint]) = {
+  def buildCompositeKeyManager(keyManagerConfig: KeyManagerConfig, algorithmChecker: AlgorithmChecker) = {
     val keyManagers = keyManagerConfig.keyStoreConfigs.map {
       ksc =>
-        buildKeyManager(ksc, keySizeConstraints)
+        buildKeyManager(ksc, algorithmChecker)
     }
     new CompositeX509KeyManager(keyManagers)
   }
 
   def buildCompositeTrustManager(trustManagerInfo: TrustManagerConfig,
     revocationEnabled: Boolean,
-    revocationLists: Option[Seq[CRL]],
-    signatureConstraints: Set[AlgorithmConstraint],
-    keyConstraints: Set[AlgorithmConstraint]) = {
+    revocationLists: Option[Seq[CRL]], algorithmChecker: AlgorithmChecker) = {
 
     val trustManagers = trustManagerInfo.trustStoreConfigs.map {
       tsc =>
-        buildTrustManager(tsc, revocationEnabled, revocationLists, signatureConstraints, keyConstraints)
+        buildTrustManager(tsc, revocationEnabled, revocationLists, algorithmChecker)
     }
-    new CompositeX509TrustManager(trustManagers)
+    new CompositeX509TrustManager(trustManagers, algorithmChecker)
   }
 
   // Get either a string or file based keystore builder from config.
@@ -180,9 +180,9 @@ class ConfigSSLContextBuilder(info: SSLConfig,
   /**
    * Builds a key manager from a keystore, using the KeyManagerFactory.
    */
-  def buildKeyManager(ksc: KeyStoreConfig, keySizeConstraints: Set[AlgorithmConstraint]): X509KeyManager = {
+  def buildKeyManager(ksc: KeyStoreConfig, algorithmChecker: AlgorithmChecker): X509KeyManager = {
     val keyStore = keyStoreBuilder(ksc).build()
-    validateStore(keyStore, createAlgorithmChecker(keySizeConstraints))
+    validateStore(keyStore, algorithmChecker)
 
     val password = ksc.password.map(_.toCharArray)
 
@@ -244,8 +244,7 @@ class ConfigSSLContextBuilder(info: SSLConfig,
   def buildTrustManagerParameters(trustStore: KeyStore,
     revocationEnabled: Boolean,
     revocationLists: Option[Seq[CRL]],
-    signatureConstraints: Set[AlgorithmConstraint],
-    keyConstraints: Set[AlgorithmConstraint]): CertPathTrustManagerParameters = {
+    algorithmChecker: AlgorithmChecker): CertPathTrustManagerParameters = {
     import scala.collection.JavaConverters._
 
     val certSelect: X509CertSelector = new X509CertSelector
@@ -259,10 +258,8 @@ class ConfigSSLContextBuilder(info: SSLConfig,
         pkixParameters.addCertStore(CertStore.getInstance("Collection", new CollectionCertStoreParameters(crlList.asJavaCollection)))
     }
 
-    // Add the algorithm checker in here...
-    val checkers: Seq[PKIXCertPathChecker] = Seq(
-      new AlgorithmChecker(signatureConstraints, keyConstraints)
-    )
+    // Add the algorithm checker in here to check the certification path sequence (not including trust anchor)...
+    val checkers: Seq[PKIXCertPathChecker] = Seq(algorithmChecker)
 
     // Use the custom cert path checkers we defined...
     pkixParameters.setCertPathCheckers(checkers.asJava)
@@ -274,21 +271,17 @@ class ConfigSSLContextBuilder(info: SSLConfig,
    */
   def buildTrustManager(tsc: TrustStoreConfig,
     revocationEnabled: Boolean,
-    revocationLists: Option[Seq[CRL]],
-    signatureConstraints: Set[AlgorithmConstraint],
-    keyConstraints: Set[AlgorithmConstraint]): X509TrustManager = {
+    revocationLists: Option[Seq[CRL]], algorithmChecker: AlgorithmChecker): X509TrustManager = {
 
     val factory = trustManagerFactory
     val trustStore = trustStoreBuilder(tsc).build()
-    validateStore(trustStore, createAlgorithmChecker(keyConstraints))
+    validateStore(trustStore, algorithmChecker)
 
     val trustManagerParameters = buildTrustManagerParameters(
       trustStore,
       revocationEnabled,
       revocationLists,
-      signatureConstraints,
-      keyConstraints
-    )
+      algorithmChecker)
 
     factory.init(trustManagerParameters)
     val trustManagers = factory.getTrustManagers
@@ -325,10 +318,6 @@ class ConfigSSLContextBuilder(info: SSLConfig,
             }
         }
     }
-  }
-
-  def createAlgorithmChecker(constraints: Set[AlgorithmConstraint]): AlgorithmChecker = {
-    new AlgorithmChecker(signatureConstraints = Set(), keyConstraints = constraints)
   }
 
 }

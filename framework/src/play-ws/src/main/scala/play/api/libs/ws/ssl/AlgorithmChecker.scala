@@ -15,6 +15,10 @@ import javax.naming.InvalidNameException
  *
  * This class is needed because the JDK 1.6 Algorithm checker doesn't give us any way to customize the list of
  * disabled algorithms, and we need to be able to support that.
+ *
+ * Also note that we need to check the trust anchor for disabled key sizes, and the CertPath explicitly removes
+ * the trust anchor from the chain of certificates.  This means we need to check the trust anchor explicitly in the
+ * through the CompositeTrustManager.
  */
 class AlgorithmChecker(val signatureConstraints: Set[AlgorithmConstraint], val keyConstraints: Set[AlgorithmConstraint]) extends PKIXCertPathChecker {
 
