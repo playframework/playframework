@@ -25,23 +25,34 @@ templates := {
   )).map(template => dir / template)
 }
 
-val playVersion = sys.props.get("play.version").getOrElse {
+val playVersion = propOrElse("play.version", {
   println("[\033[31merror\033[0m] No play.version system property specified.\n[\033[31merror\033[0m] Just use the build script to launch SBT and life will be much easier.")
   System.exit(1)
   throw new RuntimeException("No play version")
+})
+
+val playDocsUrl = propOrElse("play.docs.url", s"http://www.playframework.com/documentation/${playVersion}")
+
+// Use different names for release and milestone templates
+val (templateNameSuffix, templateTitleSuffix) = {
+  val officialRelease = playVersion.matches("[0-9.]+") // Match 2.3.0 but not 2.3-SNAPSHOT or 2.3.0-RC1
+  if (officialRelease) ("", "") else ("-preview", " (Preview)")
 }
 
-def propOrElse(prop: String, default: String): String = sys.props.get(prop).getOrElse(default)
+def propOrElse(prop: String, default: => String): String = sys.props.get(prop).getOrElse(default)
 
 templateParameters := Map(
   "PLAY_VERSION" -> playVersion,
+  "PLAY_DOCS_URL" -> playDocsUrl,
   "SBT_VERSION" -> playSbtVersion,
   "COFFEESCRIPT_VERSION" -> coffeescriptVersion,
   "LESS_VERSION" -> lessVersion,
   "JSHINT_VERSION" -> jshintVersion,
   "DIGEST_VERSION" -> digestVersion,
   "RJS_VERSION" -> rjsVersion,
-  "MOCHA_VERSION" -> mochaVersion
+  "MOCHA_VERSION" -> mochaVersion,
+  "TEMPLATE_NAME_SUFFIX" -> templateNameSuffix,
+  "TEMPLATE_TITLE_SUFFIX" -> templateTitleSuffix
 )
 
 

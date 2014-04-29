@@ -47,8 +47,13 @@ object Templates {
       val params: Map[String, String] = templateParameters.value
       val outDir: File = target.value / "prepared-templates"
 
+      // Don't sync directories or .gitkeep files. We can remove
+      // .gitkeep files. These files are only there to make sure we preserve
+      // directories in Git, but they're not needed in the templates.
+      def fileFilter(f: File) = { !f.isDirectory && (f.getName != ".gitkeep") }
+
       val mappings = templateDirs.flatMap { template =>
-        (template.***.filter(!_.isDirectory) x relativeTo(template)).map(f => (f._1, outDir / template.getName / f._2))
+        (template.***.filter(fileFilter(_)) x relativeTo(template)).map(f => (f._1, outDir / template.getName / f._2))
       }
 
       Sync(streams.value.cacheDirectory / "prepared-templates")(mappings)
