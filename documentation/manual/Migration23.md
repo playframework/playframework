@@ -127,6 +127,7 @@ The following lists all sbt-web related components and their versions at the tim
 
 "com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0-M2a"
 "com.typesafe.sbt" % "sbt-digest" % "1.0.0-M2"
+"com.typesafe.sbt" % "sbt-gzip" % "1.0.0-M2b"
 "com.typesafe.sbt" % "sbt-less" % "1.0.0-M2a"
 "com.typesafe.sbt" % "sbt-jshint" % "1.0.0-M2a"
 "com.typesafe.sbt" % "sbt-mocha" % "1.0.0-M2a"
@@ -165,7 +166,13 @@ You must now declare the plugin, typically in your plugins.sbt file:
 addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.0.0-M2a")
 ```
 
-There is no longer any need to declare the "entry points". The new options are:
+Entry points are now declared using a filter. For example, to declare that `foo.less` and `bar.less` are required:
+
+```scala
+includeFilter in (Assets, LessKeys.less) := "foo.less" | "bar.less"
+```
+
+The plugin's options are:
 
 Option              | Description
 --------------------|------------

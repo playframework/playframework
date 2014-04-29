@@ -18,7 +18,9 @@ You can split your LESS source into several libraries and use the LESS `import` 
 To prevent library files from being compiled individually (or imported) we need them to be skipped by the compiler. To do this partial source files can be prefixed with the underscore (`_`) character, for example: `_myLibrary.less`. The following configuration enables the compiler to ignore partials:
 
 ```scala
-excludeFilter in Assets := new PatternFilter("""[^_].*\.less""".r.pattern)
+includeFilter in (Assets, LessKeys.less) := "*.less"
+
+excludeFilter in (Assets, LessKeys.less) := new PatternFilter("""[_].*\.less""".r.pattern)
 ```
 
 
