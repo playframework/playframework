@@ -49,7 +49,7 @@ This may need to be repeated if there are more changes that have conflicts.
 
 ### Responding to reviews/build breakages
 
-If your pull request doesn't pass the CI build, if review it and ask you to update your pull request, or if for any other reason you want to update your pull request, then rather than creating a new commit, amend the existing one.  This can be done by supplying the `--amend` flag when committing:
+If your pull request doesn't pass the CI build, if we review it and ask you to update your pull request, or if for any other reason you want to update your pull request, then rather than creating a new commit, amend the existing one.  This can be done by supplying the `--amend` flag when committing:
 
     git commit --amend
 
