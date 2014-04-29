@@ -21,7 +21,7 @@ import play.api.http.ContentTypes
 import scala.collection.concurrent.TrieMap
 
 /*
- * A cache designed to prevent the "thundering herds" issue.
+ * A map designed to prevent the "thundering herds" issue.
  *
  * This could be factored out into its own thing, improved and made available more widely. We could also
  * use spray-cache once it has been re-worked into the Akka code base.
@@ -105,10 +105,7 @@ private class AssetInfo(
     if (MimeTypes.isText(mimeType)) s"$mimeType; charset=$defaultCharSet" else mimeType
 
   val cacheControl: String = {
-    Play.configuration.getString("\"assets.cache." + name + "\"").getOrElse(Play.mode match {
-      case Mode.Prod => defaultCacheControl
-      case _ => "no-cache"
-    })
+    Play.configuration.getString("\"assets.cache." + name + "\"").getOrElse(if (Play.isProd) defaultCacheControl else "no-cache")
   }
 
   val isDirectory: Boolean = new File(url.getFile).isDirectory
@@ -162,8 +159,6 @@ private class AssetInfo(
  * }}}
  */
 object Assets extends AssetsBuilder {
-  private[controllers] lazy val assetInfoCacheSize = if (Play.isDev) 0 else Play.configuration.getInt("assets.infoCache.size").getOrElse(500)
-  private[controllers] lazy val assetInfoInitialCapacity = if (Play.isDev) 0 else Play.configuration.getInt("assets.infoCache.initial").getOrElse(100)
   private[controllers] lazy val assetInfoCache = new SelfPopulatingMap[String, AssetInfo]()
 }
 
@@ -180,7 +175,13 @@ class AssetsBuilder extends Controller {
     }
   }
 
-  private def assetInfo(name: String): Future[AssetInfo] = assetInfoCache.putIfAbsent(name)(assetInfoFromResource)(Implicits.trampoline)
+  private def assetInfo(name: String): Future[AssetInfo] = {
+    if (Play.isDev) {
+      Future.successful(assetInfoFromResource(name))
+    } else {
+      assetInfoCache.putIfAbsent(name)(assetInfoFromResource)(Implicits.trampoline)
+    }
+  }
 
   private def assetInfoForRequest(request: Request[_], name: String): Future[(AssetInfo, Boolean)] = {
     val gzipRequested = request.headers.get(ACCEPT_ENCODING).exists(_.split(',').exists(_.trim == "gzip"))
