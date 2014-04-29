@@ -67,3 +67,13 @@ A method to use actors for handling websocket interactions has been incorporated
 ## Results restructuring completed
 
 In Play 2.2, a number of new result types were introduced and old results types deprecated. Play 2.3 finishes this restructuring. See *Results restructure* in the [[Migration Guide|Migration23]] for more information.
+
+## Anorm
+
+There are various fixes included in new Anorm (type safety, option parsing, error handling, ...) and new interesting features.
+
+- String interpolation is available to write SQL statements more easily, with less verbosity (passing arguments) and performance improvements (up to x7 faster processing parameters). e.g. `SQL"SELECT * FROM table WHERE id = $id"`
+- Multi-value (sequence/list) can be passed as parameter. e.g. `SQL"""SELECT * FROM Test WHERE cat IN (${Seq("a", "b", "c")})"""`
+- It's now possible to parse column by position. e.g. `val parser = long(1) ~ str(2) map { case l ~ s => ??? }`
+- Query results include not only data, but execution context (with SQL warning).
+- More types are supported as parameter and as column: `java.util.UUID`, numeric types (Java/Scala big decimal and integer, more column conversions between numerics), temporal types (`java.sql.Timestamp`), character types.
