@@ -7,7 +7,7 @@ package scalaguide.tests.scalatest
 import collection.mutable.Stack
 import org.scalatestplus.play._
 
-class ExampleSpec extends PlaySpec {
+class StackSpec extends PlaySpec {
 
   "A Stack" must {
     "pop values in last-in-first-out order" in {

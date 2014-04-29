@@ -12,9 +12,9 @@ The location for tests is in the "test" folder.  <!-- There are two sample test 
 You can run tests from the Play console.
 
 * To run all tests, run `test`.
-* To run only one test class, run `test-only` followed by the name of the class i.e. `test-only my.namespace.MySpec`.
+* To run only one test class, run `test-only` followed by the name of the class, i.e., `test-only my.namespace.MySpec`.
 * To run only the tests that have failed, run `test-quick`.
-* To run tests continually, run a command with a tilde in front, i.e. `~test-quick`.
+* To run tests continually, run a command with a tilde in front, i.e., `~test-quick`.
 
 Testing in Play is based on SBT, and a full description is available in the [testing SBT](http://www.scala-sbt.org/0.13.0/docs/Detailed-Topics/Testing) chapter.
 
@@ -24,25 +24,25 @@ In [ScalaTest + Play](http://scalatest.org/plus/play), you define test classes b
 
 @[scalatest-stackspec](code-scalatestplus-play/StackSpec.scala)
 
-You can, of course, also [create your own base classes](http://scalatest.org/user_guide/defining_base_classes) instead of using `PlaySpec`.
+You can alternatively [define your own base classes](http://scalatest.org/user_guide/defining_base_classes) instead of using `PlaySpec`.
 
 You can run your tests with Play itself, or in IntelliJ IDEA (using the [Scala plugin](http://blog.jetbrains.com/scala/)) or in Eclipse (using the [Scala IDE](http://scala-ide.org/) and the [ScalaTest Eclipse plugin](http://scalatest.org/user_guide/using_scalatest_with_eclipse)).  Please see the [[IDE page|IDE]] for more details.
 
 ### Matchers
 
-`PlaySpec` mixes in ScalaTest's [`MustMatchers`](http://doc.scalatest.org/2.1.0/index.html#org.scalatest.MustMatchers), so you can write assertions using ScalaTest's matchers DSL:
+`PlaySpec` mixes in ScalaTest's [`MustMatchers`](http://doc.scalatest.org/2.1.5/index.html#org.scalatest.MustMatchers), so you can write assertions using ScalaTest's matchers DSL:
 
 ```scala
 "Hello world" must endWith ("world")
 ```
 
-For more information, see the documentation for [`MustMatchers`](http://doc.scalatest.org/2.1.0/index.html#org.scalatest.MustMatchers).
+For more information, see the documentation for [`MustMatchers`](http://doc.scalatest.org/2.1.5/index.html#org.scalatest.MustMatchers).
 
 ### Mockito
 
 You can use mocks to isolate unit tests against external dependencies.  For example, if your class depends on an external `DataService` class, you can feed appropriate data to your class without instantiating a `DataService` object.
 
-ScalaTest provides integration with [Mockito](https://code.google.com/p/mockito/) via its [`MockitoSugar`](http://doc.scalatest.org/2.1.0/index.html#org.scalatest.mock.MockitoSugar) trait.
+ScalaTest provides integration with [Mockito](https://code.google.com/p/mockito/) via its [`MockitoSugar`](http://doc.scalatest.org/2.1.5/index.html#org.scalatest.mock.MockitoSugar) trait.
 
 To use Mockito, mix `MockitoSugar` into your test class:
 
