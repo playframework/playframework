@@ -287,6 +287,12 @@ libraryDependencies += PlayKeys.javaWs
 libraryDependencies += PlayKeys.ws
 ```
 
+In addition, usage of the WS client now requires a Play application in scope. Typically this is achieved by adding:
+
+```scala
+import play.api.Play.current
+```
+
 ## Anorm
 
 There are various changes included for Anorm in this new release.
