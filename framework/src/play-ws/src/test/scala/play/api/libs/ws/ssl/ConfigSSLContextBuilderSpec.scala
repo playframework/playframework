@@ -205,7 +205,7 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
       val storeType = KeyStore.getDefaultType
       val data = "derp"
 
-      val actual = builder.stringBuilder(storeType, data, None)
+      val actual = builder.stringBuilder(data, None)
       actual must beAnInstanceOf[StringBasedKeyStoreBuilder]
     }
 
