@@ -22,6 +22,7 @@ class UserServiceSpec extends PlaySpec with MockitoSugar {
       when(userRepository.roles(any[User])) thenReturn Set(Role("ADMIN"))
 
       val userService = new UserService(userRepository)
+
       val actual = userService.isAdmin(User("11", "Steve", "user@example.org"))
       actual mustBe true
     }
