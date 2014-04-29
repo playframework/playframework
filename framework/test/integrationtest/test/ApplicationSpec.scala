@@ -85,11 +85,6 @@ class ApplicationSpec extends PlaySpecification with WsTestClient {
       play.test.Helpers.charset(javaResult(result)) must equalTo("utf-8")
     }
 
-    "not serve asset directories" in new WithApplication() {
-      val Some(result) = route(FakeRequest(GET, "/public//"))
-      status(result) must equalTo (NOT_FOUND)
-    }
-
     "serve assets" in new WithApplication() {
       val Some(result1) = route(FakeRequest(GET, "/public/empty.txt"))
       status(result1) must equalTo (OK)

@@ -17,12 +17,6 @@ distAndUnzip := {
   targetUnzippedFolder
 }
 
-val unzipProjectJar = TaskKey[Unit]("unzip-project-jar")
-
-unzipProjectJar := {
-  IO.unzip(distAndUnzip.value / "lib" / s"${organization.value}.${normalizedName.value}-${version.value}.jar", target.value / "projectJar")
-}
-
 val checkStartScript = TaskKey[Unit]("check-start-script")
 
 checkStartScript := {

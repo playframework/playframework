@@ -185,10 +185,5 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       result.body must beEmpty
     }
 
-    "return 404 when asset is a directory" in withServer {
-      val result = await(wsUrl("/subdir").get())
-      result.status must_== NOT_FOUND
-    }
-
   }
 }

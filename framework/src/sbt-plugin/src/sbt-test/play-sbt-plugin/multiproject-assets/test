@@ -1,0 +1,23 @@
+# Check that sub project assets get compiled on reload
+> play-reload
+$ exists target/web/public/main/main.css
+$ exists module/target/web/public/main/module.css
+
+# Check that they are mounted at the right place in the run classloader
+> check-on-classpath public/main.css
+> check-on-classpath public/module.css
+
+# Check that they are on the test classpath
+> check-on-test-classpath public/main.css
+> check-on-test-classpath public/module.css
+
+# Clean and ensure that it really did clean
+> clean
+-$ exists target/web/public/main/main.css
+-$ exists module/target/web/public/main/module.css
+
+# Check that sub project assets get compiled and included in the distribution when staged
+> stage
+> unzip-assets-jar
+$ exists target/assetsJar/public/main.css
+$ exists target/assetsJar/public/module.css

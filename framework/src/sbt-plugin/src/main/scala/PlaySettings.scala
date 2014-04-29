@@ -4,7 +4,7 @@
 package play
 
 import sbt._
-import Keys._
+import sbt.Keys._
 import play.PlayImport._
 import PlayKeys._
 import com.typesafe.sbt.SbtNativePackager._
@@ -47,7 +47,7 @@ trait PlaySettings {
     Classpaths.managedJars(config, ct, report)
   }
 
-  lazy val defaultSettings = Seq[Setting[_]](
+  lazy val defaultSettings = Defaults.packageTaskSettings(playPackageAssets, playPackageAssetsMappings) ++ Seq[Setting[_]](
 
     scalaVersion := play.core.PlayVersion.scalaVersion,
 
@@ -211,20 +211,43 @@ trait PlaySettings {
     jsFilter in Assets := new PatternFilter("""[^_].*\.js""".r.pattern),
     resourceDirectory in Assets := baseDirectory.value / "public",
 
-    public in Assets := (public in Assets).value / "public",
     WebKeys.stagingDirectory := WebKeys.stagingDirectory.value / "public",
-
-    products in Runtime += (public in Assets).value.getParentFile,
-    products in Compile += WebKeys.stagingDirectory.value.getParentFile,
 
     playAssetsWithCompilation := {
       val ignore = ((assets in Assets)?).value
       (compile in Compile).value
     },
 
-    fullClasspath in Test := (fullClasspath in Test).dependsOn(assets in Assets).value,
+    // Assets for run mode
+    playPrefixAndAssetsSetting,
+    playAllAssetsSetting,
+    playAssetsClassLoaderSetting,
+    assetsPrefix := "public/",
 
-    packageBin in Compile := (packageBin in Compile).dependsOn(WebKeys.stage).value,
+    // Assets for distribution
+    playPrefixAndPipelineSetting,
+    playPackageAssetsMappingsSetting,
+    artifactClassifier in playPackageAssets := Some("assets"),
+    Keys.artifactName in playPackageAssets := { (_, mid, art) =>
+      val classifier = art.classifier match {
+        case None => ""
+        case Some(c) => "-" + c
+      }
+      art.name + "-" + mid.revision + classifier + "." + art.extension
+    },
+    artifactPath in playPackageAssets := {
+      val sv = ScalaVersion((scalaVersion in Keys.artifactName).value, (scalaBinaryVersion in Keys.artifactName).value)
+      target.value / (Keys.artifactName in playPackageAssets).value(sv, projectID.value, (artifact in playPackageAssets).value)
+    },
+    mappings in Universal += (playPackageAssets.value -> ("lib/" + organization.value + "." + playPackageAssets.value.getName)),
+    scriptClasspath += (organization.value + "." + playPackageAssets.value.getName),
+
+    // Assets for testing
+    public in TestAssets := (public in TestAssets).value / assetsPrefix.value,
+    fullClasspath in Test ++= {
+      val testAssetDirs = ((assets in TestAssets) ?).all(ScopeFilter(inDependencies(ThisProject))).value.flatten
+      testAssetDirs.map(dir => Attributed.blank(dir.getParentFile))
+    },
 
     // Settings
 
