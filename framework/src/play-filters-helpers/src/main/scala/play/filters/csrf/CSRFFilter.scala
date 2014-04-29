@@ -5,6 +5,7 @@ package play.filters.csrf
 
 import play.api.mvc._
 import play.filters.csrf.CSRF.{ TokenProvider, ErrorHandler }
+import play.api.Play
 
 /**
  * A filter that provides CSRF protection.
@@ -20,7 +21,7 @@ import play.filters.csrf.CSRF.{ TokenProvider, ErrorHandler }
  * @param createIfNotFound Whether a new CSRF token should be created if it's not found.  Default creates one if it's
  *                         a GET request that accepts HTML.
  * @param tokenProvider A token provider to use.
- * @param checkFailedResult handling failed token error.
+ * @param errorHandler handling failed token error.
  */
 class CSRFFilter(tokenName: => String = CSRFConf.TokenName,
     cookieName: => Option[String] = CSRFConf.CookieName,
@@ -32,7 +33,10 @@ class CSRFFilter(tokenName: => String = CSRFConf.TokenName,
   /**
    * Default constructor, useful from Java
    */
-  def this() = this(CSRFConf.TokenName)
+  def this() = {
+    this(CSRFConf.TokenName, CSRFConf.CookieName, CSRFConf.SecureCookie, CSRFConf.defaultCreateIfNotFound,
+      CSRFConf.defaultTokenProvider, CSRFConf.defaultJavaErrorHandler)
+  }
 
   def apply(next: EssentialAction): EssentialAction = new CSRFAction(next, tokenName, cookieName, secureCookie,
     createIfNotFound, tokenProvider, errorHandler)
@@ -47,4 +51,5 @@ object CSRFFilter {
     errorHandler: => ErrorHandler = CSRFConf.defaultErrorHandler) = {
     new CSRFFilter(tokenName, cookieName, secureCookie, createIfNotFound, tokenProvider, errorHandler)
   }
+
 }

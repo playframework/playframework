@@ -94,6 +94,7 @@ The following options can be configured in `application.conf`:
 * `csrf.cookie.secure` - If `csrf.cookie.name` is set, whether the CSRF cookie should have the secure flag set.  Defaults to the same value as `session.secure`.
 * `csrf.body.bufferSize` - In order to read tokens out of the body, Play must first buffer the body and potentially parse it.  This sets the maximum buffer size that will be used to buffer the body.  Defaults to 100k.
 * `csrf.sign.tokens` - Whether Play should use signed CSRF tokens.  Signed CSRF tokens ensure that the token value is randomised per request, thus defeating BREACH style attacks.
+* `csrf.error.handler` - The error handler.  Must implement `play.filters.csrf.CSRFErrorHandler` or `play.filters.csrf.CSRF.ErrorHandler`.
 
 > **Next:** [[Working with JSON| JavaJsonRequests]]
 
