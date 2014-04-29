@@ -40,10 +40,10 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     // --
     @SuppressWarnings(value = "unchecked")
-    private static Result invokeHandler(play.api.mvc.Handler handler, FakeRequest fakeRequest, long timeout) {
+    private static Promise<Result> invokeHandler(play.api.mvc.Handler handler, FakeRequest fakeRequest) {
         if(handler instanceof play.core.j.JavaAction) {
             play.api.mvc.Action action = (play.api.mvc.Action) handler;
-            return wrapScalaResult(action.apply(fakeRequest.getWrappedRequest()), timeout);
+            return wrapScalaResult(action.apply(fakeRequest.getWrappedRequest()));
         } else {
             throw new RuntimeException("This is not a JavaAction and can't be invoked this way.");
         }
@@ -55,16 +55,21 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      */
     public static final long DEFAULT_TIMEOUT = Long.getLong("test.timeout", 30000L);
 
-    private static Result wrapScalaResult(scala.concurrent.Future<play.api.mvc.Result> result, long timeout) {
+    private static Promise<Result> wrapScalaResult(scala.concurrent.Future<play.api.mvc.Result> result) {
         if (result == null) {
-            return null;
+            return Promise.pure(null);
         } else {
-            final play.api.mvc.Result scalaResult = new Promise<play.api.mvc.Result>(result).get(timeout);
-            return new Result() {
-                public play.api.mvc.Result toScala() {
-                    return scalaResult;
+            return Promise.wrap(result).map(
+                new Function<play.api.mvc.Result, Result>() {
+                    public Result apply(final play.api.mvc.Result scalaResult) {
+                        return new Result() {
+                            public play.api.mvc.Result toScala() {
+                                 return scalaResult;
+                            }
+                        };
+                    }
                 }
-            };
+            );
         }
     }
 
@@ -81,6 +86,10 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         return callAction(actionReference, fakeRequest(), timeout);
     }
 
+    public static Promise<Result> callActionAsync(HandlerRef actionReference) {
+        return callActionAsync(actionReference);
+    }
+
     /**
      * Call an action method while decorating it with the right @With interceptors.
      */
@@ -90,7 +99,12 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     public static Result callAction(HandlerRef actionReference, FakeRequest fakeRequest, long timeout) {
         play.api.mvc.HandlerRef handlerRef = (play.api.mvc.HandlerRef)actionReference;
-        return invokeHandler(handlerRef.handler(), fakeRequest, timeout);
+        return invokeHandler(handlerRef.handler(), fakeRequest).get(timeout);
+    }
+
+    public static Promise<Result> callActionAsync(HandlerRef actionReference, FakeRequest fakeRequest) {
+        play.api.mvc.HandlerRef handlerRef = (play.api.mvc.HandlerRef)actionReference;
+        return invokeHandler(handlerRef.handler(), fakeRequest);
     }
 
     /**
@@ -342,6 +356,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         return JavaResultExtractor.getBody(result, timeout);
     }
 
+    public static byte[] contentAsBytes(Promise<Result> result) {
+      return contentAsBytes(result.get(DEFAULT_TIMEOUT), DEFAULT_TIMEOUT);
+    }
+
+    public static byte[] contentAsBytes(Promise<Result> result, long timeout) {
+      return JavaResultExtractor.getBody(result.get(timeout), timeout);
+    }
+
     /**
      * Extracts the content as bytes.
      */
@@ -397,6 +419,17 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
 
+    @SuppressWarnings(value = "unchecked")
+    public static Promise<Result> routeAndCallAsync(FakeRequest fakeRequest) {
+        try {
+            return routeAndCallAsync((Class<? extends Routes>)FakeRequest.class.getClassLoader().loadClass("Routes"), fakeRequest);
+        } catch(RuntimeException e) {
+            throw e;
+        } catch(Throwable t) {
+            throw new RuntimeException(t);
+        }
+    }
+
     /**
      * Use the Router to determine the Action to call for this request and executes it.
      * @deprecated
@@ -410,7 +443,22 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         try {
             Routes routes = (Routes) router.getClassLoader().loadClass(router.getName() + "$").getDeclaredField("MODULE$").get(null);
             if(routes.routes().isDefinedAt(fakeRequest.getWrappedRequest())) {
-                return invokeHandler(routes.routes().apply(fakeRequest.getWrappedRequest()), fakeRequest, timeout);
+                return invokeHandler(routes.routes().apply(fakeRequest.getWrappedRequest()), fakeRequest).get(timeout);
+            } else {
+                return null;
+            }
+        } catch(RuntimeException e) {
+            throw e;
+        } catch(Throwable t) {
+            throw new RuntimeException(t);
+        }
+    }
+
+    public static Promise<Result> routeAndCallAsync(Class<? extends Routes> router, FakeRequest fakeRequest) {
+        try {
+            Routes routes = (Routes) router.getClassLoader().loadClass(router.getName() + "$").getDeclaredField("MODULE$").get(null);
+            if(routes.routes().isDefinedAt(fakeRequest.getWrappedRequest())) {
+                return invokeHandler(routes.routes().apply(fakeRequest.getWrappedRequest()), fakeRequest);
             } else {
                 return null;
             }
@@ -435,7 +483,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     public static Result route(Application app, FakeRequest fakeRequest, long timeout) {
       final scala.Option<scala.concurrent.Future<play.api.mvc.Result>> opt = play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.fake);
-      return wrapScalaResult(Scala.orNull(opt), timeout);
+      return wrapScalaResult(Scala.orNull(opt)).get(timeout);
     }
 
     public static Result route(Application app, FakeRequest fakeRequest, byte[] body) {
@@ -443,7 +491,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     public static Result route(Application app, FakeRequest fakeRequest, byte[] body, long timeout) {
-      return wrapScalaResult(Scala.orNull(play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.getWrappedRequest(), body)), timeout);
+      return wrapScalaResult(Scala.orNull(play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.getWrappedRequest(), body))).get(timeout);
     }
 
     public static Result route(FakeRequest fakeRequest, byte[] body) {
@@ -452,6 +500,23 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     public static Result route(FakeRequest fakeRequest, byte[] body, long timeout) {
       return route(play.Play.application(), fakeRequest, body, timeout);
+    }
+
+    public static Promise<Result> routeAsync(FakeRequest fakeRequest) {
+        return routeAsync(play.Play.application(), fakeRequest);
+    }
+
+    public static Promise<Result> routeAsync(Application app, FakeRequest fakeRequest) {
+        final scala.Option<scala.concurrent.Future<play.api.mvc.Result>> opt = play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.fake);
+        return wrapScalaResult(Scala.orNull(opt));
+    }
+
+    public static Promise<Result> routeAsync(Application app, FakeRequest fakeRequest, byte[] body) {
+        return wrapScalaResult(Scala.orNull(play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.getWrappedRequest(), body)));
+    }
+
+    public static Promise<Result> routeAsync(FakeRequest fakeRequest, byte[] body) {
+        return routeAsync(fakeRequest, body);
     }
 
     /**
