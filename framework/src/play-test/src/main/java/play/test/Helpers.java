@@ -57,7 +57,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     private static Promise<Result> wrapScalaResult(scala.concurrent.Future<play.api.mvc.Result> result) {
         if (result == null) {
-            return null;
+            return Promise.pure(null);
         } else {
             return Promise.wrap(result).map(
                 new Function<play.api.mvc.Result, Result>() {
