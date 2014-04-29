@@ -23,6 +23,8 @@ The default actor system configuration is read from the Play application configu
 
 > **Note:** You can also configure any other actor system from the same file, just provide a top configuration key.
 
+For Akka logging configuration, see [[configuring logging|SettingsLogger]].
+
 ## Converting Akka `Future` to Play `Promise`
 
 When you interact asynchronously with an Akka actor you will get a `Future` object. You can easily convert a `Future` to a Play `Promise` by calling the `play.libs.F.Promise.wrap()` method:

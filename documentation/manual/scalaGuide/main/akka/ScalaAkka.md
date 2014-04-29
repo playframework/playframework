@@ -27,6 +27,7 @@ akka.actor.debug.receive = on
 
 > **Note:** You can also configure any other actor system from the same file; just provide a top configuration key.
 
+For Akka logging configuration, see [[configuring logging|SettingsLogger]].
 
 ## Scheduling asynchronous tasks
 

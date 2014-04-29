@@ -53,6 +53,8 @@ The Java API for the Play application developers is available in the `play` pack
 1. [[Testing your application | JavaTest]]
     1. [[Writing tests | JavaTest]]
     1. [[Writing functional tests | JavaFunctionalTest]]
+1. [[Logging|JavaLogging]]
+    1. [[The Logging API|JavaLogging]]
 
 ## Advanced topics
 
