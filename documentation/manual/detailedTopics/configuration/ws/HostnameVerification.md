@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com> -->
 # Configuring Hostname Verification
 
-Hostname verification is a little known part of HTTP that involves a [server identity check](http://tools.ietf.org/search/rfc2818#section-3.1) to ensure that the client is talking to the correct server and has not been redirected by a [Man in the Middle attack](http://tersesystems.com/2014/03/23/fixing-hostname-verification/).
+Hostname verification is a little known part of HTTPS that involves a [server identity check](http://tools.ietf.org/search/rfc2818#section-3.1) to ensure that the client is talking to the correct server and has not been redirected by a [Man in the Middle attack](http://tersesystems.com/2014/03/23/fixing-hostname-verification/).
 
 The check involves looking at the certificate sent by the server, and verifying that the `dnsName` in the `subjectAltName` field of the certificate matches the host portion of the URL used to make the request.
 
