@@ -38,7 +38,7 @@ object ApplicationBuild extends Build {
 
   val externalPlayModules: Map[String, Seq[Setting[_]]] = Map(
     "scalatestplus-play" -> Seq(
-      libraryDependencies += "org.scalatestplus" %% "play" % "2.3.0-SNAP1" % "test" exclude("com.typesafe.play", "play-test_2.10")
+      libraryDependencies += "org.scalatestplus" %% "play" % "1.1-RC1" % "test" exclude("com.typesafe.play", "play-test_2.10")
     )
   )
 
