@@ -282,13 +282,25 @@ As planned back in 2.2, 2.3 has renamed `play.mvc.SimpleResult` to `play.mvc.Res
 
 ## Play WS
 
-The WS client now exists in its own library. If you are using WS in your code then you must add the library as a dependency to your project. For example with Java:
+The WS client is now an optional library. If you are using WS in your project then you will need to add the library dependency. For Java projects you will also need to update to a new package.
+
+#### Java projects
+
+Add library dependency to `build.sbt`:
 
 ```scala
 libraryDependencies += PlayKeys.javaWs
 ```
 
-...or Scala:
+Update to the new library package in source files:
+
+```java
+import play.libs.ws.*;
+```
+
+#### Scala projects
+
+Add library dependency to `build.sbt`:
 
 ```scala
 libraryDependencies += PlayKeys.ws
