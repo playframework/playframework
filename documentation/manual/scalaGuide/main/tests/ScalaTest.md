@@ -20,6 +20,18 @@ Testing in Play is based on SBT, and a full description is available in the [tes
 
 ## Using ScalaTest + Play
 
+To use ScalaTest + Play, you'll need to add it to your build, by
+changing `projects/Build.scala` like this:
+
+```scala
+val appDependencies = Seq(
+  // Add your project dependencies here,
+  "org.scalatestplus" % "play_2.10" % "1.0-RC1" % "test"
+)
+```
+
+You need not add ScalaTest to your build explicitly. The proper version of ScalaTest will be brought in automatically as a transitive dependency of ScalaTest + Play. You will, however, need to select a version of ScalaTest + Play that matches your Play version. You can do so by checking the [Versions, Versions, Versions](http://www.scalatest.org/plus/play/versions) page for ScalaTest + Play.
+
 In [ScalaTest + Play](http://scalatest.org/plus/play), you define test classes by extending the PlaySpec trait. Here's an example:
 
 @[scalatest-stackspec](code-scalatestplus-play/StackSpec.scala)

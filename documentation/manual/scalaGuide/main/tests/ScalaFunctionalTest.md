@@ -1,13 +1,15 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Writing functional tests with ScalaTest
 
-Play provides a number of classes and convenience methods that assist with functional testing.  Most of these can be found either in the [`play.api.test`](api/scala/index.html#play.api.test.package) package or in the [`Helpers`](api/scala/index.html#play.api.test.Helpers$) object.
+Play provides a number of classes and convenience methods that assist with functional testing.  Most of these can be found either in the [`play.api.test`](api/scala/index.html#play.api.test.package) package or in the [`Helpers`](api/scala/index.html#play.api.test.Helpers$) object. The ScalaTest + Play integration library builds on this testing support for ScalaTest.
 
-You can add these methods and classes by importing the following:
+You can access all of Play's built-in test support and ScalaTest + Play with the following imports:
 
 ```scala
+import org.scalatest._
 import play.api.test._
 import play.api.test.Helpers._
+import org.scalatestplus.play._
 ```
 
 ## FakeApplication
@@ -16,7 +18,31 @@ Play frequently requires a running [`Application`](api/scala/index.html#play.api
 
 To provide an environment for tests, Play provides a [`FakeApplication`](api/scala/index.html#play.api.test.FakeApplication) class which can be configured with a different Global object, additional configuration, or even additional plugins.
 
-@[scalatest-fakeApplication](code/specs2/ScalaFunctionalTestSpec.scala)
+@[scalafunctionaltest-fakeApplication](code-scalatestplus-play/ScalaFunctionalTestSpec.scala)
+
+If all the tests in your test class need a `FakeApplication`, and they can all share the same one, mix in trait `OneAppPerSuite`:
+
+@[scalafunctionaltest-oneapppersuite](code-scalatestplus-play/oneapppersuite/ExampleSpec.scala)
+
+If you need each test to get its own `FakeApplication`, use `OneAppPerTest` instead:
+
+@[scalafunctionaltest-oneapppertest](code-scalatestplus-play/oneapppertest/ExampleSpec.scala)
+
+## TestServer
+
+Sometimes you want to test the real HTTP stack from your tests. If all tests in your test class can reuse the same server instance, use `OneServerPerSuite` (which will also provide a new `FakeApplication` for the suite):
+
+@[scalafunctionaltest-oneserverpersuite](code-scalatestplus-play/oneserverpersuite/ExampleSpec.scala)
+
+The `port` field contains the port number the server is running on.  By default this is 19001, however you can change this either overriding `port` or by setting the system property `testserver.port`. (TODO: Ensure this works. I'm guessing it is done by Helpers.portNumber)  This can be useful for integrating with continuous integration servers, so that ports can be dynamically reserved for each build.
+
+You can also customize the [`FakeApplication`](api/scala/index.html#play.api.test.FakeApplication) by overriding `app`, as demonstrated in the previous example.
+
+# I FINISHED HERE
+
+which is useful for setting up custom routes and testing WS calls:
+
+@[scalafunctionaltest-testws](code/specs2/ScalaFunctionalTestSpec.scala)
 
 ## WithApplication
 
