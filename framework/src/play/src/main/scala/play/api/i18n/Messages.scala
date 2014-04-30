@@ -6,14 +6,10 @@ package play.api.i18n
 import scala.language.postfixOps
 
 import play.api._
-import play.core._
 import play.utils.Resources
-
-import java.io._
 
 import scala.util.parsing.input._
 import scala.util.parsing.combinator._
-import scala.util.matching._
 import scala.util.control.NonFatal
 
 /**
@@ -76,7 +72,7 @@ object Lang {
   }
 
   private val SimpleLocale = """([a-zA-Z]{2})""".r
-  private val CountryLocale = """([a-zA-Z]{2})-([a-zA-Z]{2}|[0-9]{3})""".r
+  private val CountryLocale = (SimpleLocale.toString + """-([a-zA-Z]{2}|[0-9]{3})""").r
 
   /**
    * Create a Lang value from a code (such as fr or en-US) and
@@ -159,7 +155,7 @@ object Messages {
    *
    * Uses `java.text.MessageFormat` internally to format the message.
    *
-   * @param key the message key
+   * @param keys the message key
    * @param args the message arguments
    * @return the formatted message or a default rendering if the key wasn’t defined
    */
@@ -213,7 +209,7 @@ object Messages {
     case class Comment(msg: String)
 
     override def skipWhitespace = false
-    override val whiteSpace = """[ \t]+""".r
+    override val whiteSpace = """^[ \t]+""".r
 
     def namedError[A](p: Parser[A], msg: String) = Parser[A] { i =>
       p(i) match {
@@ -222,32 +218,35 @@ object Messages {
       }
     }
 
-    def end = """\s*""".r
-    def newLine = namedError((("\r"?) ~> "\n"), "End of line expected")
-    def blankLine = ignoreWhiteSpace <~ newLine ^^ { case _ => Comment("") }
-    def ignoreWhiteSpace = opt(whiteSpace)
+    val end = """^\s*""".r
+    val newLine = namedError((("\r"?) ~> "\n"), "End of line expected")
+    val ignoreWhiteSpace = opt(whiteSpace)
+    val blankLine = ignoreWhiteSpace <~ newLine ^^ { case _ => Comment("") }
 
-    def comment = """#.*""".r ^^ { case s => Comment(s) }
+    val comment = """^#.*""".r ^^ { case s => Comment(s) }
 
-    def messageKey = namedError("""[a-zA-Z0-9_.-]+""".r, "Message key expected")
+    val messageKey = namedError("""^[a-zA-Z0-9_.-]+""".r, "Message key expected")
 
-    def messagePattern = namedError(
+    val messagePattern = namedError(
       rep(
-        """\""" ~> ("\r"?) ~> "\n" ^^ (_ => "") | // Ignore escaped end of lines \
-          """\n""" ^^ (_ => "\n") | // Translate literal \n to real newline
-          """\\""" ^^ (_ => """\""") | // Handle escaped \\
-          """.""".r // Or any character
+        ("""\""" ^^ (_ => "")) ~> ( // Ignore the leading \
+          ("\r"?) ~> "\n" ^^ (_ => "") | // Ignore escaped end of lines \
+          "n" ^^ (_ => "\n") | // Translate literal \n to real newline
+          """\""" | // Handle escaped \\
+          "^.".r ^^ ("""\""" + _)
+        ) |
+          "^.".r // Or any character
       ) ^^ { case chars => chars.mkString },
       "Message pattern expected"
     )
 
-    def message = ignoreWhiteSpace ~ messageKey ~ (ignoreWhiteSpace ~ "=" ~ ignoreWhiteSpace) ~ messagePattern ^^ {
+    val message = ignoreWhiteSpace ~ messageKey ~ (ignoreWhiteSpace ~ "=" ~ ignoreWhiteSpace) ~ messagePattern ^^ {
       case (_ ~ k ~ _ ~ v) => Messages.Message(k, v.trim, messageInput, messageSourceName)
     }
 
-    def sentence = (comment | positioned(message)) <~ newLine
+    val sentence = (comment | positioned(message)) <~ newLine
 
-    def parser = phrase((sentence | blankLine *) <~ end) ^^ {
+    val parser = phrase((sentence | blankLine *) <~ end) ^^ {
       case messages => messages.collect {
         case m @ Messages.Message(_, _, _, _) => m
       }
