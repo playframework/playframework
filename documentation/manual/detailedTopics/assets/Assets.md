@@ -20,7 +20,9 @@ If you follow this structure it will be simpler to get started, but nothing stop
 
 ## How are public assets packaged?
 
-During the build process, the contents of the `public` folder are processed and added to the application classpath. When you package your application, these files are packaged into the application JAR file (under the `public/` path).
+During the build process, the contents of the `public` folder are processed and added to the application classpath.
+
+When you package your application, all assets for the application, including all sub projects, are aggregated into a single jar, in `target/my-first-app-1.0.0-assets.jar`.  This jar is included in the distribution so that your Play application can serve them.  This jar can also be used to deploy the assets to a CDN or reverse proxy.
 
 ## The Assets controller
 

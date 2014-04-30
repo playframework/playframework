@@ -16,6 +16,8 @@ import java.net.URLClassLoader
 import java.util.jar.JarFile
 import com.typesafe.sbt.SbtNativePackager._
 import com.typesafe.sbt.packager.Keys._
+import com.typesafe.sbt.web.SbtWeb.autoImport._
+import play.sbtplugin.run.AssetsClassLoader
 
 /**
  * Provides mechanisms for running a Play application in SBT
@@ -73,24 +75,26 @@ trait PlayRun extends PlayInternalKeys {
     override def toString = name + "{" + getURLs.map(_.toString).mkString(", ") + "}"
   }
 
-  val playRunSetting: Project.Initialize[InputTask[Unit]] = playRunTask(playRunHooks, playDependencyClasspath, playDependencyClassLoader, playReloaderClasspath, playReloaderClassLoader)
+  val playRunSetting: Project.Initialize[InputTask[Unit]] = playRunTask(playRunHooks, playDependencyClasspath, playDependencyClassLoader, playReloaderClasspath, playReloaderClassLoader, playAssetsClassLoader)
 
   def playRunTask(
     runHooks: TaskKey[Seq[play.PlayRunHook]],
     dependencyClasspath: TaskKey[Classpath], dependencyClassLoader: TaskKey[ClassLoaderCreator],
-    reloaderClasspath: TaskKey[Classpath], reloaderClassLoader: TaskKey[ClassLoaderCreator]): Project.Initialize[InputTask[Unit]] = {
+    reloaderClasspath: TaskKey[Classpath], reloaderClassLoader: TaskKey[ClassLoaderCreator],
+    assetsClassLoader: TaskKey[ClassLoader => ClassLoader]): Project.Initialize[InputTask[Unit]] = {
 
-    playRunTask(runHooks, javaOptions in Runtime, dependencyClasspath, dependencyClassLoader, reloaderClasspath, reloaderClassLoader)
+    playRunTask(runHooks, javaOptions in Runtime, dependencyClasspath, dependencyClassLoader, reloaderClasspath, reloaderClassLoader, assetsClassLoader)
   }
 
   def playRunTask(
     runHooks: TaskKey[Seq[play.PlayRunHook]], javaOptions: TaskKey[Seq[String]],
     dependencyClasspath: TaskKey[Classpath], dependencyClassLoader: TaskKey[ClassLoaderCreator],
-    reloaderClasspath: TaskKey[Classpath], reloaderClassLoader: TaskKey[ClassLoaderCreator]): Project.Initialize[InputTask[Unit]] = inputTask { (argsTask: TaskKey[Seq[String]]) =>
+    reloaderClasspath: TaskKey[Classpath], reloaderClassLoader: TaskKey[ClassLoaderCreator],
+    assetsClassLoader: TaskKey[ClassLoader => ClassLoader]): Project.Initialize[InputTask[Unit]] = inputTask { (argsTask: TaskKey[Seq[String]]) =>
     (
       argsTask, state, playCommonClassloader, managedClasspath in DocsApplication,
-      dependencyClasspath, dependencyClassLoader, reloaderClassLoader, javaOptions
-    ) map { (args, state, commonLoader, docsAppClasspath, appDependencyClasspath, createClassLoader, createReloader, javaOptions) =>
+      dependencyClasspath, dependencyClassLoader, reloaderClassLoader, assetsClassLoader, javaOptions
+    ) map { (args, state, commonLoader, docsAppClasspath, appDependencyClasspath, createClassLoader, createReloader, createAssetsLoader, javaOptions) =>
         val extracted = Project.extract(state)
 
         val (_, hooks) = extracted.runTask(runHooks, state)
@@ -111,7 +115,7 @@ trait PlayRun extends PlayInternalKeys {
         /*
        * We need to do a bit of classloader magic to run the Play application.
        *
-       * There are six classloaders:
+       * There are seven classloaders:
        *
        * 1. buildLoader, the classloader of sbt and the Play sbt plugin.
        * 2. commonLoader, a classloader that persists across calls to run.
@@ -132,7 +136,10 @@ trait PlayRun extends PlayInternalKeys {
        *    that is used to serve documentation when running in development mode.
        *    Has the applicationLoader as its parent for Play dependencies and
        *    delegation to the shared sbt doc link classes.
-       * 6. reloader.currentApplicationClassLoader, contains the user classes
+       * 6. playAssetsClassLoader, serves assets from all projects, prefixed as
+       *    configured.  It does no caching, and doesn't need to be reloaded each
+       *    time the assets are rebuilt.
+       * 7. reloader.currentApplicationClassLoader, contains the user classes
        *    and resources. Has applicationLoader as its parent, where the
        *    application dependencies are found, and which will delegate through
        *    to the buildLoader via the delegatingLoader for the shared link.
@@ -162,8 +169,9 @@ trait PlayRun extends PlayInternalKeys {
         })
 
         lazy val applicationLoader = createClassLoader("PlayDependencyClassLoader", urls(appDependencyClasspath), delegatingLoader)
+        lazy val assetsLoader = createAssetsLoader(applicationLoader)
 
-        lazy val reloader = newReloader(state, playReload, createReloader, reloaderClasspath, applicationLoader)
+        lazy val reloader = newReloader(state, playReload, createReloader, reloaderClasspath, assetsLoader)
 
         try {
           // Now we're about to start, let's call the hooks:
@@ -297,6 +305,39 @@ trait PlayRun extends PlayInternalKeys {
             throw e
         }
       }
+  }
+
+  val playPrefixAndAssetsSetting = playPrefixAndAssets := {
+    assetsPrefix.value -> (WebKeys.public in Assets).value
+  }
+
+  val playAllAssetsSetting = playAllAssets := {
+    (playPrefixAndAssets ?).all(ScopeFilter(
+      inDependencies(ThisProject),
+      inConfigurations(Compile)
+    )).value.flatten
+  }
+
+  val playAssetsClassLoaderSetting = playAssetsClassLoader := { parent =>
+    new AssetsClassLoader(parent, playAllAssets.value)
+  }
+
+  val playPrefixAndPipelineSetting = playPrefixAndPipeline := {
+    assetsPrefix.value -> (WebKeys.pipeline in Assets).value
+  }
+
+  val playPackageAssetsMappingsSetting = playPackageAssetsMappings := {
+    val allPipelines = (playPrefixAndPipeline ?).all(ScopeFilter(
+      inDependencies(ThisProject),
+      inConfigurations(Compile)
+    )).value.flatten
+
+    val allMappings = allPipelines.flatMap {
+      case (prefix, pipeline) => pipeline.map {
+        case (file, path) => file -> (prefix + path)
+      }
+    }
+    allMappings.distinct
   }
 
   val playStartCommand = Command.args("start", "<port>") { (state: State, args: Seq[String]) =>

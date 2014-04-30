@@ -108,8 +108,6 @@ private class AssetInfo(
     Play.configuration.getString("\"assets.cache." + name + "\"").getOrElse(if (Play.isProd) defaultCacheControl else "no-cache")
   }
 
-  val isDirectory: Boolean = new File(url.getFile).isDirectory
-
   val lastModified: Option[String] = url.getProtocol match {
     case "file" => Some(df.print(new File(url.getPath).lastModified))
     case "jar" => {
@@ -259,7 +257,7 @@ class AssetsBuilder extends Controller {
       import Implicits.trampoline
       val pendingResult: Future[Result] = for {
         Some(name) <- Future.successful(resourceNameAt(path, file))
-        (assetInfo, gzipRequested) <- assetInfoForRequest(request, name) if !assetInfo.isDirectory
+        (assetInfo, gzipRequested) <- assetInfoForRequest(request, name)
       } yield {
         val stream = assetInfo.url(gzipRequested).openStream()
         Try(stream.available -> Enumerator.fromStream(stream)(Implicits.defaultExecutionContext)).map {
@@ -295,7 +293,7 @@ class AssetsBuilder extends Controller {
     val resourceName = dblSlashRemover(s"/$path/$decodedFile")
     val resourceFile = new File(resourceName)
     val pathFile = new File(path)
-    if (resourceFile.isDirectory || !resourceFile.getCanonicalPath.startsWith(pathFile.getCanonicalPath)) {
+    if (!resourceFile.getCanonicalPath.startsWith(pathFile.getCanonicalPath)) {
       None
     } else {
       Some(resourceName)

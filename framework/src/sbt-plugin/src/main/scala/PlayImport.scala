@@ -157,5 +157,7 @@ object PlayImport {
     val generateSecret = TaskKey[String]("play-generate-secret", "Generate a new application secret", KeyRanks.BTask)
     val updateSecret = TaskKey[File]("play-update-secret", "Update the application conf to generate an application secret", KeyRanks.BTask)
 
+    val assetsPrefix = SettingKey[String]("assets-prefix")
+    val playPackageAssets = TaskKey[File]("play-package-assets")
   }
 }
