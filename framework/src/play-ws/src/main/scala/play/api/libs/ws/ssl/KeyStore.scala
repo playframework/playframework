@@ -18,12 +18,13 @@ trait KeyStoreBuilder {
 
 object KeystoreFormats {
 
-  def loadCertificate(cert: X509Certificate): KeyStore = {
-    val alias = cert.getSubjectX500Principal.getName
-
+  def loadCertificates(certs: TraversableOnce[Certificate]): KeyStore = {
     val keystore = KeyStore.getInstance(KeyStore.getDefaultType)
     keystore.load(null)
-    keystore.setCertificateEntry(alias, cert)
+    certs.foreach { cert =>
+      val alias = cert.getSubjectX500Principal.getName
+      keystore.setCertificateEntry(alias, cert)
+    }
     keystore
   }
 
@@ -32,48 +33,41 @@ object KeystoreFormats {
 import KeystoreFormats._
 
 /**
- * Builds a keystore from a string that is passed in.  Currently only supports PEM.
+ * Builds a keystore from a string containing PEM encoded certificates, using CertificateFactory internally.
+ *
+ * @see java.security.cert.CertificateFactory
  */
-class StringBasedKeyStoreBuilder(keyStoreType: String,
-    data: String,
-    password: Option[Array[Char]] = None) extends KeyStoreBuilder {
+class StringBasedKeyStoreBuilder(data: String, password: Option[Array[Char]] = None) extends KeyStoreBuilder {
 
   val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 
   def build(): KeyStore = {
-    keyStoreType match {
-      case "PEM" =>
-        val cert = readCertificate(data)
-        val store = loadCertificate(cert)
-        store
-      case unsupportedType =>
-        throw new IllegalStateException(s"No support for embedded strings with type $unsupportedType")
-    }
+    val certs = readCertificates(data)
+    val store = loadCertificates(certs)
+    store
+
   }
 
-  def readCertificate(certificateString: String): X509Certificate = {
-    val certLines = certificateString.split('\n').iterator
-    val data = textBlock(certLines)
-    val base64 = new Base64()
-    val binaryData = base64.decode(data)
-
+  def readCertificates(certificateString: String): Seq[Certificate] = {
     val cf = CertificateFactory.getInstance("X.509")
-    val bais = new ByteArrayInputStream(binaryData)
-    val bis = new BufferedInputStream(bais)
-    cf.generateCertificate(bis).asInstanceOf[X509Certificate]
-  }
-
-  def textBlock(lines: Iterator[String]): String = {
-    val certStartText = "-----BEGIN CERTIFICATE-----"
-    val certEndText = "-----END CERTIFICATE-----"
-
-    lines.dropWhile(certStartText.!=).drop(1).takeWhile(certEndText.!=).mkString
+    // CertificateFactory throws EOF on whitespace after end cert, which is very common in triple quoted strings.
+    val trimmedString = certificateString.trim()
+    val is = new ByteArrayInputStream(trimmedString.getBytes("UTF-8"))
+    val bis = new BufferedInputStream(is)
+    val buffer = new scala.collection.mutable.ListBuffer[Certificate]()
+    while (bis.available() > 0) {
+      val cert = cf.generateCertificate(bis)
+      buffer.append(cert)
+    }
+    buffer.toList
   }
 
 }
 
 /**
- * Builds a keystore from a filepath.
+ * Builds a keystore from a file containing PEM encoded certificates, using CertificateFactory internally.
+ *
+ * @see java.security.cert.CertificateFactory
  */
 class FileBasedKeyStoreBuilder(keyStoreType: String,
     filePath: String,
@@ -89,8 +83,8 @@ class FileBasedKeyStoreBuilder(keyStoreType: String,
 
     keyStoreType match {
       case "PEM" =>
-        val cert = readCertificate(file)
-        loadCertificate(cert)
+        val certs = readCertificates(file)
+        loadCertificates(certs)
       case otherFormat =>
         buildFromKeystoreFile(otherFormat, file)
     }
@@ -108,12 +102,13 @@ class FileBasedKeyStoreBuilder(keyStoreType: String,
     }
   }
 
-  def readCertificate(file: File): X509Certificate = {
+  def readCertificates(file: File): Iterable[Certificate] = {
+    import scala.collection.JavaConverters._
     val cf = CertificateFactory.getInstance("X.509")
     val fis = new FileInputStream(file)
     val bis = new BufferedInputStream(fis)
 
-    cf.generateCertificate(bis).asInstanceOf[X509Certificate]
+    cf.generateCertificates(bis).asScala
   }
 
 }

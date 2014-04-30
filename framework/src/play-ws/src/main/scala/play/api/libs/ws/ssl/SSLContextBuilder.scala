@@ -159,7 +159,7 @@ class ConfigSSLContextBuilder(info: SSLConfig,
         fileBuilder(storeType, f, password)
     }.getOrElse {
       val data = ksc.data.getOrElse(throw new IllegalStateException("No keystore builder found!"))
-      stringBuilder(storeType, data, password)
+      stringBuilder(data, password)
     }
   }
 
@@ -170,7 +170,7 @@ class ConfigSSLContextBuilder(info: SSLConfig,
         fileBuilder(storeType, f, None)
     }.getOrElse {
       val data = tsc.data.getOrElse(throw new IllegalStateException("No truststore builder found!"))
-      stringBuilder(storeType, data, None)
+      stringBuilder(data, None)
     }
   }
 
@@ -178,8 +178,8 @@ class ConfigSSLContextBuilder(info: SSLConfig,
     new FileBasedKeyStoreBuilder(storeType, filePath, password)
   }
 
-  def stringBuilder(storeType: String, data: String, password: Option[Array[Char]]): KeyStoreBuilder = {
-    new StringBasedKeyStoreBuilder(storeType, data, password)
+  def stringBuilder(data: String, password: Option[Array[Char]]): KeyStoreBuilder = {
+    new StringBasedKeyStoreBuilder(data, password)
   }
 
   /**
