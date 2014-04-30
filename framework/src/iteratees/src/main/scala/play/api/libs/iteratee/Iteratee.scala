@@ -658,7 +658,7 @@ trait Iteratee[E, +A] {
  * Several performance improvements are possible when an iteratee's
  * state is immediately available.
  */
-private trait StepIteratee[E, A] extends Iteratee[E, A] with Step[E, A] {
+private sealed trait StepIteratee[E, A] extends Iteratee[E, A] with Step[E, A] {
 
   final override def it: Iteratee[E, A] = this
   final def immediateUnflatten: Step[E, A] = this

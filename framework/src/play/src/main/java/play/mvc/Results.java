@@ -1075,23 +1075,17 @@ public class Results {
         public Chunks(play.api.http.Writeable<A> writable) {
             final Chunks<A> self = this;
             this.writable = writable;
-            final List<Callback0> disconnectedCallbacks = new ArrayList<Callback0>();
+            final RedeemablePromise<Object> disconnected = RedeemablePromise.<Object>empty();
             this.enumerator = play.core.j.JavaResults.chunked(new Callback<Concurrent.Channel<A>>() {
                 @Override
                 public void invoke(Concurrent.Channel<A> channel) {
-                    Chunks.Out<A> chunked = new Chunks.Out<A>(channel, disconnectedCallbacks);
+                    Chunks.Out<A> chunked = new Chunks.Out<A>(channel, disconnected);
                     self.onReady(chunked);
                 }
             }, new Callback0() {
                 @Override
                 public void invoke() throws Throwable {
-                    for(Callback0 callback: disconnectedCallbacks) {
-                        try {
-                            callback.invoke();
-                        } catch(Throwable e) {
-                            play.PlayInternal.logger().error("Exception is Chunks disconnected callback", e);
-                        }
-                    }
+                    disconnected.success(null);
                 }
             });
         }
@@ -1108,12 +1102,21 @@ public class Results {
          */
         public static class Out<A> {
 
-            final List<Callback0> disconnectedCallbacks;
+            /** A Promise that will be redeemed to null when the channel is disconnected. */
+            final RedeemablePromise<Object> disconnected;
             final play.api.libs.iteratee.Concurrent.Channel<A> channel;
+
+            public Out(play.api.libs.iteratee.Concurrent.Channel<A> channel, RedeemablePromise<Object> disconnected) {
+                this.channel = channel;
+                this.disconnected = disconnected;
+            }
 
             public Out(play.api.libs.iteratee.Concurrent.Channel<A> channel, List<Callback0> disconnectedCallbacks) {
                 this.channel = channel;
-                this.disconnectedCallbacks = disconnectedCallbacks;
+                this.disconnected = RedeemablePromise.<Object>empty();
+                for(Callback0 callback: disconnectedCallbacks) {
+                    onDisconnected(callback);
+                }
             }
 
             /**
@@ -1124,10 +1127,14 @@ public class Results {
             }
 
             /**
-             * Called when the socket is disconnected.
+             * Attach a callback to be called when the socket is disconnected.
              */
-            public void onDisconnected(Callback0 callback) {
-                disconnectedCallbacks.add(callback);
+            public void onDisconnected(final Callback0 callback) {
+                disconnected.onRedeem(new Callback<Object>() {
+                    public void invoke(Object ignored) throws Throwable {
+                        callback.invoke();
+                    }
+                });
             }
 
             /**

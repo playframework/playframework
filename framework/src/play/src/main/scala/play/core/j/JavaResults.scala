@@ -33,17 +33,11 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
   def emptyHeaders = Map.empty[String, String]
   def empty = Results.EmptyContent()
   def chunked[A](onConnected: play.libs.F.Callback[Channel[A]], onDisconnected: play.libs.F.Callback0): Enumerator[A] = {
-    val (enumerator, channel) = Concurrent.broadcast[A]
-    new Enumerator[A] {
-      def apply[C](i: Iteratee[A, C]) = {
-        val result = enumerator.onDoneEnumerating(onDisconnected.invoke()).apply(i)
-        // The channel must not be passed to the callback until after the enumerator has been applied, otherwise
-        // we have a race condition between when the iteratee is listening to the enumerator and when the client
-        // first sends a message
-        onConnected.invoke(channel)
-        result
-      }
-    }
+    Concurrent.unicast[A](
+      onStart = (channel: Channel[A]) => onConnected.invoke(channel),
+      onComplete = onDisconnected.invoke(),
+      onError = (_: String, _: Input[A]) => onDisconnected.invoke()
+    )
   }
   //play.api.libs.iteratee.Enumerator.imperative[A](onComplete = onDisconnected)
   def chunked(stream: java.io.InputStream, chunkSize: Int): Enumerator[Array[Byte]] = Enumerator.fromStream(stream, chunkSize)
