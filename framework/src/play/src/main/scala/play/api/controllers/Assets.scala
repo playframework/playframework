@@ -19,6 +19,7 @@ import java.util.Date
 import play.api.libs.iteratee.Execution.Implicits
 import play.api.http.ContentTypes
 import scala.collection.concurrent.TrieMap
+import play.core.Router.ReverseRouteContext
 
 /*
  * A map designed to prevent the "thundering herds" issue.
@@ -159,6 +160,29 @@ private class AssetInfo(
  * }}}
  */
 object Assets extends AssetsBuilder {
+
+  /**
+   * An asset.
+   *
+   * @param name The name of the asset.
+   */
+  case class Asset(name: String)
+
+  object Asset {
+    implicit def string2Asset(name: String) = new Asset(name)
+
+    implicit def assetPathBindable(implicit rrc: ReverseRouteContext): PathBindable[Asset] = new PathBindable[Asset] {
+      def bind(key: String, value: String) = Right(new Asset(value))
+      def unbind(key: String, value: Asset) = {
+        val path = rrc.fixedParams.get("path").getOrElse(
+          throw new RuntimeException("Asset path bindable must be used in combination with an action that accepts a path parameter")
+        )
+        // todo, convert the returned path to one that has the hash in it
+        value.name
+      }
+    }
+  }
+
   private[controllers] lazy val assetInfoCache = new SelfPopulatingMap[String, AssetInfo]()
 }
 
@@ -246,6 +270,11 @@ class AssetsBuilder extends Controller {
       response
     }
   }
+
+  /**
+   * Generates an `Action` that serves a versioned static resource.
+   */
+  def versioned(path: String, file: Asset) = at(path, file.name)
 
   /**
    * Generates an `Action` that serves a static resource.
