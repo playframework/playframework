@@ -50,8 +50,16 @@ case class Lang(language: String, country: String = "") {
   /**
    * The Lang code (such as fr or en-US).
    */
-  lazy val code = language + Option(country).filterNot(_.isEmpty).map("-" + _).getOrElse("")
+  lazy val code = language.toLowerCase(java.util.Locale.ENGLISH) + Option(country).filterNot(_.isEmpty).map("-" + _.toUpperCase(java.util.Locale.ENGLISH)).getOrElse("")
 
+  override def equals(that: Any) = {
+    that match {
+      case lang: Lang => code == lang.code
+      case _ => false
+    }
+  }
+
+  override def hashCode: Int = code.hashCode
 }
 
 /**
