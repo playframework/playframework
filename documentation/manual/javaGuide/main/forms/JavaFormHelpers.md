@@ -59,32 +59,7 @@ This default field constructor supports additional options you can pass in the i
 '_showErrors -> false
 ```
 
-## Twitter bootstrap field constructor
-
-There is another built-in field constructor that can be used with [Twitter Bootstrap](http://twitter.github.com/bootstrap/).
-
-To use it, just import it in the current scope:
-
-```
-@import helper.twitterBootstrap._
-```
-
-This field constructor generates HTML like the following:
-
-```
-<div class="clearfix error" id="email_field">
-  <label for="email">Email:</label>
-  <div class="input">
-    <input type="text" name="email" id="email" value="">
-    <span class="help-inline">This field is required!, Another error</span>
-    <span class="help-block">Required, Another constraint</span> 
-  </div>
-</div>
-```
-
-It supports the same set of options as the default field constructor (see above).
-
-## Writing your own field constructor
+### Writing your own field constructor
 
 Often you will need to write your own field constructor. Start by writing a template like:
 
