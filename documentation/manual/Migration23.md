@@ -110,6 +110,20 @@ export SBT_OPTS="$SBT_OPTS -Dsbt.jse.engineType=Node"
 
 An interesting feature of sbt-web is that it is not concerned whether you use "javascripts" or "stylesheets" as your folder names. Any files with the appropriate filename extensions are filtered from within the `app/assets` folder.
 
+A nuance with sbt-web is that *all* assets are served from the `public` folder. Therefore if you previously had assets reside outside of the `public` folder i.e. you used the `playAssetsDirectories` setting as per the following example:
+
+```scala
+playAssetsDirectories <+= baseDirectory / "foo"
+```
+
+...then you should now use the following:
+
+```scala
+unmanagedResourceDirectories in Assets += baseDirectory.value / "foo"
+```
+
+...however note that the files there will be aggregated into the target public folder. This means that a file at "public/a.js" will be overwritten with the file at "foo/a.js". Alternatively use sub folders off your project's public folder in order to namespace them.
+
 The following lists all sbt-web related components and their versions at the time of releasing Play 2.3-M1. Note that any dependency of sbt-js-engine is `1.0.0-M2a` given the accidental release of a snapshot with `"sbt-js-engine" % "1.0.0-M2"`.
 
 #### Libraries

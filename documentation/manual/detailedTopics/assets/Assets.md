@@ -56,19 +56,6 @@ controllers.Assets.at("/public", "javascripts/jquery.js")
 
 This action will look-up and serve the file and if it exists.
 
-Note that if you define asset mappings outside of "public" you'll need to tell
-sbt about it e.g. if you want:
-
-```
-GET  /assets/*file               controllers.Assets.at(path="/public", file)
-GET  /liabilities/*file          controllers.Assets.at(path="/foo", file)
-```
-
-you should add the following to `build.sbt`:
-
-```
-unmanagedResourceDirectories in Assets += baseDirectory.value / "foo"
-```
 
 ## Reverse routing for public assets
 
