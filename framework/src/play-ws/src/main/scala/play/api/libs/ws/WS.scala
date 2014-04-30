@@ -219,6 +219,11 @@ trait WSRequest {
   def url: String
 
   /**
+   * The URL including query string parameters.
+   */
+  def urlWithQueryString: String
+
+  /**
    * The body of the request as a string.
    */
   def getStringData: String

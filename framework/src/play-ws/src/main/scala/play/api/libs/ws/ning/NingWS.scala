@@ -104,6 +104,11 @@ case class NingWSRequest(client: NingWSClient,
    */
   def url: String = _url
 
+  def urlWithQueryString: String = {
+    val request = builder.build()
+    request.getUrl
+  }
+
   def getStringData: String = body.getOrElse("")
 
   /**
