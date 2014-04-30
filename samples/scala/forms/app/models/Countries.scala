@@ -5,6 +5,7 @@ object Countries {
   val list = List(
     "France",
     "Austria",
+    "Belarus",
     "Belgium",
     "Bulgaria",
     "Cyprus",
@@ -30,10 +31,12 @@ object Countries {
     "Portugal",
     "Reunion",
     "Romania",
+    "Russia",
     "Slovak (Republic)",
     "Slovenia",
     "Spain",
     "Sweden",
+    "Ukraine",
     "United Kingdom"
   )
   

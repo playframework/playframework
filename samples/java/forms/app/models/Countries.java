@@ -8,6 +8,7 @@ public class Countries {
         List<String> all = new ArrayList<String>();
         all.add("France");
         all.add("Austria");
+        all.add("Belarus");
         all.add("Belgium");
         all.add("Bulgaria");
         all.add("Cyprus");
@@ -33,10 +34,12 @@ public class Countries {
         all.add("Portugal");
         all.add("Reunion");
         all.add("Romania");
+        all.add("Russia");
         all.add("Slovak (Republic)");
         all.add("Slovenia");
         all.add("Spain");
         all.add("Sweden");
+        all.add("Ukraine");
         all.add("United Kingdom");
         return all;
     }
