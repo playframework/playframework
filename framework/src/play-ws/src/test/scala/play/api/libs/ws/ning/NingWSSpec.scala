@@ -13,7 +13,6 @@ import play.api.mvc._
 import java.util
 import play.api.libs.ws._
 import play.api.test._
-import play.api.libs.ws.ssl.{SystemConfiguration, DefaultSSLLooseConfig, DefaultSSLConfig}
 
 object NingWSSpec extends PlaySpecification with Mockito {
 
@@ -85,7 +84,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
     "support several query string values for a parameter" in new WithApplication {
       val req = WS.url("http://playframework.com/")
         .withQueryString("foo" -> "foo1", "foo" -> "foo2").asInstanceOf[NingWSRequestHolder]
-        .prepare("GET").build
+        .prepare().build
       req.getQueryParams.get("foo").contains("foo1") must beTrue
       req.getQueryParams.get("foo").contains("foo2") must beTrue
       req.getQueryParams.get("foo").size must equalTo(2)
@@ -94,7 +93,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
     "support http headers" in new WithApplication {
       val req = WS.url("http://playframework.com/")
         .withHeaders("key" -> "value1", "key" -> "value2").asInstanceOf[NingWSRequestHolder]
-        .prepare("GET").build
+        .prepare().build
       req.getHeaders.get("key").contains("value1") must beTrue
       req.getHeaders.get("key").contains("value2") must beTrue
       req.getHeaders.get("key").size must equalTo(2)
@@ -103,27 +102,27 @@ object NingWSSpec extends PlaySpecification with Mockito {
     "support a virtual host" in new WithApplication {
       val req = WS.url("http://playframework.com/")
         .withVirtualHost("192.168.1.1").asInstanceOf[NingWSRequestHolder]
-        .prepare("GET").build
+        .prepare().build
       req.getVirtualHost must be equalTo "192.168.1.1"
     }
 
     "support follow redirects" in new WithApplication {
       val req = WS.url("http://playframework.com/")
         .withFollowRedirects(true).asInstanceOf[NingWSRequestHolder]
-        .prepare("GET").build
+        .prepare().build
       req.isRedirectEnabled must beTrue
     }
 
     "support timeout" in new WithApplication {
       val req = WS.url("http://playframework.com/")
         .withRequestTimeout(1000).asInstanceOf[NingWSRequestHolder]
-        .prepare("GET").build
+        .prepare().build
       req.getPerRequestConfig.getRequestTimeoutInMs must be equalTo 1000
     }
 
     "support a proxy server" in new WithApplication {
       val proxy = DefaultWSProxyServer(protocol = Some("https"), host = "localhost", port = 8080, principal = Some("principal"), password = Some("password"))
-      val req = WS.url("http://playframework.com/").withProxyServer(proxy).asInstanceOf[NingWSRequestHolder].prepare("GET").build
+      val req = WS.url("http://playframework.com/").withProxyServer(proxy).asInstanceOf[NingWSRequestHolder].prepare().build
       val actual = req.getProxyServer
 
       actual.getProtocolAsString must be equalTo "https"
@@ -135,7 +134,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
 
     "support a proxy server" in new WithApplication {
       val proxy = DefaultWSProxyServer(host = "localhost", port = 8080)
-      val req = WS.url("http://playframework.com/").withProxyServer(proxy).asInstanceOf[NingWSRequestHolder].prepare("GET").build
+      val req = WS.url("http://playframework.com/").withProxyServer(proxy).asInstanceOf[NingWSRequestHolder].prepare().build
       val actual = req.getProxyServer
 
       actual.getProtocolAsString must be equalTo "http"

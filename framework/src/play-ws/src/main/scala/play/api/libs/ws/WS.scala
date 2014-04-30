@@ -318,26 +318,94 @@ trait WSResponse {
 }
 
 /**
+ * A body for the request
+ */
+sealed trait WSBody
+
+/**
+ * An in memory body
+ *
+ * @param bytes The bytes of the body
+ */
+case class InMemoryBody(bytes: Array[Byte]) extends WSBody
+
+/**
+ * A streamed body
+ *
+ * @param bytes An enumerator of the bytes of the body
+ */
+case class StreamedBody(bytes: Enumerator[Array[Byte]]) extends WSBody {
+  throw new NotImplementedError("A streaming request body is not yet implemented")
+}
+
+/**
+ * A file body
+ */
+case class FileBody(file: File) extends WSBody
+
+/**
+ * An empty body
+ */
+case object EmptyBody extends WSBody
+
+/**
  * A WS Request builder.
  */
 trait WSRequestHolder {
 
+  /**
+   * The URL for this request
+   */
   val url: String
 
+  /**
+   * The method for this request
+   */
+  val method: String
+
+  /**
+   * The body of this request
+   */
+  val body: WSBody
+
+  /**
+   * The headers for this request
+   */
   val headers: Map[String, Seq[String]]
 
+  /**
+   * The query string for this request
+   */
   val queryString: Map[String, Seq[String]]
 
+  /**
+   * A calculator of the signature for this request
+   */
   val calc: Option[WSSignatureCalculator]
 
+  /**
+   * The authentication this request should use
+   */
   val auth: Option[(String, String, WSAuthScheme)]
 
+  /**
+   * Whether this request should follow redirects
+   */
   val followRedirects: Option[Boolean]
 
+  /**
+   * The timeout for the request
+   */
   val requestTimeout: Option[Int]
 
+  /**
+   * The virtual host this request will use
+   */
   val virtualHost: Option[String]
 
+  /**
+   * The proxy server this request will use
+   */
   val proxyServer: Option[WSProxyServer]
 
   /**
@@ -368,7 +436,7 @@ trait WSRequestHolder {
   def withFollowRedirects(follow: Boolean): WSRequestHolder
 
   @scala.deprecated("use withRequestTimeout instead", "2.1.0")
-  def withTimeout(timeout: Int): WSRequestHolder
+  def withTimeout(timeout: Int) = withRequestTimeout(timeout)
 
   /**
    * Sets the maximum time in millisecond you accept the request to take.
@@ -376,89 +444,154 @@ trait WSRequestHolder {
    */
   def withRequestTimeout(timeout: Int): WSRequestHolder
 
+  /**
+   * Sets the virtual host to use in this request
+   */
   def withVirtualHost(vh: String): WSRequestHolder
 
+  /**
+   * Sets the proxy server to use in this request
+   */
   def withProxyServer(proxyServer: WSProxyServer): WSRequestHolder
 
   /**
-   * performs a get with supplied body
+   * Sets the body for this request
    */
-
-  def get(): Future[WSResponse]
+  def withBody(body: WSBody): WSRequestHolder
 
   /**
-   * performs a get with supplied body
+   * Sets the body for this request
+   */
+  def withBody[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): WSRequestHolder = {
+    val wsBody = InMemoryBody(wrt.transform(body))
+    ct.mimeType.fold(withBody(wsBody)) { contentType =>
+      withBody(wsBody).withHeaders("Content-Type" -> contentType)
+    }
+  }
+
+  /**
+   * Sets the method for this request
+   */
+  def withMethod(method: String): WSRequestHolder
+
+  /**
+   * performs a get
+   */
+  def get() = withMethod("GET").execute()
+
+  /**
+   * performs a get
    * @param consumer that's handling the response
    */
-  def get[A](consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit ec: ExecutionContext): Future[Iteratee[Array[Byte], A]]
+  def get[A](consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
+    getStream().flatMap {
+      case (response, enumerator) =>
+        enumerator(consumer(response))
+    }
+  }
+
+  /**
+   * performs a get
+   */
+  def getStream(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = {
+    withMethod("GET").stream()
+  }
 
   /**
    * Perform a PATCH on the request asynchronously.
    */
-  def patch[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[WSResponse]
+  def patch[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]) =
+    withMethod("PATCH").withBody(body).execute()
 
   /**
    * Perform a PATCH on the request asynchronously.
    * Request body won't be chunked
    */
-  def patch(body: File): Future[WSResponse]
+  def patch(body: File) = withMethod("PATCH").withBody(FileBody(body)).execute()
 
   /**
    * performs a POST with supplied body
    * @param consumer that's handling the response
    */
-  def patchAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]]
+  def patchAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
+    withMethod("PATCH").withBody(body).stream().flatMap {
+      case (response, enumerator) =>
+        enumerator(consumer(response))
+    }
+  }
 
   /**
    * Perform a POST on the request asynchronously.
    */
-  def post[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[WSResponse]
+  def post[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]) =
+    withMethod("POST").withBody(body).execute()
 
   /**
    * Perform a POST on the request asynchronously.
    * Request body won't be chunked
    */
-  def post(body: File): Future[WSResponse]
+  def post(body: File) = withMethod("POST").withBody(FileBody(body)).execute()
 
   /**
    * performs a POST with supplied body
    * @param consumer that's handling the response
    */
-  def postAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]]
+  def postAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
+    withMethod("POST").withBody(body).stream().flatMap {
+      case (response, enumerator) =>
+        enumerator(consumer(response))
+    }
+  }
 
   /**
    * Perform a PUT on the request asynchronously.
    */
-  def put[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[WSResponse]
+  def put[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]) =
+    withMethod("PUT").withBody(body).execute()
 
   /**
    * Perform a PUT on the request asynchronously.
    * Request body won't be chunked
    */
-  def put(body: File): Future[WSResponse]
+  def put(body: File) = withMethod("PUT").withBody(FileBody(body)).execute()
 
   /**
    * performs a PUT with supplied body
    * @param consumer that's handling the response
    */
-  def putAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]]
+  def putAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
+    withMethod("PUT").withBody(body).stream().flatMap {
+      case (response, enumerator) =>
+        enumerator(consumer(response))
+    }
+  }
 
   /**
    * Perform a DELETE on the request asynchronously.
    */
-  def delete(): Future[WSResponse]
+  def delete() = withMethod("DELETE").execute()
 
   /**
    * Perform a HEAD on the request asynchronously.
    */
-  def head(): Future[WSResponse]
+  def head() = withMethod("HEAD").execute()
 
   /**
    * Perform a OPTIONS on the request asynchronously.
    */
-  def options(): Future[WSResponse]
+  def options() = withMethod("OPTIONS").execute()
 
-  def execute(method: String): Future[WSResponse]
+  def execute(method: String): Future[WSResponse] = withMethod(method).execute()
+
+  /**
+   * Execute this request
+   */
+  def execute(): Future[WSResponse]
+
+  /**
+   * Execute this request and stream the response body in an enumerator
+   */
+  def stream(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])]
 }
 
 /**

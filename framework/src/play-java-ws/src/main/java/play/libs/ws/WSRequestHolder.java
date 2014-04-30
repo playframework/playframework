@@ -58,6 +58,36 @@ public interface WSRequestHolder {
 
     F.Promise<WSResponse> execute(String method);
 
+    /**
+     * Execute the request
+     */
+    F.Promise<WSResponse> execute();
+
+    /**
+     * Set the method this request should use.
+     */
+    WSRequestHolder setMethod(String method);
+
+    /**
+     * Set the body this request should use
+     */
+    WSRequestHolder setBody(String body);
+
+    /**
+     * Set the body this request should use
+     */
+    WSRequestHolder setBody(JsonNode body);
+
+    /**
+     * Set the body this request should use
+     */
+    WSRequestHolder setBody(InputStream body);
+
+    /**
+     * Set the body this request should use
+     */
+    WSRequestHolder setBody(File body);
+
     WSRequestHolder setHeader(String name, String value);
 
     WSRequestHolder setQueryString(String query);

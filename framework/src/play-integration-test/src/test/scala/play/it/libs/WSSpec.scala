@@ -6,11 +6,14 @@ package play.it.libs
 import play.it.tools.HttpBinApplication
 
 import play.api.test._
+import play.api.mvc._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-
-
+import play.api.libs.iteratee._
+import play.api.libs.concurrent.Promise
+import scala.concurrent.ExecutionContext.Implicits.global
+import java.io.IOException
 
 object WSSpec extends PlaySpecification {
 
@@ -19,6 +22,15 @@ object WSSpec extends PlaySpecification {
   def withServer[T](block: Port => T) = {
     val port = testServerPort
     running(TestServer(port, app)) {
+      block(port)
+    }
+  }
+
+  def withResult[T](result: Result)(block: Port => T) = {
+    val port = testServerPort
+    running(TestServer(port, FakeApplication(withRoutes = {
+      case _ => Action(result)
+    }))) {
       block(port)
     }
   }
@@ -97,6 +109,41 @@ object WSSpec extends PlaySpecification {
       val rep = Await.result(req, Duration(1, SECONDS))
 
       rep.status must be equalTo(404)
+    }
+
+    "get a streamed response" in withResult(Results.Ok.chunked(Enumerator("a", "b", "c"))) { port =>
+      val res = WS.url(s"http://localhost:$port/get").stream()
+      val (_, body) = await(res)
+      new String(await(body |>>> Iteratee.consume[Array[Byte]]()), "utf-8") must_== "abc"
+    }
+
+    def slow[E](ms: Long): Enumeratee[E, E] = Enumeratee.mapM { i => Promise.timeout(i, ms) }
+
+    "get a streamed response when the server is slow" in withResult(
+      Results.Ok.chunked(Enumerator("a", "b", "c") &> slow(50))
+    ) { port =>
+      val res = WS.url(s"http://localhost:$port/get").stream()
+      val (_, body) = await(res)
+      new String(await(body |>>> Iteratee.consume[Array[Byte]]()), "utf-8") must_== "abc"
+    }
+
+    "get a streamed response when the consumer is slow" in withResult(
+      Results.Ok.chunked(Enumerator("a", "b", "c") &> slow(10))
+    ) { port =>
+      val res = WS.url(s"http://localhost:$port/get").stream()
+      val (_, body) = await(res)
+      new String(await(body &> slow(50) |>>> Iteratee.consume[Array[Byte]]()), "utf-8") must_== "abc"
+    }
+
+    "propogate errors from the stream" in withResult(
+      Results.Ok.feed(Enumerator.unfold(0) {
+        case i if i < 3 => Some((i + 1, "chunk".getBytes("utf-8")))
+        case _ => throw new Exception()
+      } &> slow(50)).withHeaders("Content-Length" -> "100000")
+    ) { port =>
+      val res = WS.url(s"http://localhost:$port/get").stream()
+      val (_, body) = await(res)
+      await(body |>>> Iteratee.consume[Array[Byte]]()) must throwAn[IOException]
     }
 
   }

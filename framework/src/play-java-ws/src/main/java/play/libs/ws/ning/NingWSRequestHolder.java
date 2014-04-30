@@ -26,6 +26,8 @@ import java.util.*;
 public class NingWSRequestHolder implements WSRequestHolder {
 
     private final String url;
+    private String method = "GET";
+    private Object body = null;
     private Map<String, Collection<String>> headers = new HashMap<String, Collection<String>>();
     private Map<String, Collection<String>> queryParameters = new HashMap<String, Collection<String>>();
 
@@ -226,6 +228,36 @@ public class NingWSRequestHolder implements WSRequestHolder {
         return setHeader(HttpHeaders.Names.CONTENT_TYPE, contentType);
     }
 
+    @Override
+    public WSRequestHolder setMethod(String method) {
+        this.method = method;
+        return this;
+    }
+
+    @Override
+    public WSRequestHolder setBody(String body) {
+        this.body = body;
+        return this;
+    }
+
+    @Override
+    public WSRequestHolder setBody(JsonNode body) {
+        this.body = body;
+        return this;
+    }
+
+    @Override
+    public WSRequestHolder setBody(InputStream body) {
+        this.body = body;
+        return this;
+    }
+
+    @Override
+    public WSRequestHolder setBody(File body) {
+        this.body = body;
+        return this;
+    }
+
     /**
      * @return the URL of the request.
      */
@@ -318,7 +350,8 @@ public class NingWSRequestHolder implements WSRequestHolder {
      */
     @Override
     public F.Promise<play.libs.ws.WSResponse> patch(String body) {
-        return executeString("PATCH", body);
+        setMethod("PATCH");
+        return executeString(body);
     }
 
     /**
@@ -328,7 +361,8 @@ public class NingWSRequestHolder implements WSRequestHolder {
      */
     @Override
     public F.Promise<play.libs.ws.WSResponse> post(String body) {
-        return executeString("POST", body);
+        setMethod("POST");
+        return executeString(body);
     }
 
     /**
@@ -338,7 +372,8 @@ public class NingWSRequestHolder implements WSRequestHolder {
      */
     @Override
     public F.Promise<play.libs.ws.WSResponse> put(String body) {
-        return executeString("PUT", body);
+        setMethod("PUT");
+        return executeString(body);
     }
 
     /**
@@ -348,7 +383,8 @@ public class NingWSRequestHolder implements WSRequestHolder {
      */
     @Override
     public F.Promise<play.libs.ws.WSResponse> patch(JsonNode body) {
-        return executeJson("PATCH", body);
+        setMethod("PATCH");
+        return executeJson(body);
     }
 
     /**
@@ -358,7 +394,8 @@ public class NingWSRequestHolder implements WSRequestHolder {
      */
     @Override
     public F.Promise<play.libs.ws.WSResponse> post(JsonNode body) {
-        return executeJson("POST", body);
+        setMethod("POST");
+        return executeJson(body);
     }
 
     /**
@@ -368,7 +405,8 @@ public class NingWSRequestHolder implements WSRequestHolder {
      */
     @Override
     public F.Promise<play.libs.ws.WSResponse> put(JsonNode body) {
-        return executeJson("PUT", body);
+        setMethod("PUT");
+        return executeJson(body);
     }
 
     /**
@@ -378,7 +416,8 @@ public class NingWSRequestHolder implements WSRequestHolder {
      */
     @Override
     public F.Promise<play.libs.ws.WSResponse> patch(InputStream body) {
-        return executeIS("PATCH", body);
+        setMethod("PATCH");
+        return executeIS(body);
     }
 
     /**
@@ -388,7 +427,8 @@ public class NingWSRequestHolder implements WSRequestHolder {
      */
     @Override
     public F.Promise<play.libs.ws.WSResponse> post(InputStream body) {
-        return executeIS("POST", body);
+        setMethod("POST");
+        return executeIS(body);
     }
 
     /**
@@ -398,7 +438,8 @@ public class NingWSRequestHolder implements WSRequestHolder {
      */
     @Override
     public F.Promise<play.libs.ws.WSResponse> put(InputStream body) {
-        return executeIS("PUT", body);
+        setMethod("PUT");
+        return executeIS(body);
     }
 
     /**
@@ -408,7 +449,8 @@ public class NingWSRequestHolder implements WSRequestHolder {
      */
     @Override
     public F.Promise<play.libs.ws.WSResponse> post(File body) {
-        return executeFile("POST", body);
+        setMethod("POST");
+        return executeFile(body);
     }
 
     /**
@@ -418,7 +460,8 @@ public class NingWSRequestHolder implements WSRequestHolder {
      */
     @Override
     public F.Promise<play.libs.ws.WSResponse> put(File body) {
-        return executeFile("PUT", body);
+        setMethod("PUT");
+        return executeFile(body);
     }
 
     /**
@@ -458,7 +501,27 @@ public class NingWSRequestHolder implements WSRequestHolder {
         return execute(req);
     }
 
-    private F.Promise<play.libs.ws.WSResponse> executeString(String method, String body) {
+    @Override
+    public F.Promise<WSResponse> execute() {
+        if (body == null) {
+            NingWSRequest req = new NingWSRequest(client, method).setUrl(url)
+                    .setHeaders(headers)
+                    .setQueryParameters(new FluentStringsMap(queryParameters));
+            return execute(req);
+        } else if (body instanceof String) {
+            return executeString((String) body);
+        } else if (body instanceof JsonNode) {
+            return executeJson((JsonNode) body);
+        } else if (body instanceof File) {
+            return executeFile((File) body);
+        } else if (body instanceof InputStream) {
+            return executeIS((InputStream) body);
+        } else {
+            throw new IllegalStateException("Impossible body: " + body);
+        }
+    }
+
+    private F.Promise<play.libs.ws.WSResponse> executeString(String body) {
         FluentCaseInsensitiveStringsMap headers = new FluentCaseInsensitiveStringsMap(this.headers);
 
         // Detect and maybe add charset
@@ -480,7 +543,7 @@ public class NingWSRequestHolder implements WSRequestHolder {
         return execute(req);
     }
 
-    private F.Promise<play.libs.ws.WSResponse> executeJson(String method, JsonNode body) {
+    private F.Promise<play.libs.ws.WSResponse> executeJson(JsonNode body) {
         NingWSRequest req = new NingWSRequest(client, method).setBody(Json.stringify(body))
                 .setUrl(url)
                 .setHeaders(headers)
@@ -491,7 +554,7 @@ public class NingWSRequestHolder implements WSRequestHolder {
 
     }
 
-    private F.Promise<play.libs.ws.WSResponse> executeIS(String method, InputStream body) {
+    private F.Promise<play.libs.ws.WSResponse> executeIS(InputStream body) {
         NingWSRequest req = new NingWSRequest(client, method).setBody(body)
                 .setUrl(url)
                 .setHeaders(headers)
@@ -499,7 +562,7 @@ public class NingWSRequestHolder implements WSRequestHolder {
         return execute(req);
     }
 
-    private F.Promise<play.libs.ws.WSResponse> executeFile(String method, File body) {
+    private F.Promise<play.libs.ws.WSResponse> executeFile(File body) {
         NingWSRequest req = new NingWSRequest(client, method).setBody(body)
                 .setUrl(url)
                 .setHeaders(headers)
