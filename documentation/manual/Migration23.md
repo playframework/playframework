@@ -340,3 +340,13 @@ If passing value without safe conversion is required, `anorm.Object(anyVal)` can
 Moreover, erasure issues about parameter value is fixed: type is no longer `ParameterValue[_]` but simply `ParameterValue`.
 
 Types for parameter names are also unified (when using `.on(...)`). Only `String` and `Symbol` are now supported as name.
+
+## Twitter Bootstrap
+
+The in-built Twitter Bootstrap field constructor has been deprecated, and will be removed in a future version of Play.
+
+There are a few reasons for this, one is that we have found that Bootstrap changes too drastically between versions and too frequently, such that any in-built support provided by Play quickly becomes stale and incompatible with the current Bootstrap version.
+
+Another reason is that the current Bootstrap requirements for CSS classes can't be implemented with Play's field constructor alone, a custom input template is also required.
+
+Our view going forward is that if this is a feature that is valuable to the community, a third party module can be created which provides a separate set of Bootstrap form helper templates, specific to given Bootstrap versions, allowing a much better user experience than can currently be provided.
