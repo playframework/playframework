@@ -9,6 +9,7 @@ import com.typesafe.config._
 
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
+import play.utils.PlayIO
 
 /**
  * This object provides a set of operations to create `Configuration` values.
@@ -90,11 +91,10 @@ object Configuration {
   }
 
   private def configError(origin: ConfigOrigin, message: String, e: Option[Throwable] = None): PlayException = {
-    import scalax.io.JavaConverters._
     new PlayException.ExceptionSource("Configuration error", message, e.orNull) {
       def line = Option(origin.lineNumber: java.lang.Integer).orNull
       def position = null
-      def input = Option(origin.url).map(_.asInput.string).orNull
+      def input = Option(origin.url).map(PlayIO.readUrlAsString).orNull
       def sourceName = Option(origin.filename).orNull
       override def toString = "Configuration error: " + getMessage
     }

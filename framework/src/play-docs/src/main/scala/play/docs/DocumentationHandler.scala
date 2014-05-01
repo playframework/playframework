@@ -4,10 +4,8 @@
 package play.docs
 
 import play.api.mvc._
-import play.api._
 import play.api.http.Status
 import play.api.http.HeaderNames
-import play.api.libs.concurrent.Execution
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.iteratee.Enumeratee
 import play.core.{ PlayVersion, BuildDocHandler }
@@ -73,8 +71,6 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository) extend
       }
 
       case book() => {
-
-        import scalax.file._
 
         Some {
           repo.loadFile("manual/book/Book") { is =>

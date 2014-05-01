@@ -15,10 +15,10 @@ import play.api.libs.iteratee.Parsing._
 import play.api.libs.Files.TemporaryFile
 import MultipartFormData._
 import scala.collection.mutable.ListBuffer
-import scalax.io.Resource
 import java.util.Locale
 import scala.util.control.NonFatal
 import play.api.http.HttpVerbs
+import play.utils.PlayIO
 
 /**
  * A request body that adapts automatically according the request Content-Type.
@@ -237,7 +237,7 @@ case class RawBuffer(memoryThreshold: Int, initialData: Array[Byte] = Array.empt
         Some(buffer)
 
       } else {
-        Some(Resource.fromFile(backedByTemporaryFile.file).byteArray)
+        Some(PlayIO.readFile(backedByTemporaryFile.file))
       }
 
     } else {

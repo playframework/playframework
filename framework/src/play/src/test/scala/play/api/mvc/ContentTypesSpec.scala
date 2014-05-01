@@ -4,11 +4,11 @@
 package play.api.mvc
 
 import org.specs2.mutable.Specification
-import scalax.io.Resource
 import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import play.api.libs.iteratee.Enumerator
+import play.utils.PlayIO
 
 object ContentTypesSpec extends Specification {
 
@@ -94,7 +94,7 @@ object ContentTypesSpec extends Specification {
       buffer.push("world")
       buffer.size must_== 11
       val file = buffer.asFile
-      Resource.fromFile(file).string must_== "hello world"
+      PlayIO.readFileAsString(file) must_== "hello world"
     }
   }
 

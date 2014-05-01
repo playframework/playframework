@@ -5,8 +5,6 @@ package play.api.db.evolutions
 
 import java.io._
 
-import scalax.io.JavaConverters._
-
 import play.core._
 
 import play.api._
@@ -17,6 +15,7 @@ import javax.sql.DataSource
 import java.sql.{ Statement, Date, Connection, SQLException }
 import scala.util.control.Exception._
 import scala.util.control.NonFatal
+import play.utils.PlayIO
 
 /**
  * An SQL evolution - database changes associated with a software version.
@@ -426,7 +425,11 @@ object Evolutions {
       Option(new File(path, evolutionsFilename(db, revision))).filter(_.exists).map(new FileInputStream(_)).orElse {
         Option(applicationClassloader.getResourceAsStream(evolutionsResourceName(db, revision)))
       }.map { stream =>
-        (revision + 1, (revision, stream.asInput.string))
+        try {
+          (revision + 1, (revision, PlayIO.readStreamAsString(stream)))
+        } finally {
+          PlayIO.closeQuietly(stream)
+        }
       }
     }.sortBy(_._1).map {
       case (revision, script) => {

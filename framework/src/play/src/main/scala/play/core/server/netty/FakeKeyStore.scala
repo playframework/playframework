@@ -14,6 +14,7 @@ import javax.net.ssl.KeyManagerFactory
 import scala.util.control.NonFatal
 import scala.util.Properties.isJavaAtLeast
 import scala.util.{ Failure, Success, Try }
+import play.utils.PlayIO
 
 /**
  * A fake key store
@@ -42,9 +43,19 @@ object FakeKeyStore {
         keyStore.load(null, "".toCharArray)
         keyStore.setKeyEntry("playgenerated", keyPair.getPrivate, "".toCharArray, Array(cert))
         keyStore.setCertificateEntry("playgeneratedtrusted", cert)
-        for (out <- resource.managed(new FileOutputStream(keyStoreFile))) { keyStore.store(out, "".toCharArray) }
+        val out = new FileOutputStream(keyStoreFile)
+        try {
+          keyStore.store(out, "".toCharArray)
+        } finally {
+          PlayIO.closeQuietly(out)
+        }
       } else {
-        for (in <- resource.managed(new FileInputStream(keyStoreFile))) { keyStore.load(in, "".toCharArray) }
+        val in = new FileInputStream(keyStoreFile)
+        try {
+          keyStore.load(in, "".toCharArray)
+        } finally {
+          PlayIO.closeQuietly(in)
+        }
       }
 
       // Load the key and certificate into a key manager factory

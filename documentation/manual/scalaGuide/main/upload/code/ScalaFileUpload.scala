@@ -7,10 +7,9 @@ package scalaguide.upload.fileupload {
   import play.api.test._
   import org.junit.runner.RunWith
   import org.specs2.runner.JUnitRunner
-  import java.io.File
+  import java.io.{FileWriter, FileOutputStream, File}
 
   import controllers._
-  import scalax.file.Path
   import play.api.libs.Files.TemporaryFile
   import play.api.mvc.MultipartFormData.FilePart
 
@@ -21,7 +20,7 @@ package scalaguide.upload.fileupload {
 
       "upload file" in {
         val tmpFile = new File("/tmp/picture/tmpformuploaded")
-        Path(tmpFile).write("hello")
+        writeFile(tmpFile, "hello")
 
         new File("/tmp/picture").mkdirs()
         val uploaded = new File("/tmp/picture/formuploaded")
@@ -53,7 +52,7 @@ package scalaguide.upload.fileupload {
 
       "upload file directly" in {
         val tmpFile = new File("/tmp/picture/tmpuploaded")
-        Path(tmpFile).write("hello")
+        writeFile(tmpFile, "hello")
 
         new File("/tmp/picture").mkdirs()
         val uploaded = new File("/tmp/picture/uploaded")
@@ -73,6 +72,16 @@ package scalaguide.upload.fileupload {
         val result = action(request)
 
         status(result) must_== expectedResponse
+      }
+    }
+
+    def writeFile(file: File, content: String) = {
+      file.getParentFile.mkdirs()
+      val out = new FileWriter(file)
+      try {
+        out.write(content)
+      } finally {
+        out.close()
       }
     }
 

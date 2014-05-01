@@ -6,11 +6,13 @@ package play.api.i18n
 import scala.language.postfixOps
 
 import play.api._
-import play.utils.Resources
+import play.utils.{ PlayIO, Resources }
 
 import scala.util.parsing.input._
 import scala.util.parsing.combinator._
 import scala.util.control.NonFatal
+import java.net.URL
+import play.api.i18n.Messages.UrlMessageSource
 
 /**
  * A Lang supported by the application.
@@ -191,20 +193,34 @@ object Messages {
   /**
    * Parse all messages of a given input.
    */
-  def messages(messageInput: scalax.io.Input, messageSourceName: String): Either[PlayException.ExceptionSource, Map[String, String]] = {
-    new Messages.MessagesParser(messageInput, "").parse.right.map { messages =>
+  def messages(messageSource: MessageSource, messageSourceName: String): Either[PlayException.ExceptionSource, Map[String, String]] = {
+    new Messages.MessagesParser(messageSource, "").parse.right.map { messages =>
       messages.map { message => message.key -> message.pattern }.toMap
     }
   }
 
+  /**
+   * A source for messages
+   */
+  trait MessageSource {
+    /**
+     * Read the message source as a String
+     */
+    def read: String
+  }
+
+  case class UrlMessageSource(url: URL) extends MessageSource {
+    def read = PlayIO.readUrlAsString(url)
+  }
+
   private def noMatch(key: String, args: Seq[Any]) = key
 
-  private[i18n] case class Message(key: String, pattern: String, input: scalax.io.Input, sourceName: String) extends Positional
+  private[i18n] case class Message(key: String, pattern: String, source: MessageSource, sourceName: String) extends Positional
 
   /**
    * Message file Parser.
    */
-  private[i18n] class MessagesParser(messageInput: scalax.io.Input, messageSourceName: String) extends RegexParsers {
+  private[i18n] class MessagesParser(messageSource: MessageSource, messageSourceName: String) extends RegexParsers {
 
     case class Comment(msg: String)
 
@@ -241,7 +257,7 @@ object Messages {
     )
 
     val message = ignoreWhiteSpace ~ messageKey ~ (ignoreWhiteSpace ~ "=" ~ ignoreWhiteSpace) ~ messagePattern ^^ {
-      case (_ ~ k ~ _ ~ v) => Messages.Message(k, v.trim, messageInput, messageSourceName)
+      case (_ ~ k ~ _ ~ v) => Messages.Message(k, v.trim, messageSource, messageSourceName)
     }
 
     val sentence = (comment | positioned(message)) <~ newLine
@@ -253,13 +269,13 @@ object Messages {
     }
 
     def parse: Either[PlayException.ExceptionSource, Seq[Message]] = {
-      parser(new CharSequenceReader(messageInput.string + "\n")) match {
+      parser(new CharSequenceReader(messageSource.read + "\n")) match {
         case Success(messages, _) => Right(messages)
         case NoSuccess(message, in) => Left(
           new PlayException.ExceptionSource("Configuration error", message) {
             def line = in.pos.line
             def position = in.pos.column - 1
-            def input = messageInput.string
+            def input = messageSource.read
             def sourceName = messageSourceName
           }
         )
@@ -322,9 +338,6 @@ class DefaultMessagesPlugin(app: Application) extends MessagesPlugin {
 
   import scala.collection.JavaConverters._
 
-  import scalax.file._
-  import scalax.io.JavaConverters._
-
   private lazy val messagesPrefix = app.configuration.getString("messages.path")
   private lazy val pluginEnabled = app.configuration.getString("defaultmessagesplugin")
 
@@ -335,7 +348,7 @@ class DefaultMessagesPlugin(app: Application) extends MessagesPlugin {
 
   protected def loadMessages(file: String): Map[String, String] = {
     app.classloader.getResources(joinPaths(messagesPrefix, file)).asScala.toList.filterNot(Resources.isDirectory).reverse.map { messageFile =>
-      Messages.messages(messageFile.asInput, messageFile.toString).fold(e => throw e, identity)
+      Messages.messages(UrlMessageSource(messageFile), messageFile.toString).fold(e => throw e, identity)
     }.foldLeft(Map.empty[String, String]) { _ ++ _ }
   }
 

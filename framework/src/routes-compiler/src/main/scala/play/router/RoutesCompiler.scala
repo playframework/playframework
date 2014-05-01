@@ -5,8 +5,8 @@ package play.router
 
 import scala.util.parsing.input._
 import scala.util.parsing.combinator._
-import scala.util.matching._
 import scala.collection.immutable.ListMap
+import java.io.File
 
 /**
  * provides a compiler for routes
@@ -50,11 +50,11 @@ object RoutesCompiler {
 
   object Hash {
 
-    def apply(routesFile: scalax.file.Path, imports: Seq[String]): String = {
+    def apply(routesFile: File, imports: Seq[String]): String = {
       import java.security.MessageDigest
       val digest = MessageDigest.getInstance("SHA-1")
       digest.reset()
-      digest.update(routesFile.byteArray ++ imports.flatMap(_.getBytes))
+      digest.update(RouterIO.readFile(routesFile) ++ imports.flatMap(_.getBytes))
       digest.digest().map(0xFF & _).map { "%02x".format(_) }.foldLeft("") { _ + _ }
     }
 
@@ -248,15 +248,14 @@ object RoutesCompiler {
     }
   }
 
-  import scalax.file._
   import java.io.File
 
   case class RoutesCompilationError(source: File, message: String, line: Option[Int], column: Option[Int]) extends RuntimeException(message)
 
   case class GeneratedSource(file: File) {
 
-    val lines = if (file.exists) Path(file).string.split('\n').toList else Nil
-    val source = lines.find(_.startsWith("// @SOURCE:")).map(m => Path.fromString(m.trim.drop(11)))
+    val lines = if (file.exists) RouterIO.readFileAsString(file).split('\n').toList else Nil
+    val source = lines.find(_.startsWith("// @SOURCE:")).map(m => new File(m.trim.drop(11)))
 
     def isGenerated: Boolean = source.isDefined
 
@@ -294,15 +293,15 @@ object RoutesCompiler {
 
   def compile(file: File, generatedDir: File, additionalImports: Seq[String], generateReverseRouter: Boolean = true, generateRefReverseRouter: Boolean = true, namespaceReverseRouter: Boolean = false) {
 
-    val namespace = Option(Path(file).name).filter(_.endsWith(".routes")).map(_.dropRight(".routes".size))
+    val namespace = Option(file.getName).filter(_.endsWith(".routes")).map(_.dropRight(".routes".size))
     val packageDir = namespace.map(pkg => new File(generatedDir, pkg.replace('.', '/'))).getOrElse(generatedDir)
     val generated = GeneratedSource(new File(packageDir, "routes_routing.scala"))
 
     if (generated.needsRecompilation(additionalImports)) {
 
       val parser = new RouteFileParser
-      val routeFile = Path(file).toAbsolute
-      val routesContent = routeFile.string
+      val routeFile = file.getAbsoluteFile
+      val routesContent = RouterIO.readFileAsString(routeFile)
 
       (parser.parse(routesContent) match {
         case parser.Success(parsed, _) => generate(routeFile, namespace, parsed, additionalImports, generateReverseRouter, generateRefReverseRouter, namespaceReverseRouter)
@@ -310,7 +309,7 @@ object RoutesCompiler {
           throw RoutesCompilationError(file, message, Some(in.pos.line), Some(in.pos.column))
         }
       }).foreach { item =>
-        Path(new File(generatedDir, item._1)).write(item._2)
+        RouterIO.writeStringToFile(new File(generatedDir, item._1), item._2)
       }
 
     }
@@ -402,13 +401,13 @@ object RoutesCompiler {
   /**
    * Generate the actual Scala code for this router
    */
-  private def generate(file: Path, namespace: Option[String], rules: List[Rule], additionalImports: Seq[String], reverseRouter: Boolean, reverseRefRouter: Boolean, namespaceReverseRouter: Boolean): Seq[(String, String)] = {
+  private def generate(file: File, namespace: Option[String], rules: List[Rule], additionalImports: Seq[String], reverseRouter: Boolean, reverseRefRouter: Boolean, namespaceReverseRouter: Boolean): Seq[(String, String)] = {
 
-    check(new File(file.path), rules.collect { case r: Route => r })
+    check(file, rules.collect { case r: Route => r })
 
     val filePrefix = namespace.map(_.replace('.', '/') + "/").getOrElse("") + "/routes"
 
-    val (path, hash, date) = (file.path.replace(File.separator, "/"), Hash(file, additionalImports), new java.util.Date().toString)
+    val (path, hash, date) = (file.getCanonicalPath.replace(File.separator, "/"), Hash(file, additionalImports), new java.util.Date().toString)
     val routes = rules.collect { case r: Route => r }
 
     val files = Seq(filePrefix + "_routing.scala" -> generateRouter(path, hash, date, namespace, additionalImports, rules))

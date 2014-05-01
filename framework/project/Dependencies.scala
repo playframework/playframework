@@ -14,7 +14,6 @@ object Dependencies {
     "org.specs2" %% "specs2-matcher-extra" % specsVersion
   )
   val specsSbt = specsBuild
-  val scalaIoFile = "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2"
 
   val guava = "com.google.guava" % "guava" % "16.0.1"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "2.0.3" // Needed by guava
@@ -87,8 +86,6 @@ object Dependencies {
     "ch.qos.logback" % "logback-core" % "1.1.1",
     "ch.qos.logback" % "logback-classic" % "1.1.1",
 
-    scalaIoFile,
-
     "com.typesafe.akka" %% "akka-actor" % "2.3.2",
     "com.typesafe.akka" %% "akka-slf4j" % "2.3.2",
 
@@ -118,8 +115,7 @@ object Dependencies {
   val link = Seq(
     "org.javassist" % "javassist" % "3.18.1-GA")
 
-  val routersCompilerDependencies = scalaIoFile +:
-    specsSbt.map(_ % "test")
+  val routersCompilerDependencies = specsSbt.map(_ % "test")
 
   private def sbtPluginDep(moduleId: ModuleID) = {
     moduleId.extra(
@@ -139,7 +135,6 @@ object Dependencies {
       .exclude("com.google.code.findbugs", "jsr305"),
 
     guava,
-    scalaIoFile,
 
     "org.avaje.ebeanorm" % "avaje-ebeanorm-agent" % "3.2.1" exclude ("javax.persistence", "persistence-api"),
 
