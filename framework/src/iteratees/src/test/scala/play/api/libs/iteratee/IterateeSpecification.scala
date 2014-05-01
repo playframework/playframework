@@ -12,7 +12,7 @@ import scala.util.Try
 /**
  * Common functionality for iteratee tests.
  */
-trait IterateeSpecification {
+trait IterateeSpecification extends NoConcurrentExecutionContext {
   self: org.specs2.mutable.SpecificationLike =>
 
   val waitTime = Duration(5, SECONDS)
