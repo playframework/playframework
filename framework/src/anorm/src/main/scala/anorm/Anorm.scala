@@ -119,7 +119,6 @@ object Useful {
     case None => Stream.Empty
     case Some((r, v)) => Stream.cons(r, unfold(v)(f))
   }
-
 }
 
 /**
@@ -320,13 +319,29 @@ sealed trait Sql {
 
   /**
    * Executes this SQL as an update statement.
-   * @return Count of update row(s)
+   * @return Count of updated row(s)
    */
   @throws[java.sql.SQLException]("If statement is query not update")
   def executeUpdate()(implicit connection: Connection): Int =
     getFilledStatement(connection).executeUpdate()
 
-  // TODO: Scaladoc and specs
+  /**
+   * Executes this SQL as an insert statement.
+   *
+   * @param generatedKeysParser Parser for generated key (default: scalar long)
+   * @return Parsed generated keys
+   *
+   * {{{
+   * import anorm.SqlParser.scalar
+   *
+   * val keys1 = SQL("INSERT INTO Test(x) VALUES ({x})").
+   *   on("x" -> "y").executeInsert()
+   *
+   * val keys2 = SQL("INSERT INTO Test(x) VALUES ({x})").
+   *   on("x" -> "y").executeInsert(scalar[String].singleOpt)
+   * // ... generated string key
+   * }}}
+   */
   def executeInsert[A](generatedKeysParser: ResultSetParser[A] = SqlParser.scalar[Long].singleOpt)(implicit connection: Connection): A =
     Sql.as(generatedKeysParser,
       execute1(getGeneratedKeys = true)._1.getGeneratedKeys)
