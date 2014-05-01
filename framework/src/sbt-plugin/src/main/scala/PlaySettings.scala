@@ -170,7 +170,7 @@ trait PlaySettings {
 
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
 
-    routesImport := Seq.empty[String],
+    routesImport := Seq("controllers.Assets.Asset"),
 
     playMonitoredFiles <<= playMonitoredFilesTask,
 

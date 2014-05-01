@@ -1,6 +1,6 @@
 @(name:String)
  
-     @views.html.helper.requireJs(core = routes.Assets.at("javascripts/require.js").url, module = routes.Assets.at("javascripts/main").url)
+     @views.html.helper.requireJs(core = routes.Assets.versioned("javascripts/require.js").url, module = routes.Assets.versioned("javascripts/main").url)
 
       
     Hello @name!

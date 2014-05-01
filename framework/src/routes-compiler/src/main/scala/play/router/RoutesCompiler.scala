@@ -446,6 +446,8 @@ object RoutesCompiler {
         |
         |object Routes extends Router.Routes {
         |
+        |import ReverseRouteContext.empty
+        |
         |private var _prefix = "/"
         |
         |def setPrefix(prefix: String) {
@@ -575,6 +577,7 @@ object RoutesCompiler {
         """
             |%s
             |package %s.javascript {
+            |import ReverseRouteContext.empty
             |%s
             |}
         """.stripMargin.format(
@@ -850,6 +853,17 @@ object RoutesCompiler {
                       }
                     }
 
+                    def genReverseRouteContext(route: Route) = {
+                      val fixedParams = route.call.parameters.getOrElse(Nil).collect {
+                        case Parameter(name, _, Some(fixed), _) => "(\"%s\", %s)".format(name, fixed)
+                      }
+                      if (fixedParams.isEmpty) {
+                        "import ReverseRouteContext.empty"
+                      } else {
+                        "implicit val _rrc = new ReverseRouteContext(Map(%s))".format(fixedParams.mkString(", "))
+                      }
+                    }
+
                     val reverseSignature = reverseParameters.map(p => safeKeyword(p._1.name) + ":" + p._1.typeName + {
                       Option(routes.map(_.call.parameters.get(p._2).default).distinct).filter(_.size == 1).flatMap(_.headOption).map {
                         case None => ""
@@ -899,20 +913,22 @@ object RoutesCompiler {
 
                     routes match {
 
-                      case Seq(route) => {
+                      case Seq(route: RoutesCompiler.Route) => {
                         """
-                                                    |%s
-                                                    |def %s(%s): Call = {
-                                                    |   %s
-                                                    |}
-                                                """.stripMargin.format(
+                          |%s
+                          |def %s(%s): Call = {
+                          |   %s
+                          |   %s
+                          |}
+                        """.stripMargin.format(
                           markLines(route),
                           route.call.method,
                           reverseSignature,
+                          genReverseRouteContext(route),
                           genCall(route))
                       }
 
-                      case Seq(route, routes @ _*) => {
+                      case Seq(route: RoutesCompiler.Route, routes @ _*) => {
                         """
                                                     |%s
                                                     |def %s(%s): Call = {
@@ -955,12 +971,15 @@ object RoutesCompiler {
                               case Nil => ""
                               case nonEmpty => "if " + nonEmpty.mkString(" && ")
                             }
+                            val reverseRouteContext = genReverseRouteContext(route)
 
                             val call = genCall(route, localNames)
 
                             val result = """|%s
-                               |case (%s) %s => %s
-                            """.stripMargin.format(markers, parameters, parametersConstraints, call)
+                                           |case (%s) %s =>
+                                           |  %s
+                                           |  %s
+                                         """.stripMargin.format(markers, parameters, parametersConstraints, reverseRouteContext, call)
 
                             (parameters -> parametersConstraints) -> result
                           }: _*).values
