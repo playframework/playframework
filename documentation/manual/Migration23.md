@@ -20,7 +20,7 @@ Auto plugins permit sbt plugins to be declared in the `project` folder (typicall
 What this means for you is that declaring `addSbtPlugin` may not be sufficient for plugins that now utilize to the auto plugin functionality. This is a good thing. You may now be selective as to which modules of your project should have which plugins e.g.:
 
 ```scala
-lazy val root = (project in file(".")).addPlugins(SbtWeb)
+lazy val root = (project in file(".")).enablePlugins(SbtWeb)
 ```
 
 The above example shows `SbtWeb` being added to the root project of a build. In the case of `SbtWeb` there are other plugins that become enabled if it is e.g. if you also had added the `sbt-less-plugin` via `addSbtPlugin` then it will become enabled just because `SbtWeb` has been enabled. `SbtWeb` is thus a "root" plugin for that category of plugins.
@@ -28,13 +28,13 @@ The above example shows `SbtWeb` being added to the root project of a build. In 
 Play itself is now added using the auto plugin mechanism. The mechanism used in Play 2.2 where `playJavaSettings` and `playScalaSettings` were used has been removed. You now use one of the following instead:
 
 ```java
-lazy val root = (project in file(".")).addPlugins(PlayJava)
+lazy val root = (project in file(".")).enablePlugins(PlayJava)
 ```
 
 or
 
 ```scala
-lazy val root = (project in file(".")).addPlugins(PlayScala)
+lazy val root = (project in file(".")).enablePlugins(PlayScala)
 ```
 
 If you were previously using play.Project, for example a Scala project:
@@ -63,7 +63,7 @@ object ApplicationBuild extends Build {
 
   val appDependencies = Seq()
 
-  val main = Project(appName, file(".")).addPlugins(play.PlayScala).settings(
+  val main = Project(appName, file(".")).enablePlugins(play.PlayScala).settings(
     version := appVersion,
     libraryDependencies ++= appDependencies
   )
@@ -108,7 +108,7 @@ There are other advantages including the fact that sbt-web plugins are able to r
 export SBT_OPTS="$SBT_OPTS -Dsbt.jse.engineType=Node"
 ```
 
-An interesting feature of sbt-web is that it is not concerned whether you use "javascripts" or "stylesheets" as your folder names. Any files with the appropriate filename extensions are filtered from within the `app/assets` folder.
+A feature of sbt-web is that it is not concerned whether you use "javascripts" or "stylesheets" as your folder names. Any files with the appropriate filename extensions are filtered from within the `app/assets` folder.
 
 A nuance with sbt-web is that *all* assets are served from the `public` folder. Therefore if you previously had assets reside outside of the `public` folder i.e. you used the `playAssetsDirectories` setting as per the following example:
 
@@ -124,29 +124,49 @@ unmanagedResourceDirectories in Assets += baseDirectory.value / "foo"
 
 ...however note that the files there will be aggregated into the target public folder. This means that a file at "public/a.js" will be overwritten with the file at "foo/a.js". Alternatively use sub folders off your project's public folder in order to namespace them.
 
-The following lists all sbt-web related components and their versions at the time of releasing Play 2.3-M1. Note that any dependency of sbt-js-engine is `1.0.0-M2a` given the accidental release of a snapshot with `"sbt-js-engine" % "1.0.0-M2"`.
+The following lists all sbt-web related components and their versions at the time of releasing Play 2.3-M1. Note that any dependency of sbt-js-engine is `1.0.0-RC1` given the accidental release of a snapshot with `"sbt-js-engine" % "1.0.0-RC1"`.
 
 #### Libraries
 ```scala
-"com.typesafe" %% "webdriver" % "1.0.0-M2"
-"com.typesafe" %% "jse" % "1.0.0-M2"
-"com.typesafe" %% "npm" % "1.0.0-M2"
+"com.typesafe" %% "webdriver" % "1.0.0-RC1"
+"com.typesafe" %% "jse" % "1.0.0-RC1"
+"com.typesafe" %% "npm" % "1.0.0-RC1"
 ```
 
 #### sbt plugins
 ```scala
-"com.typesafe.sbt" % "sbt-web" % "1.0.0-M2"
-"com.typesafe.sbt" % "sbt-webdriver" % "1.0.0-M2"
-"com.typesafe.sbt" % "sbt-js-engine" % "1.0.0-M2a"
+"com.typesafe.sbt" % "sbt-web" % "1.0.0-RC1"
+"com.typesafe.sbt" % "sbt-webdriver" % "1.0.0-RC1"
+"com.typesafe.sbt" % "sbt-js-engine" % "1.0.0-RC1"
 
-"com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0-M2a"
-"com.typesafe.sbt" % "sbt-digest" % "1.0.0-M2"
-"com.typesafe.sbt" % "sbt-gzip" % "1.0.0-M2b"
-"com.typesafe.sbt" % "sbt-less" % "1.0.0-M2a"
-"com.typesafe.sbt" % "sbt-jshint" % "1.0.0-M2a"
-"com.typesafe.sbt" % "sbt-mocha" % "1.0.0-M2a"
-"com.typesafe.sbt" % "sbt-rjs" % "1.0.0-M2a"
+"com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0-RC1"
+"com.typesafe.sbt" % "sbt-digest" % "1.0.0-RC1"
+"com.typesafe.sbt" % "sbt-gzip" % "1.0.0-RC1"
+"com.typesafe.sbt" % "sbt-less" % "1.0.0-RC1"
+"com.typesafe.sbt" % "sbt-jshint" % "1.0.0-RC1"
+"com.typesafe.sbt" % "sbt-mocha" % "1.0.0-RC1"
+"com.typesafe.sbt" % "sbt-rjs" % "1.0.0-RC1"
 ```
+
+#### WebJars
+
+[WebJars](http://www.webjars.org/) now play an important role in the provision of assets to a Play application. For example you can declare that you will be using the popular [Bootstrap library](http://getbootstrap.com/) simply by adding the following dependency in your build file:
+
+```scala
+libraryDependencies += "org.webjars" % "bootstrap" % "3.0.0"
+```
+
+WebJars are automatically extracted into a `lib` folder relative to your public assets for convenience. For example if you declared a dependency on [RequireJs](http://requirejs.org/) then you can reference it from a view using a line like:
+
+```html
+<script data-main="@routes.Assets.at("javascripts/main.js")" type="text/javascript" src="@routes.Assets.at("lib/requirejs/require.js")"></script>
+```
+
+Note the `lib/requirejs/require.js` path. The `lib` folder denotes the extract WebJar assets, the `requirejs` folder corresponds to the WebJar artifactId, and the `require.js` refers to the required asset at the root of the WebJar.
+
+#### npm
+
+[npm](https://www.npmjs.org/) can be used as well as WebJars by declaring a `package.json` file in the root of your project. Assets from npm packages are extracted into the same `lib` folder as WebJars so that, from a code perspective, there is no concern whether the asset is sourced from a WebJar or from an npm package.
 
 ***
 
@@ -157,7 +177,7 @@ From your perspective we aim to offer feature parity with previous releases of P
 You must now declare the plugin, typically in your plugins.sbt file:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0-M2a")
+addSbtPlugin("com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0-RC1")
 ```
 
 Coffeescript options have changed. The new options are:
@@ -177,13 +197,21 @@ For more information please consult [the plugin's documentation](https://github.
 You must now declare the plugin, typically in your plugins.sbt file:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.0.0-M2a")
+addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.0.0-RC1")
 ```
 
 Entry points are now declared using a filter. For example, to declare that `foo.less` and `bar.less` are required:
 
 ```scala
 includeFilter in (Assets, LessKeys.less) := "foo.less" | "bar.less"
+```
+
+If you previously used the behavior where files with an underscore preceding the less filename were ignored but all other less files were compiled then use the following filters:
+
+```scala
+includeFilter in (Assets, LessKeys.less) := "*.less"
+
+excludeFilter in (Assets, LessKeys.less) := new PatternFilter("""[_].*\.less""".r.pattern)
 ```
 
 The plugin's options are:
@@ -219,7 +247,7 @@ The Closure Compiler has been replaced. Its two important functions of validatin
 To use JSHint you must declare it, typically in your plugins.sbt file:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-jshint" % "1.0.0-M2a")
+addSbtPlugin("com.typesafe.sbt" % "sbt-jshint" % "1.0.0-RC1")
 ```
 
 Options can be specified in accordance with the [JSHint website](http://www.jshint.com/docs) and they share the same set of defaults. To set an option you can provide a `.jshintrc` file within your project's base directory. If there is no such file then a `.jshintrc` file will be searched for in your home directory. This behaviour can be overridden by using a `JshintKeys.config` setting for the plugin.
@@ -236,10 +264,32 @@ The RequireJS Optimizer (rjs) has been entirely replaced with one that should be
 To use rjs you must declare it, typically in your plugins.sbt file:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-rjs" % "1.0.0-M2a")
+addSbtPlugin("com.typesafe.sbt" % "sbt-rjs" % "1.0.0-RC1")
 ```
 
-The options have changed entirely. A standard build profile for the RequireJS optimizer is provided and should suffice for most projects. However if you would prefer to provide your own build profile then create an `app.build.js` file in your project's folder. For more information on build profiles see http://requirejs.org/docs/optimization.html. Note that one requirement for these build profiles is to accept the last line being a line to receive five parameters passed by this plugin. Whether you use them or not is at your discretion, but that last line must be there.
+To add the plugin to the asset pipeline you can declare it as follows:
+
+```scala
+pipelineStages := Seq(rjs)
+```
+
+We also recommend that sbt-web's sbt-digest and sbt-gzip plugins are included in the pipeline. sbt-digest will provide Play's asset controller with the ability to fingerprint asset names for far-future caching. sbt-gzip produces a gzip of your assets that the asset controller will favor when requested. Your plugins.sbt file for this configuration will then look like:
+
+```scala
+addSbtPlugin("com.typesafe.sbt" % "sbt-digest" % "1.0.0-RC1")
+
+addSbtPlugin("com.typesafe.sbt" % "sbt-gzip" % "1.0.0-RC1")
+```
+
+and your pipeline configuration now becomes:
+
+```scala
+pipelineStages := Seq(rjs, digest, gzip)
+```
+
+The order of stages is significant. You first want to optimize the files, produce digests of them and then produce gzip versions of all resultant assets.
+
+The options for RequireJs optimization have changed entirely. A standard build profile for the RequireJS optimizer is provided and should suffice for most projects. However if you would prefer to provide your own build profile then create an `app.build.js` file in your project's folder. For more information on build profiles see http://requirejs.org/docs/optimization.html. Note that one requirement for these build profiles is to accept the last line being a line to receive five parameters passed by this plugin. Whether you use them or not is at your discretion, but that last line must be there.
 
 Here is the default app.build.js profile which you should use as a basis for any of your own:
 

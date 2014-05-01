@@ -19,7 +19,7 @@ object ApplicationBuild extends Build {
     cache
   )
 
-  val main = Project(appName, file(".")).addPlugins(PlayJava).settings(
+  val main = Project(appName, file(".")).enablePlugins(PlayJava).settings(
     version := appVersion, 
     libraryDependencies ++= appDependencies,
     emojiLogs

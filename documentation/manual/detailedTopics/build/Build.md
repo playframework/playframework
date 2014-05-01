@@ -33,7 +33,7 @@ libraryDependencies ++= Seq(
   cache
 )
 
-lazy val root = (project in file(".")).addPlugins(PlayScala)
+lazy val root = (project in file(".")).enablePlugins(PlayScala)
 ```
 
 The `name` line defines the name of your application and it will be the same as the name of your application's root directory, `/`, which is derived from the argument that you gave to the `activator new` command. 
@@ -71,7 +71,7 @@ version := "1.0"
 
 libraryDependencies ++= Seq(javaJdbc, javaEbean)     
 
-lazy val root = (project in file(".")).addPlugins(PlayJava)
+lazy val root = (project in file(".")).enablePlugins(PlayJava)
 ```
 
 ...and so are resolvers for adding in additional repositories:

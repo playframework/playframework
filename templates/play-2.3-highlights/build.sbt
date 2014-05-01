@@ -3,7 +3,7 @@ name := "play-2.3-highlights"
 
 version := "2.3-SNAPSHOT"
 
-lazy val root = (project in file(".")).addPlugins(PlayScala)
+lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 libraryDependencies ++= Seq(
   "org.webjars" % "bootstrap" % "3.1.1",

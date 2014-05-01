@@ -86,3 +86,4 @@ There are various fixes included in new Anorm (type safety, option parsing, erro
 - It's now possible to parse column by position. e.g. `val parser = long(1) ~ str(2) map { case l ~ s => ??? }`
 - Query results include not only data, but execution context (with SQL warning).
 - More types are supported as parameter and as column: `java.util.UUID`, numeric types (Java/Scala big decimal and integer, more column conversions between numerics), temporal types (`java.sql.Timestamp`), character types.
+

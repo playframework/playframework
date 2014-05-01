@@ -11,7 +11,7 @@ object ApplicationBuild extends Build {
 
   val Secret = """(?s).*application.secret="(.*)".*""".r
 
-  val main = Project(appName, file(".")).addPlugins(play.PlayScala).settings(
+  val main = Project(appName, file(".")).enablePlugins(play.PlayScala).settings(
     version := appVersion,
     TaskKey[Unit]("check-secret") := {
       val file = IO.read(baseDirectory.value / "conf/application.conf")

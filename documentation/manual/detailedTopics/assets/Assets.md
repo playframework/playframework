@@ -18,6 +18,26 @@ public
 
 If you follow this structure it will be simpler to get started, but nothing stops you to modifying it once you understand how it works.
 
+## WebJars
+
+[WebJars](http://www.webjars.org/) provide a convenient and conventional packaging mechanism that is a part of Activator and sbt. For example you can declare that you will be using the popular [Bootstrap library](http://getbootstrap.com/) simply by adding the following dependency in your build file:
+
+```scala
+libraryDependencies += "org.webjars" % "bootstrap" % "3.0.0"
+```
+
+WebJars are automatically extracted into a `lib` folder relative to your public assets for convenience. For example if you declared a dependency on [RequireJs](http://requirejs.org/) then you can reference it from a view using a line like:
+
+```html
+<script data-main="@routes.Assets.at("javascripts/main.js")" type="text/javascript" src="@routes.Assets.at("lib/requirejs/require.js")"></script>
+```
+
+Note the `lib/requirejs/require.js` path. The `lib` folder denotes the extract WebJar assets, the `requirejs` folder corresponds to the WebJar artifactId, and the `require.js` refers to the required asset at the root of the WebJar.
+
+## npm
+
+[npm](https://www.npmjs.org/) can be used as well as WebJars by declaring a `package.json` file in the root of your project. Assets from npm packages are extracted into the same `lib` folder as WebJars so that, from a code perspective, there is no concern whether the asset is sourced from a WebJar or from an npm package.
+
 ## How are public assets packaged?
 
 During the build process, the contents of the `public` folder are processed and added to the application classpath.

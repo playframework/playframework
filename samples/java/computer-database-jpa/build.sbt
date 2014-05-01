@@ -8,4 +8,4 @@ libraryDependencies ++= Seq(
   "org.hibernate" % "hibernate-entitymanager" % "3.6.9.Final"
   )
 
-lazy val root = (project in file(".")).addPlugins(PlayJava)
+lazy val root = (project in file(".")).enablePlugins(PlayJava)

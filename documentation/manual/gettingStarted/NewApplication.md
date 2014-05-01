@@ -76,7 +76,7 @@ name := "my-first-app"
 
 version := "1.0"
 
-lazy val root = (project in file(".")).addPlugins(PlayJava)
+lazy val root = (project in file(".")).enablePlugins(PlayJava)
 ```
 
 ...or Scala projects:
@@ -86,7 +86,7 @@ name := "my-first-app"
 
 version := "1.0.0-SNAPSHOT"
 
-lazy val root = (project in file(".")).addPlugins(PlayScala)
+lazy val root = (project in file(".")).enablePlugins(PlayScala)
 ```
 
 You can then launch the sbt console in this directory:

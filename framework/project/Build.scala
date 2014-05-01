@@ -38,7 +38,7 @@ object BuildSettings {
   // TODO - Try to compute this from SBT... or not.
   val buildScalaVersionForSbt = propOr("play.sbt.scala.version", "2.10.4")
   val buildScalaBinaryVersionForSbt = CrossVersion.binaryScalaVersion(buildScalaVersionForSbt)
-  val buildSbtVersion = propOr("play.sbt.version", "0.13.5-M2")
+  val buildSbtVersion = propOr("play.sbt.version", "0.13.5-RC1")
   val buildSbtMajorVersion = "0.13"
   val buildSbtVersionBinaryCompatible = CrossVersion.binarySbtVersion(buildSbtVersion)
   // Used by api docs generation to link back to the correct branch on GitHub, only when version is a SNAPSHOT
@@ -208,7 +208,7 @@ object PlayBuild extends Build {
     testBinaryCompatibility = true)
 
   lazy val PlayProject = PlayRuntimeProject("Play", "play")
-    .addPlugins(SbtTwirl)
+    .enablePlugins(SbtTwirl)
     .settings(
       addScalaModules(scalaParserCombinators),
       libraryDependencies ++= runtime ++ scalacheckDependencies,
