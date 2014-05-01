@@ -6,7 +6,7 @@ package play.api.data
 import scala.language.existentials
 
 import format._
-import validation._
+import play.api.data.validation._
 
 /**
  * Helper to manage HTML form description, submission and validation.
@@ -589,11 +589,7 @@ case class WrappedMapping[A, B](wrapped: Mapping[A], f1: A => B, f2: B => A, val
   /**
    * The constraints associated with this field.
    */
-  val constraints: Seq[Constraint[B]] = wrapped.constraints.map { constraintOfT =>
-    Constraint[B](constraintOfT.name, constraintOfT.args) { b =>
-      constraintOfT(f2(b))
-    }
-  } ++ additionalConstraints
+  val constraints: Seq[Constraint[B]] = additionalConstraints
 
   /**
    * Binds this field, i.e. construct a concrete value from submitted data.
@@ -620,7 +616,8 @@ case class WrappedMapping[A, B](wrapped: Mapping[A], f1: A => B, f2: B => A, val
    * @return the plain data and any errors in the plain data
    */
   def unbindAndValidate(value: B): (Map[String, String], Seq[FormError]) = {
-    (wrapped.unbindAndValidate(f2(value))._1, collectErrors(value))
+    val (data, errors) = wrapped.unbindAndValidate(f2(value))
+    (data, errors ++ collectErrors(value))
   }
 
   /**
@@ -689,7 +686,7 @@ case class RepeatedMapping[T](wrapped: Mapping[T], val key: String = "", val con
    *   Form("phonenumber" -> text.verifying(required) )
    * }}}
    *
-   * @param constraints the constraints to add
+   * @param addConstraints the constraints to add
    * @return the new mapping
    */
   def verifying(addConstraints: Constraint[List[T]]*): Mapping[List[T]] = {
