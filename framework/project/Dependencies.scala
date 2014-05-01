@@ -6,7 +6,7 @@ import sbt._
 object Dependencies {
 
   // Some common dependencies here so they don't need to be declared over and over
-  val specsVersion = "2.3.10"
+  val specsVersion = "2.3.11"
   val specsBuild = Seq(
     "org.specs2" %% "specs2-core" % specsVersion,
     "org.specs2" %% "specs2-junit" % specsVersion,
@@ -204,7 +204,10 @@ object Dependencies {
   val anormDependencies = specsBuild.map(_ % "test") ++ Seq(
     h2database % "test",
     "org.eu.acolyte" %% "jdbc-scala" % "1.0.18" % "test",
-    "com.chuusai" % "shapeless_2.10.2" % "2.0.0-M1" % "test"
+    "com.chuusai" % "shapeless" % "2.0.0" % "test" cross CrossVersion.binaryMapped {
+      case "2.10" => BuildSettings.buildScalaVersion
+      case x => x
+    }
   )
 
 }
