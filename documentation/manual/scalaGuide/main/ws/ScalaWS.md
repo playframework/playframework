@@ -274,7 +274,11 @@ Use the following properties in `application.conf` to configure the WS client:
 * `ws.useragent`: To configure the User-Agent header field.
 * `ws.compressionEnable`: Set it to true to use gzip/deflater encoding *(default is **false**)*.
 
-## Timeouts
+### Configuring WS with SSL
+
+To configure WS for use with HTTP over SSL/TLS (HTTPS), please see [[Configuring WS SSL|WsSSL]].
+
+### Configuring Timeouts
 
 There are 3 different timeouts in WS. Reaching a timeout causes the WS request to interrupt.
 

@@ -30,7 +30,23 @@ ws.ssl.debug = [
 ]
 ```
 
-> NOTE: This is a global setting that changes everything on the JVM, and is only intended for use in development environments.
+> NOTE: This feature changes the setting of the `java.net.debug` system property which is global on the JVM.  In addition, this feature [changes static properties at runtime](http://tersesystems.com/2014/03/02/monkeypatching-java-classes/), and is only intended for use in development environments.
+
+## Verbose Debugging
+
+To see the behavior of WS, you can configuring the SLF4J logger for debug output:
+
+```
+logger.play.api.libs.ws.ssl=DEBUG
+```
+
+## Dynamic Debugging
+
+If you are working with WSClient instances created dynamically, you can use the `SSLDebugConfig` class to set up debugging using a builder pattern:
+
+```
+val debugConfig = SSLDebugConfig().withKeyManager.withHandshake(data = true, verbose = true)
+```
 
 ## Further reading
 
@@ -39,4 +55,5 @@ Oracle has a number of sections on debugging JSSE issues:
 * [Debugging SSL/TLS connections](http://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/ReadDebug.html)
 * [JSSE Debug Logging With Timestamp](https://blogs.oracle.com/xuelei/entry/jsse_debug_logging_with_timestamp)
 * [How to Analyze Java SSL Errors](http://www.smartjava.org/content/how-analyze-java-ssl-errors)
-* [How this feature is implemented](http://tersesystems.com/2014/03/02/monkeypatching-java-classes/)
+
+> **Next:** [[Loose Options|LooseSSL]]
