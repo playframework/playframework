@@ -75,7 +75,7 @@ object Dependencies {
     mockitoAll % "test")
 
   val runtime = Seq(
-    "io.netty" % "netty" % "3.9.0.Final",
+    "io.netty" % "netty" % "3.9.1.Final",
 
     "com.typesafe.netty" % "netty-http-pipelining" % "1.1.2",
 
@@ -195,7 +195,7 @@ object Dependencies {
 
   val playWsDeps = Seq(
     guava,
-    "com.ning" % "async-http-client" % "1.8.6",
+    "com.ning" % "async-http-client" % "1.8.8",
     "oauth.signpost" % "signpost-core" % "1.2.1.2",
     "oauth.signpost" % "signpost-commonshttp4" % "1.2.1.2") ++
     specsBuild.map(_ % "test") :+
