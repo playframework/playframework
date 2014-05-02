@@ -28,15 +28,19 @@ If you need each test to get its own `FakeApplication`, use `OneAppPerTest` inst
 
 @[scalafunctionaltest-oneapppertest](code-scalatestplus-play/oneapppertest/ExampleSpec.scala)
 
-## TestServer
+## Test Server
 
 Sometimes you want to test the real HTTP stack from your tests. If all tests in your test class can reuse the same server instance, use `OneServerPerSuite` (which will also provide a new `FakeApplication` for the suite):
 
 @[scalafunctionaltest-oneserverpersuite](code-scalatestplus-play/oneserverpersuite/ExampleSpec.scala)
 
-The `port` field contains the port number the server is running on.  By default this is 19001, however you can change this either overriding `port` or by setting the system property `testserver.port`. (TODO: Ensure this works. I'm guessing it is done by Helpers.portNumber)  This can be useful for integrating with continuous integration servers, so that ports can be dynamically reserved for each build.
+If all tests in your test class requires separate server instance, use `OneServerPerTest` instead (which will also provide a new `FakeApplication` for the suite):
 
-You can also customize the [`FakeApplication`](api/scala/index.html#play.api.test.FakeApplication) by overriding `app`, as demonstrated in the previous example.
+@[scalafunctionaltest-oneserverpertest](code-scalatestplus-play/oneserverpertest/ExampleSpec.scala)
+
+The `port` field contains the port number the server is running on.  By default this is 19001, however you can change this either overriding `port` or by setting the system property `testserver.port`.  This can be useful for integrating with continuous integration servers, so that ports can be dynamically reserved for each build.
+
+You can also customize the [`FakeApplication`](api/scala/index.html#play.api.test.FakeApplication) by overriding `app`, as demonstrated in the previous examples.
 
 # I FINISHED HERE
 
