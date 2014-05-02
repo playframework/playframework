@@ -82,8 +82,6 @@ For both `AllBrowsersPerSuite` and `AllBrowsersPerTest`, when a browser type is 
 
 @[scalafunctionaltest-playspec](code-scalatestplus-play/playspec/ExampleSpec.scala)
 
-
-
 #WORK UP TO HERE
 
 
@@ -122,44 +120,40 @@ If you want to test your application using a browser, you can use [Selenium WebD
 
 [`PlaySpecification`](api/scala/index.html#play.api.test.PlaySpecification) is an extension of [`Specification`](http://etorreborre.github.io/specs2/api/SPECS2-2.2.2/index.html#org.specs2.mutable.Specification) that excludes some of the mixins provided in the default specs2 specification that clash with Play helpers methods.  It also mixes in the Play test helpers and types for convenience.
 
-<<<<<<< HEAD
-@[scalafunctionaltest-playspecification](code/ExamplePlaySpecificationSpec.scala)
-=======
 @[scalatest-playspecification](code/specs2/ExamplePlaySpecificationSpec.scala)
->>>>>>> Organized code samples for test into scalatest and specs subdirectories of test/code. Adjusted links on page such to match and verified it with the validate-docs target.
 
 ## Testing a view template
 
 Since a template is a standard Scala function, you can execute it from your test, and check the result:
 
-<<<<<<< HEAD
-@[scalafunctionaltest-testview](code/ScalaFunctionalTestSpec.scala)
-=======
 @[scalatest-functionaltemplatespec](code/specs2/FunctionalTemplateSpec.scala)
->>>>>>> Organized code samples for test into scalatest and specs subdirectories of test/code. Adjusted links on page such to match and verified it with the validate-docs target.
+
+## Testing a template
+
+Since a template is a standard Scala function, you can execute it from your test, and check the result:
+
+@[scalafunctionaltest-testview](code-scalatestplus-play/ScalaFunctionalTestSpec.scala)
 
 ## Testing a controller
 
 You can call any `Action` code by providing a [`FakeRequest`](api/scala/index.html#play.api.test.FakeRequest):
 
-<<<<<<< HEAD
 @[scalafunctionaltest-functionalexamplecontrollerspec](code/FunctionalExampleControllerSpec.scala)
 
 Technically, you don't need [`WithApplication`](api/scala/index.html#play.api.test.WithApplication) here, although it wouldn't hurt anything to have it.
-=======
-@[scalatest-functionalexamplecontrollerspec](code/specs2/FunctionalExampleControllerSpec.scala)
->>>>>>> Organized code samples for test into scalatest and specs subdirectories of test/code. Adjusted links on page such to match and verified it with the validate-docs target.
+
+@[scalatest-examplecontrollerspec](code-scalatestplus-play/ExampleControllerSpec.scala)
 
 ## Testing the router
 
 Instead of calling the `Action` yourself, you can let the `Router` do it:
 
-@[scalafunctionaltest-respondtoroute](code/specs2/ScalaFunctionalTestSpec.scala)
+@[scalafunctionaltest-respondtoroute](code-scalatestplus-play/ScalaFunctionalTestSpec.scala)
 
 ## Testing a model
 
 If you are using an SQL database, you can replace the database connection with an in-memory instance of an H2 database using `inMemoryDatabase`.
 
-@[scalafunctionaltest-testmodel](code/specs2/ScalaFunctionalTestSpec.scala)
+@[scalafunctionaltest-testmodel](code-scalatestplus-play/ScalaFunctionalTestSpec.scala)
 
 > **Next:** [[Advanced topics|Iteratees]]
