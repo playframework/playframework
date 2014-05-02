@@ -14,23 +14,23 @@ import java.util.concurrent.atomic.AtomicReference
  *
  * {{{
  * val runQueue = new RunQueue()
- * 
+ *
  * // This operation will run first. It completes when
  * // the future it returns is completed.
  * runQueue.schedule {
  *   Future { ... do some stuff ... }
  * }
- * 
+ *
  * // This operation will run second. It will start running
  * // when the previous operation's futures complete.
  * runQueue.schedule {
- *   future1.flatMap(x => future2.map(y => x + y))  
+ *   future1.flatMap(x => future2.map(y => x + y))
  * }
  *
  * // This operation will run when the second operation's
  * // future finishes. It's a simple synchronous operation.
  * runQueue.scheduleSimple {
- *   25   
+ *   25
  * }
  * }}}
  *
@@ -77,7 +77,7 @@ private[play] final class RunQueue {
    *   body
    *   Future.successful(())
    * }
-   }}}
+   * }}}
    *
    * Successive calls to the `run` and `runSynchronous` methods use an
    * atomic value to guarantee ordering (a *happens-before* relationship).
