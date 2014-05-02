@@ -168,7 +168,7 @@ object Column {
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case d: UUID => Right(d)
-      case _ => Left(TypeDoesNotMatch("Cannot convert $val: ${value.asInstanceOf[AnyRef].getClass} to UUID for column $qualified"))
+      case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to UUID for column $qualified"))
     }
   }
 
@@ -229,7 +229,7 @@ object Column {
     value match {
       case date: Date => Right(date)
       case time: Long => Right(new Date(time))
-      case _ => Left(TypeDoesNotMatch("Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to Date for column $qualified"))
+      case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to Date for column $qualified"))
     }
   }
 
