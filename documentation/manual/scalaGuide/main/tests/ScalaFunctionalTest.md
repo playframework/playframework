@@ -28,7 +28,7 @@ If you need each test to get its own `FakeApplication`, use `OneAppPerTest` inst
 
 @[scalafunctionaltest-oneapppertest](code-scalatestplus-play/oneapppertest/ExampleSpec.scala)
 
-## Test Server
+## Testing with Server
 
 Sometimes you want to test the real HTTP stack from your tests. If all tests in your test class can reuse the same server instance, use `OneServerPerSuite` (which will also provide a new `FakeApplication` for the suite):
 
@@ -42,7 +42,43 @@ The `port` field contains the port number the server is running on.  By default 
 
 You can also customize the [`FakeApplication`](api/scala/index.html#play.api.test.FakeApplication) by overriding `app`, as demonstrated in the previous examples.
 
-# I FINISHED HERE
+## Testing with Specific Web Browser
+
+ScalaTest + Play provides very good support integration testing using different web browsers.
+
+To run all tests in your test class using a same browser instance, you can use `OneBrowserPerSuite`:
+
+@[scalafunctionaltest-onebrowserpersuite](code-scalatestplus-play/onebrowserpersuite/ExampleSpec.scala)
+
+The example uses `HtmlUnitFactory` that will create `HtmlUnit` web driver, you can use `FirefoxFactory`, `ChromeFactory`, `SafariFactory` or `InternetBrowserFactory`
+to create other types of web driver to use.
+
+If each of your test require new browser instance, you can use `OneBrowserPerTest` instead:
+
+@[scalafunctionaltest-onebrowserpertest](code-scalatestplus-play/onebrowserpertest/ExampleSpec.scala)
+
+
+## Testing with ALL Available Web Browsers
+
+If you want to run your tests with all available web browsers on your system, you can use `AllBrowsersPerSuite`:
+
+@[scalafunctionaltest-allbrowserspersuite](code-scalatestplus-play/allbrowserspersuite/ExampleSpec.scala)
+
+All tests registered under `sharedTests` will be run with all available browsers on your system.  Note that it is important for you to append the `browser.name` manually to the test name, without it you'll get a duplicated test name error at runtime.
+
+Using `AllBrowsersPerSuite` all tests will be run by the same instance for a browser type, if you want a new instance for each test, you can use `AllBrowsersPerTest` instead:
+
+@[scalafunctionaltest-allbrowserspertest](code-scalatestplus-play/allbrowserspertest/ExampleSpec.scala)
+
+For both `AllBrowsersPerSuite` and `AllBrowsersPerTest`, when a browser type is not available on the running system, the test will be canceled automatically and shown in output.  You can explicitly specify web browser(s) to be included by overriding `browsers`:
+
+@[scalafunctionaltest-allbrowserspersuite](code-scalatestplus-play/allbrowserspersuite/ExampleOverrideBrowsersSpec.scala)
+
+`AllBrowsersPerSuite` will then try to detect only Firefox and Chrome browser in the running system (and cancel test automatically if the browser is not available).  The same approach can be used on `AllBrowsersPerTest`.
+
+#WORK UP TO HERE
+
+
 
 which is useful for setting up custom routes and testing WS calls:
 
