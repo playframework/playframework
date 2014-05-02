@@ -83,7 +83,6 @@ For both `AllBrowsersPerSuite` and `AllBrowsersPerTest`, when a browser type is 
 @[scalafunctionaltest-playspec](code-scalatestplus-play/playspec/ExampleSpec.scala)
 
 
-
 #WORK UP TO HERE
 
 
@@ -128,13 +127,13 @@ If you want to test your application using a browser, you can use [Selenium WebD
 
 Since a template is a standard Scala function, you can execute it from your test, and check the result:
 
-@[scalafunctionaltest-testview](code/specs2/ScalaFunctionalTestSpec.scala)
+@[scalafunctionaltest-testview](code-scalatestplus-play/ScalaFunctionalTestSpec.scala)
 
 ## Testing a controller
 
 You can call any `Action` code by providing a [`FakeRequest`](api/scala/index.html#play.api.test.FakeRequest):
 
-@[scalafunctionaltest-functionalexamplecontrollerspec](code/specs2/FunctionalExampleControllerSpec.scala)
+@[scalatest-examplecontrollerspec](code-scalatestplus-play/ExampleControllerSpec.scala)
 
 Technically, you don't need [`WithApplication`](api/scala/index.html#play.api.test.WithApplication) here, although it wouldn't hurt anything to have it.
 
@@ -142,13 +141,13 @@ Technically, you don't need [`WithApplication`](api/scala/index.html#play.api.te
 
 Instead of calling the `Action` yourself, you can let the `Router` do it:
 
-@[scalafunctionaltest-respondtoroute](code/specs2/ScalaFunctionalTestSpec.scala)
+@[scalafunctionaltest-respondtoroute](code-scalatestplus-play/ScalaFunctionalTestSpec.scala)
 
 ## Testing a model
 
 If you are using an SQL database, you can replace the database connection with an in-memory instance of an H2 database using `inMemoryDatabase`.
 
-@[scalafunctionaltest-testmodel](code/specs2/ScalaFunctionalTestSpec.scala)
+@[scalafunctionaltest-testmodel](code-scalatestplus-play/ScalaFunctionalTestSpec.scala)
 
 ## Testing WS calls
 
