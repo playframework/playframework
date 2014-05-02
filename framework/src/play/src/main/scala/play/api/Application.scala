@@ -83,6 +83,9 @@ trait WithDefaultConfiguration {
 
   def configuration: Configuration = fullConfiguration
 
+  // Redefine playConfiguration to reflect the new loaded configuration
+  override private[play] lazy val playConfiguration = PlayConfiguration(this)
+
 }
 
 trait WithDefaultPlugins {
@@ -209,6 +212,7 @@ trait Application {
 
   def global: GlobalSettings
   def configuration: Configuration
+  private[play] lazy val playConfiguration: PlayConfiguration = PlayConfiguration(this)
   def plugins: Seq[Plugin]
 
   /**
@@ -247,19 +251,15 @@ trait Application {
   lazy val routes: Option[Router.Routes] = loadRoutes
 
   protected def loadRoutes: Option[Router.Routes] = try {
-    Some(classloader.loadClass(configuration.getString("application.router").map(_ + "$").getOrElse("Routes$")).getDeclaredField("MODULE$").get(null).asInstanceOf[Router.Routes]).map { router =>
-      router.setPrefix(configuration.getString("application.context").map { prefix =>
-        if (!prefix.startsWith("/")) {
-          throw configuration.reportError("application.context", "Invalid application context")
-        }
-        prefix
-      }.getOrElse("/"))
+    Some(classloader.loadClass(playConfiguration.ApplicationRouter.getOrElse("Routes") + "$").getDeclaredField("MODULE$").get(null).asInstanceOf[Router.Routes]).map { router =>
+      router.setPrefix(playConfiguration.ApplicationContext)
       router
     }
   } catch {
-    case e: ClassNotFoundException => configuration.getString("application.router").map { routerName =>
-      throw configuration.reportError("application.router", "Router not found: " + routerName)
-    }
+    case e: ClassNotFoundException =>
+      playConfiguration.ApplicationRouter.map { router =>
+        throw configuration.reportError("application.router", "Router not found: " + router)
+      }
   }
 
   // Reconfigure logger

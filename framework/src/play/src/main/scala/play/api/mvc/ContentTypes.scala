@@ -7,6 +7,7 @@ import scala.language.reflectiveCalls
 import java.io._
 import scala.concurrent.Future
 import scala.xml._
+import play.core.PlayConfiguration
 import play.api._
 import play.api.libs.json._
 import play.api.libs.iteratee._
@@ -288,9 +289,7 @@ trait BodyParsers {
      * parsers.text.maxLength = 512k
      * }}}
      */
-    def DEFAULT_MAX_TEXT_LENGTH: Int = Play.maybeApplication.flatMap { app =>
-      app.configuration.getBytes("parsers.text.maxLength").map(_.toInt)
-    }.getOrElse(1024 * 100)
+    def DEFAULT_MAX_TEXT_LENGTH: Int = PlayConfiguration.ParsersTextMaxLength
 
     // -- Text parser
 

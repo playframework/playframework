@@ -3,6 +3,7 @@
  */
 package play.api.mvc
 
+import play.core.PlayConfiguration
 import play.api._
 import play.api.mvc.Results._
 
@@ -57,7 +58,7 @@ object Security {
   /**
    * Key of the username attribute stored in session.
    */
-  lazy val username: String = Play.maybeApplication.flatMap(_.configuration.getString("session.username")) getOrElse ("username")
+  lazy val username: String = PlayConfiguration.SessionUsername
 
   /**
    * Wraps another action, allowing only authenticated HTTP requests.

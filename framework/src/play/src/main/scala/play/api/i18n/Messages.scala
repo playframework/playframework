@@ -103,15 +103,7 @@ object Lang {
    * application.langs="fr,en,de"
    * }}}
    */
-  def availables(implicit app: Application): Seq[Lang] = {
-    app.configuration.getString("application.langs").map { langs =>
-      langs.split(",").map(_.trim).map { lang =>
-        try { Lang(lang) } catch {
-          case NonFatal(e) => throw app.configuration.reportError("application.langs", "Invalid language code [" + lang + "]", Some(e))
-        }
-      }.toSeq
-    }.getOrElse(Nil)
-  }
+  def availables(implicit app: Application): Seq[Lang] = app.playConfiguration.ApplicationLangs
 
   /**
    * Guess the preferred lang in the langs set passed as argument.
@@ -325,8 +317,8 @@ class DefaultMessagesPlugin(app: Application) extends MessagesPlugin {
   import scalax.file._
   import scalax.io.JavaConverters._
 
-  private lazy val messagesPrefix = app.configuration.getString("messages.path")
-  private lazy val pluginEnabled = app.configuration.getString("defaultmessagesplugin")
+  private lazy val messagesPrefix = app.playConfiguration.MessagesPath
+  private lazy val pluginEnabled = app.playConfiguration.Defaultmessagesplugin
 
   private def joinPaths(first: Option[String], second: String) = first match {
     case Some(first) => new java.io.File(first, second).getPath

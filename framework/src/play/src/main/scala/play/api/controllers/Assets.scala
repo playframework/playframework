@@ -3,6 +3,7 @@
  */
 package controllers
 
+import play.core.PlayConfiguration
 import play.api._
 import play.api.mvc._
 import play.api.libs._

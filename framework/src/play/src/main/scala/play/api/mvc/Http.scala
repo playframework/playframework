@@ -3,6 +3,7 @@
  */
 package play.api.mvc {
 
+  import play.core.PlayConfiguration
   import play.api._
   import play.api.http.{ MediaType, MediaRange, HeaderNames }
   import play.api.i18n.Lang
@@ -572,16 +573,14 @@ package play.api.mvc {
    * Helper utilities to manage the Session cookie.
    */
   object Session extends CookieBaker[Session] {
-    val COOKIE_NAME = Play.maybeApplication.flatMap(_.configuration.getString("session.cookieName")).getOrElse("PLAY_SESSION")
+    val COOKIE_NAME = PlayConfiguration.SessionCookieName
     val emptyCookie = new Session
     override val isSigned = true
-    override def secure = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.secure")).getOrElse(false)
-    override val maxAge = Play.maybeApplication
-      .flatMap(_.configuration.getMilliseconds("session.maxAge")
-        .map(Duration(_, MILLISECONDS).toSeconds.toInt))
-    override val httpOnly = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.httpOnly")).getOrElse(true)
-    override def path = Play.maybeApplication.flatMap(_.configuration.getString("application.context")).getOrElse("/")
-    override def domain = Play.maybeApplication.flatMap(_.configuration.getString("session.domain"))
+    override def secure = PlayConfiguration.SessionSecure
+    override val maxAge = PlayConfiguration.SessionMaxAge
+    override val httpOnly = PlayConfiguration.SessionHttpOnly
+    override def path = PlayConfiguration.ApplicationContext
+    override def domain = PlayConfiguration.SessionDomain
 
     def deserialize(data: Map[String, String]) = new Session(data)
 
@@ -646,8 +645,8 @@ package play.api.mvc {
    */
   object Flash extends CookieBaker[Flash] {
 
-    val COOKIE_NAME = Play.maybeApplication.flatMap(_.configuration.getString("flash.cookieName")).getOrElse("PLAY_FLASH")
-    override def path = Play.maybeApplication.flatMap(_.configuration.getString("application.context")).getOrElse("/")
+    val COOKIE_NAME = PlayConfiguration.FlashCookieName
+    override def path = PlayConfiguration.ApplicationContext
 
     val emptyCookie = new Flash
 
