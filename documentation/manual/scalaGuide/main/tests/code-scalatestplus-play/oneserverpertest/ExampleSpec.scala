@@ -14,7 +14,7 @@ import Results._
 // #scalafunctionaltest-oneserverpertest
 class ExampleSpec extends PlaySpec with OneServerPerTest {
 
-  // Override app if you need a FakeApplication with other than
+  // Override newAppForTest if you need a FakeApplication with other than
   // non-default parameters.
   override def newAppForTest(testData: TestData): FakeApplication =
     new FakeApplication(
