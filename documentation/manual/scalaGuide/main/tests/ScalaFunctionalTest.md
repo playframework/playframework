@@ -76,6 +76,14 @@ For both `AllBrowsersPerSuite` and `AllBrowsersPerTest`, when a browser type is 
 
 `AllBrowsersPerSuite` will then try to detect only Firefox and Chrome browser in the running system (and cancel test automatically if the browser is not available).  The same approach can be used on `AllBrowsersPerTest`.
 
+## PlaySpec
+
+`PlaySpec` provides a convenience "super Suite" ScalaTest base class for Play tests, you get `MustMatchers`, `OptionValues` and `WsScalaTestClient` automatically by extending `PlaySpec`:
+
+@[scalafunctionaltest-playspec](code-scalatestplus-play/playspec/ExampleSpec.scala)
+
+
+
 #WORK UP TO HERE
 
 
