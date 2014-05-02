@@ -90,8 +90,6 @@ trait WithDefaultPlugins {
 
   private[api] def pluginClasses: Seq[String] = {
 
-    import scalax.file._
-    import scalax.io.JavaConverters._
     import scala.collection.JavaConverters._
 
     val PluginDeclaration = """([0-9_]+):(.*)""".r
@@ -99,7 +97,7 @@ trait WithDefaultPlugins {
     val pluginFiles = self.classloader.getResources("play.plugins").asScala.toList ++ self.classloader.getResources("conf/play.plugins").asScala.toList
 
     pluginFiles.distinct.map { plugins =>
-      (plugins.asInput.string.split("\n").map(_.replaceAll("#.*$", "").trim)).filterNot(_.isEmpty).map {
+      PlayIO.readUrlAsString(plugins).split("\n").map(_.replaceAll("#.*$", "").trim).filterNot(_.isEmpty).map {
         case PluginDeclaration(priority, className) => (priority.toInt, className)
       }
     }.flatten.sortBy(_._1).map(_._2)
@@ -301,7 +299,7 @@ trait Application {
           e) {
           def line = source.flatMap(_._2).map(_.asInstanceOf[java.lang.Integer]).orNull
           def position = null
-          def input = source.map(_._1).map(scalax.file.Path(_).string).orNull
+          def input = source.map(_._1).map(PlayIO.readFileAsString).orNull
           def sourceName = source.map(_._1.getAbsolutePath).orNull
         }
       }

@@ -27,7 +27,7 @@ trait PlayPositionMapper {
           val offset = xsbti.Maybe.nothing[java.lang.Integer]
           val pointer = xsbti.Maybe.nothing[java.lang.Integer]
           val pointerSpace = xsbti.Maybe.nothing[String]
-          val sourceFile = xsbti.Maybe.just(new File(generatedSource.source.get.path))
+          val sourceFile = xsbti.Maybe.just(generatedSource.source.get)
           val sourcePath = xsbti.Maybe.just(sourceFile.get.getCanonicalPath)
         }
       }

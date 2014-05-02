@@ -9,6 +9,7 @@ import play.api.Play
 import play.core.server.netty.FakeKeyStore
 import scala.util.control.NonFatal
 import scala.util.{ Try, Failure, Success }
+import play.utils.PlayIO
 
 class DefaultSSLContextProvider extends SSLContextProvider {
   override def createSSLContext(applicationProvider: ApplicationProvider): SSLContext = {
@@ -20,10 +21,9 @@ class DefaultSSLContextProvider extends SSLContextProvider {
         val algorithm = System.getProperty("https.keyStoreAlgorithm", KeyManagerFactory.getDefaultAlgorithm)
         val file = new File(path)
         if (file.isFile) {
+          val in = new FileInputStream(file)
           try {
-            for (in <- resource.managed(new FileInputStream(file))) {
-              keyStore.load(in, password)
-            }
+            keyStore.load(in, password)
             Play.logger.debug("Using HTTPS keystore at " + file.getAbsolutePath)
             val kmf = KeyManagerFactory.getInstance(algorithm)
             kmf.init(keyStore, password)
@@ -32,6 +32,8 @@ class DefaultSSLContextProvider extends SSLContextProvider {
             case NonFatal(e) => {
               Failure(new Exception("Error loading HTTPS keystore from " + file.getAbsolutePath, e))
             }
+          } finally {
+            PlayIO.closeQuietly(in)
           }
         } else {
           Failure(new Exception("Unable to find HTTPS keystore at \"" + file.getAbsolutePath + "\""))

@@ -4,6 +4,7 @@
 package play.api.i18n
 
 import org.specs2.mutable._
+import play.api.i18n.Messages.MessageSource
 
 object MessagesSpec extends Specification {
   val testMessages = Map(
@@ -68,11 +69,8 @@ backslash.dummy=\a\b\c\e\f
 
   "MessagesPlugin" should {
     "parse file" in {
-      import scalax.io.JavaConverters._
-      import java.io.ByteArrayInputStream
 
-      val is = new ByteArrayInputStream(testMessageFile.getBytes("UTF-8"))
-      val parser = new Messages.MessagesParser(is.asInput, "messages")
+      val parser = new Messages.MessagesParser(new MessageSource { def read = testMessageFile }, "messages")
 
       val messages = parser.parse.right.toSeq.flatten.map(x => x.key -> x.pattern).toMap
 

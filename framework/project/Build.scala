@@ -156,25 +156,25 @@ object PlayBuild extends Build {
   import Tasks._
 
   lazy val BuildLinkProject = PlaySharedJavaProject("Build-Link", "build-link")
-    .settings(libraryDependencies := link)
+    .settings(libraryDependencies ++= link)
     .dependsOn(PlayExceptionsProject)
 
   lazy val RoutesCompilerProject = PlaySbtProject("Routes-Compiler", "routes-compiler")
-    .settings(libraryDependencies := routersCompilerDependencies)
+    .settings(libraryDependencies ++= routersCompilerDependencies)
 
   lazy val AnormProject = PlayRuntimeProject("Anorm", "anorm")
     .settings(libraryDependencies ++= anormDependencies,
       resolvers += sonatypeSnapshots)
 
   lazy val IterateesProject = PlayRuntimeProject("Play-Iteratees", "iteratees")
-    .settings(libraryDependencies := iterateesDependencies)
+    .settings(libraryDependencies ++= iterateesDependencies)
 
   lazy val FunctionalProject = PlayRuntimeProject("Play-Functional", "play-functional")
 
   lazy val DataCommonsProject = PlayRuntimeProject("Play-DataCommons", "play-datacommons")
 
   lazy val JsonProject = PlayRuntimeProject("Play-Json", "play-json")
-    .settings(libraryDependencies := jsonDependencies)
+    .settings(libraryDependencies ++= jsonDependencies)
     .dependsOn(IterateesProject, FunctionalProject, DataCommonsProject)
 
   lazy val PlayExceptionsProject = PlaySharedJavaProject("Play-Exceptions", "play-exceptions",
@@ -193,7 +193,7 @@ object PlayBuild extends Build {
     ).dependsOn(BuildLinkProject, PlayExceptionsProject, IterateesProject % "test->test;compile->compile", JsonProject)
 
   lazy val PlayJdbcProject = PlayRuntimeProject("Play-JDBC", "play-jdbc")
-    .settings(libraryDependencies := jdbcDeps)
+    .settings(libraryDependencies ++= jdbcDeps)
     .dependsOn(PlayProject)
 
   lazy val PlayJavaJdbcProject = PlayRuntimeProject("Play-Java-JDBC", "play-java-jdbc")
@@ -201,7 +201,7 @@ object PlayBuild extends Build {
 
   lazy val PlayEbeanProject = PlayRuntimeProject("Play-Java-Ebean", "play-java-ebean")
     .settings(
-      libraryDependencies := ebeanDeps ++ jpaDeps,
+      libraryDependencies ++= ebeanDeps ++ jpaDeps,
       compile in (Compile) <<= (dependencyClasspath in Compile, compile in Compile, classDirectory in Compile) map {
         (deps, analysis, classes) =>
 
@@ -221,23 +221,23 @@ object PlayBuild extends Build {
     ).dependsOn(PlayJavaJdbcProject)
 
   lazy val PlayJpaProject = PlayRuntimeProject("Play-Java-JPA", "play-java-jpa")
-    .settings(libraryDependencies := jpaDeps)
+    .settings(libraryDependencies ++= jpaDeps)
     .dependsOn(PlayJavaJdbcProject)
 
   lazy val PlayTestProject = PlayRuntimeProject("Play-Test", "play-test")
     .settings(
-      libraryDependencies := testDependencies,
+      libraryDependencies ++= testDependencies,
       parallelExecution in Test := false
     ).dependsOn(PlayProject)
 
   lazy val PlayJavaProject = PlayRuntimeProject("Play-Java", "play-java")
-    .settings(libraryDependencies := javaDeps ++ javaTestDeps)
+    .settings(libraryDependencies ++= javaDeps ++ javaTestDeps)
     .dependsOn(PlayProject % "compile;test->test")
 
   lazy val PlayDocsProject = PlayRuntimeProject("Play-Docs", "play-docs")
     .settings(Docs.settings: _*)
     .settings(
-      libraryDependencies := playDocsDependencies
+      libraryDependencies ++= playDocsDependencies
     ).dependsOn(PlayProject)
 
   import ScriptedPlugin._
@@ -246,7 +246,7 @@ object PlayBuild extends Build {
     .settings(
       sbtPlugin := true,
       publishMavenStyle := false,
-      libraryDependencies := sbtDependencies,
+      libraryDependencies ++= sbtDependencies,
       sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
       sbtVersion in GlobalScope := buildSbtVersion,
       sbtBinaryVersion in GlobalScope := buildSbtVersionBinaryCompatible,
@@ -277,14 +277,14 @@ object PlayBuild extends Build {
 
   lazy val PlayWsProject = PlayRuntimeProject("Play-WS", "play-ws")
     .settings(
-      libraryDependencies := playWsDeps,
+      libraryDependencies ++= playWsDeps,
       parallelExecution in Test := false
     ).dependsOn(PlayProject)
     .dependsOn(PlayTestProject % "test")
 
   lazy val PlayWsJavaProject = PlayRuntimeProject("Play-Java-WS", "play-java-ws")
       .settings(
-        libraryDependencies := playWsDeps,
+        libraryDependencies ++= playWsDeps,
         parallelExecution in Test := false
       ).dependsOn(PlayProject)
     .dependsOn(PlayWsProject, PlayJavaProject)
@@ -298,7 +298,7 @@ object PlayBuild extends Build {
   lazy val PlayIntegrationTestProject = PlayRuntimeProject("Play-Integration-Test", "play-integration-test")
     .settings(
       parallelExecution in Test := false,
-      libraryDependencies := integrationTestDependencies,
+      libraryDependencies ++= integrationTestDependencies,
       previousArtifact := None
     )
     .dependsOn(PlayProject % "test->test", PlayWsProject, PlayWsJavaProject, PlayTestProject)
@@ -307,7 +307,7 @@ object PlayBuild extends Build {
 
   lazy val PlayCacheProject = PlayRuntimeProject("Play-Cache", "play-cache")
     .settings(
-      libraryDependencies := playCacheDeps,
+      libraryDependencies ++= playCacheDeps,
       parallelExecution in Test := false
     ).dependsOn(PlayProject)
     .dependsOn(PlayTestProject % "test")
@@ -362,7 +362,7 @@ object PlayBuild extends Build {
     .settings(dontPublishSettings:_*)
     .settings(
       concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
-      libraryDependencies := (runtime ++ jdbcDeps),
+      libraryDependencies ++= (runtime ++ jdbcDeps),
       Docs.apiDocsInclude := false,
       Docs.apiDocsIncludeManaged := false
     )
