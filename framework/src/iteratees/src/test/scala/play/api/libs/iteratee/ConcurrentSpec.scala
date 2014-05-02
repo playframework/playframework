@@ -94,7 +94,10 @@ object ConcurrentSpec extends Specification
     "drop intermediate unused input, swallow even the unused eof forcing u to pass it twice" in {
       testExecution { (flatMapEC, mapEC) =>
         val p = Promise[List[Long]]()
-        val slowIteratee = Iteratee.flatten(timeout(Cont[Long, List[Long]] { case Input.El(e) => Done(List(e), Input.Empty) }, Duration(100, MILLISECONDS)))
+        val slowIteratee = Iteratee.flatten(timeout(Cont[Long, List[Long]] {
+          case Input.El(e) => Done(List(e), Input.Empty)
+          case in => throw new MatchError(in) // Shouldn't occur, but here to suppress compiler warning
+        }, Duration(100, MILLISECONDS)))
         val fastEnumerator = Enumerator[Long](1, 2, 3, 4, 5, 6, 7, 8, 9, 10) >>> Enumerator.eof
         val preparedMapEC = mapEC.prepare()
         val result =
@@ -272,14 +275,14 @@ object ConcurrentSpec extends Specification
       val result = enumerator |>>> Iteratee.getChunks[String]
       val unitResult = Enumerator("foo", "bar") |>>> iteratee
       await(result) must_== Seq("foo", "bar")
-      await(unitResult) must_== ()
+      await(unitResult) must_== (())
     }
     "join the iteratee and enumerator if the iteratee is applied first" in {
       val (iteratee, enumerator) = Concurrent.joined[String]
       val unitResult = Enumerator("foo", "bar") |>>> iteratee
       val result = enumerator |>>> Iteratee.getChunks[String]
       await(result) must_== Seq("foo", "bar")
-      await(unitResult) must_== ()
+      await(unitResult) must_== (())
     }
     "join the iteratee and enumerator if the enumerator is applied during the iteratees run" in {
       val (iteratee, enumerator) = Concurrent.joined[String]
@@ -291,7 +294,7 @@ object ConcurrentSpec extends Specification
       channel.push("bar")
       channel.end()
       await(result) must_== Seq("foo", "bar")
-      await(unitResult) must_== ()
+      await(unitResult) must_== (())
     }
     "break early from infinite enumerators" in {
       val (iteratee, enumerator) = Concurrent.joined[String]
@@ -299,7 +302,7 @@ object ConcurrentSpec extends Specification
       val unitResult = infinite |>>> iteratee
       val head = enumerator |>>> Iteratee.head
       await(head) must beSome("foo")
-      await(unitResult) must_== ()
+      await(unitResult) must_== (())
     }
   }
 

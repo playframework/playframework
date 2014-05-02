@@ -519,7 +519,7 @@ object IterateesSpec extends Specification
       val tooManyArrays = (Runtime.getRuntime.maxMemory / arraySize).toInt + 1
       val iterator = Iterator.range(0, tooManyArrays).map(_ => new Array[Byte](arraySize))
       import play.api.libs.iteratee.Execution.Implicits.defaultExecutionContext
-      await(Enumerator.enumerate(iterator) |>>> Iteratee.ignore[Array[Byte]]) must_== ()
+      await(Enumerator.enumerate(iterator) |>>> Iteratee.ignore[Array[Byte]]) must_== (())
     }
 
   }

@@ -271,8 +271,8 @@ object Enumeratee {
         case Input.El(e) =>
           new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> Iteratee.flatten(Future(f(e))(pec).flatMap(_.apply(Cont(k)))(dec))
 
-        case in @ Input.Empty =>
-          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(in)
+        case Input.Empty =>
+          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(Input.Empty)
 
         case Input.EOF => Done(Cont(k), Input.EOF)
       }
@@ -391,8 +391,8 @@ object Enumeratee {
       case in @ Input.El(_) if remaining > 1 =>
         new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(remaining - 1)(k)) } &> k(in)
 
-      case in @ Input.Empty if remaining > 0 =>
-        new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(remaining)(k)) } &> k(in)
+      case Input.Empty if remaining > 0 =>
+        new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(remaining)(k)) } &> k(Input.Empty)
 
       case Input.EOF => Done(Cont(k), Input.EOF)
 
@@ -420,8 +420,8 @@ object Enumeratee {
           val next = f(lastTo, e)
           new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(next)(k)) } &> k(Input.El(next))
 
-        case in @ Input.Empty =>
-          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(lastTo)(k)) } &> k(in)
+        case Input.Empty =>
+          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(lastTo)(k)) } &> k(Input.Empty)
 
         case Input.EOF => Done(Cont(k), Input.EOF)
 
@@ -501,8 +501,8 @@ object Enumeratee {
         if (b) (new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(k)) } &> k(in)) else Cont(step(k))
       }(dec))
 
-      case in @ Input.Empty =>
-        new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(k)) } &> k(in)
+      case Input.Empty =>
+        new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(k)) } &> k(Input.Empty)
 
       case Input.EOF => Done(Cont(k), Input.EOF)
 
@@ -549,8 +549,8 @@ object Enumeratee {
           }
         }(pec))
 
-        case in @ Input.Empty =>
-          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(in)
+        case Input.Empty =>
+          new CheckDone[From, To] { def continue[A](k: K[To, A]) = Cont(step(k)) } &> k(Input.Empty)
 
         case Input.EOF => Done(Cont(k), Input.EOF)
 
@@ -569,7 +569,7 @@ object Enumeratee {
 
       case in @ Input.El(_) if remaining > 1 => Cont(step(remaining - 1)(k))
 
-      case in @ Input.Empty if remaining > 0 => Cont(step(remaining)(k))
+      case Input.Empty if remaining > 0 => Cont(step(remaining)(k))
 
       case Input.EOF => Done(Cont(k), Input.EOF)
 
@@ -597,7 +597,7 @@ object Enumeratee {
           b => if (b) Cont(step(k)) else (passAlong[E] &> k(in))
         }(dec))
 
-        case in @ Input.Empty => Cont(step(k))
+        case Input.Empty => Cont(step(k))
 
         case Input.EOF => Done(Cont(k), Input.EOF)
 
@@ -625,8 +625,8 @@ object Enumeratee {
           b => if (b) (new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(k)) } &> k(in)) else Done(Cont(k), in)
         }(dec))
 
-        case in @ Input.Empty =>
-          new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(k)) } &> k(in)
+        case Input.Empty =>
+          new CheckDone[E, E] { def continue[A](k: K[E, A]) = Cont(step(k)) } &> k(Input.Empty)
 
         case Input.EOF => Done(Cont(k), Input.EOF)
       }

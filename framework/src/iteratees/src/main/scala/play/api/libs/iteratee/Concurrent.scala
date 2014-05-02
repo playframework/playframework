@@ -305,9 +305,9 @@ object Concurrent {
       val state: Ref[State] = Ref(Queueing(Queue[Input[E]](), 0))
 
       def step: K[E, Iteratee[E, A]] = {
-        case in @ Input.EOF =>
+        case Input.EOF =>
           state.single.getAndTransform {
-            case Queueing(q, l) => Queueing(q.enqueue(in), l)
+            case Queueing(q, l) => Queueing(q.enqueue(Input.EOF), l)
 
             case Waiting(p) => Queueing(Queue(), 0)
 
@@ -315,7 +315,7 @@ object Concurrent {
 
           } match {
             case Waiting(p) =>
-              p.success(in)
+              p.success(Input.EOF)
             case _ =>
 
           }

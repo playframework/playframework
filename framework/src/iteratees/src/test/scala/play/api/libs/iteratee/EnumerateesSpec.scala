@@ -270,7 +270,7 @@ object EnumerateesSpec extends Specification
     "passAlong a future enumerator" in {
       mustExecute(9) { sumEC =>
         val passAlongFuture = Enumeratee.flatten {
-          concurrent.future {
+          Future {
             Enumeratee.passAlong[Int]
           }(ExecutionContext.global)
         }
