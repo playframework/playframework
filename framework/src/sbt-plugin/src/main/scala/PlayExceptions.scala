@@ -28,7 +28,7 @@ trait PlayExceptions {
     "Compilation error", filterAnnoyingErrorMessages(problem.message)) {
     def line = problem.position.line.map(m => m.asInstanceOf[java.lang.Integer]).orNull
     def position = problem.position.pointer.map(m => m.asInstanceOf[java.lang.Integer]).orNull
-    def input = problem.position.sourceFile.map(scalax.file.Path(_).string).orNull
+    def input = problem.position.sourceFile.map(IO.read(_)).orNull
     def sourceName = problem.position.sourceFile.map(_.getAbsolutePath).orNull
   }
 
@@ -36,7 +36,7 @@ trait PlayExceptions {
     "Compilation error", message) with FeedbackProvidedException {
     def line = atLine
     def position = column
-    def input = scalax.file.Path(source).string
+    def input = IO.read(source)
     def sourceName = source.getAbsolutePath
   }
 
@@ -44,7 +44,7 @@ trait PlayExceptions {
     "Compilation error", message) with FeedbackProvidedException {
     def line = atLine.map(_.asInstanceOf[java.lang.Integer]).orNull
     def position = column.map(_.asInstanceOf[java.lang.Integer]).orNull
-    def input = scalax.file.Path(source).string
+    def input = IO.read(source)
     def sourceName = source.getAbsolutePath
   }
 
@@ -52,7 +52,7 @@ trait PlayExceptions {
     "Compilation error", message) with FeedbackProvidedException {
     def line = atLine.map(_.asInstanceOf[java.lang.Integer]).orNull
     def position = column.map(_.asInstanceOf[java.lang.Integer]).orNull
-    def input = source.filter(_.exists()).map(scalax.file.Path(_).string).orNull
+    def input = source.filter(_.exists()).map(IO.read(_)).orNull
     def sourceName = source.map(_.getAbsolutePath).orNull
   }
 

@@ -143,7 +143,7 @@ object Dependencies {
 
     "net.contentobjects.jnotify" % "jnotify" % "0.94",
 
-    sbtPluginDep("com.typesafe.sbt" % "sbt-twirl" % "1.0-M1"),
+    sbtPluginDep("com.typesafe.sbt" % "sbt-twirl" % "1.0-M2"),
 
     sbtPluginDep("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.4.0"),
     sbtPluginDep("com.github.mpeltonen" % "sbt-idea" % "1.5.1"),
@@ -154,7 +154,7 @@ object Dependencies {
   ) ++ specsSbt
 
   val playDocsDependencies = Seq(
-    "com.typesafe.play" %% "play-doc" % "1.0.5",
+    "com.typesafe.play" %% "play-doc" % "1.1.0",
     "org.webjars" % "jquery" % "2.1.0-2" % "webjars",
     "org.webjars" % "prettify" % "4-Mar-2013" % "webjars"
   )

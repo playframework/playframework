@@ -4,8 +4,8 @@
 package play.data.models
 
 import java.util.Date
-import reflect.BeanProperty
-import annotation.target.field
+import scala.beans.BeanProperty
+import scala.annotation.meta.field
 
 class Task {
 

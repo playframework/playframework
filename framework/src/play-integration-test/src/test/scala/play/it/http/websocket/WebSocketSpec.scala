@@ -8,7 +8,6 @@ import play.api.Application
 import scala.concurrent.{Future, Promise}
 import play.api.mvc.{Handler, Results, WebSocket}
 import play.api.libs.iteratee._
-import play.api.libs.iteratee.Execution.Implicits.trampoline
 import java.net.URI
 import org.jboss.netty.handler.codec.http.websocketx._
 import org.specs2.matcher.Matcher

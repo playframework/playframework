@@ -124,6 +124,24 @@ object BuildSettings {
         scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
         scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked"))
   }
+
+  /**
+   * Adds a set of Scala 2.11 modules to the build.
+   *
+   * Only adds if Scala version is >= 2.11.
+   */
+  def addScalaModules(modules: ModuleID*): Setting[_] = {
+    libraryDependencies := {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, scalaMajor)) if scalaMajor >= 11 =>
+          libraryDependencies.value ++ modules
+        case _ =>
+          libraryDependencies.value
+      }
+    }
+  }
+
+  val scalaParserCombinators = "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.1"
 }
 
 object Resolvers {
@@ -169,8 +187,11 @@ object PlayBuild extends Build {
     .settings(libraryDependencies ++= routersCompilerDependencies)
 
   lazy val AnormProject = PlayRuntimeProject("Anorm", "anorm")
-    .settings(libraryDependencies ++= anormDependencies,
-      resolvers += sonatypeSnapshots)
+    .settings(
+      libraryDependencies ++= anormDependencies,
+      resolvers += sonatypeSnapshots,
+      addScalaModules(scalaParserCombinators)
+    )
 
   lazy val IterateesProject = PlayRuntimeProject("Play-Iteratees", "iteratees")
     .settings(libraryDependencies ++= iterateesDependencies)
@@ -189,6 +210,7 @@ object PlayBuild extends Build {
   lazy val PlayProject = PlayRuntimeProject("Play", "play")
     .addPlugins(SbtTwirl)
     .settings(
+      addScalaModules(scalaParserCombinators),
       libraryDependencies ++= runtime ++ scalacheckDependencies,
       sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
       sourceDirectories in (Compile, TwirlKeys.compileTemplates) := (unmanagedSourceDirectories in Compile).value,
