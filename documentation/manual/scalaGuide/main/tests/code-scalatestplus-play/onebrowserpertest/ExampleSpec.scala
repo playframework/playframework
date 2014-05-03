@@ -15,7 +15,7 @@ import Results._
 class ExampleSpec extends PlaySpec with OneServerPerTest with OneBrowserPerTest with HtmlUnitFactory {
 
   // Override newAppForTest if you need a FakeApplication with other than
-  // non-default parameters.
+  // default parameters.
   override def newAppForTest(testData: TestData): FakeApplication =
     new FakeApplication(
       additionalConfiguration = Map("ehcacheplugin" -> "disabled"),

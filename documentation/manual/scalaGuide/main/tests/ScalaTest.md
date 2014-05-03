@@ -17,8 +17,7 @@ Testing in Play is based on SBT, and a full description is available in the [tes
 
 ## Using ScalaTest + Play
 
-To use _ScalaTest + Play_, you'll need to add it to your build, by
-changing `projects/Build.scala` like this:
+To use _ScalaTest + Play_, you'll need to add it to your build, by changing `projects/Build.scala` like this:
 
 ```scala
 val appDependencies = Seq(

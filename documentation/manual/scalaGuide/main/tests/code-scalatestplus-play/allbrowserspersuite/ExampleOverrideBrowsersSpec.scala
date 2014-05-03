@@ -21,7 +21,7 @@ class ExampleOverrideBrowsersSpec extends PlaySpec with OneServerPerSuite with A
     )
 
   // Override app if you need a FakeApplication with other than
-  // non-default parameters.
+  // default parameters.
   implicit override lazy val app: FakeApplication =
     FakeApplication(
       additionalConfiguration = Map("ehcacheplugin" -> "disabled"),
