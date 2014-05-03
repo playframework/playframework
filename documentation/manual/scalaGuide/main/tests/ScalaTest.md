@@ -1,6 +1,6 @@
 # Testing your application with ScalaTest
 
-Writing tests for your application can be an involved process. Play provides an integration library, [ScalaTest + Play](http://scalatest.org/plus/play), as well as helpers and application stubs to make testing your application as easy as possible.
+Writing tests for your application can be an involved process. Play provides helpers and application stubs, and ScalaTest provides an integration library, [ScalaTest + Play](http://scalatest.org/plus/play), to make testing your application as easy as possible.
 
 ## Overview
 
@@ -17,19 +17,19 @@ Testing in Play is based on SBT, and a full description is available in the [tes
 
 ## Using ScalaTest + Play
 
-To use ScalaTest + Play, you'll need to add it to your build, by
+To use _ScalaTest + Play_, you'll need to add it to your build, by
 changing `projects/Build.scala` like this:
 
 ```scala
 val appDependencies = Seq(
   // Add your project dependencies here,
-  "org.scalatestplus" % "play_2.10" % "1.0-RC1" % "test"
+  "org.scalatestplus" % "play_2.10" % "1.0.0" % "test"
 )
 ```
 
-You need not add ScalaTest to your build explicitly. The proper version of ScalaTest will be brought in automatically as a transitive dependency of ScalaTest + Play. You will, however, need to select a version of ScalaTest + Play that matches your Play version. You can do so by checking the [Versions, Versions, Versions](http://www.scalatest.org/plus/play/versions) page for ScalaTest + Play.
+You do not need to add ScalaTest to your build explicitly. The proper version of ScalaTest will be brought in automatically as a transitive dependency of _ScalaTest + Play_. You will, however, need to select a version of _ScalaTest + Play_ that matches your Play version. You can do so by checking the [Versions, Versions, Versions](http://www.scalatest.org/plus/play/versions) page for _ScalaTest + Play_.
 
-In [ScalaTest + Play](http://scalatest.org/plus/play), you define test classes by extending the PlaySpec trait. Here's an example:
+In [_ScalaTest + Play_](http://scalatest.org/plus/play), you define test classes by extending the [`PlaySpec`](http://doc.scalatest.org/plus-play/1.0.0/index.html#org.scalatestplus.play.PlaySpec) trait. Here's an example:
 
 @[scalatest-stackspec](code-scalatestplus-play/StackSpec.scala)
 
