@@ -17,7 +17,7 @@ import org.scalatest.concurrent.IntegrationPatience
 class ExampleSpec extends PlaySpec with OneServerPerSuite with  ScalaFutures with IntegrationPatience {
 
   // Override app if you need a FakeApplication with other than
-  // non-default parameters.
+  // default parameters.
   implicit override lazy val app: FakeApplication =
     FakeApplication(
       additionalConfiguration = Map("ehcacheplugin" -> "disabled"),

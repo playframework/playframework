@@ -12,7 +12,7 @@ import play.api.{Play, Application}
 class ExampleSpec extends PlaySpec with OneAppPerTest {
 
   // Override app if you need a FakeApplication with other than
-  // non-default parameters.
+  // default parameters.
   implicit override def newAppForTest(td: TestData): FakeApplication =
     FakeApplication(
       additionalConfiguration = Map("ehcacheplugin" -> "disabled")
