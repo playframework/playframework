@@ -36,7 +36,7 @@ class ExampleSpec extends PlaySpec with OneServerPerSuite with AllBrowsersPerSui
 
   def sharedTests(browser: BrowserInfo) = {
     "The AllBrowsersPerSuite trait" must {
-      "provide a web driver"  + browser.name in {
+      "provide a web driver " + browser.name in {
         go to (s"http://localhost:$port/testing")
         pageTitle mustBe "Test Page"
         click on find(name("b")).value
