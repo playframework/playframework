@@ -46,10 +46,10 @@ trait DBApi {
    * @throws an error if the required data source is not registered
    */
   def getDataSourceURL(name: String): String = {
-    val connection = getDataSource(name).getConnection
-    val url = connection.getMetaData.getURL
-    connection.close()
-    url
+    withConnection(name) { connection =>
+      val url = connection.getMetaData.getURL
+      url
+    }
   }
 
   /**
@@ -94,6 +94,7 @@ trait DBApi {
    */
   def withTransaction[A](name: String)(block: Connection => A): A = {
     withConnection(name) { connection =>
+      val autoCommit = connection.getAutoCommit
       try {
         connection.setAutoCommit(false)
         val r = block(connection)
@@ -103,6 +104,12 @@ trait DBApi {
         case e: ControlThrowable =>
           connection.commit(); throw e
         case NonFatal(e) => connection.rollback(); throw e
+      } finally {
+        try {
+          connection.setAutoCommit(autoCommit)
+        } catch {
+          case NonFatal(e) => Play.logger.warn("Could not restore auto-commit flag", e)
+        }
       }
     }
   }
