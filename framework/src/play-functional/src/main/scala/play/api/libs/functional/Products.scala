@@ -49,12 +49,11 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]) {
     def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], fu: Functor[M], reducer: Reducer[A, B]): M[B] =
       apply[B]((a1: A1, a2: A2) => reducer.append(reducer.unit(a1: A), a2: A))(fu)
 
-    def tupled(implicit v: Variant[M]): M[(A1, A2)] =
-      // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
-      (v: Any) match {
-        case fu: Functor[_] => apply { (a1: A1, a2: A2) => (a1, a2) }(fu.asInstanceOf[Functor[M]])
-        case fu: ContravariantFunctor[_] => apply[(A1, A2)] { (a: (A1, A2)) => (a._1, a._2) }(fu.asInstanceOf[ContravariantFunctor[M]])
-        case fu: InvariantFunctor[_] => apply[(A1, A2)]({ (a1: A1, a2: A2) => (a1, a2) }, { (a: (A1, A2)) => (a._1, a._2) })(fu.asInstanceOf[InvariantFunctor[M]])
+    def tupled(implicit v: VariantExtractor[M]): M[(A1, A2)] =
+      v match {
+        case FunctorExtractor(fu) => apply { (a1: A1, a2: A2) => (a1, a2) }(fu)
+        case ContravariantFunctorExtractor(fu) => apply[(A1, A2)] { (a: (A1, A2)) => (a._1, a._2) }(fu)
+        case InvariantFunctorExtractor(fu) => apply[(A1, A2)]({ (a1: A1, a2: A2) => (a1, a2) }, { (a: (A1, A2)) => (a._1, a._2) })(fu)
       }
 
   }
@@ -83,12 +82,11 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]) {
     def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], fu: Functor[M], reducer: Reducer[A, B]): M[B] =
       apply[B]((a1: A1, a2: A2, a3: A3) => reducer.append(reducer.append(reducer.unit(a1: A), a2: A), a3: A))(fu)
 
-    def tupled(implicit v: Variant[M]): M[(A1, A2, A3)] =
-      // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
-      (v: Any) match {
-        case fu: Functor[_] => apply { (a1: A1, a2: A2, a3: A3) => (a1, a2, a3) }(fu.asInstanceOf[Functor[M]])
-        case fu: ContravariantFunctor[_] => apply[(A1, A2, A3)] { (a: (A1, A2, A3)) => (a._1, a._2, a._3) }(fu.asInstanceOf[ContravariantFunctor[M]])
-        case fu: InvariantFunctor[_] => apply[(A1, A2, A3)]({ (a1: A1, a2: A2, a3: A3) => (a1, a2, a3) }, { (a: (A1, A2, A3)) => (a._1, a._2, a._3) })(fu.asInstanceOf[InvariantFunctor[M]])
+    def tupled(implicit v: VariantExtractor[M]): M[(A1, A2, A3)] =
+      v match {
+        case FunctorExtractor(fu) => apply { (a1: A1, a2: A2, a3: A3) => (a1, a2, a3) }(fu)
+        case ContravariantFunctorExtractor(fu) => apply[(A1, A2, A3)] { (a: (A1, A2, A3)) => (a._1, a._2, a._3) }(fu)
+        case InvariantFunctorExtractor(fu) => apply[(A1, A2, A3)]({ (a1: A1, a2: A2, a3: A3) => (a1, a2, a3) }, { (a: (A1, A2, A3)) => (a._1, a._2, a._3) })(fu)
       }
 
   }
@@ -117,12 +115,11 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]) {
     def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], witness4: <:<[A4, A], fu: Functor[M], reducer: Reducer[A, B]): M[B] =
       apply[B]((a1: A1, a2: A2, a3: A3, a4: A4) => reducer.append(reducer.append(reducer.append(reducer.unit(a1: A), a2: A), a3: A), a4: A))(fu)
 
-    def tupled(implicit v: Variant[M]): M[(A1, A2, A3, A4)] =
-      // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
-      (v: Any) match {
-        case fu: Functor[_] => apply { (a1: A1, a2: A2, a3: A3, a4: A4) => (a1, a2, a3, a4) }(fu.asInstanceOf[Functor[M]])
-        case fu: ContravariantFunctor[_] => apply[(A1, A2, A3, A4)] { (a: (A1, A2, A3, A4)) => (a._1, a._2, a._3, a._4) }(fu.asInstanceOf[ContravariantFunctor[M]])
-        case fu: InvariantFunctor[_] => apply[(A1, A2, A3, A4)]({ (a1: A1, a2: A2, a3: A3, a4: A4) => (a1, a2, a3, a4) }, { (a: (A1, A2, A3, A4)) => (a._1, a._2, a._3, a._4) })(fu.asInstanceOf[InvariantFunctor[M]])
+    def tupled(implicit v: VariantExtractor[M]): M[(A1, A2, A3, A4)] =
+      v match {
+        case FunctorExtractor(fu) => apply { (a1: A1, a2: A2, a3: A3, a4: A4) => (a1, a2, a3, a4) }(fu)
+        case ContravariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4)] { (a: (A1, A2, A3, A4)) => (a._1, a._2, a._3, a._4) }(fu)
+        case InvariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4)]({ (a1: A1, a2: A2, a3: A3, a4: A4) => (a1, a2, a3, a4) }, { (a: (A1, A2, A3, A4)) => (a._1, a._2, a._3, a._4) })(fu)
       }
 
   }
@@ -151,12 +148,11 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]) {
     def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], witness4: <:<[A4, A], witness5: <:<[A5, A], fu: Functor[M], reducer: Reducer[A, B]): M[B] =
       apply[B]((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5) => reducer.append(reducer.append(reducer.append(reducer.append(reducer.unit(a1: A), a2: A), a3: A), a4: A), a5: A))(fu)
 
-    def tupled(implicit v: Variant[M]): M[(A1, A2, A3, A4, A5)] =
-      // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
-      (v: Any) match {
-        case fu: Functor[_] => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5) => (a1, a2, a3, a4, a5) }(fu.asInstanceOf[Functor[M]])
-        case fu: ContravariantFunctor[_] => apply[(A1, A2, A3, A4, A5)] { (a: (A1, A2, A3, A4, A5)) => (a._1, a._2, a._3, a._4, a._5) }(fu.asInstanceOf[ContravariantFunctor[M]])
-        case fu: InvariantFunctor[_] => apply[(A1, A2, A3, A4, A5)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5) => (a1, a2, a3, a4, a5) }, { (a: (A1, A2, A3, A4, A5)) => (a._1, a._2, a._3, a._4, a._5) })(fu.asInstanceOf[InvariantFunctor[M]])
+    def tupled(implicit v: VariantExtractor[M]): M[(A1, A2, A3, A4, A5)] =
+      v match {
+        case FunctorExtractor(fu) => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5) => (a1, a2, a3, a4, a5) }(fu)
+        case ContravariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5)] { (a: (A1, A2, A3, A4, A5)) => (a._1, a._2, a._3, a._4, a._5) }(fu)
+        case InvariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5) => (a1, a2, a3, a4, a5) }, { (a: (A1, A2, A3, A4, A5)) => (a._1, a._2, a._3, a._4, a._5) })(fu)
       }
 
   }
@@ -185,12 +181,11 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]) {
     def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], witness4: <:<[A4, A], witness5: <:<[A5, A], witness6: <:<[A6, A], fu: Functor[M], reducer: Reducer[A, B]): M[B] =
       apply[B]((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6) => reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.unit(a1: A), a2: A), a3: A), a4: A), a5: A), a6: A))(fu)
 
-    def tupled(implicit v: Variant[M]): M[(A1, A2, A3, A4, A5, A6)] =
-      // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
-      (v: Any) match {
-        case fu: Functor[_] => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6) => (a1, a2, a3, a4, a5, a6) }(fu.asInstanceOf[Functor[M]])
-        case fu: ContravariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6)] { (a: (A1, A2, A3, A4, A5, A6)) => (a._1, a._2, a._3, a._4, a._5, a._6) }(fu.asInstanceOf[ContravariantFunctor[M]])
-        case fu: InvariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6) => (a1, a2, a3, a4, a5, a6) }, { (a: (A1, A2, A3, A4, A5, A6)) => (a._1, a._2, a._3, a._4, a._5, a._6) })(fu.asInstanceOf[InvariantFunctor[M]])
+    def tupled(implicit v: VariantExtractor[M]): M[(A1, A2, A3, A4, A5, A6)] =
+      v match {
+        case FunctorExtractor(fu) => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6) => (a1, a2, a3, a4, a5, a6) }(fu)
+        case ContravariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6)] { (a: (A1, A2, A3, A4, A5, A6)) => (a._1, a._2, a._3, a._4, a._5, a._6) }(fu)
+        case InvariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6) => (a1, a2, a3, a4, a5, a6) }, { (a: (A1, A2, A3, A4, A5, A6)) => (a._1, a._2, a._3, a._4, a._5, a._6) })(fu)
       }
 
   }
@@ -219,12 +214,11 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]) {
     def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], witness4: <:<[A4, A], witness5: <:<[A5, A], witness6: <:<[A6, A], witness7: <:<[A7, A], fu: Functor[M], reducer: Reducer[A, B]): M[B] =
       apply[B]((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7) => reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.unit(a1: A), a2: A), a3: A), a4: A), a5: A), a6: A), a7: A))(fu)
 
-    def tupled(implicit v: Variant[M]): M[(A1, A2, A3, A4, A5, A6, A7)] =
-      // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
-      (v: Any) match {
-        case fu: Functor[_] => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7) => (a1, a2, a3, a4, a5, a6, a7) }(fu.asInstanceOf[Functor[M]])
-        case fu: ContravariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7)] { (a: (A1, A2, A3, A4, A5, A6, A7)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7) }(fu.asInstanceOf[ContravariantFunctor[M]])
-        case fu: InvariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7) => (a1, a2, a3, a4, a5, a6, a7) }, { (a: (A1, A2, A3, A4, A5, A6, A7)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7) })(fu.asInstanceOf[InvariantFunctor[M]])
+    def tupled(implicit v: VariantExtractor[M]): M[(A1, A2, A3, A4, A5, A6, A7)] =
+      v match {
+        case FunctorExtractor(fu) => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7) => (a1, a2, a3, a4, a5, a6, a7) }(fu)
+        case ContravariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7)] { (a: (A1, A2, A3, A4, A5, A6, A7)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7) }(fu)
+        case InvariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7) => (a1, a2, a3, a4, a5, a6, a7) }, { (a: (A1, A2, A3, A4, A5, A6, A7)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7) })(fu)
       }
 
   }
@@ -253,12 +247,11 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]) {
     def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], witness4: <:<[A4, A], witness5: <:<[A5, A], witness6: <:<[A6, A], witness7: <:<[A7, A], witness8: <:<[A8, A], fu: Functor[M], reducer: Reducer[A, B]): M[B] =
       apply[B]((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8) => reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.unit(a1: A), a2: A), a3: A), a4: A), a5: A), a6: A), a7: A), a8: A))(fu)
 
-    def tupled(implicit v: Variant[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8)] =
-      // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
-      (v: Any) match {
-        case fu: Functor[_] => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8) => (a1, a2, a3, a4, a5, a6, a7, a8) }(fu.asInstanceOf[Functor[M]])
-        case fu: ContravariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8) }(fu.asInstanceOf[ContravariantFunctor[M]])
-        case fu: InvariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8) => (a1, a2, a3, a4, a5, a6, a7, a8) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8) })(fu.asInstanceOf[InvariantFunctor[M]])
+    def tupled(implicit v: VariantExtractor[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8)] =
+      v match {
+        case FunctorExtractor(fu) => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8) => (a1, a2, a3, a4, a5, a6, a7, a8) }(fu)
+        case ContravariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8) }(fu)
+        case InvariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8) => (a1, a2, a3, a4, a5, a6, a7, a8) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8) })(fu)
       }
 
   }
@@ -287,12 +280,11 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]) {
     def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], witness4: <:<[A4, A], witness5: <:<[A5, A], witness6: <:<[A6, A], witness7: <:<[A7, A], witness8: <:<[A8, A], witness9: <:<[A9, A], fu: Functor[M], reducer: Reducer[A, B]): M[B] =
       apply[B]((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9) => reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.unit(a1: A), a2: A), a3: A), a4: A), a5: A), a6: A), a7: A), a8: A), a9: A))(fu)
 
-    def tupled(implicit v: Variant[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9)] =
-      // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
-      (v: Any) match {
-        case fu: Functor[_] => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9) => (a1, a2, a3, a4, a5, a6, a7, a8, a9) }(fu.asInstanceOf[Functor[M]])
-        case fu: ContravariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9) }(fu.asInstanceOf[ContravariantFunctor[M]])
-        case fu: InvariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9) => (a1, a2, a3, a4, a5, a6, a7, a8, a9) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9) })(fu.asInstanceOf[InvariantFunctor[M]])
+    def tupled(implicit v: VariantExtractor[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9)] =
+      v match {
+        case FunctorExtractor(fu) => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9) => (a1, a2, a3, a4, a5, a6, a7, a8, a9) }(fu)
+        case ContravariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9) }(fu)
+        case InvariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9) => (a1, a2, a3, a4, a5, a6, a7, a8, a9) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9) })(fu)
       }
 
   }
@@ -321,12 +313,11 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]) {
     def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], witness4: <:<[A4, A], witness5: <:<[A5, A], witness6: <:<[A6, A], witness7: <:<[A7, A], witness8: <:<[A8, A], witness9: <:<[A9, A], witness10: <:<[A10, A], fu: Functor[M], reducer: Reducer[A, B]): M[B] =
       apply[B]((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10) => reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.unit(a1: A), a2: A), a3: A), a4: A), a5: A), a6: A), a7: A), a8: A), a9: A), a10: A))(fu)
 
-    def tupled(implicit v: Variant[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)] =
-      // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
-      (v: Any) match {
-        case fu: Functor[_] => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) }(fu.asInstanceOf[Functor[M]])
-        case fu: ContravariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10) }(fu.asInstanceOf[ContravariantFunctor[M]])
-        case fu: InvariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10) })(fu.asInstanceOf[InvariantFunctor[M]])
+    def tupled(implicit v: VariantExtractor[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)] =
+      v match {
+        case FunctorExtractor(fu) => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) }(fu)
+        case ContravariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10) }(fu)
+        case InvariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10) })(fu)
       }
 
   }
@@ -355,12 +346,11 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]) {
     def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], witness4: <:<[A4, A], witness5: <:<[A5, A], witness6: <:<[A6, A], witness7: <:<[A7, A], witness8: <:<[A8, A], witness9: <:<[A9, A], witness10: <:<[A10, A], witness11: <:<[A11, A], fu: Functor[M], reducer: Reducer[A, B]): M[B] =
       apply[B]((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11) => reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.unit(a1: A), a2: A), a3: A), a4: A), a5: A), a6: A), a7: A), a8: A), a9: A), a10: A), a11: A))(fu)
 
-    def tupled(implicit v: Variant[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)] =
-      // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
-      (v: Any) match {
-        case fu: Functor[_] => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11) }(fu.asInstanceOf[Functor[M]])
-        case fu: ContravariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11) }(fu.asInstanceOf[ContravariantFunctor[M]])
-        case fu: InvariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11) })(fu.asInstanceOf[InvariantFunctor[M]])
+    def tupled(implicit v: VariantExtractor[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)] =
+      v match {
+        case FunctorExtractor(fu) => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11) }(fu)
+        case ContravariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11) }(fu)
+        case InvariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11) })(fu)
       }
 
   }
@@ -389,12 +379,11 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]) {
     def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], witness4: <:<[A4, A], witness5: <:<[A5, A], witness6: <:<[A6, A], witness7: <:<[A7, A], witness8: <:<[A8, A], witness9: <:<[A9, A], witness10: <:<[A10, A], witness11: <:<[A11, A], witness12: <:<[A12, A], fu: Functor[M], reducer: Reducer[A, B]): M[B] =
       apply[B]((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12) => reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.unit(a1: A), a2: A), a3: A), a4: A), a5: A), a6: A), a7: A), a8: A), a9: A), a10: A), a11: A), a12: A))(fu)
 
-    def tupled(implicit v: Variant[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)] =
-      // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
-      (v: Any) match {
-        case fu: Functor[_] => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12) }(fu.asInstanceOf[Functor[M]])
-        case fu: ContravariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12) }(fu.asInstanceOf[ContravariantFunctor[M]])
-        case fu: InvariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12) })(fu.asInstanceOf[InvariantFunctor[M]])
+    def tupled(implicit v: VariantExtractor[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)] =
+      v match {
+        case FunctorExtractor(fu) => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12) }(fu)
+        case ContravariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12) }(fu)
+        case InvariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12) })(fu)
       }
 
   }
@@ -423,12 +412,11 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]) {
     def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], witness4: <:<[A4, A], witness5: <:<[A5, A], witness6: <:<[A6, A], witness7: <:<[A7, A], witness8: <:<[A8, A], witness9: <:<[A9, A], witness10: <:<[A10, A], witness11: <:<[A11, A], witness12: <:<[A12, A], witness13: <:<[A13, A], fu: Functor[M], reducer: Reducer[A, B]): M[B] =
       apply[B]((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13) => reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.unit(a1: A), a2: A), a3: A), a4: A), a5: A), a6: A), a7: A), a8: A), a9: A), a10: A), a11: A), a12: A), a13: A))(fu)
 
-    def tupled(implicit v: Variant[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)] =
-      // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
-      (v: Any) match {
-        case fu: Functor[_] => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13) }(fu.asInstanceOf[Functor[M]])
-        case fu: ContravariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13) }(fu.asInstanceOf[ContravariantFunctor[M]])
-        case fu: InvariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13) })(fu.asInstanceOf[InvariantFunctor[M]])
+    def tupled(implicit v: VariantExtractor[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)] =
+      v match {
+        case FunctorExtractor(fu) => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13) }(fu)
+        case ContravariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13) }(fu)
+        case InvariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13) })(fu)
       }
 
   }
@@ -457,12 +445,11 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]) {
     def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], witness4: <:<[A4, A], witness5: <:<[A5, A], witness6: <:<[A6, A], witness7: <:<[A7, A], witness8: <:<[A8, A], witness9: <:<[A9, A], witness10: <:<[A10, A], witness11: <:<[A11, A], witness12: <:<[A12, A], witness13: <:<[A13, A], witness14: <:<[A14, A], fu: Functor[M], reducer: Reducer[A, B]): M[B] =
       apply[B]((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14) => reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.unit(a1: A), a2: A), a3: A), a4: A), a5: A), a6: A), a7: A), a8: A), a9: A), a10: A), a11: A), a12: A), a13: A), a14: A))(fu)
 
-    def tupled(implicit v: Variant[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)] =
-      // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
-      (v: Any) match {
-        case fu: Functor[_] => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14) }(fu.asInstanceOf[Functor[M]])
-        case fu: ContravariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14) }(fu.asInstanceOf[ContravariantFunctor[M]])
-        case fu: InvariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14) })(fu.asInstanceOf[InvariantFunctor[M]])
+    def tupled(implicit v: VariantExtractor[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)] =
+      v match {
+        case FunctorExtractor(fu) => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14) }(fu)
+        case ContravariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14) }(fu)
+        case InvariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14) })(fu)
       }
 
   }
@@ -491,12 +478,11 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]) {
     def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], witness4: <:<[A4, A], witness5: <:<[A5, A], witness6: <:<[A6, A], witness7: <:<[A7, A], witness8: <:<[A8, A], witness9: <:<[A9, A], witness10: <:<[A10, A], witness11: <:<[A11, A], witness12: <:<[A12, A], witness13: <:<[A13, A], witness14: <:<[A14, A], witness15: <:<[A15, A], fu: Functor[M], reducer: Reducer[A, B]): M[B] =
       apply[B]((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15) => reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.unit(a1: A), a2: A), a3: A), a4: A), a5: A), a6: A), a7: A), a8: A), a9: A), a10: A), a11: A), a12: A), a13: A), a14: A), a15: A))(fu)
 
-    def tupled(implicit v: Variant[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)] =
-      // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
-      (v: Any) match {
-        case fu: Functor[_] => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15) }(fu.asInstanceOf[Functor[M]])
-        case fu: ContravariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15) }(fu.asInstanceOf[ContravariantFunctor[M]])
-        case fu: InvariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15) })(fu.asInstanceOf[InvariantFunctor[M]])
+    def tupled(implicit v: VariantExtractor[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)] =
+      v match {
+        case FunctorExtractor(fu) => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15) }(fu)
+        case ContravariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15) }(fu)
+        case InvariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15) })(fu)
       }
 
   }
@@ -525,12 +511,11 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]) {
     def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], witness4: <:<[A4, A], witness5: <:<[A5, A], witness6: <:<[A6, A], witness7: <:<[A7, A], witness8: <:<[A8, A], witness9: <:<[A9, A], witness10: <:<[A10, A], witness11: <:<[A11, A], witness12: <:<[A12, A], witness13: <:<[A13, A], witness14: <:<[A14, A], witness15: <:<[A15, A], witness16: <:<[A16, A], fu: Functor[M], reducer: Reducer[A, B]): M[B] =
       apply[B]((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16) => reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.unit(a1: A), a2: A), a3: A), a4: A), a5: A), a6: A), a7: A), a8: A), a9: A), a10: A), a11: A), a12: A), a13: A), a14: A), a15: A), a16: A))(fu)
 
-    def tupled(implicit v: Variant[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)] =
-      // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
-      (v: Any) match {
-        case fu: Functor[_] => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16) }(fu.asInstanceOf[Functor[M]])
-        case fu: ContravariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16) }(fu.asInstanceOf[ContravariantFunctor[M]])
-        case fu: InvariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16) })(fu.asInstanceOf[InvariantFunctor[M]])
+    def tupled(implicit v: VariantExtractor[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)] =
+      v match {
+        case FunctorExtractor(fu) => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16) }(fu)
+        case ContravariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16) }(fu)
+        case InvariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16) })(fu)
       }
 
   }
@@ -559,12 +544,11 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]) {
     def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], witness4: <:<[A4, A], witness5: <:<[A5, A], witness6: <:<[A6, A], witness7: <:<[A7, A], witness8: <:<[A8, A], witness9: <:<[A9, A], witness10: <:<[A10, A], witness11: <:<[A11, A], witness12: <:<[A12, A], witness13: <:<[A13, A], witness14: <:<[A14, A], witness15: <:<[A15, A], witness16: <:<[A16, A], witness17: <:<[A17, A], fu: Functor[M], reducer: Reducer[A, B]): M[B] =
       apply[B]((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17) => reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.unit(a1: A), a2: A), a3: A), a4: A), a5: A), a6: A), a7: A), a8: A), a9: A), a10: A), a11: A), a12: A), a13: A), a14: A), a15: A), a16: A), a17: A))(fu)
 
-    def tupled(implicit v: Variant[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)] =
-      // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
-      (v: Any) match {
-        case fu: Functor[_] => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) }(fu.asInstanceOf[Functor[M]])
-        case fu: ContravariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16, a._17) }(fu.asInstanceOf[ContravariantFunctor[M]])
-        case fu: InvariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16, a._17) })(fu.asInstanceOf[InvariantFunctor[M]])
+    def tupled(implicit v: VariantExtractor[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)] =
+      v match {
+        case FunctorExtractor(fu) => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) }(fu)
+        case ContravariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16, a._17) }(fu)
+        case InvariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16, a._17) })(fu)
       }
 
   }
@@ -593,12 +577,11 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]) {
     def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], witness4: <:<[A4, A], witness5: <:<[A5, A], witness6: <:<[A6, A], witness7: <:<[A7, A], witness8: <:<[A8, A], witness9: <:<[A9, A], witness10: <:<[A10, A], witness11: <:<[A11, A], witness12: <:<[A12, A], witness13: <:<[A13, A], witness14: <:<[A14, A], witness15: <:<[A15, A], witness16: <:<[A16, A], witness17: <:<[A17, A], witness18: <:<[A18, A], fu: Functor[M], reducer: Reducer[A, B]): M[B] =
       apply[B]((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18) => reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.unit(a1: A), a2: A), a3: A), a4: A), a5: A), a6: A), a7: A), a8: A), a9: A), a10: A), a11: A), a12: A), a13: A), a14: A), a15: A), a16: A), a17: A), a18: A))(fu)
 
-    def tupled(implicit v: Variant[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)] =
-      // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
-      (v: Any) match {
-        case fu: Functor[_] => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18) }(fu.asInstanceOf[Functor[M]])
-        case fu: ContravariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16, a._17, a._18) }(fu.asInstanceOf[ContravariantFunctor[M]])
-        case fu: InvariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16, a._17, a._18) })(fu.asInstanceOf[InvariantFunctor[M]])
+    def tupled(implicit v: VariantExtractor[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)] =
+      v match {
+        case FunctorExtractor(fu) => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18) }(fu)
+        case ContravariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16, a._17, a._18) }(fu)
+        case InvariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16, a._17, a._18) })(fu)
       }
 
   }
@@ -627,12 +610,11 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]) {
     def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], witness4: <:<[A4, A], witness5: <:<[A5, A], witness6: <:<[A6, A], witness7: <:<[A7, A], witness8: <:<[A8, A], witness9: <:<[A9, A], witness10: <:<[A10, A], witness11: <:<[A11, A], witness12: <:<[A12, A], witness13: <:<[A13, A], witness14: <:<[A14, A], witness15: <:<[A15, A], witness16: <:<[A16, A], witness17: <:<[A17, A], witness18: <:<[A18, A], witness19: <:<[A19, A], fu: Functor[M], reducer: Reducer[A, B]): M[B] =
       apply[B]((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18, a19: A19) => reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.unit(a1: A), a2: A), a3: A), a4: A), a5: A), a6: A), a7: A), a8: A), a9: A), a10: A), a11: A), a12: A), a13: A), a14: A), a15: A), a16: A), a17: A), a18: A), a19: A))(fu)
 
-    def tupled(implicit v: Variant[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)] =
-      // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
-      (v: Any) match {
-        case fu: Functor[_] => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18, a19: A19) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19) }(fu.asInstanceOf[Functor[M]])
-        case fu: ContravariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16, a._17, a._18, a._19) }(fu.asInstanceOf[ContravariantFunctor[M]])
-        case fu: InvariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18, a19: A19) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16, a._17, a._18, a._19) })(fu.asInstanceOf[InvariantFunctor[M]])
+    def tupled(implicit v: VariantExtractor[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)] =
+      v match {
+        case FunctorExtractor(fu) => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18, a19: A19) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19) }(fu)
+        case ContravariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16, a._17, a._18, a._19) }(fu)
+        case InvariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18, a19: A19) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16, a._17, a._18, a._19) })(fu)
       }
 
   }
@@ -661,12 +643,11 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]) {
     def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], witness4: <:<[A4, A], witness5: <:<[A5, A], witness6: <:<[A6, A], witness7: <:<[A7, A], witness8: <:<[A8, A], witness9: <:<[A9, A], witness10: <:<[A10, A], witness11: <:<[A11, A], witness12: <:<[A12, A], witness13: <:<[A13, A], witness14: <:<[A14, A], witness15: <:<[A15, A], witness16: <:<[A16, A], witness17: <:<[A17, A], witness18: <:<[A18, A], witness19: <:<[A19, A], witness20: <:<[A20, A], fu: Functor[M], reducer: Reducer[A, B]): M[B] =
       apply[B]((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18, a19: A19, a20: A20) => reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.unit(a1: A), a2: A), a3: A), a4: A), a5: A), a6: A), a7: A), a8: A), a9: A), a10: A), a11: A), a12: A), a13: A), a14: A), a15: A), a16: A), a17: A), a18: A), a19: A), a20: A))(fu)
 
-    def tupled(implicit v: Variant[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)] =
-      // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
-      (v: Any) match {
-        case fu: Functor[_] => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18, a19: A19, a20: A20) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20) }(fu.asInstanceOf[Functor[M]])
-        case fu: ContravariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16, a._17, a._18, a._19, a._20) }(fu.asInstanceOf[ContravariantFunctor[M]])
-        case fu: InvariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18, a19: A19, a20: A20) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16, a._17, a._18, a._19, a._20) })(fu.asInstanceOf[InvariantFunctor[M]])
+    def tupled(implicit v: VariantExtractor[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)] =
+      v match {
+        case FunctorExtractor(fu) => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18, a19: A19, a20: A20) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20) }(fu)
+        case ContravariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16, a._17, a._18, a._19, a._20) }(fu)
+        case InvariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18, a19: A19, a20: A20) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16, a._17, a._18, a._19, a._20) })(fu)
       }
 
   }
@@ -694,12 +675,11 @@ class FunctionalBuilder[M[_]](canBuild: FunctionalCanBuild[M]) {
     def reduce[A >: A1, B](implicit witness1: <:<[A1, A], witness2: <:<[A2, A], witness3: <:<[A3, A], witness4: <:<[A4, A], witness5: <:<[A5, A], witness6: <:<[A6, A], witness7: <:<[A7, A], witness8: <:<[A8, A], witness9: <:<[A9, A], witness10: <:<[A10, A], witness11: <:<[A11, A], witness12: <:<[A12, A], witness13: <:<[A13, A], witness14: <:<[A14, A], witness15: <:<[A15, A], witness16: <:<[A16, A], witness17: <:<[A17, A], witness18: <:<[A18, A], witness19: <:<[A19, A], witness20: <:<[A20, A], witness21: <:<[A21, A], fu: Functor[M], reducer: Reducer[A, B]): M[B] =
       apply[B]((a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18, a19: A19, a20: A20, a21: A21) => reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.append(reducer.unit(a1: A), a2: A), a3: A), a4: A), a5: A), a6: A), a7: A), a8: A), a9: A), a10: A), a11: A), a12: A), a13: A), a14: A), a15: A), a16: A), a17: A), a18: A), a19: A), a20: A), a21: A))(fu)
 
-    def tupled(implicit v: Variant[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)] =
-      // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
-      (v: Any) match {
-        case fu: Functor[_] => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18, a19: A19, a20: A20, a21: A21) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21) }(fu.asInstanceOf[Functor[M]])
-        case fu: ContravariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16, a._17, a._18, a._19, a._20, a._21) }(fu.asInstanceOf[ContravariantFunctor[M]])
-        case fu: InvariantFunctor[_] => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18, a19: A19, a20: A20, a21: A21) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16, a._17, a._18, a._19, a._20, a._21) })(fu.asInstanceOf[InvariantFunctor[M]])
+    def tupled(implicit v: VariantExtractor[M]): M[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)] =
+      v match {
+        case FunctorExtractor(fu) => apply { (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18, a19: A19, a20: A20, a21: A21) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21) }(fu)
+        case ContravariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)] { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16, a._17, a._18, a._19, a._20, a._21) }(fu)
+        case InvariantFunctorExtractor(fu) => apply[(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)]({ (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5, a6: A6, a7: A7, a8: A8, a9: A9, a10: A10, a11: A11, a12: A12, a13: A13, a14: A14, a15: A15, a16: A16, a17: A17, a18: A18, a19: A19, a20: A20, a21: A21) => (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21) }, { (a: (A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21)) => (a._1, a._2, a._3, a._4, a._5, a._6, a._7, a._8, a._9, a._10, a._11, a._12, a._13, a._14, a._15, a._16, a._17, a._18, a._19, a._20, a._21) })(fu)
       }
 
   }
@@ -745,12 +725,11 @@ class CanBuild@(i)[@mk(i, "A", ", ")](m1: M[@mk(i-1, "A", " ~ ")], m2: M[A@(i)])
   def reduce[A >: A1, B](implicit @mk2(i, "witness%d: <:<[A%d, A]", ", "), fu: Functor[M], reducer: Reducer[A, B]): M[B] = 
     apply[B]( (@mk2(i, "a%d: A%d", ", ")) => @controllers.Application.recJsonGenerate2(i) )(fu)
 
-  def tupled(implicit v:Variant[M]): M[(@mk(i, "A", ", "))] = 
-    // SO UGLY UGLY UGLY workaround for unchecked type erasure warning... no cleaner way found...
-    (v: Any) match {
-      case fu: Functor[_] => apply{ (@mk2(i, "a%d: A%d", ", ")) => (@mk(i, "a", ", ")) }(fu.asInstanceOf[Functor[M]])
-      case fu: ContravariantFunctor[_] => apply[(@mk(i, "A", ", "))]{ (a: (@mk(i, "A", ","))) => (@mk(i, "a._", ", ")) }(fu.asInstanceOf[ContravariantFunctor[M]])
-      case fu: InvariantFunctor[_] => apply[(@mk(i, "A", ", "))]({ (@mk2(i, "a%d: A%d", ", ")) => (@mk(i, "a", ", ")) }, { (a: (@mk(i, "A", ", "))) => (@mk(i, "a._", ", ")) })(fu.asInstanceOf[InvariantFunctor[M]])
+  def tupled(implicit v:VariantExtractor[M]): M[(@mk(i, "A", ", "))] = 
+    v match {
+      case FunctorExtractor(fu) => apply{ (@mk2(i, "a%d: A%d", ", ")) => (@mk(i, "a", ", ")) }(fu)
+      case ContravariantFunctorExtractor(fu) => apply[(@mk(i, "A", ", "))]{ (a: (@mk(i, "A", ","))) => (@mk(i, "a._", ", ")) }(fu)
+      case InvariantFunctorExtractor(fu) => apply[(@mk(i, "A", ", "))]({ (@mk2(i, "a%d: A%d", ", ")) => (@mk(i, "a", ", ")) }, { (a: (@mk(i, "A", ", "))) => (@mk(i, "a._", ", ")) })(fu)
     } 
 
 }
