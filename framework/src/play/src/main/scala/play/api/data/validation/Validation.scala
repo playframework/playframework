@@ -207,3 +207,21 @@ object Invalid {
   def apply(error: String, args: Any*): Invalid = Invalid(Seq(ValidationError(error, args: _*)))
 }
 
+object ParameterValidator {
+  def apply[T](constraints: Iterable[Constraint[T]], optionalParam: Option[T]*) =
+    optionalParam.flatMap {
+      _.map { param =>
+        constraints.flatMap {
+          _(param) match {
+            case i: Invalid => Some(i)
+            case _ => None
+          }
+        }
+      }
+    }.flatten match {
+      case Nil => Valid
+      case invalids => invalids.reduceLeft {
+        (a, b) => a ++ b
+      }
+    }
+}
