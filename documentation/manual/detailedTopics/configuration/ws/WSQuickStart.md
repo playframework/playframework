@@ -9,20 +9,34 @@ If the remote server is using a certificate that is signed by a well known certi
 If the web service is not using a well known certificate authority, then it is using either a private CA or a self-signed certificate.  You can determine this easily by using curl:
 
 ```
-curl https://internalserver.example.com
+curl https://financialcryptography.com # uses cacert.org as a CA
 ```
 
-If you receive an error saying that no trusted certificate can be found:
+If you receive the following error:
 
+```
+curl: (60) SSL certificate problem: Invalid certificate chain
+More details here: http://curl.haxx.se/docs/sslcerts.html
 
+curl performs SSL certificate verification by default, using a "bundle"
+ of Certificate Authority (CA) public keys (CA certs). If the default
+ bundle file isn't adequate, you can specify an alternate file
+ using the --cacert option.
+If this HTTPS server uses a certificate signed by a CA represented in
+ the bundle, the certificate verification probably failed due to a
+ problem with the certificate (it might be expired, or the name might
+ not match the domain name in the URL).
+If you'd like to turn off curl's verification of the certificate, use
+ the -k (or --insecure) option.
+```
 
-in which case keep reading.
+Then you have to obtain the CA's certificate, and add it to the trust store.
 
 ## Obtain the Root CA Certificate
 
 Ideally this should be done out of band: the owner of the web service should provide you with the root CA certificate directly, in a way that can't be faked, preferably in person.
 
-In the case where there is no communication (and this is not recommended), you can sometimes get the root CA certificate directly from the certificate chain, using [`keytool from JDK 1.8`](http://docs.oracle.com/javase/8/docs/technotes/tools/unix/keytool.html):
+In the case where there is no communication (and this is **not recommended**), you can sometimes get the root CA certificate directly from the certificate chain, using [`keytool from JDK 1.8`](http://docs.oracle.com/javase/8/docs/technotes/tools/unix/keytool.html):
 
 ```
 keytool -printcert -sslserver playframework.com
