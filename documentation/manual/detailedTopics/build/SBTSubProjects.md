@@ -45,6 +45,7 @@ myProject
 ```
 
 `myLibrary` has its own `build.sbt` file, this is where it can declare its own settings, dependencies etc.
+> Note: A file in myLibrary/project/Build.scala will not be discovered. So the modules should use only the myLibrary/build.sbt file.
 
 When you have a sub-project enabled in your build, you can focus on this project and compile, test or run it individually. Just use the `projects` command in the Play console prompt to display all projects:
 
