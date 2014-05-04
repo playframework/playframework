@@ -2,15 +2,20 @@ package anorm
 
 import org.specs2.mutable.Specification
 
-import acolyte.Acolyte.{ connection, handleQuery, handleStatement }
+import acolyte.Acolyte.{
+  connection,
+  handleQuery,
+  handleStatement,
+  updateResult
+}
 import acolyte.{
   UpdateExecution,
   QueryResult,
-  DefinedParameter => DParam,
+  ExecutedParameter,
   ParameterMetaData
 }
 import acolyte.RowLists
-import RowLists.{ stringList, rowList1, rowList2, rowList3 }
+import RowLists.{ stringList, longList, rowList1, rowList2, rowList3 }
 import acolyte.Rows.{ row1, row2, row3 }
 import acolyte.Implicits._
 
@@ -326,6 +331,35 @@ object AnormSpec extends Specification with H2Database with AnormTest {
             warn.getMessage aka "message" must_== "Warning for test-proc-2"
           }
       }
+  }
+
+  "Insertion" should {
+    lazy implicit val con = connection(handleStatement withUpdateHandler {
+      case UpdateExecution("INSERT ?", ExecutedParameter(1) :: Nil) => 1
+      case UpdateExecution("INSERT ?", ExecutedParameter(2) :: Nil) =>
+        updateResult(2, longList :+ 3L)
+      case UpdateExecution("INSERT ?", ExecutedParameter(3) :: Nil) =>
+        updateResult(3, stringList :+ "generated")
+
+    })
+
+    "return no generated key" in {
+      SQL"INSERT ${1}".executeInsert() aka "insertion" must beNone
+    }
+
+    "return numeric key (default)" in {
+      SQL"INSERT ${2}".executeInsert() aka "insertion" must beSome(3L)
+    }
+
+    "fail to return unsupported generated key" in {
+      SQL"INSERT ${3}".executeInsert().
+        aka("insertion") must throwA[Exception]("TypeDoesNotMatch")
+    }
+
+    "return generated string key" in {
+      SQL"INSERT ${3}".executeInsert(scalar[String].singleOpt).
+        aka("insertion") must beSome("generated")
+    }
   }
 }
 
