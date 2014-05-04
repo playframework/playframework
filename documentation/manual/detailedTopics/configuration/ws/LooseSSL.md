@@ -76,7 +76,7 @@ With certificate verification completely disabled, you are vulnerable to attack 
 There are some ciphers which are known to have flaws, and are [disabled](http://sim.ivi.co/2011/08/jsse-oracle-provider-default-disabled.html) in 1.7.  WS will throw an exception if a weak cipher is found in the `ws.ssl.enabledCiphers` list.  If you specifically want a weak cipher, set this flag:
 
 ```
-ws.ssl.loose.acceptWeakCipher=true
+ws.ssl.loose.allowWeakCiphers=true
 ```
 
 With weak cipher checking disabled, you are vulnerable to attackers that use forged certificates, such as [Flame](http://arstechnica.com/security/2012/06/flame-crypto-breakthrough/).
