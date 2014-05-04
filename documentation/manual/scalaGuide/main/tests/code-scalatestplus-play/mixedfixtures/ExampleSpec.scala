@@ -13,7 +13,7 @@ import play.api.{Play, Application}
 class ExampleSpec extends MixedPlaySpec {
 
   // Some helper methods
-  def fakeApp[A](elems: (String, String)*) = FakeApplication(additionalConfiguration = Map(elems:_*), withRoutes = TestRoute)
+  def fakeApp[A](elems: (String, String)*) = FakeApplication(additionalConfiguration = Map(elems:_*)/*, withRoutes = TestRoute*/)
   def getConfig(key: String)(implicit app: Application) = app.configuration.getString(key)
 
   // If a test just needs a FakeApplication, use "new App":
