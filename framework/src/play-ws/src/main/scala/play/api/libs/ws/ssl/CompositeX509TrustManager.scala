@@ -15,37 +15,9 @@ import java.security.GeneralSecurityException
  * A trust manager that is a composite of several smaller trust managers.   It is responsible for verifying the
  * credentials received from a peer.
  */
-class CompositeX509TrustManager(trustManagers: Seq[X509TrustManager]) extends X509TrustManager {
-
-  // In 1.6, sun.security.ssl.X509TrustManagerImpl extends from com.sun.net.ssl.internal.ssl.X509ExtendedTrustManager
-  // In 1.7, sun.security.ssl.X509TrustManagerImpl extends from javax.net.ssl.X509ExtendedTrustManager.
-  // The two X509ExtendedTrustManager contain different method signatures, and both are available in 1.7, which means
-  // it's really hard to keep something backwards compatible if something is calling trustManager.asInstanceOf[X509ExtendedTrustManager]
-  // internally.  For now, we have to trust that the internal API holds to the X509TrustManager interface.
-  //
-  //def checkClientTrusted(chain: Array[X509Certificate], authType: String, hostname: String, algorithm: String): Unit = ???
-  //def checkServerTrusted(chain: Array[X509Certificate], authType: String, hostname: String, algorithm: String): Unit = ???
+class CompositeX509TrustManager(trustManagers: Seq[X509TrustManager], algorithmChecker: AlgorithmChecker) extends X509TrustManager {
 
   private val logger = org.slf4j.LoggerFactory.getLogger(getClass)
-
-  logger.debug(s"CompositeX509TrustManager start: trustManagers = $trustManagers")
-
-  def checkClientTrusted(chain: Array[X509Certificate], authType: String) {
-    logger.debug("checkClientTrusted: chain = {}", debugChain(chain))
-
-    var trusted = false
-    val exceptionList = withTrustManagers {
-      trustManager =>
-        trustManager.checkClientTrusted(chain, authType)
-        logger.debug(s"checkClientTrusted: trustManager $trustManager found a match for ${debugChain(chain)}")
-        trusted = true
-    }
-
-    if (!trusted) {
-      val msg = "No trust manager was able to validate this certificate chain."
-      throw new CompositeCertificateException(msg, exceptionList.toArray)
-    }
-  }
 
   def getAcceptedIssuers: Array[X509Certificate] = {
     logger.debug("getAcceptedIssuers: ")
@@ -62,8 +34,45 @@ class CompositeX509TrustManager(trustManagers: Seq[X509TrustManager]) extends X5
     certificates.toArray
   }
 
+  // In 1.6, sun.security.ssl.X509TrustManagerImpl extends from com.sun.net.ssl.internal.ssl.X509ExtendedTrustManager
+  // In 1.7, sun.security.ssl.X509TrustManagerImpl extends from javax.net.ssl.X509ExtendedTrustManager.
+  // The two X509ExtendedTrustManager contain different method signatures, and both are available in 1.7, which means
+  // it's really hard to keep something backwards compatible if something is calling trustManager.asInstanceOf[X509ExtendedTrustManager]
+  // internally.  For now, we have to trust that the internal API holds to the X509TrustManager interface.
+  //
+  //def checkClientTrusted(chain: Array[X509Certificate], authType: String, hostname: String, algorithm: String): Unit = ???
+  //def checkServerTrusted(chain: Array[X509Certificate], authType: String, hostname: String, algorithm: String): Unit = ???
+
+  def checkClientTrusted(chain: Array[X509Certificate], authType: String) {
+    logger.debug("checkClientTrusted: chain = {}", debugChain(chain))
+
+    val anchor: TrustAnchor = new TrustAnchor(chain(chain.length - 1), null)
+    logger.debug(s"checkClientTrusted: checking key size only on root anchor $anchor")
+    algorithmChecker.checkKeyAlgorithms(anchor.getTrustedCert)
+
+    var trusted = false
+    val exceptionList = withTrustManagers {
+      trustManager =>
+        trustManager.checkClientTrusted(chain, authType)
+        logger.debug(s"checkClientTrusted: trustManager $trustManager found a match for ${debugChain(chain)}")
+        trusted = true
+    }
+
+    if (!trusted) {
+      val msg = "No trust manager was able to validate this certificate chain."
+      throw new CompositeCertificateException(msg, exceptionList.toArray)
+    }
+  }
+
   def checkServerTrusted(chain: Array[X509Certificate], authType: String): Unit = {
     logger.debug(s"checkServerTrusted: chain = ${debugChain(chain)}, authType = $authType")
+
+    // Trust anchor is at the end of the chain... there is no way to pass a trust anchor
+    // through to a checker in PKIXCertPathValidator.doValidate(), so the trust manager is the
+    // last place we have access to it.
+    val anchor: TrustAnchor = new TrustAnchor(chain(chain.length - 1), null)
+    logger.debug(s"checkServerTrusted: checking key size only on root anchor $anchor")
+    algorithmChecker.checkKeyAlgorithms(anchor.getTrustedCert)
 
     var trusted = false
     val exceptionList = withTrustManagers {
@@ -71,8 +80,6 @@ class CompositeX509TrustManager(trustManagers: Seq[X509TrustManager]) extends X5
         // always run through the trust manager before making any decisions
         trustManager.checkServerTrusted(chain, authType)
         logger.debug(s"checkServerTrusted: trustManager $trustManager using authType $authType found a match for ${debugChain(chain).toSeq}")
-
-        val issuers = trustManager.getAcceptedIssuers
         trusted = true
     }
 
@@ -104,6 +111,6 @@ class CompositeX509TrustManager(trustManagers: Seq[X509TrustManager]) extends X5
   }
 
   override def toString = {
-    s"CompositeX509TrustManager(trustManagers = [$trustManagers])"
+    s"CompositeX509TrustManager(trustManagers = [$trustManagers], algorithmChecker = $algorithmChecker)"
   }
 }

@@ -19,6 +19,7 @@ trait KeyStoreBuilder {
 object KeystoreFormats {
 
   def loadCertificates(certs: TraversableOnce[Certificate]): KeyStore = {
+    // Must be JKS internally, to enable trusted certificates in JDK 1.6
     val keystore = KeyStore.getInstance(KeyStore.getDefaultType)
     keystore.load(null)
     certs.foreach { cert =>

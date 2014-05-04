@@ -15,6 +15,10 @@ import javax.naming.InvalidNameException
  *
  * This class is needed because the JDK 1.6 Algorithm checker doesn't give us any way to customize the list of
  * disabled algorithms, and we need to be able to support that.
+ *
+ * Also note that we need to check the trust anchor for disabled key sizes, and the CertPath explicitly removes
+ * the trust anchor from the chain of certificates.  This means we need to check the trust anchor explicitly in the
+ * through the CompositeTrustManager.
  */
 class AlgorithmChecker(val signatureConstraints: Set[AlgorithmConstraint], val keyConstraints: Set[AlgorithmConstraint]) extends PKIXCertPathChecker {
 
@@ -82,7 +86,8 @@ class AlgorithmChecker(val signatureConstraints: Set[AlgorithmConstraint], val k
   def checkKeyAlgorithms(x509Cert: X509Certificate): Unit = {
     val key = x509Cert.getPublicKey
     val keyAlgorithmName = key.getAlgorithm
-    val keySize = Algorithms.keySize(key)
+    val keySize = Algorithms.keySize(key).getOrElse(throw new IllegalStateException(s"No keySize found for $key"))
+
     val keyAlgorithms = Algorithms.decomposes(keyAlgorithmName)
     logger.debug(s"checkKeyAlgorithms: keyAlgorithmName = $keyAlgorithmName, keySize = $keySize, keyAlgorithms = $keyAlgorithms")
 
@@ -90,9 +95,10 @@ class AlgorithmChecker(val signatureConstraints: Set[AlgorithmConstraint], val k
       findKeyConstraint(a).map {
         constraint =>
           if (constraint.matches(a, keySize)) {
-            logger.debug(s"checkKeyAlgorithms: cert = $x509Cert failed on constraint $constraint")
+            val certName = x509Cert.getSubjectX500Principal.getName
+            logger.debug(s"""checkKeyAlgorithms: cert = "certName" failed on constraint $constraint, algorithm = $a, keySize = $keySize""")
 
-            val msg = s"Certificate failed: $a matched constraint $constraint"
+            val msg = s"""Certificate failed: cert = "$certName" failed on constraint $constraint, algorithm = $a, keySize = $keySize"""
             throw new CertPathValidatorException(msg)
           }
       }
@@ -109,7 +115,8 @@ class AlgorithmChecker(val signatureConstraints: Set[AlgorithmConstraint], val k
 
         val commonName = getCommonName(x509Cert)
         val subAltNames = x509Cert.getSubjectAlternativeNames
-        logger.debug(s"check: checking certificate commonName = $commonName, subjAltName = $subAltNames")
+        val certName = x509Cert.getSubjectX500Principal.getName
+        logger.debug(s"check: checking certificate commonName = $commonName, subjAltName = $subAltNames, certName = $certName")
 
         checkSignatureAlgorithms(x509Cert)
         checkKeyAlgorithms(x509Cert)

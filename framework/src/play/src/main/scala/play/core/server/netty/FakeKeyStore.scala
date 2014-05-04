@@ -8,13 +8,14 @@ import java.security.{ KeyStore, SecureRandom, KeyPairGenerator, KeyPair }
 import sun.security.x509._
 import java.util.Date
 import java.math.BigInteger
-import java.security.cert.X509Certificate
+import java.security.cert.{ CertPathValidatorException, X509Certificate }
 import java.io.{ File, FileInputStream, FileOutputStream }
 import javax.net.ssl.KeyManagerFactory
 import scala.util.control.NonFatal
 import scala.util.Properties.isJavaAtLeast
 import scala.util.{ Failure, Success, Try }
 import play.utils.PlayIO
+import java.security.interfaces.RSAPublicKey
 
 /**
  * A fake key store
@@ -23,17 +24,46 @@ object FakeKeyStore {
   val GeneratedKeyStore = "conf/generated.keystore"
   val DnName = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
 
+  def shouldGenerate(keyStoreFile: File): Boolean = {
+    import scala.collection.JavaConverters._
+
+    if (!keyStoreFile.exists()) {
+      return true
+    }
+
+    // Should regenerate if we find an unacceptably weak key in there.
+    val store = KeyStore.getInstance("JKS")
+    val in = new FileInputStream(keyStoreFile)
+    try {
+      store.load(in, "".toCharArray)
+    } finally {
+      PlayIO.closeQuietly(in)
+    }
+    store.aliases().asScala.foreach {
+      alias =>
+        Option(store.getCertificate(alias)).map {
+          c =>
+            val key: RSAPublicKey = c.getPublicKey.asInstanceOf[RSAPublicKey]
+            if (key.getModulus.bitLength < 2048) {
+              return true
+            }
+        }
+    }
+
+    false
+  }
+
   def keyManagerFactory(appPath: File): Try[KeyManagerFactory] = {
     try {
       val keyStore = KeyStore.getInstance("JKS")
       val keyStoreFile = new File(appPath, GeneratedKeyStore)
-      if (!keyStoreFile.exists()) {
+      if (shouldGenerate(keyStoreFile)) {
 
         Play.logger.info("Generating HTTPS key pair in " + keyStoreFile.getAbsolutePath + " - this may take some time. If nothing happens, try moving the mouse/typing on the keyboard to generate some entropy.")
 
         // Generate the key pair
         val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
-        keyPairGenerator.initialize(1024)
+        keyPairGenerator.initialize(2048) // 2048 is the NIST acceptable key length until 2030
         val keyPair = keyPairGenerator.generateKeyPair()
 
         // Generate a self signed certificate

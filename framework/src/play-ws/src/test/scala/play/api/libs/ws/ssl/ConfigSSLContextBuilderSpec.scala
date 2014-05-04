@@ -12,9 +12,9 @@ import org.specs2.mock._
 import javax.net.ssl._
 import java.security._
 import java.net.Socket
-import java.security.cert.X509Certificate
+import java.security.cert.CertPathValidatorException
 
-object ConfigSSLContextBuilderSpec extends Specification with Mockito {
+class ConfigSSLContextBuilderSpec extends Specification with Mockito {
 
   val CACERTS = s"${System.getProperty("java.home")}/lib/security/cacerts"
 
@@ -67,24 +67,12 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
 
       val keyStoreConfig = DefaultKeyStoreConfig(storeType, filePath, None, None)
 
-      // XXX replace with mock?
-      keyManagerFactory.getKeyManagers returns Array {
-        new X509ExtendedKeyManager() {
-          def getClientAliases(keyType: String, issuers: Array[Principal]): Array[String] = ???
+      val keyManager = mock[X509KeyManager]
+      keyManagerFactory.getKeyManagers returns Array(keyManager)
 
-          def chooseClientAlias(keyType: Array[String], issuers: Array[Principal], socket: Socket): String = ???
-
-          def getServerAliases(keyType: String, issuers: Array[Principal]): Array[String] = ???
-
-          def chooseServerAlias(keyType: String, issuers: Array[Principal], socket: Socket): String = ???
-
-          def getCertificateChain(alias: String): Array[X509Certificate] = ???
-
-          def getPrivateKey(alias: String): PrivateKey = ???
-        }
-      }
-
-      val actual = builder.buildKeyManager(keyStoreConfig)
+      val disabledKeyAlgorithms = Set(AlgorithmConstraint("RSA", Some(LessThan(1024))))
+      val algorithmChecker = new AlgorithmChecker(Set(), keyConstraints = disabledKeyAlgorithms)
+      val actual = builder.buildKeyManager(keyStoreConfig, algorithmChecker)
       actual must beAnInstanceOf[X509KeyManager]
     }
 
@@ -101,9 +89,11 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
       val keyStoreConfig = DefaultKeyStoreConfig(storeType, filePath, None, None)
 
       keyManagerFactory.init(any[KeyStore], any[Array[Char]]) throws new UnrecoverableKeyException("no password set")
+      
+      val algorithmChecker = new AlgorithmChecker(Set(), Set())
 
       {
-        builder.buildKeyManager(keyStoreConfig)
+        builder.buildKeyManager(keyStoreConfig, algorithmChecker)
       }.must(throwAn[IllegalStateException])
     }
 
@@ -113,31 +103,17 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
       val trustManagerFactory = mock[TrustManagerFactoryWrapper]
       val builder = new ConfigSSLContextBuilder(info, keyManagerFactory, trustManagerFactory)
 
-      val storeType = Some(KeyStore.getDefaultType)
-      val filePath = Some(CACERTS)
-      val trustStoreConfig = DefaultTrustStoreConfig(storeType = storeType, filePath = filePath, data = None)
-
-      // XXX replace with mock?
-      trustManagerFactory.getTrustManagers returns Array {
-        new X509TrustManager {
-          def getAcceptedIssuers: Array[X509Certificate] = ???
-
-          def checkClientTrusted(chain: Array[X509Certificate], authType: String): Unit = ???
-
-          def checkServerTrusted(chain: Array[X509Certificate], authType: String): Unit = ???
-        }
-      }
+      val trustManager = mock[X509TrustManager]
+      trustManagerFactory.getTrustManagers returns Array(trustManager)
       val disabledSignatureAlgorithms = Set(AlgorithmConstraint("md5"))
-      val disabledKeyAlgorithms = Set(AlgorithmConstraint("RSA < 1024"))
+      val disabledKeyAlgorithms = Set(AlgorithmConstraint("RSA", Some(LessThan(1024))))
+      val algorithmChecker = new AlgorithmChecker(disabledSignatureAlgorithms, disabledKeyAlgorithms)
+
       val trustManagerConfig = DefaultTrustManagerConfig()
       val checkRevocation = false
       val revocationLists = None
 
-      val actual = builder.buildCompositeTrustManager(trustManagerConfig,
-        checkRevocation,
-        revocationLists,
-        disabledSignatureAlgorithms,
-        disabledKeyAlgorithms)
+      val actual = builder.buildCompositeTrustManager(trustManagerConfig, checkRevocation, revocationLists, algorithmChecker)
       actual must beAnInstanceOf[javax.net.ssl.X509TrustManager]
     }
 
@@ -149,7 +125,10 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
 
       val keyManagerConfig = new DefaultKeyManagerConfig()
 
-      val actual = builder.buildCompositeKeyManager(keyManagerConfig)
+      val disabledKeyAlgorithms = Set(AlgorithmConstraint("RSA", Some(LessThan(1024))))
+      val algorithmChecker = new AlgorithmChecker(Set(), disabledKeyAlgorithms)
+
+      val actual = builder.buildCompositeKeyManager(keyManagerConfig, algorithmChecker)
       actual must beAnInstanceOf[CompositeX509KeyManager]
     }
 
@@ -160,16 +139,16 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
       val builder = new ConfigSSLContextBuilder(info, keyManagerFactory, trustManagerFactory)
 
       val disabledSignatureAlgorithms = Set(AlgorithmConstraint("md5"))
-      val disabledKeyAlgorithms = Set(AlgorithmConstraint("RSA < 1024"))
+      val disabledKeyAlgorithms = Set(AlgorithmConstraint("RSA", Some(LessThan(1024))))
+      val algorithmChecker = new AlgorithmChecker(disabledSignatureAlgorithms, disabledKeyAlgorithms)
+
       val trustManagerConfig = DefaultTrustManagerConfig()
       val checkRevocation = false
       val revocationLists = None
 
       val actual = builder.buildCompositeTrustManager(trustManagerConfig,
         checkRevocation,
-        revocationLists,
-        disabledSignatureAlgorithms,
-        disabledKeyAlgorithms)
+        revocationLists, algorithmChecker)
       actual must beAnInstanceOf[CompositeX509TrustManager]
     }
 
@@ -186,15 +165,13 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
       val trustManagerConfig = DefaultTrustManagerConfig(trustStoreConfigs = Seq(trustStoreConfig))
 
       val disabledSignatureAlgorithms = Set(AlgorithmConstraint("md5"))
-      val disabledKeyAlgorithms = Set(AlgorithmConstraint("RSA < 1024"))
+      val disabledKeyAlgorithms = Set(AlgorithmConstraint("RSA", Some(LessThan(1024))))
+      val algorithmChecker = new AlgorithmChecker(disabledSignatureAlgorithms, disabledKeyAlgorithms)
+
       val checkRevocation = false
       val revocationLists = None
 
-      val actual = builder.buildCompositeTrustManager(trustManagerConfig,
-        checkRevocation,
-        revocationLists,
-        disabledSignatureAlgorithms,
-        disabledKeyAlgorithms)
+      val actual = builder.buildCompositeTrustManager(trustManagerConfig, checkRevocation, revocationLists, algorithmChecker)
 
       actual must beAnInstanceOf[CompositeX509TrustManager]
       val issuers = actual.getAcceptedIssuers
@@ -225,6 +202,85 @@ object ConfigSSLContextBuilderSpec extends Specification with Mockito {
 
       val actual = builder.stringBuilder(data, None)
       actual must beAnInstanceOf[StringBasedKeyStoreBuilder]
+    }
+
+    "fail the keystore with a weak certificate " in {
+      // RSA 1024 public key
+      val data = """-----BEGIN CERTIFICATE-----
+                   |MIICcjCCAdugAwIBAgIEKdPHODANBgkqhkiG9w0BAQsFADBsMRAwDgYDVQQGEwdV
+                   |bmtub3duMRAwDgYDVQQIEwdVbmtub3duMRAwDgYDVQQHEwdVbmtub3duMRAwDgYD
+                   |VQQKEwdVbmtub3duMRAwDgYDVQQLEwdVbmtub3duMRAwDgYDVQQDEwdVbmtub3du
+                   |MB4XDTE0MDQxMzAxMzgwN1oXDTE0MTAxMDAxMzgwN1owbDEQMA4GA1UEBhMHVW5r
+                   |bm93bjEQMA4GA1UECBMHVW5rbm93bjEQMA4GA1UEBxMHVW5rbm93bjEQMA4GA1UE
+                   |ChMHVW5rbm93bjEQMA4GA1UECxMHVW5rbm93bjEQMA4GA1UEAxMHVW5rbm93bjCB
+                   |nzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAoZCRpCJyes/P8yGeSSskZ8mtgH+H
+                   |yQOnpnXcOko34Ys0mWhjxKfJjSmkUHdSfKarZ2hFmmNv05+1Og02tIIscIUraFyc
+                   |ujPsjYU3B1QUeW4duB0l/MJVwBYxpbulZuV9joNWyAyPvyE2Z3F91Ka77/FobqfI
+                   |sAbbM+qWzQspU2cCAwEAAaMhMB8wHQYDVR0OBBYEFFdSKbOXk6Of//DrMQksYUmP
+                   |WYTmMA0GCSqGSIb3DQEBCwUAA4GBAEVNSa8wtsLArg+4IQXs1P4JUAMPieOC3DjC
+                   |ioplN4UHccCXXmpBe2zkCvIxkmRUjfaYfAehHJvJSitUkBupAQSwv3rNo5zIfqCe
+                   |NzBCZh8S+IPQZa+gaE8MrLsDDzD0ZoSOT8fx5TSgF8eTUgkKxkX4I51C9B5t2SCB
+                   |0Pl6Lah4
+                   |-----END CERTIFICATE-----
+                 """.stripMargin
+
+      val keyManagerFactory = mock[KeyManagerFactoryWrapper]
+      val trustManagerFactory = mock[TrustManagerFactoryWrapper]
+
+      // This
+      val disabledKeyAlgorithms = Set(AlgorithmConstraint("RSA", Some(Equal(1024))))
+      //val disabledKeyAlgorithms = Set[AlgorithmConstraint]()
+      val tsc = DefaultTrustStoreConfig(storeType = Some("PEM"), data = Some(data), filePath = None)
+      val trustManagerConfig = DefaultTrustManagerConfig(trustStoreConfigs = Seq(tsc))
+
+      val info = DefaultSSLConfig(trustManagerConfig = Some(trustManagerConfig))
+      val builder = new ConfigSSLContextBuilder(info, keyManagerFactory, trustManagerFactory)
+
+      val trustStore = builder.trustStoreBuilder(tsc).build()
+      val checker: AlgorithmChecker = new AlgorithmChecker(signatureConstraints = Set(), keyConstraints = disabledKeyAlgorithms)
+
+      builder.validateStore(trustStore, checker)
+      trustStore.size() must beEqualTo(0)
+    }
+
+    "validate the keystore with a weak certificate " in {
+      // RSA 1024 public key
+      val data = """-----BEGIN CERTIFICATE-----
+                   |MIICcjCCAdugAwIBAgIEKdPHODANBgkqhkiG9w0BAQsFADBsMRAwDgYDVQQGEwdV
+                   |bmtub3duMRAwDgYDVQQIEwdVbmtub3duMRAwDgYDVQQHEwdVbmtub3duMRAwDgYD
+                   |VQQKEwdVbmtub3duMRAwDgYDVQQLEwdVbmtub3duMRAwDgYDVQQDEwdVbmtub3du
+                   |MB4XDTE0MDQxMzAxMzgwN1oXDTE0MTAxMDAxMzgwN1owbDEQMA4GA1UEBhMHVW5r
+                   |bm93bjEQMA4GA1UECBMHVW5rbm93bjEQMA4GA1UEBxMHVW5rbm93bjEQMA4GA1UE
+                   |ChMHVW5rbm93bjEQMA4GA1UECxMHVW5rbm93bjEQMA4GA1UEAxMHVW5rbm93bjCB
+                   |nzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAoZCRpCJyes/P8yGeSSskZ8mtgH+H
+                   |yQOnpnXcOko34Ys0mWhjxKfJjSmkUHdSfKarZ2hFmmNv05+1Og02tIIscIUraFyc
+                   |ujPsjYU3B1QUeW4duB0l/MJVwBYxpbulZuV9joNWyAyPvyE2Z3F91Ka77/FobqfI
+                   |sAbbM+qWzQspU2cCAwEAAaMhMB8wHQYDVR0OBBYEFFdSKbOXk6Of//DrMQksYUmP
+                   |WYTmMA0GCSqGSIb3DQEBCwUAA4GBAEVNSa8wtsLArg+4IQXs1P4JUAMPieOC3DjC
+                   |ioplN4UHccCXXmpBe2zkCvIxkmRUjfaYfAehHJvJSitUkBupAQSwv3rNo5zIfqCe
+                   |NzBCZh8S+IPQZa+gaE8MrLsDDzD0ZoSOT8fx5TSgF8eTUgkKxkX4I51C9B5t2SCB
+                   |0Pl6Lah4
+                   |-----END CERTIFICATE-----
+                 """.stripMargin
+
+      val keyManagerFactory = mock[KeyManagerFactoryWrapper]
+      val trustManagerFactory = mock[TrustManagerFactoryWrapper]
+
+      // This
+      val disabledKeyAlgorithms = Set(AlgorithmConstraint("RSA", Some(LessThan(1024))))
+      //val disabledKeyAlgorithms = Set[AlgorithmConstraint]()
+      val tsc = DefaultTrustStoreConfig(storeType = Some("PEM"), data = Some(data), filePath = None)
+      val trustManagerConfig = DefaultTrustManagerConfig(trustStoreConfigs = Seq(tsc))
+
+      val info = DefaultSSLConfig(trustManagerConfig = Some(trustManagerConfig))
+      val builder = new ConfigSSLContextBuilder(info, keyManagerFactory, trustManagerFactory)
+
+      val trustStore = builder.trustStoreBuilder(tsc).build()
+      val checker: AlgorithmChecker = new AlgorithmChecker(signatureConstraints = Set(), keyConstraints = disabledKeyAlgorithms)
+
+      {
+        builder.validateStore(trustStore, checker)
+      }.must(not(throwAn[CertPathValidatorException]))
     }
 
   }
