@@ -11,10 +11,11 @@ TAG=1
 CLEAN=0
 PUBLISHCMD="publish-local-signed"
 GITBRANCH=`git rev-parse --abbrev-ref HEAD`
+CROSSBUILD="2.11.0"
 
 usage() {
     echo "Usage:"
-    echo "$0 -v <version> [ -hpt ] [ -a <apidocsclone> ]"
+    echo "$0 -v <version> [ -hpt ] [ -a <apidocsclone> ] [ -c <scalaversions> ]"
     echo ""
     echo "  -v The version of Play to release"
     echo "  -h Display this help and exit"
@@ -22,10 +23,11 @@ usage() {
     echo "  -t Tag the release"
     echo "  -n Don't do a clean first"
     echo "  -a Publish the API docs to the given clone of the API docs repository"
+    echo "  -c Cross build against the comma separated list of versions, default: $CROSSBUILD"
     exit $1
 }
 
-while getopts ":hnptv:a:" opt
+while getopts ":hnptv:a:c:" opt
 do
     case $opt in
         h)
@@ -46,6 +48,9 @@ do
             ;;
         n)
             CLEAN=1
+            ;;
+        c)
+            CROSSBUILD="$OPTARG"
             ;;
         :)
             echo "Option -$OPTARG requires an argument" >&2
@@ -99,6 +104,15 @@ fi
 
 "$DIR/build" $PUBLISHCMD
 
+for v in $(echo $CROSSBUILD | sed "s/,/ /")
+do
+    if [ -n "$v" ]
+    then
+        echo "Cross building Play against Scala $v"
+        "$DIR/build" -Dscala.version=$v $PUBLISHCMD
+    fi
+done
+
 if [ $TAG -eq 0 ]
 then
     echo "Tagging..."
@@ -122,7 +136,7 @@ then
     git merge origin/$GITBRANCH
 
     rm -r *
-    cp -r "$OLDDIR/src/play-docs/target/apidocs" api
+    cp -r "$OLDDIR/src/play-docs/target/scala-2.10/apidocs" api
     git add --all
     git commit -m "Publishing $PLAY_VERSION docs"
     git tag -a -m "Publishing $PLAY_VERSION docs" $PLAY_VERSION

@@ -4,7 +4,6 @@
 package scalaguide.async.scalacomet
 
 import play.api.mvc._
-import play.api.libs.concurrent.Execution.Implicits.{ defaultContext => dec }
 import play.api.libs.iteratee.{Enumeratee, Iteratee, Enumerator}
 import play.api.test._
 import scala.concurrent.Future
@@ -22,7 +21,7 @@ object ScalaCometSpec extends PlaySpecification with Controller {
           """<script>console.log('foo')</script>""",
           """<script>console.log('bar')</script>"""
         )
-        Ok.stream(events).as(HTML)
+        Ok.chunked(events).as(HTML)
       }
       //#manual
       val msgs = cometMessages(comet(FakeRequest()))
@@ -41,7 +40,7 @@ object ScalaCometSpec extends PlaySpecification with Controller {
 
       def comet = Action {
         val events = Enumerator("kiki", "foo", "bar")
-        Ok.stream(events &> toCometMessage)
+        Ok.chunked(events &> toCometMessage)
       }
       //#enumeratee
 
@@ -54,7 +53,7 @@ object ScalaCometSpec extends PlaySpecification with Controller {
       //#helper
       def comet = Action {
         val events = Enumerator("kiki", "foo", "bar")
-        Ok.stream(events &> Comet(callback = "console.log"))
+        Ok.chunked(events &> Comet(callback = "console.log"))
       }
       //#helper
 
@@ -67,7 +66,7 @@ object ScalaCometSpec extends PlaySpecification with Controller {
       //#iframe
       def comet = Action {
         val events = Enumerator("kiki", "foo", "bar")
-        Ok.stream(events &> Comet(callback = "parent.cometMessage"))
+        Ok.chunked(events &> Comet(callback = "parent.cometMessage"))
       }
       //#iframe
 
