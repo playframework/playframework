@@ -175,7 +175,10 @@ object Concurrent {
 
     val toPush = new Channel[E] {
 
-      def push(chunk: Input[E]) {
+      private val runQueue = new RunQueue()
+      private def schedule(body: => Unit) = runQueue.scheduleSimple(body)(dec)
+
+      def push(chunk: Input[E]) = schedule {
 
         val itPromise = Promise[Iteratee[E, Unit]]()
 
@@ -200,7 +203,7 @@ object Concurrent {
         }(dec)
       }
 
-      def end(e: Throwable) {
+      def end(e: Throwable) = schedule {
         val current: Iteratee[E, Unit] = mainIteratee.single.swap(Done((), Input.Empty))
         def endEveryone() = Future {
           val its = atomic { implicit txn =>
@@ -213,7 +216,7 @@ object Concurrent {
         current.fold { case _ => endEveryone() }(dec)
       }
 
-      def end() {
+      def end() = schedule {
         val current: Iteratee[E, Unit] = mainIteratee.single.swap(Done((), Input.Empty))
         def endEveryone() = Future {
           val its = atomic { implicit txn =>
@@ -442,7 +445,7 @@ object Concurrent {
     onStart: Channel[E] => Unit,
     onComplete: => Unit = (),
     onError: (String, Input[E]) => Unit = (_: String, _: Input[E]) => ())(implicit ec: ExecutionContext) = new Enumerator[E] {
-    val pec = ec.prepare()
+    implicit val pec = ec.prepare()
 
     import scala.concurrent.stm.Ref
 
@@ -451,7 +454,11 @@ object Concurrent {
       val iteratee: Ref[Future[Option[Input[E] => Iteratee[E, A]]]] = Ref(it.pureFold { case Step.Cont(k) => Some(k); case other => promise.success(other.it); None }(dec))
 
       val pushee = new Channel[E] {
-        def close() {
+
+        private val runQueue = new RunQueue()
+        private def schedule(body: => Unit) = runQueue.scheduleSimple(body)(dec)
+
+        def close() = schedule {
           iteratee.single.swap(Future.successful(None)).onComplete {
             case Success(maybeK) => maybeK.foreach { k =>
               promise.success(k(Input.EOF))
@@ -460,7 +467,7 @@ object Concurrent {
           }(dec)
         }
 
-        def end(e: Throwable) {
+        def end(e: Throwable) = schedule {
           iteratee.single.swap(Future.successful(None)).onComplete {
             case Success(maybeK) =>
               maybeK.foreach(_ => promise.failure(e))
@@ -468,13 +475,13 @@ object Concurrent {
           }(dec)
         }
 
-        def end() {
+        def end() = schedule {
           iteratee.single.swap(Future.successful(None)).onComplete { maybeK =>
             maybeK.get.foreach(k => promise.success(Cont(k)))
           }(dec)
         }
 
-        def push(item: Input[E]) {
+        def push(item: Input[E]) = schedule {
           val eventuallyNext = Promise[Option[Input[E] => Iteratee[E, A]]]()
           iteratee.single.swap(eventuallyNext.future).onComplete {
             case Success(None) => eventuallyNext.success(None)
