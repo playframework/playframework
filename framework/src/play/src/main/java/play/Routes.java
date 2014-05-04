@@ -3,7 +3,7 @@
  */
 package play;
 
-import play.api.templates.JavaScript;
+import play.twirl.api.JavaScript;
 import play.libs.Scala;
 
 /**
