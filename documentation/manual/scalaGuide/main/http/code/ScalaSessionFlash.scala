@@ -30,19 +30,6 @@ package scalaguide.http.scalasessionflash {
         assertAction(index, OK, FakeRequest().withSession("connected" -> "player"))(res => contentAsString(res) must contain("player"))
       }
 
-      "Reading a Session value implicitly" in {
-        //#index-retrieve-incoming-session-implicitly
-        def index = Action { implicit request =>
-          session.get("connected").map { user =>
-            Ok("Hello " + user)
-          }.getOrElse {
-            Unauthorized("Oops, you are not connected")
-          }
-        }
-        //#index-retrieve-incoming-session-implicitly
-        assertAction(index, OK, FakeRequest().withSession("connected" -> "player"))(res => contentAsString(res) must contain("player"))
-      }
-
       "Storing data in the Session" in {
         def storeSession = Action { implicit request =>
           //#store-session
@@ -58,7 +45,7 @@ package scalaguide.http.scalasessionflash {
         def addSession = Action { implicit request =>
           //#add-session
           Ok("Hello World!").withSession(
-            session + ("saidHello" -> "yes"))
+            request.session + ("saidHello" -> "yes"))
           //#add-session
         }
 
@@ -69,7 +56,7 @@ package scalaguide.http.scalasessionflash {
         def removeSession = Action { implicit request =>
           //#remove-session
           Ok("Theme reset!").withSession(
-            session - "theme")
+            request.session - "theme")
           //#remove-session
         }
 
@@ -89,7 +76,7 @@ package scalaguide.http.scalasessionflash {
         //#using-flash
         def index = Action { implicit request =>
           Ok {
-            flash.get("success").getOrElse("Welcome!")
+            request.flash.get("success").getOrElse("Welcome!")
           }
         }
 
@@ -142,7 +129,3 @@ package views.html {
     def index() = "Good Job!"
   }
 }
-
-
-
- 
