@@ -82,6 +82,11 @@ public static Result save() {
 }
 ```
 
+To retrieve the Flash scope value in your view, just call the flash variable:
+```scala
+@() ... @flash.get("success").getOrElse("Welcome!") ...
+```
+
 &nbsp;
 
 > **Next:** [[Body parsers | JavaBodyParsers]]
