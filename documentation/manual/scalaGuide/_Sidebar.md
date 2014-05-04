@@ -14,7 +14,7 @@
 - [[Integrating with Akka | ScalaAkka]]
 - [[Internationalization | ScalaI18N]]
 - [[The application Global object | ScalaGlobal]]
-- [[Testing your application | ScalaTest]]
+- [[Testing your application | TestingYourApplication]]
     
 ### Advanced topics
 
