@@ -20,6 +20,7 @@
 - [[Internationalization | JavaI18N]]
 - [[The application Global object | JavaGlobal]]
 - [[Testing your application | JavaTest]]
+- [[Logging|JavaLogging]]
 
 ### Tutorials
 

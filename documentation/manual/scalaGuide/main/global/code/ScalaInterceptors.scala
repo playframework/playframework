@@ -21,17 +21,18 @@ class ScalaInterceptorsSpec extends Specification with Controller {
     "filter log request" in {
 
       //#filter-log
+      import play.api.Logger
       import play.api.mvc._
-
-      object AccessLog extends Filter {
+      
+      object AccessLoggingFilter extends Filter {
         def apply(next: (RequestHeader) => Future[Result])(request: RequestHeader): Future[Result] = {
           val result = next(request)
-          play.Logger.info(request + "\n\t => " + result)
+          Logger.info(request + "\n\t => " + result)
           result
         }
       }
 
-      object Global extends WithFilters(AccessLog)
+      object Global extends WithFilters(AccessLoggingFilter)
       //#filter-log
 
       contentOf(rh=FakeRequest("GET", "/hello"),g=Global) === "hello"

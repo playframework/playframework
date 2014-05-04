@@ -59,6 +59,8 @@ The Scala API for Play application developers is available in the `play.api` pac
 1. [[Testing your application | ScalaTest]]
     1. [[Writing tests | ScalaTest]]
     1. [[Writing functional tests | ScalaFunctionalTest]]
+1. [[Logging|ScalaLogging]]
+    1. [[The Logging API|ScalaLogging]]
     
 ## Advanced topics
 

@@ -40,3 +40,5 @@ Java
 
 Java 8
 : @[with-browser](java8code/java8guide/tests/JavaFunctionalTest.java)
+
+> **Next:** [[Logging|JavaLogging]]

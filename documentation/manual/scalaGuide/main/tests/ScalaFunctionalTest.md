@@ -88,4 +88,4 @@ wsCall(controllers.routes.Application.index()).get()
 wsUrl("http://localhost:9000").get()
 ```
 
-> **Next:** [[Advanced topics|Iteratees]]
+> **Next:** [[Logging|ScalaLogging]]
