@@ -11,6 +11,7 @@ import play.api.Play.current
 import play.api.test._
 import play.api.cache.{Cached, Cache}
 import play.api.mvc._
+import play.api.libs.json.Json
 import scala.concurrent.Future
 import org.specs2.execute.AsResult
 
@@ -82,6 +83,54 @@ class ScalaCacheSpec extends PlaySpecification with Controller {
       }
       //#composition-cached-action
       testAction(action=userProfile,expectedResponse=UNAUTHORIZED)
+    }
+
+    "control cache" in {
+      running(FakeApplication()) {
+        //#cached-action-control
+        def get(index: Int) = Cached.status(_ => "/resource/"+ index, 200) {
+          Action {
+            if (index > 0) {
+              Ok(Json.obj("id" -> index))
+            } else {
+              NotFound
+            }
+          }
+        }
+        //#cached-action-control
+        val result0 = get(1)(FakeRequest("GET", "/resource/1")).run
+        status(result0) must_== 200
+        val result1 = get(-1)(FakeRequest("GET", "/resource/-1")).run
+        status(result1) must_== 404
+      }
+
+    }
+
+    "control cache" in {
+      running(FakeApplication()) {
+        //#cached-action-control-404
+        def get(index: Int) = {
+          val caching = Cached
+            .status(_ => "/resource/"+ index, 200)
+            .includeStatus(404, 600)
+
+          caching {
+            Action {
+              if (index % 2 == 1) {
+                Ok(Json.obj("id" -> index))
+              } else {
+                NotFound
+              }
+            }
+          }
+        }
+        //#cached-action-control-404
+        val result0 = get(1)(FakeRequest("GET", "/resource/1")).run
+        status(result0) must_== 200
+        val result1 = get(2)(FakeRequest("GET", "/resource/2")).run
+        status(result1) must_== 404
+      }
+
     }
 
 

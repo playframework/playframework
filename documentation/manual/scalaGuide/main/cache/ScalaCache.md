@@ -43,5 +43,16 @@ Or even:
 
 @[composition-cached-action](code/ScalaCache.scala)
 
+### Control caching
+
+You can easily control what you want to cache or what you want to exclude from the cache.
+
+You may want to only cache 200 Ok results.
+
+@[cached-action-control](code/ScalaCache.scala)
+
+Or cache 404 Not Found only for a couple of minutes
+
+@[cached-action-control-404](code/ScalaCache.scala)
 
 > **Next:** [[Calling web services | ScalaWS]]
