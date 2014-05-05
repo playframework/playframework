@@ -223,13 +223,13 @@ class ScalaWSSpec extends PlaySpecification with Results {
             }
 
             val outputStream: OutputStream = new BufferedOutputStream(new FileOutputStream(file))
-            val futureResponse = WS.url(url).withTimeout(3000).get {
+            val futureResponse = WS.url(url).withRequestTimeout(3000).get {
               headers =>
                 fromStream(outputStream)
             }.map(_.run)
             // #scalaws-fileupload
 
-            await(futureResponse, 4000)
+            await(futureResponse)
             file.exists() must beTrue
             file.length() must beEqualTo(4096)
           } finally {

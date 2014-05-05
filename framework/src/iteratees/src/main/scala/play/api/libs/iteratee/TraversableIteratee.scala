@@ -105,8 +105,8 @@ object Traversable {
           case (prefix, suffix) => Done(if (prefix.isEmpty) Cont(k) else k(Input.El(prefix)), Input.El(suffix.drop(1)))
         }(dec))
 
-      case in @ Input.Empty =>
-        new CheckDone[M, M] { def continue[A](k: K[M, A]) = Cont(step(k)) } &> k(in)
+      case Input.Empty =>
+        new CheckDone[M, M] { def continue[A](k: K[M, A]) = Cont(step(k)) } &> k(Input.Empty)
 
       case Input.EOF => Done(Cont(k), Input.EOF)
 

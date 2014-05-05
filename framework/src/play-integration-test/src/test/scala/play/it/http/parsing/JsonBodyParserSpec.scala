@@ -11,6 +11,9 @@ import play.api.test._
 
 object JsonBodyParserSpec extends PlaySpecification {
 
+  private case class Foo(a: Int, b: String)
+  private implicit val fooFormat = Json.format[Foo]
+
   "The JSON body parser" should {
 
     def parse[A](json: String, contentType: Option[String], encoding: String, bodyParser: BodyParser[A] = BodyParsers.parse.tolerantJson) = {
@@ -81,8 +84,5 @@ object JsonBodyParserSpec extends PlaySpecification {
     }
 
   }
-
-  private case class Foo(a: Int, b: String)
-  private implicit val fooFormat = Json.format[Foo]
 
 }

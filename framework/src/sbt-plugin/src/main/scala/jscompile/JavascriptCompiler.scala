@@ -7,10 +7,7 @@ import play.PlayExceptions.AssetCompilationException
 import java.io._
 import play.api._
 import scala.collection.JavaConverters._
-import scalax.file._
-import com.google.javascript.rhino.Node
-import com.google.javascript.jscomp.ProcessCommonJSModules
-import scala.io.Source
+import sbt._
 
 object JavascriptCompiler {
 
@@ -19,7 +16,7 @@ object JavascriptCompiler {
   /**
    * Compile a JS file with its dependencies
    * @return a triple containing the original source code, the minified source code, the list of dependencies (including the input file)
-   * @param source
+   * @param source The source
    * @param simpleCompilerOptions user supplied simple command line parameters
    * @param fullCompilerOptions user supplied full blown CompilerOptions instance
    */
@@ -29,7 +26,7 @@ object JavascriptCompiler {
     val requireJsMode = simpleCompilerOptions.contains("rjs")
     val commonJsMode = simpleCompilerOptions.contains("commonJs") && !requireJsMode
 
-    val origin = Path(source).string
+    val origin = IO.read(source)
 
     val options = fullCompilerOptions.getOrElse {
       val defaultOptions = new CompilerOptions()
@@ -38,11 +35,11 @@ object JavascriptCompiler {
       if (commonJsMode) {
         defaultOptions.setProcessCommonJSModules(true)
         // The compiler always expects forward slashes even on Windows.
-        defaultOptions.setCommonJSModulePathPrefix((source.getParent() + File.separator).replaceAll("\\\\", "/"))
-        defaultOptions.setManageClosureDependencies(Seq(toModuleName(source.getName())).asJava)
+        defaultOptions.setCommonJSModulePathPrefix((source.getParent + File.separator).replaceAll("\\\\", "/"))
+        defaultOptions.setManageClosureDependencies(Seq(toModuleName(source.getName)).asJava)
       }
 
-      simpleCompilerOptions.foreach(_ match {
+      simpleCompilerOptions.foreach {
         case "advancedOptimizations" => CompilationLevel.ADVANCED_OPTIMIZATIONS.setOptionsForCompilationLevel(defaultOptions)
         case "checkCaja" => defaultOptions.setCheckCaja(true)
         case "checkControlStructures" => defaultOptions.setCheckControlStructures(true)
@@ -50,7 +47,7 @@ object JavascriptCompiler {
         case "checkSymbols" => defaultOptions.setCheckSymbols(true)
         case "ecmascript5" => defaultOptions.setLanguageIn(CompilerOptions.LanguageMode.ECMASCRIPT5)
         case _ => Unit // Unknown option
-      })
+      }
       defaultOptions
     }
 
@@ -61,12 +58,11 @@ object JavascriptCompiler {
     val input = if (commonJsMode) all.map(f => SourceFile.fromFile(f)).toList else List(SourceFile.fromFile(source))
 
     catching(classOf[Exception]).either(compiler.compile(List[SourceFile]().asJava, input.asJava, options).success) match {
-      case Right(true) => (origin, { if (!requireJsMode) Some(compiler.toSource()) else None }, Nil)
-      case Right(false) => {
-        val error = compiler.getErrors().head
-        val errorFile = all.find(f => f.getAbsolutePath() == error.sourceName)
+      case Right(true) => (origin, { if (!requireJsMode) Some(compiler.toSource) else None }, Nil)
+      case Right(false) =>
+        val error = compiler.getErrors.head
+        val errorFile = all.find(f => f.getAbsolutePath == error.sourceName)
         throw AssetCompilationException(errorFile, error.description, Some(error.lineNumber), None)
-      }
       case Left(exception) =>
         exception.printStackTrace()
         throw AssetCompilationException(Some(source), "Internal Closure Compiler error (see logs)", None, None)
@@ -84,11 +80,10 @@ object JavascriptCompiler {
     val input = List[SourceFile](SourceFile.fromCode(name.getOrElse("unknown"), source))
 
     compiler.compile(List[SourceFile]().asJava, input.asJava, options).success match {
-      case true => compiler.toSource()
-      case false => {
-        val error = compiler.getErrors().head
+      case true => compiler.toSource
+      case false =>
+        val error = compiler.getErrors.head
         throw AssetCompilationException(None, error.description, Some(error.lineNumber), None)
-      }
     }
   }
 
@@ -96,7 +91,7 @@ object JavascriptCompiler {
     "JS Compilation error", message) {
     def line = atLine.map(_.asInstanceOf[java.lang.Integer]).orNull
     def position = null
-    def input = scalax.file.Path(jsFile).string
+    def input = IO.read(jsFile)
     def sourceName = jsFile.getAbsolutePath
   }
 
@@ -125,20 +120,15 @@ object JavascriptCompiler {
 
     import org.mozilla.javascript.tools.shell._
 
-    import scala.collection.JavaConverters._
-
-    import scalax.file._
-
     val ctx = Context.enter; ctx.setOptimizationLevel(-1)
     val global = new Global; global.init(ctx)
     val scope = ctx.initStandardObjects(global)
-    val writer = new java.io.StringWriter()
     try {
       val defineArguments = """arguments = ['-o', '""" + source.getAbsolutePath.replace(File.separatorChar, '/') + "']"
       ctx.evaluateString(scope, defineArguments, null,
         1, null)
-      val r = ctx.evaluateReader(scope, new InputStreamReader(
-        this.getClass.getClassLoader.getResource("r.js").openConnection().getInputStream()),
+      ctx.evaluateReader(scope, new InputStreamReader(
+        this.getClass.getClassLoader.getResource("r.js").openConnection().getInputStream),
         "r.js", 1, null)
     } finally {
       Context.exit()
@@ -148,15 +138,14 @@ object JavascriptCompiler {
   /**
    * Return all Javascript files in the same directory than the input file, or subdirectories
    */
-  private def allSiblings(source: File): Seq[File] = allJsFilesIn(source.getParentFile())
+  private def allSiblings(source: File): Seq[File] = allJsFilesIn(source.getParentFile)
 
   private def allJsFilesIn(dir: File): Seq[File] = {
-    import scala.collection.JavaConversions._
-    val jsFiles = dir.listFiles(new FileFilter {
-      override def accept(f: File) = f.getName().endsWith(".js")
+    val jsFiles = dir.listFiles(new java.io.FileFilter {
+      override def accept(f: File) = f.getName.endsWith(".js")
     })
-    val directories = dir.listFiles(new FileFilter {
-      override def accept(f: File) = f.isDirectory()
+    val directories = dir.listFiles(new java.io.FileFilter {
+      override def accept(f: File) = f.isDirectory
     })
     val jsFilesChildren = directories.map(d => allJsFilesIn(d)).flatten
     jsFiles ++ jsFilesChildren
@@ -168,7 +157,7 @@ object JavascriptCompiler {
    * and replaces - with _. All moduleNames get a "module$" prefix.
    */
   private def toModuleName(filename: String) = {
-    "module$" + filename.replaceAll("^\\./", "").replaceAll("/", "\\$").replaceAll("\\.js$", "").replaceAll("-", "_");
+    "module$" + filename.replaceAll("^\\./", "").replaceAll("/", "\\$").replaceAll("\\.js$", "").replaceAll("-", "_")
   }
 
 }

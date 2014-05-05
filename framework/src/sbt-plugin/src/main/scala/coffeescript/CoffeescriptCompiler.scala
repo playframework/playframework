@@ -3,6 +3,7 @@
  */
 package play.core.coffeescript
 
+import sbt._
 import java.io._
 import play.PlayExceptions.AssetCompilationException
 
@@ -10,8 +11,6 @@ object CoffeescriptCompiler {
 
   import org.mozilla.javascript._
   import org.mozilla.javascript.tools.shell._
-
-  import scalax.file._
 
   private lazy val compiler = {
 
@@ -29,7 +28,7 @@ object CoffeescriptCompiler {
 
           val coffee = scope.get("CoffeeScript", scope).asInstanceOf[NativeObject]
           val compilerFunction = coffee.get("compile", scope).asInstanceOf[Function]
-          val coffeeCode = Path(source).string.replace("\r", "")
+          val coffeeCode = IO.read(source).replace("\r", "")
           val options = ctx.newObject(scope)
           options.put("bare", options, bare)
           compilerFunction.call(ctx, scope, scope, Array(coffeeCode, options))

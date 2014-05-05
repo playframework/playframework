@@ -12,7 +12,6 @@ import scala.beans.BeanProperty
 
 object HelpersSpec extends Specification {
   import FieldConstructor.defaultField
-  import Lang.defaultLang
 
   "@inputText" should {
 
@@ -152,7 +151,7 @@ object HelpersSpec extends Specification {
     }
 
     "work with i18n" in {
-      import play.api.i18n._
+      import play.api.i18n.Lang
       implicit val lang = Lang("en-US")
 
       val roleForm = Form(single("role" -> Forms.text)).fill("foo")

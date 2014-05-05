@@ -173,7 +173,7 @@ trait FutureAwaits {
   /**
    * Block until a Promise is redeemed with the specified timeout.
    */
-  def await[T](future: Future[T], timeout: Long, unit: TimeUnit = TimeUnit.MILLISECONDS): T =
+  def await[T](future: Future[T], timeout: Long, unit: TimeUnit): T =
     Await.result(future, Duration(timeout, unit))
 
 }

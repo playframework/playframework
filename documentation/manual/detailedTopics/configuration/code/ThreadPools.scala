@@ -15,6 +15,9 @@ import java.io.File
 import org.specs2.execute.AsResult
 
 object ThreadPoolsSpec extends PlaySpecification {
+
+  override val concurrentExecutionContext = scala.concurrent.ExecutionContext.global
+
   "Play's thread pools" should {
 
     "make a global thread pool available" in new WithApplication() {

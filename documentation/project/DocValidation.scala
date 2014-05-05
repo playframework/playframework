@@ -121,7 +121,7 @@ object DocValidation {
         }
       }
 
-      val astRoot = processor.parseMarkdown(scalax.file.Path(markdownFile).chars.toArray)
+      val astRoot = processor.parseMarkdown(IO.read(markdownFile).toCharArray)
       new ToHtmlSerializer(linkRenderer, java.util.Arrays.asList[ToHtmlSerializerPlugin](codeReferenceSerializer))
         .toHtml(astRoot)
     }
@@ -197,7 +197,7 @@ object DocValidation {
 
     def segmentExists(sample: CodeSample) = {
       // Find the code segment
-      val sourceCode = scalax.file.Path(new File(base, sample.source)).lines()
+      val sourceCode = IO.readLines(new File(base, sample.source))
       val notLabel = (s: String) => !s.contains("#" + sample.segment)
       val segment = sourceCode dropWhile(notLabel) drop(1) takeWhile(notLabel)
       !segment.isEmpty
@@ -273,7 +273,7 @@ object DocValidation {
 
   private def logErrorAtLocation(log: Logger, file: File, position: Int, errorMessage: String) = synchronized {
     // Load the source
-    val lines = scalax.file.Path(file).lines()
+    val lines = IO.readLines(file)
     // Calculate the line and col
     // Tuple is (total chars seen, line no, col no, Option[line])
     val (_, lineNo, colNo, line) = lines.foldLeft((0, 0, 0, None: Option[String])) { (state, line) =>

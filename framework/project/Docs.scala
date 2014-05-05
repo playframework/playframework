@@ -25,7 +25,7 @@ object Docs {
     apiDocsScalaSources <<= (thisProjectRef, buildStructure) flatMap allSources(Compile, ".scala"),
     apiDocsClasspath <<= (thisProjectRef, buildStructure) flatMap allClasspaths,
     apiDocsJavaSources <<= (thisProjectRef, buildStructure) flatMap allSources(Compile, ".java"),
-    apiDocs <<= (apiDocsScalaSources, apiDocsJavaSources, apiDocsClasspath, baseDirectory in ThisBuild, baseDirectory, compilers, streams) map apiDocsTask,
+    apiDocs <<= (apiDocsScalaSources, apiDocsJavaSources, apiDocsClasspath, baseDirectory in ThisBuild, target, compilers, streams, scalaVersion) map apiDocsTask,
     ivyConfigurations += Webjars,
     extractWebjars <<= extractWebjarContents,
     mappings in (Compile, packageBin) <++= (baseDirectory, apiDocs, extractWebjars, version) map { (base, apiBase, webjars, playVersion) =>
@@ -44,7 +44,10 @@ object Docs {
     }
   )
 
-  def apiDocsTask(scalaSources: Seq[File], javaSources: Seq[File], classpath: Seq[File], buildBase: File, projectBase: File, compilers: Compiler.Compilers, streams: TaskStreams): File = {
+  def apiDocsTask(scalaSources: Seq[File], javaSources: Seq[File], classpath: Seq[File], buildBase: File,
+                  target: File, compilers: Compiler.Compilers, streams: TaskStreams, scalaVersion: String): File = {
+
+    val targetDir = new File(target, "scala-" + CrossVersion.binaryScalaVersion(scalaVersion))
 
     val version = BuildSettings.buildVersion
     val sourceTree = if (version.endsWith("-SNAPSHOT")) {
@@ -53,9 +56,9 @@ object Docs {
       version
     }
 
-    val apiTarget = new File(projectBase, "target/apidocs")
-    val scalaCache = new File(projectBase, "target/scalaapidocs.cache")
-    val javaCache = new File(projectBase, "target/javaapidocs.cache")
+    val apiTarget = new File(targetDir, "apidocs")
+    val scalaCache = new File(targetDir, "scalaapidocs.cache")
+    val javaCache = new File(targetDir, "javaapidocs.cache")
 
     val label = "Play " + BuildSettings.buildVersion
 
@@ -93,14 +96,9 @@ object Docs {
 
       // Get all the Scala sources (not the Java ones)
       val filteredSources = taskFromProject(sources).map(_.map(_.filter(_.name.endsWith(extension))))
-      // Only include managed if told to do so
-      val managedFilteredSources = apiDocsIncludeManaged in ref get structure.data match {
-        case Some(true) => taskFromProject(managedSources).map(_.map(_.filter(_.name.endsWith(extension))))
-        case _ => None
-      }
 
       // Join them
-      val tasks = filteredSources.toSeq ++ managedFilteredSources
+      val tasks = filteredSources.toSeq
       tasks.join.map(_.flatten)
     }
     sourceTasks.join.map(_.flatten)

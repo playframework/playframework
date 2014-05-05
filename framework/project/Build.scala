@@ -31,6 +31,9 @@ object BuildSettings {
   val buildVersion = propOr("play.version", "2.3-SNAPSHOT")
   val buildWithDoc = boolProp("generate.doc")
   val previousVersion = "2.1.0"
+  // Libraries that are not Scala libraries or are SBT libraries should not be published if the binary
+  // version doesn't match this.
+  val publishForScalaBinaryVersion = "2.10"
   val buildScalaVersion = propOr("scala.version", "2.10.4")
   // TODO - Try to compute this from SBT... or not.
   val buildScalaVersionForSbt = propOr("play.sbt.scala.version", "2.10.4")
@@ -41,6 +44,8 @@ object BuildSettings {
   // Used by api docs generation to link back to the correct branch on GitHub, only when version is a SNAPSHOT
   val sourceCodeBranch = propOr("git.branch", "master")
 
+  val publishNonCoreScalaLibraries = publishForScalaBinaryVersion == CrossVersion.binaryScalaVersion(buildScalaVersion)
+
   lazy val PerformanceTest = config("pt") extend(Test)
 
   val playCommonSettings = Seq(
@@ -49,7 +54,6 @@ object BuildSettings {
     scalaVersion := buildScalaVersion,
     scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersion),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
-    publishTo := Some(publishingMavenRepository),
     javacOptions ++= makeJavacOptions("1.6"),
     javacOptions in doc := Seq("-source", "1.6"),
     resolvers ++= playResolvers,
@@ -70,6 +74,11 @@ object BuildSettings {
     // Needed for sbt-pgp's publish-signed-configuration task, even though there are no artifacts
     publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo")))
   )
+  val publishSettings = Seq(
+    publishArtifact in packageDoc := buildWithDoc,
+    publishArtifact in (Compile, packageSrc) := true,
+    publishTo := Some(publishingMavenRepository)
+  )
 
   def PlaySharedJavaProject(name: String, dir: String, testBinaryCompatibility: Boolean = false): Project = {
     val bcSettings: Seq[Setting[_]] = if (testBinaryCompatibility) {
@@ -79,12 +88,12 @@ object BuildSettings {
       .configs(PerformanceTest)
       .settings(inConfig(PerformanceTest)(Defaults.testTasks) : _*)
       .settings(playCommonSettings: _*)
+      .settings((if (publishNonCoreScalaLibraries) publishSettings else dontPublishSettings): _*)
       .settings(bcSettings: _*)
       .settings(
         autoScalaLibrary := false,
-        crossPaths := false,
-        publishArtifact in packageDoc := buildWithDoc,
-        publishArtifact in (Compile, packageSrc) := true)
+        crossPaths := false
+      )
   }
 
   def PlayRuntimeProject(name: String, dir: String): Project = {
@@ -92,6 +101,7 @@ object BuildSettings {
       .configs(PerformanceTest)
       .settings(inConfig(PerformanceTest)(Defaults.testTasks) : _*)
       .settings(playCommonSettings: _*)
+      .settings(publishSettings: _*)
       .settings(mimaDefaultSettings: _*)
       .settings(defaultScalariformSettings: _*)
       .settings(playRuntimeSettings(name): _*)
@@ -101,23 +111,37 @@ object BuildSettings {
     previousArtifact := Some(buildOrganization %
       (StringUtilities.normalize(name) + "_" + CrossVersion.binaryScalaVersion(buildScalaVersion)) % previousVersion),
     scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
-    publishArtifact in packageDoc := buildWithDoc,
-    publishArtifact in (Compile, packageSrc) := true,
     Docs.apiDocsInclude := true
   )
 
   def PlaySbtProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
       .settings(playCommonSettings: _*)
+      .settings((if (publishNonCoreScalaLibraries) publishSettings else dontPublishSettings): _*)
       .settings(defaultScalariformSettings: _*)
       .settings(
         scalaVersion := buildScalaVersionForSbt,
         scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
-        publishTo := Some(publishingMavenRepository),
-        publishArtifact in packageDoc := false,
-        publishArtifact in (Compile, packageSrc) := true,
         scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked"))
   }
+
+  /**
+   * Adds a set of Scala 2.11 modules to the build.
+   *
+   * Only adds if Scala version is >= 2.11.
+   */
+  def addScalaModules(modules: ModuleID*): Setting[_] = {
+    libraryDependencies := {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, scalaMajor)) if scalaMajor >= 11 =>
+          libraryDependencies.value ++ modules
+        case _ =>
+          libraryDependencies.value
+      }
+    }
+  }
+
+  val scalaParserCombinators = "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.1"
 }
 
 object Resolvers {
@@ -163,8 +187,11 @@ object PlayBuild extends Build {
     .settings(libraryDependencies ++= routersCompilerDependencies)
 
   lazy val AnormProject = PlayRuntimeProject("Anorm", "anorm")
-    .settings(libraryDependencies ++= anormDependencies,
-      resolvers += sonatypeSnapshots)
+    .settings(
+      libraryDependencies ++= anormDependencies,
+      resolvers += sonatypeSnapshots,
+      addScalaModules(scalaParserCombinators)
+    )
 
   lazy val IterateesProject = PlayRuntimeProject("Play-Iteratees", "iteratees")
     .settings(libraryDependencies ++= iterateesDependencies)
@@ -183,6 +210,7 @@ object PlayBuild extends Build {
   lazy val PlayProject = PlayRuntimeProject("Play", "play")
     .addPlugins(SbtTwirl)
     .settings(
+      addScalaModules(scalaParserCombinators),
       libraryDependencies ++= runtime ++ scalacheckDependencies,
       sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion,
       sourceDirectories in (Compile, TwirlKeys.compileTemplates) := (unmanagedSourceDirectories in Compile).value,

@@ -5,7 +5,6 @@ package play.core.less
 
 import play.PlayExceptions.AssetCompilationException
 import java.io._
-import play.api._
 
 object LessCompiler {
 
@@ -14,9 +13,7 @@ object LessCompiler {
   import org.mozilla.javascript._
   import org.mozilla.javascript.tools.shell._
 
-  import scala.collection.JavaConverters._
-
-  import scalax.file._
+  import sbt._
 
   /**
    * Create a compiler.  Returns a function that can be used to compile less files.
@@ -157,7 +154,7 @@ object LessCompiler {
     }
   }
 
-  def readContent(file: File) = Path(file).string.replace("\r", "")
+  def readContent(file: File) = IO.read(file).replace("\r", "")
   def resolve(originalSource: File, imported: String) = new File(originalSource.getParentFile, imported)
 
 }

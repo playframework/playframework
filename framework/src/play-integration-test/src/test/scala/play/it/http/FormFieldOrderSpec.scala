@@ -45,7 +45,7 @@ object FormFieldOrderSpec extends PlaySpecification {
         withHeaders("Content-Type" -> contentType).
         withRequestTimeout(10000).post(urlEncoded)
 
-      val response = await(future, 10000)
+      val response = await(future)
       response.status must equalTo(OK)
       // Above the response to the request caused the body to be reconstituted as the url_encoded string.
       // Validate that this is in fact the case, which is the point of this test.

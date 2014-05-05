@@ -6,7 +6,7 @@ import sbt._
 object Dependencies {
 
   // Some common dependencies here so they don't need to be declared over and over
-  val specsVersion = "2.3.10"
+  val specsVersion = "2.3.11"
   val specsBuild = Seq(
     "org.specs2" %% "specs2-core" % specsVersion,
     "org.specs2" %% "specs2-junit" % specsVersion,
@@ -143,7 +143,7 @@ object Dependencies {
 
     "net.contentobjects.jnotify" % "jnotify" % "0.94",
 
-    sbtPluginDep("com.typesafe.sbt" % "sbt-twirl" % "1.0-M1"),
+    sbtPluginDep("com.typesafe.sbt" % "sbt-twirl" % "1.0-M2"),
 
     sbtPluginDep("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.4.0"),
     sbtPluginDep("com.github.mpeltonen" % "sbt-idea" % "1.5.1"),
@@ -154,7 +154,7 @@ object Dependencies {
   ) ++ specsSbt
 
   val playDocsDependencies = Seq(
-    "com.typesafe.play" %% "play-doc" % "1.0.5",
+    "com.typesafe.play" %% "play-doc" % "1.1.0",
     "org.webjars" % "jquery" % "2.1.0-2" % "webjars",
     "org.webjars" % "prettify" % "4-Mar-2013" % "webjars"
   )
@@ -204,7 +204,10 @@ object Dependencies {
   val anormDependencies = specsBuild.map(_ % "test") ++ Seq(
     h2database % "test",
     "org.eu.acolyte" %% "jdbc-scala" % "1.0.18" % "test",
-    "com.chuusai" % "shapeless_2.10.2" % "2.0.0-M1" % "test"
+    "com.chuusai" % "shapeless" % "2.0.0" % "test" cross CrossVersion.binaryMapped {
+      case "2.10" => BuildSettings.buildScalaVersion
+      case x => x
+    }
   )
 
 }
