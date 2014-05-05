@@ -121,4 +121,4 @@ and then test the trait:
 
 @[scalatest-examplecontrollerspec](code-scalatestplus-play/ExampleControllerSpec.scala)
 
-> **Next:** [[Writing functional tests with ScalaTest|ScalaFunctionalTest]]
+> **Next:** [[Writing functional tests with ScalaTest|ScalaFunctionalTestingWithScalaTest]]

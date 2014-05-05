@@ -131,4 +131,4 @@ and then test the trait:
 
 @[scalatest-examplecontrollerspec](code/specs2/ExampleControllerSpec.scala)
 
-> **Next:** [[Writing functional tests with specs2|Specs2FunctionalTest]]
+> **Next:** [[Writing functional tests with specs2|ScalaFunctionalTestingWithSpecs2]]
