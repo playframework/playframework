@@ -21,6 +21,7 @@ import play.core.server.netty._
 import java.security.cert.X509Certificate
 import scala.util.control.NonFatal
 import com.typesafe.netty.http.pipelining.HttpPipeliningHandler
+import play.server.SSLEngineProvider
 
 /**
  * provides a stopable Server
@@ -49,8 +50,8 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
     def getPipeline = {
       val newPipeline = pipeline()
       if (secure) {
-        sslContext.map { ctxt =>
-          val sslEngine = ctxt.createSSLEngine
+        sslEngineProvider.map { sslEngineProvider =>
+          val sslEngine = sslEngineProvider.createSSLEngine()
           sslEngine.setUseClientMode(false)
           newPipeline.addLast("ssl", new SslHandler(sslEngine))
         }
@@ -66,15 +67,16 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
       newPipeline
     }
 
-    lazy val sslContext: Option[SSLContext] = //the sslContext should be reused on each connection
+    lazy val sslEngineProvider: Option[SSLEngineProvider] = //the sslContext should be reused on each connection
       try {
-        Some(ServerSSLContext.loadSSLContext(applicationProvider))
+        Some(ServerSSLEngine.createSSLEngineProvider(applicationProvider))
       } catch {
         case NonFatal(e) => {
           Play.logger.error(s"cannot load SSL context", e)
           None
         }
       }
+
   }
 
   // Keep a reference on all opened channels (useful to close everything properly, especially in DEV mode)
