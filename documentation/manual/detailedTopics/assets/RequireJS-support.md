@@ -23,7 +23,7 @@ RequireJS optimization is enabled by simply adding the plugin to your plugins.sb
 addSbtPlugin("com.typesafe.sbt" % "sbt-rjs" % "1.0.0-RC1")
 ```
 
-To add the plugin to the asset pipeline you can declare it as follows (assuming just the one plugin for hte pipeline - add others into the sequence such as digest and gzip as required):
+To add the plugin to the asset pipeline you can declare it as follows (assuming just the one plugin for the pipeline - add others into the sequence such as digest and gzip as required):
 
 ```scala
 pipelineStages := Seq(rjs)
