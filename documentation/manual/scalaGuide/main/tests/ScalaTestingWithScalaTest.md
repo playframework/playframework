@@ -128,4 +128,4 @@ For this, the test [`Helpers.call`](api/scala/index.html#play.api.test.Helpers@c
 
 @[scalatest-exampleessentialactionspec](code/scalatest/ExampleEssentialActionSpec.scala)
 
-> **Next:** [[Writing functional tests with ScalaTest|ScalaFunctionalTest]]
+> **Next:** [[Writing functional tests with ScalaTest|ScalaFunctionalTestingWithScalaTest]]
