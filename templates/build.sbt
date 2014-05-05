@@ -2,7 +2,7 @@ import play.sbt.activator.Templates._
 
 templateSettings
 
-val playSbtVersion = propOrElse("sbt.version", "0.13.5-M2")
+val playSbtVersion = propOrElse("sbt.version", "0.13.5-RC1")
 
 val coffeescriptVersion = propOrElse("coffeescript.version", "1.0.0-M2a")
 
