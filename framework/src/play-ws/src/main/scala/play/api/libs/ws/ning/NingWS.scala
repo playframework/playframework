@@ -10,22 +10,18 @@ import com.ning.http.util.AsyncHttpProviderUtils
 
 import collection.immutable.TreeMap
 
-import scala.concurrent.{ Future, Promise, ExecutionContext }
+import scala.concurrent.{ Future, Promise }
 
-import java.io.File
 import java.util.concurrent.atomic.AtomicReference
 
 import play.api.libs.ws._
 import play.api.libs.ws.ssl._
 
-import play.api.http.{ Writeable, ContentTypeOf }
 import play.api.libs.iteratee._
 import play.api.{ Mode, Application, Play }
 import play.core.utils.CaseInsensitiveOrdered
 import play.api.libs.ws.DefaultWSResponseHeaders
 import play.api.libs.iteratee.Input.El
-import javax.net.ssl.SSLParameters
-import org.slf4j.LoggerFactory
 import play.api.libs.ws.ssl.debug._
 
 import scala.collection.JavaConverters._
@@ -47,7 +43,7 @@ class NingWSClient(config: AsyncHttpClientConfig) extends WSClient {
 
   def close() = asyncHttpClient.close()
 
-  def url(url: String): WSRequestHolder = NingWSRequestHolder(this, url, Map(), Map(), None, None, None, None, None, None)
+  def url(url: String): WSRequestHolder = NingWSRequestHolder(this, url, "GET", EmptyBody, Map(), Map(), None, None, None, None, None, None)
 }
 
 /**
@@ -278,54 +274,85 @@ case class NingWSRequest(client: NingWSClient,
     result.future
   }
 
-  private[libs] def executeStream[A](consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
+  private[libs] def executeStream(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = {
     import com.ning.http.client.AsyncHandler
-    var doneOrError = false
+    import play.api.libs.concurrent.Execution.Implicits.defaultContext
+
+    val result = Promise[(WSResponseHeaders, Enumerator[Array[Byte]])]()
+
+    val errorInStream = Promise[Unit]()
+
     calculator.map(_.sign(this))
 
-    var statusCode = 0
-    val iterateeP = Promise[Iteratee[Array[Byte], A]]()
-    var iteratee: Iteratee[Array[Byte], A] = null
+    val promisedIteratee = Promise[Iteratee[Array[Byte], Unit]]()
+
+    @volatile var doneOrError = false
+    @volatile var statusCode = 0
+    @volatile var current: Iteratee[Array[Byte], Unit] = Iteratee.flatten(promisedIteratee.future)
 
     client.executeRequest(builder.build(), new AsyncHandler[Unit]() {
 
       import com.ning.http.client.AsyncHandler.STATE
 
       override def onStatusReceived(status: HttpResponseStatus) = {
-        statusCode = status.getStatusCode()
+        statusCode = status.getStatusCode
         STATE.CONTINUE
       }
 
       override def onHeadersReceived(h: HttpResponseHeaders) = {
-        val headers = h.getHeaders()
-        iteratee = consumer(DefaultWSResponseHeaders(statusCode, ningHeadersToMap(headers)))
+        val headers = h.getHeaders
+
+        val responseHeader = DefaultWSResponseHeaders(statusCode, ningHeadersToMap(headers))
+        val enumerator = new Enumerator[Array[Byte]]() {
+          def apply[A](i: Iteratee[Array[Byte], A]) = {
+
+            val doneIteratee = Promise[Iteratee[Array[Byte], A]]()
+
+            // Map it so that we can complete the iteratee when it returns
+            val mapped = i.map { a =>
+              doneIteratee.trySuccess(Done(a))
+              ()
+            }.recover {
+              // but if an error happens, we want to propogate that
+              case e =>
+                doneIteratee.tryFailure(e)
+                throw e
+            }
+
+            // Redeem the iteratee that we promised to the AsyncHandler
+            promisedIteratee.trySuccess(mapped)
+
+            // If there's an error in the stream from upstream, then fail this returned future with that
+            errorInStream.future.onFailure {
+              case e => doneIteratee.tryFailure(e)
+            }
+
+            doneIteratee.future
+          }
+        }
+
+        result.trySuccess((responseHeader, enumerator))
         STATE.CONTINUE
       }
 
       override def onBodyPartReceived(bodyPart: HttpResponseBodyPart) = {
         if (!doneOrError) {
-          iteratee = iteratee.pureFlatFold {
-            case Step.Done(a, e) => {
+          current = current.pureFlatFold {
+            case Step.Done(a, e) =>
               doneOrError = true
-              val it = Done(a, e)
-              iterateeP.success(it)
-              it
-            }
+              Done(a, e)
 
-            case Step.Cont(k) => {
-              k(El(bodyPart.getBodyPartBytes()))
-            }
+            case Step.Cont(k) =>
+              k(El(bodyPart.getBodyPartBytes))
 
-            case Step.Error(e, input) => {
+            case Step.Error(e, input) =>
               doneOrError = true
-              val it = Error(e, input)
-              iterateeP.success(it)
-              it
-            }
+              Error(e, input)
+
           }
           STATE.CONTINUE
         } else {
-          iteratee = null
+          current = null
           // Must close underlying connection, otherwise async http client will drain the stream
           bodyPart.markUnderlyingConnectionAsClosed()
           STATE.ABORT
@@ -333,14 +360,15 @@ case class NingWSRequest(client: NingWSClient,
       }
 
       override def onCompleted() = {
-        Option(iteratee).map(iterateeP.success)
+        Option(current).foreach(_.run)
       }
 
       override def onThrowable(t: Throwable) = {
-        iterateeP.failure(t)
+        result.tryFailure(t)
+        errorInStream.tryFailure(t)
       }
     })
-    iterateeP.future
+    result.future
   }
 
 }
@@ -350,6 +378,8 @@ case class NingWSRequest(client: NingWSClient,
  */
 case class NingWSRequestHolder(client: NingWSClient,
     url: String,
+    method: String,
+    body: WSBody,
     headers: Map[String, Seq[String]],
     queryString: Map[String, Seq[String]],
     calc: Option[WSSignatureCalculator],
@@ -359,170 +389,61 @@ case class NingWSRequestHolder(client: NingWSClient,
     virtualHost: Option[String],
     proxyServer: Option[WSProxyServer]) extends WSRequestHolder {
 
-  /**
-   * sets the signature calculator for the request
-   * @param calc
-   */
-  def sign(calc: WSSignatureCalculator): WSRequestHolder = this.copy(calc = Some(calc))
+  def sign(calc: WSSignatureCalculator): WSRequestHolder = copy(calc = Some(calc))
 
-  /**
-   * sets the authentication realm
-   */
-  def withAuth(username: String, password: String, scheme: WSAuthScheme): WSRequestHolder =
-    this.copy(auth = Some((username, password, scheme)))
+  def withAuth(username: String, password: String, scheme: WSAuthScheme) =
+    copy(auth = Some((username, password, scheme)))
 
-  /**
-   * adds any number of HTTP headers
-   * @param hdrs
-   */
-  def withHeaders(hdrs: (String, String)*): WSRequestHolder = {
+  def withHeaders(hdrs: (String, String)*) = {
     val headers = hdrs.foldLeft(this.headers)((m, hdr) =>
       if (m.contains(hdr._1)) m.updated(hdr._1, m(hdr._1) :+ hdr._2)
       else m + (hdr._1 -> Seq(hdr._2))
     )
-    this.copy(headers = headers)
+    copy(headers = headers)
   }
 
-  /**
-   * adds any number of query string parameters to the
-   */
-  def withQueryString(parameters: (String, String)*): WSRequestHolder =
-    this.copy(queryString = parameters.foldLeft(queryString) {
+  def withQueryString(parameters: (String, String)*) =
+    copy(queryString = parameters.foldLeft(queryString) {
       case (m, (k, v)) => m + (k -> (v +: m.get(k).getOrElse(Nil)))
     })
 
-  /**
-   * Sets whether redirects (301, 302) should be followed automatically
-   */
-  def withFollowRedirects(follow: Boolean): WSRequestHolder =
-    this.copy(followRedirects = Some(follow))
+  def withFollowRedirects(follow: Boolean) = copy(followRedirects = Some(follow))
 
-  @scala.deprecated("use withRequestTimeout instead", "2.1.0")
-  def withTimeout(timeout: Int): WSRequestHolder =
-    this.withRequestTimeout(timeout)
+  def withRequestTimeout(timeout: Int) = copy(requestTimeout = Some(timeout))
 
-  /**
-   * Sets the maximum time in millisecond you accept the request to take.
-   * Warning: a stream consumption will be interrupted when this time is reached.
-   */
-  def withRequestTimeout(timeout: Int): WSRequestHolder =
-    this.copy(requestTimeout = Some(timeout))
+  def withVirtualHost(vh: String) = copy(virtualHost = Some(vh))
 
-  def withVirtualHost(vh: String): WSRequestHolder = {
-    this.copy(virtualHost = Some(vh))
+  def withProxyServer(proxyServer: WSProxyServer) = copy(proxyServer = Some(proxyServer))
+
+  def withBody(body: WSBody) = copy(body = body)
+
+  def withMethod(method: String) = copy(method = method)
+
+  def execute(): Future[WSResponse] = {
+    prepare().execute
   }
 
-  def withProxyServer(proxyServer: WSProxyServer): WSRequestHolder = {
-    this.copy(proxyServer = Some(proxyServer))
+  def stream(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = {
+    prepare().executeStream()
   }
 
-  /**
-   * performs a get with supplied body
-   */
-
-  def get(): Future[NingWSResponse] = prepare("GET").execute
-
-  /**
-   * performs a get with supplied body
-   * @param consumer that's handling the response
-   */
-  def get[A](consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] =
-    prepare("GET").executeStream(consumer)
-
-  /**
-   * Perform a PATCH on the request asynchronously.
-   */
-  def patch[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[NingWSResponse] = prepare("PATCH", body).execute
-
-  /**
-   * Perform a PATCH on the request asynchronously.
-   * Request body won't be chunked
-   */
-  def patch(body: File): Future[NingWSResponse] = prepare("PATCH", body).execute
-
-  /**
-   * performs a POST with supplied body
-   * @param consumer that's handling the response
-   */
-  def patchAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = prepare("PATCH", body).executeStream(consumer)
-
-  /**
-   * Perform a POST on the request asynchronously.
-   */
-  def post[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[NingWSResponse] = prepare("POST", body).execute
-
-  /**
-   * Perform a POST on the request asynchronously.
-   * Request body won't be chunked
-   */
-  def post(body: File): Future[NingWSResponse] = prepare("POST", body).execute
-
-  /**
-   * performs a POST with supplied body
-   * @param consumer that's handling the response
-   */
-  def postAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = prepare("POST", body).executeStream(consumer)
-
-  /**
-   * Perform a PUT on the request asynchronously.
-   */
-  def put[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): Future[NingWSResponse] = prepare("PUT", body).execute
-
-  /**
-   * Perform a PUT on the request asynchronously.
-   * Request body won't be chunked
-   */
-  def put(body: File): Future[NingWSResponse] = prepare("PUT", body).execute
-
-  /**
-   * performs a PUT with supplied body
-   * @param consumer that's handling the response
-   */
-  def putAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = prepare("PUT", body).executeStream(consumer)
-
-  /**
-   * Perform a DELETE on the request asynchronously.
-   */
-  def delete(): Future[NingWSResponse] = prepare("DELETE").execute
-
-  /**
-   * Perform a HEAD on the request asynchronously.
-   */
-  def head(): Future[NingWSResponse] = prepare("HEAD").execute
-
-  /**
-   * Perform a OPTIONS on the request asynchronously.
-   */
-  def options(): Future[NingWSResponse] = prepare("OPTIONS").execute
-
-  /**
-   * Execute an arbitrary method on the request asynchronously.
-   *
-   * @param method The method to execute
-   */
-  def execute(method: String): Future[WSResponse] = prepare(method).execute
-
-  private[play] def prepare(method: String): NingWSRequest = {
-    new NingWSRequest(client, method, auth, calc, createBuilder(method))
+  private[ning] def prepare(): NingWSRequest = {
+    val builder = createBuilder()
+    val builderWithBody = body match {
+      case EmptyBody => builder
+      case FileBody(file) =>
+        import com.ning.http.client.generators.FileBodyGenerator
+        val bodyGenerator = new FileBodyGenerator(file)
+        builder.setBody(bodyGenerator)
+      case InMemoryBody(bytes) =>
+        builder.setBody(bytes)
+      case StreamedBody(bytes) =>
+        builder
+    }
+    new NingWSRequest(client, method, auth, calc, builderWithBody)
   }
 
-  private[play] def prepare(method: String, body: File): NingWSRequest = {
-    import com.ning.http.client.generators.FileBodyGenerator
-
-    val bodyGenerator = new FileBodyGenerator(body)
-    val builder = createBuilder(method).setBody(bodyGenerator)
-    new NingWSRequest(client, method, auth, calc, builder)
-  }
-
-  private[play] def prepare[T](method: String, body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): NingWSRequest = {
-    val builder = createBuilder(method)
-      .addHeader("Content-Type", ct.mimeType.getOrElse("text/plain"))
-      .setBody(wrt.transform(body))
-
-    new NingWSRequest(client, method, auth, calc, builder)
-  }
-
-  private def createBuilder(method: String) = {
+  private def createBuilder() = {
     val builder = new RequestBuilder(method).setUrl(url)
 
     for {
