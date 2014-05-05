@@ -7,13 +7,27 @@ import play.api.test._
 import org.scalatest._
 import org.scalatestplus.play._
 import play.api.{Play, Application}
+import play.api.mvc._
 
 // #scalafunctionaltest-mixedfixtures
 // MixedPlaySpec already mixes in MixedFixtures
 class ExampleSpec extends MixedPlaySpec {
 
   // Some helper methods
-  def fakeApp[A](elems: (String, String)*) = FakeApplication(additionalConfiguration = Map(elems:_*)/*, withRoutes = TestRoute*/)
+  def fakeApp[A](elems: (String, String)*) = FakeApplication(additionalConfiguration = Map(elems:_*),
+    withRoutes = {
+      case ("GET", "/testing") =>
+        Action(
+          Results.Ok(
+            "<html>" +
+              "<head><title>Test Page</title></head>" +
+              "<body>" +
+              "<input type='button' name='b' value='Click Me' onclick='document.title=\"scalatest\"' />" +
+              "</body>" +
+              "</html>"
+          ).as("text/html")
+        )
+    })
   def getConfig(key: String)(implicit app: Application) = app.configuration.getString(key)
 
   // If a test just needs a FakeApplication, use "new App":
