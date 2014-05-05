@@ -372,3 +372,7 @@ There are a few reasons for this, one is that we have found that Bootstrap chang
 Another reason is that the current Bootstrap requirements for CSS classes can't be implemented with Play's field constructor alone, a custom input template is also required.
 
 Our view going forward is that if this is a feature that is valuable to the community, a third party module can be created which provides a separate set of Bootstrap form helper templates, specific to given Bootstrap versions, allowing a much better user experience than can currently be provided.
+
+## Session timeouts
+
+The session timeout configuration item, `session.maxAge`, used to be an integer, defined to be in seconds.  Now it's a duration, so can be specified with values like `1h` or `30m`.  Unfortunately, the default unit if specified with no time unit is milliseconds, which means a config value of `3600` was previously treated as one hour, but is now treated as 3.6 seconds.  You will need to update your configuration to add a time unit.
