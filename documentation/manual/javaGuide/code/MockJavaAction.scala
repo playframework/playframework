@@ -8,15 +8,12 @@ import play.mvc.{Http, Controller, Result}
 import play.test.FakeRequest
 import play.api.test.Helpers
 import play.libs.F
+import java.lang.reflect.Method
 
 abstract class MockJavaAction extends Controller with JavaAction {
 
   val controller = this.getClass
-  val method = {
-    val m = this.getClass.getDeclaredMethods()(0)
-    m.setAccessible(true)
-    m
-  }
+  val method = MockJavaActionJavaMocker.findActionMethod(this)
   val annotations = new JavaActionAnnotations(controller, method)
 
   def parser = annotations.parser
@@ -51,4 +48,25 @@ object MockJavaAction {
   }
 
   def removeContext = Http.Context.current.remove()
+}
+
+/**
+ * Java should be mocked.
+ *
+ * This object exists because if you put its implementation in the MockJavaAction, then when other things go
+ *
+ * import static MockJavaAction.*;
+ *
+ * They get a compile error from javac, and it seems to be because javac is trying ot import a synthetic method
+ * that it shouldn't.  Hence, this object mocks java.
+ */
+object MockJavaActionJavaMocker {
+  def findActionMethod(obj: AnyRef): Method = {
+    val maybeMethod = obj.getClass.getDeclaredMethods.find(!_.isSynthetic)
+    val theMethod = maybeMethod.getOrElse(
+      throw new RuntimeException("MockJavaAction must declare at least one non synthetic method")
+    )
+    theMethod.setAccessible(true)
+    theMethod
+  }
 }
