@@ -61,10 +61,10 @@ object RunQueueSpec extends Specification with ExecutionSpecification {
       import ExecutionContext.Implicits.global
 
       def percentageOfRunsWithOrderingErrors(runSize: Int, queueTester: QueueTester): Int = {
-        val results: Seq[Future[Int]] = for (i <- 0 until 100) yield {
+        val results: Seq[Future[Int]] = for (i <- 0 until 9) yield {
           countOrderingErrors(runSize, queueTester)
         }
-        Await.result(Future.sequence(results), waitTime).filter(_ > 0).size
+        Await.result(Future.sequence(results), waitTime).filter(_ > 0).size * 10
       }
 
       // Iteratively increase the run size until we get observable errors 90% of the time
@@ -73,7 +73,7 @@ object RunQueueSpec extends Specification with ExecutionSpecification {
       // is too small then the RunQueueTester probably isn't doing anything. We use
       // dynamic run sizing because the actual size that produces errors will vary
       // depending on the environment in which this test is run.
-      var runSize = 32 // This usually reaches 128 or 256 on my dev machine
+      var runSize = 8 // This usually reaches 8192 on my dev machine with 10 simultaneous queues
       var errorPercentage = 0
       while (errorPercentage < 90 && runSize < 1000000) {
         runSize = runSize << 1
@@ -85,7 +85,7 @@ object RunQueueSpec extends Specification with ExecutionSpecification {
       percentageOfRunsWithOrderingErrors(runSize, new RunQueueTester()) must_== 0
     }
 
-    "use the ExecutionContext correctly" in {
+    "use the ExecutionContext exactly once per scheduled item" in {
       val rq = new RunQueue()
       mustExecute(1) { implicit runEC =>
         val runFinished = Promise[Unit]()
