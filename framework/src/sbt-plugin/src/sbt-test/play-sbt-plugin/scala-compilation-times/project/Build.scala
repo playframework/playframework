@@ -51,7 +51,7 @@ object ApplicationBuild extends Build {
     }
   }
 
-  val main = Project(appName, file(".")).addPlugins(play.PlayScala).settings(
+  val main = Project(appName, file(".")).enablePlugins(play.PlayScala).settings(
     version := appVersion,
     libraryDependencies ++= appDependencies,
     commands += timedCompile

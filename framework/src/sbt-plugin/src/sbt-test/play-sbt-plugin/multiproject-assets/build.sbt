@@ -4,11 +4,11 @@ name := "assets-sample"
 
 version := "1.0-SNAPSHOT"
 
-lazy val root = (project in file(".")).addPlugins(PlayScala)
+lazy val root = (project in file(".")).enablePlugins(PlayScala)
   .dependsOn(module)
   .aggregate(module)
 
-lazy val module = (project in file("module")).addPlugins(PlayScala)
+lazy val module = (project in file("module")).enablePlugins(PlayScala)
 
 TaskKey[Unit]("unzip-assets-jar") := {
   IO.unzip(target.value / "universal" / "stage" / "lib" / s"${organization.value}.${normalizedName.value}-${version.value}-assets.jar", target.value / "assetsJar")
@@ -49,3 +49,7 @@ TaskKey[Unit]("check-assets-jar-on-classpath") := {
     throw new RuntimeException("Could not find " + assetsJar + " in start script")
   }
 }
+
+includeFilter in (Assets, LessKeys.less) := "*.less"
+
+excludeFilter in (Assets, LessKeys.less) := new PatternFilter("""[_].*\.less""".r.pattern)

@@ -35,6 +35,18 @@ The largest new feature for Play 2.3 is the introduction of [sbt-web](https://gi
 
 Play now uses sbt 0.13.5. This version brings a new feature named "auto plugins" which, in essence permits a large reduction in settings-oriented code for your build files.
 
+### Asset Pipeline and Fingerprinting
+
+sbt-web brings the notion of a highly configurable asset pipeline to Play e.g.:
+
+```scala
+pipelineStages := Seq(rjs, digest, gzip)
+```
+
+The above will order the RequireJs optimizer (sbt-rjs), the digester (sbt-digest) and then compression (sbt-gzip). Unlike many sbt tasks, these tasks will execute in the order declared, one after the other.
+
+One new capability for Play 2.3 is the support for asset fingerprinting, similar in principle to [Rails asset fingerprinting](http://guides.rubyonrails.org/asset_pipeline.html#what-is-fingerprinting-and-why-should-i-care-questionmark). A consequence of asset fingerprinting is that we now use far-future cache expiries when they are served. The net result of this is that your user's will experience faster downloads when they visit your site given the aggressive caching strategy that a browser is now able to employ.
+
 ## Java improvements
 
 ### Java 8
@@ -86,3 +98,4 @@ There are various fixes included in new Anorm (type safety, option parsing, erro
 - It's now possible to parse column by position. e.g. `val parser = long(1) ~ str(2) map { case l ~ s => ??? }`
 - Query results include not only data, but execution context (with SQL warning).
 - More types are supported as parameter and as column: `java.util.UUID`, numeric types (Java/Scala big decimal and integer, more column conversions between numerics), temporal types (`java.sql.Timestamp`), character types.
+

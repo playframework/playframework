@@ -20,7 +20,13 @@ If you're using WebJars with your build then the RequireJS optimizer plugin will
 RequireJS optimization is enabled by simply adding the plugin to your plugins.sbt file when using the `PlayJava` or `PlayScala` plugins:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-rjs" % "1.0.0-M2")
+addSbtPlugin("com.typesafe.sbt" % "sbt-rjs" % "1.0.0-RC1")
+```
+
+To add the plugin to the asset pipeline you can declare it as follows (assuming just the one plugin for the pipeline - add others into the sequence such as digest and gzip as required):
+
+```scala
+pipelineStages := Seq(rjs)
 ```
 
 Note that RequireJS performs a lot of work and while it works when executed in-JVM under Trireme, you will be best to use Node.js as the js-engine from a performance perspective. For convenience you can set the `sbt.jse.engineType` property in `SBT_OPTS`. For example on Unix:

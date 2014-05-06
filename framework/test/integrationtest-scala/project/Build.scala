@@ -16,7 +16,7 @@ object ApplicationBuild extends Build {
        ws
     )
 
-    val main = Project(appName, file(".")).addPlugins(PlayScala).settings(
+    val main = Project(appName, file(".")).enablePlugins(PlayScala).settings(
       version :=  appVersion, 
       libraryDependencies ++= appDependencies,      
       routesImport += "_root_.utils.BindersRoot",

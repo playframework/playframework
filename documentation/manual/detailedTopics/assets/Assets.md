@@ -18,6 +18,26 @@ public
 
 If you follow this structure it will be simpler to get started, but nothing stops you to modifying it once you understand how it works.
 
+## WebJars
+
+[WebJars](http://www.webjars.org/) provide a convenient and conventional packaging mechanism that is a part of Activator and sbt. For example you can declare that you will be using the popular [Bootstrap library](http://getbootstrap.com/) simply by adding the following dependency in your build file:
+
+```scala
+libraryDependencies += "org.webjars" % "bootstrap" % "3.0.0"
+```
+
+WebJars are automatically extracted into a `lib` folder relative to your public assets for convenience. For example if you declared a dependency on [RequireJs](http://requirejs.org/) then you can reference it from a view using a line like:
+
+```html
+<script data-main="@routes.Assets.at("javascripts/main.js")" type="text/javascript" src="@routes.Assets.at("lib/requirejs/require.js")"></script>
+```
+
+Note the `lib/requirejs/require.js` path. The `lib` folder denotes the extract WebJar assets, the `requirejs` folder corresponds to the WebJar artifactId, and the `require.js` refers to the required asset at the root of the WebJar.
+
+## npm
+
+[npm](https://www.npmjs.org/) can be used as well as WebJars by declaring a `package.json` file in the root of your project. Assets from npm packages are extracted into the same `lib` folder as WebJars so that, from a code perspective, there is no concern whether the asset is sourced from a WebJar or from an npm package.
+
 ## How are public assets packaged?
 
 During the build process, the contents of the `public` folder are processed and added to the application classpath.
@@ -87,9 +107,35 @@ You will then need to specify both parameters when using the reverse router:
 <image src="@routes.Assets.at("/public/images", "logo.png")">
 ```
 
+## Reverse routing and fingerprinting for public assets
+
+sbt-web brings the notion of a highly configurable asset pipeline to Play e.g. in your build file:
+
+```scala
+pipelineStages := Seq(rjs, digest, gzip)
+```
+
+The above will order the RequireJs optimizer (`sbt-rjs`), the digester (`sbt-digest`) and then compression (`sbt-gzip`). Unlike many sbt tasks, these tasks will execute in the order declared, one after the other.
+
+In essence asset fingerprinting permits your static assets to be served with aggressive caching instructions to a browser. This will result in an improved experience for your users given that subsequent visits to your site will result in less assets requiring to be downloaded. Rails also describes the benefits of [asset fingerprinting](http://guides.rubyonrails.org/asset_pipeline.html#what-is-fingerprinting-and-why-should-i-care-questionmark). 
+
+The above declaration of `pipelineStages` and the requisite `addSbtPlugin` declarations in your `plugins.sbt` for the plugins you require are your start point. You must then declare to Play what assets are to be versioned. The following routes file entry declares that all assets are to be versioned:
+
+```scala
+GET    /assets/*file    controllers.Assets.versioned(path="/public", file: Asset)
+```
+
+You then use the reverse router, for example within a `scala.html` view:
+
+```html
+<link rel="stylesheet" href="@routes.Assets.versioned("assets/css/app.css")">
+```
+
+We highly encourage the use of asset fingerprinting.
+
 ## Etag support
 
-The `Assets` controller automatically manages **ETag** HTTP Headers. The ETag value is generated from the resource name and the file’s last modification date. If the resource file is embedded into a file, the JAR file’s last modification date is used.
+The `Assets` controller automatically manages **ETag** HTTP Headers. The ETag value is generated from the digest (if `sbt-digest` is being used in the asset pipeline) or otherwise the resource name and the file’s last modification date. If the resource file is embedded into a file, the JAR file’s last modification date is used.
 
 When a web browser makes a request specifying this **Etag** then the server can respond with **304 NotModified**.
 
@@ -100,6 +146,8 @@ If a resource with the same name but using a `.gz` suffix is found then the `Ass
 ```
 Content-Encoding: gzip
 ```
+
+Including the `sbt-gzip` plugin in your build and declaring its position in the `pipelineStages` is all that is required to generate gzip files.
 
 ## Additional `Cache-Control` directive
 

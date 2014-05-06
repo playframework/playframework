@@ -15,7 +15,7 @@ name := "my-first-application"
 version := "1.0"
 
 lazy val myFirstApplication = (project in file("."))
-    .addPlugins(PlayScala)
+    .enablePlugins(PlayScala)
     .aggregate(myLibrary)
     .dependsOn(myLibrary)
 
@@ -110,10 +110,10 @@ It's also possible to split the route file into smaller pieces. This is a very h
 ```scala
 name := "myproject"
 
-lazy val admin = (project in file("modules/admin")).addPlugins(PlayScala)
+lazy val admin = (project in file("modules/admin")).enablePlugins(PlayScala)
 
 lazy val main = (project in file("."))
-    .addPlugins(PlayScala).dependsOn(admin).aggregate(admin)
+    .enablePlugins(PlayScala).dependsOn(admin).aggregate(admin)
 ```
 
 `modules/admin/build.sbt`

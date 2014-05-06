@@ -42,9 +42,9 @@ object Play
 
 /**
  * The main plugin for Play Java projects. To use this the plugin must be made available to your project
- * via sbt's addPlugins mechanism e.g.:
+ * via sbt's enablePlugins mechanism e.g.:
  * {{{
- *   lazy val root = project.in(file(".")).addPlugins(PlayJava)
+ *   lazy val root = project.in(file(".")).enablePlugins(PlayJava)
  * }}}
  */
 object PlayJava extends AutoPlugin {
@@ -60,9 +60,9 @@ object PlayJava extends AutoPlugin {
 
 /**
  * The main plugin for Play Scala projects. To use this the plugin must be made available to your project
- * via sbt's addPlugins mechanism e.g.:
+ * via sbt's enablePlugins mechanism e.g.:
  * {{{
- *   lazy val root = project.in(file(".")).addPlugins(PlayScala)
+ *   lazy val root = project.in(file(".")).enablePlugins(PlayScala)
  * }}}
  */
 object PlayScala extends AutoPlugin {

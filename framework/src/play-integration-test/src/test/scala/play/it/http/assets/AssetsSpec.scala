@@ -4,23 +4,30 @@
 package play.it.http.assets
 
 import controllers.Assets
+import controllers.Assets.Asset
 import play.api.test._
 import org.apache.commons.io.IOUtils
 import java.util.zip.GZIPInputStream
 import java.io.ByteArrayInputStream
 import play.api.{Configuration, Mode}
-import play.api.mvc.Handler
+import play.api.mvc.{PathBindable, Handler}
 import play.utils.{UriEncoding, Threads}
+import play.core.Router.ReverseRouteContext
 
 object AssetsSpec extends PlaySpecification with WsTestClient {
   "Assets controller" should {
 
-    val defaultCacheControl = Some("max-age=3600")
+    val defaultCacheControl = Some("public, max-age=3600")
+    val aggressiveCacheControl = Some("public, max-age=31536000")
 
     implicit val port: Port = testServerPort
 
     def withServer[T](block: => T): T = {
       val routes: PartialFunction[(String, String), Handler] = {
+        case (_, path) if path.startsWith("/v") =>
+          implicit val versionedRrr = new ReverseRouteContext(Map("path" -> "/testassets/versioned"))
+          import Asset._
+          Assets.versioned("/testassets/versioned", implicitly[PathBindable[Asset]].unbind("file", path.substring(3)))
         case (_, path) => Assets.at("/testassets", path.substring(1))
       }
       running(TestServer(port, new FakeApplication(withRoutes = routes) {
@@ -183,6 +190,19 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
 
       result.status must_== NOT_FOUND
       result.body must beEmpty
+    }
+
+    "serve a versioned asset" in withServer {
+      val result = await(wsUrl("/v/sub/12345678901234567890123456789012-foo.txt").get())
+
+      result.status must_== OK
+      result.body must_== "This is a test asset."
+      result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
+      result.header(ETAG) must_== Some("12345678901234567890123456789012")
+      result.header(LAST_MODIFIED) must beSome
+      result.header(VARY) must beNone
+      result.header(CONTENT_ENCODING) must beNone
+      result.header(CACHE_CONTROL) must_== aggressiveCacheControl
     }
 
   }
