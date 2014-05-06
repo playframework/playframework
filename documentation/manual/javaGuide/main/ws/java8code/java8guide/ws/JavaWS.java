@@ -43,7 +43,7 @@ public class JavaWS {
           
           // #ws-response-xml
           Promise<Document> documentPromise = WS.url(url).get().map(response -> {
-              return response.getXml();
+              return response.asXml();
           });
           // #ws-response-xml
           

@@ -1,4 +1,4 @@
-package java8guide.controllers;
+package java8guide.ws.controllers;
 
 //#ws-openid-controller
 import javaguide.ws.controllers.routes;
