@@ -70,8 +70,13 @@ object BuildSettings {
   def makeJavacOptions(version: String) = Seq("-source", version, "-target", version, "-encoding", "UTF-8", "-Xlint:-options")
 
   val dontPublishSettings = Seq(
-    publishArtifact := false,
-    // Needed for sbt-pgp's publish-signed-configuration task, even though there are no artifacts
+    /**
+     * We actually must publish when doing a publish-local in order to ensure the scala 2.11 build works, very strange
+     * things happen if you set publishArtifact := false, since it still publishes an ivy file when you do a
+     * publish-local, but that ivy file says there's no artifacts.
+     *
+     * So, to disable publishing for the 2.11 build, we simply publish to a dummy repo instead of to the real thing.
+     */
     publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo")))
   )
   val publishSettings = Seq(
@@ -295,8 +300,6 @@ object PlayBuild extends Build {
     .settings(
       scriptedLaunchOpts <++= (baseDirectory in ThisBuild) { baseDir =>
         Seq(
-          "-Dsbt.boot.directory=" + new File(baseDir, "sbt/boot"),
-          "-Dplay.home=" + System.getProperty("play.home"),
           "-XX:MaxPermSize=384M",
           "-Dperformance.log=" + new File(baseDir, "target/sbt-repcomile-performance.properties")
        )
