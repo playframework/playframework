@@ -1,10 +1,10 @@
-package scalaguide.tests
+package scalaguide.tests.specs
 
 import org.specs2.mock._
 import org.specs2.mutable._
 
-import models._
-import services._
+import scalaguide.tests.models._
+import scalaguide.tests.services._
 
 // #scalatest-userservicespec
 object UserServiceSpec extends Specification with Mockito {

@@ -1,6 +1,6 @@
-package scalaguide.tests
+package scalaguide.tests.specs
 
-import controllers._
+import scalaguide.tests.controllers
 
 import play.api.test._
 import play.api.test.Helpers._

@@ -1,4 +1,4 @@
-package scalaguide.tests
+package scalaguide.tests.specs
 
 import play.api.libs.ws._
 

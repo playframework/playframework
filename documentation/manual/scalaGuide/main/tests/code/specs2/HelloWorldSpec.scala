@@ -1,4 +1,4 @@
-package scalaguide.tests
+package scalaguide.tests.specs
 
 // #scalatest-helloworldspec
 import org.specs2.mutable._

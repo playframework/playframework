@@ -32,4 +32,4 @@ Let’s see how this works in practice:
 It’s also possible to intercept a specific Action method, using [[Action composition | ScalaActionsComposition]].
 
 
-> **Next:** [[Testing your application | ScalaTest]]
+> **Next:** [[Testing your application | ScalaTestingYourApplication]]

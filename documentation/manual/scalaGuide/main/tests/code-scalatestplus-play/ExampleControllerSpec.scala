@@ -1,7 +1,14 @@
-package scalaguide.tests
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
+package scalaguide.tests.scalatest
+
+import org.scalatest._
+import org.scalatestplus.play._
 
 import play.api.mvc._
 import play.api.test._
+import Helpers._
 import scala.concurrent.Future
 
 // #scalatest-examplecontroller
@@ -17,7 +24,7 @@ object ExampleController extends Controller with ExampleController
 // #scalatest-examplecontroller
 
 // #scalatest-examplecontrollerspec
-object ExampleControllerSpec extends PlaySpecification with Results {
+class ExampleControllerSpec extends PlaySpec with Results {
 
   class TestController() extends Controller with ExampleController
 
@@ -26,7 +33,7 @@ object ExampleControllerSpec extends PlaySpecification with Results {
       val controller = new TestController()
       val result: Future[SimpleResult] = controller.index().apply(FakeRequest())
       val bodyText: String = contentAsString(result)
-      bodyText must be equalTo "ok"
+      bodyText mustBe "ok"
     }
   }
 }

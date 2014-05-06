@@ -20,7 +20,7 @@ Play is based on a lightweight, stateless, web-friendly architecture and feature
     1. [[Integrating with Akka | ScalaAkka]]
     1. [[Internationalization | ScalaI18N]]
     1. [[The application Global object | ScalaGlobal]]
-    1. [[Testing your application | ScalaTest]]
+    1. [[Testing your application | ScalaTestingYourApplication]]
     1. [[Handling data streams reactively | Iteratees]]
     1. [[Your first application | ScalaTodoList]]
 1. [[Play for Java developers | JavaHome]]

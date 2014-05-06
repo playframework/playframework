@@ -1,4 +1,4 @@
-# Writing functional tests
+# Writing functional tests with specs2
 
 Play provides a number of classes and convenience methods that assist with functional testing.  Most of these can be found either in the [`play.api.test`](api/scala/index.html#play.api.test.package) package or in the [`Helpers`](api/scala/index.html#play.api.test.Helpers$) object.
 
@@ -15,7 +15,7 @@ Play frequently requires a running [`Application`](api/scala/index.html#play.api
 
 To provide an environment for tests, Play provides a [`FakeApplication`](api/scala/index.html#play.api.test.FakeApplication) class which can be configured with a different Global object, additional configuration, or even additional plugins.
 
-@[scalatest-fakeApplication](code/ScalaFunctionalTestSpec.scala)
+@[scalatest-fakeApplication](code/specs2/ScalaFunctionalTestSpec.scala)
 
 ## WithApplication
 
@@ -23,19 +23,19 @@ To pass in an application to an example, use [`WithApplication`](api/scala/index
 
 Because [`WithApplication`](api/scala/index.html#play.api.test.WithApplication) is a built in [`Around`](http://etorreborre.github.io/specs2/guide/org.specs2.guide.Structure.html#Around) block, you can override it to provide your own data population:
 
-@[scalafunctionaltest-withdbdata](code/WithDbDataSpec.scala)
+@[scalafunctionaltest-withdbdata](code/specs2/WithDbDataSpec.scala)
 
 ## WithServer
 
 Sometimes you want to test the real HTTP stack from with your test, in which case you can start a test server using [`WithServer`](api/scala/index.html#play.api.test.WithServer):
 
-@[scalafunctionaltest-testpaymentgateway](code/ScalaFunctionalTestSpec.scala)
+@[scalafunctionaltest-testpaymentgateway](code/specs2/ScalaFunctionalTestSpec.scala)
 
 The `port` value contains the port number the server is running on.  By default this is 19001, however you can change this either by passing the port into the with [`WithServer`](api/scala/index.html#play.api.test.WithServer) constructor, or by setting the system property `testserver.port`.  This can be useful for integrating with continuous integration servers, so that ports can be dynamically reserved for each build.
 
 A [`FakeApplication`](api/scala/index.html#play.api.test.FakeApplication) can also be passed to the test server, which is useful for setting up custom routes and testing WS calls:
 
-@[scalafunctionaltest-testws](code/ScalaFunctionalTestSpec.scala)
+@[scalafunctionaltest-testws](code/specs2/ScalaFunctionalTestSpec.scala)
 
 ## WithBrowser
 
@@ -65,30 +65,30 @@ Like [`WithServer`](api/scala/index.html#play.api.test.WithServer), you can chan
 
 [`PlaySpecification`](api/scala/index.html#play.api.test.PlaySpecification) excludes some of the mixins provided in the default specs2 specification that clash with Play helpers methods.  It also mixes in the Play test helpers and types for convenience.
 
-@[scalatest-playspecification](code/ExamplePlaySpecificationSpec.scala)
+@[scalatest-playspecification](code/specs2/ExamplePlaySpecificationSpec.scala)
 
 ## Testing a template
 
 Since a template is a standard Scala function, you can execute it from your test, and check the result:
 
-@[scalatest-functionaltemplatespec](code/FunctionalTemplateSpec.scala)
+@[scalatest-functionaltemplatespec](code/specs2/FunctionalTemplateSpec.scala)
 
 ## Testing a controller
 
 You can call any `Action` code by providing a [`FakeRequest`](api/scala/index.html#play.api.test.FakeRequest):
 
-@[scalatest-functionalexamplecontrollerspec](code/FunctionalExampleControllerSpec.scala)
+@[scalatest-functionalexamplecontrollerspec](code/specs2/FunctionalExampleControllerSpec.scala)
 
 ## Testing the router
 
 Instead of calling the `Action` yourself, you can let the `Router` do it:
 
-@[scalafunctionaltest-respondtoroute](code/ScalaFunctionalTestSpec.scala)
+@[scalafunctionaltest-respondtoroute](code/specs2/ScalaFunctionalTestSpec.scala)
 
 ## Testing a model
 
 If you are using an SQL database, you can replace the database connection with an in-memory instance of an H2 database using `inMemoryDatabase`.
 
-@[scalafunctionaltest-testmodel](code/ScalaFunctionalTestSpec.scala)
+@[scalafunctionaltest-testmodel](code/specs2/ScalaFunctionalTestSpec.scala)
 
 > **Next:** [[Advanced topics|Iteratees]]
