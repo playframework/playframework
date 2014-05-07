@@ -86,18 +86,29 @@ object ApplicationBuild extends Build {
 
     javacOptions ++= Seq("-g", "-Xlint:deprecation"),
 
+    javaRoutesSourceManaged := target.value / "routes" / "java",
+    scalaRoutesSourceManaged := target.value / "routes" / "scala",
+    javaTwirlSourceManaged := target.value / "twirl" / "java",
+    scalaTwirlSourceManaged := target.value / "twirl" / "scala",
+    (managedSourceDirectories in Test) ++= Seq(
+      javaRoutesSourceManaged.value,
+      scalaRoutesSourceManaged.value,
+      javaTwirlSourceManaged.value,
+      scalaTwirlSourceManaged.value
+    ),
+
     // Need to ensure that templates in the Java docs get Java imports, and in the Scala docs get Scala imports
-    sourceGenerators in Test <+= (javaManualSourceDirectories, sourceManaged in Test, streams) map { (from, to, s) =>
+    sourceGenerators in Test <+= (javaManualSourceDirectories, javaTwirlSourceManaged, streams) map { (from, to, s) =>
       compileTemplates(from, to, defaultTemplateImports ++ defaultJavaTemplateImports, s.log)
     },
-    sourceGenerators in Test <+= (scalaManualSourceDirectories, sourceManaged in Test, streams) map { (from, to, s) =>
+    sourceGenerators in Test <+= (scalaManualSourceDirectories, scalaTwirlSourceManaged, streams) map { (from, to, s) =>
       compileTemplates(from, to, defaultTemplateImports ++ defaultScalaTemplateImports, s.log)
     },
 
-    sourceGenerators in Test <+= (state, javaManualSourceDirectories, sourceManaged in Test) map  { (s, ds, g) =>
+    sourceGenerators in Test <+= (state, javaManualSourceDirectories, javaRoutesSourceManaged) map  { (s, ds, g) =>
       RouteFiles(s, ds, g, Seq("play.libs.F"), true, true, true)
     },
-    sourceGenerators in Test <+= (state, scalaManualSourceDirectories, sourceManaged in Test) map  { (s, ds, g) =>
+    sourceGenerators in Test <+= (state, scalaManualSourceDirectories, scalaRoutesSourceManaged) map  { (s, ds, g) =>
       RouteFiles(s, ds, g, Seq(), true, true, true)
     },
 
@@ -192,7 +203,11 @@ object ApplicationBuild extends Build {
     consoleReader.getTerminal.setEchoEnabled(true)
   }
 
-  lazy val javaManualSourceDirectories = SettingKey[Seq[File]]("java-manual-source-directories")
-  lazy val scalaManualSourceDirectories = SettingKey[Seq[File]]("scala-manual-source-directories")
+  val javaManualSourceDirectories = SettingKey[Seq[File]]("java-manual-source-directories")
+  val scalaManualSourceDirectories = SettingKey[Seq[File]]("scala-manual-source-directories")
+  val javaRoutesSourceManaged = SettingKey[File]("java-routes-source-managed")
+  val scalaRoutesSourceManaged = SettingKey[File]("scala-routes-source-managed")
+  val javaTwirlSourceManaged = SettingKey[File]("java-routes-source-managed")
+  val scalaTwirlSourceManaged = SettingKey[File]("scala-routes-source-managed")
 
 }

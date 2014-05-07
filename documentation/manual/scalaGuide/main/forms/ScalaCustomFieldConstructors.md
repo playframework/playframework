@@ -30,7 +30,7 @@ This default field constructor supports additional options you can pass in the i
 
 Often you will need to write your own field constructor. Start by writing a template like:
 
-@[form-myfield](code/scalaguide/forms/scalafieldconstructor/views/myFieldConstructorTemplate.scala.html)
+@[form-myfield](code/scalaguide/forms/scalafieldconstructor/myFieldConstructorTemplate.scala.html)
 
 > **Note:** This is just a sample. You can make it as complicated as you need. You also have access to the original field using `@elements.field`.
 
@@ -40,16 +40,16 @@ Now create a [`FieldConstructor`](api/scala/index.html#views.html.helper.FieldCo
 
 And to make the form helpers use it, just import it in your templates:
 
-@[import-myhelper](code/scalaguide/forms/scalafieldconstructor/views/user.scala.html)
+@[import-myhelper](code/scalaguide/forms/scalafieldconstructor/userImport.scala.html)
 
-@[form-myfield-helper](code/scalaguide/forms/scalafieldconstructor/views/user.scala.html)
+@[form](code/scalaguide/forms/scalafieldconstructor/userImport.scala.html)
 
 It will then use your field constructor to render the input text.
 
 You can also set an implicit value for your [`FieldConstructor`](api/scala/index.html#views.html.helper.FieldConstructor) inline:
 
-@[import-myhelper-implicit](code/scalaguide/forms/scalafieldconstructor/views/user.scala.html)
+@[declare-implicit](code/scalaguide/forms/scalafieldconstructor/userDeclare.scala.html)
 
-@[form-myfield-helper](code/scalaguide/forms/scalafieldconstructor/views/user.scala.html)
+@[form](code/scalaguide/forms/scalafieldconstructor/userDeclare.scala.html)
 
 > **Next:** [[Working with JSON|ScalaJson]]
