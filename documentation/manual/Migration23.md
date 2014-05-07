@@ -3,17 +3,53 @@
 
 This guide is for migrating to Play 2.3 from Play 2.2. To migrate to Play 2.2, first follow the [[Play 2.2 Migration Guide|Migration22]].
 
-## Distribution
+## Activator
 
-Play is no longer distributed as a zip file that needs to installed.  Instead, the preferred way to obtain and run Play is using [Typesafe Activator](https://typesafe.com/activator).  Typesafe Activator provides an `activator` command, which, like the Play command, delegates to sbt.  So generally, where you previously run commands like `play run`, now you run `activator run`.
+In Play 2.3 the `play` command has become the `activator` command. Play has been updated to use [Activator](https://typesafe.com/activator).
 
-To download and get started with Activator, follow the instructions [here](https://typesafe.com/platform/getstarted).
+### Activator command
 
-## Build tasks
+All the features that were available with the `play` command are still available with the `activator` command.
 
-### Auto Plugins
+* `activator new` to create a new project. See [[Creating a new application|NewApplication]].
+* `activator` to run the console. See [[Using the Play console|PlayConsole]].
+* `activator ui` is a new command that launches a web user interface.
 
-sbt 0.13.5 is now the version used by Play. This version brings a new feature named "auto plugins".
+> The new `activator` command and the old `play` command are both wrappers around [sbt](http://www.scala-sbt.org/). If you prefer, you can use the `sbt` command directly. However, if you use sbt you will miss out on several Activator features, such as templates (`activator new`) and the web user interface (`activator ui`). Both sbt and Activator support all the usual console commands such as `test` and `run`.
+
+### Activator distribution
+
+Play is distributed as an Activator distribution that contains all Play's dependencies. You can download this distribution from the [Play download](http://www.playframework.com/download) page.
+
+If you prefer, you can also download a minimal (1MB) version of Activator from the [Activator site](https://typesafe.com/activator). Look for the "mini" distribution on the download page. The minimal version of Activator will only download dependencies when they're needed.
+
+Since Activator is a wrapper around sbt, you can also download and use [sbt](http://www.scala-sbt.org/) directly, if you prefer.
+
+## Build changes
+
+### sbt
+
+Play uses sbt 0.13.5. If you're updating an existing project, change your `project/build.properties` file to:
+
+```
+sbt.version=0.13.5-RC1
+```
+
+### Plugin changes
+
+Change the version of the Play plugin in `project/plugins.sbt`:
+
+```scala
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.3.XXX")
+```
+
+Where `2.3.XXX` is the version of Play you want to use.
+
+You will also need to add some sbt-web plugins, see the *sbt-web* section below.
+
+### Auto Plugins and plugin settings
+
+sbt 0.13.5 brings a new feature named "auto plugins".
 
 Auto plugins permit sbt plugins to be declared in the `project` folder (typically the `plugins.sbt`) as before. What has changed though is that plugins may now declare their requirements of other plugins and what triggers their enablement for a given build. Before auto plugins, plugins added to the build were always available; now plugins are enabled selectively for given modules.
 
@@ -93,6 +129,24 @@ or
 ```scala
 import play.Play.autoImport._
 import PlayKeys._
+```
+
+### Explicit scalaVersion
+
+Play 2.3 supports both Scala 2.11 and Scala 2.10. The Play plugin previously set the `scalaVersion` sbt setting for you. Now you should indicate which version of Scala you wish to use.
+
+Update your `build.sbt` or `Build.scala` to include the Scala version:
+
+For Scala 2.11:
+
+```scala
+scalaVersion := "2.11.0"
+```
+
+For Scala 2.10:
+
+```scala
+scalaVersion := "2.10.4"
 ```
 
 ### sbt-web
