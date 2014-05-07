@@ -10,6 +10,8 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 lazy val module = (project in file("module")).enablePlugins(PlayScala)
 
+scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.10.4")
+
 TaskKey[Unit]("unzip-assets-jar") := {
   IO.unzip(target.value / "universal" / "stage" / "lib" / s"${organization.value}.${normalizedName.value}-${version.value}-assets.jar", target.value / "assetsJar")
 }

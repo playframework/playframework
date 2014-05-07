@@ -6,6 +6,8 @@ version := "1.0-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
+scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.10.4")
+
 val distAndUnzip = TaskKey[File]("dist-and-unzip")
 
 distAndUnzip := {
