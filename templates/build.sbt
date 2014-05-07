@@ -31,6 +31,9 @@ val playVersion = propOrElse("play.version", {
   throw new RuntimeException("No play version")
 })
 
+// The Play templates should default to using the latest compatible version of Scala
+val playScalaVersion = propOrElse("scala.version", "2.11.0")
+
 val playDocsUrl = propOrElse("play.docs.url", s"http://www.playframework.com/documentation/${playVersion}")
 
 // Use different names for release and milestone templates
@@ -43,6 +46,7 @@ def propOrElse(prop: String, default: => String): String = sys.props.get(prop).g
 
 templateParameters := Map(
   "PLAY_VERSION" -> playVersion,
+  "SCALA_VERSION" -> playScalaVersion,
   "PLAY_DOCS_URL" -> playDocsUrl,
   "SBT_VERSION" -> playSbtVersion,
   "COFFEESCRIPT_VERSION" -> coffeescriptVersion,

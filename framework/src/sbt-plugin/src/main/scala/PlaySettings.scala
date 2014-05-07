@@ -49,8 +49,6 @@ trait PlaySettings {
 
   lazy val defaultSettings = Defaults.packageTaskSettings(playPackageAssets, playPackageAssetsMappings) ++ Seq[Setting[_]](
 
-    scalaVersion := play.core.PlayVersion.scalaVersion,
-
     playPlugin := false,
 
     resolvers ++= Seq(
