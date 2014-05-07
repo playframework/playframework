@@ -3,51 +3,44 @@
  */
 package scalaguide.forms.scalafieldconstructor {
 
-import play.api.mvc._
+import org.specs2.mutable.Specification
 
-package controllers {
+object ScalaFieldConstructorSpec extends Specification {
 
-import play.api.data.Form
-import play.api.data.Forms._
-import models.User
+  "field constructors" should {
 
-object Application extends Controller {
+    "be possible to import" in {
+      html.userImport(MyForm.form).body must contain("--foo--")
+    }
 
-  def submit = Action {
-    Ok("Welcome")
+    "be possible to declare" in {
+      html.userDeclare(MyForm.form).body must contain("--foo--")
+    }
   }
-
-  def login = Action {
-    Ok("Welcome")
-  }
-
-  def home = Action{
-    Ok("Welcome!")
-  }
-
-  val userForm = Form(
-    mapping(
-      "name" -> text,
-      "password" -> text
-    )(User.apply)(User.unapply)
-  )
-}
-}
 }
 
-package models {
-  case class User(name:String, password:String)
+object MyForm {
+  import play.api.data.Form
+  import play.api.data.Forms._
+  import html.models.User
+
+  val form = Form(mapping(
+    "username" -> text
+  )(User.apply)(User.unapply))
 }
 
-package controllers {
-
-import javaguide.forms.html.myFieldConstructorTemplate
-
+package html {
 //#form-myfield-helper
 object MyHelpers {
   import views.html.helper.FieldConstructor
-  implicit val myFields = FieldConstructor(myFieldConstructorTemplate.f)
+  implicit val myFields = FieldConstructor(html.myFieldConstructorTemplate.f)
 }
 //#form-myfield-helper
+
+}
+
+package html.models {
+  case class User(username:String)
+}
 
 }

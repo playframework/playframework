@@ -1,0 +1,9 @@
+@(myForm: Form[User])
+
+@* #import-myhelper *@
+@import MyHelpers._
+@* #import-myhelper *@
+
+@* #form *@
+@helper.inputText(myForm("username"))
+@* #form *@

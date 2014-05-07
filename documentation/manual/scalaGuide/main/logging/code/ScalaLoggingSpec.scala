@@ -131,6 +131,7 @@ class ScalaLoggingSpec extends Specification with Mockito {
       import scala.concurrent.Future
       import play.api.Logger
       import play.api.mvc._
+      import play.api._
       
       object AccessLoggingFilter extends Filter {
         
@@ -151,11 +152,11 @@ class ScalaLoggingSpec extends Specification with Mockito {
 
       object Global extends WithFilters(AccessLoggingFilter) {
         
-        def onStart(app: Application) {
+        override def onStart(app: Application) {
           Logger.info("Application has started")
         }
 
-        def onStop(app: Application) {
+        override def onStop(app: Application) {
           Logger.info("Application has stopped")
         }
       }
