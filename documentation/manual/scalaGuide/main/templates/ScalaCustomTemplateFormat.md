@@ -48,10 +48,10 @@ object HtmlFormat extends Format[Html] {
 
 ## Associate a file extension to the format
 
-The templates are compiled into a `.scala` files by the build process just before compiling the whole application sources. The `sbt.PlayKeys.templatesTypes` key is a sbt setting of type `Map[String, String]` defining the mapping between file extensions and template formats. For instance, if HTML was not supported out of the box by Play, you would have to write the following in your build file to associate the `.scala.html` files to the `play.twirl.api.HtmlFormat` format:
+The templates are compiled into a `.scala` files by the build process just before compiling the whole application sources. The `TwirlKeys.templateFormats` key is a sbt setting of type `Map[String, String]` defining the mapping between file extensions and template formats. For instance, if HTML was not supported out of the box by Play, you would have to write the following in your build file to associate the `.scala.html` files to the `play.twirl.api.HtmlFormat` format:
 
 ```scala
-templatesTypes += ("html" -> "play.twirl.api.HtmlFormat")
+TwirlKeys.templateFormats in Compile += ("html" -> "my.HtmlFormat.instance")
 ```
 
 Note that the right side of the arrow contains the fully qualified name of a value of type `play.twirl.api.Format[_]`.
