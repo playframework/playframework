@@ -344,6 +344,64 @@ If you have code that is still using these, please see the [[Play 2.2 Migration 
 
 As planned back in 2.2, 2.3 has renamed `play.mvc.SimpleResult` to `play.mvc.Result`.  This should be transparent to most Java code.  The most prominent places where this will impact is in the `Global.java` error callbacks, and in custom actions.
 
+## Templates
+
+The template engine is now a separate project, [Twirl](https://github.com/playframework/twirl).
+
+### Content types
+
+The template content types have moved to the twirl package. If the `play.mvc.Content` type is referenced then it needs to be updated to `play.twirl.api.Content`. For example, the following code in a Play Java project:
+
+```java
+import play.mvc.Content;
+
+Content html = views.html.index.render("42");
+```
+
+will produce the error:
+
+```
+[error] ...: incompatible types
+[error] found   : play.twirl.api.Html
+[error] required: play.mvc.Content
+```
+
+and requires `play.twirl.api.Content` to be imported instead.
+
+### sbt settings
+
+The sbt settings for templates are now provided by the sbt-twirl plugin.
+
+Adding additional imports to templates was previously:
+
+```scala
+templatesImport += "com.abc.backend._"
+```
+
+and is now:
+
+```scala
+TwirlKeys.templateImports in Compile += "org.abc.backend._"
+```
+
+Specifying custom template formats was previously:
+
+```scala
+templatesTypes += ("html" -> "my.HtmlFormat.instance")
+```
+
+and is now:
+
+```scala
+TwirlKeys.templateFormats in Compile += ("html" -> "my.HtmlFormat.instance")
+```
+
+For sbt builds that use the full scala syntax, `TwirlKeys` can be imported with:
+
+```scala
+import play.twirl.sbt.Import._
+```
+
 ## Play WS
 
 The WS client is now an optional library. If you are using WS in your project then you will need to add the library dependency. For Java projects you will also need to update to a new package.
