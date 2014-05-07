@@ -52,4 +52,4 @@ TaskKey[Unit]("check-assets-jar-on-classpath") := {
 
 includeFilter in (Assets, LessKeys.less) := "*.less"
 
-excludeFilter in (Assets, LessKeys.less) := new PatternFilter("""[_].*\.less""".r.pattern)
+excludeFilter in (Assets, LessKeys.less) := "_*.less"

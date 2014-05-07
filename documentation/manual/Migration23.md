@@ -211,7 +211,7 @@ If you previously used the behavior where files with an underscore preceding the
 ```scala
 includeFilter in (Assets, LessKeys.less) := "*.less"
 
-excludeFilter in (Assets, LessKeys.less) := new PatternFilter("""[_].*\.less""".r.pattern)
+excludeFilter in (Assets, LessKeys.less) := "_*.less"
 ```
 
 The plugin's options are:

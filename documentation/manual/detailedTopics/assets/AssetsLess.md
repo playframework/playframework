@@ -20,7 +20,7 @@ To prevent library files from being compiled individually (or imported) we need 
 ```scala
 includeFilter in (Assets, LessKeys.less) := "*.less"
 
-excludeFilter in (Assets, LessKeys.less) := new PatternFilter("""[_].*\.less""".r.pattern)
+excludeFilter in (Assets, LessKeys.less) := "_*.less"
 ```
 
 
