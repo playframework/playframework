@@ -49,7 +49,11 @@ trait PlaySettings {
 
   lazy val defaultSettings = Defaults.packageTaskSettings(playPackageAssets, playPackageAssetsMappings) ++ Seq[Setting[_]](
 
-    scalaVersion := play.core.PlayVersion.scalaVersion,
+    // Set the Scala version to the default version. This version may be
+    // different from the version of Scala that the Play sbt plugin was built
+    // with. E.g. the plugin could be built with Scala 2.10.4 but the default
+    // version of Play for new projects could be Scala 2.11.0.
+    scalaVersion := play.core.PlayVersion.defaultRuntimeScalaVersion,
 
     playPlugin := false,
 

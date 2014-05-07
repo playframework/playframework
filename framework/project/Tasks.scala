@@ -10,14 +10,17 @@ object Generators {
   def PlayVersion(dir: File): Seq[File] = {
       val file = dir / "PlayVersion.scala"
       IO.write(file,
-        """|package play.core
+        s"""|package play.core
             |
             |object PlayVersion {
-            |    val current = "%s"
-            |    val scalaVersion = "%s"
-            |    val sbtVersion = "%s"
-            |}
-          """.stripMargin.format(BuildSettings.buildVersion, BuildSettings.buildScalaVersion, BuildSettings.buildSbtVersion))
+            |    /** The current version of Play */
+            |    val current = "${BuildSettings.buildVersion}"
+            |    /** The version of Scala that Play was built against */
+            |    val scalaVersion = "${BuildSettings.buildScalaVersion}"
+            |    /** The default version of Scala to suggest for new projects */
+            |    val defaultRuntimeScalaVersion = "${BuildSettings.defaultRuntimeScalaVersion}"
+            |    val sbtVersion = "${BuildSettings.buildSbtVersion}"
+            |}""".stripMargin)
       Seq(file)
   }
 }

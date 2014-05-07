@@ -35,6 +35,11 @@ object BuildSettings {
   // version doesn't match this.
   val publishForScalaBinaryVersion = "2.10"
   val buildScalaVersion = propOr("scala.version", "2.10.4")
+  // The default Scala version for the Play sbt plugin to suggest for new projects.
+  // This version can differ from the version of Scala that the plugin was built with.
+  // This value is published into the generated class "PlayVersions" and then used by
+  // the Play sbt plugin for its default settings.
+  val defaultRuntimeScalaVersion = "2.11.0"
   // TODO - Try to compute this from SBT... or not.
   val buildScalaVersionForSbt = propOr("play.sbt.scala.version", "2.10.4")
   val buildScalaBinaryVersionForSbt = CrossVersion.binaryScalaVersion(buildScalaVersionForSbt)
