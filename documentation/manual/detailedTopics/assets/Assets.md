@@ -104,7 +104,7 @@ You will then need to specify both parameters when using the reverse router:
 
 ```html
 <script src="@routes.Assets.at("/public/javascripts", "jquery.js")"></script>
-<image src="@routes.Assets.at("/public/images", "logo.png")">
+<img src="@routes.Assets.at("/public/images", "logo.png")" />
 ```
 
 ## Reverse routing and fingerprinting for public assets
