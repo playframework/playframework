@@ -20,8 +20,7 @@ templates := {
   val dir = baseDirectory.value
   sys.props.get("templates").map(_.split(",").toSeq).getOrElse(Seq(
     "play-scala",
-    "play-java",
-    "play-2.3-highlights"
+    "play-java"
   )).map(template => dir / template)
 }
 
@@ -38,7 +37,7 @@ val playDocsUrl = propOrElse("play.docs.url", s"http://www.playframework.com/doc
 
 // Use different names for release and milestone templates
 val (templateNameSuffix, templateTitleSuffix) = {
-  val officialRelease = playVersion.matches("[0-9.]+") // Match 2.3.0 but not 2.3-SNAPSHOT or 2.3.0-RC1
+  val officialRelease = playVersion.matches("[0-9.]+") // Match final versions but not *-SNAPSHOT or *-RC1
   if (officialRelease) ("", "") else ("-preview", " (Preview)")
 }
 
