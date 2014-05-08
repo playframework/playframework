@@ -56,8 +56,8 @@ Compiling and running projects using the Play version you have built from source
 Navigate to your existing Play project and make the following edits in `project/plugins.sbt`:
 
 ```
-// Change the sbt plugin to use the local Play build (2.3-SNAPSHOT) 
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.3-SNAPSHOT")
+// Change the sbt plugin to use the local Play build (2.4-SNAPSHOT)
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.4-SNAPSHOT")
 ```
 
 Once you have done this, you can start the console and interact with your project normally:
