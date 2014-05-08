@@ -206,18 +206,21 @@ The default client can be called from the WS singleton:
 val client:WSClient = WS.client
 ```
 
-You can define a WS client directly from code, and use implicitly with `WS.clientUrl()`
+You can define a WS client directly from code without going through WS, and use implicitly with `WS.clientUrl()`
 
 ```scala
 implicit val sslClient:WSClient = new play.api.libs.ws.ning.NingWSClient(builder.build())
 WS.clientUrl("http://example.com/feed").get()
 ```
 
+> NOTE: if you instantiate a NingWSClient object, it does not use the WS plugin system, and so will not be automatically closed in `Application.onStop`. Instead, the client must be manually shutdown using `client.close()` when processing has completed.  This will release the underlying ThreadPoolExecutor used by AsyncHttpClient.  Failure to close the client may result in out of memory exceptions (especially if you are reloading an application frequently in development mode).
+
 or directly:
 
 ```scala
 sslClient.url("http://example.com/feed").get()
 ```
+
 
 Or use a magnet pattern to match up certain clients automatically:
 
