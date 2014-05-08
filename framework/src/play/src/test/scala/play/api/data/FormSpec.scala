@@ -122,6 +122,16 @@ object FormSpec extends Specification {
     ScalaForms.repeatedForm.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com", "kiki@zen.com")) ).get must equalTo(("Kiki", Seq("kiki@gmail.com", "kiki@zen.com")))
   }
 
+  "support repeated values with set" in {
+    ScalaForms.repeatedFormWithSet.bindFromRequest( Map("name" -> Seq("Kiki")) ).get must equalTo(("Kiki", Set()))
+    ScalaForms.repeatedFormWithSet.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[0]" -> Seq("kiki@gmail.com")) ).get must equalTo(("Kiki", Set("kiki@gmail.com")))
+    ScalaForms.repeatedFormWithSet.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[0]" -> Seq("kiki@gmail.com"), "emails[1]" -> Seq("kiki@zen.com")) ).get must equalTo(("Kiki", Set("kiki@gmail.com", "kiki@zen.com")))
+    ScalaForms.repeatedFormWithSet.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[0]" -> Seq(), "emails[1]" -> Seq("kiki@zen.com")) ).hasErrors must equalTo(true)
+    ScalaForms.repeatedFormWithSet.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com")) ).get must equalTo(("Kiki", Set("kiki@gmail.com")))
+    ScalaForms.repeatedFormWithSet.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com", "kiki@zen.com")) ).get must equalTo(("Kiki", Set("kiki@gmail.com", "kiki@zen.com")))
+    ScalaForms.repeatedFormWithSet.bindFromRequest( Map("name" -> Seq("Kiki"), "emails[]" -> Seq("kiki@gmail.com", "kiki@gmail.com")) ).get must equalTo(("Kiki", Set("kiki@gmail.com")))
+  }
+
 
   "render a form with max 18 fields" in {
     ScalaForms.helloForm.bind(Map("name" -> "foo", "repeat" -> "1")).get.toString must equalTo("(foo,1,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)")
@@ -227,6 +237,13 @@ object ScalaForms {
     tuple(
       "name" -> nonEmptyText,
       "emails" -> list(nonEmptyText)
+    )
+  )
+
+  val repeatedFormWithSet = Form(
+    tuple(
+      "name" -> nonEmptyText,
+      "emails" -> set(nonEmptyText)
     )
   )
 

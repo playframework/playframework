@@ -403,6 +403,18 @@ object Forms {
   def seq[A](mapping: Mapping[A]): Mapping[Seq[A]] = RepeatedMapping(mapping).transform(_.toSeq, _.toList)
 
   /**
+   * Defines a repeated mapping with the Set semantic.
+   * {{{
+   * Form(
+   *   "name" -> set(text)
+   * )
+   * }}}
+   *
+   * @param mapping The mapping to make repeated.
+   */
+  def set[A](mapping: Mapping[A]): Mapping[Set[A]] = RepeatedMapping(mapping).transform(_.toSet, _.toList)
+
+  /**
    * Constructs a simple mapping for a date field.
    *
    * For example:
