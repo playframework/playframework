@@ -138,11 +138,10 @@ object NingAsyncHttpClientConfigBuilderSpec extends Specification with Mockito {
           import ch.qos.logback.classic.spi._
           import ch.qos.logback.classic._
 
-          // the default trust store will contain certificates that have keysize larger than 1024, so this will fail
-          // on those.
-          val config = defaultConfig.copy(ssl = Some(DefaultSSLConfig(default = Some(true), disabledKeyAlgorithms = Some("RSA keySize > 4096"))))
+          // Pass in a configuration which is guaranteed to fail, by banning RSA, DSA and EC certificates
+          val config = defaultConfig.copy(ssl = Some(DefaultSSLConfig(default = Some(true), disabledKeyAlgorithms = Some("RSA, DSA, EC"))))
           val builder = new NingAsyncHttpClientConfigBuilder(config)
-          // this only works with test:test, has a different type in test:testQuick!
+          // this only works with test:test, has a different type in test:testQuick and test:testOnly!
           val logger = builder.logger.asInstanceOf[ch.qos.logback.classic.Logger]
           val appender = new ch.qos.logback.core.read.ListAppender[ILoggingEvent]()
           val lc = LoggerFactory.getILoggerFactory().asInstanceOf[LoggerContext]
