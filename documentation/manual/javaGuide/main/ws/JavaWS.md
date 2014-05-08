@@ -157,6 +157,8 @@ You can define a WS client directly from code and use this for making requests.
 
 @[ws-custom-client](code/javaguide/ws/JavaWS.java)
 
+> NOTE: if you instantiate a NingWSClient object, it does not use the WS plugin system, and so will not be automatically closed in `Application.onStop`. Instead, the client must be manually shutdown using `client.close()` when processing has completed.  This will release the underlying ThreadPoolExecutor used by AsyncHttpClient.  Failure to close the client may result in out of memory exceptions (especially if you are reloading an application frequently in development mode).
+
 You can also get access to the underlying `AsyncHttpClient`.
 
 @[ws-underlying-client](code/javaguide/ws/JavaWS.java)
