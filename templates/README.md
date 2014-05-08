@@ -37,8 +37,8 @@ You can publish templates by running
 You can publish specific templates by passing them as a comma separated list to the
 templates system property:
 
-    ./build -Dtemplates=play-2.3-feature-tour publish-templates
+    ./build -Dtemplates=play-scala publish-templates
 
 The above will usually be more useful if you publish it for a specific version of Play:
 
-    ./build -Dtemplates=play-2.3-feature-tour -Dplay.version=2.3-M1 publish-templates
+    ./build -Dtemplates=play-scala -Dplay.version=2.3.0 publish-templates

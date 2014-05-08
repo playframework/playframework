@@ -20,8 +20,7 @@ templates := {
   val dir = baseDirectory.value
   sys.props.get("templates").map(_.split(",").toSeq).getOrElse(Seq(
     "play-scala",
-    "play-java",
-    "play-2.3-highlights"
+    "play-java"
   )).map(template => dir / template)
 }
 
