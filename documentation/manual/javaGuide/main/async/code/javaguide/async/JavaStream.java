@@ -18,10 +18,6 @@ import static org.junit.Assert.*;
 import static play.test.Helpers.*;
 
 public class JavaStream extends WithApplication {
-    @Before
-    public void setUp() {
-        start();
-    }
 
     @Test
     public void byDefault() {

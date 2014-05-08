@@ -17,6 +17,7 @@ import play.filters.csrf.RequireCSRFCheck;
 import play.libs.Crypto;
 import play.mvc.Result;
 import play.test.WithApplication;
+import play.test.FakeApplication;
 
 import static play.test.Helpers.*;
 
@@ -27,9 +28,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JavaCsrf extends WithApplication {
-    @Before
-    public void setUp() {
-        start(fakeApplication(ImmutableMap.of("application.secret", "foobar")));
+    @Override
+    public FakeApplication provideFakeApplication() {
+        return fakeApplication(ImmutableMap.of("application.secret", "foobar"));
     }
 
     @Test

@@ -20,11 +20,6 @@ import static play.test.Helpers.*;
 
 public class JavaContentNegotiation extends WithApplication {
 
-    @Before
-    public void setUp() {
-        start();
-    }
-
     @Test
     public void negotiateContent() {
         assertThat(contentAsString(call(new Controller1(), fakeRequest().withHeader("Accept", "text/html"))),
