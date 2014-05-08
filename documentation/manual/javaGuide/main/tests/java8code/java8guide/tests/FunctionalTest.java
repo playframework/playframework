@@ -14,7 +14,7 @@ import play.test.Helpers;
 import static play.test.Helpers.*;
 import static org.fest.assertions.Assertions.*;
 
-public class JavaFunctionalTest extends WithApplication {
+public class FunctionalTest extends WithApplication {
 
     @Before
     public void setUp() throws Exception {
@@ -47,8 +47,7 @@ public class JavaFunctionalTest extends WithApplication {
             browser.goTo("http://localhost:3333");
             assertThat(browser.$("#title").getText()).isEqualTo("Hello Guest");
             browser.$("a").click();
-            assertThat(browser.url()).isEqualTo("http://localhost:3333/Coco");
-            assertThat(browser.$("#title", 0).getText()).isEqualTo("Hello Coco");
+            assertThat(browser.url()).isEqualTo("http://localhost:3333/login");
         });
     }
     //#with-browser

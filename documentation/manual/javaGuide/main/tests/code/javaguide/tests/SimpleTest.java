@@ -1,22 +1,23 @@
-//#simple
 package javaguide.tests;
 
-import org.junit.*;
+//#test-simple
+import static org.junit.Assert.*;
 
-import play.mvc.*;
-import play.test.*;
-import play.libs.F.*;
-
-import static play.test.Helpers.*;
-import static org.fest.assertions.Assertions.*;
+import org.junit.Test;
 
 public class SimpleTest {
 
-    @Test
-    public void simpleCheck() {
-        int a = 1 + 1;
-        assertThat(a).isEqualTo(2);
-    }
+  @Test
+  public void testSum() {
+    int a = 1 + 1;
+    assertEquals(2, a);
+  }
+    
+  @Test
+  public void testString() {
+    String str = "Hello world";
+    assertFalse(str.isEmpty());
+  }
 
 }
-//#simple
+//#test-simple
