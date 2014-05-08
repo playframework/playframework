@@ -5,11 +5,10 @@ import org.junit.*;
 import play.mvc.*;
 import play.test.*;
 import play.libs.F.*;
-
 import static play.test.Helpers.*;
 import static org.fest.assertions.Assertions.*;
 
-public class JavaTest {
+public class FakeApplicationTest {
 
     static class Computer {
         String name = "Macintosh";
@@ -24,15 +23,15 @@ public class JavaTest {
         return s;
     }
 
-    //#fakeapp
+    //#test-running-fakeapp
     @Test
     public void findById() {
-        running(fakeApplication(), () -> {
+        running(fakeApplication(inMemoryDatabase("test")), () -> {
             Computer macintosh = Computer.findById(21l);
             assertThat(macintosh.name).isEqualTo("Macintosh");
             assertThat(formatted(macintosh.introduced)).isEqualTo("1984-01-24");
         });
     }
-    //#fakeapp
+    //#test-running-fakeapp
 
 }
