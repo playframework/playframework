@@ -87,6 +87,14 @@ $BUILD "$@" clean test validate-docs
 cd $CURRENT
 
 echo "[info]"
+echo "[info] ---- TESTING TEMPLATES"
+echo "[info]"
+
+cd ../templates
+$BUILD "$@" testTemplates
+cd $CURRENT
+
+echo "[info]"
 echo "[info] ---- TESTING SAMPLE APPLICATIONS"
 echo "[info]"
 
