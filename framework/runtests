@@ -4,11 +4,15 @@
 
 unset no_publish
 
+# comma-separated list of scala versions to cross build against
+declare crossbuild="2.11.0"
+
 # process arguments
 declare -a args
 while [[ $# -gt 0 ]] ; do
   case "$1" in
     --no-publish) no_publish=1; shift ;;
+    -c|--crossbuild) crossbuild=$2; shift 2;;
     *) args=("${args[@]}" "$1"); shift ;;
   esac
 done
@@ -29,6 +33,10 @@ if [ -n "$no_publish" ] ; then
   echo "[info] Not publishing locally"
 else
   $BUILD "$@" publish-local
+  for v in ${crossbuild//,/ } ; do
+    echo "[info] Cross building Play against Scala $v"
+    $BUILD "$@" -Dscala.version=$v publish-local
+  done
 fi
 
 $BUILD "$@" test:test
@@ -104,4 +112,3 @@ done
 echo "[info]"
 echo "[info] ALL TESTS PASSED"
 echo "[info]"
-
