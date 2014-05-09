@@ -150,6 +150,10 @@ object Dependencies {
     sbtPluginDep("com.typesafe.sbt" % "sbt-native-packager" % "0.7.0-RC2"),
 
     sbtPluginDep("com.typesafe.sbt" % "sbt-js-engine" % "1.0.0-RC1"),
+
+    // override jse dependency until RC2
+    "com.typesafe" %% "jse" % "1.0.0-2014-05-09-2bdcc0b",
+
     sbtPluginDep("com.typesafe.sbt" % "sbt-webdriver" % "1.0.0-RC1")
   ) ++ specsSbt
 
