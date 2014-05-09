@@ -56,6 +56,12 @@ The above will order the RequireJs optimizer (sbt-rjs), the digester (sbt-digest
 
 One new capability for Play 2.3 is the support for asset fingerprinting, similar in principle to [Rails asset fingerprinting](http://guides.rubyonrails.org/asset_pipeline.html#what-is-fingerprinting-and-why-should-i-care-questionmark). A consequence of asset fingerprinting is that we now use far-future cache expiries when they are served. The net result of this is that your user's will experience faster downloads when they visit your site given the aggressive caching strategy that a browser is now able to employ.
 
+### Default ivy cache and local repository
+
+Play now uses the default ivy cache and repository, in the `.ivy2` folder in the users home directory.
+
+This means Play will now integrate better with other sbt builds, not requiring artifacts to be cached multiple times, and allowing the sharing of locally published artifacts.
+
 ## Java improvements
 
 ### Java 8
@@ -78,6 +84,26 @@ We've worked on Java performance. Compared to Play 2.2, throughput of simple Jav
 * Using a unicast enumerator for returning chunked responses.
 
 Some of these changes also improved Scala performance, but Java had the biggest performance gains and was the main focus of our work.
+
+Thankyou to [YourKit](http://yourkit.com) for supplying the Play team with licenses to make this work possible.
+
+## Scala 2.11
+
+Play 2.3 is the first release of Play to have been cross built against multiple versions of Scala, both 2.10 and 2.11.
+
+You can select which version of Scala you would like to use by setting the `scalaVersion` setting in your `build.sbt` or `Build.scala` file.
+
+For Scala 2.11:
+
+```scala
+scalaVersion := "2.11.0"
+```
+
+For Scala 2.10:
+
+```scala
+scalaVersion := "2.10.4"
+```
 
 ## Play WS
 
