@@ -155,7 +155,7 @@ object Dependencies {
     "com.typesafe" %% "jse" % "1.0.0-2014-05-09-2bdcc0b",
 
     sbtPluginDep("com.typesafe.sbt" % "sbt-webdriver" % "1.0.0-RC1")
-  ) ++ specsSbt
+  ) ++ specsSbt.map(_ % "test")
 
   val playDocsDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % "1.1.0",
