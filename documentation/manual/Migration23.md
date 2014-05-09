@@ -370,6 +370,10 @@ Here is the default app.build.js profile which you should use as a basis for any
 
 For more information please consult [the plugin's documentation](https://github.com/sbt/sbt-rjs#sbt-rjs).
 
+### Default ivy local repository and cache
+
+Due to Play now using Activator as a launcher, it now uses the default ivy cache and local repository.  This means anything previously published to your Play ivy cache that you depend on will need to be published to the local ivy repository in the `.ivy2` folder in your home directory.
+
 ## Results restructure
 
 In Play 2.2, a number of result types were deprecated, and to facilitate migration to the new results structure, some new types introduced.  Play 2.3 finishes this restructuring.
