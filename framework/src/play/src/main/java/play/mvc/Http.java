@@ -550,7 +550,11 @@ public class Http {
      */
     public static class Response implements HeaderNames {
 
-        private final Map<String,String> headers = new HashMap<String,String>();
+        private final Map<String, String> headers = new TreeMap<String, String>(new Comparator<String>() {
+            @Override public int compare(String s1, String s2) {
+                return s1.compareToIgnoreCase(s2);
+            }
+        });
         private final List<Cookie> cookies = new ArrayList<Cookie>();
 
         /**

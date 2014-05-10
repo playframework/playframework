@@ -12,7 +12,7 @@ import play.mvc.Results.Chunks
 
 object JavaResultsHandlingSpec extends PlaySpecification with WsTestClient {
 
-  "java body handling" should {
+  "Java results handling" should {
     def makeRequest[T](controller: MockController)(block: WSResponse => T) = {
       implicit val port = testServerPort
       running(TestServer(port, FakeApplication(
@@ -23,6 +23,17 @@ object JavaResultsHandlingSpec extends PlaySpecification with WsTestClient {
         val response = await(wsUrl("/").get())
         block(response)
       }
+    }
+
+    "treat headers case insensitively" in makeRequest(new MockController {
+      def action = {
+        response.setHeader("content-type", "text/plain")
+        response.setHeader("Content-type", "text/html")
+        Results.ok("Hello world")
+      }
+    }) { response =>
+      response.header(CONTENT_TYPE) must beSome("text/html")
+      response.body must_== "Hello world"
     }
 
     "buffer results with no content length" in makeRequest(new MockController {

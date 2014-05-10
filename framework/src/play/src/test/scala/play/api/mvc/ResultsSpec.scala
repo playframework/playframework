@@ -30,14 +30,15 @@ object ResultsSpec extends Specification {
       headers must havePair("Content-Type" -> "text/html")
     }
 
-    "support headers manipulaton" in {
+    "support headers manipulation" in {
       val Result(ResponseHeader(_, headers), _, _) =
-        Ok("hello").as("text/html").withHeaders("Set-Cookie" -> "yes", "X-YOP" -> "1", "X-YOP" -> "2")
+        Ok("hello").as("text/html").withHeaders("Set-Cookie" -> "yes", "X-YOP" -> "1", "X-Yop" -> "2")
 
       headers.size must be_==(3)
       headers must havePair("Content-Type" -> "text/html")
       headers must havePair("Set-Cookie" -> "yes")
-      headers must havePair("X-YOP" -> "2")
+      headers must not havePair("X-YOP" -> "1")
+      headers must havePair("X-Yop" -> "2")
     }
 
     "support cookies helper" in {
