@@ -17,96 +17,67 @@ libraryDependencies ++= Seq(
 
 Then import the following:
 
-```scala
-import play.api.libs.ws._
-import scala.concurrent.Future
-```
+@[imports](code/ScalaWSSpec.scala)
 
 To build an HTTP request, you start with `WS.url()` to specify the URL.
 
-```scala
-val holder : WSRequestHolder = WS.url(url)
-```
+@[simple-holder](code/ScalaWSSpec.scala)
 
 This returns a [WSRequestHolder](api/scala/index.html#play.api.libs.ws.WS$$WSRequestHolder) that you can use to specify various HTTP options, such as setting headers.  You can chain calls together to construct complex requests.
 
-```scala
-val complexHolder : WSRequestHolder = holder.withHeaders(...)
-                                            .withTimeout(...)
-                                            .withQueryString(...)
-```
+@[complex-holder](code/ScalaWSSpec.scala)
 
 You end by calling a method corresponding to the HTTP method you want to use.  This ends the chain, and uses all the options defined on the built request in the `WSRequestHolder`.
 
-```scala
-val futureResponse : Future[Response] = complexHolder.get()
-```
+@[holder-get](code/ScalaWSSpec.scala)
 
-This returns a `Future[Response]` where the [Response](api/scala/index.html#play.api.libs.ws.Response) contains the data returned from the server.
+This returns a `Future[WSResponse]` where the [Response](api/scala/index.html#play.api.libs.ws.WSResponse) contains the data returned from the server.
 
 ### Request with authentication
 
 If you need to use HTTP authentication, you can specify it in the builder, using a username, password, and an [AuthScheme](http://sonatype.github.io/async-http-client/apidocs/reference/com/ning/http/client/Realm.AuthScheme.html).  Options for the AuthScheme are `BASIC`, `DIGEST`, `KERBEROS`, `NONE`, `NTLM`, and `SPNEGO`.
 
-```scala
-import com.ning.http.client.Realm.AuthScheme
-
-WS.url(url).withAuth(user, password, AuthScheme.BASIC).get()
-```
+@[auth-request](code/ScalaWSSpec.scala)
 
 ### Request with follow redirects
 
 If an HTTP call results in a 302 or a 301 redirect, you can automatically follow the redirect without having to make another call.
 
-```scala
-WS.url(url).withFollowRedirects(true).get()
-```
+@[redirects](code/ScalaWSSpec.scala)
 
 ### Request with query parameters
 
 Parameters can be specified as a series of key/value tuples.
 
-```scala
-WS.url(url).withQueryString("paramKey" -> "paramValue").get()
-```
+@[query-string](code/ScalaWSSpec.scala)
 
 ### Request with additional headers
 
 Headers can be specified as a series of key/value tuples.
 
-```scala
-WS.url(url).withHeaders("headerKey" -> "headerValue").get()
-```
+@[headers](code/ScalaWSSpec.scala)
 
 If you are sending plain text in a particular format, you may want to define the content type explicitly.
 
-```scala
-WS.url(url).withHeaders("Content-Type" -> "text-xml").post(xmlString)
-```
+@[content-type](code/ScalaWSSpec.scala)
 
 ### Request with virtual host
 
 A virtual host can be specified as a string.
 
-```scala
-WS.url(url).withVirtualHost("192.168.1.1").get()
-```
+@[virtual-host](code/ScalaWSSpec.scala)
 
-### Request with time out
+### Request with timeout
 
 If you wish to specify a request timeout, you can use `withRequestTimeout` to set a value in milliseconds.
 
-```scala
-WS.url(url).withRequestTimeout(1000).get()
-```
+@[request-timeout](code/ScalaWSSpec.scala)
 
 ### Submitting form data
 
 To post url-form-encoded data a `Map[String, Seq[String]]` needs to be passed into `post`.
 
-```scala
-WS.url(url).post(Map("key" -> Seq("value")))
-```
+@[url-encoded](code/ScalaWSSpec.scala)
 
 ### Submitting JSON data
 
@@ -126,11 +97,11 @@ Working with the [Response](api/scala/index.html#play.api.libs.ws.Response) is e
 
 The examples given below have some common dependencies that will be shown once here for brevity.
 
-An execution context, required for Future.map:
+Whenever an operation is done on a `Future`, an implicit execution context must be available - this declares which thread pool the callback to the future should run in.  The default Play execution context is often sufficient:
 
 @[scalaws-context](code/ScalaWSSpec.scala)
 
-and a case class that will be used for serialization / deserialization:
+The examples also use the folowing case class for serialization / deserialization:
 
 @[scalaws-person](code/ScalaWSSpec.scala)
 
@@ -154,24 +125,23 @@ You can process the response as an [XML literal](http://www.scala-lang.org/api/c
 
 Calling `get()` or `post()` will cause the body of the request to be loaded into memory before the response is made available.  When you are downloading with large, multi-gigabyte files, this may result in unwelcome garbage collection or even out of memory errors.
 
-`WS` lets you use the response incrementally by using an [[iteratee|Iteratees]].
+`WS` lets you use the response incrementally by using an [[iteratee|Iteratees]].  The `stream()` and `getStream()` methods on `WSRequestHolder` return `Future[(WSResponseHeaders, Enumerator[Array[Byte]])]`.  The enumerator contains the response body.
 
-@[scalaws-fileupload](code/ScalaWSSpec.scala)
+Here is a trivial example that uses an iteratee to count the number of bytes returned by the response:
 
-This is an iteratee that will receive a portion of the file as an array of bytes, write those bytes to an OutputStream, and close the stream when it receives the `EOF` signal.  Until it receives an `EOF` signal, the iteratee will keep running.
+@[stream-count-bytes](code/ScalaWSSpec.scala)
 
-`WS` doesn't send `EOF` to the iteratee when it's finished -- instead, it redeems the returned future.
-In fact, `WS` has no right to feed `EOF`, since it doesn't control the input.  You may want to feed the result of multiple WS calls into that iteratee (maybe you're building a tar file on the fly), and if `WS` feeds `EOF`, the stream will close unexpectedly.  Sending `EOF` to the stream is the caller's responsibility.
+Of course, usually you won't want to consume large bodies like this, the more common use case is to stream the body out to another location.  For example, to stream the body to a file:
 
-We do this by calling [Iteratee.run](http://www.playframework.com/documentation/2.1.x/api/scala/index.html#play.api.libs.iteratee.Iteratee) which will push an `EOF` into the iteratee when the future is redeemed.
+@[stream-to-file](code/ScalaWSSpec.scala)
 
-`POST` and `PUT` calls use a slightly different API than `GET` calls: instead of `post()`, you call `postAndRetrieveStream(body)` which has the same effect.
+Another common destination for response bodies is to stream them through to a response that this server is currently serving:
 
-```scala
-WS.url(url).postAndRetrieveStream(body) { headers =>
-  Iteratee.foreach { bytes => logger.info("Received bytes: " + bytes.length) }
-}
-```
+@[stream-to-result](code/ScalaWSSpec.scala)
+
+`POST` and `PUT` calls require manually calling the `withMethod` method, eg:
+
+@[stream-put](code/ScalaWSSpec.scala)
 
 ## Common Patterns and Use Cases
 
@@ -183,18 +153,9 @@ Using for comprehensions is a good way to chain WS calls in a trusted environmen
 
 ### Using in a controller
 
-You can compose several promises and end with a `Future[Result]` that can be handled directly by the Play server, using the `Action.async` builder defined in [[Handling Asynchronous Results|ScalaAsync]].
+When making a request from a controller, you can map the response to a `Future[Result]`.  This can be used in combination with Play's `Action.async` action builder, as described in [[Handling Asynchronous Results|ScalaAsync]].
 
-```scala
-import play.api.Play.current
-import play.api.libs.concurrent.Execution.Implicits._
-
-def feedTitle(feedUrl: String) = Action.async {
-  WS.url(feedUrl).get().map { response =>
-    Ok("Feed title: " + (response.json \ "title").as[String])
-  }
-}
-```
+@[async-result](code/ScalaWSSpec.scala)
 
 ## Using WSClient
 
@@ -202,66 +163,29 @@ WSClient is a wrapper around the underlying AsyncHttpClient.  It is useful for d
 
 The default client can be called from the WS singleton:
 
-```scala
-val client:WSClient = WS.client
-```
+@[get-client](code/ScalaWSSpec.scala)
 
 You can define a WS client directly from code without going through WS, and use implicitly with `WS.clientUrl()`
 
-```scala
-implicit val sslClient:WSClient = new play.api.libs.ws.ning.NingWSClient(builder.build())
-WS.clientUrl("http://example.com/feed").get()
-```
+@[implicit-client](code/ScalaWSSpec.scala)
 
 > NOTE: if you instantiate a NingWSClient object, it does not use the WS plugin system, and so will not be automatically closed in `Application.onStop`. Instead, the client must be manually shutdown using `client.close()` when processing has completed.  This will release the underlying ThreadPoolExecutor used by AsyncHttpClient.  Failure to close the client may result in out of memory exceptions (especially if you are reloading an application frequently in development mode).
 
 or directly:
 
-```scala
-sslClient.url("http://example.com/feed").get()
-```
-
+@[direct-client](code/ScalaWSSpec.scala)
 
 Or use a magnet pattern to match up certain clients automatically:
 
-```scala
-object PairMagnet {
-  implicit def fromPair(pair: Pair[WSClient, java.net.URL]) =
-    new WSRequestHolderMagnet {
-      def apply(): WSRequestHolder = {
-        val (client, netUrl) = pair
-        client.url(netUrl.toString)
-      }
-   }
-}
-import scala.language.implicitConversions
-val client = WS.client
-val exampleURL = new java.net.URL("http://example.com")
-WS.url(client -> exampleURL).get()
-```
+@[pair-magnet](code/ScalaWSSpec.scala)
 
 By default, configuration happens in `application.conf`, but you can also set up the builder directly from configuration:
 
-```scala
-import com.typesafe.config.ConfigFactory
-import play.api.libs.ws._
-import play.api.libs.ws.ning._
-
-val configuration = play.api.Configuration(ConfigFactory.parseString(
-"""
-  |ws.ssl.trustManager = ...
-""".stripMargin))
-val parser = new DefaultWSConfigParser(configuration)
-val builder = new NingAsyncHttpClientConfigBuilder(parser.parse())
-```
+@[programmatic-config](code/ScalaWSSpec.scala)
 
 You can also get access to the underlying [async client](http://sonatype.github.io/async-http-client/apidocs/reference/com/ning/http/client/AsyncHttpClient.html).
 
-```scala
-import com.ning.http.client.AsyncHttpClient
-
-val client:AsyncHttpClient = WS.client.underlying
-```
+@[underlying](code/ScalaWSSpec.scala)
 
 This is important in a couple of cases.  WS has a couple of limitations that require access to the client:
 
