@@ -22,7 +22,8 @@ import play.core.Execution.Implicits.internalContext
  * Java compatible Results
  */
 object JavaResults extends Results with DefaultWriteables with DefaultContentTypeOfs {
-  def writeContent(mimeType: String)(implicit codec: Codec): Writeable[Content] = Writeable(content => codec.encode(content.body), Some(ContentTypes.withCharset(mimeType)))
+  def writeContent(mimeType: String)(implicit codec: Codec): Writeable[Content] = Writeable(content => codec.encode(contentBody(content)), Some(ContentTypes.withCharset(mimeType)))
+  def contentBody(content: Content): String = content match { case xml: play.twirl.api.Xml => xml.body.trim; case c => c.body }
   def writeString(mimeType: String)(implicit codec: Codec): Writeable[String] = Writeable(s => codec.encode(s), Some(ContentTypes.withCharset(mimeType)))
   def writeString(implicit codec: Codec): Writeable[String] = writeString(MimeTypes.TEXT)
   def writeJson(implicit codec: Codec): Writeable[com.fasterxml.jackson.databind.JsonNode] = Writeable(json => codec.encode(json.toString), Some(ContentTypes.JSON))
