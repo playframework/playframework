@@ -3,20 +3,20 @@
 
 ## Create a new application with the activator command
 
-The `activator` command can be used to create a new Play application.  Activator allows you to select a template that your new application should be based off.  For vanilla Play projects, the names of these templates are `play-scala` for Scala based Play applications, and `play-java` for Java based Play applications.
+The `activator` command can be used to create a new Play application.  Activator allows you to select a template that your new application should be based off.  For vanilla Play projects, the names of these templates are `play-scala-preview` for Scala based Play applications, and `play-java-preview` for Java based Play applications.
 
 > Note that choosing a template for either Scala or Java at this point does not imply that you can’t change language later. For example, you can create a new application using the default Java application template and start adding Scala code whenever you like.
 
 To create a new vanilla Play Scala application, run:
 
 ```bash
-$ activator new my-first-app play-scala
+$ activator new my-first-app play-scala-preview
 ```
 
 To create a new vanilla Play Java application, run:
 
 ```bash
-$ activator new my-first-app play-java
+$ activator new my-first-app play-java-preview
 ```
 
 In either case, you can replace `my-first-app` with whatever name you want your application to use.  Activator will use this as the directory name to create the application in.  You can change this name later if you choose.
