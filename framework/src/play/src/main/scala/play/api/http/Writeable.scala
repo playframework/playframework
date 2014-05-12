@@ -58,6 +58,13 @@ trait LowPriorityWriteables {
 trait DefaultWriteables extends LowPriorityWriteables {
 
   /**
+   * `Writeable` for `play.twirl.api.Xml` values. Trims surrounding whitespace.
+   */
+  implicit def writeableOf_XmlContent(implicit codec: Codec, ct: ContentTypeOf[play.twirl.api.Xml]): Writeable[play.twirl.api.Xml] = {
+    Writeable(xml => codec.encode(xml.body.trim))
+  }
+
+  /**
    * `Writeable` for `NodeSeq` values - literal Scala XML.
    */
   implicit def writeableOf_NodeSeq[C <: scala.xml.NodeSeq](implicit codec: Codec): Writeable[C] = {
