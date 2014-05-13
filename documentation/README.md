@@ -43,7 +43,11 @@ NOTE: if you use sbt-idea, the generated project defines "com.typesafe.play" and
 
 ## Testing
 
-Before you run the tests make sure you have the latest snapshot version of the play library in your local repository. For details take a look at 
+Before you run the tests make sure you have the latest snapshot version of the play library in your local repository. This can be achieved through:
+
+```
+(cd ../framework && ./build publishLocal)
+```
 
 You can run the test suite for the documentation using:
 
