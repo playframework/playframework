@@ -25,6 +25,7 @@ The Java API for the Play application developers is available in the `play` pack
 1. [[HTTP form submission and validation | JavaForms]]
     1. [[Form definitions | JavaForms]]
     1. [[Using the form template helpers | JavaFormHelpers]]
+    1. [[Protecting against CSRF | JavaCsrf]]
 1. [[Working with Json | JavaJsonRequests]]
     1. [[Handling and serving Json requests | JavaJsonRequests]]
 1. [[Working with XML | JavaXmlRequests]]
