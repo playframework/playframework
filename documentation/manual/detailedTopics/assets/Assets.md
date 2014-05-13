@@ -34,10 +34,6 @@ WebJars are automatically extracted into a `lib` folder relative to your public 
 
 Note the `lib/requirejs/require.js` path. The `lib` folder denotes the extract WebJar assets, the `requirejs` folder corresponds to the WebJar artifactId, and the `require.js` refers to the required asset at the root of the WebJar.
 
-## npm
-
-[npm](https://www.npmjs.org/) can be used as well as WebJars by declaring a `package.json` file in the root of your project. Assets from npm packages are extracted into the same `lib` folder as WebJars so that, from a code perspective, there is no concern whether the asset is sourced from a WebJar or from an npm package.
-
 ## How are public assets packaged?
 
 During the build process, the contents of the `public` folder are processed and added to the application classpath.
