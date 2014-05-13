@@ -35,7 +35,7 @@ object DevErrorPageSpec extends PlaySpecification{
       }
       running(fakeApplication) {
         val result = DefaultGlobal.onError(FakeRequest(), testExceptionSource)
-        Helpers.contentAsString(result) must contain("Oops, an error occured")
+        Helpers.contentAsString(result) must contain("Oops, an error occurred")
       }
     }
   }

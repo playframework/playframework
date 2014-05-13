@@ -488,7 +488,7 @@ object Enumerator {
    * @param retriever The input function.  Returns a future eventually redeemed with Some value if there is input to pass, or a
    *          future eventually redeemed with None if the end of the stream has been reached.
    * @param onComplete Called when the end of the stream is reached.
-   * @param onError Called when an error occured in the iteratee
+   * @param onError Called when an error occurs in the iteratee
    * $paramEcMultiple
    */
   def fromCallback1[E](retriever: Boolean => Future[Option[E]],
