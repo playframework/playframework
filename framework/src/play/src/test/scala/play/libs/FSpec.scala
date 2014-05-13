@@ -301,10 +301,10 @@ object FSpec extends Specification
       F.Promise.timeout(1, 2, MILLISECONDS).get(1, SECONDS) must equalTo(1)
     }
 
-    "throw a timeout exception" in {
+    "throw a promise timeout exception" in {
       //F.Promise.timeout().get(15, SECONDS) must throwA[TimeoutException] // Too slow to run for normal testing
-      F.Promise.timeout(2).get(1, SECONDS) must throwA[TimeoutException]
-      F.Promise.timeout(2, MILLISECONDS).get(1, SECONDS) must throwA[TimeoutException]
+      F.Promise.timeout(2).get(1, SECONDS) must throwA[F.PromiseTimeoutException]
+      F.Promise.timeout(2, MILLISECONDS).get(1, SECONDS) must throwA[F.PromiseTimeoutException]
     }
 
     "combine a sequence of promises from a vararg" in {

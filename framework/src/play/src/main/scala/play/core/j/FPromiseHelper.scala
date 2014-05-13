@@ -50,8 +50,13 @@ private[play] object FPromiseHelper {
   def delayed[A](function: F.Function0[A], duration: Long, unit: TimeUnit, ec: ExecutionContext): F.Promise[A] =
     delayedWith(function.apply(), duration, unit, ec)
 
-  def get[A](promise: F.Promise[A], timeout: Long, unit: TimeUnit): A =
-    Await.result(promise.wrapped(), Duration(timeout, unit))
+  def get[A](promise: F.Promise[A], timeout: Long, unit: TimeUnit): A = {
+    try {
+      Await.result(promise.wrapped(), Duration(timeout, unit))
+    } catch {
+      case ex: TimeoutException => throw new F.PromiseTimeoutException(ex.getMessage, ex)
+    }
+  }
 
   def or[A, B](left: F.Promise[A], right: F.Promise[B]): F.Promise[F.Either[A, B]] = {
     implicit val ec = Execution.overflowingExecutionContext

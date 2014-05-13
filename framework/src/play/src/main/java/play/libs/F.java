@@ -276,6 +276,7 @@ public class F {
          *
          * @param timeout A user defined timeout
          * @param unit timeout for timeout
+         * @throws PromiseTimeoutException when the promise did timeout.
          * @return The promised result
          *
          */
@@ -288,6 +289,7 @@ public class F {
          * Throws a Throwable if the calculation providing the promise threw an exception
          *
          * @param timeout A user defined timeout in milliseconds
+         * @throws PromiseTimeoutException when the promise did timeout.
          * @return The promised result
          */
         public A get(long timeout) {
@@ -640,6 +642,15 @@ public class F {
         }
     }
 
+
+    /**
+     * exception for to notify of timeout of promise without api change.
+     */
+    public static class PromiseTimeoutException extends RuntimeException {
+        public PromiseTimeoutException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
 
     /**
      * Represents optional values. Instances of <code>Option</code> are either an instance of <code>Some</code> or the object <code>None</code>.
