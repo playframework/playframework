@@ -465,7 +465,7 @@ class ScalaWSSpec extends PlaySpecification with Results {
       await(response).status must_== OK
     }
 
-    "allow programmatic configuration" in {
+    "allow programmatic configuration" in new WithApplication() {
 
       //#programmatic-config
       import com.typesafe.config.ConfigFactory
@@ -476,7 +476,9 @@ class ScalaWSSpec extends PlaySpecification with Results {
         """
           |ws.followRedirects = true
         """.stripMargin))
-      val parser = new DefaultWSConfigParser(configuration)
+
+      val classLoader = app.classloader // Play.current.classloader or other
+      val parser = new DefaultWSConfigParser(configuration, classLoader)
       val builder = new NingAsyncHttpClientConfigBuilder(parser.parse())
       //#programmatic-config
 

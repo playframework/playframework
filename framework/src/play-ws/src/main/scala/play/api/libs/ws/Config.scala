@@ -48,7 +48,7 @@ case class DefaultWSClientConfig(connectionTimeout: Option[Long] = None,
 /**
  * This class creates a DefaultWSClientConfig object from the play.api.Configuration.
  */
-class DefaultWSConfigParser(configuration: Configuration) {
+class DefaultWSConfigParser(configuration: Configuration, classloader: ClassLoader) {
 
   def parse(): WSClientConfig = {
     // .getOrElse(120000L)
@@ -69,7 +69,7 @@ class DefaultWSConfigParser(configuration: Configuration) {
     val acceptAnyCertificate = configuration.getBoolean("ws.acceptAnyCertificate")
 
     val sslConfig = configuration.getConfig("ws.ssl").map { sslConfig =>
-      val sslContextParser = new DefaultSSLConfigParser(sslConfig)
+      val sslContextParser = new DefaultSSLConfigParser(sslConfig, classloader)
       sslContextParser.parse()
     }
 
