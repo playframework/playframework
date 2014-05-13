@@ -34,9 +34,10 @@ object BuildSettings {
   // Libraries that are not Scala libraries or are SBT libraries should not be published if the binary
   // version doesn't match this.
   val publishForScalaBinaryVersion = "2.10"
-  val buildScalaVersion = propOr("scala.version", "2.10.4")
+  val defaultScalaVersion = "2.10.4"
+  val buildScalaVersion = propOr("scala.version", defaultScalaVersion)
   // TODO - Try to compute this from SBT... or not.
-  val buildScalaVersionForSbt = propOr("play.sbt.scala.version", "2.10.4")
+  val buildScalaVersionForSbt = propOr("play.sbt.scala.version", defaultScalaVersion)
   val buildScalaBinaryVersionForSbt = CrossVersion.binaryScalaVersion(buildScalaVersionForSbt)
   val buildSbtVersion = propOr("play.sbt.version", "0.13.5-RC1")
   val buildSbtMajorVersion = "0.13"
@@ -96,6 +97,8 @@ object BuildSettings {
       .settings((if (publishNonCoreScalaLibraries) publishSettings else dontPublishSettings): _*)
       .settings(bcSettings: _*)
       .settings(
+        scalaVersion := defaultScalaVersion,
+        scalaBinaryVersion := CrossVersion.binaryScalaVersion(defaultScalaVersion),
         autoScalaLibrary := false,
         crossPaths := false
       )
