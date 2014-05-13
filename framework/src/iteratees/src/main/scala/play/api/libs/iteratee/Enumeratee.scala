@@ -740,7 +740,7 @@ object Enumeratee {
    *
    * {{{
    *  Enumerator(0, 2, 4) &> Enumeratee.recover { (error, input) =>
-   *    Logger.error(f"oops failure occured with input: $input", error)
+   *    Logger.error(f"oops failure occurred with input: $input", error)
    *  } &> Enumeratee.map { i =>
    *    8 / i
    *  } |>>> Iteratee.getChunks // => List(4, 2)
