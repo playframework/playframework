@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # The Build System
 
-The Play build system uses [sbt](http://www.scala-sbt.org/), a non-intrusive build tool for Scala and Java projects.  Using `sbt` as our build tool brings certain requirements to play which are explained on this page.
+The Play build system uses [sbt](http://www.scala-sbt.org/), a high-performance integrated build for Scala and Java projects.  Using `sbt` as our build tool brings certain requirements to play which are explained on this page.
 
 ## Play application directory structure 
 
@@ -43,6 +43,24 @@ The `version` line provides  the version of your application which is used as pa
 The `libraryDependencies` line specifies the libraries that your application depends on. More on this below.
 
 You should use the `PlayJava` or `PlayScala` plugin to configure sbt for Java or Scala respectively.
+
+## Using scala for building
+
+Activator is also able to construct the build requirements from scala files inside your project's `project` folder. The recommended practice is to use `build.sbt` but there are times when using scala directly is required. If you find yourself, perhaps because you're migrating an older project, then here are a few useful imports:
+
+```scala
+import sbt._
+import Keys._
+import play.Play.autoImport._
+import PlayKeys._
+```
+
+The line indicating `autoImport` is the correct means of importing an sbt plugin's automatically declared properties. Along the same lines, if you're importing an sbt-web plugin then you might well:
+
+```scala
+import com.typesafe.sbt.less.autoImport._
+import LessKeys._
+```
 
 ## The `/project` directory
 
