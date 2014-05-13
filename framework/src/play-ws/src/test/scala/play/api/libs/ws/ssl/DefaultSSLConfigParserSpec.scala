@@ -8,24 +8,26 @@ package play.api.libs.ws.ssl
 import org.specs2.mutable._
 
 import com.typesafe.config.ConfigFactory
+import play.api.test.WithApplication
+import javax.net.ssl.SSLSession
 
 object DefaultSSLConfigParserSpec extends Specification {
 
   "SSLConfigParser" should {
 
-    def parseThis(input: String) = {
+    def parseThis(input: String)(implicit app:play.api.Application) = {
       val config = play.api.Configuration(ConfigFactory.parseString(input))
-      val parser = new DefaultSSLConfigParser(config)
+      val parser = new DefaultSSLConfigParser(config, app.classloader)
       parser.parse()
     }
 
-    "parse ws.ssl base section" in {
+    "parse ws.ssl base section" in new WithApplication() {
       val actual = parseThis( """
                                 |default = true
                                 |protocol = TLSv1.2
                                 |checkRevocation = true
                                 |revocationLists = [ "http://example.com" ]
-                                |hostnameVerifierClassName = "someHostnameVerifier"
+                                |hostnameVerifierClass = "com.ning.http.util.AllowAllHostnameVerifier"
                                 |enabledCipherSuites = [ TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA ]
                                 |enabledProtocols = [ TLSv1.2, TLSv1.1, TLS ]
                                 |disabledSignatureAlgorithms = "md2, md4, md5"
@@ -38,7 +40,7 @@ object DefaultSSLConfigParserSpec extends Specification {
       actual.revocationLists must beSome.which {
         _ must beEqualTo(Seq(new java.net.URL("http://example.com")))
       }
-      actual.hostnameVerifierClassName must beSome.which(_ must_== "someHostnameVerifier")
+      actual.hostnameVerifierClass must beSome.which(_ must_== classOf[com.ning.http.util.AllowAllHostnameVerifier])
       actual.enabledCipherSuites must beSome.which(_ must containTheSameElementsAs(Seq("TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA")))
       actual.enabledProtocols must beSome.which(_ must containTheSameElementsAs(Seq("TLSv1.2", "TLSv1.1", "TLS")))
       actual.disabledSignatureAlgorithms must beSome.which(_ must beEqualTo("md2, md4, md5"))
@@ -46,7 +48,22 @@ object DefaultSSLConfigParserSpec extends Specification {
       actual.secureRandom must beSome
     }
 
-    "parse ws.ssl.loose section" in {
+    "parse ws.ssl base section with defaults" in new WithApplication() {
+      val actual = parseThis("")
+
+      actual.default must beNone
+      actual.protocol must beNone
+      actual.checkRevocation must beNone
+      actual.revocationLists must beNone
+      actual.hostnameVerifierClass must beNone
+      actual.enabledCipherSuites must beNone
+      actual.enabledProtocols must beNone
+      actual.disabledSignatureAlgorithms must beNone
+      actual.disabledKeyAlgorithms must beNone
+      actual.secureRandom must beSome
+    }
+
+    "parse ws.ssl.loose section" in new WithApplication() {
       val actual = parseThis( """
                                 |loose = {
                                 | allowLegacyHelloMessages = true
@@ -65,7 +82,7 @@ object DefaultSSLConfigParserSpec extends Specification {
       }
     }
 
-    "parse ws.ssl.debug section" in {
+    "parse ws.ssl.debug section" in new WithApplication() {
       val actual = parseThis( """
                                 |debug = [
                                 |"certpath",
@@ -112,7 +129,7 @@ object DefaultSSLConfigParserSpec extends Specification {
       }
     }
 
-    "parse ws.ssl.debug section with all" in {
+    "parse ws.ssl.debug section with all" in new WithApplication() {
       val actual = parseThis( """
                                 |debug = [
                                 |"certpath",
@@ -128,7 +145,7 @@ object DefaultSSLConfigParserSpec extends Specification {
       }
     }
 
-    "parse ws.ssl.debug section with ssl" in {
+    "parse ws.ssl.debug section with ssl" in new WithApplication() {
       val actual = parseThis( """
                                 |debug = [
                                 |"ssl"
@@ -140,7 +157,7 @@ object DefaultSSLConfigParserSpec extends Specification {
       }
     }
 
-    "parse ws.ssl.trustBuilder section" in {
+    "parse ws.ssl.trustBuilder section" in new WithApplication() {
       val info = parseThis( """
                               |trustManager = {
                               |  algorithm = "trustme"
@@ -164,7 +181,7 @@ object DefaultSSLConfigParserSpec extends Specification {
       }
     }
 
-    "parse ws.ssl.keyManager section" in {
+    "parse ws.ssl.keyManager section" in new WithApplication() {
       val info = parseThis( """
                               |keyManager = {
                               |  password = "changeit"
@@ -200,7 +217,7 @@ object DefaultSSLConfigParserSpec extends Specification {
       }
     }
 
-    "fail on ws.ssl.keyManager with no path defined" in {
+    "fail on ws.ssl.keyManager with no path defined" in new WithApplication() {
       parseThis( """
                    |keyManager = {
                    |  algorithm = "keyStore"

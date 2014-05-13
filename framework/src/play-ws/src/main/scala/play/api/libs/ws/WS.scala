@@ -72,7 +72,7 @@ trait WSRequestHolderMagnet {
  * """
  *   |ws.ssl.trustManager = ...
  * """.stripMargin))
- * val parser = new DefaultWSConfigParser(configuration)
+ * val parser = new DefaultWSConfigParser(configuration, Play.current.classloader)
  * val builder = new NingAsyncHttpClientConfigBuilder(parser.parse())
  * val secureClient : WSClient = new NingWSClient(builder.build())
  * val response = secureClient.url("https://secure.com").get()

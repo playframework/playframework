@@ -12,7 +12,7 @@ WS SSL does hostname verification automatically, using the [DefaultHostnameVerif
 If you need to specify a different hostname verifier, you can configure `application.conf` to provide your own custom [`HostnameVerifier`](http://docs.oracle.com/javase/7/docs/api/javax/net/ssl/HostnameVerifier.html):
 
 ```
-ws.ssl.hostnameVerifierClassName=org.example.MyHostnameVerifier
+ws.ssl.hostnameVerifierClass=org.example.MyHostnameVerifier
 ```
 
 ## Debugging

@@ -511,7 +511,7 @@ class NingWSPlugin(app: Application) extends WSPlugin {
 
   override lazy val enabled = true
 
-  private val config = new DefaultWSConfigParser(app.configuration).parse()
+  private val config = new DefaultWSConfigParser(app.configuration, app.classloader).parse()
 
   private lazy val ningAPI = new NingWSAPI(app, config)
 
