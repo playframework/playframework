@@ -1,0 +1,6 @@
+GET    /foo     controllers.FooController.foo(bar: Option[Option[String]])
+GET    /foo     controllers.FooController.foo(bar: (Int,Int,(Int,Int)))
+GET    /foo     controllers.FooController.foo(bar: A#B)
+GET    /foo     controllers.FooController.foo(bar:  Option [ Option [ String ] ] )
+GET    /foo     controllers.FooController.foo(bar:  ( Int , Int , ( Int , Int ) ) )
+GET    /foo     controllers.FooController.foo(bar:  A # B )
