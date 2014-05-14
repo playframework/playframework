@@ -426,11 +426,7 @@ object Evolutions {
       Option(new File(path, evolutionsFilename(db, revision))).filter(_.exists).map(new FileInputStream(_)).orElse {
         Option(applicationClassloader.getResourceAsStream(evolutionsResourceName(db, revision)))
       }.map { stream =>
-        try {
-          (revision + 1, (revision, PlayIO.readStreamAsString(stream)(Codec.UTF8)))
-        } finally {
-          PlayIO.closeQuietly(stream)
-        }
+        (revision + 1, (revision, PlayIO.readStreamAsString(stream)(Codec.UTF8)))
       }
     }.sortBy(_._1).map {
       case (revision, script) => {
