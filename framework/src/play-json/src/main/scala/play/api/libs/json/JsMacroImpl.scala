@@ -3,7 +3,7 @@
  */
 package play.api.libs.json
 
-import scala.language.{higherKinds, reflectiveCalls}
+import scala.language.higherKinds
 import scala.reflect.macros.Context
 import language.experimental.macros
 
