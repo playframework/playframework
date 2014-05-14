@@ -24,8 +24,8 @@ object JsMacroImpl {
     val lazyMethodName = s"lazy${methodName.capitalize}"
 
     def conditionalList[T](ifReads: T, ifWrites: T): List[T] =
-      (if(reads) List(ifReads) else Nil) :::
-      (if(writes) List(ifWrites) else Nil)
+      (if (reads) List(ifReads) else Nil) :::
+        (if (writes) List(ifWrites) else Nil)
 
     import c.universe._
     import c.universe.Flag._
@@ -114,12 +114,12 @@ object JsMacroImpl {
 
     // if any implicit is missing, abort
     val missingImplicits = inferredImplicits.collect { case Implicit(_, t, impl, rec, _) if (impl == EmptyTree && !rec) => t }
-    if(missingImplicits.nonEmpty)
+    if (missingImplicits.nonEmpty)
       c.abort(c.enclosingPosition, s"No implicit format for ${missingImplicits.mkString(", ")} available.")
 
     val helperMember = Select(This(tpnme.EMPTY), newTermName("lazyStuff"))
     def callHelper(target: Tree, methodName: String): Tree =
-      Apply( Select(target, newTermName(methodName)), List(helperMember) )
+      Apply(Select(target, newTermName(methodName)), List(helperMember))
     def readsWritesHelper(methodName: String): List[Tree] =
       conditionalList(readsSelect, writesSelect).map(s => callHelper(s, methodName))
 
@@ -192,7 +192,7 @@ object JsMacroImpl {
     )
 
     // if case class has one single field, needs to use inmap instead of canbuild.apply
-    val method = if(params.length > 1) "apply" else mapLikeMethod
+    val method = if (params.length > 1) "apply" else mapLikeMethod
     val finalTree = Apply(
       Select(canBuild, newTermName(method)),
       conditionalList(applyMethod, unapplyMethod)
