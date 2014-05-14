@@ -85,10 +85,10 @@ object JsMacroImpl {
 
                   val (isRecursive, tpe) = implType match {
                     case TypeRef(_, t, args) =>
+                      val isRec = args.exists(_.typeSymbol == companioned)
                       // Option[_] needs special treatment because we need to use XXXOpt
-                      if (implType.typeConstructor <:< typeOf[Option[_]].typeConstructor)
-                        (args.exists { a => a.typeSymbol == companioned }, args.head)
-                      else (args.exists { a => a.typeSymbol == companioned }, implType)
+                      val tp = if (implType.typeConstructor <:< typeOf[Option[_]].typeConstructor) args.head else implType
+                      (isRec, tp)
                     case TypeRef(_, t, _) =>
                       (false, implType)
                   }
