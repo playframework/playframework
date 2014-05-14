@@ -45,224 +45,225 @@ object JsMacroImpl {
     val unliftIdent = Select(functionalSyntaxPkg, newTermName("unlift"))
     val lazyHelperSelect = Select(utilPkg, newTypeName("LazyHelper"))
 
-    companionType.declaration(stringToTermName("unapply")) match {
-      case NoSymbol => c.abort(c.enclosingPosition, "No unapply function found")
-      case s =>
-        val unapply = s.asMethod
-        val unapplyReturnTypes = unapply.returnType match {
-          case TypeRef(_, _, Nil) =>
-            c.abort(c.enclosingPosition, s"Unapply of ${companionSymbol} has no parameters. Are you using an empty case class?")
-          case TypeRef(_, _, args) =>
-            args.head match {
-              case t @ TypeRef(_, _, Nil) => Some(List(t))
-              case t @ TypeRef(_, _, args) =>
-                if (t <:< typeOf[Option[_]]) Some(List(t))
-                else if (t <:< typeOf[Seq[_]]) Some(List(t))
-                else if (t <:< typeOf[Set[_]]) Some(List(t))
-                else if (t <:< typeOf[Map[_, _]]) Some(List(t))
-                else if (t <:< typeOf[Product]) Some(args)
-              case _ => None
-            }
+    val unapply =
+      companionType.declaration(stringToTermName("unapply")) match {
+        case NoSymbol => c.abort(c.enclosingPosition, "No unapply function found")
+        case s => s.asMethod
+      }
+
+    val unapplyReturnTypes = unapply.returnType match {
+      case TypeRef(_, _, Nil) =>
+        c.abort(c.enclosingPosition, s"Unapply of ${companionSymbol} has no parameters. Are you using an empty case class?")
+      case TypeRef(_, _, args) =>
+        args.head match {
+          case t @ TypeRef(_, _, Nil) => Some(List(t))
+          case t @ TypeRef(_, _, args) =>
+            if (t <:< typeOf[Option[_]]) Some(List(t))
+            else if (t <:< typeOf[Seq[_]]) Some(List(t))
+            else if (t <:< typeOf[Set[_]]) Some(List(t))
+            else if (t <:< typeOf[Map[_, _]]) Some(List(t))
+            else if (t <:< typeOf[Product]) Some(args)
           case _ => None
         }
+      case _ => None
+    }
 
-        //println("Unapply return type:" + unapplyReturnTypes)
+    //println("Unapply return type:" + unapplyReturnTypes)
 
-        companionType.declaration(stringToTermName("apply")) match {
-          case NoSymbol => c.abort(c.enclosingPosition, "No apply function found")
-          case s =>
-            // searches apply method corresponding to unapply
-            val applies = s.asMethod.alternatives
-            val apply = applies.collectFirst {
-              case (apply: MethodSymbol) if (apply.paramss.headOption.map(_.map(_.asTerm.typeSignature)) == unapplyReturnTypes) => apply
-            }
-            apply match {
-              case Some(apply) =>
-                //println("apply found:" + apply)
-                val params = apply.paramss.head //verify there is a single parameter group
+    val applies =
+      companionType.declaration(stringToTermName("apply")) match {
+        case NoSymbol => c.abort(c.enclosingPosition, "No apply function found")
+        case s => s.asMethod.alternatives
+      }
 
-                val inferedImplicits = params.map(_.typeSignature).map { implType =>
+    // searches apply method corresponding to unapply
+    val apply = applies.collectFirst {
+      case (apply: MethodSymbol) if (apply.paramss.headOption.map(_.map(_.asTerm.typeSignature)) == unapplyReturnTypes) => apply
+    }
 
-                  val (isRecursive, tpe) = implType match {
-                    case TypeRef(_, t, args) =>
-                      val isRec = args.exists(_.typeSymbol == companioned)
-                      // Option[_] needs special treatment because we need to use XXXOpt
-                      val tp = if (implType.typeConstructor <:< typeOf[Option[_]].typeConstructor) args.head else implType
-                      (isRec, tp)
-                    case TypeRef(_, t, _) =>
-                      (false, implType)
-                  }
+    val params = apply match {
+      case Some(apply) => apply.paramss.head //verify there is a single parameter group
+      case None => c.abort(c.enclosingPosition, "No apply function found matching unapply parameters")
+    }
 
-                  // builds M implicit from expected type
-                  val neededImplicitType = appliedType(matag.tpe.typeConstructor, tpe :: Nil)
-                  // infers implicit
-                  val neededImplicit = c.inferImplicitValue(neededImplicitType)
-                  (implType, neededImplicit, isRecursive, tpe)
-                }
+    //println("apply found:" + apply)
 
-                // if any implicit is missing, abort
-                // else goes on
-                inferedImplicits.collect { case (t, impl, rec, _) if (impl == EmptyTree && !rec) => t } match {
-                  case List() =>
-                    val namedImplicits = params.map(_.name).zip(inferedImplicits)
-                    //println("Found implicits:"+namedImplicits)
+    val inferedImplicits = params.map { param =>
 
-                    val helperMember = Select(This(tpnme.EMPTY), newTermName("lazyStuff"))
-                    def callHelper(target: Tree, methodName: String): Tree =
-                      Apply( Select(target, newTermName(methodName)), List(helperMember) )
-                    def readsWritesHelper(methodName: String): List[Tree] =
-                      conditionalList(readsSelect, writesSelect).map(s => callHelper(s, methodName))
+      val implType = param.typeSignature
+      val (isRecursive, tpe) = implType match {
+        case TypeRef(_, t, args) =>
+          val isRec = args.exists(_.typeSymbol == companioned)
+          // Option[_] needs special treatment because we need to use XXXOpt
+          val tp = if (implType.typeConstructor <:< typeOf[Option[_]].typeConstructor) args.head else implType
+          (isRec, tp)
+        case TypeRef(_, t, _) =>
+          (false, implType)
+      }
 
-                    var hasRec = false
+      // builds M implicit from expected type
+      val neededImplicitType = appliedType(matag.tpe.typeConstructor, tpe :: Nil)
+      // infers implicit
+      val neededImplicit = c.inferImplicitValue(neededImplicitType)
+      (implType, neededImplicit, isRecursive, tpe)
+    }
 
-                    // combines all reads into CanBuildX
-                    val canBuild = namedImplicits.map {
-                      case (name, (t, impl, rec, tpe)) =>
-                        // inception of (__ \ name).read(impl)
-                        val jspathTree = Apply(
-                          Select(jsPathSelect, newTermName(scala.reflect.NameTransformer.encode("\\"))),
-                          List(Literal(Constant(name.decoded)))
-                        )
+    // if any implicit is missing, abort
+    val missingImplicits = inferedImplicits.collect { case (t, impl, rec, _) if (impl == EmptyTree && !rec) => t }
+    if(missingImplicits.nonEmpty)
+      c.abort(c.enclosingPosition, s"No implicit format for ${missingImplicits.mkString(", ")} available.")
 
-                        if (!rec) {
-                          val callMethod = if (t.typeConstructor <:< typeOf[Option[_]].typeConstructor) nullableMethodName else methodName
-                          Apply(
-                            Select(jspathTree, newTermName(callMethod)),
-                            List(impl)
-                          )
-                        } else {
-                          hasRec = true
-                          if (t.typeConstructor <:< typeOf[Option[_]].typeConstructor)
-                            Apply(
-                              Select(jspathTree, newTermName(nullableMethodName)),
-                              callHelper(Apply(jsPathSelect, Nil), lazyMethodName) :: Nil
-                            )
-                          else {
-                            Apply(
-                              Select(jspathTree, newTermName(lazyMethodName)),
-                              if (tpe.typeConstructor <:< typeOf[List[_]].typeConstructor)
-                                readsWritesHelper("list")
-                              else if (tpe.typeConstructor <:< typeOf[Set[_]].typeConstructor)
-                                readsWritesHelper("set")
-                              else if (tpe.typeConstructor <:< typeOf[Seq[_]].typeConstructor)
-                                readsWritesHelper("seq")
-                              else if (tpe.typeConstructor <:< typeOf[Map[_, _]].typeConstructor)
-                                readsWritesHelper("map")
-                              else List(helperMember)
-                            )
-                          }
-                        }
-                    }.reduceLeft { (acc, r) =>
-                      Apply(
-                        Select(acc, newTermName("and")),
-                        List(r)
-                      )
-                    }
+    val namedImplicits = params.map(_.name).zip(inferedImplicits)
+    //println("Found implicits:"+namedImplicits)
 
-                    // builds the final M[A] using apply method
-                    //val applyMethod = Ident( companionSymbol.name )
-                    val applyMethod =
-                      Function(
-                        params.foldLeft(List[ValDef]())((l, e) =>
-                          l :+ ValDef(Modifiers(PARAM), newTermName(e.name.encoded), TypeTree(), EmptyTree)
-                        ),
-                        Apply(
-                          Select(Ident(companionSymbol.name), newTermName("apply")),
-                          params.foldLeft(List[Tree]())((l, e) =>
-                            l :+ Ident(newTermName(e.name.encoded))
-                          )
-                        )
-                      )
+    val helperMember = Select(This(tpnme.EMPTY), newTermName("lazyStuff"))
+    def callHelper(target: Tree, methodName: String): Tree =
+      Apply( Select(target, newTermName(methodName)), List(helperMember) )
+    def readsWritesHelper(methodName: String): List[Tree] =
+      conditionalList(readsSelect, writesSelect).map(s => callHelper(s, methodName))
 
-                    val unapplyMethod = Apply(
-                      unliftIdent,
-                      List(
-                        Select(Ident(companionSymbol.name), unapply.name)
-                      )
-                    )
+    var hasRec = false
 
-                    // if case class has one single field, needs to use inmap instead of canbuild.apply
-                    val method = if(params.length > 1) "apply" else mapLikeMethod
-                    val finalTree = Apply(
-                      Select(canBuild, newTermName(method)),
-                      conditionalList(applyMethod, unapplyMethod)
-                    )
-                    //println("finalTree: "+finalTree)
+    // combines all reads into CanBuildX
+    val canBuild = namedImplicits.map {
+      case (name, (t, impl, rec, tpe)) =>
+        // inception of (__ \ name).read(impl)
+        val jspathTree = Apply(
+          Select(jsPathSelect, newTermName(scala.reflect.NameTransformer.encode("\\"))),
+          List(Literal(Constant(name.decoded)))
+        )
 
-                    if (!hasRec) {
-                      val block = Block(
-                        Import(functionalSyntaxPkg, List(ImportSelector(nme.WILDCARD, -1, null, -1))),
-                        finalTree
-                      )
-                      //println("block:"+block)
-                      c.Expr[M[A]](block)
-                    } else {
-                      val helper = newTermName("helper")
-                      val helperVal = ValDef(
-                        Modifiers(),
-                        helper,
-                        Ident(weakTypeOf[play.api.libs.json.util.LazyHelper[M, A]].typeSymbol),
-                        Apply(Ident(newTermName("LazyHelper")), List(finalTree))
-                      )
-
-                      val block = Select(
-                        Block(
-                          Import(functionalSyntaxPkg, List(ImportSelector(nme.WILDCARD, -1, null, -1))),
-                          ClassDef(
-                            Modifiers(Flag.FINAL),
-                            newTypeName("$anon"),
-                            List(),
-                            Template(
-                              List(
-                                AppliedTypeTree(
-                                  lazyHelperSelect,
-                                  List(
-                                    Ident(matag.tpe.typeSymbol),
-                                    Ident(atag.tpe.typeSymbol)
-                                  )
-                                )
-                              ),
-                              emptyValDef,
-                              List(
-                                DefDef(
-                                  Modifiers(),
-                                  nme.CONSTRUCTOR,
-                                  List(),
-                                  List(List()),
-                                  TypeTree(),
-                                  Block(
-                                    Apply(
-                                      Select(Super(This(tpnme.EMPTY), tpnme.EMPTY), nme.CONSTRUCTOR),
-                                      List()
-                                    )
-                                  )
-                                ),
-                                ValDef(
-                                  Modifiers(Flag.OVERRIDE | Flag.LAZY),
-                                  newTermName("lazyStuff"),
-                                  AppliedTypeTree(Ident(matag.tpe.typeSymbol), List(TypeTree(atag.tpe))),
-                                  finalTree
-                                )
-                              )
-                            )
-                          ),
-                          Apply(Select(New(Ident(newTypeName("$anon"))), nme.CONSTRUCTOR), List())
-                        ),
-                        newTermName("lazyStuff")
-                      )
-
-                      //println("block:"+block)
-
-                      c.Expr[M[A]](block)
-                    }
-                  case l => c.abort(c.enclosingPosition, s"No implicit format for ${l.mkString(", ")} available.")
-                }
-
-              case None => c.abort(c.enclosingPosition, "No apply function found matching unapply parameters")
-            }
-
+        if (!rec) {
+          val callMethod = if (t.typeConstructor <:< typeOf[Option[_]].typeConstructor) nullableMethodName else methodName
+          Apply(
+            Select(jspathTree, newTermName(callMethod)),
+            List(impl)
+          )
+        } else {
+          hasRec = true
+          if (t.typeConstructor <:< typeOf[Option[_]].typeConstructor)
+            Apply(
+              Select(jspathTree, newTermName(nullableMethodName)),
+              callHelper(Apply(jsPathSelect, Nil), lazyMethodName) :: Nil
+            )
+          else {
+            Apply(
+              Select(jspathTree, newTermName(lazyMethodName)),
+              if (tpe.typeConstructor <:< typeOf[List[_]].typeConstructor)
+                readsWritesHelper("list")
+              else if (tpe.typeConstructor <:< typeOf[Set[_]].typeConstructor)
+                readsWritesHelper("set")
+              else if (tpe.typeConstructor <:< typeOf[Seq[_]].typeConstructor)
+                readsWritesHelper("seq")
+              else if (tpe.typeConstructor <:< typeOf[Map[_, _]].typeConstructor)
+                readsWritesHelper("map")
+              else List(helperMember)
+            )
+          }
         }
+    }.reduceLeft { (acc, r) =>
+      Apply(
+        Select(acc, newTermName("and")),
+        List(r)
+      )
+    }
+
+    // builds the final M[A] using apply method
+    //val applyMethod = Ident( companionSymbol.name )
+    val applyMethod =
+      Function(
+        params.foldLeft(List[ValDef]())((l, e) =>
+          l :+ ValDef(Modifiers(PARAM), newTermName(e.name.encoded), TypeTree(), EmptyTree)
+        ),
+        Apply(
+          Select(Ident(companionSymbol.name), newTermName("apply")),
+          params.foldLeft(List[Tree]())((l, e) =>
+            l :+ Ident(newTermName(e.name.encoded))
+          )
+        )
+      )
+
+    val unapplyMethod = Apply(
+      unliftIdent,
+      List(
+        Select(Ident(companionSymbol.name), unapply.name)
+      )
+    )
+
+    // if case class has one single field, needs to use inmap instead of canbuild.apply
+    val method = if(params.length > 1) "apply" else mapLikeMethod
+    val finalTree = Apply(
+      Select(canBuild, newTermName(method)),
+      conditionalList(applyMethod, unapplyMethod)
+    )
+    //println("finalTree: "+finalTree)
+
+    val importFunctionalSyntax = Import(functionalSyntaxPkg, List(ImportSelector(nme.WILDCARD, -1, null, -1)))
+    if (!hasRec) {
+      val block = Block(
+        importFunctionalSyntax,
+        finalTree
+      )
+      //println("block:"+block)
+      c.Expr[M[A]](block)
+    } else {
+      val helper = newTermName("helper")
+      val helperVal = ValDef(
+        Modifiers(),
+        helper,
+        Ident(weakTypeOf[play.api.libs.json.util.LazyHelper[M, A]].typeSymbol),
+        Apply(Ident(newTermName("LazyHelper")), List(finalTree))
+      )
+
+      val block = Select(
+        Block(
+          importFunctionalSyntax,
+          ClassDef(
+            Modifiers(Flag.FINAL),
+            newTypeName("$anon"),
+            List(),
+            Template(
+              List(
+                AppliedTypeTree(
+                  lazyHelperSelect,
+                  List(
+                    Ident(matag.tpe.typeSymbol),
+                    Ident(atag.tpe.typeSymbol)
+                  )
+                )
+              ),
+              emptyValDef,
+              List(
+                DefDef(
+                  Modifiers(),
+                  nme.CONSTRUCTOR,
+                  List(),
+                  List(List()),
+                  TypeTree(),
+                  Block(
+                    Apply(
+                      Select(Super(This(tpnme.EMPTY), tpnme.EMPTY), nme.CONSTRUCTOR),
+                      List()
+                    )
+                  )
+                ),
+                ValDef(
+                  Modifiers(Flag.OVERRIDE | Flag.LAZY),
+                  newTermName("lazyStuff"),
+                  AppliedTypeTree(Ident(matag.tpe.typeSymbol), List(TypeTree(atag.tpe))),
+                  finalTree
+                )
+              )
+            )
+          ),
+          Apply(Select(New(Ident(newTypeName("$anon"))), nme.CONSTRUCTOR), List())
+        ),
+        newTermName("lazyStuff")
+      )
+
+      //println("block:"+block)
+
+      c.Expr[M[A]](block)
     }
   }
-
 }
