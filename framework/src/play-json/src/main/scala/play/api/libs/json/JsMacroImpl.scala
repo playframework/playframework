@@ -88,7 +88,9 @@ object JsMacroImpl {
 
     //println("apply found:" + apply)
 
-    val inferedImplicits = params.map { param =>
+    final case class Implicit(paramName: Name, paramType: Type, neededImplicit: Tree, isRecursive: Boolean, tpe: Type)
+
+    val inferredImplicits = params.map { param =>
 
       val implType = param.typeSignature
       val (isRecursive, tpe) = implType match {
@@ -105,16 +107,15 @@ object JsMacroImpl {
       val neededImplicitType = appliedType(matag.tpe.typeConstructor, tpe :: Nil)
       // infers implicit
       val neededImplicit = c.inferImplicitValue(neededImplicitType)
-      (implType, neededImplicit, isRecursive, tpe)
+      Implicit(param.name, implType, neededImplicit, isRecursive, tpe)
     }
 
+    //println("Found implicits:"+inferredImplicits)
+
     // if any implicit is missing, abort
-    val missingImplicits = inferedImplicits.collect { case (t, impl, rec, _) if (impl == EmptyTree && !rec) => t }
+    val missingImplicits = inferredImplicits.collect { case Implicit(_, t, impl, rec, _) if (impl == EmptyTree && !rec) => t }
     if(missingImplicits.nonEmpty)
       c.abort(c.enclosingPosition, s"No implicit format for ${missingImplicits.mkString(", ")} available.")
-
-    val namedImplicits = params.map(_.name).zip(inferedImplicits)
-    //println("Found implicits:"+namedImplicits)
 
     val helperMember = Select(This(tpnme.EMPTY), newTermName("lazyStuff"))
     def callHelper(target: Tree, methodName: String): Tree =
@@ -125,8 +126,8 @@ object JsMacroImpl {
     var hasRec = false
 
     // combines all reads into CanBuildX
-    val canBuild = namedImplicits.map {
-      case (name, (t, impl, rec, tpe)) =>
+    val canBuild = inferredImplicits.map {
+      case Implicit(name, t, impl, rec, tpe) =>
         // inception of (__ \ name).read(impl)
         val jspathTree = Apply(
           Select(jsPathSelect, newTermName(scala.reflect.NameTransformer.encode("\\"))),
