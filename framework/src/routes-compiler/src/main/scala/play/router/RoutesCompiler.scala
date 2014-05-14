@@ -3,10 +3,12 @@
  */
 package play.router
 
+import scala.io.Codec
 import scala.util.parsing.input._
 import scala.util.parsing.combinator._
 import scala.collection.immutable.ListMap
 import java.io.File
+import org.apache.commons.io.FileUtils
 
 /**
  * provides a compiler for routes
@@ -54,7 +56,7 @@ object RoutesCompiler {
       import java.security.MessageDigest
       val digest = MessageDigest.getInstance("SHA-1")
       digest.reset()
-      digest.update(RouterIO.readFile(routesFile) ++ imports.flatMap(_.getBytes))
+      digest.update(FileUtils.readFileToByteArray(routesFile) ++ imports.flatMap(_.getBytes))
       digest.digest().map(0xFF & _).map { "%02x".format(_) }.foldLeft("") { _ + _ }
     }
 
@@ -254,7 +256,7 @@ object RoutesCompiler {
 
   case class GeneratedSource(file: File) {
 
-    val lines = if (file.exists) RouterIO.readFileAsString(file).split('\n').toList else Nil
+    val lines = if (file.exists) FileUtils.readFileToString(file, implicitly[Codec].charSet).split('\n').toList else Nil
     val source = lines.find(_.startsWith("// @SOURCE:")).map(m => new File(m.trim.drop(11)))
 
     def isGenerated: Boolean = source.isDefined
@@ -301,7 +303,8 @@ object RoutesCompiler {
 
       val parser = new RouteFileParser
       val routeFile = file.getAbsoluteFile
-      val routesContent = RouterIO.readFileAsString(routeFile)
+      val charSet = implicitly[Codec].charSet
+      val routesContent = FileUtils.readFileToString(routeFile)
 
       (parser.parse(routesContent) match {
         case parser.Success(parsed, _) => generate(routeFile, namespace, parsed, additionalImports, generateReverseRouter, generateRefReverseRouter, namespaceReverseRouter)
@@ -309,7 +312,7 @@ object RoutesCompiler {
           throw RoutesCompilationError(file, message, Some(in.pos.line), Some(in.pos.column))
         }
       }).foreach { item =>
-        RouterIO.writeStringToFile(new File(generatedDir, item._1), item._2)
+        FileUtils.writeStringToFile(new File(generatedDir, item._1), item._2, charSet)
       }
 
     }
