@@ -446,7 +446,7 @@ object ToStatement {
    * }}}
    */
   implicit def seqParamToStatement[A](implicit c: ToStatement[Seq[A]]) =
-    new ToStatement[SeqParameter[A]] {
+    new ToStatement[SeqParameter[A]] with NotNullGuard {
       def set(s: PreparedStatement, offset: Int, ps: SeqParameter[A]): Unit =
         c.set(s, offset, ps.values)
     }
