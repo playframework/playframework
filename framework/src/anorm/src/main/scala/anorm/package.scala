@@ -19,7 +19,7 @@ package object anorm {
   implicit def sqlToSimple(sql: SqlQuery): SimpleSql[Row] = sql.asSimple
   implicit def sqlToBatch(sql: SqlQuery): BatchSql = sql.asBatch
 
-  implicit def implicitID[ID](id: Id[ID] with NotNull): ID = id.id
+  implicit def implicitID[ID](id: Id[ID]): ID = id.id
 
   /**
    * Creates an SQL query with given statement.
