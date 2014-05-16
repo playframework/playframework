@@ -343,29 +343,40 @@ pipelineStages := Seq(rjs, digest, gzip)
 
 The order of stages is significant. You first want to optimize the files, produce digests of them and then produce gzip versions of all resultant assets.
 
-The options for RequireJs optimization have changed entirely. A standard build profile for the RequireJS optimizer is provided and should suffice for most projects. However if you would prefer to provide your own build profile then create an `app.build.js` file in your project's folder. For more information on build profiles see http://requirejs.org/docs/optimization.html. Note that one requirement for these build profiles is to accept the last line being a line to receive five parameters passed by this plugin. Whether you use them or not is at your discretion, but that last line must be there.
+The options for RequireJs optimization have changed entirely. A standard build profile for the RequireJS optimizer is provided and should suffice for most projects. However if you would prefer to provide your own build profile then declare an `appBuildProfile` function in your build. The following build profile is the direct equivalent of [the one recommended in the rjs documentation for whole project builds](http://requirejs.org/docs/optimization.html#wholeproject):
 
-Here is the default app.build.js profile which you should use as a basis for any of your own:
+```scala
+import RjsKeys._
 
-```javascript
-(function (appDir, baseUrl, dir, paths, buildWriter) {
-    return {
-        appDir: appDir,
-        baseUrl: baseUrl,
-        dir: dir,
-        generateSourceMaps: true,
-        mainConfigFile: appDir + "/" + baseUrl + "/main.js",
-        modules: [
-            {
-                name: "main"
-            }
-        ],
-        onBuildWrite: buildWriter,
-        optimize: "uglify2",
-        paths: paths,
-        preserveLicenseComments: false
-    }
-}(undefined, undefined, undefined, undefined, undefined))
+appBuildProfile := s"""|({
+                       |  appDir: "${appDir.value}",
+                       |  baseUrl: "js",
+                       |  dir: "${dir.value}",
+                       |  modules: [
+                       |      {
+                       |           name: "main"
+                       |      }
+                       |  ]
+                       |})""".stripMargin
+```
+
+The standard build profile we provide incorporates support for generating source maps, allows for configuration overrides in your `main.js` file and optimizes using uglify2. The standard build profile is as follows:
+
+```scala
+appBuildProfile := s"""|({
+                       |  appDir: "${appDir.value}",
+                       |  baseUrl: "js",
+                       |  dir: "${dir.value}",
+                       |  generateSourceMaps: true,
+                       |  mainConfigFile: "${appDir.value / "js" / "main.js"}",
+                       |  modules: [{
+                       |    name: "main"
+                       |  }],
+                       |  onBuildWrite: ${buildWriter.value},
+                       |  optimize: "uglify2",
+                       |  paths: ${RjsJson.toJsonObj(webJarModuleIds.value.map(m => m -> "empty:"))},
+                       |  preserveLicenseComments: false
+                       |})""".stripMargin
 ```
 
 For more information please consult [the plugin's documentation](https://github.com/sbt/sbt-rjs#sbt-rjs).
