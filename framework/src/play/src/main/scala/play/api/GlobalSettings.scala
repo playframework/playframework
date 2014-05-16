@@ -7,8 +7,8 @@ import play.api.mvc._
 import java.io.File
 import scala.util.control.NonFatal
 import scala.concurrent.Future
-import play.api.controllers.HeadAction
 import play.api.http.HttpVerbs
+import play.core.actions.HeadAction
 
 /**
  * Defines an application’s global settings.
