@@ -112,7 +112,7 @@ object Files {
    * @return the file contents
    */
   @deprecated("Use Java 7 Files API instead", "2.3")
-  def readFile(path: File): String = PlayIO.readFileAsString(path)
+  def readFile(path: File): String = PlayIO.readFileAsString(path)(Codec.UTF8)
 
   /**
    * Write a file’s contents as a `String`.
@@ -125,7 +125,7 @@ object Files {
     path.getParentFile.mkdirs()
     val out = new FileOutputStream(path)
     try {
-      val writer = new OutputStreamWriter(out, implicitly[Codec].name)
+      val writer = new OutputStreamWriter(out, Codec.UTF8.name)
       try {
         writer.write(content)
       } finally PlayIO.closeQuietly(writer)
