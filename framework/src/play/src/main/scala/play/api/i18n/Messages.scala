@@ -13,6 +13,7 @@ import scala.util.parsing.combinator._
 import scala.util.control.NonFatal
 import java.net.URL
 import play.api.i18n.Messages.UrlMessageSource
+import scala.io.Codec
 
 /**
  * A Lang supported by the application.
@@ -210,7 +211,7 @@ object Messages {
   }
 
   case class UrlMessageSource(url: URL) extends MessageSource {
-    def read = PlayIO.readUrlAsString(url)
+    def read = PlayIO.readUrlAsString(url)(Codec.UTF8)
   }
 
   private def noMatch(key: String, args: Seq[Any]) = key
@@ -367,7 +368,7 @@ class DefaultMessagesPlugin(app: Application) extends MessagesPlugin {
    * defaultmessagesplugin=disabled
    * }}}
    */
-  override def enabled = pluginEnabled.filter(_ == "disabled").isEmpty
+  override def enabled = pluginEnabled.forall(_ != "disabled")
 
   /**
    * The underlying internationalisation API.

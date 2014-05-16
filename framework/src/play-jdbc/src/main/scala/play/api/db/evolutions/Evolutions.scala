@@ -16,6 +16,7 @@ import java.sql.{ Statement, Date, Connection, SQLException }
 import scala.util.control.Exception._
 import scala.util.control.NonFatal
 import play.utils.PlayIO
+import scala.io.Codec
 
 /**
  * An SQL evolution - database changes associated with a software version.
@@ -426,7 +427,7 @@ object Evolutions {
         Option(applicationClassloader.getResourceAsStream(evolutionsResourceName(db, revision)))
       }.map { stream =>
         try {
-          (revision + 1, (revision, PlayIO.readStreamAsString(stream)))
+          (revision + 1, (revision, PlayIO.readStreamAsString(stream)(Codec.UTF8)))
         } finally {
           PlayIO.closeQuietly(stream)
         }

@@ -5,6 +5,7 @@ package play.api.libs
 
 import java.io._
 import play.utils.PlayIO
+import scala.io.Codec
 
 /**
  * FileSystem utilities.
@@ -86,7 +87,7 @@ object Files {
    * @return the file contents
    */
   @deprecated("Use Java 7 Files API instead", "2.3")
-  def readFile(path: File): String = PlayIO.readFileAsString(path)
+  def readFile(path: File): String = PlayIO.readFileAsString(path)(Codec.UTF8)
 
   /**
    * Write a file’s contents as a `String`.
@@ -95,7 +96,7 @@ object Files {
    * @param content the contents to write
    */
   @deprecated("Use Java 7 Files API instead", "2.3")
-  def writeFile(path: File, content: String): Unit = PlayIO.writeStringToFile(path, content)
+  def writeFile(path: File, content: String): Unit = PlayIO.writeStringToFile(path, content)(Codec.UTF8)
 
   /**
    * Creates a directory.
