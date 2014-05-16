@@ -11,7 +11,7 @@ By convention RequireJS expects a main.js file to bootstrap its module loader.
 
 ## Deployment
 
-The RequireJS optimizer doesn't kick-in until it is time to perform a deployment i.e. by running the `start`, `stage` or `dist` tasks.
+The RequireJS optimizer shouldn't generally kick-in until it is time to perform a deployment i.e. by running the `start`, `stage` or `dist` tasks.
 
 If you're using WebJars with your build then the RequireJS optimizer plugin will also ensure that any JavaScript resources referenced from within a WebJar are automatically referenced from the [jsdelivr](http://www.jsdelivr.com) CDN. In addition if any `.min.js` file is found then that will be used in place of `.js`. An added bonus here is that there is no change required to your html!
 
@@ -27,6 +27,42 @@ To add the plugin to the asset pipeline you can declare it as follows (assuming 
 
 ```scala
 pipelineStages := Seq(rjs)
+```
+
+A standard build profile for the RequireJS optimizer is provided and should suffice for most projects. However if you would prefer to provide your own build profile then declare an `appBuildProfile` function in your build. The following build profile is the direct equivalent of [the one recommended in the rjs documentation for whole project builds](http://requirejs.org/docs/optimization.html#wholeproject):
+
+```scala
+import RjsKeys._
+
+appBuildProfile := s"""|({
+                       |  appDir: "${appDir.value}",
+                       |  baseUrl: "js",
+                       |  dir: "${dir.value}",
+                       |  modules: [
+                       |      {
+                       |           name: "main"
+                       |      }
+                       |  ]
+                       |})""".stripMargin
+```
+
+The standard build profile we provide incorporates support for generating source maps, allows for configuration overrides in your `main.js` file and optimizes using uglify2. The standard build profile is as follows:
+
+```scala
+appBuildProfile := s"""|({
+                       |  appDir: "${appDir.value}",
+                       |  baseUrl: "js",
+                       |  dir: "${dir.value}",
+                       |  generateSourceMaps: true,
+                       |  mainConfigFile: "${appDir.value / "js" / "main.js"}",
+                       |  modules: [{
+                       |    name: "main"
+                       |  }],
+                       |  onBuildWrite: ${buildWriter.value},
+                       |  optimize: "uglify2",
+                       |  paths: ${RjsJson.toJsonObj(webJarModuleIds.value.map(m => m -> "empty:"))},
+                       |  preserveLicenseComments: false
+                       |})""".stripMargin
 ```
 
 Note that RequireJS performs a lot of work and while it works when executed in-JVM under Trireme, you will be best to use Node.js as the js-engine from a performance perspective. For convenience you can set the `sbt.jse.engineType` property in `SBT_OPTS`. For example on Unix:
