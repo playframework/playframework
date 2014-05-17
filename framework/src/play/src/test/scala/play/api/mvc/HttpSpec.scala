@@ -37,6 +37,16 @@ class HttpSpec extends Specification {
 
       headers.toSimpleMap must be_==(Map("a" -> "a1", "b" -> "b1"))
     }
+
+    "return the value from a map by case insensitive" in {
+      headers.toMap.get("A") must be_==(Some(Seq("a1", "a2")))
+      headers.toMap.get("b") must be_==(Some(Seq("b1", "b2")))
+    }
+
+    "return the value from a simple map by case insensitive" in {
+      headers.toSimpleMap.get("A") must be_==(Some("a1"))
+      headers.toSimpleMap.get("b") must be_==(Some("b1"))
+    }
   }
 
   "RequestHeader" should {

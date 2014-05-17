@@ -340,9 +340,7 @@ package play.api.mvc {
     /**
      * Retrieve all header values associated with the given key.
      */
-    def getAll(key: String): Seq[String] = {
-      data.find({ case (k, v) => k.equalsIgnoreCase(key) }).map(_._2).getOrElse(Nil)
-    }
+    def getAll(key: String): Seq[String] = toMap.get(key).getOrElse(Nil)
 
     /**
      * Retrieve all header keys
@@ -370,10 +368,7 @@ package play.api.mvc {
     /**
      * Transform the Headers to a Map by ignoring multiple values.
      */
-    def toSimpleMap: Map[String, String] = {
-      val simpleSeq = data.map({ case (k, v) => (k, v.headOption.getOrElse("")) })
-      Map.empty ++ simpleSeq
-    }
+    lazy val toSimpleMap: Map[String, String] = toMap.mapValues(_.headOption.getOrElse(""))
 
     override def toString = data.toString
 
