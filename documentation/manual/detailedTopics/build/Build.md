@@ -8,7 +8,7 @@ The Play build system uses [sbt](http://www.scala-sbt.org/), a high-performance 
 Most people get started with Play using the `activator new foo` command which produces a directory structure like this:
 
 - `/`: The root folder of your application
-- `/README`: A text file describing your applicaiont that will get deployed with it.
+- `/README`: A text file describing your application that will get deployed with it.
 - `/app`: Where your application code will be stored.
 - `/build.sbt`: The [sbt](http://www.scala-sbt.org/) settings that describe building your application.
 - `/conf`: Configuration files for your application
