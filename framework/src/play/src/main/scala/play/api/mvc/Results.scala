@@ -738,8 +738,15 @@ trait Results {
    * Generates a redirect simple result.
    *
    * @param call Call defining the URL to redirect to, which typically comes from the reverse router
+   */
+  def Redirect(call: Call): Result = Redirect(call.url)
+
+  /**
+   * Generates a redirect simple result.
+   *
+   * @param call Call defining the URL to redirect to, which typically comes from the reverse router
    * @param status HTTP status
    */
-  def Redirect(call: Call, status: Int = SEE_OTHER): Result = Redirect(call.url, Map.empty, status)
+  def Redirect(call: Call, status: Int): Result = Redirect(call.url, Map.empty, status)
 
 }
