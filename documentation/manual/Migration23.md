@@ -32,7 +32,7 @@ Since Activator is a wrapper around sbt, you can also download and use [sbt](htt
 Play uses sbt 0.13.5. If you're updating an existing project, change your `project/build.properties` file to:
 
 ```
-sbt.version=0.13.5-RC1
+sbt.version=0.13.5-RC3
 ```
 
 ### Plugin changes
@@ -178,28 +178,28 @@ unmanagedResourceDirectories in Assets += baseDirectory.value / "foo"
 
 ...however note that the files there will be aggregated into the target public folder. This means that a file at "public/a.js" will be overwritten with the file at "foo/a.js". Alternatively use sub folders off your project's public folder in order to namespace them.
 
-The following lists all sbt-web related components and their versions at the time of releasing Play 2.3-M1. Note that any dependency of sbt-js-engine is `1.0.0-RC1` given the accidental release of a snapshot with `"sbt-js-engine" % "1.0.0-RC1"`.
+The following lists all sbt-web related components and their versions at the time of releasing Play 2.3.
 
 #### Libraries
 ```scala
-"com.typesafe" %% "webdriver" % "1.0.0-RC1"
-"com.typesafe" %% "jse" % "1.0.0-RC1"
-"com.typesafe" %% "npm" % "1.0.0-RC1"
+"com.typesafe" %% "webdriver" % "1.0.0-RC2"
+"com.typesafe" %% "jse" % "1.0.0-RC2"
+"com.typesafe" %% "npm" % "1.0.0-RC2"
 ```
 
 #### sbt plugins
 ```scala
-"com.typesafe.sbt" % "sbt-web" % "1.0.0-RC1"
-"com.typesafe.sbt" % "sbt-webdriver" % "1.0.0-RC1"
-"com.typesafe.sbt" % "sbt-js-engine" % "1.0.0-RC1"
+"com.typesafe.sbt" % "sbt-web" % "1.0.0-RC2"
+"com.typesafe.sbt" % "sbt-webdriver" % "1.0.0-RC2"
+"com.typesafe.sbt" % "sbt-js-engine" % "1.0.0-RC2"
 
-"com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0-RC1"
-"com.typesafe.sbt" % "sbt-digest" % "1.0.0-RC1"
-"com.typesafe.sbt" % "sbt-gzip" % "1.0.0-RC1"
-"com.typesafe.sbt" % "sbt-less" % "1.0.0-RC1"
-"com.typesafe.sbt" % "sbt-jshint" % "1.0.0-RC1"
-"com.typesafe.sbt" % "sbt-mocha" % "1.0.0-RC1"
-"com.typesafe.sbt" % "sbt-rjs" % "1.0.0-RC1"
+"com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0-RC2"
+"com.typesafe.sbt" % "sbt-digest" % "1.0.0-RC2"
+"com.typesafe.sbt" % "sbt-gzip" % "1.0.0-RC2"
+"com.typesafe.sbt" % "sbt-less" % "1.0.0-RC2"
+"com.typesafe.sbt" % "sbt-jshint" % "1.0.0-RC2"
+"com.typesafe.sbt" % "sbt-mocha" % "1.0.0-RC2"
+"com.typesafe.sbt" % "sbt-rjs" % "1.0.0-RC2"
 ```
 
 #### WebJars
@@ -231,7 +231,7 @@ From your perspective we aim to offer feature parity with previous releases of P
 You must now declare the plugin, typically in your plugins.sbt file:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0-RC1")
+addSbtPlugin("com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0-RC2")
 ```
 
 Coffeescript options have changed. The new options are:
@@ -251,7 +251,7 @@ For more information please consult [the plugin's documentation](https://github.
 You must now declare the plugin, typically in your plugins.sbt file:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.0.0-RC1")
+addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.0.0-RC2")
 ```
 
 Entry points are now declared using a filter. For example, to declare that `foo.less` and `bar.less` are required:
@@ -301,7 +301,7 @@ The Closure Compiler has been replaced. Its two important functions of validatin
 To use JSHint you must declare it, typically in your plugins.sbt file:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-jshint" % "1.0.0-RC1")
+addSbtPlugin("com.typesafe.sbt" % "sbt-jshint" % "1.0.0-RC2")
 ```
 
 Options can be specified in accordance with the [JSHint website](http://www.jshint.com/docs) and they share the same set of defaults. To set an option you can provide a `.jshintrc` file within your project's base directory. If there is no such file then a `.jshintrc` file will be searched for in your home directory. This behaviour can be overridden by using a `JshintKeys.config` setting for the plugin.
@@ -318,7 +318,7 @@ The RequireJS Optimizer (rjs) has been entirely replaced with one that should be
 To use rjs you must declare it, typically in your plugins.sbt file:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-rjs" % "1.0.0-RC1")
+addSbtPlugin("com.typesafe.sbt" % "sbt-rjs" % "1.0.0-RC2")
 ```
 
 To add the plugin to the asset pipeline you can declare it as follows:
@@ -330,9 +330,9 @@ pipelineStages := Seq(rjs)
 We also recommend that sbt-web's sbt-digest and sbt-gzip plugins are included in the pipeline. sbt-digest will provide Play's asset controller with the ability to fingerprint asset names for far-future caching. sbt-gzip produces a gzip of your assets that the asset controller will favor when requested. Your plugins.sbt file for this configuration will then look like:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-digest" % "1.0.0-RC1")
+addSbtPlugin("com.typesafe.sbt" % "sbt-digest" % "1.0.0-RC2")
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-gzip" % "1.0.0-RC1")
+addSbtPlugin("com.typesafe.sbt" % "sbt-gzip" % "1.0.0-RC2")
 ```
 
 and your pipeline configuration now becomes:
