@@ -43,7 +43,7 @@ object DefaultSSLConfigParserSpec extends Specification {
       actual.enabledProtocols must beSome.which(_ must containTheSameElementsAs(Seq("TLSv1.2", "TLSv1.1", "TLS")))
       actual.disabledSignatureAlgorithms must beSome.which(_ must beEqualTo("md2, md4, md5"))
       actual.disabledKeyAlgorithms must beSome.which(_ must beEqualTo("RSA keySize < 1024"))
-      actual.secureRandom must beSome
+      actual.secureRandom must beNone
     }
 
     "parse ws.ssl.loose section" in {
