@@ -1,4 +1,3 @@
-
 name := "play-2.3-highlights"
 
 version := "2.3-SNAPSHOT"
@@ -19,3 +18,6 @@ libraryDependencies ++= Seq(
 // JsEngineKeys.engineType := JsEngineKeys.EngineType.Node
 
 MochaKeys.requires += "./Setup"
+
+// Apply RequireJS optimization, digest calculation and gzip compression to assets
+pipelineStages := Seq(rjs, digest, gzip)
