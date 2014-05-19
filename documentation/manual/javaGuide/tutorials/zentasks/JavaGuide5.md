@@ -158,9 +158,13 @@ import com.avaje.ebean.Ebean;
 import com.google.common.collect.ImmutableMap;
 
 public class ProjectsTest extends WithApplication {
+    @Override
+    public FakeApplication provideFakeApplication() {
+      return fakeApplication(inMemoryDatabase(), fakeGlobal());
+    }
+
     @Before
     public void setUp() {
-        start(fakeApplication(inMemoryDatabase(), fakeGlobal()));
         Ebean.save((List) Yaml.load("test-data.yml"));
     }
 

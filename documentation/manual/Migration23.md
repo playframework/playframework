@@ -553,3 +553,23 @@ Our view going forward is that if this is a feature that is valuable to the comm
 ## Session timeouts
 
 The session timeout configuration item, `session.maxAge`, used to be an integer, defined to be in seconds.  Now it's a duration, so can be specified with values like `1h` or `30m`.  Unfortunately, the default unit if specified with no time unit is milliseconds, which means a config value of `3600` was previously treated as one hour, but is now treated as 3.6 seconds.  You will need to update your configuration to add a time unit.
+
+## Java JUnit superclasses
+
+The Java `WithApplication`, `WithServer` and `WithBrowser` JUnit test superclasses have been modified to define an `@Before` annotated method.  This means, previously where you had to explicitly start a fake application by defining:
+
+```java
+@Before
+public void setUp() {
+    start();
+}
+```
+
+Now you don't need to. If you need to provide a custom fake application, you can do so by overriding the `provideFakeApplication` method:
+
+```java
+@Override
+protected FakeApplication provideFakeApplication() {
+    return Helpers.fakeApplication(Helpers.inMemoryDatabase());
+}
+```

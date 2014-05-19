@@ -482,7 +482,6 @@ public class DrawerTest extends WithBrowser {
 
     @Before
     public void setUp() {
-        start();
         Login login = browser.createPage(Login.class);
         login.go();
         login.login("bob@example.com", "secret");
@@ -492,7 +491,7 @@ public class DrawerTest extends WithBrowser {
 }
 ```
 
-This time we've made our test case extend `WithBrowser` which gives us a mock web browser to work with. The default browser is HtmlUnit, a Java based headless browser, but you can also use other browsers such as Firefox and Chrome. In our `setUp()` method we've called `start()`, which starts both the browser and the server. We've then created a login page, navigated to it, logged in, and then we've created a dashboard page and retrieved the drawer. We're now ready to write our first test case:
+This time we've made our test case extend `WithBrowser` which gives us a mock web browser to work with. The default browser is HtmlUnit, a Java based headless browser, but you can also use other browsers such as Firefox and Chrome. In our `setUp()` method we've created a dashboard page and retrieved the drawer. We're now ready to write our first test case:
 
 ```java
     @Test

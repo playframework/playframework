@@ -82,16 +82,16 @@ import play.libs.*;
 
 
 public class ModelsTest extends WithApplication {
-    @Before
-    public void setUp() {
-        start(fakeApplication(inMemoryDatabase()));
+    @Override
+    public FakeApplication provideFakeApplication() {
+        return fakeApplication(inMemoryDatabase());
     }
 }
 ```
 
-We have extended the `WithApplication` class.  This is optional, it provides the `start()` method that allows us to easily start a fake application, and it automatically cleans it up after each test has run.  You could manage these yourself, but we are going to let Play manage it for us. 
+We have extended the `WithApplication` class and overridden its `provideFakeApplication` method.  This is optional, it automatically starts the provided fake application before running each test and cleans it up after the test has run.  You could manage these yourself, but we are going to let Play manage it for us. 
 
-We have also implemented a `@Before` annotated method.  This annotation means that this method will be run before each test.  In our case we are starting a new `FakeApplication`, and configuring this application to use a new in-memory database.  Because we are using an in-memory database, we don't need to worry about clearing the database before each test, since a new clean database is created for us before each test.
+In our case we are configuring the `FakeApplication` to use a new in-memory database.  Because we are using an in-memory database, we don't need to worry about clearing the database before each test, since a new clean database is created for us before each test.
 
 Now we will write our first test, which is just going to check that we can insert a row, and retrieve it again:
 

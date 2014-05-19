@@ -8,6 +8,7 @@ import org.junit.Before;
 import static org.junit.Assert.*;
 
 import play.test.WithApplication;
+import play.test.FakeApplication;
 import static play.test.Helpers.*;
 
 import com.google.common.collect.ImmutableMap;
@@ -16,9 +17,10 @@ import play.i18n.Messages;
 
 
 public class JavaI18N extends WithApplication {
-    @Before
-    public void setUp() {
-        start(fakeApplication(ImmutableMap.of("messages.path", "javaguide/i18n")));
+
+    @Override
+    public FakeApplication provideFakeApplication() {
+        return fakeApplication(ImmutableMap.of("messages.path", "javaguide/i18n"));
     }
 
     @Test

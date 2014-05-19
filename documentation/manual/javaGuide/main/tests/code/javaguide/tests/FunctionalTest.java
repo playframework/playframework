@@ -15,11 +15,6 @@ import static org.fest.assertions.Assertions.*;
 
 //#test-withapp
 public class FunctionalTest extends WithApplication {
-
-    @Before
-    public void setUp() throws Exception {
-        start();
-    }
 //#test-withapp
 
     //#bad-route

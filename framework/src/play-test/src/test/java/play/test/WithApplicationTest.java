@@ -14,14 +14,12 @@ public class WithApplicationTest extends WithApplication {
 
     @Test
     public void withApplicationShouldProvideAnApplication() {
-        start();
         assertNotNull(app);
         assertNotNull(Play.application());
     }
 
     @Test
     public void withApplicationShouldCleanUpApplication() {
-        start();
         stopPlay();
         assertNull(app);
         assertTrue(play.api.Play.maybeApplication().isEmpty());

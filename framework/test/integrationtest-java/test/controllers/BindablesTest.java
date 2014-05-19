@@ -14,7 +14,6 @@ import static org.junit.Assert.*;
 public class BindablesTest extends WithApplication {
     @Test
     public void testPager() {
-        start();
         Pager pager = new Pager();
         pager.index = 10;
         pager.size = 20;
@@ -27,7 +26,6 @@ public class BindablesTest extends WithApplication {
 
     @Test
     public void testUser() {
-        start();
         User user = new User();
         user.email = "bob@example.com";
         // Test that the user is bound/unbound correctly
