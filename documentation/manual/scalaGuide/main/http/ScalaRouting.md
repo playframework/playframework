@@ -54,7 +54,7 @@ The default matching strategy for a dynamic part is defined by the regular expre
 
 ### Dynamic parts spanning several /
 
-If you want a dynamic part to capture more than one URI path segment, separated by forward slashes, you can define a dynamic part using the `*id` syntax, which uses the `.*` regular expression:
+If you want a dynamic part to capture more than one URI path segment, separated by forward slashes, you can define a dynamic part using the `*id` syntax, which uses the `.+` regular expression:
 
 @[spanning-path](code/scalaguide.http.routing.routes)
 
