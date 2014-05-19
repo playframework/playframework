@@ -1,11 +1,13 @@
 /*
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
-package scalaguide.tests
+package scalaguide.tests.scalatest
 
-import org.specs2.mock._
-import org.specs2.mutable._
+import org.scalatest._
+import org.scalatest.mock.MockitoSugar
+import org.scalatestplus.play._
 
+import org.mockito.Mockito._
 import java.util._
 
 case class Data(retrievalDate: java.util.Date)
@@ -28,21 +30,21 @@ class MyService {
   }
 }
 
-// #scalaws-mockito
-class ExampleMockitoSpec extends Specification with Mockito {
+// #scalaws-mockitosugar
+class ExampleMockitoSpec extends PlaySpec with MockitoSugar {
 
   "MyService#isDailyData" should {
     "return true if the data is from today" in {
       val mockDataService = mock[DataService]
-      mockDataService.findData returns Data(retrievalDate = new java.util.Date())
+      when(mockDataService.findData) thenReturn Data(new Date)
 
       val myService = new MyService() {
         override def dataService = mockDataService
       }
 
       val actual = myService.isDailyData
-      actual must equalTo(true)
+      actual mustBe true
     }
   }
 }
-// #scalaws-mockito
+// #scalaws-mockitosugar

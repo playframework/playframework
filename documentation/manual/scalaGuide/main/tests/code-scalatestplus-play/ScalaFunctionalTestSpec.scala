@@ -1,7 +1,10 @@
 /*
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
-package scalaguide.tests
+package scalaguide.tests.scalatest
+
+import org.scalatest._
+import org.scalatestplus.play._
 
 import play.api.libs.ws._
 
@@ -13,10 +16,12 @@ import play.api.test.Helpers._
 import scala.Some
 import play.api.test.FakeApplication
 
+abstract class MixedPlaySpec extends fixture.WordSpec with MustMatchers with OptionValues with MixedFixtures
+
 /**
  *
  */
-class ScalaFunctionalTestSpec extends PlaySpecification with Results {
+class ScalaFunctionalTestSpec extends MixedPlaySpec with Results {
 
   // lie and make this look like a DB model.
   case class Computer(name: String, introduced: Option[String])
@@ -41,32 +46,32 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
     })
 
     // #scalafunctionaltest-respondtoroute
-    "respond to the index Action" in new WithApplication(fakeApplication) {
+    "respond to the index Action" in new App(fakeApplication) {
       val Some(result) = route(FakeRequest(GET, "/Bob"))
 
-      status(result) must equalTo(OK)
-      contentType(result) must beSome("text/html")
-      charset(result) must beSome("utf-8")
-      contentAsString(result) must contain("Hello Bob")
+      status(result) mustEqual OK
+      contentType(result) mustEqual Some("text/html")
+      charset(result) mustEqual Some("utf-8")
+      contentAsString(result) must include ("Hello Bob")
     }
     // #scalafunctionaltest-respondtoroute
 
     // #scalafunctionaltest-testview
-    "render index template" in new WithApplication {
+    "render index template" in new App {
       val html = views.html.index("Coco")
 
-      contentAsString(html) must contain("Hello Coco")
+      contentAsString(html) must include ("Hello Coco")
     }
     // #scalafunctionaltest-testview
 
     // #scalafunctionaltest-testmodel
     val appWithMemoryDatabase = FakeApplication(additionalConfiguration = inMemoryDatabase("test"))
-    "run an application" in new WithApplication(appWithMemoryDatabase) {
+    "run an application" in new App(appWithMemoryDatabase) {
 
       val Some(macintosh) = Computer.findById(21)
 
-      macintosh.name must equalTo("Macintosh")
-      macintosh.introduced must beSome.which(_ must beEqualTo("1984-01-24"))
+      macintosh.name mustEqual "Macintosh"
+      macintosh.introduced.value mustEqual "1984-01-24"
     }
     // #scalafunctionaltest-testmodel
 
@@ -77,8 +82,9 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
           Ok(
             """
               |<html>
+              |<head><title>Hello Guest</title></head>
               |<body>
-              |  <div id="title">Hello Guest</div>
+              |  <div id="title">Hello Guest, welcome to this website.</div>
               |  <a href="/login">click me</a>
               |</body>
               |</html>
@@ -89,39 +95,39 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
           Ok(
             """
               |<html>
+              |<head><title>Hello Coco</title></head>
               |<body>
-              |  <div id="title">Hello Coco</div>
+              |  <div id="title">Hello Coco, welcome to this website.</div>
               |</body>
               |</html>
             """.stripMargin) as "text/html"
         }
     })
 
-    "run in a browser" in new WithBrowser(webDriver = WebDriverFactory(HTMLUNIT), app = fakeApplicationWithBrowser) {
-      browser.goTo("/")
+    "run in a browser" in new HtmlUnit(app = fakeApplicationWithBrowser) {
 
-      // Check the page
-      browser.$("#title").getTexts().get(0) must equalTo("Hello Guest")
+      // Check the home page
+      go to "http://localhost:" + port
+      pageTitle mustEqual "Hello Guest"
 
-      browser.$("a").click()
+      click on linkText("click me")
 
-      browser.url must equalTo("/login")
-      browser.$("#title").getTexts().get(0) must equalTo("Hello Coco")
+      currentUrl mustEqual "http://localhost:" + port + "/login"
+      pageTitle mustEqual "Hello Coco"
     }
     // #scalafunctionaltest-testwithbrowser
 
-    val testPort = 19001
-    val myPublicAddress =  s"localhost:$testPort"
-    val testPaymentGatewayURL = s"http://$myPublicAddress"
     // #scalafunctionaltest-testpaymentgateway
-    "test server logic" in new WithServer(app = fakeApplicationWithBrowser, port = testPort) {
+    "test server logic" in new Server(app = fakeApplicationWithBrowser, port = 19001) { port =>
+      val myPublicAddress =  s"localhost:$port"
+      val testPaymentGatewayURL = s"http://$myPublicAddress"
       // The test payment gateway requires a callback to this server before it returns a result...
       val callbackURL = s"http://$myPublicAddress/callback"
 
       // await is from play.api.test.FutureAwaits
       val response = await(WS.url(testPaymentGatewayURL).withQueryString("callbackURL" -> callbackURL).get())
 
-      response.status must equalTo(OK)
+      response.status mustEqual OK
     }
     // #scalafunctionaltest-testpaymentgateway
 
@@ -133,11 +139,9 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
         }
     })
 
-    "test WS logic" in new WithServer(app = appWithRoutes, port = 3333) {
-      await(WS.url("http://localhost:3333").get()).status must equalTo(OK)
+    "test WS logic" in new Server(app = appWithRoutes, port = 3333) {
+      await(WS.url("http://localhost:3333").get()).status mustEqual OK
     }
     // #scalafunctionaltest-testws
-
   }
-
 }

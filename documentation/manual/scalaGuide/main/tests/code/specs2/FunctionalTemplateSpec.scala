@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
-package scalatest.tests
+package scalatest.tests.specs2
 
 import org.specs2.mutable._
 
