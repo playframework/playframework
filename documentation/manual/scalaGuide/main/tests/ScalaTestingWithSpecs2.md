@@ -1,5 +1,5 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
-# Testing your application
+# Testing your application with specs2
 
 Writing tests for your application can be an involved process.  Play provides a default test framework for you, and provides helpers and application stubs to make testing your application as easy as possible.
 
@@ -19,11 +19,11 @@ Testing in Play is based on SBT, and a full description is available in the [tes
 
 ## Using specs2
 
-The default way to test in Play is using [specs2](http://etorreborre.github.io/specs2/).  In specs2, tests are organized into specifications, which contain examples which run the system under test through various different code paths.
+In [specs2](http://etorreborre.github.io/specs2/), tests are organized into specifications, which contain examples which run the system under test through various different code paths.
 
 Specifications extend the [`Specification`](http://etorreborre.github.io/specs2/api/SPECS2-2.2/index.html#org.specs2.mutable.Specification) trait and are using the should/in format:
 
-@[scalatest-helloworldspec](code/HelloWorldSpec.scala)
+@[scalatest-helloworldspec](code/specs2/HelloWorldSpec.scala)
 
 Specifications can be run in either IntelliJ IDEA (using the [Scala plugin](http://blog.jetbrains.com/scala/)) or in Eclipse (using the [Scala IDE](http://scala-ide.org/)).  Please see the [[IDE page|IDE]] for more details.
 
@@ -77,7 +77,7 @@ and then add the [library dependency](http://mvnrepository.com/artifact/org.mock
 
 Using Mockito, you can mock out references to classes like so:
 
-@[scalaws-mockito](code/ExampleMockitoSpec.scala)
+@[scalaws-mockito](code/specs2/ExampleMockitoSpec.scala)
 
 Mocking is especially useful for testing the public methods of classes.  Mocking objects and private methods is possible, but considerably harder.
 
@@ -121,17 +121,17 @@ and then access them through services:
 
 In this way, the `isAdmin` method can be tested by mocking out the `UserRepository` reference and passing it into the service:
 
-@[scalatest-userservicespec](code/UserServiceSpec.scala)
+@[scalatest-userservicespec](code/specs2/UserServiceSpec.scala)
 
 ## Unit Testing Controllers
 
 Controllers are defined as objects in Play, and so can be trickier to unit test.  In Play this can be alleviated by [[dependency injection|ScalaDependencyInjection]] using [`getControllerInstance`](api/scala/index.html#play.api.GlobalSettings@getControllerInstance).  Another way to finesse unit testing with a controller is to use a trait with an [explicitly typed self reference](http://www.naildrivin5.com/scalatour/wiki_pages/ExplcitlyTypedSelfReferences) to the controller:
 
-@[scalatest-examplecontroller](code/ExampleControllerSpec.scala)
+@[scalatest-examplecontroller](code/specs2/ExampleControllerSpec.scala)
 
 and then test the trait:
 
-@[scalatest-examplecontrollerspec](code/ExampleControllerSpec.scala)
+@[scalatest-examplecontrollerspec](code/specs2/ExampleControllerSpec.scala)
 
 ## Unit Testing EssentialAction
 
@@ -139,7 +139,6 @@ Testing [`Action`](api/scala/index.html#play.api.mvc.Action) or [`Filter`](api/s
 
 For this, the test [`Helpers.call`](api/scala/index.html#play.api.test.Helpers@call) can be used like that:
 
-@[scalatest-exampleessentialactionspec](code/ExampleEssentialActionSpec.scala)
+@[scalatest-exampleessentialactionspec](code/specs2/ExampleEssentialActionSpec.scala)
 
-
-> **Next:** [[Writing functional tests|ScalaFunctionalTest]]
+> **Next:** [[Writing functional tests with specs2|ScalaFunctionalTestingWithSpecs2]]
