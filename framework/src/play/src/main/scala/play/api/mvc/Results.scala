@@ -10,23 +10,35 @@ import play.api.http.HttpProtocol._
 import play.api.{ Application, Play }
 import play.api.i18n.Lang
 
-import scala.concurrent.{ Future, ExecutionContext, Promise }
-
 import play.core.Execution.Implicits._
 import play.api.libs.concurrent.Execution.defaultContext
+import play.core.utils.CaseInsensitiveOrdered
+import scala.collection.immutable.TreeMap
 
 /**
  * A simple HTTP response header, used for standard responses.
  *
  * @param status the response status, e.g. ‘200 OK’
- * @param headers the HTTP headers
+ * @param _headers the HTTP headers
  */
-case class ResponseHeader(status: Int, headers: Map[String, String] = Map.empty) {
+final class ResponseHeader(val status: Int, _headers: Map[String, String] = Map.empty) {
+  val headers: Map[String, String] = TreeMap[String, String]()(CaseInsensitiveOrdered) ++ _headers
 
-  override def toString = {
-    status + ", " + headers
+  def copy(status: Int = status, headers: Map[String, String] = headers): ResponseHeader =
+    new ResponseHeader(status, headers)
+
+  override def toString = s"$status, $headers"
+  override def hashCode = (status, headers).hashCode
+  override def equals(o: Any) = o match {
+    case ResponseHeader(s, h) => (s, h).equals((status, headers))
+    case _ => false
   }
-
+}
+object ResponseHeader {
+  def apply(status: Int, headers: Map[String, String] = Map.empty): ResponseHeader =
+    new ResponseHeader(status, headers)
+  def unapply(rh: ResponseHeader): Option[(Int, Map[String, String])] =
+    if (rh eq null) None else Some((rh.status, rh.headers))
 }
 
 /**
