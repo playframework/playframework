@@ -194,6 +194,7 @@ public class JPA {
                             }
                         }
                     } finally {
+                        JPA.bindForCurrentThread(null);
                         fem.close();
                     }
                     return t;
@@ -206,6 +207,7 @@ public class JPA {
                     if (ftx != null) {
                         try { if (ftx.isActive()) ftx.rollback(); } catch(Throwable e) {}
                     }
+                    JPA.bindForCurrentThread(null);
                     fem.close();
                 }
             });
@@ -216,12 +218,11 @@ public class JPA {
             if(tx != null) {
                 try { tx.rollback(); } catch(Throwable e) {}
             }
+            JPA.bindForCurrentThread(null);
             if(em != null) {
                 em.close();
             }
             throw t;
-        } finally {
-            JPA.bindForCurrentThread(null);
         }
     }
 }
