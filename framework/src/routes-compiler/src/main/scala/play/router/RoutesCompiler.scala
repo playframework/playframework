@@ -177,9 +177,31 @@ object RoutesCompiler {
       case _ ~ parts => PathPattern(parts)
     }
 
-    def parameterType: Parser[String] = ":" ~> ignoreWhiteSpace ~> rep1sep(identifier, ".") ~ opt(brackets) ^^ {
-      case t ~ g => t.mkString(".") + g.getOrElse("")
+    def space(s: String): Parser[String] = (ignoreWhiteSpace ~> s <~ ignoreWhiteSpace)
+
+    def parameterType: Parser[String] = ":" ~> ignoreWhiteSpace ~> simpleType
+
+    def simpleType: Parser[String] = {
+      ((stableId <~ ignoreWhiteSpace) ~ opt(typeArgs)) ^^ {
+        case sid ~ ta => sid.toString + ta.getOrElse("")
+      } |
+        (space("(") ~ types ~ space(")")) ^^ {
+          case _ ~ b ~ _ => "(" + b + ")"
+        }
     }
+
+    def typeArgs: Parser[String] = {
+      (space("[") ~ types ~ space("]") ~ opt(typeArgs)) ^^ {
+        case _ ~ ts ~ _ ~ ta => "[" + ts + "]" + ta.getOrElse("")
+      } |
+        (space("#") ~ identifier ~ opt(typeArgs)) ^^ {
+          case _ ~ id ~ ta => "#" + id + ta.getOrElse("")
+        }
+    }
+
+    def types: Parser[String] = rep1sep(simpleType, space(",")) ^^ (_ mkString ",")
+
+    def stableId: Parser[String] = rep1sep(identifier, space(".")) ^^ (_ mkString ".")
 
     def expression: Parser[String] = (multiString | string | parentheses | brackets | """[^),?=\n]""".r +) ^^ {
       case p => p.mkString
