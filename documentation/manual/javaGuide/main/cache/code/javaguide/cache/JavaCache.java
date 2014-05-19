@@ -18,11 +18,6 @@ import static play.test.Helpers.*;
 
 public class JavaCache extends WithApplication {
 
-    @Before
-    public void setUp() {
-        start();
-    }
-
     public class News {}
 
     @Test

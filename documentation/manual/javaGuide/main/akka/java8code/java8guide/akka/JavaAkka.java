@@ -24,11 +24,6 @@ import static org.junit.Assert.*;
 
 public class JavaAkka extends WithApplication {
 
-    @Before
-    public void setUp() throws Exception {
-        start();
-    }
-
     @Test
     public void ask() throws Exception {
         Akka.system().actorOf(Props.create(EchoActor.class), "my-actor");

@@ -17,7 +17,7 @@ import static org.junit.Assert.*;
 import static play.test.Helpers.*;
 import static javaguide.testhelpers.MockJavaAction.call;
 
-public class JavaActions extends WithApplication {
+public class JavaActions {
     @Test
     public void simpleAction() {
         assertThat(status(call(new Controller1(), fakeRequest())), equalTo(200));

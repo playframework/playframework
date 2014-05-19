@@ -192,9 +192,12 @@ import com.avaje.ebean.Ebean;
 import com.google.common.collect.ImmutableMap;
 
 public class LoginTest extends WithApplication {
+    @Override
+    public FakeApplication provideFakeApplication() {
+        return fakeApplication(inMemoryDatabase(), fakeGlobal());
+    }
     @Before
     public void setUp() {
-        start(fakeApplication(inMemoryDatabase(), fakeGlobal()));
         Ebean.save((List) Yaml.load("test-data.yml"));
     }
 
@@ -202,6 +205,8 @@ public class LoginTest extends WithApplication {
 ```
 
 > Notice that this time we've passed a `fakeGlobal()` to the fake application when we set it up.  In fact, since creating our "real" `Global.java`, the `ModelsTest` we wrote earlier has been broken because it is loading the initial data when the test starts.  So, it too should be updated to use `fakeGlobal()`.
+
+We have implemented a `@Before` annotated method. This annotation means that this method will be run before each test. In our case we populate the application’s database with data from file `test-data.yml`.
 
 Now let's write a test that tests what happens when we authenticate successfully:
 

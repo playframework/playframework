@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import org.junit.*;
 import play.libs.Json;
 import play.test.WithApplication;
+import play.test.FakeApplication;
 import javaguide.testhelpers.MockJavaAction;
 
 //#imports
@@ -21,9 +22,9 @@ import static play.test.Helpers.*;
 
 public class JavaSessionFlash extends WithApplication {
 
-    @Before
-    public void setUp() {
-        start(fakeApplication(ImmutableMap.of("application.secret", "pass")));
+    @Override
+    public FakeApplication provideFakeApplication() {
+        return fakeApplication(ImmutableMap.of("application.secret", "pass"));
     }
 
     @Test

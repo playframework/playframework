@@ -28,7 +28,7 @@ Java
 Java 8
 : @[test-running-fakeapp](java8code/java8guide/tests/FakeApplicationTest.java)
 
-You can also extend `WithApplication` and initialize it by calling `start()` before your tests are run. You can initialize with an explicit `FakeApplication` or the class will create its own.
+You can also extend `WithApplication`, this will automatically ensure that a fake application is started and stopped for you:
 
 @[test-withapp](code/javaguide/tests/FunctionalTest.java)
 

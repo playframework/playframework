@@ -4,7 +4,6 @@
 package java8guide.async;
 
 import org.junit.Test;
-import play.test.WithApplication;
 import play.libs.F.Promise;
 import play.mvc.Result;
 
@@ -13,7 +12,7 @@ import static org.junit.Assert.*;
 import static play.mvc.Results.ok;
 import static play.test.Helpers.*;
 
-public class JavaAsync extends WithApplication {
+public class JavaAsync {
 
     @Test
     public void promisePi() {

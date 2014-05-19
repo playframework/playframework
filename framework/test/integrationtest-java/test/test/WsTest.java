@@ -19,11 +19,6 @@ import static play.libs.F.*;
 
 public class WsTest extends WithServer {
 
-    @Before
-    public void start() {
-        super.start();
-    }
-
     @Test
     public void jsonRequestShouldBeUtf8() throws Exception {
         ObjectNode json = Json.newObject();
