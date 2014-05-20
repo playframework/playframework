@@ -3,7 +3,7 @@
  */
 package play.utils
 
-import java.net.URL
+import java.net.{ URI, URL }
 import java.io.File
 import java.util.zip.ZipFile
 
@@ -13,17 +13,18 @@ import java.util.zip.ZipFile
 object Resources {
 
   def isDirectory(url: URL) = url.getProtocol match {
-    case "file" => new File(url.getFile).isDirectory
+    case "file" => new File(url.toURI).isDirectory
     case "jar" => isJarResourceDirectory(url)
     case _ => throw new IllegalArgumentException(s"Cannot check isDirectory for a URL with protocol='${url.getProtocol}'")
   }
 
   private def isJarResourceDirectory(url: URL): Boolean = {
-    val startIndex = if (url.getFile.startsWith("file:")) 5 else 0
+    val path = url.getPath
     val bangIndex = url.getFile.indexOf("!")
-    val jarFilePath = url.getFile.substring(startIndex, bangIndex)
-    val resourcePath = url.getFile.substring(bangIndex + 2)
-    val zip = new ZipFile(jarFilePath)
+
+    val jarFile: File = new File(URI.create(path.substring(0, bangIndex)))
+    val resourcePath = URI.create(path.substring(bangIndex + 1)).getPath.drop(1)
+    val zip = new ZipFile(jarFile)
 
     try {
       val entry = zip.getEntry(resourcePath)
