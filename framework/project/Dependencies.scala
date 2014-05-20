@@ -116,7 +116,7 @@ object Dependencies {
     "org.javassist" % "javassist" % "3.18.1-GA")
 
   val routersCompilerDependencies =  Seq(
-    "commons-io" % "commons-io" % "2.4"
+    "commons-io" % "commons-io" % "2.0.1"
   ) ++ specsSbt.map(_ % "test")
 
   private def sbtPluginDep(moduleId: ModuleID) = {
