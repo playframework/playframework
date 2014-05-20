@@ -23,9 +23,8 @@ object Dependencies {
 
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
-
-    h2database,
-
+    h2database, 
+    "org.eu.acolyte" % "jdbc-driver" % "1.0.18" % "test",
     "tyrex" % "tyrex" % "1.0.1") ++ specsBuild.map(_ % "test")
 
   val ebeanDeps = Seq(
