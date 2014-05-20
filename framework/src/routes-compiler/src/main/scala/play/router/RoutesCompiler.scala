@@ -256,7 +256,7 @@ object RoutesCompiler {
 
   case class GeneratedSource(file: File) {
 
-    val lines = if (file.exists) FileUtils.readFileToString(file, implicitly[Codec].charSet).split('\n').toList else Nil
+    val lines = if (file.exists) FileUtils.readFileToString(file, implicitly[Codec].name).split('\n').toList else Nil
     val source = lines.find(_.startsWith("// @SOURCE:")).map(m => new File(m.trim.drop(11)))
 
     def isGenerated: Boolean = source.isDefined
@@ -303,7 +303,6 @@ object RoutesCompiler {
 
       val parser = new RouteFileParser
       val routeFile = file.getAbsoluteFile
-      val charSet = implicitly[Codec].charSet
       val routesContent = FileUtils.readFileToString(routeFile)
 
       (parser.parse(routesContent) match {
@@ -312,7 +311,7 @@ object RoutesCompiler {
           throw RoutesCompilationError(file, message, Some(in.pos.line), Some(in.pos.column))
         }
       }).foreach { item =>
-        FileUtils.writeStringToFile(new File(generatedDir, item._1), item._2, charSet)
+        FileUtils.writeStringToFile(new File(generatedDir, item._1), item._2, implicitly[Codec].name)
       }
 
     }
