@@ -462,10 +462,6 @@ public class Model {
             return query().getRawSql();
         }
 
-        public UseIndex getUseIndex() {
-            return query().getUseIndex();
-        }
-
         /**
          * Returns the query's <code>having</code> clause.
          */
@@ -680,10 +676,6 @@ public class Model {
         public Query<T> setUseQueryCache(boolean useQueryCache) {
             return query().setUseQueryCache(useQueryCache);
         }
-        
-        public Query<T> setUseIndex(UseIndex useIndex) {
-            return query().setUseIndex(useIndex);
-        }
 
         /**
          * Adds expressions to the <code>where</code> clause with the ability to chain on the <code>ExpressionList</code>.
@@ -704,14 +696,6 @@ public class Model {
          */
         public Query<T> where(String addToWhereClause) {
             return query().where(addToWhereClause);
-        }
-
-        /**
-         * Return the total hits matched for a lucene text search query.
-         */
-        @Override
-        public int getTotalHits() {
-            return query().getTotalHits();
         }
 
         /**
