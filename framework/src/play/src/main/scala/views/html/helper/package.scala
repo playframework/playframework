@@ -3,6 +3,8 @@
  */
 package views.html
 
+import play.twirl.api.{ HtmlFormat, Html }
+
 /**
  * Contains template helpers, for example for generating HTML forms.
  */
@@ -28,4 +30,10 @@ package object helper {
   def urlEncode(string: String)(implicit codec: play.api.mvc.Codec): String =
     java.net.URLEncoder.encode(string, codec.charset)
 
+  /**
+   * @return The text with line-break html tags instead of carriage returns
+   */
+  def formatLineBreaks(text: String): Html = {
+    Html(text.lines.map(HtmlFormat.escape).mkString("<br/>"))
+  }
 }

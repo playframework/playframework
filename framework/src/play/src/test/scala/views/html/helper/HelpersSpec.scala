@@ -161,5 +161,11 @@ object HelpersSpec extends Specification {
 
       body must contain("""label for="bar_0">bar.0""")
     }
+
+    "format line breaks" in {
+      import play.twirl.api.HtmlFormat
+      formatLineBreaks("foo").toString mustEqual ("foo")
+      formatLineBreaks("foo\nbar").toString mustEqual "foo<br/>bar"
+    }
   }
 }
