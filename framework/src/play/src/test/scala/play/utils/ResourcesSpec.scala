@@ -1,7 +1,7 @@
 package play.utils
 
 import java.io.{FileInputStream, BufferedInputStream, File, FileOutputStream}
-import java.net.URL
+import java.net.{URI, URLEncoder, URL}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 import org.specs2.mutable.Specification
 
@@ -15,31 +15,50 @@ object ResourcesSpec extends Specification {
   lazy val jar = File.createTempFile("jar-", ".tmp", tmpDir)
   lazy val fileRes = File.createTempFile("file-", ".tmp", tmpDir)
   lazy val dirRes = createTempDir("dir-", ".tmp", tmpDir)
+  lazy val dirSpacesRes = createTempDir("dir spaces ", ".tmp", tmpDir)
+  lazy val spacesDir = createTempDir("spaces ", ".tmp", tmpDir)
+  lazy val spacesJar = File.createTempFile("jar-spaces", ".tmp", spacesDir)
 
   sequential
   "resources isDirectory" should {
 
     step {
-      createZip(jar, Seq(fileRes, dirRes))
+      createZip(jar, Seq(fileRes, dirRes, dirSpacesRes))
+      createZip(spacesJar, Seq(fileRes, dirRes, dirSpacesRes))
     }
 
     "return true for a directory resource URL with the 'file' protocol" in {
-      val url = new URL("file", "", dirRes.getAbsolutePath)
+      val url = dirRes.toURI.toURL
       isDirectory(url) must beTrue
     }
 
     "return false for a file resource URL with the 'file' protocol" in {
-      val url = new URL("file", "", fileRes.getAbsolutePath)
+      val url = fileRes.toURI.toURL
       isDirectory(url) must beFalse
     }
 
+    "return true for a directory resource URL that contains spaces with the 'file' protocol" in {
+      val url = dirSpacesRes.toURI.toURL
+      isDirectory(url) must beTrue
+    }
+
     "return true for a directory resource URL with the 'jar' protocol" in {
-      val url = new URL("jar", "", s"file:${jar.getAbsolutePath}!/${dirRes.getName}")
+      val url = new URL("jar", "", createJarUrl(jar, dirRes))
+      isDirectory(url) must beTrue
+    }
+
+    "return true for a directory resource URL that contains spaces in the jar path with the 'jar' protocol" in {
+      val url = new URL("jar", "", createJarUrl(spacesJar, dirRes))
+      isDirectory(url) must beTrue
+    }
+
+    "return true for a directory resource URL that contains spaces in the file path with the 'jar' protocol" in {
+      val url = new URL("jar", "", createJarUrl(jar, dirSpacesRes))
       isDirectory(url) must beTrue
     }
 
     "return false for a file resource URL with the 'jar' protocol" in {
-      val url = new URL("jar", "", s"file:${jar.getAbsolutePath}!/${fileRes.getName}")
+      val url = new URL("jar", "", createJarUrl(jar, fileRes))
       isDirectory(url) must beFalse
     }
 
@@ -49,9 +68,16 @@ object ResourcesSpec extends Specification {
     }
 
     step {
-      tmpDir.listFiles().foreach(f => f.delete())
-      tmpDir.delete()
+      def delete(file: File): Unit = {
+        if (file.isDirectory) file.listFiles().foreach(delete)
+        file.delete
+      }
+      delete(tmpDir)
     }
+  }
+
+  private def createJarUrl(jarFile: File, file: File) = {
+    s"${jarFile.toURI.toURL}!/${UriEncoding.encodePathSegment(file.getName, "utf-8")}"
   }
 
   private def createTempDir(prefix: String, suffix: String, parent: File = null) = {
@@ -63,8 +89,7 @@ object ResourcesSpec extends Specification {
 
   private def createZip(zip: File, files: Seq[File]) = {
     val zipOutputStream = new ZipOutputStream(new FileOutputStream(zip))
-    addFileToZip(zipOutputStream, fileRes)
-    addFileToZip(zipOutputStream, dirRes)
+    files.foreach(f => addFileToZip(zipOutputStream, f))
     zipOutputStream.close()
   }
 
