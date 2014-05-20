@@ -69,7 +69,21 @@ object Files {
    */
   @deprecated("Use Java 7 Files API instead", "2.3")
   def copyFile(from: File, to: File, replaceExisting: Boolean = true): File = {
-    PlayIO.copyFile(from, to, replaceExisting)
+    if (replaceExisting || !to.exists()) {
+      val in = new FileInputStream(from).getChannel
+      try {
+        val out = new FileOutputStream(to).getChannel
+        try {
+          out.transferFrom(in, 0, in.size())
+        } finally {
+          PlayIO.closeQuietly(out)
+        }
+      } finally {
+        PlayIO.closeQuietly(in)
+      }
+    }
+
+    to
   }
 
   /**
@@ -77,7 +91,18 @@ object Files {
    */
   @deprecated("Use Java 7 Files API instead", "2.3")
   def moveFile(from: File, to: File, replace: Boolean = true): File = {
-    PlayIO.moveFile(from, to, replace)
+    if (to.exists() && replace) {
+      to.delete()
+    }
+
+    if (!to.exists()) {
+      if (!from.renameTo(to)) {
+        copyFile(from, to)
+        from.delete()
+      }
+    }
+
+    to
   }
 
   /**
@@ -96,7 +121,16 @@ object Files {
    * @param content the contents to write
    */
   @deprecated("Use Java 7 Files API instead", "2.3")
-  def writeFile(path: File, content: String): Unit = PlayIO.writeStringToFile(path, content)(Codec.UTF8)
+  def writeFile(path: File, content: String): Unit = {
+    path.getParentFile.mkdirs()
+    val out = new FileOutputStream(path)
+    try {
+      val writer = new OutputStreamWriter(out, Codec.UTF8.name)
+      try {
+        writer.write(content)
+      } finally PlayIO.closeQuietly(writer)
+    } finally PlayIO.closeQuietly(out)
+  }
 
   /**
    * Creates a directory.
