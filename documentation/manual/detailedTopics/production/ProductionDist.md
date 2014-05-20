@@ -57,9 +57,42 @@ Many other types of archive can be generated including:
 * Microsoft Installer (MSI)
 * RPMs
 * Debian packages
-* System V / init.d services in RPM/Debian packages
+* System V / init.d and Upstart services in RPM/Debian packages
 
 Please consult the [documentation](http://www.scala-sbt.org/sbt-native-packager) on the native packager for more information.
+
+### Build a server distribution
+
+The sbt-native-packager plugins provides and `java_server` archetype which enables the following features
+
+* System V or Upstart startup scripts
+* [Default folders](http://www.scala-sbt.org/sbt-native-packager/GettingStartedServers/MyFirstProject.html#default-mappings)
+
+A full documentation can be found in the [documentation](http://www.scala-sbt.org/sbt-native-packager/GettingStartedServers/index.html).
+
+To enable the `java_server` archetype you have to add `packageArchetype.java_server`, so it looks like this
+
+```scala
+import com.typesafe.sbt.SbtNativePackager._
+import NativePackagerKeys._
+
+name := "yourapp"
+
+packageArchetype.java_server
+```
+
+Play manages its own PID, which is describe in the [[Production configuration|ProductionConfiguration]].
+In order to tell the startup script where to place the PID file put a file `etc-default` inside `src/main/`
+folder and add the following content
+
+```bash
+-Dpidfile.path=/var/run/${{app_name}}/play.pid
+# Add all other startup settings here, too
+```
+
+For a full list of replacements take a closer look at the [documentation](http://www.scala-sbt.org/sbt-native-packager/GettingStartedServers/AddingConfiguration.html).
+Don't forget to add the necessary settings for your specific package type, like `maintainer` and `packageDescription`.
+
 
 ## Publishing to a Maven (or Ivy) repository
 
