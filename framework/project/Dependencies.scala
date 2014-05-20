@@ -29,7 +29,7 @@ object Dependencies {
     "tyrex" % "tyrex" % "1.0.1") ++ specsBuild.map(_ % "test")
 
   val ebeanDeps = Seq(
-    "org.avaje.ebeanorm" % "avaje-ebeanorm" % "3.2.5" exclude ("javax.persistence", "persistence-api"),
+    "org.avaje.ebeanorm" % "avaje-ebeanorm" % "3.3.4" exclude ("javax.persistence", "persistence-api"),
     "org.avaje.ebeanorm" % "avaje-ebeanorm-agent" % "3.2.2" exclude ("javax.persistence", "persistence-api")
   )
 
@@ -138,7 +138,7 @@ object Dependencies {
 
     guava,
 
-    "org.avaje.ebeanorm" % "avaje-ebeanorm-agent" % "3.2.1" exclude ("javax.persistence", "persistence-api"),
+    "org.avaje.ebeanorm" % "avaje-ebeanorm-agent" % "3.2.2" exclude ("javax.persistence", "persistence-api"),
 
     h2database,
     "org.javassist" % "javassist" % "3.18.1-GA",
