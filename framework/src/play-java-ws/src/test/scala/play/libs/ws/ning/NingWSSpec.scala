@@ -9,6 +9,8 @@ import com.ning.http.client.{FluentCaseInsensitiveStringsMap, Response}
 
 object NingWSSpec extends Specification with Mockito {
 
+  val emptyMap = new java.util.HashMap[String, java.util.Collection[String]]
+
   "NingWSRequestHolder" should {
 
     "set virtualHost correctly" in {
@@ -25,26 +27,13 @@ object NingWSSpec extends Specification with Mockito {
 
     "should respond to getMethod" in {
       val client = mock[NingWSClient]
-      val request : NingWSRequest = new NingWSRequest(client, "GET")
+      val request : NingWSRequest = new NingWSRequest(client, "GET", "", emptyMap, emptyMap)
       request.getMethod must be_==("GET")
-    }
-
-    "should get headers map which retrieves headers case insensitively" in {
-      val client = mock[NingWSClient]
-      val request = new NingWSRequest(client, "GET")
-        .addHeader("Foo", "a")
-        .addHeader("foo", "b")
-        .addHeader("FOO", "b")
-        .addHeader("Bar", "baz")
-
-      val headers = request.getAllHeaders
-      headers.get("foo").asScala must_== Seq("a", "b", "b")
-      headers.get("BAR").asScala must_== Seq("baz")
     }
 
     "should set virtualHost appropriately" in {
       val client = mock[NingWSClient]
-      val request = new NingWSRequest(client, "GET")
+      val request = new NingWSRequest(client, "GET", "", emptyMap, emptyMap)
       request.setVirtualHost("foo.com")
       val actual = request.getBuilder().build().getVirtualHost()
       actual must beEqualTo("foo.com")

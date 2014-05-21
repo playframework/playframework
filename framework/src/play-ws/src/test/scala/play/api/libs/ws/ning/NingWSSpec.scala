@@ -59,7 +59,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
     }
 
     "NingWSRequest.setHeaders using a builder with fluent map" in new WithApplication {
-      val request = new NingWSRequest(mock[NingWSClient], "GET", None, None, builder = new RequestBuilder("GET"))
+      val request = new NingWSRequest(mock[NingWSClient], "GET", None, None, Map.empty, EmptyBody, new RequestBuilder("GET"))
       val headerMap: java.util.Map[String, java.util.Collection[String]] = new java.util.HashMap()
       headerMap.put("key", java.util.Arrays.asList("value"))
 
@@ -68,14 +68,14 @@ object NingWSSpec extends PlaySpecification with Mockito {
     }
 
     "NingWSRequest.setHeaders using a builder with direct map" in new WithApplication {
-      val request = new NingWSRequest(mock[NingWSClient], "GET", None, None, builder = new RequestBuilder("GET"))
+      val request = new NingWSRequest(mock[NingWSClient], "GET", None, None, Map.empty, EmptyBody, new RequestBuilder("GET"))
       val headerMap: Map[String, Seq[String]] = Map("key" -> Seq("value"))
       val ningRequest = request.setHeaders(headerMap).build
       ningRequest.getHeaders.containsKey("key") must beTrue
     }
 
     "NingWSRequest.setQueryString" in new WithApplication {
-      val request = new NingWSRequest(mock[NingWSClient], "GET", None, None, builder = new RequestBuilder("GET"))
+      val request = new NingWSRequest(mock[NingWSClient], "GET", None, None, Map.empty, EmptyBody, new RequestBuilder("GET"))
       val queryString: Map[String, Seq[String]] = Map("key" -> Seq("value"))
       val ningRequest = request.setQueryString(queryString).build
       ningRequest.getQueryParams().containsKey("key") must beTrue

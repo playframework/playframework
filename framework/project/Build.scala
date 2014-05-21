@@ -321,7 +321,7 @@ object PlayBuild extends Build {
         libraryDependencies ++= playWsDeps,
         parallelExecution in Test := false
       ).dependsOn(PlayProject)
-    .dependsOn(PlayWsProject, PlayJavaProject)
+    .dependsOn(PlayWsProject % "test->test;compile->compile", PlayJavaProject)
 
   lazy val PlayFiltersHelpersProject = PlayRuntimeProject("Filters-Helpers", "play-filters-helpers")
     .settings(

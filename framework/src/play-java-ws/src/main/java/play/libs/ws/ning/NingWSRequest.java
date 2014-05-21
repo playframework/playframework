@@ -12,6 +12,7 @@ import play.libs.ws.WSRequest;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -22,20 +23,32 @@ import java.util.Map;
  */
 public class NingWSRequest implements WSRequest {
 
-    private FluentCaseInsensitiveStringsMap headers = new FluentCaseInsensitiveStringsMap();
+    private final FluentCaseInsensitiveStringsMap headers;
+    private final String method;
+    private final RequestBuilder builder;
+    private final NingWSClient client;
+    private final byte[] body;
 
-    private String method;
+    public NingWSRequest(NingWSClient client, String method, String url, Map<String, Collection<String>> queryString,
+                         Map<String, Collection<String>> headers) {
+        this(client, method, url, queryString, new FluentCaseInsensitiveStringsMap(headers), null);
+    }
 
-    private String url;
+    public NingWSRequest(NingWSClient client, String method, String url, Map<String, Collection<String>> queryString,
+                         FluentCaseInsensitiveStringsMap headers) {
+        this(client, method, url, queryString, headers, null);
+    }
 
-    private RequestBuilder builder;
-
-    private NingWSClient client;
-
-    public NingWSRequest(NingWSClient client, String method) {
+    public NingWSRequest(NingWSClient client, String method, String url, Map<String, Collection<String>> queryString,
+                         FluentCaseInsensitiveStringsMap headers, byte[] body) {
         this.client = client;
         this.builder = new RequestBuilder(method);
         this.method = method;
+        this.headers = headers;
+        this.body = body;
+        builder.setUrl(url)
+                .setQueryParameters(new FluentStringsMap(queryString))
+                .setHeaders(headers);
     }
 
     /**
@@ -60,18 +73,24 @@ public class NingWSRequest implements WSRequest {
 
     @Override
     public String getUrl() {
-        return this.url;
+        return builder.build().getUrl();
+    }
+
+    @Override
+    public byte[] getBody() {
+        return body;
     }
 
     @Override
     public WSRequest auth(String username, String password, WSAuthScheme scheme) {
         Realm.AuthScheme authScheme = getAuthScheme(scheme);
-        return setBuilder(getBuilder().setRealm((new Realm.RealmBuilder())
+        builder.setRealm((new Realm.RealmBuilder())
                 .setScheme(authScheme)
                 .setPrincipal(username)
                 .setPassword(password)
                 .setUsePreemptiveAuth(true)
-                .build()));
+                .build());
+        return this;
     }
 
     @Override
@@ -102,8 +121,8 @@ public class NingWSRequest implements WSRequest {
      */
     @Deprecated
     public NingWSRequest setHeader(String name, String value) {
-        headers.replace(name, value);
-        return setBuilder(getBuilder().setHeader(name, value));
+        builder.setHeader(name, value);
+        return this;
     }
 
     /**
@@ -114,17 +133,8 @@ public class NingWSRequest implements WSRequest {
         if (value == null) {
             value = "";
         }
-        headers.add(name, value);
-        return setBuilder(getBuilder().addHeader(name, value));
-    }
-
-    /**
-     * Defines the request headers.
-     */
-    @Deprecated
-    public NingWSRequest setHeaders(FluentCaseInsensitiveStringsMap hdrs) {
-        headers = (headers == null ? new FluentCaseInsensitiveStringsMap() : headers);
-        return setBuilder(getBuilder().setHeaders(hdrs));
+        builder.addHeader(name, value);
+        return this;
     }
 
     /**
@@ -132,66 +142,58 @@ public class NingWSRequest implements WSRequest {
      */
     @Deprecated
     public NingWSRequest setHeaders(Map<String, Collection<String>> hdrs) {
-        headers = (headers == null ? new FluentCaseInsensitiveStringsMap() : new FluentCaseInsensitiveStringsMap(headers));
-        return setBuilder(getBuilder().setHeaders(hdrs));
+        builder.setHeaders(hdrs);
+        return this;
     }
 
     @Deprecated
     public NingWSRequest setUrl(String url) {
-        this.url = url;
-        return setBuilder(getBuilder().setUrl(url));
+        builder.setUrl(url);
+        return this;
     }
 
-    @Deprecated
-    public NingWSRequest setQueryParameters(FluentStringsMap entries) {
-        return setBuilder(getBuilder().setQueryParameters(entries));
+    NingWSRequest setBody(String body) {
+        builder.setBody(body);
+        return this;
     }
 
-    @Deprecated
-    public NingWSRequest setBody(String body) {
-        return setBuilder(getBuilder().setBody(body));
+    NingWSRequest setBodyEncoding(String charset) {
+        builder.setBodyEncoding(charset);
+        return this;
     }
 
-    @Deprecated
-    public NingWSRequest setBodyEncoding(String charset) {
-        return setBuilder(getBuilder().setBodyEncoding(charset));
+    NingWSRequest setBody(InputStream body) {
+        builder.setBody(new InputStreamBodyGenerator(body));
+        return this;
     }
 
-    @Deprecated
-    public NingWSRequest setBody(InputStream body) {
-        return setBuilder(getBuilder().setBody(new InputStreamBodyGenerator(body)));
+    NingWSRequest setPerRequestConfig(PerRequestConfig config) {
+        builder.setPerRequestConfig(config);
+        return this;
     }
 
-    @Deprecated
-    public NingWSRequest setPerRequestConfig(PerRequestConfig config) {
-        return setBuilder(getBuilder().setPerRequestConfig(config));
+    NingWSRequest setFollowRedirects(Boolean followRedirects) {
+        builder.setFollowRedirects(followRedirects);
+        return this;
     }
 
-    @Deprecated
-    public NingWSRequest setFollowRedirects(Boolean followRedirects) {
-        return setBuilder(getBuilder().setFollowRedirects(followRedirects));
-    }
-
-    @Deprecated
-    public NingWSRequest setBody(File body) {
-        return setBuilder(getBuilder().setBody(body));
+    NingWSRequest setBody(File body) {
+        builder.setBody(body);
+        return this;
     }
 
     // intentionally package private.
     NingWSRequest setVirtualHost(String virtualHost) {
-        return setBuilder(getBuilder().setVirtualHost(virtualHost));
-    }
-
-    public RequestBuilder getBuilder() {
-        return builder;
-    }
-
-    public NingWSRequest setBuilder(RequestBuilder builder) {
-        this.builder = builder;
+        builder.setVirtualHost(virtualHost);
         return this;
     }
 
-    public Realm.AuthScheme getAuthScheme(WSAuthScheme scheme) {
+    RequestBuilder getBuilder() {
+        return builder;
+    }
+
+
+    Realm.AuthScheme getAuthScheme(WSAuthScheme scheme) {
         return Realm.AuthScheme.valueOf(scheme.name());
     }
 
