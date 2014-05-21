@@ -63,14 +63,14 @@ Please consult the [documentation](http://www.scala-sbt.org/sbt-native-packager)
 
 ### Build a server distribution
 
-The sbt-native-packager plugins provides and `java_server` archetype which enables the following features
+The sbt-native-packager plugins provides a `java_server` archetype which enables the following features:
 
 * System V or Upstart startup scripts
 * [Default folders](http://www.scala-sbt.org/sbt-native-packager/GettingStartedServers/MyFirstProject.html#default-mappings)
 
 A full documentation can be found in the [documentation](http://www.scala-sbt.org/sbt-native-packager/GettingStartedServers/index.html).
 
-To enable the `java_server` archetype you have to add `packageArchetype.java_server`, so it looks like this
+To enable the `java_server` archetype you have to add `packageArchetype.java_server`, so it looks like this:
 
 ```scala
 import com.typesafe.sbt.SbtNativePackager._
@@ -81,7 +81,7 @@ name := "yourapp"
 packageArchetype.java_server
 ```
 
-Play manages its own PID, which is describe in the [[Production configuration|ProductionConfiguration]].
+Play manages its own PID, which is described in the [[Production configuration|ProductionConfiguration]].
 In order to tell the startup script where to place the PID file put a file `etc-default` inside `src/main/`
 folder and add the following content
 
