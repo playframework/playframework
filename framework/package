@@ -11,7 +11,7 @@ TAG=1
 CLEAN=0
 PUBLISHCMD="publish-local-signed"
 GITBRANCH=`git rev-parse --abbrev-ref HEAD`
-CROSSBUILD="2.11.0"
+CROSSBUILD="2.11.1"
 
 usage() {
     echo "Usage:"
