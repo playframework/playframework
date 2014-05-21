@@ -258,7 +258,7 @@ trait PlayReloader {
                 }
                 case JavacErrorPosition(pos) => {
                   parsed = parsed._1 -> Some(pos.size)
-                  if (first == (None, None)) {
+                  if (first == ((None, None))) {
                     first = parsed
                   }
                 }
