@@ -31,7 +31,7 @@ val playVersion = propOrElse("play.version", {
 })
 
 // The Play templates should default to using the latest compatible version of Scala
-val playScalaVersion = propOrElse("scala.version", "2.11.0")
+val playScalaVersion = propOrElse("scala.version", "2.11.1")
 
 val playDocsUrl = propOrElse("play.docs.url", {
   // Use a version like 2.4.x for the documentation

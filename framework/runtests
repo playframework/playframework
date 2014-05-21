@@ -5,7 +5,7 @@
 unset no_publish
 
 # comma-separated list of scala versions to cross build against
-declare crossbuild="2.11.0"
+declare crossbuild="2.11.1"
 
 # process arguments
 declare -a args
@@ -18,10 +18,6 @@ while [[ $# -gt 0 ]] ; do
 done
 set -- "${args[@]}" # reset "$@"
 
-echo "[info]"
-echo "[info] ---- PLAYFRAMEWORK CORE TEST RUNNER"
-echo "[info]"
-
 set -e
 export CURRENT=`pwd`
 export SCRIPT=`dirname "$0"`
@@ -32,12 +28,22 @@ export BUILD=`pwd`/build
 if [ -n "$no_publish" ] ; then
   echo "[info] Not publishing locally"
 else
+  echo "[info] Play will build with its default version of Scala and also cross build against these versions: <${crossbuild}>"
+  echo "[info]"
+  echo "[info] ---- BUILDING PLAY (with its default version of Scala)"
+  echo "[info]"
   $BUILD "$@" publish-local
   for v in ${crossbuild//,/ } ; do
-    echo "[info] Cross building Play against Scala $v"
+    echo "[info]"
+    echo "[info] ---- BUILDING PLAY (cross building against Scala $v)"
+    echo "[info]"
     $BUILD "$@" -Dscala.version=$v publish-local
   done
 fi
+
+echo "[info]"
+echo "[info] ---- PLAYFRAMEWORK CORE TEST RUNNER"
+echo "[info]"
 
 $BUILD "$@" test:test
 
