@@ -117,18 +117,18 @@ case class OAuthCalculator(consumerKey: ConsumerKey, token: RequestToken) extend
 
     override def unwrap() = request
 
-    override def getAllHeaders(): java.util.Map[String, String] =
+    override def getAllHeaders: java.util.Map[String, String] =
       request.allHeaders.map { entry => (entry._1, entry._2.headOption) }
         .filter { entry => entry._2.isDefined }
         .map { entry => (entry._1, entry._2.get) }.asJava
 
     override def getHeader(name: String): String = request.header(name).getOrElse("")
 
-    override def getContentType(): String = getHeader("Content-Type")
+    override def getContentType: String = getHeader("Content-Type")
 
-    override def getMessagePayload() = new java.io.ByteArrayInputStream(request.getStringData.getBytes)
+    override def getMessagePayload = new java.io.ByteArrayInputStream(request.getBody.getOrElse(Array.emptyByteArray))
 
-    override def getMethod(): String = this.request.method
+    override def getMethod: String = this.request.method
 
     override def setHeader(name: String, value: String) {
       request.setHeader(name, value)
@@ -138,7 +138,7 @@ case class OAuthCalculator(consumerKey: ConsumerKey, token: RequestToken) extend
      * Returns the full URL with query string for correct signing.
      * @return a URL with query string attached.
      */
-    override def getRequestUrl() = request.urlWithQueryString
+    override def getRequestUrl = request.url
 
     override def setRequestUrl(url: String) {
       request.setUrl(url)

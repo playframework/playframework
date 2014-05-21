@@ -6,7 +6,6 @@ package play.libs.ws.ning;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ning.http.client.FluentCaseInsensitiveStringsMap;
-import com.ning.http.client.FluentStringsMap;
 import com.ning.http.client.PerRequestConfig;
 import com.ning.http.util.AsyncHttpProviderUtils;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
@@ -16,6 +15,7 @@ import play.libs.ws.*;
 
 import java.io.File;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
@@ -495,18 +495,14 @@ public class NingWSRequestHolder implements WSRequestHolder {
      */
     @Override
     public F.Promise<play.libs.ws.WSResponse> execute(String method) {
-        NingWSRequest req = new NingWSRequest(client, method).setUrl(url)
-                .setHeaders(headers)
-                .setQueryParameters(new FluentStringsMap(queryParameters));
-        return execute(req);
+        setMethod(method);
+        return execute();
     }
 
     @Override
     public F.Promise<WSResponse> execute() {
         if (body == null) {
-            NingWSRequest req = new NingWSRequest(client, method).setUrl(url)
-                    .setHeaders(headers)
-                    .setQueryParameters(new FluentStringsMap(queryParameters));
+            NingWSRequest req = new NingWSRequest(client, method, url, queryParameters, headers);
             return execute(req);
         } else if (body instanceof String) {
             return executeString((String) body);
@@ -535,38 +531,46 @@ public class NingWSRequestHolder implements WSRequestHolder {
             headers.replace(HttpHeaders.Names.CONTENT_TYPE, contentType + "; charset=utf-8");
         }
 
-        NingWSRequest req = new NingWSRequest(client, method).setBody(body)
-                .setUrl(url)
-                .setHeaders(headers)
-                .setQueryParameters(new FluentStringsMap(queryParameters))
+        byte[] bodyBytes;
+        try {
+            bodyBytes = body.getBytes(charset);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+
+        NingWSRequest req = new NingWSRequest(client, method, url, queryParameters, headers, bodyBytes)
+                .setBody(body)
                 .setBodyEncoding(charset);
         return execute(req);
     }
 
     private F.Promise<play.libs.ws.WSResponse> executeJson(JsonNode body) {
-        NingWSRequest req = new NingWSRequest(client, method).setBody(Json.stringify(body))
-                .setUrl(url)
-                .setHeaders(headers)
-                .setHeader(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=utf-8")
-                .setQueryParameters(new FluentStringsMap(queryParameters))
+        FluentCaseInsensitiveStringsMap headers = new FluentCaseInsensitiveStringsMap(this.headers);
+        headers.replace(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=utf-8");
+        String bodyStr = Json.stringify(body);
+        byte[] bodyBytes;
+        try {
+            bodyBytes = bodyStr.getBytes("utf-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+
+        NingWSRequest req = new NingWSRequest(client, method, url, queryParameters, headers, bodyBytes)
+                .setBody(bodyStr)
                 .setBodyEncoding("utf-8");
         return execute(req);
 
     }
 
     private F.Promise<play.libs.ws.WSResponse> executeIS(InputStream body) {
-        NingWSRequest req = new NingWSRequest(client, method).setBody(body)
-                .setUrl(url)
-                .setHeaders(headers)
-                .setQueryParameters(new FluentStringsMap(queryParameters));
+        NingWSRequest req = new NingWSRequest(client, method, url, queryParameters, headers)
+                .setBody(body);
         return execute(req);
     }
 
     private F.Promise<play.libs.ws.WSResponse> executeFile(File body) {
-        NingWSRequest req = new NingWSRequest(client, method).setBody(body)
-                .setUrl(url)
-                .setHeaders(headers)
-                .setQueryParameters(new FluentStringsMap(queryParameters));
+        NingWSRequest req = new NingWSRequest(client, method, url, queryParameters, headers)
+                .setBody(body);
         return execute(req);
     }
 

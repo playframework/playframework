@@ -50,22 +50,16 @@ class NingWSClient(config: AsyncHttpClientConfig) extends WSClient {
  * A WS Request.
  */
 case class NingWSRequest(client: NingWSClient,
-  private val _method: String,
-  private val _auth: Option[(String, String, WSAuthScheme)],
-  private val _calc: Option[WSSignatureCalculator],
+  method: String,
+  private val auth: Option[(String, String, WSAuthScheme)],
+  private val calc: Option[WSSignatureCalculator],
+  private val headers: Map[String, Seq[String]],
+  private val body: WSBody,
   builder: RequestBuilder)
     extends WSRequest {
 
-  protected var body: Option[String] = None
-
-  protected var calculator: Option[WSSignatureCalculator] = _calc
-
-  protected var headers: Map[String, Seq[String]] = TreeMap[String, Seq[String]]()(CaseInsensitiveOrdered)
-
-  protected var _url: String = null
-
   //this will do a java mutable set hence the {} response
-  _auth.map(data => auth(data._1, data._2, authScheme(data._3))).getOrElse({})
+  auth.map(data => auth(data._1, data._2, authScheme(data._3))).getOrElse({})
 
   /**
    * Return the current headers of the request being constructed
@@ -90,29 +84,23 @@ case class NingWSRequest(client: NingWSClient,
    */
   def header(name: String): Option[String] = headers.get(name).flatMap(_.headOption)
 
-  /**
-   * The HTTP method.
-   */
-  def method: String = _method
-
-  /**
-   * The URL
-   */
-  def url: String = _url
-
-  def urlWithQueryString: String = {
+  def url: String = {
     val request = builder.build()
     request.getUrl
   }
 
-  def getStringData: String = body.getOrElse("")
+  def getBody: Option[Array[Byte]] = {
+    body match {
+      case InMemoryBody(bytes) => Some(bytes)
+      case _ => None
+    }
+  }
 
   /**
    * Set an HTTP header.
    */
   @scala.deprecated("This will be a protected method, please use WSRequestHolder", "2.3.0")
   override def setHeader(name: String, value: String): NingWSRequest = {
-    headers = headers + (name -> List(value))
     this.copy(builder = builder.setHeader(name, value))
   }
 
@@ -121,7 +109,6 @@ case class NingWSRequest(client: NingWSClient,
    */
   @scala.deprecated("This will be a protected method, please use WSRequestHolder", "2.3.0")
   override def addHeader(name: String, value: String): NingWSRequest = {
-    headers = headers + (name -> (headers.get(name).getOrElse(List()) :+ value))
     this.copy(builder = builder.addHeader(name, value))
   }
 
@@ -130,7 +117,6 @@ case class NingWSRequest(client: NingWSClient,
    */
   @scala.deprecated("This will be a protected method, please use WSRequestHolder", "2.3.0")
   def setHeaders(hdrs: FluentCaseInsensitiveStringsMap): NingWSRequest = {
-    headers = ningHeadersToMap(hdrs)
     this.copy(builder = builder.setHeaders(hdrs))
   }
 
@@ -139,7 +125,6 @@ case class NingWSRequest(client: NingWSClient,
    */
   @scala.deprecated("This will be a protected method, please use WSRequestHolder", "2.3.0")
   def setHeaders(hdrs: java.util.Map[String, java.util.Collection[String]]): NingWSRequest = {
-    headers = ningHeadersToMap(hdrs)
     this.copy(builder = builder.setHeaders(hdrs))
   }
 
@@ -148,7 +133,6 @@ case class NingWSRequest(client: NingWSClient,
    */
   @scala.deprecated("This will be a protected method, please use WSRequestHolder", "2.3.0")
   def setHeaders(hdrs: Map[String, Seq[String]]): NingWSRequest = {
-    headers = hdrs
     // roll up the builders using two foldlefts...
     val newBuilder = hdrs.foldLeft(builder) {
       (b, header) =>
@@ -181,7 +165,6 @@ case class NingWSRequest(client: NingWSClient,
    */
   @scala.deprecated("This will be a protected method, please use WSRequestHolder", "2.3.0")
   def setUrl(url: String): NingWSRequest = {
-    _url = url
     this.copy(builder = builder.setUrl(url))
   }
 
@@ -207,7 +190,6 @@ case class NingWSRequest(client: NingWSClient,
 
   @scala.deprecated("This will be a protected method, please use WSRequestHolder", "2.3.0")
   def setBody(s: String): NingWSRequest = {
-    this.body = Some(s)
     this.copy(builder = builder.setBody(s))
   }
 
@@ -260,7 +242,7 @@ case class NingWSRequest(client: NingWSClient,
   private[libs] def execute: Future[NingWSResponse] = {
     import com.ning.http.client.AsyncCompletionHandler
     var result = Promise[NingWSResponse]()
-    calculator.map(_.sign(this))
+    calc.map(_.sign(this))
     client.executeRequest(builder.build(), new AsyncCompletionHandler[AHCResponse]() {
       override def onCompleted(response: AHCResponse) = {
         result.success(NingWSResponse(response))
@@ -282,7 +264,7 @@ case class NingWSRequest(client: NingWSClient,
 
     val errorInStream = Promise[Unit]()
 
-    calculator.map(_.sign(this))
+    calc.map(_.sign(this))
 
     val promisedIteratee = Promise[Iteratee[Array[Byte], Unit]]()
 
@@ -440,7 +422,7 @@ case class NingWSRequestHolder(client: NingWSClient,
       case StreamedBody(bytes) =>
         builder
     }
-    new NingWSRequest(client, method, auth, calc, builderWithBody)
+    new NingWSRequest(client, method, auth, calc, headers, body, builderWithBody)
   }
 
   private def createBuilder() = {

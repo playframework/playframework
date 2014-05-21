@@ -24,6 +24,13 @@ public interface WSRequest {
 
     String getUrl();
 
+    /**
+     * Get the body.
+     *
+     * @return The body, if and only if it's an in memory body, otherwise returns null.
+     */
+    byte[] getBody();
+
     @Deprecated
     WSRequest setUrl(String url);
 
