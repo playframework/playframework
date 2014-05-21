@@ -7,10 +7,11 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import scala.concurrent.duration._
 
-import akka.actor.{Actor, Props}
 import akka.pattern.ask
-
+//#play-akka-imports
+import akka.actor.{Actor, Props}
 import play.api.libs.concurrent.Akka
+//#play-akka-imports
 import play.api.Play.current
 import play.api.test._
 import java.io.File
@@ -22,9 +23,9 @@ class ScalaAkkaSpec extends PlaySpecification {
 
     "myActor" in {
       running(FakeApplication()) {
-        //#play-akka-myactor
-        val myActor = Akka.system.actorOf(Props[MyActor], name = "myactor")
-        //#play-akka-myactor
+        //#play-akka-actorOf
+        val myActor = Akka.system.actorOf(Props[MyActor], name = "myActor")
+        //#play-akka-actorOf
 
         val future = myActor.ask("Alan")(5 seconds)
         val result = await(future).asInstanceOf[String]
@@ -46,7 +47,6 @@ class ScalaAkkaSpec extends PlaySpecification {
 
     "actor scheduler" in {
       running(FakeApplication()) {
-        val testActor = Akka.system.actorOf(Props[MyActor], name = "testActor")
         import scala.concurrent.ExecutionContext.Implicits.global
         val file = new File("/tmp/nofile")
         file.mkdirs()
@@ -66,6 +66,7 @@ class ScalaAkkaSpec extends PlaySpecification {
 
 }
 
+//#play-akka-MyActor
 class MyActor extends Actor {
   def receive = {
     case s: String =>
@@ -73,5 +74,6 @@ class MyActor extends Actor {
       sender() ! "Hello, " + s
   }
 }
+//#play-akka-MyActor
 
 }

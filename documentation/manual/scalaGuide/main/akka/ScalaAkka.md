@@ -11,9 +11,13 @@ A Play application defines a special actor system to be used by the application.
 
 > **Note:** Nothing prevents you from using another actor system from within a Play application. The provided default is convenient if you only need to start a few actors without bothering to set-up your own actor system.
 
-You can access the default application actor system using the `play.api.libs.concurrent.Akka` helper:
+You can access the default application actor system using the [`play.api.libs.concurrent.Akka`](api/scala/index.html#play.api.libs.concurrent.Akka$) helper:
 
-@[play-akka-myactor](code/ScalaAkka.scala)
+@[play-akka-imports](code/ScalaAkka.scala)
+
+@[play-akka-MyActor](code/ScalaAkka.scala)
+
+@[play-akka-actorOf](code/ScalaAkka.scala)
 
 
 ## Configuration

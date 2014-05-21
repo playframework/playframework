@@ -3,13 +3,15 @@
  */
 package javaguide.akka;
 
-import akka.actor.*;
-import akka.actor.Props;
 import com.typesafe.config.*;
 import javaguide.testhelpers.MockJavaAction;
-import org.junit.Before;
 import org.junit.Test;
+
+//#akka-imports
+import akka.actor.*;
 import play.libs.Akka;
+//#akka-imports
+
 import play.libs.F.Promise;
 import play.mvc.Result;
 import play.test.WithApplication;
@@ -24,25 +26,28 @@ import static org.junit.Assert.*;
 
 public class JavaAkka extends WithApplication {
 
+    private static volatile CountDownLatch latch;
+    
+    //#akka-MyActor
+    public static class MyActor extends UntypedActor {
+        @Override
+        public void onReceive(Object msg) throws Exception {
+            //###replace:         // receive logic
+            latch.countDown();
+        }
+    }
+    //#akka-MyActor
+  
     @Test
     public void actorFor() throws Exception {
-        //#actor-for
+        //#akka-actorOf
         ActorRef myActor = Akka.system().actorOf(Props.create(MyActor.class));
-        //#actor-for
+        //#akka-actorOf
 
         latch = new CountDownLatch(1);
         myActor.tell("hello", null);
         assertTrue(latch.await(5, TimeUnit.SECONDS));
-    }
-
-    public static class MyActor extends UntypedActor {
-        @Override
-        public void onReceive(Object msg) throws Exception {
-            latch.countDown();
-        }
-    }
-
-    private static volatile CountDownLatch latch;
+    }    
 
     @Test
     public void conf() throws Exception {
