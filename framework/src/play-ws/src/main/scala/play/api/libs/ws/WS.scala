@@ -13,7 +13,6 @@ import play.api.libs.iteratee._
 import play.api._
 import scala.xml.Elem
 import play.api.libs.json.JsValue
-import play.api.libs.ws.ssl.SSLConfig
 
 /**
  * The WSClient holds the configuration information needed to build a request, and provides a way to get a request holder.
@@ -189,7 +188,7 @@ abstract class WSPlugin extends Plugin {
 }
 
 /**
- * WSRequest is used internally.  Please use WSRequestBuilder.
+ * WSRequest is used internally.  Please use WSRequestHolder.
  */
 trait WSRequest {
 
@@ -219,14 +218,11 @@ trait WSRequest {
   def url: String
 
   /**
-   * The URL including query string parameters.
+   * Get the body.
+   *
+   * Will only return the body if the body exists in memory, will not return it if it's a stream.
    */
-  def urlWithQueryString: String
-
-  /**
-   * The body of the request as a string.
-   */
-  def getStringData: String
+  def getBody: Option[Array[Byte]]
 
   /**
    * Set an HTTP header.

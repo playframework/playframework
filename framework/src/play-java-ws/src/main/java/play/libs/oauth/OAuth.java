@@ -3,6 +3,7 @@
  */
 package play.libs.oauth;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -200,7 +201,11 @@ public class OAuth {
 
         @Override
         public InputStream getMessagePayload() {
-            return null;
+            byte[] body = request.getBody();
+            if (body == null) {
+                body = new byte[0];
+            }
+            return new ByteArrayInputStream(body);
         }
 
         @Override
