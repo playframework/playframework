@@ -189,17 +189,17 @@ The following lists all sbt-web related components and their versions at the tim
 
 #### sbt plugins
 ```scala
-"com.typesafe.sbt" % "sbt-web" % "1.0.0-RC2"
+"com.typesafe.sbt" % "sbt-web" % "1.0.0-RC3"
 "com.typesafe.sbt" % "sbt-webdriver" % "1.0.0-RC2"
-"com.typesafe.sbt" % "sbt-js-engine" % "1.0.0-RC2"
+"com.typesafe.sbt" % "sbt-js-engine" % "1.0.0-RC3"
 
-"com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0-RC2"
+"com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0-RC3"
 "com.typesafe.sbt" % "sbt-digest" % "1.0.0-RC2"
 "com.typesafe.sbt" % "sbt-gzip" % "1.0.0-RC2"
 "com.typesafe.sbt" % "sbt-less" % "1.0.0-RC2"
 "com.typesafe.sbt" % "sbt-jshint" % "1.0.0-RC2"
 "com.typesafe.sbt" % "sbt-mocha" % "1.0.0-RC2"
-"com.typesafe.sbt" % "sbt-rjs" % "1.0.0-RC2"
+"com.typesafe.sbt" % "sbt-rjs" % "1.0.0-RC3"
 ```
 
 #### WebJars
@@ -231,7 +231,7 @@ From your perspective we aim to offer feature parity with previous releases of P
 You must now declare the plugin, typically in your plugins.sbt file:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0-RC2")
+addSbtPlugin("com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0-RC3")
 ```
 
 Coffeescript options have changed. The new options are:
@@ -318,7 +318,7 @@ The RequireJS Optimizer (rjs) has been entirely replaced with one that should be
 To use rjs you must declare it, typically in your plugins.sbt file:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-rjs" % "1.0.0-RC2")
+addSbtPlugin("com.typesafe.sbt" % "sbt-rjs" % "1.0.0-RC3")
 ```
 
 To add the plugin to the asset pipeline you can declare it as follows:
@@ -343,41 +343,24 @@ pipelineStages := Seq(rjs, digest, gzip)
 
 The order of stages is significant. You first want to optimize the files, produce digests of them and then produce gzip versions of all resultant assets.
 
-The options for RequireJs optimization have changed entirely. A standard build profile for the RequireJS optimizer is provided and should suffice for most projects. However if you would prefer to provide your own build profile then declare an `appBuildProfile` function in your build. The following build profile is the direct equivalent of [the one recommended in the rjs documentation for whole project builds](http://requirejs.org/docs/optimization.html#wholeproject):
+The options for RequireJs optimization have changed entirely. The plugin's options are:
 
-```scala
-import RjsKeys._
-
-appBuildProfile := s"""|({
-                       |  appDir: "${appDir.value}",
-                       |  baseUrl: "js",
-                       |  dir: "${dir.value}",
-                       |  modules: [
-                       |      {
-                       |           name: "main"
-                       |      }
-                       |  ]
-                       |})""".stripMargin
-```
-
-The standard build profile we provide incorporates support for generating source maps, allows for configuration overrides in your `main.js` file and optimizes using uglify2. The standard build profile is as follows:
-
-```scala
-appBuildProfile := s"""|({
-                       |  appDir: "${appDir.value}",
-                       |  baseUrl: "js",
-                       |  dir: "${dir.value}",
-                       |  generateSourceMaps: true,
-                       |  mainConfigFile: "${appDir.value / "js" / "main.js"}",
-                       |  modules: [{
-                       |    name: "main"
-                       |  }],
-                       |  onBuildWrite: ${buildWriter.value},
-                       |  optimize: "uglify2",
-                       |  paths: ${RjsJson.toJsonObj(webJarModuleIds.value.map(m => m -> "empty:"))},
-                       |  preserveLicenseComments: false
-                       |})""".stripMargin
-```
+Option                  | Description
+------------------------|------------
+appBuildProfile         | The project build profile contents.
+appDir                  | The top level directory that contains your app js files. In effect, this is the source folder that rjs reads from.
+baseUrl                 | The dir relative to the assets or public folder where js files are housed. Will default to "js", "javascripts" or "." with the latter if the other two cannot be found.
+buildProfile            | Build profile key -> value settings in addition to the defaults supplied by appBuildProfile. Any settings in here will also replace any defaults.
+buildWriter             | The project build writer JS that is responsible for writing out source files in rjs.
+dir                     | By default, all modules are located relative to this path. In effect this is the target directory for rjs.
+generateSourceMaps      | By default, source maps are generated.
+mainModule              | By default, 'main' is used as the module.
+modules                 | The json array of modules.
+optimize                | The name of the optimizer, defaults to uglify2.
+paths                   | A set of RequireJS path mappings. By default all WebJar libraries are made available from a CDN and their mappings can be found here (unless the cdn is set to None).
+preserveLicenseComments | Whether to preserve comments or not. Defaults to false given source maps (see http://requirejs.org/docs/errors.html#sourcemapcomments).
+webjarCdn               | A CDN to be used for locating WebJars. By default jsdelivr is used.
+webJarModuleIds         | A sequence of webjar module ids to be used.
 
 For more information please consult [the plugin's documentation](https://github.com/sbt/sbt-rjs#sbt-rjs).
 
