@@ -140,7 +140,7 @@ Update your `build.sbt` or `Build.scala` to include the Scala version:
 For Scala 2.11:
 
 ```scala
-scalaVersion := "2.11.0"
+scalaVersion := "2.11.1"
 ```
 
 For Scala 2.10:
