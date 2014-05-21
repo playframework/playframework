@@ -20,8 +20,7 @@ trait PlaySettings {
 
   lazy val defaultJavaSettings = Seq[Setting[_]](
 
-    TwirlKeys.templateImports in Compile ++= defaultJavaTemplateImports,
-    TwirlKeys.templateImports in Test ++= defaultJavaTemplateImports,
+    TwirlKeys.templateImports ++= defaultJavaTemplateImports,
 
     routesImport ++= Seq(
       "play.libs.F"
@@ -32,8 +31,7 @@ trait PlaySettings {
   )
 
   lazy val defaultScalaSettings = Seq[Setting[_]](
-    TwirlKeys.templateImports in Compile ++= defaultScalaTemplateImports,
-    TwirlKeys.templateImports in Test ++= defaultScalaTemplateImports
+    TwirlKeys.templateImports ++= defaultScalaTemplateImports
   )
 
   def closureCompilerSettings(optionCompilerOptions: com.google.javascript.jscomp.CompilerOptions) = Seq[Setting[_]](
@@ -253,8 +251,7 @@ trait PlaySettings {
 
     // Templates
 
-    TwirlKeys.templateImports in Compile ++= defaultTemplateImports,
-    TwirlKeys.templateImports in Test ++= defaultTemplateImports,
+    TwirlKeys.templateImports ++= defaultTemplateImports,
 
     // Native packaging
 

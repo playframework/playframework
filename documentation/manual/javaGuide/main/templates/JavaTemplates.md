@@ -194,7 +194,7 @@ To make an absolute resolution, use **_root_** prefix in the import statement.
 If you have common imports, which you need in all templates, you can declare in `build.sbt`
 
 ```scala
-TwirlKeys.templateImports in Compile += "org.abc.backend._"
+TwirlKeys.templateImports += "org.abc.backend._"
 ```
 
 ## Comments
