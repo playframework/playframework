@@ -39,6 +39,24 @@ trait PlayReloader {
 
       lazy val jnotify = { // This create a fully dynamic version of JNotify that support reloading 
 
+        // Use an alternative watcher if we fail to load JNotify
+        def fallbackWatcher(e: Throwable) = {
+          println(play.sbtplugin.Colors.red(
+            """|
+               |Cannot load the JNotify native library (%s)
+               |Play will check file changes for each request, so expect degraded reloading performace.
+               |""".format(e.getMessage).stripMargin
+          ))
+
+          new {
+            def addWatch(directoryToWatch: String): Int = 0
+            def removeWatch(id: Int): Unit = ()
+            def reloaded(): Unit = ()
+            def changed(): Unit = ()
+            def hasChanged = true
+          }
+        }
+
         try {
 
           var _changed = true
@@ -103,24 +121,11 @@ trait PlayReloader {
           nativeWatcher
 
         } catch {
-          case NonFatal(e) => {
-
-            println(play.sbtplugin.Colors.red(
-              """|
-                 |Cannot load the JNotify native library (%s)
-                 |Play will check file changes for each request, so expect degraded reloading performace.
-                 |""".format(e.getMessage).stripMargin
-            ))
-
-            new {
-              def addWatch(directoryToWatch: String): Int = 0
-              def removeWatch(id: Int): Unit = ()
-              def reloaded(): Unit = ()
-              def changed(): Unit = ()
-              def hasChanged = true
-            }
-
-          }
+          case NonFatal(e) => fallbackWatcher(e)
+          // JNotify failure on FreeBSD
+          case e: ExceptionInInitializerError => fallbackWatcher(e)
+          // JNotify failure on Linux
+          case e: UnsatisfiedLinkError => fallbackWatcher(e)
         }
 
       }
