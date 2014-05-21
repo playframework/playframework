@@ -10,6 +10,7 @@ import org.specs2.mutable._
 import scala.concurrent._
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.Try
 
 object ConcurrentSpec extends Specification
   with IterateeSpecification with ExecutionSpecification {
@@ -61,17 +62,28 @@ object ConcurrentSpec extends Specification
     def now = System.currentTimeMillis()
 
     "not slow down the enumerator if the iteratee is slow" in {
-      mustExecute(10, 10, 10) { (foldEC, mapEC, bufferEC) =>
-        val slowIteratee = Iteratee.foldM(List[Long]()) { (s, e: Long) => timeout(s :+ e, Duration(100, MILLISECONDS)) }(foldEC)
-        val fastEnumerator = Enumerator[Long](1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+      val enumeratorFinished = new CountDownLatch(1)
+      mustExecute(10) { bufferEC =>
+        // This enumerator emits elements as fast as it can and
+        // signals that it has finished using a latch
+        val fastEnumerator = Enumerator((1 to 10): _*).onDoneEnumerating {
+          enumeratorFinished.countDown()
+        }
+        val slowIteratee = Iteratee.foldM(List[Int]()) { (s, e: Int) =>
+          Future {
+            enumeratorFinished.await(waitTime.toMillis, TimeUnit.MILLISECONDS)
+            s :+ e
+          }
+        }
+        // Concurrent.buffer should buffer elements so that the the
+        // fastEnumerator can complete even though the slowIteratee
+        // won't consume anything until it has finished.
         val result =
           fastEnumerator &>
-            Enumeratee.scanLeft((now, 0L)) { case ((s, v), _) => val ms = now; (ms, (ms - s)) } &>
-            Enumeratee.map((_: (Long, Long))._2)(mapEC) &>
-            Concurrent.buffer(20, (_: Input[Long]) => 1)(bufferEC) |>>>
+            Concurrent.buffer(20, (_: Input[Int]) => 1)(bufferEC) |>>>
             slowIteratee
 
-        Await.result(result, Duration.Inf).max must beLessThan(1000L)
+        await(result) must_== ((1 to 10).to[List])
       }
     }
 
@@ -116,12 +128,24 @@ object ConcurrentSpec extends Specification
   "Concurrent.lazyAndErrIfNotReady" should {
 
     "return an error if the iteratee is taking too long" in {
+      // Create an iteratee that never finishes. This means that our
+      // Concurrent.lazyAndErrIfNotReady timeout will always fire.
+      // Once we've got our timeout we release the iteratee so that
+      // it can finish normally.
+      val gotResult = new CountDownLatch(1)
+      val slowIteratee = Iteratee.foldM(List[Int]()) { (s, e: Int) =>
+        Future {
+          gotResult.await(waitTime.toMillis, TimeUnit.MILLISECONDS)
+          s :+ e
+        }
+      }
 
-      val slowIteratee = Iteratee.flatten(timeout(Cont[Long,List[Long]]{case _ => Done(List(1),Input.Empty)}, Duration(1000, MILLISECONDS)))
-      val fastEnumerator = Enumerator[Long](1,2,3,4,5,6,7,8,9,10) >>> Enumerator.eof
-      val result = (fastEnumerator &> Concurrent.lazyAndErrIfNotReady(50) |>>> slowIteratee)
-
-      Await.result(result, Duration.Inf) must throwA[Exception]("iteratee is taking too long")
+      val fastEnumerator = Enumerator((1 to 10): _*) >>> Enumerator.eof
+      val result = Try(await(fastEnumerator &> Concurrent.lazyAndErrIfNotReady(50) |>>> slowIteratee))
+      // We've got our result (hopefully a timeout), so let the iteratee
+      // complete.
+      gotResult.countDown()
+      result.get must throwA[Exception]("iteratee is taking too long")
     }
 
   }
