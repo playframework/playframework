@@ -14,6 +14,8 @@ val digestVersion = propOrElse("digest.version", "1.0.0-RC2")
 
 val rjsVersion = propOrElse("rjs.version", "1.0.0-RC3")
 
+val gzipVersion = propOrElse("gzip.version", "1.0.0-RC2")
+
 val mochaVersion = propOrElse("mocha.version", "1.0.0-RC2")
 
 templates := {
@@ -54,6 +56,7 @@ templateParameters := Map(
   "JSHINT_VERSION" -> jshintVersion,
   "DIGEST_VERSION" -> digestVersion,
   "RJS_VERSION" -> rjsVersion,
+  "GZIP_VERSION" -> gzipVersion,
   "MOCHA_VERSION" -> mochaVersion,
   "TEMPLATE_NAME_SUFFIX" -> templateNameSuffix,
   "TEMPLATE_TITLE_SUFFIX" -> templateTitleSuffix

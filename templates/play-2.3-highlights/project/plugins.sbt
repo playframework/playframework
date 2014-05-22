@@ -15,4 +15,6 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-rjs" % "%RJS_VERSION%")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-digest" % "%DIGEST_VERSION%")
 
+addSbtPlugin("com.typesafe.sbt" % "sbt-gzip" % "%GZIP_VERSION%")
+
 addSbtPlugin("com.typesafe.sbt" % "sbt-mocha" % "%MOCHA_VERSION%")
