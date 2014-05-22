@@ -9,4 +9,4 @@ addSbtPlugin("com.typesafe.play" % "sbt-plugin" % System.getProperty("play.versi
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.0.0-RC2")
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0-RC2")
+addSbtPlugin("com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0-RC3")

@@ -6,7 +6,7 @@ import sbt._
 object Dependencies {
 
   // Some common dependencies here so they don't need to be declared over and over
-  val specsVersion = "2.3.11"
+  val specsVersion = "2.3.12"
   val specsBuild = Seq(
     "org.specs2" %% "specs2-core" % specsVersion,
     "org.specs2" %% "specs2-junit" % specsVersion,
@@ -145,13 +145,13 @@ object Dependencies {
 
     "net.contentobjects.jnotify" % "jnotify" % "0.94",
 
-    sbtPluginDep("com.typesafe.sbt" % "sbt-twirl" % "1.0.0-RC1"),
+    sbtPluginDep("com.typesafe.sbt" % "sbt-twirl" % "1.0.0-RC3"),
 
     sbtPluginDep("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.4.0"),
     sbtPluginDep("com.github.mpeltonen" % "sbt-idea" % "1.5.1"),
     sbtPluginDep("com.typesafe.sbt" % "sbt-native-packager" % "0.7.1"),
 
-    sbtPluginDep("com.typesafe.sbt" % "sbt-js-engine" % "1.0.0-RC2"),
+    sbtPluginDep("com.typesafe.sbt" % "sbt-js-engine" % "1.0.0-RC3"),
     sbtPluginDep("com.typesafe.sbt" % "sbt-webdriver" % "1.0.0-RC2")
   ) ++ specsSbt.map(_ % "test")
 
