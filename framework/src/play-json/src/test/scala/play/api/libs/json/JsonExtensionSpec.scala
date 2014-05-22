@@ -52,8 +52,8 @@ package foreign {
   case class Foreigner(name: String)
 }
 object ForeignTest {
-  implicit val foreinerReads = Json.reads[foreign.Foreigner]
-  implicit val foreinerWrites = Json.writes[foreign.Foreigner]
+  implicit val foreignerReads = Json.reads[foreign.Foreigner]
+  implicit val foreignerWrites = Json.writes[foreign.Foreigner]
 }
 
 import play.api.libs.json._
