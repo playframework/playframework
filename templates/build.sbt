@@ -4,15 +4,15 @@ templateSettings
 
 val playSbtVersion = propOrElse("sbt.version", "0.13.5-RC3")
 
-val coffeescriptVersion = propOrElse("coffeescript.version", "1.0.0-RC2")
+val coffeescriptVersion = propOrElse("coffeescript.version", "1.0.0-RC3")
 
-val lessVersion = propOrElse("coffeescript.version", "1.0.0-RC2")
+val lessVersion = propOrElse("less.version", "1.0.0-RC2")
 
 val jshintVersion = propOrElse("jshint.version", "1.0.0-RC2")
 
 val digestVersion = propOrElse("digest.version", "1.0.0-RC2")
 
-val rjsVersion = propOrElse("rjs.version", "1.0.0-RC2")
+val rjsVersion = propOrElse("rjs.version", "1.0.0-RC3")
 
 val mochaVersion = propOrElse("mocha.version", "1.0.0-RC2")
 

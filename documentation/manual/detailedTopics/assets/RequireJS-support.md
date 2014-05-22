@@ -20,7 +20,7 @@ If you're using WebJars with your build then the RequireJS optimizer plugin will
 RequireJS optimization is enabled by simply adding the plugin to your plugins.sbt file when using the `PlayJava` or `PlayScala` plugins:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-rjs" % "1.0.0-RC2")
+addSbtPlugin("com.typesafe.sbt" % "sbt-rjs" % "1.0.0-RC3")
 ```
 
 To add the plugin to the asset pipeline you can declare it as follows (assuming just the one plugin for the pipeline - add others into the sequence such as digest and gzip as required):
@@ -29,41 +29,7 @@ To add the plugin to the asset pipeline you can declare it as follows (assuming 
 pipelineStages := Seq(rjs)
 ```
 
-A standard build profile for the RequireJS optimizer is provided and should suffice for most projects. However if you would prefer to provide your own build profile then declare an `appBuildProfile` function in your build. The following build profile is the direct equivalent of [the one recommended in the rjs documentation for whole project builds](http://requirejs.org/docs/optimization.html#wholeproject):
-
-```scala
-import RjsKeys._
-
-appBuildProfile := s"""|({
-                       |  appDir: "${appDir.value}",
-                       |  baseUrl: "js",
-                       |  dir: "${dir.value}",
-                       |  modules: [
-                       |      {
-                       |           name: "main"
-                       |      }
-                       |  ]
-                       |})""".stripMargin
-```
-
-The standard build profile we provide incorporates support for generating source maps, allows for configuration overrides in your `main.js` file and optimizes using uglify2. The standard build profile is as follows:
-
-```scala
-appBuildProfile := s"""|({
-                       |  appDir: "${appDir.value}",
-                       |  baseUrl: "js",
-                       |  dir: "${dir.value}",
-                       |  generateSourceMaps: true,
-                       |  mainConfigFile: "${appDir.value / "js" / "main.js"}",
-                       |  modules: [{
-                       |    name: "main"
-                       |  }],
-                       |  onBuildWrite: ${buildWriter.value},
-                       |  optimize: "uglify2",
-                       |  paths: ${RjsJson.toJsonObj(webJarModuleIds.value.map(m => m -> "empty:"))},
-                       |  preserveLicenseComments: false
-                       |})""".stripMargin
-```
+A standard build profile for the RequireJS optimizer is provided and should suffice for most projects. However please refer to the [plugin's documentation](https://github.com/sbt/sbt-rjs#sbt-rjs) for information on how it may be configured.
 
 Note that RequireJS performs a lot of work and while it works when executed in-JVM under Trireme, you will be best to use Node.js as the js-engine from a performance perspective. For convenience you can set the `sbt.jse.engineType` property in `SBT_OPTS`. For example on Unix:
 
