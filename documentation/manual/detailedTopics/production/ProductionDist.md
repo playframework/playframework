@@ -82,7 +82,7 @@ packageArchetype.java_server
 ```
 
 Play manages its own PID, which is described in the [[Production configuration|ProductionConfiguration]].
-In order to tell the startup script where to place the PID file put a file `etc-default` inside `src/main/`
+In order to tell the startup script where to place the PID file put a file `etc-default` inside `src/templates/`
 folder and add the following content
 
 ```bash
