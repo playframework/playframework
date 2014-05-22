@@ -11,9 +11,13 @@ A Play application defines a special actor system to be used by the application.
 
 > **Note:** Nothing prevents you from using another actor system from within a Play application. The provided default actor system is just a convenient way to start a few actors without having to set-up your own.
 
-You can access the default application actor system using the `play.libs.Akka` helper:
+You can access the default application actor system using the [`play.libs.Akka`](api/java/play/libs/Akka.html) helper:
 
-@[actor-for](code/javaguide/akka/JavaAkka.java)
+@[akka-imports](code/javaguide/akka/JavaAkka.java)
+
+@[akka-MyActor](code/javaguide/akka/JavaAkka.java)
+
+@[akka-actorOf](code/javaguide/akka/JavaAkka.java)
 
 ## Configuration
 
