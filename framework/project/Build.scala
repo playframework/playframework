@@ -222,7 +222,7 @@ object PlayBuild extends Build {
       libraryDependencies ++= runtime ++ scalacheckDependencies,
       sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion(buildScalaVersion),
       sourceDirectories in (Compile, TwirlKeys.compileTemplates) := (unmanagedSourceDirectories in Compile).value,
-      TwirlKeys.templateImports in Compile += "play.api.templates.PlayMagic._",
+      TwirlKeys.templateImports += "play.api.templates.PlayMagic._",
       mappings in (Compile, packageSrc) <++= scalaTemplateSourceMappings,
       Docs.apiDocsIncludeManaged := true,
       parallelExecution in Test := false

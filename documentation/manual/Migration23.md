@@ -450,7 +450,7 @@ templatesImport += "com.abc.backend._"
 and is now:
 
 ```scala
-TwirlKeys.templateImports in Compile += "org.abc.backend._"
+TwirlKeys.templateImports += "org.abc.backend._"
 ```
 
 Specifying custom template formats was previously:
@@ -462,7 +462,7 @@ templatesTypes += ("html" -> "my.HtmlFormat.instance")
 and is now:
 
 ```scala
-TwirlKeys.templateFormats in Compile += ("html" -> "my.HtmlFormat.instance")
+TwirlKeys.templateFormats += ("html" -> "my.HtmlFormat.instance")
 ```
 
 For sbt builds that use the full scala syntax, `TwirlKeys` can be imported with:
