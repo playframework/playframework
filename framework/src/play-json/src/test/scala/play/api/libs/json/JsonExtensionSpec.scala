@@ -48,6 +48,14 @@ object Person {
   implicit val personWrites = Json.writes[Person]
 }
 
+package foreign {
+  case class Foreigner(name: String)
+}
+object ForeignTest {
+  implicit val foreinerReads = Json.reads[foreign.Foreigner]
+  implicit val foreinerWrites = Json.writes[foreign.Foreigner]
+}
+
 import play.api.libs.json._
 
 case class Person2(names: List[String])
