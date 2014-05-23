@@ -463,7 +463,7 @@ The WS client is now an optional library. If you are using WS in your project th
 Add library dependency to `build.sbt`:
 
 ```scala
-libraryDependencies += PlayKeys.javaWs
+libraryDependencies += javaWs
 ```
 
 Update to the new library package in source files:
@@ -477,7 +477,7 @@ import play.libs.ws.*;
 Add library dependency to `build.sbt`:
 
 ```scala
-libraryDependencies += PlayKeys.ws
+libraryDependencies += ws
 ```
 
 In addition, usage of the WS client now requires a Play application in scope. Typically this is achieved by adding:
