@@ -477,7 +477,7 @@ import play.libs.ws.*;
 Add library dependency to `build.sbt`:
 
 ```scala
-libraryDependencies += PlayKeys.ws
+libraryDependencies += ws
 ```
 
 In addition, usage of the WS client now requires a Play application in scope. Typically this is achieved by adding:
