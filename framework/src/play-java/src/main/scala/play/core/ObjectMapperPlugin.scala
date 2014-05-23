@@ -6,6 +6,7 @@ package play.core
 import play.api.Plugin
 import play.api.Application
 import play.libs.Json
+import play.api.libs.json.JacksonJson
 import com.fasterxml.jackson.databind.ObjectMapper
 
 /**
@@ -17,7 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 class ObjectMapperPlugin(app: Application) extends Plugin {
 
   override def onStart() {
-    Json.setObjectMapper(new ObjectMapper())
+    Json.setObjectMapper(JacksonJson.createMapper())
   }
 
   override def onStop() {

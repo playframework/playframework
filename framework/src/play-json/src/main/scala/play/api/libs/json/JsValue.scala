@@ -3,16 +3,16 @@
  */
 package play.api.libs.json
 
+import scala.annotation.tailrec
+import scala.collection._
+import scala.collection.mutable.ListBuffer
+
 import com.fasterxml.jackson.core.{ JsonGenerator, JsonToken, JsonParser }
 import com.fasterxml.jackson.databind._
 import com.fasterxml.jackson.databind.`type`.TypeFactory
 import com.fasterxml.jackson.databind.deser.Deserializers
 import com.fasterxml.jackson.databind.ser.Serializers
 
-import scala.collection._
-import scala.collection.mutable.ListBuffer
-
-import scala.annotation.tailrec
 import play.api.data.validation.ValidationError
 
 case class JsResultException(errors: Seq[(JsPath, Seq[ValidationError])]) extends RuntimeException("JsResultException(errors:%s)".format(errors))
@@ -450,7 +450,7 @@ private[json] class PlaySerializers extends Serializers.Base {
   }
 }
 
-private[json] object JacksonJson {
+private[play] object JacksonJson {
 
   import com.fasterxml.jackson.core.Version
   import com.fasterxml.jackson.databind.module.SimpleModule
@@ -458,9 +458,11 @@ private[json] object JacksonJson {
 
   private[this] val classLoader = Thread.currentThread().getContextClassLoader
 
-  private[json] val mapper = (new ObjectMapper).registerModule(module)
+  def createMapper(): ObjectMapper = (new ObjectMapper).registerModule(module)
 
-  object module extends SimpleModule("PlayJson", Version.unknownVersion()) {
+  private[json] val mapper = createMapper()
+
+  private[json] object module extends SimpleModule("PlayJson", Version.unknownVersion()) {
     override def setupModule(context: SetupContext) {
       context.addDeserializers(new PlayDeserializers(classLoader))
       context.addSerializers(new PlaySerializers)

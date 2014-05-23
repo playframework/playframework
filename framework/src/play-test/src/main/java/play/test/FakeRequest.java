@@ -71,7 +71,7 @@ public class FakeRequest {
      */
     @SuppressWarnings(value = "unchecked")
     public FakeRequest withJsonBody(JsonNode node) {
-        return withJsonBody(play.api.libs.json.Json.parse(node.toString()));
+        return withJsonBody(play.api.libs.json.JacksonJson$.MODULE$.jsonNodeToJsValue(node));
     }
 
     /**
@@ -98,7 +98,8 @@ public class FakeRequest {
         }
         Map<String, Seq<String>> map = new HashMap<String, Seq<String>>(Scala.asJava(fake.headers().toMap()));
         map.put("Content-Type", Scala.toSeq(new String[] {"application/json"}));
-        AnyContentAsJson content = new AnyContentAsJson(play.api.libs.json.Json.parse(node.toString()));
+        AnyContentAsJson content =
+            new AnyContentAsJson(play.api.libs.json.JacksonJson$.MODULE$.jsonNodeToJsValue(node));
         fake = new play.api.test.FakeRequest(method, fake.uri(), new play.api.test.FakeHeaders(Scala.asScala(map).toSeq()), content, fake.remoteAddress(), fake.version(), fake.id(), fake.tags(), fake.secure());
         return this;
     }
