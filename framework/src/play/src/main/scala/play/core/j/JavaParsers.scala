@@ -3,20 +3,23 @@
  */
 package play.core.j
 
-import play.api.mvc._
-import play.api.libs.Files.TemporaryFile
-import play.api.libs.json._
-import play.api.libs.iteratee.Execution.trampoline
-
-import scala.xml._
 import scala.collection.JavaConverters._
+import scala.xml._
+
+import com.fasterxml.jackson.databind.JsonNode
+
+import play.api.libs.Files.TemporaryFile
+import play.api.libs.iteratee.Execution.trampoline
+import play.api.libs.json.Reads.JsonNodeReads
+import play.api.libs.json._
+import play.api.mvc._
 
 /**
  * provides Java centric BodyParsers
  */
 object JavaParsers extends BodyParsers {
 
-  import play.mvc.Http.{ RequestBody }
+  import play.mvc.Http.RequestBody
 
   case class DefaultRequestBody(
       urlFormEncoded: Option[Map[String, Seq[String]]] = None,
@@ -48,9 +51,7 @@ object JavaParsers extends BodyParsers {
     }
 
     override lazy val asJson = {
-      json.map { json =>
-        play.libs.Json.parse(json.toString)
-      }.orNull
+      json.map(Json.fromJson[JsonNode](_).get).orNull
     }
 
     override lazy val asXml = {

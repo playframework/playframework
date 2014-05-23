@@ -4,15 +4,11 @@
 package play.api.libs.json
 
 import org.specs2.mutable._
-import play.api.libs.json._
-import play.api.libs.json.Json._
+
+import com.fasterxml.jackson.databind.JsonNode
+
 import play.api.libs.functional.syntax._
-
-import scala.util.control.Exception._
-import java.text.ParseException
-
-import play.api.data.validation.ValidationError 
-
+import play.api.libs.json.Json._
 
 object JsonSpec extends Specification {
   case class User(id: Long, name: String, friends: List[User])
@@ -41,7 +37,7 @@ object JsonSpec extends Specification {
     (__ \ 'body).format[String] and
     (__ \ 'created_at).formatNullable[Option[Date]](
       Format(
-        Reads.optionWithNull(Reads.dateReads(dateFormat)), 
+        Reads.optionWithNull(Reads.dateReads(dateFormat)),
         Writes.optionWithNull(Writes.dateWrites(dateFormat))
       )
     ).inmap( optopt => optopt.flatten, (opt: Option[Date]) => Some(opt) )
@@ -50,8 +46,8 @@ object JsonSpec extends Specification {
   "JSON" should {
     "equals JsObject independently of field order" in {
       Json.obj(
-        "field1" -> 123, 
-        "field2" -> "beta", 
+        "field1" -> 123,
+        "field2" -> "beta",
         "field3" -> Json.obj(
           "field31" -> true,
           "field32" -> 123.45,
@@ -59,7 +55,7 @@ object JsonSpec extends Specification {
         )
       ) must beEqualTo(
         Json.obj(
-          "field2" -> "beta", 
+          "field2" -> "beta",
           "field3" -> Json.obj(
             "field31" -> true,
             "field33" -> Json.arr("blabla", 456L, JsNull),
@@ -70,8 +66,8 @@ object JsonSpec extends Specification {
       )
 
       Json.obj(
-        "field1" -> 123, 
-        "field2" -> "beta", 
+        "field1" -> 123,
+        "field2" -> "beta",
         "field3" -> Json.obj(
           "field31" -> true,
           "field32" -> 123.45,
@@ -79,7 +75,7 @@ object JsonSpec extends Specification {
         )
       ) must not equalTo(
         Json.obj(
-          "field2" -> "beta", 
+          "field2" -> "beta",
           "field3" -> Json.obj(
             "field31" -> true,
             "field33" -> Json.arr("blabla", 456L),
@@ -90,8 +86,8 @@ object JsonSpec extends Specification {
       )
 
       Json.obj(
-        "field1" -> 123, 
-        "field2" -> "beta", 
+        "field1" -> 123,
+        "field2" -> "beta",
         "field3" -> Json.obj(
           "field31" -> true,
           "field32" -> 123.45,
@@ -179,6 +175,22 @@ object JsonSpec extends Specification {
       fromJson[List[Int]](json) must equalTo (JsSuccess(xs))
     }
 
+    "Serialize and deserialize Jackson ObjectNodes" in {
+      val on = JacksonJson.mapper.createObjectNode()
+        .put("foo", 1).put("bar", "two")
+      val json = Json.obj("foo" -> 1, "bar" -> "two")
+      toJson(on) must equalTo (json)
+      fromJson[JsonNode](json).map(_.toString) must_== JsSuccess(on.toString)
+    }
+
+    "Serialize and deserialize Jackson ArrayNodes" in {
+      val an = JacksonJson.mapper.createArrayNode()
+        .add("one").add(2)
+      val json = Json.arr("one", 2)
+      toJson(an) must equalTo (json)
+      fromJson[JsonNode](json).map(_.toString) must_== JsSuccess(an.toString)
+    }
+
     "Map[String,String] should be turned into JsValue" in {
       val f = toJson(Map("k"->"v"))
       f.toString must equalTo("{\"k\":\"v\"}")
@@ -257,7 +269,6 @@ object JsonSpec extends Specification {
 
   "JSON Writes" should {
     "write list/seq/set/map" in {
-      import util._
       import Writes._
 
       Json.toJson(List(1, 2, 3)) must beEqualTo(Json.arr(1, 2, 3))
@@ -272,11 +283,11 @@ object JsonSpec extends Specification {
         (__ \ 'key4).write(constraints.map[String])
       ).tupled
 
-      Json.toJson( List(1, 2, 3), 
-        Set("alpha", "beta", "gamma"), 
-        Seq("alpha", "beta", "gamma"), 
+      Json.toJson( List(1, 2, 3),
+        Set("alpha", "beta", "gamma"),
+        Seq("alpha", "beta", "gamma"),
         Map("key1" -> "value1", "key2" -> "value2")
-      ) must beEqualTo( 
+      ) must beEqualTo(
         Json.obj(
           "key1" -> Json.arr(1, 2, 3),
           "key2" -> Json.arr("alpha", "beta", "gamma"),
@@ -305,7 +316,7 @@ object JsonSpec extends Specification {
 
       Json.toJson(TestCase("my-id", "foo", "bar")) must beEqualTo(js)
 
-    }    
+    }
   }
 
 
