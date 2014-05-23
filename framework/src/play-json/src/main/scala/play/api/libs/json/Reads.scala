@@ -3,13 +3,17 @@
  */
 package play.api.libs.json
 
+import scala.annotation.implicitNotFound
+import scala.collection._
 import scala.language.higherKinds
 
-import scala.collection._
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.{ ArrayNode, ObjectNode }
+
 import Json._
-import scala.annotation.implicitNotFound
 import play.api.data.validation.ValidationError
 import reflect.ClassTag
+import play.api.libs.json.JsError
 
 /**
  * Json deserializer: write an implicit to define a deserializer for any type.
@@ -403,6 +407,32 @@ trait DefaultReads {
     def reads(json: JsValue) = json match {
       case b: JsBoolean => JsSuccess(b)
       case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsboolean"))))
+    }
+  }
+
+  /**
+   * Deserializer for Jackson JsonNode
+   */
+  implicit object JsonNodeReads extends Reads[JsonNode] {
+    def reads(json: JsValue): JsResult[JsonNode] =
+      JsSuccess(JacksonJson.jsValueToJsonNode(json))
+  }
+
+  /**
+   * Deserializer for Jackson ObjectNode
+   */
+  implicit object ObjectNodeReads extends Reads[ObjectNode] {
+    def reads(json: JsValue): JsResult[ObjectNode] = {
+      json.validate[JsObject] map (jo => JacksonJson.jsValueToJsonNode(jo).asInstanceOf[ObjectNode])
+    }
+  }
+
+  /**
+   * Deserializer for Jackson ArrayNode
+   */
+  implicit object ArrayNodeReads extends Reads[ArrayNode] {
+    def reads(json: JsValue): JsResult[ArrayNode] = {
+      json.validate[JsArray] map (ja => JacksonJson.jsValueToJsonNode(ja).asInstanceOf[ArrayNode])
     }
   }
 

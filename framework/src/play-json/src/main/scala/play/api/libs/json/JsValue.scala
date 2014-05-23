@@ -408,13 +408,10 @@ private[json] class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) e
     jp.nextToken()
 
     maybeValue match {
-      case Some(v) if nextContext.isEmpty && jp.getCurrentToken == null =>
-        //done, no more tokens and got a value!
-        v
-
       case Some(v) if nextContext.isEmpty =>
-        //strange, got value, but there is more tokens and have no prior context!
-        throw new Exception("Malformed JSON: Got a sequence of JsValue outside an array or an object.")
+        // done, no more tokens and got a value!
+        // note: jp.getCurrentToken == null happens when using treeToValue (we're not parsing tokens)
+        v
 
       case maybeValue =>
         val toPass = maybeValue.map { v =>
@@ -461,7 +458,7 @@ private[json] object JacksonJson {
 
   private[this] val classLoader = Thread.currentThread().getContextClassLoader
 
-  private[this] val mapper = (new ObjectMapper).registerModule(module)
+  private[json] val mapper = (new ObjectMapper).registerModule(module)
 
   object module extends SimpleModule("PlayJson", Version.unknownVersion()) {
     override def setupModule(context: SetupContext) {
@@ -505,6 +502,14 @@ private[json] object JacksonJson {
     mapper.writerWithDefaultPrettyPrinter().writeValue(gen, jsValue)
     sw.flush()
     sw.getBuffer.toString
+  }
+
+  def jsValueToJsonNode(jsValue: JsValue): JsonNode = {
+    mapper.valueToTree(jsValue)
+  }
+
+  def jsonNodeToJsValue(jsonNode: JsonNode): JsValue = {
+    mapper.treeToValue(jsonNode, classOf[JsValue])
   }
 
 }

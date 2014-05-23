@@ -3,10 +3,14 @@
  */
 package play.api.libs.json
 
-import Json._
-import scala.collection._
 import scala.annotation.implicitNotFound
+import scala.collection._
 import scala.reflect.ClassTag
+
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.{ ArrayNode, ObjectNode }
+
+import Json._
 
 /**
  * Json serializer: write an implicit to define a serializer for any type
@@ -70,8 +74,6 @@ object Writes extends PathWrites with ConstraintWrites with DefaultWrites {
 
   val constraints: ConstraintWrites = this
   val path: PathWrites = this
-
-  import play.api.libs.functional._
 
   /*implicit val contravariantfunctorWrites:ContravariantFunctor[Writes] = new ContravariantFunctor[Writes] {
 
@@ -149,6 +151,13 @@ trait DefaultWrites {
   }
 
   /**
+   * Serializer for Jackson JsonNode
+   */
+  implicit object JsonNodeWrites extends Writes[JsonNode] {
+    def writes(o: JsonNode): JsValue = JacksonJson.jsonNodeToJsValue(o)
+  }
+
+  /**
    * Serializer for Array[T] types.
    */
   implicit def arrayWrites[T: ClassTag](implicit fmt: Writes[T]): Writes[Array[T]] = new Writes[Array[T]] {
@@ -180,7 +189,6 @@ trait DefaultWrites {
    * Serializer for Option.
    */
   implicit def OptionWrites[T](implicit fmt: Writes[T]): Writes[Option[T]] = new Writes[Option[T]] {
-    import scala.util.control.Exception._
     def writes(o: Option[T]) = o match {
       case Some(value) => fmt.writes(value)
       case None => JsNull

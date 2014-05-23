@@ -30,14 +30,14 @@ public class FakeRequest {
      * Constructs a new GET / fake request.
      */
     public FakeRequest() {
-        this.fake = play.api.test.FakeRequest.apply(); 
+        this.fake = play.api.test.FakeRequest.apply();
     }
 
     /**
      * Constructs a new request.
      */
     public FakeRequest(String method, String path) {
-        this.fake = play.api.test.FakeRequest.apply(method, path); 
+        this.fake = play.api.test.FakeRequest.apply(method, path);
     }
 
     /**
@@ -126,7 +126,7 @@ public class FakeRequest {
     /**
      * Add addtional session to this request.
      */
-    @SuppressWarnings(value = "unchecked")  
+    @SuppressWarnings(value = "unchecked")
     public FakeRequest withSession(String name, String value) {
         fake = fake.withSession(Scala.varargs(Scala.Tuple(name, value)));
         return this;
