@@ -170,14 +170,14 @@ object JsMacroImpl {
     }
 
     // builds the final M[A] using apply method
-    //val applyMethod = Ident( companionSymbol.name )
+    //val applyMethod = Ident( companionSymbol )
     val applyMethod =
       Function(
         params.foldLeft(List[ValDef]())((l, e) =>
           l :+ ValDef(Modifiers(PARAM), newTermName(e.name.encoded), TypeTree(), EmptyTree)
         ),
         Apply(
-          Select(Ident(companionSymbol.name), newTermName("apply")),
+          Select(Ident(companionSymbol), newTermName("apply")),
           params.foldLeft(List[Tree]())((l, e) =>
             l :+ Ident(newTermName(e.name.encoded))
           )
@@ -187,7 +187,7 @@ object JsMacroImpl {
     val unapplyMethod = Apply(
       unliftIdent,
       List(
-        Select(Ident(companionSymbol.name), unapply.name)
+        Select(Ident(companionSymbol), unapply.name)
       )
     )
 
