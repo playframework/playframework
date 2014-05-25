@@ -230,7 +230,7 @@ object PlayBuild extends Build {
 
   lazy val PlayJdbcProject = PlayRuntimeProject("Play-JDBC", "play-jdbc")
     .settings(libraryDependencies ++= jdbcDeps)
-    .dependsOn(PlayProject)
+    .dependsOn(PlayProject).dependsOn(PlayTestProject % "test")
 
   lazy val PlayJavaJdbcProject = PlayRuntimeProject("Play-Java-JDBC", "play-java-jdbc")
     .dependsOn(PlayJdbcProject, PlayJavaProject)
