@@ -299,7 +299,7 @@ your Play application.
 
 ## ScalikeJDBC Plugin (Scala)
 
-* **Website:** <https://github.com/seratch/scalikejdbc/tree/master/scalikejdbc-play-plugin>
+* **Website:** <https://github.com/scalikejdbc/scalikejdbc-play-support>
 * **Short description:** provides yet another database access API for Play
 
 ## SecureSocial (Java and Scala)
@@ -321,12 +321,6 @@ your Play application.
 
 * **Website:** <https://github.com/milliondreams/socket.io.play>
 * **Documentation:** <https://github.com/milliondreams/socket.io.play/blob/master/README.md>
-
-## Spring Module 
-
-* **Website:** <https://github.com/wsargent/play-2.0-spring-module>
-* **Documentation:** <https://github.com/wsargent/play-2.0-spring-module/blob/master/README.md>
-* **Short description:** Updated version of the original Spring module for Play
 
 ## Stateless client authentication (Scala)
 * **Website:** <https://github.com/blendlabs/play20-stateless-auth>

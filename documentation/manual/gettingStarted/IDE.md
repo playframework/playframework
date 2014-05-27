@@ -134,10 +134,10 @@ Follow the installation instructions at <https://github.com/aemoncannon/ensime>
 
 ### Generate configuration
 
-Edit your project/plugins.sbt file, and add the following line (you should first check <https://github.com/aemoncannon/ensime-sbt-cmd> for the latest version of the plugin):
+Edit your project/plugins.sbt file, and add the following line (you should first check <https://github.com/ensime/ensime-sbt-cmd> for the latest version of the plugin):
 
 ```
-addSbtPlugin("org.ensime" % "ensime-sbt-cmd" % "0.1.0")
+addSbtPlugin("org.ensime" % "ensime-sbt-cmd" % "0.1.3")
 ```
 
 Start Play:
@@ -188,8 +188,8 @@ That's all there is to it. You should now get type-checking, completion, etc. fo
 
 ### More Information
 
-Check out the ENSIME manual at <http://aemoncannon.github.com/ensime/index.html>
-If you have questions, post them in the ensime group at <https://groups.google.com/forum/?fromgroups=#!forum/ensime>
+Check out the ENSIME manual at <http://ensime.github.io/ensime-src/index.html>.
+If you have questions, post them in the ensime group at <https://groups.google.com/forum/?fromgroups=#!forum/ensime>.
 
 
 ## All Scala Plugins if needed
@@ -210,5 +210,4 @@ Scala is a newer programming language, so the functionality is provided in plugi
 
 > **Next:** 
 >
-> – [[Play for Scala developers|ScalaHome]]
-> – [[Play for Java developers|JavaHome]]
+> – [[Play Tutorials|Tutorials]]

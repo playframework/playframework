@@ -61,8 +61,3 @@ The Java API for the Play application developers is available in the `play` pack
 
 1. [[Extending Play|JavaPlugins]]
     1. [[Writing Plugins|JavaPlugins]]
-
-## Tutorials
-
-1. [[Your first application | JavaTodoList]]
-1. [[Zentask | JavaGuide1]]
