@@ -253,6 +253,8 @@ object DocValidation {
               logErrorAtLocation(log, link.file, link.position, e.getClass.getName + ": " + e.getMessage + " for external link " + link.link)
             }
             refs
+        } finally {
+          connection.disconnect()
         }
       }
     }

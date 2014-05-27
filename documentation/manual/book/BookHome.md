@@ -23,7 +23,6 @@ Play is based on a lightweight, stateless, web-friendly architecture and feature
     1. [[The application Global object | ScalaGlobal]]
     1. [[Testing your application | ScalaTestingYourApplication]]
     1. [[Handling data streams reactively | Iteratees]]
-    1. [[Your first application | ScalaTodoList]]
 1. [[Play for Java developers | JavaHome]]
     1. [[HTTP programming | JavaActions]]
     1. [[Asynchronous HTTP programming | JavaAsync]]
@@ -39,7 +38,6 @@ Play is based on a lightweight, stateless, web-friendly architecture and feature
     1. [[Internationalization | JavaI18N]]
     1. [[The application Global object | JavaGlobal]]
     1. [[Testing your application | JavaTest]]
-    1. [[Your first application | JavaTodoList]]
 1. Detailed topics
     1. [[The build system | Build]]
     1. [[Working with public assets | Assets]]

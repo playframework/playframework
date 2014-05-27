@@ -30,7 +30,3 @@
 - [[HTTP Filters | ScalaHttpFilters]]
 - [[Dependency Injection | ScalaDependencyInjection]]
 - [[Extending Play|ScalaPlugins]]
-
-### Tutorials
-
-- [[Your first application | ScalaTodoList]]

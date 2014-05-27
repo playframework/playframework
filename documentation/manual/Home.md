@@ -16,7 +16,7 @@
 1. [[Anatomy of a Play application|Anatomy]]
 1. [[Using the Play console|PlayConsole]]
 1. [[Setting up your preferred IDE|IDE]]
-1. [[Sample applications|Samples]]
+1. [[Play Tutorials|Tutorials]]
 1. [Security policy](http://www.playframework.com/code/security)
 
 ## Working with Play

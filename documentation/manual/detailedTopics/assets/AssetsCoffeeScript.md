@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Using CoffeeScript
 
-[CoffeeScript](http://jashkenas.github.com/coffee-script/) is a small and elegant language that compiles into JavaScript. It provides a nice syntax for writing JavaScript code.
+[CoffeeScript](http://coffeescript.org/) is a small and elegant language that compiles into JavaScript. It provides a nice syntax for writing JavaScript code.
 
 Compiled assets in Play must be defined in the `app/assets` directory. They are handled by the build process and CoffeeScript sources are compiled into standard JavaScript files. The generated JavaScript files are distributed as standard resources into the same `public/` folder as other unmanaged assets, meaning that there is no difference in the way you use them once compiled.
 
