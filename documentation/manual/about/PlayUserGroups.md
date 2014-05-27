@@ -11,9 +11,6 @@ http://www.meetup.com/Play-Berlin-Brandenburg/
 
 [Xing](http://xing.to/scala) / [Twitter](https://twitter.com/scalacgn)
 
-## London
-http://play.nascency.co.uk/
-
 ## Buenos Aires
 http://www.meetup.com/play-argentina/
 

@@ -26,8 +26,3 @@
 - [[The application Global object | JavaGlobal]]
 - [[Testing your application | JavaTest]]
 - [[Logging|JavaLogging]]
-
-### Tutorials
-
-- [[Your first application | JavaTodoList]]
-- [[Zentask | JavaGuide1]]

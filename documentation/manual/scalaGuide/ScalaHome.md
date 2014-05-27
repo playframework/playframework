@@ -80,7 +80,3 @@ The Scala API for Play application developers is available in the `play.api` pac
     1. [[Javascript Routing | ScalaJavascriptRouting]]
 1. [[Extending Play|ScalaPlugins]]
     1. [[Writing Plugins|ScalaPlugins]]
-
-## Tutorials
-
-1. [[Your first application | ScalaTodoList]]

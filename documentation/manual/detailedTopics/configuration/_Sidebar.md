@@ -17,7 +17,7 @@
 - [[Anatomy of a Play application | Anatomy]]
 - [[Using the Play console | PlayConsole]]
 - [[Setting-up your preferred IDE | IDE]]
-- [[Sample applications | Samples]]
+- [[Play Tutorials|Tutorials]]
 
 ### Working with Play 
 - [[Play for Scala developers | ScalaHome]]
