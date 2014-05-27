@@ -8,7 +8,6 @@ import java.security._
 import java.security.cert._
 import java.io._
 import java.net.URL
-import play.api.libs.ws.ssl.AlgorithmConstraint
 
 trait SSLContextBuilder {
   def build(): SSLContext
@@ -88,12 +87,21 @@ class DefaultTrustManagerFactoryWrapper(trustManagerAlgorithm: String) extends T
   def getTrustManagers: Array[TrustManager] = instance.getTrustManagers
 }
 
+class AcceptAnyCertificateTrustManagerFactoryWrapper extends TrustManagerFactoryWrapper {
+
+  def init(spec: ManagerFactoryParameters) {
+    // do nothing
+  }
+
+  def getTrustManagers: Array[TrustManager] = Array(new AcceptAnyCertificateTrustManager())
+}
+
 /**
  * Creates an SSL context builder from info objects.
  */
 class ConfigSSLContextBuilder(info: SSLConfig,
     keyManagerFactory: KeyManagerFactoryWrapper,
-    trustManagerFactory: TrustManagerFactoryWrapper) extends SSLContextBuilder {
+    trustManagerFactory: TrustManagerFactoryWrapper, acceptAnyCertificate: Boolean = false) extends SSLContextBuilder {
 
   protected val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 
@@ -116,10 +124,13 @@ class ConfigSSLContextBuilder(info: SSLConfig,
       kmc => Seq(buildCompositeKeyManager(kmc, algorithmChecker))
     }.getOrElse(Nil)
 
-    val trustManagers: Seq[TrustManager] = info.trustManagerConfig.map {
-      tmc => Seq(buildCompositeTrustManager(tmc, checkRevocation, revocationLists, algorithmChecker))
-    }.getOrElse(Nil)
-
+    val trustManagers: Seq[TrustManager] = if (acceptAnyCertificate) {
+      trustManagerFactory.getTrustManagers
+    } else {
+      info.trustManagerConfig.map {
+        tmc => Seq(buildCompositeTrustManager(tmc, checkRevocation, revocationLists, algorithmChecker))
+      }.getOrElse(Nil)
+    }
     buildSSLContext(protocol, keyManagers, trustManagers, info.secureRandom)
   }
 
