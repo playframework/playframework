@@ -21,9 +21,7 @@ $ activator new my-first-app play-java
 
 In either case, you can replace `my-first-app` with whatever name you want your application to use.  Activator will use this as the directory name to create the application in.  You can change this name later if you choose.
 
-> *TODO:* Update screenshot when Activator supports specifying the application and template name as arguments to the command.
-
-[[images/playNew.png]]
+[[images/activatorNew.png]]
 
 Once the application has been created you can use the `activator` command again to enter the [[Play console|PlayConsole]].
 
