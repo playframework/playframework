@@ -1,11 +1,11 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com> -->
 # Your first Play application
 
 Let’s write a simple to do list application with Play and deploy it to the cloud.
 
 ## Prerequisites
 
-First of all, make sure that you have a [[working Play installation|Installing]]. You only need Java (version 6 minimum), and to unzip the Play binary package to start; everything is included.
+First of all, make sure that you have a [[working Activator installation|Installing]]. You only need Java (version 6 minimum), and activator installed.
 
 As we will use the command line a lot, it’s better to use a Unix-like OS. If you run a Windows system, it will also work fine; you’ll just have to type a few commands in the command prompt.
 
@@ -15,19 +15,19 @@ You will of course need a text editor. You can also use a Scala IDE such as Ecli
 
 ## Project creation
 
-Now that Play is correctly installed, it’s time to create the new application. Creating a Play application is pretty easy and fully managed by the Play command line utility. That allows for standard project layouts between all Play applications.
+Now that activator is correctly installed, it’s time to create the new application. Creating a Play application is pretty easy and fully managed by the Play command line utility. That allows for standard project layouts between all Play applications.
 
 On the command line type:
 
 ```
-$ play new todolist
+$ activator new todolist
 ```
 
-It will prompt you for a few questions. Select the _Create a simple Scala application_ project template.
+It will ask you to choose a template from the list. The featured templates list is very short - for this tutorial we’ll use hello-play-2_3-scala. You can enter this in full, or use tab completion (e.g. h-[tab]-p-[tab]-2-[tab]).
 
 [[images/new.png]]
 
-The `play new todolist` command creates a new directory `todolist/` and populates it with a series of files and directories, the most important being:
+The `activator new todolist` command creates a new directory `todolist/` and populates it with a series of files and directories, the most important being:
 
 - `app/` contains the application’s core, split between models, controllers and views directories. This is the directory where .scala source files live.
 - `conf/` contains all the application’s configuration files, especially the main `application.conf` file, the `routes` definition files and the `messages` files used for internationalization.
@@ -43,7 +43,7 @@ The `play new todolist` command creates a new directory `todolist/` and populate
 Once you have an application created, you can run the Play console. Go to the new `todolist/` directory and run:
 
 ```
-$ play
+$ activator
 ```
 
 This launches the Play console. There are several things you can do from the Play console, but let’s start by running the application. From the console prompt, type `run`:
@@ -325,9 +325,37 @@ To fill the form we need to have the `request` in the scope, so it can be used b
 
 It’s now time to persist the tasks in a database to make the application useful. Let’s start by enabling a database in our application.
 
-For now we will use a simple in memory database using **H2**, follow the process described in the [[Accessing an SQL database|ScalaDatabase]] page.
+For now we will use a simple in memory database using **H2**. First edit `conf/application.conf` and uncomment the four lines starting with `db.default`.
 
-No need to restart the server, refreshing the browser is enough to set up the database.
+The `hello-play-2_3-scala` template does not install the dependencies necessary
+to connect to a DB through **JDBC** or to use **Anorm** for queries. To do this,
+modify `build.sbt` so that it looks something like:
+
+```
+import play.Project._
+
+name := """todolist"""
+
+version := "1.0-SNAPSHOT"
+
+libraryDependencies ++= Seq(
+  "org.webjars" %% "webjars-play" % "2.3-M1",
+  "org.webjars" % "bootstrap" % "2.3.1",
+  "org.webjars" % "requirejs" % "2.1.11-1",
+  jdbc,
+  anorm,
+  cache
+)
+
+lazy val root = (project in file(".")).addPlugins(PlayScala)
+```
+
+Your exact versions may vary for the existing lines - the important bit is to
+add a comma at the end of the last existing dependency, and then add the new dependencies **jdbc**, **anorm** and **cache**. You are likely to need to add the initial import line too.
+
+> **Note:** For more detail on the database configuration, see the [[Accessing an SQL database|ScalaDatabase]] page.
+
+Restart the server to pick up the new dependencies.
 
 We will use **Anorm** in this tutorial to query the database. First we need to define the database schema. Let’s use Play evolutions for that, so create a first evolution script in `conf/evolutions/default/1.sql`:
 
@@ -356,7 +384,7 @@ Just click the **Apply script** button to run the script. Your database schema i
 
 > **Note:** Read more about [[Evolutions|Evolutions]].
 
-It’s now time to implement the SQL queries in the `Task` companion object, starting with the `all()` operation. Using **Anorm** we can define a parser that will transform a JDBC `ResultSet` row to a `Task` value:
+It’s now time to implement the SQL queries in the `Task` companion object, starting with the `all()` operation. In `app/models/Task.scala` we use **Anorm** to define a parser that will transform a JDBC `ResultSet` row to a `Task` value:
 
 ```
 import anorm._
@@ -387,7 +415,7 @@ We use the Play `DB.withConnection` helper to create and release automatically a
 
 Then we use the **Anorm** `SQL` method to create the query. The `as` method allows to parse the `ResultSet` using the `task *` parser: it will parse as many task rows as possible and then return a `List[Task]` (since our `task` parser returns a `Task`).
 
-It’s time to complete the implementation:
+It’s time to complete the implementation in `app/models/Task.scala`:
 
 ```
 def create(label: String) {
@@ -415,7 +443,7 @@ Now you can play with the application; creating new tasks should work.
 
 ## Deleting tasks
 
-Now that we can create tasks, we need to be able to delete them. Very simple: we just need to finish the implementation of the `deleteTask` action:
+Now that we can create tasks, we need to be able to delete them. Very simple: we just need to finish the implementation of the `deleteTask` action in `app/controllers/Application.scala`:
 
 ```
 def deleteTask(id: Long) = Action {
