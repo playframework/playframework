@@ -3,8 +3,16 @@
  */
 package play.libs;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.io.StringWriter;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator.Feature;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -20,6 +28,24 @@ public class Json {
             return defaultObjectMapper;
         } else {
             return objectMapper;
+        }
+    }
+
+    private static String generateJson(Object o, boolean prettyPrint, boolean escapeNonASCII) {
+        try {
+            StringWriter sw = new StringWriter();
+            JsonGenerator jgen = new JsonFactory(mapper()).createGenerator(sw);
+            if (prettyPrint) {
+                jgen.setPrettyPrinter(new DefaultPrettyPrinter());
+            }
+            if (escapeNonASCII) {
+                jgen.enable(Feature.ESCAPE_NON_ASCII);
+            }
+            mapper().writeValue(jgen, o);
+            sw.flush();
+            return sw.toString();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -52,16 +78,37 @@ public class Json {
 
     /**
      * Creates a new empty ObjectNode.
-     */ 
+     */
     public static ObjectNode newObject() {
         return mapper().createObjectNode();
+    }
+
+    /**
+     * Creates a new empty ArrayNode.
+     */
+    public static ArrayNode newArray() {
+        return mapper().createArrayNode();
     }
 
     /**
      * Convert a JsonNode to its string representation.
      */
     public static String stringify(JsonNode json) {
-        return json.toString();
+        return generateJson(json, false, false);
+    }
+
+    /**
+     * Convert a JsonNode to its string representation, escaping non-ascii characters.
+     */
+    public static String asciiStringify(JsonNode json) {
+        return generateJson(json, false, true);
+    }
+
+    /**
+     * Convert a JsonNode to its string representation.
+     */
+    public static String prettyPrint(JsonNode json) {
+        return generateJson(json, true, false);
     }
 
     /**
@@ -69,7 +116,7 @@ public class Json {
      */
     public static JsonNode parse(String src) {
         try {
-            return mapper().readValue(src, JsonNode.class);
+            return mapper().readTree(src);
         } catch(Throwable t) {
             throw new RuntimeException(t);
         }
@@ -80,7 +127,18 @@ public class Json {
      */
     public static JsonNode parse(java.io.InputStream src) {
         try {
-            return mapper().readValue(src, JsonNode.class);
+            return mapper().readTree(src);
+        } catch(Throwable t) {
+            throw new RuntimeException(t);
+        }
+    }
+
+    /**
+     * Parse a byte array representing a json, and return it as a JsonNode.
+     */
+    public static JsonNode parse(byte[] src) {
+        try {
+            return mapper().readTree(src);
         } catch(Throwable t) {
             throw new RuntimeException(t);
         }
