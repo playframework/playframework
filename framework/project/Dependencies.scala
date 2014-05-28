@@ -56,7 +56,7 @@ object Dependencies {
     ("org.springframework" % "spring-beans" % "4.0.3.RELEASE" notTransitive ())
       .exclude("org.springframework", "spring-core"),
 
-    "org.javassist" % "javassist" % "3.18.1-GA",
+    "org.javassist" % "javassist" % "3.18.2-GA",
 
     ("org.reflections" % "reflections" % "0.9.8" notTransitive ())
       .exclude("javassist", "javassist"),
@@ -112,7 +112,7 @@ object Dependencies {
 
 
   val link = Seq(
-    "org.javassist" % "javassist" % "3.18.1-GA")
+    "org.javassist" % "javassist" % "3.18.2-GA")
 
   val routersCompilerDependencies =  Seq(
     "commons-io" % "commons-io" % "2.0.1"
@@ -140,7 +140,7 @@ object Dependencies {
     "org.avaje.ebeanorm" % "avaje-ebeanorm-agent" % "3.2.2" exclude ("javax.persistence", "persistence-api"),
 
     h2database,
-    "org.javassist" % "javassist" % "3.18.1-GA",
+    "org.javassist" % "javassist" % "3.18.2-GA",
 
     "net.contentobjects.jnotify" % "jnotify" % "0.94",
 
