@@ -13,6 +13,10 @@ import javax.net.ssl.SSLSession
 
 object DefaultSSLConfigParserSpec extends Specification {
 
+  // We can get horrible concurrent modification exceptions in the logger if we run
+  // several WithApplication at the same time.  Usually happens in the build.
+  sequential
+
   "SSLConfigParser" should {
 
     def parseThis(input: String)(implicit app:play.api.Application) = {
