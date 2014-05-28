@@ -64,7 +64,7 @@ object DefaultSSLConfigParserSpec extends Specification {
       actual.enabledProtocols must beNone
       actual.disabledSignatureAlgorithms must beNone
       actual.disabledKeyAlgorithms must beNone
-      actual.secureRandom must beSome
+      actual.secureRandom must beNone
     }
 
     "parse ws.ssl.loose section" in new WithApplication() {

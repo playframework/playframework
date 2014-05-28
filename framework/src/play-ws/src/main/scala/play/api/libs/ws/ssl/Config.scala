@@ -265,14 +265,6 @@ class DefaultSSLConfigParser(c: Configuration, classLoader: ClassLoader) {
         parseTrustManager(trustStoreConfig)
     }
 
-    val secureRandom = new SecureRandom()
-    // SecureRandom needs to be seeded, and calling nextInt immediately after being
-    // called ensures a seed.  We do it here rather than waiting for JSSE because
-    // seeding can chew through entropy and occasionally block the thread until
-    // it's finished, if on something too dumb to use /dev/urandom.
-    // Better to do it using parsing rather than in the middle of an HTTPS call.
-    secureRandom.nextInt()
-
     DefaultSSLConfig(
       default = default,
       protocol = protocol,
@@ -285,7 +277,7 @@ class DefaultSSLConfigParser(c: Configuration, classLoader: ClassLoader) {
       disabledSignatureAlgorithms = disabledSignatureAlgorithms,
       disabledKeyAlgorithms = disabledKeyAlgorithms,
       trustManagerConfig = trustManagers,
-      secureRandom = Some(secureRandom),
+      secureRandom = None,
       debug = debug,
       loose = looseOptions)
   }
