@@ -182,24 +182,24 @@ The following lists all sbt-web related components and their versions at the tim
 
 #### Libraries
 ```scala
-"com.typesafe" %% "webdriver" % "1.0.0-RC2"
-"com.typesafe" %% "jse" % "1.0.0-RC2"
-"com.typesafe" %% "npm" % "1.0.0-RC2"
+"com.typesafe" %% "webdriver" % "1.0.0"
+"com.typesafe" %% "jse" % "1.0.0"
+"com.typesafe" %% "npm" % "1.0.0"
 ```
 
 #### sbt plugins
 ```scala
-"com.typesafe.sbt" % "sbt-web" % "1.0.0-RC3"
-"com.typesafe.sbt" % "sbt-webdriver" % "1.0.0-RC2"
-"com.typesafe.sbt" % "sbt-js-engine" % "1.0.0-RC3"
+"com.typesafe.sbt" % "sbt-web" % "1.0.0"
+"com.typesafe.sbt" % "sbt-webdriver" % "1.0.0"
+"com.typesafe.sbt" % "sbt-js-engine" % "1.0.0"
 
-"com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0-RC3"
-"com.typesafe.sbt" % "sbt-digest" % "1.0.0-RC2"
-"com.typesafe.sbt" % "sbt-gzip" % "1.0.0-RC2"
-"com.typesafe.sbt" % "sbt-less" % "1.0.0-RC2"
-"com.typesafe.sbt" % "sbt-jshint" % "1.0.0-RC2"
-"com.typesafe.sbt" % "sbt-mocha" % "1.0.0-RC2"
-"com.typesafe.sbt" % "sbt-rjs" % "1.0.0-RC3"
+"com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0"
+"com.typesafe.sbt" % "sbt-digest" % "1.0.0"
+"com.typesafe.sbt" % "sbt-gzip" % "1.0.0"
+"com.typesafe.sbt" % "sbt-less" % "1.0.0"
+"com.typesafe.sbt" % "sbt-jshint" % "1.0.0"
+"com.typesafe.sbt" % "sbt-mocha" % "1.0.0"
+"com.typesafe.sbt" % "sbt-rjs" % "1.0.1"
 ```
 
 #### WebJars
@@ -231,7 +231,7 @@ From your perspective we aim to offer feature parity with previous releases of P
 You must now declare the plugin, typically in your plugins.sbt file:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0-RC3")
+addSbtPlugin("com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0")
 ```
 
 Coffeescript options have changed. The new options are:
@@ -251,7 +251,7 @@ For more information please consult [the plugin's documentation](https://github.
 You must now declare the plugin, typically in your plugins.sbt file:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.0.0-RC2")
+addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.0.0")
 ```
 
 Entry points are now declared using a filter. For example, to declare that `foo.less` and `bar.less` are required:
@@ -301,7 +301,7 @@ The Closure Compiler has been replaced. Its two important functions of validatin
 To use JSHint you must declare it, typically in your plugins.sbt file:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-jshint" % "1.0.0-RC2")
+addSbtPlugin("com.typesafe.sbt" % "sbt-jshint" % "1.0.0")
 ```
 
 Options can be specified in accordance with the [JSHint website](http://www.jshint.com/docs) and they share the same set of defaults. To set an option you can provide a `.jshintrc` file within your project's base directory. If there is no such file then a `.jshintrc` file will be searched for in your home directory. This behaviour can be overridden by using a `JshintKeys.config` setting for the plugin.
@@ -318,7 +318,7 @@ The RequireJS Optimizer (rjs) has been entirely replaced with one that should be
 To use rjs you must declare it, typically in your plugins.sbt file:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-rjs" % "1.0.0-RC3")
+addSbtPlugin("com.typesafe.sbt" % "sbt-rjs" % "1.0.1")
 ```
 
 To add the plugin to the asset pipeline you can declare it as follows:
@@ -330,9 +330,9 @@ pipelineStages := Seq(rjs)
 We also recommend that sbt-web's sbt-digest and sbt-gzip plugins are included in the pipeline. sbt-digest will provide Play's asset controller with the ability to fingerprint asset names for far-future caching. sbt-gzip produces a gzip of your assets that the asset controller will favor when requested. Your plugins.sbt file for this configuration will then look like:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-digest" % "1.0.0-RC2")
+addSbtPlugin("com.typesafe.sbt" % "sbt-digest" % "1.0.0")
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-gzip" % "1.0.0-RC2")
+addSbtPlugin("com.typesafe.sbt" % "sbt-gzip" % "1.0.0")
 ```
 
 and your pipeline configuration now becomes:
@@ -351,15 +351,16 @@ appBuildProfile         | The project build profile contents.
 appDir                  | The top level directory that contains your app js files. In effect, this is the source folder that rjs reads from.
 baseUrl                 | The dir relative to the assets or public folder where js files are housed. Will default to "js", "javascripts" or "." with the latter if the other two cannot be found.
 buildProfile            | Build profile key -> value settings in addition to the defaults supplied by appBuildProfile. Any settings in here will also replace any defaults.
-buildWriter             | The project build writer JS that is responsible for writing out source files in rjs.
 dir                     | By default, all modules are located relative to this path. In effect this is the target directory for rjs.
 generateSourceMaps      | By default, source maps are generated.
+mainConfig              | By default, 'main' is used as the module for configuration.
+mainConfigFile          | The full path to the above.
 mainModule              | By default, 'main' is used as the module.
 modules                 | The json array of modules.
 optimize                | The name of the optimizer, defaults to uglify2.
-paths                   | A set of RequireJS path mappings. By default all WebJar libraries are made available from a CDN and their mappings can be found here (unless the cdn is set to None).
+paths                   | RequireJS path mappings of module ids to a tuple of the build path and production path. By default all WebJar libraries are made available from a CDN and their mappings can be found here (unless the cdn is set to None).
 preserveLicenseComments | Whether to preserve comments or not. Defaults to false given source maps (see http://requirejs.org/docs/errors.html#sourcemapcomments).
-webjarCdn               | A CDN to be used for locating WebJars. By default jsdelivr is used.
+webJarCdns              | CDNs to be used for locating WebJars. By default "org.webjars" is mapped to "jsdelivr".
 webJarModuleIds         | A sequence of webjar module ids to be used.
 
 For more information please consult [the plugin's documentation](https://github.com/sbt/sbt-rjs#sbt-rjs).
