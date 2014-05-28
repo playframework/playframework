@@ -70,19 +70,59 @@ The sbt-native-packager plugins provides a `java_server` archetype which enables
 
 A full documentation can be found in the [documentation](http://www.scala-sbt.org/sbt-native-packager/GettingStartedServers/index.html).
 
-To enable the `java_server` archetype you have to add `packageArchetype.java_server`, so it looks like this:
+The `java_server` archetype is enabled by default, but depending on which package you want to build you have
+to add a few settings. 
+
+#### Minimal Debian settings
 
 ```scala
 import com.typesafe.sbt.SbtNativePackager._
 import NativePackagerKeys._
 
-name := "yourapp"
+maintainer in Linux := "First Lastname <first.last@example.com>"
 
-packageArchetype.java_server
+packageSummary in Linux := "My custom package summary"
+
+packageDescription := "My longer package description"
 ```
 
+Build your package with
+
+```bash
+play debian:packageBin
+```
+
+#### Minimal RPM settings
+
+```scala
+import com.typesafe.sbt.SbtNativePackager._
+import NativePackagerKeys._
+
+maintainer in Linux := "First Lastname <first.last@example.com>"
+
+packageSummary in Linux := "My custom package summary"
+
+packageDescription := "My longer package description"
+
+rpmRelease := "1"
+
+rpmVendor := "example.com"
+
+rpmUrl := Some("http://github.com/example/server")
+
+rpmLicense := Some("Apache v2")
+```
+
+```bash
+play rpm:packageBin
+```
+
+> There will be some error logging. This is rpm logging on stderr instead of stdout !
+
+#### Play PID Configuration 
+
 Play manages its own PID, which is described in the [[Production configuration|ProductionConfiguration]].
-In order to tell the startup script where to place the PID file put a file `etc-default` inside `src/main/`
+In order to tell the startup script where to place the PID file put a file `etc-default` inside `src/templates/`
 folder and add the following content
 
 ```bash
@@ -91,7 +131,6 @@ folder and add the following content
 ```
 
 For a full list of replacements take a closer look at the [documentation](http://www.scala-sbt.org/sbt-native-packager/GettingStartedServers/AddingConfiguration.html).
-Don't forget to add the necessary settings for your specific package type, like `maintainer` and `packageDescription`.
 
 
 ## Publishing to a Maven (or Ivy) repository
