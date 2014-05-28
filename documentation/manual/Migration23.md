@@ -32,7 +32,7 @@ Since Activator is a wrapper around sbt, you can also download and use [sbt](htt
 Play uses sbt 0.13.5. If you're updating an existing project, change your `project/build.properties` file to:
 
 ```
-sbt.version=0.13.5-RC3
+sbt.version=0.13.5
 ```
 
 ### Plugin changes
