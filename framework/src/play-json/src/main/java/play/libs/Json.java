@@ -22,8 +22,14 @@ public class Json {
     private static final ObjectMapper defaultObjectMapper = new ObjectMapper();
     private static volatile ObjectMapper objectMapper = null;
 
-    // Ensures that there always is *a* object mapper
-    private static ObjectMapper mapper() {
+  /**
+   * Get the ObjectMapper used to serialize and deserialize objects to and from JSON values.
+   *
+   * This can be set to a custom implementation using Json.setObjectMapper.
+   *
+   * @return the ObjectMapper currently being used
+   */
+    public static ObjectMapper mapper() {
         if (objectMapper == null) {
             return defaultObjectMapper;
         } else {
