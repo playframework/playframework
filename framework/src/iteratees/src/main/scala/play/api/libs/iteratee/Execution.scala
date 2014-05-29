@@ -67,6 +67,7 @@ object Execution {
    * Blocking should be strictly avoided as it could hog the current thread.
    * Also, since we're running on a single thread, blocking code risks deadlock.
    */
+  @deprecated("Use trampoline instead", "2.3.0")
   object overflowingExecutionContext extends ExecutionContext {
 
     def execute(runnable: Runnable): Unit = {
