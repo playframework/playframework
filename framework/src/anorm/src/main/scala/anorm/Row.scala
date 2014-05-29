@@ -56,12 +56,29 @@ trait Row {
    */
   def apply[B](name: String)(implicit c: Column[B]): B = get[B](name)(c).get
 
-  // TODO: Optimize
-  private lazy val columnsDictionary: Map[String, Any] =
-    metaData.ms.map(_.column.qualified.toUpperCase()).zip(data).toMap
+  // Data per column name
+  private lazy val columnsDictionary: Map[String, Any] = {
+    @annotation.tailrec
+    def loop(meta: List[MetaDataItem], dt: List[Any], r: Map[String, Any]): Map[String, Any] = (meta, dt) match {
+      case (m :: ms, d :: ds) => loop(ms, ds,
+        r + (m.column.qualified.toUpperCase -> d))
+      case _ => r
+    }
 
-  private lazy val aliasesDictionary: Map[String, Any] =
-    metaData.ms.flatMap(_.column.alias.map(_.toUpperCase())).zip(data).toMap
+    loop(metaData.ms, data, Map.empty)
+  }
+
+  // Data per column alias
+  private lazy val aliasesDictionary: Map[String, Any] = {
+    @annotation.tailrec
+    def loop(meta: List[MetaDataItem], dt: List[Any], r: Map[String, Any]): Map[String, Any] = (meta, dt) match {
+      case (m :: ms, d :: ds) => loop(ms, ds,
+        m.column.alias.fold(r) { c => r + (c.toUpperCase -> d) })
+      case _ => r
+    }
+
+    loop(metaData.ms, data, Map.empty)
+  }
 
   /* Type alias for tuple extracted from metadata item */
   private type MetaTuple = (ColumnName, Boolean, String)
