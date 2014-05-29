@@ -5,18 +5,19 @@ package play.api.libs.ws
 
 import org.specs2.mutable._
 import com.typesafe.config.ConfigFactory
+import play.api.test.WithApplication
 
 object DefaultWSConfigParserSpec extends Specification {
 
   "DefaultWSConfigParser" should {
 
-    def parseThis(input: String) = {
+    def parseThis(input: String)(implicit app:play.api.Application) = {
       val config = play.api.Configuration(ConfigFactory.parseString(input))
-      val parser = new DefaultWSConfigParser(config)
+      val parser = new DefaultWSConfigParser(config, app.classloader)
       parser.parse()
     }
 
-    "parse ws base section" in {
+    "parse ws base section" in new WithApplication {
       val actual = parseThis( """
                                 |ws.timeout.connection = 9999
                                 |ws.timeout.idle = 666

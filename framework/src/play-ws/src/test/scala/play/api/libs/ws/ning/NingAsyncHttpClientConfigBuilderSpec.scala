@@ -14,7 +14,7 @@ import play.api.libs.ws.ssl._
 import play.api.libs.ws.ssl.DefaultSSLConfig
 import play.api.libs.ws.DefaultWSClientConfig
 
-import javax.net.ssl.SSLContext
+import javax.net.ssl.{HostnameVerifier, SSLContext}
 import com.ning.http.client.ProxyServerSelector
 import com.ning.http.util.{ProxyUtils, AllowAllHostnameVerifier}
 import play.api.libs.ws.ssl.DefaultHostnameVerifier
@@ -159,7 +159,7 @@ object NingAsyncHttpClientConfigBuilderSpec extends Specification with Mockito {
 
       "with hostname verifier" should {
         "use the default hostname verifier" in {
-          val sslConfig = DefaultSSLConfig(hostnameVerifierClassName = None)
+          val sslConfig = DefaultSSLConfig(hostnameVerifierClass = None)
           val config = defaultConfig.copy(ssl = Some(sslConfig))
           val builder = new NingAsyncHttpClientConfigBuilder(config)
 
@@ -168,12 +168,12 @@ object NingAsyncHttpClientConfigBuilderSpec extends Specification with Mockito {
         }
 
         "use an explicit hostname verifier" in {
-          val sslConfig = DefaultSSLConfig(hostnameVerifierClassName = Some(classOf[DefaultHostnameVerifier].getName))
+          val sslConfig = DefaultSSLConfig(hostnameVerifierClass = Some(classOf[AllowAllHostnameVerifier].asInstanceOf[Class[HostnameVerifier]]))
           val config = defaultConfig.copy(ssl = Some(sslConfig))
           val builder = new NingAsyncHttpClientConfigBuilder(config)
 
           val asyncConfig = builder.build()
-          asyncConfig.getHostnameVerifier must beAnInstanceOf[DefaultHostnameVerifier]
+          asyncConfig.getHostnameVerifier must beAnInstanceOf[AllowAllHostnameVerifier]
         }
 
         "should disable the hostname verifier if loose.disableHostnameVerification is defined" in {

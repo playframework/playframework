@@ -13,7 +13,8 @@ import scala.concurrent.duration._
 class HowsMySSLSpec extends PlaySpecification {
 
   def createClient(rawConfig: play.api.Configuration): WSClient = {
-    val parser = new DefaultWSConfigParser(rawConfig)
+    val classLoader = Thread.currentThread().getContextClassLoader
+    val parser = new DefaultWSConfigParser(rawConfig, classLoader)
     val clientConfig = parser.parse()
     clientConfig.ssl.map {
       _.debug.map(new DebugConfiguration().configure)

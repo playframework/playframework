@@ -12,7 +12,6 @@ import play.api.libs.ws.ssl._
 import org.slf4j.LoggerFactory
 import java.security.KeyStore
 import java.security.cert.CertPathValidatorException
-import scala.util.control.NonFatal
 
 /**
  * Builds a valid AsyncHttpClientConfig object from config.
@@ -22,8 +21,6 @@ import scala.util.control.NonFatal
  */
 class NingAsyncHttpClientConfigBuilder(config: WSClientConfig,
     builder: AsyncHttpClientConfig.Builder = new AsyncHttpClientConfig.Builder()) {
-
-  val defaultHostnameVerifierClassName = "play.api.libs.ws.ssl.DefaultHostnameVerifier"
 
   private[ning] val logger = LoggerFactory.getLogger(this.getClass)
 
@@ -161,14 +158,11 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig,
   }
 
   def buildHostnameVerifier(sslConfig: SSLConfig): HostnameVerifier = {
-    val hostnameVerifierClassName = sslConfig.hostnameVerifierClassName.getOrElse(defaultHostnameVerifierClassName)
-    logger.debug("buildHostnameVerifier: enabling hostname verification using {}", hostnameVerifierClassName)
-    // Provide people with the option of using their own hostname verifier, and set the apache internal
-    // hostname verifier as the default.
+    val hostnameVerifierClass = sslConfig.hostnameVerifierClass.getOrElse(classOf[DefaultHostnameVerifier])
+    logger.debug("buildHostnameVerifier: enabling hostname verification using {}", hostnameVerifierClass)
 
     try {
-      val verifierClass = Class.forName(hostnameVerifierClassName)
-      verifierClass.newInstance().asInstanceOf[HostnameVerifier]
+      hostnameVerifierClass.newInstance()
     } catch {
       case e: Exception =>
         throw new IllegalStateException("Cannot configure hostname verifier", e)
