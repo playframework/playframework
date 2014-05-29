@@ -13,7 +13,7 @@ import scala.concurrent.duration.{ Duration, SECONDS }
 import scala.util.{ Failure, Success, Try }
 
 object ExecutionSpec extends Specification {
-  import Execution.{ trampoline, overflowingExecutionContext }
+  import Execution.trampoline
 
   val waitTime = Duration(5, SECONDS)
 
@@ -34,6 +34,13 @@ object ExecutionSpec extends Specification {
       }
 
       // Work out how deep to go to cause an overflow
+      val overflowingExecutionContext = new ExecutionContext {
+        def execute(runnable: Runnable): Unit = {
+          runnable.run()
+        }
+        def reportFailure(t: Throwable): Unit = t.printStackTrace()
+      }
+
       var overflowTimes = 1 << 10
       try {
         while (overflowTimes > 0) {
