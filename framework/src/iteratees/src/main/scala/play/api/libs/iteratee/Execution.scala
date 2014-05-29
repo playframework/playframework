@@ -59,23 +59,4 @@ object Execution {
     def reportFailure(t: Throwable): Unit = t.printStackTrace()
   }
 
-  /**
-   * Executes in the current thread. Calls Runnables directly so it is possible for the
-   * stack to overflow. To avoid overflow the `trampoline`
-   * can be used instead.
-   *
-   * Blocking should be strictly avoided as it could hog the current thread.
-   * Also, since we're running on a single thread, blocking code risks deadlock.
-   */
-  @deprecated("Use trampoline instead", "2.3.0")
-  object overflowingExecutionContext extends ExecutionContext {
-
-    def execute(runnable: Runnable): Unit = {
-      runnable.run()
-    }
-
-    def reportFailure(t: Throwable): Unit = t.printStackTrace()
-
-  }
-
 }
