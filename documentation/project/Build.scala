@@ -131,9 +131,10 @@ object ApplicationBuild extends Build {
 
   val templateFormats = Map("html" -> "play.twirl.api.HtmlFormat")
   val templateFilter = "*.scala.*"
+  val templateCodec = scala.io.Codec("UTF-8")
 
   def compileTemplates(sourceDirectories: Seq[File], target: File, imports: Seq[String], log: Logger) = {
-    play.twirl.sbt.TemplateCompiler.compile(sourceDirectories, target, templateFormats, imports, templateFilter, HiddenFileFilter, false, log)
+    play.twirl.sbt.TemplateCompiler.compile(sourceDirectories, target, templateFormats, imports, templateFilter, HiddenFileFilter, templateCodec, false, log)
   }
 
   // Run a documentation server
