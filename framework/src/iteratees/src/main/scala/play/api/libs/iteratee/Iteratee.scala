@@ -411,7 +411,7 @@ trait Iteratee[E, +A] {
    * which can execute the `folder` function immediately.
    */
   protected[play] def foldNoEC[B](folder: Step[E, A] => Future[B]): Future[B] =
-    fold(folder)(Execution.overflowingExecutionContext)
+    fold(folder)(dec)
 
   /**
    * Like fold but taking functions returning pure values (not in promises)
@@ -427,7 +427,7 @@ trait Iteratee[E, +A] {
    * which can execute the `folder` function immediately.
    */
   protected[play] def pureFoldNoEC[B](folder: Step[E, A] => B): Future[B] =
-    pureFold(folder)(Execution.overflowingExecutionContext)
+    pureFold(folder)(dec)
 
   /**
    * Like pureFold, except taking functions that return an Iteratee
@@ -443,7 +443,7 @@ trait Iteratee[E, +A] {
    * which can execute the `folder` function immediately.
    */
   protected[play] def pureFlatFoldNoEC[B, C](folder: Step[E, A] => Iteratee[B, C]): Iteratee[B, C] =
-    pureFlatFold(folder)(Execution.overflowingExecutionContext)
+    pureFlatFold(folder)(dec)
 
   /**
    * Like fold, except flattens the result with Iteratee.flatten.
@@ -702,7 +702,7 @@ private final class DoneIteratee[E, A](a: A, e: Input[E]) extends Step.Done[A, E
    */
   override def mapM[B](f: A => Future[B])(implicit ec: ExecutionContext): Iteratee[E, B] = {
     Iteratee.flatten(executeFuture {
-      f(a).map[Iteratee[E, B]](Done(_, e))(Execution.overflowingExecutionContext)
+      f(a).map[Iteratee[E, B]](Done(_, e))(dec)
     }(ec /* delegate preparation */ ))
   }
 
@@ -728,7 +728,7 @@ private final class FutureIteratee[E, A](itFut: Future[Iteratee[E, A]]) extends 
 
   def fold[B](folder: Step[E, A] => Future[B])(implicit ec: ExecutionContext): Future[B] = {
     implicit val pec = ec.prepare()
-    itFut.flatMap { it => it.fold(folder)(pec) }(Execution.overflowingExecutionContext)
+    itFut.flatMap { it => it.fold(folder)(pec) }(dec)
   }
 
 }

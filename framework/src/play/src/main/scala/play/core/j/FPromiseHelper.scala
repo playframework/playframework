@@ -59,7 +59,7 @@ private[play] object FPromiseHelper {
   }
 
   def or[A, B](left: F.Promise[A], right: F.Promise[B]): F.Promise[F.Either[A, B]] = {
-    implicit val ec = Execution.overflowingExecutionContext
+    import Execution.Implicits.trampoline
     val p = Promise[F.Either[A, B]]
     left.wrapped.onComplete {
       case tryA => p.tryComplete(tryA.map(F.Either.Left[A, B](_)))
@@ -71,7 +71,7 @@ private[play] object FPromiseHelper {
   }
 
   def zip[A, B](pa: F.Promise[A], pb: F.Promise[B]): F.Promise[F.Tuple[A, B]] = {
-    implicit val ec = Execution.overflowingExecutionContext
+    import Execution.Implicits.trampoline
     val future = pa.wrapped.zip(pb.wrapped).map { case (a, b) => new F.Tuple(a, b) }
     F.Promise.wrap(future)
   }

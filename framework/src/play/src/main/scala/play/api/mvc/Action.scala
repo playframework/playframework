@@ -199,7 +199,7 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
       def apply(request: RequestHeader) = self(request).mapM {
         case Right(a) =>
           // safe to execute `Right.apply` in same thread
-          f(a).map(Right.apply)(Execution.overflowingExecutionContext)
+          f(a).map(Right.apply)(Execution.trampoline)
         case left =>
           Future.successful(left.asInstanceOf[Either[Result, B]])
       }(pec)
@@ -307,7 +307,7 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
       def apply(request: RequestHeader) = self(request).flatMapM {
         case Right(a) =>
           // safe to execute `Done.apply` in same thread
-          f(a).map(Done.apply[Array[Byte], Either[Result, B]](_))(Execution.overflowingExecutionContext)
+          f(a).map(Done.apply[Array[Byte], Either[Result, B]](_))(Execution.trampoline)
         case left =>
           Future.successful {
             Done[Array[Byte], Either[Result, B]](left.asInstanceOf[Either[Result, B]])
