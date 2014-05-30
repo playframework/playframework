@@ -4,7 +4,7 @@
 ## Configuring Ebean
 
 Play comes with the [Ebean](http://www.avaje.org/) ORM. To enable it, add javaEbean to your
-dependencies : 
+SBT dependencies (e.g. in `build.sbt` or `project/Build.scala`): 
 
 ```scala
 libraryDependencies += javaEbean
