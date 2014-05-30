@@ -5,10 +5,11 @@
  */
 package play.api.libs.ws.ssl
 
-import play.api.{ Logger, Configuration }
+import play.api.Configuration
 import scala.collection.JavaConverters
 import java.security.SecureRandom
 import java.net.URL
+import javax.net.ssl.HostnameVerifier
 
 /**
  * Contains configuration information for a key store.
@@ -73,7 +74,7 @@ trait SSLConfig {
 
   def secureRandom: Option[SecureRandom]
 
-  def hostnameVerifierClassName: Option[String]
+  def hostnameVerifierClass: Option[Class[HostnameVerifier]]
 
   def enabledCipherSuites: Option[Seq[String]]
 
@@ -203,7 +204,7 @@ case class DefaultSSLConfig(
   disabledKeyAlgorithms: Option[String] = None,
   keyManagerConfig: Option[KeyManagerConfig] = None,
   trustManagerConfig: Option[TrustManagerConfig] = None,
-  hostnameVerifierClassName: Option[String] = None,
+  hostnameVerifierClass: Option[Class[HostnameVerifier]] = None,
   secureRandom: Option[SecureRandom] = None,
   debug: Option[SSLDebugConfig] = None,
   loose: Option[SSLLooseConfig] = None) extends SSLConfig
@@ -212,7 +213,7 @@ trait SSLConfigParser {
   def parse(): SSLConfig
 }
 
-class DefaultSSLConfigParser(c: Configuration) {
+class DefaultSSLConfigParser(c: Configuration, classLoader: ClassLoader) {
 
   def parse(): SSLConfig = {
 
@@ -244,7 +245,11 @@ class DefaultSSLConfigParser(c: Configuration) {
 
     val protocols = c.getStringSeq("enabledProtocols")
 
-    val hostnameVerifierClassName = c.getString("hostnameVerifierClassName")
+    val hostnameVerifierClass = {
+      c.getString("hostnameVerifierClass").map { className =>
+        classLoader.loadClass(className).asInstanceOf[Class[HostnameVerifier]]
+      }
+    }
 
     val disabledSignatureAlgorithms = c.getString("disabledSignatureAlgorithms")
 
@@ -268,7 +273,7 @@ class DefaultSSLConfigParser(c: Configuration) {
       enabledCipherSuites = ciphers,
       enabledProtocols = protocols,
       keyManagerConfig = keyManagers,
-      hostnameVerifierClassName = hostnameVerifierClassName,
+      hostnameVerifierClass = hostnameVerifierClass,
       disabledSignatureAlgorithms = disabledSignatureAlgorithms,
       disabledKeyAlgorithms = disabledKeyAlgorithms,
       trustManagerConfig = trustManagers,

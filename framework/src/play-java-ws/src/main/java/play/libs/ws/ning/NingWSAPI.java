@@ -30,7 +30,7 @@ public class NingWSAPI implements WSAPI {
 
     private NingWSClient newClient() {
         play.api.Configuration playConfig = app.configuration().getWrappedConfiguration();
-        DefaultWSConfigParser parser = new DefaultWSConfigParser(playConfig);
+        DefaultWSConfigParser parser = new DefaultWSConfigParser(playConfig, app.classloader());
         WSClientConfig clientConfig = parser.parse();
         NingAsyncHttpClientConfigBuilder builder = new NingAsyncHttpClientConfigBuilder(clientConfig, new AsyncHttpClientConfig.Builder());
         AsyncHttpClientConfig httpClientConfig = builder.build();
