@@ -30,6 +30,9 @@ class JavaJsonSpec extends Specification {
   }
 
   "Json" should {
+    "use the correct object mapper" in new JsonScope {
+      Json.mapper() must_== mapper
+    }
     "parse" in {
       "from string" in new JsonScope {
         Json.parse(testJsonString) must_== testJson
