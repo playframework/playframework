@@ -60,5 +60,5 @@ To test for weak certificate, The server should send the client a certificate wh
 
 Write a test to "https://example.com".  If the server presents a certificate where the subjectAltName's dnsName is not example.com, the connection should terminate.
 
-> **NOTE: For a more in depth test, see [dnschef](http://tersesystems.com/2014/03/31/testing-hostname-verification/). 
+> **NOTE**: For a more in depth test, see [dnschef](http://tersesystems.com/2014/03/31/testing-hostname-verification/). 
 
