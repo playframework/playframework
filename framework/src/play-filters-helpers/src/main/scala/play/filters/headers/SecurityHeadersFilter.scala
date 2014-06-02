@@ -48,8 +48,7 @@ object SecurityHeadersFilter {
    * @return a configured SecurityHeadersFilter.
    */
   def apply(): SecurityHeadersFilter = {
-    val securityHeadersConfig = new SecurityHeadersParser().parse(play.api.Play.current.configuration)
-    apply(securityHeadersConfig)
+    new SecurityHeadersFilter()
   }
 
   /**
@@ -59,8 +58,7 @@ object SecurityHeadersFilter {
    * @return a configured SecurityHeadersFilter.
    */
   def apply(config: Configuration): SecurityHeadersFilter = {
-    val securityHeadersConfig = new SecurityHeadersParser().parse(config)
-    apply(securityHeadersConfig)
+    apply(new SecurityHeadersParser().parse(config))
   }
 
   /**
@@ -70,7 +68,7 @@ object SecurityHeadersFilter {
    * @param securityHeaderConfig
    * @return
    */
-  def apply(securityHeaderConfig: SecurityHeadersConfig): SecurityHeadersFilter = {
+  def apply(securityHeaderConfig: => SecurityHeadersConfig): SecurityHeadersFilter = {
     new SecurityHeadersFilter(securityHeaderConfig)
   }
 }
@@ -139,7 +137,9 @@ class SecurityHeadersParser {
  * The case class that implements the filter.  This gives you the most control, but you may want to use the apply()
  * method on the companion singleton for convenience.
  */
-class SecurityHeadersFilter(config: SecurityHeadersConfig) extends Filter {
+class SecurityHeadersFilter(config: => SecurityHeadersConfig) extends Filter {
+
+  private lazy val securityHeadersConfig: SecurityHeadersConfig = config
 
   /**
    * Zero argument constructor.  This allows the Java GlobalSettings class to call this class and load configured
@@ -164,11 +164,11 @@ class SecurityHeadersFilter(config: SecurityHeadersConfig) extends Filter {
     result.map {
       r =>
         val headers: Seq[(String, String)] = Seq(
-          config.frameOptions.map(X_FRAME_OPTIONS_HEADER -> _),
-          config.xssProtection.map(X_XSS_PROTECTION_HEADER -> _),
-          config.contentTypeOptions.map(X_CONTENT_TYPE_OPTIONS_HEADER -> _),
-          config.permittedCrossDomainPolicies.map(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER -> _),
-          config.contentSecurityPolicy.map(CONTENT_SECURITY_POLICY_HEADER -> _)
+          securityHeadersConfig.frameOptions.map(X_FRAME_OPTIONS_HEADER -> _),
+          securityHeadersConfig.xssProtection.map(X_XSS_PROTECTION_HEADER -> _),
+          securityHeadersConfig.contentTypeOptions.map(X_CONTENT_TYPE_OPTIONS_HEADER -> _),
+          securityHeadersConfig.permittedCrossDomainPolicies.map(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER -> _),
+          securityHeadersConfig.contentSecurityPolicy.map(CONTENT_SECURITY_POLICY_HEADER -> _)
         ).flatten
         r.withHeaders(headers: _*)
     }

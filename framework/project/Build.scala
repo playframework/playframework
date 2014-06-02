@@ -325,7 +325,13 @@ object PlayBuild extends Build {
 
   lazy val PlayFiltersHelpersProject = PlayRuntimeProject("Filters-Helpers", "play-filters-helpers")
     .settings(
-      parallelExecution in Test := false
+      parallelExecution in Test := false,
+      binaryIssueFilters ++= Seq(
+        // See https://github.com/playframework/playframework/issues/2967, these methods had to be changed because as
+        // they could not be used as intended
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.filters.headers.SecurityHeadersFilter.apply"),
+        ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.filters.headers.SecurityHeadersFilter.this")
+      )
     ).dependsOn(PlayProject, PlayTestProject % "test", PlayJavaProject % "test", PlayWsProject % "test")
 
   // This project is just for testing Play, not really a public artifact
