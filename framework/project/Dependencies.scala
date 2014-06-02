@@ -127,7 +127,7 @@ object Dependencies {
 
   val sbtDependencies = Seq(
     "org.scala-lang" % "scala-reflect" % BuildSettings.buildScalaVersionForSbt % "provided",
-    "com.typesafe" % "config" % "1.2.0",
+    "com.typesafe" % "config" % "1.2.1",
     "org.mozilla" % "rhino" % "1.7R4",
 
     ("com.google.javascript" % "closure-compiler" % "v20130603")
@@ -162,7 +162,7 @@ object Dependencies {
 
   val iterateesDependencies = Seq(
     "org.scala-stm" %% "scala-stm" % "0.7",
-    "com.typesafe" % "config" % "1.2.0") ++
+    "com.typesafe" % "config" % "1.2.1") ++
     specsBuild.map(_ % "test")
 
   val jsonDependencies = Seq(
