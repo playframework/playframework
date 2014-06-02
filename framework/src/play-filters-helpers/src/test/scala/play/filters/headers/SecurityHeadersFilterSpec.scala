@@ -88,6 +88,11 @@ class SecurityHeadersFilterSpec extends PlaySpecification {
       header(CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src 'self'")
     }
 
+    "work with zero argument constructor before application starts" in withApplication(Ok("hello"), SecurityHeadersFilter()) {
+      val result = route(FakeRequest()).get
+      header(X_XSS_PROTECTION_HEADER, result) must beSome(DEFAULT_XSS_PROTECTION)
+    }
+
     "frame options" should {
 
       "work with custom frame options" in withApplication(Ok("hello"), SecurityHeadersFilter(configure(
