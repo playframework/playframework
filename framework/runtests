@@ -48,6 +48,12 @@ echo "[info]"
 $BUILD "$@" test:test
 
 echo "[info]"
+echo "[info] ---- CHECKING BINARY COMPATIBILITY"
+echo "[info]"
+
+./build "$@" mima-report-binary-issues
+
+echo "[info]"
 echo "[info] ---- SBT PLUGIN TESTS"
 echo "[info]"
 
