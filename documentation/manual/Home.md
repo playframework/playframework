@@ -56,7 +56,7 @@
 
 1. [Scala](http://docs.scala-lang.org/)
 1. [Akka](http://akka.io/docs/)
-1. [sbt](http://www.scala-sbt.org/learn.html)
+1. [sbt](http://www.scala-sbt.org/0.13/tutorial/index.html)
 1. [Configuration](https://github.com/typesafehub/config)
 1. [Logback](http://logback.qos.ch/documentation.html)
 
