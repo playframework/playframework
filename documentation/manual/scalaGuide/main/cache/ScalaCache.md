@@ -2,6 +2,17 @@
 
 The default implementation of the Cache API uses [EHCache](http://ehcache.org/). You can also provide your own implementation via a plug-in.
 
+## Importing the Cache API
+
+Add `cache` into your dependencies list. For example, in `build.sbt`:
+
+```scala
+libraryDependencies ++= Seq(
+  cache,
+  ...
+)
+```
+
 ## Accessing the Cache API
 
 The cache API is provided by the `play.api.cache.Cache` object. It requires a registered cache plug-in.
