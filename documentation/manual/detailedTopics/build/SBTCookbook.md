@@ -97,21 +97,21 @@ For example, you may want to add the feature flag to have details on feature war
 [warn] there were 1 feature warnings; re-run with -feature for details
 ```
 
-Simple add `-feature` to the `scalacOptions` attribute:
+Simply add `-feature` to the `scalacOptions` attribute:
 
 ```scala
 scalacOptions += "-feature"
 ```
 
-## Add directory to the `playAssetsDirectories`
+## Add additional asset directory
 
-For example you can add the `pictures` folder to the play assets directories:
+For example you can add the `pictures` folder to be included as an additional asset directory:
 
 ```scala
-playAssetsDirectories <+= baseDirectory { _ / "pictures/" }
+unmanagedResourceDirectories in Assets <+= baseDirectory { _ / "pictures" }
 ```
 
-This will allow you to use routes.Assets.at` with this folder.
+This will allow you to use `routes.Assets.at` with this folder.
 
 ## Disable documentation
 
