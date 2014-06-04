@@ -6,6 +6,16 @@ For any data stored in the cache, a regeneration strategy needs to be put in pla
 
 The default implementation of the cache API uses [EHCache](http://www.ehcache.org/) and it's enabled by default. You can also provide your own implementation via a plugin. 
 
+## Importing the Cache API
+
+Add `cache` into your dependencies list. For example, in `build.sbt`:
+
+```scala
+libraryDependencies ++= Seq(
+  cache,
+  ...
+)
+```
 
 ## Accessing the Cache API
 
