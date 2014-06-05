@@ -40,32 +40,32 @@ class AkkaPlugin(app: Application) extends Plugin {
 
   private val lazySystem = new ClosableLazy[ActorSystem] {
 
-    protected type ResourceToClose = ActorSystem
-
-    protected def create(): CreateResult = {
+    protected def create() = {
       val system = ActorSystem("application", app.configuration.underlying, app.classloader)
       Play.logger.info("Starting application default Akka system.")
-      CreateResult(system, system)
-    }
 
-    protected def close(systemToClose: ActorSystem) = {
-      Play.logger.info("Shutdown application default Akka system.")
-      systemToClose.shutdown()
+      val close: CloseFunction = { () =>
+        Play.logger.info("Shutdown application default Akka system.")
+        system.shutdown()
 
-      app.configuration.getMilliseconds("play.akka.shutdown-timeout") match {
-        case Some(timeout) =>
-          try {
-            systemToClose.awaitTermination(Duration(timeout, TimeUnit.MILLISECONDS))
-          } catch {
-            case te: TimeoutException =>
-              // oh well.  We tried to be nice.
-              Play.logger.info(s"Could not shutdown the Akka system in $timeout milliseconds.  Giving up.")
-          }
-        case None =>
-          // wait until it is shutdown
-          systemToClose.awaitTermination()
+        app.configuration.getMilliseconds("play.akka.shutdown-timeout") match {
+          case Some(timeout) =>
+            try {
+              system.awaitTermination(Duration(timeout, TimeUnit.MILLISECONDS))
+            } catch {
+              case te: TimeoutException =>
+                // oh well.  We tried to be nice.
+                Play.logger.info(s"Could not shutdown the Akka system in $timeout milliseconds.  Giving up.")
+            }
+          case None =>
+            // wait until it is shutdown
+            system.awaitTermination()
+        }
       }
+
+      (system, close)
     }
+
   }
 
   def applicationSystem: ActorSystem = lazySystem.get()
