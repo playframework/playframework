@@ -65,15 +65,21 @@ private[play] abstract class ClosableLazy[T >: Null <: AnyRef] {
    * has not been initialized.
    */
   final def close(): Unit = {
-    synchronized {
-      if (!hasBeenClosed && value != null) {
+    val optionalClose: Option[CloseFunction] = synchronized {
+      if (!hasBeenClosed) {
         value = null
         hasBeenClosed = true
-        closeFunction()
+        val result = Some(closeFunction)
         closeFunction = null
+        result
+      } else {
+        None
       }
     }
-
+    // Perform actual close outside the synchronized block,
+    // just in case the close function calls get or close
+    // from another thread.
+    optionalClose.foreach(_.apply())
   }
 
   /**
