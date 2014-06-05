@@ -58,6 +58,31 @@ object ClosableLazySpec extends Specification {
       cl.get must throwAn[IllegalStateException]
     }
 
+    "not deadlock when get is called during the close function" in {
+
+      val getResultPromise = Promise[String]
+      val test = Future {
+        lazy val cl: ClosableLazy[String] = new ClosableLazy[String] {
+          protected def create() = {
+            ("banana", { () =>
+              val getResult = Future[String] {
+                cl.get()
+              }
+              getResultPromise.completeWith(getResult)
+              Await.result(getResult, Duration(2, MINUTES))
+            })
+          }
+        }
+        cl.get must_== "banana"
+        cl.close() must_== ()
+      }
+
+      // Our get result should happen immediately and throw an IllegalStateException
+      // because the ClosableLazy is closed. Use a long duration so this will work
+      // on slow machines.
+      Await.result(getResultPromise.future, Duration(1, MINUTES)) must throwAn[IllegalStateException]
+    }
+
   }
 
 }
