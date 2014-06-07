@@ -67,7 +67,7 @@ class ScalaWSSpec extends PlaySpecification with Results {
 
       //#complex-holder
       val complexHolder: WSRequestHolder =
-        holder.withHeaders("Accept" -> "application.json")
+        holder.withHeaders("Accept" -> "application/json")
           .withRequestTimeout(10000)
           .withQueryString("search" -> "play")
       //#complex-holder
