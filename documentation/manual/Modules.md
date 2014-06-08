@@ -307,6 +307,12 @@ your Play application.
 * **Website:** <http://www.securesocial.ws/>
 * **Short description:** An authentication module supporting OAuth, OAuth2, OpenID, Username/Password and custom authentication schemes.
 
+## Silhouette (Scala)
+
+* **Website:** <http://silhouette.mohiva.com/>
+* **Documentation:** <https://github.com/mohiva/play-silhouette/wiki>
+* **Short description:** An authentication library that supports several authentication methods, including OAuth1, OAuth2, OpenID, Credentials or custom authentication schemes.
+
 ## Sitemap Generator (Java)
 
 * **Website:** <https://github.com/blabluble/play-sitemap-module>
