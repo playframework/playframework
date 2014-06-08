@@ -69,7 +69,7 @@ trait DBApi {
   }
 
   /**
-   * Execute a block of code, providing a JDBC connection. The connection and all created statements are
+   * Executes a block of code, providing a JDBC connection. The connection and all created statements are
    * automatically released.
    *
    * @param name The datasource name.
@@ -85,7 +85,7 @@ trait DBApi {
   }
 
   /**
-   * Execute a block of code, in the scope of a JDBC transaction.
+   * Executes a block of code, in the scope of a JDBC transaction.
    * The connection and all created statements are automatically released.
    * The transaction is automatically committed, unless an exception occurs.
    *

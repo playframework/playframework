@@ -27,6 +27,8 @@ object Dependencies {
     "org.eu.acolyte" % "jdbc-driver" % "1.0.18" % "test",
     "tyrex" % "tyrex" % "1.0.1") ++ specsBuild.map(_ % "test")
 
+  val javaJdbcDeps = Seq("org.eu.acolyte" % "jdbc-driver" % "1.0.18" % "test")
+
   val ebeanDeps = Seq(
     "org.avaje.ebeanorm" % "avaje-ebeanorm" % "3.3.4" exclude ("javax.persistence", "persistence-api"),
     "org.avaje.ebeanorm" % "avaje-ebeanorm-agent" % "3.2.2" exclude ("javax.persistence", "persistence-api")
