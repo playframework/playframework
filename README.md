@@ -3,11 +3,13 @@
 The Play Framework combines productivity and performance making it easy to build scalable web applications with Java and Scala.  Play is developer friendly with a "just hit refresh" workflow and built-in testing support.  With Play, applications scale predictably due to a stateless and non-blocking architecture.  By being RESTful by default, including assets compilers, JSON & WebSocket support, Play is a perfect fit for modern web & mobile applications.
 
 ### Learn More
+
 - [www.playframework.com](http://www.playframework.com)
 - [Download](http://www.playframework.com/download)
 - [Install](http://www.playframework.com/documentation/latest/Installing)
-- [Get Started with Java](http://www.playframework.com/documentation/latest/JavaTodoList)
-- [Get Started with Scala](http://www.playframework.com/documentation/latest/ScalaTodoList)
+- [Create a new application](http://www.playframework.com/documentation/latest/NewApplication)
+- [Play for Scala developers](http://www.playframework.com/documentation/latest/ScalaHome)
+- [Play for Java developers](http://www.playframework.com/documentation/latest/JavaHome)
 - [Build from source](http://www.playframework.com/documentation/latest/BuildingFromSource)
 - [Search or create issues](https://github.com/playframework/playframework/issues)
 - [Get help](http://stackoverflow.com/questions/tagged/playframework)
