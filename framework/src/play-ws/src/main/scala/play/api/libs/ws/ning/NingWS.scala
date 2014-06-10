@@ -59,7 +59,7 @@ case class NingWSRequest(client: NingWSClient,
     extends WSRequest {
 
   //this will do a java mutable set hence the {} response
-  auth.map(data => auth(data._1, data._2, authScheme(data._3))).getOrElse({})
+  auth.foreach(data => auth(data._1, data._2, authScheme(data._3)))
 
   /**
    * Return the current headers of the request being constructed
@@ -241,8 +241,8 @@ case class NingWSRequest(client: NingWSClient,
 
   private[libs] def execute: Future[NingWSResponse] = {
     import com.ning.http.client.AsyncCompletionHandler
-    var result = Promise[NingWSResponse]()
-    calc.map(_.sign(this))
+    val result = Promise[NingWSResponse]()
+    calc.foreach(_.sign(this))
     client.executeRequest(builder.build(), new AsyncCompletionHandler[AHCResponse]() {
       override def onCompleted(response: AHCResponse) = {
         result.success(NingWSResponse(response))
@@ -264,7 +264,7 @@ case class NingWSRequest(client: NingWSClient,
 
     val errorInStream = Promise[Unit]()
 
-    calc.map(_.sign(this))
+    calc.foreach(_.sign(this))
 
     val promisedIteratee = Promise[Iteratee[Array[Byte], Unit]]()
 
@@ -438,14 +438,14 @@ case class NingWSRequestHolder(client: NingWSClient,
       value <- values
     } builder.addQueryParameter(key, value)
 
-    virtualHost.map(builder.setVirtualHost)
-    followRedirects.map(builder.setFollowRedirects)
+    virtualHost.foreach(builder.setVirtualHost)
+    followRedirects.foreach(builder.setFollowRedirects)
 
-    proxyServer.map { p =>
+    proxyServer.foreach { p =>
       builder.setProxyServer(createProxy(p))
     }
 
-    requestTimeout.map { t =>
+    requestTimeout.foreach { t =>
       val config = new PerRequestConfig()
       config.setRequestTimeoutInMs(t)
       builder.setPerRequestConfig(config)
@@ -472,8 +472,8 @@ case class NingWSRequestHolder(client: NingWSClient,
       wsServer.principal.getOrElse(null),
       wsServer.password.getOrElse(null))
 
-    wsServer.encoding.map(ningServer.setEncoding(_))
-    wsServer.ntlmDomain.map(ningServer.setNtlmDomain(_))
+    wsServer.encoding.foreach(ningServer.setEncoding)
+    wsServer.ntlmDomain.foreach(ningServer.setNtlmDomain)
     for {
       hosts <- wsServer.nonProxyHosts
       host <- hosts
@@ -520,8 +520,8 @@ class NingWSAPI(app: Application, clientConfig: WSClientConfig) extends WSAPI {
     val asyncClientConfig = buildAsyncClientConfig(clientConfig)
 
     new SystemConfiguration().configure(clientConfig)
-    clientConfig.ssl.map {
-      _.debug.map { debugConfig =>
+    clientConfig.ssl.foreach {
+      _.debug.foreach { debugConfig =>
         app.mode match {
           case Mode.Prod =>
             Play.logger.warn("NingWSAPI: ws.ssl.debug settings enabled in production mode!")
@@ -556,7 +556,7 @@ class NingWSAPI(app: Application, clientConfig: WSClientConfig) extends WSAPI {
    * resets the underlying AsyncHttpClient
    */
   private[play] def resetClient(): Unit = {
-    clientHolder.getAndSet(None).map(oldClient => oldClient.close())
+    clientHolder.getAndSet(None).foreach(oldClient => oldClient.close())
   }
 
   private[play] def buildAsyncClientConfig(wsClientConfig: WSClientConfig): AsyncHttpClientConfig = {
