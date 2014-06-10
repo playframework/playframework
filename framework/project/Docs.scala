@@ -33,9 +33,9 @@ object Docs {
       val docBase = base / "../../../documentation"
       val raw = (docBase \ "manual" ** "*") +++ (docBase \ "style" ** "*")
       val filtered = raw.filter(_.getName != ".DS_Store")
-      val docMappings = filtered.get x rebase(docBase, "play/docs/content/")
+      val docMappings = filtered.get pair rebase(docBase, "play/docs/content/")
 
-      val apiDocMappings = (apiBase ** "*").get x rebase(apiBase, "play/docs/content/api")
+      val apiDocMappings = (apiBase ** "*").get pair rebase(apiBase, "play/docs/content/api")
 
       // The play version is added so that resource paths are versioned
       val webjarMappings = webjars.*** pair rebase(webjars, "play/docs/content/webjars/" + playVersion)
@@ -89,7 +89,7 @@ object Docs {
     apiTarget
   }
 
-  def allSources(conf: Configuration, extension: String)(projectRef: ProjectRef, structure: Load.BuildStructure): Task[Seq[File]] = {
+  def allSources(conf: Configuration, extension: String)(projectRef: ProjectRef, structure: BuildStructure): Task[Seq[File]] = {
     val projects = allApiProjects(projectRef.build, structure)
     val sourceTasks = projects map { ref =>
       def taskFromProject[T](task: TaskKey[T]) = task in conf in ref get structure.data
@@ -108,7 +108,7 @@ object Docs {
    * Get all projects in the given build that have `apiDocsInclude` set to `true`.
    * Recursively searches aggregated projects starting from the root project.
    */
-  def allApiProjects(build: URI, structure: Load.BuildStructure): Seq[ProjectRef] = {
+  def allApiProjects(build: URI, structure: BuildStructure): Seq[ProjectRef] = {
     def aggregated(projectRef: ProjectRef): Seq[ProjectRef] = {
       val project = Project.getProject(projectRef, structure)
       val childRefs = project.toSeq.flatMap(_.aggregate)
@@ -122,7 +122,7 @@ object Docs {
     aggregated(rootProjectRef)
   }
 
-  def allClasspaths(projectRef: ProjectRef, structure: Load.BuildStructure): Task[Seq[File]] = {
+  def allClasspaths(projectRef: ProjectRef, structure: BuildStructure): Task[Seq[File]] = {
     val projects = allApiProjects(projectRef.build, structure)
     val tasks = projects flatMap { dependencyClasspath in Compile in _ get structure.data }
     tasks.join.map(_.flatten.map(_.data).distinct)

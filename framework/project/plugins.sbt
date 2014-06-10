@@ -2,6 +2,8 @@
 
 logLevel := Level.Warn
 
+scalacOptions ++= Seq("-deprecation", "-language:_")
+
 addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.0.1")
 
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.1.6")
