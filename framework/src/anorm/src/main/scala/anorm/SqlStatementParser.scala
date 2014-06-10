@@ -29,9 +29,11 @@ object SqlStatementParser extends JavaTokenParsers {
     (r.flatMap(_._1).mkString, (r.flatMap(_._2)))
   }
 
-  private val instr: Parser[List[(String, Option[String])]] = rep(literal | variable | other)
+  private val instr: Parser[List[(String, Option[String])]] =
+    rep(literal | variable | other)
 
-  private val literal: Parser[(String, Option[String])] = (stringLiteral | simpleQuotes) ^^ { case s => (s, None) }
+  private val literal: Parser[(String, Option[String])] =
+    (stringLiteral | simpleQuotes) ^^ { case s => (s, None) }
 
   private val variable = "{" ~> (ident ~ (("." ~> ident)?)) <~ "}" ^^ {
     case i1 ~ i2 => ("%s": String, Some(i1 + i2.map("." + _).getOrElse("")))
@@ -41,7 +43,8 @@ object SqlStatementParser extends JavaTokenParsers {
     case element => (element, None)
   }
 
-  private val simpleQuotes = ("'" + """([^'\p{Cntrl}\\]|\\[\\/bfnrt]|\\u[a-fA-F0-9]{4})*""" + "'").r
+  private val simpleQuotes =
+    ("'" + """([^'\p{Cntrl}\\]|\\[\\/bfnrt]|\\u[a-fA-F0-9]{4})*""" + "'").r
 
   override def skipWhitespace = false
 }

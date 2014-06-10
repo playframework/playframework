@@ -17,6 +17,10 @@ package object anorm {
   import scala.language.implicitConversions
 
   implicit def sqlToSimple(sql: SqlQuery): SimpleSql[Row] = sql.asSimple
+
+  @deprecated(
+    message = """Directly use BatchSql("stmt", params)""",
+    since = "2.3.1")
   implicit def sqlToBatch(sql: SqlQuery): BatchSql = sql.asBatch
 
   implicit def implicitID[ID](id: Id[ID]): ID = id.id
