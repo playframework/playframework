@@ -21,9 +21,8 @@ private[play] object Execution {
   }
 
   val lazyContext = new ClosableLazy[ExecutionContext] {
-    protected type ResourceToClose = ExecutorService
 
-    protected def create(): CreateResult = {
+    protected def create() = {
       class NamedFjpThread(fjp: ForkJoinPool) extends ForkJoinWorkerThread(fjp)
 
       /**
@@ -49,11 +48,10 @@ private[play] object Execution {
         null,
         true)
       val context = ExecutionContext.fromExecutorService(service)
-      CreateResult(context, service)
-    }
 
-    protected def close(serviceToClose: ExecutorService) = {
-      serviceToClose.shutdown()
+      val close: CloseFunction = () => service.shutdown()
+
+      (context, close)
     }
 
   }
