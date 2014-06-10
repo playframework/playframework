@@ -308,20 +308,34 @@ object SqlParser {
     } yield res).fold(Error(_), Success(_))
   }
 
-  // TODO: Scaladoc
-  def get[T](columnName: String)(implicit extractor: Column[T]): RowParser[T] =
+  /**
+   * Returns row parser for column with given `name`.
+   * @param name Column name
+   *
+   * {{{
+   * import anorm.SQL
+   * import anorm.SqlParser.get
+   *
+   * val title: String = SQL("SELECT title FROM Books").
+   *   as(get[String]("title").single)
+   * }}}
+   */
+  def get[T](name: String)(implicit extractor: Column[T]): RowParser[T] =
     RowParser { row =>
       (for {
-        col <- row.get1(columnName)
+        col <- row.get1(name)
         res <- extractor.tupled(col)
       } yield res).fold(Error(_), Success(_))
     }
 
   /**
-   * Returns row parser for column at given position.
+   * Returns row parser for column at given `position`.
    * @param position Column position, from 1 to n
    *
    * {{{
+   * import anorm.SQL
+   * import anorm.SqlParser.get
+   *
    * val res: (Float, String) = // parsing columns #1 & #3
    *   SQL("SELECT * FROM Test").as(get[String](1) ~ get[Float](3) map {
    *     case str ~ f => (f -> str)
