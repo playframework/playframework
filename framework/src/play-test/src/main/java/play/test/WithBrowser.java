@@ -4,6 +4,7 @@
 package play.test;
 
 import org.junit.After;
+import org.junit.Before;
 
 /**
  * Provides a server and browser to JUnit tests. Make your test class extend this class and an application, a server and a browser will be started before each test is invoked.
@@ -22,9 +23,8 @@ public class WithBrowser extends WithServer {
         return Helpers.testBrowser(port);
     }
 
-    @Override
-    protected void start(FakeApplication fakeApplication, int port) {
-        super.start(fakeApplication, port);
+    @Before
+    public void createBrowser() {
         browser = provideBrowser(port);
     }
 

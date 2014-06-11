@@ -57,11 +57,11 @@ public class OpenID {
             String realm) {
         if (axRequired == null) axRequired = new HashMap<String, String>();
         if (axOptional == null) axOptional = new HashMap<String, String>();
-        return new F.Promise<String>(play.api.libs.openid.OpenID.redirectURL(openID,
-                                                                             callbackURL,
-                                                                             JavaConversions.mapAsScalaMap(axRequired).toSeq(),
-                                                                             JavaConversions.mapAsScalaMap(axOptional).toSeq(),
-                                                                             Scala.Option(realm)));
+        return F.Promise.wrap(play.api.libs.openid.OpenID.redirectURL(openID,
+                                                                      callbackURL,
+                                                                      JavaConversions.mapAsScalaMap(axRequired).toSeq(),
+                                                                      JavaConversions.mapAsScalaMap(axOptional).toSeq(),
+                                                                      Scala.Option(realm)));
     }
 
     /**
@@ -76,7 +76,7 @@ public class OpenID {
                         return new UserInfo(scalaUserInfo.id(), JavaConversions.mapAsJavaMap(scalaUserInfo.attributes()));
                     }
                 },Invoker.executionContext());
-        return new F.Promise<UserInfo>(scalaPromise);
+        return F.Promise.wrap(scalaPromise);
     }
 
     public static class UserInfo {

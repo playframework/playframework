@@ -84,8 +84,6 @@ trait JavaHelpers {
         req.queryString.mapValues(_.toArray).asJava
       }
 
-      def accept = req.accept.asJava
-
       def acceptedTypes = req.acceptedTypes.asJava
 
       def accepts(mediaType: String) = req.accepts(mediaType)
@@ -156,8 +154,6 @@ trait JavaHelpers {
       def headers = req.headers.toMap.map(e => e._1 -> e._2.toArray).asJava
 
       def acceptLanguages = req.acceptLanguages.map(new play.i18n.Lang(_)).asJava
-
-      def accept = req.accept.asJava
 
       def acceptedTypes = req.acceptedTypes.asJava
 

@@ -259,14 +259,6 @@ case class JsPath(path: List[PathNode] = List()) {
   def read[T](implicit r: Reads[T]): Reads[T] = Reads.at[T](this)(r)
 
   /**
-   * Reads optional field at JsPath.
-   * If JsPath is not found => None
-   * If JsPath is found => applies implicit Reads[T]
-   */
-  @deprecated("use readNullable[T] instead (which manages both missing and null fields)", since = "2.1-RC2")
-  def readOpt[T](implicit r: Reads[T]): Reads[Option[T]] = Reads.optional[T](this)(r)
-
-  /**
    * Reads a Option[T] search optional or nullable field at JsPath (field not found or null is None
    * and other cases are Error).
    *
@@ -316,14 +308,6 @@ case class JsPath(path: List[PathNode] = List()) {
 
   /** Writes a T at given JsPath */
   def write[T](implicit w: Writes[T]): OWrites[T] = Writes.at[T](this)(w)
-
-  /**
-   * Writes a Option[T] at given JsPath
-   * If None => doesn't write the field
-   * else => writes the field using implicit Writes[T]
-   */
-  @deprecated("use writeNullable[T] instead (in parallel with readNullable)", since = "2.1-RC2")
-  def writeOpt[T](implicit w: Writes[T]): OWrites[Option[T]] = Writes.optional[T](this)(w)
 
   /**
    * Writes a Option[T] at given JsPath
@@ -382,15 +366,6 @@ case class JsPath(path: List[PathNode] = List()) {
    * Please note we couldn't call it "format" to prevent conflicts
    */
   def rw[T](implicit r: Reads[T], w: Writes[T]): OFormat[T] = Format.at[T](this)(Format(r, w))
-
-  /**
-   * Reads/Writes a Option[T] at given JsPath
-   *
-   * @see JsPath.readOpt to see behavior in reads
-   * @see JsPath.writeOpt to see behavior in writes
-   */
-  @deprecated("use formatNullable[T] instead (in parallel with readNullable)", since = "2.1-RC2")
-  def formatOpt[T](implicit f: Format[T]): OFormat[Option[T]] = Format.optional[T](this)(f)
 
   /**
    * Reads/Writes a Option[T] (optional or nullable field) at given JsPath

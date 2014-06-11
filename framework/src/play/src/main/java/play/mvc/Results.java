@@ -229,16 +229,6 @@ public class Results {
     }
 
     /**
-     * Generates a 200 OK file result, sent as a chunked response.
-     *
-     * @deprecated Since the length of the file is known, there is little reason to send a file as chunked.
-     */
-    @Deprecated
-    public static Status ok(File content, int chunkSize) {
-        return new Status(play.core.j.JavaResults.Ok(), content, chunkSize);
-    }
-
-    /**
      * Generates a 200 OK chunked result.
      */
     public static Status ok(Chunks<?> chunks) {
@@ -344,16 +334,6 @@ public class Results {
      */
     public static Status created(File content, String filename) {
         return new Status(JavaResults.Created(), content, true, filename);
-    }
-
-    /**
-     * Generates a 201 CREATED file result, sent as a chunked response.
-     *
-     * @deprecated Since the length of the file is known, there is little reason to send a file as chunked.
-     */
-    @Deprecated
-    public static Status created(File content, int chunkSize) {
-        return new Status(play.core.j.JavaResults.Created(), content, chunkSize);
     }
 
     /**
@@ -474,16 +454,6 @@ public class Results {
     }
 
     /**
-     * Generates a 500 INTERNAL_SERVER_ERROR file result, sent as a chunked response.
-     *
-     * @deprecated Since the length of the file is known, there is little reason to send a file as chunked.
-     */
-    @Deprecated
-    public static Status internalServerError(File content, int chunkSize) {
-        return new Status(play.core.j.JavaResults.InternalServerError(), content, chunkSize);
-    }
-
-    /**
      * Generates a 500 INTERNAL_SERVER_ERROR chunked result.
      */
     public static Status internalServerError(Chunks<?> chunks) {
@@ -589,16 +559,6 @@ public class Results {
      */
     public static Status notFound(File content, String filename) {
         return new Status(JavaResults.NotFound(), content, true, filename);
-    }
-
-    /**
-     * Generates a 404 NOT_FOUND file result, sent as a chunked response.
-     *
-     * @deprecated Since the length of the file is known, there is little reason to send a file as chunked.
-     */
-    @Deprecated
-    public static Status notFound(File content, int chunkSize) {
-        return new Status(play.core.j.JavaResults.NotFound(), content, chunkSize);
     }
 
     /**
@@ -710,16 +670,6 @@ public class Results {
     }
 
     /**
-     * Generates a 403 FORBIDDEN file result, sent as a chunked response.
-     *
-     * @deprecated Since the length of the file is known, there is little reason to send a file as chunked.
-     */
-    @Deprecated
-    public static Status forbidden(File content, int chunkSize) {
-        return new Status(play.core.j.JavaResults.Forbidden(), content, chunkSize);
-    }
-
-    /**
      * Generates a 403 FORBIDDEN chunked result.
      */
     public static Status forbidden(Chunks<?> chunks) {
@@ -828,16 +778,6 @@ public class Results {
     }
 
     /**
-     * Generates a 401 UNAUTHORIZED file result, sent as a chunked response.
-     *
-     * @deprecated Since the length of the file is known, there is little reason to send a file as chunked.
-     */
-    @Deprecated
-    public static Status unauthorized(File content, int chunkSize) {
-        return new Status(play.core.j.JavaResults.Unauthorized(), content, chunkSize);
-    }
-
-    /**
      * Generates a 401 UNAUTHORIZED chunked result.
      */
     public static Status unauthorized(Chunks<?> chunks) {
@@ -943,16 +883,6 @@ public class Results {
      */
     public static Status badRequest(File content, String filename) {
         return new Status(JavaResults.BadRequest(), content, true, filename);
-    }
-
-    /**
-     * Generates a 400 BAD_REQUEST file result, sent as a chunked response.
-     *
-     * @deprecated Since the length of the file is known, there is little reason to send a file as chunked.
-     */
-    @Deprecated
-    public static Status badRequest(File content, int chunkSize) {
-        return new Status(play.core.j.JavaResults.BadRequest(), content, chunkSize);
     }
 
     /**

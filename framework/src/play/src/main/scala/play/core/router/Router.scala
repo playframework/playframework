@@ -204,7 +204,7 @@ object Router {
   object HandlerInvokerFactory {
 
     import play.libs.F.{ Promise => JPromise }
-    import play.mvc.{ SimpleResult => JSimpleResult, Result => JResult, WebSocket => JWebSocket }
+    import play.mvc.{ Result => JResult, WebSocket => JWebSocket }
     import play.core.j.JavaWebSocket
     import com.fasterxml.jackson.databind.JsonNode
 

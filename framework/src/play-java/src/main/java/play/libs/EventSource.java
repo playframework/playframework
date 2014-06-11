@@ -28,50 +28,6 @@ public abstract class EventSource extends Chunks<String> {
     }
 
     /**
-     * A single event source can generate different types events by including an event name. On the client, an event listener can be
-     * setup to listen to that particular event.
-     *
-     * @param eventName Unique name of the event.
-     * @param data data associated with event
-     * @deprecated Replaced by send
-     * @see #send(play.libs.EventSource.Event)
-     */
-    @Deprecated
-    public void sendDataByName(String eventName, String data) {
-        out.write("event: " + eventName + "\r\n"
-                + "data: " + StringEscapeUtils.escapeEcmaScript(data) + "\r\n\r\n");
-    }
-
-    /**
-     * Setting an ID lets the browser keep track of the last event fired so that if, the connection to the server is dropped,
-     * a special HTTP header (Last-Event-ID) is set with the new request. This lets the browser determine which event is
-     * appropriate to fire.
-     *
-     * @param eventId Unique event id.
-     * @param data data associated with event
-     * @deprecated Replaced by send
-     * @see #send(play.libs.EventSource.Event)
-     */
-    @Deprecated
-    public void sendDataById(String eventId, String data) {
-        out.write("id: " + eventId + "\r\n"
-                + "data: " + StringEscapeUtils.escapeEcmaScript(data) + "\r\n\r\n");
-
-    }
-
-    /**
-     * Sending a generic event. On the client, 'message' event listener can be setup to listen to this event.
-     *
-     * @param data data associated with event
-     * @deprecated Replaced by send
-     * @see #send(play.libs.EventSource.Event)
-     */
-    @Deprecated
-    public void sendData(String data) {
-        out.write("data: " + StringEscapeUtils.escapeEcmaScript(data) + "\r\n\r\n");
-    }
-
-    /**
      * Send an event. On the client, a 'message' event listener can be setup to listen to this event.
      *
      * @param event Event content

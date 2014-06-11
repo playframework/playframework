@@ -113,7 +113,7 @@ public class NingWSRequest implements WSRequest {
         } catch (IOException exception) {
             scalaPromise.failure(exception);
         }
-        return new F.Promise<play.libs.ws.WSResponse>(scalaPromise.future());
+        return F.Promise.wrap(scalaPromise.future());
     }
 
     /**

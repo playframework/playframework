@@ -207,39 +207,6 @@ trait EssentialActionCaller {
 trait RouteInvokers extends EssentialActionCaller {
   self: Writeables =>
 
-  /**
-   * Use the Router to determine the Action to call for this request and executes it.
-   */
-  @deprecated("Use `route` instead.", "2.1.0")
-  def routeAndCall[T](request: FakeRequest[T])(implicit timeout: Timeout): Option[Future[Result]] = {
-    routeAndCall(this.getClass.getClassLoader.loadClass("Routes").asInstanceOf[Class[play.core.Router.Routes]], request)
-  }
-
-  /**
-   * Use the Router to determine the Action to call for this request and executes it.
-   */
-  @deprecated("Use `route` instead.", "2.1.0")
-  def routeAndCall[T, ROUTER <: play.core.Router.Routes](router: Class[ROUTER], request: FakeRequest[T])(implicit timeout: Timeout): Option[Future[Result]] = {
-    val routes = router.getClassLoader.loadClass(router.getName + "$").getDeclaredField("MODULE$").get(null).asInstanceOf[play.core.Router.Routes]
-    routes.routes.lift(request).map {
-      case a: Action[_] =>
-        val action = a.asInstanceOf[Action[T]]
-        val parsedBody: Option[Either[Result, T]] = {
-          Await.result(action.parser(request).fold(step => Future.successful(step match {
-            case Step.Done(a, in) => Some(a)
-            case Step.Cont(k) => None: Option[Either[Result, T]]
-            case Step.Error(msg, in) => None: Option[Either[Result, T]]
-          }))(global), timeout.duration)
-        }
-        parsedBody.map { resultOrT =>
-          resultOrT.right.toOption.map { innerBody =>
-            action(FakeRequest(request.method, request.uri, request.headers, innerBody))
-          }.getOrElse(Future.successful(resultOrT.left.get))
-        }.getOrElse(action(request))
-
-    }
-  }
-
   // Java compatibility
   def jRoute(app: Application, rh: RequestHeader): Option[Future[Result]] = route(app, rh, AnyContentAsEmpty)
   def jRoute(app: Application, rh: RequestHeader, body: Array[Byte]): Option[Future[Result]] = route(app, rh, body)(Writeable.wBytes)

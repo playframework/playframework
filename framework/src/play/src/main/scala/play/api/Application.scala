@@ -22,10 +22,7 @@ trait WithDefaultGlobal {
 
   // -- Global stuff
 
-  private lazy val globalClass = initialConfiguration.getString("application.global").getOrElse(initialConfiguration.getString("global").map { g =>
-    Play.logger.warn("`global` key is deprecated, please change `global` key to `application.global`")
-    g
-  }.getOrElse("Global"))
+  private lazy val globalClass = initialConfiguration.getString("application.global").getOrElse("Global")
 
   lazy private val javaGlobal: Option[play.GlobalSettings] = try {
     Option(self.classloader.loadClass(globalClass).newInstance().asInstanceOf[play.GlobalSettings])

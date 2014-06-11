@@ -35,40 +35,15 @@ public class WithServer {
         return play.api.test.Helpers.testServerPort();
     }
 
-    /**
-     * @deprecated The server is automatically started before each test, you don’t need to call this method explicitly
-     */
-    @Deprecated
-    protected void start() {
-        start(provideFakeApplication());
-    }
-
-    /**
-     * @deprecated The server is automatically started before each test. You can setup the fake application to use by overriding the provideFakeApplication method.
-     */
-    @Deprecated
-    protected void start(FakeApplication fakeApplication) {
-        start(fakeApplication, providePort());
-    }
-
-    /**
-     * @deprecated The server is automatically started before each test. You can setup the fake application and port to use by overriding the provideFakeApplication and providePort methods, respectively.
-     */
-    @Deprecated
-    protected void start(FakeApplication fakeApplication, int port) {
-        // prevents multiple starts
+    @Before
+    public void startServer() {
         if (testServer != null) {
             testServer.stop();
         }
-        this.port = port;
-        this.app = fakeApplication;
-        testServer = Helpers.testServer(port, fakeApplication);
+        app = provideFakeApplication();
+        port = providePort();
+        testServer = Helpers.testServer(port, app);
         testServer.start();
-    }
-
-    @Before
-    public void startServer() {
-        start(provideFakeApplication(), providePort());
     }
 
     @After

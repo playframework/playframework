@@ -380,14 +380,6 @@ trait Results {
     }
 
     /**
-     * Stream the results content as chunked.
-     *
-     * @param content Enumerator providing the content to stream.
-     */
-    @deprecated("Use Status.chunked instead", "2.3.0")
-    def stream[C](content: Enumerator[C])(implicit writeable: Writeable[C]): Result = chunked(content)
-
-    /**
      * Feed the content as the response, using chunked transfer encoding.
      *
      * Chunked transfer encoding is only supported for HTTP 1.1 clients.  If the client is an HTTP 1.0 client, Play will
