@@ -3,13 +3,15 @@ package anorm
 import acolyte.Acolyte
 import acolyte.Implicits._
 
-object BatchSqlSpec extends org.specs2.mutable.Specification with H2Database {
+object BatchSqlSpec 
+    extends org.specs2.mutable.Specification with H2Database {
+
   "Batch SQL" title
 
   "Creation" should {
     "fail with parameter maps not having same names" in {
       lazy val batch = BatchSql(
-        SQL("SELECT * FROM tbl WHERE a = {a}"),
+        "SELECT * FROM tbl WHERE a = {a}",
         Seq(Seq[NamedParameter]("a" -> 0),
           Seq[NamedParameter]("a" -> 1, "b" -> 2)))
 
@@ -19,7 +21,7 @@ object BatchSqlSpec extends org.specs2.mutable.Specification with H2Database {
 
     "fail with names not matching query placeholders" in {
       lazy val batch = BatchSql(
-        SQL("SELECT * FROM tbl WHERE a = {a}, b = {b}"),
+        "SELECT * FROM tbl WHERE a = {a}, b = {b}",
         Seq(Seq[NamedParameter]("a" -> 1, "b" -> 2, "c" -> 3)))
 
       batch.addBatch("a" -> 0).
@@ -29,7 +31,7 @@ object BatchSqlSpec extends org.specs2.mutable.Specification with H2Database {
 
     "be successful with parameter maps having same names" in {
       lazy val batch = BatchSql(
-        SQL("SELECT * FROM tbl WHERE a = {a}, b = {b}"),
+        "SELECT * FROM tbl WHERE a = {a}, b = {b}",
         Seq(Seq[NamedParameter]("a" -> 0, "b" -> -1),
           Seq[NamedParameter]("a" -> 1, "b" -> 2)))
 
@@ -46,7 +48,7 @@ object BatchSqlSpec extends org.specs2.mutable.Specification with H2Database {
   "Appending list of named parameters" should {
     "fail with unexpected name" in {
       val batch = BatchSql(
-        SQL("SELECT * FROM tbl WHERE a = {a}, b = {b}"),
+        "SELECT * FROM tbl WHERE a = {a}, b = {b}",
         Seq(Seq[NamedParameter]("a" -> 1, "b" -> 2)))
 
       batch.addBatch("a" -> 0, "c" -> 4).
@@ -56,7 +58,7 @@ object BatchSqlSpec extends org.specs2.mutable.Specification with H2Database {
 
     "fail with missing names" in {
       val batch = BatchSql(
-        SQL("SELECT * FROM tbl WHERE a = {a} AND b = {b} AND c = {c}"),
+        "SELECT * FROM tbl WHERE a = {a} AND b = {b} AND c = {c}",
         Seq(Seq[NamedParameter]("a" -> 1, "b" -> 2, "c" -> 3)))
 
       batch.addBatch("a" -> 0).
@@ -67,7 +69,7 @@ object BatchSqlSpec extends org.specs2.mutable.Specification with H2Database {
     "with first parameter map" >> {
       "fail if parameter names not matching query placeholders" in {
         val batch = BatchSql(
-          SQL("SELECT * FROM tbl WHERE a = {a}, b = {b}"))
+          "SELECT * FROM tbl WHERE a = {a}, b = {b}")
 
         batch.addBatch("a" -> 0).
           aka("append") must throwA[IllegalArgumentException](
@@ -77,7 +79,7 @@ object BatchSqlSpec extends org.specs2.mutable.Specification with H2Database {
 
       "be successful" in {
         val b1 = BatchSql(
-          SQL("SELECT * FROM tbl WHERE a = {a}, b = {b}"))
+          "SELECT * FROM tbl WHERE a = {a}, b = {b}")
 
         lazy val b2 = b1.addBatch("a" -> 0, "b" -> 1)
 
@@ -91,7 +93,7 @@ object BatchSqlSpec extends org.specs2.mutable.Specification with H2Database {
 
     "be successful" in {
       val b1 = BatchSql(
-        SQL("SELECT * FROM tbl WHERE a = {a}, b = {b}"),
+        "SELECT * FROM tbl WHERE a = {a}, b = {b}",
         Seq(Seq[NamedParameter]("a" -> 0, "b" -> 1)))
 
       lazy val b2 = b1.addBatch("a" -> 2, "b" -> 3)
@@ -108,7 +110,7 @@ object BatchSqlSpec extends org.specs2.mutable.Specification with H2Database {
   "Appending list of list of named parameters" should {
     "fail with unexpected name" in {
       val batch = BatchSql(
-        SQL("SELECT * FROM tbl WHERE a = {a}, b = {b}"),
+        "SELECT * FROM tbl WHERE a = {a}, b = {b}",
         Seq(Seq[NamedParameter]("a" -> 1, "b" -> 2)))
 
       batch.addBatchList(Seq(Seq("a" -> 0, "c" -> 4))).
@@ -118,7 +120,7 @@ object BatchSqlSpec extends org.specs2.mutable.Specification with H2Database {
 
     "fail with missing names" in {
       val batch = BatchSql(
-        SQL("SELECT * FROM tbl WHERE a = {a} AND b = {b} AND c = {c}"),
+        "SELECT * FROM tbl WHERE a = {a} AND b = {b} AND c = {c}",
         Seq(Seq[NamedParameter]("a" -> 1, "b" -> 2, "c" -> 3)))
 
       batch.addBatchList(Seq(Seq("a" -> 0))).
@@ -128,8 +130,7 @@ object BatchSqlSpec extends org.specs2.mutable.Specification with H2Database {
 
     "with first parameter map" >> {
       "be successful" in {
-        val b1 = BatchSql(
-          SQL("SELECT * FROM tbl WHERE a = {a}, b = {b}"))
+        val b1 = BatchSql("SELECT * FROM tbl WHERE a = {a}, b = {b}")
 
         lazy val b2 = b1.addBatchList(Seq(Seq("a" -> 0, "b" -> 1)))
 
@@ -142,7 +143,7 @@ object BatchSqlSpec extends org.specs2.mutable.Specification with H2Database {
 
       "fail with parameter maps not having same names" in {
         val b1 = BatchSql(
-          SQL("SELECT * FROM tbl WHERE a = {a}"))
+          "SELECT * FROM tbl WHERE a = {a}")
 
         lazy val b2 = b1.addBatchList(Seq(
           Seq("a" -> 0), Seq("a" -> 1, "b" -> 2)))
@@ -153,7 +154,7 @@ object BatchSqlSpec extends org.specs2.mutable.Specification with H2Database {
 
       "fail with names not matching query placeholders" in {
         val b1 = BatchSql(
-          SQL("SELECT * FROM tbl WHERE a = {a} AND b = {b} AND c = {c}"))
+          "SELECT * FROM tbl WHERE a = {a} AND b = {b} AND c = {c}")
 
         lazy val b2 = b1.addBatchList(Seq(Seq("a" -> 0)))
 
@@ -163,7 +164,7 @@ object BatchSqlSpec extends org.specs2.mutable.Specification with H2Database {
 
       "be successful with parameter maps having same names" in {
         val b1 = BatchSql(
-          SQL("SELECT * FROM tbl WHERE a = {a}, b = {b}"))
+          "SELECT * FROM tbl WHERE a = {a}, b = {b}")
 
         lazy val b2 = b1.addBatchList(Seq(
           Seq[NamedParameter]("a" -> 0, "b" -> -1),
@@ -181,7 +182,7 @@ object BatchSqlSpec extends org.specs2.mutable.Specification with H2Database {
 
     "be successful" in {
       val b1 = BatchSql(
-        SQL("SELECT * FROM tbl WHERE a = {a}, b = {b}"),
+        "SELECT * FROM tbl WHERE a = {a}, b = {b}",
         Seq(Seq("a" -> 0, "b" -> 1)))
 
       lazy val b2 = b1.addBatchList(Seq(Seq("a" -> 2, "b" -> 3)))
@@ -196,19 +197,9 @@ object BatchSqlSpec extends org.specs2.mutable.Specification with H2Database {
   }
 
   "Appending list of parameter values" should {
-    "fail with missing names" in {
-      lazy val batch = BatchSql(
-        SQL("SELECT * FROM tbl WHERE a = {d} AND b = {b} AND c = {c}"),
-        Seq(Seq[NamedParameter]("a" -> 1, "b" -> 2, "c" -> 3)))
-
-      batch.addBatchParams(0).
-        aka("append") must throwA[IllegalArgumentException](
-          message = "Expected parameter names don't correspond to placeholders in query: a, b, c not matching d, b, c")
-    }
-
     "be successful with first parameter map" in {
       val b1 = BatchSql(
-        SQL("SELECT * FROM tbl WHERE a = {a}, b = {b}"))
+        "SELECT * FROM tbl WHERE a = {a}, b = {b}")
 
       lazy val b2 = b1.addBatchParams(0, 1)
       lazy val expectedMaps =
@@ -220,7 +211,7 @@ object BatchSqlSpec extends org.specs2.mutable.Specification with H2Database {
 
     "fail with missing argument" in {
       val b1 = BatchSql(
-        SQL("SELECT * FROM tbl WHERE a = {a}, b = {b}")).
+        "SELECT * FROM tbl WHERE a = {a}, b = {b}").
         addBatchParams(0, 1)
 
       lazy val b2 = b1.addBatchParams(2)
@@ -231,7 +222,7 @@ object BatchSqlSpec extends org.specs2.mutable.Specification with H2Database {
 
     "be successful" in {
       val b1 = BatchSql(
-        SQL("SELECT * FROM tbl WHERE a = {a}, b = {b}"))
+        "SELECT * FROM tbl WHERE a = {a}, b = {b}")
 
       lazy val b2 = b1.addBatchParams(0, 1).addBatchParams(2, 3)
       lazy val expectedMaps = Seq(
@@ -244,19 +235,8 @@ object BatchSqlSpec extends org.specs2.mutable.Specification with H2Database {
   }
 
   "Appending list of list of parameter values" should {
-    "fail with missing names" in {
-      lazy val batch = BatchSql(
-        SQL("SELECT * FROM tbl WHERE a = {d} AND b = {b} AND c = {c}"),
-        Seq(Seq[NamedParameter]("a" -> 1, "b" -> 2, "c" -> 3)))
-
-      batch.addBatchParamsList(Seq(Seq(4, 5, 6))).
-        aka("append") must throwA[IllegalArgumentException](
-          message = "Expected parameter names don't correspond to placeholders in query: a, b, c not matching d, b, c")
-    }
-
     "be successful with first parameter map" in {
-      val b1 = BatchSql(
-        SQL("SELECT * FROM tbl WHERE a = {a}, b = {b}"))
+      val b1 = BatchSql("SELECT * FROM tbl WHERE a = {a}, b = {b}")
 
       lazy val b2 = b1.addBatchParamsList(Seq(Seq(0, 1), Seq(2, 3)))
       lazy val expectedMaps = Seq(
@@ -269,8 +249,7 @@ object BatchSqlSpec extends org.specs2.mutable.Specification with H2Database {
 
     "fail with missing argument" in {
       val b1 = BatchSql(
-        SQL("SELECT * FROM tbl WHERE a = {a}, b = {b}")).
-        addBatchParams(0, 1)
+        "SELECT * FROM tbl WHERE a = {a}, b = {b}").addBatchParams(0, 1)
 
       lazy val b2 = b1.addBatchParamsList(Seq(Seq(2)))
 
@@ -279,8 +258,7 @@ object BatchSqlSpec extends org.specs2.mutable.Specification with H2Database {
     }
 
     "be successful" in {
-      val b1 = BatchSql(
-        SQL("SELECT * FROM tbl WHERE a = {a}, b = {b}"))
+      val b1 = BatchSql("SELECT * FROM tbl WHERE a = {a}, b = {b}")
 
       lazy val b2 = b1.addBatchParamsList(Seq(Seq(0, 1))).
         addBatchParamsList(Seq(Seq(2, 3), Seq(4, 5)))
@@ -300,11 +278,13 @@ object BatchSqlSpec extends org.specs2.mutable.Specification with H2Database {
       createTest1Table()
 
       lazy val batch = BatchSql(
-        SQL("INSERT INTO test1(id, foo, bar) VALUES({i}, {f}, {b})"), Seq(
+        "INSERT INTO test1(id, foo, bar) VALUES({i}, {f}, {b})", Seq(
           Seq[NamedParameter]('i -> 1, 'f -> "foo #1", 'b -> 2),
           Seq[NamedParameter]('i -> 2, 'f -> "foo_2", 'b -> 4)))
 
-      batch.execute() aka "batch result" mustEqual Array(1, 1)
+      (batch.sql.statement aka "parsed statement" mustEqual(
+        "INSERT INTO test1(id, foo, bar) VALUES(%s, %s, %s)")).
+        and(batch.execute() aka "batch result" mustEqual Array(1, 1))
     }
   }
 }

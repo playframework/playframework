@@ -8,7 +8,6 @@ import java.sql.{ Connection, PreparedStatement }
 
 import scala.language.{ postfixOps, reflectiveCalls }
 import scala.collection.TraversableOnce
-import scala.runtime.{ ScalaRunTime, AbstractFunction3 }
 
 /** Error from processing SQL */
 sealed trait SqlRequestError
@@ -218,7 +217,7 @@ case class SimpleSql[T](sql: SqlQuery, params: Map[String, ParameterValue], defa
    */
   def onParams(args: ParameterValue*): SimpleSql[T] =
     copy(params = this.params ++ Sql.zipParams(
-      sql.argsInitialOrder, args, Map.empty))
+      sql.paramsInitialOrder, args, Map.empty))
 
   // TODO: Scaladoc as `as` equivalent
   def list()(implicit connection: Connection): Seq[T] = as(defaultParser.*)
@@ -231,12 +230,12 @@ case class SimpleSql[T](sql: SqlQuery, params: Map[String, ParameterValue], defa
     as(defaultParser.singleOpt)
 
   def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false) = {
-    val st: (String, Seq[(Int, ParameterValue)]) =
-      Sql.prepareQuery(sql.query, 0, sql.argsInitialOrder.map(params), Nil)
+    val st: (String, Seq[(Int, ParameterValue)]) = Sql.prepareQuery(
+      sql.statement, 0, sql.paramsInitialOrder.map(params), Nil)
 
     val stmt = if (getGeneratedKeys) connection.prepareStatement(st._1, java.sql.Statement.RETURN_GENERATED_KEYS) else connection.prepareStatement(st._1)
 
-    sql.queryTimeout.foreach(timeout => stmt.setQueryTimeout(timeout))
+    sql.timeout.foreach(stmt.setQueryTimeout(_))
 
     st._2 foreach { p =>
       val (i, v) = p
@@ -267,7 +266,7 @@ case class SimpleSql[T](sql: SqlQuery, params: Map[String, ParameterValue], defa
 
 }
 
-sealed trait Sql {
+private[anorm] trait Sql {
 
   def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false): PreparedStatement
 
@@ -365,74 +364,6 @@ sealed trait Sql {
   def executeQuery()(implicit connection: Connection): SqlQueryResult =
     SqlQueryResult(resultSet())
 
-}
-
-/**
- * Manually implemented so that we can deprecate all the case class methods
- */
-object SqlQuery extends AbstractFunction3[String, List[String], Option[Int], SqlQuery] {
-  @deprecated("Do not use the SqlQuery constructor directly because it does not parse the query. Use SQL(...) instead.", "2.3.2")
-  def apply(query: String, argsInitialOrder: List[String] = List.empty, queryTimeout: Option[Int] = None) =
-    new SqlQuery(query, argsInitialOrder, queryTimeout)
-
-  @deprecated("SqlQuery will become a trait in 2.4.0", "2.3.2")
-  def unapply(value: SqlQuery): Option[(String, List[String], Option[Int])] =
-    Some((value.query, value.argsInitialOrder, value.queryTimeout))
-}
-
-/** Initial SQL query, without parameter values. */
-class SqlQuery @deprecated("Do not use the SqlQuery constructor directly because it does not parse the query. Use SQL(...) instead.", "2.3.2") (val query: String, val argsInitialOrder: List[String] = List.empty, val queryTimeout: Option[Int] = None) extends Sql with Product with Serializable {
-
-  def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false): PreparedStatement = asSimple.getFilledStatement(connection, getGeneratedKeys)
-
-  def withQueryTimeout(seconds: Option[Int]): SqlQuery =
-    copy(queryTimeout = seconds)
-
-  private def defaultParser: RowParser[Row] = RowParser(row => Success(row))
-
-  private[anorm] def asSimple: SimpleSql[Row] = asSimple(defaultParser)
-
-  /**
-   * Prepares query as a simple one.
-   * @param parser Row parser
-   *
-   * {{{
-   * import anorm.{ SQL, SqlParser }
-   *
-   * SQL("SELECT 1").asSimple(SqlParser.scalar[Int])
-   * }}}
-   */
-  def asSimple[T](parser: RowParser[T] = defaultParser): SimpleSql[T] =
-    SimpleSql(this, Map.empty, parser)
-
-  def asBatch[T]: BatchSql = BatchSql(this, Nil)
-
-  // Everything provided below just so we could deprecated the SqlQuery.apply method...
-  // https://issues.scala-lang.org/browse/SI-8685
-
-  @deprecated("SqlQuery will become a trait in 2.4.0", "2.3.2")
-  def copy(query: String = this.query,
-    argsInitialOrder: List[String] = this.argsInitialOrder,
-    queryTimeout: Option[Int] = this.queryTimeout) = new SqlQuery(query, argsInitialOrder, queryTimeout)
-
-  def productElement(n: Int) = n match {
-    case 0 => this.query
-    case 1 => this.argsInitialOrder
-    case 2 => this.queryTimeout
-    case _ => throw new IndexOutOfBoundsException(n.toString)
-  }
-
-  def productArity = 3
-
-  def canEqual(that: Any) = that.isInstanceOf[SqlQuery]
-
-  override def productPrefix = classOf[SqlQuery].getSimpleName
-
-  override def hashCode() = ScalaRunTime._hashCode(this)
-
-  override def equals(obj: scala.Any) = ScalaRunTime._equals(this, obj)
-
-  override def toString = ScalaRunTime._toString(this)
 }
 
 object Sql { // TODO: Rename to SQL
