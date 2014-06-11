@@ -40,6 +40,7 @@ class NingWSClient(config: AsyncHttpClientConfig) extends WSClient {
 
   def underlyingClient = asyncHttpClient
 
+  @deprecated("Please use underlyingClient", "2.3.1")
   def underlying[T] = asyncHttpClient.asInstanceOf[T]
 
   private[libs] def executeRequest[T](request: Request, handler: AsyncHandler[T]): ListenableFuture[T] = asyncHttpClient.executeRequest(request, handler)
@@ -665,6 +666,7 @@ case class NingWSResponse(ahcResponse: AHCResponse) extends WSResponse {
   /**
    * @return The underlying response object.
    */
+  @deprecated("Please use underlyingClient", "2.3.1")
   def underlying[T] = ahcResponse.asInstanceOf[T]
 
   /**

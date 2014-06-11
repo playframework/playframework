@@ -34,6 +34,7 @@ trait WSClient {
    * @tparam T the type you are expecting (i.e. isInstanceOf)
    * @return the backing class.
    */
+  @deprecated("Please use underlyingClient", "2.3.1")
   def underlying[T]: T
 
   /**
@@ -293,6 +294,7 @@ trait WSResponse {
   /**
    * Get the underlying response object.
    */
+  @deprecated("Please use underlyingResponse", "2.3.1")
   def underlying[T]: T
 
   /**
@@ -654,6 +656,7 @@ trait WSCookie {
   /**
    * The underlying "native" cookie object for the client.
    */
+  @deprecated("Please use underlyingCookie", "2.3.1")
   def underlying[T]: T
 
   /**
