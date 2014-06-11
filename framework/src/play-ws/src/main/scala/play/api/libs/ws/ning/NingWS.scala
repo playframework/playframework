@@ -34,8 +34,11 @@ import scala.collection.JavaConverters._
  * @param config a client configuration object
  */
 class NingWSClient(config: AsyncHttpClientConfig) extends WSClient {
+  type Underlying = AsyncHttpClient
 
   private val asyncHttpClient = new AsyncHttpClient(config)
+
+  def underlyingClient = asyncHttpClient
 
   def underlying[T] = asyncHttpClient.asInstanceOf[T]
 
@@ -568,10 +571,19 @@ class NingWSAPI(app: Application, clientConfig: WSClientConfig) extends WSAPI {
  * The Ning implementation of a WS cookie.
  */
 private class NingWSCookie(ahcCookie: AHCCookie) extends WSCookie {
+  /**
+   * The type of the underlying "native" cookie object for the client.
+   */
+  type Underlying = AHCCookie
 
   private def noneIfEmpty(value: String): Option[String] = {
     if (value.isEmpty) None else Some(value)
   }
+
+  /**
+   * The underlying cookie object for the client.
+   */
+  def underlyingCookie = ahcCookie
 
   /**
    * The underlying cookie object for the client.
@@ -626,6 +638,8 @@ private class NingWSCookie(ahcCookie: AHCCookie) extends WSCookie {
  */
 case class NingWSResponse(ahcResponse: AHCResponse) extends WSResponse {
 
+  type Underlying = AHCResponse
+
   import scala.xml._
   import play.api.libs.json._
 
@@ -642,6 +656,11 @@ case class NingWSResponse(ahcResponse: AHCResponse) extends WSResponse {
     TreeMap[String, Seq[String]]()(CaseInsensitiveOrdered) ++
       mapAsScalaMapConverter(ahcResponse.getHeaders).asScala.mapValues(_.asScala)
   }
+
+  /**
+   * @return The underlying response object.
+   */
+  def underlyingResponse = ahcResponse
 
   /**
    * @return The underlying response object.

@@ -28,5 +28,9 @@ class WSMock extends Mockito with WSClient {
       request
     }
 
+  type Underlying = WSMock
+
+  def underlyingClient: Underlying = this
+
   def underlying[T]: T = this.asInstanceOf[T]
 }

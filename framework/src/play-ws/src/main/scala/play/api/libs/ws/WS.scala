@@ -18,6 +18,16 @@ import play.api.libs.json.JsValue
  * The WSClient holds the configuration information needed to build a request, and provides a way to get a request holder.
  */
 trait WSClient {
+  /**
+   * The type of the underlying implementation client.
+   */
+  type Underlying
+
+  /**
+   * The underlying implementation of the client, if any.
+   * @return the backing class.
+   */
+  def underlyingClient: Underlying
 
   /**
    * The underlying implementation of the client, if any.  You must cast explicitly to the type you want.
@@ -265,11 +275,20 @@ trait WSRequest {
  *
  */
 trait WSResponse {
+  /**
+   * The underlying response type.
+   */
+  type Underlying
 
   /**
    * Return the current headers of the request being constructed
    */
   def allHeaders: Map[String, Seq[String]]
+
+  /**
+   * Get the underlying response object.
+   */
+  def underlyingResponse: Underlying
 
   /**
    * Get the underlying response object.
@@ -622,6 +641,15 @@ object WSAuthScheme {
  * A WS Cookie.  This is a trait so that we are not tied to a specific client.
  */
 trait WSCookie {
+  /**
+   * The type of the underlying "native" cookie object for the client.
+   */
+  type Underlying
+
+  /**
+   * The underlying "native" cookie object for the client.
+   */
+  def underlyingCookie: Underlying
 
   /**
    * The underlying "native" cookie object for the client.
