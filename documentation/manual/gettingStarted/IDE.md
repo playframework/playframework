@@ -13,13 +13,13 @@ Play provides a command to simplify Eclipse configuration. To transform a Play a
 without the source jars:
 
 ```
-[My first application] $ eclipse
+[My first application] $ activator eclipse
 ```
 
 if you want to grab the available source jars (this will take longer and it's possible a few sources might be missing):
 
 ```
-[My first application] $ eclipse with-source=true
+[My first application] $ activator eclipse with-source=true
 ```
 
 > Note if you are using sub-projects with aggregate, you would need to set `skipParents` appropriately:
