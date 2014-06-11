@@ -635,13 +635,13 @@ object ParameterSpec extends org.specs2.mutable.Specification {
 
     "be defined string option as Some[String]" in withConnection() {
       implicit c =>
-        SQL("set-some-str ?").copy(argsInitialOrder = List("p")).
+        SQL("set-some-str ?").copy(paramsInitialOrder = List("p")).
           onParams(pv(Some("string"))).execute() aka "execution" must beFalse
     }
 
     "be defined string option as Option[String]" in withConnection() {
       implicit c =>
-        SQL("set-some-str ?").copy(argsInitialOrder = List("p")).
+        SQL("set-some-str ?").copy(paramsInitialOrder = List("p")).
           onParams(pv(Option("string"))).
           execute() aka "execution" must beFalse
     }
@@ -683,7 +683,7 @@ object ParameterSpec extends org.specs2.mutable.Specification {
 
     "be partially set if matching placeholder is missing for second one" in {
       withConnection() { implicit c =>
-        SQL("no-snd-placeholder ?").copy(argsInitialOrder = List("p")).
+        SQL("no-snd-placeholder ?").copy(paramsInitialOrder = List("p")).
           onParams(pv("first"), pv("second")).execute() must beFalse
 
       }

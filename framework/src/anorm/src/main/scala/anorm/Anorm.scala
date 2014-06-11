@@ -217,7 +217,7 @@ case class SimpleSql[T](sql: SqlQuery, params: Map[String, ParameterValue], defa
    */
   def onParams(args: ParameterValue*): SimpleSql[T] =
     copy(params = this.params ++ Sql.zipParams(
-      sql.argsInitialOrder, args, Map.empty))
+      sql.paramsInitialOrder, args, Map.empty))
 
   // TODO: Scaladoc as `as` equivalent
   def list()(implicit connection: Connection): Seq[T] = as(defaultParser.*)
@@ -230,12 +230,12 @@ case class SimpleSql[T](sql: SqlQuery, params: Map[String, ParameterValue], defa
     as(defaultParser.singleOpt)
 
   def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false) = {
-    val st: (String, Seq[(Int, ParameterValue)]) =
-      Sql.prepareQuery(sql.query, 0, sql.argsInitialOrder.map(params), Nil)
+    val st: (String, Seq[(Int, ParameterValue)]) = Sql.prepareQuery(
+      sql.statement, 0, sql.paramsInitialOrder.map(params), Nil)
 
     val stmt = if (getGeneratedKeys) connection.prepareStatement(st._1, java.sql.Statement.RETURN_GENERATED_KEYS) else connection.prepareStatement(st._1)
 
-    sql.queryTimeout.foreach(timeout => stmt.setQueryTimeout(timeout))
+    sql.timeout.foreach(stmt.setQueryTimeout(_))
 
     st._2 foreach { p =>
       val (i, v) = p
@@ -266,7 +266,7 @@ case class SimpleSql[T](sql: SqlQuery, params: Map[String, ParameterValue], defa
 
 }
 
-sealed trait Sql {
+private[anorm] trait Sql {
 
   def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false): PreparedStatement
 
@@ -364,36 +364,6 @@ sealed trait Sql {
   def executeQuery()(implicit connection: Connection): SqlQueryResult =
     SqlQueryResult(resultSet())
 
-}
-
-/** Initial SQL query, without parameter values. */
-// @todo Sealed trait to prevent initialize SqlQuery with unparsed statement
-case class SqlQuery(query: String, argsInitialOrder: List[String] = List.empty, queryTimeout: Option[Int] = None) extends Sql {
-
-  def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false): PreparedStatement = asSimple.getFilledStatement(connection, getGeneratedKeys)
-
-  def withQueryTimeout(seconds: Option[Int]): SqlQuery =
-    copy(queryTimeout = seconds)
-
-  private def defaultParser: RowParser[Row] = RowParser(Success(_))
-
-  private[anorm] def asSimple: SimpleSql[Row] = asSimple(defaultParser)
-
-  /**
-   * Prepares query as a simple one.
-   * @param parser Row parser
-   *
-   * {{{
-   * import anorm.{ SQL, SqlParser }
-   *
-   * SQL("SELECT 1").asSimple(SqlParser.scalar[Int])
-   * }}}
-   */
-  def asSimple[T](parser: RowParser[T] = defaultParser): SimpleSql[T] =
-    SimpleSql(this, Map.empty, parser)
-
-  @deprecated(message = """Directly use BatchSql("stmt")""", since = "2.3.1")
-  def asBatch[T]: BatchSql = BatchSql(this.query, Nil)
 }
 
 object Sql { // TODO: Rename to SQL
