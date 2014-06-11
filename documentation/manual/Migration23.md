@@ -124,13 +124,6 @@ import play.Play.autoImport._
 import PlayKeys._
 ```
 
-or
-
-```scala
-import play.Play.autoImport._
-import PlayKeys._
-```
-
 ### Explicit scalaVersion
 
 Play 2.3 supports both Scala 2.11 and Scala 2.10. The Play plugin previously set the `scalaVersion` sbt setting for you. Now you should indicate which version of Scala you wish to use.
