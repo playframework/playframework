@@ -11,22 +11,26 @@ import scala.concurrent.Future
 
 
 class WSMock extends Mockito with WSClient {
-    val request = mock[WSRequestHolder]
-    val response = mock[WSResponse]
+  val request = mock[WSRequestHolder]
+  val response = mock[WSResponse]
 
-    val urls:collection.mutable.Buffer[String] = new collection.mutable.ArrayBuffer[String]()
+  val urls:collection.mutable.Buffer[String] = new collection.mutable.ArrayBuffer[String]()
 
-    response.status returns OK
-    response.header(HeaderNames.CONTENT_TYPE) returns Some("text/html;charset=UTF-8")
-    response.body returns ""
+  response.status returns OK
+  response.header(HeaderNames.CONTENT_TYPE) returns Some("text/html;charset=UTF-8")
+  response.body returns ""
 
-    request.get() returns Future.successful(response)
-    request.post(anyString)(any[Writeable[String]], any[ContentTypeOf[String]]) returns Future.successful(response)
+  request.get() returns Future.successful(response)
+  request.post(anyString)(any[Writeable[String]], any[ContentTypeOf[String]]) returns Future.successful(response)
 
-    def url(url: String): WSRequestHolder = {
-      urls += url
-      request
-    }
+  def url(url: String): WSRequestHolder = {
+    urls += url
+    request
+  }
+
+  type Underlying = WSMock
+
+  def underlyingClient: Underlying = this
 
   def underlying[T]: T = this.asInstanceOf[T]
 }

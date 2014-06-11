@@ -18,12 +18,23 @@ import play.api.libs.json.JsValue
  * The WSClient holds the configuration information needed to build a request, and provides a way to get a request holder.
  */
 trait WSClient {
+  /**
+   * The type of the underlying implementation client.
+   */
+  type Underlying
+
+  /**
+   * The underlying implementation of the client, if any.
+   * @return the backing class.
+   */
+  def underlyingClient: Underlying
 
   /**
    * The underlying implementation of the client, if any.  You must cast explicitly to the type you want.
    * @tparam T the type you are expecting (i.e. isInstanceOf)
    * @return the backing class.
    */
+  @deprecated("Please use underlyingClient", "2.3.1")
   def underlying[T]: T
 
   /**
@@ -265,6 +276,10 @@ trait WSRequest {
  *
  */
 trait WSResponse {
+  /**
+   * The underlying response type.
+   */
+  type Underlying
 
   /**
    * Return the current headers of the request being constructed
@@ -274,6 +289,12 @@ trait WSResponse {
   /**
    * Get the underlying response object.
    */
+  def underlyingResponse: Underlying
+
+  /**
+   * Get the underlying response object.
+   */
+  @deprecated("Please use underlyingResponse", "2.3.1")
   def underlying[T]: T
 
   /**
@@ -622,10 +643,20 @@ object WSAuthScheme {
  * A WS Cookie.  This is a trait so that we are not tied to a specific client.
  */
 trait WSCookie {
+  /**
+   * The type of the underlying "native" cookie object for the client.
+   */
+  type Underlying
 
   /**
    * The underlying "native" cookie object for the client.
    */
+  def underlyingCookie: Underlying
+
+  /**
+   * The underlying "native" cookie object for the client.
+   */
+  @deprecated("Please use underlyingCookie", "2.3.1")
   def underlying[T]: T
 
   /**
