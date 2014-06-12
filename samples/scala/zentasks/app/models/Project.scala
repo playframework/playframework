@@ -8,7 +8,7 @@ import anorm.SqlParser._
 
 import scala.language.postfixOps
 
-case class Project(id: Pk[Long], folder: String, name: String)
+case class Project(id: Option[Long], folder: String, name: String)
 
 object Project {
   
@@ -18,7 +18,7 @@ object Project {
    * Parse a Project from a ResultSet
    */
   val simple = {
-    get[Pk[Long]]("project.id") ~
+    get[Option[Long]]("project.id") ~
     get[String]("project.folder") ~
     get[String]("project.name") map {
       case id~folder~name => Project(id, folder, name)
@@ -187,7 +187,7 @@ object Project {
          SQL("insert into project_member values ({id}, {email})").on("id" -> id, "email" -> email).executeUpdate()
        }
        
-       project.copy(id = Id(id))
+       project.copy(id = Some(id))
        
      }
   }

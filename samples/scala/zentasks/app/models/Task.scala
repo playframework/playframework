@@ -10,7 +10,7 @@ import anorm.SqlParser._
 
 import scala.language.postfixOps
 
-case class Task(id: Pk[Long], folder: String, project: Long, title: String, done: Boolean, dueDate: Option[Date], assignedTo: Option[String])
+case class Task(id: Option[Long], folder: String, project: Long, title: String, done: Boolean, dueDate: Option[Date], assignedTo: Option[String])
 
 object Task {
   
@@ -20,7 +20,7 @@ object Task {
    * Parse a Task from a ResultSet
    */
   val simple = {
-    get[Pk[Long]]("task.id") ~
+    get[Option[Long]]("task.id") ~
     get[String]("task.folder") ~
     get[Long]("task.project") ~
     get[String]("task.title") ~
@@ -173,7 +173,7 @@ object Task {
         "assignedTo" -> task.assignedTo
       ).executeUpdate()
       
-      task.copy(id = Id(id))
+      task.copy(id = Some(id))
       
     }
   }
