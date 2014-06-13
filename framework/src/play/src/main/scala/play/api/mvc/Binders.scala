@@ -246,6 +246,12 @@ object JavascriptLitteral {
     def to(value: Option[T]) = value.map(jsl.to(_)).getOrElse("null")
   }
 
+  /**
+   * Convert a Play Asset to Javascript String
+   */
+  implicit def litteralAsset: JavascriptLitteral[Asset] = new JavascriptLitteral[Asset] {
+    def to(value: Asset) = "\"" + value.name + "\""
+  }
 }
 
 /**
