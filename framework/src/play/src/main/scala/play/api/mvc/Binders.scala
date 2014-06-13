@@ -7,6 +7,8 @@ import scala.annotation._
 
 import play.api.mvc._
 
+import controllers.Assets.Asset
+
 import java.net.{ URI, URLEncoder }
 import java.util.UUID
 import scala.annotation._
