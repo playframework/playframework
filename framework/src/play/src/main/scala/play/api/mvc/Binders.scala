@@ -7,6 +7,8 @@ import scala.annotation._
 
 import play.api.mvc._
 
+import controllers.Assets.Asset
+
 import java.net.{ URI, URLEncoder }
 import java.util.UUID
 import scala.annotation._
@@ -246,6 +248,12 @@ object JavascriptLitteral {
     def to(value: Option[T]) = value.map(jsl.to(_)).getOrElse("null")
   }
 
+  /**
+   * Convert a Play Asset to Javascript String
+   */
+  implicit def litteralAsset: JavascriptLitteral[Asset] = new JavascriptLitteral[Asset] {
+    def to(value: Asset) = "\"" + value.name + "\""
+  }
 }
 
 /**
