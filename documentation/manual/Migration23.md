@@ -517,6 +517,47 @@ Moreover, erasure issues about parameter value is fixed: type is no longer `Para
 
 Types for parameter names are also unified (when using `.on(...)`). Only `String` and `Symbol` are now supported as name.
 
+Type *`Pk[A]`* has been deprecated. You can still use it as column mapping, but need to explicitly pass either `Id[A]` or `NotAssigned` as query parameter (as consequence of type safety improvements):
+
+```scala
+// Column mapping, deprecated but Ok
+val pk: Pk[Long] = SQL("SELECT id FROM test WHERE name={n}").
+  on('n -> "mine").as(get[Pk[Long]].single)
+
+// Wrong parameter
+val pkParam: Pk[Long] = Id(1l)
+val name1 = "Name #1"
+SQL"INSERT INTO test(id, name) VALUES($pkParam, $name1)".execute()
+// ... pkParam is passed as Pk in query parameter, 
+// which is now wrong as a parameter type (won't compile)
+
+// Right parameter Id
+val idParam: Id[Long] = Id(2l) // same as pkParam but keep explicit Id type
+val name2 = "Name #2"
+SQL"INSERT INTO test(id, name) VALUES($idParam, $name2)".execute()
+
+// Right parameter NotAssigned
+val name2 = "Name #3"
+SQL"INSERT INTO test(id, name) VALUES($NotAssigned, $name2)".execute()
+```
+
+As deprecated `Pk[A]` is similar to `Option[A]`, which is supported by Anorm in column mapping and as query parameter, it's preferred to replace `Id[A]` by `Some[A]` and `NotAssigned` by `None`:
+
+```scala
+// Column mapping, deprecated but Ok
+val pk: Option[Long] = SQL("SELECT id FROM test WHERE name={n}").
+  on('n -> "mine").as(get[Option[Long]].single)
+
+// Assigned primary key as parameter
+val idParam: Option[Long] = Some(2l)
+val name1 = "Id"
+SQL"INSERT INTO test(id, name) VALUES($idParam, $name1)".execute()
+
+// Right parameter NotAssigned
+val name2 = "NotAssigned"
+SQL"INSERT INTO test(id, name) VALUES($None, $name2)".execute()
+```
+
 ## Twitter Bootstrap
 
 The in-built Twitter Bootstrap field constructor has been deprecated, and will be removed in a future version of Play.
