@@ -49,7 +49,8 @@ private[play] abstract class ClosableLazy[T >: Null <: AnyRef] {
       if (hasBeenClosed) throw new IllegalStateException("Can't get ClosableLazy value after it has been closed")
       if (value == null) {
         val (v, cf): (T, CloseFunction) = create()
-        if (v == null) throw new IllegalStateException("Can't initialize ClosableLazy to null value")
+        if (v == null) throw new IllegalStateException("Can't initialize ClosableLazy to a null value")
+        if (cf == null) throw new IllegalStateException("Can't initialize ClosableLazy's close function to a null value")
         value = v
         closeFunction = cf
         v
@@ -66,14 +67,20 @@ private[play] abstract class ClosableLazy[T >: Null <: AnyRef] {
    */
   final def close(): Unit = {
     val optionalClose: Option[CloseFunction] = synchronized {
-      if (!hasBeenClosed) {
-        value = null
-        hasBeenClosed = true
-        val result = Some(closeFunction)
-        closeFunction = null
-        result
-      } else {
+      if (hasBeenClosed) {
+        // Already closed
         None
+      } else if (value == null) {
+        // Close before first call to get
+        hasBeenClosed = true
+        None
+      } else {
+        // Close and call the close function
+        hasBeenClosed = true
+        val prevCloseFunction = closeFunction
+        value = null
+        closeFunction = null
+        Some(prevCloseFunction)
       }
     }
     // Perform actual close outside the synchronized block,

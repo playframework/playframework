@@ -49,6 +49,24 @@ object ClosableLazySpec extends Specification {
 
     }
 
+    "be closable before the first call to get" in {
+      val closeCount = new AtomicInteger()
+
+      val cl = new ClosableLazy[String] {
+        protected def create() = {
+          ("sock", () => closeCount.incrementAndGet())
+        }
+      }
+      closeCount.get must_== 0
+      cl.close()
+      closeCount.get must_== 0
+      cl.get must throwAn[IllegalStateException]
+      closeCount.get must_== 0
+      cl.close()
+      closeCount.get must_== 0
+
+    }
+
     "throw an exception when accessed after being closed" in {
       val cl = new ClosableLazy[String] {
         protected def create() = ("oof", () => ())
@@ -74,7 +92,7 @@ object ClosableLazySpec extends Specification {
           }
         }
         cl.get must_== "banana"
-        cl.close() must_== ()
+        cl.close() must_== (())
       }
 
       // Our get result should happen immediately and throw an IllegalStateException
