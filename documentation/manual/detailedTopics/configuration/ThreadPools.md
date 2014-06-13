@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Understanding Play thread pools
 
-Play framework is, from the bottom up, an asynchronous web framework.  Streams are handled asynchronously using iteratees.  Thread pools are tuned to be low, in comparison to traditional web frameworks, since IO in play-core never blocks.
+Play framework is, from the bottom up, an asynchronous web framework.  Streams are handled asynchronously using iteratees.  Thread pools in Play are tuned to use fewer threads than in traditional web frameworks, since IO in play-core never blocks.
 
 Because of this, if you plan to write blocking IO code, or code that could potentially do a lot of CPU intensive work, you need to know exactly which thread pool is bearing that workload, and you need to tune it accordingly.  Doing blocking IO without taking this into account is likely to result in very poor performance from Play framework, for example, you may see only a few requests per second being handled, while CPU usage sits at 5%.  In comparison, benchmarks on typical development hardware (eg, a MacBook Pro) have shown Play to be able to handle workloads in the hundreds or even thousands of requests per second without a sweat when tuned correctly.
 
@@ -71,6 +71,40 @@ To use this execution context in Scala, you would simply use the scala `Future` 
 or you could just use it implicitly:
 
 @[my-context-implicit](code/ThreadPools.scala)
+
+## Class loaders and thread locals
+
+Class loaders and thread locals need special handling in a multithreaded environment such as a Play program.
+
+### Application class loader
+
+In a Play application the [thread context class loader](http://docs.oracle.com/javase/6/docs/api/java/lang/Thread.html#getContextClassLoader\(\)) may not always be able to load application classes. You should explicitly use the application class loader to load classes.
+
+Java
+: @[using-app-classloader](code/ThreadPoolsJava.java)
+
+Scala
+: @[using-app-classloader](code/ThreadPools.scala)
+
+Being explicit about loading classes is most important when running Play in development mode (using `run`) rather than production mode. That's because Play's development mode uses multiple class loaders so that it can support automatic application reloading. Some of Play's threads might be bound to a class loader that only knows about a subset of your application's classes.
+
+In some cases you may not be able to explicitly use the application classloader. This is sometimes the case when using third party libraries. In this case you may need to set the [thread context class loader](http://docs.oracle.com/javase/6/docs/api/java/lang/Thread.html#getContextClassLoader\(\)) explicitly before you call the third party code. If you do, remember to restore the context class loader back to its previous value once you've finished calling the third party code.
+
+### Java thread locals
+
+Java code in Play uses a thread local to find out about contextual information such as the current HTTP request. Scala code doesn't need to use thread locals because it can use implicit parameters to pass context instead. Threads locals are used in Java so that Java code can access contextual information without needing to pass context parameters everywhere.
+
+Java thread locals, along with the correct context class loader, are propagated automatically by `ExecutionContextExecutor` objects provided through the `HttpExecution` class. (An `ExecutionContextExecutor` is both a Scala `ExecutionContext` and a Java `Executor`.) These special `ExecutionContextExecutor` objects are automatically created and used by in Java actions and Java `Promise` methods. The default objects wrap the default user thread pool. If you want to do your own threading then you should use the `HttpExecution` class's helper methods to get an `ExecutionContextExecutor` object yourself.
+
+In the example below, a user thread pool is wrapped to create a new `ExecutionContext` that propagates thread locals correctly.
+
+@[async-explicit-ec-imports](../../javaGuide/main/async/code/javaguide/async/controllers/Application.java)
+
+Java 8
+: @[async-explicit-ec](../../javaGuide/main/async/java8code/java8guide/async/controllers/Application.java)
+
+Java
+: @[async-explicit-ec](../../javaGuide/main/async/code/javaguide/async/controllers/Application.java)
 
 ## Best practices
 
