@@ -207,6 +207,29 @@ object Assets extends AssetsBuilder {
     }
   }
 
+  // Sames goes for the minified paths cache.
+  val minifiedPathsCache = TrieMap[String, String]()
+
+  lazy val checkForMinified = Play.configuration.getBoolean("assets.checkForMinified").getOrElse(true)
+
+  private[controllers] def minifiedPath(path: String): String = {
+    minifiedPathsCache.get(path).getOrElse {
+      def minifiedPathFor(delim: Char): Option[String] = {
+        val ext = path.reverse.takeWhile(_ != '.').reverse
+        val noextPath = path.dropRight(ext.size + 1)
+        val minPath = noextPath + delim + "min." + ext
+        Play.resource(minPath).map(_ => minPath)
+      }
+      val maybeMinifiedPath = if (checkForMinified) {
+        minifiedPathFor('.').orElse(minifiedPathFor('-')).getOrElse(path)
+      } else {
+        path
+      }
+      if (!Play.isDev) minifiedPathsCache.put(path, maybeMinifiedPath)
+      maybeMinifiedPath
+    }
+  }
+
   private[controllers] lazy val assetInfoCache = new SelfPopulatingMap[String, AssetInfo]()
 
   private def assetInfoFromResource(name: String): AssetInfo = {
@@ -242,16 +265,35 @@ object Assets extends AssetsBuilder {
 
     implicit def string2Asset(name: String) = new Asset(name)
 
+    private def pathFromParams(rrc: ReverseRouteContext): String = {
+      rrc.fixedParams.get("path").getOrElse(
+        throw new RuntimeException("Asset path bindable must be used in combination with an action that accepts a path parameter")
+      ).toString
+    }
+
+    implicit def stringPathBindable(implicit rrc: ReverseRouteContext) = new PathBindable[String] {
+      def bind(key: String, value: String) = Right(value)
+
+      def unbind(key: String, value: String): String = blocking {
+        val path = pathFromParams(rrc)
+        minifiedPath(path + File.separator + value).drop(path.size + 1)
+      }
+    }
+
     implicit def assetPathBindable(implicit rrc: ReverseRouteContext) = new PathBindable[Asset] {
       def bind(key: String, value: String) = Right(new Asset(value))
+
       def unbind(key: String, value: Asset): String = {
-        val path = rrc.fixedParams.get("path").getOrElse(
-          throw new RuntimeException("Asset path bindable must be used in combination with an action that accepts a path parameter")
-        ).toString
+        val path = pathFromParams(rrc)
         val f = new File(path + File.separator + value.name)
         blocking {
-          digest(f.getPath)
-        }.fold(value.name)(d => new File(f.getParent, d + "-" + f.getName).getPath.drop(path.size + 1))
+          val n = minifiedPath(f.getPath)
+          digest(n).fold(n) {
+            d =>
+              val s = n.lastIndexOf(File.separator)
+              n.take(s + 1) + d + "-" + n.drop(s + 1)
+          }.drop(path.size)
+        }
       }
     }
   }
