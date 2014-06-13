@@ -74,9 +74,9 @@ public class JavaActionsComposition extends Controller {
     // #security-action
     public class SecurityAction extends Action<VerboseAnnotation> {
         public F.Promise<Result> call(Http.Context ctx) throws Throwable {
-        ctx.args.put("user", User.findById(1234));
-        return delegate.call(ctx);
-      }
+            ctx.args.put("user", User.findById(1234));
+            return delegate.call(ctx);
+        }
     }
     // #security-action
 

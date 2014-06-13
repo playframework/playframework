@@ -3,7 +3,7 @@
 
 ## A type safe template engine based on Scala
 
-Play comes with a powerful Scala-based template engine, whose design was inspired by ASP.NET Razor. Specifically it is:
+Play comes with <a href="https://github.com/playframework/twirl">Twirl</a>, a powerful Scala-based template engine, whose design was inspired by ASP.NET Razor. Specifically it is:
 
 - **compact, expressive, and fluid**: it minimizes the number of characters and keystrokes required in a file, and enables a fast, fluid coding workflow. Unlike most template syntaxes, you do not need to interrupt your coding to explicitly denote server blocks within your HTML. The parser is smart enough to infer this from your code. This enables a really compact and expressive syntax which is clean, fast and fun to type.
 - **easy to learn**: it allows you to quickly become productive, with a minimum of concepts. You use simple Scala constructs and all your existing HTML skills.

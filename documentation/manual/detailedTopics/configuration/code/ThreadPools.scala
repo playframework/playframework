@@ -82,6 +82,13 @@ object ThreadPoolsSpec extends PlaySpecification {
       success
     }
 
+    "allow access to the application classloader" in new WithApplication() {
+      val myClassName = "java.lang.String"
+      //#using-app-classloader
+      val myClass = Play.current.classloader.loadClass(myClassName)
+      //#using-app-classloader
+    }
+
     "allow changing the default thread pool" in {
       val config = ConfigFactory.parseString("""#highly-synchronous
       play {
