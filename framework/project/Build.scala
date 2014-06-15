@@ -225,7 +225,17 @@ object PlayBuild extends Build {
       TwirlKeys.templateImports += "play.api.templates.PlayMagic._",
       mappings in (Compile, packageSrc) <++= scalaTemplateSourceMappings,
       Docs.apiDocsIncludeManaged := true,
-      parallelExecution in Test := false
+      parallelExecution in Test := false,
+      binaryIssueFilters ++= Seq(
+        // These methods were changed on a play[private] class
+        ProblemFilters.exclude[MissingClassProblem]("play.core.ClosableLazy$CreateResult$"),
+        ProblemFilters.exclude[MissingClassProblem]("play.core.ClosableLazy$CreateResult"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.ClosableLazy.CreateResult"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.ClosableLazy.close"),
+        ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.core.ClosableLazy.create"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.ClosableLazy.create")
+      )
+
     ).dependsOn(BuildLinkProject, PlayExceptionsProject, IterateesProject % "test->test;compile->compile", JsonProject)
 
   lazy val PlayJdbcProject = PlayRuntimeProject("Play-JDBC", "play-jdbc")
