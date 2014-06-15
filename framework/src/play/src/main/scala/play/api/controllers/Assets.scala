@@ -369,7 +369,7 @@ class AssetsBuilder extends Controller {
           Logger.debug(s"Invalid URI encoding for $file at $path", e)
           BadRequest
         case e: Throwable =>
-          Logger.debug(s"Unforseen error for $file at $path", e)
+          Logger.debug(s"Unforeseen error for $file at $path", e)
           NotFound
       }
   }
