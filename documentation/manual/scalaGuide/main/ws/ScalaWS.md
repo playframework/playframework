@@ -215,8 +215,4 @@ There are 3 different timeouts in WS. Reaching a timeout causes the WS request t
 
 The request timeout can be overridden for a specific connection with `withRequestTimeout()` (see "Making a Request" section).
 
-## Configuring WS with SSL
-
-To configure WS for use with HTTP over SSL/TLS (HTTPS), please see [[Configuring WS SSL|WsSSL]].
-
 > **Next:** [[OpenID Support in Play|ScalaOpenID]]
