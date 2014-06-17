@@ -371,10 +371,10 @@ trait Results {
     def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ()): Result = {
       val name = fileName(content)
       Result(
-        ResponseHeader(OK, Map(
+        ResponseHeader(status, Map(
           CONTENT_LENGTH -> content.length.toString,
           CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(name).getOrElse(play.api.http.ContentTypes.BINARY)
-        ) ++ (if (inline) Map.empty else Map(CONTENT_DISPOSITION -> ("""attachment; filename="%s"""".format(name))))),
+        ) ++ (if (inline) Map.empty else Map(CONTENT_DISPOSITION -> s"""attachment; filename="$name""""))),
         Enumerator.fromFile(content) &> Enumeratee.onIterateeDone(onClose)(defaultContext)
       )
     }
