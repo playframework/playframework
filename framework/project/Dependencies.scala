@@ -129,6 +129,8 @@ object Dependencies {
     "org.scala-lang" % "scala-reflect" % BuildSettings.buildScalaVersionForSbt % "provided",
     "com.typesafe" % "config" % "1.2.1",
     "org.mozilla" % "rhino" % "1.7R4",
+    "org.slf4j" % "slf4j-api" % "1.7.6",
+    "commons-io" % "commons-io" % "2.4",
 
     ("com.google.javascript" % "closure-compiler" % "v20130603")
       .exclude("args4j", "args4j")
@@ -197,6 +199,7 @@ object Dependencies {
   val playWsDeps = Seq(
     guava,
     "com.ning" % "async-http-client" % "1.8.8",
+    "commons-logging" % "commons-logging" % "1.1.3",
     "oauth.signpost" % "signpost-core" % "1.2.1.2",
     "oauth.signpost" % "signpost-commonshttp4" % "1.2.1.2") ++
     specsBuild.map(_ % "test") :+
