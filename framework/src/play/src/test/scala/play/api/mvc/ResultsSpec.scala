@@ -11,6 +11,8 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.ExecutionContext.Implicits._
 import play.api.i18n.Lang
 import play.api.{FakeApplication, Play}
+import play.api.http.HeaderNames._
+import play.api.http.Status._
 
 object ResultsSpec extends Specification {
 
@@ -94,6 +96,35 @@ object ResultsSpec extends Specification {
     "allow discarding multiple cookies by deprecated names method" in {
       val cookies = Cookies.decode(Ok.discardingCookies(DiscardingCookie("foo"), DiscardingCookie("bar")).header.headers("Set-Cookie")).map(_.name)
       cookies must containTheSameElementsAs(Seq("foo", "bar"))
+    }
+
+    "support sending a file with Ok status" in {
+      val file = new java.io.File("test.tmp")
+      file.createNewFile()
+      val rh = Ok.sendFile(file).header
+      file.delete()
+
+      (rh.status aka "status" must_== OK) and
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome("""attachment; filename="test.tmp""""))
+    }
+    "support sending a file with Unauthorized status" in {
+      val file = new java.io.File("test.tmp")
+      file.createNewFile()
+      val rh = Unauthorized.sendFile(file).header
+      file.delete()
+
+      (rh.status aka "status" must_== UNAUTHORIZED) and
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome("""attachment; filename="test.tmp""""))
+    }
+
+    "support sending a file inline with Unauthorized status" in {
+      val file = new java.io.File("test.tmp")
+      file.createNewFile()
+      val rh = Unauthorized.sendFile(file, inline = true).header
+      file.delete()
+
+      (rh.status aka "status" must_== UNAUTHORIZED) and
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beNone)
     }
   }
 
