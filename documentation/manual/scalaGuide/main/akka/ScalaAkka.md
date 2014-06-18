@@ -37,7 +37,7 @@ For Akka logging configuration, see [[configuring logging|SettingsLogger]].
 
 You can schedule sending messages to actors and executing tasks (functions or `Runnable`). You will get a `Cancellable` back that you can call `cancel` on to cancel the execution of the scheduled operation.
 
-For example, to send a message to the `testActor` every 30 microseconds:
+For example, to send a message to the `testActor` every 300 microseconds:
 
 @[play-akka-actor-schedule-repeat](code/ScalaAkka.scala)
 
