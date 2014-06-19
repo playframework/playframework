@@ -590,9 +590,9 @@ object RoutesCompiler {
               """
                   |%s
                   |class Reverse%s {
-                  |    
+                  |
                   |%s
-                  |    
+                  |
                   |}
               """.stripMargin.format(
                 markLines(routes: _*),
@@ -752,9 +752,9 @@ object RoutesCompiler {
               """
                               |%s
                               |class Reverse%s {
-                              |    
+                              |
                               |%s
-                              |    
+                              |
                               |}
                           """.stripMargin.format(
                 markLines(routes: _*),
@@ -829,9 +829,9 @@ object RoutesCompiler {
               """
                               |%s
                               |class Reverse%s {
-                              |    
+                              |
                               |%s
-                              |    
+                              |
                               |}
                           """.stripMargin.format(
                 markLines(routes: _*),
@@ -947,10 +947,7 @@ object RoutesCompiler {
                           // We will generate a list of routes. Then we should remove duplicates from them.
                           // Routes are considered duplicates if parameters and parameters constraints (see
                           // definition below) are identical.
-                          //
-                          // We will generate a seq of route then pass to ListMap (to preserve order) to have
-                          // a distinctBy we control then get the values of this map.
-                          ListMap((route +: routes).map { route =>
+                          (route +: routes).map { route =>
 
                             val localNames = reverseParameters.map {
                               case (lp, i) => route.call.parameters.get(i).name -> lp.name
@@ -983,7 +980,7 @@ object RoutesCompiler {
                                          """.stripMargin.format(markers, parameters, parametersConstraints, reverseRouteContext, call)
 
                             (parameters -> parametersConstraints) -> result
-                          }: _*).values
+                          }.groupBy(_._1).map(_._2.head._2)
                             .mkString("\n"))
                       }
 
@@ -1045,7 +1042,7 @@ object RoutesCompiler {
       """|
          |def documentation = List(%s).foldLeft(List.empty[(String,String,String)]) { (s,e) => e.asInstanceOf[Any] match {
          |  case r @ (_,_,_) => s :+ r.asInstanceOf[(String,String,String)]
-         |  case l => s ++ l.asInstanceOf[List[(String,String,String)]] 
+         |  case l => s ++ l.asInstanceOf[List[(String,String,String)]]
          |}}
       """.stripMargin.format(
         rules.map {
