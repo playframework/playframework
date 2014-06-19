@@ -118,3 +118,22 @@ trait Row {
     } yield (d, m)
 
 }
+
+/** Companion object for row. */
+object Row {
+
+  /**
+   * Row extractor.
+   *
+   * {{{
+   * import java.util.Locale
+   *
+   * val l: Option[Locale] =
+   *   SQL("Select name,population from Country")().collect {
+   *     case Row("France", _) => Some(Locale.FRANCE)
+   *     case _ => None
+   *   }
+   * }}}
+   */
+  def unapplySeq(row: Row): Option[List[Any]] = Some(row.asList)
+}
