@@ -31,7 +31,7 @@ sealed trait BatchSql {
       val ks = ps.keySet
 
       if (!BatchSql.matchPlaceholders(sql, ks))
-        throw new IllegalArgumentException(s"""Expected parameter names don't correspond to placeholders in query: ${ks mkString ", "} not matching ${sql.argsInitialOrder mkString ", "}""")
+        throw new IllegalArgumentException(s"""Expected parameter names don't correspond to placeholders in query: ${ks mkString ", "} not matching ${sql.paramsInitialOrder mkString ", "}""")
 
       copy(names = ks, params = Seq(ps))
     } else copy(params = this.params :+ checkedMap(args))
@@ -49,7 +49,7 @@ sealed trait BatchSql {
 
   /**
    * Adds a parameter map, created by zipping values with query placeholders
-   * ([[SqlQuery.argsInitialOrder]]). If parameter is used for more than one
+   * ([[SqlQuery.paramsInitialOrder]]). If parameter is used for more than one
    * placeholder, it will result in a parameter map with smaller size than
    * given arguments (as duplicate entry are removed from map).
    */
@@ -58,9 +58,9 @@ sealed trait BatchSql {
   def addBatchParams(args: ParameterValue*): BatchSql = {
     if (params.isEmpty) {
       BatchSql.Checked(sql,
-        Seq(Sql.zipParams(sql.argsInitialOrder, args, Map.empty)))
+        Seq(Sql.zipParams(sql.paramsInitialOrder, args, Map.empty)))
     } else {
-      val m = checkedMap(sql.argsInitialOrder.zip(args).
+      val m = checkedMap(sql.paramsInitialOrder.zip(args).
         foldLeft(Seq[NamedParameter]())((ps, t) =>
           ps :+ implicitly[NamedParameter](t)))
 
@@ -70,7 +70,7 @@ sealed trait BatchSql {
 
   /**
    * Adds a parameter maps, created by zipping values with query placeholders
-   * ([[SqlQuery.argsInitialOrder]]). If parameter is used for more than one
+   * ([[SqlQuery.paramsInitialOrder]]). If parameter is used for more than one
    * placeholder, it will result in parameter maps with smaller size than
    * given arguments (as duplicate entry are removed from map).
    */
@@ -79,10 +79,10 @@ sealed trait BatchSql {
   def addBatchParamsList(args: Traversable[Seq[ParameterValue]]): BatchSql = {
     if (params.isEmpty) {
       BatchSql.Checked(sql,
-        args.map(Sql.zipParams(sql.argsInitialOrder, _, Map.empty)))
+        args.map(Sql.zipParams(sql.paramsInitialOrder, _, Map.empty)))
 
     } else {
-      val ms = args.map(x => checkedMap(sql.argsInitialOrder.zip(x).
+      val ms = args.map(x => checkedMap(sql.paramsInitialOrder.zip(x).
         foldLeft(Seq[NamedParameter]())((ps, t) =>
           ps :+ implicitly[NamedParameter](t))))
 
@@ -116,18 +116,18 @@ sealed trait BatchSql {
   private def fill(con: Connection, statement: PreparedStatement, getGeneratedKeys: Boolean = false, pm: Seq[Map[String, ParameterValue]]): PreparedStatement =
     (statement, pm.headOption) match {
       case (null, Some(ps)) => { // First
-        val st: (String, Seq[(Int, ParameterValue)]) =
-          Sql.prepareQuery(sql.query, 0, sql.argsInitialOrder.map(ps), Nil)
+        val st: (String, Seq[(Int, ParameterValue)]) = Sql.prepareQuery(
+          sql.statement, 0, sql.paramsInitialOrder.map(ps), Nil)
 
         val stmt = if (getGeneratedKeys) con.prepareStatement(st._1, java.sql.Statement.RETURN_GENERATED_KEYS) else con.prepareStatement(st._1)
 
-        sql.queryTimeout.foreach(stmt.setQueryTimeout(_))
+        sql.timeout.foreach(stmt.setQueryTimeout(_))
 
         fill(con, addBatchParams(stmt, st._2), getGeneratedKeys, pm.tail)
       }
       case (stmt, Some(ps)) => {
-        val vs: Seq[(Int, ParameterValue)] =
-          Sql.prepareQuery(sql.query, 0, sql.argsInitialOrder.map(ps), Nil)._2
+        val vs: Seq[(Int, ParameterValue)] = Sql.prepareQuery(
+          sql.statement, 0, sql.paramsInitialOrder.map(ps), Nil)._2
 
         fill(con, addBatchParams(stmt, vs), getGeneratedKeys, pm.tail)
       }
@@ -166,7 +166,7 @@ object BatchSql {
       val ks = m.keySet
 
       if (!matchPlaceholders(query, ks))
-        throw new IllegalArgumentException(s"""Expected parameter names don't correspond to placeholders in query: ${ks mkString ", "} not matching ${query.argsInitialOrder mkString ", "}""")
+        throw new IllegalArgumentException(s"""Expected parameter names don't correspond to placeholders in query: ${ks mkString ", "} not matching ${query.paramsInitialOrder mkString ", "}""")
 
       paramNames(ps.tail, m.keySet) match {
         case Left(err) => throw new IllegalArgumentException(err)
@@ -174,9 +174,11 @@ object BatchSql {
       }
     }
 
-  /** Checks whether parameter `names` matches [[SqlQuery.argsInitialOrder]] */
+  /**
+   * Checks whether parameter `names` matches [[SqlQuery.paramsInitialOrder]].
+   */
   @inline private[anorm] def matchPlaceholders(query: SqlQuery, names: Set[String]): Boolean = {
-    val pl = query.argsInitialOrder.toSet
+    val pl = query.paramsInitialOrder.toSet
     (pl.size == names.size && pl.intersect(names).size == names.size)
   }
 
