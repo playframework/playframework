@@ -11,12 +11,6 @@ Cookies are signed with a secret key so the client can’t modify the cookie dat
 
 > There is no technical timeout for the session, which expires when the user closes the web browser. If you need a functional timeout for a specific application, just store a timestamp into the user Session and use it however your application needs (e.g. for a maximum session duration, maxmimum inactivity duration, etc.).
 
-## Reading a Session value
-
-You can retrieve the incoming Session from the HTTP request:
-
-@[read-session](code/javaguide/http/JavaSessionFlash.java)
-
 ## Storing data into the Session
 
 As the Session is just a Cookie, it is also just an HTTP header, but Play provides a helper method to store a session value:
@@ -26,6 +20,12 @@ As the Session is just a Cookie, it is also just an HTTP header, but Play provid
 The same way, you can remove any value from the incoming session:
 
 @[remove-from-session](code/javaguide/http/JavaSessionFlash.java)
+
+## Reading a Session value
+
+You can retrieve the incoming Session from the HTTP request:
+
+@[read-session](code/javaguide/http/JavaSessionFlash.java)
 
 ## Discarding the whole session
 
