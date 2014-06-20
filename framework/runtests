@@ -55,41 +55,6 @@ $BUILD "$@" Sbt-Plugin:scripted
 
 rm -rf ./logs
 
-cd ./test/integrationtest
-
-echo "[info]"
-echo "[info] ---- RUNNING INTEGRATION TEST"
-echo "[info]"
-
-$BUILD "$@" clean test
-
-cd $CURRENT
-
-cd ./test/integrationtest-java
-
-echo "[info]"
-echo "[info] ---- RUNNING JAVA INTEGRATION TEST"
-echo "[info]"
-
-$BUILD "$@" clean test
-if [ ! -f target/junit-running ]
-then
-  echo "[Error]"
-  echo "[Error] ---- Junit tests might not be running"
-  echo "[Error]"
-  exit 1
-fi
-
-
-cd $CURRENT
-
-cd ./test/integrationtest-scala
-
-echo "[info]"
-echo "[info] ---- RUNNING SCALA INTEGRATION TEST"
-echo "[info]"
-
-$BUILD "$@" clean test
 cd $CURRENT
 
 echo "[info]"
@@ -107,21 +72,6 @@ echo "[info]"
 cd ../templates
 $BUILD "$@" testTemplates
 cd $CURRENT
-
-echo "[info]"
-echo "[info] ---- TESTING SAMPLE APPLICATIONS"
-echo "[info]"
-
-x=`find ../samples -name app`
-for i in $(echo $x | tr ";" "\n")
-do
-  echo "[info]"
-  echo "[info] ---- TESTING ${i/app/}"
-  echo "[info]"
-  cd ${i/app/}
-  $BUILD "$@" clean test
-  cd $CURRENT
-done
 
 echo "[info]"
 echo "[info] ALL TESTS PASSED"

@@ -1,5 +1,0 @@
-This app is designed to run on iPhone (but you can also load it in any modern browser).
-
-It display live application performance data. The simplest way to load the application is running:
-
-ab -k -c 100 -n 1000000 http://localhost:9000/load
