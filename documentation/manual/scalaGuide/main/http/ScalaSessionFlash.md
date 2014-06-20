@@ -15,12 +15,6 @@ The Play Session is not intended to be used as a cache. If you need to cache som
 
 > There is no technical timeout for the Session. It expires when the user closes the web browser. If you need a functional timeout for a specific application, just store a timestamp into the user Session and use it however your application needs (e.g. for a maximum session duration, maximum inactivity duration, etc.).
 
-## Reading a Session value
-
-You can retrieve the incoming Session from the HTTP request:
-
-@[index-retrieve-incoming-session](code/ScalaSessionFlash.scala)
-
 ## Storing data in the Session
 
 As the Session is just a Cookie, it is also just an HTTP header. You can manipulate the session data the same way you manipulate other results properties:
@@ -36,6 +30,12 @@ Note that this will replace the whole session. If you need to add an element to 
 You can remove any value from the incoming session the same way:
 
 @[remove-session](code/ScalaSessionFlash.scala)
+
+## Reading a Session value
+
+You can retrieve the incoming Session from the HTTP request:
+
+@[index-retrieve-incoming-session](code/ScalaSessionFlash.scala)
 
 ## Discarding the whole session
 
