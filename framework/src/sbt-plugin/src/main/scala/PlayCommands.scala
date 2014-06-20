@@ -19,8 +19,9 @@ import sbt.complete.Parsers._
 import scala.util.control.NonFatal
 import sbt.inc.{ Analysis, Stamp, Exists, Hash, LastModified }
 import sbt.compiler.AggressiveCompile
+import play.sbtplugin.test.PlayTestListener
 
-trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternalKeys {
+trait PlayCommands extends PlayEclipse with PlayInternalKeys {
   this: PlayReloader =>
 
   //- mainly scala, mainly java or none
@@ -244,46 +245,6 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
 
   val playCompileEverythingTask = (state, thisProjectRef) flatMap { (s, r) =>
     inAllDependencies(r, playAssetsWithCompilation.task, Project structure s).join
-  }
-
-  val buildRequireTask = (copyResources in Compile, crossTarget, requireJs, requireJsFolder, requireJsShim, requireNativePath, streams) map { (cr, crossTarget, requireJs, requireJsFolder, requireJsShim, requireNativePath, s) =>
-    val buildDescName = "app.build.js"
-    val jsFolder = if (!requireJsFolder.isEmpty) { requireJsFolder } else "javascripts"
-    val rjoldDir = crossTarget / "classes" / "public" / jsFolder
-    val buildDesc = crossTarget / "classes" / "public" / buildDescName
-    if (requireJs.isEmpty == false) {
-      val rjnewDir = new File(rjoldDir.getAbsolutePath + "-min")
-      //cleanup previous version
-      IO.delete(rjnewDir)
-      val relativeModulePath = (str: String) => str.replace(".js", "")
-      val shim = if (!requireJsShim.isEmpty) { """mainConfigFile: """" + jsFolder + """/""" + requireJsShim + """", """ } else { "" };
-      val content = """({appDir: """" + jsFolder + """",
-          baseUrl: ".",
-          dir:"""" + rjnewDir.getName + """", """ +
-        shim +
-        """modules: [""" + requireJs.map(f => "{name: \"" + relativeModulePath(f) + "\"}").mkString(",") + """]})""".stripMargin
-
-      IO.write(buildDesc, content)
-      //run requireJS
-      s.log.info("RequireJS optimization has begun...")
-      s.log.info(buildDescName + ":")
-      s.log.info(content)
-      try {
-        requireNativePath.map(nativePath =>
-          println(play.core.jscompile.JavascriptCompiler.executeNativeCompiler(nativePath + " -o " + buildDesc.getAbsolutePath, buildDesc))
-        ).getOrElse {
-          play.core.jscompile.JavascriptCompiler.require(buildDesc)
-        }
-        s.log.info("RequireJS optimization finished.")
-      } catch {
-        case ex: Exception =>
-          s.log.error("RequireJS optimization has failed...")
-          throw ex
-      }
-      //clean-up
-      IO.delete(buildDesc)
-    }
-    cr
   }
 
   val h2Command = Command.command("h2-browser") { state: State =>

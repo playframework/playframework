@@ -6,7 +6,7 @@
  * From https://github.com/hydrasi/junit_xml_listener
  */
 
-package eu.henkelmann.sbt
+package play.sbtplugin.test
 
 import _root_.sbt._
 
@@ -15,7 +15,6 @@ import java.net.InetAddress
 import scala.collection.mutable.ListBuffer
 import scala.xml.{ Elem, Node, XML }
 import sbt.testing.{ Event => TEvent, Status => TStatus, NestedSuiteSelector, NestedTestSelector, TestSelector }
-import test.SbtOptionalThrowable
 
 import play.sbtplugin.Colors
 

@@ -9,7 +9,7 @@ import play.PlayImport._
 import PlayKeys._
 import com.typesafe.sbt.SbtNativePackager._
 import com.typesafe.sbt.packager.Keys._
-import play.sbtplugin.ApplicationSecretGenerator
+import play.sbtplugin.{ PlayPositionMapper, ApplicationSecretGenerator }
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 import WebKeys._
 import scala.language.postfixOps
@@ -32,12 +32,6 @@ trait PlaySettings {
 
   lazy val defaultScalaSettings = Seq[Setting[_]](
     TwirlKeys.templateImports ++= defaultScalaTemplateImports
-  )
-
-  def closureCompilerSettings(optionCompilerOptions: com.google.javascript.jscomp.CompilerOptions) = Seq[Setting[_]](
-    resourceGenerators in Compile <<= JavascriptCompiler(Some(optionCompilerOptions))(Seq(_)),
-    resourceGenerators in Compile <+= LessCompiler,
-    resourceGenerators in Compile <+= CoffeescriptCompiler
   )
 
   /** Ask SBT to manage the classpath for the given configuration. */
@@ -103,7 +97,7 @@ trait PlaySettings {
       tf => tf.filter(_ != TestFrameworks.Specs2).:+(TestFrameworks.Specs2)
     },
 
-    testListeners <<= (target, streams).map((t, s) => Seq(new eu.henkelmann.sbt.JUnitXmlTestsListener(t.getAbsolutePath, s.log))),
+    testListeners <<= (target, streams).map((t, s) => Seq(new play.sbtplugin.test.JUnitXmlTestsListener(t.getAbsolutePath, s.log))),
 
     testResultReporter <<= testResultReporterTask,
 
@@ -144,8 +138,6 @@ trait PlaySettings {
 
     computeDependencies <<= computeDependenciesTask,
 
-    playVersion := play.core.PlayVersion.current,
-
     // all dependencies from outside the project (all dependency jars)
     playDependencyClasspath <<= externalDependencyClasspath in Runtime,
 
@@ -177,28 +169,6 @@ trait PlaySettings {
     playRunHooks := Nil,
 
     playInteractionMode := play.PlayConsoleInteractionMode,
-
-    // Assets
-
-    requireJs := Nil,
-
-    requireJsFolder := "",
-
-    requireJsShim := "",
-
-    requireNativePath := None,
-
-    buildRequire <<= buildRequireTask,
-
-    packageBin in Compile <<= (packageBin in Compile).dependsOn(buildRequire),
-
-    lessEntryPoints <<= (sourceDirectory in Compile)(base => ((base / "assets" ** "*.less") --- base / "assets" ** "_*")),
-    coffeescriptEntryPoints <<= (sourceDirectory in Compile)(base => base / "assets" ** "*.coffee"),
-    javascriptEntryPoints <<= (sourceDirectory in Compile)(base => ((base / "assets" ** "*.js") --- (base / "assets" ** "_*"))),
-
-    lessOptions := Seq.empty[String],
-    coffeescriptOptions := Seq.empty[String],
-    closureCompilerOptions := Seq.empty[String],
 
     // sbt-web
     sourceDirectory in Assets := (sourceDirectory in Compile).value / "assets",

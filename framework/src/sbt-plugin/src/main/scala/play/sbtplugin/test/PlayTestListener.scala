@@ -1,11 +1,10 @@
 /*
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
-package play
+package play.sbtplugin.test
 
 import sbt._
 import sbt.testing.{ Event => TEvent, Status => TStatus }
-import test.SbtOptionalThrowable
 
 private[play] class PlayTestListener extends TestsListener {
 
