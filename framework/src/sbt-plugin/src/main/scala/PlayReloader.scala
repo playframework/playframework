@@ -123,7 +123,8 @@ trait PlayReloader {
         } catch {
           case NonFatal(e) => fallbackWatcher(e)
           // JNotify failure on FreeBSD
-          case e: ExceptionInInitializerError => fallbackWatcher(e)
+          case e: ExceptionInInitializerError => fallbackWatcher(e.getCause)
+          case e: NoClassDefFoundError => fallbackWatcher(e)
           // JNotify failure on Linux
           case e: UnsatisfiedLinkError => fallbackWatcher(e)
         }
