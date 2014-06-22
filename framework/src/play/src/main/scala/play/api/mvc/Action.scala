@@ -586,7 +586,7 @@ trait ActionRefiner[-R[_], +P[_]] extends ActionFunction[R, P] {
  */
 trait ActionTransformer[-R[_], +P[_]] extends ActionRefiner[R, P] {
   /**
-   * Augment or transform an existing request.  This is the main method than an ActionTransformer has to implement.
+   * Augment or transform an existing request.  This is the main method that an ActionTransformer has to implement.
    *
    * @param request the input request
    * @return The new parameter to pass to the Action block
