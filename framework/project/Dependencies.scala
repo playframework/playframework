@@ -206,7 +206,7 @@ object Dependencies {
 
   val anormDependencies = specsBuild.map(_ % "test") ++ Seq(
     h2database % "test",
-    "org.eu.acolyte" %% "jdbc-scala" % "1.0.18" % "test",
+    "org.eu.acolyte" %% "jdbc-scala" % "1.0.20" % "test",
     "com.chuusai" % "shapeless" % "2.0.0" % "test" cross CrossVersion.binaryMapped {
       case "2.10" => BuildSettings.buildScalaVersion
       case x => x

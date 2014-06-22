@@ -1,8 +1,10 @@
 package anorm
 
+import java.sql.{ Array => SqlArray }
 import javax.sql.rowset.serial.SerialClob
+import java.math.BigInteger
 
-import acolyte.QueryResult
+import acolyte.{ QueryResult, ImmutableArray }
 import acolyte.RowLists.{
   bigDecimalList,
   byteList,
@@ -282,6 +284,86 @@ object ColumnSpec extends org.specs2.mutable.Specification {
       SQL("SELECT time").as(scalar[java.util.Date].single).
         aka("parsed date") must_== new java.util.Date(time)
 
+    }
+  }
+
+  "Column mapped as array" should {
+    val array = ImmutableArray.
+      getInstance(classOf[String], Array("aB", "Cd", "EF"))
+
+    "be parsed from array" in withQueryResult(
+      rowList1(classOf[SqlArray]) :+ array) { implicit con =>
+
+      SQL"SELECT a".as(scalar[Array[String]].single).
+        aka("parsed array") mustEqual Array("aB", "Cd", "EF")
+    }
+
+    "not be parsed from array with invalid component type" in withQueryResult(
+      rowList1(classOf[SqlArray]) :+ acolyte.ImmutableArray.getInstance(
+        classOf[java.sql.Date], Array(new java.sql.Date(1l), 
+          new java.sql.Date(2l)))) { implicit con =>
+
+      SQL"SELECT a".as(scalar[Array[String]].single).
+        aka("parsing") must throwA[Exception](message = 
+          "TypeDoesNotMatch\\(Cannot convert ImmutableArray")
+
+    }
+
+    "not be parsed from float" in withQueryResult(floatList :+ 2f) {
+      implicit con =>
+      SQL"SELECT a".as(scalar[Array[String]].single).
+        aka("parsing") must throwA[Exception](message =
+          "TypeDoesNotMatch\\(Cannot convert.* to array")
+    }
+
+    "be parsed from array with integer to big integer convertion" in {
+      withQueryResult(rowList1(classOf[SqlArray]) :+ ImmutableArray.getInstance(
+        classOf[Integer], Array[Integer](1, 3))) { implicit con =>
+
+        SQL"SELECT a".as(scalar[Array[BigInteger]].single).
+          aka("parsed array") mustEqual Array(
+            BigInteger.valueOf(1), BigInteger.valueOf(3))
+      }
+    }
+  }
+
+  "Column mapped as list" should {
+    val array = ImmutableArray.
+      getInstance(classOf[String], Array("aB", "Cd", "EF"))
+
+    "be parsed from array" in withQueryResult(
+      rowList1(classOf[SqlArray]) :+ array) { implicit con =>
+
+      SQL"SELECT a".as(scalar[List[String]].single).
+        aka("parsed list") mustEqual List("aB", "Cd", "EF")
+    }
+
+    "not be parsed from array with invalid component type" in withQueryResult(
+      rowList1(classOf[SqlArray]) :+ acolyte.ImmutableArray.getInstance(
+        classOf[java.sql.Date], Array(new java.sql.Date(1l), 
+          new java.sql.Date(2l)))) { implicit con =>
+
+      SQL"SELECT a".as(scalar[List[String]].single).
+        aka("parsing") must throwA[Exception](message = 
+          "TypeDoesNotMatch\\(Cannot convert ImmutableArray")
+
+    }
+
+    "not be parsed from float" in withQueryResult(floatList :+ 2f) {
+      implicit con =>
+      SQL"SELECT a".as(scalar[List[String]].single).
+        aka("parsing") must throwA[Exception](message =
+          "TypeDoesNotMatch\\(Cannot convert.* to list")
+    }
+
+    "be parsed from array with integer to big integer convertion" in {
+      withQueryResult(rowList1(classOf[SqlArray]) :+ ImmutableArray.getInstance(
+        classOf[Integer], Array[Integer](1, 3))) { implicit con =>
+
+        SQL"SELECT a".as(scalar[List[BigInteger]].single).
+          aka("parsed list") mustEqual List(
+            BigInteger.valueOf(1), BigInteger.valueOf(3))
+      }
     }
   }
 
