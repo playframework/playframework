@@ -75,13 +75,25 @@ To execute an update, you can use `executeUpdate()`, which returns the number of
 val result: Int = SQL("delete from City where id = 99").executeUpdate()
 ```
 
-If you are inserting data that has an auto-generated `Long` primary key, you can call `executeInsert()`. If you have more than one generated key, or it is not a Long, `executeInsert` can be passed a `ResultSetParser` to return the correct key.
+If you are inserting data that has an auto-generated `Long` primary key, you can call `executeInsert()`.
 
 ```scala
 val id: Option[Long] = 
   SQL("insert into City(name, country) values ({name}, {country})")
   .on('name -> "Cambridge", 'country -> "New Zealand").executeInsert()
 ```
+
+When key generated on insertion is not a single `Long`, `executeInsert` can be passed a `ResultSetParser` to return the correct key.
+
+```scala
+import anorm.SqlParser.str
+
+val id: List[String] = 
+  SQL("insert into City(name, country) values ({name}, {country})")
+  .on('name -> "Cambridge", 'country -> "New Zealand")
+  .executeInsert(str.+) // insertion returns a list of at least one string keys
+```
+
 Since Scala supports multi-line strings, feel free to use them for complex SQL statements:
 
 ```scala
@@ -105,6 +117,8 @@ SQL(
   """
 ).on("countryCode" -> "FRA")
 ```
+
+You can also use string interpolation to pass parameters (see details thereafter).
 
 In case several columns are found with same name in query result, for example columns named `code` in both `Country` and `CountryLanguage` tables, there can be ambiguity. By default a mapping like following one will use the last column:
 
@@ -150,7 +164,61 @@ val product: (String, Float) = SQL("SELECT * FROM prod WHERE id = {id}").
 
 `java.util.UUID` can be used as parameter, in which case its string value is passed to statement.
 
-### Using multi-value parameter
+### SQL queries using String Interpolation
+
+Since Scala 2.10 supports custom String Interpolation there is also a 1-step alternative to `SQL(queryString).on(params)` seen before. You can abbreviate the code as: 
+
+```scala
+val name = "Cambridge"
+val country = "New Zealand"
+
+SQL"insert into City(name, country) values ($name, $country)")
+```
+
+It also supports multi-line string and inline expresions:
+
+```scala
+val lang = "French"
+val population = 10000000
+val margin = 500000
+
+val code: String = SQL"""
+  select * from Country c 
+    join CountryLanguage l on l.CountryCode = c.Code 
+    where l.Language = $lang and c.Population >= ${population - margin}
+    order by c.Population desc limit 1"""
+  .as(SqlParser.str("Country.code").single)
+```
+
+This feature tries to make faster, more concise and easier to read the way to retrieve data in Anorm. Please, feel free to use it wherever you see a combination of `SQL().on()` functions (or even an only `SQL()` without parameters).
+
+## Retrieving data using the Stream API
+
+The first way to access the results of a select query is to use the Stream API.
+
+When you call `apply()` on any SQL statement, you will receive a lazy `Stream` of `Row` instances, where each row can be seen as a dictionary:
+
+```scala
+// Create an SQL query
+val selectCountries = SQL("Select * from Country")
+ 
+// Transform the resulting Stream[Row] to a List[(String,String)]
+val countries = selectCountries().map(row => 
+  row[String]("code") -> row[String]("name")
+).toList
+```
+
+In the following example we will count the number of `Country` entries in the database, so the result set will be a single row with a single column:
+
+```scala
+// First retrieve the first row
+val firstRow = SQL("Select count(*) as c from Country").apply().head
+ 
+// Next get the content of the 'c' column as Long
+val countryCount = firstRow[Long]("c")
+```
+
+### Multi-value support
 
 Anorm parameter can be multi-value, like a sequence of string.
 In such case, values will be prepared to be passed to JDBC.
@@ -174,6 +242,36 @@ EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name='a')
 OR EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name='b') 
 OR EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name='c')
 */
+```
+
+A column can also be multi-value if its type is JDBC array (`java.sql.Array`), then it can be mapped to either array or list (`Array[T]` or `List[T]`), provided type of element (`T`) is also supported in column mapping.
+
+```scala
+import anorm.SQL
+import anorm.SqlParser.{ scalar, * }
+
+// array and element parser
+import anorm.Column.{ columnToArray, stringToArray }
+
+val res: List[Array[String]] =
+  SQL("SELECT str_arr FROM tbl").as(scalar[Array[String]].*)
+```
+
+### Batch update
+
+When you need to execute SQL statement several times with different arguments, batch query can be used (e.g. to execute a batch of insertions).
+
+```scala
+import anorm.BatchSql
+
+val batch = BatchSql(
+  "INSERT INTO books(title, author) VALUES({title}, {author}", 
+  Seq(Seq[NamedParameter](
+    "title" -> "Play 2 for Scala", "author" -> Peter Hilton"),
+    Seq[NamedParameter]("title" -> "Learning Play! Framework 2",
+      "author" -> "Andy Petrella")))
+
+val res: Array[Int] = batch.execute() // array of update count
 ```
 
 ### Edge cases
