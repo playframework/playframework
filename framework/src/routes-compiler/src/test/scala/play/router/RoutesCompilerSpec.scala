@@ -168,7 +168,7 @@ object RoutesCompilerSpec extends Specification {
 
     "check if there are no routes using overloaded handler methods" in withTempDir { tmp =>
       val file = new File(this.getClass.getClassLoader.getResource("duplicateHandlers.routes").toURI)
-      RoutesCompiler.compile(file, tmp, Seq.empty) must throwA[RoutesCompilationError]
+      RoutesCompiler.compile(file, tmp, Seq.empty) must beLeft
     }
 
     "check if routes with type projection are compiled" in withTempDir { tmp =>
@@ -176,7 +176,7 @@ object RoutesCompilerSpec extends Specification {
       object A {
         type B = Int
       }
-      RoutesCompiler.compile(file, tmp, Seq.empty) must throwA[RoutesCompilationError].not
+      RoutesCompiler.compile(file, tmp, Seq.empty) must beRight
     }
   }
 }
