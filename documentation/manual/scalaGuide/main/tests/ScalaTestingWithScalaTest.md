@@ -24,7 +24,7 @@ To use _ScalaTest + Play_, you'll need to add it to your build, by changing `pro
 ```scala
 val appDependencies = Seq(
   // Add your project dependencies here,
-  "org.scalatestplus" % "play_2.10" % "1.0.0" % "test"
+  "org.scalatestplus" %% "play" % "1.1.0" % "test"
 )
 ```
 
