@@ -7,6 +7,8 @@ import scala.annotation._
 
 import play.api.mvc._
 
+import controllers.Assets.Asset
+
 import java.net.{ URI, URLEncoder }
 import java.util.UUID
 import scala.annotation._
@@ -188,9 +190,9 @@ trait PathBindable[A] {
  * Transform a value to a Javascript literal.
  */
 @implicitNotFound(
-  "No JavaScript litteral binder found for type ${A}. Try to implement an implicit JavascriptLitteral for this type."
+  "No JavaScript literal binder found for type ${A}. Try to implement an implicit JavascriptLiteral for this type."
 )
-trait JavascriptLitteral[A] {
+trait JavascriptLiteral[A] {
 
   /**
    * Convert a value of A to a JavaScript literal.
@@ -202,50 +204,56 @@ trait JavascriptLitteral[A] {
 /**
  * Default JavaScript literals converters.
  */
-object JavascriptLitteral {
+object JavascriptLiteral {
 
   /**
    * Convert a Scala String to Javascript String
    */
-  implicit def litteralString: JavascriptLitteral[String] = new JavascriptLitteral[String] {
+  implicit def literalString: JavascriptLiteral[String] = new JavascriptLiteral[String] {
     def to(value: String) = "\"" + value + "\""
   }
 
   /**
    * Convert a Scala Int to Javascript number
    */
-  implicit def litteralInt: JavascriptLitteral[Int] = new JavascriptLitteral[Int] {
+  implicit def literalInt: JavascriptLiteral[Int] = new JavascriptLiteral[Int] {
     def to(value: Int) = value.toString
   }
 
   /**
    * Convert a Java Integer to Javascript number
    */
-  implicit def litteralJavaInteger: JavascriptLitteral[java.lang.Integer] = new JavascriptLitteral[java.lang.Integer] {
+  implicit def literalJavaInteger: JavascriptLiteral[java.lang.Integer] = new JavascriptLiteral[java.lang.Integer] {
     def to(value: java.lang.Integer) = value.toString
   }
 
   /**
    * Convert a Scala Long to Javascript Long
    */
-  implicit def litteralLong: JavascriptLitteral[Long] = new JavascriptLitteral[Long] {
+  implicit def literalLong: JavascriptLiteral[Long] = new JavascriptLiteral[Long] {
     def to(value: Long) = value.toString
   }
 
   /**
    * Convert a Scala Boolean to Javascript boolean
    */
-  implicit def litteralBoolean: JavascriptLitteral[Boolean] = new JavascriptLitteral[Boolean] {
+  implicit def literalBoolean: JavascriptLiteral[Boolean] = new JavascriptLiteral[Boolean] {
     def to(value: Boolean) = value.toString
   }
 
   /**
    * Convert a Scala Option to Javascript literal (use null for None)
    */
-  implicit def litteralOption[T](implicit jsl: JavascriptLitteral[T]): JavascriptLitteral[Option[T]] = new JavascriptLitteral[Option[T]] {
+  implicit def literalOption[T](implicit jsl: JavascriptLiteral[T]): JavascriptLiteral[Option[T]] = new JavascriptLiteral[Option[T]] {
     def to(value: Option[T]) = value.map(jsl.to(_)).getOrElse("null")
   }
 
+  /**
+   * Convert a Play Asset to Javascript String
+   */
+  implicit def literalAsset: JavascriptLiteral[Asset] = new JavascriptLiteral[Asset] {
+    def to(value: Asset) = "\"" + value.name + "\""
+  }
 }
 
 /**

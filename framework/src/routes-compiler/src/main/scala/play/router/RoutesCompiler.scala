@@ -730,7 +730,7 @@ object RoutesCompiler {
                               Option(route.call.parameters.getOrElse(Nil).filter { p =>
                                 localNames.contains(p.name) && p.fixed.isDefined
                               }.map { p =>
-                                p.name + " == \"\"\" + implicitly[JavascriptLitteral[" + p.typeName + "]].to(" + p.fixed.get + ") + \"\"\""
+                                p.name + " == \"\"\" + implicitly[JavascriptLiteral[" + p.typeName + "]].to(" + p.fixed.get + ") + \"\"\""
                               }).filterNot(_.isEmpty).map(_.mkString(" && ")).getOrElse("true"),
 
                               genCall(route, localNames))
