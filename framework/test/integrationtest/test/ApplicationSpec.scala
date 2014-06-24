@@ -16,7 +16,7 @@ import scala.concurrent.Future
 class ApplicationSpec extends PlaySpecification with WsTestClient {
 
   "an Application" should {
-  
+
     "execute index" in new WithApplication() {
       val action = controllers.Application.index()
       val result = action(FakeRequest())
@@ -41,7 +41,7 @@ class ApplicationSpec extends PlaySpecification with WsTestClient {
        anyData.put("email", "peter.hausel@yay.com")
        userForm.bind(anyData).get.toString must contain ("")
     }
-  
+
     "execute index again" in new WithApplication() {
       val action = controllers.Application.index()
       val result = action(FakeRequest())
@@ -51,7 +51,7 @@ class ApplicationSpec extends PlaySpecification with WsTestClient {
       charset(result) must equalTo(Some("utf-8"))
       contentAsString(result) must contain("Hello world")
     }
-    
+
     "execute json" in new WithApplication() {
       val Some(result) = route(FakeRequest(GET, "/json"))
       status(result) must equalTo(OK)
@@ -91,7 +91,7 @@ class ApplicationSpec extends PlaySpecification with WsTestClient {
       val Some(result2) = route(FakeRequest(GET, "/public//empty.txt"))
       status(result2) must equalTo (OK)
     }
-   
+
     "remove cache elements" in new WithApplication() {
       import play.api.cache.Cache
       Cache.set("foo", "bar")
@@ -305,6 +305,10 @@ class ApplicationSpec extends PlaySpecification with WsTestClient {
       // Force the router to bootstrap the prefix
       app.routes
       controllers.module.routes.ModuleController.index().url must_== "/module/index"
+    }
+
+    "choose the first matching route for a call in reverse routes" in new WithApplication() {
+      controllers.routes.Application.hello().url must_== "/hello"
     }
 
     "document the router" in new WithApplication() {
