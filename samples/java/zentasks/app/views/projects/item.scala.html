@@ -1,7 +1,0 @@
-@(project: Project)
-
-<li data-project="@project.id">
-    <a class="name" href="#@routes.Tasks.index(project.id)">@project.name</a>
-    <button class="delete" href="@routes.Projects.delete(project.id)">Delete</button>
-    <span class="loader">Loading</span>
-</li>

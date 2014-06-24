@@ -1,9 +1,0 @@
-@(totalMemory: Long)
-
-@main("RPS") {
-    <script type="text/javascript">
-        window.App = { };
-        window.App.totalMemory = @totalMemory;
-    </script>
-    <script type="text/javascript" src="@routes.Assets.at("javascripts/main.js")"></script>
-}

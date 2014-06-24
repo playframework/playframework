@@ -11,6 +11,7 @@ import com.typesafe.sbt.jse.SbtJsTask
 import com.typesafe.sbt.webdriver.SbtWebDriver
 import com.typesafe.play.sbt.enhancer.PlayEnhancer
 import play.twirl.sbt.SbtTwirl
+import play.sbtplugin.PlayPositionMapper
 
 /**
  * Base plugin for Play projects. Declares common settings for both Java and Scala based Play projects.

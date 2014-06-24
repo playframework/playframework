@@ -125,7 +125,7 @@ object ApplicationBuild extends Build {
 
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true", "junitxml", "console"),
     testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "-v", "--ignore-runners=org.specs2.runner.JUnitRunner"),
-    testListeners <<= (target, streams).map((t, s) => Seq(new eu.henkelmann.sbt.JUnitXmlTestsListener(t.getAbsolutePath, s.log)))
+    testListeners <<= (target, streams).map((t, s) => Seq(new play.sbtplugin.test.JUnitXmlTestsListener(t.getAbsolutePath, s.log)))
 
   ).settings(externalPlayModuleSettings:_*)
 

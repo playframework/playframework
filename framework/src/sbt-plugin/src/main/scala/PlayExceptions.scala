@@ -32,28 +32,12 @@ trait PlayExceptions {
     def sourceName = problem.position.sourceFile.map(_.getAbsolutePath).orNull
   }
 
-  case class TemplateCompilationException(source: File, message: String, atLine: Int, column: Int) extends PlayException.ExceptionSource(
-    "Compilation error", message) with FeedbackProvidedException {
-    def line = atLine
-    def position = column
-    def input = IO.read(source)
-    def sourceName = source.getAbsolutePath
-  }
-
   case class RoutesCompilationException(source: File, message: String, atLine: Option[Int], column: Option[Int]) extends PlayException.ExceptionSource(
     "Compilation error", message) with FeedbackProvidedException {
     def line = atLine.map(_.asInstanceOf[java.lang.Integer]).orNull
     def position = column.map(_.asInstanceOf[java.lang.Integer]).orNull
     def input = IO.read(source)
     def sourceName = source.getAbsolutePath
-  }
-
-  case class AssetCompilationException(source: Option[File], message: String, atLine: Option[Int], column: Option[Int]) extends PlayException.ExceptionSource(
-    "Compilation error", message) with FeedbackProvidedException {
-    def line = atLine.map(_.asInstanceOf[java.lang.Integer]).orNull
-    def position = column.map(_.asInstanceOf[java.lang.Integer]).orNull
-    def input = source.filter(_.exists()).map(IO.read(_)).orNull
-    def sourceName = source.map(_.getAbsolutePath).orNull
   }
 
 }

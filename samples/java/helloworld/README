@@ -1,7 +1,0 @@
-This is a very basic application that demonstrates Play fundamentals:
-
-- Writing controllers and actions.
-- Routing and reverse routing.
-- Linking to public assets.
-- Using the template engine.
-- Handling forms with validation.

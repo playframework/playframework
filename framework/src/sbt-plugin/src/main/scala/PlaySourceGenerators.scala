@@ -4,7 +4,7 @@
 package play
 
 import sbt._
-import PlayExceptions.{ TemplateCompilationException, RoutesCompilationException }
+import PlayExceptions.RoutesCompilationException
 import play.api.PlayException
 
 trait PlaySourceGenerators {

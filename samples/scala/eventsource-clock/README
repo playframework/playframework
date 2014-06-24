@@ -1,4 +1,0 @@
-This a very simple EventSource demonstration pushing clock events from the server to the Web browser using a the Server Sent Event. It demonstrates:
-
-- Creating a EventSource connection.
-- Writing custom Enumerators.

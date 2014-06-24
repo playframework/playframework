@@ -105,27 +105,17 @@ object PlayImport {
   }
 
   object PlayKeys {
-    val playVersion = SettingKey[String]("play-version")
-
-    val playDefaultPort = SettingKey[Int]("play-default-port")
-
-    val requireJs = SettingKey[Seq[String]]("play-require-js")
-
-    val requireJsFolder = SettingKey[String]("play-require-js-folder")
-
-    val requireJsShim = SettingKey[String]("play-require-js-shim")
-
-    val requireNativePath = SettingKey[Option[String]]("play-require-native-path")
+    val playDefaultPort = SettingKey[Int]("play-default-port", "The default port that Play runs on")
 
     /** Our means of hooking the run task with additional behavior. */
-    val playRunHooks = TaskKey[Seq[play.PlayRunHook]]("play-run-hooks")
+    val playRunHooks = TaskKey[Seq[play.PlayRunHook]]("play-run-hooks", "Hooks to run additional behaviour before/after the run task")
 
     /** A hook to configure how play blocks on user input while running. */
-    val playInteractionMode = SettingKey[play.PlayInteractionMode]("play-interaction-mode")
+    val playInteractionMode = SettingKey[play.PlayInteractionMode]("play-interaction-mode", "Hook to configure how Play blocks when running")
 
-    val confDirectory = SettingKey[File]("play-conf")
+    val confDirectory = SettingKey[File]("play-conf", "Where the Play conf directory lives")
 
-    val routesImport = SettingKey[Seq[String]]("play-routes-imports")
+    val routesImport = SettingKey[Seq[String]]("play-routes-imports", "Imports for the router")
 
     val generateReverseRouter = SettingKey[Boolean]("play-generate-reverse-router",
       "Whether the reverse router should be generated. Setting to false may reduce compile times if it's not needed.")
@@ -137,18 +127,6 @@ object PlayImport {
       "Whether the reverse router should be namespaced. Useful if you have many routers that use the same actions.")
 
     val ebeanEnabled = SettingKey[Boolean]("play-ebean-enabled")
-
-    val closureCompilerOptions = SettingKey[Seq[String]]("play-closure-compiler-options")
-
-    val lessOptions = SettingKey[Seq[String]]("play-less-options")
-
-    val coffeescriptOptions = SettingKey[Seq[String]]("play-coffeescript-options")
-
-    val lessEntryPoints = SettingKey[PathFinder]("play-less-entry-points")
-
-    val coffeescriptEntryPoints = SettingKey[PathFinder]("play-coffeescript-entry-points")
-
-    val javascriptEntryPoints = SettingKey[PathFinder]("play-javascript-entry-points")
 
     val playPlugin = SettingKey[Boolean]("play-plugin")
 
