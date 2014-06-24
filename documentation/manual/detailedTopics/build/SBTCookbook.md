@@ -46,8 +46,8 @@ Then in the `build.sbt` file you need to register this hook:
 
 ```scala
 import Grunt._
+import play.PlayImport.PlayKeys.playRunHooks
 
-val playRunHooks = TaskKey[Seq[play.PlayRunHook]]("play-run-hooks")
 playRunHooks <+= baseDirectory.map(base => Grunt(base))
 ```
 
