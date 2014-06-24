@@ -326,8 +326,11 @@ trait PlayReloader {
               .left.map(taskFailureHandler)
               .right.map {
                 compilationResult =>
-                  updateAnalysis(compilationResult)
-                  newClassLoader.fold(identity, identity)
+                  if (updateAnalysis(compilationResult) != None) {
+                    newClassLoader.fold(identity, identity)
+                  } else {
+                    null
+                  }
               }.fold(identity, identity)
           } else {
             null
