@@ -19,8 +19,10 @@ case class DocumentationApplication(projectPath: File, buildDocHandler: BuildDoc
     def classloader = this.getClass.getClassLoader
     def sources = None
     def mode = Mode.Dev
-    def global = new GlobalSettings() {}
-    def plugins = Nil
+    def injectionProvider = new DefaultInjectionProvider(this) {
+      override lazy val plugins = Nil
+      override lazy val global = new GlobalSettings() {}
+    }
     override lazy val routes = None
   }
 

@@ -9,6 +9,8 @@ import models._
 import play.api.libs.json.Json
 import play.api.libs.json.JsString
 import play.api.mvc.AnyContentAsEmpty
+import play.api.Play.current
+
 import module.Routes
 
 import scala.concurrent.Future
@@ -387,6 +389,10 @@ class ApplicationSpec extends PlaySpecification with WsTestClient {
 
       session.get("foo") must equalTo (Some("bar"))
 
+    }
+
+    "get plugins loaded by the injection provider" in new WithApplication() {
+      current.plugin[InjectedPlugin].get.name must_== "test"
     }
 
   }
