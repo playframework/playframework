@@ -32,6 +32,12 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
     "add a token to GET requests that accept HTML" in {
       buildCsrfAddToken()(_.withHeaders(ACCEPT -> "text/html").get())(_.status must_== OK)
     }
+    "not add a token to HEAD requests that don't accept HTML" in {
+      buildCsrfAddToken()(_.withHeaders(ACCEPT -> "application/json").head())(_.status must_== NOT_FOUND)
+    }
+    "add a token to HEAD requests that accept HTML" in {
+      buildCsrfAddToken()(_.withHeaders(ACCEPT -> "text/html").head())(_.status must_== OK)
+    }
 
     // extra conditions for not doing a check
     "not check non form bodies" in {
