@@ -147,6 +147,7 @@ object Dependencies {
     "net.contentobjects.jnotify" % "jnotify" % "0.94",
 
     sbtPluginDep("com.typesafe.sbt" % "sbt-twirl" % "1.0.1"),
+    sbtPluginDep("com.typesafe.sbt" % "sbt-play-enhancer" % "1.0.1"),
 
     sbtPluginDep("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.4.0"),
     sbtPluginDep("com.github.mpeltonen" % "sbt-idea" % "1.5.1"),

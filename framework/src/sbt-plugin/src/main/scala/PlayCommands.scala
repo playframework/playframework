@@ -76,34 +76,6 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
   def PostCompile(scope: Configuration) = (sourceDirectory in scope, dependencyClasspath in scope, compile in scope, javaSource in scope, managedSourceDirectories in scope, classDirectory in scope, cacheDirectory in scope, compileInputs in compile in scope) map { (src, deps, analysis, javaSrc, srcManaged, classes, cacheDir, inputs) =>
 
     val classpath = (deps.map(_.data.getAbsolutePath).toArray :+ classes.getAbsolutePath).mkString(java.io.File.pathSeparator)
-
-    val timestampFile = cacheDir / "play_instrumentation"
-    val lastEnhanced = if (timestampFile.exists) IO.read(timestampFile).toLong else Long.MinValue
-    val javaClasses = (javaSrc ** "*.java").get flatMap { sourceFile =>
-      // PropertiesEnhancer is class-local, so no need to check outside the class.
-      if (analysis.apis.internal(sourceFile).compilation.startTime > lastEnhanced)
-        analysis.relations.products(sourceFile)
-      else
-        Nil
-    }
-    val templateClasses = (srcManaged ** "*.template.scala").get flatMap { sourceFile =>
-      if (analysis.apis.internal(sourceFile).compilation.startTime > lastEnhanced)
-        analysis.relations.products(sourceFile)
-      else
-        Nil
-    }
-
-    import play.core.enhancers.PropertiesEnhancer
-
-    val javaClassesWithGeneratedAccessors = javaClasses.filter(PropertiesEnhancer.generateAccessors(classpath, _))
-    val javaClassesWithAccessorsRewritten = javaClasses.filter(PropertiesEnhancer.rewriteAccess(classpath, _))
-    val enhancedTemplateClasses = templateClasses.filter(PropertiesEnhancer.rewriteAccess(classpath, _))
-
-    val enhancedClasses = (javaClassesWithGeneratedAccessors ++ javaClassesWithAccessorsRewritten ++
-      enhancedTemplateClasses).distinct
-
-    IO.write(timestampFile, System.currentTimeMillis.toString)
-
     val ebeanEnhancement = classpath.contains("play-java-ebean")
 
     // EBean
@@ -149,6 +121,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
         Thread.currentThread.setContextClassLoader(originalContextClassLoader)
       }
     }
+
     // Copy managed classes - only needed in Compile scope
     // This is done to ease integration with Eclipse, but it's doubtful as to how effective it is.
     if (scope.name.toLowerCase == "compile") {
@@ -165,15 +138,11 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
       (managedClassesDirectory ** "*.class").get.filterNot(managedSet.contains(_)).foreach(_.delete())
     }
 
-    // If ebean enhancement was done, then it's possible that any of the java classes were enhanced, we don't know
-    // which, otherwise it's just the enhanced classes that we did accessor generation/rewriting for
-    val possiblyEnhancedClasses = if (ebeanEnhancement) {
-      javaClasses ++ enhancedTemplateClasses
-    } else {
-      enhancedClasses
-    }
+    if (ebeanEnhancement) {
+      val javaClasses = (javaSrc ** "*.java").get flatMap { sourceFile =>
+        analysis.relations.products(sourceFile)
+      }
 
-    if (!possiblyEnhancedClasses.isEmpty) {
       /**
        * Updates stamp of product (class file) by preserving the type of a passed stamp.
        * This way any stamp incremental compiler chooses to use to mark class files will
@@ -187,7 +156,7 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
       // Since we may have modified some of the products of the incremental compiler, that is, the compiled template
       // classes and compiled Java sources, we need to update their timestamps in the incremental compiler, otherwise
       // the incremental compiler will see that they've changed since it last compiled them, and recompile them.
-      val updatedAnalysis = analysis.copy(stamps = possiblyEnhancedClasses.foldLeft(analysis.stamps) { (stamps, classFile) =>
+      val updatedAnalysis = analysis.copy(stamps = javaClasses.foldLeft(analysis.stamps) { (stamps, classFile) =>
         val existingStamp = stamps.product(classFile)
         if (existingStamp == Stamp.notPresent) {
           throw new java.io.IOException("Tried to update a stamp for class file that is not recorded as "
