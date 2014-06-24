@@ -21,3 +21,6 @@ $ exists module/target/web/public/main/module.css
 > unzip-assets-jar
 $ exists target/assetsJar/public/main.css
 $ exists target/assetsJar/public/module.css
+
+# empty.txt was in both subproject and the main project, the stage would fail if it couldn't handle duplicate mappings
+$ exists target/assetsJar/public/empty.txt
