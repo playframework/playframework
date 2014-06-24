@@ -9,7 +9,7 @@ This trait define the following methods:
  * `beforeStarted(): Unit`
  * `afterStarted(addr: InetSocketAddress): Unit`
  * `afterStopped(): Unit`
- 
+
 `beforeStarted` method is called before the play application is started, but after all "before run" tasks have been completed.
 
 `afterStarted` method is called after the play application has been started.
@@ -17,7 +17,7 @@ This trait define the following methods:
 `afterStopped` method is called after the play process has been stopped.
 
 > **Note:** The following example illustrate how you can start and stop a command with play run hook.
-> In a near future [sbt-web](https://github.com/sbt/sbt-web) will provide a better way to integrate Grunt with an SBT build. 
+> In the near future [sbt-web](https://github.com/sbt/sbt-web) will provide a better way to integrate Grunt with an SBT build.
 
 Now let's say you want to build a Web application with `grunt` before the application is started.
 First, you need to create a Scala object in the `project/` directory to extend `PlayRunHook`.
@@ -128,7 +128,7 @@ The first line will disable documentation generation and the second one will avo
 
 ## Configure ivy logging level
 
-By defaut `ivyLoggingLevel` is set on `UpdateLogging.DownloadOnly`. You can change this value with:
+By default `ivyLoggingLevel` is set on `UpdateLogging.DownloadOnly`. You can change this value with:
 
  * `UpdateLogging.Quiet` only displays errors
  * `UpdateLogging.FULL` logs the most
@@ -141,7 +141,7 @@ ivyLoggingLevel := UpdateLogging.Quiet
 
 ## Fork and parallel execution in test
 
-By defaut parallel execution is disable and fork is enable. You can change this behavior by setting `parallelExecution in Test` and/or `fork in Test`:
+By default parallel execution is disable and fork is enable. You can change this behavior by setting `parallelExecution in Test` and/or `fork in Test`:
 
 ```scala
 parallelExecution in Test := true
