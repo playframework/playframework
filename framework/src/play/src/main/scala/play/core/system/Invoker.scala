@@ -15,26 +15,26 @@ private[play] object Invoker {
 
   val lazySystem = new ClosableLazy[ActorSystem] {
 
-    protected type ResourceToClose = ActorSystem
-
-    protected def create(): CreateResult = {
+    protected def create() = {
       val system = Play.maybeApplication.map { app =>
         ActorSystem("play", loadActorConfig(app.configuration.underlying), app.classloader)
       } getOrElse {
         Play.logger.warn("No application found at invoker init")
         ActorSystem("play", loadActorConfig(ConfigFactory.load()))
       }
-      CreateResult(system, system)
+
+      val close: CloseFunction = { () =>
+        system.shutdown()
+        system.awaitTermination()
+      }
+
+      (system, close)
     }
 
     private def loadActorConfig(config: Config) = {
       config.getConfig("play")
     }
 
-    protected def close(systemToClose: ActorSystem) = {
-      systemToClose.shutdown()
-      systemToClose.awaitTermination()
-    }
   }
 
   def system: ActorSystem = lazySystem.get()
