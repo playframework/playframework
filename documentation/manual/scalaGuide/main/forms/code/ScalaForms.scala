@@ -140,6 +140,10 @@ case class Contact(firstname: String,
                    company: Option[String],
                    informations: Seq[ContactInformation])
 
+object Contact {
+  def save(contact: Contact): Int = 99
+}
+
 case class ContactInformation(label: String,
                               email: Option[String],
                               phones: List[String])
@@ -394,8 +398,8 @@ object Application extends Controller {
   )
   // #contact-form
 
-  // #contact-edit-form
-  def editForm = Action {
+  // #contact-edit
+  def editContact = Action {
     val existingContact = Contact(
       "Fake", "Contact", Some("Fake company"), informations = List(
         ContactInformation(
@@ -411,7 +415,25 @@ object Application extends Controller {
     )
     Ok(views.html.contact.form(contactForm.fill(existingContact)))
   }
-  // #contact-edit-form
+  // #contact-edit
+  
+  // #contact-save
+  def saveContact = Action { implicit request =>
+    contactForm.bindFromRequest.fold(
+      formWithErrors => {
+        BadRequest(views.html.contact.form(formWithErrors))
+      },
+      contact => {
+        val contactId = Contact.save(contact)
+        Redirect(routes.Application.showContact(contactId)).flashing("success" -> "Contact saved!")
+      }
+    )
+  }
+  // #contact-save
+  
+  def showContact(id: Int) = Action {
+    Ok("Contact id: " + id)
+  }
 
 }
 

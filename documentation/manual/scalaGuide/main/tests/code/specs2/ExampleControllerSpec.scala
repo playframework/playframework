@@ -3,23 +3,11 @@
  */
 package scalaguide.tests.specs2
 
+// #scalatest-examplecontrollerspec
 import play.api.mvc._
 import play.api.test._
 import scala.concurrent.Future
 
-// #scalatest-examplecontroller
-trait ExampleController {
-  this: Controller =>
-
-  def index() = Action {
-    Ok("ok")
-  }
-}
-
-object ExampleController extends Controller with ExampleController
-// #scalatest-examplecontroller
-
-// #scalatest-examplecontrollerspec
 object ExampleControllerSpec extends PlaySpecification with Results {
 
   class TestController() extends Controller with ExampleController
@@ -34,3 +22,15 @@ object ExampleControllerSpec extends PlaySpecification with Results {
   }
 }
 // #scalatest-examplecontrollerspec
+
+// #scalatest-examplecontroller
+trait ExampleController {
+  this: Controller =>
+
+  def index() = Action {
+    Ok("ok")
+  }
+}
+
+object ExampleController extends Controller with ExampleController
+// #scalatest-examplecontroller

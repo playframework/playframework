@@ -283,7 +283,7 @@ If you want a form to have a static value for a field, use [`Forms.ignored`](api
 
 ## Putting it all together
 
-Play comes with a sample forms application in `/samples/scala/forms`.  which has useful examples of how to generate complex forms.  As example, here's the [Contacts](https://raw.github.com/playframework/playframework/master/samples/scala/forms/app/controllers/Contacts.scala) controller.
+Here's an example of what a model and controller would look like for managing an entity.
 
 Given the case class `Contact`:
 
@@ -295,6 +295,10 @@ Note that `Contact` contains a `Seq` with `ContactInformation` elements and a `L
 
 And this code shows how an existing contact is displayed in the form using filled data:
 
-@[contact-edit-form](code/ScalaForms.scala)
+@[contact-edit](code/ScalaForms.scala)
+
+Finally, this is what a form submission handler would look like:
+
+@[contact-save](code/ScalaForms.scala)
 
 > **Next:** [[Protecting against Cross Site Request Forgery | ScalaCsrf]]
