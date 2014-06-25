@@ -3,6 +3,7 @@
  */
 package play
 
+import com.typesafe.sbt.web.SbtWeb
 import sbt._
 import Keys._
 import play.PlayImport._
@@ -337,7 +338,7 @@ trait PlayRun extends PlayInternalKeys {
         case (file, path) => file -> (prefix + path)
       }
     }
-    allMappings.distinct
+    SbtWeb.deduplicateMappings(allMappings, Seq(_.headOption))
   }
 
   val playStartCommand = Command.args("start", "<port>") { (state: State, args: Seq[String]) =>
