@@ -218,7 +218,7 @@ val firstRow = SQL("Select count(*) as c from Country").apply().head
 val countryCount = firstRow[Long]("c")
 ```
 
-### Using multi-value parameter
+### Multi-value support
 
 Anorm parameter can be multi-value, like a sequence of string.
 In such case, values will be prepared to be passed to JDBC.
@@ -242,6 +242,19 @@ EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name='a')
 OR EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name='b') 
 OR EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name='c')
 */
+```
+
+A column can also be multi-value if its type is JDBC array (`java.sql.Array`), then it can be mapped to either array or list (`Array[T]` or `List[T]`), provided type of element (`T`) is also supported in column mapping.
+
+```scala
+import anorm.SQL
+import anorm.SqlParser.{ scalar, * }
+
+// array and element parser
+import anorm.Column.{ columnToArray, stringToArray }
+
+val res: List[Array[String]] =
+  SQL("SELECT str_arr FROM tbl").as(scalar[Array[String]].*)
 ```
 
 ### Batch update
