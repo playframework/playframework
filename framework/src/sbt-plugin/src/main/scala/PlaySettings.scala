@@ -14,9 +14,10 @@ import com.typesafe.sbt.web.SbtWeb.autoImport._
 import WebKeys._
 import scala.language.postfixOps
 import play.twirl.sbt.Import.TwirlKeys
+import play.sbtplugin.routes.RoutesKeys._
 
 trait PlaySettings {
-  this: PlayCommands with PlayPositionMapper with PlayRun with PlaySourceGenerators =>
+  this: PlayCommands with PlayPositionMapper with PlayRun =>
 
   lazy val defaultJavaSettings = Seq[Setting[_]](
 
@@ -103,16 +104,6 @@ trait PlaySettings {
 
     testResultReporterReset <<= testResultReporterResetTask,
 
-    generateReverseRouter := true,
-
-    generateRefReverseRouter := true,
-
-    namespaceReverseRouter := false,
-
-    sourceGenerators in Compile <+= (state, confDirectory, sourceManaged in Compile, routesImport, generateReverseRouter, generateRefReverseRouter, namespaceReverseRouter) map {
-      (s, cd, sm, ri, grr, grrr, nrr) => RouteFiles(s, Seq(cd), sm, ri, grr, grrr, nrr)
-    },
-
     // Adds config directory's source files to continuous hot reloading
     watchSources <+= confDirectory map {
       all => all
@@ -158,7 +149,9 @@ trait PlaySettings {
 
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
 
-    routesImport := Seq("controllers.Assets.Asset"),
+    routesImport ++= Seq("controllers.Assets.Asset"),
+
+    routesFiles in Compile ++= ((confDirectory.value * "routes").get ++ (confDirectory.value * "*.routes").get),
 
     playMonitoredFiles <<= playMonitoredFilesTask,
 

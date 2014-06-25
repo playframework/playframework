@@ -274,7 +274,7 @@ object RoutesCompiler {
 
   import java.io.File
 
-  case class RoutesCompilationError(source: File, message: String, line: Option[Int], column: Option[Int]) extends RuntimeException(message)
+  case class RoutesCompilationError(source: File, message: String, line: Option[Int], column: Option[Int])
 
   case class GeneratedSource(file: File) {
 
@@ -315,27 +315,44 @@ object RoutesCompiler {
 
   }
 
-  def compile(file: File, generatedDir: File, additionalImports: Seq[String], generateReverseRouter: Boolean = true, generateRefReverseRouter: Boolean = true, namespaceReverseRouter: Boolean = false) {
+  /**
+   * Compile the given routes file
+   *
+   * @param file The routes file to compile
+   * @param generatedDir The directory to place the generated source code in
+   * @param additionalImports Additional imports to add to the output files
+   * @param generateReverseRouter Whether the reverse router should be generated
+   * @param generateRefReverseRouter Whether the ref router should be generated
+   * @param namespaceReverseRouter Whether the reverse router should be namespaced
+   * @return Either the list of files that were generated (right) or the routes compilation errors (left)
+   */
+  def compile(file: File, generatedDir: File, additionalImports: Seq[String], generateReverseRouter: Boolean = true,
+    generateRefReverseRouter: Boolean = true, namespaceReverseRouter: Boolean = false): Either[Seq[RoutesCompilationError], Seq[File]] = {
 
     val namespace = Option(file.getName).filter(_.endsWith(".routes")).map(_.dropRight(".routes".size))
     val packageDir = namespace.map(pkg => new File(generatedDir, pkg.replace('.', '/'))).getOrElse(generatedDir)
-    val generated = GeneratedSource(new File(packageDir, "routes_routing.scala"))
 
-    if (generated.needsRecompilation(additionalImports)) {
+    val parser = new RouteFileParser
+    val routeFile = file.getAbsoluteFile
+    val routesContent = FileUtils.readFileToString(routeFile)
 
-      val parser = new RouteFileParser
-      val routeFile = file.getAbsoluteFile
-      val routesContent = FileUtils.readFileToString(routeFile)
-
-      (parser.parse(routesContent) match {
-        case parser.Success(parsed, _) => generate(routeFile, namespace, parsed, additionalImports, generateReverseRouter, generateRefReverseRouter, namespaceReverseRouter)
-        case parser.NoSuccess(message, in) => {
-          throw RoutesCompilationError(file, message, Some(in.pos.line), Some(in.pos.column))
+    parser.parse(routesContent) match {
+      case parser.Success(parsed, _) =>
+        check(file, parsed.collect { case r: Route => r }) match {
+          case Nil =>
+            val generated = generate(routeFile, namespace, parsed, additionalImports, generateReverseRouter,
+              generateRefReverseRouter, namespaceReverseRouter)
+            Right(generated.map {
+              case (filename, content) =>
+                val file = new File(generatedDir, filename)
+                FileUtils.writeStringToFile(file, content, implicitly[Codec].name)
+                file
+            })
+          case errors => Left(errors)
         }
-      }).foreach { item =>
-        FileUtils.writeStringToFile(new File(generatedDir, item._1), item._2, implicitly[Codec].name)
-      }
 
+      case parser.NoSuccess(message, in) =>
+        Left(Seq(RoutesCompilationError(file, message, Some(in.pos.line), Some(in.pos.column))))
     }
 
   }
@@ -343,12 +360,15 @@ object RoutesCompiler {
   /**
    * Precheck routes coherence or throw exceptions early
    */
-  private def check(file: java.io.File, routes: List[Route]) {
+  private def check(file: java.io.File, routes: List[Route]): Seq[RoutesCompilationError] = {
+
+    import scala.collection.mutable._
+    val errors = ListBuffer.empty[RoutesCompilationError]
 
     routes.foreach { route =>
 
       if (route.call.packageName.isEmpty) {
-        throw RoutesCompilationError(
+        errors += RoutesCompilationError(
           file,
           "Missing package name",
           Some(route.call.pos.line),
@@ -356,7 +376,7 @@ object RoutesCompiler {
       }
 
       if (route.call.controller.isEmpty) {
-        throw RoutesCompilationError(
+        errors += RoutesCompilationError(
           file,
           "Missing Controller",
           Some(route.call.pos.line),
@@ -367,7 +387,7 @@ object RoutesCompiler {
         case part @ DynamicPart(name, regex, _) => {
           route.call.parameters.getOrElse(Nil).find(_.name == name).map { p =>
             if (p.fixed.isDefined || p.default.isDefined) {
-              throw RoutesCompilationError(
+              errors += RoutesCompilationError(
                 file,
                 "It is not allowed to specify a fixed or default value for parameter: '" + name + "' extracted from the path",
                 Some(p.pos.line),
@@ -377,7 +397,7 @@ object RoutesCompiler {
               java.util.regex.Pattern.compile(regex)
             } catch {
               case e: Exception => {
-                throw RoutesCompilationError(
+                errors += RoutesCompilationError(
                   file,
                   e.getMessage,
                   Some(part.pos.line),
@@ -385,7 +405,7 @@ object RoutesCompiler {
               }
             }
           }.getOrElse {
-            throw RoutesCompilationError(
+            errors += RoutesCompilationError(
               file,
               "Missing parameter in call definition: " + name,
               Some(part.pos.line),
@@ -407,7 +427,7 @@ object RoutesCompiler {
 
     sameHandlerMethodParameterCountGroup.find(g => g._1._2.size > 1).foreach { overloadedRouteGroup =>
       val firstOverloadedRoute = overloadedRouteGroup._2.values.head.head
-      throw RoutesCompilationError(
+      errors += RoutesCompilationError(
         file,
         "Using different overloaded methods is not allowed. If you are using a single method in combination with default parameters, make sure you declare them all explicitly.",
         Some(firstOverloadedRoute.call.pos.line),
@@ -416,6 +436,7 @@ object RoutesCompiler {
 
     }
 
+    errors.toList
   }
 
   private def markLines(routes: Rule*): String = {
@@ -426,8 +447,6 @@ object RoutesCompiler {
    * Generate the actual Scala code for this router
    */
   private def generate(file: File, namespace: Option[String], rules: List[Rule], additionalImports: Seq[String], reverseRouter: Boolean, reverseRefRouter: Boolean, namespaceReverseRouter: Boolean): Seq[(String, String)] = {
-
-    check(file, rules.collect { case r: Route => r })
 
     val filePrefix = namespace.map(_.replace('.', '/') + "/").getOrElse("") + "/routes"
 

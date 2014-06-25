@@ -169,11 +169,7 @@ object Resolvers {
   val sbtPluginSnapshots = Resolver.url("sbt plugin snapshots", url("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots"))(Resolver.ivyStylePatterns)
 
   val isSnapshotBuild = buildVersion.endsWith("SNAPSHOT")
-  val playResolvers = if (isSnapshotBuild) {
-    Seq(typesafeReleases, typesafeIvyReleases, typesafeSnapshots, typesafeIvySnapshots, sonatypeSnapshots, sbtPluginSnapshots)
-  } else {
-    Seq(typesafeReleases, typesafeIvyReleases)
-  }
+  val playResolvers = Seq(typesafeReleases, typesafeIvyReleases)
   val publishingMavenRepository = if (isSnapshotBuild) publishTypesafeMavenSnapshots else publishTypesafeMavenReleases
   val publishingIvyRepository = if (isSnapshotBuild) publishTypesafeIvySnapshots else publishTypesafeIvyReleases
 }
@@ -302,12 +298,11 @@ object PlayBuild extends Build {
       fork in Test := false
     ).settings(scriptedSettings: _*)
     .settings(
-      scriptedLaunchOpts <++= (baseDirectory in ThisBuild) { baseDir =>
-        Seq(
-          "-XX:MaxPermSize=384M",
-          "-Dperformance.log=" + new File(baseDir, "target/sbt-repcomile-performance.properties")
-       )
-      }
+      scriptedLaunchOpts ++= Seq(
+        "-XX:MaxPermSize=384M",
+        "-Dperformance.log=" + new File(baseDirectory.value, "target/sbt-repcomile-performance.properties"),
+        "-Dproject.version=" + version.value
+      )
     ).dependsOn(BuildLinkProject, PlayExceptionsProject, RoutesCompilerProject)
 
   lazy val PlayWsProject = PlayRuntimeProject("Play-WS", "play-ws")

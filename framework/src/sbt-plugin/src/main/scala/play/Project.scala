@@ -12,6 +12,7 @@ import com.typesafe.sbt.webdriver.SbtWebDriver
 import com.typesafe.play.sbt.enhancer.PlayEnhancer
 import play.twirl.sbt.SbtTwirl
 import play.sbtplugin.PlayPositionMapper
+import play.sbtplugin.routes.RoutesCompiler
 
 /**
  * Base plugin for Play projects. Declares common settings for both Java and Scala based Play projects.
@@ -23,13 +24,11 @@ object Play
   with PlayCommands
   with PlayRun
   with play.PlaySettings
-  with PlayPositionMapper
-  with PlaySourceGenerators {
+  with PlayPositionMapper {
 
-  override def requires = SbtTwirl && SbtJsTask && SbtWebDriver
+  override def requires = SbtTwirl && SbtJsTask && SbtWebDriver && RoutesCompiler
 
   val autoImport = play.PlayImport
-
 
   override def projectSettings =
     packageArchetype.java_server ++

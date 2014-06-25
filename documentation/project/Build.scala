@@ -4,12 +4,11 @@
 import java.util.jar.JarFile
 import play.sbtplugin.Colors
 import play.core.server.ServerWithStop
+import play.sbtplugin.routes.RoutesCompiler
 import sbt._
 import sbt.Keys._
 import play.Play.autoImport._
-import PlayKeys._
-import play.core.{ BuildDocHandler, BuildLink, PlayVersion }
-import play.PlaySourceGenerators._
+import play.core.{ BuildDocHandler, PlayVersion }
 import DocValidation._
 import scala.util.Properties.isJavaAtLeast
 
@@ -110,11 +109,11 @@ object ApplicationBuild extends Build {
       compileTemplates(from, to, defaultTemplateImports ++ defaultScalaTemplateImports, s.log)
     },
 
-    sourceGenerators in Test <+= (state, javaManualSourceDirectories, javaRoutesSourceManaged) map  { (s, ds, g) =>
-      RouteFiles(s, ds, g, Seq("play.libs.F"), true, true, true)
+    sourceGenerators in Test <+= (javaManualSourceDirectories, sourceManaged, streams) map { (from, to, s) =>
+      RoutesCompiler.compileRoutes((from * "*.routes").get, to, Seq("play.libs.F"), true, true, true, s.cacheDirectory / "javaroutes", s.log)
     },
-    sourceGenerators in Test <+= (state, scalaManualSourceDirectories, scalaRoutesSourceManaged) map  { (s, ds, g) =>
-      RouteFiles(s, ds, g, Seq(), true, true, true)
+    sourceGenerators in Test <+= (scalaManualSourceDirectories, sourceManaged, streams) map { (from, to, s) =>
+      RoutesCompiler.compileRoutes((from * "*.routes").get, to, Nil, true, true, true, s.cacheDirectory / "scalaroutes", s.log)
     },
 
     run <<= docsRunSetting,
