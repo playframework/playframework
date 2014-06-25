@@ -67,17 +67,17 @@ Mocks are used to isolate unit tests against external dependencies.  For example
 
 [Mockito](https://code.google.com/p/mockito/) is integrated into specs2 as the default [mocking library](http://etorreborre.github.io/specs2/guide/org.specs2.guide.Matchers.html#Mock+expectations).
 
-To use Mockito, add the following:
+To use Mockito, add the following import:
 
 ```scala
 import org.specs2.mock._
 ```
 
-and then add the [library dependency](http://mvnrepository.com/artifact/org.mockito/mockito-core) to the build.
+You can mock out references to classes like so:
 
-Using Mockito, you can mock out references to classes like so:
+@[specs2-mockito-dataservice](code/specs2/ExampleMockitoSpec.scala)
 
-@[scalaws-mockito](code/specs2/ExampleMockitoSpec.scala)
+@[specs2-mockito](code/specs2/ExampleMockitoSpec.scala)
 
 Mocking is especially useful for testing the public methods of classes.  Mocking objects and private methods is possible, but considerably harder.
 

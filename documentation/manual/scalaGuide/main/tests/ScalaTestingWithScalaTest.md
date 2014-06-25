@@ -54,17 +54,11 @@ You can use mocks to isolate unit tests against external dependencies.  For exam
 
 ScalaTest provides integration with [Mockito](https://code.google.com/p/mockito/) via its [`MockitoSugar`](http://doc.scalatest.org/2.1.5/index.html#org.scalatest.mock.MockitoSugar) trait.
 
-To use Mockito, mix `MockitoSugar` into your test class:
+To use Mockito, mix `MockitoSugar` into your test class and then use the Mockito library to mock dependencies:
 
-```scala
-class ExampleSpec extends PlaySpec with MockitoSugar // ...
-```
+@[scalatest-mockito-dataservice](code-scalatestplus-play/ExampleMockitoSpec.scala)
 
-and then add the [library dependency](http://mvnrepository.com/artifact/org.mockito/mockito-core) to the build.
-
-Using Mockito, you can mock out references to classes like so:
-
-@[scalaws-mockitosugar](code-scalatestplus-play/ExampleMockitoSpec.scala)
+@[scalatest-mockitosugar](code-scalatestplus-play/ExampleMockitoSpec.scala)
 
 Mocking is especially useful for testing the public methods of classes.  Mocking objects and private methods is possible, but considerably harder.
 

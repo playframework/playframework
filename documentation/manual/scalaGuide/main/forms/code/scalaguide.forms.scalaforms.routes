@@ -1,5 +1,7 @@
 GET         /home/:id        controllers.Application.home(id:Int)
 
+GET         /contacts/:id    controllers.Application.showContact(id:Int)
+
 POST        /user            controllers.Application.userPost
 
 POST        /submit          controllers.Application.submit
