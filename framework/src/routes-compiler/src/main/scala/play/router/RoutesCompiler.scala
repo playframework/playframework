@@ -947,7 +947,7 @@ object RoutesCompiler {
                           // We will generate a list of routes. Then we should remove duplicates from them.
                           // Routes are considered duplicates if parameters and parameters constraints (see
                           // definition below) are identical.
-                          (route +: routes).map { route =>
+                          ListMap((route +: routes).reverse.map { route =>
 
                             val localNames = reverseParameters.map {
                               case (lp, i) => route.call.parameters.get(i).name -> lp.name
@@ -980,7 +980,7 @@ object RoutesCompiler {
                                          """.stripMargin.format(markers, parameters, parametersConstraints, reverseRouteContext, call)
 
                             (parameters -> parametersConstraints) -> result
-                          }.groupBy(_._1).map(_._2.head._2)
+                          }: _*).values.toSeq.reverse
                             .mkString("\n"))
                       }
 
