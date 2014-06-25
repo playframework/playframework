@@ -292,7 +292,7 @@ object Assets extends AssetsBuilder {
             d =>
               val s = n.lastIndexOf(File.separator)
               n.take(s + 1) + d + "-" + n.drop(s + 1)
-          }.drop(path.size)
+          }.drop(path.size + 1)
         }
       }
     }
