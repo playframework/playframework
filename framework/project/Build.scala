@@ -380,6 +380,23 @@ object PlayBuild extends Build {
       )
     )
 
+  lazy val PlayDocsSbtPlugin = PlaySbtProject("Play-Docs-SBT-Plugin", "play-docs-sbt-plugin")
+    .settings(
+      sbtPlugin := true,
+      publishMavenStyle := false,
+      libraryDependencies ++= playDocsSbtPluginDependencies,
+      sbtVersion in GlobalScope := buildSbtVersion,
+      sbtBinaryVersion in GlobalScope := buildSbtVersionBinaryCompatible,
+      sbtDependency <<= sbtDependency { dep =>
+        dep.copy(revision = buildSbtVersion)
+      },
+      publishTo := Some(publishingIvyRepository),
+      // Must be false, because due to the way SBT integrates with test libraries, and the way SBT uses Java object
+      // serialisation to communicate with forked processes, and because this plugin will have SBT 0.13 on the forked
+      // processes classpath while it's actually being run by SBT 0.12... if it forks you get serialVersionUID errors.
+      fork in Test := false
+    ).dependsOn(SbtPluginProject)
+
   lazy val publishedProjects = Seq[ProjectReference](
     PlayProject,
     BuildLinkProject,
@@ -402,7 +419,8 @@ object PlayBuild extends Build {
     PlayExceptionsProject,
     PlayDocsProject,
     PlayFiltersHelpersProject,
-    PlayIntegrationTestProject
+    PlayIntegrationTestProject,
+    PlayDocsSbtPlugin
   )
 
   lazy val Root = Project(
