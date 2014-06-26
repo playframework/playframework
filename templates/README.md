@@ -41,4 +41,4 @@ templates system property:
 
 The above will usually be more useful if you publish it for a specific version of Play:
 
-    ./build -Dtemplates=play-scala -Dplay.version=2.3.0 publish-templates
+    ./build -Dtemplates=play-scala -Dplay.version=2.3-M1 clean publish-templates
