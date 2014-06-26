@@ -57,15 +57,17 @@ sealed trait SqlQuery {
  unchecked properties (e.g. unchecked/unparsed statement). */
 object SqlQuery {
 
+  @deprecated(message = "Use anorm.SQL(…)", since = "2.3.1")
+  def apply(st: String, params: List[String] = List.empty, tmout: Option[Int] = None): SqlQuery = prepare(st, params, tmout)
+
   /**
-   * Returns created SQL query.
+   * Returns prepared SQL query.
    *
    * @param st SQL statement (see [[SqlQuery.statement]])
    * @param params Parameter names in initial order (see [[SqlQuery.paramsInitialOrder]])
    * @param tmout Query execution timeout (see [[SqlQuery.timeout]])
    */
-  @deprecated(message = "Use anorm.SQL(…)", since = "2.3.1")
-  def apply(st: String, params: List[String] = List.empty, tmout: Option[Int] = None): SqlQuery = new SqlQuery {
+  private[anorm] def prepare(st: String, params: List[String] = List.empty, tmout: Option[Int] = None): SqlQuery = new SqlQuery {
     val statement = st
     val paramsInitialOrder = params
     val timeout = tmout
