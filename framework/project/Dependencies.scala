@@ -214,4 +214,8 @@ object Dependencies {
     }
   )
 
+  val playDocsSbtPluginDependencies = Seq(
+    "com.typesafe.play" %% "play-doc" % "1.1.0"
+  )
+
 }
