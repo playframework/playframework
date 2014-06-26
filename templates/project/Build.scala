@@ -9,6 +9,7 @@ object Templates {
   val templates = SettingKey[Seq[File]]("activator-templates")
   val templateParameters = SettingKey[Map[String, String]]("template-parameters")
   val gitHash = TaskKey[String]("git-hash")
+  val nonce = TaskKey[Long]("nonce")
 
   val syncTemplateDir = SettingKey[File]("sync-template-dir")
   val syncTemplates = TaskKey[Seq[File]]("sync-templates")
@@ -46,6 +47,8 @@ object Templates {
       val templateDirs: Seq[File] = templates.value
       val params: Map[String, String] = templateParameters.value
       val outDir: File = target.value / "prepared-templates"
+
+      streams.value.log.info("Preparing templates for Play " + params("PLAY_VERSION"))
 
       // Don't sync directories or .gitkeep files. We can remove
       // .gitkeep files. These files are only there to make sure we preserve
@@ -107,13 +110,17 @@ object Templates {
     },
 
     gitHash := "git rev-parse HEAD".!!.trim,
+    nonce := System.currentTimeMillis, 
 
     S3.host in S3.upload := "downloads.typesafe.com.s3.amazonaws.com",
     S3.progress in S3.upload := true,
     mappings in S3.upload := {
-      streams.value.log.info("Uploading templates to S3...")
       val zippedTemplates = zipTemplates.value
-      val templateDir = s"play/templates/${gitHash.value}/"
+      // We use the git hash to uniquely identify this upload, and also a nonce, so that if we attempt
+      // multiple times to publish the same commit, cloudfront proxy doesn't cache it
+      val templateDir = s"play/templates/${gitHash.value}/${nonce.value}/"
+      streams.value.log.info("Uploading templates to S3...")
+      streams.value.log.info("S3 folder name: " + templateDir)
       zippedTemplates.map { template =>
         (template, templateDir + template.getName)
       }
@@ -121,7 +128,7 @@ object Templates {
     S3.host in S3.delete := "downloads.typesafe.com.s3.amazonaws.com",
     S3.keys in S3.delete := {
       val templateDirs = templates.value
-      val templateDir = s"play/templates/${gitHash.value}/"
+      val templateDir = s"play/templates/${gitHash.value}/${nonce.value}/"
       templateDirs.map { template =>
         s"$templateDir${template.getName}.zip"
       }
