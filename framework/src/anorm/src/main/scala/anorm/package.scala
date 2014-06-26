@@ -29,7 +29,10 @@ package object anorm {
    * val query = SQL("SELECT * FROM Country")
    * }}}
    */
-  def SQL(stmt: String): SqlQuery = Sql.sql(stmt)
+  def SQL(stmt: String): SqlQuery = {
+    val (sql, paramsNames) = SqlStatementParser.parse(stmt)
+    SqlQuery.prepare(sql, paramsNames)
+  }
 
   /**
    * Creates an SQL query using String Interpolation feature.
@@ -55,7 +58,7 @@ package object anorm {
       val (ns, ps): (List[String], Map[String, ParameterValue]) =
         namedParams(params)
 
-      SimpleSql(SqlQuery(sql, ns), ps,
+      SimpleSql(SqlQuery.prepare(sql, ns), ps,
         defaultParser = RowParser(row => Success(row)))
     }
   }
