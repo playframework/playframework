@@ -1,17 +1,12 @@
 package anorm
 
-import acolyte.Acolyte
-import acolyte.Implicits._
-
-object BatchSqlSpec 
-    extends org.specs2.mutable.Specification with H2Database {
-
+object BatchSqlSpec extends org.specs2.mutable.Specification {
   "Batch SQL" title
 
   "Creation" should {
     "fail with parameter maps not having same names" in {
       lazy val batch = BatchSql(
-        "SELECT * FROM tbl WHERE a = {a}",
+        SqlQuery("SELECT * FROM tbl WHERE a = {a}", List("a")),
         Seq(Seq[NamedParameter]("a" -> 0),
           Seq[NamedParameter]("a" -> 1, "b" -> 2)))
 
@@ -21,7 +16,7 @@ object BatchSqlSpec
 
     "fail with names not matching query placeholders" in {
       lazy val batch = BatchSql(
-        "SELECT * FROM tbl WHERE a = {a}, b = {b}",
+        SqlQuery("SELECT * FROM tbl WHERE a = {a}, b = {b}", List("a", "b")),
         Seq(Seq[NamedParameter]("a" -> 1, "b" -> 2, "c" -> 3)))
 
       batch.addBatch("a" -> 0).
@@ -31,7 +26,7 @@ object BatchSqlSpec
 
     "be successful with parameter maps having same names" in {
       lazy val batch = BatchSql(
-        "SELECT * FROM tbl WHERE a = {a}, b = {b}",
+        SqlQuery("SELECT * FROM tbl WHERE a = {a}, b = {b}", List("a", "b")),
         Seq(Seq[NamedParameter]("a" -> 0, "b" -> -1),
           Seq[NamedParameter]("a" -> 1, "b" -> 2)))
 
@@ -48,7 +43,7 @@ object BatchSqlSpec
   "Appending list of named parameters" should {
     "fail with unexpected name" in {
       val batch = BatchSql(
-        "SELECT * FROM tbl WHERE a = {a}, b = {b}",
+        SqlQuery("SELECT * FROM tbl WHERE a = {a}, b = {b}", List("a", "b")),
         Seq(Seq[NamedParameter]("a" -> 1, "b" -> 2)))
 
       batch.addBatch("a" -> 0, "c" -> 4).
@@ -58,7 +53,8 @@ object BatchSqlSpec
 
     "fail with missing names" in {
       val batch = BatchSql(
-        "SELECT * FROM tbl WHERE a = {a} AND b = {b} AND c = {c}",
+        SqlQuery("SELECT * FROM tbl WHERE a = {a} AND b = {b} AND c = {c}",
+          List("a", "b", "c")),
         Seq(Seq[NamedParameter]("a" -> 1, "b" -> 2, "c" -> 3)))
 
       batch.addBatch("a" -> 0).
@@ -69,7 +65,7 @@ object BatchSqlSpec
     "with first parameter map" >> {
       "fail if parameter names not matching query placeholders" in {
         val batch = BatchSql(
-          "SELECT * FROM tbl WHERE a = {a}, b = {b}")
+          SqlQuery("SELECT * FROM tbl WHERE a = {a}, b = {b}", List("a", "b")))
 
         batch.addBatch("a" -> 0).
           aka("append") must throwA[IllegalArgumentException](
@@ -79,7 +75,7 @@ object BatchSqlSpec
 
       "be successful" in {
         val b1 = BatchSql(
-          "SELECT * FROM tbl WHERE a = {a}, b = {b}")
+          SqlQuery("SELECT * FROM tbl WHERE a = {a}, b = {b}", List("a", "b")))
 
         lazy val b2 = b1.addBatch("a" -> 0, "b" -> 1)
 
@@ -93,7 +89,7 @@ object BatchSqlSpec
 
     "be successful" in {
       val b1 = BatchSql(
-        "SELECT * FROM tbl WHERE a = {a}, b = {b}",
+        SqlQuery("SELECT * FROM tbl WHERE a = {a}, b = {b}", List("a", "b")),
         Seq(Seq[NamedParameter]("a" -> 0, "b" -> 1)))
 
       lazy val b2 = b1.addBatch("a" -> 2, "b" -> 3)
@@ -110,7 +106,7 @@ object BatchSqlSpec
   "Appending list of list of named parameters" should {
     "fail with unexpected name" in {
       val batch = BatchSql(
-        "SELECT * FROM tbl WHERE a = {a}, b = {b}",
+        SqlQuery("SELECT * FROM tbl WHERE a = {a}, b = {b}", List("a", "b")),
         Seq(Seq[NamedParameter]("a" -> 1, "b" -> 2)))
 
       batch.addBatchList(Seq(Seq("a" -> 0, "c" -> 4))).
@@ -120,7 +116,8 @@ object BatchSqlSpec
 
     "fail with missing names" in {
       val batch = BatchSql(
-        "SELECT * FROM tbl WHERE a = {a} AND b = {b} AND c = {c}",
+        SqlQuery("SELECT * FROM tbl WHERE a = {a} AND b = {b} AND c = {c}",
+          List("a", "b", "c")),
         Seq(Seq[NamedParameter]("a" -> 1, "b" -> 2, "c" -> 3)))
 
       batch.addBatchList(Seq(Seq("a" -> 0))).
@@ -130,7 +127,8 @@ object BatchSqlSpec
 
     "with first parameter map" >> {
       "be successful" in {
-        val b1 = BatchSql("SELECT * FROM tbl WHERE a = {a}, b = {b}")
+        val b1 = BatchSql(
+          SqlQuery("SELECT * FROM tbl WHERE a = {a}, b = {b}", List("a", "b")))
 
         lazy val b2 = b1.addBatchList(Seq(Seq("a" -> 0, "b" -> 1)))
 
@@ -143,7 +141,7 @@ object BatchSqlSpec
 
       "fail with parameter maps not having same names" in {
         val b1 = BatchSql(
-          "SELECT * FROM tbl WHERE a = {a}")
+          SqlQuery("SELECT * FROM tbl WHERE a = {a}", List("a")))
 
         lazy val b2 = b1.addBatchList(Seq(
           Seq("a" -> 0), Seq("a" -> 1, "b" -> 2)))
@@ -154,7 +152,8 @@ object BatchSqlSpec
 
       "fail with names not matching query placeholders" in {
         val b1 = BatchSql(
-          "SELECT * FROM tbl WHERE a = {a} AND b = {b} AND c = {c}")
+          SqlQuery("SELECT * FROM tbl WHERE a = {a} AND b = {b} AND c = {c}",
+            List("a", "b", "c")))
 
         lazy val b2 = b1.addBatchList(Seq(Seq("a" -> 0)))
 
@@ -164,7 +163,7 @@ object BatchSqlSpec
 
       "be successful with parameter maps having same names" in {
         val b1 = BatchSql(
-          "SELECT * FROM tbl WHERE a = {a}, b = {b}")
+          SqlQuery("SELECT * FROM tbl WHERE a = {a}, b = {b}", List("a", "b")))
 
         lazy val b2 = b1.addBatchList(Seq(
           Seq[NamedParameter]("a" -> 0, "b" -> -1),
@@ -182,7 +181,7 @@ object BatchSqlSpec
 
     "be successful" in {
       val b1 = BatchSql(
-        "SELECT * FROM tbl WHERE a = {a}, b = {b}",
+        SqlQuery("SELECT * FROM tbl WHERE a = {a}, b = {b}", List("a", "b")),
         Seq(Seq("a" -> 0, "b" -> 1)))
 
       lazy val b2 = b1.addBatchList(Seq(Seq("a" -> 2, "b" -> 3)))
@@ -197,9 +196,20 @@ object BatchSqlSpec
   }
 
   "Appending list of parameter values" should {
+    "fail with missing names" in {
+      lazy val batch = BatchSql(
+        SqlQuery("SELECT * FROM tbl WHERE a = {a} AND b = {b} AND c = {c}",
+          List("d", "b", "c")),
+        Seq(Seq[NamedParameter]("a" -> 1, "b" -> 2, "c" -> 3)))
+
+      batch.addBatchParams(0).
+        aka("append") must throwA[IllegalArgumentException](
+          message = "Expected parameter names don't correspond to placeholders in query: a, b, c not matching d, b, c")
+    }
+
     "be successful with first parameter map" in {
       val b1 = BatchSql(
-        "SELECT * FROM tbl WHERE a = {a}, b = {b}")
+        SqlQuery("SELECT * FROM tbl WHERE a = {a}, b = {b}", List("a", "b")))
 
       lazy val b2 = b1.addBatchParams(0, 1)
       lazy val expectedMaps =
@@ -211,7 +221,7 @@ object BatchSqlSpec
 
     "fail with missing argument" in {
       val b1 = BatchSql(
-        "SELECT * FROM tbl WHERE a = {a}, b = {b}").
+        SqlQuery("SELECT * FROM tbl WHERE a = {a}, b = {b}", List("a", "b"))).
         addBatchParams(0, 1)
 
       lazy val b2 = b1.addBatchParams(2)
@@ -222,7 +232,7 @@ object BatchSqlSpec
 
     "be successful" in {
       val b1 = BatchSql(
-        "SELECT * FROM tbl WHERE a = {a}, b = {b}")
+        SqlQuery("SELECT * FROM tbl WHERE a = {a}, b = {b}", List("a", "b")))
 
       lazy val b2 = b1.addBatchParams(0, 1).addBatchParams(2, 3)
       lazy val expectedMaps = Seq(
@@ -235,8 +245,20 @@ object BatchSqlSpec
   }
 
   "Appending list of list of parameter values" should {
+    "fail with missing names" in {
+      lazy val batch = BatchSql(
+        SqlQuery("SELECT * FROM tbl WHERE a = {a} AND b = {b} AND c = {c}",
+          List("d", "b", "c")),
+        Seq(Seq[NamedParameter]("a" -> 1, "b" -> 2, "c" -> 3)))
+
+      batch.addBatchParamsList(Seq(Seq(4, 5, 6))).
+        aka("append") must throwA[IllegalArgumentException](
+          message = "Expected parameter names don't correspond to placeholders in query: a, b, c not matching d, b, c")
+    }
+
     "be successful with first parameter map" in {
-      val b1 = BatchSql("SELECT * FROM tbl WHERE a = {a}, b = {b}")
+      val b1 = BatchSql(
+        SqlQuery("SELECT * FROM tbl WHERE a = {a}, b = {b}", List("a", "b")))
 
       lazy val b2 = b1.addBatchParamsList(Seq(Seq(0, 1), Seq(2, 3)))
       lazy val expectedMaps = Seq(
@@ -249,7 +271,8 @@ object BatchSqlSpec
 
     "fail with missing argument" in {
       val b1 = BatchSql(
-        "SELECT * FROM tbl WHERE a = {a}, b = {b}").addBatchParams(0, 1)
+        SqlQuery("SELECT * FROM tbl WHERE a = {a}, b = {b}", List("a", "b"))).
+        addBatchParams(0, 1)
 
       lazy val b2 = b1.addBatchParamsList(Seq(Seq(2)))
 
@@ -258,7 +281,8 @@ object BatchSqlSpec
     }
 
     "be successful" in {
-      val b1 = BatchSql("SELECT * FROM tbl WHERE a = {a}, b = {b}")
+      val b1 = BatchSql(
+        SqlQuery("SELECT * FROM tbl WHERE a = {a}, b = {b}", List("a", "b")))
 
       lazy val b2 = b1.addBatchParamsList(Seq(Seq(0, 1))).
         addBatchParamsList(Seq(Seq(2, 3), Seq(4, 5)))
@@ -270,21 +294,6 @@ object BatchSqlSpec
 
       (b2 aka "append" must not(throwA[Throwable])).
         and(b2.params aka "parameters" must_== expectedMaps)
-    }
-  }
-
-  "Batch inserting" should {
-    "be success on test1 table" in withConnection { implicit con =>
-      createTest1Table()
-
-      lazy val batch = BatchSql(
-        "INSERT INTO test1(id, foo, bar) VALUES({i}, {f}, {b})", Seq(
-          Seq[NamedParameter]('i -> 1, 'f -> "foo #1", 'b -> 2),
-          Seq[NamedParameter]('i -> 2, 'f -> "foo_2", 'b -> 4)))
-
-      (batch.sql.query aka "parsed query" mustEqual(
-        "INSERT INTO test1(id, foo, bar) VALUES(%s, %s, %s)")).
-        and(batch.execute() aka "batch result" mustEqual Array(1, 1))
     }
   }
 }

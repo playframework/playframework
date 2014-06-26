@@ -367,7 +367,6 @@ sealed trait Sql {
 }
 
 /** Initial SQL query, without parameter values. */
-// @todo Sealed trait to prevent initialize SqlQuery with unparsed statement
 case class SqlQuery(query: String, argsInitialOrder: List[String] = List.empty, queryTimeout: Option[Int] = None) extends Sql {
 
   def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false): PreparedStatement = asSimple.getFilledStatement(connection, getGeneratedKeys)
@@ -375,7 +374,7 @@ case class SqlQuery(query: String, argsInitialOrder: List[String] = List.empty, 
   def withQueryTimeout(seconds: Option[Int]): SqlQuery =
     copy(queryTimeout = seconds)
 
-  private def defaultParser: RowParser[Row] = RowParser(Success(_))
+  private def defaultParser: RowParser[Row] = RowParser(row => Success(row))
 
   private[anorm] def asSimple: SimpleSql[Row] = asSimple(defaultParser)
 
@@ -392,8 +391,7 @@ case class SqlQuery(query: String, argsInitialOrder: List[String] = List.empty, 
   def asSimple[T](parser: RowParser[T] = defaultParser): SimpleSql[T] =
     SimpleSql(this, Map.empty, parser)
 
-  @deprecated(message = """Directly use BatchSql("stmt")""", since = "2.3.1")
-  def asBatch[T]: BatchSql = BatchSql(this.query, Nil)
+  def asBatch[T]: BatchSql = BatchSql(this, Nil)
 }
 
 object Sql { // TODO: Rename to SQL
