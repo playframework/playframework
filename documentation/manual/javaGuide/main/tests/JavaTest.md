@@ -39,10 +39,6 @@ The default way to test a Play application is with [JUnit](http://www.junit.org/
 
 Some developers prefer to write their assertions in a more fluent style than JUnit asserts. Popular libraries for other assertion styles are included for convenience. 
 
-FEST assertions:
-
-@[test-fest](code/javaguide/tests/FestTest.java)
-
 Hamcrest matchers:
 
 @[test-hamcrest](code/javaguide/tests/HamcrestTest.java)

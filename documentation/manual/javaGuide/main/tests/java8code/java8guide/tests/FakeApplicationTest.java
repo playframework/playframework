@@ -6,7 +6,7 @@ import play.mvc.*;
 import play.test.*;
 import play.libs.F.*;
 import static play.test.Helpers.*;
-import static org.fest.assertions.Assertions.*;
+import static org.junit.Assert.*;
 
 public class FakeApplicationTest {
 
@@ -28,8 +28,8 @@ public class FakeApplicationTest {
     public void findById() {
         running(fakeApplication(inMemoryDatabase("test")), () -> {
             Computer macintosh = Computer.findById(21l);
-            assertThat(macintosh.name).isEqualTo("Macintosh");
-            assertThat(formatted(macintosh.introduced)).isEqualTo("1984-01-24");
+            assertEquals("Macintosh", macintosh.name);
+            assertEquals("1984-01-24", formatted(macintosh.introduced));
         });
     }
     //#test-running-fakeapp
