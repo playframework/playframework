@@ -16,7 +16,7 @@ It's up to you what you call your branches, some people like to include issue nu
 
 We prefer that all pull requests be a single commit.  There are a few reasons for this:
 
-* It's much easier and less error prone to backport single commits to stable directories than backport groups of commits.  If the change is just in one commit, then there is no opportunity for error, either the whole change is cherry picked, or it isn't.
+* It's much easier and less error prone to backport single commits to stable branches than backport groups of commits.  If the change is just in one commit, then there is no opportunity for error, either the whole change is cherry picked, or it isn't.
 * We aim to have our master branch to always be releasable, not just now, but also for all points in history.  If we need to back something out, we want to be confident that the commit before that is stable.
 * It's much easier to get a complete picture of what happened in history when changes are self contained in one commit.
 
@@ -30,22 +30,22 @@ However, for the general case, if your pull request contains more than one commi
 
 1. Ensure that you have all the changes from the core master branch in your repo:
 
-    git fetch origin
+        git fetch origin
 
 2. Start an interactive rebase
 
-    git rebase -i origin/master
+        git rebase -i origin/master
 
 3. This will open up a screen in your editor, allowing you to say what should be done with each commit.  If the commit message for the first commit is suitable for describing all of the commits, then leave it as is, otherwise, change the command for it from `pick` to `reword`.
 4. For each remaining commit, change the command from `pick` to `fixup`.  This tells git to merge that commit into the previous commit, using the commit message from the previous commit.
 5. Save the file and exit your editor.  Git will now start the rebase.  If you told it to reword the first commit, it will prompt you in a new editor for the wording for that commit.  If all goes well, then you're done, but it may be the case that there were conflicts when applying your changes to the most recent master branch.  If that's the case, fix the conflicts, stage the fixes, and then run:
 
-    git rebase --continue
+        git rebase --continue
 
-This may need to be repeated if there are more changes that have conflicts.
+    This may need to be repeated if there are more changes that have conflicts.
 6. Now that you've rebased you can push your changes.  If you've already pushed this branch before (including if you've already created the pull request), then you will have to do a force push.  This can be done like so:
 
-    git push yourremote yourbranch --force
+        git push yourremote yourbranch --force
 
 ### Responding to reviews/build breakages
 
