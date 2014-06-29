@@ -346,6 +346,22 @@ trait DefaultReads {
   implicit val DefaultSqlDateReads = sqlDateReads("yyyy-MM-dd")
 
   /**
+   * Reads for `scala.Enumeration` types using the name.
+   *
+   * @param enum a `scala.Enumeration`.
+   */
+  def enumNameReads[E <: Enumeration](enum: E): Reads[E#Value] = new Reads[E#Value] {
+    def reads(json: JsValue) = json match {
+      case JsString(str) =>
+        enum.values
+          .find(_.toString == str)
+          .map(JsSuccess(_))
+          .getOrElse(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.validenumvalue")))))
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.enumstring"))))
+    }
+  }
+
+  /**
    * Deserializer for Boolean types.
    */
   implicit object BooleanReads extends Reads[Boolean] {
