@@ -94,10 +94,8 @@ public class F {
          * Creates a Promise that wraps a Scala Future.
          *
          * @param future The Scala Future to wrap
-         * @deprecated Since 2.2. Use {@link #wrap(Future)} instead.
          */
-        @Deprecated
-        public Promise(Future<A> future) {
+        private Promise(Future<A> future) {
             this.future = future;
         }
 

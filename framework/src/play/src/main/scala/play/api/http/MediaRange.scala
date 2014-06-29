@@ -89,18 +89,6 @@ object MediaType {
 object MediaRange {
 
   /**
-   * Convenient factory method to create a MediaRange from its MIME type followed by the type parameters.
-   * {{{
-   *   MediaRange("text/html")
-   *   MediaRange("text/html;level=1")
-   * }}}
-   */
-  @deprecated("Use MediaType.parse function or extractor object instead", "2.2")
-  def apply(mediaRange: String): MediaType = {
-    MediaType.parse(mediaRange).getOrElse(throw new IllegalArgumentException("Unable to parse media range from String " + mediaRange))
-  }
-
-  /**
    * Function and extractor object for parsing media ranges.
    */
   object parse {

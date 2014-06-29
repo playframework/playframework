@@ -24,23 +24,10 @@ public class WithApplication {
         return Helpers.fakeApplication();
     }
 
-    /**
-     * @deprecated The application is automatically started before each test, you don’t need to call this method explicitly
-     */
-    @Deprecated
-    protected void start() {
-        start(provideFakeApplication());
-    }
-
-    @Deprecated
-    protected void start(FakeApplication app) {
-        this.app = app;
-        Helpers.start(app);
-    }
-
     @Before
     public void startPlay() {
-        start(provideFakeApplication());
+        app = provideFakeApplication();
+        Helpers.start(app);
     }
 
     @After

@@ -3,7 +3,7 @@
  */
 package play.api {
 
-  import play.api.templates.JavaScript
+  import play.twirl.api.JavaScript
 
   /**
    * Helper utilities related to `Router`.

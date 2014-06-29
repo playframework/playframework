@@ -264,13 +264,6 @@ public class Http {
         public abstract List<play.i18n.Lang> acceptLanguages();
 
         /**
-         * @return The media types set in the request Accept header, not sorted in any particular order.
-         * @deprecated Use {@link #acceptedTypes()} instead.
-         */
-        @Deprecated
-        public abstract List<String> accept();
-
-        /**
          * @return The media types set in the request Accept header, sorted by preference (preferred first).
          */
         public abstract List<play.api.http.MediaRange> acceptedTypes();
@@ -641,26 +634,6 @@ public class Http {
          */
         public void setCookie(String name, String value, Integer maxAge, String path, String domain, boolean secure, boolean httpOnly) {
             cookies.add(new Cookie(name, value, maxAge, path, domain, secure, httpOnly));
-        }
-
-        /**
-         * Discard cookies along this result<br>
-         * For example:
-         * <pre>
-         * response().discardCookies("theme");
-         * </pre>
-         *
-         * This only discards cookies on the default path ("/") with no domain and that didn't have secure set.  To
-         * discard other cookies, use the discardCookie method.
-         *
-         * @param names Names of the cookies to discard.  Must not be null.
-         * @deprecated Use the discardCookie methods instead
-         */
-        @Deprecated
-        public void discardCookies(String... names) {
-            for (String name: names) {
-                discardCookie(name);
-            }
         }
 
         /**

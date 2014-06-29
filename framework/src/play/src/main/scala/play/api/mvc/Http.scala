@@ -105,18 +105,6 @@ package play.api.mvc {
     }
 
     /**
-     * @return The media types list of the request’s Accept header, not sorted in any particular order.
-     */
-    @deprecated("Use acceptedTypes instead", "2.1")
-    lazy val accept: Seq[String] = {
-      for {
-        acceptHeader <- headers.get(HeaderNames.ACCEPT).toSeq
-        value <- acceptHeader.split(',')
-        contentType <- value.split(';').headOption
-      } yield contentType
-    }
-
-    /**
      * @return The media types list of the request’s Accept header, sorted by preference (preferred first).
      */
     lazy val acceptedTypes: Seq[play.api.http.MediaRange] = {

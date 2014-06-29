@@ -105,14 +105,6 @@ object WebSocket {
   }
 
   /**
-   * Accepts a WebSocket using the given inbound/outbound channels asynchronously.
-   */
-  @deprecated("Use WebSocket.tryAccept instead", "2.3")
-  def async[A](f: RequestHeader => Future[(Iteratee[A, _], Enumerator[A])])(implicit frameFormatter: FrameFormatter[A]): WebSocket[A, A] = {
-    tryAccept(f.andThen(_.map(Right.apply)))
-  }
-
-  /**
    * Creates an action that will either reject the websocket with the given result, or will be handled by the given
    * inbound and outbound channels, asynchronously
    */

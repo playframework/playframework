@@ -59,7 +59,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         if (result == null) {
             return null;
         } else {
-            final play.api.mvc.Result scalaResult = new Promise<play.api.mvc.Result>(result).get(timeout);
+            final play.api.mvc.Result scalaResult = Promise.wrap(result).get(timeout);
             return new Result() {
                 public play.api.mvc.Result toScala() {
                     return scalaResult;
@@ -206,21 +206,11 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         return result.toScala().header().status();
     }
 
-    @Deprecated
-    public static int status(Result result, long timeout) {
-        return status(result);
-    }
-
     /**
      * Extracts the Location header of this Result value if this Result is a Redirect.
      */
     public static String redirectLocation(Result result) {
         return header(LOCATION, result);
-    }
-
-    @Deprecated
-    public static String redirectLocation(Result result, long timeout) {
-        return redirectLocation(result);
     }
 
     /**
@@ -230,21 +220,11 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         return JavaResultExtractor.getFlash(result);
     }
 
-    @Deprecated
-    public static Flash flash(Result result, long timeout) {
-        return flash(result);
-    }
-
     /**
      * Extracts the Session of this Result value.
      */
     public static Session session(Result result) {
         return JavaResultExtractor.getSession(result);
-    }
-
-    @Deprecated
-    public static Session session(Result result, long timeout) {
-        return session(result);
     }
 
     /**
@@ -254,21 +234,11 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         return JavaResultExtractor.getCookies(result).get(name);
     }
 
-    @Deprecated
-    public static Cookie cookie(String name, Result result, long timeout) {
-        return cookie(name, result);
-    }
-
     /**
      * Extracts the Cookies (an iterator) from this result value.
      */
     public static Cookies cookies(Result result) {
         return play.core.j.JavaResultExtractor.getCookies(result);
-    }
-
-    @Deprecated
-    public static Cookies cookies(Result result, long timeout) {
-        return cookies(result);
     }
 
     /**
@@ -278,21 +248,11 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         return JavaResultExtractor.getHeaders(result).get(header);
     }
 
-    @Deprecated
-    public static String header(String header, Result result, long timeout) {
-        return header(header, result);
-    }
-
     /**
      * Extracts all Headers of this Result value.
      */
     public static Map<String, String> headers(Result result) {
         return JavaResultExtractor.getHeaders(result);
-    }
-
-    @Deprecated
-    public static Map<String, String> headers(Result result, long timeout) {
-        return headers(result);
     }
 
     /**
@@ -315,11 +275,6 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
 
-    @Deprecated
-    public static String contentType(Result result, long timeout) {
-        return contentType(result);
-    }
-
     /**
      * Extracts the Charset of this Result value.
      */
@@ -331,11 +286,6 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         } else {
             return null;
         }
-    }
-
-    @Deprecated
-    public static String charset(Result result, long timeout) {
-        return charset(result);
     }
 
     /**
@@ -384,15 +334,6 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
 
-    /**
-     * Use the Router to determine the Action to call for this request and executes it.
-     * @deprecated
-     * @see #route instead
-     */
-    public static Result routeAndCall(FakeRequest fakeRequest) {
-        return routeAndCall(fakeRequest, DEFAULT_TIMEOUT);
-    }
-
     @SuppressWarnings(value = "unchecked")
     public static Result routeAndCall(FakeRequest fakeRequest, long timeout) {
         try {
@@ -402,15 +343,6 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         } catch(Throwable t) {
             throw new RuntimeException(t);
         }
-    }
-
-    /**
-     * Use the Router to determine the Action to call for this request and executes it.
-     * @deprecated
-     * @see #route instead
-     */
-    public static Result routeAndCall(Class<? extends Routes> router, FakeRequest fakeRequest) {
-        return routeAndCall(router, fakeRequest, DEFAULT_TIMEOUT);
     }
 
     public static Result routeAndCall(Class<? extends Routes> router, FakeRequest fakeRequest, long timeout) {
