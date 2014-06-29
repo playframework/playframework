@@ -98,6 +98,21 @@ class ScalaJsonCombinatorsSpec extends Specification {
       
       json.validate(nameReads) must beLike {case x: JsSuccess[String] =>  x.get === "Watership Down"}
     }
+
+    "allow creating simple Reads with a case class" in {
+      import play.api.libs.json._ // JSON library
+      import play.api.libs.json.Reads._ // Custom validation helpers
+      import play.api.libs.functional.syntax._ // Combinator syntax
+
+      val json: JsValue = sampleJson
+
+      //#reads-simple-case-class
+      case class DisplayName(name:String)
+      val nameReads: Reads[DisplayName] = (JsPath \ "name").read[String].map(DisplayName(_))
+      //#reads-simple-case-class
+
+      json.validate(nameReads) must beLike {case x: JsSuccess[DisplayName] => x.get === DisplayName("Watership Down")}
+    }
     
     "allow creating complex Reads" in {
       import SampleModel._
@@ -213,6 +228,24 @@ class ScalaJsonCombinatorsSpec extends Specification {
       //#reads-model
       
       json.validate[Place] must beLike {case x: JsSuccess[Place] =>  x.get.name === "Watership Down"}
+    }
+
+    "allow simple Writes" in {
+      import play.api.libs.json._
+      import play.api.libs.functional.syntax._
+
+      // #simple-writes-case-class
+      case class DisplayName(name:String)
+      implicit val displayNameWrite: Writes[DisplayName] = Writes {
+        (displayName: DisplayName) => JsString(displayName.name)
+      }
+      // #simple-writes-case-class
+
+      val displayName = Seq(DisplayName("My Name"))
+
+      val json = Json.toJson(displayName)
+
+      json(0).as[String] === "My Name"
     }
     
     "allow creating Writes for model" in {

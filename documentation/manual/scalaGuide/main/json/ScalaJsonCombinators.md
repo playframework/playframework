@@ -38,6 +38,10 @@ Defining an individual path `Reads` looks like this:
 
 @[reads-simple](code/ScalaJsonCombinatorsSpec.scala)
 
+Defining an individual path reads with a custom case class looks like this:
+
+@[reads-simple-case-class](code/ScalaJsonCombinatorsSpec.scala)
+
 ### Complex Reads
 You can combine individual path `Reads` to form more complex `Reads` which can be used to convert to complex models.
 
@@ -85,6 +89,10 @@ Note that complex `Reads` can be nested. In this case, `placeReads` uses the pre
 
 ## Writes
 [`Writes`](api/scala/index.html#play.api.libs.json.Writes) converters are used to convert from some type to a `JsValue`.
+
+To build simple writes with a case class, use a function in the body of the `Writes` apply method: 
+
+@[simple-writes-case-class](code/ScalaJsonCombinatorsSpec.scala)
 
 You can build complex `Writes` using `JsPath` and combinators very similar to `Reads`. Here's the `Writes` for our example model:
 
