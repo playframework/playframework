@@ -67,6 +67,9 @@
 1. [[Repositories|Repositories]]
 1. [[Issue tracker|Issues]]
 1. [[Contributor guidelines|Guidelines]]
+1. [[Documentation guidelines|Documentation]]
+1. [[Translating Documentation|Translations]]
+1. [[Working with Git|WorkingWithGit]]
 
 ## About Play
 

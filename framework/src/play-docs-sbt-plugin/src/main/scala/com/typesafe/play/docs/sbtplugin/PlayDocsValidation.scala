@@ -1,42 +1,45 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
  */
-import java.net.{HttpURLConnection, URLConnection}
+package com.typesafe.play.docs.sbtplugin
+
+import java.io.{ Closeable, BufferedReader, InputStreamReader, InputStream }
+import java.net.HttpURLConnection
 import java.util.concurrent.Executors
+import java.util.jar.JarFile
 import org.pegdown.ast._
 import org.pegdown.ast.Node
-import org.pegdown.plugins.{ToHtmlSerializerPlugin, PegDownPlugins}
+import org.pegdown.plugins.{ ToHtmlSerializerPlugin, PegDownPlugins }
 import org.pegdown._
 import play.sbtplugin.Colors
-import play.doc.{CodeReferenceNode, CodeReferenceParser}
+import play.doc.{ FileHandle, JarRepository, CodeReferenceNode, CodeReferenceParser }
 import sbt._
 import sbt.Keys._
-import sbt.File
 import scala.collection.mutable
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future, ExecutionContext}
+import scala.concurrent.{ Await, Future, ExecutionContext }
 import scala.util.control.NonFatal
 
+import Imports.PlayDocsKeys._
+
 // Test that all the docs are renderable and valid
-object DocValidation {
+object PlayDocsValidation {
 
   case class MarkdownReport(markdownFiles: Seq[File],
-                            wikiLinks: Seq[LinkRef],
-                            resourceLinks: Seq[LinkRef],
-                            codeSamples: Seq[CodeSample],
-                            relativeLinks: Seq[LinkRef],
-                            externalLinks: Seq[LinkRef])
+    wikiLinks: Seq[LinkRef],
+    resourceLinks: Seq[LinkRef],
+    codeSamples: Seq[CodeSample],
+    relativeLinks: Seq[LinkRef],
+    externalLinks: Seq[LinkRef])
 
   case class LinkRef(link: String, file: File, position: Int)
   case class CodeSample(source: String, segment: String, file: File, sourcePosition: Int, segmentPosition: Int)
 
-  val validateDocs = TaskKey[Unit]("validate-docs", "Validates the play docs to ensure they compile and that all links resolve.", KeyRanks.APlusTask)
-  val generateMarkdownReport = TaskKey[MarkdownReport]("generate-markdown-report", "Parses all markdown files and generates a report", KeyRanks.CTask)
-  val validateExternalLinks = TaskKey[Seq[String]]("validate-external-links", "Validates that all the external links are valid, by checking that they return 200.", KeyRanks.APlusTask)
+  val generateMarkdownReportTask = Def.task {
 
-  val GenerateMarkdownReportTask = (state, baseDirectory, logManager) map { (s, base, logManager) =>
+    val base = manualPath.value
 
-    val markdownFiles = (Path(base) / "manual" ** "*.md").get
+    val markdownFiles = (base / "manual" ** "*.md").get
 
     val wikiLinks = mutable.ListBuffer[LinkRef]()
     val resourceLinks = mutable.ListBuffer[LinkRef]()
@@ -131,14 +134,32 @@ object DocValidation {
     MarkdownReport(markdownFiles, wikiLinks.toSeq, resourceLinks.toSeq, codeSamples.toSeq, relativeLinks.toSeq, externalLinks.toSeq)
   }
 
-  val ValidateDocsTask = (state, baseDirectory, generateMarkdownReport) map { (s, base, report) =>
-    val log = s.log
+  val validateDocsTask = Def.task {
+    val report = generateMarkdownReport.value
+    val log = streams.value.log
+    val base = manualPath.value
+
+    val docsJarRepo: play.doc.FileRepository with Closeable = if (fallbackToJar.value) {
+      val classpath: Seq[Attributed[File]] = (dependencyClasspath in Test).value
+      val docsJarFile = {
+        val f = classpath.map(_.data).filter(_.getName.startsWith("play-docs")).head
+        new JarFile(f)
+      }
+      new JarRepository(docsJarFile, Some("play/docs/content")) with Closeable
+    } else {
+      new play.doc.FileRepository with Closeable {
+        def loadFile[A](path: String)(loader: (InputStream) => A) = None
+        def handleFile[A](path: String)(handler: (FileHandle) => A) = None
+        def findFileWithName(name: String) = None
+        def close(): Unit = ()
+      }
+    }
 
     val pages = report.markdownFiles.map(f => f.getName.dropRight(3) -> f).toMap
 
     var failed = false
 
-    def doAssertion(desc: String, errors: Seq[_])(onFail: => Unit) {
+    def doAssertion(desc: String, errors: Seq[_])(onFail: => Unit): Unit = {
       if (errors.isEmpty) {
         log.info("[" + Colors.green("pass") + "] " + desc)
       } else {
@@ -148,7 +169,11 @@ object DocValidation {
       }
     }
 
-    def assertLinksNotMissing(desc: String, links: Seq[LinkRef], errorMessage: String) {
+    def fileExists(path: String): Boolean = {
+      new File(base, path).isFile || docsJarRepo.loadFile(path)(_ => ()).nonEmpty
+    }
+
+    def assertLinksNotMissing(desc: String, links: Seq[LinkRef], errorMessage: String): Unit = {
       doAssertion(desc, links) {
         links.foreach { link =>
           logErrorAtLocation(log, link.file, link.position, errorMessage + " " + link.link)
@@ -167,15 +192,16 @@ object DocValidation {
       }
     }
 
-    assertLinksNotMissing("Missing wiki links test", report.wikiLinks.filterNot(link => pages.contains(link.link)),
-      "Could not find link")
+    assertLinksNotMissing("Missing wiki links test", report.wikiLinks.filterNot { link =>
+      pages.contains(link.link) || docsJarRepo.findFileWithName(link.link + ".md").nonEmpty
+    }, "Could not find link")
 
     def relativeLinkOk(link: LinkRef) = {
       link match {
         case scalaApi if scalaApi.link.startsWith("api/scala/index.html#") => true
         case javaApi if javaApi.link.startsWith("api/java/") => true
         case resource if resource.link.startsWith("resources/") =>
-          new File(base, resource.link.stripPrefix("resources/")).exists()
+          fileExists(resource.link.stripPrefix("resources/"))
         case bad => false
       }
     }
@@ -186,10 +212,10 @@ object DocValidation {
 
     assertLinksNotMissing("Missing wiki resources test",
       report.resourceLinks.collect {
-        case link if !new File(base, link.link).isFile => link
+        case link if !fileExists(link.link) => link
       }, "Could not find resource")
 
-    val (existing, nonExisting) = report.codeSamples.partition(sample => new File(base, sample.source).exists())
+    val (existing, nonExisting) = report.codeSamples.partition(sample => fileExists(sample.source))
 
     assertLinksNotMissing("Missing source files test",
       nonExisting.map(sample => LinkRef(sample.source, sample.file, sample.sourcePosition)),
@@ -197,9 +223,16 @@ object DocValidation {
 
     def segmentExists(sample: CodeSample) = {
       // Find the code segment
-      val sourceCode = IO.readLines(new File(base, sample.source))
+      val sourceCode = {
+        val file = new File(base, sample.source)
+        if (file.exists()) {
+          IO.readLines(new File(base, sample.source))
+        } else {
+          docsJarRepo.loadFile(sample.source)(is => IO.readLines(new BufferedReader(new InputStreamReader(is)))).get
+        }
+      }
       val notLabel = (s: String) => !s.contains("#" + sample.segment)
-      val segment = sourceCode dropWhile(notLabel) drop(1) takeWhile(notLabel)
+      val segment = sourceCode dropWhile (notLabel) drop (1) takeWhile (notLabel)
       !segment.isEmpty
     }
 
@@ -209,22 +242,28 @@ object DocValidation {
 
     val allLinks = report.wikiLinks.map(_.link).toSet
 
-    val orphanPages = pages.filterNot(page => allLinks.contains(page._1)).filterNot { page =>
-      page._1.startsWith("_") || page._1 == "Home" || page._1.startsWith("Book")
-    }
-    doAssertion("Orphan pages test", orphanPages.toSeq) {
-      orphanPages.foreach { page =>
-        log.error("Page " + page._2 + " is not referenced by any links")
+    if (!fallbackToJar.value) {
+      // A bit hard to do this without parsing all files, so only do it if we're not falling back to the jar file
+      val orphanPages = pages.filterNot(page => allLinks.contains(page._1)).filterNot { page =>
+        page._1.startsWith("_") || page._1 == "Home" || page._1.startsWith("Book")
+      }
+      doAssertion("Orphan pages test", orphanPages.toSeq) {
+        orphanPages.foreach { page =>
+          log.error("Page " + page._2 + " is not referenced by any links")
+        }
       }
     }
+
+    docsJarRepo.close()
 
     if (failed) {
       throw new RuntimeException("Documentation validation failed")
     }
   }
 
-  val ValidateExternalLinksTask = (state, generateMarkdownReport) map { (s, report) =>
-    val log = s.log
+  val validateExternalLinksTask = Def.task {
+    val log = streams.value.log
+    val report = generateMarkdownReport.value
 
     val grouped = report.externalLinks.groupBy(_.link).filterNot(_._1.startsWith("http://localhost:9000")).toSeq.sortBy(_._1)
 

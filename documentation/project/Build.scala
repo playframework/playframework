@@ -1,16 +1,14 @@
 /*
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
-import java.util.jar.JarFile
-import play.sbtplugin.Colors
-import play.core.server.ServerWithStop
 import play.sbtplugin.routes.RoutesCompiler
 import sbt._
 import sbt.Keys._
 import play.Play.autoImport._
-import play.core.{ BuildDocHandler, PlayVersion }
-import DocValidation._
+import play.core.PlayVersion
 import scala.util.Properties.isJavaAtLeast
+import com.typesafe.play.docs.sbtplugin._
+import com.typesafe.play.docs.sbtplugin.Imports._
 
 object ApplicationBuild extends Build {
 
@@ -54,7 +52,7 @@ object ApplicationBuild extends Build {
         enabled.foldLeft[FileFilter](new ExactFilter("code")) { (filter, e) => filter || new ExactFilter("code-" + e) })
   }
 
-  lazy val main = Project("Play-Documentation", file(".")).settings(
+  lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsPlugin).settings(
     resolvers += Resolver.sonatypeRepo("releases"), // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
     version := PlayVersion.current,
     scalaVersion := PlayVersion.scalaVersion,
@@ -68,6 +66,8 @@ object ApplicationBuild extends Build {
       "org.mockito" % "mockito-core" % "1.9.5" % "test",
       component("play-docs")
     ),
+
+    PlayDocsKeys.fallbackToJar := false,
 
     javaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "javaGuide" ** codeFilter).get),
     scalaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "scalaGuide" ** codeFilter).get),
@@ -116,12 +116,6 @@ object ApplicationBuild extends Build {
       RoutesCompiler.compileRoutes((from * "*.routes").get, to, Nil, true, true, true, s.cacheDirectory / "scalaroutes", s.log)
     },
 
-    run <<= docsRunSetting,
-
-    generateMarkdownReport <<= GenerateMarkdownReportTask,
-    validateDocs <<= ValidateDocsTask,
-    validateExternalLinks <<= ValidateExternalLinksTask,
-
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true", "junitxml", "console"),
     testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "-v", "--ignore-runners=org.specs2.runner.JUnitRunner"),
     testListeners <<= (target, streams).map((t, s) => Seq(new play.sbtplugin.test.JUnitXmlTestsListener(t.getAbsolutePath, s.log)))
@@ -134,78 +128,6 @@ object ApplicationBuild extends Build {
 
   def compileTemplates(sourceDirectories: Seq[File], target: File, imports: Seq[String], log: Logger) = {
     play.twirl.sbt.TemplateCompiler.compile(sourceDirectories, target, templateFormats, imports, templateFilter, HiddenFileFilter, templateCodec, false, log)
-  }
-
-  // Run a documentation server
-  val docsRunSetting: Project.Initialize[InputTask[Unit]] = inputTask { (argsTask: TaskKey[Seq[String]]) =>
-    (argsTask, state) map runServer
-  }
-
-  private def runServer(args: Seq[String], state: State) = {
-    val extracted = Project.extract(state)
-
-    val port = args.headOption.map(_.toInt).getOrElse(9000)
-
-    // Get classloader
-    val sbtLoader = this.getClass.getClassLoader
-    Project.runTask(dependencyClasspath in Test, state).get._2.toEither.right.map { classpath: Seq[Attributed[File]] =>
-      val classloader = new java.net.URLClassLoader(classpath.map(_.data.toURI.toURL).toArray, null /* important here, don't depend of the sbt classLoader! */) {
-        override def loadClass(name: String): Class[_] = {
-          if (play.core.classloader.DelegatingClassLoader.isSharedClass(name)) {
-            sbtLoader.loadClass(name)
-          } else {
-            super.loadClass(name)
-          }
-        }
-      }
-
-      val projectPath = extracted.get(baseDirectory)
-      val docsJarFile = {
-        val f = classpath.map(_.data).filter(_.getName.startsWith("play-docs")).head
-        new JarFile(f)
-      }
-      val buildDocHandler = {
-        val docHandlerFactoryClass = classloader.loadClass("play.docs.BuildDocHandlerFactory")
-        val fromDirectoryMethod = docHandlerFactoryClass.getMethod("fromDirectoryAndJar", classOf[java.io.File], classOf[JarFile], classOf[String])
-        fromDirectoryMethod.invoke(null, projectPath, docsJarFile, "play/docs/content")
-      }
-
-      val clazz = classloader.loadClass("play.docs.DocumentationServer")
-      val constructor = clazz.getConstructor(classOf[File], classOf[BuildDocHandler], classOf[java.lang.Integer])
-      val server = constructor.newInstance(projectPath, buildDocHandler, new java.lang.Integer(port)).asInstanceOf[ServerWithStop]
-
-      println()
-      println(Colors.green("Documentation server started, you can now view the docs by going to http://localhost:" + port))
-      println()
-
-      waitForKey()
-
-      server.stop()
-    }
-
-    state
-  }
-
-  private lazy val consoleReader = {
-    val cr = new jline.console.ConsoleReader
-    // Because jline, whenever you create a new console reader, turns echo off. Stupid thing.
-    cr.getTerminal.setEchoEnabled(true)
-    cr
-  }
-
-  private def waitForKey() = {
-    consoleReader.getTerminal.setEchoEnabled(false)
-    def waitEOF() {
-      consoleReader.readCharacter() match {
-        case 4 => // STOP
-        case 11 => consoleReader.clearScreen(); waitEOF()
-        case 10 => println(); waitEOF()
-        case _ => waitEOF()
-      }
-
-    }
-    waitEOF()
-    consoleReader.getTerminal.setEchoEnabled(true)
   }
 
   val javaManualSourceDirectories = SettingKey[Seq[File]]("java-manual-source-directories")
