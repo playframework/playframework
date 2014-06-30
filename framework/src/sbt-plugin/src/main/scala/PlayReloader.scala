@@ -12,6 +12,8 @@ import play.PlayImport._
 import PlayKeys._
 import PlayExceptions._
 import play.sbtplugin.PlayPositionMapper
+import com.typesafe.sbt.web.SbtWeb.autoImport._
+import WebKeys._
 
 trait PlayReloader {
   this: PlayCommands with PlayPositionMapper =>
@@ -25,6 +27,13 @@ trait PlayReloader {
     new BuildLink {
 
       lazy val projectPath = extracted.currentProject.base
+
+      lazy val assetDirs = Seq(
+        sourceDirectory in Assets,
+        sourceDirectory in TestAssets,
+        resourceDirectory in Assets,
+        resourceDirectory in TestAssets
+      ).map(extracted.get(_))
 
       lazy val watchFiles = extracted.runTask(watchTransitiveSources, state)._2
 
@@ -175,22 +184,18 @@ trait PlayReloader {
         watchChanges.foreach(jnotify.removeWatch)
       }
 
-      def updateAnalysis(newAnalysis: sbt.inc.Analysis) = {
+      def updateAnalysis(newAnalysis: sbt.inc.Analysis): Seq[File] = {
         val classFiles = newAnalysis.stamps.allProducts ++ watchFiles
         val newProducts = classFiles.map { classFile =>
           classFile -> classFile.lastModified
         }.toMap
-        val updated = if (newProducts != currentProducts || reloadNextTime) {
-          Some(newProducts)
-        } else {
-          None
-        }
-        updated.foreach(currentProducts = _)
+
+        val changedFiles = newProducts.toSeq.diff(currentProducts.toSeq).map(_._1)
+
         currentAnalysis = Some(newAnalysis)
+        currentProducts = newProducts
 
-        reloadNextTime = false
-
-        updated
+        changedFiles
       }
 
       def findSource(className: String, line: java.lang.Integer): Array[java.lang.Object] = {
@@ -327,11 +332,16 @@ trait PlayReloader {
               .left.map(taskFailureHandler)
               .right.map {
                 compilationResult =>
-                  if (updateAnalysis(compilationResult) != None) {
+                  def isAsset(f: File) = { assetDirs.exists(d => f.absolutePath.startsWith(d.absolutePath)) }
+
+                  val classloader = if (!updateAnalysis(compilationResult).filterNot(isAsset).isEmpty || reloadNextTime) {
                     newClassLoader.fold(identity, identity)
                   } else {
                     null
                   }
+                  reloadNextTime = false
+                  classloader
+
               }.fold(identity, identity)
           } else {
             null
