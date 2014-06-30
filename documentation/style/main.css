@@ -21,6 +21,8 @@ article .subheader{color:#777;font-weight:300;margin-bottom:24px;}
 article p{line-height:1.3em;margin:1em 0;}
 article p img{margin:0;}
 article p.lead{font-size:18px;font-size:1.8rem;line-height:1.5;}
+article li>p:first-child{margin-top:0;}
+article li>p:last-child{margin-bottom:0;}
 article ul li,article ol li{position:relative;padding:4px 0 4px 14px;}article ul li ol,article ol li ol,article ul li ul,article ol li ul{margin-left:20px;}
 article ul li:before,article ol li:before{position:absolute;top:8px;left:0;content:"►";color:#ccc;font-size:10px;margin-right:5px;}
 article>ol{counter-reset:section;}article>ol li:before{color:#ccc;font-size:13px;}
