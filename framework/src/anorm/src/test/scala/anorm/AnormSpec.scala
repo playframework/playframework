@@ -321,18 +321,6 @@ object AnormSpec extends Specification with H2Database with AnormTest {
       }
   }
 
-  "SQL warning" should {
-    "be handle from executed query" in withQueryResult(
-      QueryResult.Nil.withWarning("Warning for test-proc-2")) { implicit c =>
-
-        SQL("EXEC stored_proc({param})")
-          .on("param" -> "test-proc-2").executeQuery()
-          .statementWarning aka "statement warning" must beSome.which { warn =>
-            warn.getMessage aka "message" must_== "Warning for test-proc-2"
-          }
-      }
-  }
-
   "Insertion" should {
     lazy implicit val con = connection(handleStatement withUpdateHandler {
       case UpdateExecution("INSERT ?", ExecutedParameter(1) :: Nil) => 1

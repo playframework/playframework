@@ -209,6 +209,7 @@ object Dependencies {
     mockitoAll % "test"
 
   val anormDependencies = specsBuild.map(_ % "test") ++ Seq(
+    "com.jsuereth" %% "scala-arm" % "1.4",
     h2database % "test",
     "org.eu.acolyte" %% "jdbc-scala" % "1.0.22" % "test",
     "com.chuusai" % "shapeless" % "2.0.0" % "test" cross CrossVersion.binaryMapped {

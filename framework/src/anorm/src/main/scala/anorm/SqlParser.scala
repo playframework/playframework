@@ -3,13 +3,9 @@
  */
 package anorm
 
-import SqlParser.ResultSet
-
 object SqlParser {
   import MayErr._
   import java.util.Date
-
-  type ResultSet = Stream[Row]
 
   private val NoColumnsInReturnedResult = SqlMappingError("No column in result")
 
@@ -513,16 +509,16 @@ sealed trait ScalarRowParser[+A] extends RowParser[A] {
   }
 }
 
-trait ResultSetParser[+A] extends (ResultSet => SqlResult[A]) { parent =>
+trait ResultSetParser[+A] extends (Stream[Row] => SqlResult[A]) { parent =>
   def map[B](f: A => B): ResultSetParser[B] =
-    ResultSetParser(rs => parent(rs).map(f))
+    ResultSetParser(parent(_).map(f))
 
 }
 
 private[anorm] object ResultSetParser {
-  def apply[A](f: ResultSet => SqlResult[A]): ResultSetParser[A] =
+  def apply[A](f: Stream[Row] => SqlResult[A]): ResultSetParser[A] =
     new ResultSetParser[A] { rows =>
-      def apply(rows: ResultSet): SqlResult[A] = f(rows)
+      def apply(rows: Stream[Row]): SqlResult[A] = f(rows)
     }
 
   def list[A](p: RowParser[A]): ResultSetParser[List[A]] = {
