@@ -8,6 +8,7 @@ import java.sql.{ Connection, PreparedStatement }
 
 import scala.language.{ postfixOps, reflectiveCalls }
 import scala.collection.TraversableOnce
+import scala.runtime.{ ScalaRunTime, AbstractFunction3 }
 
 /** Error from processing SQL */
 sealed trait SqlRequestError
@@ -366,8 +367,21 @@ sealed trait Sql {
 
 }
 
+/**
+ * Manually implemented so that we can deprecate all the case class methods
+ */
+object SqlQuery extends AbstractFunction3[String, List[String], Option[Int], SqlQuery] {
+  @deprecated("Do not use the SqlQuery constructor directly because it does not parse the query. Use SQL(...) instead.", "2.3.2")
+  def apply(query: String, argsInitialOrder: List[String] = List.empty, queryTimeout: Option[Int] = None) =
+    new SqlQuery(query, argsInitialOrder, queryTimeout)
+
+  @deprecated("SqlQuery will become a trait in 2.4.0", "2.3.2")
+  def unapply(value: SqlQuery): Option[(String, List[String], Option[Int])] =
+    Some((value.query, value.argsInitialOrder, value.queryTimeout))
+}
+
 /** Initial SQL query, without parameter values. */
-case class SqlQuery(query: String, argsInitialOrder: List[String] = List.empty, queryTimeout: Option[Int] = None) extends Sql {
+class SqlQuery @deprecated("Do not use the SqlQuery constructor directly because it does not parse the query. Use SQL(...) instead.", "2.3.2") (val query: String, val argsInitialOrder: List[String] = List.empty, val queryTimeout: Option[Int] = None) extends Sql with Product with Serializable {
 
   def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false): PreparedStatement = asSimple.getFilledStatement(connection, getGeneratedKeys)
 
@@ -392,6 +406,33 @@ case class SqlQuery(query: String, argsInitialOrder: List[String] = List.empty, 
     SimpleSql(this, Map.empty, parser)
 
   def asBatch[T]: BatchSql = BatchSql(this, Nil)
+
+  // Everything provided below just so we could deprecated the SqlQuery.apply method...
+  // https://issues.scala-lang.org/browse/SI-8685
+
+  @deprecated("SqlQuery will become a trait in 2.4.0", "2.3.2")
+  def copy(query: String = this.query,
+    argsInitialOrder: List[String] = this.argsInitialOrder,
+    queryTimeout: Option[Int] = this.queryTimeout) = new SqlQuery(query, argsInitialOrder, queryTimeout)
+
+  def productElement(n: Int) = n match {
+    case 0 => this.query
+    case 1 => this.argsInitialOrder
+    case 2 => this.queryTimeout
+    case _ => throw new IndexOutOfBoundsException(n.toString)
+  }
+
+  def productArity = 3
+
+  def canEqual(that: Any) = that.isInstanceOf[SqlQuery]
+
+  override def productPrefix = classOf[SqlQuery].getSimpleName
+
+  override def hashCode() = ScalaRunTime._hashCode(this)
+
+  override def equals(obj: scala.Any) = ScalaRunTime._equals(this, obj)
+
+  override def toString = ScalaRunTime._toString(this)
 }
 
 object Sql { // TODO: Rename to SQL

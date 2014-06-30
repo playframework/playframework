@@ -119,7 +119,7 @@ sealed trait BatchSql {
         val st: (String, Seq[(Int, ParameterValue)]) =
           Sql.prepareQuery(sql.query, 0, sql.argsInitialOrder.map(ps), Nil)
 
-        val stmt = if (getGeneratedKeys) con.prepareStatement(sql.query, java.sql.Statement.RETURN_GENERATED_KEYS) else con.prepareStatement(sql.query)
+        val stmt = if (getGeneratedKeys) con.prepareStatement(st._1, java.sql.Statement.RETURN_GENERATED_KEYS) else con.prepareStatement(st._1)
 
         sql.queryTimeout.foreach(timeout => stmt.setQueryTimeout(timeout))
 
