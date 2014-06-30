@@ -47,11 +47,11 @@ private class SelfPopulatingMap[K, V] {
   private val store = TrieMap[K, Future[V]]()
 
   def putIfAbsent(k: K)(pf: K => V)(implicit ec: ExecutionContext): Future[V] = {
-    val p = Promise[V]
+    val p = Promise[V]()
     store.putIfAbsent(k, p.future) match {
       case Some(f) => f
       case None =>
-        val f = Future(pf(k))(ec.prepare)
+        val f = Future(pf(k))(ec.prepare())
         f.onFailure {
           case _ => store.remove(k)
         }
@@ -125,7 +125,7 @@ private[controllers] class AssetInfo(
 
   val lastModified: Option[String] = url.getProtocol match {
     case "file" => Some(df.print(new File(url.getPath).lastModified))
-    case "jar" => {
+    case "jar" =>
       Option(url.openConnection).map {
         case jarUrlConnection: JarURLConnection =>
           try {
@@ -134,7 +134,6 @@ private[controllers] class AssetInfo(
             jarUrlConnection.getInputStream.close()
           }
       }.filterNot(_ == -1).map(df.print)
-    }
     case _ => None
   }
 
@@ -199,12 +198,12 @@ object Assets extends AssetsBuilder {
   val digestCache = TrieMap[String, Option[String]]()
 
   private[controllers] def digest(path: String): Option[String] = {
-    digestCache.get(path).getOrElse {
+    digestCache.getOrElse(path, {
       val maybeDigestUrl: Option[URL] = Play.resource(path + "." + digestAlgorithm)
       val maybeDigest: Option[String] = maybeDigestUrl.map(Source.fromURL(_).mkString)
       if (!Play.isDev) digestCache.put(path, maybeDigest)
       maybeDigest
-    }
+    })
   }
 
   // Sames goes for the minified paths cache.
@@ -213,7 +212,7 @@ object Assets extends AssetsBuilder {
   lazy val checkForMinified = Play.configuration.getBoolean("assets.checkForMinified").getOrElse(true)
 
   private[controllers] def minifiedPath(path: String): String = {
-    minifiedPathsCache.get(path).getOrElse {
+    minifiedPathsCache.getOrElse(path, {
       def minifiedPathFor(delim: Char): Option[String] = {
         val ext = path.reverse.takeWhile(_ != '.').reverse
         val noextPath = path.dropRight(ext.size + 1)
@@ -227,7 +226,7 @@ object Assets extends AssetsBuilder {
       }
       if (!Play.isDev) minifiedPathsCache.put(path, maybeMinifiedPath)
       maybeMinifiedPath
-    }
+    })
   }
 
   private[controllers] lazy val assetInfoCache = new SelfPopulatingMap[String, AssetInfo]()
@@ -266,33 +265,23 @@ object Assets extends AssetsBuilder {
     implicit def string2Asset(name: String) = new Asset(name)
 
     private def pathFromParams(rrc: ReverseRouteContext): String = {
-      rrc.fixedParams.get("path").getOrElse(
+      rrc.fixedParams.getOrElse("path",
         throw new RuntimeException("Asset path bindable must be used in combination with an action that accepts a path parameter")
       ).toString
-    }
-
-    implicit def stringPathBindable(implicit rrc: ReverseRouteContext) = new PathBindable[String] {
-      def bind(key: String, value: String) = Right(value)
-
-      def unbind(key: String, value: String): String = blocking {
-        val path = pathFromParams(rrc)
-        minifiedPath(path + File.separator + value).drop(path.size + 1)
-      }
     }
 
     implicit def assetPathBindable(implicit rrc: ReverseRouteContext) = new PathBindable[Asset] {
       def bind(key: String, value: String) = Right(new Asset(value))
 
       def unbind(key: String, value: Asset): String = {
-        val path = pathFromParams(rrc)
-        val f = new File(path + File.separator + value.name)
+        val base = pathFromParams(rrc)
+        val path = base + "/" + value.name
         blocking {
-          val n = minifiedPath(f.getPath)
-          digest(n).fold(n) {
-            d =>
-              val s = n.lastIndexOf(File.separator)
-              n.take(s + 1) + d + "-" + n.drop(s + 1)
-          }.drop(path.size + 1)
+          val minPath = minifiedPath(path)
+          digest(minPath).fold(minPath) { dgst =>
+            val lastSep = minPath.lastIndexOf("/")
+            minPath.take(lastSep + 1) + dgst + "-" + minPath.drop(lastSep + 1)
+          }.drop(base.size + 1)
         }
       }
     }
