@@ -647,4 +647,39 @@ $ spokenLanguages("FRA")
 )
 ```
 
+## Type compatibility
+
+As already seen in this documentation, Anorm provides builtins JDBC parsing for various JVM types.
+
+Following table describes which JDBC numeric types (getters on `java.sql.ResultSet`, first column) can be parsed to which Java/Scala types (e.g. integer column can be read as double value).
+
+↓JDBC / JVM➞           | BigDecimal<sup>1</sup> | BigInteger<sup>2</sup> | Boolean | Byte | Double | Float | Int | Long | Short
+---------------------- | ---------------------- | ---------------------- | ------- | ---- | ------ | ----- | --- | ---- | -----
+BigDecimal<sup>1</sup> | Yes                    | No                     | No      | No   | Yes    | No    | No  | No   | No
+BigInteger<sup>2</sup> | No                     | Yes                    | No      | No   | Yes    | Yes   | No  | No   | No
+Boolean                | No                     | No                     | Yes     | No   | No     | No    | No  | No   | No
+Byte                   | No                     | No                     | No      | Yes  | Yes    | Yes   | No  | No   | Yes
+Double                 | Yes                    | No                     | Yes     | No   | Yes    | No    | No  | No   | No
+Float                  | No                     | No                     | No      | No   | Yes    | Yes   | No  | No   | No
+Int                    | No                     | Yes                    | Yes     | No   | Yes    | Yes   | Yes | Yes  | No
+Long                   | Yes                    | Yes                    | No      | No   | No     | No    | No  | Yes  | No
+Short                  | No                     | No                     | No      | Yes  | Yes    | Yes   | No  | No   | Yes
+
+- 1. Types `java.math.BigDecimal` and `scala.math.BigDecimal`.
+- 2. Types `java.math.BigInteger` and `scala.math.BigInt`.
+
+Second table shows mapping for other supported types (texts, dates, ...).
+
+↓JDBC / JVM➞      | Char | Date | String | UUID<sup>3</sup>
+----------------- | ---- | ---- | ------ | ----------------
+Clob              | Yes  | No   | Yes    | No
+Date              | No   | Yes  | No     | No
+Long              | No   | Yes  | No     | No
+String            | Yes  | No   | Yes    | No
+UUID              | No   | No   | No     | Yes
+
+- 3. Type `java.util.UUID`.
+
+Optional column can be parsed as `Option[T]`, as soon as `T` is supported.
+
 > **Next:** [[Integrating with other database access libraries | ScalaDatabaseOthers]]
