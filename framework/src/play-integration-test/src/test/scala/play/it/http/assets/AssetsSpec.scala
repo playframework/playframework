@@ -25,12 +25,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
     def withServer[T](block: => T): T = {
       import Asset._
       val routes: PartialFunction[(String, String), Handler] = {
-        case (_, path) if path.startsWith("/v") =>
-          implicit val rrc = new ReverseRouteContext(Map("path" -> "/testassets/versioned"))
-          Assets.versioned("/testassets/versioned", implicitly[PathBindable[Asset]].unbind("file", path.substring(3)))
-        case (_, path) =>
-          implicit val rrc = new ReverseRouteContext(Map("path" -> "/testassets"))
-          Assets.at("/testassets", implicitly[PathBindable[String]].unbind("file", path.substring(1)))
+        case (_, path) => Assets.versioned("/testassets", path)
       }
       running(TestServer(port, new FakeApplication(withRoutes = routes) {
         // setting prod mode ensures caching headers get set, gzip is turned on, etc
@@ -195,7 +190,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
     }
 
     "serve a versioned asset" in withServer {
-      val result = await(wsUrl("/v/sub/12345678901234567890123456789012-foo.txt").get())
+      val result = await(wsUrl("/versioned/sub/12345678901234567890123456789012-foo.txt").get())
 
       result.status must_== OK
       result.body must_== "This is a test asset."
@@ -205,21 +200,6 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       result.header(VARY) must beNone
       result.header(CONTENT_ENCODING) must beNone
       result.header(CACHE_CONTROL) must_== aggressiveCacheControl
-    }
-
-    "serve a minified asset" in withServer {
-      val result = await(wsUrl("/minified.js").get())
-
-      result.status must_== OK
-      result.body must_== "minified"
-    }
-
-    "serve a versioned minified asset" in withServer {
-      val result = await(wsUrl("/v/sub/12345678901234567890123456789013-bar-min.txt").get())
-
-      result.status must_== OK
-      result.body must_== "This is a test asset minified."
-      result.header(ETAG) must_== Some("12345678901234567890123456789013")
     }
   }
 }
