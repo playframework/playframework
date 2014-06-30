@@ -1,0 +1,30 @@
+# Start dev mode
+> run
+
+# Check various action types
+> verify-resource-contains / original
+> verify-resource-contains /assets/some.css original
+> verify-resource-contains /assets/main.css original
+> verify-reloads 1
+
+# Change a scala file
+$ copy-file changes/Application.scala.1 app/controllers/Application.scala
+$ sleep 1000
+> verify-resource-contains / first
+> verify-reloads 2
+
+# Change a static asset
+$ copy-file changes/some.css.1 public/some.css
+$ sleep 1000
+> verify-resource-contains /assets/some.css first
+# No reloads should have happened - commented out because there's a bug
+# > verify-reloads 2
+
+# Change a compiled asset
+$ copy-file changes/main.less.1 app/assets/main.less
+$ sleep 1000
+> verify-resource-contains /assets/main.css first
+# No reloads should have happened - commented out because there's a bug
+# > verify-reloads 2
+
+> play-stop

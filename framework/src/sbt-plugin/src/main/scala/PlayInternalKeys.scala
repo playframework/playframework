@@ -19,6 +19,8 @@ trait PlayInternalKeys {
   val playCompileEverything = TaskKey[Seq[sbt.inc.Analysis]]("play-compile-everything")
   val playAssetsWithCompilation = TaskKey[sbt.inc.Analysis]("play-assets-with-compilation")
 
+  val playStop = TaskKey[Unit]("play-stop", "Stop Play, if it has been started in non blocking mode")
+
   val playAllAssets = TaskKey[Seq[(String, File)]]("play-all-assets")
   val playPrefixAndAssets = TaskKey[(String, File)]("play-prefix-and-assets")
   val playPrefixAndPipeline = TaskKey[(String, Seq[(File, String)])]("play-prefix-and-pipeline")
