@@ -18,6 +18,14 @@ $ ./build
 > publish-local
 ```
 
+If you want to build Play for Scala 2.11 instead of Scala 2.10, then you must specify the Scala version when launching the build script:
+
+```bash
+$ cd playframework/framework
+$ ./build -Dscala.version=2.11.0
+> publish-local
+```
+
 > Note that you don’t need to install sbt yourself: Play embeds its own version.
 
 If you want to make changes to the code you can use `publish-local` to rebuild the framework.
