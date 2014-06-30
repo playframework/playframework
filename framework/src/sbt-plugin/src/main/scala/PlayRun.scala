@@ -370,7 +370,7 @@ trait PlayRun extends PlayInternalKeys {
         // problem occurs in this area then at least we know what to look at.
         val args = Seq(stagingBin) ++
           properties.map {
-            case (key, value) => s"""-D$key="$value" """
+            case (key, value) => s"-D$key=$value"
           } ++
           javaProductionOptions ++
           Seq("-Dhttp.port=" + httpPort.getOrElse("disabled"))
