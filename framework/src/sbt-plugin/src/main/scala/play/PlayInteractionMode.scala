@@ -90,28 +90,32 @@ object PlayConsoleInteractionMode extends PlayInteractionMode {
  * variable.
  */
 object StaticPlayNonBlockingInteractionMode extends PlayNonBlockingInteractionMode {
-  var current: Option[Closeable] = None
+  private var current: Option[Closeable] = None
 
   /**
    * Start the server, if not already started
    *
    * @param server A callback to start the server, that returns a closeable to stop it
    */
-  def start(server: => Closeable) = current match {
-    case Some(_) => println("Not starting server since one is already started")
-    case None =>
-      println("Starting server")
-      current = Some(server)
+  def start(server: => Closeable) = synchronized {
+    current match {
+      case Some(_) => println("Not starting server since one is already started")
+      case None =>
+        println("Starting server")
+        current = Some(server)
+    }
   }
 
   /**
    * Stop the server started by the last start request, if such a server exists
    */
-  def stop() = current match {
-    case Some(server) =>
-      println("Stopping server")
-      server.close()
-      current = None
-    case None => println("Not stopping server since none is started")
+  def stop() = synchronized {
+    current match {
+      case Some(server) =>
+        println("Stopping server")
+        server.close()
+        current = None
+      case None => println("Not stopping server since none is started")
+    }
   }
 }
