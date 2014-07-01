@@ -15,13 +15,25 @@ InputKey[Unit]("verify-reloads") := {
 }
 
 InputKey[Unit]("verify-resource-contains") := {
-  val args = Def.spaceDelimited("<path> <words> ...").parsed
+  val args = Def.spaceDelimited("<path> <status> <words> ...").parsed
   val path = args.head
-  val assertions = args.tail
+  val status = args.tail.head.toInt
+  val assertions = args.tail.tail
   val url = new java.net.URL("http://localhost:9000" + path)
-  val is = url.openStream()
+  val conn = url.openConnection().asInstanceOf[java.net.HttpURLConnection]
+  if (status == conn.getResponseCode) {
+    println(s"Resource at $path returned $status as expected")
+  } else {
+    throw new RuntimeException(s"Resource at $path returned ${conn.getResponseCode} instead of $status")
+  }
+  val is = if (conn.getResponseCode >= 400) {
+    conn.getErrorStream
+  } else {
+    conn.getInputStream
+  }
   val contents = IO.readStream(is)
   is.close()
+  conn.disconnect()
   assertions.foreach { assertion =>
     if (contents.contains(assertion)) {
       println(s"Resource at $path contained $assertion")

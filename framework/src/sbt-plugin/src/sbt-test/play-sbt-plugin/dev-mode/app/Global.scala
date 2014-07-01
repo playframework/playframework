@@ -13,5 +13,9 @@ object Global extends GlobalSettings {
     val writer = new FileWriter(app.getFile("target/reload.log"), true)
     writer.write(new Date() + " - reloaded\n")
     writer.close()
+
+    if (app.configuration.getBoolean("fail").getOrElse(false)) {
+      throw new RuntimeException()
+    }
   }
 }

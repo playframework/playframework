@@ -3,7 +3,8 @@
  */
 package play
 
-import scala.util.control.NonFatal
+import play.sbtplugin.run.PlayWatchService
+
 import play.api._
 import play.core._
 import sbt._
@@ -15,202 +16,138 @@ import PlayExceptions._
 trait PlayReloader {
   this: PlayCommands with PlayPositionMapper =>
 
-  // ----- Reloader
+  /**
+   * An extension of BuildLink to provide internal methods to PlayRun, such as the ability to get the classloader,
+   * and the ability to close it (stop watching files).
+   */
+  trait PlayBuildLink extends BuildLink {
+    def close()
+    def getClassLoader: Option[ClassLoader]
+  }
 
-  def newReloader(state: State, playReload: TaskKey[sbt.inc.Analysis], createClassLoader: ClassLoaderCreator, classpathTask: TaskKey[Classpath], baseLoader: ClassLoader) = {
+  /**
+   * Create a new reloader
+   */
+  def newReloader(state: State,
+    playReload: TaskKey[sbt.inc.Analysis],
+    createClassLoader: ClassLoaderCreator,
+    classpathTask: TaskKey[Classpath],
+    baseLoader: ClassLoader,
+    monitoredFiles: Seq[String],
+    targetDirectory: File): PlayBuildLink = {
 
     val extracted = Project.extract(state)
 
-    new BuildLink {
+    new PlayBuildLink {
 
       lazy val projectPath = extracted.currentProject.base
 
-      lazy val watchFiles = extracted.runTask(watchTransitiveSources, state)._2
+      // The current classloader for the application
+      @volatile private var currentApplicationClassLoader: Option[ClassLoader] = None
+      // Flag to force a reload on the next request.
+      // This is set if a compile error occurs, and also by the forceReload method on BuildLink, which is called for
+      // example when evolutions have been applied.
+      @volatile private var forceReloadNextTime = false
+      // Whether any source files have changed since the last request.
+      @volatile private var changed = false
+      // The last successful compile results. Used for rendering nice errors.
+      @volatile private var currentAnalysis = Option.empty[sbt.inc.Analysis]
+      // A watch state for the classpath. Used to determine whether anything on the classpath has changed as a result
+      // of compilation, and therefore a new classloader is needed and the app needs to be reloaded.
+      @volatile private var watchState: WatchState = WatchState.empty
 
-      // ----- Internal state used for reloading is kept here
+      // Create the watcher, updates the changed boolean when a file has changed.
+      private val watcher = PlayWatchService(targetDirectory).watch(monitoredFiles.map(new File(_)), () => changed = true)
+      private val classLoaderVersion = new java.util.concurrent.atomic.AtomicInteger(0)
 
-      var currentApplicationClassLoader: Option[ClassLoader] = None
+      /**
+       * Contrary to its name, this doesn't necessarily reload the app.  It is invoked on every request, and will only
+       * trigger a reload of the app if something has changed.
+       *
+       * Since this communicates across classloaders, it must return only simple objects.
+       *
+       *
+       * @return Either
+       * - Throwable - If something went wrong (eg, a compile error).
+       * - ClassLoader - If the classloader has changed, and the application should be reloaded.
+       * - null - If nothing changed.
+       */
+      def reload: AnyRef = {
+        play.Play.synchronized {
+          if (changed || forceReloadNextTime || currentAnalysis.isEmpty
+            || currentApplicationClassLoader.isEmpty) {
 
-      var reloadNextTime = false
-      var currentProducts = Map.empty[java.io.File, Long]
-      var currentAnalysis = Option.empty[sbt.inc.Analysis]
+            val shouldReload = forceReloadNextTime
 
-      // --- USING jnotify to detect file change (TODO: Use Java 7 standard API if available)
+            changed = false
+            forceReloadNextTime = false
 
-      lazy val jnotify = { // This create a fully dynamic version of JNotify that support reloading 
+            // Run the reload task, which will trigger everything to compile
+            Project.runTask(playReload, state).map(_._2).get.toEither
+              .left.map(taskFailureHandler)
+              .right.map { compilationResult =>
 
-        // Use an alternative watcher if we fail to load JNotify
-        def fallbackWatcher(e: Throwable) = {
-          println(play.sbtplugin.Colors.red(
-            """|
-               |Cannot load the JNotify native library (%s)
-               |Play will check file changes for each request, so expect degraded reloading performace.
-               |""".format(e.getMessage).stripMargin
-          ))
+                currentAnalysis = Some(compilationResult)
 
-          new {
-            def addWatch(directoryToWatch: String): Int = 0
-            def removeWatch(id: Int): Unit = ()
-            def reloaded(): Unit = ()
-            def changed(): Unit = ()
-            def hasChanged = true
+                // Calculate the classpath
+                Project.runTask(classpathTask, state).map(_._2).get.toEither
+                  .left.map(taskFailureHandler)
+                  .right.map { classpath =>
+
+                    // We only want to reload if the classpath has changed.  Assets don't live on the classpath, so
+                    // they won't trigger a reload.
+                    // Use the SBT watch service, passing true as the termination to force it to break after one check
+                    val (_, newState) = SourceModificationWatch.watch(classpath.files.***, 0, watchState)(true)
+                    // SBT has a quiet wait period, if that's set to true, sources were modified
+                    val triggered = newState.awaitingQuietPeriod
+                    watchState = newState
+
+                    if (triggered || shouldReload || currentApplicationClassLoader.isEmpty) {
+
+                      // Create a new classloader
+                      val version = classLoaderVersion.incrementAndGet
+                      val name = "ReloadableClassLoader(v" + version + ")"
+                      val urls = Path.toURLs(classpath.files)
+                      val loader = createClassLoader(name, urls, baseLoader)
+                      currentApplicationClassLoader = Some(loader)
+                      loader
+                    } else {
+                      null // null means nothing changed
+                    }
+                  }.fold(identity, identity)
+              }.fold(identity, identity)
+          } else {
+            null // null means nothing changed
           }
         }
-
-        try {
-
-          var _changed = true
-
-          // --
-
-          var jnotifyJarFile = this.getClass.getClassLoader.asInstanceOf[java.net.URLClassLoader].getURLs
-            .map(_.getFile)
-            .find(_.contains("/jnotify"))
-            .map(new File(_))
-            .getOrElse(sys.error("Missing JNotify?"))
-
-          val sbtLoader = this.getClass.getClassLoader.getParent.asInstanceOf[java.net.URLClassLoader]
-          val method = classOf[java.net.URLClassLoader].getDeclaredMethod("addURL", classOf[java.net.URL])
-          method.setAccessible(true)
-          method.invoke(sbtLoader, jnotifyJarFile.toURI.toURL)
-
-          val targetDirectory = extracted.get(target)
-          val nativeLibrariesDirectory = new File(targetDirectory, "native_libraries")
-
-          if (!nativeLibrariesDirectory.exists) {
-            // Unzip native libraries from the jnotify jar to target/native_libraries
-            IO.unzip(jnotifyJarFile, targetDirectory, (name: String) => name.startsWith("native_libraries"))
-          }
-
-          val libs = new File(nativeLibrariesDirectory, System.getProperty("sun.arch.data.model") + "bits").getAbsolutePath
-
-          // Hack to set java.library.path
-          System.setProperty("java.library.path", {
-            Option(System.getProperty("java.library.path")).map { existing =>
-              existing + java.io.File.pathSeparator + libs
-            }.getOrElse(libs)
-          })
-          import java.lang.reflect._
-          val fieldSysPath = classOf[ClassLoader].getDeclaredField("sys_paths")
-          fieldSysPath.setAccessible(true)
-          fieldSysPath.set(null, null)
-
-          val jnotifyClass = sbtLoader.loadClass("net.contentobjects.jnotify.JNotify")
-          val jnotifyListenerClass = sbtLoader.loadClass("net.contentobjects.jnotify.JNotifyListener")
-          val addWatchMethod = jnotifyClass.getMethod("addWatch", classOf[String], classOf[Int], classOf[Boolean], jnotifyListenerClass)
-          val removeWatchMethod = jnotifyClass.getMethod("removeWatch", classOf[Int])
-          val listener = java.lang.reflect.Proxy.newProxyInstance(sbtLoader, Seq(jnotifyListenerClass).toArray, new java.lang.reflect.InvocationHandler {
-            def invoke(proxy: AnyRef, m: java.lang.reflect.Method, args: scala.Array[AnyRef]): AnyRef = {
-              _changed = true
-              null
-            }
-          })
-
-          val nativeWatcher = new {
-            def addWatch(directoryToWatch: String): Int = {
-              addWatchMethod.invoke(null, directoryToWatch, 15: java.lang.Integer, true: java.lang.Boolean, listener).asInstanceOf[Int]
-            }
-            def removeWatch(id: Int): Unit = removeWatchMethod.invoke(null, id.asInstanceOf[AnyRef])
-            def reloaded() { _changed = false }
-            def changed() { _changed = true }
-            def hasChanged = _changed
-          }
-
-          ( /* Try it */ nativeWatcher.removeWatch(0))
-
-          nativeWatcher
-
-        } catch {
-          case NonFatal(e) => fallbackWatcher(e)
-          // JNotify failure on FreeBSD
-          case e: ExceptionInInitializerError => fallbackWatcher(e)
-          // JNotify failure on Linux
-          case e: UnsatisfiedLinkError => fallbackWatcher(e)
-        }
-
       }
-
-      val (monitoredFiles, monitoredDirs) = {
-        val all = extracted.runTask(playMonitoredFiles, state)._2.map(f => new File(f))
-        (all.filter(!_.isDirectory), all.filter(_.isDirectory))
-      }
-
-      def calculateTimestamps = monitoredFiles.map(f => f.getAbsolutePath -> f.lastModified).toMap
-
-      var fileTimestamps = calculateTimestamps
-
-      def hasChangedFiles: Boolean = monitoredFiles.exists { f =>
-        val fileChanged = fileTimestamps.get(f.getAbsolutePath).map { timestamp =>
-          f.lastModified != timestamp
-        }.getOrElse {
-          state.log.debug("Did not find expected timestamp of file: " + f.getAbsolutePath + " in timestamps. Marking it as changed...")
-          true
-        }
-        if (fileChanged) {
-          fileTimestamps = calculateTimestamps //recalulating all, one _or more_ files has changed
-        }
-        fileChanged
-      }
-
-      val watchChanges: Seq[Int] = monitoredDirs.map(f => jnotify.addWatch(f.getAbsolutePath))
 
       lazy val settings = {
         import scala.collection.JavaConverters._
         extracted.get(devSettings).toMap.asJava
       }
 
-      // ---
-
       def forceReload() {
-        reloadNextTime = true
-        jnotify.changed()
-      }
-
-      def clean() {
-        currentApplicationClassLoader = None
-        currentProducts = Map.empty[java.io.File, Long]
-        currentAnalysis = None
-        watchChanges.foreach(jnotify.removeWatch)
-      }
-
-      def updateAnalysis(newAnalysis: sbt.inc.Analysis) = {
-        val classFiles = newAnalysis.stamps.allProducts ++ watchFiles
-        val newProducts = classFiles.map { classFile =>
-          classFile -> classFile.lastModified
-        }.toMap
-        val updated = if (newProducts != currentProducts || reloadNextTime) {
-          Some(newProducts)
-        } else {
-          None
-        }
-        updated.foreach(currentProducts = _)
-        currentAnalysis = Some(newAnalysis)
-
-        reloadNextTime = false
-
-        updated
+        forceReloadNextTime = true
       }
 
       def findSource(className: String, line: java.lang.Integer): Array[java.lang.Object] = {
         val topType = className.split('$').head
         currentAnalysis.flatMap { analysis =>
           analysis.apis.internal.flatMap {
-            case (sourceFile, source) => {
+            case (sourceFile, source) =>
               source.api.definitions.find(defined => defined.name == topType).map(_ => {
                 sourceFile: java.io.File
               } -> line)
-            }
           }.headOption.map {
-            case (source, maybeLine) => {
+            case (source, maybeLine) =>
               play.twirl.compiler.MaybeGeneratedSource.unapply(source).map { generatedSource =>
                 generatedSource.source.get -> Option(maybeLine).map(l => generatedSource.mapLine(l): java.lang.Integer).orNull
               }.getOrElse(source -> maybeLine)
-            }
           }
         }.map {
-          case (file, line) => {
-            Array[java.lang.Object](file, line)
-          }
+          case (file, l) =>
+            Array[java.lang.Object](file, l)
         }.orNull
       }
 
@@ -251,17 +188,16 @@ trait PlayReloader {
             Project.runTask(streamsManager, state).map(_._2).get.toEither.right.toOption.map { streamsManager =>
               var first: (Option[(String, String, String)], Option[Int]) = (None, None)
               var parsed: (Option[(String, String, String)], Option[Int]) = (None, None)
-              Output.lastLines(i.node.get.asInstanceOf[ScopedKey[_]], streamsManager).map(_.replace(scala.Console.RESET, "")).map(_.replace(scala.Console.RED, "")).collect {
+              Output.lastLines(i.node.get.asInstanceOf[ScopedKey[_]], streamsManager, None).map(_.replace(scala.Console.RESET, "")).map(_.replace(scala.Console.RED, "")).collect {
                 case JavacError(file, line, message) => parsed = Some((file, line, message)) -> None
                 case JavacErrorInfo(key, message) => parsed._1.foreach { o =>
                   parsed = Some((parsed._1.get._1, parsed._1.get._2, parsed._1.get._3 + " [" + key.trim + ": " + message.trim + "]")) -> None
                 }
-                case JavacErrorPosition(pos) => {
+                case JavacErrorPosition(pos) =>
                   parsed = parsed._1 -> Some(pos.size)
                   if (first == ((None, None))) {
                     first = parsed
                   }
-                }
               }
               first
             }.collect {
@@ -285,55 +221,19 @@ trait PlayReloader {
         }).map(remapProblemForGeneratedSources)
       }
 
-      private val classLoaderVersion = new java.util.concurrent.atomic.AtomicInteger(0)
-
       private def taskFailureHandler(incomplete: Incomplete): Exception = {
-        jnotify.changed()
+        // We force reload next time because compilation failed this time
+        forceReloadNextTime = true
         Incomplete.allExceptions(incomplete).headOption.map {
           case e: PlayException => e
-          case e: xsbti.CompileFailed => {
+          case e: xsbti.CompileFailed =>
             getProblems(incomplete)
               .find(_.severity == xsbti.Severity.Error)
               .map(CompilationException)
               .getOrElse(UnexpectedException(Some("The compilation failed without reporting any problem!"), Some(e)))
-          }
           case e: Exception => UnexpectedException(unexpected = Some(e))
         }.getOrElse {
           UnexpectedException(Some("The compilation task failed without any exception!"))
-        }
-      }
-
-      private def newClassLoader: Either[Exception, ClassLoader] = {
-        val version = classLoaderVersion.incrementAndGet
-        val name = "ReloadableClassLoader(v" + version + ")"
-        Project.runTask(classpathTask, state).map(_._2).get.toEither
-          .left.map(taskFailureHandler)
-          .right.map {
-            classpath =>
-              val urls = Path.toURLs(classpath.files)
-              val loader = createClassLoader(name, urls, baseLoader)
-              currentApplicationClassLoader = Some(loader)
-              loader
-          }
-      }
-
-      def reload: AnyRef = {
-        play.Play.synchronized {
-          if (jnotify.hasChanged || hasChangedFiles) {
-            jnotify.reloaded()
-            Project.runTask(playReload, state).map(_._2).get.toEither
-              .left.map(taskFailureHandler)
-              .right.map {
-                compilationResult =>
-                  if (updateAnalysis(compilationResult) != None) {
-                    newClassLoader.fold(identity, identity)
-                  } else {
-                    null
-                  }
-              }.fold(identity, identity)
-          } else {
-            null
-          }
         }
       }
 
@@ -342,9 +242,16 @@ trait PlayReloader {
         val Right(sk) = complete.DefaultParsers.result(parser, task)
         val result = Project.runTask(sk.asInstanceOf[Def.ScopedKey[Task[AnyRef]]], state).map(_._2)
 
-        result.flatMap(_.toEither.right.toOption).getOrElse(null)
+        result.flatMap(_.toEither.right.toOption).orNull
       }
 
+      def close() = {
+        currentApplicationClassLoader = None
+        currentAnalysis = None
+        watcher.stop()
+      }
+
+      def getClassLoader = currentApplicationClassLoader
     }
 
   }

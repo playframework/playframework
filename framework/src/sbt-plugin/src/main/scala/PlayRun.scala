@@ -109,6 +109,8 @@ trait PlayRun extends PlayInternalKeys {
       reloaderClassLoader.value,
       assetsClassLoader.value,
       playCommonClassloader.value,
+      playMonitoredFiles.value,
+      (target in LocalRootProject).value,
       (managedClasspath in DocsApplication).value,
       interaction,
       playDefaultPort.value,
@@ -214,6 +216,7 @@ trait PlayRun extends PlayInternalKeys {
     dependencyClasspath: Classpath, dependencyClassLoader: ClassLoaderCreator,
     reloaderClasspathTask: TaskKey[Classpath], reloaderClassLoader: ClassLoaderCreator,
     assetsClassLoader: ClassLoader => ClassLoader, commonClassLoader: ClassLoader,
+    monitoredFiles: Seq[String], targetDirectory: File,
     docsClasspath: Classpath, interaction: PlayInteractionMode, defaultHttpPort: Int,
     args: Seq[String]): PlayDevServer = {
 
@@ -282,13 +285,14 @@ trait PlayRun extends PlayInternalKeys {
      * to the applicationLoader, creating a full circle for resource loading.
      */
     lazy val delegatingLoader: ClassLoader = new DelegatingClassLoader(commonClassLoader, buildLoader, new ApplicationClassLoaderProvider {
-      def get: ClassLoader = { reloader.currentApplicationClassLoader.orNull }
+      def get: ClassLoader = { reloader.getClassLoader.orNull }
     })
 
     lazy val applicationLoader = dependencyClassLoader("PlayDependencyClassLoader", urls(dependencyClasspath), delegatingLoader)
     lazy val assetsLoader = assetsClassLoader(applicationLoader)
 
-    lazy val reloader = newReloader(state, playReload, reloaderClassLoader, reloaderClasspathTask, assetsLoader)
+    lazy val reloader = newReloader(state, playReload, reloaderClassLoader, reloaderClasspathTask, assetsLoader,
+      monitoredFiles, targetDirectory)
 
     try {
       // Now we're about to start, let's call the hooks:
@@ -327,7 +331,7 @@ trait PlayRun extends PlayInternalKeys {
         def close() = {
           server.stop()
           docsJarFile.close()
-          reloader.clean()
+          reloader.close()
 
           // Notify hooks
           runHooks.run(_.afterStopped())
