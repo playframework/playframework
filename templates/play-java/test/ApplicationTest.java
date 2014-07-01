@@ -36,9 +36,18 @@ public class ApplicationTest {
 
     @Test
     public void renderTemplate() {
-        Content html = views.html.index.render("Your new application is ready.");
-        assertEquals("text/html", contentType(html));
-        assertTrue(contentAsString(html).contains("Your new application is ready."));
+        running(fakeApplication(inMemoryDatabase("test")), new Runnable() {
+                public void run() {
+                    Content html = views.html.index.
+                        render("Your new application is ready.");
+
+                    assertEquals("text/html", contentType(html));
+
+                    assertTrue(contentAsString(html).
+                               contains("Your new application is ready."));
+
+                }
+            });
     }
 
 
