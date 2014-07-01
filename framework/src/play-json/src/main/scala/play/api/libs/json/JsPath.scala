@@ -19,11 +19,11 @@ sealed trait PathNode {
 case class RecursiveSearch(key: String) extends PathNode {
   def apply(json: JsValue): List[JsValue] = json match {
     case obj: JsObject => (json \\ key).toList.filterNot {
-      case JsUndefined(_) => true
+      case JsUndefined() => true
       case _ => false
     }
     case arr: JsArray => (json \\ key).toList.filterNot {
-      case JsUndefined(_) => true
+      case JsUndefined() => true
       case _ => false
     }
     case _ => List()
@@ -66,7 +66,7 @@ case class KeyPathNode(key: String) extends PathNode {
 
   def apply(json: JsValue): List[JsValue] = json match {
     case obj: JsObject => List(json \ key).filterNot {
-      case JsUndefined(_) => true
+      case JsUndefined() => true
       case _ => false
     }
     case _ => List()
@@ -442,7 +442,7 @@ case class JsPath(path: List[PathNode] = List()) {
      * Example :
      * {{{
      * val js = Json.obj("key1" -> "value1", "key2" -> "value2")
-     * js.validate( (__ \ 'key2).json.pick )
+     * js.validate((__ \ 'key2).json.pick)
      * => JsSuccess(JsString("value2"))
      * }}}
      */
@@ -478,7 +478,7 @@ case class JsPath(path: List[PathNode] = List()) {
      * {{{
      * val js = Json.obj("key1" -> "value1", "key2" -> Json.obj( "key21" -> "value2") )
      * js.validate( (__ \ 'key2).json.pickBranch )
-     * => JsSuccess(JsObject(Seq( ("key2", Json.obj("key21" -> "value2")) )))
+     * => JsSuccess(JsObject(Seq(("key2", Json.obj("key21" -> "value2")))))
      * }}}
      */
     def pickBranch: Reads[JsObject] = Reads.jsPickBranch[JsValue](self)
