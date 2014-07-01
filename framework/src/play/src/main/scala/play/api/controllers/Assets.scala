@@ -209,7 +209,10 @@ object Assets extends AssetsBuilder {
   // Sames goes for the minified paths cache.
   val minifiedPathsCache = TrieMap[String, String]()
 
-  lazy val checkForMinified = Play.configuration.getBoolean("assets.checkForMinified").getOrElse(true)
+  lazy val checkForMinified = (for {
+    app <- Play.maybeApplication
+    cfm <- app.configuration.getBoolean("assets.checkForMinified")
+  } yield cfm).getOrElse(true)
 
   private[controllers] def minifiedPath(path: String): String = {
     minifiedPathsCache.getOrElse(path, {
