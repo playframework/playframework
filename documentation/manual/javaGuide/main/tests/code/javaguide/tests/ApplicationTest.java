@@ -1,7 +1,8 @@
 package javaguide.tests;
 
 //#test-controller-test
-import static org.fest.assertions.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static play.mvc.Http.Status.OK;
 import static play.test.Helpers.GET;
 import static play.test.Helpers.callAction;
@@ -22,10 +23,10 @@ public class ApplicationTest {
   @Test
   public void testIndex() {
     Result result = Application.index();
-    assertThat(status(result)).isEqualTo(OK);
-    assertThat(contentType(result)).isEqualTo("text/html");
-    assertThat(charset(result)).isEqualTo("utf-8");
-    assertThat(contentAsString(result)).contains("Welcome");
+    assertEquals(OK, status(result));
+    assertEquals("text/html", contentType(result));
+    assertEquals("utf-8", charset(result));
+    assertTrue(contentAsString(result).contains("Welcome"));
   }
 
   //###replace: }
@@ -39,7 +40,7 @@ public class ApplicationTest {
       javaguide.tests.controllers.routes.ref.Application.index(),
       new FakeRequest(GET, "/")
     );
-    assertThat(status(result)).isEqualTo(OK);
+    assertEquals(OK, status(result));
   }
   //#test-controller-routes
   
@@ -47,8 +48,8 @@ public class ApplicationTest {
   @Test
   public void renderTemplate() {
     Content html = javaguide.tests.html.index.render("Welcome to Play!");
-    assertThat(contentType(html)).isEqualTo("text/html");
-    assertThat(contentAsString(html)).contains("Welcome to Play!");
+    assertEquals("text/html", contentType(html));
+    assertTrue(contentAsString(html).contains("Welcome to Play!"));
   }
   //#test-template
 

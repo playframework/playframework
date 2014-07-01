@@ -1,7 +1,7 @@
 package javaguide.tests;
 
-import static org.fest.assertions.Assertions.assertThat;
 import static play.test.Helpers.*;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
 
@@ -31,8 +31,8 @@ public class FakeApplicationTest {
         running(fakeApplication(inMemoryDatabase("test")), new Runnable() {
             public void run() {
                 Computer macintosh = Computer.findById(21l);
-                assertThat(macintosh.name).isEqualTo("Macintosh");
-                assertThat(formatted(macintosh.introduced)).isEqualTo("1984-01-24");
+                assertEquals("Macintosh", macintosh.name);
+                assertEquals("1984-01-24", formatted(macintosh.introduced));
             }
         });
     }

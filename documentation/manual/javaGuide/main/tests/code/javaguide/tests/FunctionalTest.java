@@ -11,7 +11,7 @@ import play.libs.F.*;
 import play.libs.ws.*;
 
 import static play.test.Helpers.*;
-import static org.fest.assertions.Assertions.*;
+import static org.junit.Assert.*;
 
 //#test-withapp
 public class FunctionalTest extends WithApplication {
@@ -21,7 +21,7 @@ public class FunctionalTest extends WithApplication {
     @Test
     public void testBadRoute() {
         Result result = route(fakeRequest(GET, "/xx/Kiki"));
-        assertThat(result).isNull();
+        assertNull(result);
     }
     //#bad-route
 
@@ -44,9 +44,7 @@ public class FunctionalTest extends WithApplication {
     public void testInServer() {
         running(testServer(3333), new Runnable() {
             public void run() {
-                assertThat(
-                    WS.url("http://localhost:3333").get().get(timeout).getStatus()
-                ).isEqualTo(OK);
+                assertEquals(OK, WS.url("http://localhost:3333").get().get(timeout).getStatus());
             }
         });
     }
@@ -58,9 +56,9 @@ public class FunctionalTest extends WithApplication {
         running(testServer(), HTMLUNIT, new Callback<TestBrowser>() {
             public void invoke(TestBrowser browser) {
                 browser.goTo("/");
-                assertThat(browser.$("#title").getText()).isEqualTo("Welcome to Play!");
+                assertEquals("Welcome to Play!", browser.$("#title").getText());
                 browser.$("a").click();
-                assertThat(browser.url()).isEqualTo("/login");
+                assertEquals("/login", browser.url());
             }
         });
     }
