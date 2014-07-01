@@ -264,8 +264,31 @@ private[anorm] trait Sql {
   /**
    * Executes this SQL statement as query, returns result as Row stream.
    */
+  @deprecated(message =
+    "Use [[fold]] instead, which manages resources and memory", "2.4")
   def apply()(implicit connection: Connection): Stream[Row] =
     Sql.resultSetToStream(resultSet())
+
+  /**
+   * Aggregates over the whole stream of row using the specified operator.
+   *
+   * @param z the start value
+   * @param op Aggregate operator
+   * @return Either list of failures at left, or aggregated value
+   * @see #foldWhile
+   */
+  def fold[T](z: T)(op: (T, Row) => T)(implicit connection: Connection): Either[List[Throwable], T] =
+    Sql.fold(resultSet())(z) { (t, r) => op(t, r) -> true } acquireFor identity
+
+  /**
+   * Aggregates over part of or the while row stream, using the specified operator.
+   *
+   * @param z the start value
+   * @param op Aggregate operator. Returns aggregated value along with true if aggregation must process next value, or false to stop with current value.
+   * @return Either list of failures at left, or aggregated value
+   */
+  def foldWhile[T](z: T)(op: (T, Row) => (T, Boolean))(implicit connection: Connection): Either[List[Throwable], T] =
+    Sql.fold(resultSet())(z) { (t, r) => op(t, r) } acquireFor identity
 
   /**
    * Executes this statement as query (see [[executeQuery]]) and returns result.
@@ -364,24 +387,31 @@ object Sql { // TODO: Rename to SQL
   }
 
   private[anorm] def as[T](parser: ResultSetParser[T], rs: ManagedResource[ResultSet])(implicit connection: Connection): T =
-    parser(Sql.resultSetToStream(rs)) match {
+    parser(Sql.resultSetToStream(rs) /* TODO: Refactory with fold */ ) match {
       case Success(a) => a
       case Error(e) => sys.error(e.toString)
     }
 
-  private def fold[T](res: ManagedResource[ResultSet])(initial: T)(f: (T, Row) => T): ManagedResource[T] = res map { rs =>
+  /**
+   * @param f Aggregate operator. Returns aggregated value along with true if aggregation must process next value, or false to stop with current value.
+   */
+  private[anorm] def fold[T](res: ManagedResource[ResultSet])(initial: T)(f: (T, Row) => (T, Boolean)): ManagedResource[T] = res map { rs =>
     val rsMetaData: MetaData = metaData(rs)
     val columns: List[Int] = List.range(1, rsMetaData.columnCount + 1)
     @inline def data(rs: ResultSet) = columns.map(rs.getObject(_))
 
     @annotation.tailrec
     def go(r: ResultSet, s: T): T =
-      if (r.next()) go(r, f(s, new SqlRow(rsMetaData, data(rs)))) else s
+      if (r.next()) {
+        val (v, cont) = f(s, new SqlRow(rsMetaData, data(rs)))
+        if (cont) go(r, v) else v
+      } else s
 
     go(rs, initial)
   }
 
-  private[anorm] def resultSetToStream(rs: ManagedResource[ResultSet]): Stream[Row] = fold(rs)(Stream.empty[Row])((s, r) => s :+ r) acquireAndGet identity
+  // TODO: Remove when unused
+  private[anorm] def resultSetToStream(rs: ManagedResource[ResultSet]): Stream[Row] = fold(rs)(Stream.empty[Row])((s, r) => (s :+ r) -> true) acquireAndGet identity
 
   private case class SqlRow(metaData: MetaData, data: List[Any]) extends Row {
     override lazy val toString = "Row(" + metaData.ms.zip(data).map(t => s"'${t._1.column}': ${t._2} as ${t._1.clazz}").mkString(", ") + ")"
