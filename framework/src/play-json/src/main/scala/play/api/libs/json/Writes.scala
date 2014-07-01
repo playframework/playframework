@@ -255,5 +255,11 @@ trait DefaultWrites {
     def writes(u: java.util.UUID) = JsString(u.toString())
   }
 
-}
+  /**
+   * Serializer for scala.Enumeration by name.
+   */
+  implicit def enumNameWrites[E <: Enumeration]: Writes[E#Value] = new Writes[E#Value] {
+    def writes(value: E#Value): JsValue = JsString(value.toString)
+  }
 
+}

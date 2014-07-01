@@ -177,6 +177,17 @@ object JsonValidSpec extends Specification {
         } must beEqualTo("error")
       }
     }
+    
+    "validate Enums" in {
+      object Weekdays extends Enumeration {
+        val Mon, Tue, Wed, Thu, Fri, Sat, Sun = Value
+      }
+      val json = Json.obj("day1" -> Weekdays.Mon, "day2" -> "tue", "day3" -> 3)
+      
+      (json.validate((__ \ "day1").read(Reads.enumNameReads(Weekdays))).asOpt must beSome(Weekdays.Mon)) and
+      (json.validate((__ \ "day2").read(Reads.enumNameReads(Weekdays))).asOpt must beNone) and
+      (json.validate((__ \ "day3").read(Reads.enumNameReads(Weekdays))).asOpt must beNone)
+    }
 
     "Can reads with nullable" in {
       val json = Json.obj("field" -> JsNull)
