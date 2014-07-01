@@ -307,14 +307,28 @@ package play.api.mvc {
     /**
      * Transform this call to an absolute URL.
      */
-    def absoluteURL(secure: Boolean = false)(implicit request: RequestHeader) = {
+    def absoluteURL()(implicit request: RequestHeader): String = {
+      absoluteURL(request.secure)
+    }
+
+    /**
+     * Transform this call to an absolute URL.
+     */
+    def absoluteURL(secure: Boolean)(implicit request: RequestHeader): String = {
       "http" + (if (secure) "s" else "") + "://" + request.host + this.url
     }
 
     /**
      * Transform this call to an WebSocket URL.
      */
-    def webSocketURL(secure: Boolean = false)(implicit request: RequestHeader) = {
+    def webSocketURL()(implicit request: RequestHeader): String = {
+      webSocketURL(request.secure)
+    }
+
+    /**
+     * Transform this call to an WebSocket URL.
+     */
+    def webSocketURL(secure: Boolean)(implicit request: RequestHeader): String = {
       "ws" + (if (secure) "s" else "") + "://" + request.host + this.url
     }
 
