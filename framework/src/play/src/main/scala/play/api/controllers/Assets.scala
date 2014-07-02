@@ -7,14 +7,14 @@ import play.api._
 import play.api.mvc._
 import play.api.libs._
 import play.api.libs.iteratee._
-import Play.current
 import java.io._
 import java.net.{ URL, JarURLConnection }
 import org.joda.time.format.{ DateTimeFormatter, DateTimeFormat }
 import org.joda.time.DateTimeZone
 import play.utils.{ InvalidUriEncodingException, UriEncoding }
 import scala.concurrent.{ ExecutionContext, Promise, Future, blocking }
-import scala.util.Try
+import scala.util.control.NonFatal
+import scala.util.{ Success, Failure }
 import java.util.Date
 import play.api.libs.iteratee.Execution.Implicits
 import play.api.http.ContentTypes
@@ -28,8 +28,9 @@ import scala.io.Source
  * This could be factored out into its own thing, improved and made available more widely. We could also
  * use spray-cache once it has been re-worked into the Akka code base.
  *
- * The essential mechanics of the cache are that all asset requests are remembered, unless their lookup fails in which
- * case we don't remember them in order to avoid an exploit where we would otherwise run out of memory.
+ * The essential mechanics of the cache are that all asset requests are remembered, unless their lookup fails or if
+ * the asset doesn't exist, in which case we don't remember them in order to avoid an exploit where we would otherwise
+ * run out of memory.
  *
  * The population function is executed using the passed-in execution context
  * which may mean that it is on a separate thread thus permitting long running operations to occur. Other threads
@@ -44,16 +45,16 @@ import scala.io.Source
  * approach would result in an immutable map being used which in theory should be faster.
  */
 private class SelfPopulatingMap[K, V] {
-  private val store = TrieMap[K, Future[V]]()
+  private val store = TrieMap[K, Future[Option[V]]]()
 
-  def putIfAbsent(k: K)(pf: K => V)(implicit ec: ExecutionContext): Future[V] = {
-    val p = Promise[V]()
+  def putIfAbsent(k: K)(pf: K => Option[V])(implicit ec: ExecutionContext): Future[Option[V]] = {
+    lazy val p = Promise[Option[V]]()
     store.putIfAbsent(k, p.future) match {
       case Some(f) => f
       case None =>
         val f = Future(pf(k))(ec.prepare())
-        f.onFailure {
-          case _ => store.remove(k)
+        f.onComplete {
+          case Failure(_) | Success(None) => store.remove(k)
         }
         p.completeWith(f)
         p.future
@@ -66,13 +67,26 @@ private class SelfPopulatingMap[K, V] {
  */
 private[controllers] object AssetInfo {
 
-  lazy val defaultCharSet = Play.configuration.getString("default.charset").getOrElse("utf-8")
+  def config[T](lookup: Configuration => Option[T]): Option[T] = for {
+    app <- Play.maybeApplication
+    value <- lookup(app.configuration)
+  } yield value
 
-  lazy val defaultCacheControl = Play.configuration.getString("assets.defaultCache").getOrElse("public, max-age=3600")
+  def isDev = Play.maybeApplication.fold(false)(_.mode == Mode.Dev)
+  def isProd = Play.maybeApplication.fold(false)(_.mode == Mode.Prod)
 
-  lazy val aggressiveCacheControl = Play.configuration.getString("assets.aggressiveCache").getOrElse("public, max-age=31536000")
+  def resource(name: String): Option[URL] = for {
+    app <- Play.maybeApplication
+    resource <- app.resource(name)
+  } yield resource
 
-  lazy val digestAlgorithm = Play.configuration.getString("assets.digest.algorithm").getOrElse("md5")
+  lazy val defaultCharSet = config(_.getString("default.charset")).getOrElse("utf-8")
+
+  lazy val defaultCacheControl = config(_.getString("assets.defaultCache")).getOrElse("public, max-age=3600")
+
+  lazy val aggressiveCacheControl = config(_.getString("assets.aggressiveCache")).getOrElse("public, max-age=31536000")
+
+  lazy val digestAlgorithm = config(_.getString("assets.digest.algorithm")).getOrElse("md5")
 
   val timeZoneCode = "GMT"
 
@@ -111,11 +125,11 @@ private[controllers] class AssetInfo(
   def addCharsetIfNeeded(mimeType: String): String =
     if (MimeTypes.isText(mimeType)) s"$mimeType; charset=$defaultCharSet" else mimeType
 
-  val configuredCacheControl = Play.configuration.getString("\"assets.cache." + name + "\"")
+  val configuredCacheControl = config(_.getString("\"assets.cache." + name + "\""))
 
   def cacheControl(aggressiveCaching: Boolean): String = {
     configuredCacheControl.getOrElse {
-      if (Play.isProd) {
+      if (isProd) {
         if (aggressiveCaching) aggressiveCacheControl else defaultCacheControl
       } else {
         "no-cache"
@@ -199,9 +213,9 @@ object Assets extends AssetsBuilder {
 
   private[controllers] def digest(path: String): Option[String] = {
     digestCache.getOrElse(path, {
-      val maybeDigestUrl: Option[URL] = Play.resource(path + "." + digestAlgorithm)
+      val maybeDigestUrl: Option[URL] = resource(path + "." + digestAlgorithm)
       val maybeDigest: Option[String] = maybeDigestUrl.map(Source.fromURL(_).mkString)
-      if (!Play.isDev) digestCache.put(path, maybeDigest)
+      if (!isDev && maybeDigest.isDefined) digestCache.put(path, maybeDigest)
       maybeDigest
     })
   }
@@ -209,10 +223,7 @@ object Assets extends AssetsBuilder {
   // Sames goes for the minified paths cache.
   val minifiedPathsCache = TrieMap[String, String]()
 
-  lazy val checkForMinified = (for {
-    app <- Play.maybeApplication
-    cfm <- app.configuration.getBoolean("assets.checkForMinified")
-  } yield cfm).getOrElse(true)
+  lazy val checkForMinified = config(_.getBoolean("assets.checkForMinified")).getOrElse(true)
 
   private[controllers] def minifiedPath(path: String): String = {
     minifiedPathsCache.getOrElse(path, {
@@ -220,39 +231,42 @@ object Assets extends AssetsBuilder {
         val ext = path.reverse.takeWhile(_ != '.').reverse
         val noextPath = path.dropRight(ext.size + 1)
         val minPath = noextPath + delim + "min." + ext
-        Play.resource(minPath).map(_ => minPath)
+        resource(minPath).map(_ => minPath)
       }
       val maybeMinifiedPath = if (checkForMinified) {
         minifiedPathFor('.').orElse(minifiedPathFor('-')).getOrElse(path)
       } else {
         path
       }
-      if (!Play.isDev) minifiedPathsCache.put(path, maybeMinifiedPath)
+      if (!isDev) minifiedPathsCache.put(path, maybeMinifiedPath)
       maybeMinifiedPath
     })
   }
 
   private[controllers] lazy val assetInfoCache = new SelfPopulatingMap[String, AssetInfo]()
 
-  private def assetInfoFromResource(name: String): AssetInfo = {
+  private def assetInfoFromResource(name: String): Option[AssetInfo] = {
     blocking {
-      val url: URL = Play.resource(name).getOrElse(throw new RuntimeException("no resource"))
-      val gzipUrl: Option[URL] = Play.resource(name + ".gz")
-      new AssetInfo(name, url, gzipUrl, digest(name))
+      for {
+        url <- resource(name)
+      } yield {
+        val gzipUrl: Option[URL] = resource(name + ".gz")
+        new AssetInfo(name, url, gzipUrl, digest(name))
+      }
     }
   }
 
-  private def assetInfo(name: String): Future[AssetInfo] = {
-    if (Play.isDev) {
+  private def assetInfo(name: String): Future[Option[AssetInfo]] = {
+    if (isDev) {
       Future.successful(assetInfoFromResource(name))
     } else {
       assetInfoCache.putIfAbsent(name)(assetInfoFromResource)(Implicits.trampoline)
     }
   }
 
-  private[controllers] def assetInfoForRequest(request: Request[_], name: String): Future[(AssetInfo, Boolean)] = {
+  private[controllers] def assetInfoForRequest(request: Request[_], name: String): Future[Option[(AssetInfo, Boolean)]] = {
     val gzipRequested = request.headers.get(ACCEPT_ENCODING).exists(_.split(',').exists(_.trim == "gzip"))
-    assetInfo(name).map(_ -> gzipRequested)(Implicits.trampoline)
+    assetInfo(name).map(_.map(_ -> gzipRequested))(Implicits.trampoline)
   }
 
   /**
@@ -360,11 +374,16 @@ class AssetsBuilder extends Controller {
    */
   def versioned(path: String, file: Asset): Action[AnyContent] = {
     val f = new File(file.name)
+    // We want to detect if it's a fingerprinted asset, because if it's fingerprinted, we can aggressively cache it,
+    // otherwise we can't.
     val requestedDigest = f.getName.takeWhile(_ != '-')
     if (!requestedDigest.isEmpty) {
       val bareFile = new File(f.getParent, f.getName.drop(requestedDigest.size + 1)).getPath
       val bareFullPath = new File(path + File.separator + bareFile).getPath
-      if (blocking(digest(bareFullPath)) == Some(requestedDigest)) at(path, bareFile, true) else at(path, file.name)
+      blocking(digest(bareFullPath)) match {
+        case Some(`requestedDigest`) => at(path, bareFile, aggressiveCaching = true)
+        case _ => at(path, file.name)
+      }
     } else {
       at(path, file.name)
     }
@@ -381,30 +400,35 @@ class AssetsBuilder extends Controller {
     implicit request =>
 
       import Implicits.trampoline
-      val pendingResult: Future[Result] = for {
-        Some(name) <- Future.successful(resourceNameAt(path, file))
-        (assetInfo, gzipRequested) <- assetInfoForRequest(request, name)
-      } yield {
-        val stream = assetInfo.url(gzipRequested).openStream()
-        Try(stream.available -> Enumerator.fromStream(stream)(Implicits.defaultExecutionContext)).map {
-          case (length, resourceData) =>
-            maybeNotModified(request, assetInfo, aggressiveCaching).getOrElse {
-              cacheableResult(
-                assetInfo,
-                aggressiveCaching,
-                result(file, length, assetInfo.mimeType, resourceData, gzipRequested, assetInfo.gzipUrl.isDefined)
-              )
-            }
-        }.getOrElse(NotFound)
+      val assetName: Option[String] = resourceNameAt(path, file)
+      val assetInfoFuture: Future[Option[(AssetInfo, Boolean)]] = assetName.map { name =>
+        assetInfoForRequest(request, name)
+      } getOrElse Future.successful(None)
+
+      val pendingResult: Future[Result] = assetInfoFuture.map {
+        case Some((assetInfo, gzipRequested)) =>
+          val stream = assetInfo.url(gzipRequested).openStream()
+          val length = stream.available
+          val resourceData = Enumerator.fromStream(stream)(Implicits.defaultExecutionContext)
+
+          maybeNotModified(request, assetInfo, aggressiveCaching).getOrElse {
+            cacheableResult(
+              assetInfo,
+              aggressiveCaching,
+              result(file, length, assetInfo.mimeType, resourceData, gzipRequested, assetInfo.gzipUrl.isDefined)
+            )
+          }
+        case None => NotFound
       }
 
-      pendingResult.recover {
+      pendingResult.recoverWith {
         case e: InvalidUriEncodingException =>
-          Logger.debug(s"Invalid URI encoding for $file at $path", e)
-          BadRequest
-        case e: Throwable =>
-          Logger.debug(s"Unforeseen error for $file at $path", e)
-          NotFound
+          Play.maybeApplication.fold(Future.successful(BadRequest: Result)) { app =>
+            app.global.onBadRequest(request, s"Invalid URI encoding for $file at $path: " + e.getMessage)
+          }
+        case NonFatal(e) =>
+          // Add a bit more information to the exception for better error reporting later
+          throw new RuntimeException(s"Unexpected error while serving $file at $path: " + e.getMessage, e)
       }
   }
 
