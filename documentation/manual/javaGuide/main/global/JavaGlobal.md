@@ -2,7 +2,7 @@
 
 ## The Global object
 
-Defining a `Global` object in your project allows you to handle global settings for your application. This object must be defined in the root package.
+Defining a `Global` object in your project allows you to handle global settings for your application. This object must be defined in the root package. If you want to personalize package (or class name) you must modify `application.global` key into `conf/application.conf`.
 
 @[global](code/javaguide/global/simple/Global.java)
 
