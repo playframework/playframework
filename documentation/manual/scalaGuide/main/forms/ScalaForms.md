@@ -42,7 +42,7 @@ The function of a Form is to transform form data into a bound instance of a case
 
 The [Forms](api/scala/index.html#play.api.data.Forms$) object defines the [`mapping`](api/scala/index.html#play.api.data.Forms$@mapping%5BR%2CA1%5D\(\(String%2CMapping%5BA1%5D\)\)\(\(A1\)%E2%87%92R\)\(\(R\)%E2%87%92Option%5BA1%5D\)%3AMapping%5BR%5D) method. This method takes the names and constraints of the form, and also takes two functions: an `apply` function and an `unapply` function.  Because UserData is a case class, we can plug its apply and unapply methods directly into the mapping method.
 
-> **Note:** Case classes will only map up to 22 different fields, due to [compiler limitations](https://issues.scala-lang.org/browse/SI-7099).  If you have more than 22 fields in your form, you should break down your forms using lists or nested values.
+> **Note:** Maximum number of fields for a single tuple or mapping is 18 due to the way form handling is implemented. If you have more than 18 fields in your form, you should break down your forms using lists or nested values.
 
 A form will create UserData instance with the bound values when given a Map:
 
