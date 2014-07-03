@@ -6,7 +6,7 @@ package play.api.libs
 import javax.crypto._
 import javax.crypto.spec.SecretKeySpec
 
-import play.api.{ Mode, Play, PlayException }
+import play.api.{ Configuration, Mode, Play, PlayException }
 import java.security.SecureRandom
 import org.apache.commons.codec.binary.Hex
 import org.apache.commons.codec.digest.DigestUtils
@@ -25,7 +25,9 @@ import org.apache.commons.codec.digest.DigestUtils
  */
 object Crypto {
 
-  private def getConfig(key: String) = Play.maybeApplication.flatMap(_.configuration.getString(key))
+  private def maybeApp = Play.maybeApplication
+
+  private def getConfig(key: String) = maybeApp.flatMap(_.configuration.getString(key))
 
   private val Blank = """\s*""".r
 
@@ -56,24 +58,22 @@ object Crypto {
      * To achieve 4, using the location of application.conf to generate the secret should ensure this.
      */
 
-    val app = Play.current
-
-    app.configuration.getString("application.secret") match {
-      case (Some("changeme") | Some(Blank()) | None) if app.mode == Mode.Prod =>
+    maybeApp.map(_.configuration).getOrElse(Configuration.empty).getString("application.secret") match {
+      case (Some("changeme") | Some(Blank()) | None) if maybeApp.exists(_.mode == Mode.Prod) =>
         Play.logger.error("The application secret has not been set, and we are in prod mode. Your application is not secure.")
         Play.logger.error("To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret")
         throw new PlayException("Configuration error", "Application secret not set")
       case Some("changeme") | Some(Blank()) | None =>
+        val appConfLocation = maybeApp.flatMap(app => Option(app.classloader.getResource("application.conf")))
         // Try to generate a stable secret. Security is not the issue here, since this is just for tests and dev mode.
-        val applicationConfLocation = app.classloader.getResource("application.conf")
-        val secret = if (applicationConfLocation == null) {
+        val secret = appConfLocation map { confLoc =>
+          confLoc.toString
+        } getOrElse {
           // No application.conf?  Oh well, just use something hard coded.
           "she sells sea shells on the sea shore"
-        } else {
-          applicationConfLocation.toString
         }
         val md5Secret = DigestUtils.md5Hex(secret)
-        Play.logger.debug(s"Generated dev mode secret ${md5Secret} for app at ${Option(applicationConfLocation).getOrElse("unknown location")}")
+        Play.logger.debug(s"Generated dev mode secret $md5Secret for app at ${appConfLocation.getOrElse("unknown location")}")
         md5Secret
       case Some(s) => s
     }
