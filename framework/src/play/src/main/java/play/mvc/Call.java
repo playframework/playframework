@@ -48,7 +48,14 @@ public abstract class Call {
     public String absoluteURL(Http.Request request, boolean secure) {
         return "http" + (secure ? "s" : "") + "://" + request.host() + this.url();
     }
-    
+
+    /**
+     * Transform this call to an absolute URL.
+     */
+    public String absoluteURL(boolean secure, String host) {
+        return "http" + (secure ? "s" : "") + "://" + host + this.url();
+    }
+
     /**
      * Transform this call to an WebSocket URL.
      */
@@ -62,5 +69,12 @@ public abstract class Call {
     public String webSocketURL(Http.Request request, boolean secure) {
       return "ws" + (secure ? "s" : "") + "://" + request.host() + this.url();
     }
-    
+
+   /**
+     * Transform this call to an WebSocket URL.
+     */
+    public String webSocketURL(boolean secure, String host) {
+      return "ws" + (secure ? "s" : "") + "://" + host + this.url();
+    }
+
 }
