@@ -137,7 +137,7 @@ Follow the installation instructions at <https://github.com/aemoncannon/ensime>
 Edit your project/plugins.sbt file, and add the following line (you should first check <https://github.com/ensime/ensime-sbt-cmd> for the latest version of the plugin):
 
 ```
-addSbtPlugin("org.ensime" % "ensime-sbt-cmd" % "0.1.3")
+addSbtPlugin("org.ensime" % "ensime-sbt-cmd" % "0.1.4")
 ```
 
 Start Play:
