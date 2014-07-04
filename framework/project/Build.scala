@@ -233,7 +233,8 @@ object PlayBuild extends Build {
         ProblemFilters.exclude[MissingMethodProblem]("play.core.ClosableLazy.CreateResult"),
         ProblemFilters.exclude[MissingMethodProblem]("play.core.ClosableLazy.close"),
         ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.core.ClosableLazy.create"),
-        ProblemFilters.exclude[MissingMethodProblem]("play.core.ClosableLazy.create")
+        ProblemFilters.exclude[MissingMethodProblem]("play.core.ClosableLazy.create"),
+        ProblemFilters.exclude[IncompatibleResultTypeProblem]("controllers.Assets.controllers$Assets$$assetInfoFromResource")
       )
 
     ).dependsOn(BuildLinkProject, PlayExceptionsProject, IterateesProject % "test->test;compile->compile", JsonProject)
