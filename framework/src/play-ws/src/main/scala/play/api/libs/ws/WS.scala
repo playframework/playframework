@@ -465,8 +465,12 @@ trait WSRequestHolder {
    */
   def withBody[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): WSRequestHolder = {
     val wsBody = InMemoryBody(wrt.transform(body))
-    ct.mimeType.fold(withBody(wsBody)) { contentType =>
-      withBody(wsBody).withHeaders("Content-Type" -> contentType)
+    if (headers.contains("Content-Type")) {
+      withBody(wsBody)
+    } else {
+      ct.mimeType.fold(withBody(wsBody)) { contentType =>
+        withBody(wsBody).withHeaders("Content-Type" -> contentType)
+      }
     }
   }
 

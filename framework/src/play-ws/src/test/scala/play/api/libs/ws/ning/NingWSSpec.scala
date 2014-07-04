@@ -99,6 +99,14 @@ object NingWSSpec extends PlaySpecification with Mockito {
       req.getHeaders.get("key").size must equalTo(2)
     }
 
+    "not make Content-Type header if there is Content-Type in headers already" in new WithApplication {
+      val req = WS.url("http://playframework.com/")
+        .withHeaders("Content-Type" -> "text/plain").withBody(<aaa>value1</aaa>).asInstanceOf[NingWSRequestHolder]
+        .prepare().build
+      req.getHeaders.get("Content-Type").contains("text/plain") must beTrue
+      req.getHeaders.get("Content-Type").size must equalTo(1)
+    }
+
     "support a virtual host" in new WithApplication {
       val req = WS.url("http://playframework.com/")
         .withVirtualHost("192.168.1.1").asInstanceOf[NingWSRequestHolder]
