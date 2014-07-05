@@ -1,8 +1,8 @@
 package anorm
 
-import acolyte.RowLists.stringList
-import acolyte.Acolyte.withQueryResult
-import acolyte.Implicits._
+import acolyte.jdbc.RowLists.stringList
+import acolyte.jdbc.AcolyteDSL.withQueryResult
+import acolyte.jdbc.Implicits._
 
 object StatementParserSpec extends org.specs2.mutable.Specification {
   "SQL statement parser" title

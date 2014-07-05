@@ -44,12 +44,12 @@ object BoneCPPluginSpec extends Specification {
 
   val jdbcUrl = "jdbc:acolyte:test?handler=boneCPPluginSpec"
   lazy val plugin = {
-    acolyte.Driver.register("boneCPPluginSpec", 
-      acolyte.CompositeHandler.empty()) // Fake driver
+    acolyte.jdbc.Driver.register("boneCPPluginSpec", 
+      acolyte.jdbc.CompositeHandler.empty()) // Fake driver
 
     new BoneCPPlugin(
       FakeApplication(additionalConfiguration = Map(
-        "db.default.driver" -> "acolyte.Driver",
+        "db.default.driver" -> "acolyte.jdbc.Driver",
         "db.default.url" -> jdbcUrl)))
   }
 }

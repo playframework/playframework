@@ -13,13 +13,13 @@ import java.util.Date
 
 import java.sql.{ SQLFeatureNotSupportedException, Timestamp }
 
-import acolyte.{
+import acolyte.jdbc.{
   DefinedParameter => DParam,
   ParameterMetaData,
   UpdateExecution
 }
-import acolyte.Acolyte.{ connection, handleStatement }
-import acolyte.Implicits._
+import acolyte.jdbc.AcolyteDSL.{ connection, handleStatement }
+import acolyte.jdbc.Implicits._
 
 object ParameterSpec extends org.specs2.mutable.Specification {
   "Parameter" title

@@ -3,10 +3,10 @@ package anorm
 import TupleFlattener._
 import SqlParser.{ bool, str, int, long, get }
 
-import acolyte.RowLists._
-import acolyte.Rows._
-import acolyte.Acolyte.{ connection, handleQuery }
-import acolyte.Implicits._
+import acolyte.jdbc.RowLists._
+import acolyte.jdbc.Rows._
+import acolyte.jdbc.AcolyteDSL.{ connection, handleQuery }
+import acolyte.jdbc.Implicits._
 
 object TupleFlattenerSpec extends org.specs2.mutable.Specification {
   "Tuple flattener" title
@@ -244,6 +244,6 @@ object TupleFlattenerSpec extends org.specs2.mutable.Specification {
     }
   }
 
-  def withQueryResult[A](r: acolyte.QueryResult)(f: java.sql.Connection => A): A = f(connection(handleQuery { _ => r }))
+  def withQueryResult[A](r: acolyte.jdbc.QueryResult)(f: java.sql.Connection => A): A = f(connection(handleQuery { _ => r }))
 
 }

@@ -1,7 +1,7 @@
 package anorm
 
-import acolyte.Acolyte
-import acolyte.Implicits._
+import acolyte.jdbc.AcolyteDSL
+import acolyte.jdbc.Implicits._
 
 object BatchSqlSpec 
     extends org.specs2.mutable.Specification with H2Database {

@@ -4,8 +4,8 @@ import java.sql.{ Array => SqlArray }
 import javax.sql.rowset.serial.SerialClob
 import java.math.BigInteger
 
-import acolyte.{ QueryResult, ImmutableArray }
-import acolyte.RowLists.{
+import acolyte.jdbc.{ QueryResult, ImmutableArray }
+import acolyte.jdbc.RowLists.{
   bigDecimalList,
   byteList,
   dateList,
@@ -19,8 +19,8 @@ import acolyte.RowLists.{
   timeList,
   timestampList
 }
-import acolyte.Acolyte.{ connection, handleQuery }
-import acolyte.Implicits._
+import acolyte.jdbc.AcolyteDSL.{ connection, handleQuery }
+import acolyte.jdbc.Implicits._
 
 import SqlParser.{ byte, double, float, scalar, short }
 
@@ -299,7 +299,7 @@ object ColumnSpec extends org.specs2.mutable.Specification {
     }
 
     "not be parsed from array with invalid component type" in withQueryResult(
-      rowList1(classOf[SqlArray]) :+ acolyte.ImmutableArray.getInstance(
+      rowList1(classOf[SqlArray]) :+ acolyte.jdbc.ImmutableArray.getInstance(
         classOf[java.sql.Date], Array(new java.sql.Date(1l), 
           new java.sql.Date(2l)))) { implicit con =>
 
@@ -339,7 +339,7 @@ object ColumnSpec extends org.specs2.mutable.Specification {
     }
 
     "not be parsed from array with invalid component type" in withQueryResult(
-      rowList1(classOf[SqlArray]) :+ acolyte.ImmutableArray.getInstance(
+      rowList1(classOf[SqlArray]) :+ acolyte.jdbc.ImmutableArray.getInstance(
         classOf[java.sql.Date], Array(new java.sql.Date(1l), 
           new java.sql.Date(2l)))) { implicit con =>
 
