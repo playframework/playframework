@@ -28,7 +28,7 @@ Play is based on a lightweight, stateless, web-friendly architecture and feature
     1. [[Asynchronous HTTP programming | JavaAsync]]
     1. [[The template engine | JavaTemplates]]
     1. [[HTTP form submission and validation | JavaForms]]
-    1. [[Working with JSON | JavaJsonRequests]]
+    1. [[Working with JSON | JavaJsonActions]]
     1. [[Working with XML | JavaXmlRequests]]
     1. [[Handling file upload | JavaFileUpload]]
     1. [[Accessing an SQL database | JavaDatabase]]

@@ -96,5 +96,5 @@ The following options can be configured in `application.conf`:
 * `csrf.sign.tokens` - Whether Play should use signed CSRF tokens.  Signed CSRF tokens ensure that the token value is randomised per request, thus defeating BREACH style attacks.
 * `csrf.error.handler` - The error handler.  Must implement `play.filters.csrf.CSRFErrorHandler` or `play.filters.csrf.CSRF.ErrorHandler`.
 
-> **Next:** [[Working with JSON| JavaJsonRequests]]
+> **Next:** [[Working with JSON| JavaJsonActions]]
 

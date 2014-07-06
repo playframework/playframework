@@ -72,7 +72,7 @@ To post url-form-encoded data you can set the proper header and formatted data.
 
 ### Submitting JSON data
 
-The easiest way to post JSON data is to use the [[JSON library|JavaJsonRequests]].
+The easiest way to post JSON data is to use the [[JSON library|JavaJsonActions]].
 
 @[json-imports](code/javaguide/ws/JavaWS.java)
 
