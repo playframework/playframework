@@ -1,5 +1,5 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
-# Handling and serving JSON requests
+# Handling and serving JSON
 
 ## Handling a JSON request
 
@@ -76,20 +76,11 @@ import play.libs.Json;
 import com.fasterxml.jackson.databind.JsonNode;
 ...
 
-@BodyParser.Of(BodyParser.Json.class)
 public static Result sayHello() {
-  JsonNode json = request().body().asJson();
   ObjectNode result = Json.newObject();
-  String name = json.findPath("name").textValue();
-  if(name == null) {
-    result.put("status", "KO");
-    result.put("message", "Missing parameter [name]");
-    return badRequest(result);
-  } else {
-    result.put("status", "OK");
-    result.put("message", "Hello " + name);
-    return ok(result);
-  }
+  result.put("exampleField1", "foobar");
+  result.put("exampleField2", "Hello world!");
+  return ok(result);
 }
 ```
 
@@ -98,9 +89,20 @@ Now it replies with:
 ```http
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-Content-Length: 43
 
-{"status":"OK","message":"Hello Guillaume"}
+{"exampleField1":"foobar","exampleField2":"Hello world!"}
+```
+
+You can also return a Java object and have it automatically serialized to JSON by the Jackson library:
+
+```java
+import play.libs.Json;
+...
+
+public Result getPeople() {
+  List<Person> people = personDao.findAll();
+  return ok(Json.toJson(people));
+}
 ```
 
 > **Next:** [[Working with XML | JavaXmlRequests]]
