@@ -12,26 +12,26 @@ import org.joda.time.{DateTime, LocalDate}
 object FormSpec extends Specification {
   "A form" should {
     "have an error due to a malformed email" in {
-      val f5 = ScalaForms.emailForm.fillAndValidate("john@", "John")
+      val f5 = ScalaForms.emailForm.fillAndValidate(("john@", "John"))
       f5.errors must haveSize(1)
       f5.errors.find(_.message == "error.email") must beSome
 
-      val f6 = ScalaForms.emailForm.fillAndValidate("john@zen.....com", "John")
+      val f6 = ScalaForms.emailForm.fillAndValidate(("john@zen.....com", "John"))
       f6.errors must haveSize(1)
       f6.errors.find(_.message == "error.email") must beSome
     }
 
     "be valid with a well-formed email" in {
-      val f7 = ScalaForms.emailForm.fillAndValidate("john@zen.com", "John")
+      val f7 = ScalaForms.emailForm.fillAndValidate(("john@zen.com", "John"))
       f7.errors must beEmpty
 
-      val f8 = ScalaForms.emailForm.fillAndValidate("john@zen.museum", "John")
+      val f8 = ScalaForms.emailForm.fillAndValidate(("john@zen.museum", "John"))
       f8.errors must beEmpty
 
-      val f9 = ScalaForms.emailForm.fillAndValidate("john@mail.zen.com", "John")
+      val f9 = ScalaForms.emailForm.fillAndValidate(("john@mail.zen.com", "John"))
       f9.errors must beEmpty
 
-      ScalaForms.emailForm.fillAndValidate("o'flynn@example.com", "O'Flynn").errors must beEmpty
+      ScalaForms.emailForm.fillAndValidate(("o'flynn@example.com", "O'Flynn")).errors must beEmpty
     }
 
     "apply constraints on wrapped mappings" in {
@@ -104,10 +104,10 @@ object FormSpec extends Specification {
   }
 
   "support default values" in {
-    ScalaForms.defaultValuesForm.bindFromRequest( Map() ).get must equalTo(42, "default text")
-    ScalaForms.defaultValuesForm.bindFromRequest( Map("name" -> Seq("another text") ) ).get must equalTo(42, "another text")
-    ScalaForms.defaultValuesForm.bindFromRequest( Map("pos" -> Seq("123")) ).get must equalTo(123, "default text")
-    ScalaForms.defaultValuesForm.bindFromRequest( Map("pos" -> Seq("123"), "name" -> Seq("another text")) ).get must equalTo(123, "another text")
+    ScalaForms.defaultValuesForm.bindFromRequest( Map() ).get must equalTo((42, "default text"))
+    ScalaForms.defaultValuesForm.bindFromRequest( Map("name" -> Seq("another text") ) ).get must equalTo((42, "another text"))
+    ScalaForms.defaultValuesForm.bindFromRequest( Map("pos" -> Seq("123")) ).get must equalTo((123, "default text"))
+    ScalaForms.defaultValuesForm.bindFromRequest( Map("pos" -> Seq("123"), "name" -> Seq("another text")) ).get must equalTo((123, "another text"))
 
     val f1 = ScalaForms.defaultValuesForm.bindFromRequest( Map("pos" -> Seq("abc")) )
     f1.errors must haveSize(1)

@@ -331,7 +331,7 @@ object Forms {
    * @param precision The maximun total number of digits (including decimals)
    * @param scale The maximun number of decimals
    */
-  def bigDecimal(precision: Int, scale: Int): Mapping[BigDecimal] = of[BigDecimal] as bigDecimalFormat(Some(precision, scale))
+  def bigDecimal(precision: Int, scale: Int): Mapping[BigDecimal] = of[BigDecimal] as bigDecimalFormat(Some((precision, scale)))
 
   /**
    * Constructs a simple mapping for a date field.
