@@ -221,16 +221,16 @@ public class Http {
          */
         public abstract String uri();
 
-      /**
-       * The HTTP Method.
-       */
-      public abstract String method();
+        /**
+         * The HTTP Method.
+         */
+        public abstract String method();
 
-       /**
-        * The HTTP version.
-        */
+        /**
+         * The HTTP version.
+         */
         public abstract String version();
-
+        
         /**
          * The client IP address.
          *
@@ -304,7 +304,7 @@ public class Http {
          *
          * @return headers
          */
-        public abstract java.util.Map<String,String[]> headers();
+        public abstract Map<String,String[]> headers();
 
         /**
          * Retrieves a single header.
@@ -313,15 +313,17 @@ public class Http {
          */
         public String getHeader(String headerName) {
             String[] headers = null;
-            for(String h: headers().keySet()) {
-                if(headerName.toLowerCase().equals(h.toLowerCase())) {
+            for (String h: headers().keySet()) {
+                if (headerName.toLowerCase().equals(h.toLowerCase())) {
                     headers = headers().get(h);
                     break;
                 }
             }
-            if(headers == null || headers.length == 0) {
+
+            if (headers == null || headers.length == 0) {
                 return null;
             }
+
             return headers[0];
         }
 
@@ -544,10 +546,10 @@ public class Http {
     public static class Response implements HeaderNames {
 
         private final Map<String, String> headers = new TreeMap<String, String>(new Comparator<String>() {
-            @Override public int compare(String s1, String s2) {
-                return s1.compareToIgnoreCase(s2);
-            }
-        });
+                @Override public int compare(String s1, String s2) {
+                    return s1.compareToIgnoreCase(s2);
+                }
+            });
         private final List<Cookie> cookies = new ArrayList<Cookie>();
 
         /**
@@ -800,7 +802,7 @@ public class Http {
         private final boolean httpOnly;
 
         public Cookie(String name, String value, Integer maxAge, String path,
-                String domain, boolean secure, boolean httpOnly) {
+                      String domain, boolean secure, boolean httpOnly) {
             this.name = name;
             this.value = value;
             this.maxAge = maxAge;
@@ -999,43 +1001,43 @@ public class Http {
         String TEXT = "text/plain";
 
         /**
-        * Content-Type of html.
-        */
+         * Content-Type of html.
+         */
         String HTML = "text/html";
 
         /**
-        * Content-Type of json.
-        */
+         * Content-Type of json.
+         */
         String JSON = "application/json";
 
         /**
-        * Content-Type of xml.
-        */
+         * Content-Type of xml.
+         */
         String XML = "application/xml";
 
         /**
-        * Content-Type of css.
-        */
+         * Content-Type of css.
+         */
         String CSS = "text/css";
 
         /**
-        * Content-Type of javascript.
-        */
+         * Content-Type of javascript.
+         */
         String JAVASCRIPT = "text/javascript";
 
         /**
-        * Content-Type of form-urlencoded.
-        */
+         * Content-Type of form-urlencoded.
+         */
         String FORM = "application/x-www-form-urlencoded";
 
         /**
-        * Content-Type of server sent events.
-        */
+         * Content-Type of server sent events.
+         */
         String EVENT_STREAM = "text/event-stream";
 
         /**
-        * Content-Type of binary data.
-        */
+         * Content-Type of binary data.
+         */
         String BINARY = "application/octet-stream";
     }
 }
