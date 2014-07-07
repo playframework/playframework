@@ -2,22 +2,22 @@ package anorm
 
 import org.specs2.mutable.Specification
 
-import acolyte.Acolyte.{
+import acolyte.jdbc.AcolyteDSL.{
   connection,
   handleQuery,
   handleStatement,
   updateResult
 }
-import acolyte.{
+import acolyte.jdbc.{
   UpdateExecution,
   QueryResult,
   ExecutedParameter,
   ParameterMetaData
 }
-import acolyte.RowLists
+import acolyte.jdbc.RowLists
 import RowLists.{ stringList, longList, rowList1, rowList2, rowList3 }
-import acolyte.Rows.{ row1, row2, row3 }
-import acolyte.Implicits._
+import acolyte.jdbc.Rows.{ row1, row2, row3 }
+import acolyte.jdbc.Implicits._
 
 import SqlParser.scalar
 

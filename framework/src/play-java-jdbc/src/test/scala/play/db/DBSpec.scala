@@ -46,9 +46,9 @@ object DBSpec extends org.specs2.mutable.Specification {
   }
 
   lazy val fakeApp = {
-    acolyte.Driver.register("test", acolyte.CompositeHandler.empty())
+    acolyte.jdbc.Driver.register("test", acolyte.jdbc.CompositeHandler.empty())
     FakeApplication(additionalConfiguration = Map(
-      "db.default.driver" -> "acolyte.Driver",
+      "db.default.driver" -> "acolyte.jdbc.Driver",
       "db.default.url" -> "jdbc:acolyte:test?handler=test"))
 
   }

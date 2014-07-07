@@ -1,9 +1,9 @@
 package anorm
 
-import acolyte.Acolyte.{ connection, handleQuery }
-import acolyte.{ QueryResult, RowLists }
+import acolyte.jdbc.AcolyteDSL.{ connection, handleQuery }
+import acolyte.jdbc.{ QueryResult, RowLists }
 import RowLists.{ rowList2, rowList1, stringList }
-import acolyte.Implicits._
+import acolyte.jdbc.Implicits._
 
 object RowSpec extends org.specs2.mutable.Specification {
   "Row" title

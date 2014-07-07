@@ -21,13 +21,16 @@ object Dependencies {
 
   val h2database = "com.h2database" % "h2" % "1.3.175"
 
+  val acolyteVersion = "1.0.21"
+  val acolyte = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
+
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
     h2database, 
-    "org.eu.acolyte" % "jdbc-driver" % "1.0.18" % "test",
+    acolyte % "test",
     "tyrex" % "tyrex" % "1.0.1") ++ specsBuild.map(_ % "test")
 
-  val javaJdbcDeps = Seq("org.eu.acolyte" % "jdbc-driver" % "1.0.18" % "test")
+  val javaJdbcDeps = Seq(acolyte % "test")
 
   val ebeanDeps = Seq(
     "org.avaje.ebeanorm" % "avaje-ebeanorm" % "3.3.4" exclude ("javax.persistence", "persistence-api"),
@@ -207,7 +210,7 @@ object Dependencies {
 
   val anormDependencies = specsBuild.map(_ % "test") ++ Seq(
     h2database % "test",
-    "org.eu.acolyte" %% "jdbc-scala" % "1.0.20" % "test",
+    "org.eu.acolyte" %% "jdbc-scala" % acolyteVersion % "test",
     "com.chuusai" % "shapeless" % "2.0.0" % "test" cross CrossVersion.binaryMapped {
       case "2.10" => BuildSettings.buildScalaVersion
       case x => x

@@ -1,9 +1,9 @@
 package anorm
 
-import acolyte.QueryResult
-import acolyte.Acolyte.{ connection, handleQuery }
-import acolyte.RowLists.{ rowList1, rowList2, stringList }
-import acolyte.Implicits._
+import acolyte.jdbc.QueryResult
+import acolyte.jdbc.AcolyteDSL.{ connection, handleQuery }
+import acolyte.jdbc.RowLists.{ rowList1, rowList2, stringList }
+import acolyte.jdbc.Implicits._
 
 object SqlResultSpec extends org.specs2.mutable.Specification {
   "SQL result" title
