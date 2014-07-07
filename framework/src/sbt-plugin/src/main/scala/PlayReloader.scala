@@ -111,7 +111,10 @@ trait PlayReloader {
             def addWatch(directoryToWatch: String): Int = {
               addWatchMethod.invoke(null, directoryToWatch, 15: java.lang.Integer, true: java.lang.Boolean, listener).asInstanceOf[Int]
             }
-            def removeWatch(id: Int): Unit = removeWatchMethod.invoke(null, id.asInstanceOf[AnyRef])
+            def removeWatch(id: Int): Unit = {
+							print(" "); // suppresses benign JNotify stack trace on remove watch out of ctrl-d
+							removeWatchMethod.invoke(null, id.asInstanceOf[AnyRef])
+						}
             def reloaded() { _changed = false }
             def changed() { _changed = true }
             def hasChanged = _changed
