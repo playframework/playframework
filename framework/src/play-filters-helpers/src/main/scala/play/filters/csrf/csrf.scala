@@ -10,9 +10,8 @@ import play.api.libs.Crypto
 import play.core.j.JavaHelpers
 
 private[csrf] object CSRFConf {
-  import play.api.Play.current
 
-  def c = Play.configuration
+  def c = Play.maybeApplication.map(_.configuration).getOrElse(Configuration.empty)
 
   def TokenName: String = c.getString("csrf.token.name").getOrElse("csrfToken")
   def CookieName: Option[String] = c.getString("csrf.cookie.name")
@@ -38,7 +37,7 @@ private[csrf] object CSRFConf {
   def defaultJavaErrorHandler: CSRF.ErrorHandler = {
     c.getString("csrf.error.handler").map { className =>
       val clazz = try {
-        Play.classloader.loadClass(className)
+        Play.maybeApplication.get.classloader.loadClass(className)
       } catch {
         case c: ClassNotFoundException => throw new RuntimeException("Could not find CSRF error handler " + className, c)
       }
