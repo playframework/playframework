@@ -2,8 +2,9 @@ package play.core.server
 
 import play.server.api.SSLEngineProvider
 import play.core.ApplicationProvider
-import javax.net.ssl.{ TrustManager, KeyManagerFactory, SSLEngine, SSLContext }
+import javax.net.ssl.{ TrustManager, KeyManagerFactory, SSLEngine, SSLContext, X509TrustManager }
 import java.security.KeyStore
+import java.security.cert.X509Certificate
 import java.io.{ FileInputStream, File }
 import play.api.Play
 import play.core.server.netty.FakeKeyStore
@@ -79,4 +80,11 @@ class DefaultSSLEngineProvider(appProvider: ApplicationProvider) extends SSLEngi
       sslContext
     }.get
   }
+}
+
+object noCATrustManager extends X509TrustManager {
+  val nullArray = Array[X509Certificate]()
+  def checkClientTrusted(x509Certificates: Array[X509Certificate], s: String) {}
+  def checkServerTrusted(x509Certificates: Array[X509Certificate], s: String) {}
+  def getAcceptedIssuers() = nullArray
 }

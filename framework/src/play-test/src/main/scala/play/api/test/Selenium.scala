@@ -4,6 +4,7 @@
 package play.api.test
 
 import play.api._
+import play.core.server.{ NettyServer, ServerConfig }
 
 import org.openqa.selenium._
 import org.openqa.selenium.firefox._
@@ -11,6 +12,7 @@ import org.openqa.selenium.htmlunit._
 
 import org.fluentlenium.core._
 
+import java.util.Properties
 import java.util.concurrent.TimeUnit
 import com.google.common.base.Function
 import org.openqa.selenium.support.ui.FluentWait
@@ -134,7 +136,7 @@ object WebDriverFactory {
  */
 case class TestServer(port: Int, application: FakeApplication = FakeApplication(), sslPort: Option[Int] = None) {
 
-  private var server: play.core.server.NettyServer = _
+  private var server: NettyServer = _
 
   /**
    * Starts this server.
@@ -145,7 +147,13 @@ case class TestServer(port: Int, application: FakeApplication = FakeApplication(
     }
     //play.core.Invoker.uninit()
     try {
-      server = new play.core.server.NettyServer(new play.core.TestApplication(application), Option(port), sslPort = sslPort, mode = Mode.Test)
+      val config = ServerConfig(
+        rootDir = application.path,
+        port = Option(port), sslPort = sslPort, mode = Mode.Test,
+        properties = System.getProperties
+      )
+      val appProvider = new play.core.TestApplication(application)
+      server = new NettyServer(config, appProvider)
     } catch {
       case NonFatal(t) =>
         t.printStackTrace
