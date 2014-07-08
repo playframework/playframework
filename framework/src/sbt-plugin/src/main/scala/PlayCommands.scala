@@ -305,12 +305,11 @@ trait PlayCommands extends PlayEclipse with PlayInternalKeys {
 
   }
 
-  val playMonitoredFiles = TaskKey[Seq[String]]("play-monitored-files")
   val playMonitoredFilesTask = (thisProjectRef, state) map { (ref, state) =>
-    val src = inAllDependencies(ref, sourceDirectories in Compile, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
-    val resources = inAllDependencies(ref, resourceDirectories in Compile, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
-    val assets = inAllDependencies(ref, sourceDirectories in Assets, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
-    val public = inAllDependencies(ref, resourceDirectories in Assets, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
+    val src = inAllDependencies(ref, unmanagedSourceDirectories in Compile, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
+    val resources = inAllDependencies(ref, unmanagedResourceDirectories in Compile, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
+    val assets = inAllDependencies(ref, unmanagedSourceDirectories in Assets, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
+    val public = inAllDependencies(ref, unmanagedResourceDirectories in Assets, Project structure state).foldLeft(Seq.empty[File])(_ ++ _)
     (src ++ resources ++ assets ++ public).map { f =>
       if (!f.exists) f.mkdirs(); f
     }.map(_.getCanonicalPath).distinct

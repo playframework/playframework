@@ -126,5 +126,7 @@ object PlayImport {
 
     val assetsPrefix = SettingKey[String]("assets-prefix")
     val playPackageAssets = TaskKey[File]("play-package-assets")
+
+    val playMonitoredFiles = TaskKey[Seq[String]]("play-monitored-files")
   }
 }

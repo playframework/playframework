@@ -117,13 +117,21 @@ trait PlaySettings {
     commands ++= Seq(shCommand, playStartCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
 
     // THE `in Compile` IS IMPORTANT!
-    run in Compile <<= playRunSetting,
+    run in Compile <<= playDefaultRunTask,
+
+    playStop := {
+      playInteractionMode.value match {
+        case nonBlocking: PlayNonBlockingInteractionMode =>
+          nonBlocking.stop()
+        case _ => throw new RuntimeException("Play interaction mode must be non blocking to stop it")
+      }
+    },
 
     shellPrompt := playPrompt,
 
     mainClass in (Compile, run) := Some("play.core.server.NettyServer"),
 
-    compile in (Compile) <<= PostCompile(scope = Compile),
+    compile in Compile <<= PostCompile(scope = Compile),
 
     compile in Test <<= PostCompile(Test),
 
