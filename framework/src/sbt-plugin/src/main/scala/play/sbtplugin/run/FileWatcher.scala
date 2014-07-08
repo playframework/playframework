@@ -3,7 +3,7 @@
  */
 package play.sbtplugin.run
 
-import java.io.File
+import java.io.{ IOException, File }
 
 import sbt.{ WatchState, SourceModificationWatch, IO }
 import sbt.Path._
@@ -97,7 +97,15 @@ private object JNotifyPlayWatchService {
         true: java.lang.Boolean, // Watch subtree
         listener).asInstanceOf[Int]
     }
-    def removeWatch(id: Int): Unit = removeWatchMethod.invoke(null, id.asInstanceOf[AnyRef])
+    def removeWatch(id: Int): Unit = {
+      try {
+        removeWatchMethod.invoke(null, id.asInstanceOf[AnyRef])
+      } catch {
+        case e: IOException =>
+        // Ignore, if we fail to remove a watch it's not the end of the world.
+        // http://sourceforge.net/p/jnotify/bugs/12/
+      }
+    }
     def newListener(onChange: () => Unit): AnyRef = {
       Proxy.newProxyInstance(classLoader, Seq(listenerClass).toArray, new InvocationHandler {
         def invoke(proxy: AnyRef, m: Method, args: Array[AnyRef]): AnyRef = {
