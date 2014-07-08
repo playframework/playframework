@@ -715,7 +715,7 @@ package play.api.mvc {
     import scala.collection.JavaConverters._
 
     // We use netty here but just as an API to handle cookies encoding
-    import org.jboss.netty.handler.codec.http.{ CookieEncoder, CookieDecoder, DefaultCookie }
+    import play.core.netty.utils.{ CookieEncoder, CookieDecoder, DefaultCookie }
 
     /**
      * Extract cookies from the Set-Cookie header.

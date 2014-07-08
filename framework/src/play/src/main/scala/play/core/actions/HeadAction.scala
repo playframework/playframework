@@ -7,18 +7,17 @@ package play.core.actions
 import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api.http.{ HttpProtocol, HeaderNames, DefaultWriteables }
-import play.core.server.netty.NettyResultStreamer.UsesTransferEncoding
-import org.jboss.netty.buffer.ChannelBuffers
-import scala.Some
 import play.api.mvc.Result
 import scala.concurrent.Future
+
+import HeaderNames._
 
 /**
  * RFC2616-compatible HEAD implementation: provides a full header set and empty body for a given GET resource
  *
  * @param handler Action for the relevant GET path.
  */
-class HeadAction(handler: Handler) extends EssentialAction with DefaultWriteables with HeaderNames with HttpProtocol {
+class HeadAction(handler: Handler) extends EssentialAction with DefaultWriteables with HttpProtocol {
   def apply(requestHeader: RequestHeader): Iteratee[Array[Byte], Result] = {
     def bodyIterator: Iteratee[Array[Byte], Result] = handler.asInstanceOf[EssentialAction](requestHeader)
 
@@ -63,12 +62,9 @@ class HeadAction(handler: Handler) extends EssentialAction with DefaultWriteable
     takeUpToOneChunk(None).flatMap {
       // Single chunk response
       case Right(chunk) =>
-        // Push the chunk into a buffer to measure its length and use that as the correct Content-Length
-        // for the head request
-        val buffer = chunk.map(ChannelBuffers.wrappedBuffer).getOrElse(ChannelBuffers.EMPTY_BUFFER)
-
+        val contentLength = chunk.map(_.length).getOrElse(0)
         val newResult = resultWithEmptyBody.withHeaders(
-          CONTENT_LENGTH -> buffer.readableBytes().toString
+          CONTENT_LENGTH -> contentLength.toString
         )
 
         Done[Array[Byte], Result](newResult)
@@ -91,8 +87,15 @@ class HeadAction(handler: Handler) extends EssentialAction with DefaultWriteable
 }
 
 /**
+ * Extractor object that determines whether the result uses a transfer encoding
+ */
+object UsesTransferEncoding {
+  def unapply(result: Result): Boolean = result.header.headers.contains(TRANSFER_ENCODING)
+}
+
+/**
  * Extractor that determines whether a content-length has been set on a result
  */
-object HasContentLength extends HeaderNames {
+object HasContentLength {
   def unapply(result: Result): Boolean = result.header.headers.contains(CONTENT_LENGTH)
 }

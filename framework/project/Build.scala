@@ -211,6 +211,8 @@ object PlayBuild extends Build {
   lazy val PlayExceptionsProject = PlaySharedJavaProject("Play-Exceptions", "play-exceptions",
     testBinaryCompatibility = true)
 
+  lazy val PlayNettyUtilsProject = PlaySharedJavaProject("Play-Netty-Utils", "play-netty-utils")
+
   lazy val PlayProject = PlayRuntimeProject("Play", "play")
     .enablePlugins(SbtTwirl)
     .settings(
@@ -222,7 +224,21 @@ object PlayBuild extends Build {
       mappings in (Compile, packageSrc) <++= scalaTemplateSourceMappings,
       Docs.apiDocsIncludeManaged := true,
       parallelExecution in Test := false
-    ).dependsOn(BuildLinkProject, PlayExceptionsProject, IterateesProject % "test->test;compile->compile", JsonProject)
+    ).dependsOn(
+      BuildLinkProject,
+      IterateesProject % "test->test;compile->compile",
+      JsonProject,
+      PlayExceptionsProject,
+      PlayNettyUtilsProject
+    )
+
+  lazy val PlayServerProject = PlayRuntimeProject("Play-Server", "play-server")
+    .settings(libraryDependencies ++= playServerDependencies)
+    .dependsOn(PlayProject)
+
+  lazy val PlayNettyServerProject = PlayRuntimeProject("Play-Netty-Server", "play-netty-server")
+    .settings(libraryDependencies ++= netty)
+    .dependsOn(PlayServerProject)
 
   lazy val PlayJdbcProject = PlayRuntimeProject("Play-JDBC", "play-jdbc")
     .settings(libraryDependencies ++= jdbcDeps)
@@ -261,7 +277,7 @@ object PlayBuild extends Build {
     .settings(
       libraryDependencies ++= testDependencies,
       parallelExecution in Test := false
-    ).dependsOn(PlayProject)
+    ).dependsOn(PlayNettyServerProject)
 
   lazy val PlayJavaProject = PlayRuntimeProject("Play-Java", "play-java")
     .settings(libraryDependencies ++= javaDeps ++ javaTestDeps)
@@ -271,7 +287,7 @@ object PlayBuild extends Build {
     .settings(Docs.settings: _*)
     .settings(
       libraryDependencies ++= playDocsDependencies
-    ).dependsOn(PlayProject)
+    ).dependsOn(PlayNettyServerProject)
 
   import ScriptedPlugin._
 
@@ -392,6 +408,9 @@ object PlayBuild extends Build {
     PlayJavaJdbcProject,
     PlayEbeanProject,
     PlayJpaProject,
+    PlayNettyUtilsProject,
+    PlayNettyServerProject,
+    PlayServerProject,
     PlayWsProject,
     PlayWsJavaProject,
     SbtPluginProject,

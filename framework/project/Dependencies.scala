@@ -79,9 +79,6 @@ object Dependencies {
     mockitoAll % "test")
 
   val runtime = Seq(
-    "io.netty" % "netty" % "3.9.2.Final",
-
-    "com.typesafe.netty" % "netty-http-pipelining" % "1.1.2",
 
     "org.slf4j" % "slf4j-api" % "1.7.6",
     "org.slf4j" % "jul-to-slf4j" % "1.7.6",
@@ -115,6 +112,10 @@ object Dependencies {
     specsBuild.map(_ % "test") ++
     javaTestDeps
 
+  val netty = Seq(
+    "io.netty" % "netty" % "3.9.2.Final",
+    "com.typesafe.netty" % "netty-http-pipelining" % "1.1.2"
+  )
 
   val link = Seq(
     "org.javassist" % "javassist" % "3.18.2-GA")
@@ -184,6 +185,10 @@ object Dependencies {
     "org.specs2" %% "specs2-scalacheck" % specsVersion % "test",
     "org.scalacheck" %% "scalacheck" % "1.11.3" % "test"
   )
+
+  val playServerDependencies = Seq(
+    guava % "test"
+  ) ++ specsBuild.map(_ % "test")
 
   val testDependencies = Seq("junit" % "junit" % "4.11") ++ specsBuild ++ Seq(
     "com.novocode" % "junit-interface" % "0.11-RC1",
