@@ -402,76 +402,6 @@ val str: Option[String] =
   }
 ```
 
-## Special data types
-
-### Clobs
-
-CLOBs/TEXTs can be extracted as so:
-
-```scala
-SQL("Select name,summary from Country")().map {
-  case Row(name: String, summary: java.sql.Clob) => name -> summary
-}
-```
-
-Here we specifically chose to use `map`, as we want an exception if the row isn't in the format we expect.
-
-### Binary
-
-Extracting binary data is similarly possible:
-
-```scala
-SQL("Select name,image from Country")().map {
-  case Row(name: String, image: Array[Byte]) => name -> image
-}
-```
-
-### Database interoperability
-
-Note that different databases will return different data types in the Row. For instance, an SQL 'smallint' is returned as a Short by `org.h2.Driver` and an Integer by `org.postgresql.Driver`. A solution to this is to simply write separate case statements for each database (i.e. one for development and one for production).
-
-Anorm provides common mappings for Scala types from JDBC datatypes.
-
-When needed, it's possible to customize such mappings, for example if underlying DB doesn't support boolean datatype and returns integer instead. To do so, you have to provide a new implicit conversion for `Column[T]`, where `T` is the target Scala type:
-
-```scala
-import anorm.Column
-
-// Custom conversion from JDBC column to Boolean
-implicit def columnToBoolean: Column[Boolean] = 
-  Column.nonNull { (value, meta) =>
-    val MetaDataItem(qualified, nullable, clazz) = meta
-    value match {
-      case bool: Boolean => Right(bool) // Provided-default case
-      case bit: Int      => Right(bit == 1) // Custom conversion
-      case _             => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to Boolean for column $qualified"))
-    }
-  }
-```
-
-Custom or specific DB conversion for parameter can also be provided:
-
-```
-import java.sql.PreparedStatement
-import anorm.ToStatement
-
-// Custom conversion to statement for type T
-implicit def customToStatement: ToStatement[T] = new ToStatement[T] {
-  def set(statement: PreparedStatement, i: Int, value: T): Unit =
-    ??? // Sets |value| on |statement|
-}
-```
-
-If involved type accept `null` value, it must be appropriately handled in conversion. Even if accepted by type, when `null` must be refused for parameter conversion, marker trait `NotNullGuard` can be used: `new ToStatement[T] with NotNullGuard { /* ... */ }`.
-
-For DB specific parameter, it can be explicitly passed as opaque value.
-In this case at your own risk, `setObject` will be used on statement.
-
-```scala
-val anyVal: Any = myVal
-SQL("UPDATE t SET v = {opaque}").on('opaque -> anorm.Object(anyVal))
-```
-
 ## Dealing with Nullable columns
 
 If a column can contain `Null` values in the database schema, you need to manipulate it as an `Option` type.
@@ -691,9 +621,11 @@ $ spokenLanguages("FRA")
 )
 ```
 
-## Type compatibility
+## JDBC mappings
 
-As already seen in this documentation, Anorm provides builtins JDBC parsing for various JVM types.
+As already seen in this documentation, Anorm provides builtins converters between JDBC and JVM types.
+
+### Column parsers
 
 Following table describes which JDBC numeric types (getters on `java.sql.ResultSet`, first column) can be parsed to which Java/Scala types (e.g. integer column can be read as double value).
 
@@ -728,5 +660,99 @@ UUID              | No                   | No   | No   | No               | No  
 - 5. Type `java.sql.Array`.
 
 Optional column can be parsed as `Option[T]`, as soon as `T` is supported.
+
+CLOBs/TEXTs can be extracted as so:
+
+```scala
+SQL("Select name,summary from Country")().map {
+  case Row(name: String, summary: java.sql.Clob) => name -> summary
+}
+```
+
+Here we specifically chose to use `map`, as we want an exception if the row isn't in the format we expect.
+
+Extracting binary data is similarly possible:
+
+```scala
+SQL("Select name,image from Country")().map {
+  case Row(name: String, image: Array[Byte]) => name -> image
+}
+```
+
+It's possible to add custom mapping, for example if underlying DB doesn't support boolean datatype and returns integer instead. To do so, you have to provide a new implicit conversion for `Column[T]`, where `T` is the target Scala type:
+
+```scala
+import anorm.Column
+
+// Custom conversion from JDBC column to Boolean
+implicit def columnToBoolean: Column[Boolean] = 
+  Column.nonNull { (value, meta) =>
+    val MetaDataItem(qualified, nullable, clazz) = meta
+    value match {
+      case bool: Boolean => Right(bool) // Provided-default case
+      case bit: Int      => Right(bit == 1) // Custom conversion
+      case _             => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to Boolean for column $qualified"))
+    }
+  }
+```
+
+### Parameters
+
+The following table indicates how JVM types are mapped to JDBC parameter types:
+
+JVM                     | JDBC                                                  | Nullable
+------------------------|-------------------------------------------------------|----------
+Char<sup>1</sup>/String | String                                                | Yes
+BigDecimal<sup>2</sup>  | BigDecimal                                            | Yes
+BigInteger<sup>3</sup>  | BigDecimal                                            | Yes
+Boolean<sup>4</sup>     | Boolean                                               | Yes
+Byte<sup>5</sup>        | Byte                                                  | Yes
+Date/Timestamp          | Timestamp                                             | Yes
+Double<sup>6</sup>      | Double                                                | Yes
+Float<sup>7</sup>       | Float                                                 | Yes
+Int<sup>8</sup>         | Int                                                   | Yes
+Long<sup>9</sup>        | Long                                                  | Yes
+Object<sup>10</sup>     | Object                                                | Yes
+Option[T]               | Object for `None`, mapping for `Some[T]`              | No
+Seq[T]                  | Array, with `T` mapping for each element<sup>11</sup> | No
+Short<sup>12</sup>      | Short                                                 | Yes
+UUID                    | String<sup>13</sup>                                   | No
+
+- 1. Types `Char` and `java.lang.Character`.
+- 2. Types `java.math.BigDecimal` and `scala.math.BigDecimal`.
+- 3. Types `java.math.BigInteger` and `scala.math.BigInt`.
+- 4. Types `Boolean` and `java.lang.Boolean`.
+- 5. Types `Byte` and `java.lang.Byte`.
+- 6. Types `Double` and `java.lang.Double`.
+- 7. Types `Float` and `java.lang.Float`.
+- 8. Types `Int` and `java.lang.Integer`.
+- 9. Types `Long` and `java.lang.Long`.
+- 10. Type `anorm.Object`, wrapping opaque object.
+- 11. Multi-value parameter, with one JDBC placeholder (`?`) added for each element.
+- 12. Types `Short` and `java.lang.Short`.
+- 13. Not-null value extracted using `.toString`.
+
+Custom or specific DB conversion for parameter can also be provided:
+
+```
+import java.sql.PreparedStatement
+import anorm.ToStatement
+
+// Custom conversion to statement for type T
+implicit def customToStatement: ToStatement[T] = new ToStatement[T] {
+  def set(statement: PreparedStatement, i: Int, value: T): Unit =
+    ??? // Sets |value| on |statement|
+}
+```
+
+If involved type accept `null` value, it must be appropriately handled in conversion. The `NotNullGuard` trait can be used to explicitly refuse `null` values in parameter conversion: `new ToStatement[T] with NotNullGuard { /* ... */ }`.
+
+DB specific parameter can be explicitly passed as opaque value.
+In this case at your own risk, `setObject` will be used on statement.
+
+```scala
+val anyVal: Any = myVal
+SQL("UPDATE t SET v = {opaque}").on('opaque -> anorm.Object(anyVal))
+```
 
 > **Next:** [[Integrating with other database access libraries | ScalaDatabaseOthers]]
