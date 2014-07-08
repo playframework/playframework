@@ -268,7 +268,7 @@ package play.api.mvc {
   /**
    * Wrap an existing request. Useful to extend a request.
    */
-  class WrappedRequest[A](request: Request[A]) extends Request[A] {
+  class WrappedRequest[+A](request: Request[A]) extends Request[A] {
     def id = request.id
     def tags = request.tags
     def body = request.body
