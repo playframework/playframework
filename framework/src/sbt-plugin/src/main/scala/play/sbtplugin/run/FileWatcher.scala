@@ -116,6 +116,10 @@ private object JNotifyPlayWatchService {
         }
       })
     }
+    @throws[Throwable]("If we were not able to successfully load JNotify")
+    def ensureLoaded(): Unit = {
+      removeWatchMethod.invoke(null, 0.asInstanceOf[java.lang.Integer])
+    }
   }
 
   // Try state - null means no attempt to load yet, None means failed load, Some means successful load
@@ -165,7 +169,7 @@ private object JNotifyPlayWatchService {
           val d = new JNotifyDelegate(sbtLoader, jnotifyListenerClass, addWatchMethod, removeWatchMethod)
 
           // Try it
-          d.removeWatch(0)
+          d.ensureLoaded()
 
           watchService = Some(new JNotifyPlayWatchService(d))
 
