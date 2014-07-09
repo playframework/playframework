@@ -41,11 +41,13 @@ class AkkaPlugin(app: Application) extends Plugin {
   private val lazySystem = new ClosableLazy[ActorSystem] {
 
     protected def create() = {
-      val system = ActorSystem("application", app.configuration.underlying, app.classloader)
-      Play.logger.info("Starting application default Akka system.")
+      val config = app.configuration.underlying
+      val name = app.configuration.getString("play.plugins.akka.actor-system").getOrElse("application")
+      val system = ActorSystem(name, app.configuration.underlying, app.classloader)
+      Play.logger.info(s"Starting application default Akka system: $name")
 
       val close: CloseFunction = { () =>
-        Play.logger.info("Shutdown application default Akka system.")
+        Play.logger.info(s"Shutdown application default Akka system: $name")
         system.shutdown()
 
         app.configuration.getMilliseconds("play.akka.shutdown-timeout") match {

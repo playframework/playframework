@@ -33,6 +33,14 @@ akka.actor.debug.receive = on
 
 For Akka logging configuration, see [[configuring logging|SettingsLogger]].
 
+By default the name of the `ActorSystem` is _application. You can change this via an entry in the `conf/application.conf`:
+
+```
+play.plugins.akka.actor-system = "custom-name"
+```
+
+> **Note:** This feature is useful if you want to put your play application ActorSystem in an akka cluster.
+
 ## Scheduling asynchronous tasks
 
 You can schedule sending messages to actors and executing tasks (functions or `Runnable`). You will get a `Cancellable` back that you can call `cancel` on to cancel the execution of the scheduled operation.
