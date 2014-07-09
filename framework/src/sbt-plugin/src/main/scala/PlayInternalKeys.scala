@@ -26,4 +26,7 @@ trait PlayInternalKeys {
   val playPrefixAndPipeline = TaskKey[(String, Seq[(File, String)])]("play-prefix-and-pipeline")
   val playAssetsClassLoader = TaskKey[ClassLoader => ClassLoader]("play-assets-classloader")
   val playPackageAssetsMappings = TaskKey[Seq[(File, String)]]("play-package-assets-mappings")
+
+  @deprecated(message = "Use PlayKeys.playMonitoredFiles instead", since = "2.3.2")
+  val playMonitoredFiles = PlayImport.PlayKeys.playMonitoredFiles
 }
