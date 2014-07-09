@@ -10,33 +10,50 @@ import play.utils.Threads
 import scala.util.control.NonFatal
 
 /**
- * Start a Play server and application. The `main` method is the entry point to
- * a Play server running in production mode. The `mainDev*` methods are
- * used to start a server running in development mode.
+ * Helper for starting a Play server and application. The `main` method
+ * is the entry point to a Play server running in production mode. The
+ * `mainDev*` methods are used to start a server running in development
+ * mode.
  */
-object ServerStart {
+trait ServerStart {
+
+  /**
+   * The ServerProvider to use if not overridden by a system property.
+   */
+  protected def defaultServerProvider: ServerProvider
+
+  /**
+   * Creates an ApplicationProvider for prod mode. Needed so we can mock
+   * out the ApplicationProvider for testing.
+   */
+  protected def createApplicationProvider(config: ServerConfig): ApplicationProvider = {
+    new StaticApplication(config.rootDir)
+  }
+
+  /**
+   * Start a prod mode server from the command line. Calls `start`.
+   */
+  def main(args: Array[String]) {
+    val process = new RealServerProcess(args)
+    start(process)
+  }
 
   /**
    * Starts a Play server and application for the given process. The settings
    * for the server are based on values passed on the command line and in
-   * various system properties. Crash out by exiting the process if there are
-   * any problems.
+   * various system properties. Crash out by exiting the given process if there
+   * are any problems.
    * @param process The process (real or abstract) to use for starting the
    * server.
-   * @param appProviderCtor A function to create an ApplicationProvider.
-   * Needed so we can mock out the ApplicationProvider for testing.
    */
-  def start(
-    process: ServerProcess,
-    defaultServerProvider: ServerProvider,
-    appProviderCtor: ServerConfig => ApplicationProvider): ServerWithStop = {
+  def start(process: ServerProcess): ServerWithStop = {
     try {
       // Read settings
       val config = readServerConfigSettings(process)
-      val serverProvider = readServerProviderSetting(process).getOrElse(defaultServerProvider)
+      val serverProvider = readServerProviderSetting(process)
       // Get the party started!
       createPidFile(process, config.rootDir)
-      val appProvider = appProviderCtor(config)
+      val appProvider = createApplicationProvider(config)
       val server = serverProvider.createServer(config, appProvider)
       process.addShutdownHook { server.stop() }
       server
@@ -93,9 +110,10 @@ object ServerStart {
 
   /**
    * Read the ServerProvider setting from the given process's
-   * properties.
+   * properties. If not provided, defaults to the result of
+   * `defaultServerProvider`.
    */
-  def readServerProviderSetting(process: ServerProcess): Option[ServerProvider] = {
+  def readServerProviderSetting(process: ServerProcess): ServerProvider = {
     process.prop("server.provider").map { className =>
       val clazz = try process.classLoader.loadClass(className) catch {
         case _: ClassNotFoundException => throw ServerStartException(s"Couldn't find ServerProvider class '$className'")
@@ -105,7 +123,7 @@ object ServerStart {
         case _: NoSuchMethodException => throw ServerStartException(s"ServerProvider class ${clazz.getName} must have a public default constructor")
       }
       ctor.newInstance().asInstanceOf[ServerProvider]
-    }
+    }.getOrElse(defaultServerProvider)
   }
 
   /**
@@ -138,11 +156,10 @@ object ServerStart {
    * compiled with different versions of Scala.
    */
   def mainDevOnlyHttpsMode(
-    defaultServerProvider: ServerProvider,
     buildLink: BuildLink,
     buildDocHandler: BuildDocHandler,
     httpsPort: Int): ServerWithStop = {
-    mainDev(defaultServerProvider, buildLink, buildDocHandler, None, Some(httpsPort))
+    mainDev(buildLink, buildDocHandler, None, Some(httpsPort))
   }
 
   /**
@@ -152,14 +169,12 @@ object ServerStart {
    * compiled with different versions of Scala.
    */
   def mainDevHttpMode(
-    defaultServerProvider: ServerProvider,
     buildLink: BuildLink,
     buildDocHandler: BuildDocHandler, httpPort: Int): ServerWithStop = {
-    mainDev(defaultServerProvider, buildLink, buildDocHandler, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt(_)))
+    mainDev(buildLink, buildDocHandler, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt(_)))
   }
 
   private def mainDev(
-    defaultServerProvider: ServerProvider,
     buildLink: BuildLink,
     buildDocHandler: BuildDocHandler,
     httpPort: Option[Int],
@@ -167,7 +182,7 @@ object ServerStart {
     Threads.withContextClassLoader(this.getClass.getClassLoader) {
       try {
         val process = new RealServerProcess(args = Seq.empty)
-        val serverProvider = ServerStart.readServerProviderSetting(process).getOrElse(defaultServerProvider)
+        val serverProvider = readServerProviderSetting(process)
         val config = ServerConfig(
           rootDir = buildLink.projectPath,
           port = httpPort,

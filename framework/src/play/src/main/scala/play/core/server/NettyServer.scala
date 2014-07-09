@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.core.server
 
 import com.typesafe.netty.http.pipelining.HttpPipeliningHandler
@@ -39,12 +42,12 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
           newPipeline.addLast("ssl", new SslHandler(sslEngine))
         }
       }
-      def getIntProperty(name: String): Option[Int] = {
-        Option(config.properties.getProperty(name)).map(Integer.parseInt(_))
+      def getIntProperty(name: String, default: Int): Int = {
+        Option(config.properties.getProperty(name)).map(Integer.parseInt(_)).getOrElse(default)
       }
-      val maxInitialLineLength = getIntProperty("http.netty.maxInitialLineLength").getOrElse(4096)
-      val maxHeaderSize = getIntProperty("http.netty.maxHeaderSize").getOrElse(8192)
-      val maxChunkSize = getIntProperty("http.netty.maxChunkSize").getOrElse(8192)
+      val maxInitialLineLength = getIntProperty("http.netty.maxInitialLineLength", 4096)
+      val maxHeaderSize = getIntProperty("http.netty.maxHeaderSize", 8192)
+      val maxChunkSize = getIntProperty("http.netty.maxChunkSize", 8192)
       newPipeline.addLast("decoder", new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
       newPipeline.addLast("decompressor", new HttpContentDecompressor())
@@ -148,41 +151,12 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
 }
 
 /**
- * bootstraps Play application with a NettyServer backened
+ * Bootstraps Play application with a NettyServer backend.
  */
-object NettyServer {
+object NettyServer extends ServerStart {
 
-  def main(args: Array[String]) {
-    val process = new RealServerProcess(args)
-    val staticApplicationProvidorCtor = (config: ServerConfig) => new StaticApplication(config.rootDir)
-    ServerStart.start(process, NettyServerProvider, staticApplicationProvidorCtor)
+  val defaultServerProvider = new ServerProvider {
+    def createServer(config: ServerConfig, appProvider: ApplicationProvider) = new NettyServer(config, appProvider)
   }
 
-  /**
-   * Provides an HTTPS-only server for the dev environment.
-   *
-   * <p>This method uses simple Java types so that it can be used with reflection by code
-   * compiled with different versions of Scala.
-   */
-  def mainDevOnlyHttpsMode(buildLink: BuildLink, buildDocHandler: BuildDocHandler, httpsPort: Int): ServerWithStop = {
-    ServerStart.mainDevOnlyHttpsMode(NettyServerProvider, buildLink, buildDocHandler, httpsPort)
-  }
-
-  /**
-   * Provides an HTTP server for the dev environment
-   *
-   * <p>This method uses simple Java types so that it can be used with reflection by code
-   * compiled with different versions of Scala.
-   */
-  def mainDevHttpMode(buildLink: BuildLink, buildDocHandler: BuildDocHandler, httpPort: Int): ServerWithStop = {
-    ServerStart.mainDevHttpMode(NettyServerProvider, buildLink, buildDocHandler, httpPort)
-  }
-
-}
-
-/**
- * A little class that knows how to create a NettyServer.
- */
-object NettyServerProvider extends ServerProvider {
-  def createServer(config: ServerConfig, appProvider: ApplicationProvider) = new NettyServer(config, appProvider)
 }
