@@ -312,12 +312,11 @@ object PlayBuild extends Build {
       fork in Test := false
     ).settings(scriptedSettings: _*)
     .settings(
-      scriptedLaunchOpts <++= (baseDirectory in ThisBuild) { baseDir =>
-        Seq(
-          "-XX:MaxPermSize=384M",
-          "-Dperformance.log=" + new File(baseDir, "target/sbt-repcomile-performance.properties")
-       )
-      }
+      scriptedLaunchOpts ++= Seq(
+        "-XX:MaxPermSize=384M",
+        "-Dperformance.log=" + new File(baseDirectory.value, "target/sbt-repcomile-performance.properties"),
+        "-Dproject.version=" + version.value
+      )
     ).dependsOn(BuildLinkProject, PlayExceptionsProject, RoutesCompilerProject)
 
   lazy val PlayWsProject = PlayRuntimeProject("Play-WS", "play-ws")
