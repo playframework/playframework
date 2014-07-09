@@ -1,10 +1,9 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
  */
 package play.api.test
 
 import play.api._
-import play.core.server.{ NettyServer, ServerConfig }
 
 import org.openqa.selenium._
 import org.openqa.selenium.firefox._
@@ -12,12 +11,9 @@ import org.openqa.selenium.htmlunit._
 
 import org.fluentlenium.core._
 
-import java.util.Properties
 import java.util.concurrent.TimeUnit
 import com.google.common.base.Function
 import org.openqa.selenium.support.ui.FluentWait
-
-import scala.util.control.NonFatal
 
 /**
  * A test browser (Using Selenium WebDriver) with the FluentLenium API (https://github.com/Fluentlenium/FluentLenium).
@@ -126,50 +122,4 @@ object WebDriverFactory {
     }
     driver
   }
-}
-
-/**
- * A test Netty web server.
- *
- * @param port HTTP port to bind on.
- * @param application The FakeApplication to load in this server.
- */
-case class TestServer(port: Int, application: FakeApplication = FakeApplication(), sslPort: Option[Int] = None) {
-
-  private var server: NettyServer = _
-
-  /**
-   * Starts this server.
-   */
-  def start() {
-    if (server != null) {
-      sys.error("Server already started!")
-    }
-    //play.core.Invoker.uninit()
-    try {
-      val config = ServerConfig(
-        rootDir = application.path,
-        port = Option(port), sslPort = sslPort, mode = Mode.Test,
-        properties = System.getProperties
-      )
-      val appProvider = new play.core.TestApplication(application)
-      server = new NettyServer(config, appProvider)
-    } catch {
-      case NonFatal(t) =>
-        t.printStackTrace
-        throw new RuntimeException(t)
-    }
-  }
-
-  /**
-   * Stops this server.
-   */
-  def stop() {
-    if (server != null) {
-      server.stop()
-      server = null
-    }
-    //play.api.libs.concurrent.Promise.resetSystem()
-  }
-
 }

@@ -48,10 +48,16 @@ echo "[info]"
 $BUILD "$@" test:test
 
 echo "[info]"
-echo "[info] ---- SBT PLUGIN TESTS"
+echo "[info] ---- SBT PLUGIN SCRIPTED TESTS"
 echo "[info]"
 
-$BUILD "$@" Sbt-Plugin:scripted
+$BUILD "$@" SBT-Plugin/scripted
+
+echo "[info]"
+echo "[info] ---- AKKA HTTP SERVER SCRIPTED TESTS"
+echo "[info]"
+
+$BUILD "$@" Play-Akka-Http-Server-Experimental/scripted
 
 rm -rf ./logs
 
