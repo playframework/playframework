@@ -98,8 +98,6 @@ trait PlaySettings {
       tf => tf.filter(_ != TestFrameworks.Specs2).:+(TestFrameworks.Specs2)
     },
 
-    testListeners <<= (target, streams).map((t, s) => Seq(new play.sbtplugin.test.JUnitXmlTestsListener(t.getAbsolutePath, s.log))),
-
     testResultReporter <<= testResultReporterTask,
 
     testResultReporterReset <<= testResultReporterResetTask,
