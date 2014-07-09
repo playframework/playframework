@@ -55,6 +55,7 @@ private class SelfPopulatingMap[K, V] {
         val f = Future(pf(k))(ec.prepare())
         f.onComplete {
           case Failure(_) | Success(None) => store.remove(k)
+          case _ => // Do nothing, the asset was successfully found and is now cached
         }
         p.completeWith(f)
         p.future
