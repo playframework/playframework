@@ -101,9 +101,11 @@ private object JNotifyPlayWatchService {
       try {
         removeWatchMethod.invoke(null, id.asInstanceOf[AnyRef])
       } catch {
-        case e: IOException =>
+        case _: Throwable =>
         // Ignore, if we fail to remove a watch it's not the end of the world.
         // http://sourceforge.net/p/jnotify/bugs/12/
+        // We match on Throwable because matching on an IOException didn't work.
+        // http://sourceforge.net/p/jnotify/bugs/5/
       }
     }
     def newListener(onChange: () => Unit): AnyRef = {
