@@ -103,8 +103,6 @@ trait PlaySettings {
       tf => tf.filter(_ != TestFrameworks.Specs2).:+(TestFrameworks.Specs2)
     },
 
-    testListeners <<= (target, streams).map((t, s) => Seq(new eu.henkelmann.sbt.JUnitXmlTestsListener(t.getAbsolutePath, s.log))),
-
     testResultReporter <<= testResultReporterTask,
 
     testResultReporterReset <<= testResultReporterResetTask,
