@@ -99,7 +99,7 @@ object Dependencies {
     "joda-time" % "joda-time" % "2.3",
     "org.joda" % "joda-convert" % "1.6",
 
-    "org.apache.commons" % "commons-lang3" % "3.1",
+    "org.apache.commons" % "commons-lang3" % "3.3.2",
 
     "com.fasterxml.jackson.core" % "jackson-core" % "2.3.2",
     "com.fasterxml.jackson.core" % "jackson-annotations" % "2.3.2",
