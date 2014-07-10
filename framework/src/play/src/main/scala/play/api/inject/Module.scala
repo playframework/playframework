@@ -4,7 +4,12 @@
 package play.api.inject
 
 import play.api.Environment
+import scala.reflect.ClassTag
 
-trait Module {
+abstract class Module {
   def bindings(env: Environment): Seq[Binding[_]]
+
+  def bind[T](clazz: Class[T]): BindingKey[T] = BindingKey(clazz, Seq.empty)
+
+  def bind[T: ClassTag]: BindingKey[T] = BindingKey(implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]], Seq.empty)
 }
