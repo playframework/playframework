@@ -7,7 +7,7 @@ object Dependencies {
 
   // Some common dependencies here so they don't need to be declared over and over
   val specsVersion = "2.3.12"
-  val specsBuild = Seq(
+  val specsBuild = Seq(a
     "org.specs2" %% "specs2-core" % specsVersion,
     "org.specs2" %% "specs2-junit" % specsVersion,
     "org.specs2" %% "specs2-mock" % specsVersion,
@@ -85,8 +85,8 @@ object Dependencies {
     "ch.qos.logback" % "logback-core" % "1.1.1",
     "ch.qos.logback" % "logback-classic" % "1.1.1",
 
-    "com.typesafe.akka" %% "akka-actor" % "2.3.3",
-    "com.typesafe.akka" %% "akka-slf4j" % "2.3.3",
+    "com.typesafe.akka" %% "akka-actor" % "2.3.4",
+    "com.typesafe.akka" %% "akka-slf4j" % "2.3.4",
 
     "org.scala-stm" %% "scala-stm" % "0.7",
     "commons-codec" % "commons-codec" % "1.9",
