@@ -50,7 +50,9 @@ trait HandleWebCommandSupport {
  */
 class StaticApplication(applicationPath: File) extends ApplicationProvider {
 
-  val application = new DefaultApplication(applicationPath, this.getClass.getClassLoader, None, Mode.Prod)
+  val environment = Environment(applicationPath, this.getClass.getClassLoader, Mode.Prod)
+  val loader = ApplicationLoader(environment)
+  val application = loader.load(environment)
 
   Play.start(application)
 
@@ -183,4 +185,3 @@ class ReloadableApplication(buildLink: BuildLink, buildDocHandler: BuildDocHandl
 
   }
 }
-
