@@ -130,14 +130,14 @@ Play does not have native Netbeans project generation support at this time.
 
 ### Install ENSIME
 
-Follow the installation instructions at <https://github.com/aemoncannon/ensime>
+Follow the installation instructions at <https://github.com/ensime/ensime-emacs>
 
 ### Generate configuration
 
-Edit your project/plugins.sbt file, and add the following line (you should first check <https://github.com/ensime/ensime-sbt-cmd> for the latest version of the plugin):
+Edit your project/plugins.sbt file, and add the following line (you should first check <https://github.com/ensime/ensime-sbt> for the latest version of the plugin):
 
 ```
-addSbtPlugin("org.ensime" % "ensime-sbt-cmd" % "0.1.4")
+addSbtPlugin("org.ensime" % "ensime-sbt" % "0.1.5-SNAPSHOT")
 ```
 
 Start Play:
@@ -188,7 +188,7 @@ That's all there is to it. You should now get type-checking, completion, etc. fo
 
 ### More Information
 
-Check out the ENSIME manual at <http://ensime.github.io/ensime-src/index.html>.
+Check out the ENSIME README at <https://github.com/ensime/ensime-emacs>.
 If you have questions, post them in the ensime group at <https://groups.google.com/forum/?fromgroups=#!forum/ensime>.
 
 
