@@ -83,6 +83,9 @@ object ScalaActionsSpec extends Specification with Controller {
 
     "support returning a simple result" in {
       //#simple-result-action
+      import play.api.mvc.Action
+      import play.api.mvc.Result
+      import play.api.mvc.ResponseHeader
       import play.api.libs.iteratee.Enumerator
 
       def index = Action {
