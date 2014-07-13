@@ -12,8 +12,7 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-scalariform" % "1.2.0")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "0.7.2-RC1")
 
-libraryDependencies <+= sbtVersion { sv =>
-  "org.scala-sbt" % "scripted-plugin" % sv
-}
-
-libraryDependencies += "org.webjars" % "webjars-locator" % "0.12"
+libraryDependencies ++= Seq(
+  "org.scala-sbt" % "scripted-plugin" % sbtVersion.value,
+  "org.webjars" % "webjars-locator" % "0.12"
+)
