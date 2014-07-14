@@ -70,11 +70,11 @@ trait PlaySettings {
 
     libraryDependencies <+= (playPlugin) {
       isPlugin =>
-        val d = "com.typesafe.play" %% "play" % play.core.PlayVersion.current
-        if (isPlugin)
-          d % "provided"
-        else
-          d
+        if (isPlugin) {
+          "com.typesafe.play" %% "play" % play.core.PlayVersion.current % "provided"
+        } else {
+          "com.typesafe.play" %% "play-netty-server" % play.core.PlayVersion.current
+        }
     },
     libraryDependencies += "com.typesafe.play" %% "play-test" % play.core.PlayVersion.current % "test",
 

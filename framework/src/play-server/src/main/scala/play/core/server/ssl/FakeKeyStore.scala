@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
-package play.core.server.netty
+package play.core.server.ssl
 
 import play.api.{ Play, Logger, Application }
 import java.security.{ KeyStore, SecureRandom, KeyPairGenerator, KeyPair }

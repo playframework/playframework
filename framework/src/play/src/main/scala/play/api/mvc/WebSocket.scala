@@ -14,6 +14,7 @@ import akka.actor.{ Props, ActorRef }
 import play.api.Application
 import scala.reflect.ClassTag
 import play.core.actors.WebSocketActor._
+import play.core.websocket.BasicFrameFormatter
 
 /**
  * A WebSocket handler.
@@ -61,17 +62,17 @@ object WebSocket {
     /**
      * String WebSocket frames.
      */
-    implicit val stringFrame: FrameFormatter[String] = play.core.server.websocket.Frames.textFrame
+    implicit val stringFrame: FrameFormatter[String] = BasicFrameFormatter.textFrame
 
     /**
      * Array[Byte] WebSocket frames.
      */
-    implicit val byteArrayFrame: FrameFormatter[Array[Byte]] = play.core.server.websocket.Frames.binaryFrame
+    implicit val byteArrayFrame: FrameFormatter[Array[Byte]] = BasicFrameFormatter.binaryFrame
 
     /**
      * Either String or Array[Byte] WebSocket frames.
      */
-    implicit val mixedFrame: FrameFormatter[Either[String, Array[Byte]]] = play.core.server.websocket.Frames.mixedFrame
+    implicit val mixedFrame: FrameFormatter[Either[String, Array[Byte]]] = BasicFrameFormatter.mixedFrame
 
     /**
      * Json WebSocket frames.

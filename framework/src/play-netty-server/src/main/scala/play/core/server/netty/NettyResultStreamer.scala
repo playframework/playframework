@@ -235,7 +235,7 @@ object NettyResultStreamer {
    * Extractor object that determines whether the result uses a transfer encoding
    */
   object UsesTransferEncoding {
-    def unapply(result: Result): Boolean = result.header.headers.contains(TRANSFER_ENCODING)
+    def unapply(result: Result): Boolean = play.core.actions.UsesTransferEncoding.unapply(result)
   }
 
 }

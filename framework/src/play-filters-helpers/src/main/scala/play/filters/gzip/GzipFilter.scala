@@ -7,7 +7,6 @@ import play.api.libs.iteratee._
 import play.api.mvc._
 import scala.concurrent.Future
 import play.api.mvc.RequestHeader.acceptHeader
-import org.jboss.netty.handler.codec.http.HttpHeaders.Names
 import play.api.http.{ Status, MimeTypes }
 import play.api.libs.concurrent.Execution.Implicits._
 
@@ -182,10 +181,10 @@ class GzipFilter(gzip: Enumeratee[Array[Byte], Array[Byte]] = Gzip.gzip(GzipFilt
   /**
    * Of course, we don't want to double compress responses
    */
-  private def isNotAlreadyCompressed(header: ResponseHeader) = header.headers.get(Names.CONTENT_ENCODING).isEmpty
+  private def isNotAlreadyCompressed(header: ResponseHeader) = header.headers.get(CONTENT_ENCODING).isEmpty
 
   private def setupHeader(header: Map[String, String]): Map[String, String] = {
-    header.filterNot(_._1 == Names.CONTENT_LENGTH) + (Names.CONTENT_ENCODING -> "gzip") + addToVaryHeader(header, Names.VARY, Names.ACCEPT_ENCODING)
+    header.filterNot(_._1 == CONTENT_LENGTH) + (CONTENT_ENCODING -> "gzip") + addToVaryHeader(header, VARY, ACCEPT_ENCODING)
   }
 
   /**

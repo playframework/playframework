@@ -9,8 +9,10 @@ import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.handler.codec.http.websocketx._
 import play.core._
+import play.core.websocket._
 import play.core.server.websocket.WebSocketHandshake
 import play.api._
+import play.api.mvc.WebSocket.FrameFormatter
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import scala.concurrent.{ Future, Promise }
@@ -34,9 +36,24 @@ private[server] trait WebSocketHandler {
    */
   private val MaxInFlight = 3
 
-  def newWebSocketInHandler[A](frameFormatter: play.api.mvc.WebSocket.FrameFormatter[A], bufferLimit: Long): (Enumerator[A], ChannelHandler) = {
+  def newWebSocketInHandler[A](frameFormatter: FrameFormatter[A], bufferLimit: Long): (Enumerator[A], ChannelHandler) = {
 
-    val nettyFrameFormatter = frameFormatter.asInstanceOf[play.core.server.websocket.FrameFormatter[A]]
+    val basicFrameFormatter = frameFormatter.asInstanceOf[BasicFrameFormatter[A]]
+
+    def fromNettyFrame(nettyFrame: WebSocketFrame): A = nettyFrame match {
+      case nettyTextFrame: TextWebSocketFrame =>
+        val basicFrame = TextFrame(nettyTextFrame.getText)
+        basicFrameFormatter.fromFrame(basicFrame)
+      case nettyBinaryFrame: BinaryWebSocketFrame =>
+        val bytes = channelBufferToArray(nettyBinaryFrame.getBinaryData)
+        val basicFrame = BinaryFrame(bytes)
+        basicFrameFormatter.fromFrame(basicFrame)
+    }
+    def definedForNettyFrame(nettyFrame: WebSocketFrame): Boolean = nettyFrame match {
+      case _: TextWebSocketFrame => basicFrameFormatter.fromFrameDefined(classOf[TextFrame])
+      case _: BinaryWebSocketFrame => basicFrameFormatter.fromFrameDefined(classOf[BinaryFrame])
+      case _ => false
+    }
 
     val enumerator = new WebSocketEnumerator[A]
 
@@ -65,23 +82,24 @@ private[server] trait WebSocketHandler {
               buffer.writeBytes(frame.getBinaryData)
               continuationBuffer = None
               val finalFrame = creator(buffer)
-              enumerator.frameReceived(ctx, El(nettyFrameFormatter.fromFrame(finalFrame)))
+              val basicFrame = finalFrame
+              enumerator.frameReceived(ctx, El(fromNettyFrame(finalFrame)))
 
             // fragmented text
-            case (frame: TextWebSocketFrame, None) if !frame.isFinalFragment && nettyFrameFormatter.fromFrame.isDefinedAt(frame) =>
+            case (frame: TextWebSocketFrame, None) if !frame.isFinalFragment && definedForNettyFrame(frame) =>
               val buffer = ChannelBuffers.dynamicBuffer(Math.min(frame.getBinaryData.readableBytes() * 2, bufferLimit.asInstanceOf[Int]))
               buffer.writeBytes(frame.getBinaryData)
               continuationBuffer = Some((b => new TextWebSocketFrame(true, frame.getRsv, buffer), buffer))
 
             // fragmented binary
-            case (frame: BinaryWebSocketFrame, None) if !frame.isFinalFragment && nettyFrameFormatter.fromFrame.isDefinedAt(frame) =>
+            case (frame: BinaryWebSocketFrame, None) if !frame.isFinalFragment && definedForNettyFrame(frame) =>
               val buffer = ChannelBuffers.dynamicBuffer(Math.min(frame.getBinaryData.readableBytes() * 2, bufferLimit.asInstanceOf[Int]))
               buffer.writeBytes(frame.getBinaryData)
               continuationBuffer = Some((b => new BinaryWebSocketFrame(true, frame.getRsv, buffer), buffer))
 
             // full handleable frame
-            case (frame: WebSocketFrame, None) if nettyFrameFormatter.fromFrame.isDefinedAt(frame) =>
-              enumerator.frameReceived(ctx, El(nettyFrameFormatter.fromFrame(frame)))
+            case (frame: WebSocketFrame, None) if definedForNettyFrame(frame) =>
+              enumerator.frameReceived(ctx, El(fromNettyFrame(frame)))
 
             // client initiated close
             case (frame: CloseWebSocketFrame, _) =>
@@ -199,7 +217,19 @@ private[server] trait WebSocketHandler {
     }
   }
 
-  def websocketHandshake[A](ctx: ChannelHandlerContext, req: HttpRequest, e: MessageEvent, bufferLimit: Long)(frameFormatter: play.api.mvc.WebSocket.FrameFormatter[A]): Enumerator[A] = {
+  private def channelBufferToArray(buffer: ChannelBuffer) = {
+    if (buffer.readableBytes() == buffer.capacity()) {
+      // Use entire backing array
+      buffer.array()
+    } else {
+      // Copy relevant bytes only
+      val bytes = new Array[Byte](buffer.readableBytes())
+      buffer.readBytes(bytes)
+      bytes
+    }
+  }
+
+  def websocketHandshake[A](ctx: ChannelHandlerContext, req: HttpRequest, e: MessageEvent, bufferLimit: Long)(frameFormatter: FrameFormatter[A]): Enumerator[A] = {
 
     val (enumerator, handler) = newWebSocketInHandler(frameFormatter, bufferLimit)
     val p: ChannelPipeline = ctx.getChannel.getPipeline

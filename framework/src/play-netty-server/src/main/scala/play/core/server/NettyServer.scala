@@ -15,6 +15,7 @@ import org.jboss.netty.handler.ssl._
 import play.api._
 import play.core._
 import play.core.server.netty._
+import play.core.server.ssl.ServerSSLEngine
 import play.server.SSLEngineProvider
 import scala.util.control.NonFatal
 
