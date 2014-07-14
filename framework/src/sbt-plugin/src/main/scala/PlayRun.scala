@@ -20,7 +20,7 @@ import java.util.jar.JarFile
 import com.typesafe.sbt.SbtNativePackager._
 import com.typesafe.sbt.packager.Keys._
 import com.typesafe.sbt.web.SbtWeb.autoImport._
-import play.sbtplugin.run.AssetsClassLoader
+import play.sbtplugin.run.{ PlayWatchService, AssetsClassLoader }
 
 /**
  * Provides mechanisms for running a Play application in SBT
@@ -110,7 +110,7 @@ trait PlayRun extends PlayInternalKeys {
       assetsClassLoader.value,
       playCommonClassloader.value,
       playMonitoredFiles.value,
-      (target in LocalRootProject).value,
+      playWatchService.value,
       (managedClasspath in DocsApplication).value,
       interaction,
       playDefaultPort.value,
@@ -216,7 +216,7 @@ trait PlayRun extends PlayInternalKeys {
     dependencyClasspath: Classpath, dependencyClassLoader: ClassLoaderCreator,
     reloaderClasspathTask: TaskKey[Classpath], reloaderClassLoader: ClassLoaderCreator,
     assetsClassLoader: ClassLoader => ClassLoader, commonClassLoader: ClassLoader,
-    monitoredFiles: Seq[String], targetDirectory: File,
+    monitoredFiles: Seq[String], playWatchService: PlayWatchService,
     docsClasspath: Classpath, interaction: PlayInteractionMode, defaultHttpPort: Int,
     args: Seq[String]): PlayDevServer = {
 
@@ -292,7 +292,7 @@ trait PlayRun extends PlayInternalKeys {
     lazy val assetsLoader = assetsClassLoader(applicationLoader)
 
     lazy val reloader = newReloader(state, playReload, reloaderClassLoader, reloaderClasspathTask, assetsLoader,
-      monitoredFiles, targetDirectory)
+      monitoredFiles, playWatchService)
 
     try {
       // Now we're about to start, let's call the hooks:

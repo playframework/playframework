@@ -3,6 +3,7 @@
  */
 package play
 
+import play.sbtplugin.run.PlayWatchService
 import sbt._
 import sbt.Keys._
 import play.PlayImport._
@@ -175,6 +176,8 @@ trait PlaySettings {
     routesImport := Seq("controllers.Assets.Asset"),
 
     playMonitoredFiles <<= playMonitoredFilesTask,
+
+    playWatchService := PlayWatchService.default(target.value, pollInterval.value, sLog.value),
 
     playDefaultPort := 9000,
 
