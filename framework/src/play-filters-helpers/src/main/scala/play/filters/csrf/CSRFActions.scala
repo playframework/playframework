@@ -154,7 +154,12 @@ object CSRFAction {
   }
 
   private[csrf] def checkCsrfBypass(request: RequestHeader) = {
-    if (request.headers.get(CSRFConf.HeaderName).exists(_ == CSRFConf.HeaderNoCheck)) {
+    if (!CSRFConf.AllowBypass){
+
+      filterLogger.trace("[CSRF] Bypassing disabled")
+      false
+
+    } else if (request.headers.get(CSRFConf.HeaderName).exists(_ == CSRFConf.HeaderNoCheck)) {
 
       // Since injecting arbitrary header values is not possible with a CSRF attack, the presence of this header
       // indicates that this is not a CSRF attack
