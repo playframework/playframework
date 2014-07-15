@@ -6,6 +6,8 @@ package play.api
 import play.core.SourceMapper
 import java.io.File
 
+import scala.concurrent.Future
+
 /**
  * Fake application as used by Play core tests.  This is needed since Play core can't depend on the Play test API.
  * It's also a lot simpler, doesn't load default config files etc.
@@ -18,4 +20,5 @@ case class FakeApplication(config: Map[String, Any] = Map(),
                            plugins: Seq[Plugin] = Nil) extends Application {
   val classloader = Thread.currentThread.getContextClassLoader
   lazy val configuration = Configuration.from(config)
+  def stop() = Future.successful(())
 }

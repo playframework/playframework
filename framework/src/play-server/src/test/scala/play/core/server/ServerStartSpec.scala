@@ -85,7 +85,6 @@ object ServerStartSpec extends Specification {
     @volatile var stopCallCount = 0
     override def stop() = {
       stopCallCount += 1
-      Play.stop()
       super.stop()
     }
   }

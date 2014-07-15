@@ -4,6 +4,7 @@
 package play.docs
 
 import java.io.File
+import play.api.inject.DefaultApplicationLifecycle
 import play.api.mvc._
 import play.api._
 import play.core._
@@ -14,15 +15,11 @@ import scala.util.Success
  */
 case class DocumentationApplication(projectPath: File, buildDocHandler: BuildDocHandler) extends ApplicationProvider {
 
-  val application = new Application {
-    def path = projectPath
-    def classloader = this.getClass.getClassLoader
-    def sources = None
-    def mode = Mode.Dev
-    def global = new GlobalSettings() {}
-    def plugins = Nil
+  val application = new DefaultApplication(
+    Environment(projectPath, this.getClass.getClassLoader, Mode.Dev),
+    new OptionalSourceMapper(None), new DefaultApplicationLifecycle(), Configuration.empty, DefaultGlobal
+  ) {
     override lazy val routes = None
-    def configuration = Configuration.empty
   }
 
   Play.start(application)

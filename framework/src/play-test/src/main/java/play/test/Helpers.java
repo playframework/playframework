@@ -405,7 +405,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Stops an application.
      */
     public static void stop(FakeApplication fakeApplication) {
-        play.api.Play.stop();
+        play.api.Play.stop(fakeApplication.getWrappedApplication());
     }
 
     /**

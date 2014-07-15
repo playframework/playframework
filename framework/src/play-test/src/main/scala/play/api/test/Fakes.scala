@@ -221,6 +221,8 @@ case class FakeApplication(
 
   def mode = environment.mode
 
+  def stop() = Future.successful(())
+
   override def pluginClasses = {
     additionalPlugins ++ super.pluginClasses.diff(withoutPlugins)
   }

@@ -16,6 +16,7 @@ import org.junit.runner.Description
 import org.junit.runners.model.{FrameworkMethod, Statement}
 import org.junit.{Rule, Test}
 import org.junit.rules.TestRule
+import play.api.inject.DefaultApplicationLifecycle
 import play.api.mvc.{Action, Controller, Handler, RequestHeader}
 import play.api._
 import play.core._
@@ -36,7 +37,8 @@ class ServerBenchmark extends NettyRunners {
   @PerfTest(threads = 1, duration = 35000, warmUp = 30000)
   def makeHelloWordRequest() {
     val environment = Environment(new File("."), this.getClass.getClassLoader, Mode.Test)
-    val application = new DefaultApplication(environment, new OptionalSourceMapper(None), Configuration.empty, DefaultGlobal) {
+    val application = new DefaultApplication(environment, new OptionalSourceMapper(None),
+      new DefaultApplicationLifecycle, Configuration.empty, DefaultGlobal) {
       override protected def loadRoutes: Option[Router.Routes] = Some(Routes)
     }
 

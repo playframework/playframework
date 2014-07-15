@@ -11,7 +11,7 @@ import scala.reflect.ClassTag
 /**
  * A binding.
  *
- * Bindings are used to bind classes, optionally qualified by JSR-330 qualifier annotations, to instances, providers or
+ * Bindings are used to bind classes, optionally qualified by a JSR-330 qualifier annotation, to instances, providers or
  * implementation classes.
  *
  * Bindings may also specify a JSR-330 scope.  If, and only if that scope is [[javax.inject.Singleton]], then the
@@ -23,7 +23,7 @@ import scala.reflect.ClassTag
  * @param scope The JSR-330 scope.
  * @param eager Whether the binding should be eagerly instantiated.
  */
-final case class Binding[T](key: BindingKey[T], target: BindingTarget[T], scope: Option[Class[_ <: Annotation]], eager: Boolean) {
+final case class Binding[T](key: BindingKey[T], target: Option[BindingTarget[T]], scope: Option[Class[_ <: Annotation]], eager: Boolean) {
 
   /**
    * Configure the scope for this binding.
@@ -50,9 +50,9 @@ final case class Binding[T](key: BindingKey[T], target: BindingTarget[T], scope:
  * A binding key consists of a class and zero or more JSR-330 qualifiers.
  *
  * @param clazz The class to bind.
- * @param qualifiers The qualifiers, if any.
+ * @param qualifier An optional qualifier.
  */
-final case class BindingKey[T](clazz: Class[T], qualifiers: Seq[QualifierAnnotation] = Nil) {
+final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnotation] = None) {
 
   /**
    * Qualify this binding key with the given instance of an annotation.
@@ -60,7 +60,7 @@ final case class BindingKey[T](clazz: Class[T], qualifiers: Seq[QualifierAnnotat
    * This can be used to specify bindings with annotations that have particular values.
    */
   def qualifiedWith[A <: Annotation](instance: A): BindingKey[T] =
-    BindingKey(clazz, qualifiers :+ QualifierInstance(instance))
+    BindingKey(clazz, Some(QualifierInstance(instance)))
 
   /**
    * Qualify this binding key with the given annotation.
@@ -89,7 +89,7 @@ final case class BindingKey[T](clazz: Class[T], qualifiers: Seq[QualifierAnnotat
    * In the above example, the controller will get the cached `Foo` service.
    */
   def qualifiedWith[A <: Annotation](annotation: Class[A]): BindingKey[T] =
-    BindingKey(clazz, qualifiers :+ QualifierClass(annotation))
+    BindingKey(clazz, Some(QualifierClass(annotation)))
 
   /**
    * Qualify this binding key with the given annotation.
@@ -148,7 +148,7 @@ final case class BindingKey[T](clazz: Class[T], qualifiers: Seq[QualifierAnnotat
    * This class will be instantiated and injected by the injection framework.
    */
   def to(implementation: Class[_ <: T]): Binding[T] =
-    Binding(this, ConstructionTarget(implementation), None, false)
+    Binding(this, Some(ConstructionTarget(implementation)), None, false)
 
   /**
    * Bind this binding key to the given implementation class.
@@ -164,7 +164,7 @@ final case class BindingKey[T](clazz: Class[T], qualifiers: Seq[QualifierAnnotat
    * This provider instance will be invoked to obtain the implementation for the key.
    */
   def to(provider: Provider[_ <: T]): Binding[T] =
-    Binding(this, ProviderTarget(provider), None, false)
+    Binding(this, Some(ProviderTarget(provider)), None, false)
 
   /**
    * Bind this binding key to the given instance.
@@ -173,13 +173,19 @@ final case class BindingKey[T](clazz: Class[T], qualifiers: Seq[QualifierAnnotat
     to(new Provider[A] { def get = instance })
 
   /**
+   * Bind this binding key to another binding key.
+   */
+  def to(key: BindingKey[_ <: T]): Binding[T] =
+    Binding(this, Some(BindingKeyTarget(key)), None, false)
+
+  /**
    * Bind this binding key to the given provider class.
    *
    * The dependency injection framework will instantiate and inject this provider, and then invoke its `get` method
    * whenever an instance of the class is needed.
    */
   def toProvider[P <: Provider[T]](provider: Class[P]): Binding[T] =
-    Binding(this, ProviderConstructionTarget(provider), None, false)
+    Binding(this, Some(ProviderConstructionTarget(provider)), None, false)
 
   /**
    * Bind this binding key to the given provider class.
@@ -189,12 +195,14 @@ final case class BindingKey[T](clazz: Class[T], qualifiers: Seq[QualifierAnnotat
    */
   def toProvider[P <: Provider[T]: ClassTag]: Binding[T] =
     toProvider(implicitly[ClassTag[P]].runtimeClass.asInstanceOf[Class[P]])
+
+  def toSelf: Binding[T] = Binding(this, None, None, false)
 }
 
 /**
  * A binding target.
  *
- * This trait captures the three possible types of targets.
+ * This trait captures the four possible types of targets.
  */
 sealed trait BindingTarget[T]
 
@@ -212,6 +220,11 @@ final case class ProviderConstructionTarget[T](provider: Class[_ <: Provider[T]]
  * A binding target that is provided by a class.
  */
 final case class ConstructionTarget[T](implementation: Class[_ <: T]) extends BindingTarget[T]
+
+/**
+ * A binding target that is provided by another key - essentially an alias.
+ */
+final case class BindingKeyTarget[T](key: BindingKey[_ <: T]) extends BindingTarget[T]
 
 /**
  * A qualifier annotation.

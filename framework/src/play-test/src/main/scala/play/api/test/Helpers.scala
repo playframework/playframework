@@ -48,7 +48,7 @@ trait PlayRunners {
         Play.start(app)
         block
       } finally {
-        Play.stop()
+        Play.stop(app)
       }
     }
   }

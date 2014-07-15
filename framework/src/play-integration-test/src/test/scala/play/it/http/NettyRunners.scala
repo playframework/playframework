@@ -74,7 +74,7 @@ trait NettyRunners extends PlayRunners {
       val pipeline = Channels.pipeline()
       pipeline.addFirst("play-upstream-handler", duh)
       pipeline.addFirst("test-downstream-handler", downstreamHandler)
-      try block(pipeline) finally Play.stop()
+      try block(pipeline) finally Play.stop(app)
     }
   }
   

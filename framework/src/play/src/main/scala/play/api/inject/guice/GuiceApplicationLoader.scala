@@ -55,29 +55,29 @@ class GuiceApplicationLoader extends ApplicationLoader {
       def configure(): Unit = {
         for (b <- bindings) {
           val binding = b.asInstanceOf[PlayBinding[Any]]
-          val builder = bind(binding.key.clazz)
-          for (qualifier <- binding.key.qualifiers) {
-            qualifier match {
-              case QualifierInstance(instance) => builder.annotatedWith(instance)
-              case QualifierClass(clazz) => builder.annotatedWith(clazz)
-            }
-          }
-          binding.target match {
+          val builder = bind(bindingKeyToGuice(binding.key))
+          binding.target.foreach {
             case ProviderTarget(provider) => builder.toProvider(Providers.guicify(provider))
             case ProviderConstructionTarget(provider) => builder.toProvider(provider)
             case ConstructionTarget(implementation) => builder.to(implementation)
+            case BindingKeyTarget(key) => builder.to(bindingKeyToGuice(key))
           }
-          for (scope <- binding.scope) {
-            builder.in(scope)
-            if (binding.eager) {
-              if (scope eq classOf[javax.inject.Singleton])
-                builder.asEagerSingleton()
-              else
-                throw new GuiceLoadException("Eager set on non-singleton scope")
-            }
+          (binding.scope, binding.eager) match {
+            case (Some(scope), false) => builder.in(scope)
+            case (None, true) => builder.asEagerSingleton()
+            case (Some(scope), true) => throw new GuiceLoadException("A binding must either declare a scope or be eager: " + binding)
+            case _ => // do nothing
           }
         }
       }
+    }
+  }
+
+  private def bindingKeyToGuice[T](key: BindingKey[T]): Key[T] = {
+    key.qualifier match {
+      case Some(QualifierInstance(instance)) => Key.get(key.clazz, instance)
+      case Some(QualifierClass(clazz)) => Key.get(key.clazz, clazz)
+      case None => Key.get(key.clazz)
     }
   }
 }

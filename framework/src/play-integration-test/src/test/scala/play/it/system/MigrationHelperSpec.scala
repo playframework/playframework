@@ -40,7 +40,7 @@ class MigrationHelperSpec extends PlaySpecification {
         block(logs)
       }
     } finally {
-      Play.stop()
+      Play.stop(app)
     }
 
   }

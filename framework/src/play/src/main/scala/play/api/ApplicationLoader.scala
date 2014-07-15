@@ -3,8 +3,6 @@
  */
 package play.api
 
-import java.io.File
-
 import play.api.inject.guice.GuiceApplicationLoader
 import play.core.SourceMapper
 import play.utils.{ Threads, Reflect }

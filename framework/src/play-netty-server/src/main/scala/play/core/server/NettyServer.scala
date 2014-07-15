@@ -107,11 +107,7 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
 
   override def stop() {
 
-    try {
-      Play.stop()
-    } catch {
-      case NonFatal(e) => Play.logger.error("Error while stopping the application", e)
-    }
+    appProvider.get.foreach(Play.stop)
 
     try {
       super.stop()

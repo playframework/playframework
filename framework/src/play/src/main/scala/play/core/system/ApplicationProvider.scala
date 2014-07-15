@@ -4,6 +4,8 @@
 package play.core
 
 import java.io._
+import play.utils.Threads
+
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.{ Try, Success, Failure }
@@ -123,7 +125,7 @@ class ReloadableApplication(buildLink: BuildLink, buildDocHandler: BuildDocHandl
               val reloadable = this
 
               // First, stop the old application if it exists
-              Play.stop()
+              lastState.foreach(Play.stop)
 
               import scala.collection.JavaConverters._
 
@@ -139,9 +141,11 @@ class ReloadableApplication(buildLink: BuildLink, buildDocHandler: BuildDocHandl
                 }
               }
 
-              val context = ApplicationLoader.createContext(environment, buildLink.settings.asScala.toMap, Some(sourceMapper))
-              val loader = ApplicationLoader(context)
-              val newApplication = loader.load(context)
+              val newApplication = Threads.withContextClassLoader(projectClassloader) {
+                val context = ApplicationLoader.createContext(environment, buildLink.settings.asScala.toMap, Some(sourceMapper))
+                val loader = ApplicationLoader(context)
+                loader.load(context)
+              }
 
               Play.start(newApplication)
 
