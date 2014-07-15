@@ -3,11 +3,13 @@
  */
 package play.sbtplugin.run
 
-import java.io.{ IOException, File }
+import java.io.File
+import java.util.Locale
 
-import sbt.{ WatchState, SourceModificationWatch, IO }
+import sbt.{ Logger, WatchState, SourceModificationWatch, IO }
 import sbt.Path._
 
+import scala.util.{ Properties, Try }
 import scala.util.control.NonFatal
 
 /**
@@ -36,9 +38,44 @@ trait PlayWatcher {
 }
 
 object PlayWatchService {
-  def apply(targetDirectory: File): PlayWatchService = {
-    JNotifyPlayWatchService(targetDirectory).getOrElse(new SbtPlayWatchService(500))
+  private sealed trait OS
+  private case object Windows extends OS
+  private case object Linux extends OS
+  private case object OSX extends OS
+  private case object Other extends OS
+
+  private val os: OS = {
+    sys.props.get("os.name").map { name =>
+      name.toLowerCase(Locale.ENGLISH) match {
+        case osx if osx.contains("darwin") || osx.contains("mac") => OSX
+        case windows if windows.contains("windows") => Windows
+        case linux if linux.contains("linux") => Linux
+        case _ => Other
+      }
+    }.getOrElse(Other)
   }
+
+  def default(targetDirectory: File, pollDelayMillis: Int, logger: Logger): PlayWatchService = {
+    os match {
+      // If Windows or Linux and JDK7, use JDK7 watch service
+      case (Windows | Linux) if Properties.isJavaAtLeast("1.7") => JDK7PlayWatchService(logger).get
+      // If Windows, Linux or OSX, use JNotify but fall back to SBT
+      case (Windows | Linux | OSX) => JNotifyPlayWatchService(targetDirectory).recover {
+        case e =>
+          logger.warn("Error loading JNotify watch service: " + e.getMessage)
+          logger.trace(e)
+          new SbtPlayWatchService(pollDelayMillis)
+      }.get
+    }
+  }
+
+  def jnotify(targetDirectory: File): PlayWatchService = optional(JNotifyPlayWatchService(targetDirectory))
+
+  def jdk7(logger: Logger): PlayWatchService = optional(JDK7PlayWatchService(logger))
+
+  def sbt(pollDelayMillis: Int): PlayWatchService = new SbtPlayWatchService(pollDelayMillis)
+
+  def optional(watchService: Try[PlayWatchService]): PlayWatchService = new OptionalPlayWatchServiceDelegate(watchService)
 }
 
 /**
@@ -116,21 +153,21 @@ private object JNotifyPlayWatchService {
         }
       })
     }
+
     @throws[Throwable]("If we were not able to successfully load JNotify")
     def ensureLoaded(): Unit = {
       removeWatchMethod.invoke(null, 0.asInstanceOf[java.lang.Integer])
     }
   }
 
-  // Try state - null means no attempt to load yet, None means failed load, Some means successful load
-  @volatile var watchService: Option[JNotifyPlayWatchService] = null
+  // Tri state - null means no attempt to load yet, None means failed load, Some means successful load
+  @volatile var watchService: Option[Try[JNotifyPlayWatchService]] = None
 
-  def apply(targetDirectory: File): Option[PlayWatchService] = {
+  def apply(targetDirectory: File): Try[PlayWatchService] = {
 
-    try {
-      watchService match {
-        case null =>
-          watchService = None
+    watchService match {
+      case None =>
+        val ws = scala.util.control.Exception.allCatch.withTry {
           val jnotifyJarFile = this.getClass.getClassLoader.asInstanceOf[java.net.URLClassLoader].getURLs
             .map(_.getFile)
             .find(_.contains("/jnotify"))
@@ -171,39 +208,168 @@ private object JNotifyPlayWatchService {
           // Try it
           d.ensureLoaded()
 
-          watchService = Some(new JNotifyPlayWatchService(d))
-
-        case other => other
-      }
-
-      watchService
-
-    } catch {
-      case NonFatal(e) =>
-        reportError(e)
-        None
-      // JNotify failure on FreeBSD
-      case e: ExceptionInInitializerError =>
-        reportError(e)
-        None
-      case e: NoClassDefFoundError =>
-        reportError(e)
-        None
-      // JNotify failure on Linux
-      case e: UnsatisfiedLinkError =>
-        reportError(e)
-        None
+          new JNotifyPlayWatchService(d)
+        }
+        watchService = Some(ws)
+        ws
+      case Some(ws) => ws
     }
-
-  }
-
-  private def reportError(e: Throwable) = {
-    println(play.sbtplugin.Colors.red(
-      """|
-         |Cannot load the JNotify native library (%s)
-         |Play will poll for file changes, so expect increased system load.
-         |""".format(e.getMessage).stripMargin
-    ))
   }
 }
 
+private class JDK7PlayWatchService(delegate: JDK7PlayWatchService.JDK7WatchServiceDelegate, logger: Logger) extends PlayWatchService {
+  def watch(filesToWatch: Seq[File], onChange: () => Unit) = {
+    // val watcher = FileSystems.getDefault.newWatchService()
+    val watcher = delegate.newWatchService()
+    filesToWatch.foreach { file =>
+      if (file.isDirectory) {
+        // file.toPath.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY)
+        delegate.registerFileWithWatcher(file, watcher)
+      } else if (file.isFile) {
+        // JDK7 WatchService can't watch files
+        logger.warn("JDK7 WatchService only supports watching directories, but an attempt has been made to watch the file: " + file.getCanonicalPath)
+        logger.warn("This file will not be watched. Either remove the file from playMonitoredFiles, or configure a different WatchService, eg:")
+        logger.warn("PlayKeys.playWatchService := play.sbtplugin.run.PlayWatchService.jnotify(target.value)")
+      }
+    }
+
+    val thread = new Thread(new Runnable {
+      def run() = {
+        try {
+          while (true) {
+            // val watchKey = watcher.take()
+            val watchKey = delegate.takeFromWatcher(watcher)
+
+            // Very important to call poll events - otherwise the events aren't taken off the queue
+            // watchKey.pollEvents()
+            delegate.pollEvents(watchKey)
+
+            onChange()
+
+            // watchKey.reset()
+            delegate.resetKey(watchKey)
+          }
+        } catch {
+          case NonFatal(e) => // Do nothing, this means the watch service has been closed, or we've been interrupted.
+        } finally {
+          // Just in case it wasn't closed.
+          // watcher.close()
+          delegate.closeWatcher(watcher)
+        }
+      }
+    }, "sbt-play-watch-service")
+    thread.setDaemon(true)
+    thread.start()
+
+    new PlayWatcher {
+      def stop() = {
+        // watcher.close()
+        delegate.closeWatcher(watcher)
+      }
+    }
+
+  }
+}
+
+private object JDK7PlayWatchService {
+
+  import java.lang.reflect.Array
+
+  @volatile var watchService: Option[Try[PlayWatchService]] = None
+
+  def apply(logger: Logger): Try[PlayWatchService] = {
+    watchService match {
+      case None =>
+        val ws = Try(new JDK7PlayWatchService(new JDK7WatchServiceDelegate, logger))
+        watchService = Some(ws)
+        ws
+      case Some(ws) => ws
+    }
+  }
+
+  /**
+   * Captures all the reflection for invoking the JDK7 watch service in one place
+   */
+  class JDK7WatchServiceDelegate() {
+
+    def loadClass(clazz: String): Class[_] = ClassLoader.getSystemClassLoader.loadClass(clazz)
+
+    val fileSystem = loadClass("java.nio.file.FileSystems").getMethod("getDefault").invoke(null)
+    val newWatchServiceMethod = loadClass("java.nio.file.FileSystem").getMethod("newWatchService")
+    val toPathMethod = classOf[File].getMethod("toPath")
+    val watchServiceClass = loadClass("java.nio.file.WatchService")
+
+    val kindClass = loadClass("java.nio.file.WatchEvent$Kind")
+    val kindArrayClass = Array.newInstance(kindClass, 0).getClass
+    val standardWatchEventKindsClass = loadClass("java.nio.file.StandardWatchEventKinds")
+    val entryCreate = standardWatchEventKindsClass.getField("ENTRY_CREATE").get(null)
+    val entryDelete = standardWatchEventKindsClass.getField("ENTRY_DELETE").get(null)
+    val entryModify = standardWatchEventKindsClass.getField("ENTRY_MODIFY").get(null)
+    val dirKinds = {
+      val array = Array.newInstance(kindClass, 3)
+      Array.set(array, 0, entryCreate)
+      Array.set(array, 1, entryDelete)
+      Array.set(array, 2, entryModify)
+      array
+    }
+
+    val modifierClass = loadClass("java.nio.file.WatchEvent$Modifier")
+    val modifierArrayClass = Array.newInstance(modifierClass, 0).getClass
+    val modifiers = {
+      try {
+        // OpenJDK specific.
+        // The default polling interval (sensitivity) for implementations that poll (OSX) is 10 seconds (MEDIUM).
+        // This is controlled by the SensitivityWatchEventModifier modifier.  HIGH is the shortest, at 2 seconds.
+        val sensitivityClass = loadClass("com.sun.nio.file.SensitivityWatchEventModifier")
+        // There are two ways to cast to a recursive type. One way is forSome. The other is a custom asInstanceOf
+        // method that defines the recursive type.
+        import scala.language.existentials
+        val sensitivity = Enum.valueOf(sensitivityClass.asInstanceOf[Class[T] forSome { type T <: Enum[T] }], "HIGH")
+        val array = Array.newInstance(modifierClass, 1)
+        Array.set(array, 0, sensitivity)
+        array
+      } catch {
+        case e: ClassNotFoundException => Array.newInstance(modifierClass, 0)
+      }
+    }
+
+    val registerMethod = loadClass("java.nio.file.Path").getMethod("register", watchServiceClass, kindArrayClass, modifierArrayClass)
+    val takeMethod = watchServiceClass.getMethod("take")
+    val closeMethod = watchServiceClass.getMethod("close")
+    val watchKeyClass = loadClass("java.nio.file.WatchKey")
+    val pollEventsMethod = watchKeyClass.getMethod("pollEvents")
+    val resetMethod = watchKeyClass.getMethod("reset")
+
+    def newWatchService(): AnyRef = newWatchServiceMethod.invoke(fileSystem)
+
+    def registerFileWithWatcher(file: File, watcher: AnyRef): AnyRef = {
+      val path = toPathMethod.invoke(file)
+      registerMethod.invoke(path, watcher, dirKinds, modifiers)
+    }
+
+    def takeFromWatcher(watcher: AnyRef): AnyRef = {
+      takeMethod.invoke(watcher)
+    }
+
+    def pollEvents(watchKey: AnyRef): AnyRef = {
+      pollEventsMethod.invoke(watchKey)
+    }
+
+    def resetKey(watchKey: AnyRef): Boolean = {
+      resetMethod.invoke(watchKey).asInstanceOf[Boolean]
+    }
+
+    def closeWatcher(watcher: AnyRef): Unit = {
+      closeMethod.invoke(watcher)
+    }
+  }
+}
+
+/**
+ * Watch service that delegates to a try. This allows it to exist without reporting an exception unless it's used.
+ */
+private class OptionalPlayWatchServiceDelegate(watchService: Try[PlayWatchService]) extends PlayWatchService {
+  def watch(filesToWatch: Seq[File], onChange: () => Unit) = {
+    watchService.map(ws => ws.watch(filesToWatch, onChange)).get
+  }
+}

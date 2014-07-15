@@ -1,4 +1,108 @@
+# Structure of this test:
+# =======================
+
+# First we test that the different watchers correctly detect events such as changing a file, creating a new file,
+# changing that new file, and deleting a file.
+
+# Then we test the specifics of the reloader - for example, ensuring that it only reloads when the classpath changes,
+# and testing failure conditions.
+
+# Additionally, when making assertions about reloads, we need to wait at least a second after changing the file before
+# we make a request.  The reason for this is that the classpath change detection is based on file modification times,
+# which only have 1 second precision
+
+# Watcher tests
+# -------------
+
+# SBT watcher
+# - - - - - -
+
 # Start dev mode
+> run
+
+# Existing file change detection
+> verify-resource-contains /assets/some.css 200 original
+$ copy-file changes/some.css.1 public/some.css
+> verify-resource-contains /assets/some.css 200 first
+$ delete public/some.css
+> verify-resource-contains /assets/some.css 404
+
+# New file change detection
+> verify-resource-contains /assets/new.css 404
+$ copy-file changes/new.css public/new.css
+> verify-resource-contains /assets/new.css 200 original
+# Need to wait a little while, because incremental compilation timestamps.
+$ sleep 1000
+$ copy-file changes/new.css.1 public/new.css
+> verify-resource-contains /assets/new.css 200 first
+$ delete public/new.css
+> verify-resource-contains /assets/new.css 404
+
+> play-stop
+$ copy-file changes/some.css.0 public/some.css
+
+# JDK7 watcher
+# - - - - - -
+
+> set PlayKeys.playWatchService <<= DevModeBuild.jdk7WatchService
+
+# Start dev mode
+> run
+
+# Existing file change detection
+> verify-resource-contains /assets/some.css 200 original
+$ copy-file changes/some.css.1 public/some.css
+> verify-resource-contains /assets/some.css 200 first
+$ delete public/some.css
+> verify-resource-contains /assets/some.css 404
+
+# New file change detection
+> verify-resource-contains /assets/new.css 404
+$ copy-file changes/new.css public/new.css
+> verify-resource-contains /assets/new.css 200 original
+# Need to wait a little while, because incremental compilation timestamps.
+$ sleep 1000
+$ copy-file changes/new.css.1 public/new.css
+> verify-resource-contains /assets/new.css 200 first
+$ delete public/new.css
+> verify-resource-contains /assets/new.css 404
+
+> play-stop
+$ copy-file changes/some.css.0 public/some.css
+
+# JNotify watch service
+# - - - - - - - - - - -
+
+> set PlayKeys.playWatchService <<= DevModeBuild.jnotifyWatchService
+
+# Start dev mode
+> run
+
+# Existing file change detection
+> verify-resource-contains /assets/some.css 200 original
+$ copy-file changes/some.css.1 public/some.css
+> verify-resource-contains /assets/some.css 200 first
+$ delete public/some.css
+> verify-resource-contains /assets/some.css 404
+
+# New file change detection
+> verify-resource-contains /assets/new.css 404
+$ copy-file changes/new.css public/new.css
+> verify-resource-contains /assets/new.css 200 original
+# Need to wait a little while, because incremental compilation timestamps.
+$ sleep 1000
+$ copy-file changes/new.css.1 public/new.css
+> verify-resource-contains /assets/new.css 200 first
+$ delete public/new.css
+> verify-resource-contains /assets/new.css 404
+
+> play-stop
+$ copy-file changes/some.css.0 public/some.css
+
+# Reloader tests
+# --------------
+
+> reset-reloads
 > run
 
 # Check various action types
@@ -50,10 +154,5 @@ $ sleep 1000
 > verify-resource-contains / 500
 > verify-reloads 4
 
-# Fix the start up failure
-$ copy-file changes/application.conf.2 conf/application.conf
-$ sleep 1000
-> verify-resource-contains / 200
-> verify-reloads 5
-
 > play-stop
+

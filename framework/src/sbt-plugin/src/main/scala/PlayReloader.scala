@@ -35,7 +35,7 @@ trait PlayReloader {
     classpathTask: TaskKey[Classpath],
     baseLoader: ClassLoader,
     monitoredFiles: Seq[String],
-    targetDirectory: File): PlayBuildLink = {
+    playWatchService: PlayWatchService): PlayBuildLink = {
 
     val extracted = Project.extract(state)
 
@@ -58,7 +58,9 @@ trait PlayReloader {
       @volatile private var watchState: WatchState = WatchState.empty
 
       // Create the watcher, updates the changed boolean when a file has changed.
-      private val watcher = PlayWatchService(targetDirectory).watch(monitoredFiles.map(new File(_)), () => changed = true)
+      private val watcher = playWatchService.watch(monitoredFiles.map(new File(_)), () => {
+        changed = true
+      })
       private val classLoaderVersion = new java.util.concurrent.atomic.AtomicInteger(0)
 
       /**
