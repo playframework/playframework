@@ -23,7 +23,9 @@ templates := {
   sys.props.get("templates").map(_.split(",").toSeq).getOrElse(Seq(
     "play-scala",
     "play-java",
-    "play-2.3-highlights"
+    "play-2.3-highlights",
+    "play-scala-intro",
+    "play-java-intro"
   )).map(template => dir / template)
 }
 
