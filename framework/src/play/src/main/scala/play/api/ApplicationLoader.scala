@@ -43,7 +43,7 @@ object ApplicationLoader {
    *                             configuration used by the application, as the ApplicationLoader may, through it's own
    *                             mechanisms, modify it or completely ignore it.
    */
-  case class Context(environment: Environment, sourceMapper: Option[SourceMapper], initialConfiguration: Configuration)
+  final case class Context(environment: Environment, sourceMapper: Option[SourceMapper], initialConfiguration: Configuration)
 
   /**
    * Locate and instantiate the ApplicationLoader.

@@ -18,12 +18,42 @@ import scala.reflect.ClassTag
  * It is strongly advised that in addition to providing a module for JSR-330 DI, that plugins also provide a Scala
  * trait that constructs the modules manually.  This allows for use of the module without needing a runtime dependency
  * injection provider.
+ *
+ * The `bind` methods are provided only as a DSL for specifying bindings. For example:
+ *
+ * {{{
+ *   def bindings(env: Environment, conf: Configuration) = Seq(
+ *     bind[Foo].to[FooImpl],
+ *     bind[Bar].to(new Bar()),
+ *     bind[Foo].qualifiedWith[SomeQualifier].to[OtherFoo]
+ *   )
+ * }}}
  */
 abstract class Module {
 
-  def bindings(env: Environment, configuration: Configuration): Seq[Binding[_]]
+  /**
+   * Get the bindings provided by this module.
+   *
+   * Implementations are strongly encouraged to do *nothing* in this method other than provide bindings.  Startup
+   * should be handled in the the constructors and/or providers bound in the returned bindings.  Dependencies on other
+   * modules or components should be expressed through constructor arguments.
+   *
+   * The configuration and environment a provided for the purpose of producing dynamic bindings, for example, if what
+   * gets bound depends on some configuration, this may be read to control that.
+   *
+   * @param environment The environment
+   * @param configuration The configuration
+   * @return A sequence of bindings
+   */
+  def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]]
 
-  def bind[T](clazz: Class[T]): BindingKey[T] = BindingKey(clazz, Seq.empty)
+  /**
+   * Create a binding key for the given class.
+   */
+  final def bind[T](clazz: Class[T]): BindingKey[T] = BindingKey(clazz)
 
-  def bind[T: ClassTag]: BindingKey[T] = BindingKey(implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]], Seq.empty)
+  /**
+   * Create a binding key for the given class.
+   */
+  final def bind[T: ClassTag]: BindingKey[T] = BindingKey(implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]])
 }
