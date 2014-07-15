@@ -154,7 +154,7 @@ object CSRFAction {
   }
 
   private[csrf] def checkCsrfBypass(request: RequestHeader) = {
-    if (!CSRFConf.AllowBypass){
+    if (!CSRFConf.AllowBypass) {
 
       filterLogger.trace("[CSRF] Bypassing disabled")
       false
