@@ -15,6 +15,8 @@ import java.io.File
  * @param mode The mode of the application.
  */
 case class Environment(
-  rootPath: File,
-  classLoader: ClassLoader,
-  mode: Mode.Mode)
+    rootPath: File,
+    classLoader: ClassLoader,
+    mode: Mode.Mode) {
+
+}

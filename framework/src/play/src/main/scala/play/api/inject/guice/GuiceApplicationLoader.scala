@@ -4,7 +4,8 @@
 package play.api.inject
 package guice
 
-import com.google.inject.{ Binding => GuiceBinding, _ }
+import com.google.inject._
+import play.api.inject.{ Module => PlayModule, Binding => PlayBinding }
 import com.google.inject.util.Providers
 import play.api._
 
@@ -16,7 +17,6 @@ class GuiceLoadException(message: String) extends RuntimeException(message)
 class GuiceApplicationLoader extends ApplicationLoader {
 
   def load(context: ApplicationLoader.Context): Application = {
-    val builtinModule = new BuiltinModule
 
     val env = context.environment
 
@@ -29,22 +29,32 @@ class GuiceApplicationLoader extends ApplicationLoader {
 
     Logger.configure(env.rootPath, configuration, env.mode)
 
-    val bindings = builtinModule.bindings(context.environment, configuration) ++ Seq(
+    val modules = guiced(Seq(
       BindingKey(classOf[GlobalSettings]) to global,
       BindingKey(classOf[OptionalSourceMapper]) to new OptionalSourceMapper(context.sourceMapper)
-    )
+    )) +: Modules.locate(env, configuration)
+
+    val guiceModules = modules.map {
+      case playModule: PlayModule => guiced(playModule.bindings(env, configuration))
+      case guiceModule: Module => guiceModule
+      case unknown => throw new PlayException(
+        "Unknown module type",
+        s"Module [$unknown] is not a Play module or a Guice module"
+      )
+    }
+
+    import scala.collection.JavaConverters._
 
     // load play module bindings
-    val guiceModule = guiced(bindings)
-    val injector = Guice.createInjector(guiceModule)
+    val injector = Guice.createInjector(guiceModules.asJavaCollection)
     injector.getInstance(classOf[Application])
   }
 
-  private def guiced(bindings: Seq[Binding[_]]): AbstractModule = {
+  private def guiced(bindings: Seq[PlayBinding[_]]): AbstractModule = {
     new AbstractModule {
       def configure(): Unit = {
         for (b <- bindings) {
-          val binding = b.asInstanceOf[Binding[Any]]
+          val binding = b.asInstanceOf[PlayBinding[Any]]
           val builder = bind(binding.key.clazz)
           for (qualifier <- binding.key.qualifiers) {
             qualifier match {

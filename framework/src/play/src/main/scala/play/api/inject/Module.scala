@@ -3,7 +3,8 @@
  */
 package play.api.inject
 
-import play.api.{ Configuration, Environment }
+import play.api._
+import play.utils.PlayIO
 import scala.reflect.ClassTag
 
 /**
@@ -13,7 +14,13 @@ import scala.reflect.ClassTag
  * ApplicationLoaders.  Any plugin that wants to provide components that a Play application can use may implement
  * one of these.
  *
- * Providing custom modules can be done by... todo
+ * Providing custom modules can be done by creating a resource on the classpath called `play.modules`. This file is
+ * expected to contain a list of module classes, one class per line.  For example:
+ *
+ * {{{
+ *   com.example.FooModule
+ *   com.example.BarModule
+ * }}}
  *
  * It is strongly advised that in addition to providing a module for JSR-330 DI, that plugins also provide a Scala
  * trait that constructs the modules manually.  This allows for use of the module without needing a runtime dependency
@@ -56,4 +63,43 @@ abstract class Module {
    * Create a binding key for the given class.
    */
   final def bind[T: ClassTag]: BindingKey[T] = BindingKey(implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]])
+}
+
+object Modules {
+
+  /**
+   * Locate the modules from the environment.
+   *
+   * Looks for files called `play.modules` on the classpath, and loads the modules from these.
+   *
+   * @param environment The environment.
+   * @param configuration The configuration. Currently not used, but may be useful in future for configuring module
+   *                      loading.
+   * @return A sequence of objects. This method makes no attempt to cast or check the types of the modules being loaded,
+   *         allowing ApplicationLoader implementations to reuse the same mechanism to load modules specific to them.
+   */
+  def locate(environment: Environment, configuration: Configuration): Seq[Any] = {
+    import scala.collection.JavaConverters._
+
+    val moduleClassNames = environment.classLoader.getResources("play.modules").asScala.toSeq.flatMap { url =>
+      PlayIO.readUrlAsString(url)
+        .split("\n").toSeq
+        .map(_.replaceAll("#.*$", "").trim)
+        .filterNot(_.isEmpty)
+    }.distinct
+
+    moduleClassNames.map { className =>
+      try {
+        environment.classLoader.loadClass(className).newInstance()
+      } catch {
+        case e: PlayException => throw e
+        case e: VirtualMachineError => throw e
+        case e: ThreadDeath => throw e
+        case e: Throwable => throw new PlayException(
+          "Cannot load module",
+          "Module [" + className + "] cannot be instantiated.",
+          e)
+      }
+    }
+  }
 }

@@ -242,7 +242,7 @@ private class NamedImpl(val value: String) extends Named with Serializable {
   // This is specified in java.lang.Annotation.
   override def hashCode: Int = (127 * "value".hashCode) ^ value.hashCode
 
-  override def equals(obj: AnyRef) = obj match {
+  override def equals(obj: Any) = obj match {
     case named: Named => value == named.value
     case _ => false
   }

@@ -128,7 +128,7 @@ class ReloadableApplication(buildLink: BuildLink, buildDocHandler: BuildDocHandl
               import scala.collection.JavaConverters._
 
               // Create the new environment
-              val environment = Environment(path, this.getClass.getClassLoader, Mode.Dev)
+              val environment = Environment(path, projectClassloader, Mode.Dev)
               val sourceMapper = new SourceMapper {
                 def sourceOf(className: String, line: Option[Int]) = {
                   Option(buildLink.findSource(className, line.map(_.asInstanceOf[java.lang.Integer]).orNull)).flatMap {

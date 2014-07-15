@@ -3,7 +3,6 @@
  */
 package play.api.inject
 
-import javax.inject.Provider
 import play.api.{ Configuration, Application, DefaultApplication, Environment }
 
 class BuiltinModule extends Module {
