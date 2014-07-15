@@ -250,6 +250,7 @@ object Logger extends LoggerLike {
               }.orElse {
                 Option(this.getClass.getClassLoader.getResource("application-logger.xml"))
                   .orElse(Option(this.getClass.getClassLoader.getResource("logger.xml")))
+                  .orElse(Option(this.getClass.getClassLoader.getResource("logback.xml")))
               }
 
           configResource.foreach { url => configurator.doConfigure(url) }

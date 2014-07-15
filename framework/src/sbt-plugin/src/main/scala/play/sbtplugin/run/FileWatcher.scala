@@ -101,9 +101,11 @@ private object JNotifyPlayWatchService {
       try {
         removeWatchMethod.invoke(null, id.asInstanceOf[AnyRef])
       } catch {
-        case e: IOException =>
+        case _: Throwable =>
         // Ignore, if we fail to remove a watch it's not the end of the world.
         // http://sourceforge.net/p/jnotify/bugs/12/
+        // We match on Throwable because matching on an IOException didn't work.
+        // http://sourceforge.net/p/jnotify/bugs/5/
       }
     }
     def newListener(onChange: () => Unit): AnyRef = {
@@ -113,6 +115,10 @@ private object JNotifyPlayWatchService {
           null
         }
       })
+    }
+    @throws[Throwable]("If we were not able to successfully load JNotify")
+    def ensureLoaded(): Unit = {
+      removeWatchMethod.invoke(null, 0.asInstanceOf[java.lang.Integer])
     }
   }
 
@@ -163,7 +169,7 @@ private object JNotifyPlayWatchService {
           val d = new JNotifyDelegate(sbtLoader, jnotifyListenerClass, addWatchMethod, removeWatchMethod)
 
           // Try it
-          d.removeWatch(0)
+          d.ensureLoaded()
 
           watchService = Some(new JNotifyPlayWatchService(d))
 

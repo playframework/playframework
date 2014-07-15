@@ -40,6 +40,12 @@ object ServerStartSpec extends Specification {
     case ExitException(message, _, _) => Left(message)
   }
 
+  class FakeServerStart(val defaultServerProvider: ServerProvider) extends ServerStart {
+    override protected def createApplicationProvider(config: ServerConfig): ApplicationProvider = {
+      new FakeApplicationProvider(config.rootDir)
+    }
+  }
+
   /** A mocked ServerProcess */
   class FakeServerProcess(
     val args: Seq[String] = Seq(),
@@ -102,11 +108,12 @@ object ServerStartSpec extends Specification {
     override def createServer(config: ServerConfig, appProvider: ApplicationProvider) = ???
   }
 
-  "ServerStart.readServerConfigSettings" should {
+  "serverStart.readServerConfigSettings" should {
 
     "read settings from the current process (root dir in args, default HTTP port)" in withTempDir { tempDir =>
+      val serverStart = new FakeServerStart(new FakeServerProvider)
       val process = new FakeServerProcess(Seq(tempDir.getAbsolutePath))
-      startResult(ServerStart.readServerConfigSettings(process)) must_== Right(ServerConfig(
+      startResult(serverStart.readServerConfigSettings(process)) must_== Right(ServerConfig(
         rootDir = tempDir,
         port = Some(9000),
         sslPort = None,
@@ -115,6 +122,7 @@ object ServerStartSpec extends Specification {
       ))
     }
     "read settings from the current process (root dir, HTTP port and HTTPS port in props)" in withTempDir { tempDir =>
+      val serverStart = new FakeServerStart(new FakeServerProvider)
       val process = new FakeServerProcess(
         propertyMap = Map(
           "user.dir" -> tempDir.getAbsolutePath,
@@ -122,7 +130,7 @@ object ServerStartSpec extends Specification {
           "https.port" -> "443"
         )
       )
-      startResult(ServerStart.readServerConfigSettings(process)) must_== Right(ServerConfig(
+      startResult(serverStart.readServerConfigSettings(process)) must_== Right(ServerConfig(
         rootDir = tempDir,
         port = Some(80),
         sslPort = Some(443),
@@ -131,83 +139,95 @@ object ServerStartSpec extends Specification {
       ))
     }
     "require a root dir path when reading settings" in {
+      val serverStart = new FakeServerStart(new FakeServerProvider)
       val process = new FakeServerProcess()
-      startResult(ServerStart.readServerConfigSettings(process)) must_== Left("No root server path supplied")
+      startResult(serverStart.readServerConfigSettings(process)) must_== Left("No root server path supplied")
     }
     "require an HTTP or HTTPS port when reading settings" in withTempDir { tempDir =>
+      val serverStart = new FakeServerStart(new FakeServerProvider)
       val process = new FakeServerProcess(
         args = Seq(tempDir.getAbsolutePath),
         propertyMap = Map("http.port" -> "disabled")
       )
-      startResult(ServerStart.readServerConfigSettings(process)) must_== Left("Must provide either an HTTP or HTTPS port")
+      startResult(serverStart.readServerConfigSettings(process)) must_== Left("Must provide either an HTTP or HTTPS port")
     }
     "require an integer HTTP port when reading settings" in withTempDir { tempDir =>
+      val serverStart = new FakeServerStart(new FakeServerProvider)
       val process = new FakeServerProcess(
         args = Seq(tempDir.getAbsolutePath),
         propertyMap = Map("http.port" -> "xyz")
       )
-      startResult(ServerStart.readServerConfigSettings(process)) must_== Left("Invalid HTTP port: xyz")
+      startResult(serverStart.readServerConfigSettings(process)) must_== Left("Invalid HTTP port: xyz")
     }
     "require an integer HTTPS port when reading settings" in withTempDir { tempDir =>
+      val serverStart = new FakeServerStart(new FakeServerProvider)
       val process = new FakeServerProcess(
         args = Seq(tempDir.getAbsolutePath),
         propertyMap = Map("https.port" -> "xyz")
       )
-      startResult(ServerStart.readServerConfigSettings(process)) must_== Left("Invalid HTTPS port: xyz")
+      startResult(serverStart.readServerConfigSettings(process)) must_== Left("Invalid HTTPS port: xyz")
     }
 
   }
 
-  "ServerStart.readServerProviderSetting" should {
+  "serverStart.readServerProviderSetting" should {
 
-    "return None by default" in {
+    "return default by default" in {
+      val defaultServerProvider = new FakeServerProvider
+      val serverStart = new FakeServerStart(defaultServerProvider)
       val process = new FakeServerProcess()
-      ServerStart.readServerProviderSetting(process) must beNone
+      serverStart.readServerProviderSetting(process) must be(defaultServerProvider)
     }
     "create a custom provider when the server.provider property is supplied" in {
+      val serverStart = new FakeServerStart(new FakeServerProvider)
       val serverProviderClass = classOf[FakeServerProvider]
       val process = new FakeServerProcess(
         propertyMap = Map("server.provider" -> serverProviderClass.getName)
       )
-      ServerStart.readServerProviderSetting(process).map(_.getClass) must_== Some(serverProviderClass)
+      serverStart.readServerProviderSetting(process).getClass must_== serverProviderClass
     }
     "fail if the class doesn't exist" in {
+      val serverStart = new FakeServerStart(new FakeServerProvider)
       val process = new FakeServerProcess(
         propertyMap = Map("server.provider" -> "garble.barble.Phnarble")
       )
-      startResult(ServerStart.readServerProviderSetting(process)) must_== Left("Couldn't find ServerProvider class 'garble.barble.Phnarble'")
+      startResult(serverStart.readServerProviderSetting(process)) must_== Left("Couldn't find ServerProvider class 'garble.barble.Phnarble'")
     }
     "fail if the class doesn't implement ServerProvider" in {
+      val serverStart = new FakeServerStart(new FakeServerProvider)
       val serverProvider = classOf[String].getName
       val process = new FakeServerProcess(
         propertyMap = Map("server.provider" -> serverProvider)
       )
-      startResult(ServerStart.readServerProviderSetting(process)) must_== Left(s"Class $serverProvider must implement ServerProvider interface")
+      startResult(serverStart.readServerProviderSetting(process)) must_== Left(s"Class $serverProvider must implement ServerProvider interface")
     }
     "fail if the class doesn't have a default constructor" in {
+      val serverStart = new FakeServerStart(new FakeServerProvider)
       val serverProvider = classOf[InvalidCtorFakeServerProvider].getName
       val process = new FakeServerProcess(
         propertyMap = Map("server.provider" -> serverProvider)
       )
-      startResult(ServerStart.readServerProviderSetting(process)) must_== Left(s"ServerProvider class $serverProvider must have a public default constructor")
+      startResult(serverStart.readServerProviderSetting(process)) must_== Left(s"ServerProvider class $serverProvider must have a public default constructor")
     }
     "fail if the class has a private constructor" in {
+      val serverStart = new FakeServerStart(new FakeServerProvider)
       val serverProvider = classOf[PrivateCtorFakeServer].getName
       val process = new FakeServerProcess(
         propertyMap = Map("server.provider" -> serverProvider)
       )
-      startResult(ServerStart.readServerProviderSetting(process)) must_== Left(s"ServerProvider class $serverProvider must have a public default constructor")
+      startResult(serverStart.readServerProviderSetting(process)) must_== Left(s"ServerProvider class $serverProvider must have a public default constructor")
     }
 
   }
 
 
-  "ServerStart.createPidFile" should {
+  "serverStart.createPidFile" should {
 
     "create a pid file with the current id, then remove it on process shutdown" in withTempDir { tempDir =>
+      val serverStart = new FakeServerStart(new FakeServerProvider)
       val pid = "12345"
       val process = new FakeServerProcess(pid = Some(pid))
-      startResult(ServerStart.createPidFile(process, tempDir)) must_== Right(())
+      startResult(serverStart.createPidFile(process, tempDir)) must_== Right(())
       val pidFile = new File(tempDir, "RUNNING_PID")
       try {
         pidFile.exists must beTrue
@@ -218,25 +238,28 @@ object ServerStartSpec extends Specification {
       pidFile.exists must beFalse
    }
     "fail to create a pid file if it can't get the process pid" in withTempDir { tempDir =>
+      val serverStart = new FakeServerStart(new FakeServerProvider)
       val process = new FakeServerProcess(pid = None)
-      startResult(ServerStart.createPidFile(process, tempDir)) must_== Left("Couldn't determine current process's pid")
+      startResult(serverStart.createPidFile(process, tempDir)) must_== Left("Couldn't determine current process's pid")
     }
     "fail to create a pid file if the pid file already exists" in withTempDir { tempDir =>
+      val serverStart = new FakeServerStart(new FakeServerProvider)
       val process = new FakeServerProcess(pid = Some("123"))
       Files.write("x".getBytes, new File(tempDir, "RUNNING_PID"))
-      startResult(ServerStart.createPidFile(process, tempDir)) must_== Left(s"This application is already running (Or delete ${tempDir.getAbsolutePath}/RUNNING_PID file).")
+      startResult(serverStart.createPidFile(process, tempDir)) must_== Left(s"This application is already running (Or delete ${tempDir.getAbsolutePath}/RUNNING_PID file).")
     }
 
   }
 
-  "ServerStart.start" should {
+  "serverStart.start" should {
 
     "read settings, create a pid file, start the the server and register shutdown hooks" in withTempDir { tempDir =>
+      val serverStart = new FakeServerStart(new FakeServerProvider)
       val process = new FakeServerProcess(
         args = Seq(tempDir.getAbsolutePath),
         pid = Some("999")
       )
-      val server = ServerStart.start(process, new FakeServerProvider, (config: ServerConfig) => new FakeApplicationProvider(config.rootDir))
+      val server = serverStart.start(process)
       val pidFile = new File(tempDir, "RUNNING_PID")
       try {
         server.getClass must_== classOf[FakeServer]
@@ -250,12 +273,13 @@ object ServerStartSpec extends Specification {
     }
 
     "read settings, create custom ServerProvider, create a pid file, start the the server and register shutdown hooks" in withTempDir { tempDir =>
+      val serverStart = new FakeServerStart(new FakeServerProvider2)
       val process = new FakeServerProcess(
         args = Seq(tempDir.getAbsolutePath),
         propertyMap = Map("server.provider" -> classOf[FakeServerProvider2].getName),
         pid = Some("999")
       )
-      val server = ServerStart.start(process, new FakeServerProvider, (config: ServerConfig) => new FakeApplicationProvider(config.rootDir))
+      val server = serverStart.start(process)
       val pidFile = new File(tempDir, "RUNNING_PID")
       try {
         server.getClass must_== classOf[FakeServer2]
@@ -269,9 +293,10 @@ object ServerStartSpec extends Specification {
     }
 
     "exit with an error if settings are wrong" in withTempDir { tempDir =>
+      val serverStart = new FakeServerStart(new FakeServerProvider)
       val process = new FakeServerProcess()
       exitResult {
-        ServerStart.start(process, new FakeServerProvider, (config: ServerConfig) => new FakeApplicationProvider(config.rootDir))
+        serverStart.start(process)
       } must_== (Left("No root server path supplied"))
     }
 

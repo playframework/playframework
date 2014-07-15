@@ -3,22 +3,25 @@
  */
 package play.core.server.netty
 
+import org.jboss.netty.buffer.ChannelBuffers
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.handler.codec.http.HttpHeaders._
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names._
+import org.jboss.netty.handler.codec.http.websocketx.{ WebSocketFrame, TextWebSocketFrame, BinaryWebSocketFrame }
 import org.jboss.netty.handler.codec.frame.TooLongFrameException
 import org.jboss.netty.handler.ssl._
 
 import org.jboss.netty.channel.group._
-import play.core._
-import server.Server
 import play.api._
 import play.api.mvc._
 import play.api.http.HeaderNames.{ X_FORWARDED_FOR, X_FORWARDED_PROTO }
 import play.api.libs.concurrent.Execution
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
+import play.core._
+import play.core.server.Server
+import play.core.websocket._
 import scala.collection.JavaConverters._
 import scala.util.control.Exception
 import com.typesafe.netty.http.pipelining.{ OrderedDownstreamChannelEvent, OrderedUpstreamMessageEvent }
@@ -151,7 +154,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
                 .flatMap { _ =>
                   // Call errorHandler in another context, don't block here
                   global.onBadRequest(rh, e.getMessage)
-                }(Execution.defaultContext)
+                }(play.api.libs.iteratee.Execution.trampoline)
               (rh, Left(result))
             },
             rh => server.getHandlerFor(rh) match {
@@ -341,14 +344,18 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
     import play.api.libs.iteratee.Execution.Implicits.trampoline
 
     val channel = ctx.getChannel
-    val nettyFrameFormatter = frameFormatter.asInstanceOf[play.core.server.websocket.FrameFormatter[A]]
+    val basicFrameFormatter = frameFormatter.asInstanceOf[BasicFrameFormatter[A]]
 
     import NettyFuture._
 
     def iteratee: Iteratee[A, _] = Cont {
       case El(e) =>
-        val frame = nettyFrameFormatter.toFrame(e)
-        Iteratee.flatten(channel.write(frame).toScala.map(_ => iteratee))
+        val basicFrame: BasicFrame = basicFrameFormatter.toFrame(e)
+        val nettyFrame: WebSocketFrame = basicFrame match {
+          case TextFrame(text) => new TextWebSocketFrame(true, 0, text)
+          case BinaryFrame(bytes) => new BinaryWebSocketFrame(true, 0, ChannelBuffers.wrappedBuffer(bytes))
+        }
+        Iteratee.flatten(channel.write(nettyFrame).toScala.map(_ => iteratee))
       case e @ EOF =>
         if (channel.isOpen) {
           Iteratee.flatten(for {

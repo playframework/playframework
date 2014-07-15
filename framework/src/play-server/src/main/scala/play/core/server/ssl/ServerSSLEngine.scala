@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
  */
-package play.core.server
+package play.core.server.ssl
 
 import play.server.api.{ SSLEngineProvider => ScalaSSLEngineProvider }
 import play.server.{ SSLEngineProvider => JavaSSLEngineProvider }

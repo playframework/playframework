@@ -1,6 +1,8 @@
 package anorm
 
-import java.sql.Connection
+import java.sql.{ Connection, SQLWarning }
+
+import resource.ManagedResource
 
 /**
  * A result from execution of an SQL query, row data and context
@@ -9,9 +11,13 @@ import java.sql.Connection
  * @constructor create a result with a result set
  * @param resultSet Result set from executed query
  */
-final case class SqlQueryResult(resultSet: java.sql.ResultSet) {
+final case class SqlQueryResult(
+    /** Underlying result set */
+    resultSet: ManagedResource[java.sql.ResultSet]) {
+
   /** Query statement already executed */
-  val statement: java.sql.Statement = resultSet.getStatement
+  val statement: ManagedResource[java.sql.Statement] =
+    resultSet.map(_.getStatement)
 
   /**
    * Returns statement warning if there is some for this result.
@@ -29,18 +35,16 @@ final case class SqlQueryResult(resultSet: java.sql.ResultSet) {
    * }
    * }}}
    */
-  def statementWarning: Option[java.sql.SQLWarning] =
-    Option(statement.getWarnings)
+  def statementWarning: Option[SQLWarning] =
+    statement.acquireFor(_.getWarnings).fold[Option[SQLWarning]](
+      _.headOption.map(new SQLWarning(_)), Option(_))
 
   /** Returns stream of row from query result. */
   def apply()(implicit connection: Connection): Stream[Row] =
     Sql.resultSetToStream(resultSet)
 
   def as[T](parser: ResultSetParser[T])(implicit connection: Connection): T =
-    parser(Sql.resultSetToStream(resultSet)) match {
-      case Success(a) => a
-      case Error(e) => sys.error(e.toString)
-    }
+    Sql.as(parser, resultSet)
 
   def list[A](rowParser: RowParser[A])(implicit connection: Connection): Seq[A] = as(rowParser.*)
 
@@ -49,10 +53,8 @@ final case class SqlQueryResult(resultSet: java.sql.ResultSet) {
 
   def singleOpt[A](rowParser: RowParser[A])(implicit connection: Connection): Option[A] = as(ResultSetParser.singleOpt(rowParser))
 
+  @deprecated(message = "Use [[as]]", since = "2.3.2")
   def parse[T](parser: ResultSetParser[T])(implicit connection: Connection): T =
-    parser(Sql.resultSetToStream(resultSet)) match {
-      case Success(a) => a
-      case Error(e) => sys.error(e.toString)
-    }
+    as(parser)
 
 }

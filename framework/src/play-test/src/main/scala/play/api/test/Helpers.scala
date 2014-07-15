@@ -195,9 +195,11 @@ trait EssentialActionCaller {
    * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
    */
   def call[T](action: EssentialAction, rh: RequestHeader, body: T)(implicit w: Writeable[T]): Future[Result] = {
-    val rhWithCt = w.contentType.map(ct => rh.copy(
-      headers = FakeHeaders((rh.headers.toMap + ("Content-Type" -> Seq(ct))).toSeq)
-    )).getOrElse(rh)
+    import play.api.http.HeaderNames._
+    val newContentType = rh.headers.get(CONTENT_TYPE).fold(w.contentType)(_ => None)
+    val rhWithCt = newContentType.map { ct =>
+      rh.copy(headers = FakeHeaders((rh.headers.toMap + (CONTENT_TYPE -> Seq(ct))).toSeq))
+    }.getOrElse(rh)
 
     val requestBody = Enumerator(body) &> w.toEnumeratee
     requestBody |>>> action(rhWithCt)

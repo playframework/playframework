@@ -79,9 +79,6 @@ object Dependencies {
     mockitoAll % "test")
 
   val runtime = Seq(
-    "io.netty" % "netty" % "3.9.2.Final",
-
-    "com.typesafe.netty" % "netty-http-pipelining" % "1.1.2",
 
     "org.slf4j" % "slf4j-api" % "1.7.6",
     "org.slf4j" % "jul-to-slf4j" % "1.7.6",
@@ -101,7 +98,7 @@ object Dependencies {
     "joda-time" % "joda-time" % "2.3",
     "org.joda" % "joda-convert" % "1.6",
 
-    "org.apache.commons" % "commons-lang3" % "3.1",
+    "org.apache.commons" % "commons-lang3" % "3.3.2",
 
     "com.fasterxml.jackson.core" % "jackson-core" % "2.3.2",
     "com.fasterxml.jackson.core" % "jackson-annotations" % "2.3.2",
@@ -117,6 +114,10 @@ object Dependencies {
     specsBuild.map(_ % "test") ++
     javaTestDeps
 
+  val netty = Seq(
+    "io.netty" % "netty" % "3.9.2.Final",
+    "com.typesafe.netty" % "netty-http-pipelining" % "1.1.2"
+  )
 
   val link = Seq(
     "org.javassist" % "javassist" % "3.18.2-GA")
@@ -187,6 +188,10 @@ object Dependencies {
     "org.scalacheck" %% "scalacheck" % "1.11.3" % "test"
   )
 
+  val playServerDependencies = Seq(
+    guava % "test"
+  ) ++ specsBuild.map(_ % "test")
+
   val testDependencies = Seq("junit" % "junit" % "4.11") ++ specsBuild ++ Seq(
     "com.novocode" % "junit-interface" % "0.11-RC1",
     guava,
@@ -211,6 +216,7 @@ object Dependencies {
     mockitoAll % "test"
 
   val anormDependencies = specsBuild.map(_ % "test") ++ Seq(
+    "com.jsuereth" %% "scala-arm" % "1.4",
     h2database % "test",
     "org.eu.acolyte" %% "jdbc-scala" % acolyteVersion % "test",
     "com.chuusai" % "shapeless" % "2.0.0" % "test" cross CrossVersion.binaryMapped {

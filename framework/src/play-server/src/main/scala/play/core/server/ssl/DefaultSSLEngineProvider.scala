@@ -1,4 +1,4 @@
-package play.core.server
+package play.core.server.ssl
 
 import play.server.api.SSLEngineProvider
 import play.core.ApplicationProvider
@@ -7,7 +7,6 @@ import java.security.KeyStore
 import java.security.cert.X509Certificate
 import java.io.{ FileInputStream, File }
 import play.api.Play
-import play.core.server.netty.FakeKeyStore
 import scala.util.control.NonFatal
 import scala.util.{ Try, Failure, Success }
 import play.utils.PlayIO

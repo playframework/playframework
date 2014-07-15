@@ -70,11 +70,11 @@ trait PlaySettings {
 
     libraryDependencies <+= (playPlugin) {
       isPlugin =>
-        val d = "com.typesafe.play" %% "play" % play.core.PlayVersion.current
-        if (isPlugin)
-          d % "provided"
-        else
-          d
+        if (isPlugin) {
+          "com.typesafe.play" %% "play" % play.core.PlayVersion.current % "provided"
+        } else {
+          "com.typesafe.play" %% "play-netty-server" % play.core.PlayVersion.current
+        }
     },
     libraryDependencies += "com.typesafe.play" %% "play-test" % play.core.PlayVersion.current % "test",
 
@@ -97,8 +97,6 @@ trait PlaySettings {
     testFrameworks ~= {
       tf => tf.filter(_ != TestFrameworks.Specs2).:+(TestFrameworks.Specs2)
     },
-
-    testListeners <<= (target, streams).map((t, s) => Seq(new play.sbtplugin.test.JUnitXmlTestsListener(t.getAbsolutePath, s.log))),
 
     testResultReporter <<= testResultReporterTask,
 
