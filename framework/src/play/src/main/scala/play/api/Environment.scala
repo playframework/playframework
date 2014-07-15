@@ -4,20 +4,17 @@
 package play.api
 
 import java.io.File
-import play.utils.Threads
 
+/**
+ * The environment for the application.
+ *
+ * Captures concerns relating to the classloader and the filesystem for the application.
+ *
+ * @param rootPath The root path that the application is deployed at.
+ * @param classLoader The classloader that all application classes and resources can be loaded from.
+ * @param mode The mode of the application.
+ */
 case class Environment(
-  configuration: Configuration,
   rootPath: File,
   classLoader: ClassLoader,
-  mode: Mode.Mode
-)
-
-object Environment {
-  def apply(rootPath: File, classLoader: ClassLoader, mode: Mode.Mode): Environment = {
-    val configuration = Threads.withContextClassLoader(classLoader) {
-      Configuration.load(rootPath, mode)
-    }
-    Environment(configuration, rootPath, classLoader, mode)
-  }
-}
+  mode: Mode.Mode)

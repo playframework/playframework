@@ -32,9 +32,7 @@ trait Server {
   }
 
   // Configure the logger for the first time
-  Logger.configure(
-    Map("application.home" -> applicationProvider.path.getAbsolutePath),
-    mode = mode)
+  Logger.init(applicationProvider.path, mode)
 
   val bodyParserTimeout = {
     //put in proper config

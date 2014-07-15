@@ -31,7 +31,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
         // setting prod mode ensures caching headers get set, gzip is turned on, etc
         override val mode = Mode.Prod
         // but we don't want to load config in prod mode
-        override lazy val initialConfiguration = Threads.withContextClassLoader(classloader) {
+        override lazy val configuration = Threads.withContextClassLoader(classloader) {
           Configuration(Configuration.loadDev(path, Map.empty))
         }
       }))(block)

@@ -3,6 +3,8 @@
  */
 package play.api
 
+import javax.inject.Inject
+
 import play.core._
 import play.utils._
 
@@ -16,71 +18,6 @@ import java.lang.reflect.InvocationTargetException
 import reflect.ClassTag
 import scala.util.control.NonFatal
 import scala.concurrent.{ Future, ExecutionException }
-
-trait WithDefaultGlobal {
-  self: Application with WithDefaultConfiguration =>
-
-  // -- Global stuff
-
-  private lazy val globalClass = initialConfiguration.getString("application.global").getOrElse("Global")
-
-  lazy private val javaGlobal: Option[play.GlobalSettings] = try {
-    Option(self.classloader.loadClass(globalClass).newInstance().asInstanceOf[play.GlobalSettings])
-  } catch {
-    case e: InstantiationException => None
-    case e: ClassNotFoundException => None
-  }
-
-  lazy private val scalaGlobal: GlobalSettings = try {
-    self.classloader.loadClass(globalClass + "$").getDeclaredField("MODULE$").get(null).asInstanceOf[GlobalSettings]
-  } catch {
-    case e: ClassNotFoundException if !initialConfiguration.getString("application.global").isDefined => DefaultGlobal
-    case e if initialConfiguration.getString("application.global").isDefined => {
-      throw initialConfiguration.reportError("application.global",
-        s"Cannot initialize the custom Global object ($globalClass) (perhaps it's a wrong reference?)", Some(e))
-    }
-  }
-
-  /**
-   * The global settings object used by this application.
-   *
-   * @see play.api.GlobalSettings
-   */
-  private lazy val globalInstance: GlobalSettings = Threads.withContextClassLoader(self.classloader) {
-    try {
-      javaGlobal.map(new j.JavaGlobalSettingsAdapter(_)).getOrElse(scalaGlobal)
-    } catch {
-      case e: PlayException => throw e
-      case e: ThreadDeath => throw e
-      case e: VirtualMachineError => throw e
-      case e: Throwable => throw new PlayException(
-        "Cannot init the Global object",
-        e.getMessage,
-        e
-      )
-    }
-  }
-
-  def global: GlobalSettings = {
-    globalInstance
-  }
-}
-
-trait WithDefaultConfiguration {
-  self: Application =>
-
-  protected lazy val initialConfiguration = Threads.withContextClassLoader(self.classloader) {
-    Configuration.load(path, mode, this match {
-      case dev: DevSettings => dev.devSettings
-      case _ => Map.empty
-    })
-  }
-
-  private lazy val fullConfiguration = global.onLoadConfig(initialConfiguration, path, classloader, mode)
-
-  def configuration: Configuration = fullConfiguration
-
-}
 
 trait WithDefaultPlugins {
   self: Application =>
@@ -257,28 +194,6 @@ trait Application {
     }
   }
 
-  // Reconfigure logger
-  {
-
-    val validValues = Set("TRACE", "DEBUG", "INFO", "WARN", "ERROR", "OFF", "INHERITED")
-    val setLevel = (level: String) => level match {
-      case "INHERITED" => null
-      case level => ch.qos.logback.classic.Level.toLevel(level)
-    }
-
-    Logger.configure(
-      Map("application.home" -> path.getAbsolutePath),
-      configuration.getConfig("logger").map { loggerConfig =>
-        loggerConfig.keys.map {
-          case "resource" | "file" | "url" => "" -> null
-          case key @ "root" => "ROOT" -> loggerConfig.getString(key, Some(validValues)).map(setLevel).get
-          case key => key -> loggerConfig.getString(key, Some(validValues)).map(setLevel).get
-        }.toMap
-      }.getOrElse(Map.empty),
-      mode)
-
-  }
-
   /**
    * Handle a runtime error during the execution of an action
    */
@@ -396,8 +311,18 @@ trait Application {
 
 }
 
-class DefaultApplication(
-  override val path: File,
-  override val classloader: ClassLoader,
-  override val sources: Option[SourceMapper],
-  override val mode: Mode.Mode) extends Application with WithDefaultConfiguration with WithDefaultGlobal with WithDefaultPlugins
+class OptionalSourceMapper(val sourceMapper: Option[SourceMapper])
+
+class DefaultApplication @Inject() (environment: Environment,
+    sourceMapper: OptionalSourceMapper,
+    override val configuration: Configuration,
+    override val global: GlobalSettings) extends Application with WithDefaultPlugins {
+
+  def path = environment.rootPath
+
+  def classloader = environment.classLoader
+
+  def mode = environment.mode
+
+  def sources = sourceMapper.sourceMapper
+}

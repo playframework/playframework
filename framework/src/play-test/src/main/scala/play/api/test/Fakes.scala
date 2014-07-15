@@ -3,8 +3,10 @@
  */
 package play.api.test
 
+import play.api._
 import play.api.mvc._
 import play.api.libs.json.JsValue
+import play.utils.Threads
 import scala.concurrent.Future
 import xml.NodeSeq
 import play.core.Router
@@ -192,7 +194,7 @@ object FakeRequest {
  * @param withRoutes A partial function of method name and path to a handler for handling the request
  */
 
-import play.api.{ Application, WithDefaultConfiguration, WithDefaultGlobal, WithDefaultPlugins }
+import play.api.{ Application, WithDefaultPlugins }
 case class FakeApplication(
   override val path: java.io.File = new java.io.File("."),
   override val classloader: ClassLoader = classOf[FakeApplication].getClassLoader,
@@ -202,18 +204,26 @@ case class FakeApplication(
   val withGlobal: Option[play.api.GlobalSettings] = None,
   val withRoutes: PartialFunction[(String, String), Handler] = PartialFunction.empty) extends {
   override val sources = None
-  override val mode = play.api.Mode.Test
-} with Application with WithDefaultConfiguration with WithDefaultGlobal with WithDefaultPlugins {
+} with Application with WithDefaultPlugins {
+
+  private val environment = Environment(path, classloader, Mode.Test)
+  private val initialConfiguration = Threads.withContextClassLoader(environment.classLoader) {
+    Configuration.load(environment.rootPath, environment.mode)
+  }
+  override val global = withGlobal.getOrElse(GlobalSettings(initialConfiguration, environment))
+  private val config =
+    global.onLoadConfig(initialConfiguration, path, classloader, environment.mode) ++
+      play.api.Configuration.from(additionalConfiguration)
+
+  def configuration = config
+
+  Logger.configure(path, configuration, environment.mode)
+
+  def mode = environment.mode
+
   override def pluginClasses = {
     additionalPlugins ++ super.pluginClasses.diff(withoutPlugins)
   }
-
-  override def configuration = {
-    super.configuration ++ play.api.Configuration.from(additionalConfiguration)
-  }
-
-  override lazy val global = withGlobal.getOrElse(super.global)
-
   override lazy val routes: Option[Router.Routes] = {
     val parentRoutes = loadRoutes
     Some(new Router.Routes() {

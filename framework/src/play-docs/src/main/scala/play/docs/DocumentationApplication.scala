@@ -14,7 +14,7 @@ import scala.util.Success
  */
 case class DocumentationApplication(projectPath: File, buildDocHandler: BuildDocHandler) extends ApplicationProvider {
 
-  val application = new Application with WithDefaultConfiguration {
+  val application = new Application {
     def path = projectPath
     def classloader = this.getClass.getClassLoader
     def sources = None
@@ -22,6 +22,7 @@ case class DocumentationApplication(projectPath: File, buildDocHandler: BuildDoc
     def global = new GlobalSettings() {}
     def plugins = Nil
     override lazy val routes = None
+    def configuration = Configuration.empty
   }
 
   Play.start(application)

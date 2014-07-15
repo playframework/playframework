@@ -4,13 +4,14 @@
 package play.api.inject
 
 import javax.inject.Provider
-import play.api.{ Application, DefaultApplication, Environment }
+import play.api.{ Configuration, Application, DefaultApplication, Environment }
 
 class BuiltinModule extends Module {
-  def bindings(env: Environment): Seq[Binding[_]] = Seq(
+  def bindings(env: Environment, configuration: Configuration): Seq[Binding[_]] = Seq(
     bind[Environment] to env,
-    // bind ApplicationLifecycle
-    // bind Plugins - eager
-    bind[Application] to new DefaultApplication(env.rootPath, env.classLoader, None, env.mode)
+    bind[Configuration] to configuration,
+    bind[Application].to[DefaultApplication]
+  // bind ApplicationLifecycle
+  // bind Plugins - eager
   )
 }

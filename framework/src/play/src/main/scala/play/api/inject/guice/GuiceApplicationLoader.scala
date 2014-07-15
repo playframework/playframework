@@ -6,14 +6,34 @@ package guice
 
 import com.google.inject.{ Binding => GuiceBinding, _ }
 import com.google.inject.util.Providers
-import play.api.{ Application, ApplicationLoader, Environment }
+import play.api._
 
 class GuiceLoadException(message: String) extends RuntimeException(message)
 
+/**
+ * An ApplicationLoader that uses guice to bootstrap the application.
+ */
 class GuiceApplicationLoader extends ApplicationLoader {
-  def load(env: Environment): Application = {
+
+  def load(context: ApplicationLoader.Context): Application = {
     val builtinModule = new BuiltinModule
-    val bindings = builtinModule.bindings(env)
+
+    val env = context.environment
+
+    // Load global
+    val global = GlobalSettings(context.initialConfiguration, env)
+
+    // Create the final configuration
+    // todo - abstract this logic out into something pluggable, with the default delegating to global
+    val configuration = global.onLoadConfig(context.initialConfiguration, env.rootPath, env.classLoader, env.mode)
+
+    Logger.configure(env.rootPath, configuration, env.mode)
+
+    val bindings = builtinModule.bindings(context.environment, configuration) ++ Seq(
+      BindingKey(classOf[GlobalSettings]) to global,
+      BindingKey(classOf[OptionalSourceMapper]) to new OptionalSourceMapper(context.sourceMapper)
+    )
+
     // load play module bindings
     val guiceModule = guiced(bindings)
     val injector = Guice.createInjector(guiceModule)
