@@ -163,9 +163,9 @@ object WebSocket {
    * For example:
    *
    * {{{
-   *   def subscribe = WebSocket.acceptWithActor[JsValue, JsValue] { req =>
+   *   def subscribe = WebSocket.tryAcceptWithActor[JsValue, JsValue] { req =>
    *     val isAuthenticated: Future[Boolean] = authenticate(req)
-   *     val isAuthenticated.map {
+   *     isAuthenticated.map {
    *       case false => Left(Forbidden)
    *       case true => Right(MyWebSocketActor.props)
    *     }
