@@ -5,7 +5,8 @@ import play.test.*;
 import play.libs.F.*;
 
 import static play.test.Helpers.*;
-import static org.fest.assertions.Assertions.*;
+import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.*;
 
 import static org.fluentlenium.core.filter.FilterConstructor.*;
 
@@ -20,7 +21,7 @@ public class IntegrationTest {
         running(testServer(3333, fakeApplication(inMemoryDatabase())), HTMLUNIT, new Callback<TestBrowser>() {
             public void invoke(TestBrowser browser) {
                 browser.goTo("http://localhost:3333");
-                assertThat(browser.pageSource()).contains("Add Person");
+                assertThat(browser.pageSource(), containsString("Add Person"));
             }
         });
     }
