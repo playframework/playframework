@@ -46,11 +46,6 @@ class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends Glo
       .getOrElse(super.onBadRequest(request, error))
   }
 
-  override def getControllerInstance[A](controllerClass: Class[A]): A = {
-    Option(underlying.getControllerInstance(controllerClass))
-      .getOrElse(super.getControllerInstance(controllerClass))
-  }
-
   override def onLoadConfig(config: Configuration, path: File, classloader: ClassLoader, mode: Mode.Mode) = {
     import JavaModeConverter.asJavaMode
     Option(underlying.onLoadConfig(new play.Configuration(config), path, classloader, mode))

@@ -6,7 +6,7 @@ package play.api
 import javax.inject.Inject
 
 import com.google.inject.Singleton
-import play.api.inject.DefaultApplicationLifecycle
+import play.api.inject.{ NewInstanceInjector, Injector, DefaultApplicationLifecycle }
 import play.core._
 import play.utils._
 
@@ -315,6 +315,13 @@ trait Application {
    * Stop the application.  The returned future will be redeemed when all stop hooks have been run.
    */
   def stop(): Future[Unit]
+
+  /**
+   * Get the injector for this application.
+   *
+   * @return The injector.
+   */
+  def injector: Injector = NewInstanceInjector
 }
 
 class OptionalSourceMapper(val sourceMapper: Option[SourceMapper])
@@ -323,6 +330,7 @@ class OptionalSourceMapper(val sourceMapper: Option[SourceMapper])
 class DefaultApplication @Inject() (environment: Environment,
     sourceMapper: OptionalSourceMapper,
     applicationLifecycle: DefaultApplicationLifecycle,
+    override val injector: Injector,
     override val configuration: Configuration,
     override val global: GlobalSettings) extends Application with WithDefaultPlugins {
 

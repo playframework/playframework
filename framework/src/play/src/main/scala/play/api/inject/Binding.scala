@@ -5,6 +5,8 @@ package play.api.inject
 
 import java.lang.annotation.Annotation
 import javax.inject.{ Named, Provider }
+import com.google.inject.internal.util.$SourceProvider
+
 import scala.language.existentials
 import scala.reflect.ClassTag
 
@@ -22,14 +24,14 @@ import scala.reflect.ClassTag
  * @param target The binding target.
  * @param scope The JSR-330 scope.
  * @param eager Whether the binding should be eagerly instantiated.
+ * @param source Where this object was bound. Used in error reporting.
  */
-final case class Binding[T](key: BindingKey[T], target: Option[BindingTarget[T]], scope: Option[Class[_ <: Annotation]], eager: Boolean) {
+final case class Binding[T](key: BindingKey[T], target: Option[BindingTarget[T]], scope: Option[Class[_ <: Annotation]], eager: Boolean, source: Object) {
 
   /**
    * Configure the scope for this binding.
    */
-  def in[A <: Annotation](scope: Class[A]): Binding[T] =
-    Binding(key, target, Some(scope), eager)
+  def in[A <: Annotation](scope: Class[A]): Binding[T] = copy(scope = Some(scope))
 
   /**
    * Configure the scope for this binding.
@@ -40,8 +42,12 @@ final case class Binding[T](key: BindingKey[T], target: Option[BindingTarget[T]]
   /**
    * Eagerly instantiate this binding when Play starts up.
    */
-  def eagerly(): Binding[T] =
-    Binding(key, target, scope, true)
+  def eagerly(): Binding[T] = copy(eager = true)
+
+  override def toString = {
+    val eagerDesc = if (eager) " eagerly" else ""
+    s"$source:\nBinding($key to ${target.getOrElse("self")}${scope.fold("")(" in " + _)}$eagerDesc)"
+  }
 }
 
 /**
@@ -148,7 +154,7 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
    * This class will be instantiated and injected by the injection framework.
    */
   def to(implementation: Class[_ <: T]): Binding[T] =
-    Binding(this, Some(ConstructionTarget(implementation)), None, false)
+    Binding(this, Some(ConstructionTarget(implementation)), None, false, SourceLocator.source)
 
   /**
    * Bind this binding key to the given implementation class.
@@ -164,7 +170,7 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
    * This provider instance will be invoked to obtain the implementation for the key.
    */
   def to(provider: Provider[_ <: T]): Binding[T] =
-    Binding(this, Some(ProviderTarget(provider)), None, false)
+    Binding(this, Some(ProviderTarget(provider)), None, false, SourceLocator.source)
 
   /**
    * Bind this binding key to the given instance.
@@ -176,7 +182,7 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
    * Bind this binding key to another binding key.
    */
   def to(key: BindingKey[_ <: T]): Binding[T] =
-    Binding(this, Some(BindingKeyTarget(key)), None, false)
+    Binding(this, Some(BindingKeyTarget(key)), None, false, SourceLocator.source)
 
   /**
    * Bind this binding key to the given provider class.
@@ -185,7 +191,7 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
    * whenever an instance of the class is needed.
    */
   def toProvider[P <: Provider[T]](provider: Class[P]): Binding[T] =
-    Binding(this, Some(ProviderConstructionTarget(provider)), None, false)
+    Binding(this, Some(ProviderConstructionTarget(provider)), None, false, SourceLocator.source)
 
   /**
    * Bind this binding key to the given provider class.
@@ -196,7 +202,14 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
   def toProvider[P <: Provider[T]: ClassTag]: Binding[T] =
     toProvider(implicitly[ClassTag[P]].runtimeClass.asInstanceOf[Class[P]])
 
-  def toSelf: Binding[T] = Binding(this, None, None, false)
+  /**
+   * Bind this binding key to itself.
+   */
+  def toSelf: Binding[T] = Binding(this, None, None, false, SourceLocator.source)
+
+  override def toString = {
+    s"$clazz${qualifier.fold("")(" qualified with " + _)}"
+  }
 }
 
 /**
@@ -263,4 +276,12 @@ private class NamedImpl(val value: String) extends Named with Serializable {
   override def toString: String = s"@${classOf[Named].getName}(value=$value)"
 
   def annotationType = classOf[Named]
+}
+
+private object SourceLocator {
+  // SourceProvider is an internal Guice API, not intended to be used as we are using it here. If they change/remove it, we
+  // just have to reimplement it for ourselves - it's pretty simple.
+  val provider = $SourceProvider.DEFAULT_INSTANCE.plusSkippedClasses(this.getClass, classOf[BindingKey[_]], classOf[Binding[_]])
+
+  def source = provider.get()
 }

@@ -4,7 +4,7 @@
 package play.docs
 
 import java.io.File
-import play.api.inject.DefaultApplicationLifecycle
+import play.api.inject.{ NewInstanceInjector, DefaultApplicationLifecycle }
 import play.api.mvc._
 import play.api._
 import play.core._
@@ -17,7 +17,7 @@ case class DocumentationApplication(projectPath: File, buildDocHandler: BuildDoc
 
   val application = new DefaultApplication(
     Environment(projectPath, this.getClass.getClassLoader, Mode.Dev),
-    new OptionalSourceMapper(None), new DefaultApplicationLifecycle(), Configuration.empty, DefaultGlobal
+    new OptionalSourceMapper(None), new DefaultApplicationLifecycle(), NewInstanceInjector, Configuration.empty, DefaultGlobal
   ) {
     override lazy val routes = None
   }

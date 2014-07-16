@@ -5,9 +5,11 @@ package play.api.inject
 package guice
 
 import com.google.inject._
-import play.api.inject.{ Module => PlayModule, Binding => PlayBinding }
+import play.api.inject.{ Module => PlayModule, Binding => PlayBinding, Injector => PlayInjector }
 import com.google.inject.util.Providers
 import play.api._
+
+import scala.reflect.ClassTag
 
 class GuiceLoadException(message: String) extends RuntimeException(message)
 
@@ -31,7 +33,8 @@ class GuiceApplicationLoader extends ApplicationLoader {
 
     val modules = guiced(Seq(
       BindingKey(classOf[GlobalSettings]) to global,
-      BindingKey(classOf[OptionalSourceMapper]) to new OptionalSourceMapper(context.sourceMapper)
+      BindingKey(classOf[OptionalSourceMapper]) to new OptionalSourceMapper(context.sourceMapper),
+      BindingKey(classOf[PlayInjector]).to[GuiceInjector]
     )) +: Modules.locate(env, configuration)
 
     val guiceModules = modules.map {
@@ -55,7 +58,7 @@ class GuiceApplicationLoader extends ApplicationLoader {
       def configure(): Unit = {
         for (b <- bindings) {
           val binding = b.asInstanceOf[PlayBinding[Any]]
-          val builder = bind(bindingKeyToGuice(binding.key))
+          val builder = binder().withSource(binding).bind(bindingKeyToGuice(binding.key))
           binding.target.foreach {
             case ProviderTarget(provider) => builder.toProvider(Providers.guicify(provider))
             case ProviderConstructionTarget(provider) => builder.toProvider(provider)
@@ -80,4 +83,16 @@ class GuiceApplicationLoader extends ApplicationLoader {
       case None => Key.get(key.clazz)
     }
   }
+}
+
+class GuiceInjector @Inject() (injector: Injector) extends PlayInjector {
+  /**
+   * Get an instance of the given class from the injector.
+   */
+  def instanceOf[T](implicit ct: ClassTag[T]) = instanceOf(ct.runtimeClass.asInstanceOf[Class[T]])
+
+  /**
+   * Get an instance of the given class from the injector.
+   */
+  def instanceOf[T](clazz: Class[T]) = injector.getInstance(clazz)
 }

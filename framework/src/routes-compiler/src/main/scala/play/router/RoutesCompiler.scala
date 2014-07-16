@@ -815,10 +815,12 @@ object RoutesCompiler {
 
                     val reverseSignature = parameters.map(p => safeKeyword(p.name) + ":" + p.typeName).mkString(", ")
 
+                    val controllerRef = s"$packageName.$controller"
+                    val methodCall = s"${route.call.method}(${parameters.map(x => safeKeyword(x.name)).mkString(", ")})"
                     val controllerCall = if (route.call.instantiate) {
-                      "play.api.Play.maybeApplication.map(_.global).getOrElse(play.api.DefaultGlobal).getControllerInstance(classOf[" + packageName + "." + controller + "])." + route.call.method + "(" + { parameters.map(x => safeKeyword(x.name)).mkString(", ") } + ")"
+                      s"$Injector.instanceOf(classOf[$controllerRef]).$methodCall"
                     } else {
-                      packageName + "." + controller + "." + route.call.method + "(" + { parameters.map(x => safeKeyword(x.name)).mkString(", ") } + ")"
+                      s"$controllerRef.$methodCall"
                     }
 
                     """
@@ -1041,9 +1043,9 @@ object RoutesCompiler {
   private def invokerIdent(r: Route, i: Int): String = baseIdent(r, i) + "_invoker"
   private def controllerMethodCall(r: Route, paramFormat: Parameter => String): String = {
     val methodPart = if (r.call.instantiate) {
-      "play.api.Play.maybeApplication.map(_.global).getOrElse(play.api.DefaultGlobal).getControllerInstance(classOf[" + r.call.packageName + "." + r.call.controller + "])." + r.call.method
+      s"$Injector.instanceOf(classOf[${r.call.packageName}.${r.call.controller}]).${r.call.method}"
     } else {
-      r.call.packageName + "." + r.call.controller + "." + r.call.method
+      s"${r.call.packageName}.${r.call.controller}.${r.call.method}"
     }
     val paramPart = r.call.parameters.map { params =>
       params.map(paramFormat).mkString(", ")
@@ -1142,6 +1144,8 @@ object RoutesCompiler {
 
     }
   }
+
+  val Injector = "play.api.Play.maybeApplication.map(_.injector).getOrElse(play.api.inject.NewIntsanceInjector)"
 
 }
 

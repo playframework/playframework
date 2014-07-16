@@ -115,16 +115,6 @@ public class GlobalSettings {
     }
 
     /**
-     * Manages controllers instantiation.
-     *
-     * @param controllerClass the controller class to instantiate.
-     * @return the appropriate instance for the given controller class.
-     */
-    public <A> A getControllerInstance(Class<A> controllerClass) throws Exception {
-        return null;
-    }
-
-    /**
      * Called just after configuration has been loaded, to give the application an opportunity to modify it.
      *
      * @param config the loaded configuration

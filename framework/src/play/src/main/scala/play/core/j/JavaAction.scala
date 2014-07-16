@@ -3,6 +3,8 @@
  */
 package play.core.j
 
+import play.api.inject.NewInstanceInjector
+
 import scala.language.existentials
 
 import play.api.libs.iteratee.Execution.trampoline
@@ -68,8 +70,8 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
 
     val finalAction = annotations.actionMixins.foldLeft[JAction[_ <: Any]](baseAction) {
       case (delegate, (annotation, actionClass)) =>
-        val global = play.api.Play.maybeApplication.map(_.global).getOrElse(play.api.DefaultGlobal)
-        val action = global.getControllerInstance(actionClass).asInstanceOf[play.mvc.Action[Object]]
+        val injector = play.api.Play.maybeApplication.map(_.injector).getOrElse(NewInstanceInjector)
+        val action = injector.instanceOf(actionClass).asInstanceOf[play.mvc.Action[Object]]
         action.configuration = annotation
         action.delegate = delegate
         action
