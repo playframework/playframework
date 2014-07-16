@@ -4,6 +4,8 @@
 package play.api.test
 
 import play.api._
+import play.api.inject.guice.{ GuiceApplicationLoader, GuiceInjector }
+import play.api.inject._
 import play.api.mvc._
 import play.api.libs.json.JsValue
 import play.utils.Threads
@@ -215,13 +217,22 @@ case class FakeApplication(
     global.onLoadConfig(initialConfiguration, path, classloader, environment.mode) ++
       play.api.Configuration.from(additionalConfiguration)
 
-  def configuration = config
-
   Logger.configure(path, configuration, environment.mode)
+
+  // Load all modules, and filter out the built in module
+  private val modules = Modules.locate(environment, configuration)
+    .filterNot(_.getClass == classOf[BuiltinModule])
+  private val applicationLifecycle = new DefaultApplicationLifecycle
+  override val injector = new GuiceApplicationLoader().createInjector(
+    modules :+ new FakeBuiltinModule(environment, configuration, this, global, applicationLifecycle),
+    environment, configuration
+  ).getInstance(classOf[Injector])
+
+  def configuration = config
 
   def mode = environment.mode
 
-  def stop() = Future.successful(())
+  def stop() = applicationLifecycle.stop()
 
   override def pluginClasses = {
     additionalPlugins ++ super.pluginClasses.diff(withoutPlugins)
@@ -246,4 +257,21 @@ case class FakeApplication(
       def prefix = parentRoutes.map(_.prefix).getOrElse("")
     })
   }
+}
+
+private class FakeBuiltinModule(environment: Environment,
+    configuration: Configuration,
+    app: Application,
+    global: GlobalSettings,
+    appLifecycle: ApplicationLifecycle) extends Module {
+  def bindings(environment: Environment, configuration: Configuration) = Seq(
+    bind[Environment] to environment,
+    bind[Configuration] to configuration,
+    bind[Application] to app,
+    bind[GlobalSettings] to global,
+    bind[ApplicationLifecycle] to appLifecycle,
+    bind[OptionalSourceMapper] to new OptionalSourceMapper(None),
+    // todo - make this configurable based on which app locator is in use
+    bind[Injector].to[GuiceInjector]
+  )
 }

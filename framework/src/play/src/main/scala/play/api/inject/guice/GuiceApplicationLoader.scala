@@ -37,8 +37,13 @@ class GuiceApplicationLoader extends ApplicationLoader {
       BindingKey(classOf[PlayInjector]).to[GuiceInjector]
     )) +: Modules.locate(env, configuration)
 
+    val injector = createInjector(modules, env, configuration)
+    injector.getInstance(classOf[Application])
+  }
+
+  private[play] def createInjector(modules: Seq[Any], environment: Environment, configuration: Configuration) = {
     val guiceModules = modules.map {
-      case playModule: PlayModule => guiced(playModule.bindings(env, configuration))
+      case playModule: PlayModule => guiced(playModule.bindings(environment, configuration))
       case guiceModule: Module => guiceModule
       case unknown => throw new PlayException(
         "Unknown module type",
@@ -48,9 +53,7 @@ class GuiceApplicationLoader extends ApplicationLoader {
 
     import scala.collection.JavaConverters._
 
-    // load play module bindings
-    val injector = Guice.createInjector(guiceModules.asJavaCollection)
-    injector.getInstance(classOf[Application])
+    Guice.createInjector(guiceModules.asJavaCollection)
   }
 
   private def guiced(bindings: Seq[PlayBinding[_]]): AbstractModule = {
@@ -85,7 +88,7 @@ class GuiceApplicationLoader extends ApplicationLoader {
   }
 }
 
-class GuiceInjector @Inject() (injector: Injector) extends PlayInjector {
+private[play] class GuiceInjector @Inject() (injector: Injector) extends PlayInjector {
   /**
    * Get an instance of the given class from the injector.
    */
