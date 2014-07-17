@@ -8,7 +8,7 @@ import play.api.http._
 import play.api.http.HeaderNames._
 import play.api.http.HttpProtocol._
 import play.api.{ Application, Play }
-import play.api.i18n.Lang
+import play.api.i18n.{ MessagesApi, Lang }
 
 import play.core.Execution.Implicits._
 import play.api.libs.concurrent.Execution.defaultContext
@@ -261,7 +261,7 @@ case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * @return the new result
    */
   def withLang(lang: Lang)(implicit app: Application): Result =
-    withCookies(Cookie(Play.langCookieName, lang.code))
+    app.injector.instanceOf[MessagesApi].setLang(this, lang)
 
   /**
    * Clears the user's language by discarding the language cookie set by withLang

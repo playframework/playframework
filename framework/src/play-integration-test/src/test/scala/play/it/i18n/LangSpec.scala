@@ -1,15 +1,15 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
  */
-package play.api.i18n
+package play.it.i18n
 
-import org.specs2.mutable.Specification
-import play.api._
+import play.api.i18n.Lang
+import play.api.test._
 
-class LangSpec extends Specification {
+class LangSpec extends PlaySpecification {
   "lang spec" should {
     "allow selecting preferred language" in {
-      implicit val app: Application = FakeApplication(Map("application.langs" -> "en-US,es-ES,de"))
+      implicit val app = FakeApplication(additionalConfiguration = Map("application.langs" -> "en-US,es-ES,de"))
       val esEs = Lang("es", "ES")
       val es = Lang("es")
       val deDe = Lang("de", "DE")

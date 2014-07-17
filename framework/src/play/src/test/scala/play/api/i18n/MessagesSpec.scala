@@ -3,7 +3,11 @@
  */
 package play.api.i18n
 
+import java.io.File
+
 import org.specs2.mutable._
+import play.api.mvc.{Cookies, Results}
+import play.api.{Mode, Environment, Configuration}
 import play.api.i18n.Messages.MessageSource
 
 object MessagesSpec extends Specification {
@@ -17,7 +21,15 @@ object MessagesSpec extends Specification {
           "foo" -> "foo francais"),
       "fr-CH" -> Map(
           "title" -> "Titre suisse"))
-  val api = new MessagesApi(testMessages)
+  val api = new DefaultMessagesApi(new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev),
+    Configuration.empty, new Langs() {
+      def availables = Nil
+      def preferred(candidates: Seq[Lang]) = Lang.defaultLang
+    }
+  ) {
+
+    override protected def loadAllMessages = testMessages
+  }
 
   def translate(msg: String, lang: String, reg: String): Option[String] =
     api.translate(msg, Nil)(Lang(lang, reg))
@@ -50,6 +62,12 @@ object MessagesSpec extends Specification {
       // Missing translation
       translate("garbled", "fr", "CH") must be equalTo None
       isDefinedAt("garbled", "fr", "CH") must be equalTo false
+    }
+
+    "support setting the language on a result" in {
+      val cookie = Cookies.decode(api.setLang(Results.Ok, Lang("en-AU")).header.headers("Set-Cookie")).head
+      cookie.name must_== "PLAY_LANG"
+      cookie.value must_== "en-AU"
     }
   }
 

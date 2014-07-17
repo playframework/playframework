@@ -1,4 +1,3 @@
 1:play.core.system.MigrationHelper
-100:play.api.i18n.DefaultMessagesPlugin
 1000:play.api.libs.concurrent.AkkaPlugin
 10000:play.api.GlobalPlugin

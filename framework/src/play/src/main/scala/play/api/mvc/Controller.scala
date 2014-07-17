@@ -4,7 +4,7 @@
 package play.api.mvc
 
 import play.api.http._
-import play.api.i18n.Lang
+import play.api.i18n.{ MessagesApi, Lang }
 import play.api.Play
 
 /**
@@ -63,8 +63,7 @@ trait Controller extends Results with BodyParsers with HttpProtocol with Status 
 
   implicit def request2lang(implicit request: RequestHeader) = {
     play.api.Play.maybeApplication.map { implicit app =>
-      val maybeLangFromCookie = request.cookies.get(Play.langCookieName).flatMap(c => Lang.get(c.value))
-      maybeLangFromCookie.getOrElse(play.api.i18n.Lang.preferred(request.acceptLanguages))
+      app.injector.instanceOf[MessagesApi].preferred(request).lang
     }.getOrElse(request.acceptLanguages.headOption.getOrElse(play.api.i18n.Lang.defaultLang))
   }
 

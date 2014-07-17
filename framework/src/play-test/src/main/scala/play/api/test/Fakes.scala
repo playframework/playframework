@@ -223,10 +223,13 @@ case class FakeApplication(
   private val modules = Modules.locate(environment, configuration)
     .filterNot(_.getClass == classOf[BuiltinModule])
   private val applicationLifecycle = new DefaultApplicationLifecycle
-  override val injector = new GuiceApplicationLoader().createInjector(
+  private val guiceInjector = new GuiceApplicationLoader().createInjector(
     modules :+ new FakeBuiltinModule(environment, configuration, this, global, applicationLifecycle),
     environment, configuration
-  ).getInstance(classOf[Injector])
+  )
+  override val injector = guiceInjector.getInstance(classOf[Injector])
+
+  // override def injector = playInjector
 
   def configuration = config
 
