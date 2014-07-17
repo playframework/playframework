@@ -157,4 +157,34 @@ Then in the Play console, use the `publish` task:
 
 > Check the [sbt documentation](http://www.scala-sbt.org/release/docs/index.html) to get more information about the resolvers and credentials definition.
 
+## Using the SBT assembly plugin
+
+Though not officially supported, the SBT assembly plugin may be used to package and run Play applications.  This will produce one jar as an output artifact, and allow you to execute it directly using the `java` command.
+
+To use this, add a dependency on the plugin to your `project/plugins.sbt` file:
+
+```scala
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.11.2")
+```
+
+Now add the following configuration to your `build.sbt`:
+
+```scala
+import AssemblyKeys._
+
+assemblySettings
+
+mainClass in assembly := Some("play.core.server.NettyServer")
+
+fullClasspath in assembly += Attributed.blank(PlayKeys.playPackageAssets.value)
+```
+
+Now you can build the artifact by running `activator assembly`, and run your application by running:
+
+```
+$ java -jar target/scala-2.XX/<yourprojectname>-assembly-<version>.jar
+```
+
+You'll need to substitute in the right project name, version and scala version, of course.
+
 > **Next:** [[Production configuration|ProductionConfiguration]]
