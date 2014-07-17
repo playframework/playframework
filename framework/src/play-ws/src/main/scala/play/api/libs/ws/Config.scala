@@ -5,8 +5,10 @@
  */
 package play.api.libs.ws
 
-import play.api.libs.ws.ssl.{ DefaultSSLConfig, DefaultSSLConfigParser, SSLConfig }
-import play.api.Configuration
+import javax.inject.{ Inject, Provider }
+
+import play.api.libs.ws.ssl.{ DefaultSSLConfigParser, SSLConfig }
+import play.api.{ Environment, Configuration }
 
 /**
  * A WSConfiguration trait.  This provides bindings that can be passed into any implementation of WSClient.
@@ -48,10 +50,11 @@ case class DefaultWSClientConfig(connectionTimeout: Option[Long] = None,
 /**
  * This class creates a DefaultWSClientConfig object from the play.api.Configuration.
  */
-class DefaultWSConfigParser(configuration: Configuration, classloader: ClassLoader) {
+class DefaultWSConfigParser @Inject() (configuration: Configuration, environment: Environment) extends Provider[WSClientConfig] {
+
+  def get = parse()
 
   def parse(): WSClientConfig = {
-    // .getOrElse(120000L)
     val connectionTimeout = configuration.getMilliseconds("ws.timeout.connection")
     val idleTimeout = configuration.getMilliseconds("ws.timeout.idle")
     val requestTimeout = configuration.getMilliseconds("ws.timeout.request")
@@ -69,7 +72,7 @@ class DefaultWSConfigParser(configuration: Configuration, classloader: ClassLoad
     val acceptAnyCertificate = configuration.getBoolean("ws.acceptAnyCertificate")
 
     val sslConfig = configuration.getConfig("ws.ssl").map { sslConfig =>
-      val sslContextParser = new DefaultSSLConfigParser(sslConfig, classloader)
+      val sslContextParser = new DefaultSSLConfigParser(sslConfig, environment.classLoader)
       sslContextParser.parse()
     }
 

@@ -3,6 +3,8 @@
  */
 package play.api.db
 
+import javax.inject.{ Inject, Singleton }
+
 import scala.language.reflectiveCalls
 
 import play.api._
@@ -197,7 +199,8 @@ trait DBPlugin extends Plugin {
  *
  * @param app the application that is registering the plugin
  */
-class BoneCPPlugin(app: Application) extends DBPlugin {
+@Singleton
+class BoneCPPlugin @Inject() (app: Application) extends DBPlugin {
   lazy val dbConfig = app.configuration.getConfig("db").
     getOrElse(Configuration.empty)
 

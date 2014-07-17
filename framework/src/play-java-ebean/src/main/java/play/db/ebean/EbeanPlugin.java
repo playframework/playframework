@@ -16,13 +16,18 @@ import com.avaje.ebean.config.*;
 import com.avaje.ebeaninternal.server.ddl.*;
 import com.avaje.ebeaninternal.api.*;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 /**
  * A Play plugin that automatically manages Ebean configuration.
  */
+@Singleton
 public class EbeanPlugin extends Plugin {
     
     private final Application application;
-    
+
+    @Inject
     public EbeanPlugin(Application application) {
         this.application = application;
     }

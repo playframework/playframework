@@ -14,7 +14,7 @@ public class Play {
      * Returns the currently running application.
      */
     public static Application application() {
-        return new Application(play.api.Play.current());
+        return play.api.Play.current().injector().instanceOf(Application.class);
     }
 
     /**

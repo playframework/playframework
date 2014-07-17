@@ -15,15 +15,15 @@ class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends Glo
   require(underlying != null, "underlying cannot be null")
 
   override def beforeStart(app: Application) {
-    underlying.beforeStart(new play.Application(app))
+    underlying.beforeStart(app.injector.instanceOf[play.Application])
   }
 
   override def onStart(app: Application) {
-    underlying.onStart(new play.Application(app))
+    underlying.onStart(app.injector.instanceOf[play.Application])
   }
 
   override def onStop(app: Application) {
-    underlying.onStop(new play.Application(app))
+    underlying.onStop(app.injector.instanceOf[play.Application])
   }
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {

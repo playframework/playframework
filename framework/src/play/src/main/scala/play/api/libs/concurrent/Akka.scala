@@ -4,13 +4,11 @@
 package play.api.libs.concurrent
 
 import java.util.concurrent.{ TimeUnit, TimeoutException }
+import javax.inject.{ Inject, Singleton }
 import play.api._
 import play.core.ClosableLazy
-import scala.concurrent.Future
 import akka.actor.ActorSystem
 import scala.concurrent.duration._
-
-import com.typesafe.config._
 
 /**
  * Helper to access the application defined Akka Actor system.
@@ -36,7 +34,8 @@ object Akka {
 /**
  * Plugin managing the application Akka Actor System.
  */
-class AkkaPlugin(app: Application) extends Plugin {
+@Singleton
+class AkkaPlugin @Inject() (app: Application) extends Plugin {
 
   private val lazySystem = new ClosableLazy[ActorSystem] {
 

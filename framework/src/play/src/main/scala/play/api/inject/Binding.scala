@@ -203,6 +203,11 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
     toProvider(implicitly[ClassTag[P]].runtimeClass.asInstanceOf[Class[P]])
 
   /**
+   * Bind this binding key to the given instance.
+   */
+  def toInstance(instance: T): Binding[T] = to(instance)
+
+  /**
    * Bind this binding key to itself.
    */
   def toSelf: Binding[T] = Binding(this, None, None, false, SourceLocator.source)

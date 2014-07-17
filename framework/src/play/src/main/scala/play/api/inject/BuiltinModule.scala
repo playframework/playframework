@@ -16,8 +16,8 @@ class BuiltinModule extends Module {
       bind[DefaultApplicationLifecycle].toSelf,
       bind[ApplicationLifecycle].to(bind[DefaultApplicationLifecycle]),
 
-      bind[Application].to[DefaultApplication]
-    // bind ApplicationLifecycle
+      bind[Application].to[DefaultApplication],
+      bind[play.inject.Injector].to[play.inject.DelegateInjector]
     // bind Plugins - eager
     )
   }

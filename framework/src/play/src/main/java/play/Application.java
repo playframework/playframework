@@ -7,17 +7,23 @@ import java.io.*;
 import java.util.*;
 import java.net.*;
 
+import play.inject.Injector;
 import play.libs.Scala;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
 /**
  * A Play application.
  * <p>
  * Application creation is handled by the framework engine.
  */
+@Singleton
 public class Application {
     
     private final play.api.Application application;
-    
+    private final Injector injector;
+
     public play.api.Application getWrappedApplication() {
       return application;
     }
@@ -25,8 +31,10 @@ public class Application {
     /**
      * Creates an application from a Scala Application value.
      */
-    public Application(play.api.Application application) {
+    @Inject
+    public Application(play.api.Application application, Injector injector) {
         this.application = application;
+        this.injector = injector;
     }
     
     /**
@@ -113,5 +121,12 @@ public class Application {
     public boolean isTest() {
         return play.api.Play.isTest(application);
     }
-    
+
+    /**
+     * Get the injector for this application.
+     */
+    public Injector injector() {
+        return injector;
+    }
+
 }

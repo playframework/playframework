@@ -5,6 +5,7 @@ package play.api.inject
 
 import play.api._
 import play.utils.PlayIO
+import scala.annotation.varargs
 import scala.reflect.ClassTag
 
 /**
@@ -63,6 +64,14 @@ abstract class Module {
    * Create a binding key for the given class.
    */
   final def bind[T: ClassTag]: BindingKey[T] = BindingKey(implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]])
+
+  /**
+   * Create a seq.
+   *
+   * For Java compatibility.
+   */
+  @varargs
+  final def seq(bindings: Binding[_]*): Seq[Binding[_]] = bindings
 }
 
 object Modules {

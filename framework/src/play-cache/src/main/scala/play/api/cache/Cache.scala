@@ -3,6 +3,8 @@
  */
 package play.api.cache
 
+import javax.inject.{ Inject, Singleton }
+
 import play.api._
 
 import reflect.{ ClassTag, ClassManifest }
@@ -130,7 +132,8 @@ import net.sf.ehcache._
 /**
  * EhCache implementation.
  */
-class EhCachePlugin(app: Application) extends CachePlugin {
+@Singleton
+class EhCachePlugin @Inject() (app: Application) extends CachePlugin {
 
   @volatile var loaded = false
 

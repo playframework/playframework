@@ -14,12 +14,7 @@ public class WS {
 
     public static WSClient client() {
         Application app = play.Play.application();
-        WSPlugin wsPlugin = app.plugin(WSPlugin.class);
-        if (wsPlugin.enabled() && wsPlugin.loaded()) {
-            return wsPlugin.api().client();
-        } else {
-            throw new IllegalStateException("WSPlugin is not loaded / enabled!");
-        }
+        return app.injector().instanceOf(WSClient.class);
     }
 
     /**

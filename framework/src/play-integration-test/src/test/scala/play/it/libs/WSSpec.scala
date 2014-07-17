@@ -17,7 +17,9 @@ import java.io.IOException
 
 object WSSpec extends PlaySpecification {
 
-  val app = HttpBinApplication.app
+  sequential
+
+  def app = HttpBinApplication.app
 
   def withServer[T](block: Port => T) = {
     val port = testServerPort

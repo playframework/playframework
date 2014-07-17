@@ -3,22 +3,23 @@
  */
 package play.api.libs.ws.ning
 
+import javax.inject.{ Inject, Provider, Singleton }
+
 import com.ning.http.client.{ Response => AHCResponse, ProxyServer => AHCProxyServer, _ }
 import com.ning.http.client.cookie.{ Cookie => AHCCookie }
 import com.ning.http.client.Realm.{ RealmBuilder, AuthScheme }
 import com.ning.http.util.AsyncHttpProviderUtils
+import play.api.inject.{ ApplicationLifecycle, Module }
 
 import collection.immutable.TreeMap
 
 import scala.concurrent.{ Future, Promise }
 
-import java.util.concurrent.atomic.AtomicReference
-
 import play.api.libs.ws._
 import play.api.libs.ws.ssl._
 
 import play.api.libs.iteratee._
-import play.api.{ Mode, Application, Play }
+import play.api._
 import play.core.utils.CaseInsensitiveOrdered
 import play.api.libs.ws.DefaultWSResponseHeaders
 import play.api.libs.iteratee.Input.El
@@ -484,45 +485,34 @@ case class NingWSRequestHolder(client: NingWSClient,
 
 }
 
-/**
- * WSPlugin implementation hook.
- */
-class NingWSPlugin(app: Application) extends WSPlugin {
-
-  @volatile var loaded = false
-
-  override lazy val enabled = true
-
-  private val config = new DefaultWSConfigParser(app.configuration, app.classloader).parse()
-
-  private lazy val ningAPI = new NingWSAPI(app, config)
-
-  override def onStart() {
-    loaded = true
-  }
-
-  override def onStop() {
-    if (loaded) {
-      ningAPI.resetClient()
-      loaded = false
+class NingWSModule extends Module {
+  def bindings(environment: Environment, configuration: Configuration) = {
+    if (configuration.underlying.getBoolean("play.modules.ws.enabled")) {
+      Seq(
+        bind[WSAPI].to[NingWSAPI],
+        bind[WSClientConfig].toProvider[DefaultWSConfigParser].in[Singleton],
+        bind[WSClient].toProvider[WSClientProvider].in[Singleton]
+      )
+    } else {
+      Nil
     }
   }
-
-  def api = ningAPI
-
 }
 
-class NingWSAPI(app: Application, clientConfig: WSClientConfig) extends WSAPI {
+class WSClientProvider @Inject() (wsApi: WSAPI) extends Provider[WSClient] {
+  def get() = wsApi.client
+}
 
-  private val clientHolder: AtomicReference[Option[NingWSClient]] = new AtomicReference(None)
+@Singleton
+class NingWSAPI @Inject() (environment: Environment, clientConfig: WSClientConfig, lifecycle: ApplicationLifecycle) extends WSAPI {
 
-  private[play] def newClient(): NingWSClient = {
+  lazy val client = {
     val asyncClientConfig = buildAsyncClientConfig(clientConfig)
 
     new SystemConfiguration().configure(clientConfig)
     clientConfig.ssl.foreach {
       _.debug.foreach { debugConfig =>
-        app.mode match {
+        environment.mode match {
           case Mode.Prod =>
             Play.logger.warn("NingWSAPI: ws.ssl.debug settings enabled in production mode!")
           case _ => // do nothing
@@ -531,33 +521,15 @@ class NingWSAPI(app: Application, clientConfig: WSClientConfig) extends WSAPI {
       }
     }
 
-    new NingWSClient(asyncClientConfig)
-  }
+    val client = new NingWSClient(asyncClientConfig)
 
-  def client: NingWSClient = {
-    clientHolder.get.getOrElse({
-      // A critical section of code. Only one caller has the opportunity of creating a default client.
-      synchronized {
-        clientHolder.get match {
-          case None =>
-            val client = newClient()
-            clientHolder.set(Some(client))
-            client
-
-          case Some(client) => client
-        }
-      }
-    })
+    lifecycle.addStopHook { () =>
+      Future.successful(client.close())
+    }
+    client
   }
 
   def url(url: String) = client.url(url)
-
-  /**
-   * resets the underlying AsyncHttpClient
-   */
-  private[play] def resetClient(): Unit = {
-    clientHolder.getAndSet(None).foreach(oldClient => oldClient.close())
-  }
 
   private[play] def buildAsyncClientConfig(wsClientConfig: WSClientConfig): AsyncHttpClientConfig = {
     new NingAsyncHttpClientConfigBuilder(wsClientConfig).build()
@@ -702,4 +674,18 @@ case class NingWSResponse(ahcResponse: AHCResponse) extends WSResponse {
    */
   lazy val json: JsValue = Json.parse(ahcResponse.getResponseBodyAsBytes)
 
+}
+
+/**
+ * Ning WS API implementation components.
+ */
+trait NingWSComponents {
+
+  def environment: Environment
+  def configuration: Configuration
+  def applicationLifecycle: ApplicationLifecycle
+
+  lazy val wsClientConfig: WSClientConfig = new DefaultWSConfigParser(configuration, environment).parse()
+  lazy val wsApi: WSAPI = new NingWSAPI(environment, wsClientConfig, applicationLifecycle)
+  lazy val wsClient: WSClient = wsApi.client
 }

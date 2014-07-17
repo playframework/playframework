@@ -5,6 +5,7 @@ package play.api.libs.ws
 
 import org.specs2.mutable._
 import com.typesafe.config.ConfigFactory
+import play.api.Environment
 import play.api.test.WithApplication
 
 object DefaultWSConfigParserSpec extends Specification {
@@ -13,7 +14,7 @@ object DefaultWSConfigParserSpec extends Specification {
 
     def parseThis(input: String)(implicit app:play.api.Application) = {
       val config = play.api.Configuration(ConfigFactory.parseString(input))
-      val parser = new DefaultWSConfigParser(config, app.classloader)
+      val parser = new DefaultWSConfigParser(config, app.injector.instanceOf[Environment])
       parser.parse()
     }
 

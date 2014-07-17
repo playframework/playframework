@@ -3,8 +3,11 @@
  */
 package play.api.inject
 
+import java.util.concurrent.Callable
+
 import com.google.inject.Singleton
 import play.api.Logger
+import play.libs.F
 
 import scala.concurrent.Future
 
@@ -27,6 +30,17 @@ trait ApplicationLifecycle {
    * immediately and return a successful future.
    */
   def addStopHook(hook: () => Future[Unit]): Unit
+
+  /**
+   * Add a stop hook to be called when the application stops.
+   *
+   * The stop hook should redeem the returned future when it is finished shutting down.  It is acceptable to stop
+   * immediately and return a successful future.
+   */
+  def addStopHook(hook: Callable[F.Promise[Void]]): Unit = {
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
+    addStopHook(() => hook.call().wrapped().map(_ => ()))
+  }
 }
 
 /**

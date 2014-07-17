@@ -16,7 +16,6 @@ import java.io._
 
 import annotation.implicitNotFound
 
-import java.lang.reflect.InvocationTargetException
 import reflect.ClassTag
 import scala.util.control.NonFatal
 import scala.concurrent.{ Future, ExecutionException }
@@ -65,38 +64,20 @@ trait WithDefaultPlugins {
 
     pluginClasses.map { className =>
       try {
-        val plugin = classloader.loadClass(className).getConstructor(classOf[Application]).newInstance(this).asInstanceOf[Plugin]
-        if (plugin.enabled) Some(plugin) else { Play.logger.debug("Plugin [" + className + "] is disabled"); None }
-      } catch {
-        case e: java.lang.NoSuchMethodException => {
-          try {
-            val plugin = classloader.loadClass(className).getConstructor(classOf[play.Application]).newInstance(new play.Application(this)).asInstanceOf[Plugin]
-            if (plugin.enabled) Some(plugin) else { Play.logger.warn("Plugin [" + className + "] is disabled"); None }
-          } catch {
-            case e: java.lang.NoSuchMethodException =>
-              throw new PlayException("Cannot load plugin",
-                "Could not find an appropriate constructor to instantiate plugin [" + className +
-                  "]. All Play plugins must define a constructor that accepts a single argument either of type " +
-                  "play.Application for Java plugins or play.api.Application for Scala plugins.")
-            case e: PlayException => throw e
-            case e: VirtualMachineError => throw e
-            case e: ThreadDeath => throw e
-            case e: Throwable => throw new PlayException(
-              "Cannot load plugin",
-              "Plugin [" + className + "] cannot be instantiated.",
-              e)
-          }
+        injector.instanceOf(classloader.loadClass(className)) match {
+          case plugin: Plugin if plugin.enabled => Some(plugin)
+          case _: Plugin =>
+            Play.logger.debug("Plugin [" + className + "] is disabled")
+            None
+          case other => throw new PlayException("Cannot load plugin", s"Plugin $className does not implement ${classOf[Plugin]}")
         }
-        case e: InvocationTargetException => throw new PlayException(
-          "Cannot load plugin",
-          "An exception occurred during Plugin [" + className + "] initialization",
-          e.getTargetException)
+      } catch {
         case e: PlayException => throw e
         case e: ThreadDeath => throw e
         case e: VirtualMachineError => throw e
         case e: Throwable => throw new PlayException(
           "Cannot load plugin",
-          "Plugin [" + className + "] cannot be instantiated.",
+          s"Plugin $className cannot be instantiated.",
           e)
       }
     }.flatten

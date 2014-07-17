@@ -274,6 +274,7 @@ private class FakeBuiltinModule(environment: Environment,
     bind[GlobalSettings] to global,
     bind[ApplicationLifecycle] to appLifecycle,
     bind[OptionalSourceMapper] to new OptionalSourceMapper(None),
+    bind[play.inject.Injector].to[play.inject.DelegateInjector],
     // todo - make this configurable based on which app locator is in use
     bind[Injector].to[GuiceInjector]
   )

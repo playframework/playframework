@@ -5,61 +5,48 @@ package play.libs.ws.ning;
 
 import com.ning.http.client.AsyncHttpClientConfig;
 import play.Application;
+import play.Environment;
 import play.api.libs.ws.DefaultWSConfigParser;
 import play.api.libs.ws.WSClientConfig;
 import play.api.libs.ws.ning.NingAsyncHttpClientConfigBuilder;
+import play.inject.ApplicationLifecycle;
 import play.libs.F;
 import play.libs.ws.WSAPI;
 import play.libs.ws.WSClient;
 import play.libs.ws.WSRequestHolder;
+import scala.Unit;
 
+import javax.inject.Inject;
+import javax.inject.Provider;
+import javax.inject.Singleton;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
  *
  */
+@Singleton
 public class NingWSAPI implements WSAPI {
 
-    private final AtomicReference<F.Option<NingWSClient>> clientHolder = new AtomicReference<F.Option<NingWSClient>>(F.None());
+    private final NingWSClient client;
 
-    private Application app;
-
-    public NingWSAPI(Application app) {
-        this.app = app;
-    }
-
-    private NingWSClient newClient() {
-        play.api.Configuration playConfig = app.configuration().getWrappedConfiguration();
-        DefaultWSConfigParser parser = new DefaultWSConfigParser(playConfig, app.classloader());
-        WSClientConfig clientConfig = parser.parse();
-        NingAsyncHttpClientConfigBuilder builder = new NingAsyncHttpClientConfigBuilder(clientConfig, new AsyncHttpClientConfig.Builder());
-        AsyncHttpClientConfig httpClientConfig = builder.build();
-        return new NingWSClient(httpClientConfig);
-    }
-
-    /**
-     * resets the underlying AsyncHttpClient
-     */
-    protected void resetClient() {
-        clientHolder.getAndSet(F.None()).map(new F.Function<NingWSClient, F.Option<NingWSClient>>() {
+    @Inject
+    public NingWSAPI(WSClientConfig clientConfig, ApplicationLifecycle lifecycle) {
+        client = new NingWSClient(
+                new NingAsyncHttpClientConfigBuilder(clientConfig, new AsyncHttpClientConfig.Builder()).build()
+        );
+        lifecycle.addStopHook(new Callable<F.Promise<Void>>() {
             @Override
-            public F.Option<NingWSClient> apply(NingWSClient ningWSClient) throws Throwable {
-                ningWSClient.close();
-                return F.Option.None();
+            public F.Promise<Void> call() throws Exception {
+                client.close();
+                return F.Promise.pure(null);
             }
         });
     }
 
     @Override
-    public synchronized WSClient client() {
-        F.Option<NingWSClient> clientOption = clientHolder.get();
-        if (clientOption.isEmpty()) {
-            NingWSClient client = newClient();
-            clientHolder.set(F.Some(client));
-            return client;
-        } else {
-            return clientOption.get();
-        }
+    public WSClient client() {
+        return client;
     }
 
     @Override

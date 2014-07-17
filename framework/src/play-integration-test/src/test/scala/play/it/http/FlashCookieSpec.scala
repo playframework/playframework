@@ -11,7 +11,7 @@ object FlashCookieSpec extends PlaySpecification {
 
   sequential
 
-  val appWithRedirect = FakeApplication(withRoutes = {
+  def appWithRedirect = FakeApplication(withRoutes = {
     case ("GET", "/flash") =>
       Action {
         Redirect("/landing").flashing(

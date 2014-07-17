@@ -3,6 +3,8 @@
  */
 package play.api
 
+import javax.inject.{ Inject, Singleton }
+
 import play.api.mvc._
 import java.io.File
 import play.core.j
@@ -245,7 +247,8 @@ object GlobalSettings {
 /**
  * The Global plugin executes application's `globalSettings` `onStart` and `onStop`.
  */
-class GlobalPlugin(app: Application) extends Plugin {
+@Singleton
+class GlobalPlugin @Inject() (app: Application) extends Plugin {
 
   // Call before start now
   app.global.beforeStart(app)

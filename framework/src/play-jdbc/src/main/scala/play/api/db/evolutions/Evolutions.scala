@@ -4,6 +4,7 @@
 package play.api.db.evolutions
 
 import java.io._
+import javax.inject.{ Inject, Singleton }
 
 import play.core._
 
@@ -454,7 +455,8 @@ object Evolutions {
 /**
  * Play Evolutions plugin.
  */
-class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSupport {
+@Singleton
+class EvolutionsPlugin @Inject() (app: Application) extends Plugin with HandleWebCommandSupport {
 
   import Evolutions._
 

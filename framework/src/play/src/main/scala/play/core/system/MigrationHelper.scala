@@ -3,13 +3,16 @@
  */
 package play.core.system
 
+import javax.inject.{ Inject, Singleton }
+
 import play.api.{ Play, Plugin, Application }
 
 /**
  * The migration helper is designed to assist in migration, where some things, such as configuration, have changed in
  * ways that break silently.
  */
-class MigrationHelper(app: Application) extends Plugin {
+@Singleton
+class MigrationHelper @Inject() (app: Application) extends Plugin {
 
   override def onStart() = {
     checkSessionMaxAge

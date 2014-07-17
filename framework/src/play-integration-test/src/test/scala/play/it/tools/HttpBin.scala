@@ -307,7 +307,7 @@ object HttpBinApplication {
     }
   })
 
-  lazy val app = FakeApplication(
+  def app = FakeApplication(
     withRoutes =
       PartialFunction.empty
         .orElse(getIp)

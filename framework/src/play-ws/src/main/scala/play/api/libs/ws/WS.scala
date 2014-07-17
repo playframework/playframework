@@ -95,10 +95,7 @@ object WS {
   type WSRequestHolder = play.api.libs.ws.WSRequestHolder
 
   protected[play] def wsapi(implicit app: Application): WSAPI = {
-    app.plugin[WSPlugin] match {
-      case Some(plugin) => plugin.api
-      case None => throw new Exception("There is no WS plugin registered.")
-    }
+    app.injector.instanceOf[WSAPI]
   }
 
   import scala.language.implicitConversions
@@ -175,16 +172,6 @@ trait WSAPI {
   def client: WSClient
 
   def url(url: String): WSRequestHolder
-}
-
-/**
- * The WS plugin.
- */
-abstract class WSPlugin extends Plugin {
-
-  def api: WSAPI
-
-  private[ws] def loaded: Boolean
 }
 
 /**

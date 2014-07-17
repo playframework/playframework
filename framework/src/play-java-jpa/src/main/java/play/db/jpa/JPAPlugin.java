@@ -8,15 +8,19 @@ import play.*;
 import java.io.*;
 import java.util.*;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.persistence.*;
 
 /**
  * A Play plugin that automatically manages JPA configuration.
  */
+@Singleton
 public class JPAPlugin extends Plugin {
     
     private final Application application;
-    
+
+    @Inject
     public JPAPlugin(Application application) {
         this.application = application;
     }
