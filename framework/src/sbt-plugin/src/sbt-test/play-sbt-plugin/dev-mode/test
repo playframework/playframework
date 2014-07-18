@@ -21,25 +21,26 @@
 > run
 
 # Existing file change detection
-> verify-resource-contains /assets/some.css 200 original
-$ copy-file changes/some.css.1 public/some.css
-> verify-resource-contains /assets/some.css 200 first
-$ delete public/some.css
-> verify-resource-contains /assets/some.css 404
+> verify-resource-contains /assets/css/some.css 200 original
+$ copy-file changes/some.css.1 public/css/some.css
+> verify-resource-contains /assets/css/some.css 200 first
+$ delete public/css/some.css
+> verify-resource-contains /assets/css/some.css 404
 
 # New file change detection
-> verify-resource-contains /assets/new.css 404
-$ copy-file changes/new.css public/new.css
-> verify-resource-contains /assets/new.css 200 original
+> verify-resource-contains /assets/new/new.css 404
+$ copy-file changes/new.css public/new/new.css
+> verify-resource-contains /assets/new/new.css 200 original
 # Need to wait a little while, because incremental compilation timestamps.
 $ sleep 1000
-$ copy-file changes/new.css.1 public/new.css
-> verify-resource-contains /assets/new.css 200 first
-$ delete public/new.css
-> verify-resource-contains /assets/new.css 404
+$ copy-file changes/new.css.1 public/new/new.css
+> verify-resource-contains /assets/new/new.css 200 first
+$ delete public/new/new.css
+> verify-resource-contains /assets/new/new.css 404
 
 > play-stop
-$ copy-file changes/some.css.0 public/some.css
+$ copy-file changes/some.css.0 public/css/some.css
+$ delete public/new
 
 # JDK7 watcher
 # - - - - - -
@@ -50,25 +51,26 @@ $ copy-file changes/some.css.0 public/some.css
 > run
 
 # Existing file change detection
-> verify-resource-contains /assets/some.css 200 original
-$ copy-file changes/some.css.1 public/some.css
-> verify-resource-contains /assets/some.css 200 first
-$ delete public/some.css
-> verify-resource-contains /assets/some.css 404
+> verify-resource-contains /assets/css/some.css 200 original
+$ copy-file changes/some.css.1 public/css/some.css
+> verify-resource-contains /assets/css/some.css 200 first
+$ delete public/css/some.css
+> verify-resource-contains /assets/css/some.css 404
 
 # New file change detection
-> verify-resource-contains /assets/new.css 404
-$ copy-file changes/new.css public/new.css
-> verify-resource-contains /assets/new.css 200 original
+> verify-resource-contains /assets/new/new.css 404
+$ copy-file changes/new.css public/new/new.css
+> verify-resource-contains /assets/new/new.css 200 original
 # Need to wait a little while, because incremental compilation timestamps.
 $ sleep 1000
-$ copy-file changes/new.css.1 public/new.css
-> verify-resource-contains /assets/new.css 200 first
-$ delete public/new.css
-> verify-resource-contains /assets/new.css 404
+$ copy-file changes/new.css.1 public/new/new.css
+> verify-resource-contains /assets/new/new.css 200 first
+$ delete public/new/new.css
+> verify-resource-contains /assets/new/new.css 404
 
 > play-stop
-$ copy-file changes/some.css.0 public/some.css
+$ copy-file changes/some.css.0 public/css/some.css
+$ delete public/new
 
 # JNotify watch service
 # - - - - - - - - - - -
@@ -79,25 +81,26 @@ $ copy-file changes/some.css.0 public/some.css
 > run
 
 # Existing file change detection
-> verify-resource-contains /assets/some.css 200 original
-$ copy-file changes/some.css.1 public/some.css
-> verify-resource-contains /assets/some.css 200 first
-$ delete public/some.css
-> verify-resource-contains /assets/some.css 404
+> verify-resource-contains /assets/css/some.css 200 original
+$ copy-file changes/some.css.1 public/css/some.css
+> verify-resource-contains /assets/css/some.css 200 first
+$ delete public/css/some.css
+> verify-resource-contains /assets/css/some.css 404
 
 # New file change detection
-> verify-resource-contains /assets/new.css 404
-$ copy-file changes/new.css public/new.css
-> verify-resource-contains /assets/new.css 200 original
+> verify-resource-contains /assets/new/new.css 404
+$ copy-file changes/new.css public/new/new.css
+> verify-resource-contains /assets/new/new.css 200 original
 # Need to wait a little while, because incremental compilation timestamps.
 $ sleep 1000
-$ copy-file changes/new.css.1 public/new.css
-> verify-resource-contains /assets/new.css 200 first
-$ delete public/new.css
-> verify-resource-contains /assets/new.css 404
+$ copy-file changes/new.css.1 public/new/new.css
+> verify-resource-contains /assets/new/new.css 200 first
+$ delete public/new/new.css
+> verify-resource-contains /assets/new/new.css 404
 
 > play-stop
-$ copy-file changes/some.css.0 public/some.css
+$ copy-file changes/some.css.0 public/css/some.css
+$ delete public/new
 
 # Reloader tests
 # --------------
@@ -107,7 +110,7 @@ $ copy-file changes/some.css.0 public/some.css
 
 # Check various action types
 > verify-resource-contains / 200 original
-> verify-resource-contains /assets/some.css 200 original
+> verify-resource-contains /assets/css/some.css 200 original
 > verify-resource-contains /assets/main.css 200 original
 > verify-reloads 1
 
@@ -123,9 +126,9 @@ $ sleep 1000
 > verify-reloads 2
 
 # Change a static asset
-$ copy-file changes/some.css.1 public/some.css
+$ copy-file changes/some.css.1 public/css/some.css
 $ sleep 1000
-> verify-resource-contains /assets/some.css 200 first
+> verify-resource-contains /assets/css/some.css 200 first
 # No reloads should have happened
 > verify-reloads 2
 
