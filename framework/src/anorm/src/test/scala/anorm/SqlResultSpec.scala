@@ -5,7 +5,7 @@ import acolyte.jdbc.AcolyteDSL.{ connection, handleQuery }
 import acolyte.jdbc.RowLists.{ rowList1, rowList2, stringList }
 import acolyte.jdbc.Implicits._
 
-object SqlResultSpec extends org.specs2.mutable.Specification {
+object SqlResultSpec extends org.specs2.mutable.Specification with H2Database {
   "SQL result" title
 
   "For-comprehension over result" should {
@@ -220,6 +220,36 @@ object SqlResultSpec extends org.specs2.mutable.Specification {
           .statementWarning aka "statement warning" must beSome.which { warn =>
             warn.getMessage aka "message" must_== "Warning for test-proc-2"
           }
+      }
+  }
+
+  "Column value" should {
+    val foo = s"alias-${System.identityHashCode(this)}"
+    val (v1, v2) = (s"1-$foo", s"2-$foo")
+
+    "be found either by name and alias" in withTestDB(v1) { implicit c =>
+      SQL"SELECT foo AS AL, bar FROM test1".as(SqlParser.str("foo").single).
+        aka("by name") must_== v1 and (SQL"SELECT foo AS AL, bar FROM test1".
+          as(SqlParser.getAliased[String]("AL").single).
+          aka("by alias") must_== v1)
+
+    }
+
+    "not be found without alias parser" in withTestDB(v2) { implicit c =>
+      SQL"SELECT foo AS AL, bar FROM test1".as(SqlParser.str("foo").single).
+        aka("by name") must_== v2 and (SQL"SELECT foo AS AL, bar FROM test1".
+          as(SqlParser.str("AL").single).aka("by alias") must throwA[Exception](
+            "AL not found, available columns : TEST1.FOO, AL, TEST1.BAR, BAR"))
+
+    }
+
+    def withTestDB[T](foo: String)(f: java.sql.Connection => T): T =
+      withH2Database { implicit c =>
+        createTest1Table()
+        SQL("insert into test1(id, foo, bar) values ({id}, {foo}, {bar})").
+          on('id -> 10L, 'foo -> foo, 'bar -> 20).execute()
+
+        f(c)
       }
   }
 
