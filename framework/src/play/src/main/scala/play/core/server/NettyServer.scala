@@ -38,12 +38,49 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
 
   require(port.isDefined || sslPort.isDefined, "Neither http.port nor https.port is specified")
 
+  private val NettyOptionPrefix = "http.netty.option."
+
   def applicationProvider = appProvider
 
-  private def newBootstrap = new ServerBootstrap(
-    new org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory(
-      Executors.newCachedThreadPool(NamedThreadFactory("netty-boss")),
-      Executors.newCachedThreadPool(NamedThreadFactory("netty-worker"))))
+  private def newBootstrap: ServerBootstrap = {
+    val serverBootstrap = new ServerBootstrap(
+      new org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory(
+        Executors.newCachedThreadPool(NamedThreadFactory("netty-boss")),
+        Executors.newCachedThreadPool(NamedThreadFactory("netty-worker"))))
+
+    import scala.collection.JavaConversions._
+    // Find all properties that start with http.netty.option
+
+    System.getProperties.stringPropertyNames().foreach { prop =>
+      if (prop.startsWith(NettyOptionPrefix)) {
+
+        val value = {
+          val v = System.getProperty(prop)
+          // Check if it's boolean
+          if (v.equalsIgnoreCase("true") || v.equalsIgnoreCase("false")) {
+            java.lang.Boolean.parseBoolean(v)
+            // Check if it's null (unsetting an option)
+          } else if (v.equalsIgnoreCase("null")) {
+            null
+          } else {
+            // Check if it's an int
+            try {
+              v.toInt
+            } catch {
+              // Fallback to returning as a string
+              case e: NumberFormatException => v
+            }
+          }
+        }
+
+        val name = prop.substring(NettyOptionPrefix.size)
+
+        serverBootstrap.setOption(name, value)
+      }
+    }
+
+    serverBootstrap
+  }
 
   class PlayPipelineFactory(secure: Boolean = false) extends ChannelPipelineFactory {
 
