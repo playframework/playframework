@@ -3,9 +3,13 @@
  */
 package play;
 
+import play.libs.Scala;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
 
 /**
  * The environment for the application.
@@ -46,5 +50,35 @@ public class Environment {
         } else {
             return Mode.TEST;
         }
+    }
+
+    /**
+     * Retrieves a file relative to the application root path.
+     *
+     * @param relativePath relative path of the file to fetch
+     * @return a file instance - it is not guaranteed that the file exists
+     */
+    public File getFile(String relativePath) {
+        return env.getFile(relativePath);
+    }
+
+    /**
+     * Retrieves a resource from the classpath.
+     *
+     * @param relativePath relative path of the resource to fetch
+     * @return URL to the resource (may be null)
+     */
+    public URL resource(String relativePath) {
+        return Scala.orNull(env.resource(relativePath));
+    }
+
+    /**
+     * Retrieves a resource stream from the classpath.
+     *
+     * @param relativePath relative path of the resource to fetch
+     * @return InputStream to the resource (may be null)
+     */
+    public InputStream resourceAsStream(String relativePath) {
+        return Scala.orNull(env.resourceAsStream(relativePath));
     }
 }

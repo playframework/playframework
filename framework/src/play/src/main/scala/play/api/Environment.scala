@@ -3,7 +3,7 @@
  */
 package play.api
 
-import java.io.File
+import java.io.{ InputStream, File }
 
 /**
  * The environment for the application.
@@ -18,5 +18,80 @@ case class Environment(
     rootPath: File,
     classLoader: ClassLoader,
     mode: Mode.Mode) {
+
+  /**
+   * Retrieves a file relative to the application root path.
+   *
+   * Note that it is up to you to manage the files in the application root path in production.  By default, there will
+   * be nothing available in the application root path.
+   *
+   * For example, to retrieve some deployment specific data file:
+   * {{{
+   * val myDataFile = application.getFile("data/data.xml")
+   * }}}
+   *
+   * @param relativePath relative path of the file to fetch
+   * @return a file instance; it is not guaranteed that the file exists
+   */
+  def getFile(relativePath: String): File = new File(rootPath, relativePath)
+
+  /**
+   * Retrieves a file relative to the application root path.
+   * This method returns an Option[File], using None if the file was not found.
+   *
+   * Note that it is up to you to manage the files in the application root path in production.  By default, there will
+   * be nothing available in the application root path.
+   *
+   * For example, to retrieve some deployment specific data file:
+   * {{{
+   * val myDataFile = application.getExistingFile("data/data.xml")
+   * }}}
+   *
+   * @param relativePath the relative path of the file to fetch
+   * @return an existing file
+   */
+  def getExistingFile(relativePath: String): Option[File] = Option(getFile(relativePath)).filter(_.exists)
+
+  /**
+   * Scans the application classloader to retrieve a resource.
+   *
+   * The conf directory is included on the classpath, so this may be used to look up resources, relative to the conf
+   * directory.
+   *
+   * For example, to retrieve the conf/logger.xml configuration file:
+   * {{{
+   * val maybeConf = application.resource("logger.xml")
+   * }}}
+   *
+   * @param name the absolute name of the resource (from the classpath root)
+   * @return the resource URL, if found
+   */
+  def resource(name: String): Option[java.net.URL] = {
+    Option(classLoader.getResource(Option(name).map {
+      case s if s.startsWith("/") => s.drop(1)
+      case s => s
+    }.get))
+  }
+
+  /**
+   * Scans the application classloader to retrieve a resource’s contents as a stream.
+   *
+   * The conf directory is included on the classpath, so this may be used to look up resources, relative to the conf
+   * directory.
+   *
+   * For example, to retrieve the conf/logger.xml configuration file:
+   * {{{
+   * val maybeConf = application.resourceAsStream("logger.xml")
+   * }}}
+   *
+   * @param name the absolute name of the resource (from the classpath root)
+   * @return a stream, if found
+   */
+  def resourceAsStream(name: String): Option[InputStream] = {
+    Option(classLoader.getResourceAsStream(Option(name).map {
+      case s if s.startsWith("/") => s.drop(1)
+      case s => s
+    }.get))
+  }
 
 }
