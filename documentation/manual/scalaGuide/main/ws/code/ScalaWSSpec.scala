@@ -3,19 +3,25 @@
  */
 package scalaguide.ws.scalaws
 
-//#imports
-import play.api.Play.current
-import play.api.libs.ws._
-import scala.concurrent.Future
-//#imports
-
-import play.api.mvc._
 import play.api.test._
 
 import java.io._
 
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
+
+//#dependency
+import javax.inject.Inject
+import scala.concurrent.Future
+
+import play.api.mvc._
+import play.api.libs.ws._
+
+class Application @Inject() (ws: WSClient) extends Controller {
+
+}
+//#dependency
+
 
 // #scalaws-person
 case class Person(name: String, age: Int)
@@ -36,13 +42,16 @@ class ScalaWSSpec extends PlaySpecification with Results {
   implicit val context = play.api.libs.concurrent.Execution.Implicits.defaultContext
   // #scalaws-context
 
-  def withSimpleServer[T](block: => T): T = withServer {
+  def withSimpleServer[T](block: WSClient => T): T = withServer {
     case _ => Action(Ok)
   }(block)
 
-  def withServer[T](routes: (String, String) => Handler)(block: => T): T = running(TestServer(testServerPort, FakeApplication(withRoutes = {
-    case (method, path) => routes(method, path)
-  })))(block)
+  def withServer[T](routes: (String, String) => Handler)(block: WSClient => T): T = {
+    val app = FakeApplication(withRoutes = {
+      case (method, path) => routes(method, path)
+    })
+    running(TestServer(testServerPort, app))(block(app.injector.instanceOf[WSClient]))
+  }
   
   /**
    * An enumerator that produces a large result.
@@ -60,9 +69,9 @@ class ScalaWSSpec extends PlaySpecification with Results {
 
   "WS" should {
 
-    "allow making a request" in withSimpleServer {
+    "allow making a request" in withSimpleServer { ws =>
       //#simple-holder
-      val holder: WSRequestHolder = WS.url(url)
+      val holder: WSRequestHolder = ws.url(url)
       //#simple-holder
 
       //#complex-holder
@@ -79,68 +88,68 @@ class ScalaWSSpec extends PlaySpecification with Results {
       await(futureResponse).status must_== 200
     }
 
-    "allow making an authenticated request" in withSimpleServer {
+    "allow making an authenticated request" in withSimpleServer { ws =>
       val user = "user"
       val password = "password"
 
       val response =
         //#auth-request
-        WS.url(url).withAuth(user, password, WSAuthScheme.BASIC).get()
+        ws.url(url).withAuth(user, password, WSAuthScheme.BASIC).get()
         //#auth-request
 
       await(response).status must_== 200
     }
 
-    "allow following redirects" in withSimpleServer {
+    "allow following redirects" in withSimpleServer { ws =>
       val response =
         //#redirects
-        WS.url(url).withFollowRedirects(true).get()
+        ws.url(url).withFollowRedirects(true).get()
         //#redirects
 
       await(response).status must_== 200
     }
 
-    "allow setting a query string" in withSimpleServer {
+    "allow setting a query string" in withSimpleServer { ws =>
       val response =
         //#query-string
-        WS.url(url).withQueryString("paramKey" -> "paramValue").get()
+        ws.url(url).withQueryString("paramKey" -> "paramValue").get()
         //#query-string
 
       await(response).status must_== 200
     }
 
-    "allow setting headers" in withSimpleServer {
+    "allow setting headers" in withSimpleServer { ws =>
       val response =
         //#headers
-        WS.url(url).withHeaders("headerKey" -> "headerValue").get()
+        ws.url(url).withHeaders("headerKey" -> "headerValue").get()
         //#headers
 
       await(response).status must_== 200
     }
 
-    "allow setting the content type" in withSimpleServer {
+    "allow setting the content type" in withSimpleServer { ws =>
       val xmlString = "<foo></foo>"
       val response =
         //#content-type
-        WS.url(url).withHeaders("Content-Type" -> "application/xml").post(xmlString)
+        ws.url(url).withHeaders("Content-Type" -> "application/xml").post(xmlString)
         //#content-type
 
       await(response).status must_== 200
     }
 
-    "allow setting the virtual host" in withSimpleServer {
+    "allow setting the virtual host" in withSimpleServer { ws =>
       val response =
         //#virtual-host
-        WS.url(url).withVirtualHost("192.168.1.1").get()
+        ws.url(url).withVirtualHost("192.168.1.1").get()
         //#virtual-host
 
       await(response).status must_== 200
     }
 
-    "allow setting the request timeout" in withSimpleServer {
+    "allow setting the request timeout" in withSimpleServer { ws =>
       val response =
         //#request-timeout
-        WS.url(url).withRequestTimeout(5000).get()
+        ws.url(url).withRequestTimeout(5000).get()
         //#request-timeout
 
       await(response).status must_== 200
@@ -150,10 +159,10 @@ class ScalaWSSpec extends PlaySpecification with Results {
 
       "post with form url encoded body" in withServer {
         case ("POST", "/") => Action(BodyParsers.parse.urlFormEncoded)(r => Ok(r.body("key").head))
-      } {
+      } { ws =>
         val response =
           //#url-encoded
-          WS.url(url).post(Map("key" -> Seq("value")))
+          ws.url(url).post(Map("key" -> Seq("value")))
           //#url-encoded
 
         await(response).body must_== "value"
@@ -161,14 +170,14 @@ class ScalaWSSpec extends PlaySpecification with Results {
 
       "post with JSON body" in  withServer {
         case ("POST", "/") => Action(BodyParsers.parse.json)(r => Ok(r.body))
-      } {
+      } { ws =>
         // #scalaws-post-json
         import play.api.libs.json._
         val data = Json.obj(
           "key1" -> "value1",
           "key2" -> "value2"
         )
-        val futureResponse: Future[WSResponse] = WS.url(url).post(data)
+        val futureResponse: Future[WSResponse] = ws.url(url).post(data)
         // #scalaws-post-json
 
         await(futureResponse).json must_== data
@@ -176,13 +185,13 @@ class ScalaWSSpec extends PlaySpecification with Results {
 
       "post with XML data" in withServer {
         case ("POST", "/") => Action(BodyParsers.parse.xml)(r => Ok(r.body))
-      } {
+      } { ws =>
         // #scalaws-post-xml
         val data = <person>
           <name>Steve</name>
           <age>23</age>
         </person>
-        val futureResponse: Future[WSResponse] = WS.url(url).post(data)
+        val futureResponse: Future[WSResponse] = ws.url(url).post(data)
         // #scalaws-post-xml
 
         await(futureResponse).xml must_== data
@@ -197,9 +206,9 @@ class ScalaWSSpec extends PlaySpecification with Results {
           implicit val personWrites = Json.writes[Person]
           Ok(Json.obj("person" -> Person("Steve", 23)))
         }
-      } {
+      } { ws =>
         // #scalaws-process-json
-        val futureResult: Future[String] = WS.url(url).get().map {
+        val futureResult: Future[String] = ws.url(url).get().map {
           response =>
             (response.json \ "person" \ "name").as[String]
         }
@@ -214,13 +223,13 @@ class ScalaWSSpec extends PlaySpecification with Results {
           implicit val personWrites = Json.writes[Person]
           Ok(Json.obj("person" -> Person("Steve", 23)))
         }
-      } {
+      } { ws =>
         // #scalaws-process-json-with-implicit
         import play.api.libs.json._
 
         implicit val personReads = Json.reads[Person]
 
-        val futureResult: Future[JsResult[Person]] = WS.url(url).get().map {
+        val futureResult: Future[JsResult[Person]] = ws.url(url).get().map {
           response => (response.json \ "person").validate[Person]
         }
         // #scalaws-process-json-with-implicit
@@ -241,9 +250,9 @@ class ScalaWSSpec extends PlaySpecification with Results {
                 |<wrapper><message status="OK">Hello</message></wrapper>
               """.stripMargin).as("text/xml")
           }
-      } {
+      } { ws =>
         // #scalaws-process-xml
-        val futureResult: Future[scala.xml.NodeSeq] = WS.url(url).get().map {
+        val futureResult: Future[scala.xml.NodeSeq] = ws.url(url).get().map {
           response =>
             response.xml \ "message"
         }
@@ -253,13 +262,13 @@ class ScalaWSSpec extends PlaySpecification with Results {
 
       "handle as stream" in withServer {
         case ("GET", "/") => Action(Ok.chunked(largeEnumerator))
-      } {
+      } { ws =>
         //#stream-count-bytes
         import play.api.libs.iteratee._
 
         // Make the request
         val futureResponse: Future[(WSResponseHeaders, Enumerator[Array[Byte]])] =
-          WS.url(url).getStream()
+          ws.url(url).getStream()
 
         val bytesReturned: Future[Long] = futureResponse.flatMap {
           case (headers, body) =>
@@ -274,7 +283,7 @@ class ScalaWSSpec extends PlaySpecification with Results {
 
       "stream to a file" in withServer {
         case ("GET", "/") => Action(Ok.chunked(largeEnumerator))
-      } {
+      } { ws =>
         val file = File.createTempFile("stream-to-file-", ".txt")
         try {
           //#stream-to-file
@@ -282,7 +291,7 @@ class ScalaWSSpec extends PlaySpecification with Results {
 
           // Make the request
           val futureResponse: Future[(WSResponseHeaders, Enumerator[Array[Byte]])] =
-            WS.url(url).getStream()
+            ws.url(url).getStream()
 
           val downloadedFile: Future[File] = futureResponse.flatMap {
             case (headers, body) =>
@@ -312,14 +321,14 @@ class ScalaWSSpec extends PlaySpecification with Results {
 
       "stream to a result" in withServer {
         case ("GET", "/") => Action(Ok.chunked(largeEnumerator))
-      } {
+      } { ws =>
         val file = File.createTempFile("stream-to-file-", ".txt")
         try {
           //#stream-to-result
           def downloadFile = Action.async {
 
             // Make the request
-            WS.url(url).getStream().map {
+            ws.url(url).getStream().map {
               case (response, body) =>
 
                 // Check that the response was successful
@@ -355,12 +364,12 @@ class ScalaWSSpec extends PlaySpecification with Results {
 
       "stream when request is a PUT" in withServer {
         case ("PUT", "/") => Action(Ok.chunked(largeEnumerator))
-      } {
+      } { ws =>
         import play.api.libs.iteratee._
 
         //#stream-put
         val futureResponse: Future[(WSResponseHeaders, Enumerator[Array[Byte]])] =
-          WS.url(url).withMethod("PUT").withBody("some body").stream()
+          ws.url(url).withMethod("PUT").withBody("some body").stream()
         //#stream-put
 
         val bytesReturned: Future[Long] = futureResponse.flatMap {
@@ -387,30 +396,30 @@ class ScalaWSSpec extends PlaySpecification with Results {
         Action {
           Ok("finished!")
         }
-    } {
+    } { ws =>
       val urlOne = s"http://localhost:$testServerPort/one"
       val exceptionUrl = s"http://localhost:$testServerPort/fallback"
       // #scalaws-forcomprehension
       val futureResponse: Future[WSResponse] = for {
-        responseOne <- WS.url(urlOne).get()
-        responseTwo <- WS.url(responseOne.body).get()
-        responseThree <- WS.url(responseTwo.body).get()
+        responseOne <- ws.url(urlOne).get()
+        responseTwo <- ws.url(responseOne.body).get()
+        responseThree <- ws.url(responseTwo.body).get()
       } yield responseThree
 
       futureResponse.recover {
         case e: Exception =>
           val exceptionData = Map("error" -> Seq(e.getMessage))
-          WS.url(exceptionUrl).post(exceptionData)
+          ws.url(exceptionUrl).post(exceptionData)
       }
       // #scalaws-forcomprehension
 
       await(futureResponse).body must_== "finished!"
     }
 
-    "map to async result" in withSimpleServer {
+    "map to async result" in withSimpleServer { ws =>
       //#async-result
       def wsAction = Action.async {
-        WS.url(url).get().map { response =>
+        ws.url(url).get().map { response =>
           Ok(response.body)
         }
       }
@@ -418,11 +427,7 @@ class ScalaWSSpec extends PlaySpecification with Results {
       //#async-result
     }
 
-    "allow working with clients directly" in withSimpleServer {
-      //#get-client
-      val client: WSClient = WS.client
-      //#get-client
-
+    "allow working with clients directly" in withSimpleServer { ws =>
 
       //#implicit-client
       val builder = new (com.ning.http.client.AsyncHttpClientConfig.Builder)()
@@ -442,7 +447,7 @@ class ScalaWSSpec extends PlaySpecification with Results {
       ok
     }
 
-    "allow using pair magnets" in withSimpleServer {
+    "allow using pair magnets" in withSimpleServer { ws =>
       //#pair-magnet
       object PairMagnet {
         implicit def fromPair(pair: (WSClient, java.net.URL)) =
@@ -457,9 +462,8 @@ class ScalaWSSpec extends PlaySpecification with Results {
       import scala.language.implicitConversions
       import PairMagnet._
 
-      val client = WS.client
       val exampleURL = new java.net.URL(url)
-      val response = WS.url(client -> exampleURL).get()
+      val response = WS.url(ws -> exampleURL).get()
       //#pair-magnet
 
       await(response).status must_== OK
@@ -469,6 +473,7 @@ class ScalaWSSpec extends PlaySpecification with Results {
 
       //#programmatic-config
       import com.typesafe.config.ConfigFactory
+      import play.api._
       import play.api.libs.ws._
       import play.api.libs.ws.ning._
 
@@ -477,19 +482,21 @@ class ScalaWSSpec extends PlaySpecification with Results {
           |ws.followRedirects = true
         """.stripMargin))
 
-      val classLoader = app.classloader // Play.current.classloader or other
-      val parser = new DefaultWSConfigParser(configuration, classLoader)
+      // If running in Play, environment should be injected
+      val environment = Environment(new File("."), this.getClass.getClassLoader, Mode.Prod)
+
+      val parser = new DefaultWSConfigParser(configuration, environment)
       val builder = new NingAsyncHttpClientConfigBuilder(parser.parse())
       //#programmatic-config
 
       ok
     }
 
-    "grant access to the underlying client" in withSimpleServer {
+    "grant access to the underlying client" in withSimpleServer { ws =>
       //#underlying
       import com.ning.http.client.AsyncHttpClient
 
-      val client: AsyncHttpClient = WS.client.underlying
+      val client: AsyncHttpClient = ws.underlying
       //#underlying
 
       ok

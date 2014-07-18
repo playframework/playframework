@@ -15,11 +15,13 @@ libraryDependencies ++= Seq(
 )
 ```
 
-Then import the following:
+Now any controller or component that wants to use WS will have to declare a dependency on the `WSClient`:
 
-@[imports](code/ScalaWSSpec.scala)
+@[dependency](code/ScalaWSSpec.scala)
 
-To build an HTTP request, you start with `WS.url()` to specify the URL.
+We've called the `WSClient` instance `ws`, all the following examples will assume this name.
+
+To build an HTTP request, you start with `ws.url()` to specify the URL.
 
 @[simple-holder](code/ScalaWSSpec.scala)
 
@@ -161,15 +163,11 @@ When making a request from a controller, you can map the response to a `Future[R
 
 WSClient is a wrapper around the underlying AsyncHttpClient.  It is useful for defining multiple clients with different profiles, or using a mock.
 
-The default client can be called from the WS singleton:
-
-@[get-client](code/ScalaWSSpec.scala)
-
-You can define a WS client directly from code without going through WS, and use implicitly with `WS.clientUrl()`
+You can define a WS client directly from code without having it injected by WS, and then it use implicitly with `WS.clientUrl()`
 
 @[implicit-client](code/ScalaWSSpec.scala)
 
-> NOTE: if you instantiate a NingWSClient object, it does not use the WS plugin system, and so will not be automatically closed in `Application.onStop`. Instead, the client must be manually shutdown using `client.close()` when processing has completed.  This will release the underlying ThreadPoolExecutor used by AsyncHttpClient.  Failure to close the client may result in out of memory exceptions (especially if you are reloading an application frequently in development mode).
+> NOTE: if you instantiate a NingWSClient object, it does not use the WS module lifecycle, and so will not be automatically closed in `Application.onStop`. Instead, the client must be manually shutdown using `client.close()` when processing has completed.  This will release the underlying ThreadPoolExecutor used by AsyncHttpClient.  Failure to close the client may result in out of memory exceptions (especially if you are reloading an application frequently in development mode).
 
 or directly:
 

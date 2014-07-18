@@ -111,4 +111,4 @@ dist
 .cache
 ```
 
-> **Next:** [[Using the Activator console | PlayConsole ]]
+> **Next:** [[Play Modules|Modules]]

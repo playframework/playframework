@@ -12,9 +12,6 @@ public class MyPlugin extends Plugin {
 
     private final MyComponent myComponent = new MyComponent();
 
-    public MyPlugin(Application app) {
-    }
-
     public void onStart() {
         myComponent.start();
     }

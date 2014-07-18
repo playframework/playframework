@@ -71,7 +71,7 @@ package scalaguide.http.scalaresults {
       }
 
       "Changing the charset for text based HTTP responses" in {
-        val index = scalaguide.http.scalaresults.full.Application.index
+        val index = new scalaguide.http.scalaresults.full.Application().index
         assertAction(index)(res => testContentType(await(res), "charset=iso-8859-1"))
       }
 
@@ -104,7 +104,7 @@ package scalaguide.http.scalaresults {
 
   package scalaguide.http.scalaresults.full {
     //#full-application-set-myCustomCharset
-    object Application extends Controller {
+    class Application extends Controller {
 
       implicit val myCustomCharset = Codec.javaSupported("iso-8859-1")
 

@@ -1,6 +1,10 @@
 package detailedtopics.configuration.ws {
 
 // #context
+
+import java.io.File
+
+import play.api.{Mode, Environment}
 import play.api.libs.json.JsSuccess
 import play.api.libs.ws._
 import play.api.libs.ws.ning._
@@ -14,7 +18,7 @@ class HowsMySSLSpec extends PlaySpecification {
 
   def createClient(rawConfig: play.api.Configuration): WSClient = {
     val classLoader = Thread.currentThread().getContextClassLoader
-    val parser = new DefaultWSConfigParser(rawConfig, classLoader)
+    val parser = new DefaultWSConfigParser(rawConfig, new Environment(new File("."), classLoader, Mode.Test))
     val clientConfig = parser.parse()
     clientConfig.ssl.map {
       _.debug.map(new DebugConfiguration().configure)

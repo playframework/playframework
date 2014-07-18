@@ -41,7 +41,7 @@ object ScalaPlugins extends PlaySpecification {
 
 import play.api.{Plugin, Application}
 
-class MyPlugin(app: Application) extends Plugin {
+class MyPlugin extends Plugin {
   val myComponent = new MyComponent()
 
   override def onStart() = {
@@ -69,8 +69,9 @@ class MyComponent() {
 import play.api._
 import play.api.libs.concurrent.Akka
 import akka.actor._
+import javax.inject.Inject
 
-class Actors(implicit app: Application) extends Plugin {
+class Actors @Inject() (implicit app: Application) extends Plugin {
   lazy val myActor = Akka.system.actorOf(MyActor.props, "my-actor")
 }
 

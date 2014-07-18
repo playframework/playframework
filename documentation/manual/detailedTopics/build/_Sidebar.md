@@ -10,11 +10,12 @@
 
 ### Getting started
 
-- [[Installing Play | Installing]]
-- [[Creating a new application | NewApplication]]
-- [[Anatomy of a Play application | Anatomy]]
-- [[Using the Play console | PlayConsole]]
-- [[Setting-up your preferred IDE | IDE]]
+- [[Installing Play|Installing]]
+- [[Creating a new application|NewApplication]]
+- [[Anatomy of a Play application|Anatomy]]
+- [[Play Modules|Modules]]
+- [[Using the Play console|PlayConsole]]
+- [[Setting-up your preferred IDE|IDE]]
 - [[Play Tutorials|Tutorials]]
 
 ### Working with Play 
@@ -53,5 +54,5 @@
 
 ### Modules and plugins
 
-- [[Temporary modules directory|Modules]]
+- [[Temporary modules directory|ModuleDirectory]]
 

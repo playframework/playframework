@@ -9,7 +9,7 @@ Similarly, plugins don't necessarily imply that they are reusable between applic
 
 ## Implementing plugins
 
-Implementing a plugin requires two steps.  The first is to implement the `play.Plugin` interface.  Implementations of this interface must accept a single argument of type `play.Application`:
+Implementing a plugin requires two steps.  The first is to implement the `play.Plugin` interface:
 
 @[code](code/javaguide/advanced/extending/MyPlugin.java)
 

@@ -20,7 +20,7 @@ object JavaWSSpec extends Specification with Results with Status {
   // It's much easier to test this in Scala because we need to set up a
   // fake application with routes.
 
-  val fakeApplication = FakeApplication(withRoutes = {
+  def fakeApplication = FakeApplication(withRoutes = {
     case ("GET", "/feed") =>
       Action {
         val obj: JsObject = Json.obj(

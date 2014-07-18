@@ -66,7 +66,7 @@ object ScalaActionsSpec extends Specification with Controller {
     }
 
     "work for a full controller class" in {
-      testAction(full.Application.index)
+      testAction(new full.Application().index)
     }
 
     "support an action with parameters" in {
@@ -178,7 +178,7 @@ package scalaguide.http.scalaactions.full {
 
 import play.api.mvc._
 
-object Application extends Controller {
+class Application extends Controller {
 
   def index = Action {
     Ok("It works!")

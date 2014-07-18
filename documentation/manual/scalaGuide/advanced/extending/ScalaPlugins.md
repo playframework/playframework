@@ -9,7 +9,7 @@ Similarly, plugins don't necessarily imply that they are reusable between applic
 
 ## Implementing plugins
 
-Implementing a plugin requires two steps.  The first is to implement the `play.api.Plugin` interface.  Implementations of this interface must accept a single argument of type `play.api.Application`:
+Implementing a plugin requires two steps.  The first is to implement the `play.api.Plugin` interface:
 
 @[my-plugin](code/ScalaPlugins.scala)
 

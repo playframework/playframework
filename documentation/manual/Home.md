@@ -14,6 +14,7 @@
 1. [[Installing Play|Installing]]
 1. [[Creating a new application|NewApplication]]
 1. [[Anatomy of a Play application|Anatomy]]
+1. [[Play Modules|Modules]]
 1. [[Using the Play console|PlayConsole]]
 1. [[Setting up your preferred IDE|IDE]]
 1. [[Play Tutorials|Tutorials]]
@@ -78,5 +79,5 @@
 
 ## Modules and plugins
 
-1. [[Temporary modules directory|Modules]]
+1. [[Temporary modules directory|ModuleDirectory]]
 

@@ -24,6 +24,8 @@ Let’s see what a route definition looks like:
 
 Each route starts with the HTTP method, followed by the URI pattern. The last element is the call definition.
 
+Note the `@` symbol. This tells Play that this action must be looked up out of the dependency injection framework, which, by default, is Guice.
+
 You can also add comments to the route file, with the `#` character.
 
 @[clients-show-comment](code/scalaguide.http.routing.routes)

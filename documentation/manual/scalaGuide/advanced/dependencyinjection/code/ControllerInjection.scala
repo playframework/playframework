@@ -11,9 +11,7 @@ object Global extends play.api.GlobalSettings {
 
   private val injector = SomeDependencyInjectionFramework
 
-  override def getControllerInstance[A](controllerClass: Class[A]): A = {
-    injector.getInstance(controllerClass)
-  }
+  // todo - update this documentation because it's not superfluous
 }
 // #di-global
 

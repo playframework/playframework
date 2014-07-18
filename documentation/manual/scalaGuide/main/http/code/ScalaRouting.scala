@@ -16,7 +16,7 @@ package controllers {
     def findById(id: Long) = Some("showing client " + id)
   }
 
-  object Clients extends Controller {
+  class Clients extends Controller {
 
     // #show-client-action
     def show(id: Long) = Action {
@@ -29,7 +29,7 @@ package controllers {
     def list() = Action(Ok("all clients"))
   }
 
-  object Application extends Controller {
+  class Application extends Controller {
     def download(name: String) = Action(Ok("download " + name))
     def homePage() = Action(Ok("home page"))
 
@@ -44,29 +44,29 @@ package controllers {
     // #show-page-action
   }
 
-  object Items extends Controller {
+  class Items extends Controller {
     def show(id: Long) = Action(Ok("showing item " + id))
   }
 
-  object Api extends Controller {
+  class Api extends Controller {
     def list(version: Option[String]) = Action(Ok("version " + version))
   }
 }
 
 package query {
   package object controllers {
-    val Application = scalaguide.http.routing.controllers.Application
+    type Application = scalaguide.http.routing.controllers.Application
   }
 }
 
 package fixed {
   package object controllers {
-    val Application = scalaguide.http.routing.controllers.Application
+    type Application = scalaguide.http.routing.controllers.Application
   }
 }
 
 package defaultvalue.controllers {
-  object Clients extends Controller {
+  class Clients extends Controller {
     def list(page: Int) = Action(Ok("clients page " + page))
   }
 }
@@ -78,7 +78,7 @@ package reverse.controllers {
 import play.api._
 import play.api.mvc._
 
-object Application extends Controller {
+class Application extends Controller {
 
   def hello(name: String) = Action {
     Ok("Hello " + name + "!")

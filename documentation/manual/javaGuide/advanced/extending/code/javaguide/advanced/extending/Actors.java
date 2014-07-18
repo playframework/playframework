@@ -9,11 +9,14 @@ import akka.actor.*;
 import play.*;
 import play.libs.Akka;
 
+import javax.inject.Inject;
+
 public class Actors extends Plugin {
     private final Application app;
 
     private ActorRef myActor;
 
+    @Inject
     public Actors(Application app) {
         this.app = app;
     }

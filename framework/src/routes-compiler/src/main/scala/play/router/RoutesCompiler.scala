@@ -1145,7 +1145,7 @@ object RoutesCompiler {
     }
   }
 
-  val Injector = "play.api.Play.maybeApplication.map(_.injector).getOrElse(play.api.inject.NewIntsanceInjector)"
+  val Injector = "play.api.Play.maybeApplication.map(_.injector).getOrElse(play.api.inject.NewInstanceInjector)"
 
 }
 
