@@ -57,66 +57,40 @@ The generated configuration files contain absolute references to your framework 
 
 ## IntelliJ
 
-### Generate configuration
+Intellij IDEA lets you quickly create a Play application without using a command prompt. You don't need to configure anything outside of the IDE, the SBT build tool takes care of downloading appropriate libraries, resolving dependencies and building the project.
 
-Play provides a command to simplify Intellij IDEA configuration. To transform a Play application into a working IDEA module, use the idea command from the play console:
+Before you start creating a Play application in IntelliJ IDEA, make sure that the latest Scala (if you develop with Scala) and 
+Play 2 plugins are enabled in IntelliJ IDEA.
 
-```
-[my-first-app] $ idea
-```
+To create a Play application:
 
-If you want to grab the available source jars (this will take longer and it's possible a few sources might be missing):
+- Open ***New Project*** wizard, select ***Play 2.x*** under ***Scala*** section and click ***Next***.
+- Enter your project's information and click ***Finish***.
 
-```
-[my-first-app] $ idea with-sources=yes
-```
+IntelliJ IDEA creates an empty application using SBT.
 
-This will create the configuration files IntelliJ needs to open your play application as a project. The files are named `<project>.iml` and `<project>-build.iml`. 
+You can also import an existing Play project.
 
-Now we can open the project in IntelliJ. To do this select, File, then Open... (IntelliJ 12.1.6) and select the "my-first-app" folder. 
+To import a Play project:
+- Open Project wizard, select ***Import Project***.
+- In the window that opens, select a project you want to import and click ***OK***.
+- On the next page of the wizard, select ***Import project from external model*** option, choose ***SBT project*** and click ***Next***. 
+- On the next page of the wizard, select additional import options and click ***Finish***. 
 
-Let's go ahead and run our app in debug mode. As we are already running the Play console we will need to first stop it:
+Check the project's structure, make sure all necessary dependencies are downloaded.
+You can use code assistance, navigation and on-the-fly code analysis features.
 
-```
-[my-first-app] $ exit
-```
+You can run the created application and view the result in the default browser `http://localhost:9000`. 
 
-To debug, first add a debug configuration
+To run a Play application:
+-	In the project tree, right-click the application.
+-	From the list in the context menu, select ***Run Pla2 App***.
 
-- Open Run/Debug Configurations dialog, then click Run, Edit Configurations
-- Add a Remote configuration, then select `Remote`
-- Configure it:
-    - Set a name
-    - Transport: Socket
-    - Debugger mode: Attach
-    - Host: localhost
-    - Port: 9999
-    - Select module you imported
-- Close dialog - click Apply
+You can easily start a debugger session for a Play application using default Run/Debug Configuration settings.
 
-Start play in debug mode (in a separate command line console, NOT in IDEA's Play console):
+For more detailed information, see the Play Framework 2.x tutorial at the following URL:
 
-```
-$ activator -jvm-debug 9999
-```
-
-which should print: 
-
-```
-Listening for transport dt_socket at address: 9999
-```
-
-Set some breakpoints then start your new debug configuration from within IDEA. The console output should be:
-
-```
-Connected to the target VM, address: 'localhost:9999', transport: 'socket'
-```
-
-Run the web app by executing the task `run` in the Play console. Finally, browse to `http://localhost:9000`. IntelliJ should stop at your breakpoint.
-
-Alternatively, in order not to run more command prompts, first run `activator -jvm-debug 9999 run` in IDEA's Play console, then launch debug configuration.
-
-If you make any important changes to your application, such as changing the classpath, use `idea` again to regenerate the configuration files.
+<http://confluence.jetbrains.com/display/IntelliJIDEA/Play+Framework+2.0> 
 
 
 ## Netbeans
