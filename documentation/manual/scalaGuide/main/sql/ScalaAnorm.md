@@ -129,7 +129,7 @@ val code: String = SQL(
   """
     select * from Country c 
     join CountryLanguage l on l.CountryCode = c.Code 
-    where c.code = {countryCode};
+    where c.code = {countryCode}
   """)
   .on("countryCode" -> "FRA").as(SqlParser.str("code").single)
 ```
@@ -143,10 +143,24 @@ val code: String = SQL(
   """
     select * from Country c 
     join CountryLanguage l on l.CountryCode = c.Code 
-    where c.code = {countryCode};
+    where c.code = {countryCode}
   """)
   .on("countryCode" -> "FRA").as(SqlParser.str("Country.code").single)
 // code == "First"
+```
+
+When a column is aliased, typically using SQL `AS`, its value can be resolved with `getAliased` parser. Following example parses column with `country_lang` alias.
+
+```scala
+import anorm.{ SQL, SqlParser }
+
+val lang: String = SQL(
+  """
+    select l.language AS country_lang from Country c 
+    join CountryLanguage l on l.CountryCode = c.Code 
+    where c.code = {countryCode}
+  """).on("countryCode" -> "FRA").
+    as(SqlParser.getAliased[String]("country_lang").single)
 ```
 
 Columns can also be specified by position, rather than name:

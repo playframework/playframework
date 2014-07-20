@@ -5,7 +5,7 @@ import scala.util.Random
 
 trait H2Database {
 
-  def withConnection[R](block: Connection => R) = {
+  def withH2Database[R](block: Connection => R) = {
     val dbName = "test" + Random.alphanumeric.take(6).mkString("")
 
     Class.forName("org.h2.Driver")

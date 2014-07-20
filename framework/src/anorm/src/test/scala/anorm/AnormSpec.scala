@@ -28,7 +28,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
     classOf[Long] -> "id", classOf[String] -> "foo", classOf[Int] -> "bar")
 
   "Row parser" should {
-    "return newly inserted data" in withConnection { implicit c =>
+    "return newly inserted data" in withH2Database { implicit c =>
       createTest1Table()
       val ex: Boolean =
         SQL("insert into test1(id, foo, bar) values ({id}, {foo}, {bar})")
@@ -153,7 +153,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
   }
 
   "Instance of case class" should {
-    "be parsed using convience parsers with column names" in withConnection {
+    "be parsed using convience parsers with column names" in withH2Database {
       implicit c =>
         createTest1Table()
         val uc =
