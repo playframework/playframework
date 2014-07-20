@@ -243,17 +243,22 @@ case class NingWSRequest(client: NingWSClient,
     import com.ning.http.client.AsyncCompletionHandler
     var result = Promise[NingWSResponse]()
     calc.map(_.sign(this))
-    client.executeRequest(builder.build(), new AsyncCompletionHandler[AHCResponse]() {
-      override def onCompleted(response: AHCResponse) = {
-        result.success(NingWSResponse(response))
-        response
-      }
 
-      override def onThrowable(t: Throwable) = {
-        result.failure(t)
-      }
-    })
-    result.future
+    try {
+      client.executeRequest(builder.build(), new AsyncCompletionHandler[AHCResponse]() {
+        override def onCompleted(response: AHCResponse) = {
+          result.success(NingWSResponse(response))
+          response
+        }
+
+        override def onThrowable(t: Throwable) = {
+          result.failure(t)
+        }
+      })
+      result.future
+    } catch {
+      case e: Exception => Future.failed(e)
+    }
   }
 
   private[libs] def executeStream(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = {
@@ -272,85 +277,89 @@ case class NingWSRequest(client: NingWSClient,
     @volatile var statusCode = 0
     @volatile var current: Iteratee[Array[Byte], Unit] = Iteratee.flatten(promisedIteratee.future)
 
-    client.executeRequest(builder.build(), new AsyncHandler[Unit]() {
+    try {
+      client.executeRequest(builder.build(), new AsyncHandler[Unit]() {
 
-      import com.ning.http.client.AsyncHandler.STATE
+        import com.ning.http.client.AsyncHandler.STATE
 
-      override def onStatusReceived(status: HttpResponseStatus) = {
-        statusCode = status.getStatusCode
-        STATE.CONTINUE
-      }
-
-      override def onHeadersReceived(h: HttpResponseHeaders) = {
-        val headers = h.getHeaders
-
-        val responseHeader = DefaultWSResponseHeaders(statusCode, ningHeadersToMap(headers))
-        val enumerator = new Enumerator[Array[Byte]]() {
-          def apply[A](i: Iteratee[Array[Byte], A]) = {
-
-            val doneIteratee = Promise[Iteratee[Array[Byte], A]]()
-
-            // Map it so that we can complete the iteratee when it returns
-            val mapped = i.map { a =>
-              doneIteratee.trySuccess(Done(a))
-              ()
-            }.recover {
-              // but if an error happens, we want to propogate that
-              case e =>
-                doneIteratee.tryFailure(e)
-                throw e
-            }
-
-            // Redeem the iteratee that we promised to the AsyncHandler
-            promisedIteratee.trySuccess(mapped)
-
-            // If there's an error in the stream from upstream, then fail this returned future with that
-            errorInStream.future.onFailure {
-              case e => doneIteratee.tryFailure(e)
-            }
-
-            doneIteratee.future
-          }
-        }
-
-        result.trySuccess((responseHeader, enumerator))
-        STATE.CONTINUE
-      }
-
-      override def onBodyPartReceived(bodyPart: HttpResponseBodyPart) = {
-        if (!doneOrError) {
-          current = current.pureFlatFold {
-            case Step.Done(a, e) =>
-              doneOrError = true
-              Done(a, e)
-
-            case Step.Cont(k) =>
-              k(El(bodyPart.getBodyPartBytes))
-
-            case Step.Error(e, input) =>
-              doneOrError = true
-              Error(e, input)
-
-          }
+        override def onStatusReceived(status: HttpResponseStatus) = {
+          statusCode = status.getStatusCode
           STATE.CONTINUE
-        } else {
-          current = null
-          // Must close underlying connection, otherwise async http client will drain the stream
-          bodyPart.markUnderlyingConnectionAsClosed()
-          STATE.ABORT
         }
-      }
 
-      override def onCompleted() = {
-        Option(current).foreach(_.run)
-      }
+        override def onHeadersReceived(h: HttpResponseHeaders) = {
+          val headers = h.getHeaders
 
-      override def onThrowable(t: Throwable) = {
-        result.tryFailure(t)
-        errorInStream.tryFailure(t)
-      }
-    })
-    result.future
+          val responseHeader = DefaultWSResponseHeaders(statusCode, ningHeadersToMap(headers))
+          val enumerator = new Enumerator[Array[Byte]]() {
+            def apply[A](i: Iteratee[Array[Byte], A]) = {
+
+              val doneIteratee = Promise[Iteratee[Array[Byte], A]]()
+
+              // Map it so that we can complete the iteratee when it returns
+              val mapped = i.map { a =>
+                doneIteratee.trySuccess(Done(a))
+                ()
+              }.recover {
+                // but if an error happens, we want to propogate that
+                case e =>
+                  doneIteratee.tryFailure(e)
+                  throw e
+              }
+
+              // Redeem the iteratee that we promised to the AsyncHandler
+              promisedIteratee.trySuccess(mapped)
+
+              // If there's an error in the stream from upstream, then fail this returned future with that
+              errorInStream.future.onFailure {
+                case e => doneIteratee.tryFailure(e)
+              }
+
+              doneIteratee.future
+            }
+          }
+
+          result.trySuccess((responseHeader, enumerator))
+          STATE.CONTINUE
+        }
+
+        override def onBodyPartReceived(bodyPart: HttpResponseBodyPart) = {
+          if (!doneOrError) {
+            current = current.pureFlatFold {
+              case Step.Done(a, e) =>
+                doneOrError = true
+                Done(a, e)
+
+              case Step.Cont(k) =>
+                k(El(bodyPart.getBodyPartBytes))
+
+              case Step.Error(e, input) =>
+                doneOrError = true
+                Error(e, input)
+
+            }
+            STATE.CONTINUE
+          } else {
+            current = null
+            // Must close underlying connection, otherwise async http client will drain the stream
+            bodyPart.markUnderlyingConnectionAsClosed()
+            STATE.ABORT
+          }
+        }
+
+        override def onCompleted() = {
+          Option(current).foreach(_.run)
+        }
+
+        override def onThrowable(t: Throwable) = {
+          result.tryFailure(t)
+          errorInStream.tryFailure(t)
+        }
+      })
+      result.future
+    } catch {
+      case e: Exception => Future.failed(e)
+    }
   }
 
 }
