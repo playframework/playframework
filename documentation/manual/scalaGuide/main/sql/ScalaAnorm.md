@@ -206,30 +206,26 @@ val code: String = SQL"""
 
 This feature tries to make faster, more concise and easier to read the way to retrieve data in Anorm. Please, feel free to use it wherever you see a combination of `SQL().on()` functions (or even an only `SQL()` without parameters).
 
-## Retrieving data using the Stream API
+## Streaming results
 
-The first way to access the results of a select query is to use the Stream API.
+Query results can be processed as stream of row, not having all loaded in memory.
 
-When you call `apply()` on any SQL statement, you will receive a lazy `Stream` of `Row` instances, where each row can be seen as a dictionary:
+In the following example we will count the number of country rows.
+
+```scala
+val countryCount: Long = 
+  SQL"Select count(*) as c from Country".fold(0l) { (c, _) => c + 1 }
+```
+
+It's also possible to partially treat the row stream.
 
 ```scala
 // Create an SQL query
-val selectCountries = SQL("Select * from Country")
- 
-// Transform the resulting Stream[Row] to a List[(String,String)]
-val countries = selectCountries().map(row => 
-  row[String]("code") -> row[String]("name")
-).toList
-```
-
-In the following example we will count the number of `Country` entries in the database, so the result set will be a single row with a single column:
-
-```scala
-// First retrieve the first row
-val firstRow = SQL("Select count(*) as c from Country").apply().head
- 
-// Next get the content of the 'c' column as Long
-val countryCount = firstRow[Long]("c")
+val books: List[String] = SQL("Select name from Books").
+  foldWhile(List[String]()) { (list, row) => 
+    if (list.size == 100) (list -> false) // stop with `list`
+    else (list := row[String]("name")) -> true // continue with one more name
+  }
 ```
 
 ### Multi-value support
