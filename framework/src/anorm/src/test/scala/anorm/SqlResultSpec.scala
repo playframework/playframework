@@ -348,8 +348,7 @@ object SqlResultSpec extends org.specs2.mutable.Specification with H2Database {
     "not be found without alias parser" in withTestDB(v2) { implicit c =>
       SQL"SELECT foo AS AL, bar FROM test1".as(SqlParser.str("foo").single).
         aka("by name") must_== v2 and (SQL"SELECT foo AS AL, bar FROM test1".
-          as(SqlParser.str("AL").single).aka("by alias") must throwA[Exception](
-            "AL not found, available columns : TEST1.FOO, AL, TEST1.BAR, BAR"))
+          as(SqlParser.str("AL").single).aka("by alias") must_== v2)
 
     }
 
