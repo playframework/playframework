@@ -42,7 +42,8 @@ final case class SqlQueryResult(
   /** Returns stream of row from query result. */
   @deprecated("Use [[fold]] or [[foldWhile]] instead, which manages resources and memory", "2.4")
   def apply()(implicit connection: Connection): Stream[Row] =
-    Sql.resultSetToStream(resultSet)
+    Sql.fold(resultSet)(Stream.empty[Row])((s, r) => (s :+ r) -> true).
+      acquireAndGet(identity)
 
   /**
    * Aggregates over the whole row stream using the specified operator.
@@ -53,7 +54,7 @@ final case class SqlQueryResult(
    * @see #foldWhile
    */
   def fold[T](z: T)(op: (T, Row) => T)(implicit connection: Connection): Either[List[Throwable], T] =
-    Sql.fold(resultSet)(z) { (t, r) => op(t, r) -> true } acquireFor identity
+    Sql.fold(resultSet)(z)((t, r) => op(t, r) -> true) acquireFor identity
 
   /**
    * Aggregates over part of or the while row stream,
@@ -64,8 +65,11 @@ final case class SqlQueryResult(
    * @return Either list of failures at left, or aggregated value
    */
   def foldWhile[T](z: T)(op: (T, Row) => (T, Boolean))(implicit connection: Connection): Either[List[Throwable], T] =
-    Sql.fold(resultSet)(z) { (t, r) => op(t, r) } acquireFor identity
+    Sql.fold(resultSet)(z)((t, r) => op(t, r)) acquireFor identity
 
+  /**
+   * Converts this query result as `T`, using parser.
+   */
   def as[T](parser: ResultSetParser[T])(implicit connection: Connection): T =
     Sql.as(parser, resultSet)
 

@@ -297,6 +297,7 @@ object SqlParser {
   def date(columnPosition: Int)(implicit c: Column[Date]): RowParser[Date] =
     get[Date](columnPosition)(c)
 
+  @deprecated(message = "Use [[get]] with alias", since = "2.3.3")
   def getAliased[T](aliasName: String)(implicit extractor: Column[T]): RowParser[T] = RowParser { row =>
     (for {
       col <- row.getAliased(aliasName)
@@ -319,7 +320,7 @@ object SqlParser {
   def get[T](name: String)(implicit extractor: Column[T]): RowParser[T] =
     RowParser { row =>
       (for {
-        col <- row.get1(name)
+        col <- row.get(name)
         res <- extractor.tupled(col)
       } yield res).fold(Error(_), Success(_))
     }
@@ -509,6 +510,7 @@ sealed trait ScalarRowParser[+A] extends RowParser[A] {
   }
 }
 
+// TODO: Refactory using fold?
 trait ResultSetParser[+A] extends (Stream[Row] => SqlResult[A]) { parent =>
   def map[B](f: A => B): ResultSetParser[B] =
     ResultSetParser(parent(_).map(f))

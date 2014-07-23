@@ -65,13 +65,16 @@ case class MetaDataItem(column: ColumnName, nullable: Boolean, clazz: String)
 case class ColumnName(qualified: String, alias: Option[String])
 
 private[anorm] case class MetaData(ms: List[MetaDataItem]) {
-  // Use MetaDataItem rather than (ColumnName, Boolean, String)?
+  // TODO: Use MetaDataItem rather than (ColumnName, Boolean, String)?
   def get(columnName: String): Option[(ColumnName, Boolean, String)] = {
-    val columnUpper = columnName.toUpperCase
-    dictionary2.get(columnUpper).orElse(dictionary.get(columnUpper))
+    val key = columnName.toUpperCase
+    dictionary2.get(key).orElse(dictionary.get(key)).
+      orElse(aliasedDictionary.get(key))
   }
 
-  // Use MetaDataItem rather than (ColumnName, Boolean, String)?
+  @deprecated(
+    message = "No longer distinction between plain and aliased column",
+    since = "2.3.3")
   def getAliased(aliasName: String): Option[(ColumnName, Boolean, String)] =
     aliasedDictionary.get(aliasName.toUpperCase)
 
@@ -99,6 +102,7 @@ private[anorm] case class MetaData(ms: List[MetaDataItem]) {
 
 }
 
+@deprecated(message = "Use directly Stream", since = "2.3.3")
 object Useful {
 
   case class Var[T](var content: T)
@@ -267,7 +271,8 @@ private[anorm] trait Sql {
   @deprecated(message =
     "Use [[fold]] instead, which manages resources and memory", "2.4")
   def apply()(implicit connection: Connection): Stream[Row] =
-    Sql.resultSetToStream(resultSet())
+    Sql.fold(resultSet())(Stream.empty[Row])((s, r) => (s :+ r) -> true).
+      acquireAndGet(identity)
 
   /**
    * Aggregates over the whole stream of row using the specified operator.
@@ -305,9 +310,14 @@ private[anorm] trait Sql {
   /**
    * Executes this SQL statement.
    * @return true if resultset was returned from execution
-   * (statement is query), or false if it executed update
+   * (statement is query), or false if it executed update.
+   *
+   * {{{
+   * val res: Boolean =
+   *   SQL"""INSERT INTO Test(a, b) VALUES(${"A"}, ${"B"}""".execute()
+   * }}}
    */
-  def execute()(implicit connection: Connection): Boolean = // TODO: managed
+  def execute()(implicit connection: Connection): Boolean =
     managed(getFilledStatement(connection)).acquireAndGet(_.execute())
 
   @deprecated(message = "Will be made private, use [[executeUpdate]] or [[executeInsert]]", since = "2.3.2")
@@ -387,7 +397,8 @@ object Sql { // TODO: Rename to SQL
   }
 
   private[anorm] def as[T](parser: ResultSetParser[T], rs: ManagedResource[ResultSet])(implicit connection: Connection): T =
-    parser(Sql.resultSetToStream(rs) /* TODO: Refactory with fold */ ) match {
+    parser(fold(rs)(Stream.empty[Row])((s, r) => (s :+ r) -> true).
+      acquireAndGet(identity)) match {
       case Success(a) => a
       case Error(e) => sys.error(e.toString)
     }
@@ -409,9 +420,6 @@ object Sql { // TODO: Rename to SQL
 
     go(rs, initial)
   }
-
-  // TODO: Remove when unused
-  private[anorm] def resultSetToStream(rs: ManagedResource[ResultSet]): Stream[Row] = fold(rs)(Stream.empty[Row])((s, r) => (s :+ r) -> true) acquireAndGet identity
 
   private case class SqlRow(metaData: MetaData, data: List[Any]) extends Row {
     override lazy val toString = "Row(" + metaData.ms.zip(data).map(t => s"'${t._1.column}': ${t._2} as ${t._1.clazz}").mkString(", ") + ")"
