@@ -14,9 +14,9 @@ libraryDependencies ++= Seq(
 )
 ```
 
-Then, import the following:
+Now any controller or component that wants to use WS will have to add the following imports and then declare a dependency on the `WSClient`:
 
-@[ws-imports](code/javaguide/ws/JavaWS.java)
+@[ws-controller](code/javaguide/ws/Application.java)
 
 To build an HTTP request, you start with `WS.url()` to specify the URL.
 
@@ -148,10 +148,6 @@ Java 8
 ## Using WSClient
 
 WSClient is a wrapper around the underlying [AsyncHttpClient](https://github.com/AsyncHttpClient/async-http-client). It is useful for defining multiple clients with different profiles, or using a mock.
-
-The default client can be called from the WS class:
-
-@[ws-client](code/javaguide/ws/JavaWS.java)
 
 You can define a WS client directly from code and use this for making requests.
 

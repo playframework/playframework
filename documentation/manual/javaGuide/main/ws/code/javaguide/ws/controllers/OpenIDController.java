@@ -15,12 +15,12 @@ import play.mvc.Result;
 
 public class OpenIDController extends Controller {
 
-  public static Result login() {
+  public Result login() {
     //###replace:     return ok(views.html.login.render(""));
     return ok(javaguide.ws.html.login.render(""));
   }
 
-  public static Promise<Result> loginPost() {
+  public Promise<Result> loginPost() {
     DynamicForm requestData = Form.form().bindFromRequest();
     String openID = requestData.get("openID");
 
@@ -43,7 +43,7 @@ public class OpenIDController extends Controller {
     return resultPromise;
   }
 
-  public static Promise<Result> openIDCallback() {
+  public Promise<Result> openIDCallback() {
 
     final Promise<UserInfo> userInfoPromise = OpenID.verifiedId();
 

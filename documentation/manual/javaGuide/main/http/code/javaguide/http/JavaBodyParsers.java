@@ -23,53 +23,47 @@ public class JavaBodyParsers extends WithApplication {
 
     @Test
     public void accessRequestBody() {
-        assertThat(contentAsString(call(new Controller1(), fakeRequest().withTextBody("foo"))), containsString("foo"));
-    }
-
-    public static class Controller1 extends MockJavaAction {
-        //#request-body
-        public static Result index() {
-            RequestBody body = request().body();
-            return ok("Got body: " + body);
-        }
-        //#request-body
+        assertThat(contentAsString(call(new MockJavaAction() {
+            //#request-body
+            public Result index() {
+                RequestBody body = request().body();
+                return ok("Got body: " + body);
+            }
+            //#request-body
+        }, fakeRequest().withTextBody("foo"))), containsString("foo"));
     }
 
     @Test
     public void particularBodyParser() {
-        assertThat(contentAsString(call(new Controller2(), fakeRequest().withJsonBody(Json.toJson("foo")))),
+        assertThat(contentAsString(call(new MockJavaAction() {
+                    //#particular-body-parser
+                    @BodyParser.Of(BodyParser.Json.class)
+                    public Result index() {
+                        RequestBody body = request().body();
+                        return ok("Got json: " + body.asJson());
+                    }
+                    //#particular-body-parser
+                }, fakeRequest().withJsonBody(Json.toJson("foo")))),
                 containsString("\"foo\""));
-    }
-
-    public static class Controller2 extends MockJavaAction {
-        //#particular-body-parser
-        @BodyParser.Of(BodyParser.Json.class)
-        public static Result index() {
-            RequestBody body = request().body();
-            return ok("Got json: " + body.asJson());
-        }
-        //#particular-body-parser
     }
 
     @Test
     public void defaultParser() {
-        assertThat(status(call(new Controller3(), fakeRequest().withJsonBody(Json.toJson("foo")))),
+        assertThat(status(call(new MockJavaAction() {
+                    //#default-parser
+                    public Result save() {
+                        RequestBody body = request().body();
+                        String textBody = body.asText();
+
+                        if(textBody != null) {
+                            return ok("Got: " + textBody);
+                        } else {
+                            return badRequest("Expecting text/plain request body");
+                        }
+                    }
+                    //#default-parser
+                }, fakeRequest().withJsonBody(Json.toJson("foo")))),
                 equalTo(400));
-    }
-
-    public static class Controller3 extends MockJavaAction {
-        //#default-parser
-        public static Result save() {
-            RequestBody body = request().body();
-            String textBody = body.asText();
-
-            if(textBody != null) {
-                return ok("Got: " + textBody);
-            } else {
-                return badRequest("Expecting text/plain request body");
-            }
-        }
-        //#default-parser
     }
 
     @Test
@@ -78,22 +72,20 @@ public class JavaBodyParsers extends WithApplication {
         for (int i = 0; i < 1100; i++) {
             body.append("1234567890");
         }
-        assertThat(status(callWithStringBody(new Controller4(), fakeRequest(), body.toString())),
+        assertThat(status(callWithStringBody(new MockJavaAction() {
+                    //#max-length
+                    // Accept only 10KB of data.
+                    @BodyParser.Of(value = BodyParser.Text.class, maxLength = 10 * 1024)
+                    public Result index() {
+                        if(request().body().isMaxSizeExceeded()) {
+                            return badRequest("Too much data!");
+                        } else {
+                            return ok("Got body: " + request().body().asText());
+                        }
+                    }
+                    //#max-length
+                }, fakeRequest(), body.toString())),
                 equalTo(400));
-    }
-
-    public static class Controller4 extends MockJavaAction {
-        //#max-length
-        // Accept only 10KB of data.
-        @BodyParser.Of(value = BodyParser.Text.class, maxLength = 10 * 1024)
-        public static Result index() {
-            if(request().body().isMaxSizeExceeded()) {
-                return badRequest("Too much data!");
-            } else {
-                return ok("Got body: " + request().body().asText());
-            }
-        }
-        //#max-length
     }
 
 }

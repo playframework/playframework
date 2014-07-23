@@ -10,7 +10,7 @@ import play.mvc.*;
 
 public class Application extends Controller {
 
-    public static Result hello(String name) {
+    public Result hello(String name) {
         return ok("Hello " + name + "!");
     }
 

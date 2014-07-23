@@ -110,7 +110,11 @@ object Dependencies {
 
       "javax.transaction" % "jta" % "1.1",
 
-      "com.google.inject" % "guice" % "3.0",
+      // Since we don't use any of the AOP features of guice, we exclude cglib.
+      // This solves issues later where cglib depends on an older version of asm,
+      // and other libraries (pegdown) depend on a newer version with a different groupId,
+      // and this causes binary issues.
+      "com.google.inject" % "guice" % "3.0" exclude("org.sonatype.sisu.inject", "cglib"),
 
       guava % Test,
 

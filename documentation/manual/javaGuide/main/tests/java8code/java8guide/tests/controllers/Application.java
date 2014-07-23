@@ -7,7 +7,7 @@ import play.mvc.*;
 
 public class Application extends Controller {
 
-    public static Result index(String name) {
-        return ok(java8guide.tests.html.index.render(name));
+    public static Result index() {
+        return ok(java8guide.tests.html.index.render("Welcome to Play!"));
     }
 }

@@ -26,7 +26,7 @@ public class JavaActionsComposition extends Controller {
 
     // #verbose-index
     @With(VerboseAction.class)
-    public static Result verboseIndex() {
+    public Result verboseIndex() {
         return ok("It works!");
     }
     // #verbose-index
@@ -34,7 +34,7 @@ public class JavaActionsComposition extends Controller {
     // #authenticated-cached-index
     @Security.Authenticated
     @Cached(key = "index.result")
-    public static Result authenticatedCachedIndex() {
+    public Result authenticatedCachedIndex() {
         return ok("It works!");
     }
     // #authenticated-cached-index
@@ -50,7 +50,7 @@ public class JavaActionsComposition extends Controller {
 
     // #verbose-annotation-index
     @VerboseAnnotation(false)
-    public static Result index() {
+    public Result index() {
         return ok("It works!");
     }
     // #verbose-annotation-index

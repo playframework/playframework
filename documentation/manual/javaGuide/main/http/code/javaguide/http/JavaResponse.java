@@ -52,34 +52,30 @@ public class JavaResponse extends WithApplication {
 
     @Test
     public void contextContentType() {
-        assertThat(header("Content-Type", call(new Controller1(), fakeRequest())), containsString("text/html"));
-    }
-
-    public static class Controller1 extends MockJavaAction {
-        //#context-content-type
-        public static Result index() {
-            response().setContentType("text/html");
-            return ok("<h1>Hello World!</h1>");
-        }
-        //#context-content-type
+        assertThat(header("Content-Type", call(new MockJavaAction() {
+            //#context-content-type
+            public Result index() {
+                response().setContentType("text/html");
+                return ok("<h1>Hello World!</h1>");
+            }
+            //#context-content-type
+        }, fakeRequest())), containsString("text/html"));
     }
 
     @Test
     public void responseHeaders() {
-        Map<String, String> headers = headers(call(new Controller2(), fakeRequest()));
+        Map<String, String> headers = headers(call(new MockJavaAction() {
+            //#response-headers
+            public Result index() {
+                response().setContentType("text/html");
+                response().setHeader(CACHE_CONTROL, "max-age=3600");
+                response().setHeader(ETAG, "xxx");
+                return ok("<h1>Hello World!</h1>");
+            }
+            //#response-headers
+        }, fakeRequest()));
         assertThat(headers.get(CACHE_CONTROL), equalTo("max-age=3600"));
         assertThat(headers.get(ETAG), equalTo("xxx"));
-    }
-
-    public static class Controller2 extends MockJavaAction {
-        //#response-headers
-        public static Result index() {
-            response().setContentType("text/html");
-            response().setHeader(CACHE_CONTROL, "max-age=3600");
-            response().setHeader(ETAG, "xxx");
-            return ok("<h1>Hello World!</h1>");
-        }
-        //#response-headers
     }
 
     @Test
@@ -133,17 +129,15 @@ public class JavaResponse extends WithApplication {
 
     @Test
     public void charset() {
-        assertThat(header("Content-Type", call(new Controller3(), fakeRequest())),
+        assertThat(header("Content-Type", call(new MockJavaAction() {
+                    //#charset
+                    public Result index() {
+                        response().setContentType("text/html; charset=iso-8859-1");
+                        return ok("<h1>Hello World!</h1>", "iso-8859-1");
+                    }
+                    //#charset
+                }, fakeRequest())),
                 equalTo("text/html; charset=iso-8859-1"));
-    }
-
-    public static class Controller3 extends MockJavaAction {
-        //#charset
-        public static Result index() {
-            response().setContentType("text/html; charset=iso-8859-1");
-            return ok("<h1>Hello World!</h1>", "iso-8859-1");
-        }
-        //#charset
     }
 
 }

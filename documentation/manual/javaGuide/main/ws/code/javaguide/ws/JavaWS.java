@@ -5,11 +5,9 @@ package javaguide.ws;
 
 import javaguide.testhelpers.MockJavaAction;
 
-// #ws-imports
 import play.libs.ws.*;
 import play.libs.F.Function;
 import play.libs.F.Promise;
-// #ws-imports
 
 // #json-imports
 import com.fasterxml.jackson.databind.JsonNode;
@@ -20,14 +18,18 @@ import java.io.*;
 import org.w3c.dom.Document;
 import play.mvc.Result;
 
+import javax.inject.Inject;
+
 public class JavaWS {
     private static final String feedUrl = "http://localhost:3333/feed";
     
     public static class Controller0 extends MockJavaAction {
-      
-        public static void requestExamples() {
+
+        private WSClient ws;
+
+        public void requestExamples() {
             // #ws-holder
-            WSRequestHolder holder = WS.url("http://example.com");
+            WSRequestHolder holder = ws.url("http://example.com");
             // #ws-holder
           
             // #ws-complex-holder
@@ -42,34 +44,34 @@ public class JavaWS {
             
             String url = "http://example.com";
             // #ws-auth
-            WS.url(url).setAuth("user", "password", WSAuthScheme.BASIC).get();
+            ws.url(url).setAuth("user", "password", WSAuthScheme.BASIC).get();
             // #ws-auth
             
             // #ws-follow-redirects
-            WS.url(url).setFollowRedirects(true).get();
+            ws.url(url).setFollowRedirects(true).get();
             // #ws-follow-redirects
             
             // #ws-query-parameter
-            WS.url(url).setQueryParameter("paramKey", "paramValue");
+            ws.url(url).setQueryParameter("paramKey", "paramValue");
             // #ws-query-parameter
             
             // #ws-header
-            WS.url(url).setHeader("headerKey", "headerValue").get();
+            ws.url(url).setHeader("headerKey", "headerValue").get();
             // #ws-header
             
             String jsonString = "{\"key1\":\"value1\"}";
             // #ws-header-content-type
-            WS.url(url).setHeader("Content-Type", "application/json").post(jsonString);
+            ws.url(url).setHeader("Content-Type", "application/json").post(jsonString);
             // OR
-            WS.url(url).setContentType("application/json").post(jsonString);
+            ws.url(url).setContentType("application/json").post(jsonString);
             // #ws-header-content-type
             
             // #ws-timeout
-            WS.url(url).setTimeout(1000).get();
+            ws.url(url).setTimeout(1000).get();
             // #ws-timeout
             
             // #ws-post-form-data
-            WS.url(url).setContentType("application/x-www-form-urlencoded")
+            ws.url(url).setContentType("application/x-www-form-urlencoded")
                        .post("key1=value1&key2=value2");
             // #ws-post-form-data
             
@@ -78,16 +80,16 @@ public class JavaWS {
                                 .put("key1", "value1")
                                 .put("key2", "value2");
             
-            WS.url(url).post(json);
+            ws.url(url).post(json);
             // #ws-post-json
         }
         
-        public static void responseExamples() {
+        public void responseExamples() {
           
           String url = "http://example.com";
           
           // #ws-response-json
-          Promise<JsonNode> jsonPromise = WS.url(url).get().map(
+          Promise<JsonNode> jsonPromise = ws.url(url).get().map(
               new Function<WSResponse, JsonNode>() {
                   public JsonNode apply(WSResponse response) {
                       JsonNode json = response.asJson();
@@ -98,7 +100,7 @@ public class JavaWS {
           // #ws-response-json
           
           // #ws-response-xml
-          Promise<Document> documentPromise = WS.url(url).get().map(
+          Promise<Document> documentPromise = ws.url(url).get().map(
               new Function<WSResponse, Document>() {
                   public Document apply(WSResponse response) {
                       Document xml = response.asXml();
@@ -109,7 +111,7 @@ public class JavaWS {
           // #ws-response-xml
           
           // #ws-response-input-stream
-          final Promise<File> filePromise = WS.url(url).get().map(
+          final Promise<File> filePromise = ws.url(url).get().map(
               new Function<WSResponse, File>() {
                   public File apply(WSResponse response) throws Throwable {
                     
@@ -143,18 +145,18 @@ public class JavaWS {
           // #ws-response-input-stream
         }
         
-        public static void patternExamples() {
+        public void patternExamples() {
             String urlOne = "http://localhost:3333/one";
             // #ws-composition
-            final Promise<WSResponse> responseThreePromise = WS.url(urlOne).get().flatMap(
+            final Promise<WSResponse> responseThreePromise = ws.url(urlOne).get().flatMap(
                 new Function<WSResponse, Promise<WSResponse>>() {
                     public Promise<WSResponse> apply(WSResponse responseOne) {
                         String urlTwo = responseOne.getBody();
-                        return WS.url(urlTwo).get().flatMap(
+                        return ws.url(urlTwo).get().flatMap(
                             new Function<WSResponse, Promise<WSResponse>>() {
                                 public Promise<WSResponse> apply(WSResponse responseTwo) {
                                     String urlThree = responseTwo.getBody();
-                                    return WS.url(urlThree).get();
+                                    return ws.url(urlThree).get();
                                 }
                             }
                         );
@@ -164,21 +166,17 @@ public class JavaWS {
             // #ws-composition
             
             // #ws-recover
-            Promise<WSResponse> responsePromise = WS.url("http://example.com").get();
+            Promise<WSResponse> responsePromise = ws.url("http://example.com").get();
             Promise<WSResponse> recoverPromise = responsePromise.recoverWith(new Function<Throwable, Promise<WSResponse>>() {
                 @Override
                 public Promise<WSResponse> apply(Throwable throwable) throws Throwable {
-                    return WS.url("http://backup.example.com").get();
+                    return ws.url("http://backup.example.com").get();
                 }
             });
             // #ws-recover
         }
         
-        public static void clientExamples() {
-            // #ws-client
-            WSClient client = WS.client();
-            // #ws-client
-            
+        public void clientExamples() {
             // #ws-custom-client
             com.ning.http.client.AsyncHttpClientConfig customConfig =
                 new com.ning.http.client.AsyncHttpClientConfig.Builder()
@@ -192,7 +190,7 @@ public class JavaWS {
             
             // #ws-underlying-client
             com.ning.http.client.AsyncHttpClient underlyingClient = 
-                (com.ning.http.client.AsyncHttpClient) WS.client().getUnderlying();
+                (com.ning.http.client.AsyncHttpClient) ws.getUnderlying();
             // #ws-underlying-client
             
         }
@@ -200,9 +198,12 @@ public class JavaWS {
 
     public static class Controller1 extends MockJavaAction {
 
+        @Inject
+        private WSClient ws;
+
         // #ws-action
-        public static Promise<Result> index() {
-            final Promise<Result> resultPromise = WS.url(feedUrl).get().map(
+        public Promise<Result> index() {
+            final Promise<Result> resultPromise = ws.url(feedUrl).get().map(
                     new Function<WSResponse, Result>() {
                         public Result apply(WSResponse response) {
                             return ok("Feed title:" + response.asJson().findPath("title"));
@@ -216,12 +217,15 @@ public class JavaWS {
 
     public static class Controller2 extends MockJavaAction {
 
+        @Inject
+        private WSClient ws;
+
         // #composed-call
-        public static Promise<Result> index() {
-            final Promise<Result> resultPromise = WS.url(feedUrl).get().flatMap(
+        public Promise<Result> index() {
+            final Promise<Result> resultPromise = ws.url(feedUrl).get().flatMap(
                     new Function<WSResponse, Promise<Result>>() {
                         public Promise<Result> apply(WSResponse response) {
-                            return WS.url(response.asJson().findPath("commentsUrl").asText()).get().map(
+                            return ws.url(response.asJson().findPath("commentsUrl").asText()).get().map(
                                     new Function<WSResponse, Result>() {
                                         public Result apply(WSResponse response) {
                                             return ok("Number of comments: " + response.asJson().findPath("count").asInt());

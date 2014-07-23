@@ -15,11 +15,13 @@ import scala.util.Success
  */
 case class DocumentationApplication(projectPath: File, buildDocHandler: BuildDocHandler) extends ApplicationProvider {
 
-  val application = new DefaultApplication(
-    Environment(projectPath, this.getClass.getClassLoader, Mode.Dev),
-    new OptionalSourceMapper(None), new DefaultApplicationLifecycle(), NewInstanceInjector, Configuration.empty, DefaultGlobal
+  private val environment = Environment(projectPath, this.getClass.getClassLoader, Mode.Dev)
+  private val configuration = Configuration.load(environment.rootPath, environment.mode, Map.empty)
+  val application = new DefaultApplication(environment, new OptionalSourceMapper(None),
+    new DefaultApplicationLifecycle(), NewInstanceInjector, configuration, DefaultGlobal
   ) {
     override lazy val routes = None
+    override lazy val plugins = Nil
   }
 
   Play.start(application)

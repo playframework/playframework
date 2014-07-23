@@ -53,7 +53,7 @@ You can also put any action composition annotation directly on the `Controller` 
 
 ```java
 @Authenticated
-public Admin extends Controller {
+public class Admin extends Controller {
     
   …
     

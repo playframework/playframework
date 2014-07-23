@@ -13,42 +13,39 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import javaguide.testhelpers.MockJavaAction;
 import play.mvc.Result;
-
-//#ws-imports
 import play.libs.ws.*;
 import play.libs.F.Function;
 import play.libs.F.Promise;
-//#ws-imports
-
-//#json-imports
 import com.fasterxml.jackson.databind.JsonNode;
 import play.libs.Json;
-//#json-imports
-
 import org.w3c.dom.Document;
+import javax.inject.Inject;
 
 public class JavaWS {
     private static String feedUrl = "http://localhost:3333/feed";
     
     public static class Controller0 extends MockJavaAction {
-        public static void responseExamples() {
+
+        private WSClient ws;
+
+        public void responseExamples() {
         
           String url = "http://example.com";
           
           // #ws-response-json
-          Promise<JsonNode> jsonPromise = WS.url(url).get().map(response -> {
+          Promise<JsonNode> jsonPromise = ws.url(url).get().map(response -> {
               return response.asJson();
           });
           // #ws-response-json
           
           // #ws-response-xml
-          Promise<Document> documentPromise = WS.url(url).get().map(response -> {
+          Promise<Document> documentPromise = ws.url(url).get().map(response -> {
               return response.asXml();
           });
           // #ws-response-xml
           
           // #ws-response-input-stream
-          Promise<File> filePromise = WS.url(url).get().map(response -> {
+          Promise<File> filePromise = ws.url(url).get().map(response -> {
               InputStream inputStream = null;
               OutputStream outputStream = null;
               try {
@@ -76,18 +73,18 @@ public class JavaWS {
           // #ws-response-input-stream
         }
         
-        public static void patternExamples() {
+        public void patternExamples() {
             String urlOne = "http://localhost:3333/one";
             // #ws-composition
-            final Promise<WSResponse> responseThreePromise = WS.url(urlOne).get()
-                .flatMap(responseOne -> WS.url(responseOne.getBody()).get())
-                .flatMap(responseTwo -> WS.url(responseTwo.getBody()).get());
+            final Promise<WSResponse> responseThreePromise = ws.url(urlOne).get()
+                .flatMap(responseOne -> ws.url(responseOne.getBody()).get())
+                .flatMap(responseTwo -> ws.url(responseTwo.getBody()).get());
             // #ws-composition
             
             // #ws-recover
-            Promise<WSResponse> responsePromise = WS.url("http://example.com").get();
+            Promise<WSResponse> responsePromise = ws.url("http://example.com").get();
             Promise<WSResponse> recoverPromise = responsePromise.recoverWith(throwable ->
-                WS.url("http://backup.example.com").get()
+                ws.url("http://backup.example.com").get()
             );
             // #ws-recover
         }
@@ -95,9 +92,11 @@ public class JavaWS {
 
     public static class Controller1 extends MockJavaAction {
 
+        @Inject WSClient ws;
+
         // #ws-action
-        public static Promise<Result> index() {
-            return WS.url(feedUrl).get().map(response ->
+        public Promise<Result> index() {
+            return ws.url(feedUrl).get().map(response ->
                 ok("Feed title: " + response.asJson().findPath("title").asText())
             );
         }
@@ -106,10 +105,12 @@ public class JavaWS {
 
     public static class Controller2 extends MockJavaAction {
 
+        @Inject WSClient ws;
+
         // #composed-call
-        public static Promise<Result> index() {
-            return WS.url(feedUrl).get()
-                     .flatMap(response -> WS.url(response.asJson().findPath("commentsUrl").asText()).get())
+        public Promise<Result> index() {
+            return ws.url(feedUrl).get()
+                     .flatMap(response -> ws.url(response.asJson().findPath("commentsUrl").asText()).get())
                      .map(response -> ok("Number of comments: " + response.asJson().findPath("count").asInt()));
         }
         // #composed-call

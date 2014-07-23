@@ -20,75 +20,54 @@ import static javaguide.testhelpers.MockJavaAction.call;
 public class JavaActions {
     @Test
     public void simpleAction() {
-        assertThat(status(call(new Controller1(), fakeRequest())), equalTo(200));
-    }
-
-    public static class Controller1 extends MockJavaAction {
-        //#simple-action
-        public static Result index() {
-            return ok("Got request " + request() + "!");
-        }
-        //#simple-action
+        assertThat(status(call(new MockJavaAction() {
+            //#simple-action
+            public Result index() {
+                return ok("Got request " + request() + "!");
+            }
+            //#simple-action
+        }, fakeRequest())), equalTo(200));
     }
 
     @Test
     public void fullController() {
-        assertThat(status(call(new Controller2(), fakeRequest())), equalTo(200));
-    }
-
-    public static class Controller2 extends MockJavaAction {
-        public static Result index() {
-            return javaguide.http.full.Application.index();
-        }
+        assertThat(status(call(new MockJavaAction() {
+            public Result index() {
+                return new javaguide.http.full.Application().index();
+            }
+        }, fakeRequest())), equalTo(200));
     }
 
     @Test
     public void withParams() {
-        Result result = call(new Controller3(), fakeRequest());
+        Result result = call(new MockJavaAction() {
+            //#params-action
+            public Result index(String name) {
+                return ok("Hello " + name);
+            }
+            //#params-action
+
+            public F.Promise<Result> invocation() {
+                return F.Promise.pure(index("world"));
+            }
+        }, fakeRequest());
         assertThat(status(result), equalTo(200));
         assertThat(contentAsString(result), equalTo("Hello world"));
     }
 
-    static class Controller3 extends MockJavaAction {
-        //#params-action
-        public static Result index(String name) {
-            return ok("Hello " + name);
-        }
-        //#params-action
-
-        public F.Promise<Result> invocation() {
-            return F.Promise.pure(index("world"));
-        }
-    }
-
     @Test
     public void simpleResult() {
-        assertThat(status(call(new Controller4(), fakeRequest())), equalTo(200));
-    }
-
-    public static class Controller4 extends MockJavaAction {
-        //#simple-result
-        public static Result index() {
-            return ok("Hello world!");
-        }
-        //#simple-result
+        assertThat(status(call(new MockJavaAction() {
+            //#simple-result
+            public Result index() {
+                return ok("Hello world!");
+            }
+            //#simple-result
+        }, fakeRequest())), equalTo(200));
     }
 
     @Test
     public void otherResults() {
-        // Mock the existence of a view...
-        class Form {
-            String render(Object o) {
-                return "";
-            }
-        }
-        class Html {
-            Form form = new Form();
-        }
-        class Views {
-            Html html = new Html();
-        }
-        final Views views = new Views();
 
         class Controller5 extends Controller {
             void run() {
@@ -110,35 +89,41 @@ public class JavaActions {
         new Controller5().run();
     }
 
+    // Mock the existence of a view...
+    static class views {
+        static class html {
+            static class form {
+                static String render(Object o) {
+                    return "";
+                }
+            }
+        }
+    }
+
     @Test
     public void redirectAction() {
-        Result result = call(new Controller6(), fakeRequest());
+        Result result = call(new MockJavaAction() {
+            //#redirect-action
+            public Result index() {
+                return redirect("/user/home");
+            }
+            //#redirect-action
+        }, fakeRequest());
         assertThat(status(result), equalTo(SEE_OTHER));
         assertThat(header(LOCATION, result), equalTo("/user/home"));
     }
 
-    public static class Controller6 extends MockJavaAction {
-        //#redirect-action
-        public static Result index() {
-            return redirect("/user/home");
-        }
-        //#redirect-action
-    }
-
     @Test
     public void temporaryRedirectAction() {
-        Result result = call(new Controller7(), fakeRequest());
+        Result result = call(new MockJavaAction() {
+            //#temporary-redirect-action
+            public Result index() {
+                return temporaryRedirect("/user/home");
+            }
+            //#temporary-redirect-action
+        }, fakeRequest());
         assertThat(status(result), equalTo(TEMPORARY_REDIRECT));
         assertThat(header(LOCATION, result), equalTo("/user/home"));
     }
-
-    public static class Controller7 extends MockJavaAction {
-        //#temporary-redirect-action
-        public static Result index() {
-            return temporaryRedirect("/user/home");
-        }
-        //#temporary-redirect-action
-    }
-
 
 }

@@ -17,7 +17,7 @@ A controller is nothing more than a class extending `play.mvc.Controller` that g
 
 @[full-controller](code/javaguide/http/full/Application.java)
 
-The simplest syntax for defining an action is a static method with no parameters that returns a `Result` value, as shown above.
+The simplest syntax for defining an action is a method with no parameters that returns a `Result` value, as shown above.
 
 An action method can also have parameters:
 

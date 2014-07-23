@@ -8,16 +8,16 @@ import play.mvc.Result;
 
 public class Application extends Controller {
 
-    public static Result download(String path) {
+    public Result download(String path) {
         return ok("download " + path);
     }
 
-    public static Result homePage() {
+    public Result homePage() {
         return ok("home page");
     }
 
     //#show-page-action
-    public static Result show(String page) {
+    public Result show(String page) {
         String content = Page.getContentOf(page);
         response().setContentType("text/html");
         return ok(content);
@@ -32,13 +32,12 @@ public class Application extends Controller {
 
     //#reverse-redirect
     // Redirect to /hello/Bob
-    public static Result index() {
+    public Result index() {
         return redirect(controllers.routes.Application.hello("Bob"));
     }
     //#reverse-redirect
 
-    static ReverseControllers controllers = new ReverseControllers();
-    static class ReverseControllers {
-        javaguide.http.routing.reverse.controllers.routes routes = new javaguide.http.routing.reverse.controllers.routes();
+    static class controllers {
+        static javaguide.http.routing.reverse.controllers.routes routes = new javaguide.http.routing.reverse.controllers.routes();
     }
 }

@@ -7,7 +7,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 
 public class Api extends Controller {
-    public static Result list(String version) {
+    public Result list(String version) {
         return ok("version " + version);
     }
 }

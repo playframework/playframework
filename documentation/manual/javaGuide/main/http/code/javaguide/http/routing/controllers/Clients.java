@@ -9,14 +9,20 @@ import play.mvc.Result;
 public class Clients extends Controller {
 
     //#clients-show-action
-    public static Result show(Long id) {
-        Client client = Client.findById(id);
+    public Result show(Long id) {
+        Client client = clientService.findById(id);
         return ok(views.html.Client.show(client));
     }
     //#clients-show-action
 
-    public static Result list() {
+    public Result list() {
         return ok("all clients");
+    }
+
+    static class clientService {
+        static Client findById(Long id) {
+            return new Client(id);
+        }
     }
 
     static class Client {
@@ -24,19 +30,14 @@ public class Clients extends Controller {
             this.id = id;
         }
         Long id;
-        static Client findById(Long id) {
-            return new Client(id);
-        }
         String show(Client client) {
             return "showing client " + client.id;
         }
     }
-    static Views views = new Views();
-    static class Views {
-        Html html = new Html();
-    }
-    static class Html {
-        Client Client = new Client(0l);
+    static class views {
+        static class html {
+            static Client Client = new Client(0l);
+        }
     }
 
 }

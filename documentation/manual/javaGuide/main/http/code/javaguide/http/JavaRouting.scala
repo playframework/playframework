@@ -51,7 +51,7 @@ object JavaRouting extends Specification {
     "support reverse routing" in {
       running(FakeApplication()) {
         header("Location", call(new MockJavaAction {
-          override def invocation = F.Promise.pure(javaguide.http.routing.controllers.Application.index())
+          override def invocation = F.Promise.pure(new javaguide.http.routing.controllers.Application().index())
         }, FakeRequest())) must beSome("/hello/Bob")
       }
     }
@@ -67,18 +67,18 @@ package routing.query.controllers {
 
 import play.api.mvc.{Controller, Action}
 
-object Application extends Controller {
-    def show(page: String) = Action {
-      Ok("showing page " + page)
-    }
+class Application extends Controller {
+  def show(page: String) = Action {
+    Ok("showing page " + page)
   }
+}
 }
 
 package routing.fixed.controllers {
 
 import play.api.mvc.{Controller, Action}
 
-object Application extends Controller {
+class Application extends Controller {
   def show(page: String) = Action {
     Ok("showing page " + page)
   }
@@ -89,7 +89,7 @@ package routing.defaultvalue.controllers {
 
 import play.api.mvc.{Controller, Action}
 
-object Clients extends Controller {
+class Clients extends Controller {
   def list(page: Int) = Action {
     Ok("clients page " + page)
   }

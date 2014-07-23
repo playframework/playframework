@@ -9,12 +9,14 @@ import play.libs.oauth.OAuth.ConsumerKey;
 import play.libs.oauth.OAuth.OAuthCalculator;
 import play.libs.oauth.OAuth.RequestToken;
 import play.libs.oauth.OAuth.ServiceInfo;
-import play.libs.ws.WS;
+import play.libs.ws.WSClient;
 import play.libs.ws.WSResponse;
 import play.mvc.Controller;
 import play.mvc.Result;
 
 import com.google.common.base.Strings;
+
+import javax.inject.Inject;
 
 public class Twitter extends Controller {
   static final ConsumerKey KEY = new ConsumerKey("...", "...");
@@ -25,11 +27,18 @@ public class Twitter extends Controller {
                                                                   KEY);
   
   private static final OAuth TWITTER = new OAuth(SERVICE_INFO);
-  
-  public static Promise<Result> homeTimeline() {
-    Option<RequestToken> sessionTokenPair = Twitter.getSessionTokenPair();
+
+  private final WSClient ws;
+
+  @Inject
+  public Twitter(WSClient ws) {
+    this.ws = ws;
+  }
+
+  public Promise<Result> homeTimeline() {
+    Option<RequestToken> sessionTokenPair = getSessionTokenPair();
     if (sessionTokenPair.isDefined()) {
-      return WS.url("https://api.twitter.com/1.1/statuses/home_timeline.json")
+      return ws.url("https://api.twitter.com/1.1/statuses/home_timeline.json")
           .sign(new OAuthCalculator(Twitter.KEY, sessionTokenPair.get()))
           .get()
           .map(new Function<WSResponse, Result>(){
@@ -42,7 +51,7 @@ public class Twitter extends Controller {
     return Promise.pure(redirect(routes.Twitter.auth()));
   }
   
-  public static Result auth() {
+  public Result auth() {
     String verifier = request().getQueryString("oauth_verifier");
     if (Strings.isNullOrEmpty(verifier)) {
       String url = routes.Twitter.auth().absoluteURL(request());
@@ -57,12 +66,12 @@ public class Twitter extends Controller {
     }
   }
 
-  private static void saveSessionTokenPair(RequestToken requestToken) {
+  private void saveSessionTokenPair(RequestToken requestToken) {
     session("token", requestToken.token);
     session("secret", requestToken.secret);
   }
 
-  private static Option<RequestToken> getSessionTokenPair() {
+  private Option<RequestToken> getSessionTokenPair() {
     if (session().containsKey("token")) {
       return Option.Some(new RequestToken(session("token"), session("secret")));
     }

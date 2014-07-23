@@ -3,7 +3,7 @@
 
 ## The built-in HTTP router
 
-The router is the component that translates each incoming HTTP request to an action call (a static, public method in a controller class).
+The router is the component that translates each incoming HTTP request to an action call (a public method in a controller class).
 
 An HTTP request is seen as an event by the MVC framework. This event contains two major pieces of information:
 
@@ -25,6 +25,8 @@ Let’s see what a route definition looks like:
 > Note that in the action call, the parameter type comes after the parameter name, like in Scala.
 
 Each route starts with the HTTP method, followed by the URI pattern. The last element of a route is the call definition.
+
+Note the `@` symbol. This tells Play that this action must be looked up out of the dependency injection framework, which, by default, is Guice.
 
 You can also add comments to the route file, with the `#` character:
 
