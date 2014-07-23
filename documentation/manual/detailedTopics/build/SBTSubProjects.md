@@ -182,7 +182,11 @@ GET /assets/*file           controllers.admin.Assets.at(path="/public", file)
 
 ```
 
-### Assets and controller classes should be all defined in the `controllers.admin` package
+### Assets and controllers 
+
+Assets and controller classes should all be defined in the `controllers.admin` package.
+
+> Note: For Java, you will have to create an `admin` package in the admin module's `controllers` directory to ensure that the package name matches the directory structure.
 
 `modules/admin/controllers/Assets.scala`:
 
@@ -221,6 +225,59 @@ object Application extends Controller {
   def index = Action { implicit request =>
     Ok("admin")
   }
+}
+```
+
+`modules/admin/controllers/admin/Application.java`:
+
+```java
+package controllers.admin;
+
+import play.mvc.Controller;
+import play.mvc.Result;
+
+public class Application extends Controller {
+
+    public static Result index() {
+        return ok("admin");
+    }
+}
+```
+
+### Rendering a view from within a sub project
+
+View files should be namespaced properly as well. To render a view within the `admin` sub project, ensure that your subproject's directory tree is similar to the one below:
+
+```
+...
+modules
+  └ admin
+    └ build.sbt
+    └ conf
+      └ admin.routes
+    └ app
+      └ controllers
+        └ admin
+          └ Application.java
+      └ models
+      └ views   
+        └ admin
+          └ index.scala.html
+```
+Then from `Application.java`:
+
+```java
+package controllers.admin;
+
+import play.mvc.Controller;
+import play.mvc.Result;
+import views.html.admin.index;
+
+public class Application extends Controller {
+
+    public static Result index() {
+        return ok(index.render("Hello from admin!"));
+    }
 }
 ```
 
