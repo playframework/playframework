@@ -186,7 +186,7 @@ Since Scala 2.10 supports custom String Interpolation there is also a 1-step alt
 val name = "Cambridge"
 val country = "New Zealand"
 
-SQL"insert into City(name, country) values ($name, $country)")
+SQL"insert into City(name, country) values ($name, $country)"
 ```
 
 It also supports multi-line string and inline expresions:
@@ -214,7 +214,7 @@ In the following example we will count the number of country rows.
 
 ```scala
 val countryCount: Long = 
-  SQL"Select count(*) as c from Country".fold(0l) { (c, _) => c + 1 }
+  SQL"Select count(*) as c from Country".fold(0L) { (c, _) => c + 1 }
 ```
 
 It's also possible to partially treat the row stream.
