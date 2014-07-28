@@ -361,10 +361,14 @@ trait PlayRun extends PlayInternalKeys {
   }
 
   val playAllAssetsSetting = playAllAssets := {
-    (playPrefixAndAssets ?).all(ScopeFilter(
-      inDependencies(ThisProject),
-      inConfigurations(Compile)
-    )).value.flatten
+    if (playAggregateAssets.value) {
+      (playPrefixAndAssets ?).all(ScopeFilter(
+        inDependencies(ThisProject),
+        inConfigurations(Compile)
+      )).value.flatten
+    } else {
+      Seq(playPrefixAndAssets.value)
+    }
   }
 
   val playAssetsClassLoaderSetting = playAssetsClassLoader := { parent =>
@@ -376,10 +380,15 @@ trait PlayRun extends PlayInternalKeys {
   }
 
   val playPackageAssetsMappingsSetting = playPackageAssetsMappings := {
-    val allPipelines = (playPrefixAndPipeline ?).all(ScopeFilter(
-      inDependencies(ThisProject),
-      inConfigurations(Compile)
-    )).value.flatten
+    val allPipelines =
+      if (playAggregateAssets.value) {
+        (playPrefixAndPipeline ?).all(ScopeFilter(
+          inDependencies(ThisProject),
+          inConfigurations(Compile)
+        )).value.flatten
+      } else {
+        Seq(playPrefixAndPipeline.value)
+      }
 
     val allMappings = allPipelines.flatMap {
       case (prefix, pipeline) => pipeline.map {
