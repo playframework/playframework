@@ -9,6 +9,7 @@ import sbt.Keys._
 import play.PlayImport._
 import PlayKeys._
 import com.typesafe.sbt.SbtNativePackager._
+import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import com.typesafe.sbt.packager.Keys._
 import play.sbtplugin.{ PlayPositionMapper, ApplicationSecretGenerator }
 import com.typesafe.sbt.web.SbtWeb.autoImport._
@@ -41,7 +42,7 @@ trait PlaySettings {
     Classpaths.managedJars(config, ct, report)
   }
 
-  lazy val defaultSettings = Defaults.packageTaskSettings(playPackageAssets, playPackageAssetsMappings) ++ Seq[Setting[_]](
+  lazy val defaultSettings = Seq[Setting[_]](
 
     playPlugin := false,
 
@@ -189,9 +190,6 @@ trait PlaySettings {
       (compile in Compile).value
     },
 
-    // Assets
-    playAggregateAssets := true,
-
     // Assets for run mode
     playPrefixAndAssetsSetting,
     playAllAssetsSetting,
@@ -199,34 +197,17 @@ trait PlaySettings {
     assetsPrefix := "public/",
 
     // Assets for distribution
-    playPrefixAndPipelineSetting,
-    playPackageAssetsMappingsSetting,
-    artifactClassifier in playPackageAssets := Some("assets"),
-    Keys.artifactName in playPackageAssets := { (_, mid, art) =>
-      val classifier = art.classifier match {
-        case None => ""
-        case Some(c) => "-" + c
-      }
-      art.name + "-" + mid.revision + classifier + "." + art.extension
+    WebKeys.packagePrefix in Assets := assetsPrefix.value,
+    playPackageAssets := (packageBin in Assets).value,
+    scriptClasspathOrdering += {
+      val (id, art) = (projectID.value, (artifact in (Assets, packageBin)).value)
+      val jarName = JavaAppPackaging.makeJarName(id.organization, id.name, id.revision, art.name, Some("assets"))
+      playPackageAssets.value -> ("lib/" + jarName)
     },
-    artifactPath in playPackageAssets := {
-      val sv = ScalaVersion((scalaVersion in Keys.artifactName).value, (scalaBinaryVersion in Keys.artifactName).value)
-      target.value / (Keys.artifactName in playPackageAssets).value(sv, projectID.value, (artifact in playPackageAssets).value)
-    },
-    mappings in Universal += (playPackageAssets.value -> ("lib/" + organization.value + "." + playPackageAssets.value.getName)),
-    scriptClasspath += (organization.value + "." + playPackageAssets.value.getName),
 
     // Assets for testing
     public in TestAssets := (public in TestAssets).value / assetsPrefix.value,
-    fullClasspath in Test ++= {
-      val testAssetDirs = {
-        if (playAggregateAssets.value)
-          ((assets in TestAssets) ?).all(ScopeFilter(inDependencies(ThisProject))).value.flatten
-        else
-          Seq((assets in TestAssets).value)
-      }
-      testAssetDirs.map(dir => Attributed.blank(dir.getParentFile))
-    },
+    fullClasspath in Test += Attributed.blank((assets in TestAssets).value.getParentFile),
 
     // Settings
 

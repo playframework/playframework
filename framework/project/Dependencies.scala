@@ -31,7 +31,7 @@ object Dependencies {
 
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
-    h2database, 
+    h2database,
     acolyte % Test,
     "tyrex" % "tyrex" % "1.0.1") ++ specsBuild.map(_ % Test)
 
@@ -166,6 +166,7 @@ object Dependencies {
     "org.slf4j" % "slf4j-jdk14"     % "1.7.7" force(),
     "org.slf4j" % "jcl-over-slf4j"  % "1.7.7" force(),
 
+    sbtPluginDep("com.typesafe.sbt" % "sbt-web" % "1.1.0-RC1"),
     sbtPluginDep("com.typesafe.sbt" % "sbt-js-engine" % "1.0.1"),
     sbtPluginDep("com.typesafe.sbt" % "sbt-webdriver" % "1.0.0")
   ) ++ javassist ++ specsBuild.map(_ % Test)

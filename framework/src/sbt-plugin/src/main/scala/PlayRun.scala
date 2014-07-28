@@ -360,42 +360,10 @@ trait PlayRun extends PlayInternalKeys {
     assetsPrefix.value -> (WebKeys.public in Assets).value
   }
 
-  val playAllAssetsSetting = playAllAssets := {
-    if (playAggregateAssets.value) {
-      (playPrefixAndAssets ?).all(ScopeFilter(
-        inDependencies(ThisProject),
-        inConfigurations(Compile)
-      )).value.flatten
-    } else {
-      Seq(playPrefixAndAssets.value)
-    }
-  }
+  val playAllAssetsSetting = playAllAssets := Seq(playPrefixAndAssets.value)
 
   val playAssetsClassLoaderSetting = playAssetsClassLoader := { parent =>
     new AssetsClassLoader(parent, playAllAssets.value)
-  }
-
-  val playPrefixAndPipelineSetting = playPrefixAndPipeline := {
-    assetsPrefix.value -> (WebKeys.pipeline in Assets).value
-  }
-
-  val playPackageAssetsMappingsSetting = playPackageAssetsMappings := {
-    val allPipelines =
-      if (playAggregateAssets.value) {
-        (playPrefixAndPipeline ?).all(ScopeFilter(
-          inDependencies(ThisProject),
-          inConfigurations(Compile)
-        )).value.flatten
-      } else {
-        Seq(playPrefixAndPipeline.value)
-      }
-
-    val allMappings = allPipelines.flatMap {
-      case (prefix, pipeline) => pipeline.map {
-        case (file, path) => file -> (prefix + path)
-      }
-    }
-    SbtWeb.deduplicateMappings(allMappings, Seq(_.headOption))
   }
 
   val playStartCommand = Command.args("start", "<port>") { (state: State, args: Seq[String]) =>
