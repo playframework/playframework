@@ -142,6 +142,9 @@ trait PlaySettings {
     // all user classes, in this project and any other subprojects that it depends on
     playReloaderClasspath <<= Classpaths.concatDistinct(exportedProducts in Runtime, internalDependencyClasspath in Runtime),
 
+    // filter out asset directories from the classpath (supports sbt-web 1.0 and 1.1)
+    playReloaderClasspath ~= { _.filter(_.get(WebKeys.webModulesLib.key).isEmpty) },
+
     playCommonClassloader <<= playCommonClassloaderTask,
 
     playDependencyClassLoader := createURLClassLoader,
@@ -186,6 +189,9 @@ trait PlaySettings {
       (compile in Compile).value
     },
 
+    // Assets
+    playAggregateAssets := true,
+
     // Assets for run mode
     playPrefixAndAssetsSetting,
     playAllAssetsSetting,
@@ -213,7 +219,12 @@ trait PlaySettings {
     // Assets for testing
     public in TestAssets := (public in TestAssets).value / assetsPrefix.value,
     fullClasspath in Test ++= {
-      val testAssetDirs = ((assets in TestAssets) ?).all(ScopeFilter(inDependencies(ThisProject))).value.flatten
+      val testAssetDirs = {
+        if (playAggregateAssets.value)
+          ((assets in TestAssets) ?).all(ScopeFilter(inDependencies(ThisProject))).value.flatten
+        else
+          Seq((assets in TestAssets).value)
+      }
       testAssetDirs.map(dir => Attributed.blank(dir.getParentFile))
     },
 
