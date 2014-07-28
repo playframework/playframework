@@ -158,13 +158,7 @@ object Dependencies {
 
     sbtPluginDep("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.4.0"),
     sbtPluginDep("com.github.mpeltonen" % "sbt-idea" % "1.5.1"),
-    sbtPluginDep("com.typesafe.sbt" % "sbt-native-packager" % "0.7.3"),
-    // TODO: remove this workaround for sbt-native-packager pulling in old version of slf4j via jdeb
-    // https://github.com/sbt/sbt-native-packager/issues/291
-    "org.slf4j" % "slf4j-api"       % "1.7.7" force(),
-    "org.slf4j" % "slf4j-nop"       % "1.7.7" force(),
-    "org.slf4j" % "slf4j-jdk14"     % "1.7.7" force(),
-    "org.slf4j" % "jcl-over-slf4j"  % "1.7.7" force(),
+    sbtPluginDep("com.typesafe.sbt" % "sbt-native-packager" % "0.7.4"),
 
     sbtPluginDep("com.typesafe.sbt" % "sbt-js-engine" % "1.0.1"),
     sbtPluginDep("com.typesafe.sbt" % "sbt-webdriver" % "1.0.0")
