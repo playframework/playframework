@@ -16,6 +16,7 @@ import play.doc.{ FileHandle, JarRepository, CodeReferenceNode, CodeReferencePar
 import sbt._
 import sbt.Keys._
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, Future, ExecutionContext }
 import scala.util.control.NonFatal
@@ -25,17 +26,50 @@ import Imports.PlayDocsKeys._
 // Test that all the docs are renderable and valid
 object PlayDocsValidation {
 
-  case class MarkdownReport(markdownFiles: Seq[File],
+  /**
+   * A report of all references from all markdown files.
+   *
+   * This is the main markdown report for validating markdown docs.
+   */
+  case class MarkdownRefReport(markdownFiles: Seq[File],
     wikiLinks: Seq[LinkRef],
     resourceLinks: Seq[LinkRef],
-    codeSamples: Seq[CodeSample],
+    codeSamples: Seq[CodeSampleRef],
     relativeLinks: Seq[LinkRef],
     externalLinks: Seq[LinkRef])
 
   case class LinkRef(link: String, file: File, position: Int)
-  case class CodeSample(source: String, segment: String, file: File, sourcePosition: Int, segmentPosition: Int)
+  case class CodeSampleRef(source: String, segment: String, file: File, sourcePosition: Int, segmentPosition: Int)
 
-  val generateMarkdownReportTask = Def.task {
+  /**
+   * A report of just code samples in all markdown files.
+   *
+   * This is used to compare translations to the originals, checking that all files exist and all code samples exist.
+   */
+  case class CodeSamplesReport(files: Seq[FileWithCodeSamples]) {
+    lazy val byFile = files.map(f => f.name -> f).toMap
+    lazy val byName = files.filterNot(_.name.endsWith("_Sidebar.md")).map { file =>
+      val filename = file.name
+      val name = filename.takeRight(filename.length - filename.lastIndexOf('/'))
+      name -> file
+    }.toMap
+  }
+  case class FileWithCodeSamples(name: String, source: String, codeSamples: Seq[CodeSample])
+  case class CodeSample(source: String, segment: String,
+    sourcePosition: Int, segmentPosition: Int)
+
+  case class TranslationReport(missingFiles: Seq[String],
+    introducedFiles: Seq[String],
+    changedPathFiles: Seq[(String, String)],
+    codeSampleIssues: Seq[TranslationCodeSamples],
+    okFiles: Seq[String],
+    total: Int)
+  case class TranslationCodeSamples(name: String,
+    missingCodeSamples: Seq[CodeSample],
+    introducedCodeSamples: Seq[CodeSample],
+    totalCodeSamples: Int)
+
+  val generateMarkdownRefReportTask = Def.task {
 
     val base = manualPath.value
 
@@ -43,7 +77,7 @@ object PlayDocsValidation {
 
     val wikiLinks = mutable.ListBuffer[LinkRef]()
     val resourceLinks = mutable.ListBuffer[LinkRef]()
-    val codeSamples = mutable.ListBuffer[CodeSample]()
+    val codeSamples = mutable.ListBuffer[CodeSampleRef]()
     val relativeLinks = mutable.ListBuffer[LinkRef]()
     val externalLinks = mutable.ListBuffer[LinkRef]()
 
@@ -117,7 +151,7 @@ object PlayDocsValidation {
               code.getStartIndex + 2
             }
 
-            codeSamples += CodeSample(sourceFile, label, markdownFile, sourcePos, labelPos)
+            codeSamples += CodeSampleRef(sourceFile, label, markdownFile, sourcePos, labelPos)
             true
           }
           case _ => false
@@ -131,21 +165,141 @@ object PlayDocsValidation {
 
     markdownFiles.foreach(parseMarkdownFile)
 
-    MarkdownReport(markdownFiles, wikiLinks.toSeq, resourceLinks.toSeq, codeSamples.toSeq, relativeLinks.toSeq, externalLinks.toSeq)
+    MarkdownRefReport(markdownFiles, wikiLinks.toSeq, resourceLinks.toSeq, codeSamples.toSeq, relativeLinks.toSeq, externalLinks.toSeq)
+  }
+
+  private def extractCodeSamples(filename: String, markdownSource: String): FileWithCodeSamples = {
+
+    val codeSamples = ListBuffer.empty[CodeSample]
+
+    val processor = new PegDownProcessor(Extensions.ALL, PegDownPlugins.builder()
+      .withPlugin(classOf[CodeReferenceParser]).build)
+
+    val codeReferenceSerializer = new ToHtmlSerializerPlugin() {
+      def visit(node: Node, visitor: Visitor, printer: Printer) = node match {
+        case code: CodeReferenceNode => {
+
+          // Label is after the #, or if no #, then is the link label
+          val (source, label) = code.getSource.split("#", 2) match {
+            case Array(source, label) => (source, label)
+            case Array(source) => (source, code.getLabel)
+          }
+
+          // The file is either relative to current page page or absolute, under the root
+          val sourceFile = if (source.startsWith("/")) {
+            source.drop(1)
+          } else {
+            filename.dropRight(filename.length - filename.lastIndexOf('/') + 1) + source
+          }
+
+          val sourcePos = code.getStartIndex + code.getLabel.length + 4
+          val labelPos = if (code.getSource.contains("#")) {
+            sourcePos + source.length + 1
+          } else {
+            code.getStartIndex + 2
+          }
+
+          codeSamples += CodeSample(sourceFile, label, sourcePos, labelPos)
+          true
+        }
+        case _ => false
+      }
+    }
+
+    val astRoot = processor.parseMarkdown(markdownSource.toCharArray)
+    new ToHtmlSerializer(new LinkRenderer(), java.util.Arrays.asList[ToHtmlSerializerPlugin](codeReferenceSerializer))
+      .toHtml(astRoot)
+
+    FileWithCodeSamples(filename, markdownSource, codeSamples.toList)
+  }
+
+  val generateUpstreamCodeSamplesTask = Def.task {
+
+    val jarFile = docsJarFile.value
+
+    import scala.collection.JavaConversions._
+    val jar = new JarFile(jarFile)
+    val parsedFiles = jar.entries().toIterator.collect {
+      case entry if entry.getName.endsWith(".md") && entry.getName.startsWith("play/docs/content/manual") =>
+        val fileName = entry.getName.stripPrefix("play/docs/content")
+        val contents = IO.readStream(jar.getInputStream(entry))
+        extractCodeSamples(fileName, contents)
+    }.toList
+
+    jar.close()
+    CodeSamplesReport(parsedFiles)
+  }
+
+  val generateMarkdownCodeSamplesTask = Def.task {
+    val base = manualPath.value
+
+    val markdownFiles = (base / "manual" ** "*.md").get.pair(relativeTo(base))
+
+    CodeSamplesReport(markdownFiles.map {
+      case (file, name) => extractCodeSamples("/" + name, IO.read(file))
+    })
+  }
+
+  val translationCodeSamplesReportTask = Def.task {
+    val report = generateMarkdownCodeSamplesReport.value
+    val upstream = generateUpstreamCodeSamplesReport.value
+    val file = translationCodeSamplesReportFile.value
+    val version = docsVersion.value
+
+    def sameCodeSample(cs1: CodeSample)(cs2: CodeSample) = {
+      cs1.source == cs2.source && cs1.segment == cs2.segment
+    }
+
+    def hasCodeSample(samples: Seq[CodeSample])(sample: CodeSample) = samples.exists(sameCodeSample(sample))
+
+    val untranslatedFiles = (upstream.byFile.keySet -- report.byFile.keySet).toList.sorted
+    val introducedFiles = (report.byFile.keySet -- upstream.byFile.keySet).toList.sorted
+    val matchingFilesByName = (report.byName.keySet & upstream.byName.keySet).map { name =>
+      report.byName(name) -> upstream.byName(name)
+    }
+    val (matchingFiles, changedPathFiles) = matchingFilesByName.partition(f => f._1.name == f._2.name)
+    val (codeSampleIssues, okFiles) = matchingFiles.map {
+      case (actualFile, upstreamFile) =>
+
+        val missingCodeSamples = upstreamFile.codeSamples.filterNot(hasCodeSample(actualFile.codeSamples))
+        val introducedCodeSamples = actualFile.codeSamples.filterNot(hasCodeSample(actualFile.codeSamples))
+        TranslationCodeSamples(actualFile.name, missingCodeSamples, introducedCodeSamples, upstreamFile.codeSamples.size)
+    }.partition(c => c.missingCodeSamples.nonEmpty || c.introducedCodeSamples.nonEmpty)
+
+    val result = TranslationReport(
+      untranslatedFiles,
+      introducedFiles,
+      changedPathFiles.map(f => f._1.name -> f._2.name).toList.sorted,
+      codeSampleIssues.toList.sortBy(_.name),
+      okFiles.map(_.name).toList.sorted,
+      report.files.size
+    )
+
+    IO.write(file, html.translationReport(result, version).body)
+    file
+  }
+
+  val cachedTranslationCodeSamplesReportTask = Def.task {
+    val file = translationCodeSamplesReportFile.value
+    if (!file.exists) {
+      println("Generating report...")
+      Project.runTask(translationCodeSamplesReport, state.value).get._2.toEither.fold({ incomplete =>
+        throw incomplete.directCause.get
+      }, result => result)
+    } else {
+      file
+    }
   }
 
   val validateDocsTask = Def.task {
-    val report = generateMarkdownReport.value
+    val report = generateMarkdownRefReport.value
     val log = streams.value.log
     val base = manualPath.value
 
     val docsJarRepo: play.doc.FileRepository with Closeable = if (fallbackToJar.value) {
       val classpath: Seq[Attributed[File]] = (dependencyClasspath in Test).value
-      val docsJarFile = {
-        val f = classpath.map(_.data).filter(_.getName.startsWith("play-docs")).head
-        new JarFile(f)
-      }
-      new JarRepository(docsJarFile, Some("play/docs/content")) with Closeable
+      val jar = new JarFile(docsJarFile.value)
+      new JarRepository(jar, Some("play/docs/content")) with Closeable
     } else {
       new play.doc.FileRepository with Closeable {
         def loadFile[A](path: String)(loader: (InputStream) => A) = None
@@ -221,7 +375,7 @@ object PlayDocsValidation {
       nonExisting.map(sample => LinkRef(sample.source, sample.file, sample.sourcePosition)),
       "Could not find source file")
 
-    def segmentExists(sample: CodeSample) = {
+    def segmentExists(sample: CodeSampleRef) = {
       // Find the code segment
       val sourceCode = {
         val file = new File(base, sample.source)
@@ -263,7 +417,7 @@ object PlayDocsValidation {
 
   val validateExternalLinksTask = Def.task {
     val log = streams.value.log
-    val report = generateMarkdownReport.value
+    val report = generateMarkdownRefReport.value
 
     val grouped = report.externalLinks.groupBy(_.link).filterNot(_._1.startsWith("http://localhost:9000")).toSeq.sortBy(_._1)
 

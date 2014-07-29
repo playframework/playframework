@@ -104,6 +104,12 @@ You can also validate the links to external sites in Play's documentation.  This
 sbt validate-external-links
 ```
 
+## Translation report
+
+Another very helpful tool provided by Play is a translation report, which shows which files have not been translated, and also tries to detect issues, for example, if the translation introduces new files, or if the translation is missing code samples.  This can particularly help when translating a new version of the documentation, since the addition or removal of code samples will often be a good signal that something has changed.
+
+To view the translation report, run the documentation server (like normal), and then visit <http://localhost:9000/@report> in your browser.  By default it will serve a cached version of the report if it has been generated in the past, you can rerun the report by clicking the rerun report link.
+
 ## Deploying documentation to playframework.com
 
 [playframework.com](http://playframework.com) serves documentation out of git repositories.  If you want your translation to be served from playframework.com, you'll need to put your documentation into a GitHub repository, and contact the Play team to have them add it to playframework.com.
@@ -112,6 +118,12 @@ The git repository needs to be in a very particular format.  The current master 
 
 Once the Play team has configured playframework.com to serve your translation, any changes pushed to your GitHub repository will be picked up within about 10 minutes, as playframework.com does a `git fetch` on all repos it uses once every 10 minutes.
 
-## Documentation for older releases
+## Specifying the documentation version
 
-If you want to provide documentation for releases prior to Play 2.3, this can be done, however note that the tooling provided only works with Play 2.3 onwards.
+By default, the `play-docs-sbt-plugin` uses the same version of the Play documentation code samples and fallback markdown files as itself, so if in `plugins.sbt` you're using `2.4.0`, when you run the documentation, you will get `2.4.0` of the documentation code samples.  You can control this version by setting `PlayDocsKeys.docsVersion` in `build.sbt`:
+
+```scala
+PlayDocsKeys.docsVersion := "2.3.1"
+```
+
+This is particularly useful if you are wanting to provide documentation for versions of Play prior to when the `play-docs-sbt-plugin` was introduced, as far back as `2.2.0`.  For `2.1.x` and earlier, the documentation was not packaged and published as a jar file, so the tooling will not work for those older versions.

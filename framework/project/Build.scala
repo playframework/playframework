@@ -377,6 +377,7 @@ object PlayBuild extends Build {
     )
 
   lazy val PlayDocsSbtPlugin = PlaySbtProject("Play-Docs-SBT-Plugin", "play-docs-sbt-plugin")
+    .enablePlugins(SbtTwirl)
     .settings(
       sbtPlugin := true,
       publishMavenStyle := false,
