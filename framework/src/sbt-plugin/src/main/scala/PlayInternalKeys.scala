@@ -23,7 +23,5 @@ trait PlayInternalKeys {
 
   val playAllAssets = TaskKey[Seq[(String, File)]]("play-all-assets")
   val playPrefixAndAssets = TaskKey[(String, File)]("play-prefix-and-assets")
-  val playPrefixAndPipeline = TaskKey[(String, Seq[(File, String)])]("play-prefix-and-pipeline")
   val playAssetsClassLoader = TaskKey[ClassLoader => ClassLoader]("play-assets-classloader")
-  val playPackageAssetsMappings = TaskKey[Seq[(File, String)]]("play-package-assets-mappings")
 }

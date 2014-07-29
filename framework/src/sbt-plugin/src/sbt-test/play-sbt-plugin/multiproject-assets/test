@@ -5,11 +5,11 @@ $ exists module/target/web/public/main/module.css
 
 # Check that they are mounted at the right place in the run classloader
 > check-on-classpath public/main.css
-> check-on-classpath public/module.css
+> check-on-classpath public/lib/assets-module-sample/module.css
 
 # Check that they are on the test classpath
 > check-on-test-classpath public/main.css
-> check-on-test-classpath public/module.css
+> check-on-test-classpath public/lib/assets-module-sample/module.css
 
 # Clean and ensure that it really did clean
 > clean
@@ -20,7 +20,8 @@ $ exists module/target/web/public/main/module.css
 > stage
 > unzip-assets-jar
 $ exists target/assetsJar/public/main.css
-$ exists target/assetsJar/public/module.css
+$ exists target/assetsJar/public/lib/assets-module-sample/module.css
 
-# empty.txt was in both subproject and the main project, the stage would fail if it couldn't handle duplicate mappings
+# empty.txt was in both subproject and the main project, these end up under different namespaces
 $ exists target/assetsJar/public/empty.txt
+$ exists target/assetsJar/public/lib/assets-module-sample/empty.txt
