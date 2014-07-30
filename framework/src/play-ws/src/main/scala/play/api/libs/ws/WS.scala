@@ -7,7 +7,7 @@ import scala.concurrent.{ Future, ExecutionContext }
 
 import java.io.File
 
-import play.api.http.{ Writeable, ContentTypeOf }
+import play.api.http.Writeable
 import play.api.libs.iteratee._
 
 import play.api._
@@ -463,12 +463,12 @@ trait WSRequestHolder {
   /**
    * Sets the body for this request
    */
-  def withBody[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]): WSRequestHolder = {
+  def withBody[T](body: T)(implicit wrt: Writeable[T]): WSRequestHolder = {
     val wsBody = InMemoryBody(wrt.transform(body))
     if (headers.contains("Content-Type")) {
       withBody(wsBody)
     } else {
-      ct.mimeType.fold(withBody(wsBody)) { contentType =>
+      wrt.contentType.fold(withBody(wsBody)) { contentType =>
         withBody(wsBody).withHeaders("Content-Type" -> contentType)
       }
     }
@@ -505,7 +505,7 @@ trait WSRequestHolder {
   /**
    * Perform a PATCH on the request asynchronously.
    */
-  def patch[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]) =
+  def patch[T](body: T)(implicit wrt: Writeable[T]) =
     withMethod("PATCH").withBody(body).execute()
 
   /**
@@ -518,7 +518,7 @@ trait WSRequestHolder {
    * performs a POST with supplied body
    * @param consumer that's handling the response
    */
-  def patchAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
+  def patchAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
     withMethod("PATCH").withBody(body).stream().flatMap {
       case (response, enumerator) =>
         enumerator(consumer(response))
@@ -528,7 +528,7 @@ trait WSRequestHolder {
   /**
    * Perform a POST on the request asynchronously.
    */
-  def post[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]) =
+  def post[T](body: T)(implicit wrt: Writeable[T]) =
     withMethod("POST").withBody(body).execute()
 
   /**
@@ -541,7 +541,7 @@ trait WSRequestHolder {
    * performs a POST with supplied body
    * @param consumer that's handling the response
    */
-  def postAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
+  def postAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
     withMethod("POST").withBody(body).stream().flatMap {
       case (response, enumerator) =>
         enumerator(consumer(response))
@@ -551,7 +551,7 @@ trait WSRequestHolder {
   /**
    * Perform a PUT on the request asynchronously.
    */
-  def put[T](body: T)(implicit wrt: Writeable[T], ct: ContentTypeOf[T]) =
+  def put[T](body: T)(implicit wrt: Writeable[T]) =
     withMethod("PUT").withBody(body).execute()
 
   /**
@@ -564,7 +564,7 @@ trait WSRequestHolder {
    * performs a PUT with supplied body
    * @param consumer that's handling the response
    */
-  def putAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ct: ContentTypeOf[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
+  def putAndRetrieveStream[A, T](body: T)(consumer: WSResponseHeaders => Iteratee[Array[Byte], A])(implicit wrt: Writeable[T], ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
     withMethod("PUT").withBody(body).stream().flatMap {
       case (response, enumerator) =>
         enumerator(consumer(response))
