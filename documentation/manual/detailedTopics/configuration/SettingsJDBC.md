@@ -94,7 +94,7 @@ db.default.logStatements=false
 db.default.maxConnectionAge=1 hour
 
 # The maximum query execution time. Queries slower than this will be logged as a warning.
-db.queryExecuteTimeLimit=1 second
+db.default.queryExecuteTimeLimit=1 second
 ```
 
 > **Next:** [[Configuring Play's thread pools|ThreadPools]]
