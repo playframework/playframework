@@ -266,9 +266,15 @@
 * **Short description:** This plugin makes Slick a first-class citizen of Play.
 
 ## Pusher
-* **Website:** https://github.com/tindr/Play2Pusher
-* **Short description:** Easily interact with the [Pusher Service](http://www.pusher.com) within 
-your Play application.
+* **Website:** <http://www.pusher.com>
+* **Documentation:** <https://github.com/tindr/Play2Pusher>
+* **Short description:** Easily interact with the Pusher Service within your Play application.
+
+## Play Dok
+
+* **Website:** <http://www.applidok.com>
+* **Documentation:** <https://github.com/applicius/play-dok/>
+* **Short description:** Library to integrate Applidok PDF templating service with your Play application.
 
 ## Qunit (Java)
 
