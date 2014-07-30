@@ -55,6 +55,6 @@ public class Langs {
      * @return The preferred language
      */
     public Lang preferred(Collection<Lang> candidates) {
-        return new Lang(langs.preferred((scala.collection.Seq) JavaConversions.asScalaIterable(candidates).toSeq()));
+        return new Lang(langs.preferred((scala.collection.Seq) JavaConversions.collectionAsScalaIterable(candidates).toSeq()));
     }
 }
