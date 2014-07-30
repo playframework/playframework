@@ -1,15 +1,18 @@
 package play.api.db
 
-import scala.util.Try
+import java.io.File
 import java.sql.{ DriverManager, SQLException }
-import play.api.test.FakeApplication
 import org.specs2.mutable.Specification
+import play.api.{ Configuration, Environment, Mode }
+import play.api.inject.DefaultApplicationLifecycle
+import play.api.test._
+import scala.util.Try
 
-object BoneCPPluginSpec extends Specification {
+object BoneCPApiSpec extends Specification with DefaultAwaitTimeout with FutureAwaits {
   "BoneCP DB plugin" title
 
   "JDBC driver" should {
-    sequential 
+    sequential
 
     "be registered for H2 before plugin starts" in {
       DriverManager.getDriver("jdbc:h2:mem:") aka "H2 driver" must not(beNull)
@@ -25,7 +28,7 @@ object BoneCPPluginSpec extends Specification {
     }
 
     "be registered for both Acolyte & H2 when plugin is started" in {
-      plugin.onStart()
+      dbApi // start
 
       (DriverManager.getDriver(jdbcUrl) aka "Acolyte driver" must not(beNull)).
         and(DriverManager.getDriver("jdbc:h2:mem:").
@@ -33,7 +36,7 @@ object BoneCPPluginSpec extends Specification {
     }
 
     "be deregistered for Acolyte but still there for H2 after plugin stops" in {
-      plugin.onStop()
+      await(lifecycle.stop())
 
       (DriverManager.getDriver("jdbc:h2:mem:") aka "H2 driver" must not(beNull))
       .and(DriverManager.getDriver(jdbcUrl) aka "Acolyte driver" must {
@@ -43,13 +46,20 @@ object BoneCPPluginSpec extends Specification {
   }
 
   val jdbcUrl = "jdbc:acolyte:test?handler=boneCPPluginSpec"
-  lazy val plugin = {
-    acolyte.jdbc.Driver.register("boneCPPluginSpec", 
+
+  lazy val lifecycle = new DefaultApplicationLifecycle
+
+  lazy val dbApi = {
+    acolyte.jdbc.Driver.register("boneCPPluginSpec",
       acolyte.jdbc.CompositeHandler.empty()) // Fake driver
 
-    new BoneCPPlugin(
-      FakeApplication(additionalConfiguration = Map(
-        "db.default.driver" -> "acolyte.jdbc.Driver",
-        "db.default.url" -> jdbcUrl)))
+    val dbConfig = new DefaultDBConfig(Configuration.from(Map(
+      "db.default.driver" -> "acolyte.jdbc.Driver",
+      "db.default.url" -> jdbcUrl))
+    ).get
+
+    val environment = Environment(new File("."), this.getClass.getClassLoader, Mode.Dev)
+
+    new BoneCPApi(dbConfig, environment, lifecycle)
   }
 }

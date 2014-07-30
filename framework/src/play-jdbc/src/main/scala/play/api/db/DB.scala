@@ -3,11 +3,13 @@
  */
 package play.api.db
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{ Inject, Provider, Singleton }
 
+import scala.concurrent.Future
 import scala.language.reflectiveCalls
 
 import play.api._
+import play.api.inject.{ ApplicationLifecycle, Module }
 import play.api.libs._
 
 import java.sql._
@@ -121,8 +123,8 @@ trait DBApi {
  */
 object DB {
 
-  /** The exception we are throwing. */
-  private def error = throw new Exception("DB plugin is not registered.")
+  private def dbApi(implicit app: Application): DBApi =
+    app.injector.instanceOf[DBApi]
 
   /**
    * Retrieves a JDBC connection.
@@ -130,18 +132,18 @@ object DB {
    * @param name data source name
    * @param autocommit when `true`, sets this connection to auto-commit
    * @return a JDBC connection
-   * @throws an error if the required data source is not registered
    */
-  def getConnection(name: String = "default", autocommit: Boolean = true)(implicit app: Application): Connection = app.plugin[DBPlugin].map(_.api.getConnection(name, autocommit)).getOrElse(error)
+  def getConnection(name: String = "default", autocommit: Boolean = true)(implicit app: Application): Connection =
+    dbApi.getConnection(name, autocommit)
 
   /**
    * Retrieves a JDBC connection (autocommit is set to true).
    *
    * @param name data source name
    * @return a JDBC connection
-   * @throws an error if the required data source is not registered
    */
-  def getDataSource(name: String = "default")(implicit app: Application): DataSource = app.plugin[DBPlugin].map(_.api.getDataSource(name)).getOrElse(error)
+  def getDataSource(name: String = "default")(implicit app: Application): DataSource =
+    dbApi.getDataSource(name)
 
   /**
    * Execute a block of code, providing a JDBC connection. The connection is
@@ -150,9 +152,8 @@ object DB {
    * @param name The datasource name.
    * @param block Code block to execute.
    */
-  def withConnection[A](name: String)(block: Connection => A)(implicit app: Application): A = {
-    app.plugin[DBPlugin].map(_.api.withConnection(name)(block)).getOrElse(error)
-  }
+  def withConnection[A](name: String)(block: Connection => A)(implicit app: Application): A =
+    dbApi.withConnection(name)(block)
 
   /**
    * Execute a block of code, providing a JDBC connection. The connection and all created statements are
@@ -160,9 +161,8 @@ object DB {
    *
    * @param block Code block to execute.
    */
-  def withConnection[A](block: Connection => A)(implicit app: Application): A = {
-    app.plugin[DBPlugin].map(_.api.withConnection("default")(block)).getOrElse(error)
-  }
+  def withConnection[A](block: Connection => A)(implicit app: Application): A =
+    dbApi.withConnection("default")(block)
 
   /**
    * Execute a block of code, in the scope of a JDBC transaction.
@@ -173,7 +173,7 @@ object DB {
    * @param block Code block to execute.
    */
   def withTransaction[A](name: String = "default")(block: Connection => A)(implicit app: Application): A =
-    app.plugin[DBPlugin].map(_.api.withTransaction(name)(block)).getOrElse(error)
+    dbApi.withTransaction(name)(block)
 
   /**
    * Execute a block of code, in the scope of a JDBC transaction.
@@ -183,92 +183,69 @@ object DB {
    * @param block Code block to execute.
    */
   def withTransaction[A](block: Connection => A)(implicit app: Application): A =
-    app.plugin[DBPlugin].map(_.api.withTransaction("default")(block)).getOrElse(error)
+    dbApi.withTransaction("default")(block)
 
 }
 
 /**
- * Generic DBPlugin interface
+ * The database configuration.
  */
-trait DBPlugin extends Plugin {
-  def api: DBApi
+case class DBConfig(configuration: Configuration)
+
+/**
+ * A provider that creates a DBConfig from the play.api.Configuration.
+ */
+class DefaultDBConfig @Inject() (configuration: Configuration) extends Provider[DBConfig] {
+  def get = DBConfig(configuration.getConfig("db").getOrElse(Configuration.empty))
 }
 
 /**
- * BoneCP implementation of DBPlugin that provides a DBApi.
- *
- * @param app the application that is registering the plugin
+ * BoneCP module for DB API.
  */
-@Singleton
-class BoneCPPlugin @Inject() (app: Application) extends DBPlugin {
-  lazy val dbConfig = app.configuration.getConfig("db").
-    getOrElse(Configuration.empty)
-
-  private def dbURL(conn: Connection): String = {
-    val u = conn.getMetaData.getURL
-    conn.close()
-    u
+class BoneCPModule extends Module {
+  def bindings(environment: Environment, configuration: Configuration) = {
+    if (configuration.underlying.getBoolean("play.modules.db.enabled")) {
+      Seq(
+        bind[DBApi].to[BoneCPApi],
+        bind[DBConfig].toProvider[DefaultDBConfig].in[Singleton]
+      )
+    } else {
+      Nil
+    }
   }
+}
 
-  // should be accessed in onStart first
-  private lazy val dbApi = new BoneCPApi(dbConfig, app.classloader)
+@Singleton
+class BoneCPApi @Inject() (dbConfig: DBConfig, environment: Environment, lifecycle: ApplicationLifecycle) extends DBApi {
 
-  /**
-   * plugin is disabled if either configuration is missing or the plugin is explicitly disabled
-   */
-  private lazy val isDisabled = app.configuration.getString("dbplugin").
-    exists(_ == "disabled") || dbConfig.subKeys.isEmpty
-
-  /**
-   * Is this plugin enabled.
-   *
-   * {{{
-   * dbplugin=disabled
-   * }}}
-   */
-  override def enabled = !isDisabled
-
-  /**
-   * Retrieves the underlying `DBApi` managing the data sources.
-   */
-  def api: DBApi = dbApi
+  val configuration: Configuration = dbConfig.configuration
 
   /**
    * Reads the configuration and connects to every data source.
    */
-  override def onStart() {
+  private def onStart(): Unit = {
     // Try to connect to each, this should be the first access to dbApi
-    dbApi.datasources map { ds =>
+    datasources map { ds =>
       try {
         ds._1.getConnection.close()
-        app.mode match {
+        environment.mode match {
           case Mode.Test =>
           case mode => Play.logger.info(s"database [${ds._2}] connected at ${dbURL(ds._1.getConnection)}")
         }
       } catch {
         case NonFatal(e) => {
-          throw dbConfig.reportError(s"${ds._2}.url",
+          throw configuration.reportError(s"${ds._2}.url",
             s"Cannot connect to database [${ds._2}]", Some(e.getCause))
         }
       }
     }
   }
 
-  /**
-   * Closes all data sources.
-   */
-  override def onStop() {
-    dbApi.datasources foreach {
-      case (ds, _) => try {
-        dbApi.shutdownPool(ds)
-      } catch { case NonFatal(_) => }
-    }
-    dbApi.deregisterAll()
+  private def dbURL(conn: Connection): String = {
+    val u = conn.getMetaData.getURL
+    conn.close()
+    u
   }
-}
-
-private[db] class BoneCPApi(
-    configuration: Configuration, classloader: ClassLoader) extends DBApi {
 
   private def error(db: String, message: String = "") =
     throw configuration.reportError(db, message)
@@ -280,7 +257,7 @@ private[db] class BoneCPApi(
   private def register(d: String, c: Configuration): Driver = {
     try {
       val driver = new play.utils.ProxyDriver(
-        Class.forName(d, true, classloader).newInstance.asInstanceOf[Driver])
+        Class.forName(d, true, environment.classLoader).newInstance.asInstanceOf[Driver])
 
       DriverManager.registerDriver(driver)
       driver
@@ -315,7 +292,7 @@ private[db] class BoneCPApi(
     val catalog = conf.getString("defaultCatalog")
     val readOnly = conf.getBoolean("readOnly").getOrElse(false)
 
-    datasource.setClassLoader(classloader)
+    datasource.setClassLoader(environment.classLoader)
 
     val logger = Logger("com.jolbox.bonecp")
 
@@ -439,6 +416,36 @@ private[db] class BoneCPApi(
   def getDataSource(name: String): DataSource =
     dsMap.get(name).getOrElse(error(s" - could not find datasource for $name"))
 
+  /**
+   * Closes all data sources.
+   */
+  private def onStop(): Unit = {
+    datasources foreach {
+      case (ds, _) => try {
+        shutdownPool(ds)
+      } catch { case NonFatal(_) => }
+    }
+    deregisterAll()
+  }
+
+  lifecycle.addStopHook { () =>
+    Future.successful(onStop())
+  }
+
+  // connect on construction
+  onStart()
+}
+
+/**
+ * BoneCP API implementation components.
+ */
+trait BoneCPApiComponents {
+  def environment: Environment
+  def configuration: Configuration
+  def applicationLifecycle: ApplicationLifecycle
+
+  lazy val dbConfig: DBConfig = new DefaultDBConfig(configuration).get
+  lazy val dbApi: DBApi = new BoneCPApi(dbConfig, environment, applicationLifecycle)
 }
 
 /**

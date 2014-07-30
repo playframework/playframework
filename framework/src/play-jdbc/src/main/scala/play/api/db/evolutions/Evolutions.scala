@@ -10,6 +10,7 @@ import play.core._
 
 import play.api._
 import play.api.db._
+import play.api.inject.DefaultApplicationLifecycle
 import play.api.libs._
 import play.api.libs.Codecs._
 import javax.sql.DataSource
@@ -89,10 +90,9 @@ object Evolutions {
    * Apply pending evolutions for the given DB.
    */
   def applyFor(dbName: String, path: java.io.File = new java.io.File("."), autocommit: Boolean = true) {
-    Play.current.plugin[DBPlugin] map { db =>
-      val script = Evolutions.evolutionScript(db.api, path, db.getClass.getClassLoader, dbName)
-      Evolutions.applyScript(db.api, dbName, script, autocommit)
-    }
+    val dbApi = Play.current.injector.instanceOf[DBApi]
+    val script = Evolutions.evolutionScript(dbApi, path, dbApi.getClass.getClassLoader, dbName)
+    Evolutions.applyScript(dbApi, dbName, script, autocommit)
   }
 
   /**
@@ -460,7 +460,7 @@ class EvolutionsPlugin @Inject() (app: Application) extends Plugin with HandleWe
 
   import Evolutions._
 
-  lazy val dbApi = app.plugin[DBPlugin].map(_.api).getOrElse(throw new Exception("there should be a database plugin registered at this point but looks like it's not available, so evolution won't work. Please make sure you register a db plugin properly"))
+  lazy val dbApi: DBApi = app.injector.instanceOf[DBApi]
 
   /**
    * Is this plugin enabled.
@@ -613,8 +613,11 @@ object OfflineEvolutions {
   private def isTest: Boolean = Play.maybeApplication.exists(_.mode == Mode.Test)
 
   private def getDBApi(appPath: File, classloader: ClassLoader): DBApi = {
-    val c = Configuration.load(appPath).getConfig("db").get
-    new BoneCPApi(c, classloader)
+    val appConfig = Configuration.load(appPath)
+    val dbConfig = new DefaultDBConfig(appConfig).get
+    val environment = Environment(appPath, classloader, Mode.Dev)
+    val lifecycle = new DefaultApplicationLifecycle
+    new BoneCPApi(dbConfig, environment, lifecycle)
   }
 
   /**

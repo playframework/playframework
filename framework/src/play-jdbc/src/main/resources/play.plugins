@@ -1,2 +1,1 @@
-200:play.api.db.BoneCPPlugin
 500:play.api.db.evolutions.EvolutionsPlugin
