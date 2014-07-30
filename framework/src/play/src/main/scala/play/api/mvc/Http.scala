@@ -84,7 +84,8 @@ package play.api.mvc {
     /**
      * Helper method to access a queryString parameter.
      */
-    def getQueryString(key: String): Option[String] = queryString.get(key).flatMap(_.headOption)
+    def getQueryString(key: String): Option[String] =
+      queryString.get(key).flatMap(_.headOption)
 
     /**
      * The HTTP host (domain, optionally port)
@@ -107,32 +108,33 @@ package play.api.mvc {
     /**
      * @return The media types list of the request’s Accept header, sorted by preference (preferred first).
      */
-    lazy val acceptedTypes: Seq[play.api.http.MediaRange] = {
+    lazy val acceptedTypes: Seq[play.api.http.MediaRange] =
       headers.get(HeaderNames.ACCEPT).toSeq.flatMap(MediaRange.parse.apply)
-    }
 
     /**
      * Check if this request accepts a given media type.
      * @return true if `mimeType` matches the Accept header, otherwise false
      */
-    def accepts(mimeType: String): Boolean = {
+    def accepts(mimeType: String): Boolean =
       acceptedTypes.isEmpty || acceptedTypes.find(_.accepts(mimeType)).isDefined
-    }
 
     /**
      * The HTTP cookies.
      */
-    lazy val cookies: Cookies = Cookies(headers.get(play.api.http.HeaderNames.COOKIE))
+    lazy val cookies: Cookies =
+      Cookies(headers.get(play.api.http.HeaderNames.COOKIE))
 
     /**
      * Parses the `Session` cookie and returns the `Session` data.
      */
-    lazy val session: Session = Session.decodeFromCookie(cookies.get(Session.COOKIE_NAME))
+    lazy val session: Session =
+      Session.decodeFromCookie(cookies.get(Session.COOKIE_NAME))
 
     /**
      * Parses the `Flash` cookie and returns the `Flash` data.
      */
-    lazy val flash: Flash = Flash.decodeFromCookie(cookies.get(Flash.COOKIE_NAME))
+    lazy val flash: Flash =
+      Flash.decodeFromCookie(cookies.get(Flash.COOKIE_NAME))
 
     /**
      * Returns the raw query string.
@@ -142,12 +144,14 @@ package play.api.mvc {
     /**
      * The media type of this request.  Same as contentType, except returns a fully parsed media type with parameters.
      */
-    lazy val mediaType: Option[MediaType] = headers.get(HeaderNames.CONTENT_TYPE).flatMap(MediaType.parse.apply)
+    lazy val mediaType: Option[MediaType] =
+      headers.get(HeaderNames.CONTENT_TYPE).flatMap(MediaType.parse.apply)
 
     /**
      * Returns the value of the Content-Type header (without the parameters (eg charset))
      */
-    lazy val contentType: Option[String] = mediaType.map(mt => mt.mediaType + "/" + mt.mediaSubType)
+    lazy val contentType: Option[String] =
+      mediaType.map(mt => mt.mediaType + "/" + mt.mediaSubType)
 
     /**
      * Returns the charset of the request for text-based body
@@ -187,10 +191,7 @@ package play.api.mvc {
       }
     }
 
-    override def toString = {
-      method + " " + uri
-    }
-
+    override lazy val toString = method + " " + uri
   }
 
   object RequestHeader {
@@ -205,11 +206,9 @@ package play.api.mvc {
         header <- headers.get(headerName).toSeq
         value0 <- header.split(',')
         value = value0.trim
-      } yield {
-        RequestHeader.qPattern.findFirstMatchIn(value) match {
-          case Some(m) => (m.group(1).toDouble, m.before.toString)
-          case None => (1.0, value) // “The default value is q=1.”
-        }
+      } yield RequestHeader.qPattern.findFirstMatchIn(value) match {
+        case Some(m) => (m.group(1).toDouble, m.before.toString)
+        case None => (1.0, value) // “The default value is q=1.”
       }
     }
   }
@@ -220,13 +219,27 @@ package play.api.mvc {
    * @tparam A the body content type.
    */
   @implicitNotFound("Cannot find any HTTP Request here")
-  trait Request[+A] extends RequestHeader {
-    self =>
+  trait Request[+A] extends RequestHeader { self =>
 
     /**
      * The body content.
      */
     def body: A
+
+    /**
+     * The request parameters, from both query string and parameter (for POST).
+     */
+    final def parameters: Map[String, Seq[String]] = (body match {
+      case AnyContentAsFormUrlEncoded(params) ⇒ params
+      case mp @ AnyContentAsMultipartFormData(_) ⇒
+        mp.asMultipartFormData.map(_.asFormUrlEncoded).
+          getOrElse(Map.empty[String, Seq[String]])
+
+      case _ ⇒ Map.empty[String, Seq[String]]
+    }).foldLeft(queryString) { (m, e) ⇒
+      val (k, vs) = e
+      m + (k -> m.lift(k).fold(vs)(_ ++ vs))
+    }
 
     /**
      * Transform the request body.
@@ -244,11 +257,9 @@ package play.api.mvc {
       def secure = self.secure
       lazy val body = f(self.body)
     }
-
   }
 
   object Request {
-
     def apply[A](rh: RequestHeader, a: A) = new Request[A] {
       def id = rh.id
       def tags = rh.tags
@@ -348,7 +359,8 @@ package play.api.mvc {
     /**
      * Retrieves the first header value which is associated with the given key.
      */
-    def apply(key: String): String = get(key).getOrElse(scala.sys.error("Header doesn't exist"))
+    def apply(key: String): String =
+      get(key).getOrElse(scala.sys.error("Header doesn't exist"))
 
     /**
      * Retrieve all header values associated with the given key.
@@ -381,7 +393,8 @@ package play.api.mvc {
     /**
      * Transform the Headers to a Map by ignoring multiple values.
      */
-    lazy val toSimpleMap: Map[String, String] = toMap.mapValues(_.headOption.getOrElse(""))
+    lazy val toSimpleMap: Map[String, String] =
+      toMap.mapValues(_.headOption.getOrElse(""))
 
     override def toString = data.toString
 
@@ -439,10 +452,9 @@ package play.api.mvc {
       val encoded = data.map {
         case (k, v) => URLEncoder.encode(k, "UTF-8") + "=" + URLEncoder.encode(v, "UTF-8")
       }.mkString("&")
-      if (isSigned)
-        Crypto.sign(encoded) + "-" + encoded
-      else
-        encoded
+
+      if (isSigned) Crypto.sign(encoded) + "-" + encoded
+      else encoded
     }
 
     /**
@@ -477,10 +489,9 @@ package play.api.mvc {
         if (isSigned) {
           val splitted = data.split("-", 2)
           val message = splitted.tail.mkString("-")
-          if (safeEquals(splitted(0), Crypto.sign(message)))
-            urldecode(message)
-          else
-            Map.empty[String, String]
+
+          if (safeEquals(splitted(0), Crypto.sign(message))) urldecode(message)
+          else Map.empty[String, String]
         } else urldecode(data)
       } catch {
         // fail gracefully is the session cookie is corrupted
@@ -499,9 +510,9 @@ package play.api.mvc {
     /**
      * Decodes the data from a `Cookie`.
      */
-    def decodeFromCookie(cookie: Option[Cookie]): T = {
-      cookie.filter(_.name == COOKIE_NAME).map(c => deserialize(decode(c.value))).getOrElse(emptyCookie)
-    }
+    def decodeFromCookie(cookie: Option[Cookie]): T =
+      cookie.filter(_.name == COOKIE_NAME).
+        map(c => deserialize(decode(c.value))).getOrElse(emptyCookie)
 
     def discard = DiscardingCookie(COOKIE_NAME, path, domain, secure)
 
