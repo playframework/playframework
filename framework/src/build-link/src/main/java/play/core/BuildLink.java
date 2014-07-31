@@ -58,7 +58,7 @@ public interface BuildLink {
     public Object[] findSource(String className, Integer line);
 
     /**
-     * Get the path of the project.  This is used by methods such as {@link play.api.Application#getFile}.
+     * Get the path of the project.  This is used by methods such as {@code play.api.Application#getFile}.
      *
      * @return The path of the project.
      */
