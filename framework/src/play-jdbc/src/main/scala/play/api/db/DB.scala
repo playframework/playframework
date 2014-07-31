@@ -215,6 +215,18 @@ class BoneCPModule extends Module {
   }
 }
 
+/**
+ * Components for the BoneCP implementation of the DB API.
+ */
+trait BoneCPComponents {
+  def environment: Environment
+  def configuration: Configuration
+  def applicationLifecycle: ApplicationLifecycle
+
+  lazy val dbConfig: DBConfig = new DefaultDBConfig(configuration).get
+  lazy val dbApi: DBApi = new BoneCPApi(dbConfig, environment, applicationLifecycle)
+}
+
 @Singleton
 class BoneCPApi @Inject() (dbConfig: DBConfig, environment: Environment, lifecycle: ApplicationLifecycle) extends DBApi {
 
@@ -223,7 +235,7 @@ class BoneCPApi @Inject() (dbConfig: DBConfig, environment: Environment, lifecyc
   /**
    * Reads the configuration and connects to every data source.
    */
-  private def onStart(): Unit = {
+  private def start(): Unit = {
     // Try to connect to each, this should be the first access to dbApi
     datasources map { ds =>
       try {
@@ -419,7 +431,7 @@ class BoneCPApi @Inject() (dbConfig: DBConfig, environment: Environment, lifecyc
   /**
    * Closes all data sources.
    */
-  private def onStop(): Unit = {
+  private def stop(): Unit = {
     datasources foreach {
       case (ds, _) => try {
         shutdownPool(ds)
@@ -429,23 +441,10 @@ class BoneCPApi @Inject() (dbConfig: DBConfig, environment: Environment, lifecyc
   }
 
   lifecycle.addStopHook { () =>
-    Future.successful(onStop())
+    Future.successful(stop())
   }
 
-  // connect on construction
-  onStart()
-}
-
-/**
- * BoneCP API implementation components.
- */
-trait BoneCPApiComponents {
-  def environment: Environment
-  def configuration: Configuration
-  def applicationLifecycle: ApplicationLifecycle
-
-  lazy val dbConfig: DBConfig = new DefaultDBConfig(configuration).get
-  lazy val dbApi: DBApi = new BoneCPApi(dbConfig, environment, applicationLifecycle)
+  start() // connect on construction
 }
 
 /**

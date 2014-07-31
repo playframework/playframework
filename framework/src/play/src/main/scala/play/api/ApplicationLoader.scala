@@ -4,7 +4,7 @@
 package play.api
 
 import play.api.inject.guice.GuiceApplicationLoader
-import play.core.SourceMapper
+import play.core.{ SourceMapper, WebCommands, DefaultWebCommands }
 import play.utils.{ Threads, Reflect }
 
 /**
@@ -37,11 +37,12 @@ object ApplicationLoader {
    *
    * @param environment The environment
    * @param sourceMapper An optional source mapper
+   * @param webCommands The web command handlers
    * @param initialConfiguration The initial configuration.  This configuration is not necessarily the same
    *                             configuration used by the application, as the ApplicationLoader may, through it's own
    *                             mechanisms, modify it or completely ignore it.
    */
-  final case class Context(environment: Environment, sourceMapper: Option[SourceMapper], initialConfiguration: Configuration)
+  final case class Context(environment: Environment, sourceMapper: Option[SourceMapper], webCommands: WebCommands, initialConfiguration: Configuration)
 
   /**
    * Locate and instantiate the ApplicationLoader.
@@ -66,11 +67,12 @@ object ApplicationLoader {
    */
   def createContext(environment: Environment,
     initialSettings: Map[String, String] = Map.empty[String, String],
-    sourceMapper: Option[SourceMapper] = None) = {
+    sourceMapper: Option[SourceMapper] = None,
+    webCommands: WebCommands = new DefaultWebCommands) = {
     val configuration = Threads.withContextClassLoader(environment.classLoader) {
       Configuration.load(environment.rootPath, environment.mode, initialSettings)
     }
 
-    Context(environment, sourceMapper, configuration)
+    Context(environment, sourceMapper, webCommands, configuration)
   }
 }

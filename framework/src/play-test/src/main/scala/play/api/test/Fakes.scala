@@ -8,6 +8,7 @@ import play.api.inject.guice.{ GuiceApplicationLoader, GuiceInjector }
 import play.api.inject._
 import play.api.mvc._
 import play.api.libs.json.JsValue
+import play.core.{ DefaultWebCommands, WebCommands }
 import play.utils.Threads
 import scala.concurrent.Future
 import xml.NodeSeq
@@ -223,8 +224,9 @@ case class FakeApplication(
   private val modules = Modules.locate(environment, configuration)
     .filterNot(_.getClass == classOf[BuiltinModule])
   private val applicationLifecycle = new DefaultApplicationLifecycle
+  private val webCommands = new DefaultWebCommands
   private val guiceInjector = new GuiceApplicationLoader().createInjector(
-    modules :+ new FakeBuiltinModule(environment, configuration, this, global, applicationLifecycle),
+    modules :+ new FakeBuiltinModule(environment, configuration, this, global, applicationLifecycle, webCommands),
     environment, configuration
   )
   override val injector = guiceInjector.getInstance(classOf[Injector])
@@ -266,13 +268,15 @@ private class FakeBuiltinModule(environment: Environment,
     configuration: Configuration,
     app: Application,
     global: GlobalSettings,
-    appLifecycle: ApplicationLifecycle) extends Module {
+    appLifecycle: ApplicationLifecycle,
+    webCommands: WebCommands) extends Module {
   def bindings(environment: Environment, configuration: Configuration) = Seq(
     bind[Environment] to environment,
     bind[Configuration] to configuration,
     bind[Application] to app,
     bind[GlobalSettings] to global,
     bind[ApplicationLifecycle] to appLifecycle,
+    bind[WebCommands] to webCommands,
     bind[OptionalSourceMapper] to new OptionalSourceMapper(None),
     bind[play.inject.Injector].to[play.inject.DelegateInjector],
     // todo - make this configurable based on which app locator is in use

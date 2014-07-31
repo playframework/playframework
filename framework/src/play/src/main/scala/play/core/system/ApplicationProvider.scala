@@ -92,6 +92,7 @@ class ReloadableApplication(buildLink: BuildLink, buildDocHandler: BuildDocHandl
   println()
 
   var lastState: Try[Application] = Failure(new PlayException("Not initialized", "?"))
+  var currentWebCommands: Option[WebCommands] = None
 
   def get = {
 
@@ -141,10 +142,20 @@ class ReloadableApplication(buildLink: BuildLink, buildDocHandler: BuildDocHandl
                 }
               }
 
+              val webCommands = new DefaultWebCommands
+              currentWebCommands = Some(webCommands)
+
               val newApplication = Threads.withContextClassLoader(projectClassloader) {
-                val context = ApplicationLoader.createContext(environment, buildLink.settings.asScala.toMap, Some(sourceMapper))
+                val context = ApplicationLoader.createContext(environment, buildLink.settings.asScala.toMap, Some(sourceMapper), webCommands)
                 val loader = ApplicationLoader(context)
-                loader.load(context)
+                try {
+                  loader.load(context)
+                } catch {
+                  case e: com.google.inject.CreationException => e.getCause match {
+                    case p: PlayException => throw p
+                    case _ => throw e
+                  }
+                }
               }
 
               Play.start(newApplication)
@@ -178,15 +189,8 @@ class ReloadableApplication(buildLink: BuildLink, buildDocHandler: BuildDocHandl
   }
 
   override def handleWebCommand(request: play.api.mvc.RequestHeader): Option[Result] = {
-
     buildDocHandler.maybeHandleDocRequest(request).asInstanceOf[Option[Result]].orElse(
-      for {
-        app <- Play.maybeApplication
-        result <- app.plugins.foldLeft(Option.empty[Result]) {
-          case (None, plugin: HandleWebCommandSupport) => plugin.handleWebCommand(request, buildLink, path)
-          case (result, _) => result
-        }
-      } yield result
+      currentWebCommands.flatMap(_.handleWebCommand(request, buildLink, path))
     )
 
   }

@@ -6,6 +6,7 @@ package guice
 
 import com.google.inject._
 import play.api.inject.{ Module => PlayModule, Binding => PlayBinding, Injector => PlayInjector }
+import play.core.WebCommands
 import com.google.inject.util.Providers
 import play.api._
 
@@ -34,6 +35,7 @@ class GuiceApplicationLoader extends ApplicationLoader {
     val modules = guiced(Seq(
       BindingKey(classOf[GlobalSettings]) to global,
       BindingKey(classOf[OptionalSourceMapper]) to new OptionalSourceMapper(context.sourceMapper),
+      BindingKey(classOf[WebCommands]) to context.webCommands,
       BindingKey(classOf[PlayInjector]).to[GuiceInjector]
     )) +: Modules.locate(env, configuration)
 

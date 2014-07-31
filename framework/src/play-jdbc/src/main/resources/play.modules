@@ -1,1 +1,2 @@
 play.api.db.BoneCPModule
+play.api.db.evolutions.EvolutionsModule
