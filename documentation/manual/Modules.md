@@ -100,7 +100,6 @@
 ## FolderMessages plugin
 
 * **Website:** <https://github.com/germanosin/play-foldermessages>
-* **Documentation:** <https://github.com/germanosin/play-foldermessages/blob/master/README.md>
 * **Short Description:** Allows you to split localization messages files into separate manageable files.
 
 ## Flyway plugin
