@@ -60,7 +60,11 @@ object Column {
   implicit val columnToInt: Column[Int] = nonNull { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
-      case int: Int => Right(int)
+      case bi: BigInteger => Right(bi.intValue)
+      case bd: JBigDec => Right(bd.intValue)
+      case l: Long => Right(l.toInt)
+      case i: Int => Right(i)
+      case bool: Boolean => Right(if (!bool) 0 else 1)
       case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to Int for column $qualified"))
     }
   }
@@ -96,6 +100,7 @@ object Column {
     value match {
       case b: Byte => Right(b.toShort)
       case s: Short => Right(s)
+      case bool: Boolean => Right(if (!bool) 0.toShort else 1.toShort)
       case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to Short for column $qualified"))
     }
   }
@@ -105,6 +110,7 @@ object Column {
     value match {
       case b: Byte => Right(b)
       case s: Short => Right(s.toByte)
+      case bool: Boolean => Right(if (!bool) 0.toByte else 1.toByte)
       case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to Byte for column $qualified"))
     }
   }
@@ -120,8 +126,11 @@ object Column {
   implicit val columnToLong: Column[Long] = nonNull { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
+      case bi: BigInteger => Right(bi.longValue)
+      case bd: JBigDec => Right(bd.longValue)
       case int: Int => Right(int: Long)
       case long: Long => Right(long)
+      case bool: Boolean => Right(if (!bool) 0l else 1l)
       case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to Long for column $qualified"))
     }
   }
@@ -131,8 +140,9 @@ object Column {
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case bi: BigInteger => Right(bi)
-      case int: Int => Right(BigInteger.valueOf(int))
+      case bd: JBigDec => Right(bd.toBigInteger)
       case long: Long => Right(BigInteger.valueOf(long))
+      case int: Int => Right(BigInteger.valueOf(int))
       case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to BigInteger for column $qualified"))
     }
   }
@@ -178,8 +188,10 @@ object Column {
     value match {
       // TODO: Conversion from integer types
       case bi: JBigDec => Right(bi)
-      case double: Double => Right(JBigDec.valueOf(double))
+      case d: Double => Right(JBigDec.valueOf(d))
+      case f: Float => Right(JBigDec.valueOf(f))
       case l: Long => Right(JBigDec.valueOf(l))
+      case i: Int => Right(JBigDec.valueOf(i))
       case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to BigDecimal for column $qualified"))
     }
   }
