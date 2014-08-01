@@ -21,7 +21,7 @@ class WSMock extends Mockito with WSClient {
     response.body returns ""
 
     request.get() returns Future.successful(response)
-    request.post(anyString)(any[Writeable[String]], any[ContentTypeOf[String]]) returns Future.successful(response)
+    request.post(anyString)(any[Writeable[String]]) returns Future.successful(response)
 
     def url(url: String): WSRequestHolder = {
       urls += url
