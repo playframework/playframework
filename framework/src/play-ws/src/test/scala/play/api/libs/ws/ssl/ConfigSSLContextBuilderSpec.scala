@@ -5,14 +5,14 @@
  */
 package play.api.libs.ws.ssl
 
-import org.specs2.mutable._
+import java.io.FileOutputStream
+import java.security._
+import java.security.cert.CertPathValidatorException
+import javax.net.ssl._
 
 import org.specs2.mock._
-
-import javax.net.ssl._
-import java.security._
-import java.net.Socket
-import java.security.cert.CertPathValidatorException
+import org.specs2.mutable._
+import play.core.server.ssl.FakeKeyStore
 
 class ConfigSSLContextBuilderSpec extends Specification with Mockito {
 
@@ -62,10 +62,24 @@ class ConfigSSLContextBuilderSpec extends Specification with Mockito {
       val trustManagerFactory = mock[TrustManagerFactoryWrapper]
       val builder = new ConfigSSLContextBuilder(info, keyManagerFactory, trustManagerFactory)
 
-      val storeType = Some(KeyStore.getDefaultType)
-      val filePath = Some(CACERTS)
+      val keyStore = KeyStore.getInstance("PKCS12")
+      val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
+      keyPairGenerator.initialize(2048) // 2048 is the NIST acceptable key length until 2030
+      val keyPair = keyPairGenerator.generateKeyPair()
+      val cert = FakeKeyStore.createSelfSignedCertificate(keyPair)
+      val password = "changeit" // cannot have a null password for PKCS12 in 1.6
+      keyStore.load(null, password.toCharArray)
+      keyStore.setKeyEntry("playgenerated", keyPair.getPrivate, password.toCharArray, Array(cert))
 
-      val keyStoreConfig = DefaultKeyStoreConfig(storeType, filePath, None, None)
+      val tempFile = java.io.File.createTempFile("privatekeystore", ".p12")
+      val out = new java.io.FileOutputStream(tempFile)
+      try {
+        keyStore.store(out, password.toCharArray)
+      } finally {
+        out.close()
+      }
+      val filePath = tempFile.getAbsolutePath
+      val keyStoreConfig = DefaultKeyStoreConfig(storeType = Some("PKCS12"), data = None, filePath = Some(filePath), password = Some(password))
 
       val keyManager = mock[X509KeyManager]
       keyManagerFactory.getKeyManagers returns Array(keyManager)
@@ -84,12 +98,12 @@ class ConfigSSLContextBuilderSpec extends Specification with Mockito {
       val builder = new ConfigSSLContextBuilder(info, keyManagerFactory, trustManagerFactory)
 
       val storeType = Some(KeyStore.getDefaultType)
-      val filePath = Some(CACERTS)
+      val filePath = None
 
       val keyStoreConfig = DefaultKeyStoreConfig(storeType, filePath, None, None)
 
       keyManagerFactory.init(any[KeyStore], any[Array[Char]]) throws new UnrecoverableKeyException("no password set")
-      
+
       val algorithmChecker = new AlgorithmChecker(Set(), Set())
 
       {
@@ -243,6 +257,65 @@ class ConfigSSLContextBuilderSpec extends Specification with Mockito {
       trustStore.size() must beEqualTo(0)
     }
 
+    "validate success of the keystore with a private key" in {
+      val keyStore = KeyStore.getInstance("PKCS12")
+
+      // Generate the key pair
+      val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
+      keyPairGenerator.initialize(2048) // 2048 is the NIST acceptable key length until 2030
+      val keyPair = keyPairGenerator.generateKeyPair()
+
+      // Generate a self signed certificate
+      val cert = FakeKeyStore.createSelfSignedCertificate(keyPair)
+
+      val password = "changeit"  // null passwords throw exception in 1.6
+      keyStore.load(null, password.toCharArray)
+      keyStore.setKeyEntry("playgenerated", keyPair.getPrivate, password.toCharArray, Array(cert))
+
+      val keyManagerFactory = mock[KeyManagerFactoryWrapper]
+      val trustManagerFactory = mock[TrustManagerFactoryWrapper]
+
+      val ksc = DefaultKeyStoreConfig(storeType = None, data = None, filePath = None, password = Some(password))
+      val keyManagerConfig = DefaultKeyManagerConfig(keyStoreConfigs = Seq(ksc))
+
+      val info = DefaultSSLConfig(keyManagerConfig = Some(keyManagerConfig))
+      val builder = new ConfigSSLContextBuilder(info, keyManagerFactory, trustManagerFactory)
+      val privateKeys = builder.validateStoreContainsPrivateKeys(ksc, keyStore)
+      privateKeys.size must be_==(1)
+    }
+
+    "validate a failure of the keystore without a private key" in {
+      // must be JKS, PKCS12 does not support trusted certificate entries in 1.6 at least
+      // KeyStoreException: : TrustedCertEntry not supported  (PKCS12KeyStore.java:620)
+      // val keyStore = KeyStore.getInstance("PKCS12")
+      val keyStore = KeyStore.getInstance(KeyStore.getDefaultType)
+
+      // Generate the key pair
+      val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
+      keyPairGenerator.initialize(2048) // 2048 is the NIST acceptable key length until 2030
+      val keyPair = keyPairGenerator.generateKeyPair()
+
+      // Generate a self signed certificate
+      val cert = FakeKeyStore.createSelfSignedCertificate(keyPair)
+
+      val password = "changeit"  // null passwords throw exception in 1.6 in PKCS12
+      keyStore.load(null, password.toCharArray)
+      // Don't add the private key here, instead add a public cert only.
+      keyStore.setCertificateEntry("playgeneratedtrusted", cert)
+
+      val keyManagerFactory = mock[KeyManagerFactoryWrapper]
+      val trustManagerFactory = mock[TrustManagerFactoryWrapper]
+
+      val ksc = DefaultKeyStoreConfig(storeType = None, data = None, filePath = None, password = Some(password))
+      val keyManagerConfig = DefaultKeyManagerConfig(keyStoreConfigs = Seq(ksc))
+
+      val info = DefaultSSLConfig(keyManagerConfig = Some(keyManagerConfig))
+      val builder = new ConfigSSLContextBuilder(info, keyManagerFactory, trustManagerFactory)
+
+      val privateKeys = builder.validateStoreContainsPrivateKeys(ksc, keyStore)
+      privateKeys.size must be_==(0)
+    }
+
     "validate the keystore with a weak certificate " in {
       // RSA 1024 public key
       val data = """-----BEGIN CERTIFICATE-----
@@ -283,6 +356,31 @@ class ConfigSSLContextBuilderSpec extends Specification with Mockito {
       }.must(not(throwAn[CertPathValidatorException]))
     }
 
+    "warnOnPKCS12EmptyPasswordBug returns true when a PKCS12 keystore has a null or empty password" in {
+      val keyManagerFactory = mock[KeyManagerFactoryWrapper]
+      val trustManagerFactory = mock[TrustManagerFactoryWrapper]
+
+      val ksc = DefaultKeyStoreConfig(storeType = Some("PKCS12"), data = None, filePath = None, password = None)
+      val keyManagerConfig = DefaultKeyManagerConfig(keyStoreConfigs = Seq(ksc))
+      val sslConfig = DefaultSSLConfig(keyManagerConfig = Some(keyManagerConfig))
+
+      val builder = new ConfigSSLContextBuilder(sslConfig, keyManagerFactory, trustManagerFactory)
+
+      builder.warnOnPKCS12EmptyPasswordBug(ksc) must beTrue
+    }
+
+    "warnOnPKCS12EmptyPasswordBug returns false when a PKCS12 keystore has a password" in {
+      val keyManagerFactory = mock[KeyManagerFactoryWrapper]
+      val trustManagerFactory = mock[TrustManagerFactoryWrapper]
+
+      val ksc = DefaultKeyStoreConfig(storeType = Some("PKCS12"), data = None, filePath = None, password = Some("password"))
+      val keyManagerConfig = DefaultKeyManagerConfig(keyStoreConfigs = Seq(ksc))
+      val sslConfig = DefaultSSLConfig(keyManagerConfig = Some(keyManagerConfig))
+
+      val builder = new ConfigSSLContextBuilder(sslConfig, keyManagerFactory, trustManagerFactory)
+
+      builder.warnOnPKCS12EmptyPasswordBug(ksc) must beFalse
+    }
   }
 
 }

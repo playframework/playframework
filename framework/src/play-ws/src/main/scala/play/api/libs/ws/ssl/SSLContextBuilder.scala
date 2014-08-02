@@ -8,7 +8,6 @@ import java.security._
 import java.security.cert._
 import java.io._
 import java.net.URL
-import play.api.libs.ws.ssl.AlgorithmConstraint
 
 trait SSLContextBuilder {
   def build(): SSLContext
@@ -183,10 +182,55 @@ class ConfigSSLContextBuilder(info: SSLConfig,
   }
 
   /**
+   * Returns true if the keystore should throw an exception as a result of the JSSE bug 6879539, false otherwise.
+   */
+  def warnOnPKCS12EmptyPasswordBug(ksc: KeyStoreConfig): Boolean = {
+    ksc.storeType.map(_.toLowerCase) match {
+      case Some("pkcs12") =>
+        val isNoneOrEmpty = !ksc.password.exists(!_.isEmpty)
+        if (isNoneOrEmpty) {
+          val msg =
+            """WARNING: You are running JDK 1.6, and have a PKCS12 keystore with a null or empty password.
+              |There is a high probability that you may run into a JSSE bug which throws an exception saying
+              |"/ by zero". The bug is closed in JDK 1.8, and backported to 1.7u4 / b13.
+              |Please see: http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6879539
+            """.stripMargin
+          logger.warn(msg)
+          true
+        } else {
+          false
+        }
+      case _ =>
+        false
+    }
+  }
+
+  /**
    * Builds a key manager from a keystore, using the KeyManagerFactory.
    */
   def buildKeyManager(ksc: KeyStoreConfig, algorithmChecker: AlgorithmChecker): X509KeyManager = {
-    val keyStore = keyStoreBuilder(ksc).build()
+    // Earlier versions of JSSE had issues building a PKCS12 store with a null or blank password, see
+    // http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6879539
+    val willExplodeOnEmptyPassword = foldVersion(run16 = warnOnPKCS12EmptyPasswordBug(ksc), runHigher = false)
+
+    val keyStore = try {
+      keyStoreBuilder(ksc).build()
+    } catch {
+      case e: java.lang.ArithmeticException =>
+        if (willExplodeOnEmptyPassword) {
+          val msg = "PKCS12 keystore could not be loaded due to JSSE bug 6879539."
+          //logger.error(msg, e)
+          throw new IllegalStateException(msg, e)
+        } else {
+          throw e
+        }
+    }
+
+    val privateKeys = validateStoreContainsPrivateKeys(ksc, keyStore)
+    if (privateKeys.size == 0) {
+      logger.error(s"No private keys found for key manager in store: ${ksc.filePath}")
+    }
+
     validateStore(keyStore, algorithmChecker)
 
     val password = ksc.password.map(_.toCharArray)
@@ -301,12 +345,35 @@ class ConfigSSLContextBuilder(info: SSLConfig,
   }
 
   /**
+   * Validates that a key store (as opposed to a trust store) contains private keys for client authentication.
+   */
+  def validateStoreContainsPrivateKeys(ksc: KeyStoreConfig, keyStore: KeyStore): Seq[PrivateKey] = {
+    // Is there actually a private key being stored in this key store?
+    val password = ksc.password.map(_.toCharArray).orNull
+    import scala.collection.JavaConverters._
+    val privateKeyList = collection.mutable.MutableList[PrivateKey]()
+    for (keyAlias <- keyStore.aliases().asScala) {
+      val key = keyStore.getKey(keyAlias, password)
+      key match {
+        case privateKey: PrivateKey =>
+          logger.debug(s"validateStoreContainsPrivateKeys: private key found for alias $keyAlias")
+          privateKeyList += privateKey
+
+        case otherKey =>
+          val msg = s"validateStoreContainsPrivateKeys: No private key found for alias $keyAlias, it cannot be used for client authentication"
+          logger.warn(msg)
+      }
+    }
+    privateKeyList
+  }
+
+  /**
    * Tests each trusted certificate in the store, and warns if the certificate is not valid.  Does not throw
    * exceptions.
    */
   def validateStore(store: KeyStore, algorithmChecker: AlgorithmChecker) {
     import scala.collection.JavaConverters._
-    logger.debug(s"validateKeyStore: type = ${store.getType}, size = ${store.size}")
+    logger.debug(s"validateStore: type = ${store.getType}, size = ${store.size}")
 
     store.aliases().asScala.foreach {
       alias =>
@@ -316,10 +383,10 @@ class ConfigSSLContextBuilder(info: SSLConfig,
               algorithmChecker.checkKeyAlgorithms(c)
             } catch {
               case e: CertPathValidatorException =>
-                logger.warn(s"validateKeyStore: Skipping certificate with weak key size in $alias: " + e.getMessage)
+                logger.warn(s"validateStore: Skipping certificate with weak key size in $alias: " + e.getMessage)
                 store.deleteEntry(alias)
               case e: Exception =>
-                logger.warn(s"validateKeyStore: Skipping unknown exception $alias: " + e.getMessage)
+                logger.warn(s"validateStore: Skipping unknown exception $alias: " + e.getMessage)
                 store.deleteEntry(alias)
             }
         }
