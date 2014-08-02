@@ -132,26 +132,10 @@ val data = getDataStream
 val dataContent: Enumerator[Array[Byte]] = Enumerator.fromStream(data)
 ```
 
-We can now stream these data using a `ChunkedResult`:
+We can now stream these data using a `Ok.chunked`:
 
 ```scala
 def index = Action {
-
-  val data = getDataStream
-  val dataContent: Enumerator[Array[Byte]] = Enumerator.fromStream(data)
-  
-  ChunkedResult(
-    header = ResponseHeader(200),
-    chunks = dataContent
-  )
-}
-```
-
-As always, there are helpers available to do this:
-
-```scala
-def index = Action {
-
   val data = getDataStream
   val dataContent: Enumerator[Array[Byte]] = Enumerator.fromStream(data)
   
