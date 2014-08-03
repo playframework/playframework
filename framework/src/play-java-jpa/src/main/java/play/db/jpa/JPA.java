@@ -27,18 +27,15 @@ public class JPA {
             throw new RuntimeException("No application running");
         }
 
-        JPAPlugin jpaPlugin = app.plugin(JPAPlugin.class);
-        if(jpaPlugin == null) {
-            throw new RuntimeException("No JPA EntityManagerFactory configured for name [" + key + "]");
-        }
+        JPAApi jpaApi = app.injector().instanceOf(JPAApi.class);
 
-        EntityManager em = jpaPlugin.em(key);
+        EntityManager em = jpaApi.em(key);
         if(em == null) {
             throw new RuntimeException("No JPA EntityManagerFactory configured for name [" + key + "]");
         }
 
         return em;
-    } 
+    }
 
     /**
      * Get the default EntityManager for this thread.
