@@ -97,6 +97,11 @@
 * **Repository:** <http://www.joergviola.de/releases/>
 * **Short description** Simplifies writing functional test using Page Driver classes.
 
+## FolderMessages plugin
+
+* **Website:** <https://github.com/germanosin/play-foldermessages>
+* **Short Description:** Allows you to split localization messages files into separate manageable files.
+
 ## Flyway plugin
 
 * **Website:** <https://github.com/tototoshi/play-flyway>
