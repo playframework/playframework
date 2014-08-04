@@ -261,6 +261,13 @@ includeFilter in (Assets, LessKeys.less) := "*.less"
 excludeFilter in (Assets, LessKeys.less) := "_*.less"
 ```
 
+If you're using Build.scala, you also need to import the Assets and LessKeys symbols (not necessary with build.sbt): 
+
+```scala
+import com.typesafe.sbt.less.Import.LessKeys
+import com.typesafe.sbt.web.Import.Assets
+```
+
 Unlike Play 2.2, the sbt-less plugin allows any user to download the original LESS source file and generated source maps. It allows easier debugging in modern web browsers. This feature is enabled even in production mode.
 
 The plugin's options are:
