@@ -671,6 +671,21 @@ UUID              | No                   | No   | No   | No               | No  
 
 Optional column can be parsed as `Option[T]`, as soon as `T` is supported.
 
+Binary data types are also supported.
+
+↓JDBC / JVM➞            | Array[Byte] | InputStream<sup>1</sup>
+----------------------- | ----------- | -----------------------
+Array[Byte]             | Yes         | Yes
+Blob<sup>2</sup>        | Yes         | Yes
+Clob<sup>3</sup>        | No          | No
+InputStream<sup>4</sup> | Yes         | Yes
+Reader<sup>5</sup>      | No          | No
+
+- 1. Type `java.io.InputStream`.
+- 2. Type `java.sql.Blob`.
+- 3. Type `java.sql.Clob`.
+- 4. Type `java.io.Reader`.
+
 CLOBs/TEXTs can be extracted as so:
 
 ```scala

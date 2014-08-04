@@ -1,12 +1,14 @@
 package anorm
 
+import java.io.{ ByteArrayInputStream, InputStream }
 import java.sql.{ Array => SqlArray }
-import javax.sql.rowset.serial.SerialClob
+import javax.sql.rowset.serial.{ SerialBlob, SerialClob }
 import java.math.BigInteger
 
 import acolyte.jdbc.{ QueryResult, ImmutableArray }
 import acolyte.jdbc.RowLists.{
   bigDecimalList,
+  binaryList,
   booleanList,
   byteList,
   dateList,
@@ -17,6 +19,7 @@ import acolyte.jdbc.RowLists.{
   longList,
   rowList1,
   shortList,
+  streamList,
   timeList,
   timestampList
 }
@@ -31,8 +34,92 @@ object ColumnSpec extends org.specs2.mutable.Specification {
   val bd = new java.math.BigDecimal("34.5679")
   val bi = new java.math.BigInteger("1234")
   val clob = new SerialClob(Array[Char]('a', 'b', 'c', 'd', 'e', 'f'))
+  val bindata = Array[Byte](1, 2, 3, 5)
+  lazy val binstream = new ByteArrayInputStream(bindata)
 
-  "Column mapped as Char" should {
+  "Column mapping as bytes array" should {
+    "be parsed from bytes array" in withQueryResult(binaryList :+ bindata) {
+      implicit con =>
+        SQL("SELECT a").as(scalar[Array[Byte]].single).
+          aka("parsed bytes") must_== bindata
+    }
+
+    "be parsed from binary stream" in withQueryResult(
+      streamList :+ new ByteArrayInputStream(bindata)) { implicit con =>
+        SQL("SELECT a").as(scalar[Array[Byte]].single).
+          aka("parsed bytes") must_== bindata
+      }
+
+    "be parsed from blob" in withQueryResult(
+      rowList1(classOf[SerialBlob]) :+ new SerialBlob(bindata)) {
+        implicit con =>
+          SQL("SELECT a").as(scalar[Array[Byte]].single).
+            aka("parsed bytes") must_== bindata
+      }
+
+    "be parsed from string" in withQueryResult(stringList :+ "strbytes") {
+      implicit con =>
+        SQL("SELECT a").as(scalar[Array[Byte]].single).
+          aka("parsed bytes") must_== "strbytes".getBytes
+    }
+
+    "have convinence mapping function" in withQueryResult(
+      binaryList.withLabel(1, "bin") :+ bindata) { implicit con =>
+
+        SQL("SELECT bin").as(SqlParser.byteArray("bin").single).
+          aka("parsed bytes") must_== bindata
+      }
+  }
+
+  "Column mapping as binary stream" should {
+    def withBytes[T](in: InputStream)(f: Array[Byte] => T): T =
+      f(scala.io.Source.fromInputStream(in).mkString.getBytes)
+
+    "be parsed from bytes array" in withQueryResult(binaryList :+ bindata) {
+      implicit con =>
+        SQL("SELECT a").as(scalar[InputStream].single).
+          aka("parsed stream") must beLike {
+            case stream => withBytes(stream)(_ aka "content" must_== bindata)
+          }
+    }
+
+    "be parsed from binary stream" in withQueryResult(
+      streamList :+ new ByteArrayInputStream(bindata)) { implicit con =>
+        SQL("SELECT a").as(scalar[InputStream].single).
+          aka("parsed stream") must beLike {
+            case stream => withBytes(stream)(_ aka "content" must_== bindata)
+          }
+      }
+
+    "be parsed from blob" in withQueryResult(
+      rowList1(classOf[SerialBlob]) :+ new SerialBlob(bindata)) {
+        implicit con =>
+          SQL("SELECT a").as(scalar[InputStream].single).
+            aka("parsed stream") must beLike {
+              case stream => withBytes(stream)(_ aka "content" must_== bindata)
+            }
+      }
+
+    "be parsed from string" in withQueryResult(stringList :+ "strbytes") {
+      implicit con =>
+        SQL("SELECT a").as(scalar[InputStream].single).
+          aka("parsed stream") must beLike {
+            case stream =>
+              withBytes(stream)(_ aka "content" must_== "strbytes".getBytes)
+          }
+    }
+
+    "have convinence mapping function" in withQueryResult(
+      streamList.withLabel(1, "bin") :+ binstream) { implicit con =>
+
+        SQL("SELECT bin").as(SqlParser.binaryStream("bin").single).
+          aka("parsed stream") must beLike {
+            case stream => withBytes(stream)(_ aka "content" must_== bindata)
+          }
+      }
+  }
+
+  "Column mapped as character" should {
     "be parsed from string" in withQueryResult(stringList :+ "abc") {
       implicit con =>
         SQL("SELECT c").as(scalar[Char].single) aka "parsed char" must_== 'a'
@@ -54,7 +141,7 @@ object ColumnSpec extends org.specs2.mutable.Specification {
       rowList1(classOf[java.math.BigInteger]) :+ bi) { implicit con =>
         SQL("SELECT bd").as(scalar[Long].single).
           aka("parsed long") must_== 1234l
-    }
+      }
 
     "be parsed from long" in withQueryResult(longList :+ 23l) { implicit con =>
       SQL("SELECT l").as(scalar[Long].single) aka "parsed long" must_== 23l
@@ -77,8 +164,8 @@ object ColumnSpec extends org.specs2.mutable.Specification {
     "have convinence mapping function" in withQueryResult(
       longList.withLabel(1, "l") :+ 7l) { implicit con =>
 
-      SQL("SELECT l").as(long("l").single) aka "parsed long" must_== 7l
-    }
+        SQL("SELECT l").as(long("l").single) aka "parsed long" must_== 7l
+      }
   }
 
   "Column mapped as integer" should {
@@ -92,7 +179,7 @@ object ColumnSpec extends org.specs2.mutable.Specification {
       rowList1(classOf[java.math.BigInteger]) :+ bi) { implicit con =>
         SQL("SELECT bd").as(scalar[Int].single).
           aka("parsed integer") must_== 1234l
-    }
+      }
 
     "be parsed from long" in withQueryResult(longList :+ 23l) { implicit con =>
       SQL("SELECT l").as(scalar[Int].single) aka "parsed integer" must_== 23
@@ -115,8 +202,8 @@ object ColumnSpec extends org.specs2.mutable.Specification {
     "have convinence mapping function" in withQueryResult(
       rowList1(classOf[Int] -> "i") :+ 6) { implicit con =>
 
-      SQL("SELECT i").as(int("i").single) aka "parsed integer" must_== 6
-    }
+        SQL("SELECT i").as(int("i").single) aka "parsed integer" must_== 6
+      }
   }
 
   "Column mapped as short" should {
@@ -149,7 +236,7 @@ object ColumnSpec extends org.specs2.mutable.Specification {
 
         SQL("SELECT s").as(short("s").single).
           aka("parsed short") must_== 6.toShort
-    }
+      }
   }
 
   "Column mapped as byte" should {
@@ -438,26 +525,26 @@ object ColumnSpec extends org.specs2.mutable.Specification {
     "be parsed from array" in withQueryResult(
       rowList1(classOf[SqlArray]) :+ array) { implicit con =>
 
-      SQL"SELECT a".as(scalar[Array[String]].single).
-        aka("parsed array") mustEqual Array("aB", "Cd", "EF")
-    }
+        SQL"SELECT a".as(scalar[Array[String]].single).
+          aka("parsed array") mustEqual Array("aB", "Cd", "EF")
+      }
 
     "not be parsed from array with invalid component type" in withQueryResult(
       rowList1(classOf[SqlArray]) :+ acolyte.jdbc.ImmutableArray.getInstance(
-        classOf[java.sql.Date], Array(new java.sql.Date(1l), 
+        classOf[java.sql.Date], Array(new java.sql.Date(1l),
           new java.sql.Date(2l)))) { implicit con =>
 
-      SQL"SELECT a".as(scalar[Array[String]].single).
-        aka("parsing") must throwA[Exception](message = 
-          "TypeDoesNotMatch\\(Cannot convert ImmutableArray")
+        SQL"SELECT a".as(scalar[Array[String]].single).
+          aka("parsing") must throwA[Exception](message =
+            "TypeDoesNotMatch\\(Cannot convert ImmutableArray")
 
-    }
+      }
 
     "not be parsed from float" in withQueryResult(floatList :+ 2f) {
       implicit con =>
-      SQL"SELECT a".as(scalar[Array[String]].single).
-        aka("parsing") must throwA[Exception](message =
-          "TypeDoesNotMatch\\(Cannot convert.* to array")
+        SQL"SELECT a".as(scalar[Array[String]].single).
+          aka("parsing") must throwA[Exception](message =
+            "TypeDoesNotMatch\\(Cannot convert.* to array")
     }
 
     "be parsed from array with integer to big integer convertion" in {
@@ -478,26 +565,26 @@ object ColumnSpec extends org.specs2.mutable.Specification {
     "be parsed from array" in withQueryResult(
       rowList1(classOf[SqlArray]) :+ array) { implicit con =>
 
-      SQL"SELECT a".as(scalar[List[String]].single).
-        aka("parsed list") mustEqual List("aB", "Cd", "EF")
-    }
+        SQL"SELECT a".as(scalar[List[String]].single).
+          aka("parsed list") mustEqual List("aB", "Cd", "EF")
+      }
 
     "not be parsed from array with invalid component type" in withQueryResult(
       rowList1(classOf[SqlArray]) :+ acolyte.jdbc.ImmutableArray.getInstance(
-        classOf[java.sql.Date], Array(new java.sql.Date(1l), 
+        classOf[java.sql.Date], Array(new java.sql.Date(1l),
           new java.sql.Date(2l)))) { implicit con =>
 
-      SQL"SELECT a".as(scalar[List[String]].single).
-        aka("parsing") must throwA[Exception](message = 
-          "TypeDoesNotMatch\\(Cannot convert ImmutableArray")
+        SQL"SELECT a".as(scalar[List[String]].single).
+          aka("parsing") must throwA[Exception](message =
+            "TypeDoesNotMatch\\(Cannot convert ImmutableArray")
 
-    }
+      }
 
     "not be parsed from float" in withQueryResult(floatList :+ 2f) {
       implicit con =>
-      SQL"SELECT a".as(scalar[List[String]].single).
-        aka("parsing") must throwA[Exception](message =
-          "TypeDoesNotMatch\\(Cannot convert.* to list")
+        SQL"SELECT a".as(scalar[List[String]].single).
+          aka("parsing") must throwA[Exception](message =
+            "TypeDoesNotMatch\\(Cannot convert.* to list")
     }
 
     "be parsed from array with integer to big integer convertion" in {
