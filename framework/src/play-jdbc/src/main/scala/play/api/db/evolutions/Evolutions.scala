@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
  */
 package play.api.db.evolutions
 
@@ -30,7 +30,7 @@ import scala.io.Codec
  * @param sql_up the SQL statements for UP application
  * @param sql_down the SQL statements for DOWN application
  */
-private[evolutions] case class Evolution(revision: Int, sql_up: String = "", sql_down: String = "") {
+case class Evolution(revision: Int, sql_up: String = "", sql_down: String = "") {
 
   /**
    * Revision hash, automatically computed from the SQL content.
@@ -42,7 +42,7 @@ private[evolutions] case class Evolution(revision: Int, sql_up: String = "", sql
 /**
  * A Script to run on the database.
  */
-private[evolutions] trait Script {
+trait Script {
 
   /**
    * Original evolution.
@@ -71,7 +71,7 @@ private[evolutions] trait Script {
  * @param evolution the original evolution
  * @param sql the SQL to be run
  */
-private[evolutions] case class UpScript(evolution: Evolution, sql: String) extends Script
+case class UpScript(evolution: Evolution, sql: String) extends Script
 
 /**
  * A DOWN Script to run on the database.
@@ -79,7 +79,7 @@ private[evolutions] case class UpScript(evolution: Evolution, sql: String) exten
  * @param evolution the original evolution
  * @param sql the SQL to be run
  */
-private[evolutions] case class DownScript(evolution: Evolution, sql: String) extends Script
+case class DownScript(evolution: Evolution, sql: String) extends Script
 
 /**
  * Evolutions API.
@@ -96,7 +96,7 @@ trait EvolutionsApi {
    * @param db the database name
    * @return evolution scripts
    */
-  def evolutionScript(db: String): Seq[Product with Serializable with Script]
+  def evolutionScript(db: String): Seq[Script]
 
   /**
    * Applies a script to the database.
@@ -116,7 +116,12 @@ trait EvolutionsApi {
 }
 
 @Singleton
-class DefaultEvolutionsApi @Inject() (config: EvolutionsConfig, environment: Environment, dbApi: DBApi, webCommands: WebCommands) extends EvolutionsApi with HandleWebCommandSupport {
+class DefaultEvolutionsApi @Inject() (
+    config: EvolutionsConfig,
+    environment: Environment,
+    dynamicEvolutions: DynamicEvolutions,
+    dbApi: DBApi,
+    webCommands: WebCommands) extends EvolutionsApi with HandleWebCommandSupport {
 
   /**
    * Updates a local (file-based) evolution script.
@@ -330,7 +335,7 @@ class DefaultEvolutionsApi @Inject() (config: EvolutionsConfig, environment: Env
    * @param db the database name
    * @return evolution scripts
    */
-  def evolutionScript(db: String): Seq[Product with Serializable with Script] = {
+  def evolutionScript(db: String): Seq[Script] = {
     val application = applicationEvolutions(db)
 
     Option(application).filterNot(_.isEmpty).map {
@@ -439,6 +444,9 @@ class DefaultEvolutionsApi @Inject() (config: EvolutionsConfig, environment: Env
    */
   private def start(): Unit = {
     import Evolutions.toHumanReadableScript
+
+    // allow db modules to write evolution files
+    dynamicEvolutions.create()
 
     dbApi.datasources.foreach {
       case (ds, db) => {
@@ -566,7 +574,6 @@ class DefaultEvolutionsApi @Inject() (config: EvolutionsConfig, environment: Env
   start() // on construction
 }
 
-
 /**
  * Defines Evolutions utilities functions.
  */
@@ -647,11 +654,10 @@ trait EvolutionsConfig {
 }
 
 case class DefaultEvolutionsConfig(
-  autocommit: Boolean,
-  useLocks: Boolean,
-  enabledEvolutions: Set[String],
-  enabledDownEvolutions: Set[String]
-) extends EvolutionsConfig {
+    autocommit: Boolean,
+    useLocks: Boolean,
+    enabledEvolutions: Set[String],
+    enabledDownEvolutions: Set[String]) extends EvolutionsConfig {
   def applyEvolutions(db: String): Boolean = enabledEvolutions(db)
   def applyDownEvolutions(db: String): Boolean = enabledDownEvolutions(db)
 }
@@ -681,12 +687,20 @@ class DefaultEvolutionsConfigParser @Inject() (configuration: Configuration) ext
 }
 
 /**
+ * Default implementation for optional dynamic evolutions.
+ */
+@Singleton
+class DynamicEvolutions {
+  def create(): Unit = ()
+}
+
+/**
  * Default module for evolutions API.
  */
 @Singleton
 class EvolutionsModule extends Module {
   def bindings(environment: Environment, configuration: Configuration) = {
-    if (configuration.underlying.getBoolean("play.modules.evolutions.enabled")) {
+    if (configuration.underlying.getBoolean("play.modules.db.evolutions.enabled")) {
       Seq(
         bind[EvolutionsApi].to[DefaultEvolutionsApi].eagerly,
         bind[EvolutionsConfig].toProvider[DefaultEvolutionsConfigParser].in[Singleton]
@@ -703,11 +717,12 @@ class EvolutionsModule extends Module {
 trait EvolutionsComponents {
   def environment: Environment
   def configuration: Configuration
+  def dynamicEvolutions: DynamicEvolutions
   def dbApi: DBApi
   def webCommands: WebCommands
 
   lazy val evolutionsConfig: EvolutionsConfig = new DefaultEvolutionsConfigParser(configuration).parse
-  lazy val evolutionsApi: EvolutionsApi = new DefaultEvolutionsApi(evolutionsConfig, environment, dbApi, webCommands)
+  lazy val evolutionsApi: EvolutionsApi = new DefaultEvolutionsApi(evolutionsConfig, environment, dynamicEvolutions, dbApi, webCommands)
 }
 
 /**
@@ -722,6 +737,7 @@ object OfflineEvolutions {
       val environment = Environment(appPath, classloader, Mode.Dev)
       val configuration = Configuration.load(appPath)
       val applicationLifecycle = new DefaultApplicationLifecycle
+      val dynamicEvolutions = new DynamicEvolutions
       val webCommands = new DefaultWebCommands
     } with BoneCPComponents with EvolutionsComponents
     components.evolutionsApi

@@ -24,7 +24,7 @@ import scala.util.control.{ NonFatal, ControlThrowable }
  */
 trait DBApi {
 
-  val datasources: List[(DataSource, String)]
+  def datasources: List[(DataSource, String)]
 
   /**
    * Shutdown pool for given datasource
@@ -190,13 +190,16 @@ object DB {
 /**
  * The database configuration.
  */
-case class DBConfig(configuration: Configuration)
+case class DBConfig(configuration: Configuration, moduleConfiguration: Configuration)
 
 /**
  * A provider that creates a DBConfig from the play.api.Configuration.
  */
 class DefaultDBConfig @Inject() (configuration: Configuration) extends Provider[DBConfig] {
-  def get = DBConfig(configuration.getConfig("db").getOrElse(Configuration.empty))
+  def get = DBConfig(
+    configuration.getConfig("db").getOrElse(Configuration.empty),
+    configuration.getConfig("play.modules.db").getOrElse(Configuration.empty)
+  )
 }
 
 /**
@@ -232,22 +235,31 @@ class BoneCPApi @Inject() (dbConfig: DBConfig, environment: Environment, lifecyc
 
   val configuration: Configuration = dbConfig.configuration
 
+  private lazy val (dsList, dsMap, drivers): (List[(DataSource, String)], Map[String, DataSource], Set[Driver]) = setupDatasources(configuration.subKeys.toList, Nil, Map.empty, Set.empty)
+
+  def datasources = dsList
+
   /**
    * Reads the configuration and connects to every data source.
    */
   private def start(): Unit = {
-    // Try to connect to each, this should be the first access to dbApi
-    datasources map { ds =>
-      try {
-        ds._1.getConnection.close()
-        environment.mode match {
-          case Mode.Test =>
-          case mode => Play.logger.info(s"database [${ds._2}] connected at ${dbURL(ds._1.getConnection)}")
-        }
-      } catch {
-        case NonFatal(e) => {
-          throw configuration.reportError(s"${ds._2}.url",
-            s"Cannot connect to database [${ds._2}]", Some(e.getCause))
+    if (dbConfig.moduleConfiguration.underlying.getBoolean("bonecp.enabled")) {
+      lifecycle.addStopHook { () =>
+        Future.successful(stop())
+      }
+      // Try to connect to each, this should be the first access to dbApi
+      datasources map { ds =>
+        try {
+          ds._1.getConnection.close()
+          environment.mode match {
+            case Mode.Test =>
+            case mode => Play.logger.info(s"database [${ds._2}] connected at ${dbURL(ds._1.getConnection)}")
+          }
+        } catch {
+          case NonFatal(e) => {
+            throw configuration.reportError(s"${ds._2}.url",
+              s"Cannot connect to database [${ds._2}]", Some(e.getCause))
+          }
         }
       }
     }
@@ -407,10 +419,6 @@ class BoneCPApi @Inject() (dbConfig: DBConfig, environment: Environment, lifecyc
     case _ => (datasources, dsMap, drivers)
   }
 
-  private val (dsList, dsMap, drivers): (List[(DataSource, String)], Map[String, DataSource], Set[Driver]) = setupDatasources(configuration.subKeys.toList, Nil, Map.empty, Set.empty)
-
-  val datasources = dsList
-
   def shutdownPool(ds: DataSource) = ds match {
     case bcp: BoneCPDataSource => bcp.close()
     case _ => error(" - could not recognize DataSource, therefore unable to shutdown this pool")
@@ -438,10 +446,6 @@ class BoneCPApi @Inject() (dbConfig: DBConfig, environment: Environment, lifecyc
       } catch { case NonFatal(_) => }
     }
     deregisterAll()
-  }
-
-  lifecycle.addStopHook { () =>
-    Future.successful(stop())
   }
 
   start() // connect on construction

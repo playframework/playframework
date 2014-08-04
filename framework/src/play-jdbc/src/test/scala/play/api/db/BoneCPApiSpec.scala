@@ -54,6 +54,7 @@ object BoneCPApiSpec extends Specification with DefaultAwaitTimeout with FutureA
       acolyte.jdbc.CompositeHandler.empty()) // Fake driver
 
     val dbConfig = new DefaultDBConfig(Configuration.from(Map(
+      "play.modules.db.bonecp.enabled" -> true,
       "db.default.driver" -> "acolyte.jdbc.Driver",
       "db.default.url" -> jdbcUrl))
     ).get
