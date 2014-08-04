@@ -566,7 +566,6 @@ class DefaultEvolutionsApi @Inject() (config: EvolutionsConfig, environment: Env
   start() // on construction
 }
 
-
 /**
  * Defines Evolutions utilities functions.
  */
@@ -647,11 +646,10 @@ trait EvolutionsConfig {
 }
 
 case class DefaultEvolutionsConfig(
-  autocommit: Boolean,
-  useLocks: Boolean,
-  enabledEvolutions: Set[String],
-  enabledDownEvolutions: Set[String]
-) extends EvolutionsConfig {
+    autocommit: Boolean,
+    useLocks: Boolean,
+    enabledEvolutions: Set[String],
+    enabledDownEvolutions: Set[String]) extends EvolutionsConfig {
   def applyEvolutions(db: String): Boolean = enabledEvolutions(db)
   def applyDownEvolutions(db: String): Boolean = enabledDownEvolutions(db)
 }
