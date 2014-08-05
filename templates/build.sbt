@@ -8,7 +8,7 @@ val coffeescriptVersion = propOrElse("coffeescript.version", "1.0.0")
 
 val lessVersion = propOrElse("less.version", "1.0.0")
 
-val jshintVersion = propOrElse("jshint.version", "1.0.0")
+val jshintVersion = propOrElse("jshint.version", "1.0.1")
 
 val digestVersion = propOrElse("digest.version", "1.0.0")
 
@@ -63,5 +63,3 @@ templateParameters := Map(
   "TEMPLATE_NAME_SUFFIX" -> templateNameSuffix,
   "TEMPLATE_TITLE_SUFFIX" -> templateTitleSuffix
 )
-
-
