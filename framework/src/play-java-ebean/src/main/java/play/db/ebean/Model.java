@@ -24,7 +24,6 @@ import com.avaje.ebean.EbeanServer;
 import com.avaje.ebean.Filter;
 import com.avaje.ebean.QueryResultVisitor;
 
-import play.Play;
 import play.libs.F.*;
 import static play.libs.F.*;
 
@@ -35,9 +34,21 @@ import org.springframework.beans.*;
  */
 @javax.persistence.MappedSuperclass
 public class Model {
-    
+
+    // -- Workaround for accessing ebean configuration during model initialisation
+
+    private static volatile String defaultServer = null;
+
+    public static String defaultServer() {
+        return defaultServer;
+    }
+
+    public static void setDefaultServer(String server) {
+        defaultServer = server;
+    }
+
     // -- Magic to dynamically access the @Id property
-    
+
     @javax.persistence.Transient
     private Tuple<Method,Method> _idGetSet;
     
@@ -228,9 +239,9 @@ public class Model {
          * Creates a finder for entity of type <code>T</code> with ID of type <code>I</code>.
          */
         public Finder(Class<I> idType, Class<T> type) {
-            this(Play.application().plugin(EbeanPlugin.class).defaultServer(), idType, type);
+            this(Model.defaultServer(), idType, type);
         }
-        
+
         /**
           * Creates a finder for entity of type <code>T</code> with ID of type <code>I</code>, using a specific Ebean server.
           */

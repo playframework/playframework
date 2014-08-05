@@ -56,4 +56,47 @@ public class Classpath {
         }
     }
 
+    /**
+     * Scans the environment classloader to retrieve all types within a specific package.
+     * <p>
+     * This method is useful for some plug-ins, for example the EBean plugin will automatically detect all types
+     * within the models package.
+     * <p>
+     * Note that it is better to specify a very specific package to avoid expensive searches.
+     *
+     * @param packageName the root package to scan
+     * @return a set of types names satisfying the condition
+     */
+    public static Set<String> getTypes(Environment env, String packageName) {
+        return getReflections(env, packageName).getStore().get(TypesScanner.class).keySet();
+    }
+
+    /**
+     * Scans the environment classloader to retrieve all types annotated with a specific annotation.
+     * <p>
+     * This method is useful for some plug-ins, for example the EBean plugin will automatically detect all types
+     * annotated with <code>@javax.persistance.Entity</code>.
+     * <p>
+     * Note that it is better to specify a very specific package to avoid expensive searches.
+     *
+     * @param packageName the root package to scan
+     * @param annotation annotation class
+     * @return a set of types names statifying the condition
+     */
+    public static Set<String> getTypesAnnotatedWith(Environment env, String packageName, Class<? extends java.lang.annotation.Annotation> annotation) {
+        return getReflections(env, packageName).getStore().getTypesAnnotatedWith(annotation.getName());
+    }
+
+    private static Reflections getReflections(Environment env, String packageName) {
+        if (env.isTest()) {
+            return ReflectionsCache$.MODULE$.getReflections(env.classLoader(), packageName);
+        } else {
+            return new Reflections(
+                new ConfigurationBuilder()
+                    .addUrls(ClasspathHelper.forPackage(packageName, env.classLoader()))
+                    .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(packageName + ".")))
+                    .setScanners(new TypesScanner(), new TypeAnnotationsScanner()));
+        }
+    }
+
 }

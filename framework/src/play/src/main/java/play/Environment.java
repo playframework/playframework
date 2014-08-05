@@ -53,6 +53,27 @@ public class Environment {
     }
 
     /**
+     * Returns `true` if the application is `DEV` mode.
+     */
+    public boolean isDev() {
+        return mode().equals(Mode.DEV);
+    }
+
+    /**
+     * Returns `true` if the application is `PROD` mode.
+     */
+    public boolean isProd() {
+        return mode().equals(Mode.PROD);
+    }
+
+    /**
+     * Returns `true` if the application is `TEST` mode.
+     */
+    public boolean isTest() {
+        return mode().equals(Mode.TEST);
+    }
+
+    /**
      * Retrieves a file relative to the application root path.
      *
      * @param relativePath relative path of the file to fetch
