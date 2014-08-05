@@ -43,7 +43,7 @@ trait PlayRunners {
    * Executes a block of code in a running application.
    */
   def running[T](app: Application)(block: => T): T = {
-    synchronized {
+    TestHelpersMutex.synchronized {
       try {
         Play.start(app)
         block
@@ -57,7 +57,7 @@ trait PlayRunners {
    * Executes a block of code in a running server.
    */
   def running[T](testServer: TestServer)(block: => T): T = {
-    synchronized {
+    TestHelpersMutex.synchronized {
       try {
         testServer.start()
         block
@@ -79,7 +79,7 @@ trait PlayRunners {
    */
   def running[T](testServer: TestServer, webDriver: WebDriver)(block: TestBrowser => T): T = {
     var browser: TestBrowser = null
-    synchronized {
+    TestHelpersMutex.synchronized {
       try {
         testServer.start()
         browser = TestBrowser(webDriver, None)
@@ -361,6 +361,8 @@ trait ResultExtractors {
    */
   def headers(of: Future[Result])(implicit timeout: Timeout): Map[String, String] = Await.result(of, timeout.duration).header.headers
 }
+
+private object TestHelpersMutex
 
 object Helpers extends PlayRunners
   with HeaderNames

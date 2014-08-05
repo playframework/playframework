@@ -3,14 +3,18 @@
  */
 package javaguide.cache;
 
-import org.junit.Before;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
-import play.cache.Cache;
+import play.cache.CacheApi;
 import play.cache.Cached;
 import play.mvc.*;
+import play.test.FakeApplication;
 import play.test.WithApplication;
 
 import javaguide.testhelpers.MockJavaAction;
+
+import java.util.Arrays;
+import java.util.concurrent.Callable;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
@@ -18,26 +22,52 @@ import static play.test.Helpers.*;
 
 public class JavaCache extends WithApplication {
 
+    @Override
+    protected FakeApplication provideFakeApplication() {
+        return fakeApplication(ImmutableMap.of("play.modules.cache.bindCaches", Arrays.asList("session-cache")));
+    }
+
     public class News {}
 
     @Test
+    public void inject() {
+        // Check that we can instantiate it
+        app.getWrappedApplication().injector().instanceOf(javaguide.cache.inject.Application.class);
+        // Check that we can instantiate the qualified one
+        app.getWrappedApplication().injector().instanceOf(javaguide.cache.qualified.Application.class);
+    }
+
+    @Test
     public void simple() {
+        CacheApi cache = app.getWrappedApplication().injector().instanceOf(CacheApi.class);
+
         News frontPageNews = new News();
         //#simple-set
-        Cache.set("item.key", frontPageNews);
+        cache.set("item.key", frontPageNews);
         //#simple-set
         //#time-set
         // Cache for 15 minutes
-        Cache.set("item.key", frontPageNews, 60 * 15);
+        cache.set("item.key", frontPageNews, 60 * 15);
         //#time-set
         //#get
-        News news = (News) Cache.get("item.key");
+        News news = cache.get("item.key");
         //#get
         assertThat(news, equalTo(frontPageNews));
+        //#get-or-else
+        News maybeCached = cache.getOrElse("item.key", new Callable<News>() {
+            public News call() {
+                return lookUpFrontPageNews();
+            }
+        });
+        //#get-or-else
         //#remove
-        Cache.remove("item.key");
+        cache.remove("item.key");
         //#remove
-        assertThat(Cache.get("item.key"), nullValue());
+        assertThat(cache.get("item.key"), nullValue());
+    }
+
+    private News lookUpFrontPageNews() {
+        return new News();
     }
 
     public static class Controller1 extends MockJavaAction {
@@ -51,9 +81,11 @@ public class JavaCache extends WithApplication {
 
     @Test
     public void http() {
+        CacheApi cache = app.getWrappedApplication().injector().instanceOf(CacheApi.class);
+
         assertThat(contentAsString(MockJavaAction.call(new Controller1(), fakeRequest())), equalTo("Hello world"));
-        assertThat(Cache.get("homePage"), notNullValue());
-        Cache.set("homePage", Results.ok("something else"));
+        assertThat(cache.get("homePage"), notNullValue());
+        cache.set("homePage", Results.ok("something else"));
         assertThat(contentAsString(MockJavaAction.call(new Controller1(), fakeRequest())), equalTo("something else"));
     }
 }

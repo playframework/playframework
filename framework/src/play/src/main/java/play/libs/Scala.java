@@ -3,7 +3,10 @@
  */
 package play.libs;
 
+import scala.runtime.AbstractFunction0;
+
 import java.util.*;
+import java.util.concurrent.Callable;
 
 /**
  * Class that contains useful java &lt;-&gt; scala conversion helpers.
@@ -44,7 +47,27 @@ public class Scala {
         return play.utils.Conversions.newMap(
                 scala.collection.JavaConverters.mapAsScalaMapConverter(javaMap).asScala().toSeq()
                 );
-    } 
+    }
+
+    /**
+     * Converts a Java Callable to a Scala Function0.
+     */
+    public static <A> scala.Function0<A> asScala(final Callable<A> callable) {
+        return new AbstractFunction0<A>() {
+            @Override
+            public A apply() {
+                try {
+                    return callable.call();
+                } catch (RuntimeException e) {
+                    throw e;
+                } catch (Error e) {
+                    throw e;
+                } catch (Throwable t) {
+                    throw new RuntimeException(t);
+                }
+            }
+        };
+    }
 
     /**
      * Converts a Scala List to Java.
@@ -109,6 +132,13 @@ public class Scala {
      */
     public static <A,B> scala.collection.immutable.Map<A,B> emptyMap() {
         return new scala.collection.immutable.HashMap<A,B>();
+    }
+
+    /**
+     * Returns an any ClassTag typed according to the Java compiler as C.
+     */
+    public static <C> scala.reflect.ClassTag<C> classTag() {
+        return (scala.reflect.ClassTag<C>) scala.reflect.ClassTag$.MODULE$.Any();
     }
 
 }

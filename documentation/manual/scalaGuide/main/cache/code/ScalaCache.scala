@@ -9,7 +9,6 @@ import org.specs2.runner.JUnitRunner
 
 import play.api.Play.current
 import play.api.test._
-import play.api.cache.{Cached, Cache}
 import play.api.mvc._
 import play.api.libs.json.Json
 import scala.concurrent.Future
@@ -19,39 +18,68 @@ import org.specs2.execute.AsResult
 @RunWith(classOf[JUnitRunner])
 class ScalaCacheSpec extends PlaySpecification with Controller {
 
+  import play.api.cache.CacheApi
+  import play.api.cache.Cached
+
+  def withCache[T](block: CacheApi => T) = {
+    val app = FakeApplication()
+    running(app)(block(app.injector.instanceOf[CacheApi]))
+  }
+
   "A scala Cache" should {
 
-    "a cache" in {
-      running(FakeApplication()) {
-        val connectedUser = User("xf")
-        //#set-value
-        Cache.set("item.key", connectedUser)
-        //#set-value
-
-        //#get-value
-        val maybeUser: Option[User] = Cache.getAs[User]("item.key")
-        //#get-value
-
-        maybeUser must beSome(connectedUser)
-
-        //#remove-value
-        Cache.remove("item.key")
-        //#remove-value
-        Cache.getAs[User]("item.key") must beNone
-
+    "be injectable" in {
+      val app = FakeApplication()
+      running(app) {
+        app.injector.instanceOf[inject.Application]
+        ok
       }
     }
 
+    "a cache" in withCache { cache =>
+      val connectedUser = User("xf")
+      //#set-value
+      cache.set("item.key", connectedUser)
+      //#set-value
 
-    "a cache or get user" in {
-      running(FakeApplication()) {
-        val connectedUser = "xf"
-        //#retrieve-missing
-        val user: User = Cache.getOrElse[User]("item.key") {
-          User.findById(connectedUser)
-        }
-        //#retrieve-missing
-        user must beEqualTo(User(connectedUser))
+      //#get-value
+      val maybeUser: Option[User] = cache.get[User]("item.key")
+      //#get-value
+
+      maybeUser must beSome(connectedUser)
+
+      //#remove-value
+      cache.remove("item.key")
+      //#remove-value
+      cache.get[User]("item.key") must beNone
+    }
+
+
+    "a cache or get user" in withCache { cache =>
+      val connectedUser = "xf"
+      //#retrieve-missing
+      val user: User = cache.getOrElse[User]("item.key") {
+        User.findById(connectedUser)
+      }
+      //#retrieve-missing
+      user must beEqualTo(User(connectedUser))
+    }
+
+    "cache with expiry" in withCache { cache =>
+      val connectedUser = "xf"
+      //#set-value-expiration
+      import scala.concurrent.duration._
+
+      cache.set("item.key", connectedUser, 5.minutes)
+      //#set-value-expiration
+      ok
+    }
+
+    "bind multiple" in {
+      val app = FakeApplication(additionalConfiguration = Map("play.modules.cache.bindCaches" -> Seq("session-cache")))
+      running(app) {
+        app.injector.instanceOf[qualified.Application]
+        ok
       }
     }
 
@@ -162,6 +190,32 @@ object html {
   }
 }
 
+}
+
+package inject {
+//#inject
+import play.api.cache._
+import play.api.mvc._
+import javax.inject.Inject
+
+class Application @Inject() (cache: CacheApi) extends Controller {
+
+}
+//#inject
+}
+
+package qualified {
+//#qualified
+import play.api.cache._
+import play.api.mvc._
+import javax.inject.Inject
+
+class Application @Inject()(
+    @NamedCache("session-cache") sessionCache: CacheApi
+) extends Controller {
+
+}
+//#qualified
 }
 
 

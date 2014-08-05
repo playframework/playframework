@@ -1,7 +1,11 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # The Play cache API
 
-The default implementation of the Cache API uses [EHCache](http://ehcache.org/). You can also provide your own implementation via a plug-in.
+Caching data is a typical optimization in modern applications, and so Play provides a global cache. An important point about the cache is that it behaves just like a cache should: the data you just stored may just go missing.
+
+For any data stored in the cache, a regeneration strategy needs to be put in place in case the data goes missing. This philosophy is one of the fundamentals behind Play, and is different from Java EE, where the session is expected to retain values throughout its lifetime. 
+
+The default implementation of the Cache API uses [EHCache](http://ehcache.org/).
 
 ## Importing the Cache API
 
@@ -16,14 +20,15 @@ libraryDependencies ++= Seq(
 
 ## Accessing the Cache API
 
-The cache API is provided by the `play.api.cache.Cache` object. It requires a registered cache plug-in.
+The cache API is provided by the [CacheApi](api/scala/index.html#play.api.cache.CacheApi) object, and can be injected into your component like any other dependency.  For example:
 
-> **Note:** The API is intentionally minimal to allow several implementation to be plugged. If you need a more specific API, use the one provided by your Cache plugin.
+@[inject](code/ScalaCache.scala)
+
+> **Note:** The API is intentionally minimal to allow several implementation to be plugged in. If you need a more specific API, use the one provided by your Cache plugin.
 
 Using this simple API you can either store data in cache:
 
 @[set-value](code/ScalaCache.scala)
-
 
 And then retrieve it later:
 
@@ -33,11 +38,25 @@ There is also a convenient helper to retrieve from cache or set the value in cac
 
 @[retrieve-missing](code/ScalaCache.scala)
 
+You can specify an expiry duration by passing a duration, by default the duration is infinite:
+
+@[set-value-expiration](code/ScalaCache.scala)
 
 To remove an item from the cache use the `remove` method:
 
 @[remove-value](code/ScalaCache.scala)
 
+## Accessing different caches
+
+It is possible to access different caches.  The default cache is called `play`, and can be configured by creating a file called `ehcache.xml`.  Additional caches may be configured with different configurations, or even implementations.
+
+If you want to access multiple different ehcache caches, then you'll need to tell Play to bind them in `application.conf`, like so:
+
+    play.modules.cache.bindCaches = ["db-cache", "user-cache", "session-cache"]
+
+Now to access these different caches, when you inject them, use the [NamedCache](api/java/play/cache/NamedCache.html) qualifier on your dependency, for example:
+
+@[qualified](code/ScalaCache.scala)
 
 ## Caching HTTP responses
 
@@ -65,5 +84,13 @@ You may want to only cache 200 Ok results.
 Or cache 404 Not Found only for a couple of minutes
 
 @[cached-action-control-404](code/ScalaCache.scala)
+
+## Custom implementations
+
+It is possible to provide a custom implementation of the [CacheApi](api/scala/index.html#play.api.cache.CacheApi) that either replaces, or sits along side the default implementation.
+
+To replace the default implementation, you'll need to disable the default implementation by setting `play.modules.cache.enabled` to `false` in `application.conf`.  Then simply implement CacheApi and bind it in the DI container.
+
+To provide an implementation of the cache API in addition to the default implementation, you can either create a custom qualifier, or reuse the `NamedCache` qualifier to bind the implementation.
 
 > **Next:** [[Calling web services | ScalaWS]]

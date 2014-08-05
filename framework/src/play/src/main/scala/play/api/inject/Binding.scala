@@ -6,6 +6,7 @@ package play.api.inject
 import java.lang.annotation.Annotation
 import javax.inject.{ Named, Provider }
 import com.google.inject.internal.util.$SourceProvider
+import com.google.inject.name.Names
 
 import scala.language.existentials
 import scala.reflect.ClassTag
@@ -146,7 +147,7 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
    * In the above example, the controller will get the cached `Foo` service.
    */
   def qualifiedWith(name: String): BindingKey[T] =
-    qualifiedWith(new NamedImpl(name))
+    qualifiedWith(new play.inject.NamedImpl(name))
 
   /**
    * Bind this binding key to the given implementation class.
@@ -261,27 +262,6 @@ final case class QualifierInstance[T <: Annotation](instance: T) extends Qualifi
  * A qualifier annotation class.
  */
 final case class QualifierClass[T <: Annotation](clazz: Class[T]) extends QualifierAnnotation
-
-/**
- * An implementation of the [[javax.inject.Named]] annotation.
- *
- * This allows bindings qualified by name.
- */
-@SerialVersionUID(0)
-private class NamedImpl(val value: String) extends Named with Serializable {
-
-  // This is specified in java.lang.Annotation.
-  override def hashCode: Int = (127 * "value".hashCode) ^ value.hashCode
-
-  override def equals(obj: Any) = obj match {
-    case named: Named => value == named.value
-    case _ => false
-  }
-
-  override def toString: String = s"@${classOf[Named].getName}(value=$value)"
-
-  def annotationType = classOf[Named]
-}
 
 private object SourceLocator {
   // SourceProvider is an internal Guice API, not intended to be used as we are using it here. If they change/remove it, we

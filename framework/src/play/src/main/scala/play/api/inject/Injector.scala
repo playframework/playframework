@@ -26,6 +26,11 @@ trait Injector {
    * Get an instance of the given class from the injector.
    */
   def instanceOf[T](clazz: Class[T]): T
+
+  /**
+   * Get an instance bound to the given binding key.
+   */
+  def instanceOf[T](key: BindingKey[T]): T
 }
 
 /**
@@ -42,4 +47,9 @@ object NewInstanceInjector extends Injector {
    * Get an instance of the given class from the injector.
    */
   def instanceOf[T](clazz: Class[T]) = clazz.newInstance()
+
+  /**
+   * Get an instance bound to the given binding key.
+   */
+  def instanceOf[T](key: BindingKey[T]) = instanceOf(key.clazz)
 }

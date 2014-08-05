@@ -1,5 +1,7 @@
 package play.api.cache
 
+import javax.inject._
+
 import play.api.test._
 import java.util.concurrent.atomic.AtomicInteger
 import play.api.mvc.{Results, Action}
@@ -11,6 +13,8 @@ import scala.util.Random
 import org.joda.time.DateTime
 
 class CachedSpec extends PlaySpecification {
+
+  sequential
 
   "the cached action" should {
     "cache values" in new WithApplication() {
@@ -139,4 +143,21 @@ class CachedSpec extends PlaySpecification {
     }
   }
 
+  "EhCacheModule" should {
+    "support binding multiple different caches" in new WithApplication(FakeApplication(
+      additionalConfiguration = Map("play.modules.cache.bindCaches" -> Seq("custom"))
+    )) {
+      val component = app.injector.instanceOf[SomeComponent]
+      val defaultCache = app.injector.instanceOf[CacheApi]
+      component.set("foo", "bar")
+      defaultCache.get("foo") must beNone
+      component.get("foo") must beSome("bar")
+    }
+  }
+
+}
+
+class SomeComponent @Inject() (@NamedCache("custom") cache: CacheApi) {
+  def get(key: String) = cache.get[String](key)
+  def set(key: String, value: String) = cache.set(key, value)
 }

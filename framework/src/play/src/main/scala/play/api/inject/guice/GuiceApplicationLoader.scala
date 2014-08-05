@@ -63,12 +63,12 @@ class GuiceApplicationLoader extends ApplicationLoader {
       def configure(): Unit = {
         for (b <- bindings) {
           val binding = b.asInstanceOf[PlayBinding[Any]]
-          val builder = binder().withSource(binding).bind(bindingKeyToGuice(binding.key))
+          val builder = binder().withSource(binding).bind(GuiceKey.toGuice(binding.key))
           binding.target.foreach {
             case ProviderTarget(provider) => builder.toProvider(Providers.guicify(provider))
             case ProviderConstructionTarget(provider) => builder.toProvider(provider)
             case ConstructionTarget(implementation) => builder.to(implementation)
-            case BindingKeyTarget(key) => builder.to(bindingKeyToGuice(key))
+            case BindingKeyTarget(key) => builder.to(GuiceKey.toGuice(key))
           }
           (binding.scope, binding.eager) match {
             case (Some(scope), false) => builder.in(scope)
@@ -81,7 +81,10 @@ class GuiceApplicationLoader extends ApplicationLoader {
     }
   }
 
-  private def bindingKeyToGuice[T](key: BindingKey[T]): Key[T] = {
+}
+
+object GuiceKey {
+  def toGuice[T](key: BindingKey[T]): Key[T] = {
     key.qualifier match {
       case Some(QualifierInstance(instance)) => Key.get(key.clazz, instance)
       case Some(QualifierClass(clazz)) => Key.get(key.clazz, clazz)
@@ -100,4 +103,9 @@ private[play] class GuiceInjector @Inject() (injector: Injector) extends PlayInj
    * Get an instance of the given class from the injector.
    */
   def instanceOf[T](clazz: Class[T]) = injector.getInstance(clazz)
+
+  /**
+   * Get an instance bound to the given binding key.
+   */
+  def instanceOf[T](key: BindingKey[T]) = injector.getInstance(GuiceKey.toGuice(key))
 }
