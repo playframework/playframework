@@ -13,6 +13,8 @@ import java.util.Date
 
 import java.sql.{ SQLFeatureNotSupportedException, Timestamp }
 
+import scala.collection.immutable.SortedSet
+
 import acolyte.jdbc.{
   DefinedParameter => DParam,
   ParameterMetaData,
@@ -133,9 +135,29 @@ object ParameterSpec extends org.specs2.mutable.Specification {
       DParam("str", SqlStr) :: Nil) => 1 /* ok */
     case UpdateExecution("set-not-assigned ?",
       DParam(null, _) :: Nil) => 1 /* ok */
+    case UpdateExecution("set-list ?, ?, ?",
+      DParam(1, SqlInt) :: DParam(3, SqlInt) :: DParam(7, _) :: Nil) => 1 // ok
     case UpdateExecution("set-seq ?, ?, ?",
       DParam("a", _) :: DParam("b", _) :: DParam("c", _) :: Nil) => 1 /* ok */
+    case UpdateExecution("set-set ?, ?, ?",
+      DParam(1, SqlInt) :: DParam(3, SqlInt) :: DParam(7, _) :: Nil) => 1 // ok
+    case UpdateExecution("set-sortedset ?, ?, ?",
+      DParam("a", _) :: DParam("b", _) :: DParam("c", _) :: Nil) => 1 /* ok */
+    case UpdateExecution("set-stream ?, ?, ?",
+      DParam(1, SqlInt) :: DParam(3, SqlInt) :: DParam(7, _) :: Nil) => 1 // ok
+    case UpdateExecution("set-vector ?, ?, ?",
+      DParam("a", _) :: DParam("b", _) :: DParam("c", _) :: Nil) => 1 /* ok */
+    case UpdateExecution("set-null-list ?",
+      DParam(null, SqlInt) :: Nil) => 1 /* ok */
     case UpdateExecution("set-null-seq ?",
+      DParam(null, SqlStr) :: Nil) => 1 /* ok */
+    case UpdateExecution("set-null-set ?",
+      DParam(null, SqlInt) :: Nil) => 1 /* ok */
+    case UpdateExecution("set-null-sortedset ?",
+      DParam(null, SqlStr) :: Nil) => 1 /* ok */
+    case UpdateExecution("set-null-stream ?",
+      DParam(null, SqlInt) :: Nil) => 1 /* ok */
+    case UpdateExecution("set-null-vector ?",
       DParam(null, SqlStr) :: Nil) => 1 /* ok */
     case UpdateExecution("set-seqp cat = ? OR cat = ? OR cat = ?",
       DParam(1.2f, _) :: DParam(23.4f, _) :: DParam(5.6f, _) :: Nil) => 1 // ok
@@ -501,20 +523,106 @@ object ParameterSpec extends org.specs2.mutable.Specification {
 
     }
 
-    "be multi-value" in withConnection() { implicit c =>
-      SQL("set-seq {seq}").
-        on('seq -> Seq("a", "b", "c")) aka "query" must beLike {
-          case q @ SimpleSql(
-            SqlQuery("set-seq %s", "seq" :: Nil, _), ps, _) if (
-            ps.size == 1 && ps.contains("seq")) =>
-            q.execute() aka "execution" must beFalse
-        }
+    "for multi-value without null" >> {
+      "accept List" in withConnection() { implicit c =>
+        SQL("set-list {list}").on('list -> List(1, 3, 7)).
+          aka("query") must beLike {
+            case q @ SimpleSql(
+              SqlQuery("set-list %s", "list" :: Nil, _), ps, _) if (
+              ps.size == 1 && ps.contains("list")) =>
+              q.execute() aka "execution" must beFalse
+          }
+      }
+
+      "accept Seq" in withConnection() { implicit c =>
+        SQL("set-seq {seq}").
+          on('seq -> Seq("a", "b", "c")) aka "query" must beLike {
+            case q @ SimpleSql(
+              SqlQuery("set-seq %s", "seq" :: Nil, _), ps, _) if (
+              ps.size == 1 && ps.contains("seq")) =>
+              q.execute() aka "execution" must beFalse
+          }
+      }
+
+      "accept Set" in withConnection() { implicit c =>
+        SQL("set-set {set}").on('set -> Set(1, 3, 7)).
+          aka("query") must beLike {
+            case q @ SimpleSql(
+              SqlQuery("set-set %s", "set" :: Nil, _), ps, _) if (
+              ps.size == 1 && ps.contains("set")) =>
+              q.execute() aka "execution" must beFalse
+          }
+      }
+
+      "accept SortedSet" in withConnection() { implicit c =>
+        SQL("set-sortedset {sortedset}").
+          on('sortedset -> SortedSet("a", "b", "c")) aka "query" must beLike {
+            case q @ SimpleSql(
+              SqlQuery("set-sortedset %s", "sortedset" :: Nil, _), ps, _) if (
+              ps.size == 1 && ps.contains("sortedset")) =>
+              q.execute() aka "execution" must beFalse
+          }
+      }
+
+      "accept Stream" in withConnection() { implicit c =>
+        SQL("set-set {set}").on('set -> Stream(1, 3, 7)).
+          aka("query") must beLike {
+            case q @ SimpleSql(
+              SqlQuery("set-set %s", "set" :: Nil, _), ps, _) if (
+              ps.size == 1 && ps.contains("set")) =>
+              q.execute() aka "execution" must beFalse
+          }
+      }
+
+      "accept Vector" in withConnection() { implicit c =>
+        SQL("set-vector {vector}").
+          on('vector -> Vector("a", "b", "c")) aka "query" must beLike {
+            case q @ SimpleSql(
+              SqlQuery("set-vector %s", "vector" :: Nil, _), ps, _) if (
+              ps.size == 1 && ps.contains("vector")) =>
+              q.execute() aka "execution" must beFalse
+          }
+      }
     }
 
-    "refuse null multi-value" in withConnection() { implicit c =>
-      SQL("set-null-seq {seq}").on('seq -> null.asInstanceOf[Seq[String]]).
-        aka("parameter conversion") must throwA[IllegalArgumentException]
+    "refuse multi-value" >> {
+      "for List" in withConnection() { implicit c =>
+        SQL("set-null-seq {list}").on('list -> null.asInstanceOf[List[String]]).
+          aka("parameter conversion") must throwA[IllegalArgumentException]
 
+      }
+
+      "for Seq" in withConnection() { implicit c =>
+        SQL("set-null-seq {seq}").on('seq -> null.asInstanceOf[Seq[String]]).
+          aka("parameter conversion") must throwA[IllegalArgumentException]
+
+      }
+
+      "for Set" in withConnection() { implicit c =>
+        SQL("set-null-seq {set}").on('set -> null.asInstanceOf[Set[String]]).
+          aka("parameter conversion") must throwA[IllegalArgumentException]
+
+      }
+
+      "for SortedSet" in withConnection() { implicit c =>
+        SQL("sortedSet-null-seq {sortedSet}").on('sortedSet -> null.asInstanceOf[SortedSet[String]]).
+          aka("parameter conversion") must throwA[IllegalArgumentException]
+
+      }
+
+      "for Stream" in withConnection() { implicit c =>
+        SQL("stream-null-seq {stream}").on(
+          'stream -> null.asInstanceOf[Stream[String]]).
+          aka("parameter conversion") must throwA[IllegalArgumentException]
+
+      }
+
+      "for Vector" in withConnection() { implicit c =>
+        SQL("vector-null-seq {vector}").on(
+          'vector -> null.asInstanceOf[Vector[String]]).
+          aka("parameter conversion") must throwA[IllegalArgumentException]
+
+      }
     }
 
     "set formatted value from sequence" in withConnection() { implicit c =>
@@ -528,14 +636,24 @@ object ParameterSpec extends org.specs2.mutable.Specification {
         }
     }
 
-    "set formatted value from sequence with string interpolation" in withConnection() { implicit c =>
-      SQL"""set-seqp ${SeqParameter(Seq(1.2f, 23.4f, 5.6f), " OR ", "cat = ")}""".
-        aka("query") must beLike {
+    "for multi-value in string interpolation" >> {
+      "accept custom formatting" in withConnection() { implicit c =>
+        SQL"""set-seqp ${SeqParameter(Seq(1.2f, 23.4f, 5.6f), " OR ", "cat = ")}""" aka "query" must beLike {
           case q @ SimpleSql(
             SqlQuery("set-seqp %s", "_0" :: Nil, _), ps, _) if (
             ps.size == 1 && ps.contains("_0")) =>
             q.execute() aka "execution" must beFalse
         }
+      }
+
+      "accept Seq" in withConnection() { implicit c =>
+        SQL"""set-seq ${Seq("a", "b", "c")}""" aka "query" must beLike {
+          case q @ SimpleSql(
+            SqlQuery("set-seq %s", "_0" :: Nil, _), ps, _) if (
+            ps.size == 1 && ps.contains("_0")) =>
+            q.execute() aka "execution" must beFalse
+        }
+      }
     }
   }
 

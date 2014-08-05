@@ -254,8 +254,23 @@ OR EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name='c')
 */
 ```
 
-> Currently, only `Seq[T]` and `SeqParameter[T]` are supported as parameters.
-> For multi-value with visible type other than that (e.g. `List[T]`), you have to will have to pass it as one of support type (e.g. `val param: NamedParameter = ("p" -> myListOfT: Seq[T])`).
+On purpose multi-value parameter must strictly be declared with one of supported types (`List`, 'Seq`, `Set`, `SortedSet`, `Stream`, `Vector`  and `SeqParameter`). Value of a subtype must be passed as parameter with supported:
+
+```scala
+val seq = IndexedSeq("a", "b", "c")
+// seq is instance of Seq with inferred type IndexedSeq[String]
+
+// Wrong
+SQL"SELECT * FROM Test WHERE cat in ($seq)"
+// Erroneous - No parameter conversion for IndexedSeq[T]
+
+// Right
+SQL"SELECT * FROM Test WHERE cat in (${seq: Seq[String]})"
+
+// Right
+val param: Seq[String] = seq
+SQL"SELECT * FROM Test WHERE cat in ($param)"
+```
 
 A column can also be multi-value if its type is JDBC array (`java.sql.Array`), then it can be mapped to either array or list (`Array[T]` or `List[T]`), provided type of element (`T`) is also supported in column mapping.
 
@@ -734,23 +749,28 @@ implicit def columnToBoolean: Column[Boolean] =
 
 The following table indicates how JVM types are mapped to JDBC parameter types:
 
-JVM                     | JDBC                                                  | Nullable
-------------------------|-------------------------------------------------------|----------
-Char<sup>1</sup>/String | String                                                | Yes
-BigDecimal<sup>2</sup>  | BigDecimal                                            | Yes
-BigInteger<sup>3</sup>  | BigDecimal                                            | Yes
-Boolean<sup>4</sup>     | Boolean                                               | Yes
-Byte<sup>5</sup>        | Byte                                                  | Yes
-Date/Timestamp          | Timestamp                                             | Yes
-Double<sup>6</sup>      | Double                                                | Yes
-Float<sup>7</sup>       | Float                                                 | Yes
-Int<sup>8</sup>         | Int                                                   | Yes
-Long<sup>9</sup>        | Long                                                  | Yes
-Object<sup>10</sup>     | Object                                                | Yes
-Option[T]               | Object for `None`, mapping for `Some[T]`              | No
-Seq[T]                  | Array, with `T` mapping for each element<sup>11</sup> | No
-Short<sup>12</sup>      | Short                                                 | Yes
-UUID                    | String<sup>13</sup>                                   | No
+JVM                       | JDBC                                                  | Nullable
+--------------------------|-------------------------------------------------------|----------
+Char<sup>1</sup>/String   | String                                                | Yes
+BigDecimal<sup>2</sup>    | BigDecimal                                            | Yes
+BigInteger<sup>3</sup>    | BigDecimal                                            | Yes
+Boolean<sup>4</sup>       | Boolean                                               | Yes
+Byte<sup>5</sup>          | Byte                                                  | Yes
+Date/Timestamp            | Timestamp                                             | Yes
+Double<sup>6</sup>        | Double                                                | Yes
+Float<sup>7</sup>         | Float                                                 | Yes
+Int<sup>8</sup>           | Int                                                   | Yes
+List[T]                   | Multi-value<sup>11</sup>, with `T` mapping for each element | No
+Long<sup>9</sup>          | Long                                                  | Yes
+Object<sup>10</sup>       | Object                                                | Yes
+Option[T]                 | Object for `None`, mapping for `Some[T]`              | No
+Seq[T]                    | Multi-value, with `T` mapping for each element        | No
+Set[T]<sup>12</sup>       | Multi-value, with `T` mapping for each element        | No
+Short<sup>13</sup>        | Short                                                 | Yes
+SortedSet[T]<sup>14</sup> | Multi-value, with `T` mapping for each element        | No
+Stream[T]                 | Multi-value, with `T` mapping for each element        | No
+UUID                      | String<sup>15</sup>                                   | No
+Vector                    | Multi-value, with `T` mapping for each element        | No
 
 - 1. Types `Char` and `java.lang.Character`.
 - 2. Types `java.math.BigDecimal` and `scala.math.BigDecimal`.
@@ -763,8 +783,10 @@ UUID                    | String<sup>13</sup>                                   
 - 9. Types `Long` and `java.lang.Long`.
 - 10. Type `anorm.Object`, wrapping opaque object.
 - 11. Multi-value parameter, with one JDBC placeholder (`?`) added for each element.
-- 12. Types `Short` and `java.lang.Short`.
-- 13. Not-null value extracted using `.toString`.
+- 12. Type `scala.collection.immutable.Set`.
+- 13. Types `Short` and `java.lang.Short`.
+- 14. Type `scala.collection.immutable.SortedSet`.
+- 15. Not-null value extracted using `.toString`.
 
 Custom or specific DB conversion for parameter can also be provided:
 
