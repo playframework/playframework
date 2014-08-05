@@ -490,7 +490,7 @@ object RoutesCompiler {
         |import play.core.Router._
         |import play.core.Router.HandlerInvokerFactory._
         |import play.core.j._
-        |
+        |import play.api.i18n.Lang
         |import play.api.mvc._
         |%s
         |
@@ -829,7 +829,12 @@ object RoutesCompiler {
               """
                               |%s
                               |class Reverse%s {
-                              |
+                              |  private def getLanguagePart(lang : Lang) : String = {
+                              |    val defaultLanguage = helpers.Configuration.getDefaultLanguage
+                              |    if(lang.language!=defaultLanguage) {
+                              |      s"${lang.language}/" 
+                              |    } else ""
+                              |  }
                               |%s
                               |
                               |}
@@ -871,10 +876,10 @@ object RoutesCompiler {
                         case Some(default) => " = " + default
                       }.getOrElse("")
                     }).mkString(", ")
-
+                   
                     def genCall(route: Route, localNames: Map[String, String] = Map()) = """Call("%s", %s%s)""".format(
                       route.verb.value,
-                      "_prefix" + { if (route.path.parts.isEmpty) "" else """ + { _defaultPrefix } + """ } + route.path.parts.map {
+                      "_prefix" + { if (route.path.parts.isEmpty) "" else """ + { _defaultPrefix } + getLanguagePart(lang) + """ } +  route.path.parts.map {
                         case StaticPart(part) => "\"" + part + "\""
                         case DynamicPart(name, _, encode) => {
                           route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
@@ -917,7 +922,7 @@ object RoutesCompiler {
                       case Seq(route: RoutesCompiler.Route) => {
                         """
                           |%s
-                          |def %s(%s): Call = {
+                          |def %s(%s)(implicit lang: Lang) : Call = {
                           |   %s
                           |   %s
                           |}
@@ -932,7 +937,7 @@ object RoutesCompiler {
                       case Seq(route: RoutesCompiler.Route, routes @ _*) => {
                         """
                                                     |%s
-                                                    |def %s(%s): Call = {
+                                                    |def %s(%s)(implicit lang: Lang) : Call = {
                                                     |   (%s) match {
                                                     |%s
                                                     |   }
