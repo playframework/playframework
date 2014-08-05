@@ -47,6 +47,30 @@ class NingWSClient(config: AsyncHttpClientConfig) extends WSClient {
   def url(url: String): WSRequestHolder = NingWSRequestHolder(this, url, "GET", EmptyBody, Map(), Map(), None, None, None, None, None, None)
 }
 
+object NingWSClient {
+  /**
+   * Convenient factory method that uses a [[WSClientConfig]] value for configuration instead of an [[AsyncHttpClientConfig]].
+   *
+   * Typical usage:
+   *
+   * {{{
+   *   val client = NingWSClient()
+   *   val request = client.url(someUrl).get()
+   *   request.foreach { response =>
+   *     doSomething(response)
+   *     client.close()
+   *   }
+   * }}}
+   *
+   * @param config configuration settings
+   */
+  def apply(config: WSClientConfig = DefaultWSClientConfig()): NingWSClient = {
+    val client = new NingWSClient(new NingAsyncHttpClientConfigBuilder(config).build())
+    new SystemConfiguration().configure(config)
+    client
+  }
+}
+
 /**
  * A WS Request.
  */
@@ -507,9 +531,6 @@ class WSClientProvider @Inject() (wsApi: WSAPI) extends Provider[WSClient] {
 class NingWSAPI @Inject() (environment: Environment, clientConfig: WSClientConfig, lifecycle: ApplicationLifecycle) extends WSAPI {
 
   lazy val client = {
-    val asyncClientConfig = buildAsyncClientConfig(clientConfig)
-
-    new SystemConfiguration().configure(clientConfig)
     clientConfig.ssl.foreach {
       _.debug.foreach { debugConfig =>
         environment.mode match {
@@ -521,7 +542,7 @@ class NingWSAPI @Inject() (environment: Environment, clientConfig: WSClientConfi
       }
     }
 
-    val client = new NingWSClient(asyncClientConfig)
+    val client = NingWSClient(clientConfig)
 
     lifecycle.addStopHook { () =>
       Future.successful(client.close())
@@ -531,9 +552,6 @@ class NingWSAPI @Inject() (environment: Environment, clientConfig: WSClientConfi
 
   def url(url: String) = client.url(url)
 
-  private[play] def buildAsyncClientConfig(wsClientConfig: WSClientConfig): AsyncHttpClientConfig = {
-    new NingAsyncHttpClientConfigBuilder(wsClientConfig).build()
-  }
 }
 
 /**
