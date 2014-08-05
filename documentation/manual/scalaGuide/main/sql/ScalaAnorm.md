@@ -254,6 +254,9 @@ OR EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name='c')
 */
 ```
 
+> Currently, only `Seq[T]` and `SeqParameter[T]` are supported as parameters.
+> For multi-value with visible type other than that (e.g. `List[T]`), you have to will have to pass it as one of support type (e.g. `val param: NamedParameter = ("p" -> myListOfT: Seq[T])`).
+
 A column can also be multi-value if its type is JDBC array (`java.sql.Array`), then it can be mapped to either array or list (`Array[T]` or `List[T]`), provided type of element (`T`) is also supported in column mapping.
 
 ```scala
@@ -471,6 +474,12 @@ val count: Long =
   SQL("select count(*) from Country").as(scalar[Long].single)
 ```
 
+If expected single result is optional (0 or 1 row), then `scalar` parser can be combined with `singleOpt`:
+
+```scala
+val name: Option[String] =
+  SQL"SELECT name From Country WHERE code = $code" as scalar[String].singleOpt
+```
 
 ### Getting a single optional result
 
