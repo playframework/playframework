@@ -879,7 +879,7 @@ object RoutesCompiler {
                    
                     def genCall(route: Route, localNames: Map[String, String] = Map()) = """Call("%s", %s%s)""".format(
                       route.verb.value,
-                      "_prefix" + { if (route.path.parts.isEmpty) "" else """ + { _defaultPrefix } + getLanguagePart(lang) + """ } +  route.path.parts.map {
+                      "_prefix" + { if (route.path.parts.isEmpty) "" else """ + { _defaultPrefix }  + """ + {if(controller.replace(".", "_").contains("Assets")) ""  else """ getLanguagePart(lang) + """ } } +  route.path.parts.map {
                         case StaticPart(part) => "\"" + part + "\""
                         case DynamicPart(name, _, encode) => {
                           route.call.parameters.getOrElse(Nil).find(_.name == name).map { param =>
