@@ -3,9 +3,11 @@
  */
 package anorm
 
+import java.io.{ ByteArrayInputStream, InputStream }
 import java.math.{ BigDecimal => JBigDec, BigInteger }
-
 import java.util.{ Date, UUID }
+
+import resource.managed
 
 /** Column mapping */
 trait Column[A] extends ((Any, MetaDataItem) => MayErr[SqlRequestError, A])
@@ -39,6 +41,29 @@ object Column {
     }
 
   /**
+   * Column conversion to bytes array.
+   *
+   * {{{
+   * import anorm.SqlParser.scalar
+   * import anorm.Column.columnToByteArray
+   *
+   * val bytes: Array[Byte] = SQL("SELECT bin FROM tbl").
+   *   as(scalar[Array[Byte]].single)
+   * }}}
+   */
+  implicit val columnToByteArray: Column[Array[Byte]] =
+    nonNull[Array[Byte]] { (value, meta) =>
+      val MetaDataItem(qualified, nullable, clazz) = meta
+      value match {
+        case bytes: Array[Byte] => Right(bytes)
+        case stream: InputStream => streamBytes(stream)
+        case string: String => Right(string.getBytes)
+        case blob: java.sql.Blob => streamBytes(blob.getBinaryStream)
+        case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to bytes array for column $qualified"))
+      }
+    }
+
+  /**
    * Column conversion to character.
    *
    * {{{
@@ -68,6 +93,29 @@ object Column {
       case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to Int for column $qualified"))
     }
   }
+
+  /**
+   * Column conversion to bytes array.
+   *
+   * {{{
+   * import anorm.SqlParser.scalar
+   * import anorm.Column.columnToInputStream
+   *
+   * val bytes: InputStream = SQL("SELECT bin FROM tbl").
+   *   as(scalar[InputStream].single)
+   * }}}
+   */
+  implicit val columnToInputStream: Column[InputStream] =
+    nonNull[InputStream] { (value, meta) =>
+      val MetaDataItem(qualified, nullable, clazz) = meta
+      value match {
+        case bytes: Array[Byte] => Right(new ByteArrayInputStream(bytes))
+        case stream: InputStream => Right(stream)
+        case string: String => Right(new ByteArrayInputStream(string.getBytes))
+        case blob: java.sql.Blob => Right(blob.getBinaryStream)
+        case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to input stream for column $qualified"))
+      }
+    }
 
   implicit val columnToFloat: Column[Float] = nonNull { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
@@ -312,5 +360,18 @@ object Column {
 
       case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified"))
     }
+  }
+
+  @inline private def streamBytes(in: InputStream): MayErr[SqlRequestError, Array[Byte]] = managed(in).acquireFor(streamToBytes(_)).fold({ errs =>
+    Left(SqlMappingError(errs.headOption.
+      fold("Fails to read binary stream")(_.getMessage)))
+  }, Right(_))
+
+  @annotation.tailrec
+  private def streamToBytes(in: InputStream, bytes: Array[Byte] = Array(), buffer: Array[Byte] = Array.ofDim(1024)): Array[Byte] = {
+    val count = in.read(buffer)
+
+    if (count == -1) bytes
+    else streamToBytes(in, bytes ++ buffer.take(count), buffer)
   }
 }
