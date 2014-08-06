@@ -160,7 +160,7 @@ object Dependencies {
     sbtPluginDep("com.github.mpeltonen" % "sbt-idea" % "1.5.1"),
     sbtPluginDep("com.typesafe.sbt" % "sbt-native-packager" % "0.7.4"),
 
-    sbtPluginDep("com.typesafe.sbt" % "sbt-web" % "1.1.0-RC1"),
+    sbtPluginDep("com.typesafe.sbt" % "sbt-web" % "1.1.0"),
     sbtPluginDep("com.typesafe.sbt" % "sbt-js-engine" % "1.0.1"),
     sbtPluginDep("com.typesafe.sbt" % "sbt-webdriver" % "1.0.0")
   ) ++ javassist ++ specsBuild.map(_ % Test)
