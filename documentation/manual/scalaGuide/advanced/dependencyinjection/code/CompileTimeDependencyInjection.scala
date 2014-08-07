@@ -16,7 +16,7 @@ object CompileTimeDependencyInjection extends Specification {
   "compile time dependency injection" should {
     "allow creating an application with the built in components from context" in {
       val context = ApplicationLoader.createContext(environment,
-        Map("application.loader" -> classOf[basic.MyApplicationLoader].getName)
+        Map("play.application.loader" -> classOf[basic.MyApplicationLoader].getName)
       )
       ApplicationLoader(context).load(context) must beAnInstanceOf[Application]
     }

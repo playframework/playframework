@@ -26,9 +26,9 @@ The simplest implementation of this can be provided by extending the Play [Built
 
 @[basic](code/CompileTimeDependencyInjection.scala)
 
-To configure Play to use this application loader, configure the `application.loader` property to point to the fully qualified class name in the `application.conf` file:
+To configure Play to use this application loader, configure the `play.application.loader` property to point to the fully qualified class name in the `application.conf` file:
 
-    application.loader=MyApplicationLoader
+    play.application.loader=MyApplicationLoader
     
 ## Providing a router
 

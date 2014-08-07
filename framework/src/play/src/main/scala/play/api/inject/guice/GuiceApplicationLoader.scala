@@ -35,12 +35,11 @@ class GuiceApplicationLoader extends ApplicationLoader {
     val modules = guiced(Seq(
       BindingKey(classOf[GlobalSettings]) to global,
       BindingKey(classOf[OptionalSourceMapper]) to new OptionalSourceMapper(context.sourceMapper),
-      BindingKey(classOf[WebCommands]) to context.webCommands,
-      BindingKey(classOf[PlayInjector]).to[GuiceInjector]
+      BindingKey(classOf[WebCommands]) to context.webCommands
     )) +: Modules.locate(env, configuration)
 
     try {
-      val injector = createInjector(modules, env, configuration)
+      val injector = createGuiceInjector(env, configuration, modules)
       injector.getInstance(classOf[Application])
     } catch {
       case e: CreationException => e.getCause match {
@@ -50,7 +49,11 @@ class GuiceApplicationLoader extends ApplicationLoader {
     }
   }
 
-  private[play] def createInjector(modules: Seq[Any], environment: Environment, configuration: Configuration) = {
+  override def createInjector(environment: Environment, configuration: Configuration, modules: Seq[Any]) = {
+    Some(createGuiceInjector(environment, configuration, modules).getInstance(classOf[PlayInjector]))
+  }
+
+  private def createGuiceInjector(environment: Environment, configuration: Configuration, modules: Seq[Any]) = {
     val guiceModules = modules.map {
       case playModule: PlayModule => guiced(playModule.bindings(environment, configuration))
       case guiceModule: Module => guiceModule
@@ -58,7 +61,7 @@ class GuiceApplicationLoader extends ApplicationLoader {
         "Unknown module type",
         s"Module [$unknown] is not a Play module or a Guice module"
       )
-    }
+    } :+ guiced(Seq(BindingKey(classOf[PlayInjector]).to[GuiceInjector]))
 
     import scala.collection.JavaConverters._
 

@@ -3,6 +3,7 @@
  */
 package play.api
 
+import play.api.inject.Injector
 import play.api.inject.guice.GuiceApplicationLoader
 import play.core.{ SourceMapper, WebCommands, DefaultWebCommands }
 import play.utils.{ Threads, Reflect }
@@ -28,6 +29,16 @@ trait ApplicationLoader {
    * Load an application given the context.
    */
   def load(context: ApplicationLoader.Context): Application
+
+  /**
+   * Create an injector for runtime DI.
+   *
+   * This can be used by runtime DI providers to provide an injector during testing. The injector should contain all
+   * the components specified by the modules, and should also bind itself.
+   *
+   * If this method is not implemented, FakeApplication will use a NewInstanceInjector instead.
+   */
+  def createInjector(environment: Environment, configuration: Configuration, modules: Seq[Any]): Option[Injector] = None
 }
 
 object ApplicationLoader {
@@ -48,7 +59,7 @@ object ApplicationLoader {
    * Locate and instantiate the ApplicationLoader.
    */
   def apply(context: Context): ApplicationLoader = {
-    context.initialConfiguration.getString("application.loader").fold[ApplicationLoader](new GuiceApplicationLoader) { loaderClass =>
+    context.initialConfiguration.getString("play.application.loader").fold[ApplicationLoader](new GuiceApplicationLoader) { loaderClass =>
       Reflect.createInstance[ApplicationLoader](loaderClass, context.environment.classLoader)
     }
   }

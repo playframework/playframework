@@ -4,7 +4,7 @@
 package play.api.test
 
 import play.api._
-import play.api.inject.guice.{ GuiceApplicationLoader, GuiceInjector }
+import play.api.inject.guice.GuiceApplicationLoader
 import play.api.inject._
 import play.api.mvc._
 import play.api.libs.json.JsValue
@@ -220,18 +220,24 @@ case class FakeApplication(
 
   Logger.configure(path, configuration, environment.mode)
 
-  // Load all modules, and filter out the built in module
-  private val modules = Modules.locate(environment, configuration)
-    .filterNot(_.getClass == classOf[BuiltinModule])
-  private val applicationLifecycle = new DefaultApplicationLifecycle
-  private val webCommands = new DefaultWebCommands
-  private val guiceInjector = new GuiceApplicationLoader().createInjector(
-    modules :+ new FakeBuiltinModule(environment, configuration, this, global, applicationLifecycle, webCommands),
-    environment, configuration
-  )
-  override val injector = guiceInjector.getInstance(classOf[Injector])
+  val applicationLifecycle = new DefaultApplicationLifecycle
 
-  // override def injector = playInjector
+  override val injector = {
+    // Load all modules, and filter out the built in module
+    val modules = Modules.locate(environment, configuration)
+      .filterNot(_.getClass == classOf[BuiltinModule])
+    val webCommands = new DefaultWebCommands
+
+    val loader = config.getString("play.application.loader").fold[ApplicationLoader](
+      new GuiceApplicationLoader
+    ) { className =>
+        Reflect.createInstance[ApplicationLoader](className, classloader)
+      }
+
+    loader.createInjector(environment, configuration,
+      modules :+ new FakeBuiltinModule(environment, configuration, this, global, applicationLifecycle, webCommands)
+    ).getOrElse(NewInstanceInjector)
+  }
 
   def configuration = config
 
@@ -281,8 +287,6 @@ private class FakeBuiltinModule(environment: Environment,
     bind[ApplicationLifecycle] to appLifecycle,
     bind[WebCommands] to webCommands,
     bind[OptionalSourceMapper] to new OptionalSourceMapper(None),
-    bind[play.inject.Injector].to[play.inject.DelegateInjector],
-    // todo - make this configurable based on which app locator is in use
-    bind[Injector].to[GuiceInjector]
+    bind[play.inject.Injector].to[play.inject.DelegateInjector]
   )
 }

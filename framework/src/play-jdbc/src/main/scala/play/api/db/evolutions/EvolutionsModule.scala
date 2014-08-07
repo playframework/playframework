@@ -3,8 +3,10 @@
  */
 package play.api.db.evolutions
 
+import javax.inject._
+
 import play.api.db.DBApi
-import play.api.inject.Module
+import play.api.inject.{ Injector, Module }
 import play.api.{ Configuration, Environment }
 import play.core.WebCommands
 
@@ -18,7 +20,7 @@ class EvolutionsModule extends Module {
         bind[EvolutionsConfig].toProvider[DefaultEvolutionsConfigParser],
         bind[EvolutionsReader].toSelf,
         bind[EvolutionsApi].to[DefaultEvolutionsApi],
-        bind[ApplicationEvolutions].toSelf.eagerly
+        bind[ApplicationEvolutions].toProvider[ApplicationEvolutionsProvider].eagerly
       )
     } else {
       Nil
@@ -41,3 +43,18 @@ trait EvolutionsComponents {
   lazy val evolutionsApi: EvolutionsApi = new DefaultEvolutionsApi(dbApi)
   lazy val applicationEvolutions: ApplicationEvolutions = new ApplicationEvolutions(evolutionsConfig, evolutionsReader, evolutionsApi, dynamicEvolutions, dbApi, environment, webCommands)
 }
+
+@Singleton
+class ApplicationEvolutionsProvider @Inject() (
+    config: EvolutionsConfig,
+    reader: EvolutionsReader,
+    evolutions: EvolutionsApi,
+    dbApi: DBApi,
+    environment: Environment,
+    webCommands: WebCommands,
+    injector: Injector) extends Provider[ApplicationEvolutions] {
+
+  lazy val get = new ApplicationEvolutions(config, reader, evolutions, injector.instanceOf[DynamicEvolutions], dbApi,
+    environment, webCommands)
+}
+
