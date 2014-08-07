@@ -85,6 +85,21 @@ class ReloadableApplication(buildLink: BuildLink, buildDocHandler: BuildDocHandl
     }
   }
 
+  // First delete the default log file for a fresh start (only in Dev Mode)
+  try {
+    new java.io.File(path, "logs/application.log").delete()
+  } catch {
+    case NonFatal(_) =>
+  }
+
+  // Configure the logger for the first time.
+  // This is usually done by Application itself when it's instantiated, which for other types of ApplicationProviders,
+  // is usually instantiated along with or before the provider.  But in dev mode, no application exists initially, so
+  // configure it here.
+  Logger.configure(
+    Map("application.home" -> path.getAbsolutePath),
+    mode = Mode.Dev)
+
   lazy val path = buildLink.projectPath
 
   println(play.utils.Colors.magenta("--- (Running the application from SBT, auto-reloading is enabled) ---"))
