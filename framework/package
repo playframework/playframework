@@ -9,9 +9,9 @@ DIR=`dirname "$0"`
 PUBLISH=1
 TAG=1
 CLEAN=0
-PUBLISHCMD="publish-local-signed"
+PUBLISHCMD="publish"
 GITBRANCH=`git rev-parse --abbrev-ref HEAD`
-CROSSBUILD="2.11.1"
+CROSSBUILD="2.10.4"
 
 usage() {
     echo "Usage:"
@@ -35,7 +35,7 @@ do
             ;;
         p)
             PUBLISH=0
-            PUBLISHCMD="publish-signed"
+            PUBLISHCMD="publish"
             ;;
         v)
             export PLAY_VERSION="$OPTARG"
