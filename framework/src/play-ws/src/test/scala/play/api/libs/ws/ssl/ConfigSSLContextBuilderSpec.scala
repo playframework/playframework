@@ -280,8 +280,7 @@ class ConfigSSLContextBuilderSpec extends Specification with Mockito {
 
       val info = DefaultSSLConfig(keyManagerConfig = Some(keyManagerConfig))
       val builder = new ConfigSSLContextBuilder(info, keyManagerFactory, trustManagerFactory)
-      val privateKeys = builder.validateStoreContainsPrivateKeys(ksc, keyStore)
-      privateKeys.size must be_==(1)
+      builder.validateStoreContainsPrivateKeys(ksc, keyStore) must beTrue
     }
 
     "validate a failure of the keystore without a private key" in {
@@ -312,8 +311,7 @@ class ConfigSSLContextBuilderSpec extends Specification with Mockito {
       val info = DefaultSSLConfig(keyManagerConfig = Some(keyManagerConfig))
       val builder = new ConfigSSLContextBuilder(info, keyManagerFactory, trustManagerFactory)
 
-      val privateKeys = builder.validateStoreContainsPrivateKeys(ksc, keyStore)
-      privateKeys.size must be_==(0)
+      builder.validateStoreContainsPrivateKeys(ksc, keyStore) must beFalse
     }
 
     "validate the keystore with a weak certificate " in {

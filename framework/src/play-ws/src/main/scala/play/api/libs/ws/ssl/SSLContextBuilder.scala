@@ -187,19 +187,7 @@ class ConfigSSLContextBuilder(info: SSLConfig,
   def warnOnPKCS12EmptyPasswordBug(ksc: KeyStoreConfig): Boolean = {
     ksc.storeType.map(_.toLowerCase) match {
       case Some("pkcs12") =>
-        val isNoneOrEmpty = !ksc.password.exists(!_.isEmpty)
-        if (isNoneOrEmpty) {
-          val msg =
-            """WARNING: You are running JDK 1.6, and have a PKCS12 keystore with a null or empty password.
-              |There is a high probability that you may run into a JSSE bug which throws an exception saying
-              |"/ by zero". The bug is closed in JDK 1.8, and backported to 1.7u4 / b13.
-              |Please see: http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6879539
-            """.stripMargin
-          logger.warn(msg)
-          true
-        } else {
-          false
-        }
+        !ksc.password.exists(!_.isEmpty)
       case _ =>
         false
     }
@@ -209,26 +197,32 @@ class ConfigSSLContextBuilder(info: SSLConfig,
    * Builds a key manager from a keystore, using the KeyManagerFactory.
    */
   def buildKeyManager(ksc: KeyStoreConfig, algorithmChecker: AlgorithmChecker): X509KeyManager = {
-    // Earlier versions of JSSE had issues building a PKCS12 store with a null or blank password, see
-    // http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6879539
-    val willExplodeOnEmptyPassword = foldVersion(run16 = warnOnPKCS12EmptyPasswordBug(ksc), runHigher = false)
-
     val keyStore = try {
       keyStoreBuilder(ksc).build()
     } catch {
       case e: java.lang.ArithmeticException =>
+        // This bug only exists in 1.6: we'll only check on 1.6 and explain after the exception.
+        val willExplodeOnEmptyPassword = foldVersion(run16 = warnOnPKCS12EmptyPasswordBug(ksc), runHigher = false)
         if (willExplodeOnEmptyPassword) {
-          val msg = "PKCS12 keystore could not be loaded due to JSSE bug 6879539."
-          //logger.error(msg, e)
+          val msg =
+            """You are running JDK 1.6, have a PKCS12 keystore with a null or empty password, and have run into a JSSE bug.
+              |The bug is closed in JDK 1.8, and backported to 1.7u4 / b13, so upgrading will fix this.
+              |Please see: http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6879539
+            """.stripMargin
           throw new IllegalStateException(msg, e)
         } else {
           throw e
         }
+      case bpe: javax.crypto.BadPaddingException =>
+        // http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6415637
+        // http://bugs.java.com/bugdatabase/view_bug.do?bug_id=6974037
+        // If you run into "Given final block not properly padded", then it's because you entered in the
+        // wrong password for the keystore, and JSSE tries to decrypt and only then verify the MAC.
+        throw new SecurityException("Mac verify error: invalid password?", bpe)
     }
 
-    val privateKeys = validateStoreContainsPrivateKeys(ksc, keyStore)
-    if (privateKeys.size == 0) {
-      logger.error(s"No private keys found for key manager in store: ${ksc.filePath}")
+    if (!validateStoreContainsPrivateKeys(ksc, keyStore)) {
+      logger.warn(s"Client authentication is not possible as there are no private keys found in ${ksc.filePath}")
     }
 
     validateStore(keyStore, algorithmChecker)
@@ -347,24 +341,26 @@ class ConfigSSLContextBuilder(info: SSLConfig,
   /**
    * Validates that a key store (as opposed to a trust store) contains private keys for client authentication.
    */
-  def validateStoreContainsPrivateKeys(ksc: KeyStoreConfig, keyStore: KeyStore): Seq[PrivateKey] = {
+  def validateStoreContainsPrivateKeys(ksc: KeyStoreConfig, keyStore: KeyStore): Boolean = {
+    import scala.collection.JavaConverters._
+
     // Is there actually a private key being stored in this key store?
     val password = ksc.password.map(_.toCharArray).orNull
-    import scala.collection.JavaConverters._
-    val privateKeyList = collection.mutable.MutableList[PrivateKey]()
+    var containsPrivateKeys = false
     for (keyAlias <- keyStore.aliases().asScala) {
       val key = keyStore.getKey(keyAlias, password)
       key match {
         case privateKey: PrivateKey =>
           logger.debug(s"validateStoreContainsPrivateKeys: private key found for alias $keyAlias")
-          privateKeyList += privateKey
+          containsPrivateKeys = true
 
         case otherKey =>
+          // We want to warn on every failure, as this is not the correct setup for a key store.
           val msg = s"validateStoreContainsPrivateKeys: No private key found for alias $keyAlias, it cannot be used for client authentication"
           logger.warn(msg)
       }
     }
-    privateKeyList
+    containsPrivateKeys
   }
 
   /**
