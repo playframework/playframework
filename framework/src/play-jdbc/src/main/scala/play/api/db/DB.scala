@@ -11,6 +11,7 @@ import scala.language.reflectiveCalls
 import play.api._
 import play.api.inject.{ ApplicationLifecycle, Module }
 import play.api.libs._
+import play.db.NamedDBImpl
 
 import java.sql._
 import javax.sql._
@@ -208,14 +209,22 @@ class DefaultDBConfig @Inject() (configuration: Configuration) extends Provider[
 class BoneCPModule extends Module {
   def bindings(environment: Environment, configuration: Configuration) = {
     if (configuration.underlying.getBoolean("play.modules.db.enabled")) {
+      val dbs = configuration.getConfig("db").getOrElse(Configuration.empty).subKeys
       Seq(
         bind[DBApi].to[BoneCPApi],
         bind[DBConfig].toProvider[DefaultDBConfig].in[Singleton]
-      )
+      ) ++ dbs.map { db =>
+          bind[DataSource].qualifiedWith(new NamedDBImpl(db)).to(new NamedDBProvider(db))
+        }
     } else {
       Nil
     }
   }
+}
+
+class NamedDBProvider(name: String) extends Provider[DataSource] {
+  @Inject private var dbApi: DBApi = _
+  lazy val get: DataSource = dbApi.getDataSource(name)
 }
 
 /**
