@@ -90,7 +90,7 @@ name := "my-sub-module"
 
 Common.settings
 
-libraryDependencies += fooDependency
+libraryDependencies += Common.fooDependency
 ```
 
 ## Splitting your web application into several parts
