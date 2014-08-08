@@ -52,10 +52,14 @@ trait ServerStart {
       val config = readServerConfigSettings(process)
       val serverProvider = readServerProviderSetting(process)
       // Get the party started!
-      createPidFile(process, config.rootDir)
+      val pidFile = createPidFile(process, config.rootDir)
       val appProvider = createApplicationProvider(config)
       val server = serverProvider.createServer(config, appProvider)
-      process.addShutdownHook { server.stop() }
+      process.addShutdownHook {
+        server.stop()
+        pidFile.foreach(_.delete())
+        assert(!pidFile.exists(_.exists), "PID file should not exist!")
+      }
       server
     } catch {
       case ServerStartException(message, cause) =>
@@ -130,7 +134,7 @@ trait ServerStart {
    * Create a pid file for the current process, and register a hook
    * to delete the file on process termination.
    */
-  def createPidFile(process: ServerProcess, applicationPath: File): Unit = {
+  def createPidFile(process: ServerProcess, applicationPath: File): Option[File] = {
     val pid = process.pid getOrElse (throw ServerStartException("Couldn't determine current process's pid"))
     val pidFileProperty = process.prop("pidfile.path").map(new File(_))
     val defaultPidFile = new File(applicationPath, "RUNNING_PID")
@@ -144,8 +148,10 @@ trait ServerStart {
       val out = new FileOutputStream(pidFile)
       try out.write(pid.getBytes) finally out.close()
 
-      // Delete the pid file when the process shuts down
-      process.addShutdownHook { pidFile.delete() }
+      // Return the pid file
+      Some(pidFile)
+    } else {
+      None
     }
   }
 
