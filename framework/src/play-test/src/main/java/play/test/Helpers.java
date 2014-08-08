@@ -6,6 +6,7 @@ package play.test;
 import org.openqa.selenium.WebDriver;
 import play.*;
 
+import play.api.test.PlayRunners$;
 import play.core.j.JavaResultExtractor;
 import play.mvc.*;
 import play.api.test.Helpers$;
@@ -411,12 +412,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Executes a block of code in a running application.
      */
-    public static synchronized void running(FakeApplication fakeApplication, final Runnable block) {
-        try {
-            start(fakeApplication);
-            block.run();
-        } finally {
-            stop(fakeApplication);
+    public static void running(FakeApplication fakeApplication, final Runnable block) {
+        synchronized (PlayRunners$.MODULE$.mutex()) {
+            try {
+                start(fakeApplication);
+                block.run();
+            } finally {
+                stop(fakeApplication);
+            }
         }
     }
 
@@ -466,45 +469,49 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Executes a block of code in a running server.
      */
-    public static synchronized void running(TestServer server, final Runnable block) {
-        try {
-            start(server);
-            block.run();
-        } finally {
-            stop(server);
+    public static void running(TestServer server, final Runnable block) {
+        synchronized (PlayRunners$.MODULE$.mutex()) {
+            try {
+                start(server);
+                block.run();
+            } finally {
+                stop(server);
+            }
         }
     }
 
     /**
      * Executes a block of code in a running server, with a test browser.
      */
-    public static synchronized void running(TestServer server, Class<? extends WebDriver> webDriver, final Callback<TestBrowser> block) {
+    public static void running(TestServer server, Class<? extends WebDriver> webDriver, final Callback<TestBrowser> block) {
         running(server, play.api.test.WebDriverFactory.apply(webDriver), block);
     }
 
     /**
      * Executes a block of code in a running server, with a test browser.
      */
-    public static synchronized void running(TestServer server, WebDriver webDriver, final Callback<TestBrowser> block) {
-        TestBrowser browser = null;
-        TestServer startedServer = null;
-        try {
-            start(server);
-            startedServer = server;
-            browser = testBrowser(webDriver);
-            block.invoke(browser);
-        } catch(Error e) {
-            throw e;
-        } catch(RuntimeException re) {
-            throw re;
-        } catch(Throwable t) {
-            throw new RuntimeException(t);
-        } finally {
-            if(browser != null) {
-                browser.quit();
-            }
-            if(startedServer != null) {
-                stop(startedServer);
+    public static void running(TestServer server, WebDriver webDriver, final Callback<TestBrowser> block) {
+        synchronized (PlayRunners$.MODULE$.mutex()) {
+            TestBrowser browser = null;
+            TestServer startedServer = null;
+            try {
+                start(server);
+                startedServer = server;
+                browser = testBrowser(webDriver);
+                block.invoke(browser);
+            } catch (Error e) {
+                throw e;
+            } catch (RuntimeException re) {
+                throw re;
+            } catch (Throwable t) {
+                throw new RuntimeException(t);
+            } finally {
+                if (browser != null) {
+                    browser.quit();
+                }
+                if (startedServer != null) {
+                    stop(startedServer);
+                }
             }
         }
     }
