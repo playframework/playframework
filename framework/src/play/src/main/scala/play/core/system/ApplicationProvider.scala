@@ -148,14 +148,7 @@ class ReloadableApplication(buildLink: BuildLink, buildDocHandler: BuildDocHandl
               val newApplication = Threads.withContextClassLoader(projectClassloader) {
                 val context = ApplicationLoader.createContext(environment, buildLink.settings.asScala.toMap, Some(sourceMapper), webCommands)
                 val loader = ApplicationLoader(context)
-                try {
-                  loader.load(context)
-                } catch {
-                  case e: com.google.inject.CreationException => e.getCause match {
-                    case p: PlayException => throw p
-                    case _ => throw e
-                  }
-                }
+                loader.load(context)
               }
 
               Play.start(newApplication)

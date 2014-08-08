@@ -40,7 +40,15 @@ class GuiceApplicationLoader extends ApplicationLoader {
     )) +: Modules.locate(env, configuration)
 
     val injector = createInjector(modules, env, configuration)
-    injector.getInstance(classOf[Application])
+
+    try {
+      injector.getInstance(classOf[Application])
+    } catch {
+      case e: CreationException => e.getCause match {
+        case p: PlayException => throw p
+        case _ => throw e
+      }
+    }
   }
 
   private[play] def createInjector(modules: Seq[Any], environment: Environment, configuration: Configuration) = {
