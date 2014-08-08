@@ -414,8 +414,10 @@ trait BodyParsers {
     /**
      * Don't parse the body content.
      */
-    def empty: BodyParser[Unit] = BodyParser("empty") { request =>
-      Done(Right(()), Empty)
+    def empty: BodyParser[Unit] = ignore(Unit)
+
+    def ignore[A](body: A): BodyParser[A] = BodyParser("ignore") { request =>
+      Done(Right(body), Empty)
     }
 
     // -- XML parser
@@ -540,40 +542,46 @@ trait BodyParsers {
     // -- Magic any content
 
     /**
+     * If the request is a PATCH, POST, or PUT, parse the body content by checking the Content-Type header.
+     */
+    def default: BodyParser[AnyContent] = using { request =>
+      if (request.method == HttpVerbs.PATCH || request.method == HttpVerbs.POST || request.method == HttpVerbs.PUT) {
+        anyContent
+      } else {
+        ignore(AnyContentAsEmpty)
+      }
+    }
+
+    /**
      * Guess the body content by checking the Content-Type header.
      */
     def anyContent: BodyParser[AnyContent] = BodyParser("anyContent") { request =>
       import play.api.libs.iteratee.Execution.Implicits.trampoline
-      if (request.method == HttpVerbs.GET || request.method == HttpVerbs.HEAD) {
-        Play.logger.trace("Parsing AnyContent as empty")
-        Done(Right(AnyContentAsEmpty), Empty)
-      } else {
-        val contentType: Option[String] = request.contentType.map(_.toLowerCase(Locale.ENGLISH))
-        contentType match {
-          case Some("text/plain") => {
-            Play.logger.trace("Parsing AnyContent as text")
-            text(request).map(_.right.map(s => AnyContentAsText(s)))
-          }
-          case Some("text/xml") | Some("application/xml") | Some(ApplicationXmlMatcher()) => {
-            Play.logger.trace("Parsing AnyContent as xml")
-            xml(request).map(_.right.map(x => AnyContentAsXml(x)))
-          }
-          case Some("text/json") | Some("application/json") => {
-            Play.logger.trace("Parsing AnyContent as json")
-            json(request).map(_.right.map(j => AnyContentAsJson(j)))
-          }
-          case Some("application/x-www-form-urlencoded") => {
-            Play.logger.trace("Parsing AnyContent as urlFormEncoded")
-            urlFormEncoded(request).map(_.right.map(d => AnyContentAsFormUrlEncoded(d)))
-          }
-          case Some("multipart/form-data") => {
-            Play.logger.trace("Parsing AnyContent as multipartFormData")
-            multipartFormData(request).map(_.right.map(m => AnyContentAsMultipartFormData(m)))
-          }
-          case _ => {
-            Play.logger.trace("Parsing AnyContent as raw")
-            raw(request).map(_.right.map(r => AnyContentAsRaw(r)))
-          }
+      val contentType: Option[String] = request.contentType.map(_.toLowerCase(Locale.ENGLISH))
+      contentType match {
+        case Some("text/plain") => {
+          Play.logger.trace("Parsing AnyContent as text")
+          text(request).map(_.right.map(s => AnyContentAsText(s)))
+        }
+        case Some("text/xml") | Some("application/xml") | Some(ApplicationXmlMatcher()) => {
+          Play.logger.trace("Parsing AnyContent as xml")
+          xml(request).map(_.right.map(x => AnyContentAsXml(x)))
+        }
+        case Some("text/json") | Some("application/json") => {
+          Play.logger.trace("Parsing AnyContent as json")
+          json(request).map(_.right.map(j => AnyContentAsJson(j)))
+        }
+        case Some("application/x-www-form-urlencoded") => {
+          Play.logger.trace("Parsing AnyContent as urlFormEncoded")
+          urlFormEncoded(request).map(_.right.map(d => AnyContentAsFormUrlEncoded(d)))
+        }
+        case Some("multipart/form-data") => {
+          Play.logger.trace("Parsing AnyContent as multipartFormData")
+          multipartFormData(request).map(_.right.map(m => AnyContentAsMultipartFormData(m)))
+        }
+        case _ => {
+          Play.logger.trace("Parsing AnyContent as raw")
+          raw(request).map(_.right.map(r => AnyContentAsRaw(r)))
         }
       }
     }

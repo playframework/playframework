@@ -83,7 +83,11 @@ object JavaParsers extends BodyParsers {
 
   }
 
-  def anyContent(maxLength: Int): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parse.anyContent).map {
+  def default_(maxLength: Int): BodyParser[RequestBody] = anyContent(maxLength, parse.default)
+
+  def anyContent(maxLength: Int): BodyParser[RequestBody] = anyContent(maxLength, parse.anyContent)
+
+  private def anyContent(maxLength: Int, parser: BodyParser[AnyContent]): BodyParser[RequestBody] = parse.maxLength(orDefault(maxLength), parser).map {
     _.fold(
       _ => DefaultRequestBody(isMaxSizeExceeded = true),
       anyContent =>

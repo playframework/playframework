@@ -23,6 +23,15 @@ public interface BodyParser {
     }
 
     /**
+     * If PATCH, POST, or PUT, guess the body content by checking the Content-Type header.
+     */
+    public static class Default implements BodyParser {
+        public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
+            return play.core.j.JavaParsers.default_(maxLength);
+        }
+    }
+
+    /**
      * Guess the body content by checking the Content-Type header.
      */
     public static class AnyContent implements BodyParser {
