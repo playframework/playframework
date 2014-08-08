@@ -39,9 +39,8 @@ class GuiceApplicationLoader extends ApplicationLoader {
       BindingKey(classOf[PlayInjector]).to[GuiceInjector]
     )) +: Modules.locate(env, configuration)
 
-    val injector = createInjector(modules, env, configuration)
-
     try {
+      val injector = createInjector(modules, env, configuration)
       injector.getInstance(classOf[Application])
     } catch {
       case e: CreationException => e.getCause match {
