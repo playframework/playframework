@@ -68,7 +68,7 @@ For any custom configuration beyond log levels, you will need to specify your ow
 
 ### Using a configuration file from project source
 
-If you create a configuration file at either `conf/application-logger.xml` or `conf/logger.xml`, Play will use this instead of the default configuration.
+If you create a configuration file at `conf/application-logger.xml`, Play will use this instead of the default configuration.
 
 ### Using an external configuration file
 
