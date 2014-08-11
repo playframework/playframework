@@ -376,6 +376,34 @@ object ToStatement {
   }
 
   /**
+   * Sets joda-time DateTime as statement parameter.
+   * For `null` value, `setNull` with `TIMESTAMP` is called on statement.
+   *
+   * {{{
+   * SQL("UPDATE tbl SET modified = {d}").on('d -> new org.joda.time.DateTime())
+   * }}}
+   */
+  implicit object jodaDateTimeToStatement extends ToStatement[org.joda.time.DateTime] {
+    def set(s: PreparedStatement, index: Int, date: org.joda.time.DateTime): Unit =
+      if (date != null) s.setTimestamp(index, new Timestamp(date.getMillis()))
+      else s.setNull(index, Types.TIMESTAMP)
+  }
+
+  /**
+   * Sets joda-time Instant as statement parameter.
+   * For `null` value, `setNull` with `TIMESTAMP` is called on statement.
+   *
+   * {{{
+   * SQL("UPDATE tbl SET modified = {d}").on('d -> new org.joda.time.Instant())
+   * }}}
+   */
+  implicit object jodaInstantToStatement extends ToStatement[org.joda.time.Instant] {
+    def set(s: PreparedStatement, index: Int, instant: org.joda.time.Instant): Unit =
+      if (instant != null) s.setTimestamp(index, new Timestamp(instant.getMillis))
+      else s.setNull(index, Types.TIMESTAMP)
+  }
+
+  /**
    * Sets UUID as statement parameter.
    * For `null` value, `setNull` with `VARCHAR` is called on statement.
    *
