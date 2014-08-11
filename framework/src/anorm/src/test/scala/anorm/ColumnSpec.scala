@@ -367,6 +367,55 @@ object ColumnSpec extends org.specs2.mutable.Specification {
     }
   }
 
+  "Column mapped as joda-time datetime" should {
+    import org.joda.time.DateTime
+    val time = DateTime.now()
+
+    "be parsed from date" in withQueryResult(
+      dateList :+ new java.sql.Date(time.getMillis)) { implicit con =>
+        SQL("SELECT d").as(scalar[DateTime].single).
+          aka("parsed date") must_== time
+      }
+
+    "be parsed from timestamp" in withQueryResult(
+      timestampList :+ new java.sql.Timestamp(time.getMillis)) { implicit con =>
+        SQL("SELECT ts").as(scalar[DateTime].single).
+          aka("parsed date") must beLike {
+            case d => d aka "time" must_== time
+          }
+      }
+
+    "be parsed from time" in withQueryResult(longList :+ time.getMillis) { implicit con =>
+      SQL("SELECT time").as(scalar[DateTime].single).
+        aka("parsed date") must_== time
+
+    }
+  }
+
+  "Column mapped as joda-time instant" should {
+    import org.joda.time.Instant
+    val time = Instant.now()
+
+    "be parsed from date" in withQueryResult(
+      dateList :+ new java.sql.Date(time.getMillis)) { implicit con =>
+        SQL("SELECT d").as(scalar[Instant].single).
+          aka("parsed date") must_== time
+      }
+
+    "be parsed from timestamp" in withQueryResult(
+      timestampList :+ new java.sql.Timestamp(time.getMillis)) { implicit con =>
+        SQL("SELECT ts").as(scalar[Instant].single).
+          aka("parsed date") must beLike {
+            case d => d aka "time" must_== time
+          }
+      }
+
+    "be parsed from time" in withQueryResult(longList :+ time.getMillis) { implicit con =>
+      SQL("SELECT time").as(scalar[Instant].single).
+        aka("parsed date") must_== time
+    }
+  }
+
   def withQueryResult[A](r: QueryResult)(f: java.sql.Connection => A): A =
     f(connection(handleQuery { _ => r }))
 
