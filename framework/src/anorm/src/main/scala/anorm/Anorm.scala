@@ -4,11 +4,13 @@
 package anorm
 
 import java.util.{ Date, UUID }
-import java.sql.{ Connection, PreparedStatement }
+import java.sql.{ Connection, PreparedStatement, ResultSet }
 
 import scala.language.{ postfixOps, reflectiveCalls }
 import scala.collection.TraversableOnce
 import scala.runtime.{ ScalaRunTime, AbstractFunction3 }
+
+import resource.{ managed, ManagedResource }
 
 /** Error from processing SQL */
 sealed trait SqlRequestError
@@ -17,7 +19,7 @@ case class ColumnNotFound(column: String, possibilities: List[String])
     extends SqlRequestError {
 
   override lazy val toString = s"$column not found, available columns : " +
-    possibilities.map { p => p.dropWhile(c => c == '.') }.mkString(", ")
+    possibilities.map { _.dropWhile(_ == '.') }.mkString(", ")
 }
 
 case class TypeDoesNotMatch(message: String) extends SqlRequestError
@@ -64,13 +66,16 @@ case class MetaDataItem(column: ColumnName, nullable: Boolean, clazz: String)
 case class ColumnName(qualified: String, alias: Option[String])
 
 private[anorm] case class MetaData(ms: List[MetaDataItem]) {
-  // Use MetaDataItem rather than (ColumnName, Boolean, String)?
+  // TODO: Use MetaDataItem rather than (ColumnName, Boolean, String)?
   def get(columnName: String): Option[(ColumnName, Boolean, String)] = {
-    val columnUpper = columnName.toUpperCase
-    dictionary2.get(columnUpper).orElse(dictionary.get(columnUpper))
+    val key = columnName.toUpperCase
+    dictionary2.get(key).orElse(dictionary.get(key)).
+      orElse(aliasedDictionary.get(key))
   }
 
-  // Use MetaDataItem rather than (ColumnName, Boolean, String)?
+  @deprecated(
+    message = "No longer distinction between plain and aliased column",
+    since = "2.3.3")
   def getAliased(aliasName: String): Option[(ColumnName, Boolean, String)] =
     aliasedDictionary.get(aliasName.toUpperCase)
 
@@ -98,22 +103,12 @@ private[anorm] case class MetaData(ms: List[MetaDataItem]) {
 
 }
 
+@deprecated(message = "Use directly Stream", since = "2.3.3")
 object Useful {
 
   case class Var[T](var content: T)
 
-  @deprecated(
-    message = "Use [[scala.collection.immutable.Stream.dropWhile]] directly",
-    since = "2.3.0")
-  def drop[A](these: Var[Stream[A]], n: Int): Stream[A] = {
-    var count = n
-    while (!these.content.isEmpty && count > 0) {
-      these.content = these.content.tail
-      count -= 1
-    }
-    these.content
-  }
-
+  @deprecated(message = "Use directly Stream value", since = "2.3.2")
   def unfold1[T, R](init: T)(f: T => Option[(R, T)]): (Stream[R], T) = f(init) match {
     case None => (Stream.Empty, init)
     case Some((r, v)) => (Stream.cons(r, unfold(v)(f)), v)
@@ -231,12 +226,12 @@ case class SimpleSql[T](sql: SqlQuery, params: Map[String, ParameterValue], defa
     as(defaultParser.singleOpt)
 
   def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false) = {
-    val st: (String, Seq[(Int, ParameterValue)]) =
-      Sql.prepareQuery(sql.query, 0, sql.argsInitialOrder.map(params), Nil)
+    val st: (String, Seq[(Int, ParameterValue)]) = Sql.prepareQuery(
+      sql.query, 0, sql.argsInitialOrder.map(params), Nil)
 
     val stmt = if (getGeneratedKeys) connection.prepareStatement(st._1, java.sql.Statement.RETURN_GENERATED_KEYS) else connection.prepareStatement(st._1)
 
-    sql.queryTimeout.foreach(timeout => stmt.setQueryTimeout(timeout))
+    sql.queryTimeout.foreach(stmt.setQueryTimeout(_))
 
     st._2 foreach { p =>
       val (i, v) = p
@@ -267,56 +262,67 @@ case class SimpleSql[T](sql: SqlQuery, params: Map[String, ParameterValue], defa
 
 }
 
-sealed trait Sql {
-
+private[anorm] trait Sql {
+  // TODO: ManagedResource[PreparedStatement]?
   def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false): PreparedStatement
-
-  @deprecated(message = "Use [[getFilledStatement]] or [[executeQuery]]", since = "2.3.0")
-  def filledStatement(implicit connection: Connection) = getFilledStatement(connection)
 
   /**
    * Executes this SQL statement as query, returns result as Row stream.
    */
+  @deprecated(message =
+    "Use [[fold]] instead, which manages resources and memory", "2.4")
   def apply()(implicit connection: Connection): Stream[Row] =
-    Sql.resultSetToStream(resultSet())
+    Sql.fold(resultSet())(Stream.empty[Row])((s, r) => (s :+ r) -> true).
+      acquireAndGet(identity)
+
+  /**
+   * Aggregates over the whole stream of row using the specified operator.
+   *
+   * @param z the start value
+   * @param op Aggregate operator
+   * @return Either list of failures at left, or aggregated value
+   * @see #foldWhile
+   */
+  def fold[T](z: => T)(op: (T, Row) => T)(implicit connection: Connection): Either[List[Throwable], T] =
+    Sql.fold(resultSet())(z) { (t, r) => op(t, r) -> true } acquireFor identity
+
+  /**
+   * Aggregates over part of or the while row stream, using the specified operator.
+   *
+   * @param z the start value
+   * @param op Aggregate operator. Returns aggregated value along with true if aggregation must process next value, or false to stop with current value.
+   * @return Either list of failures at left, or aggregated value
+   */
+  def foldWhile[T](z: => T)(op: (T, Row) => (T, Boolean))(implicit connection: Connection): Either[List[Throwable], T] =
+    Sql.fold(resultSet())(z) { (t, r) => op(t, r) } acquireFor identity
 
   /**
    * Executes this statement as query (see [[executeQuery]]) and returns result.
    */
-  private[anorm] def resultSet()(implicit connection: Connection) = (getFilledStatement(connection).executeQuery())
+  private[anorm] def resultSet()(implicit connection: Connection): ManagedResource[ResultSet] = managed(getFilledStatement(connection)).
+    flatMap(stmt => managed(stmt.executeQuery()))
 
   /**
    * Executes this statement as query and convert result as `T`, using parser.
    */
   def as[T](parser: ResultSetParser[T])(implicit connection: Connection): T =
-    Sql.as[T](parser, resultSet())
-
-  @deprecated(
-    message = "Use [[as]] with rowParser.*",
-    since = "2.3.0")
-  def list[A](rowParser: RowParser[A])(implicit connection: Connection): Seq[A] = as(rowParser.*)
-
-  @deprecated(
-    message = "Use [[as]] with rowParser.single",
-    since = "2.3.0")
-  def single[T](rowParser: RowParser[T])(implicit connection: Connection): T = as(rowParser.single)
-
-  @deprecated(
-    message = "Use [[as]] with rowParser.singleOpt",
-    since = "2.3.0")
-  def singleOpt[T](rowParser: RowParser[T])(implicit connection: Connection): Option[T] = as(rowParser.singleOpt)
-
-  @deprecated(message = "Use [[as]]", since = "2.3.0")
-  def parse[T](parser: ResultSetParser[T])(implicit connection: Connection): T = as(parser)
+    Sql.as(parser, resultSet())
 
   /**
    * Executes this SQL statement.
    * @return true if resultset was returned from execution
-   * (statement is query), or false if it executed update
+   * (statement is query), or false if it executed update.
+   *
+   * {{{
+   * val res: Boolean =
+   *   SQL"""INSERT INTO Test(a, b) VALUES(${"A"}, ${"B"}""".execute()
+   * }}}
    */
-  def execute()(implicit connection: Connection): Boolean = getFilledStatement(connection).execute()
+  def execute()(implicit connection: Connection): Boolean =
+    managed(getFilledStatement(connection)).acquireAndGet(_.execute())
 
-  def execute1(getGeneratedKeys: Boolean = false)(implicit connection: Connection): (PreparedStatement, Int) = {
+  @deprecated(message = "Will be made private, use [[executeUpdate]] or [[executeInsert]]", since = "2.3.2")
+  def execute1(getGeneratedKeys: Boolean = false)(implicit connection: Connection): (PreparedStatement, Int) = { // TODO: managed
     val statement = getFilledStatement(connection, getGeneratedKeys)
     (statement, statement.executeUpdate())
   }
@@ -347,8 +353,11 @@ sealed trait Sql {
    * }}}
    */
   def executeInsert[A](generatedKeysParser: ResultSetParser[A] = SqlParser.scalar[Long].singleOpt)(implicit connection: Connection): A =
-    Sql.as(generatedKeysParser,
-      execute1(getGeneratedKeys = true)._1.getGeneratedKeys)
+    Sql.as(generatedKeysParser, managed(getFilledStatement(connection, true)).
+      flatMap { stmt =>
+        stmt.executeUpdate()
+        managed(stmt.getGeneratedKeys)
+      })
 
   /**
    * Executes this SQL query, and returns its result.
@@ -436,15 +445,9 @@ class SqlQuery @deprecated("Do not use the SqlQuery constructor directly because
 }
 
 object Sql { // TODO: Rename to SQL
+  import java.sql.ResultSetMetaData
 
-  private[anorm] def sql(inSql: String): SqlQuery = {
-    val (sql, paramsNames) = SqlStatementParser.parse(inSql)
-    SqlQuery(sql, paramsNames)
-  }
-
-  import java.sql.{ ResultSet, ResultSetMetaData }
-
-  private[anorm] def metaData(rs: ResultSet) = {
+  private[anorm] def metaData(rs: ResultSet): MetaData = {
     val meta = rs.getMetaData()
     val nbColumns = meta.getColumnCount()
     MetaData(List.range(1, nbColumns + 1).map(i =>
@@ -472,18 +475,22 @@ object Sql { // TODO: Rename to SQL
       case Error(e) => sys.error(e.toString)
     }
 
-  // TODO: Moves to Sql trait
-  @deprecated(
-    message = "Use [[anorm.SqlQueryResult.as]] directly",
-    since = "2.3.0")
-  private def parse[T](parser: ResultSetParser[T], rs: ResultSet): T =
-    as(parser, rs)
+  /**
+   * @param f Aggregate operator. Returns aggregated value along with true if aggregation must process next value, or false to stop with current value.
+   */
+  private[anorm] def fold[T](res: ManagedResource[ResultSet])(initial: => T)(f: (T, Row) => (T, Boolean)): ManagedResource[T] = res map { rs =>
+    val rsMetaData: MetaData = metaData(rs)
+    val columns: List[Int] = List.range(1, rsMetaData.columnCount + 1)
+    @inline def data(rs: ResultSet) = columns.map(rs.getObject(_))
 
-  private[anorm] def resultSetToStream(rs: ResultSet): Stream[Row] = {
-    val rsMetaData = metaData(rs)
-    val columns = List.range(1, rsMetaData.columnCount + 1)
-    def data(rs: ResultSet) = columns.map(nb => rs.getObject(nb))
-    Useful.unfold(rs)(rs => if (!rs.next()) { rs.getStatement.close(); None } else Some((new SqlRow(rsMetaData, data(rs)), rs)))
+    @annotation.tailrec
+    def go(r: ResultSet, s: T): T =
+      if (r.next()) {
+        val (v, cont) = f(s, new SqlRow(rsMetaData, data(rs)))
+        if (cont) go(r, v) else v
+      } else s
+
+    go(rs, initial)
   }
 
   private case class SqlRow(metaData: MetaData, data: List[Any]) extends Row {
