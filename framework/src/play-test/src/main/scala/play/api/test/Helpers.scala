@@ -43,7 +43,7 @@ trait PlayRunners {
    * Executes a block of code in a running application.
    */
   def running[T](app: Application)(block: => T): T = {
-    synchronized {
+    PlayRunners.mutex.synchronized {
       try {
         Play.start(app)
         block
@@ -57,7 +57,7 @@ trait PlayRunners {
    * Executes a block of code in a running server.
    */
   def running[T](testServer: TestServer)(block: => T): T = {
-    synchronized {
+    PlayRunners.mutex.synchronized {
       try {
         testServer.start()
         block
@@ -79,7 +79,7 @@ trait PlayRunners {
    */
   def running[T](testServer: TestServer, webDriver: WebDriver)(block: TestBrowser => T): T = {
     var browser: TestBrowser = null
-    synchronized {
+    PlayRunners.mutex.synchronized {
       try {
         testServer.start()
         browser = TestBrowser(webDriver, None)
@@ -111,6 +111,13 @@ trait PlayRunners {
     )
   }
 
+}
+
+object PlayRunners {
+  /**
+   * This mutex is used to ensure that no two tests that set the global application can run at the same time.
+   */
+  private[play] val mutex: AnyRef = new AnyRef()
 }
 
 trait Writeables {
