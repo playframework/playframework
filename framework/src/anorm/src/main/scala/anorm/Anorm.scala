@@ -282,7 +282,7 @@ private[anorm] trait Sql {
    * @return Either list of failures at left, or aggregated value
    * @see #foldWhile
    */
-  def fold[T](z: T)(op: (T, Row) => T)(implicit connection: Connection): Either[List[Throwable], T] =
+  def fold[T](z: => T)(op: (T, Row) => T)(implicit connection: Connection): Either[List[Throwable], T] =
     Sql.fold(resultSet())(z) { (t, r) => op(t, r) -> true } acquireFor identity
 
   /**
@@ -292,7 +292,7 @@ private[anorm] trait Sql {
    * @param op Aggregate operator. Returns aggregated value along with true if aggregation must process next value, or false to stop with current value.
    * @return Either list of failures at left, or aggregated value
    */
-  def foldWhile[T](z: T)(op: (T, Row) => (T, Boolean))(implicit connection: Connection): Either[List[Throwable], T] =
+  def foldWhile[T](z: => T)(op: (T, Row) => (T, Boolean))(implicit connection: Connection): Either[List[Throwable], T] =
     Sql.fold(resultSet())(z) { (t, r) => op(t, r) } acquireFor identity
 
   /**
@@ -406,7 +406,7 @@ object Sql { // TODO: Rename to SQL
   /**
    * @param f Aggregate operator. Returns aggregated value along with true if aggregation must process next value, or false to stop with current value.
    */
-  private[anorm] def fold[T](res: ManagedResource[ResultSet])(initial: T)(f: (T, Row) => (T, Boolean)): ManagedResource[T] = res map { rs =>
+  private[anorm] def fold[T](res: ManagedResource[ResultSet])(initial: => T)(f: (T, Row) => (T, Boolean)): ManagedResource[T] = res map { rs =>
     val rsMetaData: MetaData = metaData(rs)
     val columns: List[Int] = List.range(1, rsMetaData.columnCount + 1)
     @inline def data(rs: ResultSet) = columns.map(rs.getObject(_))

@@ -53,7 +53,7 @@ final case class SqlQueryResult(
    * @return Either list of failures at left, or aggregated value
    * @see #foldWhile
    */
-  def fold[T](z: T)(op: (T, Row) => T)(implicit connection: Connection): Either[List[Throwable], T] =
+  def fold[T](z: => T)(op: (T, Row) => T)(implicit connection: Connection): Either[List[Throwable], T] =
     Sql.fold(resultSet)(z)((t, r) => op(t, r) -> true) acquireFor identity
 
   /**
@@ -64,7 +64,7 @@ final case class SqlQueryResult(
    * @param op Aggregate operator. Returns aggregated value along with true if aggregation must process next value, or false to stop with current value.
    * @return Either list of failures at left, or aggregated value
    */
-  def foldWhile[T](z: T)(op: (T, Row) => (T, Boolean))(implicit connection: Connection): Either[List[Throwable], T] =
+  def foldWhile[T](z: => T)(op: (T, Row) => (T, Boolean))(implicit connection: Connection): Either[List[Throwable], T] =
     Sql.fold(resultSet)(z)((t, r) => op(t, r)) acquireFor identity
 
   /**
