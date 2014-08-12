@@ -233,6 +233,42 @@ object Column {
     }
   }
 
+  /**
+   * Parses column as joda DateTime
+   *
+   * {{{
+   * import org.joda.time.DateTime
+   *
+   * val d: Date = SQL("SELECT last_mod FROM tbl").as(scalar[DateTime].single)
+   * }}}
+   */
+  implicit val columnToJodaDateTime: Column[org.joda.time.DateTime] = nonNull { (value, meta) =>
+    val MetaDataItem(qualified, nullable, clazz) = meta
+    value match {
+      case date: Date => Right(new org.joda.time.DateTime(date.getTime))
+      case time: Long => Right(new org.joda.time.DateTime(time))
+      case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to DateTime for column $qualified"))
+    }
+  }
+
+  /**
+   * Parses column as joda Instant
+   *
+   * {{{
+   * import org.joda.time.Instant
+   *
+   * val d: Date = SQL("SELECT last_mod FROM tbl").as(scalar[Instant].single)
+   * }}}
+   */
+  implicit val columnToJodaInstant: Column[org.joda.time.Instant] = nonNull { (value, meta) =>
+    val MetaDataItem(qualified, nullable, clazz) = meta
+    value match {
+      case date: Date => Right(new org.joda.time.Instant(date.getTime))
+      case time: Long => Right(new org.joda.time.Instant(time))
+      case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to Instant for column $qualified"))
+    }
+  }
+
   implicit def columnToPk[T](implicit c: Column[T]): Column[Pk[T]] =
     nonNull { (value, meta) => c(value, meta).map(Id(_)) }
 
