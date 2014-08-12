@@ -3,20 +3,28 @@
  */
 package play.api.db.evolutions
 
-import java.io._
-
-import play.core._
-
-import play.api._
-import play.api.db._
-import play.api.libs._
-import play.api.libs.Codecs._
-import javax.sql.DataSource
+import java.io.{ File, FileInputStream }
 import java.sql.{ Statement, Date, Connection, SQLException }
-import scala.util.control.Exception._
+import javax.sql.DataSource
+
+import scala.util.control.Exception.ignoring
 import scala.util.control.NonFatal
-import play.utils.PlayIO
 import scala.io.Codec
+
+import play.core.HandleWebCommandSupport
+import play.api.{
+  Application,
+  Configuration,
+  Logger,
+  Mode,
+  Play,
+  PlayException,
+  Plugin
+}
+import play.api.db.{ BoneCPApi, DBApi, DBPlugin }
+import play.api.libs.Collections
+import play.api.libs.Codecs.sha1
+import play.utils.PlayIO
 
 /**
  * An SQL evolution - database changes associated with a software version.
@@ -28,7 +36,8 @@ import scala.io.Codec
  * @param sql_up the SQL statements for UP application
  * @param sql_down the SQL statements for DOWN application
  */
-private[evolutions] case class Evolution(revision: Int, sql_up: String = "", sql_down: String = "") {
+private[evolutions] case class Evolution(
+    revision: Int, sql_up: String = "", sql_down: String = "") {
 
   /**
    * Revision hash, automatically computed from the SQL content.
@@ -100,8 +109,8 @@ object Evolutions {
   def updateEvolutionScript(db: String = "default", revision: Int = 1, comment: String = "Generated", ups: String, downs: String)(implicit application: Application) {
     import play.api.libs._
 
-    val evolutions = application.getFile(evolutionsFilename(db, revision));
-    Files.createDirectory(application.getFile(evolutionsDirectoryName(db)));
+    val evolutions = application.getFile(evolutionsFilename(db, revision))
+    Files.createDirectory(application.getFile(evolutionsDirectoryName(db)))
     Files.writeFileIfChanged(evolutions,
       """|# --- %s
          |
@@ -116,17 +125,14 @@ object Evolutions {
 
   // --
 
-  private def executeQuery(sql: String)(implicit c: Connection) = {
+  private def executeQuery(sql: String)(implicit c: Connection) =
     c.createStatement.executeQuery(sql)
-  }
 
-  private def execute(sql: String)(implicit c: Connection) = {
+  private def execute(sql: String)(implicit c: Connection) =
     c.createStatement.execute(sql)
-  }
 
-  private def prepare(sql: String)(implicit c: Connection) = {
+  private def prepare(sql: String)(implicit c: Connection) =
     c.prepareStatement(sql)
-  }
 
   // --
 
@@ -257,7 +263,6 @@ object Evolutions {
     var lastScript: Script = null
 
     try {
-
       script.foreach { s =>
         lastScript = s
         applying = s.evolution.revision
@@ -596,11 +601,8 @@ class EvolutionsPlugin(app: Application) extends Plugin with HandleWebCommandSup
       }
 
       case _ => None
-
     }
-
   }
-
 }
 
 /**
@@ -612,7 +614,7 @@ object OfflineEvolutions {
 
   private def getDBApi(appPath: File, classloader: ClassLoader): DBApi = {
     val c = Configuration.load(appPath).getConfig("db").get
-    new BoneCPApi(c, classloader)
+    new BoneCPApi(c, classloader) // defaults to BoneCP DB Api without app
   }
 
   /**
