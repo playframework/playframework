@@ -84,22 +84,18 @@ object SqlResultSpec extends org.specs2.mutable.Specification with H2Database {
   "Column" should {
     "be found in result" in withQueryResult(
       rowList1(classOf[Float] -> "f") :+ 1.2f) { implicit c =>
-
-        SQL("SELECT f") as SqlParser.contains("f", 1.2f).single must_== (())
+        SQL("SELECT f") as SqlParser.matches("f", 1.2f).single must beTrue
       }
 
     "not be found in result when value not matching" in withQueryResult(
       rowList1(classOf[Float] -> "f") :+ 1.2f) { implicit c =>
-
-        SQL("SELECT f") as SqlParser.contains("f", 2.34f).single must throwA[Exception]("SqlMappingError\\(Row doesn't contain a column: f with value 2\\.34\\)")
+        SQL("SELECT f") as SqlParser.matches("f", 2.34f).single must beFalse
       }
 
     "not be found in result when column missing" in withQueryResult(
       rowList1(classOf[Float] -> "f") :+ 1.2f) { implicit c =>
-
-        SQL("SELECT f") as SqlParser.contains("x", 1.2f).single must throwA[Exception]("x not found, available columns")
+        SQL("SELECT f") as SqlParser.matches("x", 1.2f).single must beFalse
       }
-
   }
 
   "Column" should {
@@ -355,8 +351,8 @@ object SqlResultSpec extends org.specs2.mutable.Specification with H2Database {
 
         SQL("EXEC stored_proc({param})")
           .on("param" -> "test-proc-2").executeQuery()
-          .statementWarning aka "statement warning" must beSome.which { warn =>
-            warn.getMessage aka "message" must_== "Warning for test-proc-2"
+          .statementWarning aka "statement warning" must beSome.which { 
+            _.getMessage aka "message" must_== "Warning for test-proc-2"
           }
       }
   }

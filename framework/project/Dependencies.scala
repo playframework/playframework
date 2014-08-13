@@ -219,7 +219,6 @@ object Dependencies {
     h2database % Test,
     "org.eu.acolyte" %% "jdbc-scala" % acolyteVersion % Test,
     "joda-time" % "joda-time" % "2.3",
-    "org.joda" % "joda-convert" % "1.6",
     "com.chuusai" % "shapeless" % "2.0.0" % Test cross CrossVersion.binaryMapped {
       case "2.10" => BuildSettings.buildScalaVersion
       case x => x
