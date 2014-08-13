@@ -5,14 +5,21 @@ package play.core.server.netty
 
 import org.jboss.netty.buffer.ChannelBuffers
 import org.jboss.netty.channel._
-import org.jboss.netty.handler.codec.http._
+import org.jboss.netty.handler.codec.http.{
+  DefaultHttpResponse,
+  QueryStringDecoder,
+  HttpRequest,
+  HttpResponseStatus,
+  HttpVersion
+}
 import org.jboss.netty.handler.codec.http.HttpHeaders._
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names._
 import org.jboss.netty.handler.codec.http.websocketx.{ WebSocketFrame, TextWebSocketFrame, BinaryWebSocketFrame }
 import org.jboss.netty.handler.codec.frame.TooLongFrameException
 import org.jboss.netty.handler.ssl._
-
+import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame
 import org.jboss.netty.channel.group._
+
 import play.api._
 import play.api.mvc._
 import play.api.http.HeaderNames.{ X_FORWARDED_FOR, X_FORWARDED_PROTO }
@@ -28,7 +35,6 @@ import com.typesafe.netty.http.pipelining.{ OrderedDownstreamChannelEvent, Order
 import scala.concurrent.Future
 import java.net.URI
 import java.io.IOException
-import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame
 
 private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
 
@@ -81,8 +87,8 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
     e.getMessage match {
 
       case nettyHttpRequest: HttpRequest =>
+        Play.logger.trace(s"Http request received by netty: $nettyHttpRequest")
 
-        Play.logger.trace("Http request received by netty: " + nettyHttpRequest)
         val keepAlive = isKeepAlive(nettyHttpRequest)
         val websocketableRequest = websocketable(nettyHttpRequest)
         var nettyVersion = nettyHttpRequest.getProtocolVersion
@@ -98,8 +104,8 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
         def rSecure = e.getRemoteAddress match {
           case ra: java.net.InetSocketAddress =>
             val remoteAddress = ra.getAddress.getHostAddress
-            val fh = forwardedHeader(remoteAddress, X_FORWARDED_PROTO)
-            fh.map(_ == "https").getOrElse(ctx.getPipeline.get(classOf[SslHandler]) != null)
+            forwardedHeader(remoteAddress, X_FORWARDED_PROTO).map(_ == "https").
+              getOrElse(ctx.getPipeline.get(classOf[SslHandler]) != null)
         }
 
         /**

@@ -16,7 +16,13 @@ import play.api.libs.Files.TemporaryFile
  *
  * @param data Headers data.
  */
-case class FakeHeaders(override val data: Seq[(String, Seq[String])] = Seq.empty) extends Headers
+case class FakeHeaders(
+  override val data: Seq[(String, Seq[String])] = Seq.empty) extends Headers
+
+/** Fake headers companion */
+object FakeHeaders {
+  lazy val empty = FakeHeaders()
+}
 
 /**
  * Fake HTTP request implementation.
@@ -65,7 +71,7 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
       val newData = newHeaders.map {
         case (k, v) => (k, Seq(v))
       }
-      (Map() ++ (headers.data ++ newData)).toSeq
+      (Map.empty ++ (headers.data ++ newData)).toSeq
     }))
   }
 
@@ -112,49 +118,42 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
   /**
    * Adds a JSON body to the request.
    */
-  def withJsonBody(json: JsValue): FakeRequest[AnyContentAsJson] = {
+  def withJsonBody(json: JsValue): FakeRequest[AnyContentAsJson] =
     _copy(body = AnyContentAsJson(json))
-  }
 
   /**
    * Adds an XML body to the request.
    */
-  def withXmlBody(xml: NodeSeq): FakeRequest[AnyContentAsXml] = {
+  def withXmlBody(xml: NodeSeq): FakeRequest[AnyContentAsXml] =
     _copy(body = AnyContentAsXml(xml))
-  }
 
   /**
    * Adds a text body to the request.
    */
-  def withTextBody(text: String): FakeRequest[AnyContentAsText] = {
+  def withTextBody(text: String): FakeRequest[AnyContentAsText] =
     _copy(body = AnyContentAsText(text))
-  }
 
   /**
    * Adds a raw body to the request
    */
-  def withRawBody(bytes: Array[Byte]): FakeRequest[AnyContentAsRaw] = {
+  def withRawBody(bytes: Array[Byte]): FakeRequest[AnyContentAsRaw] =
     _copy(body = AnyContentAsRaw(RawBuffer(bytes.length, bytes)))
-  }
 
   /**
    * Adds a multipart form data body to the request
    */
-  def withMultipartFormDataBody(form: MultipartFormData[TemporaryFile]) = {
+  def withMultipartFormDataBody(form: MultipartFormData[TemporaryFile]) =
     _copy(body = AnyContentAsMultipartFormData(form))
-  }
 
   /**
    * Adds a body to the request.
    */
-  def withBody[B](body: B): FakeRequest[B] = {
-    _copy(body = body)
-  }
+  def withBody[B](body: B): FakeRequest[B] = _copy(body = body)
 
   /**
    * Returns the current method
    */
-  def getMethod: String = method
+  lazy val getMethod: String = method
 }
 
 /**
@@ -165,9 +164,8 @@ object FakeRequest {
   /**
    * Constructs a new GET / fake request.
    */
-  def apply(): FakeRequest[AnyContentAsEmpty.type] = {
+  def apply(): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest("GET", "/", FakeHeaders(), AnyContentAsEmpty)
-  }
 
   /**
    * Constructs a new request.
@@ -176,9 +174,9 @@ object FakeRequest {
     FakeRequest(method, path, FakeHeaders(), AnyContentAsEmpty)
   }
 
-  def apply(call: Call): FakeRequest[AnyContentAsEmpty.type] = {
+  def apply(call: Call): FakeRequest[AnyContentAsEmpty.type] =
     apply(call.method, call.url)
-  }
+
 }
 
 /**
@@ -204,13 +202,12 @@ case class FakeApplication(
   override val sources = None
   override val mode = play.api.Mode.Test
 } with Application with WithDefaultConfiguration with WithDefaultGlobal with WithDefaultPlugins {
-  override def pluginClasses = {
-    additionalPlugins ++ super.pluginClasses.diff(withoutPlugins)
-  }
 
-  override def configuration = {
+  override def pluginClasses =
+    additionalPlugins ++ super.pluginClasses.diff(withoutPlugins)
+
+  override def configuration =
     super.configuration ++ play.api.Configuration.from(additionalConfiguration)
-  }
 
   override lazy val global = withGlobal.getOrElse(super.global)
 
