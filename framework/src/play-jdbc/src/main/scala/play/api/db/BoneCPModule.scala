@@ -74,6 +74,8 @@ class NamedDBProvider(name: String) extends Provider[DataSource] {
  */
 class BoneConnectionPool(configuration: Configuration, classLoader: ClassLoader) extends DBApi {
 
+  def this(configuration: Configuration) = this(configuration, classOf[BoneConnectionPool].getClassLoader)
+
   private lazy val (dsList, dsMap, drivers): (List[(DataSource, String)], Map[String, DataSource], Set[Driver]) = setupDatasources(configuration.subKeys.toList, Nil, Map.empty, Set.empty)
 
   def datasources = dsList

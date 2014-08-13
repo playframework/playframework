@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
  */
 package play.api.db.evolutions
 
@@ -10,7 +10,7 @@ object ScriptSpec extends Specification {
 
     "separate SQL into semicolon-delimited statements" in {
       val statements = IndexedSeq("FIRST", "SECOND", "THIRD", "FOURTH")
-      
+
       val scriptStatements = ScriptSansEvolution(s"""
         ${statements(0)};
 
@@ -21,7 +21,7 @@ object ScriptSpec extends Specification {
 
     "not delimit statements on double-semicolons, rather escaping them to a single semicolon" in {
       val statements = IndexedSeq(
-        "SELECT * FROM punctuation WHERE characters = ';' OR characters = ';;'", 
+        "SELECT * FROM punctuation WHERE characters = ';' OR characters = ';;'",
         "DROP the_beat"
       )
 
@@ -29,7 +29,7 @@ object ScriptSpec extends Specification {
       val statementsWithEscapeSequence = statements.map(_.replace(";", ";;"))
 
       val scriptStatements = ScriptSansEvolution(s"""
-        ${statementsWithEscapeSequence(0)}; 
+        ${statementsWithEscapeSequence(0)};
         ${statementsWithEscapeSequence(1)};""").statements
 
       scriptStatements.toList must beEqualTo(statements.toList)
@@ -45,7 +45,7 @@ object ScriptSpec extends Specification {
       scriptStatements.toList must beEqualTo(List(statement))
     }
 
-  }  
+  }
 
 
   private case class ScriptSansEvolution(sql: String) extends Script {
@@ -58,7 +58,7 @@ object ScriptSpec extends Specification {
     "not be noticed if there aren't any" in {
 
       val downRest = (9 to 1).reverse.map(i=> Evolution(i, s"DummySQLUP$i",s"DummySQLDOWN$i"))
-      val upRest = downRest        
+      val upRest = downRest
 
       val (conflictingDowns, conflictingUps) = Evolutions.conflictings(downRest, upRest)
 
@@ -69,10 +69,9 @@ object ScriptSpec extends Specification {
     "be noticed on the most recent one" in {
 
       val downRest = (1 to 9).reverse.map(i=> Evolution(i, s"DummySQLUP$i",s"DummySQLDOWN$i"))
-      val upRest = Evolution(9, "DifferentDummySQLUP", "DifferentDummySQLDOWN") +: (1 to 8).reverse.map(i=> Evolution(i, s"DummySQLUP$i",s"DummySQLDOWN$i"))  
-      
-      val (conflictingDowns, conflictingUps) = Evolutions.conflictings(downRest, upRest)
+      val upRest = Evolution(9, "DifferentDummySQLUP", "DifferentDummySQLDOWN") +: (1 to 8).reverse.map(i=> Evolution(i, s"DummySQLUP$i",s"DummySQLDOWN$i"))
 
+      val (conflictingDowns, conflictingUps) = Evolutions.conflictings(downRest, upRest)
 
       conflictingDowns.size must beEqualTo(1)
       conflictingUps.size must beEqualTo(1)
@@ -83,8 +82,8 @@ object ScriptSpec extends Specification {
     "be noticed in the middle" in {
 
       val downRest = (1 to 9).reverse.map(i=> Evolution(i, s"DummySQLUP$i",s"DummySQLDOWN$i"))
-      val upRest = (6 to 9).reverse.map(i=> Evolution(i, s"DummySQLUP$i",s"DummySQLDOWN$i")) ++: Evolution(5, "DifferentDummySQLUP", "DifferentDummySQLDOWN") +: (1 to 4).reverse.map(i=> Evolution(i, s"DummySQLUP$i",s"DummySQLDOWN$i"))  
-      
+      val upRest = (6 to 9).reverse.map(i=> Evolution(i, s"DummySQLUP$i",s"DummySQLDOWN$i")) ++: Evolution(5, "DifferentDummySQLUP", "DifferentDummySQLDOWN") +: (1 to 4).reverse.map(i=> Evolution(i, s"DummySQLUP$i",s"DummySQLDOWN$i"))
+
       val (conflictingDowns, conflictingUps) = Evolutions.conflictings(downRest, upRest)
 
       conflictingDowns.size must beEqualTo(5)
@@ -99,7 +98,7 @@ object ScriptSpec extends Specification {
 
       val downRest = (1 to 9).reverse.map(i=> Evolution(i, s"DummySQLUP$i",s"DummySQLDOWN$i"))
       val upRest = (2 to 9).reverse.map(i=> Evolution(i, s"DummySQLUP$i",s"DummySQLDOWN$i")) ++: List(Evolution(1, "DifferentDummySQLUP", "DifferentDummySQLDOWN"))
-      
+
       val (conflictingDowns, conflictingUps) = Evolutions.conflictings(downRest, upRest)
 
       conflictingDowns.size must beEqualTo(9)
