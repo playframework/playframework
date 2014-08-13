@@ -3,14 +3,10 @@
  */
 package javaguide.akka;
 
+import akka.actor.*;
 import com.typesafe.config.*;
 import javaguide.testhelpers.MockJavaAction;
 import org.junit.Test;
-
-//#akka-imports
-import akka.actor.*;
-import play.libs.Akka;
-//#akka-imports
 
 import play.libs.F.Promise;
 import play.mvc.Result;
@@ -27,27 +23,20 @@ import static org.junit.Assert.*;
 public class JavaAkka extends WithApplication {
 
     private static volatile CountDownLatch latch;
-    
-    //#akka-MyActor
     public static class MyActor extends UntypedActor {
         @Override
         public void onReceive(Object msg) throws Exception {
-            //###replace:         // receive logic
             latch.countDown();
         }
     }
-    //#akka-MyActor
-  
-    @Test
-    public void actorFor() throws Exception {
-        //#akka-actorOf
-        ActorRef myActor = Akka.system().actorOf(Props.create(MyActor.class));
-        //#akka-actorOf
 
-        latch = new CountDownLatch(1);
-        myActor.tell("hello", null);
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
-    }    
+    @Test
+    public void ask() throws Exception {
+        javaguide.akka.ask.Application controller = app.getWrappedApplication().injector().instanceOf(javaguide.akka.ask.Application.class);
+
+        String message = Helpers.contentAsString(controller.sayHello("world").get(1000));
+        assertThat(message, equalTo("Hello, world"));
+    }
 
     @Test
     public void conf() throws Exception {
@@ -56,28 +45,10 @@ public class JavaAkka extends WithApplication {
     }
 
     @Test
-    public void ask() throws Exception {
-        Akka.system().actorOf(Props.create(EchoActor.class), "my-actor");
-        Result result = MockJavaAction.call(new MockJavaAction() {
-            public Promise<Result> index() {
-                return javaguide.akka.ask.Application.index();
-            }
-        }, Helpers.fakeRequest());
-        assertThat(Helpers.contentAsString(result), equalTo("got hello"));
-    }
-
-    public static class EchoActor extends UntypedActor {
-        @Override
-        public void onReceive(Object msg) throws Exception {
-            sender().tell("got " + msg, null);
-        }
-    }
-
-    @Test
     public void async() throws Exception {
         Result result = MockJavaAction.call(new MockJavaAction() {
             public Promise<Result> index() {
-                return javaguide.akka.async.Application.index();
+                return new javaguide.akka.async.Application().index();
             }
         }, Helpers.fakeRequest());
         assertThat(Helpers.contentAsString(result), equalTo("Got 2"));
@@ -85,15 +56,16 @@ public class JavaAkka extends WithApplication {
 
     @Test
     public void scheduleActor() throws Exception {
+        ActorSystem system = app.getWrappedApplication().injector().instanceOf(ActorSystem.class);
         latch = new CountDownLatch(1);
-        ActorRef testActor = Akka.system().actorOf(Props.create(MyActor.class));
+        ActorRef testActor = system.actorOf(Props.create(MyActor.class));
         //#schedule-actor
-        Akka.system().scheduler().schedule(
+        system.scheduler().schedule(
                 Duration.create(0, TimeUnit.MILLISECONDS), //Initial delay 0 milliseconds
                 Duration.create(30, TimeUnit.MINUTES),     //Frequency 30 minutes
                 testActor,
                 "tick",
-                Akka.system().dispatcher(),
+                system.dispatcher(),
                 null
         );
         //#schedule-actor
@@ -102,6 +74,7 @@ public class JavaAkka extends WithApplication {
 
     @Test
     public void scheduleCode() throws Exception {
+        ActorSystem system = app.getWrappedApplication().injector().instanceOf(ActorSystem.class);
         final CountDownLatch latch = new CountDownLatch(1);
         class MockFile {
             void delete() {
@@ -110,14 +83,14 @@ public class JavaAkka extends WithApplication {
         }
         final MockFile file = new MockFile();
         //#schedule-code
-        Akka.system().scheduler().scheduleOnce(
+        system.scheduler().scheduleOnce(
                 Duration.create(10, TimeUnit.MILLISECONDS),
                 new Runnable() {
                     public void run() {
                         file.delete();
                     }
                 },
-                Akka.system().dispatcher()
+                system.dispatcher()
         );
         //#schedule-code
         assertTrue(latch.await(5, TimeUnit.SECONDS));

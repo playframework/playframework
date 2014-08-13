@@ -1,3 +1,2 @@
 1:play.core.system.MigrationHelper
-1000:play.api.libs.concurrent.AkkaPlugin
 10000:play.api.GlobalPlugin

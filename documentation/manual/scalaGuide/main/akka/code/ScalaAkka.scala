@@ -3,77 +3,120 @@
  */
 package scalaguide.akka {
 
+import akka.actor.ActorSystem
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import scala.concurrent.duration._
 
-import akka.pattern.ask
-//#play-akka-imports
-import akka.actor.{Actor, Props}
-import play.api.libs.concurrent.Akka
-//#play-akka-imports
-import play.api.Play.current
 import play.api.test._
 import java.io.File
 
 @RunWith(classOf[JUnitRunner])
 class ScalaAkkaSpec extends PlaySpecification {
 
-  "A scala Akka" should {
-
-    "myActor" in {
-      running(FakeApplication()) {
-        //#play-akka-actorOf
-        val myActor = Akka.system.actorOf(Props[MyActor], name = "myActor")
-        //#play-akka-actorOf
-
-        val future = myActor.ask("Alan")(5 seconds)
-        val result = await(future).asInstanceOf[String]
-        result must contain("Hello, Alan")
-      }
+  def withActorSystem[T](block: ActorSystem => T) = {
+    val system = ActorSystem()
+    try {
+      block(system)
+    } finally {
+      system.shutdown()
+      system.awaitTermination()
     }
+  }
+  
+  "The Akka support" should {
 
-    "actor scheduler" in {
-      running(FakeApplication()) {
-        val testActor = Akka.system.actorOf(Props[MyActor], name = "testActor")
-        import scala.concurrent.ExecutionContext.Implicits.global
-        //#play-akka-actor-schedule-repeat
-        import play.api.libs.concurrent.Execution.Implicits._
-        Akka.system.scheduler.schedule(0.microsecond, 300.microsecond, testActor, "tick")
-        //#play-akka-actor-schedule-repeat
-        success
-      }
-    }
+    "allow injecting actors" in new WithApplication() {
+      import controllers._
+      val controller = app.injector.instanceOf[Application]
+      
+      val helloActor = controller.helloActor
+      import play.api.mvc._
+      import play.api.mvc.Results._
+      import actors.HelloActor.SayHello
 
-    "actor scheduler" in {
-      running(FakeApplication()) {
-        import scala.concurrent.ExecutionContext.Implicits.global
-        val file = new File("/tmp/nofile")
-        file.mkdirs()
-        //#play-akka-actor-schedule-run-once
-        import play.api.libs.concurrent.Execution.Implicits._
-        Akka.system.scheduler.scheduleOnce(1000.microsecond) {
-          file.delete()
+      //#ask
+      import play.api.libs.concurrent.Execution.Implicits.defaultContext
+      import scala.concurrent.duration._
+      import akka.pattern.ask
+      implicit val timeout = 5.seconds
+      
+      def sayHello(name: String) = Action.async {
+        (helloActor ? SayHello(name)).mapTo[String].map { message =>
+          Ok(message)
         }
-        //#play-akka-actor-schedule-run-once
-        Thread.sleep(200)
-        file.exists() must beFalse
       }
+      //#ask
+      
+      contentAsString(sayHello("world")(FakeRequest())) must_== "Hello, world"
     }
 
+    "allow using the scheduler" in withActorSystem { system =>
+      import akka.actor._
+      val testActor = system.actorOf(Props(new Actor() {
+        def receive = { case _: String => }
+      }), name = "testActor")
+      //#schedule-actor
+      import scala.concurrent.duration._
+
+      val cancellable = system.scheduler.schedule(
+        0.microseconds, 300.microseconds, testActor, "tick")
+      //#schedule-actor
+      ok
+    }
+
+    "actor scheduler" in withActorSystem { system =>
+      val file = new File("/tmp/nofile")
+      file.mkdirs()
+      //#schedule-callback
+      import play.api.libs.concurrent.Execution.Implicits.defaultContext
+      system.scheduler.scheduleOnce(10.milliseconds) {
+        file.delete()
+      }
+      //#schedule-callback
+      Thread.sleep(200)
+      file.exists() must beFalse
+    }
   }
-
-
 }
 
-//#play-akka-MyActor
-class MyActor extends Actor {
+package controllers {
+//#controller
+import play.api.mvc._
+import akka.actor._
+import javax.inject._
+  
+import actors.HelloActor
+
+@Singleton
+class Application @Inject() (system: ActorSystem) extends Controller {
+
+  val helloActor = system.actorOf(HelloActor.props, "hello-actor")
+  
+  //...
+}
+//#controller  
+}
+
+package actors {
+//#actor
+import akka.actor._
+  
+object HelloActor {
+  def props = Props[HelloActor]
+  
+  case class SayHello(name: String)
+}
+
+class HelloActor extends Actor {
+  import HelloActor._
+  
   def receive = {
-    case s: String =>
-      println(s)
-      sender() ! "Hello, " + s
+    case SayHello(name: String) =>
+      sender() ! "Hello, " + name
   }
 }
-//#play-akka-MyActor
+//#actor
+}
 
 }

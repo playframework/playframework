@@ -10,7 +10,7 @@ import play.mvc.*;
 import static play.libs.F.Promise.promise;
 
 public class Application extends Controller {
-    public static Promise<Result> index() {
+    public Promise<Result> index() {
         return promise(() -> longComputation())
                   .map((Integer i) -> ok("Got " + i));
     }

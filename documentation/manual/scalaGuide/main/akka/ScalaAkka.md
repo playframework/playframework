@@ -5,20 +5,46 @@
 
 ## The application actor system
 
-Akka can work with several containers called `ActorSystems`. An actor system manages the resources it is configured to use in order to run the actors which it contains. 
+Akka can work with several containers called actor systems. An actor system manages the resources it is configured to use in order to run the actors which it contains. 
 
 A Play application defines a special actor system to be used by the application. This actor system follows the application life-cycle and restarts automatically when the application restarts.
 
 > **Note:** Nothing prevents you from using another actor system from within a Play application. The provided default is convenient if you only need to start a few actors without bothering to set-up your own actor system.
 
-You can access the default application actor system using the [`play.api.libs.concurrent.Akka`](api/scala/index.html#play.api.libs.concurrent.Akka$) helper:
+### Writing actors
 
-@[play-akka-imports](code/ScalaAkka.scala)
+To start using Akka, you need to write an actor.  Below is a simple actor that simply says hello to whoever asks it to.
 
-@[play-akka-MyActor](code/ScalaAkka.scala)
+@[actor](code/ScalaAkka.scala)
 
-@[play-akka-actorOf](code/ScalaAkka.scala)
+This actor follows a few Akka conventions:
 
+* The messages it sends/receives, or its _protocol_, are defined on its companion object
+* It also defines a `props` method on its companion object that returns the props for creating it
+
+### Creating and using actors
+
+To create and/or use an actor, you need an `ActorSystem`.  This can be obtained by declaring a dependency on an ActorSystem.  , like so:
+
+@[controller](code/ScalaAkka.scala)
+
+The `actorOf` method is used to create a new actor.  Notice that we've declared this controller to be a singleton.  This is necessary since we are creating the actor and storing a reference to it, if the controller was not scoped as singleton, this would mean a new actor would be created every time the controller was created, which would ultimate throw an exception because you can't have two actors in the same system with the same name.
+
+### Asking things of actors
+
+The most basic thing that you can do with an actor is send it a message.  When you send a message to an actor, there is no response, it's fire and forget.  This is also known as the _tell_ pattern.
+  
+In a web application however, the _tell_ pattern is often not useful, since HTTP is a protocol that has requests and responses.  In this case, it is much more likely that you will want to use the _ask_ pattern.  The ask pattern returns a `Future`, which you can then map to your own result type.
+
+Below is an example of using our `HelloActor` with the ask pattern:
+
+@[ask](code/ScalaAkka.scala)
+
+A few things to notice:
+
+* The ask pattern needs to be imported, and then this provides a `?` operator on the actor.
+* The return type of the ask is a `Future[Any]`, usually the first thing you will want to do after asking actor is map that to the type you are expecting, using the `mapTo` method.
+* An implicit timeout is needed in scope - the ask pattern must have a timeout.  If the actor takes longer than that to respond, the returned future will be completed with a timeout error.
 
 ## Configuration
 
@@ -33,10 +59,10 @@ akka.actor.debug.receive = on
 
 For Akka logging configuration, see [[configuring logging|SettingsLogger]].
 
-By default the name of the `ActorSystem` is _application. You can change this via an entry in the `conf/application.conf`:
+By default the name of the `ActorSystem` is `application`. You can change this via an entry in the `conf/application.conf`:
 
 ```
-play.plugins.akka.actor-system = "custom-name"
+play.modules.akka.actor-system = "custom-name"
 ```
 
 > **Note:** This feature is useful if you want to put your play application ActorSystem in an akka cluster.
@@ -47,12 +73,12 @@ You can schedule sending messages to actors and executing tasks (functions or `R
 
 For example, to send a message to the `testActor` every 300 microseconds:
 
-@[play-akka-actor-schedule-repeat](code/ScalaAkka.scala)
+@[schedule-actor](code/ScalaAkka.scala)
 
 > **Note:** This example uses implicit conversions defined in `scala.concurrent.duration` to convert numbers to `Duration` objects with various time units.
 
-Similarly, to run a block of code one seconds from now:
+Similarly, to run a block of code 10 milliseconds from now:
 
-@[play-akka-actor-schedule-run-once](code/ScalaAkka.scala)
+@[schedule-callback](code/ScalaAkka.scala)
 
 > **Next:** [[Internationalization | ScalaI18N]]
