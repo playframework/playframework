@@ -53,18 +53,24 @@ Create a new directory for your new application and configure your sbt build scr
 In `project/plugins.sbt`, add:
 
 ```scala
-// The Typesafe repository 
+// The Typesafe repository
 resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
 
 // Use the Play sbt plugin for Play projects
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "%PLAY_VERSION%")
 ```
 
-Be sure to replace `%PLAY_VERSION%` here by the exact version you want to use. If you want to use a snapshot version, you will have to specify this additional resolver: 
+Be sure to replace `%PLAY_VERSION%` here by the exact version you want to use. If you want to use a snapshot version, you will have to specify this additional resolver:
 
 ```
 // Typesafe snapshots
 resolvers += "Typesafe Snapshots" at "http://repo.typesafe.com/typesafe/snapshots/"
+```
+
+To ensure the proper sbt version is used, make sure you have the following in `project/build.properties`:
+
+```
+sbt.version=0.13.5
 ```
 
 In `build.sbt` for Java projects:
