@@ -79,7 +79,7 @@ class DefaultEvolutionsApi @Inject() (database: DBApi) extends EvolutionsApi {
    */
   def scripts(db: String, evolutions: Seq[Evolution]): Seq[Script] = {
     if (evolutions.nonEmpty) {
-      val application = evolutions
+      val application = evolutions.reverse
       val database = databaseEvolutions(db)
 
       val (nonConflictingDowns, dRest) = database.span(e => !application.headOption.exists(e.revision <= _.revision))
@@ -379,7 +379,7 @@ class EvolutionsReader @Inject() (environment: Environment) {
           parsed.get(UPS).getOrElse(""),
           parsed.get(DOWNS).getOrElse(""))
       }
-    }.reverse
+    }
 
   }
 }
