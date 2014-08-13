@@ -1,1 +1,2 @@
 play.inject.BuiltInModule
+play.core.ObjectMapperModule
