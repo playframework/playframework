@@ -31,7 +31,7 @@ object Dependencies {
 
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
-    h2database, 
+    h2database,
     acolyte % Test,
     "tyrex" % "tyrex" % "1.0.1") ++ specsBuild.map(_ % Test)
 
@@ -44,7 +44,8 @@ object Dependencies {
   )
 
   val jpaDeps = Seq(
-    "org.hibernate.javax.persistence" % "hibernate-jpa-2.0-api" % "1.0.1.Final"
+    "org.hibernate.javax.persistence" % "hibernate-jpa-2.0-api" % "1.0.1.Final",
+    "org.hibernate" % "hibernate-entitymanager" % "3.6.9.Final" % "test"
   )
 
   val link = Seq(

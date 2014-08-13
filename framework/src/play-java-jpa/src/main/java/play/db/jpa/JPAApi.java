@@ -4,12 +4,56 @@
 package play.db.jpa;
 
 import javax.persistence.EntityManager;
+import play.libs.F;
 
 /**
  * JPA API.
  */
 public interface JPAApi {
 
-    public EntityManager em(String key);
+/**
+     * Get the EntityManager for the specified persistence unit name.
+     *
+     * @param name The persistence unit name
+     */
+    public EntityManager em(String name);
 
+    /**
+     * Run a block of code in a JPA transaction.
+     *
+     * @param block Block of code to execute
+     */
+    public <T> T withTransaction(play.libs.F.Function0<T> block) throws Throwable;
+
+    /**
+     * Run a block of asynchronous code in a JPA transaction.
+     *
+     * @param block Block of code to execute
+     */
+    public <T> F.Promise<T> withTransactionAsync(play.libs.F.Function0<F.Promise<T>> block) throws Throwable;
+
+    /**
+     * Run a block of code in a JPA transaction.
+     *
+     * @param block Block of code to execute
+     */
+    public void withTransaction(final play.libs.F.Callback0 block);
+
+    /**
+     * Run a block of code in a JPA transaction.
+     *
+     * @param name The persistence unit name
+     * @param readOnly Is the transaction read-only?
+     * @param block Block of code to execute
+     */
+    public <T> T withTransaction(String name, boolean readOnly, play.libs.F.Function0<T> block) throws Throwable;
+
+    /**
+     * Run a block of asynchronous code in a JPA transaction.
+     *
+     * @param name The persistence unit name
+     * @param readOnly Is the transaction read-only?
+     * @param block Block of code to execute.
+     */
+    public <T> F.Promise<T> withTransactionAsync(String name, boolean readOnly, play.libs.F.Function0<F.Promise<T>> block) throws Throwable;
 }

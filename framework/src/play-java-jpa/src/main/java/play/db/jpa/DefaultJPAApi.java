@@ -47,12 +47,166 @@ public class DefaultJPAApi implements JPAApi {
         }
     }
 
-    public EntityManager em(String key) {
-        EntityManagerFactory emf = emfs.get(key);
+    /**
+     * Get the EntityManager for the specified persistence unit name.
+     *
+     * @param name The persistence unit name
+     */
+    public EntityManager em(String name) {
+        EntityManagerFactory emf = emfs.get(name);
         if (emf == null) {
             return null;
         }
         return emf.createEntityManager();
+    }
+
+    /**
+     * Run a block of code in a JPA transaction.
+     *
+     * @param block Block of code to execute
+     */
+    public <T> T withTransaction(play.libs.F.Function0<T> block) throws Throwable {
+        return withTransaction("default", false, block);
+    }
+
+    /**
+     * Run a block of asynchronous code in a JPA transaction.
+     *
+     * @param block Block of code to execute
+     */
+    public <T> F.Promise<T> withTransactionAsync(play.libs.F.Function0<F.Promise<T>> block) throws Throwable {
+        return withTransactionAsync("default", false, block);
+    }
+
+    /**
+     * Run a block of code in a JPA transaction.
+     *
+     * @param block Block of code to execute
+     */
+    public void withTransaction(final play.libs.F.Callback0 block) {
+        try {
+            withTransaction("default", false, new play.libs.F.Function0<Void>() {
+                public Void apply() throws Throwable {
+                    block.invoke();
+                    return null;
+                }
+            });
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
+    }
+
+    /**
+     * Run a block of code in a JPA transaction.
+     *
+     * @param name The persistence unit name
+     * @param readOnly Is the transaction read-only?
+     * @param block Block of code to execute
+     */
+    public <T> T withTransaction(String name, boolean readOnly, play.libs.F.Function0<T> block) throws Throwable {
+        EntityManager em = null;
+        EntityTransaction tx = null;
+        try {
+
+            em = em(name);
+            JPA.bindForCurrentThread(em);
+
+            if (!readOnly) {
+                tx = em.getTransaction();
+                tx.begin();
+            }
+
+            T result = block.apply();
+
+            if (tx != null) {
+                if(tx.getRollbackOnly()) {
+                    tx.rollback();
+                } else {
+                    tx.commit();
+                }
+            }
+
+            return result;
+
+        } catch (Throwable t) {
+            if (tx != null) {
+                try { tx.rollback(); } catch (Throwable e) {}
+            }
+            throw t;
+        } finally {
+            JPA.bindForCurrentThread(null);
+            if (em != null) {
+                em.close();
+            }
+        }
+    }
+
+    /**
+     * Run a block of asynchronous code in a JPA transaction.
+     *
+     * @param name The persistence unit name
+     * @param readOnly Is the transaction read-only?
+     * @param block Block of code to execute.
+     */
+    public <T> F.Promise<T> withTransactionAsync(String name, boolean readOnly, play.libs.F.Function0<F.Promise<T>> block) throws Throwable {
+        EntityManager em = null;
+        EntityTransaction tx = null;
+        try {
+
+            em = em(name);
+            JPA.bindForCurrentThread(em);
+
+            if (!readOnly) {
+                tx = em.getTransaction();
+                tx.begin();
+            }
+
+            F.Promise<T> result = block.apply();
+
+            final EntityManager fem = em;
+            final EntityTransaction ftx = tx;
+
+            F.Promise<T> committedResult = result.map(new F.Function<T, T>() {
+                @Override
+                public T apply(T t) throws Throwable {
+                    try {
+                        if (ftx != null) {
+                            if (ftx.getRollbackOnly()) {
+                                ftx.rollback();
+                            } else {
+                                ftx.commit();
+                            }
+                        }
+                    } finally {
+                        fem.close();
+                    }
+                    return t;
+                }
+            });
+
+            committedResult.onFailure(new F.Callback<Throwable>() {
+                @Override
+                public void invoke(Throwable t) {
+                    if (ftx != null) {
+                        try { if (ftx.isActive()) ftx.rollback(); } catch (Throwable e) {}
+                    }
+                    fem.close();
+                }
+            });
+
+            return committedResult;
+
+        } catch (Throwable t) {
+            if (tx != null) {
+                try { tx.rollback(); } catch (Throwable e) {}
+            }
+            if (em != null) {
+                em.close();
+            }
+            throw t;
+        } finally {
+            JPA.bindForCurrentThread(null);
+        }
     }
 
     private void stop() {
