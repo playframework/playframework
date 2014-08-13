@@ -42,6 +42,34 @@ object SqlParser {
   def flatten[T1, T2, R](implicit f: TupleFlattener[(T1 ~ T2) => R]): ((T1 ~ T2) => R) = f.f
 
   /**
+   * Parses specified array column.
+   *
+   * {{{
+   * import anorm.{ SQL, SqlParser }
+   *
+   * val t: (String, Array[String]) = SQL"SELECT a, sqlArrayOfString FROM test"
+   *   .as(SqlParser.str("a") ~
+   * SqlParser.array[String]("sqlArrayOfString") map (
+   *     SqlParser.flatten) single)
+   * }}}
+   */
+  def array[T](columnName: String)(implicit c: Column[Array[T]]): RowParser[Array[T]] = get[Array[T]](columnName)(c)
+
+  /**
+   * Parses specified array column.
+   * @param columnPosition from 1 to n
+   *
+   * {{{
+   * import anorm.{ SQL, SqlParser }
+   *
+   * val t: (String, Array[String]) = SQL"SELECT a, sqlArrayOfString FROM test"
+   *   .as(SqlParser.str("a") ~ SqlParser.array[String](2) map (
+   *     SqlParser.flatten) single)
+   * }}}
+   */
+  def array[T](columnPosition: Int)(implicit c: Column[Array[T]]): RowParser[Array[T]] = get[Array[T]](columnPosition)(c)
+
+  /**
    * Parses specified column as float.
    *
    * {{{
@@ -293,6 +321,33 @@ object SqlParser {
    */
   def int(columnPosition: Int)(implicit c: Column[Int]): RowParser[Int] =
     get[Int](columnPosition)(c)
+
+  /**
+   * Parses specified array column as list.
+   *
+   * {{{
+   * import anorm.{ SQL, SqlParser }
+   *
+   * val t: (String, List[String]) = SQL("SELECT a, sqlArrayOfString FROM test")
+   *   .as(SqlParser.str("a") ~ SqlParser.list("sqlArrayOfString") map (
+   *     SqlParser.flatten) single)
+   * }}}
+   */
+  def list[T](columnName: String)(implicit c: Column[List[T]]): RowParser[List[T]] = get[List[T]](columnName)(c)
+
+  /**
+   * Parses specified array column as list.
+   * @param columnPosition from 1 to n
+   *
+   * {{{
+   * import anorm.{ SQL, SqlParser }
+   *
+   * val t: (String, List[String]) = SQL("SELECT a, sqlArrayOfString FROM test")
+   *   .as(SqlParser.str("a") ~ SqlParser.list(2) map (
+   *     SqlParser.flatten) single)
+   * }}}
+   */
+  def list[T](columnPosition: Int)(implicit c: Column[List[T]]): RowParser[List[T]] = get[List[T]](columnPosition)(c)
 
   /**
    * Parses specified column as long.
