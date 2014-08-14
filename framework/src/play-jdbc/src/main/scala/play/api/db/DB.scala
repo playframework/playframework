@@ -11,7 +11,7 @@ import scala.util.control.{ NonFatal, ControlThrowable }
 import play.api.Application
 
 /**
- * The Play Database API manages several connection pools.
+ * Database API for managing data sources.
  */
 trait DBApi {
 

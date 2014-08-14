@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
  */
 package play.db;
 
@@ -14,14 +14,14 @@ import play.api.Application;
  * Provides a high-level API for getting JDBC connections.
  */
 public class DB {
-    
+
     /**
      * Returns the default datasource.
      */
     public static DataSource getDataSource() {
         return getDataSource("default");
     }
-    
+
     /**
      * Returns specified database.
      *
@@ -31,23 +31,23 @@ public class DB {
         return play.api.db.DB.
             getDataSource(name, play.api.Play.unsafeApplication());
     }
-    
+
     /**
-     * Returns a connection from the default datasource, 
+     * Returns a connection from the default datasource,
      * with auto-commit enabled.
      */
     public static Connection getConnection() {
         return getConnection("default");
     }
-    
+
     /**
-     * Returns a connection from the default datasource, 
+     * Returns a connection from the default datasource,
      * with the specified auto-commit setting.
      */
     public static Connection getConnection(boolean autocommit) {
         return getConnection("default", autocommit);
     }
-    
+
     /**
      * Returns a connection from any datasource, with auto-commit enabled.
      *
@@ -56,9 +56,9 @@ public class DB {
     public static Connection getConnection(String name) {
         return getConnection(name, true);
     }
-    
+
     /**
-     * Get a connection from any datasource, 
+     * Get a connection from any datasource,
      * with the specified auto-commit setting.
      *
      * @param name Datasource name
@@ -66,19 +66,19 @@ public class DB {
      */
     public static Connection getConnection(String name, boolean autocommit) {
         return play.api.db.DB.
-            getConnection(name, autocommit, 
+            getConnection(name, autocommit,
                           play.api.Play.unsafeApplication());
     }
-    
+
     /**
-     * Executes a block of code, providing a JDBC connection. 
+     * Executes a block of code, providing a JDBC connection.
      * The connection and all created statements are automatically released.
      *
      * @param name Datasource name
      * @param block Code block to execute
      * @param application Play application (<tt>play.api.Play.unsafeApplication()</tt>)
      */
-    public static <A> A withConnection(String name, 
+    public static <A> A withConnection(String name,
                                        ConnectionCallable<A> block,
                                        Application application) {
 
@@ -88,13 +88,13 @@ public class DB {
     }
 
     /**
-     * Execute a block of code, providing a JDBC connection. 
+     * Execute a block of code, providing a JDBC connection.
      * The connection and all created statements are automatically released.
      *
      * @param block Code block to execute
      * @param application Play application (<tt>play.api.Play.unsafeApplication()</tt>)
      */
-    public static <A> A withConnection(ConnectionCallable<A> block, 
+    public static <A> A withConnection(ConnectionCallable<A> block,
                                        Application application) {
 
         return play.api.db.DB.
@@ -102,26 +102,26 @@ public class DB {
     }
 
     /**
-     * Executes a block of code, providing a JDBC connection. 
+     * Executes a block of code, providing a JDBC connection.
      * The connection and all created statements are automatically released.
      *
      * @param name Datasource name
      * @param block Code block to execute
      */
     public static <A> A withConnection(String name, ConnectionCallable<A> block) {
-        return play.api.db.DB.withConnection(name, connectionFunction(block), 
+        return play.api.db.DB.withConnection(name, connectionFunction(block),
                                              play.api.Play.unsafeApplication());
 
     }
 
     /**
-     * Execute a block of code, providing a JDBC connection. 
+     * Execute a block of code, providing a JDBC connection.
      * The connection and all created statements are automatically released.
      *
      * @param block Code block to execute
      */
     public static <A> A withConnection(ConnectionCallable<A> block) {
-        return play.api.db.DB.withConnection(connectionFunction(block), 
+        return play.api.db.DB.withConnection(connectionFunction(block),
                                              play.api.Play.unsafeApplication());
     }
 
@@ -134,7 +134,7 @@ public class DB {
      * @param block Code block to execute
      * @param application Play application (<tt>play.api.Play.unsafeApplication()</tt>)
      */
-    public static <A> A withTransaction(String name, 
+    public static <A> A withTransaction(String name,
                                         ConnectionCallable<A> block,
                                         Application application) {
 
@@ -150,12 +150,12 @@ public class DB {
      * @param block Code block to execute
      * @param application Play application (<tt>play.api.Play.unsafeApplication()</tt>)
      */
-    public static <A> A withTransaction(ConnectionCallable<A> block, 
+    public static <A> A withTransaction(ConnectionCallable<A> block,
                                         Application application) {
 
         return play.api.db.DB.
             withTransaction(connectionFunction(block), application);
-        
+
     }
 
     /**
@@ -166,11 +166,11 @@ public class DB {
      * @param name Datasource name
      * @param block Code block to execute
      */
-    public static <A> A withTransaction(String name, 
+    public static <A> A withTransaction(String name,
                                         ConnectionCallable<A> block) {
 
         return play.api.db.DB.
-            withTransaction(name, connectionFunction(block), 
+            withTransaction(name, connectionFunction(block),
                             play.api.Play.unsafeApplication());
     }
 
@@ -184,13 +184,13 @@ public class DB {
     public static <A> A withTransaction(ConnectionCallable<A> block) {
 
         return play.api.db.DB.
-            withTransaction(connectionFunction(block), 
+            withTransaction(connectionFunction(block),
                             play.api.Play.unsafeApplication());
-        
+
     }
 
     /** Returns a function wrapper from Java callable. */
-    private static final <A> AbstractFunction1<Connection,A> connectionFunction(final ConnectionCallable<A> block) {
+    public static final <A> AbstractFunction1<Connection,A> connectionFunction(final ConnectionCallable<A> block) {
         return new AbstractFunction1<Connection,A>() {
             public A apply(Connection con) { return block.call(con); }
         };

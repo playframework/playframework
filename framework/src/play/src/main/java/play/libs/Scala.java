@@ -99,14 +99,14 @@ public class Scala {
 
     /**
      * Wrap a value into a Scala Option.
-     */ 
+     */
     public static <T> scala.Option<T> Option(T t) {
         return scala.Option.apply(t);
     }
 
     /**
      * None
-     */ 
+     */
     public static <T> scala.Option<T> None() {
         return scala.Option.apply(null);
     }
@@ -119,15 +119,34 @@ public class Scala {
         return new scala.Tuple2<A, B>(a, b);
     }
 
-    /** 
+    /**
+     *  Convert a scala Tuple2 to a java F.Tuple.
+     */
+    public static <A, B> F.Tuple<A, B> asJava(scala.Tuple2<A, B> tuple) {
+        return F.Tuple(tuple._1(), tuple._2());
+    }
+
+    /**
+     * Convert a sequence of scala Tuple2 to a java list of F.Tuple.
+     */
+    public static <A, B> List<F.Tuple<A, B>> asJavaTuples(scala.collection.Seq<scala.Tuple2<A, B>> scalaTuples) {
+        List<scala.Tuple2<A, B>> tupleList = asJava(scalaTuples);
+        List<F.Tuple<A, B>> tuples = new ArrayList<F.Tuple<A, B>>();
+        for (scala.Tuple2<A, B> scalaTuple : tupleList) {
+            tuples.add(asJava(scalaTuple));
+        }
+        return tuples;
+    }
+
+    /**
      * Creates an empty Scala Seq.
-     */ 
+     */
     @SuppressWarnings("unchecked")
     public static <T> scala.collection.Seq<T> emptySeq() {
         return (scala.collection.Seq<T>)toSeq(new Object[] {});
     }
 
-    /** 
+    /**
      * Creates an empty Scala Map.
      */
     public static <A,B> scala.collection.immutable.Map<A,B> emptyMap() {
