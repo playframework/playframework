@@ -85,7 +85,7 @@ object EvolutionsSpec extends Specification {
 
     def after = {
       connection.close()
-      db.stop()
+      db.shutdown()
     }
   }
 

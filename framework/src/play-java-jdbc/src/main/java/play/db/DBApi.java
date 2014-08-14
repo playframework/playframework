@@ -20,11 +20,6 @@ public interface DBApi {
     public List<Tuple<DataSource, String>> dataSources();
 
     /**
-     * Shutdown the connection pool for the given data source.
-     */
-    public void shutdownPool(DataSource ds);
-
-    /**
     * Retrieve a JDBC connection, with auto-commit set to `true`.
     *
     * Don't forget to release the connection at some point by calling close().
@@ -74,5 +69,15 @@ public interface DBApi {
      * @param block the block of code to execute
      */
     public <A> A withTransaction(String name, ConnectionCallable<A> block);
+
+    /**
+     * Shutdown connection pool for the given data source.
+     */
+    public void shutdownPool(DataSource ds);
+
+    /**
+     * Shutdown connection pools for all data sources.
+     */
+    public void shutdown();
 
 }

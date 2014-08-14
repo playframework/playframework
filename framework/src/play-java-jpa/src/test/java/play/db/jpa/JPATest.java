@@ -1,12 +1,11 @@
 /*
  * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
  */
-package play.db.jpa.test;
+package play.db.jpa;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.List;
 import org.junit.Test;
-import play.db.jpa.JPA;
 import play.test.FakeApplication;
 import play.test.WithApplication;
 

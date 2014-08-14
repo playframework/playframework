@@ -12,37 +12,51 @@ import java.util.*;
 import java.util.concurrent.Callable;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.persistence.*;
 
 /**
  * Default implementation of the JPA API.
  */
-@Singleton
 public class DefaultJPAApi implements JPAApi {
 
     private final JPAConfig jpaConfig;
 
     private final Map<String, EntityManagerFactory> emfs = new HashMap<String, EntityManagerFactory>();
 
-    @Inject
-    public DefaultJPAApi(JPAConfig jpaConfig, ApplicationLifecycle lifecycle) {
+    public DefaultJPAApi(JPAConfig jpaConfig) {
         this.jpaConfig = jpaConfig;
-        lifecycle.addStopHook(new Callable<F.Promise<Void>>() {
-            @Override
-            public F.Promise<Void> call() throws Exception {
-                stop();
-                return F.Promise.pure(null);
-            }
-        });
-        start();
+    }
+
+    @Singleton
+    public static class JPAApiProvider implements Provider<JPAApi> {
+        private final JPAApi jpaApi;
+
+        @Inject
+        public JPAApiProvider(JPAConfig jpaConfig, ApplicationLifecycle lifecycle) {
+            jpaApi = new DefaultJPAApi(jpaConfig);
+            lifecycle.addStopHook(new Callable<F.Promise<Void>>() {
+                @Override
+                    public F.Promise<Void> call() throws Exception {
+                        jpaApi.shutdown();
+                        return F.Promise.pure(null);
+                    }
+                });
+            jpaApi.start();
+        }
+
+        @Override
+        public JPAApi get() {
+            return jpaApi;
+        }
     }
 
     /**
-     * Initialises required JPA entity manager factories.
+     * Initialise JPA entity manager factories.
      */
-    private void start() {
-        for (JPAConfig.PersistenceUnit persistenceUnit: jpaConfig.persistenceUnits()) {
+    public void start() {
+        for (JPAConfig.PersistenceUnit persistenceUnit : jpaConfig.persistenceUnits()) {
             emfs.put(persistenceUnit.name, Persistence.createEntityManagerFactory(persistenceUnit.unitName));
         }
     }
@@ -92,7 +106,7 @@ public class DefaultJPAApi implements JPAApi {
                 }
             });
         } catch (Throwable t) {
-            throw new RuntimeException(t);
+            throw new RuntimeException("JPA transaction failed", t);
         }
     }
 
@@ -106,9 +120,14 @@ public class DefaultJPAApi implements JPAApi {
     public <T> T withTransaction(String name, boolean readOnly, play.libs.F.Function0<T> block) throws Throwable {
         EntityManager em = null;
         EntityTransaction tx = null;
-        try {
 
+        try {
             em = em(name);
+
+            if (em == null) {
+                throw new RuntimeException("No JPA entity manager defined for '" + name + "'");
+            }
+
             JPA.bindForCurrentThread(em);
 
             if (!readOnly) {
@@ -209,8 +228,11 @@ public class DefaultJPAApi implements JPAApi {
         }
     }
 
-    private void stop() {
-        for (EntityManagerFactory emf: emfs.values()) {
+    /**
+     * Close all entity manager factories.
+     */
+    public void shutdown() {
+        for (EntityManagerFactory emf : emfs.values()) {
             emf.close();
         }
     }

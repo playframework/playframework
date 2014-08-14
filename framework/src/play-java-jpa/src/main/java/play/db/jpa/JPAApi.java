@@ -11,7 +11,12 @@ import play.libs.F;
  */
 public interface JPAApi {
 
-/**
+    /**
+     * Initialise JPA entity manager factories.
+     */
+    public void start();
+
+    /**
      * Get the EntityManager for the specified persistence unit name.
      *
      * @param name The persistence unit name
@@ -56,4 +61,9 @@ public interface JPAApi {
      * @param block Block of code to execute.
      */
     public <T> F.Promise<T> withTransactionAsync(String name, boolean readOnly, play.libs.F.Function0<F.Promise<T>> block) throws Throwable;
+
+    /**
+     * Close all entity manager factories.
+     */
+    public void shutdown();
 }

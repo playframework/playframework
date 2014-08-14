@@ -55,7 +55,7 @@ class BoneCPProvider @Inject() (environment: Environment, configuration: Configu
   lazy val get: DBApi = {
     val config = configuration.getConfig("db").getOrElse(Configuration.empty)
     val db = new BoneConnectionPool(config, environment.classLoader)
-    lifecycle.addStopHook { () => Future.successful(db.stop()) }
+    lifecycle.addStopHook { () => Future.successful(db.shutdown()) }
     db.connect(logConnection = environment.mode != Mode.Test)
     db
   }
@@ -81,7 +81,7 @@ class BoneConnectionPool(configuration: Configuration, classLoader: ClassLoader)
   def datasources = dsList
 
   /**
-   * Connects to every data source.
+   * Connect to all data sources.
    */
   def connect(logConnection: Boolean = false): Unit = {
     // Try to connect to each, this should be the first access to DBApi
@@ -254,11 +254,6 @@ class BoneConnectionPool(configuration: Configuration, classLoader: ClassLoader)
     case _ => (datasources, dsMap, drivers)
   }
 
-  def shutdownPool(ds: DataSource) = ds match {
-    case bcp: BoneCPDataSource => bcp.close()
-    case _ => error(" - could not recognize DataSource, therefore unable to shutdown this pool")
-  }
-
   /**
    * Retrieves a JDBC connection, with auto-commit set to `true`.
    *
@@ -272,9 +267,17 @@ class BoneConnectionPool(configuration: Configuration, classLoader: ClassLoader)
     dsMap.get(name).getOrElse(error(s" - could not find datasource for $name"))
 
   /**
-   * Closes all data sources.
+   * Shutdown connection pool for the given data source.
    */
-  def stop(): Unit = {
+  def shutdownPool(ds: DataSource): Unit = ds match {
+    case bcp: BoneCPDataSource => bcp.close()
+    case _ => error(" - could not recognize DataSource, therefore unable to shutdown this pool")
+  }
+
+  /**
+   * Shutdown connection pools for all data sources.
+   */
+  def shutdown(): Unit = {
     datasources foreach {
       case (ds, _) => try {
         shutdownPool(ds)

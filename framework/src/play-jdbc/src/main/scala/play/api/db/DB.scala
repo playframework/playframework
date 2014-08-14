@@ -18,11 +18,6 @@ trait DBApi {
   def datasources: List[(DataSource, String)]
 
   /**
-   * Shutdown pool for given datasource
-   */
-  def shutdownPool(ds: DataSource)
-
-  /**
    * Retrieves a JDBC connection, with auto-commit set to `true`.
    *
    * Don't forget to release the connection at some point by calling close().
@@ -101,6 +96,16 @@ trait DBApi {
       }
     }
   }
+
+  /**
+   * Shutdown connection pool for the given data source.
+   */
+  def shutdownPool(ds: DataSource): Unit
+
+  /**
+   * Shutdown connection pools for all data sources.
+   */
+  def shutdown(): Unit
 
 }
 

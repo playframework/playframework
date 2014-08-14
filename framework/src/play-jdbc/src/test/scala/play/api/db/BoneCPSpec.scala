@@ -33,7 +33,7 @@ object BoneCPSpec extends Specification {
     }
 
     "be deregistered for Acolyte but still there for H2 after BoneCP stops" in {
-      bonecp.stop()
+      bonecp.shutdown()
 
       (DriverManager.getDriver("jdbc:h2:mem:") aka "H2 driver" must not(beNull))
       .and(DriverManager.getDriver(jdbcUrl) aka "Acolyte driver" must {

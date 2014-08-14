@@ -28,10 +28,6 @@ public class DefaultDBApi implements DBApi {
         return Scala.asJavaTuples(dbApi.datasources());
     }
 
-    public void shutdownPool(DataSource ds) {
-        dbApi.shutdownPool(ds);
-    }
-
     public DataSource getDataSource(String name) {
         return dbApi.getDataSource(name);
     }
@@ -50,6 +46,14 @@ public class DefaultDBApi implements DBApi {
 
     public <A> A withTransaction(String name, ConnectionCallable<A> block) {
         return dbApi.withTransaction(name, DB.connectionFunction(block));
+    }
+
+    public void shutdownPool(DataSource ds) {
+        dbApi.shutdownPool(ds);
+    }
+
+    public void shutdown() {
+        dbApi.shutdown();
     }
 
 }

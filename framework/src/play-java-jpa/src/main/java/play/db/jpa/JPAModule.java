@@ -19,8 +19,8 @@ public class JPAModule extends Module {
     public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
         if (configuration.underlying().getBoolean("play.modules.jpa.enabled")) {
             return seq(
-                bind(JPAApi.class).to(DefaultJPAApi.class),
-                bind(JPAConfig.class).toProvider(DefaultJPAConfig.JPAConfigProvider.class).in(Singleton.class)
+                bind(JPAApi.class).toProvider(DefaultJPAApi.JPAApiProvider.class),
+                bind(JPAConfig.class).toProvider(DefaultJPAConfig.JPAConfigProvider.class)
             );
         } else {
             return seq();

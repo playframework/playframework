@@ -1,11 +1,10 @@
 /*
  * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
  */
-package play.db.jpa.test;
+package play.db.jpa;
 
 import java.util.*;
 import javax.persistence.*;
-import play.db.jpa.*;
 
 @Entity
 public class TestEntity {
