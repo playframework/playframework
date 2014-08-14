@@ -20,71 +20,6 @@ import reflect.ClassTag
 import scala.util.control.NonFatal
 import scala.concurrent.{ Future, ExecutionException }
 
-trait WithDefaultPlugins {
-  self: Application =>
-
-  private[api] def pluginClasses: Seq[String] = {
-
-    import scala.collection.JavaConverters._
-
-    val PluginDeclaration = """([0-9_]+):(.*)""".r
-
-    val pluginFiles = self.classloader.getResources("play.plugins").asScala.toList ++ self.classloader.getResources("conf/play.plugins").asScala.toList
-
-    pluginFiles.distinct.map { plugins =>
-      PlayIO.readUrlAsString(plugins).split("\n").map(_.replaceAll("#.*$", "").trim).filterNot(_.isEmpty).map {
-        case PluginDeclaration(priority, className) => (priority.toInt, className)
-      }
-    }.flatten.sortBy(_._1).map(_._2)
-
-  }
-
-  /**
-   * The plugins list used by this application.
-   *
-   * Plugin classes must extend play.api.Plugin and are automatically discovered
-   * by searching for all play.plugins files in the classpath.
-   *
-   * A play.plugins file contains a list of plugin classes to be loaded, and sorted by priority:
-   *
-   * {{{
-   * 100:play.api.i18n.MessagesPlugin
-   * 200:play.api.db.DBPlugin
-   * 250:play.api.cache.BasicCachePlugin
-   * 300:play.db.ebean.EbeanPlugin
-   * 400:play.db.jpa.JPAPlugin
-   * 500:play.api.db.evolutions.EvolutionsPlugin
-   * 1000:play.api.libs.akka.AkkaPlugin
-   * 10000:play.api.GlobalPlugin
-   * }}}
-   *
-   * @see play.api.Plugin
-   */
-  lazy val plugins: Seq[Plugin] = Threads.withContextClassLoader(classloader) {
-
-    pluginClasses.map { className =>
-      try {
-        injector.instanceOf(classloader.loadClass(className)) match {
-          case plugin: Plugin if plugin.enabled => Some(plugin)
-          case _: Plugin =>
-            Play.logger.debug("Plugin [" + className + "] is disabled")
-            None
-          case other => throw new PlayException("Cannot load plugin", s"Plugin $className does not implement ${classOf[Plugin]}")
-        }
-      } catch {
-        case e: PlayException => throw e
-        case e: ThreadDeath => throw e
-        case e: VirtualMachineError => throw e
-        case e: Throwable => throw new PlayException(
-          "Cannot load plugin",
-          s"Plugin $className cannot be instantiated.",
-          e)
-      }
-    }.flatten
-
-  }
-}
-
 /**
  * A Play application.
  *
@@ -157,25 +92,9 @@ trait Application {
   def plugin[T](implicit ct: ClassTag[T]): Option[T] = plugin(ct.runtimeClass).asInstanceOf[Option[T]]
 
   /**
-   * The router used by this application (if defined).
+   * The router used by this application.
    */
-  lazy val routes: Option[Router.Routes] = loadRoutes
-
-  protected def loadRoutes: Option[Router.Routes] = try {
-    Some(classloader.loadClass(configuration.getString("application.router").map(_ + "$").getOrElse("Routes$")).getDeclaredField("MODULE$").get(null).asInstanceOf[Router.Routes]).map { router =>
-      router.setPrefix(configuration.getString("application.context").map { prefix =>
-        if (!prefix.startsWith("/")) {
-          throw configuration.reportError("application.context", "Invalid application context")
-        }
-        prefix
-      }.getOrElse("/"))
-      router
-    }
-  } catch {
-    case e: ClassNotFoundException => configuration.getString("application.router").map { routerName =>
-      throw configuration.reportError("application.router", "Router not found: " + routerName)
-    }
-  }
+  def routes: Router.Routes
 
   /**
    * Handle a runtime error during the execution of an action
@@ -313,7 +232,9 @@ class DefaultApplication @Inject() (environment: Environment,
     applicationLifecycle: DefaultApplicationLifecycle,
     override val injector: Injector,
     override val configuration: Configuration,
-    override val global: GlobalSettings) extends Application with WithDefaultPlugins {
+    override val global: GlobalSettings,
+    override val routes: Router.Routes,
+    override val plugins: Plugins) extends Application {
 
   def path = environment.rootPath
 
@@ -324,4 +245,22 @@ class DefaultApplication @Inject() (environment: Environment,
   def sources = sourceMapper.sourceMapper
 
   def stop() = applicationLifecycle.stop()
+}
+
+/**
+ * Helper to provide the Play built in components.
+ */
+trait BuiltInComponents {
+  def environment: Environment
+  def sourceMapper: OptionalSourceMapper
+  def webCommands: WebCommands
+  def configuration: Configuration
+  def global: GlobalSettings
+
+  def routes: Router.Routes
+
+  lazy val applicationLifecycle: DefaultApplicationLifecycle = new DefaultApplicationLifecycle
+  lazy val injector: Injector = NewInstanceInjector
+  lazy val application: Application = new DefaultApplication(environment, sourceMapper, applicationLifecycle, injector,
+    configuration, global, routes, Plugins.empty)
 }

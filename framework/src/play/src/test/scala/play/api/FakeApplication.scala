@@ -3,7 +3,7 @@
  */
 package play.api
 
-import play.core.SourceMapper
+import play.core.{ Router, SourceMapper }
 import java.io.File
 
 import scala.concurrent.Future
@@ -21,4 +21,5 @@ case class FakeApplication(config: Map[String, Any] = Map(),
   val classloader = Thread.currentThread.getContextClassLoader
   lazy val configuration = Configuration.from(config)
   def stop() = Future.successful(())
+  val routes = Router.Null
 }

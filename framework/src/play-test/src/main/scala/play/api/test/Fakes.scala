@@ -9,7 +9,7 @@ import play.api.inject._
 import play.api.mvc._
 import play.api.libs.json.JsValue
 import play.core.{ DefaultWebCommands, WebCommands }
-import play.utils.Threads
+import play.utils.{ Reflect, Threads }
 import scala.concurrent.Future
 import xml.NodeSeq
 import play.core.Router
@@ -197,7 +197,7 @@ object FakeRequest {
  * @param withRoutes A partial function of method name and path to a handler for handling the request
  */
 
-import play.api.{ Application, WithDefaultPlugins }
+import play.api.Application
 case class FakeApplication(
   override val path: java.io.File = new java.io.File("."),
   override val classloader: ClassLoader = classOf[FakeApplication].getClassLoader,
@@ -207,7 +207,7 @@ case class FakeApplication(
   val withGlobal: Option[play.api.GlobalSettings] = None,
   val withRoutes: PartialFunction[(String, String), Handler] = PartialFunction.empty) extends {
   override val sources = None
-} with Application with WithDefaultPlugins {
+} with Application {
 
   private val environment = Environment(path, classloader, Mode.Test)
   private val initialConfiguration = Threads.withContextClassLoader(environment.classLoader) {
@@ -239,13 +239,16 @@ case class FakeApplication(
 
   def stop() = applicationLifecycle.stop()
 
-  override def pluginClasses = {
-    additionalPlugins ++ super.pluginClasses.diff(withoutPlugins)
+  override val plugins = {
+    Plugins.loadPlugins(
+      additionalPlugins ++ Plugins.loadPluginClassNames(environment).diff(withoutPlugins),
+      environment, injector
+    )
   }
-  override lazy val routes: Option[Router.Routes] = {
-    val parentRoutes = loadRoutes
-    Some(new Router.Routes() {
-      def documentation = parentRoutes.map(_.documentation).getOrElse(Nil)
+  lazy val routes: Router.Routes = {
+    val parentRoutes = Router.load(environment, configuration)
+    new Router.Routes() {
+      def documentation = parentRoutes.documentation
       // Use withRoutes first, then delegate to the parentRoutes if no route is defined
       val routes = new AbstractPartialFunction[RequestHeader, Handler] {
         override def applyOrElse[A <: RequestHeader, B >: Handler](rh: A, default: A => B) =
@@ -253,14 +256,14 @@ case class FakeApplication(
         def isDefinedAt(rh: RequestHeader) = withRoutes.isDefinedAt((rh.method, rh.path))
       } orElse new AbstractPartialFunction[RequestHeader, Handler] {
         override def applyOrElse[A <: RequestHeader, B >: Handler](rh: A, default: A => B) =
-          parentRoutes.map(_.routes.applyOrElse(rh, default)).getOrElse(default(rh))
-        def isDefinedAt(x: RequestHeader) = parentRoutes.map(_.routes.isDefinedAt(x)).getOrElse(false)
+          parentRoutes.routes.applyOrElse(rh, default)
+        def isDefinedAt(x: RequestHeader) = parentRoutes.routes.isDefinedAt(x)
       }
       def setPrefix(prefix: String) {
-        parentRoutes.foreach(_.setPrefix(prefix))
+        parentRoutes.setPrefix(prefix)
       }
-      def prefix = parentRoutes.map(_.prefix).getOrElse("")
-    })
+      def prefix = parentRoutes.prefix
+    }
   }
 }
 

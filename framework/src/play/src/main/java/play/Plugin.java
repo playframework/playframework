@@ -19,7 +19,10 @@ package play;
  *     }
  * }
  * </pre>
+ *
+ * @deprecated Use modules instead
  */
+@Deprecated
 public class Plugin implements play.api.Plugin {
     
     /**

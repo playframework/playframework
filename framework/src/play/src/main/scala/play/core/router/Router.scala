@@ -9,8 +9,8 @@ import org.apache.commons.lang3.reflect.MethodUtils
 import java.net.URI
 import scala.util.control.{ NonFatal, Exception }
 import play.core.j.JavaActionAnnotations
-import play.utils.UriEncoding
-import play.api.Plugin
+import play.utils.{ Reflect, UriEncoding }
+import play.api.{ Environment, Configuration, Plugin }
 
 trait PathPart
 
@@ -73,6 +73,33 @@ case class PathPattern(parts: Seq[PathPart]) {
  * provides Play's router implementation
  */
 object Router {
+
+  def load(env: Environment, configuration: Configuration): Routes = {
+    try {
+      val className = configuration.getString("application.router").fold("Routes$")(_ + "$")
+      val router = Reflect.getClass[Router.Routes](className, env.classLoader)
+        .getDeclaredField("MODULE$")
+        .get(null)
+        .asInstanceOf[Router.Routes]
+
+      val prefix = configuration.getString("application.context").fold("/") { prefix =>
+        if (!prefix.startsWith("/")) {
+          throw configuration.reportError("application.context", "Invalid application context")
+        }
+        prefix
+      }
+
+      router.setPrefix(prefix)
+
+      router
+    } catch {
+      case e: ClassNotFoundException =>
+        configuration.getString("application.router").map { routerName =>
+          throw configuration.reportError("application.router", "Router not found: " + routerName)
+        }
+        Null
+    }
+  }
 
   object Route {
 
@@ -497,6 +524,17 @@ object Router {
       new TaggingInvoker(underlyingInvoker, handlerDef)
     }
 
+  }
+
+  /**
+   * A null router
+   */
+  object Null extends Routes {
+    var _prefix: String = _
+    def documentation = Nil
+    def prefix = _prefix
+    def setPrefix(prefix: String) = _prefix = prefix
+    def routes = PartialFunction.empty
   }
 
 }

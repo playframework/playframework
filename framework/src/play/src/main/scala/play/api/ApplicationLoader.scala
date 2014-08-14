@@ -76,3 +76,15 @@ object ApplicationLoader {
     Context(environment, sourceMapper, webCommands, configuration)
   }
 }
+
+/**
+ * Helper that provides all the built in components dependencies from the application loader context
+ */
+abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) extends BuiltInComponents {
+  lazy val environment = context.environment
+  lazy val sourceMapper = new OptionalSourceMapper(context.sourceMapper)
+  lazy val webCommands = context.webCommands
+  lazy val configuration = context.initialConfiguration
+  lazy val global = DefaultGlobal
+}
+

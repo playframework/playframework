@@ -3,6 +3,11 @@
  */
 package play.api
 
+import play.api.inject.Injector
+import play.utils.{ Reflect, PlayIO }
+
+import scala.collection.IndexedSeqLike
+
 /**
  * A Play plugin.
  *
@@ -21,6 +26,7 @@ package play.api
  * }}}
  * The associated int defines the plugin priority.
  */
+@deprecated("Use modules instead", since = "2.4.0")
 trait Plugin {
 
   /**
@@ -40,3 +46,46 @@ trait Plugin {
 
 }
 
+class Plugins(plugins: IndexedSeq[Plugin]) extends IndexedSeqLike[Plugin, IndexedSeq[Plugin]] with IndexedSeq[Plugin] {
+  def length = plugins.length
+  def apply(idx: Int) = plugins(idx)
+}
+
+object Plugins {
+
+  /**
+   * Load all the plugin class names from the environment.
+   */
+  def loadPluginClassNames(env: Environment): Seq[String] = {
+    import scala.collection.JavaConverters._
+
+    val PluginDeclaration = """([0-9_]+):(.*)""".r
+
+    val pluginFiles = env.classLoader.getResources("play.plugins").asScala.toList
+
+    pluginFiles.distinct.map { plugins =>
+      PlayIO.readUrlAsString(plugins).split("\n").map(_.replaceAll("#.*$", "").trim).filterNot(_.isEmpty).map {
+        case PluginDeclaration(priority, className) => (priority.toInt, className)
+      }
+    }.flatten.sortBy(_._1).map(_._2)
+  }
+
+  /**
+   * Load all the plugin classes from the given environment.
+   */
+  def loadPlugins(classNames: Seq[String], env: Environment, injector: Injector): Seq[Plugin] = {
+    classNames.map { className =>
+      val clazz = Reflect.getClass[Plugin](className, env.classLoader)
+      injector.instanceOf(clazz)
+    }.filter(_.enabled)
+  }
+
+  /**
+   * Load all the plugins from the given environment.
+   */
+  def apply(env: Environment, injector: Injector): Plugins = {
+    new Plugins(loadPlugins(loadPluginClassNames(env), env, injector).toIndexedSeq)
+  }
+
+  def empty = new Plugins(IndexedSeq.empty)
+}

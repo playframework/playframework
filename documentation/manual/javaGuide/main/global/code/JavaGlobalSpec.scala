@@ -40,7 +40,7 @@ object JavaGlobalSpec extends PlaySpecification {
 
   def contentOf(url: String, global: GlobalSettings) = running(new TestServer(testServerPort, new FakeApplication(
     withGlobal = Some(new JavaGlobalSettingsAdapter(global))) {
-    override protected def loadRoutes = Some(Routes)
+    override lazy val routes = Routes
   })) {
     import play.api.Play.current
     await(WS.url("http://localhost:" + testServerPort + url).get()).body

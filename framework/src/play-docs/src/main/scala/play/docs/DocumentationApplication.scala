@@ -18,11 +18,8 @@ case class DocumentationApplication(projectPath: File, buildDocHandler: BuildDoc
   private val environment = Environment(projectPath, this.getClass.getClassLoader, Mode.Dev)
   private val configuration = Configuration.load(environment.rootPath, environment.mode, Map.empty)
   val application = new DefaultApplication(environment, new OptionalSourceMapper(None),
-    new DefaultApplicationLifecycle(), NewInstanceInjector, configuration, DefaultGlobal
-  ) {
-    override lazy val routes = None
-    override lazy val plugins = Nil
-  }
+    new DefaultApplicationLifecycle(), NewInstanceInjector, configuration, DefaultGlobal, Router.Null, Plugins.empty
+  )
 
   Play.start(application)
 

@@ -128,10 +128,7 @@ trait GlobalSettings {
    * @return an action to handle this request - if no action is returned, a 404 not found result will be sent to client
    * @see onHandlerNotFound
    */
-  def onRouteRequest(request: RequestHeader): Option[Handler] = Play.maybeApplication.flatMap(_.routes.flatMap {
-    router =>
-      router.handlerFor(request)
-  })
+  def onRouteRequest(request: RequestHeader): Option[Handler] = Play.maybeApplication.flatMap(_.routes.handlerFor(request))
 
   /**
    * Called when an exception occurred.
@@ -175,7 +172,7 @@ trait GlobalSettings {
     Future.successful(NotFound(Play.maybeApplication.map {
       case app if app.mode != Mode.Prod => views.html.defaultpages.devNotFound.f
       case app => views.html.defaultpages.notFound.f
-    }.getOrElse(views.html.defaultpages.devNotFound.f)(request, Play.maybeApplication.flatMap(_.routes))))
+    }.getOrElse(views.html.defaultpages.devNotFound.f)(request, Play.maybeApplication.map(_.routes))))
   }
 
   /**

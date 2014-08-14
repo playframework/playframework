@@ -38,9 +38,7 @@ class ServerBenchmark extends NettyRunners {
   def makeHelloWordRequest() {
     val environment = Environment(new File("."), this.getClass.getClassLoader, Mode.Test)
     val application = new DefaultApplication(environment, new OptionalSourceMapper(None),
-      new DefaultApplicationLifecycle, NewInstanceInjector, Configuration.empty, DefaultGlobal) {
-      override protected def loadRoutes: Option[Router.Routes] = Some(Routes)
-    }
+      new DefaultApplicationLifecycle, NewInstanceInjector, Configuration.empty, DefaultGlobal, Routes, Plugins.empty)
 
     val remoteAddress = new InetSocketAddress(8080)
 

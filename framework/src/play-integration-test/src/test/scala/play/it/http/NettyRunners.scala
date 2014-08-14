@@ -85,14 +85,14 @@ trait NettyRunners extends PlayRunners {
       downstreamHandler: ChannelDownstreamHandler,
       action: EssentialAction)(block: ChannelPipeline => T): T = {
     val app = new FakeApplication() {
-      override lazy val routes = Some(new Routes {
+      override lazy val routes = new Routes {
         def prefix = "/"
         def setPrefix(prefix: String) {}
         def documentation = Nil
         def routes = {
           case _ => action
         }
-      })
+      }
     }
     withDownstreamHandler(downstreamHandler, app)(block)
   }
