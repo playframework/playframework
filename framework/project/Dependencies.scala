@@ -80,7 +80,7 @@ object Dependencies {
     "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.5"
   ) ++ javassist ++ specsBuild.map(_ % Test)
 
-  val junitInterface = "com.novocode" % "junit-interface" % "0.11-RC1"
+  val junitInterface = "com.novocode" % "junit-interface" % "0.11"
   val junit = "junit" % "junit" % "4.11"
 
   val javaTestDeps = Seq(
