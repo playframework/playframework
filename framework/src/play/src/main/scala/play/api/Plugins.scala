@@ -46,9 +46,11 @@ trait Plugin {
 
 }
 
-class Plugins(plugins: IndexedSeq[Plugin]) extends IndexedSeqLike[Plugin, IndexedSeq[Plugin]] with IndexedSeq[Plugin] {
-  def length = plugins.length
-  def apply(idx: Int) = plugins(idx)
+class Plugins(plugins: => IndexedSeq[Plugin]) extends IndexedSeqLike[Plugin, IndexedSeq[Plugin]] with IndexedSeq[Plugin] {
+  // Fix circular dependency
+  private lazy val thePlugins = plugins
+  def length = thePlugins.length
+  def apply(idx: Int) = thePlugins(idx)
 }
 
 object Plugins {
@@ -84,7 +86,10 @@ object Plugins {
    * Load all the plugins from the given environment.
    */
   def apply(env: Environment, injector: Injector): Plugins = {
-    new Plugins(loadPlugins(loadPluginClassNames(env), env, injector).toIndexedSeq)
+    val classNames = loadPluginClassNames(env)
+    // parameter is by name, this avoids a circular dependency between plugins and their application, so the plugins
+    // are not instantiated until they're used
+    new Plugins(loadPlugins(classNames, env, injector).toIndexedSeq)
   }
 
   def empty = new Plugins(IndexedSeq.empty)

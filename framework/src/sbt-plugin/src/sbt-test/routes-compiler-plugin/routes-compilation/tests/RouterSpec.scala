@@ -108,7 +108,7 @@ object RouterSpec extends PlaySpecification {
   "document the router" in new WithApplication() {
     // The purpose of this test is to alert anyone that changes the format of the router documentation that
     // it is being used by Swagger. So if you do change it, please let Tony Tam know at tony at wordnik dot com.
-    val someRoute = app.routes.flatMap(_.documentation.find(r => r._1 == "GET" && r._2.startsWith("/with/")))
+    val someRoute = app.routes.documentation.find(r => r._1 == "GET" && r._2.startsWith("/with/"))
     someRoute must beSome[(String, String, String)]
     val route = someRoute.get
     route._2 must_== "/with/$param<[^/]+>"
