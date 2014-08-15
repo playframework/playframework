@@ -536,6 +536,8 @@ trait RowParser[+A] extends (Row => SqlResult[A]) { parent =>
    * val b: Boolean = SQL("SELECT flag FROM Test WHERE id = :id").
    *   on("id" -> 1).as(scalar[Boolean].single)
    * }}}
+   *
+   * @see #singleOpt
    */
   def single = ResultSetParser.single(parent)
 
@@ -565,8 +567,9 @@ sealed trait ScalarRowParser[+A] extends RowParser[A] {
   }
 }
 
-// TODO: Refactory using fold?
-trait ResultSetParser[+A] extends (Stream[Row] => SqlResult[A]) { parent =>
+// TODO: Refactor with Iterator
+sealed trait ResultSetParser[+A] extends (Stream[Row] => SqlResult[A]) {
+  parent =>
   def map[B](f: A => B): ResultSetParser[B] =
     ResultSetParser(parent(_).map(f))
 

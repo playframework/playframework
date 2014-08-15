@@ -208,24 +208,43 @@ This feature tries to make faster, more concise and easier to read the way to re
 
 ## Streaming results
 
-Query results can be processed as stream of row, not having all loaded in memory.
+Query results can be processed row per row, not having all loaded in memory.
 
 In the following example we will count the number of country rows.
 
 ```scala
-val countryCount: Long = 
+val countryCount: Either[List[Throwable], Long] = 
   SQL"Select count(*) as c from Country".fold(0L) { (c, _) => c + 1 }
 ```
 
-It's also possible to partially treat the row stream.
+> In previous example, either it's the successful `Long` result (right), or the list of errors (left).
+
+Result can also be partially processed:
 
 ```scala
-// Create an SQL query
-val books: List[String] = SQL("Select name from Books").
-  foldWhile(List[String]()) { (list, row) => 
+val books: Either[List[Throwable], List[String]] = 
+  SQL("Select name from Books").foldWhile(List[String]()) { (list, row) => 
     if (list.size == 100) (list -> false) // stop with `list`
     else (list := row[String]("name")) -> true // continue with one more name
   }
+```
+
+It's possible to use a custom streaming:
+
+```scala
+import anorm.Row
+
+@annotation.tailrec
+def go(it: Iterator[Row], l: List[String]): List[String] = 
+  if (!it.hasNext) l // no more result
+  else if (l.size == 100) l // custom limit, partial processing
+  else {
+    val row = it.next()
+    go(it, l :+ row[String]("name"))
+  }
+
+val books: Either[List[Throwable], List[String]] = 
+  SQL("Select name from Books").withIterator(go(_, List.empty[String]))
 ```
 
 ### Multi-value support

@@ -313,6 +313,34 @@ object SqlResultSpec extends org.specs2.mutable.Specification with H2Database {
     }
   }
 
+  "Process variable number of rows" should {
+    "do nothing when there is no result" in withQueryResult(QueryResult.Nil) {
+      implicit c => 
+      SQL"EXEC test".executeQuery().withIterator(_.toList).
+        aka("iteration") must beRight.which(_ aka "result list" must beEmpty)
+    }
+
+    "handle failure" in withQueryResult(
+      rowList1(classOf[String] -> "foo") :+ "A" :+ "B") { implicit c =>
+      var first = false
+        SQL"SELECT str".executeQuery() withIterator { it =>
+          it.next() // read first
+          first = true
+          sys.error("Failure")
+        } aka "processing with failure" must beLeft.like {
+          case err :: Nil => err.getMessage aka "failure" must_== "Failure"
+        } and (first aka "first read" must beTrue)
+    }
+
+    "stop after first row without failure" in withQueryResult(
+      rowList1(classOf[String] -> "foo") :+ "A" :+ "B") { implicit c =>
+        SQL"SELECT str".executeQuery() withIterator { it =>
+          val first = it.next()
+          Set(first[String]("foo"))
+        } aka "partial processing" must_== Right(Set("A"))
+    }
+  }
+
   "SQL warning" should {
     "not be there on success" in withQueryResult(stringList :+ "A") { 
       implicit c =>
