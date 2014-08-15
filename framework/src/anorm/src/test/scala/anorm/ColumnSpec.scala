@@ -519,26 +519,36 @@ object ColumnSpec extends org.specs2.mutable.Specification {
   }
 
   "Column mapped as array" should {
-    val array = ImmutableArray.
+    val sqlArray = ImmutableArray.
       getInstance(classOf[String], Array("aB", "Cd", "EF"))
 
-    "be parsed from array" in withQueryResult(
-      rowList1(classOf[SqlArray]) :+ array) { implicit con =>
+    "be parsed from SQL array" in withQueryResult(
+      rowList1(classOf[SqlArray]) :+ sqlArray) { implicit con =>
 
         SQL"SELECT a".as(scalar[Array[String]].single).
           aka("parsed array") mustEqual Array("aB", "Cd", "EF")
       }
 
-    "not be parsed from array with invalid component type" in withQueryResult(
-      rowList1(classOf[SqlArray]) :+ acolyte.jdbc.ImmutableArray.getInstance(
-        classOf[java.sql.Date], Array(new java.sql.Date(1l),
-          new java.sql.Date(2l)))) { implicit con =>
+    val idArray = Array(java.util.UUID.randomUUID, java.util.UUID.randomUUID)
+    "be parsed from raw array" in withQueryResult(
+      rowList1(classOf[Array[_]]) :+ idArray) { implicit con =>
+
+        SQL"SELECT ids".as(scalar[Array[java.util.UUID]].single).
+          aka("parsed array") mustEqual idArray
+      }
+
+    "not be parsed from SQL array with invalid component type" in {
+      withQueryResult(rowList1(classOf[SqlArray]) :+ acolyte.jdbc.
+        ImmutableArray.getInstance(classOf[java.sql.Date], 
+          Array(new java.sql.Date(1l), new java.sql.Date(2l)))) { 
+        implicit con =>
 
         SQL"SELECT a".as(scalar[Array[String]].single).
           aka("parsing") must throwA[Exception](message =
             "TypeDoesNotMatch\\(Cannot convert ImmutableArray")
 
       }
+    }
 
     "not be parsed from float" in withQueryResult(floatList :+ 2f) {
       implicit con =>
@@ -547,7 +557,7 @@ object ColumnSpec extends org.specs2.mutable.Specification {
             "TypeDoesNotMatch\\(Cannot convert.* to array")
     }
 
-    "be parsed from array with integer to big integer convertion" in {
+    "be parsed from SQL array with integer to big integer convertion" in {
       withQueryResult(rowList1(classOf[SqlArray]) :+ ImmutableArray.getInstance(
         classOf[Integer], Array[Integer](1, 3))) { implicit con =>
 
@@ -559,17 +569,26 @@ object ColumnSpec extends org.specs2.mutable.Specification {
   }
 
   "Column mapped as list" should {
-    val array = ImmutableArray.
+    val sqlArray = ImmutableArray.
       getInstance(classOf[String], Array("aB", "Cd", "EF"))
 
-    "be parsed from array" in withQueryResult(
-      rowList1(classOf[SqlArray]) :+ array) { implicit con =>
+    "be parsed from SQL array" in withQueryResult(
+      rowList1(classOf[SqlArray]) :+ sqlArray) { implicit con =>
 
         SQL"SELECT a".as(scalar[List[String]].single).
           aka("parsed list") mustEqual List("aB", "Cd", "EF")
       }
 
-    "not be parsed from array with invalid component type" in withQueryResult(
+    val idArray = Array(java.util.UUID.randomUUID, java.util.UUID.randomUUID)
+    "be parsed from raw array" in withQueryResult(
+      rowList1(classOf[Array[_]]) :+ idArray) { implicit con =>
+
+        SQL"SELECT ids".as(scalar[List[java.util.UUID]].single).
+          aka("parsed array") mustEqual idArray.toList
+      }
+
+    "not be parsed from SQL array with invalid component type" in {
+      withQueryResult(
       rowList1(classOf[SqlArray]) :+ acolyte.jdbc.ImmutableArray.getInstance(
         classOf[java.sql.Date], Array(new java.sql.Date(1l),
           new java.sql.Date(2l)))) { implicit con =>
@@ -579,6 +598,7 @@ object ColumnSpec extends org.specs2.mutable.Specification {
             "TypeDoesNotMatch\\(Cannot convert ImmutableArray")
 
       }
+    }
 
     "not be parsed from float" in withQueryResult(floatList :+ 2f) {
       implicit con =>
@@ -587,7 +607,7 @@ object ColumnSpec extends org.specs2.mutable.Specification {
             "TypeDoesNotMatch\\(Cannot convert.* to list")
     }
 
-    "be parsed from array with integer to big integer convertion" in {
+    "be parsed from SQL array with integer to big integer convertion" in {
       withQueryResult(rowList1(classOf[SqlArray]) :+ ImmutableArray.getInstance(
         classOf[Integer], Array[Integer](1, 3))) { implicit con =>
 

@@ -351,16 +351,22 @@ object Column {
       a.headOption match {
         case Some(r) => transformer(r, meta).toEither match {
           case Right(v) => transf(a.tail, p :+ v)
-          case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to array for column $qualified"))
+          case Left(cause) => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to array for column $qualified: $cause"))
         }
         case _ => Right(p)
       }
 
     value match {
       case sql: java.sql.Array => try {
-        transf(sql.getArray.asInstanceOf[Array[_]], Array[T]())
+        transf(sql.getArray.asInstanceOf[Array[_]], Array.empty[T])
       } catch {
         case _: Throwable => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to array for column $qualified"))
+      }
+
+      case arr: Array[_] => try {
+        transf(arr, Array.empty[T])
+      } catch {
+        case _: Throwable => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified"))
       }
 
       case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to array for column $qualified"))
@@ -382,7 +388,7 @@ object Column {
       a.headOption match {
         case Some(r) => transformer(r, meta).toEither match {
           case Right(v) => transf(a.tail, p :+ v)
-          case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified"))
+          case Left(cause) => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified: $cause"))
         }
         case _ => Right(p)
       }
@@ -390,6 +396,12 @@ object Column {
     value match {
       case sql: java.sql.Array => try {
         transf(sql.getArray.asInstanceOf[Array[_]], Nil)
+      } catch {
+        case _: Throwable => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified"))
+      }
+
+      case arr: Array[_] => try {
+        transf(arr, Nil)
       } catch {
         case _: Throwable => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified"))
       }
