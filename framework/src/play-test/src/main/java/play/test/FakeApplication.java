@@ -7,6 +7,7 @@ import java.io.*;
 import java.util.*;
 
 import play.api.mvc.Handler;
+import play.inject.Injector;
 import play.libs.*;
 import scala.PartialFunction$;
 import scala.Tuple2;
@@ -53,4 +54,7 @@ public class FakeApplication {
         return wrappedApplication;
     }
 
+    public Injector injector() {
+        return getWrappedApplication().injector().instanceOf(Injector.class);
+    }
 }

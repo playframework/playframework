@@ -113,7 +113,7 @@ class DefaultEvolutionsApi @Inject() (database: DBApi) extends EvolutionsApi {
    * @return evolution scripts
    */
   def scripts(db: String, path: File): Seq[Script] = {
-    scripts(db, new EvolutionsReader(Environment(path, this.getClass.getClassLoader, Mode.Dev /* not used */)))
+    scripts(db, new EvolutionsReader(Environment(path, this.getClass.getClassLoader, Mode.Dev /* not used */ )))
   }
 
   /**
