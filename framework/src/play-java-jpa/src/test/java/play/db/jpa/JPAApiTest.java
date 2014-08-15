@@ -4,8 +4,10 @@
 package play.db.jpa;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 
+import play.db.ConnectionCallable;
 import play.db.DB;
 import play.db.DBApi;
 
@@ -27,9 +29,11 @@ public class JPAApiTest {
             "default.jndiName", "DefaultDS"
         ));
 
-        Connection connection = db.getConnection("default", true);
-        connection.createStatement().execute("create table TestEntity (id bigint not null, name varchar(255));");
-        connection.close();
+        db.withConnection("default", new ConnectionCallable<Boolean>() {
+            public Boolean call(Connection connection) throws SQLException {
+                return connection.createStatement().execute("create table TestEntity (id bigint not null, name varchar(255));");
+            }
+        });
 
         JPAConfig config = DefaultJPAConfig.from(ImmutableMap.of(
             "default", "defaultPersistenceUnit"

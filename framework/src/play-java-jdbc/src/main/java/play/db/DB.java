@@ -221,27 +221,15 @@ public class DB {
     }
 
     /** Returns a function wrapper from Java callable. */
-    public static final <A> AbstractFunction1<Connection,A> connectionFunction(final ConnectionCallable<A> block) {
-        return new AbstractFunction1<Connection,A>() {
-            public A apply(Connection con) { return block.call(con); }
+    public static final <A> AbstractFunction1<Connection, A> connectionFunction(final ConnectionCallable<A> block) {
+        return new AbstractFunction1<Connection, A>() {
+            public A apply(Connection con) {
+                try {
+                    return block.call(con);
+                } catch (java.sql.SQLException e) {
+                    throw new RuntimeException("Connection callable failed", e);
+                }
+            }
         };
     }
-}
-
-/**
- * Similar to java.util.concurrent.Callable with a connection as argument.
- * Usable from vanilla Java 6+, or as lambda as it's a functionnal interface.
- *
- * Vanilla Java:
- * <code>
- * new ConnectionCallable<A>() {
- *   public A call(Connection con) { ... }
- * }
- * </code>
- *
- * Java Lambda:
- * <code>(Connection con) -> ...</code>
- */
-interface ConnectionCallable<A> {
-    public A call(Connection con);
 }
