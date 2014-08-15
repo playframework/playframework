@@ -154,6 +154,8 @@ This demonstrates a few useful features:
 - The `access` logger is routed to a separate log file using the `ACCESS_FILE_APPENDER`.
 - All loggers are set to a threshold of `INFO` which is a common choice for production logging.  
 
+> NOTE: Logback uses blocking appenders by default.  If you wish to use a non-blocking appender, then [AsyncAppender](http://logback.qos.ch/manual/appenders.html#AsyncAppender) is a good choice, but it is configured to "lose" debug messages when the queue is full, for a [performance increase](https://plumbr.eu/blog/locking-and-logging). 
+
 ## Akka logging configuration
 Akka has its own logging system which may or may not use Play's underlying logging engine depending on how it is configured.
 
