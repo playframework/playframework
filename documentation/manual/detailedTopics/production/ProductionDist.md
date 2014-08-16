@@ -138,11 +138,11 @@ You have to configure the repository you want to publish to, in your `build.sbt`
 
 ```scala
  publishTo := Some(
-   "My resolver" at "http://mycompany.com/repo"
+   "My resolver" at "https://mycompany.com/repo"
  ),
  
  credentials += Credentials(
-   "Repo", "http://mycompany.com/repo", "admin", "admin123"
+   "Repo", "https://mycompany.com/repo", "admin", "admin123"
  )
 ```
 
