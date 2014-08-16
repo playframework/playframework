@@ -54,7 +54,7 @@ In `project/plugins.sbt`, add:
 
 ```scala
 // The Typesafe repository
-resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
+resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/"
 
 // Use the Play sbt plugin for Play projects
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "%PLAY_VERSION%")
@@ -64,7 +64,7 @@ Be sure to replace `%PLAY_VERSION%` here by the exact version you want to use. I
 
 ```
 // Typesafe snapshots
-resolvers += "Typesafe Snapshots" at "http://repo.typesafe.com/typesafe/snapshots/"
+resolvers += "Typesafe Snapshots" at "https://repo.typesafe.com/typesafe/snapshots/"
 ```
 
 To ensure the proper sbt version is used, make sure you have the following in `project/build.properties`:
