@@ -35,7 +35,7 @@ object ApplicationBuild extends Build {
 
   val externalPlayModules: Map[String, Seq[Setting[_]]] = Map(
     "scalatestplus-play" -> Seq(
-      resolvers += "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases", // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
+      resolvers += "Typesafe Releases" at "https://repo.typesafe.com/typesafe/releases", // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
       libraryDependencies += "org.scalatestplus" %% "play" % "1.1.0-RC1" % "test" exclude("com.typesafe.play", "play-test_2.10")
     )
   )

@@ -95,7 +95,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayJava)
 ...and so are resolvers for adding in additional repositories:
 
 ```scala
-resolvers += "Repository name" at "http://url.to/repository" 
+resolvers += "Repository name" at "https://url.to/repository" 
 ```
 
 
