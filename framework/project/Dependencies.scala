@@ -181,7 +181,14 @@ object Dependencies {
     jodaConvert,
     "org.scala-lang" % "scala-reflect" % BuildSettings.buildScalaVersion) ++
   jacksons ++
-  specsBuild.map(_ % Test)
+  specsBuild.map(_ % Test) ++ quasiquotesDependencies
+
+  lazy val quasiquotesDependencies = if (BuildSettings.buildScalaVersion.startsWith("2.10"))
+    Seq(
+      compilerPlugin("org.scalamacros" % "paradise" % "2.0.1" cross CrossVersion.full),
+      "org.scalamacros" %% "quasiquotes" % "2.0.1"
+    )
+    else Nil
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specsVersion % Test,

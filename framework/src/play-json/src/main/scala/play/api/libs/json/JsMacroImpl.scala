@@ -4,7 +4,7 @@
 package play.api.libs.json
 
 import scala.language.higherKinds
-import scala.reflect.macros.Context
+import scala.reflect.macros._
 import language.experimental.macros
 
 object JsMacroImpl {
@@ -17,6 +17,84 @@ object JsMacroImpl {
 
   def writesImpl[A: c.WeakTypeTag](c: Context): c.Expr[Writes[A]] =
     macroImpl[A, Writes](c, "write", "contramap", reads = false, writes = true)
+
+  def writesWithGettersImpl[A: c.WeakTypeTag](c: Context): c.Expr[Writes[A]] = {
+    import c.universe._
+
+    // Create a few references expressions to where other parts of the JSON lib are
+    val jsValueWrapperRef = q"play.api.libs.json.Json.toJsFieldJsValueWrapper"
+    val writes = q"play.api.libs.json.Writes"
+    val selfLazyRef = q"newWrites.lazyStuff"
+
+    val typeToWrite = c.weakTypeOf[A]
+    val getterMethodTerms = for {
+      memberSymbol <- typeToWrite.members
+      term = memberSymbol.asTerm
+      if !term.isPrivate && term.isGetter
+    } yield term
+
+    // <-- Check for required implicits
+    final case class Implicit(returnType: Type, neededImplicit: Tree, isRecursive: Boolean)
+
+    val inferredImplicits = getterMethodTerms.map { methodTerm =>
+      val implType = methodTerm.asMethod.returnType
+      val (isRecursive, tpe) = implType match {
+        case TypeRef(_, t, args) =>
+          val isRec = args.exists(_.typeSymbol == typeToWrite.typeSymbol)
+          val tp = if (implType.typeConstructor <:< typeOf[Option[_]].typeConstructor) args.head else implType
+          (isRec, tp)
+        case TypeRef(_, t, _) =>
+          (false, implType)
+      }
+
+      // builds M implicit from expected type
+      val neededImplicitType = appliedType(c.weakTypeOf[Writes[A]].typeConstructor, tpe :: Nil)
+      // infers implicit
+      val neededImplicit = c.inferImplicitValue(neededImplicitType)
+      Implicit(implType, neededImplicit, isRecursive)
+    }
+
+    // if any implicit is missing, abort
+    val missingImplicits = inferredImplicits.collect { case Implicit(t, impl, rec) if (impl == EmptyTree && !rec) => t }
+    if (missingImplicits.nonEmpty)
+      c.abort(c.enclosingPosition, s"No implicit format for ${missingImplicits.mkString(", ")} available.")
+    // Check for required implicits -->
+
+    // Creates proper JsValueWrappers based on the methodTerm
+    def jsValueWrapper(methodTerm: c.universe.TermSymbol) = {
+      val methodAccess = q"o.$methodTerm"
+      val isRecursive = methodTerm.typeSignature.typeConstructor.contains(typeToWrite.typeSymbol)
+      val finalWrapper = if (isRecursive) {
+        val wrapWithOutWriter = q"$jsValueWrapperRef($methodAccess)"
+        val methodReturnType = methodTerm.asMethod.returnType
+        if (methodReturnType <:< typeOf[List[_]]) { q"$wrapWithOutWriter($writes.list($selfLazyRef))" }
+        else if (methodReturnType <:< typeOf[Option[_]]) { q"$wrapWithOutWriter($writes.OptionWrites[$typeToWrite]($selfLazyRef))" }
+        else if (methodReturnType <:< typeOf[Set[_]]) { q"$wrapWithOutWriter($writes.set($selfLazyRef))" }
+        else if (methodReturnType <:< typeOf[Seq[_]]) { q"$wrapWithOutWriter($writes.seq($selfLazyRef))" }
+        else if (methodReturnType <:< typeOf[Map[_, _]]) { q"$wrapWithOutWriter($writes.map($selfLazyRef))" }
+        else { q"$wrapWithOutWriter($selfLazyRef)" }
+      } else { methodAccess }
+      finalWrapper
+    }
+
+    // Create the string -> JsValueWrapper pairs to feed to Json.obj
+    val jsonObjDoubles = for {
+      term <- getterMethodTerms
+    } yield {
+      val termName = term.asTerm.name.toString
+      val wrapper = jsValueWrapper(term)
+      q"""(${termName}, $wrapper)"""
+    }
+
+    val tree = q"""new play.api.libs.json.util.LazyHelper[Writes, ${tq"$typeToWrite"}] { newWrites =>
+      override lazy val lazyStuff: Writes[${tq"$typeToWrite"}] = new Writes[${tq"$typeToWrite"}] {
+        def writes(o: ${tq"$typeToWrite"}): JsValue = Json.obj(..$jsonObjDoubles)
+      }
+    }.lazyStuff"""
+
+    // println(s"Tree: $tree")
+    c.Expr[Writes[A]](tree)
+  }
 
   def macroImpl[A, M[_]](c: Context, methodName: String, mapLikeMethod: String, reads: Boolean, writes: Boolean)(implicit atag: c.WeakTypeTag[A], matag: c.WeakTypeTag[M[A]]): c.Expr[M[A]] = {
 
