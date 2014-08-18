@@ -3,17 +3,12 @@
  */
 package play.api.db
 
-import java.sql.{ Connection, Driver, DriverManager, Statement }
-import javax.inject.{ Inject, Provider, Singleton }
+import java.sql.{ Connection, Statement }
 import javax.sql.DataSource
 
-import scala.concurrent.Future
-import scala.util.control.NonFatal
-
-import play.api.{ Application, Configuration, Environment, Logger, Mode, Play }
-import play.api.inject.{ ApplicationLifecycle, Module }
+import play.api.{ Configuration, Environment, Logger, Mode, Play }
+import play.api.inject.Module
 import play.api.libs.JNDI
-import play.db.NamedDBImpl
 
 import com.jolbox.bonecp._
 import com.jolbox.bonecp.hooks._
@@ -23,16 +18,10 @@ import com.jolbox.bonecp.hooks._
  */
 class BoneCPModule extends Module {
   def bindings(environment: Environment, configuration: Configuration) = {
-    if (configuration.underlying.getBoolean("play.modules.db.enabled")) {
-      val dbs = configuration.getConfig("db").getOrElse(Configuration.empty).subKeys
-      Seq(
-        bind[DBApi].toProvider[BoneCPProvider]
-      ) ++ dbs.map { db =>
-          bind[DataSource].qualifiedWith(new NamedDBImpl(db)).to(new NamedDBProvider(db))
-        }
-    } else {
-      Nil
-    }
+    if (configuration.underlying.getBoolean("play.modules.db.bonecp.enabled")) Seq(
+      bind[ConnectionPool].to[BoneConnectionPool]
+    )
+    else Nil
   }
 }
 
@@ -40,103 +29,20 @@ class BoneCPModule extends Module {
  * BoneCP components (for compile-time injection).
  */
 trait BoneCPComponents {
-  def environment: Environment
-  def configuration: Configuration
-  def applicationLifecycle: ApplicationLifecycle
-
-  lazy val dbApi: DBApi = new BoneCPProvider(environment, configuration, applicationLifecycle).get
+  lazy val connectionPool: ConnectionPool = new BoneConnectionPool
 }
 
 /**
- * Inject provider for BoneCP implementation of DB API.
+ * BoneCP implementation of connection pool interface.
  */
-@Singleton
-class BoneCPProvider @Inject() (environment: Environment, configuration: Configuration, lifecycle: ApplicationLifecycle) extends Provider[DBApi] {
-  lazy val get: DBApi = {
-    val config = configuration.getConfig("db").getOrElse(Configuration.empty)
-    val db = new BoneConnectionPool(config, environment.classLoader)
-    lifecycle.addStopHook { () => Future.successful(db.shutdown()) }
-    db.connect(logConnection = environment.mode != Mode.Test)
-    db
-  }
-}
-
-/**
- * Inject provider for named data sources.
- */
-class NamedDBProvider(name: String) extends Provider[DataSource] {
-  @Inject private var dbApi: DBApi = _
-  lazy val get: DataSource = dbApi.getDataSource(name)
-}
-
-/**
- * BoneCP implementation of DB API.
- */
-class BoneConnectionPool(configuration: Configuration, classLoader: ClassLoader) extends DBApi {
-
-  def this(configuration: Configuration) = this(configuration, classOf[BoneConnectionPool].getClassLoader)
-
-  private lazy val (dsList, dsMap, drivers): (List[(DataSource, String)], Map[String, DataSource], Set[Driver]) = setupDatasources(configuration.subKeys.toList, Nil, Map.empty, Set.empty)
-
-  def datasources = dsList
+class BoneConnectionPool extends ConnectionPool {
 
   /**
-   * Connect to all data sources.
+   * Create a data source with the given configuration.
    */
-  def connect(logConnection: Boolean = false): Unit = {
-    // Try to connect to each, this should be the first access to DBApi
-    datasources map { ds =>
-      try {
-        ds._1.getConnection.close()
-        if (logConnection) {
-          Play.logger.info(s"database [${ds._2}] connected at ${dbURL(ds._1.getConnection)}")
-        }
-      } catch {
-        case NonFatal(e) => {
-          throw configuration.reportError(s"${ds._2}.url",
-            s"Cannot connect to database [${ds._2}]", Some(e.getCause))
-        }
-      }
-    }
-  }
-
-  private def dbURL(conn: Connection): String = {
-    val u = conn.getMetaData.getURL
-    conn.close()
-    u
-  }
-
-  private def error(db: String, message: String = "") =
-    throw configuration.reportError(db, message)
-
-  /**
-   * @param d Driver class name
-   * @param c DB configuration
-   */
-  private def register(d: String, c: Configuration): Driver = {
-    try {
-      val driver = new play.utils.ProxyDriver(
-        Class.forName(d, true, classLoader).newInstance.asInstanceOf[Driver])
-
-      DriverManager.registerDriver(driver)
-      driver
-    } catch {
-      case NonFatal(e) => throw c.reportError("driver",
-        s"Driver not found: [$d]", Some(e))
-    }
-  }
-
-  /** De-register all drivers this API has previously registered. */
-  def deregisterAll(): Unit = drivers.foreach(DriverManager.deregisterDriver)
-
-  private def createDataSource(dbName: String, conf: Configuration): (DataSource, Driver) = {
+  def create(name: String, conf: Configuration, classLoader: ClassLoader): DataSource = {
 
     val datasource = new BoneCPDataSource
-
-    // Try to load the driver
-    val d = configuration.getString(s"$dbName.driver").getOrElse(error(dbName, s"Missing configuration [db.$dbName.driver]"))
-
-    val driver = register(d, conf)
 
     val autocommit = conf.getBoolean("autocommit").getOrElse(true)
     val isolation = conf.getString("isolation").map {
@@ -200,6 +106,7 @@ class BoneConnectionPool(configuration: Configuration, classLoader: ClassLoader)
         datasource.setUsername(username)
         datasource.setPassword(password)
 
+      // TODO: remove use of Play.maybeApplication
       case Some(url @ H2DefaultUrl()) if !url.contains("DB_CLOSE_DELAY") =>
         if (Play.maybeApplication.exists(_.mode == Mode.Dev)) {
           datasource.setJdbcUrl(s"$url;DB_CLOSE_DELAY=-1")
@@ -207,7 +114,7 @@ class BoneConnectionPool(configuration: Configuration, classLoader: ClassLoader)
 
       case Some(s: String) => datasource.setJdbcUrl(s)
 
-      case _ => throw conf.globalError(s"Missing url configuration for database $dbName: $conf")
+      case _ => throw conf.globalError(s"Missing url configuration for database $name: $conf")
     }
 
     conf.getString("user").map(datasource.setUsername)
@@ -240,50 +147,15 @@ class BoneConnectionPool(configuration: Configuration, classLoader: ClassLoader)
       Play.logger.info(s"""datasource [${conf.getString("url").get}] bound to JNDI as $name""")
     }
 
-    datasource -> driver
-  }
-
-  @annotation.tailrec
-  private def setupDatasources(dbNames: List[String], datasources: List[(DataSource, String)], dsMap: Map[String, DataSource], drivers: Set[Driver]): (List[(DataSource, String)], Map[String, DataSource], Set[Driver]) = dbNames match {
-    case dbName :: ns =>
-      val extraConfig = configuration.getConfig(dbName).getOrElse(error(dbName, s"Missing configuration [db.$dbName]"))
-      val (ds, driver) = createDataSource(dbName, extraConfig)
-      setupDatasources(ns, datasources :+ (ds -> dbName),
-        dsMap + (dbName -> ds), drivers + driver)
-
-    case _ => (datasources, dsMap, drivers)
+    datasource
   }
 
   /**
-   * Retrieves a JDBC connection, with auto-commit set to `true`.
-   *
-   * Don't forget to release the connection at some point by calling close().
-   *
-   * @param name the data source name
-   * @return a JDBC connection
-   * @throws an error if the required data source is not registered
+   * Close the given data source.
    */
-  def getDataSource(name: String): DataSource =
-    dsMap.get(name).getOrElse(error(s" - could not find datasource for $name"))
-
-  /**
-   * Shutdown connection pool for the given data source.
-   */
-  def shutdownPool(ds: DataSource): Unit = ds match {
+  def close(ds: DataSource): Unit = ds match {
     case bcp: BoneCPDataSource => bcp.close()
-    case _ => error(" - could not recognize DataSource, therefore unable to shutdown this pool")
-  }
-
-  /**
-   * Shutdown connection pools for all data sources.
-   */
-  def shutdown(): Unit = {
-    datasources foreach {
-      case (ds, _) => try {
-        shutdownPool(ds)
-      } catch { case NonFatal(_) => }
-    }
-    deregisterAll()
+    case _ => sys.error("Unable to close data source: not a BoneCPDataSource")
   }
 
 }

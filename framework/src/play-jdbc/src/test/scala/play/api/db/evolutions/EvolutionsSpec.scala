@@ -6,7 +6,7 @@ package play.api.db.evolutions
 import java.sql.ResultSet
 import org.specs2.mutable.{ After, Specification }
 import play.api.Configuration
-import play.api.db.BoneConnectionPool
+import play.api.db.DefaultDBApi
 
 // TODO: fuctional test with InvalidDatabaseRevision exception
 
@@ -70,7 +70,7 @@ object EvolutionsSpec extends Specification {
   }
 
   trait WithEvolutions extends After {
-    lazy val db = new BoneConnectionPool(
+    lazy val db = new DefaultDBApi(
       Configuration.from(Map(
         "default.driver" -> "org.h2.Driver",
         "default.url" -> "jdbc:h2:mem:evolutions-test"
@@ -79,7 +79,7 @@ object EvolutionsSpec extends Specification {
 
     lazy val evolutions = new DefaultEvolutionsApi(db)
 
-    lazy val connection = db.getConnection("default")
+    lazy val connection = db.database("default").getConnection()
 
     def executeQuery(sql: String): ResultSet = connection.createStatement.executeQuery(sql)
 

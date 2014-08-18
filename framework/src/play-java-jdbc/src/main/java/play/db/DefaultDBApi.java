@@ -3,55 +3,53 @@
  */
 package play.db;
 
-import java.sql.Connection;
 import java.util.List;
+import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.sql.DataSource;
 
-import play.libs.F.Tuple;
 import play.libs.Scala;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+
 /**
- * Default delegating implementation of the database API.
+ * Default delegating implementation of the DB API.
  */
+@Singleton
 public class DefaultDBApi implements DBApi {
 
     private final play.api.db.DBApi dbApi;
+    private final List<Database> databases;
+    private final Map<String, Database> databaseByName;
 
     @Inject
     public DefaultDBApi(play.api.db.DBApi dbApi) {
         this.dbApi = dbApi;
+
+        ImmutableList.Builder<Database> databases = new ImmutableList.Builder<Database>();
+        ImmutableMap.Builder<String, Database> databaseByName = new ImmutableMap.Builder<String, Database>();
+        for (play.api.db.Database db : Scala.asJava(dbApi.databases())) {
+            Database database = new DefaultDatabase(db);
+            databases.add(database);
+            databaseByName.put(database.getName(), database);
+        }
+        this.databases = databases.build();
+        this.databaseByName = databaseByName.build();
     }
 
-    public List<Tuple<DataSource, String>> dataSources() {
-        return Scala.asJavaTuples(dbApi.datasources());
+    public List<Database> getDatabases() {
+        return databases;
     }
 
-    public DataSource getDataSource(String name) {
-        return dbApi.getDataSource(name);
+    public Database getDatabase(String name) {
+        return databaseByName.get(name);
     }
 
-    public String getDataSourceURL(String name) {
-        return dbApi.getDataSourceURL(name);
-    }
-
-    public Connection getConnection(String name, boolean autocommit) {
-        return dbApi.getConnection(name, autocommit);
-    }
-
-    public <A> A withConnection(String name, ConnectionCallable<A> block) {
-        return dbApi.withConnection(name, DB.connectionFunction(block));
-    }
-
-    public <A> A withTransaction(String name, ConnectionCallable<A> block) {
-        return dbApi.withTransaction(name, DB.connectionFunction(block));
-    }
-
-    public void shutdownPool(DataSource ds) {
-        dbApi.shutdownPool(ds);
-    }
-
+    /**
+     * Shutdown all databases, releasing resources.
+     */
     public void shutdown() {
         dbApi.shutdown();
     }

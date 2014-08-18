@@ -3,9 +3,9 @@
  */
 package play.api.db.evolutions
 
-import play.api.{ Configuration, Environment }
 import play.api.db.DBApi
 import play.api.inject.Module
+import play.api.{ Configuration, Environment }
 import play.core.WebCommands
 
 /**

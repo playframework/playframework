@@ -4,8 +4,8 @@
 package play.db.ebean;
 
 import play.Configuration;
+import play.db.DBApi;
 import play.Environment;
-import play.api.db.DBApi;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -78,7 +78,7 @@ public class DefaultEbeanConfig implements EbeanConfig {
                     config.setName(key);
                     config.loadFromProperties();
                     try {
-                        config.setDataSource(new WrappingDatasource(dbApi.getDataSource(key)));
+                        config.setDataSource(new WrappingDatasource(dbApi.getDatabase(key).getDataSource()));
                     } catch(Exception e) {
                         throw ebeanConf.reportError(
                             key,

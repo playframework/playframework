@@ -8,8 +8,8 @@ import java.sql.SQLException;
 import java.util.List;
 
 import play.db.ConnectionCallable;
-import play.db.DB;
-import play.db.DBApi;
+import play.db.Database;
+import play.db.DefaultDatabase;
 
 import org.junit.Test;
 
@@ -23,27 +23,9 @@ public class JPAApiTest {
 
     @Test
     public void insertAndFindEntities() throws Exception {
-        DBApi db = DB.api(ImmutableMap.of(
-            "default.driver", "org.h2.Driver",
-            "default.url", "jdbc:h2:mem:play-test-jpa",
-            "default.jndiName", "DefaultDS"
-        ));
+        TestDatabase db = new TestDatabase();
 
-        db.withConnection("default", new ConnectionCallable<Boolean>() {
-            public Boolean call(Connection connection) throws SQLException {
-                return connection.createStatement().execute("create table TestEntity (id bigint not null, name varchar(255));");
-            }
-        });
-
-        JPAConfig config = DefaultJPAConfig.from(ImmutableMap.of(
-            "default", "defaultPersistenceUnit"
-        ));
-
-        JPAApi jpa = new DefaultJPAApi(config);
-
-        jpa.start();
-
-        jpa.withTransaction(new play.libs.F.Callback0() {
+        db.jpa().withTransaction(new play.libs.F.Callback0() {
             public void invoke() {
                 TestEntity entity = new TestEntity();
                 entity.id = 1L;
@@ -52,15 +34,50 @@ public class JPAApiTest {
             }
         });
 
-        jpa.withTransaction(new play.libs.F.Callback0() {
+        db.jpa().withTransaction(new play.libs.F.Callback0() {
             public void invoke() {
                 TestEntity entity = TestEntity.find(1L);
                 assertThat(entity.name, equalTo("alice"));
             }
         });
 
-        jpa.shutdown();
         db.shutdown();
+    }
+
+    public static class TestDatabase {
+        private final Database database;
+        private final JPAApi jpaApi;
+
+        public TestDatabase() {
+            database = new DefaultDatabase(ImmutableMap.of(
+                "driver", "org.h2.Driver",
+                "url", "jdbc:h2:mem:play-test-jpa",
+                "jndiName", "DefaultDS"
+            ));
+
+            database.withConnection(new ConnectionCallable<Boolean>() {
+                public Boolean call(Connection connection) throws SQLException {
+                    return connection.createStatement().execute("create table TestEntity (id bigint not null, name varchar(255));");
+                }
+            });
+
+            JPAConfig config = DefaultJPAConfig.from(ImmutableMap.of(
+                "default", "defaultPersistenceUnit"
+            ));
+
+            jpaApi = new DefaultJPAApi(config);
+
+            jpaApi.start();
+        }
+
+        public JPAApi jpa() {
+            return jpaApi;
+        }
+
+        public void shutdown() {
+            jpaApi.shutdown();
+            database.shutdown();
+        }
     }
 
 }

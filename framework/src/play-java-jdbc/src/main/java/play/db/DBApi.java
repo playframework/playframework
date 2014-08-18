@@ -3,80 +3,28 @@
  */
 package play.db;
 
-import java.sql.Connection;
 import java.util.List;
 import javax.sql.DataSource;
 
-import play.libs.F.Tuple;
-
 /**
- * Database API for managing data sources.
+ * DB API for managing application databases.
  */
 public interface DBApi {
 
     /**
-     * List of all data sources (with their database names).
+     * All configured databases.
      */
-    public List<Tuple<DataSource, String>> dataSources();
+    public List<Database> getDatabases();
 
     /**
-    * Retrieve a JDBC connection, with auto-commit set to `true`.
-    *
-    * Don't forget to release the connection at some point by calling close().
-    *
-    * @param name the data source name
-    * @return a JDBC connection
-    * @throws an error if the required data source is not registered
-    */
-    public DataSource getDataSource(String name);
-
-    /**
-     * Retrieve the JDBC connection URL for a particular data source.
+     * Get database with given configuration name.
      *
-     * @param name the data source name
-     * @return The JDBC URL connection string, i.e. `jdbc:...`
-     * @throws an error if the required data source is not registered
+     * @param name the configuration name of the database
      */
-    public String getDataSourceURL(String name);
+    public Database getDatabase(String name);
 
     /**
-     * Retrieve a JDBC connection.
-     *
-     * Don't forget to release the connection at some point by calling close().
-     *
-     * @param name the data source name
-     * @param autocommit set this connection to auto-commit
-     * @return a JDBC connection
-     * @throws an error if the required data source is not registered
-     */
-    public Connection getConnection(String name, boolean autocommit);
-
-    /**
-     * Execute a block of code, providing a JDBC connection.
-     * The connection and all created statements are automatically released.
-     *
-     * @param name the data source name
-     * @param block the block of code to execute
-     */
-    public <A> A withConnection(String name, ConnectionCallable<A> block);
-
-    /**
-     * Execute a block of code, in the scope of a JDBC transaction.
-     * The connection and all created statements are automatically released.
-     * The transaction is automatically committed, unless an exception occurs.
-     *
-     * @param name the data source name
-     * @param block the block of code to execute
-     */
-    public <A> A withTransaction(String name, ConnectionCallable<A> block);
-
-    /**
-     * Shutdown connection pool for the given data source.
-     */
-    public void shutdownPool(DataSource ds);
-
-    /**
-     * Shutdown connection pools for all data sources.
+     * Shutdown all databases, releasing resources.
      */
     public void shutdown();
 

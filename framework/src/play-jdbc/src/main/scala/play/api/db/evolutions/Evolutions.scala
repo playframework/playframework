@@ -6,7 +6,7 @@ package play.api.db.evolutions
 import java.io.File
 
 import play.api.{ Application, Configuration, Environment, Mode, Play }
-import play.api.db.BoneCPComponents
+import play.api.db.{ BoneCPComponents, DBComponents }
 import play.api.inject.DefaultApplicationLifecycle
 import play.api.libs.Codecs.sha1
 import play.core.DefaultWebCommands
@@ -166,7 +166,7 @@ object OfflineEvolutions {
   private def isTest: Boolean = Play.maybeApplication.exists(_.mode == Mode.Test)
 
   private def getEvolutions(appPath: File, classloader: ClassLoader): EvolutionsComponents = {
-    new EvolutionsComponents with BoneCPComponents {
+    new EvolutionsComponents with DBComponents with BoneCPComponents {
       lazy val environment = Environment(appPath, classloader, Mode.Dev)
       lazy val configuration = Configuration.load(appPath)
       lazy val applicationLifecycle = new DefaultApplicationLifecycle

@@ -7,11 +7,11 @@ import java.io.Serializable;
 import java.lang.annotation.Annotation;
 
 // See https://issues.scala-lang.org/browse/SI-8778 for why this is implemented in Java
-public class NamedDBImpl implements NamedDB, Serializable {
+public class NamedDatabaseImpl implements NamedDatabase, Serializable {
 
     private final String value;
 
-    public NamedDBImpl(String value) {
+    public NamedDatabaseImpl(String value) {
         this.value = value;
     }
 
@@ -25,20 +25,20 @@ public class NamedDBImpl implements NamedDB, Serializable {
     }
 
     public boolean equals(Object o) {
-        if (!(o instanceof NamedDB)) {
+        if (!(o instanceof NamedDatabase)) {
             return false;
         }
 
-        NamedDB other = (NamedDB) o;
+        NamedDatabase other = (NamedDatabase) o;
         return value.equals(other.value());
     }
 
     public String toString() {
-        return "@" + NamedDB.class.getName() + "(value=" + value + ")";
+        return "@" + NamedDatabase.class.getName() + "(value=" + value + ")";
     }
 
     public Class<? extends Annotation> annotationType() {
-        return NamedDB.class;
+        return NamedDatabase.class;
     }
 
     private static final long serialVersionUID = 0;

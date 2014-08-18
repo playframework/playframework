@@ -10,9 +10,9 @@ import javax.inject.{ Inject, Singleton }
 import scala.io.Codec
 import scala.util.control.NonFatal
 
-import play.api.{ Environment, Logger, Mode, Play, PlayException }
 import play.api.db.DBApi
 import play.api.libs.Collections
+import play.api.{ Environment, Logger, Mode, Play, PlayException }
 import play.utils.PlayIO
 
 /**
@@ -68,7 +68,7 @@ trait EvolutionsApi {
  * Default implementation of the evolutions API.
  */
 @Singleton
-class DefaultEvolutionsApi @Inject() (database: DBApi) extends EvolutionsApi {
+class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
 
   /**
    * Create evolution scripts.
@@ -122,7 +122,7 @@ class DefaultEvolutionsApi @Inject() (database: DBApi) extends EvolutionsApi {
    * @param db the database name
    */
   def databaseEvolutions(db: String): Seq[Evolution] = {
-    implicit val connection = database.getConnection(db, autocommit = true)
+    implicit val connection = dbApi.database(db).getConnection(autocommit = true)
 
     checkEvolutionsState(db)
 
@@ -193,7 +193,7 @@ class DefaultEvolutionsApi @Inject() (database: DBApi) extends EvolutionsApi {
       ps.execute()
     }
 
-    implicit val connection = database.getConnection(db, autocommit = autocommit)
+    implicit val connection = dbApi.database(db).getConnection(autocommit = autocommit)
     checkEvolutionsState(db)
 
     var applying = -1
@@ -264,7 +264,7 @@ class DefaultEvolutionsApi @Inject() (database: DBApi) extends EvolutionsApi {
       }
     }
 
-    implicit val connection = database.getConnection(db, autocommit = true)
+    implicit val connection = dbApi.database(db).getConnection(autocommit = true)
 
     try {
       val problem = executeQuery("select id, hash, apply_script, revert_script, state, last_problem from play_evolutions where state like 'applying_%'")
@@ -301,7 +301,7 @@ class DefaultEvolutionsApi @Inject() (database: DBApi) extends EvolutionsApi {
    * @param revision the revision to mark as resolved
    */
   def resolve(db: String, revision: Int): Unit = {
-    implicit val connection = database.getConnection(db, autocommit = true)
+    implicit val connection = dbApi.database(db).getConnection(autocommit = true)
     try {
       execute("update play_evolutions set state = 'applied' where state = 'applying_up' and id = " + revision);
       execute("delete from play_evolutions where state = 'applying_down' and id = " + revision);

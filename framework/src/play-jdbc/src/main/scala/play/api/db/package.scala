@@ -12,5 +12,5 @@ package play.api
  * }}}
  */
 package object db {
-  type NamedDB = play.db.NamedDB
+  type NamedDatabase = play.db.NamedDatabase
 }

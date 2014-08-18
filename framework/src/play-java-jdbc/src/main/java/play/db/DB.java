@@ -4,47 +4,17 @@
 package play.db;
 
 import java.sql.Connection;
-import java.util.Map;
 import javax.sql.DataSource;
 
 import scala.runtime.AbstractFunction1;
 
-import play.Configuration;
 import play.api.Application;
 
-import com.typesafe.config.ConfigFactory;
 
 /**
  * Provides a high-level API for getting JDBC connections.
  */
 public class DB {
-
-    /**
-     * Create a default BoneCP-backed DBApi.
-     */
-    public static DBApi api(Configuration configuration, ClassLoader classLoader) {
-        return new DefaultDBApi(
-            new play.api.db.BoneConnectionPool(
-                configuration.getWrappedConfiguration(),
-                classLoader));
-    }
-
-    /**
-     * Create a default BoneCP-backed DBApi.
-     */
-    public static DBApi api(Map<String, ? extends Object> config, ClassLoader classLoader) {
-        return new DefaultDBApi(
-            new play.api.db.BoneConnectionPool(
-                new play.api.Configuration(ConfigFactory.parseMap(config)),
-                classLoader));
-    }
-
-    /**
-     * Create a default BoneCP-backed DBApi.
-     */
-    public static DBApi api(Map<String, ? extends Object> config) {
-        return api(config, DB.class.getClassLoader());
-    }
 
     /**
      * Returns the default datasource.

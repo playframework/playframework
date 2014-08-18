@@ -22,7 +22,7 @@ class ApplicationEvolutions @Inject() (
     reader: EvolutionsReader,
     evolutions: EvolutionsApi,
     dynamicEvolutions: DynamicEvolutions,
-    database: DBApi,
+    dbApi: DBApi,
     environment: Environment,
     webCommands: WebCommands) {
 
@@ -37,37 +37,36 @@ class ApplicationEvolutions @Inject() (
     // allow db modules to write evolution files
     dynamicEvolutions.create()
 
-    database.datasources.foreach {
-      case (ds, db) => {
-        withLock(ds) {
-          val scripts = evolutions.scripts(db, reader)
-          val hasDown = scripts.exists(_.isInstanceOf[DownScript])
+    dbApi.databases.foreach { database =>
+      withLock(database.dataSource) {
+        val db = database.name
+        val scripts = evolutions.scripts(db, reader)
+        val hasDown = scripts.exists(_.isInstanceOf[DownScript])
 
-          val autocommit = config.autocommit
+        val autocommit = config.autocommit
 
-          lazy val applyEvolutions = config.applyEvolutions(db)
-          lazy val applyDownEvolutions = config.applyDownEvolutions(db)
+        lazy val applyEvolutions = config.applyEvolutions(db)
+        lazy val applyDownEvolutions = config.applyDownEvolutions(db)
 
-          if (!scripts.isEmpty) {
-            environment.mode match {
-              case Mode.Test => evolutions.evolve(db, scripts, autocommit)
-              case Mode.Dev if applyEvolutions => evolutions.evolve(db, scripts, autocommit)
-              case Mode.Prod if !hasDown && applyEvolutions => evolutions.evolve(db, scripts, autocommit)
-              case Mode.Prod if hasDown && applyEvolutions && applyDownEvolutions => evolutions.evolve(db, scripts, autocommit)
-              case Mode.Prod if hasDown => {
-                Play.logger.warn("Your production database [" + db + "] needs evolutions, including downs! \n\n" + toHumanReadableScript(scripts))
-                Play.logger.warn("Run with -DapplyEvolutions." + db + "=true and -DapplyDownEvolutions." + db + "=true if you want to run them automatically, including downs (be careful, especially if your down evolutions drop existing data)")
+        if (!scripts.isEmpty) {
+          environment.mode match {
+            case Mode.Test => evolutions.evolve(db, scripts, autocommit)
+            case Mode.Dev if applyEvolutions => evolutions.evolve(db, scripts, autocommit)
+            case Mode.Prod if !hasDown && applyEvolutions => evolutions.evolve(db, scripts, autocommit)
+            case Mode.Prod if hasDown && applyEvolutions && applyDownEvolutions => evolutions.evolve(db, scripts, autocommit)
+            case Mode.Prod if hasDown => {
+              Play.logger.warn("Your production database [" + db + "] needs evolutions, including downs! \n\n" + toHumanReadableScript(scripts))
+              Play.logger.warn("Run with -DapplyEvolutions." + db + "=true and -DapplyDownEvolutions." + db + "=true if you want to run them automatically, including downs (be careful, especially if your down evolutions drop existing data)")
 
-                throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
-              }
-              case Mode.Prod => {
-                Play.logger.warn("Your production database [" + db + "] needs evolutions! \n\n" + toHumanReadableScript(scripts))
-                Play.logger.warn("Run with -DapplyEvolutions." + db + "=true if you want to run them automatically (be careful)")
-
-                throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
-              }
-              case _ => throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
+              throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
             }
+            case Mode.Prod => {
+              Play.logger.warn("Your production database [" + db + "] needs evolutions! \n\n" + toHumanReadableScript(scripts))
+              Play.logger.warn("Run with -DapplyEvolutions." + db + "=true if you want to run them automatically (be careful)")
+
+              throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
+            }
+            case _ => throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
           }
         }
       }

@@ -127,18 +127,6 @@ public class Scala {
     }
 
     /**
-     * Convert a sequence of scala Tuple2 to a java list of F.Tuple.
-     */
-    public static <A, B> List<F.Tuple<A, B>> asJavaTuples(scala.collection.Seq<scala.Tuple2<A, B>> scalaTuples) {
-        List<scala.Tuple2<A, B>> tupleList = asJava(scalaTuples);
-        List<F.Tuple<A, B>> tuples = new ArrayList<F.Tuple<A, B>>();
-        for (scala.Tuple2<A, B> scalaTuple : tupleList) {
-            tuples.add(asJava(scalaTuple));
-        }
-        return tuples;
-    }
-
-    /**
      * Creates an empty Scala Seq.
      */
     @SuppressWarnings("unchecked")
