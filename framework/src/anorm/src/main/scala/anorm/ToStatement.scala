@@ -28,6 +28,7 @@ trait ToStatement[A] {
  * Provided conversions to set statement parameter.
  */
 object ToStatement {
+  import scala.collection.immutable.SortedSet
 
   /**
    * Sets boolean value on statement.
@@ -376,6 +377,34 @@ object ToStatement {
   }
 
   /**
+   * Sets joda-time DateTime as statement parameter.
+   * For `null` value, `setNull` with `TIMESTAMP` is called on statement.
+   *
+   * {{{
+   * SQL("UPDATE tbl SET modified = {d}").on('d -> new org.joda.time.DateTime())
+   * }}}
+   */
+  implicit object jodaDateTimeToStatement extends ToStatement[org.joda.time.DateTime] {
+    def set(s: PreparedStatement, index: Int, date: org.joda.time.DateTime): Unit =
+      if (date != null) s.setTimestamp(index, new Timestamp(date.getMillis()))
+      else s.setNull(index, Types.TIMESTAMP)
+  }
+
+  /**
+   * Sets joda-time Instant as statement parameter.
+   * For `null` value, `setNull` with `TIMESTAMP` is called on statement.
+   *
+   * {{{
+   * SQL("UPDATE tbl SET modified = {d}").on('d -> new org.joda.time.Instant())
+   * }}}
+   */
+  implicit object jodaInstantToStatement extends ToStatement[org.joda.time.Instant] {
+    def set(s: PreparedStatement, index: Int, instant: org.joda.time.Instant): Unit =
+      if (instant != null) s.setTimestamp(index, new Timestamp(instant.getMillis))
+      else s.setNull(index, Types.TIMESTAMP)
+  }
+
+  /**
    * Sets UUID as statement parameter.
    * For `null` value, `setNull` with `VARCHAR` is called on statement.
    *
@@ -418,19 +447,64 @@ object ToStatement {
     }
 
   /**
-   * Sets multi-value parameter on statement.
+   * Sets multi-value parameter from list on statement.
+   *
+   * {{{
+   * SQL("SELECT * FROM Test WHERE cat IN ({categories})").
+   *   on('categories -> List(1, 3, 4)
+   * }}}
+   */
+  implicit def listToStatement[A](implicit c: ToStatement[A]): ToStatement[List[A]] = traversableToStatement[A, List[A]]
+
+  /**
+   * Sets multi-value parameter from sequence on statement.
    *
    * {{{
    * SQL("SELECT * FROM Test WHERE cat IN ({categories})").
    *   on('categories -> Seq("a", "b", "c")
    * }}}
    */
-  implicit def seqToStatement[A](implicit c: ToStatement[A]) =
-    new ToStatement[Seq[A]] with NotNullGuard {
-      def set(s: PreparedStatement, offset: Int, ps: Seq[A]) =
-        if (ps == null) throw new IllegalArgumentException()
-        else ps.foldLeft(offset) { (i, p) => c.set(s, i, p); i + 1 }
-    }
+  implicit def seqToStatement[A](implicit c: ToStatement[A]): ToStatement[Seq[A]] = traversableToStatement[A, Seq[A]]
+
+  /**
+   * Sets multi-value parameter from set on statement.
+   *
+   * {{{
+   * SQL("SELECT * FROM Test WHERE cat IN ({categories})").
+   *   on('categories -> Set(1, 3, 4)
+   * }}}
+   */
+  implicit def setToStatement[A](implicit c: ToStatement[A]): ToStatement[Set[A]] = traversableToStatement[A, Set[A]]
+
+  /**
+   * Sets multi-value parameter from sorted set on statement.
+   *
+   * {{{
+   * SQL("SELECT * FROM Test WHERE cat IN ({categories})").
+   *   on('categories -> SortedSet("a", "b", "c")
+   * }}}
+   */
+  implicit def sortedSetToStatement[A](implicit c: ToStatement[A]): ToStatement[SortedSet[A]] = traversableToStatement[A, SortedSet[A]]
+
+  /**
+   * Sets multi-value parameter from stream on statement.
+   *
+   * {{{
+   * SQL("SELECT * FROM Test WHERE cat IN ({categories})").
+   *   on('categories -> Stream(1, 3, 4)
+   * }}}
+   */
+  implicit def streamToStatement[A](implicit c: ToStatement[A]): ToStatement[Stream[A]] = traversableToStatement[A, Stream[A]]
+
+  /**
+   * Sets multi-value parameter from vector on statement.
+   *
+   * {{{
+   * SQL("SELECT * FROM Test WHERE cat IN ({categories})").
+   *   on('categories -> Vector("a", "b", "c")
+   * }}}
+   */
+  implicit def vectorToStatement[A](implicit c: ToStatement[A]): ToStatement[Vector[A]] = traversableToStatement[A, Vector[A]]
 
   /**
    * Sets multi-value parameter on statement, with custom formatting
@@ -451,4 +525,9 @@ object ToStatement {
         c.set(s, offset, ps.values)
     }
 
+  @inline private def traversableToStatement[A, T <: Traversable[A]](implicit c: ToStatement[A]) = new ToStatement[T] with NotNullGuard {
+    def set(s: PreparedStatement, offset: Int, ps: T) =
+      if (ps == null) throw new IllegalArgumentException()
+      else ps.foldLeft(offset) { (i, p) => c.set(s, i, p); i + 1 }
+  }
 }

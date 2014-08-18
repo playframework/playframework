@@ -114,7 +114,7 @@ object OpenIDSpec extends Specification with Mockito {
 
       val argument = ArgumentCaptor.forClass(classOf[Params])
       "direct verification using a POST request was used" in {
-        there was one(ws.request).post(argument.capture())(any[Writeable[Params]], any[ContentTypeOf[Params]])
+        there was one(ws.request).post(argument.capture())(any[Writeable[Params]])
 
         val verificationQuery = argument.getValue
 
@@ -152,7 +152,7 @@ object OpenIDSpec extends Specification with Mockito {
           // Use discovery to resolve the endpoint
           one(ws.request).get()
           // Verify the response
-          one(ws.request).post(any[Params])(any[Writeable[Params]], any[ContentTypeOf[Params]])
+          one(ws.request).post(any[Params])(any[Writeable[Params]])
         }
       }
       "use direct verification on the discovered endpoint" in {
@@ -172,7 +172,7 @@ object OpenIDSpec extends Specification with Mockito {
 
       Await.result(openId.verifiedId(setupMockRequest()), dur) must throwA[AUTH_ERROR.type]
 
-      there was one(ws.request).post(any[Params])(any[Writeable[Params]], any[ContentTypeOf[Params]])
+      there was one(ws.request).post(any[Params])(any[Writeable[Params]])
     }
 
     "fail response verification if the response indicates an error" in {
@@ -208,7 +208,7 @@ object OpenIDSpec extends Specification with Mockito {
           // Use discovery to resolve the endpoint
           one(ws.request).get()
           // Verify the response
-          one(ws.request).post(any[Params])(any[Writeable[Params]], any[ContentTypeOf[Params]])
+          one(ws.request).post(any[Params])(any[Writeable[Params]])
         }
       }
     }

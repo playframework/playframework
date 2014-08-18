@@ -5,6 +5,7 @@ package play.docs
 
 import java.io.File
 import play.api.inject.{ NewInstanceInjector, DefaultApplicationLifecycle }
+import java.util.concurrent.Callable
 import play.api.mvc._
 import play.api._
 import play.core._
@@ -13,7 +14,9 @@ import scala.util.Success
 /**
  * Provides a very simple application that renders Play documentation.
  */
-case class DocumentationApplication(projectPath: File, buildDocHandler: BuildDocHandler) extends ApplicationProvider {
+case class DocumentationApplication(projectPath: File, buildDocHandler: BuildDocHandler,
+    translationReport: Callable[File],
+    forceTranslationReport: Callable[File]) extends ApplicationProvider {
 
   private val environment = Environment(projectPath, this.getClass.getClassLoader, Mode.Dev)
   private val configuration = Configuration.load(environment.rootPath, environment.mode, Map.empty)
@@ -27,6 +30,15 @@ case class DocumentationApplication(projectPath: File, buildDocHandler: BuildDoc
   override def get = Success(application)
   override def handleWebCommand(request: RequestHeader) =
     buildDocHandler.maybeHandleDocRequest(request).asInstanceOf[Option[Result]].orElse(
-      Some(Results.Redirect("/@documentation"))
-    )
+      if (request.path == "/@report") {
+        if (request.getQueryString("force").isDefined) {
+          forceTranslationReport.call()
+          Some(Results.Redirect("/@report"))
+        } else {
+          Some(Results.Ok.sendFile(translationReport.call(), inline = true, fileName = _ => "report.html"))
+        }
+      } else None
+    ).orElse(
+        Some(Results.Redirect("/@documentation"))
+      )
 }

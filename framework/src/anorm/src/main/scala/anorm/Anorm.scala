@@ -18,7 +18,7 @@ case class ColumnNotFound(column: String, possibilities: List[String])
     extends SqlRequestError {
 
   override lazy val toString = s"$column not found, available columns : " +
-    possibilities.map { _.dropWhile(_ == '.') }.mkString(", ")
+    possibilities.map(_.dropWhile(_ == '.')).mkString(", ")
 }
 
 case class TypeDoesNotMatch(message: String) extends SqlRequestError
@@ -65,13 +65,16 @@ case class MetaDataItem(column: ColumnName, nullable: Boolean, clazz: String)
 case class ColumnName(qualified: String, alias: Option[String])
 
 private[anorm] case class MetaData(ms: List[MetaDataItem]) {
-  // Use MetaDataItem rather than (ColumnName, Boolean, String)?
+  // TODO: Use MetaDataItem rather than (ColumnName, Boolean, String)?
   def get(columnName: String): Option[(ColumnName, Boolean, String)] = {
-    val columnUpper = columnName.toUpperCase
-    dictionary2.get(columnUpper).orElse(dictionary.get(columnUpper))
+    val key = columnName.toUpperCase
+    dictionary2.get(key).orElse(dictionary.get(key)).
+      orElse(aliasedDictionary.get(key))
   }
 
-  // Use MetaDataItem rather than (ColumnName, Boolean, String)?
+  @deprecated(
+    message = "No longer distinction between plain and aliased column",
+    since = "2.3.3")
   def getAliased(aliasName: String): Option[(ColumnName, Boolean, String)] =
     aliasedDictionary.get(aliasName.toUpperCase)
 
@@ -99,6 +102,7 @@ private[anorm] case class MetaData(ms: List[MetaDataItem]) {
 
 }
 
+@deprecated(message = "Use directly Stream", since = "2.3.3")
 object Useful {
 
   case class Var[T](var content: T)
@@ -264,8 +268,53 @@ private[anorm] trait Sql {
   /**
    * Executes this SQL statement as query, returns result as Row stream.
    */
+  @deprecated(
+    "Use [[fold]], [[foldWhile]] or [[withIterator]] instead, which manages resources and memory", "2.4")
   def apply()(implicit connection: Connection): Stream[Row] =
-    Sql.resultSetToStream(resultSet())
+    Sql.withIterator(resultSet)(_.toList.toStream).acquireAndGet(identity)
+
+  /**
+   * Aggregates over all rows using the specified operator.
+   *
+   * @param z the start value
+   * @param op Aggregate operator
+   * @return Either list of failures at left, or aggregated value
+   * @see #foldWhile
+   * @see #withIterator
+   */
+  def fold[T](z: => T)(op: (T, Row) => T)(implicit connection: Connection): Either[List[Throwable], T] =
+    Sql.withIterator(resultSet)(_.foldLeft[T](z)(op)).acquireFor(identity)
+
+  /**
+   * Aggregates over part of or the while row stream,
+   * using the specified operator.
+   *
+   * @param z the start value
+   * @param op Aggregate operator. Returns aggregated value along with true if aggregation must process next value, or false to stop with current value.
+   * @return Either list of failures at left, or aggregated value
+   * @see #withIterator
+   */
+  def foldWhile[T](z: => T)(op: (T, Row) => (T, Boolean))(implicit connection: Connection): Either[List[Throwable], T] = {
+    @annotation.tailrec
+    def go(it: Iterator[Row], cur: T): T = if (!it.hasNext) cur else {
+      val (v, cont) = op(cur, it.next)
+      if (!cont) v else go(it, v)
+    }
+
+    Sql.withIterator(resultSet)(go(_, z)).acquireFor(identity)
+  }
+
+  /**
+   * Processes all or some rows through iterator for current results.
+   *
+   * @param op Operation applied with row iterator
+   *
+   * {{{
+   * val l: Either[List[Throwable], List[Row]] = SQL"SELECT * FROM Test".
+   *   withIterator(_.toList)
+   * }}}
+   */
+  def withIterator[T](op: Iterator[Row] => T)(implicit connection: Connection): Either[List[Throwable], T] = Sql.withIterator(resultSet)(op).acquireFor(identity)
 
   /**
    * Executes this statement as query (see [[executeQuery]]) and returns result.
@@ -282,9 +331,14 @@ private[anorm] trait Sql {
   /**
    * Executes this SQL statement.
    * @return true if resultset was returned from execution
-   * (statement is query), or false if it executed update
+   * (statement is query), or false if it executed update.
+   *
+   * {{{
+   * val res: Boolean =
+   *   SQL"""INSERT INTO Test(a, b) VALUES(${"A"}, ${"B"}""".execute()
+   * }}}
    */
-  def execute()(implicit connection: Connection): Boolean = // TODO: managed
+  def execute()(implicit connection: Connection): Boolean =
     managed(getFilledStatement(connection)).acquireAndGet(_.execute())
 
   @deprecated(message = "Will be made private, use [[executeUpdate]] or [[executeInsert]]", since = "2.3.2")
@@ -364,24 +418,27 @@ object Sql { // TODO: Rename to SQL
   }
 
   private[anorm] def as[T](parser: ResultSetParser[T], rs: ManagedResource[ResultSet])(implicit connection: Connection): T =
-    parser(Sql.resultSetToStream(rs)) match {
-      case Success(a) => a
-      case Error(e) => sys.error(e.toString)
+    withIterator(rs) { it =>
+      parser(
+        it.toStream /* TODO: Review after ResultSetParser refactoring */ ) match {
+          case Success(a) => a
+          case Error(e) => sys.error(e.toString) // TODO: Safe alternative?
+        }
+    } acquireAndGet (identity)
+
+  /** Run given operation on row iterator, within managed context. */
+  private[anorm] def withIterator[T](res: ManagedResource[ResultSet])(op: Iterator[Row] => T): ManagedResource[T] = res map { rs => op(new RowIterator(rs)) }
+
+  private class RowIterator(rs: ResultSet) extends Iterator[Row] {
+    val meta = metaData(rs)
+    val colIndexes: List[Int] = List.range(1, meta.columnCount + 1)
+    def hasNext = !rs.isLast
+
+    def next() = {
+      rs.next()
+      SqlRow(meta, colIndexes.map(rs.getObject(_)))
     }
-
-  private def fold[T](res: ManagedResource[ResultSet])(initial: T)(f: (T, Row) => T): ManagedResource[T] = res map { rs =>
-    val rsMetaData: MetaData = metaData(rs)
-    val columns: List[Int] = List.range(1, rsMetaData.columnCount + 1)
-    @inline def data(rs: ResultSet) = columns.map(rs.getObject(_))
-
-    @annotation.tailrec
-    def go(r: ResultSet, s: T): T =
-      if (r.next()) go(r, f(s, new SqlRow(rsMetaData, data(rs)))) else s
-
-    go(rs, initial)
   }
-
-  private[anorm] def resultSetToStream(rs: ManagedResource[ResultSet]): Stream[Row] = fold(rs)(Stream.empty[Row])((s, r) => s :+ r) acquireAndGet identity
 
   private case class SqlRow(metaData: MetaData, data: List[Any]) extends Row {
     override lazy val toString = "Row(" + metaData.ms.zip(data).map(t => s"'${t._1.column}': ${t._2} as ${t._1.clazz}").mkString(", ") + ")"

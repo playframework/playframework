@@ -28,7 +28,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
     classOf[Long] -> "id", classOf[String] -> "foo", classOf[Int] -> "bar")
 
   "Row parser" should {
-    "return newly inserted data" in withConnection { implicit c =>
+    "return newly inserted data" in withH2Database { implicit c =>
       createTest1Table()
       val ex: Boolean =
         SQL("insert into test1(id, foo, bar) values ({id}, {foo}, {bar})")
@@ -86,11 +86,11 @@ object AnormSpec extends Specification with H2Database with AnormTest {
         withQueryResult(stringList :+ "A" :+ "B") { implicit c =>
           lazy val sql = SQL("SELECT 1")
 
-          (sql.as(scalar[Int].single)
+          (sql.as(scalar[String].single)
             .aka("single parser") must throwA[Exception].like {
               case e: Exception => e.getMessage aka "error" mustEqual (
                 "SqlMappingError(too many rows when expecting a single one)")
-            }).and(sql.as(scalar[Int].singleOpt)
+            }).and(sql.as(scalar[String].singleOpt)
               .aka("singleOpt parser") must throwA[Exception].like {
                 case e: Exception => e.getMessage aka "error" mustEqual (
                   "SqlMappingError(too many rows when expecting a single one)")
@@ -106,7 +106,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
             .as(scalar[String].single)
             .aka("single string") must_== "Result for test-proc-1"
         }
-    }
+     }
 
     "handle optional property in case class" >> {
       "return instance with defined option" in withQueryResult(rowList2(
@@ -145,7 +145,6 @@ object AnormSpec extends Specification with H2Database with AnormTest {
 
     "throw exception when type doesn't match" in withQueryResult("str") {
       implicit c =>
-
         SQL("SELECT * FROM test").as(scalar[Int].single).
           aka("mismatching type") must throwA[Exception]("TypeDoesNotMatch")
 
@@ -153,7 +152,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
   }
 
   "Instance of case class" should {
-    "be parsed using convience parsers with column names" in withConnection {
+    "be parsed using convience parsers with column names" in withH2Database {
       implicit c =>
         createTest1Table()
         val uc =
@@ -319,6 +318,105 @@ object AnormSpec extends Specification with H2Database with AnormTest {
           aka("string stream") must_== List(
             Success("A"), Success("B"), Success("C"), Success("D"))
       }
+  }
+
+  "Aggregation over all rows" should {
+    "be empty when there is no result" in withQueryResult(QueryResult.Nil) {
+      implicit c => 
+      SQL"EXEC test".fold[Option[Int]](None)({ (_, _) => Some(0) }).
+        aka("aggregated value") must beRight(None)
+
+    }
+
+    "be parsed from mapped result" in withQueryResult(
+      rowList2(classOf[String] -> "foo", classOf[Int] -> "bar").
+        append("row1", 100) :+ ("row2", 200)) { implicit c =>
+
+        SQL"SELECT * FROM test".fold(List[(String,Int)]())(
+          { (l, row) => l :+ (row[String]("foo") -> row[Int]("bar")) }).
+          aka("tuple stream") must_== Right(List("row1" -> 100, "row2" -> 200))
+
+      }
+
+    "handle failure" in withQueryResult(
+      rowList1(classOf[String] -> "foo") :+ "A" :+ "B") { implicit c =>
+      var i = 0
+        SQL"SELECT str".fold(Set[String]()) { (l, row) => 
+      if (i == 0) { i = i+1; l + row[String]("foo") } else sys.error("Failure")
+
+      } aka "aggregate on failure" must beLike {
+        case Left(err :: Nil) => err.getMessage aka "failure" must_== "Failure"
+      } and (i aka "row count" must_== 1)
+    }
+  }
+
+  "Aggregation over variable number of rows" should {
+    "be empty when there is no result" in withQueryResult(QueryResult.Nil) {
+      implicit c => 
+      SQL"EXEC test".foldWhile[Option[Int]](None)(
+        { (_, _) => Some(0) -> true }).
+        aka("aggregated value") must beRight(None)
+
+    }
+
+    "be parsed from mapped result" in withQueryResult(
+      rowList2(classOf[String] -> "foo", classOf[Int] -> "bar").
+        append("row1", 100) :+ ("row2", 200)) { implicit c =>
+
+        SQL"SELECT * FROM test".foldWhile(List[(String,Int)]())({ (l, row) => 
+          (l :+ (row[String]("foo") -> row[Int]("bar"))) -> true 
+        }) aka "tuple stream" must_== Right(List("row1" -> 100, "row2" -> 200))
+      }
+
+    "handle failure" in withQueryResult(
+      rowList1(classOf[String] -> "foo") :+ "A" :+ "B") { implicit c =>
+      var i = 0
+        SQL"SELECT str".foldWhile(Set[String]()) { (l, row) => 
+      if (i == 0) { i = i+1; (l + row[String]("foo")) -> true } 
+      else sys.error("Failure")
+
+      } aka "aggregate on failure" must beLike {
+        case Left(err :: Nil) => err.getMessage aka "failure" must_== "Failure"
+      } and (i aka "row count" must_== 1)
+    }
+
+    "stop after first row" in withQueryResult(
+      rowList1(classOf[String] -> "foo") :+ "A" :+ "B") { implicit c =>
+      var i = 0
+        SQL"SELECT str".foldWhile(Set[String]()) { (l, row) => 
+      if (i == 0) { i = i+1; (l + row[String]("foo")) -> true } else (l, false)
+
+      } aka "partial aggregate" must_== Right(Set("A"))
+    }
+  }
+
+  "Process variable number of rows" should {
+    "do nothing when there is no result" in withQueryResult(QueryResult.Nil) {
+      implicit c => 
+      SQL"EXEC test".withIterator(_.toList) aka "iteration" must beRight.which {
+        _ aka "result list" must beEmpty
+      }
+    }
+
+    "handle failure" in withQueryResult(
+      rowList1(classOf[String] -> "foo") :+ "A" :+ "B") { implicit c =>
+      var first = false
+        SQL"SELECT str" withIterator { it =>
+          it.next() // read first
+          first = true
+          sys.error("Failure")
+        } aka "processing with failure" must beLeft.like {
+          case err :: Nil => err.getMessage aka "failure" must_== "Failure"
+        } and (first aka "first read" must beTrue)
+    }
+
+    "stop after first row without failure" in withQueryResult(
+      rowList1(classOf[String] -> "foo") :+ "A" :+ "B") { implicit c =>
+        SQL"SELECT str" withIterator { it =>
+          val first = it.next()
+          Set(first[String]("foo"))
+        } aka "partial processing" must_== Right(Set("A"))
+    }
   }
 
   "Insertion" should {

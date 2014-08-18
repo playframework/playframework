@@ -20,7 +20,7 @@ Download the latest [Activator distribution](https://typesafe.com/platform/getst
 For convenience, you should add the Activator installation directory to your system `PATH`. On UNIX systems, this means doing something like:
 
 ```bash
-export PATH=$PATH:/path/to/activator
+export PATH=/path/to/activator:$PATH
 ```
 
 On Windows you’ll need to set it in the global environment variables. This means update the `PATH` in the environment variables and don't use a path with spaces.

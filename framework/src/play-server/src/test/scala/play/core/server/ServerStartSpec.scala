@@ -226,16 +226,15 @@ object ServerStartSpec extends Specification {
       val serverStart = new FakeServerStart(new FakeServerProvider)
       val pid = "12345"
       val process = new FakeServerProcess(pid = Some(pid))
-      startResult(serverStart.createPidFile(process, tempDir)) must_== Right(())
       val pidFile = new File(tempDir, "RUNNING_PID")
+      startResult(serverStart.createPidFile(process, tempDir)) must_== Right(Some(pidFile))
       try {
         pidFile.exists must beTrue
         Files.toString(pidFile, Charset.forName("US-ASCII")) must_== pid
       } finally {
         process.shutdown()
       }
-      pidFile.exists must beFalse
-   }
+    }
     "fail to create a pid file if it can't get the process pid" in withTempDir { tempDir =>
       val serverStart = new FakeServerStart(new FakeServerProvider)
       val process = new FakeServerProcess(pid = None)

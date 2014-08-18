@@ -274,7 +274,7 @@ object BatchSqlSpec
   }
 
   "Batch inserting" should {
-    "be success on test1 table" in withConnection { implicit con =>
+    "be success on test1 table" in withH2Database { implicit con =>
       createTest1Table()
 
       lazy val batch = BatchSql(

@@ -104,7 +104,9 @@ Other code may or may not be testable.  It may make sense to test Javascript cod
 
 ## Testing the docs
 
-To ensure that the docs render correctly, run `./build run` from within the documentation directory.  This will start a small Play server that does nothing but serve the documentation.
+To build the docs, you'll first need to build and publish Play locally. You can do this by running `./build publish-local` from within the `framework` directory of the playframework repository.
+
+To ensure that the docs render correctly, run `./build run` from within the `documentation` directory.  This will start a small Play server that does nothing but serve the documentation.
 
 To ensure that the code samples compile, run and tests pass, run `./build test`.
 

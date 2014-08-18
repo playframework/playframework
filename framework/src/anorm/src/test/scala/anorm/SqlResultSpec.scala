@@ -5,7 +5,7 @@ import acolyte.jdbc.AcolyteDSL.{ connection, handleQuery }
 import acolyte.jdbc.RowLists.{ rowList1, rowList2, stringList }
 import acolyte.jdbc.Implicits._
 
-object SqlResultSpec extends org.specs2.mutable.Specification {
+object SqlResultSpec extends org.specs2.mutable.Specification with H2Database {
   "SQL result" title
 
   "For-comprehension over result" should {
@@ -203,6 +203,144 @@ object SqlResultSpec extends org.specs2.mutable.Specification {
     }
   }
 
+  "Aggregation over all rows" should {
+    "release resources" in withQueryResult(
+      stringList :+ "A" :+ "B" :+ "C") { implicit c =>
+
+      val res: SqlQueryResult = SQL"SELECT str".executeQuery()
+      var closed = false
+      val probe = resource.managed(
+        new java.io.Closeable { def close() = closed = true })
+
+      var i = 0      
+      lazy val agg = res.copy(resultSet = 
+        res.resultSet.and(probe).map(_._1)).fold(List[Int]()) { 
+        (l, _) => i = i+1; l :+ i
+      }
+
+      agg aka "aggregation" must_== Right(List(1, 2, 3)) and (
+        closed aka "resource release" must beTrue) and (
+        i aka "row count" must_== 3)
+
+    }
+
+    "release resources on exception" in withQueryResult(
+      stringList :+ "A" :+ "B" :+ "C") { implicit c =>
+
+      val res: SqlQueryResult = SQL"SELECT str".executeQuery()
+      var closed = false
+      val probe = resource.managed(
+        new java.io.Closeable { def close() = closed = true })
+
+      var i = 0      
+      lazy val agg = res.copy(resultSet = res.resultSet.and(probe).map(_._1)).
+        fold(List[Int]()) { (l, _) => 
+          if (i == 1) sys.error("Unexpected") else { i = i +1; l :+ i }
+        } 
+
+      agg aka "aggregation" must beLike {
+        case Left(err :: Nil) =>
+          err.getMessage aka "failure" must_== "Unexpected"
+      } and (closed aka("resource release") must beTrue) and (
+        i aka "row count" must_== 1)
+
+    }
+  }
+
+  "Aggregation over variable number of rows" should {
+    "release resources" in withQueryResult(
+      stringList :+ "A" :+ "B" :+ "C") { implicit c =>
+
+      val res: SqlQueryResult = SQL"SELECT str".executeQuery()
+      var closed = false
+      val probe = resource.managed(
+        new java.io.Closeable { def close() = closed = true })
+
+      var i = 0      
+      lazy val agg = res.copy(resultSet = 
+        res.resultSet.and(probe).map(_._1)).foldWhile(List[Int]()) { 
+        (l, _) => i = i+1; (l :+ i) -> true
+      }
+
+      agg aka "aggregation" must_== Right(List(1, 2, 3)) and (
+        closed aka "resource release" must beTrue) and (
+        i aka "row count" must_== 3)
+
+    }
+
+    "release resources on exception" in withQueryResult(
+      stringList :+ "A" :+ "B" :+ "C") { implicit c =>
+
+      val res: SqlQueryResult = SQL"SELECT str".executeQuery()
+      var closed = false
+      val probe = resource.managed(
+        new java.io.Closeable { def close() = closed = true })
+
+      var i = 0      
+      lazy val agg = res.copy(resultSet = res.resultSet.and(probe).map(_._1)).
+        foldWhile(List[Int]()) { (l, _) => 
+          if (i == 1) sys.error("Unexpected") else { 
+            i = i +1; (l :+ i) -> true 
+          }
+        } 
+
+      agg aka "aggregation" must beLike {
+        case Left(err :: Nil) =>
+          err.getMessage aka "failure" must_== "Unexpected"
+      } and (closed aka "resource release" must beTrue) and (
+        i aka "row count" must_== 1)
+
+    }
+
+    "stop after second row & release resources" in withQueryResult(
+      stringList :+ "A" :+ "B" :+ "C") { implicit c =>
+
+      val res: SqlQueryResult = SQL"SELECT str".executeQuery()
+      var closed = false
+      val probe = resource.managed(
+        new java.io.Closeable { def close() = closed = true })
+
+      var i = 0      
+      lazy val agg = res.copy(resultSet = res.resultSet.and(probe).map(_._1)).
+        foldWhile(List[Int]()) { (l, _) => 
+          if (i == 2) (l, false) else { i = i +1; (l :+ i) -> true }
+        } 
+
+      agg aka "aggregation" must_== Right(List(1, 2)) and (
+        closed aka "resource release" must beTrue) and (
+        i aka "row count" must_== 2)
+
+    }
+  }
+
+  "Process variable number of rows" should {
+    "do nothing when there is no result" in withQueryResult(QueryResult.Nil) {
+      implicit c => 
+      SQL"EXEC test".executeQuery().withIterator(_.toList).
+        aka("iteration") must beRight.which(_ aka "result list" must beEmpty)
+    }
+
+    "handle failure" in withQueryResult(
+      rowList1(classOf[String] -> "foo") :+ "A" :+ "B") { implicit c =>
+      var first = false
+        SQL"SELECT str".executeQuery() withIterator { it =>
+          it.next() // read first
+          first = true
+          sys.error("Failure")
+        } aka "processing with failure" must beLeft.like {
+          case err :: Nil => err.getMessage aka "failure" must_== "Failure"
+        } and (first aka "first read" must beTrue)
+    }
+
+    "stop after first row without failure" in withQueryResult(
+      rowList1(classOf[String] -> "foo") :+ "A" :+ "B") { implicit c =>
+        SQL"SELECT str".executeQuery() withIterator { it =>
+          val first = it.next()
+          Set(first[String]("foo"))
+        } aka "partial processing" must_== Right(Set("A"))
+    }
+  }
+
   "SQL warning" should {
     "not be there on success" in withQueryResult(stringList :+ "A") { 
       implicit c =>
@@ -220,6 +358,35 @@ object SqlResultSpec extends org.specs2.mutable.Specification {
           .statementWarning aka "statement warning" must beSome.which { warn =>
             warn.getMessage aka "message" must_== "Warning for test-proc-2"
           }
+      }
+  }
+
+  "Column value" should {
+    val foo = s"alias-${System.identityHashCode(this)}"
+    val (v1, v2) = (s"1-$foo", s"2-$foo")
+
+    "be found either by name and alias" in withTestDB(v1) { implicit c =>
+      SQL"SELECT foo AS AL, bar FROM test1".as(SqlParser.str("foo").single).
+        aka("by name") must_== v1 and (SQL"SELECT foo AS AL, bar FROM test1".
+          as(SqlParser.getAliased[String]("AL").single).
+          aka("by alias") must_== v1)
+
+    }
+
+    "not be found without alias parser" in withTestDB(v2) { implicit c =>
+      SQL"SELECT foo AS AL, bar FROM test1".as(SqlParser.str("foo").single).
+        aka("by name") must_== v2 and (SQL"SELECT foo AS AL, bar FROM test1".
+          as(SqlParser.str("AL").single).aka("by alias") must_== v2)
+
+    }
+
+    def withTestDB[T](foo: String)(f: java.sql.Connection => T): T =
+      withH2Database { implicit c =>
+        createTest1Table()
+        SQL("insert into test1(id, foo, bar) values ({id}, {foo}, {bar})").
+          on('id -> 10L, 'foo -> foo, 'bar -> 20).execute()
+
+        f(c)
       }
   }
 

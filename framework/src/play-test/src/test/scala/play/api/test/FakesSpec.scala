@@ -3,7 +3,17 @@
  */
 package play.api.test
 
+import java.util.concurrent.TimeUnit
+
 import play.api.mvc._
+
+import play.api.test.Helpers._
+import play.api.mvc.Results._
+import play.api.libs.json.Json
+import org.specs2.specification.Scope
+
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 object FakesSpec extends PlaySpecification {
 
@@ -14,7 +24,9 @@ object FakesSpec extends PlaySpecification {
     "allow adding routes inline" in {
       val app = new FakeApplication(
         withRoutes = {
-          case ("GET", "/inline") => Action { Results.Ok("inline route") }
+          case ("GET", "/inline") => Action {
+            Results.Ok("inline route")
+          }
         }
       )
       running(app) {
@@ -67,6 +79,33 @@ object FakesSpec extends PlaySpecification {
         contentAsString(resp) aka "content" must_== "text/xml;charset=utf-16le"
       }
     }
-  }
 
+    "set a Content-Type header when one is unspecified and required" in new FakeRequestCallScope {
+      val request = FakeRequest(GET, "/testCall")
+        .withJsonBody(Json.obj("foo" -> "bar"))
+
+      contentTypeForFakeRequest(request) must contain("application/json")
+    }
+    "not overwrite the Content-Type header when specified" in new FakeRequestCallScope {
+      val request = FakeRequest(GET, "/testCall")
+        .withJsonBody(Json.obj("foo" -> "bar"))
+        .withHeaders(CONTENT_TYPE -> "application/test+json")
+
+      contentTypeForFakeRequest(request) must contain("application/test+json")
+    }
+  }
 }
+
+trait FakeRequestCallScope extends Scope {
+  def contentTypeForFakeRequest[T](request: FakeRequest[AnyContentAsJson]): String = {
+    var testContentType: Option[String] = None
+    val action = Action { request => testContentType = request.headers.get(CONTENT_TYPE); Ok}
+    val headers = new WrappedRequest(request)
+    val execution = (new TestActionCaller).call(action, headers, request.body)
+    Await.result(execution, Duration(3, TimeUnit.SECONDS))
+    testContentType.getOrElse("No Content-Type found")
+  }
+}
+
+class TestActionCaller extends EssentialActionCaller with Writeables
+

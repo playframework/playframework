@@ -316,13 +316,16 @@ trait PlayCommands extends PlayEclipse with PlayInternalKeys {
   }
 
   val computeDependencies = TaskKey[Seq[Map[Symbol, Any]]]("ivy-dependencies")
-  val computeDependenciesTask = (deliverLocal, ivySbt, streams, organizationName, moduleName, version, scalaBinaryVersion) map { (_, ivySbt, s, org, id, version, scalaVersion) =>
+  val computeDependenciesTask = (deliverLocal, ivySbt, streams, organizationName, moduleName, version, scalaBinaryVersion, crossPaths) map { (_, ivySbt, s, org, id, version, scalaVersion, crossPathsValue) =>
 
     import scala.xml._
 
     ivySbt.withIvy(s.log) { ivy =>
-      val report = XML.loadFile(
-        ivy.getResolutionCacheManager.getConfigurationResolveReportInCache(org + "-" + id + "_" + scalaVersion, "runtime"))
+      val file = crossPathsValue match {
+        case false => ivy.getResolutionCacheManager.getConfigurationResolveReportInCache(org + "-" + id, "runtime")
+        case _ => ivy.getResolutionCacheManager.getConfigurationResolveReportInCache(org + "-" + id + "_" + scalaVersion, "runtime")
+      }
+      val report = XML.loadFile(file)
 
       val deps: Seq[Map[Symbol, Any]] = (report \ "dependencies" \ "module").flatMap { module =>
 

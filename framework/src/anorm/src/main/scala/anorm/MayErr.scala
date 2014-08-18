@@ -10,12 +10,11 @@ case class MayErr[+E, +A](toEither: Either[E, A]) {
 
   def map[B](f: A => B): MayErr[E, B] = MayErr(toEither.right.map(f))
 
-  @deprecated(
-    message = "Use `filter` on `toEither.right`.", since = "2.3.0")
+  @deprecated("Use `filter` on `toEither.right`.", "2.3.0")
   def filter[EE >: E](p: A => Boolean, error: EE): MayErr[EE, A] =
     MayErr(toEither.right.filter(p).getOrElse(Left(error)))
 
-  @deprecated(since = "2.3.0")
+  @deprecated("Use directly `toEither`", "2.3.0")
   def toOptionLoggingError(): Option[A] =
     toEither.left.map(m => { println(m.toString); m }).right.toOption
 

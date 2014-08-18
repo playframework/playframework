@@ -11,7 +11,6 @@ import play.api.mvc._
 
 import scala.concurrent.duration._
 import scala.util.{ Try, Success, Failure }
-import scala.util.control.NonFatal
 import scala.concurrent.Future
 
 trait WebSocketable {
@@ -23,16 +22,6 @@ trait WebSocketable {
  * provides generic server behaviour for Play applications
  */
 trait Server {
-
-  // First delete the default log file for a fresh start (only in Dev Mode)
-  try {
-    if (mode == Mode.Dev) new java.io.File(applicationProvider.path, "logs/application.log").delete()
-  } catch {
-    case NonFatal(_) =>
-  }
-
-  // Configure the logger for the first time
-  Logger.init(applicationProvider.path, mode)
 
   val bodyParserTimeout = {
     //put in proper config

@@ -5,6 +5,7 @@ package anorm
 
 object SqlParser {
   import MayErr._
+  import java.io.InputStream
   import java.util.Date
 
   private val NoColumnsInReturnedResult = SqlMappingError("No column in result")
@@ -99,6 +100,34 @@ object SqlParser {
     get[String](columnPosition)(c)
 
   /**
+   * Parses specified column as binary stream.
+   *
+   * {{{
+   * import java.io.InputStream
+   * import anorm.{ SQL, SqlParser }
+   *
+   * val parser = SqlParser.str("name") ~ SqlParser.binaryStream("data")
+   * val file: (String, InputStream) = SQL("SELECT name, data FROM files").
+   *   as(parser.single)
+   * }}}
+   */
+  def binaryStream(columnName: String)(implicit c: Column[InputStream]): RowParser[InputStream] = get[InputStream](columnName)(c)
+
+  /**
+   * Parses specified column as binary stream.
+   *
+   * {{{
+   * import java.io.InputStream
+   * import anorm.{ SQL, SqlParser }
+   *
+   * val parser = SqlParser.str(1) ~ SqlParser.binaryStream(2)
+   * val file: (String, InputStream) = SQL("SELECT name, data FROM files").
+   *   as(parser.single)
+   * }}}
+   */
+  def binaryStream(columnPosition: Int)(implicit c: Column[InputStream]): RowParser[InputStream] = get[InputStream](columnPosition)(c)
+
+  /**
    * Parses specified column as boolean.
    *
    * {{{
@@ -153,6 +182,32 @@ object SqlParser {
    */
   def byte(columnPosition: Int)(implicit c: Column[Byte]): RowParser[Byte] =
     get[Byte](columnPosition)(c)
+
+  /**
+   * Parses specified column as binary stream.
+   *
+   * {{{
+   * import anorm.{ SQL, SqlParser }
+   *
+   * val parser = SqlParser.str("name") ~ SqlParser.byteArray("data")
+   * val file: (String, Array[Byte]) = SQL("SELECT name, data FROM files").
+   *   as(parser.single)
+   * }}}
+   */
+  def byteArray(columnName: String)(implicit c: Column[Array[Byte]]): RowParser[Array[Byte]] = get[Array[Byte]](columnName)(c)
+
+  /**
+   * Parses specified column as binary stream.
+   *
+   * {{{
+   * import anorm.{ SQL, SqlParser }
+   *
+   * val parser = SqlParser.str(1) ~ SqlParser.byteArray(2)
+   * val file: (String, Array[Byte]) = SQL("SELECT name, data FROM files").
+   *   as(parser.single)
+   * }}}
+   */
+  def byteArray(columnPosition: Int)(implicit c: Column[Array[Byte]]): RowParser[Array[Byte]] = get[Array[Byte]](columnPosition)(c)
 
   /**
    * Parses specified column as double.
@@ -297,6 +352,7 @@ object SqlParser {
   def date(columnPosition: Int)(implicit c: Column[Date]): RowParser[Date] =
     get[Date](columnPosition)(c)
 
+  @deprecated(message = "Use [[get]] with alias", since = "2.3.3")
   def getAliased[T](aliasName: String)(implicit extractor: Column[T]): RowParser[T] = RowParser { row =>
     (for {
       col <- row.getAliased(aliasName)
@@ -319,7 +375,7 @@ object SqlParser {
   def get[T](name: String)(implicit extractor: Column[T]): RowParser[T] =
     RowParser { row =>
       (for {
-        col <- row.get1(name)
+        col <- row.get(name)
         res <- extractor.tupled(col)
       } yield res).fold(Error(_), Success(_))
     }
@@ -480,6 +536,8 @@ trait RowParser[+A] extends (Row => SqlResult[A]) { parent =>
    * val b: Boolean = SQL("SELECT flag FROM Test WHERE id = :id").
    *   on("id" -> 1).as(scalar[Boolean].single)
    * }}}
+   *
+   * @see #singleOpt
    */
   def single = ResultSetParser.single(parent)
 
@@ -509,7 +567,9 @@ sealed trait ScalarRowParser[+A] extends RowParser[A] {
   }
 }
 
-trait ResultSetParser[+A] extends (Stream[Row] => SqlResult[A]) { parent =>
+// TODO: Refactor with Iterator
+sealed trait ResultSetParser[+A] extends (Stream[Row] => SqlResult[A]) {
+  parent =>
   def map[B](f: A => B): ResultSetParser[B] =
     ResultSetParser(parent(_).map(f))
 

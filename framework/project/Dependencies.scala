@@ -26,7 +26,7 @@ object Dependencies {
 
   val h2database = "com.h2database" % "h2" % "1.3.175"
 
-  val acolyteVersion = "1.0.21"
+  val acolyteVersion = "1.0.22"
   val acolyte = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jdbcDeps = Seq(
@@ -81,7 +81,7 @@ object Dependencies {
     "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.5"
   ) ++ javassist ++ specsBuild.map(_ % Test)
 
-  val junitInterface = "com.novocode" % "junit-interface" % "0.11-RC1"
+  val junitInterface = "com.novocode" % "junit-interface" % "0.11"
   val junit = "junit" % "junit" % "4.11"
 
   val javaTestDeps = Seq(
@@ -163,10 +163,11 @@ object Dependencies {
     sbtPluginDep("com.typesafe.sbt" % "sbt-twirl" % "1.0.2"),
     sbtPluginDep("com.typesafe.sbt" % "sbt-play-enhancer" % "1.0.1"),
 
-    sbtPluginDep("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.4.0"),
+    sbtPluginDep("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.5.0"),
     sbtPluginDep("com.github.mpeltonen" % "sbt-idea" % "1.5.1"),
-    sbtPluginDep("com.typesafe.sbt" % "sbt-native-packager" % "0.7.1"),
+    sbtPluginDep("com.typesafe.sbt" % "sbt-native-packager" % "0.7.4"),
 
+    sbtPluginDep("com.typesafe.sbt" % "sbt-web" % "1.1.0"),
     sbtPluginDep("com.typesafe.sbt" % "sbt-js-engine" % "1.0.1"),
     sbtPluginDep("com.typesafe.sbt" % "sbt-webdriver" % "1.0.0")
   ) ++ javassist ++ specsBuild.map(_ % Test)
@@ -224,6 +225,8 @@ object Dependencies {
     "com.jsuereth" %% "scala-arm" % "1.4",
     h2database % Test,
     "org.eu.acolyte" %% "jdbc-scala" % acolyteVersion % Test,
+    "joda-time" % "joda-time" % "2.3",
+    "org.joda" % "joda-convert" % "1.6",
     "com.chuusai" % "shapeless" % "2.0.0" % Test cross CrossVersion.binaryMapped {
       case "2.10" => BuildSettings.buildScalaVersion
       case x => x

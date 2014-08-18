@@ -129,7 +129,7 @@ val code: String = SQL(
   """
     select * from Country c 
     join CountryLanguage l on l.CountryCode = c.Code 
-    where c.code = {countryCode};
+    where c.code = {countryCode}
   """)
   .on("countryCode" -> "FRA").as(SqlParser.str("code").single)
 ```
@@ -143,10 +143,24 @@ val code: String = SQL(
   """
     select * from Country c 
     join CountryLanguage l on l.CountryCode = c.Code 
-    where c.code = {countryCode};
+    where c.code = {countryCode}
   """)
   .on("countryCode" -> "FRA").as(SqlParser.str("Country.code").single)
 // code == "First"
+```
+
+When a column is aliased, typically using SQL `AS`, its value can also be resolved. Following example parses column with `country_lang` alias.
+
+```scala
+import anorm.{ SQL, SqlParser }
+
+val lang: String = SQL(
+  """
+    select l.language AS country_lang from Country c 
+    join CountryLanguage l on l.CountryCode = c.Code 
+    where c.code = {countryCode}
+  """).on("countryCode" -> "FRA").
+    as(SqlParser.str("country_lang").single)
 ```
 
 Columns can also be specified by position, rather than name:
@@ -172,7 +186,7 @@ Since Scala 2.10 supports custom String Interpolation there is also a 1-step alt
 val name = "Cambridge"
 val country = "New Zealand"
 
-SQL"insert into City(name, country) values ($name, $country)")
+SQL"insert into City(name, country) values ($name, $country)"
 ```
 
 It also supports multi-line string and inline expresions:
@@ -192,30 +206,45 @@ val code: String = SQL"""
 
 This feature tries to make faster, more concise and easier to read the way to retrieve data in Anorm. Please, feel free to use it wherever you see a combination of `SQL().on()` functions (or even an only `SQL()` without parameters).
 
-## Retrieving data using the Stream API
+## Streaming results
 
-The first way to access the results of a select query is to use the Stream API.
+Query results can be processed row per row, not having all loaded in memory.
 
-When you call `apply()` on any SQL statement, you will receive a lazy `Stream` of `Row` instances, where each row can be seen as a dictionary:
+In the following example we will count the number of country rows.
 
 ```scala
-// Create an SQL query
-val selectCountries = SQL("Select * from Country")
- 
-// Transform the resulting Stream[Row] to a List[(String,String)]
-val countries = selectCountries().map(row => 
-  row[String]("code") -> row[String]("name")
-).toList
+val countryCount: Either[List[Throwable], Long] = 
+  SQL"Select count(*) as c from Country".fold(0L) { (c, _) => c + 1 }
 ```
 
-In the following example we will count the number of `Country` entries in the database, so the result set will be a single row with a single column:
+> In previous example, either it's the successful `Long` result (right), or the list of errors (left).
+
+Result can also be partially processed:
 
 ```scala
-// First retrieve the first row
-val firstRow = SQL("Select count(*) as c from Country").apply().head
- 
-// Next get the content of the 'c' column as Long
-val countryCount = firstRow[Long]("c")
+val books: Either[List[Throwable], List[String]] = 
+  SQL("Select name from Books").foldWhile(List[String]()) { (list, row) => 
+    if (list.size == 100) (list -> false) // stop with `list`
+    else (list := row[String]("name")) -> true // continue with one more name
+  }
+```
+
+It's possible to use a custom streaming:
+
+```scala
+import anorm.Row
+
+@annotation.tailrec
+def go(it: Iterator[Row], l: List[String]): List[String] = 
+  if (!it.hasNext) l // no more result
+  else if (l.size == 100) l // custom limit, partial processing
+  else {
+    val row = it.next()
+    go(it, l :+ row[String]("name"))
+  }
+
+val books: Either[List[Throwable], List[String]] = 
+  SQL("Select name from Books").withIterator(go(_, List.empty[String]))
 ```
 
 ### Multi-value support
@@ -242,6 +271,24 @@ EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name='a')
 OR EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name='b') 
 OR EXISTS (SELECT NULL FROM j WHERE t.id=j.id AND name='c')
 */
+```
+
+On purpose multi-value parameter must strictly be declared with one of supported types (`List`, 'Seq`, `Set`, `SortedSet`, `Stream`, `Vector`  and `SeqParameter`). Value of a subtype must be passed as parameter with supported:
+
+```scala
+val seq = IndexedSeq("a", "b", "c")
+// seq is instance of Seq with inferred type IndexedSeq[String]
+
+// Wrong
+SQL"SELECT * FROM Test WHERE cat in ($seq)"
+// Erroneous - No parameter conversion for IndexedSeq[T]
+
+// Right
+SQL"SELECT * FROM Test WHERE cat in (${seq: Seq[String]})"
+
+// Right
+val param: Seq[String] = seq
+SQL"SELECT * FROM Test WHERE cat in ($param)"
 ```
 
 A column can also be multi-value if its type is JDBC array (`java.sql.Array`), then it can be mapped to either array or list (`Array[T]` or `List[T]`), provided type of element (`T`) is also supported in column mapping.
@@ -461,6 +508,12 @@ val count: Long =
   SQL("select count(*) from Country").as(scalar[Long].single)
 ```
 
+If expected single result is optional (0 or 1 row), then `scalar` parser can be combined with `singleOpt`:
+
+```scala
+val name: Option[String] =
+  SQL"SELECT name From Country WHERE code = $code" as scalar[String].singleOpt
+```
 
 ### Getting a single optional result
 
@@ -631,14 +684,14 @@ Following table describes which JDBC numeric types (getters on `java.sql.ResultS
 
 ↓JDBC / JVM➞           | BigDecimal<sup>1</sup> | BigInteger<sup>2</sup> | Boolean | Byte | Double | Float | Int | Long | Short
 ---------------------- | ---------------------- | ---------------------- | ------- | ---- | ------ | ----- | --- | ---- | -----
-BigDecimal<sup>1</sup> | Yes                    | No                     | No      | No   | Yes    | No    | No  | No   | No
-BigInteger<sup>2</sup> | No                     | Yes                    | No      | No   | Yes    | Yes   | No  | No   | No
-Boolean                | No                     | No                     | Yes     | No   | No     | No    | No  | No   | No
+BigDecimal<sup>1</sup> | Yes                    | Yes                    | No      | No   | Yes    | No    | Yes | Yes  | No
+BigInteger<sup>2</sup> | No                     | Yes                    | No      | No   | Yes    | Yes   | Yes | Yes  | No
+Boolean                | No                     | No                     | Yes     | Yes  | No     | No    | Yes | Yes  | Yes
 Byte                   | No                     | No                     | No      | Yes  | Yes    | Yes   | No  | No   | Yes
-Double                 | Yes                    | No                     | Yes     | No   | Yes    | No    | No  | No   | No
-Float                  | No                     | No                     | No      | No   | Yes    | Yes   | No  | No   | No
-Int                    | No                     | Yes                    | Yes     | No   | Yes    | Yes   | Yes | Yes  | No
-Long                   | Yes                    | Yes                    | No      | No   | No     | No    | No  | Yes  | No
+Double                 | Yes                    | No                     | No      | No   | Yes    | No    | No  | No   | No
+Float                  | Yes                    | No                     | No      | No   | Yes    | Yes   | No  | No   | No
+Int                    | Yes                    | Yes                    | No      | No   | Yes    | Yes   | Yes | Yes  | No
+Long                   | Yes                    | Yes                    | No      | No   | No     | No    | Yes | Yes  | No
 Short                  | No                     | No                     | No      | Yes  | Yes    | Yes   | No  | No   | Yes
 
 - 1. Types `java.math.BigDecimal` and `scala.math.BigDecimal`.
@@ -660,6 +713,21 @@ UUID              | No                   | No   | No   | No               | No  
 - 5. Type `java.sql.Array`.
 
 Optional column can be parsed as `Option[T]`, as soon as `T` is supported.
+
+Binary data types are also supported.
+
+↓JDBC / JVM➞            | Array[Byte] | InputStream<sup>1</sup>
+----------------------- | ----------- | -----------------------
+Array[Byte]             | Yes         | Yes
+Blob<sup>2</sup>        | Yes         | Yes
+Clob<sup>3</sup>        | No          | No
+InputStream<sup>4</sup> | Yes         | Yes
+Reader<sup>5</sup>      | No          | No
+
+- 1. Type `java.io.InputStream`.
+- 2. Type `java.sql.Blob`.
+- 3. Type `java.sql.Clob`.
+- 4. Type `java.io.Reader`.
 
 CLOBs/TEXTs can be extracted as so:
 
@@ -700,23 +768,28 @@ implicit def columnToBoolean: Column[Boolean] =
 
 The following table indicates how JVM types are mapped to JDBC parameter types:
 
-JVM                     | JDBC                                                  | Nullable
-------------------------|-------------------------------------------------------|----------
-Char<sup>1</sup>/String | String                                                | Yes
-BigDecimal<sup>2</sup>  | BigDecimal                                            | Yes
-BigInteger<sup>3</sup>  | BigDecimal                                            | Yes
-Boolean<sup>4</sup>     | Boolean                                               | Yes
-Byte<sup>5</sup>        | Byte                                                  | Yes
-Date/Timestamp          | Timestamp                                             | Yes
-Double<sup>6</sup>      | Double                                                | Yes
-Float<sup>7</sup>       | Float                                                 | Yes
-Int<sup>8</sup>         | Int                                                   | Yes
-Long<sup>9</sup>        | Long                                                  | Yes
-Object<sup>10</sup>     | Object                                                | Yes
-Option[T]               | Object for `None`, mapping for `Some[T]`              | No
-Seq[T]                  | Array, with `T` mapping for each element<sup>11</sup> | No
-Short<sup>12</sup>      | Short                                                 | Yes
-UUID                    | String<sup>13</sup>                                   | No
+JVM                       | JDBC                                                  | Nullable
+--------------------------|-------------------------------------------------------|----------
+Char<sup>1</sup>/String   | String                                                | Yes
+BigDecimal<sup>2</sup>    | BigDecimal                                            | Yes
+BigInteger<sup>3</sup>    | BigDecimal                                            | Yes
+Boolean<sup>4</sup>       | Boolean                                               | Yes
+Byte<sup>5</sup>          | Byte                                                  | Yes
+Date/Timestamp            | Timestamp                                             | Yes
+Double<sup>6</sup>        | Double                                                | Yes
+Float<sup>7</sup>         | Float                                                 | Yes
+Int<sup>8</sup>           | Int                                                   | Yes
+List[T]                   | Multi-value<sup>11</sup>, with `T` mapping for each element | No
+Long<sup>9</sup>          | Long                                                  | Yes
+Object<sup>10</sup>       | Object                                                | Yes
+Option[T]                 | Object for `None`, mapping for `Some[T]`              | No
+Seq[T]                    | Multi-value, with `T` mapping for each element        | No
+Set[T]<sup>12</sup>       | Multi-value, with `T` mapping for each element        | No
+Short<sup>13</sup>        | Short                                                 | Yes
+SortedSet[T]<sup>14</sup> | Multi-value, with `T` mapping for each element        | No
+Stream[T]                 | Multi-value, with `T` mapping for each element        | No
+UUID                      | String<sup>15</sup>                                   | No
+Vector                    | Multi-value, with `T` mapping for each element        | No
 
 - 1. Types `Char` and `java.lang.Character`.
 - 2. Types `java.math.BigDecimal` and `scala.math.BigDecimal`.
@@ -729,8 +802,10 @@ UUID                    | String<sup>13</sup>                                   
 - 9. Types `Long` and `java.lang.Long`.
 - 10. Type `anorm.Object`, wrapping opaque object.
 - 11. Multi-value parameter, with one JDBC placeholder (`?`) added for each element.
-- 12. Types `Short` and `java.lang.Short`.
-- 13. Not-null value extracted using `.toString`.
+- 12. Type `scala.collection.immutable.Set`.
+- 13. Types `Short` and `java.lang.Short`.
+- 14. Type `scala.collection.immutable.SortedSet`.
+- 15. Not-null value extracted using `.toString`.
 
 Custom or specific DB conversion for parameter can also be provided:
 

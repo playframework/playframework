@@ -6,8 +6,10 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := "%SCALA_VERSION%"
 
+resolvers += "sorm Scala 2.11 fork" at "http://markusjura.github.io/sorm"
+
 libraryDependencies ++= Seq(  
-  "org.sorm-framework" % "sorm" % "0.3.15",
+  "org.sorm-framework" % "sorm" % "0.4.1",
   "com.h2database" % "h2" % "1.4.177"
 )     
 

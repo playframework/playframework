@@ -35,11 +35,6 @@ trait Row {
       if (d.nullable) m + (k -> Option(v)) else m + (k -> v)
     }
 
-  private def get[A](a: String)(implicit c: Column[A]): MayErr[SqlRequestError, A] = SqlParser.get(a)(c)(this) match {
-    case Success(a) => Right(a)
-    case Error(e) => Left(e)
-  }
-
   /**
    * Returns parsed column.
    *
@@ -54,7 +49,11 @@ trait Row {
    * )
    * }}}
    */
-  def apply[B](name: String)(implicit c: Column[B]): B = get[B](name)(c).get
+  def apply[B](name: String)(implicit c: Column[B]): B =
+    MayErr(SqlParser.get(name)(c)(this) match {
+      case Success(v) => Right(v)
+      case Error(err) => Left(err)
+    }).get
 
   // Data per column name
   private lazy val columnsDictionary: Map[String, Any] = {
@@ -83,7 +82,11 @@ trait Row {
   /* Type alias for tuple extracted from metadata item */
   private type MetaTuple = (ColumnName, Boolean, String)
 
-  private[anorm] def get1(a: String): MayErr[SqlRequestError, (Any, MetaDataItem)] = for (
+  /**
+   * Try to get data matching name.
+   * @param name Column qualified name, or label/alias
+   */
+  private[anorm] def get(a: String): MayErr[SqlRequestError, (Any, MetaDataItem)] = for (
     meta <- implicitly[MayErr[SqlRequestError, MetaTuple]](
       metaData.get(a).toRight(ColumnNotFound(a, metaData.availableColumns)));
     m = MetaDataItem.tupled(meta);
@@ -94,6 +97,7 @@ trait Row {
 
   ) yield (data, m)
 
+  @deprecated(message = "Use [[get]] with alias", since = "2.3.3")
   private[anorm] def getAliased(a: String): MayErr[SqlRequestError, (Any, MetaDataItem)] = for (
     meta <- implicitly[MayErr[SqlRequestError, MetaTuple]](
       metaData.getAliased(a).toRight(
