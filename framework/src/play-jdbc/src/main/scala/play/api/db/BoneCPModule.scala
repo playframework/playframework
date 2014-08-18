@@ -122,6 +122,7 @@ class BoneConnectionPool extends ConnectionPool {
     conf.getString("password").map(datasource.setPassword)
 
     // Pool configuration
+    datasource.setCloseOpenStatements(conf.getBoolean("closeOpenStatements").getOrElse(true))
     datasource.setPartitionCount(conf.getInt("partitionCount").getOrElse(1))
     datasource.setMaxConnectionsPerPartition(conf.getInt("maxConnectionsPerPartition").getOrElse(30))
     datasource.setMinConnectionsPerPartition(conf.getInt("minConnectionsPerPartition").getOrElse(5))

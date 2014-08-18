@@ -135,7 +135,7 @@ abstract class DefaultDatabase(val name: String, configuration: Configuration, c
   }
 
   def withConnection[A](block: Connection => A): A = {
-    val connection = new AutoCleanConnection(getConnection)
+    val connection = getConnection()
     try {
       block(connection)
     } finally {

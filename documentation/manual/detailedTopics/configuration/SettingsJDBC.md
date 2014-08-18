@@ -38,6 +38,9 @@ db.default.autocommit=true
 # Set a connection's default isolation level
 db.default.isolation=READ_COMMITTED
 
+# Track statements and close them automatically.
+db.default.closeOpenStatements=true
+
 # In order to reduce lock contention and thus improve performance, 
 # each incoming connection request picks off a connection from a 
 # pool that has thread-affinity. 
