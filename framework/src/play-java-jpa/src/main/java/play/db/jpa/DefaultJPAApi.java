@@ -4,6 +4,7 @@
 package play.db.jpa;
 
 import play.*;
+import play.db.DBApi;
 import play.inject.ApplicationLifecycle;
 import play.libs.F;
 
@@ -34,7 +35,8 @@ public class DefaultJPAApi implements JPAApi {
         private final JPAApi jpaApi;
 
         @Inject
-        public JPAApiProvider(JPAConfig jpaConfig, ApplicationLifecycle lifecycle) {
+        public JPAApiProvider(JPAConfig jpaConfig, DBApi dbApi, ApplicationLifecycle lifecycle) {
+            // dependency on db api ensures that the databases are initialised
             jpaApi = new DefaultJPAApi(jpaConfig);
             lifecycle.addStopHook(new Callable<F.Promise<Void>>() {
                 @Override
