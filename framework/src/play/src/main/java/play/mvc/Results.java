@@ -223,7 +223,7 @@ public class Results {
      * @param filename The name to send the file as.
      */
     public static Status ok(File content, String filename) {
-        return new Status(JavaResults.Ok(), content, true, filename);
+        return new Status(JavaResults.Ok(), content, false, filename);
     }
 
     /**
@@ -341,7 +341,7 @@ public class Results {
      * @param filename The name to send the file as.
      */
     public static Status created(File content, String filename) {
-        return new Status(JavaResults.Created(), content, true, filename);
+        return new Status(JavaResults.Created(), content, false, filename);
     }
 
     /**
@@ -468,7 +468,7 @@ public class Results {
      * @param filename The name to send the file as.
      */
     public static Status internalServerError(File content, String filename) {
-        return new Status(JavaResults.InternalServerError(), content, true, filename);
+        return new Status(JavaResults.InternalServerError(), content, false, filename);
     }
 
     /**
@@ -586,7 +586,7 @@ public class Results {
      * @param filename The name to send the file as.
      */
     public static Status notFound(File content, String filename) {
-        return new Status(JavaResults.NotFound(), content, true, filename);
+        return new Status(JavaResults.NotFound(), content, false, filename);
     }
 
     /**
@@ -704,7 +704,7 @@ public class Results {
      * @param filename The name to send the file as.
      */
     public static Status forbidden(File content, String filename) {
-        return new Status(JavaResults.Forbidden(), content, true, filename);
+        return new Status(JavaResults.Forbidden(), content, false, filename);
     }
 
     /**
@@ -822,7 +822,7 @@ public class Results {
      * @param filename The name to send the file as.
      */
     public static Status unauthorized(File content, String filename) {
-        return new Status(JavaResults.Unauthorized(), content, true, filename);
+        return new Status(JavaResults.Unauthorized(), content, false, filename);
     }
 
     /**
@@ -940,7 +940,7 @@ public class Results {
      * @param filename The name to send the file as.
      */
     public static Status badRequest(File content, String filename) {
-        return new Status(JavaResults.BadRequest(), content, true, filename);
+        return new Status(JavaResults.BadRequest(), content, false, filename);
     }
 
     /**
