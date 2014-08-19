@@ -80,6 +80,65 @@ trait Database {
 }
 
 /**
+ * Creation helpers for manually instantiating databases.
+ */
+object Database {
+
+  /**
+   * Create a pooled database with the given configuration.
+   *
+   * @param name the database name
+   * @param driver the database driver class
+   * @param url the database url
+   * @param config a map of extra database configuration
+   * @return a configured database
+   */
+  def apply(name: String, driver: String, url: String, config: Map[String, _ <: Any] = Map.empty): Database = {
+    val dbConfig = Configuration.from(Map("driver" -> driver, "url" -> url) ++ config)
+    new PooledDatabase(name, dbConfig)
+  }
+
+  /**
+   * Create a pooled database named "default" with the given configuration.
+   *
+   * @param driver the database driver class
+   * @param url the database url
+   * @param config a map of extra database configuration
+   * @return a configured database
+   */
+  def apply(driver: String, url: String, config: Map[String, _ <: Any]): Database = {
+    Database("default", driver, url, config)
+  }
+
+  /**
+   * Create a pooled database named "default" with the given driver and url.
+   *
+   * @param driver the database driver class
+   * @param url the database url
+   * @return a configured database
+   */
+  def apply(driver: String, url: String): Database = {
+    Database("default", driver, url, Map.empty)
+  }
+
+  /**
+   * Create an in-memory H2 database.
+   *
+   * @param name the database name (defaults to "default")
+   * @param urlOptions a map of extra url options
+   * @param config a map of extra database configuration
+   * @return a configured in-memory h2 database
+   */
+  def inMemory(name: String = "default", urlOptions: Map[String, String] = Map.empty, config: Map[String, _ <: Any] = Map.empty): Database = {
+    val driver = "org.h2.Driver"
+    val urlExtra = urlOptions.map { case (k, v) => k + "=" + v }.mkString(";", ";", "")
+    val url = "jdbc:h2:mem:" + name + urlExtra
+    Database(name, driver, url, config)
+  }
+
+}
+
+/**
  * Default implementation of the database API.
  * Provides driver registration and connection methods.
  */
@@ -151,8 +210,7 @@ abstract class DefaultDatabase(val name: String, configuration: Configuration, c
         connection.commit()
         r
       } catch {
-        case e: ControlThrowable =>
-          connection.commit(); throw e
+        case e: ControlThrowable => connection.commit(); throw e
         case NonFatal(e) => connection.rollback(); throw e
       }
     }
