@@ -14,7 +14,7 @@ import com.typesafe.config.ConfigFactory;
 /**
  * Default delegating implementation of the database API.
  */
-public class DefaultDatabase implements Database {
+public class DefaultDatabase extends Database {
 
     private final play.api.db.Database db;
 
@@ -36,41 +36,42 @@ public class DefaultDatabase implements Database {
         this(new play.api.db.PooledDatabase(name, new play.api.Configuration(ConfigFactory.parseMap(config))));
     }
 
-    /**
-     * Create a default BoneCP-backed database.
-     */
-    public DefaultDatabase(Map<String, ? extends Object> config) {
-        this("default", config);
-    }
-
+    @Override
     public String getName() {
         return db.name();
     }
 
+    @Override
     public DataSource getDataSource() {
         return db.dataSource();
     }
 
+    @Override
     public String getUrl() {
         return db.url();
     }
 
+    @Override
     public Connection getConnection() {
         return db.getConnection();
     }
 
+    @Override
     public Connection getConnection(boolean autocommit) {
         return db.getConnection(autocommit);
     }
 
+    @Override
     public <A> A withConnection(ConnectionCallable<A> block) {
         return db.withConnection(DB.connectionFunction(block));
     }
 
+    @Override
     public <A> A withTransaction(ConnectionCallable<A> block) {
         return db.withTransaction(DB.connectionFunction(block));
     }
 
+    @Override
     public void shutdown() {
         db.shutdown();
     }

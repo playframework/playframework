@@ -9,7 +9,6 @@ import java.util.List;
 
 import play.db.ConnectionCallable;
 import play.db.Database;
-import play.db.DefaultDatabase;
 
 import org.junit.Test;
 
@@ -49,11 +48,7 @@ public class JPAApiTest {
         private final JPAApi jpaApi;
 
         public TestDatabase() {
-            database = new DefaultDatabase(ImmutableMap.of(
-                "driver", "org.h2.Driver",
-                "url", "jdbc:h2:mem:play-test-jpa",
-                "jndiName", "DefaultDS"
-            ));
+            database = Database.inMemoryWith("jndiName", "DefaultDS");
 
             database.withConnection(new ConnectionCallable<Boolean>() {
                 public Boolean call(Connection connection) throws SQLException {
