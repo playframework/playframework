@@ -14,7 +14,7 @@ public interface JPAApi {
     /**
      * Initialise JPA entity manager factories.
      */
-    public void start();
+    public JPAApi start();
 
     /**
      * Get the EntityManager for the specified persistence unit name.

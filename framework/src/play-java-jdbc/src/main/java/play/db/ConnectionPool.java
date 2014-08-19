@@ -27,6 +27,6 @@ public interface ConnectionPool {
      *
      * @param dataSource the data source to close
      */
-    public void close (DataSource dataSource);
+    public void close(DataSource dataSource);
 
 }

@@ -24,7 +24,7 @@ public class JPAApiTest {
     public void insertAndFindEntities() throws Exception {
         TestDatabase db = new TestDatabase();
 
-        db.jpa().withTransaction(new play.libs.F.Callback0() {
+        db.jpa.withTransaction(new play.libs.F.Callback0() {
             public void invoke() {
                 TestEntity entity = new TestEntity();
                 entity.id = 1L;
@@ -33,7 +33,7 @@ public class JPAApiTest {
             }
         });
 
-        db.jpa().withTransaction(new play.libs.F.Callback0() {
+        db.jpa.withTransaction(new play.libs.F.Callback0() {
             public void invoke() {
                 TestEntity entity = TestEntity.find(1L);
                 assertThat(entity.name, equalTo("alice"));
@@ -44,33 +44,25 @@ public class JPAApiTest {
     }
 
     public static class TestDatabase {
-        private final Database database;
-        private final JPAApi jpaApi;
+        final Database database;
+        final JPAApi jpa;
 
         public TestDatabase() {
             database = Database.inMemoryWith("jndiName", "DefaultDS");
-
-            database.withConnection(new ConnectionCallable<Boolean>() {
-                public Boolean call(Connection connection) throws SQLException {
-                    return connection.createStatement().execute("create table TestEntity (id bigint not null, name varchar(255));");
-                }
-            });
-
-            JPAConfig config = DefaultJPAConfig.from(ImmutableMap.of(
-                "default", "defaultPersistenceUnit"
-            ));
-
-            jpaApi = new DefaultJPAApi(config);
-
-            jpaApi.start();
+            execute("create table TestEntity (id bigint not null, name varchar(255));");
+            jpa = JPA.createFor("defaultPersistenceUnit");
         }
 
-        public JPAApi jpa() {
-            return jpaApi;
+        public boolean execute(final String sql) {
+            return database.withConnection(new ConnectionCallable<Boolean>() {
+                public Boolean call(Connection connection) throws SQLException {
+                    return connection.createStatement().execute(sql);
+                }
+            });
         }
 
         public void shutdown() {
-            jpaApi.shutdown();
+            jpa.shutdown();
             database.shutdown();
         }
     }

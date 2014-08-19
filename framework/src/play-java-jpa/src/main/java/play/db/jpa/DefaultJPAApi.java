@@ -57,10 +57,11 @@ public class DefaultJPAApi implements JPAApi {
     /**
      * Initialise JPA entity manager factories.
      */
-    public void start() {
+    public JPAApi start() {
         for (JPAConfig.PersistenceUnit persistenceUnit : jpaConfig.persistenceUnits()) {
             emfs.put(persistenceUnit.name, Persistence.createEntityManagerFactory(persistenceUnit.unitName));
         }
+        return this;
     }
 
     /**

@@ -18,6 +18,22 @@ public class JPA {
     static ThreadLocal<EntityManager> currentEntityManager = new ThreadLocal<EntityManager>();
 
     /**
+     * Create a default JPAApi with the given persistence unit configuration.
+     * Automatically initialise the JPA entity manager factories.
+     */
+    public static JPAApi createFor(String name, String unitName) {
+        return new DefaultJPAApi(DefaultJPAConfig.of(name, unitName)).start();
+    }
+
+    /**
+     * Create a default JPAApi with name "default" and the given unit name.
+     * Automatically initialise the JPA entity manager factories.
+     */
+    public static JPAApi createFor(String unitName) {
+        return new DefaultJPAApi(DefaultJPAConfig.of("default", unitName)).start();
+    }
+
+    /**
      * Get the JPA api for the current play application.
      */
     public static JPAApi jpaApi() {

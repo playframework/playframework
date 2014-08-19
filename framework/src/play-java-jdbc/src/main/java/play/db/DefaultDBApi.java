@@ -47,9 +47,6 @@ public class DefaultDBApi implements DBApi {
         return databaseByName.get(name);
     }
 
-    /**
-     * Shutdown all databases, releasing resources.
-     */
     public void shutdown() {
         dbApi.shutdown();
     }
