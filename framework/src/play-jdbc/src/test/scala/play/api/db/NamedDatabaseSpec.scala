@@ -56,6 +56,18 @@ class NamedDatabaseSpec extends PlaySpecification {
       app.injector.instanceOf[NamedDefaultComponent] must throwA[com.google.inject.ConfigurationException]
     }
 
+    "allow db config key to be configured" in new WithApplication(FakeApplication(
+      additionalConfiguration = Map(
+        "play.modules.db.config" -> "databases",
+        "databases.default.driver" -> "org.h2.Driver",
+        "databases.default.url" -> "jdbc:h2:mem:default"
+      )
+    )) {
+      app.injector.instanceOf[DBApi].databases must have size(1)
+      app.injector.instanceOf[DefaultComponent].db.url must_== "jdbc:h2:mem:default"
+      app.injector.instanceOf[NamedDefaultComponent].db.url must_== "jdbc:h2:mem:default"
+    }
+
   }
 
 }

@@ -18,8 +18,9 @@ import play.db.NamedDatabaseImpl
 class DBModule extends Module {
   def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
     if (configuration.underlying.getBoolean("play.modules.db.enabled")) {
+      val dbKey = configuration.underlying.getString("play.modules.db.config")
       val default = configuration.underlying.getString("play.modules.db.default")
-      val dbs = configuration.getConfig("db").getOrElse(Configuration.empty).subKeys
+      val dbs = configuration.getConfig(dbKey).getOrElse(Configuration.empty).subKeys
       Seq(
         bind[DBApi].toProvider[DBApiProvider]
       ) ++ namedDatabaseBindings(dbs) ++ defaultDatabaseBinding(default, dbs)
@@ -59,7 +60,8 @@ trait DBComponents {
 @Singleton
 class DBApiProvider @Inject() (environment: Environment, configuration: Configuration, connectionPool: ConnectionPool, lifecycle: ApplicationLifecycle) extends Provider[DBApi] {
   lazy val get: DBApi = {
-    val config = configuration.getConfig("db").getOrElse(Configuration.empty)
+    val dbKey = configuration.underlying.getString("play.modules.db.config")
+    val config = configuration.getConfig(dbKey).getOrElse(Configuration.empty)
     val db = new DefaultDBApi(config, connectionPool, environment.classLoader)
     lifecycle.addStopHook { () => Future.successful(db.shutdown()) }
     db.connect(logConnection = environment.mode != Mode.Test)

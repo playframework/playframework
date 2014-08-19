@@ -74,7 +74,7 @@ public class NamedDatabaseTest {
     }
 
     @Test
-    public void allDefaultDatabaseNameToBeConfigured() {
+    public void allowDefaultDatabaseNameToBeConfigured() {
         Map<String, String> config = ImmutableMap.of(
             "play.modules.db.default", "other",
             "db.other.driver", "org.h2.Driver",
@@ -87,6 +87,22 @@ public class NamedDatabaseTest {
                 assertThat(injector.instanceOf(NamedOtherComponent.class).db.getUrl(), equalTo("jdbc:h2:mem:other"));
                 exception.expect(com.google.inject.ConfigurationException.class);
                 injector.instanceOf(NamedDefaultComponent.class);
+            }
+        });
+    }
+
+    @Test
+    public void allowDbConfigKeyToBeConfigured() {
+        Map<String, String> config = ImmutableMap.of(
+            "play.modules.db.config", "databases",
+            "databases.default.driver", "org.h2.Driver",
+            "databases.default.url", "jdbc:h2:mem:default"
+        );
+        running(fakeApplication(config), new Runnable() {
+            public void run() {
+                Injector injector = play.api.Play.current().injector();
+                assertThat(injector.instanceOf(DefaultComponent.class).db.getUrl(), equalTo("jdbc:h2:mem:default"));
+                assertThat(injector.instanceOf(NamedDefaultComponent.class).db.getUrl(), equalTo("jdbc:h2:mem:default"));
             }
         });
     }
