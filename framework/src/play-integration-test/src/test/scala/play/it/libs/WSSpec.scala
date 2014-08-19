@@ -169,13 +169,13 @@ object WSSpec extends PlaySpecification {
         }
       }
 
-      "without query string" in {
-        WS.url("http://localhost").sign(CustomSigner).get().
+      "without query string" in withServer { port =>
+        WS.url("http://localhost:" + port).sign(CustomSigner).get().
           aka("signed request") must not(throwA[NullPointerException])
       }
 
-      "with query string" in {
-        WS.url("http://localhost").withQueryString("lorem" -> "ipsum").
+      "with query string" in withServer { port =>
+        WS.url("http://localhost:" + port).withQueryString("lorem" -> "ipsum").
           sign(CustomSigner) aka "signed request" must not(throwA[Exception])
       }
     }
