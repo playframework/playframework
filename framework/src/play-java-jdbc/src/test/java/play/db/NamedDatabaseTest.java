@@ -3,42 +3,104 @@
  */
 package play.db;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import javax.inject.Inject;
+
+import com.google.common.collect.ImmutableMap;
+
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 import org.junit.Test;
-import play.test.FakeApplication;
-import play.test.WithApplication;
+
+import play.api.inject.Injector;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static play.test.Helpers.*;
 
-public class NamedDatabaseTest extends WithApplication {
+public class NamedDatabaseTest {
 
-    @Override
-    protected FakeApplication provideFakeApplication() {
-        return fakeApplication(ImmutableMap.of(
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+
+    @Test
+    public void bindDatabasesByName() {
+        Map<String, String> config = ImmutableMap.of(
             "db.default.driver", "org.h2.Driver",
             "db.default.url", "jdbc:h2:mem:default",
             "db.other.driver", "org.h2.Driver",
             "db.other.url", "jdbc:h2:mem:other"
-        ));
+        );
+        running(fakeApplication(config), new Runnable() {
+            public void run() {
+                Injector injector = play.api.Play.current().injector();
+                assertThat(injector.instanceOf(DefaultComponent.class).db.getUrl(), equalTo("jdbc:h2:mem:default"));
+                assertThat(injector.instanceOf(NamedDefaultComponent.class).db.getUrl(), equalTo("jdbc:h2:mem:default"));
+                assertThat(injector.instanceOf(NamedOtherComponent.class).db.getUrl(), equalTo("jdbc:h2:mem:other"));
+            }
+        });
     }
 
     @Test
-    public void bindDatabasesByName() {
-      DatabaseComponent component = app.getWrappedApplication().injector().instanceOf(DatabaseComponent.class);
-      assertThat(component.db.getUrl(), equalTo("jdbc:h2:mem:default"));
-      assertThat(component.named.getUrl(), equalTo("jdbc:h2:mem:default"));
-      assertThat(component.other.getUrl(), equalTo("jdbc:h2:mem:other"));
+    public void notBindDefaultDatabaseWithoutConfiguration() {
+        Map<String, String> config = ImmutableMap.of(
+            "db.other.driver", "org.h2.Driver",
+            "db.other.url", "jdbc:h2:mem:other"
+        );
+        running(fakeApplication(config), new Runnable() {
+            public void run() {
+                Injector injector = play.api.Play.current().injector();
+                assertThat(injector.instanceOf(NamedOtherComponent.class).db.getUrl(), equalTo("jdbc:h2:mem:other"));
+                exception.expect(com.google.inject.ConfigurationException.class);
+                injector.instanceOf(DefaultComponent.class);
+            }
+        });
     }
 
-    public static class DatabaseComponent {
-        @Inject Database db;
-        @Inject @NamedDatabase("default") Database named;
-        @Inject @NamedDatabase("other") Database other;
+    @Test
+    public void notBindNamedDefaultDatabaseWithoutConfiguration() {
+        Map<String, String> config = ImmutableMap.of(
+            "db.other.driver", "org.h2.Driver",
+            "db.other.url", "jdbc:h2:mem:other"
+        );
+        running(fakeApplication(config), new Runnable() {
+            public void run() {
+                Injector injector = play.api.Play.current().injector();
+                assertThat(injector.instanceOf(NamedOtherComponent.class).db.getUrl(), equalTo("jdbc:h2:mem:other"));
+                exception.expect(com.google.inject.ConfigurationException.class);
+                injector.instanceOf(NamedDefaultComponent.class);
+            }
+        });
+    }
 
-        public DatabaseComponent() {}
+    @Test
+    public void allDefaultDatabaseNameToBeConfigured() {
+        Map<String, String> config = ImmutableMap.of(
+            "play.modules.db.default", "other",
+            "db.other.driver", "org.h2.Driver",
+            "db.other.url", "jdbc:h2:mem:other"
+        );
+        running(fakeApplication(config), new Runnable() {
+            public void run() {
+                Injector injector = play.api.Play.current().injector();
+                assertThat(injector.instanceOf(DefaultComponent.class).db.getUrl(), equalTo("jdbc:h2:mem:other"));
+                assertThat(injector.instanceOf(NamedOtherComponent.class).db.getUrl(), equalTo("jdbc:h2:mem:other"));
+                exception.expect(com.google.inject.ConfigurationException.class);
+                injector.instanceOf(NamedDefaultComponent.class);
+            }
+        });
+    }
+
+    public static class DefaultComponent {
+        @Inject Database db;
+    }
+
+    public static class NamedDefaultComponent {
+        @Inject @NamedDatabase("default") Database db;
+    }
+
+    public static class NamedOtherComponent {
+        @Inject @NamedDatabase("other") Database db;
     }
 
 }
