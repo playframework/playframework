@@ -22,6 +22,7 @@ import play.api._
 import play.core._
 import play.core.Router.{HandlerDef, Route, Routes}
 import play.core.{PathPattern, StaticPart}
+import play.utils.Threads
 import scala.concurrent.duration._
 
 import scala.language.postfixOps
@@ -37,8 +38,13 @@ class ServerBenchmark extends NettyRunners {
   @PerfTest(threads = 1, duration = 35000, warmUp = 30000)
   def makeHelloWordRequest() {
     val environment = Environment(new File("."), this.getClass.getClassLoader, Mode.Test)
+
+    val configuration = Threads.withContextClassLoader(environment.classLoader) {
+      Configuration.load(environment.rootPath, environment.mode)
+    }
+
     val application = new DefaultApplication(environment, new OptionalSourceMapper(None),
-      new DefaultApplicationLifecycle, NewInstanceInjector, Configuration.empty, DefaultGlobal, Routes, Plugins.empty)
+      new DefaultApplicationLifecycle, NewInstanceInjector, configuration, DefaultGlobal, Routes, Plugins.empty)
 
     val remoteAddress = new InetSocketAddress(8080)
 
