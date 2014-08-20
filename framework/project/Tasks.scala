@@ -27,7 +27,7 @@ object Tasks {
   def scalaTemplateSourceMappings = (excludeFilter in unmanagedSources, unmanagedSourceDirectories in Compile, baseDirectory) map {
     (excludes, sdirs, base) =>
       val scalaTemplateSources = sdirs.descendantsExcept("*.scala.html", excludes)
-      ((scalaTemplateSources --- sdirs --- base) pair (relativeTo(sdirs) | relativeTo(base) | flat)) toSeq
+      ((scalaTemplateSources --- sdirs --- base) pair (relativeTo(sdirs) | relativeTo(base) | flat)).toSeq
   }
 
 }

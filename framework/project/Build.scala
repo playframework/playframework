@@ -12,52 +12,58 @@ import play.twirl.sbt.SbtTwirl
 import play.twirl.sbt.Import.TwirlKeys
 
 object BuildSettings {
-  import Resolvers._
 
-  def propOr(name: String, value: String): String =
-    (sys.props get name) orElse
-    (sys.env get name) getOrElse
-    value
-
-  def boolProp(name: String, default: Boolean = false): Boolean =
-    (sys.props get name) orElse
-    (sys.env get name) filter
-    (x => x == "true" || x == "") map
-    (_ => true) getOrElse default
-
-  val experimental = Option(System.getProperty("experimental")).exists(_ == "true")
-
-  val buildOrganization = "com.typesafe.play"
   val buildVersion = propOr("play.version", "2.4-SNAPSHOT")
-  val buildWithDoc = boolProp("generate.doc")
-  val previousVersion = "2.1.0"
-  // Libraries that are not Scala libraries or are SBT libraries should not be published if the binary
-  // version doesn't match this.
-  val publishForScalaBinaryVersion = "2.10"
+
   val defaultScalaVersion = "2.10.4"
   val buildScalaVersion = propOr("scala.version", defaultScalaVersion)
-  // TODO - Try to compute this from SBT... or not.
+
   val buildScalaVersionForSbt = propOr("play.sbt.scala.version", defaultScalaVersion)
   val buildScalaBinaryVersionForSbt = CrossVersion.binaryScalaVersion(buildScalaVersionForSbt)
   val buildSbtVersion = propOr("play.sbt.version", "0.13.5")
   val buildSbtMajorVersion = "0.13"
   val buildSbtVersionBinaryCompatible = CrossVersion.binarySbtVersion(buildSbtVersion)
+
   // Used by api docs generation to link back to the correct branch on GitHub, only when version is a SNAPSHOT
   val sourceCodeBranch = propOr("git.branch", "master")
 
-  val publishNonCoreScalaLibraries = publishForScalaBinaryVersion == CrossVersion.binaryScalaVersion(buildScalaVersion)
+  // Libraries that are not Scala libraries or are SBT libraries should not be published if the binary
+  // version doesn't match this.
+  val publishForScalaBinaryVersion = "2.10"
+  val thisBuildIsCrossBuild =
+    publishForScalaBinaryVersion != CrossVersion.binaryScalaVersion(buildScalaVersion)
 
-  lazy val PerformanceTest = config("pt") extend(Test)
+  val buildOrganization = "com.typesafe.play"
 
-  val playCommonSettings = Seq(
+  // Binary compatibility is tested against this version
+  val previousVersion = "2.4.0"
+
+  val buildWithDoc = boolProp("generate.doc")
+
+  def propOr(name: String, value: String): String =
+    (sys.props get name) orElse
+      (sys.env get name) getOrElse
+      value
+
+  def boolProp(name: String, default: Boolean = false): Boolean =
+    (sys.props get name) orElse
+      (sys.env get name) filter
+      (x => x == "true" || x == "") map
+      (_ => true) getOrElse default
+
+  lazy val PerformanceTest = config("pt") extend Test
+
+  def playCommonSettings: Seq[Setting[_]] = Seq(
     organization := buildOrganization,
     version := buildVersion,
     scalaVersion := buildScalaVersion,
+    homepage := Some(url("https://playframework.com")),
+    licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.html")),
     scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersion),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
     javacOptions ++= makeJavacOptions("1.6"),
     javacOptions in doc := Seq("-source", "1.6"),
-    resolvers ++= playResolvers,
+    resolvers ++= ResolverSettings.playResolvers,
     fork in Test := true,
     testListeners in (Test,test) := Nil,
     javacOptions in Test := { if (isJavaAtLeast("1.8")) makeJavacOptions("1.8") else makeJavacOptions("1.6") },
@@ -70,22 +76,9 @@ object BuildSettings {
 
   def makeJavacOptions(version: String) = Seq("-source", version, "-target", version, "-encoding", "UTF-8", "-Xlint:-options")
 
-  val dontPublishSettings = Seq(
-    /**
-     * We actually must publish when doing a publish-local in order to ensure the scala 2.11 build works, very strange
-     * things happen if you set publishArtifact := false, since it still publishes an ivy file when you do a
-     * publish-local, but that ivy file says there's no artifacts.
-     *
-     * So, to disable publishing for the 2.11 build, we simply publish to a dummy repo instead of to the real thing.
-     */
-    publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo")))
-  )
-  val publishSettings = Seq(
-    publishArtifact in packageDoc := buildWithDoc,
-    publishArtifact in (Compile, packageSrc) := true,
-    publishTo := Some(publishingMavenRepository)
-  )
-
+  /**
+   * A project that is shared between the SBT runtime and the Play runtime
+   */
   def PlaySharedJavaProject(name: String, dir: String, testBinaryCompatibility: Boolean = false): Project = {
     val bcSettings: Seq[Setting[_]] = if (testBinaryCompatibility) {
       mimaDefaultSettings ++ Seq(previousArtifact := Some(buildOrganization % Project.normalizeModuleID(name) % previousVersion))
@@ -94,7 +87,7 @@ object BuildSettings {
       .configs(PerformanceTest)
       .settings(inConfig(PerformanceTest)(Defaults.testTasks) : _*)
       .settings(playCommonSettings: _*)
-      .settings((if (publishNonCoreScalaLibraries) publishSettings else dontPublishSettings): _*)
+      .settings(PublishSettings.nonCrossBuildPublishSettings: _*)
       .settings(bcSettings: _*)
       .settings(
         scalaVersion := defaultScalaVersion,
@@ -104,12 +97,15 @@ object BuildSettings {
       )
   }
 
+  /**
+   * A project that is in the Play runtime
+   */
   def PlayRuntimeProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
       .configs(PerformanceTest)
       .settings(inConfig(PerformanceTest)(Defaults.testTasks) : _*)
       .settings(playCommonSettings: _*)
-      .settings(publishSettings: _*)
+      .settings(PublishSettings.publishSettings: _*)
       .settings(mimaDefaultSettings: _*)
       .settings(defaultScalariformSettings: _*)
       .settings(playRuntimeSettings(name): _*)
@@ -122,15 +118,41 @@ object BuildSettings {
     Docs.apiDocsInclude := true
   )
 
+  def playSbtCommonSettings: Seq[Setting[_]] = playCommonSettings ++ defaultScalariformSettings ++ Seq(
+    scalaVersion := buildScalaVersionForSbt,
+    scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
+    scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked")
+  )
+
+  /**
+   * A project that runs in the SBT runtime
+   */
   def PlaySbtProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
-      .settings(playCommonSettings: _*)
-      .settings((if (publishNonCoreScalaLibraries) publishSettings else dontPublishSettings): _*)
-      .settings(defaultScalariformSettings: _*)
+      .settings(playSbtCommonSettings: _*)
+      .settings(PublishSettings.nonCrossBuildPublishSettings: _*)
+  }
+
+  /**
+   * A project that *is* an SBT plugin
+   */
+  def PlaySbtPluginProject(name: String, dir: String): Project = {
+    Project(name, file("src/" + dir))
+      .settings(playSbtCommonSettings: _*)
+      .settings(PublishSettings.sbtPluginPublishSettings: _*)
+      .settings(ScriptedPlugin.scriptedSettings: _*)
       .settings(
-        scalaVersion := buildScalaVersionForSbt,
-        scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
-        scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked"))
+        sbtPlugin := true,
+        sbtVersion in GlobalScope := buildSbtVersion,
+        sbtBinaryVersion in GlobalScope := buildSbtVersionBinaryCompatible,
+        sbtDependency <<= sbtDependency { dep =>
+          dep.copy(revision = buildSbtVersion)
+        },
+        // Must be false, because due to the way SBT integrates with test libraries, and the way SBT uses Java object
+        // serialisation to communicate with forked processes, and because this plugin will have SBT 0.13 on the forked
+        // processes classpath while it's actually being run by SBT 0.12... if it forks you get serialVersionUID errors.
+        fork in Test := false
+      )
   }
 
   /**
@@ -152,34 +174,8 @@ object BuildSettings {
   val scalaParserCombinators = "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.1"
 }
 
-object Resolvers {
-
-  import BuildSettings._
-
-  val typesafeReleases = "Typesafe Releases Repository" at "https://repo.typesafe.com/typesafe/releases/"
-  val typesafeSnapshots = "Typesafe Snapshots Repository" at "https://repo.typesafe.com/typesafe/snapshots/"
-  val typesafeIvyReleases = Resolver.url("Typesafe Ivy Releases Repository", url("https://repo.typesafe.com/typesafe/ivy-releases"))(Resolver.ivyStylePatterns)
-  val typesafeIvySnapshots = Resolver.url("Typesafe Ivy Snapshots Repository", url("https://repo.typesafe.com/typesafe/ivy-snapshots"))(Resolver.ivyStylePatterns)
-  val publishTypesafeMavenReleases = "Typesafe Maven Releases Repository for publishing" at "https://private-repo.typesafe.com/typesafe/maven-releases/"
-  val publishTypesafeMavenSnapshots = "Typesafe Maven Snapshots Repository for publishing" at "https://private-repo.typesafe.com/typesafe/maven-snapshots/"
-  val publishTypesafeIvyReleases = Resolver.url("Typesafe Ivy Releases Repository for publishing", url("https://private-repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
-  val publishTypesafeIvySnapshots = Resolver.url("Typesafe Ivy Snapshots Repository for publishing", url("https://private-repo.typesafe.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns)
-
-  val sonatypeSnapshots = "Sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
-  // This is a security issue. This repository should not be loaded via http
-  // See http://blog.ontoillogical.com/blog/2014/07/28/how-to-take-over-any-java-developer/
-  val sbtPluginSnapshots = Resolver.url("sbt plugin snapshots", url("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots"))(Resolver.ivyStylePatterns)
-
-  val isSnapshotBuild = buildVersion.endsWith("SNAPSHOT")
-  val playResolvers = Seq(typesafeReleases, typesafeIvyReleases)
-  val publishingMavenRepository = if (isSnapshotBuild) publishTypesafeMavenSnapshots else publishTypesafeMavenReleases
-  val publishingIvyRepository = if (isSnapshotBuild) publishTypesafeIvySnapshots else publishTypesafeIvyReleases
-}
-
-
 object PlayBuild extends Build {
 
-  import Resolvers._
   import Dependencies._
   import BuildSettings._
   import Generators._
@@ -195,7 +191,6 @@ object PlayBuild extends Build {
   lazy val AnormProject = PlayRuntimeProject("Anorm", "anorm")
     .settings(
       libraryDependencies ++= anormDependencies,
-      resolvers += sonatypeSnapshots,
       addScalaModules(scalaParserCombinators)
     )
 
@@ -253,7 +248,7 @@ object PlayBuild extends Build {
   lazy val PlayEbeanProject = PlayRuntimeProject("Play-Java-Ebean", "play-java-ebean")
     .settings(
       libraryDependencies ++= ebeanDeps ++ jpaDeps,
-      compile in (Compile) <<= (dependencyClasspath in Compile, compile in Compile, classDirectory in Compile) map {
+      compile in Compile <<= (dependencyClasspath in Compile, compile in Compile, classDirectory in Compile) map {
         (deps, analysis, classes) =>
 
         // Ebean (really hacky sorry)
@@ -293,29 +288,15 @@ object PlayBuild extends Build {
 
   import ScriptedPlugin._
 
-  lazy val SbtPluginProject = PlaySbtProject("SBT-Plugin", "sbt-plugin")
+  lazy val SbtPluginProject = PlaySbtPluginProject("SBT-Plugin", "sbt-plugin")
     .settings(
-      sbtPlugin := true,
-      publishMavenStyle := false,
       libraryDependencies ++= sbtDependencies,
       sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion(buildScalaVersionForSbt),
-      sbtVersion in GlobalScope := buildSbtVersion,
-      sbtBinaryVersion in GlobalScope := buildSbtVersionBinaryCompatible,
-      sbtDependency <<= sbtDependency { dep =>
-        dep.copy(revision = buildSbtVersion)
-      },
       TaskKey[Unit]("sbtdep") <<= allDependencies map { deps: Seq[ModuleID] =>
         deps.map { d =>
           d.organization + ":" + d.name + ":" + d.revision
         }.sorted.foreach(println)
       },
-      publishTo := Some(publishingIvyRepository),
-      // Must be false, because due to the way SBT integrates with test libraries, and the way SBT uses Java object
-      // serialisation to communicate with forked processes, and because this plugin will have SBT 0.13 on the forked
-      // processes classpath while it's actually being run by SBT 0.12... if it forks you get serialVersionUID errors.
-      fork in Test := false
-    ).settings(scriptedSettings: _*)
-    .settings(
       scriptedLaunchOpts ++= Seq(
         "-XX:MaxPermSize=384M",
         "-Dperformance.log=" + new File(baseDirectory.value, "target/sbt-repcomile-performance.properties"),
@@ -363,37 +344,25 @@ object PlayBuild extends Build {
   import RepositoryBuilder._
   lazy val RepositoryProject = Project(
       "Play-Repository", file("repository"))
-    .settings(dontPublishSettings:_*)
+    .settings(PublishSettings.dontPublishSettings: _*)
     .settings(localRepoCreationSettings:_*)
     .settings(
       localRepoProjectsPublished <<= (publishedProjects map (publishLocal in _)).dependOn,
       addProjectsToRepository(publishedProjects),
       localRepoArtifacts ++= Seq(
-        "org.scala-lang" % "scala-compiler" % BuildSettings.buildScalaVersion % "master",
-        "org.scala-lang" % "jline" % BuildSettings.buildScalaVersion % "master",
-        "org.scala-lang" % "scala-compiler" % BuildSettings.buildScalaVersionForSbt % "master",
-        "org.scala-lang" % "jline" % BuildSettings.buildScalaVersionForSbt % "master",
-        "org.scala-sbt" % "sbt" % BuildSettings.buildSbtVersion,
+        "org.scala-lang" % "scala-compiler" % buildScalaVersion % "master",
+        "org.scala-lang" % "jline" % buildScalaVersion % "master",
+        "org.scala-lang" % "scala-compiler" % buildScalaVersionForSbt % "master",
+        "org.scala-lang" % "jline" % buildScalaVersionForSbt % "master",
+        "org.scala-sbt" % "sbt" % buildSbtVersion,
         "org.fusesource.jansi" % "jansi" % "1.11" % "master"
       )
     )
 
-  lazy val PlayDocsSbtPlugin = PlaySbtProject("Play-Docs-SBT-Plugin", "play-docs-sbt-plugin")
+  lazy val PlayDocsSbtPlugin = PlaySbtPluginProject("Play-Docs-SBT-Plugin", "play-docs-sbt-plugin")
     .enablePlugins(SbtTwirl)
     .settings(
-      sbtPlugin := true,
-      publishMavenStyle := false,
-      libraryDependencies ++= playDocsSbtPluginDependencies,
-      sbtVersion in GlobalScope := buildSbtVersion,
-      sbtBinaryVersion in GlobalScope := buildSbtVersionBinaryCompatible,
-      sbtDependency <<= sbtDependency { dep =>
-        dep.copy(revision = buildSbtVersion)
-      },
-      publishTo := Some(publishingIvyRepository),
-      // Must be false, because due to the way SBT integrates with test libraries, and the way SBT uses Java object
-      // serialisation to communicate with forked processes, and because this plugin will have SBT 0.13 on the forked
-      // processes classpath while it's actually being run by SBT 0.12... if it forks you get serialVersionUID errors.
-      fork in Test := false
+      libraryDependencies ++= playDocsSbtPluginDependencies
     ).dependsOn(SbtPluginProject)
 
   lazy val publishedProjects = Seq[ProjectReference](
@@ -429,7 +398,7 @@ object PlayBuild extends Build {
     "Root",
     file("."))
     .settings(playCommonSettings: _*)
-    .settings(dontPublishSettings:_*)
+    .settings(PublishSettings.dontPublishSettings: _*)
     .settings(
       concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
       libraryDependencies ++= (runtime ++ jdbcDeps),
@@ -437,5 +406,4 @@ object PlayBuild extends Build {
       Docs.apiDocsIncludeManaged := false
     )
     .aggregate(publishedProjects: _*)
-    .aggregate(RepositoryProject)
 }

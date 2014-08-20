@@ -32,12 +32,12 @@ else
   echo "[info]"
   echo "[info] ---- BUILDING PLAY (with its default version of Scala)"
   echo "[info]"
-  $BUILD "$@" publish-local
+  $BUILD "$@" -Dgenerate.doc=true publish-local
   for v in ${crossbuild//,/ } ; do
     echo "[info]"
     echo "[info] ---- BUILDING PLAY (cross building against Scala $v)"
     echo "[info]"
-    $BUILD "$@" -Dscala.version=$v publish-local
+    $BUILD "$@" -Dgenerate.doc=true -Dscala.version=$v publish-local
   done
 fi
 
