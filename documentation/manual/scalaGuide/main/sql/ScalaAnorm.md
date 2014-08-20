@@ -747,6 +747,31 @@ SQL("Select name,image from Country")().map {
 }
 ```
 
+For types where column support is provided by Anorm, convenient functions are available to ease writing custom parsers. Each of these functions parses column either by name or index (> 1).
+
+```scala
+import anorm.SqlParser.str // String function
+
+str("column")
+str(1/* columnIndex)
+```
+
+Type                    | Function
+------------------------|--------------
+Array[Byte]             | byteArray
+Boolean                 | bool
+Byte                    | byte
+Date                    | date
+Double                  | double
+Float                   | float
+InputStream<sup>1</sup> | binaryStream
+Int                     | int
+Long                    | long
+Short                   | short
+String                  | str
+
+- 1. Type `java.io.InputStream`.
+
 Temporal types from [Joda](http://www.joda.org) are also supported:
 
 ↓JDBC / JVM➞ | DateTime<sup>1</sup> | Instant<sup>2</sup>
