@@ -15,7 +15,7 @@ trait Column[A] extends ((Any, MetaDataItem) => MayErr[SqlRequestError, A])
 /**
  * Column companion, providing default conversions.
  */
-object Column {
+object Column extends JodaColumn {
 
   def apply[A](transformer: ((Any, MetaDataItem) => MayErr[SqlRequestError, A])): Column[A] = new Column[A] {
 
@@ -293,42 +293,6 @@ object Column {
     }
   }
 
-  /**
-   * Parses column as joda DateTime
-   *
-   * {{{
-   * import org.joda.time.DateTime
-   *
-   * val d: Date = SQL("SELECT last_mod FROM tbl").as(scalar[DateTime].single)
-   * }}}
-   */
-  implicit val columnToJodaDateTime: Column[org.joda.time.DateTime] = nonNull { (value, meta) =>
-    val MetaDataItem(qualified, nullable, clazz) = meta
-    value match {
-      case date: Date => Right(new org.joda.time.DateTime(date.getTime))
-      case time: Long => Right(new org.joda.time.DateTime(time))
-      case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to DateTime for column $qualified"))
-    }
-  }
-
-  /**
-   * Parses column as joda Instant
-   *
-   * {{{
-   * import org.joda.time.Instant
-   *
-   * val d: Date = SQL("SELECT last_mod FROM tbl").as(scalar[Instant].single)
-   * }}}
-   */
-  implicit val columnToJodaInstant: Column[org.joda.time.Instant] = nonNull { (value, meta) =>
-    val MetaDataItem(qualified, nullable, clazz) = meta
-    value match {
-      case date: Date => Right(new org.joda.time.Instant(date.getTime))
-      case time: Long => Right(new org.joda.time.Instant(time))
-      case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to Instant for column $qualified"))
-    }
-  }
-
   implicit def columnToPk[T](implicit c: Column[T]): Column[Pk[T]] =
     nonNull { (value, meta) => c(value, meta).map(Id(_)) }
 
@@ -421,5 +385,47 @@ object Column {
 
     if (count == -1) bytes
     else streamToBytes(in, bytes ++ buffer.take(count), buffer)
+  }
+}
+
+import org.joda.time.{ DateTime, Instant }
+
+sealed trait JodaColumn {
+  /**
+   * Parses column as joda DateTime
+   *
+   * {{{
+   * import org.joda.time.DateTime
+   *
+   * val d: Date = SQL("SELECT last_mod FROM tbl").as(scalar[DateTime].single)
+   * }}}
+   */
+  implicit val columnToJodaDateTime: Column[DateTime] = Column nonNull {
+    (value, meta) =>
+      val MetaDataItem(qualified, nullable, clazz) = meta
+      value match {
+        case date: Date => Right(new DateTime(date.getTime))
+        case time: Long => Right(new DateTime(time))
+        case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to DateTime for column $qualified"))
+      }
+  }
+
+  /**
+   * Parses column as joda Instant
+   *
+   * {{{
+   * import org.joda.time.Instant
+   *
+   * val d: Date = SQL("SELECT last_mod FROM tbl").as(scalar[Instant].single)
+   * }}}
+   */
+  implicit val columnToJodaInstant: Column[Instant] = Column nonNull {
+    (value, meta) =>
+      val MetaDataItem(qualified, nullable, clazz) = meta
+      value match {
+        case date: Date => Right(new Instant(date.getTime))
+        case time: Long => Right(new Instant(time))
+        case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to Instant for column $qualified"))
+      }
   }
 }

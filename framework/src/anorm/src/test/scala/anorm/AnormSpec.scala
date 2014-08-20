@@ -6,7 +6,8 @@ import acolyte.jdbc.AcolyteDSL.{
   connection,
   handleQuery,
   handleStatement,
-  updateResult
+  updateResult,
+  withQueryResult
 }
 import acolyte.jdbc.{
   UpdateExecution,
@@ -472,8 +473,4 @@ sealed trait AnormTest { db: H2Database =>
   val mixedParser1 = str(1) ~ str("named") ~ str(3) map {
     case i ~ j ~ k => (i, j, k)
   }
-
-  def withQueryResult[A](r: QueryResult)(f: java.sql.Connection => A): A =
-    f(connection(handleQuery { _ => r }))
-
 }
