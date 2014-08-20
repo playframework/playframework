@@ -7,9 +7,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
- * Similar to java.util.concurrent.Callable with a Connection as argument.
+ * Similar to java.lang.Runnable with a Connection as argument.
  * Provides a functional interface for use with Java 8+.
- * If no result needs to be returned, ConnectionRunnable can be used instead.
+ * To return a result use ConnectionCallable.
  *
  * Vanilla Java:
  * <code>
@@ -21,6 +21,6 @@ import java.sql.SQLException;
  * Java Lambda:
  * <code>(Connection c) -> ...</code>
  */
-public interface ConnectionCallable<A> {
-    public A call(Connection connection) throws SQLException;
+public interface ConnectionRunnable {
+    public void run(Connection connection) throws SQLException;
 }

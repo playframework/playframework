@@ -7,7 +7,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-import play.db.ConnectionCallable;
+import play.db.ConnectionRunnable;
 import play.db.Database;
 
 import org.junit.Test;
@@ -53,10 +53,10 @@ public class JPAApiTest {
             jpa = JPA.createFor("defaultPersistenceUnit");
         }
 
-        public boolean execute(final String sql) {
-            return database.withConnection(new ConnectionCallable<Boolean>() {
-                public Boolean call(Connection connection) throws SQLException {
-                    return connection.createStatement().execute(sql);
+        public void execute(final String sql) {
+            database.withConnection(new ConnectionRunnable() {
+                public void run(Connection connection) throws SQLException {
+                    connection.createStatement().execute(sql);
                 }
             });
         }
