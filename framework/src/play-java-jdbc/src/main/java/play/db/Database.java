@@ -56,9 +56,27 @@ public abstract class Database {
      * The connection and all created statements are automatically released.
      *
      * @param block code to execute
+     */
+    public abstract void withConnection(ConnectionRunnable block);
+
+    /**
+     * Execute a block of code, providing a JDBC connection.
+     * The connection and all created statements are automatically released.
+     *
+     * @param block code to execute
      * @return the result of the code block
      */
     public abstract <A> A withConnection(ConnectionCallable<A> block);
+
+    /**
+     * Execute a block of code in the scope of a JDBC transaction.
+     * The connection and all created statements are automatically released.
+     * The transaction is automatically committed, unless an exception occurs.
+     *
+     * @param block code to execute
+     * @return the result of the code block
+     */
+    public abstract void withTransaction(ConnectionRunnable block);
 
     /**
      * Execute a block of code in the scope of a JDBC transaction.

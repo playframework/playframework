@@ -8,7 +8,7 @@ import javax.inject.{ Inject, Provider, Singleton }
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 
-import play.api.inject.{ ApplicationLifecycle, Module }
+import play.api.inject.{ ApplicationLifecycle, Binding, BindingKey, Module }
 import play.api.{ Application, Configuration, Environment, Logger, Mode, Play }
 import play.db.NamedDatabaseImpl
 
@@ -16,19 +16,29 @@ import play.db.NamedDatabaseImpl
  * DB runtime inject module.
  */
 class DBModule extends Module {
-  def bindings(environment: Environment, configuration: Configuration) = {
+  def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
     if (configuration.underlying.getBoolean("play.modules.db.enabled")) {
-      val dbs = configuration.getConfig("db").getOrElse(Configuration.empty).subKeys
-      def named(name: String): NamedDatabase = new NamedDatabaseImpl(name)
+      val dbKey = configuration.underlying.getString("play.modules.db.config")
+      val default = configuration.underlying.getString("play.modules.db.default")
+      val dbs = configuration.getConfig(dbKey).getOrElse(Configuration.empty).subKeys
       Seq(
-        bind[DBApi].toProvider[DBApiProvider],
-        bind[Database].to(bind[Database].qualifiedWith(named("default")))
-      ) ++ dbs.map { db =>
-          bind[Database].qualifiedWith(named(db)).to(new NamedDatabaseProvider(db))
-        }
+        bind[DBApi].toProvider[DBApiProvider]
+      ) ++ namedDatabaseBindings(dbs) ++ defaultDatabaseBinding(default, dbs)
     } else {
       Nil
     }
+  }
+
+  def bindNamed(name: String): BindingKey[Database] = {
+    bind[Database].qualifiedWith(new NamedDatabaseImpl(name))
+  }
+
+  def namedDatabaseBindings(dbs: Set[String]): Seq[Binding[_]] = dbs.toSeq.map { db =>
+    bindNamed(db).to(new NamedDatabaseProvider(db))
+  }
+
+  def defaultDatabaseBinding(default: String, dbs: Set[String]): Seq[Binding[_]] = {
+    if (dbs.contains(default)) Seq(bind[Database].to(bindNamed(default))) else Nil
   }
 }
 
@@ -50,7 +60,8 @@ trait DBComponents {
 @Singleton
 class DBApiProvider @Inject() (environment: Environment, configuration: Configuration, connectionPool: ConnectionPool, lifecycle: ApplicationLifecycle) extends Provider[DBApi] {
   lazy val get: DBApi = {
-    val config = configuration.getConfig("db").getOrElse(Configuration.empty)
+    val dbKey = configuration.underlying.getString("play.modules.db.config")
+    val config = configuration.getConfig(dbKey).getOrElse(Configuration.empty)
     val db = new DefaultDBApi(config, connectionPool, environment.classLoader)
     lifecycle.addStopHook { () => Future.successful(db.shutdown()) }
     db.connect(logConnection = environment.mode != Mode.Test)

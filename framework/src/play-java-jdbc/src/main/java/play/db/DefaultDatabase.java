@@ -62,8 +62,18 @@ public class DefaultDatabase extends Database {
     }
 
     @Override
+    public void withConnection(ConnectionRunnable block) {
+        db.withConnection(DB.connectionFunction(block));
+    }
+
+    @Override
     public <A> A withConnection(ConnectionCallable<A> block) {
         return db.withConnection(DB.connectionFunction(block));
+    }
+
+    @Override
+    public void withTransaction(ConnectionRunnable block) {
+        db.withTransaction(DB.connectionFunction(block));
     }
 
     @Override

@@ -132,19 +132,26 @@ public class DatabaseTest {
     }
 
     @Test
-    public void provideConnectionHelper() throws Exception {
+    public void provideConnectionHelpers() throws Exception {
         Database db = Database.inMemory("test-withConnection");
 
-        db.withConnection(new ConnectionCallable<Boolean>() {
-            public Boolean call(Connection c) throws SQLException {
+        db.withConnection(new ConnectionRunnable() {
+            public void run(Connection c) throws SQLException {
                 c.createStatement().execute("create table test (id bigint not null, name varchar(255))");
                 c.createStatement().execute("insert into test (id, name) values (1, 'alice')");
+            }
+        });
+
+        boolean result = db.withConnection(new ConnectionCallable<Boolean>() {
+            public Boolean call(Connection c) throws SQLException {
                 ResultSet results = c.createStatement().executeQuery("select * from test");
                 assertThat(results.next(), is(true));
                 assertThat(results.next(), is(false));
                 return true;
             }
         });
+
+        assertThat(result, is(true));
 
         db.shutdown();
     }
@@ -153,7 +160,7 @@ public class DatabaseTest {
     public void provideTransactionHelper() throws Exception {
         Database db = Database.inMemory("test-withTransaction");
 
-        db.withTransaction(new ConnectionCallable<Boolean>() {
+        boolean created = db.withTransaction(new ConnectionCallable<Boolean>() {
             public Boolean call(Connection c) throws SQLException {
                 c.createStatement().execute("create table test (id bigint not null, name varchar(255))");
                 c.createStatement().execute("insert into test (id, name) values (1, 'alice')");
@@ -161,18 +168,19 @@ public class DatabaseTest {
             }
         });
 
-        db.withConnection(new ConnectionCallable<Boolean>() {
-            public Boolean call(Connection c) throws SQLException {
+        assertThat(created, is(true));
+
+        db.withConnection(new ConnectionRunnable() {
+            public void run(Connection c) throws SQLException {
                 ResultSet results = c.createStatement().executeQuery("select * from test");
                 assertThat(results.next(), is(true));
                 assertThat(results.next(), is(false));
-                return true;
             }
         });
 
         try {
-            db.withTransaction(new ConnectionCallable<Boolean>() {
-                public Boolean call(Connection c) throws SQLException {
+            db.withTransaction(new ConnectionRunnable() {
+                public void run(Connection c) throws SQLException {
                     c.createStatement().execute("insert into test (id, name) values (2, 'bob')");
                     throw new RuntimeException("boom");
                 }
@@ -181,12 +189,11 @@ public class DatabaseTest {
             assertThat(e.getMessage(), equalTo("boom"));
         }
 
-        db.withConnection(new ConnectionCallable<Boolean>() {
-            public Boolean call(Connection c) throws SQLException {
+        db.withConnection(new ConnectionRunnable() {
+            public void run(Connection c) throws SQLException {
                 ResultSet results = c.createStatement().executeQuery("select * from test");
                 assertThat(results.next(), is(true));
                 assertThat(results.next(), is(false));
-                return true;
             }
         });
 
