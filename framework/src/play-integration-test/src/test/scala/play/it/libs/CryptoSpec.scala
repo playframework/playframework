@@ -5,7 +5,7 @@ package play.it.libs
 
 import play.api.test._
 import play.api.libs.Crypto
-import play.api.{PlayException, Mode}
+import play.api.{ PlayException, Mode }
 
 object CryptoSpec extends PlaySpecification {
 

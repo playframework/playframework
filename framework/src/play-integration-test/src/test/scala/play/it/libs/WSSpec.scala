@@ -64,9 +64,9 @@ object WSSpec extends PlaySpecification {
 
       WS.url("http://localhost/get?=&foo").
         aka("invalid request") must throwA[RuntimeException].like {
-        case e: RuntimeException =>
-          e.getCause must beAnInstanceOf[MalformedURLException]
-      }
+          case e: RuntimeException =>
+            e.getCause must beAnInstanceOf[MalformedURLException]
+        }
     }
 
     "reject invalid user password string" in withServer { port =>
@@ -74,9 +74,9 @@ object WSSpec extends PlaySpecification {
 
       WS.url("http://@localhost/get").
         aka("invalid request") must throwA[RuntimeException].like {
-        case e: RuntimeException =>
-          e.getCause must beAnInstanceOf[MalformedURLException]
-      }
+          case e: RuntimeException =>
+            e.getCause must beAnInstanceOf[MalformedURLException]
+        }
     }
 
     "consider query string in JSON conversion" in withServer { port =>
@@ -118,36 +118,36 @@ object WSSpec extends PlaySpecification {
     "get a streamed response" in withResult(
       Results.Ok.chunked(Enumerator("a", "b", "c"))) { port =>
 
-      val res = WS.url(s"http://localhost:$port/get").stream()
-      val (_, body) = await(res)
+        val res = WS.url(s"http://localhost:$port/get").stream()
+        val (_, body) = await(res)
 
-      new String(await(body |>>> Iteratee.consume[Array[Byte]]()), "utf-8").
-        aka("streamed response") must_== "abc"
-    }
+        new String(await(body |>>> Iteratee.consume[Array[Byte]]()), "utf-8").
+          aka("streamed response") must_== "abc"
+      }
 
-    def slow[E](ms: Long): Enumeratee[E, E] = 
+    def slow[E](ms: Long): Enumeratee[E, E] =
       Enumeratee.mapM { i => Promise.timeout(i, ms) }
 
     "get a streamed response when the server is slow" in withResult(
       Results.Ok.chunked(Enumerator("a", "b", "c") &> slow(50))) { port =>
 
-      val res = WS.url(s"http://localhost:$port/get").stream()
-      val (_, body) = await(res)
+        val res = WS.url(s"http://localhost:$port/get").stream()
+        val (_, body) = await(res)
 
-      (new String(await(body |>>> Iteratee.consume[Array[Byte]]()), "utf-8")).
-        aka("streamed response") must_== "abc"
-    }
+        (new String(await(body |>>> Iteratee.consume[Array[Byte]]()), "utf-8")).
+          aka("streamed response") must_== "abc"
+      }
 
     "get a streamed response when the consumer is slow" in withResult(
       Results.Ok.chunked(Enumerator("a", "b", "c") &> slow(10))) { port =>
 
-      val res = WS.url(s"http://localhost:$port/get").stream()
-      val (_, body) = await(res)
+        val res = WS.url(s"http://localhost:$port/get").stream()
+        val (_, body) = await(res)
 
-      new String(await(body &> slow(50) |>>> 
-        Iteratee.consume[Array[Byte]]()), "utf-8").
-        aka("streamed response") must_== "abc"
-    }
+        new String(await(body &> slow(50) |>>>
+          Iteratee.consume[Array[Byte]]()), "utf-8").
+          aka("streamed response") must_== "abc"
+      }
 
     "propagate errors from the stream" in withResult(
       Results.Ok.feed(Enumerator.unfold(0) {
@@ -155,12 +155,12 @@ object WSSpec extends PlaySpecification {
         case _ => throw new Exception()
       } &> slow(50)).withHeaders("Content-Length" -> "100000")) { port =>
 
-      val res = WS.url(s"http://localhost:$port/get").stream()
-      val (_, body) = await(res)
+        val res = WS.url(s"http://localhost:$port/get").stream()
+        val (_, body) = await(res)
 
-      await(body |>>> Iteratee.consume[Array[Byte]]()).
-        aka("streamed response") must throwAn[IOException]
-    }
+        await(body |>>> Iteratee.consume[Array[Byte]]()).
+          aka("streamed response") must throwAn[IOException]
+      }
 
     "not throw an exception while signing requests" >> {
       object CustomSigner extends WSSignatureCalculator {

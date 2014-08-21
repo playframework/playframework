@@ -6,7 +6,7 @@ import Keys._
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
 import com.typesafe.tools.mima.plugin.MimaKeys.{previousArtifact, binaryIssueFilters}
 import com.typesafe.tools.mima.core._
-import com.typesafe.sbt.SbtScalariform.defaultScalariformSettings
+import com.typesafe.sbt.SbtScalariform.scalariformSettings
 import scala.util.Properties.isJavaAtLeast
 import play.twirl.sbt.SbtTwirl
 import play.twirl.sbt.Import.TwirlKeys
@@ -107,7 +107,7 @@ object BuildSettings {
       .settings(playCommonSettings: _*)
       .settings(PublishSettings.publishSettings: _*)
       .settings(mimaDefaultSettings: _*)
-      .settings(defaultScalariformSettings: _*)
+      .settings(scalariformSettings: _*)
       .settings(playRuntimeSettings(name): _*)
   }
 
@@ -118,7 +118,7 @@ object BuildSettings {
     Docs.apiDocsInclude := true
   )
 
-  def playSbtCommonSettings: Seq[Setting[_]] = playCommonSettings ++ defaultScalariformSettings ++ Seq(
+  def playSbtCommonSettings: Seq[Setting[_]] = playCommonSettings ++ scalariformSettings ++ Seq(
     scalaVersion := buildScalaVersionForSbt,
     scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
     scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked")

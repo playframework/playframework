@@ -3,7 +3,7 @@ package anorm
 import acolyte.jdbc.AcolyteDSL
 import acolyte.jdbc.Implicits._
 
-object BatchSqlSpec 
+object BatchSqlSpec
     extends org.specs2.mutable.Specification with H2Database {
 
   "Batch SQL" title
@@ -282,7 +282,7 @@ object BatchSqlSpec
           Seq[NamedParameter]('i -> 1, 'f -> "foo #1", 'b -> 2),
           Seq[NamedParameter]('i -> 2, 'f -> "foo_2", 'b -> 4)))
 
-      (batch.sql.statement aka "parsed statement" mustEqual(
+      (batch.sql.statement aka "parsed statement" mustEqual (
         "INSERT INTO test1(id, foo, bar) VALUES(%s, %s, %s)")).
         and(batch.execute() aka "batch result" mustEqual Array(1, 1))
     }

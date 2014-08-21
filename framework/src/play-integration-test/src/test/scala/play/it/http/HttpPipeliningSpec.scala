@@ -3,7 +3,7 @@
  */
 package play.it.http
 
-import play.api.mvc.{Results, EssentialAction}
+import play.api.mvc.{ Results, EssentialAction }
 import play.api.test._
 import play.api.test.TestServer
 import play.api.libs.concurrent.Promise

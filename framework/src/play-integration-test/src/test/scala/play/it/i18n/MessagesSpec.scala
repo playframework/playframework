@@ -3,11 +3,10 @@
  */
 package play.it.i18n
 
-import play.api.test.{PlaySpecification, WithApplication, FakeApplication}
+import play.api.test.{ PlaySpecification, WithApplication, FakeApplication }
 import play.api.mvc.Controller
 import play.api.i18n._
 import play.api.Mode
-
 
 object MessagesSpec extends PlaySpecification with Controller {
 
@@ -24,15 +23,15 @@ object MessagesSpec extends PlaySpecification with Controller {
       msg must ===("Required!")
     }
   }
-  
-  "Messages@Java" should{
+
+  "Messages@Java" should {
     import play.i18n._
     import java.util
     val app = FakeApplication()
     val enUS: Lang = new play.i18n.Lang(play.api.i18n.Lang("en-US"))
     "allow translation without parameters" in new WithApplication(app) {
       val msg = Messages.get(enUS, "constraint.email")
-      
+
       msg must ===("Email")
     }
     "allow translation with any non-list parameter" in new WithApplication(app) {
@@ -51,5 +50,4 @@ object MessagesSpec extends PlaySpecification with Controller {
     }
   }
 }
-
 

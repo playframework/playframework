@@ -30,10 +30,10 @@ trait JodaColumnSpec { specs: Specification =>
           }
       }
 
-    "be parsed from time" in withQueryResult(longList :+ time.getMillis) { 
+    "be parsed from time" in withQueryResult(longList :+ time.getMillis) {
       implicit con =>
-      SQL("SELECT time").as(scalar[Instant].single).
-        aka("parsed date") must_== time
+        SQL("SELECT time").as(scalar[Instant].single).
+          aka("parsed date") must_== time
     }
   }
 }

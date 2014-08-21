@@ -4,7 +4,7 @@ import javax.inject._
 
 import play.api.test._
 import java.util.concurrent.atomic.AtomicInteger
-import play.api.mvc.{Results, Action}
+import play.api.mvc.{ Results, Action }
 import play.api.http
 
 import scala.concurrent.duration._
@@ -19,7 +19,7 @@ class CachedSpec extends PlaySpecification {
   "the cached action" should {
     "cache values" in new WithApplication() {
       val invoked = new AtomicInteger()
-      val action =  Cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+      val action = Cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
       val result1 = action(FakeRequest()).run
       contentAsString(result1) must_== "1"
       invoked.get() must_== 1
@@ -35,7 +35,7 @@ class CachedSpec extends PlaySpecification {
 
     "use etags for values" in new WithApplication() {
       val invoked = new AtomicInteger()
-      val action =  Cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+      val action = Cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
       val result1 = action(FakeRequest()).run
       status(result1) must_== 200
       invoked.get() must_== 1
@@ -48,7 +48,7 @@ class CachedSpec extends PlaySpecification {
 
     "support wildcard etags" in new WithApplication() {
       val invoked = new AtomicInteger()
-      val action =  Cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+      val action = Cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
       val result1 = action(FakeRequest()).run
       status(result1) must_== 200
       invoked.get() must_== 1
@@ -58,7 +58,7 @@ class CachedSpec extends PlaySpecification {
     }
 
     "work with etag cache misses" in new WithApplication() {
-      val action =  Cached(_.uri)(Action(Results.Ok))
+      val action = Cached(_.uri)(Action(Results.Ok))
       val resultA = action(FakeRequest("GET", "/a")).run
       status(resultA) must_== 200
       status(action(FakeRequest("GET", "/a").withHeaders(IF_NONE_MATCH -> "foo")).run) must_== 200
@@ -68,7 +68,7 @@ class CachedSpec extends PlaySpecification {
   }
 
   val dummyAction = Action { request =>
-    Results.Ok{
+    Results.Ok {
       Random.nextInt().toString
     }
   }
@@ -79,7 +79,7 @@ class CachedSpec extends PlaySpecification {
 
   "Cached EssentialAction composition" should {
     "cache infinite ok results" in new WithApplication() {
-      val cacheOk = Cached.empty{x =>
+      val cacheOk = Cached.empty { x =>
         x.uri
       }.includeStatus(200)
 
@@ -96,11 +96,11 @@ class CachedSpec extends PlaySpecification {
       val res2 = contentAsString(actionNotFound(FakeRequest("GET", "/b")).run)
       val res3 = contentAsString(actionNotFound(FakeRequest("GET", "/b")).run)
 
-      res2 must not equalTo(res3)
+      res2 must not equalTo (res3)
     }
 
     "cache everything for infinite" in new WithApplication() {
-      val cache = Cached.everything{x =>
+      val cache = Cached.everything { x =>
         x.uri
       }
 

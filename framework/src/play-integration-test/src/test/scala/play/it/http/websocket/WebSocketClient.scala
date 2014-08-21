@@ -12,9 +12,9 @@ import java.util.concurrent.Executors
 import org.jboss.netty.handler.codec.http._
 import collection.JavaConversions._
 import websocketx._
-import java.net.{InetSocketAddress, URI}
+import java.net.{ InetSocketAddress, URI }
 import org.jboss.netty.util.CharsetUtil
-import scala.concurrent.{Promise, Future}
+import scala.concurrent.{ Promise, Future }
 import play.api.libs.iteratee.Execution.Implicits.trampoline
 import play.api.libs.iteratee._
 
@@ -23,16 +23,15 @@ import play.api.libs.iteratee._
  * more Scala friendly.
  */
 trait WebSocketClient {
-  
+
   import WebSocketClient._
-  
+
   /**
    * Connect to the given URI.
-   * 
+   *
    * @return A future that will be redeemed when the connection is closed.
    */
-  def connect(url: URI, version: WebSocketVersion = WebSocketVersion.V13)
-             (onConnect: Handler): Future[Unit]
+  def connect(url: URI, version: WebSocketVersion = WebSocketVersion.V13)(onConnect: Handler): Future[Unit]
 
   /**
    * Shutdown the client and release all associated resources.
@@ -73,7 +72,7 @@ object WebSocketClient {
     }
 
   }
-  
+
   private class DefaultWebSocketClient extends WebSocketClient {
     val bootstrap = new ClientBootstrap(new NioClientSocketChannelFactory(Executors.newSingleThreadExecutor(),
       Executors.newSingleThreadExecutor(), 1, 1))
@@ -87,18 +86,16 @@ object WebSocketClient {
       }
     })
 
-
     /**
      * Connect to the given URI
      */
-    def connect(url: URI, version: WebSocketVersion)
-               (onConnected: (Enumerator[WebSocketFrame], Iteratee[WebSocketFrame, _]) => Unit) = {
-      
+    def connect(url: URI, version: WebSocketVersion)(onConnected: (Enumerator[WebSocketFrame], Iteratee[WebSocketFrame, _]) => Unit) = {
+
       val normalized = url.normalize()
       val tgt = if (normalized.getPath == null || normalized.getPath.trim().isEmpty) {
-        new URI(normalized.getScheme, normalized.getAuthority,"/", normalized.getQuery, normalized.getFragment)
+        new URI(normalized.getScheme, normalized.getAuthority, "/", normalized.getQuery, normalized.getFragment)
       } else normalized
-      
+
       val disconnected = Promise[Unit]()
 
       bootstrap.connect(new InetSocketAddress(tgt.getHost, tgt.getPort)).toScala.map { channel =>
@@ -108,7 +105,7 @@ object WebSocketClient {
       }.onFailure {
         case t => disconnected.tryFailure(t)
       }
-      
+
       disconnected.future
     }
 
@@ -116,7 +113,7 @@ object WebSocketClient {
   }
 
   private class WebSocketSupervisor(disconnected: Promise[Unit], handshaker: WebSocketClientHandshaker,
-                                 onConnected: Handler) extends SimpleChannelUpstreamHandler {
+      onConnected: Handler) extends SimpleChannelUpstreamHandler {
     override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
       e.getMessage match {
         case resp: HttpResponse if handshaker.isHandshakeComplete =>
@@ -141,9 +138,9 @@ object WebSocketClient {
       ctx.sendDownstream(e)
     }
   }
-  
+
   private class WebSocketClientHandler(out: Channel, onConnected: Handler,
-                                       disconnected: Promise[Unit]) extends SimpleChannelUpstreamHandler {
+      disconnected: Promise[Unit]) extends SimpleChannelUpstreamHandler {
 
     val (enumerator, in) = Concurrent.broadcast[WebSocketFrame]
 

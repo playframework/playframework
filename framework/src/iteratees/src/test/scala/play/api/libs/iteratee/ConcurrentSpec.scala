@@ -3,7 +3,7 @@
  */
 package play.api.libs.iteratee
 
-import java.util.concurrent.{TimeUnit, CountDownLatch}
+import java.util.concurrent.{ TimeUnit, CountDownLatch }
 import java.util.concurrent.TimeUnit._
 import java.util.concurrent.atomic.AtomicInteger
 import org.specs2.mutable._
@@ -13,7 +13,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
 
 object ConcurrentSpec extends Specification
-  with IterateeSpecification with ExecutionSpecification {
+    with IterateeSpecification with ExecutionSpecification {
 
   "Concurrent.broadcast (0-arg)" should {
     "broadcast the same to already registered iteratees" in {
@@ -268,7 +268,7 @@ object ConcurrentSpec extends Specification
         val (e2, b) = Concurrent.broadcast(e0, { f =>
           interestCount.incrementAndGet()
           interestDone.countDown()
-          })(callbackEC)
+        })(callbackEC)
         val i = e2 |>>> Iteratee.getChunks[Int]
         c.push(1)
         c.push(2)
@@ -279,8 +279,8 @@ object ConcurrentSpec extends Specification
         interestCount.get() must equalTo(1)
       }
     }
-  } 
-  
+  }
+
   "Concurrent.patchPanel" should {
 
     "perform patching in the correct ExecutionContext" in {

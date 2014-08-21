@@ -9,7 +9,7 @@ import play.api.mvc._
 
 import play.core.j.JavaHelpers
 import play.mvc.Http
-import play.mvc.Http.{RequestBody, Context}
+import play.mvc.Http.{ RequestBody, Context }
 
 /**
  *
@@ -22,10 +22,10 @@ class JavaRequestsSpec extends PlaySpecification with Mockito {
       import scala.collection.JavaConversions._
 
       val cookie1 = Cookie("name1", "value1")
-      val requestHeader : RequestHeader = FakeRequest().withCookies(cookie1)
+      val requestHeader: RequestHeader = FakeRequest().withCookies(cookie1)
       val javaRequest: Http.Request = JavaHelpers.createJavaRequest(requestHeader)
 
-      val iterator : Iterator[Http.Cookie] = javaRequest.cookies().iterator()
+      val iterator: Iterator[Http.Cookie] = javaRequest.cookies().iterator()
       val cookieList = iterator.toList
 
       cookieList.size must be equalTo 1
@@ -38,11 +38,11 @@ class JavaRequestsSpec extends PlaySpecification with Mockito {
 
       val cookie1 = Cookie("name1", "value1")
 
-      val requestHeader : Request[Http.RequestBody] = Request[Http.RequestBody](FakeRequest().withCookies(cookie1), new RequestBody())
-      val javaContext : Context = JavaHelpers.createJavaContext(requestHeader)
+      val requestHeader: Request[Http.RequestBody] = Request[Http.RequestBody](FakeRequest().withCookies(cookie1), new RequestBody())
+      val javaContext: Context = JavaHelpers.createJavaContext(requestHeader)
       val javaRequest = javaContext.request()
 
-      val iterator : Iterator[Http.Cookie] = javaRequest.cookies().iterator()
+      val iterator: Iterator[Http.Cookie] = javaRequest.cookies().iterator()
       val cookieList = iterator.toList
 
       cookieList.size must be equalTo 1

@@ -28,7 +28,7 @@ import acolyte.jdbc.Implicits._
 
 import SqlParser.{ byte, double, float, int, long, scalar, short }
 
-object ColumnSpec 
+object ColumnSpec
     extends org.specs2.mutable.Specification with JodaColumnSpec {
 
   "Column" title
@@ -541,13 +541,13 @@ object ColumnSpec
 
     "not be parsed from SQL array with invalid component type" in {
       withQueryResult(rowList1(classOf[SqlArray]) :+ acolyte.jdbc.
-        ImmutableArray.getInstance(classOf[java.sql.Date], 
-          Array(new java.sql.Date(1l), new java.sql.Date(2l)))) { 
+        ImmutableArray.getInstance(classOf[java.sql.Date],
+          Array(new java.sql.Date(1l), new java.sql.Date(2l)))) {
         implicit con =>
 
-        SQL"SELECT a".as(scalar[Array[String]].single).
-          aka("parsing") must throwA[Exception](message =
-            "TypeDoesNotMatch\\(Cannot convert ImmutableArray")
+          SQL"SELECT a".as(scalar[Array[String]].single).
+            aka("parsing") must throwA[Exception](message =
+              "TypeDoesNotMatch\\(Cannot convert ImmutableArray")
 
       }
     }
@@ -591,15 +591,15 @@ object ColumnSpec
 
     "not be parsed from SQL array with invalid component type" in {
       withQueryResult(
-      rowList1(classOf[SqlArray]) :+ acolyte.jdbc.ImmutableArray.getInstance(
-        classOf[java.sql.Date], Array(new java.sql.Date(1l),
-          new java.sql.Date(2l)))) { implicit con =>
+        rowList1(classOf[SqlArray]) :+ acolyte.jdbc.ImmutableArray.getInstance(
+          classOf[java.sql.Date], Array(new java.sql.Date(1l),
+            new java.sql.Date(2l)))) { implicit con =>
 
-        SQL"SELECT a".as(scalar[List[String]].single).
-          aka("parsing") must throwA[Exception](message =
-            "TypeDoesNotMatch\\(Cannot convert ImmutableArray")
+          SQL"SELECT a".as(scalar[List[String]].single).
+            aka("parsing") must throwA[Exception](message =
+              "TypeDoesNotMatch\\(Cannot convert ImmutableArray")
 
-      }
+        }
     }
 
     "not be parsed from float" in withQueryResult(floatList :+ 2f) {

@@ -5,14 +5,14 @@ package play.it.http.websocket
 
 import play.api.test._
 import play.api.Application
-import scala.concurrent.{Future, Promise}
-import play.api.mvc.{Handler, Results, WebSocket}
+import scala.concurrent.{ Future, Promise }
+import play.api.mvc.{ Handler, Results, WebSocket }
 import play.api.libs.iteratee._
 import java.net.URI
 import org.jboss.netty.handler.codec.http.websocketx._
 import org.specs2.matcher.Matcher
-import akka.actor.{ActorRef, PoisonPill, Actor, Props}
-import play.mvc.WebSocket.{Out, In}
+import akka.actor.{ ActorRef, PoisonPill, Actor, Props }
+import play.mvc.WebSocket.{ Out, In }
 import play.core.Router.HandlerDef
 import java.util.concurrent.atomic.AtomicReference
 import org.jboss.netty.buffer.ChannelBuffers
@@ -124,16 +124,18 @@ object WebSocketSpec extends PlaySpecification with WsTestClient {
   }
 
   "Plays WebSockets" should {
-    "allow consuming messages" in allowConsumingMessages { _ => consumed =>
-      WebSocket.using[String] { req =>
-        (getChunks[String](Nil, consumed.success _), Enumerator.empty)
-      }
+    "allow consuming messages" in allowConsumingMessages { _ =>
+      consumed =>
+        WebSocket.using[String] { req =>
+          (getChunks[String](Nil, consumed.success _), Enumerator.empty)
+        }
     }
 
-    "allow sending messages" in allowSendingMessages { _ => messages =>
-      WebSocket.using[String] { req =>
-        (Iteratee.ignore, Enumerator.enumerate(messages) >>> Enumerator.eof)
-      }
+    "allow sending messages" in allowSendingMessages { _ =>
+      messages =>
+        WebSocket.using[String] { req =>
+          (Iteratee.ignore, Enumerator.enumerate(messages) >>> Enumerator.eof)
+        }
     }
 
     "close when the consumer is done" in closeWhenTheConsumerIsDone { _ =>
@@ -142,71 +144,81 @@ object WebSocketSpec extends PlaySpecification with WsTestClient {
       }
     }
 
-    "clean up when closed" in cleanUpWhenClosed { _ => cleanedUp =>
-      WebSocket.using[String] { req =>
-        (Iteratee.ignore, Enumerator.empty[String].onDoneEnumerating(cleanedUp.success(true)))
-      }
+    "clean up when closed" in cleanUpWhenClosed { _ =>
+      cleanedUp =>
+        WebSocket.using[String] { req =>
+          (Iteratee.ignore, Enumerator.empty[String].onDoneEnumerating(cleanedUp.success(true)))
+        }
     }
 
-    "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { _ => statusCode =>
-      WebSocket.tryAccept[String] { req =>
-        Future.successful(Left(Results.Status(statusCode)))
-      }
+    "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { _ =>
+      statusCode =>
+        WebSocket.tryAccept[String] { req =>
+          Future.successful(Left(Results.Status(statusCode)))
+        }
     }
 
     "allow handling a WebSocket with an actor" in {
 
-      "allow consuming messages" in allowConsumingMessages { implicit app => consumed =>
-        WebSocket.acceptWithActor[String, String] { req => out =>
-          Props(new Actor() {
-            var messages = List.empty[String]
-            def receive = {
-              case msg: String =>
-                messages = msg :: messages
-            }
-            override def postStop() = {
-              consumed.success(messages.reverse)
-            }
-          })
-        }
+      "allow consuming messages" in allowConsumingMessages { implicit app =>
+        consumed =>
+          WebSocket.acceptWithActor[String, String] { req =>
+            out =>
+              Props(new Actor() {
+                var messages = List.empty[String]
+                def receive = {
+                  case msg: String =>
+                    messages = msg :: messages
+                }
+                override def postStop() = {
+                  consumed.success(messages.reverse)
+                }
+              })
+          }
       }
 
-      "allow sending messages" in allowSendingMessages { implicit app => messages =>
-        WebSocket.acceptWithActor[String, String] { req => out =>
-          Props(new Actor() {
-            messages.foreach { msg =>
-              out ! msg
-            }
-            out ! PoisonPill
-            def receive = PartialFunction.empty
-          })
-        }
+      "allow sending messages" in allowSendingMessages { implicit app =>
+        messages =>
+          WebSocket.acceptWithActor[String, String] { req =>
+            out =>
+              Props(new Actor() {
+                messages.foreach { msg =>
+                  out ! msg
+                }
+                out ! PoisonPill
+                def receive = PartialFunction.empty
+              })
+          }
       }
 
       "close when the consumer is done" in closeWhenTheConsumerIsDone { implicit app =>
-      WebSocket.acceptWithActor[String, String] { req => out =>
-          Props(new Actor() {
-            out ! PoisonPill
-            def receive = PartialFunction.empty
-          })
+        WebSocket.acceptWithActor[String, String] { req =>
+          out =>
+            Props(new Actor() {
+              out ! PoisonPill
+              def receive = PartialFunction.empty
+            })
         }
       }
 
-      "clean up when closed" in cleanUpWhenClosed { implicit app => cleanedUp =>
-        WebSocket.acceptWithActor[String, String] { req => out =>
-          Props(new Actor() {
-            def receive = PartialFunction.empty
-            override def postStop() = {
-              cleanedUp.success(true)
-            }
-          })
-        }
+      "clean up when closed" in cleanUpWhenClosed { implicit app =>
+        cleanedUp =>
+          WebSocket.acceptWithActor[String, String] { req =>
+            out =>
+              Props(new Actor() {
+                def receive = PartialFunction.empty
+                override def postStop() = {
+                  cleanedUp.success(true)
+                }
+              })
+          }
       }
 
-      "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { implicit app => statusCode =>
-        WebSocket.tryAcceptWithActor[String, String] { req =>
-          Future.successful(Left(Results.Status(statusCode)))
-        }
+      "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { implicit app =>
+        statusCode =>
+          WebSocket.tryAcceptWithActor[String, String] { req =>
+            Future.successful(Left(Results.Status(statusCode)))
+          }
       }
 
       "aggregate text frames" in {
@@ -283,57 +295,62 @@ object WebSocketSpec extends PlaySpecification with WsTestClient {
         invoker.call(javaHandler)
       }
 
-      "allow consuming messages" in allowConsumingMessages { _ => consumed =>
-        new JWebSocket[String] {
-          @volatile var messages = List.empty[String]
-          def onReady(in: In[String], out: Out[String]) = {
-            in.onMessage(new F.Callback[String] {
-              def invoke(msg: String) = messages = msg :: messages
-            })
-            in.onClose(new F.Callback0 {
-              def invoke() = consumed.success(messages.reverse)
-            })
-          }
-        }
-      }
-
-      "allow sending messages" in allowSendingMessages { _ => messages =>
-        new JWebSocket[String] {
-          def onReady(in: In[String], out: Out[String]) = {
-            messages.foreach { msg =>
-              out.write(msg)
+      "allow consuming messages" in allowConsumingMessages { _ =>
+        consumed =>
+          new JWebSocket[String] {
+            @volatile var messages = List.empty[String]
+            def onReady(in: In[String], out: Out[String]) = {
+              in.onMessage(new F.Callback[String] {
+                def invoke(msg: String) = messages = msg :: messages
+              })
+              in.onClose(new F.Callback0 {
+                def invoke() = consumed.success(messages.reverse)
+              })
             }
-            out.close()
           }
-        }
       }
 
-      "clean up when closed" in cleanUpWhenClosed { _ => cleanedUp =>
-        new JWebSocket[String] {
-          def onReady(in: In[String], out: Out[String]) = {
-            in.onClose(new F.Callback0 {
-              def invoke() = cleanedUp.success(true)
-            })
-          }
-        }
-      }
-
-      "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { _ => statusCode =>
-        JWebSocket.reject[String](JResults.status(statusCode))
-      }
-
-      "allow handling a websocket with an actor" in allowSendingMessages { _ => messages =>
-        JWebSocket.withActor[String](new F.Function[ActorRef, Props]() {
-          def apply(out: ActorRef) = {
-            Props(new Actor() {
+      "allow sending messages" in allowSendingMessages { _ =>
+        messages =>
+          new JWebSocket[String] {
+            def onReady(in: In[String], out: Out[String]) = {
               messages.foreach { msg =>
-                out ! msg
+                out.write(msg)
               }
-              out ! PoisonPill
-              def receive = PartialFunction.empty
-            })
+              out.close()
+            }
           }
-        })
+      }
+
+      "clean up when closed" in cleanUpWhenClosed { _ =>
+        cleanedUp =>
+          new JWebSocket[String] {
+            def onReady(in: In[String], out: Out[String]) = {
+              in.onClose(new F.Callback0 {
+                def invoke() = cleanedUp.success(true)
+              })
+            }
+          }
+      }
+
+      "allow rejecting a websocket with a result" in allowRejectingTheWebSocketWithAResult { _ =>
+        statusCode =>
+          JWebSocket.reject[String](JResults.status(statusCode))
+      }
+
+      "allow handling a websocket with an actor" in allowSendingMessages { _ =>
+        messages =>
+          JWebSocket.withActor[String](new F.Function[ActorRef, Props]() {
+            def apply(out: ActorRef) = {
+              Props(new Actor() {
+                messages.foreach { msg =>
+                  out ! msg
+                }
+                out ! PoisonPill
+                def receive = PartialFunction.empty
+              })
+            }
+          })
       }
     }
   }

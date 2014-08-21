@@ -147,178 +147,178 @@ object SqlResultSpec extends org.specs2.mutable.Specification with H2Database {
     "release resources" in withQueryResult(
       stringList :+ "A" :+ "B" :+ "C") { implicit c =>
 
-      val res: SqlQueryResult = SQL"SELECT str".executeQuery()
-      var closed = false
-      val probe = resource.managed(
-        new java.io.Closeable { def close() = closed = true })
+        val res: SqlQueryResult = SQL"SELECT str".executeQuery()
+        var closed = false
+        val probe = resource.managed(
+          new java.io.Closeable { def close() = closed = true })
 
-      var i = 0      
-      val stream: Stream[Int] = res.copy(resultSet = 
-        res.resultSet.and(probe).map(_._1)).apply() map { r => i = i+1; i }
+        var i = 0
+        val stream: Stream[Int] = res.copy(resultSet =
+          res.resultSet.and(probe).map(_._1)).apply() map { r => i = i + 1; i }
 
-      stream aka "streaming" must_== List(1, 2, 3) and (
-        closed aka "resource release" must beTrue) and (
-        i aka "row count" must_== 3)
+        stream aka "streaming" must_== List(1, 2, 3) and (
+          closed aka "resource release" must beTrue) and (
+            i aka "row count" must_== 3)
 
-    }
+      }
 
     "release resources on exception" in withQueryResult(
       stringList :+ "A" :+ "B" :+ "C") { implicit c =>
 
-      val res: SqlQueryResult = SQL"SELECT str".executeQuery()
-      var closed = false
-      val probe = resource.managed(
-        new java.io.Closeable { def close() = closed = true })
+        val res: SqlQueryResult = SQL"SELECT str".executeQuery()
+        var closed = false
+        val probe = resource.managed(
+          new java.io.Closeable { def close() = closed = true })
 
-      var i = 0      
-      val stream = res.copy(resultSet = res.resultSet.and(probe).map(_._1)).
-        apply() map { _ => if (i == 1) sys.error("Unexpected") else i = i+1 }
-      
-      stream.toList aka "streaming" must throwA[Exception]("Unexpected") and (
-        closed aka("resource release") must beTrue) and (
-        i aka "row count" must_== 1)
+        var i = 0
+        val stream = res.copy(resultSet = res.resultSet.and(probe).map(_._1)).
+          apply() map { _ => if (i == 1) sys.error("Unexpected") else i = i + 1 }
 
-    }
+        stream.toList aka "streaming" must throwA[Exception]("Unexpected") and (
+          closed aka ("resource release") must beTrue) and (
+            i aka "row count" must_== 1)
+
+      }
 
     "release resources on partial read" in withQueryResult(
       stringList :+ "A" :+ "B" :+ "C") { implicit c =>
 
-      val res: SqlQueryResult = SQL"SELECT str".executeQuery()
-      var closed = false
-      val probe = resource.managed(
-        new java.io.Closeable { def close() = closed = true })
+        val res: SqlQueryResult = SQL"SELECT str".executeQuery()
+        var closed = false
+        val probe = resource.managed(
+          new java.io.Closeable { def close() = closed = true })
 
-      var i = 0      
-      val stream: Stream[Int] = res.copy(resultSet = 
-        res.resultSet.and(probe).map(_._1)).apply() map { r => i = i+1; i }
+        var i = 0
+        val stream: Stream[Int] = res.copy(resultSet =
+          res.resultSet.and(probe).map(_._1)).apply() map { r => i = i + 1; i }
 
-      stream.head aka "streaming" must_== 1 and (
-        closed aka "resource release" must beTrue) and (
-        i aka "row count" must_== 1)
+        stream.head aka "streaming" must_== 1 and (
+          closed aka "resource release" must beTrue) and (
+            i aka "row count" must_== 1)
 
-    }
+      }
   }
 
   "Aggregation over all rows" should {
     "release resources" in withQueryResult(
       stringList :+ "A" :+ "B" :+ "C") { implicit c =>
 
-      val res: SqlQueryResult = SQL"SELECT str".executeQuery()
-      var closed = false
-      val probe = resource.managed(
-        new java.io.Closeable { def close() = closed = true })
+        val res: SqlQueryResult = SQL"SELECT str".executeQuery()
+        var closed = false
+        val probe = resource.managed(
+          new java.io.Closeable { def close() = closed = true })
 
-      var i = 0      
-      lazy val agg = res.copy(resultSet = 
-        res.resultSet.and(probe).map(_._1)).fold(List[Int]()) { 
-        (l, _) => i = i+1; l :+ i
+        var i = 0
+        lazy val agg = res.copy(resultSet =
+          res.resultSet.and(probe).map(_._1)).fold(List[Int]()) {
+          (l, _) => i = i + 1; l :+ i
+        }
+
+        agg aka "aggregation" must_== Right(List(1, 2, 3)) and (
+          closed aka "resource release" must beTrue) and (
+            i aka "row count" must_== 3)
+
       }
-
-      agg aka "aggregation" must_== Right(List(1, 2, 3)) and (
-        closed aka "resource release" must beTrue) and (
-        i aka "row count" must_== 3)
-
-    }
 
     "release resources on exception" in withQueryResult(
       stringList :+ "A" :+ "B" :+ "C") { implicit c =>
 
-      val res: SqlQueryResult = SQL"SELECT str".executeQuery()
-      var closed = false
-      val probe = resource.managed(
-        new java.io.Closeable { def close() = closed = true })
+        val res: SqlQueryResult = SQL"SELECT str".executeQuery()
+        var closed = false
+        val probe = resource.managed(
+          new java.io.Closeable { def close() = closed = true })
 
-      var i = 0      
-      lazy val agg = res.copy(resultSet = res.resultSet.and(probe).map(_._1)).
-        fold(List[Int]()) { (l, _) => 
-          if (i == 1) sys.error("Unexpected") else { i = i +1; l :+ i }
-        } 
+        var i = 0
+        lazy val agg = res.copy(resultSet = res.resultSet.and(probe).map(_._1)).
+          fold(List[Int]()) { (l, _) =>
+            if (i == 1) sys.error("Unexpected") else { i = i + 1; l :+ i }
+          }
 
-      agg aka "aggregation" must beLike {
-        case Left(err :: Nil) =>
-          err.getMessage aka "failure" must_== "Unexpected"
-      } and (closed aka("resource release") must beTrue) and (
-        i aka "row count" must_== 1)
+        agg aka "aggregation" must beLike {
+          case Left(err :: Nil) =>
+            err.getMessage aka "failure" must_== "Unexpected"
+        } and (closed aka ("resource release") must beTrue) and (
+          i aka "row count" must_== 1)
 
-    }
+      }
   }
 
   "Aggregation over variable number of rows" should {
     "release resources" in withQueryResult(
       stringList :+ "A" :+ "B" :+ "C") { implicit c =>
 
-      val res: SqlQueryResult = SQL"SELECT str".executeQuery()
-      var closed = false
-      val probe = resource.managed(
-        new java.io.Closeable { def close() = closed = true })
+        val res: SqlQueryResult = SQL"SELECT str".executeQuery()
+        var closed = false
+        val probe = resource.managed(
+          new java.io.Closeable { def close() = closed = true })
 
-      var i = 0      
-      lazy val agg = res.copy(resultSet = 
-        res.resultSet.and(probe).map(_._1)).foldWhile(List[Int]()) { 
-        (l, _) => i = i+1; (l :+ i) -> true
+        var i = 0
+        lazy val agg = res.copy(resultSet =
+          res.resultSet.and(probe).map(_._1)).foldWhile(List[Int]()) {
+          (l, _) => i = i + 1; (l :+ i) -> true
+        }
+
+        agg aka "aggregation" must_== Right(List(1, 2, 3)) and (
+          closed aka "resource release" must beTrue) and (
+            i aka "row count" must_== 3)
+
       }
-
-      agg aka "aggregation" must_== Right(List(1, 2, 3)) and (
-        closed aka "resource release" must beTrue) and (
-        i aka "row count" must_== 3)
-
-    }
 
     "release resources on exception" in withQueryResult(
       stringList :+ "A" :+ "B" :+ "C") { implicit c =>
 
-      val res: SqlQueryResult = SQL"SELECT str".executeQuery()
-      var closed = false
-      val probe = resource.managed(
-        new java.io.Closeable { def close() = closed = true })
+        val res: SqlQueryResult = SQL"SELECT str".executeQuery()
+        var closed = false
+        val probe = resource.managed(
+          new java.io.Closeable { def close() = closed = true })
 
-      var i = 0      
-      lazy val agg = res.copy(resultSet = res.resultSet.and(probe).map(_._1)).
-        foldWhile(List[Int]()) { (l, _) => 
-          if (i == 1) sys.error("Unexpected") else { 
-            i = i +1; (l :+ i) -> true 
+        var i = 0
+        lazy val agg = res.copy(resultSet = res.resultSet.and(probe).map(_._1)).
+          foldWhile(List[Int]()) { (l, _) =>
+            if (i == 1) sys.error("Unexpected") else {
+              i = i + 1; (l :+ i) -> true
+            }
           }
-        } 
 
-      agg aka "aggregation" must beLike {
-        case Left(err :: Nil) =>
-          err.getMessage aka "failure" must_== "Unexpected"
-      } and (closed aka "resource release" must beTrue) and (
-        i aka "row count" must_== 1)
+        agg aka "aggregation" must beLike {
+          case Left(err :: Nil) =>
+            err.getMessage aka "failure" must_== "Unexpected"
+        } and (closed aka "resource release" must beTrue) and (
+          i aka "row count" must_== 1)
 
-    }
+      }
 
     "stop after second row & release resources" in withQueryResult(
       stringList :+ "A" :+ "B" :+ "C") { implicit c =>
 
-      val res: SqlQueryResult = SQL"SELECT str".executeQuery()
-      var closed = false
-      val probe = resource.managed(
-        new java.io.Closeable { def close() = closed = true })
+        val res: SqlQueryResult = SQL"SELECT str".executeQuery()
+        var closed = false
+        val probe = resource.managed(
+          new java.io.Closeable { def close() = closed = true })
 
-      var i = 0      
-      lazy val agg = res.copy(resultSet = res.resultSet.and(probe).map(_._1)).
-        foldWhile(List[Int]()) { (l, _) => 
-          if (i == 2) (l, false) else { i = i +1; (l :+ i) -> true }
-        } 
+        var i = 0
+        lazy val agg = res.copy(resultSet = res.resultSet.and(probe).map(_._1)).
+          foldWhile(List[Int]()) { (l, _) =>
+            if (i == 2) (l, false) else { i = i + 1; (l :+ i) -> true }
+          }
 
-      agg aka "aggregation" must_== Right(List(1, 2)) and (
-        closed aka "resource release" must beTrue) and (
-        i aka "row count" must_== 2)
+        agg aka "aggregation" must_== Right(List(1, 2)) and (
+          closed aka "resource release" must beTrue) and (
+            i aka "row count" must_== 2)
 
-    }
+      }
   }
 
   "Process variable number of rows" should {
     "do nothing when there is no result" in withQueryResult(QueryResult.Nil) {
-      implicit c => 
-      SQL"EXEC test".executeQuery().withIterator(_.toList).
-        aka("iteration") must beRight.which(_ aka "result list" must beEmpty)
+      implicit c =>
+        SQL"EXEC test".executeQuery().withIterator(_.toList).
+          aka("iteration") must beRight.which(_ aka "result list" must beEmpty)
     }
 
     "handle failure" in withQueryResult(
       rowList1(classOf[String] -> "foo") :+ "A" :+ "B") { implicit c =>
-      var first = false
+        var first = false
         SQL"SELECT str".executeQuery() withIterator { it =>
           it.next() // read first
           first = true
@@ -326,7 +326,7 @@ object SqlResultSpec extends org.specs2.mutable.Specification with H2Database {
         } aka "processing with failure" must beLeft.like {
           case err :: Nil => err.getMessage aka "failure" must_== "Failure"
         } and (first aka "first read" must beTrue)
-    }
+      }
 
     "stop after first row without failure" in withQueryResult(
       rowList1(classOf[String] -> "foo") :+ "A" :+ "B") { implicit c =>
@@ -334,15 +334,15 @@ object SqlResultSpec extends org.specs2.mutable.Specification with H2Database {
           val first = it.next()
           Set(first[String]("foo"))
         } aka "partial processing" must_== Right(Set("A"))
-    }
+      }
   }
 
   "SQL warning" should {
-    "not be there on success" in withQueryResult(stringList :+ "A") { 
+    "not be there on success" in withQueryResult(stringList :+ "A") {
       implicit c =>
 
-      SQL"SELECT str".executeQuery().statementWarning.
-        aka("statement warning") must beNone
+        SQL"SELECT str".executeQuery().statementWarning.
+          aka("statement warning") must beNone
 
     }
 
@@ -351,7 +351,7 @@ object SqlResultSpec extends org.specs2.mutable.Specification with H2Database {
 
         SQL("EXEC stored_proc({param})")
           .on("param" -> "test-proc-2").executeQuery()
-          .statementWarning aka "statement warning" must beSome.which { 
+          .statementWarning aka "statement warning" must beSome.which {
             _.getMessage aka "message" must_== "Warning for test-proc-2"
           }
       }

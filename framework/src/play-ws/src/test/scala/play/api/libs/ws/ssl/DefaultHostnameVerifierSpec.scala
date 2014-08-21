@@ -9,9 +9,9 @@ import org.specs2.mutable._
 
 import org.specs2.mock._
 
-import javax.net.ssl.{SSLPeerUnverifiedException, SSLSession}
+import javax.net.ssl.{ SSLPeerUnverifiedException, SSLSession }
 import sun.security.util.HostnameChecker
-import java.security.cert.{CertificateException, X509Certificate}
+import java.security.cert.{ CertificateException, X509Certificate }
 import java.security.Principal
 import javax.security.auth.kerberos.KerberosPrincipal
 
@@ -50,7 +50,7 @@ object DefaultHostnameVerifierSpec extends Specification with Mockito {
 
       session.getId returns "1234".getBytes("UTF-8")
       session.getPeerCertificates returns Array(cert)
-      mockChecker.`match`("example.com", cert) throws(new CertificateException("derp"))
+      mockChecker.`match`("example.com", cert) throws (new CertificateException("derp"))
 
       val actual = verifier.verify("example.com", session)
 
@@ -68,7 +68,7 @@ object DefaultHostnameVerifierSpec extends Specification with Mockito {
 
       session.getId returns "1234".getBytes("UTF-8")
       session.getPeerCertificates returns null // very rude, but that's Java APIs for you
-      mockChecker.`match`("example.com", cert) throws(new CertificateException("derp"))
+      mockChecker.`match`("example.com", cert) throws (new CertificateException("derp"))
 
       val actual = verifier.verify("example.com", session)
 
@@ -133,7 +133,6 @@ object DefaultHostnameVerifierSpec extends Specification with Mockito {
 
       actual must beFalse
     }
-
 
   }
 

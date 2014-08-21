@@ -1,8 +1,8 @@
 package play.utils
 
-import java.io.{FileInputStream, BufferedInputStream, File, FileOutputStream}
-import java.net.{URI, URLEncoder, URL}
-import java.util.zip.{ZipEntry, ZipOutputStream}
+import java.io.{ FileInputStream, BufferedInputStream, File, FileOutputStream }
+import java.net.{ URI, URLEncoder, URL }
+import java.util.zip.{ ZipEntry, ZipOutputStream }
 import org.specs2.mutable.Specification
 
 /**

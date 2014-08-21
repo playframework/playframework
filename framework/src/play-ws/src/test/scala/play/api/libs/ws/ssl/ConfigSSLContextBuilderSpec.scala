@@ -268,7 +268,7 @@ class ConfigSSLContextBuilderSpec extends Specification with Mockito {
       // Generate a self signed certificate
       val cert = FakeKeyStore.createSelfSignedCertificate(keyPair)
 
-      val password = "changeit"  // null passwords throw exception in 1.6
+      val password = "changeit" // null passwords throw exception in 1.6
       keyStore.load(null, password.toCharArray)
       keyStore.setKeyEntry("playgenerated", keyPair.getPrivate, password.toCharArray, Array(cert))
 
@@ -297,7 +297,7 @@ class ConfigSSLContextBuilderSpec extends Specification with Mockito {
       // Generate a self signed certificate
       val cert = FakeKeyStore.createSelfSignedCertificate(keyPair)
 
-      val password = "changeit"  // null passwords throw exception in 1.6 in PKCS12
+      val password = "changeit" // null passwords throw exception in 1.6 in PKCS12
       keyStore.load(null, password.toCharArray)
       // Don't add the private key here, instead add a public cert only.
       keyStore.setCertificateEntry("playgeneratedtrusted", cert)

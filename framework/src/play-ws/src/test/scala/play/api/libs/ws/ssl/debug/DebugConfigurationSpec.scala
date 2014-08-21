@@ -48,7 +48,7 @@ object DebugConfigurationSpec extends Specification {
       val config = new DebugConfiguration()
       config.configure(debugConfig)
 
-      System.getProperty("java.security.debug") must not contain("certpath")
+      System.getProperty("java.security.debug") must not contain ("certpath")
     }.after {
       System.clearProperty("java.security.debug")
     }
@@ -77,7 +77,7 @@ object DebugConfigurationSpec extends Specification {
       val config = new DebugConfiguration()
       config.configure(debugConfig)
 
-      System.getProperty("javax.net.debug") must not contain("ssl")
+      System.getProperty("javax.net.debug") must not contain ("ssl")
     }.after {
       System.clearProperty("javax.net.debug")
     }

@@ -29,5 +29,5 @@ object ThreadsSpec extends Specification {
       }
     }
   }
-  val testClassLoader = new ClassLoader(){}
+  val testClassLoader = new ClassLoader() {}
 }

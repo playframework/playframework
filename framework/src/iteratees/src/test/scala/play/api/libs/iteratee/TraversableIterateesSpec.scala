@@ -8,7 +8,7 @@ import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration.Duration
 
 object TraversableIterateesSpec extends Specification
-  with IterateeSpecification with ExecutionSpecification {
+    with IterateeSpecification with ExecutionSpecification {
 
   "Traversable.splitOnceAt" should {
 

@@ -5,7 +5,7 @@ package play.it.http.parsing
 
 import play.api.mvc._
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{Json, JsError}
+import play.api.libs.json.{ Json, JsError }
 import play.api.test._
 
 object AnyContentBodyParserSpec extends PlaySpecification {
@@ -13,7 +13,7 @@ object AnyContentBodyParserSpec extends PlaySpecification {
   "The anyContent body parser" should {
 
     def parse(method: String, contentType: Option[String], body: Array[Byte]) = {
-      val request = FakeRequest(method, "/x").withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq:_*)
+      val request = FakeRequest(method, "/x").withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*)
       await(Enumerator(body) |>>> BodyParsers.parse.anyContent(request))
     }
 

@@ -4,11 +4,11 @@
 package play.it.http.parsing
 
 import play.api.test._
-import play.api.mvc.{BodyParser, BodyParsers}
+import play.api.mvc.{ BodyParser, BodyParsers }
 import play.api.libs.iteratee.Enumerator
 import scala.xml.NodeSeq
 import java.io.File
-import org.apache.commons.io.{FileUtils, IOUtils}
+import org.apache.commons.io.{ FileUtils, IOUtils }
 
 object XmlBodyParserSpec extends PlaySpecification {
 
@@ -16,7 +16,7 @@ object XmlBodyParserSpec extends PlaySpecification {
 
     def parse(xml: String, contentType: Option[String], encoding: String, bodyParser: BodyParser[NodeSeq] = BodyParsers.parse.tolerantXml(1048576)) = {
       await(Enumerator(xml.getBytes(encoding)) |>>>
-        bodyParser(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq:_*)))
+        bodyParser(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*)))
     }
 
     "parse XML bodies" in new WithApplication() {
@@ -123,7 +123,7 @@ object XmlBodyParserSpec extends PlaySpecification {
     }
 
     "gracefully fail when there are too many nested entities" in new WithApplication() {
-      val nested = for (x <- 1 to 30) yield "<!ENTITY laugh" + x  + " \"&laugh" + (x - 1) + ";&laugh" + (x - 1) + ";\">"
+      val nested = for (x <- 1 to 30) yield "<!ENTITY laugh" + x + " \"&laugh" + (x - 1) + ";&laugh" + (x - 1) + ";\">"
       val xml = s"""<?xml version="1.0"?>
                   | <!DOCTYPE billion [
                   | <!ELEMENT billion (#PCDATA)>

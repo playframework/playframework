@@ -74,7 +74,7 @@ class LangSpec extends PlaySpecification {
 }
 
 object trLocaleContext extends org.specs2.mutable.Around {
-  def around[T : org.specs2.execute.AsResult](t: =>T) = {
+  def around[T: org.specs2.execute.AsResult](t: => T) = {
     val defaultLocale = java.util.Locale.getDefault
     java.util.Locale.setDefault(new java.util.Locale("tr"))
     val result = org.specs2.execute.AsResult(t)

@@ -43,7 +43,7 @@ class RequestHeaderSpec extends Specification {
 
   def accept(value: String) = DummyRequestHeader(Map("Accept-Language" -> Seq(value))).acceptLanguages
 
-  case class DummyRequestHeader(headersMap: Map[String, Seq[String]] = Map()) extends RequestHeader{
+  case class DummyRequestHeader(headersMap: Map[String, Seq[String]] = Map()) extends RequestHeader {
     def id = 1
     def tags = Map()
     def uri = ""

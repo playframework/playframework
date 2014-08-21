@@ -23,7 +23,7 @@ object HelpersSpec extends Specification {
       body must contain(idAttr)
 
       // Make sure it doesn't have it twice, issue #478
-      body.substring(body.indexOf(idAttr) + idAttr.length) must not contain(idAttr)
+      body.substring(body.indexOf(idAttr) + idAttr.length) must not contain (idAttr)
     }
 
     "default to a type of text" in {
@@ -37,57 +37,56 @@ object HelpersSpec extends Specification {
       body must contain(typeAttr)
 
       // Make sure it doesn't contain it twice
-      body.substring(body.indexOf(typeAttr) + typeAttr.length) must not contain(typeAttr)
+      body.substring(body.indexOf(typeAttr) + typeAttr.length) must not contain (typeAttr)
     }
   }
 
-
   "@checkboxGroup" should {
-     "allow to check more than one checkbox" in {
-       val form = Form(single("hobbies" -> Forms.list(Forms.text))).fill(List("S", "B"))
-       val body = inputCheckboxGroup.apply(form("hobbies"), Seq(("S", "Surfing"), ("B", "Biking"))).body
+    "allow to check more than one checkbox" in {
+      val form = Form(single("hobbies" -> Forms.list(Forms.text))).fill(List("S", "B"))
+      val body = inputCheckboxGroup.apply(form("hobbies"), Seq(("S", "Surfing"), ("B", "Biking"))).body
 
-       // Append [] to the name for the form binding
-       body must contain( "name=\"hobbies[]\"" )
+      // Append [] to the name for the form binding
+      body must contain("name=\"hobbies[]\"")
 
-       body must contain( """<input type="checkbox" id="hobbies_S" name="hobbies[]" value="S" checked="checked" />""" )
-       body must contain( """<input type="checkbox" id="hobbies_B" name="hobbies[]" value="B" checked="checked" />""" )
-     }
+      body must contain("""<input type="checkbox" id="hobbies_S" name="hobbies[]" value="S" checked="checked" />""")
+      body must contain("""<input type="checkbox" id="hobbies_B" name="hobbies[]" value="B" checked="checked" />""")
+    }
   }
 
   "@select" should {
 
     "allow setting a custom id" in {
 
-      val body = select.apply(Form(single("foo" -> Forms.text))("foo"),Seq(("0", "test")), 'id -> "someid").body
+      val body = select.apply(Form(single("foo" -> Forms.text))("foo"), Seq(("0", "test")), 'id -> "someid").body
 
       val idAttr = "id=\"someid\""
       body must contain(idAttr)
 
       // Make sure it doesn't have it twice, issue #478
-      body.substring(body.indexOf(idAttr) + idAttr.length) must not contain(idAttr)
+      body.substring(body.indexOf(idAttr) + idAttr.length) must not contain (idAttr)
     }
 
     "allow setting custom data attributes" in {
       import Implicits.toAttributePair
 
-      val body = select.apply(Form(single("foo" -> Forms.text))("foo"),Seq(("0", "test")), "data-test" -> "test").body
+      val body = select.apply(Form(single("foo" -> Forms.text))("foo"), Seq(("0", "test")), "data-test" -> "test").body
 
       val dataTestAttr = "data-test=\"test\""
       body must contain(dataTestAttr)
 
       // Make sure it doesn't have it twice, issue #478
-      body.substring(body.indexOf(dataTestAttr) + dataTestAttr.length) must not contain(dataTestAttr)
+      body.substring(body.indexOf(dataTestAttr) + dataTestAttr.length) must not contain (dataTestAttr)
     }
 
     "Work as a simple select" in {
       val form = Form(single("foo" -> Forms.text)).fill("0")
       val body = select.apply(form("foo"), Seq(("0", "test"), ("1", "test"))).body
 
-      body must contain( "name=\"foo\"" )
+      body must contain("name=\"foo\"")
 
-      body must contain( """<option value="0" selected="selected">""" )
-      body must contain( """<option value="1" >""" )
+      body must contain("""<option value="0" selected="selected">""")
+      body must contain("""<option value="1" >""")
     }
 
     "Work as a multiple select" in {
@@ -95,11 +94,11 @@ object HelpersSpec extends Specification {
       val body = select.apply(form("foo"), Seq(("0", "test"), ("1", "test")), 'multiple -> None).body
 
       // Append [] to the name for the form binding
-      body must contain( "name=\"foo[]\"" )
-      body must contain( "multiple" )
+      body must contain("name=\"foo[]\"")
+      body must contain("multiple")
 
-      body must contain( """<option value="0" selected="selected">""" )
-      body must contain( """<option value="1" selected="selected">""" )
+      body must contain("""<option value="0" selected="selected">""")
+      body must contain("""<option value="1" selected="selected">""")
     }
   }
 
@@ -155,7 +154,7 @@ object HelpersSpec extends Specification {
       implicit val lang = Lang("en-US")
 
       val roleForm = Form(single("role" -> Forms.text)).fill("foo")
-      val body = repeat.apply(roleForm("bar"), min = 1){ roleField =>
+      val body = repeat.apply(roleForm("bar"), min = 1) { roleField =>
         select.apply(roleField, Seq("baz" -> "qux"), '_default -> "Role")
       }.mkString("")
 

@@ -9,9 +9,9 @@ import play.api.test._
 import org.apache.commons.io.IOUtils
 import java.util.zip.GZIPInputStream
 import java.io.ByteArrayInputStream
-import play.api.{Configuration, Mode}
-import play.api.mvc.{PathBindable, Handler}
-import play.utils.{UriEncoding, Threads}
+import play.api.{ Configuration, Mode }
+import play.api.mvc.{ PathBindable, Handler }
+import play.utils.{ UriEncoding, Threads }
 import play.core.Router.ReverseRouteContext
 
 object AssetsSpec extends PlaySpecification with WsTestClient {
@@ -91,7 +91,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
 
       result.header(VARY) must beSome(ACCEPT_ENCODING)
       result.header(CONTENT_ENCODING) must beSome("gzip")
-      val ahcResult : com.ning.http.client.Response = result.underlying.asInstanceOf[com.ning.http.client.Response]
+      val ahcResult: com.ning.http.client.Response = result.underlying.asInstanceOf[com.ning.http.client.Response]
       val is = new GZIPInputStream(new ByteArrayInputStream(ahcResult.getResponseBodyAsBytes))
       IOUtils.toString(is) must_== "This is a test gzipped asset.\n"
       // release deflate resources
@@ -103,7 +103,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       val Some(etag) = await(wsUrl("/foo.txt").get()).header(ETAG)
       val result = await(wsUrl("/foo.txt")
         .withHeaders(IF_NONE_MATCH -> etag)
-        get())
+        get ())
 
       result.status must_== NOT_MODIFIED
       result.body must beEmpty
@@ -158,9 +158,9 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
     "ignore if modified since header if if none match header is set" in withServer {
       val result = await(wsUrl("/foo.txt")
         .withHeaders(
-        IF_NONE_MATCH -> "foobar",
-        IF_MODIFIED_SINCE -> "Wed, 01 Jan 2113 00:00:00 GMT" // might break in 100 years, but I won't be alive, so :P
-      ).get())
+          IF_NONE_MATCH -> "foobar",
+          IF_MODIFIED_SINCE -> "Wed, 01 Jan 2113 00:00:00 GMT" // might break in 100 years, but I won't be alive, so :P
+        ).get())
 
       result.status must_== OK
       result.body must_== "This is a test asset."

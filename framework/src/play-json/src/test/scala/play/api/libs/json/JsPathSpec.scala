@@ -16,7 +16,7 @@ object JsPathSpec extends Specification {
 
   "JsPath" should {
     "retrieve simple path" in {
-      val obj = Json.obj( "key1" -> Json.obj("key11" -> "value11"), "key2" -> "value2")
+      val obj = Json.obj("key1" -> Json.obj("key11" -> "value11"), "key2" -> "value2")
 
       (JsPath \ "key1" \ "key11")(obj) must equalTo(Seq(JsString("value11")))
     }
@@ -70,7 +70,7 @@ object JsPathSpec extends Specification {
 
     "retrieve simple indexed path" in {
       val obj = Json.obj(
-        "level1" -> Json.arr( 5, "alpha", true )
+        "level1" -> Json.arr(5, "alpha", true)
       )
 
       (JsPath \ "level1")(2)(obj) must equalTo(Seq(JsBoolean(true)))
@@ -108,7 +108,7 @@ object JsPathSpec extends Specification {
         "level2" -> 5
       )
 
-      ((JsPath \ "level1" \ "key1") (1) \\ "tags")(obj) must equalTo(Seq(Json.arr("alpha1", "beta1", "gamma1")))
+      ((JsPath \ "level1" \ "key1")(1) \\ "tags")(obj) must equalTo(Seq(Json.arr("alpha1", "beta1", "gamma1")))
 
     }
 
@@ -167,7 +167,7 @@ object JsPathSpec extends Specification {
         "level2" -> 5
       )
 
-      ((JsPath \ 'level1 \ 'key1)(1)\\'tags)(obj) must equalTo(Seq(Json.arr("alpha1", "beta1", "gamma1")))
+      ((JsPath \ 'level1 \ 'key1)(1) \\ 'tags)(obj) must equalTo(Seq(Json.arr("alpha1", "beta1", "gamma1")))
 
     }
 
@@ -223,7 +223,7 @@ object JsPathSpec extends Specification {
       (__ \ 'level2).prune(obj).get must beEqualTo(res)
       (__ \ 'level1 \ 'key1).prune(obj).get must beEqualTo(res2)
       (__ \ 'level1 \ 'key2 \ 'key21).prune(obj).get must beEqualTo(res3)
-      (__ \\ 'key21).prune(obj) must beEqualTo(JsError( __ \\ "key21", ValidationError("error.expected.keypathnode")))
+      (__ \\ 'key21).prune(obj) must beEqualTo(JsError(__ \\ "key21", ValidationError("error.expected.keypathnode")))
     }
 
     "get JsPath till last node" in {
@@ -245,14 +245,13 @@ object JsPathSpec extends Specification {
       )))
 
       (__ \ 'level1 \ 'key2 \ 'key23).applyTillLast(res) must beEqualTo(
-        Right(JsError( __ \ 'level1 \ 'key2 \ 'key23 , ValidationError("error.path.missing") ))
+        Right(JsError(__ \ 'level1 \ 'key2 \ 'key23, ValidationError("error.path.missing")))
       )
 
       (__ \ 'level2 \ 'key3).applyTillLast(res) must beEqualTo(
-        Left(JsError( __ \ 'level2 \ 'key3 , ValidationError("error.path.missing") ))
+        Left(JsError(__ \ 'level2 \ 'key3, ValidationError("error.path.missing")))
       )
     }
-
 
     /*"set 1-level field in simple jsobject" in {
       val obj = Json.obj("key" -> "value")

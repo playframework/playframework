@@ -13,11 +13,11 @@ import scala.concurrent.Future
  * It's also a lot simpler, doesn't load default config files etc.
  */
 case class FakeApplication(config: Map[String, Any] = Map(),
-                           path: File = new File("."),
-                           sources: Option[SourceMapper] = None,
-                           mode: Mode.Mode = Mode.Test,
-                           global: GlobalSettings = DefaultGlobal,
-                           plugins: Seq[Plugin] = Nil) extends Application {
+    path: File = new File("."),
+    sources: Option[SourceMapper] = None,
+    mode: Mode.Mode = Mode.Test,
+    global: GlobalSettings = DefaultGlobal,
+    plugins: Seq[Plugin] = Nil) extends Application {
   val classloader = Thread.currentThread.getContextClassLoader
   lazy val configuration = Configuration.from(config)
   def stop() = Future.successful(())

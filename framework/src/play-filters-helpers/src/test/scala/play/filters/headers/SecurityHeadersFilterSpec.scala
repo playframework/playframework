@@ -5,8 +5,8 @@
  */
 package play.filters.headers
 
-import play.api.test.{WithApplication, FakeRequest, FakeApplication, PlaySpecification}
-import play.api.mvc.{RequestHeader, Action, Result}
+import play.api.test.{ WithApplication, FakeRequest, FakeApplication, PlaySpecification }
+import play.api.mvc.{ RequestHeader, Action, Result }
 import play.api.mvc.Results._
 import play.api.Configuration
 import scala.concurrent.Future

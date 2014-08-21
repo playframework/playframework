@@ -111,7 +111,6 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
 
   }
 
-
   def buildCsrfCheckRequest(sendUnauthorizedResult: Boolean, configuration: (String, String)*) = new CsrfTester {
     def apply[T](makeRequest: (WSRequestHolder) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
       case _ => if (sendUnauthorizedResult) {
@@ -138,7 +137,6 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
       }
     }
   }
-
 
   def buildCsrfAddToken(configuration: (String, String)*) = new CsrfTester {
     def apply[T](makeRequest: (WSRequestHolder) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {

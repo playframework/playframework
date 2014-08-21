@@ -6,8 +6,8 @@ package play.it.http
 import play.api.mvc._
 import play.api.test._
 import play.api.test.TestServer
-import java.io.{File, InputStream}
-import javax.net.ssl.{SSLContext, HttpsURLConnection, X509TrustManager}
+import java.io.{ File, InputStream }
+import javax.net.ssl.{ SSLContext, HttpsURLConnection, X509TrustManager }
 import java.security.cert.X509Certificate
 import scala.io.Source
 import java.net.URL
@@ -40,7 +40,7 @@ object SecureFlagSpec extends PlaySpecification {
 
   "Play https server" should {
 
-  val sslPort = 19943
+    val sslPort = 19943
 
     "show that requests are secure in the absence of X_FORWARDED_PROTO" in withServer(secureFlagAction, Some(sslPort)) { _ =>
       val conn = createConn(sslPort)

@@ -6,10 +6,10 @@ package play.filters.csrf
 import org.specs2.mutable.Specification
 import play.api.libs.ws._
 import scala.concurrent.Future
-import play.api.mvc.{Handler, Session}
+import play.api.mvc.{ Handler, Session }
 import play.api.libs.Crypto
-import play.api.test.{FakeApplication, TestServer, PlaySpecification}
-import play.api.http.{ContentTypes, ContentTypeOf, Writeable}
+import play.api.test.{ FakeApplication, TestServer, PlaySpecification }
+import play.api.http.{ ContentTypes, ContentTypeOf, Writeable }
 import org.specs2.matcher.MatchResult
 
 /**
@@ -21,9 +21,9 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
 
   // This extracts the tests out into different configurations
   def sharedTests(csrfCheckRequest: CsrfTester, csrfAddToken: CsrfTester, generate: => String,
-                  addToken: (WSRequestHolder, String) => WSRequestHolder,
-                  getToken: WSResponse => Option[String], compareTokens: (String, String) => MatchResult[Any],
-                  errorStatusCode: Int) = {
+    addToken: (WSRequestHolder, String) => WSRequestHolder,
+    getToken: WSResponse => Option[String], compareTokens: (String, String) => MatchResult[Any],
+    errorStatusCode: Int) = {
     // accept/reject tokens
     "accept requests with token in query string" in {
       lazy val token = generate
@@ -229,7 +229,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
   implicit def simpleFormContentType: ContentTypeOf[Map[String, String]] = ContentTypeOf[Map[String, String]](Some(ContentTypes.FORM))
 
   def withServer[T](config: Seq[(String, String)])(router: PartialFunction[(String, String), Handler])(block: => T) = running(TestServer(testServerPort, FakeApplication(
-    additionalConfiguration = Map(config:_*) ++ Map("application.secret" -> "foobar"),
+    additionalConfiguration = Map(config: _*) ++ Map("application.secret" -> "foobar"),
     withRoutes = router
   )))(block)
 }

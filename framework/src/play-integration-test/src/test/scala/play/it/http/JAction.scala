@@ -4,7 +4,7 @@
 package play.it.http
 
 import play.api.mvc.EssentialAction
-import play.core.j.{JavaActionAnnotations, JavaAction}
+import play.core.j.{ JavaActionAnnotations, JavaAction }
 import play.mvc.{ Http, Result }
 import play.libs.F.Promise
 

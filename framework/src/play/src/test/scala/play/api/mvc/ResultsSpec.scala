@@ -4,13 +4,13 @@
 package play.api.mvc
 
 import org.specs2.mutable._
-import play.api.libs.iteratee.{Iteratee, Enumerator}
+import play.api.libs.iteratee.{ Iteratee, Enumerator }
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import java.util.concurrent.TimeUnit
 import scala.concurrent.ExecutionContext.Implicits._
 import play.api.i18n.Lang
-import play.api.{FakeApplication, Play}
+import play.api.{ FakeApplication, Play }
 import play.api.http.HeaderNames._
 import play.api.http.Status._
 
@@ -39,7 +39,7 @@ object ResultsSpec extends Specification {
       headers.size must be_==(3)
       headers must havePair("Content-Type" -> "text/html")
       headers must havePair("Set-Cookie" -> "yes")
-      headers must not havePair("X-YOP" -> "1")
+      headers must not havePair ("X-YOP" -> "1")
       headers must havePair("X-Yop" -> "2")
     }
 
