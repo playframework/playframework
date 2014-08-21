@@ -218,7 +218,7 @@ case class FakeApplication(
     global.onLoadConfig(initialConfiguration, path, classloader, environment.mode) ++
       play.api.Configuration.from(additionalConfiguration)
 
-  Logger.configure(path, configuration, environment.mode)
+  Logger.configure(environment, configuration)
 
   val applicationLifecycle = new DefaultApplicationLifecycle
 

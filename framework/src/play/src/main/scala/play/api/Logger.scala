@@ -169,10 +169,10 @@ class Logger(val logger: Slf4jLogger) extends LoggerLike
 object Logger extends LoggerLike {
 
   /**
-   * Initialize the Logger in a brut way.
+   * Initialize the Logger when there's no application ClassLoader available.
    */
-  def init(home: java.io.File, mode: Mode.Mode = Mode.Test) {
-    Logger.configure(home, Configuration.empty, mode)
+  def init(rootPath: java.io.File, mode: Mode.Mode) {
+    Logger.configure(Environment(rootPath, Logger.getClass.getClassLoader, mode), Configuration.empty)
   }
 
   /**
@@ -199,7 +199,7 @@ object Logger extends LoggerLike {
   /**
    * Reconfigures the underlying logback infrastructure.
    */
-  def configure(path: File, configuration: Configuration, mode: Mode.Mode) {
+  def configure(env: Environment, configuration: Configuration) {
 
     val validValues = Set("TRACE", "DEBUG", "INFO", "WARN", "ERROR", "OFF", "INHERITED")
     val setLevel = (level: String) => level match {
@@ -207,7 +207,7 @@ object Logger extends LoggerLike {
       case level => ch.qos.logback.classic.Level.toLevel(level)
     }
 
-    val properties = Map("application.home" -> path.getAbsolutePath)
+    val properties = Map("application.home" -> env.rootPath.getAbsolutePath)
     val levels = configuration.getConfig("logger").map { loggerConfig =>
       loggerConfig.keys.map {
         case "resource" | "file" | "url" => "" -> null
@@ -246,25 +246,40 @@ object Logger extends LoggerLike {
           case (name, value) => ctx.putProperty(name, value)
         }
 
-        try {
-          val configResource =
-            Option(System.getProperty("logger.resource"))
-              .map(s => if (s.startsWith("/")) s.drop(1) else s)
-              .map(r => Option(this.getClass.getClassLoader.getResource(r))
-                .getOrElse(new java.net.URL("file:///" + System.getProperty("logger.resource")))
-              ).orElse {
-                Option(System.getProperty("logger.file")).map(new java.io.File(_).toURI.toURL)
-              }.orElse {
-                Option(System.getProperty("logger.url")).map(new java.net.URL(_))
-              }.orElse {
-                Option(this.getClass.getClassLoader.getResource("application-logger.xml"))
-                  .orElse(Option(this.getClass.getClassLoader.getResource("logger.xml")))
-                  .orElse(Option(this.getClass.getClassLoader.getResource("logback.xml")))
-              }
+        // Get an explicitly configured resource URL
+        def explicitResourceUrl = Option(System.getProperty("logger.resource"))
+          .map(s => if (s.startsWith("/")) s.drop(1) else s)
+          .map(r =>
+            env.resource(r)
+              // fallback to a file if the resource wasn't found on the classpath
+              .getOrElse(new java.net.URL("file:///" + r))
+          )
 
-          configResource.foreach { url => configurator.doConfigure(url) }
+        // Get an explicitly configured file URL
+        def explicitFileUrl = Option(System.getProperty("logger.file")).map(new java.io.File(_).toURI.toURL)
+
+        // application-logger.xml and logger.xml are deprecated methods for supplying the configuration
+        // logback.xml is the documented method, logback-play-default.xml is the fallback that Play uses
+        // if no other file is found
+        def resourceUrl = env.resource("application-logger.xml")
+          .orElse(env.resource("logger.xml"))
+          .orElse(env.resource("logback.xml"))
+          .orElse(env.resource(
+            if (env.mode == Mode.Dev) "logback-play-dev.xml" else "logback-play-default.xml"
+          ))
+
+        try {
+          val configResource = explicitResourceUrl orElse explicitFileUrl orElse resourceUrl
+
+          configResource match {
+            case Some(url) => configurator.doConfigure(url)
+            case None =>
+              System.err.println("Could not detect a logback configuration file, not configuring logback")
+          }
         } catch {
-          case NonFatal(e) => e.printStackTrace()
+          case NonFatal(e) =>
+            System.err.println("Error encountered while configuring logback:")
+            e.printStackTrace()
         }
 
         levels.foreach {

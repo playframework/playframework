@@ -4,7 +4,7 @@
 Play uses [Logback](http://logback.qos.ch/) as its logging engine, see the [Logback documentation](http://logback.qos.ch/manual/configuration.html) for details on configuration.
 
 ## Default configuration
-Play uses the following default configuration:
+Play uses the following default configuration in production:
 
 ```xml
 <configuration>
@@ -14,13 +14,13 @@ Play uses the following default configuration:
   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
      <file>${application.home}/logs/application.log</file>
      <encoder>
-       <pattern>%date - [%level] - from %logger in %thread %n%message%n%xException%n</pattern>
+       <pattern>%date [%level] from %logger in %thread - %message%n%xException</pattern>
      </encoder>
    </appender>
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>%coloredLevel %logger{15} - %message%n%xException{5}</pattern>
+      <pattern>%coloredLevel %logger{15} - %message%n%xException{10}</pattern>
     </encoder>
   </appender>
   
@@ -33,7 +33,7 @@ Play uses the following default configuration:
   <logger name="com.avaje.ebeaninternal.server.lib.BackgroundThread" level="OFF" />
   <logger name="com.gargoylesoftware.htmlunit.javascript" level="OFF" />
 
-  <root level="ERROR">
+  <root level="WARN">
     <appender-ref ref="STDOUT" />
     <appender-ref ref="FILE" />
   </root>
@@ -68,11 +68,11 @@ For any custom configuration beyond log levels, you will need to specify your ow
 
 ### Using a configuration file from project source
 
-If you create a configuration file at either `conf/application-logger.xml` or `conf/logger.xml`, Play will use this instead of the default configuration.
+You can provide a default logging configuration by providing a file called `logback.xml`.
 
 ### Using an external configuration file
 
-You can also specify a configuration file via a System property. This is particularly useful for production environments where the configuration file may be managed outside of your application source.
+You can also specify a configuration file via a System property.  This is particularly useful for production environments where the configuration file may be managed outside of your application source.
 
 > Note: The logging system gives top preference to configuration files specified by system properties, secondly to files in the `conf` directory, and lastly to the default. This allows you to customize your application's logging configuration and still override it for specific environments or developer setups.
 
@@ -92,15 +92,8 @@ Specify a configuration file to be loaded from the file system:
 $ start -Dlogger.file=/opt/prod/logger.xml
 ```
 
-#### Using `-Dlogger.url`
-
-Specify a configuration file to be loaded from an URL:
-
-```
-$ start -Dlogger.url=http://conf.mycompany.com/logger.xml
-```
-
 ### Examples
+
 Here's an example of configuration that would work well in a production environment:
 
 ```xml
@@ -115,7 +108,7 @@ Here's an example of configuration that would work well in a production environm
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
-            <pattern>%date{yyyy-MM-dd HH:mm:ss ZZZZ} - [%level] - from %logger in %thread %n%message%n%xException%n</pattern>
+            <pattern>%date{yyyy-MM-dd HH:mm:ss ZZZZ} [%level] from %logger in %thread - %message%n%xException</pattern>
         </encoder>
     </appender>
     
