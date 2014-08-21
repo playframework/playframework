@@ -30,7 +30,7 @@ class GuiceApplicationLoader extends ApplicationLoader {
     // todo - abstract this logic out into something pluggable, with the default delegating to global
     val configuration = global.onLoadConfig(context.initialConfiguration, env.rootPath, env.classLoader, env.mode)
 
-    Logger.configure(env.rootPath, configuration, env.mode)
+    Logger.configure(env, configuration)
 
     val modules = guiced(Seq(
       BindingKey(classOf[GlobalSettings]) to global,
