@@ -7,7 +7,7 @@ package play.api.libs.ws.ssl
 
 import org.specs2.mutable._
 
-import java.security.{SecureRandom, KeyPairGenerator}
+import java.security.{ SecureRandom, KeyPairGenerator }
 import org.joda.time.Instant
 import sun.security.x509.AlgorithmId
 

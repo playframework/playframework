@@ -16,7 +16,7 @@ object PlayRunHookSpec extends Specification {
 
       hooks.run(hook => executedHooks += ((hook, true)))
 
-      executedHooks.size must be equalTo(3)
+      executedHooks.size must be equalTo (3)
     }
 
     "re-throw an exception on single hook failure" in {
@@ -31,7 +31,7 @@ object PlayRunHookSpec extends Specification {
 
       hooks.run(_.beforeStarted()) must throwA[HookMockException]
 
-      executedHooks.size must be equalTo(3)
+      executedHooks.size must be equalTo (3)
     }
 
     "combine several thrown exceptions into a RunHookCompositeThrowable" in {
@@ -59,10 +59,10 @@ object PlayRunHookSpec extends Specification {
         case e: Throwable =>
           e.getMessage must contain("HookFirstMockException")
           e.getMessage must contain("HookSecondMockException")
-          e.getMessage must not contain("HookThirdMockException")
+          e.getMessage must not contain ("HookThirdMockException")
       }
 
-      executedHooks.size must be equalTo(3)
+      executedHooks.size must be equalTo (3)
     }
   }
 

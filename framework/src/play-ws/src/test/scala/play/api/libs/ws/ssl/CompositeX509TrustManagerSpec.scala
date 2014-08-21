@@ -9,7 +9,7 @@ import org.specs2.mutable._
 import org.specs2.mock.Mockito
 
 import javax.net.ssl.X509TrustManager
-import java.security.cert.{CertificateException, X509Certificate}
+import java.security.cert.{ CertificateException, X509Certificate }
 
 object CompositeX509TrustManagerSpec extends Specification with Mockito {
 

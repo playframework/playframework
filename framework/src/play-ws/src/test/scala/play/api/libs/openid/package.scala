@@ -5,12 +5,11 @@ package play.api.libs
 
 import io.Source
 import org.jboss.netty.handler.codec.http.QueryStringDecoder
-import java.net.{MalformedURLException, URL}
+import java.net.{ MalformedURLException, URL }
 import util.control.Exception._
 import collection.JavaConverters._
 
 import scala.language.implicitConversions
-
 
 package object openid {
   type Params = Map[String, Seq[String]]
@@ -35,8 +34,8 @@ package object openid {
   // See 10.1 - Positive Assertions
   // http://openid.net/specs/openid-authentication-2_0.html#positive_assertions
   def createDefaultResponse(claimedId: String,
-                            identity: String,
-                            defaultSigned: String = "op_endpoint,claimed_id,identity,return_to,response_nonce,assoc_handle"): Map[String, Seq[String]] = Map(
+    identity: String,
+    defaultSigned: String = "op_endpoint,claimed_id,identity,return_to,response_nonce,assoc_handle"): Map[String, Seq[String]] = Map(
     "openid.ns" -> "http://specs.openid.net/auth/2.0",
     "openid.mode" -> "id_res",
     "openid.op_endpoint" -> "https://www.google.com/a/example.com/o8/ud?be=o8",

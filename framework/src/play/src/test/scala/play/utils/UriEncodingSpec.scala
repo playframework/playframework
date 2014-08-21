@@ -41,7 +41,7 @@ object UriEncodingSpec extends Specification {
 
   "Path segment encoding and decoding" should {
 
-/*
+    /*
 RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
 
 2.2.  Reserved Characters
@@ -93,7 +93,7 @@ RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
       encodingFor("@", "utf-8") must_== NotEncoded
     }
 
-/*
+    /*
 2.3.  Unreserved Characters
    ...
       unreserved  = ALPHA / DIGIT / "-" / "." / "_" / "~"
@@ -116,7 +116,7 @@ RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
       encodingFor("~", "utf-8") must_== NotEncoded
     }
 
-/*
+    /*
 2.1.  Percent-Encoding
 
    A percent-encoding mechanism is used to represent a data octet in a
@@ -148,7 +148,7 @@ RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax
       encodingFor("“ЌύБЇ”", "UTF-8") must_== PercentEncoded("%E2%80%9C%D0%8C%CF%8D%D0%91%D0%87%E2%80%9D")
     }
 
-/*
+    /*
 2.1.  Percent-Encoding
 
       ... A percent-encoded octet is encoded as a character

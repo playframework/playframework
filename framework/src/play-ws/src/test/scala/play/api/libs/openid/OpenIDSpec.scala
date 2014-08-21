@@ -10,7 +10,7 @@ import org.mockito._
 import play.api.mvc.Request
 import play.api.http._
 import play.api.http.Status._
-import play.api.libs.openid.Errors.{BAD_RESPONSE, AUTH_ERROR}
+import play.api.libs.openid.Errors.{ BAD_RESPONSE, AUTH_ERROR }
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import java.util.concurrent.TimeUnit
@@ -23,7 +23,7 @@ object OpenIDSpec extends Specification with Mockito {
   val dur = Duration(10, TimeUnit.SECONDS)
 
   // 9.1 Request parameters - http://openid.net/specs/openid-authentication-2_0.html#anchor27
-  def isValidOpenIDRequest(query:Params) = {
+  def isValidOpenIDRequest(query: Params) = {
     query.get("openid.mode") must_== Some(Seq("checkid_setup"))
     query.get("openid.ns") must_== Some(Seq("http://specs.openid.net/auth/2.0"))
   }
@@ -123,7 +123,7 @@ object OpenIDSpec extends Specification with Mockito {
         }
 
         "every query parameter apart from openid.mode is used in the verification request" in {
-          (verificationQuery - "openid.mode") forall { case (key,value) => responseQueryString.get(key) == Some(value) } must beTrue
+          (verificationQuery - "openid.mode") forall { case (key, value) => responseQueryString.get(key) == Some(value) } must beTrue
         }
       }
     }
@@ -142,7 +142,7 @@ object OpenIDSpec extends Specification with Mockito {
       Await.result(openId.verifiedId(setupMockRequest(responseQueryString)), dur)
 
       "direct verification does not use the openid.op_endpoint that is part of the query string" in {
-        ws.urls contains(spoofedEndpoint) must beFalse
+        ws.urls contains (spoofedEndpoint) must beFalse
       }
       "the endpoint is resolved using discovery on the claimed Id" in {
         ws.urls(0) must be equalTo claimedId
@@ -223,7 +223,7 @@ object OpenIDSpec extends Specification with Mockito {
     ws
   }
 
-  def setupMockRequest(queryString:Params = openIdResponse) = {
+  def setupMockRequest(queryString: Params = openIdResponse) = {
     val request = mock[Request[_]]
     request.queryString returns queryString
     request

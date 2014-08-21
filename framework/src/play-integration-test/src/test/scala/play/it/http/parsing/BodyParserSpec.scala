@@ -5,13 +5,12 @@ package play.it.http.parsing
 
 import scala.concurrent.Future
 
-import play.api.libs.iteratee.{Done, Enumerator, ExecutionSpecification, Input}
-import play.api.mvc.{BodyParser, BodyParsers, Results, Result}
-import play.api.test.{FakeRequest, PlaySpecification}
+import play.api.libs.iteratee.{ Done, Enumerator, ExecutionSpecification, Input }
+import play.api.mvc.{ BodyParser, BodyParsers, Results, Result }
+import play.api.test.{ FakeRequest, PlaySpecification }
 
 import org.specs2.ScalaCheck
-import org.scalacheck.{Arbitrary, Gen}
-
+import org.scalacheck.{ Arbitrary, Gen }
 
 object BodyParserSpec extends PlaySpecification with ExecutionSpecification with ScalaCheck {
 
@@ -20,7 +19,7 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
     await {
       Future {
         bodyParser(FakeRequest())
-      } .flatMap {
+      }.flatMap {
         Enumerator.empty |>>> _
       }
     }
@@ -45,7 +44,6 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
       )
     }
 
-
   /* map and mapM should satisfy the functor laws, namely,
    * preservation of identity and function composition.
    * flatMap and flatMapM should satisfy the monad laws, namely,
@@ -58,7 +56,6 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
    * All of the functions in question should pass a simple result
    * through.
    */
-
 
   "BodyParser.map" should {
 
@@ -76,7 +73,7 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
       mustExecute(3) { implicit ec => // three executions from `map`
         run {
           constant(x).map(inc)
-                     .map(dbl)
+            .map(dbl)
         } must_== run {
           constant(x).map(inc andThen dbl)
         }
@@ -112,7 +109,7 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
          */
         run {
           constant(x).mapM(inc)(mapMEC)
-                     .mapM(dbl)(mapMEC)
+            .mapM(dbl)(mapMEC)
         } must_== run {
           constant(x).mapM { y =>
             inc(y).flatMap(dbl)(flatMapPEC)
@@ -160,7 +157,7 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
         val innerPEC = innerEC.prepare()
         run {
           constant(x).flatMap(inc)(outerEC)
-                     .flatMap(dbl)(outerEC)
+            .flatMap(dbl)(outerEC)
         } must_== run {
           constant(x).flatMap { y =>
             inc(y).flatMap(dbl)(innerPEC)
@@ -216,7 +213,7 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
          */
         run {
           constant(x).flatMapM(inc)(flatMapMEC)
-                     .flatMapM(dbl)(flatMapMEC)
+            .flatMapM(dbl)(flatMapMEC)
         } must_== run {
           constant(x).flatMapM { y =>
             inc(y).map { z =>
@@ -253,7 +250,7 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
       mustExecute(3) { implicit ec => // three executions from `validate`
         run {
           constant(x).validate(inc)
-                     .validate(dbl)
+            .validate(dbl)
         } must_== run {
           constant(x).validate { y =>
             inc(y).right.flatMap(dbl)

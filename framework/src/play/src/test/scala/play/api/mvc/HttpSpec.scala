@@ -34,13 +34,13 @@ object HttpSpec extends Specification {
     }
 
     "return the value from a map by case insensitive" in {
-      (headers.toMap.get("A") must_== Some(Seq("a1", "a2"))) and 
+      (headers.toMap.get("A") must_== Some(Seq("a1", "a2"))) and
         (headers.toMap.get("b") must_== Some(Seq("b1", "b2")))
     }
 
     "return the value from a simple map by case insensitive" in {
       (headers.toSimpleMap.get("A") must beSome("a1")) and
-       (headers.toSimpleMap.get("b") must beSome("b1"))
+        (headers.toSimpleMap.get("b") must beSome("b1"))
     }
   }
 
@@ -56,19 +56,18 @@ object HttpSpec extends Specification {
       val cookies = Seq(
         Cookie("foo", "bar"),
         Cookie("foo", "baz"),
-        Cookie("foo", "bar", domain=Some("Foo")),
-        Cookie("foo", "baz", domain=Some("FoO")),
-        Cookie("foo", "baz", secure=true),
-        Cookie("foo", "baz", httpOnly=false),
-        Cookie("foo", "bar", path="/blah"),
-        Cookie("foo", "baz", path="/blah"))
-
+        Cookie("foo", "bar", domain = Some("Foo")),
+        Cookie("foo", "baz", domain = Some("FoO")),
+        Cookie("foo", "baz", secure = true),
+        Cookie("foo", "baz", httpOnly = false),
+        Cookie("foo", "bar", path = "/blah"),
+        Cookie("foo", "baz", path = "/blah"))
 
       Cookies.merge("", cookies) must ===(
         "foo=baz; Path=/; Domain=FoO; HTTPOnly" + "; " + // Cookie("foo", "baz", domain=Some("FoO"))
-        "foo=baz; Path=/"                       + "; " + // Cookie("foo", "baz", httpOnly=false)
-        "foo=baz; Path=/blah; HTTPOnly"                  // Cookie("foo", "baz", path="/blah")
-        )
+          "foo=baz; Path=/" + "; " + // Cookie("foo", "baz", httpOnly=false)
+          "foo=baz; Path=/blah; HTTPOnly" // Cookie("foo", "baz", path="/blah")
+      )
     }
   }
 }

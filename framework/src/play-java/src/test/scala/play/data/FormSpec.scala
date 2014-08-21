@@ -55,15 +55,15 @@ object FormSpec extends Specification {
       user2.getName must beEqualTo("Kiki")
       user2.getEmails.size must beEqualTo(1)
 
-      val user3 = Form.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com"), "emails[1]" -> Array("kiki@zen.com")) )).get
+      val user3 = Form.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "emails[0]" -> Array("kiki@gmail.com"), "emails[1]" -> Array("kiki@zen.com")))).get
       user3.getName must beEqualTo("Kiki")
       user3.getEmails.size must beEqualTo(2)
 
-      val user4 = Form.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "emails[]" -> Array("kiki@gmail.com")) )).get
+      val user4 = Form.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "emails[]" -> Array("kiki@gmail.com")))).get
       user4.getName must beEqualTo("Kiki")
       user4.getEmails.size must beEqualTo(1)
 
-      val user5 = Form.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "emails[]" -> Array("kiki@gmail.com", "kiki@zen.com")) )).get
+      val user5 = Form.form(classOf[play.data.AnotherUser]).bindFromRequest(new DummyRequest(Map("name" -> Array("Kiki"), "emails[]" -> Array("kiki@gmail.com", "kiki@zen.com")))).get
       user5.getName must beEqualTo("Kiki")
       user5.getEmails.size must beEqualTo(2)
 
@@ -129,14 +129,14 @@ object FormSpec extends Specification {
           form.fill(new JavaForm(List(new JavaSubForm("a", "b"), new JavaSubForm("c", "d"),
             new JavaSubForm("e", "f"), new JavaSubForm("g", "h")).asJava))
         ) must exactly("foo[0].a=a,foo[0].b=b", "foo[1].a=c,foo[1].b=d",
-          "foo[2].a=e,foo[2].b=f", "foo[3].a=g,foo[3].b=h").inOrder
+            "foo[2].a=e,foo[2].b=f", "foo[3].a=g,foo[3].b=h").inOrder
       }
 
       "get the order of the fields correct when filled from a form" in {
         render(
           fillNoBind("a" -> "b", "c" -> "d", "e" -> "f", "g" -> "h")
         ) must exactly("foo[0].a=a,foo[0].b=b", "foo[1].a=c,foo[1].b=d",
-          "foo[2].a=e,foo[2].b=f", "foo[3].a=g,foo[3].b=h").inOrder
+            "foo[2].a=e,foo[2].b=f", "foo[3].a=g,foo[3].b=h").inOrder
       }
     }
   }
@@ -181,5 +181,4 @@ class DummyRequest(data: Map[String, Array[String]]) extends play.mvc.Http.Reque
   def queryString: java.util.Map[String, Array[String]] = new java.util.HashMap()
   setUsername("peter")
 }
-
 

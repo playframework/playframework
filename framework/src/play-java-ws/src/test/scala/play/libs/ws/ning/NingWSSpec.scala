@@ -5,7 +5,7 @@ import scala.collection.JavaConverters._
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
 
-import com.ning.http.client.{FluentCaseInsensitiveStringsMap, Response}
+import com.ning.http.client.{ FluentCaseInsensitiveStringsMap, Response }
 
 object NingWSSpec extends Specification with Mockito {
 
@@ -27,7 +27,7 @@ object NingWSSpec extends Specification with Mockito {
 
     "should respond to getMethod" in {
       val client = mock[NingWSClient]
-      val request : NingWSRequest = new NingWSRequest(client, "GET", "", emptyMap, emptyMap)
+      val request: NingWSRequest = new NingWSRequest(client, "GET", "", emptyMap, emptyMap)
       request.getMethod must be_==("GET")
     }
 

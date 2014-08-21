@@ -43,12 +43,12 @@ trait IterateeSpecification extends NoConcurrentExecutionContext {
    * Convenience function for creating a Done Iteratee that returns the given value
    */
   def done(value: String): Iteratee[String, String] = Done[String, String](value)
-  
+
   /**
    * Convenience function for an Error Iteratee that contains the given error message
    */
   def error(msg: String): Iteratee[String, String] = Error[String](msg, Input.Empty)
-  
+
   /**
    * Convenience function for creating a Cont Iteratee that feeds its input to the given function
    */
@@ -58,14 +58,14 @@ trait IterateeSpecification extends NoConcurrentExecutionContext {
       case unrecognized => throw new IllegalArgumentException(s"Unexpected input for Cont iteratee: $unrecognized")
     })
   }
-  
+
   /**
-   * Convenience function for creating the given Iteratee after the given delay 
+   * Convenience function for creating the given Iteratee after the given delay
    */
   def delayed(it: => Iteratee[String, String], delay: Duration = Duration(5, MILLISECONDS))(implicit ec: ExecutionContext): Iteratee[String, String] = {
     Iteratee.flatten(timeout(it, delay))
   }
-  
+
   val timer = new java.util.Timer
   def timeout[A](a: => A, d: Duration)(implicit e: ExecutionContext): Future[A] = {
     val p = Promise[A]()
@@ -75,5 +75,5 @@ trait IterateeSpecification extends NoConcurrentExecutionContext {
       }
     }, d.toMillis)
     p.future
-  }  
+  }
 }

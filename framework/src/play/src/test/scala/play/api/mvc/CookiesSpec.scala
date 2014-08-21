@@ -10,7 +10,7 @@ object CookiesSpec extends Specification {
   "object Cookies#apply" should {
 
     "create new Cookies instance with cookies" in {
-      val originalCookie = Cookie(name = "cookie", value="value")
+      val originalCookie = Cookie(name = "cookie", value = "value")
 
       val headerString = Cookies.encode(Seq(originalCookie))
       val c = Cookies(header = Some(headerString))
@@ -25,9 +25,9 @@ object CookiesSpec extends Specification {
   }
 
   "trait Cookies#get" should {
-    val originalCookie = Cookie(name = "cookie", value="value")
+    val originalCookie = Cookie(name = "cookie", value = "value")
     val headerString = Cookies.encode(Seq(originalCookie))
-    val c : Cookies = Cookies(header = Some(headerString))
+    val c: Cookies = Cookies(header = Some(headerString))
 
     "get a cookie" in {
       c.get("cookie") must beSome[Cookie].which { cookie =>
@@ -41,9 +41,9 @@ object CookiesSpec extends Specification {
   }
 
   "trait Cookies#apply" should {
-    val originalCookie = Cookie(name = "cookie", value="value")
+    val originalCookie = Cookie(name = "cookie", value = "value")
     val headerString = Cookies.encode(Seq(originalCookie))
-    val c : Cookies = Cookies(header = Some(headerString))
+    val c: Cookies = Cookies(header = Some(headerString))
 
     "apply for a cookie" in {
       val cookie = c("cookie")
@@ -58,8 +58,8 @@ object CookiesSpec extends Specification {
   }
 
   "trait Cookies#traversable" should {
-    val cookie1 = Cookie(name = "cookie1", value="value2")
-    val cookie2 = Cookie(name = "cookie2", value="value2")
+    val cookie1 = Cookie(name = "cookie1", value = "value2")
+    val cookie2 = Cookie(name = "cookie2", value = "value2")
 
     "be empty for no cookies" in {
       val c = Cookies(header = None)
@@ -68,16 +68,16 @@ object CookiesSpec extends Specification {
 
     "contain elements for some cookies" in {
       val headerString = Cookies.encode(Seq(cookie1, cookie2))
-      val c : Cookies = Cookies(header = Some(headerString))
-      c must contain(allOf(cookie1,cookie2))
+      val c: Cookies = Cookies(header = Some(headerString))
+      c must contain(allOf(cookie1, cookie2))
     }
 
     // technically the same as above
     "run a foreach for a cookie" in {
       val headerString = Cookies.encode(Seq(cookie1))
-      val c : Cookies = Cookies(header = Some(headerString))
+      val c: Cookies = Cookies(header = Some(headerString))
 
-      var myCookie : Cookie = null
+      var myCookie: Cookie = null
       c.foreach { cookie =>
         myCookie = cookie
       }

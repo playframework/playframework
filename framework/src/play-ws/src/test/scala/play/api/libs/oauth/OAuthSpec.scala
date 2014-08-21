@@ -7,7 +7,7 @@ import play.api.mvc._
 import play.api.test._
 import play.api.Application
 
-import scala.concurrent.{Promise, Future}
+import scala.concurrent.{ Promise, Future }
 import play.api.libs.ws.WS
 
 class OAuthSpec extends PlaySpecification {
@@ -17,23 +17,26 @@ class OAuthSpec extends PlaySpecification {
   val consumerKey = ConsumerKey("someConsumerKey", "someVerySecretConsumerSecret")
   val requestToken = RequestToken("someRequestToken", "someVerySecretRequestSecret")
   val oauthCalculator = OAuthCalculator(consumerKey, requestToken)
-  
+
   "OAuth" should {
     "sign a simple get request" in {
-      val (request, body, hostUrl) = receiveRequest { implicit app => hostUrl =>
-        WS.url(hostUrl + "/foo").sign(oauthCalculator).get()
+      val (request, body, hostUrl) = receiveRequest { implicit app =>
+        hostUrl =>
+          WS.url(hostUrl + "/foo").sign(oauthCalculator).get()
       }
       OAuthRequestVerifier.verifyRequest(request, body, hostUrl, consumerKey, requestToken)
     }
     "sign a get request with query parameters" in {
-      val (request, body, hostUrl) = receiveRequest { implicit app => hostUrl =>
-        WS.url(hostUrl + "/foo").withQueryString("param" -> "paramValue").sign(oauthCalculator).get()
+      val (request, body, hostUrl) = receiveRequest { implicit app =>
+        hostUrl =>
+          WS.url(hostUrl + "/foo").withQueryString("param" -> "paramValue").sign(oauthCalculator).get()
       }
       OAuthRequestVerifier.verifyRequest(request, body, hostUrl, consumerKey, requestToken)
     }
     "sign a post request with a body" in {
-      val (request, body, hostUrl) = receiveRequest { implicit app => hostUrl =>
-        WS.url(hostUrl + "/foo").sign(oauthCalculator).post(Map("param" -> Seq("paramValue")))
+      val (request, body, hostUrl) = receiveRequest { implicit app =>
+        hostUrl =>
+          WS.url(hostUrl + "/foo").sign(oauthCalculator).post(Map("param" -> Seq("paramValue")))
       }
       OAuthRequestVerifier.verifyRequest(request, body, hostUrl, consumerKey, requestToken)
     }

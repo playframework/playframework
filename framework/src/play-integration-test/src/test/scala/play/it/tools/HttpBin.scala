@@ -16,7 +16,6 @@ import play.filters.gzip.GzipFilter
 
 import scala.util.matching.Regex
 
-
 /**
  * This is a reimplementation of the excellent httpbin.org service
  * by Kenneth Reitz
@@ -33,7 +32,7 @@ object HttpBinApplication {
   }
 
   private val requestHeaderWriter = new Writes[RequestHeader] {
-    def writes(r: RequestHeader):JsValue = Json.obj(
+    def writes(r: RequestHeader): JsValue = Json.obj(
       "origin" -> r.remoteAddress,
       "url" -> "",
       "args" -> r.queryString.mapValues(_.head),
@@ -42,23 +41,23 @@ object HttpBinApplication {
   }
 
   private def requestWriter[A] = new Writes[Request[A]] {
-    def writes(r: Request[A]):JsValue =
+    def writes(r: Request[A]): JsValue =
       requestHeaderWriter.writes(r).as[JsObject] ++
         Json.obj(
           "json" -> JsNull,
           "data" -> "",
           "form" -> JsObject(Nil)
         ) ++ (r.body match {
-          // Json Body
-          case e: JsValue => 
-            Json.obj("json" -> e)
-          // X-WWW-Form-Encoded
-          case f: Map[String, Seq[String]] => 
-            Json.obj("form" -> JsObject(f.mapValues(x => JsString(x.mkString(", "))).toSeq))
-          // Anything else
-          case b =>
-            Json.obj("data" -> JsString(b.toString))
-        })
+            // Json Body
+            case e: JsValue =>
+              Json.obj("json" -> e)
+            // X-WWW-Form-Encoded
+            case f: Map[String, Seq[String]] =>
+              Json.obj("form" -> JsObject(f.mapValues(x => JsString(x.mkString(", "))).toSeq))
+            // Anything else
+            case b =>
+              Json.obj("data" -> JsString(b.toString))
+          })
   }
 
   val getIp = route("GET", "/ip") {
@@ -111,13 +110,13 @@ object HttpBinApplication {
 
   private val gzipFilter = new GzipFilter()
 
-  val gzip = Seq("GET", "PATCH", "POST", "PUT", "DELETE").map{method =>
+  val gzip = Seq("GET", "PATCH", "POST", "PUT", "DELETE").map { method =>
     route("GET", "/gzip") {
       gzipFilter(Action { request =>
         Ok(requestHeaderWriter.writes(request).as[JsObject] ++ Json.obj("gzipped" -> true, "method" -> method))
       })
     }
-  }.reduceLeft( (a, b) => a.orElse(b))
+  }.reduceLeft((a, b) => a.orElse(b))
 
   val status = route("GET", "^/status/([0-9]+)$".r) { param =>
     Action {
@@ -128,7 +127,7 @@ object HttpBinApplication {
 
   val responseHeaders = route("GET", "/response-header") {
     Action { request =>
-      Ok("").withHeaders(request.queryString.mapValues(_.mkString(",")).toSeq :_*)
+      Ok("").withHeaders(request.queryString.mapValues(_.mkString(",")).toSeq: _*)
     }
   }
 
@@ -138,7 +137,7 @@ object HttpBinApplication {
     }
   }.orElse(route("GET", "^/redirect/([0-9]+)".r) { param =>
     Action {
-      Redirect("redirect/"+param)
+      Redirect("redirect/" + param)
     }
   })
 
@@ -146,7 +145,7 @@ object HttpBinApplication {
     Action { request =>
       request.queryString.get("url").map { u =>
         Redirect(u.head)
-      }.getOrElse{
+      }.getOrElse {
         BadRequest("")
       }
     }
@@ -160,15 +159,15 @@ object HttpBinApplication {
 
   val cookiesSet = route("GET", "/cookies/set") {
     Action { request =>
-      Redirect("/cookies").withCookies(request.queryString.mapValues(_.head).toSeq.map{
+      Redirect("/cookies").withCookies(request.queryString.mapValues(_.head).toSeq.map {
         case (k, v) => Cookie(k, v)
-      } :_*)
+      }: _*)
     }
   }
 
   val cookiesDelete = route("GET", "/cookies/delete") {
     Action { request =>
-      Redirect("/cookies").discardingCookies(request.queryString.keys.toSeq.map(DiscardingCookie(_)) :_*)
+      Redirect("/cookies").discardingCookies(request.queryString.keys.toSeq.map(DiscardingCookie(_)): _*)
     }
   }
 
@@ -194,11 +193,11 @@ object HttpBinApplication {
     Action { request =>
       val body = requestHeaderWriter.writes(request).as[JsObject]
 
-      val content = 0.to(param.toInt).map{ index =>
+      val content = 0.to(param.toInt).map { index =>
         body ++ Json.obj("id" -> index)
       }
 
-      Ok.chunked(Enumerator(content :_*)).as("application/json")
+      Ok.chunked(Enumerator(content: _*)).as("application/json")
     }
   }
 
@@ -212,10 +211,10 @@ object HttpBinApplication {
       import scala.util.Try
       val p = Promise[Result]()
 
-      Future{
+      Future {
         Try {
           Await.result(p.future, Duration(param.toInt, SECONDS))
-        }.getOrElse{
+        }.getOrElse {
           p.success(Ok(requestWriter.writes(request)))
         }
       }

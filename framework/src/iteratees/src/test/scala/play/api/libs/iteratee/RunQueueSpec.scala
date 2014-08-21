@@ -46,7 +46,7 @@ object RunQueueSpec extends Specification with ExecutionSpecification {
             orderingErrors.incrementAndGet() // Record the error
           }
           // If this is the last task, complete our result promise
-          if ((observedRunCount+1) >= runs) {
+          if ((observedRunCount + 1) >= runs) {
             result.success(orderingErrors.get)
           }
         }
@@ -93,9 +93,9 @@ object RunQueueSpec extends Specification with ExecutionSpecification {
           runFinished.success(())
           Future.successful(())
         }
-        Await.result(runFinished.future, waitTime) must_==(())
+        Await.result(runFinished.future, waitTime) must_== (())
       }
     }
- }
+  }
 
 }

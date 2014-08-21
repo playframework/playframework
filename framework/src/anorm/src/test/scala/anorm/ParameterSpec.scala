@@ -23,7 +23,7 @@ import acolyte.jdbc.{
 import acolyte.jdbc.AcolyteDSL.{ connection, handleStatement }
 import acolyte.jdbc.Implicits._
 
-object ParameterSpec 
+object ParameterSpec
     extends org.specs2.mutable.Specification with JodaParameterSpec {
 
   "Parameter" title
@@ -127,9 +127,9 @@ object ParameterSpec
       DParam(Jbd1, SqlDec1) :: Nil) => 1 /* case ok */
     case UpdateExecution("set-some-sbd ?",
       DParam(Jbd1, SqlDec1) :: Nil) => 1 /* case ok */
-    case UpdateExecution("set-none ?", DParam(null, _) :: Nil)      => 1 /* ok */
+    case UpdateExecution("set-none ?", DParam(null, _) :: Nil) => 1 /* ok */
     case UpdateExecution("set-empty-opt ?", DParam(null, _) :: Nil) => 1 /*ok*/
-    case UpdateExecution("no-param-placeholder", Nil)               => 1 /* ok */
+    case UpdateExecution("no-param-placeholder", Nil) => 1 /* ok */
     case UpdateExecution("no-snd-placeholder ?",
       DParam("first", SqlStr) :: Nil) => 1 /* ok */
     case UpdateExecution("set-old ?", DParam(2l, SqlLong) :: Nil) => 1 // ok
@@ -438,7 +438,7 @@ object ParameterSpec
             aka("parameter conversion") must throwA[IllegalArgumentException]).
             and(SQL("set-null-str-opt {p}").
               on("p" -> null.asInstanceOf[Option[String]]).
-                aka("conversion") must throwA[IllegalArgumentException])
+              aka("conversion") must throwA[IllegalArgumentException])
       }
 
     "be defined Java big decimal option" in withConnection() { implicit c =>

@@ -107,7 +107,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
             .as(scalar[String].single)
             .aka("single string") must_== "Result for test-proc-1"
         }
-     }
+    }
 
     "handle optional property in case class" >> {
       "return instance with defined option" in withQueryResult(rowList2(
@@ -323,9 +323,9 @@ object AnormSpec extends Specification with H2Database with AnormTest {
 
   "Aggregation over all rows" should {
     "be empty when there is no result" in withQueryResult(QueryResult.Nil) {
-      implicit c => 
-      SQL"EXEC test".fold[Option[Int]](None)({ (_, _) => Some(0) }).
-        aka("aggregated value") must beRight(None)
+      implicit c =>
+        SQL"EXEC test".fold[Option[Int]](None)({ (_, _) => Some(0) }).
+          aka("aggregated value") must beRight(None)
 
     }
 
@@ -333,7 +333,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
       rowList2(classOf[String] -> "foo", classOf[Int] -> "bar").
         append("row1", 100) :+ ("row2", 200)) { implicit c =>
 
-        SQL"SELECT * FROM test".fold(List[(String,Int)]())(
+        SQL"SELECT * FROM test".fold(List[(String, Int)]())(
           { (l, row) => l :+ (row[String]("foo") -> row[Int]("bar")) }).
           aka("tuple stream") must_== Right(List("row1" -> 100, "row2" -> 200))
 
@@ -341,22 +341,22 @@ object AnormSpec extends Specification with H2Database with AnormTest {
 
     "handle failure" in withQueryResult(
       rowList1(classOf[String] -> "foo") :+ "A" :+ "B") { implicit c =>
-      var i = 0
-        SQL"SELECT str".fold(Set[String]()) { (l, row) => 
-      if (i == 0) { i = i+1; l + row[String]("foo") } else sys.error("Failure")
+        var i = 0
+        SQL"SELECT str".fold(Set[String]()) { (l, row) =>
+          if (i == 0) { i = i + 1; l + row[String]("foo") } else sys.error("Failure")
 
-      } aka "aggregate on failure" must beLike {
-        case Left(err :: Nil) => err.getMessage aka "failure" must_== "Failure"
-      } and (i aka "row count" must_== 1)
-    }
+        } aka "aggregate on failure" must beLike {
+          case Left(err :: Nil) => err.getMessage aka "failure" must_== "Failure"
+        } and (i aka "row count" must_== 1)
+      }
   }
 
   "Aggregation over variable number of rows" should {
     "be empty when there is no result" in withQueryResult(QueryResult.Nil) {
-      implicit c => 
-      SQL"EXEC test".foldWhile[Option[Int]](None)(
-        { (_, _) => Some(0) -> true }).
-        aka("aggregated value") must beRight(None)
+      implicit c =>
+        SQL"EXEC test".foldWhile[Option[Int]](None)(
+          { (_, _) => Some(0) -> true }).
+          aka("aggregated value") must beRight(None)
 
     }
 
@@ -364,44 +364,44 @@ object AnormSpec extends Specification with H2Database with AnormTest {
       rowList2(classOf[String] -> "foo", classOf[Int] -> "bar").
         append("row1", 100) :+ ("row2", 200)) { implicit c =>
 
-        SQL"SELECT * FROM test".foldWhile(List[(String,Int)]())({ (l, row) => 
-          (l :+ (row[String]("foo") -> row[Int]("bar"))) -> true 
+        SQL"SELECT * FROM test".foldWhile(List[(String, Int)]())({ (l, row) =>
+          (l :+ (row[String]("foo") -> row[Int]("bar"))) -> true
         }) aka "tuple stream" must_== Right(List("row1" -> 100, "row2" -> 200))
       }
 
     "handle failure" in withQueryResult(
       rowList1(classOf[String] -> "foo") :+ "A" :+ "B") { implicit c =>
-      var i = 0
-        SQL"SELECT str".foldWhile(Set[String]()) { (l, row) => 
-      if (i == 0) { i = i+1; (l + row[String]("foo")) -> true } 
-      else sys.error("Failure")
+        var i = 0
+        SQL"SELECT str".foldWhile(Set[String]()) { (l, row) =>
+          if (i == 0) { i = i + 1; (l + row[String]("foo")) -> true }
+          else sys.error("Failure")
 
-      } aka "aggregate on failure" must beLike {
-        case Left(err :: Nil) => err.getMessage aka "failure" must_== "Failure"
-      } and (i aka "row count" must_== 1)
-    }
+        } aka "aggregate on failure" must beLike {
+          case Left(err :: Nil) => err.getMessage aka "failure" must_== "Failure"
+        } and (i aka "row count" must_== 1)
+      }
 
     "stop after first row" in withQueryResult(
       rowList1(classOf[String] -> "foo") :+ "A" :+ "B") { implicit c =>
-      var i = 0
-        SQL"SELECT str".foldWhile(Set[String]()) { (l, row) => 
-      if (i == 0) { i = i+1; (l + row[String]("foo")) -> true } else (l, false)
+        var i = 0
+        SQL"SELECT str".foldWhile(Set[String]()) { (l, row) =>
+          if (i == 0) { i = i + 1; (l + row[String]("foo")) -> true } else (l, false)
 
-      } aka "partial aggregate" must_== Right(Set("A"))
-    }
+        } aka "partial aggregate" must_== Right(Set("A"))
+      }
   }
 
   "Process variable number of rows" should {
     "do nothing when there is no result" in withQueryResult(QueryResult.Nil) {
-      implicit c => 
-      SQL"EXEC test".withIterator(_.toList) aka "iteration" must beRight.which {
-        _ aka "result list" must beEmpty
-      }
+      implicit c =>
+        SQL"EXEC test".withIterator(_.toList) aka "iteration" must beRight.which {
+          _ aka "result list" must beEmpty
+        }
     }
 
     "handle failure" in withQueryResult(
       rowList1(classOf[String] -> "foo") :+ "A" :+ "B") { implicit c =>
-      var first = false
+        var first = false
         SQL"SELECT str" withIterator { it =>
           it.next() // read first
           first = true
@@ -409,7 +409,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
         } aka "processing with failure" must beLeft.like {
           case err :: Nil => err.getMessage aka "failure" must_== "Failure"
         } and (first aka "first read" must beTrue)
-    }
+      }
 
     "stop after first row without failure" in withQueryResult(
       rowList1(classOf[String] -> "foo") :+ "A" :+ "B") { implicit c =>
@@ -417,7 +417,7 @@ object AnormSpec extends Specification with H2Database with AnormTest {
           val first = it.next()
           Set(first[String]("foo"))
         } aka "partial processing" must_== Right(Set("A"))
-    }
+      }
   }
 
   "Insertion" should {

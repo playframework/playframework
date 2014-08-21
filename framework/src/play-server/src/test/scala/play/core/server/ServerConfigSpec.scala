@@ -21,5 +21,4 @@ object ServerConfigSpec extends Specification {
     }
   }
 
-
 }

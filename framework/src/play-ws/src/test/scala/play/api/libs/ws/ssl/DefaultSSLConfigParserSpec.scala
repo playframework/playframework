@@ -19,14 +19,14 @@ object DefaultSSLConfigParserSpec extends Specification {
 
   "SSLConfigParser" should {
 
-    def parseThis(input: String)(implicit app:play.api.Application) = {
+    def parseThis(input: String)(implicit app: play.api.Application) = {
       val config = play.api.Configuration(ConfigFactory.parseString(input))
       val parser = new DefaultSSLConfigParser(config, app.classloader)
       parser.parse()
     }
 
     "parse ws.ssl base section" in new WithApplication() {
-      val actual = parseThis( """
+      val actual = parseThis("""
                                 |default = true
                                 |protocol = TLSv1.2
                                 |checkRevocation = true
@@ -68,7 +68,7 @@ object DefaultSSLConfigParserSpec extends Specification {
     }
 
     "parse ws.ssl.loose section" in new WithApplication() {
-      val actual = parseThis( """
+      val actual = parseThis("""
                                 |loose = {
                                 | allowLegacyHelloMessages = true
                                 | allowUnsafeRenegotiation = true
@@ -87,7 +87,7 @@ object DefaultSSLConfigParserSpec extends Specification {
     }
 
     "parse ws.ssl.debug section" in new WithApplication() {
-      val actual = parseThis( """
+      val actual = parseThis("""
                                 |debug = [
                                 |"certpath",
                                 |"ssl",
@@ -134,7 +134,7 @@ object DefaultSSLConfigParserSpec extends Specification {
     }
 
     "parse ws.ssl.debug section with all" in new WithApplication() {
-      val actual = parseThis( """
+      val actual = parseThis("""
                                 |debug = [
                                 |"certpath",
                                 |"all"
@@ -150,7 +150,7 @@ object DefaultSSLConfigParserSpec extends Specification {
     }
 
     "parse ws.ssl.debug section with ssl" in new WithApplication() {
-      val actual = parseThis( """
+      val actual = parseThis("""
                                 |debug = [
                                 |"ssl"
                                 |]
@@ -162,7 +162,7 @@ object DefaultSSLConfigParserSpec extends Specification {
     }
 
     "parse ws.ssl.trustBuilder section" in new WithApplication() {
-      val info = parseThis( """
+      val info = parseThis("""
                               |trustManager = {
                               |  algorithm = "trustme"
                               |  stores = [
@@ -170,7 +170,6 @@ object DefaultSSLConfigParserSpec extends Specification {
                               |  ]
                               |}
                             """.stripMargin)
-
 
       info.trustManagerConfig must beSome.which {
         tmc =>
@@ -186,7 +185,7 @@ object DefaultSSLConfigParserSpec extends Specification {
     }
 
     "parse ws.ssl.keyManager section" in new WithApplication() {
-      val info = parseThis( """
+      val info = parseThis("""
                               |keyManager = {
                               |  password = "changeit"
                               |  algorithm = "keyStore"
@@ -200,7 +199,6 @@ object DefaultSSLConfigParserSpec extends Specification {
                               |  ]
                               |}
                             """.stripMargin)
-
 
       info.keyManagerConfig must beSome.which {
         kmc =>
@@ -222,7 +220,7 @@ object DefaultSSLConfigParserSpec extends Specification {
     }
 
     "fail on ws.ssl.keyManager with no path defined" in new WithApplication() {
-      parseThis( """
+      parseThis("""
                    |keyManager = {
                    |  algorithm = "keyStore"
                    |  stores = [

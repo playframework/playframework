@@ -4,7 +4,7 @@
 package play.it.auth
 
 import play.api.test._
-import play.api.mvc.Security.{AuthenticatedRequest, AuthenticatedBuilder}
+import play.api.mvc.Security.{ AuthenticatedRequest, AuthenticatedBuilder }
 import play.api.mvc._
 import scala.concurrent.Future
 import play.api.test.FakeApplication

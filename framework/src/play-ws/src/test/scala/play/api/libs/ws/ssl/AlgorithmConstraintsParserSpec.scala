@@ -7,7 +7,7 @@ package play.api.libs.ws.ssl
 
 import org.specs2.mutable._
 import scala.util.parsing.input.CharSequenceReader
-import org.specs2.matcher.{ExpectedParsedResult, ParserMatchers}
+import org.specs2.matcher.{ ExpectedParsedResult, ParserMatchers }
 
 object AlgorithmConstraintsParserSpec extends Specification with ParserMatchers {
 
@@ -17,10 +17,9 @@ object AlgorithmConstraintsParserSpec extends Specification with ParserMatchers 
 
   "AlgorithmConstraintParser" should {
 
-
     "succeed to recognize 'MD5, MD2, SHA1'" in {
-      val constraints : List[AlgorithmConstraint] = List(AlgorithmConstraint("MD5"), AlgorithmConstraint("MD2"), AlgorithmConstraint("SHA1"))
-      line must succeedOn("MD5, MD2, SHA1").withResult(constraints:ExpectedParsedResult[List[AlgorithmConstraint]])
+      val constraints: List[AlgorithmConstraint] = List(AlgorithmConstraint("MD5"), AlgorithmConstraint("MD2"), AlgorithmConstraint("SHA1"))
+      line must succeedOn("MD5, MD2, SHA1").withResult(constraints: ExpectedParsedResult[List[AlgorithmConstraint]])
     }
 
     "succeed to recognize 'RSA'" in {

@@ -4,7 +4,7 @@
 package play.core.router
 
 import org.specs2.mutable.Specification
-import play.core.{Router, PathPattern, DynamicPart, StaticPart}
+import play.core.{ Router, PathPattern, DynamicPart, StaticPart }
 
 object RouterSpec extends Specification {
 

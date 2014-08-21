@@ -12,14 +12,14 @@ object DefaultWSConfigParserSpec extends Specification {
 
   "DefaultWSConfigParser" should {
 
-    def parseThis(input: String)(implicit app:play.api.Application) = {
+    def parseThis(input: String)(implicit app: play.api.Application) = {
       val config = play.api.Configuration(ConfigFactory.parseString(input))
       val parser = new DefaultWSConfigParser(config, app.injector.instanceOf[Environment])
       parser.parse()
     }
 
     "parse ws base section" in new WithApplication {
-      val actual = parseThis( """
+      val actual = parseThis("""
                                 |ws.timeout.connection = 9999
                                 |ws.timeout.idle = 666
                                 |ws.timeout.request = 1234

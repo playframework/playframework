@@ -21,9 +21,9 @@ object HttpSpec extends org.specs2.mutable.Specification {
       (Call("GET", "/playframework").absoluteURL()(req.copy(secure = true)).
         aka("absolute URL 1") must_== (
           "https://playframework.com/playframework")) and (
-        Call("GET", "/playframework").absoluteURL(true)(req).
-          aka("absolute URL 2") must_== (
-            "https://playframework.com/playframework"))
+            Call("GET", "/playframework").absoluteURL(true)(req).
+            aka("absolute URL 2") must_== (
+              "https://playframework.com/playframework"))
     }
   }
 
@@ -43,9 +43,9 @@ object HttpSpec extends org.specs2.mutable.Specification {
       (Call("GET", "/playframework").webSocketURL()(req.copy(secure = true)).
         aka("absolute URL 1") must_== (
           "wss://playframework.com/playframework")) and (
-        Call("GET", "/playframework").webSocketURL(true)(req).
-          aka("absolute URL 2") must_== (
-            "wss://playframework.com/playframework"))
+            Call("GET", "/playframework").webSocketURL(true)(req).
+            aka("absolute URL 2") must_== (
+              "wss://playframework.com/playframework"))
     }
   }
 

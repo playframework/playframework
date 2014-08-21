@@ -6,11 +6,11 @@
 package play.api.libs.ws.ssl
 
 import java.net.Socket
-import java.security.{Principal, PrivateKey}
+import java.security.{ Principal, PrivateKey }
 
 import scala.Array
 
-import javax.net.ssl.{X509ExtendedKeyManager, SSLEngine, X509KeyManager}
+import javax.net.ssl.{ X509ExtendedKeyManager, SSLEngine, X509KeyManager }
 import org.specs2.mock._
 import org.specs2.mutable._
 import java.security.cert.X509Certificate
@@ -74,7 +74,6 @@ object CompositeX509KeyManagerSpec extends Specification with Mockito {
     }
 
     "chooseEngineServerAlias" should {
-
 
       "not do anything with a X509KeyManager" in {
         val mockKeyManager = mock[X509KeyManager]

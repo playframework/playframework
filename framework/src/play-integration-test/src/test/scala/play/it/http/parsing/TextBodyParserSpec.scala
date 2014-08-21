@@ -4,7 +4,7 @@
 package play.it.http.parsing
 
 import play.api.test._
-import play.api.mvc.{BodyParser, BodyParsers}
+import play.api.mvc.{ BodyParser, BodyParsers }
 import play.api.libs.iteratee.Enumerator
 
 object TextBodyParserSpec extends PlaySpecification {
@@ -13,7 +13,7 @@ object TextBodyParserSpec extends PlaySpecification {
 
     def parse(text: String, contentType: Option[String], encoding: String, bodyParser: BodyParser[String] = BodyParsers.parse.tolerantText) = {
       await(Enumerator(text.getBytes(encoding)) |>>>
-        bodyParser(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq:_*)))
+        bodyParser(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*)))
     }
 
     "parse text bodies" in new WithApplication() {

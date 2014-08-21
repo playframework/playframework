@@ -4,13 +4,13 @@
 package play.filters.gzip
 
 import play.api.test._
-import play.api.mvc.{HttpConnection, Action, Result}
+import play.api.mvc.{ HttpConnection, Action, Result }
 import play.api.mvc.Results._
 import java.util.zip.GZIPInputStream
 import java.io.ByteArrayInputStream
 import org.apache.commons.io.IOUtils
 import scala.concurrent.Future
-import play.api.libs.iteratee.{Iteratee, Enumerator}
+import play.api.libs.iteratee.{ Iteratee, Enumerator }
 import scala.util.Random
 import org.specs2.matcher.DataTables
 
@@ -34,39 +34,39 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
 
       val (plain, gzipped) = (None, Some("gzip"))
 
-      "Accept-Encoding of request"          || "Response" |
-      //------------------------------------++------------+
-      "gzip"                                !! gzipped    |
-      "compress,gzip"                       !! gzipped    |
-      "compress, gzip"                      !! gzipped    |
-      "gzip,compress"                       !! gzipped    |
-      "deflate, gzip,compress"              !! gzipped    |
-      "gzip, compress"                      !! gzipped    |
-      "identity, gzip, compress"            !! gzipped    |
-      "GZip"                                !! gzipped    |
-      "*"                                   !! gzipped    |
-      "*;q=0"                               !! plain      |
-      "*; q=0"                              !! plain      |
-      "*;q=0.000"                           !! plain      |
-      "gzip;q=0"                            !! plain      |
-      "gzip; q=0.00"                        !! plain      |
-      "*;q=0, gZIP"                         !! gzipped    |
-      "compress;q=0.1, *;q=0, gzip"         !! gzipped    |
-      "compress;q=0.1, *;q=0, gzip;q=0.005" !! gzipped    |
-      "compress, gzip;q=0.001"              !! gzipped    |
-      "compress, gzip;q=0.002"              !! gzipped    |
-      "compress;q=1, *;q=0, gzip;q=0.000"   !! plain      |
-      "compress;q=1, *;q=0"                 !! plain      |
-      "identity"                            !! plain      |
-      "gzip;q=0.5, identity"                !! plain      |
-      "gzip;q=0.5, identity;q=1"            !! plain      |
-      "gzip;q=0.6, identity;q=0.5"          !! gzipped    |
-      "*;q=0.7, gzip;q=0.6, identity;q=0.4" !! gzipped    |
-      ""                                    !! plain      |> {
+      "Accept-Encoding of request" || "Response" |
+        //------------------------------------++------------+
+        "gzip" !! gzipped |
+        "compress,gzip" !! gzipped |
+        "compress, gzip" !! gzipped |
+        "gzip,compress" !! gzipped |
+        "deflate, gzip,compress" !! gzipped |
+        "gzip, compress" !! gzipped |
+        "identity, gzip, compress" !! gzipped |
+        "GZip" !! gzipped |
+        "*" !! gzipped |
+        "*;q=0" !! plain |
+        "*; q=0" !! plain |
+        "*;q=0.000" !! plain |
+        "gzip;q=0" !! plain |
+        "gzip; q=0.00" !! plain |
+        "*;q=0, gZIP" !! gzipped |
+        "compress;q=0.1, *;q=0, gzip" !! gzipped |
+        "compress;q=0.1, *;q=0, gzip;q=0.005" !! gzipped |
+        "compress, gzip;q=0.001" !! gzipped |
+        "compress, gzip;q=0.002" !! gzipped |
+        "compress;q=1, *;q=0, gzip;q=0.000" !! plain |
+        "compress;q=1, *;q=0" !! plain |
+        "identity" !! plain |
+        "gzip;q=0.5, identity" !! plain |
+        "gzip;q=0.5, identity;q=1" !! plain |
+        "gzip;q=0.6, identity;q=0.5" !! gzipped |
+        "*;q=0.7, gzip;q=0.6, identity;q=0.4" !! gzipped |
+        "" !! plain |> {
 
-      (codings, expectedEncoding) =>
-        header(CONTENT_ENCODING, requestAccepting(codings)) must be equalTo(expectedEncoding)
-      }
+          (codings, expectedEncoding) =>
+            header(CONTENT_ENCODING, requestAccepting(codings)) must be equalTo (expectedEncoding)
+        }
     }
 
     "not gzip responses when not requested" in withApplication(Ok("hello")) {
@@ -103,10 +103,10 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
         // http connection close will trigger the gzip filter not to buffer
         .copy(connection = HttpConnection.Close)
     ) {
-      val result = makeGzipRequest
-      checkGzipped(result)
-      header(CONTENT_LENGTH, result) must beNone
-    }
+        val result = makeGzipRequest
+        checkGzipped(result)
+        header(CONTENT_LENGTH, result) must beNone
+      }
 
     val body = Random.nextString(1000)
 

@@ -8,15 +8,15 @@ package play.api.libs.ws.ning
 import org.specs2.mutable._
 import org.specs2.mock._
 
-import play.api.libs.ws.{Defaults => WSDefaults}
+import play.api.libs.ws.{ Defaults => WSDefaults }
 import play.api.libs.ws.ssl._
 
 import play.api.libs.ws.ssl.DefaultSSLConfig
 import play.api.libs.ws.DefaultWSClientConfig
 
-import javax.net.ssl.{HostnameVerifier, SSLContext}
+import javax.net.ssl.{ HostnameVerifier, SSLContext }
 import com.ning.http.client.ProxyServerSelector
-import com.ning.http.util.{ProxyUtils, AllowAllHostnameVerifier}
+import com.ning.http.util.{ ProxyUtils, AllowAllHostnameVerifier }
 import play.api.libs.ws.ssl.DefaultHostnameVerifier
 import org.slf4j.LoggerFactory
 

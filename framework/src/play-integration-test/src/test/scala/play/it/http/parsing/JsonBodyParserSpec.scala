@@ -4,9 +4,9 @@
 package play.it.http.parsing
 
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{Json, JsError}
+import play.api.libs.json.{ Json, JsError }
 import play.api.mvc.Results.BadRequest
-import play.api.mvc.{BodyParser, BodyParsers}
+import play.api.mvc.{ BodyParser, BodyParsers }
 import play.api.test._
 
 object JsonBodyParserSpec extends PlaySpecification {
@@ -18,7 +18,7 @@ object JsonBodyParserSpec extends PlaySpecification {
 
     def parse[A](json: String, contentType: Option[String], encoding: String, bodyParser: BodyParser[A] = BodyParsers.parse.tolerantJson) = {
       await(Enumerator(json.getBytes(encoding)) |>>>
-        bodyParser(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq:_*)))
+        bodyParser(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*)))
     }
 
     "parse JSON bodies" in new WithApplication() {

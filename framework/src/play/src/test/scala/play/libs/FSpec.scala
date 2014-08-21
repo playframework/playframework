@@ -12,7 +12,7 @@ import scala.collection.JavaConverters
 import scala.concurrent.{ Future, Promise }
 
 object FSpec extends Specification
-  with ExecutionSpecification {
+    with ExecutionSpecification {
 
   "An F.Promise" should {
 

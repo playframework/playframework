@@ -47,17 +47,15 @@ object ScriptSpec extends Specification {
 
   }
 
-
   private case class ScriptSansEvolution(sql: String) extends Script {
     override val evolution = Evolution(0, "", "")
   }
-
 
   "Conflicts" should {
 
     "not be noticed if there aren't any" in {
 
-      val downRest = (9 to 1).reverse.map(i=> Evolution(i, s"DummySQLUP$i",s"DummySQLDOWN$i"))
+      val downRest = (9 to 1).reverse.map(i => Evolution(i, s"DummySQLUP$i", s"DummySQLDOWN$i"))
       val upRest = downRest
 
       val (conflictingDowns, conflictingUps) = Evolutions.conflictings(downRest, upRest)
@@ -68,8 +66,8 @@ object ScriptSpec extends Specification {
 
     "be noticed on the most recent one" in {
 
-      val downRest = (1 to 9).reverse.map(i=> Evolution(i, s"DummySQLUP$i",s"DummySQLDOWN$i"))
-      val upRest = Evolution(9, "DifferentDummySQLUP", "DifferentDummySQLDOWN") +: (1 to 8).reverse.map(i=> Evolution(i, s"DummySQLUP$i",s"DummySQLDOWN$i"))
+      val downRest = (1 to 9).reverse.map(i => Evolution(i, s"DummySQLUP$i", s"DummySQLDOWN$i"))
+      val upRest = Evolution(9, "DifferentDummySQLUP", "DifferentDummySQLDOWN") +: (1 to 8).reverse.map(i => Evolution(i, s"DummySQLUP$i", s"DummySQLDOWN$i"))
 
       val (conflictingDowns, conflictingUps) = Evolutions.conflictings(downRest, upRest)
 
@@ -81,8 +79,8 @@ object ScriptSpec extends Specification {
 
     "be noticed in the middle" in {
 
-      val downRest = (1 to 9).reverse.map(i=> Evolution(i, s"DummySQLUP$i",s"DummySQLDOWN$i"))
-      val upRest = (6 to 9).reverse.map(i=> Evolution(i, s"DummySQLUP$i",s"DummySQLDOWN$i")) ++: Evolution(5, "DifferentDummySQLUP", "DifferentDummySQLDOWN") +: (1 to 4).reverse.map(i=> Evolution(i, s"DummySQLUP$i",s"DummySQLDOWN$i"))
+      val downRest = (1 to 9).reverse.map(i => Evolution(i, s"DummySQLUP$i", s"DummySQLDOWN$i"))
+      val upRest = (6 to 9).reverse.map(i => Evolution(i, s"DummySQLUP$i", s"DummySQLDOWN$i")) ++: Evolution(5, "DifferentDummySQLUP", "DifferentDummySQLDOWN") +: (1 to 4).reverse.map(i => Evolution(i, s"DummySQLUP$i", s"DummySQLDOWN$i"))
 
       val (conflictingDowns, conflictingUps) = Evolutions.conflictings(downRest, upRest)
 
@@ -96,8 +94,8 @@ object ScriptSpec extends Specification {
 
     "be noticed on the first" in {
 
-      val downRest = (1 to 9).reverse.map(i=> Evolution(i, s"DummySQLUP$i",s"DummySQLDOWN$i"))
-      val upRest = (2 to 9).reverse.map(i=> Evolution(i, s"DummySQLUP$i",s"DummySQLDOWN$i")) ++: List(Evolution(1, "DifferentDummySQLUP", "DifferentDummySQLDOWN"))
+      val downRest = (1 to 9).reverse.map(i => Evolution(i, s"DummySQLUP$i", s"DummySQLDOWN$i"))
+      val upRest = (2 to 9).reverse.map(i => Evolution(i, s"DummySQLUP$i", s"DummySQLDOWN$i")) ++: List(Evolution(1, "DifferentDummySQLUP", "DifferentDummySQLDOWN"))
 
       val (conflictingDowns, conflictingUps) = Evolutions.conflictings(downRest, upRest)
 

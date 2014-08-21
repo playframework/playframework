@@ -8,7 +8,6 @@ import play.api.test._
 import play.api.libs.ws._
 import play.api.test.FakeApplication
 
-
 object FormFieldOrderSpec extends PlaySpecification {
 
   "Play' form URL Decoding " should {
@@ -19,14 +18,15 @@ object FormFieldOrderSpec extends PlaySpecification {
     val fakeApp = FakeApplication(withRoutes = {
       case ("POST", "/") => Action {
         request: Request[AnyContent] =>
-        // Check precondition. This needs to be an x-www-form-urlencoded request body
+          // Check precondition. This needs to be an x-www-form-urlencoded request body
           request.headers.get("Content-Type") must beSome(contentType)
           // The following just ingests the request body and converts it to a sequnce of strings of the form name=value
           val pairs: Seq[String] = {
             request.body.asFormUrlEncoded map {
-              params: Map[String, Seq[String]] => {
-                for ((key: String, value: Seq[String]) <- params) yield key + "=" + value.mkString
-              }.toSeq
+              params: Map[String, Seq[String]] =>
+                {
+                  for ((key: String, value: Seq[String]) <- params) yield key + "=" + value.mkString
+                }.toSeq
             }
           }.getOrElse(Seq.empty[String])
           // And now this just puts it all back into one string separated by & to reincarnate, hopefully, the

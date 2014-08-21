@@ -25,7 +25,7 @@ object OAuthRequestVerifier {
    * Verify that the given request is a valid OAuth request given the consumer key and request token
    */
   def verifyRequest(request: RequestHeader, body: Array[Byte], hostUrl: String, consumerKey: ConsumerKey,
-                    requestToken: RequestToken): MatchResult[_] = {
+    requestToken: RequestToken): MatchResult[_] = {
     val method = request.method
     val baseUrl = hostUrl + request.path
 

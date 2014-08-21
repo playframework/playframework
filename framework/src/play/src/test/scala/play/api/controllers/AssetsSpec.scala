@@ -64,7 +64,7 @@ object AssetsSpec extends Specification {
       Assets.resourceNameAt("/x", "foo+bar%3A%20baz.txt") must beSome("/x/foo+bar: baz.txt")
     }
 
-   "look up assets with percent-encoded file separators" in {
+    "look up assets with percent-encoded file separators" in {
       Assets.resourceNameAt("/x", "%2f") must beSome("/x/")
       Assets.resourceNameAt("/x", "a%2fb") must beSome("/x/a/b")
       Assets.resourceNameAt("/x", "a/%2fb") must beSome("/x/a/b")

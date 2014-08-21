@@ -40,7 +40,7 @@ object JsonSpec extends Specification {
         Reads.optionWithNull(Reads.dateReads(dateFormat)),
         Writes.optionWithNull(Writes.dateWrites(dateFormat))
       )
-    ).inmap( optopt => optopt.flatten, (opt: Option[Date]) => Some(opt) )
+    ).inmap(optopt => optopt.flatten, (opt: Option[Date]) => Some(opt))
   )(Post, unlift(Post.unapply))
 
   "JSON" should {
@@ -54,16 +54,16 @@ object JsonSpec extends Specification {
           "field33" -> Json.arr("blabla", 456L, JsNull)
         )
       ) must beEqualTo(
-        Json.obj(
-          "field2" -> "beta",
-          "field3" -> Json.obj(
-            "field31" -> true,
-            "field33" -> Json.arr("blabla", 456L, JsNull),
-            "field32" -> 123.45
-          ),
-          "field1" -> 123
+          Json.obj(
+            "field2" -> "beta",
+            "field3" -> Json.obj(
+              "field31" -> true,
+              "field33" -> Json.arr("blabla", 456L, JsNull),
+              "field32" -> 123.45
+            ),
+            "field1" -> 123
+          )
         )
-      )
 
       Json.obj(
         "field1" -> 123,
@@ -73,17 +73,17 @@ object JsonSpec extends Specification {
           "field32" -> 123.45,
           "field33" -> Json.arr("blabla", JsNull)
         )
-      ) must not equalTo(
-        Json.obj(
-          "field2" -> "beta",
-          "field3" -> Json.obj(
-            "field31" -> true,
-            "field33" -> Json.arr("blabla", 456L),
-            "field32" -> 123.45
-          ),
-          "field1" -> 123
+      ) must not equalTo (
+          Json.obj(
+            "field2" -> "beta",
+            "field3" -> Json.obj(
+              "field31" -> true,
+              "field33" -> Json.arr("blabla", 456L),
+              "field32" -> 123.45
+            ),
+            "field1" -> 123
+          )
         )
-      )
 
       Json.obj(
         "field1" -> 123,
@@ -93,16 +93,16 @@ object JsonSpec extends Specification {
           "field32" -> 123.45,
           "field33" -> Json.arr("blabla", 456L, JsNull)
         )
-      ) must not equalTo(
-        Json.obj(
-          "field3" -> Json.obj(
-            "field31" -> true,
-            "field33" -> Json.arr("blabla", 456L, JsNull),
-            "field32" -> 123.45
-          ),
-          "field1" -> 123
+      ) must not equalTo (
+          Json.obj(
+            "field3" -> Json.obj(
+              "field31" -> true,
+              "field33" -> Json.arr("blabla", 456L, JsNull),
+              "field32" -> 123.45
+            ),
+            "field1" -> 123
+          )
         )
-      )
     }
 
     "serialize and deserialize maps properly" in {
@@ -149,7 +149,7 @@ object JsonSpec extends Specification {
     "Serialize and deserialize BigDecimals" in {
       val n = BigDecimal("12345678901234567890.42")
       val json = toJson(n)
-      json must equalTo (JsNumber(n))
+      json must equalTo(JsNumber(n))
       fromJson[BigDecimal](json) must equalTo(JsSuccess(n))
     }
 
@@ -171,15 +171,15 @@ object JsonSpec extends Specification {
     "Serialize and deserialize Lists" in {
       val xs: List[Int] = (1 to 5).toList
       val json = arr(1, 2, 3, 4, 5)
-      toJson(xs) must equalTo (json)
-      fromJson[List[Int]](json) must equalTo (JsSuccess(xs))
+      toJson(xs) must equalTo(json)
+      fromJson[List[Int]](json) must equalTo(JsSuccess(xs))
     }
 
     "Serialize and deserialize Jackson ObjectNodes" in {
       val on = JacksonJson.mapper.createObjectNode()
         .put("foo", 1).put("bar", "two")
       val json = Json.obj("foo" -> 1, "bar" -> "two")
-      toJson(on) must equalTo (json)
+      toJson(on) must equalTo(json)
       fromJson[JsonNode](json).map(_.toString) must_== JsSuccess(on.toString)
     }
 
@@ -187,12 +187,12 @@ object JsonSpec extends Specification {
       val an = JacksonJson.mapper.createArrayNode()
         .add("one").add(2)
       val json = Json.arr("one", 2)
-      toJson(an) must equalTo (json)
+      toJson(an) must equalTo(json)
       fromJson[JsonNode](json).map(_.toString) must_== JsSuccess(an.toString)
     }
 
     "Map[String,String] should be turned into JsValue" in {
-      val f = toJson(Map("k"->"v"))
+      val f = toJson(Map("k" -> "v"))
       f.toString must equalTo("{\"k\":\"v\"}")
     }
 
@@ -201,11 +201,11 @@ object JsonSpec extends Specification {
       val expectedJson = JsObject(List(
         "foo" -> JsObject(List(
           "foo" -> JsArray(List[JsValue](JsString("bar")))
-          )),
+        )),
         "bar" -> JsObject(List(
           "foo" -> JsArray(List[JsValue](JsString("bar")))
-          ))
         ))
+      ))
       val resultJson = Json.parse(recursiveJson)
       resultJson must equalTo(expectedJson)
 
@@ -252,10 +252,10 @@ object JsonSpec extends Specification {
         "key4" -> "\u6837\u54C1"
       )
       Json.asciiStringify(js) must beEqualTo(
-        "{\"key1\":\"\\u2028\\u2029\\u2030\","+
-        "\"key2\":\"\\u00E1\\u00E9\\u00ED\\u00F3\\u00FA\","+
-        "\"key3\":\"\\u00A9\\u00A3\","+"" +
-        "\"key4\":\"\\u6837\\u54C1\"}")
+        "{\"key1\":\"\\u2028\\u2029\\u2030\"," +
+          "\"key2\":\"\\u00E1\\u00E9\\u00ED\\u00F3\\u00FA\"," +
+          "\"key3\":\"\\u00A9\\u00A3\"," + "" +
+          "\"key4\":\"\\u6837\\u54C1\"}")
     }
 
     "asciiStringify should escape ascii characters properly" in {
@@ -283,18 +283,18 @@ object JsonSpec extends Specification {
         (__ \ 'key4).write(constraints.map[String])
       ).tupled
 
-      Json.toJson( List(1, 2, 3),
+      Json.toJson(List(1, 2, 3),
         Set("alpha", "beta", "gamma"),
         Seq("alpha", "beta", "gamma"),
         Map("key1" -> "value1", "key2" -> "value2")
       ) must beEqualTo(
-        Json.obj(
-          "key1" -> Json.arr(1, 2, 3),
-          "key2" -> Json.arr("alpha", "beta", "gamma"),
-          "key3" -> Json.arr("alpha", "beta", "gamma"),
-          "key4" -> Json.obj("key1" -> "value1", "key2" -> "value2")
+          Json.obj(
+            "key1" -> Json.arr(1, 2, 3),
+            "key2" -> Json.arr("alpha", "beta", "gamma"),
+            "key3" -> Json.arr("alpha", "beta", "gamma"),
+            "key4" -> Json.obj("key1" -> "value1", "key2" -> "value2")
+          )
         )
-      )
     }
 
     "write in 2nd level" in {
@@ -318,7 +318,6 @@ object JsonSpec extends Specification {
 
     }
   }
-
 
 }
 

@@ -16,7 +16,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import play.api.test.TestServer
 import play.api.test.FakeApplication
 
-
 object HeadActionSpec extends PlaySpecification with WsTestClient with Results with HeaderNames {
   def route(verb: String, path: String)(handler: EssentialAction): PartialFunction[(String, String), Handler] = {
     case (v, p) if v == verb && p == path => handler
