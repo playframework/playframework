@@ -16,3 +16,9 @@ libraryDependencies ++= Seq(
   "org.scala-sbt" % "scripted-plugin" % sbtVersion.value,
   "org.webjars" % "webjars-locator" % "0.12"
 )
+
+// override scalariform version to get some fixes
+
+resolvers += Resolver.typesafeRepo("maven-releases")
+
+libraryDependencies += "org.scalariform" %% "scalariform" % "0.1.5-20140822-69e2e30"

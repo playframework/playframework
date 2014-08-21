@@ -6,7 +6,7 @@ package com.typesafe.play.docs.sbtplugin
 import java.util.concurrent.Callable
 import java.util.jar.JarFile
 
-import com.typesafe.play.docs.sbtplugin.PlayDocsValidation.{CodeSamplesReport, MarkdownRefReport}
+import com.typesafe.play.docs.sbtplugin.PlayDocsValidation.{ CodeSamplesReport, MarkdownRefReport }
 import play.core.BuildDocHandler
 import play.core.server.ServerWithStop
 import play.sbtplugin.Colors
@@ -55,7 +55,7 @@ object PlayDocsPlugin extends AutoPlugin {
     docsJarScalaBinaryVersion <<= scalaBinaryVersion,
     libraryDependencies ++= Seq(
       "com.typesafe.play" %% "play-docs" % play.core.PlayVersion.current,
-      "com.typesafe.play" % s"play-docs_${docsJarScalaBinaryVersion.value}" % docsVersion.value % "docs" notTransitive()
+      "com.typesafe.play" % s"play-docs_${docsJarScalaBinaryVersion.value}" % docsVersion.value % "docs" notTransitive ()
     ),
 
     generateMarkdownCodeSamplesReport <<= PlayDocsValidation.generateMarkdownCodeSamplesTask,
@@ -83,7 +83,7 @@ object PlayDocsPlugin extends AutoPlugin {
 
     // Get classloader
     val sbtLoader = this.getClass.getClassLoader
-    val classloader = new java.net.URLClassLoader(classpath.map(_.data.toURI.toURL).toArray, null /* important here, don't depend of the sbt classLoader! */) {
+    val classloader = new java.net.URLClassLoader(classpath.map(_.data.toURI.toURL).toArray, null /* important here, don't depend of the sbt classLoader! */ ) {
       override def loadClass(name: String): Class[_] = {
         if (play.core.classloader.DelegatingClassLoader.isSharedClass(name)) {
           sbtLoader.loadClass(name)
@@ -136,8 +136,10 @@ object PlayDocsPlugin extends AutoPlugin {
     def waitEOF() {
       consoleReader.readCharacter() match {
         case 4 => // STOP
-        case 11 => consoleReader.clearScreen(); waitEOF()
-        case 10 => println(); waitEOF()
+        case 11 =>
+          consoleReader.clearScreen(); waitEOF()
+        case 10 =>
+          println(); waitEOF()
         case _ => waitEOF()
       }
 
