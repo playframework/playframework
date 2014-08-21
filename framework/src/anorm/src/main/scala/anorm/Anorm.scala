@@ -398,6 +398,7 @@ private[anorm] trait Sql {
 
 object Sql { // TODO: Rename to SQL
   import java.sql.ResultSetMetaData
+  import scala.util.{ Success => TrySuccess, Try }
 
   private[anorm] def metaData(rs: ResultSet): MetaData = {
     val meta = rs.getMetaData()
@@ -432,12 +433,20 @@ object Sql { // TODO: Rename to SQL
   private class RowIterator(rs: ResultSet) extends Iterator[Row] {
     val meta = metaData(rs)
     val colIndexes: List[Int] = List.range(1, meta.columnCount + 1)
-    def hasNext = !rs.isLast
+    private var nr: Try[Row] = nextRow // TODO: Refactor
 
-    def next() = {
-      rs.next()
-      SqlRow(meta, colIndexes.map(rs.getObject(_)))
+    def hasNext: Boolean = nr.isSuccess
+
+    def next(): Row = this.nr match {
+      case TrySuccess(row) =>
+        this.nr = nextRow
+        row
+      case _ => throw new NoSuchElementException()
     }
+
+    @inline def nextRow: Try[Row] = for {
+      _ <- Try(rs.next()).filter(identity)
+    } yield SqlRow(meta, colIndexes.map(rs.getObject(_)))
   }
 
   private case class SqlRow(metaData: MetaData, data: List[Any]) extends Row {
