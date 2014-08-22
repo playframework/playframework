@@ -65,7 +65,7 @@ class ScalaGlobalSpec extends Specification {
     }
 
 
-    "hooking global to handel not found request" in {
+    "hooking global to handle not found request" in {
 
       import scalaguide.global.scalaglobal.views
 
@@ -89,7 +89,7 @@ class ScalaGlobalSpec extends Specification {
       contentOf(rh=FakeRequest("GET", "/hello"),g=Global) === "hello"
     }
 
-    "hooking global to handel bad request parameter" in {
+    "hooking global to handle bad request parameter" in {
 
       import scalaguide.global.scalaglobal.views
 
