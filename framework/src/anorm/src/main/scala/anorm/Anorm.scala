@@ -44,11 +44,19 @@ trait Pk[+ID] extends NotNull {
 
 }
 
-case class Id[ID](id: ID) extends Pk[ID] {
+/**
+ * Workaround to suppress deprecation warnings within the Play build.
+ * Based on https://issues.scala-lang.org/browse/SI-7934
+ */
+private[anorm] object Pk {
+  type Deprecated[A] = Pk[A]
+}
+
+case class Id[ID](id: ID) extends Pk.Deprecated[ID] {
   override def toString() = id.toString
 }
 
-case object NotAssigned extends Pk[Nothing] {
+case object NotAssigned extends Pk.Deprecated[Nothing] {
   override def toString() = "NotAssigned"
 }
 

@@ -113,8 +113,8 @@ object Evolutions {
     val environment = application.injector.instanceOf[Environment]
 
     val evolutions = environment.getFile(fileName(db, revision));
-    Files.createDirectory(environment.getFile(directoryName(db)));
-    Files.writeFileIfChanged(evolutions,
+    Files.Deprecated.createDirectory(environment.getFile(directoryName(db)));
+    Files.Deprecated.writeFileIfChanged(evolutions,
       """|# --- %s
          |
          |# --- !Ups

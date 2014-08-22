@@ -46,7 +46,15 @@ trait Plugin {
 
 }
 
-class Plugins(plugins: => IndexedSeq[Plugin]) extends IndexedSeqLike[Plugin, IndexedSeq[Plugin]] with IndexedSeq[Plugin] {
+/**
+ * Workaround to suppress deprecation warnings within the Play build.
+ * Based on https://issues.scala-lang.org/browse/SI-7934
+ */
+private[play] object Plugin {
+  type Deprecated = Plugin
+}
+
+class Plugins(plugins: => IndexedSeq[Plugin.Deprecated]) extends IndexedSeqLike[Plugin.Deprecated, IndexedSeq[Plugin.Deprecated]] with IndexedSeq[Plugin.Deprecated] {
   // Fix circular dependency
   private lazy val thePlugins = plugins
   def length = thePlugins.length
@@ -75,9 +83,9 @@ object Plugins {
   /**
    * Load all the plugin classes from the given environment.
    */
-  def loadPlugins(classNames: Seq[String], env: Environment, injector: Injector): Seq[Plugin] = {
+  def loadPlugins(classNames: Seq[String], env: Environment, injector: Injector): Seq[Plugin.Deprecated] = {
     classNames.map { className =>
-      val clazz = Reflect.getClass[Plugin](className, env.classLoader)
+      val clazz = Reflect.getClass[Plugin.Deprecated](className, env.classLoader)
       injector.instanceOf(clazz)
     }.filter(_.enabled)
   }

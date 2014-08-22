@@ -554,14 +554,12 @@ object Concurrent {
 
   }
 
-  @scala.deprecated("use Concurrent.broadcast instead", "2.1.0")
   private trait Hub[E] extends Broadcaster {
 
     def getPatchCord(): Enumerator[E]
 
   }
 
-  @scala.deprecated("use Concurrent.broadcast instead", "2.1.0")
   private def hub[E](e: Enumerator[E], interestIsDownToZero: () => Unit = () => ())(implicit ec: ExecutionContext): Hub[E] = {
     val pec = ec.prepare()
 
