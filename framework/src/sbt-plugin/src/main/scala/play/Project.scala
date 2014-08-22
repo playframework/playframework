@@ -18,13 +18,13 @@ import play.sbtplugin.routes.RoutesCompiler
  * Base plugin for Play projects. Declares common settings for both Java and Scala based Play projects.
  */
 object Play
-  extends AutoPlugin
-  with PlayExceptions
-  with PlayReloader
-  with PlayCommands
-  with PlayRun
-  with play.PlaySettings
-  with PlayPositionMapper {
+    extends AutoPlugin
+    with PlayExceptions
+    with PlayReloader
+    with PlayCommands
+    with PlayRun
+    with play.PlaySettings
+    with PlayPositionMapper {
 
   override def requires = SbtTwirl && SbtJsTask && SbtWebDriver && RoutesCompiler
 
@@ -55,8 +55,8 @@ object PlayJava extends AutoPlugin {
   import Play.autoImport._
   override def projectSettings =
     eclipseCommandSettings(JAVA) ++
-    defaultJavaSettings ++
-    Seq(libraryDependencies += javaCore)
+      defaultJavaSettings ++
+      Seq(libraryDependencies += javaCore)
 }
 
 /**
@@ -72,5 +72,5 @@ object PlayScala extends AutoPlugin {
   import Play._
   override def projectSettings =
     eclipseCommandSettings(SCALA) ++
-    defaultScalaSettings
+      defaultScalaSettings
 }
