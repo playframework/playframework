@@ -121,7 +121,7 @@ object BuildSettings {
   def playSbtCommonSettings: Seq[Setting[_]] = playCommonSettings ++ scalariformSettings ++ Seq(
     scalaVersion := buildScalaVersionForSbt,
     scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
-    scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked")
+    scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature")
   )
 
   /**

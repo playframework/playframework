@@ -574,6 +574,7 @@ trait Results {
       Enumeratee.takeWhile[Either[Array[Byte], Seq[(String, String)]]](_.isLeft) ><>
       Enumeratee.map {
         case Left(data) => data
+        case Right(_) => Array.empty
       }
   }
 

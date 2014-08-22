@@ -373,6 +373,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
       return route(app, fakeRequest, DEFAULT_TIMEOUT);
     }
 
+    @SuppressWarnings("unchecked")
     public static Result route(Application app, FakeRequest fakeRequest, long timeout) {
       final scala.Option<scala.concurrent.Future<play.api.mvc.Result>> opt = play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.fake);
       return wrapScalaResult(Scala.orNull(opt), timeout);

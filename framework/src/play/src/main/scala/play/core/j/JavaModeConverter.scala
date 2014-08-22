@@ -1,5 +1,7 @@
 package play.core.j
 
+import scala.language.implicitConversions
+
 /**
  * Converter for Java Mode enum from Scala Mode
  */

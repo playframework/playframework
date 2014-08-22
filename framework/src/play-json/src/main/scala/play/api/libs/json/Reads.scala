@@ -13,7 +13,6 @@ import com.fasterxml.jackson.databind.node.{ ArrayNode, ObjectNode }
 import Json._
 import play.api.data.validation.ValidationError
 import reflect.ClassTag
-import play.api.libs.json.JsError
 
 /**
  * Json deserializer: write an implicit to define a deserializer for any type.

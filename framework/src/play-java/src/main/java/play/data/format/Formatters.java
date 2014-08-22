@@ -41,6 +41,7 @@ public class Formatters {
      * @param clazz class representing the required type
      * @return the parsed value
      */
+    @SuppressWarnings("unchecked")
     public static <T> T parse(Field field, String text, Class<T> clazz) {
         return (T)conversion.convert(text, new TypeDescriptor(field), TypeDescriptor.valueOf(clazz));
     }
@@ -171,7 +172,7 @@ public class Formatters {
                     if (element == null) {
                         return new None();
                     } else {
-                        return new Some(element);
+                        return new Some<Object>(element);
                     }
                 } else if (targetType.getObjectType().equals(String.class)) {
                     // Fromt Option to String
@@ -227,6 +228,7 @@ public class Formatters {
      * @param clazz class handled by this formatter
      * @param formatter the formatter to register
      */
+    @SuppressWarnings("unchecked")
     public static <A extends Annotation,T> void register(final Class<T> clazz, final AnnotationFormatter<A,T> formatter) {
         final Class<? extends Annotation> annotationType = (Class<? extends Annotation>)GenericTypeResolver.resolveTypeArguments(
             formatter.getClass(), AnnotationFormatter.class
