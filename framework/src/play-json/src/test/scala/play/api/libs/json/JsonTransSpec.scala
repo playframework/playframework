@@ -163,13 +163,13 @@ object JsonTransSpec extends Specification {
       "when the field to modify doesn't exist" in {
         js.transform(
           (__ \ 'field42).json.update(__.read[JsString])
-        ).asEither.left.get.head must_== (__ \ 'field42, Seq(ValidationError("error.path.missing")))
+        ).asEither.left.get.head must_== ((__ \ 'field42, Seq(ValidationError("error.path.missing"))))
       }
 
       "when the reader is the wrong type" in {
         js.transform(
           (__ \ 'field2).json.update(__.read[JsString])
-        ).asEither.left.get.head must_== (__ \ 'field2, Seq(ValidationError("error.expected.jsstring")))
+        ).asEither.left.get.head must_== ((__ \ 'field2, Seq(ValidationError("error.expected.jsstring"))))
       }
     }
   }

@@ -52,7 +52,7 @@ object HttpBinApplication {
             case e: JsValue =>
               Json.obj("json" -> e)
             // X-WWW-Form-Encoded
-            case f: Map[String, Seq[String]] =>
+            case f: Map[String, Seq[String]] @unchecked =>
               Json.obj("form" -> JsObject(f.mapValues(x => JsString(x.mkString(", "))).toSeq))
             // Anything else
             case b =>

@@ -283,18 +283,19 @@ object JsonSpec extends Specification {
         (__ \ 'key4).write(constraints.map[String])
       ).tupled
 
-      Json.toJson(List(1, 2, 3),
+      Json.toJson((
+        List(1, 2, 3),
         Set("alpha", "beta", "gamma"),
         Seq("alpha", "beta", "gamma"),
         Map("key1" -> "value1", "key2" -> "value2")
-      ) must beEqualTo(
-          Json.obj(
-            "key1" -> Json.arr(1, 2, 3),
-            "key2" -> Json.arr("alpha", "beta", "gamma"),
-            "key3" -> Json.arr("alpha", "beta", "gamma"),
-            "key4" -> Json.obj("key1" -> "value1", "key2" -> "value2")
-          )
+      )) must beEqualTo(
+        Json.obj(
+          "key1" -> Json.arr(1, 2, 3),
+          "key2" -> Json.arr("alpha", "beta", "gamma"),
+          "key3" -> Json.arr("alpha", "beta", "gamma"),
+          "key4" -> Json.obj("key1" -> "value1", "key2" -> "value2")
         )
+      )
     }
 
     "write in 2nd level" in {

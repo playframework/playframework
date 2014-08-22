@@ -4,7 +4,7 @@ import play.api.test._
 import play.api.test.Helpers._
 import play.api.mvc.{ Flash, Action }
 import play.api.mvc.Results._
-import play.api.libs.ws.{ Cookie, Response, WS }
+import play.api.libs.ws.{ WSCookie, WSResponse, WS }
 import play.api.Logger
 
 object FlashCookieSpec extends PlaySpecification {
@@ -24,7 +24,7 @@ object FlashCookieSpec extends PlaySpecification {
       }
   })
 
-  def readFlashCookie(response: Response): Option[Cookie] =
+  def readFlashCookie(response: WSResponse): Option[WSCookie] =
     response.cookies.find(_.name.exists(_ == Flash.COOKIE_NAME))
 
   "the flash cookie" should {

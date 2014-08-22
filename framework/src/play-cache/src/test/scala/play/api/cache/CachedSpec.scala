@@ -89,7 +89,7 @@ class CachedSpec extends PlaySpecification {
       val res0 = contentAsString(actionOk(FakeRequest("GET", "/a")).run)
       val res1 = contentAsString(actionOk(FakeRequest("GET", "/a")).run)
 
-      println("res0", header(EXPIRES, actionOk(FakeRequest("GET", "/a")).run))
+      // println(("res0", header(EXPIRES, actionOk(FakeRequest("GET", "/a")).run)))
 
       res0 must equalTo(res1)
 
