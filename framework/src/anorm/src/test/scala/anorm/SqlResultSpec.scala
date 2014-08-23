@@ -310,19 +310,23 @@ object SqlResultSpec extends org.specs2.mutable.Specification with H2Database {
   }
 
   "Process variable number of rows" should {
+    @annotation.tailrec
+    def go(c: Option[Cursor], l: List[Row] = Nil): List[Row] = c match {
+      case Some(cursor) => go(cursor.next, l :+ cursor.row)
+      case _ => l
+    }
+
     "do nothing when there is no result" in withQueryResult(QueryResult.Nil) {
       implicit c =>
-        SQL"EXEC test".executeQuery().withIterator(_.toList).
+        SQL"EXEC test".executeQuery().withResult(go(_)).
           aka("iteration") must beRight.which(_ aka "result list" must beEmpty)
     }
 
     "handle failure" in withQueryResult(
       rowList1(classOf[String] -> "foo") :+ "A" :+ "B") { implicit c =>
         var first = false
-        SQL"SELECT str".executeQuery() withIterator { it =>
-          it.next() // read first
-          first = true
-          sys.error("Failure")
+        SQL"SELECT str".executeQuery() withResult {
+          case Some(_) => first = true; sys.error("Failure")
         } aka "processing with failure" must beLeft.like {
           case err :: Nil => err.getMessage aka "failure" must_== "Failure"
         } and (first aka "first read" must beTrue)
@@ -330,9 +334,9 @@ object SqlResultSpec extends org.specs2.mutable.Specification with H2Database {
 
     "stop after first row without failure" in withQueryResult(
       rowList1(classOf[String] -> "foo") :+ "A" :+ "B") { implicit c =>
-        SQL"SELECT str".executeQuery() withIterator { it =>
-          val first = it.next()
-          Set(first[String]("foo"))
+        SQL"SELECT str".executeQuery() withResult {
+          case Some(first) => Set(first.row[String]("foo"))
+          case _ => Set.empty[String]
         } aka "partial processing" must_== Right(Set("A"))
       }
   }
