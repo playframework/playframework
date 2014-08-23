@@ -261,72 +261,22 @@ case class SimpleSql[T](sql: SqlQuery, params: Map[String, ParameterValue], defa
 
 }
 
-private[anorm] trait Sql {
+private[anorm] trait Sql extends WithResult {
   // TODO: ManagedResource[PreparedStatement]?
   def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false): PreparedStatement
 
   /**
-   * Executes this SQL statement as query, returns result as Row stream.
-   */
-  @deprecated(
-    "Use [[fold]], [[foldWhile]] or [[withIterator]] instead, which manages resources and memory", "2.4")
-  def apply()(implicit connection: Connection): Stream[Row] =
-    Sql.withIterator(resultSet)(_.toList.toStream).acquireAndGet(identity)
-
-  /**
-   * Aggregates over all rows using the specified operator.
-   *
-   * @param z the start value
-   * @param op Aggregate operator
-   * @return Either list of failures at left, or aggregated value
-   * @see #foldWhile
-   * @see #withIterator
-   */
-  def fold[T](z: => T)(op: (T, Row) => T)(implicit connection: Connection): Either[List[Throwable], T] =
-    Sql.withIterator(resultSet)(_.foldLeft[T](z)(op)).acquireFor(identity)
-
-  /**
-   * Aggregates over part of or the while row stream,
-   * using the specified operator.
-   *
-   * @param z the start value
-   * @param op Aggregate operator. Returns aggregated value along with true if aggregation must process next value, or false to stop with current value.
-   * @return Either list of failures at left, or aggregated value
-   * @see #withIterator
-   */
-  def foldWhile[T](z: => T)(op: (T, Row) => (T, Boolean))(implicit connection: Connection): Either[List[Throwable], T] = {
-    @annotation.tailrec
-    def go(it: Iterator[Row], cur: T): T = if (!it.hasNext) cur else {
-      val (v, cont) = op(cur, it.next)
-      if (!cont) v else go(it, v)
-    }
-
-    Sql.withIterator(resultSet)(go(_, z)).acquireFor(identity)
-  }
-
-  /**
-   * Processes all or some rows through iterator for current results.
-   *
-   * @param op Operation applied with row iterator
-   *
-   * {{{
-   * val l: Either[List[Throwable], List[Row]] = SQL"SELECT * FROM Test".
-   *   withIterator(_.toList)
-   * }}}
-   */
-  def withIterator[T](op: Iterator[Row] => T)(implicit connection: Connection): Either[List[Throwable], T] = Sql.withIterator(resultSet)(op).acquireFor(identity)
-
-  /**
    * Executes this statement as query (see [[executeQuery]]) and returns result.
    */
-  private[anorm] def resultSet()(implicit connection: Connection): ManagedResource[ResultSet] = managed(getFilledStatement(connection)).
-    flatMap(stmt => managed(stmt.executeQuery()))
+  def resultSet(connection: Connection): ManagedResource[ResultSet] =
+    managed(getFilledStatement(connection)).
+      flatMap(stmt => managed(stmt.executeQuery()))
 
   /**
    * Executes this statement as query and convert result as `T`, using parser.
    */
   def as[T](parser: ResultSetParser[T])(implicit connection: Connection): T =
-    Sql.as(parser, resultSet())
+    Sql.as(parser, resultSet(connection))
 
   /**
    * Executes this SQL statement.
@@ -392,7 +342,7 @@ private[anorm] trait Sql {
    * }}}
    */
   def executeQuery()(implicit connection: Connection): SqlQueryResult =
-    SqlQueryResult(resultSet())
+    SqlQueryResult(resultSet(connection))
 
 }
 
