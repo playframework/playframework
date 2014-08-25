@@ -211,8 +211,11 @@ abstract class DefaultDatabase(val name: String, configuration: Configuration, c
         r
       } catch {
         case e: ControlThrowable =>
-          connection.commit(); throw e
-        case NonFatal(e) => connection.rollback(); throw e
+          connection.commit()
+          throw e
+        case e: Throwable =>
+          connection.rollback()
+          throw e
       }
     }
   }
