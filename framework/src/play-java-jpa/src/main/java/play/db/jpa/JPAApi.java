@@ -34,7 +34,10 @@ public interface JPAApi {
      * Run a block of asynchronous code in a JPA transaction.
      *
      * @param block Block of code to execute
+     *
+     * @deprecated This may cause deadlocks
      */
+    @Deprecated
     public <T> F.Promise<T> withTransactionAsync(play.libs.F.Function0<F.Promise<T>> block) throws Throwable;
 
     /**
@@ -59,7 +62,10 @@ public interface JPAApi {
      * @param name The persistence unit name
      * @param readOnly Is the transaction read-only?
      * @param block Block of code to execute.
+     *
+     * @deprecated This may cause deadlocks
      */
+    @Deprecated
     public <T> F.Promise<T> withTransactionAsync(String name, boolean readOnly, play.libs.F.Function0<F.Promise<T>> block) throws Throwable;
 
     /**
