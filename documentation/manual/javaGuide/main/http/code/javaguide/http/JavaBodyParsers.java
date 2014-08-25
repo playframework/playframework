@@ -77,15 +77,11 @@ public class JavaBodyParsers extends WithApplication {
                     // Accept only 10KB of data.
                     @BodyParser.Of(value = BodyParser.Text.class, maxLength = 10 * 1024)
                     public Result index() {
-                        if(request().body().isMaxSizeExceeded()) {
-                            return badRequest("Too much data!");
-                        } else {
-                            return ok("Got body: " + request().body().asText());
-                        }
+                        return ok("Got body: " + request().body().asText());
                     }
                     //#max-length
                 }, fakeRequest(), body.toString())),
-                equalTo(400));
+                equalTo(413));
     }
 
 }

@@ -170,9 +170,8 @@ public class FakeRequest {
                         anyContent.asText(),
                         anyContent.asJson(),
                         anyContent.asXml(),
-                        anyContent.asMultipartFormData(),
-                        false
-                        );
+                        anyContent.asMultipartFormData()
+                );
             }
         });
     }

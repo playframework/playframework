@@ -46,13 +46,13 @@ For example:
 
 ## Max content length
 
-Text based body parsers (such as **text**, **json**, **xml** or **formUrlEncoded**) use a max content length because they have to load all the content into memory. 
-
-There is a default maximum content length of 100KB.  It can be overridden by specifying the `parsers.text.maxLength` property in `application.conf`:
+Text based body parsers (such as **text**, **json**, **xml** or **formUrlEncoded**) use a max content length because they have to load all the content into memory.  By default, the maximum content length that they will parse is 100KB.  It can be overridden by specifying the `parsers.text.maxLength` property in `application.conf`:
 
     parsers.text.maxLength=128K
 
-You can also specify a maximum content length via the `@BodyParser.Of` annotation:
+For parsers that buffer content on disk, such as the raw parser or `multipart/form-data`, the maximum content length is specified using the `parsers.disk.maxLength` property, it defaults to 10MB.  The `multipart/form-data` parser also enforces the text max length property for the aggregate of the data fields.
+
+You can also override the default maximum content length for a given action via the `@BodyParser.Of` annotation:
 
 @[max-length](code/javaguide/http/JavaBodyParsers.java)
 

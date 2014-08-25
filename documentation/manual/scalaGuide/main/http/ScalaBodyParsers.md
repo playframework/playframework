@@ -88,17 +88,15 @@ In the previous example, all request bodies are stored in the same file. This is
 
 ## Max content length
 
-Text based body parsers (such as **text**, **json**, **xml** or **formUrlEncoded**) use a maximum content length because they have to load all of the content into memory. 
+Text based body parsers (such as **text**, **json**, **xml** or **formUrlEncoded**) use a max content length because they have to load all the content into memory.  By default, the maximum content length that they will parse is 100KB.  It can be overridden by specifying the `parsers.text.maxLength` property in `application.conf`:
 
-There is a default maximum content length (the default is 100KB), but you can also specify it inline:
+    parsers.text.maxLength=128K
+
+For parsers that buffer content on disk, such as the raw parser or `multipart/form-data`, the maximum content length is specified using the `parsers.disk.maxLength` property, it defaults to 10MB.  The `multipart/form-data` parser also enforces the text max length property for the aggregate of the data fields.
+
+You can also override the default maximum length for a given action:
 
 @[body-parser-limit-text](code/ScalaBodyParser.scala)
-
-> **Tip:** The default content size can be defined in `application.conf`:
-> 
-> `parsers.text.maxLength=128K`
-> 
-> Unit sizes are defined in **Size in bytes format** section of the [[Configuration]] page.
 
 You can also wrap any body parser with `maxLength`:
 
