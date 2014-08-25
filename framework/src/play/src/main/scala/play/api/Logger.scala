@@ -224,16 +224,13 @@ object Logger extends LoggerLike {
     }.getOrElse(Map.empty)
 
     // Get an explicitly configured resource URL
-    def explicitResourceUrl = Option(System.getProperty("logger.resource"))
-      .map(s => if (s.startsWith("/")) s.drop(1) else s)
-      .map(r =>
-        env.resource(r)
-          // fallback to a file if the resource wasn't found on the classpath
-          .getOrElse(new java.net.URL("file:///" + r))
-      )
+    // Fallback to a file in the conf directory if the resource wasn't found on the classpath
+    def explicitResourceUrl = sys.props.get("logger.resource").map { r =>
+      env.resource(r).getOrElse(new File(env.getFile("conf"), r).toURI.toURL)
+    }
 
     // Get an explicitly configured file URL
-    def explicitFileUrl = Option(System.getProperty("logger.file")).map(new java.io.File(_).toURI.toURL)
+    def explicitFileUrl = sys.props.get("logger.file").map(new File(_).toURI.toURL)
 
     // application-logger.xml and logger.xml are deprecated methods for supplying the configuration
     // logback.xml is the documented method, logback-play-default.xml is the fallback that Play uses
