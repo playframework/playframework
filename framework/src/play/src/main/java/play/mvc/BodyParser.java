@@ -10,7 +10,7 @@ import java.lang.annotation.*;
  */
 public interface BodyParser {
 
-    play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength);
+    play.api.mvc.BodyParser<Http.RequestBody> parser(long maxLength);
 
     /**
      * Specify the body parser to use for an Action method.
@@ -19,14 +19,14 @@ public interface BodyParser {
     @Retention(RetentionPolicy.RUNTIME)
     public @interface Of {
         Class<? extends BodyParser> value();
-        int maxLength() default -1;
+        long maxLength() default -1;
     }
 
     /**
      * Guess the body content by checking the Content-Type header.
      */
     public static class AnyContent implements BodyParser {
-        public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
+        public play.api.mvc.BodyParser<Http.RequestBody> parser(long maxLength) {
             return play.core.j.JavaParsers.anyContent(maxLength);
         }
     }
@@ -35,7 +35,7 @@ public interface BodyParser {
      * Parse the body as Json if the Content-Type is text/json or application/json.
      */
     public static class Json implements BodyParser {
-        public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
+        public play.api.mvc.BodyParser<Http.RequestBody> parser(long maxLength) {
             return play.core.j.JavaParsers.json(maxLength);
         }
     }
@@ -44,7 +44,7 @@ public interface BodyParser {
      * Parse the body as Json without checking the Content-Type.
      */
     public static class TolerantJson implements BodyParser {
-        public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
+        public play.api.mvc.BodyParser<Http.RequestBody> parser(long maxLength) {
             return play.core.j.JavaParsers.tolerantJson(maxLength);
         }
     }
@@ -53,7 +53,7 @@ public interface BodyParser {
      * Parse the body as Xml if the Content-Type is application/xml.
      */
     public static class Xml implements BodyParser {
-        public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
+        public play.api.mvc.BodyParser<Http.RequestBody> parser(long maxLength) {
             return play.core.j.JavaParsers.xml(maxLength);
         }
     }
@@ -62,7 +62,7 @@ public interface BodyParser {
      * Parse the body as Xml without checking the Content-Type.
      */
     public static class TolerantXml implements BodyParser {
-        public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
+        public play.api.mvc.BodyParser<Http.RequestBody> parser(long maxLength) {
             return play.core.j.JavaParsers.tolerantXml(maxLength);
         }
     }
@@ -71,7 +71,7 @@ public interface BodyParser {
      * Parse the body as text if the Content-Type is text/plain.
      */
     public static class Text implements BodyParser {
-        public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
+        public play.api.mvc.BodyParser<Http.RequestBody> parser(long maxLength) {
             return play.core.j.JavaParsers.text(maxLength);
         }
     }
@@ -80,7 +80,7 @@ public interface BodyParser {
      * Parse the body as text without checking the Content-Type.
      */
     public static class TolerantText implements BodyParser {
-        public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
+        public play.api.mvc.BodyParser<Http.RequestBody> parser(long maxLength) {
             return play.core.j.JavaParsers.tolerantText(maxLength);
         }
     }
@@ -89,7 +89,7 @@ public interface BodyParser {
      * Store the body content in a RawBuffer.
      */
     public static class Raw implements BodyParser {
-        public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
+        public play.api.mvc.BodyParser<Http.RequestBody> parser(long maxLength) {
             return play.core.j.JavaParsers.raw(maxLength);
         }
     }
@@ -98,7 +98,7 @@ public interface BodyParser {
      * Parse the body as form url encoded if the Content-Type is application/x-www-form-urlencoded.
      */
     public static class FormUrlEncoded implements BodyParser {
-        public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
+        public play.api.mvc.BodyParser<Http.RequestBody> parser(long maxLength) {
             return play.core.j.JavaParsers.formUrlEncoded(maxLength);
         }
     }
@@ -107,7 +107,7 @@ public interface BodyParser {
      * Parse the body as form url encoded without checking the Content-Type.
      */
     public static class MultipartFormData implements BodyParser {
-        public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
+        public play.api.mvc.BodyParser<Http.RequestBody> parser(long maxLength) {
             return play.core.j.JavaParsers.multipartFormData(maxLength);
         }
     }
@@ -116,7 +116,7 @@ public interface BodyParser {
      * Don't parse the body.
      */
     public static class Empty implements BodyParser {
-        public play.api.mvc.BodyParser<Http.RequestBody> parser(int maxLength) {
+        public play.api.mvc.BodyParser<Http.RequestBody> parser(long maxLength) {
             if (maxLength != -1) throw new IllegalArgumentException("Empty BodyParser's maxLength argument is ignored so it must have a value of -1, was: " + maxLength);
             return play.core.j.JavaParsers.empty();
         }

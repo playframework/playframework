@@ -480,6 +480,11 @@ public class Http {
      */
     public static class RequestBody {
 
+        /**
+         * @deprecated Since Play 2.4, this method always returns false. When the max size is exceeded, a 413 error is
+         *             returned.
+         */
+        @Deprecated
         public boolean isMaxSizeExceeded() {
             return false;
         }
