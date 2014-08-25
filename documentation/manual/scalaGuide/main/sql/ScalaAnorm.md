@@ -304,6 +304,8 @@ val res: List[Array[String]] =
   SQL("SELECT str_arr FROM tbl").as(scalar[Array[String]].*)
 ```
 
+> Convenient parsing functions is also provided for arrays with `SqlParser.array[T](...)` and `SqlParser.list[T](...)`.
+
 ### Batch update
 
 When you need to execute SQL statement several times with different arguments, batch query can be used (e.g. to execute a batch of insertions).
