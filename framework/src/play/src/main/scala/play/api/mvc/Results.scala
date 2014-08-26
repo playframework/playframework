@@ -418,6 +418,22 @@ trait Results {
         connection = HttpConnection.Close
       )
     }
+
+    /**
+     * Stream the content as the response.
+     *
+     * If a content length is set, this will send the body as is, otherwise it may chunk or may not chunk depending on
+     * whether HTTP/1.1 is used or not.
+     *
+     * @param content Enumerator providing the content to stream.
+     */
+    def stream[C](content: Enumerator[C])(implicit writeable: Writeable[C]): Result = {
+      Result(
+        header = ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
+        body = content &> writeable.toEnumeratee,
+        connection = HttpConnection.KeepAlive
+      )
+    }
   }
 
   /**
