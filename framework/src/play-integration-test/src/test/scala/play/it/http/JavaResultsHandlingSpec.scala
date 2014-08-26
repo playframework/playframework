@@ -3,6 +3,8 @@
  */
 package play.it.http
 
+import java.io.ByteArrayInputStream
+
 import play.api.test._
 import play.api.libs.ws.WSResponse
 import play.libs.EventSource
@@ -85,6 +87,61 @@ object JavaResultsHandlingSpec extends PlaySpecification with WsTestClient {
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
       response.body must_== "data: a\n\ndata: b\n\n"
+    }
+
+    "buffer input stream results of one chunk" in makeRequest(new MockController {
+      def action = {
+        Results.ok(new ByteArrayInputStream("hello".getBytes("utf-8")))
+      }
+    }) { response =>
+      response.header(CONTENT_LENGTH) must beSome("5")
+      response.header(TRANSFER_ENCODING) must beNone
+      response.body must_== "hello"
+    }
+
+    "chunk input stream results of more than one chunk" in makeRequest(new MockController {
+      def action = {
+        // chunk size 2 to force more than one chunk
+        Results.ok(new ByteArrayInputStream("hello".getBytes("utf-8")), 2)
+      }
+    }) { response =>
+      response.header(CONTENT_LENGTH) must beNone
+      response.header(TRANSFER_ENCODING) must beSome("chunked")
+      response.body must_== "hello"
+    }
+
+    "not chunk input stream results if a content length is set" in makeRequest(new MockController {
+      def action = {
+        response.setHeader(CONTENT_LENGTH, "5")
+        // chunk size 2 to force more than one chunk
+        Results.ok(new ByteArrayInputStream("hello".getBytes("utf-8")), 2)
+      }
+    }) { response =>
+      response.header(CONTENT_LENGTH) must beSome("5")
+      response.header(TRANSFER_ENCODING) must beNone
+      response.body must_== "hello"
+    }
+
+    "not chunk input stream results if HTTP/1.0 is in use" in {
+      implicit val port = testServerPort
+      running(TestServer(port, FakeApplication(
+        withRoutes = {
+          case _ => JAction(new MockController {
+            def action = {
+              // chunk size 2 to force more than one chunk
+              Results.ok(new ByteArrayInputStream("hello".getBytes("utf-8")), 2)
+            }
+          })
+        }
+      ))) {
+        val response = BasicHttpClient.makeRequests(testServerPort, true)(
+          BasicRequest("GET", "/", "HTTP/1.0", Map(), "")
+        )(0)
+        response.headers.get(CONTENT_LENGTH) must beNone
+        response.headers.get(TRANSFER_ENCODING) must beNone
+        response.body must beLeft("hello")
+      }
+
     }
   }
 }

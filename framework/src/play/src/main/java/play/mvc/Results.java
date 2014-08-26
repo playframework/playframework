@@ -1317,7 +1317,7 @@ public class Results {
             if(content == null) {
                 throw new NullPointerException("null content");
             }
-            wrappedResult = status.chunked(
+            wrappedResult = status.stream(
                     play.core.j.JavaResults.chunked(content, chunkSize),
                     play.core.j.JavaResults.writeBytes()
                     );
