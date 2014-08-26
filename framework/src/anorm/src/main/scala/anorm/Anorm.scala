@@ -6,7 +6,7 @@ package anorm
 import java.util.{ Date, UUID }
 import java.sql.{ Connection, PreparedStatement, ResultSet }
 
-import scala.language.{ postfixOps, reflectiveCalls }
+import scala.language.postfixOps
 import scala.collection.TraversableOnce
 
 import resource.{ managed, ManagedResource }
@@ -268,7 +268,7 @@ private[anorm] trait Sql extends WithResult {
   /**
    * Executes this statement as query (see [[executeQuery]]) and returns result.
    */
-  def resultSet(connection: Connection): ManagedResource[ResultSet] =
+  protected def resultSet(connection: Connection): ManagedResource[ResultSet] =
     managed(getFilledStatement(connection)).
       flatMap(stmt => managed(stmt.executeQuery()))
 
@@ -347,60 +347,19 @@ private[anorm] trait Sql extends WithResult {
 }
 
 object Sql { // TODO: Rename to SQL
-  import java.sql.ResultSetMetaData
   import scala.util.{ Success => TrySuccess, Try }
 
-  private[anorm] def metaData(rs: ResultSet): MetaData = {
-    val meta = rs.getMetaData()
-    val nbColumns = meta.getColumnCount()
-    MetaData(List.range(1, nbColumns + 1).map(i =>
-      MetaDataItem(column = ColumnName({
+  private[anorm] def withResult[T](res: ManagedResource[ResultSet])(op: Option[Cursor] => T): ManagedResource[T] = res.map(rs => op(Cursor(rs)))
 
-        // HACK FOR POSTGRES - Fix in https://github.com/pgjdbc/pgjdbc/pull/107
-        if (meta.getClass.getName.startsWith("org.postgresql.")) {
-          meta.asInstanceOf[{ def getBaseTableName(i: Int): String }].getBaseTableName(i)
-        } else {
-          meta.getTableName(i)
-        }
+  private[anorm] def as[T](parser: ResultSetParser[T], rs: ManagedResource[ResultSet])(implicit connection: Connection): T = {
+    def stream(c: Option[Cursor]): Stream[Row] =
+      c.fold(Stream.empty[Row]) { cur => cur.row #:: stream(cur.next) }
 
-      } + "." + meta.getColumnName(i), alias = Option(meta.getColumnLabel(i))),
-        nullable = meta.isNullable(i) == ResultSetMetaData.columnNullable,
-        clazz = meta.getColumnClassName(i))))
-  }
-
-  private[anorm] def as[T](parser: ResultSetParser[T], rs: ManagedResource[ResultSet])(implicit connection: Connection): T =
-    withIterator(rs) { it =>
-      parser(
-        it.toStream /* TODO: Review after ResultSetParser refactoring */ ) match {
-          case Success(a) => a
-          case Error(e) => sys.error(e.toString) // TODO: Safe alternative?
-        }
-    } acquireAndGet (identity)
-
-  /** Run given operation on row iterator, within managed context. */
-  private[anorm] def withIterator[T](res: ManagedResource[ResultSet])(op: Iterator[Row] => T): ManagedResource[T] = res map { rs => op(new RowIterator(rs)) }
-
-  private class RowIterator(rs: ResultSet) extends Iterator[Row] {
-    val meta = metaData(rs)
-    val colIndexes: List[Int] = List.range(1, meta.columnCount + 1)
-    private var nr: Try[Row] = nextRow // TODO: Refactor
-
-    def hasNext: Boolean = nr.isSuccess
-
-    def next(): Row = this.nr match {
-      case TrySuccess(row) =>
-        this.nr = nextRow
-        row
-      case _ => throw new NoSuchElementException()
-    }
-
-    @inline def nextRow: Try[Row] = for {
-      _ <- Try(rs.next()).filter(identity)
-    } yield SqlRow(meta, colIndexes.map(rs.getObject(_)))
-  }
-
-  private case class SqlRow(metaData: MetaData, data: List[Any]) extends Row {
-    override lazy val toString = "Row(" + metaData.ms.zip(data).map(t => s"'${t._1.column}': ${t._2} as ${t._1.clazz}").mkString(", ") + ")"
+    withResult(rs)(c => parser(stream(c)
+    /* TODO: Review after ResultSetParser refactoring */ ) match {
+      case Success(a) => a
+      case Error(e) => sys.error(e.toString) // TODO: Safe alternative?
+    }).acquireAndGet(identity)
   }
 
   @annotation.tailrec

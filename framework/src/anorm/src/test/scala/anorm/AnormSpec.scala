@@ -392,9 +392,15 @@ object AnormSpec extends Specification with H2Database with AnormTest {
   }
 
   "Process variable number of rows" should {
+    @annotation.tailrec
+    def go(c: Option[Cursor], l: List[Row] = Nil): List[Row] = c match {
+      case Some(cursor) => go(cursor.next, l :+ cursor.row)
+      case _ => l
+    }
+
     "do nothing when there is no result" in withQueryResult(QueryResult.Nil) {
       implicit c =>
-        SQL"EXEC test".withIterator(_.toList) aka "iteration" must beRight.which {
+        SQL"EXEC test".withResult(go(_)) aka "iteration" must beRight.which {
           _ aka "result list" must beEmpty
         }
     }
@@ -402,10 +408,8 @@ object AnormSpec extends Specification with H2Database with AnormTest {
     "handle failure" in withQueryResult(
       rowList1(classOf[String] -> "foo") :+ "A" :+ "B") { implicit c =>
         var first = false
-        SQL"SELECT str" withIterator { it =>
-          it.next() // read first
-          first = true
-          sys.error("Failure")
+        SQL"SELECT str" withResult {
+          case Some(_) => first = true; sys.error("Failure")
         } aka "processing with failure" must beLeft.like {
           case err :: Nil => err.getMessage aka "failure" must_== "Failure"
         } and (first aka "first read" must beTrue)
@@ -413,9 +417,9 @@ object AnormSpec extends Specification with H2Database with AnormTest {
 
     "stop after first row without failure" in withQueryResult(
       rowList1(classOf[String] -> "foo") :+ "A" :+ "B") { implicit c =>
-        SQL"SELECT str" withIterator { it =>
-          val first = it.next()
-          Set(first[String]("foo"))
+        SQL"SELECT str" withResult {
+          case Some(first) => Set(first.row[String]("foo"))
+          case _ => Set.empty[String]
         } aka "partial processing" must_== Right(Set("A"))
       }
   }

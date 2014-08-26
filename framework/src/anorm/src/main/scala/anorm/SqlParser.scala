@@ -622,7 +622,7 @@ sealed trait ScalarRowParser[+A] extends RowParser[A] {
   }
 }
 
-// TODO: Refactor with Iterator
+// TODO: Refactor with Cursor
 sealed trait ResultSetParser[+A] extends (Stream[Row] => SqlResult[A]) {
   parent =>
   def map[B](f: A => B): ResultSetParser[B] =

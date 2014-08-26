@@ -232,19 +232,22 @@ val books: Either[List[Throwable], List[String]] =
 It's possible to use a custom streaming:
 
 ```scala
-import anorm.Row
+import anorm.{ Cursor, Row }
 
 @annotation.tailrec
-def go(it: Iterator[Row], l: List[String]): List[String] = 
-  if (!it.hasNext) l // no more result
-  else if (l.size == 100) l // custom limit, partial processing
-  else {
-    val row = it.next()
-    go(it, l :+ row[String]("name"))
+def go(c: Option[Cursor], l: List[String]): List[String] = c match {
+  case Some(cursor) => {
+    if (l.size == 100) l // custom limit, partial processing
+    else {
+      val row = it.next()
+      go(it, l :+ row[String]("name"))
+    }
   }
+  case _ => l
+}
 
 val books: Either[List[Throwable], List[String]] = 
-  SQL("Select name from Books").withIterator(go(_, List.empty[String]))
+  SQL("Select name from Books").withResult(go(_, List.empty[String]))
 ```
 
 ### Multi-value support

@@ -55,6 +55,8 @@ trait Row {
       case Error(err) => Left(err)
     }).get
 
+  // TODO: Apply with positional getter
+
   // Data per column name
   private lazy val columnsDictionary: Map[String, Any] = {
     @annotation.tailrec
