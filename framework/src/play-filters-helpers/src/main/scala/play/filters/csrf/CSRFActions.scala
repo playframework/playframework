@@ -173,23 +173,33 @@ object CSRFAction {
 
   private[csrf] def addTokenToResponse(tokenName: String, cookieName: Option[String], secureCookie: Boolean,
     newToken: String, request: RequestHeader, result: Result) = {
-    filterLogger.trace("[CSRF] Adding token to result: " + result)
 
-    cookieName.map {
-      // cookie
-      name =>
-        result.withCookies(Cookie(name, newToken, path = Session.path, domain = Session.domain,
-          secure = secureCookie))
-    } getOrElse {
-      // Get the new session, or the incoming session
-      val session = Cookies(result.header.headers.get(SET_COOKIE))
-        .get(Session.COOKIE_NAME).map(_.value).map(Session.decode)
-        .getOrElse(request.session.data)
+    if (isCached(result)) {
+      filterLogger.trace("[CSRF] Not adding token to cached response")
+      result
+    } else {
+      filterLogger.trace("[CSRF] Adding token to result: " + result)
 
-      val newSession = session + (tokenName -> newToken)
-      result.withSession(Session.deserialize(newSession))
+      cookieName.map {
+        // cookie
+        name =>
+          result.withCookies(Cookie(name, newToken, path = Session.path, domain = Session.domain,
+            secure = secureCookie))
+      } getOrElse {
+        // Get the new session, or the incoming session
+        val session = Cookies(result.header.headers.get(SET_COOKIE))
+          .get(Session.COOKIE_NAME).map(_.value).map(Session.decode)
+          .getOrElse(request.session.data)
+
+        val newSession = session + (tokenName -> newToken)
+        result.withSession(Session.deserialize(newSession))
+      }
     }
+
   }
+
+  private[csrf] def isCached(result: Result): Boolean =
+    result.header.headers.get(CACHE_CONTROL).fold(false)(!_.contains("no-cache"))
 }
 
 /**

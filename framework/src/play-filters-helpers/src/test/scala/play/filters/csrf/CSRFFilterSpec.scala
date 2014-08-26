@@ -29,6 +29,12 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
     "not add a token to GET requests that don't accept HTML" in {
       buildCsrfAddToken()(_.withHeaders(ACCEPT -> "application/json").get())(_.status must_== NOT_FOUND)
     }
+    "not add a token to responses that set cache headers" in {
+      buildCsrfAddResponseHeaders(CACHE_CONTROL -> "public, max-age=3600")(_.get())(_.cookies must be empty)
+    }
+    "add a token to responses that set 'no-cache' headers" in {
+      buildCsrfAddResponseHeaders(CACHE_CONTROL -> "no-cache")(_.get())(_.cookies must not be empty)
+    }
     "add a token to GET requests that accept HTML" in {
       buildCsrfAddToken()(_.withHeaders(ACCEPT -> "text/html").get())(_.status must_== OK)
     }
@@ -145,6 +151,15 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
           Results.Ok(token.value)
         } getOrElse Results.NotFound
       })
+    } {
+      import play.api.Play.current
+      handleResponse(await(makeRequest(WS.url("http://localhost:" + testServerPort))))
+    }
+  }
+
+  def buildCsrfAddResponseHeaders(responseHeaders: (String, String)*) = new CsrfTester {
+    def apply[T](makeRequest: (WSRequestHolder) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(Seq.empty) {
+      case _ => CSRFFilter()(Action(Results.Ok.withHeaders(responseHeaders: _*)))
     } {
       import play.api.Play.current
       handleResponse(await(makeRequest(WS.url("http://localhost:" + testServerPort))))
