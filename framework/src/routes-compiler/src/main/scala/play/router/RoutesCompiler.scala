@@ -947,7 +947,8 @@ object RoutesCompiler {
                             queryParams.map { p =>
                               ("""implicitly[QueryStringBindable[""" + p.typeName + """]].unbind("""" + p.name + """", """ + safeKeyword(localNames.get(p.name).getOrElse(p.name)) + """)""") -> p
                             }.map {
-                              case (u, Parameter(name, typeName, None, Some(default))) => """if(""" + localNames.get(name).getOrElse(name) + """ == """ + default + """) None else Some(""" + u + """)"""
+                              case (u, Parameter(name, typeName, None, Some(default))) =>
+                                """if(""" + safeKeyword(localNames.getOrElse(name, name)) + """ == """ + default + """) None else Some(""" + u + """)"""
                               case (u, Parameter(name, typeName, None, None)) => "Some(" + u + ")"
                             }.mkString(", "))
 

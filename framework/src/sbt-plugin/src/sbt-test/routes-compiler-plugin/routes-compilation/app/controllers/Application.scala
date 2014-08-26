@@ -40,6 +40,9 @@ object Application extends Controller {
   def routetest(parameter: String) = Action {
     Ok(parameter)
   }
+  def routedefault(parameter: String) = Action {
+    Ok(parameter)
+  }
   def hello = Action {
     Ok("Hello world!")
   }
