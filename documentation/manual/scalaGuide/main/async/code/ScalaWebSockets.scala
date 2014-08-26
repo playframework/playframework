@@ -317,11 +317,10 @@ object Samples {
     import play.api.libs.iteratee._
     import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-    def socket =  WebSocket.using[String] { request =>
+    // Concurrent.broadcast returns (Enumerator, Concurrent.Channel)
+    val (out, channel) = Concurrent.broadcast[String]
 
-      // Concurrent.broadcast returns (Enumerator, Concurrent.Channel)
-      val (out, channel) = Concurrent.broadcast[String]
-
+    def socket = WebSocket.using[String] { request =>
       // log the message to stdout and send response back to client
       val in = Iteratee.foreach[String] {
         msg => println(msg)
@@ -329,7 +328,7 @@ object Samples {
           // receive the pushed messages
           channel push("I received your message: " + msg)
       }
-      (in,out)
+      (in, out)
     }
     //#iteratee3
   }
