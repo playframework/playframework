@@ -72,6 +72,16 @@ public class DefaultDatabase extends Database {
     }
 
     @Override
+    public void withConnection(boolean autocommit, ConnectionRunnable block) {
+        db.withConnection(autocommit, DB.connectionFunction(block));
+    }
+
+    @Override
+    public <A> A withConnection(boolean autocommit, ConnectionCallable<A> block) {
+        return db.withConnection(autocommit, DB.connectionFunction(block));
+    }
+
+    @Override
     public void withTransaction(ConnectionRunnable block) {
         db.withTransaction(DB.connectionFunction(block));
     }

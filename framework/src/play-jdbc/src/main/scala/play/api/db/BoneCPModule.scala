@@ -137,6 +137,8 @@ class BoneConnectionPool extends ConnectionPool {
     datasource.setIdleConnectionTestPeriod(conf.getMilliseconds("idleConnectionTestPeriod").getOrElse(1000 * 60), java.util.concurrent.TimeUnit.MILLISECONDS)
     datasource.setDisableConnectionTracking(conf.getBoolean("disableConnectionTracking").getOrElse(true))
     datasource.setQueryExecuteTimeLimitInMs(conf.getMilliseconds("queryExecuteTimeLimit").getOrElse(0))
+    datasource.setResetConnectionOnClose(conf.getBoolean("resetConnectionOnClose").getOrElse(false))
+    datasource.setDetectUnresolvedTransactions(conf.getBoolean("detectUnresolvedTransactions").getOrElse(false))
 
     conf.getString("initSQL").map(datasource.setInitSQL)
     conf.getBoolean("logStatements").map(datasource.setLogStatementsEnabled)

@@ -63,6 +63,16 @@ trait Database {
   def withConnection[A](block: Connection => A): A
 
   /**
+   * Execute a block of code, providing a JDBC connection.
+   * The connection and all created statements are automatically released.
+   *
+   * @param autocommit determines whether to autocommit the connection
+   * @param block code to execute
+   * @return the result of the code block
+   */
+  def withConnection[A](autocommit: Boolean)(block: Connection => A): A
+
+  /**
    * Execute a block of code in the scope of a JDBC transaction.
    * The connection and all created statements are automatically released.
    * The transaction is automatically committed, unless an exception occurs.
@@ -194,7 +204,11 @@ abstract class DefaultDatabase(val name: String, configuration: Configuration, c
   }
 
   def withConnection[A](block: Connection => A): A = {
-    val connection = getConnection()
+    withConnection(autocommit = true)(block)
+  }
+
+  def withConnection[A](autocommit: Boolean)(block: Connection => A): A = {
+    val connection = getConnection(autocommit)
     try {
       block(connection)
     } finally {
@@ -203,9 +217,8 @@ abstract class DefaultDatabase(val name: String, configuration: Configuration, c
   }
 
   def withTransaction[A](block: Connection => A): A = {
-    withConnection { connection =>
+    withConnection(autocommit = false) { connection =>
       try {
-        connection.setAutoCommit(false)
         val r = block(connection)
         connection.commit()
         r

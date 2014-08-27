@@ -73,11 +73,36 @@ public class DB {
      * The connection and all created statements are automatically released.
      *
      * @param name Datasource name
+     * @param autocommit Auto-commit setting
+     * @param block Code block to execute
+     * @param application Play application (<tt>play.api.Play.unsafeApplication()</tt>)
+     */
+    public static void withConnection(String name, boolean autocommit, ConnectionRunnable block, Application application) {
+        play.api.db.DB.withConnection(name, autocommit, connectionFunction(block), application);
+    }
+
+    /**
+     * Executes a block of code, providing a JDBC connection.
+     * The connection and all created statements are automatically released.
+     *
+     * @param name Datasource name
      * @param block Code block to execute
      * @param application Play application (<tt>play.api.Play.unsafeApplication()</tt>)
      */
     public static void withConnection(String name, ConnectionRunnable block, Application application) {
-        play.api.db.DB.withConnection(name, connectionFunction(block), application);
+        withConnection(name, true, block, application);
+    }
+
+    /**
+     * Executes a block of code, providing a JDBC connection.
+     * The connection and all created statements are automatically released.
+     *
+     * @param autocommit Auto-commit setting
+     * @param block Code block to execute
+     * @param application Play application (<tt>play.api.Play.unsafeApplication()</tt>)
+     */
+    public static void withConnection(boolean autocommit, ConnectionRunnable block, Application application) {
+        withConnection("default", autocommit, block, application);
     }
 
     /**
@@ -88,7 +113,19 @@ public class DB {
      * @param application Play application (<tt>play.api.Play.unsafeApplication()</tt>)
      */
     public static void withConnection(ConnectionRunnable block, Application application) {
-        withConnection("default", block, application);
+        withConnection("default", true, block, application);
+    }
+
+    /**
+     * Executes a block of code, providing a JDBC connection.
+     * The connection and all created statements are automatically released.
+     *
+     * @param name Datasource name
+     * @param autocommit Auto-commit setting
+     * @param block Code block to execute
+     */
+    public static void withConnection(String name, boolean autocommit, ConnectionRunnable block) {
+        withConnection(name, autocommit, block, play.api.Play.unsafeApplication());
     }
 
     /**
@@ -99,7 +136,18 @@ public class DB {
      * @param block Code block to execute
      */
     public static void withConnection(String name, ConnectionRunnable block) {
-        withConnection(name, block, play.api.Play.unsafeApplication());
+        withConnection(name, true, block);
+    }
+
+    /**
+     * Executes a block of code, providing a JDBC connection.
+     * The connection and all created statements are automatically released.
+     *
+     * @param autocommit Auto-commit setting
+     * @param block Code block to execute
+     */
+    public static void withConnection(boolean autocommit, ConnectionRunnable block) {
+        withConnection("default", autocommit, block);
     }
 
     /**
@@ -109,7 +157,20 @@ public class DB {
      * @param block Code block to execute
      */
     public static void withConnection(ConnectionRunnable block) {
-        withConnection("default", block);
+        withConnection("default", true, block);
+    }
+
+    /**
+     * Executes a block of code, providing a JDBC connection.
+     * The connection and all created statements are automatically released.
+     *
+     * @param name Datasource name
+     * @param autocommit Auto-commit setting
+     * @param block Code block to execute
+     * @param application Play application (<tt>play.api.Play.unsafeApplication()</tt>)
+     */
+    public static <A> A withConnection(String name, boolean autocommit, ConnectionCallable<A> block, Application application) {
+        return play.api.db.DB.withConnection(name, autocommit, connectionFunction(block), application);
     }
 
     /**
@@ -121,7 +182,19 @@ public class DB {
      * @param application Play application (<tt>play.api.Play.unsafeApplication()</tt>)
      */
     public static <A> A withConnection(String name, ConnectionCallable<A> block, Application application) {
-        return play.api.db.DB.withConnection(name, connectionFunction(block), application);
+        return withConnection(name, true, block, application);
+    }
+
+    /**
+     * Executes a block of code, providing a JDBC connection.
+     * The connection and all created statements are automatically released.
+     *
+     * @param autocommit Auto-commit setting
+     * @param block Code block to execute
+     * @param application Play application (<tt>play.api.Play.unsafeApplication()</tt>)
+     */
+    public static <A> A withConnection(boolean autocommit, ConnectionCallable<A> block, Application application) {
+        return withConnection("default", autocommit, block, application);
     }
 
     /**
@@ -132,7 +205,19 @@ public class DB {
      * @param application Play application (<tt>play.api.Play.unsafeApplication()</tt>)
      */
     public static <A> A withConnection(ConnectionCallable<A> block, Application application) {
-        return withConnection("default", block, application);
+        return withConnection("default", true, block, application);
+    }
+
+    /**
+     * Executes a block of code, providing a JDBC connection.
+     * The connection and all created statements are automatically released.
+     *
+     * @param name Datasource name
+     * @param autocommit Auto-commit setting
+     * @param block Code block to execute
+     */
+    public static <A> A withConnection(String name, boolean autocommit, ConnectionCallable<A> block) {
+        return withConnection(name, autocommit, block, play.api.Play.unsafeApplication());
     }
 
     /**
@@ -143,7 +228,18 @@ public class DB {
      * @param block Code block to execute
      */
     public static <A> A withConnection(String name, ConnectionCallable<A> block) {
-        return withConnection(name, block, play.api.Play.unsafeApplication());
+        return withConnection(name, true, block);
+    }
+
+    /**
+     * Executes a block of code, providing a JDBC connection.
+     * The connection and all created statements are automatically released.
+     *
+     * @param autocommit Auto-commit setting
+     * @param block Code block to execute
+     */
+    public static <A> A withConnection(boolean autocommit, ConnectionCallable<A> block) {
+        return withConnection("default", autocommit, block);
     }
 
     /**
@@ -153,7 +249,7 @@ public class DB {
      * @param block Code block to execute
      */
     public static <A> A withConnection(ConnectionCallable<A> block) {
-        return withConnection("default", block);
+        return withConnection("default", true, block);
     }
 
     /**
