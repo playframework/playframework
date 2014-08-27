@@ -182,7 +182,7 @@ case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * @return the new result
    */
   def flashing(flash: Flash): Result = {
-    if (shouldWarnIfNotRedirect) {
+    if (shouldWarnIfNotRedirect(flash)) {
       logRedirectWarning("flashing")
     }
     withCookies(Flash.encodeAsCookie(flash))
@@ -283,9 +283,9 @@ case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
   /**
    * Returns true if the status code is not 3xx and the application is in Dev mode.
    */
-  private def shouldWarnIfNotRedirect: Boolean = {
+  private def shouldWarnIfNotRedirect(flash: Flash): Boolean = {
     play.api.Play.maybeApplication.exists(app =>
-      (app.mode == play.api.Mode.Dev) && (header.status < 300 || header.status > 399))
+      (app.mode == play.api.Mode.Dev) && (!flash.isEmpty) && (header.status < 300 || header.status > 399))
   }
 
   /**
