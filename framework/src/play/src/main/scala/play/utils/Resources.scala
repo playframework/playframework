@@ -15,6 +15,7 @@ object Resources {
   def isDirectory(url: URL) = url.getProtocol match {
     case "file" => new File(url.toURI).isDirectory
     case "jar" => isJarResourceDirectory(url)
+    case "wsjar" => isJarResourceDirectory(url)
     case _ => throw new IllegalArgumentException(s"Cannot check isDirectory for a URL with protocol='${url.getProtocol}'")
   }
 
