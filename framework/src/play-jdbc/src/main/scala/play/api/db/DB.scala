@@ -44,10 +44,11 @@ object DB {
    * automatically released.
    *
    * @param name The datasource name.
+   * @param autocommit when `true`, sets this connection to auto-commit
    * @param block Code block to execute.
    */
-  def withConnection[A](name: String)(block: Connection => A)(implicit app: Application): A =
-    db.database(name).withConnection(block)
+  def withConnection[A](name: String = "default", autocommit: Boolean = true)(block: Connection => A)(implicit app: Application): A =
+    db.database(name).withConnection(autocommit)(block)
 
   /**
    * Execute a block of code, providing a JDBC connection. The connection and all created statements are
