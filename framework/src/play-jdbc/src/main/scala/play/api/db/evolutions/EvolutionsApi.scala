@@ -70,6 +70,8 @@ trait EvolutionsApi {
 @Singleton
 class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
 
+  import DefaultEvolutionsApi._
+
   /**
    * Create evolution scripts.
    *
@@ -248,17 +250,12 @@ class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
   private def checkEvolutionsState(db: String): Unit = {
     def createPlayEvolutionsTable()(implicit conn: Connection): Unit = {
       try {
-        execute(
-          """
-              create table play_evolutions (
-                  id int not null primary key, hash varchar(255) not null,
-                  applied_at timestamp not null,
-                  apply_script text,
-                  revert_script text,
-                  state varchar(255),
-                  last_problem text
-              )
-          """)
+        val createScript = dbApi.database(db).url match {
+          case SqlServerJdbcUrl() => CreatePlayEvolutionsSqlServerSql
+          case _ => CreatePlayEvolutionsSql
+        }
+
+        execute(createScript)
       } catch {
         case NonFatal(ex) => Logger.warn("could not create play_evolutions table", ex)
       }
@@ -323,6 +320,36 @@ class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
   private def prepare(sql: String)(implicit c: Connection): PreparedStatement = {
     c.prepareStatement(sql)
   }
+}
+
+private object DefaultEvolutionsApi {
+  val SqlServerJdbcUrl = "^jdbc:sqlserver:.*".r
+
+  val CreatePlayEvolutionsSql =
+    """
+      create table play_evolutions (
+          id int not null primary key,
+          hash varchar(255) not null,
+          applied_at timestamp not null,
+          apply_script text,
+          revert_script text,
+          state varchar(255),
+          last_problem text
+      )
+    """
+
+  val CreatePlayEvolutionsSqlServerSql =
+    """
+      create table play_evolutions (
+          id int not null primary key,
+          hash varchar(255) not null,
+          applied_at datetime not null,
+          apply_script text,
+          revert_script text,
+          state varchar(255),
+          last_problem text
+      )
+    """
 }
 
 /**
