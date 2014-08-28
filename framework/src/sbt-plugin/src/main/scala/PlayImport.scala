@@ -118,6 +118,8 @@ object PlayImport {
 
     val ebeanEnabled = SettingKey[Boolean]("play-ebean-enabled")
 
+    val ebeanModels = SettingKey[String]("play-ebean-models")
+
     val playPlugin = SettingKey[Boolean]("play-plugin")
 
     val devSettings = SettingKey[Seq[(String, String)]]("play-dev-settings")

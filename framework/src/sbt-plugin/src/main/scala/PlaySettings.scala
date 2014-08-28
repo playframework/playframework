@@ -131,6 +131,8 @@ trait PlaySettings {
 
     mainClass in (Compile, run) := Some("play.core.server.NettyServer"),
 
+    ebeanModels := configuredEbeanModels.value,
+
     compile in Compile <<= PostCompile(scope = Compile),
 
     compile in Test <<= PostCompile(Test),

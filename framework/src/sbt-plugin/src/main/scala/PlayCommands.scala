@@ -72,9 +72,26 @@ trait PlayCommands extends PlayEclipse with PlayInternalKeys {
     )
   }
 
+  def configuredEbeanModels = Def.setting {
+    import com.typesafe.config._
+    import collection.JavaConverters._
+
+    val config = sys.props.get("config.resource").map(ConfigFactory.parseResources).getOrElse {
+      val defaultFile = baseDirectory.value / "conf" / "application.conf"
+      val configFile = sys.props.get("config.file").fold(defaultFile)(file)
+      ConfigFactory.parseFileAnySyntax(configFile)
+    }
+
+    try {
+      config.getConfig("ebean").entrySet.asScala.map(_.getValue.unwrapped).toSet.mkString(",")
+    } catch {
+      case e: ConfigException.Missing => "models.*"
+    }
+  }
+
   // ----- Post compile (need to be refactored and fully configurable)
 
-  def PostCompile(scope: Configuration) = (sourceDirectory in scope, dependencyClasspath in scope, compile in scope, javaSource in scope, managedSourceDirectories in scope, classDirectory in scope, cacheDirectory in scope, compileInputs in compile in scope) map { (src, deps, analysis, javaSrc, srcManaged, classes, cacheDir, inputs) =>
+  def PostCompile(scope: Configuration) = (sourceDirectory in scope, dependencyClasspath in scope, compile in scope, javaSource in scope, managedSourceDirectories in scope, classDirectory in scope, cacheDirectory in scope, compileInputs in compile in scope, ebeanModels in scope) map { (src, deps, analysis, javaSrc, srcManaged, classes, cacheDir, inputs, models) =>
 
     val classpath = (deps.map(_.data.getAbsolutePath).toArray :+ classes.getAbsolutePath).mkString(java.io.File.pathSeparator)
     val ebeanEnhancement = classpath.contains("play-java-ebean")
@@ -92,25 +109,12 @@ trait PlayCommands extends PlayEclipse with PlayInternalKeys {
 
         import com.avaje.ebean.enhance.agent._
         import com.avaje.ebean.enhance.ant._
-        import collection.JavaConverters._
-        import com.typesafe.config._
 
         val cl = ClassLoader.getSystemClassLoader
 
         val t = new Transformer(cp, "debug=-1")
 
         val ft = new OfflineFileTransform(t, cl, classes.getAbsolutePath, classes.getAbsolutePath)
-
-        lazy val file = {
-          Option(System.getProperty("config.file")).map(f => new File(f)).getOrElse(new File("conf/application.conf"))
-        }
-
-        val config = Option(System.getProperty("config.resource"))
-          .map(ConfigFactory.parseResources(_)).getOrElse(ConfigFactory.parseFileAnySyntax(file))
-
-        val models = try {
-          config.getConfig("ebean").entrySet.asScala.map(_.getValue.unwrapped).toSet.mkString(",")
-        } catch { case e: ConfigException.Missing => "models.*" }
 
         try {
           ft.process(models)
