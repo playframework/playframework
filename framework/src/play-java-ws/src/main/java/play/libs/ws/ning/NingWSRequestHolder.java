@@ -17,7 +17,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 import java.util.*;
 
 /**
@@ -42,23 +42,18 @@ public class NingWSRequestHolder implements WSRequestHolder {
     private String virtualHost = null;
 
     public NingWSRequestHolder(NingWSClient client, String url) {
-        try {
-            this.client = client;
-            URL reference = new URL(url);
+        this.client = client;
+        URI reference = URI.create(url);
 
-            this.url = url;
+        this.url = url;
 
-            String userInfo = reference.getUserInfo();
-            if (userInfo != null) {
-                this.setAuth(userInfo);
-            }
-            if (reference.getQuery() != null) {
-                this.setQueryString(reference.getQuery());
-            }
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
+        String userInfo = reference.getUserInfo();
+        if (userInfo != null) {
+            this.setAuth(userInfo);
         }
-
+        if (reference.getQuery() != null) {
+            this.setQueryString(reference.getQuery());
+        }
     }
 
     /**
