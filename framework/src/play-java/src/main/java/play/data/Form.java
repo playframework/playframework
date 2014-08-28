@@ -307,18 +307,18 @@ public class Form<T> {
 
         DataBinder dataBinder = null;
         Map<String, String> objectData = data;
-        if(rootName == null) {
+        if (rootName == null) {
             dataBinder = new DataBinder(blankInstance());
         } else {
             dataBinder = new DataBinder(blankInstance(), rootName);
             objectData = new HashMap<String,String>();
-            for(String key: data.keySet()) {
-                if(key.startsWith(rootName + ".")) {
+            for (String key: data.keySet()) {
+                if (key.startsWith(rootName + ".")) {
                     objectData.put(key.substring(rootName.length() + 1), data.get(key));
                 }
             }
         }
-        if(allowedFields.length > 0) {
+        if (allowedFields.length > 0) {
             dataBinder.setAllowedFields(allowedFields);
         }
         SpringValidatorAdapter validator = new SpringValidatorAdapter(play.data.validation.Validation.getValidator());
@@ -353,53 +353,61 @@ public class Form<T> {
             }
         }
 
-        if(result.hasErrors()) {
+        if (result.hasErrors() || result.getGlobalErrorCount() > 0) {
             Map<String,List<ValidationError>> errors = new HashMap<String,List<ValidationError>>();
-            for(FieldError error: result.getFieldErrors()) {
+            for (FieldError error: result.getFieldErrors()) {
                 String key = error.getObjectName() + "." + error.getField();
-                if(key.startsWith("target.") && rootName == null) {
+                if (key.startsWith("target.") && rootName == null) {
                     key = key.substring(7);
                 }
-                List<Object> arguments = new ArrayList<Object>();
-                for(Object arg: error.getArguments()) {
-                    if(!(arg instanceof org.springframework.context.support.DefaultMessageSourceResolvable)) {
-                        arguments.add(arg);
-                    }                    
-                }
-                if(!errors.containsKey(key)) {
+                if (!errors.containsKey(key)) {
                    errors.put(key, new ArrayList<ValidationError>());
                 }
 
                 ValidationError validationError = null;
-                if( error.isBindingFailure() ){
+                if (error.isBindingFailure()) {
                     ImmutableList.Builder<String> builder = ImmutableList.builder();
-                    for( String code: error.getCodes() ){
+                    for (String code: error.getCodes()) {
                         builder.add( code.replace("typeMismatch", "error.invalid") );
                     }
-                    validationError = new ValidationError(key, builder.build(), arguments);
-                }else{
-                    validationError = new ValidationError(key, error.getDefaultMessage(), arguments);
+                    validationError = new ValidationError(key, builder.build(),
+                            convertErrorArguments(error.getArguments()));
+                } else {
+                    validationError = new ValidationError(key, error.getDefaultMessage(),
+                            convertErrorArguments(error.getArguments()));
                 }
                 errors.get(key).add(validationError);
             }
+
+            List<ValidationError> globalErrors = new ArrayList<ValidationError>();
+
+            for (ObjectError error: result.getGlobalErrors()) {
+                globalErrors.add(new ValidationError("", error.getDefaultMessage(),
+                        convertErrorArguments(error.getArguments())));
+            }
+
+            if (!globalErrors.isEmpty()) {
+                errors.put("", globalErrors);
+            }
+
             return new Form(rootName, backedType, data, errors, None(), groups);
         } else {
             Object globalError = null;
-            if(result.getTarget() != null) {
+            if (result.getTarget() != null) {
                 try {
                     java.lang.reflect.Method v = result.getTarget().getClass().getMethod("validate");
                     globalError = v.invoke(result.getTarget());
-                } catch(NoSuchMethodException e) {
-                } catch(Throwable e) {
+                } catch (NoSuchMethodException e) {
+                } catch (Throwable e) {
                     throw new RuntimeException(e);
                 }
             }
-            if(globalError != null) {
+            if (globalError != null) {
                 Map<String,List<ValidationError>> errors = new HashMap<String,List<ValidationError>>();
-                if(globalError instanceof String) {
+                if (globalError instanceof String) {
                     errors.put("", new ArrayList<ValidationError>());
                     errors.get("").add(new ValidationError("", (String)globalError, new ArrayList()));
-                } else if(globalError instanceof List) {
+                } else if (globalError instanceof List) {
                     for (ValidationError error : (List<ValidationError>) globalError) {
                       List<ValidationError> errorsForKey = errors.get(error.key());
                       if (errorsForKey == null) {
@@ -407,13 +415,29 @@ public class Form<T> {
                       }
                       errorsForKey.add(error);
                     }
-                } else if(globalError instanceof Map) {
+                } else if (globalError instanceof Map) {
                     errors = (Map<String,List<ValidationError>>)globalError;
                 }
                 return new Form(rootName, backedType, data, errors, None(), groups);
             }
             return new Form(rootName, backedType, new HashMap<String,String>(data), new HashMap<String,List<ValidationError>>(errors), Some((T)result.getTarget()), groups);
         }
+    }
+
+    /**
+     * Convert the error arguments.
+     *
+     * @param arguments The arguments to convert.
+     * @return The converted arguments.
+     */
+    private List<Object> convertErrorArguments(Object[] arguments) {
+        List<Object> converted = new ArrayList<Object>(arguments.length);
+        for(Object arg: arguments) {
+            if(!(arg instanceof org.springframework.context.support.DefaultMessageSourceResolvable)) {
+                converted.add(arg);
+            }
+        }
+        return Collections.unmodifiableList(converted);
     }
 
     /**
