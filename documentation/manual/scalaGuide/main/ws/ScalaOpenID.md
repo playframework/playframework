@@ -14,7 +14,7 @@ Step 1 may be omitted if all your users are using the same OpenID provider (for 
 
 ## Usage
 
-To use OpenId, first add `ws`  to your `build.sbt` file:
+To use OpenID, first add `ws`  to your `build.sbt` file:
 
 ```scala
 libraryDependencies ++= Seq(
@@ -22,47 +22,24 @@ libraryDependencies ++= Seq(
 )
 ```
 
+Now any controller or component that wants to use OpenID will have to declare a dependency on the [OpenIdClient](api/scala/index.html#play.api.libs.openid.OpenIdClient):
+
+@[dependency](code/ScalaOpenIdSpec.scala)
+
+We've called the `OpenIdClient` instance `openIdClient`, all the following examples will assume this name.
+
 ## OpenID in Play
 
 The OpenID API has two important functions:
 
-* `OpenID.redirectURL` calculates the URL where you should redirect the user. It involves fetching the user's OpenID page asynchronously, this is why it returns a `Future[String]`. If the OpenID is invalid, the returned `Future` will fail.
-* `OpenID.verifiedId` needs an implicit `Request` and inspects it to establish the user information, including his verified OpenID. It will do a call to the OpenID server asynchronously to check the authenticity of the information, this is why a `Future[UserInfo]`  is returned. If the information is not correct or if the server check is false (for example if the redirect URL has been forged), the returned `Future` will fail.
+* `OpenIdClient.redirectURL` calculates the URL where you should redirect the user. It involves fetching the user's OpenID page asynchronously, this is why it returns a `Future[String]`. If the OpenID is invalid, the returned `Future` will fail.
+* `OpenIdClient.verifiedId` needs a `RequestHeader` and inspects it to establish the user information, including his verified OpenID. It will do a call to the OpenID server asynchronously to check the authenticity of the information, returning a future of [UserInfo](api/scala/index.html#play.api.libs.openid.UserInfo). If the information is not correct or if the server check is false (for example if the redirect URL has been forged), the returned `Future` will fail.
 
 If the `Future` fails, you can define a fallback, which redirects back the user to the login page or return a `BadRequest`.
 
 Here is an example of usage (from a controller):
 
-```scala
-def login = Action {
-  Ok(views.html.login())
-}
-
-def loginPost = Action.async { implicit request =>
-  Form(single(
-    "openid" -> nonEmptyText
-  )).bindFromRequest.fold(
-    { error =>
-      Logger.info("bad request " + error.toString)
-      Future.successful(BadRequest(error.toString))
-    },
-    { openId =>
-      OpenID.redirectURL(openId, routes.Application.openIDCallback.absoluteURL())
-        .map(url => Redirect(url))
-        .recover { case t: Throwable => Redirect(routes.Application.login) }
-    }
-  )
-}
-
-def openIDCallback = Action.async { implicit request =>
-  OpenID.verifiedId.map(info => Ok(info.id + "\n" + info.attributes))
-    .recover {
-      case t: Throwable =>
-      // Here you should look at the error, and give feedback to the user
-      Redirect(routes.Application.login)
-    }
-}
-```
+@[flow](code/ScalaOpenIdSpec.scala)
 
 ## Extended Attributes
 
@@ -72,13 +49,7 @@ You may request *optional* attributes and/or *required* attributes from the Open
 
 Extended attributes are requested in the redirect URL:
 
-```scala
-OpenID.redirectURL(
-    openid,
-    routes.Application.openIDCallback.absoluteURL(),
-    Seq("email" -> "http://schema.openid.net/contact/email")
-)
-```
+@[extended](code/ScalaOpenIdSpec.scala)
 
 Attributes will then be available in the `UserInfo` provided by the OpenID server.
 

@@ -14,7 +14,7 @@ Step 1 may be omitted if all your users are using the same OpenID provider (for 
 
 ## Usage
 
-To use OpenId, first add `javaWs`  to your `build.sbt` file:
+To use OpenID, first add `javaWs`  to your `build.sbt` file:
 
 ```scala
 libraryDependencies ++= Seq(
@@ -22,12 +22,14 @@ libraryDependencies ++= Seq(
 )
 ```
 
+Now any controller or component that wants to use OpenID will have to declare a dependency on the [OpenIdClient](api/java/play/libs/openid/OpenIdClient.html).
+
 ## OpenID in Play
 
 The OpenID API has two important functions:
 
-* `OpenID.redirectURL` calculates the URL where you should redirect the user. It involves fetching the user's OpenID page asynchronously, this is why it returns a `Promise<String>`. If the OpenID is invalid, the returned `Promise` will be a `Thrown`.
-* `OpenID.verifiedId` inspects the current request to establish the user information, including his verified OpenID. It will do a call to the OpenID server asynchronously to check the authenticity of the information, this is why it returns a `Promise<UserInfo>`. If the information is not correct or if the server check is false (for example if the redirect URL has been forged), the returned `Promise` will be a `Thrown`.
+* `OpenIdClient.redirectURL` calculates the URL where you should redirect the user. It involves fetching the user's OpenID page asynchronously, this is why it returns a `Promise<String>`. If the OpenID is invalid, the returned `Promise` will be a `Thrown`.
+* `OpenIdClient.verifiedId` inspects the current request to establish the user information, including his verified OpenID. It will do a call to the OpenID server asynchronously to check the authenticity of the information, returning a promise of [UserInfo](api/java/play/libs/openid/UserInfo.html). If the information is not correct or if the server check is false (for example if the redirect URL has been forged), the returned `Promise` will be a `Thrown`.
 
 If the `Promise` fails, you can define a fallback, which redirects back the user to the login page or return a `BadRequest`.
 

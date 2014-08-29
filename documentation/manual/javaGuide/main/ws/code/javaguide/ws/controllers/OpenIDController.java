@@ -8,12 +8,15 @@ import play.data.DynamicForm;
 import play.data.Form;
 import play.libs.F.Function;
 import play.libs.F.Promise;
-import play.libs.openid.OpenID;
-import play.libs.openid.OpenID.UserInfo;
+import play.libs.openid.*;
 import play.mvc.Controller;
 import play.mvc.Result;
 
+import javax.inject.Inject;
+
 public class OpenIDController extends Controller {
+
+  @Inject OpenIdClient openIdClient;
 
   public Result login() {
     //###replace:     return ok(views.html.login.render(""));
@@ -25,7 +28,7 @@ public class OpenIDController extends Controller {
     String openID = requestData.get("openID");
 
     final Promise<String> redirectUrlPromise =
-        OpenID.redirectURL(openID, routes.OpenIDController.openIDCallback().absoluteURL(request()));
+        openIdClient.redirectURL(openID, routes.OpenIDController.openIDCallback().absoluteURL(request()));
 
     final Promise<Result> resultPromise = redirectUrlPromise.map(new Function<String, Result>() {
       @Override
@@ -45,12 +48,12 @@ public class OpenIDController extends Controller {
 
   public Promise<Result> openIDCallback() {
 
-    final Promise<UserInfo> userInfoPromise = OpenID.verifiedId();
+    final Promise<UserInfo> userInfoPromise = openIdClient.verifiedId();
 
     final Promise<Result> resultPromise = userInfoPromise.map(new Function<UserInfo, Result>() {
       @Override
       public Result apply(UserInfo userInfo) {
-        return ok(userInfo.id + "\n" + userInfo.attributes);
+        return ok(userInfo.id() + "\n" + userInfo.attributes());
       }
     }).recover(new Function<Throwable, Result>() {
       @Override
@@ -67,7 +70,9 @@ public class OpenIDController extends Controller {
 //#ws-openid-controller
 
 class OpenIDSamples extends Controller {
-  
+
+  static OpenIdClient openIdClient;
+
   public static void extendedAttributes() {
     
     final String openID = "";
@@ -76,7 +81,7 @@ class OpenIDSamples extends Controller {
     final Map<String, String> attributes = new HashMap<String, String>();
     attributes.put("email", "http://schema.openid.net/contact/email");
     
-    final Promise<String> redirectUrlPromise = OpenID.redirectURL(
+    final Promise<String> redirectUrlPromise = openIdClient.redirectURL(
       openID, 
       routes.OpenIDController.openIDCallback().absoluteURL(request()), 
       attributes

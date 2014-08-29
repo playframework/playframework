@@ -1,16 +1,20 @@
 package java8guide.ws.controllers;
 
-//#ws-openid-controller
 import javaguide.ws.controllers.routes;
+
+//#ws-openid-controller
 import play.data.DynamicForm;
 import play.data.Form;
 import play.libs.F.Promise;
-import play.libs.openid.OpenID;
-import play.libs.openid.OpenID.UserInfo;
+import play.libs.openid.*;
 import play.mvc.Controller;
 import play.mvc.Result;
 
+import javax.inject.Inject;
+
 public class OpenIDController extends Controller {
+
+  @Inject OpenIdClient openIdClient;
 
   public Result login() {
     //###replace:     return ok(views.html.login.render(""));
@@ -24,7 +28,7 @@ public class OpenIDController extends Controller {
     final String openID = requestData.get("openID");
     
     final Promise<String> redirectUrlPromise =
-        OpenID.redirectURL(openID, routes.OpenIDController.openIDCallback().absoluteURL(request()));
+        openIdClient.redirectURL(openID, routes.OpenIDController.openIDCallback().absoluteURL(request()));
 
     final Promise<Result> resultPromise = redirectUrlPromise.map(url -> {
       return redirect(url);
@@ -38,7 +42,7 @@ public class OpenIDController extends Controller {
 
   public Promise<Result> openIDCallback() {
 
-    final Promise<UserInfo> userInfoPromise = OpenID.verifiedId();
+    final Promise<UserInfo> userInfoPromise = openIdClient.verifiedId();
     
     final Promise<Result> resultPromise = userInfoPromise.map(userInfo -> {
       return (Result) ok(userInfo.id + "\n" + userInfo.attributes);

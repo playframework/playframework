@@ -11,16 +11,15 @@ import play.api.http.Status._
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
 import java.util.concurrent.TimeUnit
-import org.specs2.control.NoStackTraceFilter
 import play.api.libs.ws._
 
-object DiscoverySpec extends Specification with Mockito {
+object DiscoveryClientSpec extends Specification with Mockito {
 
   val dur = Duration(10, TimeUnit.SECONDS)
 
   private def normalize(s: String) = {
     val ws = new WSMock
-    val discovery = new Discovery(ws)
+    val discovery = new WsDiscovery(ws)
     discovery.normalizeIdentifier(s)
   }
 
@@ -150,7 +149,7 @@ object DiscoverySpec extends Specification with Mockito {
 
         val returnTo = "http://foo.bar.com/openid"
         val openId = "http://abc.example.com/foo"
-        val redirectUrl = Await.result(new OpenIDClient(ws).redirectURL(openId, returnTo), dur)
+        val redirectUrl = Await.result(new WsOpenIdClient(ws, new WsDiscovery(ws)).redirectURL(openId, returnTo), dur)
 
         there was one(ws.request).get()
 
@@ -168,7 +167,7 @@ object DiscoverySpec extends Specification with Mockito {
 
         val returnTo = "http://foo.bar.com/openid"
         val openId = "http://abc.example.com/foo"
-        val redirectUrl = Await.result(new OpenIDClient(ws).redirectURL(openId, returnTo), dur)
+        val redirectUrl = Await.result(new WsOpenIdClient(ws, new WsDiscovery(ws)).redirectURL(openId, returnTo), dur)
 
         there was one(ws.request).get()
 
@@ -187,7 +186,7 @@ object DiscoverySpec extends Specification with Mockito {
 
         val returnTo = "http://foo.bar.com/openid"
         val openId = "http://abc.example.com/foo"
-        val redirectUrl = Await.result(new OpenIDClient(ws).redirectURL(openId, returnTo), dur)
+        val redirectUrl = Await.result(new WsOpenIdClient(ws, new WsDiscovery(ws)).redirectURL(openId, returnTo), dur)
 
         there was one(ws.request).get()
 
@@ -206,7 +205,7 @@ object DiscoverySpec extends Specification with Mockito {
 
         val returnTo = "http://foo.bar.com/openid"
         val openId = "http://abc.example.com/foo"
-        val redirectUrl = Await.result(new OpenIDClient(ws).redirectURL(openId, returnTo), dur)
+        val redirectUrl = Await.result(new WsOpenIdClient(ws, new WsDiscovery(ws)).redirectURL(openId, returnTo), dur)
 
         there was one(ws.request).get()
 
@@ -220,7 +219,7 @@ object DiscoverySpec extends Specification with Mockito {
         ws.response.body returns readFixture("discovery/html/opLocalIdentityPage.html")
 
         val returnTo = "http://foo.bar.com/openid"
-        val redirectUrl = Await.result(new OpenIDClient(ws).redirectURL("http://example.com/", returnTo), dur)
+        val redirectUrl = Await.result(new WsOpenIdClient(ws, new WsDiscovery(ws)).redirectURL("http://example.com/", returnTo), dur)
 
         there was one(ws.request).get()
 
