@@ -110,7 +110,7 @@ public class MessagesApi {
     public Messages preferred(Collection<Lang> candidates) {
         Seq<Lang> cs = JavaConversions.collectionAsScalaIterable(candidates).toSeq();
         play.api.i18n.Messages msgs = messages.preferred((Seq) cs);
-        return new Messages(msgs.lang(), this);
+        return new Messages(new Lang(msgs.lang()), this);
     }
 
 

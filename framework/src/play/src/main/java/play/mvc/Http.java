@@ -11,6 +11,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import play.i18n.Lang;
 import play.Play;
+import play.i18n.Langs;
+import play.i18n.MessagesApi;
 
 /**
  * Defines HTTP standard objects.
@@ -114,12 +116,8 @@ public class Http {
             if (lang != null) {
                 return lang;
             } else {
-                Cookie cookieLang = request.cookie(Play.langCookieName());
-                if (cookieLang != null) {
-                    Lang lang = Lang.forCode(cookieLang.value());
-                    if (lang != null) return lang;
-                }
-                return Lang.preferred(request().acceptLanguages());
+                return Play.application().injector().instanceOf(MessagesApi.class)
+                        .preferred(request()).lang();
             }
         }
 
