@@ -249,7 +249,7 @@ object EnumerateesSpec extends Specification
       mustExecute(0, 0) { (map1EC, map2EC) =>
         val add1AndConsume = Enumeratee.map[Int](i => i + 1)(map1EC) ><> Enumeratee.map[Int](i => List(i))(map2EC) &>>
           Iteratee.consume[List[Int]]()
-        add1AndConsume: Iteratee[Int, List[Int]]
+        val check: Iteratee[Int, List[Int]] = add1AndConsume
         true //this test is about compilation and if it compiles it means we got it right
       }
     }
@@ -257,7 +257,7 @@ object EnumerateesSpec extends Specification
     "infer its types correctly from the preceeding enumerator" in {
       mustExecute(0) { mapEC =>
         val addOne = Enumerator(1, 2, 3, 4) &> Enumeratee.map[Int](i => i + 1)(mapEC)
-        addOne: Enumerator[Int]
+        val check: Enumerator[Int] = addOne
         true //this test is about compilation and if it compiles it means we got it right
       }
     }

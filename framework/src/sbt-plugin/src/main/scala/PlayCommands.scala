@@ -91,7 +91,7 @@ trait PlayCommands extends PlayEclipse with PlayInternalKeys {
 
   // ----- Post compile (need to be refactored and fully configurable)
 
-  def PostCompile(scope: Configuration) = (sourceDirectory in scope, dependencyClasspath in scope, compile in scope, javaSource in scope, managedSourceDirectories in scope, classDirectory in scope, cacheDirectory in scope, compileInputs in compile in scope, ebeanModels in scope) map { (src, deps, analysis, javaSrc, srcManaged, classes, cacheDir, inputs, models) =>
+  def PostCompile(scope: Configuration) = (sourceDirectory in scope, dependencyClasspath in scope, compile in scope, javaSource in scope, managedSourceDirectories in scope, classDirectory in scope, compileInputs in compile in scope, ebeanModels in scope) map { (src, deps, analysis, javaSrc, srcManaged, classes, inputs, models) =>
 
     val classpath = (deps.map(_.data.getAbsolutePath).toArray :+ classes.getAbsolutePath).mkString(java.io.File.pathSeparator)
     val ebeanEnhancement = classpath.contains("play-java-ebean")
@@ -134,7 +134,7 @@ trait PlayCommands extends PlayEclipse with PlayInternalKeys {
 
       val managedClasses = ((srcManaged ** "*.scala").get ++ (srcManaged ** "*.java").get).map { managedSourceFile =>
         analysis.relations.products(managedSourceFile)
-      }.flatten x rebase(classes, managedClassesDirectory)
+      }.flatten pair rebase(classes, managedClassesDirectory)
 
       // Copy modified class files
       val managedSet = IO.copy(managedClasses)
@@ -223,13 +223,15 @@ trait PlayCommands extends PlayEclipse with PlayInternalKeys {
   def inAllProjects[T](allProjects: Seq[Reference], key: SettingKey[T], data: Settings[Scope]): Seq[T] =
     allProjects.flatMap { p => key in p get data }
 
-  def inAllDependencies[T](base: ProjectRef, key: SettingKey[T], structure: Load.BuildStructure): Seq[T] = {
+  def inAllDependencies[T](base: ProjectRef, key: SettingKey[T], structure: BuildStructure): Seq[T] = {
     def deps(ref: ProjectRef): Seq[ProjectRef] =
       Project.getProject(ref, structure).toList.flatMap { p =>
         p.dependencies.map(_.project) ++ p.aggregate
       }
     inAllDeps(base, deps, key, structure.data)
   }
+
+  def taskToSetting[T](task: TaskKey[T]): SettingKey[Task[T]] = Scoped.scopedSetting(task.scope, task.key)
 
   private[this] var commonClassLoader: ClassLoader = _
 
@@ -248,7 +250,7 @@ trait PlayCommands extends PlayEclipse with PlayInternalKeys {
   }
 
   val playCompileEverythingTask = (state, thisProjectRef) flatMap { (s, r) =>
-    inAllDependencies(r, playAssetsWithCompilation.task, Project structure s).join
+    inAllDependencies(r, taskToSetting(playAssetsWithCompilation), Project structure s).join
   }
 
   val h2Command = Command.command("h2-browser") { state: State =>
@@ -335,10 +337,10 @@ trait PlayCommands extends PlayEclipse with PlayInternalKeys {
 
         (module \ "revision").map { rev =>
           Map(
-            'module -> (module \ "@organisation" text, module \ "@name" text, rev \ "@name"),
-            'evictedBy -> (rev \ "evicted-by").headOption.map(_ \ "@rev" text),
+            'module -> (((module \ "@organisation").text, (module \ "@name").text, rev \ "@name")),
+            'evictedBy -> (rev \ "evicted-by").headOption.map(e => (e \ "@rev").text),
             'requiredBy -> (rev \ "caller").map { caller =>
-              (caller \ "@organisation" text, caller \ "@name" text, caller \ "@callerrev" text)
+              ((caller \ "@organisation").text, (caller \ "@name").text, (caller \ "@callerrev").text)
             },
             'artifacts -> (rev \ "artifacts" \ "artifact").flatMap { artifact =>
               (artifact \ "@location").headOption.map(node => new java.io.File(node.text).getName)

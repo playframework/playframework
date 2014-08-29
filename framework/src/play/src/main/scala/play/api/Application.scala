@@ -59,7 +59,7 @@ trait Application {
 
   def global: GlobalSettings
   def configuration: Configuration
-  def plugins: Seq[Plugin]
+  def plugins: Seq[Plugin.Deprecated]
 
   /**
    * Retrieves a plugin of type `T`.

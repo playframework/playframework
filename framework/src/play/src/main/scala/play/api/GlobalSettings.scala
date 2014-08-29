@@ -245,7 +245,7 @@ object GlobalSettings {
  * The Global plugin executes application's `globalSettings` `onStart` and `onStop`.
  */
 @Singleton
-class GlobalPlugin @Inject() (app: Application) extends Plugin {
+class GlobalPlugin @Inject() (app: Application) extends Plugin.Deprecated {
 
   // Call before start now
   app.global.beforeStart(app)

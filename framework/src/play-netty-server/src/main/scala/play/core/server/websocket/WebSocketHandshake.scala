@@ -30,7 +30,7 @@ import java.nio.charset.Charset
 import java.security.MessageDigest
 
 object WebSocketHandshake {
-  protected def getWebSocketLocation(request: HttpRequest) = "ws://" + request.getHeader(HttpHeaders.Names.HOST) + request.getUri()
+  protected def getWebSocketLocation(request: HttpRequest) = "ws://" + request.headers.get(HttpHeaders.Names.HOST) + request.getUri()
 
   def shake(ctx: ChannelHandlerContext, req: HttpRequest, bufferLimit: Long): Unit = {
     val factory = new WebSocketServerHandshakerFactory(getWebSocketLocation(req),

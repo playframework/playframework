@@ -136,7 +136,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
           untaggedRequestHeader
         }
 
-        val (requestHeader, handler: Either[Future[Result], (Handler, Application)]) = Exception
+        val (requestHeader, handler: Either[Future[Result], (Handler, Application)] @unchecked) = Exception
           .allCatch[RequestHeader].either {
             val rh = tryToCreateRequest
             // Force parsing of uri

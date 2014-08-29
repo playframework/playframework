@@ -56,6 +56,7 @@ public class FakeRequest {
      * @param method The method to be set
      * @return the Fake Request
      */
+    @SuppressWarnings(value = "unchecked")
     public FakeRequest withAnyContent(AnyContent content, String contentType, String method) {
         Map<String, Seq<String>> map = new HashMap<String, Seq<String>>(Scala.asJava(fake.headers().toMap()));
         map.put("Content-Type", Scala.toSeq(new String[] {contentType}));
@@ -211,6 +212,7 @@ public class FakeRequest {
      * @param body the Body
      * @return the Fake Request
      */
+    @SuppressWarnings(value = "unchecked")
     public <T> FakeRequest withBody(T body) {
         this.fake = this.fake.withBody(body);
         return this;

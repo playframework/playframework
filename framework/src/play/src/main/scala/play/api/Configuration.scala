@@ -4,6 +4,7 @@
 package play.api
 
 import java.io._
+import java.util.concurrent.TimeUnit
 
 import com.typesafe.config._
 
@@ -205,7 +206,7 @@ case class Configuration(underlying: Config) {
    * engine.timeout = 1 second
    * }}}
    */
-  def getMilliseconds(path: String): Option[Long] = readValue(path, underlying.getMilliseconds(path))
+  def getMilliseconds(path: String): Option[Long] = readValue(path, underlying.getDuration(path, TimeUnit.MILLISECONDS))
 
   /**
    * Retrieves a configuration value as `Nanoseconds`.
@@ -222,7 +223,7 @@ case class Configuration(underlying: Config) {
    * engine.timeout = 1 second
    * }}}
    */
-  def getNanoseconds(path: String): Option[Long] = readValue(path, underlying.getNanoseconds(path))
+  def getNanoseconds(path: String): Option[Long] = readValue(path, underlying.getDuration(path, TimeUnit.NANOSECONDS))
 
   /**
    * Retrieves a configuration value as `Bytes`.
@@ -539,7 +540,7 @@ case class Configuration(underlying: Config) {
    * engine.timeouts = [1 second, 1 second]
    * }}}
    */
-  def getMillisecondsList(path: String): Option[java.util.List[java.lang.Long]] = readValue(path, underlying.getMillisecondsList(path))
+  def getMillisecondsList(path: String): Option[java.util.List[java.lang.Long]] = readValue(path, underlying.getDurationList(path, TimeUnit.MILLISECONDS))
 
   /**
    * Retrieves a configuration value as Seq of `Milliseconds`.
@@ -573,7 +574,7 @@ case class Configuration(underlying: Config) {
    * engine.timeouts = [1 second, 1 second]
    * }}}
    */
-  def getNanosecondsList(path: String): Option[java.util.List[java.lang.Long]] = readValue(path, underlying.getNanosecondsList(path))
+  def getNanosecondsList(path: String): Option[java.util.List[java.lang.Long]] = readValue(path, underlying.getDurationList(path, TimeUnit.NANOSECONDS))
 
   /**
    * Retrieves a configuration value as Seq of `Nanoseconds`.

@@ -465,7 +465,7 @@ public class Constraints {
     public static class ValidateWithValidator extends Validator<Object> implements ConstraintValidator<ValidateWith, Object> {
 
         final static public String message = "error.invalid";
-        Class clazz = null;
+        Class<?> clazz = null;
         Validator validator = null;
 
         public ValidateWithValidator() {}
@@ -485,6 +485,7 @@ public class Constraints {
             }
         }
 
+        @SuppressWarnings("unchecked")
         public boolean isValid(Object object) {
             try {
                 return validator.isValid(object);

@@ -293,7 +293,7 @@ object Column extends JodaColumn {
     }
   }
 
-  implicit def columnToPk[T](implicit c: Column[T]): Column[Pk[T]] =
+  implicit def columnToPk[T](implicit c: Column[T]): Column[Pk.Deprecated[T]] =
     nonNull { (value, meta) => c(value, meta).map(Id(_)) }
 
   implicit def columnToOption[T](implicit transformer: Column[T]): Column[Option[T]] = Column { (value, meta) =>

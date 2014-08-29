@@ -29,7 +29,7 @@ object Files {
      * Move the file.
      */
     def moveTo(to: File, replace: Boolean = false) {
-      Files.moveFile(file, to, replace = replace)
+      Files.Deprecated.moveFile(file, to, replace = replace)
     }
 
     /**
@@ -150,10 +150,37 @@ object Files {
    * @param content the contents to write
    */
   @deprecated("Use Java 7 Files API instead", "2.3")
-  def writeFileIfChanged(path: File, content: String) {
+  def writeFileIfChanged(path: File, content: String): Unit = {
     if (content != Option(path).filter(_.exists).map(readFile(_)).getOrElse("")) {
       writeFile(path, content)
     }
   }
+
+  /**
+   * Workaround to suppress deprecation warnings within the Play build.
+   * Based on https://issues.scala-lang.org/browse/SI-7934
+   */
+  @deprecated("", "")
+  private[play] class Deprecated {
+    def copyFile(from: File, to: File, replaceExisting: Boolean = true): File =
+      Files.copyFile(from, to, replaceExisting)
+
+    def moveFile(from: File, to: File, replace: Boolean = true): File =
+      Files.moveFile(from, to, replace)
+
+    def readFile(path: File): String =
+      Files.readFile(path)
+
+    def writeFile(path: File, content: String): Unit =
+      Files.writeFile(path, content)
+
+    def createDirectory(path: File): File =
+      Files.createDirectory(path)
+
+    def writeFileIfChanged(path: File, content: String): Unit =
+      Files.writeFileIfChanged(path, content)
+  }
+
+  private[play] object Deprecated extends Deprecated
 
 }

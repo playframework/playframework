@@ -202,7 +202,7 @@ object JsMacroImpl {
     val importFunctionalSyntax = Import(functionalSyntaxPkg, List(ImportSelector(nme.WILDCARD, -1, null, -1)))
     if (!hasRec) {
       val block = Block(
-        importFunctionalSyntax,
+        List(importFunctionalSyntax),
         finalTree
       )
       //println("block:"+block)
@@ -218,41 +218,46 @@ object JsMacroImpl {
 
       val block = Select(
         Block(
-          importFunctionalSyntax,
-          ClassDef(
-            Modifiers(Flag.FINAL),
-            newTypeName("$anon"),
-            List(),
-            Template(
-              List(
-                AppliedTypeTree(
-                  lazyHelperSelect,
-                  List(
-                    Ident(matag.tpe.typeSymbol),
-                    Ident(atag.tpe.typeSymbol)
-                  )
-                )
-              ),
-              emptyValDef,
-              List(
-                DefDef(
-                  Modifiers(),
-                  nme.CONSTRUCTOR,
-                  List(),
-                  List(List()),
-                  TypeTree(),
-                  Block(
-                    Apply(
-                      Select(Super(This(tpnme.EMPTY), tpnme.EMPTY), nme.CONSTRUCTOR),
-                      List()
+          List(
+            importFunctionalSyntax,
+            ClassDef(
+              Modifiers(Flag.FINAL),
+              newTypeName("$anon"),
+              List(),
+              Template(
+                List(
+                  AppliedTypeTree(
+                    lazyHelperSelect,
+                    List(
+                      Ident(matag.tpe.typeSymbol),
+                      Ident(atag.tpe.typeSymbol)
                     )
                   )
                 ),
-                ValDef(
-                  Modifiers(Flag.OVERRIDE | Flag.LAZY),
-                  newTermName("lazyStuff"),
-                  AppliedTypeTree(Ident(matag.tpe.typeSymbol), List(TypeTree(atag.tpe))),
-                  finalTree
+                emptyValDef,
+                List(
+                  DefDef(
+                    Modifiers(),
+                    nme.CONSTRUCTOR,
+                    List(),
+                    List(List()),
+                    TypeTree(),
+                    Block(
+                      List(
+                        Apply(
+                          Select(Super(This(tpnme.EMPTY), tpnme.EMPTY), nme.CONSTRUCTOR),
+                          List()
+                        )
+                      ),
+                      Literal(Constant(()))
+                    )
+                  ),
+                  ValDef(
+                    Modifiers(Flag.OVERRIDE | Flag.LAZY),
+                    newTermName("lazyStuff"),
+                    AppliedTypeTree(Ident(matag.tpe.typeSymbol), List(TypeTree(atag.tpe))),
+                    finalTree
+                  )
                 )
               )
             )

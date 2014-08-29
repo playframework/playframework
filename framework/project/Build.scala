@@ -121,7 +121,7 @@ object BuildSettings {
   def playSbtCommonSettings: Seq[Setting[_]] = playCommonSettings ++ scalariformSettings ++ Seq(
     scalaVersion := buildScalaVersionForSbt,
     scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
-    scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked")
+    scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature")
   )
 
   /**
@@ -191,7 +191,9 @@ object PlayBuild extends Build {
   lazy val AnormProject = PlayRuntimeProject("Anorm", "anorm")
     .settings(
       libraryDependencies ++= anormDependencies,
-      addScalaModules(scalaParserCombinators)
+      addScalaModules(scalaParserCombinators),
+      // quieten deprecation warnings in tests
+      scalacOptions in Test := (scalacOptions in Test).value diff Seq("-deprecation")
     )
 
   lazy val IterateesProject = PlayRuntimeProject("Play-Iteratees", "iteratees")
@@ -307,7 +309,9 @@ object PlayBuild extends Build {
   lazy val PlayWsProject = PlayRuntimeProject("Play-WS", "play-ws")
     .settings(
       libraryDependencies ++= playWsDeps,
-      parallelExecution in Test := false
+      parallelExecution in Test := false,
+      // quieten deprecation warnings in tests
+      scalacOptions in Test := (scalacOptions in Test).value diff Seq("-deprecation")
     ).dependsOn(PlayProject)
     .dependsOn(PlayTestProject % "test")
 

@@ -401,7 +401,7 @@ trait PlayRun extends PlayInternalKeys {
         val builder = new java.lang.ProcessBuilder(args.asJava)
         new Thread {
           override def run() {
-            System.exit(Process(builder) !)
+            System.exit(Process(builder).!)
           }
         }.start()
 

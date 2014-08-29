@@ -63,7 +63,7 @@ public class DelegatingClassLoader extends ClassLoader {
     findResource.setAccessible(true);
     ClassLoader appClassLoader = applicationClassLoaderProvider.get();
     URL resource = null;
-    if (appClassLoader != null) {    
+    if (appClassLoader != null) {
       try {
         resource = (URL) findResource.invoke(appClassLoader, name);
       } catch (IllegalAccessException e) {
@@ -75,6 +75,7 @@ public class DelegatingClassLoader extends ClassLoader {
     return resource != null ? resource : super.getResource(name);
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public Enumeration<URL> getResources(String name) throws IOException {
     Method findResources;

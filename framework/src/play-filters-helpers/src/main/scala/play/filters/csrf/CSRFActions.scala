@@ -69,11 +69,13 @@ class CSRFAction(next: EssentialAction,
             request.contentType match {
               case Some("application/x-www-form-urlencoded") => checkFormBody(request, headerToken, tokenName, next)
               case Some("multipart/form-data") => checkMultipartBody(request, headerToken, tokenName, next)
-              // No way to extract token from text plain body
-              case Some("text/plain") => {
-                filterLogger.trace("[CSRF] Check failed because text/plain request")
-                checkFailed(request, "No CSRF token found for text/plain body")
-              }
+              // No way to extract token from other content types
+              case Some(content) =>
+                filterLogger.trace(s"[CSRF] Check failed because $content request")
+                checkFailed(request, s"No CSRF token found for $content body")
+              case None =>
+                filterLogger.trace(s"[CSRF] Check failed because request without content type")
+                checkFailed(request, s"No CSRF token found for body without content type")
             }
 
           }
