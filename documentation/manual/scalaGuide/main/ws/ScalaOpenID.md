@@ -33,36 +33,7 @@ If the `Future` fails, you can define a fallback, which redirects back the user 
 
 Here is an example of usage (from a controller):
 
-```scala
-def login = Action {
-  Ok(views.html.login())
-}
-
-def loginPost = Action.async { implicit request =>
-  Form(single(
-    "openid" -> nonEmptyText
-  )).bindFromRequest.fold(
-    { error =>
-      Logger.info("bad request " + error.toString)
-      Future.successful(BadRequest(error.toString))
-    },
-    { openId =>
-      OpenID.redirectURL(openId, routes.Application.openIDCallback.absoluteURL())
-        .map(url => Redirect(url))
-        .recover { case t: Throwable => Redirect(routes.Application.login) }
-    }
-  )
-}
-
-def openIDCallback = Action.async { implicit request =>
-  OpenID.verifiedId.map(info => Ok(info.id + "\n" + info.attributes))
-    .recover {
-      case t: Throwable =>
-      // Here you should look at the error, and give feedback to the user
-      Redirect(routes.Application.login)
-    }
-}
-```
+@[ScalaOpenID](code/OpenID.scala)
 
 ## Extended Attributes
 
