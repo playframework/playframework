@@ -124,7 +124,12 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
       "reject requests with unsigned token in session" in {
         csrfCheckRequest(req => addToken(req, "foo")
           .post(Map("foo" -> "bar", TokenName -> generate))
-        )(_.status must_== FORBIDDEN)
+        ) { response =>
+          response.status must_== FORBIDDEN
+          response.cookies.find(_.name.exists(_ == Session.COOKIE_NAME)) must beSome.like {
+            case cookie => cookie.value must beNone
+          }
+        }
       }
       "return a different token on each request" in {
         lazy val token = generate

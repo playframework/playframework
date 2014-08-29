@@ -35,7 +35,8 @@ class CSRFAction(next: EssentialAction,
   import CSRFAction._
 
   // An iteratee that returns a forbidden result saying the CSRF check failed
-  private def checkFailed(req: RequestHeader, msg: String): Iteratee[Array[Byte], Result] = Done(errorHandler.handle(req, msg))
+  private def checkFailed(req: RequestHeader, msg: String): Iteratee[Array[Byte], Result] =
+    Done(clearTokenIfInvalid(req, tokenName, cookieName, secureCookie, errorHandler, msg))
 
   def apply(request: RequestHeader) = {
 
@@ -188,13 +189,9 @@ object CSRFAction {
           result.withCookies(Cookie(name, newToken, path = Session.path, domain = Session.domain,
             secure = secureCookie))
       } getOrElse {
-        // Get the new session, or the incoming session
-        val session = Cookies(result.header.headers.get(SET_COOKIE))
-          .get(Session.COOKIE_NAME).map(_.value).map(Session.decode)
-          .getOrElse(request.session.data)
 
-        val newSession = session + (tokenName -> newToken)
-        result.withSession(Session.deserialize(newSession))
+        val newSession = result.session(request) + (tokenName -> newToken)
+        result.withSession(newSession)
       }
     }
 
@@ -202,6 +199,23 @@ object CSRFAction {
 
   private[csrf] def isCached(result: Result): Boolean =
     result.header.headers.get(CACHE_CONTROL).fold(false)(!_.contains("no-cache"))
+
+  private[csrf] def clearTokenIfInvalid(request: RequestHeader, tokenName: String, cookieName: Option[String],
+    secureCookie: Boolean, errorHandler: ErrorHandler, msg: String): Result = {
+
+    val result = errorHandler.handle(request, msg)
+
+    CSRF.getToken(request).fold(
+      cookieName.flatMap { cookie =>
+        request.cookies.get(cookie).map { token =>
+          result.discardingCookies(DiscardingCookie(cookie, domain = Session.domain, path = Session.path,
+            secure = secureCookie))
+        }
+      }.getOrElse {
+        result.withSession(result.session(request) - tokenName)
+      }
+    )(_ => result)
+  }
 }
 
 /**
@@ -211,8 +225,8 @@ object CSRFAction {
  */
 object CSRFCheck {
 
-  private class CSRFCheckAction[A](tokenName: String, cookieName: Option[String], tokenProvider: TokenProvider,
-      errorHandler: ErrorHandler, wrapped: Action[A]) extends Action[A] {
+  private class CSRFCheckAction[A](tokenName: String, cookieName: Option[String], secureCookie: Boolean,
+      tokenProvider: TokenProvider, errorHandler: ErrorHandler, wrapped: Action[A]) extends Action[A] {
     def parser = wrapped.parser
     def apply(request: Request[A]) = {
 
@@ -239,7 +253,8 @@ object CSRFCheck {
             .collect {
               case queryToken if tokenProvider.compareTokens(queryToken, headerToken) => wrapped(request)
             }
-        }.getOrElse(Future.successful(errorHandler.handle(request, "CSRF token check failed")))
+        }.getOrElse(Future.successful(CSRFAction.clearTokenIfInvalid(request, tokenName, cookieName, secureCookie,
+          errorHandler, "CSRF token check failed")))
       }
     }
   }
@@ -248,7 +263,8 @@ object CSRFCheck {
    * Wrap an action in a CSRF check.
    */
   def apply[A](action: Action[A], errorHandler: ErrorHandler = CSRFConf.defaultErrorHandler): Action[A] =
-    new CSRFCheckAction(CSRFConf.TokenName, CSRFConf.CookieName, CSRFConf.defaultTokenProvider, errorHandler, action)
+    new CSRFCheckAction(CSRFConf.TokenName, CSRFConf.CookieName, CSRFConf.SecureCookie, CSRFConf.defaultTokenProvider,
+      errorHandler, action)
 }
 
 /**

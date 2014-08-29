@@ -10,7 +10,6 @@ import scala.collection.mutable.Buffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import play.api.i18n.Lang;
 
 /**
  * A messages and a language.
@@ -33,7 +32,7 @@ public class Messages {
             lang = play.mvc.Http.Context.current().lang();
         } else {
             Locale defaultLocale = Locale.getDefault();
-            lang = new Lang(defaultLocale.getLanguage(), defaultLocale.getCountry());
+            lang = new Lang(new play.api.i18n.Lang(defaultLocale.getLanguage(), defaultLocale.getCountry()));
         }
         return lang;
     }
