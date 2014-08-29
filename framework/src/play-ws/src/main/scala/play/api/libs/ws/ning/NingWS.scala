@@ -10,6 +10,7 @@ import com.ning.http.client.cookie.{ Cookie => AHCCookie }
 import com.ning.http.client.Realm.{ RealmBuilder, AuthScheme }
 import com.ning.http.util.AsyncHttpProviderUtils
 import play.api.inject.{ ApplicationLifecycle, Module }
+import play.api.libs.openid.OpenIdClient
 
 import collection.immutable.TreeMap
 

@@ -3,13 +3,18 @@
  */
 package play.api.libs.openid
 
+import javax.inject.{ Singleton, Inject }
+
+import play.api.{ Configuration, Environment, Application }
+import play.api.inject.Module
+
 import scala.concurrent.Future
 import scala.util.control.Exception._
 import scala.util.matching.Regex
 import play.api.http.HeaderNames
 import play.api.libs.ws._
 import java.net._
-import play.api.mvc.Request
+import play.api.mvc.{ RequestHeader, Request }
 import xml.Node
 
 //TODO do not use Play's internal execution context in libs
@@ -59,11 +64,47 @@ object UserInfo {
 /**
  * provides OpenID support
  */
-object OpenID extends OpenIDClient(WS.client(play.api.Play.current))
+object OpenID {
+  /**
+   * Retrieve the URL where the user should be redirected to start the OpenID authentication process
+   */
+  def redirectURL(openID: String,
+    callbackURL: String,
+    axRequired: Seq[(String, String)] = Seq.empty,
+    axOptional: Seq[(String, String)] = Seq.empty,
+    realm: Option[String] = None)(implicit app: Application) =
+    app.injector.instanceOf[OpenIdClient].redirectURL(openID, callbackURL, axRequired, axOptional, realm)
 
-private[openid] class OpenIDClient(ws: WSClient) {
+  /**
+   * From a request corresponding to the callback from the OpenID server, check the identity of the current user
+   */
+  def verifiedId(implicit request: Request[_], app: Application): Future[UserInfo] =
+    app.injector.instanceOf[OpenIdClient].verifiedId(request)
+}
 
-  val discovery = new Discovery(ws)
+trait OpenIdClient {
+  /**
+   * Retrieve the URL where the user should be redirected to start the OpenID authentication process
+   */
+  def redirectURL(openID: String,
+    callbackURL: String,
+    axRequired: Seq[(String, String)] = Seq.empty,
+    axOptional: Seq[(String, String)] = Seq.empty,
+    realm: Option[String] = None): Future[String]
+
+  /**
+   * From a request corresponding to the callback from the OpenID server, check the identity of the current user
+   */
+  def verifiedId(request: RequestHeader): Future[UserInfo]
+
+  /**
+   * For internal use
+   */
+  def verifiedId(queryString: java.util.Map[String, Array[String]]): Future[UserInfo]
+}
+
+@Singleton
+class WsOpenIdClient @Inject() (ws: WSClient, discovery: Discovery) extends OpenIdClient {
 
   /**
    * Retrieve the URL where the user should be redirected to start the OpenID authentication process
@@ -91,7 +132,7 @@ private[openid] class OpenIDClient(ws: WSClient) {
   /**
    * From a request corresponding to the callback from the OpenID server, check the identity of the current user
    */
-  def verifiedId(implicit request: Request[_]): Future[UserInfo] = verifiedId(request.queryString)
+  def verifiedId(request: RequestHeader): Future[UserInfo] = verifiedId(request.queryString)
 
   /**
    * For internal use
@@ -118,7 +159,6 @@ private[openid] class OpenIDClient(ws: WSClient) {
    * Perform direct verification (see 11.4.2. Verifying Directly with the OpenID Provider)
    */
   private def directVerification(queryString: Map[String, Seq[String]])(server: OpenIDServer) = {
-    import play.api.Play.current
     val fields = (queryString - "openid.mode" + ("openid.mode" -> Seq("check_authentication")))
     ws.url(server.url).post(fields).map(response => {
       if (response.status == 200 && response.body.contains("is_valid:true")) {
@@ -145,6 +185,19 @@ private[openid] class OpenIDClient(ws: WSClient) {
   }
 }
 
+trait Discovery {
+  /**
+   * Resolve the OpenID server from the user's OpenID
+   */
+  def discoverServer(openID: String): Future[OpenIDServer]
+
+  /**
+   * Normalize the given identifier.
+   */
+  def normalizeIdentifier(openID: String): String
+
+}
+
 /**
  *  Resolve the OpenID identifier to the location of the user's OpenID service provider.
  *
@@ -152,7 +205,8 @@ private[openid] class OpenIDClient(ws: WSClient) {
  *
  *   * The Discovery doesn't support XRIs at the moment
  */
-private[openid] class Discovery(ws: WSClient) {
+@Singleton
+class WsDiscovery @Inject() (ws: WSClient) extends Discovery {
   import Discovery._
 
   case class UrlIdentifier(url: String) {
@@ -237,3 +291,30 @@ private[openid] object Discovery {
   }
 
 }
+
+/**
+ * The OpenID module
+ */
+class OpenIDModule extends Module {
+  def bindings(environment: Environment, configuration: Configuration) = {
+    if (configuration.underlying.getBoolean("play.modules.openid.enabled")) {
+      Seq(
+        bind[OpenIdClient].to[WsOpenIdClient],
+        bind[Discovery].to[WsDiscovery]
+      )
+    } else {
+      Nil
+    }
+  }
+}
+
+/**
+ * OpenID components
+ */
+trait OpenIDComponents {
+  def wsClient: WSClient
+
+  lazy val openIdDiscovery: Discovery = new WsDiscovery(wsClient)
+  lazy val openIdClient: OpenIdClient = new WsOpenIdClient(wsClient, openIdDiscovery)
+}
+

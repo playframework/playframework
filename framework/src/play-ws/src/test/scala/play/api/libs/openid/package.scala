@@ -3,7 +3,7 @@
  */
 package play.api.libs
 
-import io.Source
+import scala.io.Source
 import org.jboss.netty.handler.codec.http.QueryStringDecoder
 import java.net.{ MalformedURLException, URL }
 import util.control.Exception._
@@ -20,7 +20,7 @@ package object openid {
     def hostAndPath = new URL(url.getProtocol, url.getHost, url.getPort, url.getPath).toExternalForm
   }
 
-  def readFixture(filePath: String) = this.synchronized {
+  def readFixture(filePath: String): String = this.synchronized {
     Source.fromInputStream(this.getClass.getResourceAsStream(filePath)).mkString
   }
 
