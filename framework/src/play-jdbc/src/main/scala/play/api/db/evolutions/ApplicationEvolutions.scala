@@ -9,7 +9,7 @@ import javax.sql.DataSource
 
 import scala.util.control.Exception.ignoring
 
-import play.api.db.DBApi
+import play.api.db.{ Database, DBApi }
 import play.api.{ Configuration, Environment, Mode, Play, PlayException }
 import play.core.{ HandleWebCommandSupport, WebCommands }
 
@@ -30,42 +30,46 @@ class ApplicationEvolutions @Inject() (
    * Checks the evolutions state. Called on construction.
    */
   def start(): Unit = {
-    import Evolutions.toHumanReadableScript
 
     webCommands.addHandler(new EvolutionsWebCommands(evolutions, reader, config))
 
     // allow db modules to write evolution files
     dynamicEvolutions.create()
 
-    dbApi.databases.foreach { database =>
-      withLock(database.dataSource) {
-        val db = database.name
+    dbApi.databases().foreach(runEvolutions)
+  }
+
+  private def runEvolutions(database: Database): Unit = {
+    val db = database.name
+    val dbConfig = config.forDatasource(db)
+    if (dbConfig.enabled) {
+      withLock(database.dataSource, dbConfig) {
         val scripts = evolutions.scripts(db, reader)
         val hasDown = scripts.exists(_.isInstanceOf[DownScript])
 
-        val autocommit = config.autocommit
+        val autocommit = dbConfig.autocommit
 
-        lazy val applyEvolutions = config.applyEvolutions(db)
-        lazy val applyDownEvolutions = config.applyDownEvolutions(db)
+        if (scripts.nonEmpty) {
 
-        if (!scripts.isEmpty) {
+          import Evolutions.toHumanReadableScript
+
           environment.mode match {
             case Mode.Test => evolutions.evolve(db, scripts, autocommit)
-            case Mode.Dev if applyEvolutions => evolutions.evolve(db, scripts, autocommit)
-            case Mode.Prod if !hasDown && applyEvolutions => evolutions.evolve(db, scripts, autocommit)
-            case Mode.Prod if hasDown && applyEvolutions && applyDownEvolutions => evolutions.evolve(db, scripts, autocommit)
-            case Mode.Prod if hasDown => {
-              Play.logger.warn("Your production database [" + db + "] needs evolutions, including downs! \n\n" + toHumanReadableScript(scripts))
-              Play.logger.warn("Run with -DapplyEvolutions." + db + "=true and -DapplyDownEvolutions." + db + "=true if you want to run them automatically, including downs (be careful, especially if your down evolutions drop existing data)")
+            case Mode.Dev if dbConfig.autoApply => evolutions.evolve(db, scripts, autocommit)
+            case Mode.Prod if !hasDown && dbConfig.autoApply => evolutions.evolve(db, scripts, autocommit)
+            case Mode.Prod if hasDown && dbConfig.autoApply && dbConfig.autoApplyDowns => evolutions.evolve(db, scripts, autocommit)
+            case Mode.Prod if hasDown =>
+              Play.logger.warn(s"Your production database [$db] needs evolutions, including downs! \n\n${toHumanReadableScript(scripts)}")
+              Play.logger.warn(s"Run with -Dplay.modules.evolutions.db.$db.autoApply=true and -Dplay.modules.evolutions.db.$db.autoApplyDowns=true if you want to run them automatically, including downs (be careful, especially if your down evolutions drop existing data)")
 
               throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
-            }
-            case Mode.Prod => {
-              Play.logger.warn("Your production database [" + db + "] needs evolutions! \n\n" + toHumanReadableScript(scripts))
-              Play.logger.warn("Run with -DapplyEvolutions." + db + "=true if you want to run them automatically (be careful)")
+
+            case Mode.Prod =>
+              Play.logger.warn(s"Your production database [$db] needs evolutions! \n\n${toHumanReadableScript(scripts)}")
+              Play.logger.warn(s"Run with -Dplay.modules.evolutions.db.$db.autoApply=true if you want to run them automatically (be careful)")
 
               throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
-            }
+
             case _ => throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
           }
         }
@@ -73,8 +77,8 @@ class ApplicationEvolutions @Inject() (
     }
   }
 
-  private def withLock(ds: DataSource)(block: => Unit) {
-    if (config.useLocks) {
+  private def withLock(ds: DataSource, dbConfig: EvolutionsDatasourceConfig)(block: => Unit): Unit = {
+    if (dbConfig.useLocks) {
       val c = ds.getConnection
       c.setAutoCommit(false)
       val s = c.createStatement()
@@ -90,7 +94,7 @@ class ApplicationEvolutions @Inject() (
     }
   }
 
-  private def createLockTableIfNecessary(c: Connection, s: Statement) {
+  private def createLockTableIfNecessary(c: Connection, s: Statement): Unit = {
     try {
       val r = s.executeQuery("select lock from play_evolutions_lock")
       r.close()
@@ -106,7 +110,7 @@ class ApplicationEvolutions @Inject() (
     }
   }
 
-  private def lock(c: Connection, s: Statement, attempts: Int = 5) {
+  private def lock(c: Connection, s: Statement, attempts: Int = 5): Unit = {
     try {
       s.executeQuery("select lock from play_evolutions_lock where lock = 1 for update nowait")
     } catch {
@@ -121,7 +125,7 @@ class ApplicationEvolutions @Inject() (
     }
   }
 
-  private def unlock(c: Connection, s: Statement) {
+  private def unlock(c: Connection, s: Statement): Unit = {
     ignoring(classOf[SQLException])(s.close())
     ignoring(classOf[SQLException])(c.commit())
     ignoring(classOf[SQLException])(c.close())
@@ -131,25 +135,39 @@ class ApplicationEvolutions @Inject() (
 }
 
 /**
- * Evolutions configuration interface.
+ * Evolutions configuration for a given datasource.
  */
-trait EvolutionsConfig {
+trait EvolutionsDatasourceConfig {
+  def enabled: Boolean
   def autocommit: Boolean
   def useLocks: Boolean
-  def applyEvolutions(db: String): Boolean
-  def applyDownEvolutions(db: String): Boolean
+  def autoApply: Boolean
+  def autoApplyDowns: Boolean
 }
+
+/**
+ * Evolutions configuration for all datasources.
+ */
+trait EvolutionsConfig {
+  def forDatasource(db: String): EvolutionsDatasourceConfig
+}
+
+/**
+ * Default evolutions datasource configuration.
+ */
+case class DefaultEvolutionsDatasourceConfig(
+  enabled: Boolean,
+  autocommit: Boolean,
+  useLocks: Boolean,
+  autoApply: Boolean,
+  autoApplyDowns: Boolean) extends EvolutionsDatasourceConfig
 
 /**
  * Default evolutions configuration.
  */
-case class DefaultEvolutionsConfig(
-    autocommit: Boolean,
-    useLocks: Boolean,
-    enabledEvolutions: Set[String],
-    enabledDownEvolutions: Set[String]) extends EvolutionsConfig {
-  def applyEvolutions(db: String): Boolean = enabledEvolutions(db)
-  def applyDownEvolutions(db: String): Boolean = enabledDownEvolutions(db)
+class DefaultEvolutionsConfig(defaultDatasourceConfig: EvolutionsDatasourceConfig,
+    datasources: Map[String, EvolutionsDatasourceConfig]) extends EvolutionsConfig {
+  def forDatasource(db: String) = datasources.getOrElse(db, defaultDatasourceConfig)
 }
 
 /**
@@ -160,11 +178,49 @@ class DefaultEvolutionsConfigParser @Inject() (configuration: Configuration) ext
   def get = parse()
 
   def parse(): EvolutionsConfig = {
-    val autocommit = configuration.getBoolean("evolutions.autocommit").getOrElse(true)
-    val useLocks = configuration.getBoolean("evolutions.use.locks").getOrElse(false)
-    val applyEvolutions = enabledKeys(configuration, "applyEvolutions")
-    val applyDownEvolutions = enabledKeys(configuration, "applyDownEvolutions")
-    DefaultEvolutionsConfig(autocommit, useLocks, applyEvolutions, applyDownEvolutions)
+    val config = configuration.getConfig("play.modules.evolutions")
+
+    // Find all the defined datasources, both using the old format, and the new format
+    def datasourcesAt(c: Option[Configuration], key: String) = c.flatMap(_.getConfig(key)).fold(Set.empty[String])(_.subKeys)
+    val datasources = datasourcesAt(config, "db") ++
+      datasourcesAt(Some(configuration), "applyEvolutions") ++
+      datasourcesAt(Some(configuration), "applyDownEvolutions")
+
+    // Note: When removing the deprecated config options, make sure you move the defaults to reference.conf
+    def loadBoolean(key: String, oldKey: Option[String], default: Boolean): Boolean = {
+      config.flatMap(_.getBoolean(key))
+        .orElse(oldKey.flatMap(okey => configuration.getBoolean(okey).map { value =>
+          Play.logger.warn(s"Configuration option $okey is deprecated, use play.modules.evolutions.$key instead")
+          value
+        }))
+        .getOrElse(default)
+    }
+
+    // Load defaults
+    val autocommit = loadBoolean("autocommit", Some("evolutions.autocommit"), true)
+    val useLocks = loadBoolean("useLocks", Some("evolutions.use.locks"), false)
+    val autoApply = loadBoolean("autoApply", None, false)
+    val autoApplyDowns = loadBoolean("autoApplyDowns", None, false)
+
+    val defaultConfig = new DefaultEvolutionsDatasourceConfig(true, autocommit, useLocks, autoApply,
+      autoApplyDowns)
+
+    // Load config specific to datasources
+    val datasourceConfig = datasources.map { datasource =>
+      datasource -> {
+        def loadDsBoolean(key: String, oldKey: Option[String], default: Boolean) = {
+          loadBoolean(s"db.$datasource.$key", oldKey.map(_ + "." + datasource), default)
+        }
+        val enabled = loadDsBoolean("enabled", None, true)
+        val autocommit = loadDsBoolean("autocommit", None, defaultConfig.autocommit)
+        val useLocks = loadDsBoolean("useLocks", None, defaultConfig.useLocks)
+        val autoApply = loadDsBoolean("autoApply", Some("applyEvolutions"), defaultConfig.autoApply)
+        val autoApplyDowns = loadDsBoolean("autoApplyDowns", Some("applyDownEvolutions"), defaultConfig.autoApplyDowns)
+        new DefaultEvolutionsDatasourceConfig(enabled, autocommit, useLocks, autoApply, autoApplyDowns)
+      }
+    }.toMap
+
+    new DefaultEvolutionsConfig(defaultConfig, datasourceConfig)
   }
 
   /**
@@ -201,7 +257,7 @@ class EvolutionsWebCommands @Inject() (evolutions: EvolutionsApi, reader: Evolut
       case applyEvolutions(db) => {
         Some {
           val scripts = evolutions.scripts(db, reader)
-          evolutions.evolve(db, scripts, config.autocommit)
+          evolutions.evolve(db, scripts, config.forDatasource(db).autocommit)
           buildLink.forceReload()
           play.api.mvc.Results.Redirect(redirectUrl)
         }

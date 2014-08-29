@@ -51,6 +51,18 @@ When evolutions are activated, Play will check your database schema state before
 
 If you agree with the SQL script, you can apply it directly by clicking on the ‘Apply evolutions’ button.
 
+## Evolutions configuration
+
+Evolutions can be configured both globally and per datasource.  For global configuration, keys should be prefixed with `play.modules.evolutions`.  For per datasource configuration, keys should be prefixed with `play.modules.evolutions.db.<datasourcename>`, for example `play.modules.evolutions.db.default`.  The following configuration options are supported:
+
+* `enabled` - Whether evolutions are enabled.  If configured globally to be false, it disables the evolutions module altogether.  Defaults to true.
+* `autocommit` - Whether autocommit should be used.  If false, evolutions will be applied in a single transaction.  Defaults to true.
+* `useLocks` - Whether a locks table should be used.  This must be used if you have many Play nodes that may potentially run evolutions, but you want to ensure that only one does.  It will create a table called `play_evolutions_lock`, and use a `SELECT FOR UPDATE NOWAIT` to lock it.  This will only work for Postgres and Oracle, it will not work for other databases.  Defaults to false.
+* `autoApply` - Whether evolutions should be automatically applied.  In dev mode, this will cause both ups and downs evolutions to be automatically applied.  In prod mode, it will cause only ups evolutions to be automatically applied.  Defaults to false.
+* `autoApplyDowns` - Whether down evolutions should be automatically applied.  In prod mode, this will cause down evolutions to be automatically applied.  Has no effect in dev mode.  Defaults to false.
+
+For example, to enable `autoApply` for all evolutions, you might set `play.modules.evolutions.autoApply=true` in `application.conf` or in a system property.  To disable autocommit for a datasource named `default`, you set `play.modules.evolutions.db.default.autocommit=false`.
+
 ## Synchronizing concurrent changes
 
 Now let’s imagine that we have two developers working on this project. Developer A will work on a feature that requires a new database table. So he will create the following `2.sql` evolution script:
@@ -203,23 +215,5 @@ By default, each statement of each evolution script will be executed immediately
 
 ### Evolution storage and limitations
 
-Evolutions are stored in your database in a table called PLAY_EVOLUTIONS.  A Text column stores the actual evolution script.  Your database probably has a 64kb size limit on a text column.  To work around the 64kb limitation you could: manually alter the play_evolutions table structure changing the column type or (prefered) create multiple evolutions scripts less than 64kb in size.
+Evolutions are stored in your database in a table called `play_evolutions`.  A Text column stores the actual evolution script.  Your database probably has a 64kb size limit on a text column.  To work around the 64kb limitation you could: manually alter the play_evolutions table structure changing the column type or (preferred) create multiple evolutions scripts less than 64kb in size.
 
-## Running Evolutions in Production
-
-The appropriate up and down scripts are run in dev mode when you click 'Apply Evolutions' in the play console. To use evolutions in PROD mode there are two things to consider.
-
-If you want to apply UP evolutions automatically, you should set the system property `-DapplyEvolutions.<database>=true` or set `applyEvolutions.<database>=true` in application.conf.
-If the evolution script calculated by Play only contains UP evolutions and this property is set, then Play will apply them and start the server.
-
-If you want to run UP and DOWN evolutions automatically,  you should set the system property `-DapplyDownEvolutions.<database>=true`. It is not recommended to have this setting in your application.conf.
-If the evolution script calculated by Play only contains DOWN evolutions and this property is NOT set, Play will NOT apply them and will NOT start the server.
-
-### Evolutions and multiple hosts using Postgres or Oracle
-
-If your application is running on several hosts, you must set the config property evolutions.use.locks=true. If this property is set, database locks are used to ensure that only
-one host applies any Evolutions. Play will create a table called PLAY_EVOLUTIONS_LOCKS which will be used with SELECT FOR UPDATE NOWAIT to perform locking.
-
-### Evolutions and multiple hosts NOT using Postgres or Oracle
-
-If your application is running on several hosts, evolutions should be switched off. Multiple hosts may try to apply the evolutions scripts concurrently, with a risk of one of them failing and leaving the database in an inconsistent state.

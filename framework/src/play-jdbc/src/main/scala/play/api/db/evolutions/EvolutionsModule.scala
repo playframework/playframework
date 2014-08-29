@@ -15,7 +15,7 @@ import play.core.WebCommands
  */
 class EvolutionsModule extends Module {
   def bindings(environment: Environment, configuration: Configuration) = {
-    if (configuration.underlying.getBoolean("play.modules.db.evolutions.enabled")) {
+    if (configuration.underlying.getBoolean("play.modules.evolutions.enabled")) {
       Seq(
         bind[EvolutionsConfig].toProvider[DefaultEvolutionsConfigParser],
         bind[EvolutionsReader].toSelf,
