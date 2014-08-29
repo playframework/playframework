@@ -84,8 +84,12 @@ object JavaParsers extends BodyParsers {
 
   }
 
-  def anyContent(maxLength: Long): BodyParser[RequestBody] =
-    parse.anyContent(Some(maxLength).filter(_ >= 0)).map { anyContent =>
+  def default_(maxLength: Long): BodyParser[RequestBody] = anyContent(parse.default(Some(maxLength).filter(_ >= 0)))
+
+  def anyContent(maxLength: Long): BodyParser[RequestBody] = anyContent(parse.anyContent(Some(maxLength).filter(_ >= 0)))
+
+  private def anyContent(parser: BodyParser[AnyContent]): BodyParser[RequestBody] =
+    parser.map { anyContent =>
       DefaultRequestBody(
         anyContent.asFormUrlEncoded,
         anyContent.asRaw,

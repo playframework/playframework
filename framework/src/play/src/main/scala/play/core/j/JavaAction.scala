@@ -26,7 +26,7 @@ class JavaActionAnnotations(val controller: Class[_], val method: java.lang.refl
       .filterNot(_ == null)
       .headOption.map { bodyParserOf =>
         bodyParserOf.value.newInstance.parser(bodyParserOf.maxLength)
-      }.getOrElse(JavaParsers.anyContent(-1))
+      }.getOrElse(JavaParsers.default_(-1))
 
   val controllerAnnotations = play.api.libs.Collections.unfoldLeft[Seq[java.lang.annotation.Annotation], Option[Class[_]]](Option(controller)) { clazz =>
     clazz.map(c => (Option(c.getSuperclass), c.getDeclaredAnnotations.toSeq))

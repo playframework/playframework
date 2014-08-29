@@ -421,8 +421,10 @@ trait BodyParsers {
     /**
      * Don't parse the body content.
      */
-    def empty: BodyParser[Unit] = BodyParser("empty") { request =>
-      Done(Right(()), Empty)
+    def empty: BodyParser[Unit] = ignore(Unit)
+
+    def ignore[A](body: A): BodyParser[A] = BodyParser("ignore") { request =>
+      Done(Right(body), Empty)
     }
 
     // -- XML parser
@@ -547,6 +549,22 @@ trait BodyParsers {
     // -- Magic any content
 
     /**
+     * If the request is a PATCH, POST, or PUT, parse the body content by checking the Content-Type header.
+     */
+    def default: BodyParser[AnyContent] = default(None)
+
+    /**
+     * If the request is a PATCH, POST, or PUT, parse the body content by checking the Content-Type header.
+     */
+    def default(maxLength: Option[Long]): BodyParser[AnyContent] = using { request =>
+      if (request.method == HttpVerbs.PATCH || request.method == HttpVerbs.POST || request.method == HttpVerbs.PUT) {
+        anyContent(maxLength)
+      } else {
+        ignore(AnyContentAsEmpty)
+      }
+    }
+
+    /**
      * Guess the body content by checking the Content-Type header.
      */
     def anyContent: BodyParser[AnyContent] = anyContent(None)
@@ -556,39 +574,35 @@ trait BodyParsers {
      */
     def anyContent(maxLength: Option[Long]): BodyParser[AnyContent] = BodyParser("anyContent") { request =>
       import play.api.libs.iteratee.Execution.Implicits.trampoline
-      if (request.method == HttpVerbs.GET || request.method == HttpVerbs.HEAD) {
-        Play.logger.trace("Parsing AnyContent as empty")
-        Done(Right(AnyContentAsEmpty), Empty)
-      } else {
-        def maxLengthOrDefault = maxLength.fold(DefaultMaxTextLength)(_.toInt)
-        def maxLengthOrDefaultLarge = maxLength.getOrElse(DefaultMaxDiskLength)
-        val contentType: Option[String] = request.contentType.map(_.toLowerCase(Locale.ENGLISH))
-        contentType match {
-          case Some("text/plain") => {
-            Play.logger.trace("Parsing AnyContent as text")
-            text(maxLengthOrDefault)(request).map(_.right.map(s => AnyContentAsText(s)))
-          }
-          case Some("text/xml") | Some("application/xml") | Some(ApplicationXmlMatcher()) => {
-            Play.logger.trace("Parsing AnyContent as xml")
-            xml(maxLengthOrDefault)(request).map(_.right.map(x => AnyContentAsXml(x)))
-          }
-          case Some("text/json") | Some("application/json") => {
-            Play.logger.trace("Parsing AnyContent as json")
-            json(maxLengthOrDefault)(request).map(_.right.map(j => AnyContentAsJson(j)))
-          }
-          case Some("application/x-www-form-urlencoded") => {
-            Play.logger.trace("Parsing AnyContent as urlFormEncoded")
-            urlFormEncoded(maxLengthOrDefault)(request).map(_.right.map(d => AnyContentAsFormUrlEncoded(d)))
-          }
-          case Some("multipart/form-data") => {
-            Play.logger.trace("Parsing AnyContent as multipartFormData")
-            multipartFormData(Multipart.handleFilePartAsTemporaryFile, maxLengthOrDefaultLarge)(request)
-              .map(_.right.map(m => AnyContentAsMultipartFormData(m)))
-          }
-          case _ => {
-            Play.logger.trace("Parsing AnyContent as raw")
-            raw(DefaultMaxTextLength, maxLengthOrDefaultLarge)(request).map(_.right.map(r => AnyContentAsRaw(r)))
-          }
+
+      def maxLengthOrDefault = maxLength.fold(DefaultMaxTextLength)(_.toInt)
+      def maxLengthOrDefaultLarge = maxLength.getOrElse(DefaultMaxDiskLength)
+      val contentType: Option[String] = request.contentType.map(_.toLowerCase(Locale.ENGLISH))
+      contentType match {
+        case Some("text/plain") => {
+          Play.logger.trace("Parsing AnyContent as text")
+          text(maxLengthOrDefault)(request).map(_.right.map(s => AnyContentAsText(s)))
+        }
+        case Some("text/xml") | Some("application/xml") | Some(ApplicationXmlMatcher()) => {
+          Play.logger.trace("Parsing AnyContent as xml")
+          xml(maxLengthOrDefault)(request).map(_.right.map(x => AnyContentAsXml(x)))
+        }
+        case Some("text/json") | Some("application/json") => {
+          Play.logger.trace("Parsing AnyContent as json")
+          json(maxLengthOrDefault)(request).map(_.right.map(j => AnyContentAsJson(j)))
+        }
+        case Some("application/x-www-form-urlencoded") => {
+          Play.logger.trace("Parsing AnyContent as urlFormEncoded")
+          urlFormEncoded(maxLengthOrDefault)(request).map(_.right.map(d => AnyContentAsFormUrlEncoded(d)))
+        }
+        case Some("multipart/form-data") => {
+          Play.logger.trace("Parsing AnyContent as multipartFormData")
+          multipartFormData(Multipart.handleFilePartAsTemporaryFile, maxLengthOrDefaultLarge)(request)
+            .map(_.right.map(m => AnyContentAsMultipartFormData(m)))
+        }
+        case _ => {
+          Play.logger.trace("Parsing AnyContent as raw")
+          raw(DefaultMaxTextLength, maxLengthOrDefaultLarge)(request).map(_.right.map(r => AnyContentAsRaw(r)))
         }
       }
     }

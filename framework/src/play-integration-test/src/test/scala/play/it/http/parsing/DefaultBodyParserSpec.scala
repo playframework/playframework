@@ -5,41 +5,31 @@ package play.it.http.parsing
 
 import play.api.mvc._
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{ Json, JsError }
 import play.api.test._
 
-object AnyContentBodyParserSpec extends PlaySpecification {
+object DefaultBodyParserSpec extends PlaySpecification {
 
-  "The anyContent body parser" should {
+  "The default body parser" should {
 
     def parse(method: String, contentType: Option[String], body: Array[Byte]) = {
       val request = FakeRequest(method, "/x").withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*)
-      await(Enumerator(body) |>>> BodyParsers.parse.anyContent(request))
+      await(Enumerator(body) |>>> BodyParsers.parse.default(request))
     }
 
-    "parse text bodies for DELETE requests" in new WithApplication() {
-      parse("DELETE", Some("text/plain"), "bar".getBytes("utf-8")) must beRight(AnyContentAsText("bar"))
+    "ignore text bodies for DELETE requests" in new WithApplication() {
+      parse("GET", Some("text/plain"), "bar".getBytes("utf-8")) must beRight(AnyContentAsEmpty)
     }
 
-    "parse text bodies for GET requests" in new WithApplication() {
-      parse("GET", Some("text/plain"), "bar".getBytes("utf-8")) must beRight(AnyContentAsText("bar"))
+    "ignore text bodies for GET requests" in new WithApplication() {
+      parse("GET", Some("text/plain"), "bar".getBytes("utf-8")) must beRight(AnyContentAsEmpty)
     }
 
-    "parse empty bodies as raw for GET requests" in new WithApplication() {
-      val inBytes = Array[Byte](0)
-      parse("PUT", None, inBytes) must beRight.like {
-        case AnyContentAsRaw(rawBuffer) => rawBuffer.asBytes() must beSome.like {
-          case outBytes => outBytes.to[Vector] must_== inBytes.to[Vector]
-        }
-      }
+    "ignore text bodies for HEAD requests" in new WithApplication() {
+      parse("HEAD", None, "bar".getBytes("utf-8")) must beRight(AnyContentAsEmpty)
     }
 
-    "parse text bodies for HEAD requests" in new WithApplication() {
-      parse("HEAD", Some("text/plain"), "bar".getBytes("utf-8")) must beRight(AnyContentAsText("bar"))
-    }
-
-    "parse text bodies for OPTIONS requests" in new WithApplication() {
-      parse("OPTIONS", Some("text/plain"), "bar".getBytes("utf-8")) must beRight(AnyContentAsText("bar"))
+    "ignore text bodies for OPTIONS requests" in new WithApplication() {
+      parse("GET", Some("text/plain"), "bar".getBytes("utf-8")) must beRight(AnyContentAsEmpty)
     }
 
     "parse XML bodies for PATCH requests" in new WithApplication() {
