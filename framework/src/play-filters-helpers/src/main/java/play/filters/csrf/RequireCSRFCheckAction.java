@@ -4,6 +4,7 @@
 package play.filters.csrf;
 
 import play.api.mvc.RequestHeader;
+import play.api.mvc.Session;
 import play.libs.F;
 import play.mvc.Action;
 import play.mvc.Http;
@@ -14,6 +15,7 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
 
     private final String tokenName = CSRFConf$.MODULE$.TokenName();
     private final Option<String> cookieName = CSRFConf$.MODULE$.CookieName();
+    private final boolean secureCookie = CSRFConf$.MODULE$.SecureCookie();
     private final CSRFAction$ CSRFAction = CSRFAction$.MODULE$;
     private final CSRF.TokenProvider tokenProvider = CSRFConf$.MODULE$.defaultTokenProvider();
 
@@ -53,18 +55,29 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
                     if (tokenProvider.compareTokens(tokenToCheck, headerToken.get())) {
                         return delegate.call(ctx);
                     } else {
-                        return F.Promise.pure(handleTokenError("CSRF tokens don't match"));
+                        return F.Promise.pure(handleTokenError(ctx, request, "CSRF tokens don't match"));
                     }
                 } else {
-                    return F.Promise.pure(handleTokenError("CSRF token not found in body or query string"));
+                    return F.Promise.pure(handleTokenError(ctx, request, "CSRF token not found in body or query string"));
                 }
             } else {
-                return F.Promise.pure(handleTokenError("CSRF token not found in session"));
+                return F.Promise.pure(handleTokenError(ctx, request, "CSRF token not found in session"));
             }
         }
     }
 
-    private Result handleTokenError(String msg) throws Exception {
+    private Result handleTokenError(Http.Context ctx, RequestHeader request, String msg) throws Exception {
+
+        if (CSRF.getToken(request).isEmpty()) {
+            if (cookieName.isDefined()) {
+                Option<String> domain = Session.domain();
+                ctx.response().discardCookie(cookieName.get(), Session.path(),
+                        domain.isDefined() ? domain.get() : null, secureCookie);
+            } else {
+                ctx.session().remove(tokenName);
+            }
+        }
+
         CSRFErrorHandler handler = configuration.error().newInstance();
         return handler.handle(msg);
     }
