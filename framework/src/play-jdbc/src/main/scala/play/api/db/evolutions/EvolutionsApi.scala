@@ -252,6 +252,7 @@ class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
       try {
         val createScript = dbApi.database(db).url match {
           case SqlServerJdbcUrl() => CreatePlayEvolutionsSqlServerSql
+          case OracleJdbcUrl() => CreatePlayEvolutionsOracleSql
           case _ => CreatePlayEvolutionsSql
         }
 
@@ -324,6 +325,7 @@ class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
 
 private object DefaultEvolutionsApi {
   val SqlServerJdbcUrl = "^jdbc:sqlserver:.*".r
+  val OracleJdbcUrl = "^jdbc:oracle:.*".r
 
   val CreatePlayEvolutionsSql =
     """
@@ -349,6 +351,20 @@ private object DefaultEvolutionsApi {
           state varchar(255),
           last_problem text
       )
+    """
+
+  val CreatePlayEvolutionsOracleSql =
+    """
+      CREATE TABLE play_evolutions (
+          id Number(10,0) Not Null Enable,
+          hash VARCHAR2(255 Byte),
+          applied_at Timestamp Not Null,
+          apply_script clob,
+          revert_script clob,
+          state Varchar2(255),
+          last_problem clob,
+          CONSTRAINT play_evolutions_pk PRIMARY KEY (id)
+      );
     """
 }
 

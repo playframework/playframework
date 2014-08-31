@@ -43,7 +43,7 @@ class ApplicationEvolutions @Inject() (
     val db = database.name
     val dbConfig = config.forDatasource(db)
     if (dbConfig.enabled) {
-      withLock(database.dataSource, dbConfig) {
+      withLock(database, dbConfig) {
         val scripts = evolutions.scripts(db, reader)
         val hasDown = scripts.exists(_.isInstanceOf[DownScript])
 
@@ -77,12 +77,14 @@ class ApplicationEvolutions @Inject() (
     }
   }
 
-  private def withLock(ds: DataSource, dbConfig: EvolutionsDatasourceConfig)(block: => Unit): Unit = {
+  private def withLock(db: Database, dbConfig: EvolutionsDatasourceConfig)(block: => Unit): Unit = {
     if (dbConfig.useLocks) {
+      val ds = db.dataSource
+      val url = db.url
       val c = ds.getConnection
       c.setAutoCommit(false)
       val s = c.createStatement()
-      createLockTableIfNecessary(c, s)
+      createLockTableIfNecessary(url, c, s)
       lock(c, s)
       try {
         block
@@ -94,18 +96,19 @@ class ApplicationEvolutions @Inject() (
     }
   }
 
-  private def createLockTableIfNecessary(c: Connection, s: Statement): Unit = {
+  private def createLockTableIfNecessary(url: String, c: Connection, s: Statement): Unit = {
+    import ApplicationEvolutions._
     try {
       val r = s.executeQuery("select lock from play_evolutions_lock")
       r.close()
     } catch {
       case e: SQLException =>
         c.rollback()
-        s.execute("""
-        create table play_evolutions_lock (
-          lock int not null primary key
-        )
-        """)
+        val createScript = url match {
+          case OracleJdbcUrl() => CreatePlayEvolutionsLockOracleSql
+          case _ => CreatePlayEvolutionsLockSql
+        }
+        s.execute(createScript)
         s.executeUpdate("insert into play_evolutions_lock (lock) values (1)")
     }
   }
@@ -132,6 +135,25 @@ class ApplicationEvolutions @Inject() (
   }
 
   start() // on construction
+}
+
+private object ApplicationEvolutions {
+  val OracleJdbcUrl = "^jdbc:oracle:.*".r
+
+  val CreatePlayEvolutionsLockSql =
+    """
+      create table play_evolutions_lock (
+        lock int not null primary key
+      )
+    """
+
+  val CreatePlayEvolutionsLockOracleSql =
+    """
+      CREATE TABLE play_evolutions_lock (
+        lock Number(10,0) Not Null Enable,
+        CONSTRAINT play_evolutions_lock_pk PRIMARY KEY (lock)
+      );
+    """
 }
 
 /**
