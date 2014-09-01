@@ -15,6 +15,17 @@ db.default.url="mysql://user:password@localhost/database"
 db.default.url="postgres://user:password@localhost/database"
 ```
 
+A non-standard port of the database service can be specified:
+
+```
+# To configure MySQL running in Docker
+db.default.url="mysql://user:password@localhost:port/database"
+
+# To configure PostgreSQL running in Docker
+db.default.url="postgres://user:password@localhost:port/database"
+```
+
+
 ## Reference
 
 In addition to the classical `driver`, `url`, `user`, `password` configuration properties, it also supports additional tuning parameters if you need them:
