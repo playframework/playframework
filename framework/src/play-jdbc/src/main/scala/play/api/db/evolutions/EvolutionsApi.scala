@@ -139,8 +139,8 @@ class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
           case true => {
             Some((rs, Evolution(
               rs.getInt(1),
-              rs.getString(3),
-              rs.getString(4))))
+              Option(rs.getString(3)) getOrElse "",
+              Option(rs.getString(4)) getOrElse "")))
           }
         }
       }
@@ -225,7 +225,7 @@ class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
         if (!autocommit) {
           Play.logger.error(message)
 
-          connection.rollback();
+          connection.rollback()
 
           val humanScript = "# --- Rev:" + lastScript.evolution.revision + "," + (if (lastScript.isInstanceOf[UpScript]) "Ups" else "Downs") + " - " + lastScript.evolution.hash + "\n\n" + (if (lastScript.isInstanceOf[UpScript]) lastScript.evolution.sql_up else lastScript.evolution.sql_down);
 

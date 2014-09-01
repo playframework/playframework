@@ -17,7 +17,9 @@ object EvolutionsReaderSpec extends Specification {
 
       reader.evolutions("test") must_== Seq(
         Evolution(1, "create table test (id bigint not null, name varchar(255));", "drop table if exists test;"),
-        Evolution(2, "insert into test (id, name) values (1, 'alice');\ninsert into test (id, name) values (2, 'bob');", "delete from test;")
+        Evolution(2, "insert into test (id, name) values (1, 'alice');\ninsert into test (id, name) values (2, 'bob');", "delete from test;"),
+        Evolution(3, "insert into test (id, name) values (3, 'charlie');\ninsert into test (id, name) values (4, 'dave');", ""),
+        Evolution(4, "", "")
       )
     }
 
