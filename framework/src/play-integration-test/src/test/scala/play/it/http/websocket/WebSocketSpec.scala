@@ -158,6 +158,79 @@ object WebSocketSpec extends PlaySpecification with WsTestClient {
         }
     }
 
+    "aggregate text frames" in {
+      val consumed = Promise[List[String]]()
+      withServer(app => WebSocket.using[String] { req =>
+        (getChunks[String](Nil, consumed.success _), Enumerator.empty)
+      }) {
+        val result = runWebSocket { (in, out) =>
+          Enumerator(
+            new TextWebSocketFrame("first"),
+            new TextWebSocketFrame(false, 0, "se"),
+            new ContinuationWebSocketFrame(false, 0, "co"),
+            new ContinuationWebSocketFrame(true, 0, "nd"),
+            new TextWebSocketFrame("third"),
+            new CloseWebSocketFrame(1000, "")) |>>> out
+          consumed.future
+        }
+        result must_== Seq("first", "second", "third")
+      }
+
+    }
+
+    "aggregate binary frames" in {
+      val consumed = Promise[List[Array[Byte]]]()
+
+      withServer(app => WebSocket.using[Array[Byte]] { req =>
+        (getChunks[Array[Byte]](Nil, consumed.success _), Enumerator.empty)
+      }) {
+        val result = runWebSocket { (in, out) =>
+          Enumerator(
+            new BinaryWebSocketFrame(binaryBuffer("first")),
+            new BinaryWebSocketFrame(false, 0, binaryBuffer("se")),
+            new ContinuationWebSocketFrame(false, 0, binaryBuffer("co")),
+            new ContinuationWebSocketFrame(true, 0, binaryBuffer("nd")),
+            new BinaryWebSocketFrame(binaryBuffer("third")),
+            new CloseWebSocketFrame(1000, "")) |>>> out
+          consumed.future
+        }
+        result.map(b => b.toSeq) must_== Seq("first".getBytes("utf-8").toSeq, "second".getBytes("utf-8").toSeq, "third".getBytes("utf-8").toSeq)
+      }
+    }
+
+    "close the websocket when the buffer limit is exceeded" in {
+      withServer(app => WebSocket.using[String] { req =>
+        (Iteratee.ignore, Enumerator.empty)
+      }) {
+        val frames = runWebSocket { (in, out) =>
+          Enumerator[WebSocketFrame](
+            new TextWebSocketFrame(false, 0, "first frame"),
+            new ContinuationWebSocketFrame(true, 0, new String(Array.range(1, 65530).map(_ => 'a')))
+          ) |>> out
+          in |>>> Iteratee.getChunks[WebSocketFrame]
+        }
+        frames must contain(exactly(
+          closeFrame(1009)
+        ))
+      }
+    }
+
+    "close the websocket when the wrong type of frame is received" in {
+      withServer(app => WebSocket.using[Array[Byte]] { req =>
+        (Iteratee.ignore, Enumerator.empty)
+      }) {
+        val frames = runWebSocket { (in, out) =>
+          Enumerator[WebSocketFrame](
+            new BinaryWebSocketFrame(binaryBuffer("first")),
+            new TextWebSocketFrame("foo")) |>> out
+          in |>>> Iteratee.getChunks[WebSocketFrame]
+        }
+        frames must contain(exactly(
+          closeFrame(1003)
+        ))
+      }
+    }
+
     "allow handling a WebSocket with an actor" in {
 
       "allow consuming messages" in allowConsumingMessages { implicit app =>
@@ -219,63 +292,6 @@ object WebSocketSpec extends PlaySpecification with WsTestClient {
           WebSocket.tryAcceptWithActor[String, String] { req =>
             Future.successful(Left(Results.Status(statusCode)))
           }
-      }
-
-      "aggregate text frames" in {
-        val consumed = Promise[List[String]]()
-        withServer(app => WebSocket.using[String] { req =>
-          (getChunks[String](Nil, consumed.success _), Enumerator.empty)
-        }) {
-          val result = runWebSocket { (in, out) =>
-            Enumerator(
-              new TextWebSocketFrame("first"),
-              new TextWebSocketFrame(false, 0, "se"),
-              new ContinuationWebSocketFrame(false, 0, "co"),
-              new ContinuationWebSocketFrame(true, 0, "nd"),
-              new TextWebSocketFrame("third"),
-              new CloseWebSocketFrame(1000, "")) |>>> out
-            consumed.future
-          }
-          result must_== Seq("first", "second", "third")
-        }
-
-      }
-
-      "aggregate binary frames" in {
-        val consumed = Promise[List[Array[Byte]]]()
-
-        withServer(app => WebSocket.using[Array[Byte]] { req =>
-          (getChunks[Array[Byte]](Nil, consumed.success _), Enumerator.empty)
-        }) {
-          val result = runWebSocket { (in, out) =>
-            Enumerator(
-              new BinaryWebSocketFrame(binaryBuffer("first")),
-              new BinaryWebSocketFrame(false, 0, binaryBuffer("se")),
-              new ContinuationWebSocketFrame(false, 0, binaryBuffer("co")),
-              new ContinuationWebSocketFrame(true, 0, binaryBuffer("nd")),
-              new BinaryWebSocketFrame(binaryBuffer("third")),
-              new CloseWebSocketFrame(1000, "")) |>>> out
-            consumed.future
-          }
-          result.map(b => b.toSeq) must_== Seq("first".getBytes("utf-8").toSeq, "second".getBytes("utf-8").toSeq, "third".getBytes("utf-8").toSeq)
-        }
-      }
-
-      "close the websocket when the buffer limit is exceeded" in {
-        withServer(app => WebSocket.using[String] { req =>
-          (Iteratee.ignore, Enumerator.empty)
-        }) {
-          val frames = runWebSocket { (in, out) =>
-            Enumerator[WebSocketFrame](
-              new TextWebSocketFrame(false, 0, "first frame"),
-              new ContinuationWebSocketFrame(true, 0, new String(Array.range(1, 65530).map(_ => 'a')))
-            ) |>> out
-            in |>>> Iteratee.getChunks[WebSocketFrame]
-          }
-          frames must contain(exactly(
-            closeFrame(1009)
-          ))
-        }
       }
 
     }

@@ -133,7 +133,8 @@ object WebSocketClient {
     }
 
     override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-      disconnected.tryFailure(e.getCause)
+      val exception = new RuntimeException("Exception caught in web socket handler", e.getCause)
+      disconnected.tryFailure(exception)
       ctx.getChannel.close()
       ctx.sendDownstream(e)
     }
@@ -165,8 +166,9 @@ object WebSocketClient {
     }
 
     override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-      disconnected.tryFailure(e.getCause)
-      in.end(e.getCause)
+      val exception = new RuntimeException("Exception caught in web socket handler", e.getCause)
+      disconnected.tryFailure(exception)
+      in.end(exception)
       ctx.getChannel.close()
     }
 
