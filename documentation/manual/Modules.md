@@ -151,6 +151,13 @@
 * **Documentation:** <https://github.com/branaway/japid42>
 * **Short description:** This module provides Japid java templates for Play
 
+## Jexbox Plugin
+
+* **Website:** <https://github.com/jexbox/play-plugin>
+* **Documentation:** <https://github.com/jexbox/play-plugin/blob/master/README.md>
+* **Short description:** The plugin capture application exceptions and store error data (type, message, stack trace, line in page, request and session data) in Jexbox online database to application's private space
+
+
 ## JsMessages
 
 * **Website:** <https://github.com/julienrf/play-jsmessages>
