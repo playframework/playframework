@@ -68,5 +68,3 @@ certpath: -checker7 validation succeeded
 ## Further Reading
 
 * [Fixing Certificate Revocation](http://tersesystems.com/2014/03/22/fixing-certificate-revocation/)
-
-> **Next:** [[Configuring Hostname Verification|HostnameVerification]]

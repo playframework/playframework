@@ -67,5 +67,3 @@ The undocumented setting `-Djava.security.debug=x509` may also be helpful.
 
 * [Dates for Phasing out MD5-based signatures and 1024-bit moduli](https://wiki.mozilla.org/CA:MD5and1024)
 * [Fixing X.509 Certificates](http://tersesystems.com/2014/03/20/fixing-x509-certificates/)
-
-> **Next:** [[Configuring Certificate Revocation|CertificateRevocation]]

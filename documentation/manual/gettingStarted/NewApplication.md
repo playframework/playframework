@@ -101,5 +101,3 @@ $ sbt
 ```
 
 sbt will load your project and fetch the dependencies.
-
-> **Next:** [[Anatomy of a Play application|Anatomy]]

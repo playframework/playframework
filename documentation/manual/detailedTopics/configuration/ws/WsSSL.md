@@ -48,5 +48,3 @@ JDK 1.6:
 * [SunJSSE Providers](http://docs.oracle.com/javase/6/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider)
 * [PKI Programmer's Guide](http://docs.oracle.com/javase/6/docs/technotes/guides/security/certpath/CertPathProgGuide.html)
 * [keytool](http://docs.oracle.com/javase/6/docs/technotes/tools/solaris/keytool.html)
-
-> **Next:** [[Quick Start|WSQuickStart]]

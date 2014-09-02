@@ -256,5 +256,3 @@ triggers
 ```
 controllers.admin.Application.index
 ```
-
-> **Next:** [[Cookbook | SBTCookbook]]

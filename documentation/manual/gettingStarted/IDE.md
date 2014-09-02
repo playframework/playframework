@@ -179,9 +179,3 @@ Scala is a newer programming language, so the functionality is provided in plugi
 - IntelliJ IDEA Play plugin (available only for Leda 12.x): <http://plugins.intellij.net/plugin/?idea&pluginId=7080>
 - ENSIME - Scala IDE Mode for Emacs: <https://github.com/aemoncannon/ensime>
 (see below for ENSIME/Play instructions)
-
-&nbsp;
-
-> **Next:** 
->
-> – [[Play Tutorials|Tutorials]]

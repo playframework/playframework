@@ -92,5 +92,3 @@ WS.url("https://example.com").get()
 ```
 
 You can see more examples on the [[example configurations|ExampleSSLConfig]] page.
-
-> **Next:** [[Generating X.509 Certificates|CertificateGeneration]]

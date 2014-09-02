@@ -1,0 +1,3 @@
+ScalaTemplates:Scala templates syntax
+ScalaTemplateUseCases:Common use cases
+ScalaCustomTemplateFormat:Custom format

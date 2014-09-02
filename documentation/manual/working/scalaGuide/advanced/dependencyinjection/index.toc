@@ -1,0 +1,2 @@
+ScalaDependencyInjection:Runtime dependency injection
+ScalaCompileTimeDependencyInjection:Compile time dependency injection

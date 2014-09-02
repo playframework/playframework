@@ -181,5 +181,3 @@ For compatibility with older systems, use RSA with 2048 bit keys and SHA256 as t
 * [JSSE Reference Guide To Creating KeyStores](http://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#CreateKeystore)
 * [Java PKI Programmer's Guide](http://docs.oracle.com/javase/7/docs/technotes/guides/security/certpath/CertPathProgGuide.html)
 * [Fixing X.509 Certificates](http://tersesystems.com/2014/03/20/fixing-x509-certificates/)
-
-> **Next:** [[Configuring Trust Stores and Key Stores|KeyStores]]

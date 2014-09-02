@@ -78,5 +78,3 @@ resolvers += (
 )
 ```
 
-
-> **Next:** [[Working with sub-projects | SBTSubProjects]]

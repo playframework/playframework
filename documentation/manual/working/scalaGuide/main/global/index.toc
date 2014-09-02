@@ -1,0 +1,2 @@
+ScalaGlobal:Application global settings
+ScalaInterceptors:Intercepting requests

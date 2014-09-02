@@ -186,5 +186,3 @@ $ java -jar target/scala-2.XX/<yourprojectname>-assembly-<version>.jar
 ```
 
 You'll need to substitute in the right project name, version and scala version, of course.
-
-> **Next:** [[Production configuration|ProductionConfiguration]]

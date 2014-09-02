@@ -1,0 +1,3 @@
+ScalaDatabase:Configuring and using JDBC
+ScalaAnorm:Using Anorm to access your database
+ScalaDatabaseOthers:Integrating with other database access libraries

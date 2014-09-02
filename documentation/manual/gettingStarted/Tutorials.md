@@ -17,8 +17,3 @@ Some tutorials we recommend:
 * [Play with Spring Data JPA (Java)](https://typesafe.com/activator/template/play-spring-data-jpa)
 * [AngularJS Play Mongo (Scala)](https://typesafe.com/activator/template/modern-web-template)
 * [Play Mongo Knockout (Scala)](https://typesafe.com/activator/template/play-mongo-knockout)
-
-> **Next:** 
->
-> – [[Play for Scala developers | ScalaHome]]
-> – [[Play for Java developers | JavaHome]]

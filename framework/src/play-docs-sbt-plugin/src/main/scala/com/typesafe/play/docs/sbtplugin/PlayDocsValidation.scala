@@ -12,8 +12,8 @@ import org.pegdown.ast.Node
 import org.pegdown.plugins.{ ToHtmlSerializerPlugin, PegDownPlugins }
 import org.pegdown._
 import play.sbtplugin.Colors
-import play.doc.{ FileHandle, JarRepository, CodeReferenceNode, CodeReferenceParser }
-import sbt._
+import play.doc._
+import sbt.{ FileRepository => _, _ }
 import sbt.Keys._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -309,6 +309,11 @@ object PlayDocsValidation {
       }
     }
 
+    val fileRepo = new FilesystemRepository(base / "manual")
+    val combinedRepo = new AggregateFileRepository(Seq(docsJarRepo, fileRepo))
+
+    val pageIndex = PageIndex.parseFrom(combinedRepo, "", None)
+
     val pages = report.markdownFiles.map(f => f.getName.dropRight(3) -> f).toMap
 
     var failed = false
@@ -396,7 +401,7 @@ object PlayDocsValidation {
 
     val allLinks = report.wikiLinks.map(_.link).toSet
 
-    if (!fallbackToJar.value) {
+    if (!fallbackToJar.value && pageIndex.isEmpty) {
       // A bit hard to do this without parsing all files, so only do it if we're not falling back to the jar file
       val orphanPages = pages.filterNot(page => allLinks.contains(page._1)).filterNot { page =>
         page._1.startsWith("_") || page._1 == "Home" || page._1.startsWith("Book")
@@ -404,6 +409,16 @@ object PlayDocsValidation {
       doAssertion("Orphan pages test", orphanPages.toSeq) {
         orphanPages.foreach { page =>
           log.error("Page " + page._2 + " is not referenced by any links")
+        }
+      }
+    }
+
+    pageIndex.foreach { idx =>
+      // Make sure all pages are in the page index
+      val orphanPages = pages.filterNot(p => idx.get(p._1).isDefined)
+      doAssertion("Orphan pages test", orphanPages.toSeq) {
+        orphanPages.foreach { page =>
+          log.error("Page " + page._2 + " is not referenced by the index")
         }
       }
     }
@@ -489,5 +504,18 @@ object PlayDocsValidation {
       log.error(l.take(colNo - 1).map { case '\t' => '\t'; case _ => ' ' } + "^")
     }
   }
+}
+
+class AggregateFileRepository(repos: Seq[FileRepository]) extends FileRepository {
+
+  def this(repos: Array[FileRepository]) = this(repos.toSeq)
+
+  private def fromFirstRepo[A](load: FileRepository => Option[A]) = repos.collectFirst(Function.unlift(load))
+
+  def loadFile[A](path: String)(loader: (InputStream) => A) = fromFirstRepo(_.loadFile(path)(loader))
+
+  def handleFile[A](path: String)(handler: (FileHandle) => A) = fromFirstRepo(_.handleFile(path)(handler))
+
+  def findFileWithName(name: String) = fromFirstRepo(_.findFileWithName(name))
 }
 

@@ -197,5 +197,3 @@ Note that [ProxyPassReverse might rewrite incorrectly headers](https://issues.ap
 ProxyPassReverse / http://localhost:9999
 ProxyPassReverse / http://localhost:9998
 ```
-
-> **Next:** [[Configuring HTTPS|ConfiguringHttps]]

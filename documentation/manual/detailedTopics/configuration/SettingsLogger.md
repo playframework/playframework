@@ -182,5 +182,3 @@ Next, refine your Akka logging settings in your Logback configuration:
 ```
 
 You may also wish to configure an appender for the Akka loggers that includes useful properties such as thread and actor address. See the logging page in the [Akka documentation](http://akka.io/docs/) for details on Logback configuration and other useful information.
-
-> **Next:** [[Configuring gzip encoding|GzipEncoding]]

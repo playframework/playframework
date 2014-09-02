@@ -1,0 +1,3 @@
+ScalaWS:The Play WS API
+ScalaOpenID:Connecting to OpenID services
+ScalaOAuth:Accessing resources protected by OAuth

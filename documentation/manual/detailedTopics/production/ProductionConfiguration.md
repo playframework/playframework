@@ -160,5 +160,3 @@ For a full list of supported options, see the following Netty documentation:
 * [SocketChannelConfig](http://netty.io/3.9/api/org/jboss/netty/channel/socket/SocketChannelConfig.html)
 * [ServerSocketChannelConfig](http://netty.io/3.9/api/org/jboss/netty/channel/socket/ServerSocketChannelConfig.html)
 * [NioSocketChannelConfig](http://netty.io/3.9/api/org/jboss/netty/channel/socket/nio/NioSocketChannelConfig.html)
-
-> **Next:** [[Setting up a front end HTTP server|HTTPServer]]

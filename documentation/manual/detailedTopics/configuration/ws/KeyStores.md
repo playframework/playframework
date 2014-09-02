@@ -92,5 +92,3 @@ In most cases, you will not need to do extensive configuration once the certific
 * [Key Management](http://docs.oracle.com/javase/7/docs/technotes/guides/security/crypto/CryptoSpec.html#KeyManagement)
 * [Java 2-way TLS/SSL (Client Certificates) and PKCS12 vs JKS KeyStores](http://blog.palominolabs.com/2011/10/18/java-2-way-tlsssl-client-certificates-and-pkcs12-vs-jks-keystores/)
 * [HTTPS with Client Certificates on Android](http://chariotsolutions.com/blog/post/https-with-client-certificates-on/)
-
-> **Next:** [[Configuring Protocols|Protocols]]

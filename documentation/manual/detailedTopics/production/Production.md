@@ -60,5 +60,3 @@ $ target/universal/stage/bin/my-first-app -Dconfig.file=/full/path/to/conf/appli
 ```
 
 For a full description of usage invoke the start script with a `-h` option.
-
-> **Next:** [[Creating a standalone distribution|ProductionDist]]

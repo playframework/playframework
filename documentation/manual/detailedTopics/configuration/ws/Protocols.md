@@ -39,5 +39,3 @@ The debug options for configuring protocol are:
 ```
 ws.ssl.debug = [ "ssl", "sslctx", "handshake", "verbose", "data" ]
 ```
-
-> **Next:** [[Configuring Cipher Suites|CipherSuites]]

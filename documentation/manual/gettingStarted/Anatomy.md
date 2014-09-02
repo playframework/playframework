@@ -110,5 +110,3 @@ tmp
 dist
 .cache
 ```
-
-> **Next:** [[Play Modules|Modules]]
