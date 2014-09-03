@@ -7,10 +7,24 @@ import org.specs2.mutable.Around
 import org.specs2.specification.Scope
 import org.openqa.selenium.WebDriver
 import org.specs2.execute.{ AsResult, Result }
+import play.api.{ Mode, Environment, ApplicationLoader }
 
 // NOTE: Do *not* put any initialisation code in the below classes, otherwise delayedInit() gets invoked twice
 // which means around() gets invoked twice and everything is not happy.  Only lazy vals and defs are allowed, no vals
 // or any other code blocks.
+
+/**
+ * Used to run specs within the context of a running application loaded by the given `ApplicationLoader`.
+ *
+ * @param applicationLoader The application loader to use
+ * @param context The context supplied to the application loader
+ */
+abstract class WithApplicationLoader(applicationLoader: ApplicationLoader, context: ApplicationLoader.Context = ApplicationLoader.createContext(new Environment(new java.io.File("."), ApplicationLoader.getClass.getClassLoader, Mode.Test))) extends Around with Scope {
+  implicit lazy val app = applicationLoader.load(context)
+  def around[T: AsResult](t: => T): Result = {
+    Helpers.running(app)(AsResult.effectively(t))
+  }
+}
 
 /**
  * Used to run specs within the context of a running application.
