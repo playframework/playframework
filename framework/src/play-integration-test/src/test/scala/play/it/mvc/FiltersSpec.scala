@@ -106,6 +106,17 @@ object FiltersSpec extends Specification with WsTestClient {
         response.body must_== expectedOkText
       }
 
+      "Filters are not applied when the request is outside the application.context" in new WithServer(
+        FakeApplication(
+          withGlobal = Some(GlobalWithThrowExceptionFilter),
+          withRoutes = routerForTest,
+          additionalConfiguration = Map("application.context" -> "/foo"))
+      ) {
+        val response = Await.result(wsUrl("/ok").post(expectedOkText), Duration.Inf)
+        response.status must_== 200
+        response.body must_== expectedOkText
+      }
+
       "Filters work even if one of them does not call next" in new WithServer(FakeApplication(withGlobal = Some(SkipNextGlobal), withRoutes = routerForTest)) {
         val response = Await.result(wsUrl("/ok").get(), Duration.Inf)
         response.status must_== 200
