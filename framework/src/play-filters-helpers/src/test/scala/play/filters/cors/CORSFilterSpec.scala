@@ -47,6 +47,15 @@ object CORSFilterSpec extends PlaySpecification {
       mustBeNoAccessControlResponseHeaders(result)
     }
 
+    val restrictPaths = Map("cors.path.prefixes" -> Seq("/foo", "/bar"))
+
+    "pass through a cors request that doesn't match the path prefixes" in withApplication(conf = restrictPaths) {
+      val result = route(FakeRequest("GET", "/baz").withHeaders(ORIGIN -> "http://localhost")).get
+
+      status(result) must_== OK
+      mustBeNoAccessControlResponseHeaders(result)
+    }
+
     "forbid an empty origin header" in withApplication() {
       val result = route(FakeRequest().withHeaders(ORIGIN -> "")).get
 
