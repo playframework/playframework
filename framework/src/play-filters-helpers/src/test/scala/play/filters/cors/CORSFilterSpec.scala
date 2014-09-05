@@ -78,6 +78,7 @@ object CORSFilterSpec extends PlaySpecification {
       header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://localhost")
       header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beNone
       header(ACCESS_CONTROL_MAX_AGE, result) must beNone
+      header(VARY, result) must beSome(ORIGIN)
     }
 
     "handle a basic preflight request with default config" in withApplication() {
@@ -92,6 +93,7 @@ object CORSFilterSpec extends PlaySpecification {
       header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://localhost")
       header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beNone
       header(ACCESS_CONTROL_MAX_AGE, result) must beSome("3600")
+      header(VARY, result) must beSome(ORIGIN)
     }
 
     "handle a preflight request with request headers with default config" in withApplication() {
@@ -107,6 +109,7 @@ object CORSFilterSpec extends PlaySpecification {
       header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://localhost")
       header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beNone
       header(ACCESS_CONTROL_MAX_AGE, result) must beSome("3600")
+      header(VARY, result) must beSome(ORIGIN)
     }
 
     "handle an actual cross-origin request with default config" in withApplication() {
@@ -119,6 +122,7 @@ object CORSFilterSpec extends PlaySpecification {
       header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://localhost")
       header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beNone
       header(ACCESS_CONTROL_MAX_AGE, result) must beNone
+      header(VARY, result) must beSome(ORIGIN)
     }
 
     val noCredentialsConf = Map("cors.support.credentials" -> "false")
@@ -163,6 +167,7 @@ object CORSFilterSpec extends PlaySpecification {
       header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://localhost")
       header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beNone
       header(ACCESS_CONTROL_MAX_AGE, result) must beNone
+      header(VARY, result) must beSome(ORIGIN)
     }
 
     val customMaxAge = Map("cors.preflight.maxage" -> "1800")
@@ -179,6 +184,7 @@ object CORSFilterSpec extends PlaySpecification {
       header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://localhost")
       header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beNone
       header(ACCESS_CONTROL_MAX_AGE, result) must beSome("1800")
+      header(VARY, result) must beSome(ORIGIN)
     }
 
     val restrictMethods = Map("cors.allowed.http.methods" -> Seq("GET", "HEAD", "POST"))
@@ -216,6 +222,7 @@ object CORSFilterSpec extends PlaySpecification {
       header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://localhost")
       header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beSome("X-Header1,X-Header2")
       header(ACCESS_CONTROL_MAX_AGE, result) must beNone
+      header(VARY, result) must beSome(ORIGIN)
     }
 
     val restrictOrigins = Map("cors.allowed.origins" -> Seq("http://example.org", "http://localhost:9000"))

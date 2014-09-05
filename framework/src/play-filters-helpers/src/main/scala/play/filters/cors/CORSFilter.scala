@@ -180,6 +180,16 @@ object CORSFilter extends Filter {
          */
         headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS -> "true"
         headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN -> origin
+        /* http://www.w3.org/TR/cors/#resource-implementation
+         * § 6.4
+         * Resources that wish to enable themselves to be shared with multiple Origins but do
+         * not respond uniformly with "*" must in practice generate the Access-Control-Allow-Origin
+         * header dynamically in response to every request they wish to allow. As a consequence,
+         * authors of such resources should send a Vary: Origin HTTP header or provide other
+         * appropriate control directives to prevent caching of such responses, which may be
+         * inaccurate if re-used across-origins.
+         */
+        headerBuilder += HeaderNames.VARY -> HeaderNames.ORIGIN
       } else {
         /* Otherwise, add a single Access-Control-Allow-Origin header,
          * with either the value of the Origin header or the string "*" as value.
@@ -188,6 +198,10 @@ object CORSFilter extends Filter {
           headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN -> "*"
         } else {
           headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN -> origin
+          /* http://www.w3.org/TR/cors/#resource-implementation
+           * § 6.4
+           */
+          headerBuilder += HeaderNames.VARY -> HeaderNames.ORIGIN
         }
       }
 
@@ -279,6 +293,17 @@ object CORSFilter extends Filter {
                  */
                 headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS -> "true"
                 headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN -> origin
+
+                /* http://www.w3.org/TR/cors/#resource-implementation
+                 * § 6.4
+                 * Resources that wish to enable themselves to be shared with multiple Origins but do
+                 * not respond uniformly with "*" must in practice generate the Access-Control-Allow-Origin
+                 * header dynamically in response to every request they wish to allow. As a consequence,
+                 * authors of such resources should send a Vary: Origin HTTP header or provide other
+                 * appropriate control directives to prevent caching of such responses, which may be
+                 * inaccurate if re-used across-origins.
+                 */
+                headerBuilder += HeaderNames.VARY -> HeaderNames.ORIGIN
               } else {
                 /* Otherwise, add a single Access-Control-Allow-Origin header,
                  * with either the value of the Origin header or the string "*" as value.
@@ -287,6 +312,10 @@ object CORSFilter extends Filter {
                   headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN -> "*"
                 } else {
                   headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN -> origin
+                  /* http://www.w3.org/TR/cors/#resource-implementation
+                   * § 6.4
+                   */
+                  headerBuilder += HeaderNames.VARY -> HeaderNames.ORIGIN
                 }
               }
 
