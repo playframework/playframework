@@ -38,6 +38,15 @@ object CORSFilterSpec extends PlaySpecification {
       mustBeNoAccessControlResponseHeaders(result)
     }
 
+    "pass through same origin requests" in withApplication() {
+      val result = route(FakeRequest().withHeaders(
+        ORIGIN -> "http://localhost:9000",
+        HOST -> "localhost:9000")).get
+
+      status(result) must_== OK
+      mustBeNoAccessControlResponseHeaders(result)
+    }
+
     "forbid an empty origin header" in withApplication() {
       val result = route(FakeRequest().withHeaders(ORIGIN -> "")).get
 

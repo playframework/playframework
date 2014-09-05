@@ -118,6 +118,9 @@ object CORSFilter extends Filter {
         case Some(originHeader) =>
           if (originHeader.isEmpty || !isValidOrigin(originHeader)) {
             handleInvalidCORSRequest(f, request)
+          } else if (request.headers.get(HeaderNames.HOST).map(originHeader.endsWith _).getOrElse(false)) {
+            // HOST and ORIGIN match, so this is a same-origin request
+            f(request)
           } else {
             val method = request.method
             if (HttpMethods.contains(method)) {
