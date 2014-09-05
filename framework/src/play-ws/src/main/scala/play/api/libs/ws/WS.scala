@@ -440,7 +440,7 @@ trait WSRequestHolder {
   def withTimeout(timeout: Int) = withRequestTimeout(timeout)
 
   /**
-   * Sets the maximum time in millisecond you accept the request to take.
+   * Sets the maximum time in milliseconds you expect the request to take.
    * Warning: a stream consumption will be interrupted when this time is reached.
    */
   def withRequestTimeout(timeout: Int): WSRequestHolder
