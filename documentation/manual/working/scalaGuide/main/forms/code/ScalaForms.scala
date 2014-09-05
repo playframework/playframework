@@ -158,6 +158,15 @@ import views.html.contact._
 
 object Application extends Controller {
 
+  //#userForm-define
+  val userForm = Form(
+    mapping(
+      "name" -> text,
+      "age" -> number
+    )(UserData.apply)(UserData.unapply)
+  )
+  //#userForm-define
+
   def home(id: Int = 0) = Action {
     Ok("Welcome!")
   }
@@ -168,7 +177,7 @@ object Application extends Controller {
   }
   // #form-render
 
-  def userPost() = Action { implicit request =>
+  def userPostHandlingFailure() = Action { implicit request =>
     val userForm = controllers.Application.userFormConstraints
 
     //#userForm-handling-failure
@@ -188,18 +197,27 @@ object Application extends Controller {
 
   }
 
+  // #form-bodyparser
+  val userPost = Action(parse.form(userForm)) { implicit request =>
+    val userData = request.body
+    val newUser = models.User(userData.name, userData.age)
+    val id = models.User.create(newUser)
+    Redirect(routes.Application.home(id))
+  }
+  // #form-bodyparser
+
+  // #form-bodyparser-errors
+  val userPostWithErrors = Action(parse.form(userForm, onErrors = (formWithErrors: Form[UserData]) => BadRequest(views.html.user(formWithErrors)))) { implicit request =>
+    val userData = request.body
+    val newUser = models.User(userData.name, userData.age)
+    val id = models.User.create(newUser)
+    Redirect(routes.Application.home(id))
+  }
+  // #form-bodyparser-errors
+
   def submit = Action { implicit request =>
     BadRequest("Not used")
   }
-
-  //#userForm-define
-  val userForm = Form(
-    mapping(
-      "name" -> text,
-      "age" -> number
-    )(UserData.apply)(UserData.unapply)
-  )
-  //#userForm-define
 
   val userFormName = {
     //#userForm-get

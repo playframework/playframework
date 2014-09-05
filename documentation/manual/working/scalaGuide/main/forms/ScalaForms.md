@@ -113,6 +113,14 @@ In the success case, we're sending a `Redirect` with a route to `routes.Applicat
 
 > **Note:** "Redirect after POST" is **required** when using `flashing` or other methods with [[flash scope|ScalaSessionFlash]], as new cookies will only be available after the redirected HTTP request.
 
+Alternatively, you can use the `parse.form` [[body parser|ScalaBodyParsers]] that binds the content of the request to your form.
+
+@[form-bodyparser](code/ScalaForms.scala)
+
+In the failure case, the default behaviour is to return an empty BadRequest response. You can override this behaviour with your own logic. For instance, the following code is completely equivalent to the preceding one using `bindFromRequest` and `fold`.
+
+@[form-bodyparser-errors](code/ScalaForms.scala)
+
 ### Showing forms in a view template
 
 Once you have a form, then you need to make it available to the [[template engine|ScalaTemplates]].  You do this by including the form as a parameter to the view template.  For `user.scala.html`, the header at the top of the page will look like this:
