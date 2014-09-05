@@ -9,16 +9,99 @@ import play.api.Configuration
 import play.api.mvc.{ Action, Result, Results }
 import play.api.test.{ WithApplication, FakeRequest, FakeApplication, PlaySpecification }
 
-object CORSFilterSpec extends PlaySpecification {
+object CORSFilterSpec extends CORSCommonSpec {
 
-  def withApplication[T](result: Result = Results.Ok("test"), conf: Map[String, _ <: Any] = Map.empty)(block: => T): T = {
+  def withApplication[T](conf: Map[String, _ <: Any] = Map.empty)(block: => T): T = {
     running(FakeApplication(
       additionalConfiguration = conf,
       withRoutes = {
-        case _ => CORSFilter.apply(Action(result))
+        case _ => CORSFilter.apply(Action(Results.Ok))
       }
     ))(block)
   }
+
+  "The CORSFilter" should {
+
+    val restrictPaths = Map("cors.path.prefixes" -> Seq("/foo", "/bar"))
+
+    "pass through a cors request that doesn't match the path prefixes" in withApplication(conf = restrictPaths) {
+      val result = route(FakeRequest("GET", "/baz").withHeaders(ORIGIN -> "http://localhost")).get
+
+      status(result) must_== OK
+      mustBeNoAccessControlResponseHeaders(result)
+    }
+
+    commonTests
+  }
+}
+
+object CORSActionBuilderSpec extends CORSCommonSpec {
+
+  def withApplication[T](conf: Map[String, _ <: Any] = Map.empty)(block: => T): T = {
+    running(FakeApplication(
+      additionalConfiguration = conf,
+      withRoutes = {
+        case _ => CORSActionBuilder(Results.Ok)
+      }
+    ))(block)
+  }
+
+  def withApplicationWithLocallyConfiguredAction[T](conf: Map[String, _ <: Any] = Map.empty)(block: => T): T = {
+    running(FakeApplication(
+      withRoutes = {
+        case _ => CORSActionBuilder(Configuration.from(conf))(Results.Ok)
+      }
+    ))(block)
+  }
+
+  def withApplicationWithPathConfiguredAction[T](configPath: String, conf: Map[String, _ <: Any] = Map.empty)(block: => T): T = {
+    running(FakeApplication(
+      additionalConfiguration = conf,
+      withRoutes = {
+        case _ => CORSActionBuilder(configPath)(Results.Ok)
+      }
+    ))(block)
+  }
+
+  "The CORSActionBuilder with" should {
+
+    val restrictOriginsLocalConf = Map("cors.allowed.origins" -> Seq("http://example.org", "http://localhost:9000"))
+
+    "handle a cors request with a local configuration" in withApplicationWithLocallyConfiguredAction(conf = restrictOriginsLocalConf) {
+      val result = route(FakeRequest().withHeaders(ORIGIN -> "http://localhost:9000")).get
+
+      status(result) must_== OK
+      header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beSome("true")
+      header(ACCESS_CONTROL_ALLOW_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_METHODS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://localhost:9000")
+      header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_MAX_AGE, result) must beNone
+      header(VARY, result) must beSome(ORIGIN)
+    }
+
+    val restrictOriginsPathConf = Map("myaction.cors.allowed.origins" -> Seq("http://example.org", "http://localhost:9000"))
+
+    "handle a cors request with a subpath of app configuration" in withApplicationWithPathConfiguredAction(configPath = "myaction", conf = restrictOriginsPathConf) {
+      val result = route(FakeRequest().withHeaders(ORIGIN -> "http://localhost:9000")).get
+
+      status(result) must_== OK
+      header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beSome("true")
+      header(ACCESS_CONTROL_ALLOW_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_METHODS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://localhost:9000")
+      header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_MAX_AGE, result) must beNone
+      header(VARY, result) must beSome(ORIGIN)
+    }
+
+    commonTests
+  }
+}
+
+trait CORSCommonSpec extends PlaySpecification {
+
+  def withApplication[T](conf: Map[String, _ <: Any] = Map.empty)(block: => T): T
 
   def mustBeNoAccessControlResponseHeaders(result: Future[Result]) = {
     header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beNone
@@ -29,7 +112,7 @@ object CORSFilterSpec extends PlaySpecification {
     header(ACCESS_CONTROL_MAX_AGE, result) must beNone
   }
 
-  "The CORSFilter" should {
+  def commonTests = {
 
     "pass through requests without an origin header" in withApplication() {
       val result = route(FakeRequest()).get
@@ -42,15 +125,6 @@ object CORSFilterSpec extends PlaySpecification {
       val result = route(FakeRequest().withHeaders(
         ORIGIN -> "http://localhost:9000",
         HOST -> "localhost:9000")).get
-
-      status(result) must_== OK
-      mustBeNoAccessControlResponseHeaders(result)
-    }
-
-    val restrictPaths = Map("cors.path.prefixes" -> Seq("/foo", "/bar"))
-
-    "pass through a cors request that doesn't match the path prefixes" in withApplication(conf = restrictPaths) {
-      val result = route(FakeRequest("GET", "/baz").withHeaders(ORIGIN -> "http://localhost")).get
 
       status(result) must_== OK
       mustBeNoAccessControlResponseHeaders(result)
@@ -259,6 +333,19 @@ object CORSFilterSpec extends PlaySpecification {
 
       status(result) must_== FORBIDDEN
       mustBeNoAccessControlResponseHeaders(result)
+    }
+
+    "handle a cors request with a whitelisted origin" in withApplication(conf = restrictOrigins) {
+      val result = route(FakeRequest().withHeaders(ORIGIN -> "http://localhost:9000")).get
+
+      status(result) must_== OK
+      header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beSome("true")
+      header(ACCESS_CONTROL_ALLOW_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_METHODS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://localhost:9000")
+      header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_MAX_AGE, result) must beNone
+      header(VARY, result) must beSome(ORIGIN)
     }
 
   }

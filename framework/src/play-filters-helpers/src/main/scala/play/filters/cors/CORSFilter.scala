@@ -9,10 +9,10 @@ import scala.concurrent.Future
 
 import java.net.{ URI, URISyntaxException }
 
-import play.api.{ Configuration, Logger, Play }
+import play.api.{ Configuration, Logger, LoggerLike, Play }
 import play.api.http.{ HeaderNames, HttpVerbs, MimeTypes }
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
-import play.api.mvc.{ Filter, RequestHeader, Results, Result }
+import play.api.mvc.{ ActionBuilder, Filter, Request, RequestHeader, Results, Result }
 
 /**
  * A filter that implements Cross-Origin Resource Sharing (CORS)
@@ -47,14 +47,52 @@ import play.api.mvc.{ Filter, RequestHeader, Results, Result }
  *
  * @see [[http://www.w3.org/TR/cors/ CORS specification]]
  */
-object CORSFilter extends Filter {
+object CORSFilter extends Filter with AbstractCORSFilter {
 
-  private val filterLogger = Logger("play.filters")
+  override protected val logger = Logger("play.filters")
 
-  private def conf: Configuration = Play.maybeApplication.map(_.configuration).getOrElse(Configuration.empty)
+  override protected def conf = Play.maybeApplication.map(_.configuration).getOrElse(Configuration.empty)
 
   private def pathPrefixes: Seq[String] =
     conf.getStringSeq("cors.path.prefixes").getOrElse(Seq("/"))
+
+  override def apply(f: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
+    if (pathPrefixes.exists(request.path startsWith _)) {
+      filterRequest(() => f(request), request)
+    } else {
+      f(request)
+    }
+  }
+}
+
+trait CORSActionBuilder extends ActionBuilder[Request] with AbstractCORSFilter {
+
+  override protected val logger = Play.logger
+
+  override def invokeBlock[A](request: Request[A], block: Request[A] => Future[Result]): Future[Result] = {
+    filterRequest(() => block(request), request)
+  }
+}
+
+object CORSActionBuilder extends CORSActionBuilder {
+
+  override protected def conf = Play.maybeApplication.map(_.configuration).getOrElse(Configuration.empty)
+
+  def apply(configPath: String): CORSActionBuilder = new CORSActionBuilder {
+    override protected def conf =
+      Play.maybeApplication.flatMap(_.configuration.getConfig(configPath)).getOrElse(Configuration.empty)
+  }
+
+  def apply(configuration: Configuration): CORSActionBuilder = new CORSActionBuilder {
+    override protected val conf = configuration
+  }
+}
+
+trait AbstractCORSFilter {
+
+  protected val logger: LoggerLike
+
+  protected def conf: Configuration
 
   /* http://www.w3.org/TR/cors/#resource-requests
    * §6.1.2
@@ -105,47 +143,42 @@ object CORSFilter extends Filter {
     immutable.HashSet(GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS)
   }
 
-  override def apply(f: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
-    val path = request.path
-    if (pathPrefixes.exists(path startsWith _)) {
-      request.headers.get(HeaderNames.ORIGIN) match {
-        case None =>
-          /* http://www.w3.org/TR/cors/#resource-requests
-           * § 6.1.1
-           * If the Origin header is not present terminate this set of steps.
-           */
-          f(request)
-        case Some(originHeader) =>
-          if (originHeader.isEmpty || !isValidOrigin(originHeader)) {
-            handleInvalidCORSRequest(f, request)
-          } else if (request.headers.get(HeaderNames.HOST).map(originHeader.endsWith _).getOrElse(false)) {
-            // HOST and ORIGIN match, so this is a same-origin request
-            f(request)
-          } else {
-            val method = request.method
-            if (HttpMethods.contains(method)) {
-              if (method == HttpVerbs.OPTIONS) {
-                request.headers.get(HeaderNames.ACCESS_CONTROL_REQUEST_METHOD) match {
-                  case None =>
-                    handleCORSRequest(f, request)
-                  case Some(requestMethod) =>
-                    if (requestMethod.isEmpty) {
-                      handleInvalidCORSRequest(f, request)
-                    } else {
-                      handlePreFlightCORSRequest(f, request)
-                    }
-                }
-              } else {
-                handleCORSRequest(f, request)
+  protected def filterRequest(f: () => Future[Result], request: RequestHeader): Future[Result] = {
+    request.headers.get(HeaderNames.ORIGIN) match {
+      case None =>
+        /* http://www.w3.org/TR/cors/#resource-requests
+         * § 6.1.1
+         * If the Origin header is not present terminate this set of steps.
+         */
+        f()
+      case Some(originHeader) =>
+        if (originHeader.isEmpty || !isValidOrigin(originHeader)) {
+          handleInvalidCORSRequest(request)
+        } else if (request.headers.get(HeaderNames.HOST).map(originHeader.endsWith _).getOrElse(false)) {
+          // HOST and ORIGIN match, so this is a same-origin request
+          f()
+        } else {
+          val method = request.method
+          if (HttpMethods.contains(method)) {
+            if (method == HttpVerbs.OPTIONS) {
+              request.headers.get(HeaderNames.ACCESS_CONTROL_REQUEST_METHOD) match {
+                case None =>
+                  handleCORSRequest(f, request)
+                case Some(requestMethod) =>
+                  if (requestMethod.isEmpty) {
+                    handleInvalidCORSRequest(request)
+                  } else {
+                    handlePreFlightCORSRequest(request)
+                  }
               }
             } else {
-              // unrecognized method so invalid request
-              handleInvalidCORSRequest(f, request)
+              handleCORSRequest(f, request)
             }
+          } else {
+            // unrecognized method so invalid request
+            handleInvalidCORSRequest(request)
           }
-      }
-    } else {
-      f(request)
+        }
     }
   }
 
@@ -155,7 +188,7 @@ object CORSFilter extends Filter {
    * @see <a href="http://www.w3.org/TR/cors/#resource-requests">Simple
    *      Cross-Origin Request, Actual Request, and Redirects</a>
    */
-  private def handleCORSRequest(f: RequestHeader => Future[Result], request: RequestHeader): Future[Result] = {
+  private def handleCORSRequest(f: () => Future[Result], request: RequestHeader): Future[Result] = {
     val origin = {
       val originOpt = request.headers.get(HeaderNames.ORIGIN)
       assume(originOpt.isDefined, "The presence of the ORIGIN header should guaranteed at this point.")
@@ -169,7 +202,7 @@ object CORSFilter extends Filter {
      * headers and terminate this set of steps.
      */
     if (!isOriginAllowed(origin)) {
-      handleInvalidCORSRequest(f, request)
+      handleInvalidCORSRequest(request)
     } else {
       val headerBuilder = Seq.newBuilder[(String, String)]
 
@@ -217,11 +250,11 @@ object CORSFilter extends Filter {
         headerBuilder += HeaderNames.ACCESS_CONTROL_EXPOSE_HEADERS -> exposedHeaders.mkString(",")
       }
 
-      f(request).map(_.withHeaders(headerBuilder.result(): _*))
+      f().map(_.withHeaders(headerBuilder.result(): _*))
     }
   }
 
-  private def handlePreFlightCORSRequest(f: RequestHeader => Future[Result], request: RequestHeader): Future[Result] = {
+  private def handlePreFlightCORSRequest(request: RequestHeader): Future[Result] = {
     val origin = {
       val originOpt = request.headers.get(HeaderNames.ORIGIN)
       assume(originOpt.isDefined, "The presence of the ORIGIN header should guaranteed at this point.")
@@ -235,7 +268,7 @@ object CORSFilter extends Filter {
      * headers and terminate this set of steps.
      */
     if (!isOriginAllowed(origin)) {
-      handleInvalidCORSRequest(f, request)
+      handleInvalidCORSRequest(request)
     } else {
       request.headers.get(HeaderNames.ACCESS_CONTROL_REQUEST_METHOD) match {
         case None =>
@@ -245,7 +278,7 @@ object CORSFilter extends Filter {
            * parsing failed, do not set any additional headers and
            * terminate this set of steps.
            */
-          handleInvalidCORSRequest(f, request)
+          handleInvalidCORSRequest(request)
         case Some(requestMethod) =>
           val accessControlRequestMethod = requestMethod.trim
           val methodPredicate = isHttpMethodAllowed // call def to get function val
@@ -257,7 +290,7 @@ object CORSFilter extends Filter {
            */
           if (!HttpMethods.contains(accessControlRequestMethod) ||
             !methodPredicate(accessControlRequestMethod)) {
-            handleInvalidCORSRequest(f, request)
+            handleInvalidCORSRequest(request)
           } else {
             /* http://www.w3.org/TR/cors/#resource-preflight-requests
              * § 6.2.4
@@ -282,7 +315,7 @@ object CORSFilter extends Filter {
              * set any additional headers and terminate this set of steps.
              */
             if (!accessControlRequestHeaders.forall(headerPredicate(_))) {
-              handleInvalidCORSRequest(f, request)
+              handleInvalidCORSRequest(request)
             } else {
               val headerBuilder = Seq.newBuilder[(String, String)]
 
@@ -367,8 +400,8 @@ object CORSFilter extends Filter {
     }
   }
 
-  private def handleInvalidCORSRequest(f: RequestHeader => Future[Result], request: RequestHeader): Future[Result] = {
-    filterLogger.trace(s"""Invalid CORS request;Origin=${request.headers.get(HeaderNames.ORIGIN)};Method=${request.method};${HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS}=${request.headers.get(HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS)}""")
+  private def handleInvalidCORSRequest(request: RequestHeader): Future[Result] = {
+    logger.trace(s"""Invalid CORS request;Origin=${request.headers.get(HeaderNames.ORIGIN)};Method=${request.method};${HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS}=${request.headers.get(HeaderNames.ACCESS_CONTROL_REQUEST_HEADERS)}""")
     Future.successful(Results.Forbidden)
   }
 
