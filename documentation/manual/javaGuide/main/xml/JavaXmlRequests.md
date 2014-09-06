@@ -69,19 +69,19 @@ Hello Guillaume
 In our previous example, we handled an XML request, but replied with a `text/plain` response. Let’s change it to send back a valid XML HTTP response:
 
 ```
-@BodyParser.Of(Xml.class)
+@BodyParser.Of(BodyParser.Xml.class)
 public static Result sayHello() {
-  Document dom = request().body().asXml();
-  if(dom == null) {
-    return badRequest("Expecting Xml data");
-  } else {
-    String name = XPath.selectText("//name", dom);
-    if(name == null) {
-      return badRequest("<message \"status\"=\"KO\">Missing parameter [name]</message>");
+    Document dom = request().body().asXml();
+    if(dom == null) {
+        return badRequest("Expecting Xml data");
     } else {
-      return ok("<message \"status\"=\"OK\">Hello " + name + "</message>");
+        String name = XPath.selectText("//name", dom);
+        if(name == null) {
+            return badRequest("<message status=\"KO\">Missing parameter [name]</message>").as("application/xml");
+        } else {
+            return ok("<message status=\"OK\">Hello " + name + "</message>").as("application/xml");
+        }
     }
-  }
 }
 ```
 
