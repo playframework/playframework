@@ -63,16 +63,7 @@ object Cache {
     app.injector.instanceOf[CacheApi]
   }
 
-  /**
-   * Set a value into the cache.
-   *
-   * @param key Item key.
-   * @param value Item value.
-   * @param expiration Expiration time in seconds (0 second means eternity).
-   */
-  def set(key: String, value: Any, expiration: Int = 0)(implicit app: Application): Unit = {
-    cacheApi.set(key, value, expiration.seconds)
-  }
+  private def intToDuration(seconds: Int): Duration = if (seconds == 0) Duration.Inf else seconds.seconds
 
   /**
    * Set a value into the cache.
@@ -81,9 +72,21 @@ object Cache {
    * @param value Item value.
    * @param expiration Expiration time as a [[scala.concurrent.duration.Duration]].
    */
-  def set(key: String, value: Any, expiration: Duration)(implicit app: Application): Unit = {
-    set(key, value, expiration.toSeconds.toInt)
+  def set(key: String, value: Any, expiration: Duration = Duration.Inf)(implicit app: Application): Unit = {
+    cacheApi.set(key, value, expiration)
   }
+
+  /**
+   * Set a value into the cache.
+   *
+   * @param key Item key.
+   * @param value Item value.
+   * @param expiration Expiration time in seconds (0 second means eternity).
+   */
+  def set(key: String, value: Any, expiration: Int)(implicit app: Application): Unit = {
+    set(key, value, intToDuration(expiration))
+  }
+
   /**
    * Retrieve a value from the cache.
    *
@@ -97,11 +100,22 @@ object Cache {
    * Retrieve a value from the cache, or set it from a default function.
    *
    * @param key Item key.
+   * @param expiration expiration period as a [[scala.concurrent.duration.Duration]].
+   * @param orElse The default function to invoke if the value was not found in cache.
+   */
+  def getOrElse[A](key: String, expiration: Duration = Duration.Inf)(orElse: => A)(implicit app: Application, ct: ClassTag[A]): A = {
+    cacheApi.getOrElse(key, expiration)(orElse)
+  }
+
+  /**
+   * Retrieve a value from the cache, or set it from a default function.
+   *
+   * @param key Item key.
    * @param expiration expiration period in seconds.
    * @param orElse The default function to invoke if the value was not found in cache.
    */
-  def getOrElse[A](key: String, expiration: Int = 0)(orElse: => A)(implicit app: Application, ct: ClassTag[A]): A = {
-    cacheApi.getOrElse(key, expiration.seconds)(orElse)
+  def getOrElse[A](key: String, expiration: Int)(orElse: => A)(implicit app: Application, ct: ClassTag[A]): A = {
+    getOrElse(key, intToDuration(expiration))(orElse)
   }
 
   /**

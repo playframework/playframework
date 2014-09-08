@@ -26,7 +26,7 @@ public class DefaultCacheApi implements CacheApi {
     }
 
     public <T> T getOrElse(String key, Callable<T> block, int expiration) {
-        return cacheApi.getOrElse(key, Duration.apply(expiration, TimeUnit.SECONDS),
+        return cacheApi.getOrElse(key, intToDuration(expiration),
                 Scala.asScala(block), Scala.<T>classTag());
     }
 
@@ -36,7 +36,7 @@ public class DefaultCacheApi implements CacheApi {
     }
 
     public void set(String key, Object value, int expiration) {
-        cacheApi.set(key, value, Duration.apply(expiration, TimeUnit.SECONDS));
+        cacheApi.set(key, value, intToDuration(expiration));
     }
 
     public void set(String key, Object value) {
@@ -45,5 +45,9 @@ public class DefaultCacheApi implements CacheApi {
 
     public void remove(String key) {
         cacheApi.remove(key);
+    }
+
+    private Duration intToDuration(int seconds) {
+      return seconds == 0 ? Duration.Inf() : Duration.apply(seconds, TimeUnit.SECONDS);
     }
 }
