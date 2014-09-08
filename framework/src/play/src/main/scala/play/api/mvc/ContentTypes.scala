@@ -689,7 +689,7 @@ trait BodyParsers {
         .getOrElse(Future.successful(Results.BadRequest))
     }
 
-    private def tolerantBodyParser[A](name: String, maxLength: Long, errorMessage: String)(parser: (RequestHeader, Array[Byte]) => A): BodyParser[A] =
+    def tolerantBodyParser[A](name: String, maxLength: Long, errorMessage: String)(parser: (RequestHeader, Array[Byte]) => A): BodyParser[A] =
       BodyParser(name + ", maxLength=" + maxLength) { request =>
         import play.api.libs.iteratee.Execution.Implicits.trampoline
         import scala.util.control.Exception._
