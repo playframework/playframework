@@ -8,7 +8,6 @@ import javax.inject.{ Inject, Singleton }
 import play.api.mvc._
 import java.io.File
 import play.core.j
-import play.utils.Threads
 
 import scala.util.control.NonFatal
 import scala.concurrent.Future
@@ -106,11 +105,12 @@ trait GlobalSettings {
    */
   def doFilter(next: RequestHeader => Handler): (RequestHeader => Handler) = {
     (request: RequestHeader) =>
-      {
-        next(request) match {
-          case action: EssentialAction => doFilter(action)
-          case handler => handler
-        }
+      val context = Play.maybeApplication
+        .flatMap(_.configuration.getString("application.context"))
+        .fold("/")(_.replaceAll("/$", "") + "/")
+      next(request) match {
+        case action: EssentialAction if request.path startsWith context => doFilter(action)
+        case handler => handler
       }
   }
 
