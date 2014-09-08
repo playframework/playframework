@@ -152,7 +152,7 @@ private object ApplicationEvolutions {
       CREATE TABLE play_evolutions_lock (
         lock Number(10,0) Not Null Enable,
         CONSTRAINT play_evolutions_lock_pk PRIMARY KEY (lock)
-      );
+      )
     """
 }
 
