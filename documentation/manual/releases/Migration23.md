@@ -200,7 +200,7 @@ The following lists all sbt-web related components and their versions at the tim
 [WebJars](http://www.webjars.org/) now play an important role in the provision of assets to a Play application. For example you can declare that you will be using the popular [Bootstrap library](http://getbootstrap.com/) simply by adding the following dependency in your build file:
 
 ```scala
-libraryDependencies += "org.webjars" % "bootstrap" % "3.0.0"
+libraryDependencies += "org.webjars" % "bootstrap" % "3.2.0"
 ```
 
 WebJars are automatically extracted into a `lib` folder relative to your public assets for convenience. For example if you declared a dependency on [RequireJs](http://requirejs.org/) then you can reference it from a view using a line like:
@@ -560,9 +560,9 @@ val name2 = "NotAssigned"
 SQL"INSERT INTO test(id, name) VALUES($None, $name2)".execute()
 ```
 
-## Twitter Bootstrap
+## Bootstrap
 
-The in-built Twitter Bootstrap field constructor has been deprecated, and will be removed in a future version of Play.
+The in-built Bootstrap field constructor has been deprecated, and will be removed in a future version of Play.
 
 There are a few reasons for this, one is that we have found that Bootstrap changes too drastically between versions and too frequently, such that any in-built support provided by Play quickly becomes stale and incompatible with the current Bootstrap version.
 

@@ -62,7 +62,7 @@ The resulting CSS file will be compiled as `public/stylesheets/main.css` and you
 To use Bootstrap you can use its [WebJar](http://www.webjars.org/) by adding it to your library dependencies. For example, within a `build.sbt` file:
 
 ```scala
-libraryDependencies += "org.webjars" % "bootstrap" % "3.0.2"
+libraryDependencies += "org.webjars" % "bootstrap" % "3.2.0"
 ```
 
 sbt-web will automatically extract WebJars into a lib folder relative to your asset's target folder. Therefore to use Bootstrap you can import relatively e.g.:
