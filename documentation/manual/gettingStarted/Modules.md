@@ -15,5 +15,3 @@ One of the earliest decisions that you need to make when starting a new Play pro
 At its core, Play is agnostic to any particular form of dependency injection, however out of the box Play provides and we recommend that you use [Guice](https://github.com/google/guice). The remainder of this documentation will assume that this is the decision that you have made, however there will be examples of how to integrate with other dependency injection mechanisms.
 
 You can read more about dependency injection in [[Scala|ScalaDependencyInjection]] or [[Java|JavaDependencyInjection]].
-
-> **Next:** [[Using the Activator console|PlayConsole]]

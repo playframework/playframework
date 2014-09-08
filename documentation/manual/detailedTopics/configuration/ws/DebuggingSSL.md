@@ -55,5 +55,3 @@ Oracle has a number of sections on debugging JSSE issues:
 * [Debugging SSL/TLS connections](http://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/ReadDebug.html)
 * [JSSE Debug Logging With Timestamp](https://blogs.oracle.com/xuelei/entry/jsse_debug_logging_with_timestamp)
 * [How to Analyze Java SSL Errors](http://www.smartjava.org/content/how-analyze-java-ssl-errors)
-
-> **Next:** [[Loose Options|LooseSSL]]

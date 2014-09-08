@@ -22,5 +22,3 @@ Play defines a default set of settings suitable for Scala-based applications. To
 ## Play project settings with their default value
 
 When you define your sbt project using the default settings explained above, use sbt's `settings` command via the play console for your project (the console is obtained by invoking the `activator` command from the command line). You can then further show the value of a setting by using the sbt `show` command e.g. `show name` will output the project's name.
-
-> **Next:** [[Managing library dependencies | SBTDependencies]]

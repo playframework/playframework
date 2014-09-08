@@ -1,0 +1,7 @@
+Installing:Installing Play
+NewApplication:Creating a new application
+Anatomy:Anatomy of a Play application
+Modules:Play Modules
+PlayConsole:Using the Play console
+IDE:Setting-up your preferred IDE
+Tutorials:Play Tutorials

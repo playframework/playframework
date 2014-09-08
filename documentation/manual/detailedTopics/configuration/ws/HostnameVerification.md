@@ -22,5 +22,3 @@ Hostname Verification can be tested using `dnschef`.  A complete guide is out of
 ## Further Reading
 
 * [Fixing Hostname Verification](http://tersesystems.com/2014/03/23/fixing-hostname-verification/)
-
-> **Next:** [[Example Configurations|ExampleSSLConfig]]

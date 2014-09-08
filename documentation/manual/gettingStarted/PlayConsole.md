@@ -122,5 +122,3 @@ $ activator run
 ```
 
 The application starts directly. When you quit the server using `Ctrl+D`, you will come back to your OS prompt.
-
-> **Next:** [[Setting-up your preferred IDE | IDE]]

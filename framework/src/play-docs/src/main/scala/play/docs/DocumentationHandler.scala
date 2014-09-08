@@ -9,7 +9,7 @@ import play.api.http.HeaderNames
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.iteratee.Enumeratee
 import play.core.{ PlayVersion, BuildDocHandler }
-import play.doc.{ FileRepository, PlayDoc, RenderedPage }
+import play.doc.{ FileRepository, PlayDoc, RenderedPage, PageIndex }
 import org.apache.commons.io.IOUtils
 
 /**
@@ -21,7 +21,12 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository) extend
 
   def this(repo: FileRepository) = this(repo, repo)
 
-  val markdownRenderer = new PlayDoc(repo, repo, "resources", PlayVersion.current)
+  /**
+   * This is a def because we want to reindex the docs each time.
+   */
+  def playDoc = {
+    new PlayDoc(repo, repo, "resources", PlayVersion.current, PageIndex.parseFrom(repo, "Home", Some("manual")), "Next")
+  }
 
   val locator: String => String = new Memoise(name =>
     repo.findFileWithName(name).orElse(apiRepo.findFileWithName(name)).getOrElse(name)
@@ -55,58 +60,28 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository) extend
     import play.api.mvc.Results._
 
     val documentation = """/@documentation/?""".r
-    val book = """/@documentation/Book""".r
     val apiDoc = """/@documentation/api/(.*)""".r
     val wikiResource = """/@documentation/resources/(.*)""".r
     val wikiPage = """/@documentation/([^/]*)""".r
 
     request.path match {
 
-      case documentation() => {
-
-        Some {
-          Redirect("/@documentation/Home")
+      case documentation() => Some(Redirect("/@documentation/Home"))
+      case apiDoc(page) => Some(
+        sendFileInline(apiRepo, "api/" + page)
+          .getOrElse(NotFound(views.html.play20.manual(page, None, None, locator)))
+      )
+      case wikiResource(path) => Some(
+        sendFileInline(repo, path).orElse(sendFileInline(apiRepo, path))
+          .getOrElse(NotFound("Resource not found [" + path + "]"))
+      )
+      case wikiPage(page) => Some(
+        playDoc.renderPage(page) match {
+          case None => NotFound(views.html.play20.manual(page, None, None, locator))
+          case Some(RenderedPage(mainPage, None, _)) => Ok(views.html.play20.manual(page, Some(mainPage), None, locator))
+          case Some(RenderedPage(mainPage, Some(sidebar), _)) => Ok(views.html.play20.manual(page, Some(mainPage), Some(sidebar), locator))
         }
-
-      }
-
-      case book() => {
-
-        Some {
-          repo.loadFile("manual/book/Book") { is =>
-            val lines = IOUtils.toString(is).split('\n').toSeq.map(_.trim)
-            Ok(views.html.play20.book(lines))
-          }.getOrElse(NotFound("Resource not found [Book]"))
-        }
-
-      }
-
-      case apiDoc(page) => {
-
-        Some {
-          sendFileInline(apiRepo, "api/" + page).getOrElse(NotFound(views.html.play20.manual(page, None, None, locator)))
-        }
-
-      }
-
-      case wikiResource(path) => {
-
-        Some {
-          sendFileInline(repo, path).orElse(sendFileInline(apiRepo, path)).getOrElse(NotFound("Resource not found [" + path + "]"))
-        }
-
-      }
-
-      case wikiPage(page) => {
-
-        Some {
-          markdownRenderer.renderPage(page) match {
-            case None => NotFound(views.html.play20.manual(page, None, None, locator))
-            case Some(RenderedPage(mainPage, None, _)) => Ok(views.html.play20.manual(page, Some(mainPage), None, locator))
-            case Some(RenderedPage(mainPage, Some(sidebar), _)) => Ok(views.html.play20.manual(page, Some(mainPage), Some(sidebar), locator))
-          }
-        }
-      }
+      )
       case _ => None
     }
   }

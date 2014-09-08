@@ -173,7 +173,7 @@ object Dependencies {
   ) ++ javassist ++ specsBuild.map(_ % Test)
 
   val playDocsDependencies = Seq(
-    "com.typesafe.play" %% "play-doc" % "1.1.0",
+    "com.typesafe.play" %% "play-doc" % "1.2.0",
     "org.webjars" % "jquery"   % "2.1.0-2"    % "webjars",
     "org.webjars" % "prettify" % "4-Mar-2013" % "webjars"
   )
@@ -234,7 +234,7 @@ object Dependencies {
   )
 
   val playDocsSbtPluginDependencies = Seq(
-    "com.typesafe.play" %% "play-doc" % "1.1.0"
+    "com.typesafe.play" %% "play-doc" % "1.2.0"
   )
 
 }

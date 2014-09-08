@@ -98,13 +98,13 @@ Java thread locals, along with the correct context class loader, are propagated 
 
 In the example below, a user thread pool is wrapped to create a new `ExecutionContext` that propagates thread locals correctly.
 
-@[async-explicit-ec-imports](../../javaGuide/main/async/code/javaguide/async/controllers/Application.java)
+@[async-explicit-ec-imports](../../working/javaGuide/main/async/code/javaguide/async/controllers/Application.java)
 
 Java 8
-: @[async-explicit-ec](../../javaGuide/main/async/java8code/java8guide/async/controllers/Application.java)
+: @[async-explicit-ec](../../working/javaGuide/main/async/java8code/java8guide/async/controllers/Application.java)
 
 Java
-: @[async-explicit-ec](../../javaGuide/main/async/code/javaguide/async/controllers/Application.java)
+: @[async-explicit-ec](../../working/javaGuide/main/async/code/javaguide/async/controllers/Application.java)
 
 ## Best practices
 
@@ -147,5 +147,3 @@ Then in your code, you would create futures and pass the relevant execution cont
 ### Few specific thread pools
 
 This is a combination between the many specific thread pools and the highly synchronized profile.  You would do most simple IO in the default execution context and set the number of threads there to be reasonably high (say 100), but then dispatch certain expensive operations to specific contexts, where you can limit the number of them that are done at one time.
-
-> **Next:** [[Configuring logging|SettingsLogger]]

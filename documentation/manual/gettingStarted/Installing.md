@@ -47,5 +47,3 @@ If everything is properly installed, you should see the basic help:
 [[images/activator.png]]
 
 You are now ready to create a new Play application.
-
-> **Next:** [[Creating a new application | NewApplication]]

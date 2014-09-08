@@ -98,5 +98,3 @@ lazy val root = (project in file(".")).enablePlugins(PlayJava)
 resolvers += "Repository name" at "https://url.to/repository" 
 ```
 
-
-> **Next:** [[About SBT Settings | SBTSettings]]

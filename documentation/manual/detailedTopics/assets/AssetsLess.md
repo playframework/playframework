@@ -85,5 +85,3 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.0.0")
 
 The plugin's default configuration is normally sufficient. However please refer to the [plugin's documentation](https://github.com/sbt/sbt-less#sbt-less) for information on how it may be configured.
 
-
-> **Next:** [[Linting JavaScript | AssetsJSHint]]

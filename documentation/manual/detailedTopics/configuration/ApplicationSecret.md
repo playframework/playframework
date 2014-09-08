@@ -71,5 +71,3 @@ To update the secret in `application.conf`, run `play-update-secret` in the Play
 [info] Replacing old application secret: application.secret="changeme"
 [success] Total time: 0 s, completed 28/03/2014 2:36:54 PM
 ```
-
-> **Next:** [[Configuring the JDBC connection pool|SettingsJDBC]]

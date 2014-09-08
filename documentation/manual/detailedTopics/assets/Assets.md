@@ -166,5 +166,3 @@ export SBT_OPTS="$SBT_OPTS -Dsbt.jse.engineType=Node"
 ```
 
 The above declaration ensures that Node.js is used when executing any sbt-web plugin.
-
-> **Next:** [[Using CoffeeScript | AssetsCoffeeScript]]

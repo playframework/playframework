@@ -65,5 +65,3 @@ ws.ssl {
 ```
 
 
-
-> **Next:** [[Using the Default SSLContext|DefaultContext]]

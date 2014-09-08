@@ -56,5 +56,3 @@ If you intend to use Play for TLS termination layer, please note the following s
 * **[`SSLParameters.setUseCipherSuiteorder()`](http://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#cipher_suite_preference)** - Reorders cipher suite order to the server's preference.
 * **-Djdk.tls.ephemeralDHKeySize=2048** - Increases the key size in a DH key exchange.
 * **-Djdk.tls.rejectClientInitiatedRenegotiation=true** - Rejects client renegotiation.
-
-> **Next:** [[Deploying to a cloud service|DeployingCloud]]
