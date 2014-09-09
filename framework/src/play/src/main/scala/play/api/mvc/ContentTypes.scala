@@ -3,6 +3,7 @@
  */
 package play.api.mvc
 
+import play.api.data.{ FormUtils, Form }
 import play.core.parsers.Multipart
 
 import scala.language.reflectiveCalls
@@ -413,6 +414,37 @@ trait BodyParsers {
               val msg = s"Json validation error ${JsError.toFlatForm(jsError)}"
               createBadResult(msg)(request) map Left.apply
             }
+        }
+      }
+
+    // -- Form parser
+
+    /**
+     * Parse the body and binds it to a given form model.
+     *
+     * {{{
+     *   case class User(name: String)
+     *
+     *   val userForm: Form[User] = Form(mapping("name" -> nonEmptyText)(User.apply)(User.unapply))
+     *
+     *   Action(parse.form(userForm)) { request =>
+     *     Ok(s"Hello, ${request.body.name}!")
+     *   }
+     * }}}
+     *
+     * @param form Form model
+     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response. If `None`, the default `parsers.text.maxLength` configuration value is used.
+     * @param onErrors The result to reply in case of errors during the form binding process
+     */
+    def form[A](form: Form[A], maxLength: Option[Long] = None, onErrors: Form[A] => Result = (formErrors: Form[A]) => Results.BadRequest): BodyParser[A] =
+      BodyParser { requestHeader =>
+        import play.api.libs.iteratee.Execution.Implicits.trampoline
+        anyContent(maxLength)(requestHeader).map { resultOrBody =>
+          resultOrBody.right.flatMap { body =>
+            form
+              .bindFromRequest()(Request[AnyContent](requestHeader, body))
+              .fold(formErrors => Left(onErrors(formErrors)), a => Right(a))
+          }
         }
       }
 
