@@ -45,14 +45,14 @@ public abstract class Call {
     /**
      * Transform this call to an absolute URL.
      */
-    public String absoluteURL(Http.Request request, boolean secure) {
+    public String absoluteURL(Http.Request request, Boolean secure) {
         return absoluteURL(secure, request.host());
     }
 
     /**
      * Transform this call to an absolute URL.
      */
-    public String absoluteURL(boolean secure, String host) {
+    public String absoluteURL(Boolean secure, String host) {
         return "http" + (secure ? "s" : "") + "://" + host + this.url();
     }
 
@@ -66,14 +66,14 @@ public abstract class Call {
     /**
      * Transform this call to an WebSocket URL.
      */
-    public String webSocketURL(Http.Request request, boolean secure) {
+    public String webSocketURL(Http.Request request, Boolean secure) {
       return webSocketURL(secure, request.host());
     }
 
     /**
      * Transform this call to an WebSocket URL.
      */
-    public String webSocketURL(boolean secure, String host) {
+    public String webSocketURL(Boolean secure, String host) {
       return "ws" + (secure ? "s" : "") + "://" + host + this.url();
     }
 
