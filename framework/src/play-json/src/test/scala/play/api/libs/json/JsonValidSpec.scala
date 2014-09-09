@@ -136,8 +136,12 @@ object JsonValidSpec extends Specification {
 
       val ds = new java.sql.Date(dd.getTime())
 
+      val dtfj = org.joda.time.format.DateTimeFormat.forPattern("HH:mm:ss.SSS")
       Json.toJson[java.sql.Date](ds).validate[java.sql.Date] must beEqualTo(JsSuccess(dd))
       JsNumber(dd.getTime).validate[java.sql.Date] must beEqualTo(JsSuccess(dd))
+
+      val ltj = org.joda.time.LocalTime.parse(dtfj.print(dj), dtfj)
+      Json.toJson[org.joda.time.LocalTime](ltj).validate[org.joda.time.LocalTime] must beEqualTo(JsSuccess(ltj))
 
       // very poor test to do really crappy java date APIs
       // TODO ISO8601 test doesn't work on CI platform...

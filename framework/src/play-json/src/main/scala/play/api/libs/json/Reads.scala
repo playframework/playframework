@@ -331,6 +331,37 @@ trait DefaultReads {
   implicit val DefaultJodaLocalDateReads = jodaLocalDateReads("")
 
   /**
+   * Reads for the `org.joda.time.LocalTime` type.
+   *
+   * @param pattern a date pattern, as specified in `org.joda.time.format.DateTimeFormat`.
+   * @param corrector string transformation function (See jodaTimeReads)
+   */
+  def jodaLocalTimeReads(pattern: String, corrector: String => String = identity): Reads[org.joda.time.LocalTime] = new Reads[org.joda.time.LocalTime] {
+
+    import org.joda.time.LocalTime
+    import org.joda.time.format.{ DateTimeFormat, ISODateTimeFormat }
+
+    val df = if (pattern == "") ISODateTimeFormat.localTimeParser else DateTimeFormat.forPattern(pattern)
+
+    def reads(json: JsValue): JsResult[LocalTime] = json match {
+      case JsNumber(n) => JsSuccess(new LocalTime(n.toLong))
+      case JsString(s) => parseTime(corrector(s)) match {
+        case Some(d) => JsSuccess(d)
+        case None => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jodatime.format", pattern))))
+      }
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.time"))))
+    }
+
+    private def parseTime(input: String): Option[LocalTime] =
+      scala.util.control.Exception.allCatch[LocalTime] opt (LocalTime.parse(input, df))
+  }
+
+  /**
+   * the default implicit joda.time.LocalTime reads
+   */
+  implicit val DefaultJodaLocalTimeReads = jodaLocalTimeReads("")
+
+  /**
    * Reads for the `java.sql.Date` type.
    *
    * @param pattern a date pattern, as specified in `java.text.SimpleDateFormat`.
