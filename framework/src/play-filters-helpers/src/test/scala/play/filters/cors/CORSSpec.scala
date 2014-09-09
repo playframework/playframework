@@ -49,7 +49,7 @@ object CORSActionBuilderSpec extends CORSCommonSpec {
   def withApplicationWithLocallyConfiguredAction[T](conf: Map[String, _ <: Any] = Map.empty)(block: => T): T = {
     running(FakeApplication(
       withRoutes = {
-        case _ => CORSActionBuilder(Configuration.from(conf))(Results.Ok)
+        case _ => CORSActionBuilder(CORSConfig.fromConfiguration(Configuration.from(conf)))(Results.Ok)
       }
     ))(block)
   }

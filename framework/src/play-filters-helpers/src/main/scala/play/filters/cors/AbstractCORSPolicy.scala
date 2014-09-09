@@ -9,7 +9,7 @@ import scala.concurrent.Future
 
 import java.net.{ URI, URISyntaxException }
 
-import play.api.{ Configuration, LoggerLike }
+import play.api.LoggerLike
 import play.api.http.{ HeaderNames, HttpVerbs, MimeTypes }
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc.{ RequestHeader, Results, Result }
@@ -19,52 +19,11 @@ import play.api.mvc.{ RequestHeader, Results, Result }
  *
  * @see [[http://www.w3.org/TR/cors/ CORS specification]]
  */
-trait AbstractCORSFilter {
+trait AbstractCORSPolicy {
 
   protected val logger: LoggerLike
 
-  protected def conf: Configuration
-
-  /* http://www.w3.org/TR/cors/#resource-requests
-   * §6.1.2
-   * http://www.w3.org/TR/cors/#resource-preflight-requests
-   * §6.2.2
-   * Always matching is acceptable since the list of origins can be unbounded.
-   */
-  private def anyOriginAllowed: Boolean =
-    conf.getStringSeq("cors.allowed.origins").isEmpty
-
-  private def allowedOrigins: Set[String] =
-    conf.getStringSeq("cors.allowed.origins").map(_.toSet).getOrElse(Set.empty)
-
-  /* http://www.w3.org/TR/cors/#resource-preflight-requests
-   * §6.2.5
-   * Always matching is acceptable since the list of methods can be unbounded.
-   */
-  private def isHttpMethodAllowed: String => Boolean =
-    conf.getStringSeq("cors.allowed.http.methods").map { methods =>
-      val s = methods.toSet
-      s.contains _
-    }.getOrElse(_ => true)
-
-  /* http://www.w3.org/TR/cors/#resource-preflight-requests
-   * §6.2.6
-   * Always matching is acceptable since the list of headers can be unbounded.
-   */
-  private def isHttpHeaderAllowed: String => Boolean =
-    conf.getStringSeq("cors.allowed.http.headers").map { headers =>
-      val s = headers.map(_.toLowerCase).toSet
-      s.contains _
-    }.getOrElse(_ => true)
-
-  private def exposedHeaders: Seq[String] =
-    conf.getStringSeq("cors.exposed.headers").getOrElse(Seq.empty)
-
-  private def supportsCredentials: Boolean =
-    conf.getBoolean("cors.support.credentials").getOrElse(true)
-
-  private def preflightMaxAge: Int =
-    conf.getInt("cors.preflight.maxage").getOrElse(3600)
+  protected def corsConfig: CORSConfig
 
   /**
    * HTTP Methods support by Play
@@ -138,7 +97,7 @@ trait AbstractCORSFilter {
       /* http://www.w3.org/TR/cors/#resource-requests
        * § 6.1.3
        */
-      if (supportsCredentials) {
+      if (corsConfig.supportsCredentials) {
         /* If the resource supports credentials add a single Access-Control-Allow-Origin header,
          * with the value of the Origin header as value, and add a single
          * Access-Control-Allow-Credentials header with the case-sensitive string "true" as value.
@@ -159,7 +118,7 @@ trait AbstractCORSFilter {
         /* Otherwise, add a single Access-Control-Allow-Origin header,
          * with either the value of the Origin header or the string "*" as value.
          */
-        if (anyOriginAllowed) {
+        if (corsConfig.anyOriginAllowed) {
           headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN -> "*"
         } else {
           headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN -> origin
@@ -175,8 +134,8 @@ trait AbstractCORSFilter {
        * If the list of exposed headers is not empty add one or more Access-Control-Expose-Headers headers,
        * with as values the header field names given in the list of exposed headers.
        */
-      if (exposedHeaders.nonEmpty) {
-        headerBuilder += HeaderNames.ACCESS_CONTROL_EXPOSE_HEADERS -> exposedHeaders.mkString(",")
+      if (corsConfig.exposedHeaders.nonEmpty) {
+        headerBuilder += HeaderNames.ACCESS_CONTROL_EXPOSE_HEADERS -> corsConfig.exposedHeaders.mkString(",")
       }
 
       f().map(_.withHeaders(headerBuilder.result(): _*))
@@ -210,7 +169,7 @@ trait AbstractCORSFilter {
           handleInvalidCORSRequest(request)
         case Some(requestMethod) =>
           val accessControlRequestMethod = requestMethod.trim
-          val methodPredicate = isHttpMethodAllowed // call def to get function val
+          val methodPredicate = corsConfig.isHttpMethodAllowed // call def to get function val
           /* http://www.w3.org/TR/cors/#resource-preflight-requests
            * § 6.2.5
            * If method is not a case-sensitive match for any of the
@@ -236,7 +195,7 @@ trait AbstractCORSFilter {
               }
             }
 
-            val headerPredicate = isHttpHeaderAllowed // call def to get function val
+            val headerPredicate = corsConfig.isHttpHeaderAllowed // call def to get function val
             /* http://www.w3.org/TR/cors/#resource-preflight-requests
              * § 6.2.6
              * If any of the header field-names is not a ASCII case-insensitive
@@ -251,7 +210,7 @@ trait AbstractCORSFilter {
               /* http://www.w3.org/TR/cors/#resource-preflight-requests
                * § 6.2.7
                */
-              if (supportsCredentials) {
+              if (corsConfig.supportsCredentials) {
                 /* If the resource supports credentials add a single Access-Control-Allow-Origin header,
                  * with the value of the Origin header as value, and add a single
                  * Access-Control-Allow-Credentials header with the case-sensitive string "true" as value.
@@ -273,7 +232,7 @@ trait AbstractCORSFilter {
                 /* Otherwise, add a single Access-Control-Allow-Origin header,
                  * with either the value of the Origin header or the string "*" as value.
                  */
-                if (anyOriginAllowed) {
+                if (corsConfig.anyOriginAllowed) {
                   headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN -> "*"
                 } else {
                   headerBuilder += HeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN -> origin
@@ -289,8 +248,8 @@ trait AbstractCORSFilter {
                * Optionally add a single Access-Control-Max-Age header with as value the amount
                * of seconds the user agent is allowed to cache the result of the request.
                */
-              if (preflightMaxAge > 0) {
-                headerBuilder += HeaderNames.ACCESS_CONTROL_MAX_AGE -> preflightMaxAge.toString
+              if (corsConfig.preflightMaxAge > 0) {
+                headerBuilder += HeaderNames.ACCESS_CONTROL_MAX_AGE -> corsConfig.preflightMaxAge.toString
               }
 
               /* http://www.w3.org/TR/cors/#resource-preflight-requests
@@ -335,7 +294,7 @@ trait AbstractCORSFilter {
   }
 
   private def isOriginAllowed(origin: String): Boolean = {
-    anyOriginAllowed || allowedOrigins.contains(origin)
+    corsConfig.anyOriginAllowed || corsConfig.allowedOrigins.contains(origin)
   }
 
   // http://tools.ietf.org/html/rfc6454#section-7.1

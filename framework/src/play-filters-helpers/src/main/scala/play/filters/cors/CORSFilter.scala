@@ -12,6 +12,32 @@ import play.api.mvc.{ Filter, RequestHeader, Result }
 /**
  * A [[Filter]] that implements Cross-Origin Resource Sharing (CORS)
  *
+ * @param  corsConfig  configuration of the CORS policy
+ * @param  pathPrefixes  whitelist of path prefixes to restrict the filter
+ *
+ * @see [[CORSConfig]]
+ * @see [[AbstractCORSPolicy]]
+ * @see [[CORSActionBuilder]]
+ * @see [[http://www.w3.org/TR/cors/ CORS specification]]
+ */
+class CORSFilter(
+    override protected val corsConfig: CORSConfig,
+    private val pathPrefixes: Seq[String]) extends Filter with AbstractCORSPolicy {
+
+  override protected val logger = Logger("play.filters")
+
+  override def apply(f: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
+    if (pathPrefixes.exists(request.path startsWith _)) {
+      filterRequest(() => f(request), request)
+    } else {
+      f(request)
+    }
+  }
+}
+
+/**
+ * A [[Filter]] that implements Cross-Origin Resource Sharing (CORS)
+ *
  * It can be configured to...
  *
  *  - filter paths by a whitelist of path prefixes
@@ -43,14 +69,18 @@ import play.api.mvc.{ Filter, RequestHeader, Result }
  * @see [[CORSActionBuilder]]
  * @see [[http://www.w3.org/TR/cors/ CORS specification]]
  */
-object CORSFilter extends Filter with AbstractCORSFilter {
+object CORSFilter extends Filter with AbstractCORSPolicy {
 
   override protected val logger = Logger("play.filters")
 
-  override protected def conf = Play.maybeApplication.map(_.configuration).getOrElse(Configuration.empty)
+  private def globalConf: Configuration =
+    Play.maybeApplication.map(_.configuration).getOrElse(Configuration.empty)
+
+  override protected def corsConfig: CORSConfig =
+    CORSConfig.fromConfiguration(globalConf)
 
   private def pathPrefixes: Seq[String] =
-    conf.getStringSeq("cors.path.prefixes").getOrElse(Seq("/"))
+    globalConf.getStringSeq("cors.path.prefixes").getOrElse(Seq("/"))
 
   override def apply(f: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
     if (pathPrefixes.exists(request.path startsWith _)) {

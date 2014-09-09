@@ -12,37 +12,10 @@ import play.api.mvc.{ ActionBuilder, Request, Result }
 /**
  * An [[ActionBuilder]] that implements Cross-Origin Resource Sharing (CORS)
  *
- * It can be configured to...
- *
- *  - allow only requests with origins from a whitelist (by default all origins are allowed)
- *  - allow only HTTP methods from a whitelist for preflight requests (by default all methods are allowed)
- *  - allow only HTTP headers from a whitelist for preflight requests (by default all methods are allowed)
- *  - set custom HTTP headers to be exposed in the response (by default no headers are exposed)
- *  - disable/enable support for credentials (by default credentials support is enabled)
- *  - set how long (in seconds) the results of a preflight request can be cached in a preflight result cache (by default 3600 seconds, 1 hour)
- *
- * @example The configuration is as follows:
- * {{{
- * cors {
- *     path.prefixes = ["/myresource", ...]  # If left undefined, all paths are filtered
- *     allowed {
- *         origins = ["http://...", ...]  # If left undefined, all origins are allowed
- *         http {
- *             methods = ["PATCH", ...]  # If left undefined, all methods are allowed
- *             headers = ["Custom-Header", ...]  # If left undefined, all headers are allowed
- *         }
- *     }
- *     exposed.headers = [...]  # empty by default
- *     supports.credentials = true  # true by default
- *     preflight.maxage = 3600  # 3600 by default
- * }
- *
- * }}}
- *
  * @see [[CORSFilter]]
  * @see [[http://www.w3.org/TR/cors/ CORS specification]]
  */
-trait CORSActionBuilder extends ActionBuilder[Request] with AbstractCORSFilter {
+trait CORSActionBuilder extends ActionBuilder[Request] with AbstractCORSPolicy {
 
   override protected val logger = Play.logger
 
@@ -69,7 +42,7 @@ trait CORSActionBuilder extends ActionBuilder[Request] with AbstractCORSFilter {
  *
  * CORSActionBuilder("my-conf-path") { Ok } // an action that uses a subtree of the application configuration
  *
- * val conf: Configuration = ...
+ * val corsConfig: CORSConfig = ...
  * CORSActionBuilder(conf) { Ok } // an action that uses a locally defined configuration
  * }}}
  *
@@ -78,7 +51,11 @@ trait CORSActionBuilder extends ActionBuilder[Request] with AbstractCORSFilter {
  */
 object CORSActionBuilder extends CORSActionBuilder {
 
-  override protected def conf = Play.maybeApplication.map(_.configuration).getOrElse(Configuration.empty)
+  private def globalConf =
+    Play.maybeApplication.map(_.configuration).getOrElse(Configuration.empty)
+
+  override protected def corsConfig =
+    CORSConfig.fromConfiguration(globalConf)
 
   /**
    * Construct an action builder that uses a subtree of the application configuration.
@@ -86,16 +63,19 @@ object CORSActionBuilder extends CORSActionBuilder {
    * @param  configPath  The path to the subtree of the application configuration.
    */
   def apply(configPath: String): CORSActionBuilder = new CORSActionBuilder {
-    override protected def conf =
-      Play.maybeApplication.flatMap(_.configuration.getConfig(configPath)).getOrElse(Configuration.empty)
+    override protected def corsConfig =
+      CORSConfig.fromConfiguration(
+        Play.maybeApplication.flatMap(
+          _.configuration.getConfig(configPath)).getOrElse(Configuration.empty))
   }
 
   /**
    * Construct an action builder that uses locally defined configuration.
    *
-   * @param  configuration  The local configuration to use in place of the global configuration.
+   * @param  config  The local configuration to use in place of the global configuration.
+   * @see [[CORSConfig]]
    */
-  def apply(configuration: Configuration): CORSActionBuilder = new CORSActionBuilder {
-    override protected val conf = configuration
+  def apply(config: CORSConfig): CORSActionBuilder = new CORSActionBuilder {
+    override protected val corsConfig = config
   }
 }
