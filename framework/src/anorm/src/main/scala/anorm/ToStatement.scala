@@ -405,6 +405,18 @@ object ToStatement extends JodaToStatement {
   }
 
   /**
+   * Sets [[java.sql.Array]] as parameter
+   * the [[java.sql.Array]] can be created using [[java.sql.Connection.createArrayOf]]
+   *
+   * {{{
+   * SQL("update table set arr = {arr} ").on('arr -> connection.createArrayOf("varchar", arr.asInstanceOf[Array[AnyRef]]))
+   * }}}
+   */
+  implicit object sqlArrayToStatement extends ToStatement[java.sql.Array] {
+    def set(s: PreparedStatement, i: Int, n: java.sql.Array) = s.setArray(i, n)
+  }
+
+  /**
    * Sets Id parameter on statement.
    *
    * {{{
