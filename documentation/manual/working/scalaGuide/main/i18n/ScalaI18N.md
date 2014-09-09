@@ -23,7 +23,7 @@ You can then retrieve messages using the `play.api.i18n.Messages` object:
 val title = Messages("home.title")
 ```
 
-All internationalization API calls take an implicit `play.api.i18.Lang` argument retrieved from the current scope. You can also specify it explicitly:
+All internationalization API calls take an implicit `play.api.i18n.Lang` argument retrieved from the current scope. You can also specify it explicitly:
 
 ```scala
 val title = Messages("home.title")(Lang("fr"))
