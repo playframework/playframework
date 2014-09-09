@@ -73,8 +73,8 @@ case class MetaDataItem(column: ColumnName, nullable: Boolean, clazz: String)
 case class ColumnName(qualified: String, alias: Option[String])
 
 private[anorm] case class MetaData(ms: List[MetaDataItem]) {
-  // TODO: Use MetaDataItem rather than (ColumnName, Boolean, String)?
-  def get(columnName: String): Option[(ColumnName, Boolean, String)] = {
+  /** Returns meta data for specified column. */
+  def get(columnName: String): Option[MetaDataItem] = {
     val key = columnName.toUpperCase
     dictionary2.get(key).orElse(dictionary.get(key)).
       orElse(aliasedDictionary.get(key))
@@ -83,23 +83,21 @@ private[anorm] case class MetaData(ms: List[MetaDataItem]) {
   @deprecated(
     message = "No longer distinction between plain and aliased column",
     since = "2.3.3")
-  def getAliased(aliasName: String): Option[(ColumnName, Boolean, String)] =
+  def getAliased(aliasName: String): Option[MetaDataItem] =
     aliasedDictionary.get(aliasName.toUpperCase)
 
-  private lazy val dictionary: Map[String, (ColumnName, Boolean, String)] =
-    ms.map(m => (m.column.qualified.toUpperCase(), (m.column, m.nullable, m.clazz))).toMap
+  private lazy val dictionary: Map[String, MetaDataItem] =
+    ms.map(m => m.column.qualified.toUpperCase() -> m).toMap
 
-  private lazy val dictionary2: Map[String, (ColumnName, Boolean, String)] =
+  private lazy val dictionary2: Map[String, MetaDataItem] =
     ms.map(m => {
       val column = m.column.qualified.split('.').last;
-      (column.toUpperCase(), (m.column, m.nullable, m.clazz))
+      column.toUpperCase() -> m
     }).toMap
 
-  private lazy val aliasedDictionary: Map[String, (ColumnName, Boolean, String)] = {
+  private lazy val aliasedDictionary: Map[String, MetaDataItem] = {
     ms.flatMap(m => {
-      m.column.alias.map { a =>
-        Map(a.toUpperCase() -> Tuple3(m.column, m.nullable, m.clazz))
-      }.getOrElse(Map.empty)
+      m.column.alias.map(a => Map(a.toUpperCase() -> m)).getOrElse(Map.empty)
     }).toMap
   }
 
@@ -222,13 +220,19 @@ case class SimpleSql[T](sql: SqlQuery, params: Map[String, ParameterValue], defa
     copy(params = this.params ++ Sql.zipParams(
       sql.paramsInitialOrder, args, Map.empty))
 
-  // TODO: Scaladoc as `as` equivalent
-  def list()(implicit connection: Connection): Seq[T] = as(defaultParser.*)
+  /** Applies current parser with optionnal list of rows (0..n). */
+  @deprecated(
+    message = """Use `SQL("...").as(parser.*)`""", since = "2.3.5")
+  def list()(implicit connection: Connection): List[T] = as(defaultParser.*)
 
-  // TODO: Scaladoc as `as` equivalent
+  /** Applies current parser to exactly on row. */
+  @deprecated(
+    message = """Use `SQL("...").as(parser.single)`""", since = "2.3.5")
   def single()(implicit connection: Connection): T = as(defaultParser.single)
 
-  // TODO: Scaladoc, add to specs as `as` equivalent
+  /** Applies current parser to one optional row. */
+  @deprecated(
+    message = """Use `SQL("...").as(parser.singleOpt)`""", since = "2.3.5")
   def singleOpt()(implicit connection: Connection): Option[T] =
     as(defaultParser.singleOpt)
 
@@ -279,12 +283,6 @@ private[anorm] trait Sql extends WithResult {
   protected def resultSet(connection: Connection): ManagedResource[ResultSet] =
     managed(getFilledStatement(connection)).
       flatMap(stmt => managed(stmt.executeQuery()))
-
-  /**
-   * Executes this statement as query and convert result as `T`, using parser.
-   */
-  def as[T](parser: ResultSetParser[T])(implicit connection: Connection): T =
-    Sql.as(parser, resultSet(connection))
 
   /**
    * Executes this SQL statement.

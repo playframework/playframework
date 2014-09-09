@@ -81,17 +81,13 @@ trait Row {
     loop(metaData.ms, data, Map.empty)
   }
 
-  /* Type alias for tuple extracted from metadata item */
-  private type MetaTuple = (ColumnName, Boolean, String)
-
   /**
    * Try to get data matching name.
    * @param name Column qualified name, or label/alias
    */
   private[anorm] def get(a: String): MayErr[SqlRequestError, (Any, MetaDataItem)] = for (
-    meta <- implicitly[MayErr[SqlRequestError, MetaTuple]](
+    m <- implicitly[MayErr[SqlRequestError, MetaDataItem]](
       metaData.get(a).toRight(ColumnNotFound(a, metaData.availableColumns)));
-    m = MetaDataItem.tupled(meta);
     data <- implicitly[MayErr[SqlRequestError, Any]](
       columnsDictionary.get(m.column.qualified.toUpperCase()).
         toRight(ColumnNotFound(
@@ -101,10 +97,9 @@ trait Row {
 
   @deprecated(message = "Use [[get]] with alias", since = "2.3.3")
   private[anorm] def getAliased(a: String): MayErr[SqlRequestError, (Any, MetaDataItem)] = for (
-    meta <- implicitly[MayErr[SqlRequestError, MetaTuple]](
+    m <- implicitly[MayErr[SqlRequestError, MetaDataItem]](
       metaData.getAliased(a).toRight(
         ColumnNotFound(a, metaData.availableColumns)));
-    m = MetaDataItem.tupled(meta);
     data <- implicitly[MayErr[SqlRequestError, Any]](
       m.column.alias.flatMap(a => aliasesDictionary.get(a.toUpperCase())).
         toRight(ColumnNotFound(m.column.alias.getOrElse(a),

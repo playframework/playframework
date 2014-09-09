@@ -99,4 +99,10 @@ private[anorm] trait WithResult {
    */
   def withResult[T](op: Option[Cursor] => T)(implicit connection: Connection): Either[List[Throwable], T] = Sql.withResult(resultSet(connection))(op).acquireFor(identity)
 
+  /**
+   * Converts this query result as `T`, using parser.
+   */
+  def as[T](parser: ResultSetParser[T])(implicit connection: Connection): T =
+    Sql.as(parser, resultSet(connection))
+
 }
