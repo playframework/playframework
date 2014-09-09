@@ -364,7 +364,7 @@ private object DefaultEvolutionsApi {
           state Varchar2(255),
           last_problem clob,
           CONSTRAINT play_evolutions_pk PRIMARY KEY (id)
-      );
+      )
     """
 }
 
