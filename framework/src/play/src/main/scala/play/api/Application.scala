@@ -6,7 +6,8 @@ package play.api
 import javax.inject.Inject
 
 import com.google.inject.Singleton
-import play.api.inject.{ NewInstanceInjector, Injector, DefaultApplicationLifecycle }
+import play.api.inject.{ SimpleInjector, NewInstanceInjector, Injector, DefaultApplicationLifecycle }
+import play.api.libs.{ Crypto, CryptoConfigParser, CryptoConfig }
 import play.core._
 import play.utils._
 
@@ -259,8 +260,12 @@ trait BuiltInComponents {
 
   def routes: Router.Routes
 
+  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + crypto
+
   lazy val applicationLifecycle: DefaultApplicationLifecycle = new DefaultApplicationLifecycle
-  lazy val injector: Injector = NewInstanceInjector
   lazy val application: Application = new DefaultApplication(environment, sourceMapper, applicationLifecycle, injector,
     configuration, global, routes, Plugins.empty)
+
+  lazy val cryptoConfig: CryptoConfig = new CryptoConfigParser(environment, configuration).get
+  lazy val crypto: Crypto = new Crypto(cryptoConfig)
 }

@@ -6,6 +6,7 @@ package play.api.inject
 import javax.inject.{ Singleton, Inject, Provider }
 
 import play.api._
+import play.api.libs.{ CryptoConfig, Crypto, CryptoConfigParser }
 import play.core.Router
 
 class BuiltinModule extends Module {
@@ -24,7 +25,10 @@ class BuiltinModule extends Module {
       // bind Plugins - eager
 
       bind[Router.Routes].toProvider[RoutesProvider],
-      bind[Plugins].toProvider[PluginsProvider]
+      bind[Plugins].toProvider[PluginsProvider],
+
+      bind[CryptoConfig].toProvider[CryptoConfigParser],
+      bind[Crypto].toSelf
     )
   }
 }
