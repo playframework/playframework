@@ -163,7 +163,7 @@ When making a request from a controller, you can map the response to a `Future[R
 
 WSClient is a wrapper around the underlying AsyncHttpClient.  It is useful for defining multiple clients with different profiles, or using a mock.
 
-You can define a WS client directly from code without having it injected by WS, and then it use implicitly with `WS.clientUrl()`
+You can define a WS client directly from code without having it injected by WS, and then use it implicitly with `WS.clientUrl()`.  Note that you should always use `NingAsyncHttpClientConfigBuilder` when configuring your client, for secure TLS configuration:
 
 @[implicit-client](code/ScalaWSSpec.scala)
 
