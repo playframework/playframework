@@ -6,6 +6,7 @@ package play.api.test
 import play.api._
 import play.api.inject.guice.GuiceApplicationLoader
 import play.api.inject._
+import play.api.libs.{ Crypto, CryptoConfigParser, CryptoConfig }
 import play.api.mvc._
 import play.api.libs.json.JsValue
 import play.core.{ DefaultWebCommands, WebCommands }
@@ -287,6 +288,8 @@ private class FakeBuiltinModule(environment: Environment,
     bind[ApplicationLifecycle] to appLifecycle,
     bind[WebCommands] to webCommands,
     bind[OptionalSourceMapper] to new OptionalSourceMapper(None),
-    bind[play.inject.Injector].to[play.inject.DelegateInjector]
+    bind[play.inject.Injector].to[play.inject.DelegateInjector],
+    bind[CryptoConfig].toProvider[CryptoConfigParser],
+    bind[Crypto].toSelf
   )
 }
