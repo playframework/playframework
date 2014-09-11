@@ -3,6 +3,7 @@
  */
 package play.test;
 
+import play.core.server.NettyServer;
 import scala.Option;
 
 /**
@@ -17,7 +18,7 @@ public class TestServer extends play.api.test.TestServer {
      * @param application The FakeApplication to load in this server.
      */
     public TestServer(int port, FakeApplication application) {
-        super(port, application.getWrappedApplication(), Option.<Object>apply(null));
+        super(port, application.getWrappedApplication(), Option.<Object>apply(null), NettyServer.defaultServerProvider());
     }
 
     /**
@@ -27,7 +28,7 @@ public class TestServer extends play.api.test.TestServer {
      * @param sslPort HTTPS port to bind on
      */
     public TestServer(int port, FakeApplication application, int sslPort) {
-        super(port, application.getWrappedApplication(), Option.<Object>apply(sslPort));
+        super(port, application.getWrappedApplication(), Option.<Object>apply(sslPort), NettyServer.defaultServerProvider());
     }
 
 }
