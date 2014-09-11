@@ -36,7 +36,7 @@ class GuiceApplicationLoader extends ApplicationLoader {
       BindingKey(classOf[GlobalSettings]) to global,
       BindingKey(classOf[OptionalSourceMapper]) to new OptionalSourceMapper(context.sourceMapper),
       BindingKey(classOf[WebCommands]) to context.webCommands
-    )) +: Modules.locate(env, configuration)
+    )) +: (Modules.locate(env, configuration) ++ additionalModules)
 
     try {
       val injector = createGuiceInjector(env, configuration, modules)
@@ -48,6 +48,14 @@ class GuiceApplicationLoader extends ApplicationLoader {
       }
     }
   }
+
+  /**
+   * Extension point to add module bindings in a programmatic way. This class creates a Guice injector loading the
+   * modules returned by this method.
+   *
+   * The default implementation returns an empty sequence. Override this implementation to add modules.
+   */
+  protected def additionalModules: Seq[Module] = Seq.empty
 
   override def createInjector(environment: Environment, configuration: Configuration, modules: Seq[Any]) = {
     Some(createGuiceInjector(environment, configuration, modules).getInstance(classOf[PlayInjector]))
