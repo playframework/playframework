@@ -2,7 +2,7 @@
 
 TLS can be very confusing.  Here are some settings that can help.
 
-## Connecting to an internal Web Service
+## Connecting to an internal web service
 
 If you are using WS to communicate with a single internal web service which is configured with an up to date TLS implementation, then you have no need to use an external CA.  Internal certificates will work fine, and are arguably [more secure](http://www.thoughtcrime.org/blog/authenticity-is-broken-in-ssl-but-your-app-ha/) than the CA system.
 
@@ -10,6 +10,25 @@ Generate a self signed certificate from the [[generating certificates|Certificat
 
 ```
 ws.ssl {
+  trustManager = {
+    stores = [
+      { type = "JKS", path = "exampletrust.jks" }
+    ]
+  }
+}
+```
+
+## Connecting to an internal web service with client authentication
+
+If you are using client authentication, then you need to include a keyStore to the key manager that contains a PrivateKeyEntry, which consists of a private key and the X.509 certificate containing the corresponding public key.  See the "Configure Client Authentication" section in [[generating certificates|CertificateGeneration]].
+
+```
+ws.ssl {
+  keyManager = {
+    stores = [
+      { type = "JKS", path = "client.jks", password = "changeit1" }
+    ]
+  }
   trustManager = {
     stores = [
       { type = "JKS", path = "exampletrust.jks" }
@@ -54,10 +73,9 @@ If you are using WS to access both private and public servers on the same profil
 
 ```
 ws.ssl {
-
   trustManager = {
     stores = [
-      { path: ${store.directory}/exampletrust.jks }     # Added trust store
+      { path: exampletrust.jks }     # Added trust store
       { path: ${java.home}/lib/security/cacerts } # Fallback to default JSSE trust store
     ]
   }
