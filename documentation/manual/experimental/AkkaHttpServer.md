@@ -3,7 +3,7 @@
 
 > **Play experimental libraries are not ready for production use**. APIs may change. Features may not work properly.
 
-The Play 2 APIs are built on top of an HTTP server backend. The default HTTP server backend uses the [Netty](http://netty.io/) library. In Play 2.4 another **experimental** backend, based on [Akka HTTP](http://akka.io/), is also available. The Akka HTTP backend aims to provide the same Play API as the Netty HTTP backend. At the moment the Akka HTTP backend is missing quite a few features.
+The Play 2 APIs are built on top of an HTTP server backend. The default HTTP server backend uses the [Netty](http://netty.io/) library. In Play 2.4 another **experimental** backend, based on [Akka HTTP](http://doc.akka.io/docs/akka-stream-and-http-experimental/current/), is also available. The Akka HTTP backend aims to provide the same Play API as the Netty HTTP backend. At the moment the Akka HTTP backend is missing quite a few features.
 
 The experimental Akka HTTP backend is a technical proof of concept. It is not intended for production use and it doesn't implement the full Play API. The purpose of the new backend is to trial Akka HTTP as a possible backend for a future version of Play. The backend also serves as a valuable test case for our friends on the Akka project.
 
