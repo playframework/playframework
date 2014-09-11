@@ -165,7 +165,7 @@ The default client can be called from the WS singleton:
 
 @[get-client](code/ScalaWSSpec.scala)
 
-You can define a WS client directly from code without going through WS, and use implicitly with `WS.clientUrl()`
+You can define a WS client directly from code without going through WS, and use implicitly with `WS.clientUrl()`.  Note that you should always use `NingAsyncHttpClientConfigBuilder` when configuring your client, for secure TLS configuration:
 
 @[implicit-client](code/ScalaWSSpec.scala)
 

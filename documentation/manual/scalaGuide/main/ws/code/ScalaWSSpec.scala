@@ -6,6 +6,7 @@ package scalaguide.ws.scalaws
 //#imports
 import play.api.Play.current
 import play.api.libs.ws._
+import play.api.libs.ws.ning.NingAsyncHttpClientConfigBuilder
 import scala.concurrent.Future
 //#imports
 
@@ -425,20 +426,25 @@ class ScalaWSSpec extends PlaySpecification with Results {
 
 
       //#implicit-client
-      val builder = new (com.ning.http.client.AsyncHttpClientConfig.Builder)()
-      implicit val sslClient = new play.api.libs.ws.ning.NingWSClient(builder.build())
+      val clientConfig = new DefaultWSClientConfig()
+      val secureDefaults:com.ning.http.client.AsyncHttpClientConfig = new NingAsyncHttpClientConfigBuilder(clientConfig).build()
+      // You can directly use the builder for specific options once you have secure TLS defaults...
+      val builder = new com.ning.http.client.AsyncHttpClientConfig.Builder(secureDefaults)
+      builder.setCompressionEnabled(true)
+      val secureDefaultsWithSpecificOptions:com.ning.http.client.AsyncHttpClientConfig = builder.build()
+      implicit val implicitClient = new play.api.libs.ws.ning.NingWSClient(secureDefaultsWithSpecificOptions)
       val response = WS.clientUrl(url).get()
       //#implicit-client
       await(response).status must_== OK
 
       {
         //#direct-client
-        val response = sslClient.url(url).get()
+        val response = client.url(url).get()
         //#direct-client
         await(response).status must_== OK
       }
 
-      sslClient.close()
+      implicitClient.close()
       ok
     }
 
