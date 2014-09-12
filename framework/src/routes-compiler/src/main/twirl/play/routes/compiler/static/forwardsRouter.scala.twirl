@@ -1,0 +1,95 @@
+@(sourceInfo: RoutesSourceInfo, pkg: Option[String], imports: Seq[String], rules: Seq[Rule], includes: Seq[Include])
+// @@GENERATOR:play-routes-compiler
+// @@SOURCE:@sourceInfo.source
+// @@DATE:@sourceInfo.date
+
+@import play.routes.compiler._
+@import play.routes.compiler.templates._
+@tq=@{"\"\"\""}
+@cb=@{"\u007D"}
+@ob=@{"\u007B"}
+
+@for(p <- pkg) {package @p}
+
+import play.core._
+import play.core.Router._
+import play.core.Router.HandlerInvokerFactory._
+import play.core.j._
+
+import play.api.mvc._
+@for(i <- imports) {
+import @if(!i.startsWith("_root_.")){_root_.}@i}
+
+import Router.queryString
+
+object Routes extends Router.Routes {
+
+  import ReverseRouteContext.empty
+
+  private var _prefix = "/"
+
+  def setPrefix(prefix: String): Unit = {
+    _prefix = prefix
+    @for(include <- includes) {
+    @(include.router).setPrefix(prefix + (if (prefix.endsWith("/")) "" else "/") + "@include.prefix")}
+  }
+
+  def prefix: String = _prefix
+
+  lazy val defaultPrefix: String = {
+    if (Routes.prefix.endsWith("/")) "" else "/"
+  }
+
+  def documentation = List(@for(rule <- rules) {
+    @rule match {
+      case Route(verb, path, call, _) if path.parts.isEmpty => {(@tq@verb@tq, prefix, @tq@call@tq)}
+      case Route(verb, path, call, _) => {(@tq@verb@tq, prefix + (if(prefix.endsWith("/")) "" else "/") + @tq@path@tq, @tq@call@tq)}
+      case Include(prefix, router) => {@(router).documentation}
+  },}
+    Nil
+  ).foldLeft(List.empty[(String,String,String)]) { (s,e) => e.asInstanceOf[Any] match {
+    case r @@ (_,_,_) => s :+ r.asInstanceOf[(String,String,String)]
+    case l => s ++ l.asInstanceOf[List[(String,String,String)]]
+  }}
+
+@for(rule <- rules.zipWithIndex){@rule match {
+case (route @ Route(verb, path, call, comments), index) => {
+  @markLines(route)
+  private[this] lazy val @routeIdentifier(route, index) = Route("@verb.value",
+    PathPattern(List(StaticPart(Routes.prefix)@if(path.parts.nonEmpty) {, StaticPart(Routes.defaultPrefix), }@path.parts.map(_.toString).mkString(", ")))
+  )
+  private[this] lazy val @invokerIdentifier(route, index) = createInvoker(
+    @controllerMethodCall(route, p => s"fakeValue[${p.typeName}]"),
+    HandlerDef(this.getClass.getClassLoader,
+      "@for(p <- pkg) {@p}",
+      "@(call.packageName).@call.controller",
+      "@call.method",
+      @call.parameters.filterNot(_.isEmpty).map(params => params.map("classOf[" + _.typeName + "]").mkString(", ")).map("Seq(" + _ + ")").getOrElse("Nil"),
+      "@verb",
+      @tq@comments.map(_.comment).mkString("\n")@tq,
+      Routes.prefix + @tq@path@tq
+    )
+  )
+}
+case (include @ Include(_, router), index) => {
+  @markLines(include)
+  lazy val @router.replace(".", "_")@index = Include(@router)
+}}}
+
+  def routes: PartialFunction[RequestHeader, Handler] = {
+  @if(rules.isEmpty) {
+    Map.empty
+  } else {@for(rule <- rules.zipWithIndex){@rule match {
+  case (include @ Include(_, router), index) => {
+    @markLines(include)
+    case @router.replace(".", "_")@(index)(handler) => handler
+  }
+  case (route @ Route(_, _, _, _), index) => {
+    @markLines(route)
+    case @(routeIdentifier(route, index))(params) =>
+      call@(routeBinding(route)) @ob @localNames(route)
+        @(invokerIdentifier(route, index)).call(@controllerMethodCall(route, x => safeKeyword(x.name)))
+      @cb
+  }
+  }}}}
+}

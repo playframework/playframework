@@ -1,0 +1,8 @@
+# A valid route
+GET  /              controllers.Application.index
+
+# This won't compile on line 5
+GET  /foo           controllers.Application.foo
+
+# A valid route
+GET  /assets/*file  controllers.Assets.at(path = "/public", file)

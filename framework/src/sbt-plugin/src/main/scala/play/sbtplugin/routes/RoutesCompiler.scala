@@ -3,12 +3,12 @@
  */
 package play.sbtplugin.routes
 
+import play.routes.compiler.RoutesCompilationError
 import sbt._
 import sbt.Keys._
 import play.PlayExceptions.RoutesCompilationException
 import com.typesafe.sbt.web.incremental._
 import play.api.PlayException
-import play.router.RoutesCompiler.RoutesCompilationError
 import sbt.plugins.JvmPlugin
 
 object RoutesKeys {
@@ -68,7 +68,7 @@ object RoutesCompiler extends AutoPlugin {
     val (products, errors) = syncIncremental(cacheDirectory, ops) { opsToRun: Seq[RoutesCompilerOp] =>
 
       val results = opsToRun.map { op =>
-        op -> play.router.RoutesCompiler.compile(op.file, generatedDir, op.additionalImports, op.reverseRouter, op.reverseRefRouter,
+        op -> play.routes.compiler.RoutesCompiler.compile(op.file, generatedDir, op.additionalImports, op.reverseRouter, op.reverseRefRouter,
           op.namespaceReverseRouter)
       }
       val opResults = results.map {

@@ -1,0 +1,27 @@
+@(sourceInfo: RoutesSourceInfo, pkg: Option[String], imports: Seq[String], routes: Seq[Route], namespaceReverseRouter: Boolean, reverseRefRouter: Boolean)
+// @@GENERATOR:play-routes-compiler
+// @@SOURCE:@sourceInfo.source
+// @@DATE:@sourceInfo.date
+
+@import play.routes.compiler._
+@import play.routes.compiler.templates._
+
+import @pkg.fold("")(_ + ".")Routes.{prefix => _prefix, defaultPrefix => _defaultPrefix}
+import play.core._
+import play.core.Router._
+import play.core.Router.HandlerInvokerFactory._
+import play.core.j._
+
+import play.api.mvc._
+@for(i <- imports) {
+import @if(!i.startsWith("_root_.")){_root_.}@i}
+
+import Router.queryString
+
+@reverseRouter(pkg, routes, namespaceReverseRouter)
+
+@javascriptReverseRouter(pkg, routes, namespaceReverseRouter)
+
+@if(reverseRefRouter) {
+@refReverseRouter(pkg, routes, namespaceReverseRouter)
+}

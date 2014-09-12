@@ -1,0 +1,48 @@
+@(pkg: Option[String], routes: Seq[Route], namespaceReverseRouter: Boolean)
+
+@import play.routes.compiler._
+@import play.routes.compiler.templates._
+@tq=@{"\"\"\""}
+@cb=@{"\u007D"}
+@ob=@{"\u007B"}
+
+@for((packageName, routes) <- groupRoutesByPackage(routes)) {
+@markLines(routes: _*)
+package @(pkg.filter(_ => namespaceReverseRouter).fold(packageName)(_ + "." + packageName)).javascript @ob
+  import ReverseRouteContext.empty
+@for((controller, routes) <- groupRoutesByController(routes)) {
+  @markLines(routes: _*)
+  class Reverse@controller.replace(".", "_") @ob
+  @for(((method, _), routes) <- groupRoutesByMethod(routes)) {@routes match {
+  case Seq(route: Route) => {
+    @markLines(route)
+    def @method: JavascriptReverseRoute = JavascriptReverseRoute(
+      "@(packageName).@(controller).@(method)",
+      @tq
+        function(@reverseParameters(routes).map(_._1.name).mkString(",")) @ob
+          @javascriptCall(route)
+        @cb
+      @tq
+    )
+  }
+  case _ => {
+    @markLines(routes: _*)
+    def @method: JavascriptReverseRoute = JavascriptReverseRoute(
+      "@(packageName).@(controller).@(method)",
+      @tq
+        function(@reverseParameters(routes).map(_._1.name).mkString(",")) @ob
+        @for(route <- routes) {
+        @defining(reverseLocalNames(route, reverseParameters(routes))) { localNames =>
+          if (@javascriptParameterConstraints(route, localNames)) @ob
+            @javascriptCall(route, localNames)
+          @cb
+        }}
+        @cb
+      @tq
+    )
+  }}}
+  @cb
+}
+
+@cb
+}
