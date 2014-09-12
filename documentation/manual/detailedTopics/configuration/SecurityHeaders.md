@@ -21,7 +21,7 @@ The filter will set headers in the HTTP response automatically.  The settings ca
 * `play.filters.headers.xssProtection` - sets <a href="http://blogs.msdn.com/b/ie/archive/2008/09/02/ie8-security-part-vi-beta-2-update.aspx">X-Content-Type-Options</a>, "1; mode=block" by default.
 * `play.filters.headers.contentTypeOptions` - sets <a href="http://blogs.msdn.com/b/ie/archive/2008/07/02/ie8-security-part-iv-the-xss-filter.aspx">X-XSS-Protection</a>, "nosniff" by default.
 * `play.filters.headers.permittedCrossDomainPolicies` - sets <a href="http://www.adobe.com/devnet/articles/crossdomain_policy_file_spec.html">X-Permitted-Cross-Domain-Policies</a>, "master-only" by default.
-* `play.filters.headers.contentSecurityPolicy` - sets <a href="http://www.html5rocks.com/en/tutorials/security/content-security-policy/">Content-Security-Policy</a>, "default-src: 'self'" by default.
+* `play.filters.headers.contentSecurityPolicy` - sets <a href="http://www.html5rocks.com/en/tutorials/security/content-security-policy/">Content-Security-Policy</a>, "default-src 'self'" by default.
 
 > NOTE: Because these are security headers, they are "secure by default."  If the filter is applied, but these fields are NOT defined in Configuration, the defaults on the filter are NOT omitted, but are instead set to the strictest possible value.
 
