@@ -7,7 +7,6 @@ import org.specs2.mutable.Around
 import org.specs2.specification.Scope
 import org.openqa.selenium.WebDriver
 import org.specs2.execute.{ AsResult, Result }
-import play.core.server.{ NettyServer, ServerProvider }
 
 // NOTE: Do *not* put any initialisation code in the below classes, otherwise delayedInit() gets invoked twice
 // which means around() gets invoked twice and everything is not happy.  Only lazy vals and defs are allowed, no vals
@@ -30,21 +29,13 @@ abstract class WithApplication(val app: FakeApplication = FakeApplication()) ext
  *
  * @param app The fake application
  * @param port The port to run the server on
- * @param serverProvider *Experimental API; subject to change* The type of
- * server to use. Defaults to providing a Netty server.
  */
-abstract class WithServer(
-    val app: FakeApplication = FakeApplication(),
-    val port: Int = Helpers.testServerPort,
-    val serverProvider: ServerProvider = NettyServer.defaultServerProvider) extends Around with Scope {
+abstract class WithServer(val app: FakeApplication = FakeApplication(),
+    val port: Int = Helpers.testServerPort) extends Around with Scope {
   implicit def implicitApp = app
   implicit def implicitPort: Port = port
 
-  override def around[T: AsResult](t: => T): Result =
-    Helpers.running(TestServer(
-      port = port,
-      application = app,
-      serverProvider = serverProvider))(AsResult.effectively(t))
+  override def around[T: AsResult](t: => T): Result = Helpers.running(TestServer(port, app))(AsResult.effectively(t))
 }
 
 /**

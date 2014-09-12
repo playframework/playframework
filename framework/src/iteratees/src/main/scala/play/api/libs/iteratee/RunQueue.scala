@@ -50,7 +50,7 @@ private[play] final class RunQueue {
   /**
    * The state of the RunQueue, either Inactive or Runnning.
    */
-  private val state = new AtomicReference[Vector[Op]](null)
+  private val state = new AtomicReference[State](Inactive)
 
   /**
    * Schedule an operation to be run. The operation is considered
@@ -104,12 +104,13 @@ private[play] final class RunQueue {
   private def schedule(op: Op): Unit = {
     val prevState = state.get
     val newState = prevState match {
-      case null => Vector.empty
-      case pending => pending :+ op
+      case Inactive => Running(Vector.empty)
+      case Running(pending) => Running(pending :+ op)
     }
-    if (state.compareAndSet(prevState, newState)) {
+    val updated = state.compareAndSet(prevState, newState)
+    if (updated) {
       prevState match {
-        case null =>
+        case Inactive =>
           // We've update the state to say that we're running an op,
           // so we need to actually start it running.
           execute(op)
@@ -121,7 +122,7 @@ private[play] final class RunQueue {
   private def execute(op: Op): Unit = {
     val f1: Future[Future[Unit]] = Future(op.thunk())(op.ec)
     val f2: Future[Unit] = f1.flatMap(identity)(Execution.trampoline)
-    f2.onComplete(_ => opExecutionComplete())(Execution.trampoline)
+    f2.onComplete(_ => deschedule())(Execution.trampoline)
   }
 
   /**
@@ -130,20 +131,21 @@ private[play] final class RunQueue {
    * Otherwise, the first pending item will be scheduled for execution.
    */
   @tailrec
-  private def opExecutionComplete(): Unit = {
+  private def deschedule(): Unit = {
     val prevState = state.get
     val newState = prevState match {
-      case null => throw new IllegalStateException("Can't be inactive, must have a queue of pending elements")
-      case pending if pending.isEmpty => null
-      case pending => pending.tail
+      case Inactive => throw new IllegalStateException("Can't be inactive, must be Running or Pending")
+      case Running(pending) if !pending.isEmpty => Running(pending.tail)
+      case Running(pending) => Inactive
     }
-    if (state.compareAndSet(prevState, newState)) {
+    val updated = state.compareAndSet(prevState, newState)
+    if (updated) {
       prevState match {
         // We have a pending operation to execute
-        case pending if !pending.isEmpty => execute(pending.head)
+        case Running(pending) if !pending.isEmpty => execute(pending.head)
         case _ =>
       }
-    } else opExecutionComplete() // Try again
+    } else deschedule() // Try again
   }
 
 }
@@ -157,5 +159,17 @@ private object RunQueue {
    * @param ec The ExecutionContext to use for execution. Already prepared.
    */
   final case class Op(thunk: () => Future[Unit], ec: ExecutionContext)
+
+  sealed trait State
+  /**
+   * The state of a RunQueue that is neither running an operation nor
+   * has any pending operations.
+   */
+  final case object Inactive extends State
+  /**
+   * The state of a RunQueue that is currently running a task and has
+   * zero or more pending operations.
+   */
+  final case class Running(pending: Vector[Op]) extends State
 
 }
