@@ -36,7 +36,6 @@ public abstract class Database {
      *
      * Don't forget to release the connection at some point by calling close().
      *
-     * @param autocommit determines whether to autocommit the connection
      * @return a JDBC connection
      */
     public abstract Connection getConnection();
@@ -93,7 +92,6 @@ public abstract class Database {
      * The transaction is automatically committed, unless an exception occurs.
      *
      * @param block code to execute
-     * @return the result of the code block
      */
     public abstract void withTransaction(ConnectionRunnable block);
 

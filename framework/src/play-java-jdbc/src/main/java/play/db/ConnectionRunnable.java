@@ -13,13 +13,13 @@ import java.sql.SQLException;
  *
  * Vanilla Java:
  * <code>
- * new ConnectionCallable<A>() {
+ * new ConnectionCallable&lt;A&gt;() {
  *   public A call(Connection c) { return ...; }
  * }
  * </code>
  *
  * Java Lambda:
- * <code>(Connection c) -> ...</code>
+ * <code>(Connection c) -&gt; ...</code>
  */
 public interface ConnectionRunnable {
     public void run(Connection connection) throws SQLException;
