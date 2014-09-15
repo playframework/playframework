@@ -165,6 +165,16 @@ trait DefaultReads {
   }
 
   /**
+   * Deserializer for Byte types.
+   */
+  implicit object ByteReads extends Reads[Byte] {
+    def reads(json: JsValue) = json match {
+      case JsNumber(n) => JsSuccess(n.toByte)
+      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber"))))
+    }
+  }
+
+  /**
    * Deserializer for Long types.
    */
   implicit object LongReads extends Reads[Long] {

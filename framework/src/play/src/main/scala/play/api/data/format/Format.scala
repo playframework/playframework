@@ -75,57 +75,44 @@ object Formats {
     }
   }
 
+  private def numberFormatter[T](convert: String => T, real: Boolean = false): Formatter[T] = {
+    val (formatString, errorString) = if (real) ("format.real", "error.real") else ("format.numeric", "error.number")
+    new Formatter[T] {
+      override val format = Some(formatString -> Nil)
+      def bind(key: String, data: Map[String, String]) =
+        parsing(convert, errorString, Nil)(key, data)
+      def unbind(key: String, value: T) = Map(key -> value.toString)
+    }
+  }
+
   /**
    * Default formatter for the `Long` type.
    */
-  implicit def longFormat: Formatter[Long] = new Formatter[Long] {
-
-    override val format = Some(("format.numeric", Nil))
-
-    def bind(key: String, data: Map[String, String]) =
-      parsing(_.toLong, "error.number", Nil)(key, data)
-
-    def unbind(key: String, value: Long) = Map(key -> value.toString)
-  }
+  implicit def longFormat: Formatter[Long] = numberFormatter(_.toLong)
 
   /**
    * Default formatter for the `Int` type.
    */
-  implicit def intFormat: Formatter[Int] = new Formatter[Int] {
+  implicit def intFormat: Formatter[Int] = numberFormatter(_.toInt)
 
-    override val format = Some(("format.numeric", Nil))
+  /**
+   * Default formatter for the `Short` type.
+   */
+  implicit def shortFormat: Formatter[Short] = numberFormatter(_.toShort)
 
-    def bind(key: String, data: Map[String, String]) =
-      parsing(_.toInt, "error.number", Nil)(key, data)
-
-    def unbind(key: String, value: Int) = Map(key -> value.toString)
-  }
-
+  /**
+   * Default formatter for the `Byte` type.
+   */
+  implicit def byteFormat: Formatter[Byte] = numberFormatter(_.toByte)
   /**
    * Default formatter for the `Float` type.
    */
-  implicit def floatFormat: Formatter[Float] = new Formatter[Float] {
-
-    override val format = Some(("format.real", Nil))
-
-    def bind(key: String, data: Map[String, String]) =
-      parsing(_.toFloat, "error.real", Nil)(key, data)
-
-    def unbind(key: String, value: Float) = Map(key -> value.toString)
-  }
+  implicit def floatFormat: Formatter[Float] = numberFormatter(_.toFloat, real = true)
 
   /**
    * Default formatter for the `Double` type.
    */
-  implicit def doubleFormat: Formatter[Double] = new Formatter[Double] {
-
-    override val format = Some(("format.real", Nil))
-
-    def bind(key: String, data: Map[String, String]) =
-      parsing(_.toDouble, "error.real", Nil)(key, data)
-
-    def unbind(key: String, value: Double) = Map(key -> value.toString)
-  }
+  implicit def doubleFormat: Formatter[Double] = numberFormatter(_.toDouble, real = true)
 
   /**
    * Default formatter for the `BigDecimal` type.

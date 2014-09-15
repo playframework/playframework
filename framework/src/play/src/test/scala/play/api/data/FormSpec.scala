@@ -141,6 +141,38 @@ object FormSpec extends Specification {
       f4.errors must beEmpty
     }
 
+    "apply constraints on shortNumber fields" in {
+      val f1 = ScalaForms.shortNumberForm.fillAndValidate(0)
+      f1.errors must haveSize(1)
+      f1.errors.find(_.message == "error.min") must beSome
+
+      val f2 = ScalaForms.shortNumberForm.fillAndValidate(9000)
+      f2.errors must haveSize(1)
+      f2.errors.find(_.message == "error.max") must beSome
+
+      val f3 = ScalaForms.shortNumberForm.fillAndValidate(10)
+      f3.errors must beEmpty
+
+      val f4 = ScalaForms.shortNumberForm.fillAndValidate(42)
+      f4.errors must beEmpty
+    }
+
+    "apply constraints on byteNumber fields" in {
+      val f1 = ScalaForms.byteNumberForm.fillAndValidate(0)
+      f1.errors must haveSize(1)
+      f1.errors.find(_.message == "error.min") must beSome
+
+      val f2 = ScalaForms.byteNumberForm.fillAndValidate(9000)
+      f2.errors must haveSize(1)
+      f2.errors.find(_.message == "error.max") must beSome
+
+      val f3 = ScalaForms.byteNumberForm.fillAndValidate(10)
+      f3.errors must beEmpty
+
+      val f4 = ScalaForms.byteNumberForm.fillAndValidate(42)
+      f4.errors must beEmpty
+    }
+
     "not even attempt to validate on fill" in {
       val failingValidatorForm = Form(
         "foo" -> Forms.text.verifying("isEmpty", s =>
@@ -313,4 +345,8 @@ object ScalaForms {
   )
 
   val longNumberForm = Form("longNumber" -> longNumber(10, 42))
+
+  val shortNumberForm = Form("shortNumber" -> shortNumber(10, 42))
+
+  val byteNumberForm = Form("byteNumber" -> shortNumber(10, 42))
 }
