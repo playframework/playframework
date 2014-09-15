@@ -109,26 +109,22 @@ class ServerBenchmark extends NettyRunners {
 
     private var _prefix = "/"
 
-    def setPrefix(prefix: String) {
+    def withPrefix(prefix: String) = {
       _prefix = prefix
-      List[(String, Routes)]().foreach {
-        case (p, router) => router.setPrefix(prefix + (if (prefix.endsWith("/")) "" else "/") + p)
-      }
+      this
     }
-
-    def prefix = _prefix
 
     lazy val defaultPrefix = {
-      if (Routes.prefix.endsWith("/")) "" else "/"
+      if (_prefix.endsWith("/")) "" else "/"
     }
 
-    private[this] lazy val hello_world_route = Route("GET", PathPattern(List(StaticPart(Routes.prefix))))
+    private[this] lazy val hello_world_route = Route("GET", PathPattern(List(StaticPart(Routes._prefix))))
     private[this] lazy val hello_world_invoker = createInvoker(
       HelloWorldApp.helloWorld,
-      HandlerDef(this.getClass.getClassLoader, "", "hello_world", "index", Nil, "GET", """ Home page""", Routes.prefix + """""")
+      HandlerDef(this.getClass.getClassLoader, "", "hello_world", "index", Nil, "GET", """ Home page""", Routes._prefix + """""")
     )
 
-    def documentation = List(("""GET""", prefix, """hello_world""")).foldLeft(List.empty[(String, String, String)]) {
+    def documentation = List(("""GET""", _prefix, """hello_world""")).foldLeft(List.empty[(String, String, String)]) {
       (s, e) =>
         e.asInstanceOf[Any] match {
           case r @ (_, _, _) => s :+ r.asInstanceOf[(String, String, String)]

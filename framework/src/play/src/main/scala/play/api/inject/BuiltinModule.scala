@@ -34,8 +34,19 @@ class BuiltinModule extends Module {
 }
 
 @Singleton
-class RoutesProvider @Inject() (environment: Environment, configuration: Configuration) extends Provider[Router.Routes] {
-  lazy val get = Router.load(environment, configuration)
+class RoutesProvider @Inject() (injector: Injector, environment: Environment, configuration: Configuration) extends Provider[Router.Routes] {
+  lazy val get = {
+    val prefix = configuration.getString("application.context").map { prefix =>
+      if (!prefix.startsWith("/")) {
+        throw configuration.reportError("application.context", "Invalid application context")
+      }
+      prefix
+    }
+
+    val router = Router.load(environment, configuration)
+      .fold[Router.Routes](Router.Null)(injector.instanceOf(_))
+    prefix.fold(router)(router.withPrefix)
+  }
 }
 
 @Singleton

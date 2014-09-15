@@ -1,13 +1,9 @@
-@(sourceInfo: RoutesSourceInfo, pkg: Option[String], imports: Seq[String], rules: Seq[Rule], includes: Seq[Include])
+@import play.routes.compiler._
+@import play.routes.compiler.templates._
+@(sourceInfo: RoutesSourceInfo, pkg: Option[String], imports: Seq[String], rules: Seq[Rule])
 // @@GENERATOR:play-routes-compiler
 // @@SOURCE:@sourceInfo.source
 // @@DATE:@sourceInfo.date
-
-@import play.routes.compiler._
-@import play.routes.compiler.templates._
-@tq=@{"\"\"\""}
-@cb=@{"\u007D"}
-@ob=@{"\u007B"}
 
 @for(p <- pkg) {package @p}
 
@@ -22,29 +18,34 @@ import @if(!i.startsWith("_root_.")){_root_.}@i}
 
 import Router.queryString
 
-object Routes extends Router.Routes {
+object Routes extends Routes
+
+class Routes extends Router.Routes {
 
   import ReverseRouteContext.empty
 
   private var _prefix = "/"
 
-  def setPrefix(prefix: String): Unit = {
+  def withPrefix(prefix: String): Routes = @ob
     _prefix = prefix
-    @for(include <- includes) {
-    @(include.router).setPrefix(prefix + (if (prefix.endsWith("/")) "" else "/") + "@include.prefix")}
-  }
+    @(pkg.getOrElse("_routes_")).RoutesPrefix.setPrefix(prefix)
+    @for((include @ Include(path, router), index) <- rules.zipWithIndex.collect({ case (i: Include, index) => (i, index) })) {
+    @markLines(include)
+    @routerIdentifier(include, index) = Include(@(router).withPrefix(prefix + (if (prefix.endsWith("/")) "" else "/") + "@path"))}
+    this
+  @cb
 
   def prefix: String = _prefix
 
   lazy val defaultPrefix: String = {
-    if (Routes.prefix.endsWith("/")) "" else "/"
+    if (this.prefix.endsWith("/")) "" else "/"
   }
 
-  def documentation = List(@for(rule <- rules) {
+  def documentation = List(@for((rule, index) <- rules.zipWithIndex) {
     @rule match {
       case Route(verb, path, call, _) if path.parts.isEmpty => {(@tq@verb@tq, prefix, @tq@call@tq)}
       case Route(verb, path, call, _) => {(@tq@verb@tq, prefix + (if(prefix.endsWith("/")) "" else "/") + @tq@path@tq, @tq@call@tq)}
-      case Include(prefix, router) => {@(router).documentation}
+      case include: Include => {@(routerIdentifier(include, index)).router.documentation}
   },}
     Nil
   ).foldLeft(List.empty[(String,String,String)]) { (s,e) => e.asInstanceOf[Any] match {
@@ -56,7 +57,7 @@ object Routes extends Router.Routes {
 case (route @ Route(verb, path, call, comments), index) => {
   @markLines(route)
   private[this] lazy val @routeIdentifier(route, index) = Route("@verb.value",
-    PathPattern(List(StaticPart(Routes.prefix)@if(path.parts.nonEmpty) {, StaticPart(Routes.defaultPrefix), }@path.parts.map(_.toString).mkString(", ")))
+    PathPattern(List(StaticPart(this.prefix)@if(path.parts.nonEmpty) {, StaticPart(this.defaultPrefix), }@path.parts.map(_.toString).mkString(", ")))
   )
   private[this] lazy val @invokerIdentifier(route, index) = createInvoker(
     @controllerMethodCall(route, p => s"fakeValue[${p.typeName}]"),
@@ -67,22 +68,22 @@ case (route @ Route(verb, path, call, comments), index) => {
       @call.parameters.filterNot(_.isEmpty).map(params => params.map("classOf[" + _.typeName + "]").mkString(", ")).map("Seq(" + _ + ")").getOrElse("Nil"),
       "@verb",
       @tq@comments.map(_.comment).mkString("\n")@tq,
-      Routes.prefix + @tq@path@tq
+      this.prefix + @tq@path@tq
     )
   )
 }
-case (include @ Include(_, router), index) => {
+case (include @ Include(path, router), index) => {
   @markLines(include)
-  lazy val @router.replace(".", "_")@index = Include(@router)
+  @@volatile private[this] var @routerIdentifier(include, index) = Include(@(router).withPrefix(prefix + (if(prefix.endsWith("/")) "" else "/") + "@path"))
 }}}
 
   def routes: PartialFunction[RequestHeader, Handler] = {
   @if(rules.isEmpty) {
     Map.empty
   } else {@for(rule <- rules.zipWithIndex){@rule match {
-  case (include @ Include(_, router), index) => {
+  case (include: Include, index) => {
     @markLines(include)
-    case @router.replace(".", "_")@(index)(handler) => handler
+    case @(routerIdentifier(include, index))(handler) => handler
   }
   case (route @ Route(_, _, _, _), index) => {
     @markLines(route)

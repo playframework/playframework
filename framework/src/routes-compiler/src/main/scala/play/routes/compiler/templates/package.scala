@@ -35,6 +35,21 @@ package object templates {
   def invokerIdentifier(route: Route, index: Int): String = baseIdentifier(route, index) + "_invoker"
 
   /**
+   * Generate a router object identifier
+   */
+  def routerIdentifier(include: Include, index: Int): String = include.router.replace(".", "_") + index
+
+  def concatSep[T](seq: Seq[T], sep: String)(f: T => ScalaContent): Any = {
+    if (seq.isEmpty) {
+      Nil
+    } else {
+      Seq(f(seq.head), seq.tail.map { t =>
+        Seq(sep, f(t))
+      })
+    }
+  }
+
+  /**
    * Generate a controller method call for the given route
    */
   def controllerMethodCall(r: Route, paramFormat: Parameter => String): String = {
@@ -42,6 +57,21 @@ package object templates {
       s"$Injector.instanceOf(classOf[${r.call.packageName}.${r.call.controller}]).${r.call.method}"
     } else {
       s"${r.call.packageName}.${r.call.controller}.${r.call.method}"
+    }
+    val paramPart = r.call.parameters.map { params =>
+      params.map(paramFormat).mkString(", ")
+    }.map("(" + _ + ")").getOrElse("")
+    methodPart + paramPart
+  }
+
+  /**
+   * Generate a controller method call for the given injected route
+   */
+  def injectedControllerMethodCall(r: Route, ident: String, paramFormat: Parameter => String): String = {
+    val methodPart = if (r.call.instantiate) {
+      s"$ident.get.${r.call.method}"
+    } else {
+      s"$ident.${r.call.method}"
     }
     val paramPart = r.call.parameters.map { params =>
       params.map(paramFormat).mkString(", ")
@@ -285,10 +315,10 @@ package object templates {
   /**
    * Generate the ref router call
    */
-  def refCall(route: Route): String = {
+  def refCall(route: Route, useInjector: Route => Boolean): String = {
     val controllerRef = s"${route.call.packageName}.${route.call.controller}"
     val methodCall = s"${route.call.method}(${route.call.parameters.getOrElse(Nil).map(x => safeKeyword(x.name)).mkString(", ")})"
-    if (route.call.instantiate) {
+    if (useInjector(route)) {
       s"$Injector.instanceOf(classOf[$controllerRef]).$methodCall"
     } else {
       s"$controllerRef.$methodCall"
@@ -302,4 +332,7 @@ package object templates {
   def groupRoutesByMethod(routes: Seq[Route]): Map[(String, Seq[String]), Seq[Route]] =
     routes.groupBy(r => (r.call.method, r.call.parameters.getOrElse(Nil).map(_.typeName)))
 
+  val ob = "{"
+  val cb = "}"
+  val tq = "\"\"\""
 }

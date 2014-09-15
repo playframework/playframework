@@ -34,7 +34,8 @@ object RoutesCompilerSpec extends Specification {
 
     "not generate reverse ref routing if its disabled" in withTempDir { tmp =>
       val f = new File(this.getClass.getClassLoader.getResource("generating.routes").toURI)
-      RoutesCompiler.compile(f, tmp, Seq.empty, generateReverseRouter = true, generateRefReverseRouter = false)
+      RoutesCompiler.compile(f, StaticRoutesGenerator, tmp, Seq.empty, generateReverseRouter = true,
+        generateRefReverseRouter = false)
 
       val generatedJavaRoutes = new File(tmp, "controllers/routes.java")
       val contents = scala.io.Source.fromFile(generatedJavaRoutes).getLines().mkString("")
@@ -43,7 +44,7 @@ object RoutesCompilerSpec extends Specification {
 
     "generate routes classes for route definitions that pass the checks" in withTempDir { tmp =>
       val file = new File(this.getClass.getClassLoader.getResource("generating.routes").toURI)
-      RoutesCompiler.compile(file, tmp, Seq())
+      RoutesCompiler.compile(file, StaticRoutesGenerator, tmp, Seq())
 
       val generatedRoutes = new File(tmp, "generating/routes_routing.scala")
       generatedRoutes.exists() must beTrue
@@ -54,7 +55,7 @@ object RoutesCompilerSpec extends Specification {
 
     "check if there are no routes using overloaded handler methods" in withTempDir { tmp =>
       val file = new File(this.getClass.getClassLoader.getResource("duplicateHandlers.routes").toURI)
-      RoutesCompiler.compile(file, tmp, Seq.empty) must beLeft
+      RoutesCompiler.compile(file, StaticRoutesGenerator, tmp, Seq.empty) must beLeft
     }
 
     "check if routes with type projection are compiled" in withTempDir { tmp =>
@@ -62,7 +63,7 @@ object RoutesCompilerSpec extends Specification {
       object A {
         type B = Int
       }
-      RoutesCompiler.compile(file, tmp, Seq.empty) must beRight
+      RoutesCompiler.compile(file, StaticRoutesGenerator, tmp, Seq.empty) must beRight
     }
   }
 }
