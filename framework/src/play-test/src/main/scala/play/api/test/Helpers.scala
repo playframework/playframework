@@ -21,7 +21,6 @@ import org.openqa.selenium.htmlunit._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import akka.util.Timeout
 
@@ -318,8 +317,14 @@ trait ResultExtractors {
   /**
    * Extracts the content as bytes.
    */
-  def contentAsBytes(of: Future[Result])(implicit timeout: Timeout): Array[Byte] =
-    Await.result(Await.result(of, timeout.duration).body |>>> Iteratee.consume[Array[Byte]](), timeout.duration)
+  def contentAsBytes(of: Future[Result])(implicit timeout: Timeout): Array[Byte] = {
+    val result = Await.result(of, timeout.duration)
+    val eBytes = result.header.headers.get(TRANSFER_ENCODING) match {
+      case Some("chunked") => result.body &> Results.dechunk
+      case _ => result.body
+    }
+    Await.result(eBytes |>>> Iteratee.consume[Array[Byte]](), timeout.duration)
+  }
 
   /**
    * Extracts the content as Json.

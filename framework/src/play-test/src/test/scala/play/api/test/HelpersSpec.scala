@@ -7,8 +7,8 @@ import play.api.test._
 import play.api.test.Helpers._
 import play.api.mvc._
 import play.api.mvc.Results._
+import play.api.libs.iteratee.Enumerator
 import play.twirl.api.Content
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 import org.specs2.mutable._
@@ -54,6 +54,10 @@ class HelpersSpec extends Specification {
 
     "extract the content from Result as Bytes" in {
       contentAsBytes(Future.successful(Ok("abc"))) must_== Array(97, 98, 99)
+    }
+
+    "extract the content from chunked Result as Bytes" in {
+      contentAsBytes(Future.successful(Ok.chunked(Enumerator("a", "b", "c")))) must_== Array(97, 98, 99)
     }
 
     "extract the content from Content as Bytes" in {
