@@ -186,7 +186,12 @@ object PlayBuild extends Build {
     .dependsOn(PlayExceptionsProject)
 
   lazy val RoutesCompilerProject = PlaySbtProject("Routes-Compiler", "routes-compiler")
-    .settings(libraryDependencies ++= routersCompilerDependencies)
+    .enablePlugins(SbtTwirl)
+    .settings(
+      libraryDependencies ++= routersCompilerDependencies,
+      TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat"),
+      TwirlKeys.templateImports += "play.routes.compiler._"
+    )
 
   lazy val AnormProject = PlayRuntimeProject("Anorm", "anorm")
     .settings(
@@ -318,10 +323,17 @@ object PlayBuild extends Build {
         }.sorted.foreach(println)
       },
       scriptedLaunchOpts ++= Seq(
+        "-Xmx768m",
         "-XX:MaxPermSize=384M",
         "-Dperformance.log=" + new File(baseDirectory.value, "target/sbt-repcomile-performance.properties"),
         "-Dproject.version=" + version.value
-      )
+      ),
+      scriptedDependencies <<= (
+        publishLocal,
+        publishLocal in BuildLinkProject,
+        publishLocal in PlayExceptionsProject,
+        publishLocal in RoutesCompilerProject
+      ).map((_, _, _, _) => ())
     ).dependsOn(BuildLinkProject, PlayExceptionsProject, RoutesCompilerProject)
 
   lazy val PlayWsProject = PlayRuntimeProject("Play-WS", "play-ws")

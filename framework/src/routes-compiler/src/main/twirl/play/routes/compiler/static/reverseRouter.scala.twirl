@@ -1,0 +1,42 @@
+@(pkg: Option[String], routes: Seq[Route], namespaceReverseRouter: Boolean)
+
+@import play.routes.compiler._
+@import play.routes.compiler.templates._
+@tq=@{"\"\"\""}
+@cb=@{"\u007D"}
+@ob=@{"\u007B"}
+
+@for((packageName, routes) <- groupRoutesByPackage(routes)) {
+@markLines(routes: _*)
+package @pkg.filter(_ => namespaceReverseRouter).fold(packageName)(_ + "." + packageName) @ob
+@for((controller, routes) <- groupRoutesByController(routes)) {
+  @markLines(routes: _*)
+  class Reverse@controller.replace(".", "_") @ob
+  @for(((method, _), routes) <- groupRoutesByMethod(routes)) {@routes match {
+  case Seq(route: Route) => {
+    @markLines(route)
+    def @(method)(@reverseSignature(routes)): Call = @ob
+      @reverseRouteContext(route)
+      @reverseCall(route)
+    @cb
+  }
+  case _ => {
+    @markLines(routes: _*)
+    def @(method)(@reverseSignature(routes)): Call = @ob
+    @defining(reverseParameters(routes)) { params =>
+      (@reverseMatchParameters(params, true)) match @ob
+      @reverseUniqueConstraints(routes, params) { (route, parameters, parameterConstraints, localNames) =>
+        @markLines(route)
+        case (@parameters) @parameterConstraints =>
+          @reverseRouteContext(route)
+          @reverseCall(route, localNames)
+      }
+      @cb
+    }
+    @cb
+  }}}
+  @cb
+}
+
+@cb
+}

@@ -3,6 +3,7 @@
  */
 package play.sbtplugin
 
+import play.routes.compiler.RoutesCompiler
 import sbt._
 import xsbti.Position
 
@@ -12,7 +13,7 @@ import xsbti.Position
 trait PlayPositionMapper {
   val routesPositionMapper: Position => Option[Position] = position => {
     position.sourceFile collect {
-      case play.router.RoutesCompiler.MaybeGeneratedSource(generatedSource) => {
+      case RoutesCompiler.GeneratedSource(generatedSource) => {
         new xsbti.Position {
           lazy val line = {
             position.line.flatMap(l => generatedSource.mapLine(l.asInstanceOf[Int])).map(l => xsbti.Maybe.just(l.asInstanceOf[java.lang.Integer])).getOrElse(xsbti.Maybe.nothing[java.lang.Integer])
