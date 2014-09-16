@@ -109,6 +109,13 @@ trait DefaultWrites {
   }
 
   /**
+   * Serializer for Byte types.
+   */
+  implicit object ByteWrites extends Writes[Byte] {
+    def writes(o: Byte) = JsNumber(o)
+  }
+
+  /**
    * Serializer for Long types.
    */
   implicit object LongWrites extends Writes[Long] {

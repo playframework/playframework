@@ -220,7 +220,6 @@ object Forms {
 
   // --
 
-  import Form._
   import Formats._
 
   /**
@@ -285,7 +284,7 @@ object Forms {
    * Form("size" -> number)
    * }}}
    */
-  val number: Mapping[Int] = of[Int]
+  val number: Mapping[Int] = number()
 
   /**
    * Constructs a simple mapping for a numeric field (using a Long type behind).
@@ -295,7 +294,27 @@ object Forms {
    * Form("size" -> longNumber)
    * }}}
    */
-  val longNumber: Mapping[Long] = of[Long]
+  val longNumber: Mapping[Long] = longNumber()
+
+  /**
+   * Constructs a simple mapping for a numeric field (using a Short type behind).
+   *
+   * For example:
+   * {{{
+   * Form("size" -> shortNumber)
+   * }}}
+   */
+  val shortNumber: Mapping[Short] = shortNumber()
+
+  /**
+   * Constructs a simple mapping for a numeric field (using a Byte type behind).
+   *
+   * For example:
+   * {{{
+   * Form("size" -> byteNumber)
+   * }}}
+   */
+  val byteNumber: Mapping[Byte] = byteNumber()
 
   /**
    * Constructs a simple mapping for a numeric field.
@@ -309,12 +328,8 @@ object Forms {
    * @param max maximum value
    * @param strict should it be a strict comparison
    */
-  def number(min: Int = Int.MinValue, max: Int = Int.MaxValue, strict: Boolean = false): Mapping[Int] = (min, max) match {
-    case (Int.MinValue, Int.MaxValue) => number
-    case (min, Int.MaxValue) => number verifying Constraints.min(min, strict)
-    case (Int.MinValue, max) => number verifying Constraints.max(max, strict)
-    case (min, max) => number verifying (Constraints.min(min, strict), Constraints.max(max, strict))
-  }
+  def number(min: Int = Int.MinValue, max: Int = Int.MaxValue, strict: Boolean = false): Mapping[Int] =
+    numberMapping[Int](Int.MinValue, Int.MaxValue, min, max, strict)
 
   /**
    * Constructs a simple mapping for a numeric field (using a Long type behind).
@@ -328,11 +343,51 @@ object Forms {
    * @param max maximum value
    * @param strict should it be a strict comparison
    */
-  def longNumber(min: Long = Long.MinValue, max: Long = Long.MaxValue, strict: Boolean = false): Mapping[Long] = (min, max) match {
-    case (Long.MinValue, Long.MaxValue) => longNumber
-    case (min, Long.MaxValue) => longNumber verifying Constraints.min(min, strict)
-    case (Long.MinValue, max) => longNumber verifying Constraints.max(max, strict)
-    case (min, max) => longNumber verifying (Constraints.min(min, strict), Constraints.max(max, strict))
+  def longNumber(min: Long = Long.MinValue, max: Long = Long.MaxValue, strict: Boolean = false): Mapping[Long] =
+    numberMapping[Long](Long.MinValue, Long.MaxValue, min, max, strict)
+
+  /**
+   * Constructs a simple mapping for a numeric field (using a Short type behind).
+   *
+   * For example:
+   * {{{
+   * Form("size" -> shortNumber(min=0, max=100))
+   * }}}
+   *
+   * @param min minimum value
+   * @param max maximum value
+   * @param strict should it be a strict comparison
+   */
+  def shortNumber(min: Short = Short.MinValue, max: Short = Short.MaxValue, strict: Boolean = false): Mapping[Short] =
+    numberMapping[Short](Short.MinValue, Short.MaxValue, min, max, strict)
+
+  /**
+   * Constructs a simple mapping for a numeric field (using a Short type behind).
+   *
+   * For example:
+   * {{{
+   * Form("size" -> byteNumber(min=0, max=100))
+   * }}}
+   *
+   * @param min minimum value
+   * @param max maximum value
+   * @param strict should it be a strict comparison
+   */
+  def byteNumber(min: Byte = Byte.MinValue, max: Byte = Byte.MaxValue, strict: Boolean = false): Mapping[Byte] =
+    numberMapping[Byte](Byte.MinValue, Byte.MaxValue, min, max, strict)
+
+  @inline private def numberMapping[N: Numeric: Formatter](
+    typeMin: N, typeMax: N, min: N, max: N, strict: Boolean): Mapping[N] = {
+    val number = of[N]
+    if (min == typeMin && max == typeMax) {
+      number
+    } else if (min == typeMin) {
+      number verifying Constraints.max(max, strict)
+    } else if (max == typeMax) {
+      number verifying Constraints.min(min, strict)
+    } else {
+      number verifying (Constraints.min(min, strict), Constraints.max(max, strict))
+    }
   }
 
   /**
