@@ -524,7 +524,7 @@ class DefaultMessagesApi @Inject() (environment: Environment, configuration: Con
     import scala.collection.JavaConverters._
 
     environment.classLoader.getResources(joinPaths(messagesPrefix, file)).asScala.toList
-      .filterNot(Resources.isDirectory).reverse
+      .filterNot(url => Resources.isDirectory(environment.classLoader, url)).reverse
       .map { messageFile =>
         Messages.messages(Messages.UrlMessageSource(messageFile), messageFile.toString).fold(e => throw e, identity)
       }.foldLeft(Map.empty[String, String]) { _ ++ _ }

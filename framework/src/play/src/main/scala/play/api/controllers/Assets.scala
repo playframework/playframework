@@ -8,7 +8,7 @@ import play.api.mvc._
 import play.api.libs._
 import play.api.libs.iteratee._
 import java.io._
-import java.net.{ URL, JarURLConnection }
+import java.net.{ URL, URLConnection, JarURLConnection }
 import org.joda.time.format.{ DateTimeFormatter, DateTimeFormat }
 import org.joda.time.DateTimeZone
 import play.utils.{ InvalidUriEncodingException, UriEncoding }
@@ -138,18 +138,24 @@ private[controllers] class AssetInfo(
     }
   }
 
-  val lastModified: Option[String] = url.getProtocol match {
-    case "file" => Some(df.print(new File(url.getPath).lastModified))
-    case "jar" =>
+  val lastModified: Option[String] = {
+    def getLastModified[T <: URLConnection](f: (T) => Long): Option[String] = {
       Option(url.openConnection).map {
-        case jarUrlConnection: JarURLConnection =>
+        case urlConnection: T @unchecked =>
           try {
-            jarUrlConnection.getJarEntry.getTime
+            f(urlConnection)
           } finally {
-            jarUrlConnection.getInputStream.close()
+            urlConnection.getInputStream.close()
           }
       }.filterNot(_ == -1).map(df.print)
-    case _ => None
+    }
+
+    url.getProtocol match {
+      case "file" => Some(df.print(new File(url.getPath).lastModified))
+      case "jar" => getLastModified[JarURLConnection](c => c.getJarEntry.getTime)
+      case "bundle" => getLastModified[URLConnection](c => c.getLastModified)
+      case _ => None
+    }
   }
 
   val etag: Option[String] = digest.orElse(lastModified.map(_ + " -> " + url.toExternalForm).map("\"" + Codecs.sha1(_) + "\""))
