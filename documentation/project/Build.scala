@@ -69,8 +69,8 @@ object ApplicationBuild extends Build {
 
     PlayDocsKeys.fallbackToJar := false,
 
-    javaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "javaGuide" ** codeFilter).get),
-    scalaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "scalaGuide" ** codeFilter).get),
+    javaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "working" / "javaGuide" ** codeFilter).get),
+    scalaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "working" / "scalaGuide" ** codeFilter).get),
 
     javaManualSourceDirectories <++= (baseDirectory) { base =>
       if (isJavaAtLeast("1.8")) (base / "manual" / "javaGuide" ** "java8code").get else Nil

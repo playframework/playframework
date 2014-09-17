@@ -32,6 +32,10 @@ public class JavaCsrf extends WithApplication {
         return fakeApplication(ImmutableMap.of("application.secret", "foobar"));
     }
 
+    public Crypto crypto() {
+      return app.getWrappedApplication().injector().instanceOf(Crypto.class);
+    }
+
     @Test
     public void global() {
         assertThat(new Global().filters()[0], equalTo((Class) CSRFFilter.class));
@@ -39,7 +43,7 @@ public class JavaCsrf extends WithApplication {
 
     @Test
     public void templates() {
-        String token = Crypto.generateSignedToken();
+        String token = crypto().generateSignedToken();
         String body = contentAsString(MockJavaAction.call(new MockJavaAction() {
             public Result index() {
                 return ok(javaguide.forms.html.csrf.render());
@@ -49,12 +53,12 @@ public class JavaCsrf extends WithApplication {
         Matcher matcher = Pattern.compile("action=\"/items\\?csrfToken=[a-f0-9]+-\\d+-([a-f0-9]+)\"")
                 .matcher(body);
         assertTrue(matcher.find());
-        assertThat(matcher.group(1), equalTo(Crypto.extractSignedToken(token)));
+        assertThat(matcher.group(1), equalTo(crypto().extractSignedToken(token)));
 
         matcher = Pattern.compile("value=\"[a-f0-9]+-\\d+-([a-f0-9]+)\"")
                 .matcher(body);
         assertTrue(matcher.find());
-        assertThat(matcher.group(1), equalTo(Crypto.extractSignedToken(token)));
+        assertThat(matcher.group(1), equalTo(crypto().extractSignedToken(token)));
     }
 
     @Test
@@ -75,7 +79,7 @@ public class JavaCsrf extends WithApplication {
 
     @Test
     public void csrfAddToken() {
-        assertThat(Crypto.extractSignedToken(contentAsString(
+        assertThat(crypto().extractSignedToken(contentAsString(
                 MockJavaAction.call(new Controller2(), fakeRequest("GET", "/"))
         )), notNullValue());
     }

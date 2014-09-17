@@ -4,11 +4,14 @@
 package javaguide.global.onerror;
 
 import javaguide.global.views;
+
 //#global
 import play.*;
 import play.mvc.*;
 import play.mvc.Http.*;
 import play.libs.F.*;
+
+import static play.mvc.Results.internalServerError;
 
 public class Global extends GlobalSettings {
 
