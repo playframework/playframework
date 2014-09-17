@@ -3,6 +3,8 @@
  */
 package play.api.cache
 
+import org.apache.commons.codec.digest.DigestUtils
+
 import play.api._
 import play.api.mvc._
 import play.api.libs.iteratee.{ Iteratee, Done }
@@ -72,7 +74,8 @@ case class Cached(key: RequestHeader => String, caching: PartialFunction[Respons
       // Format expiration date according to http standard
       val expirationDate = http.dateFormat.print(System.currentTimeMillis() + duration.toMillis)
       // Generate a fresh ETAG for it
-      val etag = expirationDate // Use the expiration date as ETAG
+      // Use quoted sha1 hash of expiration date as ETAG
+      val etag = s""""${DigestUtils.sha1Hex(expirationDate)}""""
 
       val resultWithHeaders = result.withHeaders(ETAG -> etag, EXPIRES -> expirationDate)
 
