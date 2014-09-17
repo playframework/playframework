@@ -1,6 +1,9 @@
 package play.api.libs
 
 import org.specs2.mutable.Specification
+import play.api.http.{ ContentTypes, HeaderNames }
+import play.api.libs.iteratee.Enumerator
+import play.api.mvc.Results
 
 object EventSourceSpec extends Specification {
 
@@ -32,6 +35,13 @@ object EventSourceSpec extends Specification {
       Event("a\r\nb").formatted must equalTo("data: a\ndata: b\n\n")
     }
 
+  }
+
+  "EventSource.Event" should {
+    "be writeable as a response body" in {
+      val result = Results.Ok.chunked(Enumerator("foo", "bar", "baz") &> EventSource())
+      result.header.headers.get(HeaderNames.CONTENT_TYPE) must beSome(ContentTypes.EVENT_STREAM)
+    }
   }
 
 }
