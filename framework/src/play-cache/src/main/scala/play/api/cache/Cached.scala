@@ -3,10 +3,9 @@
  */
 package play.api.cache
 
-import org.apache.commons.codec.digest.DigestUtils
-
 import play.api._
 import play.api.mvc._
+import play.api.libs.Codecs
 import play.api.libs.iteratee.{ Iteratee, Done }
 import play.api.http.HeaderNames.{ IF_NONE_MATCH, ETAG, EXPIRES }
 import play.api.mvc.Results.NotModified
@@ -75,7 +74,7 @@ case class Cached(key: RequestHeader => String, caching: PartialFunction[Respons
       val expirationDate = http.dateFormat.print(System.currentTimeMillis() + duration.toMillis)
       // Generate a fresh ETAG for it
       // Use quoted sha1 hash of expiration date as ETAG
-      val etag = s""""${DigestUtils.sha1Hex(expirationDate)}""""
+      val etag = s""""${Codecs.sha1(expirationDate)}""""
 
       val resultWithHeaders = result.withHeaders(ETAG -> etag, EXPIRES -> expirationDate)
 
