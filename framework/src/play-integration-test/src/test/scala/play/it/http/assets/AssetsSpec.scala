@@ -37,13 +37,15 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       }))(block)
     }
 
+    val etagPattern = """([wW]/)?"([^"]|\\")*""""
+
     "serve an asset" in withServer {
       val result = await(wsUrl("/bar.txt").get())
 
       result.status must_== OK
       result.body must_== "This is a test asset."
       result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
-      result.header(ETAG) must beSome
+      result.header(ETAG) must beSome(matching(etagPattern))
       result.header(LAST_MODIFIED) must beSome
       result.header(VARY) must beNone
       result.header(CONTENT_ENCODING) must beNone
@@ -56,7 +58,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       result.status must_== OK
       result.body must_== "Content of baz.txt."
       result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
-      result.header(ETAG) must beSome
+      result.header(ETAG) must beSome(matching(etagPattern))
       result.header(LAST_MODIFIED) must beSome
       result.header(VARY) must beNone
       result.header(CONTENT_ENCODING) must beNone
@@ -69,7 +71,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       result.status must_== OK
       result.body must_== "This is a test asset with spaces."
       result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
-      result.header(ETAG) must beSome
+      result.header(ETAG) must beSome(matching(etagPattern))
       result.header(LAST_MODIFIED) must beSome
       result.header(VARY) must beNone
       result.header(CONTENT_ENCODING) must beNone
@@ -108,7 +110,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       result.status must_== NOT_MODIFIED
       result.body must beEmpty
       result.header(CACHE_CONTROL) must_== defaultCacheControl
-      result.header(ETAG) must beSome
+      result.header(ETAG) must beSome(matching(etagPattern))
       result.header(LAST_MODIFIED) must beSome
     }
 
@@ -124,7 +126,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
 
     "return asset when etag doesn't match" in withServer {
       val result = await(wsUrl("/foo.txt")
-        .withHeaders(IF_NONE_MATCH -> "foobar")
+        .withHeaders(IF_NONE_MATCH -> "\"foobar\"")
         .get())
 
       result.status must_== OK
@@ -158,7 +160,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
     "ignore if modified since header if if none match header is set" in withServer {
       val result = await(wsUrl("/foo.txt")
         .withHeaders(
-          IF_NONE_MATCH -> "foobar",
+          IF_NONE_MATCH -> "\"foobar\"",
           IF_MODIFIED_SINCE -> "Wed, 01 Jan 2113 00:00:00 GMT" // might break in 100 years, but I won't be alive, so :P
         ).get())
 
@@ -195,7 +197,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       result.status must_== OK
       result.body must_== "This is a test asset."
       result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/plain"))
-      result.header(ETAG) must_== Some("12345678901234567890123456789012")
+      result.header(ETAG) must_== Some("\"12345678901234567890123456789012\"")
       result.header(LAST_MODIFIED) must beSome
       result.header(VARY) must beNone
       result.header(CONTENT_ENCODING) must beNone

@@ -158,7 +158,8 @@ private[controllers] class AssetInfo(
     }
   }
 
-  val etag: Option[String] = digest.orElse(lastModified.map(_ + " -> " + url.toExternalForm).map("\"" + Codecs.sha1(_) + "\""))
+  val etag: Option[String] =
+    digest orElse { lastModified map (m => Codecs.sha1(m + " -> " + url.toExternalForm)) } map ("\"" + _ + "\"")
 
   val mimeType: String = MimeTypes.forFileName(name).fold(ContentTypes.BINARY)(addCharsetIfNeeded)
 
