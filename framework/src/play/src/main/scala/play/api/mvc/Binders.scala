@@ -402,24 +402,30 @@ object QueryStringBindable {
   private def javascriptUnbindOption(jsUnbindT: String) = "function(k,v){return v!=null?(" + jsUnbindT + ")(k,v):''}"
 
   /**
+   * QueryString binder for Seq
+   */
+  implicit def bindableSeq[T: QueryStringBindable]: QueryStringBindable[Seq[T]] = new QueryStringBindable[Seq[T]] {
+    def bind(key: String, params: Map[String, Seq[String]]) = Some(Right(bindSeq[T](key, params)))
+    def unbind(key: String, values: Seq[T]) = unbindSeq(key, values)
+    override def javascriptUnbind = javascriptUnbindSeq(implicitly[QueryStringBindable[T]].javascriptUnbind)
+  }
+
+  /**
    * QueryString binder for List
    */
-  implicit def bindableList[T: QueryStringBindable]: QueryStringBindable[List[T]] = new QueryStringBindable[List[T]] {
-    def bind(key: String, params: Map[String, Seq[String]]) = Some(Right(bindList[T](key, params)))
-    def unbind(key: String, values: List[T]) = unbindList(key, values)
-    override def javascriptUnbind = javascriptUnbindList(implicitly[QueryStringBindable[T]].javascriptUnbind)
-  }
+  implicit def bindableList[T: QueryStringBindable]: QueryStringBindable[List[T]] =
+    bindableSeq[T].transform(_.toList, _.toSeq)
 
   /**
    * QueryString binder for java.util.List
    */
   implicit def bindableJavaList[T: QueryStringBindable]: QueryStringBindable[java.util.List[T]] = new QueryStringBindable[java.util.List[T]] {
-    def bind(key: String, params: Map[String, Seq[String]]) = Some(Right(bindList[T](key, params).asJava))
-    def unbind(key: String, values: java.util.List[T]) = unbindList(key, values.asScala)
-    override def javascriptUnbind = javascriptUnbindList(implicitly[QueryStringBindable[T]].javascriptUnbind)
+    def bind(key: String, params: Map[String, Seq[String]]) = Some(Right(bindSeq[T](key, params).asJava))
+    def unbind(key: String, values: java.util.List[T]) = unbindSeq(key, values.asScala)
+    override def javascriptUnbind = javascriptUnbindSeq(implicitly[QueryStringBindable[T]].javascriptUnbind)
   }
 
-  private def bindList[T: QueryStringBindable](key: String, params: Map[String, Seq[String]]): List[T] = {
+  private def bindSeq[T: QueryStringBindable](key: String, params: Map[String, Seq[String]]): Seq[T] = {
     for {
       values <- params.get(key).toList
       rawValue <- values
@@ -428,13 +434,13 @@ object QueryStringBindable {
     } yield value
   }
 
-  private def unbindList[T: QueryStringBindable](key: String, values: Iterable[T]): String = {
+  private def unbindSeq[T: QueryStringBindable](key: String, values: Iterable[T]): String = {
     (for (value <- values) yield {
       implicitly[QueryStringBindable[T]].unbind(key, value)
     }).mkString("&")
   }
 
-  private def javascriptUnbindList(jsUnbindT: String) = "function(k,vs){var l=vs&&vs.length,r=[],i=0;for(;i<l;i++){r[i]=(" + jsUnbindT + ")(k,vs[i])}return r.join('&')}"
+  private def javascriptUnbindSeq(jsUnbindT: String) = "function(k,vs){var l=vs&&vs.length,r=[],i=0;for(;i<l;i++){r[i]=(" + jsUnbindT + ")(k,vs[i])}return r.join('&')}"
 
   /**
    * QueryString binder for QueryStringBindable.
