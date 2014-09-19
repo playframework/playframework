@@ -22,6 +22,8 @@ managedResourceDirectories in TestAssets += target.value / "web" / "jsrouter"
 // We don't want source position mappers is this will make it very hard to debug
 sourcePositionMappers := Nil
 
+routesGenerator := play.routes.compiler.InjectedRoutesGenerator
+
 compile in Compile := {
   (compile in Compile).result.value match {
     case Inc(inc) =>

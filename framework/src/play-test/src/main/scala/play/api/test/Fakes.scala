@@ -253,24 +253,25 @@ case class FakeApplication(
     )
   }
   lazy val routes: Router.Routes = {
-    val parentRoutes = Router.load(environment, configuration)
-    new Router.Routes() {
-      def documentation = parentRoutes.documentation
-      // Use withRoutes first, then delegate to the parentRoutes if no route is defined
-      val routes = new AbstractPartialFunction[RequestHeader, Handler] {
-        override def applyOrElse[A <: RequestHeader, B >: Handler](rh: A, default: A => B) =
-          withRoutes.applyOrElse((rh.method, rh.path), (_: (String, String)) => default(rh))
-        def isDefinedAt(rh: RequestHeader) = withRoutes.isDefinedAt((rh.method, rh.path))
-      } orElse new AbstractPartialFunction[RequestHeader, Handler] {
-        override def applyOrElse[A <: RequestHeader, B >: Handler](rh: A, default: A => B) =
-          parentRoutes.routes.applyOrElse(rh, default)
-        def isDefinedAt(x: RequestHeader) = parentRoutes.routes.isDefinedAt(x)
-      }
-      def setPrefix(prefix: String) {
-        parentRoutes.setPrefix(prefix)
-      }
-      def prefix = parentRoutes.prefix
-    }
+    val parentRoutes = new RoutesProvider(injector, environment, configuration).get
+    new FakeRoutes(withRoutes, parentRoutes)
+  }
+}
+
+private class FakeRoutes(injected: PartialFunction[(String, String), Handler], fallback: Router.Routes) extends Router.Routes {
+  def documentation = fallback.documentation
+  // Use withRoutes first, then delegate to the parentRoutes if no route is defined
+  val routes = new AbstractPartialFunction[RequestHeader, Handler] {
+    override def applyOrElse[A <: RequestHeader, B >: Handler](rh: A, default: A => B) =
+      injected.applyOrElse((rh.method, rh.path), (_: (String, String)) => default(rh))
+    def isDefinedAt(rh: RequestHeader) = injected.isDefinedAt((rh.method, rh.path))
+  } orElse new AbstractPartialFunction[RequestHeader, Handler] {
+    override def applyOrElse[A <: RequestHeader, B >: Handler](rh: A, default: A => B) =
+      fallback.routes.applyOrElse(rh, default)
+    def isDefinedAt(x: RequestHeader) = fallback.routes.isDefinedAt(x)
+  }
+  def withPrefix(prefix: String) = {
+    new FakeRoutes(injected, fallback.withPrefix(prefix))
   }
 }
 

@@ -189,8 +189,7 @@ object PlayBuild extends Build {
     .enablePlugins(SbtTwirl)
     .settings(
       libraryDependencies ++= routersCompilerDependencies,
-      TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat"),
-      TwirlKeys.templateImports += "play.routes.compiler._"
+      TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat")
     )
 
   lazy val AnormProject = PlayRuntimeProject("Anorm", "anorm")

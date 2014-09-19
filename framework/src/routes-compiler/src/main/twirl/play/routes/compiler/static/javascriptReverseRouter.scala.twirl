@@ -1,10 +1,6 @@
-@(pkg: Option[String], routes: Seq[Route], namespaceReverseRouter: Boolean)
-
 @import play.routes.compiler._
 @import play.routes.compiler.templates._
-@tq=@{"\"\"\""}
-@cb=@{"\u007D"}
-@ob=@{"\u007B"}
+@(pkg: Option[String], routes: Seq[Route], namespaceReverseRouter: Boolean)
 
 @for((packageName, routes) <- groupRoutesByPackage(routes)) {
 @markLines(routes: _*)
@@ -12,7 +8,12 @@ package @(pkg.filter(_ => namespaceReverseRouter).fold(packageName)(_ + "." + pa
   import ReverseRouteContext.empty
 @for((controller, routes) <- groupRoutesByController(routes)) {
   @markLines(routes: _*)
-  class Reverse@controller.replace(".", "_") @ob
+  class Reverse@(controller.replace(".", "_"))(_prefix: => String) @ob
+
+    def _defaultPrefix: String = @ob
+      if (_prefix.endsWith("/")) "" else "/"
+    @cb
+
   @for(((method, _), routes) <- groupRoutesByMethod(routes)) {@routes match {
   case Seq(route: Route) => {
     @markLines(route)

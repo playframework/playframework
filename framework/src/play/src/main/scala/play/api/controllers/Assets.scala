@@ -21,6 +21,7 @@ import play.api.http.ContentTypes
 import scala.collection.concurrent.TrieMap
 import play.core.Router.ReverseRouteContext
 import scala.io.Source
+import javax.inject.Singleton
 
 /*
  * A map designed to prevent the "thundering herds" issue.
@@ -312,6 +313,9 @@ object Assets extends AssetsBuilder {
     }
   }
 }
+
+@Singleton
+class Assets extends AssetsBuilder
 
 class AssetsBuilder extends Controller {
 

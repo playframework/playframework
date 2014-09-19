@@ -86,9 +86,8 @@ trait NettyRunners extends PlayRunners {
     action: EssentialAction)(block: ChannelPipeline => T): T = {
     val app = new FakeApplication() {
       override lazy val routes = new Routes {
-        def prefix = "/"
-        def setPrefix(prefix: String) {}
         def documentation = Nil
+        def withPrefix(prefix: String) = this
         def routes = {
           case _ => action
         }

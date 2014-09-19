@@ -69,7 +69,7 @@ object RoutesCompiler {
    * @param namespaceReverseRouter Whether the reverse router should be namespaced
    * @return Either the list of files that were generated (right) or the routes compilation errors (left)
    */
-  def compile(file: File, generatedDir: File, additionalImports: Seq[String], generateReverseRouter: Boolean = true,
+  def compile(file: File, generator: RoutesGenerator, generatedDir: File, additionalImports: Seq[String], generateReverseRouter: Boolean = true,
     generateRefReverseRouter: Boolean = true, namespaceReverseRouter: Boolean = false): Either[Seq[RoutesCompilationError], Seq[File]] = {
 
     val namespace = Option(file.getName).filter(_.endsWith(".routes")).map(_.dropRight(".routes".size))
@@ -77,7 +77,7 @@ object RoutesCompiler {
     val routeFile = file.getAbsoluteFile
 
     RoutesFileParser.parse(routeFile).right.map { rules =>
-      val generated = generate(routeFile, namespace, rules, additionalImports, generateReverseRouter,
+      val generated = generator.generate(routeFile, namespace, rules, additionalImports, generateReverseRouter,
         generateRefReverseRouter, namespaceReverseRouter)
       generated.map {
         case (filename, content) =>
@@ -87,55 +87,5 @@ object RoutesCompiler {
       }
     }
   }
-
-  /**
-   * Generate the actual Scala code for this router
-   */
-  private def generate(file: File, namespace: Option[String], rules: List[Rule], additionalImports: Seq[String], reverseRouter: Boolean, reverseRefRouter: Boolean, namespaceReverseRouter: Boolean): Seq[(String, String)] = {
-
-    val filePrefix = namespace.map(_.replace('.', '/') + "/").getOrElse("") + "/routes"
-
-    val sourceInfo = RoutesSourceInfo(file.getCanonicalPath.replace(File.separator, "/"), new java.util.Date().toString)
-    val routes = rules.collect { case r: Route => r }
-
-    val files = Seq(filePrefix + "_routing.scala" -> generateRouter(sourceInfo, namespace, additionalImports, rules))
-    if (reverseRouter) {
-      (files :+ filePrefix + "_reverseRouting.scala" -> generateReverseRouter(sourceInfo, namespace, additionalImports, routes, reverseRefRouter, namespaceReverseRouter)) ++
-        generateJavaWrappers(sourceInfo, rules, reverseRefRouter, namespace.filter(_ => namespaceReverseRouter))
-    } else {
-      files
-    }
-  }
-
-  def generateRouter(sourceInfo: RoutesSourceInfo, namespace: Option[String], additionalImports: Seq[String], rules: List[Rule]) =
-    static.twirl.forwardsRouter(
-      sourceInfo,
-      namespace,
-      additionalImports,
-      rules,
-      rules.collect { case i: Include => i }
-    ).body
-
-  def generateReverseRouter(sourceInfo: RoutesSourceInfo, namespace: Option[String], additionalImports: Seq[String], routes: List[Route], reverseRefRouter: Boolean, namespaceReverseRouter: Boolean) =
-    static.twirl.reverseRouters(
-      sourceInfo,
-      namespace,
-      additionalImports,
-      routes,
-      namespaceReverseRouter,
-      reverseRefRouter
-    ).body
-
-  def generateJavaWrappers(sourceInfo: RoutesSourceInfo, rules: List[Rule], reverseRefRouter: Boolean, namespace: Option[String]) = {
-    rules.collect { case r: Route => r }.groupBy(_.call.packageName).map {
-      case (pn, routes) =>
-        val packageName = namespace.map(_ + "." + pn).getOrElse(pn)
-        val controllers = routes.groupBy(_.call.controller).keys.toSeq
-
-        (packageName.replace(".", "/") + "/routes.java") ->
-          static.twirl.javaWrappers(sourceInfo, packageName, controllers, reverseRefRouter).body
-    }
-  }
-
 }
 
