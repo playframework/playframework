@@ -3,7 +3,7 @@
  */
 package play.sbtplugin.routes
 
-import play.routes.compiler.{ StaticRoutesGenerator, RoutesGenerator, RoutesCompilationError }
+import play.routes.compiler.{ RoutesGenerator, RoutesCompilationError }
 import sbt._
 import sbt.Keys._
 import play.PlayExceptions.RoutesCompilationException
@@ -22,6 +22,9 @@ object RoutesKeys {
     "Whether the ref reverse router should be generated along with reverse router. Setting to false will make it easy to export routes to other projects and improve compile time.")
   val namespaceReverseRouter = SettingKey[Boolean]("play-namespace-reverse-router",
     "Whether the reverse router should be namespaced. Useful if you have many routers that use the same actions.")
+
+  val InjectedRoutesGenerator = play.routes.compiler.InjectedRoutesGenerator
+  val StaticRoutesGenerator = play.routes.compiler.StaticRoutesGenerator
 }
 
 object RoutesCompiler extends AutoPlugin {

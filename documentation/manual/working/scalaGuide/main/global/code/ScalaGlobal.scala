@@ -60,7 +60,7 @@ class ScalaGlobalSpec extends Specification {
       }
       //#global-hooking-error
 
-      val r = scalaguide.global.scalaglobal.Routes
+      val r = new scalaguide.global.scalaglobal.Routes(new controllers.Application)
       contentOf(rh=FakeRequest("GET", "/hello"),router = r,g=Global) === "hello"
     }
 
@@ -118,7 +118,7 @@ class ScalaGlobalSpec extends Specification {
   import play.api.mvc._
   import play.api.GlobalSettings
 
-  def contentOf(rh: RequestHeader, router: Router.Routes = Routes,g:GlobalSettings) = running(
+  def contentOf(rh: RequestHeader, router: Router.Routes = new Routes(new controllers.Application),g:GlobalSettings) = running(
     FakeApplication(withGlobal=Some(g))
   )(contentAsString(router.routes(rh) match {
     case e: EssentialAction => e(rh).run
@@ -145,7 +145,7 @@ package controllers {
 
 import play.api.mvc.{Action, Controller}
 
-object Application extends Controller{
+class Application extends Controller{
   def index = Action(Ok("hello"))
 
   def bad = Action{

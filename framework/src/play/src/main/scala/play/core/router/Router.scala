@@ -75,11 +75,9 @@ case class PathPattern(parts: Seq[PathPart]) {
 object Router {
 
   /**
-   * Try to load the router.
+   * Try to load the configured routes class.
    *
-   * If the router is an object, get its instance and return it as Left.
-   *
-   * If the router is a class, get the class and return it as Right.
+   * @return The routes class if configured or if a default one in the root package was detected.
    */
   def load(env: Environment, configuration: Configuration): Option[Class[_ <: Routes]] = {
     val className = configuration.getString("application.router")

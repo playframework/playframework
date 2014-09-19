@@ -22,7 +22,7 @@ public class ApplicationTest {
   
   @Test
   public void testIndex() {
-    Result result = Application.index();
+    Result result = new Application().index();
     assertEquals(OK, status(result));
     assertEquals("text/html", contentType(result));
     assertEquals("utf-8", charset(result));

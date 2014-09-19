@@ -15,7 +15,7 @@ import scala.concurrent.ExecutionContext;
 
 public class Application extends Controller {
     //#async
-    public static Promise<Result> index() {
+    public Promise<Result> index() {
       Promise<Integer> promiseOfInt = Promise.promise(
         new Function0<Integer>() {
           public Integer apply() {
@@ -33,10 +33,10 @@ public class Application extends Controller {
     }
     //#async
 
-    private static ExecutionContext myThreadPool = null;
+    private ExecutionContext myThreadPool = null;
 
     //#async-explicit-ec
-    public static Promise<Result> index2() {
+    public Promise<Result> index2() {
       // Wrap an existing thread pool, using the context from the current thread
       ExecutionContext myEc = HttpExecution.fromThread(myThreadPool);
       Promise<Integer> promiseOfInt = Promise.promise(
@@ -58,5 +58,5 @@ public class Application extends Controller {
     }
     //#async-explicit-ec
 
-    public static int intensiveComputation() { return 2;}
+    public int intensiveComputation() { return 2;}
 }

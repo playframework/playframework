@@ -32,7 +32,42 @@ To configure Play to use this application loader, configure the `play.applicatio
     
 ## Providing a router
 
-This will be documented once we have a router that can be dependency injected.
+By default Play will generate a static router that requires all of your actions to be objects.  Play however also supports generating a router than can be dependency injected, this can be enabled by adding the following configuration to your `build.sbt`:
+
+```scala
+routesGenerator := InjectedRoutesGenerator
+```
+
+When you do this, Play will generate a router with a constructor that accepts each of the controllers and included routers from your routes file, in the order they appear in your routes file.  The primary constructor will also accept a prefix String as the last argument, but an overloaded constructor that defaults this to `"/"` will also be provided.
+
+The following routes:
+
+@[content](code/scalaguide.advanced.dependencyinjection.routes)
+
+Will produce a router with the following constructor signatures:
+
+```scala
+class Routes(
+  Application_0: controllers.Application,
+  bar_Routes_0: bar.Routes,
+  Assets_1: controllers.Assets,
+  val prefix: String
+) extends Router.Routes {
+
+  def this(
+    Application_0: controllers.Application,
+    bar_Routes_0: bar.Routes,
+    Assets_1: controllers.Assets
+  ) = this(Application_0, bar_Routes_0, Assets_1, "/")
+  ...
+}
+```
+
+Note that the naming of the parameters is intentionally not well defined (and in fact the index that is appended to them is random, depending on hash map ordering), so you should not depend on the names of these parameters.
+
+To use this router in an actual application:
+
+@[routers](code/CompileTimeDependencyInjection.scala)
 
 ## Using other components
 

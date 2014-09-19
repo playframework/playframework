@@ -15,6 +15,6 @@ public class Application extends Controller {
                   .map((Integer i) -> ok("Got " + i));
     }
     //###skip: 1
-    public static int longComputation() { return 2; }
+    public int longComputation() { return 2; }
 }
 //#async

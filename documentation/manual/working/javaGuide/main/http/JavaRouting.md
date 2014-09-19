@@ -14,6 +14,16 @@ Routes are defined in the `conf/routes` file, which is compiled. This means that
 
 [[images/routesError.png]]
 
+## Dependency Injection
+
+Play supports generating two types of routers, one is a dependency injected router, the other is a static router.  The default is the static router, but if you created a new Play application using the Play seed Activator templates, your project will include the following configuration in `build.sbt` telling it to use the injected router:
+
+```scala
+routesGenerator := InjectedRoutesGenerator
+```
+
+The code samples in Play's documentation assumes that you are using the injected routes generator.  If you are not using this, you can trivially adapt the code samples for the static routes generator, either by prefixing the controller invocation part of the route with an `@` symbol, or by declaring each of your action methods as `static`.
+
 ## The routes file syntax
 
 `conf/routes` is the configuration file used by the router. This file lists all of the routes needed by the application. Each route consists of an HTTP method and URI pattern associated with a call to an action method.
@@ -25,8 +35,6 @@ Let’s see what a route definition looks like:
 > Note that in the action call, the parameter type comes after the parameter name, like in Scala.
 
 Each route starts with the HTTP method, followed by the URI pattern. The last element of a route is the call definition.
-
-Note the `@` symbol. This tells Play that this action must be looked up out of the dependency injection framework, which, by default, is Guice.
 
 You can also add comments to the route file, with the `#` character:
 

@@ -105,7 +105,7 @@ public class JavaJsonActions {
 
     static class JsonRequestAsAnyContentAction extends MockJavaAction {
         //#json-request-as-anycontent
-        public static Result sayHello() {
+        public Result sayHello() {
             JsonNode json = request().body().asJson();
             if(json == null) {
                 return badRequest("Expecting Json data");
@@ -124,7 +124,7 @@ public class JavaJsonActions {
     static class JsonRequestAsJsonAction extends MockJavaAction {
         //#json-request-as-json
         @BodyParser.Of(BodyParser.Json.class)
-        public static Result sayHello() {
+        public Result sayHello() {
             JsonNode json = request().body().asJson();
             String name = json.findPath("name").textValue();
             if(name == null) {
@@ -138,7 +138,7 @@ public class JavaJsonActions {
 
     static class JsonResponseAction extends MockJavaAction {
         //#json-response
-        public static Result sayHello() {
+        public Result sayHello() {
             ObjectNode result = Json.newObject();
             result.put("exampleField1", "foobar");
             result.put("exampleField2", "Hello world!");
@@ -165,7 +165,7 @@ public class JavaJsonActions {
         static PersonDao personDao = new PersonDao();
 
         //#json-response-dao
-        public static Result getPeople() {
+        public Result getPeople() {
             List<Person> people = personDao.findAll();
             return ok(Json.toJson(people));
         }

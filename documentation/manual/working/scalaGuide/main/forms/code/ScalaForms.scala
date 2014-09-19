@@ -156,7 +156,7 @@ package controllers {
 import views.html._
 import views.html.contact._
 
-object Application extends Controller {
+class Application extends Controller {
 
   //#userForm-define
   val userForm = Form(
@@ -178,7 +178,7 @@ object Application extends Controller {
   // #form-render
 
   def userPostHandlingFailure() = Action { implicit request =>
-    val userForm = controllers.Application.userFormConstraints
+    val userForm = userFormConstraints
 
     //#userForm-handling-failure
     userForm.bindFromRequest.fold(
@@ -455,6 +455,7 @@ object Application extends Controller {
 
 }
 
+object Application extends Application
 }
 
 }

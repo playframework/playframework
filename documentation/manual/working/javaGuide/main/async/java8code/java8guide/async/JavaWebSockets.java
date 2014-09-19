@@ -24,7 +24,7 @@ public class JavaWebSockets {
 
     public static class ActorController2 extends Controller {
         //#actor-reject
-        public static WebSocket<String> socket() {
+        public WebSocket<String> socket() {
             if (session().get("user") != null) {
                 return WebSocket.withActor(MyWebSocketActor::props);
             } else {
@@ -36,7 +36,7 @@ public class JavaWebSockets {
 
     public static class ActorController4 extends Controller {
         //#actor-json
-        public static WebSocket<JsonNode> socket() {
+        public WebSocket<JsonNode> socket() {
             return WebSocket.withActor(MyWebSocketActor::props);
         }
         //#actor-json
@@ -46,7 +46,7 @@ public class JavaWebSockets {
 
     public static class Controller1 {
         //#websocket
-        public static WebSocket<String> socket() {
+        public WebSocket<String> socket() {
             return WebSocket.whenReady((in, out) -> {
                 // For each event received on the socket,
                 in.onMessage(System.out::println);
@@ -63,7 +63,7 @@ public class JavaWebSockets {
 
     public static class Controller2 {
         //#discard-input
-        public static WebSocket<String> socket() {
+        public WebSocket<String> socket() {
             return WebSocket.whenReady((in, out) -> {
                 out.write("Hello!");
                 out.close();

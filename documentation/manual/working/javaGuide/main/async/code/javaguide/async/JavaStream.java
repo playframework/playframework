@@ -26,7 +26,7 @@ public class JavaStream extends WithApplication {
 
     public static class Controller1 extends MockJavaAction {
         //#by-default
-        public static Result index() {
+        public Result index() {
             return ok("Hello World");
         }
         //#by-default
@@ -50,7 +50,7 @@ public class JavaStream extends WithApplication {
 
     public static class Controller2 extends MockJavaAction {
         //#serve-file
-        public static Result index() {
+        public Result index() {
             return ok(new java.io.File("/tmp/fileToServe.pdf"));
         }
         //#serve-file
@@ -69,7 +69,7 @@ public class JavaStream extends WithApplication {
 
     public static class Controller3 extends MockJavaAction {
         //#input-stream
-        public static Result index() {
+        public Result index() {
             InputStream is = getDynamicStreamSomewhere();
             return ok(is);
         }
@@ -85,7 +85,7 @@ public class JavaStream extends WithApplication {
 
     public static class Controller4 extends MockJavaAction {
         //#chunked
-        public static Result index() {
+        public Result index() {
             // Prepare a chunked text stream
             Chunks<String> chunks = new StringChunks() {
 
