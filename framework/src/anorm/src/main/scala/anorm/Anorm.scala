@@ -298,7 +298,7 @@ private[anorm] trait Sql extends WithResult {
     managed(getFilledStatement(connection)).acquireAndGet(_.execute())
 
   @deprecated(message = "Will be made private, use [[executeUpdate]] or [[executeInsert]]", since = "2.3.2")
-  def execute1(getGeneratedKeys: Boolean = false)(implicit connection: Connection): (PreparedStatement, Int) = { // TODO: managed
+  def execute1(getGeneratedKeys: Boolean = false)(implicit connection: Connection): (PreparedStatement, Int) = {
     val statement = getFilledStatement(connection, getGeneratedKeys)
     (statement, statement.executeUpdate())
   }
@@ -309,7 +309,7 @@ private[anorm] trait Sql extends WithResult {
    */
   @throws[java.sql.SQLException]("If statement is query not update")
   def executeUpdate()(implicit connection: Connection): Int =
-    getFilledStatement(connection).executeUpdate()
+    managed(getFilledStatement(connection)).acquireAndGet(_.executeUpdate())
 
   /**
    * Executes this SQL as an insert statement.
