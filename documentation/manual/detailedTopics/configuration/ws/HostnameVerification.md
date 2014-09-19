@@ -19,6 +19,11 @@ ws.ssl.hostnameVerifierClass=org.example.MyHostnameVerifier
 
 Hostname Verification can be tested using `dnschef`.  A complete guide is out of scope of documentation, but an example can be found in [Testing Hostname Verification](http://tersesystems.com/2014/03/31/testing-hostname-verification/).
 
+> NOTE: There is a known [bug](https://github.com/playframework/playframework/issues/2767) in Play that can result in silent timeouts when hostname verification fails.  This bug stems from an underlying AsyncHttpClient 1.8.x [issue](https://github.com/AsyncHttpClient/async-http-client/issues/555).  To see the hostname verification timeout, set `-Dlogger.org.jboss.netty=DEBUG` and look for `java.net.ConnectException: HostnameVerifier exception` in the logs.
+>
+> Usually the cause of hostname verification failure is an X.509 certificate with an invalid subjectAlternativeName.  Please check you are setting `-ext SAN="DNS:example.com"` when creating certificates -- see [[Certificate Generation|CertificateGeneration]] for more details.
+
+
 ## Further Reading
 
 * [Fixing Hostname Verification](http://tersesystems.com/2014/03/23/fixing-hostname-verification/)
