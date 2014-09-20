@@ -71,17 +71,19 @@ That simply tells Play that when the web server receives a GET request for the /
 Let’s see how the `controllers.Application.index` method looks like. Open the `todolist/app/controllers/Application.scala` source file:
 
 ```
+/* app/controllers/Application.scala */
+
 package controllers
 
 import play.api._
 import play.api.mvc._
 
 object Application extends Controller {
-  
+
   def index = Action {
     Ok(views.html.index("Your new application is ready."))
   }
-  
+
 }
 ```
 
@@ -94,12 +96,14 @@ Here the action returns a **200 OK** response filled with HTML content. The HTML
 This template is defined in the `app/views/index.scala.html` source file:
 
 ```
+/* app/views/index.scala.html */
+
 @(message: String)
 
 @main("Welcome to Play 2.0") {
-    
+
     @play20.welcome(message)
-    
+
 }
 ```
 
@@ -110,8 +114,13 @@ The first line defines the function signature. Here it takes a single `String` p
 Now let’s make some modifications to the new application. In the `Application.scala` change the content of the response:
 
 ```
-def index = Action {
-  Ok("Hello world")
+/* app/controllers/Application.scala */
+
+object Application extends Controller {
+
+    def index = Action {
+      Ok("Hello world")
+    }
 }
 ```
 
@@ -124,8 +133,13 @@ There is no need to compile the code yourself or restart the server to see the m
 Let’s try:
 
 ```
-def index = Action {
-  Ok("Hello world)
+/* app/controllers/Application.scala */
+
+object Application extends Controller {
+
+    def index = Action {
+      Ok("Hello world) // missing end-quote
+    }
 }
 ```
 
@@ -137,15 +151,17 @@ As you see errors are beautifully displayed directly in your browser.
 
 ## Preparing the application
 
-For our to do list application, we need a few actions and the corresponding URLs. Let’s start by defining the **routes**. 
+For our to do list application, we need a few actions and the corresponding URLs. Let’s start by defining the **routes**.
 
 Edit the `conf/routes` file:
 
 ```
+/* conf/routes */
+
 # Home page
 GET     /                       controllers.Application.index
-                                
-# Tasks          
+
+# Tasks
 GET     /tasks                  controllers.Application.tasks
 POST    /tasks                  controllers.Application.newTask
 POST    /tasks/:id/delete       controllers.Application.deleteTask(id: Long)
@@ -160,22 +176,24 @@ Now if you reload in your browser, you will see that Play cannot compile your `r
 This is because the new routes reference non-existent action methods. So let’s add them to the `Application.scala` file:
 
 ```
+/* app/controllers/Application.scala */
+
 object Application extends Controller {
-  
+
   def index = Action {
     Ok("Hello world")
   }
-  
+
   def tasks = TODO
-  
+
   def newTask = TODO
-  
+
   def deleteTask(id: Long) = TODO
-  
+
 }
 ```
 
-As you see we use `TODO` to define our action implementations. Because we don’t want to write the action implementations yet, we can use the built-in `TODO` action that will return a `501 Not Implemented` HTTP response. 
+As you see we use `TODO` to define our action implementations. Because we don’t want to write the action implementations yet, we can use the built-in `TODO` action that will return a `501 Not Implemented` HTTP response.
 
 You can try to access the [[http://localhost:9000/tasks]] to see that:
 
@@ -184,8 +202,13 @@ You can try to access the [[http://localhost:9000/tasks]] to see that:
 Now the last thing we need to fix before starting the action implementation is the `index` action. We want it to automatically redirect to the tasks list page:
 
 ```
-def index = Action {
-  Redirect(routes.Application.tasks)
+/* app/controllers/Application.scala */
+
+object Application extends Controller {
+
+    def index = Action {
+      Redirect(routes.Application.tasks)
+    }
 }
 ```
 
@@ -198,18 +221,20 @@ As you can see, we use `Redirect` instead of `Ok` to specify a `303 See Other` H
 Before continuing the implementation we need to define what a `Task` looks like in our application. Create a `case class` for it in the `app/models/Task.scala` file:
 
 ```
+/* app/models/Task.scala */
+
 package models
 
 case class Task(id: Long, label: String)
 
 object Task {
-  
+
   def all(): List[Task] = Nil
-  
+
   def create(label: String) {}
-  
+
   def delete(id: Long) {}
-  
+
 }
 ```
 
@@ -220,36 +245,38 @@ We have also created a companion object to manage `Task` operations. For now we 
 Our simple application will use a single web page that shows both the tasks list and the task creation form. Let’s modify the `index.scala.html` template for that:
 
 ```
+@* views/index.scala.html *@
+
 @(tasks: List[Task], taskForm: Form[String])
 
 @import helper._
 
 @main("Todo list") {
-    
+
     <h1>@tasks.size task(s)</h1>
-    
+
     <ul>
         @tasks.map { task =>
             <li>
                 @task.label
-                
+
                 @form(routes.Application.deleteTask(task.id)) {
                     <input type="submit" value="Delete">
                 }
             </li>
         }
     </ul>
-    
+
     <h2>Add a new task</h2>
-    
+
     @form(routes.Application.newTask) {
-        
-        @inputText(taskForm("label")) 
-        
+
+        @inputText(taskForm("label"))
+
         <input type="submit" value="Create">
-        
+
     }
-    
+
 }
 ```
 
@@ -259,20 +286,25 @@ We changed the template signature to take two parameters:
 - a task form.
 
 We also imported `helper._` that gives us the form creation helpers, typically the `form` function, which creates an HTML `<form>` with filled `action` and `method` attributes, and the `inputText` function that creates an HTML input for a form field.
-    
+
 > **Note:** Read more about the [[Templating system|ScalaTemplates]] and [[Forms helper|ScalaFormHelpers]].
-    
+
 ## The task form
 
 A `Form` object encapsulates an HTML form definition, including validation constraints. Let’s create a very simple form in the `Application` controller: we only need a form with a single **label** field. The form will also check that the label provided by the user is not empty:
 
 ```
+/* app/controllers/Application.scala */
+
 import play.api.data._
 import play.api.data.Forms._
 
-val taskForm = Form(
-  "label" -> nonEmptyText
-)
+object Application extends Controller {
+
+    val taskForm = Form(
+      "label" -> nonEmptyText
+    )
+}
 ```
 
 The type of `taskForm` is then `Form[String]` since it is a form generating a simple `String`. You also need to import some `play.api.data` classes.
@@ -284,10 +316,15 @@ The type of `taskForm` is then `Form[String]` since it is a form generating a si
 Now we have all elements needed to display the application page. Let’s write the `tasks` action:
 
 ```
+/* app/controllers/Application.scala */
+
 import models.Task
 
-def tasks = Action {
-  Ok(views.html.index(Task.all(), taskForm))
+object Application extends Controller {
+
+    def tasks = Action {
+      Ok(views.html.index(Task.all(), taskForm))
+    }
 }
 ```
 
@@ -302,14 +339,19 @@ You can now try to access [[http://localhost:9000/tasks]] in your browser:
 For now, if we submit the task creation form, we still get the TODO page. Let’s write the implementation of the `newTask` action:
 
 ```
-def newTask = Action { implicit request =>
-  taskForm.bindFromRequest.fold(
-    errors => BadRequest(views.html.index(Task.all(), errors)),
-    label => {
-      Task.create(label)
-      Redirect(routes.Application.tasks)
+/* app/controllers/Application.scala */
+
+object Application extends Controller {
+
+    def newTask = Action { implicit request =>
+      taskForm.bindFromRequest.fold(
+        errors => BadRequest(views.html.index(Task.all(), errors)),
+        label => {
+          Task.create(label)
+          Redirect(routes.Application.tasks)
+        }
+      )
     }
-  )
 }
 ```
 
@@ -322,6 +364,8 @@ To fill the form we need to have the `request` in the scope, so it can be used b
 It’s now time to persist the tasks in a database to make the application useful. Let’s start by enabling a database in our application. In the `conf/application.conf` file, add:
 
 ```
+# conf/application.conf
+
 db.default.driver=org.h2.Driver
 db.default.url="jdbc:h2:mem:play"
 ```
@@ -331,8 +375,10 @@ For now we will use a simple in memory database using **H2**. No need to restart
 We will use **Anorm** in this tutorial to query the database. First we need to define the database schema. Let’s use Play evolutions for that, so create a first evolution script in `conf/evolutions/default/1.sql`:
 
 ```
+# conf/evolutions/default/1.sql
+
 # Tasks schema
- 
+
 # --- !Ups
 
 CREATE SEQUENCE task_id_seq;
@@ -340,9 +386,9 @@ CREATE TABLE task (
     id integer NOT NULL DEFAULT nextval('task_id_seq'),
     label varchar(255)
 );
- 
+
 # --- !Downs
- 
+
 DROP TABLE task;
 DROP SEQUENCE task_id_seq;
 ```
@@ -358,51 +404,66 @@ Just click the **Apply script** button to run the script. Your database schema i
 It’s now time to implement the SQL queries in the `Task` companion object, starting with the `all()` operation. Using **Anorm** we can define a parser that will transform a JDBC `ResultSet` row to a `Task` value:
 
 ```
+/* app/models/Task.scala */
+
 import anorm._
 import anorm.SqlParser._
 
-val task = {
-  get[Long]("id") ~ 
-  get[String]("label") map {
-    case id~label => Task(id, label)
-  }
+object Task {
+
+    val task = {
+      get[Long]("id") ~
+      get[String]("label") map {
+        case id~label => Task(id, label)
+      }
+    }
 }
 ```
 
-Here, `task` is a parser that, given a JDBC `ResultSet` row with at least an `id` and a `label` column, is able to create a `Task` value. 
+Here, `task` is a parser that, given a JDBC `ResultSet` row with at least an `id` and a `label` column, is able to create a `Task` value.
 
 We can now use this parser to write the `all()` method implementation:
 
 ```
+/* app/models/Task.scala */
+
 import play.api.db._
 import play.api.Play.current
 
-def all(): List[Task] = DB.withConnection { implicit c =>
-  SQL("select * from task").as(task *)
+object Task {
+
+    def all(): List[Task] = DB.withConnection { implicit c =>
+      SQL("select * from task").as(task *)
+    }
 }
 ```
 
-We use the Play `DB.withConnection` helper to create and release automatically a JDBC connection. 
+We use the Play `DB.withConnection` helper to create and release automatically a JDBC connection.
 
 Then we use the **Anorm** `SQL` method to create the query. The `as` method allows to parse the `ResultSet` using the `task *` parser: it will parse as many task rows as possible and then return a `List[Task]` (since our `task` parser returns a `Task`).
 
 It’s time to complete the implementation:
 
 ```
-def create(label: String) {
-  DB.withConnection { implicit c =>
-    SQL("insert into task (label) values ({label})").on(
-      'label -> label
-    ).executeUpdate()
-  }
-}
+/* app/models/Task.scala */
 
-def delete(id: Long) {
-  DB.withConnection { implicit c =>
-    SQL("delete from task where id = {id}").on(
-      'id -> id
-    ).executeUpdate()
-  }
+object Task {
+
+    def create(label: String) {
+      DB.withConnection { implicit c =>
+        SQL("insert into task (label) values ({label})").on(
+          'label -> label
+        ).executeUpdate()
+      }
+    }
+
+    def delete(id: Long) {
+      DB.withConnection { implicit c =>
+        SQL("delete from task where id = {id}").on(
+          'id -> id
+        ).executeUpdate()
+      }
+    }
 }
 ```
 
@@ -417,9 +478,14 @@ Now you can play with the application; creating new tasks should work.
 Now that we can create tasks, we need to be able to delete them. Very simple: we just need to finish the implementation of the `deleteTask` action:
 
 ```
-def deleteTask(id: Long) = Action {
-  Task.delete(id)
-  Redirect(routes.Application.tasks)
+/* app/controllers/Application.scala */
+
+object Application extends Controller {
+
+    def deleteTask(id: Long) = Action {
+      Task.delete(id)
+      Redirect(routes.Application.tasks)
+    }
 }
 ```
 
