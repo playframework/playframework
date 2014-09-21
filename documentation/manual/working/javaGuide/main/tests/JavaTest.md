@@ -37,7 +37,7 @@ The default way to test a Play application is with [JUnit](http://www.junit.org/
 
 ### Assertions & Matchers
 
-Some developers prefer to write their assertions in a more fluent style than JUnit asserts. Popular libraries for other assertion styles are included for convenience. 
+Some developers prefer to write their assertions in a more fluent style than JUnit asserts. Popular libraries for other assertion styles are included for convenience.
 
 Hamcrest matchers:
 
@@ -80,10 +80,16 @@ In this way, the `UserService.isAdmin` method can be tested by mocking the `User
 > ```scala
 > compile in Test <<= PostCompile(Test)
 > ```
+>
+> You may also need the following import at the top of your `build.sbt`:
+>
+> ```scala
+> import play.Play._
+> ```
 
 ## Unit testing controllers
 
-You can test your controllers using Play's [test helpers](api/java/play/test/Helpers.html) to extract useful properties. 
+You can test your controllers using Play's [test helpers](api/java/play/test/Helpers.html) to extract useful properties.
 
 @[test-controller-test](code/javaguide/tests/ApplicationTest.java)
 
