@@ -229,7 +229,7 @@ case class FakeApplication(
     val webCommands = new DefaultWebCommands
 
     val loader = config.getString("play.application.loader").fold[ApplicationLoader](
-      new GuiceApplicationLoader
+      GuiceApplicationLoader()
     ) { className =>
         Reflect.createInstance[ApplicationLoader](className, classloader)
       }

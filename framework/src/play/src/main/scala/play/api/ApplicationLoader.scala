@@ -59,7 +59,7 @@ object ApplicationLoader {
    * Locate and instantiate the ApplicationLoader.
    */
   def apply(context: Context): ApplicationLoader = {
-    context.initialConfiguration.getString("play.application.loader").fold[ApplicationLoader](new GuiceApplicationLoader) { loaderClass =>
+    context.initialConfiguration.getString("play.application.loader").fold[ApplicationLoader](GuiceApplicationLoader()) { loaderClass =>
       Reflect.createInstance[ApplicationLoader](loaderClass, context.environment.classLoader)
     }
   }

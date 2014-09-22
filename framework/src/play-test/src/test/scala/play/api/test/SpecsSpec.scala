@@ -26,11 +26,10 @@ object SpecsSpec extends Specification {
   }
 
   "WithApplicationLoader" should {
-    class WithMyApplicationLoader extends WithApplicationLoader(new GuiceApplicationLoader {
-      override def additionalModules = Seq(new AbstractModule {
-        def configure() = bind(classOf[Int]).toInstance(42)
-      })
-    })
+    val myModule = new AbstractModule {
+      def configure() = bind(classOf[Int]).toInstance(42)
+    }
+    class WithMyApplicationLoader extends WithApplicationLoader(GuiceApplicationLoader().withModules(myModule))
     "allow adding modules" in new WithMyApplicationLoader {
       app.injector.instanceOf(classOf[Int]) must equalTo(42)
     }

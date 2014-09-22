@@ -15,9 +15,11 @@ import scala.reflect.ClassTag
 class GuiceLoadException(message: String) extends RuntimeException(message)
 
 /**
- * An ApplicationLoader that uses guice to bootstrap the application.
+ * An ApplicationLoader that uses Guice to bootstrap the application.
+ *
+ * It loads all modules defined by `play.modules` files found in the classpath
  */
-class GuiceApplicationLoader extends ApplicationLoader {
+case class GuiceApplicationLoader(additionalModules: Seq[Module] = Seq.empty) extends ApplicationLoader {
 
   def load(context: ApplicationLoader.Context): Application = {
 
@@ -50,12 +52,9 @@ class GuiceApplicationLoader extends ApplicationLoader {
   }
 
   /**
-   * Extension point to add module bindings in a programmatic way. This class creates a Guice injector loading the
-   * modules returned by this method.
-   *
-   * The default implementation returns an empty sequence. Override this implementation to add modules.
+   * Add modules to the injector
    */
-  protected def additionalModules: Seq[Module] = Seq.empty
+  def withModules(additionalModules: Module*): GuiceApplicationLoader = this.copy(additionalModules = additionalModules)
 
   override def createInjector(environment: Environment, configuration: Configuration, modules: Seq[Any]) = {
     Some(createGuiceInjector(environment, configuration, modules).getInstance(classOf[PlayInjector]))
