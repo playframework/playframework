@@ -13,6 +13,7 @@ import scala.language.postfixOps
 
 import play.api._
 import play.utils.{ PlayIO, Resources }
+import play.Logger
 
 import scala.util.parsing.input._
 import scala.util.parsing.combinator._
@@ -234,7 +235,10 @@ object Messages {
     }
   }
 
-  private def noMatch(key: String, args: Seq[Any]) = key
+  private def noMatch(key: String, args: Seq[Any]) = {
+    Logger.warn(s"i18n: missing translation key $key")
+    key
+  }
 
   /**
    * A source for messages
