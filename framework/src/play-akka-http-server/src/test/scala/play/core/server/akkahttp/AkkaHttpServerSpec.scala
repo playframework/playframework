@@ -14,6 +14,8 @@ import akka.util.Timeout
 
 object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
 
+  sequential
+
   def requestFromServer[T](path: String)(exec: WSRequestHolder => Future[WSResponse])(routes: PartialFunction[(String, String), Handler])(check: WSResponse => T): T = {
     running(TestServer(testServerPort, FakeApplication(withRoutes = routes), serverProvider = AkkaHttpServer.defaultServerProvider)) {
       val plainRequest = wsUrl(path)(testServerPort)
