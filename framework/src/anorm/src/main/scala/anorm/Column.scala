@@ -369,7 +369,7 @@ object Column extends JodaColumn {
       } catch {
         case _: Throwable => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified"))
       }
-      
+
       case arr: java.util.Collection[_] => try {
         transf(arr.toArray, Nil)
       } catch {
