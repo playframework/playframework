@@ -73,7 +73,7 @@ public class JavaCache extends WithApplication {
     public static class Controller1 extends MockJavaAction {
         //#http
         @Cached(key = "homePage")
-        public static Result index() {
+        public Result index() {
             return ok("Hello world");
         }
         //#http

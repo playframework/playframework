@@ -115,6 +115,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
 
   private def generateRouter(sourceInfo: RoutesSourceInfo, namespace: Option[String], additionalImports: Seq[String], rules: List[Rule]) = {
 
+    // Generate dependency descriptors for all includes
     val includesDeps = rules.collect {
       case include: Include => include
     }.groupBy(_.router).zipWithIndex.map {
@@ -122,6 +123,7 @@ object InjectedRoutesGenerator extends RoutesGenerator {
         router -> Dependency(router.replace('.', '_') + "_" + index, router, includes.head)
     }.toMap
 
+    // Generate dependency descriptors for all routes
     val routesDeps = rules
       .collect { case route: Route => route }
       .groupBy(r => (r.call.packageName, r.call.controller, r.call.instantiate))
@@ -134,6 +136,15 @@ object InjectedRoutesGenerator extends RoutesGenerator {
           key -> Dependency(ident, dep, routes.head)
       }.toMap
 
+    // Get the distinct dependency descriptors in the same order as defined in the routes file
+    val orderedDeps = rules.map {
+      case include: Include =>
+        includesDeps(include.router)
+      case route: Route =>
+        routesDeps((route.call.packageName, route.call.controller, route.call.instantiate))
+    }.distinct
+
+    // Map all the rules to dependency descriptors
     val rulesWithDeps = rules.map {
       case include: Include =>
         includesDeps(include.router).copy(rule = include)
@@ -141,19 +152,13 @@ object InjectedRoutesGenerator extends RoutesGenerator {
         routesDeps((route.call.packageName, route.call.controller, route.call.instantiate)).copy(rule = route)
     }
 
-    val hasDynamic = rules.exists {
-      case r: Route => r.call.instantiate
-      case _ => false
-    }
-
     inject.twirl.forwardsRouter(
       sourceInfo,
       namespace,
       additionalImports,
-      includesDeps.values.toSeq ++ routesDeps.values,
+      orderedDeps,
       rulesWithDeps,
-      includesDeps.values.toSeq,
-      hasDynamic
+      includesDeps.values.toSeq
     ).body
   }
 

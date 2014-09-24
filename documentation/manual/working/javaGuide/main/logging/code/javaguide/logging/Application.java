@@ -16,7 +16,7 @@ public class Application extends Controller {
   private static final ALogger logger = Logger.of(Application.class);
 
   @With(AccessLoggingAction.class)
-  public static Result index() {
+  public Result index() {
     try {
       final int result = riskyCalculation();
       return ok("Result=" + result);

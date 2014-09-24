@@ -51,7 +51,7 @@ public class JavaComet extends WithApplication {
 
     public static class Controller2 extends MockJavaAction {
         //#comet
-        public static Result index() {
+        public Result index() {
             return ok(Comet.whenConnected("console.log", comet -> {
                 comet.sendMessage("kiki");
                 comet.sendMessage("foo");
@@ -72,7 +72,7 @@ public class JavaComet extends WithApplication {
 
     public static class Controller3 extends MockJavaAction {
         //#forever-iframe
-        public static Result index() {
+        public Result index() {
             return ok(Comet.whenConnected("parent.cometMessage", comet -> {
                 comet.sendMessage("kiki");
                 comet.sendMessage("foo");

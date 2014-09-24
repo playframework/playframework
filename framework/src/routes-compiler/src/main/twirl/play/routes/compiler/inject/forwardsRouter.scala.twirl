@@ -3,8 +3,7 @@
 @import InjectedRoutesGenerator.Dependency
 
 @(sourceInfo: RoutesSourceInfo, pkg: Option[String], imports: Seq[String],
-  deps: Seq[Dependency[Rule]], rules: Seq[Dependency[Rule]], includes: Seq[Dependency[Include]],
-  hasDynamic: Boolean)
+  deps: Seq[Dependency[Rule]], rules: Seq[Dependency[Rule]], includes: Seq[Dependency[Include]])
 // @@GENERATOR:play-routes-compiler
 // @@SOURCE:@sourceInfo.source
 // @@DATE:@sourceInfo.date

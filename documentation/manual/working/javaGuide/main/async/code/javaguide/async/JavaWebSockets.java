@@ -19,7 +19,7 @@ public class JavaWebSockets {
     public static class ActorController1 {
 
         //#actor-accept
-        public static WebSocket<String> socket() {
+        public WebSocket<String> socket() {
             return WebSocket.withActor(new Function<ActorRef, Props>() {
                 public Props apply(ActorRef out) throws Throwable {
                     return MyWebSocketActor.props(out);
@@ -59,7 +59,7 @@ public class JavaWebSockets {
 
     public static class ActorController2 extends Controller {
         //#actor-reject
-        public static WebSocket<String> socket() {
+        public WebSocket<String> socket() {
             if (session().get("user") != null) {
                 return WebSocket.withActor(new Function<ActorRef, Props>() {
                     public Props apply(ActorRef out) throws Throwable {
@@ -75,7 +75,7 @@ public class JavaWebSockets {
 
     public static class ActorController4 extends Controller {
         //#actor-json
-        public static WebSocket<JsonNode> socket() {
+        public WebSocket<JsonNode> socket() {
             return WebSocket.withActor(new Function<ActorRef, Props>() {
                 public Props apply(ActorRef out) throws Throwable {
                     return MyWebSocketActor.props(out);
@@ -89,7 +89,7 @@ public class JavaWebSockets {
 
     public static class Controller1 {
         //#websocket
-        public static WebSocket<String> socket() {
+        public WebSocket<String> socket() {
             return new WebSocket<String>() {
 
                 // Called when the Websocket Handshake is done.
@@ -126,7 +126,7 @@ public class JavaWebSockets {
 
     public static class Controller2 {
         //#discard-input
-        public static WebSocket<String> socket() {
+        public WebSocket<String> socket() {
             return new WebSocket<String>() {
 
                 public void onReady(WebSocket.In<String> in, WebSocket.Out<String> out) {

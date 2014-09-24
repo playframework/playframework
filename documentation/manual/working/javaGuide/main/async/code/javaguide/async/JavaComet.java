@@ -26,7 +26,7 @@ public class JavaComet extends WithApplication {
 
     public static class Controller1 extends MockJavaAction {
         //#manual
-        public static Result index() {
+        public Result index() {
             // Prepare a chunked text stream
             Chunks<String> chunks = new StringChunks() {
 
@@ -56,7 +56,7 @@ public class JavaComet extends WithApplication {
 
     public static class Controller2 extends MockJavaAction {
         //#comet
-        public static Result index() {
+        public Result index() {
             Comet comet = new Comet("console.log") {
                 public void onConnected() {
                     sendMessage("kiki");
@@ -81,7 +81,7 @@ public class JavaComet extends WithApplication {
 
     public static class Controller3 extends MockJavaAction {
         //#forever-iframe
-        public static Result index() {
+        public Result index() {
             Comet comet = new Comet("parent.cometMessage") {
                 public void onConnected() {
                     sendMessage("kiki");

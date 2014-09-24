@@ -96,9 +96,14 @@ class ScalaInterceptorsSpec extends Specification with Controller {
 
   }
 
-  def contentOf(rh: RequestHeader, router: Router.Routes = Routes,g:GlobalSettings) = running(FakeApplication(withGlobal=Some(g)))(contentAsString(router.routes(rh) match {
-    case e: EssentialAction => e(rh).run
-  }))
+  def contentOf(rh: RequestHeader, router: Class[_ <: Router.Routes] = classOf[Routes], g: GlobalSettings) = {
+    val app = FakeApplication()
+    running(app) {
+      contentAsString(app.injector.instanceOf(router).routes(rh) match {
+        case e: EssentialAction => e(rh).run
+      })
+    }
+  }
 
 
 }

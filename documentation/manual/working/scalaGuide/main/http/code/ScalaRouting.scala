@@ -109,15 +109,15 @@ object ScalaRoutingSpec extends Specification {
       contentOf(FakeRequest("GET", "/foo")) must_== "showing page foo"
     }
     "support passing parameters from the query string" in {
-      contentOf(FakeRequest("GET", "/?page=foo"), query.Routes) must_== "showing page foo"
+      contentOf(FakeRequest("GET", "/?page=foo"), classOf[query.Routes]) must_== "showing page foo"
     }
     "support fixed values for parameters" in {
-      contentOf(FakeRequest("GET", "/foo"), fixed.Routes) must_== "showing page foo"
-      contentOf(FakeRequest("GET", "/"), fixed.Routes) must_== "showing page home"
+      contentOf(FakeRequest("GET", "/foo"), classOf[fixed.Routes]) must_== "showing page foo"
+      contentOf(FakeRequest("GET", "/"), classOf[fixed.Routes]) must_== "showing page home"
     }
     "support default values for parameters" in {
-      contentOf(FakeRequest("GET", "/clients"), defaultvalue.Routes) must_== "clients page 1"
-      contentOf(FakeRequest("GET", "/clients?page=2"), defaultvalue.Routes) must_== "clients page 2"
+      contentOf(FakeRequest("GET", "/clients"), classOf[defaultvalue.Routes]) must_== "clients page 1"
+      contentOf(FakeRequest("GET", "/clients?page=2"), classOf[defaultvalue.Routes]) must_== "clients page 2"
     }
     "support optional values for parameters" in {
       contentOf(FakeRequest("GET", "/api/list-all")) must_== "version None"
@@ -138,7 +138,12 @@ object ScalaRoutingSpec extends Specification {
 
   }
 
-  def contentOf(rh: RequestHeader, router: Router.Routes = Routes) = running(FakeApplication())(contentAsString(router.routes(rh) match {
-    case e: EssentialAction => e(rh).run
-  }))
+  def contentOf(rh: RequestHeader, router: Class[_ <: Router.Routes] = classOf[Routes]) = {
+    val app = FakeApplication()
+    running(app) {
+      contentAsString(app.injector.instanceOf(router).routes(rh) match {
+        case e: EssentialAction => e(rh).run
+      })
+    }
+  }
 }

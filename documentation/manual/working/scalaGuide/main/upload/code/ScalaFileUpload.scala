@@ -59,7 +59,7 @@ package scalaguide.upload.fileupload {
         uploaded.delete()
 
         val request = FakeRequest().withBody(TemporaryFile(tmpFile))
-        testAction(controllers.Application.upload, request)
+        testAction(new controllers.Application().upload, request)
 
         uploaded.delete()
         success
@@ -87,7 +87,7 @@ package scalaguide.upload.fileupload {
 
   }
   package controllers {
-    object Application extends Controller {
+    class Application extends Controller {
 
       //#upload-file-directly-action
         def upload = Action(parse.temporaryFile) { request =>

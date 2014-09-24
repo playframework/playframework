@@ -40,7 +40,7 @@ object JavaGlobalSpec extends PlaySpecification {
 
   def contentOf(url: String, global: GlobalSettings) = running(new TestServer(testServerPort, new FakeApplication(
     withGlobal = Some(new JavaGlobalSettingsAdapter(global))) {
-    override lazy val routes = Routes
+    override lazy val routes = new javaguide.global.Routes(new controllers.Application)
   })) {
     import play.api.Play.current
     await(WS.url("http://localhost:" + testServerPort + url).get()).body
@@ -48,7 +48,7 @@ object JavaGlobalSpec extends PlaySpecification {
 }
 
 package object controllers {
-  object Application {
+  class Application {
     def withInt(i: Int) = Action(Results.Ok)
     def normal = Action(Results.Ok("hi"))
     def error = Action(req => throw new RuntimeException("foobar"))

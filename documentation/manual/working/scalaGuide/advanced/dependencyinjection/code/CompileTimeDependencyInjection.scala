@@ -26,6 +26,12 @@ object CompileTimeDependencyInjection extends Specification {
       components.application must beAnInstanceOf[Application]
       components.myComponent must beAnInstanceOf[messages.MyComponent]
     }
+    "allow declaring a custom router" in {
+      val context = ApplicationLoader.createContext(environment)
+      val components = new routers.MyComponents(context)
+      components.application must beAnInstanceOf[Application]
+      components.routes must beAnInstanceOf[scalaguide.advanced.dependencyinjection.Routes]
+    }
   }
 
 }
@@ -71,4 +77,42 @@ class MyComponent(messages: MessagesApi) {
 }
 //#messages
 
+}
+
+package routers {
+
+import scalaguide.advanced.dependencyinjection.controllers
+import scalaguide.advanced.dependencyinjection.bar
+import scalaguide.advanced.dependencyinjection.Routes
+
+//#routers
+import play.api._
+import play.api.ApplicationLoader.Context
+
+class MyApplicationLoader extends ApplicationLoader {
+  def load(context: Context) = {
+    new MyComponents(context).application
+  }
+}
+
+class MyComponents(context: Context) extends BuiltInComponentsFromContext(context) {
+
+  lazy val routes = new Routes(applicationController, barRoutes, assets)
+
+  lazy val barRoutes = new bar.Routes()
+  lazy val applicationController = new controllers.Application()
+  lazy val assets = new controllers.Assets()
+}
+//#routers
+
+}
+
+package controllers {
+  import play.api.mvc._
+  class Application extends Controller {
+    def index = Action(Ok)
+    def foo = Action(Ok)
+  }
+
+  class Assets extends _root_.controllers.AssetsBuilder
 }

@@ -31,7 +31,7 @@ public class JavaStream extends WithApplication {
 
     public static class Controller1 extends MockJavaAction {
         //#chunked
-        public static Result index() {
+        public Result index() {
             // Prepare a chunked text stream
             Chunks<String> chunks = StringChunks.whenReady(
                 JavaStream::registerOutChannelSomewhere

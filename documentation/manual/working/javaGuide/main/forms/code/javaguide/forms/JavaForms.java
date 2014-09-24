@@ -55,7 +55,7 @@ public class JavaForms extends WithApplication {
     }
 
     public static class Controller1 extends MockJavaAction {
-        public static Result index() {
+        public Result index() {
             Form<User> userForm = Form.form(User.class);
             //#bind-from-request
             User user = userForm.bindFromRequest().get();
@@ -136,7 +136,7 @@ public class JavaForms extends WithApplication {
             }
         }
 
-        public static Result index() {
+        public Result index() {
             Form<User> userForm = Form.form(User.class).bind(ImmutableMap.of("email", "e"));
             //#handle-errors
             if (userForm.hasErrors()) {
@@ -175,7 +175,7 @@ public class JavaForms extends WithApplication {
 
     public static class Controller3 extends MockJavaAction {
         //#dynamic
-        public static Result hello() {
+        public Result hello() {
             DynamicForm requestData = Form.form().bindFromRequest();
             String firstname = requestData.get("firstname");
             String lastname = requestData.get("lastname");

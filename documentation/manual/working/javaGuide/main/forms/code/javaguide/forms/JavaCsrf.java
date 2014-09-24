@@ -70,7 +70,7 @@ public class JavaCsrf extends WithApplication {
     public static class Controller1 extends MockJavaAction {
         //#csrf-check
         @RequireCSRFCheck
-        public static Result save() {
+        public Result save() {
             // Handle body
             return ok();
         }
@@ -87,7 +87,7 @@ public class JavaCsrf extends WithApplication {
     public static class Controller2 extends MockJavaAction {
         //#csrf-add-token
         @AddCSRFToken
-        public static Result get() {
+        public Result get() {
             return ok(form.render());
         }
         //#csrf-add-token

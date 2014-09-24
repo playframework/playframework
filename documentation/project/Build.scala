@@ -2,7 +2,7 @@
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
 
-import play.routes.compiler.StaticRoutesGenerator
+import play.routes.compiler.InjectedRoutesGenerator
 import play.sbtplugin.routes.RoutesCompiler
 import sbt._
 import sbt.Keys._
@@ -112,11 +112,11 @@ object ApplicationBuild extends Build {
     },
 
     sourceGenerators in Test <+= (javaManualSourceDirectories, sourceManaged, streams) map { (from, to, s) =>
-      RoutesCompiler.compileRoutes((from * "*.routes").get, StaticRoutesGenerator, to, Seq("play.libs.F"), true, true,
+      RoutesCompiler.compileRoutes((from * "*.routes").get, InjectedRoutesGenerator, to, Seq("play.libs.F"), true, true,
         true, s.cacheDirectory / "javaroutes", s.log)
     },
     sourceGenerators in Test <+= (scalaManualSourceDirectories, sourceManaged, streams) map { (from, to, s) =>
-      RoutesCompiler.compileRoutes((from * "*.routes").get, StaticRoutesGenerator, to, Nil, true, true, true,
+      RoutesCompiler.compileRoutes((from * "*.routes").get, InjectedRoutesGenerator, to, Nil, true, true, true,
         s.cacheDirectory / "scalaroutes", s.log)
     },
 

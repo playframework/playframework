@@ -17,17 +17,17 @@ import static play.libs.Json.*;
 
 public class Application extends Controller {
 
-    public static Result index() {
+    public Result index() {
         return ok(index.render());
     }
 
-    public static Result addPerson() {
+    public Result addPerson() {
     	Person person = Form.form(Person.class).bindFromRequest().get();
     	person.save();
     	return redirect(routes.Application.index());
     }
 
-    public static Result getPersons() {
+    public Result getPersons() {
     	List<Person> persons = new Model.Finder(String.class, Person.class).all();
     	return ok(toJson(persons));
     }
