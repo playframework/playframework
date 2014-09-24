@@ -3,6 +3,8 @@
  */
 package play.api.data.format
 
+import java.util.UUID
+
 import play.api.data._
 
 import annotation.implicitNotFound
@@ -266,9 +268,19 @@ object Formats {
 
   /**
    * Default formatter for `org.joda.time.LocalDate` type with pattern `yyyy-MM-dd`.
-   *
-   * @param pattern a date pattern as specified in `org.joda.time.format.DateTimeFormat`.
    */
   implicit val jodaLocalDateFormat: Formatter[org.joda.time.LocalDate] = jodaLocalDateFormat("yyyy-MM-dd")
+
+  /**
+   * Default formatter for the `java.util.UUID` type.
+   */
+  implicit def uuidFormat: Formatter[UUID] = new Formatter[UUID] {
+
+    override val format = Some(("format.uuid", Nil))
+
+    override def bind(key: String, data: Map[String, String]) = parsing(UUID.fromString, "error.uuid", Nil)(key, data)
+
+    override def unbind(key: String, value: UUID) = Map(key -> value.toString)
+  }
 
 }

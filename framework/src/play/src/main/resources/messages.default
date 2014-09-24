@@ -16,6 +16,7 @@ constraint.email=Email
 format.date=Date (''{0}'')
 format.numeric=Numeric
 format.real=Real
+format.uuid=UUID
 
 # --- Errors
 error.invalid=Invalid value
@@ -33,6 +34,7 @@ error.maxLength=Maximum length is {0}
 error.email=Valid email required
 error.pattern=Must satisfy {0}
 error.date=Valid date required
+error.uuid=Valid UUID required
 
 error.expected.date=Date value expected
 error.expected.date.isoformat=Iso date value expected

@@ -423,6 +423,16 @@ object Forms {
   val date: Mapping[java.util.Date] = of[java.util.Date]
 
   /**
+   * Constructs a simple mapping for a UUID field.
+   *
+   * For example:
+   * {{{
+   * Form("id" -> uuid)
+   * }}}
+   */
+  val uuid: Mapping[java.util.UUID] = of[java.util.UUID]
+
+  /**
    * Define a fixed value in a mapping.
    * This mapping will not participate to the binding.
    *
