@@ -4,7 +4,7 @@
 package play.api.data.format
 
 import org.specs2.mutable.Specification
-import java.util.{Date, TimeZone}
+import java.util.{UUID, Date, TimeZone}
 
 import play.api.data._
 import play.api.data.Forms._
@@ -52,6 +52,27 @@ object FormatSpec extends Specification {
       Form( "value" -> bigDecimal(5,2) ).bind( Map( "value" -> "12111.23") ).fold(
         formWithErrors => { formWithErrors.errors.head.message must equalTo("error.real.precision") },
         { number => "The mapping should fail." must equalTo("Error") }
+      )
+    }
+  }
+
+  "A UUID mapping" should {
+
+    "return a proper UUID when given one" in {
+
+      val testUUID = UUID.randomUUID()
+
+      Form( "value" -> uuid ).bind( Map( "value" -> testUUID.toString) ).fold(
+        formWithErrors => { "The mapping should not fail." must equalTo("Error") },
+        { uuid => uuid must equalTo(testUUID) }
+      )
+    }
+
+    "give an error when an invalid UUID is passed in" in {
+
+      Form( "value" -> uuid ).bind( Map( "value" -> "Joe") ).fold(
+        formWithErrors => { formWithErrors.errors.head.message must equalTo("error.uuid") },
+        { uuid => uuid must equalTo(UUID.randomUUID()) }
       )
     }
   }
