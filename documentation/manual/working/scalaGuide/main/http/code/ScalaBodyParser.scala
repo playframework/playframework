@@ -3,7 +3,8 @@
  */
 package scalaguide.http.scalabodyparsers {
 
-  import play.api.mvc._
+import play.api.http.Writeable
+import play.api.mvc._
   import play.api.test._
   import play.api.test.Helpers._
   import org.specs2.mutable.Specification
@@ -15,6 +16,8 @@ package scalaguide.http.scalabodyparsers {
 
   @RunWith(classOf[JUnitRunner])
   class ScalaBodyParsersSpec extends Specification with Controller {
+
+    def helloRequest = FakeRequest("POST", "/").withTextBody("hello")
 
     "A scala body parser" should {
 
@@ -32,8 +35,7 @@ package scalaguide.http.scalabodyparsers {
           }
         }
         //#request-parse-as-text
-        val request = FakeRequest().withTextBody("hello").withHeaders(CONTENT_TYPE -> "text/plain")
-        testAction(save, request,BAD_REQUEST)
+        testAction(save, helloRequest)
       }
 
       "body parser text" in {
@@ -42,10 +44,7 @@ package scalaguide.http.scalabodyparsers {
           Ok("Got: " + request.body)
         }
         //#body-parser-text
-        val request = FakeRequest().withTextBody("hello").withHeaders(CONTENT_TYPE -> "text/plain")
-        //testAction(save, request)
-        testAction(save, request)
-
+        testAction(save, helloRequest)
       }
 
       "body parser tolerantText" in {
@@ -54,9 +53,7 @@ package scalaguide.http.scalabodyparsers {
           Ok("Got: " + request.body)
         }
         //#body-parser-tolerantText
-        val request = FakeRequest().withTextBody("hello")
-        //testAction(save, request)
-        testAction(save, request)
+        testAction(save, helloRequest)
       }
 
       "body parser file" in {
@@ -65,16 +62,13 @@ package scalaguide.http.scalabodyparsers {
           Ok("Saved the request content to " + request.body)
         }
         //#body-parser-file
-        def request = FakeRequest().withTextBody("hello").withSession("username" -> "player")
-        //testAction(save, request)
-        testAction(save, request)
+        testAction(save, helloRequest.withSession("username" -> "player"))
       }
 
       "body parser combining" in {
 
         val save = scalaguide.http.scalabodyparsers.full.Application.save
-        def request = FakeRequest().withTextBody("hello").withSession("username" -> "player")
-        testAction(save, request)
+        testAction(save, helloRequest.withSession("username" -> "player"))
       }
 
       "body parser limit text" in {
@@ -85,9 +79,7 @@ package scalaguide.http.scalabodyparsers {
           Ok("Got: " + text)
         }
         //#body-parser-limit-text
-        val request = FakeRequest().withTextBody("hello")
-        //testAction(save, request)
-        testAction(save, request,BAD_REQUEST)
+        testAction(save, helloRequest)
       }
 
       "body parser limit file" in {
@@ -98,19 +90,18 @@ package scalaguide.http.scalabodyparsers {
           Ok("Saved the request content to " + request.body)
         }
         //#body-parser-limit-file
-        def request = FakeRequest().withTextBody("hello").withSession("username" -> "player")
-        testAction(save, request)
+        testAction(save, helloRequest.withSession("username" -> "player"))
       }
 
     }
 
-    def testAction[A](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK) = {
+    def testAction[A: Writeable](action: EssentialAction, request: => FakeRequest[A], expectedResponse: Int = OK) = {
       assertAction(action, request, expectedResponse) { result => success }
     }
 
-    def assertAction[A, T: AsResult](action: EssentialAction, request:  => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Future[Result] => T) = {
-      running(FakeApplication(additionalConfiguration = Map("application.secret" -> "pass"))) {        
-        val result = action(request).run
+    def assertAction[A: Writeable, T: AsResult](action: EssentialAction, request: => FakeRequest[A], expectedResponse: Int = OK)(assertions: Future[Result] => T) = {
+      running(FakeApplication(additionalConfiguration = Map("application.secret" -> "pass"))) {
+        val result = call(action, request)
         status(result) must_== expectedResponse
         assertions(result)
       }

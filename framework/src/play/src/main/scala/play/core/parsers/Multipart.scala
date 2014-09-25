@@ -11,6 +11,7 @@ import play.api.libs.iteratee.Parsing.MatchInfo
 import play.api.libs.iteratee._
 import play.api.mvc._
 import play.api.mvc.MultipartFormData._
+import play.api.http.Status._
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
@@ -265,7 +266,7 @@ object Multipart {
   }
 
   private def createBadResult(msg: String): RequestHeader => Future[Result] = { request =>
-    Play.maybeApplication.map(_.global.onBadRequest(request, msg))
+    Play.maybeApplication.map(_.errorHandler.onClientError(request, BAD_REQUEST, msg))
       .getOrElse(Future.successful(Results.BadRequest))
   }
 }

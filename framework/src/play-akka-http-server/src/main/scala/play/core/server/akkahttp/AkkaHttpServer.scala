@@ -13,7 +13,7 @@ import com.typesafe.config.{ ConfigFactory, Config }
 import java.net.InetSocketAddress
 import org.reactivestreams._
 import play.api._
-import play.api.http.{ HeaderNames, MediaType }
+import play.api.http.{ DefaultHttpErrorHandler, HeaderNames, MediaType }
 import play.api.libs.iteratee._
 import play.api.libs.streams.Streams
 import play.api.mvc._
@@ -131,8 +131,8 @@ class AkkaHttpServer(config: ServerConfig, appProvider: ApplicationProvider) ext
   /** Error handling to use during execution of a handler (e.g. an action) */
   private def handleHandlerError(tryApp: Try[Application], rh: RequestHeader, t: Throwable): Future[Result] = {
     tryApp match {
-      case Success(app) => app.handleError(rh, t)
-      case Failure(_) => globalSettingsForApp(tryApp).onError(rh, t)
+      case Success(app) => app.errorHandler.onServerError(rh, t)
+      case Failure(_) => DefaultHttpErrorHandler.onServerError(rh, t)
     }
   }
 

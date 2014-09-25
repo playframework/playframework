@@ -20,6 +20,7 @@ import java.util.Locale
 import scala.util.control.NonFatal
 import play.api.http.HttpVerbs
 import play.utils.PlayIO
+import play.api.http.Status._
 
 /**
  * A request body that adapts automatically according the request Content-Type.
@@ -326,7 +327,7 @@ trait BodyParsers {
     def text(maxLength: Int): BodyParser[String] = when(
       _.contentType.exists(_.equalsIgnoreCase("text/plain")),
       tolerantText(maxLength),
-      createBadResult("Expecting text/plain body")
+      createBadResult("Expecting text/plain body", UNSUPPORTED_MEDIA_TYPE)
     )
 
     /**
@@ -386,7 +387,7 @@ trait BodyParsers {
     def json(maxLength: Int): BodyParser[JsValue] = when(
       _.contentType.exists(m => m.equalsIgnoreCase("text/json") || m.equalsIgnoreCase("application/json")),
       tolerantJson(maxLength),
-      createBadResult("Expecting text/json or application/json body")
+      createBadResult("Expecting text/json or application/json body", UNSUPPORTED_MEDIA_TYPE)
     )
 
     /**
@@ -507,7 +508,7 @@ trait BodyParsers {
         tl.startsWith("text/xml") || tl.startsWith("application/xml") || ApplicationXmlMatcher.pattern.matcher(tl).matches()
       },
       tolerantXml(maxLength),
-      createBadResult("Expecting xml body")
+      createBadResult("Expecting xml body", UNSUPPORTED_MEDIA_TYPE)
     )
 
     /**
@@ -570,7 +571,7 @@ trait BodyParsers {
     def urlFormEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] = when(
       _.contentType.exists(_.equalsIgnoreCase("application/x-www-form-urlencoded")),
       tolerantFormUrlEncoded(maxLength),
-      createBadResult("Expecting application/x-www-form-urlencoded body")
+      createBadResult("Expecting application/x-www-form-urlencoded body", UNSUPPORTED_MEDIA_TYPE)
     )
 
     /**
@@ -716,8 +717,8 @@ trait BodyParsers {
       }
     }
 
-    private def createBadResult(msg: String): RequestHeader => Future[Result] = { request =>
-      Play.maybeApplication.map(_.global.onBadRequest(request, msg))
+    private def createBadResult(msg: String, statusCode: Int = BAD_REQUEST): RequestHeader => Future[Result] = { request =>
+      Play.maybeApplication.map(_.errorHandler.onClientError(request, statusCode, msg))
         .getOrElse(Future.successful(Results.BadRequest))
     }
 

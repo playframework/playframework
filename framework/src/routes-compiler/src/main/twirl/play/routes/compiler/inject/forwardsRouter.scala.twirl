@@ -21,23 +21,24 @@ import @if(!i.startsWith("_root_.")){_root_.}@i}
 
 import Router.queryString
 
-class Routes(@for(dep <- deps){
+class Routes(
+  override val errorHandler: play.api.http.HttpErrorHandler, @for(dep <- deps){
   @markLines(dep.rule)
   @dep.ident: @dep.clazz,}
   val prefix: String
 ) extends Router.Routes @ob
 
    @@javax.inject.Inject()
-   def this(@concatSep(deps, ",") { dep =>
+   def this(errorHandler: play.api.http.HttpErrorHandler@for(dep <- deps) {,
     @markLines(dep.rule)
     @dep.ident: @dep.clazz}
-  ) = this(@for(dep <- deps){@dep.ident, }"/")
+  ) = this(errorHandler, @for(dep <- deps){@dep.ident, }"/")
 
   import ReverseRouteContext.empty
 
   def withPrefix(prefix: String): Routes = @ob
     @(pkg.getOrElse("_routes_")).RoutesPrefix.setPrefix(prefix)
-    new Routes(@for(dep <- deps){@dep.ident, }prefix)
+    new Routes(errorHandler, @for(dep <- deps){@dep.ident, }prefix)
   @cb
 
   private[this] val defaultPrefix: String = @ob

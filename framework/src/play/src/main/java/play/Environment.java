@@ -102,4 +102,8 @@ public class Environment {
     public InputStream resourceAsStream(String relativePath) {
         return Scala.orNull(env.resourceAsStream(relativePath));
     }
+
+    public play.api.Environment underlying() {
+        return env;
+    }
 }

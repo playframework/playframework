@@ -24,6 +24,8 @@ class Routes extends Router.Routes {
 
   import ReverseRouteContext.empty
 
+  override val errorHandler = play.api.http.LazyHttpErrorHandler
+
   private var _prefix = "/"
 
   def withPrefix(prefix: String): Routes = @ob

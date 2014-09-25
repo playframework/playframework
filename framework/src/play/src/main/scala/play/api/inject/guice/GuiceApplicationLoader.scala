@@ -33,6 +33,8 @@ class GuiceApplicationLoader(val additionalModules: GuiceModule*) extends Applic
   protected def loadModules(env: Environment, conf: Configuration): Seq[GuiceModule] =
     Modules.locate(env, conf).map(guicify(env, conf, _)) ++ additionalModules
 
+  import GuiceApplicationLoader._
+
   def load(context: ApplicationLoader.Context): Application = {
 
     val env = context.environment
@@ -85,7 +87,14 @@ class GuiceApplicationLoader(val additionalModules: GuiceModule*) extends Applic
     )
   }
 
-  private def guiced(bindings: Seq[PlayBinding[_]]): GuiceModule = {
+}
+
+object GuiceApplicationLoader {
+
+  /**
+   * Convert the given bindings Play bindings to a Guice module
+   */
+  private[play] def guiced(bindings: Seq[PlayBinding[_]]): AbstractModule = {
     new AbstractModule {
       def configure(): Unit = {
         for (b <- bindings) {
@@ -107,7 +116,6 @@ class GuiceApplicationLoader(val additionalModules: GuiceModule*) extends Applic
       }
     }
   }
-
 }
 
 object GuiceKey {

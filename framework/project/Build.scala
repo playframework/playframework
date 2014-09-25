@@ -74,7 +74,7 @@ object BuildSettings {
     parallelExecution in PerformanceTest := false
   )
 
-  def makeJavacOptions(version: String) = Seq("-source", version, "-target", version, "-encoding", "UTF-8", "-Xlint:-options")
+  def makeJavacOptions(version: String) = Seq("-source", version, "-target", version, "-encoding", "UTF-8", "-Xlint:-options", "-J-Xmx512m")
 
   /**
    * A project that is shared between the SBT runtime and the Play runtime

@@ -1,11 +1,8 @@
 package play.it.views
 
-import play.api.test.PlaySpecification
-
+import play.api.{ Configuration, Mode, Environment }
+import play.api.http.DefaultHttpErrorHandler
 import play.api.test._
-import play.api.DefaultGlobal
-import java.lang.String
-import scala.Predef.String
 
 object DevErrorPageSpec extends PlaySpecification {
 
@@ -18,24 +15,17 @@ object DevErrorPageSpec extends PlaySpecification {
       def sourceName = "someSourceFile"
     }
 
-    "link the error line if play.editor is configured" in {
-      try {
-        System.setProperty("play.editor", "someEditorLinkWith %s:%s")
-        val result = DefaultGlobal.onError(FakeRequest(), testExceptionSource)
-        Helpers.contentAsString(result) must contain("""href="someEditorLinkWith someSourceFile:100" """)
-      } finally {
-        System.clearProperty("play.editor")
-      }
+    "link the error line if play.editor is configured" in new WithApplication(FakeApplication(
+      additionalConfiguration = Map("play.editor" -> "someEditorLinkWith %s:%s")
+    )) {
+      val result = app.errorHandler.onServerError(FakeRequest(), testExceptionSource)
+      contentAsString(result) must contain("""href="someEditorLinkWith someSourceFile:100" """)
     }
 
     "show prod error page in prod mode" in {
-      val fakeApplication = new FakeApplication() {
-        override val mode = play.api.Mode.Prod
-      }
-      running(fakeApplication) {
-        val result = DefaultGlobal.onError(FakeRequest(), testExceptionSource)
-        Helpers.contentAsString(result) must contain("Oops, an error occurred")
-      }
+      val errorHandler = new DefaultHttpErrorHandler(Environment.simple(Mode.Prod), Configuration.empty)
+      val result = errorHandler.onServerError(FakeRequest(), testExceptionSource)
+      Helpers.contentAsString(result) must contain("Oops, an error occurred")
     }
   }
 

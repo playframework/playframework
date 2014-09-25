@@ -9,10 +9,10 @@ import play.api.mvc._
 import java.io.File
 import play.core.j
 
-import scala.util.control.NonFatal
 import scala.concurrent.Future
-import play.api.http.HttpVerbs
+import play.api.http.{ HttpErrorHandler, DefaultHttpErrorHandler, HttpVerbs }
 import play.core.actions.HeadAction
+import play.api.http.Status._
 
 /**
  * Defines an application’s global settings.
@@ -30,7 +30,21 @@ import play.core.actions.HeadAction
  */
 trait GlobalSettings {
 
-  import Results._
+  /**
+   * Note, this should only be used for the default implementations of onError, onHandlerNotFound and onBadRequest.
+   */
+  private def defaultErrorHandler: HttpErrorHandler = {
+    Play.maybeApplication.fold[HttpErrorHandler](DefaultHttpErrorHandler) { app =>
+      app.injector.instanceOf[DefaultHttpErrorHandler]
+    }
+  }
+
+  /**
+   * This should be used for all invocations of error handling in Global.
+   */
+  private def configuredErrorHandler: HttpErrorHandler = {
+    Play.maybeApplication.fold[HttpErrorHandler](DefaultHttpErrorHandler)(_.errorHandler)
+  }
 
   /**
    * Called before the application starts.
@@ -81,7 +95,9 @@ trait GlobalSettings {
    * Default is: route, tag request, then apply filters
    */
   def onRequestReceived(request: RequestHeader): (RequestHeader, Handler) = {
-    val notFoundHandler = Action.async(BodyParsers.parse.empty)(this.onHandlerNotFound)
+    val notFoundHandler = Action.async(BodyParsers.parse.empty)(req =>
+      configuredErrorHandler.onClientError(request, NOT_FOUND)
+    )
     val (routedRequest, handler) = onRouteRequest(request) map {
       case handler: RequestTaggingHandler => (handler.tagRequest(request), handler)
       case otherHandler => (request, otherHandler)
@@ -128,7 +144,8 @@ trait GlobalSettings {
    * @return an action to handle this request - if no action is returned, a 404 not found result will be sent to client
    * @see onHandlerNotFound
    */
-  def onRouteRequest(request: RequestHeader): Option[Handler] = Play.maybeApplication.flatMap(_.routes.handlerFor(request))
+  def onRouteRequest(request: RequestHeader): Option[Handler] =
+    Play.maybeApplication.flatMap(_.routes.handlerFor(request))
 
   /**
    * Called when an exception occurred.
@@ -139,26 +156,8 @@ trait GlobalSettings {
    * @param ex The exception
    * @return The result to send to the client
    */
-  def onError(request: RequestHeader, ex: Throwable): Future[Result] = {
-    def devError = views.html.defaultpages.devError(Option(System.getProperty("play.editor"))) _
-    def prodError = views.html.defaultpages.error.f
-    try {
-      Future.successful(InternalServerError(Play.maybeApplication.map {
-        case app if app.mode == Mode.Prod => prodError
-        case app => devError
-      }.getOrElse(devError) {
-        ex match {
-          case e: UsefulException => e
-          case NonFatal(e) => UnexpectedException(unexpected = Some(e))
-        }
-      }))
-    } catch {
-      case NonFatal(e) => {
-        Logger.error("Error while rendering default error page", e)
-        Future.successful(InternalServerError)
-      }
-    }
-  }
+  def onError(request: RequestHeader, ex: Throwable): Future[Result] =
+    defaultErrorHandler.onServerError(request, ex)
 
   /**
    * Called when no action was found to serve a request.
@@ -168,12 +167,8 @@ trait GlobalSettings {
    * @param request the HTTP request header
    * @return the result to send to the client
    */
-  def onHandlerNotFound(request: RequestHeader): Future[Result] = {
-    Future.successful(NotFound(Play.maybeApplication.map {
-      case app if app.mode != Mode.Prod => views.html.defaultpages.devNotFound.f
-      case app => views.html.defaultpages.notFound.f
-    }.getOrElse(views.html.defaultpages.devNotFound.f)(request, Play.maybeApplication.map(_.routes))))
-  }
+  def onHandlerNotFound(request: RequestHeader): Future[Result] =
+    defaultErrorHandler.onClientError(request, play.api.http.Status.NOT_FOUND)
 
   /**
    * Called when an action has been found, but the request parsing has failed.
@@ -183,9 +178,8 @@ trait GlobalSettings {
    * @param request the HTTP request header
    * @return the result to send to the client
    */
-  def onBadRequest(request: RequestHeader, error: String): Future[Result] = {
-    Future.successful(BadRequest(views.html.defaultpages.badRequest(request, error)))
-  }
+  def onBadRequest(request: RequestHeader, error: String): Future[Result] =
+    defaultErrorHandler.onClientError(request, play.api.http.Status.BAD_REQUEST, error)
 
   def onRequestCompletion(request: RequestHeader) {
   }
