@@ -3,6 +3,8 @@
  */
 package play.api.libs.ws
 
+import java.net.URI
+
 import scala.concurrent.{ Future, ExecutionContext }
 
 import java.io.File
@@ -342,9 +344,23 @@ case object EmptyBody extends WSBody
 trait WSRequestHolder {
 
   /**
-   * The URL for this request
+   * The base URL for this request
    */
   val url: String
+
+  /**
+   * The URI for this request
+   */
+  lazy val uri: URI = {
+    val enc = (p: String) => java.net.URLEncoder.encode(p, "utf-8")
+    new java.net.URI(if (queryString.isEmpty) url else {
+      val qs = (for {
+        (n, vs) <- queryString
+        v <- vs
+      } yield s"${enc(n)}=${enc(v)}").mkString("&")
+      s"$url?$qs"
+    })
+  }
 
   /**
    * The method for this request
