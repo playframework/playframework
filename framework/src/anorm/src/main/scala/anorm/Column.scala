@@ -320,6 +320,13 @@ object Column extends JodaColumn {
         case _ => Right(p)
       }
 
+    @annotation.tailrec
+    def jiter(i: java.util.Iterator[_], p: Array[T]): MayErr[SqlRequestError, Array[T]] = if (!i.hasNext) Right(p)
+    else transformer(i.next, meta).toEither match {
+      case Right(v) => jiter(i, p :+ v)
+      case Left(cause) => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified: $cause"))
+    }
+
     value match {
       case sql: java.sql.Array => try {
         transf(sql.getArray.asInstanceOf[Array[_]], Array.empty[T])
@@ -331,6 +338,12 @@ object Column extends JodaColumn {
         transf(arr, Array.empty[T])
       } catch {
         case _: Throwable => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified"))
+      }
+
+      case it: java.lang.Iterable[_] => try {
+        jiter(it.iterator, Array.empty[T])
+      } catch {
+        case _: Throwable => Left(TypeDoesNotMatch(s"Cannot convert iterable $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified"))
       }
 
       case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to array for column $qualified"))
@@ -357,17 +370,30 @@ object Column extends JodaColumn {
         case _ => Right(p)
       }
 
+    @annotation.tailrec
+    def jiter(i: java.util.Iterator[_], p: List[T]): MayErr[SqlRequestError, List[T]] = if (!i.hasNext) Right(p)
+    else transformer(i.next, meta).toEither match {
+      case Right(v) => jiter(i, p :+ v)
+      case Left(cause) => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified: $cause"))
+    }
+
     value match {
       case sql: java.sql.Array => try {
         transf(sql.getArray.asInstanceOf[Array[_]], Nil)
       } catch {
-        case _: Throwable => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified"))
+        case _: Throwable => Left(TypeDoesNotMatch(s"Cannot convert SQL array $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified"))
       }
 
       case arr: Array[_] => try {
         transf(arr, Nil)
       } catch {
-        case _: Throwable => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified"))
+        case _: Throwable => Left(TypeDoesNotMatch(s"Cannot convert array $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified"))
+      }
+
+      case it: java.lang.Iterable[_] => try {
+        jiter(it.iterator, Nil)
+      } catch {
+        case _: Throwable => Left(TypeDoesNotMatch(s"Cannot convert iterable $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified"))
       }
 
       case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified"))

@@ -538,6 +538,15 @@ object ColumnSpec
           aka("parsed array") mustEqual idArray
       }
 
+    val jset = {
+      val l = new java.util.TreeSet[String](); l.add("CD"); l.add("EF"); l
+    }
+    "be parsed from Java iterable" in withQueryResult(
+      rowList1(classOf[java.util.Collection[String]]) :+ jset) { implicit con =>
+        SQL"SELECT it".as(scalar[Array[String]].singleOpt).
+          aka("parsed iterable") must beSome.which(_ must_== Array("CD", "EF"))
+      }
+
     "have convinience mapping function" in withQueryResult(
       rowList1(classOf[SqlArray]).withLabels(1 -> "a") :+ sqlArray) {
         implicit con =>
@@ -594,10 +603,18 @@ object ColumnSpec
           aka("parsed array") mustEqual idArray.toList
       }
 
+    val jlist = {
+      val l = new java.util.ArrayList[String](); l.add("A"); l.add("B"); l
+    }
+    "be parsed from Java iterable" in withQueryResult(
+      rowList1(classOf[java.lang.Iterable[String]]) :+ jlist) { implicit con =>
+        SQL"SELECT it".as(SqlParser.list[String](1).singleOpt).
+          aka("parsed iterable") must beSome.which(_ must_== List("A", "B"))
+      }
+
     "have convinience mapping function" in withQueryResult(
       rowList1(classOf[SqlArray]).withLabels(1 -> "a") :+ sqlArray) {
         implicit con =>
-
           SQL"SELECT a".as(SqlParser.list[String]("a").single).
             aka("parsed array") mustEqual List("aB", "Cd", "EF")
       }
