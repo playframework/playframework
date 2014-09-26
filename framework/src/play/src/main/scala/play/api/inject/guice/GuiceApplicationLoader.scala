@@ -17,7 +17,9 @@ class GuiceLoadException(message: String) extends RuntimeException(message)
 /**
  * An ApplicationLoader that uses guice to bootstrap the application.
  */
-class GuiceApplicationLoader(val additionalModules: GuiceModule*) extends ApplicationLoader {
+class GuiceApplicationLoader(_additionalModules: GuiceModule*) extends ApplicationLoader {
+  val additionalModules: Seq[GuiceModule] = _additionalModules
+
   def this() = this(Seq.empty: _*)
 
   /**

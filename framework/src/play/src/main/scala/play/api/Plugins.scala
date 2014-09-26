@@ -54,9 +54,9 @@ private[play] object Plugin {
   type Deprecated = Plugin
 }
 
-class Plugins(plugins: => IndexedSeq[Plugin.Deprecated]) extends IndexedSeqLike[Plugin.Deprecated, IndexedSeq[Plugin.Deprecated]] with IndexedSeq[Plugin.Deprecated] {
+class Plugins(plugins: => Seq[Plugin.Deprecated]) extends IndexedSeqLike[Plugin.Deprecated, IndexedSeq[Plugin.Deprecated]] with IndexedSeq[Plugin.Deprecated] {
   // Fix circular dependency
-  private lazy val thePlugins = plugins
+  private lazy val thePlugins = plugins.toIndexedSeq
   def length = thePlugins.length
   def apply(idx: Int) = thePlugins(idx)
 }

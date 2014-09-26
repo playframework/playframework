@@ -5,6 +5,7 @@ package play.api.test
 
 import java.util.concurrent.TimeUnit
 
+import play.api._
 import play.api.mvc._
 
 import play.api.test.Helpers._
@@ -14,10 +15,61 @@ import org.specs2.specification.Scope
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import com.google.inject.AbstractModule
 
 object FakesSpec extends PlaySpecification {
 
   sequential
+
+  private def load(loader: ApplicationLoader) = {
+    val context = ApplicationLoader.createContext(new Environment(new java.io.File("."), ApplicationLoader.getClass.getClassLoader, Mode.Test))
+    loader.load(context)
+  }
+
+  "FakeApplicationLoader" should {
+    "allow adding routes inline" in {
+      val app = load(FakeApplicationLoader(
+        withRoutes = {
+          case ("GET", "/inline") => Action {
+            Results.Ok("inline route")
+          }
+        }
+      ))
+      running(app) {
+        val result = route(app, FakeRequest("GET", "/inline"))
+        result must beSome
+        contentAsString(result.get) must_== "inline route"
+        route(app, FakeRequest("GET", "/foo")) must beNone
+      }
+    }
+
+    "allow altering global" in {
+      val global = new GlobalSettings {}
+      val app = load(FakeApplicationLoader(
+        withGlobal = Some(global)
+      ))
+      running(app) {
+        app.injector.instanceOf[GlobalSettings] must_== global
+      }
+    }
+  }
+
+  "FakeGuiceLoader" should {
+    "allow adding additional modules" in {
+      val app = load(FakeGuiceLoader(
+        additionalModules = Seq(new AbstractModule {
+          def configure() = {
+            bind(classOf[String]).toInstance("foo")
+            bind(classOf[Boolean]).toInstance(false)
+          }
+        })
+      ))
+      running(app) {
+        app.injector.instanceOf[String] must_== "foo"
+        app.injector.instanceOf[Boolean] must beFalse
+      }
+    }
+  }
 
   "FakeApplication" should {
 
