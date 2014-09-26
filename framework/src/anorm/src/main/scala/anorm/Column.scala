@@ -396,6 +396,12 @@ object Column extends JodaColumn {
         case _: Throwable => Left(TypeDoesNotMatch(s"Cannot convert iterable $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified"))
       }
 
+      case arr: java.util.Collection[_] => try {
+        transf(arr.toArray, Nil)
+      } catch {
+        case _: Throwable => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified"))
+      }
+
       case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified"))
     }
   }
