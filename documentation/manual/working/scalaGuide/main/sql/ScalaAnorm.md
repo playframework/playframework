@@ -704,18 +704,20 @@ Short                  | No                     | No                     | No   
 
 Second table shows mapping for other supported types (texts, dates, ...).
 
-↓JDBC / JVM➞      | Array[T]<sup>3</sup> | Char | Date | List<sup>3</sup> | String | UUID<sup>4</sup>
------------------ | -------------------- | ---- | ---- | ---------------- | ------ | ----------------
-Array<sup>5</sup> | Yes                  | No   | No   | Yes              | No     | No
-Clob              | No                   | Yes  | No   | No               | Yes    | No
-Date              | No                   | No   | Yes  | No               | No     | No
-Long              | No                   | No   | Yes  | No               | No     | No
-String            | No                   | Yes  | No   | No               | Yes    | No
-UUID              | No                   | No   | No   | No               | No     | Yes
+↓JDBC / JVM➞         | Array[T]<sup>3</sup> | Char | Date | List<sup>3</sup> | String | UUID<sup>4</sup>
+-------------------- | -------------------- | ---- | ---- | ---------------- | ------ | ----------------
+Array<sup>5</sup>    | Yes                  | No   | No   | Yes              | No     | No
+Clob                 | No                   | Yes  | No   | No               | Yes    | No
+Date                 | No                   | No   | Yes  | No               | No     | No
+Iterable<sup>6</sup> | Yes                  | No   | Yes  | Yes              | No     | No
+Long                 | No                   | No   | Yes  | No               | No     | No
+String               | No                   | Yes  | No   | No               | Yes    | No
+UUID                 | No                   | No   | No   | No               | No     | Yes
 
 - 3. Array which type `T` of elements is supported.
 - 4. Type `java.util.UUID`.
 - 5. Type `java.sql.Array`.
+- 6. Type `java.lang.Iterable[_]`.
 
 Optional column can be parsed as `Option[T]`, as soon as `T` is supported.
 
