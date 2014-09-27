@@ -11,6 +11,8 @@ import java.lang.{
   Short => JShort
 }
 
+import java.util.{ UUID => JUUID }
+
 import java.math.{ BigDecimal => JBigDec, BigInteger }
 
 import java.sql.{ PreparedStatement, Types, Timestamp }
@@ -382,11 +384,11 @@ object ToStatement extends JodaToStatement {
    *
    * {{{
    * SQL("INSERT INTO lang_tbl(id, name) VALUE ({i}, {n})").
-   *   on("i" -> java.util.UUID.randomUUID(), "n" -> "lang")
+   *   on("i" -> JUUID.randomUUID(), "n" -> "lang")
    * }}}
    */
-  implicit object uuidToStatement extends ToStatement[java.util.UUID] {
-    def set(s: PreparedStatement, index: Int, id: java.util.UUID): Unit =
+  implicit object uuidToStatement extends ToStatement[JUUID] {
+    def set(s: PreparedStatement, index: Int, id: JUUID): Unit =
       if (id != null) s.setString(index, id.toString)
       else s.setNull(index, Types.VARCHAR)
   }
@@ -502,11 +504,40 @@ object ToStatement extends JodaToStatement {
       if (ps == null) throw new IllegalArgumentException()
       else ps.foldLeft(offset) { (i, p) => c.set(s, i, p); i + 1 }
   }
+
+  /**
+   * Sets an array parameter on statement.
+   * @see [[java.sql.Array]]
+   *
+   * {{{
+   * SQL("INSERT INTO Table(arr) VALUES {a}").on(Array("A", "2", "C"))
+   * }}}
+   */
+  implicit def arrayToParameter[A <: AnyRef](implicit m: ParameterMetaData[A]) =
+    new ToStatement[Array[A]] with NotNullGuard {
+      def set(s: PreparedStatement, i: Int, arr: Array[A]) =
+        if (arr == null) throw new IllegalArgumentException()
+        else s.setArray(i, s.getConnection.createArrayOf(
+          m.sqlType, arr.map(a => a: AnyRef)))
+    }
 }
 
 import org.joda.time.{ DateTime, Instant }
 
-sealed trait JodaToStatement {
+/** Meta data for Joda parameters */
+object JodaParameterMetaData {
+  /** Date/time parameter meta data */
+  implicit object JodaDateTimeMetaData extends ParameterMetaData[DateTime] {
+    val sqlType = "TIMESTAMP"
+  }
+
+  /** Instant parameter meta data */
+  implicit object JodaInstantMetaData extends ParameterMetaData[Instant] {
+    val sqlType = "TIMESTAMP"
+  }
+}
+
+sealed trait JodaToStatement { // TODO: Move in a separate file
   /**
    * Sets joda-time DateTime as statement parameter.
    * For `null` value, `setNull` with `TIMESTAMP` is called on statement.

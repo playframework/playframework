@@ -12,8 +12,7 @@ import acolyte.jdbc.AcolyteDSL.{
 import acolyte.jdbc.{
   UpdateExecution,
   QueryResult,
-  ExecutedParameter,
-  ParameterMetaData
+  ExecutedParameter
 }
 import acolyte.jdbc.RowLists
 import RowLists.{ stringList, longList, rowList1, rowList2, rowList3 }
@@ -409,7 +408,9 @@ object AnormSpec extends Specification with H2Database with AnormTest {
       rowList1(classOf[String] -> "foo") :+ "A" :+ "B") { implicit c =>
         var first = false
         SQL"SELECT str" withResult {
-          case Some(_) => first = true; sys.error("Failure")
+          case Some(_) =>
+            first = true; sys.error("Failure")
+          case _ => sys.error("Unexpected")
         } aka "processing with failure" must beLeft.like {
           case err :: Nil => err.getMessage aka "failure" must_== "Failure"
         } and (first aka "first read" must beTrue)

@@ -11,13 +11,17 @@ import java.lang.{
 import java.math.{ BigDecimal => JBigDec, BigInteger }
 import java.util.Date
 
-import java.sql.{ SQLFeatureNotSupportedException, Timestamp }
+import java.sql.{
+  Array => JdbcArray,
+  SQLFeatureNotSupportedException,
+  Timestamp
+}
 
 import scala.collection.immutable.SortedSet
 
 import acolyte.jdbc.{
   DefinedParameter => DParam,
-  ParameterMetaData,
+  ParameterMetaData => ParamMeta,
   UpdateExecution
 }
 import acolyte.jdbc.AcolyteDSL.{ connection, handleStatement }
@@ -35,18 +39,19 @@ object ParameterSpec
   val Date1 = new Date()
   val Timestamp1 = { val ts = new Timestamp(123l); ts.setNanos(123456789); ts }
   val uuid1 = java.util.UUID.randomUUID; val Uuid1str = uuid1.toString
-  val SqlStr = ParameterMetaData.Str
-  val SqlBool = ParameterMetaData.Bool
-  val SqlInt = ParameterMetaData.Int
-  val SqlByte = ParameterMetaData.Byte
-  val SqlShort = ParameterMetaData.Short
-  val SqlLong = ParameterMetaData.Long
-  val SqlFloat = ParameterMetaData.Float(1.23f)
-  val SqlDouble3s = ParameterMetaData.Double(23.456d)
-  val SqlDouble2s = ParameterMetaData.Double(23.45d)
-  val SqlTimestamp = ParameterMetaData.Timestamp
-  val SqlInt1 = ParameterMetaData.Numeric(Jbi1bd)
-  val SqlDec1 = ParameterMetaData.Numeric(Jbd1)
+  val SqlArr = ParamMeta.Array
+  val SqlStr = ParamMeta.Str
+  val SqlBool = ParamMeta.Bool
+  val SqlInt = ParamMeta.Int
+  val SqlByte = ParamMeta.Byte
+  val SqlShort = ParamMeta.Short
+  val SqlLong = ParamMeta.Long
+  val SqlFloat = ParamMeta.Float(1.23f)
+  val SqlDouble3s = ParamMeta.Double(23.456d)
+  val SqlDouble2s = ParamMeta.Double(23.45d)
+  val SqlTimestamp = ParamMeta.Timestamp
+  val SqlInt1 = ParamMeta.Numeric(Jbi1bd)
+  val SqlDec1 = ParamMeta.Numeric(Jbd1)
 
   def withConnection[A](ps: (String, String)*)(f: java.sql.Connection => A): A = f(connection(handleStatement withUpdateHandler {
     case UpdateExecution("set-str ?",
@@ -167,6 +172,9 @@ object ParameterSpec
       DParam(Uuid1str, SqlStr) :: Nil) => 1 /* case ok */
     case UpdateExecution("set-null-uuid ?",
       DParam(null, SqlStr) :: Nil) => 1 /* case ok */
+    case UpdateExecution("set-array ?", DParam(
+      a: JdbcArray, SqlArr) :: Nil) if (
+      a.getArray.asInstanceOf[Array[_]].toList == List("a", "b", "c")) => 1 // ok
   }, ps: _*))
 
   "Named parameters" should {
@@ -582,6 +590,16 @@ object ParameterSpec
             case q @ SimpleSql(
               SqlQuery("set-vector %s", "vector" :: Nil, _), ps, _) if (
               ps.size == 1 && ps.contains("vector")) =>
+              q.execute() aka "execution" must beFalse
+          }
+      }
+
+      "accept Array of String" in withConnection() { implicit c =>
+        SQL("set-array {array}").on("array" -> Array("a", "b", "c")).
+          aka("query") must beLike {
+            case q @ SimpleSql(
+              SqlQuery("set-array %s", "array" :: Nil, _), ps, _) if (
+              ps.size == 1 && ps.contains("array")) =>
               q.execute() aka "execution" must beFalse
           }
       }

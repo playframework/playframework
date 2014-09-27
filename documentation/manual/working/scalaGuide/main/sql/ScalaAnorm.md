@@ -294,6 +294,13 @@ val param: Seq[String] = seq
 SQL"SELECT * FROM Test WHERE cat in ($param)"
 ```
 
+In case parameter type is JDBC array (`java.sql.Array`), its value can be passed as `Array[T]`, as long as element type `T` is a supported one.
+
+```scala
+val arr = Array("fr", "en", "ja")
+SQL"UPDATE Test SET langs = $arr".execute()
+```
+
 A column can also be multi-value if its type is JDBC array (`java.sql.Array`), then it can be mapped to either array or list (`Array[T]` or `List[T]`), provided type of element (`T`) is also supported in column mapping.
 
 ```scala
@@ -813,42 +820,45 @@ The following table indicates how JVM types are mapped to JDBC parameter types:
 
 JVM                       | JDBC                                                  | Nullable
 --------------------------|-------------------------------------------------------|----------
-Char<sup>1</sup>/String   | String                                                | Yes
-BigDecimal<sup>2</sup>    | BigDecimal                                            | Yes
-BigInteger<sup>3</sup>    | BigDecimal                                            | Yes
-Boolean<sup>4</sup>       | Boolean                                               | Yes
-Byte<sup>5</sup>          | Byte                                                  | Yes
+Array[T]<sup>1</sup>      | Array<sup>2</sup> with `T` mapping for each element   | Yes
+BigDecimal<sup>3</sup>    | BigDecimal                                            | Yes
+BigInteger<sup>4</sup>    | BigDecimal                                            | Yes
+Boolean<sup>5</sup>       | Boolean                                               | Yes
+Byte<sup>6</sup>          | Byte                                                  | Yes
+Char<sup>7</sup>/String   | String                                                | Yes
 Date/Timestamp            | Timestamp                                             | Yes
-Double<sup>6</sup>        | Double                                                | Yes
-Float<sup>7</sup>         | Float                                                 | Yes
-Int<sup>8</sup>           | Int                                                   | Yes
+Double<sup>8</sup>        | Double                                                | Yes
+Float<sup>9</sup>         | Float                                                 | Yes
+Int<sup>10</sup>          | Int                                                   | Yes
 List[T]                   | Multi-value<sup>11</sup>, with `T` mapping for each element | No
-Long<sup>9</sup>          | Long                                                  | Yes
-Object<sup>10</sup>       | Object                                                | Yes
+Long<sup>12</sup>         | Long                                                  | Yes
+Object<sup>13</sup>       | Object                                                | Yes
 Option[T]                 | Object for `None`, mapping for `Some[T]`              | No
 Seq[T]                    | Multi-value, with `T` mapping for each element        | No
-Set[T]<sup>12</sup>       | Multi-value, with `T` mapping for each element        | No
-Short<sup>13</sup>        | Short                                                 | Yes
-SortedSet[T]<sup>14</sup> | Multi-value, with `T` mapping for each element        | No
+Set[T]<sup>14</sup>       | Multi-value, with `T` mapping for each element        | No
+Short<sup>15</sup>        | Short                                                 | Yes
+SortedSet[T]<sup>16</sup> | Multi-value, with `T` mapping for each element        | No
 Stream[T]                 | Multi-value, with `T` mapping for each element        | No
-UUID                      | String<sup>15</sup>                                   | No
+UUID                      | String<sup>17</sup>                                   | No
 Vector                    | Multi-value, with `T` mapping for each element        | No
 
-- 1. Types `Char` and `java.lang.Character`.
-- 2. Types `java.math.BigDecimal` and `scala.math.BigDecimal`.
-- 3. Types `java.math.BigInteger` and `scala.math.BigInt`.
-- 4. Types `Boolean` and `java.lang.Boolean`.
-- 5. Types `Byte` and `java.lang.Byte`.
-- 6. Types `Double` and `java.lang.Double`.
-- 7. Types `Float` and `java.lang.Float`.
-- 8. Types `Int` and `java.lang.Integer`.
-- 9. Types `Long` and `java.lang.Long`.
-- 10. Type `anorm.Object`, wrapping opaque object.
-- 11. Multi-value parameter, with one JDBC placeholder (`?`) added for each element.
-- 12. Type `scala.collection.immutable.Set`.
-- 13. Types `Short` and `java.lang.Short`.
-- 14. Type `scala.collection.immutable.SortedSet`.
-- 15. Not-null value extracted using `.toString`.
+- 1. Type Scala `Array[T]`.
+- 2. Type `java.sql.Array`.
+- 3. Types `java.math.BigDecimal` and `scala.math.BigDecimal`.
+- 4. Types `java.math.BigInteger` and `scala.math.BigInt`.
+- 5. Types `Boolean` and `java.lang.Boolean`.
+- 6. Types `Byte` and `java.lang.Byte`.
+- 7. Types `Char` and `java.lang.Character`.
+- 8. Types `Double` and `java.lang.Double`.
+- 9. Types `Float` and `java.lang.Float`.
+- 10. Types `Int` and `java.lang.Integer`.
+- 11. Types `Long` and `java.lang.Long`.
+- 12. Type `anorm.Object`, wrapping opaque object.
+- 13. Multi-value parameter, with one JDBC placeholder (`?`) added for each element.
+- 14. Type `scala.collection.immutable.Set`.
+- 15. Types `Short` and `java.lang.Short`.
+- 16. Type `scala.collection.immutable.SortedSet`.
+- 17. Not-null value extracted using `.toString`.
 
 [Joda](http://www.joda.org) temporal types are supported as parameters:
 
