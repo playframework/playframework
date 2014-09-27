@@ -326,7 +326,9 @@ object SqlResultSpec extends org.specs2.mutable.Specification with H2Database {
       rowList1(classOf[String] -> "foo") :+ "A" :+ "B") { implicit c =>
         var first = false
         SQL"SELECT str".executeQuery() withResult {
-          case Some(_) => first = true; sys.error("Failure")
+          case Some(_) =>
+            first = true; sys.error("Failure")
+          case _ => sys.error("Unexpected")
         } aka "processing with failure" must beLeft.like {
           case err :: Nil => err.getMessage aka "failure" must_== "Failure"
         } and (first aka "first read" must beTrue)
