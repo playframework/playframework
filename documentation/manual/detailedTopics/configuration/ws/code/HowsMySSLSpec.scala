@@ -8,7 +8,6 @@ import play.api.{Mode, Environment}
 import play.api.libs.json.JsSuccess
 import play.api.libs.ws._
 import play.api.libs.ws.ning._
-import play.api.libs.ws.ssl.debug.DebugConfiguration
 import play.api.test._
 
 import com.typesafe.config.ConfigFactory
@@ -20,9 +19,11 @@ class HowsMySSLSpec extends PlaySpecification {
     val classLoader = Thread.currentThread().getContextClassLoader
     val parser = new DefaultWSConfigParser(rawConfig, new Environment(new File("."), classLoader, Mode.Test))
     val clientConfig = parser.parse()
-    clientConfig.ssl.map {
-      _.debug.map(new DebugConfiguration().configure)
-    }
+    // Debug flags only take effect in JSSE when DebugConfiguration().configure is called.
+    //import play.api.libs.ws.ssl.debug.DebugConfiguration
+    //clientConfig.ssl.map {
+    //   _.debug.map(new DebugConfiguration().configure)
+    //}
     val builder = new NingAsyncHttpClientConfigBuilder(clientConfig)
     val client = new NingWSClient(builder.build())
     client
