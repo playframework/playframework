@@ -196,7 +196,7 @@ object Dependencies {
 
   val playWsDeps = Seq(
     guava,
-    "com.ning" % "async-http-client" % "1.8.8",
+    "com.ning" % "async-http-client" % "1.8.14",
     "oauth.signpost" % "signpost-core" % "1.2.1.2",
     "oauth.signpost" % "signpost-commonshttp4" % "1.2.1.2") ++
     specsBuild.map(_ % "test") :+
