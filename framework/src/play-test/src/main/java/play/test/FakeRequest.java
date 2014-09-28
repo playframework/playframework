@@ -46,7 +46,7 @@ public class FakeRequest {
      * @return the Fake Request
      */
     @SuppressWarnings(value = "unchecked")
-    public FakeRequest fromRemoteAddress(String remoteAddress) {
+    public FakeRequest withRemoteAddress(String remoteAddress) {
         fake = new play.api.test.FakeRequest(fake.method(), fake.uri(), fake.headers(), fake.body(), remoteAddress, fake.version(), fake.id(), fake.tags(), fake.secure());
         return this;
     }
