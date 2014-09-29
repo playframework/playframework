@@ -97,22 +97,25 @@ class MyApplicationLoader extends ApplicationLoader {
 
 class MyComponents(context: Context) extends BuiltInComponentsFromContext(context) {
 
-  lazy val routes = new Routes(applicationController, barRoutes, assets)
+  lazy val routes = new Routes(httpErrorHandler, applicationController, barRoutes, assets)
 
-  lazy val barRoutes = new bar.Routes()
+  lazy val barRoutes = new bar.Routes(httpErrorHandler)
   lazy val applicationController = new controllers.Application()
-  lazy val assets = new controllers.Assets()
+  lazy val assets = new controllers.Assets(httpErrorHandler)
 }
 //#routers
 
 }
 
 package controllers {
+
+  import play.api.http.HttpErrorHandler
   import play.api.mvc._
+
   class Application extends Controller {
     def index = Action(Ok)
     def foo = Action(Ok)
   }
 
-  class Assets extends _root_.controllers.AssetsBuilder
+  class Assets(errorHandler: HttpErrorHandler) extends _root_.controllers.AssetsBuilder(errorHandler)
 }

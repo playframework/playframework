@@ -203,11 +203,32 @@ trait JavaHelpers {
    * @param f The function to invoke
    * @return The result
    */
-  def invokeWithContext(request: RequestHeader, f: JRequest => Option[F.Promise[JResult]]): Option[Future[Result]] = {
+  def invokeWithContextOpt(request: RequestHeader, f: JRequest => F.Promise[JResult]): Option[Future[Result]] = {
     val javaContext = createJavaContext(request)
     try {
       JContext.current.set(javaContext)
-      f(javaContext.request()).map(_.wrapped.map(createResult(javaContext, _))(trampoline))
+      Option(f(javaContext.request())).map(_.wrapped.map(createResult(javaContext, _))(trampoline))
+    } finally {
+      JContext.current.remove()
+    }
+  }
+
+  /**
+   * Invoke the given function with the right context set, converting the scala request to a
+   * Java request, and converting the resulting Java result to a Scala result, before returning
+   * it.
+   *
+   * This is intended for use by callback methods in Java adapters.
+   *
+   * @param request The request
+   * @param f The function to invoke
+   * @return The result
+   */
+  def invokeWithContext(request: RequestHeader, f: JRequest => F.Promise[JResult]): Future[Result] = {
+    val javaContext = createJavaContext(request)
+    try {
+      JContext.current.set(javaContext)
+      f(javaContext.request()).wrapped.map(createResult(javaContext, _))(trampoline)
     } finally {
       JContext.current.remove()
     }

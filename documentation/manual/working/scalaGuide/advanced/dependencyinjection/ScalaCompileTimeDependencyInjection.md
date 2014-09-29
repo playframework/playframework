@@ -38,7 +38,7 @@ By default Play will generate a static router that requires all of your actions 
 routesGenerator := InjectedRoutesGenerator
 ```
 
-When you do this, Play will generate a router with a constructor that accepts each of the controllers and included routers from your routes file, in the order they appear in your routes file.  The primary constructor will also accept a prefix String as the last argument, but an overloaded constructor that defaults this to `"/"` will also be provided.
+When you do this, Play will generate a router with a constructor that accepts each of the controllers and included routers from your routes file, in the order they appear in your routes file.  The routers constructor will also, as its first argument, accept an [`HttpErrorHandler`](api/scala/index.html#play.api.http.HttpErrorHandler), which is used to handle parameter binding errors.  The primary constructor will also accept a prefix String as the last argument, but an overloaded constructor that defaults this to `"/"` will also be provided.
 
 The following routes:
 
@@ -48,6 +48,7 @@ Will produce a router with the following constructor signatures:
 
 ```scala
 class Routes(
+  override val errorHandler: play.api.http.HttpErrorHandler,
   Application_0: controllers.Application,
   bar_Routes_0: bar.Routes,
   Assets_1: controllers.Assets,
@@ -55,6 +56,7 @@ class Routes(
 ) extends Router.Routes {
 
   def this(
+    errorHandler: play.api.http.HttpErrorHandler,
     Application_0: controllers.Application,
     bar_Routes_0: bar.Routes,
     Assets_1: controllers.Assets

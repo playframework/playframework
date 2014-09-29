@@ -4,14 +4,11 @@
 package scalaguide.global.scalaglobal {
 
 import play.api.mvc._
-import play.api.test._
-import play.api.test.Helpers._
 import org.specs2.mutable.Specification
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import play.api.GlobalSettings
 import scala.concurrent.Future
-import play.core.Router
 
 @RunWith(classOf[JUnitRunner])
 class ScalaInterceptorsSpec extends Specification with Controller {
@@ -35,7 +32,7 @@ class ScalaInterceptorsSpec extends Specification with Controller {
       object Global extends WithFilters(AccessLoggingFilter)
       //#filter-log
 
-      contentOf(rh=FakeRequest("GET", "/hello"),g=Global) === "hello"
+      success
     }
 
     "filter authorize request" in {
@@ -69,7 +66,7 @@ class ScalaInterceptorsSpec extends Specification with Controller {
       object Global extends WithFilters(AuthorizedFilter("editProfile", "buy", "sell")) with GlobalSettings {}
       //#filter-authorize
 
-      contentOf(rh=FakeRequest("GET", "/hello"),g=Global) === "hello"
+      success
     }
 
     "filter authorize request" in {
@@ -90,22 +87,11 @@ class ScalaInterceptorsSpec extends Specification with Controller {
       }
       //#onroute-request
 
-      contentOf(rh=FakeRequest("GET", "/hello"),g=Global) === "hello"
+      success
     }
 
 
   }
-
-  def contentOf(rh: RequestHeader, router: Class[_ <: Router.Routes] = classOf[Routes], g: GlobalSettings) = {
-    val app = FakeApplication()
-    running(app) {
-      contentAsString(app.injector.instanceOf(router).routes(rh) match {
-        case e: EssentialAction => e(rh).run
-      })
-    }
-  }
-
-
 }
 
 }

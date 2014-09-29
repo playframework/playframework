@@ -3,9 +3,7 @@
  */
 package play.api.test
 
-import java.util.Properties
-import play.api.Mode
-import play.core.TestApplication
+import play.api._
 import play.core.server._
 import scala.util.control.NonFatal
 
@@ -20,7 +18,7 @@ import scala.util.control.NonFatal
  */
 case class TestServer(
     port: Int,
-    application: FakeApplication = FakeApplication(),
+    application: Application = FakeApplication(),
     sslPort: Option[Int] = None,
     serverProvider: ServerProvider = NettyServer.defaultServerProvider) {
 
@@ -70,7 +68,7 @@ object TestServer {
   private[play] def start(
     testServerProvider: ServerProvider,
     config: ServerConfig,
-    application: FakeApplication): TestServerProcess = {
+    application: Application): TestServerProcess = {
     val process = new TestServerProcess
     val serverStart: ServerStart = new ServerStart {
       def defaultServerProvider = testServerProvider

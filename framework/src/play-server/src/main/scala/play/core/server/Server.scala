@@ -3,6 +3,8 @@
  */
 package play.core.server
 
+import play.api.http.DefaultHttpErrorHandler
+
 import scala.language.postfixOps
 
 import play.api._
@@ -49,19 +51,7 @@ trait Server {
     }
 
     def logExceptionAndGetResult(e: Throwable) = {
-
-      Logger.error(
-        """
-        |
-        |! %sInternal server error, for (%s) [%s] ->
-        |""".stripMargin.format(e match {
-          case p: PlayException => "@" + p.id + " - "
-          case _ => ""
-        }, request.method, request.uri),
-        e)
-
-      DefaultGlobal.onError(request, e)
-
+      DefaultHttpErrorHandler.onServerError(request, e)
     }
 
     Exception

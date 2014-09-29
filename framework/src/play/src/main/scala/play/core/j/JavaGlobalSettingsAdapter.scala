@@ -32,17 +32,17 @@ class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends Glo
   }
 
   override def onError(request: RequestHeader, ex: Throwable): Future[Result] = {
-    JavaHelpers.invokeWithContext(request, req => Option(underlying.onError(req, ex)))
+    JavaHelpers.invokeWithContextOpt(request, req => underlying.onError(req, ex))
       .getOrElse(super.onError(request, ex))
   }
 
   override def onHandlerNotFound(request: RequestHeader): Future[Result] = {
-    JavaHelpers.invokeWithContext(request, req => Option(underlying.onHandlerNotFound(req)))
+    JavaHelpers.invokeWithContextOpt(request, req => underlying.onHandlerNotFound(req))
       .getOrElse(super.onHandlerNotFound(request))
   }
 
   override def onBadRequest(request: RequestHeader, error: String): Future[Result] = {
-    JavaHelpers.invokeWithContext(request, req => Option(underlying.onBadRequest(req, error)))
+    JavaHelpers.invokeWithContextOpt(request, req => underlying.onBadRequest(req, error))
       .getOrElse(super.onBadRequest(request, error))
   }
 

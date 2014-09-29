@@ -4,6 +4,7 @@
 package play.docs
 
 import java.io.File
+import play.api.http.DefaultHttpErrorHandler
 import play.api.inject.{ NewInstanceInjector, DefaultApplicationLifecycle }
 import java.util.concurrent.Callable
 import play.api.mvc._
@@ -20,8 +21,8 @@ case class DocumentationApplication(projectPath: File, buildDocHandler: BuildDoc
 
   private val environment = Environment(projectPath, this.getClass.getClassLoader, Mode.Dev)
   private val configuration = Configuration.load(environment.rootPath, environment.mode, Map.empty)
-  val application = new DefaultApplication(environment, new OptionalSourceMapper(None),
-    new DefaultApplicationLifecycle(), NewInstanceInjector, configuration, DefaultGlobal, Router.Null, Plugins.empty
+  val application = new DefaultApplication(environment, new DefaultApplicationLifecycle(), NewInstanceInjector,
+    configuration, DefaultGlobal, Router.Null, DefaultHttpErrorHandler, Plugins.empty
   )
 
   Play.start(application)

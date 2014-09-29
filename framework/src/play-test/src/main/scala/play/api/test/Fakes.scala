@@ -4,6 +4,7 @@
 package play.api.test
 
 import play.api._
+import play.api.http.{ GlobalSettingsHttpErrorHandler, HttpErrorHandler, DefaultHttpErrorHandler }
 import play.api.inject.guice.GuiceApplicationLoader
 import play.api.inject._
 import play.api.libs.{ Crypto, CryptoConfigParser, CryptoConfig }
@@ -200,15 +201,13 @@ object FakeRequest {
 
 import play.api.Application
 case class FakeApplication(
-  override val path: java.io.File = new java.io.File("."),
-  override val classloader: ClassLoader = classOf[FakeApplication].getClassLoader,
-  val additionalPlugins: Seq[String] = Nil,
-  val withoutPlugins: Seq[String] = Nil,
-  val additionalConfiguration: Map[String, _ <: Any] = Map.empty,
-  val withGlobal: Option[play.api.GlobalSettings] = None,
-  val withRoutes: PartialFunction[(String, String), Handler] = PartialFunction.empty) extends {
-  override val sources = None
-} with Application {
+    override val path: java.io.File = new java.io.File("."),
+    override val classloader: ClassLoader = classOf[FakeApplication].getClassLoader,
+    val additionalPlugins: Seq[String] = Nil,
+    val withoutPlugins: Seq[String] = Nil,
+    val additionalConfiguration: Map[String, _ <: Any] = Map.empty,
+    val withGlobal: Option[play.api.GlobalSettings] = None,
+    val withRoutes: PartialFunction[(String, String), Handler] = PartialFunction.empty) extends Application {
 
   private val environment = Environment(path, classloader, Mode.Test)
   private val initialConfiguration = Threads.withContextClassLoader(environment.classLoader) {
@@ -246,6 +245,8 @@ case class FakeApplication(
 
   def stop() = applicationLifecycle.stop()
 
+  override val errorHandler = injector.instanceOf[HttpErrorHandler]
+
   override val plugins = {
     Plugins.loadPlugins(
       additionalPlugins ++ Plugins.loadPluginClassNames(environment).diff(withoutPlugins),
@@ -253,12 +254,13 @@ case class FakeApplication(
     )
   }
   lazy val routes: Router.Routes = {
-    val parentRoutes = new RoutesProvider(injector, environment, configuration).get
-    new FakeRoutes(withRoutes, parentRoutes)
+    val parentRoutes = injector.instanceOf[Router.Routes]
+    new FakeRoutes(errorHandler, withRoutes, parentRoutes)
   }
 }
 
-private class FakeRoutes(injected: PartialFunction[(String, String), Handler], fallback: Router.Routes) extends Router.Routes {
+private class FakeRoutes(override val errorHandler: HttpErrorHandler,
+    injected: PartialFunction[(String, String), Handler], fallback: Router.Routes) extends Router.Routes {
   def documentation = fallback.documentation
   // Use withRoutes first, then delegate to the parentRoutes if no route is defined
   val routes = new AbstractPartialFunction[RequestHeader, Handler] {
@@ -271,7 +273,7 @@ private class FakeRoutes(injected: PartialFunction[(String, String), Handler], f
     def isDefinedAt(x: RequestHeader) = fallback.routes.isDefinedAt(x)
   }
   def withPrefix(prefix: String) = {
-    new FakeRoutes(injected, fallback.withPrefix(prefix))
+    new FakeRoutes(errorHandler, injected, fallback.withPrefix(prefix))
   }
 }
 
@@ -291,6 +293,7 @@ private class FakeBuiltinModule(environment: Environment,
     bind[OptionalSourceMapper] to new OptionalSourceMapper(None),
     bind[play.inject.Injector].to[play.inject.DelegateInjector],
     bind[CryptoConfig].toProvider[CryptoConfigParser],
-    bind[Crypto].toSelf
-  )
+    bind[Crypto].toSelf,
+    bind[Router.Routes].toProvider[RoutesProvider]
+  ) ++ HttpErrorHandler.bindingsFromConfiguration(environment, configuration)
 }

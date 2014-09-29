@@ -7,6 +7,7 @@ import akka.util.Timeout
 import java.net.SocketAddress
 import org.jboss.netty.channel._
 import org.jboss.netty.channel.group.DefaultChannelGroup
+import play.api.http.DefaultHttpErrorHandler
 import play.api.{ Play, Application, Mode }
 import play.api.mvc._
 import play.api.test._
@@ -91,6 +92,7 @@ trait NettyRunners extends PlayRunners {
         def routes = {
           case _ => action
         }
+        def errorHandler = DefaultHttpErrorHandler
       }
     }
     withDownstreamHandler(downstreamHandler, app)(block)

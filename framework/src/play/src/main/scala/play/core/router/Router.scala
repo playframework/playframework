@@ -3,6 +3,7 @@
  */
 package play.core
 
+import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
 import play.api.mvc._
 import org.apache.commons.lang3.reflect.MethodUtils
 
@@ -334,8 +335,10 @@ object Router {
 
     def withPrefix(prefix: String): Routes
 
+    def errorHandler: HttpErrorHandler
+
     def badRequest(error: String) = Action.async { request =>
-      play.api.Play.maybeApplication.map(_.global.onBadRequest(request, error)).getOrElse(play.api.DefaultGlobal.onBadRequest(request, error))
+      errorHandler.onClientError(request, play.api.http.Status.BAD_REQUEST, error)
     }
 
     def call(generator: => Handler): Handler = {
@@ -522,6 +525,7 @@ object Router {
     def documentation = Nil
     def withPrefix(prefix: String) = this
     def routes = PartialFunction.empty
+    def errorHandler = DefaultHttpErrorHandler
   }
 
 }

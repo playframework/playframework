@@ -6,6 +6,7 @@ package play.api.inject
 import javax.inject.{ Singleton, Inject, Provider }
 
 import play.api._
+import play.api.http.{ GlobalSettingsHttpErrorHandler, HttpErrorHandler }
 import play.api.libs.{ CryptoConfig, Crypto, CryptoConfigParser }
 import play.core.Router
 
@@ -29,7 +30,7 @@ class BuiltinModule extends Module {
 
       bind[CryptoConfig].toProvider[CryptoConfigParser],
       bind[Crypto].toSelf
-    )
+    ) ++ HttpErrorHandler.bindingsFromConfiguration(env, configuration)
   }
 }
 

@@ -5,3 +5,4 @@ ScalaSessionFlash:Session and Flash scopes
 ScalaBodyParsers:Body parsers
 ScalaActionsComposition:Actions composition
 ScalaContentNegotiation:Content negotiation
+ScalaErrorHandling:Handling errors

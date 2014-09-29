@@ -12,9 +12,13 @@ import scala.collection.JavaConverters;
 
 import play.libs.Scala;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 /**
  * The current application configuration.
  */
+@Singleton
 public class Configuration {
     
     /**
@@ -42,6 +46,7 @@ public class Configuration {
     /**
      * Creates a new configuration from a Scala-based configuration.
      */
+    @Inject
     public Configuration(play.api.Configuration conf) {
         this.conf = conf;
     }

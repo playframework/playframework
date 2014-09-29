@@ -14,12 +14,11 @@ import org.jboss.netty.handler.ssl._
 
 import org.jboss.netty.channel.group._
 import play.api._
+import play.api.http.{ HttpErrorHandler, DefaultHttpErrorHandler }
 import play.api.mvc._
 import play.api.http.HeaderNames.{ X_FORWARDED_FOR, X_FORWARDED_PROTO }
-import play.api.libs.concurrent.Execution
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
-import play.core._
 import play.core.server.Server
 import play.core.websocket._
 import scala.collection.JavaConverters._
@@ -145,15 +144,11 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
           }.fold(
             e => {
               val rh = createRequestHeader()
-              val global = server.applicationProvider.get
-                .map(_.global)
-                .getOrElse(DefaultGlobal)
-
               val result = Future
                 .successful(()) // Create a dummy future
                 .flatMap { _ =>
                   // Call errorHandler in another context, don't block here
-                  global.onBadRequest(rh, e.getMessage)
+                  errorHandler(server.applicationProvider.get.toOption).onClientError(rh, 400, e.getMessage)
                 }(play.api.libs.iteratee.Execution.trampoline)
               (rh, Left(result))
             },
@@ -205,7 +200,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
               Iteratee.flatten(action(rh).unflatten.map(_.it).recover {
                 case error =>
                   Iteratee.flatten(
-                    app.handleError(requestHeader, error).map(result => Done(result, Input.Empty))
+                    app.errorHandler.onServerError(requestHeader, error).map(result => Done(result, Input.Empty))
                   ): Iteratee[Array[Byte], Result]
               })
             }
@@ -229,7 +224,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
                 socket(enumerator, socketOut(ctx)(ws.outFormatter))
             }.recover {
               case error =>
-                app.handleError(requestHeader, error).map { result =>
+                app.errorHandler.onServerError(requestHeader, error).map { result =>
                   val a = EssentialAction(_ => Done(result, Input.Empty))
                   handleAction(a, Some(app))
                 }
@@ -308,7 +303,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
                 case Step.Error(msg, _) => {
                   e.getChannel.setReadable(true)
                   val error = new RuntimeException("Body parser iteratee in error: " + msg)
-                  val result = app.map(_.handleError(requestHeader, error)).getOrElse(DefaultGlobal.onError(requestHeader, error))
+                  val result = errorHandler(app).onServerError(requestHeader, error)
                   result.map(r => (r.copy(connection = HttpConnection.Close), 0))
                 }
               }
@@ -320,8 +315,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
             case error =>
               Play.logger.error("Cannot invoke the action, eventually got an error: " + error)
               e.getChannel.setReadable(true)
-              app.map(_.handleError(requestHeader, error))
-                .getOrElse(DefaultGlobal.onError(requestHeader, error))
+              errorHandler(app).onServerError(requestHeader, error)
                 .map((_, 0))
           }.flatMap {
             case (result, sequence) =>
@@ -339,6 +333,8 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
 
     }
   }
+
+  private def errorHandler(app: Option[Application]) = app.fold[HttpErrorHandler](DefaultHttpErrorHandler)(_.errorHandler)
 
   def socketOut[A](ctx: ChannelHandlerContext)(frameFormatter: play.api.mvc.WebSocket.FrameFormatter[A]): Iteratee[A, Unit] = {
     import play.api.libs.iteratee.Execution.Implicits.trampoline

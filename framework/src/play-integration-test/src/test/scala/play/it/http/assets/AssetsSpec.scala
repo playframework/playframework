@@ -188,7 +188,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       val result = await(wsUrl("/nosuchfile.txt").get())
 
       result.status must_== NOT_FOUND
-      result.body must beEmpty
+      result.header(CONTENT_TYPE) must beSome.which(_.startsWith("text/html"))
     }
 
     "serve a versioned asset" in withServer {

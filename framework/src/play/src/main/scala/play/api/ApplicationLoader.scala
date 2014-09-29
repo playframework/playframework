@@ -93,7 +93,7 @@ object ApplicationLoader {
  */
 abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) extends BuiltInComponents {
   lazy val environment = context.environment
-  lazy val sourceMapper = new OptionalSourceMapper(context.sourceMapper)
+  lazy val sourceMapper = context.sourceMapper
   lazy val webCommands = context.webCommands
   lazy val configuration = context.initialConfiguration
   lazy val global = DefaultGlobal
