@@ -1,5 +1,6 @@
 package detailedtopics.configuration.ws {
 
+/* DISABLED - probably shouldn't have tests depending on systems that are out of our control
 // #context
 
 import java.io.File
@@ -57,5 +58,6 @@ class HowsMySSLSpec extends PlaySpecification {
   }
 }
 // #context
+*/
 
 }
