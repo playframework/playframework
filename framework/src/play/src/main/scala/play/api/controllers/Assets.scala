@@ -382,6 +382,55 @@ class AssetsBuilder extends Controller {
   }
 
   /**
+   * Called when no file was found to serve a request.
+   *
+   * The default is to use the `onHandlerNotFound` method of the
+   * applications [[GlobalSettings]]. (Its default is to send the
+   * framework default 404 page.)
+   *
+   * @param request the HTTP request header
+   * @return the result to send to the client
+   */
+  private def onAssetNotFound(request: RequestHeader): Future[Result] = {
+    Play.maybeApplication.fold(Future.successful(NotFound: Result)) { app =>
+      app.global.onHandlerNotFound(request)
+    }
+  }
+
+  /**
+   * Called an asset request has an invalid URI encoding.
+   *
+   * The default is to use the `onBadRequest` method of the
+   * applications [[GlobalSettings]]. (Its default is to
+   * send the framework default 400 page.)
+   *
+   * @param request the HTTP request header
+   * @return the result to send to the client
+   */
+  private def onBadRequest(request: RequestHeader, error: String): Future[Result] = {
+    Play.maybeApplication.fold(Future.successful(BadRequest: Result)) { app =>
+      app.global.onBadRequest(request, error)
+    }
+  }
+
+  /**
+   * Called when an exception occurred.
+   *
+   * The default is to use the `onError` method of the
+   * applications [[GlobalSettings]]. (Its default is to
+   * send the framework default error page.)
+   *
+   * @param request The HTTP request header
+   * @param ex The exception
+   * @return The result to send to the client
+   */
+  private def onError(request: RequestHeader, ex: Throwable): Future[Result] = {
+    Play.maybeApplication.fold(Future.failed(ex): Future[Result]) { app =>
+      app.global.onError(request, ex)
+    }
+  }
+
+  /**
    * Generates an `Action` that serves a versioned static resource.
    */
   def versioned(path: String, file: Asset): Action[AnyContent] = {
@@ -417,30 +466,31 @@ class AssetsBuilder extends Controller {
         assetInfoForRequest(request, name)
       } getOrElse Future.successful(None)
 
-      val pendingResult: Future[Result] = assetInfoFuture.map {
+      val pendingResult: Future[Result] = assetInfoFuture.flatMap {
         case Some((assetInfo, gzipRequested)) =>
           val stream = assetInfo.url(gzipRequested).openStream()
           val length = stream.available
           val resourceData = Enumerator.fromStream(stream)(Implicits.defaultExecutionContext)
 
-          maybeNotModified(request, assetInfo, aggressiveCaching).getOrElse {
-            cacheableResult(
-              assetInfo,
-              aggressiveCaching,
-              result(file, length, assetInfo.mimeType, resourceData, gzipRequested, assetInfo.gzipUrl.isDefined)
-            )
+          Future.successful {
+            maybeNotModified(request, assetInfo, aggressiveCaching).getOrElse {
+              cacheableResult(
+                assetInfo,
+                aggressiveCaching,
+                result(file, length, assetInfo.mimeType, resourceData, gzipRequested, assetInfo.gzipUrl.isDefined)
+              )
+            }
           }
-        case None => NotFound
+        case None =>
+          onAssetNotFound(request)
       }
 
       pendingResult.recoverWith {
         case e: InvalidUriEncodingException =>
-          Play.maybeApplication.fold(Future.successful(BadRequest: Result)) { app =>
-            app.global.onBadRequest(request, s"Invalid URI encoding for $file at $path: " + e.getMessage)
-          }
+          onBadRequest(request, s"Invalid URI encoding for $file at $path: ${e.getMessage}")
         case NonFatal(e) =>
           // Add a bit more information to the exception for better error reporting later
-          throw new RuntimeException(s"Unexpected error while serving $file at $path: " + e.getMessage, e)
+          onError(request, new RuntimeException(s"Unexpected error while serving $file at $path: ${e.getMessage}", e))
       }
   }
 
