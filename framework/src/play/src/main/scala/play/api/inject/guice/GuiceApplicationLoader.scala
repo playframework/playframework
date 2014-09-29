@@ -4,11 +4,11 @@
 package play.api.inject
 package guice
 
-import com.google.inject._
-import play.api.inject.{ Module => PlayModule, Binding => PlayBinding, Injector => PlayInjector }
-import play.core.WebCommands
+import com.google.inject.{ Module => GuiceModule, _ }
 import com.google.inject.util.Providers
 import play.api._
+import play.api.inject.{ Module => PlayModule, Binding => PlayBinding, Injector => PlayInjector }
+import play.core.WebCommands
 
 import scala.reflect.ClassTag
 
@@ -17,7 +17,21 @@ class GuiceLoadException(message: String) extends RuntimeException(message)
 /**
  * An ApplicationLoader that uses guice to bootstrap the application.
  */
-class GuiceApplicationLoader extends ApplicationLoader {
+class GuiceApplicationLoader(val additionalModules: GuiceModule*) extends ApplicationLoader {
+  def this() = this(Seq.empty: _*)
+
+  /**
+   * Load the modules from the environment and configuration.
+   *
+   * By default this uses `Modules.locate` to find modules in `play.modules` files, and adds `additionalModules`.
+   *
+   * Override this method if you want to disable the autoloading functionality and manually install all Guice
+   * modules, including those provided by Play and third-party libraries.
+   *
+   * @return a `Seq[com.google.inject.Module]`, containing Guice modules to be loaded
+   */
+  protected def loadModules(env: Environment, conf: Configuration): Seq[GuiceModule] =
+    Modules.locate(env, conf).map(guicify(env, conf, _)) ++ additionalModules
 
   def load(context: ApplicationLoader.Context): Application = {
 
@@ -32,14 +46,14 @@ class GuiceApplicationLoader extends ApplicationLoader {
 
     Logger.configure(env, configuration)
 
-    val modules = guiced(Seq(
+    val guiceModules = guiced(Seq(
       BindingKey(classOf[GlobalSettings]) to global,
       BindingKey(classOf[OptionalSourceMapper]) to new OptionalSourceMapper(context.sourceMapper),
       BindingKey(classOf[WebCommands]) to context.webCommands
-    )) +: Modules.locate(env, configuration)
+    )) +: loadModules(env, configuration)
 
     try {
-      val injector = createGuiceInjector(env, configuration, modules)
+      val injector = createGuiceInjector(guiceModules)
       injector.getInstance(classOf[Application])
     } catch {
       case e: CreationException => e.getCause match {
@@ -49,26 +63,29 @@ class GuiceApplicationLoader extends ApplicationLoader {
     }
   }
 
-  override def createInjector(environment: Environment, configuration: Configuration, modules: Seq[Any]) = {
-    Some(createGuiceInjector(environment, configuration, modules).getInstance(classOf[PlayInjector]))
+  override def createInjector(env: Environment, conf: Configuration, modules: Seq[Any]) = {
+    Some(createGuiceInjector(modules.map(guicify(env, conf, _))).getInstance(classOf[PlayInjector]))
   }
 
-  private def createGuiceInjector(environment: Environment, configuration: Configuration, modules: Seq[Any]) = {
-    val guiceModules = modules.map {
-      case playModule: PlayModule => guiced(playModule.bindings(environment, configuration))
-      case guiceModule: Module => guiceModule
-      case unknown => throw new PlayException(
-        "Unknown module type",
-        s"Module [$unknown] is not a Play module or a Guice module"
-      )
-    } :+ guiced(Seq(BindingKey(classOf[PlayInjector]).to[GuiceInjector]))
-
+  private def createGuiceInjector(modules: Seq[GuiceModule]) = {
+    val guiceModules = modules :+ guiced(Seq(BindingKey(classOf[PlayInjector]).to[GuiceInjector]))
     import scala.collection.JavaConverters._
-
     Guice.createInjector(guiceModules.asJavaCollection)
   }
 
-  private def guiced(bindings: Seq[PlayBinding[_]]): AbstractModule = {
+  /**
+   * Attempt to convert a module of unknown type to a Guice module
+   */
+  protected def guicify(env: Environment, conf: Configuration, module: Any): GuiceModule = module match {
+    case playModule: PlayModule => guiced(playModule.bindings(env, conf))
+    case guiceModule: GuiceModule => guiceModule
+    case unknown => throw new PlayException(
+      "Unknown module type",
+      s"Module [$unknown] is not a Play module or a Guice module"
+    )
+  }
+
+  private def guiced(bindings: Seq[PlayBinding[_]]): GuiceModule = {
     new AbstractModule {
       def configure(): Unit = {
         for (b <- bindings) {
