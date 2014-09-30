@@ -41,6 +41,17 @@ public class FakeRequest {
     }
 
     /**
+     * Change the remote-address for this request.
+     * @param remoteAddress the remote address, e.g. "127.0.0.1"
+     * @return the Fake Request
+     */
+    @SuppressWarnings(value = "unchecked")
+    public FakeRequest withRemoteAddress(String remoteAddress) {
+        fake = new play.api.test.FakeRequest(fake.method(), fake.uri(), fake.headers(), fake.body(), remoteAddress, fake.version(), fake.id(), fake.tags(), fake.secure());
+        return this;
+    }
+
+    /**
      * Add additional headers to this request.
      */
     @SuppressWarnings(value = "unchecked")
