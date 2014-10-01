@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
  */
-package play.sbtplugin.run
+package play.runsupport
 
 import org.specs2.mutable.Specification
 

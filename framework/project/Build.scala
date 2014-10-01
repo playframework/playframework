@@ -49,6 +49,19 @@ object BuildSettings {
 
   lazy val PerformanceTest = config("pt") extend(Test)
 
+  class SharedProjectScalaVersion(val scalaVersion: String, val targetDir: String) {
+    val nameSuffix:String = targetDir.replace(".","").trim()
+    def toSettings(targetPrefix:String):Seq[Setting[_]] = Seq(
+      Keys.target <<= target / s"$targetPrefix-$targetDir",
+      Keys.scalaVersion := scalaVersion
+    )
+  }
+
+  object SharedProjectScalaVersion {
+    def forScalaVersion(scalaVersion:String):SharedProjectScalaVersion =
+      new SharedProjectScalaVersion(scalaVersion,CrossVersion.binaryScalaVersion(scalaVersion))
+  }
+
   val playCommonSettings = Seq(
     organization := buildOrganization,
     version := buildVersion,
@@ -104,6 +117,15 @@ object BuildSettings {
       )
   }
 
+  def PlaySharedRuntimeProject(name: String, dir: String, targetPrefix:String, scalaVersion: SharedProjectScalaVersion): Project = {
+    Project(name, file("src/" + dir))
+      .settings(defaultScalariformSettings: _*)
+      .settings(scalaVersion.toSettings(targetPrefix): _*)
+  }
+
+  /**
+   * A project that is in the Play runtime
+   */
   def PlayRuntimeProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
       .configs(PerformanceTest)
@@ -190,6 +212,15 @@ object PlayBuild extends Build {
   lazy val BuildLinkProject = PlaySharedJavaProject("Build-Link", "build-link")
     .settings(libraryDependencies ++= link)
     .dependsOn(PlayExceptionsProject)
+
+  def runSupportProject(prefix:String,sv:SharedProjectScalaVersion) =
+    PlaySharedRuntimeProject(s"$prefix-${sv.nameSuffix}", s"run-support", prefix, sv).settings(
+      libraryDependencies ++= runSupportDependencies
+    )
+
+  lazy val SbtRunSupportProject = runSupportProject("SBT-Run-Support",SharedProjectScalaVersion.forScalaVersion(buildScalaVersionForSbt))
+
+  lazy val RunSupportProject = runSupportProject("Run-Support", SharedProjectScalaVersion.forScalaVersion(buildScalaVersion))
 
   lazy val RoutesCompilerProject = PlaySbtProject("Routes-Compiler", "routes-compiler")
     .settings(libraryDependencies ++= routersCompilerDependencies)
@@ -316,8 +347,22 @@ object PlayBuild extends Build {
         "-XX:MaxPermSize=384M",
         "-Dperformance.log=" + new File(baseDirectory.value, "target/sbt-repcomile-performance.properties"),
         "-Dproject.version=" + version.value
-      )
-    ).dependsOn(BuildLinkProject, PlayExceptionsProject, RoutesCompilerProject)
+      ),
+      scriptedDependencies := {
+        val () = publishLocal.value
+        val () = (publishLocal in BuildLinkProject).value
+        val () = (publishLocal in PlayExceptionsProject).value
+        val () = (publishLocal in RoutesCompilerProject).value
+        val () = (publishLocal in SbtRunSupportProject).value
+        val () = (publishLocal in PlayTestProject).value
+        val () = (publishLocal in PlayDocsProject).value
+        val () = (publishLocal in PlayProject).value
+        val () = (publishLocal in JsonProject).value
+        val () = (publishLocal in IterateesProject).value
+        val () = (publishLocal in FunctionalProject).value
+        val () = (publishLocal in DataCommonsProject).value
+      }
+    ).dependsOn(BuildLinkProject, PlayExceptionsProject, RoutesCompilerProject, SbtRunSupportProject)
 
   lazy val PlayWsProject = PlayRuntimeProject("Play-WS", "play-ws")
     .settings(
@@ -414,6 +459,8 @@ object PlayBuild extends Build {
     PlayJpaProject,
     PlayWsProject,
     PlayWsJavaProject,
+    SbtRunSupportProject,
+    RunSupportProject,
     SbtPluginProject,
     PlayTestProject,
     PlayExceptionsProject,
