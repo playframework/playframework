@@ -5,7 +5,7 @@
  */
 package play.api.libs.ws
 
-import javax.inject.{ Inject, Provider }
+import javax.inject.{ Singleton, Inject, Provider }
 
 import play.api.libs.ws.ssl.{ DefaultSSLConfigParser, SSLConfig }
 import play.api.{ Environment, Configuration }
@@ -50,6 +50,7 @@ case class DefaultWSClientConfig(connectionTimeout: Option[Long] = None,
 /**
  * This class creates a DefaultWSClientConfig object from the play.api.Configuration.
  */
+@Singleton
 class DefaultWSConfigParser @Inject() (configuration: Configuration, environment: Environment) extends Provider[WSClientConfig] {
 
   def get = parse()

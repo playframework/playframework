@@ -6,11 +6,13 @@ package play.filters.csrf
 import play.api.mvc.Session
 import play.filters.csrf.CSRFConf._
 import play.mvc.Http.Context
+import play.api.inject.NewInstanceInjector
+import play.http.DefaultHttpRequestHandler
 
 import scala.concurrent.Future
 import play.api.libs.ws._
 import play.mvc.{ Results, Result, Controller }
-import play.core.j.{ JavaActionAnnotations, JavaAction }
+import play.core.j.{ JavaHandlerComponents, JavaActionAnnotations, JavaAction }
 import play.libs.F
 
 /**
@@ -18,9 +20,11 @@ import play.libs.F
  */
 object JavaCSRFActionSpec extends CSRFCommonSpecs {
 
+  val javaHandlerComponents = new JavaHandlerComponents(NewInstanceInjector, new DefaultHttpRequestHandler())
+
   def buildCsrfCheckRequest(sendUnauthorizedResult: Boolean, configuration: (String, String)*) = new CsrfTester {
     def apply[T](makeRequest: (WSRequestHolder) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
-      case _ => new JavaAction() {
+      case _ => new JavaAction(javaHandlerComponents) {
         def parser = annotations.parser
         def invocation = F.Promise.pure(if (sendUnauthorizedResult) {
           new MyUnauthorizedAction().check()
@@ -41,7 +45,7 @@ object JavaCSRFActionSpec extends CSRFCommonSpecs {
 
   def buildCsrfAddToken(configuration: (String, String)*) = new CsrfTester {
     def apply[T](makeRequest: (WSRequestHolder) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
-      case _ => new JavaAction() {
+      case _ => new JavaAction(javaHandlerComponents) {
         def parser = annotations.parser
         def invocation = F.Promise.pure(new MyAction().add())
         val annotations = new JavaActionAnnotations(classOf[MyAction], classOf[MyAction].getMethod("add"))
@@ -54,7 +58,7 @@ object JavaCSRFActionSpec extends CSRFCommonSpecs {
 
   def buildCsrfWithSession(configuration: (String, String)*) = new CsrfTester {
     def apply[T](makeRequest: (WSRequestHolder) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
-      case _ => new JavaAction() {
+      case _ => new JavaAction(javaHandlerComponents) {
         def parser = annotations.parser
         def invocation = F.Promise.pure(new MyAction().withSession())
         val annotations = new JavaActionAnnotations(classOf[MyAction], classOf[MyAction].getMethod("withSession"))

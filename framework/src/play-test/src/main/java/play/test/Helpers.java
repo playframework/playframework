@@ -7,6 +7,9 @@ import org.openqa.selenium.WebDriver;
 import play.*;
 
 import play.api.test.PlayRunners$;
+import play.core.j.JavaAction;
+import play.core.j.JavaHandler;
+import play.core.j.JavaHandlerComponents;
 import play.core.j.JavaResultExtractor;
 import play.mvc.*;
 import play.api.test.Helpers$;
@@ -42,9 +45,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     // --
     @SuppressWarnings(value = "unchecked")
     private static Result invokeHandler(play.api.mvc.Handler handler, FakeRequest fakeRequest, long timeout) {
-        if(handler instanceof play.core.j.JavaAction) {
+        if (handler instanceof JavaAction) {
             play.api.mvc.Action action = (play.api.mvc.Action) handler;
             return wrapScalaResult(action.apply(fakeRequest.getWrappedRequest()), timeout);
+        } else if (handler instanceof JavaHandler) {
+            return invokeHandler(
+                ((JavaHandler) handler).withComponents(Play.application().injector().instanceOf(JavaHandlerComponents.class)),
+                fakeRequest, timeout
+            );
         } else {
             throw new RuntimeException("This is not a JavaAction and can't be invoked this way.");
         }

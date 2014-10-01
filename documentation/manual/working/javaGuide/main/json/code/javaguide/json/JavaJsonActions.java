@@ -1,3 +1,4 @@
+package javaguide.json;
 /*
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
@@ -16,14 +17,15 @@ import play.libs.Json;
 import play.mvc.BodyParser;
 
 import javaguide.testhelpers.MockJavaAction;
+import play.test.WithApplication;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
 import static play.mvc.Results.ok;
 import static play.test.Helpers.*;
-import static javaguide.testhelpers.MockJavaAction.call;
+import static javaguide.testhelpers.MockJavaActionHelper.call;
 
-public class JavaJsonActions {
+public class JavaJsonActions extends WithApplication {
 
     //#person-class
     // Note: can use getters/setters as well; here we just use public fields directly.

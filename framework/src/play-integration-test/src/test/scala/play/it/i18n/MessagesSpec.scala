@@ -10,14 +10,15 @@ import play.api.Mode
 
 object MessagesSpec extends PlaySpecification with Controller {
 
+  sequential
+
   "Messages" should {
-    val app = FakeApplication()
-    "provide default messages" in new WithApplication(app) {
+    "provide default messages" in new WithApplication() {
       val msg = Messages("constraint.email")(Lang("en-US"))
 
       msg must ===("Email")
     }
-    "permit default override" in new WithApplication(app) {
+    "permit default override" in new WithApplication() {
       val msg = Messages("constraint.required")(Lang("en-US"))
 
       msg must ===("Required!")
@@ -27,19 +28,18 @@ object MessagesSpec extends PlaySpecification with Controller {
   "Messages@Java" should {
     import play.i18n._
     import java.util
-    val app = FakeApplication()
     val enUS: Lang = new play.i18n.Lang(play.api.i18n.Lang("en-US"))
-    "allow translation without parameters" in new WithApplication(app) {
+    "allow translation without parameters" in new WithApplication() {
       val msg = Messages.get(enUS, "constraint.email")
 
       msg must ===("Email")
     }
-    "allow translation with any non-list parameter" in new WithApplication(app) {
+    "allow translation with any non-list parameter" in new WithApplication() {
       val msg = Messages.get(enUS, "constraint.min", "Croissant")
 
       msg must ===("Minimum value: Croissant")
     }
-    "allow translation with any list parameter" in new WithApplication(app) {
+    "allow translation with any list parameter" in new WithApplication() {
       val msg = {
         val list: util.ArrayList[String] = new util.ArrayList[String]()
         list.add("Croissant")

@@ -1,2 +1,3 @@
 HttpApi:HTTP API
 ScalaHttpFilters:HTTP filters
+ScalaHttpRequestHandlers:HTTP request handlers

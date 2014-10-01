@@ -3,8 +3,10 @@
  */
 package play.api.test
 
+import javax.inject.{ Inject, Provider }
+
 import play.api._
-import play.api.http.{ GlobalSettingsHttpErrorHandler, HttpErrorHandler, DefaultHttpErrorHandler }
+import play.api.http._
 import play.api.inject.guice.GuiceApplicationLoader
 import play.api.inject._
 import play.api.libs.{ Crypto, CryptoConfigParser, CryptoConfig }
@@ -235,7 +237,7 @@ case class FakeApplication(
       }
 
     loader.createInjector(environment, configuration,
-      modules :+ new FakeBuiltinModule(environment, configuration, this, global, applicationLifecycle, webCommands)
+      modules :+ new FakeBuiltinModule(environment, configuration, this, global, applicationLifecycle, webCommands, withRoutes)
     ).getOrElse(NewInstanceInjector)
   }
 
@@ -253,10 +255,8 @@ case class FakeApplication(
       environment, injector
     )
   }
-  lazy val routes: Router.Routes = {
-    val parentRoutes = injector.instanceOf[Router.Routes]
-    new FakeRoutes(errorHandler, withRoutes, parentRoutes)
-  }
+
+  override lazy val requestHandler = injector.instanceOf[HttpRequestHandler]
 }
 
 private class FakeRoutes(override val errorHandler: HttpErrorHandler,
@@ -282,10 +282,12 @@ private class FakeBuiltinModule(environment: Environment,
     app: Application,
     global: GlobalSettings,
     appLifecycle: ApplicationLifecycle,
-    webCommands: WebCommands) extends Module {
+    webCommands: WebCommands,
+    withRoutes: PartialFunction[(String, String), Handler]) extends Module {
   def bindings(environment: Environment, configuration: Configuration) = Seq(
     bind[Environment] to environment,
     bind[Configuration] to configuration,
+    bind[HttpConfiguration].toProvider[HttpConfiguration.HttpConfigurationProvider],
     bind[Application] to app,
     bind[GlobalSettings] to global,
     bind[ApplicationLifecycle] to appLifecycle,
@@ -294,6 +296,17 @@ private class FakeBuiltinModule(environment: Environment,
     bind[play.inject.Injector].to[play.inject.DelegateInjector],
     bind[CryptoConfig].toProvider[CryptoConfigParser],
     bind[Crypto].toSelf,
-    bind[Router.Routes].toProvider[RoutesProvider]
-  ) ++ HttpErrorHandler.bindingsFromConfiguration(environment, configuration)
+    bind[Router.Routes].to(new FakeRoutesProvider(withRoutes))
+  ) ++ HttpErrorHandler.bindingsFromConfiguration(environment, configuration) ++
+    HttpFilters.bindingsFromConfiguration(environment, configuration) ++
+    HttpRequestHandler.bindingsFromConfiguration(environment, configuration)
+}
+
+private class FakeRoutesProvider(withRoutes: PartialFunction[(String, String), Handler]) extends Provider[Router.Routes] {
+  @Inject
+  var injector: Injector = _
+  lazy val get = {
+    val parent = injector.instanceOf[RoutesProvider].get
+    new FakeRoutes(injector.instanceOf[HttpErrorHandler], withRoutes, parent)
+  }
 }

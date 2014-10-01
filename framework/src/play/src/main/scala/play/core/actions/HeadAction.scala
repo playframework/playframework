@@ -15,11 +15,13 @@ import HeaderNames._
 /**
  * RFC2616-compatible HEAD implementation: provides a full header set and empty body for a given GET resource
  *
- * @param handler Action for the relevant GET path.
+ * @param action Action for the relevant GET path.
  */
-class HeadAction(handler: Handler) extends EssentialAction with DefaultWriteables with HttpProtocol {
+class HeadAction(action: EssentialAction) extends EssentialAction with DefaultWriteables with HttpProtocol {
+
   def apply(requestHeader: RequestHeader): Iteratee[Array[Byte], Result] = {
-    def bodyIterator: Iteratee[Array[Byte], Result] = handler.asInstanceOf[EssentialAction](requestHeader)
+
+    val bodyIterator: Iteratee[Array[Byte], Result] = action(requestHeader)
 
     def createHeadResult(result: Result): Future[Result] = result match {
       // Respond immediately for bodies which have finished evaluating
@@ -31,7 +33,7 @@ class HeadAction(handler: Handler) extends EssentialAction with DefaultWriteable
         result.body |>>> singleChunkIteratee(result, requestHeader.version)
     }
 
-    import play.core.Execution.Implicits.internalContext
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
 
     bodyIterator.mapM(result =>
       createHeadResult(result)

@@ -4,6 +4,7 @@
 package java8guide.async;
 
 import javaguide.testhelpers.MockJavaAction;
+import javaguide.testhelpers.MockJavaActionHelper;
 import org.junit.Test;
 import play.mvc.Result;
 import play.mvc.Results.Chunks;
@@ -17,7 +18,7 @@ public class JavaStream extends WithApplication {
 
     @Test
     public void chunked() {
-        String content = contentAsString(MockJavaAction.call(new Controller1(), fakeRequest()));
+        String content = contentAsString(MockJavaActionHelper.call(new Controller1(), fakeRequest()));
         assertThat(content, equalTo(
             "4\r\n" +
             "kiki\r\n" +

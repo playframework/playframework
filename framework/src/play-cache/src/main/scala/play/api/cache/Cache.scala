@@ -197,6 +197,7 @@ class EhCacheModule extends Module {
   }
 }
 
+@Singleton
 class CacheManagerProvider @Inject() (env: Environment, config: Configuration, lifecycle: ApplicationLifecycle) extends Provider[CacheManager] {
   lazy val get: CacheManager = {
     val resourceName = config.underlying.getString("play.modules.cache.configResource")

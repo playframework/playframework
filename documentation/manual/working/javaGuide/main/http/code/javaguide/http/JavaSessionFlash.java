@@ -15,7 +15,7 @@ import play.mvc.*;
 import play.mvc.Http.*;
 //#imports
 
-import static javaguide.testhelpers.MockJavaAction.*;
+import static javaguide.testhelpers.MockJavaActionHelper.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static play.test.Helpers.*;

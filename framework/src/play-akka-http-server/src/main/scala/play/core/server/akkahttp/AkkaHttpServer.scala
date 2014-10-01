@@ -13,7 +13,7 @@ import com.typesafe.config.{ ConfigFactory, Config }
 import java.net.InetSocketAddress
 import org.reactivestreams._
 import play.api._
-import play.api.http.{ DefaultHttpErrorHandler, HeaderNames, MediaType }
+import play.api.http.{ HttpRequestHandler, DefaultHttpErrorHandler, HeaderNames, MediaType }
 import play.api.libs.iteratee._
 import play.api.libs.streams.Streams
 import play.api.mvc._
@@ -119,13 +119,6 @@ class AkkaHttpServer(config: ServerConfig, appProvider: ApplicationProvider) ext
       }
       executeAction(tryApp, request, taggedRequestHeader, requestBodyEnumerator, actionWithErrorHandling)
     case unhandled => sys.error(s"AkkaHttpServer doesn't handle Handlers of this type: $unhandled")
-  }
-
-  private def globalSettingsForApp(tryApp: Try[Application]): GlobalSettings = {
-    tryApp match {
-      case Success(app) => app.global
-      case Failure(_) => DefaultGlobal
-    }
   }
 
   /** Error handling to use during execution of a handler (e.g. an action) */

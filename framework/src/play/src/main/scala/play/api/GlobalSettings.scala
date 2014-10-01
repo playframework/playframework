@@ -10,7 +10,7 @@ import java.io.File
 import play.core.j
 
 import scala.concurrent.Future
-import play.api.http.{ HttpErrorHandler, DefaultHttpErrorHandler, HttpVerbs }
+import play.api.http._
 import play.core.actions.HeadAction
 import play.api.http.Status._
 
@@ -44,6 +44,16 @@ trait GlobalSettings {
    */
   private def configuredErrorHandler: HttpErrorHandler = {
     Play.maybeApplication.fold[HttpErrorHandler](DefaultHttpErrorHandler)(_.errorHandler)
+  }
+
+  private def defaultRequestHandler: Option[DefaultHttpRequestHandler] = {
+    Play.maybeApplication.map { app =>
+      app.injector.instanceOf[JavaCompatibleHttpRequestHandler]
+    }
+  }
+
+  private def filters: HttpFilters = {
+    Play.maybeApplication.fold[HttpFilters](NoHttpFilters)(_.injector.instanceOf[HttpFilters])
   }
 
   /**
@@ -95,18 +105,24 @@ trait GlobalSettings {
    * Default is: route, tag request, then apply filters
    */
   def onRequestReceived(request: RequestHeader): (RequestHeader, Handler) = {
-    val notFoundHandler = Action.async(BodyParsers.parse.empty)(req =>
+    def notFoundHandler = Action.async(BodyParsers.parse.empty)(req =>
       configuredErrorHandler.onClientError(request, NOT_FOUND)
     )
+
     val (routedRequest, handler) = onRouteRequest(request) map {
       case handler: RequestTaggingHandler => (handler.tagRequest(request), handler)
       case otherHandler => (request, otherHandler)
     } getOrElse {
+
       // We automatically permit HEAD requests against any GETs without the need to
       // add an explicit mapping in Routes
       val missingHandler: Handler = request.method match {
         case HttpVerbs.HEAD =>
-          new HeadAction(onRouteRequest(request.copy(method = HttpVerbs.GET)).getOrElse(notFoundHandler))
+          val headAction = onRouteRequest(request.copy(method = HttpVerbs.GET)) match {
+            case Some(action: EssentialAction) => action
+            case None => notFoundHandler
+          }
+          new HeadAction(headAction)
         case _ =>
           notFoundHandler
       }
@@ -121,9 +137,9 @@ trait GlobalSettings {
    */
   def doFilter(next: RequestHeader => Handler): (RequestHeader => Handler) = {
     (request: RequestHeader) =>
-      val context = Play.maybeApplication
-        .flatMap(_.configuration.getString("application.context"))
-        .fold("/")(_.replaceAll("/$", "") + "/")
+      val context = Play.maybeApplication.fold("/") { app =>
+        app.injector.instanceOf[HttpConfiguration].context.replaceAll("/$", "") + "/"
+      }
       next(request) match {
         case action: EssentialAction if request.path startsWith context => doFilter(action)
         case handler => handler
@@ -133,7 +149,9 @@ trait GlobalSettings {
   /**
    * Filters for EssentialAction.
    */
-  def doFilter(next: EssentialAction): EssentialAction = next
+  def doFilter(next: EssentialAction): EssentialAction = {
+    filters.filters.foldRight(next)(_ apply _)
+  }
 
   /**
    * Called when an HTTP request has been received.
@@ -144,8 +162,9 @@ trait GlobalSettings {
    * @return an action to handle this request - if no action is returned, a 404 not found result will be sent to client
    * @see onHandlerNotFound
    */
-  def onRouteRequest(request: RequestHeader): Option[Handler] =
-    Play.maybeApplication.flatMap(_.routes.handlerFor(request))
+  def onRouteRequest(request: RequestHeader): Option[Handler] = defaultRequestHandler.flatMap { handler =>
+    handler.routeRequest(request)
+  }
 
   /**
    * Called when an exception occurred.
@@ -181,6 +200,7 @@ trait GlobalSettings {
   def onBadRequest(request: RequestHeader, error: String): Future[Result] =
     defaultErrorHandler.onClientError(request, play.api.http.Status.BAD_REQUEST, error)
 
+  @deprecated("onRequestCompletion is no longer invoked by Play. The same functionality can be achieved by adding a filter that attaches a onDoneEnumerating callback onto the returned Result Enumerator.", "2.4.0")
   def onRequestCompletion(request: RequestHeader) {
   }
 

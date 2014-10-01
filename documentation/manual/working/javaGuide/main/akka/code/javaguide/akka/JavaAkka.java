@@ -6,6 +6,7 @@ package javaguide.akka;
 import akka.actor.*;
 import com.typesafe.config.*;
 import javaguide.testhelpers.MockJavaAction;
+import javaguide.testhelpers.MockJavaActionHelper;
 import org.junit.Test;
 
 import play.libs.F.Promise;
@@ -46,7 +47,7 @@ public class JavaAkka extends WithApplication {
 
     @Test
     public void async() throws Exception {
-        Result result = MockJavaAction.call(new MockJavaAction() {
+        Result result = MockJavaActionHelper.call(new MockJavaAction() {
             public Promise<Result> index() {
                 return new javaguide.akka.async.Application().index();
             }

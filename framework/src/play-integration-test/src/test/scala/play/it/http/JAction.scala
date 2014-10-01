@@ -3,8 +3,10 @@
  */
 package play.it.http
 
+import play.api._
 import play.api.mvc.EssentialAction
-import play.core.j.{ JavaActionAnnotations, JavaAction }
+import play.core.j.{ JavaHandlerComponents, JavaActionAnnotations, JavaAction }
+import play.http.DefaultHttpRequestHandler
 import play.mvc.{ Http, Result }
 import play.libs.F.Promise
 
@@ -23,8 +25,8 @@ import play.libs.F.Promise
  * }}}
  */
 object JAction {
-  def apply(c: AbstractMockController): EssentialAction = {
-    new JavaAction {
+  def apply(app: Application, c: AbstractMockController): EssentialAction = {
+    new JavaAction(new JavaHandlerComponents(app.injector, new DefaultHttpRequestHandler())) {
       val annotations = new JavaActionAnnotations(c.getClass, c.getClass.getMethod("action"))
       val parser = annotations.parser
       def invocation = c.invocation

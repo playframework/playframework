@@ -13,6 +13,7 @@ import scala.collection.Seq;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
+import javax.inject.Singleton;
 
 public class NingWSModule extends Module {
 
@@ -28,6 +29,7 @@ public class NingWSModule extends Module {
         }
     }
 
+    @Singleton
     public static class WSClientProvider implements Provider<WSClient> {
         private final WSAPI wsApi;
 

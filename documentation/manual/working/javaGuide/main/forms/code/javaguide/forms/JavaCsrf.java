@@ -21,6 +21,7 @@ import play.test.FakeApplication;
 import static play.test.Helpers.*;
 
 import javaguide.testhelpers.MockJavaAction;
+import javaguide.testhelpers.MockJavaActionHelper;
 import javaguide.forms.html.form;
 
 import java.util.regex.Matcher;
@@ -44,7 +45,7 @@ public class JavaCsrf extends WithApplication {
     @Test
     public void templates() {
         String token = crypto().generateSignedToken();
-        String body = contentAsString(MockJavaAction.call(new MockJavaAction() {
+        String body = contentAsString(MockJavaActionHelper.call(new MockJavaAction() {
             public Result index() {
                 return ok(javaguide.forms.html.csrf.render());
             }
@@ -63,7 +64,7 @@ public class JavaCsrf extends WithApplication {
 
     @Test
     public void csrfCheck() {
-        assertThat(status(MockJavaAction.call(new Controller1(), fakeRequest("POST", "/")
+        assertThat(status(MockJavaActionHelper.call(new Controller1(), fakeRequest("POST", "/")
                 .withHeader(CONTENT_TYPE, "application/x-www-form-urlencoded"))), equalTo(FORBIDDEN));
     }
 
@@ -80,7 +81,7 @@ public class JavaCsrf extends WithApplication {
     @Test
     public void csrfAddToken() {
         assertThat(crypto().extractSignedToken(contentAsString(
-                MockJavaAction.call(new Controller2(), fakeRequest("GET", "/"))
+                MockJavaActionHelper.call(new Controller2(), fakeRequest("GET", "/"))
         )), notNullValue());
     }
 

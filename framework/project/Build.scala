@@ -40,6 +40,12 @@ object BuildSettings {
 
   val buildWithDoc = boolProp("generate.doc")
 
+  // Argument for setting size of permgen space or meta space for all forked processes
+  val maxMetaspace = {
+    val space = if (isJavaAtLeast("1.8")) "Metaspace" else "Perm"
+    s"-XX:Max${space}Size=384m"
+  }
+
   def propOr(name: String, value: String): String =
     (sys.props get name) orElse
       (sys.env get name) getOrElse
@@ -80,6 +86,7 @@ object BuildSettings {
     testListeners in (Test,test) := Nil,
     javacOptions in Test := { if (isJavaAtLeast("1.8")) makeJavacOptions("1.8") else makeJavacOptions("1.6") },
     unmanagedSourceDirectories in Test ++= { if (isJavaAtLeast("1.8")) Seq((sourceDirectory in Test).value / "java8") else Nil },
+    javaOptions in Test += maxMetaspace,
     testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
     testOptions in Test += Tests.Filter(!_.endsWith("Benchmark")),
     testOptions in PerformanceTest ~= (_.filterNot(_.isInstanceOf[Tests.Filter]) :+ Tests.Filter(_.endsWith("Benchmark"))),
@@ -285,7 +292,7 @@ object PlayBuild extends Build {
     .settings(scriptedSettings: _*)
     .settings(
       scriptedLaunchOpts ++= Seq(
-        "-XX:MaxPermSize=384M",
+        maxMetaspace,
         "-Dproject.version=" + version.value
       )
     )
@@ -352,7 +359,7 @@ object PlayBuild extends Build {
       },
       scriptedLaunchOpts ++= Seq(
         "-Xmx768m",
-        "-XX:MaxPermSize=384M",
+        maxMetaspace,
         "-Dperformance.log=" + new File(baseDirectory.value, "target/sbt-repcomile-performance.properties"),
         "-Dproject.version=" + version.value
       ),

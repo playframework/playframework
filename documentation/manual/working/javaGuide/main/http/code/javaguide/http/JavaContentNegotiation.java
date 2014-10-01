@@ -12,7 +12,7 @@ import play.mvc.*;
 import java.util.Arrays;
 import java.util.List;
 
-import static javaguide.testhelpers.MockJavaAction.*;
+import static javaguide.testhelpers.MockJavaActionHelper.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static play.test.Helpers.*;

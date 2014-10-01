@@ -12,7 +12,7 @@ object JavaErrorHandling extends PlaySpecification with WsTestClient {
 
   def fakeApp[A](implicit ct: ClassTag[A]) = {
     FakeApplication(
-      additionalConfiguration = Map("play.application.errorHandler" -> ct.runtimeClass.getName),
+      additionalConfiguration = Map("play.http.errorHandler" -> ct.runtimeClass.getName),
       withRoutes = {
         case (_, "/error") => Action(_ => throw new RuntimeException("foo"))
       }

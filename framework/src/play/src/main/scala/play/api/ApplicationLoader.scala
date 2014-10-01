@@ -96,6 +96,5 @@ abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) 
   lazy val sourceMapper = context.sourceMapper
   lazy val webCommands = context.webCommands
   lazy val configuration = context.initialConfiguration
-  lazy val global = DefaultGlobal
 }
 

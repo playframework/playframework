@@ -5,6 +5,7 @@ package play.it.http
 
 import java.io.ByteArrayInputStream
 
+import play.api.Application
 import play.api.test._
 import play.api.libs.ws.WSResponse
 import play.libs.EventSource
@@ -17,11 +18,13 @@ object JavaResultsHandlingSpec extends PlaySpecification with WsTestClient {
   "Java results handling" should {
     def makeRequest[T](controller: MockController)(block: WSResponse => T) = {
       implicit val port = testServerPort
-      running(TestServer(port, FakeApplication(
+      lazy val app: Application = FakeApplication(
         withRoutes = {
-          case _ => JAction(controller)
+          case _ => JAction(app, controller)
         }
-      ))) {
+      )
+
+      running(TestServer(port, app)) {
         val response = await(wsUrl("/").get())
         block(response)
       }
@@ -124,16 +127,19 @@ object JavaResultsHandlingSpec extends PlaySpecification with WsTestClient {
 
     "not chunk input stream results if HTTP/1.0 is in use" in {
       implicit val port = testServerPort
-      running(TestServer(port, FakeApplication(
+
+      lazy val app: Application = FakeApplication(
         withRoutes = {
-          case _ => JAction(new MockController {
+          case _ => JAction(app, new MockController {
             def action = {
               // chunk size 2 to force more than one chunk
               Results.ok(new ByteArrayInputStream("hello".getBytes("utf-8")), 2)
             }
           })
         }
-      ))) {
+      )
+
+      running(TestServer(port, app)) {
         val response = BasicHttpClient.makeRequests(testServerPort, true)(
           BasicRequest("GET", "/", "HTTP/1.0", Map(), "")
         )(0)

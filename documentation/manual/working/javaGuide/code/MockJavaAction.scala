@@ -3,21 +3,30 @@
  */
 package javaguide.testhelpers
 
-import play.core.j.{JavaHelpers, JavaActionAnnotations, JavaAction}
-import play.mvc.{Http, Controller, Result}
+import play.api.mvc.{Action, Request}
+import play.core.j.{JavaHandlerComponents, JavaHelpers, JavaActionAnnotations, JavaAction}
+import play.http.DefaultHttpRequestHandler
+import play.mvc.{Controller, Http, Result}
 import play.test.FakeRequest
 import play.api.test.Helpers
 import play.libs.F
 import java.lang.reflect.Method
 
-abstract class MockJavaAction extends Controller with JavaAction {
+abstract class MockJavaAction extends Controller with Action[Http.RequestBody] { self =>
 
-  val controller = this.getClass
-  val method = MockJavaActionJavaMocker.findActionMethod(this)
-  val annotations = new JavaActionAnnotations(controller, method)
+  private lazy val action = new JavaAction(new JavaHandlerComponents(
+    play.api.Play.current.injector, new DefaultHttpRequestHandler
+  )) {
+    val annotations = new JavaActionAnnotations(controller, method)
+    def parser = annotations.parser
+    def invocation = self.invocation
+  }
 
-  def parser = annotations.parser
+  def parser = action.parser
+  def apply(request: Request[Http.RequestBody]) = action.apply(request)
 
+  private val controller = this.getClass
+  private val method = MockJavaActionJavaMocker.findActionMethod(this)
   def invocation = {
     method.invoke(this) match {
       case r: Result => F.Promise.pure(r)
@@ -26,28 +35,28 @@ abstract class MockJavaAction extends Controller with JavaAction {
   }
 }
 
-object MockJavaAction {
+object MockJavaActionHelper {
   import Helpers.defaultAwaitTimeout
 
-  def call(action: JavaAction, request: FakeRequest) = {
+  def call(action: Action[Http.RequestBody], request: FakeRequest): Result = {
     val result = Helpers.await(action.apply(request.getWrappedRequest))
     new Result {
       def toScala = result
     }
   }
 
-  def callWithStringBody(action: JavaAction, request: FakeRequest, body: String) = {
+  def callWithStringBody(action: Action[Http.RequestBody], request: FakeRequest, body: String): Result = {
     val result = Helpers.await(Helpers.call(action, request.getWrappedRequest, body))
     new Result {
       def toScala = result
     }
   }
 
-  def setContext(request: FakeRequest) = {
+  def setContext(request: FakeRequest): Unit = {
     Http.Context.current.set(JavaHelpers.createJavaContext(request.getWrappedRequest))
   }
 
-  def removeContext = Http.Context.current.remove()
+  def removeContext: Unit = Http.Context.current.remove()
 }
 
 /**

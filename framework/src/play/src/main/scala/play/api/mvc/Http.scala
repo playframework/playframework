@@ -4,7 +4,7 @@
 package play.api.mvc {
 
   import play.api._
-  import play.api.http.{ MediaType, MediaRange, HeaderNames }
+  import play.api.http.{ HttpConfiguration, MediaType, MediaRange, HeaderNames }
   import play.api.i18n.Lang
   import play.api.libs.iteratee._
   import play.api.libs.Crypto
@@ -580,16 +580,14 @@ package play.api.mvc {
    * Helper utilities to manage the Session cookie.
    */
   object Session extends CookieBaker[Session] {
-    val COOKIE_NAME = Play.maybeApplication.flatMap(_.configuration.getString("session.cookieName")).getOrElse("PLAY_SESSION")
+    val COOKIE_NAME = HttpConfiguration.current.session.cookieName
     val emptyCookie = new Session
     override val isSigned = true
-    override def secure = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.secure")).getOrElse(false)
-    override val maxAge = Play.maybeApplication
-      .flatMap(_.configuration.getMilliseconds("session.maxAge")
-        .map(Duration(_, MILLISECONDS).toSeconds.toInt))
-    override val httpOnly = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.httpOnly")).getOrElse(true)
-    override def path = Play.maybeApplication.flatMap(_.configuration.getString("application.context")).getOrElse("/")
-    override def domain = Play.maybeApplication.flatMap(_.configuration.getString("session.domain"))
+    override def secure = HttpConfiguration.current.session.secure
+    override def maxAge = HttpConfiguration.current.session.maxAge.map(_.toSeconds.toInt)
+    override def httpOnly = HttpConfiguration.current.session.httpOnly
+    override def path = HttpConfiguration.current.context
+    override def domain = HttpConfiguration.current.session.domain
 
     def deserialize(data: Map[String, String]) = new Session(data)
 
@@ -654,8 +652,8 @@ package play.api.mvc {
    */
   object Flash extends CookieBaker[Flash] {
 
-    val COOKIE_NAME = Play.maybeApplication.flatMap(_.configuration.getString("flash.cookieName")).getOrElse("PLAY_FLASH")
-    override def path = Play.maybeApplication.flatMap(_.configuration.getString("application.context")).getOrElse("/")
+    val COOKIE_NAME = HttpConfiguration.current.flash.cookieName
+    override def path = HttpConfiguration.current.context
 
     val emptyCookie = new Flash
 

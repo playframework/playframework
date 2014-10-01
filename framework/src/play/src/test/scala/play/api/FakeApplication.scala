@@ -3,7 +3,7 @@
  */
 package play.api
 
-import play.api.http.DefaultHttpErrorHandler
+import play.api.http.{ NotImplementedHttpRequestHandler, DefaultHttpErrorHandler }
 import play.core.Router
 import java.io.File
 
@@ -16,11 +16,11 @@ import scala.concurrent.Future
 case class FakeApplication(config: Map[String, Any] = Map(),
     path: File = new File("."),
     mode: Mode.Mode = Mode.Test,
-    global: GlobalSettings = DefaultGlobal,
+    override val global: GlobalSettings = DefaultGlobal,
     plugins: Seq[Plugin.Deprecated] = Nil) extends Application {
   val classloader = Thread.currentThread.getContextClassLoader
   lazy val configuration = Configuration.from(config)
   def stop() = Future.successful(())
-  val routes = Router.Null
   val errorHandler = DefaultHttpErrorHandler
+  val requestHandler = NotImplementedHttpRequestHandler
 }
