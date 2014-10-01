@@ -235,13 +235,22 @@ trait PlayCommands extends PlayEclipse with PlayInternalKeys {
 
   private[this] var commonClassLoader: ClassLoader = _
 
-  val playCommonClassloaderTask = (dependencyClasspath in Compile) map { classpath =>
+  val playCommonClassloaderTask = (dependencyClasspath in Compile, streams) map { (classpath, streams) =>
     lazy val commonJars: PartialFunction[java.io.File, java.net.URL] = {
       case jar if jar.getName.startsWith("h2-") || jar.getName == "h2.jar" => jar.toURI.toURL
     }
 
     if (commonClassLoader == null) {
-      commonClassLoader = new java.net.URLClassLoader(classpath.map(_.data).collect(commonJars).toArray, null /* important here, don't depend of the sbt classLoader! */ ) {
+
+      // The parent of the system classloader *should* be the extension classloader:
+      // http://www.onjava.com/pub/a/onjava/2005/01/26/classloading.html
+      // We use this because this is where things like Nashorn are located. We don't use the system classloader
+      // because it will be polluted with the sbt launcher and dependencies of the sbt launcher.
+      // See https://github.com/playframework/playframework/issues/3420 for discussion.
+      val parent = ClassLoader.getSystemClassLoader.getParent
+      streams.log.debug("Using parent loader for play common classloader: " + parent)
+
+      commonClassLoader = new java.net.URLClassLoader(classpath.map(_.data).collect(commonJars).toArray, parent) {
         override def toString = "Common ClassLoader: " + getURLs.map(_.toString).mkString(",")
       }
     }
