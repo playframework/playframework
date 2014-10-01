@@ -3,7 +3,8 @@
  */
 package play
 
-import play.sbtplugin.run.PlayWatchService
+import play.runsupport.PlayWatchService
+import play.sbtplugin.run._
 
 import play.api._
 import play.core._

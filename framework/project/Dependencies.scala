@@ -144,6 +144,10 @@ object Dependencies {
     )
   }
 
+ val runSupportDependencies = Seq(
+    "org.scala-sbt" % "io" % BuildSettings.buildSbtVersion
+  ) ++ specsBuild.map(_ % Test)
+
   val typesafeConfig = "com.typesafe" % "config" % "1.2.1"
 
   val sbtDependencies = Seq(
