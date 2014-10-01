@@ -210,6 +210,7 @@ trait PlaySettings {
     // Assets for testing
     public in TestAssets := (public in TestAssets).value / assetsPrefix.value,
     fullClasspath in Test += Attributed.blank((assets in TestAssets).value.getParentFile),
+    fullClasspath in IntegrationTest += Attributed.blank((assets in TestAssets).value.getParentFile),
 
     // Settings
 
