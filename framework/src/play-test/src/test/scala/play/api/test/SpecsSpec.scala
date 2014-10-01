@@ -3,7 +3,9 @@
  */
 package play.api.test
 
+import com.google.inject.AbstractModule
 import org.specs2.mutable._
+import play.api.inject.guice.GuiceApplicationLoader
 import play.api.{ Play, Application }
 
 object SpecsSpec extends Specification {
@@ -20,6 +22,16 @@ object SpecsSpec extends Specification {
     }
     "start the application" in new WithApplication(fakeApp("foo" -> "bar", "ehcacheplugin" -> "disabled")) {
       Play.maybeApplication must beSome(app)
+    }
+  }
+
+  "WithApplicationLoader" should {
+    val myModule = new AbstractModule {
+      def configure() = bind(classOf[Int]).toInstance(42)
+    }
+    class WithMyApplicationLoader extends WithApplicationLoader(new GuiceApplicationLoader(myModule))
+    "allow adding modules" in new WithMyApplicationLoader {
+      app.injector.instanceOf(classOf[Int]) must equalTo(42)
     }
   }
 }
