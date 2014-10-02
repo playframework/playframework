@@ -96,7 +96,7 @@ In the code samples below, we’ll use the following JSON:
   "key2" : {
     "key21" : 123,
     "key22" : true,
-    "key23" : [ "alpha", "beta", "gamma"]
+    "key23" : [ "alpha", "beta", "gamma"],
     "key24" : {
       "key241" : 234.123,
       "key242" : "value242"
