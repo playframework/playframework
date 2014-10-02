@@ -21,7 +21,8 @@ templates := {
   sys.props.get("templates").map(_.split(",").toSeq).getOrElse(Seq(
     "play-scala",
     "play-java",
-    "play-scala-intro",
+// Disabled since it seems to be causing unexplainable errors :(
+//    "play-scala-intro",
     "play-java-intro"
   )).map(template => dir / template)
 }
