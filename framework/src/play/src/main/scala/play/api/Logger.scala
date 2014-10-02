@@ -278,6 +278,12 @@ object Logger extends LoggerLike {
         configurator.setContext(ctx)
         ctx.reset()
 
+        // Ensure that play.Logger and play.api.Logger are ignored when detecting file name and line number for
+        // logging
+        val frameworkPackages = ctx.getFrameworkPackages
+        frameworkPackages.add(classOf[play.Logger].getName)
+        frameworkPackages.add(classOf[play.api.Logger].getName)
+
         properties.foreach {
           case (name, value) => ctx.putProperty(name, value)
         }
