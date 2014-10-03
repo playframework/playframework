@@ -3,6 +3,10 @@
  */
 package play.filters.csrf
 
+import play.api.mvc.Session
+import play.filters.csrf.CSRFConf._
+import play.mvc.Http.Context
+
 import scala.concurrent.Future
 import play.api.libs.ws._
 import play.mvc.{ Results, Result, Controller }
@@ -48,6 +52,31 @@ object JavaCSRFActionSpec extends CSRFCommonSpecs {
     }
   }
 
+  def buildCsrfWithSession(configuration: (String, String)*) = new CsrfTester {
+    def apply[T](makeRequest: (WSRequestHolder) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
+      case _ => new JavaAction() {
+        def parser = annotations.parser
+        def invocation = F.Promise.pure(new MyAction().withSession())
+        val annotations = new JavaActionAnnotations(classOf[MyAction], classOf[MyAction].getMethod("withSession"))
+      }
+    } {
+      import play.api.Play.current
+      handleResponse(await(makeRequest(WS.url("http://localhost:" + testServerPort))))
+    }
+  }
+
+  "The Java CSRF filter support" should {
+    "allow adding things to the session when a token is also added to the session" in {
+      buildCsrfWithSession()(_.get()) { response =>
+        val session = response.cookies.find(_.name.exists(_ == Session.COOKIE_NAME)).flatMap(_.value).map(Session.decode)
+        session must beSome.which { s =>
+          s.get(TokenName) must beSome[String]
+          s.get("hello") must beSome("world")
+        }
+      }
+    }
+  }
+
   class MyAction extends Controller {
     @AddCSRFToken
     def add(): Result = {
@@ -58,6 +87,11 @@ object JavaCSRFActionSpec extends CSRFCommonSpecs {
     }
     @RequireCSRFCheck
     def check(): Result = {
+      Results.ok()
+    }
+    @AddCSRFToken
+    def withSession(): Result = {
+      Context.current().session().put("hello", "world")
       Results.ok()
     }
   }

@@ -9,6 +9,7 @@ import java.util.*;
 import org.w3c.dom.*;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import play.api.mvc.RequestHeader;
 import play.i18n.Lang;
 import play.Play;
 import play.i18n.Langs;
@@ -211,6 +212,71 @@ public class Http {
             return "Context attached to (" + request() + ")";
         }
 
+    }
+
+    /**
+     * A wrapped context.
+     *
+     * Use this to modify the context in some way.
+     */
+    public static abstract class WrappedContext extends Context {
+        private final Context wrapped;
+
+        public WrappedContext(Context wrapped) {
+            super(wrapped.id(), wrapped._requestHeader(), wrapped.request(), wrapped.session(), wrapped.flash(), wrapped.args);
+            this.args = wrapped.args;
+            this.wrapped = wrapped;
+        }
+
+        @Override
+        public Long id() {
+            return wrapped.id();
+        }
+
+        @Override
+        public Request request() {
+            return wrapped.request();
+        }
+
+        @Override
+        public Response response() {
+            return wrapped.response();
+        }
+
+        @Override
+        public Session session() {
+            return wrapped.session();
+        }
+
+        @Override
+        public Flash flash() {
+            return wrapped.flash();
+        }
+
+        @Override
+        public play.api.mvc.RequestHeader _requestHeader() {
+            return wrapped._requestHeader();
+        }
+
+        @Override
+        public Lang lang() {
+            return wrapped.lang();
+        }
+
+        @Override
+        public boolean changeLang(String code) {
+            return wrapped.changeLang(code);
+        }
+
+        @Override
+        public boolean changeLang(Lang lang) {
+            return wrapped.changeLang(lang);
+        }
+
+        @Override
+        public void clearLang() {
+            wrapped.clearLang();
+        }
     }
 
     public abstract static class RequestHeader {
