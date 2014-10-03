@@ -33,15 +33,20 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
             ctx.args.put(requestTag, newToken);
 
             // Create a new Scala RequestHeader with the token
-            RequestHeader newRequest = request.copy(request.id(),
+            final RequestHeader newRequest = request.copy(request.id(),
                     request.tags().$plus(new Tuple2<String, String>(requestTag, newToken)),
                     request.uri(), request.path(), request.method(), request.version(), request.queryString(),
                     request.headers(), request.remoteAddress(), request.secure());
 
             // Create a new context that will have the new RequestHeader.  This ensures that the CSRF.getToken call
             // used in templates will find the token.
-            Http.Context newCtx = new Http.Context(ctx.id(), newRequest, ctx.request(), ctx.session(), ctx.flash(),
-                    ctx.args);
+            Http.Context newCtx = new Http.WrappedContext(ctx) {
+                @Override
+                public RequestHeader _requestHeader() {
+                    return newRequest;
+                }
+            };
+
             Http.Context.current.set(newCtx);
 
             // Also add it to the response
