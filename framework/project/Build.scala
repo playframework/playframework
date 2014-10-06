@@ -219,9 +219,9 @@ object PlayBuild extends Build {
       libraryDependencies ++= runSupportDependencies
     )
 
-  lazy val SbtRunSupportProject = runSupportProject("SBT-Run-Support",SharedProjectScalaVersion.forScalaVersion(buildScalaVersionForSbt),PublishSettings.sbtPluginPublishSettings)
+  lazy val SbtRunSupportProject = runSupportProject("SBT-Run-Support",SharedProjectScalaVersion.forScalaVersion(buildScalaVersionForSbt),(if (publishNonCoreScalaLibraries) publishSettings else dontPublishSettings))
 
-  lazy val RunSupportProject = runSupportProject("Run-Support", SharedProjectScalaVersion.forScalaVersion(buildScalaVersion),PublishSettings.publishSettings)
+  lazy val RunSupportProject = runSupportProject("Run-Support", SharedProjectScalaVersion.forScalaVersion(buildScalaVersion),publishSettings)
 
   lazy val RoutesCompilerProject = PlaySbtProject("Routes-Compiler", "routes-compiler")
     .settings(libraryDependencies ++= routersCompilerDependencies)
