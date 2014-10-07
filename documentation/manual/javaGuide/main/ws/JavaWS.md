@@ -153,7 +153,9 @@ The default client can be called from the WS class:
 
 @[ws-client](code/javaguide/ws/JavaWS.java)
 
-You can define a WS client directly from code and use this for making requests.
+You can define a WS client directly from code and use this for making requests.  Note that you must follow a particular series of steps to use HTTPS correctly if you are defining a client directly:
+
+@[ws-custom-client-imports](code/javaguide/ws/JavaWS.java)
 
 @[ws-custom-client](code/javaguide/ws/JavaWS.java)
 
@@ -176,6 +178,10 @@ Use the following properties in `application.conf` to configure the WS client:
 * `ws.useProxyProperties`: To use the system http proxy settings(http.proxyHost, http.proxyPort) *(default is **true**)*. 
 * `ws.useragent`: To configure the User-Agent header field.
 * `ws.compressionEnable`: Set it to true to use gzip/deflater encoding *(default is **false**)*.
+
+### Configuring WS with SSL
+
+To configure WS for use with HTTP over SSL/TLS (HTTPS), please see [[Configuring WS SSL|WsSSL]].
 
 ### Timeouts
 
