@@ -20,7 +20,8 @@ import java.util.jar.JarFile
 import com.typesafe.sbt.SbtNativePackager._
 import com.typesafe.sbt.packager.Keys._
 import com.typesafe.sbt.web.SbtWeb.autoImport._
-import play.sbtplugin.run.{ PlayWatchService, AssetsClassLoader }
+import play.runsupport.{ PlayWatchService, AssetsClassLoader }
+import play.sbtplugin.run._
 
 /**
  * Provides mechanisms for running a Play application in SBT
