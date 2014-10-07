@@ -18,15 +18,14 @@ object HttpExecutionContextSpec extends Specification
 
     "propagate the context ClassLoader and Http.Context" in {
       mustExecute(2) { ec =>
-        val pec = ec.prepare()
         val classLoader = new ClassLoader() {}
         val httpContext = new Http.Context(1, null, null, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava)
-        val hec = new HttpExecutionContext(classLoader, httpContext, pec)
+        val hec = new HttpExecutionContext(classLoader, httpContext, ec).prepare
 
         val hecFromThread = new LinkedBlockingQueue[ExecutionContext]()
         hec.execute(new Runnable {
           def run() = {
-            hecFromThread.offer(HttpExecutionContext.fromThread(pec))
+            hecFromThread.offer(HttpExecutionContext.fromThread(ec).prepare)
           }
         })
 
@@ -42,7 +41,6 @@ object HttpExecutionContextSpec extends Specification
         actualHttpContext.poll(5, SECONDS) must equalTo(httpContext)
       }
     }
-
   }
 
 }
