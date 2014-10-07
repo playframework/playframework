@@ -10,6 +10,10 @@ import play.api.libs.json.Json
 import play.api.test._
 import scala.util.Random
 import play.api.libs.Crypto
+import play.api.inject.guice.GuiceApplicationLoader
+import play.api.{ Mode, Configuration, Environment }
+import play.api.ApplicationLoader.Context
+import play.core.DefaultWebCommands
 
 /**
  * Specs for the global CSRF filter
@@ -117,6 +121,25 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
 
   }
 
+  "The CSRF module" should {
+    def fakeContext = Context(
+      Environment(new java.io.File("."), getClass.getClassLoader, Mode.Test),
+      None,
+      new DefaultWebCommands,
+      Configuration.load(new java.io.File("."), Mode.Test)
+    )
+    def loader = new GuiceApplicationLoader
+    "allow injecting CSRF filters" in {
+      val app = loader.load(fakeContext)
+      val config = app.injector.instanceOf[CSRFFilter].config
+      val defaultConfig = CSRF.Config()
+
+      config.cookieName must_== defaultConfig.cookieName
+      config.secureCookie must_== defaultConfig.secureCookie
+      config.tokenName must_== defaultConfig.tokenName
+    }
+  }
+
   def buildCsrfCheckRequest(sendUnauthorizedResult: Boolean, configuration: (String, String)*) = new CsrfTester {
     def apply[T](makeRequest: (WSRequestHolder) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
       case _ => if (sendUnauthorizedResult) {
@@ -168,7 +191,7 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
 
   class CustomErrorHandler extends CSRF.ErrorHandler {
     import play.api.mvc.Results.Unauthorized
-    def handle(req: RequestHeader, msg: String) = Unauthorized(msg)
+    def handle(req: RequestHeader, msg: String) = Future.successful(Unauthorized(msg))
   }
 }
 

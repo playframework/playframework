@@ -42,6 +42,6 @@ object ScalaCSRFActionSpec extends CSRFCommonSpecs {
 
   class CustomErrorHandler extends CSRF.ErrorHandler {
     import play.api.mvc.Results.Unauthorized
-    def handle(req: RequestHeader, msg: String) = Unauthorized(msg)
+    def handle(req: RequestHeader, msg: String) = Future.successful(Unauthorized(msg))
   }
 }
