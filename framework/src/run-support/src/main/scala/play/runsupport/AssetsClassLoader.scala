@@ -1,9 +1,11 @@
 /*
  * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
  */
-package play.sbtplugin.run
+package play.runsupport
 
 import sbt._
+import java.io.File
+import Path._
 
 /**
  * A ClassLoader for serving assets.
