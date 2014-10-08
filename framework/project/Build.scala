@@ -54,7 +54,7 @@ object BuildSettings {
   class SharedProjectScalaVersion(val scalaVersion: String, val targetDir: String) {
     val nameSuffix:String = targetDir.replace(".","").trim()
     def toSettings(targetPrefix:String):Seq[Setting[_]] = Seq(
-      Keys.target <<= target / s"$targetPrefix-$targetDir",
+      target := target.value / s"$targetPrefix-$targetDir",
       Keys.scalaVersion := scalaVersion
     )
   }
@@ -72,7 +72,6 @@ object BuildSettings {
     scalaVersion := buildScalaVersion,
     homepage := Some(url("https://playframework.com")),
     licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.html")),
-    scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersion),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
     javacOptions ++= makeJavacOptions("1.6"),
     javacOptions in doc := Seq("-source", "1.6"),
@@ -112,6 +111,7 @@ object BuildSettings {
 
   def PlaySharedRuntimeProject(name: String, dir: String, targetPrefix:String, scalaVersion: SharedProjectScalaVersion, additionalSettings:Seq[Setting[_]]): Project = {
     Project(name, file("src/" + dir))
+      .settings(playCommonSettings: _*)
       .settings(scalariformSettings: _*)
       .settings(scalaVersion.toSettings(targetPrefix): _*)
       .settings(additionalSettings: _*)
@@ -205,7 +205,7 @@ object PlayBuild extends Build {
     .settings(libraryDependencies ++= link)
     .dependsOn(PlayExceptionsProject)
 
-  def runSupportProject(prefix:String,sv:SharedProjectScalaVersion,additionalSettings:Seq[Setting[_]]) =
+  def runSupportProject(prefix:String, sv:SharedProjectScalaVersion, additionalSettings: Seq[Setting[_]]) =
     PlaySharedRuntimeProject(s"$prefix-${sv.nameSuffix}", s"run-support", prefix, sv, additionalSettings).settings(
       libraryDependencies ++= runSupportDependencies
     )
