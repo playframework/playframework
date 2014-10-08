@@ -435,12 +435,10 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
 
       pendingResult.recoverWith {
         case e: InvalidUriEncodingException =>
-          Play.maybeApplication.fold(Future.successful(BadRequest: Result)) { app =>
-            errorHandler.onClientError(request, BAD_REQUEST, s"Invalid URI encoding for $file at $path: " + e.getMessage)
-          }
+          errorHandler.onClientError(request, BAD_REQUEST, s"Invalid URI encoding for $file at $path: " + e.getMessage)
         case NonFatal(e) =>
           // Add a bit more information to the exception for better error reporting later
-          throw new RuntimeException(s"Unexpected error while serving $file at $path: " + e.getMessage, e)
+          errorHandler.onServerError(request, new RuntimeException(s"Unexpected error while serving $file at $path: " + e.getMessage, e))
       }
   }
 
