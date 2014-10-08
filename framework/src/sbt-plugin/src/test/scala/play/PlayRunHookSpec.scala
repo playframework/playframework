@@ -5,7 +5,7 @@ package play
 
 import java.io._
 import org.specs2.mutable._
-import play.PlayExceptions.AssetCompilationException
+import play.runsupport.PlayExceptions.AssetCompilationException
 import scala.collection.mutable.HashMap
 
 object PlayRunHookSpec extends Specification {

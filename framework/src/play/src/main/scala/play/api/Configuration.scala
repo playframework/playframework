@@ -38,7 +38,9 @@ object Configuration {
           .map(f => new File(f)).getOrElse(new File(appPath, "conf/application.conf"))
       }
       val config = Option(System.getProperty("config.resource"))
-        .map(ConfigFactory.parseResources(_)).getOrElse(ConfigFactory.parseFileAnySyntax(file))
+        .map { r =>
+          ConfigFactory.parseResources(r)
+        } getOrElse { ConfigFactory.parseFileAnySyntax(file) }
 
       ConfigFactory.parseMap(devSettings.asJava).withFallback(ConfigFactory.load(config))
     } catch {

@@ -5,7 +5,7 @@ package play.core.coffeescript
 
 import java.io._
 import org.specs2.mutable._
-import play.PlayExceptions.AssetCompilationException
+import play.runsupport.PlayExceptions.AssetCompilationException
 
 object AssetsSpec extends Specification {
 

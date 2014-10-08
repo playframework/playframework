@@ -1,12 +1,20 @@
 /*
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
-package play
+package play.runsupport
 
 import sbt._
 import play.api._
+import java.io.File
+
+private object PlayExceptionsHelper {
+  implicit def convertToOption[T](o: xsbti.Maybe[T]): Option[T] =
+    if (o.isDefined()) Some(o.get())
+    else None
+}
 
 trait PlayExceptions {
+  import PlayExceptionsHelper._
 
   def filterAnnoyingErrorMessages(message: String): String = {
     val overloaded = """(?s)overloaded method value (.*) with alternatives:(.*)cannot be applied to(.*)""".r

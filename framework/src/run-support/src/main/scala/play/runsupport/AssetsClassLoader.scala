@@ -23,6 +23,7 @@ class AssetsClassLoader(parent: ClassLoader, assets: Seq[(String, File)]) extend
   }
 
   def exists(name: String, prefix: String, dir: File) = {
-    name.startsWith(prefix) && (dir / name.substring(prefix.length)).isFile
+    val r = name.startsWith(prefix) && (dir / name.substring(prefix.length)).isFile
+    r
   }
 }

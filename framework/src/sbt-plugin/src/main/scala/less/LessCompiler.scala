@@ -3,7 +3,7 @@
  */
 package play.core.less
 
-import play.PlayExceptions.AssetCompilationException
+import play.runsupport.PlayExceptions.AssetCompilationException
 import java.io._
 
 object LessCompiler {
@@ -31,7 +31,7 @@ object LessCompiler {
                 var timers = [],
                     window = {
                         document: {
-                            getElementById: function(id) { 
+                            getElementById: function(id) {
                                 return [];
                             },
                             getElementsByTagName: function(tagName) {
@@ -39,8 +39,8 @@ object LessCompiler {
                             }
                         },
                         location: {
-                            protocol: 'file:', 
-                            hostname: 'localhost', 
+                            protocol: 'file:',
+                            hostname: 'localhost',
                             port: '80'
                         },
                         setInterval: function(fn, time) {

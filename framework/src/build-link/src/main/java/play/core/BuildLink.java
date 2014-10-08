@@ -92,4 +92,9 @@ public interface BuildLink {
      * @return The result of running the task.
      */
     public Object runTask(String task);
+
+    /**
+     * Indicates if the server is running in forked mode.
+     */
+    public boolean isForked();
 }

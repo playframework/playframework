@@ -3,7 +3,7 @@
  */
 package play.api.libs
 
-import io.Source
+import scala.io.Source
 import org.jboss.netty.handler.codec.http.QueryStringDecoder
 import java.net.{MalformedURLException, URL}
 import util.control.Exception._

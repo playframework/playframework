@@ -5,7 +5,7 @@ package play.core.coffeescript
 
 import sbt._
 import java.io._
-import play.PlayExceptions.AssetCompilationException
+import play.runsupport.PlayExceptions.AssetCompilationException
 
 object CoffeescriptCompiler {
 

@@ -7,7 +7,7 @@ import sbt._
 import Keys._
 import play.PlayImport._
 import PlayKeys._
-import PlayExceptions._
+import play.runsupport.PlayExceptions._
 
 // ----- Assets
 trait PlayAssetsCompiler {
@@ -70,7 +70,7 @@ trait PlayAssetsCompiler {
           }
         }
 
-        //write object graph to cache file 
+        //write object graph to cache file
         Sync.writeInfo(cacheFile,
           Relation.empty[File, File] ++ generated,
           currentInfos)(FileInfo.lastModified.format)

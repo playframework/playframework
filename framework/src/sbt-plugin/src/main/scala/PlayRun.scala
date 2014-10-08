@@ -20,8 +20,10 @@ import java.util.jar.JarFile
 import com.typesafe.sbt.SbtNativePackager._
 import com.typesafe.sbt.packager.Keys._
 import com.typesafe.sbt.web.SbtWeb.autoImport._
-import play.runsupport.{ PlayWatchService, AssetsClassLoader }
+import play.runsupport.{ PlayWatchService, AssetsClassLoader, PlayExceptionNoSource, PlayExceptionWithSource }
 import play.sbtplugin.run._
+import play.runsupport.protocol.{ PlayForkSupportResult, SourceMapTarget }
+import play.runsupport.PlayExceptions._
 
 /**
  * Provides mechanisms for running a Play application in SBT
@@ -34,6 +36,11 @@ trait PlayRun extends PlayInternalKeys {
    * that application. Hidden so that it isn't exposed when the user application is published.
    */
   val DocsApplication = config("docs").hide
+
+  /**
+   * Configuration for the Play fork-runner dependencies.
+   */
+  val ForkRunner = config("fork-runner").hide
 
   // Regex to match Java System Properties of the format -Dfoo=bar
   private val SystemProperty = "-D([^=]+)=(.*)".r
@@ -82,6 +89,110 @@ trait PlayRun extends PlayInternalKeys {
   val playDefaultRunTask = playRunTask(playRunHooks, playDependencyClasspath, playDependencyClassLoader,
     playReloaderClasspath, playReloaderClassLoader, playAssetsClassLoader)
 
+  def buildPlayRunForkedRunnable(logger: Logger,
+    baseDirectory: File,
+    projectDirectory: File,
+    projectRef: ProjectRef,
+    javaOptions: Seq[String],
+    forkRunnerClasspath: Classpath,
+    dependencyClasspath: Classpath,
+    monitoredFiles: Seq[String],
+    targetDirectory: File,
+    docsClasspath: Classpath,
+    defaultHttpPort: Int,
+    pollDelayMillis: Int,
+    args: Seq[String]): Runnable = new Runnable {
+
+    def run(): Unit = {
+      logger.debug(s"baseDirectory: $baseDirectory")
+      logger.debug(s"projectDirectory: $projectDirectory")
+      logger.debug(s"projectRef: $projectRef")
+      logger.debug(s"javaOptions: $javaOptions")
+      logger.debug(s"forkRunnerClasspath: $forkRunnerClasspath")
+      logger.debug(s"dependencyClasspath: $dependencyClasspath")
+      logger.debug(s"monitoredFiles: $monitoredFiles")
+      logger.debug(s"targetDirectory: $targetDirectory")
+      logger.debug(s"docsClasspath: $docsClasspath")
+      logger.debug(s"defaultHttpPort: $defaultHttpPort")
+      logger.debug(s"pollDelayMillis: $pollDelayMillis")
+      logger.debug(s"args: $args")
+
+      val boostrapClasspath = (forkRunnerClasspath.map(_.data) ++ dependencyClasspath.map(_.data)).toSet.toSeq
+      logger.debug(s"boostrapClasspath: $boostrapClasspath")
+
+      val runnerOptions = ForkOptions(workingDirectory = Some(projectDirectory),
+        runJVMOptions = javaOptions)
+      val runner = new ForkRun(runnerOptions)
+      val baseDirectoryString = baseDirectory.getAbsolutePath()
+      val buildUriString = projectRef.build.toString
+      val project = projectRef.project
+
+      runner.run("play.forkrunner.ForkRunner", boostrapClasspath, Seq(baseDirectoryString, buildUriString, targetDirectory.getAbsolutePath, project, defaultHttpPort.toString, "-", pollDelayMillis.toString), logger)
+    }
+  }
+
+  def playRunForked(logger: Logger,
+    baseDirectory: File,
+    projectDirectory: File,
+    projectRef: ProjectRef,
+    javaOptions: Seq[String],
+    forkRunnerClasspath: Classpath,
+    dependencyClasspath: Classpath,
+    monitoredFiles: Seq[String],
+    targetDirectory: File,
+    docsClasspath: Classpath,
+    defaultHttpPort: Int,
+    pollDelayMillis: Int,
+    args: Seq[String]): Unit = {
+    val runnable = buildPlayRunForkedRunnable(logger,
+      baseDirectory,
+      projectDirectory,
+      projectRef,
+      javaOptions,
+      forkRunnerClasspath,
+      dependencyClasspath,
+      monitoredFiles,
+      targetDirectory,
+      docsClasspath,
+      defaultHttpPort,
+      pollDelayMillis,
+      args)
+    runnable.run()
+  }
+
+  def backgroundPlayRunTask(resolvedScope: ScopedKey[_],
+    jobService: BackgroundJobService,
+    baseDirectory: File,
+    projectDirectory: File,
+    projectRef: ProjectRef,
+    javaOptions: Seq[String],
+    forkRunnerClasspath: Classpath,
+    dependencyClasspath: Classpath,
+    monitoredFiles: Seq[String],
+    targetDirectory: File,
+    docsClasspath: Classpath,
+    defaultHttpPort: Int,
+    pollDelayMillis: Int,
+    args: Seq[String]): BackgroundJobHandle = {
+
+    jobService.runInBackgroundThread(resolvedScope, { (logger, uiContext) =>
+      uiContext.sendEvent("Starting Play dev-mode forked and in the background")
+      playRunForked(logger,
+        baseDirectory,
+        projectDirectory,
+        projectRef,
+        javaOptions,
+        forkRunnerClasspath,
+        dependencyClasspath,
+        monitoredFiles,
+        targetDirectory,
+        docsClasspath,
+        defaultHttpPort,
+        pollDelayMillis,
+        args)
+    })
+  }
+
   /**
    * This method is public API, used by sbt-echo, which is used by Activator:
    *
@@ -96,61 +207,263 @@ trait PlayRun extends PlayInternalKeys {
     assetsClassLoader: TaskKey[ClassLoader => ClassLoader]): Def.Initialize[InputTask[Unit]] = Def.inputTask {
 
     val args = Def.spaceDelimited().parsed
-
+    val forkInRun = (Keys.fork in Keys.run).value
     val state = Keys.state.value
     val interaction = playInteractionMode.value
 
-    lazy val devModeServer = startDevMode(
-      state,
-      runHooks.value,
-      (javaOptions in Runtime).value,
-      dependencyClasspath.value,
-      dependencyClassLoader.value,
-      reloaderClasspath,
-      reloaderClassLoader.value,
-      assetsClassLoader.value,
-      playCommonClassloader.value,
-      playMonitoredFiles.value,
-      playWatchService.value,
-      (managedClasspath in DocsApplication).value,
-      interaction,
-      playDefaultPort.value,
-      args
-    )
+    if (forkInRun) {
+      val extracted = Project.extract(state)
+      playRunForked(
+        state.log,
+        (Keys.baseDirectory in ThisBuild).value,
+        (Keys.baseDirectory in ThisProject).value,
+        extracted.currentRef,
+        (javaOptions in Runtime).value,
+        (managedClasspath in ForkRunner).value,
+        dependencyClasspath.value,
+        playMonitoredFiles.value,
+        target.value,
+        (managedClasspath in DocsApplication).value,
+        playDefaultPort.value,
+        pollInterval.value,
+        args
+      )
+    } else {
+      lazy val devModeServer = startDevMode(
+        state,
+        runHooks.value,
+        (javaOptions in Runtime).value,
+        dependencyClasspath.value,
+        dependencyClassLoader.value,
+        reloaderClasspath,
+        reloaderClassLoader.value,
+        assetsClassLoader.value,
+        playCommonClassloader.value,
+        playMonitoredFiles.value,
+        playWatchService.value,
+        (managedClasspath in DocsApplication).value,
+        interaction,
+        playDefaultPort.value,
+        args
+      )
 
-    interaction match {
-      case nonBlocking: PlayNonBlockingInteractionMode =>
-        nonBlocking.start(devModeServer)
-      case blocking =>
-        devModeServer
+      interaction match {
+        case nonBlocking: PlayNonBlockingInteractionMode =>
+          nonBlocking.start(devModeServer)
+        case blocking =>
+          devModeServer
 
-        println()
-        println(Colors.green("(Server started, use Ctrl+D to stop and go back to the console...)"))
-        println()
+          println()
+          println(Colors.green("(Server started, use Ctrl+D to stop and go back to the console...)"))
+          println()
 
-        // If we have both Watched.Configuration and Watched.ContinuousState
-        // attributes and if Watched.ContinuousState.count is 1 then we assume
-        // we're in ~ run mode
-        val maybeContinuous = for {
-          watched <- state.get(Watched.Configuration)
-          watchState <- state.get(Watched.ContinuousState)
-          if watchState.count == 1
-        } yield watched
+          // If we have both Watched.Configuration and Watched.ContinuousState
+          // attributes and if Watched.ContinuousState.count is 1 then we assume
+          // we're in ~ run mode
+          val maybeContinuous = for {
+            watched <- state.get(Watched.Configuration)
+            watchState <- state.get(Watched.ContinuousState)
+            if watchState.count == 1
+          } yield watched
 
-        maybeContinuous match {
-          case Some(watched) =>
-            // ~ run mode
-            interaction doWithoutEcho {
-              twiddleRunMonitor(watched, state, devModeServer.buildLink, Some(WatchState.empty))
-            }
-          case None =>
-            // run mode
-            interaction.waitForCancel()
-        }
+          maybeContinuous match {
+            case Some(watched) =>
+              // ~ run mode
+              interaction doWithoutEcho {
+                twiddleRunMonitor(watched, state, devModeServer.buildLink, Some(WatchState.empty))
+              }
+            case None =>
+              // run mode
+              interaction.waitForCancel()
+          }
 
-        devModeServer.close()
-        println()
+          devModeServer.close()
+          println()
+      }
     }
+  }
+
+  val playDefaultForkRunSupportTask = playForkRunSupportTask(playReload, playDependencyClasspath, playReloaderClasspath)
+
+  def findUnderlyingFailure[T <: Throwable](in: Throwable)(test: Throwable => Option[T]): Option[T] = {
+    in match {
+      case null => None
+      case Incomplete(_, _, _, causes, directCause) =>
+        (causes.foldLeft[Option[T]](None) {
+          case (None, v) => findUnderlyingFailure(v)(test)
+          case (x, _) => x
+        }) orElse directCause.flatMap(test)
+      case x => test(x) orElse (findUnderlyingFailure(x.getCause)(test))
+    }
+  }
+
+  def findUnexpectedException(in: Throwable): Option[UnexpectedException] =
+    findUnderlyingFailure(in) {
+      case x: UnexpectedException => Some(x)
+      case _ => None
+    }
+
+  def findCompilationException(in: Throwable): Option[CompilationException] =
+    findUnderlyingFailure(in) {
+      case x: CompilationException => Some(x)
+      case _ => None
+    }
+
+  def findTemplateCompilationException(in: Throwable): Option[TemplateCompilationException] =
+    findUnderlyingFailure(in) {
+      case x: TemplateCompilationException => Some(x)
+      case _ => None
+    }
+
+  def findRoutesCompilationException(in: Throwable): Option[RoutesCompilationException] =
+    findUnderlyingFailure(in) {
+      case x: RoutesCompilationException => Some(x)
+      case _ => None
+    }
+
+  def findAssetCompilationException(in: Throwable): Option[AssetCompilationException] =
+    findUnderlyingFailure(in) {
+      case x: AssetCompilationException => Some(x)
+      case _ => None
+    }
+
+  private def allProblems(inc: Incomplete): Seq[xsbti.Problem] = {
+    allProblems(inc :: Nil)
+  }
+
+  private def allProblems(incs: Seq[Incomplete]): Seq[xsbti.Problem] = {
+    problems(Incomplete.allExceptions(incs).toSeq)
+  }
+
+  private def problems(es: Seq[Throwable]): Seq[xsbti.Problem] = {
+    es flatMap {
+      case cf: xsbti.CompileFailed => cf.problems
+      case _ => Nil
+    }
+  }
+
+  private def findCompilationFailure(in: Throwable): Option[CompilationException] = in match {
+    case incomplete: Incomplete =>
+      Incomplete.allExceptions(incomplete).headOption.flatMap {
+        case e: xsbti.CompileFailed =>
+          allProblems(incomplete)
+            .find(_.severity == xsbti.Severity.Error)
+            .map(CompilationException)
+        case _ => None
+      }
+    case _ => None
+  }
+
+  def findInterestingException(in: Throwable): Option[Throwable] =
+    findCompilationFailure(in) orElse
+      findUnexpectedException(in) orElse
+      findCompilationException(in) orElse
+      findTemplateCompilationException(in) orElse
+      findRoutesCompilationException(in) orElse
+      findAssetCompilationException(in)
+
+  def extractSourceMap(in: sbt.inc.Analysis): Map[String, SourceMapTarget] = {
+    in.apis.internal.foldLeft(Map.empty[String, SourceMapTarget]) {
+      case (s, (sourceFile, source)) => s ++ (source.api.definitions.map(d => (d.name -> SourceMapTarget(sourceFile, play.twirl.compiler.MaybeGeneratedSource.unapply(sourceFile).map(_.file)))))
+    }
+  }
+  /**
+   * This method is public API, used by sbt-echo, which is used by Activator:
+   *
+   * https://github.com/typesafehub/sbt-echo/blob/v0.1.3/play/src/main/scala-sbt-0.13/com/typesafe/sbt/echo/EchoPlaySpecific.scala#L20
+   *
+   * Do not change its signature without first consulting the Activator team.  Do not change its signature in a minor
+   * release.
+   */
+  def playForkRunSupportTask(compile: TaskKey[sbt.inc.Analysis], dependencyClasspath: TaskKey[Classpath], reloaderClasspath: TaskKey[Classpath]): Def.Initialize[Task[PlayForkSupportResult]] = Def.task {
+    val state = Keys.state.value
+    val log = state.log
+
+    log.info("+++++++++++++++++++++++++++++++++++++++++++++")
+    log.info(s"playForkRunSupportTask($compile, $dependencyClasspath, $reloaderClasspath)")
+
+    val compileResultEither = compile.result.value.toEither
+    val dependencyClasspathResultEither = dependencyClasspath.result.value.toEither
+    val reloaderClasspathResultEither = reloaderClasspath.result.value.toEither
+    val playAllAssetsResultEither = playAllAssets.result.value.toEither
+    val playMonitoredFilesResultEither = playMonitoredFiles.result.value.toEither
+    val docsResultEither = (managedClasspath in DocsApplication).result.value.toEither
+
+    log.info(s"compileResultEither: $compileResultEither")
+    log.info(s"dependencyClasspathResultEither: $dependencyClasspathResultEither")
+    log.info(s"reloaderClasspathResultEither: $reloaderClasspathResultEither")
+    log.info(s"playAllAssetsResultEither: $playAllAssetsResultEither")
+    log.info(s"playMonitoredFilesResultEither: $playMonitoredFilesResultEither")
+    log.info(s"docsResultEither: $docsResultEither")
+    log.info("+++++++++++++++++++++++++++++++++++++++++++++")
+
+    (compileResultEither,
+      dependencyClasspathResultEither,
+      reloaderClasspathResultEither,
+      playAllAssetsResultEither,
+      playMonitoredFilesResultEither,
+      docsResultEither) match {
+        case (Right(compileValue), Right(dependencyClasspathValue), Right(reloaderClasspathValue), Right(playAllAssetsValue), Right(playMonitoredFilesValue), Right(docsValue)) =>
+          PlayForkSupportResult(extractSourceMap(compileValue),
+            dependencyClasspathValue.map(_.data),
+            reloaderClasspathValue.map(_.data),
+            playAllAssetsValue,
+            playMonitoredFilesValue,
+            devSettings.value,
+            docsValue.map(_.data))
+        case (Left(i), _, _, _, _, _) =>
+          val ex = findInterestingException(i)
+          log.info("------------------------------")
+          log.info(s"Compile failed: $i => $ex")
+          log.info("------------------------------")
+          ex match {
+            case Some(x: UnexpectedException) =>
+              throw PlayExceptionNoSource("UnexpectedException", x.getMessage, "ERROR", xsbti.Severity.Error, x)
+            case Some(x: CompilationException) =>
+              throw PlayExceptionWithSource(genericTitle = x.title,
+                message = x.getMessage,
+                category = x.problem.category,
+                severity = x.problem.severity,
+                wrapped = x,
+                row = x.line,
+                column = x.position,
+                sourceFile = x.problem.position.sourceFile.get)
+            case Some(x: TemplateCompilationException) =>
+              throw PlayExceptionWithSource(genericTitle = x.title,
+                message = x.getMessage,
+                category = "ERROR",
+                severity = xsbti.Severity.Error,
+                wrapped = x,
+                row = x.line,
+                column = x.position,
+                sourceFile = x.source)
+            case Some(x: RoutesCompilationException) =>
+              throw PlayExceptionWithSource(genericTitle = x.title,
+                message = x.getMessage,
+                category = "ERROR",
+                severity = xsbti.Severity.Error,
+                wrapped = x,
+                row = x.line,
+                column = x.position,
+                sourceFile = x.source)
+            case Some(x: AssetCompilationException) =>
+              throw PlayExceptionWithSource(genericTitle = x.title,
+                message = x.getMessage,
+                category = "ERROR",
+                severity = xsbti.Severity.Error,
+                wrapped = x,
+                row = x.line,
+                column = x.position,
+                sourceFile = x.source.get)
+            case _ | None => throw i
+          }
+        case (_, _, _, _, _, _) =>
+          log.info("------------------------------")
+          log.info(s"Something else went wrong!!!!!")
+          log.info("------------------------------")
+          throw new Exception("WTF?")
+      }
+
   }
 
   /**

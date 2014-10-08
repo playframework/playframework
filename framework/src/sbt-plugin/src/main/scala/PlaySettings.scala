@@ -3,7 +3,7 @@
  */
 package play
 
-import play.runsupport.PlayWatchService
+import play.runsupport.{ PlayWatchService, protocol, Serializers }
 import play.sbtplugin.run._
 import sbt._
 import sbt.Keys._
@@ -16,6 +16,8 @@ import com.typesafe.sbt.web.SbtWeb.autoImport._
 import WebKeys._
 import scala.language.postfixOps
 import play.twirl.sbt.Import.TwirlKeys
+import play.api.libs.json.Format
+import complete.{ Parser, DefaultParsers }, DefaultParsers._
 
 trait PlaySettings {
   this: PlayCommands with PlayPositionMapper with PlayRun with PlaySourceGenerators =>
@@ -46,6 +48,8 @@ trait PlaySettings {
   def manageClasspath(config: Configuration) = managedClasspath in config <<= (classpathTypes in config, update) map { (ct, report) =>
     Classpaths.managedJars(config, ct, report)
   }
+
+  private val playNotifyServerStartParser: Parser[String] = (token(SpaceClass.*) ~> token(StringBasic)) <~ SpaceClass.*
 
   lazy val defaultSettings = Defaults.packageTaskSettings(playPackageAssets, playPackageAssetsMappings) ++ Seq[Setting[_]](
 
@@ -86,8 +90,11 @@ trait PlaySettings {
     libraryDependencies += "com.typesafe.play" %% "play-test" % play.core.PlayVersion.current % "test",
 
     ivyConfigurations += DocsApplication,
+    ivyConfigurations += ForkRunner,
     libraryDependencies += "com.typesafe.play" %% "play-docs" % play.core.PlayVersion.current % DocsApplication.name,
+    libraryDependencies += "com.typesafe.play" %% "fork-runner" % play.core.PlayVersion.current % ForkRunner.name,
     manageClasspath(DocsApplication),
+    manageClasspath(ForkRunner),
 
     parallelExecution in Test := false,
 
@@ -134,6 +141,17 @@ trait PlaySettings {
     // THE `in Compile` IS IMPORTANT!
     run in Compile <<= playDefaultRunTask,
 
+    UIKeys.backgroundRunMain in ThisProject := playBackgroundRunTaskBuilder.value((Keys.javaOptions in Runtime).value),
+
+    UIKeys.backgroundRun in ThisProject := playBackgroundRunTaskBuilder.value((Keys.javaOptions in Runtime).value),
+
+    playNotifyServerStart in ThisProject := {
+      import Serializers._
+      val url = playNotifyServerStartParser.parsed
+      val sendEventService = UIKeys.sendEventService.value
+      sendEventService.sendEvent(play.runsupport.PlayServerStarted(url))(play.runsupport.Serializers.playServerStartedWrites)
+    },
+
     playStop := {
       playInteractionMode.value match {
         case nonBlocking: PlayNonBlockingInteractionMode =>
@@ -154,6 +172,23 @@ trait PlaySettings {
 
     playVersion := play.core.PlayVersion.current,
 
+    playBackgroundRunTaskBuilder := { javaOptions =>
+      backgroundPlayRunTask(Keys.resolvedScoped.value,
+        UIKeys.jobService.value,
+        (Keys.baseDirectory in ThisBuild).value,
+        (Keys.baseDirectory in ThisProject).value,
+        Project.extract(Keys.state.value).currentRef,
+        javaOptions,
+        (managedClasspath in ForkRunner).value,
+        playDependencyClasspath.value,
+        playMonitoredFiles.value,
+        target.value,
+        (managedClasspath in DocsApplication).value,
+        playDefaultPort.value,
+        pollInterval.value,
+        Seq[String]())
+    },
+
     // all dependencies from outside the project (all dependency jars)
     playDependencyClasspath <<= externalDependencyClasspath in Runtime,
 
@@ -172,6 +207,11 @@ trait PlaySettings {
     playCompileEverything <<= playCompileEverythingTask,
 
     playReload <<= playReloadTask,
+
+    playDefaultForkRunSupport <<= playDefaultForkRunSupportTask,
+
+    UIKeys.registeredFormats in ThisProject <<= (UIKeys.registeredFormats in Global) ?? Nil,
+    (UIKeys.registeredFormats in ThisProject) ++= Serializers.formats.map(x => RegisteredFormat.apply(x.format)(x.manifest)),
 
     sourcePositionMappers += playPositionMapper,
 

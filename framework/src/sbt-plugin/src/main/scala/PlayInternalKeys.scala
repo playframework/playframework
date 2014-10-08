@@ -5,10 +5,13 @@ package play
 
 import sbt._
 import sbt.Keys._
+import play.runsupport.protocol.PlayForkSupportResult
 
 trait PlayInternalKeys {
   type ClassLoaderCreator = (String, Array[URL], ClassLoader) => ClassLoader
 
+  val playNotifyServerStart = inputKey[Unit]("Sends an event when the forked dev-server has started")
+  val playBackgroundRunTaskBuilder = TaskKey[Seq[String] => BackgroundJobHandle]("play-background-run-task-builder")
   val playDependencyClasspath = TaskKey[Classpath]("play-dependency-classpath")
   val playReloaderClasspath = TaskKey[Classpath]("play-reloader-classpath")
   val playCommonClassloader = TaskKey[ClassLoader]("play-common-classloader")
@@ -26,6 +29,8 @@ trait PlayInternalKeys {
   val playPrefixAndPipeline = TaskKey[(String, Seq[(File, String)])]("play-prefix-and-pipeline")
   val playAssetsClassLoader = TaskKey[ClassLoader => ClassLoader]("play-assets-classloader")
   val playPackageAssetsMappings = TaskKey[Seq[(File, String)]]("play-package-assets-mappings")
+
+  val playDefaultForkRunSupport = TaskKey[PlayForkSupportResult]("play-default-fork-run-support")
 
   @deprecated(message = "Use PlayKeys.playMonitoredFiles instead", since = "2.3.2")
   val playMonitoredFiles = PlayImport.PlayKeys.playMonitoredFiles

@@ -3,7 +3,7 @@
  */
 package play.core.jscompile
 
-import play.PlayExceptions.AssetCompilationException
+import play.runsupport.PlayExceptions.AssetCompilationException
 import java.io._
 import play.api._
 import scala.collection.JavaConverters._

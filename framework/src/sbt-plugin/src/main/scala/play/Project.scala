@@ -10,6 +10,7 @@ import com.typesafe.sbt.SbtNativePackager.packageArchetype
 import com.typesafe.sbt.jse.SbtJsTask
 import com.typesafe.sbt.webdriver.SbtWebDriver
 import play.twirl.sbt.SbtTwirl
+import play.runsupport.PlayExceptions
 
 /**
  * Base plugin for Play projects. Declares common settings for both Java and Scala based Play projects.
@@ -24,7 +25,7 @@ object Play
   with PlayPositionMapper
   with PlaySourceGenerators {
 
-  override def requires = SbtTwirl && SbtJsTask && SbtWebDriver
+  override def requires = SbtTwirl && SbtJsTask && SbtWebDriver && SbtUIPlugin && SbtBackgroundRunPlugin
 
   val autoImport = play.PlayImport
 

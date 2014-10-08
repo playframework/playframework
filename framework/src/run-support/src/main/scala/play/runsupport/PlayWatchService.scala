@@ -5,8 +5,14 @@ package play.runsupport
 
 import java.net.URLClassLoader
 import java.util.Locale
+import java.io.File
+
+import scala.reflect.ClassTag
+import scala.util.{ Properties, Try }
+import scala.util.control.NonFatal
 
 import sbt._
+import java.io.File
 
 import scala.reflect.ClassTag
 import scala.util.{ Properties, Try }
@@ -66,9 +72,9 @@ object PlayWatchService {
         case e =>
           logger.warn("Error loading JNotify watch service: " + e.getMessage)
           logger.trace(e)
-          new SbtPlayWatchService(pollDelayMillis)
+          sbt(pollDelayMillis)
       }.get
-      case _ => new SbtPlayWatchService(pollDelayMillis)
+      case _ => sbt(pollDelayMillis)
     }
 
     def watch(filesToWatch: Seq[File], onChange: () => Unit) = delegate.watch(filesToWatch, onChange)
@@ -78,14 +84,23 @@ object PlayWatchService {
 
   def jdk7(logger: LoggerProxy): PlayWatchService = optional(JDK7PlayWatchService(logger))
 
-  def sbt(pollDelayMillis: Int): PlayWatchService = new SbtPlayWatchService(pollDelayMillis)
-
   def optional(watchService: Try[PlayWatchService]): PlayWatchService = new OptionalPlayWatchServiceDelegate(watchService)
+
+  def sbt(pollDelayMillis: Int): PlayWatchService = new SbtPlayWatchService(pollDelayMillis)
 }
 
-/**
- * A polling Play watch service.  Polls in the background.
- */
+private class JNotifyPlayWatchService(delegate: JNotifyPlayWatchService.JNotifyDelegate) extends PlayWatchService {
+  def watch(filesToWatch: Seq[File], onChange: () => Unit) = {
+    val listener = delegate.newListener(onChange)
+    val registeredIds = filesToWatch.map { file =>
+      delegate.addWatch(file.getAbsolutePath, listener)
+    }
+    new PlayWatcher {
+      def stop() = registeredIds.foreach(delegate.removeWatch)
+    }
+  }
+}
+
 private class SbtPlayWatchService(pollDelayMillis: Int) extends PlayWatchService {
 
   def watch(filesToWatch: Seq[File], onChange: () => Unit) = {
@@ -108,18 +123,6 @@ private class SbtPlayWatchService(pollDelayMillis: Int) extends PlayWatchService
 
     new PlayWatcher {
       def stop() = stopped = true
-    }
-  }
-}
-
-private class JNotifyPlayWatchService(delegate: JNotifyPlayWatchService.JNotifyDelegate) extends PlayWatchService {
-  def watch(filesToWatch: Seq[File], onChange: () => Unit) = {
-    val listener = delegate.newListener(onChange)
-    val registeredIds = filesToWatch.map { file =>
-      delegate.addWatch(file.getAbsolutePath, listener)
-    }
-    new PlayWatcher {
-      def stop() = registeredIds.foreach(delegate.removeWatch)
     }
   }
 }

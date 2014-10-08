@@ -74,7 +74,6 @@ trait PlayCommands extends PlayAssetsCompiler with PlayEclipse with PlayInternal
   // ----- Post compile (need to be refactored and fully configurable)
 
   def PostCompile(scope: Configuration) = (sourceDirectory in scope, dependencyClasspath in scope, compile in scope, javaSource in scope, managedSourceDirectories in scope, classDirectory in scope, cacheDirectory in scope, compileInputs in compile in scope) map { (src, deps, analysis, javaSrc, srcManaged, classes, cacheDir, inputs) =>
-
     val classpath = (deps.map(_.data.getAbsolutePath).toArray :+ classes.getAbsolutePath).mkString(java.io.File.pathSeparator)
 
     val timestampFile = cacheDir / "play_instrumentation"
