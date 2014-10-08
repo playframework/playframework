@@ -127,7 +127,7 @@ object Dependencies {
   val netty = Seq(
     "io.netty"           % "netty"                 % "3.9.3.Final",
     "com.typesafe.netty" % "netty-http-pipelining" % "1.1.2"
-  )
+  ) ++ specsBuild.map(_ % Test)
 
   val routersCompilerDependencies =  Seq(
     "commons-io" % "commons-io" % "2.0.1"

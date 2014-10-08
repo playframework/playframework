@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
  */
 package play.core.server.netty
 
@@ -15,7 +15,6 @@ import org.jboss.netty.handler.ssl._
 import org.jboss.netty.channel.group._
 import play.api._
 import play.api.mvc._
-import play.api.http.HeaderNames.{ X_FORWARDED_FOR, X_FORWARDED_PROTO }
 import play.api.libs.concurrent.Execution
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
@@ -30,9 +29,11 @@ import java.net.URI
 import java.io.IOException
 import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame
 
-private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
-
+private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup)
+    extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler with ForwardedHeaderHandler {
   private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
+
+  def configuration = server.applicationProvider.get.toOption.map(_.configuration)
 
   /**
    * We don't know what the consequence of changing logging exceptions from trace to error will be.  We hope that it
@@ -91,27 +92,13 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
 
         def rRemoteAddress = e.getRemoteAddress match {
           case ra: java.net.InetSocketAddress =>
-            val remoteAddress = ra.getAddress.getHostAddress
-            forwardedHeader(remoteAddress, X_FORWARDED_FOR).getOrElse(remoteAddress)
+            remoteAddress(rHeaders).getOrElse(ra.getAddress.getHostAddress)
         }
 
         def rSecure = e.getRemoteAddress match {
           case ra: java.net.InetSocketAddress =>
-            val remoteAddress = ra.getAddress.getHostAddress
-            val fh = forwardedHeader(remoteAddress, X_FORWARDED_PROTO)
-            fh.map(_ == "https").getOrElse(ctx.getPipeline.get(classOf[SslHandler]) != null)
+            remoteProtocol(rHeaders).map(_ == "https").getOrElse(ctx.getPipeline.get(classOf[SslHandler]) != null)
         }
-
-        /**
-         * Gets the value of a header, if the remote address is localhost or
-         * if the trustxforwarded configuration property is true
-         */
-        def forwardedHeader(remoteAddress: String, headerName: String) = for {
-          headerValue <- rHeaders.get(headerName)
-          app <- server.applicationProvider.get.toOption
-          trustxforwarded <- app.configuration.getBoolean("trustxforwarded").orElse(Some(false))
-          if remoteAddress == "127.0.0.1" || trustxforwarded
-        } yield headerValue
 
         def tryToCreateRequest = {
           val parameters = Map.empty[String, Seq[String]] ++ nettyUri.getParameters.asScala.mapValues(_.asScala)
