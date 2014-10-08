@@ -8,12 +8,13 @@ object StatementParserSpec extends org.specs2.mutable.Specification {
   "SQL statement parser" title
 
   "Statement" should {
-    "be parsed with 'name' and 'cat' parameters" in {
+    "be parsed with 'name' and 'cat' parameters and support multiple lines" in {
       SqlStatementParser.parse("""
         SELECT * FROM schema.table 
         WHERE (name = {name} AND category = {cat}) OR id = ?
       """) aka "updated statement and parameters" mustEqual (
-        "SELECT * FROM schema.table          WHERE (name = %s AND category = %s) OR id = ?" -> List("name", "cat"))
+        """SELECT * FROM schema.table 
+        WHERE (name = %s AND category = %s) OR id = ?""" -> List("name", "cat"))
     }
 
     "detect missing query parameter" in withQueryResult(stringList :+ "test") {
