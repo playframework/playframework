@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
  */
 package play.data;
 
@@ -561,8 +561,13 @@ public class Form<T> {
 
     /**
      * Gets the concrete value if the submission was a success.
+     *
+     * @throws IllegalStateException if there are errors binding the form, including the errors as JSON in the message
      */
     public T get() {
+        if (!errors.isEmpty()) {
+            throw new IllegalStateException("Error(s) binding form: " + errorsAsJson());
+        }
         return value.get();
     }
 

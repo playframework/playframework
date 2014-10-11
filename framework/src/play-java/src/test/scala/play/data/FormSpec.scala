@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
  */
 package play.data
 
@@ -35,6 +35,14 @@ object FormSpec extends Specification {
       val myForm = Form.form(classOf[play.data.models.Task]).bindFromRequest()
       myForm hasErrors () must beEqualTo(true)
       myForm.errors.get("dueDate").get(0).messages().asScala must contain("error.invalid.java.util.Date")
+    }
+    "have an error due to missing required value" in {
+      val req = new DummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter")))
+      Context.current.set(new Context(666, null, req, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava))
+
+      val myForm = Form.form(classOf[play.data.models.Task]).bindFromRequest()
+      myForm hasErrors () must beEqualTo(true)
+      myForm.errors.get("dueDate").get(0).messages().asScala must contain("error.required")
     }
     "have an error due to bad value in Id field" in {
       val req = new DummyRequest(Map("id" -> Array("1234567891x"), "name" -> Array("peter"), "dueDate" -> Array("12/12/2009")))
