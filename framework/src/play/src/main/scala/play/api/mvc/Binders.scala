@@ -207,10 +207,30 @@ trait JavascriptLitteral[A] {
 object JavascriptLitteral {
 
   /**
-   * Convert a Scala String to Javascript String
+   * Convert a (primitive) value to it's Javascript equivalent
+   */
+  private def toJsValue(value: Any): String = {
+    value match {
+      case null => "null"
+      case _ => value.toString
+    }
+  }
+
+  /**
+   * Convert a value to a Javascript String
+   */
+  private def toJsString(value: Any): String = {
+    value match {
+      case null => "null"
+      case _ => "\"" + value.toString + "\""
+    }
+  }
+
+  /**
+   * Convert a Scala String to Javascript String (or Javascript null if given String value is null)
    */
   implicit def litteralString: JavascriptLitteral[String] = new JavascriptLitteral[String] {
-    def to(value: String) = "\"" + value + "\""
+    def to(value: String) = toJsString(value)
   }
 
   /**
@@ -221,10 +241,10 @@ object JavascriptLitteral {
   }
 
   /**
-   * Convert a Java Integer to Javascript number
+   * Convert a Java Integer to Javascript number (or Javascript null if given Integer value is null)
    */
   implicit def litteralJavaInteger: JavascriptLitteral[java.lang.Integer] = new JavascriptLitteral[java.lang.Integer] {
-    def to(value: java.lang.Integer) = value.toString
+    def to(value: java.lang.Integer) = toJsValue(value)
   }
 
   /**
@@ -235,10 +255,24 @@ object JavascriptLitteral {
   }
 
   /**
+   * Convert a Java Long to Javascript number (or Javascript null if given Long value is null)
+   */
+  implicit def litteralJavaLong: JavascriptLitteral[java.lang.Long] = new JavascriptLitteral[java.lang.Long] {
+    def to(value: java.lang.Long) = toJsValue(value)
+  }
+
+  /**
    * Convert a Scala Boolean to Javascript boolean
    */
   implicit def litteralBoolean: JavascriptLitteral[Boolean] = new JavascriptLitteral[Boolean] {
     def to(value: Boolean) = value.toString
+  }
+
+  /**
+   * Convert a Java Boolean to Javascript boolean (or Javascript null if given Boolean value is null)
+   */
+  implicit def litteralJavaBoolean: JavascriptLitteral[java.lang.Boolean] = new JavascriptLitteral[java.lang.Boolean] {
+    def to(value: java.lang.Boolean) = toJsValue(value)
   }
 
   /**
@@ -249,17 +283,30 @@ object JavascriptLitteral {
   }
 
   /**
+   * Convert a Java Option to Javascript literal (use null for None)
+   */
+  implicit def litteralJavaOption[T](implicit jsl: JavascriptLitteral[T]): JavascriptLitteral[play.libs.F.Option[T]] = new JavascriptLitteral[play.libs.F.Option[T]] {
+    def to(value: play.libs.F.Option[T]) = {
+      if (value.isDefined) {
+        jsl.to(value.get)
+      } else {
+        "null"
+      }
+    }
+  }
+
+  /**
    * Convert a Play Asset to Javascript String
    */
   implicit def litteralAsset: JavascriptLitteral[Asset] = new JavascriptLitteral[Asset] {
-    def to(value: Asset) = "\"" + value.name + "\""
+    def to(value: Asset) = toJsString(value.name)
   }
 
   /**
    * Convert a java.util.UUID to Javascript String (or Javascript null if given UUID value is null)
    */
   implicit def litteralUUID: JavascriptLitteral[UUID] = new JavascriptLitteral[UUID] {
-    def to(value: UUID) = Option(value).map("\"" + _.toString + "\"").getOrElse("null")
+    def to(value: UUID) = toJsString(value)
   }
 }
 
@@ -366,7 +413,7 @@ object QueryStringBindable {
     bindableBoolean.transform(b => b, b => b)
 
   /**
-   * Path binder for java.util.UUID.
+   * QueryString binder for java.util.UUID.
    */
   implicit object bindableUUID extends Parsing[UUID](
     UUID.fromString(_), _.toString, (key: String, e: Exception) => "Cannot parse parameter %s as UUID: %s".format(key, e.getMessage)
