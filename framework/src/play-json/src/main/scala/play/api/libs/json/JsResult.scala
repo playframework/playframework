@@ -82,8 +82,12 @@ sealed trait JsResult[+A] { self =>
     case e: JsError => e
   }
 
+  @deprecated(message = "Use `filterNot(JsError)(A => Boolean)` instead.", since = "2.3.4")
   def filterNot(error: ValidationError)(p: A => Boolean): JsResult[A] =
-    this.flatMap { a => if (p(a)) JsError(error) else JsSuccess(a) }
+    filterNot(JsError(error))(p)
+
+  def filterNot(error: JsError)(p: A => Boolean): JsResult[A] =
+    this.flatMap { a => if (p(a)) error else JsSuccess(a) }
 
   def filterNot(p: A => Boolean): JsResult[A] =
     this.flatMap { a => if (p(a)) JsError() else JsSuccess(a) }
@@ -91,8 +95,12 @@ sealed trait JsResult[+A] { self =>
   def filter(p: A => Boolean): JsResult[A] =
     this.flatMap { a => if (p(a)) JsSuccess(a) else JsError() }
 
+  @deprecated(message = "Use `filter(JsError)(A => Boolean)` instead.", since = "2.3.4")
   def filter(otherwise: ValidationError)(p: A => Boolean): JsResult[A] =
-    this.flatMap { a => if (p(a)) JsSuccess(a) else JsError(otherwise) }
+    filter(JsError(otherwise))(p)
+
+  def filter(otherwise: JsError)(p: A => Boolean): JsResult[A] =
+    this.flatMap { a => if (p(a)) JsSuccess(a) else otherwise }
 
   def collect[B](otherwise: ValidationError)(p: PartialFunction[A, B]): JsResult[B] = flatMap {
     case t if p.isDefinedAt(t) => JsSuccess(p(t))

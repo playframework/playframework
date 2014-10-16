@@ -905,5 +905,15 @@ object JsonValidSpec extends Specification {
         res2.map(identity) must equalTo(res2)
       }
     }
+
+    "have filtering methods that allow users to customize the error" in {
+      val res: JsResult[String] = JsSuccess("foo")
+      val error = JsError(__ \ "bar", "There is a problem")
+      res.filter(error)(_ != "foo") must equalTo(error)
+      res.filter(error)(_ == "foo") must equalTo(res)
+      res.filterNot(error)(_ == "foo") must equalTo(error)
+      res.filterNot(error)(_ != "foo") must equalTo(res)
+    }
+
   }
 }
