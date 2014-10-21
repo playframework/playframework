@@ -29,16 +29,18 @@ $ activator dist
 > $ chmod +x /path/to/bin/<project-name>
 > ```
 >
-> Alternatively a tar.gz file can be produced instead. Tar files retain permissions. Invoke the `universal:package-zip-tarball` task instead of the `dist` task:
+> Alternatively a tar.gz file can be produced instead. Tar files retain permissions. Invoke the `universal:packageZipTarball` task instead of the `dist` task:
 >
 > ```bash
-> activator universal:package-zip-tarball
+> activator universal:packageZipTarball
 > ```
 
-By default, the dist task will include the API documentation in the generated package. If this is not necessary, it can be avoided by including this line in `build.sbt`:
+By default, the `dist` task will include the API documentation in the generated package. If this is not necessary, add these lines in `build.sbt`:
 
 ```scala
-doc in Compile <<= target.map(_ / "none")
+sources in (Compile,doc) := Seq.empty
+
+publishArtifact in (Compile, packageDoc) := false
 ```
 For builds with sub-projects, the statement above has to be applied to all sub-project definitions.
 
@@ -47,7 +49,7 @@ For builds with sub-projects, the statement above has to be applied to all sub-p
 Play uses the [SBT Native Packager plugin](http://www.scala-sbt.org/sbt-native-packager/). The native packager plugin declares the `dist` task to create a zip file. Invoking the `dist` task is directly equivalent to invoking the following:
 
 ```bash
-$ activator universal:package-bin
+$ activator universal:packageBin
 ```
 
 Many other types of archive can be generated including:
@@ -59,7 +61,7 @@ Many other types of archive can be generated including:
 * Debian packages
 * System V / init.d and Upstart services in RPM/Debian packages
 
-Please consult the [documentation](http://www.scala-sbt.org/sbt-native-packager) on the native packager for more information.
+Please consult the [documentation](http://www.scala-sbt.org/sbt-native-packager) on the native packager plugin for more information.
 
 ### Build a server distribution
 
@@ -140,13 +142,13 @@ You can also publish your application to a Maven repository. This publishes both
 You have to configure the repository you want to publish to, in your `build.sbt` file:
 
 ```scala
- publishTo := Some(
-   "My resolver" at "https://mycompany.com/repo"
- ),
+publishTo := Some(
+  "My resolver" at "https://mycompany.com/repo"
+)
  
- credentials += Credentials(
-   "Repo", "https://mycompany.com/repo", "admin", "admin123"
- )
+credentials += Credentials(
+  "Repo", "https://mycompany.com/repo", "admin", "admin123"
+)
 ```
 
 Then in the Play console, use the `publish` task:
