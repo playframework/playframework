@@ -254,6 +254,13 @@ object JavascriptLiteral {
   implicit def literalAsset: JavascriptLiteral[Asset] = new JavascriptLiteral[Asset] {
     def to(value: Asset) = "\"" + value.name + "\""
   }
+
+  /**
+   * Convert a java.util.UUID to Javascript String (or Javascript null if given UUID value is null)
+   */
+  implicit def literalUUID: JavascriptLiteral[UUID] = new JavascriptLiteral[UUID] {
+    def to(value: UUID) = Option(value).map("\"" + _.toString + "\"").getOrElse("null")
+  }
 }
 
 /**
