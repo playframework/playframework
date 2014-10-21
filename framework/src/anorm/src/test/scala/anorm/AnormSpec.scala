@@ -453,6 +453,17 @@ object AnormSpec extends Specification with H2Database with AnormTest {
         aka("insertion") must beSome("generated")
     }
   }
+
+  "Query" should {
+    "be executed as simple SQL" in withQueryResult(
+      RowLists.booleanList :+ true) { implicit con =>
+        val sql = SQL("SELECT 1")
+
+        implicitly[Sql](sql).
+          aka("converted") must beAnInstanceOf[SimpleSql[_]] and (
+            SQL("SELECT 1").execute() aka "executed" must beTrue)
+      }
+  }
 }
 
 sealed trait AnormTest { db: H2Database =>
