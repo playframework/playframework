@@ -63,7 +63,7 @@ case class Object(value: Any)
 case class MetaDataItem(column: ColumnName, nullable: Boolean, clazz: String)
 case class ColumnName(qualified: String, alias: Option[String])
 
-private[anorm] case class MetaData(ms: List[MetaDataItem]) {
+case class MetaData(ms: List[MetaDataItem]) {
   // Use MetaDataItem rather than (ColumnName, Boolean, String)?
   def get(columnName: String): Option[(ColumnName, Boolean, String)] = {
     val columnUpper = columnName.toUpperCase
