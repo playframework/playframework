@@ -357,23 +357,9 @@ public class PromiseJava8Test extends ExecutionTest {
         assertThat(F.Promise.timeout("x", 10, MILLISECONDS).get(1, SECONDS)).isEqualTo("x");
     }
 
-    @Test
+    @Test(expected = F.PromiseTimeoutException.class)
     public void testTimeoutException() {
-        try {
-            F.Promise.timeout(10).get(1, SECONDS);
-            fail("Expected Promise.timeout to throw TimeoutException on get");
-            throw new TimeoutException("expected");
-        } catch (TimeoutException e){
-            assertThat(e).hasMessage("Timeout in promise");
-        }
-
-        try {
-            F.Promise.timeout(10, MILLISECONDS).get(1, SECONDS);
-            fail("Expected Promise.timeout to throw TimeoutException on get");
-            throw new TimeoutException("expected");
-        } catch (TimeoutException e){
-            assertThat(e).hasMessage("Timeout in promise");
-        }
+        F.Promise.timeout(10).get(1, SECONDS);
     }
 
     @Test
