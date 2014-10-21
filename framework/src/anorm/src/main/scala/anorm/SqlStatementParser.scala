@@ -25,7 +25,7 @@ object SqlStatementParser extends JavaTokenParsers {
    * }}}
    */
   def parse(sql: String): (String, List[String]) = {
-    val r = parse(instr, sql.trim().replace("\r", "").replace("\n", " ")).get
+    val r = parse(instr, sql.trim()).get
     (r.flatMap(_._1).mkString, (r.flatMap(_._2)))
   }
 
@@ -39,7 +39,7 @@ object SqlStatementParser extends JavaTokenParsers {
     case i1 ~ i2 => ("%s": String, Some(i1 + i2.map("." + _).getOrElse("")))
   }
 
-  private val other: Parser[(String, Option[String])] = """.""".r ^^ {
+  private val other: Parser[(String, Option[String])] = """(.|[\r\n])""".r ^^ {
     case element => (element, None)
   }
 
