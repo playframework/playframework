@@ -3,6 +3,7 @@
  */
 package play;
 
+import java.util.concurrent.TimeoutException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -12,7 +13,10 @@ import org.junit.rules.ExpectedException;
 
 import play.libs.F;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.assertions.Fail.fail;
 
 public class PromiseTest {
 
@@ -130,5 +134,60 @@ public class PromiseTest {
 
         assertThat(combined.get(t)).isEqualTo(Arrays.asList(1, 2, 3));
     }
-}
 
+    @Test
+    public void testGetTimeoutExceptions() {
+        // Check that Promise.get() translates TimeoutExceptions in failed
+        // F.Promise into F.PromiseTimeoutExceptions.
+        try {
+            F.RedeemablePromise.<Integer>empty().get(1, MILLISECONDS);
+            fail("Expected get to throw exception");
+        } catch (F.PromiseTimeoutException e){
+            // Don't check exception message because the message comes from Scala
+        }
+
+        // Check that Promise.get() translates TimeoutExceptions thrown
+        // by Await.result() into F.PromiseTimeoutExceptions.
+        {
+            TimeoutException origT = new TimeoutException("x");
+            try {
+                F.RedeemablePromise<Integer> p = F.RedeemablePromise.<Integer>empty();
+                p.failure(origT);
+                p.get(1, MILLISECONDS);
+                fail("Expected get to throw exception");
+            } catch (F.PromiseTimeoutException e){
+                assertThat(e).hasMessage("x");
+                assertThat(e.getCause()).isEqualTo(origT);
+            }
+        }
+    }
+
+    @Test
+    public void testTimeoutException() {
+        // Perform exception check *before* calling get(), because get()
+        // translates TimeoutExceptions into F.PromiseTimeoutExceptions,
+        // and we want to make sure that timeout() throws
+        // F.PromiseTimeoutExceptions directly.
+        {
+            F.Function<scala.Unit, scala.Unit> failF = new F.Function<scala.Unit, scala.Unit>() {
+                public scala.Unit apply(scala.Unit u) throws Throwable {
+                    fail("Expected Promise.timeout to throw an exception");
+                    return null;
+                }
+            };
+            F.Function<Throwable,scala.Unit> checkThrowableF = new F.Function<Throwable,scala.Unit>() {
+                public scala.Unit apply(Throwable t) throws Throwable {
+                    if (t instanceof F.PromiseTimeoutException) {
+                        assertThat(t).hasMessage("Timeout in promise");
+                    } else {
+                        fail("Expected Promise.timeout to throw F.PromiseTimeoutException");
+                    }
+                    return null;
+                }
+            };
+            F.Promise.timeout(10).map(failF).recover(checkThrowableF).get(1, SECONDS);
+            F.Promise.timeout(10, MILLISECONDS).map(failF).recover(checkThrowableF).get(1, SECONDS);
+        }
+    }
+
+}

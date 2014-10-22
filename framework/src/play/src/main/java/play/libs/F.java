@@ -154,8 +154,8 @@ public class F {
         }
 
         /**
-         * Create a Promise timer that throws a TimeoutException after a
-         * given timeout.
+         * Create a Promise timer that throws a PromiseTimeoutException after
+         * a given timeout.
          *
          * The returned Promise is usually combined with other Promises.
          *
@@ -167,8 +167,8 @@ public class F {
         }
 
         /**
-         * Create a Promise timer that throws a TimeoutException after a
-         * given timeout.
+         * Create a Promise timer that throws a PromiseTimeoutException after
+         * a given timeout.
          *
          * The returned Promise is usually combined with other Promises.
          *
@@ -642,9 +642,13 @@ public class F {
 
 
     /**
-     * exception for to notify of timeout of promise without api change.
+     * Exception thrown when an operation times out. This class provides an
+     * unchecked alternative to Java's TimeoutException.
      */
     public static class PromiseTimeoutException extends RuntimeException {
+        public PromiseTimeoutException(String message) {
+            super(message);
+        }
         public PromiseTimeoutException(String message, Throwable cause) {
             super(message, cause);
         }
