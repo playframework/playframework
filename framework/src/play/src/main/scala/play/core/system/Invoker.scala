@@ -31,8 +31,12 @@ private[play] object Invoker {
       (system, close)
     }
 
-    private def loadActorConfig(config: Config) = {
-      config.getConfig("play")
+    private def loadActorConfig(config: Config): Config = {
+      try {
+        config.getConfig("play")
+      } catch {
+        case _: ConfigException.Missing => ConfigFactory.empty()
+      }
     }
 
   }
