@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com> -->
 # Play 2.4 Migration Guide
 
-This guide is for migrating to Play 2.4 from Play 2.3. To migrate to Play 2.3, first follow the [[Play 2.3 Migration Guide|Migration23]].
+This is a guide for migrating from Play 2.3 to Play 2.4. If you need to migrate from an earlier version of Play then you must first follow the [[Play 2.3 Migration Guide|Migration23]].
 
 ## Dependency Injection
 

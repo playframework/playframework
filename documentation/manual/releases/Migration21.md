@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Play 2.1 migration guide
 
-This guide is for migrating to Play 2.1 from Play 2.0.
+This is a guide for migrating from Play 2.0 to Play 2.1.
 
 To migrate a **Play 2.0.x** application to **Play 2.1.0** first update Play's `sbt-plugin` in the `project/plugins.sbt` file:
 

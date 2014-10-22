@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Play 2.2 Migration Guide
 
-This guide is for migrating to Play 2.2 from Play 2.1.  To migrate to Play 2.1, first follow the [[Play 2.1 Migration Guide|Migration21]].
+This is a guide for migrating from Play 2.1 to Play 2.2. If you need to migrate from an earlier version of Play then you must first follow the [[Play 2.1 Migration Guide|Migration21]].
 
 ## Build tasks
 
