@@ -751,6 +751,19 @@ public class F {
             throw new UnsupportedOperationException();
         }
 
+        @Override
+        public int hashCode() {
+            return Arrays.deepHashCode(this.toArray());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null) return false;
+            if (!(obj instanceof Option)) return false;
+            return Arrays.deepEquals(this.toArray(), ((Option)obj).toArray());
+        }
+
     }
 
     /**
