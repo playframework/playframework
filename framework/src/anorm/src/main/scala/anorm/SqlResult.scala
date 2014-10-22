@@ -12,6 +12,15 @@ sealed trait SqlResult[+A] { self =>
     case Success(a) => Success(f(a))
     case e @ Error(_) => e
   }
+
+  /**
+   * Either applies function `e` if result is erroneous,
+   * or function `f` with successful result if any.
+   */
+  def fold[B](e: SqlRequestError => B, f: A => B): B = self match {
+    case Success(a) => f(a)
+    case Error(err) => e(err)
+  }
 }
 
 /** Successfully parsed result. */
@@ -103,6 +112,6 @@ private[anorm] trait WithResult {
    * Converts this query result as `T`, using parser.
    */
   def as[T](parser: ResultSetParser[T])(implicit connection: Connection): T =
-    Sql.as(parser, resultSet(connection))
+    Sql.asTry(parser, resultSet(connection)).get // TODO: Safe alternative
 
 }
