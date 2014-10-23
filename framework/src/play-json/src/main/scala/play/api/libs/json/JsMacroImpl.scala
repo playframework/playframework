@@ -51,18 +51,20 @@ object JsMacroImpl {
         case s => s.asMethod
       }
 
-    val unapplyReturnTypes = unapply.returnType match {
-      case TypeRef(_, _, Nil) =>
+    val unapplyReturnTypes: Option[List[Type]] = unapply.returnType match {
+      case TypeRef(_, _, Nil) => {
         c.abort(c.enclosingPosition, s"Unapply of ${companionSymbol} has no parameters. Are you using an empty case class?")
+        None
+      }
       case TypeRef(_, _, args) =>
         args.head match {
           case t @ TypeRef(_, _, Nil) => Some(List(t))
-          case t @ TypeRef(_, _, args) =>
-            if (t <:< typeOf[Option[_]]) Some(List(t))
-            else if (t <:< typeOf[Seq[_]]) Some(List(t))
-            else if (t <:< typeOf[Set[_]]) Some(List(t))
-            else if (t <:< typeOf[Map[_, _]]) Some(List(t))
+          case t @ TypeRef(_, _, args) => {
+            import c.universe.definitions.TupleClass
+            if (!TupleClass.seq.exists(tupleSym => t.baseType(tupleSym) ne NoType)) Some(List(t))
             else if (t <:< typeOf[Product]) Some(args)
+            else None
+          }
           case _ => None
         }
       case _ => None
@@ -272,4 +274,5 @@ object JsMacroImpl {
       c.Expr[M[A]](block)
     }
   }
+
 }
