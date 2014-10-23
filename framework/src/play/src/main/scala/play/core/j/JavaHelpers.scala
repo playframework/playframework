@@ -225,13 +225,23 @@ trait JavaHelpers {
    * @return The result
    */
   def invokeWithContext(request: RequestHeader, f: JRequest => F.Promise[JResult]): Future[Result] = {
+    withContext(request) { javaContext =>
+      f(javaContext.request()).wrapped.map(createResult(javaContext, _))(trampoline)
+    }
+  }
+
+  /**
+   * Invoke the given block with Java context created from the request header
+   */
+  def withContext[A](request: RequestHeader)(block: JContext => A) = {
     val javaContext = createJavaContext(request)
     try {
       JContext.current.set(javaContext)
-      f(javaContext.request()).wrapped.map(createResult(javaContext, _))(trampoline)
+      block(javaContext)
     } finally {
       JContext.current.remove()
     }
+
   }
 
   /**
