@@ -59,6 +59,11 @@ import play.api.libs.json._
 
 case class Person2(names: List[String])
 
+case class GenericCaseClass[A](obj: A)
+case class GenericCaseClass2[A, B](obj1: A, obj2: B)
+case class WrappedGenericInt(int: GenericCaseClass[Int])
+case class WrappedGenericIntString(intString: GenericCaseClass2[Int, String])
+
 object Person2 {
   implicit val person2Fmt = Json.format[Person2]
 }
@@ -304,6 +309,52 @@ object JsonExtensionSpec extends Specification {
           )
         )
 
+    }
+
+    "create a format[WrappedGenericInt]" in {
+      import play.api.libs.json.Json._
+      import play.api.libs.functional.syntax._
+
+      implicit def genericFormat[A: Format]: Format[GenericCaseClass[A]] =
+        (
+          (
+            (__ \ "obj").format[A]
+          ).inmap
+        )(GenericCaseClass[A] _, unlift(GenericCaseClass.unapply[A]))
+
+      implicit val wrappedGenericIntFormat = Json.format[WrappedGenericInt]
+
+      val genericInt = GenericCaseClass(obj = 1)
+      val wrapped = WrappedGenericInt(int = genericInt)
+
+      val expectedJsObj = Json.obj(
+        "int" -> Json.obj("obj" -> 1)
+      )
+      Json.toJson(wrapped) must beEqualTo(expectedJsObj)
+      Json.fromJson[WrappedGenericInt](expectedJsObj).get must beEqualTo(wrapped)
+    }
+
+    "create a format[WrappedGenericIntString]" in {
+      import play.api.libs.json.Json._
+      import play.api.libs.functional.syntax._
+
+      implicit def genericEntityWrapperFormat[A: Format, B: Format]: Format[GenericCaseClass2[A, B]] =
+        (
+          (
+            (__ \ "obj1").format[A] and
+            (__ \ "obj2").format[B]
+          )
+        )(GenericCaseClass2[A, B] _, unlift(GenericCaseClass2.unapply[A, B]))
+
+      implicit val genericHolderFormat = Json.format[WrappedGenericIntString]
+
+      val genericIntString = GenericCaseClass2(obj1 = 1, obj2 = "hello")
+      val genericHolder = WrappedGenericIntString(intString = genericIntString)
+      val expectedJsObj = Json.obj(
+        "intString" -> Json.obj("obj1" -> 1, "obj2" -> "hello")
+      )
+      Json.toJson(genericHolder) must beEqualTo(expectedJsObj)
+      Json.fromJson[WrappedGenericIntString](expectedJsObj).get must beEqualTo(genericHolder)
     }
 
     "manage Map[String, User]" in {
