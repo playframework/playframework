@@ -59,17 +59,12 @@ object ApplicationBuild extends Build {
     version := PlayVersion.current,
     scalaVersion := PlayVersion.scalaVersion,
     libraryDependencies ++= Seq(
-      component("play") % "test",
-      component("play-test") % "test",
-      component("play-java") % "test",
-      component("play-cache") % "test",
-      component("play-java-ws") % "test",
-      component("filters-helpers") % "test",
-      "org.mockito" % "mockito-core" % "1.9.5" % "test",
-      component("play-docs")
+      "org.mockito" % "mockito-core" % "1.9.5" % "test"
     ),
 
     PlayDocsKeys.fallbackToJar := false,
+
+    PlayDocsKeys.docsJarFile := (packageBin in (playDocs, Compile)).value,
 
     javaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "working" / "javaGuide" ** codeFilter).get),
     scalaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "working" / "scalaGuide" ** codeFilter).get),
@@ -124,6 +119,19 @@ object ApplicationBuild extends Build {
     testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "-v", "--ignore-runners=org.specs2.runner.JUnitRunner")
 
   ).settings(externalPlayModuleSettings:_*)
+   .dependsOn(
+      playDocs,
+      playProject("Play") % "test",
+      playProject("Play-Test") % "test",
+      playProject("Play-Java") % "test",
+      playProject("Play-Cache") % "test",
+      playProject("Play-Java-WS") % "test",
+      playProject("Filters-Helpers") % "test"
+  )
+
+  lazy val playDocs = playProject("Play-Docs")
+
+  def playProject(name: String) = ProjectRef(Path.fileProperty("user.dir").getParentFile / "framework", name)
 
   val templateFormats = Map("html" -> "play.twirl.api.HtmlFormat")
   val templateFilter = "*.scala.*"
