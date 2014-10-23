@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com> -->
 # Play 2.4 Migration Guide
 
-This guide is for migrating to Play 2.4 from Play 2.3. To migrate to Play 2.3, first follow the [[Play 2.3 Migration Guide|Migration23]].
+This is a guide for migrating from Play 2.3 to Play 2.4. If you need to migrate from an earlier version of Play then you must first follow the [[Play 2.3 Migration Guide|Migration23]].
 
 ## Dependency Injection
 
@@ -105,3 +105,11 @@ In the case of the `multipart/form-data` parser, the aggregate length of all of 
 In all cases, when one of the max length parsing properties is exceeded, a 413 response is returned.  This includes Java actions who have explicitly overridden the `maxLength` property on the `BodyParser.Of` annotation - previously it was up to the Java action to check the `RequestBody.isMaxSizeExceeded` flag if a custom max length was configured, this flag has now been deprecated.
 
 Additionally, Java actions may now declare a `BodyParser.Of.maxLength` value that is greater than the configured max length.
+
+### Java TimeoutExceptions
+
+If you use the Java API, the [`F.Promise`](api/java/play/libs/F.Promise.html) class now throws unchecked [`F.PromiseTimeoutException`s](api/java/play/libs/F.PromiseTimeoutException.html) instead of Java's checked [`TimeoutException`s](http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/TimeoutException.html). The `TimeoutExceptions`s which were previously used were not properly declared with the `throws` keyword. Rather than changing the API to use the `throws` keyword, which would mean users would have to declare `throws` on their methods, the exception was changed to a new unchecked type instead. See [#1227](https://github.com/playframework/playframework/pull/1227) for more information.
+
+| Old API | New API | Comments |
+| ------- | --------| -------- |
+| [`TimeoutException`](http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/TimeoutException.html) | [`F.PromiseTimeoutException`](api/java/play/libs/F.PromiseTimeoutException.html) | |

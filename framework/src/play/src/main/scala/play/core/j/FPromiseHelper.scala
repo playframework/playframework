@@ -94,7 +94,7 @@ private[play] object FPromiseHelper {
     timeoutWith(Success(message), delay, unit)
 
   def timeout[A](delay: Long, unit: TimeUnit): F.Promise[A] =
-    timeoutWith(Failure(new TimeoutException("Timeout in promise")), delay, unit)
+    timeoutWith(Failure(new F.PromiseTimeoutException("Timeout in promise")), delay, unit)
 
   def onRedeem[A](promise: F.Promise[A], action: F.Callback[A], ec: ExecutionContext): Unit =
     promise.wrapped().onSuccess { case a => action.invoke(a) }(ec.prepare())

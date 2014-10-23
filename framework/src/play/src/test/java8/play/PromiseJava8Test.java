@@ -362,16 +362,14 @@ public class PromiseJava8Test extends ExecutionTest {
         try {
             F.Promise.timeout(10).get(1, SECONDS);
             fail("Expected Promise.timeout to throw TimeoutException on get");
-            throw new TimeoutException("expected");
-        } catch (TimeoutException e){
+        } catch (F.PromiseTimeoutException e){
             assertThat(e).hasMessage("Timeout in promise");
         }
 
         try {
             F.Promise.timeout(10, MILLISECONDS).get(1, SECONDS);
             fail("Expected Promise.timeout to throw TimeoutException on get");
-            throw new TimeoutException("expected");
-        } catch (TimeoutException e){
+        } catch (F.PromiseTimeoutException e){
             assertThat(e).hasMessage("Timeout in promise");
         }
     }

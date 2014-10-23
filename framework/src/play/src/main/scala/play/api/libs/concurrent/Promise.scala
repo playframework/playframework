@@ -16,7 +16,6 @@ import scala.concurrent.{ Future, ExecutionContext, Promise => SPromise }
 import scala.collection.mutable.Builder
 import scala.collection._
 import scala.collection.generic.CanBuildFrom
-import java.util.concurrent.TimeoutException
 import play.core.Execution.internalContext
 import scala.util.Try
 import scala.util.control.NonFatal
