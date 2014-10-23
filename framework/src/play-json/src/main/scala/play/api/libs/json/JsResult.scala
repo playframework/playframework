@@ -82,7 +82,7 @@ sealed trait JsResult[+A] { self =>
     case e: JsError => e
   }
 
-  @deprecated(message = "Use `filterNot(JsError)(A => Boolean)` instead.", since = "2.3.4")
+  @deprecated(message = "Use `filterNot(JsError)(A => Boolean)` instead.", since = "2.4.0")
   def filterNot(error: ValidationError)(p: A => Boolean): JsResult[A] =
     filterNot(JsError(error))(p)
 
@@ -95,7 +95,7 @@ sealed trait JsResult[+A] { self =>
   def filter(p: A => Boolean): JsResult[A] =
     this.flatMap { a => if (p(a)) JsSuccess(a) else JsError() }
 
-  @deprecated(message = "Use `filter(JsError)(A => Boolean)` instead.", since = "2.3.4")
+  @deprecated(message = "Use `filter(JsError)(A => Boolean)` instead.", since = "2.4.0")
   def filter(otherwise: ValidationError)(p: A => Boolean): JsResult[A] =
     filter(JsError(otherwise))(p)
 
