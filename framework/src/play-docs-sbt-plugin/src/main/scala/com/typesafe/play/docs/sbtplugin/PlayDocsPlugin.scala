@@ -93,12 +93,12 @@ object PlayDocsPlugin extends AutoPlugin {
       }
     }
 
-    val docsJarFile = new JarFile(docsJarFileSetting.value)
+    val docsJar = new JarFile(docsJarFile.value)
 
     val buildDocHandler = {
       val docHandlerFactoryClass = classloader.loadClass("play.docs.BuildDocHandlerFactory")
       val fromDirectoryMethod = docHandlerFactoryClass.getMethod("fromDirectoryAndJar", classOf[java.io.File], classOf[JarFile], classOf[String], classOf[Boolean])
-      fromDirectoryMethod.invoke(null, manualPath.value, docsJarFile, "play/docs/content", fallbackToJar.value: java.lang.Boolean)
+      fromDirectoryMethod.invoke(null, manualPath.value, docsJar, "play/docs/content", fallbackToJar.value: java.lang.Boolean)
     }
 
     val clazz = classloader.loadClass("play.docs.DocumentationServer")
@@ -121,7 +121,7 @@ object PlayDocsPlugin extends AutoPlugin {
     waitForKey()
 
     server.stop()
-    docsJarFile.close()
+    docsJar.close()
   }
 
   private lazy val consoleReader = {
