@@ -6,21 +6,32 @@ import play.api.libs.iteratee._
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.{ Failure, Success, Try }
 
-/**
- * Adapts an Enumerator to a Publisher.
- */
-private[streams] final class EnumeratorPublisher[T](
-    val enum: Enumerator[T],
-    val emptyElement: Option[T] = None) extends AbstractPublisher[T, EnumeratorPublisherSubscription[T, _]] {
+import scala.language.higherKinds
 
-  override protected def createSubscription[U >: T](subr: Subscriber[U]) = new EnumeratorPublisherSubscription[T, U](this, subr)
-  override protected def onSubscriptionAdded(subscription: EnumeratorPublisherSubscription[T, _]): Unit = {
-    subscription.subscriber.onSubscribe(subscription)
+/**
+ * Creates Subscriptions that link Subscribers to an Enumerator.
+ */
+private[streams] trait EnumeratorSubscriptionFactory[T] extends SubscriptionFactory[T] {
+
+  def enum: Enumerator[T]
+  def emptyElement: Option[T]
+
+  override def createSubscription[U >: T](
+    subr: Subscriber[U],
+    onSubscriptionEnded: SubscriptionHandle[U] => Unit) = {
+    new EnumeratorSubscription[T, U](enum, emptyElement, subr, onSubscriptionEnded)
   }
 
 }
 
-private[streams] object EnumeratorPublisherSubscription {
+/**
+ * Adapts an Enumerator to a Publisher.
+ */
+private[streams] final class EnumeratorPublisher[T](
+  val enum: Enumerator[T],
+  val emptyElement: Option[T] = None) extends RelaxedPublisher[T] with EnumeratorSubscriptionFactory[T]
+
+private[streams] object EnumeratorSubscription {
 
   /**
    * Internal state of the Publisher.
@@ -59,19 +70,29 @@ private[streams] object EnumeratorPublisherSubscription {
 
 }
 
-import EnumeratorPublisherSubscription._
+import EnumeratorSubscription._
 
 /**
  * Adapts an Enumerator to a Publisher.
  */
-private[streams] class EnumeratorPublisherSubscription[T, U >: T](pubr: EnumeratorPublisher[T], subr: Subscriber[U])
-    extends StateMachine[State[T]](initialState = Requested[T](0, Unattached)) with CheckableSubscription[T, U] {
+private[streams] class EnumeratorSubscription[T, U >: T](
+  enum: Enumerator[T],
+  emptyElement: Option[T],
+  subr: Subscriber[U],
+  onSubscriptionEnded: SubscriptionHandle[U] => Unit)
+    extends StateMachine[State[T]](initialState = Requested[T](0, Unattached))
+    with Subscription with SubscriptionHandle[U] {
 
-  // CheckableSubscription methods
+  // SubscriptionHandle methods
+
+  override def start(): Unit = {
+    subr.onSubscribe(this)
+  }
 
   override def subscriber: Subscriber[U] = subr
+
   override def isActive: Boolean = {
-    // run immediately, don't wait for exclusive access
+    // run immediately, don't need to wait for exclusive access
     state match {
       case Requested(_, _) => true
       case Completed | Cancelled => false
@@ -158,7 +179,7 @@ private[streams] class EnumeratorPublisherSubscription[T, U >: T](pubr: Enumerat
         case Input.El(el) =>
           elementEnumerated(el)
         case Input.Empty =>
-          pubr.emptyElement match {
+          emptyElement match {
             case None => emptyEnumerated()
             case Some(el) => elementEnumerated(el)
           }
@@ -169,7 +190,7 @@ private[streams] class EnumeratorPublisherSubscription[T, U >: T](pubr: Enumerat
     }
     its match {
       case Unattached =>
-        pubr.enum(iteratee)
+        enum(iteratee)
       case Attached(link0) =>
         link0.success(iteratee)
     }
