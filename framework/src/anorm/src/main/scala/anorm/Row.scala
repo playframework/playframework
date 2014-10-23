@@ -1,7 +1,7 @@
 package anorm
 
 trait Row {
-  val metaData: MetaData
+  private[anorm] def metaData: MetaData
 
   /** Raw data */
   private[anorm] val data: List[Any]

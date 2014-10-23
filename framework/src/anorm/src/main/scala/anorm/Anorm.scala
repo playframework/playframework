@@ -8,22 +8,37 @@ import java.sql.{ Connection, PreparedStatement, ResultSet }
 
 import scala.language.postfixOps
 import scala.collection.TraversableOnce
+import scala.util.Failure
 
 import resource.{ managed, ManagedResource }
 
 /** Error from processing SQL */
-sealed trait SqlRequestError
+sealed trait SqlRequestError {
+  def message: String
 
-case class ColumnNotFound(column: String, possibilities: List[String])
-    extends SqlRequestError {
-
-  override lazy val toString = s"$column not found, available columns : " +
-    possibilities.map(_.dropWhile(_ == '.')).mkString(", ")
+  /** Returns error as a failure. */
+  def toFailure = Failure(sys.error(message))
 }
 
-case class TypeDoesNotMatch(message: String) extends SqlRequestError
-case class UnexpectedNullableFound(on: String) extends SqlRequestError
-case class SqlMappingError(msg: String) extends SqlRequestError
+case class ColumnNotFound(
+    column: String, possibilities: List[String]) extends SqlRequestError {
+
+  lazy val message = s"$column not found, available columns : " +
+    possibilities.map(_.dropWhile(_ == '.')).mkString(", ")
+
+  override lazy val toString = message
+}
+
+case class UnexpectedNullableFound(message: String) extends SqlRequestError
+case class SqlMappingError(reason: String) extends SqlRequestError {
+  lazy val message = s"SqlMappingError($reason)"
+  override lazy val toString = message
+}
+
+case class TypeDoesNotMatch(reason: String) extends SqlRequestError {
+  lazy val message = s"TypeDoesNotMatch($reason)"
+  override lazy val toString = message
+}
 
 @deprecated(
   message = "Do not use directly, but consider [[Id]] or [[NotAssigned]].",
@@ -236,6 +251,7 @@ case class SimpleSql[T](sql: SqlQuery, params: Map[String, ParameterValue], defa
   def singleOpt()(implicit connection: Connection): Option[T] =
     as(defaultParser.singleOpt)
 
+  @deprecated(message = "Use [[preparedStatement]]", since = "2.3.6")
   def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false) = {
     val st: (String, Seq[(Int, ParameterValue)]) = Sql.prepareQuery(
       sql.statement, 0, sql.paramsInitialOrder.map(params), Nil)
@@ -251,6 +267,8 @@ case class SimpleSql[T](sql: SqlQuery, params: Map[String, ParameterValue], defa
 
     stmt
   }
+
+  def preparedStatement(connection: Connection, getGeneratedKeys: Boolean = false) = managed(getFilledStatement(connection, getGeneratedKeys))
 
   /**
    * Prepares query with given row parser.
@@ -274,15 +292,16 @@ case class SimpleSql[T](sql: SqlQuery, params: Map[String, ParameterValue], defa
 }
 
 private[anorm] trait Sql extends WithResult {
-  // TODO: ManagedResource[PreparedStatement]?
+  @deprecated(message = "Use [[preparedStatement]]", since = "2.3.6")
   def getFilledStatement(connection: Connection, getGeneratedKeys: Boolean = false): PreparedStatement
+
+  def preparedStatement(connection: Connection, getGeneratedKeys: Boolean = false): ManagedResource[PreparedStatement]
 
   /**
    * Executes this statement as query (see [[executeQuery]]) and returns result.
    */
   protected def resultSet(connection: Connection): ManagedResource[ResultSet] =
-    managed(getFilledStatement(connection)).
-      flatMap(stmt => managed(stmt.executeQuery()))
+    preparedStatement(connection).flatMap(stmt => managed(stmt.executeQuery()))
 
   /**
    * Executes this SQL statement.
@@ -295,7 +314,8 @@ private[anorm] trait Sql extends WithResult {
    * }}}
    */
   def execute()(implicit connection: Connection): Boolean =
-    managed(getFilledStatement(connection)).acquireAndGet(_.execute())
+    preparedStatement(connection).acquireAndGet(_.execute())
+  // TODO: Safe alternative
 
   @deprecated(message = "Will be made private, use [[executeUpdate]] or [[executeInsert]]", since = "2.3.2")
   def execute1(getGeneratedKeys: Boolean = false)(implicit connection: Connection): (PreparedStatement, Int) = {
@@ -309,7 +329,8 @@ private[anorm] trait Sql extends WithResult {
    */
   @throws[java.sql.SQLException]("If statement is query not update")
   def executeUpdate()(implicit connection: Connection): Int =
-    managed(getFilledStatement(connection)).acquireAndGet(_.executeUpdate())
+    preparedStatement(connection).acquireAndGet(_.executeUpdate())
+  //TODO: Safe alternative
 
   /**
    * Executes this SQL as an insert statement.
@@ -329,11 +350,11 @@ private[anorm] trait Sql extends WithResult {
    * }}}
    */
   def executeInsert[A](generatedKeysParser: ResultSetParser[A] = SqlParser.scalar[Long].singleOpt)(implicit connection: Connection): A =
-    Sql.as(generatedKeysParser, managed(getFilledStatement(connection, true)).
+    Sql.asTry(generatedKeysParser, preparedStatement(connection, true).
       flatMap { stmt =>
         stmt.executeUpdate()
         managed(stmt.getGeneratedKeys)
-      })
+      }).get // TODO: Safe alternative
 
   /**
    * Executes this SQL query, and returns its result.
@@ -357,15 +378,13 @@ object Sql { // TODO: Rename to SQL
 
   private[anorm] def withResult[T](res: ManagedResource[ResultSet])(op: Option[Cursor] => T): ManagedResource[T] = res.map(rs => op(Cursor(rs)))
 
-  private[anorm] def as[T](parser: ResultSetParser[T], rs: ManagedResource[ResultSet])(implicit connection: Connection): T = {
+  private[anorm] def asTry[T](parser: ResultSetParser[T], rs: ManagedResource[ResultSet])(implicit connection: Connection): Try[T] = {
     def stream(c: Option[Cursor]): Stream[Row] =
       c.fold(Stream.empty[Row]) { cur => cur.row #:: stream(cur.next) }
 
-    withResult(rs)(c => parser(stream(c)
-    /* TODO: Review after ResultSetParser refactoring */ ) match {
-      case Success(a) => a
-      case Error(e) => sys.error(e.toString) // TODO: Safe alternative?
-    }).acquireAndGet(identity)
+    Try(withResult(rs)(c => parser(stream(c))) acquireAndGet identity).
+      flatMap(_.fold[Try[T]](_.toFailure, TrySuccess.apply))
+
   }
 
   @annotation.tailrec
