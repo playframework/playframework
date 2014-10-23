@@ -20,14 +20,14 @@ import scala.util.{ Failure, Success, Try }
  *
  * Subclasses should call `removeSubscription` when a Subscription ends.
  */
-private[streams] abstract class AbstractPublisher[T, S <: CheckableSubscription[T]] extends Publisher[T] {
+private[streams] abstract class AbstractPublisher[T, S <: CheckableSubscription[T, _]] extends Publisher[T] {
 
   /**
    * Called by `subscribe` to create a CheckableSubscription. The subscription
    * may fail, so subclasses should wait until `onSubscriptionAdded` is called
    * before they do anything with it.
    */
-  protected def createSubscription(subr: Subscriber[T]): S
+  protected def createSubscription[U >: T](subr: Subscriber[U]): S
 
   /**
    * Called when a new Subscription is added.
@@ -40,7 +40,7 @@ private[streams] abstract class AbstractPublisher[T, S <: CheckableSubscription[
   private val subscriptions = new AtomicReference[List[S]](Nil)
 
   // Streams method
-  final override def subscribe(subr: Subscriber[T]): Unit = {
+  final override def subscribe(subr: Subscriber[_ >: T]): Unit = {
     val subscription = createSubscription(subr)
 
     @tailrec
@@ -76,12 +76,12 @@ private[streams] abstract class AbstractPublisher[T, S <: CheckableSubscription[
  * A Subscription that knows its Subscriber and whether or not it is currently
  * active. Used by AbstractPublisher.
  */
-private[streams] trait CheckableSubscription[T] extends Subscription {
+private[streams] trait CheckableSubscription[T, U >: T] extends Subscription {
 
   /**
    * The Subscriber for this Subscription.
    */
-  def subscriber: Subscriber[T]
+  def subscriber: Subscriber[U]
 
   /**
    * Whether or not this Subscription is active. It won't be active if it has

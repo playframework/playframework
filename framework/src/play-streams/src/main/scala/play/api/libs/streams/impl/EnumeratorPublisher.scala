@@ -11,10 +11,10 @@ import scala.util.{ Failure, Success, Try }
  */
 private[streams] final class EnumeratorPublisher[T](
     val enum: Enumerator[T],
-    val emptyElement: Option[T] = None) extends AbstractPublisher[T, EnumeratorPublisherSubscription[T]] {
+    val emptyElement: Option[T] = None) extends AbstractPublisher[T, EnumeratorPublisherSubscription[T, _]] {
 
-  override protected def createSubscription(subr: Subscriber[T]) = new EnumeratorPublisherSubscription(this, subr)
-  override protected def onSubscriptionAdded(subscription: EnumeratorPublisherSubscription[T]): Unit = {
+  override protected def createSubscription[U >: T](subr: Subscriber[U]) = new EnumeratorPublisherSubscription[T, U](this, subr)
+  override protected def onSubscriptionAdded(subscription: EnumeratorPublisherSubscription[T, _]): Unit = {
     subscription.subscriber.onSubscribe(subscription)
   }
 
@@ -32,7 +32,7 @@ private[streams] object EnumeratorPublisherSubscription {
    * @param attached The attached Iteratee we're using to read from the
    * Enumerator. Will be Unattached until the first element is requested.
    */
-  final case class Requested[T](n: Int, attached: IterateeState[T]) extends State[T]
+  final case class Requested[T](n: Long, attached: IterateeState[T]) extends State[T]
   /**
    * A Subscription completed by the Publisher.
    */
@@ -64,12 +64,12 @@ import EnumeratorPublisherSubscription._
 /**
  * Adapts an Enumerator to a Publisher.
  */
-private[streams] class EnumeratorPublisherSubscription[T](pubr: EnumeratorPublisher[T], subr: Subscriber[T])
-    extends StateMachine[State[T]](initialState = Requested[T](0, Unattached)) with CheckableSubscription[T] {
+private[streams] class EnumeratorPublisherSubscription[T, U >: T](pubr: EnumeratorPublisher[T], subr: Subscriber[U])
+    extends StateMachine[State[T]](initialState = Requested[T](0, Unattached)) with CheckableSubscription[T, U] {
 
   // CheckableSubscription methods
 
-  override def subscriber: Subscriber[T] = subr
+  override def subscriber: Subscriber[U] = subr
   override def isActive: Boolean = {
     // run immediately, don't wait for exclusive access
     state match {
@@ -80,7 +80,7 @@ private[streams] class EnumeratorPublisherSubscription[T](pubr: EnumeratorPublis
 
   // Streams methods
 
-  override def request(elements: Int): Unit = {
+  override def request(elements: Long): Unit = {
     if (elements <= 0) throw new IllegalArgumentException(s"The number of requested elements must be > 0: requested $elements elements")
     exclusive {
       case Requested(0, its) =>

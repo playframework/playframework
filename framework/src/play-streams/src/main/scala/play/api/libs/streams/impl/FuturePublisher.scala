@@ -9,10 +9,10 @@ import scala.util.{ Failure, Success, Try }
 /**
  * Adapts a Future to a Publisher.
  */
-private[streams] final class FuturePublisher[T](fut: Future[T]) extends AbstractPublisher[T, FuturePublisherSubscription[T]] {
+private[streams] final class FuturePublisher[T](fut: Future[T]) extends AbstractPublisher[T, FuturePublisherSubscription[T, _]] {
 
-  override protected def createSubscription(subr: Subscriber[T]) = new FuturePublisherSubscription(this, subr, fut)
-  override protected def onSubscriptionAdded(subscription: FuturePublisherSubscription[T]): Unit = {
+  override protected def createSubscription[U >: T](subr: Subscriber[U]) = new FuturePublisherSubscription(this, subr, fut)
+  override protected def onSubscriptionAdded(subscription: FuturePublisherSubscription[T, _]): Unit = {
     fut.value match {
       case Some(Failure(t)) =>
         subscription.subscriber.onError(t)
@@ -51,8 +51,8 @@ private[streams] object FuturePublisherSubscription {
 
 import FuturePublisherSubscription._
 
-private[streams] class FuturePublisherSubscription[T](pubr: FuturePublisher[T], subr: Subscriber[T], fut: Future[T])
-    extends StateMachine[State](initialState = AwaitingRequest) with CheckableSubscription[T] {
+private[streams] class FuturePublisherSubscription[T, U >: T](pubr: FuturePublisher[T], subr: Subscriber[U], fut: Future[T])
+    extends StateMachine[State](initialState = AwaitingRequest) with CheckableSubscription[T, U] {
 
   // CheckableSubscription methods
 
@@ -61,11 +61,11 @@ private[streams] class FuturePublisherSubscription[T](pubr: FuturePublisher[T], 
     case Cancelled | Completed => false
   }
 
-  override def subscriber: Subscriber[T] = subr
+  override def subscriber: Subscriber[U] = subr
 
   // Streams methods
 
-  override def request(elements: Int): Unit = {
+  override def request(elements: Long): Unit = {
     if (elements <= 0) throw new IllegalArgumentException(s"The number of requested elements must be > 0: requested $elements elements")
     exclusive {
       case AwaitingRequest =>
