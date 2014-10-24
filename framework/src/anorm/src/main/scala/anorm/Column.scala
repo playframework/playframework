@@ -176,6 +176,7 @@ object Column {
   private def anyToBigDecimal(value: Any, meta: MetaDataItem): MayErr[SqlRequestError, JBigDec] = {
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
+      // TODO: Conversion from integer types
       case bi: JBigDec => Right(bi)
       case double: Double => Right(JBigDec.valueOf(double))
       case l: Long => Right(JBigDec.valueOf(l))
@@ -210,8 +211,7 @@ object Column {
    * }}}
    */
   implicit val columnToScalaBigDecimal: Column[BigDecimal] =
-    nonNull((value, meta) =>
-      anyToBigDecimal(value, meta).map(BigDecimal(_)))
+    nonNull((value, meta) => anyToBigDecimal(value, meta).map(BigDecimal(_)))
 
   /**
    * Parses column as Java Date.
@@ -240,4 +240,65 @@ object Column {
     if (value != null) transformer(value, meta).map(Some(_)) else (Right(None): MayErr[SqlRequestError, Option[T]])
   }
 
+  /**
+   * Parses column as array.
+   *
+   * val a: Array[String] =
+   *   SQL"SELECT str_arr FROM tbl".as(scalar[Array[String]])
+   * }}}
+   */
+  implicit def columnToArray[T](implicit transformer: Column[T], t: scala.reflect.ClassTag[T]): Column[Array[T]] = Column { (value, meta) =>
+    val MetaDataItem(qualified, nullable, clazz) = meta
+
+    @annotation.tailrec
+    def transf(a: Array[_], p: Array[T]): MayErr[SqlRequestError, Array[T]] =
+      a.headOption match {
+        case Some(r) => transformer(r, meta).toEither match {
+          case Right(v) => transf(a.tail, p :+ v)
+          case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to array for column $qualified"))
+        }
+        case _ => Right(p)
+      }
+
+    value match {
+      case sql: java.sql.Array => try {
+        transf(sql.getArray.asInstanceOf[Array[_]], Array[T]())
+      } catch {
+        case _: Throwable => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to array for column $qualified"))
+      }
+
+      case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to array for column $qualified"))
+    }
+  }
+
+  /**
+   * Parses column as list.
+   *
+   * val a: List[String] =
+   *   SQL"SELECT str_arr FROM tbl".as(scalar[List[String]])
+   * }}}
+   */
+  implicit def columnToList[T](implicit transformer: Column[T], t: scala.reflect.ClassTag[T]): Column[List[T]] = Column { (value, meta) =>
+    val MetaDataItem(qualified, nullable, clazz) = meta
+
+    @annotation.tailrec
+    def transf(a: Array[_], p: List[T]): MayErr[SqlRequestError, List[T]] =
+      a.headOption match {
+        case Some(r) => transformer(r, meta).toEither match {
+          case Right(v) => transf(a.tail, p :+ v)
+          case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified"))
+        }
+        case _ => Right(p)
+      }
+
+    value match {
+      case sql: java.sql.Array => try {
+        transf(sql.getArray.asInstanceOf[Array[_]], Nil)
+      } catch {
+        case _: Throwable => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified"))
+      }
+
+      case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified"))
+    }
+  }
 }
