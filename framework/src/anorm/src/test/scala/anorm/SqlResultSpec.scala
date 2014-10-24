@@ -147,6 +147,82 @@ object SqlResultSpec extends org.specs2.mutable.Specification {
     }
   }
 
+  "Streaming" should {
+    "release resources" in withQueryResult(
+      stringList :+ "A" :+ "B" :+ "C") { implicit c =>
+
+      val res: SqlQueryResult = SQL"SELECT str".executeQuery()
+      var closed = false
+      val probe = resource.managed(
+        new java.io.Closeable { def close() = closed = true })
+
+      var i = 0      
+      val stream: Stream[Int] = res.copy(resultSet = 
+        res.resultSet.and(probe).map(_._1)).apply() map { r => i = i+1; i }
+
+      stream aka "streaming" must_== List(1, 2, 3) and (
+        closed aka "resource release" must beTrue) and (
+        i aka "row count" must_== 3)
+
+    }
+
+    "release resources on exception" in withQueryResult(
+      stringList :+ "A" :+ "B" :+ "C") { implicit c =>
+
+      val res: SqlQueryResult = SQL"SELECT str".executeQuery()
+      var closed = false
+      val probe = resource.managed(
+        new java.io.Closeable { def close() = closed = true })
+
+      var i = 0      
+      val stream = res.copy(resultSet = res.resultSet.and(probe).map(_._1)).
+        apply() map { _ => if (i == 1) sys.error("Unexpected") else i = i+1 }
+      
+      stream.toList aka "streaming" must throwA[Exception]("Unexpected") and (
+        closed aka("resource release") must beTrue) and (
+        i aka "row count" must_== 1)
+
+    }
+
+    "release resources on partial read" in withQueryResult(
+      stringList :+ "A" :+ "B" :+ "C") { implicit c =>
+
+      val res: SqlQueryResult = SQL"SELECT str".executeQuery()
+      var closed = false
+      val probe = resource.managed(
+        new java.io.Closeable { def close() = closed = true })
+
+      var i = 0      
+      val stream: Stream[Int] = res.copy(resultSet = 
+        res.resultSet.and(probe).map(_._1)).apply() map { r => i = i+1; i }
+
+      stream.head aka "streaming" must_== 1 and (
+        closed aka "resource release" must beTrue) and (
+        i aka "row count" must_== 1)
+
+    }
+  }
+
+  "SQL warning" should {
+    "not be there on success" in withQueryResult(stringList :+ "A") { 
+      implicit c =>
+
+      SQL"SELECT str".executeQuery().statementWarning.
+        aka("statement warning") must beNone
+
+    }
+
+    "be handled from executed query" in withQueryResult(
+      QueryResult.Nil.withWarning("Warning for test-proc-2")) { implicit c =>
+
+        SQL("EXEC stored_proc({param})")
+          .on("param" -> "test-proc-2").executeQuery()
+          .statementWarning aka "statement warning" must beSome.which { warn =>
+            warn.getMessage aka "message" must_== "Warning for test-proc-2"
+          }
+      }
+  }
+
   def withQueryResult[A](r: QueryResult)(f: java.sql.Connection => A): A =
     f(connection(handleQuery { _ => r }))
 
