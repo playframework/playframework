@@ -165,35 +165,32 @@ class EhCacheModule extends Module {
   import scala.collection.JavaConversions._
 
   def bindings(environment: Environment, configuration: Configuration) = {
-    if (configuration.underlying.getBoolean("play.modules.cache.enabled")) {
-      val defaultCacheName = configuration.underlying.getString("play.modules.cache.defaultCache")
-      val bindCaches = configuration.underlying.getStringList("play.modules.cache.bindCaches").toSeq
+    val defaultCacheName = configuration.underlying.getString("play.modules.cache.defaultCache")
+    val bindCaches = configuration.underlying.getStringList("play.modules.cache.bindCaches").toSeq
 
-      // Creates a named cache qualifier
-      def named(name: String): NamedCache = {
-        new NamedCacheImpl(name)
-      }
+    // Creates a named cache qualifier
+    def named(name: String): NamedCache = {
+      new NamedCacheImpl(name)
+    }
 
-      // bind a cache with the given name
-      def bindCache(name: String) = {
-        val namedCache = named(name)
-        val ehcacheKey = bind[Ehcache].qualifiedWith(namedCache)
-        val cacheApiKey = bind[CacheApi].qualifiedWith(namedCache)
-        Seq(
-          ehcacheKey.to(new NamedEhCacheProvider(name)),
-          cacheApiKey.to(new NamedCacheApiProvider(ehcacheKey)),
-          bind[JavaCacheApi].qualifiedWith(namedCache).to(new NamedJavaCacheApiProvider(cacheApiKey))
-        )
-      }
-
+    // bind a cache with the given name
+    def bindCache(name: String) = {
+      val namedCache = named(name)
+      val ehcacheKey = bind[Ehcache].qualifiedWith(namedCache)
+      val cacheApiKey = bind[CacheApi].qualifiedWith(namedCache)
       Seq(
-        bind[CacheManager].toProvider[CacheManagerProvider],
-        // alias the default cache to the unqualified implementation
-        bind[CacheApi].to(bind[CacheApi].qualifiedWith(named(defaultCacheName))),
-        bind[JavaCacheApi].to[DefaultJavaCacheApi]
-      ) ++ bindCache(defaultCacheName) ++ bindCaches.flatMap(bindCache)
+        ehcacheKey.to(new NamedEhCacheProvider(name)),
+        cacheApiKey.to(new NamedCacheApiProvider(ehcacheKey)),
+        bind[JavaCacheApi].qualifiedWith(namedCache).to(new NamedJavaCacheApiProvider(cacheApiKey))
+      )
+    }
 
-    } else Nil
+    Seq(
+      bind[CacheManager].toProvider[CacheManagerProvider],
+      // alias the default cache to the unqualified implementation
+      bind[CacheApi].to(bind[CacheApi].qualifiedWith(named(defaultCacheName))),
+      bind[JavaCacheApi].to[DefaultJavaCacheApi]
+    ) ++ bindCache(defaultCacheName) ++ bindCaches.flatMap(bindCache)
   }
 }
 

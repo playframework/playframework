@@ -26,32 +26,28 @@ public class DBModule extends Module {
 
     @Override
     public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
-        if (configuration.underlying().getBoolean("play.modules.db.enabled")) {
-            String dbKey = configuration.underlying().getString("play.modules.db.config");
-            String defaultDb = configuration.underlying().getString("play.modules.db.default");
+        String dbKey = configuration.underlying().getString("play.modules.db.config");
+        String defaultDb = configuration.underlying().getString("play.modules.db.default");
 
-            ImmutableList.Builder<Binding<?>> list = new ImmutableList.Builder<Binding<?>>();
+        ImmutableList.Builder<Binding<?>> list = new ImmutableList.Builder<Binding<?>>();
 
-            list.add(bind(ConnectionPool.class).to(DefaultConnectionPool.class));
-            list.add(bind(DBApi.class).to(DefaultDBApi.class));
+        list.add(bind(ConnectionPool.class).to(DefaultConnectionPool.class));
+        list.add(bind(DBApi.class).to(DefaultDBApi.class));
 
-            try {
-                Set<String> dbs = configuration.underlying().getConfig(dbKey).root().keySet();
-                for (String db : dbs) {
-                    list.add(bind(Database.class).qualifiedWith(named(db)).to(new NamedDatabaseProvider(db)));
-                }
-
-                if (dbs.contains(defaultDb)) {
-                    list.add(bind(Database.class).to(bind(Database.class).qualifiedWith(named(defaultDb))));
-                }
-            } catch (com.typesafe.config.ConfigException.Missing e) {
-                // ignore missing configuration
+        try {
+            Set<String> dbs = configuration.underlying().getConfig(dbKey).root().keySet();
+            for (String db : dbs) {
+                list.add(bind(Database.class).qualifiedWith(named(db)).to(new NamedDatabaseProvider(db)));
             }
 
-            return Scala.toSeq(list.build());
-        } else {
-            return seq();
+            if (dbs.contains(defaultDb)) {
+                list.add(bind(Database.class).to(bind(Database.class).qualifiedWith(named(defaultDb))));
+            }
+        } catch (com.typesafe.config.ConfigException.Missing e) {
+            // ignore missing configuration
         }
+
+        return Scala.toSeq(list.build());
     }
 
     private NamedDatabase named(String name) {

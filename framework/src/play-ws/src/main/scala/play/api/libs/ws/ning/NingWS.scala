@@ -512,15 +512,11 @@ case class NingWSRequestHolder(client: NingWSClient,
 
 class NingWSModule extends Module {
   def bindings(environment: Environment, configuration: Configuration) = {
-    if (configuration.underlying.getBoolean("play.modules.ws.enabled")) {
-      Seq(
-        bind[WSAPI].to[NingWSAPI],
-        bind[WSClientConfig].toProvider[DefaultWSConfigParser].in[Singleton],
-        bind[WSClient].toProvider[WSClientProvider].in[Singleton]
-      )
-    } else {
-      Nil
-    }
+    Seq(
+      bind[WSAPI].to[NingWSAPI],
+      bind[WSClientConfig].toProvider[DefaultWSConfigParser].in[Singleton],
+      bind[WSClient].toProvider[WSClientProvider].in[Singleton]
+    )
   }
 }
 

@@ -13,12 +13,8 @@ public class OpenIdModule extends Module {
 
     @Override
     public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
-        if (configuration.underlying().getBoolean("play.modules.openid.enabled")) {
-            return seq(
-                    bind(OpenIdClient.class).to(DefaultOpenIdClient.class)
-            );
-        } else {
-            return seq();
-        }
+        return seq(
+                bind(OpenIdClient.class).to(DefaultOpenIdClient.class)
+        );
     }
 }

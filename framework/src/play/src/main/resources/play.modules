@@ -1,3 +1,0 @@
-play.api.inject.BuiltinModule
-play.api.i18n.I18nModule
-play.api.libs.concurrent.AkkaModule
