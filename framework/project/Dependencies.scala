@@ -20,13 +20,13 @@ object Dependencies {
     "jackson-databind"
   ).map("com.fasterxml.jackson.core" % _ % "2.3.2")
 
-  val guava = "com.google.guava" % "guava" % "16.0.1"
+  val guava = "com.google.guava" % "guava" % "18.0"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "2.0.3" // Needed by guava
-  val mockitoAll = "org.mockito" % "mockito-all" % "1.9.5"
+  val mockitoAll = "org.mockito" % "mockito-all" % "1.10.8"
 
-  val h2database = "com.h2database" % "h2" % "1.3.175"
+  val h2database = "com.h2database" % "h2" % "1.4.182"
 
-  val acolyteVersion = "1.0.28-1"
+  val acolyteVersion = "1.0.30"
   val acolyte = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jdbcDeps = Seq(
@@ -58,18 +58,18 @@ object Dependencies {
     // 5.1.0 upgrade notes: need to add JEE dependencies, eg EL
     "org.hibernate" % "hibernate-validator" % "5.0.3.Final",
 
-    ("org.springframework" % "spring-context" % "4.0.3.RELEASE" notTransitive ())
+    ("org.springframework" % "spring-context" % "4.1.1.RELEASE" notTransitive ())
       .exclude("org.springframework", "spring-aop")
       .exclude("org.springframework", "spring-beans")
       .exclude("org.springframework", "spring-core")
       .exclude("org.springframework", "spring-expression")
       .exclude("org.springframework", "spring-asm"),
 
-    ("org.springframework" % "spring-core" % "4.0.3.RELEASE" notTransitive ())
+    ("org.springframework" % "spring-core" % "4.1.1.RELEASE" notTransitive ())
       .exclude("org.springframework", "spring-asm")
       .exclude("commons-logging", "commons-logging"),
 
-    ("org.springframework" % "spring-beans" % "4.0.3.RELEASE" notTransitive ())
+    ("org.springframework" % "spring-beans" % "4.1.1.RELEASE" notTransitive ())
       .exclude("org.springframework", "spring-core"),
 
     ("org.reflections" % "reflections" % "0.9.8" notTransitive ())
@@ -78,7 +78,7 @@ object Dependencies {
     guava,
     findBugs,
 
-    "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.5"
+    "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.14"
   ) ++ javassist ++ specsBuild.map(_ % Test)
 
   val junitInterface = "com.novocode" % "junit-interface" % "0.11"
@@ -155,7 +155,7 @@ object Dependencies {
     typesafeConfig,
     "org.mozilla" % "rhino" % "1.7R4",
 
-    ("com.google.javascript" % "closure-compiler" % "v20130603")
+    ("com.google.javascript" % "closure-compiler" % "v20140814")
       .exclude("args4j", "args4j")
       .exclude("com.google.protobuf", "protobuf-java")
       .exclude("com.google.code.findbugs", "jsr305"),
@@ -172,11 +172,11 @@ object Dependencies {
     sbtPluginDep("com.typesafe.sbt" % "sbt-play-enhancer" % "1.0.1"),
 
     sbtPluginDep("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.5.0"),
-    sbtPluginDep("com.github.mpeltonen" % "sbt-idea" % "1.5.1"),
-    sbtPluginDep("com.typesafe.sbt" % "sbt-native-packager" % "0.7.4"),
+    sbtPluginDep("com.github.mpeltonen" % "sbt-idea" % "1.6.0"),
+    sbtPluginDep("com.typesafe.sbt" % "sbt-native-packager" % "0.7.6"),
 
-    sbtPluginDep("com.typesafe.sbt" % "sbt-web" % "1.1.0"),
-    sbtPluginDep("com.typesafe.sbt" % "sbt-js-engine" % "1.0.1"),
+    sbtPluginDep("com.typesafe.sbt" % "sbt-web" % "1.1.1"),
+    sbtPluginDep("com.typesafe.sbt" % "sbt-js-engine" % "1.0.2"),
     sbtPluginDep("com.typesafe.sbt" % "sbt-webdriver" % "1.0.0")
   ) ++ javassist ++ specsBuild.map(_ % Test)
 
@@ -220,10 +220,10 @@ object Dependencies {
   )
 
   val integrationTestDependencies = scalacheckDependencies ++ Seq(
-    "org.databene" % "contiperf" % "2.2.0" % Test
+    "org.databene" % "contiperf" % "2.3.4" % Test
   )
 
-  val playCacheDeps = "net.sf.ehcache" % "ehcache-core" % "2.6.8" +:
+  val playCacheDeps = "net.sf.ehcache" % "ehcache-core" % "2.6.9" +:
     specsBuild.map(_ % Test)
 
   val playWsDeps = Seq(
