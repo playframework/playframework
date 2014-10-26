@@ -40,7 +40,7 @@ public class JavaActionsComposition extends Controller {
     // #authenticated-cached-index
 
     // #verbose-annotation
-    @With(VerboseAction.class)
+    @With(VerboseAnnotationAction.class)
     @Target({ElementType.TYPE, ElementType.METHOD})
     @Retention(RetentionPolicy.RUNTIME)
     public @interface VerboseAnnotation {
