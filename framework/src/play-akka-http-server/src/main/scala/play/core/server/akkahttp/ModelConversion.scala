@@ -4,9 +4,11 @@ import akka.http.model._
 import akka.http.model.ContentType
 import akka.http.model.headers._
 import akka.http.model.parser.HeaderParser
+import akka.stream.scaladsl2.{ FlowMaterializer, Source }
 import akka.util.ByteString
 import java.net.InetSocketAddress
 import org.reactivestreams.Publisher
+import play.api.http.HeaderNames._
 import play.api.libs.iteratee.{ Enumeratee, Enumerator, Input }
 import play.api.libs.streams.Streams
 import play.api.mvc._
@@ -24,7 +26,7 @@ private[akkahttp] object ModelConversion {
   def convertRequest(
     requestId: Long,
     remoteAddress: InetSocketAddress,
-    request: HttpRequest): (RequestHeader, Enumerator[Array[Byte]]) = {
+    request: HttpRequest)(implicit fm: FlowMaterializer): (RequestHeader, Enumerator[Array[Byte]]) = {
     (
       convertRequestHeader(requestId, remoteAddress, request),
       convertRequestBody(request)
@@ -63,18 +65,17 @@ private[akkahttp] object ModelConversion {
    * `Headers` object.
    */
   private def convertRequestHeaders(request: HttpRequest): Headers = {
-    val entityHeaders: Seq[HttpHeader] = request.entity match {
+    val entityHeaders: Seq[(String, String)] = request.entity match {
       case HttpEntity.Strict(contentType, _) =>
-        Seq(`Content-Type`(contentType))
+        Seq((CONTENT_TYPE, contentType.value))
       case HttpEntity.Default(contentType, contentLength, _) =>
-        Seq(`Content-Type`(contentType), `Content-Length`(contentLength))
+        Seq((CONTENT_TYPE, contentType.value), (CONTENT_LENGTH, contentLength.toString))
       case HttpEntity.Chunked(contentType, _) =>
-        Seq(`Content-Type`(contentType))
+        Seq((CONTENT_TYPE, contentType.value))
     }
-    val allHeaders: Seq[HttpHeader] = request.headers ++ entityHeaders
-    val pairs: scala.collection.Seq[(String, String)] = allHeaders.map((rh: HttpHeader) => (rh.name, rh.value))
+    val normalHeaders: Seq[(String, String)] = request.headers.map((rh: HttpHeader) => (rh.name, rh.value))
     new Headers {
-      val data: Seq[(String, Seq[String])] = pairs.groupBy(_._1).mapValues(_.map(_._2)).to[Seq]
+      val data: Seq[(String, Seq[String])] = (entityHeaders ++ normalHeaders).groupBy(_._1).mapValues(_.map(_._2)).to[Seq]
     }
   }
 
@@ -82,7 +83,7 @@ private[akkahttp] object ModelConversion {
    * Convert an Akka `HttpRequest` to an `Enumerator` of the request body.
    */
   private def convertRequestBody(
-    request: HttpRequest): Enumerator[Array[Byte]] = {
+    request: HttpRequest)(implicit fm: FlowMaterializer): Enumerator[Array[Byte]] = {
     import play.api.libs.iteratee.Execution.Implicits.trampoline
     request.entity match {
       case HttpEntity.Strict(_, data) if data.isEmpty =>
@@ -93,11 +94,11 @@ private[akkahttp] object ModelConversion {
         Enumerator.eof
       case HttpEntity.Default(contentType, contentLength, pubr) =>
         // FIXME: should do something with the content-length?
-        Streams.publisherToEnumerator(pubr) &> Enumeratee.map((data: ByteString) => data.toArray)
+        AkkaStreamsConversion.sourceToEnumerator(pubr) &> Enumeratee.map((data: ByteString) => data.toArray)
       case HttpEntity.Chunked(contentType, chunks) =>
         // FIXME: Don't enumerate LastChunk?
         // FIXME: do something with trailing headers?
-        Streams.publisherToEnumerator(chunks) &> Enumeratee.map((chunk: HttpEntity.ChunkStreamPart) => chunk.data.toArray)
+        AkkaStreamsConversion.sourceToEnumerator(chunks) &> Enumeratee.map((chunk: HttpEntity.ChunkStreamPart) => chunk.data.toArray)
     }
   }
 
@@ -118,10 +119,10 @@ private[akkahttp] object ModelConversion {
             Enumerator.enumInput(Input.El(HttpEntity.LastChunk)) >>>
             Enumerator.eof
           )
-          val chunksProd = Streams.enumeratorToPublisher(chunksEnum)
+          val chunksSource = AkkaStreamsConversion.enumeratorToSource(chunksEnum)
           HttpEntity.Chunked(
             contentType = contentType,
-            chunks = chunksProd
+            chunks = chunksSource
           )
         case Some(0) =>
           HttpEntity.Strict(
@@ -130,12 +131,12 @@ private[akkahttp] object ModelConversion {
           )
         case Some(l) =>
           val dataEnum: Enumerator[ByteString] = result.body.map(ByteString(_)) >>> Enumerator.eof
-          val dataProd: Publisher[ByteString] = Streams.enumeratorToPublisher(dataEnum)
+          val dataSource: Source[ByteString] = AkkaStreamsConversion.enumeratorToSource(dataEnum)
           // TODO: Check if values already available so we can use HttpEntity.Strict
           HttpEntity.Default(
             contentType = contentType,
             contentLength = l,
-            data = dataProd
+            data = dataSource
           )
       }
     }
