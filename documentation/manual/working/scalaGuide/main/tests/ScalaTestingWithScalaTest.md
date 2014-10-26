@@ -19,12 +19,12 @@ Testing in Play is based on SBT, and a full description is available in the [tes
 
 ## Using ScalaTest + Play
 
-To use _ScalaTest + Play_, you'll need to add it to your build, by changing `projects/Build.scala` like this:
+To use _ScalaTest + Play_, you'll need to add it to your build, by changing `build.sbt` like this:
 
 ```scala
-val appDependencies = Seq(
-  // Add your project dependencies here,
-  "org.scalatestplus" % "play_2.10" % "1.0.0" % "test"
+libraryDependencies ++= Seq(
+  "org.scalatest" %% "scalatest" % "2.2.1" % "test",
+  "org.scalatestplus" %% "play" % "1.2.0" % "test",
 )
 ```
 
@@ -38,11 +38,18 @@ You can alternatively [define your own base classes](http://scalatest.org/user_g
 
 You can run your tests with Play itself, or in IntelliJ IDEA (using the [Scala plugin](http://blog.jetbrains.com/scala/)) or in Eclipse (using the [Scala IDE](http://scala-ide.org/) and the [ScalaTest Eclipse plugin](http://scalatest.org/user_guide/using_scalatest_with_eclipse)).  Please see the [[IDE page|IDE]] for more details.
 
+Note that in IntelliJ, when creating a new Run Configuration for your unit tests,
+if you select "All in package," choosing "In whole project" for the "Search for tests"
+option, may cause `MethodNotFoundError` exceptions: if that's the case, use "Across module
+dependencies" instead.
+
 ### Matchers
 
 `PlaySpec` mixes in ScalaTest's [`MustMatchers`](http://doc.scalatest.org/2.1.5/index.html#org.scalatest.MustMatchers), so you can write assertions using ScalaTest's matchers DSL:
 
 ```scala
+import play.api.test.Helpers._
+
 "Hello world" must endWith ("world")
 ```
 
@@ -114,6 +121,12 @@ and then test the trait:
 
 @[scalatest-examplecontrollerspec](code-scalatestplus-play/ExampleControllerSpec.scala)
 
+When testing POST requests with, for example, JSON bodies, you won't be able to
+use the pattern shown above (`apply(fakeRequest)`); instead you should use
+`call()` on the `testController`:
+
+@[scalatest-examplepost](code-scalatestplus-play/ExamplePostSpec.scala)
+
 ## Unit Testing EssentialAction
 
 Testing [`Action`](api/scala/index.html#play.api.mvc.Action) or [`Filter`](api/scala/index.html#play.api.mvc.Filter) can require to test an an [`EssentialAction`](api/scala/index.html#play.api.mvc.EssentialAction) ([[more information about what an EssentialAction is|HttpApi]])
@@ -122,3 +135,5 @@ For this, the test [`Helpers.call`](api/scala/index.html#play.api.test.Helpers@c
 
 @[scalatest-exampleessentialactionspec](code-scalatestplus-play/ExampleEssentialActionSpec.scala)
 
+
+> **Next:** [[Writing functional tests with ScalaTest|ScalaFunctionalTestingWithScalaTest]]
