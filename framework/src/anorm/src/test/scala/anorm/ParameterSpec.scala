@@ -13,6 +13,9 @@ import java.util.Date
 
 import java.sql.{ SQLFeatureNotSupportedException, Timestamp }
 
+import scala.collection.immutable.SortedSet
+import org.joda.time.{ DateTime, Instant }
+
 import acolyte.{
   DefinedParameter => DParam,
   ParameterMetaData,
@@ -30,6 +33,8 @@ object ParameterSpec extends org.specs2.mutable.Specification {
   val sbi1 = BigInt(jbi1)
   val Date1 = new Date()
   val Timestamp1 = { val ts = new Timestamp(123l); ts.setNanos(123456789); ts }
+  val dateTime1 = DateTime.now()
+  val instant1 = Instant.now()
   val uuid1 = java.util.UUID.randomUUID; val Uuid1str = uuid1.toString
   val SqlStr = ParameterMetaData.Str
   val SqlBool = ParameterMetaData.Bool
@@ -337,6 +342,24 @@ object ParameterSpec extends org.specs2.mutable.Specification {
     "be null timestamp" in withConnection() { implicit c =>
       SQL("set-null-ts {p}").
         on("p" -> null.asInstanceOf[Timestamp]).execute() must beFalse
+    }
+
+    "be joda-time datetime" in withConnection() { implicit c =>
+      SQL("set-date {p}").on("p" -> dateTime1).execute() must beFalse
+    }
+
+    "be null joda-time datetime" in withConnection() { implicit c =>
+      SQL("set-null-date {p}").
+        on("p" -> null.asInstanceOf[DateTime]).execute() must beFalse
+    }
+
+    "be joda-time instant" in withConnection() { implicit c =>
+      SQL("set-date {p}").on("p" -> instant1).execute() must beFalse
+    }
+
+    "be null joda-time instant" in withConnection() { implicit c =>
+      SQL("set-null-date {p}").
+        on("p" -> null.asInstanceOf[Instant]).execute() must beFalse
     }
 
     "be UUID" in withConnection() { implicit c =>
