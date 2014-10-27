@@ -70,8 +70,6 @@ object BuildSettings {
       new SharedProjectScalaVersion(scalaVersion,CrossVersion.binaryScalaVersion(scalaVersion))
   }
 
-  lazy val PerformanceTest = config("pt") extend Test
-
   def playCommonSettings: Seq[Setting[_]] = Seq(
     organization := buildOrganization,
     version := buildVersion,
@@ -89,9 +87,7 @@ object BuildSettings {
     unmanagedSourceDirectories in Test ++= { if (isJavaAtLeast("1.8")) Seq((sourceDirectory in Test).value / "java8") else Nil },
     javaOptions in Test += maxMetaspace,
     testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
-    testOptions in Test += Tests.Filter(!_.endsWith("Benchmark")),
-    testOptions in PerformanceTest ~= (_.filterNot(_.isInstanceOf[Tests.Filter]) :+ Tests.Filter(_.endsWith("Benchmark"))),
-    parallelExecution in PerformanceTest := false
+    testOptions in Test += Tests.Filter(!_.endsWith("Benchmark"))
   )
 
   def makeJavacOptions(version: String) = Seq("-source", version, "-target", version, "-encoding", "UTF-8", "-Xlint:-options", "-J-Xmx512m")
@@ -104,8 +100,6 @@ object BuildSettings {
       mimaDefaultSettings ++ Seq(previousArtifact := Some(buildOrganization % Project.normalizeModuleID(name) % previousVersion))
     } else Nil
     Project(name, file("src/" + dir))
-      .configs(PerformanceTest)
-      .settings(inConfig(PerformanceTest)(Defaults.testTasks) : _*)
       .settings(playCommonSettings: _*)
       .settings(PublishSettings.nonCrossBuildPublishSettings: _*)
       .settings(bcSettings: _*)
@@ -130,8 +124,6 @@ object BuildSettings {
    */
   def PlayRuntimeProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
-      .configs(PerformanceTest)
-      .settings(inConfig(PerformanceTest)(Defaults.testTasks) : _*)
       .settings(playCommonSettings: _*)
       .settings(PublishSettings.publishSettings: _*)
       .settings(mimaDefaultSettings: _*)
@@ -408,7 +400,6 @@ object PlayBuild extends Build {
   lazy val PlayIntegrationTestProject = PlayRuntimeProject("Play-Integration-Test", "play-integration-test")
     .settings(
       parallelExecution in Test := false,
-      libraryDependencies ++= integrationTestDependencies,
       previousArtifact := None
     )
     .dependsOn(PlayProject % "test->test", PlayWsProject, PlayWsJavaProject, PlayTestProject)
