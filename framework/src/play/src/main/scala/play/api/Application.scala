@@ -6,7 +6,7 @@ package play.api
 import javax.inject.Inject
 
 import com.google.inject.Singleton
-import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
+import play.api.http._
 import play.api.inject.{ SimpleInjector, NewInstanceInjector, Injector, DefaultApplicationLifecycle }
 import play.api.libs.{ Crypto, CryptoConfigParser, CryptoConfig }
 import play.core._
@@ -54,7 +54,7 @@ trait Application {
    */
   def mode: Mode.Mode
 
-  def global: GlobalSettings
+  def global: GlobalSettings = injector.instanceOf[GlobalSettings]
   def configuration: Configuration
   def plugins: Seq[Plugin.Deprecated]
 
@@ -91,7 +91,13 @@ trait Application {
   /**
    * The router used by this application.
    */
-  def routes: Router.Routes
+  @deprecated("Either use HttpRequestHandler, or have the router injected", "2.4.0")
+  def routes: Router.Routes = injector.instanceOf[Router.Routes]
+
+  /**
+   * The HTTP request handler
+   */
+  def requestHandler: HttpRequestHandler
 
   /**
    * The HTTP error handler
@@ -193,8 +199,7 @@ class DefaultApplication @Inject() (environment: Environment,
     applicationLifecycle: DefaultApplicationLifecycle,
     override val injector: Injector,
     override val configuration: Configuration,
-    override val global: GlobalSettings,
-    override val routes: Router.Routes,
+    override val requestHandler: HttpRequestHandler,
     override val errorHandler: HttpErrorHandler,
     override val plugins: Plugins) extends Application {
 
@@ -215,18 +220,19 @@ trait BuiltInComponents {
   def sourceMapper: Option[SourceMapper]
   def webCommands: WebCommands
   def configuration: Configuration
-  def global: GlobalSettings
 
   def routes: Router.Routes
 
-  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + crypto
+  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + crypto + httpConfiguration
 
+  lazy val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration)
+  lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(routes, httpErrorHandler, httpConfiguration)
   lazy val httpErrorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(environment, configuration, sourceMapper,
     Some(routes))
 
   lazy val applicationLifecycle: DefaultApplicationLifecycle = new DefaultApplicationLifecycle
   lazy val application: Application = new DefaultApplication(environment, applicationLifecycle, injector,
-    configuration, global, routes, httpErrorHandler, Plugins.empty)
+    configuration, httpRequestHandler, httpErrorHandler, Plugins.empty)
 
   lazy val cryptoConfig: CryptoConfig = new CryptoConfigParser(environment, configuration).get
   lazy val crypto: Crypto = new Crypto(cryptoConfig)

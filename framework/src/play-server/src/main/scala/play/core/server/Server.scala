@@ -39,7 +39,7 @@ trait Server {
     def sendHandler: Try[(RequestHeader, Handler, Application)] = {
       try {
         applicationProvider.get.map { application =>
-          application.global.onRequestReceived(request) match {
+          application.requestHandler.handlerForRequest(request) match {
             case (requestHeader, handler) => (requestHeader, handler, application)
           }
         }

@@ -4,6 +4,7 @@
 package java8guide.async;
 
 import javaguide.testhelpers.MockJavaAction;
+import javaguide.testhelpers.MockJavaActionHelper;
 import org.junit.Before;
 import org.junit.Test;
 import play.libs.Comet;
@@ -18,7 +19,7 @@ public class JavaComet extends WithApplication {
 
     @Test
     public void manual() {
-        String content = contentAsString(MockJavaAction.call(new Controller1(), fakeRequest()));
+        String content = contentAsString(MockJavaActionHelper.call(new Controller1(), fakeRequest()));
         assertThat(content, containsString("<script>console.log('kiki')</script>"));
         assertThat(content, containsString("<script>console.log('foo')</script>"));
         assertThat(content, containsString("<script>console.log('bar')</script>"));
@@ -43,7 +44,7 @@ public class JavaComet extends WithApplication {
 
     @Test
     public void comet() {
-        String content = contentAsString(MockJavaAction.call(new Controller2(), fakeRequest()));
+        String content = contentAsString(MockJavaActionHelper.call(new Controller2(), fakeRequest()));
         assertThat(content, containsString("<script type=\"text/javascript\">console.log('kiki');</script>"));
         assertThat(content, containsString("<script type=\"text/javascript\">console.log('foo');</script>"));
         assertThat(content, containsString("<script type=\"text/javascript\">console.log('bar');</script>"));
@@ -64,7 +65,7 @@ public class JavaComet extends WithApplication {
 
     @Test
     public void foreverIframe() {
-        String content = contentAsString(MockJavaAction.call(new Controller3(), fakeRequest()));
+        String content = contentAsString(MockJavaActionHelper.call(new Controller3(), fakeRequest()));
         assertThat(content, containsString("<script type=\"text/javascript\">parent.cometMessage('kiki');</script>"));
         assertThat(content, containsString("<script type=\"text/javascript\">parent.cometMessage('foo');</script>"));
         assertThat(content, containsString("<script type=\"text/javascript\">parent.cometMessage('bar');</script>"));

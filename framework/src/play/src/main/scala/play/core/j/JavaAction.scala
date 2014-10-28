@@ -3,7 +3,10 @@
  */
 package play.core.j
 
-import play.api.inject.NewInstanceInjector
+import javax.inject.Inject
+
+import play.api.http.HttpRequestHandler
+import play.api.inject.{ Injector, NewInstanceInjector }
 
 import scala.language.existentials
 
@@ -44,7 +47,7 @@ class JavaActionAnnotations(val controller: Class[_], val method: java.lang.refl
 /*
  * An action that's handling Java requests
  */
-trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
+abstract class JavaAction(components: JavaHandlerComponents) extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
 
   def invocation: JPromise[JResult]
   val annotations: JavaActionAnnotations
@@ -57,25 +60,18 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
       def call(ctx: JContext): JPromise[JResult] = invocation
     }
 
-    // Wrap into user defined Global action
-    val baseAction = play.api.Play.maybeApplication.map { app =>
-      app.global match {
-        case global: JavaGlobalSettingsAdapter =>
-          val action = global.underlying.onRequest(javaContext.request, annotations.method)
-          action.delegate = rootAction
-          action
-        case _ => rootAction
-      }
-    }.getOrElse(rootAction)
+    val baseAction = components.requestHandler.createAction(javaContext.request, annotations.method)
+    baseAction.delegate = rootAction
 
-    val finalAction = annotations.actionMixins.foldLeft[JAction[_ <: Any]](baseAction) {
-      case (delegate, (annotation, actionClass)) =>
-        val injector = play.api.Play.maybeApplication.map(_.injector).getOrElse(NewInstanceInjector)
-        val action = injector.instanceOf(actionClass).asInstanceOf[play.mvc.Action[Object]]
-        action.configuration = annotation
-        action.delegate = delegate
-        action
-    }
+    val finalAction = components.requestHandler.wrapAction(
+      annotations.actionMixins.foldLeft[JAction[_ <: Any]](baseAction) {
+        case (delegate, (annotation, actionClass)) =>
+          val action = components.injector.instanceOf(actionClass).asInstanceOf[play.mvc.Action[Object]]
+          action.configuration = annotation
+          action.delegate = delegate
+          action
+      }
+    )
 
     val trampolineWithContext: ExecutionContext = {
       val javaClassLoader = Thread.currentThread.getContextClassLoader
@@ -88,3 +84,25 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
   }
 
 }
+
+/**
+ * A Java handler.
+ *
+ * Java handlers, given that they have to load actions and perform Java specific interception, need extra components
+ * that can't be supplied by the controller itself to do so.  So this handler is a factory for handlers that, given
+ * the JavaComponents, will return a handler that can be invoked by a Play server.
+ */
+trait JavaHandler extends Handler {
+
+  /**
+   * Return a Handler that has the necessary components supplied to execute it.
+   */
+  def withComponents(components: JavaHandlerComponents): Handler
+}
+
+/**
+ * The components necessary to handle a Java handler.
+ */
+class JavaHandlerComponents @Inject() (val injector: Injector,
+  val requestHandler: play.http.HttpRequestHandler)
+

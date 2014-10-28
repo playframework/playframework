@@ -17,7 +17,7 @@ In contrast, [[action composition|ScalaActionsComposition]] is intended for rout
 
 The following is a simple filter that times and logs how long a request takes to execute in Play framework:
 
-@[simple-filter](code/Filters.scala)
+@[simple-filter](code/ScalaHttpFilters.scala)
 
 Let's understand what's happening here.  The first thing to notice is the signature of the `apply` method.  It's a curried function, with the first parameter, `nextFilter`, being a function that takes a request header and produces a result, and the second parameter, `requestHeader`, being the actual request header of the incoming request.
 
@@ -25,23 +25,15 @@ The `nextFilter` parameter represents the next action in the filter chain. Invok
 
 We save a timestamp before invoking the next filter in the chain. Invoking the next filter returns a `Future[Result]` that will redeemed eventually. Take a look at the [[Handling asynchronous results|ScalaAsync]] chapter for more details on asynchronous results. We then manipulate the `Result` in the `Future` by calling the `map` method with a closure that takes a `Result`. We calculate the time it took for the request, log it and send it back to the client in the response headers by calling `result.withHeaders("Request-Time" -> requestTime.toString)`.
 
-### A more concise syntax
-
-You can use a more concise syntax for declaring a filter if you wish:
-
-@[concise-filter-syntax](code/Filters.scala)
-
-Since this is a val, this can only be used inside some scope.
-
 ## Using filters
 
-The simplest way to use a filter is to extends the `WithFilters` trait on your `Global` object:
+The simplest way to use a filter is to provide an implementation of the [`HttpFilters`](api/scala/index.html#play.api.http.HttpFilters) trait in the root package:
 
-@[filter-trait-example](code/GlobalWithFilters.scala)
+@[filters](code/ScalaHttpFilters.scala)
 
-You can also invoke a filter manually:
+If you want to have different filters in different environments, or would prefer not putting this class in the root package, you can configure where Play should find the class by setting `play.http.filters` in `application.conf` to the fully qualified class name of the class.  For example:
 
-@[filter-method-example](code/GlobalWithFilters.scala)
+    play.http.filters=com.example.MyFilters
 
 ## Where do filters fit in?
 

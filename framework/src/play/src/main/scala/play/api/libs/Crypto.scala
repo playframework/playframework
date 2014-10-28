@@ -186,6 +186,7 @@ object Crypto {
   def decryptAES(value: String, privateKey: String): String = crypto.decryptAES(value, privateKey)
 }
 
+@Singleton
 class CryptoConfigParser @Inject() (environment: Environment, configuration: Configuration) extends Provider[CryptoConfig] {
 
   private val Blank = """\s*""".r

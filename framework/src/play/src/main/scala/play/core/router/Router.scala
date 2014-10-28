@@ -9,7 +9,7 @@ import org.apache.commons.lang3.reflect.MethodUtils
 
 import java.net.URI
 import scala.util.control.{ NonFatal, Exception }
-import play.core.j.JavaActionAnnotations
+import play.core.j.{ JavaHandlerComponents, JavaHandler, JavaActionAnnotations }
 import play.utils.{ Reflect, UriEncoding }
 import play.api.{ Environment, Configuration }
 
@@ -267,8 +267,8 @@ object Router {
           val method = MethodUtils.getMatchingAccessibleMethod(controller, handlerDef.method, handlerDef.parameterTypes: _*)
           new JavaActionAnnotations(controller, method)
         }
-        def call(call: => A): Handler = {
-          new play.core.j.JavaAction with RequestTaggingHandler {
+        def call(call: => A): Handler = new JavaHandler {
+          def withComponents(components: JavaHandlerComponents) = new play.core.j.JavaAction(components) with RequestTaggingHandler {
             val annotations = cachedAnnotations
             val parser = cachedAnnotations.parser
             def invocation: JPromise[JResult] = resultCall(call)
@@ -481,15 +481,9 @@ object Router {
       val cachedHandlerTags = handlerTags(handlerDef)
       def call(call: => A): Handler = {
         val handler = underlyingInvoker.call(call)
+        // All JavaAction's should already be tagged
         handler match {
           case alreadyTagged: RequestTaggingHandler => alreadyTagged
-          case javaAction: play.core.j.JavaAction =>
-            new play.core.j.JavaAction with RequestTaggingHandler {
-              def invocation = javaAction.invocation
-              val annotations = javaAction.annotations
-              val parser = javaAction.annotations.parser
-              def tagRequest(rh: RequestHeader) = taggedRequest(rh, cachedHandlerTags)
-            }
           case action: EssentialAction => new EssentialAction with RequestTaggingHandler {
             def apply(rh: RequestHeader) = action(rh)
             def tagRequest(rh: RequestHeader) = taggedRequest(rh, cachedHandlerTags)

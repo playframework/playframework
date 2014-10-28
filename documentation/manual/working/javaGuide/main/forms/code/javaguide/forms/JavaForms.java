@@ -15,6 +15,7 @@ import play.mvc.*;
 import play.test.WithApplication;
 
 import javaguide.testhelpers.MockJavaAction;
+import javaguide.testhelpers.MockJavaActionHelper;
 import javaguide.forms.u1.User;
 
 import java.text.ParseException;
@@ -49,7 +50,7 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void bindFromRequest() {
-        Result result = MockJavaAction.call(new Controller1(),
+        Result result = MockJavaActionHelper.call(new Controller1(),
                 fakeRequest().withFormUrlEncodedBody(ImmutableMap.of("email", "e", "password", "p")));
         assertThat(contentAsString(result), equalTo("e"));
     }
@@ -118,7 +119,7 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void handleErrors() {
-        Result result = MockJavaAction.call(new Controller2(), fakeRequest());
+        Result result = MockJavaActionHelper.call(new Controller2(), fakeRequest());
         assertThat(contentAsString(result), startsWith("Got user"));
     }
 
@@ -168,7 +169,7 @@ public class JavaForms extends WithApplication {
 
     @Test
     public void dynamicForm() {
-        Result result = MockJavaAction.call(new Controller3(),
+        Result result = MockJavaActionHelper.call(new Controller3(),
                 fakeRequest().withFormUrlEncodedBody(ImmutableMap.of("firstname", "a", "lastname", "b")));
         assertThat(contentAsString(result), equalTo("Hello a b"));
     }

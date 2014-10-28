@@ -78,11 +78,11 @@ Effective use of loggers can help you achieve many goals with the same tool:
 
 This example uses [[action composition|ScalaActionsComposition]] to define an `AccessLoggingAction` that will log request data to a logger named "access." The `Application` controller uses this action and it also uses its own logger (named after its class) for application events. In configuration you could then route these loggers to different appenders, such as an access log and an application log.
 
-The above design works well if you want to log request data for only specific actions. To log all requests, it's better to use a [[filter|ScalaInterceptors]]:
+The above design works well if you want to log request data for only specific actions. To log all requests, it's better to use a [[filter|ScalaHttpFilters]]:
 
 @[logging-pattern-filter](code/ScalaLoggingSpec.scala)
 
-In the filter version we've added the response status to the log request by logging when the `Future[Result]` completes. Also note that the [[Global object|ScalaGlobal]] is a sensible place to use the default logger for events like application start and stop.
+In the filter version we've added the response status to the log request by logging when the `Future[Result]` completes.
 
 ## Configuration
 See [[configuring logging|SettingsLogger]] for details on configuration. 

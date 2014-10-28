@@ -4,6 +4,7 @@
 package javaguide.async;
 
 import javaguide.testhelpers.MockJavaAction;
+import javaguide.testhelpers.MockJavaActionHelper;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +22,7 @@ public class JavaStream extends WithApplication {
 
     @Test
     public void byDefault() {
-        assertThat(contentAsString(MockJavaAction.call(new Controller1(), fakeRequest())), equalTo("Hello World"));
+        assertThat(contentAsString(MockJavaActionHelper.call(new Controller1(), fakeRequest())), equalTo("Hello World"));
     }
 
     public static class Controller1 extends MockJavaAction {
@@ -42,7 +43,7 @@ public class JavaStream extends WithApplication {
         } finally {
             os.close();
         }
-        Result result = MockJavaAction.call(new Controller2(), fakeRequest());
+        Result result = MockJavaActionHelper.call(new Controller2(), fakeRequest());
         assertThat(contentAsString(result), equalTo("hi"));
         assertThat(header(CONTENT_LENGTH, result), equalTo("2"));
         file.delete();
@@ -58,7 +59,7 @@ public class JavaStream extends WithApplication {
 
     @Test
     public void inputStream() {
-        String content = contentAsString(MockJavaAction.call(new Controller3(), fakeRequest()));
+        String content = contentAsString(MockJavaActionHelper.call(new Controller3(), fakeRequest()));
         // Wait until results refactoring is merged, then this will work
         // assertThat(content, containsString("hello"));
     }
@@ -78,7 +79,7 @@ public class JavaStream extends WithApplication {
 
     @Test
     public void chunked() {
-        String content = contentAsString(MockJavaAction.call(new Controller4(), fakeRequest()));
+        String content = contentAsString(MockJavaActionHelper.call(new Controller4(), fakeRequest()));
         // Wait until results refactoring is merged, then this will work
         // assertThat(content, containsString("kikifoobar"));
     }

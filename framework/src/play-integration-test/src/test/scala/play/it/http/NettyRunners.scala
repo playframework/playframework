@@ -85,16 +85,9 @@ trait NettyRunners extends PlayRunners {
   def withDownstreamHandler[T](
     downstreamHandler: ChannelDownstreamHandler,
     action: EssentialAction)(block: ChannelPipeline => T): T = {
-    val app = new FakeApplication() {
-      override lazy val routes = new Routes {
-        def documentation = Nil
-        def withPrefix(prefix: String) = this
-        def routes = {
-          case _ => action
-        }
-        def errorHandler = DefaultHttpErrorHandler
-      }
-    }
+    val app = new FakeApplication(withRoutes = {
+      case _ => action
+    })
     withDownstreamHandler(downstreamHandler, app)(block)
   }
 

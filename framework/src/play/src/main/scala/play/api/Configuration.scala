@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit
 import com.typesafe.config._
 
 import scala.collection.JavaConverters._
+import scala.concurrent.duration.{ FiniteDuration, Duration }
 import scala.util.control.NonFatal
 import play.utils.PlayIO
 
@@ -28,6 +29,7 @@ object Configuration {
   private[this] lazy val dontAllowMissingConfigOptions = ConfigParseOptions.defaults().setAllowMissing(false)
 
   private[this] lazy val dontAllowMissingConfig = ConfigFactory.load(dontAllowMissingConfigOptions)
+
   /**
    * loads `Configuration` from config.resource or config.file. If not found default to 'conf/application.conf' in Dev mode
    * @return  configuration to be used
@@ -759,6 +761,63 @@ case class Configuration(underlying: Config) {
    */
   def globalError(message: String, e: Option[Throwable] = None): PlayException = {
     Configuration.configError(underlying.root.origin, message, e)
+  }
+
+  /**
+   * Loads a String configuration item, looking at the deprecated key first, and outputting a warning if it's defined,
+   * otherwise loading the new key.
+   */
+  private[play] def getDeprecatedString(key: String, deprecatedKey: String): String = {
+    getString(deprecatedKey).fold(underlying.getString(key)) { value =>
+      Logger.warn(s"$deprecatedKey is deprecated, use $key instead")
+      value
+    }
+  }
+
+  /**
+   * Loads a String configuration item, looking at the deprecated key first, and outputting a warning if it's defined,
+   * otherwise loading the new key.
+   */
+  private[play] def getDeprecatedStringOpt(key: String, deprecatedKey: String): Option[String] = {
+    getString(deprecatedKey).map { value =>
+      Logger.warn(s"$deprecatedKey is deprecated, use $key instead")
+      value
+    }.orElse(getString(key)).filter(_.nonEmpty)
+  }
+
+  /**
+   * Loads a Boolean configuration item, looking at the deprecated key first, and outputting a warning if it's defined,
+   * otherwise loading the new key.
+   */
+  private[play] def getDeprecatedBoolean(key: String, deprecatedKey: String): Boolean = {
+    getBoolean(deprecatedKey).fold(underlying.getBoolean(key)) { value =>
+      Logger.warn(s"$deprecatedKey is deprecated, use $key instead")
+      value
+    }
+  }
+
+  /**
+   * Loads a Duration configuration item, looking at the deprecated key first, and outputting a warning if it's defined,
+   * otherwise loading the new key.
+   */
+  private[play] def getDeprecatedDuration(key: String, deprecatedKey: String): FiniteDuration = {
+    new FiniteDuration(getNanoseconds(deprecatedKey).fold(underlying.getDuration(key, TimeUnit.NANOSECONDS)) { value =>
+      Logger.warn(s"$deprecatedKey is deprecated, use $key instead")
+      value
+    }, TimeUnit.NANOSECONDS)
+  }
+
+  /**
+   * Loads an optional Duration configuration item, looking at the deprecated key first, and outputting a warning if
+   * it's defined, otherwise loading the new key.
+   */
+  private[play] def getDeprecatedDurationOpt(key: String, deprecatedKey: String): Option[FiniteDuration] = {
+    getNanoseconds(deprecatedKey).map { value =>
+      Logger.warn(s"$deprecatedKey is deprecated, use $key instead")
+      value
+    }.orElse(getNanoseconds(key)).map { value =>
+      new FiniteDuration(value, TimeUnit.NANOSECONDS)
+    }
   }
 
 }

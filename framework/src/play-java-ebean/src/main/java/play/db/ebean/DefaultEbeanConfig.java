@@ -16,6 +16,7 @@ import com.avaje.ebean.config.ServerConfig;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
+import javax.inject.Singleton;
 
 /**
  * Ebean server configuration.
@@ -40,6 +41,7 @@ public class DefaultEbeanConfig implements EbeanConfig {
         return serverConfigs;
     }
 
+    @Singleton
     public static class EbeanConfigParser implements Provider<EbeanConfig> {
 
         private final Configuration configuration;

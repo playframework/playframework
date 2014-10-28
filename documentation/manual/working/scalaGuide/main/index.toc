@@ -10,6 +10,5 @@ cache:Using the Cache
 ws:Calling WebServices
 akka:Integrating with Akka
 i18n:Internationalization
-global:The application Global object
 tests:Testing your application
 logging:Logging

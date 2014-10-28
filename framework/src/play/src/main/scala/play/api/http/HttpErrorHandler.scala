@@ -48,7 +48,7 @@ object HttpErrorHandler {
    * Get the bindings for the error handler from the configuration
    */
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
-    Reflect.bindingsFromConfiguration[HttpErrorHandler, play.http.HttpErrorHandler, JavaHttpErrorHandlerAdapter, GlobalSettingsHttpErrorHandler](environment, configuration, "play.application.errorHandler", "ErrorHandler")
+    Reflect.bindingsFromConfiguration[HttpErrorHandler, play.http.HttpErrorHandler, JavaHttpErrorHandlerAdapter, GlobalSettingsHttpErrorHandler](environment, configuration, "play.http.errorHandler", "ErrorHandler")
   }
 }
 
@@ -254,7 +254,7 @@ object HttpErrorHandlerExceptions {
 /**
  * A default HTTP error handler that can be used when there's no application available
  */
-private[play] object DefaultHttpErrorHandler extends DefaultHttpErrorHandler(Environment.simple(), Configuration.empty, None, None)
+object DefaultHttpErrorHandler extends DefaultHttpErrorHandler(Environment.simple(), Configuration.empty, None, None)
 
 /**
  * A lazy HTTP error handler, that looks up the error handler from the current application

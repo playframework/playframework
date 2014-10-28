@@ -7,15 +7,15 @@ In Java, Play uses the [Jackson](http://jackson.codehaus.org/) JSON library to c
 
 Jackson allows you to easily convert Java objects to JSON by looking at field names, getters and setters. As an example we'll use the following simple Java object:
 
-@[person-class](code/JavaJsonActions.java)
+@[person-class](code/javaguide/json/JavaJsonActions.java)
 
 We can parse the JSON representation of the object and create a new `Person`:
 
-@[to-json](code/JavaJsonActions.java)
+@[to-json](code/javaguide/json/JavaJsonActions.java)
 
 Similarly, we can write the `Person` object to a `JsonNode`:
 
-@[from-json](code/JavaJsonActions.java)
+@[from-json](code/javaguide/json/JavaJsonActions.java)
 
 ## Handling a JSON request
 
@@ -23,11 +23,11 @@ A JSON request is an HTTP request using a valid JSON payload as request body. It
 
 By default an action uses an **any content** body parser, which you can use to retrieve the body as JSON (actually as a Jackson `JsonNode`):
 
-@[json-request-as-anycontent](code/JavaJsonActions.java)
+@[json-request-as-anycontent](code/javaguide/json/JavaJsonActions.java)
 
 Of course it’s way better (and simpler) to specify our own `BodyParser` to ask Play to parse the content body directly as JSON:
 
-@[json-request-as-json](code/JavaJsonActions.java)
+@[json-request-as-json](code/javaguide/json/JavaJsonActions.java)
 
 > **Note:** This way, a 400 HTTP response will be automatically returned for non JSON requests with Content-type set to application/json.
 
@@ -55,7 +55,7 @@ Hello Guillaume
 
 In our previous example we handled a JSON request, but replied with a `text/plain` response. Let’s change that to send back a valid JSON HTTP response:
 
-@[json-response](code/JavaJsonActions.java)
+@[json-response](code/javaguide/json/JavaJsonActions.java)
 
 Now it replies with:
 
@@ -68,7 +68,7 @@ Content-Type: application/json; charset=utf-8
 
 You can also return a Java object and have it automatically serialized to JSON by the Jackson library:
 
-@[json-response-dao](code/JavaJsonActions.java)
+@[json-response-dao](code/javaguide/json/JavaJsonActions.java)
 
 ## Advanced usage
 
@@ -76,4 +76,4 @@ Because Play uses Jackson, you can use your own `ObjectMapper` to create `JsonNo
 
 If you would like to use Play's `Json` APIs (`toJson`/`fromJson`) with a customized `ObjectMapper`, you can add something like this in your `GlobalSettings#onStart`:
 
-@[custom-object-mapper](code/JavaJsonActions.java)
+@[custom-object-mapper](code/javaguide/json/JavaJsonActions.java)

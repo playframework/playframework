@@ -3,6 +3,8 @@
  */
 package play.filters.gzip
 
+import javax.inject.Inject
+
 import play.api.libs.iteratee._
 import play.api.mvc._
 import scala.concurrent.Future
@@ -57,6 +59,9 @@ class GzipFilter(gzip: Enumeratee[Array[Byte], Array[Byte]] = Gzip.gzip(GzipFilt
    * Allows use with a custom chunked threshold from Java
    */
   def this(chunkedThreshold: Int) = this(Gzip.gzip(GzipFilter.DefaultChunkSize), chunkedThreshold, (_, _) => true)
+
+  @Inject
+  def this(config: GzipFilterConfig) = this(config.gzip, config.chunkedThreshold, config.shouldGzip)
 
   /**
    * This allows it to be used from Java
@@ -200,9 +205,25 @@ class GzipFilter(gzip: Enumeratee[Array[Byte], Array[Byte]] = Gzip.gzip(GzipFilt
 
 object GzipFilter {
   /** Default threshold before chunking happens is 100kb */
-  private val DefaultChunkedThreshold = 102400
+  private[gzip] val DefaultChunkedThreshold = 102400
   /** The default buffer for gzip chunk size to use, 8kb matches plays default chunking size when streaming */
-  private val DefaultChunkSize = 8192
+  private[gzip] val DefaultChunkSize = 8192
   /** The GZIP header length */
   private val GzipHeaderLength = 10
+}
+
+/**
+ * Configuration for the gzip filter
+ *
+ * @param gzip The gzip enumeratee to use.
+ * @param chunkedThreshold The content length threshold, after which the filter will switch to chunking the result.
+ * @param shouldGzip Whether the given request/result should be gzipped.  This can be used, for example, to implement
+ *                   black/white lists for gzipping by content type.
+ */
+case class GzipFilterConfig(gzip: Enumeratee[Array[Byte], Array[Byte]] = Gzip.gzip(GzipFilter.DefaultChunkSize),
+    chunkedThreshold: Int = GzipFilter.DefaultChunkedThreshold,
+    shouldGzip: (RequestHeader, ResponseHeader) => Boolean = (_, _) => true) {
+
+  @Inject
+  def this() = this(Gzip.gzip(GzipFilter.DefaultChunkSize), GzipFilter.DefaultChunkedThreshold, (_, _) => true)
 }

@@ -460,6 +460,8 @@ class DefaultMessagesApi @Inject() (environment: Environment, configuration: Con
 
   import java.text._
 
+  protected val messagesPrefix =
+    configuration.getDeprecatedStringOpt("play.modules.i18n.path", "messages.path")
   val messages: Map[String, Map[String, String]] = loadAllMessages
 
   def preferred(candidates: Seq[Lang]) = Messages(langs.preferred(candidates), this)
@@ -512,13 +514,6 @@ class DefaultMessagesApi @Inject() (environment: Environment, configuration: Con
     })
   }
 
-  protected def messagesPrefix = configuration.getString("play.modules.i18n.path").orElse(
-    configuration.getString("messages.path").map { path =>
-      Logger.warn("messages.path is deprecated, use play.modules.i18n.path instead")
-      path
-    }
-  )
-
   private def joinPaths(first: Option[String], second: String) = first match {
     case Some(parent) => new java.io.File(parent, second).getPath
     case None => second
@@ -543,12 +538,7 @@ class DefaultMessagesApi @Inject() (environment: Environment, configuration: Con
   }
 
   private lazy val langCookieName =
-    configuration.getString("play.modules.i18n.langCookieName").orElse {
-      configuration.getString("application.lang.cookie").map { name =>
-        Logger.warn("application.lang.cookie is deprecated, use play.modules.i18n.langCookieName instead")
-        name
-      }
-    }.getOrElse("PLAY_LANG")
+    configuration.getDeprecatedString("play.modules.i18n.langCookieName", "application.lang.cookie")
 }
 
 class I18nModule extends Module {

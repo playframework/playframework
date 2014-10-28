@@ -66,12 +66,6 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
     }
   }
 
-  override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
-    val cleanup = ctx.getAttachment
-    if (cleanup != null) cleanup.asInstanceOf[() => Unit]()
-    ctx.setAttachment(null)
-  }
-
   override def channelOpen(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
     allChannels.add(e.getChannel)
   }
@@ -157,17 +151,6 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
               case Right((taggedRequestHeader, handler, application)) => (taggedRequestHeader, Right((handler, application)))
             }
           )
-
-        // Call onRequestCompletion after all request processing is done. Protected with an AtomicBoolean to ensure can't be executed more than once.
-        val alreadyClean = new java.util.concurrent.atomic.AtomicBoolean(false)
-        def cleanup() {
-          if (!alreadyClean.getAndSet(true)) {
-            play.api.Play.maybeApplication.foreach(_.global.onRequestCompletion(requestHeader))
-          }
-        }
-
-        // attach the cleanup function to the channel context for after cleaning
-        ctx.setAttachment(cleanup _)
 
         // It is a pre-requesite that we're using the http pipelining capabilities provided and that we have a
         // handler downstream from this one that produces these events.
@@ -322,11 +305,6 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
               NettyResultStreamer.sendResult(cleanFlashCookie(result), !keepAlive, nettyVersion, sequence)
           }
 
-          // Finally, clean up
-          sent.map { _ =>
-            cleanup()
-            ctx.setAttachment(null)
-          }
         }
 
       case unexpected => Play.logger.error("Oops, unexpected message received in NettyServer (please report this problem): " + unexpected)

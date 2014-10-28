@@ -16,7 +16,7 @@ import org.junit.runner.Description
 import org.junit.runners.model.{ FrameworkMethod, Statement }
 import org.junit.{ Rule, Test }
 import org.junit.rules.TestRule
-import play.api.http.DefaultHttpErrorHandler
+import play.api.http.{ NotImplementedHttpRequestHandler, DefaultHttpErrorHandler }
 import play.api.inject.{ NewInstanceInjector, DefaultApplicationLifecycle }
 import play.api.mvc.{ Action, Controller, Handler, RequestHeader }
 import play.api._
@@ -45,7 +45,7 @@ class ServerBenchmark extends NettyRunners {
     }
 
     val application = new DefaultApplication(environment, new DefaultApplicationLifecycle, NewInstanceInjector,
-      configuration, DefaultGlobal, Routes, DefaultHttpErrorHandler, Plugins.empty)
+      configuration, NotImplementedHttpRequestHandler, DefaultHttpErrorHandler, Plugins.empty)
 
     val remoteAddress = new InetSocketAddress(8080)
 

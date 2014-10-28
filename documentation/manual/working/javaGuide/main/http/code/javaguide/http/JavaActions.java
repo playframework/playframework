@@ -10,13 +10,14 @@ import play.mvc.Result;
 import play.test.Helpers;
 
 import javaguide.testhelpers.MockJavaAction;
+import play.test.WithApplication;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static play.test.Helpers.*;
-import static javaguide.testhelpers.MockJavaAction.call;
+import static javaguide.testhelpers.MockJavaActionHelper.call;
 
-public class JavaActions {
+public class JavaActions extends WithApplication {
     @Test
     public void simpleAction() {
         assertThat(status(call(new MockJavaAction() {

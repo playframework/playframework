@@ -63,7 +63,7 @@ object HttpErrorHandlerSpec extends Specification {
   }
 
   def handler(handlerClass: String, mode: Mode.Mode) = {
-    val config = Configuration.from(Map("play.application.errorHandler" -> handlerClass))
+    val config = Configuration.from(Map("play.http.errorHandler" -> handlerClass))
     val env = Environment.simple(mode)
     Fakes.injectorFromBindings(HttpErrorHandler.bindingsFromConfiguration(env, config)
       ++ Seq(

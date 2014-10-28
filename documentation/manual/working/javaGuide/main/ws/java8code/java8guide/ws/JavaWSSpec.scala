@@ -13,7 +13,7 @@ import play.test.Helpers._
 
 import play.api.test.FakeApplication
 import play.api.libs.json.JsObject
-import javaguide.testhelpers.MockJavaAction
+import javaguide.testhelpers.MockJavaActionHelper
 import play.api.http.Status
 
 object JavaWSSpec extends Specification with Results with Status {
@@ -44,13 +44,13 @@ object JavaWSSpec extends Specification with Results with Status {
 
   "The Java WS class" should {
     "call WS correctly" in new WithServer(app = fakeApplication, port = 3333) {
-      val result = MockJavaAction.call(app.injector.instanceOf[JavaWS.Controller1], fakeRequest())
+      val result = MockJavaActionHelper.call(app.injector.instanceOf[JavaWS.Controller1], fakeRequest())
 
       status(result) must equalTo(OK)
     }
 
     "compose WS calls successfully" in new WithServer(app = fakeApplication, port = 3333) {
-      val result = MockJavaAction.call(app.injector.instanceOf[JavaWS.Controller2], fakeRequest())
+      val result = MockJavaActionHelper.call(app.injector.instanceOf[JavaWS.Controller2], fakeRequest())
 
       status(result) must equalTo(OK)
       contentAsString(result) must beEqualTo("Number of comments: 10")

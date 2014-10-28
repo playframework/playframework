@@ -16,9 +16,10 @@ import org.junit.Test;
 
 import play.mvc.Result;
 import play.test.FakeRequest;
+import play.test.WithApplication;
 import play.twirl.api.Content;
 
-public class ApplicationTest {
+public class ApplicationTest extends WithApplication {
   
   @Test
   public void testIndex() {
