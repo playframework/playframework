@@ -457,6 +457,10 @@ For sbt builds that use the full scala syntax, `TwirlKeys` can be imported with:
 import play.twirl.sbt.Import._
 ```
 
+### Html.empty replaced by HtmlFormat.empty
+
+If you were using before `Html.empty` (`play.api.templates.Html.empty`), you must now use `play.twirl.api.HtmlFormat.empty`.
+
 ## Play WS
 
 The WS client is now an optional library. If you are using WS in your project then you will need to add the library dependency. For Java projects you will also need to update to a new package.
