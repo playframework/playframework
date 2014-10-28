@@ -639,7 +639,7 @@ trait BodyParsers {
               val headerString = new String(headerBytes, "utf-8").trim
               val headers = headerString.lines.map { header =>
                 val key :: value = header.trim.split(":").toList
-                (key.trim.toLowerCase, value.mkString.trim)
+                (key.trim.toLowerCase, value.mkString(":").trim)
               }.toMap
 
               val left = rest.drop(CRLFCRLF.length)
