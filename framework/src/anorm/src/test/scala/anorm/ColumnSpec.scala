@@ -7,6 +7,7 @@ import java.math.BigInteger
 import acolyte.{ QueryResult, ImmutableArray }
 import acolyte.RowLists.{
   bigDecimalList,
+  booleanList,
   byteList,
   dateList,
   doubleList,
@@ -22,7 +23,7 @@ import acolyte.RowLists.{
 import acolyte.Acolyte.{ connection, handleQuery }
 import acolyte.Implicits._
 
-import SqlParser.{ byte, double, float, scalar, short }
+import SqlParser.{ byte, double, float, int, long, scalar, short }
 
 object ColumnSpec extends org.specs2.mutable.Specification {
   "Column" title
@@ -43,10 +44,151 @@ object ColumnSpec extends org.specs2.mutable.Specification {
       }
   }
 
+  "Column mapped as long" should {
+    "be parsed from big decimal" in withQueryResult(bigDecimalList :+ bd) {
+      implicit con =>
+        SQL("SELECT bd").as(scalar[Long].single).aka("parsed long") must_== 34l
+    }
+
+    "be parsed from big integer" in withQueryResult(
+      rowList1(classOf[java.math.BigInteger]) :+ bi) { implicit con =>
+        SQL("SELECT bd").as(scalar[Long].single).
+          aka("parsed long") must_== 1234l
+    }
+
+    "be parsed from long" in withQueryResult(longList :+ 23l) { implicit con =>
+      SQL("SELECT l").as(scalar[Long].single) aka "parsed long" must_== 23l
+    }
+
+    "be parsed from integer" in withQueryResult(intList :+ 4) { implicit con =>
+      SQL("SELECT i").as(scalar[Long].single) aka "parsed long" must_== 4l
+    }
+
+    "be parsed from false as 0" in withQueryResult(booleanList :+ false) {
+      implicit con =>
+        SQL("SELECT b").as(scalar[Short].single) aka "parsed short" must_== 0l
+    }
+
+    "be parsed from false as 1" in withQueryResult(booleanList :+ true) {
+      implicit con =>
+        SQL("SELECT b").as(scalar[Short].single) aka "parsed short" must_== 1l
+    }
+
+    "have convinence mapping function" in withQueryResult(
+      longList.withLabel(1, "l") :+ 7l) { implicit con =>
+
+      SQL("SELECT l").as(long("l").single) aka "parsed long" must_== 7l
+    }
+  }
+
+  "Column mapped as integer" should {
+    "be parsed from big decimal" in withQueryResult(bigDecimalList :+ bd) {
+      implicit con =>
+        SQL("SELECT bd").as(scalar[Int].single).
+          aka("parsed integer") must_== 34l
+    }
+
+    "be parsed from big integer" in withQueryResult(
+      rowList1(classOf[java.math.BigInteger]) :+ bi) { implicit con =>
+        SQL("SELECT bd").as(scalar[Int].single).
+          aka("parsed integer") must_== 1234l
+    }
+
+    "be parsed from long" in withQueryResult(longList :+ 23l) { implicit con =>
+      SQL("SELECT l").as(scalar[Int].single) aka "parsed integer" must_== 23
+    }
+
+    "be parsed from integer" in withQueryResult(intList :+ 4) { implicit con =>
+      SQL("SELECT i").as(scalar[Int].single) aka "parsed integer" must_== 4
+    }
+
+    "be parsed from false as 0" in withQueryResult(booleanList :+ false) {
+      implicit con =>
+        SQL("SELECT b").as(scalar[Int].single) aka "parsed integer" must_== 0l
+    }
+
+    "be parsed from false as 1" in withQueryResult(booleanList :+ true) {
+      implicit con =>
+        SQL("SELECT b").as(scalar[Int].single) aka "parsed integer" must_== 1l
+    }
+
+    "have convinence mapping function" in withQueryResult(
+      rowList1(classOf[Int] -> "i") :+ 6) { implicit con =>
+
+      SQL("SELECT i").as(int("i").single) aka "parsed integer" must_== 6
+    }
+  }
+
+  "Column mapped as short" should {
+    "be parsed from short" in withQueryResult(shortList :+ 3.toShort) {
+      implicit con =>
+        SQL("SELECT s").as(scalar[Short].single).
+          aka("parsed short") must_== 3.toShort
+    }
+
+    "be parsed from byte" in withQueryResult(byteList :+ 4.toByte) {
+      implicit con =>
+        SQL("SELECT b").as(scalar[Short].single).
+          aka("parsed short") must_== 4.toShort
+    }
+
+    "be parsed from false as 0" in withQueryResult(booleanList :+ false) {
+      implicit con =>
+        SQL("SELECT b").as(scalar[Short].single).
+          aka("parsed short") must_== 0.toShort
+    }
+
+    "be parsed from false as 1" in withQueryResult(booleanList :+ true) {
+      implicit con =>
+        SQL("SELECT b").as(scalar[Short].single).
+          aka("parsed short") must_== 1.toShort
+    }
+
+    "have convinence mapping function" in withQueryResult(
+      rowList1(classOf[Short] -> "s") :+ 6.toShort) { implicit con =>
+
+        SQL("SELECT s").as(short("s").single).
+          aka("parsed short") must_== 6.toShort
+    }
+  }
+
+  "Column mapped as byte" should {
+    "be parsed from short" in withQueryResult(shortList :+ 3.toShort) {
+      implicit con =>
+        SQL("SELECT s").as(scalar[Byte].single).
+          aka("parsed byte") must_== 3.toByte
+    }
+
+    "be parsed from byte" in withQueryResult(byteList :+ 4.toByte) {
+      implicit con =>
+        SQL("SELECT b").as(scalar[Byte].single).
+          aka("parsed byte") must_== 4.toByte
+    }
+
+    "be parsed from false as 0" in withQueryResult(booleanList :+ false) {
+      implicit con =>
+        SQL("SELECT b").as(scalar[Byte].single).
+          aka("parsed byte") must_== 0.toByte
+    }
+
+    "be parsed from false as 1" in withQueryResult(booleanList :+ true) {
+      implicit con =>
+        SQL("SELECT b").as(scalar[Byte].single).
+          aka("parsed byte") must_== 1.toByte
+    }
+
+    "have convinence mapping function" in withQueryResult(
+      rowList1(classOf[Byte] -> "b") :+ 6.toByte) { implicit con =>
+
+        SQL("SELECT b").as(byte("b").single).
+          aka("parsed byte") must_== 6.toByte
+      }
+  }
+
   "Column mapped as double" should {
     "be parsed from big decimal" in withQueryResult(bigDecimalList :+ bd) {
       implicit con =>
-        SQL("SELECT bg").as(scalar[Double].single).
+        SQL("SELECT bd").as(scalar[Double].single).
           aka("parsed double") must_== 34.5679d
     }
 
@@ -89,48 +231,6 @@ object ColumnSpec extends org.specs2.mutable.Specification {
       rowList1(classOf[Double] -> "d") :+ 1.2d) { implicit con =>
 
         SQL("SELECT d").as(double("d").single) aka "parsed double" must_== 1.2d
-      }
-  }
-
-  "Column mapped as short" should {
-    "be parsed from short" in withQueryResult(shortList :+ 3.toShort) {
-      implicit con =>
-        SQL("SELECT s").as(scalar[Short].single).
-          aka("parsed short") must_== 3.toShort
-    }
-
-    "be parsed from byte" in withQueryResult(byteList :+ 4.toByte) {
-      implicit con =>
-        SQL("SELECT b").as(scalar[Short].single).
-          aka("parsed short") must_== 4.toShort
-    }
-
-    "have convinence mapping function" in withQueryResult(
-      rowList1(classOf[Short] -> "s") :+ 6.toShort) { implicit con =>
-
-        SQL("SELECT s").as(short("s").single).
-          aka("parsed short") must_== 6.toShort
-      }
-  }
-
-  "Column mapped byte" should {
-    "be parsed from short" in withQueryResult(shortList :+ 3.toShort) {
-      implicit con =>
-        SQL("SELECT s").as(scalar[Byte].single).
-          aka("parsed byte") must_== 3.toByte
-    }
-
-    "be parsed from byte" in withQueryResult(byteList :+ 4.toByte) {
-      implicit con =>
-        SQL("SELECT b").as(scalar[Byte].single).
-          aka("parsed byte") must_== 4.toByte
-    }
-
-    "have convinence mapping function" in withQueryResult(
-      rowList1(classOf[Byte] -> "b") :+ 6.toByte) { implicit con =>
-
-        SQL("SELECT b").as(byte("b").single).
-          aka("parsed byte") must_== 6.toByte
       }
   }
 
@@ -179,15 +279,29 @@ object ColumnSpec extends org.specs2.mutable.Specification {
 
     "be parsed from double" in withQueryResult(doubleList :+ 1.35d) {
       implicit con =>
-        SQL("SELECT bd").as(scalar[java.math.BigDecimal].single).
-          aka("parsed double") must_== java.math.BigDecimal.valueOf(1.35d)
+        SQL("SELECT d").as(scalar[java.math.BigDecimal].single).
+          aka("parsed big decimal") must_== java.math.BigDecimal.valueOf(1.35d)
+
+    }
+
+    "be parsed from float" in withQueryResult(floatList :+ 1.35f) {
+      implicit con =>
+        SQL("SELECT f").as(scalar[java.math.BigDecimal].single).
+          aka("parsed big decimal") must_== java.math.BigDecimal.valueOf(1.35f)
 
     }
 
     "be parsed from long" in withQueryResult(longList :+ 5l) {
       implicit con =>
-        SQL("SELECT bd").as(scalar[java.math.BigDecimal].single).
-          aka("parsed long") must_== java.math.BigDecimal.valueOf(5l)
+        SQL("SELECT l").as(scalar[java.math.BigDecimal].single).
+          aka("parsed big decimal") must_== java.math.BigDecimal.valueOf(5l)
+
+    }
+
+    "be parsed from integer" in withQueryResult(longList :+ 6) {
+      implicit con =>
+        SQL("SELECT i").as(scalar[java.math.BigDecimal].single).
+          aka("parsed big decimal") must_== java.math.BigDecimal.valueOf(6)
 
     }
   }
@@ -202,20 +316,42 @@ object ColumnSpec extends org.specs2.mutable.Specification {
 
     "be parsed from double" in withQueryResult(doubleList :+ 1.35d) {
       implicit con =>
-        SQL("SELECT bd").as(scalar[BigDecimal].single).
-          aka("parsed double") must_== BigDecimal(1.35d)
+        SQL("SELECT d").as(scalar[BigDecimal].single).
+          aka("parsed big decimal") must_== BigDecimal(1.35d)
+
+    }
+
+    "be parsed from float" in withQueryResult(floatList :+ 1.35f) {
+      implicit con =>
+        SQL("SELECT f").as(scalar[BigDecimal].single).
+          aka("parsed big decimal") must_== BigDecimal(1.35f)
 
     }
 
     "be parsed from long" in withQueryResult(longList :+ 5l) {
       implicit con =>
-        SQL("SELECT bd").as(scalar[BigDecimal].single).
-          aka("parsed long") must_== BigDecimal(5l)
+        SQL("SELECT l").as(scalar[BigDecimal].single).
+          aka("parsed big decimal") must_== BigDecimal(5l)
+
+    }
+
+    "be parsed from integer" in withQueryResult(longList :+ 6) {
+      implicit con =>
+        SQL("SELECT i").as(scalar[BigDecimal].single).
+          aka("parsed big decimal") must_== BigDecimal(6)
 
     }
   }
 
   "Column mapped as Java big integer" should {
+    "be parsed from big decimal" in withQueryResult(
+      rowList1(classOf[java.math.BigDecimal]) :+ bd) { implicit con =>
+        // Useless as proper resultset won't return BigInteger
+
+        SQL("SELECT bd").as(scalar[java.math.BigInteger].single).
+          aka("parsed big decimal") must_== bd.toBigInteger
+      }
+
     "be parsed from big integer" in withQueryResult(
       rowList1(classOf[java.math.BigInteger]) :+ bi) { implicit con =>
         // Useless as proper resultset won't return BigInteger
@@ -240,6 +376,14 @@ object ColumnSpec extends org.specs2.mutable.Specification {
   }
 
   "Column mapped as Scala big integer" should {
+    "be parsed from big decimal" in withQueryResult(
+      rowList1(classOf[java.math.BigDecimal]) :+ bd) { implicit con =>
+        // Useless as proper resultset won't return BigInteger
+
+        SQL("SELECT bd").as(scalar[BigInt].single).
+          aka("parsed big decimal") must_== BigInt(bd.toBigInteger)
+      }
+
     "be parsed from big integer" in withQueryResult(
       rowList1(classOf[java.math.BigInteger]) :+ bi) { implicit con =>
         // Useless as proper resultset won't return BigInteger

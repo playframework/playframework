@@ -753,14 +753,14 @@ Following table describes which JDBC numeric types (getters on `java.sql.ResultS
 
 ↓JDBC / JVM➞           | BigDecimal<sup>1</sup> | BigInteger<sup>2</sup> | Boolean | Byte | Double | Float | Int | Long | Short
 ---------------------- | ---------------------- | ---------------------- | ------- | ---- | ------ | ----- | --- | ---- | -----
-BigDecimal<sup>1</sup> | Yes                    | No                     | No      | No   | Yes    | No    | No  | No   | No
-BigInteger<sup>2</sup> | No                     | Yes                    | No      | No   | Yes    | Yes   | No  | No   | No
-Boolean                | No                     | No                     | Yes     | No   | No     | No    | No  | No   | No
+BigDecimal<sup>1</sup> | Yes                    | Yes                    | No      | No   | Yes    | No    | Yes | Yes  | No
+BigInteger<sup>2</sup> | No                     | Yes                    | No      | No   | Yes    | Yes   | Yes | Yes  | No
+Boolean                | No                     | No                     | Yes     | Yes  | No     | No    | Yes | Yes  | Yes
 Byte                   | No                     | No                     | No      | Yes  | Yes    | Yes   | No  | No   | Yes
-Double                 | Yes                    | No                     | Yes     | No   | Yes    | No    | No  | No   | No
-Float                  | No                     | No                     | No      | No   | Yes    | Yes   | No  | No   | No
-Int                    | No                     | Yes                    | Yes     | No   | Yes    | Yes   | Yes | Yes  | No
-Long                   | Yes                    | Yes                    | No      | No   | No     | No    | No  | Yes  | No
+Double                 | Yes                    | No                     | No      | No   | Yes    | No    | No  | No   | No
+Float                  | Yes                    | No                     | No      | No   | Yes    | Yes   | No  | No   | No
+Int                    | Yes                    | Yes                    | No      | No   | Yes    | Yes   | Yes | Yes  | No
+Long                   | Yes                    | Yes                    | No      | No   | No     | No    | Yes | Yes  | No
 Short                  | No                     | No                     | No      | Yes  | Yes    | Yes   | No  | No   | Yes
 
 - 1. Types `java.math.BigDecimal` and `scala.math.BigDecimal`.
