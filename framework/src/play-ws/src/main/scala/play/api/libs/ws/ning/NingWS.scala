@@ -35,7 +35,7 @@ import scala.collection.JavaConverters._
  *
  * @param config a client configuration object
  */
-class NingWSClient(config: AsyncHttpClientConfig) extends WSClient {
+case class NingWSClient(config: AsyncHttpClientConfig) extends WSClient {
 
   private val asyncHttpClient = new AsyncHttpClient(config)
 

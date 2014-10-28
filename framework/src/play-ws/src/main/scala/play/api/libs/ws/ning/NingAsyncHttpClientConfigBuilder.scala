@@ -5,26 +5,39 @@
  */
 package play.api.libs.ws.ning
 
-import play.api.libs.ws.WSClientConfig
-import com.ning.http.client.{ SSLEngineFactory, AsyncHttpClientConfig }
-import javax.net.ssl._
-import play.api.libs.ws.ssl._
-import org.slf4j.LoggerFactory
 import java.security.KeyStore
 import java.security.cert.CertPathValidatorException
+
+import org.slf4j.LoggerFactory
+
+import com.ning.http.client.{ AsyncHttpClientConfig, SSLEngineFactory }
+
+import javax.net.ssl._
+import play.api.libs.ws.ssl._
+import play.api.libs.ws.{ DefaultWSClientConfig, WSClientConfig }
 
 /**
  * Builds a valid AsyncHttpClientConfig object from config.
  *
  * @param config the client configuration.
- * @param builder a builder, defaults to a new instance.  You can pass in a preconfigured builder here.
  */
-class NingAsyncHttpClientConfigBuilder(config: WSClientConfig,
-    builder: AsyncHttpClientConfig.Builder = new AsyncHttpClientConfig.Builder()) {
+class NingAsyncHttpClientConfigBuilder(config: WSClientConfig = DefaultWSClientConfig()) {
+
+  protected val addCustomSettings: AsyncHttpClientConfig.Builder => AsyncHttpClientConfig.Builder = identity
+
+  /**
+   * The underlying `AsyncHttpClientConfig.Builder` used by this instance.
+   */
+  val builder: AsyncHttpClientConfig.Builder = new AsyncHttpClientConfig.Builder()
 
   private[ning] val logger = LoggerFactory.getLogger(this.getClass)
 
-  def build(): AsyncHttpClientConfig = {
+  /**
+   * Configure the underlying builder with values specified by the `config`, and add any custom settings.
+   *
+   * @return the resulting builder
+   */
+  def configure(): AsyncHttpClientConfig.Builder = {
     configureWS(config)
 
     config.acceptAnyCertificate match {
@@ -34,7 +47,29 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig,
       case _ =>
         configureSSL(config.ssl.getOrElse(DefaultSSLConfig()))
     }
-    builder.build()
+    addCustomSettings(builder)
+  }
+
+  /**
+   * Configure and build the `AsyncHttpClientConfig` based on the settings provided
+   *
+   * @return the resulting builder
+   */
+  def build(): AsyncHttpClientConfig = {
+    configure().build()
+  }
+
+  /**
+   * Modify the underlying `AsyncHttpClientConfig.Builder` using the provided function, after defaults are set.
+   * @param modify function with custom settings to apply to this builder before the client is built
+   * @return the new builder
+   */
+  def modifyUnderlying(
+    modify: AsyncHttpClientConfig.Builder => AsyncHttpClientConfig.Builder): NingAsyncHttpClientConfigBuilder = {
+    new NingAsyncHttpClientConfigBuilder(config) {
+      override val addCustomSettings = modify compose NingAsyncHttpClientConfigBuilder.this.addCustomSettings
+      override val builder = NingAsyncHttpClientConfigBuilder.this.builder
+    }
   }
 
   /**
@@ -49,10 +84,7 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig,
       .setUseProxyProperties(config.useProxyProperties.getOrElse(useProxyProperties))
       .setCompressionEnabled(config.compressionEnabled.getOrElse(compressionEnabled))
 
-    config.userAgent.map {
-      useragent =>
-        builder.setUserAgent(useragent)
-    }
+    config.userAgent foreach builder.setUserAgent
   }
 
   def configureProtocols(existingProtocols: Array[String], sslConfig: SSLConfig): Array[String] = {
@@ -216,4 +248,3 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig,
     }
   }
 }
-

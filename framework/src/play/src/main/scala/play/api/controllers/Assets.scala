@@ -103,8 +103,9 @@ private[controllers] object AssetInfo {
   /*
    * jodatime does not parse timezones, so we handle that manually
    */
-  def parseDate(date: String): Option[Date] = try {
-    val d = dfp.parseDateTime(date.replace(parsableTimezoneCode, "")).toDate
+  def parseModifiedDate(date: String): Option[Date] = try {
+    // IE sends "; length=xxx" with If-Modified-Since header
+    val d = dfp.parseDateTime(date.replace(parsableTimezoneCode, "").split(";", 2).head).toDate
     Some(d)
   } catch {
     case e: IllegalArgumentException =>
@@ -164,7 +165,7 @@ private[controllers] class AssetInfo(
 
   val mimeType: String = MimeTypes.forFileName(name).fold(ContentTypes.BINARY)(addCharsetIfNeeded)
 
-  val parsedLastModified = lastModified.flatMap(parseDate)
+  val parsedLastModified = lastModified flatMap parseModifiedDate
 
   def url(gzipAvailable: Boolean): URL = {
     gzipUrl match {
@@ -334,7 +335,7 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
       case None =>
         for {
           ifModifiedSinceStr <- request.headers.get(IF_MODIFIED_SINCE)
-          ifModifiedSince <- parseDate(ifModifiedSinceStr)
+          ifModifiedSince <- parseModifiedDate(ifModifiedSinceStr)
           lastModified <- assetInfo.parsedLastModified
           if !lastModified.after(ifModifiedSince)
         } yield {
