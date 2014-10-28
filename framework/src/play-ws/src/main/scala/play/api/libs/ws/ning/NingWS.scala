@@ -693,6 +693,11 @@ case class NingWSResponse(ahcResponse: AHCResponse) extends WSResponse {
    */
   lazy val json: JsValue = Json.parse(ahcResponse.getResponseBodyAsBytes)
 
+  /**
+   * The response body as a byte array.
+   */
+  def bodyAsBytes: Array[Byte] = ahcResponse.getResponseBodyAsBytes
+
 }
 
 /**
