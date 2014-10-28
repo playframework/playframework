@@ -3,6 +3,7 @@
  */
 package anorm
 
+@deprecated("For internal use, will be made private", "2.3.6")
 case class MayErr[+E, +A](toEither: Either[E, A]) {
 
   def flatMap[B, EE >: E](f: A => MayErr[EE, B]): MayErr[EE, B] =
@@ -27,13 +28,17 @@ case class MayErr[+E, +A](toEither: Either[E, A]) {
    */
   def fold[B](f: E => B, s: A => B): B = toEither.fold(f, s)
 
+  /**
+   * Returns successful value, or throws exception.
+   */
   def get = toEither.fold(e =>
     throw new RuntimeException(toEither.toString), a => a)
 
 }
 
-// TODO Remove (make it more explicit)
 object MayErr {
   import scala.language.implicitConversions
+
+  @deprecated("Use [[MayErr]] constructor explicitly.", "2.3.6")
   implicit def eitherToError[E, EE >: E, A, AA >: A](e: Either[E, A]): MayErr[EE, AA] = MayErr[E, A](e)
 }

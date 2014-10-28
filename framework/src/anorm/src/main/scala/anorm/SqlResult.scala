@@ -2,6 +2,7 @@ package anorm
 
 /** Parsed SQL result. */
 sealed trait SqlResult[+A] { self =>
+  // TODO: Review along with MayErr (unify?)
 
   def flatMap[B](k: A => SqlResult[B]): SqlResult[B] = self match {
     case Success(a) => k(a)

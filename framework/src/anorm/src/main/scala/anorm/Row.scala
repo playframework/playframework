@@ -50,12 +50,30 @@ trait Row {
    * }}}
    */
   def apply[B](name: String)(implicit c: Column[B]): B =
-    MayErr(SqlParser.get(name)(c)(this) match {
+    unsafeGet(SqlParser.get(name)(c))
+
+  /**
+   * Returns parsed column.
+   *
+   * @param position Column position from 1 to n
+   * @param c Column mapping
+   *
+   * {{{
+   * import anorm.Column.columnToString // mapping column to string
+   *
+   * val res: (String, String) = SQL("SELECT * FROM Test").map(row =>
+   *   row(1) -> row(2) // string columns #1 and #2
+   * )
+   * }}}
+   */
+  def apply[B](position: Int)(implicit c: Column[B]): B =
+    unsafeGet(SqlParser.get(position)(c))
+
+  @inline def unsafeGet[T](rowparser: => RowParser[T]): T =
+    MayErr(rowparser(this) match {
       case Success(v) => Right(v)
       case Error(err) => Left(err)
-    }).get
-
-  // TODO: Apply with positional getter
+    }).get // TODO: Safe alternative
 
   // Data per column name
   private lazy val columnsDictionary: Map[String, Any] = {
@@ -85,37 +103,32 @@ trait Row {
    * Try to get data matching name.
    * @param name Column qualified name, or label/alias
    */
-  private[anorm] def get(a: String): MayErr[SqlRequestError, (Any, MetaDataItem)] = for (
-    m <- implicitly[MayErr[SqlRequestError, MetaDataItem]](
-      metaData.get(a).toRight(ColumnNotFound(a, metaData.availableColumns)));
-    data <- implicitly[MayErr[SqlRequestError, Any]](
-      columnsDictionary.get(m.column.qualified.toUpperCase()).
-        toRight(ColumnNotFound(
-          m.column.qualified, metaData.availableColumns)))
+  private[anorm] def get(a: String): MayErr[SqlRequestError, (Any, MetaDataItem)] = for {
+    m <- MayErr(metaData.get(a).
+      toRight(ColumnNotFound(a, metaData.availableColumns)))
+    data <- MayErr(columnsDictionary.get(m.column.qualified.toUpperCase()).
+      toRight(ColumnNotFound(m.column.qualified, metaData.availableColumns)))
 
-  ) yield (data, m)
+  } yield (data, m)
 
   @deprecated(message = "Use [[get]] with alias", since = "2.3.3")
-  private[anorm] def getAliased(a: String): MayErr[SqlRequestError, (Any, MetaDataItem)] = for (
-    m <- implicitly[MayErr[SqlRequestError, MetaDataItem]](
-      metaData.getAliased(a).toRight(
-        ColumnNotFound(a, metaData.availableColumns)));
-    data <- implicitly[MayErr[SqlRequestError, Any]](
-      m.column.alias.flatMap(a => aliasesDictionary.get(a.toUpperCase())).
-        toRight(ColumnNotFound(m.column.alias.getOrElse(a),
-          metaData.availableColumns)))
+  private[anorm] def getAliased(a: String): MayErr[SqlRequestError, (Any, MetaDataItem)] = for {
+    m <- MayErr(metaData.getAliased(a).
+      toRight(ColumnNotFound(a, metaData.availableColumns)))
+    data <- MayErr(m.column.alias.flatMap(
+      l => aliasesDictionary.get(l.toUpperCase())).
+      toRight(ColumnNotFound(m.column.alias.getOrElse(a),
+        metaData.availableColumns)))
 
-  ) yield (data, m)
+  } yield (data, m)
 
   /** Try to get data matching index. */
   private[anorm] def getIndexed(i: Int): MayErr[SqlRequestError, (Any, MetaDataItem)] =
     for {
-      m <- implicitly[MayErr[SqlRequestError, MetaDataItem]](
-        metaData.ms.lift(i).toRight(
-          ColumnNotFound(s"#${i + 1}", metaData.availableColumns)));
-      d <- implicitly[MayErr[SqlRequestError, Any]](
-        data.lift(i).toRight(
-          ColumnNotFound(m.column.qualified, metaData.availableColumns)))
+      m <- MayErr(metaData.ms.lift(i).
+        toRight(ColumnNotFound(s"#${i + 1}", metaData.availableColumns)))
+      d <- MayErr(data.lift(i).
+        toRight(ColumnNotFound(m.column.qualified, metaData.availableColumns)))
     } yield (d, m)
 
 }

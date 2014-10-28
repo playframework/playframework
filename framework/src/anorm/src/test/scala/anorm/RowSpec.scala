@@ -1,8 +1,7 @@
 package anorm
 
-import acolyte.jdbc.AcolyteDSL.{ connection, handleQuery }
-import acolyte.jdbc.{ QueryResult, RowLists }
-import RowLists.{ rowList2, rowList1, stringList }
+import acolyte.jdbc.AcolyteDSL.withQueryResult
+import acolyte.jdbc.RowLists.{ rowList2, rowList1, stringList }
 import acolyte.jdbc.Implicits._
 
 object RowSpec extends org.specs2.mutable.Specification {
@@ -71,9 +70,17 @@ object RowSpec extends org.specs2.mutable.Specification {
       }
   }
 
-  // ---
+  "Column" should {
+    "be extracted by name" in withQueryResult(
+      rowList1(classOf[String] -> "foo") :+ "byName") { implicit c =>
+        SQL("SELECT *").map(_.apply[String]("foo")).single.
+          aka("column by name") must_== "byName"
+      }
 
-  def withQueryResult[A](r: QueryResult)(f: java.sql.Connection => A): A =
-    f(connection(handleQuery { _ => r }))
-
+    "be extracted by position" in withQueryResult(stringList :+ "byPos") {
+      implicit c =>
+        SQL("SELECT *").map(_.apply[String](1)).single.
+          aka("column by name") must_== "byPos"
+    }
+  }
 }

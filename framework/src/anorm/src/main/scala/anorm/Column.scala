@@ -12,9 +12,7 @@ import resource.managed
 /** Column mapping */
 trait Column[A] extends ((Any, MetaDataItem) => MayErr[SqlRequestError, A])
 
-/**
- * Column companion, providing default conversions.
- */
+/** Column companion, providing default conversions. */
 object Column extends JodaColumn {
 
   def apply[A](transformer: ((Any, MetaDataItem) => MayErr[SqlRequestError, A])): Column[A] = new Column[A] {
@@ -24,14 +22,31 @@ object Column extends JodaColumn {
 
   }
 
+  @deprecated("Use [[nonNull1]]", "2.3.6")
   def nonNull[A](transformer: ((Any, MetaDataItem) => MayErr[SqlRequestError, A])): Column[A] = Column[A] {
     case (value, meta @ MetaDataItem(qualified, _, _)) =>
       if (value != null) transformer(value, meta)
-      else Left(UnexpectedNullableFound(qualified.toString))
+      else MayErr(Left[SqlRequestError, A](
+        UnexpectedNullableFound(qualified.toString)))
+  }
+
+  // TODO: Rename to nonNull
+  /**
+   * Helper function to implement column conversion.
+   *
+   * @param transformer Function converting raw value of column
+   * @tparam Output type
+   */
+  def nonNull1[A](transformer: ((Any, MetaDataItem) => Either[SqlRequestError, A])): Column[A] = Column[A] {
+    case (value, meta @ MetaDataItem(qualified, _, _)) =>
+      MayErr(if (value != null) transformer(value, meta)
+      else Left[SqlRequestError, A](
+        UnexpectedNullableFound(qualified.toString)))
+
   }
 
   implicit val columnToString: Column[String] =
-    nonNull[String] { (value, meta) =>
+    nonNull1[String] { (value, meta) =>
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case string: String => Right(string)
@@ -52,7 +67,7 @@ object Column extends JodaColumn {
    * }}}
    */
   implicit val columnToByteArray: Column[Array[Byte]] =
-    nonNull[Array[Byte]] { (value, meta) =>
+    nonNull1[Array[Byte]] { (value, meta) =>
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case bytes: Array[Byte] => Right(bytes)
@@ -73,7 +88,7 @@ object Column extends JodaColumn {
    * val c: Char = SQL("SELECT char FROM tbl").as(scalar[Char].single)
    * }}}
    */
-  implicit val columnToChar: Column[Char] = nonNull[Char] { (value, meta) =>
+  implicit val columnToChar: Column[Char] = nonNull1[Char] { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case string: String => Right(string.charAt(0))
@@ -82,7 +97,7 @@ object Column extends JodaColumn {
     }
   }
 
-  implicit val columnToInt: Column[Int] = nonNull { (value, meta) =>
+  implicit val columnToInt: Column[Int] = nonNull1 { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case bi: BigInteger => Right(bi.intValue)
@@ -106,7 +121,7 @@ object Column extends JodaColumn {
    * }}}
    */
   implicit val columnToInputStream: Column[InputStream] =
-    nonNull[InputStream] { (value, meta) =>
+    nonNull1[InputStream] { (value, meta) =>
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
         case bytes: Array[Byte] => Right(new ByteArrayInputStream(bytes))
@@ -117,7 +132,7 @@ object Column extends JodaColumn {
       }
     }
 
-  implicit val columnToFloat: Column[Float] = nonNull { (value, meta) =>
+  implicit val columnToFloat: Column[Float] = nonNull1 { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case f: Float => Right(f)
@@ -129,7 +144,7 @@ object Column extends JodaColumn {
     }
   }
 
-  implicit val columnToDouble: Column[Double] = nonNull { (value, meta) =>
+  implicit val columnToDouble: Column[Double] = nonNull1 { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case bg: JBigDec => Right(bg.doubleValue)
@@ -143,7 +158,7 @@ object Column extends JodaColumn {
     }
   }
 
-  implicit val columnToShort: Column[Short] = nonNull { (value, meta) =>
+  implicit val columnToShort: Column[Short] = nonNull1 { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case b: Byte => Right(b.toShort)
@@ -153,7 +168,7 @@ object Column extends JodaColumn {
     }
   }
 
-  implicit val columnToByte: Column[Byte] = nonNull { (value, meta) =>
+  implicit val columnToByte: Column[Byte] = nonNull1 { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case b: Byte => Right(b)
@@ -163,7 +178,7 @@ object Column extends JodaColumn {
     }
   }
 
-  implicit val columnToBoolean: Column[Boolean] = nonNull { (value, meta) =>
+  implicit val columnToBoolean: Column[Boolean] = nonNull1 { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case bool: Boolean => Right(bool)
@@ -171,7 +186,7 @@ object Column extends JodaColumn {
     }
   }
 
-  implicit val columnToLong: Column[Long] = nonNull { (value, meta) =>
+  implicit val columnToLong: Column[Long] = nonNull1 { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case bi: BigInteger => Right(bi.longValue)
@@ -184,7 +199,7 @@ object Column extends JodaColumn {
   }
 
   // Used to convert Java or Scala big integer
-  private def anyToBigInteger(value: Any, meta: MetaDataItem): MayErr[SqlRequestError, BigInteger] = {
+  private def anyToBigInteger(value: Any, meta: MetaDataItem): Either[SqlRequestError, BigInteger] = {
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case bi: BigInteger => Right(bi)
@@ -206,7 +221,8 @@ object Column extends JodaColumn {
    *   SQL("SELECT COUNT(*) FROM tbl").as(scalar[BigInteger].single)
    * }}}
    */
-  implicit val columnToBigInteger: Column[BigInteger] = nonNull(anyToBigInteger)
+  implicit val columnToBigInteger: Column[BigInteger] =
+    nonNull1(anyToBigInteger)
 
   /**
    * Column conversion to big integer.
@@ -220,9 +236,9 @@ object Column extends JodaColumn {
    * }}}
    */
   implicit val columnToBigInt: Column[BigInt] =
-    nonNull((value, meta) => anyToBigInteger(value, meta).map(BigInt(_)))
+    nonNull1((value, meta) => anyToBigInteger(value, meta).right.map(BigInt(_)))
 
-  implicit val columnToUUID: Column[UUID] = nonNull { (value, meta) =>
+  implicit val columnToUUID: Column[UUID] = nonNull1 { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case d: UUID => Right(d)
@@ -231,7 +247,7 @@ object Column extends JodaColumn {
   }
 
   // Used to convert Java or Scala big decimal
-  private def anyToBigDecimal(value: Any, meta: MetaDataItem): MayErr[SqlRequestError, JBigDec] = {
+  private def anyToBigDecimal(value: Any, meta: MetaDataItem): Either[SqlRequestError, JBigDec] = {
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       // TODO: Conversion from integer types
@@ -257,7 +273,7 @@ object Column extends JodaColumn {
    * }}}
    */
   implicit val columnToJavaBigDecimal: Column[JBigDec] =
-    nonNull(anyToBigDecimal)
+    nonNull1(anyToBigDecimal)
 
   /**
    * Column conversion to big decimal.
@@ -271,7 +287,8 @@ object Column extends JodaColumn {
    * }}}
    */
   implicit val columnToScalaBigDecimal: Column[BigDecimal] =
-    nonNull((value, meta) => anyToBigDecimal(value, meta).map(BigDecimal(_)))
+    nonNull1((value, meta) =>
+      anyToBigDecimal(value, meta).right.map(BigDecimal(_)))
 
   /**
    * Parses column as Java Date.
@@ -284,7 +301,7 @@ object Column extends JodaColumn {
    * val d: Date = SQL("SELECT last_mod FROM tbl").as(scalar[Date].single)
    * }}}
    */
-  implicit val columnToDate: Column[Date] = nonNull { (value, meta) =>
+  implicit val columnToDate: Column[Date] = nonNull1 { (value, meta) =>
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case date: Date => Right(date)
@@ -297,7 +314,8 @@ object Column extends JodaColumn {
     nonNull { (value, meta) => c(value, meta).map(Id(_)) }
 
   implicit def columnToOption[T](implicit transformer: Column[T]): Column[Option[T]] = Column { (value, meta) =>
-    if (value != null) transformer(value, meta).map(Some(_)) else (Right(None): MayErr[SqlRequestError, Option[T]])
+    if (value != null) transformer(value, meta).map(Some(_))
+    else MayErr(Right[SqlRequestError, Option[T]](None))
   }
 
   /**
@@ -311,7 +329,7 @@ object Column extends JodaColumn {
     val MetaDataItem(qualified, nullable, clazz) = meta
 
     @annotation.tailrec
-    def transf(a: Array[_], p: Array[T]): MayErr[SqlRequestError, Array[T]] =
+    def transf(a: Array[_], p: Array[T]): Either[SqlRequestError, Array[T]] =
       a.headOption match {
         case Some(r) => transformer(r, meta).toEither match {
           case Right(v) => transf(a.tail, p :+ v)
@@ -321,13 +339,13 @@ object Column extends JodaColumn {
       }
 
     @annotation.tailrec
-    def jiter(i: java.util.Iterator[_], p: Array[T]): MayErr[SqlRequestError, Array[T]] = if (!i.hasNext) Right(p)
+    def jiter(i: java.util.Iterator[_], p: Array[T]): Either[SqlRequestError, Array[T]] = if (!i.hasNext) Right(p)
     else transformer(i.next, meta).toEither match {
       case Right(v) => jiter(i, p :+ v)
       case Left(cause) => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified: $cause"))
     }
 
-    value match {
+    MayErr[SqlRequestError, Array[T]](value match {
       case sql: java.sql.Array => try {
         transf(sql.getArray.asInstanceOf[Array[_]], Array.empty[T])
       } catch {
@@ -347,7 +365,7 @@ object Column extends JodaColumn {
       }
 
       case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to array for column $qualified"))
-    }
+    })
   }
 
   /**
@@ -361,7 +379,7 @@ object Column extends JodaColumn {
     val MetaDataItem(qualified, nullable, clazz) = meta
 
     @annotation.tailrec
-    def transf(a: Array[_], p: List[T]): MayErr[SqlRequestError, List[T]] =
+    def transf(a: Array[_], p: List[T]): Either[SqlRequestError, List[T]] =
       a.headOption match {
         case Some(r) => transformer(r, meta).toEither match {
           case Right(v) => transf(a.tail, p :+ v)
@@ -371,13 +389,13 @@ object Column extends JodaColumn {
       }
 
     @annotation.tailrec
-    def jiter(i: java.util.Iterator[_], p: List[T]): MayErr[SqlRequestError, List[T]] = if (!i.hasNext) Right(p)
+    def jiter(i: java.util.Iterator[_], p: List[T]): Either[SqlRequestError, List[T]] = if (!i.hasNext) Right(p)
     else transformer(i.next, meta).toEither match {
       case Right(v) => jiter(i, p :+ v)
       case Left(cause) => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified: $cause"))
     }
 
-    value match {
+    MayErr[SqlRequestError, List[T]](value match {
       case sql: java.sql.Array => try {
         transf(sql.getArray.asInstanceOf[Array[_]], Nil)
       } catch {
@@ -397,10 +415,10 @@ object Column extends JodaColumn {
       }
 
       case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to list for column $qualified"))
-    }
+    })
   }
 
-  @inline private def streamBytes(in: InputStream): MayErr[SqlRequestError, Array[Byte]] = managed(in).acquireFor(streamToBytes(_)).fold({ errs =>
+  @inline private def streamBytes(in: InputStream): Either[SqlRequestError, Array[Byte]] = managed(in).acquireFor(streamToBytes(_)).fold({ errs =>
     Left(SqlMappingError(errs.headOption.
       fold("Fails to read binary stream")(_.getMessage)))
   }, Right(_))
@@ -426,7 +444,7 @@ sealed trait JodaColumn {
    * val d: Date = SQL("SELECT last_mod FROM tbl").as(scalar[DateTime].single)
    * }}}
    */
-  implicit val columnToJodaDateTime: Column[DateTime] = Column nonNull {
+  implicit val columnToJodaDateTime: Column[DateTime] = Column.nonNull1 {
     (value, meta) =>
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
@@ -445,7 +463,7 @@ sealed trait JodaColumn {
    * val d: Date = SQL("SELECT last_mod FROM tbl").as(scalar[Instant].single)
    * }}}
    */
-  implicit val columnToJodaInstant: Column[Instant] = Column nonNull {
+  implicit val columnToJodaInstant: Column[Instant] = Column.nonNull1 {
     (value, meta) =>
       val MetaDataItem(qualified, nullable, clazz) = meta
       value match {
