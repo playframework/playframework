@@ -5,9 +5,11 @@ package javaguide.ws;
 
 import javaguide.testhelpers.MockJavaAction;
 
+// #ws-imports
 import play.libs.ws.*;
 import play.libs.F.Function;
 import play.libs.F.Promise;
+// #ws-imports
 
 // #json-imports
 import com.fasterxml.jackson.databind.JsonNode;
@@ -19,6 +21,14 @@ import org.w3c.dom.Document;
 import play.mvc.Result;
 
 import javax.inject.Inject;
+
+// #ws-custom-client-imports
+import com.ning.http.client.*;
+import play.api.libs.ws.WSClientConfig;
+import play.api.libs.ws.DefaultWSClientConfig;
+import play.api.libs.ws.ssl.SSLConfig;
+import play.api.libs.ws.ning.NingAsyncHttpClientConfigBuilder;
+// #ws-custom-client-imports
 
 public class JavaWS {
     private static final String feedUrl = "http://localhost:3333/feed";
@@ -177,12 +187,37 @@ public class JavaWS {
         }
         
         public void clientExamples() {
+            // #ws-client
+            WSClient client = WS.client();
+            // #ws-client
+
             // #ws-custom-client
-            com.ning.http.client.AsyncHttpClientConfig customConfig =
-                new com.ning.http.client.AsyncHttpClientConfig.Builder()
-                    .setProxyServer(new com.ning.http.client.ProxyServer("127.0.0.1", 38080))
-                    .setCompressionEnabled(true)
-                    .build();
+            // Set up the client config (you can also use a parser here):
+            scala.Option<Object> none = scala.None$.empty();
+            scala.Option<String> noneString = scala.None$.empty();
+            scala.Option<SSLConfig> noneSSLConfig = scala.None$.empty();
+            WSClientConfig clientConfig = new DefaultWSClientConfig(
+                    none, // connectionTimeout
+                    none, // idleTimeout
+                    none, // requestTimeout
+                    none, // followRedirects
+                    none, // useProxyProperties
+                    noneString, // userAgent
+                    none, // compressionEnabled
+                    none, // acceptAnyCertificate
+                    noneSSLConfig);
+
+            // Build a secure config out of the client config and the ning builder:
+            AsyncHttpClientConfig.Builder asyncHttpClientBuilder = new AsyncHttpClientConfig.Builder();
+            NingAsyncHttpClientConfigBuilder secureBuilder = new NingAsyncHttpClientConfigBuilder(clientConfig,
+                    asyncHttpClientBuilder);
+            AsyncHttpClientConfig secureDefaults = secureBuilder.build();
+
+            // You can directly use the builder for specific options once you have secure TLS defaults...
+           AsyncHttpClientConfig customConfig = new AsyncHttpClientConfig.Builder(secureDefaults)
+                            .setProxyServer(new com.ning.http.client.ProxyServer("127.0.0.1", 38080))
+                            .setCompressionEnabled(true)
+                            .build();
             WSClient customClient = new play.libs.ws.ning.NingWSClient(customConfig);
             
             Promise<WSResponse> responsePromise = customClient.url("http://example.com/feed").get();

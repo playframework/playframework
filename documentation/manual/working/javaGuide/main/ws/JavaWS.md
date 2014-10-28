@@ -149,7 +149,13 @@ Java 8
 
 WSClient is a wrapper around the underlying [AsyncHttpClient](https://github.com/AsyncHttpClient/async-http-client). It is useful for defining multiple clients with different profiles, or using a mock.
 
-You can define a WS client directly from code and use this for making requests.
+The default client can be called from the WS class:
+
+@[ws-client](code/javaguide/ws/JavaWS.java)
+
+You can define a WS client directly from code and use this for making requests.  Note that you must follow a particular series of steps to use HTTPS correctly if you are defining a client directly:
+
+@[ws-custom-client-imports](code/javaguide/ws/JavaWS.java)
 
 @[ws-custom-client](code/javaguide/ws/JavaWS.java)
 
