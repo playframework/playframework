@@ -305,6 +305,10 @@ trait WSResponse {
    */
   def json: JsValue
 
+  /**
+   * The response body as a byte array.
+   */
+  def bodyAsBytes: Array[Byte]
 }
 
 /**

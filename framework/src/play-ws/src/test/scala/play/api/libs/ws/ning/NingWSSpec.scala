@@ -264,6 +264,14 @@ object NingWSSpec extends PlaySpecification with Mockito {
       }
     }
 
+    "get the body as bytes from the AHC response" in {
+      val ahcResponse: AHCResponse = mock[AHCResponse]
+      val bytes = Array[Byte](-87, -72, 96, -63, -32, 46, -117, -40, -128, -7, 61, 109, 80, 45, 44, 30)
+      ahcResponse.getResponseBodyAsBytes returns bytes
+      val response = NingWSResponse(ahcResponse)
+      response.bodyAsBytes must_== bytes
+    }
+
     "get headers from an AHC response in a case insensitive map" in {
       val ahcResponse: AHCResponse = mock[AHCResponse]
       val ahcHeaders = new FluentCaseInsensitiveStringsMap()
