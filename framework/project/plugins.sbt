@@ -1,16 +1,28 @@
 // Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
 
+buildInfoSettings
+
+sourceGenerators in Compile <+= buildInfo
+
+val sbtNativePackagerVersion = "0.7.6"
+val sbtTwirlVersion = "1.0.2"
+
+buildInfoKeys := Seq[BuildInfoKey](
+  "sbtNativePackagerVersion" -> sbtNativePackagerVersion,
+  "sbtTwirlVersion" -> sbtTwirlVersion
+)
+
 logLevel := Level.Warn
 
 scalacOptions ++= Seq("-deprecation", "-language:_")
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.0.2")
+addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % sbtTwirlVersion)
 
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.1.6")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-scalariform" % "1.3.0")
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "0.7.6")
+addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % sbtNativePackagerVersion)
 
 libraryDependencies ++= Seq(
   "org.scala-sbt" % "scripted-plugin" % sbtVersion.value,

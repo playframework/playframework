@@ -2,6 +2,7 @@
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
 import sbt._
+import buildinfo.BuildInfo
 
 object Dependencies {
 
@@ -168,12 +169,12 @@ object Dependencies {
 
     "net.contentobjects.jnotify" % "jnotify" % "0.94",
 
-    sbtPluginDep("com.typesafe.sbt" % "sbt-twirl" % "1.0.2"),
+    sbtPluginDep("com.typesafe.sbt" % "sbt-twirl" % BuildInfo.sbtTwirlVersion),
     sbtPluginDep("com.typesafe.sbt" % "sbt-play-enhancer" % "1.0.1"),
 
     sbtPluginDep("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.5.0"),
     sbtPluginDep("com.github.mpeltonen" % "sbt-idea" % "1.6.0"),
-    sbtPluginDep("com.typesafe.sbt" % "sbt-native-packager" % "0.7.6"),
+    sbtPluginDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
 
     sbtPluginDep("com.typesafe.sbt" % "sbt-web" % "1.1.1"),
     sbtPluginDep("com.typesafe.sbt" % "sbt-js-engine" % "1.0.2"),
