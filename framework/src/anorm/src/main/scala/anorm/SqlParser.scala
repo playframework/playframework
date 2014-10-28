@@ -20,11 +20,11 @@ object SqlParser {
   def scalar[T](implicit transformer: Column[T]): RowParser[T] =
     new ScalarRowParser[T] {
       def apply(row: Row): SqlResult[T] = {
-        (for {
-          meta <- row.metaData.ms.headOption.toRight(NoColumnsInReturnedResult)
-          value <- row.data.headOption.toRight(NoColumnsInReturnedResult)
-          result <- transformer(value, meta)
-        } yield result).fold(Error(_), Success(_))
+        MayErr((for {
+          m <- row.metaData.ms.headOption
+          v <- row.data.headOption
+        } yield v -> m) toRight NoColumnsInReturnedResult).
+          flatMap(transformer.tupled).fold(Error(_), Success(_))
       }
     }
 
