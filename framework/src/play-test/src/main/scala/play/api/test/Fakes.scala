@@ -297,3 +297,72 @@ private class FakeBuiltinModule(environment: Environment,
     bind[Router.Routes].toProvider[RoutesProvider]
   ) ++ HttpErrorHandler.bindingsFromConfiguration(environment, configuration)
 }
+
+/**
+ * An application loader that wraps an existing loader and can be used to override various things in a test
+ *
+ * @param loader the base application loader
+ * @param additionalConfiguration configuration to add before the application is loaded
+ * @param withRoutes routes to add to the existing routes
+ * @param withErrorHandler optional error handler to replace the existing one
+ * @param withGlobal optional global to replace the existing one
+ * @param withPlugins list of plugin classes to add to default plugins
+ * @param withoutPlugins list of plugin classes to remove from default plugins
+ */
+case class FakeApplicationLoader(
+    loader: ApplicationLoader = new GuiceApplicationLoader,
+    additionalConfiguration: Map[String, _ <: Any] = Map.empty,
+    withRoutes: PartialFunction[(String, String), Handler] = PartialFunction.empty,
+    withErrorHandler: Option[HttpErrorHandler] = None,
+    withGlobal: Option[GlobalSettings] = None,
+    withPlugins: Seq[String] = Seq(),
+    withoutPlugins: Seq[String] = Seq()) extends ApplicationLoader {
+
+  override def load(context: ApplicationLoader.Context) = {
+    val newContext = context.copy(
+      initialConfiguration = context.initialConfiguration ++ Configuration.from(additionalConfiguration))
+    val app = loader.load(newContext)
+    val global = withGlobal getOrElse app.global
+    val errorHandler = withErrorHandler getOrElse app.errorHandler
+    val routes = new FakeRoutes(errorHandler, withRoutes, app.routes)
+    val withPluginClasses = Plugins.loadPlugins(withPlugins, context.environment, app.injector)
+    val plugins = new Plugins(
+      (app.plugins ++ withPluginClasses).filterNot(c => withoutPlugins contains c.getClass.getName))
+    val injector = new SimpleInjector(app.injector) + app + global + routes + plugins
+    new DefaultApplication(
+      environment = context.environment,
+      applicationLifecycle = new DefaultApplicationLifecycle,
+      injector = injector,
+      configuration = app.configuration,
+      global = global,
+      routes = routes,
+      errorHandler = errorHandler,
+      plugins = plugins
+    )
+  }
+}
+
+/**
+ * A fake Guice application loader
+ * @param additionalModules additional Guice modules to install
+ * @param additionalConfiguration configuration to add before the application is loaded
+ * @param withRoutes routes to add to the existing routes
+ * @param withGlobal optional gloabl class to replace the existing global
+ * @param withPlugins list of plugin classes to add to default plugins
+ * @param withoutPlugins list of plugin classes to remove from default plugins
+ */
+case class FakeGuiceLoader(
+    override val additionalModules: Seq[com.google.inject.Module] = Seq(),
+    additionalConfiguration: Map[String, _ <: Any] = Map.empty,
+    withRoutes: PartialFunction[(String, String), Handler] = PartialFunction.empty,
+    withGlobal: Option[GlobalSettings] = None,
+    withPlugins: Seq[String] = Seq(),
+    withoutPlugins: Seq[String] = Seq()) extends GuiceApplicationLoader(additionalModules: _*) {
+
+  private lazy val fakeLoader = FakeApplicationLoader(new GuiceApplicationLoader() {
+    override protected def loadModules(env: Environment, conf: Configuration) =
+      FakeGuiceLoader.this.loadModules(env, conf)
+  })
+
+  override def load(context: ApplicationLoader.Context) = fakeLoader.load(context)
+}
