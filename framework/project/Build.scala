@@ -82,6 +82,7 @@ object BuildSettings {
     javacOptions ++= makeJavacOptions("1.6"),
     javacOptions in doc := Seq("-source", "1.6"),
     resolvers ++= ResolverSettings.playResolvers,
+    resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases", // specs2 depends on scalaz-stream
     fork in Test := true,
     testListeners in (Test,test) := Nil,
     javacOptions in Test := { if (isJavaAtLeast("1.8")) makeJavacOptions("1.8") else makeJavacOptions("1.6") },
