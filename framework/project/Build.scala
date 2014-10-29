@@ -256,6 +256,11 @@ object PlayBuild extends Build {
     testBinaryCompatibility = true)
 
   lazy val PlayNettyUtilsProject = PlaySharedJavaProject("Play-Netty-Utils", "play-netty-utils")
+    .settings(javacOptions in (Compile,doc) ++= {
+      // References to the rest of Netty don't work in the code that
+      // we've excised. Disable Javadoc lint checking in Java 8+.
+      if (isJavaAtLeast("1.8")) Seq("-Xdoclint:none") else Seq()
+    })
 
   lazy val PlayProject = PlayRuntimeProject("Play", "play")
     .enablePlugins(SbtTwirl)
