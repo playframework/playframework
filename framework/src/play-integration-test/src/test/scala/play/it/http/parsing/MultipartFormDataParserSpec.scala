@@ -19,7 +19,7 @@ object MultipartFormDataParserSpec extends PlaySpecification {
       |
       |the first text field
       |--aabbccddee
-      |Content-Disposition: form-data; name="text2"
+      |Content-Disposition: form-data; name="text2:colon"
       |
       |the second text field
       |--aabbccddee
@@ -45,7 +45,7 @@ object MultipartFormDataParserSpec extends PlaySpecification {
         parts.dataParts.get("text1") must beSome.like {
           case field :: Nil => field must_== "the first text field"
         }
-        parts.dataParts.get("text2") must beSome.like {
+        parts.dataParts.get("text2:colon") must beSome.like {
           case field :: Nil => field must_== "the second text field"
         }
         parts.files must haveLength(2)
