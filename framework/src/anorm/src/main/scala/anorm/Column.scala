@@ -7,6 +7,8 @@ import java.io.{ ByteArrayInputStream, InputStream }
 import java.math.{ BigDecimal => JBigDec, BigInteger }
 import java.util.{ Date, UUID }
 
+import scala.util.{ Failure, Success => TrySuccess, Try }
+
 import resource.managed
 
 /** Column mapping */
@@ -242,6 +244,10 @@ object Column extends JodaColumn {
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
       case d: UUID => Right(d)
+      case s: String => Try { UUID.fromString(s) } match {
+        case TrySuccess(v) => Right(v)
+        case Failure(ex) => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to UUID for column $qualified"))
+      }
       case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to UUID for column $qualified"))
     }
   }
