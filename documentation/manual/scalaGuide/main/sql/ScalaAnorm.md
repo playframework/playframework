@@ -129,7 +129,7 @@ val code: String = SQL(
   """
     select * from Country c 
     join CountryLanguage l on l.CountryCode = c.Code 
-    where c.code = {countryCode};
+    where c.code = {countryCode}
   """)
   .on("countryCode" -> "FRA").as(SqlParser.str("code").single)
 ```
@@ -143,7 +143,7 @@ val code: String = SQL(
   """
     select * from Country c 
     join CountryLanguage l on l.CountryCode = c.Code 
-    where c.code = {countryCode};
+    where c.code = {countryCode}
   """)
   .on("countryCode" -> "FRA").as(SqlParser.str("Country.code").single)
 // code == "First"
@@ -172,7 +172,7 @@ Since Scala 2.10 supports custom String Interpolation there is also a 1-step alt
 val name = "Cambridge"
 val country = "New Zealand"
 
-SQL"insert into City(name, country) values ($name, $country)")
+SQL"insert into City(name, country) values ($name, $country)"
 ```
 
 It also supports multi-line string and inline expresions:
@@ -745,23 +745,25 @@ $ spokenLanguages("FRA")
 )
 ```
 
-## Type compatibility
+## JDBC mappings
 
-As already seen in this documentation, Anorm provides builtins JDBC parsing for various JVM types.
+As already seen in this documentation, Anorm provides builtins converters between JDBC and JVM types.
+
+### Column parsers
 
 Following table describes which JDBC numeric types (getters on `java.sql.ResultSet`, first column) can be parsed to which Java/Scala types (e.g. integer column can be read as double value).
 
 ↓JDBC / JVM➞           | BigDecimal<sup>1</sup> | BigInteger<sup>2</sup> | Boolean | Byte | Double | Float | Int | Long | Short
 ---------------------- | ---------------------- | ---------------------- | ------- | ---- | ------ | ----- | --- | ---- | -----
 BigDecimal<sup>1</sup> | Yes                    | Yes                    | No      | No   | Yes    | No    | Yes | Yes  | No
-BigInteger<sup>2</sup> | No                     | Yes                    | No      | No   | Yes    | Yes   | Yes | Yes  | No
+BigInteger<sup>2</sup> | Yes                    | Yes                    | No      | No   | Yes    | Yes   | Yes | Yes  | No
 Boolean                | No                     | No                     | Yes     | Yes  | No     | No    | Yes | Yes  | Yes
-Byte                   | No                     | No                     | No      | Yes  | Yes    | Yes   | No  | No   | Yes
+Byte                   | Yes                    | No                     | No      | Yes  | Yes    | Yes   | No  | No   | Yes
 Double                 | Yes                    | No                     | No      | No   | Yes    | No    | No  | No   | No
 Float                  | Yes                    | No                     | No      | No   | Yes    | Yes   | No  | No   | No
 Int                    | Yes                    | Yes                    | No      | No   | Yes    | Yes   | Yes | Yes  | No
 Long                   | Yes                    | Yes                    | No      | No   | No     | No    | Yes | Yes  | No
-Short                  | No                     | No                     | No      | Yes  | Yes    | Yes   | No  | No   | Yes
+Short                  | Yes                    | No                     | No      | Yes  | Yes    | Yes   | No  | No   | Yes
 
 - 1. Types `java.math.BigDecimal` and `scala.math.BigDecimal`.
 - 2. Types `java.math.BigInteger` and `scala.math.BigInt`.
