@@ -129,7 +129,7 @@ val code: String = SQL(
   """
     select * from Country c 
     join CountryLanguage l on l.CountryCode = c.Code 
-    where c.code = {countryCode};
+    where c.code = {countryCode}
   """)
   .on("countryCode" -> "FRA").as(SqlParser.str("code").single)
 ```
@@ -143,7 +143,7 @@ val code: String = SQL(
   """
     select * from Country c 
     join CountryLanguage l on l.CountryCode = c.Code 
-    where c.code = {countryCode};
+    where c.code = {countryCode}
   """)
   .on("countryCode" -> "FRA").as(SqlParser.str("Country.code").single)
 // code == "First"
@@ -172,7 +172,7 @@ Since Scala 2.10 supports custom String Interpolation there is also a 1-step alt
 val name = "Cambridge"
 val country = "New Zealand"
 
-SQL"insert into City(name, country) values ($name, $country)")
+SQL"insert into City(name, country) values ($name, $country)"
 ```
 
 It also supports multi-line string and inline expresions:
@@ -768,13 +768,13 @@ Short                  | No                     | No                     | No   
 
 Second table shows mapping for other supported types (texts, dates, ...).
 
-↓JDBC / JVM➞      | Char | Date | String | UUID<sup>3</sup>
------------------ | ---- | ---- | ------ | ----------------
-Clob              | Yes  | No   | Yes    | No
-Date              | No   | Yes  | No     | No
-Long              | No   | Yes  | No     | No
-String            | Yes  | No   | Yes    | No
-UUID              | No   | No   | No     | Yes
+↓JDBC / JVM➞         | Char | Date | String | UUID<sup>3</sup>
+-------------------- | ---- | ---- | ------ | ----------------
+Clob                 | Yes  | No   | Yes    | No
+Date                 | No   | Yes  | No     | No
+Long                 | No   | Yes  | No     | No
+String               | Yes  | No   | Yes    | Yes
+UUID                 | No   | No   | No     | Yes
 
 - 3. Type `java.util.UUID`.
 
