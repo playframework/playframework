@@ -220,10 +220,6 @@ object Dependencies {
       .exclude("org.jboss.netty", "netty")
   )
 
-  val integrationTestDependencies = scalacheckDependencies ++ Seq(
-    "org.databene" % "contiperf" % "2.3.4" % Test
-  )
-
   val playCacheDeps = "net.sf.ehcache" % "ehcache-core" % "2.6.9" +:
     specsBuild.map(_ % Test)
 
