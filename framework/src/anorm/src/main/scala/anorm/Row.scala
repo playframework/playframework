@@ -104,8 +104,7 @@ trait Row {
    * @param name Column qualified name, or label/alias
    */
   private[anorm] def get(a: String): MayErr[SqlRequestError, (Any, MetaDataItem)] = for {
-    m <- MayErr(metaData.get(a).
-      toRight(ColumnNotFound(a, metaData.availableColumns)))
+    m <- MayErr(metaData.get(a).toRight(ColumnNotFound(a, this)))
     data <- MayErr(columnsDictionary.get(m.column.qualified.toUpperCase()).
       toRight(ColumnNotFound(m.column.qualified, metaData.availableColumns)))
 
@@ -113,8 +112,7 @@ trait Row {
 
   @deprecated(message = "Use [[get]] with alias", since = "2.3.3")
   private[anorm] def getAliased(a: String): MayErr[SqlRequestError, (Any, MetaDataItem)] = for {
-    m <- MayErr(metaData.getAliased(a).
-      toRight(ColumnNotFound(a, metaData.availableColumns)))
+    m <- MayErr(metaData.getAliased(a).toRight(ColumnNotFound(a, this)))
     data <- MayErr(m.column.alias.flatMap(
       l => aliasesDictionary.get(l.toUpperCase())).
       toRight(ColumnNotFound(m.column.alias.getOrElse(a),
