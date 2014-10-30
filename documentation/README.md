@@ -5,7 +5,7 @@ project instead.
 
 ## Dependencies
 
-This project depends on [play-doc](http://github.com/playframework/play-doc].  If you want to tweak the format or change the includes, you should do so there.
+This project depends on [play-doc](http://github.com/playframework/play-doc).  If you want to tweak the format or change the includes, you should do so there.
 
 ## Existing Docs
 
