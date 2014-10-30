@@ -5,7 +5,7 @@ import scala.reflect._
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-scalaVersion := "2.11.1"
+scalaVersion := sys.props.get("scala.version").getOrElse("2.10.4")
 
 routesFiles in Compile := Seq(baseDirectory.value / "routes")
 

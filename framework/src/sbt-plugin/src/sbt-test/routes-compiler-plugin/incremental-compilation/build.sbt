@@ -3,9 +3,12 @@
 //
 lazy val root = (project in file(".")).enablePlugins(RoutesCompiler)
 
-scalaVersion := "2.11.1"
+scalaVersion := sys.props.get("scala.version").getOrElse("2.10.4")
 
 routesFiles in Compile := Seq(baseDirectory.value / "a.routes", baseDirectory.value / "b.routes")
+
+// turn off cross paths so that expressions don't need to include the scala version
+crossPaths := false
 
 // because the scripted newer command is broken:
 // https://github.com/sbt/sbt/pull/1419
