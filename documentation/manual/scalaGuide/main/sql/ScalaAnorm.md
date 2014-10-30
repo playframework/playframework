@@ -770,13 +770,13 @@ Short                  | Yes                    | No                     | No   
 
 Second table shows mapping for other supported types (texts, dates, ...).
 
-↓JDBC / JVM➞      | Char | Date | String | UUID<sup>3</sup>
------------------ | ---- | ---- | ------ | ----------------
-Clob              | Yes  | No   | Yes    | No
-Date              | No   | Yes  | No     | No
-Long              | No   | Yes  | No     | No
-String            | Yes  | No   | Yes    | No
-UUID              | No   | No   | No     | Yes
+↓JDBC / JVM➞         | Char | Date | String | UUID<sup>3</sup>
+-------------------- | ---- | ---- | ------ | ----------------
+Clob                 | Yes  | No   | Yes    | No
+Date                 | No   | Yes  | No     | No
+Long                 | No   | Yes  | No     | No
+String               | Yes  | No   | Yes    | Yes
+UUID                 | No   | No   | No     | Yes
 
 - 3. Type `java.util.UUID`.
 
