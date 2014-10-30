@@ -4,6 +4,9 @@ import java.io.{ ByteArrayInputStream, InputStream }
 import java.sql.{ Array => SqlArray }
 import javax.sql.rowset.serial.{ SerialBlob, SerialClob }
 import java.math.BigInteger
+import java.util.UUID
+
+import scala.util.Random
 
 import acolyte.jdbc.{ QueryResult, ImmutableArray }
 import acolyte.jdbc.RowLists.{
@@ -538,6 +541,33 @@ object ColumnSpec
       SQL("SELECT time").as(scalar[java.util.Date].single).
         aka("parsed date") must_== new java.util.Date(time)
 
+    }
+  }
+
+  "Column mapped as UUID" should {
+    val uuid = UUID.randomUUID
+    val uuidStr = uuid.toString
+
+    "be pased from a UUID" in withQueryResult(rowList1(classOf[UUID]) :+ uuid) { implicit con =>
+      SQL("SELECT uuid").as(scalar[UUID].single).
+        aka("parsed uuid") must_== uuid
+    }
+
+    "be parsed from a valid string" in withQueryResult(stringList :+ uuidStr) { implicit con =>
+      SQL("SELECT uuid").as(scalar[UUID].single).
+        aka("parsed uuid") must_== uuid
+    }
+
+    "not be parsed from an invalid string" in withQueryResult(stringList :+ Random.nextString(36)) { implicit con =>
+      SQL("SELECT uuid").as(scalar[UUID].single).
+        aka("parsed uuid") must throwA[Exception](message =
+          "TypeDoesNotMatch\\(Cannot convert.* to UUID")
+    }
+
+    "not be mapped from an unknown type" in withQueryResult(booleanList :+ false) { implicit con =>
+      SQL("SELECT uuid").as(scalar[UUID].single).
+        aka("parsed uuid") must throwA[Exception](message =
+          "TypeDoesNotMatch\\(Cannot convert.*Boolean to UUID")
     }
   }
 
