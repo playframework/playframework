@@ -718,7 +718,7 @@ Clob                 | No                   | Yes  | No   | No               | Y
 Date                 | No                   | No   | Yes  | No               | No     | No
 Iterable<sup>6</sup> | Yes                  | No   | Yes  | Yes              | No     | No
 Long                 | No                   | No   | Yes  | No               | No     | No
-String               | No                   | Yes  | No   | No               | Yes    | No
+String               | No                   | Yes  | No   | No               | Yes    | Yes
 UUID                 | No                   | No   | No   | No               | No     | Yes
 
 - 3. Array which type `T` of elements is supported.
