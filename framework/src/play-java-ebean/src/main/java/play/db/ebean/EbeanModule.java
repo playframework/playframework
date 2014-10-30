@@ -18,14 +18,10 @@ public class EbeanModule extends Module {
 
     @Override
     public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
-        if (configuration.underlying().getBoolean("play.modules.ebean.enabled")) {
-            return seq(
-                bind(DynamicEvolutions.class).to(EbeanDynamicEvolutions.class),
-                bind(EbeanConfig.class).toProvider(DefaultEbeanConfig.EbeanConfigParser.class).in(Singleton.class)
-            );
-        } else {
-            return seq();
-        }
+        return seq(
+            bind(DynamicEvolutions.class).to(EbeanDynamicEvolutions.class),
+            bind(EbeanConfig.class).toProvider(DefaultEbeanConfig.EbeanConfigParser.class).in(Singleton.class)
+        );
     }
 
 }

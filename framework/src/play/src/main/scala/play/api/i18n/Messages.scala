@@ -543,14 +543,10 @@ class DefaultMessagesApi @Inject() (environment: Environment, configuration: Con
 
 class I18nModule extends Module {
   def bindings(environment: Environment, configuration: Configuration) = {
-    if (configuration.underlying.getBoolean("play.modules.i18n.enabled")) {
-      Seq(
-        bind[Langs].to[DefaultLangs],
-        bind[MessagesApi].to[DefaultMessagesApi]
-      )
-    } else {
-      Nil
-    }
+    Seq(
+      bind[Langs].to[DefaultLangs],
+      bind[MessagesApi].to[DefaultMessagesApi]
+    )
   }
 }
 

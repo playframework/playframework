@@ -79,23 +79,21 @@ object Modules {
   /**
    * Locate the modules from the environment.
    *
-   * Looks for files called `play.modules` on the classpath, and loads the modules from these.
+   * Loads all modules specified by the play.modules.enabled property, minus the modules specified by the
+   * play.modules.disabled property.
    *
    * @param environment The environment.
-   * @param configuration The configuration. Currently not used, but may be useful in future for configuring module
-   *                      loading.
+   * @param configuration The configuration.
    * @return A sequence of objects. This method makes no attempt to cast or check the types of the modules being loaded,
    *         allowing ApplicationLoader implementations to reuse the same mechanism to load modules specific to them.
    */
   def locate(environment: Environment, configuration: Configuration): Seq[Any] = {
     import scala.collection.JavaConverters._
 
-    val moduleClassNames = environment.classLoader.getResources("play.modules").asScala.toSeq.flatMap { url =>
-      PlayIO.readUrlAsString(url)
-        .split("\n").toSeq
-        .map(_.replaceAll("#.*$", "").trim)
-        .filterNot(_.isEmpty)
-    }.distinct
+    val includes = configuration.underlying.getStringList("play.modules.enabled").asScala
+    val excludes = configuration.underlying.getStringList("play.modules.disabled").asScala
+
+    val moduleClassNames = includes.toSet -- excludes
 
     moduleClassNames.map { className =>
       try {
@@ -109,6 +107,6 @@ object Modules {
           "Module [" + className + "] cannot be instantiated.",
           e)
       }
-    }
+    }.toSeq
   }
 }

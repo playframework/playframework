@@ -15,16 +15,12 @@ import play.core.WebCommands
  */
 class EvolutionsModule extends Module {
   def bindings(environment: Environment, configuration: Configuration) = {
-    if (configuration.underlying.getBoolean("play.modules.evolutions.enabled")) {
-      Seq(
-        bind[EvolutionsConfig].toProvider[DefaultEvolutionsConfigParser],
-        bind[EvolutionsReader].toSelf,
-        bind[EvolutionsApi].to[DefaultEvolutionsApi],
-        bind[ApplicationEvolutions].toProvider[ApplicationEvolutionsProvider].eagerly
-      )
-    } else {
-      Nil
-    }
+    Seq(
+      bind[EvolutionsConfig].toProvider[DefaultEvolutionsConfigParser],
+      bind[EvolutionsReader].toSelf,
+      bind[EvolutionsApi].to[DefaultEvolutionsApi],
+      bind[ApplicationEvolutions].toProvider[ApplicationEvolutionsProvider].eagerly
+    )
   }
 }
 

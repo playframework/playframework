@@ -1,3 +1,0 @@
-play.api.db.DBModule
-play.api.db.BoneCPModule
-play.api.db.evolutions.EvolutionsModule

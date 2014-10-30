@@ -58,9 +58,9 @@ In some more complex situations, you may want to provide more complex bindings, 
 
 @[guice-module](code/javaguide/advanced/di/guice/HelloModule.java)
 
-To register this module with Play, create a file called `conf/play.modules`, and put the fully qualified class name of your module there:
+To register this module with Play, append it's fully qualified class name to the `play.modules.enabled` list in `application.conf`:
 
-    modules.HelloModule
+    play.modules.enabled += "modules.HelloModule"
 
 ### Play libraries
 
@@ -70,11 +70,17 @@ To provide bindings, implement a [Module](api/scala/index.html#play.api.inject.M
 
 @[play-module](code/javaguide/advanced/di/play/HelloModule.java)
 
-This module can be registered with Play by creating resource at the root of the classpath called `play.modules`, containing a list of the fully qualified class names of all the modules:
+This module can be registered with Play automatically by appending it to the `play.modules.enabled` list in `reference.conf`:
 
-    com.example.HelloModule
+    play.modules.enabled += "com.example.HelloModule"
 
 In order to maximise cross framework compatibility, keep in mind the following things:
 
 * Not all DI frameworks support just in time bindings. Make sure all components that your library provides are explicitly bound.
 * Try to keep binding keys simple - different runtime DI frameworks have very different views on what a key is and how it should be unique or not.
+
+## Excluding modules
+
+If there is a module that you don't want to be loaded, you can exclude it by appending it to the `play.modules.disabled` property in `application.conf`:
+
+    play.modules.disabled += "play.api.db.evolutions.EvolutionsModule"

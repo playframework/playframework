@@ -297,14 +297,10 @@ private[openid] object Discovery {
  */
 class OpenIDModule extends Module {
   def bindings(environment: Environment, configuration: Configuration) = {
-    if (configuration.underlying.getBoolean("play.modules.openid.enabled")) {
-      Seq(
-        bind[OpenIdClient].to[WsOpenIdClient],
-        bind[Discovery].to[WsDiscovery]
-      )
-    } else {
-      Nil
-    }
+    Seq(
+      bind[OpenIdClient].to[WsOpenIdClient],
+      bind[Discovery].to[WsDiscovery]
+    )
   }
 }
 

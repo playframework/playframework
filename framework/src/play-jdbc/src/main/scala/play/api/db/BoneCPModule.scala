@@ -18,10 +18,9 @@ import com.jolbox.bonecp.hooks._
  */
 class BoneCPModule extends Module {
   def bindings(environment: Environment, configuration: Configuration) = {
-    if (configuration.underlying.getBoolean("play.modules.db.bonecp.enabled")) Seq(
+    Seq(
       bind[ConnectionPool].to[BoneConnectionPool]
     )
-    else Nil
   }
 }
 

@@ -17,16 +17,12 @@ import play.db.NamedDatabaseImpl
  */
 class DBModule extends Module {
   def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
-    if (configuration.underlying.getBoolean("play.modules.db.enabled")) {
-      val dbKey = configuration.underlying.getString("play.modules.db.config")
-      val default = configuration.underlying.getString("play.modules.db.default")
-      val dbs = configuration.getConfig(dbKey).getOrElse(Configuration.empty).subKeys
-      Seq(
-        bind[DBApi].toProvider[DBApiProvider]
-      ) ++ namedDatabaseBindings(dbs) ++ defaultDatabaseBinding(default, dbs)
-    } else {
-      Nil
-    }
+    val dbKey = configuration.underlying.getString("play.modules.db.config")
+    val default = configuration.underlying.getString("play.modules.db.default")
+    val dbs = configuration.getConfig(dbKey).getOrElse(Configuration.empty).subKeys
+    Seq(
+      bind[DBApi].toProvider[DBApiProvider]
+    ) ++ namedDatabaseBindings(dbs) ++ defaultDatabaseBinding(default, dbs)
   }
 
   def bindNamed(name: String): BindingKey[Database] = {
