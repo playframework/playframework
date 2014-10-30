@@ -87,7 +87,7 @@ case class Object(value: Any)
 case class MetaDataItem(column: ColumnName, nullable: Boolean, clazz: String)
 case class ColumnName(qualified: String, alias: Option[String])
 
-private[anorm] case class MetaData(ms: List[MetaDataItem]) {
+case class MetaData(ms: List[MetaDataItem]) {
   /** Returns meta data for specified column. */
   def get(columnName: String): Option[MetaDataItem] = {
     val key = columnName.toUpperCase
