@@ -29,6 +29,11 @@ case class ColumnNotFound(
   override lazy val toString = message
 }
 
+object ColumnNotFound {
+  def apply(column: String, row: Row): ColumnNotFound =
+    ColumnNotFound(column, row.metaData.availableColumns)
+}
+
 case class UnexpectedNullableFound(message: String) extends SqlRequestError
 case class SqlMappingError(reason: String) extends SqlRequestError {
   lazy val message = s"SqlMappingError($reason)"
