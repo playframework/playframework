@@ -277,6 +277,13 @@ object ColumnSpec extends org.specs2.mutable.Specification {
           aka("parsed big decimal") must_== bd
       }
 
+    "be parsed from big integer" in withQueryResult(
+      rowList1(classOf[BigInteger]) :+ bi) { implicit con =>
+
+        SQL("SELECT bi").as(scalar[java.math.BigDecimal].single).
+          aka("parsed big decimal") must_== new java.math.BigDecimal(bi)
+      }
+
     "be parsed from double" in withQueryResult(doubleList :+ 1.35d) {
       implicit con =>
         SQL("SELECT d").as(scalar[java.math.BigDecimal].single).
@@ -302,6 +309,20 @@ object ColumnSpec extends org.specs2.mutable.Specification {
       implicit con =>
         SQL("SELECT i").as(scalar[java.math.BigDecimal].single).
           aka("parsed big decimal") must_== java.math.BigDecimal.valueOf(6)
+
+    }
+
+    "be parsed from short" in withQueryResult(shortList :+ 7.toShort) {
+      implicit con =>
+        SQL("SELECT s").as(scalar[java.math.BigDecimal].single).
+          aka("parsed big decimal") must_== java.math.BigDecimal.valueOf(7)
+
+    }
+
+    "be parsed from byte" in withQueryResult(byteList :+ 8.toByte) {
+      implicit con =>
+        SQL("SELECT s").as(scalar[java.math.BigDecimal].single).
+          aka("parsed big decimal") must_== java.math.BigDecimal.valueOf(8)
 
     }
   }

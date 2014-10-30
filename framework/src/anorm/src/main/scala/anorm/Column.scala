@@ -186,12 +186,14 @@ object Column {
   private def anyToBigDecimal(value: Any, meta: MetaDataItem): MayErr[SqlRequestError, JBigDec] = {
     val MetaDataItem(qualified, nullable, clazz) = meta
     value match {
-      // TODO: Conversion from integer types
-      case bi: JBigDec => Right(bi)
+      case bd: JBigDec => Right(bd)
+      case bi: BigInteger => Right(new JBigDec(bi))
       case d: Double => Right(JBigDec.valueOf(d))
       case f: Float => Right(JBigDec.valueOf(f))
       case l: Long => Right(JBigDec.valueOf(l))
       case i: Int => Right(JBigDec.valueOf(i))
+      case s: Short => Right(JBigDec.valueOf(s))
+      case b: Byte => Right(JBigDec.valueOf(b))
       case _ => Left(TypeDoesNotMatch(s"Cannot convert $value: ${value.asInstanceOf[AnyRef].getClass} to BigDecimal for column $qualified"))
     }
   }
