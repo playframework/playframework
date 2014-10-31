@@ -92,6 +92,7 @@ trait PlayEclipse {
         EclipsePlugin.eclipseSettings ++ Seq(
           EclipseKeys.projectFlavor := EclipseProjectFlavor.Scala,
           EclipseKeys.preTasks := Seq(compile in Compile),
+          EclipseKeys.createSrc := EclipseCreateSrc.Default + EclipseCreateSrc.Resource,
           EclipseKeys.classpathTransformerFactories := Seq(addSourcesManaged)
         )
       case JAVA =>
@@ -99,6 +100,7 @@ trait PlayEclipse {
         EclipsePlugin.eclipseSettings ++ Seq(
           EclipseKeys.projectFlavor := EclipseProjectFlavor.Java,
           EclipseKeys.preTasks := Seq(compile in Compile),
+          EclipseKeys.createSrc := EclipseCreateSrc.Default + EclipseCreateSrc.Resource,
           EclipseKeys.classpathTransformerFactories := Seq(addClassesManaged, addScalaLib)
         )
     }
