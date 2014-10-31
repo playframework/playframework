@@ -223,7 +223,7 @@ trait BuiltInComponents {
 
   def routes: Router.Routes
 
-  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + crypto + httpConfiguration
+  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + routes + crypto + httpConfiguration
 
   lazy val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration)
   lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(routes, httpErrorHandler, httpConfiguration)
