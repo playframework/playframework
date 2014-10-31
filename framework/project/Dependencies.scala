@@ -46,7 +46,7 @@ object Dependencies {
 
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.0.Final",
-    "org.hibernate" % "hibernate-entitymanager" % "4.3.6.Final" % "test"
+    "org.hibernate" % "hibernate-entitymanager" % "4.3.7.Final" % "test"
   )
 
   val link = Seq(
