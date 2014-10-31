@@ -1,3 +1,4 @@
 ScalaDatabase:Configuring and using JDBC
+slick:Using Slick to access your database
 ScalaAnorm:Using Anorm to access your database
 ScalaDatabaseOthers:Integrating with other database access libraries
