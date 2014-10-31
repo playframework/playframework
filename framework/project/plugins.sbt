@@ -5,7 +5,7 @@ buildInfoSettings
 sourceGenerators in Compile <+= buildInfo
 
 val sbtNativePackagerVersion = "0.7.6"
-val sbtTwirlVersion = "1.0.2"
+val sbtTwirlVersion = "1.0.3"
 
 buildInfoKeys := Seq[BuildInfoKey](
   "sbtNativePackagerVersion" -> sbtNativePackagerVersion,
