@@ -219,7 +219,7 @@ trait PlayRun extends PlayInternalKeys {
     reloaderClasspathTask: TaskKey[Classpath], reloaderClassLoader: ClassLoaderCreator,
     assetsClassLoader: ClassLoader => ClassLoader, commonClassLoader: ClassLoader,
     monitoredFiles: Seq[String], playWatchService: PlayWatchService,
-    docsClasspath: Classpath, docsJar: File,
+    docsClasspath: Classpath, docsJar: Option[File],
     interaction: PlayInteractionMode, defaultHttpPort: Int,
     args: Seq[String]): PlayDevServer = {
 
@@ -304,11 +304,15 @@ trait PlayRun extends PlayInternalKeys {
       // Get a handler for the documentation. The documentation content lives in play/docs/content
       // within the play-docs JAR.
       val docsLoader = new URLClassLoader(urls(docsClasspath), applicationLoader)
-      val docsJarFile = new JarFile(docsJar)
-      val buildDocHandler = {
-        val docHandlerFactoryClass = docsLoader.loadClass("play.docs.BuildDocHandlerFactory")
-        val factoryMethod = docHandlerFactoryClass.getMethod("fromJar", classOf[JarFile], classOf[String])
-        factoryMethod.invoke(null, docsJarFile, "play/docs/content").asInstanceOf[BuildDocHandler]
+      val maybeDocsJarFile = docsJar map { f => new JarFile(f) }
+      val docHandlerFactoryClass = docsLoader.loadClass("play.docs.BuildDocHandlerFactory")
+      val buildDocHandler = maybeDocsJarFile match {
+        case Some(docsJarFile) =>
+          val factoryMethod = docHandlerFactoryClass.getMethod("fromJar", classOf[JarFile], classOf[String])
+          factoryMethod.invoke(null, docsJarFile, "play/docs/content").asInstanceOf[BuildDocHandler]
+        case None =>
+          val factoryMethod = docHandlerFactoryClass.getMethod("empty")
+          factoryMethod.invoke(null).asInstanceOf[BuildDocHandler]
       }
 
       val server = {
@@ -330,7 +334,7 @@ trait PlayRun extends PlayInternalKeys {
 
         def close() = {
           server.stop()
-          docsJarFile.close()
+          maybeDocsJarFile.foreach(_.close())
           reloader.close()
 
           // Notify hooks

@@ -88,4 +88,17 @@ public class BuildDocHandlerFactory {
         return new DocumentationHandler(repo);
     }
 
+    /**
+     * Create a BuildDocHandler that doesn't do anything.
+     * Used when the documentation jar file is not available.
+     */
+    public static BuildDocHandler empty() {
+        return new BuildDocHandler() {
+            @Override
+            public Object maybeHandleDocRequest(Object request) {
+                return Option.apply(null);
+            }
+        };
+    }
+
 }

@@ -117,7 +117,7 @@ object PlayImport {
 
     val confDirectory = SettingKey[File]("play-conf", "Where the Play conf directory lives")
 
-    val playDocsJar = TaskKey[File]("play-docs-jar", "Jar file containing the Play documentation")
+    val playDocsJar = TaskKey[Option[File]]("play-docs-jar", "Optional jar file containing the Play documentation")
 
     val ebeanEnabled = SettingKey[Boolean]("play-ebean-enabled")
 

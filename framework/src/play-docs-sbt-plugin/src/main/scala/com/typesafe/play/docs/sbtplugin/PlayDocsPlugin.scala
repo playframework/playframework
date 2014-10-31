@@ -22,7 +22,7 @@ object Imports {
     val fallbackToJar = SettingKey[Boolean]("play-docs-fallback-to-jar", "Whether the docs should fallback to loading things from the jar", KeyRanks.CSetting)
     val manualPath = SettingKey[File]("play-docs-manual-path", "The location of the manual", KeyRanks.CSetting)
     val docsVersion = SettingKey[String]("play-docs-version", "The version of the documentation to fallback to.", KeyRanks.ASetting)
-    val docsJarFile = TaskKey[File]("play-docs-jar-file", "The play docs jar file", KeyRanks.CTask)
+    val docsJarFile = TaskKey[Option[File]]("play-docs-jar-file", "Optional play docs jar file", KeyRanks.CTask)
     val docsJarScalaBinaryVersion = SettingKey[String]("play-docs-scala-version", "The binary scala version of the documentation", KeyRanks.BSetting)
     val validateDocs = TaskKey[Unit]("validate-docs", "Validates the play docs to ensure they compile and that all links resolve.", KeyRanks.APlusTask)
     val validateExternalLinks = TaskKey[Seq[String]]("validate-external-links", "Validates that all the external links are valid, by checking that they return 200.", KeyRanks.APlusTask)
@@ -120,12 +120,17 @@ object PlayDocsPlugin extends AutoPlugin {
     testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "-v", "--ignore-runners=org.specs2.runner.JUnitRunner")
   )
 
-  val docsJarFileSetting: Def.Initialize[Task[File]] = Def.task {
+  val docsJarFileSetting: Def.Initialize[Task[Option[File]]] = Def.task {
     val jars = update.value.matching(configurationFilter("docs") && artifactFilter(`type` = "jar")).toList
     jars match {
-      case Nil => throw new RuntimeException("No docs jar was resolved")
-      case jar :: Nil => jar
-      case multiple => throw new RuntimeException("Multiple docs jars were resolved: " + multiple)
+      case Nil =>
+        streams.value.log.error("No docs jar was resolved")
+        None
+      case jar :: Nil =>
+        Option(jar)
+      case multiple =>
+        streams.value.log.error("Multiple docs jars were resolved: " + multiple)
+        multiple.headOption
     }
   }
 
@@ -148,12 +153,16 @@ object PlayDocsPlugin extends AutoPlugin {
       }
     }
 
-    val docsJar = new JarFile(docsJarFile.value)
+    val maybeDocsJar = docsJarFile.value map { f => new JarFile(f) }
 
-    val buildDocHandler = {
-      val docHandlerFactoryClass = classloader.loadClass("play.docs.BuildDocHandlerFactory")
-      val fromDirectoryMethod = docHandlerFactoryClass.getMethod("fromDirectoryAndJar", classOf[java.io.File], classOf[JarFile], classOf[String], classOf[Boolean])
-      fromDirectoryMethod.invoke(null, manualPath.value, docsJar, "play/docs/content", fallbackToJar.value: java.lang.Boolean)
+    val docHandlerFactoryClass = classloader.loadClass("play.docs.BuildDocHandlerFactory")
+    val buildDocHandler = maybeDocsJar match {
+      case Some(docsJar) =>
+        val fromDirectoryAndJarMethod = docHandlerFactoryClass.getMethod("fromDirectoryAndJar", classOf[java.io.File], classOf[JarFile], classOf[String], classOf[Boolean])
+        fromDirectoryAndJarMethod.invoke(null, manualPath.value, docsJar, "play/docs/content", fallbackToJar.value: java.lang.Boolean)
+      case None =>
+        val fromDirectoryMethod = docHandlerFactoryClass.getMethod("fromDirectory", classOf[java.io.File])
+        fromDirectoryMethod.invoke(null, manualPath.value)
     }
 
     val clazz = classloader.loadClass("play.docs.DocumentationServer")
@@ -176,7 +185,7 @@ object PlayDocsPlugin extends AutoPlugin {
     waitForKey()
 
     server.stop()
-    docsJar.close()
+    maybeDocsJar.foreach(_.close())
   }
 
   private lazy val consoleReader = {

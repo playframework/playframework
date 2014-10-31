@@ -61,7 +61,7 @@ object ApplicationBuild extends Build {
 
     PlayDocsKeys.fallbackToJar := false,
 
-    PlayDocsKeys.docsJarFile := (packageBin in (playDocs, Compile)).value,
+    PlayDocsKeys.docsJarFile := Option((packageBin in (playDocs, Compile)).value),
 
     PlayDocsKeys.javaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "javaGuide" ** codeFilter).get,
     PlayDocsKeys.scalaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "scalaGuide" ** codeFilter).get,
