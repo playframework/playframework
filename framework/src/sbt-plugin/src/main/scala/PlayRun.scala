@@ -113,6 +113,7 @@ trait PlayRun extends PlayInternalKeys {
       playMonitoredFiles.value,
       playWatchService.value,
       (managedClasspath in DocsApplication).value,
+      playDocsJar.value,
       interaction,
       playDefaultPort.value,
       args
@@ -218,7 +219,8 @@ trait PlayRun extends PlayInternalKeys {
     reloaderClasspathTask: TaskKey[Classpath], reloaderClassLoader: ClassLoaderCreator,
     assetsClassLoader: ClassLoader => ClassLoader, commonClassLoader: ClassLoader,
     monitoredFiles: Seq[String], playWatchService: PlayWatchService,
-    docsClasspath: Classpath, interaction: PlayInteractionMode, defaultHttpPort: Int,
+    docsClasspath: Classpath, docsJar: File,
+    interaction: PlayInteractionMode, defaultHttpPort: Int,
     args: Seq[String]): PlayDevServer = {
 
     val (properties, httpPort, httpsPort) = filterArgs(args, defaultHttpPort = defaultHttpPort)
@@ -302,10 +304,7 @@ trait PlayRun extends PlayInternalKeys {
       // Get a handler for the documentation. The documentation content lives in play/docs/content
       // within the play-docs JAR.
       val docsLoader = new URLClassLoader(urls(docsClasspath), applicationLoader)
-      val docsJarFile = {
-        val f = docsClasspath.map(_.data).filter(_.getName.startsWith("play-docs")).head
-        new JarFile(f)
-      }
+      val docsJarFile = new JarFile(docsJar)
       val buildDocHandler = {
         val docHandlerFactoryClass = docsLoader.loadClass("play.docs.BuildDocHandlerFactory")
         val factoryMethod = docHandlerFactoryClass.getMethod("fromJar", classOf[JarFile], classOf[String])

@@ -84,6 +84,7 @@ trait PlaySettings {
     ivyConfigurations += DocsApplication,
     libraryDependencies += "com.typesafe.play" %% "play-docs" % play.core.PlayVersion.current % DocsApplication.name,
     manageClasspath(DocsApplication),
+    playDocsJar := (managedClasspath in DocsApplication).value.files.filter(_.getName.startsWith("play-docs")).head,
 
     parallelExecution in Test := false,
 
