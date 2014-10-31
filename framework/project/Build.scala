@@ -291,7 +291,8 @@ object PlayBuild extends Build {
     .settings(
       scriptedLaunchOpts ++= Seq(
         maxMetaspace,
-        "-Dproject.version=" + version.value
+        "-Dproject.version=" + version.value,
+        "-Dscala.version=" + buildScalaVersion
       )
     )
     .dependsOn(PlayServerProject, StreamsProject)
@@ -359,7 +360,8 @@ object PlayBuild extends Build {
         "-Xmx768m",
         maxMetaspace,
         "-Dperformance.log=" + new File(baseDirectory.value, "target/sbt-repcomile-performance.properties"),
-        "-Dproject.version=" + version.value
+        "-Dproject.version=" + version.value,
+        "-Dscala.version=" + buildScalaVersion
       ),
       scriptedDependencies := {
         val () = publishLocal.value

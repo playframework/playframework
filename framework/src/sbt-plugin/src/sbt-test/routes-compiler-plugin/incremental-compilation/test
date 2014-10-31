@@ -2,12 +2,12 @@
 
 > play-routes
 
-$ exists target/scala-2.11/routes/main/a/routes_routing.scala
-$ exists target/scala-2.11/routes/main/a/routes_reverseRouting.scala
-$ exists target/scala-2.11/routes/main/controllers/a/routes.java
-$ exists target/scala-2.11/routes/main/b/routes_routing.scala
-$ exists target/scala-2.11/routes/main/b/routes_reverseRouting.scala
-$ exists target/scala-2.11/routes/main/controllers/b/routes.java
+$ exists target/routes/main/a/routes_routing.scala
+$ exists target/routes/main/a/routes_reverseRouting.scala
+$ exists target/routes/main/controllers/a/routes.java
+$ exists target/routes/main/b/routes_routing.scala
+$ exists target/routes/main/b/routes_reverseRouting.scala
+$ exists target/routes/main/controllers/b/routes.java
 
 # Modify nothing, ensure nothing gets recompiled
 
@@ -16,8 +16,8 @@ $ sleep 1100
 
 > play-routes
 
--> newer target/scala-2.11/routes/main/a/routes_routing.scala target/change1
--> newer target/scala-2.11/routes/main/b/routes_routing.scala target/change1
+-> newer target/routes/main/a/routes_routing.scala target/change1
+-> newer target/routes/main/b/routes_routing.scala target/change1
 
 # Modify a, ensure only a gets recompiled
 
@@ -27,8 +27,8 @@ $ sleep 1100
 
 > play-routes
 
-> newer target/scala-2.11/routes/main/a/routes_routing.scala target/change2
--> newer target/scala-2.11/routes/main/b/routes_routing.scala target/change2
+> newer target/routes/main/a/routes_routing.scala target/change2
+-> newer target/routes/main/b/routes_routing.scala target/change2
 
 # Modify b, change the package it produces routes in, ensure the old routes is deleted and the new is produced
 
@@ -36,13 +36,13 @@ $ copy-file b.routes.1 b.routes
 
 > play-routes
 
-$ exists target/scala-2.11/routes/main/a/routes_routing.scala
-$ exists target/scala-2.11/routes/main/a/routes_reverseRouting.scala
-$ exists target/scala-2.11/routes/main/controllers/a/routes.java
-$ exists target/scala-2.11/routes/main/b/routes_routing.scala
-$ exists target/scala-2.11/routes/main/b/routes_reverseRouting.scala
--$ exists target/scala-2.11/routes/main/controllers/b/routes.java
-$ exists target/scala-2.11/routes/main/controllers/c/routes.java
+$ exists target/routes/main/a/routes_routing.scala
+$ exists target/routes/main/a/routes_reverseRouting.scala
+$ exists target/routes/main/controllers/a/routes.java
+$ exists target/routes/main/b/routes_routing.scala
+$ exists target/routes/main/b/routes_reverseRouting.scala
+-$ exists target/routes/main/controllers/b/routes.java
+$ exists target/routes/main/controllers/c/routes.java
 
 # Modify imports, check that everything gets recompiled
 
@@ -52,5 +52,5 @@ $ sleep 1100
 
 > play-routes
 
-> newer target/scala-2.11/routes/main/a/routes_routing.scala target/change3
-> newer target/scala-2.11/routes/main/b/routes_routing.scala target/change3
+> newer target/routes/main/a/routes_routing.scala target/change3
+> newer target/routes/main/b/routes_routing.scala target/change3
