@@ -9,9 +9,12 @@ import java.util.jar.JarFile
 import com.typesafe.play.docs.sbtplugin.PlayDocsValidation.{ CodeSamplesReport, MarkdownRefReport }
 import play.core.BuildDocHandler
 import play.core.server.ServerWithStop
+import play.PlayImport._
+import play.routes.compiler.InjectedRoutesGenerator
 import play.sbtplugin.Colors
-import sbt.Keys._
+import play.sbtplugin.routes.RoutesCompiler
 import sbt._
+import sbt.Keys._
 import sbt.plugins.JvmPlugin
 
 object Imports {
@@ -30,6 +33,13 @@ object Imports {
     val translationCodeSamplesReportFile = SettingKey[File]("translation-code-samples-report-filename", "The filename of the translation code samples report", KeyRanks.CTask)
     val translationCodeSamplesReport = TaskKey[File]("translation-code-samples-report", "Generates a report on the translation code samples", KeyRanks.CTask)
     val cachedTranslationCodeSamplesReport = TaskKey[File]("cached-translation-code-samples-report", "Generates a report on the translation code samples if not already generated", KeyRanks.CTask)
+
+    val javaManualSourceDirectories = SettingKey[Seq[File]]("java-manual-source-directories")
+    val scalaManualSourceDirectories = SettingKey[Seq[File]]("scala-manual-source-directories")
+    val javaRoutesSourceManaged = SettingKey[File]("java-routes-source-managed")
+    val scalaRoutesSourceManaged = SettingKey[File]("scala-routes-source-managed")
+    val javaTwirlSourceManaged = SettingKey[File]("java-routes-source-managed")
+    val scalaTwirlSourceManaged = SettingKey[File]("scala-routes-source-managed")
   }
 }
 
@@ -43,7 +53,9 @@ object PlayDocsPlugin extends AutoPlugin {
 
   override def requires = JvmPlugin
 
-  override def projectSettings = Seq(
+  override def projectSettings = docsRunSettings ++ docsReportSettings ++ docsTestSettings
+
+  def docsRunSettings = Seq(
     fallbackToJar := true,
     manualPath := baseDirectory.value,
     run <<= docsRunSetting,
@@ -56,13 +68,56 @@ object PlayDocsPlugin extends AutoPlugin {
     libraryDependencies ++= Seq(
       "com.typesafe.play" %% "play-docs" % play.core.PlayVersion.current,
       "com.typesafe.play" % s"play-docs_${docsJarScalaBinaryVersion.value}" % docsVersion.value % "docs" notTransitive ()
-    ),
+    )
+  )
 
+  def docsReportSettings = Seq(
     generateMarkdownCodeSamplesReport <<= PlayDocsValidation.generateMarkdownCodeSamplesTask,
     generateUpstreamCodeSamplesReport <<= PlayDocsValidation.generateUpstreamCodeSamplesTask,
     translationCodeSamplesReportFile := target.value / "report.html",
     translationCodeSamplesReport <<= PlayDocsValidation.translationCodeSamplesReportTask,
     cachedTranslationCodeSamplesReport <<= PlayDocsValidation.cachedTranslationCodeSamplesReportTask
+  )
+
+  def docsTestSettings = Seq(
+    javaManualSourceDirectories := Seq.empty,
+    scalaManualSourceDirectories := Seq.empty,
+    unmanagedSourceDirectories in Test ++= javaManualSourceDirectories.value ++ scalaManualSourceDirectories.value,
+    unmanagedResourceDirectories in Test ++= javaManualSourceDirectories.value ++ scalaManualSourceDirectories.value,
+
+    javaRoutesSourceManaged := target.value / "routes" / "java",
+    scalaRoutesSourceManaged := target.value / "routes" / "scala",
+    javaTwirlSourceManaged := target.value / "twirl" / "java",
+    scalaTwirlSourceManaged := target.value / "twirl" / "scala",
+    managedSourceDirectories in Test ++= Seq(
+      javaRoutesSourceManaged.value,
+      scalaRoutesSourceManaged.value,
+      javaTwirlSourceManaged.value,
+      scalaTwirlSourceManaged.value
+    ),
+
+    // Need to ensure that templates in the Java docs get Java imports, and in the Scala docs get Scala imports
+    sourceGenerators in Test <+= (javaManualSourceDirectories, javaTwirlSourceManaged, streams) map { (from, to, s) =>
+      compileTemplates(from, to, defaultTemplateImports ++ defaultJavaTemplateImports, s.log)
+    },
+
+    sourceGenerators in Test <+= (scalaManualSourceDirectories, scalaTwirlSourceManaged, streams) map { (from, to, s) =>
+      compileTemplates(from, to, defaultTemplateImports ++ defaultScalaTemplateImports, s.log)
+    },
+
+    sourceGenerators in Test <+= (javaManualSourceDirectories, javaRoutesSourceManaged, streams) map { (from, to, s) =>
+      RoutesCompiler.compileRoutes((from * "*.routes").get, InjectedRoutesGenerator, to, Seq("play.libs.F"), true, true, true, s.cacheDirectory / "javaroutes", s.log)
+    },
+
+    sourceGenerators in Test <+= (scalaManualSourceDirectories, scalaRoutesSourceManaged, streams) map { (from, to, s) =>
+      RoutesCompiler.compileRoutes((from * "*.routes").get, InjectedRoutesGenerator, to, Nil, true, true, true, s.cacheDirectory / "scalaroutes", s.log)
+    },
+
+    parallelExecution in Test := false,
+    (compile in Test) <<= Enhancement.enhanceJavaClasses,
+    javacOptions in Test ++= Seq("-g", "-Xlint:deprecation"),
+    testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true", "junitxml", "console"),
+    testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "-v", "--ignore-runners=org.specs2.runner.JUnitRunner")
   )
 
   val docsJarFileSetting: Def.Initialize[Task[File]] = Def.task {
@@ -148,4 +203,11 @@ object PlayDocsPlugin extends AutoPlugin {
     consoleReader.getTerminal.setEchoEnabled(true)
   }
 
+  val templateFormats = Map("html" -> "play.twirl.api.HtmlFormat")
+  val templateFilter = "*.scala.*"
+  val templateCodec = scala.io.Codec("UTF-8")
+
+  def compileTemplates(sourceDirectories: Seq[File], target: File, imports: Seq[String], log: Logger) = {
+    play.twirl.sbt.TemplateCompiler.compile(sourceDirectories, target, templateFormats, imports, templateFilter, HiddenFileFilter, templateCodec, false, log)
+  }
 }
