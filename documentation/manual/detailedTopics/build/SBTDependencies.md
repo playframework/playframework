@@ -56,7 +56,7 @@ libraryDependencies += "org.scala-tools" %% "scala-stm" % "0.3"
 
 ### Resolvers
 
-sbt uses the standard Maven2 repository and the Typesafe Releases (<http://repo.typesafe.com/typesafe/releases>) repositories by default. If your dependency isn’t on one of the default repositories, you’ll have to add a resolver to help Ivy find it.
+sbt uses the standard Maven2 repository and the Typesafe Releases (<https://repo.typesafe.com/typesafe/releases>) repositories by default. If your dependency isn’t on one of the default repositories, you’ll have to add a resolver to help Ivy find it.
 
 Use the `resolvers` setting key to add your own resolver.
 

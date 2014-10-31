@@ -52,7 +52,7 @@ trait PlaySettings {
     playPlugin := false,
 
     resolvers ++= Seq(
-      "Typesafe Releases Repository" at "http://repo.typesafe.com/typesafe/releases/"
+      "Typesafe Releases Repository" at "https://repo.typesafe.com/typesafe/releases/"
     ),
 
     target <<= baseDirectory(_ / "target"),
