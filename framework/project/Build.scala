@@ -135,6 +135,7 @@ object BuildSettings {
     previousArtifact := Some(buildOrganization %
       (Project.normalizeModuleID(name) + "_" + CrossVersion.binaryScalaVersion(buildScalaVersion)) % previousVersion),
     scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
+    projectID := withSourceUrl.value,
     Docs.apiDocsInclude := true
   )
 
@@ -173,6 +174,17 @@ object BuildSettings {
         // processes classpath while it's actually being run by SBT 0.12... if it forks you get serialVersionUID errors.
         fork in Test := false
       )
+  }
+
+  /**
+   * Add an extra source url property to the project module for aggregated documentation.
+   */
+  def withSourceUrl = Def.setting {
+    val baseUrl = "https://github.com/playframework/playframework"
+    val sourceTree = if (isSnapshot.value) sourceCodeBranch else version.value
+    val sourceDirectory = IO.relativize((baseDirectory in ThisBuild).value, baseDirectory.value).getOrElse("")
+    val sourceUrl = s"${baseUrl}/tree/${sourceTree}/framework/${sourceDirectory}"
+    projectID.value.extra("info.sourceUrl" -> sourceUrl)
   }
 
   /**
