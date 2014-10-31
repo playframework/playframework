@@ -22,6 +22,7 @@ object Imports {
     val fallbackToJar = SettingKey[Boolean]("play-docs-fallback-to-jar", "Whether the docs should fallback to loading things from the jar", KeyRanks.CSetting)
     val manualPath = SettingKey[File]("play-docs-manual-path", "The location of the manual", KeyRanks.CSetting)
     val docsVersion = SettingKey[String]("play-docs-version", "The version of the documentation to fallback to.", KeyRanks.ASetting)
+    val docsName = SettingKey[String]("play-docs-name", "The name of the documentation artifact", KeyRanks.BSetting)
     val docsJarFile = TaskKey[Option[File]]("play-docs-jar-file", "Optional play docs jar file", KeyRanks.CTask)
     val docsJarScalaBinaryVersion = SettingKey[String]("play-docs-scala-version", "The binary scala version of the documentation", KeyRanks.BSetting)
     val validateDocs = TaskKey[Unit]("validate-docs", "Validates the play docs to ensure they compile and that all links resolve.", KeyRanks.APlusTask)
@@ -63,11 +64,12 @@ object PlayDocsPlugin extends AutoPlugin {
     validateDocs <<= PlayDocsValidation.validateDocsTask,
     validateExternalLinks <<= PlayDocsValidation.validateExternalLinksTask,
     docsVersion := play.core.PlayVersion.current,
+    docsName := "play-docs",
     docsJarFile <<= docsJarFileSetting,
     docsJarScalaBinaryVersion <<= scalaBinaryVersion,
     libraryDependencies ++= Seq(
-      "com.typesafe.play" %% "play-docs" % play.core.PlayVersion.current,
-      "com.typesafe.play" % s"play-docs_${docsJarScalaBinaryVersion.value}" % docsVersion.value % "docs" notTransitive ()
+      "com.typesafe.play" %% docsName.value % play.core.PlayVersion.current,
+      "com.typesafe.play" % s"${docsName.value}_${docsJarScalaBinaryVersion.value}" % docsVersion.value % "docs" notTransitive ()
     )
   )
 

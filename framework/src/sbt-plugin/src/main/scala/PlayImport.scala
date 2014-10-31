@@ -117,6 +117,9 @@ object PlayImport {
 
     val confDirectory = SettingKey[File]("play-conf", "Where the Play conf directory lives")
 
+    val playOmnidoc = SettingKey[Boolean]("play-omnidoc", "Determines whether to use the aggregated Play documentation")
+    val playDocsName = SettingKey[String]("play-docs-name", "Artifact name of the Play documentation")
+    val playDocsModule = SettingKey[Option[ModuleID]]("play-docs-module", "Optional Play documentation dependency")
     val playDocsJar = TaskKey[Option[File]]("play-docs-jar", "Optional jar file containing the Play documentation")
 
     val ebeanEnabled = SettingKey[Boolean]("play-ebean-enabled")
