@@ -181,11 +181,14 @@ object Dependencies {
     sbtPluginDep("com.typesafe.sbt" % "sbt-webdriver" % "1.0.0")
   ) ++ javassist ++ specsBuild.map(_ % Test)
 
-  val playDocsDependencies = Seq(
-    "com.typesafe.play" %% "play-doc" % "1.2.0",
+  val playdocWebjarDependencies = Seq(
     "org.webjars" % "jquery"   % "2.1.0-2"    % "webjars",
     "org.webjars" % "prettify" % "4-Mar-2013" % "webjars"
   )
+
+  val playDocsDependencies = Seq(
+    "com.typesafe.play" %% "play-doc" % "1.2.0"
+  ) ++ playdocWebjarDependencies
 
   val iterateesDependencies = Seq(
     "org.scala-stm" %% "scala-stm" % "0.7",

@@ -277,7 +277,8 @@ object PlayBuild extends Build {
       mappings in (Compile, packageSrc) <++= scalaTemplateSourceMappings,
       Docs.apiDocsIncludeManaged := true,
       parallelExecution in Test := false
-    ).dependsOn(
+    ).settings(Docs.playdocSettings: _*)
+     .dependsOn(
       BuildLinkProject,
       IterateesProject % "test->test;compile->compile",
       JsonProject,
