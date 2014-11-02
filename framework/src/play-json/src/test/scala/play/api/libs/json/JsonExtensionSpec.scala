@@ -64,6 +64,9 @@ case class GenericCaseClass2[A, B](obj1: A, obj2: B)
 case class WrappedGenericInt(int: GenericCaseClass[Int])
 case class WrappedGenericIntString(intString: GenericCaseClass2[Int, String])
 
+case class VarArgsOnly(ints: Int*)
+case class LastVarArg(name: String, ints: Int*)
+
 object Person2 {
   implicit val person2Fmt = Json.format[Person2]
 }
@@ -355,6 +358,54 @@ object JsonExtensionSpec extends Specification {
       )
       Json.toJson(genericHolder) must beEqualTo(expectedJsObj)
       Json.fromJson[WrappedGenericIntString](expectedJsObj).get must beEqualTo(genericHolder)
+    }
+
+    "VarArgsOnly reads, writes, format" should {
+
+      val reads = Json.reads[VarArgsOnly]
+      val writes = Json.writes[VarArgsOnly]
+      val format = Json.format[VarArgsOnly]
+
+      val obj = VarArgsOnly(1, 2, 3)
+      val jsObj = Json.obj("ints" -> Seq(1, 2, 3))
+
+      "formats should be able to read and write" in {
+        Json.toJson(obj)(format) must beEqualTo(jsObj)
+        jsObj.as[VarArgsOnly](format) must beEqualTo(obj)
+      }
+
+      "reads should be able to read valid Json and ignore invalid Json" in {
+        jsObj.as[VarArgsOnly](reads) must beEqualTo(obj)
+        Json.fromJson[VarArgsOnly](Json.obj("hello" -> "world"))(reads).isError must beTrue
+      }
+
+      "writes should be able to spit out valid json" in {
+        Json.toJson(obj)(writes) must beEqualTo(jsObj)
+      }
+    }
+
+    "LastVarArg reads, writes, format" should {
+
+      val reads = Json.reads[LastVarArg]
+      val writes = Json.writes[LastVarArg]
+      val format = Json.format[LastVarArg]
+
+      val obj = LastVarArg("hello", 1, 2, 3)
+      val jsObj = Json.obj("name" -> "hello", "ints" -> Seq(1, 2, 3))
+
+      "formats should be able to read and write" in {
+        Json.toJson(obj)(format) must beEqualTo(jsObj)
+        jsObj.as[LastVarArg](format) must beEqualTo(obj)
+      }
+
+      "reads should be able to read valid Json and ignore invalid Json" in {
+        jsObj.as[LastVarArg](reads) must beEqualTo(obj)
+        Json.fromJson[LastVarArg](Json.obj("hello" -> "world"))(reads).isError must beTrue
+      }
+
+      "writes should be able to spit out valid json" in {
+        Json.toJson(obj)(writes) must beEqualTo(jsObj)
+      }
     }
 
     "manage Map[String, User]" in {
