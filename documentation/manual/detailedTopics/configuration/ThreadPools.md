@@ -92,9 +92,9 @@ In some cases you may not be able to explicitly use the application classloader.
 
 ### Java thread locals
 
-Java code in Play uses a thread local to find out about contextual information such as the current HTTP request. Scala code doesn't need to use thread locals because it can use implicit parameters to pass context instead. Threads locals are used in Java so that Java code can access contextual information without needing to pass context parameters everywhere.
+Java code in Play uses a `ThreadLocal` to find out about contextual information such as the current HTTP request. Scala code doesn't need to use `ThreadLocal`s because it can use implicit parameters to pass context instead. `ThreadLocal`s are used in Java so that Java code can access contextual information without needing to pass context parameters everywhere.
 
-Java thread locals, along with the correct context class loader, are propagated automatically by `ExecutionContextExecutor` objects provided through the `HttpExecution` class. (An `ExecutionContextExecutor` is both a Scala `ExecutionContext` and a Java `Executor`.) These special `ExecutionContextExecutor` objects are automatically created and used by in Java actions and Java `Promise` methods. The default objects wrap the default user thread pool. If you want to do your own threading then you should use the `HttpExecution` class's helper methods to get an `ExecutionContextExecutor` object yourself.
+Java `ThreadLocal`s, along with the correct `ContextClassLoader`, are propagated automatically by `ExecutionContextExecutor` objects provided through the `HttpExecution` class. (An `ExecutionContextExecutor` is both a Scala `ExecutionContext` and a Java `Executor`.) These special `ExecutionContextExecutor` objects are automatically created and used by in Java actions and Java `Promise` methods. The default objects wrap the default user thread pool. If you want to do your own threading then you should use the `HttpExecution` class's helper methods to get an `ExecutionContextExecutor` object yourself.
 
 In the example below, a user thread pool is wrapped to create a new `ExecutionContext` that propagates thread locals correctly.
 
