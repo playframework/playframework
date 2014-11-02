@@ -289,4 +289,18 @@ object NingWSSpec extends PlaySpecification with Mockito {
     }
   }
 
+  "Ning WS Config" should {
+    "support overriding secure default values" in {
+      val ahcConfig = new NingAsyncHttpClientConfigBuilder().modifyUnderlying { builder =>
+        builder.setCompressionEnabled(true)
+        builder.setFollowRedirects(false)
+      }.build()
+      ahcConfig.isCompressionEnabled must beTrue
+      ahcConfig.isRedirectEnabled must beFalse
+      ahcConfig.getConnectionTimeoutInMs must_== Defaults.connectionTimeout
+      ahcConfig.getRequestTimeoutInMs must_== Defaults.requestTimeout
+      ahcConfig.getIdleConnectionTimeoutInMs must_== Defaults.idleTimeout
+    }
+  }
+
 }

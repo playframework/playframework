@@ -33,7 +33,7 @@ public class NingWSAPI implements WSAPI {
     @Inject
     public NingWSAPI(WSClientConfig clientConfig, ApplicationLifecycle lifecycle) {
         client = new NingWSClient(
-                new NingAsyncHttpClientConfigBuilder(clientConfig, new AsyncHttpClientConfig.Builder()).build()
+                new NingAsyncHttpClientConfigBuilder(clientConfig).build()
         );
         lifecycle.addStopHook(new Callable<F.Promise<Void>>() {
             @Override
