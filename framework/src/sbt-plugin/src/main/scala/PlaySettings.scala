@@ -82,8 +82,12 @@ trait PlaySettings {
     libraryDependencies += "com.typesafe.play" %% "play-test" % play.core.PlayVersion.current % "test",
 
     ivyConfigurations += DocsApplication,
-    libraryDependencies += "com.typesafe.play" %% "play-docs" % play.core.PlayVersion.current % DocsApplication.name,
+    playOmnidoc := !isSnapshot.value,
+    playDocsName := { if (playOmnidoc.value) "play-omnidoc" else "play-docs" },
+    playDocsModule := Some("com.typesafe.play" %% playDocsName.value % play.core.PlayVersion.current % DocsApplication.name),
+    libraryDependencies ++= playDocsModule.value.toSeq,
     manageClasspath(DocsApplication),
+    playDocsJar := (managedClasspath in DocsApplication).value.files.filter(_.getName.startsWith(playDocsName.value)).headOption,
 
     parallelExecution in Test := false,
 

@@ -123,7 +123,7 @@ In the failure case, the default behaviour is to return an empty BadRequest resp
 
 ### Showing forms in a view template
 
-Once you have a form, then you need to make it available to the [[template engine|ScalaTemplates]].  You do this by including the form as a parameter to the view template.  For `user.scala.html`, the header at the top of the page will look like this:
+Once you have a form, then you need to make it available to the template engine.  You do this by including the form as a parameter to the view template.  For `user.scala.html`, the header at the top of the page will look like this:
 
 @[form-define](code/scalaguide/forms/scalaforms/views/user.scala.html)
 

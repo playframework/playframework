@@ -1,9 +1,6 @@
 /*
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
-
-import play.routes.compiler.InjectedRoutesGenerator
-import play.sbtplugin.routes.RoutesCompiler
 import sbt._
 import sbt.Keys._
 import play.Play.autoImport._
@@ -64,59 +61,15 @@ object ApplicationBuild extends Build {
 
     PlayDocsKeys.fallbackToJar := false,
 
-    PlayDocsKeys.docsJarFile := (packageBin in (playDocs, Compile)).value,
+    PlayDocsKeys.docsJarFile := Option((packageBin in (playDocs, Compile)).value),
 
-    javaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "working" / "javaGuide" ** codeFilter).get),
-    scalaManualSourceDirectories <<= (baseDirectory)(base => (base / "manual" / "working" / "scalaGuide" ** codeFilter).get),
+    PlayDocsKeys.javaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "javaGuide" ** codeFilter).get,
+    PlayDocsKeys.scalaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "scalaGuide" ** codeFilter).get,
 
-    javaManualSourceDirectories <++= (baseDirectory) { base =>
-      if (isJavaAtLeast("1.8")) (base / "manual" / "javaGuide" ** "java8code").get else Nil
-    },
+    PlayDocsKeys.javaManualSourceDirectories ++= { if (isJavaAtLeast("1.8")) (baseDirectory.value / "manual" / "javaGuide" ** "java8code").get else Nil },
 
-    unmanagedSourceDirectories in Test <++= javaManualSourceDirectories,
-    unmanagedSourceDirectories in Test <++= scalaManualSourceDirectories,
-    unmanagedSourceDirectories in Test <++= (baseDirectory)(base => (base / "manual" / "detailedTopics" ** codeFilter).get),
-
-    unmanagedResourceDirectories in Test <++= javaManualSourceDirectories,
-    unmanagedResourceDirectories in Test <++= scalaManualSourceDirectories,
-    unmanagedResourceDirectories in Test <++= (baseDirectory)(base => (base / "manual" / "detailedTopics" ** codeFilter).get),
-
-    parallelExecution in Test := false,
-
-    (compile in Test) <<= Enhancement.enhanceJavaClasses,
-
-    javacOptions ++= Seq("-g", "-Xlint:deprecation"),
-
-    javaRoutesSourceManaged := target.value / "routes" / "java",
-    scalaRoutesSourceManaged := target.value / "routes" / "scala",
-    javaTwirlSourceManaged := target.value / "twirl" / "java",
-    scalaTwirlSourceManaged := target.value / "twirl" / "scala",
-    (managedSourceDirectories in Test) ++= Seq(
-      javaRoutesSourceManaged.value,
-      scalaRoutesSourceManaged.value,
-      javaTwirlSourceManaged.value,
-      scalaTwirlSourceManaged.value
-    ),
-
-    // Need to ensure that templates in the Java docs get Java imports, and in the Scala docs get Scala imports
-    sourceGenerators in Test <+= (javaManualSourceDirectories, javaTwirlSourceManaged, streams) map { (from, to, s) =>
-      compileTemplates(from, to, defaultTemplateImports ++ defaultJavaTemplateImports, s.log)
-    },
-    sourceGenerators in Test <+= (scalaManualSourceDirectories, scalaTwirlSourceManaged, streams) map { (from, to, s) =>
-      compileTemplates(from, to, defaultTemplateImports ++ defaultScalaTemplateImports, s.log)
-    },
-
-    sourceGenerators in Test <+= (javaManualSourceDirectories, sourceManaged, streams) map { (from, to, s) =>
-      RoutesCompiler.compileRoutes((from * "*.routes").get, InjectedRoutesGenerator, to, Seq("play.libs.F"), true, true,
-        true, s.cacheDirectory / "javaroutes", s.log)
-    },
-    sourceGenerators in Test <+= (scalaManualSourceDirectories, sourceManaged, streams) map { (from, to, s) =>
-      RoutesCompiler.compileRoutes((from * "*.routes").get, InjectedRoutesGenerator, to, Nil, true, true, true,
-        s.cacheDirectory / "scalaroutes", s.log)
-    },
-
-    testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true", "junitxml", "console"),
-    testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "-v", "--ignore-runners=org.specs2.runner.JUnitRunner")
+    unmanagedSourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** codeFilter).get,
+    unmanagedResourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** codeFilter).get
 
   ).settings(externalPlayModuleSettings:_*)
    .dependsOn(
@@ -132,20 +85,4 @@ object ApplicationBuild extends Build {
   lazy val playDocs = playProject("Play-Docs")
 
   def playProject(name: String) = ProjectRef(Path.fileProperty("user.dir").getParentFile / "framework", name)
-
-  val templateFormats = Map("html" -> "play.twirl.api.HtmlFormat")
-  val templateFilter = "*.scala.*"
-  val templateCodec = scala.io.Codec("UTF-8")
-
-  def compileTemplates(sourceDirectories: Seq[File], target: File, imports: Seq[String], log: Logger) = {
-    play.twirl.sbt.TemplateCompiler.compile(sourceDirectories, target, templateFormats, imports, templateFilter, HiddenFileFilter, templateCodec, false, log)
-  }
-
-  val javaManualSourceDirectories = SettingKey[Seq[File]]("java-manual-source-directories")
-  val scalaManualSourceDirectories = SettingKey[Seq[File]]("scala-manual-source-directories")
-  val javaRoutesSourceManaged = SettingKey[File]("java-routes-source-managed")
-  val scalaRoutesSourceManaged = SettingKey[File]("scala-routes-source-managed")
-  val javaTwirlSourceManaged = SettingKey[File]("java-routes-source-managed")
-  val scalaTwirlSourceManaged = SettingKey[File]("scala-routes-source-managed")
-
 }

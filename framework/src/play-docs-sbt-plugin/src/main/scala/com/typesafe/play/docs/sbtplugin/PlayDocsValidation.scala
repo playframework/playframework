@@ -214,20 +214,21 @@ object PlayDocsValidation {
   }
 
   val generateUpstreamCodeSamplesTask = Def.task {
-
-    val jarFile = docsJarFile.value
-
-    import scala.collection.JavaConversions._
-    val jar = new JarFile(jarFile)
-    val parsedFiles = jar.entries().toIterator.collect {
-      case entry if entry.getName.endsWith(".md") && entry.getName.startsWith("play/docs/content/manual") =>
-        val fileName = entry.getName.stripPrefix("play/docs/content")
-        val contents = IO.readStream(jar.getInputStream(entry))
-        extractCodeSamples(fileName, contents)
-    }.toList
-
-    jar.close()
-    CodeSamplesReport(parsedFiles)
+    docsJarFile.value match {
+      case Some(jarFile) =>
+        import scala.collection.JavaConversions._
+        val jar = new JarFile(jarFile)
+        val parsedFiles = jar.entries().toIterator.collect {
+          case entry if entry.getName.endsWith(".md") && entry.getName.startsWith("play/docs/content/manual") =>
+            val fileName = entry.getName.stripPrefix("play/docs/content")
+            val contents = IO.readStream(jar.getInputStream(entry))
+            extractCodeSamples(fileName, contents)
+        }.toList
+        jar.close()
+        CodeSamplesReport(parsedFiles)
+      case None =>
+        CodeSamplesReport(Seq.empty)
+    }
   }
 
   val generateMarkdownCodeSamplesTask = Def.task {
@@ -296,9 +297,8 @@ object PlayDocsValidation {
     val log = streams.value.log
     val base = manualPath.value
 
-    val docsJarRepo: play.doc.FileRepository with Closeable = if (fallbackToJar.value) {
-      val classpath: Seq[Attributed[File]] = (dependencyClasspath in Test).value
-      val jar = new JarFile(docsJarFile.value)
+    val docsJarRepo: play.doc.FileRepository with Closeable = if (fallbackToJar.value && docsJarFile.value.isDefined) {
+      val jar = new JarFile(docsJarFile.value.get)
       new JarRepository(jar, Some("play/docs/content")) with Closeable
     } else {
       new play.doc.FileRepository with Closeable {

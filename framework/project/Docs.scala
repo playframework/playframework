@@ -18,6 +18,7 @@ object Docs {
   val apiDocsClasspath = TaskKey[Seq[File]]("api-docs-classpath", "The classpath for API docs generation")
   val apiDocs = TaskKey[File]("api-docs", "Generate the API docs")
   val extractWebjars = TaskKey[File]("extract-webjars", "Extract webjar contents")
+  val packagePlaydoc = TaskKey[File]("package-playdoc", "Package play documentation")
 
   lazy val settings = Seq(
     apiDocsInclude := false,
@@ -43,6 +44,31 @@ object Docs {
       docMappings ++ apiDocMappings ++ webjarMappings
     }
   )
+
+  def playdocSettings: Seq[Setting[_]] =
+    Defaults.packageTaskSettings(packagePlaydoc, mappings in packagePlaydoc) ++
+    Seq(
+      ivyConfigurations += Webjars,
+      extractWebjars <<= extractWebjarContents,
+      libraryDependencies ++= Dependencies.playdocWebjarDependencies,
+      mappings in packagePlaydoc := {
+        val base = (baseDirectory in ThisBuild).value
+        val docBase = base.getParentFile / "documentation"
+        val raw = (docBase / "manual").*** +++ (docBase / "style").***
+        val filtered = raw.filter(_.getName != ".DS_Store")
+        val docMappings = filtered.get pair relativeTo(docBase)
+
+        // The play version is added so that resource paths are versioned
+        val webjars = extractWebjars.value
+        val playVersion = version.value
+        val webjarMappings = webjars.*** pair rebase(webjars, "webjars/" + playVersion)
+
+        docMappings ++ webjarMappings
+      },
+      artifactClassifier in packagePlaydoc := Some("playdoc"),
+      artifact in packagePlaydoc ~= { _.copy(configurations = Seq(Configurations.Docs)) }
+    ) ++
+    addArtifact(artifact in packagePlaydoc, packagePlaydoc)
 
   def apiDocsTask(scalaSources: Seq[File], javaSources: Seq[File], classpath: Seq[File], buildBase: File,
                   target: File, compilers: Compiler.Compilers, streams: TaskStreams, scalaVersion: String): File = {
