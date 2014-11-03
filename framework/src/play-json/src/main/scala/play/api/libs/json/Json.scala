@@ -3,6 +3,7 @@
  */
 package play.api.libs.json
 
+import java.io.InputStream
 import play.api.libs.iteratee.Execution.Implicits.defaultExecutionContext
 
 /**
@@ -17,6 +18,14 @@ object Json {
    * @return the JsValue representing the string
    */
   def parse(input: String): JsValue = JacksonJson.parseJsValue(input)
+
+  /**
+   * Parse an InputStream representing a json, and return it as a JsValue.
+   *
+   * @param input as InputStream to parse
+   * @return the JsValue representing the InputStream
+   */
+  def parse(input: InputStream): JsValue = JacksonJson.parseJsValue(input)
 
   /**
    * Parse a byte array representing a json, and return it as a JsValue.

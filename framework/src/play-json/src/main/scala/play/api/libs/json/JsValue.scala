@@ -3,6 +3,7 @@
  */
 package play.api.libs.json
 
+import java.io.InputStream
 import scala.annotation.tailrec
 import scala.collection._
 import scala.collection.mutable.ListBuffer
@@ -477,12 +478,18 @@ private[play] object JacksonJson {
 
   private[this] def jsonParser(data: Array[Byte]): JsonParser = jsonFactory.createParser(data)
 
+  private[this] def jsonParser(stream: InputStream): JsonParser = jsonFactory.createParser(stream)
+
   def parseJsValue(data: Array[Byte]): JsValue = {
     mapper.readValue(jsonParser(data), classOf[JsValue])
   }
 
   def parseJsValue(input: String): JsValue = {
     mapper.readValue(jsonParser(input), classOf[JsValue])
+  }
+
+  def parseJsValue(stream: InputStream): JsValue = {
+    mapper.readValue(jsonParser(stream), classOf[JsValue])
   }
 
   def generateFromJsValue(jsValue: JsValue, escapeNonASCII: Boolean = false): String = {
