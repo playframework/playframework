@@ -962,6 +962,7 @@ public class Http {
         String AUTHORIZATION = "Authorization";
         String CACHE_CONTROL = "Cache-Control";
         String CONNECTION = "Connection";
+        String CONTENT_DISPOSITION = "Content-Disposition";
         String CONTENT_ENCODING = "Content-Encoding";
         String CONTENT_LANGUAGE = "Content-Language";
         String CONTENT_LENGTH = "Content-Length";
@@ -972,7 +973,7 @@ public class Http {
         String CONTENT_TYPE = "Content-Type";
         String COOKIE = "Cookie";
         String DATE = "Date";
-        String ETAG = "Etag";
+        String ETAG = "ETag";
         String EXPECT = "Expect";
         String EXPIRES = "Expires";
         String FROM = "From";
@@ -1012,6 +1013,10 @@ public class Http {
         String ORIGIN = "Origin";
         String ACCESS_CONTROL_REQUEST_METHOD = "Access-Control-Request-Method";
         String ACCESS_CONTROL_REQUEST_HEADERS = "Access-Control-Request-Headers";
+        String X_FORWARDED_FOR = "X-Forwarded-For";
+        String X_FORWARDED_HOST = "X-Forwarded-Host";
+        String X_FORWARDED_PORT = "X-Forwarded-Port";
+        String X_FORWARDED_PROTO = "X-Forwarded-Proto";
     }
 
     /**
