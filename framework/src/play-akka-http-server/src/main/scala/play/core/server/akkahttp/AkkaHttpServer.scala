@@ -6,8 +6,7 @@ import akka.http.model._
 import akka.http.model.headers.{ `Content-Length`, `Content-Type` }
 import akka.io.IO
 import akka.pattern.ask
-import akka.stream.scaladsl.Flow
-import akka.stream.{ FlattenStrategy, MaterializerSettings, FlowMaterializer }
+import akka.stream.scaladsl2._
 import akka.util.{ ByteString, Timeout }
 import com.typesafe.config.{ ConfigFactory, Config }
 import java.net.InetSocketAddress
@@ -38,12 +37,12 @@ class AkkaHttpServer(config: ServerConfig, appProvider: ApplicationProvider) ext
   // Remember that some user config may not be available in development mode due to
   // its unusual ClassLoader.
   val userConfig = ConfigFactory.load().getObject("play.akka-http-server").toConfig
-  val system: ActorSystem = {
-    implicit val system = ActorSystem(userConfig.getString("actor-system"), userConfig)
+  implicit val system = ActorSystem(userConfig.getString("actor-system"), userConfig)
+  implicit val materializer = FlowMaterializer()
 
-    // Bind the sockt
+  {
+    // Bind the socket
     import system.dispatcher
-    implicit val materializer = FlowMaterializer(MaterializerSettings())
 
     val bindingFuture = {
       import java.util.concurrent.TimeUnit.MILLISECONDS
@@ -52,14 +51,13 @@ class AkkaHttpServer(config: ServerConfig, appProvider: ApplicationProvider) ext
     }
     bindingFuture foreach {
       case Http.ServerBinding(localAddress, connectionStream) =>
-        Flow(connectionStream).foreach {
+        Source(connectionStream).foreach {
           case Http.IncomingConnection(remoteAddress, requestPublisher, responseSubscriber) ⇒
-            Flow(requestPublisher)
-              .mapFuture(handleRequest(remoteAddress, _))
-              .produceTo(responseSubscriber)
+            Source(requestPublisher)
+              .mapAsync(handleRequest(remoteAddress, _))
+              .connect(Sink(responseSubscriber)).run()
         }
     }
-    system
   }
 
   // Each request needs an id
@@ -145,13 +143,13 @@ class AkkaHttpServer(config: ServerConfig, appProvider: ApplicationProvider) ext
         Enumerator.apply[Array[Byte]](data.toArray) >>> Enumerator.eof
       case HttpEntity.Default(_, 0, _) =>
         Enumerator.eof
-      case HttpEntity.Default(contentType, contentLength, pubr) =>
+      case HttpEntity.Default(contentType, contentLength, data) =>
         // FIXME: should do something with the content-length?
-        Streams.publisherToEnumerator(pubr) &> Enumeratee.map((data: ByteString) => data.toArray)
+        AkkaStreamsConversion.sourceToEnumerator(data) &> Enumeratee.map((data: ByteString) => data.toArray)
       case HttpEntity.Chunked(contentType, chunks) =>
         // FIXME: Don't enumerate LastChunk?
         // FIXME: do something with trailing headers?
-        Streams.publisherToEnumerator(chunks) &> Enumeratee.map((chunk: HttpEntity.ChunkStreamPart) => chunk.data.toArray)
+        AkkaStreamsConversion.sourceToEnumerator(chunks) &> Enumeratee.map((chunk: HttpEntity.ChunkStreamPart) => chunk.data.toArray)
     }
 
     val actionIteratee: Iteratee[Array[Byte], Result] = action(taggedRequestHeader)

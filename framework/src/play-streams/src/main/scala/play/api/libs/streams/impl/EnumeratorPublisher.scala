@@ -6,21 +6,32 @@ import play.api.libs.iteratee._
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.{ Failure, Success, Try }
 
-/**
- * Adapts an Enumerator to a Publisher.
- */
-private[streams] final class EnumeratorPublisher[T](
-    val enum: Enumerator[T],
-    val emptyElement: Option[T] = None) extends AbstractPublisher[T, EnumeratorPublisherSubscription[T]] {
+import scala.language.higherKinds
 
-  override protected def createSubscription(subr: Subscriber[T]) = new EnumeratorPublisherSubscription(this, subr)
-  override protected def onSubscriptionAdded(subscription: EnumeratorPublisherSubscription[T]): Unit = {
-    subscription.subscriber.onSubscribe(subscription)
+/**
+ * Creates Subscriptions that link Subscribers to an Enumerator.
+ */
+private[streams] trait EnumeratorSubscriptionFactory[T] extends SubscriptionFactory[T] {
+
+  def enum: Enumerator[T]
+  def emptyElement: Option[T]
+
+  override def createSubscription[U >: T](
+    subr: Subscriber[U],
+    onSubscriptionEnded: SubscriptionHandle[U] => Unit) = {
+    new EnumeratorSubscription[T, U](enum, emptyElement, subr, onSubscriptionEnded)
   }
 
 }
 
-private[streams] object EnumeratorPublisherSubscription {
+/**
+ * Adapts an Enumerator to a Publisher.
+ */
+private[streams] final class EnumeratorPublisher[T](
+  val enum: Enumerator[T],
+  val emptyElement: Option[T] = None) extends RelaxedPublisher[T] with EnumeratorSubscriptionFactory[T]
+
+private[streams] object EnumeratorSubscription {
 
   /**
    * Internal state of the Publisher.
@@ -32,7 +43,7 @@ private[streams] object EnumeratorPublisherSubscription {
    * @param attached The attached Iteratee we're using to read from the
    * Enumerator. Will be Unattached until the first element is requested.
    */
-  final case class Requested[T](n: Int, attached: IterateeState[T]) extends State[T]
+  final case class Requested[T](n: Long, attached: IterateeState[T]) extends State[T]
   /**
    * A Subscription completed by the Publisher.
    */
@@ -59,19 +70,29 @@ private[streams] object EnumeratorPublisherSubscription {
 
 }
 
-import EnumeratorPublisherSubscription._
+import EnumeratorSubscription._
 
 /**
  * Adapts an Enumerator to a Publisher.
  */
-private[streams] class EnumeratorPublisherSubscription[T](pubr: EnumeratorPublisher[T], subr: Subscriber[T])
-    extends StateMachine[State[T]](initialState = Requested[T](0, Unattached)) with CheckableSubscription[T] {
+private[streams] class EnumeratorSubscription[T, U >: T](
+  enum: Enumerator[T],
+  emptyElement: Option[T],
+  subr: Subscriber[U],
+  onSubscriptionEnded: SubscriptionHandle[U] => Unit)
+    extends StateMachine[State[T]](initialState = Requested[T](0, Unattached))
+    with Subscription with SubscriptionHandle[U] {
 
-  // CheckableSubscription methods
+  // SubscriptionHandle methods
 
-  override def subscriber: Subscriber[T] = subr
+  override def start(): Unit = {
+    subr.onSubscribe(this)
+  }
+
+  override def subscriber: Subscriber[U] = subr
+
   override def isActive: Boolean = {
-    // run immediately, don't wait for exclusive access
+    // run immediately, don't need to wait for exclusive access
     state match {
       case Requested(_, _) => true
       case Completed | Cancelled => false
@@ -80,7 +101,7 @@ private[streams] class EnumeratorPublisherSubscription[T](pubr: EnumeratorPublis
 
   // Streams methods
 
-  override def request(elements: Int): Unit = {
+  override def request(elements: Long): Unit = {
     if (elements <= 0) throw new IllegalArgumentException(s"The number of requested elements must be > 0: requested $elements elements")
     exclusive {
       case Requested(0, its) =>
@@ -158,7 +179,7 @@ private[streams] class EnumeratorPublisherSubscription[T](pubr: EnumeratorPublis
         case Input.El(el) =>
           elementEnumerated(el)
         case Input.Empty =>
-          pubr.emptyElement match {
+          emptyElement match {
             case None => emptyEnumerated()
             case Some(el) => elementEnumerated(el)
           }
@@ -169,7 +190,7 @@ private[streams] class EnumeratorPublisherSubscription[T](pubr: EnumeratorPublis
     }
     its match {
       case Unattached =>
-        pubr.enum(iteratee)
+        enum(iteratee)
       case Attached(link0) =>
         link0.success(iteratee)
     }

@@ -12,12 +12,11 @@ import scala.util.{ Failure, Success, Try }
 
 class IterateeSubscriberSpec extends Specification {
 
-  case class RequestMore(elementCount: Int)
-  case object Cancel
+  import PublisherEvents._
   case class ContInput(input: Input[_])
   case class Result(result: Any)
 
-  class TestEnv[T] extends EventRecorder() {
+  class TestEnv[T] extends EventRecorder() with PublisherEvents[T] {
 
     @volatile
     var nextIterateePromise = Promise[Iteratee[T, T]]()
@@ -49,51 +48,6 @@ class IterateeSubscriberSpec extends Specification {
 
     def errorStep(msg: String, input: Input[T]): Unit = {
       nextIterateePromise.success(Error(msg, input))
-    }
-
-    object publisher extends Publisher[T] {
-      object subscription extends Subscription {
-        val subscriber = Promise[Subscriber[T]]()
-
-        def cancel(): Unit = {
-          record(Cancel)
-        }
-
-        def request(elements: Int): Unit = {
-          record(RequestMore(elements))
-        }
-      }
-      override def subscribe(s: Subscriber[T]) = {
-        subscription.subscriber.success(s)
-      }
-    }
-
-    def forSubscriber(f: Subscriber[T] => Any): Future[Unit] = {
-      publisher.subscription.subscriber.future.map(f).map(_ => ())
-    }
-
-    def onSubscribe(): Unit = {
-      forSubscriber { s =>
-        s.onSubscribe(publisher.subscription)
-      }
-    }
-
-    def onNext(element: T): Unit = {
-      forSubscriber { s =>
-        s.onNext(element)
-      }
-    }
-
-    def onError(t: Throwable): Unit = {
-      forSubscriber { s =>
-        s.onError(t)
-      }
-    }
-
-    def onComplete(): Unit = {
-      forSubscriber { s =>
-        s.onComplete()
-      }
     }
 
   }

@@ -131,7 +131,7 @@ object Dependencies {
   )
 
   val akkaHttp = Seq(
-    "com.typesafe.akka" %% "akka-http-core-experimental" % "0.6"
+    "com.typesafe.akka" %% "akka-http-core-experimental" % "0.9"
   )
 
   val routersCompilerDependencies =  Seq(
@@ -196,7 +196,7 @@ object Dependencies {
   ) ++ specsBuild.map(_ % Test)
 
   val streamsDependencies = Seq(
-    "org.reactivestreams" % "reactive-streams" % "0.4.0.M1"
+    "org.reactivestreams" % "reactive-streams" % "0.4.0.M2"
   ) ++ specsBuild.map(_ % "test")
 
   val jsonDependencies = Seq(

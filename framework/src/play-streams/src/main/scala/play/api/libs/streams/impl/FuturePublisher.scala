@@ -6,25 +6,28 @@ import play.api.libs.iteratee.Execution
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
 
-/**
- * Adapts a Future to a Publisher.
+/*
+ * Creates Subscriptions that link Subscribers to a Future.
  */
-private[streams] final class FuturePublisher[T](fut: Future[T]) extends AbstractPublisher[T, FuturePublisherSubscription[T]] {
+private[streams] trait FutureSubscriptionFactory[T] extends SubscriptionFactory[T] {
 
-  override protected def createSubscription(subr: Subscriber[T]) = new FuturePublisherSubscription(this, subr, fut)
-  override protected def onSubscriptionAdded(subscription: FuturePublisherSubscription[T]): Unit = {
-    fut.value match {
-      case Some(Failure(t)) =>
-        subscription.subscriber.onError(t)
-        removeSubscription(subscription)
-      case _ =>
-        subscription.subscriber.onSubscribe(subscription)
-    }
+  def fut: Future[T]
+
+  override def createSubscription[U >: T](
+    subr: Subscriber[U],
+    onSubscriptionEnded: SubscriptionHandle[U] => Unit) = {
+    new FutureSubscription[T, U](fut, subr, onSubscriptionEnded)
   }
 
 }
 
-private[streams] object FuturePublisherSubscription {
+/**
+ * Adapts an Future to a Publisher.
+ */
+private[streams] final class FuturePublisher[T](
+  val fut: Future[T]) extends RelaxedPublisher[T] with FutureSubscriptionFactory[T]
+
+private[streams] object FutureSubscription {
   /**
    * Possible states of the Subscription.
    */
@@ -49,23 +52,37 @@ private[streams] object FuturePublisherSubscription {
   final case object Cancelled extends State
 }
 
-import FuturePublisherSubscription._
+import FutureSubscription._
 
-private[streams] class FuturePublisherSubscription[T](pubr: FuturePublisher[T], subr: Subscriber[T], fut: Future[T])
-    extends StateMachine[State](initialState = AwaitingRequest) with CheckableSubscription[T] {
+private[streams] class FutureSubscription[T, U >: T](
+  fut: Future[T],
+  subr: Subscriber[U],
+  onSubscriptionEnded: SubscriptionHandle[U] => Unit)
+    extends StateMachine[State](initialState = AwaitingRequest)
+    with Subscription with SubscriptionHandle[U] {
 
-  // CheckableSubscription methods
+  // SubscriptionHandle methods
+
+  override def start(): Unit = {
+    fut.value match {
+      case Some(Failure(t)) =>
+        subscriber.onError(t)
+        onSubscriptionEnded(this)
+      case _ =>
+        subscriber.onSubscribe(this)
+    }
+  }
 
   override def isActive: Boolean = state match {
     case AwaitingRequest | Requested => true
     case Cancelled | Completed => false
   }
 
-  override def subscriber: Subscriber[T] = subr
+  override def subscriber: Subscriber[U] = subr
 
   // Streams methods
 
-  override def request(elements: Int): Unit = {
+  override def request(elements: Long): Unit = {
     if (elements <= 0) throw new IllegalArgumentException(s"The number of requested elements must be > 0: requested $elements elements")
     exclusive {
       case AwaitingRequest =>
@@ -112,7 +129,7 @@ private[streams] class FuturePublisherSubscription[T](pubr: FuturePublisher[T], 
         case Failure(t) =>
           subr.onError(t)
       }
-      pubr.removeSubscription(this)
+      onSubscriptionEnded(this)
     case Cancelled =>
       ()
     case Completed =>
