@@ -14,6 +14,8 @@ import akka.util.Timeout
 
 object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
 
+  implicit override def defaultAwaitTimeout: Timeout = 2.minutes
+
   sequential
 
   def requestFromServer[T](path: String)(exec: WSRequestHolder => Future[WSResponse])(routes: PartialFunction[(String, String), Handler])(check: WSResponse => T): T = {
@@ -26,6 +28,18 @@ object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
   }
 
   "AkkaHttpServer" should {
+
+    "send response statii" in {
+      requestFromServer("/def") { request =>
+        request.get()
+      } {
+        case ("GET", "/abc") => Action { implicit request =>
+          ???
+        }
+      } { response =>
+        response.status must_== 404
+      }
+    }
 
     "send hello world" in {
       requestFromServer("/hello") { request =>
@@ -101,18 +115,6 @@ object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
       } { response =>
         response.status must_== 200
         response.body must_== "Hello Bob"
-      }
-    }
-
-    "send response statii" in {
-      requestFromServer("/def") { request =>
-        request.get()
-      } {
-        case ("GET", "/abc") => Action { implicit request =>
-          ???
-        }
-      } { response =>
-        response.status must_== 404
       }
     }
 
