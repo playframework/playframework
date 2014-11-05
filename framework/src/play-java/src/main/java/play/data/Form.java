@@ -325,6 +325,7 @@ public class Form<T> {
         dataBinder.setValidator(validator);
         dataBinder.setConversionService(play.data.format.Formatters.conversion);
         dataBinder.setAutoGrowNestedPaths(true);
+        dataBinder.setAutoGrowCollectionLimit(Integer.MAX_VALUE);
         dataBinder.bind(new MutablePropertyValues(objectData));
         Set<ConstraintViolation<Object>> validationErrors;
         if (groups != null) {
