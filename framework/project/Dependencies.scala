@@ -128,7 +128,7 @@ object Dependencies {
   val netty = Seq(
     "io.netty"           % "netty"                 % "3.9.3.Final",
     "com.typesafe.netty" % "netty-http-pipelining" % "1.1.2"
-  )
+  ) ++ specsBuild.map(_ % Test)
 
   val akkaHttp = Seq(
     "com.typesafe.akka" %% "akka-http-core-experimental" % "0.9"
