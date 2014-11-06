@@ -91,7 +91,7 @@ packageDescription := "My longer package description"
 Build your package with
 
 ```bash
-play debian:packageBin
+activator debian:packageBin
 ```
 
 #### Minimal RPM settings
@@ -116,7 +116,7 @@ rpmLicense := Some("Apache v2")
 ```
 
 ```bash
-play rpm:packageBin
+activator rpm:packageBin
 ```
 
 > There will be some error logging. This is rpm logging on stderr instead of stdout !
