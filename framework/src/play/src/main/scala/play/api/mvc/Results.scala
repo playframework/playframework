@@ -731,7 +731,7 @@ trait Results {
    *
    * @param url the URL to redirect to
    * @param queryString queryString parameters to add to the queryString
-   * @param status HTTP status
+   * @param status HTTP status for redirect, such as SEE_OTHER, MOVED_TEMPORARILY or MOVED_PERMANENTLY
    */
   def Redirect(url: String, queryString: Map[String, Seq[String]] = Map.empty, status: Int = SEE_OTHER) = {
     import java.net.URLEncoder
@@ -754,7 +754,7 @@ trait Results {
    * Generates a redirect simple result.
    *
    * @param call Call defining the URL to redirect to, which typically comes from the reverse router
-   * @param status HTTP status
+   * @param status HTTP status for redirect, such as SEE_OTHER, MOVED_TEMPORARILY or MOVED_PERMANENTLY
    */
   def Redirect(call: Call, status: Int): Result = Redirect(call.url, Map.empty, status)
 

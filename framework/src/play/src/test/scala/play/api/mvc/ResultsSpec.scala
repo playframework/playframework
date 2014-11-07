@@ -119,6 +119,14 @@ object ResultsSpec extends Specification {
       (rh.status aka "status" must_== UNAUTHORIZED) and
         (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beNone)
     }
+
+    "support redirects for reverse routed calls" in {
+      Results.Redirect(Call("GET", "/path")).header must_== Status(303).withHeaders(LOCATION -> "/path").header
+    }
+
+    "support redirects for reverse routed calls with custom statuses" in {
+      Results.Redirect(Call("GET", "/path"), TEMPORARY_REDIRECT).header must_== Status(TEMPORARY_REDIRECT).withHeaders(LOCATION -> "/path").header
+    }
   }
 
   "chunking enumeratee" should {
