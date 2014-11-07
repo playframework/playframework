@@ -111,4 +111,15 @@ public class JavaSessionFlash extends WithApplication {
         }, fakeRequest()));
         assertThat(flash.get("success"), equalTo("The item has been created"));
     }
+
+    @Test
+    public void accessFlashInTemplate() {
+        MockJavaAction index = new MockJavaAction() {
+            public Result index() {
+                return ok(javaguide.http.views.html.index.render());
+            }
+        };
+        assertThat(contentAsString(call(index, fakeRequest())).trim(), equalTo("Welcome!"));
+        assertThat(contentAsString(call(index, fakeRequest().withFlash("success", "Flashed!"))).trim(), equalTo("Flashed!"));
+    }
 }

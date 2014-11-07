@@ -49,3 +49,7 @@ So for example, after saving an item, you might want to redirect the user back t
 Then in the index action, you could check if the success message existed in the flash scope, and if so, render it:
 
 @[read-flash](code/javaguide/http/JavaSessionFlash.java)
+
+A flash value is also automatically available in Twirl templates. For example:
+
+@[flash-template](code/javaguide/http/views/index.scala.html)
