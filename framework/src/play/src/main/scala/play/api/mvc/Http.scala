@@ -64,18 +64,15 @@ package play.api.mvc {
     /**
      * The client IP address.
      *
-     * If the `X-Forwarded-For` header is present, then this method will return the value in that header
-     * if either the local address is 127.0.0.1, or if `trustxforwarded` is configured to be true in the
-     * application configuration file.
+     * retrieves the last untrusted proxy
+     * from the Forwarded-Headers or the X-Forwarded-*-Headers.
+     *
+     *
      */
     def remoteAddress: String
 
     /**
      * Is the client using SSL?
-     *
-     * If the <code>X-Forwarded-Proto</code> header is present, then this method will return true
-     * if the value in that header is "https", if either the local address is 127.0.0.1, or if
-     * <code>trustxforwarded</code> is configured to be true in the application configuration file.
      */
     def secure: Boolean
 

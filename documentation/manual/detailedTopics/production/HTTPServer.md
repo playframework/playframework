@@ -23,18 +23,18 @@ The `/etc/lighttpd/lighttpd.conf` file should define things like this:
 server.modules = (
       "mod_access",
       "mod_proxy",
-      "mod_accesslog" 
+      "mod_accesslog"
 )
 …
 $HTTP["host"] =~ "www.myapp.com" {
     proxy.balance = "round-robin" proxy.server = ( "/" =>
         ( ( "host" => "127.0.0.1", "port" => 9000 ) ) )
 }
- 
+
 $HTTP["host"] =~ "www.loadbalancedapp.com" {
-    proxy.balance = "round-robin" proxy.server = ( "/" => ( 
-          ( "host" => "127.0.0.1", "port" => 9001 ), 
-          ( "host" => "127.0.0.1", "port" => 9002 ) ) 
+    proxy.balance = "round-robin" proxy.server = ( "/" => (
+          ( "host" => "127.0.0.1", "port" => 9001 ),
+          ( "host" => "127.0.0.1", "port" => 9002 ) )
     )
 }
 ```
@@ -197,3 +197,22 @@ Note that [ProxyPassReverse might rewrite incorrectly headers](https://issues.ap
 ProxyPassReverse / http://localhost:9999
 ProxyPassReverse / http://localhost:9998
 ```
+
+## Configure trusted proxies
+
+To determine the client IP address Play has to know which are the trusted proxies in your network.
+
+Those can be configured with `play.http.forwarded.trustedProxies`. You can define a list of proxies
+and/or subnet masks that Play recognizes as belonging to your network.
+
+Default is `127.0.0.1` and `::FF`
+
+There exists two possibilities how proxies are set in the HTTP-headers:
+
+  * the legacy method with X-Forwarded headers
+  * the RFC 7239 with Forwarded headers
+
+The type of header to parse is set via `play.http.forwarded.version`. Valid values are `x-forwarded` or `rfc7239`.
+The default is `x-forwarded`.
+
+For more information, please read the [RFC 7239](http://tools.ietf.org/html/rfc7239).

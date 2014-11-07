@@ -298,18 +298,14 @@ public class Http {
         /**
          * The client IP address.
          *
-         * If the <code>X-Forwarded-For</code> header is present, then this method will return the value in that header
-         * if either the local address is 127.0.0.1, or if <code>trustxforwarded</code> is configured to be true in the
-         * application configuration file.
+         * retrieves the last untrusted proxy
+         * from the Forwarded-Headers or the X-Forwarded-*-Headers.
          */
         public abstract String remoteAddress();
 
         /**
          * Is the client using SSL?
          *
-         * If the <code>X-Forwarded-Proto</code> header is present, then this method will return true
-         * if the value in that header is "https", if either the local address is 127.0.0.1, or if
-         * <code>trustxforwarded</code> is configured to be true in the application configuration file.
          */
         public abstract boolean secure();
 
@@ -976,6 +972,7 @@ public class Http {
         String ETAG = "ETag";
         String EXPECT = "Expect";
         String EXPIRES = "Expires";
+        String FORWARDED = "Forwarded";
         String FROM = "From";
         String HOST = "Host";
         String IF_MATCH = "If-Match";
