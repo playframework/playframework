@@ -18,6 +18,12 @@ object IterateesSpec extends Specification
     }
   }
 
+  def checkFoldTryResult[A, E](i: Iteratee[A, E], expected: Try[Step[A, E]]) = {
+    mustExecute(0) { foldEC =>
+      Try(await(i.fold(s => Future.successful(s))(foldEC))) must equalTo(expected)
+    }
+  }
+
   def checkUnflattenResult[A, E](i: Iteratee[A, E], expected: Step[A, E]) = {
     await(i.unflatten) must equalTo(expected)
   }
@@ -49,6 +55,12 @@ object IterateesSpec extends Specification
 
     "delegate folding to their promised iteratee" in {
       checkFoldResult(i, Step.Done(1, Input.El("x")))
+    }
+
+    "return errors in flattened failed future" in {
+      val ex = new Exception("exception message")
+      val flattenedFailedFuture = Iteratee.flatten(Future.failed(ex))
+      checkFoldTryResult[Nothing, Nothing](flattenedFailedFuture, Failure(ex))
     }
 
     "return immediate fold errors in promise" in {
