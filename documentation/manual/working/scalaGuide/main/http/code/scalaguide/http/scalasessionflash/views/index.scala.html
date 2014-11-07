@@ -1,0 +1,6 @@
+@* #flash-template *@
+@()(implicit flash: Flash)
+...
+@flash.get("success").getOrElse("Welcome!")
+...
+@* #flash-template *@

@@ -89,14 +89,15 @@ package scalaguide.http.scalasessionflash {
         assertAction(save, SEE_OTHER, FakeRequest())(res => testFlash(res, "success", Some("The item has been created")))
       }
 
-      "fix could not find implicit value for parameter flash" in {
-        //#find-noflash
-        def index() = Action {
-          implicit request =>
-            Ok(views.html.Application.index())
+      "access flash in template" in {
+        //#flash-implicit-request
+        def index = Action { implicit request =>
+          Ok(views.html.index())
         }
-        //#find-noflash
-        assertAction(index, OK, FakeRequest())(res => contentAsString(res) must contain("Good"))
+        //#flash-implicit-request
+
+        assertAction(index, OK, FakeRequest())(result => contentAsString(result) must contain("Welcome!"))
+        assertAction(index, OK, FakeRequest().withFlash("success" -> "Flashed!"))(result => contentAsString(result) must contain("Flashed!"))
       }
 
     }
@@ -121,11 +122,4 @@ package scalaguide.http.scalasessionflash {
     }
   }
 
-}
-
-// Faking a form view
-package views.html {
-  object Application {
-    def index() = "Good Job!"
-  }
 }
