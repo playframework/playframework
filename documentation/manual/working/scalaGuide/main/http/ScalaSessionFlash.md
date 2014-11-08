@@ -56,16 +56,14 @@ Here are a few examples using the Flash scope:
 
 @[using-flash](code/ScalaSessionFlash.scala)
 
+To retrieve the Flash scope value in your view, add an implicit Flash parameter:
 
+@[flash-template](code/scalaguide/http/scalasessionflash/views/index.scala.html)
 
-To retrieve the Flash scope value in your view, just add an implicit with Flash:
-```
-@()(implicit flash: Flash)
-...
-@flash.get("success").getOrElse("Welcome!")
-...
-```
+And in your Action, specify an `implicit request =>` as shown below:
 
-If the error '_could not find implicit value for parameter flash: play.api.mvc.Flash_' is raised then this is because your Action didn't import a request object. Add an "implicit request=>" as show below:
+@[flash-implicit-request](code/ScalaSessionFlash.scala)
 
-@[find-noflash](code/ScalaSessionFlash.scala)
+An implicit Flash will be provided to the view based on the implicit request.
+
+If the error '_could not find implicit value for parameter flash: play.api.mvc.Flash_' is raised then this is because your Action didn't have an implicit request in scope.
