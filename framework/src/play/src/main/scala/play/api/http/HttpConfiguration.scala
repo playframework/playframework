@@ -36,7 +36,7 @@ case class SessionConfiguration(cookieName: String = "PLAY_SESSION", secure: Boo
  *
  * @param cookieName The name of the cookie used to store the session
  */
-case class FlashConfiguration(cookieName: String = "PLAY_FLASH")
+case class FlashConfiguration(cookieName: String = "PLAY_FLASH", secure: Boolean = false)
 
 object HttpConfiguration {
 
@@ -64,7 +64,8 @@ object HttpConfiguration {
         domain = configuration.getDeprecatedStringOpt("play.http.session.domain", "session.domain")
       ),
       flash = FlashConfiguration(
-        cookieName = configuration.getDeprecatedString("play.http.flash.cookieName", "flash.cookieName")
+        cookieName = configuration.getDeprecatedString("play.http.flash.cookieName", "flash.cookieName"),
+        secure = configuration.getBoolean("play.http.flash.secure").getOrElse(false)
       )
     )
   }
