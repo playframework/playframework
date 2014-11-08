@@ -68,7 +68,7 @@ For any custom configuration beyond log levels, you will need to specify your ow
 
 ### Using a configuration file from project source
 
-You can provide a default logging configuration by providing a file called `logback.xml`.
+You can provide a default logging configuration by providing a file called `conf/logback.xml`.
 
 ### Using an external configuration file
 
