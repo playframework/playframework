@@ -27,13 +27,7 @@ import akka.util.Timeout
 /**
  * Helper functions to run tests.
  */
-trait PlayRunners {
-
-  val GET = "GET"
-  val POST = "POST"
-  val PUT = "PUT"
-  val DELETE = "DELETE"
-  val HEAD = "HEAD"
+trait PlayRunners extends HttpVerbs {
 
   val HTMLUNIT = classOf[HtmlUnitDriver]
   val FIREFOX = classOf[FirefoxDriver]
