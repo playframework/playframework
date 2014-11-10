@@ -109,7 +109,7 @@ private[controllers] object AssetInfo {
     Some(d)
   } catch {
     case e: IllegalArgumentException =>
-      Logger.debug(s"An invalidate date was received: $date", e)
+      Logger.debug(s"An invalid date was received: $date", e)
       None
   }
 }
