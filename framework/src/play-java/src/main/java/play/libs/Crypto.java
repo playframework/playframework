@@ -121,7 +121,7 @@ public class Crypto {
      * <code>application.crypto.provider</code> in <code>application.conf</code>.
      * <br>
      * The transformation algorithm used is the provider specific implementation of the <code>AES</code> name.  On
-     * Oracles JDK, this is <code>AES/ECB/PKCS5Padding</code>.  This algorithm is suitable for small amounts of data,
+     * Oracles JDK, this is <code>AES/CTR/NoPadding</code>.  This algorithm is suitable for small amounts of data,
      * typically less than 32 bytes, hence is useful for encrypting credit card numbers, passwords etc.  For larger
      * blocks of data, this algorithm may expose patterns and be vulnerable to repeat attacks.
      * <br>
@@ -145,7 +145,7 @@ public class Crypto {
      * <code>application.crypto.provider</code> in <code>application.conf</code>.
      * <br>
      * The transformation algorithm used is the provider specific implementation of the <code>AES</code> name.  On
-     * Oracles JDK, this is <code>AES/ECB/PKCS5Padding</code>.  This algorithm is suitable for small amounts of data,
+     * Oracles JDK, this is <code>AES/CTR/NoPadding</code>.  This algorithm is suitable for small amounts of data,
      * typically less than 32bytes, hence is useful for encrypting credit card numbers, passwords etc.  For larger
      * blocks of data, this algorithm may expose patterns and be vulnerable to repeat attacks.
      * <br>
@@ -167,7 +167,7 @@ public class Crypto {
      * The provider used is by default this uses the platform default JSSE provider.  This can be overridden by defining
      * <code>application.crypto.provider</code> in <code>application.conf</code>.
      * <br>
-     * The transformation used is by default <code>AES/ECB/PKCS5Padding</code>.  It can be configured by defining
+     * The transformation used is by default <code>AES/CTR/NoPadding</code>.  It can be configured by defining
      * <code>application.crypto.aes.transformation</code> in <code>application.conf</code>.  Although any cipher
      * transformation algorithm can be selected here, the secret key spec used is always AES, so only AES transformation
      * algorithms will work.
@@ -187,7 +187,7 @@ public class Crypto {
      * The provider used is by default this uses the platform default JSSE provider.  This can be overridden by defining
      * <code>application.crypto.provider</code> in <code>application.conf</code>.
      * <br>
-     * The transformation used is by default <code>AES/ECB/PKCS5Padding</code>.  It can be configured by defining
+     * The transformation used is by default <code>AES/CTR/NoPadding</code>.  It can be configured by defining
      * <code>application.crypto.aes.transformation</code> in <code>application.conf</code>.  Although any cipher
      * transformation algorithm can be selected here, the secret key spec used is always AES, so only AES transformation
      * algorithms will work.

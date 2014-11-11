@@ -113,3 +113,16 @@ If you use the Java API, the [`F.Promise`](api/java/play/libs/F.Promise.html) cl
 | Old API | New API | Comments |
 | ------- | --------| -------- |
 | [`TimeoutException`](http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/TimeoutException.html) | [`F.PromiseTimeoutException`](api/java/play/libs/F.PromiseTimeoutException.html) | |
+
+### Crypto APIs
+
+Play's Crypto API improves security by supporting encryption methods that use initialization vectors and by changing the default encryption transformation to `AES/CTR/NoPadding`. To add this support, the Play 2.4 encryption format has changed slightly. This means that cookies and other data encrypted in Play 2.4 will not be readable by older versions of Play. However, Play 2.4 can read cookies and other data encrypted in both the old and new format.
+
+The crypto transformation is configured in `play.crypto.aes.transformation` and the default value has changed from `AES` to `AES/CTR/NoPadding`, which is more secure.
+
+When you call `Crypto.encryptAES` in Play 2.4 it will use the configured transformation (default `AES/CTR/NoPadding`) to encrypt the data and then encode the result in the new format that supports initialization vectors.
+
+When you call `Crypto.decryptAES` it will decode both the old and new formats. The old format is always decoded using the AES transformation. The new format is decoded using the configured transformation (default `AES/CTR/NoPadding`).
+
+If you wish to continue using the older format of encryption decryption, here is the [link] (https://github.com/playframework/playframework/blob/2.3.6/framework/src/play/src/main/scala/play/api/libs/Crypto.scala#L187-L277) that provides all the necessary information.
+
