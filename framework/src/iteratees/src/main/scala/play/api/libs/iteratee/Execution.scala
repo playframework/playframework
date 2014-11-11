@@ -33,26 +33,28 @@ object Execution {
     private val local = new ThreadLocal[Deque[Runnable]]
 
     def execute(runnable: Runnable): Unit = {
-      @volatile var queue = local.get()
-      if (queue == null) {
-        // Since there is no local queue, we need to install one and
-        // start our trampolining loop.
-        try {
-          queue = new ArrayDeque(4)
-          queue.addLast(runnable)
-          local.set(queue)
-          while (!queue.isEmpty) {
-            val runnable = queue.removeFirst()
-            runnable.run()
+      local.get match {
+        case null =>
+          // Since there is no local queue, we need to install one and
+          // start our trampolining loop.
+          try {
+            val installedQueue = new ArrayDeque[Runnable](4)
+            installedQueue.addLast(runnable)
+            local.set(installedQueue)
+            while (!installedQueue.isEmpty) {
+              val runnable = installedQueue.removeFirst()
+              runnable.run()
+            }
+          } finally {
+            // We've emptied the queue, so tidy up.
+            local.set(null)
           }
-        } finally {
-          // We've emptied the queue, so tidy up.
-          local.set(null)
-        }
-      } else {
-        // There's already a local queue that is being executed.
-        // Just stick our runnable on the end of that queue.
-        queue.addLast(runnable)
+        case existingQueue =>
+          // There's already a local queue that is being executed.
+          // Just stick our runnable on the end of that queue. The
+          // runnable will eventually be run by the call to
+          // `execute` that installed the queue.
+          existingQueue.addLast(runnable)
       }
     }
 
