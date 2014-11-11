@@ -355,7 +355,7 @@ object IterateesSpec extends Specification
     }
 
     "do nothing on a Cont iteratee that becomes Done with input" in {
-      mustExecute(1) { implicit foldEC =>
+      mustExecute(2) { implicit foldEC =>
         val it = cont(input => done(input)).recover { case t: Throwable => unexpected }
         val actual = await(Enumerator(expected) |>>> it)
         actual must equalTo(expected)
@@ -363,7 +363,7 @@ object IterateesSpec extends Specification
     }
 
     "do nothing on an eventually Cont iteratee that becomes Done with input" in {
-      mustExecute(1) { implicit foldEC =>
+      mustExecute(2) { implicit foldEC =>
         val it = delayed(cont(input => done(input))).recover { case t: Throwable => unexpected }
         val actual = await(Enumerator(expected) |>>> it)
         actual must equalTo(expected)
@@ -371,7 +371,7 @@ object IterateesSpec extends Specification
     }
 
     "do nothing on a Cont iteratee that eventually becomes Done with input" in {
-      mustExecute(1) { implicit foldEC =>
+      mustExecute(2) { implicit foldEC =>
         val it = cont(input => delayed(done(input))).recover { case t: Throwable => unexpected }
         val actual = await(Enumerator(expected) |>>> it)
         actual must equalTo(expected)
@@ -379,7 +379,7 @@ object IterateesSpec extends Specification
     }
 
     "do nothing on an Cont iteratee that eventually becomes Done with input after several steps" in {
-      mustExecute(3) { implicit foldEC =>
+      mustExecute(4) { implicit foldEC =>
         val it = delayed(
           cont(input1 => delayed(
             cont(input2 => delayed(
@@ -395,7 +395,7 @@ object IterateesSpec extends Specification
     }
 
     "recover with the expected fallback value from a Cont iteratee that eventually becomes an Error iteratee after several steps" in {
-      mustExecute(4) { implicit foldEC =>
+      mustExecute(5) { implicit foldEC =>
         val it = delayed(
           cont(input1 => delayed(
             cont(input2 => delayed(

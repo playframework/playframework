@@ -597,29 +597,24 @@ trait Iteratee[E, +A] {
    * @return
    */
   def recoverWith[B >: A](pf: PartialFunction[Throwable, Iteratee[E, B]])(implicit ec: ExecutionContext): Iteratee[E, B] = {
-    val pec = ec.prepare()
+    implicit val pec = ec.prepare()
 
-    def step(it: Iteratee[E, A])(input: Input[E]): Iteratee[E, B] = {
-      val nextIt = it.pureFlatFold[E, B] {
+    def recoveringIteratee(it: Iteratee[E, A]): Iteratee[E, B] = {
+      val futureRecoveringIteratee: Future[Iteratee[E, B]] = it.pureFlatFold[E, B] {
         case Step.Cont(k) =>
-          val n = k(input)
-          n.pureFlatFold {
-            case Step.Cont(_) => Cont(step(n))
-            case Step.Error(msg, _) => throw new IterateeExeption(msg)
-            case other => other.it
-          }(dec)
-        case Step.Error(msg, _) => throw new IterateeExeption(msg)
-        case other => other.it
-      }(dec)
-
-      Iteratee.flatten(
-        nextIt.unflatten
-          .map(_.it)(dec)
-          .recover(pf)(pec)
-      )
+          Cont { input: Input[E] =>
+            val orig: Iteratee[E, A] = k(input)
+            val recovering: Iteratee[E, B] = recoveringIteratee(orig)
+            recovering
+          }
+        case Step.Error(msg, _) =>
+          throw new IterateeException(msg)
+        case done => done.it
+      }(dec).unflatten.map(_.it)(dec).recover(pf)(pec)
+      Iteratee.flatten(futureRecoveringIteratee)
     }
 
-    Cont(step(this))
+    recoveringIteratee(this)
   }
 
   def joinI[AIn](implicit in: A <:< Iteratee[_, AIn]): Iteratee[E, AIn] = {
@@ -764,6 +759,14 @@ object Error {
 
 /**
  * An Exception that represents an Iteratee that ended up in an Error state with the given
+ * error message. This exception will eventually be removed and replaced with
+ * `IterateeException` (notice the extra `c`).
+ */
+@deprecated("Use IterateeException instead (notice the extra 'c')", "2.4.0")
+class IterateeExeption(msg: String) extends Exception(msg)
+
+/**
+ * An Exception that represents an Iteratee that ended up in an Error state with the given
  * error message.
  */
-class IterateeExeption(msg: String) extends Exception(msg)
+class IterateeException(msg: String) extends IterateeExeption(msg)
