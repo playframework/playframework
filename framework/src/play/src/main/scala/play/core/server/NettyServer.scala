@@ -8,7 +8,9 @@ import org.jboss.netty.bootstrap._
 import org.jboss.netty.channel.Channels._
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.channel.group._
+import org.jboss.netty.handler.logging.LoggingHandler
 import org.jboss.netty.handler.ssl._
+import org.jboss.netty.logging.InternalLogLevel
 
 import java.net.InetSocketAddress
 import javax.net.ssl._
@@ -93,12 +95,19 @@ class NettyServer(appProvider: ApplicationProvider, port: Option[Int], sslPort: 
           newPipeline.addLast("ssl", new SslHandler(sslEngine))
         }
       }
+      def getBooleanProperty(name: String, default: Boolean): Boolean = {
+        Option(System.getProperty(name)).map(_.equalsIgnoreCase("true")).getOrElse(default)
+      }
       val maxInitialLineLength = Option(System.getProperty("http.netty.maxInitialLineLength")).map(Integer.parseInt(_)).getOrElse(4096)
       val maxHeaderSize = Option(System.getProperty("http.netty.maxHeaderSize")).map(Integer.parseInt(_)).getOrElse(8192)
       val maxChunkSize = Option(System.getProperty("http.netty.maxChunkSize")).map(Integer.parseInt(_)).getOrElse(8192)
       newPipeline.addLast("decoder", new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
       newPipeline.addLast("decompressor", new HttpContentDecompressor())
+      val logWire = getBooleanProperty("http.netty.log.wire", default = false)
+      if (logWire) {
+        newPipeline.addLast("logging", new LoggingHandler(InternalLogLevel.DEBUG))
+      }
       newPipeline.addLast("http-pipelining", new HttpPipeliningHandler())
       newPipeline.addLast("handler", defaultUpStreamHandler)
       newPipeline
