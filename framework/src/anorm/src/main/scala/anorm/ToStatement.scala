@@ -265,6 +265,7 @@ object ToStatement extends JodaToStatement {
    * }}}
    */
   implicit object noneToStatement extends ToStatement[None.type] {
+    // TODO: Deprecates (use None: Option[T])
     def set(s: PreparedStatement, i: Int, n: None.type) = s.setObject(i, null)
   }
 
@@ -289,10 +290,11 @@ object ToStatement extends JodaToStatement {
    *   .on('c -> Option("cat"))
    * }}}
    */
-  implicit def optionToStatement[A >: Nothing](implicit c: ToStatement[A]) =
+  implicit def optionToStatement[A >: Nothing](implicit c: ToStatement[A], meta: ParameterMetaData[A]) =
     new ToStatement[Option[A]] with NotNullGuard {
-      def set(s: PreparedStatement, index: Int, o: Option[A]) =
-        o.fold[Unit](s.setObject(index, null))(c.set(s, index, _))
+      def set(s: PreparedStatement, index: Int, o: Option[A]) = {
+        o.fold[Unit](s.setNull(index, meta.jdbcType))(c.set(s, index, _))
+      }
     }
 
   /**
@@ -529,11 +531,13 @@ object JodaParameterMetaData {
   /** Date/time parameter meta data */
   implicit object JodaDateTimeMetaData extends ParameterMetaData[DateTime] {
     val sqlType = "TIMESTAMP"
+    val jdbcType = Types.TIMESTAMP
   }
 
   /** Instant parameter meta data */
   implicit object JodaInstantMetaData extends ParameterMetaData[Instant] {
     val sqlType = "TIMESTAMP"
+    val jdbcType = Types.TIMESTAMP
   }
 }
 

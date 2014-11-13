@@ -39,6 +39,8 @@ trait JodaColumnSpec { specs: Specification =>
 }
 
 trait JodaParameterSpec { specs: ParameterSpec.type =>
+  import JodaParameterMetaData._
+
   lazy val dateTime1 = new DateTime(Date1.getTime)
   lazy val instant1 = new Instant(Date1.getTime)
 
@@ -52,6 +54,11 @@ trait JodaParameterSpec { specs: ParameterSpec.type =>
         on("p" -> null.asInstanceOf[DateTime]).execute() must beFalse
     }
 
+    "be undefined joda-time datetime" in withConnection() { implicit c =>
+      SQL("set-null-date {p}").
+        on("p" -> (None: Option[DateTime])).execute() must beFalse
+    }
+
     "be joda-time instant" in withConnection() { implicit c =>
       SQL("set-date {p}").on("p" -> instant1).execute() must beFalse
     }
@@ -59,6 +66,11 @@ trait JodaParameterSpec { specs: ParameterSpec.type =>
     "be null joda-time instant" in withConnection() { implicit c =>
       SQL("set-null-date {p}").
         on("p" -> null.asInstanceOf[Instant]).execute() must beFalse
+    }
+
+    "be undefined joda-time instant" in withConnection() { implicit c =>
+      SQL("set-null-date {p}").
+        on("p" -> (None: Option[Instant])).execute() must beFalse
     }
   }
 }

@@ -222,6 +222,11 @@ object ParameterSpec
         execute() must beFalse
     }
 
+    "be undefined string" in withConnection() { implicit c =>
+      SQL("set-null-str {p}").on("p" -> (None: Option[String])).
+        execute() must beFalse
+    }
+
     "be character 'x'" in withConnection() { implicit c =>
       (SQL("set-char {b}").on('b -> new java.lang.Character('x')).
         aka("query") must beLike {
@@ -234,6 +239,11 @@ object ParameterSpec
 
     "be null character" in withConnection() { implicit c =>
       SQL("set-null-char {p}").on("p" -> null.asInstanceOf[Character]).
+        execute() must beFalse
+    }
+
+    "be undefined character" in withConnection() { implicit c =>
+      SQL("set-null-char {p}").on("p" -> (None: Option[Char])).
         execute() must beFalse
     }
 
@@ -252,6 +262,11 @@ object ParameterSpec
         aka("execution") must beFalse
     }
 
+    "be undefined boolean" in withConnection() { implicit c =>
+      SQL("set-null-bool {p}").on('p -> (None: Option[Boolean])).execute().
+        aka("execution") must beFalse
+    }
+
     "be int" in withConnection() { implicit c =>
       (SQL("set-int {p}").on("p" -> 2).execute() must beFalse).
         and(SQL("set-int {p}").on("p" -> new Integer(2)).execute() must beFalse)
@@ -259,6 +274,11 @@ object ParameterSpec
 
     "be null int" in withConnection() { implicit c =>
       SQL("set-null-int {p}").on("p" -> null.asInstanceOf[Integer]).
+        execute() must beFalse
+    }
+
+    "be undefined int" in withConnection() { implicit c =>
+      SQL("set-null-int {p}").on("p" -> (None: Option[Int])).
         execute() must beFalse
     }
 
@@ -273,6 +293,11 @@ object ParameterSpec
         "p" -> null.asInstanceOf[JShort]).execute() must beFalse
     }
 
+    "be undefined short" in withConnection() { implicit c =>
+      SQL("set-null-short {p}").on(
+        "p" -> (None: Option[Short])).execute() must beFalse
+    }
+
     "be byte" in withConnection() { implicit c =>
       (SQL("set-byte {p}").on("p" -> 4.toByte).execute() must beFalse).
         and(SQL("set-byte {p}").on(
@@ -281,6 +306,11 @@ object ParameterSpec
 
     "be null byte" in withConnection() { implicit c =>
       SQL("set-null-byte {p}").on("p" -> null.asInstanceOf[JByte]).
+        execute() must beFalse
+    }
+
+    "be undefined byte" in withConnection() { implicit c =>
+      SQL("set-null-byte {p}").on("p" -> (None: Option[Byte])).
         execute() must beFalse
     }
 
@@ -295,6 +325,11 @@ object ParameterSpec
         execute() must beFalse
     }
 
+    "be undefined long" in withConnection() { implicit c =>
+      SQL("set-null-long {p}").on("p" -> (None: Option[Long])).
+        execute() must beFalse
+    }
+
     "be float" in withConnection() { implicit c =>
       (SQL("set-float {p}").on("p" -> 1.23f).execute() must beFalse).
         and(SQL("set-float {p}").on(
@@ -303,6 +338,11 @@ object ParameterSpec
 
     "be null float" in withConnection() { implicit c =>
       SQL("set-null-float {p}").on("p" -> null.asInstanceOf[JFloat]).
+        execute() must beFalse
+    }
+
+    "be undefined float" in withConnection() { implicit c =>
+      SQL("set-null-float {p}").on("p" -> (None: Option[Float])).
         execute() must beFalse
     }
 
@@ -315,6 +355,11 @@ object ParameterSpec
     "be null double" in withConnection() { implicit c =>
       SQL("set-null-double {p}").on(
         "p" -> null.asInstanceOf[JDouble]).execute() must beFalse
+    }
+
+    "be undefined double" in withConnection() { implicit c =>
+      SQL("set-null-double {p}").on(
+        "p" -> (None: Option[Double])).execute() must beFalse
     }
 
     "be Java big integer" in withConnection() { implicit c =>
@@ -332,6 +377,11 @@ object ParameterSpec
 
     "be null Scala big integer" in withConnection() { implicit c =>
       SQL("set-null-sbi {p}").on("p" -> null.asInstanceOf[BigInt]).
+        execute() must beFalse
+    }
+
+    "be undefined Scala big integer" in withConnection() { implicit c =>
+      SQL("set-null-sbi {p}").on("p" -> (None: Option[BigInt])).
         execute() must beFalse
     }
 
@@ -353,6 +403,11 @@ object ParameterSpec
         on("p" -> null.asInstanceOf[BigDecimal]).execute() must beFalse
     }
 
+    "be undefined Scala big decimal" in withConnection() { implicit c =>
+      SQL("set-null-sbd {p}").
+        on("p" -> (None: Option[BigDecimal])).execute() must beFalse
+    }
+
     "be date" in withConnection() { implicit c =>
       SQL("set-date {p}").on("p" -> Date1).execute() must beFalse
     }
@@ -360,6 +415,11 @@ object ParameterSpec
     "be null date" in withConnection() { implicit c =>
       SQL("set-null-date {p}").
         on("p" -> null.asInstanceOf[Date]).execute() must beFalse
+    }
+
+    "be undefined date" in withConnection() { implicit c =>
+      SQL("set-null-date {p}").
+        on("p" -> (None: Option[Date])).execute() must beFalse
     }
 
     "be timestamp" in withConnection() { implicit c =>
@@ -371,6 +431,11 @@ object ParameterSpec
         on("p" -> null.asInstanceOf[Timestamp]).execute() must beFalse
     }
 
+    "be undefined timestamp" in withConnection() { implicit c =>
+      SQL("set-null-ts {p}").
+        on("p" -> (None: Option[Timestamp])).execute() must beFalse
+    }
+
     "be UUID" in withConnection() { implicit c =>
       SQL("set-uuid {p}").on("p" -> uuid1).execute() must beFalse
     }
@@ -378,6 +443,11 @@ object ParameterSpec
     "be null UUID" in withConnection() { implicit c =>
       SQL("set-null-uuid {p}").
         on("p" -> null.asInstanceOf[java.util.UUID]).execute() must beFalse
+    }
+
+    "be undefined UUID" in withConnection() { implicit c =>
+      SQL("set-null-uuid {p}").
+        on("p" -> (None: Option[java.util.UUID])).execute() must beFalse
     }
 
     "be Id of string" in withConnection() { implicit c =>
