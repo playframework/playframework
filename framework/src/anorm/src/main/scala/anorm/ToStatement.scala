@@ -264,8 +264,9 @@ object ToStatement extends JodaToStatement {
    *   .on('c -> None)
    * }}}
    */
+  @deprecated("Parameter value should be passed using `Option.empty[T]`",
+    since = "2.3.7")
   implicit object noneToStatement extends ToStatement[None.type] {
-    // TODO: Deprecates (use None: Option[T])
     def set(s: PreparedStatement, i: Int, n: None.type) = s.setObject(i, null)
   }
 
@@ -286,8 +287,8 @@ object ToStatement extends JodaToStatement {
    * Sets optional A inferred as Option[A].
    *
    * {{{
-   * SQL("SELECT * FROM Test WHERE category = {c}")
-   *   .on('c -> Option("cat"))
+   * SQL("SELECT * FROM Test WHERE category = {c}").on('c -> Option("cat"))
+   * SQL"SELECT * FROM Test WHERE nullable_int = ${Option.empty[Int]}"
    * }}}
    */
   implicit def optionToStatement[A >: Nothing](implicit c: ToStatement[A], meta: ParameterMetaData[A]) =
