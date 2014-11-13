@@ -166,9 +166,10 @@ val lang: String = SQL(
 Columns can also be specified by position, rather than name:
 
 ```scala
+import anorm.SqlParser.{ str, float }
 // Parsing column by name or position
 val parser = 
-  SqlParser(str("name") ~ float(3) /* third column as float */ map {
+  str("name") ~ float(3) /* third column as float */ map {
     case name ~ f => (name -> f)
   }
 
@@ -414,14 +415,13 @@ case class SmallCountry(name:String)
 case class BigCountry(name:String) 
 case class France
  
-val countries = SQL("Select name,population from Country")().collect {
-  case Row("France", _) => France()
-  case Row(name:String, pop:Int) if(pop > 1000000) => BigCountry(name)
-  case Row(name:String, _) => SmallCountry(name)      
-}
+val countries = SQL("SELECT name,population FROM Country WHERE id = {i}").
+  on("i" -> "id").map({
+    case Row("France", _) => France()
+    case Row(name:String, pop:Int) if(pop > 1000000) => BigCountry(name)
+    case Row(name:String, _) => SmallCountry(name)      
+  }).list
 ```
-
-Note that since `collect(…)` ignores the cases where the partial function isn’t defined, it allows your code to safely ignore rows that you don’t expect.
 
 ## Using for-comprehension
 
@@ -461,16 +461,20 @@ val str: Option[String] =
   }
 ```
 
-## Dealing with Nullable columns
+## Working with optional/nullable columns
 
-If a column can contain `Null` values in the database schema, you need to manipulate it as an `Option` type.
+If a column in database can contain `Null` values, you need to manipulate it as an `Option` type.
 
 For example, the `indepYear` of the `Country` table is nullable, so you need to match it as `Option[Int]`:
 
 ```scala
-SQL("Select name,indepYear from Country")().collect {
-  case Row(name:String, Some(year:Int)) => name -> year
+case class Info(name: String, year: Option[Int])
+
+val parser = str("name") ~ get[Option[Int]]("indepYear") map {
+  case n ~ y => Info(n, y)
 }
+
+val res: List[Info] = SQL("Select name,indepYear from Country").as(parser.*)
 ```
 
 If you try to match this column as `Int` it won’t be able to parse `Null` values. Suppose you try to retrieve the column content as `Int` directly from the dictionary:
@@ -481,15 +485,9 @@ SQL("Select name,indepYear from Country")().map { row =>
 }
 ```
 
-This will produce an `UnexpectedNullableFound(COUNTRY.INDEPYEAR)` exception if it encounters a null value, so you need to map it properly to an `Option[Int]`, as:
+This will produce an `UnexpectedNullableFound(COUNTRY.INDEPYEAR)` exception if it encounters a null value, so you need to map it properly to an `Option[Int]`.
 
-```scala
-SQL("Select name,indepYear from Country")().map { row =>
-  row[String]("name") -> row[Option[Int]]("indepYear")
-}
-```
-
-This is also true for the parser API, as we will see next.
+> Nullable parameters are also passed `Option[T]`, `T` being parameter base type (see *Parameters* section thereafter).
 
 ## Using the Parser API
 
@@ -833,7 +831,7 @@ Int<sup>10</sup>          | Int                                                 
 List[T]                   | Multi-value<sup>11</sup>, with `T` mapping for each element | No
 Long<sup>12</sup>         | Long                                                  | Yes
 Object<sup>13</sup>       | Object                                                | Yes
-Option[T]                 | Object for `None`, mapping for `Some[T]`              | No
+Option[T]                 | `T` being type if some defined value                  | No
 Seq[T]                    | Multi-value, with `T` mapping for each element        | No
 Set[T]<sup>14</sup>       | Multi-value, with `T` mapping for each element        | No
 Short<sup>15</sup>        | Short                                                 | Yes
@@ -859,6 +857,8 @@ Vector                    | Multi-value, with `T` mapping for each element      
 - 15. Types `Short` and `java.lang.Short`.
 - 16. Type `scala.collection.immutable.SortedSet`.
 - 17. Not-null value extracted using `.toString`.
+
+> Passing `None` for a nullable parameter is deprecated, and typesafe `Option.empty[T]` must be use instead.
 
 [Joda](http://www.joda.org) temporal types are supported as parameters:
 

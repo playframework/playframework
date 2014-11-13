@@ -126,3 +126,6 @@ When you call `Crypto.decryptAES` it will decode both the old and new formats. T
 
 If you wish to continue using the older format of encryption decryption, here is the [link] (https://github.com/playframework/playframework/blob/2.3.6/framework/src/play/src/main/scala/play/api/libs/Crypto.scala#L187-L277) that provides all the necessary information.
 
+## Anorm
+
+- Passing `None` for a nullable parameter is deprecated, and typesafe `Option.empty[T]` must be use instead.
