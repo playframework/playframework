@@ -60,6 +60,15 @@ logger.application=DEBUG
 logger.org.springframework=INFO
 ```
 
+> Note: To configure log levels for both parent and child paths, like `a.b` and `a.b.c`, you'll need to quote the paths. For example:
+>
+> ```
+> logger {
+>   "a.b" = WARN
+>   "a.b.c" = DEBUG
+> }
+> ```
+
 ## Custom configuration
 
 For any custom configuration beyond log levels, you will need to specify your own Logback configuration file.
