@@ -735,7 +735,7 @@ trait BodyParsers {
               }.left.map {
                 case NonFatal(e) =>
                   Play.logger.debug(errorMessage, e)
-                  createBadResult(errorMessage)(request)
+                  createBadResult(errorMessage + ": " + e.getMessage)(request)
                 case t => throw t
               }
             }
