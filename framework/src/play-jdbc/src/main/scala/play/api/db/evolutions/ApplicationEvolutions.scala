@@ -10,7 +10,7 @@ import javax.sql.DataSource
 import scala.util.control.Exception.ignoring
 
 import play.api.db.{ Database, DBApi }
-import play.api.{ Configuration, Environment, Mode, Play, PlayException }
+import play.api.{ Configuration, Environment, Mode, Logger, PlayException }
 import play.core.{ HandleWebCommandSupport, WebCommands }
 
 /**
@@ -25,6 +25,8 @@ class ApplicationEvolutions @Inject() (
     dbApi: DBApi,
     environment: Environment,
     webCommands: WebCommands) {
+
+  private val logger = Logger(classOf[ApplicationEvolutions])
 
   /**
    * Checks the evolutions state. Called on construction.
@@ -59,14 +61,14 @@ class ApplicationEvolutions @Inject() (
             case Mode.Prod if !hasDown && dbConfig.autoApply => evolutions.evolve(db, scripts, autocommit)
             case Mode.Prod if hasDown && dbConfig.autoApply && dbConfig.autoApplyDowns => evolutions.evolve(db, scripts, autocommit)
             case Mode.Prod if hasDown =>
-              Play.logger.warn(s"Your production database [$db] needs evolutions, including downs! \n\n${toHumanReadableScript(scripts)}")
-              Play.logger.warn(s"Run with -Dplay.modules.evolutions.db.$db.autoApply=true and -Dplay.modules.evolutions.db.$db.autoApplyDowns=true if you want to run them automatically, including downs (be careful, especially if your down evolutions drop existing data)")
+              logger.warn(s"Your production database [$db] needs evolutions, including downs! \n\n${toHumanReadableScript(scripts)}")
+              logger.warn(s"Run with -Dplay.modules.evolutions.db.$db.autoApply=true and -Dplay.modules.evolutions.db.$db.autoApplyDowns=true if you want to run them automatically, including downs (be careful, especially if your down evolutions drop existing data)")
 
               throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
 
             case Mode.Prod =>
-              Play.logger.warn(s"Your production database [$db] needs evolutions! \n\n${toHumanReadableScript(scripts)}")
-              Play.logger.warn(s"Run with -Dplay.modules.evolutions.db.$db.autoApply=true if you want to run them automatically (be careful)")
+              logger.warn(s"Your production database [$db] needs evolutions! \n\n${toHumanReadableScript(scripts)}")
+              logger.warn(s"Run with -Dplay.modules.evolutions.db.$db.autoApply=true if you want to run them automatically (be careful)")
 
               throw InvalidDatabaseRevision(db, toHumanReadableScript(scripts))
 
@@ -120,7 +122,7 @@ class ApplicationEvolutions @Inject() (
       case e: SQLException =>
         if (attempts == 0) throw e
         else {
-          Play.logger.warn("Exception while attempting to lock evolutions (other node probably has lock), sleeping for 1 sec")
+          logger.warn("Exception while attempting to lock evolutions (other node probably has lock), sleeping for 1 sec")
           c.rollback()
           Thread.sleep(1000)
           lock(c, s, attempts - 1)
@@ -197,6 +199,9 @@ class DefaultEvolutionsConfig(defaultDatasourceConfig: EvolutionsDatasourceConfi
  */
 @Singleton
 class DefaultEvolutionsConfigParser @Inject() (configuration: Configuration) extends Provider[EvolutionsConfig] {
+
+  private val logger = Logger(classOf[DefaultEvolutionsConfigParser])
+
   def get = parse()
 
   def parse(): EvolutionsConfig = {
@@ -212,7 +217,7 @@ class DefaultEvolutionsConfigParser @Inject() (configuration: Configuration) ext
     def loadBoolean(key: String, oldKey: Option[String], default: Boolean): Boolean = {
       config.flatMap(_.getBoolean(key))
         .orElse(oldKey.flatMap(okey => configuration.getBoolean(okey).map { value =>
-          Play.logger.warn(s"Configuration option $okey is deprecated, use play.modules.evolutions.$key instead")
+          logger.warn(s"Configuration option $okey is deprecated, use play.modules.evolutions.$key instead")
           value
         }))
         .getOrElse(default)

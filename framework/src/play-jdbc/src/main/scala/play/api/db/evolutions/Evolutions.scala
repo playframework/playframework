@@ -5,7 +5,7 @@ package play.api.db.evolutions
 
 import java.io.File
 
-import play.api.{ Application, Configuration, Environment, Mode, Play }
+import play.api.{ Application, Configuration, Environment, Logger, Mode, Play }
 import play.api.db.{ BoneCPComponents, DBComponents }
 import play.api.inject.DefaultApplicationLifecycle
 import play.api.libs.Codecs.sha1
@@ -163,6 +163,8 @@ object Evolutions {
  */
 object OfflineEvolutions {
 
+  private val logger = Logger(this.getClass)
+
   private def isTest: Boolean = Play.maybeApplication.exists(_.mode == Mode.Test)
 
   private def getEvolutions(appPath: File, classloader: ClassLoader): EvolutionsComponents = {
@@ -186,7 +188,7 @@ object OfflineEvolutions {
     val evolutions = getEvolutions(appPath, classloader)
     val scripts = evolutions.evolutionsApi.scripts(dbName, evolutions.evolutionsReader)
     if (!isTest) {
-      Play.logger.warn("Applying evolution scripts for database '" + dbName + "':\n\n" + Evolutions.toHumanReadableScript(scripts))
+      logger.warn("Applying evolution scripts for database '" + dbName + "':\n\n" + Evolutions.toHumanReadableScript(scripts))
     }
     evolutions.evolutionsApi.evolve(dbName, scripts, autocommit)
   }
@@ -202,7 +204,7 @@ object OfflineEvolutions {
   def resolve(appPath: File, classloader: ClassLoader, dbName: String, revision: Int): Unit = {
     val evolutions = getEvolutions(appPath, classloader)
     if (!isTest) {
-      Play.logger.warn("Resolving evolution [" + revision + "] for database '" + dbName + "'")
+      logger.warn("Resolving evolution [" + revision + "] for database '" + dbName + "'")
     }
     evolutions.evolutionsApi.resolve(dbName, revision)
   }

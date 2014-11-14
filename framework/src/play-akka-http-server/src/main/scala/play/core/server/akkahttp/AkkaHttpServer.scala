@@ -28,6 +28,8 @@ import scala.util.{ Failure, Success, Try }
  */
 class AkkaHttpServer(config: ServerConfig, appProvider: ApplicationProvider) extends Server with ServerWithStop {
 
+  import AkkaHttpServer._
+
   assert(config.port.isDefined, "AkkaHttpServer must be given an HTTP port")
   assert(!config.sslPort.isDefined, "AkkaHttpServer cannot handle HTTPS")
 
@@ -171,12 +173,12 @@ class AkkaHttpServer(config: ServerConfig, appProvider: ApplicationProvider) ext
     try {
       super.stop()
     } catch {
-      case NonFatal(e) => Play.logger.error("Error while stopping logger", e)
+      case NonFatal(e) => logger.error("Error while stopping logger", e)
     }
 
     mode match {
       case Mode.Test =>
-      case _ => Play.logger.info("Stopping server...")
+      case _ => logger.info("Stopping server...")
     }
 
     // TODO: Orderly shutdown
@@ -198,6 +200,8 @@ class AkkaHttpServer(config: ServerConfig, appProvider: ApplicationProvider) ext
 }
 
 object AkkaHttpServer extends ServerStart {
+
+  private val logger = Logger(classOf[AkkaHttpServer])
 
   /**
    * A ServerProvider for creating an AkkaHttpServer.

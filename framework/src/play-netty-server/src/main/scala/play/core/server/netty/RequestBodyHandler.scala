@@ -15,6 +15,8 @@ import scala.util.{ Try, Success }
 
 private[server] trait RequestBodyHandler {
 
+  import RequestBodyHandler._
+
   /**
    * Creates a new upstream handler for the purposes of receiving chunked requests. Requests are buffered as an
    * optimization.
@@ -116,14 +118,14 @@ private[server] trait RequestBodyHandler {
           }
 
           case unexpected =>
-            Play.logger.error("Oops, unexpected message received in NettyServer/RequestBodyHandler" +
+            logger.error("Oops, unexpected message received in NettyServer/RequestBodyHandler" +
               " (please report this problem): " + unexpected)
 
         }
       }
 
       override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-        Play.logger.error("Exception caught in RequestBodyHandler", e.getCause)
+        logger.error("Exception caught in RequestBodyHandler", e.getCause)
         e.getChannel.close()
       }
 
@@ -150,14 +152,18 @@ private[server] trait RequestBodyHandler {
         // Even though this handler essentially ignores everything it receives, it should only be handling HTTP chunks,
         // so if it gets something else log it so that we can know there's a bug.
         case unexpected =>
-          Play.logger.error("Oops, unexpected message received in NettyServer/IgnoreBodyHandler" +
+          logger.error("Oops, unexpected message received in NettyServer/IgnoreBodyHandler" +
             " (please report this problem): " + unexpected)
       }
     }
 
     override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-      Play.logger.error("Exception caught in IgnoreBodyHandler", e.getCause)
+      logger.error("Exception caught in IgnoreBodyHandler", e.getCause)
       e.getChannel.close()
     }
   }
+}
+
+object RequestBodyHandler {
+  private val logger = Logger(classOf[RequestBodyHandler])
 }

@@ -25,6 +25,8 @@ object NettyResultStreamer {
 
   import NettyFuture._
 
+  private val logger = Logger(NettyResultStreamer.getClass)
+
   // A channel status holds whether the connection must be closed and the last subsequence sent
   class ChannelStatus(val closeConnection: Boolean, val lastSubsequence: Int)
 
@@ -41,7 +43,7 @@ object NettyResultStreamer {
         // Make sure enumerator knows it's done, so that any resources it uses can be cleaned up
         result.body |>> Done(())
 
-        Play.logger.debug("Response with headers set to null, sending 500 response.")
+        logger.debug("Response with headers set to null, sending 500 response.")
         val error = Results.InternalServerError("")
         error.body |>>> nettyStreamIteratee(createNettyResponse(error.header, true, httpVersion), startSequence, true)
       }
@@ -51,7 +53,7 @@ object NettyResultStreamer {
         // Make sure enumerator knows it's done, so that any resources it uses can be cleaned up
         result.body |>> Done(())
 
-        Play.logger.debug("Chunked response to HTTP/1.0 request, sending 505 response.")
+        logger.debug("Chunked response to HTTP/1.0 request, sending 505 response.")
         val error = Results.HttpVersionNotSupported("The response to this request is chunked and hence requires HTTP 1.1 to be sent, but this is a HTTP 1.0 request.")
         error.body |>>> nettyStreamIteratee(createNettyResponse(error.header, closeConnection, httpVersion), startSequence, closeConnection)
       }
@@ -84,7 +86,7 @@ object NettyResultStreamer {
           ctx.sendDownstream(ode)
         }
       case Failure(ex) =>
-        Play.logger.debug(ex.toString)
+        logger.debug(ex.toString)
         Channels.close(oue.getChannel)
     }
     sentResponse

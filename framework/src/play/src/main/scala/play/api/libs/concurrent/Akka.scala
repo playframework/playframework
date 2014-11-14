@@ -57,14 +57,16 @@ class AkkaModule extends Module {
 @Singleton
 class ActorSystemProvider @Inject() (environment: Environment, configuration: Configuration, applicationLifecycle: ApplicationLifecycle) extends Provider[ActorSystem] {
 
+  private val logger = Logger(classOf[ActorSystemProvider])
+
   lazy val get: ActorSystem = {
     val config = configuration.underlying
     val name = configuration.getString("play.modules.akka.actor-system").getOrElse("application")
     val system = ActorSystem(name, config, environment.classLoader)
-    Play.logger.info(s"Starting application default Akka system: $name")
+    logger.info(s"Starting application default Akka system: $name")
 
     applicationLifecycle.addStopHook { () =>
-      Play.logger.info(s"Shutdown application default Akka system: $name")
+      logger.info(s"Shutdown application default Akka system: $name")
       system.shutdown()
 
       configuration.getMilliseconds("play.akka.shutdown-timeout") match {
@@ -74,7 +76,7 @@ class ActorSystemProvider @Inject() (environment: Environment, configuration: Co
           } catch {
             case te: TimeoutException =>
               // oh well.  We tried to be nice.
-              Play.logger.info(s"Could not shutdown the Akka system in $timeout milliseconds.  Giving up.")
+              logger.info(s"Could not shutdown the Akka system in $timeout milliseconds.  Giving up.")
           }
         case None =>
           // wait until it is shutdown

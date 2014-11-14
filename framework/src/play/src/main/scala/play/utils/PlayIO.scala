@@ -15,6 +15,8 @@ import play.api.Logger
  */
 private[play] object PlayIO {
 
+  private val logger = Logger(this.getClass)
+
   /**
    * Read the given stream into a byte array.
    *
@@ -74,7 +76,7 @@ private[play] object PlayIO {
         closeable.close()
       }
     } catch {
-      case e: IOException => play.api.Play.logger.warn("Error closing stream", e)
+      case e: IOException => logger.warn("Error closing stream", e)
     }
   }
 }

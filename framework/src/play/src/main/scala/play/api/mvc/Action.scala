@@ -98,6 +98,8 @@ object EssentialAction {
  */
 trait Action[A] extends EssentialAction {
 
+  import Action._
+
   /**
    * Type of the request body.
    */
@@ -120,11 +122,11 @@ trait Action[A] extends EssentialAction {
 
   def apply(rh: RequestHeader): Iteratee[Array[Byte], Result] = parser(rh).mapM {
     case Left(r) =>
-      Play.logger.trace("Got direct result from the BodyParser: " + r)
+      logger.trace("Got direct result from the BodyParser: " + r)
       Future.successful(r)
     case Right(a) =>
       val request = Request(rh, a)
-      Play.logger.trace("Invoking action with request: " + request)
+      logger.trace("Invoking action with request: " + request)
       Play.maybeApplication.map { app =>
         play.utils.Threads.withContextClassLoader(app.classloader) {
           apply(request)
@@ -553,6 +555,8 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
  * Helper object to create `Action` values.
  */
 object Action extends ActionBuilder[Request] {
+  private val logger = Logger(Action.getClass)
+
   def invokeBlock[A](request: Request[A], block: (Request[A]) => Future[Result]) = block(request)
 }
 

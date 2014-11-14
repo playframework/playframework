@@ -527,12 +527,14 @@ class WSClientProvider @Inject() (wsApi: WSAPI) extends Provider[WSClient] {
 @Singleton
 class NingWSAPI @Inject() (environment: Environment, clientConfig: WSClientConfig, lifecycle: ApplicationLifecycle) extends WSAPI {
 
+  private val logger = Logger(classOf[NingWSAPI])
+
   lazy val client = {
     clientConfig.ssl.foreach {
       _.debug.foreach { debugConfig =>
         environment.mode match {
           case Mode.Prod =>
-            Play.logger.warn("NingWSAPI: ws.ssl.debug settings enabled in production mode!")
+            logger.warn("NingWSAPI: ws.ssl.debug settings enabled in production mode!")
           case _ => // do nothing
         }
         new DebugConfiguration().configure(debugConfig)
