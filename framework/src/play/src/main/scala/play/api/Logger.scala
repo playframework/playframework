@@ -215,11 +215,18 @@ object Logger extends LoggerLike {
       case level => LogbackLevel.toLevel(level)
     }
 
+    // Remove any quotes in the key by parsing the path and rejoining
+    def unquoted(key: String) = {
+      import com.typesafe.config.ConfigUtil
+      import scala.collection.JavaConverters._
+      ConfigUtil.splitPath(key).asScala.mkString(".")
+    }
+
     val levels = configuration.getConfig("logger").map { loggerConfig =>
       loggerConfig.keys.map {
         case "resource" | "file" | "url" => "" -> null
         case key @ "root" => "ROOT" -> loggerConfig.getString(key, Some(validValues)).map(setLevel).get
-        case key => key -> loggerConfig.getString(key, Some(validValues)).map(setLevel).get
+        case key => unquoted(key) -> loggerConfig.getString(key, Some(validValues)).map(setLevel).get
       }.toMap
     }.getOrElse(Map.empty)
 
