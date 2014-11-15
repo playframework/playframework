@@ -57,8 +57,8 @@
 
 ## Currency Converter (Java)
 
-* **Website:** <https://github.com/blabluble/play-currency-converter-module>
-* **Documentation:** <https://github.com/blabluble/play-currency-converter-module/blob/master/README.md>
+* **Website:** <http://edulify.github.io/play-currency-converter-module.edulify.com/>
+* **Documentation:** <https://github.com/edulify/play-currency-converter-module.edulify.com/blob/master/README.md>
 * **Short description:** Currency converter for Play. It uses web services to get the current exchange rate.
 
 ## Deadbolt 2 Plugin
@@ -110,8 +110,8 @@
 
 ## Geolocation (Java)
 
-* **Website:** <https://github.com/blabluble/play-geolocation-module>
-* **Documentation:** <https://github.com/blabluble/play-geolocation-module/blob/master/README.md>
+* **Website:** <http://edulify.github.io/play-geolocation-module.edulify.com/>
+* **Documentation:** <https://github.com/edulify/play-geolocation-module.edulify.com/blob/master/README.md>
 * **Short description:** Module for retrieve Geolocation data based on IP.
 
 ## Google's HTML Compressor (Java and Scala)
@@ -326,8 +326,8 @@
 
 ## Sitemap Generator (Java)
 
-* **Website:** <https://github.com/blabluble/play-sitemap-module>
-* **Documentation:** <https://github.com/blabluble/play-sitemap-module/blob/master/README.md>
+* **Website:** <http://edulify.github.io/play-sitemap-module.edulify.com/>
+* **Documentation:** <https://github.com/edulify/play-sitemap-module.edulify.com/blob/master/README.md>
 * **Short description:** Automatic [sitemaps](http://www.sitemaps.org/) generator for Play
 
 ## Snapshot Plugin (Java and Scala)
