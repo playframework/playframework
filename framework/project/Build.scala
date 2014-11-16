@@ -4,7 +4,7 @@
 import sbt._
 import Keys._
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
-import com.typesafe.tools.mima.plugin.MimaKeys.{previousArtifact, binaryIssueFilters}
+import com.typesafe.tools.mima.plugin.MimaKeys.{previousArtifact, binaryIssueFilters, reportBinaryIssues}
 import com.typesafe.tools.mima.core._
 import com.typesafe.sbt.SbtScalariform.defaultScalariformSettings
 import scala.util.Properties.isJavaAtLeast
@@ -101,9 +101,9 @@ object BuildSettings {
   )
 
   def PlaySharedJavaProject(name: String, dir: String, testBinaryCompatibility: Boolean = false): Project = {
-    val bcSettings: Seq[Setting[_]] = if (testBinaryCompatibility) {
-      mimaDefaultSettings ++ Seq(previousArtifact := Some(buildOrganization % StringUtilities.normalize(name) % previousVersion))
-    } else Nil
+    val bcSettings: Seq[Setting[_]] = mimaDefaultSettings ++ (if (testBinaryCompatibility) {
+      Seq(previousArtifact := Some(buildOrganization % StringUtilities.normalize(name) % previousVersion))
+    } else Nil)
     Project(name, file("src/" + dir))
       .configs(PerformanceTest)
       .settings(inConfig(PerformanceTest)(Defaults.testTasks) : _*)
@@ -124,6 +124,7 @@ object BuildSettings {
       .settings(defaultScalariformSettings: _*)
       .settings(scalaVersion.toSettings(targetPrefix): _*)
       .settings(additionalSettings: _*)
+      .settings(mimaDefaultSettings: _*)
   }
 
   /**
@@ -417,6 +418,7 @@ object PlayBuild extends Build {
       "Play-Repository", file("repository"))
     .settings(dontPublishSettings:_*)
     .settings(localRepoCreationSettings:_*)
+    .settings(mimaDefaultSettings: _*)
     .settings(
       localRepoProjectsPublished <<= (publishedProjects map (publishLocal in _)).dependOn,
       addProjectsToRepository(publishedProjects),
@@ -484,7 +486,8 @@ object PlayBuild extends Build {
       concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
       libraryDependencies ++= (runtime ++ jdbcDeps),
       Docs.apiDocsInclude := false,
-      Docs.apiDocsIncludeManaged := false
+      Docs.apiDocsIncludeManaged := false,
+      reportBinaryIssues := ()
     )
     .aggregate(publishedProjects: _*)
     .aggregate(RepositoryProject)
