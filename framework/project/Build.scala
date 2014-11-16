@@ -102,7 +102,7 @@ object BuildSettings {
 
   def PlaySharedJavaProject(name: String, dir: String, testBinaryCompatibility: Boolean = false): Project = {
     val bcSettings: Seq[Setting[_]] = mimaDefaultSettings ++ (if (testBinaryCompatibility) {
-      Seq(previousArtifact := Some(buildOrganization % StringUtilities.normalize(name) % previousVersion))
+      Seq(previousArtifact := Some(buildOrganization % moduleName.value % previousVersion))
     } else Nil)
     Project(name, file("src/" + dir))
       .configs(PerformanceTest)
@@ -138,12 +138,11 @@ object BuildSettings {
       .settings(publishSettings: _*)
       .settings(mimaDefaultSettings: _*)
       .settings(defaultScalariformSettings: _*)
-      .settings(playRuntimeSettings(name): _*)
+      .settings(playRuntimeSettings: _*)
   }
 
-  def playRuntimeSettings(name: String): Seq[Setting[_]] = Seq(
-    previousArtifact := Some(buildOrganization %
-      (StringUtilities.normalize(name) + "_" + CrossVersion.binaryScalaVersion(buildScalaVersion)) % previousVersion),
+  def playRuntimeSettings: Seq[Setting[_]] = Seq(
+    previousArtifact := Some(buildOrganization % s"${moduleName.value}_${scalaBinaryVersion.value}" % previousVersion),
     scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
     Docs.apiDocsInclude := true
   )
