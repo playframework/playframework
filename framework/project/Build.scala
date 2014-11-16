@@ -219,7 +219,7 @@ object PlayBuild extends Build {
     .dependsOn(PlayExceptionsProject)
 
   def runSupportProject(prefix:String, sv:SharedProjectScalaVersion, additionalSettings: Seq[Setting[_]]) =
-    PlaySharedRuntimeProject(s"$prefix-${sv.nameSuffix}", s"run-support", prefix, sv, additionalSettings).settings(
+    PlaySharedRuntimeProject(prefix, "run-support", prefix, sv, additionalSettings).settings(
       libraryDependencies ++= runSupportDependencies
     )
 
