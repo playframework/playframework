@@ -453,7 +453,7 @@ public class Constraints {
     @Constraint(validatedBy = ValidateWithValidator.class)
     @play.data.Form.Display(name="constraint.validatewith", attributes={})
     public static @interface ValidateWith {
-        String message() default ValidateWithValidator.message;
+        String message() default ValidateWithValidator.defaultMessage;
         Class<?>[] groups() default {};
         Class<? extends Payload>[] payload() default {};
         Class<? extends Validator> value();
@@ -464,7 +464,7 @@ public class Constraints {
      */
     public static class ValidateWithValidator extends Validator<Object> implements ConstraintValidator<ValidateWith, Object> {
 
-        final static public String message = "error.invalid";
+        final static public String defaultMessage = "error.invalid";
         Class<?> clazz = null;
         Validator validator = null;
 
@@ -494,8 +494,16 @@ public class Constraints {
             }
         }
 
+        @SuppressWarnings("unchecked")
         public Tuple<String, Object[]> getErrorMessageKey() {
-            return Tuple(message, new Object[] {});
+            Tuple<String, Object[]> errorMessageKey = null;
+            try {
+                errorMessageKey = validator.getErrorMessageKey();
+            } catch(Exception e) {
+                throw new RuntimeException(e);
+            }
+
+            return (errorMessageKey != null) ? errorMessageKey : Tuple(defaultMessage, new Object[] {});
         }
 
     }

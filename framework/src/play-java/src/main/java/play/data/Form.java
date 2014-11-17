@@ -16,6 +16,7 @@ import static java.lang.annotation.RetentionPolicy.*;
 import play.mvc.Http;
 import static play.libs.F.*;
 
+import play.libs.F.Tuple;
 import play.data.validation.*;
 
 import org.springframework.beans.*;
@@ -297,6 +298,28 @@ public class Form<T> {
     }
 
     /**
+     * When dealing with @ValidateWith annotations, and message parameter is not used in
+     * the annotation, extract the message from validator's getErrorMessageKey() method
+    **/
+    protected String getMessageForConstraintViolation(ConstraintViolation<Object> violation) {
+        String errorMessage = violation.getMessage();
+        Annotation annotation = violation.getConstraintDescriptor().getAnnotation();
+        if (annotation instanceof Constraints.ValidateWith) {
+            Constraints.ValidateWith validateWithAnnotation = (Constraints.ValidateWith)annotation;
+            if (violation.getMessage().equals(Constraints.ValidateWithValidator.defaultMessage)) {
+                Constraints.ValidateWithValidator validateWithValidator = new Constraints.ValidateWithValidator();
+                validateWithValidator.initialize(validateWithAnnotation);
+                Tuple<String, Object[]> errorMessageKey = validateWithValidator.getErrorMessageKey();
+                if (errorMessageKey != null && errorMessageKey._1 != null) {
+                    errorMessage = errorMessageKey._1;
+                }
+            }
+        }
+
+        return errorMessage;
+    }
+
+    /**
      * Binds data to this form - that is, handles form submission.
      *
      * @param data data to submit
@@ -343,7 +366,7 @@ public class Form<T> {
                     result.rejectValue(field,
                             violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName(),
                             getArgumentsForConstraint(result.getObjectName(), field, violation.getConstraintDescriptor()),
-                            violation.getMessage());
+                            getMessageForConstraintViolation(violation));
                 }
                 catch (NotReadablePropertyException ex) {
                     throw new IllegalStateException("JSR-303 validated property '" + field +
