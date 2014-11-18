@@ -59,9 +59,8 @@ trait CacheApi {
  */
 object Cache {
 
-  private def cacheApi(implicit app: Application): CacheApi = {
-    app.injector.instanceOf[CacheApi]
-  }
+  private val cacheApiCache = Application.instanceCache[CacheApi]
+  private def cacheApi(implicit app: Application) = cacheApiCache(app)
 
   private def intToDuration(seconds: Int): Duration = if (seconds == 0) Duration.Inf else seconds.seconds
 

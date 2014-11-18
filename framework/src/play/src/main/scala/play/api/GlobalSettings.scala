@@ -30,13 +30,12 @@ import play.api.http.Status._
  */
 trait GlobalSettings {
 
+  private val dhehCache = Application.instanceCache[DefaultHttpErrorHandler]
   /**
    * Note, this should only be used for the default implementations of onError, onHandlerNotFound and onBadRequest.
    */
   private def defaultErrorHandler: HttpErrorHandler = {
-    Play.maybeApplication.fold[HttpErrorHandler](DefaultHttpErrorHandler) { app =>
-      app.injector.instanceOf[DefaultHttpErrorHandler]
-    }
+    Play.maybeApplication.fold[HttpErrorHandler](DefaultHttpErrorHandler)(dhehCache)
   }
 
   /**
@@ -46,14 +45,14 @@ trait GlobalSettings {
     Play.maybeApplication.fold[HttpErrorHandler](DefaultHttpErrorHandler)(_.errorHandler)
   }
 
+  private val jchrhCache = Application.instanceCache[JavaCompatibleHttpRequestHandler]
   private def defaultRequestHandler: Option[DefaultHttpRequestHandler] = {
-    Play.maybeApplication.map { app =>
-      app.injector.instanceOf[JavaCompatibleHttpRequestHandler]
-    }
+    Play.maybeApplication.map(jchrhCache)
   }
 
+  private val httpFiltersCache = Application.instanceCache[HttpFilters]
   private def filters: HttpFilters = {
-    Play.maybeApplication.fold[HttpFilters](NoHttpFilters)(_.injector.instanceOf[HttpFilters])
+    Play.maybeApplication.fold[HttpFilters](NoHttpFilters)(httpFiltersCache)
   }
 
   /**
@@ -132,13 +131,14 @@ trait GlobalSettings {
     (routedRequest, doFilter(rh => handler)(routedRequest))
   }
 
+  val httpConfigurationCache = Application.instanceCache[HttpConfiguration]
   /**
    * Filters.
    */
   def doFilter(next: RequestHeader => Handler): (RequestHeader => Handler) = {
     (request: RequestHeader) =>
       val context = Play.maybeApplication.fold("/") { app =>
-        app.injector.instanceOf[HttpConfiguration].context.replaceAll("/$", "") + "/"
+        httpConfigurationCache(app).context.replaceAll("/$", "") + "/"
       }
       next(request) match {
         case action: EssentialAction if request.path startsWith context => doFilter(action)

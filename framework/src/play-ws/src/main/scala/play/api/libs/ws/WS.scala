@@ -96,9 +96,8 @@ object WS {
   @deprecated("Please use play.api.libs.ws.WSRequestHolder", "2.3.0")
   type WSRequestHolder = play.api.libs.ws.WSRequestHolder
 
-  protected[play] def wsapi(implicit app: Application): WSAPI = {
-    app.injector.instanceOf[WSAPI]
-  }
+  private val wsapiCache = Application.instanceCache[WSAPI]
+  protected[play] def wsapi(implicit app: Application): WSAPI = wsapiCache(app)
 
   import scala.language.implicitConversions
 

@@ -105,6 +105,8 @@ object Lang {
     }
   }
 
+  private val langsCache = Application.instanceCache[Langs]
+
   /**
    * Retrieve Lang availables from the application configuration.
    *
@@ -113,7 +115,7 @@ object Lang {
    * }}}
    */
   def availables(implicit app: Application): Seq[Lang] = {
-    app.injector.instanceOf[Langs].availables
+    langsCache(app).availables
   }
 
   /**
@@ -121,7 +123,7 @@ object Lang {
    * The first Lang that matches an available Lang wins, otherwise returns the first Lang available in this application.
    */
   def preferred(langs: Seq[Lang])(implicit app: Application): Lang = {
-    app.injector.instanceOf[Langs].preferred(langs)
+    langsCache(app).preferred(langs)
   }
 }
 
@@ -182,7 +184,8 @@ class DefaultLangs @Inject() (configuration: Configuration) extends Langs {
  */
 object Messages {
 
-  private def messagesApi = Play.maybeApplication.map(_.injector.instanceOf[MessagesApi])
+  private[play] val messagesApiCache = Application.instanceCache[MessagesApi]
+  private[play] def messagesApi: Option[MessagesApi] = Play.maybeApplication.map(messagesApiCache)
 
   /**
    * Translates a message.
