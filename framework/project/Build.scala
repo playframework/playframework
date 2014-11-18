@@ -271,7 +271,7 @@ object PlayBuild extends Build {
     .settings(
       addScalaModules(scalaParserCombinators),
       libraryDependencies ++= runtime ++ scalacheckDependencies,
-      sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion(buildScalaVersion),
+      sourceGenerators in Compile <+= (version, scalaVersion, sbtVersion, sourceManaged in Compile) map PlayVersion,
       sourceDirectories in (Compile, TwirlKeys.compileTemplates) := (unmanagedSourceDirectories in Compile).value,
       TwirlKeys.templateImports += "play.api.templates.PlayMagic._",
       mappings in (Compile, packageSrc) <++= scalaTemplateSourceMappings,
@@ -363,7 +363,7 @@ object PlayBuild extends Build {
   lazy val SbtPluginProject = PlaySbtPluginProject("SBT-Plugin", "sbt-plugin")
     .settings(
       libraryDependencies ++= sbtDependencies,
-      sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion(buildScalaVersionForSbt),
+      sourceGenerators in Compile <+= (version, scalaVersion, sbtVersion, sourceManaged in Compile) map PlayVersion,
       TaskKey[Unit]("sbtdep") <<= allDependencies map { deps: Seq[ModuleID] =>
         deps.map { d =>
           d.organization + ":" + d.name + ":" + d.revision
