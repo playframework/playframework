@@ -16,6 +16,7 @@ object Docs {
   val apiDocsScalaSources = TaskKey[Seq[File]]("api-docs-scala-sources", "All the scala sources for all projects")
   val apiDocsJavaSources = TaskKey[Seq[File]]("api-docs-java-sources", "All the Java sources for all projects")
   val apiDocsClasspath = TaskKey[Seq[File]]("api-docs-classpath", "The classpath for API docs generation")
+  val apiDocsUseCache = SettingKey[Boolean]("api-docs-use-cache", "Whether to cache the doc inputs (can hit cache limit with dbuild)")
   val apiDocs = TaskKey[File]("api-docs", "Generate the API docs")
   val extractWebjars = TaskKey[File]("extract-webjars", "Extract webjar contents")
 
@@ -25,7 +26,8 @@ object Docs {
     apiDocsScalaSources <<= (thisProjectRef, buildStructure) flatMap allSources(Compile, ".scala"),
     apiDocsClasspath <<= (thisProjectRef, buildStructure) flatMap allClasspaths,
     apiDocsJavaSources <<= (thisProjectRef, buildStructure) flatMap allSources(Compile, ".java"),
-    apiDocs <<= (apiDocsScalaSources, apiDocsJavaSources, apiDocsClasspath, baseDirectory in ThisBuild, target, compilers, streams, scalaVersion) map apiDocsTask,
+    apiDocsUseCache := true,
+    apiDocs <<= (apiDocsScalaSources, apiDocsJavaSources, apiDocsClasspath, baseDirectory in ThisBuild, target, compilers, apiDocsUseCache, streams, scalaVersion) map apiDocsTask,
     ivyConfigurations += Webjars,
     extractWebjars <<= extractWebjarContents,
     mappings in (Compile, packageBin) <++= (baseDirectory, apiDocs, extractWebjars, version) map { (base, apiBase, webjars, playVersion) =>
@@ -44,8 +46,8 @@ object Docs {
     }
   )
 
-  def apiDocsTask(scalaSources: Seq[File], javaSources: Seq[File], classpath: Seq[File], buildBase: File,
-                  target: File, compilers: Compiler.Compilers, streams: TaskStreams, scalaVersion: String): File = {
+  def apiDocsTask(scalaSources: Seq[File], javaSources: Seq[File], classpath: Seq[File], buildBase: File, target: File,
+                  compilers: Compiler.Compilers, useCache: Boolean, streams: TaskStreams, scalaVersion: String): File = {
 
     val targetDir = new File(target, "scala-" + CrossVersion.binaryScalaVersion(scalaVersion))
 
@@ -70,7 +72,10 @@ object Docs {
       "-sourcepath", buildBase.getAbsolutePath,
       "-doc-source-url", "https://github.com/playframework/playframework/tree/" + sourceTree + "/framework€{FILE_PATH}.scala")
 
-    val scaladoc = Doc.scaladoc(label, scalaCache, compilers.scalac)
+    val scaladoc = {
+      if (useCache) Doc.scaladoc(label, scalaCache, compilers.scalac)
+      else DocNoCache.scaladoc(label, compilers.scalac)
+    }
     // Since there is absolutely no documentation on what the arguments here should be aside from their types, here
     // are the parameter names of the method that does eventually get called:
     // (sources, classpath, outputDirectory, options, maxErrors, log)
@@ -83,7 +88,10 @@ object Docs {
       "-exclude", "play.api:play.core"
     )
 
-    val javadoc = Doc.javadoc(label, javaCache, compilers.javac)
+    val javadoc = {
+      if (useCache) Doc.javadoc(label, javaCache, compilers.javac)
+      else DocNoCache.javadoc(label, compilers.javac)
+    }
     javadoc(javaSources, classpath, apiTarget / "java", javadocOptions, 10, streams.log)
 
     apiTarget
@@ -138,5 +146,16 @@ object Docs {
     extractor.extractAllWebJarsTo(webjarsDir)
     cache.save()
     webjarsDir
+  }
+
+  // Generate documentation but avoid caching the inputs because of https://github.com/sbt/sbt/issues/1614
+  object DocNoCache {
+    type GenerateDoc = (Seq[File], Seq[File], File, Seq[String], Int, Logger) => Unit
+
+    def scaladoc(label: String, compile: compiler.AnalyzingCompiler): GenerateDoc =
+      RawCompileLike.prepare(label + " Scala API documentation", compile.doc)
+
+    def javadoc(label: String, compile: compiler.Javadoc): GenerateDoc =
+      RawCompileLike.prepare(label + " Java API documentation", RawCompileLike.filterSources(Doc.javaSourcesOnly, compile.doc))
   }
 }

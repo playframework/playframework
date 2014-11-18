@@ -7,7 +7,7 @@ import sbt.File
 
 object Generators {
   // Generates a scala file that contains the play version for use at runtime.
-  def PlayVersion(scalaVersion: String)(dir: File): Seq[File] = {
+  def PlayVersion(version: String, scalaVersion: String, sbtVersion: String, dir: File): Seq[File] = {
       val file = dir / "PlayVersion.scala"
       IO.write(file,
         """|package play.core
@@ -17,7 +17,7 @@ object Generators {
             |    val scalaVersion = "%s"
             |    val sbtVersion = "%s"
             |}
-          """.stripMargin.format(BuildSettings.buildVersion, scalaVersion, BuildSettings.buildSbtVersion))
+          """.stripMargin.format(version, scalaVersion, sbtVersion))
       Seq(file)
   }
 }
