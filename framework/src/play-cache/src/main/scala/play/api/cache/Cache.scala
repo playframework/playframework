@@ -60,7 +60,7 @@ trait CacheApi {
 object Cache {
 
   private val cacheApiCache = Application.instanceCache[CacheApi]
-  private def cacheApi(implicit app: Application) = cacheApiCache(app)
+  private[cache] def cacheApi(implicit app: Application) = cacheApiCache(app)
 
   private def intToDuration(seconds: Int): Duration = if (seconds == 0) Duration.Inf else seconds.seconds
 
@@ -180,7 +180,8 @@ class EhCacheModule extends Module {
       Seq(
         ehcacheKey.to(new NamedEhCacheProvider(name)),
         cacheApiKey.to(new NamedCacheApiProvider(ehcacheKey)),
-        bind[JavaCacheApi].qualifiedWith(namedCache).to(new NamedJavaCacheApiProvider(cacheApiKey))
+        bind[JavaCacheApi].qualifiedWith(namedCache).to(new NamedJavaCacheApiProvider(cacheApiKey)),
+        bind[Cached].qualifiedWith(namedCache).to(new NamedCachedProvider(cacheApiKey))
       )
     }
 
@@ -223,6 +224,13 @@ private[play] class NamedJavaCacheApiProvider(key: BindingKey[CacheApi]) extends
   @Inject private var injector: Injector = _
   lazy val get: JavaCacheApi = {
     new DefaultJavaCacheApi(injector.instanceOf(key))
+  }
+}
+
+private[play] class NamedCachedProvider(key: BindingKey[CacheApi]) extends Provider[Cached] {
+  @Inject private var injector: Injector = _
+  lazy val get: Cached = {
+    new Cached(injector.instanceOf(key))
   }
 }
 

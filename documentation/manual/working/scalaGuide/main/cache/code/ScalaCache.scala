@@ -84,83 +84,44 @@ class ScalaCacheSpec extends PlaySpecification with Controller {
     }
 
     "cached page" in {
-      running(FakeApplication()) {
-        //#cached-action
-        def index = Cached("homePage") {
-          Action {
-            Ok("Hello world")
-          }
-        }
-        //#cached-action
-        val result = index(FakeRequest()).run
+      val app = FakeApplication()
+      running(app) {
+        val cachedApp = app.injector.instanceOf[cachedaction.Application1]
+        val result = cachedApp.index(FakeRequest()).run
         status(result) must_== 200
       }
     }
 
     "composition cached page" in {
-      import play.api.mvc.Security.Authenticated
-
-      //#composition-cached-action
-      def userProfile = Authenticated {
-        user =>
-          Cached(req => "profile." + user) {
-            Action {
-              Ok(views.html.profile(User.find(user)))
-            }
-          }
+      val app = FakeApplication()
+      running(app) {
+        val cachedApp = app.injector.instanceOf[cachedaction.Application1]
+        testAction(action=cachedApp.userProfile,expectedResponse=UNAUTHORIZED)
       }
-      //#composition-cached-action
-      testAction(action=userProfile,expectedResponse=UNAUTHORIZED)
     }
 
     "control cache" in {
-      running(FakeApplication()) {
-        //#cached-action-control
-        def get(index: Int) = Cached.status(_ => "/resource/"+ index, 200) {
-          Action {
-            if (index > 0) {
-              Ok(Json.obj("id" -> index))
-            } else {
-              NotFound
-            }
-          }
-        }
-        //#cached-action-control
-        val result0 = get(1)(FakeRequest("GET", "/resource/1")).run
+      val app = FakeApplication()
+      running(app) {
+        val cachedApp = app.injector.instanceOf[cachedaction.Application1]
+        val result0 = cachedApp.get(1)(FakeRequest("GET", "/resource/1")).run
         status(result0) must_== 200
-        val result1 = get(-1)(FakeRequest("GET", "/resource/-1")).run
+        val result1 = cachedApp.get(-1)(FakeRequest("GET", "/resource/-1")).run
         status(result1) must_== 404
       }
 
     }
 
     "control cache" in {
-      running(FakeApplication()) {
-        //#cached-action-control-404
-        def get(index: Int) = {
-          val caching = Cached
-            .status(_ => "/resource/"+ index, 200)
-            .includeStatus(404, 600)
-
-          caching {
-            Action {
-              if (index % 2 == 1) {
-                Ok(Json.obj("id" -> index))
-              } else {
-                NotFound
-              }
-            }
-          }
-        }
-        //#cached-action-control-404
-        val result0 = get(1)(FakeRequest("GET", "/resource/1")).run
+      val app = FakeApplication()
+      running(app) {
+        val cachedApp = app.injector.instanceOf[cachedaction.Application2]
+        val result0 = cachedApp.get(1)(FakeRequest("GET", "/resource/1")).run
         status(result0) must_== 200
-        val result1 = get(2)(FakeRequest("GET", "/resource/2")).run
+        val result1 = cachedApp.get(2)(FakeRequest("GET", "/resource/2")).run
         status(result1) must_== 404
       }
-
     }
-
 
   }
 
@@ -218,6 +179,70 @@ class Application @Inject()(
 //#qualified
 }
 
+package cachedaction {
+//#cached-action-app
+import play.api.cache.Cached
+import javax.inject.Inject
+
+class Application @Inject() (cached: Cached) extends Controller {
+
+}
+//#cached-action-app
+
+class Application1 @Inject() (cached: Cached) extends Controller {
+  //#cached-action
+  def index = cached("homePage") {
+    Action {
+      Ok("Hello world")
+    }
+  }
+  //#cached-action
+
+  import play.api.mvc.Security.Authenticated
+
+  //#composition-cached-action
+  def userProfile = Authenticated {
+    user =>
+      cached(req => "profile." + user) {
+        Action {
+          Ok(views.html.profile(User.find(user)))
+        }
+      }
+  }
+  //#composition-cached-action
+  //#cached-action-control
+  def get(index: Int) = cached.status(_ => "/resource/"+ index, 200) {
+    Action {
+      if (index > 0) {
+        Ok(Json.obj("id" -> index))
+      } else {
+        NotFound
+      }
+    }
+  }
+  //#cached-action-control
+}
+class Application2 @Inject() (cached: Cached) extends Controller {
+  //#cached-action-control-404
+  def get(index: Int) = {
+    val caching = cached
+      .status(_ => "/resource/"+ index, 200)
+      .includeStatus(404, 600)
+
+    caching {
+      Action {
+        if (index % 2 == 1) {
+          Ok(Json.obj("id" -> index))
+        } else {
+          NotFound
+        }
+      }
+    }
+  }
+  //#cached-action-control-404
+}
+
+}
 
 case class User(name: String)
 

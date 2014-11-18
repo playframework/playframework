@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
+ */
 package play.api.cache
 
 import javax.inject._
@@ -17,7 +20,75 @@ class CachedSpec extends PlaySpecification {
   sequential
 
   "the cached action" should {
-    "cache values" in new WithApplication() {
+    "cache values using injected CachedApi" in new WithApplication() {
+      val controller = app.injector.instanceOf[CachedController]
+      val result1 = controller.action(FakeRequest()).run
+      contentAsString(result1) must_== "1"
+      controller.invoked.get() must_== 1
+      val result2 = controller.action(FakeRequest()).run
+      contentAsString(result2) must_== "1"
+      controller.invoked.get() must_== 1
+
+      // Test that the same headers are added
+      header(ETAG, result2) must_== header(ETAG, result1)
+      header(EXPIRES, result2) must_== header(EXPIRES, result1)
+    }
+
+    "cache values using named injected CachedApi" in new WithApplication(FakeApplication(
+      additionalConfiguration = Map("play.modules.cache.bindCaches" -> Seq("custom"))
+    )) {
+      val controller = app.injector.instanceOf[NamedCachedController]
+      val result1 = controller.action(FakeRequest()).run
+      contentAsString(result1) must_== "1"
+      controller.invoked.get() must_== 1
+      val result2 = controller.action(FakeRequest()).run
+      contentAsString(result2) must_== "1"
+      controller.invoked.get() must_== 1
+
+      // Test that the same headers are added
+      header(ETAG, result2) must_== header(ETAG, result1)
+      header(EXPIRES, result2) must_== header(EXPIRES, result1)
+
+      // Test that the values are in the right cache
+      app.injector.instanceOf[CacheApi].get("foo") must beNone
+      controller.isCached("foo-etag") must beTrue
+    }
+
+    "cache values to disk using injected CachedApi" in new WithApplication() {
+      import net.sf.ehcache._
+      import net.sf.ehcache.config._
+      import net.sf.ehcache.store.MemoryStoreEvictionPolicy
+      // FIXME: Do this properly
+      val cacheManager = app.injector.instanceOf[CacheManager]
+      val diskEhcache = new Cache(
+        new CacheConfiguration("disk", 30)
+          .memoryStoreEvictionPolicy(MemoryStoreEvictionPolicy.LFU)
+          .eternal(false)
+          .timeToLiveSeconds(60)
+          .timeToIdleSeconds(30)
+          .diskExpiryThreadIntervalSeconds(0)
+          .persistence(new PersistenceConfiguration().strategy(PersistenceConfiguration.Strategy.LOCALTEMPSWAP)))
+      cacheManager.addCache(diskEhcache)
+      val diskEhcache2 = cacheManager.getCache("disk")
+      assert(diskEhcache2 != null)
+      val diskCache = new EhCacheApi(diskEhcache2)
+      val diskCached = new Cached(diskCache)
+      val invoked = new AtomicInteger()
+      val action = diskCached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+      val result1 = action(FakeRequest()).run
+      contentAsString(result1) must_== "1"
+      invoked.get() must_== 1
+      val result2 = action(FakeRequest()).run
+      contentAsString(result2) must_== "1"
+
+      // Test that the same headers are added
+      header(ETAG, result2) must_== header(ETAG, result1)
+      header(EXPIRES, result2) must_== header(EXPIRES, result1)
+
+      invoked.get() must_== 1
+    }
+
+    "cache values using Application's Cached" in new WithApplication() {
       val invoked = new AtomicInteger()
       val action = Cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
       val result1 = action(FakeRequest()).run
@@ -40,7 +111,7 @@ class CachedSpec extends PlaySpecification {
       status(result1) must_== 200
       invoked.get() must_== 1
       val etag = header(ETAG, result1)
-      etag must beSome(matching("""([wW]/)?"([^"]|\\")*""""))
+      etag must beSome(matching("""([wW]/)?"([^"]|\\")*"""")) //"""
       val result2 = action(FakeRequest().withHeaders(IF_NONE_MATCH -> etag.get)).run
       status(result2) must_== NOT_MODIFIED
       invoked.get() must_== 1
@@ -160,4 +231,17 @@ class CachedSpec extends PlaySpecification {
 class SomeComponent @Inject() (@NamedCache("custom") cache: CacheApi) {
   def get(key: String) = cache.get[String](key)
   def set(key: String, value: String) = cache.set(key, value)
+}
+
+class CachedController @Inject() (cached: Cached) {
+  val invoked = new AtomicInteger()
+  val action = cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+}
+
+class NamedCachedController @Inject() (
+    @NamedCache("custom") val cache: CacheApi,
+    @NamedCache("custom") val cached: Cached) {
+  val invoked = new AtomicInteger()
+  val action = cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
+  def isCached(key: String): Boolean = cache.get[String](key).isDefined
 }

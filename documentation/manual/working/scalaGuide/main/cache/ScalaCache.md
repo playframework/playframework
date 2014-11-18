@@ -60,16 +60,19 @@ Now to access these different caches, when you inject them, use the [NamedCache]
 
 ## Caching HTTP responses
 
-You can easily create smart cached actions using standard Action composition. 
+You can easily create smart cached actions using standard Action composition.
 
 > **Note:** Play HTTP `Result` instances are safe to cache and reuse later.
 
-Play provides a default built-in helper for standard cases:
+The [Cached](api/scala/index.html#play.api.cache.Cached) class helps you build cached actions.
+
+@[cached-action-app](code/ScalaCache.scala)
+
+You can cache the result of an action using a fixed key like `"homePage"`.
 
 @[cached-action](code/ScalaCache.scala)
 
-
-Or even:
+If results vary, you can cache each result using a different key. In this example, each user has a different cached result.
 
 @[composition-cached-action](code/ScalaCache.scala)
 
