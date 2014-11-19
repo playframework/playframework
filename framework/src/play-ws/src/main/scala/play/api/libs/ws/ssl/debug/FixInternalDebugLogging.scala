@@ -21,14 +21,14 @@ object FixInternalDebugLogging {
 
     val logger = org.slf4j.LoggerFactory.getLogger("play.api.libs.ws.ssl.debug.FixInternalDebugLogging.MonkeyPatchInternalSslDebugAction")
 
-    val initialResource = foldVersion(
-      run16 = "/javax/net/ssl/SSLContext.class", // in 1.6 the JSSE classes are in rt.jar
-      runHigher = "/sun/security/ssl/Debug.class" // in 1.7 the JSSE classes are in jsse.jar
+    val initialResource = foldRuntime(
+      older = "/javax/net/ssl/SSLContext.class", // in 1.6 the JSSE classes are in rt.jar
+      newer = "/sun/security/ssl/Debug.class" // in 1.7 the JSSE classes are in jsse.jar
     )
 
-    val debugClassName = foldVersion(
-      run16 = "com.sun.net.ssl.internal.ssl.Debug",
-      runHigher = "sun.security.ssl.Debug"
+    val debugClassName = foldRuntime(
+      older = "com.sun.net.ssl.internal.ssl.Debug",
+      newer = "sun.security.ssl.Debug"
     )
 
     /**
