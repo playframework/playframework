@@ -238,9 +238,8 @@
 
 ## PDF module (Java)
 
-* **Website:** <https://github.com/joergviola/play20-pdf>
-* **Documentation:** <https://github.com/joergviola/play20-pdf/blob/master/README.md>
-* **Repository:** <http://www.joergviola.de/releases/>
+* **Website:** <https://github.com/innoveit/play2-pdf>
+* **Documentation:** <https://github.com/innoveit/play2-pdf/blob/master/README.md>
 * **Short description** Generate PDF output from HTML templates
 
 ## Play! Authenticate (Java)
