@@ -4,7 +4,7 @@
 import sbt._
 import Keys._
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
-import com.typesafe.tools.mima.plugin.MimaKeys.{previousArtifact, binaryIssueFilters}
+import com.typesafe.tools.mima.plugin.MimaKeys.{previousArtifact, binaryIssueFilters, reportBinaryIssues}
 import com.typesafe.tools.mima.core._
 import com.typesafe.sbt.SbtScalariform.scalariformSettings
 import scala.util.Properties.isJavaAtLeast
@@ -96,9 +96,9 @@ object BuildSettings {
    * A project that is shared between the SBT runtime and the Play runtime
    */
   def PlaySharedJavaProject(name: String, dir: String, testBinaryCompatibility: Boolean = false): Project = {
-    val bcSettings: Seq[Setting[_]] = if (testBinaryCompatibility) {
-      mimaDefaultSettings ++ Seq(previousArtifact := Some(buildOrganization % Project.normalizeModuleID(name) % previousVersion))
-    } else Nil
+    val bcSettings: Seq[Setting[_]] = mimaDefaultSettings ++ (if (testBinaryCompatibility) {
+      Seq(previousArtifact := Some(buildOrganization % moduleName.value % previousVersion))
+    } else Nil)
     Project(name, file("src/" + dir))
       .settings(playCommonSettings: _*)
       .settings(PublishSettings.nonCrossBuildPublishSettings: _*)
@@ -117,6 +117,7 @@ object BuildSettings {
       .settings(scalariformSettings: _*)
       .settings(scalaVersion.toSettings(targetPrefix): _*)
       .settings(additionalSettings: _*)
+      .settings(mimaDefaultSettings: _*)
   }
 
   /**
@@ -128,12 +129,11 @@ object BuildSettings {
       .settings(PublishSettings.publishSettings: _*)
       .settings(mimaDefaultSettings: _*)
       .settings(scalariformSettings: _*)
-      .settings(playRuntimeSettings(name): _*)
+      .settings(playRuntimeSettings: _*)
   }
 
-  def playRuntimeSettings(name: String): Seq[Setting[_]] = Seq(
-    previousArtifact := Some(buildOrganization %
-      (Project.normalizeModuleID(name) + "_" + CrossVersion.binaryScalaVersion(buildScalaVersion)) % previousVersion),
+  def playRuntimeSettings: Seq[Setting[_]] = Seq(
+    previousArtifact := Some(buildOrganization % s"${moduleName.value}_${scalaBinaryVersion.value}" % previousVersion),
     scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
     projectID := withSourceUrl.value,
     Docs.apiDocsInclude := true
@@ -218,7 +218,7 @@ object PlayBuild extends Build {
     .dependsOn(PlayExceptionsProject)
 
   def runSupportProject(prefix:String, sv:SharedProjectScalaVersion, additionalSettings: Seq[Setting[_]]) =
-    PlaySharedRuntimeProject(s"$prefix-${sv.nameSuffix}", s"run-support", prefix, sv, additionalSettings).settings(
+    PlaySharedRuntimeProject(prefix, "run-support", prefix, sv, additionalSettings).settings(
       libraryDependencies ++= runSupportDependencies
     )
 
@@ -271,7 +271,7 @@ object PlayBuild extends Build {
     .settings(
       addScalaModules(scalaParserCombinators),
       libraryDependencies ++= runtime ++ scalacheckDependencies,
-      sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion(buildScalaVersion),
+      sourceGenerators in Compile <+= (version, scalaVersion, sbtVersion, sourceManaged in Compile) map PlayVersion,
       sourceDirectories in (Compile, TwirlKeys.compileTemplates) := (unmanagedSourceDirectories in Compile).value,
       TwirlKeys.templateImports += "play.api.templates.PlayMagic._",
       mappings in (Compile, packageSrc) <++= scalaTemplateSourceMappings,
@@ -363,7 +363,7 @@ object PlayBuild extends Build {
   lazy val SbtPluginProject = PlaySbtPluginProject("SBT-Plugin", "sbt-plugin")
     .settings(
       libraryDependencies ++= sbtDependencies,
-      sourceGenerators in Compile <+= sourceManaged in Compile map PlayVersion(buildScalaVersionForSbt),
+      sourceGenerators in Compile <+= (version, scalaVersion, sbtVersion, sourceManaged in Compile) map PlayVersion,
       TaskKey[Unit]("sbtdep") <<= allDependencies map { deps: Seq[ModuleID] =>
         deps.map { d =>
           d.organization + ":" + d.name + ":" + d.revision
@@ -438,6 +438,7 @@ object PlayBuild extends Build {
       "Play-Repository", file("repository"))
     .settings(PublishSettings.dontPublishSettings: _*)
     .settings(localRepoCreationSettings:_*)
+    .settings(mimaDefaultSettings: _*)
     .settings(
       localRepoProjectsPublished <<= (publishedProjects map (publishLocal in _)).dependOn,
       addProjectsToRepository(publishedProjects),
@@ -499,7 +500,8 @@ object PlayBuild extends Build {
       concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
       libraryDependencies ++= (runtime ++ jdbcDeps),
       Docs.apiDocsInclude := false,
-      Docs.apiDocsIncludeManaged := false
+      Docs.apiDocsIncludeManaged := false,
+      reportBinaryIssues := ()
     )
     .aggregate(publishedProjects: _*)
 }
