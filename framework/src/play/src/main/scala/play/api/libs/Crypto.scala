@@ -198,6 +198,8 @@ class CryptoConfigParser @Inject() (environment: Environment, configuration: Con
 
   private val Blank = """\s*""".r
 
+  private val logger = Logger(classOf[CryptoConfigParser])
+
   lazy val get = {
 
     /*
@@ -227,8 +229,8 @@ class CryptoConfigParser @Inject() (environment: Environment, configuration: Con
      */
     val secret = configuration.getString("application.secret") match {
       case (Some("changeme") | Some(Blank()) | None) if environment.mode == Mode.Prod =>
-        Play.logger.error("The application secret has not been set, and we are in prod mode. Your application is not secure.")
-        Play.logger.error("To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret")
+        logger.error("The application secret has not been set, and we are in prod mode. Your application is not secure.")
+        logger.error("To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret")
         throw new PlayException("Configuration error", "Application secret not set")
       case Some("changeme") | Some(Blank()) | None =>
         val appConfLocation = environment.resource("application.conf")
@@ -238,7 +240,7 @@ class CryptoConfigParser @Inject() (environment: Environment, configuration: Con
           "she sells sea shells on the sea shore"
         )(_.toString)
         val md5Secret = DigestUtils.md5Hex(secret)
-        Play.logger.debug(s"Generated dev mode secret $md5Secret for app at ${appConfLocation.getOrElse("unknown location")}")
+        logger.debug(s"Generated dev mode secret $md5Secret for app at ${appConfLocation.getOrElse("unknown location")}")
         md5Secret
       case Some(s) => s
     }

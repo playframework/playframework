@@ -74,6 +74,8 @@ public abstract class EventSource extends Chunks<String> {
      */
     static final class WhenConnectedEventSource extends EventSource {
 
+        private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WhenConnectedEventSource.class);
+
         private final F.Callback<EventSource> callback;
 
         WhenConnectedEventSource(F.Callback<EventSource> callback) {
@@ -87,7 +89,7 @@ public abstract class EventSource extends Chunks<String> {
             try {
                 callback.invoke(this);
             } catch (Throwable e) {
-                play.PlayInternal.logger().error("Exception in EventSource.onConnected", e);
+                logger.error("Exception in EventSource.onConnected", e);
             }
         }
     }

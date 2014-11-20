@@ -12,7 +12,7 @@ import scala.util.control.NonFatal
 
 import play.api.db.DBApi
 import play.api.libs.Collections
-import play.api.{ Environment, Logger, Mode, Play, PlayException }
+import play.api.{ Environment, Logger, Mode, PlayException }
 import play.utils.PlayIO
 
 /**
@@ -71,6 +71,8 @@ trait EvolutionsApi {
 class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
 
   import DefaultEvolutionsApi._
+
+  private val logger = Logger(classOf[DefaultEvolutionsApi])
 
   /**
    * Create evolution scripts.
@@ -223,7 +225,7 @@ class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
           case ex => ex.getMessage
         }
         if (!autocommit) {
-          Play.logger.error(message)
+          logger.error(message)
 
           connection.rollback()
 
@@ -258,7 +260,7 @@ class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
 
         execute(createScript)
       } catch {
-        case NonFatal(ex) => Logger.warn("could not create play_evolutions table", ex)
+        case NonFatal(ex) => logger.warn("could not create play_evolutions table", ex)
       }
     }
 
@@ -277,7 +279,7 @@ class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
         }
         val error = problem.getString("last_problem")
 
-        Play.logger.error(error)
+        logger.error(error)
 
         val humanScript = "# --- Rev:" + revision + "," + (if (state == "applying_up") "Ups" else "Downs") + " - " + hash + "\n\n" + script;
 

@@ -7,7 +7,7 @@ import javax.inject.{ Inject, Provider, Singleton }
 
 import scala.util.control.NonFatal
 
-import play.api.{ Configuration, Play }
+import play.api.{ Configuration, Logger }
 
 /**
  * DB API for managing application databases.
@@ -41,6 +41,8 @@ class DefaultDBApi(
     connectionPool: ConnectionPool = new BoneConnectionPool,
     classLoader: ClassLoader = classOf[DefaultDBApi].getClassLoader) extends DBApi {
 
+  import DefaultDBApi._
+
   lazy val databases: Seq[Database] = {
     configuration.subKeys.toList map { name =>
       val conf = configuration.getConfig(name).getOrElse {
@@ -67,7 +69,7 @@ class DefaultDBApi(
     databases foreach { db =>
       try {
         db.getConnection().close()
-        if (logConnection) Play.logger.info(s"Database [${db.name}] connected at ${db.url}")
+        if (logConnection) logger.info(s"Database [${db.name}] connected at ${db.url}")
       } catch {
         case NonFatal(e) =>
           throw configuration.reportError(s"${db.name}.url", s"Cannot connect to database [${db.name}]", Some(e))
@@ -79,4 +81,8 @@ class DefaultDBApi(
     databases foreach (_.shutdown())
   }
 
+}
+
+object DefaultDBApi {
+  private val logger = Logger(classOf[DefaultDBApi])
 }

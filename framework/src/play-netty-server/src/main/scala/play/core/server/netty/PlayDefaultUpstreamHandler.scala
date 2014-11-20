@@ -30,17 +30,13 @@ import java.io.IOException
 import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame
 
 private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
+
+  import PlayDefaultUpstreamHandler._
+
   private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
 
   private lazy val forwardedHeaderHandler = new ForwardedHeaderHandler(
     ForwardedHeaderHandlerConfig(server.applicationProvider.get.toOption.map(_.configuration)))
-
-  /**
-   * We don't know what the consequence of changing logging exceptions from trace to error will be.  We hope that it
-   * won't have any impact, but in case it turns out that there are many exceptions that are normal occurrences, we
-   * want to give people the opportunity to turn it off.
-   */
-  val nettyExceptionLogger = Logger("play.nettyException")
 
   override def exceptionCaught(ctx: ChannelHandlerContext, event: ExceptionEvent) {
 
@@ -48,15 +44,15 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
       // IO exceptions happen all the time, it usually just means that the client has closed the connection before fully
       // sending/receiving the response.
       case e: IOException =>
-        nettyExceptionLogger.trace("Benign IO exception caught in Netty", e)
+        logger.trace("Benign IO exception caught in Netty", e)
         event.getChannel.close()
       case e: TooLongFrameException =>
-        nettyExceptionLogger.warn("Handling TooLongFrameException", e)
+        logger.warn("Handling TooLongFrameException", e)
         val response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.REQUEST_URI_TOO_LONG)
         response.headers().set(Names.CONNECTION, "close")
         ctx.getChannel.write(response).addListener(ChannelFutureListener.CLOSE)
       case e =>
-        nettyExceptionLogger.error("Exception caught in Netty", e)
+        logger.error("Exception caught in Netty", e)
         event.getChannel.close()
     }
 
@@ -77,7 +73,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
 
       case nettyHttpRequest: HttpRequest =>
 
-        Play.logger.trace("Http request received by netty: " + nettyHttpRequest)
+        logger.trace("Http request received by netty: " + nettyHttpRequest)
         val keepAlive = isKeepAlive(nettyHttpRequest)
         val websocketableRequest = websocketable(nettyHttpRequest)
         var nettyVersion = nettyHttpRequest.getProtocolVersion
@@ -178,7 +174,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
             handleAction(a, Some(app))
 
           case Right((ws @ WebSocket(f), app)) if websocketableRequest.check =>
-            Play.logger.trace("Serving this request with: " + ws)
+            logger.trace("Serving this request with: " + ws)
 
             val executed = Future(f(requestHeader))(play.api.libs.concurrent.Execution.defaultContext)
 
@@ -203,12 +199,12 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
 
           //handle bad websocket request
           case Right((WebSocket(_), app)) =>
-            Play.logger.trace("Bad websocket request")
+            logger.trace("Bad websocket request")
             val a = EssentialAction(_ => Done(Results.BadRequest, Input.Empty))
             handleAction(a, Some(app))
 
           case Left(e) =>
-            Play.logger.trace("No handler, got direct result: " + e)
+            logger.trace("No handler, got direct result: " + e)
             import play.api.libs.iteratee.Execution.Implicits.trampoline
             val a = EssentialAction(_ => Iteratee.flatten(e.map(result => Done(result, Input.Empty))))
             handleAction(a, None)
@@ -216,7 +212,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
         }
 
         def handleAction(action: EssentialAction, app: Option[Application]) {
-          Play.logger.trace("Serving this request with: " + action)
+          logger.trace("Serving this request with: " + action)
 
           val bodyParser = Iteratee.flatten(
             scala.concurrent.Future(action(requestHeader))(play.api.libs.concurrent.Execution.defaultContext)
@@ -284,7 +280,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
 
           val sent = eventuallyResultWithSequence.recoverWith {
             case error =>
-              Play.logger.error("Cannot invoke the action, eventually got an error: " + error)
+              logger.error("Cannot invoke the action, eventually got an error: " + error)
               e.getChannel.setReadable(true)
               errorHandler(app).onServerError(requestHeader, error)
                 .map((_, 0))
@@ -295,7 +291,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
 
         }
 
-      case unexpected => Play.logger.error("Oops, unexpected message received in NettyServer (please report this problem): " + unexpected)
+      case unexpected => logger.error("Oops, unexpected message received in NettyServer (please report this problem): " + unexpected)
 
     }
   }
@@ -341,4 +337,8 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
     ctx.sendDownstream(ode)
     ode.getFuture
   }
+}
+
+object PlayDefaultUpstreamHandler {
+  private val logger = Logger(classOf[PlayDefaultUpstreamHandler])
 }

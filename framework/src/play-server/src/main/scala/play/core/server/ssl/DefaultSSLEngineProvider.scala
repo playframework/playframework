@@ -6,7 +6,7 @@ import javax.net.ssl.{ TrustManager, KeyManagerFactory, SSLEngine, SSLContext, X
 import java.security.KeyStore
 import java.security.cert.X509Certificate
 import java.io.{ FileInputStream, File }
-import play.api.Play
+import play.api.Logger
 import scala.util.control.NonFatal
 import scala.util.{ Try, Failure, Success }
 import play.utils.PlayIO
@@ -15,6 +15,8 @@ import play.utils.PlayIO
  * This class calls sslContext.createSSLEngine() with no parameters and returns the result.
  */
 class DefaultSSLEngineProvider(appProvider: ApplicationProvider) extends SSLEngineProvider {
+
+  import DefaultSSLEngineProvider._
 
   val sslContext: SSLContext = createSSLContext(appProvider)
 
@@ -34,7 +36,7 @@ class DefaultSSLEngineProvider(appProvider: ApplicationProvider) extends SSLEngi
           val in = new FileInputStream(file)
           try {
             keyStore.load(in, password)
-            Play.logger.debug("Using HTTPS keystore at " + file.getAbsolutePath)
+            logger.debug("Using HTTPS keystore at " + file.getAbsolutePath)
             val kmf = KeyManagerFactory.getInstance(algorithm)
             kmf.init(keyStore, password)
             Success(kmf)
@@ -51,7 +53,7 @@ class DefaultSSLEngineProvider(appProvider: ApplicationProvider) extends SSLEngi
       }
       case None => {
         // Load a generated key store
-        Play.logger.warn("Using generated key with self signed certificate for HTTPS. This should not be used in production.")
+        logger.warn("Using generated key with self signed certificate for HTTPS. This should not be used in production.")
         FakeKeyStore.keyManagerFactory(applicationProvider.path)
       }
     }
@@ -60,16 +62,16 @@ class DefaultSSLEngineProvider(appProvider: ApplicationProvider) extends SSLEngi
       // Load the configured trust manager
       val tm = Option(System.getProperty("https.trustStore")).map {
         case "noCA" => {
-          Play.logger.warn("HTTPS configured with no client " +
+          logger.warn("HTTPS configured with no client " +
             "side CA verification. Requires http://webid.info/ for client certificate verification.")
           Array[TrustManager](noCATrustManager)
         }
         case _ => {
-          Play.logger.debug("Using default trust store for client side CA verification")
+          logger.debug("Using default trust store for client side CA verification")
           null
         }
       }.getOrElse {
-        Play.logger.debug("Using default trust store for client side CA verification")
+        logger.debug("Using default trust store for client side CA verification")
         null
       }
 
@@ -79,6 +81,10 @@ class DefaultSSLEngineProvider(appProvider: ApplicationProvider) extends SSLEngi
       sslContext
     }.get
   }
+}
+
+object DefaultSSLEngineProvider {
+  private val logger = Logger(classOf[DefaultSSLEngineProvider])
 }
 
 object noCATrustManager extends X509TrustManager {

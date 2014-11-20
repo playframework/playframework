@@ -3,7 +3,7 @@
  */
 package play.core.server.ssl
 
-import play.api.{ Play, Logger, Application }
+import play.api.{ Logger, Application }
 import java.security.{ KeyStore, SecureRandom, KeyPairGenerator, KeyPair }
 import sun.security.x509._
 import java.util.Date
@@ -21,6 +21,7 @@ import java.security.interfaces.RSAPublicKey
  * A fake key store
  */
 object FakeKeyStore {
+  private val logger = Logger(FakeKeyStore.getClass)
   val GeneratedKeyStore = "conf/generated.keystore"
   val DnName = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
 
@@ -59,7 +60,7 @@ object FakeKeyStore {
       val keyStoreFile = new File(appPath, GeneratedKeyStore)
       if (shouldGenerate(keyStoreFile)) {
 
-        Play.logger.info("Generating HTTPS key pair in " + keyStoreFile.getAbsolutePath + " - this may take some time. If nothing happens, try moving the mouse/typing on the keyboard to generate some entropy.")
+        logger.info("Generating HTTPS key pair in " + keyStoreFile.getAbsolutePath + " - this may take some time. If nothing happens, try moving the mouse/typing on the keyboard to generate some entropy.")
 
         // Generate the key pair
         val keyPairGenerator = KeyPairGenerator.getInstance("RSA")

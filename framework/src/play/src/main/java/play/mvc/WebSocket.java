@@ -160,6 +160,8 @@ public abstract class WebSocket<A> {
      */
     static final class WhenReadyWebSocket<A> extends WebSocket<A> {
 
+        private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WhenReadyWebSocket.class);
+
         private final Callback2<In<A>, Out<A>> callback;
 
         WhenReadyWebSocket(Callback2<In<A>, Out<A>> callback) {
@@ -172,7 +174,7 @@ public abstract class WebSocket<A> {
             try {
                 callback.invoke(in, out);
             } catch (Throwable e) {
-                play.PlayInternal.logger().error("Exception in WebSocket.onReady", e);
+                logger.error("Exception in WebSocket.onReady", e);
             }
         }
     }

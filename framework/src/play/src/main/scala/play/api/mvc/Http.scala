@@ -712,6 +712,8 @@ package play.api.mvc {
     // We use netty here but just as an API to handle cookies encoding
     import play.core.netty.utils.{ CookieEncoder, CookieDecoder, DefaultCookie }
 
+    private val logger = Logger(this.getClass)
+
     /**
      * Extract cookies from the Set-Cookie header.
      */
@@ -764,7 +766,7 @@ package play.api.mvc {
           Cookie(c.getName, c.getValue, if (c.getMaxAge == Integer.MIN_VALUE) None else Some(c.getMaxAge), Option(c.getPath).getOrElse("/"), Option(c.getDomain), c.isSecure, c.isHttpOnly)
         }.toSeq
       }.getOrElse {
-        Play.logger.debug(s"Couldn't decode the Cookie header containing: $cookieHeader")
+        logger.debug(s"Couldn't decode the Cookie header containing: $cookieHeader")
         Nil
       }
     }

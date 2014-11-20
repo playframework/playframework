@@ -269,6 +269,8 @@ case class RawBuffer(memoryThreshold: Int, initialData: Array[Byte] = Array.empt
  */
 trait BodyParsers {
 
+  import BodyParsers._
+
   /**
    * Default body parsers.
    */
@@ -613,28 +615,28 @@ trait BodyParsers {
       val contentType: Option[String] = request.contentType.map(_.toLowerCase(Locale.ENGLISH))
       contentType match {
         case Some("text/plain") => {
-          Play.logger.trace("Parsing AnyContent as text")
+          logger.trace("Parsing AnyContent as text")
           text(maxLengthOrDefault)(request).map(_.right.map(s => AnyContentAsText(s)))
         }
         case Some("text/xml") | Some("application/xml") | Some(ApplicationXmlMatcher()) => {
-          Play.logger.trace("Parsing AnyContent as xml")
+          logger.trace("Parsing AnyContent as xml")
           xml(maxLengthOrDefault)(request).map(_.right.map(x => AnyContentAsXml(x)))
         }
         case Some("text/json") | Some("application/json") => {
-          Play.logger.trace("Parsing AnyContent as json")
+          logger.trace("Parsing AnyContent as json")
           json(maxLengthOrDefault)(request).map(_.right.map(j => AnyContentAsJson(j)))
         }
         case Some("application/x-www-form-urlencoded") => {
-          Play.logger.trace("Parsing AnyContent as urlFormEncoded")
+          logger.trace("Parsing AnyContent as urlFormEncoded")
           urlFormEncoded(maxLengthOrDefault)(request).map(_.right.map(d => AnyContentAsFormUrlEncoded(d)))
         }
         case Some("multipart/form-data") => {
-          Play.logger.trace("Parsing AnyContent as multipartFormData")
+          logger.trace("Parsing AnyContent as multipartFormData")
           multipartFormData(Multipart.handleFilePartAsTemporaryFile, maxLengthOrDefaultLarge)(request)
             .map(_.right.map(m => AnyContentAsMultipartFormData(m)))
         }
         case _ => {
-          Play.logger.trace("Parsing AnyContent as raw")
+          logger.trace("Parsing AnyContent as raw")
           raw(DefaultMaxTextLength, maxLengthOrDefaultLarge)(request).map(_.right.map(r => AnyContentAsRaw(r)))
         }
       }
@@ -734,7 +736,7 @@ trait BodyParsers {
                 parser(request, bytes)
               }.left.map {
                 case NonFatal(e) =>
-                  Play.logger.debug(errorMessage, e)
+                  logger.debug(errorMessage, e)
                   createBadResult(errorMessage + ": " + e.getMessage)(request)
                 case t => throw t
               }
@@ -754,7 +756,9 @@ trait BodyParsers {
 /**
  * Defaults BodyParsers.
  */
-object BodyParsers extends BodyParsers
+object BodyParsers extends BodyParsers {
+  private val logger = Logger(this.getClass)
+}
 
 /**
  * Signal a max content size exceeded

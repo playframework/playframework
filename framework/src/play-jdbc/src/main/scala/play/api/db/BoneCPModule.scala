@@ -36,6 +36,8 @@ trait BoneCPComponents {
  */
 class BoneConnectionPool extends ConnectionPool {
 
+  import BoneConnectionPool._
+
   /**
    * Create a data source with the given configuration.
    */
@@ -57,8 +59,6 @@ class BoneConnectionPool extends ConnectionPool {
     val readOnly = conf.getBoolean("readOnly").getOrElse(false)
 
     datasource.setClassLoader(classLoader)
-
-    val logger = Logger("com.jolbox.bonecp")
 
     // Re-apply per connection config @ checkout
     datasource.setConnectionHook(new AbstractConnectionHook {
@@ -146,7 +146,7 @@ class BoneConnectionPool extends ConnectionPool {
     // Bind in JNDI
     conf.getString("jndiName") map { name =>
       JNDI.initialContext.rebind(name, datasource)
-      Play.logger.info(s"""datasource [${conf.getString("url").get}] bound to JNDI as $name""")
+      logger.info(s"""datasource [${conf.getString("url").get}] bound to JNDI as $name""")
     }
 
     datasource
@@ -160,4 +160,8 @@ class BoneConnectionPool extends ConnectionPool {
     case _ => sys.error("Unable to close data source: not a BoneCPDataSource")
   }
 
+}
+
+object BoneConnectionPool {
+  private val logger = Logger(classOf[BoneConnectionPool])
 }

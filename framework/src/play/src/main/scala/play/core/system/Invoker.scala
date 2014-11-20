@@ -15,11 +15,13 @@ private[play] object Invoker {
 
   val lazySystem = new ClosableLazy[ActorSystem] {
 
+    private val logger = Logger(this.getClass)
+
     protected def create() = {
       val system = Play.maybeApplication.map { app =>
         ActorSystem("play", loadActorConfig(app.configuration.underlying), app.classloader)
       } getOrElse {
-        Play.logger.warn("No application found at invoker init")
+        logger.warn("No application found at invoker init")
         ActorSystem("play", loadActorConfig(ConfigFactory.load()))
       }
 

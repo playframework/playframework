@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger
 private[server] trait WebSocketHandler {
 
   import NettyFuture._
+  import WebSocketHandler._
 
   val WebSocketNormalClose = 1000
   val WebSocketUnacceptable = 1003
@@ -124,12 +125,12 @@ private[server] trait WebSocketHandler {
 
         override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
           enumerator.frameReceived(ctx, EOF)
-          Play.logger.trace("disconnected socket")
+          logger.trace("disconnected socket")
         }
 
         private def closeWebSocket(ctx: ChannelHandlerContext, status: Int, reason: String): Unit = {
           if (!reason.isEmpty) {
-            Logger.trace("Closing WebSocket because " + reason)
+            logger.trace("Closing WebSocket because " + reason)
           }
           if (ctx.getChannel.isOpen) {
             for {
@@ -244,4 +245,8 @@ private[server] trait WebSocketHandler {
     def getHeader(header: String) = req.headers().get(header)
   }
 
+}
+
+object WebSocketHandler {
+  private val logger = Logger(classOf[WebSocketHandler])
 }

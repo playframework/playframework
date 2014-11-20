@@ -24,6 +24,8 @@ import scala.util.control.NonFatal
  */
 class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extends Server with ServerWithStop {
 
+  import NettyServer._
+
   private val NettyOptionPrefix = "http.netty.option."
 
   def applicationProvider = appProvider
@@ -71,6 +73,8 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
 
   class PlayPipelineFactory(secure: Boolean = false) extends ChannelPipelineFactory {
 
+    private val logger = Logger(classOf[PlayPipelineFactory])
+
     def getPipeline = {
       val newPipeline = pipeline()
       if (secure) {
@@ -99,7 +103,7 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
         Some(ServerSSLEngine.createSSLEngineProvider(applicationProvider))
       } catch {
         case NonFatal(e) => {
-          Play.logger.error(s"cannot load SSL context", e)
+          logger.error(s"cannot load SSL context", e)
           None
         }
       }
@@ -134,10 +138,10 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
     case Mode.Test =>
     case _ => {
       HTTP.foreach { http =>
-        Play.logger.info("Listening for HTTP on %s".format(http._2.getLocalAddress))
+        logger.info("Listening for HTTP on %s".format(http._2.getLocalAddress))
       }
       HTTPS.foreach { https =>
-        Play.logger.info("Listening for HTTPS on port %s".format(https._2.getLocalAddress))
+        logger.info("Listening for HTTPS on port %s".format(https._2.getLocalAddress))
       }
     }
   }
@@ -149,12 +153,12 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
     try {
       super.stop()
     } catch {
-      case NonFatal(e) => Play.logger.error("Error while stopping logger", e)
+      case NonFatal(e) => logger.error("Error while stopping logger", e)
     }
 
     mode match {
       case Mode.Test =>
-      case _ => Play.logger.info("Stopping server...")
+      case _ => logger.info("Stopping server...")
     }
 
     // First, close all opened sockets
@@ -188,6 +192,8 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
  * Bootstraps Play application with a NettyServer backend.
  */
 object NettyServer extends ServerStart {
+
+  private val logger = Logger(this.getClass)
 
   val defaultServerProvider = new ServerProvider {
     def createServer(config: ServerConfig, appProvider: ApplicationProvider) = new NettyServer(config, appProvider)

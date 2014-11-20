@@ -1083,6 +1083,8 @@ public class Results {
      */
     public abstract static class StringChunks extends Chunks<String> {
 
+        private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(StringChunks.class);
+
         public StringChunks() {
             this(utf8);
         }
@@ -1154,7 +1156,7 @@ public class Results {
                 try {
                     callback.invoke(out);
                 } catch (Throwable e) {
-                    play.PlayInternal.logger().error("Exception in StringChunks.onReady", e);
+                    logger.error("Exception in StringChunks.onReady", e);
                 }
             }
         }
@@ -1188,6 +1190,8 @@ public class Results {
          */
         static final class WhenReadyByteChunks extends ByteChunks {
 
+            private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WhenReadyByteChunks.class);
+
             private final Callback<Chunks.Out<byte[]>> callback;
 
             WhenReadyByteChunks(Callback<Chunks.Out<byte[]>> callback) {
@@ -1201,7 +1205,7 @@ public class Results {
                 try {
                     callback.invoke(out);
                 } catch (Throwable e) {
-                    play.PlayInternal.logger().error("Exception in ByteChunks.onReady", e);
+                    logger.error("Exception in ByteChunks.onReady", e);
                 }
             }
         }

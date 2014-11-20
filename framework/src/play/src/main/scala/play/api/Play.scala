@@ -31,10 +31,7 @@ object Mode extends Enumeration {
  */
 object Play {
 
-  /*
-   * A general purpose logger for Play. Intended for internal usage.
-   */
-  private[play] val logger = Logger("play")
+  private val logger = Logger(Play.getClass)
 
   /*
    * We want control over the sax parser used so we specify the factory required explicitly. We know that
