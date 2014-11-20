@@ -1014,6 +1014,7 @@ public class Http {
         String X_FORWARDED_HOST = "X-Forwarded-Host";
         String X_FORWARDED_PORT = "X-Forwarded-Port";
         String X_FORWARDED_PROTO = "X-Forwarded-Proto";
+        String X_REQUESTED_WITH = "X-Requested-With";
     }
 
     /**
