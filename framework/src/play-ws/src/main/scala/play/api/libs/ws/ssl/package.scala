@@ -6,6 +6,7 @@
 package play.api.libs.ws
 
 import java.security.cert.{ PKIXCertPathValidatorResult, CertPathValidatorResult, Certificate, X509Certificate }
+import scala.util.Properties.{ isJavaAtLeast, javaVmName }
 
 package object ssl {
 
@@ -39,4 +40,12 @@ package object ssl {
         runHigher
     }
   }
+
+  def isOpenJdk: Boolean = javaVmName contains "OpenJDK"
+
+  // NOTE: Some SSL classes in OpenJDK 6 are in the same locations as JDK 7
+  def foldRuntime[T](older: => T, newer: => T): T = {
+    if (isJavaAtLeast("1.7") || isOpenJdk) newer else older
+  }
+
 }
