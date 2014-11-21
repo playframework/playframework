@@ -4,7 +4,7 @@
 package play.api.mvc
 
 import play.api.http._
-import play.api.i18n.{ MessagesApi, Lang }
+import play.api.i18n.{ Messages, Lang }
 import play.api.Play
 
 /**
@@ -62,9 +62,8 @@ trait Controller extends Results with BodyParsers with HttpProtocol with Status 
   implicit def request2flash(implicit request: RequestHeader) = request.flash
 
   implicit def request2lang(implicit request: RequestHeader) = {
-    play.api.Play.maybeApplication.map { implicit app =>
-      app.injector.instanceOf[MessagesApi].preferred(request).lang
-    }.getOrElse(request.acceptLanguages.headOption.getOrElse(play.api.i18n.Lang.defaultLang))
+    Messages.messagesApi.map(_.preferred(request).lang)
+      .getOrElse(request.acceptLanguages.headOption.getOrElse(play.api.i18n.Lang.defaultLang))
   }
 
 }

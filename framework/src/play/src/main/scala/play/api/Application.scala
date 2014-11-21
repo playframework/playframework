@@ -89,10 +89,23 @@ trait Application {
   def plugin[T](implicit ct: ClassTag[T]): Option[T] = plugin(ct.runtimeClass).asInstanceOf[Option[T]]
 
   /**
+   * Cached value of `routes`. For performance, don't synchronize
+   * the value. We always use the same logic to calculate its value
+   * so it will end up consistent across threads anyway.
+   */
+  private var cachedRoutes: Router.Routes = null
+
+  /**
    * The router used by this application.
    */
   @deprecated("Either use HttpRequestHandler, or have the router injected", "2.4.0")
-  def routes: Router.Routes = injector.instanceOf[Router.Routes]
+  def routes: Router.Routes = {
+    // Use a cached value because the injector might be slow
+    if (cachedRoutes != null) cachedRoutes else {
+      cachedRoutes = injector.instanceOf[Router.Routes]
+      cachedRoutes
+    }
+  }
 
   /**
    * The HTTP request handler
@@ -190,6 +203,20 @@ trait Application {
    * @return The injector.
    */
   def injector: Injector = NewInstanceInjector
+}
+
+private[play] object Application {
+  /**
+   * Creates a function that uses an inline cache to optimize calls to
+   * `application.injector.instanceOf[T]`. This is useful because
+   * hitting Guice multiple times on every request has been shown to
+   * be quite slow.
+   *
+   * The cache uses a WeakReference to both the Application and
+   * the returned instance.
+   */
+  private[play] def instanceCache[T: ClassTag]: Application => T =
+    new InlineCache((app: Application) => app.injector.instanceOf[T])
 }
 
 class OptionalSourceMapper(val sourceMapper: Option[SourceMapper])

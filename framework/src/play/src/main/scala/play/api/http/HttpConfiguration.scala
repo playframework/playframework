@@ -5,7 +5,7 @@ package play.api.http
 
 import javax.inject.{ Singleton, Inject, Provider }
 
-import play.api.{ Play, Configuration }
+import play.api.{ Application, Play, Configuration }
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -69,8 +69,9 @@ object HttpConfiguration {
     )
   }
 
+  private val httpConfigurationCache = Application.instanceCache[HttpConfiguration]
   /**
    * Don't use this - only exists for transition from global state
    */
-  def current = Play.maybeApplication.fold(HttpConfiguration())(_.injector.instanceOf[HttpConfiguration])
+  def current = Play.maybeApplication.fold(HttpConfiguration())(httpConfigurationCache)
 }

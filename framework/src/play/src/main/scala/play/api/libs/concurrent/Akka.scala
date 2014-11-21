@@ -16,6 +16,8 @@ import scala.concurrent.duration._
  */
 object Akka {
 
+  private val actorSystemCache = Application.instanceCache[ActorSystem]
+
   /**
    * Retrieve the application Akka Actor system.
    *
@@ -24,9 +26,7 @@ object Akka {
    * val newActor = Akka.system.actorOf[Props[MyActor]]
    * }}}
    */
-  def system(implicit app: Application) = {
-    app.injector.instanceOf[ActorSystem]
-  }
+  def system(implicit app: Application): ActorSystem = actorSystemCache(app)
 
 }
 
