@@ -5,7 +5,7 @@ package play.api.test
 
 import org.specs2.mutable.Specification
 import org.specs2.time.NoTimeConversions
-import play.api.http.{ HttpProtocol, Status, HeaderNames }
+import play.api.http.{ HttpProtocol, HttpVerbs, Status, HeaderNames }
 
 /**
  * Play specs2 specification.
@@ -23,5 +23,6 @@ trait PlaySpecification extends Specification
     with ResultExtractors
     with Writeables
     with RouteInvokers
-    with FutureAwaits {
+    with FutureAwaits
+    with HttpVerbs {
 }
