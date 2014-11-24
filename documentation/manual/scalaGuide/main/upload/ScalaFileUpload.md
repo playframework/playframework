@@ -17,7 +17,7 @@ Now define the `upload` action using a `multipartFormData` body parser:
 
 The `ref` attribute give you a reference to a `TemporaryFile`. This is the default way the `mutipartFormData` parser handles file upload.
 
-> **Note:** As always, you can also use the `anyContent` body parser and retrieve it as `request.asMultipartFormData`.
+> **Note:** As always, you can also use the `anyContent` body parser and retrieve it as `request.body.asMultipartFormData`.
 
 At last, add a POST router
 
