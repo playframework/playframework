@@ -289,6 +289,8 @@ trait HeaderNames {
   val X_FORWARDED_PORT = "X-Forwarded-Port"
   val X_FORWARDED_PROTO = "X-Forwarded-Proto"
 
+  val X_REQUESTED_WITH = "X-Requested-With"
+
   val ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin"
   val ACCESS_CONTROL_EXPOSE_HEADERS = "Access-Control-Expose-Headers"
   val ACCESS_CONTROL_MAX_AGE = "Access-Control-Max-Age"
