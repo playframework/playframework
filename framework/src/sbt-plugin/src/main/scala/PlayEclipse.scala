@@ -72,12 +72,13 @@ trait PlayEclipse {
 
     lazy val addSourcesManaged = new EclipseTransformerFactory[RewriteRule] {
       override def createTransformer(ref: ProjectRef, state: State): Validation[RewriteRule] = {
-        setting(crossTarget in ref, state) map { ct =>
+        import scalaz.syntax.apply._
+        (setting(baseDirectory in ref, state) |@| setting(sourceManaged in (ref, Compile), state)) { (base, srcManaged) =>
           new RewriteRule {
             override def transform(node: Node): Seq[Node] = node match {
-              case elem if (elem.label == "classpath" && (ct / "src_managed" / "main").exists) =>
-                val newChild = elem.child ++
-                  <classpathentry path={ "target" + `/` + ct.getName + `/` + "src_managed" + `/` + "main" } kind="src"></classpathentry>
+              case elem if (elem.label == "classpath" && srcManaged.exists) =>
+                val srcManagedPath = IO.relativize(base, srcManaged).getOrElse(srcManaged.getAbsolutePath)
+                val newChild = elem.child ++ <classpathentry path={ srcManagedPath } kind="src"></classpathentry>
                 Elem(elem.prefix, "classpath", elem.attributes, elem.scope, false, newChild: _*)
               case other =>
                 other
