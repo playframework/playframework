@@ -77,7 +77,7 @@ trait PlayEclipse {
             override def transform(node: Node): Seq[Node] = node match {
               case elem if (elem.label == "classpath" && (ct / "src_managed" / "main").exists) =>
                 val newChild = elem.child ++
-                  <classpathentry path={ "target" + `/` + ct.getName + `/` + "src_managed" + `/` + "main" } kind="src"></classpathentry>
+                  <classpathentry path={ ct.getName + `/` + "src_managed" + `/` + "main" } kind="src"></classpathentry>
                 Elem(elem.prefix, "classpath", elem.attributes, elem.scope, false, newChild: _*)
               case other =>
                 other
