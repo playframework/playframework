@@ -99,12 +99,35 @@ object FormSpec extends Specification {
       userEmail.bind(Map("email" -> "john@ex'ample.com").asJava).errors().asScala must not beEmpty
     }
 
-    "support custom class validators" in {
-      val form = Form.form(classOf[Red])
-      val bound = form.bind(Map("name" -> "blue").asJava)
-      bound.hasErrors must_== true
-      bound.hasGlobalErrors must_== true
-      bound.globalErrors().asScala must not beEmpty
+    "support custom validators" in {
+      "that fails when validator's condition is not met" in {
+        val form = Form.form(classOf[Red])
+        val bound = form.bind(Map("name" -> "blue").asJava)
+        bound.hasErrors must_== true
+        bound.hasGlobalErrors must_== true
+        bound.globalErrors().asScala must not beEmpty
+      }
+
+      "that returns customized message when validator fails" in {
+        val form = Form.form(classOf[MyBlueUser]).bind(
+          Map("name" -> "Shrek", "skinColor" -> "green", "hairColor" -> "blue").asJava)
+        form.hasErrors must beEqualTo(true)
+        form.errors().get("hairColor") must beNull
+        val validationErrors = form.errors().get("skinColor")
+        validationErrors.size() must beEqualTo(1)
+        validationErrors.get(0).message must beEqualTo("notblue")
+      }
+
+      "that returns customized message in annotation when validator fails" in {
+        val form = Form.form(classOf[MyBlueUser]).bind(
+          Map("name" -> "Smurf", "skinColor" -> "blue", "hairColor" -> "white").asJava)
+        form.errors().get("skinColor") must beNull
+        form.hasErrors must beEqualTo(true)
+        val validationErrors = form.errors().get("hairColor")
+        validationErrors.size() must beEqualTo(1)
+        validationErrors.get(0).message must beEqualTo("i-am-blue")
+      }
+
     }
 
     "work with the @repeat helper" in {
