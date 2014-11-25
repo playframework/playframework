@@ -14,29 +14,23 @@ import scala.concurrent.Future
 /**
  * An action that provides CSRF protection.
  *
- * @param tokenName The key used to store the token in the Play session.  Defaults to csrfToken.
- * @param cookieName If defined, causes the filter to store the token in a Cookie with this name instead of the session.
- * @param secureCookie If storing the token in a cookie, whether this Cookie should set the secure flag.  Defaults to
- *                     whether the session cookie is configured to be secure.
- * @param createIfNotFound Whether a new CSRF token should be created if it's not found.  Default creates one if it's
- *                         a GET request that accepts HTML.
+ * @param conf A CSRF configuration object
  * @param tokenProvider A token provider to use.
  * @param next The composed action that is being protected.
  * @param errorHandler handling failed token error.
  */
 class CSRFAction(next: EssentialAction,
-    tokenName: String = CSRFConf.TokenName,
-    cookieName: Option[String] = CSRFConf.CookieName,
-    secureCookie: Boolean = CSRFConf.SecureCookie,
-    createIfNotFound: RequestHeader => Boolean = CSRFConf.defaultCreateIfNotFound,
+    conf: Config,
     tokenProvider: TokenProvider = CSRFConf.defaultTokenProvider,
-    errorHandler: => ErrorHandler = CSRFConf.defaultErrorHandler) extends EssentialAction {
+    errorHandler: => ErrorHandler = CSRF.DefaultErrorHandler) extends EssentialAction {
+
+  val Config(tokenName, cookieName, secureCookie, createIfNotFound) = conf
 
   import CSRFAction._
 
   // An iteratee that returns a forbidden result saying the CSRF check failed
   private def checkFailed(req: RequestHeader, msg: String): Iteratee[Array[Byte], Result] =
-    Done(clearTokenIfInvalid(req, tokenName, cookieName, secureCookie, errorHandler, msg))
+    Iteratee.flatten(clearTokenIfInvalid(req, tokenName, cookieName, secureCookie, errorHandler, msg) map (Done(_)))
 
   def apply(request: RequestHeader) = {
 
@@ -201,20 +195,20 @@ object CSRFAction {
     result.header.headers.get(CACHE_CONTROL).fold(false)(!_.contains("no-cache"))
 
   private[csrf] def clearTokenIfInvalid(request: RequestHeader, tokenName: String, cookieName: Option[String],
-    secureCookie: Boolean, errorHandler: ErrorHandler, msg: String): Result = {
+    secureCookie: Boolean, errorHandler: ErrorHandler, msg: String): Future[Result] = {
 
-    val result = errorHandler.handle(request, msg)
-
-    CSRF.getToken(request).fold(
-      cookieName.flatMap { cookie =>
-        request.cookies.get(cookie).map { token =>
-          result.discardingCookies(DiscardingCookie(cookie, domain = Session.domain, path = Session.path,
-            secure = secureCookie))
+    errorHandler.handle(request, msg) map { result =>
+      CSRF.getToken(request).fold(
+        cookieName.flatMap { cookie =>
+          request.cookies.get(cookie).map { token =>
+            result.discardingCookies(DiscardingCookie(cookie, domain = Session.domain, path = Session.path,
+              secure = secureCookie))
+          }
+        }.getOrElse {
+          result.withSession(result.session(request) - tokenName)
         }
-      }.getOrElse {
-        result.withSession(result.session(request) - tokenName)
-      }
-    )(_ => result)
+      )(_ => result)
+    }
   }
 }
 
@@ -253,8 +247,10 @@ object CSRFCheck {
             .collect {
               case queryToken if tokenProvider.compareTokens(queryToken, headerToken) => wrapped(request)
             }
-        }.getOrElse(Future.successful(CSRFAction.clearTokenIfInvalid(request, tokenName, cookieName, secureCookie,
-          errorHandler, "CSRF token check failed")))
+        }.getOrElse {
+          CSRFAction.clearTokenIfInvalid(request, tokenName, cookieName, secureCookie, errorHandler,
+            "CSRF token check failed")
+        }
       }
     }
   }
@@ -262,7 +258,7 @@ object CSRFCheck {
   /**
    * Wrap an action in a CSRF check.
    */
-  def apply[A](action: Action[A], errorHandler: ErrorHandler = CSRFConf.defaultErrorHandler): Action[A] =
+  def apply[A](action: Action[A], errorHandler: ErrorHandler = CSRF.DefaultErrorHandler): Action[A] =
     new CSRFCheckAction(CSRFConf.TokenName, CSRFConf.CookieName, CSRFConf.SecureCookie, CSRFConf.defaultTokenProvider,
       errorHandler, action)
 }

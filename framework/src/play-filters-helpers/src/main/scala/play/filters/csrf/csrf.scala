@@ -3,21 +3,27 @@
  */
 package play.filters.csrf
 
-import play.api.mvc._
+import scala.concurrent.Future
+
 import play.api._
-import play.api.mvc.Results._
+import play.api.inject.Module
+import play.api.http.HttpErrorHandler
 import play.api.libs.Crypto
+import play.api.mvc.Results._
+import play.api.mvc._
 import play.core.j.JavaHelpers
+import javax.inject.Inject
 
-private[csrf] object CSRFConf {
+private[csrf] object CSRFConf extends CSRFConf(
+  Play.maybeApplication map (_.configuration) getOrElse Configuration.empty)
 
-  def c = Play.maybeApplication.map(_.configuration).getOrElse(Configuration.empty)
+private[csrf] class CSRFConf(conf: => Configuration) {
 
-  def TokenName: String = c.getString("csrf.token.name").getOrElse("csrfToken")
-  def CookieName: Option[String] = c.getString("csrf.cookie.name")
-  def SecureCookie: Boolean = c.getBoolean("csrf.cookie.secure").getOrElse(Session.secure)
-  def PostBodyBuffer: Long = c.getBytes("csrf.body.bufferSize").getOrElse(102400L)
-  def SignTokens: Boolean = c.getBoolean("csrf.sign.tokens").getOrElse(true)
+  def TokenName: String = conf.getString("csrf.token.name").getOrElse("csrfToken")
+  def CookieName: Option[String] = conf.getString("csrf.cookie.name")
+  def SecureCookie: Boolean = conf.getBoolean("csrf.cookie.secure").getOrElse(Session.secure)
+  def PostBodyBuffer: Long = conf.getBytes("csrf.body.bufferSize").getOrElse(102400L)
+  def SignTokens: Boolean = conf.getBoolean("csrf.sign.tokens").getOrElse(true)
 
   val UnsafeMethods = Set("POST")
   val UnsafeContentTypes = Set("application/x-www-form-urlencoded", "text/plain", "multipart/form-data")
@@ -35,7 +41,7 @@ private[csrf] object CSRFConf {
    * This is used by the noarg constructor of CSRFFilter, so that Java developers can select an error handler.
    */
   def defaultJavaErrorHandler: CSRF.ErrorHandler = {
-    c.getString("csrf.error.handler").map { className =>
+    conf.getString("csrf.error.handler").map { className =>
       val clazz = try {
         Play.maybeApplication.get.classloader.loadClass(className)
       } catch {
@@ -49,7 +55,7 @@ private[csrf] object CSRFConf {
             val ctx = JavaHelpers.createJavaContext(req)
             JContext.current.set(ctx)
             try {
-              errorHandler.handle(msg).toScala
+              Future.successful(errorHandler.handle(msg).toScala)
             } finally {
               JContext.current.remove()
             }
@@ -63,7 +69,6 @@ private[csrf] object CSRFConf {
     }.getOrElse(CSRF.DefaultErrorHandler)
   }
 
-  def defaultErrorHandler = CSRF.DefaultErrorHandler
   def defaultTokenProvider = {
     if (SignTokens) {
       CSRF.SignedTokenProvider
@@ -71,6 +76,8 @@ private[csrf] object CSRFConf {
       CSRF.UnsignedTokenProvider
     }
   }
+
+  def defaultConfig: CSRF.Config = CSRF.Config(TokenName, CookieName, SecureCookie, defaultCreateIfNotFound)
 }
 
 object CSRF {
@@ -142,11 +149,47 @@ object CSRF {
    */
   trait ErrorHandler {
     /** Handle a result */
-    def handle(req: RequestHeader, msg: String): Result
+    def handle(req: RequestHeader, msg: String): Future[Result]
+  }
+
+  class CSRFHttpErrorHandler @Inject() (httpErrorHandler: HttpErrorHandler) extends ErrorHandler {
+    import play.api.http.Status.FORBIDDEN
+    def handle(req: RequestHeader, msg: String) = httpErrorHandler.onClientError(req, FORBIDDEN, msg)
   }
 
   object DefaultErrorHandler extends ErrorHandler {
-    def handle(req: RequestHeader, msg: String) = Forbidden(msg)
+    def handle(req: RequestHeader, msg: String) = Future.successful(Forbidden(msg))
+  }
+
+  /**
+   * Configuration options for the CSRF filter
+   *
+   * @param tokenName The key used to store the token in the Play session.  Defaults to csrfToken.
+   * @param cookieName If defined, causes the filter to store the token in a Cookie with this name instead of the session.
+   * @param secureCookie If storing the token in a cookie, whether this Cookie should set the secure flag.  Defaults to
+   *                     whether the session cookie is configured to be secure.
+   * @param createIfNotFound Whether a new CSRF token should be created if it's not found.  Default creates one if it's
+   *                         a GET request that accepts HTML.
+   */
+  case class Config(
+    tokenName: String = CSRFConf.TokenName,
+    cookieName: Option[String] = CSRFConf.CookieName,
+    secureCookie: Boolean = CSRFConf.SecureCookie,
+    createIfNotFound: (RequestHeader) => Boolean = CSRFConf.defaultCreateIfNotFound)
+}
+
+/**
+ * The CSRF module.
+ */
+class CSRFModule extends Module {
+  def bindings(environment: Environment, configuration: Configuration) = {
+    val c = new CSRFConf(configuration)
+    Seq(
+      bind[CSRF.ErrorHandler].to[CSRF.CSRFHttpErrorHandler],
+      bind[CSRF.Config] toInstance c.defaultConfig,
+      bind[CSRF.TokenProvider] toInstance c.defaultTokenProvider,
+      bind[CSRFFilter].toSelf
+    )
   }
 }
 
