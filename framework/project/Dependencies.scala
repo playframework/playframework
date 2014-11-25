@@ -19,7 +19,7 @@ object Dependencies {
     "jackson-core",
     "jackson-annotations",
     "jackson-databind"
-  ).map("com.fasterxml.jackson.core" % _ % "2.3.2")
+  ).map("com.fasterxml.jackson.core" % _ % "2.4.4")
 
   val guava = "com.google.guava" % "guava" % "18.0"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "2.0.3" // Needed by guava
