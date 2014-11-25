@@ -24,6 +24,9 @@ object FlashCookieSpec extends PlaySpecification {
       }
   })
 
+  def appWithSecureCookie(secure: Boolean = false) =
+    FakeApplication(additionalConfiguration = Map("play.http.flash.secure" -> secure))
+
   def readFlashCookie(response: WSResponse): Option[WSCookie] =
     response.cookies.find(_.name.exists(_ == Flash.COOKIE_NAME))
 
@@ -50,6 +53,10 @@ object FlashCookieSpec extends PlaySpecification {
           }
           cookie.maxAge must beNone
       }
+    }
+
+    "honor configuration for flash.secure" in new WithApplication(appWithSecureCookie(secure = true)) {
+      Flash.encodeAsCookie(Flash()).secure must beTrue
     }
   }
 
