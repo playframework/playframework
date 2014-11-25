@@ -18,6 +18,7 @@ private[csrf] object CSRFConf {
   def SecureCookie: Boolean = c.getBoolean("csrf.cookie.secure").getOrElse(Session.secure)
   def PostBodyBuffer: Long = c.getBytes("csrf.body.bufferSize").getOrElse(102400L)
   def SignTokens: Boolean = c.getBoolean("csrf.sign.tokens").getOrElse(true)
+  def AllowBypass: Boolean = c.getBoolean("csrf.allowBypass").getOrElse(true)
 
   val UnsafeMethods = Set("POST")
   val UnsafeContentTypes = Set("application/x-www-form-urlencoded", "text/plain", "multipart/form-data")
