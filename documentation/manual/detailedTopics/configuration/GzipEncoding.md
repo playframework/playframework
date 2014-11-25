@@ -21,6 +21,7 @@ For example, the code below only gzips HTML responses:
 
 ## Enabling GZIP in Java
 
-To enable gzip in Java, add it to the list of filters in the `Global` object:
+To enable gzip in Java, add it to the list of filters in the [[Global|JavaGlobal]] object.
+
 
 @[global](code/detailedtopics/configuration/gzipencoding/Global.java)
