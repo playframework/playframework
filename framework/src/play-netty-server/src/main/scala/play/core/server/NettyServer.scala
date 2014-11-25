@@ -11,7 +11,9 @@ import org.jboss.netty.channel._
 import org.jboss.netty.channel.Channels._
 import org.jboss.netty.channel.group._
 import org.jboss.netty.handler.codec.http._
+import org.jboss.netty.handler.logging.LoggingHandler
 import org.jboss.netty.handler.ssl._
+import org.jboss.netty.logging.InternalLogLevel
 import play.api._
 import play.core._
 import play.core.server.netty._
@@ -87,12 +89,19 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
       def getIntProperty(name: String, default: Int): Int = {
         Option(config.properties.getProperty(name)).map(Integer.parseInt(_)).getOrElse(default)
       }
+      def getBooleanProperty(name: String, default: Boolean): Boolean = {
+        Option(config.properties.getProperty(name)).map(_.equalsIgnoreCase("true")).getOrElse(default)
+      }
       val maxInitialLineLength = getIntProperty("http.netty.maxInitialLineLength", 4096)
       val maxHeaderSize = getIntProperty("http.netty.maxHeaderSize", 8192)
       val maxChunkSize = getIntProperty("http.netty.maxChunkSize", 8192)
       newPipeline.addLast("decoder", new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
       newPipeline.addLast("decompressor", new HttpContentDecompressor())
+      val logWire = getBooleanProperty("http.netty.log.wire", default = false)
+      if (logWire) {
+        newPipeline.addLast("logging", new LoggingHandler(InternalLogLevel.DEBUG))
+      }
       newPipeline.addLast("http-pipelining", new HttpPipeliningHandler())
       newPipeline.addLast("handler", defaultUpStreamHandler)
       newPipeline
