@@ -10,12 +10,14 @@ import com.typesafe.play.docs.sbtplugin.PlayDocsValidation.{ CodeSamplesReport, 
 import play.core.BuildDocHandler
 import play.core.server.ServerWithStop
 import play.PlayImport._
+import play.TemplateImports
 import play.routes.compiler.InjectedRoutesGenerator
 import play.sbtplugin.Colors
 import play.sbtplugin.routes.RoutesCompiler
 import sbt._
 import sbt.Keys._
 import sbt.plugins.JvmPlugin
+import scala.collection.JavaConverters._
 
 object Imports {
   object PlayDocsKeys {
@@ -100,11 +102,11 @@ object PlayDocsPlugin extends AutoPlugin {
 
     // Need to ensure that templates in the Java docs get Java imports, and in the Scala docs get Scala imports
     sourceGenerators in Test <+= (javaManualSourceDirectories, javaTwirlSourceManaged, streams) map { (from, to, s) =>
-      compileTemplates(from, to, defaultTemplateImports ++ defaultJavaTemplateImports, s.log)
+      compileTemplates(from, to, TemplateImports.defaultJavaTemplateImports.asScala, s.log)
     },
 
     sourceGenerators in Test <+= (scalaManualSourceDirectories, scalaTwirlSourceManaged, streams) map { (from, to, s) =>
-      compileTemplates(from, to, defaultTemplateImports ++ defaultScalaTemplateImports, s.log)
+      compileTemplates(from, to, TemplateImports.defaultScalaTemplateImports.asScala, s.log)
     },
 
     sourceGenerators in Test <+= (javaManualSourceDirectories, javaRoutesSourceManaged, streams) map { (from, to, s) =>
