@@ -19,7 +19,6 @@ import sbt.complete.Parsers._
 import scala.util.control.NonFatal
 import sbt.inc.{ Analysis, Stamp, Exists, Hash, LastModified }
 import sbt.compiler.AggressiveCompile
-import play.sbtplugin.test.PlayTestListener
 
 trait PlayCommands extends PlayEclipse with PlayInternalKeys {
   this: PlayReloader =>
@@ -29,18 +28,6 @@ trait PlayCommands extends PlayEclipse with PlayInternalKeys {
   val JAVA = "java"
   val SCALA = "scala"
   val NONE = "none"
-
-  //- test reporter
-  protected lazy val testListener = new PlayTestListener
-
-  val testResultReporter = TaskKey[List[String]]("test-result-reporter")
-  val testResultReporterTask = (state, thisProjectRef) map { (s, r) =>
-    testListener.result.toList
-  }
-  val testResultReporterReset = TaskKey[Unit]("test-result-reporter-reset")
-  val testResultReporterResetTask = (state, thisProjectRef) map { (s, r) =>
-    testListener.result.clear
-  }
 
   val playReloadTask = Def.task(playCompileEverything.value.reduceLeft(_ ++ _))
 
