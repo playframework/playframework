@@ -34,7 +34,6 @@ object Play
     packageArchetype.java_server ++
       defaultSettings ++
       intellijCommandSettings ++
-      Seq(testListeners += testListener) ++
       Seq(
         scalacOptions ++= Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
         javacOptions in Compile ++= Seq("-encoding", "utf8", "-g")

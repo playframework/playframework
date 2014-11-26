@@ -105,10 +105,6 @@ trait PlaySettings {
       tf => tf.filter(_ != TestFrameworks.Specs2).:+(TestFrameworks.Specs2)
     },
 
-    testResultReporter <<= testResultReporterTask,
-
-    testResultReporterReset <<= testResultReporterResetTask,
-
     // Adds config directory's source files to continuous hot reloading
     watchSources <+= confDirectory map {
       all => all
