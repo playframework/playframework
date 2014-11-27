@@ -53,5 +53,10 @@ class JavaJsonSpec extends Specification {
         Json.prettyPrint(testJson) must_== testJsonString
       }
     }
+    "ignore unknown fields when deserializing to a POJO" in new JsonScope(Json.newDefaultMapper()) {
+      val javaPOJO = Json.fromJson(testJson, classOf[JavaPOJO])
+      javaPOJO.getBar must_== "baz"
+      javaPOJO.getFoo must_== "bar"
+    }
   }
 }
