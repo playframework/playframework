@@ -32,16 +32,16 @@ object Configuration {
 
   /**
    * loads `Configuration` from config.resource or config.file. If not found default to 'conf/application.conf' in Dev mode
-   * @return  configuration to be used
+   * @return configuration to be used
    */
   private[play] def loadDev(appPath: File, devSettings: Map[String, String]): Config = {
     try {
-      lazy val file = {
+      lazy val file: Option[String] = {
         devSettings.get("config.file").orElse(Option(System.getProperty("config.file")))
-          .map(f => new File(f)).getOrElse(new File(appPath, "conf/application.conf"))
       }
-      val config = Option(System.getProperty("config.resource"))
-        .map(ConfigFactory.parseResources(_)).getOrElse(ConfigFactory.parseFileAnySyntax(file))
+      val config: Config = file.map(f => ConfigFactory.parseFileAnySyntax(new File(f)))
+        .getOrElse(ConfigFactory.parseResources(
+          Option(System.getProperty("config.resource")).getOrElse("application.conf")))
 
       ConfigFactory.parseMap(devSettings.asJava).withFallback(ConfigFactory.load(config))
     } catch {
