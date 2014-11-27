@@ -3,6 +3,7 @@
  */
 package play.sbtplugin
 
+import play.PlayImport.PlayKeys._
 import java.security.SecureRandom
 import sbt._
 
@@ -34,8 +35,10 @@ object ApplicationSecretGenerator {
 
     val secretConfig = s"""application.secret="$secret""""
 
-    val applicationConf = Option(System.getProperty("config.file")).getOrElse("conf/application.conf")
-    val appConfFile = new File(baseDir, applicationConf)
+    val appConfFile = Option(System.getProperty("config.file")) match {
+      case Some(applicationConf) => new File(baseDir, applicationConf)
+      case None => confDirectory.value / "application.conf"
+    }
 
     if (appConfFile.exists()) {
       log.info("Updating application secret in " + appConfFile.getCanonicalPath)
