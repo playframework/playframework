@@ -15,6 +15,7 @@ import com.typesafe.sbt.packager.Keys._
 import play.sbtplugin.{ PlayPositionMapper, ApplicationSecretGenerator }
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 import WebKeys._
+import scala.collection.JavaConverters._
 import scala.language.postfixOps
 import play.twirl.sbt.Import.TwirlKeys
 import play.sbtplugin.routes.RoutesKeys._
@@ -24,7 +25,7 @@ trait PlaySettings {
 
   lazy val defaultJavaSettings = Seq[Setting[_]](
 
-    TwirlKeys.templateImports ++= defaultJavaTemplateImports,
+    TwirlKeys.templateImports ++= TemplateImports.defaultJavaTemplateImports.asScala,
 
     routesImport ++= Seq(
       "play.libs.F"
@@ -35,7 +36,7 @@ trait PlaySettings {
   )
 
   lazy val defaultScalaSettings = Seq[Setting[_]](
-    TwirlKeys.templateImports ++= defaultScalaTemplateImports
+    TwirlKeys.templateImports ++= TemplateImports.defaultScalaTemplateImports.asScala
   )
 
   /** Ask SBT to manage the classpath for the given configuration. */
@@ -215,10 +216,6 @@ trait PlaySettings {
     // Settings
 
     devSettings := Nil,
-
-    // Templates
-
-    TwirlKeys.templateImports ++= defaultTemplateImports,
 
     // Native packaging
 

@@ -39,40 +39,6 @@ object PlayImport {
 
   val javaWs = "com.typesafe.play" %% "play-java-ws" % play.core.PlayVersion.current
 
-  val defaultJavaTemplateImports = Seq(
-    "models._",
-    "controllers._",
-
-    "java.lang._",
-    "java.util._",
-
-    "scala.collection.JavaConversions._",
-    "scala.collection.JavaConverters._",
-
-    "play.api.i18n._",
-    "play.core.j.PlayMagicForJava._",
-
-    "play.mvc._",
-    "play.data._",
-    "play.api.data.Field",
-
-    "play.mvc.Http.Context.Implicit._",
-
-    "views.%format%._")
-
-  val defaultScalaTemplateImports = Seq(
-    "models._",
-    "controllers._",
-
-    "play.api.i18n._",
-
-    "play.api.mvc._",
-    "play.api.data._",
-
-    "views.%format%._")
-
-  val defaultTemplateImports = Seq("play.api.templates.PlayMagic._")
-
   /**
    * Add this to your build.sbt, eg:
    *
