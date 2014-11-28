@@ -73,6 +73,8 @@ object PlayImport {
   }
 
   object PlayKeys {
+    val standardLayout = SettingKey[Boolean]("play-standard-layout", "Whether to use the standard SBT layout instead of the original Play layout.")
+
     val playDefaultPort = SettingKey[Int]("play-default-port", "The default port that Play runs on")
 
     /** Our means of hooking the run task with additional behavior. */

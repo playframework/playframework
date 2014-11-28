@@ -52,23 +52,44 @@ trait PlaySettings {
       "Typesafe Releases Repository" at "https://repo.typesafe.com/typesafe/releases/"
     ),
 
+    standardLayout := false,
+
     target <<= baseDirectory(_ / "target"),
+    sourceDirectory in Compile := {
+      if (standardLayout.value) (sourceDirectory in Compile).value else baseDirectory.value / "app"
+    },
+    sourceDirectory in Test := {
+      if (standardLayout.value) (sourceDirectory in Test).value else baseDirectory.value / "test"
+    },
 
-    sourceDirectory in Compile <<= baseDirectory(_ / "app"),
-    sourceDirectory in Test <<= baseDirectory(_ / "test"),
+    confDirectory := {
+      if (standardLayout.value) confDirectory.value else baseDirectory.value / "conf"
+    },
 
-    confDirectory <<= baseDirectory(_ / "conf"),
+    resourceDirectory in Compile := {
+      if (standardLayout.value) (resourceDirectory in Compile).value else baseDirectory.value / "conf"
+    },
 
-    resourceDirectory in Compile <<= baseDirectory(_ / "conf"),
+    scalaSource in Compile := {
+      if (standardLayout.value) (scalaSource in Compile).value else baseDirectory.value / "app"
+    },
+    scalaSource in Test := {
+      if (standardLayout.value) (scalaSource in Test).value else baseDirectory.value / "test"
+    },
 
-    scalaSource in Compile <<= baseDirectory(_ / "app"),
-    scalaSource in Test <<= baseDirectory(_ / "test"),
+    javaSource in Compile := {
+      if (standardLayout.value) (javaSource in Compile).value else baseDirectory.value / "app"
+    },
+    javaSource in Test := {
+      if (standardLayout.value) (javaSource in Test).value else baseDirectory.value / "test"
+    },
 
-    javaSource in Compile <<= baseDirectory(_ / "app"),
-    javaSource in Test <<= baseDirectory(_ / "test"),
-
-    sourceDirectories in (Compile, TwirlKeys.compileTemplates) := Seq((sourceDirectory in Compile).value),
-    sourceDirectories in (Test, TwirlKeys.compileTemplates) := Seq((sourceDirectory in Test).value),
+    sourceDirectories in (Compile, TwirlKeys.compileTemplates) := {
+      if (standardLayout.value) (sourceDirectories in (Compile, TwirlKeys.compileTemplates)).value else Seq((sourceDirectory in Compile).value)
+    },
+    sourceDirectories in (Test, TwirlKeys.compileTemplates) := {
+      if (standardLayout.value) (sourceDirectories in (Test, TwirlKeys.compileTemplates)).value else Seq((sourceDirectory in Test).value)
+    },
 
     javacOptions in (Compile, doc) := List("-encoding", "utf8"),
 
@@ -181,11 +202,17 @@ trait PlaySettings {
     playInteractionMode := play.PlayConsoleInteractionMode,
 
     // sbt-web
-    sourceDirectory in Assets := (sourceDirectory in Compile).value / "assets",
-    sourceDirectory in TestAssets := (sourceDirectory in Test).value / "assets",
+    sourceDirectory in Assets := {
+      if (standardLayout.value) (sourceDirectory in Assets).value else (sourceDirectory in Compile).value / "assets"
+    },
+    sourceDirectory in TestAssets := {
+      if (standardLayout.value) (sourceDirectory in TestAssets).value else (sourceDirectory in Test).value / "assets"
+    },
 
     jsFilter in Assets := new PatternFilter("""[^_].*\.js""".r.pattern),
-    resourceDirectory in Assets := baseDirectory.value / "public",
+    resourceDirectory in Assets := {
+      if (standardLayout.value) (resourceDirectory in Assets).value else baseDirectory.value / "public"
+    },
 
     WebKeys.stagingDirectory := WebKeys.stagingDirectory.value / "public",
 
