@@ -1,5 +1,7 @@
 package anorm
 
+import scala.util.{ Try, Success => TrySuccess }
+
 trait Row {
   private[anorm] def metaData: MetaData
 
@@ -14,6 +16,8 @@ trait Row {
    * val l: List[Any] = row.asList
    * // l == List[Any]("str", 2)
    * }}}
+   *
+   * @see #as
    */
   lazy val asList: List[Any] = data.foldLeft[List[Any]](Nil) { (l, v) =>
     if (metaData.ms(l.size).nullable) l :+ Option(v) else l :+ v
@@ -27,6 +31,8 @@ trait Row {
    * val m: Map[String, Any] = row.asMap
    * // l == Map[String, Any]("table.A" -> "str", "table.B" -> 2)
    * }}}
+   *
+   * @see #as
    */
   lazy val asMap: Map[String, Any] =
     data.foldLeft[Map[String, Any]](Map.empty) { (m, v) =>
@@ -34,6 +40,29 @@ trait Row {
       val k = d.column.qualified
       if (d.nullable) m + (k -> Option(v)) else m + (k -> v)
     }
+
+  /**
+   * Returns row as `T`.
+   *
+   * {{{
+   * import anorm.SqlParser.{ int, str }
+   *
+   * val parseOnlyFirstRow =
+   *   SQL"SELECT * FROM Table".withResult(_.map(_.row.as(
+   *     str("foo") ~ int(2) map {
+   *       case a ~ b => b -> a
+   *     })))
+   * // Either[List[Throwable], Option[Try[(Int, String)]]]
+   *
+   * val optionalParseRes =
+   *   parseOnlyFirstRow.right.map(_.flatMap(_.toOption))
+   *   // Either[List[Throwable], Option[(Int, String)]]
+   * }}}
+   *
+   * @param parser Row parser
+   */
+  def as[T](parser: RowParser[T]): Try[T] =
+    parser(this).fold(_.toFailure, TrySuccess(_))
 
   /**
    * Returns parsed column.

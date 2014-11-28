@@ -1,5 +1,7 @@
 package anorm
 
+import scala.util.Try
+
 import acolyte.jdbc.AcolyteDSL.withQueryResult
 import acolyte.jdbc.RowLists.{ rowList2, rowList1, stringList }
 import acolyte.jdbc.Implicits._
@@ -81,6 +83,23 @@ object RowSpec extends org.specs2.mutable.Specification {
       implicit c =>
         SQL("SELECT *").map(_.apply[String](1)).single.
           aka("column by name") must_== "byPos"
+    }
+  }
+
+  "Row" should {
+    "successfully be parsed" in withQueryResult(rowList2(
+      classOf[String] -> "foo", classOf[Int] -> "num") :+ ("str", 2)) {
+      implicit c =>
+
+        SQL"SELECT *".withResult(_.map(_.row.as(
+          SqlParser.str("foo") ~ SqlParser.int(2) map {
+            case a ~ b => b -> a
+          }))) aka "streaming result" must beRight[Option[Try[(Int, String)]]].
+          which {
+            _ aka "first row" must beSome[Try[(Int, String)]].which {
+              _ aka "parsed value" must beSuccessfulTry(2 -> "str")
+            }
+          }
     }
   }
 }

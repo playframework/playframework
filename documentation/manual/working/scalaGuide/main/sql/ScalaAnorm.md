@@ -240,8 +240,7 @@ def go(c: Option[Cursor], l: List[String]): List[String] = c match {
   case Some(cursor) => {
     if (l.size == 100) l // custom limit, partial processing
     else {
-      val row = it.next()
-      go(it, l :+ row[String]("name"))
+      go(cursor.next, l :+ cursor.row[String]("name"))
     }
   }
   case _ => l
@@ -249,6 +248,40 @@ def go(c: Option[Cursor], l: List[String]): List[String] = c match {
 
 val books: Either[List[Throwable], List[String]] = 
   SQL("Select name from Books").withResult(go(_, List.empty[String]))
+```
+
+The parsing API can be used with streaming, using `RowParser` on each cursor `.row`. The previous example can be updated with row parser.
+
+```scala
+import scala.util.{ Try, Success => TrySuccess, Failure }
+
+// bookParser: anorm.RowParser[Book]
+
+@annotation.tailrec
+def go(c: Option[Cursor], l: List[Book]): Try[List[Book]] = c match {
+  case Some(cursor) => {
+    if (l.size == 100) l // custom limit, partial processing
+    else {
+      val parsed: Try[Book] = cursor.row.as(bookParser)
+
+      parsed match {
+        case TrySuccess(book) => // book successfully parsed from row
+          go(cursor.next, l :+ book)
+        case Failure(f) => /* fails to parse a book */ Failure(f)
+      }
+    }
+  }
+  case _ => l
+}
+
+val books: Either[List[Throwable], Try[List[Book]]] = 
+  SQL("Select name from Books").withResult(go(_, List.empty[Book]))
+
+books match {
+  case Left(streamingErrors) => ???
+  case Right(Failure(parsingError)) => ???
+  case Right(TrySuccess(listOfBooks)) => ???
+}
 ```
 
 ### Multi-value support
