@@ -417,7 +417,10 @@ case class NingWSRequestHolder(client: NingWSClient,
 
   def withFollowRedirects(follow: Boolean) = copy(followRedirects = Some(follow))
 
-  def withRequestTimeout(timeout: Int) = copy(requestTimeout = Some(timeout))
+  def withRequestTimeout(timeout: Long) = {
+    require(timeout >= 0 && timeout <= Int.MaxValue, s"Request timeout must be between 0 and ${Int.MaxValue}")
+    copy(requestTimeout = Some(timeout.toInt))
+  }
 
   def withVirtualHost(vh: String) = copy(virtualHost = Some(vh))
 

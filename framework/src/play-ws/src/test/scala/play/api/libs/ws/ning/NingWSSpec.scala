@@ -128,6 +128,10 @@ object NingWSSpec extends PlaySpecification with Mockito {
       req.getPerRequestConfig.getRequestTimeoutInMs must be equalTo 1000
     }
 
+    "not support invalid timeout" in new WithApplication {
+      WS.url("http://playframework.com/").withRequestTimeout(-1) should throwAn[IllegalArgumentException]
+    }
+
     "support a proxy server" in new WithApplication {
       val proxy = DefaultWSProxyServer(protocol = Some("https"), host = "localhost", port = 8080, principal = Some("principal"), password = Some("password"))
       val req = WS.url("http://playframework.com/").withProxyServer(proxy).asInstanceOf[NingWSRequestHolder].prepare().build
