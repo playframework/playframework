@@ -84,7 +84,7 @@ class ReloadableApplication(sbtLink: SBTLink, sbtDocHandler: SBTDocHandler) exte
 
   lazy val path = sbtLink.projectPath
 
-  println(play.utils.Colors.magenta("--- (Running the application from SBT, auto-reloading is enabled) ---"))
+  println(play.utils.Colors.magenta("--- (Running the application, auto-reloading is enabled) ---"))
   println()
 
   var lastState: Try[Application] = Failure(new PlayException("Not initialized", "?"))
