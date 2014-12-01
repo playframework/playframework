@@ -249,7 +249,10 @@ case class JsPath(path: List[PathNode] = List()) {
     }
 
     js match {
-      case o: JsObject => step(o, this)
+      case o: JsObject => step(o, this) match {
+        case s: JsSuccess[JsObject] => s.copy(path = this)
+        case e => e
+      }
       case _ =>
         JsError(this, ValidationError("error.expected.jsobject"))
     }
