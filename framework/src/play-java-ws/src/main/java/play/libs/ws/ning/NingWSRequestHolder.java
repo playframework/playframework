@@ -208,7 +208,20 @@ public class NingWSRequestHolder implements WSRequestHolder {
      */
     @Override
     public WSRequestHolder setTimeout(int timeout) {
-        this.timeout = timeout;
+        return setRequestTimeout(timeout);
+    }
+
+    /**
+     * Sets the request timeout in milliseconds.
+     *
+     * @param timeout
+     */
+    @Override
+    public WSRequestHolder setRequestTimeout(long timeout) {
+        if (timeout < 0 || timeout > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("Timeout must be between 0 and " + Integer.MAX_VALUE + " inclusive");
+        }
+        this.timeout = (int)timeout;
         return this;
     }
 
@@ -310,10 +323,18 @@ public class NingWSRequestHolder implements WSRequestHolder {
     }
 
     /**
-     * @return the auth scheme (null if not an authenticated request)
+     * @return the request timeout.
      */
     @Override
     public int getTimeout() {
+        return (int)getRequestTimeout();
+    }
+
+    /**
+     * @return the request timeout.
+     */
+    @Override
+    public long getRequestTimeout() {
         return this.timeout;
     }
 

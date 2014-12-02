@@ -22,7 +22,10 @@ public interface WSRequestHolder {
 
     WSSignatureCalculator getCalculator();
 
+    @Deprecated
     int getTimeout();
+
+    long getRequestTimeout();
 
     Boolean getFollowRedirects();
 
@@ -106,7 +109,10 @@ public interface WSRequestHolder {
 
     WSRequestHolder setVirtualHost(String virtualHost);
 
+    @Deprecated
     WSRequestHolder setTimeout(int timeout);
+
+    WSRequestHolder setRequestTimeout(long timeout);
 
     WSRequestHolder setContentType(String contentType);
 
