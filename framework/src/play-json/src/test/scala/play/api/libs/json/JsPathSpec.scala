@@ -220,7 +220,7 @@ object JsPathSpec extends Specification {
         "level2" -> 5
       )
 
-      (__ \ 'level2).prune(obj).get must beEqualTo(res)
+      (__ \ 'level2).prune(obj) must beEqualTo(JsSuccess(res, __ \ 'level2))
       (__ \ 'level1 \ 'key1).prune(obj).get must beEqualTo(res2)
       (__ \ 'level1 \ 'key2 \ 'key21).prune(obj).get must beEqualTo(res3)
       (__ \\ 'key21).prune(obj) must beEqualTo(JsError(__ \\ "key21", ValidationError("error.expected.keypathnode")))
