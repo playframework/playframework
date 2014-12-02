@@ -319,27 +319,6 @@ object PlayBuild extends Build {
     .dependsOn(PlayJdbcProject, PlayJavaProject)
     .dependsOn(PlayTestProject % "test")
 
-  lazy val PlayEbeanProject = PlayRuntimeProject("Play-Java-Ebean", "play-java-ebean")
-    .settings(
-      libraryDependencies ++= ebeanDeps ++ jpaDeps,
-      compile in Compile <<= (dependencyClasspath in Compile, compile in Compile, classDirectory in Compile) map {
-        (deps, analysis, classes) =>
-
-        // Ebean (really hacky sorry)
-          val cp = deps.map(_.data.toURI.toURL).toArray :+ classes.toURI.toURL
-          val cl = new java.net.URLClassLoader(cp)
-
-          val t = cl.loadClass("com.avaje.ebean.enhance.agent.Transformer").getConstructor(classOf[Array[URL]], classOf[String]).newInstance(cp, "debug=0").asInstanceOf[AnyRef]
-          val ft = cl.loadClass("com.avaje.ebean.enhance.ant.OfflineFileTransform").getConstructor(
-            t.getClass, classOf[ClassLoader], classOf[String], classOf[String]
-          ).newInstance(t, ClassLoader.getSystemClassLoader, classes.getAbsolutePath, classes.getAbsolutePath).asInstanceOf[AnyRef]
-
-          ft.getClass.getDeclaredMethod("process", classOf[String]).invoke(ft, "play/db/ebean/**")
-
-          analysis
-      }
-    ).dependsOn(PlayJavaJdbcProject)
-
   lazy val PlayJpaProject = PlayRuntimeProject("Play-Java-JPA", "play-java-jpa")
     .settings(libraryDependencies ++= jpaDeps)
     .dependsOn(PlayJavaJdbcProject % "compile;test->test")
@@ -472,7 +451,6 @@ object PlayBuild extends Build {
     PlayJdbcProject,
     PlayJavaProject,
     PlayJavaJdbcProject,
-    PlayEbeanProject,
     PlayJpaProject,
     PlayNettyUtilsProject,
     PlayNettyServerProject,

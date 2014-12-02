@@ -61,7 +61,7 @@ Let's assume we have the following data model:
 
 @[test-model](code/javaguide/tests/ModelTest.java)
 
-Some data access libraries such as [[Ebean|JavaEbean]] allow you to put data access logic directly in your model classes using static methods. This can make mocking a data dependency tricky.
+Some data access libraries such as Ebean allow you to put data access logic directly in your model classes using static methods. This can make mocking a data dependency tricky.
 
 A common approach for testability is to keep the models isolated from the database and as much logic as possible, and abstract database access behind a repository interface.
 
