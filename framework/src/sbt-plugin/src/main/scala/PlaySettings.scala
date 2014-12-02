@@ -52,23 +52,7 @@ trait PlaySettings {
       "Typesafe Releases Repository" at "https://repo.typesafe.com/typesafe/releases/"
     ),
 
-    target <<= baseDirectory(_ / "target"),
-
-    sourceDirectory in Compile <<= baseDirectory(_ / "app"),
-    sourceDirectory in Test <<= baseDirectory(_ / "test"),
-
-    confDirectory <<= baseDirectory(_ / "conf"),
-
-    resourceDirectory in Compile <<= baseDirectory(_ / "conf"),
-
-    scalaSource in Compile <<= baseDirectory(_ / "app"),
-    scalaSource in Test <<= baseDirectory(_ / "test"),
-
-    javaSource in Compile <<= baseDirectory(_ / "app"),
-    javaSource in Test <<= baseDirectory(_ / "test"),
-
-    sourceDirectories in (Compile, TwirlKeys.compileTemplates) := Seq((sourceDirectory in Compile).value),
-    sourceDirectories in (Test, TwirlKeys.compileTemplates) := Seq((sourceDirectory in Test).value),
+    confDirectory <<= resourceDirectory in Compile,
 
     javacOptions in (Compile, doc) := List("-encoding", "utf8"),
 
@@ -181,11 +165,7 @@ trait PlaySettings {
     playInteractionMode := play.PlayConsoleInteractionMode,
 
     // sbt-web
-    sourceDirectory in Assets := (sourceDirectory in Compile).value / "assets",
-    sourceDirectory in TestAssets := (sourceDirectory in Test).value / "assets",
-
     jsFilter in Assets := new PatternFilter("""[^_].*\.js""".r.pattern),
-    resourceDirectory in Assets := baseDirectory.value / "public",
 
     WebKeys.stagingDirectory := WebKeys.stagingDirectory.value / "public",
 

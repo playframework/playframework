@@ -1,9 +1,9 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Anatomy of a Play application
 
-## The standard application layout
+## The Play application layout
 
-The layout of a Play application is standardized to keep things as simple as possible. After a first successful compile, a standard Play application looks like this:
+The layout of a Play application is standardized to keep things as simple as possible. After a first successful compile, a Play application looks like this:
 
 ```
 app                      → Application sources
@@ -25,7 +25,7 @@ project                  → sbt configuration files
  └ build.properties      → Marker for sbt project
  └ plugins.sbt           → sbt plugins including the declaration for Play itself
 lib                      → Unmanaged libraries dependencies
-logs                     → Standard logs folder
+logs                     → Logs folder
  └ application.log       → Default log file
 target                   → Generated stuff
  └ scala-2.10.0            
@@ -41,7 +41,7 @@ test                     → source folder for unit or functional tests
 
 The `app` directory contains all executable artifacts: Java and Scala source code, templates and compiled assets’ sources.
 
-There are three standard packages in the `app` directory, one for each component of the MVC architectural pattern: 
+There are three packages in the `app` directory, one for each component of the MVC architectural pattern: 
 
 - `app/controllers`
 - `app/models`
@@ -57,7 +57,7 @@ There is also an optional directory called `app/assets` for compiled assets such
 
 Resources stored in the `public` directory are static assets that are served directly by the Web server.
 
-This directory is split into three standard sub-directories for images, CSS stylesheets and JavaScript files. You should organize your static assets like this to keep all Play applications consistent.
+This directory is split into three sub-directories for images, CSS stylesheets and JavaScript files. You should organize your static assets like this to keep all Play applications consistent.
 
 > In a newly-created application, the `/public` directory is mapped to the `/assets` URL path, but you can easily change that, or even use several directories for your static assets.
 
@@ -65,7 +65,7 @@ This directory is split into three standard sub-directories for images, CSS styl
 
 The `conf` directory contains the application’s configuration files. There are two main configuration files:
 
-- `application.conf`, the main configuration file for the application, which contains standard configuration parameters
+- `application.conf`, the main configuration file for the application, which contains configuration parameters
 - `routes`, the routes definition file.
 
 If you need to add configuration options that are specific to your application, it’s a good idea to add more options to the `application.conf` file.
@@ -109,4 +109,48 @@ target
 tmp
 dist
 .cache
+```
+
+## Default SBT layout
+
+You also have the option of using the default layout used by SBT and Maven. Please note that this layout is experimental and may have issues. In order to use this layout, use `disablePlugins(PlayLayoutPlugin)`. This will stop Play from overriding the default SBT layout, which looks like this:
+
+```
+build.sbt                  → Application build script
+src                        → Application sources
+ └ main                    → Compiled asset sources
+    └ java                 → Java sources
+       └ controllers       → Java controllers
+       └ models            → Java business layer
+    └ scala                → Scala sources
+       └ controllers       → Scala controllers
+       └ models            → Scala business layer
+    └ resources            → Configurations files and other non-compiled resources (on classpath)
+       └ application.conf  → Main configuration file
+       └ routes            → Routes definition
+    └ twirl                → Templates
+    └ assets               → Compiled asset sources
+       └ css               → Typically LESS CSS sources
+       └ js                → Typically CoffeeScript sources
+    └ public               → Public assets
+       └ css               → CSS files
+       └ js                → Javascript files
+       └ images            → Image files
+ └ test                    → Unit or functional tests
+    └ java                 → Java source folder for unit or functional tests
+    └ scala                → Scala source folder for unit or functional tests
+    └ resources            → Resource folder for unit or functional tests
+project                    → sbt configuration files
+ └ build.properties        → Marker for sbt project
+ └ plugins.sbt             → sbt plugins including the declaration for Play itself
+lib                        → Unmanaged libraries dependencies
+logs                       → Logs folder
+ └ application.log         → Default log file
+target                     → Generated stuff
+ └ scala-2.10.0            
+    └ cache              
+    └ classes              → Compiled class files
+    └ classes_managed      → Managed class files (templates, ...)
+    └ resource_managed     → Managed resources (less, ...)
+    └ src_managed          → Generated sources (templates, ...)
 ```
