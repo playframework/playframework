@@ -73,7 +73,7 @@ object TestServer {
     val serverStart: ServerStart = new ServerStart {
       def defaultServerProvider = testServerProvider
     }
-    val configuredServerProvider = serverStart.readServerProviderSetting(process)
+    val configuredServerProvider = serverStart.readServerProviderSetting(process, config.configuration)
     val appProvider = new play.core.TestApplication(application)
     val server = configuredServerProvider.createServer(config, appProvider)
     process.addShutdownHook { server.stop() }
