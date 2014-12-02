@@ -219,7 +219,7 @@ object Dependencies {
     junitInterface,
     guava,
     findBugs,
-    ("org.fluentlenium" % "fluentlenium-core" % "0.10.2")
+    ("org.fluentlenium" % "fluentlenium-core" % "0.10.3")
       .exclude("org.jboss.netty", "netty")
   )
 
