@@ -92,7 +92,7 @@ object Dependencies {
     mockitoAll
   ).map(_ % Test)
 
-  val jodatime = "joda-time" % "joda-time" % "2.5"
+  val jodatime = "joda-time" % "joda-time" % "2.6"
   val jodaConvert = "org.joda" % "joda-convert" % "1.7"
 
   val runtime = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.6") ++
