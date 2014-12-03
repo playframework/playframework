@@ -56,7 +56,7 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
             return onNotFound(request, message);
         } else if (statusCode >= 400 && statusCode < 500) {
             return F.Promise.<Result>pure(Results.status(statusCode, views.html.defaultpages.badRequest.render(
-                Context.current()._requestHeader(), message
+                request.method(), request.uri(), message
             )));
         } else {
             throw new IllegalArgumentException("onClientError invoked with non client error status code " + statusCode + ": " + message);
@@ -71,7 +71,7 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
      */
     protected F.Promise<Result> onBadRequest(RequestHeader request, String message) {
         return F.Promise.<Result>pure(Results.badRequest(views.html.defaultpages.badRequest.render(
-                Context.current()._requestHeader(), message
+                request.method(), request.uri(), message
         )));
     }
 
@@ -94,10 +94,10 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
     protected F.Promise<Result> onNotFound(RequestHeader request, String message){
         if (environment.isProd()) {
             return F.Promise.<Result>pure(Results.notFound(views.html.defaultpages.notFound.render(
-                    Context.current()._requestHeader())));
+                    request.method(), request.uri())));
         } else {
             return F.Promise.<Result>pure(Results.notFound(views.html.defaultpages.devNotFound.render(
-                    Context.current()._requestHeader(), Some.apply(routes.get())
+                    request.method(), request.uri(), Some.apply(routes.get())
             )));
         }
     }

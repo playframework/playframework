@@ -2,7 +2,7 @@
  * Default page for 404 Not Found responses, in development mode.
  * This page display the routes file content.
  *@
-@(request:play.api.mvc.RequestHeader, router:Option[play.core.Router.Routes])
+@(method: String, uri: String, router:Option[play.core.Router.Routes])
 
 <!DOCTYPE html>
 <html lang="en">
@@ -104,7 +104,7 @@
         <h1>Action not found</h1>
 
         <p id="detail">
-            For request '@request'
+            For request '@method @uri'
         </p>
 
         @router match {
