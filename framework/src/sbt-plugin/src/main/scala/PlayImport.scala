@@ -25,7 +25,13 @@ object PlayImport {
 
   val javaJdbc = component("play-java-jdbc")
 
-  val javaEbean = component("play-java-ebean")
+  def javaEbean: ModuleID = {
+    val msg = """Play ebean module has been replaced with an external Play ebean plugin.
+                |See https://playframework.com/documentation/2.4.x/Migration24 for details.""".stripMargin
+    System.err.println(msg)
+    class JavaEbeanGone extends RuntimeException(msg) with FeedbackProvidedException
+    throw new JavaEbeanGone
+  }
 
   val javaJpa = component("play-java-jpa")
 
@@ -87,10 +93,6 @@ object PlayImport {
     val playDocsName = SettingKey[String]("play-docs-name", "Artifact name of the Play documentation")
     val playDocsModule = SettingKey[Option[ModuleID]]("play-docs-module", "Optional Play documentation dependency")
     val playDocsJar = TaskKey[Option[File]]("play-docs-jar", "Optional jar file containing the Play documentation")
-
-    val ebeanEnabled = SettingKey[Boolean]("play-ebean-enabled")
-
-    val ebeanModels = SettingKey[String]("play-ebean-models")
 
     val playPlugin = SettingKey[Boolean]("play-plugin")
 

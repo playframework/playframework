@@ -38,12 +38,6 @@ object Dependencies {
 
   val javaJdbcDeps = Seq(acolyte % Test)
 
-  val avajeEbeanormAgent = "org.avaje.ebeanorm" % "avaje-ebeanorm-agent" % "3.2.2" exclude ("javax.persistence", "persistence-api")
-  val ebeanDeps = Seq(
-    "org.avaje.ebeanorm" % "avaje-ebeanorm" % "3.3.4" exclude ("javax.persistence", "persistence-api"),
-    avajeEbeanormAgent
-  )
-
   val jpaDeps = Seq(
     "org.hibernate.javax.persistence" % "hibernate-jpa-2.1-api" % "1.0.0.Final",
     "org.hibernate" % "hibernate-entitymanager" % "4.3.7.Final" % "test"
@@ -164,8 +158,6 @@ object Dependencies {
       .exclude("com.google.code.findbugs", "jsr305"),
 
     guava,
-
-    avajeEbeanormAgent,
 
     h2database,
 

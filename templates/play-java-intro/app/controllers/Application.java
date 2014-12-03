@@ -2,16 +2,11 @@ package controllers;
 
 import play.*;
 import play.mvc.*;
-
+import play.db.jpa.*;
 import views.html.*;
-
 import models.Person;
-
 import play.data.Form;
-
 import java.util.List;
-
-import play.db.ebean.Model;
 
 import static play.libs.Json.*;
 
@@ -21,14 +16,16 @@ public class Application extends Controller {
         return ok(index.render());
     }
 
+    @Transactional
     public Result addPerson() {
-    	Person person = Form.form(Person.class).bindFromRequest().get();
-    	person.save();
-    	return redirect(routes.Application.index());
+        Person person = Form.form(Person.class).bindFromRequest().get();
+        JPA.em().persist(person);
+        return redirect(routes.Application.index());
     }
 
+    @Transactional(readOnly = true)
     public Result getPersons() {
-    	List<Person> persons = new Model.Finder(String.class, Person.class).all();
-    	return ok(toJson(persons));
+        List<Person> persons = (List<Person>) JPA.em().createQuery("select p from Person p").getResultList();
+        return ok(toJson(persons));
     }
 }
