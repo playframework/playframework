@@ -41,6 +41,8 @@ object Dependencies {
     "org.yaml" % "snakeyaml" % "1.13",
     // 5.1.0 upgrade notes: need to add JEE dependencies, eg EL
     "org.hibernate" % "hibernate-validator" % "5.0.3.Final",
+    // This is depended on by hibernate validator, we upgrade to 3.2.0 to avoid LGPL license of 3.1.x
+    "org.jboss.logging" % "jboss-logging" % "3.2.0.Final",
 
     ("org.springframework" % "spring-context" % "4.0.3.RELEASE" notTransitive ())
       .exclude("org.springframework", "spring-aop")
