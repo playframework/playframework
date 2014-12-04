@@ -49,6 +49,7 @@ fi
 
 rm -r *
 mv ../../src/play-docs/target/apidocs api
+cp -r ../../../documentation/manual manual
 if ! git diff -w --quiet
 then
     git add --all
