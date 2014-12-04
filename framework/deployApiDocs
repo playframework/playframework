@@ -49,6 +49,8 @@ fi
 
 rm -r *
 mv ../../../documentation/api api
+cp -r ../../../documentation/manual manual
+
 if ! git diff -w --quiet
 then
     git add --all
