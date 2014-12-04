@@ -79,7 +79,7 @@ Here is another example, which will store the request body in a file:
 
 ## Combining body parsers
 
-In the previous example, all request bodies are stored in the same file. This is a bit problematic isn’t it? Let’s write another custom body parser that extract the user name from the request Session, to give a unique file for each user:
+In the previous example, all request bodies are stored in the same file. This is a bit problematic isn’t it? Let’s write another custom body parser that extracts the user name from the request Session, to give a unique file for each user:
 
 @[body-parser-combining](code/ScalaBodyParser.scala)
 
