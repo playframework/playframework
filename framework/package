@@ -127,6 +127,7 @@ then
 
     rm -r *
     cp -r $OLDDIR/src/play-docs/target/apidocs api
+    cp -r $OLDDIR/../documentation/manual manual
     git add --all
     git commit -m "Publishing $PLAY_VERSION docs"
     git tag -a -m "Publishing $PLAY_VERSION docs" $PLAY_VERSION
