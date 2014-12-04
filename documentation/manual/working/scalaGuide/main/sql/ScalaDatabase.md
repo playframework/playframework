@@ -89,7 +89,7 @@ Play is bundled only with an [H2](http://www.h2database.com) database driver. Co
 For example, if you use MySQL5, you need to add a [[dependency | SBTDependencies]] for the connector:
 
 ```scala
-libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.27"
+libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.34"
 ```
 
 Or if the driver can't be found from repositories you can drop the driver into your project's [[unmanaged dependencies|Anatomy]] `lib` directory.
