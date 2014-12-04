@@ -51,6 +51,12 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
         val response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.REQUEST_URI_TOO_LONG)
         response.headers().set(Names.CONNECTION, "close")
         ctx.getChannel.write(response).addListener(ChannelFutureListener.CLOSE)
+      case e: IllegalArgumentException if Option(e.getMessage).exists(_.contains("Header value contains a prohibited character")) =>
+        // https://github.com/netty/netty/blob/netty-3.9.3.Final/src/main/java/org/jboss/netty/handler/codec/http/HttpHeaders.java#L1075-L1080
+        logger.debug("Handling Header value error", e)
+        val response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST)
+        response.headers().set(Names.CONNECTION, "close")
+        ctx.getChannel.write(response).addListener(ChannelFutureListener.CLOSE)
       case e =>
         logger.error("Exception caught in Netty", e)
         event.getChannel.close()
