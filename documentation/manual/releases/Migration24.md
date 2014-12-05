@@ -85,6 +85,18 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 | [`Akka`](api/java/play/libs/Akka.html) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
 | [`WS`](api/java/play/libs/ws/WS.html) | [`WSClient`](api/java/play/libs/ws/WSClient.html) | |
 
+## Ebean
+
+Ebean has been pulled out into an external project, to allow it to have a lifecycle independent of Play's own lifecycle.  The ebean bytecode enhancement functionality has also been extracted out of the Play sbt plugin into its own plugin.
+
+To migrate an existing Play project that uses ebean to use the new external ebean plugin, remove `javaEbean` from your `libraryDependencies` in `build.sbt`, and add the following to `project/plugins.sbt`:
+
+```scala
+addSbtPlugin("com.typesafe.sbt" % "sbt-play-ebean" % "1.0.0")
+```
+
+Additionally, Ebean has been upgraded to 4.2.0, which pulls in a few of the features that Play previously added itself, including the `Model` class.  Consequently, the Play `Model` class has been deprecated, in favour of using `org.avaje.ebean.Model`.
+
 ## Body Parsers
 
 The default body parser is now `play.api.mvc.BodyParsers.parse.default`. It is similar to `anyContent` parser, except that it only parses the bodies of PATCH, POST, and PUT requests. To parse bodies for requests of other methods, explicitly pass the `anyContent` parser to `Action`.
