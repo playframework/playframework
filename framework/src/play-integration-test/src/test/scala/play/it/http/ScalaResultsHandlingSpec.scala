@@ -229,6 +229,24 @@ object ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient {
         response.body must_== "foobar"
       }
 
+    "return a 400 error on Header value contains a prohibited character" in withServer(
+      Results.Ok
+    ) { port =>
+
+        forall(List(
+          "aaa" -> "bbb\fccc",
+          "ddd" -> "eee\u000bfff"
+        )) { header =>
+
+          val response = BasicHttpClient.makeRequests(port)(
+            BasicRequest("GET", "/", "HTTP/1.1", Map(header), "")
+          )(0)
+
+          response.status must_== 400
+          response.body must beLeft
+        }
+      }
+
   }
 
 }
