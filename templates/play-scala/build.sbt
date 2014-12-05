@@ -8,7 +8,6 @@ scalaVersion := "%SCALA_VERSION%"
 
 libraryDependencies ++= Seq(
   jdbc,
-  anorm,
   cache,
   ws
 )

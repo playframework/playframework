@@ -227,18 +227,6 @@ object Dependencies {
   specsBuild.map(_ % Test) :+
   mockitoAll % Test
 
-  val anormDependencies = specsBuild.map(_ % Test) ++ Seq(
-    "com.jsuereth" %% "scala-arm" % "1.4",
-    h2database % Test,
-    "org.eu.acolyte" %% "jdbc-scala" % acolyteVersion % Test,
-    jodatime,
-    jodaConvert,
-    "com.chuusai" % "shapeless" % "2.0.0" % Test cross CrossVersion.binaryMapped {
-      case "2.10" => BuildSettings.buildScalaVersion
-      case x => x
-    }
-  )
-
   val playDocsSbtPluginDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % "1.2.0"
   )

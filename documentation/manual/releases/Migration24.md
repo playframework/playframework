@@ -129,7 +129,13 @@ If you wish to continue using the older format of encryption decryption, here is
 
 ## Anorm
 
-New Anorm version includes various fixes and improvements.
+Anorm has been pulled out of the core of Play into a separately managed project that can have its own lifecycle.  To add a dependency on it, use:
+
+```scala
+libraryDependencies += "com.typesafe.play" %% "anorm" % "2.4.0"
+```
+
+The new Anorm version includes various fixes and improvements.
 
 Following [BatchSQL #3016](https://github.com/playframework/playframework/commit/722cd55a3a5369f911f5d11f7c93ba4bf100ca23), `SqlQuery` case class is refactored as a trait with companion object. 
 Consequently, `BatchSql` is now created by passed a raw statement which is validated internally.

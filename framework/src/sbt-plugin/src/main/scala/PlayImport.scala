@@ -17,21 +17,25 @@ object PlayImport {
 
   def component(id: String) = "com.typesafe.play" %% id % play.core.PlayVersion.current
 
+  def movedExternal(msg: String): ModuleID = {
+    System.err.println(msg)
+    class ComponentExternalisedException extends RuntimeException(msg) with FeedbackProvidedException
+    throw new ComponentExternalisedException
+  }
+
   val jdbc = component("play-jdbc")
 
-  val anorm = component("anorm")
+  def anorm = movedExternal(
+    """Anorm has been moved to an external module.
+      |See https://playframework.com/documentation/2.4.x/Migration24 for details.""".stripMargin)
 
   val javaCore = component("play-java")
 
   val javaJdbc = component("play-java-jdbc")
 
-  def javaEbean: ModuleID = {
-    val msg = """Play ebean module has been replaced with an external Play ebean plugin.
-                |See https://playframework.com/documentation/2.4.x/Migration24 for details.""".stripMargin
-    System.err.println(msg)
-    class JavaEbeanGone extends RuntimeException(msg) with FeedbackProvidedException
-    throw new JavaEbeanGone
-  }
+  def javaEbean = movedExternal(
+    """Play ebean module has been replaced with an external Play ebean plugin.
+      |See https://playframework.com/documentation/2.4.x/Migration24 for details.""".stripMargin)
 
   val javaJpa = component("play-java-jpa")
 
