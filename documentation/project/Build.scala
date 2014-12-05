@@ -75,7 +75,7 @@ object ApplicationBuild extends Build {
    .dependsOn(
       playDocs,
       playProject("Play") % "test",
-      playProject("Play-Test") % "test",
+      playProject("Play-Specs2") % "test",
       playProject("Play-Java") % "test",
       playProject("Play-Cache") % "test",
       playProject("Play-Java-WS") % "test",

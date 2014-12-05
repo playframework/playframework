@@ -19,6 +19,12 @@ Testing in Play is based on SBT, and a full description is available in the [tes
 
 ## Using specs2
 
+To use Play's specs2 support, add the Play specs2 dependency to your build as a test scoped dependency:
+
+```scala
+libraryDependencies += specs2 % Test
+```
+
 In [specs2](http://etorreborre.github.io/specs2/), tests are organized into specifications, which contain examples which run the system under test through various different code paths.
 
 Specifications extend the [`Specification`](http://etorreborre.github.io/specs2/api/SPECS2-2.4.9/index.html#org.specs2.mutable.Specification) trait and are using the should/in format:

@@ -12,6 +12,8 @@ libraryDependencies += "com.typesafe.play" %% "play-akka-http-server-experimenta
 
 libraryDependencies += ws
 
+libraryDependencies += specs2 % Test
+
 mainClass in Compile := Some("play.core.server.akkahttp.AkkaHttpServer")
 
 PlayKeys.playInteractionMode := play.StaticPlayNonBlockingInteractionMode

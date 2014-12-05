@@ -282,3 +282,11 @@ Short              | BigDecimal
 - **Joda Time**: New conversions for Joda `Instant` or `DateTime`, from `Long`, `Date` or `Timestamp` column.
 - Parses text column as `UUID` value: `SQL("SELECT uuid_as_text").as(scalar[UUID].single)`.
 - Passing `None` for a nullable parameter is deprecated, and typesafe `Option.empty[T]` must be use instead.
+
+## Specs 2 support
+
+Play's support for specs2 has been pulled out of `play-test`.  Now if you want to use Play's specs2 support, you have to explicitly add a dependency on `play-specs2`, which can be done using the convenient alias provided by the Play sbt plugin:
+
+```scala
+libraryDependencies += specs2 % Test
+```

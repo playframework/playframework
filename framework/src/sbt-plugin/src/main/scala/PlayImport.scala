@@ -41,9 +41,11 @@ object PlayImport {
 
   val json = component("play-json")
 
-  val ws = "com.typesafe.play" %% "play-ws" % play.core.PlayVersion.current
+  val ws = component("play-ws")
 
-  val javaWs = "com.typesafe.play" %% "play-java-ws" % play.core.PlayVersion.current
+  val javaWs = component("play-java-ws")
+
+  val specs2 = component("play-specs2")
 
   /**
    * Add this to your build.sbt, eg:
