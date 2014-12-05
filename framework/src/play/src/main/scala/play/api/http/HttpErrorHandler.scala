@@ -77,7 +77,7 @@ private[play] class GlobalSettingsHttpErrorHandler @Inject() (global: Provider[G
       case FORBIDDEN => Future.successful(Forbidden(views.html.defaultpages.unauthorized()))
       case NOT_FOUND => global.get.onHandlerNotFound(request)
       case clientError if statusCode >= 400 && statusCode < 500 =>
-        Future.successful(Results.Status(clientError)(views.html.defaultpages.badRequest(request, message)))
+        Future.successful(Results.Status(clientError)(views.html.defaultpages.badRequest(request.method, request.uri, message)))
       case nonClientError =>
         throw new IllegalArgumentException(s"onClientError invoked with non client error status code $statusCode: $message")
     }
@@ -128,7 +128,7 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
     case FORBIDDEN => onForbidden(request, message)
     case NOT_FOUND => onNotFound(request, message)
     case clientError if statusCode >= 400 && statusCode < 500 =>
-      Future.successful(Results.Status(clientError)(views.html.defaultpages.badRequest(request, message)))
+      Future.successful(Results.Status(clientError)(views.html.defaultpages.badRequest(request.method, request.uri, message)))
     case nonClientError =>
       throw new IllegalArgumentException(s"onClientError invoked with non client error status code $statusCode: $message")
   }
@@ -140,7 +140,7 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
    * @param message The error message.
    */
   protected def onBadRequest(request: RequestHeader, message: String): Future[Result] =
-    Future.successful(BadRequest(views.html.defaultpages.badRequest(request, message)))
+    Future.successful(BadRequest(views.html.defaultpages.badRequest(request.method, request.uri, message)))
 
   /**
    * Invoked when a client makes a request that was forbidden.
@@ -159,8 +159,8 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
    */
   protected def onNotFound(request: RequestHeader, message: String): Future[Result] = {
     Future.successful(NotFound(environment.mode match {
-      case Mode.Prod => views.html.defaultpages.notFound(request)
-      case _ => views.html.defaultpages.devNotFound(request, routes)
+      case Mode.Prod => views.html.defaultpages.notFound(request.method, request.uri)
+      case _ => views.html.defaultpages.devNotFound(request.method, request.uri, routes)
     }))
   }
 

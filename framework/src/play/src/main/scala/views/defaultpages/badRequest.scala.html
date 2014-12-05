@@ -1,7 +1,7 @@
 @**
  * Default page for 400 Bad Request responses.
  *@
-@(request:play.api.mvc.RequestHeader, error:String)
+@(method: String, uri: String, error:String)
 
 <!DOCTYPE html>
 <html lang="en">
@@ -40,7 +40,7 @@
         <h1>Bad request</h1>
 
         <p id="detail">
-            For request '@request' [@error]
+            For request '@method @uri' [@error]
         </p>
 
     </body>
