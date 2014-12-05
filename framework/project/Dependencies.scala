@@ -10,9 +10,11 @@ object Dependencies {
   val specsBuild = Seq(
     "specs2-core",
     "specs2-junit",
-    "specs2-mock",
-    "specs2-matcher-extra"
+    "specs2-mock"
   ).map("org.specs2" %% _ % specsVersion)
+
+  val specsMatcherExtra = "org.specs2" %% "specs2-matcher-extra" % specsVersion
+
   val specsSbt = specsBuild
 
   val jacksons = Seq(
@@ -224,7 +226,7 @@ object Dependencies {
     guava,
     "com.ning" % "async-http-client" % "1.8.8"
   ) ++ Seq("signpost-core", "signpost-commonshttp4").map("oauth.signpost" % _  % "1.2.1.2") ++
-  specsBuild.map(_ % Test) :+
+  (specsBuild :+ specsMatcherExtra).map(_ % Test) :+
   mockitoAll % Test
 
   val anormDependencies = specsBuild.map(_ % Test) ++ Seq(
