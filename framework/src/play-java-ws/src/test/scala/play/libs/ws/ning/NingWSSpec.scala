@@ -27,13 +27,13 @@ object NingWSSpec extends Specification with Mockito {
 
     "should respond to getMethod" in {
       val client = mock[NingWSClient]
-      val request: NingWSRequest = new NingWSRequest(client, "GET", "", emptyMap, emptyMap)
+      val request: NingWSRequest = new NingWSRequest(client, "GET", "http://example.com", emptyMap, emptyMap)
       request.getMethod must be_==("GET")
     }
 
     "should set virtualHost appropriately" in {
       val client = mock[NingWSClient]
-      val request = new NingWSRequest(client, "GET", "", emptyMap, emptyMap)
+      val request = new NingWSRequest(client, "GET", "http://example.com", emptyMap, emptyMap)
       request.setVirtualHost("foo.com")
       val actual = request.getBuilder().build().getVirtualHost()
       actual must beEqualTo("foo.com")
