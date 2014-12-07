@@ -66,7 +66,7 @@ trait IterateeSpecification extends NoConcurrentExecutionContext {
     Iteratee.flatten(timeout(it, delay))
   }
 
-  val timer = new java.util.Timer
+  val timer = new java.util.Timer(true)
   def timeout[A](a: => A, d: Duration)(implicit e: ExecutionContext): Future[A] = {
     val p = Promise[A]()
     timer.schedule(new java.util.TimerTask {

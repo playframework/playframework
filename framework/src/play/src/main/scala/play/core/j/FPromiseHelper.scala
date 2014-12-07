@@ -22,7 +22,7 @@ import play.core.Execution.internalContext
  */
 private[play] object FPromiseHelper {
 
-  private val timer = new Timer()
+  private val timer = new Timer(true)
 
   def pure[A](a: A): F.Promise[A] = F.Promise.wrap(Future.successful(a))
 
