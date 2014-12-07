@@ -93,8 +93,8 @@ trait PlaySettings {
     },
 
     // Adds app directory's source files to continuous hot reloading
-    watchSources <++= baseDirectory map {
-      path => ((path / "app") ** "*" --- (path / "app/assets") ** "*").get
+    watchSources <++= (sourceDirectory in Compile, sourceDirectory in Assets) map { (sources, assets) =>
+      (sources ** "*" --- assets ** "*").get
     },
 
     commands ++= Seq(shCommand, playStartCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
