@@ -233,14 +233,6 @@ object PlayBuild extends Build {
       TwirlKeys.templateFormats := Map("twirl" -> "play.routes.compiler.ScalaFormat")
     )
 
-  lazy val AnormProject = PlayRuntimeProject("Anorm", "anorm")
-    .settings(
-      libraryDependencies ++= anormDependencies,
-      addScalaModules(scalaParserCombinators),
-      // quieten deprecation warnings in tests
-      scalacOptions in Test := (scalacOptions in Test).value diff Seq("-deprecation")
-    )
-
   lazy val IterateesProject = PlayRuntimeProject("Play-Iteratees", "iteratees")
     .settings(libraryDependencies ++= iterateesDependencies)
 
@@ -440,7 +432,6 @@ object PlayBuild extends Build {
   lazy val publishedProjects = Seq[ProjectReference](
     PlayProject,
     BuildLinkProject,
-    AnormProject,
     IterateesProject,
     FunctionalProject,
     DataCommonsProject,
