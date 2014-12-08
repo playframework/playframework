@@ -99,5 +99,12 @@ object AssetsSpec extends Specification {
       Assets.resourceNameAt("/a/b", "../../c/d") must beNone
     }
 
+    "use the unescaped path when finding the last modified date of an asset" in {
+      val url = AssetsSpec.getClass.getClassLoader.getResource("file withspace.css")
+      val assetInfo = new AssetInfo("file withspace.css", url, None, None)
+      val lastModified = AssetInfo.df.parseDateTime(assetInfo.lastModified.get)
+      // If it uses the escaped path, the file won't be found, and so last modified will be 0
+      lastModified.toDate.getTime must_!= 0
+    }
   }
 }
