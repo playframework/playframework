@@ -153,7 +153,7 @@ private[controllers] class AssetInfo(
     }
 
     url.getProtocol match {
-      case "file" => Some(df.print(new File(url.getPath).lastModified))
+      case "file" => Some(df.print(new File(url.toURI).lastModified))
       case "jar" => getLastModified[JarURLConnection](c => c.getJarEntry.getTime)
       case "bundle" => getLastModified[URLConnection](c => c.getLastModified)
       case _ => None
