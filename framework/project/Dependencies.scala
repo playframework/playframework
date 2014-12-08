@@ -95,7 +95,7 @@ object Dependencies {
 
   val runtime = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.6") ++
     Seq("logback-core", "logback-classic").map("ch.qos.logback" % _ % "1.1.1") ++
-    Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % "2.3.5") ++
+    Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % "2.3.7") ++
     jacksons ++
     Seq(
       "org.scala-stm" %% "scala-stm" % "0.7",
@@ -129,7 +129,7 @@ object Dependencies {
   ) ++ specsBuild.map(_ % Test)
 
   val akkaHttp = Seq(
-    "com.typesafe.akka" %% "akka-http-core-experimental" % "0.9"
+    "com.typesafe.akka" %% "akka-http-core-experimental" % "1.0-M1"
   )
 
   val routersCompilerDependencies =  Seq(
@@ -192,7 +192,7 @@ object Dependencies {
   ) ++ specsBuild.map(_ % Test)
 
   val streamsDependencies = Seq(
-    "org.reactivestreams" % "reactive-streams" % "0.4.0.M2"
+    "org.reactivestreams" % "reactive-streams" % "1.0.0.M1"
   ) ++ specsBuild.map(_ % "test")
 
   val jsonDependencies = Seq(
