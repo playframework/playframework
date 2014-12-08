@@ -4,7 +4,8 @@ import akka.http.model._
 import akka.http.model.ContentType
 import akka.http.model.headers._
 import akka.http.model.parser.HeaderParser
-import akka.stream.scaladsl2.{ FlowMaterializer, Source }
+import akka.stream.FlowMaterializer
+import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import java.net.InetSocketAddress
 import org.reactivestreams.Publisher

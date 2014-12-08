@@ -4,9 +4,9 @@ import akka.actor.ActorSystem
 import akka.http.Http
 import akka.http.model._
 import akka.http.model.headers.{ `Content-Length`, `Content-Type` }
-import akka.io.IO
 import akka.pattern.ask
-import akka.stream.scaladsl2._
+import akka.stream.FlowMaterializer
+import akka.stream.scaladsl._
 import akka.util.{ ByteString, Timeout }
 import com.typesafe.config.{ ConfigFactory, Config }
 import java.net.InetSocketAddress
@@ -46,19 +46,13 @@ class AkkaHttpServer(config: ServerConfig, appProvider: ApplicationProvider) ext
     // Bind the socket
     import system.dispatcher
 
-    val bindingFuture = {
+    val binding: Http.ServerBinding = {
       import java.util.concurrent.TimeUnit.MILLISECONDS
       implicit val askTimeout: Timeout = Timeout(userConfig.getDuration("http-bind-timeout", MILLISECONDS), MILLISECONDS)
-      IO(Http) ? Http.Bind(interface = config.address, port = config.port.get)
+      Http().bind(interface = config.address, port = config.port.get)
     }
-    bindingFuture foreach {
-      case Http.ServerBinding(localAddress, connectionStream) =>
-        Source(connectionStream).foreach {
-          case Http.IncomingConnection(remoteAddress, requestPublisher, responseSubscriber) ⇒
-            Source(requestPublisher)
-              .mapAsync(handleRequest(remoteAddress, _))
-              .connect(Sink(responseSubscriber)).run()
-        }
+    binding.connections foreach { incoming: Http.IncomingConnection =>
+      incoming.handleWithAsyncHandler(handleRequest(incoming.remoteAddress, _))
     }
   }
 

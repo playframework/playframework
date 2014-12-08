@@ -1,6 +1,7 @@
 package play.core.server.akkahttp
 
-import akka.stream.scaladsl2._
+import akka.stream.FlowMaterializer
+import akka.stream.scaladsl._
 import org.reactivestreams._
 import play.api.libs.iteratee._
 import play.api.libs.streams.Streams
@@ -14,12 +15,12 @@ import play.api.libs.streams.Streams
  */
 object AkkaStreamsConversion {
   def sourceToEnumerator[A](source: Source[A])(implicit fm: FlowMaterializer): Enumerator[A] = {
-    val pubrDrain = PublisherDrain[A]()
-    val flowGraph = FlowGraph { implicit b ⇒
+    val pubrSink = Sink.publisher[A]
+    val materializedMap = FlowGraph { implicit b ⇒
       import FlowGraphImplicits._
-      source ~> pubrDrain
+      source ~> pubrSink
     }.run()
-    val pubr = flowGraph.materializedDrain(pubrDrain)
+    val pubr = materializedMap.get(pubrSink)
     Streams.publisherToEnumerator(pubr)
   }
   def enumeratorToSource[T](enum: Enumerator[T], emptyElement: Option[T] = None): Source[T] = {
