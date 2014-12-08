@@ -211,7 +211,7 @@ object Dependencies {
     guava % Test
   ) ++ specsBuild.map(_ % Test)
 
-  val testDependencies = Seq(junit) ++ specsBuild ++ Seq(
+  val testDependencies = Seq(junit) ++ specsBuild.map(_ % Test) ++ Seq(
     junitInterface,
     guava,
     findBugs,

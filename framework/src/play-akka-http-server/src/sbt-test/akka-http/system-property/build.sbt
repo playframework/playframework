@@ -11,6 +11,8 @@ libraryDependencies += "com.typesafe.play" %% "play-akka-http-server-experimenta
 
 libraryDependencies += ws
 
+libraryDependencies += specs2 % Test
+
 fork in Test := true
 
 javaOptions in Test += "-Dserver.provider=play.core.server.akkahttp.AkkaHttpServerProvider"
