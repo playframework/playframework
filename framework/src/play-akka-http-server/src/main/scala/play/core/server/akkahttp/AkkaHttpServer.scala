@@ -16,8 +16,9 @@ import play.api.http.{ HttpRequestHandler, DefaultHttpErrorHandler, HeaderNames,
 import play.api.libs.iteratee._
 import play.api.libs.streams.Streams
 import play.api.mvc._
-import play.core.server._
 import play.core.{ ApplicationProvider, Execution, Invoker }
+import play.core.server._
+import play.core.server.common.ServerResultUtils
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -150,7 +151,10 @@ class AkkaHttpServer(config: ServerConfig, appProvider: ApplicationProvider) ext
 
     val actionIteratee: Iteratee[Array[Byte], Result] = action(taggedRequestHeader)
     val resultFuture: Future[Result] = requestBodyEnumerator |>>> actionIteratee
-    val responseFuture: Future[HttpResponse] = resultFuture.map(ModelConversion.convertResult)
+    val responseFuture: Future[HttpResponse] = resultFuture.map { result =>
+      val cleanedResult: Result = ServerResultUtils.cleanFlashCookie(taggedRequestHeader, result)
+      ModelConversion.convertResult(cleanedResult)
+    }
     responseFuture
   }
 
