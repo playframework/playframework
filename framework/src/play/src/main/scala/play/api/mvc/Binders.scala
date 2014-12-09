@@ -126,12 +126,12 @@ trait QueryStringBindable[A] {
  *
  *   object Application extends Controller {
  *     def show(user: User) = Action {
- *       …
+ *       ...
  *     }
  *   }
  * }}}
  *
- * The definition the binder can look like the following:
+ * The definition of binder can look like the following:
  *
  * {{{
  *   object User {
