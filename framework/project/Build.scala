@@ -10,6 +10,8 @@ import com.typesafe.sbt.SbtScalariform.scalariformSettings
 import scala.util.Properties.isJavaAtLeast
 import play.twirl.sbt.SbtTwirl
 import play.twirl.sbt.Import.TwirlKeys
+import interplay.Omnidoc
+import interplay.Omnidoc.Import.OmnidocKeys
 
 object BuildSettings {
 
@@ -130,13 +132,20 @@ object BuildSettings {
       .settings(mimaDefaultSettings: _*)
       .settings(scalariformSettings: _*)
       .settings(playRuntimeSettings: _*)
+      .settings(omnidocSettings: _*)
   }
 
   def playRuntimeSettings: Seq[Setting[_]] = Seq(
     previousArtifact := Some(buildOrganization % s"${moduleName.value}_${scalaBinaryVersion.value}" % previousVersion),
     scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
-    projectID := withSourceUrl.value,
     Docs.apiDocsInclude := true
+  )
+
+  def omnidocSettings: Seq[Setting[_]] = Omnidoc.projectSettings ++ Seq(
+    OmnidocKeys.githubRepo := "playframework/playframework",
+    OmnidocKeys.snapshotBranch := sourceCodeBranch,
+    OmnidocKeys.tagPrefix := "",
+    OmnidocKeys.pathPrefix := "framework/"
   )
 
   def playSbtCommonSettings: Seq[Setting[_]] = playCommonSettings ++ scalariformSettings ++ Seq(
@@ -174,17 +183,6 @@ object BuildSettings {
         // processes classpath while it's actually being run by SBT 0.12... if it forks you get serialVersionUID errors.
         fork in Test := false
       )
-  }
-
-  /**
-   * Add an extra source url property to the project module for aggregated documentation.
-   */
-  def withSourceUrl = Def.setting {
-    val baseUrl = "https://github.com/playframework/playframework"
-    val sourceTree = if (isSnapshot.value) sourceCodeBranch else version.value
-    val sourceDirectory = IO.relativize((baseDirectory in ThisBuild).value, baseDirectory.value).getOrElse("")
-    val sourceUrl = s"${baseUrl}/tree/${sourceTree}/framework/${sourceDirectory}"
-    projectID.value.extra("info.sourceUrl" -> sourceUrl)
   }
 
   /**
