@@ -345,21 +345,7 @@ object PlayBuild extends Build {
       ),
       scriptedDependencies := {
         val () = publishLocal.value
-        val () = (publishLocal in BuildLinkProject).value
-        val () = (publishLocal in PlayExceptionsProject).value
         val () = (publishLocal in RoutesCompilerProject).value
-        val () = (publishLocal in SbtRunSupportProject).value
-        val () = (publishLocal in PlayNettyServerProject).value
-        val () = (publishLocal in PlaySpecs2Project).value
-        val () = (publishLocal in PlayTestProject).value
-        val () = (publishLocal in PlayDocsProject).value
-        val () = (publishLocal in PlayServerProject).value
-        val () = (publishLocal in PlayProject).value
-        val () = (publishLocal in PlayNettyUtilsProject).value
-        val () = (publishLocal in JsonProject).value
-        val () = (publishLocal in IterateesProject).value
-        val () = (publishLocal in FunctionalProject).value
-        val () = (publishLocal in DataCommonsProject).value
       }
     ).dependsOn(BuildLinkProject, PlayExceptionsProject, RoutesCompilerProject, SbtRunSupportProject)
 
