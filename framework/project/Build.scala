@@ -208,13 +208,13 @@ object PlayBuild extends Build {
     .dependsOn(PlayExceptionsProject)
 
   lazy val RunSupportProject = PlayDevelopmentProject("Run-Support", "run-support")
-    .settings(libraryDependencies ++= runSupportDependencies)
+    .settings(libraryDependencies ++= runSupportDependencies(scalaBinaryVersion.value))
 
   // extra run-support project that is only compiled against sbt scala version
   lazy val SbtRunSupportProject = PlaySbtProject("SBT-Run-Support", "run-support")
     .settings(
       target := target.value / "sbt-run-support",
-      libraryDependencies ++= runSupportDependencies
+      libraryDependencies ++= runSupportDependencies(scalaBinaryVersion.value)
     )
 
   lazy val RoutesCompilerProject = PlaySbtProject("Routes-Compiler", "routes-compiler")
