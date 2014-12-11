@@ -23,7 +23,7 @@ object Dependencies {
 
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
-    h2database, 
+    h2database,
     "org.eu.acolyte" % "jdbc-driver" % "1.0.22" % "test",
     "tyrex" % "tyrex" % "1.0.1") ++ specsBuild.map(_ % "test")
 
@@ -127,9 +127,14 @@ object Dependencies {
     )
   }
 
- val runSupportDependencies = Seq(
-    "org.scala-sbt" % "io" % BuildSettings.buildSbtVersion
+  def runSupportDependencies(scalaBinaryVersion: String) = Seq(
+    sbtIO(scalaBinaryVersion)
   ) ++ specsBuild.map(_ % Test)
+
+  def sbtIO(scalaBinaryVersion: String): ModuleID = scalaBinaryVersion match {
+    case "2.10" => "org.scala-sbt" % "io" % BuildSettings.buildSbtVersion % "provided"
+    case "2.11" => "org.scala-sbt" % "io_2.11" % "0.13.6" % "provided"
+  }
 
   val typesafeConfig = "com.typesafe" % "config" % "1.2.1"
 
