@@ -57,19 +57,6 @@ object BuildSettings {
       (x => x == "true" || x == "") map
       (_ => true) getOrElse default
 
-  class SharedProjectScalaVersion(val scalaVersion: String, val targetDir: String) {
-    val nameSuffix:String = targetDir.replace(".","").trim()
-    def toSettings(targetPrefix:String):Seq[Setting[_]] = Seq(
-      target := target.value / s"$targetPrefix-$targetDir",
-      Keys.scalaVersion := scalaVersion
-    )
-  }
-
-  object SharedProjectScalaVersion {
-    def forScalaVersion(scalaVersion:String):SharedProjectScalaVersion =
-      new SharedProjectScalaVersion(scalaVersion,CrossVersion.binaryScalaVersion(scalaVersion))
-  }
-
   def playCommonSettings: Seq[Setting[_]] = Seq(
     organization := buildOrganization,
     version := buildVersion,
@@ -111,12 +98,14 @@ object BuildSettings {
       )
   }
 
-  def PlaySharedRuntimeProject(name: String, dir: String, targetPrefix:String, scalaVersion: SharedProjectScalaVersion, additionalSettings:Seq[Setting[_]]): Project = {
+  /**
+   * A project that is only used when running in development.
+   */
+  def PlayDevelopmentProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
       .settings(playCommonSettings: _*)
       .settings(scalariformSettings: _*)
-      .settings(scalaVersion.toSettings(targetPrefix): _*)
-      .settings(additionalSettings: _*)
+      .settings(PublishSettings.publishSettings: _*)
       .settings(mimaDefaultSettings: _*)
   }
 
@@ -217,14 +206,15 @@ object PlayBuild extends Build {
     .settings(libraryDependencies ++= link)
     .dependsOn(PlayExceptionsProject)
 
-  def runSupportProject(prefix:String, sv:SharedProjectScalaVersion, additionalSettings: Seq[Setting[_]]) =
-    PlaySharedRuntimeProject(prefix, "run-support", prefix, sv, additionalSettings).settings(
+  lazy val RunSupportProject = PlayDevelopmentProject("Run-Support", "run-support")
+    .settings(libraryDependencies ++= runSupportDependencies)
+
+  // extra run-support project that is only compiled against sbt scala version
+  lazy val SbtRunSupportProject = PlaySbtProject("SBT-Run-Support", "run-support")
+    .settings(
+      target := target.value / "sbt-run-support",
       libraryDependencies ++= runSupportDependencies
     )
-
-  lazy val SbtRunSupportProject = runSupportProject("SBT-Run-Support",SharedProjectScalaVersion.forScalaVersion(buildScalaVersionForSbt),PublishSettings.sbtPluginPublishSettings)
-
-  lazy val RunSupportProject = runSupportProject("Run-Support", SharedProjectScalaVersion.forScalaVersion(buildScalaVersion),PublishSettings.publishSettings)
 
   lazy val RoutesCompilerProject = PlaySbtProject("Routes-Compiler", "routes-compiler")
     .enablePlugins(SbtTwirl)
