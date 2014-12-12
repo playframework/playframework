@@ -280,7 +280,10 @@ object PlayBuild extends Build {
 
   lazy val PlayServerProject = PlayRuntimeProject("Play-Server", "play-server")
     .settings(libraryDependencies ++= playServerDependencies)
-    .dependsOn(PlayProject)
+    .dependsOn(
+      PlayProject,
+      IterateesProject % "test->test;compile->compile"
+    )
 
   lazy val PlayNettyServerProject = PlayRuntimeProject("Play-Netty-Server", "play-netty-server")
     .settings(libraryDependencies ++= netty)

@@ -523,6 +523,115 @@ object IterateesSpec extends Specification
 
   }
 
+  "Iteratee.takeUpTo" should {
+
+    def takenAndNotTaken[E](n: Int): Iteratee[E, (Seq[E], Seq[E])] = {
+      import ExecutionContext.Implicits.global
+      for {
+        seq1 <- Iteratee.takeUpTo(n)
+        seq2 <- Iteratee.getChunks
+      } yield (seq1, seq2)
+    }
+
+    "take 0 elements from 0" in {
+      await(Enumerator() |>>> takenAndNotTaken(0)) must equalTo((Seq(), Seq()))
+    }
+
+    "take 0 elements from 0 when asked for 2" in {
+      await(Enumerator() |>>> takenAndNotTaken(2)) must equalTo((Seq(), Seq()))
+    }
+
+    "take 1 element from 2" in {
+      await(Enumerator(1, 2) |>>> takenAndNotTaken(1)) must equalTo((Seq(1), Seq(2)))
+    }
+
+    "take 2 elements from 2" in {
+      await(Enumerator(1, 2) |>>> takenAndNotTaken(2)) must equalTo((Seq(1, 2), Seq()))
+    }
+
+    "take 2 elements from 2 when asked for 3" in {
+      await(Enumerator(1, 2) |>>> takenAndNotTaken(3)) must equalTo((Seq(1, 2), Seq()))
+    }
+
+    "skip Input.Empty when taking elements" in {
+      val enum = Enumerator(1, 2) >>> Enumerator.enumInput(Input.Empty) >>> Enumerator(3, 4)
+      await(enum |>>> takenAndNotTaken(3)) must equalTo((Seq(1, 2, 3), Seq(4)))
+    }
+
+  }
+
+  "Iteratee.isEmpty" should {
+
+    def isEmptyThenRest[E]: Iteratee[E, (Boolean, Seq[E])] = {
+      import ExecutionContext.Implicits.global
+      for {
+        empty <- Iteratee.isEmpty
+        seq <- Iteratee.getChunks
+      } yield (empty, seq)
+    }
+
+    "be true for a stream with only EOF" in {
+      await(Enumerator() |>>> isEmptyThenRest) must equalTo((true, Seq()))
+    }
+
+    "be true for a stream with Empty and EOF" in {
+      val enum = Enumerator.enumInput(Input.Empty) >>> Enumerator.eof
+      await(enum |>>> isEmptyThenRest) must equalTo((true, Seq()))
+    }
+
+    "be false for a stream with one element" in {
+      await(Enumerator(1) |>>> isEmptyThenRest) must equalTo((false, Seq(1)))
+    }
+
+    "be false for a stream with two elements" in {
+      await(Enumerator(1, 2) |>>> isEmptyThenRest) must equalTo((false, Seq(1, 2)))
+    }
+
+    "be false for a stream with empty and element inputs" in {
+      val enum = Enumerator.enumInput(Input.Empty) >>> Enumerator(1, 2)
+      await(enum |>>> isEmptyThenRest) must equalTo((false, Seq(1, 2)))
+    }
+
+  }
+
+  "Iteratee.takeUpTo and Iteratee.isEmpty" should {
+
+    def process[E](n: Int): Iteratee[E, (Seq[E], Boolean, Seq[E])] = {
+      import ExecutionContext.Implicits.global
+      for {
+        seq1 <- Iteratee.takeUpTo(n)
+        emptyAfterSeq1 <- Iteratee.isEmpty
+        seq2 <- Iteratee.getChunks
+      } yield (seq1, emptyAfterSeq1, seq2)
+    }
+
+    "take 0 elements and be empty from 0" in {
+      await(Enumerator() |>>> process(0)) must equalTo((Seq(), true, Seq()))
+    }
+
+    "take 0 elements from 0 and be empty when asked for 2" in {
+      await(Enumerator() |>>> process(2)) must equalTo((Seq(), true, Seq()))
+    }
+
+    "take 1 element and not be empty from 2" in {
+      await(Enumerator(1, 2) |>>> process(1)) must equalTo((Seq(1), false, Seq(2)))
+    }
+
+    "take 2 elements and be empty from 2" in {
+      await(Enumerator(1, 2) |>>> process(2)) must equalTo((Seq(1, 2), true, Seq()))
+    }
+
+    "take 2 elements and be empty from 2 when asked for 3" in {
+      await(Enumerator(1, 2) |>>> process(3)) must equalTo((Seq(1, 2), true, Seq()))
+    }
+
+    "skip Input.Empty when taking elements" in {
+      val enum = Enumerator(1, 2) >>> Enumerator.enumInput(Input.Empty) >>> Enumerator(3, 4)
+      await(enum |>>> process(3)) must equalTo((Seq(1, 2, 3), false, Seq(4)))
+    }
+
+  }
+
   "Iteratee.ignore" should {
 
     "never throw an OutOfMemoryError when consuming large input" in {

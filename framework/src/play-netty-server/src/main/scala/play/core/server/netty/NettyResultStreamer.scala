@@ -6,6 +6,7 @@ package play.core.server.netty
 import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api._
+import play.core.server.common.ServerResultUtils
 
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names._
 import org.jboss.netty.buffer.ChannelBuffers
@@ -67,7 +68,31 @@ object NettyResultStreamer {
       }
 
       case _ => {
-        result.body |>>> bufferingIteratee(createNettyResponse(result.header, closeConnection, httpVersion), startSequence, closeConnection, httpVersion)
+        val nettyResponse = createNettyResponse(result.header, closeConnection, httpVersion)
+        val bodyReadAhead = ServerResultUtils.readAheadOne(result.body >>> Enumerator.eof)
+        import play.api.libs.iteratee.Execution.Implicits.trampoline
+        bodyReadAhead.flatMap {
+          case Left(entireBody) =>
+            val buffer = entireBody.map(ChannelBuffers.wrappedBuffer).getOrElse(ChannelBuffers.EMPTY_BUFFER)
+            // We successfully buffered it, so set the content length and send the whole thing as one buffer
+            nettyResponse.headers().set(CONTENT_LENGTH, buffer.readableBytes)
+            nettyResponse.setContent(buffer)
+            val future = sendDownstream(startSequence, !closeConnection, nettyResponse).toScala
+            val channelStatus = new ChannelStatus(closeConnection, startSequence)
+            future.map(_ => channelStatus).recover { case _ => channelStatus }
+          case Right(bodyEnum) =>
+
+            // Get the iteratee, maybe chunked or maybe not according HTTP version
+            val bodyIteratee = if (httpVersion == HttpVersion.HTTP_1_0) {
+              nettyStreamIteratee(nettyResponse, startSequence, true)
+            } else {
+              // Chunk it
+              nettyResponse.headers().set(TRANSFER_ENCODING, CHUNKED)
+              Results.chunk &>> nettyStreamIteratee(nettyResponse, startSequence, closeConnection)
+            }
+
+            bodyEnum |>>> bodyIteratee
+        }
       }
 
     }
@@ -90,60 +115,6 @@ object NettyResultStreamer {
         Channels.close(oue.getChannel)
     }
     sentResponse
-  }
-
-  /**
-   * An iteratee that buffers the first element from the enumerator, and if it then receives EOF, sends the a result
-   * immediately with the body and a content length.
-   *
-   * If there is more than one element from the enumerator, it sends the response either as chunked or as a stream that
-   * gets closed, depending on whether the protocol is HTTP 1.0 or HTTP 1.1.
-   */
-  def bufferingIteratee(nettyResponse: HttpResponse, startSequence: Int, closeConnection: Boolean, httpVersion: HttpVersion)(implicit ctx: ChannelHandlerContext, e: OrderedUpstreamMessageEvent): Iteratee[Array[Byte], ChannelStatus] = {
-
-    // Left is the first chunk if there was more than one chunk, right is the zero or one and only chunk
-    def takeUpToOneChunk(chunk: Option[Array[Byte]]): Iteratee[Array[Byte], Either[Array[Byte], Option[Array[Byte]]]] = Cont {
-      // We have a second chunk, fail with left
-      case in @ Input.El(data) if chunk.isDefined => Done(Left(chunk.get), in)
-      // This is the first chunk
-      case Input.El(data) => takeUpToOneChunk(Some(data))
-      case Input.Empty => takeUpToOneChunk(chunk)
-      // We reached EOF, which means we either have one or zero chunks
-      case Input.EOF => Done(Right(chunk))
-    }
-
-    import play.api.libs.iteratee.Execution.Implicits.trampoline
-
-    takeUpToOneChunk(None).flatMap {
-      case Right(chunk) => {
-        val buffer = chunk.map(ChannelBuffers.wrappedBuffer).getOrElse(ChannelBuffers.EMPTY_BUFFER)
-        // We successfully buffered it, so set the content length and send the whole thing as one buffer
-        nettyResponse.headers().set(CONTENT_LENGTH, buffer.readableBytes)
-        nettyResponse.setContent(buffer)
-        val promise = sendDownstream(startSequence, !closeConnection, nettyResponse).toScala
-        val done = Done[Array[Byte], ChannelStatus](new ChannelStatus(closeConnection, startSequence))
-        Iteratee.flatten(promise.map(_ => done).recover {
-          case _ => done
-        })
-      }
-      case Left(chunk) => {
-        val bufferedAsEnumerator = Enumerator(chunk)
-
-        // Get the iteratee, maybe chunked or maybe not according HTTP version
-        val bodyIteratee = if (httpVersion == HttpVersion.HTTP_1_0) {
-          nettyStreamIteratee(nettyResponse, startSequence, true)
-        } else {
-          // Chunk it
-          nettyResponse.headers().set(TRANSFER_ENCODING, CHUNKED)
-          Results.chunk &>> nettyStreamIteratee(nettyResponse, startSequence, closeConnection)
-        }
-
-        // Feed the buffered content into the iteratee, and return the iteratee so that future content can continue
-        // to be fed directly in as normal
-        Iteratee.flatten(bufferedAsEnumerator |>> bodyIteratee)
-      }
-    }
-
   }
 
   // Construct an iteratee for the purposes of streaming responses to a downstream handler.

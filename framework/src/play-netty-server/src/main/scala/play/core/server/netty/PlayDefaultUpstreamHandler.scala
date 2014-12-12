@@ -19,6 +19,7 @@ import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.core.server.Server
+import play.core.server.common.ServerResultUtils
 import play.core.server.netty.ForwardedHeaderHandler.ForwardedHeaderHandlerConfig
 import play.core.websocket._
 import scala.collection.JavaConverters._
@@ -147,24 +148,6 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
         implicit val msgCtx = ctx
         implicit val oue = e.asInstanceOf[OrderedUpstreamMessageEvent]
 
-        def cleanFlashCookie(result: Result): Result = {
-          val header = result.header
-
-          val flashCookie = {
-            header.headers.get(SET_COOKIE)
-              .map(Cookies.decode(_))
-              .flatMap(_.find(_.name == Flash.COOKIE_NAME)).orElse {
-                Option(requestHeader.flash).filterNot(_.isEmpty).map { _ =>
-                  Flash.discard.toCookie
-                }
-              }
-          }
-
-          flashCookie.map { newCookie =>
-            result.withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), Seq(newCookie)))
-          }.getOrElse(result)
-        }
-
         handler match {
           //execute normal action
           case Right((action: EssentialAction, app)) =>
@@ -292,7 +275,8 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
                 .map((_, 0))
           }.flatMap {
             case (result, sequence) =>
-              NettyResultStreamer.sendResult(cleanFlashCookie(result), !keepAlive, nettyVersion, sequence)
+              val cleanedResult = ServerResultUtils.cleanFlashCookie(requestHeader, result)
+              NettyResultStreamer.sendResult(cleanedResult, !keepAlive, nettyVersion, sequence)
           }
 
         }
