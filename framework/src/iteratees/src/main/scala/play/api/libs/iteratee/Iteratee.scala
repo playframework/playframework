@@ -145,6 +145,47 @@ object Iteratee {
   def getChunks[E]: Iteratee[E, List[E]] = fold[E, List[E]](Nil) { (els, chunk) => chunk +: els }(dec).map(_.reverse)(dec)
 
   /**
+   * Read up to n chunks from the stream stopping when that number of chunks have
+   * been read or the stream end is reached. If the stream has fewer elements then
+   * only those elements are returned. Will consume intermediate Input.Empty elements
+   * but does not consume Input.EOF.
+   */
+  def takeUpTo[E](n: Int): Iteratee[E, Seq[E]] = {
+    def stepWith(accum: Seq[E]): Iteratee[E, Seq[E]] = {
+      if (accum.length >= n) Done(accum) else Cont {
+        case Input.EOF =>
+          Done(accum, Input.EOF)
+        case Input.Empty =>
+          stepWith(accum)
+        case Input.El(el) =>
+          stepWith(accum :+ el)
+      }
+    }
+    stepWith(Seq.empty)
+  }
+
+  /**
+   * Determines whether or not a stream contains any elements. A stream can be
+   * empty if it has no inputs (except Input.EOF) or if it consists of only Input.Empty
+   * elements (and Input.EOF.) A stream is non-empty if it contains an Input.El.
+   *
+   * This iteratee consumes the stream as far as the first EOF or Input.El, skipping
+   * over any Input.Empty elements. When it encounters an Input.EOF or Input.El it
+   * is Done.
+   *
+   * Will consume intermediate Input.Empty elements but does not consume Input.El or
+   * Input.EOF.
+   */
+  def isEmpty[E]: Iteratee[E, Boolean] = Cont {
+    case Input.EOF =>
+      Done(true, Input.EOF)
+    case Input.Empty =>
+      isEmpty[E]
+    case input @ Input.El(_) =>
+      Done(false, input)
+  }
+
+  /**
    * Ignore all the input of the stream, and return done when EOF is encountered.
    */
   def skipToEof[E]: Iteratee[E, Unit] = {

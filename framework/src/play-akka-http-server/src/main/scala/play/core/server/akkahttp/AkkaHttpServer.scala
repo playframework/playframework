@@ -151,7 +151,7 @@ class AkkaHttpServer(config: ServerConfig, appProvider: ApplicationProvider) ext
 
     val actionIteratee: Iteratee[Array[Byte], Result] = action(taggedRequestHeader)
     val resultFuture: Future[Result] = requestBodyEnumerator |>>> actionIteratee
-    val responseFuture: Future[HttpResponse] = resultFuture.map { result =>
+    val responseFuture: Future[HttpResponse] = resultFuture.flatMap { result =>
       val cleanedResult: Result = ServerResultUtils.cleanFlashCookie(taggedRequestHeader, result)
       ModelConversion.convertResult(cleanedResult)
     }
