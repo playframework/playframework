@@ -15,15 +15,17 @@ CROSSBUILD="2.11.1"
 
 usage() {
     echo "Usage:"
-    echo "$0 -v <version> [ -hpt ] [ -a <apidocsclone> ] [ -c <scalaversions> ]"
+    echo "$0 -v <version> [ -hpt ] [ -c <scalaversions> ]"
     echo ""
     echo "  -v The version of Play to release"
     echo "  -h Display this help and exit"
     echo "  -p Publish the release"
     echo "  -t Tag the release"
     echo "  -n Don't do a clean first"
-    echo "  -a Publish the API docs to the given clone of the API docs repository"
     echo "  -c Cross build against the comma separated list of versions, default: $CROSSBUILD"
+    echo
+    echo "Unsupported options:"
+    echo "  -a API docs (aggregated documentation is published by omnidoc)"
     exit $1
 }
 
@@ -76,7 +78,7 @@ then
     usage 1
 fi
 
-if [ $PUBLISH -eq 0 ] 
+if [ $PUBLISH -eq 0 ]
 then
     echo "This build will publish Play ${PLAY_VERSION}"
     if [ $TAG == 0 ]
@@ -85,7 +87,7 @@ then
     fi
     if [ -n "$APIDOCSCLONE" ]
     then
-        echo "It will also publish API docs to $APIDOCSCLONE"
+        echo "Note: aggregated documentation is published by omnidoc"
     fi
     read -p "Are you sure you want to continue? [y/n] " CONFIRM
     if [ $CONFIRM != "y" ]
@@ -122,33 +124,3 @@ then
         git push origin $PLAY_VERSION
     fi
 fi
-
-if [ -n "$APIDOCSCLONE" ]
-then
-    echo "Updating api docs"
-
-    OLDDIR=`pwd`
-    cd $APIDOCSCLONE
-
-    git reset --hard
-    git fetch
-    git checkout $GITBRANCH
-    git merge origin/$GITBRANCH
-
-    rm -r *
-    cp -r "$OLDDIR/src/play-docs/target/scala-2.10/apidocs" api
-    git add --all
-    git commit -m "Publishing $PLAY_VERSION docs"
-    git tag -a -m "Publishing $PLAY_VERSION docs" $PLAY_VERSION
-    git reset --hard HEAD^
-
-    if [ $PUBLISH -eq 0 ]
-    then
-        git push origin $PLAY_VERSION
-    fi
-    cd "$OLDDIR"
-fi
-    
-
-
-
