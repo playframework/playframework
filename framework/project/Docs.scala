@@ -6,6 +6,8 @@ import sbt.Keys._
 import sbt.File
 import java.net.URLClassLoader
 import org.webjars.{ FileSystemCache, WebJarExtractor }
+import interplay.Playdoc
+import interplay.Playdoc.Import.PlaydocKeys
 
 object Docs {
 
@@ -19,7 +21,6 @@ object Docs {
   val apiDocsUseCache = SettingKey[Boolean]("api-docs-use-cache", "Whether to cache the doc inputs (can hit cache limit with dbuild)")
   val apiDocs = TaskKey[File]("api-docs", "Generate the API docs")
   val extractWebjars = TaskKey[File]("extract-webjars", "Extract webjar contents")
-  val packagePlaydoc = TaskKey[File]("package-playdoc", "Package play documentation")
 
   lazy val settings = Seq(
     apiDocsInclude := false,
@@ -47,13 +48,12 @@ object Docs {
     }
   )
 
-  def playdocSettings: Seq[Setting[_]] =
-    Defaults.packageTaskSettings(packagePlaydoc, mappings in packagePlaydoc) ++
+  def playdocSettings: Seq[Setting[_]] = Playdoc.projectSettings ++
     Seq(
       ivyConfigurations += Webjars,
       extractWebjars <<= extractWebjarContents,
       libraryDependencies ++= Dependencies.playdocWebjarDependencies,
-      mappings in packagePlaydoc := {
+      mappings in PlaydocKeys.packagePlaydoc := {
         val base = (baseDirectory in ThisBuild).value
         val docBase = base.getParentFile / "documentation"
         val raw = (docBase / "manual").*** +++ (docBase / "style").***
@@ -66,11 +66,8 @@ object Docs {
         val webjarMappings = webjars.*** pair rebase(webjars, "webjars/" + playVersion)
 
         docMappings ++ webjarMappings
-      },
-      artifactClassifier in packagePlaydoc := Some("playdoc"),
-      artifact in packagePlaydoc ~= { _.copy(configurations = Seq(Configurations.Docs)) }
-    ) ++
-    addArtifact(artifact in packagePlaydoc, packagePlaydoc)
+      }
+    )
 
   def apiDocsTask(scalaSources: Seq[File], javaSources: Seq[File], classpath: Seq[File], buildBase: File, target: File,
                   compilers: Compiler.Compilers, useCache: Boolean, streams: TaskStreams, scalaVersion: String): File = {
