@@ -20,7 +20,7 @@ import play.core.{ ApplicationProvider, Execution, Invoker }
 import play.core.server._
 import play.core.server.common.ServerResultUtils
 import scala.concurrent.duration._
-import scala.concurrent.Future
+import scala.concurrent.{ Await, Future }
 import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }
 
@@ -43,18 +43,18 @@ class AkkaHttpServer(config: ServerConfig, appProvider: ApplicationProvider) ext
   implicit val system = ActorSystem(userConfig.getString("actor-system"), userConfig)
   implicit val materializer = FlowMaterializer()
 
-  {
+  val address: InetSocketAddress = {
     // Bind the socket
-    import system.dispatcher
-
     val binding: Http.ServerBinding = {
       import java.util.concurrent.TimeUnit.MILLISECONDS
-      implicit val askTimeout: Timeout = Timeout(userConfig.getDuration("http-bind-timeout", MILLISECONDS), MILLISECONDS)
       Http().bind(interface = config.address, port = config.port.get)
     }
-    binding.connections foreach { incoming: Http.IncomingConnection =>
-      incoming.handleWithAsyncHandler(handleRequest(incoming.remoteAddress, _))
+    val incomingHandler = ForeachSink { incoming: Http.IncomingConnection =>
+      incoming.handleWith(Flow[HttpRequest].mapAsync(handleRequest(incoming.remoteAddress, _)))
     }
+    val mm: MaterializedMap = binding.connections.to(incomingHandler).run()
+    val bindTimeout = Duration(userConfig.getDuration("http-bind-timeout", MILLISECONDS), MILLISECONDS)
+    Await.result(binding.localAddress(mm), bindTimeout)
   }
 
   // Each request needs an id
