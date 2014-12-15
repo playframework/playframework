@@ -11,6 +11,65 @@ import scala.concurrent.{ Future, Promise }
 
 object ServerResultUtils {
 
+  /** Save allocation by caching an empty array */
+  private val emptyBytes = new Array[Byte](0)
+
+  sealed trait ResultStreaming
+  final case class CannotStream(reason: String, alternativeResult: Result) extends ResultStreaming
+  final case class StreamWithClose(enum: Enumerator[Array[Byte]]) extends ResultStreaming
+  final case class StreamWithKnownLength(enum: Enumerator[Array[Byte]]) extends ResultStreaming
+  final case class StreamWithStrictBody(body: Array[Byte]) extends ResultStreaming
+  final case class UseExistingTransferEncoding(enum: Enumerator[Array[Byte]]) extends ResultStreaming
+  final case class PerformChunkedTransferEncoding(enum: Enumerator[Array[Byte]]) extends ResultStreaming
+
+  /**
+   * Analyze the Result and determine how best to send it. This may involve looking at
+   * headers, buffering the enumerator, etc. The returned value will indicate how to
+   * stream the result and will provide an Enumerator or Array with the result body
+   * that should be streamed. CannotStream will be returned if the Result cannot be
+   * streamed to the given client. This can happen if a result requires Transfer-Encoding
+   * but the client uses HTTP 1.0. It can also happen if there is an error in the
+   * Result headers.
+   */
+  def determineResultStreaming(result: Result, isHttp10: Boolean): Future[ResultStreaming] = {
+
+    result match {
+      case _ if result.header.headers.exists(_._2 == null) =>
+        Future.successful(CannotStream(
+          "A header was set to null",
+          Results.InternalServerError("")
+        ))
+      case _ if (result.connection == HttpConnection.Close) =>
+        Future.successful(StreamWithClose(result.body))
+      case _ if (result.header.headers.contains(TRANSFER_ENCODING)) =>
+        if (isHttp10) {
+          Future.successful(CannotStream(
+            "Chunked response to HTTP/1.0 request",
+            Results.HttpVersionNotSupported("The response to this request is chunked and hence requires HTTP 1.1 to be sent, but this is a HTTP 1.0 request.")
+          ))
+        } else {
+          Future.successful(UseExistingTransferEncoding(result.body))
+        }
+      case _ if (result.header.headers.contains(CONTENT_LENGTH)) =>
+        Future.successful(StreamWithKnownLength(result.body))
+      case _ =>
+        import play.api.libs.iteratee.Execution.Implicits.trampoline
+        val bodyReadAhead = readAheadOne(result.body >>> Enumerator.eof)
+        bodyReadAhead.map {
+          case Left(bodyOption) =>
+            val body = bodyOption.getOrElse(emptyBytes)
+            StreamWithStrictBody(body)
+          case Right(bodyEnum) =>
+            if (isHttp10) {
+              StreamWithClose(bodyEnum) // HTTP 1.0 doesn't support chunked encoding
+            } else {
+              PerformChunkedTransferEncoding(bodyEnum)
+            }
+        }
+    }
+
+  }
+
   /**
    * Start reading an Enumerator and see if it is only zero or one
    * elements long.

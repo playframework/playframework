@@ -37,69 +37,40 @@ object NettyResultStreamer {
    * @return A Future that will be redeemed when the result is completely sent
    */
   def sendResult(result: Result, closeConnection: Boolean, httpVersion: HttpVersion, startSequence: Int)(implicit ctx: ChannelHandlerContext, oue: OrderedUpstreamMessageEvent): Future[_] = {
-    // Result of this iteratee is a completion status
-    val sentResponse: Future[ChannelStatus] = result match {
-
-      case res if res.header.headers.exists(_._2 == null) => {
-        // Make sure enumerator knows it's done, so that any resources it uses can be cleaned up
-        result.body |>> Done(())
-
-        logger.debug("Response with headers set to null, sending 500 response.")
-        val error = Results.InternalServerError("")
-        error.body |>>> nettyStreamIteratee(createNettyResponse(error.header, true, httpVersion), startSequence, true)
-      }
-
-      // Sanitisation: ensure that we don't send chunked responses to HTTP 1.0 requests
-      case UsesTransferEncoding() if httpVersion == HttpVersion.HTTP_1_0 => {
-        // Make sure enumerator knows it's done, so that any resources it uses can be cleaned up
-        result.body |>> Done(())
-
-        logger.debug("Chunked response to HTTP/1.0 request, sending 505 response.")
-        val error = Results.HttpVersionNotSupported("The response to this request is chunked and hence requires HTTP 1.1 to be sent, but this is a HTTP 1.0 request.")
-        error.body |>>> nettyStreamIteratee(createNettyResponse(error.header, closeConnection, httpVersion), startSequence, closeConnection)
-      }
-
-      case CloseConnection() => {
-        result.body |>>> nettyStreamIteratee(createNettyResponse(result.header, true, httpVersion), startSequence, true)
-      }
-
-      case EndOfBodyInProtocol() => {
-        result.body |>>> nettyStreamIteratee(createNettyResponse(result.header, closeConnection, httpVersion), startSequence, closeConnection)
-      }
-
-      case _ => {
-        val nettyResponse = createNettyResponse(result.header, closeConnection, httpVersion)
-        val bodyReadAhead = ServerResultUtils.readAheadOne(result.body >>> Enumerator.eof)
-        import play.api.libs.iteratee.Execution.Implicits.trampoline
-        bodyReadAhead.flatMap {
-          case Left(entireBody) =>
-            val buffer = entireBody.map(ChannelBuffers.wrappedBuffer).getOrElse(ChannelBuffers.EMPTY_BUFFER)
-            // We successfully buffered it, so set the content length and send the whole thing as one buffer
-            nettyResponse.headers().set(CONTENT_LENGTH, buffer.readableBytes)
-            nettyResponse.setContent(buffer)
-            val future = sendDownstream(startSequence, !closeConnection, nettyResponse).toScala
-            val channelStatus = new ChannelStatus(closeConnection, startSequence)
-            future.map(_ => channelStatus).recover { case _ => channelStatus }
-          case Right(bodyEnum) =>
-
-            // Get the iteratee, maybe chunked or maybe not according HTTP version
-            val bodyIteratee = if (httpVersion == HttpVersion.HTTP_1_0) {
-              nettyStreamIteratee(nettyResponse, startSequence, true)
-            } else {
-              // Chunk it
-              nettyResponse.headers().set(TRANSFER_ENCODING, CHUNKED)
-              Results.chunk &>> nettyStreamIteratee(nettyResponse, startSequence, closeConnection)
-            }
-
-            bodyEnum |>>> bodyIteratee
-        }
-      }
-
-    }
-
-    // Clean up
     import play.api.libs.iteratee.Execution.Implicits.trampoline
 
+    // Break out sending logic because when the first result is invalid we may
+    // need to call send again with an error result.
+    def send(result: Result): Future[ChannelStatus] = {
+      // Result of this iteratee is a completion status
+      val resultStreaming = ServerResultUtils.determineResultStreaming(result, httpVersion == HttpVersion.HTTP_1_0)
+      resultStreaming.flatMap {
+        case ServerResultUtils.CannotStream(reason, alternativeResult) =>
+          send(alternativeResult)
+        case ServerResultUtils.StreamWithClose(enum) =>
+          enum |>>> nettyStreamIteratee(createNettyResponse(result.header, true, httpVersion), startSequence, true)
+        case ServerResultUtils.StreamWithKnownLength(enum) =>
+          enum |>>> nettyStreamIteratee(createNettyResponse(result.header, closeConnection, httpVersion), startSequence, closeConnection)
+        case ServerResultUtils.StreamWithStrictBody(body) =>
+          // We successfully buffered it, so set the content length and send the whole thing as one buffer
+          val buffer = if (body.isEmpty) ChannelBuffers.EMPTY_BUFFER else ChannelBuffers.wrappedBuffer(body)
+          val nettyResponse = createNettyResponse(result.header, closeConnection, httpVersion)
+          nettyResponse.headers().set(CONTENT_LENGTH, buffer.readableBytes)
+          nettyResponse.setContent(buffer)
+          val future = sendDownstream(startSequence, !closeConnection, nettyResponse).toScala
+          val channelStatus = new ChannelStatus(closeConnection, startSequence)
+          future.map(_ => channelStatus).recover { case _ => channelStatus }
+        case ServerResultUtils.UseExistingTransferEncoding(enum) =>
+          enum |>>> nettyStreamIteratee(createNettyResponse(result.header, closeConnection, httpVersion), startSequence, closeConnection)
+        case ServerResultUtils.PerformChunkedTransferEncoding(enum) =>
+          val nettyResponse = createNettyResponse(result.header, closeConnection, httpVersion)
+          nettyResponse.headers().set(TRANSFER_ENCODING, CHUNKED)
+          enum |>>> Results.chunk &>> nettyStreamIteratee(nettyResponse, startSequence, closeConnection)
+      }
+    }
+    val sentResponse: Future[ChannelStatus] = send(result)
+
+    // Clean up
     sentResponse.onComplete {
       case Success(cs: ChannelStatus) =>
         if (cs.closeConnection) {
@@ -118,7 +89,7 @@ object NettyResultStreamer {
   }
 
   // Construct an iteratee for the purposes of streaming responses to a downstream handler.
-  def nettyStreamIteratee(nettyResponse: HttpResponse, startSequence: Int, closeConnection: Boolean)(implicit ctx: ChannelHandlerContext, e: OrderedUpstreamMessageEvent): Iteratee[Array[Byte], ChannelStatus] = {
+  private def nettyStreamIteratee(nettyResponse: HttpResponse, startSequence: Int, closeConnection: Boolean)(implicit ctx: ChannelHandlerContext, e: OrderedUpstreamMessageEvent): Iteratee[Array[Byte], ChannelStatus] = {
 
     def step(subsequence: Int)(in: Input[Array[Byte]]): Iteratee[Array[Byte], ChannelStatus] = in match {
       case Input.El(x) =>
@@ -185,30 +156,6 @@ object NettyResultStreamer {
         }
       )
     }
-  }
-
-  /**
-   * Extractor object that determines whether the end of the body is specified by the protocol
-   */
-  object EndOfBodyInProtocol {
-    def unapply(result: Result): Boolean = {
-      import result.header.headers
-      headers.contains(TRANSFER_ENCODING) || headers.contains(CONTENT_LENGTH)
-    }
-  }
-
-  /**
-   * Extractor object that determines whether the result specifies that the connection should be closed
-   */
-  object CloseConnection {
-    def unapply(result: Result): Boolean = result.connection == HttpConnection.Close
-  }
-
-  /**
-   * Extractor object that determines whether the result uses a transfer encoding
-   */
-  object UsesTransferEncoding {
-    def unapply(result: Result): Boolean = play.core.actions.UsesTransferEncoding.unapply(result)
   }
 
 }

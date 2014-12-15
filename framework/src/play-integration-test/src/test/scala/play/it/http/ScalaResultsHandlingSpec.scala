@@ -3,10 +3,12 @@
  */
 package play.it.http
 
+import java.io.IOException
 import play.api.mvc._
 import play.api.test._
 import play.api.libs.ws._
 import play.api.libs.iteratee._
+import scala.util.{ Failure, Success, Try }
 
 import play.api.libs.concurrent.Execution.{ defaultContext => ec }
 
@@ -14,9 +16,13 @@ object ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient {
 
   "scala body handling" should {
 
-    def makeRequest[T](result: Result)(block: WSResponse => T) = withServer(result) { implicit port =>
-      val response = await(wsUrl("/").get())
+    def tryRequest[T](result: Result)(block: Try[WSResponse] => T) = withServer(result) { implicit port =>
+      val response = Try(await(wsUrl("/").get()))
       block(response)
+    }
+
+    def makeRequest[T](result: Result)(block: WSResponse => T) = {
+      tryRequest(result)(tryResult => block(tryResult.get))
     }
 
     def withServer[T](result: Result)(block: Port => T) = {
@@ -30,7 +36,7 @@ object ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient {
       }
     }
 
-    "buffer results with no content length" in makeRequest(Results.Ok("Hello world")) { response =>
+    "add Content-Length when enumerator contains a single item" in makeRequest(Results.Ok("Hello world")) { response =>
       response.header(CONTENT_LENGTH) must beSome("11")
       response.body must_== "Hello world"
     }
@@ -43,10 +49,16 @@ object ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient {
         response.body must_== "abcdefghi"
       }
 
-    "send results with a content length as is" in makeRequest(Results.Ok("Hello world")
-      .withHeaders(CONTENT_LENGTH -> "5")) { response =>
-      response.header(CONTENT_LENGTH) must beSome("5")
-      response.body must_== "Hello"
+    "truncate result body or close connection when body is larger than Content-Length" in tryRequest(Results.Ok("Hello world")
+      .withHeaders(CONTENT_LENGTH -> "5")) { tryResponse =>
+      tryResponse must beLike {
+        case Success(response) =>
+          response.header(CONTENT_LENGTH) must_== Some("5")
+          response.body must_== "Hello"
+        case Failure(t) =>
+          t must haveClass[IOException]
+          t.getMessage must_== "Remotely Closed"
+      }
     }
 
     "chunk results for chunked streaming strategy" in makeRequest(
@@ -114,7 +126,9 @@ object ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient {
           BasicRequest("GET", "/", "HTTP/1.0", Map(), "")
         )
         responses(0).status must_== 200
-        responses(0).headers.get(CONNECTION) must beSome("keep-alive")
+        responses(0).headers.get(CONNECTION) must beSome.like {
+          case s => s.toLowerCase must_== "keep-alive"
+        }
         responses(1).status must_== 200
       }
 
