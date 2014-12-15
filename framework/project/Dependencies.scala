@@ -131,9 +131,10 @@ object Dependencies {
     sbtIO(scalaBinaryVersion)
   ) ++ specsBuild.map(_ % Test)
 
-  def sbtIO(scalaBinaryVersion: String): ModuleID = scalaBinaryVersion match {
-    case "2.10" => "org.scala-sbt" % "io" % BuildSettings.buildSbtVersion % "provided"
-    case "2.11" => "org.scala-sbt" % "io_2.11" % "0.13.6" % "provided"
+  // use partial version so that non-standard scala binary versions from dbuild also work
+  def sbtIO(scalaBinaryVersion: String): ModuleID = CrossVersion.partialVersion(scalaBinaryVersion) match {
+    case Some((2, major)) if major >= 11 => "org.scala-sbt" %% "io" % "0.13.6" % "provided"
+    case _ => "org.scala-sbt" % "io" % BuildSettings.buildSbtVersion % "provided"
   }
 
   val typesafeConfig = "com.typesafe" % "config" % "1.2.1"
