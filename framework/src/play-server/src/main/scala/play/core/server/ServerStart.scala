@@ -4,7 +4,8 @@
 package play.core.server
 
 import java.io._
-import play.api.Mode
+import java.util.Properties
+import play.api.{ Configuration, Mode }
 import play.core._
 import play.utils.Threads
 import scala.util.control.NonFatal
@@ -50,9 +51,9 @@ trait ServerStart {
     try {
       // Read settings
       val config = readServerConfigSettings(process)
-      val serverProvider = readServerProviderSetting(process)
+      val serverProvider = readServerProviderSetting(process, config.configuration)
       // Get the party started!
-      val pidFile = createPidFile(process, config.rootDir)
+      val pidFile = createPidFile(process, config.configuration)
       val appProvider = createApplicationProvider(config)
       val server = serverProvider.createServer(config, appProvider)
       process.addShutdownHook {
@@ -74,10 +75,18 @@ trait ServerStart {
    * line args and system properties.
    */
   def readServerConfigSettings(process: ServerProcess): ServerConfig = {
+    val configuration: Configuration = {
+      process.args.headOption match {
+        case None =>
+          ServerConfig.loadConfiguration(process.properties)
+        case Some(rootDir) =>
+          // rootDir will become play.server.dir setting
+          ServerConfig.loadConfiguration(process.properties, new File(rootDir))
+      }
+    }
+
     val rootDir: File = {
-      val argumentPath = process.args.headOption
-      val propertyPath = process.prop("user.dir")
-      val path = argumentPath orElse propertyPath getOrElse (throw ServerStartException("No root server path supplied"))
+      val path = configuration.getString("play.server.dir").getOrElse(throw ServerStartException("No root server path supplied"))
       val file = new File(path)
       if (!(file.exists && file.isDirectory)) {
         throw ServerStartException(s"Bad root server path: $path")
@@ -85,7 +94,7 @@ trait ServerStart {
       file
     }
 
-    val httpPort = process.prop("http.port").fold[Option[Int]](Some(9000)) {
+    val httpPort = configuration.getString("play.server.http.port").flatMap {
       case "disabled" => None
       case str =>
         val i = try Integer.parseInt(str) catch {
@@ -93,14 +102,10 @@ trait ServerStart {
         }
         Some(i)
     }
-    val httpsPort = process.prop("https.port").map { str =>
-      try Integer.parseInt(str) catch {
-        case _: NumberFormatException => throw ServerStartException(s"Invalid HTTPS port: $str")
-      }
-    }
+    val httpsPort = configuration.getInt("play.server.https.port")
     if (!(httpPort orElse httpsPort).isDefined) throw ServerStartException("Must provide either an HTTP or HTTPS port")
 
-    val address = process.prop("http.address").getOrElse("0.0.0.0")
+    val address = configuration.getString("play.server.http.address").getOrElse("0.0.0.0")
 
     ServerConfig(
       rootDir = rootDir,
@@ -108,7 +113,8 @@ trait ServerStart {
       sslPort = httpsPort,
       address = address,
       mode = Mode.Prod,
-      properties = process.properties
+      properties = process.properties,
+      configuration = configuration
     )
   }
 
@@ -117,8 +123,8 @@ trait ServerStart {
    * properties. If not provided, defaults to the result of
    * `defaultServerProvider`.
    */
-  def readServerProviderSetting(process: ServerProcess): ServerProvider = {
-    process.prop("server.provider").map { className =>
+  def readServerProviderSetting(process: ServerProcess, configuration: Configuration): ServerProvider = {
+    configuration.getString("play.server.provider").map { className =>
       val clazz = try process.classLoader.loadClass(className) catch {
         case _: ClassNotFoundException => throw ServerStartException(s"Couldn't find ServerProvider class '$className'")
       }
@@ -134,24 +140,20 @@ trait ServerStart {
    * Create a pid file for the current process, and register a hook
    * to delete the file on process termination.
    */
-  def createPidFile(process: ServerProcess, applicationPath: File): Option[File] = {
-    val pid = process.pid getOrElse (throw ServerStartException("Couldn't determine current process's pid"))
-    val pidFileProperty = process.prop("pidfile.path").map(new File(_))
-    val defaultPidFile = new File(applicationPath, "RUNNING_PID")
-    val pidFile = (pidFileProperty getOrElse defaultPidFile).getAbsoluteFile
+  def createPidFile(process: ServerProcess, configuration: Configuration): Option[File] = {
+    val pidFilePath = configuration.getString("play.server.pidfile.path").getOrElse(throw ServerStartException("Pid file path not configured"))
+    if (pidFilePath == "/dev/null") None else {
+      val pidFile = new File(pidFilePath).getAbsoluteFile
 
-    if (pidFile.getAbsolutePath != "/dev/null") {
       if (pidFile.exists) {
         throw ServerStartException(s"This application is already running (Or delete ${pidFile.getPath} file).")
       }
 
+      val pid = process.pid getOrElse (throw ServerStartException("Couldn't determine current process's pid"))
       val out = new FileOutputStream(pidFile)
       try out.write(pid.getBytes) finally out.close()
 
-      // Return the pid file
       Some(pidFile)
-    } else {
-      None
     }
   }
 
@@ -188,7 +190,6 @@ trait ServerStart {
     Threads.withContextClassLoader(this.getClass.getClassLoader) {
       try {
         val process = new RealServerProcess(args = Seq.empty)
-        val serverProvider = readServerProviderSetting(process)
         val config = ServerConfig(
           rootDir = buildLink.projectPath,
           port = httpPort,
@@ -197,6 +198,7 @@ trait ServerStart {
           properties = process.properties
         )
         val appProvider = new ReloadableApplication(buildLink, buildDocHandler)
+        val serverProvider = readServerProviderSetting(process, config.configuration)
         serverProvider.createServer(config, appProvider)
       } catch {
         case e: ExceptionInInitializerError => throw e.getCause
