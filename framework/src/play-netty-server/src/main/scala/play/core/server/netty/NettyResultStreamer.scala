@@ -62,10 +62,10 @@ object NettyResultStreamer {
           future.map(_ => channelStatus).recover { case _ => channelStatus }
         case ServerResultUtils.UseExistingTransferEncoding(enum) =>
           enum |>>> nettyStreamIteratee(createNettyResponse(result.header, closeConnection, httpVersion), startSequence, closeConnection)
-        case ServerResultUtils.PerformChunkedTransferEncoding(enum) =>
+        case ServerResultUtils.PerformChunkedTransferEncoding(transferEncodedEnum) =>
           val nettyResponse = createNettyResponse(result.header, closeConnection, httpVersion)
           nettyResponse.headers().set(TRANSFER_ENCODING, CHUNKED)
-          enum |>>> Results.chunk &>> nettyStreamIteratee(nettyResponse, startSequence, closeConnection)
+          transferEncodedEnum |>>> Results.chunk &>> nettyStreamIteratee(nettyResponse, startSequence, closeConnection)
       }
     }
     val sentResponse: Future[ChannelStatus] = send(result)

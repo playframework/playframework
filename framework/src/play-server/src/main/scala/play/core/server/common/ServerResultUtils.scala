@@ -19,7 +19,7 @@ object ServerResultUtils {
   final case class StreamWithClose(enum: Enumerator[Array[Byte]]) extends ResultStreaming
   final case class StreamWithKnownLength(enum: Enumerator[Array[Byte]]) extends ResultStreaming
   final case class StreamWithStrictBody(body: Array[Byte]) extends ResultStreaming
-  final case class UseExistingTransferEncoding(enum: Enumerator[Array[Byte]]) extends ResultStreaming
+  final case class UseExistingTransferEncoding(transferEncodedEnum: Enumerator[Array[Byte]]) extends ResultStreaming
   final case class PerformChunkedTransferEncoding(enum: Enumerator[Array[Byte]]) extends ResultStreaming
 
   /**

@@ -117,9 +117,7 @@ private[akkahttp] object ModelConversion {
 
     val convertedHeaders: AkkaHttpHeaders = convertResponseHeaders(result.header.headers)
     import play.api.libs.iteratee.Execution.Implicits.trampoline
-    val contentType = convertedHeaders.contentType.getOrElse(ContentTypes.`application/octet-stream`)
-    val contentLength: Option[Long] = convertedHeaders.contentLength
-    convertResultBody(contentType, contentLength, result, protocol).flatMap {
+    convertResultBody(convertedHeaders, result, protocol).flatMap {
       case Left(alternativeResult) =>
         convertResult(alternativeResult, protocol)
       case Right(entity) =>
@@ -132,8 +130,7 @@ private[akkahttp] object ModelConversion {
   }
 
   def convertResultBody(
-    contentType: ContentType,
-    contentLength: Option[Long],
+    convertedHeaders: AkkaHttpHeaders,
     result: Result,
     protocol: HttpProtocol): Future[Either[Result, ResponseEntity]] = {
 
@@ -143,6 +140,14 @@ private[akkahttp] object ModelConversion {
       val dataEnum: Enumerator[ByteString] = enum.map(ByteString(_)) >>> Enumerator.eof
       AkkaStreamsConversion.enumeratorToSource(dataEnum)
     }
+    def chunksSource(enum: Enumerator[Array[Byte]]) = {
+      val chunksEnum = (
+        enum.map(HttpEntity.ChunkStreamPart(_)) >>>
+        Enumerator.enumInput(Input.El(HttpEntity.LastChunk)) >>>
+        Enumerator.eof
+      )
+      AkkaStreamsConversion.enumeratorToSource(chunksEnum)
+    }
 
     val isHttp10 = protocol == HttpProtocols.`HTTP/1.0`
     ServerResultUtils.determineResultStreaming(result, isHttp10).map {
@@ -151,33 +156,37 @@ private[akkahttp] object ModelConversion {
         Left(alternativeResult)
       case ServerResultUtils.StreamWithClose(enum) =>
         Right(HttpEntity.CloseDelimited(
-          contentType = contentType,
+          contentType = convertedHeaders.contentType,
           data = dataSource(enum)
         ))
       case ServerResultUtils.StreamWithKnownLength(enum) =>
         Right(HttpEntity.Default(
-          contentType = contentType,
-          contentLength = contentLength.get,
+          contentType = convertedHeaders.contentType,
+          contentLength = convertedHeaders.contentLength.get,
           data = dataSource(enum)
         ))
       case ServerResultUtils.StreamWithStrictBody(body) =>
         Right(HttpEntity.Strict(
-          contentType = contentType,
+          contentType = convertedHeaders.contentType,
           data = if (body.isEmpty) ByteString.empty else ByteString(body)
         ))
-      case ServerResultUtils.UseExistingTransferEncoding(enum) =>
-        logger.warn(s"Akka HTTP backend cannot send chunked results yet, sending error result instead")
-        Left(Results.InternalServerError("Akka HTTP server doesn't support explicit chunked encoding"))
+      case ServerResultUtils.UseExistingTransferEncoding(transferEncodedEnum) =>
+        assert(convertedHeaders.transferEncoding.isDefined) // Guaranteed by ServerResultUtils
+        val transferEncoding = convertedHeaders.transferEncoding.get
+        transferEncoding match {
+          case immutable.Seq(TransferEncodings.chunked) =>
+            Right(HttpEntity.Chunked(
+              contentType = convertedHeaders.contentType,
+              chunks = chunksSource(transferEncodedEnum &> Results.dechunk)
+            ))
+          case other =>
+            logger.warn(s"Cannot send result, sending error instead: Akka HTTP server only supports 'Transfer-Encoding: chunked', was $other")
+            Left(Results.InternalServerError(""))
+        }
       case ServerResultUtils.PerformChunkedTransferEncoding(enum) =>
-        val chunksEnum = (
-          enum.map(HttpEntity.ChunkStreamPart(_)) >>>
-          Enumerator.enumInput(Input.El(HttpEntity.LastChunk)) >>>
-          Enumerator.eof
-        )
-        val chunksSource = AkkaStreamsConversion.enumeratorToSource(chunksEnum)
         Right(HttpEntity.Chunked(
-          contentType = contentType,
-          chunks = chunksSource
+          contentType = convertedHeaders.contentType,
+          chunks = chunksSource(enum)
         ))
     }
   }
@@ -194,8 +203,9 @@ private[akkahttp] object ModelConversion {
    */
   case class AkkaHttpHeaders(
     misc: immutable.Seq[HttpHeader],
-    contentType: Option[ContentType],
-    contentLength: Option[Long])
+    contentType: ContentType,
+    contentLength: Option[Long],
+    transferEncoding: Option[immutable.Seq[TransferEncoding]])
 
   /**
    * Convert Play response headers into `HttpHeader` objects, then separate
@@ -208,19 +218,17 @@ private[akkahttp] object ModelConversion {
       case (Nil, headers) => headers
       case (errors, _) => sys.error(s"Error parsing response headers: $errors")
     }
-    AkkaHttpHeaders(
-      misc = convertedHeaders.filter {
-        case _: `Content-Type` => false
-        case _: `Content-Length` => false
-        case _ => true
-      },
-      contentType = convertedHeaders.collectFirst {
-        case ct: `Content-Type` => ct.contentType
-      },
-      contentLength = convertedHeaders.collectFirst {
-        case cl: `Content-Length` => cl.length
-      }
-    )
+    val emptyHeaders = AkkaHttpHeaders(immutable.Seq.empty, ContentTypes.`application/octet-stream`, None, None)
+    convertedHeaders.foldLeft(emptyHeaders) {
+      case (accum, ct: `Content-Type`) =>
+        accum.copy(contentType = ct.contentType)
+      case (accum, cl: `Content-Length`) =>
+        accum.copy(contentLength = Some(cl.length))
+      case (accum, te: `Transfer-Encoding`) =>
+        accum.copy(transferEncoding = Some(te.encodings))
+      case (accum, miscHeader) =>
+        accum.copy(misc = accum.misc :+ miscHeader)
+    }
   }
 
 }
