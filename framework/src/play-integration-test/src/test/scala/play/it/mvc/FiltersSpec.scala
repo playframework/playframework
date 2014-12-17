@@ -6,11 +6,16 @@ package play.it.mvc
 import org.specs2.mutable.Specification
 import play.api.mvc._
 import play.api.test._
+import play.it._
 import scala.concurrent.duration.Duration
 import scala.concurrent._
 import play.api.libs.concurrent.Execution.{ defaultContext => ec }
 
-object FiltersSpec extends Specification with WsTestClient {
+object NettyFiltersSpec extends FiltersSpec with NettyIntegrationSpecification
+object AkkaHttpFiltersSpec extends FiltersSpec with AkkaHttpIntegrationSpecification
+
+trait FiltersSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
+
   "filters" should {
     "handle errors" in {
 

@@ -6,8 +6,12 @@ import play.api.mvc.{ Flash, Action }
 import play.api.mvc.Results._
 import play.api.libs.ws.{ WSCookie, WSResponse, WS }
 import play.api.Logger
+import play.it._
 
-object FlashCookieSpec extends PlaySpecification {
+object NettyFlashCookieSpec extends FlashCookieSpec with NettyIntegrationSpecification
+object AkkaHttpFlashCookieSpec extends FlashCookieSpec with AkkaHttpIntegrationSpecification
+
+trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecification {
 
   sequential
 

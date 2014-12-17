@@ -11,10 +11,16 @@ import java.util.zip.GZIPInputStream
 import java.io.ByteArrayInputStream
 import play.api.{ Configuration, Mode }
 import play.api.mvc.{ PathBindable, Handler }
+import play.it._
 import play.utils.{ UriEncoding, Threads }
 import play.core.Router.ReverseRouteContext
 
-object AssetsSpec extends PlaySpecification with WsTestClient {
+object NettyAssetsSpec extends AssetsSpec with NettyIntegrationSpecification
+object AkkaHttpAssetsSpec extends AssetsSpec with AkkaHttpIntegrationSpecification
+
+trait AssetsSpec extends PlaySpecification
+    with WsTestClient with ServerIntegrationSpecification {
+
   "Assets controller" should {
 
     val defaultCacheControl = Some("public, max-age=3600")
@@ -182,7 +188,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
 
       result.status must_== OK
       result.body must beEmpty
-    }
+    }.pendingUntilAkkaHttpFixed
 
     "return 404 for files that don't exist" in withServer {
       val result = await(wsUrl("/nosuchfile.txt").get())

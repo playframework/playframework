@@ -7,10 +7,14 @@ import play.api.mvc._
 import play.api.test._
 import play.api.test.TestServer
 import play.api.libs.iteratee._
+import play.it._
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.util.Random
 
-object RequestBodyHandlingSpec extends PlaySpecification {
+object NettyRequestBodyHandlingSpec extends RequestBodyHandlingSpec with NettyIntegrationSpecification
+object AkkaHttpRequestBodyHandlingSpec extends RequestBodyHandlingSpec with AkkaHttpIntegrationSpecification
+
+trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSpecification {
 
   "Play request body handling" should {
 
@@ -37,7 +41,7 @@ object RequestBodyHandlingSpec extends PlaySpecification {
       responses.length must_== 2
       responses(0).status must_== 200
       responses(1).status must_== 200
-    }
+    }.pendingUntilAkkaHttpFixed
 
     "gracefully handle early body parser termination" in withServer(EssentialAction { rh =>
       Traversable.takeUpTo[Array[Byte]](20 * 1024) &>> Iteratee.ignore[Array[Byte]].map(_ => Results.Ok)
@@ -52,6 +56,6 @@ object RequestBodyHandlingSpec extends PlaySpecification {
       responses.length must_== 2
       responses(0).status must_== 200
       responses(1).status must_== 200
-    }
+    }.pendingUntilAkkaHttpFixed
   }
 }

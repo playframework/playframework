@@ -380,6 +380,7 @@ object PlayBuild extends Build {
     .dependsOn(PlayProject % "test->test", PlayWsProject, PlayWsJavaProject, PlaySpecs2Project)
     .dependsOn(PlayFiltersHelpersProject)
     .dependsOn(PlayJavaProject)
+    .dependsOn(PlayAkkaHttpServerProject)
 
   lazy val PlayCacheProject = PlayRuntimeProject("Play-Cache", "play-cache")
     .settings(
