@@ -6,6 +6,7 @@ package play.it.action
 
 import play.api.test._
 import scala.concurrent.ExecutionContext.Implicits.global
+import play.it._
 import play.it.tools.HttpBinApplication._
 import play.api.libs.ws.WSResponse
 import com.ning.http.client.providers.netty.NettyResponse
@@ -16,7 +17,12 @@ import java.util.concurrent.atomic.AtomicBoolean
 import play.api.test.TestServer
 import play.api.test.FakeApplication
 
-object HeadActionSpec extends PlaySpecification with WsTestClient with Results with HeaderNames {
+object NettyHeadActionSpec extends HeadActionSpec with NettyIntegrationSpecification
+object AkkaHttpHeadActionSpec extends HeadActionSpec with AkkaHttpIntegrationSpecification
+
+trait HeadActionSpec extends PlaySpecification
+    with WsTestClient with Results with HeaderNames with ServerIntegrationSpecification {
+
   def route(verb: String, path: String)(handler: EssentialAction): PartialFunction[(String, String), Handler] = {
     case (v, p) if v == verb && p == path => handler
   }
@@ -106,7 +112,7 @@ object HeadActionSpec extends PlaySpecification with WsTestClient with Results w
         await(wsUrl("/get").head())
         wasCalled.get() must be_==(true).eventually
       }
-    }
+    }.pendingUntilAkkaHttpFixed
 
     "respect deliberately set Content-Length headers" in withServer {
       val result = await(wsUrl("/manualContentSize").head())

@@ -6,11 +6,15 @@ package play.it.http
 import play.api.mvc._
 import play.api.test._
 import play.api.test.TestServer
+import play.it._
 import scala.util.Random
 import scala.io.Source
 import java.io.InputStream
 
-object BadClientHandlingSpec extends PlaySpecification {
+object NettyBadClientHandlingSpec extends BadClientHandlingSpec with NettyIntegrationSpecification
+object AkkaHttpBadClientHandlingSpec extends BadClientHandlingSpec with AkkaHttpIntegrationSpecification
+
+trait BadClientHandlingSpec extends PlaySpecification with ServerIntegrationSpecification {
 
   "Play" should {
 

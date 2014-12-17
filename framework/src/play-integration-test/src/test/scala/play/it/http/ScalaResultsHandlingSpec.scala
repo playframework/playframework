@@ -8,11 +8,15 @@ import play.api.mvc._
 import play.api.test._
 import play.api.libs.ws._
 import play.api.libs.iteratee._
+import play.it._
 import scala.util.{ Failure, Success, Try }
 
 import play.api.libs.concurrent.Execution.{ defaultContext => ec }
 
-object ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient {
+object NettyScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with NettyIntegrationSpecification
+object AkkaHttpScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with AkkaHttpIntegrationSpecification
+
+trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 
   "scala body handling" should {
 
@@ -179,7 +183,7 @@ object ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient {
         val (chunks, trailers) = response.body.right.get
         chunks must containAllOf(Seq("aa", "bb", "cc")).inOrder
         trailers.get("Chunks") must beSome("3")
-      }
+      }.pendingUntilAkkaHttpFixed
 
     "fall back to simple streaming when more than one chunk is sent and protocol is HTTP 1.0" in withServer(
       Result(ResponseHeader(200, Map()), Enumerator("abc", "def", "ghi") &> Enumeratee.map[String](_.getBytes)(ec))

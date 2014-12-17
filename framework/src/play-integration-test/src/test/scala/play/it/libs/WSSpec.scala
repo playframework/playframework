@@ -7,7 +7,7 @@ import play.it.tools.HttpBinApplication
 
 import play.api.test._
 import play.api.mvc._
-
+import play.it._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import play.api.libs.iteratee._
@@ -15,7 +15,11 @@ import play.api.libs.concurrent.Promise
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.io.IOException
 
-object WSSpec extends PlaySpecification {
+object NettyWSSpec extends WSSpec with NettyIntegrationSpecification
+object AkkaHttpWSSpec extends WSSpec with AkkaHttpIntegrationSpecification
+
+trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
+
   "Web service client" title
 
   sequential
@@ -160,7 +164,7 @@ object WSSpec extends PlaySpecification {
 
         await(body |>>> Iteratee.consume[Array[Byte]]()).
           aka("streamed response") must throwAn[IOException]
-      }
+      }.skipUntilAkkaHttpFixed
 
     "not throw an exception while signing requests" >> {
       object CustomSigner extends WSSignatureCalculator {

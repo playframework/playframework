@@ -8,12 +8,16 @@ import play.api.test._
 import play.api.test.TestServer
 import play.api.libs.concurrent.Promise
 import play.api.libs.iteratee._
+import play.it._
 import java.util.concurrent.TimeUnit
 import scala.concurrent.Future
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object HttpPipeliningSpec extends PlaySpecification {
+object NettyHttpPipeliningSpec extends HttpPipeliningSpec with NettyIntegrationSpecification
+object AkkaHttpHttpPipeliningSpec extends HttpPipeliningSpec with AkkaHttpIntegrationSpecification
+
+trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecification {
 
   "Play's http pipelining support" should {
 

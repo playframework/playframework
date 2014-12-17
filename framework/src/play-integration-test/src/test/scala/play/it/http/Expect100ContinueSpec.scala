@@ -3,12 +3,16 @@
  */
 package play.it.http
 
+import play.it._
 import play.api.mvc._
 import play.api.test._
 import play.api.test.TestServer
 import play.api.libs.iteratee._
 
-object Expect100ContinueSpec extends PlaySpecification {
+object NettyExpect100ContinueSpec extends Expect100ContinueSpec with NettyIntegrationSpecification
+object AkkaHttpExpect100ContinueSpec extends Expect100ContinueSpec with AkkaHttpIntegrationSpecification
+
+trait Expect100ContinueSpec extends PlaySpecification with ServerIntegrationSpecification {
 
   "Play" should {
 
@@ -30,7 +34,7 @@ object Expect100ContinueSpec extends PlaySpecification {
       responses.length must_== 2
       responses(0).status must_== 100
       responses(1).status must_== 200
-    }
+    }.pendingUntilAkkaHttpFixed
 
     "not read body when expecting 100 continue but action iteratee is done" in withServer(
       EssentialAction(_ => Done(Results.Ok))
@@ -70,6 +74,6 @@ object Expect100ContinueSpec extends PlaySpecification {
         responses(0).status must_== 100
         responses(1).status must_== 200
         responses(2).status must_== 200
-      }
+      }.pendingUntilAkkaHttpFixed
   }
 }
