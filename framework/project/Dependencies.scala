@@ -184,7 +184,7 @@ object Dependencies {
   ) ++ javassist ++ specsBuild.map(_ % Test)
 
   val playdocWebjarDependencies = Seq(
-    "org.webjars" % "jquery"   % "2.1.0-2"    % "webjars",
+    "org.webjars" % "jquery"   % "2.1.3"    % "webjars",
     "org.webjars" % "prettify" % "4-Mar-2013" % "webjars"
   )
 
