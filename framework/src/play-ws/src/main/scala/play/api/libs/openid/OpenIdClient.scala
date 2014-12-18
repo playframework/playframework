@@ -20,7 +20,7 @@ import xml.Node
 //TODO do not use Play's internal execution context in libs
 import play.core.Execution.Implicits.internalContext
 
-case class OpenIDServer(url: String, delegate: Option[String])
+case class OpenIDServer(protocolVersion: String, url: String, delegate: Option[String])
 
 case class UserInfo(id: String, attributes: Map[String, String] = Map.empty)
 
@@ -115,13 +115,18 @@ class WsOpenIdClient @Inject() (ws: WSClient, discovery: Discovery) extends Open
     axOptional: Seq[(String, String)] = Seq.empty,
     realm: Option[String] = None): Future[String] = {
 
-    val claimedId = discovery.normalizeIdentifier(openID)
+    val claimedIdCandidate = discovery.normalizeIdentifier(openID)
     discovery.discoverServer(openID).map({ server =>
+      val (claimedId, identity) =
+        if (server.protocolVersion != "http://specs.openid.net/auth/2.0/server")
+          (claimedIdCandidate, server.delegate.getOrElse(claimedIdCandidate))
+        else
+          ("http://specs.openid.net/auth/2.0/identifier_select", "http://specs.openid.net/auth/2.0/identifier_select")
       val parameters = Seq(
         "openid.ns" -> "http://specs.openid.net/auth/2.0",
         "openid.mode" -> "checkid_setup",
         "openid.claimed_id" -> claimedId,
-        "openid.identity" -> server.delegate.getOrElse(claimedId),
+        "openid.identity" -> identity,
         "openid.return_to" -> callbackURL
       ) ++ axParameters(axRequired, axOptional) ++ realm.map("openid.realm" -> _).toList
       val separator = if (server.url.contains("?")) "&" else "?"
@@ -259,12 +264,12 @@ private[openid] object Discovery {
     def resolve(response: WSResponse) = for {
       _ <- response.header(HeaderNames.CONTENT_TYPE).filter(_.contains("application/xrds+xml"))
       findInXml = findUriWithType(response.xml) _
-      uri <- serviceTypeId.flatMap(findInXml(_)).headOption
-    } yield OpenIDServer(uri, None)
+      (typeId, uri) <- serviceTypeId.flatMap(findInXml(_)).headOption
+    } yield OpenIDServer(typeId, uri, None)
 
     private def findUriWithType(xml: Node)(typeId: String) = (xml \ "XRD" \ "Service" find (node => (node \ "Type").find(inner => inner.text == typeId).isDefined)).map {
       node =>
-        (node \ "URI").text.trim
+        (typeId, (node \ "URI").text.trim)
     }
   }
 
@@ -281,7 +286,7 @@ private[openid] object Discovery {
       serverUrl.map(url => {
         val delegate: Option[String] = localidRegex.findFirstIn(response.body)
           .orElse(delegateRegex.findFirstIn(response.body)).flatMap(extractHref(_))
-        OpenIDServer(url, delegate)
+        OpenIDServer("http://specs.openid.net/auth/2.0/signon", url, delegate) //protocol version due to http://openid.net/specs/openid-authentication-2_0.html#html_disco
       })
     }
 
