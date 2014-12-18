@@ -45,7 +45,7 @@ public class MyServerConfigStartup implements ServerConfigStartup {
 }
 ```
 
-Note that Ebean will also make use of a `conf/orm.xml` file (if present), to configure `<entity-mappings>`.
+Note that Ebean will also make use of a `conf/META-INF/ebean-orm.xml` file (if present), to configure `<entity-mappings>`.
 
 > For more information about Ebean, see the [Ebean documentation](http://www.avaje.org/ebean/documentation.html).
 
