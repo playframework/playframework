@@ -7,21 +7,112 @@ package play.api.libs.ws.ning
 
 import java.security.KeyStore
 import java.security.cert.CertPathValidatorException
+import javax.inject.{ Singleton, Inject, Provider }
 
 import org.slf4j.LoggerFactory
 
 import com.ning.http.client.{ AsyncHttpClientConfig, SSLEngineFactory }
 
 import javax.net.ssl._
+import play.api.{ Environment, Configuration }
 import play.api.libs.ws.ssl._
 import play.api.libs.ws.{ DefaultWSClientConfig, WSClientConfig }
 
 /**
+ * A NingWSClientConfig trait.  This provides bindings that can be passed into the ning implementation of WSClient.
+ */
+trait NingWSClientConfig {
+
+  def wsClientConfig: WSClientConfig
+
+  def allowPoolingConnection: Option[Boolean]
+
+  def allowSslConnectionPool: Option[Boolean]
+
+  def ioThreadMultiplier: Option[Int]
+
+  def maximumConnectionsPerHost: Option[Int]
+
+  def maximumConnectionsTotal: Option[Int]
+
+  def maximumNumberOfRedirects: Option[Int]
+
+  def maxRequestRetry: Option[Int]
+
+  def removeQueryParamsOnRedirect: Option[Boolean]
+
+  def requestCompressionLevel: Option[Int]
+
+  def useRawUrl: Option[Boolean]
+
+}
+
+/**
+ * Default ning client config
+ */
+case class DefaultNingWSClientConfig(wsClientConfig: WSClientConfig = DefaultWSClientConfig(),
+  allowPoolingConnection: Option[Boolean] = None,
+  allowSslConnectionPool: Option[Boolean] = None,
+  ioThreadMultiplier: Option[Int] = None,
+  maximumConnectionsPerHost: Option[Int] = None,
+  maximumConnectionsTotal: Option[Int] = None,
+  maximumNumberOfRedirects: Option[Int] = None,
+  maxRequestRetry: Option[Int] = None,
+  removeQueryParamsOnRedirect: Option[Boolean] = None,
+  requestCompressionLevel: Option[Int] = None,
+  useRawUrl: Option[Boolean] = None) extends NingWSClientConfig
+
+/**
+ * This class creates a DefaultWSClientConfig object from the play.api.Configuration.
+ */
+@Singleton
+class DefaultNingWSClientConfigParser @Inject() (wsClientConfig: WSClientConfig,
+    configuration: Configuration,
+    environment: Environment) extends Provider[NingWSClientConfig] {
+
+  def get = parse()
+
+  def parse(): NingWSClientConfig = {
+    val allowPoolingConnection = configuration.getBoolean("ws.ning.allowPoolingConnection")
+    val allowSslConnectionPool = configuration.getBoolean("ws.ning.allowSslConnectionPool")
+    val ioThreadMultiplier = configuration.getInt("ws.ning.ioThreadMultiplier")
+    val maximumConnectionsPerHost = configuration.getInt("ws.ning.maximumConnectionsPerHost")
+    val maximumConnectionsTotal = configuration.getInt("ws.ning.maximumConnectionsTotal")
+    val maximumNumberOfRedirects = configuration.getInt("ws.ning.maximumNumberOfRedirects")
+    val maxRequestRetry = configuration.getInt("ws.ning.maxRequestRetry")
+    val removeQueryParamsOnRedirect = configuration.getBoolean("ws.ning.removeQueryParamsOnRedirect")
+    val requestCompressionLevel = configuration.getInt("ws.ning.requestCompressionLevel")
+    val useRawUrl = configuration.getBoolean("ws.ning.useRawUrl")
+
+    DefaultNingWSClientConfig(
+      wsClientConfig,
+      allowPoolingConnection,
+      allowSslConnectionPool,
+      ioThreadMultiplier,
+      maximumConnectionsPerHost,
+      maximumConnectionsTotal,
+      maximumNumberOfRedirects,
+      maxRequestRetry,
+      removeQueryParamsOnRedirect,
+      requestCompressionLevel,
+      useRawUrl
+    )
+  }
+}
+
+/**
  * Builds a valid AsyncHttpClientConfig object from config.
  *
- * @param config the client configuration.
+ * @param ningConfig the ning client configuration.
  */
-class NingAsyncHttpClientConfigBuilder(config: WSClientConfig = DefaultWSClientConfig()) {
+class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = DefaultNingWSClientConfig()) {
+
+  /**
+   * Constructor for backwards compatibility with <= 2.3.X
+   */
+  @deprecated("Use NingAsyncHttpClientConfigBuilder(NingWSClientConfig)", "2.4")
+  def this(config: WSClientConfig) =
+    this(DefaultNingWSClientConfig(wsClientConfig = config))
 
   protected val addCustomSettings: AsyncHttpClientConfig.Builder => AsyncHttpClientConfig.Builder = identity
 
@@ -38,7 +129,9 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig = DefaultWSClientC
    * @return the resulting builder
    */
   def configure(): AsyncHttpClientConfig.Builder = {
-    configureWS(config)
+    val config = ningConfig.wsClientConfig
+
+    configureWS(ningConfig)
 
     config.acceptAnyCertificate match {
       case Some(true) =>
@@ -66,7 +159,7 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig = DefaultWSClientC
    */
   def modifyUnderlying(
     modify: AsyncHttpClientConfig.Builder => AsyncHttpClientConfig.Builder): NingAsyncHttpClientConfigBuilder = {
-    new NingAsyncHttpClientConfigBuilder(config) {
+    new NingAsyncHttpClientConfigBuilder(ningConfig) {
       override val addCustomSettings = modify compose NingAsyncHttpClientConfigBuilder.this.addCustomSettings
       override val builder = NingAsyncHttpClientConfigBuilder.this.builder
     }
@@ -75,8 +168,10 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig = DefaultWSClientC
   /**
    * Configures the global settings.
    */
-  def configureWS(config: WSClientConfig) {
+  def configureWS(ningConfig: NingWSClientConfig): Unit = {
     import play.api.libs.ws.Defaults._
+    val config = ningConfig.wsClientConfig
+
     builder.setConnectionTimeoutInMs(config.connectionTimeout.getOrElse(connectionTimeout).toInt)
       .setIdleConnectionTimeoutInMs(config.idleTimeout.getOrElse(idleTimeout).toInt)
       .setRequestTimeoutInMs(config.requestTimeout.getOrElse(requestTimeout).toInt)
@@ -85,7 +180,25 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig = DefaultWSClientC
       .setCompressionEnabled(config.compressionEnabled.getOrElse(compressionEnabled))
 
     config.userAgent foreach builder.setUserAgent
+
+    ningConfig.allowPoolingConnection.foreach(builder.setAllowPoolingConnection)
+    ningConfig.allowSslConnectionPool.foreach(builder.setAllowSslConnectionPool)
+    ningConfig.ioThreadMultiplier.foreach(builder.setIOThreadMultiplier)
+    ningConfig.maximumConnectionsPerHost.foreach(builder.setMaximumConnectionsPerHost)
+    ningConfig.maximumConnectionsTotal.foreach(builder.setMaximumConnectionsTotal)
+    ningConfig.maximumNumberOfRedirects.foreach(builder.setMaximumNumberOfRedirects)
+    ningConfig.maxRequestRetry.foreach(builder.setMaxRequestRetry)
+    ningConfig.removeQueryParamsOnRedirect.foreach(builder.setRemoveQueryParamsOnRedirect)
+    ningConfig.requestCompressionLevel.foreach(builder.setRequestCompressionLevel)
+    ningConfig.useRawUrl.foreach(builder.setUseRawUrl)
   }
+
+  /**
+   * Configures the global settings.
+   * For backwards compatibility with <= 2.3.X
+   */
+  @deprecated("Use configureWS(NingWSClientConfig)", "2.4")
+  def configureWS(config: WSClientConfig): Unit = configureWS(DefaultNingWSClientConfig(wsClientConfig = config))
 
   def configureProtocols(existingProtocols: Array[String], sslConfig: SSLConfig): Array[String] = {
     val definedProtocols = sslConfig.enabledProtocols match {

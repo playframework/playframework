@@ -18,7 +18,7 @@ class HowsMySSLSpec extends PlaySpecification {
   def createClient(rawConfig: play.api.Configuration): WSClient = {
     val classLoader = Thread.currentThread().getContextClassLoader
     val parser = new DefaultWSConfigParser(rawConfig, new Environment(new File("."), classLoader, Mode.Test))
-    val clientConfig = parser.parse()
+    val clientConfig = new DefaultNingWSClientConfig(parser.parse())
     // Debug flags only take effect in JSSE when DebugConfiguration().configure is called.
     //import play.api.libs.ws.ssl.debug.DebugConfiguration
     //clientConfig.ssl.map {
