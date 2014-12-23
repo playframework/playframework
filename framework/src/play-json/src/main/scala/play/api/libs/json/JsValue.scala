@@ -4,11 +4,11 @@
 package play.api.libs.json
 
 import java.io.InputStream
-import scala.annotation.tailrec
+import scala.annotation.{ switch, tailrec }
 import scala.collection._
 import scala.collection.mutable.ListBuffer
 
-import com.fasterxml.jackson.core.{ JsonGenerator, JsonToken, JsonParser }
+import com.fasterxml.jackson.core.{ JsonTokenId, JsonGenerator, JsonParser }
 import com.fasterxml.jackson.databind._
 import com.fasterxml.jackson.databind.`type`.TypeFactory
 import com.fasterxml.jackson.databind.deser.Deserializers
@@ -372,37 +372,40 @@ private[json] class JsValueDeserializer(factory: TypeFactory, klass: Class[_]) e
       jp.nextToken()
     }
 
-    val (maybeValue, nextContext) = (jp.getCurrentToken, parserContext) match {
+    val (maybeValue, nextContext) = (jp.getCurrentToken.id(): @switch) match {
 
-      case (JsonToken.VALUE_NUMBER_INT | JsonToken.VALUE_NUMBER_FLOAT, c) => (Some(JsNumber(jp.getDecimalValue)), c)
+      case JsonTokenId.ID_NUMBER_INT | JsonTokenId.ID_NUMBER_FLOAT => (Some(JsNumber(jp.getDecimalValue)), parserContext)
 
-      case (JsonToken.VALUE_STRING, c) => (Some(JsString(jp.getText)), c)
+      case JsonTokenId.ID_STRING => (Some(JsString(jp.getText)), parserContext)
 
-      case (JsonToken.VALUE_TRUE, c) => (Some(JsBoolean(true)), c)
+      case JsonTokenId.ID_TRUE => (Some(JsBoolean(true)), parserContext)
 
-      case (JsonToken.VALUE_FALSE, c) => (Some(JsBoolean(false)), c)
+      case JsonTokenId.ID_FALSE => (Some(JsBoolean(false)), parserContext)
 
-      case (JsonToken.VALUE_NULL, c) => (Some(JsNull), c)
+      case JsonTokenId.ID_NULL => (Some(JsNull), parserContext)
 
-      case (JsonToken.START_ARRAY, c) => (None, (ReadingList(ListBuffer())) +: c)
+      case JsonTokenId.ID_START_ARRAY => (None, ReadingList(ListBuffer()) +: parserContext)
 
-      case (JsonToken.END_ARRAY, ReadingList(content) :: stack) => (Some(JsArray(content)), stack)
+      case JsonTokenId.ID_END_ARRAY => parserContext match {
+        case ReadingList(content) :: stack => (Some(JsArray(content)), stack)
+        case _ => throw new RuntimeException("We should have been reading list, something got wrong")
+      }
 
-      case (JsonToken.END_ARRAY, _) => throw new RuntimeException("We should have been reading list, something got wrong")
+      case JsonTokenId.ID_START_OBJECT => (None, ReadingMap(ListBuffer()) +: parserContext)
 
-      case (JsonToken.START_OBJECT, c) => (None, ReadingMap(ListBuffer()) +: c)
+      case JsonTokenId.ID_FIELD_NAME => parserContext match {
+        case (c: ReadingMap) :: stack => (None, c.setField(jp.getCurrentName) +: stack)
+        case _ => throw new RuntimeException("We should be reading map, something got wrong")
+      }
 
-      case (JsonToken.FIELD_NAME, (c: ReadingMap) :: stack) => (None, c.setField(jp.getCurrentName) +: stack)
+      case JsonTokenId.ID_END_OBJECT => parserContext match {
+        case ReadingMap(content) :: stack => (Some(JsObject(content)), stack)
+        case _ => throw new RuntimeException("We should have been reading an object, something got wrong")
+      }
 
-      case (JsonToken.FIELD_NAME, _) => throw new RuntimeException("We should be reading map, something got wrong")
+      case JsonTokenId.ID_NOT_AVAILABLE => throw new RuntimeException("We should have been reading an object, something got wrong")
 
-      case (JsonToken.END_OBJECT, ReadingMap(content) :: stack) => (Some(JsObject(content)), stack)
-
-      case (JsonToken.END_OBJECT, _) => throw new RuntimeException("We should have been reading an object, something got wrong")
-
-      case (JsonToken.NOT_AVAILABLE, _) => throw new RuntimeException("We should have been reading an object, something got wrong")
-
-      case (JsonToken.VALUE_EMBEDDED_OBJECT, _) => throw new RuntimeException("We should have been reading an object, something got wrong")
+      case JsonTokenId.ID_EMBEDDED_OBJECT => throw new RuntimeException("We should have been reading an object, something got wrong")
     }
 
     // Read ahead
