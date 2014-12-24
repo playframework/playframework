@@ -177,7 +177,7 @@ Use the following properties in `application.conf` to configure the WS client:
 * `ws.followRedirects`: Configures the client to follow 301 and 302 redirects *(default is **true**)*.
 * `ws.useProxyProperties`: To use the system http proxy settings(http.proxyHost, http.proxyPort) *(default is **true**)*. 
 * `ws.useragent`: To configure the User-Agent header field.
-* `ws.compressionEnable`: Set it to true to use gzip/deflater encoding *(default is **false**)*.
+* `ws.compressionEnabled`: Set it to true to use gzip/deflater encoding *(default is **false**)*.
 
 ### Timeouts
 
