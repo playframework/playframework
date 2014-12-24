@@ -27,6 +27,8 @@ trait WSClientConfig {
 
   def userAgent: Option[String]
 
+  def maximumConnectionsPerHost: Option[Int]
+
   def compressionEnabled: Option[Boolean]
 
   def acceptAnyCertificate: Option[Boolean]
@@ -43,6 +45,7 @@ case class DefaultWSClientConfig(connectionTimeout: Option[Long] = None,
   followRedirects: Option[Boolean] = None,
   useProxyProperties: Option[Boolean] = None,
   userAgent: Option[String] = None,
+  maximumConnectionsPerHost: Option[Int] = None,
   compressionEnabled: Option[Boolean] = None,
   acceptAnyCertificate: Option[Boolean] = None,
   ssl: Option[SSLConfig] = None) extends WSClientConfig

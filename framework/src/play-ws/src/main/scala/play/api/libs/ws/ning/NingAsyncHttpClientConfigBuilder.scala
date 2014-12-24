@@ -83,6 +83,7 @@ class NingAsyncHttpClientConfigBuilder(config: WSClientConfig = DefaultWSClientC
       .setFollowRedirects(config.followRedirects.getOrElse(followRedirects))
       .setUseProxyProperties(config.useProxyProperties.getOrElse(useProxyProperties))
       .setCompressionEnabled(config.compressionEnabled.getOrElse(compressionEnabled))
+      .setMaximumConnectionsPerHost(config.maximumConnectionsPerHost.getOrElse(-1))
 
     config.userAgent foreach builder.setUserAgent
   }
