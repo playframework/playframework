@@ -5,7 +5,11 @@
 
 Compilable assets in Play must be defined in the `app/assets` directory. They are handled by the build process, and LESS sources are compiled into standard CSS files. The generated CSS files are distributed as standard resources into the same `public/` folder as the unmanaged assets, meaning that there is no difference in the way you use them once compiled.
 
-For example a LESS source file at `app/assets/stylesheets/main.less` will be available as a standard resource at `public/stylesheets/main.css`.
+For example, a LESS source file at `app/assets/stylesheets/main.less` will be available as a standard resource at `public/stylesheets/main.css`.  Play will compile `main.less` automatically.  Other LESS files need to be included in your `build.sbt` file:
+
+```scala
+includeFilter in (Assets, LessKeys.less) := "foo.less" | "bar.less"
+```
 
 LESS sources are compiled automatically during an `assets` command, or when you refresh any page in your browser while you are running in development mode. Any compilation errors will be displayed in your browser:
 
