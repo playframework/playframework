@@ -26,6 +26,8 @@ import javax.inject.Inject;
 import com.ning.http.client.*;
 import play.api.libs.ws.WSClientConfig;
 import play.api.libs.ws.DefaultWSClientConfig;
+import play.api.libs.ws.ning.NingWSClientConfig;
+import play.api.libs.ws.ning.DefaultNingWSClientConfig;
 import play.api.libs.ws.ssl.SSLConfig;
 import play.api.libs.ws.ning.NingAsyncHttpClientConfigBuilder;
 // #ws-custom-client-imports
@@ -196,7 +198,7 @@ public class JavaWS {
             scala.Option<Object> none = scala.None$.empty();
             scala.Option<String> noneString = scala.None$.empty();
             scala.Option<SSLConfig> noneSSLConfig = scala.None$.empty();
-            WSClientConfig clientConfig = new DefaultWSClientConfig(
+            WSClientConfig wsClientConfig = new DefaultWSClientConfig(
                     none, // connectionTimeout
                     none, // idleTimeout
                     none, // requestTimeout
@@ -206,6 +208,8 @@ public class JavaWS {
                     none, // compressionEnabled
                     none, // acceptAnyCertificate
                     noneSSLConfig);
+
+            NingWSClientConfig clientConfig = new DefaultNingWSClientConfig(wsClientConfig, none, none, none, none, none, none, none, none, none, none);
 
             // Build a secure config out of the client config:
             NingAsyncHttpClientConfigBuilder secureBuilder = new NingAsyncHttpClientConfigBuilder(clientConfig);

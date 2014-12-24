@@ -9,6 +9,7 @@ import play.Environment;
 import play.api.libs.ws.DefaultWSConfigParser;
 import play.api.libs.ws.WSClientConfig;
 import play.api.libs.ws.ning.NingAsyncHttpClientConfigBuilder;
+import play.api.libs.ws.ning.NingWSClientConfig;
 import play.inject.ApplicationLifecycle;
 import play.libs.F;
 import play.libs.ws.WSAPI;
@@ -31,7 +32,7 @@ public class NingWSAPI implements WSAPI {
     private final NingWSClient client;
 
     @Inject
-    public NingWSAPI(WSClientConfig clientConfig, ApplicationLifecycle lifecycle) {
+    public NingWSAPI(NingWSClientConfig clientConfig, ApplicationLifecycle lifecycle) {
         client = new NingWSClient(
                 new NingAsyncHttpClientConfigBuilder(clientConfig).build()
         );

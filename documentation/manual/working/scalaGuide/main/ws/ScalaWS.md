@@ -212,3 +212,20 @@ There are 3 different timeouts in WS. Reaching a timeout causes the WS request t
 * `ws.timeout.request`: The total time you accept a request to take (it will be interrupted even if the remote host is still sending data) *(default is **none**, to allow stream consuming)*.
 
 The request timeout can be overridden for a specific connection with `withRequestTimeout()` (see "Making a Request" section).
+
+### Configuring AsyncClientConfig
+
+The following advanced settings can be configured on the underlying AsyncHttpClientConfig.
+Please refer to the [AsyncHttpClientConfig Documentation](http://asynchttpclient.github.io/async-http-client/apidocs/com/ning/http/client/AsyncHttpClientConfig.Builder.html) for more information.
+
+* `ws.ning.allowPoolingConnection`
+* `ws.ning.allowSslConnectionPool`
+* `ws.ning.ioThreadMultiplier`
+* `ws.ning.maximumConnectionsPerHost`
+* `ws.ning.maximumConnectionsTotal`
+* `ws.ning.maximumNumberOfRedirects`
+* `ws.ning.maxRequestRetry`
+* `ws.ning.removeQueryParamsOnRedirect`
+* `ws.ning.requestCompressionLevel`
+* `ws.ning.useRawUrl`
+

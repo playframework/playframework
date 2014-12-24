@@ -430,11 +430,10 @@ class ScalaWSSpec extends PlaySpecification with Results {
     "allow working with clients directly" in withSimpleServer { ws =>
 
       //#implicit-client
-      import play.api.libs.ws.ning.NingAsyncHttpClientConfigBuilder
-      import play.api.libs.ws.ning.NingWSClient
+      import play.api.libs.ws.ning._
       import com.ning.http.client.AsyncHttpClientConfig
 
-      val clientConfig = new DefaultWSClientConfig()
+      val clientConfig = new DefaultNingWSClientConfig()
       val secureDefaults: AsyncHttpClientConfig = new NingAsyncHttpClientConfigBuilder(clientConfig).build()
       // You can directly use the builder for specific options once you have secure TLS defaults...
       val builder = new AsyncHttpClientConfig.Builder(secureDefaults)
@@ -496,7 +495,8 @@ class ScalaWSSpec extends PlaySpecification with Results {
       val environment = Environment(new File("."), this.getClass.getClassLoader, Mode.Prod)
 
       val parser = new DefaultWSConfigParser(configuration, environment)
-      val builder = new NingAsyncHttpClientConfigBuilder(parser.parse())
+      val config = new DefaultNingWSClientConfig(wsClientConfig = parser.parse())
+      val builder = new NingAsyncHttpClientConfigBuilder(config)
       //#programmatic-config
 
       ok

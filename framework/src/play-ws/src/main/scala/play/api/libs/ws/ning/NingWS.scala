@@ -65,9 +65,9 @@ object NingWSClient {
    *
    * @param config configuration settings
    */
-  def apply(config: WSClientConfig = DefaultWSClientConfig()): NingWSClient = {
+  def apply(config: NingWSClientConfig = DefaultNingWSClientConfig()): NingWSClient = {
     val client = new NingWSClient(new NingAsyncHttpClientConfigBuilder(config).build())
-    new SystemConfiguration().configure(config)
+    new SystemConfiguration().configure(config.wsClientConfig)
     client
   }
 }
@@ -517,6 +517,7 @@ class NingWSModule extends Module {
   def bindings(environment: Environment, configuration: Configuration) = {
     Seq(
       bind[WSAPI].to[NingWSAPI],
+      bind[NingWSClientConfig].toProvider[DefaultNingWSClientConfigParser].in[Singleton],
       bind[WSClientConfig].toProvider[DefaultWSConfigParser].in[Singleton],
       bind[WSClient].toProvider[WSClientProvider].in[Singleton]
     )
@@ -528,12 +529,12 @@ class WSClientProvider @Inject() (wsApi: WSAPI) extends Provider[WSClient] {
 }
 
 @Singleton
-class NingWSAPI @Inject() (environment: Environment, clientConfig: WSClientConfig, lifecycle: ApplicationLifecycle) extends WSAPI {
+class NingWSAPI @Inject() (environment: Environment, clientConfig: NingWSClientConfig, lifecycle: ApplicationLifecycle) extends WSAPI {
 
   private val logger = Logger(classOf[NingWSAPI])
 
   lazy val client = {
-    clientConfig.ssl.foreach {
+    clientConfig.wsClientConfig.ssl.foreach {
       _.debug.foreach { debugConfig =>
         environment.mode match {
           case Mode.Prod =>
@@ -711,6 +712,8 @@ trait NingWSComponents {
   def applicationLifecycle: ApplicationLifecycle
 
   lazy val wsClientConfig: WSClientConfig = new DefaultWSConfigParser(configuration, environment).parse()
-  lazy val wsApi: WSAPI = new NingWSAPI(environment, wsClientConfig, applicationLifecycle)
+  lazy val ningWsClientConfig: NingWSClientConfig =
+    new DefaultNingWSClientConfigParser(wsClientConfig, configuration, environment).parse()
+  lazy val wsApi: WSAPI = new NingWSAPI(environment, ningWsClientConfig, applicationLifecycle)
   lazy val wsClient: WSClient = wsApi.client
 }
