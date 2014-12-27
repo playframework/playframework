@@ -518,6 +518,7 @@ public class Form<T> {
         List<ValidationError> e = errors.get("");
         if(e == null) {
             e = new ArrayList<ValidationError>();
+            errors.put("", e);
         }
         return e;
     }
