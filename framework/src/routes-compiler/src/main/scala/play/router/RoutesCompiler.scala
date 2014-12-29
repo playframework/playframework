@@ -451,7 +451,7 @@ object RoutesCompiler {
         |
         |private var _prefix = "/"
         |
-        |def setPrefix(prefix: String) {
+        |def setPrefix(prefix: String): Unit = {
         |  _prefix = prefix
         |  List[(String,Routes)](%s).foreach {
         |    case (p, router) => router.setPrefix(prefix + (if(prefix.endsWith("/")) "" else "/") + p)
