@@ -146,7 +146,8 @@ class BoneConnectionPool extends ConnectionPool {
     // Bind in JNDI
     conf.getString("jndiName") map { name =>
       JNDI.initialContext.rebind(name, datasource)
-      logger.info(s"""datasource [${conf.getString("url").get}] bound to JNDI as $name""")
+      val visibleUrl = datasource.getJdbcUrl
+      logger.info(s"""datasource [$visibleUrl] bound to JNDI as $name""")
     }
 
     datasource
