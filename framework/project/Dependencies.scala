@@ -129,7 +129,7 @@ object Dependencies {
   ) ++ specsBuild.map(_ % Test)
 
   val akkaHttp = Seq(
-    "com.typesafe.akka" %% "akka-http-core-experimental" % "1.0-M1"
+    "com.typesafe.akka" %% "akka-http-core-experimental" % "1.0-M2"
   )
 
   val routersCompilerDependencies =  Seq(
