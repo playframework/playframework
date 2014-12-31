@@ -7,8 +7,8 @@ import java.io.{ Closeable, File }
 import java.net.{ URL, URLClassLoader }
 import java.util.jar.JarFile
 import play.api.PlayException
-import play.core.classloader.{ ApplicationClassLoaderProvider, DelegatingClassLoader }
-import play.core.{ BuildLink, BuildDocHandler }
+import play.core.{ Build, BuildLink, BuildDocHandler }
+import play.runsupport.classloader.{ ApplicationClassLoaderProvider, DelegatingClassLoader }
 import sbt.{ PathFinder, WatchState, SourceModificationWatch }
 
 object Reloader {
@@ -164,7 +164,7 @@ object Reloader {
      * buildLoader. Also accesses the reloader resources to make these available
      * to the applicationLoader, creating a full circle for resource loading.
      */
-    lazy val delegatingLoader: ClassLoader = new DelegatingClassLoader(commonClassLoader, buildLoader, new ApplicationClassLoaderProvider {
+    lazy val delegatingLoader: ClassLoader = new DelegatingClassLoader(commonClassLoader, Build.sharedClasses, buildLoader, new ApplicationClassLoaderProvider {
       def get: ClassLoader = { reloader.getClassLoader.orNull }
     })
 

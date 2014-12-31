@@ -149,7 +149,7 @@ object PlayDocsPlugin extends AutoPlugin {
     val sbtLoader = this.getClass.getClassLoader
     val classloader = new java.net.URLClassLoader(classpath.map(_.data.toURI.toURL).toArray, null /* important here, don't depend of the sbt classLoader! */ ) {
       override def loadClass(name: String): Class[_] = {
-        if (play.core.classloader.DelegatingClassLoader.isSharedClass(name)) {
+        if (play.core.Build.sharedClasses.contains(name)) {
           sbtLoader.loadClass(name)
         } else {
           super.loadClass(name)
