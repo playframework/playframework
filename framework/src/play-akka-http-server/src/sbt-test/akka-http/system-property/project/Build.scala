@@ -1,7 +1,6 @@
 /*
  * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
  */
-import play.sbtplugin.run.PlayWatchService
 import sbt._
 
 import scala.annotation.tailrec

@@ -3,13 +3,10 @@
  */
 package play.sbtplugin
 import sbt._
-import play.runsupport.{ LoggerProxy, PlayWatchService => PWS, PlayWatcher => PW }
+import play.runsupport.LoggerProxy
 
 package object run {
   import scala.language.implicitConversions
-
-  type PlayWatchService = PWS
-  type PlayWatcher = PW
 
   implicit def toLoggerProxy(in: Logger): LoggerProxy = new LoggerProxy {
     def verbose(message: => String): Unit = in.verbose(message)

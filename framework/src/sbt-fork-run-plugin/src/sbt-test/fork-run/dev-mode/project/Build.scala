@@ -5,8 +5,6 @@
 import sbt._
 import sbt.Keys._
 
-import play.sbtplugin.run.PlayWatchService
-
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.util.Properties

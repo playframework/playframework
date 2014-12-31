@@ -12,7 +12,7 @@ import java.net.InetSocketAddress
 import java.util.concurrent.TimeoutException
 import play.forkrun.protocol.{ ForkConfig, Serializers }
 import play.runsupport.Reloader.{ CompileResult, PlayDevServer }
-import play.runsupport.{ Colors, LoggerProxy, RunHook, PlayWatchService, Reloader }
+import play.runsupport.{ Colors, LoggerProxy, RunHook, FileWatchService, Reloader }
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.{ Success, Failure, Properties }
@@ -50,10 +50,10 @@ object ForkRun {
     }
 
     val watchService = config.watchService match {
-      case ForkConfig.DefaultWatchService => PlayWatchService.default(config.targetDirectory, config.pollInterval, log)
-      case ForkConfig.JDK7WatchService => PlayWatchService.jdk7(log)
-      case ForkConfig.JNotifyWatchService => PlayWatchService.jnotify(config.targetDirectory)
-      case ForkConfig.SbtWatchService(pollInterval) => PlayWatchService.sbt(pollInterval)
+      case ForkConfig.DefaultWatchService => FileWatchService.defaultWatchService(config.targetDirectory, config.pollInterval, log)
+      case ForkConfig.JDK7WatchService => FileWatchService.jdk7(log)
+      case ForkConfig.JNotifyWatchService => FileWatchService.jnotify(config.targetDirectory)
+      case ForkConfig.PollingWatchService(pollInterval) => FileWatchService.sbt(pollInterval)
     }
 
     val runSbtTask = (s: String) => throw new UnsupportedOperationException("BuildLink.runTask is not supported in fork run")
@@ -68,7 +68,7 @@ object ForkRun {
       assetsClassLoader = Reloader.assetsClassLoader(config.allAssets),
       commonClassLoader = Reloader.commonClassLoader(config.dependencyClasspath),
       monitoredFiles = config.monitoredFiles,
-      playWatchService = watchService,
+      fileWatchService = watchService,
       docsClasspath = config.docsClasspath,
       docsJar = config.docsJar,
       defaultHttpPort = config.defaultHttpPort,

@@ -3,7 +3,7 @@
  */
 package play
 
-import play.runsupport.PlayWatchService
+import play.runsupport.FileWatchService
 import play.sbtplugin.run._
 import sbt._
 import Keys._
@@ -113,6 +113,6 @@ object PlayImport {
     val playPackageAssets = TaskKey[File]("play-package-assets")
 
     val playMonitoredFiles = TaskKey[Seq[String]]("play-monitored-files")
-    val playWatchService = SettingKey[PlayWatchService]("play-watch-service", "The watch service Play uses to watch for file changes")
+    val fileWatchService = SettingKey[FileWatchService]("file-watch-service", "The watch service Play uses to watch for file changes")
   }
 }

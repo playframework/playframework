@@ -4,20 +4,24 @@
 package play.runsupport
 
 import java.net.URLClassLoader
+import java.util.List
 import java.util.Locale
 
-import sbt._
+import sbt.{ SourceModificationWatch, WatchState }
+import sbt.{ IO, DirectoryFilter, HiddenFileFilter }
+import sbt.Path._
 
+import scala.collection.JavaConversions
 import scala.reflect.ClassTag
 import scala.util.{ Properties, Try }
 import scala.util.control.NonFatal
 import java.io.File
-import Path._
+import java.util.concurrent.Callable
 
 /**
  * A service that can watch files
  */
-trait PlayWatchService {
+trait FileWatchService {
   /**
    * Watch the given sequence of files or directories.
    *
@@ -25,13 +29,25 @@ trait PlayWatchService {
    * @param onChange A callback that is executed whenever something changes.
    * @return A watcher
    */
-  def watch(filesToWatch: Seq[File], onChange: () => Unit): PlayWatcher
+  def watch(filesToWatch: Seq[File], onChange: () => Unit): FileWatcher
+
+  /**
+   * Watch the given sequence of files or directories.
+   *
+   * @param filesToWatch The files to watch.
+   * @param onChange A callback that is executed whenever something changes.
+   * @return A watcher
+   */
+  def watch(filesToWatch: List[File], onChange: Callable[Void]): FileWatcher = {
+    watch(JavaConversions.asScalaBuffer(filesToWatch), () => { onChange.call })
+  }
+
 }
 
 /**
  * A watcher, that watches files.
  */
-trait PlayWatcher {
+trait FileWatcher {
 
   /**
    * Stop watching the files.
@@ -39,7 +55,7 @@ trait PlayWatcher {
   def stop(): Unit
 }
 
-object PlayWatchService {
+object FileWatchService {
   private sealed trait OS
   private case object Windows extends OS
   private case object Linux extends OS
@@ -57,40 +73,40 @@ object PlayWatchService {
     }.getOrElse(Other)
   }
 
-  def default(targetDirectory: File, pollDelayMillis: Int, logger: LoggerProxy): PlayWatchService = new DefaultPlayWatchService {
+  def defaultWatchService(targetDirectory: File, pollDelayMillis: Int, logger: LoggerProxy): FileWatchService = new FileWatchService {
     lazy val delegate = os match {
       // If Windows or Linux and JDK7, use JDK7 watch service
-      case (Windows | Linux) if Properties.isJavaAtLeast("1.7") => JDK7PlayWatchService(logger).get
+      case (Windows | Linux) if Properties.isJavaAtLeast("1.7") => JDK7FileWatchService(logger).get
       // If Windows, Linux or OSX, use JNotify but fall back to SBT
-      case (Windows | Linux | OSX) => JNotifyPlayWatchService(targetDirectory).recover {
+      case (Windows | Linux | OSX) => JNotifyFileWatchService(targetDirectory).recover {
         case e =>
           logger.warn("Error loading JNotify watch service: " + e.getMessage)
           logger.trace(e)
-          new SbtPlayWatchService(pollDelayMillis)
+          new PollingFileWatchService(pollDelayMillis)
       }.get
-      case _ => new SbtPlayWatchService(pollDelayMillis)
+      case _ => new PollingFileWatchService(pollDelayMillis)
     }
 
     def watch(filesToWatch: Seq[File], onChange: () => Unit) = delegate.watch(filesToWatch, onChange)
   }
 
-  def jnotify(targetDirectory: File): PlayWatchService = optional(JNotifyPlayWatchService(targetDirectory))
+  def jnotify(targetDirectory: File): FileWatchService = optional(JNotifyFileWatchService(targetDirectory))
 
-  def jdk7(logger: LoggerProxy): PlayWatchService = optional(JDK7PlayWatchService(logger))
+  def jdk7(logger: LoggerProxy): FileWatchService = optional(JDK7FileWatchService(logger))
 
-  def sbt(pollDelayMillis: Int): PlayWatchService = new SbtPlayWatchService(pollDelayMillis)
+  def sbt(pollDelayMillis: Int): FileWatchService = new PollingFileWatchService(pollDelayMillis)
 
-  def optional(watchService: Try[PlayWatchService]): PlayWatchService = new OptionalPlayWatchServiceDelegate(watchService)
+  def optional(watchService: Try[FileWatchService]): FileWatchService = new OptionalFileWatchServiceDelegate(watchService)
 }
 
-private[play] trait DefaultPlayWatchService extends PlayWatchService {
-  def delegate: PlayWatchService
+private[play] trait DefaultFileWatchService extends FileWatchService {
+  def delegate: FileWatchService
 }
 
 /**
  * A polling Play watch service.  Polls in the background.
  */
-private[play] class SbtPlayWatchService(val pollDelayMillis: Int) extends PlayWatchService {
+private[play] class PollingFileWatchService(val pollDelayMillis: Int) extends FileWatchService {
 
   def watch(filesToWatch: Seq[File], onChange: () => Unit) = {
 
@@ -110,25 +126,25 @@ private[play] class SbtPlayWatchService(val pollDelayMillis: Int) extends PlayWa
     thread.setDaemon(true)
     thread.start()
 
-    new PlayWatcher {
+    new FileWatcher {
       def stop() = stopped = true
     }
   }
 }
 
-private[play] class JNotifyPlayWatchService(delegate: JNotifyPlayWatchService.JNotifyDelegate) extends PlayWatchService {
+private[play] class JNotifyFileWatchService(delegate: JNotifyFileWatchService.JNotifyDelegate) extends FileWatchService {
   def watch(filesToWatch: Seq[File], onChange: () => Unit) = {
     val listener = delegate.newListener(onChange)
     val registeredIds = filesToWatch.map { file =>
       delegate.addWatch(file.getAbsolutePath, listener)
     }
-    new PlayWatcher {
+    new FileWatcher {
       def stop() = registeredIds.foreach(delegate.removeWatch)
     }
   }
 }
 
-private object JNotifyPlayWatchService {
+private object JNotifyFileWatchService {
 
   import java.lang.reflect.{ Method, InvocationHandler, Proxy }
 
@@ -170,15 +186,15 @@ private object JNotifyPlayWatchService {
   }
 
   // Tri state - null means no attempt to load yet, None means failed load, Some means successful load
-  @volatile var watchService: Option[Try[JNotifyPlayWatchService]] = None
+  @volatile var watchService: Option[Try[JNotifyFileWatchService]] = None
 
-  def apply(targetDirectory: File): Try[PlayWatchService] = {
+  def apply(targetDirectory: File): Try[FileWatchService] = {
 
     watchService match {
       case None =>
         val ws = scala.util.control.Exception.allCatch.withTry {
 
-          val classloader = GlobalStaticVar.get[ClassLoader]("playWatchServiceJNotifyHack").getOrElse {
+          val classloader = GlobalStaticVar.get[ClassLoader]("FileWatchServiceJNotifyHack").getOrElse {
             val jnotifyJarFile = this.getClass.getClassLoader.asInstanceOf[java.net.URLClassLoader].getURLs
               .map(_.getFile)
               .find(_.contains("/jnotify"))
@@ -207,7 +223,7 @@ private object JNotifyPlayWatchService {
             // Create classloader just for jnotify
             val loader = new URLClassLoader(Array(jnotifyJarFile.toURI.toURL), null)
 
-            GlobalStaticVar.set("playWatchServiceJNotifyHack", loader)
+            GlobalStaticVar.set("FileWatchServiceJNotifyHack", loader)
 
             loader
           }
@@ -222,7 +238,7 @@ private object JNotifyPlayWatchService {
           // Try it
           d.ensureLoaded()
 
-          new JNotifyPlayWatchService(d)
+          new JNotifyFileWatchService(d)
         }
         watchService = Some(ws)
         ws
@@ -231,7 +247,7 @@ private object JNotifyPlayWatchService {
   }
 }
 
-private[play] class JDK7PlayWatchService(delegate: JDK7PlayWatchService.JDK7WatchServiceDelegate, logger: LoggerProxy) extends PlayWatchService {
+private[play] class JDK7FileWatchService(delegate: JDK7FileWatchService.JDK7WatchServiceDelegate, logger: LoggerProxy) extends FileWatchService {
 
   def watch(filesToWatch: Seq[File], onChange: () => Unit) = {
     val dirsToWatch = filesToWatch.filter { file =>
@@ -241,7 +257,7 @@ private[play] class JDK7PlayWatchService(delegate: JDK7PlayWatchService.JDK7Watc
         // JDK7 WatchService can't watch files
         logger.warn("JDK7 WatchService only supports watching directories, but an attempt has been made to watch the file: " + file.getCanonicalPath)
         logger.warn("This file will not be watched. Either remove the file from playMonitoredFiles, or configure a different WatchService, eg:")
-        logger.warn("PlayKeys.playWatchService := play.sbtplugin.run.PlayWatchService.jnotify(target.value)")
+        logger.warn("PlayKeys.fileWatchService := play.runsupport.FileWatchService.jnotify(target.value)")
         false
       } else false
     }
@@ -300,7 +316,7 @@ private[play] class JDK7PlayWatchService(delegate: JDK7PlayWatchService.JDK7Watc
     thread.setDaemon(true)
     thread.start()
 
-    new PlayWatcher {
+    new FileWatcher {
       def stop() = {
         // watcher.close()
         delegate.closeWatcher(watcher)
@@ -314,16 +330,16 @@ private[play] class JDK7PlayWatchService(delegate: JDK7PlayWatchService.JDK7Watc
   }
 }
 
-private object JDK7PlayWatchService {
+private object JDK7FileWatchService {
 
   import java.lang.reflect.Array
 
-  @volatile var watchService: Option[Try[PlayWatchService]] = None
+  @volatile var watchService: Option[Try[FileWatchService]] = None
 
-  def apply(logger: LoggerProxy): Try[PlayWatchService] = {
+  def apply(logger: LoggerProxy): Try[FileWatchService] = {
     watchService match {
       case None =>
-        val ws = Try(new JDK7PlayWatchService(new JDK7WatchServiceDelegate, logger))
+        val ws = Try(new JDK7FileWatchService(new JDK7WatchServiceDelegate, logger))
         watchService = Some(ws)
         ws
       case Some(ws) => ws
@@ -437,7 +453,7 @@ private object JDK7PlayWatchService {
 /**
  * Watch service that delegates to a try. This allows it to exist without reporting an exception unless it's used.
  */
-private[play] class OptionalPlayWatchServiceDelegate(val watchService: Try[PlayWatchService]) extends PlayWatchService {
+private[play] class OptionalFileWatchServiceDelegate(val watchService: Try[FileWatchService]) extends FileWatchService {
   def watch(filesToWatch: Seq[File], onChange: () => Unit) = {
     watchService.map(ws => ws.watch(filesToWatch, onChange)).get
   }

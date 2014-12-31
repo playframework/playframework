@@ -30,14 +30,14 @@ object ForkConfig {
   case object DefaultWatchService extends WatchService
   case object JDK7WatchService extends WatchService
   case object JNotifyWatchService extends WatchService
-  case class SbtWatchService(pollInterval: Int) extends WatchService
+  case class PollingWatchService(pollInterval: Int) extends WatchService
 
-  def identifyWatchService(watchService: PlayWatchService): WatchService = watchService match {
-    case _: DefaultPlayWatchService => DefaultWatchService
-    case _: JDK7PlayWatchService => JDK7WatchService
-    case _: JNotifyPlayWatchService => JNotifyWatchService
-    case sbt: SbtPlayWatchService => SbtWatchService(sbt.pollDelayMillis)
-    case optional: OptionalPlayWatchServiceDelegate => optional.watchService match {
+  def identifyWatchService(watchService: FileWatchService): WatchService = watchService match {
+    case _: DefaultFileWatchService => DefaultWatchService
+    case _: JDK7FileWatchService => JDK7WatchService
+    case _: JNotifyFileWatchService => JNotifyWatchService
+    case sbt: PollingFileWatchService => PollingWatchService(sbt.pollDelayMillis)
+    case optional: OptionalFileWatchServiceDelegate => optional.watchService match {
       case Success(service) => identifyWatchService(service)
       case Failure(_) => DefaultWatchService
     }
