@@ -90,11 +90,13 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
         })
       }
     }) { response =>
-      response.header(CONTENT_TYPE) must beSome("text/event-stream; charset=utf-8")
+      response.header(CONTENT_TYPE) must beSome.like {
+        case value => value.toLowerCase must_== "text/event-stream; charset=utf-8"
+      }
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
       response.body must_== "data: a\n\ndata: b\n\n"
-    }.pendingUntilAkkaHttpFixed
+    }
 
     "buffer input stream results of one chunk" in makeRequest(new MockController {
       def action = {
