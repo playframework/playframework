@@ -21,7 +21,7 @@ public class FunctionalTest extends WithApplication {
     @Test
     public void testBadRoute() {
         Result result = route(fakeRequest(GET, "/xx/Kiki"));
-        assertNull(result);
+        assertEquals(NOT_FOUND, status(result));
     }
     //#bad-route
 

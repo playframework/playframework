@@ -30,10 +30,13 @@ object FakesSpec extends PlaySpecification {
         }
       )
       running(app) {
-        val result = route(app, FakeRequest("GET", "/inline"))
-        result must beSome
-        contentAsString(result.get) must_== "inline route"
-        route(app, FakeRequest("GET", "/foo")) must beNone
+        route(app, FakeRequest("GET", "/inline")) must beSome.which { result =>
+          status(result) must equalTo(OK)
+          contentAsString(result) must equalTo("inline route")
+        }
+        route(app, FakeRequest("GET", "/foo")) must beSome.which { result =>
+          status(result) must equalTo(NOT_FOUND)
+        }
       }
     }
   }

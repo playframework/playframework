@@ -226,41 +226,35 @@ trait RouteInvokers extends EssentialActionCaller {
   }
 
   /**
-   * Use the Router to determine the Action to call for this request and execute it.
+   * Use the HttpRequestHandler to determine the Action to call for this request and execute it.
    *
    * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
    */
   def route[T](app: Application, rh: RequestHeader, body: T)(implicit w: Writeable[T]): Option[Future[Result]] = {
-    val handler = app.global.onRouteRequest(rh)
-    val taggedRh = handler.map({
-      case h: RequestTaggingHandler => h.tagRequest(rh)
-      case _ => rh
-    }).getOrElse(rh)
-    handler.flatMap {
+    val (taggedRh, handler) = app.requestHandler.handlerForRequest(rh)
+    handler match {
       case a: EssentialAction =>
-        val filteredAction = app.global.doFilter(a)
-        Some(call(filteredAction, taggedRh, body))
-
+        Some(call(a, taggedRh, body))
       case _ => None
     }
   }
 
   /**
-   * Use the Router to determine the Action to call for this request and execute it.
+   * Use the HttpRequestHandler to determine the Action to call for this request and execute it.
    *
    * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
    */
   def route[T](rh: RequestHeader, body: T)(implicit w: Writeable[T]): Option[Future[Result]] = route(Play.current, rh, body)
 
   /**
-   * Use the Router to determine the Action to call for this request and execute it.
+   * Use the HttpRequestHandler to determine the Action to call for this request and execute it.
    *
    * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
    */
   def route[T](app: Application, req: Request[T])(implicit w: Writeable[T]): Option[Future[Result]] = route(app, req, req.body)
 
   /**
-   * Use the Router to determine the Action to call for this request and execute it.
+   * Use the HttpRequestHandler to determine the Action to call for this request and execute it.
    *
    * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
    */

@@ -190,6 +190,7 @@ object FakeRequest {
   }
 }
 
+import play.api.Application
 /**
  * A Fake application.
  *
@@ -200,16 +201,14 @@ object FakeRequest {
  * @param additionalConfiguration Additional configuration
  * @param withRoutes A partial function of method name and path to a handler for handling the request
  */
-
-import play.api.Application
 case class FakeApplication(
     override val path: java.io.File = new java.io.File("."),
     override val classloader: ClassLoader = classOf[FakeApplication].getClassLoader,
-    val additionalPlugins: Seq[String] = Nil,
-    val withoutPlugins: Seq[String] = Nil,
-    val additionalConfiguration: Map[String, _ <: Any] = Map.empty,
-    val withGlobal: Option[play.api.GlobalSettings] = None,
-    val withRoutes: PartialFunction[(String, String), Handler] = PartialFunction.empty) extends Application {
+    additionalPlugins: Seq[String] = Nil,
+    withoutPlugins: Seq[String] = Nil,
+    additionalConfiguration: Map[String, _ <: Any] = Map.empty,
+    withGlobal: Option[play.api.GlobalSettings] = None,
+    withRoutes: PartialFunction[(String, String), Handler] = PartialFunction.empty) extends Application {
 
   private val environment = Environment(path, classloader, Mode.Test)
   private val initialConfiguration = Threads.withContextClassLoader(environment.classLoader) {
