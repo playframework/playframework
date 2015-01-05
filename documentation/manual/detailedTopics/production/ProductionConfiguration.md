@@ -143,15 +143,21 @@ The following HTTP protocol options are supported:
 
 `http.netty.maxInitialLineLength`
 : The maximum length for the initial line of an HTTP request, defaults to 4096
+
 `http.netty.maxHeaderSize`
 : The maximum size for the entire HTTP header, defaults to 8192
+
 `http.netty.maxChunkSize`
 : The maximum size that Netty will buffer body chunks before splitting them, defaults to 8192
+
+`http.netty.log.wire`
+: Activate logging of Netty channel events, defaults to false. This option is useful to debug the HTTP packets. To see the log traces, the `org.jboss.netty.handler.logging.LoggingHandler` logger must be set to `DEBUG` in the logback configuration file.
 
 Play also allows configuring the full list of TCP socket options that Netty supports, by prefixing them with `http.netty.option`. Note that socket options that should be applied to sockets of accepted connections should have an additional `child` prefix before the option.  Here are some common ones:
 
 `http.netty.option.child.keepAlive`
 : Set to true/false to turn on/off TCP keep alive
+
 `http.netty.option.backlog`
 : Configure the maximum size for queued incoming connections
 
