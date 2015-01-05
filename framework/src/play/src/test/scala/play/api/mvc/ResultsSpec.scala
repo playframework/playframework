@@ -75,6 +75,42 @@ object ResultsSpec extends Specification {
       setCookies("logged").maxAge.get must be_<=(-86000)
     }
 
+    "provide convenience method for setting cookie header" in {
+      def testWithCookies(
+        cookies1: List[Cookie],
+        cookies2: List[Cookie],
+        expected: Option[Set[Cookie]]) = {
+        val result = Ok("hello").withCookies(cookies1: _*).withCookies(cookies2: _*)
+        result.header.headers.get("Set-Cookie").map(Cookies.decode(_).to[Set]) must_== expected
+      }
+      val preferencesCookie = Cookie("preferences", "blue")
+      val sessionCookie = Cookie("session", "items")
+      testWithCookies(
+        List(),
+        List(),
+        None)
+      testWithCookies(
+        List(preferencesCookie),
+        List(),
+        Some(Set(preferencesCookie)))
+      testWithCookies(
+        List(),
+        List(sessionCookie),
+        Some(Set(sessionCookie)))
+      testWithCookies(
+        List(),
+        List(sessionCookie, preferencesCookie),
+        Some(Set(sessionCookie, preferencesCookie)))
+      testWithCookies(
+        List(sessionCookie, preferencesCookie),
+        List(),
+        Some(Set(sessionCookie, preferencesCookie)))
+      testWithCookies(
+        List(preferencesCookie),
+        List(sessionCookie),
+        Some(Set(preferencesCookie, sessionCookie)))
+    }
+
     "support clearing a language cookie using clearingLang" in {
       implicit val app = new FakeApplication()
       val cookie = Cookies.decode(Ok.clearingLang.header.headers("Set-Cookie")).head

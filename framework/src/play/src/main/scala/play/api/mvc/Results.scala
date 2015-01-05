@@ -101,7 +101,8 @@ case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
   }
 
   /**
-   * Adds cookies to this result.
+   * Adds cookies to this result. If the result already contains
+   * cookies then the new cookies will be merged with the old cookies.
    *
    * For example:
    * {{{
@@ -112,7 +113,9 @@ case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * @return the new result
    */
   def withCookies(cookies: Cookie*): Result = {
-    withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), cookies))
+    if (cookies.isEmpty) this else {
+      withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), cookies))
+    }
   }
 
   /**
