@@ -110,19 +110,8 @@ object NettyResultStreamer {
     import scala.collection.JavaConverters._
 
     // Set response headers
-    header.headers.foreach {
-
-      // Fix a bug for Set-Cookie header.
-      // Multiple cookies could be merged in a single header
-      // but it's not properly supported by some browsers
-      case (name @ play.api.http.HeaderNames.SET_COOKIE, value) => {
-        val cookieValues = Cookies.decode(value).map {
-          c: play.api.mvc.Cookie => Cookies.encode(Seq(c))
-        }.asJava
-        nettyResponse.headers().set(name, cookieValues)
-      }
-
-      case (name, value) => nettyResponse.headers().set(name, value)
+    ServerResultUtils.splitHeadersIntoSeq(header.headers).foreach {
+      case (name, value) => nettyResponse.headers().add(name, value)
     }
 
     // Response header Connection: Keep-Alive is needed for HTTP 1.0

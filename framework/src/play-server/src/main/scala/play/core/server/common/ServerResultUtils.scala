@@ -119,4 +119,25 @@ object ServerResultUtils {
     }.getOrElse(result)
   }
 
+  /**
+   * Given a map of headers, split it into a sequence of individual headers.
+   * Most headers map into a single pair in the new sequence. The exception is
+   * the `Set-Cookie` header which we split into a pair for each cookie it
+   * contains. This allows us to work around issues with clients that can't
+   * handle combined headers. (Also RFC6265 says multiple headers shouldn't
+   * be folded together, which Play's API unfortunately  does.)
+   */
+  def splitHeadersIntoSeq(headers: Map[String, String]): Seq[(String, String)] = {
+    headers.to[Seq].flatMap {
+      case (SET_COOKIE, value) => {
+        val cookieParts: Seq[Cookie] = Cookies.decode(value)
+        cookieParts.map { cookiePart =>
+          (SET_COOKIE, Cookies.encode(Seq(cookiePart)))
+        }
+      }
+      case (name, value) =>
+        Seq((name, value))
+    }
+  }
+
 }

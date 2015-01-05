@@ -213,7 +213,9 @@ private[akkahttp] object ModelConversion {
    */
   private def convertResponseHeaders(
     playHeaders: Map[String, String]): AkkaHttpHeaders = {
-    val rawHeaders = playHeaders.map { case (name, value) => RawHeader(name, value) }
+    val rawHeaders = ServerResultUtils.splitHeadersIntoSeq(playHeaders).map {
+      case (name, value) => RawHeader(name, value)
+    }
     val convertedHeaders: List[HttpHeader] = HeaderParser.parseHeaders(rawHeaders.to[List]) match {
       case (Nil, headers) => headers
       case (errors, _) => sys.error(s"Error parsing response headers: $errors")
