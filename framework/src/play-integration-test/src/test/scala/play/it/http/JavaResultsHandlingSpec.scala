@@ -43,14 +43,14 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
     }) { response =>
       response.header(CONTENT_TYPE) must beSome("text/html")
       response.body must_== "Hello world"
-    }.pendingUntilAkkaHttpFixed
+    }
 
     "buffer results with no content length" in makeRequest(new MockController {
       def action = Results.ok("Hello world")
     }) { response =>
       response.header(CONTENT_LENGTH) must beSome("11")
       response.body must_== "Hello world"
-    }.pendingUntilAkkaHttpFixed
+    }
 
     "send results as is with a content length" in makeRequest(new MockController {
       def action = {
@@ -77,7 +77,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
       response.body must_== "abc"
-    }.pendingUntilAkkaHttpFixed
+    }
 
     "chunk event source results" in makeRequest(new MockController {
       def action = {
@@ -90,11 +90,13 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
         })
       }
     }) { response =>
-      response.header(CONTENT_TYPE) must beSome("text/event-stream; charset=utf-8")
+      response.header(CONTENT_TYPE) must beSome.like {
+        case value => value.toLowerCase must_== "text/event-stream; charset=utf-8"
+      }
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
       response.body must_== "data: a\n\ndata: b\n\n"
-    }.pendingUntilAkkaHttpFixed
+    }
 
     "buffer input stream results of one chunk" in makeRequest(new MockController {
       def action = {
@@ -104,7 +106,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       response.header(CONTENT_LENGTH) must beSome("5")
       response.header(TRANSFER_ENCODING) must beNone
       response.body must_== "hello"
-    }.pendingUntilAkkaHttpFixed
+    }
 
     "chunk input stream results of more than one chunk" in makeRequest(new MockController {
       def action = {
@@ -115,7 +117,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       response.header(CONTENT_LENGTH) must beNone
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.body must_== "hello"
-    }.pendingUntilAkkaHttpFixed
+    }
 
     "not chunk input stream results if a content length is set" in makeRequest(new MockController {
       def action = {
@@ -127,7 +129,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       response.header(CONTENT_LENGTH) must beSome("5")
       response.header(TRANSFER_ENCODING) must beNone
       response.body must_== "hello"
-    }.pendingUntilAkkaHttpFixed
+    }
 
     "not chunk input stream results if HTTP/1.0 is in use" in {
       implicit val port = testServerPort
@@ -152,6 +154,6 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
         response.body must beLeft("hello")
       }
 
-    }.pendingUntilAkkaHttpFixed
+    }
   }
 }
