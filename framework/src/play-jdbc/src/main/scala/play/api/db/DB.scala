@@ -398,7 +398,8 @@ private[db] class BoneCPApi(
     // Bind in JNDI
     conf.getString("jndiName") map { name =>
       JNDI.initialContext.rebind(name, datasource)
-      Play.logger.info(s"""datasource [${conf.getString("url").get}] bound to JNDI as $name""")
+      val visibleUrl = datasource.getJdbcUrl
+      Play.logger.info(s"""datasource [$visibleUrl] bound to JNDI as $name""")
     }
 
     datasource -> driver
