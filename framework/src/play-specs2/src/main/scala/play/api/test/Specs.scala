@@ -8,7 +8,7 @@ import org.specs2.execute.{ AsResult, Result }
 import org.specs2.mutable.Around
 import org.specs2.specification.Scope
 import play.api.inject.guice.GuiceApplicationLoader
-import play.api.{ ApplicationLoader, Environment, Mode }
+import play.api.{ Application, ApplicationLoader, Environment, Mode }
 import play.core.server.{ NettyServer, ServerProvider }
 
 // NOTE: Do *not* put any initialisation code in the below classes, otherwise delayedInit() gets invoked twice
@@ -71,15 +71,15 @@ abstract class WithServer(
  */
 abstract class WithBrowser[WEBDRIVER <: WebDriver](
     val webDriver: WebDriver = WebDriverFactory(Helpers.HTMLUNIT),
-    val app: FakeApplication = FakeApplication(),
+    val app: Application = FakeApplication(),
     val port: Int = Helpers.testServerPort) extends Around with Scope {
 
   def this(
     webDriver: Class[WEBDRIVER],
-    app: FakeApplication,
+    app: Application,
     port: Int) = this(WebDriverFactory(webDriver), app, port)
 
-  implicit def implicitApp = app
+  implicit def implicitApp: Application = app
   implicit def implicitPort: Port = port
 
   lazy val browser: TestBrowser = TestBrowser(webDriver, Some("http://localhost:" + port))
