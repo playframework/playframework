@@ -5,11 +5,12 @@ package play.api.inject
 
 import java.lang.annotation.Annotation
 import javax.inject.{ Named, Provider }
-import com.google.inject.internal.util.$SourceProvider
-import com.google.inject.name.Names
-
 import scala.language.existentials
 import scala.reflect.ClassTag
+
+import play.inject.SourceProvider
+
+import com.google.inject.name.Names
 
 /**
  * A binding.
@@ -264,9 +265,7 @@ final case class QualifierInstance[T <: Annotation](instance: T) extends Qualifi
 final case class QualifierClass[T <: Annotation](clazz: Class[T]) extends QualifierAnnotation
 
 private object SourceLocator {
-  // SourceProvider is an internal Guice API, not intended to be used as we are using it here. If they change/remove it, we
-  // just have to reimplement it for ourselves - it's pretty simple.
-  val provider = $SourceProvider.DEFAULT_INSTANCE.plusSkippedClasses(this.getClass, classOf[BindingKey[_]], classOf[Binding[_]])
+  val provider = SourceProvider.DEFAULT_INSTANCE.plusSkippedClasses(this.getClass, classOf[BindingKey[_]], classOf[Binding[_]])
 
   def source = provider.get()
 }
