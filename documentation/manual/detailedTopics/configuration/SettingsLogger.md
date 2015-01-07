@@ -190,4 +190,6 @@ Next, refine your Akka logging settings in your Logback configuration:
 <logger name="actors.MyActor" level="DEBUG" />
 ```
 
-You may also wish to configure an appender for the Akka loggers that includes useful properties such as thread and actor address. See the logging page in the [Akka documentation](http://akka.io/docs/) for details on Logback configuration and other useful information.
+You may also wish to configure an appender for the Akka loggers that includes useful properties such as thread and actor address.
+
+For more information about configuring Akka's logging, including details on Logback and Slf4j integration, see the [Akka documentation](http://doc.akka.io/docs/akka/current/scala/logging.html).
