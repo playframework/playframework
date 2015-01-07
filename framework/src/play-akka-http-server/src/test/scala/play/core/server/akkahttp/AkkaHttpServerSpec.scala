@@ -145,5 +145,26 @@ object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
       response.body must_== "Some(akka-http)"
     }
 
+    "start and stop cleanly" in {
+      PlayRunners.mutex.synchronized {
+        def testStartAndStop(i: Int) = {
+          val resultString = s"result-$i"
+          val app = FakeApplication(withRoutes = {
+            case ("GET", "/") => Action(Ok(resultString))
+          })
+          val server = TestServer(testServerPort, app, serverProvider = AkkaHttpServer.defaultServerProvider)
+          server.start()
+          try {
+            val response = await(wsUrl("/")(testServerPort).get())
+            response.body must_== resultString
+          } finally {
+            server.stop()
+          }
+        }
+        // Start and stop the server 20 times
+        (0 until 20) must contain { (i: Int) => testStartAndStop(i) }
+      }
+    }
+
   }
 }
