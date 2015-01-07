@@ -9,6 +9,7 @@ import play.api.UsefulException;
 import play.api.http.HttpErrorHandlerExceptions;
 import play.core.Router;
 import play.libs.F;
+import play.mvc.Http;
 import play.mvc.Http.*;
 import play.mvc.Result;
 import play.mvc.Results;
@@ -117,10 +118,7 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
         try {
             UsefulException usefulException = throwableToUsefulException(exception);
 
-            Logger.error(String.format("\n\n! @%s - Internal server error, for (%s) [%s] ->\n",
-                            usefulException.id, request.method(), request.uri()),
-                usefulException
-            );
+            logServerError(request, usefulException);
 
             switch (environment.mode()) {
                 case PROD:
@@ -132,6 +130,21 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
             Logger.error("Error while handling error", e);
             return F.Promise.<Result>pure(Results.internalServerError());
         }
+    }
+
+    /**
+     * Responsible for logging server errors.
+     *
+     * This can be overridden to add additional logging information, eg. the id of the authenticated user.
+     *
+     * @param request The request that triggered the server error.
+     * @param usefulException The server error.
+     */
+    protected void logServerError(RequestHeader request, UsefulException usefulException) {
+        Logger.error(String.format("\n\n! @%s - Internal server error, for (%s) [%s] ->\n",
+                        usefulException.id, request.method(), request.uri()),
+                usefulException
+        );
     }
 
     /**
