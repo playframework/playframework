@@ -112,7 +112,7 @@ trait HeadActionSpec extends PlaySpecification
         await(wsUrl("/get").head())
         wasCalled.get() must be_==(true).eventually
       }
-    }.pendingUntilAkkaHttpFixed
+    }
 
     "respect deliberately set Content-Length headers" in withServer {
       val result = await(wsUrl("/manualContentSize").head())
