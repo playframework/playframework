@@ -16,6 +16,7 @@ import scala.concurrent.{ ExecutionContext, Promise, Future, blocking }
 import scala.util.control.NonFatal
 import scala.util.{ Success, Failure }
 import java.util.Date
+import java.util.regex.Pattern
 import play.api.libs.iteratee.Execution.Implicits
 import play.api.http.{ LazyHttpErrorHandler, HttpErrorHandler, ContentTypes }
 import scala.collection.concurrent.TrieMap
@@ -90,27 +91,49 @@ private[controllers] object AssetInfo {
 
   lazy val digestAlgorithm = config(_.getString("assets.digest.algorithm")).getOrElse("md5")
 
-  val timeZoneCode = "GMT"
+  private val basicDateFormatPattern = "EEE, dd MMM yyyy HH:mm:ss"
+  val dateFormat: DateTimeFormatter =
+    DateTimeFormat.forPattern(basicDateFormatPattern + " 'GMT'").withLocale(java.util.Locale.ENGLISH).withZone(DateTimeZone.UTC)
+  val standardDateParserWithoutTZ: DateTimeFormatter =
+    DateTimeFormat.forPattern(basicDateFormatPattern).withLocale(java.util.Locale.ENGLISH).withZone(DateTimeZone.UTC)
+  val alternativeDateFormatWithTZOffset: DateTimeFormatter =
+    DateTimeFormat.forPattern("EEE MMM dd yyyy HH:mm:ss 'GMT'Z").withLocale(java.util.Locale.ENGLISH).withZone(DateTimeZone.UTC).withOffsetParsed
 
-  val parsableTimezoneCode = " " + timeZoneCode
-
-  val df: DateTimeFormatter =
-    DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss '" + timeZoneCode + "'").withLocale(java.util.Locale.ENGLISH).withZone(DateTimeZone.forID(timeZoneCode))
-
-  val dfp: DateTimeFormatter =
-    DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss").withLocale(java.util.Locale.ENGLISH).withZone(DateTimeZone.forID(timeZoneCode))
+  /**
+   * A regex to find two types of date format. This regex silently ignores any
+   * trailing info such as extra header attributes ("; length=123") or
+   * timezone names ("(Pacific Standard Time").
+   * - "Sat, 18 Oct 2014 20:41:26" and "Sat, 29 Oct 1994 19:43:31 GMT" use the first
+   *   matcher. (The " GMT" is discarded to give them the same format.)
+   * - "Wed Jan 07 2015 22:54:20 GMT-0800" uses the second matcher.
+   */
+  private val dateRecognizer = Pattern.compile(
+    """^(((\w\w\w, \d\d \w\w\w \d\d\d\d \d\d:\d\d:\d\d)(( GMT)?))|""" +
+      """(\w\w\w \w\w\w \d\d \d\d\d\d \d\d:\d\d:\d\d GMT.\d\d\d\d))(\b.*)""")
 
   /*
    * jodatime does not parse timezones, so we handle that manually
    */
-  def parseModifiedDate(date: String): Option[Date] = try {
-    // IE sends "; length=xxx" with If-Modified-Since header
-    val d = dfp.parseDateTime(date.replace(parsableTimezoneCode, "").split(";", 2).head).toDate
-    Some(d)
-  } catch {
-    case e: IllegalArgumentException =>
-      Logger.debug(s"An invalid date was received: $date", e)
+  def parseModifiedDate(date: String): Option[Date] = {
+    val matcher = dateRecognizer.matcher(date)
+    if (matcher.matches()) {
+      val standardDate = matcher.group(3)
+      try {
+        if (standardDate != null) {
+          Some(standardDateParserWithoutTZ.parseDateTime(standardDate).toDate)
+        } else {
+          val alternativeDate = matcher.group(6) // Cannot be null otherwise match would have failed
+          Some(alternativeDateFormatWithTZOffset.parseDateTime(alternativeDate).toDate)
+        }
+      } catch {
+        case e: IllegalArgumentException =>
+          Logger.debug(s"An invalid date was received: couldn't parse: $date", e)
+          None
+      }
+    } else {
+      Logger.debug(s"An invalid date was received: unrecognized format: $date")
       None
+    }
   }
 }
 
@@ -149,11 +172,11 @@ private[controllers] class AssetInfo(
           } finally {
             urlConnection.getInputStream.close()
           }
-      }.filterNot(_ == -1).map(df.print)
+      }.filterNot(_ == -1).map(dateFormat.print)
     }
 
     url.getProtocol match {
-      case "file" => Some(df.print(new File(url.toURI).lastModified))
+      case "file" => Some(dateFormat.print(new File(url.toURI).lastModified))
       case "jar" => getLastModified[JarURLConnection](c => c.getJarEntry.getTime)
       case "bundle" => getLastModified[URLConnection](c => c.getLastModified)
       case _ => None
@@ -323,7 +346,7 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
   import Assets._
   import AssetInfo._
 
-  private def currentTimeFormatted: String = df.print((new Date).getTime)
+  private def currentTimeFormatted: String = dateFormat.print((new Date).getTime)
 
   private def maybeNotModified(request: Request[_], assetInfo: AssetInfo, aggressiveCaching: Boolean): Option[Result] = {
     // First check etag. Important, if there is an If-None-Match header, we MUST not check the
