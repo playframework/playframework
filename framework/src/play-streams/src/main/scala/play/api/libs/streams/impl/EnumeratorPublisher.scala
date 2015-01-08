@@ -114,7 +114,14 @@ private[streams] class EnumeratorSubscription[T, U >: T](
   }
 
   override def cancel(): Unit = exclusive {
-    case Requested(_, _) =>
+    case Requested(_, its) =>
+      val cancelLink: Iteratee[T, Unit] = Done(())
+      its match {
+        case Unattached =>
+          enum(cancelLink)
+        case Attached(link0) =>
+          link0.success(cancelLink)
+      }
       state = Cancelled
     case Cancelled | Completed =>
       ()
