@@ -66,7 +66,7 @@ Finally, here are the options themselves.
 If you've read the above and you still want to completely disable certificate verification, set the following;
 
 ```
-ws.acceptAllCertificates=true
+ws.acceptAnyCertificate=true
 ```
 
 With certificate verification completely disabled, you are vulnerable to attack from anyone on the network using a tool such as [mitmproxy](http://mitmproxy.org/). 
