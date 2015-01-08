@@ -132,23 +132,6 @@ class AkkaHttpServer(config: ServerConfig, appProvider: ApplicationProvider) ext
     action: EssentialAction): Future[HttpResponse] = {
 
     import play.api.libs.iteratee.Execution.Implicits.trampoline
-
-    val requestBodyEnumerator: Enumerator[Array[Byte]] = request.entity match {
-      case HttpEntity.Strict(_, data) if data.isEmpty =>
-        Enumerator.eof
-      case HttpEntity.Strict(_, data) =>
-        Enumerator.apply[Array[Byte]](data.toArray) >>> Enumerator.eof
-      case HttpEntity.Default(_, 0, _) =>
-        Enumerator.eof
-      case HttpEntity.Default(contentType, contentLength, data) =>
-        // FIXME: should do something with the content-length?
-        AkkaStreamsConversion.sourceToEnumerator(data) &> Enumeratee.map((data: ByteString) => data.toArray)
-      case HttpEntity.Chunked(contentType, chunks) =>
-        // FIXME: Don't enumerate LastChunk?
-        // FIXME: do something with trailing headers?
-        AkkaStreamsConversion.sourceToEnumerator(chunks) &> Enumeratee.map((chunk: HttpEntity.ChunkStreamPart) => chunk.data.toArray)
-    }
-
     val actionIteratee: Iteratee[Array[Byte], Result] = action(taggedRequestHeader)
     val resultFuture: Future[Result] = requestBodyEnumerator |>>> actionIteratee
     val responseFuture: Future[HttpResponse] = resultFuture.flatMap { result =>
