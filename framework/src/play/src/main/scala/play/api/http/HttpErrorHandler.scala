@@ -179,13 +179,7 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
       val usefulException = HttpErrorHandlerExceptions.throwableToUsefulException(sourceMapper,
         environment.mode == Mode.Prod, exception)
 
-      Logger.error(
-        """
-          |
-          |! @%s - Internal server error, for (%s) [%s] ->
-          |""".stripMargin.format(usefulException.id, request.method, request.uri),
-        usefulException
-      )
+      logServerError(request, usefulException)
 
       environment.mode match {
         case Mode.Prod => onProdServerError(request, usefulException)
@@ -196,6 +190,23 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
         Logger.error("Error while handling error", e)
         Future.successful(InternalServerError)
     }
+  }
+
+  /**
+   * Responsible for logging server errors.
+   *
+   * This can be overridden to add additional logging information, eg. the id of the authenticated user.
+   *
+   * @param request The request that triggered the server error.
+   * @param usefulException The server error.
+   */
+  protected def logServerError(request: RequestHeader, usefulException: UsefulException) {
+    Logger.error("""
+                    |
+                    |! @%s - Internal server error, for (%s) [%s] ->
+                    | """.stripMargin.format(usefulException.id, request.method, request.uri),
+      usefulException
+    )
   }
 
   /**
