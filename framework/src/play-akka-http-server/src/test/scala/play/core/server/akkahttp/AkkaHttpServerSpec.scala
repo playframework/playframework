@@ -13,7 +13,6 @@ import scala.concurrent.duration._
 import akka.util.Timeout
 
 object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
-  skipAllIf(true) // Disable all tests until issues in Continuous Integration are resolved
 
   sequential
 
@@ -38,16 +37,16 @@ object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
       }
     }
 
-    "send chunked responses when missing a Content-Length (TODO: automatically dechunk for some responses)" in {
+    "send responses when missing a Content-Length" in {
       requestFromServer("/hello") { request =>
         request.get()
       } {
         case ("GET", "/hello") => Action(Ok("greetings"))
       } { response =>
         response.status must_== 200
-        response.header(TRANSFER_ENCODING) must_== Some("chunked")
         response.header(CONTENT_TYPE) must_== Some("text/plain; charset=UTF-8")
-        response.header(CONTENT_LENGTH) must_== None
+        response.header(CONTENT_LENGTH) must_== Some("9")
+        response.header(TRANSFER_ENCODING) must_== None
         response.body must_== "greetings"
       }
     }
@@ -105,7 +104,7 @@ object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
       }
     }
 
-    "send response statii" in {
+    "send response statüs" in {
       requestFromServer("/def") { request =>
         request.get()
       } {
@@ -144,6 +143,27 @@ object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
       val response = await(wsUrl("/httpServerTag").get())
       response.status must equalTo(OK)
       response.body must_== "Some(akka-http)"
+    }
+
+    "start and stop cleanly" in {
+      PlayRunners.mutex.synchronized {
+        def testStartAndStop(i: Int) = {
+          val resultString = s"result-$i"
+          val app = FakeApplication(withRoutes = {
+            case ("GET", "/") => Action(Ok(resultString))
+          })
+          val server = TestServer(testServerPort, app, serverProvider = AkkaHttpServer.defaultServerProvider)
+          server.start()
+          try {
+            val response = await(wsUrl("/")(testServerPort).get())
+            response.body must_== resultString
+          } finally {
+            server.stop()
+          }
+        }
+        // Start and stop the server 20 times
+        (0 until 20) must contain { (i: Int) => testStartAndStop(i) }
+      }
     }
 
   }
