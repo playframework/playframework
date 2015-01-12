@@ -41,7 +41,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
       responses.length must_== 2
       responses(0).status must_== 200
       responses(1).status must_== 200
-    }.pendingUntilAkkaHttpFixed
+    }
 
     "gracefully handle early body parser termination" in withServer(EssentialAction { rh =>
       Traversable.takeUpTo[Array[Byte]](20 * 1024) &>> Iteratee.ignore[Array[Byte]].map(_ => Results.Ok)
@@ -56,6 +56,6 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
       responses.length must_== 2
       responses(0).status must_== 200
       responses(1).status must_== 200
-    }.pendingUntilAkkaHttpFixed
+    }
   }
 }

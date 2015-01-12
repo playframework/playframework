@@ -34,7 +34,7 @@ trait Expect100ContinueSpec extends PlaySpecification with ServerIntegrationSpec
       responses.length must_== 2
       responses(0).status must_== 100
       responses(1).status must_== 200
-    }.pendingUntilAkkaHttpFixed
+    }
 
     "not read body when expecting 100 continue but action iteratee is done" in withServer(
       EssentialAction(_ => Done(Results.Ok))
@@ -74,6 +74,6 @@ trait Expect100ContinueSpec extends PlaySpecification with ServerIntegrationSpec
         responses(0).status must_== 100
         responses(1).status must_== 200
         responses(2).status must_== 200
-      }.pendingUntilAkkaHttpFixed
+      }
   }
 }
