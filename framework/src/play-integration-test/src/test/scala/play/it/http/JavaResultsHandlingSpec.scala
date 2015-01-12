@@ -3,8 +3,7 @@
  */
 package play.it.http
 
-import java.io.ByteArrayInputStream
-
+import java.io.{ ByteArrayInputStream, IOException }
 import play.api.Application
 import play.api.test._
 import play.api.libs.ws.WSResponse
@@ -13,6 +12,7 @@ import play.libs.EventSource
 import play.libs.EventSource.Event
 import play.mvc.Results
 import play.mvc.Results.Chunks
+import scala.util.{ Failure, Success, Try }
 
 object NettyJavaResultsHandlingSpec extends JavaResultsHandlingSpec with NettyIntegrationSpecification
 object AkkaHttpJavaResultsHandlingSpec extends JavaResultsHandlingSpec with AkkaHttpIntegrationSpecification
@@ -52,15 +52,31 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       response.body must_== "Hello world"
     }
 
-    "send results as is with a content length" in makeRequest(new MockController {
-      def action = {
-        response.setHeader(CONTENT_LENGTH, "5")
-        Results.ok("Hello world")
+    "truncate results or close connection if content length is too short" in {
+      val controller = new MockController {
+        def action = {
+          response.setHeader(CONTENT_LENGTH, "5")
+          Results.ok("Hello world")
+        }
       }
-    }) { response =>
-      response.header(CONTENT_LENGTH) must beSome("5")
-      response.body must_== "Hello"
-    }.pendingUntilAkkaHttpFixed
+      implicit val port = testServerPort
+      lazy val app: Application = FakeApplication(
+        withRoutes = {
+          case _ => JAction(app, controller)
+        }
+      )
+      // We accept different behaviors for different HTTP
+      // backends. Either behavior is OK.
+      running(TestServer(port, app)) {
+        Try(await(wsUrl("/").get())) match {
+          case Success(response) =>
+            response.header(CONTENT_LENGTH) must beSome("5")
+            response.body must_== "Hello" // Truncated
+          case Failure(t) =>
+            t must haveClass[IOException] // Connection closed
+        }
+      }
+    }
 
     "chunk results that are streamed" in makeRequest(new MockController {
       def action = {
