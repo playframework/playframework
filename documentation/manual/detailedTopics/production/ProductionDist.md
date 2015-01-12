@@ -78,8 +78,7 @@ to add a few settings.
 #### Minimal Debian settings
 
 ```scala
-import com.typesafe.sbt.SbtNativePackager._
-import NativePackagerKeys._
+enablePlugins(DebianPlugin)
 
 maintainer in Linux := "First Lastname <first.last@example.com>"
 
@@ -97,8 +96,7 @@ activator debian:packageBin
 #### Minimal RPM settings
 
 ```scala
-import com.typesafe.sbt.SbtNativePackager._
-import NativePackagerKeys._
+enablePlugins(RpmPlugin)
 
 maintainer in Linux := "First Lastname <first.last@example.com>"
 

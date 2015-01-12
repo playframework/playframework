@@ -3,25 +3,26 @@
  */
 package play
 
-import java.io.Closeable
-
-import com.typesafe.sbt.web.SbtWeb
-import sbt._
-import Keys._
-import play.PlayImport._
-import PlayKeys._
 import annotation.tailrec
-import scala.collection.JavaConverters._
+import collection.JavaConverters._
+import java.io.Closeable
 import java.net.URLClassLoader
 import java.util.jar.JarFile
-import com.typesafe.sbt.SbtNativePackager._
-import com.typesafe.sbt.packager.Keys._
-import com.typesafe.sbt.web.SbtWeb.autoImport._
-import play.core.{ Build, BuildLink, BuildDocHandler }
+
+import sbt._
+import Keys._
+
+import play.PlayImport._
+import play.PlayImport.PlayKeys._
 import play.sbtplugin.Colors
-import play.runsupport.{ AssetsClassLoader, FileWatchService, Reloader }
+import play.core.{ Build, BuildLink, BuildDocHandler }
 import play.runsupport.classloader._
+import play.runsupport.{ AssetsClassLoader, FileWatchService, Reloader }
 import play.sbtplugin.run._
+
+import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
+import com.typesafe.sbt.web.SbtWeb
+import com.typesafe.sbt.web.SbtWeb.autoImport._
 
 /**
  * Provides mechanisms for running a Play application in SBT

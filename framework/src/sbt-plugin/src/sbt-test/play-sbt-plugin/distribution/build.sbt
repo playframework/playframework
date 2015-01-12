@@ -1,5 +1,3 @@
-import com.typesafe.sbt.packager.Keys._
-
 name := "dist-sample"
 
 version := "1.0-SNAPSHOT"
