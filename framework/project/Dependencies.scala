@@ -58,7 +58,7 @@ object Dependencies {
     ("org.springframework" % "spring-beans" % "4.0.3.RELEASE" notTransitive ())
       .exclude("org.springframework", "spring-core"),
 
-    "org.javassist" % "javassist" % "3.18.2-GA",
+    "org.javassist" % "javassist" % "3.19.0-GA",
 
     ("org.reflections" % "reflections" % "0.9.8" notTransitive ())
       .exclude("javassist", "javassist"),
