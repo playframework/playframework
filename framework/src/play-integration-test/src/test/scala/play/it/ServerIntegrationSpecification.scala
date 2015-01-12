@@ -1,6 +1,7 @@
 package play.it
 
 import org.specs2.execute._
+import org.specs2.mutable.Specification
 import play.api.{ Application, FakeApplication }
 import play.core.server.NettyServer
 import play.core.server.ServerProvider
@@ -61,5 +62,7 @@ trait NettyIntegrationSpecification extends ServerIntegrationSpecification {
   override def integrationServerProvider: ServerProvider = NettyServer.defaultServerProvider
 }
 trait AkkaHttpIntegrationSpecification extends ServerIntegrationSpecification {
+  self: Specification =>
+  skipAllIf(true) // Disable all tests until issues in Continuous Integration are resolved
   override def integrationServerProvider: ServerProvider = AkkaHttpServer.defaultServerProvider
 }

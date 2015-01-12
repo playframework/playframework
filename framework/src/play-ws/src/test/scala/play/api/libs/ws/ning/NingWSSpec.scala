@@ -3,6 +3,7 @@
  */
 package play.api.libs.ws.ning
 
+import akka.util.Timeout
 import org.specs2.mock.Mockito
 
 import com.ning.http.client.{ Response => AHCResponse, RequestBuilder, FluentCaseInsensitiveStringsMap, AsyncHttpClient }
@@ -170,7 +171,9 @@ object NingWSSpec extends PlaySpecification with Mockito {
       // NOTE: if you are using a client proxy like Privoxy or Polipo, your proxy may not support PATCH & return 400.
       val req = WS.url("http://localhost:" + port + "/").patch("body")
 
-      val rep = await(req)
+      // This test experiences CI timeouts. Give it more time.
+      val reallyLongTimeout = Timeout(defaultAwaitTimeout.duration * 3)
+      val rep = await(req)(reallyLongTimeout)
 
       rep.status must ===(200)
       (rep.json \ "data").asOpt[String] must beSome("body")
