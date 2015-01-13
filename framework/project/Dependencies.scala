@@ -137,6 +137,7 @@ object Dependencies {
     case _ => "org.scala-sbt" % "io" % BuildSettings.buildSbtVersion % "provided"
   }
 
+  val jnotify = "net.contentobjects.jnotify" % "jnotify" % "0.94"
   val typesafeConfig = "com.typesafe" % "config" % "1.2.1"
 
   val sbtDependencies = Seq(
@@ -156,7 +157,7 @@ object Dependencies {
     h2database,
     "org.javassist" % "javassist" % "3.18.2-GA",
 
-    "net.contentobjects.jnotify" % "jnotify" % "0.94",
+    jnotify,
 
     sbtPluginDep("com.typesafe.sbt" % "sbt-twirl" % "1.0.2"),
 

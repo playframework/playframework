@@ -7,7 +7,7 @@ import sbt._
 import sbt.Keys._
 
 trait PlayInternalKeys {
-  type ClassLoaderCreator = (String, Array[URL], ClassLoader) => ClassLoader
+  type ClassLoaderCreator = play.runsupport.Reloader.ClassLoaderCreator
 
   val playDependencyClasspath = TaskKey[Classpath]("play-dependency-classpath")
   val playReloaderClasspath = TaskKey[Classpath]("play-reloader-classpath")
