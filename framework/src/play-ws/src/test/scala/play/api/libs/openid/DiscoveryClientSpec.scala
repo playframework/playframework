@@ -158,6 +158,23 @@ object DiscoveryClientSpec extends Specification with Mockito {
         verifyValidOpenIDRequest(parseQueryString(redirectUrl), openId, returnTo)
       }
 
+      "should redirect to identifier selection" in {
+        val ws = new WSMock
+        ws.response.xml returns scala.xml.XML.loadString(readFixture("discovery/xrds/simple-op-non-unique.xml"))
+        ws.response.header(HeaderNames.CONTENT_TYPE) returns Some("application/xrds+xml")
+
+        val returnTo = "http://foo.bar.com/openid"
+        val openId = "http://abc.example.com/foo"
+        val identifierSelection = "http://specs.openid.net/auth/2.0/identifier_select"
+        val redirectUrl = Await.result(new WsOpenIdClient(ws, new WsDiscovery(ws)).redirectURL(openId, returnTo), dur)
+
+        there was one(ws.request).get()
+
+        new URL(redirectUrl).hostAndPath must be equalTo "https://www.google.com/a/example.com/o8/ud"
+
+        verifyValidOpenIDRequest(parseQueryString(redirectUrl), identifierSelection, returnTo)
+      }
+
       "should fall back to HTML based discovery if OP Identifier cannot be found in the XRDS" in {
         val ws = new WSMock
         ws.response.status returns OK thenReturns OK
