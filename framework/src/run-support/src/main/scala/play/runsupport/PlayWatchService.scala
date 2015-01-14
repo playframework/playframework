@@ -57,7 +57,7 @@ object PlayWatchService {
     }.getOrElse(Other)
   }
 
-  def default(targetDirectory: File, pollDelayMillis: Int, logger: LoggerProxy): PlayWatchService = new PlayWatchService {
+  def default(targetDirectory: File, pollDelayMillis: Int, logger: LoggerProxy): PlayWatchService = new DefaultPlayWatchService {
     lazy val delegate = os match {
       // If Windows or Linux and JDK7, use JDK7 watch service
       case (Windows | Linux) if Properties.isJavaAtLeast("1.7") => JDK7PlayWatchService(logger).get
@@ -83,10 +83,14 @@ object PlayWatchService {
   def optional(watchService: Try[PlayWatchService]): PlayWatchService = new OptionalPlayWatchServiceDelegate(watchService)
 }
 
+private[play] trait DefaultPlayWatchService extends PlayWatchService {
+  def delegate: PlayWatchService
+}
+
 /**
  * A polling Play watch service.  Polls in the background.
  */
-private class SbtPlayWatchService(pollDelayMillis: Int) extends PlayWatchService {
+private[play] class SbtPlayWatchService(val pollDelayMillis: Int) extends PlayWatchService {
 
   def watch(filesToWatch: Seq[File], onChange: () => Unit) = {
 
@@ -112,7 +116,7 @@ private class SbtPlayWatchService(pollDelayMillis: Int) extends PlayWatchService
   }
 }
 
-private class JNotifyPlayWatchService(delegate: JNotifyPlayWatchService.JNotifyDelegate) extends PlayWatchService {
+private[play] class JNotifyPlayWatchService(delegate: JNotifyPlayWatchService.JNotifyDelegate) extends PlayWatchService {
   def watch(filesToWatch: Seq[File], onChange: () => Unit) = {
     val listener = delegate.newListener(onChange)
     val registeredIds = filesToWatch.map { file =>
@@ -227,7 +231,7 @@ private object JNotifyPlayWatchService {
   }
 }
 
-private class JDK7PlayWatchService(delegate: JDK7PlayWatchService.JDK7WatchServiceDelegate, logger: LoggerProxy) extends PlayWatchService {
+private[play] class JDK7PlayWatchService(delegate: JDK7PlayWatchService.JDK7WatchServiceDelegate, logger: LoggerProxy) extends PlayWatchService {
 
   def watch(filesToWatch: Seq[File], onChange: () => Unit) = {
     val dirsToWatch = filesToWatch.filter { file =>
@@ -433,7 +437,7 @@ private object JDK7PlayWatchService {
 /**
  * Watch service that delegates to a try. This allows it to exist without reporting an exception unless it's used.
  */
-private class OptionalPlayWatchServiceDelegate(watchService: Try[PlayWatchService]) extends PlayWatchService {
+private[play] class OptionalPlayWatchServiceDelegate(val watchService: Try[PlayWatchService]) extends PlayWatchService {
   def watch(filesToWatch: Seq[File], onChange: () => Unit) = {
     watchService.map(ws => ws.watch(filesToWatch, onChange)).get
   }
