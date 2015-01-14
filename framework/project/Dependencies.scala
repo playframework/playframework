@@ -174,7 +174,7 @@ object Dependencies {
     sbtPluginDep("com.typesafe.sbt" % "sbt-twirl" % BuildInfo.sbtTwirlVersion),
     sbtPluginDep("com.typesafe.sbt" % "sbt-play-enhancer" % "1.0.1"),
 
-    sbtPluginDep("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.5.0"),
+    sbtPluginDep("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "3.0.0"),
     sbtPluginDep("com.github.mpeltonen" % "sbt-idea" % "1.6.0"),
     sbtPluginDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
 
