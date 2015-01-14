@@ -160,7 +160,7 @@ object Dependencies {
 
     sbtPluginDep("com.typesafe.sbt" % "sbt-twirl" % "1.0.2"),
 
-    sbtPluginDep("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "2.4.0"),
+    sbtPluginDep("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "3.0.0"),
     sbtPluginDep("com.github.mpeltonen" % "sbt-idea" % "1.5.1"),
     sbtPluginDep("com.typesafe.sbt" % "sbt-native-packager" % "0.7.4"),
 
