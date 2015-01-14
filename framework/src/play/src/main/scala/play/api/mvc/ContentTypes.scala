@@ -693,7 +693,7 @@ trait BodyParsers {
     /**
      * A body parser that always returns an error.
      */
-    def error[A](result: Future[Result]): BodyParser[A] = BodyParser("error, result=" + result) { request =>
+    def error[A](result: Future[Result]): BodyParser[A] = BodyParser("error") { request =>
       import play.api.libs.iteratee.Execution.Implicits.trampoline
       Iteratee.flatten(result.map(r => Done(Left(r), Empty)))
     }
