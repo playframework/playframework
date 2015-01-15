@@ -209,13 +209,14 @@ object PlayBuild extends Build {
 
   lazy val RunSupportProject = PlayDevelopmentProject("Run-Support", "run-support")
     .settings(libraryDependencies ++= runSupportDependencies(scalaBinaryVersion.value))
+    .dependsOn(BuildLinkProject)
 
   // extra run-support project that is only compiled against sbt scala version
   lazy val SbtRunSupportProject = PlaySbtProject("SBT-Run-Support", "run-support")
     .settings(
       target := target.value / "sbt-run-support",
       libraryDependencies ++= runSupportDependencies(scalaBinaryVersion.value)
-    )
+    ).dependsOn(BuildLinkProject)
 
   lazy val RoutesCompilerProject = PlaySbtProject("Routes-Compiler", "routes-compiler")
     .settings(libraryDependencies ++= routersCompilerDependencies)
@@ -263,7 +264,7 @@ object PlayBuild extends Build {
         ProblemFilters.exclude[IncompatibleResultTypeProblem]("controllers.Assets.controllers$Assets$$assetInfoFromResource")
       )
 
-    ).dependsOn(BuildLinkProject, PlayExceptionsProject, IterateesProject % "test->test;compile->compile", JsonProject)
+    ).dependsOn(BuildLinkProject, IterateesProject % "test->test;compile->compile", JsonProject)
 
   lazy val PlayJdbcProject = PlayRuntimeProject("Play-JDBC", "play-jdbc")
     .settings(libraryDependencies ++= jdbcDeps)
@@ -347,7 +348,7 @@ object PlayBuild extends Build {
         val () = publishLocal.value
         val () = (publishLocal in RoutesCompilerProject).value
       }
-    ).dependsOn(BuildLinkProject, PlayExceptionsProject, RoutesCompilerProject, SbtRunSupportProject)
+    ).dependsOn(RoutesCompilerProject, SbtRunSupportProject)
 
   lazy val PlayWsProject = PlayRuntimeProject("Play-WS", "play-ws")
     .settings(
