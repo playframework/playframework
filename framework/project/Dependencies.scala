@@ -64,9 +64,7 @@ object Dependencies {
       .exclude("javassist", "javassist"),
 
     guava,
-    findBugs,
-
-    "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.5") ++
+    findBugs) ++
     specsBuild.map(_ % "test")
 
   val javaTestDeps = Seq(
