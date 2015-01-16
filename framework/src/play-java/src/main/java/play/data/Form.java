@@ -377,7 +377,7 @@ public class Form<T> {
         }
 
         if (result.hasErrors() || result.getGlobalErrorCount() > 0) {
-            Map<String,List<ValidationError>> errors = new HashMap<String,List<ValidationError>>();
+            Map<String,List<ValidationError>> errors = new LinkedHashMap<String,List<ValidationError>>();
             for (FieldError error: result.getFieldErrors()) {
                 String key = error.getObjectName() + "." + error.getField();
                 if (key.startsWith("target.") && rootName == null) {
@@ -426,7 +426,7 @@ public class Form<T> {
                 }
             }
             if (globalError != null) {
-                Map<String,List<ValidationError>> errors = new HashMap<String,List<ValidationError>>();
+                Map<String,List<ValidationError>> errors = new LinkedHashMap<String,List<ValidationError>>();
                 if (globalError instanceof String) {
                     errors.put("", new ArrayList<ValidationError>());
                     errors.get("").add(new ValidationError("", (String)globalError, new ArrayList()));
@@ -443,7 +443,7 @@ public class Form<T> {
                 }
                 return new Form(rootName, backedType, data, errors, None(), groups);
             }
-            return new Form(rootName, backedType, new HashMap<String,String>(data), new HashMap<String,List<ValidationError>>(errors), Some((T)result.getTarget()), groups);
+            return new Form(rootName, backedType, new HashMap<String,String>(data), new LinkedHashMap<String,List<ValidationError>>(errors), Some((T)result.getTarget()), groups);
         }
     }
 
