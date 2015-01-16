@@ -350,6 +350,32 @@ object PlayBuild extends Build {
       }
     ).dependsOn(RoutesCompilerProject, SbtRunSupportProject)
 
+  lazy val ForkRunProtocolProject = PlayDevelopmentProject("Fork-Run-Protocol", "fork-run-protocol")
+    .settings(libraryDependencies ++= forkRunProtocolDependencies(scalaBinaryVersion.value))
+    .dependsOn(RunSupportProject)
+
+  // extra fork-run-protocol project that is only compiled against sbt scala version
+  lazy val SbtForkRunProtocolProject = PlaySbtProject("SBT-Fork-Run-Protocol", "fork-run-protocol")
+    .settings(
+      target := target.value / "sbt-fork-run-protocol",
+      libraryDependencies ++= forkRunProtocolDependencies(scalaBinaryVersion.value))
+    .dependsOn(SbtRunSupportProject)
+
+  lazy val ForkRunProject = PlayDevelopmentProject("Fork-Run", "fork-run")
+    .settings(libraryDependencies ++= forkRunDependencies(scalaBinaryVersion.value))
+    .dependsOn(ForkRunProtocolProject)
+
+  lazy val SbtForkRunPluginProject = PlaySbtPluginProject("SBT-Fork-Run-Plugin", "sbt-fork-run-plugin")
+    .settings(
+      libraryDependencies ++= sbtForkRunPluginDependencies,
+      scriptedLaunchOpts += "-Dproject.version=" + version.value,
+      scriptedDependencies := {
+        val () = publishLocal.value
+        val () = (publishLocal in SbtPluginProject).value
+        val () = (publishLocal in RoutesCompilerProject).value
+      })
+    .dependsOn(SbtForkRunProtocolProject, SbtPluginProject)
+
   lazy val PlayWsProject = PlayRuntimeProject("Play-WS", "play-ws")
     .settings(
       libraryDependencies ++= playWsDeps,
@@ -436,6 +462,10 @@ object PlayBuild extends Build {
     SbtRunSupportProject,
     RunSupportProject,
     SbtPluginProject,
+    ForkRunProtocolProject,
+    SbtForkRunProtocolProject,
+    ForkRunProject,
+    SbtForkRunPluginProject,
     PlaySpecs2Project,
     PlayTestProject,
     PlayExceptionsProject,

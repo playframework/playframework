@@ -154,6 +154,36 @@ object Dependencies {
   }
 
   val jnotify = "net.contentobjects.jnotify" % "jnotify" % "0.94"
+
+  val sbtRcVersion = "1.0-951c90820f296b4eda7eb9759e8d80f148065cd6"
+
+  def forkRunProtocolDependencies(scalaBinaryVersion: String) = Seq(
+    sbtRcClient(scalaBinaryVersion)
+  )
+
+  // use partial version so that non-standard scala binary versions from dbuild also work
+  def sbtRcClient(scalaBinaryVersion: String): ModuleID = CrossVersion.partialVersion(scalaBinaryVersion) match {
+    case Some((2, 10)) => "com.typesafe.sbtrc" % "client-2-10" % sbtRcVersion
+    case Some((2, 11)) => "com.typesafe.sbtrc" % "client-2-11" % sbtRcVersion
+    case _ => sys.error(s"Unsupported scala version: $scalaBinaryVersion")
+  }
+
+  def forkRunDependencies(scalaBinaryVersion: String) = Seq(
+    sbtRcActorClient(scalaBinaryVersion),
+    jnotify
+  )
+
+  // use partial version so that non-standard scala binary versions from dbuild also work
+  def sbtRcActorClient(scalaBinaryVersion: String): ModuleID = CrossVersion.partialVersion(scalaBinaryVersion) match {
+    case Some((2, 10)) => "com.typesafe.sbtrc" % "actor-client-2-10" % sbtRcVersion
+    case Some((2, 11)) => "com.typesafe.sbtrc" % "actor-client-2-11" % sbtRcVersion
+    case _ => sys.error(s"Unsupported scala version: $scalaBinaryVersion")
+  }
+
+  def sbtForkRunPluginDependencies = Seq(
+    "com.typesafe.sbtrc" % "server-0-13" % sbtRcVersion
+  )
+
   val typesafeConfig = "com.typesafe" % "config" % "1.2.1"
 
   val sbtDependencies = Seq(

@@ -54,6 +54,12 @@ echo "[info]"
 $BUILD "$@" SBT-Plugin/scripted
 
 echo "[info]"
+echo "[info] ---- SBT FORK RUN PLUGIN TESTS"
+echo "[info]"
+
+$BUILD "$@" SBT-Fork-Run-Plugin/scripted
+
+echo "[info]"
 echo "[info] ---- AKKA HTTP SERVER SCRIPTED TESTS"
 echo "[info]"
 
