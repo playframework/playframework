@@ -20,7 +20,6 @@ import play.sbtplugin.routes.RoutesCompiler
 object Play
     extends AutoPlugin
     with PlayExceptions
-    with PlayReloader
     with PlayCommands
     with PlayRun
     with play.PlaySettings
