@@ -54,9 +54,14 @@ object PlayReload {
     }
   }
 
+  def getScopedKey(incomplete: Incomplete): Option[ScopedKey[_]] = incomplete.node flatMap {
+    case key: ScopedKey[_] => Option(key)
+    case task: Task[_] => task.info.attributes get taskDefinitionKey
+  }
+
   def getProblems(incomplete: Incomplete, streams: Option[Streams]): Seq[xsbti.Problem] = {
     (allProblems(incomplete) ++ {
-      Incomplete.linearize(incomplete).filter(i => i.node.isDefined && i.node.get.isInstanceOf[ScopedKey[_]]).flatMap { i =>
+      Incomplete.linearize(incomplete).flatMap(getScopedKey).flatMap { scopedKey =>
         val JavacError = """\[error\]\s*(.*[.]java):(\d+):\s*(.*)""".r
         val JavacErrorInfo = """\[error\]\s*([a-z ]+):(.*)""".r
         val JavacErrorPosition = """\[error\](\s*)\^\s*""".r
@@ -64,7 +69,7 @@ object PlayReload {
         streams.map { streamsManager =>
           var first: (Option[(String, String, String)], Option[Int]) = (None, None)
           var parsed: (Option[(String, String, String)], Option[Int]) = (None, None)
-          Output.lastLines(i.node.get.asInstanceOf[ScopedKey[_]], streamsManager, None).map(_.replace(scala.Console.RESET, "")).map(_.replace(scala.Console.RED, "")).collect {
+          Output.lastLines(scopedKey, streamsManager, None).map(_.replace(scala.Console.RESET, "")).map(_.replace(scala.Console.RED, "")).collect {
             case JavacError(file, line, message) => parsed = Some((file, line, message)) -> None
             case JavacErrorInfo(key, message) => parsed._1.foreach { o =>
               parsed = Some((parsed._1.get._1, parsed._1.get._2, parsed._1.get._3 + " [" + key.trim + ": " + message.trim + "]")) -> None
