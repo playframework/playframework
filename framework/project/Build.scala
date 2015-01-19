@@ -368,7 +368,10 @@ object PlayBuild extends Build {
   lazy val SbtForkRunPluginProject = PlaySbtPluginProject("SBT-Fork-Run-Plugin", "sbt-fork-run-plugin")
     .settings(
       libraryDependencies ++= sbtForkRunPluginDependencies,
-      scriptedLaunchOpts += "-Dproject.version=" + version.value,
+      scriptedLaunchOpts ++= Seq(
+        "-XX:MaxPermSize=384M",
+        "-Dproject.version=" + version.value
+      ),
       scriptedDependencies := {
         val () = publishLocal.value
         val () = (publishLocal in SbtPluginProject).value
