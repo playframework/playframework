@@ -227,9 +227,7 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
 
       val resultFields: mutable.Map[String, JsValue] = mutable.LinkedHashMap(existingObject.fields: _*)
 
-      otherObject.fields.foreach { otherField: (String, JsValue) =>
-        val otherKey = otherField._1
-        val otherValue = otherField._2
+      otherObject.fields.foreach { case (otherKey, otherValue) =>
 
         val maybeExistingValue = resultFields.get(otherKey)
 
