@@ -21,7 +21,6 @@ import sbt.inc.{ Analysis, Stamp, Exists, Hash, LastModified }
 import sbt.compiler.AggressiveCompile
 
 trait PlayCommands extends PlayEclipse with PlayInternalKeys {
-  this: PlayReloader =>
 
   //- mainly scala, mainly java or none
 
