@@ -373,7 +373,10 @@ object PlayBuild extends Build {
       publishTo := Some(publishingIvyRepository))
     .settings(scriptedSettings: _*)
     .settings(
-      scriptedLaunchOpts += "-Dproject.version=" + version.value,
+      scriptedLaunchOpts ++= Seq(
+        "-XX:MaxPermSize=384M",
+        "-Dproject.version=" + version.value
+      ),
       scriptedDependencies := {
         val () = publishLocal.value
         val () = (publishLocal in SbtPluginProject).value
