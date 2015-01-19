@@ -57,7 +57,13 @@ echo "[info]"
 echo "[info] ---- SBT PLUGIN TESTS"
 echo "[info]"
 
-$BUILD "$@" Sbt-Plugin:scripted
+$BUILD "$@" SBT-Plugin/scripted
+
+echo "[info]"
+echo "[info] ---- SBT FORK RUN PLUGIN TESTS"
+echo "[info]"
+
+$BUILD "$@" SBT-Fork-Run-Plugin/scripted
 
 rm -rf ./logs
 
