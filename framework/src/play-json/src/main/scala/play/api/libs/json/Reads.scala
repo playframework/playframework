@@ -264,20 +264,46 @@ trait DefaultReads {
   /**
    * ISO 8601 Reads
    */
-  val IsoDateReads = dateReads("yyyy-MM-dd'T'HH:mm:ssz", { input =>
+  val IsoDateReads = dateReads("yyyy-MM-dd'T'HH:mm:ss.SSSz", { input =>
     // NOTE: SimpleDateFormat uses GMT[-+]hh:mm for the TZ so need to refactor a bit
-    // 1994-11-05T13:15:30Z -> 1994-11-05T13:15:30GMT-00:00
-    // 1994-11-05T08:15:30-05:00 -> 1994-11-05T08:15:30GMT-05:00
-    if (input.endsWith("Z")) {
-      input.substring(0, input.length() - 1) + "GMT-00:00"
-    } else {
-      val inset = 6
+    // 1994-11-05T13:15:30Z -> 1994-11-05T13:15:30.000GMT-00:00
+    // 1994-11-05T08:15:30-05:00 -> 1994-11-05T08:15:30.000GMT-05:00
 
-      val s0 = input.substring(0, input.length - inset)
-      val s1 = input.substring(input.length - inset, input.length)
+    def appendGMT(input: String): String = {
+      if (input.endsWith("Z")) {
+        input.substring(0, input.length() - 1) + "GMT-00:00"
+      } else {
+        val inset = 6
 
-      s0 + "GMT" + s1
+        val s0 = input.substring(0, input.length - inset)
+        val s1 = input.substring(input.length - inset)
+
+        s0 + "GMT" + s1
+      }
     }
+
+    def appendMillis(input: String): String = {
+      val pointIndex = input.lastIndexOf('.')
+      val timeZoneIndex = input.lastIndexOf('G')
+      if (pointIndex == -1) {
+        input.substring(0, timeZoneIndex) + ".000" +
+          input.substring(timeZoneIndex)
+      } else {
+        val requiredPrecision = 3
+        val currentPrecision = timeZoneIndex - pointIndex - 1
+        if (currentPrecision < requiredPrecision) {
+          input.substring(0, timeZoneIndex) +
+            String.copyValueOf(Array.fill(requiredPrecision - currentPrecision) { '0' }) +
+            input.substring(timeZoneIndex)
+        } else if (currentPrecision > requiredPrecision) {
+          input.substring(0, pointIndex + requiredPrecision) +
+            input.substring(timeZoneIndex)
+        } else {
+          input
+        }
+      }
+    }
+    appendMillis(appendGMT(input))
   })
 
   /**
