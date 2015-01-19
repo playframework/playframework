@@ -220,66 +220,33 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
 
   /**
    * merges everything in depth and doesn't stop at first level as ++
-   * TODO : improve because coding is nasty there
    */
   def deepMerge(other: JsObject): JsObject = {
-    def step(fields: Vector[(String, JsValue)], others: Vector[(String, JsValue)]): Seq[(String, JsValue)] = {
-      others match {
-        case Vector() => fields
-        case Vector(sv) =>
-          var found = false
-          val newFields = fields match {
-            case Vector() => Vector(sv)
-            case _ => fields.foldLeft(Vector[(String, JsValue)]()) { (acc, field) =>
-              field match {
-                case (key, obj: JsObject) if (key == sv._1) =>
-                  found = true
-                  acc :+ key -> {
-                    sv._2 match {
-                      case o @ JsObject(_) => obj.deepMerge(o)
-                      case js => js
-                    }
-                  }
-                case (key, value) if (key == sv._1) =>
-                  found = true
-                  acc :+ key -> sv._2
-                case (key, value) => acc :+ key -> value
-              }
+
+    def deepMerge(existingObject: JsObject, otherObject: JsObject): JsObject = {
+
+      val resultFields: mutable.Map[String, JsValue] = mutable.LinkedHashMap(existingObject.fields: _*)
+
+      otherObject.fields.foreach { otherField: (String, JsValue) =>
+        val otherKey = otherField._1
+        val otherValue = otherField._2
+
+        val maybeExistingValue = resultFields.get(otherKey)
+
+        maybeExistingValue match {
+          case Some(existingValue) =>
+            (existingValue, otherValue) match {
+              case (e: JsObject, o: JsObject) => resultFields.put(otherKey, deepMerge(e, o))
+              case (e: JsArray, o: JsArray) => resultFields.put(otherKey, e ++ o)
+              case (e, o) => resultFields.put(otherKey, otherValue)
             }
-          }
-
-          if (!found) fields :+ sv
-          else newFields
-
-        case head +: tail =>
-          var found = false
-          val headFields = fields match {
-            case Vector() => Vector(head)
-            case _ => fields.foldLeft(Vector[(String, JsValue)]()) { (acc, field) =>
-              field match {
-                case (key, obj: JsObject) if (key == head._1) =>
-                  found = true
-                  acc :+ key -> {
-                    head._2 match {
-                      case o @ JsObject(_) => obj.deepMerge(o)
-                      case js => js
-                    }
-                  }
-                case (key, value) if (key == head._1) =>
-                  found = true
-                  acc :+ key -> head._2
-                case (key, value) => acc :+ key -> value
-              }
-            }
-          }
-
-          if (!found) step(fields :+ head, tail)
-          else step(headFields, tail)
-
+          case _ => resultFields.put(otherKey, otherValue)
+        }
       }
+      JsObject(resultFields.toSeq)
     }
 
-    JsObject(step(fields.toVector, other.fields.toVector))
+    deepMerge(this, other)
   }
 
   override def equals(other: Any): Boolean =
