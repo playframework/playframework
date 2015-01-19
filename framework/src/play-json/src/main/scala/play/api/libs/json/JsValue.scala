@@ -233,15 +233,12 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
 
         val maybeExistingValue = resultFields.get(otherKey)
 
-        maybeExistingValue match {
-          case Some(existingValue) =>
-            (existingValue, otherValue) match {
-              case (e: JsObject, o: JsObject) => resultFields.put(otherKey, deepMerge(e, o))
-              case (e: JsArray, o: JsArray) => resultFields.put(otherKey, e ++ o)
-              case (e, o) => resultFields.put(otherKey, otherValue)
-            }
-          case _ => resultFields.put(otherKey, otherValue)
+        val newValue = (maybeExistingValue, otherValue) match {
+          case (Some(e: JsObject), o: JsObject) => deepMerge(e, o)
+          case (Some(e: JsArray), o: JsArray) => e ++ o
+          case _ => otherValue
         }
+        resultFields.put(otherKey, newValue)
       }
       JsObject(resultFields.toSeq)
     }
