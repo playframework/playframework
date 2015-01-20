@@ -12,14 +12,17 @@ object MessagesSpec extends PlaySpecification with Controller {
 
   sequential
 
+  implicit val lang = Lang("en-US")
+  import play.api.i18n.Messages.Implicits.applicationMessages
+
   "Messages" should {
     "provide default messages" in new WithApplication() {
-      val msg = Messages("constraint.email")(Lang("en-US"))
+      val msg = Messages("constraint.email")
 
       msg must ===("Email")
     }
     "permit default override" in new WithApplication() {
-      val msg = Messages("constraint.required")(Lang("en-US"))
+      val msg = Messages("constraint.required")
 
       msg must ===("Required!")
     }

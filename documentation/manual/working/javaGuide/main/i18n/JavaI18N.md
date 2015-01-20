@@ -29,7 +29,7 @@ You can also specify the language explicitly:
 String title = Messages.get(new Lang(Lang.forCode("fr")), "home.title")
 ```
 
-> **Note:** If you have a `Request` in the scope, it will provide a default `Lang` value corresponding to the preferred language extracted from the `Accept-Language` header and matching one of the application’s supported languages. You should also add a `Lang` implicit parameter to your template like this: `@()(implicit lang: Lang)`.
+> **Note:** If you have a `Request` in the scope, it will use the preferred language extracted from the `Accept-Language` header and matching one of the application’s supported languages.
 
 ## Use in templates
 ```

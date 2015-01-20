@@ -3,6 +3,7 @@
  */
 package play.api
 
+import play.api.i18n.MessagesApi
 import play.utils.Threads
 
 import java.io._
@@ -220,12 +221,6 @@ object Play {
   /**
    * Returns the name of the cookie that can be used to permanently set the user's language.
    */
-  def langCookieName(implicit app: Application): String = {
-    app.configuration.getString("play.modules.i18n.langCookieName").orElse {
-      app.configuration.getString("application.lang.cookie").map { name =>
-        Logger.warn("application.lang.cookie is deprecated, use play.modules.i18n.langCookieName instead")
-        name
-      }
-    }.getOrElse("PLAY_LANG")
-  }
+  def langCookieName(implicit messagesApi: MessagesApi): String =
+    messagesApi.langCookieName
 }

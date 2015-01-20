@@ -4,8 +4,10 @@
 package play.data
 
 import org.specs2.mutable.Specification
+import play.api.{ Configuration, Environment }
+import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
 import views.html.helper.inputText
-import play.core.j.PlayMagicForJava._
+import play.core.j.PlayMagicForJava.javaFieldtoScalaField
 import views.html.helper.FieldConstructor.defaultField
 import scala.collection.JavaConversions._
 
@@ -13,6 +15,9 @@ import scala.collection.JavaConversions._
  * Specs for Java dynamic forms
  */
 object DynamicFormSpec extends Specification {
+  val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.empty, new DefaultLangs(Configuration.empty))
+  implicit val messages = messagesApi.preferred(Seq.empty)
+
   "a dynamic form" should {
 
     "bind values from a request" in {

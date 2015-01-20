@@ -46,6 +46,6 @@ public class Play {
     }
 
     public static String langCookieName() {
-        return play.api.Play.langCookieName(play.api.Play.current());
+        return play.api.i18n.Messages.Implicits$.MODULE$.applicationMessagesApi(play.api.Play.current()).langCookieName();
     }
 }

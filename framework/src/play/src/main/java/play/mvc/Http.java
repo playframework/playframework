@@ -13,6 +13,7 @@ import play.api.mvc.RequestHeader;
 import play.i18n.Lang;
 import play.Play;
 import play.i18n.Langs;
+import play.i18n.Messages;
 import play.i18n.MessagesApi;
 
 /**
@@ -117,9 +118,15 @@ public class Http {
             if (lang != null) {
                 return lang;
             } else {
-                return Play.application().injector().instanceOf(MessagesApi.class)
-                        .preferred(request()).lang();
+                return messages().lang();
             }
+        }
+
+        /**
+         * @return the messages for the current lang.
+         */
+        public Messages messages() {
+            return Play.application().injector().instanceOf(MessagesApi.class).preferred(request());
         }
 
         /**
@@ -197,6 +204,13 @@ public class Http {
              */
             public static Lang lang() {
                 return Context.current().lang();
+            }
+
+            /**
+             * @return the messages for the current lang.
+             */
+            public static Messages messages() {
+                return Context.current().messages();
             }
 
             /**

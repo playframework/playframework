@@ -9,8 +9,8 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import java.util.concurrent.TimeUnit
 import scala.concurrent.ExecutionContext.Implicits._
-import play.api.i18n.Lang
-import play.api.{ FakeApplication, Play }
+import play.api.i18n.{ DefaultLangs, DefaultMessagesApi, Lang }
+import play.api.{ Configuration, Environment, FakeApplication, Play }
 import play.api.http.HeaderNames._
 import play.api.http.Status._
 
@@ -112,7 +112,7 @@ object ResultsSpec extends Specification {
     }
 
     "support clearing a language cookie using clearingLang" in {
-      implicit val app = new FakeApplication()
+      implicit val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.empty, new DefaultLangs(Configuration.empty))
       val cookie = Cookies.decode(Ok.clearingLang.header.headers("Set-Cookie")).head
       cookie.name must_== Play.langCookieName
       cookie.value must_== ""

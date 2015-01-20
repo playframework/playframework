@@ -11,7 +11,7 @@
  * @param args Set of extra attributes ('''_default''' is a special argument).
  * @param handler The field constructor.
  *@
-@(field: play.api.data.Field, options: Seq[(String,String)], args: (Symbol,Any)*)(implicit handler: FieldConstructor, lang: play.api.i18n.Lang)
+@(field: play.api.data.Field, options: Seq[(String,String)], args: (Symbol,Any)*)(implicit handler: FieldConstructor, messages: play.api.i18n.Messages)
 
 @input(field, args:_*) { (id, name, value, htmlArgs) =>
     @defining( if( htmlArgs.contains('multiple) ) "%s[]".format(name) else name ) { selectName =>

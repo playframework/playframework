@@ -6,7 +6,7 @@ package play.api.i18n
 import javax.inject.{ Inject, Singleton }
 
 import play.api.inject.Module
-import play.api.mvc.{ Cookie, Result, RequestHeader }
+import play.api.mvc.{ DiscardingCookie, Cookie, Result, RequestHeader }
 import play.mvc.Http
 
 import scala.language.postfixOps
@@ -185,7 +185,17 @@ class DefaultLangs @Inject() (configuration: Configuration) extends Langs {
 object Messages {
 
   private[play] val messagesApiCache = Application.instanceCache[MessagesApi]
-  private[play] def messagesApi: Option[MessagesApi] = Play.maybeApplication.map(messagesApiCache)
+
+  /**
+   * Implicit conversions providing [[Messages]] or [[MessagesApi]] using an implicit [[Application]], for a smooth upgrade to 2.4
+   */
+  object Implicits {
+    import scala.language.implicitConversions
+    implicit def applicationMessagesApi(implicit application: Application): MessagesApi =
+      messagesApiCache(application)
+    implicit def applicationMessages(implicit lang: Lang, application: Application): Messages =
+      new Messages(lang, messagesApiCache(application))
+  }
 
   /**
    * Translates a message.
@@ -196,8 +206,8 @@ object Messages {
    * @param args the message arguments
    * @return the formatted message or a default rendering if the key wasn’t defined
    */
-  def apply(key: String, args: Any*)(implicit lang: Lang): String = {
-    messagesApi.fold(noMatch(key, args))(_(key, args: _*))
+  def apply(key: String, args: Any*)(implicit messages: Messages): String = {
+    messages(key, args: _*)
   }
 
   /**
@@ -209,8 +219,8 @@ object Messages {
    * @param args the message arguments
    * @return the formatted message or a default rendering if the key wasn’t defined
    */
-  def apply(keys: Seq[String], args: Any*)(implicit lang: Lang): String = {
-    messagesApi.fold(noMatch(keys.last, args))(_(keys, args: _*))
+  def apply(keys: Seq[String], args: Any*)(implicit messages: Messages): String = {
+    messages(keys, args: _*)
   }
 
   /**
@@ -218,29 +228,17 @@ object Messages {
    * @param key the message key
    * @return a boolean
    */
-  def isDefinedAt(key: String)(implicit lang: Lang): Boolean = {
-    messagesApi.fold(false)(_.isDefinedAt(key))
-  }
-
-  /**
-   * Retrieves all messages defined in this application.
-   */
-  def messages(implicit app: Application): Map[String, Map[String, String]] = {
-    messagesApi.fold(Map.empty[String, Map[String, String]])(_.messages)
+  def isDefinedAt(key: String)(implicit messages: Messages): Boolean = {
+    messages.isDefinedAt(key)
   }
 
   /**
    * Parse all messages of a given input.
    */
-  def messages(messageSource: MessageSource, messageSourceName: String): Either[PlayException.ExceptionSource, Map[String, String]] = {
+  def parse(messageSource: MessageSource, messageSourceName: String): Either[PlayException.ExceptionSource, Map[String, String]] = {
     new Messages.MessagesParser(messageSource, "").parse.right.map { messages =>
       messages.map { message => message.key -> message.pattern }.toMap
     }
-  }
-
-  private def noMatch(key: String, args: Seq[Any]) = {
-    Logger.warn(s"i18n: missing translation key $key")
-    key
   }
 
   /**
@@ -304,7 +302,7 @@ object Messages {
 
     val sentence = (comment | positioned(message)) <~ newLine
 
-    val parser = phrase((sentence | blankLine *) <~ end) ^^ {
+    val parser = phrase(((sentence | blankLine).*) <~ end) ^^ {
       case messages => messages.collect {
         case m @ Messages.Message(_, _, _, _) => m
       }
@@ -370,14 +368,14 @@ case class Messages(lang: Lang, messages: MessagesApi) {
    * @param args the message arguments
    * @return the formatted message, if this key was defined
    */
-  def translate(key: String, args: Seq[Any])(implicit lang: Lang): Option[String] = messages.translate(key, args)(lang)
+  def translate(key: String, args: Seq[Any]): Option[String] = messages.translate(key, args)(lang)
 
   /**
    * Check if a message key is defined.
    * @param key the message key
    * @return a boolean
    */
-  def isDefinedAt(key: String)(implicit lang: Lang): Boolean = messages.isDefinedAt(key)(lang)
+  def isDefinedAt(key: String): Boolean = messages.isDefinedAt(key)(lang)
 }
 
 /**
@@ -412,6 +410,8 @@ trait MessagesApi {
    * Set the language on the result
    */
   def setLang(result: Result, lang: Lang): Result
+
+  def clearLang(result: Result): Result
 
   /**
    * Translates a message.
@@ -453,6 +453,8 @@ trait MessagesApi {
    */
   def isDefinedAt(key: String)(implicit lang: Lang): Boolean
 
+  def langCookieName: String
+
 }
 
 /**
@@ -485,6 +487,8 @@ class DefaultMessagesApi @Inject() (environment: Environment, configuration: Con
   }
 
   def setLang(result: Result, lang: Lang) = result.withCookies(Cookie(langCookieName, lang.code))
+
+  def clearLang(result: Result) = result.discardingCookies(DiscardingCookie(langCookieName))
 
   def apply(key: String, args: Any*)(implicit lang: Lang): String = {
     translate(key, args).getOrElse(noMatch(key, args))
@@ -528,7 +532,7 @@ class DefaultMessagesApi @Inject() (environment: Environment, configuration: Con
     environment.classLoader.getResources(joinPaths(messagesPrefix, file)).asScala.toList
       .filterNot(url => Resources.isDirectory(environment.classLoader, url)).reverse
       .map { messageFile =>
-        Messages.messages(Messages.UrlMessageSource(messageFile), messageFile.toString).fold(e => throw e, identity)
+        Messages.parse(Messages.UrlMessageSource(messageFile), messageFile.toString).fold(e => throw e, identity)
       }.foldLeft(Map.empty[String, String]) { _ ++ _ }
   }
 
@@ -540,8 +544,11 @@ class DefaultMessagesApi @Inject() (environment: Environment, configuration: Con
       .+("default.play" -> loadMessages("messages.default"))
   }
 
-  private lazy val langCookieName =
-    configuration.getDeprecatedString("play.modules.i18n.langCookieName", "application.lang.cookie")
+  lazy val langCookieName =
+    configuration
+      .getDeprecatedStringOpt("play.modules.i18n.langCookieName", "application.lang.cookie")
+      .getOrElse("PLAY_LANG")
+
 }
 
 class I18nModule extends Module {

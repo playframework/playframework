@@ -223,7 +223,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
   /**
    * Returns the form errors serialized as Json.
    */
-  def errorsAsJson(implicit lang: play.api.i18n.Lang): play.api.libs.json.JsValue = {
+  def errorsAsJson(implicit lang: play.api.i18n.Messages): play.api.libs.json.JsValue = {
 
     import play.api.libs.json._
 

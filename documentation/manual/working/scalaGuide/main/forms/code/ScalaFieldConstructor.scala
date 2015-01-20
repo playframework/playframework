@@ -4,8 +4,13 @@
 package scalaguide.forms.scalafieldconstructor {
 
 import org.specs2.mutable.Specification
+import play.api.{Environment, Configuration}
+import play.api.i18n.{DefaultLangs, DefaultMessagesApi, Messages}
 
 object ScalaFieldConstructorSpec extends Specification {
+
+  val conf = Configuration.empty
+  implicit val messages: Messages = new DefaultMessagesApi(Environment.simple(), conf, new DefaultLangs(conf)).preferred(Seq.empty)
 
   "field constructors" should {
 
