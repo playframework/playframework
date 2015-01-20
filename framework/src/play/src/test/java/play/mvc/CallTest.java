@@ -2,6 +2,7 @@ package play.mvc;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.List;
 import java.util.Map;
 
@@ -15,7 +16,7 @@ public final class CallTest {
 
     @Test
     public void testHttpAbsoluteURL1() throws Throwable {
-        final TestRequest req = 
+        final TestRequest req =
             new TestRequest("GET", "playframework.com", "/playframework",
                             false, "127.0.0.1", "/v", "/u");
 
@@ -27,33 +28,33 @@ public final class CallTest {
 
     @Test
     public void testHttpAbsoluteURL2() throws Throwable {
-        final TestRequest req = 
+        final TestRequest req =
             new TestRequest("GET", "playframework.com", "/playframework",
                             true, "127.0.0.1", "/v", "/u");
 
         final TestCall call = new TestCall("/url", "GET");
 
         assertEquals("Absolute URL should have HTTP scheme",
-                     call.absoluteURL(req, false), 
+                     call.absoluteURL(req, false),
                      "http://playframework.com/url");
     }
 
     @Test
     public void testHttpAbsoluteURL3() throws Throwable {
-        final TestRequest req = 
+        final TestRequest req =
             new TestRequest("GET", "playframework.com", "/playframework",
                             true, "127.0.0.1", "/v", "/u");
 
         final TestCall call = new TestCall("/url", "GET");
 
         assertEquals("Absolute URL should have HTTP scheme",
-                     call.absoluteURL(false, "typesafe.com"), 
+                     call.absoluteURL(false, "typesafe.com"),
                      "http://typesafe.com/url");
     }
 
     @Test
     public void testHttpsAbsoluteURL1() throws Throwable {
-        final TestRequest req = 
+        final TestRequest req =
             new TestRequest("GET", "playframework.com", "/playframework",
                             true, "127.0.0.1", "/v", "/u");
 
@@ -65,33 +66,33 @@ public final class CallTest {
 
     @Test
     public void testHttpsAbsoluteURL2() throws Throwable {
-        final TestRequest req = 
+        final TestRequest req =
             new TestRequest("GET", "playframework.com", "/playframework",
                             false, "127.0.0.1", "/v", "/u");
 
         final TestCall call = new TestCall("/url", "GET");
 
         assertEquals("Absolute URL should have HTTPS scheme",
-                     call.absoluteURL(req, true), 
+                     call.absoluteURL(req, true),
                      "https://playframework.com/url");
     }
 
     @Test
     public void testHttpsAbsoluteURL3() throws Throwable {
-        final TestRequest req = 
+        final TestRequest req =
             new TestRequest("GET", "playframework.com", "/playframework",
                             false, "127.0.0.1", "/v", "/u");
 
         final TestCall call = new TestCall("/url", "GET");
 
         assertEquals("Absolute URL should have HTTPS scheme",
-                     call.absoluteURL(true, "typesafe.com"), 
+                     call.absoluteURL(true, "typesafe.com"),
                      "https://typesafe.com/url");
     }
 
     @Test
     public void testWebSocketURL1() throws Throwable {
-        final TestRequest req = 
+        final TestRequest req =
             new TestRequest("GET", "playframework.com", "/playframework",
                             false, "127.0.0.1", "/v", "/u");
 
@@ -103,33 +104,33 @@ public final class CallTest {
 
     @Test
     public void testWebSocketURL2() throws Throwable {
-        final TestRequest req = 
+        final TestRequest req =
             new TestRequest("GET", "playframework.com", "/playframework",
                             true, "127.0.0.1", "/v", "/u");
 
         final TestCall call = new TestCall("/url", "GET");
 
         assertEquals("WebSocket URL should have HTTP scheme",
-                     call.webSocketURL(req, false), 
+                     call.webSocketURL(req, false),
                      "ws://playframework.com/url");
     }
 
     @Test
     public void testWebSocketURL3() throws Throwable {
-        final TestRequest req = 
+        final TestRequest req =
             new TestRequest("GET", "playframework.com", "/playframework",
                             true, "127.0.0.1", "/v", "/u");
 
         final TestCall call = new TestCall("/url", "GET");
 
         assertEquals("WebSocket URL should have HTTP scheme",
-                     call.webSocketURL(false, "typesafe.com"), 
+                     call.webSocketURL(false, "typesafe.com"),
                      "ws://typesafe.com/url");
     }
 
     @Test
     public void testSecureWebSocketURL1() throws Throwable {
-        final TestRequest req = 
+        final TestRequest req =
             new TestRequest("GET", "playframework.com", "/playframework",
                             true, "127.0.0.1", "/v", "/u");
 
@@ -141,27 +142,27 @@ public final class CallTest {
 
     @Test
     public void testSecureWebSocketURL2() throws Throwable {
-        final TestRequest req = 
+        final TestRequest req =
             new TestRequest("GET", "playframework.com", "/playframework",
                             false, "127.0.0.1", "/v", "/u");
 
         final TestCall call = new TestCall("/url", "GET");
 
         assertEquals("WebSocket URL should have HTTPS scheme",
-                     call.webSocketURL(req, true), 
+                     call.webSocketURL(req, true),
                      "wss://playframework.com/url");
     }
 
     @Test
     public void testSecureWebSocketURL3() throws Throwable {
-        final TestRequest req = 
+        final TestRequest req =
             new TestRequest("GET", "playframework.com", "/playframework",
                             false, "127.0.0.1", "/v", "/u");
 
         final TestCall call = new TestCall("/url", "GET");
 
         assertEquals("WebSocket URL should have HTTPS scheme",
-                     call.webSocketURL(true, "typesafe.com"), 
+                     call.webSocketURL(true, "typesafe.com"),
                      "wss://typesafe.com/url");
     }
 
@@ -181,10 +182,10 @@ final class TestCookies extends ArrayList<Http.Cookie> implements Http.Cookies {
 }
 
 final class TestRequest extends Http.Request {
-    private final HashMap<String,String[]> hs = 
-        new HashMap<String,String[]>();
+    private final TreeMap<String,String[]> hs =
+        new TreeMap<String,String[]>(play.core.utils.CaseInsensitiveOrdered$.MODULE$);
 
-    private final HashMap<String,String[]> qs = 
+    private final HashMap<String,String[]> qs =
         new HashMap<String,String[]>();
 
     private final TestCookies cs = new TestCookies();
@@ -197,7 +198,7 @@ final class TestRequest extends Http.Request {
     private final String v; // Version
     private final String u; // URI
 
-    public TestRequest(String m, String h, String p, 
+    public TestRequest(String m, String h, String p,
                        boolean s, String ra, String v, String u) {
 
         this.m = m;
@@ -244,7 +245,7 @@ final class TestCall extends Call {
         this.u = u;
         this.m = m;
     }
-    
+
     public String url() { return this.u; }
     public String method() { return this.m; }
 }
