@@ -19,7 +19,7 @@ If you want to grab the available source jars (this will take longer and it's po
 
 ```
 [my-first-app] $ eclipse with-source=true
-```p
+```
 
 > Note if you are using sub-projects with aggregate, you would need to set `skipParents` appropriately in `build.sbt`:
 
