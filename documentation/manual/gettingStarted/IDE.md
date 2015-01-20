@@ -19,7 +19,7 @@ If you want to grab the available source jars (this will take longer and it's po
 
 ```
 [my-first-app] $ eclipse with-source=true
-```
+```p
 
 > Note if you are using sub-projects with aggregate, you would need to set `skipParents` appropriately in `build.sbt`:
 
@@ -84,7 +84,7 @@ You can run the created application and view the result in the default browser `
 
 To run a Play application:
 -	In the project tree, right-click the application.
--	From the list in the context menu, select ***Run Pla2 App***.
+-	From the list in the context menu, select ***Run Play 2 App***.
 
 You can easily start a debugger session for a Play application using default Run/Debug Configuration settings.
 
