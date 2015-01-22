@@ -55,7 +55,7 @@ trait JavaHelpers {
 
   /**
    * creates a java request (with an empty body) from a scala RequestHeader
-   * @param request incoming requestHeader
+   * @param req incoming requestHeader
    */
   def createJavaRequest(req: RequestHeader): JRequest = {
     new JRequest {
@@ -76,7 +76,7 @@ trait JavaHelpers {
 
       def body = null
 
-      def headers = req.headers.toMap.map(e => e._1 -> e._2.toArray).asJava
+      def headers = createHeaderMap(req.headers)
 
       def acceptLanguages = req.acceptLanguages.map(new play.i18n.Lang(_)).asJava
 
@@ -151,7 +151,7 @@ trait JavaHelpers {
 
       def body = req.body
 
-      def headers = req.headers.toMap.map(e => e._1 -> e._2.toArray).asJava
+      def headers = createHeaderMap(req.headers)
 
       def acceptLanguages = req.acceptLanguages.map(new play.i18n.Lang(_)).asJava
 
@@ -250,6 +250,12 @@ trait JavaHelpers {
   def toPartialFunction[A, B](f: F.Function[A, B]): PartialFunction[A, B] = new PartialFunction[A, B] {
     def apply(a: A) = f.apply(a)
     def isDefinedAt(x: A) = true
+  }
+
+  private def createHeaderMap(headers: Headers): java.util.Map[String, Array[String]] = {
+    val map = new java.util.TreeMap[String, Array[String]](play.core.utils.CaseInsensitiveOrdered)
+    map.putAll(headers.toMap.mapValues(_.toArray).asJava)
+    map
   }
 
 }

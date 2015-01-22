@@ -199,7 +199,7 @@ class DummyRequest(data: Map[String, Array[String]]) extends play.mvc.Http.Reque
   def accept = List("text/html").asJava
   def acceptedTypes = List(new play.api.http.MediaRange("text", "html", Nil, None, Nil)).asJava
   def accepts(mediaType: String) = false
-  def headers() = new java.util.HashMap[String, Array[String]]()
+  def headers() = new java.util.TreeMap[String, Array[String]](play.core.utils.CaseInsensitiveOrdered)
   val remoteAddress = "127.0.0.1"
   def secure() = false
   def body() = new Http.RequestBody {

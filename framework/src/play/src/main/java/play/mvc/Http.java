@@ -294,7 +294,7 @@ public class Http {
          * The HTTP version.
          */
         public abstract String version();
-        
+
         /**
          * The client IP address.
          *
@@ -362,7 +362,7 @@ public class Http {
         /**
          * Retrieves all headers.
          *
-         * @return headers
+         * @return a map of of header name to headers with case-insensitive keys
          */
         public abstract Map<String,String[]> headers();
 
@@ -372,19 +372,8 @@ public class Http {
          * @param headerName The name of the header (case-insensitive).
          */
         public String getHeader(String headerName) {
-            String[] headers = null;
-            for (String h: headers().keySet()) {
-                if (headerName.toLowerCase().equals(h.toLowerCase())) {
-                    headers = headers().get(h);
-                    break;
-                }
-            }
-
-            if (headers == null || headers.length == 0) {
-                return null;
-            }
-
-            return headers[0];
+            String[] headers = headers().get(headerName);
+            return headers == null ? null : headers[0];
         }
 
         /**

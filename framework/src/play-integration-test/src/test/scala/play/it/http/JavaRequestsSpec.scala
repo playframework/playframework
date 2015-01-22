@@ -1,8 +1,6 @@
 package play.it.http
 
-import org.specs2.mutable._
 import org.specs2.mock.Mockito
-import org.mockito._
 
 import play.api.test._
 import play.api.mvc._
@@ -17,6 +15,18 @@ import play.mvc.Http.{ RequestBody, Context }
 class JavaRequestsSpec extends PlaySpecification with Mockito {
 
   "JavaHelpers" should {
+
+    "create a request with case insensitive headers" in {
+      val requestHeader: RequestHeader = FakeRequest().withHeaders("Content-type" -> "application/json")
+      val javaRequest: Http.Request = JavaHelpers.createJavaRequest(requestHeader)
+
+      val ct = javaRequest.getHeader("Content-Type")
+      val headers = javaRequest.headers()
+      ct must_== "application/json"
+      headers.get("content-type") must_== Array(ct)
+      headers.get("Content-Type") must_== Array(ct)
+      javaRequest.getHeader("content-type") must_== ct
+    }
 
     "create a request with a helper that can do cookies" in {
       import scala.collection.JavaConversions._
