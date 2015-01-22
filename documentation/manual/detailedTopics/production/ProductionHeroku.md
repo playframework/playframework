@@ -8,7 +8,7 @@ To get started:
 1. [Install the Heroku Toolbelt](https://toolbelt.heroku.com)
 2. [Sign up for a Heroku account](https://id.heroku.com/signup)
 
-There are two method of deployment to Heroku:
+There are two methods of deployment to Heroku:
 
 *  Pushing to a remote [Git repository](https://devcenter.heroku.com/articles/deploying-scala).
 *  Using the [sbt-heroku plugin](https://devcenter.heroku.com/articles/deploying-scala-and-play-applications-with-the-heroku-sbt-plugin).
@@ -93,6 +93,7 @@ $ heroku logs
 ```
 
 We can also tail the logs in the same manner as we could do at a regular command line.  This is useful for debugging:
+
 ```bash
 $ heroku logs -t --app warm-frost-1289
 2011-08-18T00:13:41+00:00 heroku[web.1]: Starting process with command `target/universal/stage/bin/myapp`
