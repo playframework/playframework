@@ -12,6 +12,22 @@ import play.api.libs.iteratee.Execution.Implicits.defaultExecutionContext
 object Json {
 
   /**
+   * Implicit conversion from String to JsValue.
+   *
+   * @param representation as JSON string to be converted
+   * @return the JsValue representing the JSON String
+   */
+  implicit def stringToJsValue(representation: String): JsValue = Json.parse(representation)
+
+  /**
+   * Implicit conversion from JsValue to String.
+   *
+   * @param jsValue a JsValue to be converted
+   * @return JSON String representing the JsValue
+   */
+  implicit def jsValueToString(jsValue: JsValue): String = Json.stringify(jsValue)
+
+  /**
    * Parse a String representing a json, and return it as a JsValue.
    *
    * @param input a String to parse
@@ -183,7 +199,7 @@ object Json {
   import language.experimental.macros
 
   /**
-   * Creates a Reads[T] by resolving case class fields & required implcits at COMPILE-time.
+   * Creates a Reads[T] by resolving case class fields & required implicits at COMPILE-time.
    *
    * If any missing implicit is discovered, compiler will break with corresponding error.
    * {{{

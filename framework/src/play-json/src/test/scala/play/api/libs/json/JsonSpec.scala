@@ -296,6 +296,19 @@ object JsonSpec extends Specification {
       val stream = new java.io.ByteArrayInputStream(js.toString.getBytes("UTF-8"))
       Json.parse(stream) must beEqualTo(js)
     }
+
+    "JsValue should be implicitly converted to String" in {
+      val jsonSource = """{"foo":{"foo":["bar"]},"bar":{"foo":["bar"]}}"""
+      val jsonRepresentation: String = Json parse jsonSource
+      jsonRepresentation must be equalTo jsonSource
+    }
+
+    "String should be implicitly converted from JsValue" in {
+      val jsonSource: String = """{"foo":{"foo":["bar"]},"bar":{"foo":["bar"]}}"""
+      val parsedJson: JsValue = Json parse jsonSource
+      val implicitlyConvertedJson: JsValue = jsonSource
+      implicitlyConvertedJson must be equalTo parsedJson
+    }
   }
 
   "JSON Writes" should {
