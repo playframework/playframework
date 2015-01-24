@@ -195,7 +195,6 @@ object Json {
    * Reads[T]/Writes[T]/Format[T] from case class at COMPILE time using
    * new Scala 2.10 macro & reflection features.
    */
-  import scala.reflect.macros.Context
   import language.experimental.macros
 
   /**
