@@ -1,4 +1,4 @@
-package play.core.classloader;
+package play.runsupport.classloader;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -14,37 +14,20 @@ import java.util.Vector;
 
 public class DelegatingClassLoader extends ClassLoader {
 
-  private static final List<String> buildSharedClasses;
-  static {
-    List<String> list = new ArrayList<String>();
-    list.add(play.core.BuildLink.class.getName());
-    list.add(play.core.BuildDocHandler.class.getName());
-    list.add(play.core.server.ServerWithStop.class.getName());
-    list.add(play.api.UsefulException.class.getName());
-    list.add(play.api.PlayException.class.getName());
-    list.add(play.api.PlayException.InterestingLines.class.getName());
-    list.add(play.api.PlayException.RichDescription.class.getName());
-    list.add(play.api.PlayException.ExceptionSource.class.getName());
-    list.add(play.api.PlayException.ExceptionAttachment.class.getName());
-    buildSharedClasses = Collections.unmodifiableList(list);
-  }
-
+  private List<String> sharedClasses;
   private ClassLoader buildLoader;
   private ApplicationClassLoaderProvider applicationClassLoaderProvider;
 
-  public DelegatingClassLoader(ClassLoader commonLoader, ClassLoader buildLoader, ApplicationClassLoaderProvider applicationClassLoaderProvider) {
+  public DelegatingClassLoader(ClassLoader commonLoader, List<String> sharedClasses, ClassLoader buildLoader, ApplicationClassLoaderProvider applicationClassLoaderProvider) {
     super(commonLoader);
+    this.sharedClasses = sharedClasses;
     this.buildLoader = buildLoader;
     this.applicationClassLoaderProvider = applicationClassLoaderProvider;
   }
 
-  public static boolean isSharedClass(String name) {
-    return buildSharedClasses.contains(name);
-  }
-
   @Override
   public Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-    if (isSharedClass(name)) {
+    if (sharedClasses.contains(name)) {
       return buildLoader.loadClass(name);
     } else {
       return super.loadClass(name, resolve);
