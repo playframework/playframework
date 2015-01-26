@@ -150,7 +150,7 @@ There are several input helpers, but the most helpful are:
 * [`select`](api/scala/index.html#views.html.helper.select$): renders a [select](http://www.w3.org/TR/html-markup/select.html#select) element.
 * [`textarea`](api/scala/index.html#views.html.helper.textarea$): renders a [textarea](http://www.w3.org/TR/html-markup/textarea.html#textarea) element.
 * [`checkbox`](api/scala/index.html#views.html.helper.checkbox$): renders a [checkbox](http://www.w3.org/TR/html-markup/input.checkbox.html#input.checkbox) element.
-* [`input`](api/scala/index.html#views.html.helper.input): renders a generic input element (which requires explicit arguments).
+* [`input`](api/scala/index.html#views.html.helper.input$): renders a generic input element (which requires explicit arguments).
 
 As with the `form` helper, you can specify an extra set of parameters that will be added to the generated Html:
 
