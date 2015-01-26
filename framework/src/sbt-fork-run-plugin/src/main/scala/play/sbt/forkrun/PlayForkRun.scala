@@ -60,7 +60,7 @@ object PlayForkRun extends AutoPlugin {
     playForkNotifyStart <<= serverStartedTask,
     playForkStarted <<= publishUrlTask,
     playForkReload <<= compileTask,
-    UIKeys.registeredFormats ++= Serializers.formats.map(x => RegisteredFormat.apply(x.format)(x.manifest))
+    UIKeys.registeredSerializers ++= Serializers.serializers.map(x => RegisteredSerializer.apply(x.serializer)(x.manifest))
   )
 
   val allInput: Parser[String] = {
@@ -129,7 +129,7 @@ object PlayForkRun extends AutoPlugin {
   }
 
   def publishUrlTask = Def.task[String => Unit] { url =>
-    UIKeys.sendEventService.value.sendEvent(PlayServerStarted(url))(Serializers.playServerStartedWrites)
+    UIKeys.sendEventService.value.sendEvent(PlayServerStarted(url))(Serializers.playServerStartedSPickler)
   }
 
   def compileTask = Def.task[CompileResult] {

@@ -139,7 +139,7 @@ object Dependencies {
 
   val jnotify = "net.contentobjects.jnotify" % "jnotify" % "0.94"
 
-  val sbtRcVersion = "1.0-951c90820f296b4eda7eb9759e8d80f148065cd6"
+  val sbtRcVersion = "1.0-M1"
 
   def forkRunProtocolDependencies(scalaBinaryVersion: String) = Seq(
     sbtRcClient(scalaBinaryVersion)
