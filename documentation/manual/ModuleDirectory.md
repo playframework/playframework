@@ -277,7 +277,7 @@
 ## Play Dok
 
 * **Website:** <http://www.applidok.com>
-* **Documentation:** <https://github.com/applicius/play-dok/>
+* **Documentation:** <https://github.com/cchantep/play-dok/>
 * **Short description:** Library to integrate Applidok PDF templating service with your Play application.
 
 ## Qunit (Java)
