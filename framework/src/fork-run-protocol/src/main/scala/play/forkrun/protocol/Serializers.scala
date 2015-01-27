@@ -16,12 +16,12 @@ import scala.pickling.{ FastTypeTag, PBuilder, PReader, PicklingException, SPick
 
 object Serializers {
 
-  implicit def tuple2Pickler[A,B](implicit pickerA:SPickler[A], pickerB:SPickler[B],
-                                  unpickerA:Unpickler[A], unpickerB:Unpickler[B],
-                                  tupleTag:FastTypeTag[Tuple2[A,B]], aTag: FastTypeTag[A], bTag: FastTypeTag[B]):SPickler[Tuple2[A,B]] with Unpickler[Tuple2[A,B]] =
-    new SPickler[Tuple2[A,B]] with Unpickler[Tuple2[A,B]] {
-      override def tag: FastTypeTag[Tuple2[A,B]] = tupleTag
-      override def pickle(picklee: Tuple2[A,B], builder: PBuilder): Unit = {
+  implicit def tuple2Pickler[A, B](implicit pickerA: SPickler[A], pickerB: SPickler[B],
+    unpickerA: Unpickler[A], unpickerB: Unpickler[B],
+    tupleTag: FastTypeTag[Tuple2[A, B]], aTag: FastTypeTag[A], bTag: FastTypeTag[B]): SPickler[Tuple2[A, B]] with Unpickler[Tuple2[A, B]] =
+    new SPickler[Tuple2[A, B]] with Unpickler[Tuple2[A, B]] {
+      override def tag: FastTypeTag[Tuple2[A, B]] = tupleTag
+      override def pickle(picklee: Tuple2[A, B], builder: PBuilder): Unit = {
         builder.pushHints()
         builder.hintTag(tag)
         builder.hintStaticallyElidedType()
@@ -29,9 +29,9 @@ object Serializers {
 
         builder.beginCollection(2)
         builder.hintTag(aTag)
-        builder.putElement(b => pickerA.pickle(picklee._1,b))
+        builder.putElement(b => pickerA.pickle(picklee._1, b))
         builder.hintTag(bTag)
-        builder.putElement(b => pickerB.pickle(picklee._2,b))
+        builder.putElement(b => pickerB.pickle(picklee._2, b))
         builder.endCollection()
 
         builder.endEntry()
@@ -47,31 +47,31 @@ object Serializers {
         reader.beginCollection()
         reader.hintStaticallyElidedType()
         reader.hintTag(aTag)
-        val a:A = unpickerA.unpickleEntry(reader.readElement()).asInstanceOf[A]
+        val a: A = unpickerA.unpickleEntry(reader.readElement()).asInstanceOf[A]
         reader.hintTag(bTag)
-        val b:B = unpickerB.unpickleEntry(reader.readElement()).asInstanceOf[B]
+        val b: B = unpickerB.unpickleEntry(reader.readElement()).asInstanceOf[B]
         reader.endCollection()
 
         reader.endEntry()
         reader.popHints()
-        (a,b)
+        (a, b)
       }
     }
 
-  implicit val defaultWatchServiceSPickler:SPickler[ForkConfig.DefaultWatchService.type] = genPickler[ForkConfig.DefaultWatchService.type]
-  implicit val defaultWatchServiceUnpickler:Unpickler[ForkConfig.DefaultWatchService.type] = genUnpickler[ForkConfig.DefaultWatchService.type]
+  implicit val defaultWatchServiceSPickler: SPickler[ForkConfig.DefaultWatchService.type] = genPickler[ForkConfig.DefaultWatchService.type]
+  implicit val defaultWatchServiceUnpickler: Unpickler[ForkConfig.DefaultWatchService.type] = genUnpickler[ForkConfig.DefaultWatchService.type]
 
-  implicit val jDK7WatchServiceSPickler:SPickler[ForkConfig.JDK7WatchService.type] = genPickler[ForkConfig.JDK7WatchService.type]
-  implicit val jDK7WatchServiceUnpickler:Unpickler[ForkConfig.JDK7WatchService.type] = genUnpickler[ForkConfig.JDK7WatchService.type]
+  implicit val jDK7WatchServiceSPickler: SPickler[ForkConfig.JDK7WatchService.type] = genPickler[ForkConfig.JDK7WatchService.type]
+  implicit val jDK7WatchServiceUnpickler: Unpickler[ForkConfig.JDK7WatchService.type] = genUnpickler[ForkConfig.JDK7WatchService.type]
 
-  implicit val jNotifyWatchServiceSPickler:SPickler[ForkConfig.JNotifyWatchService.type] = genPickler[ForkConfig.JNotifyWatchService.type]
-  implicit val jNotifyWatchServiceUnpickler:Unpickler[ForkConfig.JNotifyWatchService.type] = genUnpickler[ForkConfig.JNotifyWatchService.type]
+  implicit val jNotifyWatchServiceSPickler: SPickler[ForkConfig.JNotifyWatchService.type] = genPickler[ForkConfig.JNotifyWatchService.type]
+  implicit val jNotifyWatchServiceUnpickler: Unpickler[ForkConfig.JNotifyWatchService.type] = genUnpickler[ForkConfig.JNotifyWatchService.type]
 
-  implicit val sbtWatchServiceSPickler:SPickler[ForkConfig.SbtWatchService] = genPickler[ForkConfig.SbtWatchService]
-  implicit val sbtWatchServiceUnpickler:Unpickler[ForkConfig.SbtWatchService] = genUnpickler[ForkConfig.SbtWatchService]
+  implicit val sbtWatchServiceSPickler: SPickler[ForkConfig.SbtWatchService] = genPickler[ForkConfig.SbtWatchService]
+  implicit val sbtWatchServiceUnpickler: Unpickler[ForkConfig.SbtWatchService] = genUnpickler[ForkConfig.SbtWatchService]
 
-  implicit val watchServiceSPicker:SPickler[ForkConfig.WatchService] = genPickler[ForkConfig.WatchService]
-  implicit val watchServiceUnpickler:Unpickler[ForkConfig.WatchService] = genUnpickler[ForkConfig.WatchService]
+  implicit val watchServiceSPicker: SPickler[ForkConfig.WatchService] = genPickler[ForkConfig.WatchService]
+  implicit val watchServiceUnpickler: Unpickler[ForkConfig.WatchService] = genUnpickler[ForkConfig.WatchService]
 
   implicit val forkConfigPickler: SPickler[ForkConfig] = genPickler[ForkConfig]
   implicit val forkConfigUnpickler: Unpickler[ForkConfig] = genUnpickler[ForkConfig]
@@ -88,24 +88,24 @@ object Serializers {
     private val throwableOptUnpickler = implicitly[Unpickler[Option[Throwable]]]
 
     override def pickle(picklee: PlayException, builder: PBuilder): Unit = {
-      def writeIntField(key:String,value:Int):Unit = builder.putField(key,(b => intPickler.pickle(value,b)))
-      def writeStringField(key:String,value:String):Unit = builder.putField(key,(b => stringPickler.pickle(value,b)))
-      def writeThrowableField(key:String,value:Throwable):Unit = builder.putField(key,(b => throwablePicklerUnpickler.pickle(value,b)))
+      def writeIntField(key: String, value: Int): Unit = builder.putField(key, (b => intPickler.pickle(value, b)))
+      def writeStringField(key: String, value: String): Unit = builder.putField(key, (b => stringPickler.pickle(value, b)))
+      def writeThrowableField(key: String, value: Throwable): Unit = builder.putField(key, (b => throwablePicklerUnpickler.pickle(value, b)))
 
       builder.pushHints()
       builder.hintTag(tag)
       builder.hintStaticallyElidedType()
       builder.beginEntry(picklee)
-      writeStringField("id",picklee.id)
-      writeStringField("title",picklee.title)
-      writeStringField("description",picklee.description)
-      if (picklee.cause != null) writeThrowableField("cause",picklee.cause)
+      writeStringField("id", picklee.id)
+      writeStringField("title", picklee.title)
+      writeStringField("description", picklee.description)
+      if (picklee.cause != null) writeThrowableField("cause", picklee.cause)
       picklee match {
-        case x:PlayException.ExceptionSource =>
-          writeIntField("line",x.line)
-          writeIntField("position",x.position)
-          writeStringField("input",x.input)
-          writeStringField("sourceName",x.sourceName)
+        case x: PlayException.ExceptionSource =>
+          writeIntField("line", x.line)
+          writeIntField("position", x.position)
+          writeStringField("input", x.input)
+          writeStringField("sourceName", x.sourceName)
         case _ =>
       }
       builder.endEntry()
@@ -113,11 +113,11 @@ object Serializers {
     }
 
     override def unpickle(tpe: String, reader: PReader): Any = {
-      def readIntField(key:String):Int = intPickler.unpickleEntry(reader.readField(key)).asInstanceOf[Int]
-      def readIntOptField(key:String):Option[Int] = intOptUnpickler.unpickleEntry(reader.readField(key)).asInstanceOf[Option[Int]]
-      def readStringField(key:String):String = stringPickler.unpickleEntry(reader.readField(key)).asInstanceOf[String]
-      def readStringOptField(key:String):Option[String] = stringOptUnpickler.unpickleEntry(reader.readField(key)).asInstanceOf[Option[String]]
-      def readThrowableOptField(key:String):Option[Throwable] = throwableOptUnpickler.unpickleEntry(reader.readField(key)).asInstanceOf[Option[Throwable]]
+      def readIntField(key: String): Int = intPickler.unpickleEntry(reader.readField(key)).asInstanceOf[Int]
+      def readIntOptField(key: String): Option[Int] = intOptUnpickler.unpickleEntry(reader.readField(key)).asInstanceOf[Option[Int]]
+      def readStringField(key: String): String = stringPickler.unpickleEntry(reader.readField(key)).asInstanceOf[String]
+      def readStringOptField(key: String): Option[String] = stringOptUnpickler.unpickleEntry(reader.readField(key)).asInstanceOf[Option[String]]
+      def readThrowableOptField(key: String): Option[Throwable] = throwableOptUnpickler.unpickleEntry(reader.readField(key)).asInstanceOf[Option[Throwable]]
 
       reader.pushHints()
       reader.hintStaticallyElidedType()
@@ -175,7 +175,7 @@ object Serializers {
   }
 
   val serializers: Seq[LocalRegisteredSerializer] = List(
-    LocalRegisteredSerializer.fromSbtSerializer(SbtSerializer(forkConfigPickler,forkConfigUnpickler)),
-    LocalRegisteredSerializer.fromSbtSerializer(SbtSerializer(compileResultSPickler,compileResultUnpickler)),
-    LocalRegisteredSerializer.fromSbtSerializer(SbtSerializer(playServerStartedSPickler,playServerStartedUnpicker)))
+    LocalRegisteredSerializer.fromSbtSerializer(SbtSerializer(forkConfigPickler, forkConfigUnpickler)),
+    LocalRegisteredSerializer.fromSbtSerializer(SbtSerializer(compileResultSPickler, compileResultUnpickler)),
+    LocalRegisteredSerializer.fromSbtSerializer(SbtSerializer(playServerStartedSPickler, playServerStartedUnpicker)))
 }
