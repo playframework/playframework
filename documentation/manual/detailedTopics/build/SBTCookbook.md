@@ -66,7 +66,7 @@ object Grunt {
 
     object GruntProcess extends PlayRunHook {
 
-    var process: Option[Process] = None
+      var process: Option[Process] = None
 
       override def beforeStarted(): Unit = {
         Process("grunt dist", base).run
