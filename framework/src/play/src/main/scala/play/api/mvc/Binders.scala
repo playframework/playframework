@@ -102,6 +102,7 @@ trait QueryStringBindable[A] {
       self.bind(key, params).map(_.right.map(toB))
     }
     def unbind(key: String, value: B): String = self.unbind(key, toA(value))
+    override def javascriptUnbind: String = self.javascriptUnbind
   }
 }
 
