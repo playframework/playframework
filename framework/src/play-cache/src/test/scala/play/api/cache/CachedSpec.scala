@@ -36,7 +36,7 @@ class CachedSpec extends PlaySpecification {
       status(result1) must_== 200
       invoked.get() must_== 1
       val etag = header(ETAG, result1)
-      etag must beSome
+      etag must beSome(matching("""([wW]/)?"([^"]|\\")*""""))
       val result2 = action(FakeRequest().withHeaders(IF_NONE_MATCH -> etag.get)).run
       status(result2) must_== NOT_MODIFIED
       invoked.get() must_== 1
