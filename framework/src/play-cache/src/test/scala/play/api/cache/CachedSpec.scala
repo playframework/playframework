@@ -214,6 +214,26 @@ class CachedSpec extends PlaySpecification {
     }
   }
 
+  "CacheApi" should {
+    "get items from cache" in new WithApplication() {
+      val defaultCache = app.injector.instanceOf[CacheApi]
+      defaultCache.set("foo", "bar")
+      defaultCache.get[String]("foo") must beSome("bar")
+    }
+
+    "doesnt give items from cache with wrong type" in new WithApplication() {
+      val defaultCache = app.injector.instanceOf[CacheApi]
+      defaultCache.set("foo", "bar")
+      defaultCache.get[Int]("foo") must beNone
+    }
+
+    "get items from the cache without giving a type" in new WithApplication() {
+      val defaultCache = app.injector.instanceOf[CacheApi]
+      defaultCache.set("foo", "bar")
+      defaultCache.get("foo") must beSome("bar")
+    }
+  }
+
   "EhCacheModule" should {
     "support binding multiple different caches" in new WithApplication(FakeApplication(
       additionalConfiguration = Map("play.modules.cache.bindCaches" -> Seq("custom"))

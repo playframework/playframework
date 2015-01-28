@@ -257,6 +257,7 @@ class EhCacheApi @Inject() (cache: Ehcache) extends CacheApi {
   def get[T](key: String)(implicit ct: ClassTag[T]) = {
     Option(cache.get(key)).map(_.getObjectValue).collect {
       case tValue if ct.runtimeClass.isInstance(tValue) => tValue.asInstanceOf[T]
+      case tValue if ct == ClassTag.Nothing => tValue.asInstanceOf[T]
     }
   }
 
