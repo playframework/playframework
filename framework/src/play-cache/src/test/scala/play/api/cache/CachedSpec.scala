@@ -227,10 +227,15 @@ class CachedSpec extends PlaySpecification {
       defaultCache.get[Int]("foo") must beNone
     }
 
-    "get items from the cache without giving a type" in new WithApplication() {
+    "get items from the cache without giving the type" in new WithApplication() {
       val defaultCache = app.injector.instanceOf[CacheApi]
       defaultCache.set("foo", "bar")
       defaultCache.get("foo") must beSome("bar")
+      defaultCache.get[Any]("foo") must beSome("bar")
+
+      defaultCache.set("baz", false)
+      defaultCache.get("baz") must beSome(false)
+      defaultCache.get[Any]("baz") must beSome(false)
     }
   }
 
