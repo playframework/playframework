@@ -182,7 +182,7 @@ Great power means greater responsability so it's better to discuss all together 
 
 >Please remark that JSON inception just works for structures having `unapply/apply` functions with corresponding input/output types.
 
-Naturally, you can also _incept_ `Writes[T]`and `Format[T]`.
+Naturally, you can also _incept_ `Writes[T]` and `Format[T]`.
 
 ## <a name="writes">Writes[T]</a>
 
