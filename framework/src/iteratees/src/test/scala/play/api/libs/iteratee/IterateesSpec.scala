@@ -207,6 +207,30 @@ object IterateesSpec extends Specification
       }
     }
 
+    "not overflow the stack when called recursively" in {
+      // Find how much recursion is needed to overflow the stack
+      // on the current Java runtime.
+      def overflows(n: Int): Boolean = {
+        def recurseTimes(n: Int): Unit = {
+          if (n == 0) () else identity(recurseTimes(n - 1))
+        }
+        try {
+          recurseTimes(n)
+          false // Didn't overflow
+        } catch {
+          case _: StackOverflowError => true
+        }
+      }
+      val overflowDepth: Int = (12 until 20).map(1 << _).find(overflows).get
+
+      import ExecutionContext.Implicits.global
+      val unitDone: Iteratee[Unit, Unit] = Done(())
+      val flatMapped: Iteratee[Unit, Unit] = (0 until overflowDepth).foldLeft[Iteratee[Unit, Unit]](Cont(_ => unitDone)) {
+        case (it, _) => it.flatMap(_ => unitDone)
+      }
+      await(await(flatMapped.feed(Input.EOF)).unflatten) must equalTo(Step.Done((), Input.Empty))
+    }
+
   }
 
   "Error iteratees" should {

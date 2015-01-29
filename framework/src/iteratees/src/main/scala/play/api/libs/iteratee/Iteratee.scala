@@ -541,7 +541,7 @@ trait Iteratee[E, +A] {
       }(dec)
       case Step.Cont(k) => {
         implicit val pec = ec.prepare()
-        Cont((in: Input[E]) => k(in).flatMap(f)(pec))
+        Cont((in: Input[E]) => executeIteratee(k(in))(dec).flatMap(f)(pec))
       }
       case Step.Error(msg, e) => Error(msg, e)
     }
