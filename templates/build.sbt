@@ -2,19 +2,19 @@ import play.sbt.activator.Templates._
 
 templateSettings
 
-val playSbtVersion = propOrElse("sbt.version", "0.13.5")
+val playSbtVersion = propOrElse("sbt.version", "0.13.7")
 
 val coffeescriptVersion = propOrElse("coffeescript.version", "1.0.0")
 
-val lessVersion = propOrElse("less.version", "1.0.0")
+val lessVersion = propOrElse("less.version", "1.0.6")
 
-val jshintVersion = propOrElse("jshint.version", "1.0.1")
+val jshintVersion = propOrElse("jshint.version", "1.0.3")
 
-val digestVersion = propOrElse("digest.version", "1.0.0")
+val digestVersion = propOrElse("digest.version", "1.1.0")
 
-val rjsVersion = propOrElse("rjs.version", "1.0.1")
+val rjsVersion = propOrElse("rjs.version", "1.0.7")
 
-val mochaVersion = propOrElse("mocha.version", "1.0.0")
+val mochaVersion = propOrElse("mocha.version", "1.0.2")
 
 templates := {
   val dir = baseDirectory.value
