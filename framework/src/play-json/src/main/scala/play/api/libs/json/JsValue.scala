@@ -10,7 +10,6 @@ import scala.collection.mutable.ListBuffer
 
 import com.fasterxml.jackson.core.{ JsonTokenId, JsonGenerator, JsonParser }
 import com.fasterxml.jackson.databind._
-import com.fasterxml.jackson.databind.util.TokenBuffer
 import com.fasterxml.jackson.databind.`type`.TypeFactory
 import com.fasterxml.jackson.databind.deser.Deserializers
 import com.fasterxml.jackson.databind.ser.Serializers
@@ -81,64 +80,70 @@ case class JsArray(value: Seq[JsValue] = List()) extends JsValue {
 /**
  * Represent a Json object value.
  */
-case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
+case class JsObject(private val underlying: Map[String, JsValue]) extends JsValue {
 
-  lazy val value: Map[String, JsValue] = fields.toMap
+  /**
+   * The fields of this JsObject in the order passed to to constructor
+   */
+  lazy val fields: Seq[(String, JsValue)] = underlying.toSeq
+
+  /**
+   * The value of this JsObject as a Map. If the underlying map is a ListMap, we convert the map for faster access.
+   */
+  lazy val value: Map[String, JsValue] = underlying match {
+    case _: immutable.ListMap[String, JsValue] => Map(fields: _*)
+    case map => map
+  }
+
+  /**
+   * Return all fields as a set
+   */
+  def fieldSet: Set[(String, JsValue)] = fields.toSet
 
   /**
    * Return all keys
    */
-  def keys: Set[String] = fields.map(_._1)(collection.breakOut)
+  def keys: Set[String] = value.keySet
 
   /**
    * Return all values
    */
-  def values: Set[JsValue] = fields.map(_._2)(collection.breakOut)
-
-  def fieldSet: Set[(String, JsValue)] = fields.toSet
+  def values: Iterable[JsValue] = value.values
 
   /**
-   * Merge this object with an other one. Values from other override value of the current object.
+   * Merge this object with another one. Values from other override value of the current object.
    */
-  def ++(other: JsObject): JsObject =
-    JsObject(fields.filterNot(field => other.keys(field._1)) ++ other.fields)
+  def ++(other: JsObject): JsObject = JsObject(underlying ++ other.underlying)
 
   /**
-   * removes one field from JsObject
+   * Removes one field from the JsObject
    */
-  def -(otherField: String): JsObject =
-    JsObject(fields.filterNot(_._1 == otherField))
+  def -(otherField: String): JsObject = JsObject(underlying - otherField)
 
   /**
-   * adds one field from JsObject
+   * Adds one field to the JsObject
    */
-  def +(otherField: (String, JsValue)): JsObject =
-    JsObject(fields :+ otherField)
+  def +(otherField: (String, JsValue)): JsObject = JsObject(underlying + otherField)
 
   /**
-   * merges everything in depth and doesn't stop at first level as ++
+   * merges everything in depth and doesn't stop at first level, as ++ does
    */
   def deepMerge(other: JsObject): JsObject = {
-
-    def deepMerge(existingObject: JsObject, otherObject: JsObject): JsObject = {
-
-      val resultFields: mutable.Map[String, JsValue] = mutable.LinkedHashMap(existingObject.fields: _*)
-
-      otherObject.fields.foreach {
+    def merge(existingObject: JsObject, otherObject: JsObject): JsObject = {
+      val result = existingObject.underlying ++ otherObject.underlying.map {
         case (otherKey, otherValue) =>
-          val maybeExistingValue = resultFields.get(otherKey)
+          val maybeExistingValue = existingObject.value.get(otherKey)
 
           val newValue = (maybeExistingValue, otherValue) match {
-            case (Some(e: JsObject), o: JsObject) => deepMerge(e, o)
+            case (Some(e: JsObject), o: JsObject) => merge(e, o)
             case (Some(e: JsArray), o: JsArray) => e ++ o
             case _ => otherValue
           }
-          resultFields.put(otherKey, newValue)
+          otherKey -> newValue
       }
-      JsObject(resultFields.toSeq)
+      JsObject(result)
     }
-
-    deepMerge(this, other)
+    merge(this, other)
   }
 
   override def equals(other: Any): Boolean = other match {
@@ -149,7 +154,13 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
   def canEqual(other: Any): Boolean = other.isInstanceOf[JsObject]
 
   override def hashCode: Int = fieldSet.hashCode()
+}
 
+object JsObject {
+  /**
+   * Construct a new JsObject, with the order of fields in the Seq.
+   */
+  def apply(fields: Seq[(String, JsValue)]): JsObject = new JsObject(immutable.ListMap(fields: _*))
 }
 
 // -- Serializers.

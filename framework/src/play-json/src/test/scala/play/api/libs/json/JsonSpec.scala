@@ -385,6 +385,23 @@ object JsonSpec extends org.specs2.mutable.Specification {
       val stream = new java.io.ByteArrayInputStream(js.toString.getBytes("UTF-8"))
       Json.parse(stream) must beEqualTo(js)
     }
+
+    "keep isomorphism between serialized and deserialized data" in {
+      val original = Json.obj(
+        "key1" -> "value1",
+        "key2" -> true,
+        "key3" -> JsNull,
+        "key4" -> Json.arr(1, 2.5, "value2", false, JsNull),
+        "key5" -> Json.obj(
+          "key6" -> "こんにちは",
+          "key7" -> BigDecimal("12345678901234567890.123456789")
+        )
+      )
+      val originalString = Json.stringify(original)
+      val parsed = Json.parse(originalString)
+      parsed.asInstanceOf[JsObject].fields must_== original.fields
+      Json.stringify(parsed) must_== originalString
+    }
   }
 
   "JSON Writes" should {
