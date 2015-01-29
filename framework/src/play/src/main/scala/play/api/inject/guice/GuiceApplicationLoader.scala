@@ -92,7 +92,7 @@ class GuiceApplicationLoader(val additionalModules: GuiceModule*) extends Applic
 object GuiceApplicationLoader {
 
   /**
-   * Convert the given bindings Play bindings to a Guice module
+   * Convert the given Play bindings to a Guice module
    */
   private[play] def guiced(bindings: Seq[PlayBinding[_]]): AbstractModule = {
     new AbstractModule {
