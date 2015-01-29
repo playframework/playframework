@@ -205,17 +205,30 @@ trait Application {
   def injector: Injector = NewInstanceInjector
 }
 
-private[play] object Application {
+object Application {
   /**
-   * Creates a function that uses an inline cache to optimize calls to
-   * `application.injector.instanceOf[T]`. This is useful because
-   * hitting Guice multiple times on every request has been shown to
-   * be quite slow.
+   * Creates a function that caches results of calls to
+   * `app.injector.instanceOf[T]`. The cache speeds up calls
+   * when called with the same Application each time, which is
+   * a big benefit in production. It still works properly if
+   * called with a different Application each time, such as
+   * when running unit tests, but it will run more slowly.
+   *
+   * Since values are cached, it's important that this is only
+   * used for singleton values.
+   *
+   * This method avoids synchronization so it's possible that
+   * the injector might be called more than once for a single
+   * instance if this method is called from different threads
+   * at the same time.
    *
    * The cache uses a WeakReference to both the Application and
-   * the returned instance.
+   * the returned instance so it will not cause memory leaks.
+   * Unlike WeakHashMap it doesn't use a ReferenceQueue, so values
+   * will still be cleaned even if the ReferenceQueue is never
+   * activated.
    */
-  private[play] def instanceCache[T: ClassTag]: Application => T =
+  def instanceCache[T: ClassTag]: Application => T =
     new InlineCache((app: Application) => app.injector.instanceOf[T])
 }
 
