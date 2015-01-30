@@ -37,7 +37,7 @@ def index() = Action { implicit request =>
 }
 ```
 
-Without the `Request` implicit parameter in your `Action` scope, the default framework language will be supplied by the controller's method signature. Here is code which will always use english (or framework default, depending on host machine), even if the `conf/application.conf` file contains a line with `application.langs="fr, en,en-US,"`, and the requesting browser supplies only `fr` as its preferred locale: 
+Without the `Request` implicit parameter in your `Action` scope, the default framework language will be supplied by the controller's method signature. Here is code which will always use the default framework language, even if the `conf/application.conf` file contains a line with `application.langs="fr, en,en-US,"`, and the requesting browser supplies only `fr` as its preferred locale: 
 
 ```scala
 def index() = Action {
