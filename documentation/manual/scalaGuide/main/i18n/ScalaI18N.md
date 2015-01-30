@@ -29,7 +29,8 @@ All internationalization API calls take an implicit `play.api.i18n.Lang` argumen
 val title = Messages("home.title")(Lang("fr"))
 ```
 
-> **Note:** If you have an implicit `Request` in the scope, it will provide an implicit `Lang` value corresponding to the preferred language extracted from the `Accept-Language` header and matching one of the application supported languages. You should add a `Lang` implicit parameter to your template like this: `@()(implicit lang: Lang)`.
+> **Note:** In order to use the `Lang` value preferred by a browser's useragent string, You must use an implicit `Request` in your Action body, and it will provide an implicit `Lang` value corresponding to the preferred language extracted from the `Accept-Language` header and matching one of the application supported languages. Without the `Request` implicit parameter in your Action scope, the default framework language will be supplied by the controller's method signature, and this is usually english. 
+To make the `Lang` implicit parameter available to your templates, you should add it to the template function signature like this: `@()(implicit lang: Lang)`.
 
 ## Messages format
 
