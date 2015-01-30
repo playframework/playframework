@@ -37,7 +37,7 @@ def index() = Action { implicit request =>
 }
 ```
 
-Without the `Request` implicit parameter in your `Action` scope, the default framework language will be supplied by the controller's method signature, and this is usually english. Here is code which will always use english, even if the `conf/application.conf` file contains a line with `application.langs="fr, en,en-US,"`, and the requesting browser supplies only `fr` as its preferred locale: 
+Without the `Request` implicit parameter in your `Action` scope, the default framework language will be supplied by the controller's method signature. Here is code which will always use english (or framework default, depending on host machine), even if the `conf/application.conf` file contains a line with `application.langs="fr, en,en-US,"`, and the requesting browser supplies only `fr` as its preferred locale: 
 
 ```scala
 def index() = Action {
@@ -45,7 +45,7 @@ def index() = Action {
 }
 ```
 
-To make the `Lang` implicit parameter available to your templates, you should add it to the template function signature like this: `@()(implicit lang: Lang)`. Here is template code which will use the supplied language when calling the `Messages` object: 
+To make the `Lang` implicit parameter available to your templates, you should add it to the template function signature. Here is template code which will use the supplied language when calling the `Messages` object: 
 
 ```
 @()(implicit lang: Lang)
