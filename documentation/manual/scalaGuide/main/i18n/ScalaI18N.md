@@ -41,7 +41,7 @@ Without the `Request` implicit parameter in your `Action` scope, the default fra
 
 ```scala
 def index() = Action {
-  Ok(Messages("a.localized.message"))
+  Ok(Messages("a.localized.message")) // Without 'implicit request =>' this will always read from the conf/messages file!
 }
 ```
 
