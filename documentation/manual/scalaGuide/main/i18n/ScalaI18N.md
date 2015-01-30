@@ -29,8 +29,28 @@ All internationalization API calls take an implicit `play.api.i18n.Lang` argumen
 val title = Messages("home.title")(Lang("fr"))
 ```
 
-> **Note:** In order to use the `Lang` value preferred by a browser's useragent string, You must use an implicit `Request` in your Action body, and it will provide an implicit `Lang` value corresponding to the preferred language extracted from the `Accept-Language` header and matching one of the application supported languages. Without the `Request` implicit parameter in your Action scope, the default framework language will be supplied by the controller's method signature, and this is usually english. 
-To make the `Lang` implicit parameter available to your templates, you should add it to the template function signature like this: `@()(implicit lang: Lang)`.
+In order to use the `Lang` value preferred by a browser's useragent string, you must use an implicit `Request` in your `Action` body, and it will provide an implicit `Lang` value corresponding to the preferred language extracted from the `Accept-Language` header and matching one of the application supported languages. 
+
+```scala
+def index() = Action { implicit request =>
+  Ok(Messages("a.localized.message"))
+}
+```
+
+Without the `Request` implicit parameter in your `Action` scope, the default framework language will be supplied by the controller's method signature, and this is usually english. Here is code which will always use english, even if the `conf/application.conf` file contains a line with `application.langs="en,en-US,fr"`: 
+```scala
+def index() = Action {
+  Ok(Messages("a.localized.message"))
+}
+```
+
+To make the `Lang` implicit parameter available to your templates, you should add it to the template function signature like this: `@()(implicit lang: Lang)`. Here is template code which will use the supplied language when calling the `Messages` object: 
+
+```
+@()(implicit lang: Lang)
+
+@Messages("a.localized.message")
+```
 
 ## Messages format
 
