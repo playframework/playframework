@@ -360,6 +360,33 @@ trait ResultExtractors {
    * Extracts all Headers of this Result value.
    */
   def headers(of: Future[Result])(implicit timeout: Timeout): Map[String, String] = Await.result(of, timeout.duration).header.headers
+
+  implicit class RickResultExtractors(of: Future[Result]) {
+
+    def contentType(implicit timeout: Timeout): Option[String] = self.contentType(of)
+
+    def charset(implicit timeout: Timeout): Option[String] = self.charset(of)
+
+    def contentAsString(implicit timeout: Timeout): String = self.contentAsString(of)
+
+    def contentAsBytes(implicit timeout: Timeout): Array[Byte] = self.contentAsBytes(of)
+
+    def contentAsJson(implicit timeout: Timeout): JsValue = self.contentAsJson(of)
+
+    def status(implicit timeout: Timeout): Int = self.status(of)
+
+    def cookies(implicit timeout: Timeout): Cookies = self.cookies(of)
+
+    def flash(implicit timeout: Timeout): Flash = self.flash(of)
+
+    def session(implicit timeout: Timeout): Session = self.session(of)
+
+    def redirectLocation(implicit timeout: Timeout): Option[String] = self.redirectLocation(of)
+
+    def header(header: String)(implicit timeout: Timeout): Option[String] = self.header(header, of)
+
+    def headers(implicit timeout: Timeout): Map[String, String] = self.headers(of)
+  }
 }
 
 object Helpers extends PlayRunners
