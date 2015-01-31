@@ -609,7 +609,7 @@ trait ActionTransformer[-R[_], +P[_]] extends ActionRefiner[R, P] {
  */
 trait ActionFilter[R[_]] extends ActionRefiner[R, R] {
   /**
-   * Determine whether to process a request.  This is the main method than an ActionFilter has to implement.
+   * Determine whether to process a request.  This is the main method that an ActionFilter has to implement.
    * It can decide to immediately intercept the request and return a Result (Some), or continue processing (None).
    *
    * @param request the input request
