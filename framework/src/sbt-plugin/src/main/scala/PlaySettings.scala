@@ -3,7 +3,7 @@
  */
 package play
 
-import play.runsupport.PlayWatchService
+import play.runsupport.FileWatchService
 import play.sbtplugin.run._
 import sbt._
 import sbt.Keys._
@@ -137,7 +137,7 @@ trait PlaySettings {
 
     playMonitoredFiles <<= playMonitoredFilesTask,
 
-    playWatchService := PlayWatchService.default(target.value, pollInterval.value, sLog.value),
+    fileWatchService := FileWatchService.defaultWatchService(target.value, pollInterval.value, sLog.value),
 
     playDefaultPort := 9000,
 

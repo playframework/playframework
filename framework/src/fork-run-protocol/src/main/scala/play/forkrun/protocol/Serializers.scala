@@ -7,7 +7,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.{ PlayException, UsefulException }
-import play.forkrun.protocol.ForkConfig.SbtWatchService
+import play.forkrun.protocol.ForkConfig.PollingWatchService
 import play.runsupport.Reloader.{ Source, CompileSuccess, CompileFailure, CompileResult }
 import sbt.GenericSerializers._
 import sbt.protocol._
@@ -30,9 +30,9 @@ object Serializers {
   implicit def tuple2Writes[A, B](implicit aWrites: Writes[A], bWrites: Writes[B]): Writes[(A, B)] =
     Writes[(A, B)] { case (s, f) => JsArray(Seq(aWrites.writes(s), bWrites.writes(f))) }
 
-  val sbtWatchServiceReads: Reads[SbtWatchService] = Json.reads[SbtWatchService]
-  val sbtWatchServiceWrites: Writes[SbtWatchService] = Json.writes[SbtWatchService]
-  val sbtWatchServiceFormat: Format[SbtWatchService] = Format[SbtWatchService](sbtWatchServiceReads, sbtWatchServiceWrites)
+  val sbtWatchServiceReads: Reads[PollingWatchService] = Json.reads[PollingWatchService]
+  val sbtWatchServiceWrites: Writes[PollingWatchService] = Json.writes[PollingWatchService]
+  val sbtWatchServiceFormat: Format[PollingWatchService] = Format[PollingWatchService](sbtWatchServiceReads, sbtWatchServiceWrites)
 
   implicit val watchServiceReads: Reads[ForkConfig.WatchService] = new Reads[ForkConfig.WatchService] {
     def reads(json: JsValue): JsResult[ForkConfig.WatchService] = json match {
@@ -41,7 +41,7 @@ object Serializers {
           case "DefaultWatchService" => JsSuccess(ForkConfig.DefaultWatchService)
           case "JDK7WatchService" => JsSuccess(ForkConfig.JDK7WatchService)
           case "JNotifyWatchService" => JsSuccess(ForkConfig.JNotifyWatchService)
-          case "SbtWatchService" => Json.fromJson[SbtWatchService](data)(sbtWatchServiceFormat)
+          case "PollingWatchService" => Json.fromJson[PollingWatchService](data)(sbtWatchServiceFormat)
           case _ => JsError(s"Unknown class: '$name'")
         }
       case _ => JsError(s"Unexpected JSON value: $json")
@@ -51,7 +51,7 @@ object Serializers {
   implicit val watchServiceWrites: Writes[ForkConfig.WatchService] = new Writes[ForkConfig.WatchService] {
     def writes(watchService: ForkConfig.WatchService): JsValue = {
       val (product: Product, data) = watchService match {
-        case sbt: ForkConfig.SbtWatchService => (sbt, Json.toJson(sbt)(sbtWatchServiceFormat))
+        case sbt: ForkConfig.PollingWatchService => (sbt, Json.toJson(sbt)(sbtWatchServiceFormat))
         case other => (other, JsNull)
       }
       JsObject(Seq("class" -> JsString(product.productPrefix), "data" -> data))

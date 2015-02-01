@@ -97,7 +97,7 @@ object Reloader {
     dependencyClasspath: Classpath, dependencyClassLoader: ClassLoaderCreator,
     reloadCompile: () => CompileResult, reloaderClassLoader: ClassLoaderCreator,
     assetsClassLoader: ClassLoader => ClassLoader, commonClassLoader: ClassLoader,
-    monitoredFiles: Seq[String], playWatchService: PlayWatchService,
+    monitoredFiles: Seq[String], fileWatchService: FileWatchService,
     docsClasspath: Classpath, docsJar: Option[File],
     defaultHttpPort: Int, projectPath: File,
     devSettings: Seq[(String, String)], args: Seq[String],
@@ -171,7 +171,7 @@ object Reloader {
     lazy val applicationLoader = dependencyClassLoader("PlayDependencyClassLoader", urls(dependencyClasspath), delegatingLoader)
     lazy val assetsLoader = assetsClassLoader(applicationLoader)
 
-    lazy val reloader = new Reloader(reloadCompile, reloaderClassLoader, assetsLoader, projectPath, devSettings, monitoredFiles, playWatchService, runSbtTask)
+    lazy val reloader = new Reloader(reloadCompile, reloaderClassLoader, assetsLoader, projectPath, devSettings, monitoredFiles, fileWatchService, runSbtTask)
 
     try {
       // Now we're about to start, let's call the hooks:
@@ -248,7 +248,7 @@ class Reloader(
     val projectPath: File,
     devSettings: Seq[(String, String)],
     monitoredFiles: Seq[String],
-    playWatchService: PlayWatchService,
+    fileWatchService: FileWatchService,
     runSbtTask: String => AnyRef) extends BuildLink {
 
   // The current classloader for the application
@@ -266,7 +266,7 @@ class Reloader(
   @volatile private var watchState: WatchState = WatchState.empty
 
   // Create the watcher, updates the changed boolean when a file has changed.
-  private val watcher = playWatchService.watch(monitoredFiles.map(new File(_)), () => {
+  private val watcher = fileWatchService.watch(monitoredFiles.map(new File(_)), () => {
     changed = true
   })
   private val classLoaderVersion = new java.util.concurrent.atomic.AtomicInteger(0)

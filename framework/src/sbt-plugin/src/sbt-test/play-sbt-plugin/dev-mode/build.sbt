@@ -5,7 +5,7 @@ scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.10.4")
 PlayKeys.playInteractionMode := play.StaticPlayNonBlockingInteractionMode
 
 // Start by using the sbt watcher
-PlayKeys.playWatchService := play.sbtplugin.run.PlayWatchService.sbt(pollInterval.value)
+PlayKeys.fileWatchService := play.runsupport.FileWatchService.sbt(pollInterval.value)
 
 TaskKey[Unit]("reset-reloads") := {
   (target.value / "reload.log").delete()

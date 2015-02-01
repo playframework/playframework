@@ -85,6 +85,10 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 | [`Akka`](api/java/play/libs/Akka.html) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
 | [`WS`](api/java/play/libs/ws/WS.html) | [`WSClient`](api/java/play/libs/ws/WSClient.html) | |
 
+## File watching
+
+The SBT setting key `playWatchService` has been renamed to `fileWatchService`.
+
 ## Ebean
 
 Ebean has been pulled out into an external project, to allow it to have a lifecycle independent of Play's own lifecycle.  The ebean bytecode enhancement functionality has also been extracted out of the Play sbt plugin into its own plugin.

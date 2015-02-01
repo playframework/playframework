@@ -19,7 +19,7 @@ import com.typesafe.sbt.packager.Keys._
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 import play.core.{ Build, BuildLink, BuildDocHandler }
 import play.sbtplugin.Colors
-import play.runsupport.{ AssetsClassLoader, PlayWatchService, Reloader }
+import play.runsupport.{ AssetsClassLoader, FileWatchService, Reloader }
 import play.runsupport.classloader._
 import play.sbtplugin.run._
 
@@ -81,7 +81,7 @@ trait PlayRun extends PlayInternalKeys {
       assetsClassLoader.value,
       playCommonClassloader.value,
       playMonitoredFiles.value,
-      playWatchService.value,
+      fileWatchService.value,
       (managedClasspath in DocsApplication).value.files,
       playDocsJar.value,
       playDefaultPort.value,
