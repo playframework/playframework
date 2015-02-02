@@ -96,4 +96,7 @@ public class DefaultDatabase extends Database {
         db.shutdown();
     }
 
+    play.api.db.Database toScala() {
+        return db;
+    }
 }

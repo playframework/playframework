@@ -11,7 +11,7 @@ object DatabaseSpec extends Specification {
   "Database" should {
 
     "create database" in new WithDatabase {
-      val db = Database("test", "org.h2.Driver", "jdbc:h2:mem:test")
+      val db = Database(name = "test", driver = "org.h2.Driver", url = "jdbc:h2:mem:test")
       db.name must_== "test"
       db.url must_== "jdbc:h2:mem:test"
     }

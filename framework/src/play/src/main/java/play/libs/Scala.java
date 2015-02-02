@@ -50,6 +50,13 @@ public class Scala {
     }
 
     /**
+     * Converts a Java Collection to a Scala Seq.
+     */
+    public static <A> scala.collection.immutable.Seq<A> asScala(Collection<A> javaCollection) {
+        return scala.collection.JavaConverters.collectionAsScalaIterableConverter(javaCollection).asScala().toList();
+    }
+
+    /**
      * Converts a Java Callable to a Scala Function0.
      */
     public static <A> scala.Function0<A> asScala(final Callable<A> callable) {

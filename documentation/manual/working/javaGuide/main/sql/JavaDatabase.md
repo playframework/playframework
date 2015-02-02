@@ -123,3 +123,8 @@ For example, if you use MySQL5, you need to add a [[dependency| SBTDependencies]
 ```
 libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.18"
 ```
+
+## Testing
+
+For information on testing with databases, including how to setup in-memory databases and, see [[Testing With Databases|JavaTestingWithDatabases]].
+

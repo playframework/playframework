@@ -6,7 +6,7 @@ package play.api.db.evolutions
 import java.io.File
 
 import play.api.{ Application, Configuration, Environment, Logger, Mode, Play }
-import play.api.db.{ BoneCPComponents, DBComponents }
+import play.api.db.{ Database, BoneCPComponents, DBComponents }
 import play.api.inject.DefaultApplicationLifecycle
 import play.api.libs.Codecs.sha1
 import play.core.DefaultWebCommands
@@ -69,7 +69,6 @@ case class UpScript(evolution: Evolution) extends Script {
  * A DOWN Script to run on the database.
  *
  * @param evolution the original evolution
- * @param sql the SQL to be run
  */
 case class DownScript(evolution: Evolution) extends Script {
   def sql: String = evolution.sql_down
@@ -100,7 +99,7 @@ object Evolutions {
    */
   def applyFor(dbName: String, path: java.io.File = new java.io.File("."), autocommit: Boolean = true): Unit = {
     val evolutions = Play.current.injector.instanceOf[EvolutionsApi]
-    val scripts = evolutions.scripts(dbName, path)
+    val scripts = evolutions.scripts(dbName, new EnvironmentEvolutionsReader(Environment.simple(path = path)))
     evolutions.evolve(dbName, scripts, autocommit)
   }
 
@@ -156,6 +155,58 @@ object Evolutions {
     downs.zip(ups).reverse.dropWhile {
       case (down, up) => down.hash == up.hash
     }.reverse.unzip
+
+  /**
+   * Apply evolutions for the given database.
+   *
+   * @param database The database to apply the evolutions to.
+   * @param evolutionsReader The reader to read the evolutions.
+   * @param autocommit Whether to use autocommit or not, evolutions will be manually committed if false.
+   */
+  def applyEvolutions(database: Database, evolutionsReader: EvolutionsReader = ThisClassLoaderEvolutionsReader,
+    autocommit: Boolean = true): Unit = {
+    val dbEvolutions = new DatabaseEvolutions(database)
+    val evolutions = dbEvolutions.scripts(evolutionsReader)
+    dbEvolutions.evolve(evolutions, autocommit)
+  }
+
+  /**
+   * Cleanup evolutions for the given database.
+   *
+   * This will leave the database in the original state it was before evolutions were applied, by running the down
+   * scripts for all the evolutions that have been previously applied to the database.
+   *
+   * @param database The database to clean the evolutions for.
+   * @param autocommit Whether to use atocommit or not, evolutions will be manually committed if false.
+   */
+  def cleanupEvolutions(database: Database, autocommit: Boolean = true): Unit = {
+    val dbEvolutions = new DatabaseEvolutions(database)
+    val evolutions = dbEvolutions.resetScripts()
+    dbEvolutions.evolve(evolutions, autocommit)
+  }
+
+  /**
+   * Execute the following code block with the evolutions for the database, cleaning up afterwards by running the downs.
+   *
+   * @param database The database to execute the evolutions on
+   * @param evolutionsReader The evolutions reader to use.  Defaults to reading evolutions from the evolution readers own classloader.
+   * @param autocommit Whether to use autocommit or not, evolutions will be manually committed if false.
+   * @param block The block to execute
+   */
+  def withEvolutions[T](database: Database, evolutionsReader: EvolutionsReader = ThisClassLoaderEvolutionsReader,
+    autocommit: Boolean = true)(block: => T): T = {
+    applyEvolutions(database, evolutionsReader, autocommit)
+    try {
+      block
+    } finally {
+      try {
+        cleanupEvolutions(database, autocommit)
+      } catch {
+        case e: Exception =>
+          Logger.warn("Error resetting evolutions", e)
+      }
+    }
+  }
 }
 
 /**

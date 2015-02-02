@@ -5,3 +5,9 @@ Writing tests for your application can be an involved process. Play offers integ
 
 * [[Testing your Application with ScalaTest|ScalaTestingWithScalaTest]]
 * [[Testing your Application with specs2|ScalaTestingWithSpecs2]]
+
+## Advanced testing
+
+Play provides a number of helpers for testing specific parts of an application.
+
+* [[Testing with databases|ScalaTestingWithDatabases]]
