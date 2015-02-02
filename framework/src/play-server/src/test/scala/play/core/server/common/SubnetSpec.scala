@@ -1,4 +1,4 @@
-package play.core.server.netty
+package play.core.server.common
 
 import java.net.InetAddress
 

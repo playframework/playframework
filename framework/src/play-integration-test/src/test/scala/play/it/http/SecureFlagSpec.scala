@@ -78,7 +78,7 @@ trait SecureFlagSpec extends PlaySpecification with ServerIntegrationSpecificati
       )
       responses.length must_== 1
       responses(0).body must_== Left("true")
-    }.pendingUntilAkkaHttpFixed
+    }
     "not show that requests are secure if X_FORWARDED_PROTO is http" in withServer(secureFlagAction) { port =>
       val responses = BasicHttpClient.makeRequests(port)(
         BasicRequest("GET", "/", "HTTP/1.1", Map((X_FORWARDED_PROTO, "http")), "foo")

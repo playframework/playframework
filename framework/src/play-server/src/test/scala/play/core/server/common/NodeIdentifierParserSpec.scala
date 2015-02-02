@@ -1,8 +1,8 @@
-package play.core.server.netty
+package play.core.server.common
 
 import java.net.InetAddress.getByName
 import org.specs2.mutable.Specification
-import play.core.server.netty.NodeIdentifierParser._
+import play.core.server.common.NodeIdentifierParser._
 
 class NodeIdentifierParserSpec extends Specification {
   "NodeIdentifierParser" should {

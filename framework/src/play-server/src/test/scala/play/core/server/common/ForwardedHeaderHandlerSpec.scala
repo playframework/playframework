@@ -1,13 +1,13 @@
 /*
  * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
  */
-package play.core.server.netty
+package play.core.server.common
 
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 import play.api.mvc.Headers
 import play.api.{ PlayException, Configuration }
-import play.core.server.netty.ForwardedHeaderHandler.ForwardedHeaderHandlerConfig
+import play.core.server.common.ForwardedHeaderHandler.ForwardedHeaderHandlerConfig
 
 class ForwardedHeaderHandlerSpec extends Specification {
   "ForwardedHeaderHandler" should {

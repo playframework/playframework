@@ -1,11 +1,11 @@
 /*
  * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
  */
-package play.core.server.netty
+package play.core.server.common
 
 import java.net.InetAddress
 
-private[netty] case class Subnet(ip: InetAddress, cidr: Option[Int] = None) {
+private[common] case class Subnet(ip: InetAddress, cidr: Option[Int] = None) {
 
   private def remainderOfMask = for {
     m <- cidr
@@ -29,7 +29,7 @@ private[netty] case class Subnet(ip: InetAddress, cidr: Option[Int] = None) {
   }
 }
 
-private[netty] object Subnet {
+private[common] object Subnet {
   def apply(s: String): Subnet = s.split("/") match {
     case Array(ip, subnet) => Subnet(InetAddress.getByName(ip), Some(subnet.toInt))
     case Array(ip) => Subnet(InetAddress.getByName(ip))

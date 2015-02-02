@@ -18,7 +18,7 @@ import play.api.libs.streams.Streams
 import play.api.mvc._
 import play.core.{ ApplicationProvider, Execution, Invoker }
 import play.core.server._
-import play.core.server.common.ServerResultUtils
+import play.core.server.common.{ ForwardedHeaderHandler, ServerResultUtils }
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 import scala.util.control.NonFatal
@@ -60,12 +60,22 @@ class AkkaHttpServer(config: ServerConfig, appProvider: ApplicationProvider) ext
   // Each request needs an id
   private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
 
+  // TODO: We can change this to an eager val when we fully support server configuration
+  // instead of reading from the application configuration. At the moment we need to wait
+  // until we have an Application available before we can read any configuration. :(
+  private lazy val modelConversion: ModelConversion = {
+    val forwardedHeaderHandler = new ForwardedHeaderHandler(
+      ForwardedHeaderHandler.ForwardedHeaderHandlerConfig(appProvider.get.toOption.map(_.configuration)))
+    new ModelConversion(forwardedHeaderHandler)
+  }
+
   private def handleRequest(remoteAddress: InetSocketAddress, request: HttpRequest): Future[HttpResponse] = {
     val requestId = requestIDs.incrementAndGet()
-    val (convertedRequestHeader, requestBodyEnumerator) = ModelConversion.convertRequest(
-      requestId,
-      remoteAddress,
-      request)
+    val (convertedRequestHeader, requestBodyEnumerator) = modelConversion.convertRequest(
+      requestId = requestId,
+      remoteAddress = remoteAddress,
+      secureProtocol = false, // TODO: Change value once HTTPS connections are supported
+      request = request)
     val (taggedRequestHeader, handler, newTryApp) = getHandler(convertedRequestHeader)
     val responseFuture = executeHandler(
       newTryApp,
@@ -136,7 +146,7 @@ class AkkaHttpServer(config: ServerConfig, appProvider: ApplicationProvider) ext
     val resultFuture: Future[Result] = requestBodyEnumerator |>>> actionIteratee
     val responseFuture: Future[HttpResponse] = resultFuture.flatMap { result =>
       val cleanedResult: Result = ServerResultUtils.cleanFlashCookie(taggedRequestHeader, result)
-      ModelConversion.convertResult(cleanedResult, request.protocol)
+      modelConversion.convertResult(cleanedResult, request.protocol)
     }
     responseFuture
   }
