@@ -158,22 +158,31 @@ Then in the Play console, use the `publish` task:
 
 Though not officially supported, the SBT assembly plugin may be used to package and run Play applications.  This will produce one jar as an output artifact, and allow you to execute it directly using the `java` command.
 
-To use this, add a dependency on the plugin to your `project/plugins.sbt` file:
+To use this, first ensure you are using at least version 0.13.6 of sbt by updating the version in your `project/build.properties` file, then add a dependency on the plugin to your `project/plugins.sbt` file:
 
 ```scala
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.11.2")
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.12.0")
 ```
 
 Now add the following configuration to your `build.sbt`:
 
 ```scala
-import AssemblyKeys._
-
-assemblySettings
-
 mainClass in assembly := Some("play.core.server.NettyServer")
 
 fullClasspath in assembly += Attributed.blank(PlayKeys.playPackageAssets.value)
+
+// Exclude commons-logging because it conflicts with the jcl-over-slf4j
+libraryDependencies ~= { _ map {
+  case m if m.organization == "com.typesafe.play" =>
+    m.exclude("commons-logging", "commons-logging")
+  case m => m
+}}
+
+// Take the first ServerWithStop because it's packaged into two jars
+assemblyMergeStrategy in assembly := {
+  case "play/core/server/ServerWithStop.class" => MergeStrategy.first
+  case other => (assemblyMergeStrategy in assembly).value(other)
+}
 ```
 
 Now you can build the artifact by running `activator assembly`, and run your application by running:
