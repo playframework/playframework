@@ -80,12 +80,9 @@ class SbtClient(baseDirectory: File, log: Logger, logEvents: Boolean) extends Ac
   }
 
   def broken(error: Throwable): Receive = {
-    shutdown()
-
-    exiting orElse {
-      case request: Request => request.sendTo ! Failed(error)
-    }
-  }
+    case request: Request => request.sendTo ! Failed(error)
+    case Shutdown => shutdown()
+ }
 
   def shutdown(): Unit = {
     connection ! SbtConnectionProxy.Close(self)
