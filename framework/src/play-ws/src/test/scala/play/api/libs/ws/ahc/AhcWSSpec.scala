@@ -11,6 +11,7 @@ import org.asynchttpclient.{ AsyncHttpClient, DefaultAsyncHttpClientConfig, Para
 import org.asynchttpclient.proxy.ProxyServer
 import org.specs2.mock.Mockito
 import play.api.inject.guice.GuiceApplicationBuilder
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import play.api.mvc._
@@ -372,6 +373,36 @@ object AhcWSSpec extends PlaySpecification with Mockito {
       headers.contains("Foo") must beTrue
       headers.contains("BAR") must beTrue
       headers.contains("Bar") must beTrue
+    }
+  }
+
+  "withRequestFilter" should {
+
+    class CallbackRequestFilter(callList: scala.collection.mutable.Buffer[Int], value: Int) extends WSRequestFilter {
+      override def apply(executor: WSRequestExecutor): WSRequestExecutor = {
+        callList.append(value)
+        executor
+      }
+    }
+
+    "work with one request filter" in new WithServer() {
+      val client = app.injector.instanceOf(classOf[WSClient])
+      val callList = scala.collection.mutable.ArrayBuffer[Int]()
+      val responseFuture = client.url(s"http://example.com:$testServerPort")
+        .withRequestFilter(new CallbackRequestFilter(callList, 1))
+        .get()
+      callList must contain(1)
+    }
+
+    "work with three request filter" in new WithServer() {
+      val client = app.injector.instanceOf(classOf[WSClient])
+      val callList = scala.collection.mutable.ArrayBuffer[Int]()
+      val responseFuture = client.url(s"http://localhost:${testServerPort}")
+        .withRequestFilter(new CallbackRequestFilter(callList, 1))
+        .withRequestFilter(new CallbackRequestFilter(callList, 2))
+        .withRequestFilter(new CallbackRequestFilter(callList, 3))
+        .get()
+      callList must containTheSameElementsAs(Seq(1, 2, 3))
     }
   }
 

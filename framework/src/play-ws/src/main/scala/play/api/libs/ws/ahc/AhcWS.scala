@@ -99,7 +99,8 @@ case class AhcWSRequest(client: AhcWSClient,
     requestTimeout: Option[Int],
     virtualHost: Option[String],
     proxyServer: Option[WSProxyServer],
-    disableUrlEncoding: Option[Boolean])(implicit materializer: Materializer) extends WSRequest {
+    disableUrlEncoding: Option[Boolean],
+    filters: Seq[WSRequestFilter] = Nil)(implicit materializer: Materializer) extends WSRequest {
 
   def sign(calc: WSSignatureCalculator): WSRequest = copy(calc = Some(calc))
 
@@ -121,6 +122,8 @@ case class AhcWSRequest(client: AhcWSClient,
 
   def withFollowRedirects(follow: Boolean): WSRequest = copy(followRedirects = Some(follow))
 
+  def withRequestFilter(filter: WSRequestFilter): WSRequest = copy(filters = filters :+ filter)
+
   def withRequestTimeout(timeout: Duration): WSRequest = {
     timeout match {
       case Duration.Inf =>
@@ -140,7 +143,17 @@ case class AhcWSRequest(client: AhcWSClient,
 
   def withMethod(method: String): WSRequest = copy(method = method)
 
-  def execute(): Future[WSResponse] = execute(buildRequest())
+  def execute(): Future[WSResponse] = {
+    val executor = filterWSRequestExecutor(new WSRequestExecutor {
+      override def execute(request: WSRequest): Future[WSResponse] =
+        request.asInstanceOf[AhcWSRequest].execute(buildRequest())
+    })
+    executor.execute(this)
+  }
+
+  protected def filterWSRequestExecutor(next: WSRequestExecutor): WSRequestExecutor = {
+    filters.foldRight(next)(_ apply _)
+  }
 
   def stream(): Future[StreamedResponse] = Streamed.execute(client.underlying, buildRequest())
 
@@ -263,7 +276,11 @@ case class AhcWSRequest(client: AhcWSClient,
           }.name()
 
           // Always replace the content type header to make sure exactly one exists
-          val contentTypeList = Seq(ct + (if (charsetOption.isDefined) { "" } else { "; charset=" + charset.toLowerCase }))
+          val contentTypeList = Seq(ct + (if (charsetOption.isDefined) {
+            ""
+          } else {
+            "; charset=" + charset.toLowerCase
+          }))
           possiblyModifiedHeaders = this.headers.updated(HttpHeaders.Names.CONTENT_TYPE, contentTypeList)
 
           if (ct.contains(HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED)) {
@@ -308,7 +325,6 @@ case class AhcWSRequest(client: AhcWSClient,
   }
 
   private[libs] def execute(request: Request): Future[AhcWSResponse] = {
-
     import org.asynchttpclient.AsyncCompletionHandler
     val result = Promise[AhcWSResponse]()
 
@@ -537,8 +553,11 @@ case class AhcWSResponse(ahcResponse: AHCResponse) extends WSResponse {
 trait AhcWSComponents {
 
   def environment: Environment
+
   def configuration: Configuration
+
   def applicationLifecycle: ApplicationLifecycle
+
   def materializer: Materializer
 
   lazy val wsClientConfig: WSClientConfig = new WSConfigParser(configuration, environment).parse()

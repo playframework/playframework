@@ -5,6 +5,8 @@ package play.libs.ws.ahc
 
 import org.specs2.mock.Mockito
 import org.specs2.mutable._
+import play.libs.ws.{ WSRequestExecutor, WSRequestFilter }
+import play.test.WithApplication
 
 class AhcWSRequestSpec extends Specification with Mockito {
 

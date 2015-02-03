@@ -36,6 +36,9 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
+import java.util.stream.Stream;
 
 /**
  * provides the User facing API for building WS request.
@@ -59,6 +62,8 @@ public class AhcWSRequest implements WSRequest {
     private int timeout = 0;
     private Boolean followRedirects = null;
     private String virtualHost = null;
+
+    private ArrayList<WSRequestFilter> filters = new ArrayList();
 
     public AhcWSRequest(AhcWSClient client, String url, Materializer materializer) {
         this.client = client;
@@ -413,8 +418,14 @@ public class AhcWSRequest implements WSRequest {
 
     @Override
     public CompletionStage<WSResponse> execute() {
-        Request request = buildRequest();
-        return execute(request);
+        WSRequestExecutor executor = foldRight(r -> {
+            AhcWSRequest ahcWsRequest = (AhcWSRequest) r;
+            Request ahcRequest = ahcWsRequest.buildRequest();
+            return ahcWsRequest.execute(ahcRequest);
+        }, filters.iterator());
+
+        CompletionStage<WSResponse> futureResponse = executor.apply(this);
+        return futureResponse;
     }
 
     @Override
@@ -422,6 +433,12 @@ public class AhcWSRequest implements WSRequest {
     	AsyncHttpClient asyncClient = (AsyncHttpClient) client.getUnderlying();
     	Request request = buildRequest();
     	return StreamedResponse.from(Streamed.execute(asyncClient, request));
+    }
+
+    @Override
+    public WSRequest withRequestFilter(WSRequestFilter filter) {
+        filters.add(filter);
+        return this;
     }
 
     Request buildRequest() {
@@ -554,6 +571,15 @@ public class AhcWSRequest implements WSRequest {
             scalaPromise.failure(exception);
         }
         return FutureConverters.toJava(scalaPromise.future());
+    }
+
+    private <U> WSRequestExecutor foldRight(WSRequestExecutor executor, Iterator<WSRequestFilter> iterator) {
+        if (! iterator.hasNext()) {
+            return executor;
+        }
+
+        WSRequestFilter next = iterator.next();
+        return foldRight(next.apply(executor), iterator);
     }
 
     Realm auth(String username, String password, WSAuthScheme scheme) {

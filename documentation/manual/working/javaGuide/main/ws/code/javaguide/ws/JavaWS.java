@@ -6,6 +6,8 @@ package javaguide.ws;
 import javaguide.testhelpers.MockJavaAction;
 
 // #ws-imports
+import org.slf4j.Logger;
+import play.api.libs.ws.ahc.AhcCurlRequestLogger;
 import play.libs.ws.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -232,6 +234,7 @@ public class JavaWS {
                 ws.url(url).setMethod("PUT").setBody("some body").stream();
             //#stream-put
         }
+
         public void patternExamples() {
             String urlOne = "http://localhost:3333/one";
             // #ws-composition
@@ -327,5 +330,28 @@ public class JavaWS {
                     .thenApply(response -> ok("Number of comments: " + response.asJson().findPath("count").asInt()));
         }
         // #composed-call
+    }
+
+    public static class Controller3 extends MockJavaAction {
+
+        @Inject
+        private WSClient ws;
+
+        // #ws-request-filter
+        public CompletionStage<Result> index() {
+            Logger logger = org.slf4j.LoggerFactory.getLogger("testLogger");
+            WSRequestFilter filter = executor -> {
+                WSRequestExecutor next = request -> {
+                    logger.debug("url = {}", request.getUrl());
+                    return executor.apply(request);
+                };
+                return next;
+            };
+
+            return ws.url(feedUrl).withRequestFilter(filter).get().thenApply(response ->
+                    ok("Feed title: " + response.asJson().findPath("title").asText())
+            );
+        }
+        // #ws-request-filter
     }
 }

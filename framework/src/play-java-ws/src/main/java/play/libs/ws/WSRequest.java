@@ -191,6 +191,14 @@ public interface WSRequest {
      */
     CompletionStage<StreamedResponse> stream();
 
+    /**
+     * Adds a request filter.
+     *
+     * @param filter a tranforming filter.
+     * @return the modified request.
+     */
+    WSRequest withRequestFilter(WSRequestFilter filter);
+
     //-------------------------------------------------------------------------
     // Setters
     //-------------------------------------------------------------------------

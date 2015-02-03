@@ -51,6 +51,14 @@ trait WSRequestMagnet {
   def apply(): WSRequest
 }
 
+trait WSRequestExecutor {
+  def execute(request: WSRequest): Future[WSResponse]
+}
+
+trait WSRequestFilter {
+  def apply(next: WSRequestExecutor): WSRequestExecutor
+}
+
 /**
  * Asynchronous API to to query web services, as an http client.
  *
@@ -388,6 +396,11 @@ trait WSRequest {
    * Warning: a stream consumption will be interrupted when this time is reached unless Duration.Inf is set.
    */
   def withRequestTimeout(timeout: Duration): WSRequest
+
+  /**
+   * Adds a filter to the request that can transform the request for subsequent filters.
+   */
+  def withRequestFilter(filter: WSRequestFilter): WSRequest
 
   /**
    * Sets the virtual host to use in this request

@@ -103,6 +103,25 @@ For example, imagine you have executed a database query that is returning a larg
 
 The `largeImageFromDB` in the code snippet above is an Akka Streams `Source[ByteString, _]`.
 
+### Request Filters
+
+You can do additional processing on a WSRequest by adding a request filter.  A request filter is added by extending the [`play.api.libs.ws.WSRequestFilter`](api/scala/play/api/libs/ws/WSRequestFilter.html) trait, and then adding it to the request with `request.withRequestFilter(filter)`.  
+
+A sample request filter that logs the request in cURL format to SLF4J has been added in [`play.api.libs.ws.ahc.AhcCurlRequestLogger`](api/scala/play/api/libs/ws/ahc/AhcCurlRequestLogger.html).
+
+@[curl-logger-filter](code/ScalaWSSpec.scala)
+
+will output:
+
+```
+curl \
+  --verbose \
+  --request PUT \
+ --header 'Content-Type: application/x-www-form-urlencoded; charset=utf-8' \
+ --data 'key=value' \
+ 'http://localhost:19001/
+```
+
 ## Processing the Response
 
 Working with the [Response](api/scala/play/api/libs/ws/WSResponse.html) is easily done by mapping inside the [Future](http://www.scala-lang.org/api/current/index.html#scala.concurrent.Future).
