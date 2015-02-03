@@ -9,17 +9,15 @@ import play.runsupport.Reloader.{ Source, CompileSuccess, CompileFailure, Compil
 import sbt.protocol._
 import java.io.File
 import scala.collection.immutable
-import sbt.serialization.SbtSerializer
-import sbt.serialization.functions._
-import CoreProtocol._
-import scala.pickling.{ FastTypeTag, PBuilder, PReader, PicklingException, SPickler, Unpickler }
+import sbt.serialization._
+import scala.pickling.PicklingException
 
 object Serializers {
 
-  implicit def tuple2Pickler[A, B](implicit pickerA: SPickler[A], pickerB: SPickler[B],
+  implicit def tuple2Pickler[A, B](implicit pickerA: Pickler[A], pickerB: Pickler[B],
     unpickerA: Unpickler[A], unpickerB: Unpickler[B],
-    tupleTag: FastTypeTag[Tuple2[A, B]], aTag: FastTypeTag[A], bTag: FastTypeTag[B]): SPickler[Tuple2[A, B]] with Unpickler[Tuple2[A, B]] =
-    new SPickler[Tuple2[A, B]] with Unpickler[Tuple2[A, B]] {
+    tupleTag: FastTypeTag[Tuple2[A, B]], aTag: FastTypeTag[A], bTag: FastTypeTag[B]): Pickler[Tuple2[A, B]] with Unpickler[Tuple2[A, B]] =
+    new Pickler[Tuple2[A, B]] with Unpickler[Tuple2[A, B]] {
       override def tag: FastTypeTag[Tuple2[A, B]] = tupleTag
       override def pickle(picklee: Tuple2[A, B], builder: PBuilder): Unit = {
         builder.pushHints()
@@ -58,30 +56,30 @@ object Serializers {
       }
     }
 
-  implicit val defaultWatchServiceSPickler: SPickler[ForkConfig.DefaultWatchService.type] = genPickler[ForkConfig.DefaultWatchService.type]
+  implicit val defaultWatchServiceSPickler: Pickler[ForkConfig.DefaultWatchService.type] = genPickler[ForkConfig.DefaultWatchService.type]
   implicit val defaultWatchServiceUnpickler: Unpickler[ForkConfig.DefaultWatchService.type] = genUnpickler[ForkConfig.DefaultWatchService.type]
 
-  implicit val jDK7WatchServiceSPickler: SPickler[ForkConfig.JDK7WatchService.type] = genPickler[ForkConfig.JDK7WatchService.type]
+  implicit val jDK7WatchServiceSPickler: Pickler[ForkConfig.JDK7WatchService.type] = genPickler[ForkConfig.JDK7WatchService.type]
   implicit val jDK7WatchServiceUnpickler: Unpickler[ForkConfig.JDK7WatchService.type] = genUnpickler[ForkConfig.JDK7WatchService.type]
 
-  implicit val jNotifyWatchServiceSPickler: SPickler[ForkConfig.JNotifyWatchService.type] = genPickler[ForkConfig.JNotifyWatchService.type]
+  implicit val jNotifyWatchServiceSPickler: Pickler[ForkConfig.JNotifyWatchService.type] = genPickler[ForkConfig.JNotifyWatchService.type]
   implicit val jNotifyWatchServiceUnpickler: Unpickler[ForkConfig.JNotifyWatchService.type] = genUnpickler[ForkConfig.JNotifyWatchService.type]
 
-  implicit val sbtWatchServiceSPickler: SPickler[ForkConfig.SbtWatchService] = genPickler[ForkConfig.SbtWatchService]
+  implicit val sbtWatchServiceSPickler: Pickler[ForkConfig.SbtWatchService] = genPickler[ForkConfig.SbtWatchService]
   implicit val sbtWatchServiceUnpickler: Unpickler[ForkConfig.SbtWatchService] = genUnpickler[ForkConfig.SbtWatchService]
 
-  implicit val watchServiceSPicker: SPickler[ForkConfig.WatchService] = genPickler[ForkConfig.WatchService]
+  implicit val watchServiceSPicker: Pickler[ForkConfig.WatchService] = genPickler[ForkConfig.WatchService]
   implicit val watchServiceUnpickler: Unpickler[ForkConfig.WatchService] = genUnpickler[ForkConfig.WatchService]
 
-  implicit val forkConfigPickler: SPickler[ForkConfig] = genPickler[ForkConfig]
+  implicit val forkConfigPickler: Pickler[ForkConfig] = genPickler[ForkConfig]
   implicit val forkConfigUnpickler: Unpickler[ForkConfig] = genUnpickler[ForkConfig]
 
-  implicit val sourceFilePicker: SPickler[Source] = genPickler[Source]
+  implicit val sourceFilePicker: Pickler[Source] = genPickler[Source]
   implicit val sourceFileUnpickler: Unpickler[Source] = genUnpickler[Source]
 
-  implicit val sourceMapPickler: SPickler[Map[String, Source]] with Unpickler[Map[String, Source]] = stringMapPickler[Source]
+  implicit val sourceMapPickler: Pickler[Map[String, Source]] with Unpickler[Map[String, Source]] = stringMapPickler[Source]
 
-  implicit object playExceptionPickler extends SPickler[PlayException] with Unpickler[PlayException] {
+  implicit object playExceptionPickler extends Pickler[PlayException] with Unpickler[PlayException] {
     override def tag: FastTypeTag[PlayException] = implicitly[FastTypeTag[PlayException]]
     private val stringOptUnpickler = implicitly[Unpickler[Option[String]]]
     private val intOptUnpickler = implicitly[Unpickler[Option[Int]]]
@@ -147,35 +145,37 @@ object Serializers {
 
   }
 
-  implicit val compileFailureSPicker: SPickler[CompileFailure] = genPickler[CompileFailure]
+  implicit val compileFailureSPicker: Pickler[CompileFailure] = genPickler[CompileFailure]
   implicit val compileFailureUnpicker: Unpickler[CompileFailure] = genUnpickler[CompileFailure]
 
-  implicit val compileSuccessSPicker: SPickler[CompileSuccess] = genPickler[CompileSuccess]
+  implicit val compileSuccessSPicker: Pickler[CompileSuccess] = genPickler[CompileSuccess]
   implicit val compileSuccessUnpicker: Unpickler[CompileSuccess] = genUnpickler[CompileSuccess]
 
-  implicit val compileResultSPickler: SPickler[CompileResult] = genPickler[CompileResult]
+  implicit val compileResultSPickler: Pickler[CompileResult] = genPickler[CompileResult]
   implicit val compileResultUnpickler: Unpickler[CompileResult] = genUnpickler[CompileResult]
 
-  implicit val playServerStartedSPickler: SPickler[PlayServerStarted] = genPickler[PlayServerStarted]
+  implicit val playServerStartedSPickler: Pickler[PlayServerStarted] = genPickler[PlayServerStarted]
   implicit val playServerStartedUnpicker: Unpickler[PlayServerStarted] = genUnpickler[PlayServerStarted]
 
   sealed trait LocalRegisteredSerializer {
     type T
     def manifest: Manifest[T]
-    def serializer: SbtSerializer[T]
+    def serializer: Pickler[T]
+    def unserializer: Unpickler[T]
   }
 
   object LocalRegisteredSerializer {
-    def fromSbtSerializer[U](s: SbtSerializer[U])(implicit mf: Manifest[U]): LocalRegisteredSerializer =
+    def fromSbtSerializer[U](_serializer: Pickler[U], _unserializer: Unpickler[U])(implicit mf: Manifest[U]): LocalRegisteredSerializer =
       new LocalRegisteredSerializer {
         type T = U
         val manifest = mf
-        val serializer = s
+        val serializer = _serializer
+        val unserializer = _unserializer
       }
   }
 
   val serializers: Seq[LocalRegisteredSerializer] = List(
-    LocalRegisteredSerializer.fromSbtSerializer(SbtSerializer(forkConfigPickler, forkConfigUnpickler)),
-    LocalRegisteredSerializer.fromSbtSerializer(SbtSerializer(compileResultSPickler, compileResultUnpickler)),
-    LocalRegisteredSerializer.fromSbtSerializer(SbtSerializer(playServerStartedSPickler, playServerStartedUnpicker)))
+    LocalRegisteredSerializer.fromSbtSerializer(forkConfigPickler, forkConfigUnpickler),
+    LocalRegisteredSerializer.fromSbtSerializer(compileResultSPickler, compileResultUnpickler),
+    LocalRegisteredSerializer.fromSbtSerializer(playServerStartedSPickler, playServerStartedUnpicker))
 }
