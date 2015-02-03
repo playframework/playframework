@@ -82,7 +82,7 @@ class SbtClient(baseDirectory: File, log: Logger, logEvents: Boolean) extends Ac
   def broken(error: Throwable): Receive = {
     case request: Request => request.sendTo ! Failed(error)
     case Shutdown => shutdown()
- }
+  }
 
   def shutdown(): Unit = {
     connection ! SbtConnectionProxy.Close(self)
