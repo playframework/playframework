@@ -165,7 +165,7 @@ object Dependencies {
   }
 
   def sbtForkRunPluginDependencies = Seq(
-    Defaults.sbtPluginExtra("com.typesafe.sbtrc" % "ui-interface-0-13" % sbtRcVersion, "0.13", "2.10")
+    sbtPluginDep("com.typesafe.sbtrc" % "ui-interface-0-13" % sbtRcVersion)
   )
 
   val typesafeConfig = "com.typesafe" % "config" % "1.2.1"
