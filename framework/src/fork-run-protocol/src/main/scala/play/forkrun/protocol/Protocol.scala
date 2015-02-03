@@ -6,10 +6,6 @@ package play.forkrun.protocol
 import java.io.File
 import scala.util.{ Success, Failure }
 import sbt.protocol._
-import sbt.protocol.CoreProtocol._
-import sbt.serialization._
-import sbt.serialization.functions._
-import scala.language.experimental.macros
 
 case class ForkConfig(
   projectDirectory: File,

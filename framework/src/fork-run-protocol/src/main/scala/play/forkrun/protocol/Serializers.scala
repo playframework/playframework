@@ -9,10 +9,8 @@ import play.runsupport.Reloader.{ Source, CompileSuccess, CompileFailure, Compil
 import sbt.protocol._
 import java.io.File
 import scala.collection.immutable
-import sbt.serialization.SbtSerializer
-import sbt.serialization.functions._
-import CoreProtocol._
-import scala.pickling.{ FastTypeTag, PBuilder, PReader, PicklingException, SPickler, Unpickler }
+import sbt.serialization._
+import scala.pickling.PicklingException
 
 object Serializers {
 
