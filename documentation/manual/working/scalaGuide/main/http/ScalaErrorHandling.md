@@ -12,9 +12,9 @@ A custom error handler can be supplied by creating a class in the root package c
 
 @[root](code/ScalaErrorHandling.scala)
 
-If you don't want to place your error handler in the root package, or if you want to be able to configure different error handlers for different environments, you can do this by configuring the `play.application.errorHandler` configuration property in `application.conf`:
+If you don't want to place your error handler in the root package, or if you want to be able to configure different error handlers for different environments, you can do this by configuring the `play.http.errorHandler` configuration property in `application.conf`:
 
-    play.application.errorHandler = "com.example.ErrorHandler"
+    play.http.errorHandler = "com.example.ErrorHandler"
 
 ## Extending the default error handler
 
