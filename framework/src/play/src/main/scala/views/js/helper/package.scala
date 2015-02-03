@@ -22,6 +22,6 @@ package object helper {
    * @param a The value to convert to JavaScript
    * @return A JavaScript value
    */
-  def json[A: Writes](a: A): JavaScript = JavaScript(Json.toJson(a).toString)
+  def json[A: Writes](a: A): JavaScript = JavaScript(Json.stringify(Json.toJson(a)))
 
 }

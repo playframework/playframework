@@ -5,7 +5,7 @@ package play.api.libs.json
 
 import org.specs2.mutable._
 
-import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.{ JsonMappingException, JsonNode }
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Json._
@@ -295,6 +295,11 @@ object JsonSpec extends Specification {
       )
       val stream = new java.io.ByteArrayInputStream(js.toString.getBytes("UTF-8"))
       Json.parse(stream) must beEqualTo(js)
+    }
+
+    "throw an exception when stringifying JsUndefined" in {
+      stringify(JsUndefined("test")) must throwA[JsonMappingException]
+      stringify(Json.obj("foo" -> JsUndefined("bar"))) must throwA[JsonMappingException]
     }
   }
 

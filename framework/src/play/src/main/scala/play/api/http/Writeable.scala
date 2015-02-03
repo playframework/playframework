@@ -92,7 +92,7 @@ trait DefaultWriteables extends LowPriorityWriteables {
    * `Writeable` for `JsValue` values - Json
    */
   implicit def writeableOf_JsValue(implicit codec: Codec): Writeable[JsValue] = {
-    Writeable(jsval => codec.encode(jsval.toString))
+    Writeable(a => codec.encode(Json.stringify(a)))
   }
 
   /**

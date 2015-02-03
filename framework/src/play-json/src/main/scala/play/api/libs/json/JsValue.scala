@@ -285,9 +285,8 @@ private[json] class JsValueSerializer extends JsonSerializer[JsValue] {
         json.writeEndObject()
       }
       case JsNull => json.writeNull()
-      case JsUndefined() => {
-        json.writeNull()
-      }
+      case jsu @ JsUndefined() =>
+        throw new JsonMappingException(s"Cannot serialize $jsu")
     }
   }
 }
