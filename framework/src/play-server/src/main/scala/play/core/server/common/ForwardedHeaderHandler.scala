@@ -1,12 +1,13 @@
 /*
  * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
  */
-package play.core.server.netty
+package play.core.server.common
 
 import play.api.Configuration
 import play.api.mvc.Headers
-import play.core.server.netty.ForwardedHeaderHandler.ForwardedHeaderHandlerConfig
-import play.core.server.netty.NodeIdentifierParser.Ip
+import play.core.server.common.NodeIdentifierParser.Ip
+
+import ForwardedHeaderHandler._
 
 /**
  * The ForwardedHeaderHandler class retrieves the last untrusted proxy
@@ -33,7 +34,7 @@ import play.core.server.netty.NodeIdentifierParser.Ip
  *   </dd>
  * </dl>
  */
-private[netty] class ForwardedHeaderHandler(configuration: ForwardedHeaderHandlerConfig) {
+private[server] class ForwardedHeaderHandler(configuration: ForwardedHeaderHandlerConfig) {
 
   def remoteProtocol(headers: Headers): Option[String] = {
     firstUntrustedForwarded(configuration.forwardedHeaders(headers), configuration.trustedProxies).get("proto")
@@ -60,7 +61,7 @@ private[netty] class ForwardedHeaderHandler(configuration: ForwardedHeaderHandle
     })
 }
 
-private[netty] object ForwardedHeaderHandler {
+private[server] object ForwardedHeaderHandler {
 
   sealed trait Version
   case object Rfc7239 extends Version

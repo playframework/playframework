@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com>
  */
-package play.core.server.netty
+package play.core.server.common
 
 import java.net.{ Inet6Address, InetAddress, Inet4Address }
 
@@ -11,7 +11,7 @@ import scala.util.parsing.combinator.RegexParsers
 /**
  * The NodeIdentifierParser object can parse node identifiers described in RFC 7239.
  */
-private[play] object NodeIdentifierParser extends RegexParsers {
+private[common] object NodeIdentifierParser extends RegexParsers {
 
   sealed trait Port
   case class PortNumber(number: Int) extends Port

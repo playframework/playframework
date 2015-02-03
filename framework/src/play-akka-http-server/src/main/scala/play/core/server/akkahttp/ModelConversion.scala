@@ -14,14 +14,14 @@ import play.api.http.HeaderNames._
 import play.api.libs.iteratee._
 import play.api.libs.streams.Streams
 import play.api.mvc._
-import play.core.server.common.ServerResultUtils
+import play.core.server.common.{ ForwardedHeaderHandler, ServerRequestUtils, ServerResultUtils }
 import scala.collection.immutable
 import scala.concurrent.Future
 
 /**
  * Conversions between Akka's and Play's HTTP model objects.
  */
-private[akkahttp] object ModelConversion {
+private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderHandler) {
 
   private val logger = Logger(getClass)
 
@@ -32,9 +32,10 @@ private[akkahttp] object ModelConversion {
   def convertRequest(
     requestId: Long,
     remoteAddress: InetSocketAddress,
+    secureProtocol: Boolean,
     request: HttpRequest)(implicit fm: FlowMaterializer): (RequestHeader, Enumerator[Array[Byte]]) = {
     (
-      convertRequestHeader(requestId, remoteAddress, request),
+      convertRequestHeader(requestId, remoteAddress, secureProtocol, request),
       convertRequestBody(request)
     )
   }
@@ -45,9 +46,14 @@ private[akkahttp] object ModelConversion {
   private def convertRequestHeader(
     requestId: Long,
     remoteAddress: InetSocketAddress,
+    secureProtocol: Boolean,
     request: HttpRequest): RequestHeader = {
     val remoteHostAddress = remoteAddress.getAddress.getHostAddress
     // Taken from PlayDefaultUpstreamHander
+
+    // Avoid clash between method arg and RequestHeader field
+    val remoteAddressArg = remoteAddress
+
     new RequestHeader {
       val id = requestId
       // Send a tag so our tests can tell which kind of server we're using.
@@ -60,8 +66,16 @@ private[akkahttp] object ModelConversion {
       def version = request.protocol.toString
       def queryString = request.uri.query.toMultiMap
       val headers = convertRequestHeaders(request)
-      def remoteAddress = remoteHostAddress
-      def secure = false // FIXME: Stub
+      def remoteAddress: String = ServerRequestUtils.findRemoteAddress(
+        forwardedHeaderHandler,
+        headers,
+        remoteAddressArg
+      )
+      def secure: Boolean = ServerRequestUtils.findSecureProtocol(
+        forwardedHeaderHandler,
+        headers,
+        secureProtocol
+      )
       def username = ??? // FIXME: Stub
     }
   }
