@@ -42,7 +42,7 @@ object ServerConfig {
     sslPort: Option[Int] = None,
     address: String = "0.0.0.0",
     mode: Mode.Mode = Mode.Prod,
-    properties: Properties): ServerConfig = {
+    properties: Properties = System.getProperties): ServerConfig = {
     ServerConfig(
       rootDir = rootDir,
       port = port,
@@ -79,12 +79,17 @@ object ServerConfig {
   }
 
   private def loadDefaultConfig(properties: Properties): Config = {
-    // TODO: Flesh the logic out here so it is closer to the standard ConfigFactory.load()
-    // logic. E.g. support reading from server.conf resource, support overriding config
-    // file location with properties, etc.
-    val serverReferenceConfig = ConfigFactory.parseResources("server-reference.conf")
+    val userConfig = {
+      def resourceConfig = Option(properties.getProperty("server.config.resource")) map ConfigFactory.parseResources
+      def fileConfig = Option(properties.getProperty("server.config.file")) map (new File(_)) map ConfigFactory.parseFile
+      resourceConfig orElse fileConfig
+    }
+
+    val serverReferenceConfig = ConfigFactory.parseResources(this.getClass.getClassLoader, "server-reference.conf")
     val systemPropertyConfig = ConfigFactory.parseProperties(properties)
-    systemPropertyConfig.withFallback(serverReferenceConfig)
+
+    val configs = Seq(systemPropertyConfig) ++ userConfig ++ Seq(serverReferenceConfig)
+    configs.reduceLeft(_ withFallback _)
   }
 
 }

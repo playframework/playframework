@@ -5,10 +5,13 @@
  */
 package play.core.server.ssl
 
+import java.util.Properties
+
 import org.specs2.mutable.{ After, Specification }
 import org.specs2.mock.Mockito
 import org.specs2.specification.Scope
 import play.core.ApplicationProvider
+import play.core.server.ServerConfig
 import scala.util.Failure
 import java.io.File
 import javax.net.ssl.SSLEngine
@@ -35,8 +38,6 @@ class ServerSSLEngineSpec extends Specification with Mockito {
   sequential
 
   trait ApplicationContext extends Mockito with Scope {
-    val applicationProvider = mock[ApplicationProvider]
-    applicationProvider.get returns Failure(new Exception("no app"))
   }
 
   trait TempConfDir extends After {
@@ -54,32 +55,40 @@ class ServerSSLEngineSpec extends Specification with Mockito {
 
   val javaAppProvider = mock[play.core.ApplicationProvider]
 
+  def serverConfig(tempDir: File, engineProvider: Option[String]) = {
+    val props = new Properties()
+    engineProvider.foreach(props.put("play.server.https.engineProvider", _))
+    ServerConfig(rootDir = tempDir, port = Some(9000), properties = props)
+  }
+
+  def createEngine(engineProvider: Option[String], tempDir: Option[File] = None) = {
+    val app = mock[ApplicationProvider]
+    app.get returns Failure(new Exception("no app"))
+    tempDir.foreach(dir => app.path returns dir)
+    ServerSSLEngine.createSSLEngineProvider(serverConfig(tempDir.getOrElse(new File(".")), engineProvider), app)
+      .createSSLEngine()
+  }
+
   "ServerSSLContext" should {
 
     "default create a SSL engine suitable for development" in new ApplicationContext with TempConfDir {
-      applicationProvider.path returns tempDir
-      System.clearProperty("play.http.sslengineprovider")
-      ServerSSLEngine.createSSLEngineProvider(applicationProvider).createSSLEngine() should beAnInstanceOf[SSLEngine]
+      createEngine(None, Some(tempDir)) should beAnInstanceOf[SSLEngine]
     }
 
     "fail to load a non existing SSLEngineProvider" in new ApplicationContext {
-      System.setProperty("play.http.sslengineprovider", "bla bla")
-      ServerSSLEngine.createSSLEngineProvider(applicationProvider) should throwA[ClassNotFoundException]
+      createEngine(Some("bla bla")) should throwA[ClassNotFoundException]
     }
 
     "fail to load an existing SSLEngineProvider with the wrong type" in new ApplicationContext {
-      System.setProperty("play.http.sslengineprovider", classOf[WrongSSLEngineProvider].getName)
-      ServerSSLEngine.createSSLEngineProvider(applicationProvider) should throwA[ClassCastException]
+      createEngine(Some(classOf[WrongSSLEngineProvider].getName)) should throwA[ClassCastException]
     }
 
     "load a custom SSLContext from a SSLEngineProvider" in new ApplicationContext {
-      System.setProperty("play.http.sslengineprovider", classOf[RightSSLEngineProvider].getName)
-      ServerSSLEngine.createSSLEngineProvider(applicationProvider).createSSLEngine() should beAnInstanceOf[SSLEngine]
+      createEngine(Some(classOf[RightSSLEngineProvider].getName)) should beAnInstanceOf[SSLEngine]
     }
 
     "load a custom SSLContext from a java SSLEngineProvider" in new ApplicationContext {
-      System.setProperty("play.http.sslengineprovider", classOf[JavaSSLEngineProvider].getName)
-      ServerSSLEngine.createSSLEngineProvider(applicationProvider).createSSLEngine() should beAnInstanceOf[SSLEngine]
+      createEngine(Some(classOf[JavaSSLEngineProvider].getName)) should beAnInstanceOf[SSLEngine]
     }
   }
 

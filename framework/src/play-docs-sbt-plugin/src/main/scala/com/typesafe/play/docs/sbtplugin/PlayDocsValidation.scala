@@ -81,6 +81,12 @@ object PlayDocsValidation {
     val relativeLinks = mutable.ListBuffer[LinkRef]()
     val externalLinks = mutable.ListBuffer[LinkRef]()
 
+    def stripFragment(path: String) = if (path.contains("#")) {
+      path.dropRight(path.length - path.indexOf('#'))
+    } else {
+      path
+    }
+
     def parseMarkdownFile(markdownFile: File): String = {
 
       val processor = new PegDownProcessor(Extensions.ALL, PegDownPlugins.builder()
@@ -90,13 +96,14 @@ object PlayDocsValidation {
       val linkRenderer = new LinkRenderer {
         override def render(node: WikiLinkNode) = {
           node.getText match {
-            case link if link.contains("|") => {
+
+            case link if link.contains("|") =>
               val parts = link.split('|')
               val desc = parts.head
-              val page = parts.tail.head.trim
+              val page = stripFragment(parts.tail.head.trim)
               wikiLinks += LinkRef(page, markdownFile, node.getStartIndex + desc.length + 3)
-            }
-            case image if image.endsWith(".png") => {
+
+            case image if image.endsWith(".png") =>
               image match {
                 case full if full.startsWith("http://") =>
                   externalLinks += LinkRef(full, markdownFile, node.getStartIndex + 2)
@@ -106,10 +113,10 @@ object PlayDocsValidation {
                   val link = markdownFile.getParentFile.getCanonicalPath.stripPrefix(base.getCanonicalPath).stripPrefix("/") + "/" + relative
                   resourceLinks += LinkRef(link, markdownFile, node.getStartIndex + 2)
               }
-            }
-            case link => {
+
+            case link =>
               wikiLinks += LinkRef(link.trim, markdownFile, node.getStartIndex + 2)
-            }
+
           }
           new LinkRenderer.Rendering("foo", "bar")
         }
@@ -121,6 +128,7 @@ object PlayDocsValidation {
           url match {
             case full if full.startsWith("http://") || full.startsWith("https://") =>
               externalLinks += LinkRef(full, markdownFile, node.getStartIndex + offset)
+            case fragment if fragment.startsWith("#") => // ignore fragments, no validation of them for now
             case relative => relativeLinks += LinkRef(relative, markdownFile, node.getStartIndex + offset)
           }
           new LinkRenderer.Rendering("foo", "bar")

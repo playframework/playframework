@@ -3,6 +3,7 @@
  */
 package play.core.server.ssl
 
+import play.core.server.ServerConfig
 import play.server.api.{ SSLEngineProvider => ScalaSSLEngineProvider }
 import play.server.{ SSLEngineProvider => JavaSSLEngineProvider }
 import java.lang.reflect.Constructor
@@ -19,8 +20,8 @@ import play.core.ApplicationProvider
  */
 object ServerSSLEngine {
 
-  def createSSLEngineProvider(applicationProvider: ApplicationProvider): JavaSSLEngineProvider = {
-    val providerClassName = Option(System.getProperty("play.http.sslengineprovider")).getOrElse(classOf[DefaultSSLEngineProvider].getName)
+  def createSSLEngineProvider(serverConfig: ServerConfig, applicationProvider: ApplicationProvider): JavaSSLEngineProvider = {
+    val providerClassName = serverConfig.configuration.underlying.getString("play.server.https.engineProvider")
 
     val classLoader = applicationProvider.get.map(_.classloader).getOrElse(this.getClass.getClassLoader)
     val providerClass = classLoader.loadClass(providerClassName)
@@ -28,10 +29,10 @@ object ServerSSLEngine {
     // NOTE: this is not like instanceof.  With isAssignableFrom, the subclass should be on the right.
     providerClass match {
       case i if classOf[ScalaSSLEngineProvider].isAssignableFrom(providerClass) =>
-        createScalaSSLEngineProvider(i.asInstanceOf[Class[ScalaSSLEngineProvider]], applicationProvider)
+        createScalaSSLEngineProvider(i.asInstanceOf[Class[ScalaSSLEngineProvider]], serverConfig, applicationProvider)
 
       case s if classOf[JavaSSLEngineProvider].isAssignableFrom(providerClass) =>
-        createJavaSSLEngineProvider(s.asInstanceOf[Class[JavaSSLEngineProvider]], applicationProvider)
+        createJavaSSLEngineProvider(s.asInstanceOf[Class[JavaSSLEngineProvider]], serverConfig, applicationProvider)
 
       case _ =>
         throw new ClassCastException("Must define play.server.api.SSLEngineProvider or play.server.SSLEngineProvider as interface!")
@@ -39,7 +40,8 @@ object ServerSSLEngine {
   }
 
   private def createJavaSSLEngineProvider(providerClass: Class[JavaSSLEngineProvider],
-    applicationProvider: ApplicationProvider): JavaSSLEngineProvider = {
+    serverConfig: ServerConfig, applicationProvider: ApplicationProvider): JavaSSLEngineProvider = {
+    var serverConfigProviderArgsConstructor: Constructor[_] = null
     var providerArgsConstructor: Constructor[_] = null
     var noArgsConstructor: Constructor[_] = null
     for (constructor <- providerClass.getConstructors) {
@@ -48,25 +50,33 @@ object ServerSSLEngine {
         noArgsConstructor = constructor
       } else if (parameterTypes.length == 1 && classOf[play.server.ApplicationProvider].isAssignableFrom(parameterTypes(0))) {
         providerArgsConstructor = constructor
+      } else if (parameterTypes.length == 2 &&
+        classOf[ServerConfig].isAssignableFrom(parameterTypes(0)) &&
+        classOf[play.server.ApplicationProvider].isAssignableFrom(parameterTypes(1))) {
+        serverConfigProviderArgsConstructor = constructor
       }
     }
 
-    if (providerArgsConstructor != null) {
+    def javaAppProvider = {
       val javaApplication = applicationProvider.get.map(a => a.injector.instanceOf[play.Application]).getOrElse(null)
-      val javaAppProvider = new play.server.ApplicationProvider(javaApplication, applicationProvider.path)
-      return providerArgsConstructor.newInstance(javaAppProvider).asInstanceOf[JavaSSLEngineProvider]
+      new play.server.ApplicationProvider(javaApplication, applicationProvider.path)
     }
 
-    if (noArgsConstructor != null) {
-      return noArgsConstructor.newInstance().asInstanceOf[play.server.SSLEngineProvider]
+    if (serverConfigProviderArgsConstructor != null) {
+      serverConfigProviderArgsConstructor.newInstance(serverConfig, javaAppProvider).asInstanceOf[JavaSSLEngineProvider]
+    } else if (providerArgsConstructor != null) {
+      providerArgsConstructor.newInstance(javaAppProvider).asInstanceOf[JavaSSLEngineProvider]
+    } else if (noArgsConstructor != null) {
+      noArgsConstructor.newInstance().asInstanceOf[play.server.SSLEngineProvider]
+    } else {
+      throw new ClassCastException("No constructor with (appProvider:play.server.ApplicationProvider) or no-args constructor defined!")
     }
-
-    throw new ClassCastException("No constructor with (appProvider:play.server.ApplicationProvider) or no-args constructor defined!")
   }
 
   private def createScalaSSLEngineProvider(providerClass: Class[ScalaSSLEngineProvider],
-    applicationProvider: ApplicationProvider): ScalaSSLEngineProvider = {
+    serverConfig: ServerConfig, applicationProvider: ApplicationProvider): ScalaSSLEngineProvider = {
 
+    var serverConfigProviderArgsConstructor: Constructor[ScalaSSLEngineProvider] = null
     var providerArgsConstructor: Constructor[ScalaSSLEngineProvider] = null
     var noArgsConstructor: Constructor[ScalaSSLEngineProvider] = null
     for (constructor <- providerClass.getConstructors) {
@@ -75,17 +85,22 @@ object ServerSSLEngine {
         noArgsConstructor = constructor.asInstanceOf[Constructor[ScalaSSLEngineProvider]]
       } else if (parameterTypes.length == 1 && classOf[ApplicationProvider].isAssignableFrom(parameterTypes(0))) {
         providerArgsConstructor = constructor.asInstanceOf[Constructor[ScalaSSLEngineProvider]]
+      } else if (parameterTypes.length == 2 &&
+        classOf[ServerConfig].isAssignableFrom(parameterTypes(0)) &&
+        classOf[ApplicationProvider].isAssignableFrom(parameterTypes(1))) {
+        serverConfigProviderArgsConstructor = constructor.asInstanceOf[Constructor[ScalaSSLEngineProvider]]
       }
     }
 
-    if (providerArgsConstructor != null) {
-      return providerArgsConstructor.newInstance(applicationProvider)
+    if (serverConfigProviderArgsConstructor != null) {
+      serverConfigProviderArgsConstructor.newInstance(serverConfig, applicationProvider)
+    } else if (providerArgsConstructor != null) {
+      providerArgsConstructor.newInstance(applicationProvider)
+    } else if (noArgsConstructor != null) {
+      noArgsConstructor.newInstance()
+    } else {
+      throw new ClassCastException("No constructor with (appProvider:play.core.ApplicationProvider) or no-args constructor defined!")
     }
 
-    if (noArgsConstructor != null) {
-      return noArgsConstructor.newInstance()
-    }
-
-    throw new ClassCastException("No constructor with (appProvider:play.core.ApplicationProvider) or no-args constructor defined!")
   }
 }

@@ -26,9 +26,9 @@ import scala.util.control.NonFatal
  */
 class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extends Server with ServerWithStop {
 
-  import NettyServer._
+  private val nettyConfig = config.configuration.underlying.getConfig("play.server.netty")
 
-  private val NettyOptionPrefix = "http.netty.option."
+  import NettyServer._
 
   def applicationProvider = appProvider
   def mode = config.mode
@@ -42,32 +42,31 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
     import scala.collection.JavaConversions._
     // Find all properties that start with http.netty.option
 
-    config.properties.stringPropertyNames().foreach { prop =>
-      if (prop.startsWith(NettyOptionPrefix)) {
+    val options = nettyConfig.getConfig("option")
 
-        val value = {
-          val v = config.properties.getProperty(prop)
-          // Check if it's boolean
-          if (v.equalsIgnoreCase("true") || v.equalsIgnoreCase("false")) {
-            java.lang.Boolean.parseBoolean(v)
-            // Check if it's null (unsetting an option)
-          } else if (v.equalsIgnoreCase("null")) {
-            null
-          } else {
-            // Check if it's an int
-            try {
-              v.toInt
-            } catch {
-              // Fallback to returning as a string
-              case e: NumberFormatException => v
-            }
-          }
-        }
-
-        val name = prop.substring(NettyOptionPrefix.size)
-
-        serverBootstrap.setOption(name, value)
+    object ExtractInt {
+      def unapply(s: String) = try {
+        Some(s.toInt)
+      } catch {
+        case e: NumberFormatException => None
       }
+    }
+
+    options.entrySet().foreach { entry =>
+      val value = entry.getValue.unwrapped() match {
+        case bool: java.lang.Boolean => bool
+        case number: Number => number
+        case null => null
+        case "true" | "yes" => true
+        case "false" | "no" => false
+        case ExtractInt(number) => number
+        case string: String => string
+        case other => other.toString
+      }
+
+      val name = entry.getKey
+
+      serverBootstrap.setOption(name, value)
     }
 
     serverBootstrap
@@ -86,19 +85,13 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
           newPipeline.addLast("ssl", new SslHandler(sslEngine))
         }
       }
-      def getIntProperty(name: String, default: Int): Int = {
-        Option(config.properties.getProperty(name)).map(Integer.parseInt(_)).getOrElse(default)
-      }
-      def getBooleanProperty(name: String, default: Boolean): Boolean = {
-        Option(config.properties.getProperty(name)).map(_.equalsIgnoreCase("true")).getOrElse(default)
-      }
-      val maxInitialLineLength = getIntProperty("http.netty.maxInitialLineLength", 4096)
-      val maxHeaderSize = getIntProperty("http.netty.maxHeaderSize", 8192)
-      val maxChunkSize = getIntProperty("http.netty.maxChunkSize", 8192)
+      val maxInitialLineLength = nettyConfig.getInt("maxInitialLineLength")
+      val maxHeaderSize = nettyConfig.getInt("maxHeaderSize")
+      val maxChunkSize = nettyConfig.getInt("maxChunkSize")
       newPipeline.addLast("decoder", new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
       newPipeline.addLast("encoder", new HttpResponseEncoder())
       newPipeline.addLast("decompressor", new HttpContentDecompressor())
-      val logWire = getBooleanProperty("http.netty.log.wire", default = false)
+      val logWire = nettyConfig.getBoolean("log.wire")
       if (logWire) {
         newPipeline.addLast("logging", new LoggingHandler(InternalLogLevel.DEBUG))
       }
@@ -109,12 +102,11 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
 
     lazy val sslEngineProvider: Option[SSLEngineProvider] = //the sslContext should be reused on each connection
       try {
-        Some(ServerSSLEngine.createSSLEngineProvider(applicationProvider))
+        Some(ServerSSLEngine.createSSLEngineProvider(config, applicationProvider))
       } catch {
-        case NonFatal(e) => {
+        case NonFatal(e) =>
           logger.error(s"cannot load SSL context", e)
           None
-        }
       }
 
   }
@@ -145,14 +137,13 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
 
   mode match {
     case Mode.Test =>
-    case _ => {
+    case _ =>
       HTTP.foreach { http =>
         logger.info("Listening for HTTP on %s".format(http._2.getLocalAddress))
       }
       HTTPS.foreach { https =>
         logger.info("Listening for HTTPS on port %s".format(https._2.getLocalAddress))
       }
-    }
   }
 
   override def stop() {
