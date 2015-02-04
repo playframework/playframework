@@ -34,7 +34,6 @@ object Multipart {
     } yield ("\r\n--" + boundary).getBytes("utf-8")
 
     maybeBoundary.map { boundary =>
-
       for {
         // First, we ignore the first boundary.  Note that if the body contains a preamble, this won't work.  But the
         // body never contains a preamble.
@@ -46,15 +45,20 @@ object Multipart {
         result.right.map { reversed =>
           // We built the parts by prepending a list, so we need to reverse them
           val parts = reversed.reverse
-          val data = parts.collect { case DataPart(key, value) => (key, value) }.groupBy(_._1).mapValues(_.map(_._2))
+          val data = parts.collect {
+            case DataPart(key, value) => (key, value)
+          }.groupBy(_._1).mapValues(_.map(_._2))
           val files = parts.collect { case file: FilePart[A] => file }
           val bad = parts.collect { case bad: BadPart => bad }
-          val missing = parts.collect { case missing: MissingFilePart => missing }
+          val missing = parts.collect {
+            case missing: MissingFilePart => missing
+          }
           MultipartFormData(data, files, bad, missing)
         }
       }
     }.getOrElse {
-      Iteratee.flatten(createBadResult("Missing boundary header")(request).map(r => Done(Left(r))))
+      Iteratee.flatten(createBadResult("Missing boundary header")(request).
+        map(r => Done(Left(r))))
     }
   }
 
@@ -65,13 +69,14 @@ object Multipart {
       case FileInfo(partName, filename, contentType) =>
         val tempFile = TemporaryFile("multipartBody", "asTemporaryFile")
         import play.core.Execution.Implicits.internalContext
-        Iteratee.fold[Array[Byte], FileOutputStream](new java.io.FileOutputStream(tempFile.file)) { (os, data) =>
-          os.write(data)
-          os
-        }(internalContext).map { os =>
-          os.close()
-          tempFile
-        }(internalContext)
+        Iteratee.fold[Array[Byte], FileOutputStream](
+          new java.io.FileOutputStream(tempFile.file)) { (os, data) =>
+            os.write(data)
+            os
+          }(internalContext).map { os =>
+            os.close()
+            tempFile
+          }(internalContext)
     }
   }
 
@@ -160,7 +165,15 @@ object Multipart {
 
   }
 
-  private case class FileInfo(partName: String, fileName: String, contentType: Option[String])
+  case class FileInfo(
+    /** Name of the part in HTTP request (e.g. field name) */
+    partName: String,
+
+    /** Name of the file */
+    fileName: String,
+
+    /** Type of content (e.g. "application/pdf"), or `None` if unspecified. */
+    contentType: Option[String])
 
   private[play] object FileInfoMatcher {
 
@@ -202,53 +215,60 @@ object Multipart {
 
     def unapply(headers: Map[String, String]): Option[(String, String, Option[String])] = {
 
-      val keyValue = """^([a-zA-Z_0-9]+)="(.*)"$""".r
+      val KeyValue = """^([a-zA-Z_0-9]+)="(.*)"$""".r
 
       for {
-        value <- headers.get("content-disposition")
-
-        values = split(value).map(_.trim).map {
-          // unescape escaped quotes
-          case keyValue(key, v) => (key.trim, v.trim.replaceAll("""\\"""", "\""))
-          case key => (key.trim, "")
-        }.toMap
+        values <- headers.get("content-disposition").
+          map(split(_).map(_.trim).map {
+            // unescape escaped quotes
+            case KeyValue(key, v) =>
+              (key.trim, v.trim.replaceAll("""\\"""", "\""))
+            case key => (key.trim, "")
+          }.toMap)
 
         _ <- values.get("form-data")
-
         partName <- values.get("name")
-
         fileName <- values.get("filename")
-
         contentType = headers.get("content-type")
-
       } yield (partName, fileName, contentType)
     }
   }
 
-  private def handleFilePart[A](handler: FileInfo => Iteratee[Array[Byte], A]): PartHandler[FilePart[A]] = {
+  /**
+   * Creates an handler that can work with files in HTTP request parts.
+   *
+   * {{{
+   * import play.core.parsers.Multipart, Multipart.FileInfo
+   * import play.api.libs.iteratee.Iteratee
+   *
+   * val handler = Multipart.handleFilePart[List[Int]] { fileInfo =>
+   *   ??? // return corresponding Iteratee[Array[Byte], List[Int]]
+   * }
+   *
+   * // then use it
+   * Multipart.multipartParser[List[Int]](1024, handler)
+   * }}}
+   */
+  def handleFilePart[A](handler: FileInfo => Iteratee[Array[Byte], A]): PartHandler[FilePart[A]] = {
     case FileInfoMatcher(partName, fileName, contentType) =>
       val safeFileName = fileName.split('\\').takeRight(1).mkString
-      handler(FileInfo(partName, safeFileName, contentType)).map(a => FilePart(partName, safeFileName, contentType, a))
+      handler(FileInfo(partName, safeFileName, contentType)).
+        map(a => FilePart(partName, safeFileName, contentType, a))
   }
 
   private object PartInfoMatcher {
-
     def unapply(headers: Map[String, String]): Option[String] = {
 
-      val keyValue = """^([a-zA-Z_0-9]+)="(.*)"$""".r
+      val KeyValue = """^([a-zA-Z_0-9]+)="(.*)"$""".r
 
       for {
-        value <- headers.get("content-disposition")
-
-        values = value.split(";").map(_.trim).map {
-          case keyValue(key, v) => (key.trim, v.trim)
-          case key => (key.trim, "")
-        }.toMap
-
+        values <- headers.get("content-disposition").map(
+          _.split(";").map(_.trim).map {
+            case KeyValue(key, v) => (key.trim, v.trim)
+            case key => (key.trim, "")
+          }.toMap)
         _ <- values.get("form-data")
-
         partName <- values.get("name")
-
       } yield partName
     }
   }
@@ -265,8 +285,9 @@ object Multipart {
         }
   }
 
-  private def createBadResult(msg: String): RequestHeader => Future[Result] = { request =>
-    Play.maybeApplication.map(_.errorHandler.onClientError(request, BAD_REQUEST, msg))
-      .getOrElse(Future.successful(Results.BadRequest))
-  }
+  private def createBadResult(msg: String): RequestHeader => Future[Result] =
+    { request =>
+      Play.maybeApplication.fold(Future.successful[Result](Results.BadRequest))(
+        _.errorHandler.onClientError(request, BAD_REQUEST, msg))
+    }
 }
