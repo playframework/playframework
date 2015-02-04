@@ -205,4 +205,8 @@ object JsResult {
       case (_, JsError(e)) => JsError(e)
     }
   }
+
+  implicit val functorJsResult: Functor[JsResult] = new Functor[JsResult] {
+    override def fmap[A, B](m: JsResult[A], f: A => B) = m map f
+  }
 }
