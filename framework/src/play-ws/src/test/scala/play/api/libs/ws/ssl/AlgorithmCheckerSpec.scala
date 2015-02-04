@@ -31,7 +31,6 @@ object AlgorithmCheckerSpec extends Specification {
     }
 
     "pass a good signature algorithm (SHA256)" in {
-      0
       val certificate: Certificate = CertificateGenerator.generateRSAWithSHA256(512)
       checker(Seq("MD5"), Nil).check(certificate, emptySet())
       success

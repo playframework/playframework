@@ -43,17 +43,17 @@ public class JavaWS {
 
         public void requestExamples() {
             // #ws-holder
-            WSRequestHolder holder = ws.url("http://example.com");
+            WSRequest request = ws.url("http://example.com");
             // #ws-holder
 
             // #ws-complex-holder
-            WSRequestHolder complexHolder = holder.setHeader("headerKey", "headerValue")
-                                                  .setTimeout(1000)
-                                                  .setQueryParameter("paramKey", "paramValue");
+            WSRequest complexRequest = request.setHeader("headerKey", "headerValue")
+                                                    .setRequestTimeout(1000)
+                                                    .setQueryParameter("paramKey", "paramValue");
             // #ws-complex-holder
 
             // #ws-get
-            Promise<WSResponse> responsePromise = complexHolder.get();
+            Promise<WSResponse> responsePromise = complexRequest.get();
             // #ws-get
 
             String url = "http://example.com";
@@ -81,7 +81,7 @@ public class JavaWS {
             // #ws-header-content-type
 
             // #ws-timeout
-            ws.url(url).setTimeout(1000).get();
+            ws.url(url).setRequestTimeout(1000).get();
             // #ws-timeout
 
             // #ws-post-form-data
@@ -187,7 +187,7 @@ public class JavaWS {
             // You can directly use the builder for specific options once you have secure TLS defaults...
             AsyncHttpClientConfig customConfig = new AsyncHttpClientConfig.Builder(secureDefaults)
                             .setProxyServer(new com.ning.http.client.ProxyServer("127.0.0.1", 38080))
-                            .setCompressionEnabled(true)
+                            .setCompressionEnforced(true)
                             .build();
             WSClient customClient = new play.libs.ws.ning.NingWSClient(customConfig);
 

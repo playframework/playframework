@@ -9,7 +9,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import play.it._
 import play.it.tools.HttpBinApplication._
 import play.api.libs.ws.WSResponse
-import com.ning.http.client.providers.netty.NettyResponse
+import com.ning.http.client.providers.netty.response.NettyResponse
 import play.api.mvc._
 import play.api.http.HeaderNames
 import play.api.libs.iteratee.Enumerator

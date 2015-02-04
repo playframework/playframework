@@ -8,6 +8,6 @@ public interface WSAPI {
 
     public WSClient client();
 
-    public WSRequestHolder url(String url);
+    public WSRequest url(String url);
 
 }

@@ -9,22 +9,27 @@ import play.libs.ws.ning.NingWSClient;
 
 /**
  * Asynchronous API to to query web services, as an http client.
- *
- * The value returned is a {@code Promise<Response>}, and you should use Play's asynchronous mechanisms to use this response.
  */
 public class WS {
 
+    /**
+     * Returns the default WSClient object managed by the Play application.
+     *
+     * @return a configured WSClient
+     */
     public static WSClient client() {
         Application app = play.Play.application();
         return app.injector().instanceOf(WSClient.class);
     }
 
     /**
-     * Prepare a new request. You can then construct it by chaining calls.
+     * Returns a WSRequest object representing the URL.  You can append additional
+     * properties on the WSRequest by chaining calls, and execute the request to
+     * return an asynchronous {@code Promise<WSResponse>}.
      *
      * @param url the URL to request
      */
-    public static WSRequestHolder url(String url) {
+    public static WSRequest url(String url) {
         return client().url(url);
     }
 
@@ -48,7 +53,7 @@ public class WS {
             public Object getUnderlying() {
                 return client.getUnderlying();
             }
-            public WSRequestHolder url(String url) {
+            public WSRequest url(String url) {
                 if (url.startsWith("/") && port != -1) {
                     return client.url("http://localhost:" + port + url);
                 } else {

@@ -3,14 +3,12 @@
  */
 package play.api.libs.oauth
 
-import _root_.oauth.signpost.{ OAuthConsumer, OAuthProvider }
-import _root_.oauth.signpost.exception.OAuthException
 import _root_.oauth.signpost.basic.DefaultOAuthConsumer
 import _root_.oauth.signpost.commonshttp.CommonsHttpOAuthProvider
-import _root_.oauth.signpost.{ OAuthConsumer, AbstractOAuthConsumer }
-import oauth._
-
-import play.api.libs.ws._
+import _root_.oauth.signpost.exception.OAuthException
+import com.ning.http.client.oauth.OAuthSignatureCalculator
+import com.ning.http.client.{ Request, RequestBuilderBase, SignatureCalculator }
+import play.api.libs.ws.WSSignatureCalculator
 
 /**
  * Library to access resources protected by OAuth 1.0a.
@@ -91,59 +89,34 @@ case class RequestToken(token: String, secret: String)
 case class ServiceInfo(requestTokenURL: String, accessTokenURL: String, authorizationURL: String, key: ConsumerKey)
 
 /**
- * A signature calculator for the Play WS API.
+ * The public AsyncHttpClient implementation of WSSignatureCalculator.
+ */
+class OAuthCalculator(consumerKey: ConsumerKey, requestToken: RequestToken) extends WSSignatureCalculator with SignatureCalculator {
+
+  import com.ning.http.client.oauth.{ ConsumerKey => AHCConsumerKey, RequestToken => AHCRequestToken }
+
+  private val ahcConsumerKey = new AHCConsumerKey(consumerKey.key, consumerKey.secret)
+  private val ahcRequestToken = new AHCRequestToken(requestToken.token, requestToken.secret)
+  private val calculator = new OAuthSignatureCalculator(ahcConsumerKey, ahcRequestToken)
+
+  override def calculateAndAddSignature(request: Request, requestBuilder: RequestBuilderBase[_]): Unit = {
+    calculator.calculateAndAddSignature(request, requestBuilder)
+  }
+}
+
+/**
+ * Object for creating signature calculator for the Play WS API.
  *
  * Example:
  * {{{
- * WS.url("http://example.com/protected").sign(OAuthCalculator(service, tokens)).get()
+ * import play.api.libs.oauth._
+ * val consumerKey: ConsumerKey = ConsumerKey(twitterConsumerKey, twitterConsumerSecret)
+ * val requestToken: RequestToken = RequestToken(accessTokenKey, accessTokenSecret)
+ * WS.url("http://example.com/protected").sign(OAuthCalculator(consumerKey, requestToken)).get()
  * }}}
  */
-case class OAuthCalculator(consumerKey: ConsumerKey, token: RequestToken) extends AbstractOAuthConsumer(consumerKey.key, consumerKey.secret) with WSSignatureCalculator {
-
-  import _root_.oauth.signpost.http.HttpRequest
-
-  this.setTokenWithSecret(token.token, token.secret)
-
-  override protected def wrap(request: Any) = request match {
-    case r: WSRequest => new WSRequestAdapter(r)
-    case _ => throw new IllegalArgumentException("OAuthCalculator expects requests of type play.api.libs.ws.WSRequest")
+object OAuthCalculator {
+  def apply(consumerKey: ConsumerKey, token: RequestToken): WSSignatureCalculator = {
+    new OAuthCalculator(consumerKey, token)
   }
-
-  override def sign(request: WSRequest): Unit = sign(wrap(request))
-
-  class WSRequestAdapter(request: WSRequest) extends HttpRequest {
-
-    import scala.collection.JavaConverters._
-
-    override def unwrap() = request
-
-    override def getAllHeaders: java.util.Map[String, String] =
-      request.allHeaders.map { entry => (entry._1, entry._2.headOption) }
-        .filter { entry => entry._2.isDefined }
-        .map { entry => (entry._1, entry._2.get) }.asJava
-
-    override def getHeader(name: String): String = request.header(name).getOrElse("")
-
-    override def getContentType: String = getHeader("Content-Type")
-
-    override def getMessagePayload = new java.io.ByteArrayInputStream(request.getBody.getOrElse(Array.emptyByteArray))
-
-    override def getMethod: String = this.request.method
-
-    override def setHeader(name: String, value: String) {
-      request.setHeader(name, value)
-    }
-
-    /**
-     * Returns the full URL with query string for correct signing.
-     * @return a URL with query string attached.
-     */
-    override def getRequestUrl = request.url
-
-    override def setRequestUrl(url: String) {
-      request.setUrl(url)
-    }
-
-  }
-
 }

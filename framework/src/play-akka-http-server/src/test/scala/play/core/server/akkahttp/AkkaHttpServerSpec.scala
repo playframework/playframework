@@ -21,7 +21,7 @@ object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
 
   def requestFromServer[T](
     path: String)(
-      exec: WSRequestHolder => Future[WSResponse])(
+      exec: WSRequest => Future[WSResponse])(
         routes: PartialFunction[(String, String), Handler])(
           check: WSResponse => T)(
             implicit awaitTimeout: Timeout): T = {

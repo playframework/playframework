@@ -9,7 +9,7 @@ import play.inject.ApplicationLifecycle;
 import play.libs.F;
 import play.libs.ws.WSAPI;
 import play.libs.ws.WSClient;
-import play.libs.ws.WSRequestHolder;
+import play.libs.ws.WSRequest;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -43,7 +43,7 @@ public class NingWSAPI implements WSAPI {
     }
 
     @Override
-    public WSRequestHolder url(String url) {
+    public WSRequest url(String url) {
         return client().url(url);
     }
 }

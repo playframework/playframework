@@ -9,6 +9,7 @@ import java.security.KeyStore
 import java.security.cert.CertPathValidatorException
 import javax.inject.{ Singleton, Inject, Provider }
 
+import com.ning.http.client.providers.netty.NettyAsyncHttpProviderConfig
 import org.slf4j.LoggerFactory
 
 import com.ning.http.client.{ AsyncHttpClientConfig, SSLEngineFactory }
@@ -29,8 +30,7 @@ import play.api.libs.ws.WSClientConfig
  * @param maxConnectionsTotal The maximum total number of connections. -1 means no maximum.
  * @param maxNumberOfRedirects The maximum number of redirects.
  * @param maxRequestRetry The maximum number of times to retry a request if it fails.
- * @param removeQueryParamsOnRedirect Whether query parameters should be removed when redirecting.
- * @param useRawUrl Whether the raw URL should be used.
+ * @param disableUrlEncoding Whether the raw URL should be used.
  */
 case class NingWSClientConfig(wsClientConfig: WSClientConfig = WSClientConfig(),
   allowPoolingConnection: Boolean = true,
@@ -40,8 +40,7 @@ case class NingWSClientConfig(wsClientConfig: WSClientConfig = WSClientConfig(),
   maxConnectionsTotal: Int = -1,
   maxNumberOfRedirects: Int = 5,
   maxRequestRetry: Int = 5,
-  removeQueryParamsOnRedirect: Boolean = true,
-  useRawUrl: Boolean = false)
+  disableUrlEncoding: Boolean = false)
 
 /**
  * Factory for creating NingWSClientConfig, for use from Java.
@@ -72,20 +71,18 @@ class NingWSClientConfigParser @Inject() (wsClientConfig: WSClientConfig,
     val maximumConnectionsTotal = config.get[Int]("maxConnectionsTotal")
     val maximumNumberOfRedirects = config.get[Int]("maxNumberOfRedirects")
     val maxRequestRetry = config.get[Int]("maxRequestRetry")
-    val removeQueryParamsOnRedirect = config.get[Boolean]("removeQueryParamsOnRedirect")
-    val useRawUrl = config.get[Boolean]("useRawUrl")
+    val disableUrlEncoding = config.get[Boolean]("disableUrlEncoding")
 
     NingWSClientConfig(
-      wsClientConfig,
-      allowPoolingConnection,
-      allowSslConnectionPool,
-      ioThreadMultiplier,
-      maximumConnectionsPerHost,
-      maximumConnectionsTotal,
-      maximumNumberOfRedirects,
-      maxRequestRetry,
-      removeQueryParamsOnRedirect,
-      useRawUrl
+      wsClientConfig = wsClientConfig,
+      allowPoolingConnection = allowPoolingConnection,
+      allowSslConnectionPool = allowSslConnectionPool,
+      ioThreadMultiplier = ioThreadMultiplier,
+      maxConnectionsPerHost = maximumConnectionsPerHost,
+      maxConnectionsTotal = maximumConnectionsTotal,
+      maxNumberOfRedirects = maximumNumberOfRedirects,
+      maxRequestRetry = maxRequestRetry,
+      disableUrlEncoding = disableUrlEncoding
     )
   }
 }
@@ -123,11 +120,12 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
 
     configureWS(ningConfig)
 
-    if (config.acceptAnyCertificate) {
-      // lean on the AsyncHttpClient bug
-    } else {
-      configureSSL(config.ssl)
-    }
+    // acceptAnyCertificate is technically a "NingConfig" setting for SSL, but
+    // was added before the refactor.
+    builder.setAcceptAnyCertificate(config.acceptAnyCertificate)
+
+    configureSSL(config.ssl)
+
     addCustomSettings(builder)
   }
 
@@ -159,24 +157,28 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
   def configureWS(ningConfig: NingWSClientConfig): Unit = {
     val config = ningConfig.wsClientConfig
 
-    builder.setConnectionTimeoutInMs(config.connectionTimeout.toMillis.toInt)
-      .setIdleConnectionTimeoutInMs(config.idleTimeout.toMillis.toInt)
-      .setRequestTimeoutInMs(config.requestTimeout.toMillis.toInt)
-      .setFollowRedirects(config.followRedirects)
+    builder.setConnectTimeout(config.connectionTimeout.toMillis.toInt)
+      .setReadTimeout(config.idleTimeout.toMillis.toInt)
+      .setRequestTimeout(config.requestTimeout.toMillis.toInt)
+      .setFollowRedirect(config.followRedirects)
       .setUseProxyProperties(config.useProxyProperties)
-      .setCompressionEnabled(config.compressionEnabled)
+      .setCompressionEnforced(config.compressionEnabled)
 
     config.userAgent foreach builder.setUserAgent
 
-    builder.setAllowPoolingConnection(ningConfig.allowPoolingConnection)
-    builder.setAllowSslConnectionPool(ningConfig.allowSslConnectionPool)
+    builder.setAllowPoolingConnections(ningConfig.allowPoolingConnection)
+    builder.setAllowPoolingSslConnections(ningConfig.allowSslConnectionPool)
     builder.setIOThreadMultiplier(ningConfig.ioThreadMultiplier)
-    builder.setMaximumConnectionsPerHost(ningConfig.maxConnectionsPerHost)
-    builder.setMaximumConnectionsTotal(ningConfig.maxConnectionsTotal)
-    builder.setMaximumNumberOfRedirects(ningConfig.maxNumberOfRedirects)
+    builder.setMaxConnectionsPerHost(ningConfig.maxConnectionsPerHost)
+    builder.setMaxConnections(ningConfig.maxConnectionsTotal)
+    builder.setMaxRedirects(ningConfig.maxNumberOfRedirects)
     builder.setMaxRequestRetry(ningConfig.maxRequestRetry)
-    builder.setRemoveQueryParamsOnRedirect(ningConfig.removeQueryParamsOnRedirect)
-    builder.setUseRawUrl(ningConfig.useRawUrl)
+
+    // 'removeQueryParamsOnRedirect' was dropped in https://github.com/AsyncHttpClient/async-http-client/issues/811
+    // builder.setRemoveQueryParamsOnRedirect(ningConfig.removeQueryParamsOnRedirect)
+
+    // 'useRawUrl` becomes `disableUrlEncodingForBoundedRequests`, as it's only honored by bound requests
+    builder.setDisableUrlEncodingForBoundedRequests(ningConfig.disableUrlEncoding)
   }
 
   /**
@@ -252,13 +254,13 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
     val defaultProtocols = defaultParams.getProtocols
     val protocols = configureProtocols(defaultProtocols, sslConfig)
     defaultParams.setProtocols(protocols)
+    builder.setEnabledProtocols(protocols)
 
     // ciphers!
     val defaultCiphers = defaultParams.getCipherSuites
     val cipherSuites = configureCipherSuites(defaultCiphers, sslConfig)
     defaultParams.setCipherSuites(cipherSuites)
-
-    val sslEngineFactory = new DefaultSSLEngineFactory(sslConfig, sslContext, enabledProtocols = protocols, enabledCipherSuites = cipherSuites)
+    builder.setEnabledCipherSuites(cipherSuites)
 
     // Hostname Processing
     if (!sslConfig.loose.disableHostnameVerification) {
@@ -266,12 +268,11 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
       builder.setHostnameVerifier(hostnameVerifier)
     } else {
       logger.warn("buildHostnameVerifier: disabling hostname verification")
+      val disabledHostnameVerifier = new DisabledComplainingHostnameVerifier
+      builder.setHostnameVerifier(disabledHostnameVerifier)
     }
 
     builder.setSSLContext(sslContext)
-
-    // Must set SSL engine factory AFTER the ssl context...
-    builder.setSSLEngineFactory(sslEngineFactory)
   }
 
   def buildKeyManagerFactory(ssl: SSLConfig): KeyManagerFactoryWrapper = {
@@ -318,23 +319,6 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
         case e: CertPathValidatorException =>
           logger.warn("You are using ws.ssl.default=true and have a weak certificate in your default trust store!  (You can modify ws.ssl.disabledKeyAlgorithms to remove this message.)", e)
       }
-    }
-  }
-
-  /**
-   * Factory that creates an SSLEngine.
-   */
-  class DefaultSSLEngineFactory(config: SSLConfig,
-      sslContext: SSLContext,
-      enabledProtocols: Array[String],
-      enabledCipherSuites: Array[String]) extends SSLEngineFactory {
-    def newSSLEngine(): SSLEngine = {
-      val sslEngine = sslContext.createSSLEngine()
-      sslEngine.setSSLParameters(sslContext.getDefaultSSLParameters)
-      sslEngine.setEnabledProtocols(enabledProtocols)
-      sslEngine.setEnabledCipherSuites(enabledCipherSuites)
-      sslEngine.setUseClientMode(true)
-      sslEngine
     }
   }
 }
