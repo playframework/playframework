@@ -250,22 +250,25 @@ trait DefaultReads {
 
     def reads(json: JsValue): JsResult[java.util.Date] = json match {
       case JsNumber(d) => JsSuccess(new java.util.Date(d.toLong))
-      case JsString(s) => parseDate(corrector(s)) match {
+      case JsString(s) => parseJDate(pattern, corrector(s)) match {
         case Some(d) => JsSuccess(d)
-        case None => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.date.isoformat", pattern))))
+        case None => JsError(Seq(JsPath() ->
+          Seq(ValidationError("error.expected.date.isoformat", pattern))))
       }
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.date"))))
+      case _ => JsError(Seq(JsPath() ->
+        Seq(ValidationError("error.expected.date"))))
     }
+  }
 
-    private def parseDate(input: String): Option[java.util.Date] = {
-      // REMEMBER THAT SIMPLEDATEFORMAT IS NOT THREADSAFE
-      val df = new java.text.SimpleDateFormat(pattern)
-      df.setLenient(false)
-      try { Some(df.parse(input)) } catch {
-        case _: java.text.ParseException => None
-      }
+  private def parseJDate(pattern: String, input: String): Option[java.util.Date] = {
+    // REMEMBER THAT SIMPLEDATEFORMAT IS NOT THREADSAFE
+    val df = new java.text.SimpleDateFormat(pattern)
+    df.setLenient(false)
+    try { Some(df.parse(input)) } catch {
+      case x: java.text.ParseException =>
+        println(s"=> $pattern -> ${x.getMessage}")
+        None
     }
-
   }
 
   /**
@@ -553,21 +556,34 @@ trait DefaultReads {
   /**
    * ISO 8601 Reads
    */
-  val IsoDateReads = dateReads("yyyy-MM-dd'T'HH:mm:ssz", { input =>
-    // NOTE: SimpleDateFormat uses GMT[-+]hh:mm for the TZ so need to refactor a bit
-    // 1994-11-05T13:15:30Z -> 1994-11-05T13:15:30GMT-00:00
-    // 1994-11-05T08:15:30-05:00 -> 1994-11-05T08:15:30GMT-05:00
-    if (input.endsWith("Z")) {
-      input.substring(0, input.length() - 1) + "GMT-00:00"
-    } else {
-      val inset = 6
+  object IsoDateReads extends Reads[java.util.Date] {
+    import java.util.Date
 
-      val s0 = input.substring(0, input.length - inset)
-      val s1 = input.substring(input.length - inset, input.length)
+    val millisAndTz = "yyyy-MM-dd'T'HH:mm:ss.SSSX"
+    val millis = "yyyy-MM-dd'T'HH:mm:ss.SSS"
+    val tz = "yyyy-MM-dd'T'HH:mm:ssX"
+    val mini = "yyyy-MM-dd'T'HH:mm:ss"
 
-      s0 + "GMT" + s1
+    val WithMillisAndTz = """^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}.+$""".r
+
+    val WithMillis = """^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}$""".r
+
+    val WithTz = """^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[^.]+$""".r
+
+    def reads(json: JsValue): JsResult[Date] = json match {
+      case JsNumber(d) => JsSuccess(new Date(d.toLong))
+      case JsString(s) => (s match {
+        case WithMillisAndTz() => millisAndTz -> parseJDate(millisAndTz, s)
+        case WithMillis() => millis -> parseJDate(millis, s)
+        case WithTz() => tz -> parseJDate(tz, s)
+        case _ => mini -> parseJDate(mini, s)
+      }) match {
+        case (_, Some(d)) => JsSuccess(d)
+        case (p, None) => JsError(Seq(JsPath() ->
+          Seq(ValidationError("error.expected.date.isoformat", p))))
+      }
     }
-  })
+  }
 
   /**
    * Reads for the `org.joda.time.DateTime` type.
