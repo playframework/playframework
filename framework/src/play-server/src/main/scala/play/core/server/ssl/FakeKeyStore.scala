@@ -3,17 +3,15 @@
  */
 package play.core.server.ssl
 
-import play.api.{ Logger, Application }
+import play.api.Logger
 import java.security.{ KeyStore, SecureRandom, KeyPairGenerator, KeyPair }
 import sun.security.x509._
 import java.util.Date
 import java.math.BigInteger
-import java.security.cert.{ CertPathValidatorException, X509Certificate }
+import java.security.cert.X509Certificate
 import java.io.{ File, FileInputStream, FileOutputStream }
 import javax.net.ssl.KeyManagerFactory
-import scala.util.control.NonFatal
 import scala.util.Properties.isJavaAtLeast
-import scala.util.{ Failure, Success, Try }
 import play.utils.PlayIO
 import java.security.interfaces.RSAPublicKey
 
@@ -54,50 +52,44 @@ object FakeKeyStore {
     false
   }
 
-  def keyManagerFactory(appPath: File): Try[KeyManagerFactory] = {
-    try {
-      val keyStore = KeyStore.getInstance("JKS")
-      val keyStoreFile = new File(appPath, GeneratedKeyStore)
-      if (shouldGenerate(keyStoreFile)) {
+  def keyManagerFactory(appPath: File): KeyManagerFactory = {
+    val keyStore = KeyStore.getInstance("JKS")
+    val keyStoreFile = new File(appPath, GeneratedKeyStore)
+    if (shouldGenerate(keyStoreFile)) {
 
-        logger.info("Generating HTTPS key pair in " + keyStoreFile.getAbsolutePath + " - this may take some time. If nothing happens, try moving the mouse/typing on the keyboard to generate some entropy.")
+      logger.info("Generating HTTPS key pair in " + keyStoreFile.getAbsolutePath + " - this may take some time. If nothing happens, try moving the mouse/typing on the keyboard to generate some entropy.")
 
-        // Generate the key pair
-        val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
-        keyPairGenerator.initialize(2048) // 2048 is the NIST acceptable key length until 2030
-        val keyPair = keyPairGenerator.generateKeyPair()
+      // Generate the key pair
+      val keyPairGenerator = KeyPairGenerator.getInstance("RSA")
+      keyPairGenerator.initialize(2048) // 2048 is the NIST acceptable key length until 2030
+      val keyPair = keyPairGenerator.generateKeyPair()
 
-        // Generate a self signed certificate
-        val cert = createSelfSignedCertificate(keyPair)
+      // Generate a self signed certificate
+      val cert = createSelfSignedCertificate(keyPair)
 
-        // Create the key store, first set the store pass
-        keyStore.load(null, "".toCharArray)
-        keyStore.setKeyEntry("playgenerated", keyPair.getPrivate, "".toCharArray, Array(cert))
-        keyStore.setCertificateEntry("playgeneratedtrusted", cert)
-        val out = new FileOutputStream(keyStoreFile)
-        try {
-          keyStore.store(out, "".toCharArray)
-        } finally {
-          PlayIO.closeQuietly(out)
-        }
-      } else {
-        val in = new FileInputStream(keyStoreFile)
-        try {
-          keyStore.load(in, "".toCharArray)
-        } finally {
-          PlayIO.closeQuietly(in)
-        }
+      // Create the key store, first set the store pass
+      keyStore.load(null, "".toCharArray)
+      keyStore.setKeyEntry("playgenerated", keyPair.getPrivate, "".toCharArray, Array(cert))
+      keyStore.setCertificateEntry("playgeneratedtrusted", cert)
+      val out = new FileOutputStream(keyStoreFile)
+      try {
+        keyStore.store(out, "".toCharArray)
+      } finally {
+        PlayIO.closeQuietly(out)
       }
-
-      // Load the key and certificate into a key manager factory
-      val kmf = KeyManagerFactory.getInstance("SunX509")
-      kmf.init(keyStore, "".toCharArray)
-      Success(kmf)
-    } catch {
-      case NonFatal(e) => {
-        Failure(new Exception("Error loading fake key store", e))
+    } else {
+      val in = new FileInputStream(keyStoreFile)
+      try {
+        keyStore.load(in, "".toCharArray)
+      } finally {
+        PlayIO.closeQuietly(in)
       }
     }
+
+    // Load the key and certificate into a key manager factory
+    val kmf = KeyManagerFactory.getInstance("SunX509")
+    kmf.init(keyStore, "".toCharArray)
+    kmf
   }
 
   def createSelfSignedCertificate(keyPair: KeyPair): X509Certificate = {

@@ -5,6 +5,10 @@ Play can be configured to serve HTTPS.  To enable this, simply tell Play which p
 
     ./start -Dhttps.port=9443
 
+## Providing configuration
+
+HTTPS configuration can either be supplied using system properties or using server configuration files via the `server.config.file` or `server.config.resource` properties.  For more deatils on server configuration files, see [[Server configuration|ProductionConfiguration#Server-configuration]].
+
 ## SSL Certificates
 
 ### SSL Certificates from a keystore
@@ -13,12 +17,12 @@ By default, Play will generate itself a self-signed certificate, however typical
 
 Signing authorities often provide instructions on how to create a Java keystore (typically with reference to Tomcat configuration).  The official Oracle documentation on how to generate keystores using the JDK keytool utility can be found [here](http://docs.oracle.com/javase/7/docs/technotes/tools/solaris/keytool.html).  There is also an example in the [[Generating X.509 Certificates|CertificateGeneration]] section.
 
-Having created your keystore, the following system properties can be used to configure Play to use it:
+Having created your keystore, the following configuration properties can be used to configure Play to use it:
 
-* **https.keyStore** - The path to the keystore containing the private key and certificate, if not provided generates a keystore for you
-* **https.keyStoreType** - The key store type, defaults to `JKS`
-* **https.keyStorePassword** - The password, defaults to a blank password
-* **https.keyStoreAlgorithm** - The key store algorithm, defaults to the platforms default algorithm
+* **play.server.https.keyStore.path** - The path to the keystore containing the private key and certificate, if not provided generates a keystore for you
+* **play.server.https.keyStore.type** - The key store type, defaults to `JKS`
+* **play.server.https.keyStore.password** - The password, defaults to a blank password
+* **play.server.https.keyStore.algorithm** - The key store algorithm, defaults to the platforms default algorithm
 
 ### SSL Certificates from a custom SSL Engine
 
@@ -34,18 +38,18 @@ Another alternative to configure the SSL certificates is to provide a custom [SS
 
 Having created an implementation for `play.server.SSLEngineProvider` or `play.server.api.SSLEngineProvider`, the following system property configures Play to use it:
 
-* **play.http.sslengineprovider** - The path to the class implementing `play.server.SSLEngineProvider` or `play.server.api.SSLEngineProvider`:
+* **play.server.https.engineProvider** - The path to the class implementing `play.server.SSLEngineProvider` or `play.server.api.SSLEngineProvider`:
 
 Example:
 
-    ./start -Dhttps.port=9443 -Dplay.http.sslengineprovider=mypackage.CustomSSLEngineProvider
+    ./start -Dhttps.port=9443 -Dplay.server.https.engineProvider=mypackage.CustomSSLEngineProvider
 
 
 ## Turning HTTP off
 
 To disable binding on the HTTP port, set the `http.port` system property to be `disabled`, eg:
 
-    ./start -Dhttp.port=disabled -Dhttps.port=9443 -Dhttps.keyStore=/path/to/keystore -Dhttps.keyStorePassword=changeme
+    ./start -Dhttp.port=disabled -Dhttps.port=9443 -Dplay.server.https.keyStore.path=/path/to/keystore -Dplay.server.https.keyStore.password=changeme
 
 ## Production usage of HTTPS
 

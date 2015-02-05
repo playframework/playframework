@@ -312,3 +312,7 @@ Play's support for specs2 has been pulled out of `play-test`.  Now if you want t
 ```scala
 libraryDependencies += specs2 % Test
 ```
+
+## HTTP server configuration
+
+Advanced Netty configuration options, that is, options prefixed with `http.netty.option`, must now use the prefix `play.server.netty.option` instead.
