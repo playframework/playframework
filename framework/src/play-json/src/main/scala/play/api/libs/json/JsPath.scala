@@ -18,15 +18,9 @@ sealed trait PathNode {
 
 case class RecursiveSearch(key: String) extends PathNode {
   def apply(json: JsValue): List[JsValue] = json match {
-    case obj: JsObject => (json \\ key).toList.filterNot {
-      case JsUndefined() => true
-      case _ => false
-    }
-    case arr: JsArray => (json \\ key).toList.filterNot {
-      case JsUndefined() => true
-      case _ => false
-    }
-    case _ => List()
+    case obj: JsObject => (json \\ key).toList
+    case arr: JsArray => (json \\ key).toList
+    case _ => Nil
   }
   override def toString = "//" + key
   def toJsonString = "*" + key
@@ -65,10 +59,7 @@ case class RecursiveSearch(key: String) extends PathNode {
 case class KeyPathNode(key: String) extends PathNode {
 
   def apply(json: JsValue): List[JsValue] = json match {
-    case obj: JsObject => List(json \ key).filterNot {
-      case JsUndefined() => true
-      case _ => false
-    }
+    case obj: JsObject => List(json \ key).flatMap(_.toOption)
     case _ => List()
   }
 
@@ -105,7 +96,7 @@ case class KeyPathNode(key: String) extends PathNode {
 
 case class IdxPathNode(idx: Int) extends PathNode {
   def apply(json: JsValue): List[JsValue] = json match {
-    case arr: JsArray => List(arr(idx))
+    case arr: JsArray => List(arr(idx)).flatMap(_.toOption)
     case _ => List()
   }
 
@@ -181,9 +172,9 @@ case class JsPath(path: List[PathNode] = List()) {
     case _ :: _ => JsError(Seq(this -> Seq(ValidationError("error.path.result.multiple"))))
   }
 
-  def asSingleJson(json: JsValue): JsValue = this(json) match {
+  def asSingleJson(json: JsValue): JsLookupResult = this(json) match {
     case Nil => JsUndefined("error.path.missing")
-    case List(js) => js
+    case List(js) => JsDefined(js)
     case _ :: _ => JsUndefined("error.path.result.multiple")
   }
 
