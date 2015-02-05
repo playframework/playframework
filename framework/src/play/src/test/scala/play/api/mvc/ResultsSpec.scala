@@ -197,11 +197,26 @@ object ResultsSpec extends Specification {
     "dechunk an empty stream" in {
       consume(enumerator("0\r\n\r\n") &> dechunk) must containTheSameElementsAs(Seq())
     }
-    "dechunk a stream with trailers" in {
+    "dechunk a stream with trailers, ignoring the trailers" in {
       consume(enumerator("a", "bc", "def") &> chunk(Some(
         Iteratee.consume[Array[Byte]]().map(data => Seq("Full-Data" -> new String(data)))
       )) &> dechunk) must containTheSameElementsAs(Seq(
         "a", "bc", "def"
+      ))
+    }
+    "dechunk a stream with trailers and get the trailers" in {
+      def consumeWithTrailers(enumerator: Enumerator[Either[Array[Byte], Seq[(String, String)]]]) = Await.result(
+        enumerator |>>> Iteratee.getChunks[Either[Array[Byte], Seq[(String, String)]]],
+        Duration(5, TimeUnit.SECONDS)
+      ).map {
+          case Left(bytes) => Left(new String(bytes))
+          case r => r
+        }
+
+      consumeWithTrailers(enumerator("a", "bc", "def") &> chunk(Some(
+        Iteratee.consume[Array[Byte]]().map(_ => Seq("Full-Data" -> "333"))
+      )) &> dechunkWithTrailers) must containTheSameElementsAs(Seq(
+        Left("a"), Left("bc"), Left("def"), Right(Seq("Full-Data" -> "333"))
       ))
     }
     "dechunk a stream that is not split at chunks" in {
