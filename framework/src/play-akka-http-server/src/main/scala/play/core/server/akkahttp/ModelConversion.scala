@@ -174,11 +174,18 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
           data = dataSource(enum)
         ))
       case ServerResultUtils.StreamWithKnownLength(enum) =>
-        Right(HttpEntity.Default(
-          contentType = convertedHeaders.contentType,
-          contentLength = convertedHeaders.contentLength.get,
-          data = dataSource(enum)
-        ))
+        convertedHeaders.contentLength.get match {
+          case 0 =>
+            Right(HttpEntity.empty(
+              contentType = convertedHeaders.contentType
+            ))
+          case contentLength =>
+            Right(HttpEntity.Default(
+              contentType = convertedHeaders.contentType,
+              contentLength = contentLength,
+              data = dataSource(enum)
+            ))
+        }
       case ServerResultUtils.StreamWithStrictBody(body) =>
         Right(HttpEntity.Strict(
           contentType = convertedHeaders.contentType,

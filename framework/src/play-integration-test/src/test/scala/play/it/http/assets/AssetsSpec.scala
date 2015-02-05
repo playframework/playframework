@@ -188,7 +188,7 @@ trait AssetsSpec extends PlaySpecification
 
       result.status must_== OK
       result.body must beEmpty
-    }.pendingUntilAkkaHttpFixed
+    }
 
     "return 404 for files that don't exist" in withServer {
       val result = await(wsUrl("/nosuchfile.txt").get())
