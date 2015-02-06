@@ -45,11 +45,36 @@ object PlayForkProcess {
     val inputThread = spawn { stopLatch.await(); process.getOutputStream.close() }
     val outputThread = spawn { BasicIO.processFully(logLine(log, Level.Info))(process.getInputStream) }
     val errorThread = spawn { BasicIO.processFully(logLine(log, Level.Error))(process.getErrorStream) }
-    def stop() = {
+    def stop(): Unit = {
+      // counting down triggers closing stdinput
       stopLatch.countDown()
+      def timedWaitFor(millis: Int): Option[Int] = try {
+        // exitValue throws if process hasn't exited
+        Some(process.exitValue())
+      } catch {
+        case _: IllegalThreadStateException =>
+          Thread.sleep(100)
+          if (millis > 0)
+            timedWaitFor(millis - 100)
+          else
+            None
+      }
+      // wait a bit for clean exit
+      timedWaitFor(2500) match {
+        case None =>
+          log.info("Forked Play process did not exit on its own, terminating it")
+          // fire-and-forget sigterm, may or may not work
+          process.destroy()
+        case Some(x) =>
+          log.info(s"Forked Play process exited with status $x")
+      }
+
+      // now join our logging threads (process is supposed to be gone,
+      // so nothing to log)
+      try process.getInputStream.close() catch { case _: Exception => }
+      try process.getErrorStream.close() catch { case _: Exception => }
       outputThread.join()
       errorThread.join()
-      process.exitValue()
     }
     val shutdownHook = newThread { stop() }
     JRuntime.getRuntime.addShutdownHook(shutdownHook)
