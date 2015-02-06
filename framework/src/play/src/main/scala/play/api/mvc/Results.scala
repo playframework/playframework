@@ -505,9 +505,35 @@ trait Results {
   /**
    * Dechunks a chunked transfer encoding stream.
    *
-   * Chunks may span multiple elements in the stream.
+   * Chunk content may span multiple elements in the stream.
    */
   def dechunk: Enumeratee[Array[Byte], Array[Byte]] = {
+    dechunk0 ><>
+      Enumeratee.takeWhile[Either[Array[Byte], Seq[(String, String)]]](_.isLeft) ><>
+      Enumeratee.map {
+        case Left(data) => data
+        case Right(_) => Array.empty
+      }
+  }
+
+  /**
+   * Dechunks a chunked transfer encoding stream, returning any trailers in the
+   * last element. Chunks are `Left(bytes)` and the trailer is `Right(trailers)`.
+   *
+   * Chunk and trailer content may span multiple elements in the stream.
+   */
+  def dechunkWithTrailers: Enumeratee[Array[Byte], Either[Array[Byte], Seq[(String, String)]]] = {
+    type ChunkOrTrailer = Either[Array[Byte], Seq[(String, String)]]
+    dechunk0 ><> Enumeratee.mapFlatten[ChunkOrTrailer][ChunkOrTrailer] {
+      case l @ Left(_) => Enumerator(l)
+      case r @ Right(_) => Enumerator[ChunkOrTrailer](r) >>> Enumerator.eof[ChunkOrTrailer]
+    }
+  }
+
+  /**
+   * Helper used by both `dechunk` and `dechunkWithTrailers`.
+   */
+  private def dechunk0: Enumeratee[Array[Byte], Either[Array[Byte], Seq[(String, String)]]] = {
 
     // convenience method
     def elOrEmpty(data: Array[Byte]) = {
@@ -559,6 +585,7 @@ trait Results {
     } yield {
       trailer.split("""\s*:\s*""", 2) match {
         case Array(key, value) => (key -> value) :: trailers
+        case Array("") => trailers
         case Array(key) => (key -> "") :: trailers
       }
     }
@@ -573,12 +600,7 @@ trait Results {
       chunk <- if (size > 0) readChunk(size).map(Left.apply) else readLastChunk.map(Right.apply)
     } yield chunk
 
-    Enumeratee.grouped(chunkParser) ><>
-      Enumeratee.takeWhile[Either[Array[Byte], Seq[(String, String)]]](_.isLeft) ><>
-      Enumeratee.map {
-        case Left(data) => data
-        case Right(_) => Array.empty
-      }
+    Enumeratee.grouped(chunkParser)
   }
 
   /** Generates a ‘200 OK’ result. */

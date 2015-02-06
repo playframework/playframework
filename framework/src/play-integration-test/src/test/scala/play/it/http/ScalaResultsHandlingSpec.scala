@@ -183,7 +183,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
         val (chunks, trailers) = response.body.right.get
         chunks must containAllOf(Seq("aa", "bb", "cc")).inOrder
         trailers.get("Chunks") must beSome("3")
-      }.pendingUntilAkkaHttpFixed
+      }
 
     "fall back to simple streaming when more than one chunk is sent and protocol is HTTP 1.0" in withServer(
       Result(ResponseHeader(200, Map()), Enumerator("abc", "def", "ghi") &> Enumeratee.map[String](_.getBytes)(ec))

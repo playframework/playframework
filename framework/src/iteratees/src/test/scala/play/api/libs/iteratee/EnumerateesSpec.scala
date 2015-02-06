@@ -179,6 +179,12 @@ object EnumerateesSpec extends Specification
       }
     }
 
+    "pass input through while the predicate is met" in {
+      mustExecute(3) { breakEC =>
+        mustTransformTo(1, 2, 3, 2, 1)(1, 2)(Enumeratee.takeWhile[Int](_ <= 2)(breakEC))
+      }
+    }
+
   }
 
   "Enumeratee.breakE" should {

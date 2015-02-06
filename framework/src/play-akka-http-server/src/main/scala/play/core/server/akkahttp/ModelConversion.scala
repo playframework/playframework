@@ -154,14 +154,6 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
       val dataEnum: Enumerator[ByteString] = enum.map(ByteString(_)) >>> Enumerator.eof
       AkkaStreamsConversion.enumeratorToSource(dataEnum)
     }
-    def chunksSource(enum: Enumerator[Array[Byte]]) = {
-      val chunksEnum = (
-        enum.map(HttpEntity.ChunkStreamPart(_)) >>>
-        Enumerator.enumInput(Input.El(HttpEntity.LastChunk)) >>>
-        Enumerator.eof
-      )
-      AkkaStreamsConversion.enumeratorToSource(chunksEnum)
-    }
 
     val isHttp10 = protocol == HttpProtocols.`HTTP/1.0`
     ServerResultUtils.determineResultStreaming(result, isHttp10).map {
@@ -196,18 +188,38 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
         val transferEncoding = convertedHeaders.transferEncoding.get
         transferEncoding match {
           case immutable.Seq(TransferEncodings.chunked) =>
+            val chunksEnum = (transferEncodedEnum &> Results.dechunkWithTrailers &> Enumeratee.map {
+              case Left(bytes) => HttpEntity.ChunkStreamPart(bytes)
+              case Right(rawHeaderStrings) =>
+                val rawHeaders = rawHeaderStrings.map {
+                  case (name, value) => RawHeader(name, value)
+                }
+                val convertedHeaders: List[HttpHeader] = HeaderParser.parseHeaders(rawHeaders.to[List]) match {
+                  case (Nil, headers) => headers
+                  case (errors, _) => sys.error(s"Error parsing trailers: $errors")
+                }
+                HttpEntity.LastChunk(trailer = convertedHeaders)
+            }) >>> Enumerator.eof
+            val chunksSource = AkkaStreamsConversion.enumeratorToSource(chunksEnum)
             Right(HttpEntity.Chunked(
               contentType = convertedHeaders.contentType,
-              chunks = chunksSource(transferEncodedEnum &> Results.dechunk)
+              chunks = chunksSource
             ))
           case other =>
             logger.warn(s"Cannot send result, sending error instead: Akka HTTP server only supports 'Transfer-Encoding: chunked', was $other")
             Left(Results.InternalServerError(""))
         }
       case ServerResultUtils.PerformChunkedTransferEncoding(enum) =>
+        val chunksEnum = (
+          enum.map(HttpEntity.ChunkStreamPart(_)) >>>
+          Enumerator.enumInput(Input.El(HttpEntity.LastChunk)) >>>
+          Enumerator.eof
+        )
+        val chunksSource = AkkaStreamsConversion.enumeratorToSource(chunksEnum)
+
         Right(HttpEntity.Chunked(
           contentType = convertedHeaders.contentType,
-          chunks = chunksSource(enum)
+          chunks = chunksSource
         ))
     }
   }
