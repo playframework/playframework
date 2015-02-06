@@ -5,12 +5,21 @@
 # we make a request. The reason for this is that the classpath change detection is based on file modification times,
 # which only have 1 second precision.
 
+# we haven't reloaded anything to start
+> verify-reloads 0
+
 # Write the play version to a file for sbt server
 > write-run-properties
 
 # Start dev mode
 > backgroundRun
 > wait-for-server
+
+# the first load should do this; sleep
+# to be sure it had time to write out the
+# file.
+$ sleep 1000
+> verify-reloads 1
 
 # Check various action types
 > verify-resource-contains / 200 original
