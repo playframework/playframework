@@ -36,7 +36,10 @@ object DevModeBuild {
 
     DevModeKeys.verifyReloads := {
       val expected = Def.spaceDelimited().parsed.head.toInt
-      val actual = IO.readLines(target.value / "reload.log").count(_.nonEmpty)
+      val actual = try IO.readLines(target.value / "reload.log").count(_.nonEmpty)
+      catch {
+        case _: java.io.IOException => 0
+      }
       if (expected == actual) {
         println(s"Expected and got $expected reloads")
       } else {
