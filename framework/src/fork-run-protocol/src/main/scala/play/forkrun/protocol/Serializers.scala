@@ -86,9 +86,24 @@ object Serializers {
     private val throwableOptUnpickler = implicitly[Unpickler[Option[Throwable]]]
 
     override def pickle(picklee: PlayException, builder: PBuilder): Unit = {
-      def writeIntField(key: String, value: Int): Unit = builder.putField(key, (b => intPickler.pickle(value, b)))
-      def writeStringField(key: String, value: String): Unit = builder.putField(key, (b => stringPickler.pickle(value, b)))
-      def writeThrowableField(key: String, value: Throwable): Unit = builder.putField(key, (b => throwablePicklerUnpickler.pickle(value, b)))
+      def writeIntField(key: String, value: Int): Unit = {
+        builder.putField(key, { b =>
+          b.hintTag(intPickler.tag)
+          intPickler.pickle(value, b)
+        })
+      }
+      def writeStringField(key: String, value: String): Unit = {
+        builder.putField(key, { b =>
+          b.hintTag(stringPickler.tag)
+          stringPickler.pickle(value, b)
+        })
+      }
+      def writeThrowableField(key: String, value: Throwable): Unit = {
+        builder.putField(key, { b =>
+          b.hintTag(throwablePicklerUnpickler.tag)
+          throwablePicklerUnpickler.pickle(value, b)
+        })
+      }
 
       builder.pushHints()
       builder.hintTag(tag)
