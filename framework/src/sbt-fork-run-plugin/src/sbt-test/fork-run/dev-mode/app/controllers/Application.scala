@@ -7,6 +7,6 @@ import play.api.mvc._
 
 object Application extends Controller {
   def index = Action {
-    Ok("original")
+    Ok("original-fork-run")
   }
 }
