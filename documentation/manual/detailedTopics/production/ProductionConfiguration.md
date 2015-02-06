@@ -251,7 +251,7 @@ Logging can be configured by creating a logback configuration file.  This can be
 
 Create an alternative logback config file called `logback.xml` and copy that to `<app>/conf`
 
-You can also specify another logback configuration file via a System property. Please note that if the configuration file is not specified then play will use the default `logger.xml` that comes with play in the production mode. This means that any log level settings in application.conf file will be overridden. As a good practice always specify your `logback.xml`.
+You can also specify another logback configuration file via a System property. Please note that if the configuration file is not specified then play will use the default `logback.xml` that comes with play in the production mode. This means that any log level settings in `application.conf` file will be overridden. As a good practice always specify your `logback.xml`.
 
 ### Using `-Dlogger.resource`
 
