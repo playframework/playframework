@@ -130,7 +130,7 @@ This profile is recommended for Java applications that do synchronous IO, since 
 
 Note that we use the same value for `parallelism-min` and `parallelism-max`. The reason is that the actual number of threads is defined by the following formula : 
 
->number of threads = number of available processors * parallelism-factor
+>number of threads = number of available processors * parallelism-factor  
  parallelism-min < number of threads < parallelism-max
 
 So if you don't have enough available processors, you will never be able to reach the `parallelism-max` setting.
