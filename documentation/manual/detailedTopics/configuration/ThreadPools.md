@@ -128,6 +128,13 @@ In this profile, you would simply use the default execution context everywhere, 
 
 This profile is recommended for Java applications that do synchronous IO, since it is harder in Java to dispatch work to other threads.
 
+Note that we use the same value for `parallelism-min` and `parallelism-max`. The reason is that the actual number of threads is defined by the following formula : 
+
+>number of threads = number of available processors * parallelism-factor
+ parallelism-min < number of threads < parallelism-max
+
+So if you don't have enough available processors, you will never be able to reach the `parallelism-max` setting.
+
 ### Many specific thread pools
 
 This profile is for when you want to do a lot of synchronous IO, but you also want to control exactly how much of which types of operations your application does at once.  In this profile, you would only do non blocking operations in the default execution context, and then dispatch blocking operations to different execution contexts for those specific operations.
