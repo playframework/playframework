@@ -111,6 +111,7 @@ object JsonSpec extends Specification {
 
       jsonCar.as[Car] must equalTo(c)
     }
+
     "serialize and deserialize" in {
       val luigi = User(1, "Luigi", List())
       val kinopio = User(2, "Kinopio", List())
@@ -119,61 +120,60 @@ object JsonSpec extends Specification {
       val jsonMario = toJson(mario)
       jsonMario.as[User] must equalTo(mario)
     }
+
     "Complete JSON should create full Post object" in {
       val postJson = """{"body": "foobar", "created_at": "2011-04-22T13:33:48Z"}"""
       val expectedPost = Post("foobar", Some(dateParser.parse("2011-04-22T13:33:48Z")))
-      val resultPost = Json.parse(postJson).as[Post]
-      resultPost must equalTo(expectedPost)
+      Json.parse(postJson).as[Post] must equalTo(expectedPost)
     }
+
     "Optional parameters in JSON should generate post w/o date" in {
       val postJson = """{"body": "foobar"}"""
       val expectedPost = Post("foobar", None)
-      val resultPost = Json.parse(postJson).as[Post]
-      resultPost must equalTo(expectedPost)
+      Json.parse(postJson).as[Post] must equalTo(expectedPost)
     }
+
     "Invalid parameters shoud be ignored" in {
       val postJson = """{"body": "foobar", "created_at":null}"""
       val expectedPost = Post("foobar", None)
-      val resultPost = Json.parse(postJson).as[Post]
-      resultPost must equalTo(expectedPost)
+      Json.parse(postJson).as[Post] must equalTo(expectedPost)
     }
 
     "Serialize long integers correctly" in {
       val t = 1330950829160L
       val m = Map("timestamp" -> t)
       val jsonM = toJson(m)
-      (jsonM \ "timestamp").as[Long] must_== t
-      jsonM.toString must_== "{\"timestamp\":1330950829160}"
+      (jsonM \ "timestamp").as[Long] must_== t and (
+        jsonM.toString must_== """{"timestamp":1330950829160}""")
     }
 
     "Serialize short integers correctly" in {
       val s: Short = 1234
       val m = Map("s" -> s)
       val jsonM = toJson(m)
-      (jsonM \ "s").as[Short] must_== s
-      jsonM.toString must_== "{\"s\":1234}"
+      (jsonM \ "s").as[Short] must_== s and (
+        jsonM.toString must_== """{"s":1234}""")
     }
 
     "Serialize bytes correctly" in {
       val b: Byte = 123
       val m = Map("b" -> b)
       val jsonM = toJson(m)
-      (jsonM \ "b").as[Byte] must_== b
-      jsonM.toString must_== "{\"b\":123}"
+      (jsonM \ "b").as[Byte] must_== b and (
+        jsonM.toString must_== """{"b":123}""")
     }
 
     "Serialize and deserialize BigDecimals" in {
       val n = BigDecimal("12345678901234567890.42")
       val json = toJson(n)
-      json must equalTo(JsNumber(n))
-      fromJson[BigDecimal](json) must equalTo(JsSuccess(n))
+      json must equalTo(JsNumber(n)) and (
+        fromJson[BigDecimal](json) must equalTo(JsSuccess(n)))
     }
 
     "Not lose precision when parsing BigDecimals" in {
       val n = BigDecimal("12345678901234567890.123456789")
       val json = toJson(n)
       parse(stringify(json)) must equalTo(json)
-
     }
 
     "Not lose precision when parsing big integers" in {
@@ -203,13 +203,12 @@ object JsonSpec extends Specification {
       val an = JacksonJson.mapper.createArrayNode()
         .add("one").add(2)
       val json = Json.arr("one", 2)
-      toJson(an) must equalTo(json)
-      fromJson[JsonNode](json).map(_.toString) must_== JsSuccess(an.toString)
+      toJson(an) must equalTo(json) and (
+        fromJson[JsonNode](json).map(_.toString) must_== JsSuccess(an.toString))
     }
 
     "Map[String,String] should be turned into JsValue" in {
-      val f = toJson(Map("k" -> "v"))
-      f.toString must equalTo("{\"k\":\"v\"}")
+      toJson(Map("k" -> "v")).toString must equalTo("{\"k\":\"v\"}")
     }
 
     "Can parse recursive object" in {
@@ -222,21 +221,15 @@ object JsonSpec extends Specification {
           "foo" -> JsArray(List[JsValue](JsString("bar")))
         ))
       ))
-      val resultJson = Json.parse(recursiveJson)
-      resultJson must equalTo(expectedJson)
+      Json.parse(recursiveJson) must equalTo(expectedJson)
+    }
 
-    }
     "Can parse null values in Object" in {
-      val postJson = """{"foo": null}"""
-      val parsedJson = Json.parse(postJson)
-      val expectedJson = JsObject(List("foo" -> JsNull))
-      parsedJson must equalTo(expectedJson)
+      Json.parse("""{"foo": null}""") must_== JsObject(List("foo" -> JsNull))
     }
+
     "Can parse null values in Array" in {
-      val postJson = """[null]"""
-      val parsedJson = Json.parse(postJson)
-      val expectedJson = JsArray(List(JsNull))
-      parsedJson must equalTo(expectedJson)
+      Json.parse("[null]") must_== JsArray(List(JsNull))
     }
 
     "JSON pretty print" in {
@@ -355,6 +348,5 @@ object JsonSpec extends Specification {
 
     }
   }
-
 }
 

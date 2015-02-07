@@ -9,7 +9,6 @@ import play.api.libs.json.Json._
 object JsObjectSpec extends Specification {
 
   "JsObject.deepMerge" should {
-
     "not fail when the objects are empty" in {
       Json.obj().deepMerge(Json.obj()) must beEqualTo(Json.obj())
     }
