@@ -228,20 +228,16 @@ case class RawBuffer(memoryThreshold: Int, initialData: Array[Byte] = Array.empt
    */
   def asBytes(maxLength: Long = memoryThreshold): Option[Array[Byte]] = {
     if (size <= maxLength) {
-
       if (inMemory != null) {
-
         val buffer = new Array[Byte](inMemorySize)
         inMemory.reverse.foldLeft(0) { (position, chunk) =>
           System.arraycopy(chunk, 0, buffer, position, Math.min(chunk.length, buffer.length - position))
           chunk.length + position
         }
         Some(buffer)
-
       } else {
         Some(PlayIO.readFile(backedByTemporaryFile.file))
       }
-
     } else {
       None
     }
@@ -296,6 +292,15 @@ trait BodyParsers {
       app.configuration.getBytes("parsers.text.maxLength").map(_.toInt)
     }.getOrElse(1024 * 100)
 
+    /**
+     * Default max length allowed for text based body.
+     *
+     * You can configure it in application.conf:
+     *
+     * {{{
+     * parsers.disk.maxLength = 512k
+     * }}}
+     */
     def DefaultMaxDiskLength: Long = Play.maybeApplication.flatMap { app =>
       app.configuration.getBytes("parsers.disk.maxLength")
     }.getOrElse(10 * 1024 * 1024)
@@ -563,7 +568,8 @@ trait BodyParsers {
     /**
      * Parse the body as form url encoded without checking the Content-Type.
      */
-    def tolerantFormUrlEncoded: BodyParser[Map[String, Seq[String]]] = tolerantFormUrlEncoded(DefaultMaxTextLength)
+    def tolerantFormUrlEncoded: BodyParser[Map[String, Seq[String]]] =
+      tolerantFormUrlEncoded(DefaultMaxTextLength)
 
     /**
      * Parse the body as form url encoded if the Content-Type is application/x-www-form-urlencoded.
@@ -579,7 +585,8 @@ trait BodyParsers {
     /**
      * Parse the body as form url encoded if the Content-Type is application/x-www-form-urlencoded.
      */
-    def urlFormEncoded: BodyParser[Map[String, Seq[String]]] = urlFormEncoded(DefaultMaxTextLength)
+    def urlFormEncoded: BodyParser[Map[String, Seq[String]]] =
+      urlFormEncoded(DefaultMaxTextLength)
 
     // -- Magic any content
 
@@ -655,10 +662,8 @@ trait BodyParsers {
      *
      * @param filePartHandler Handles file parts.
      */
-    def multipartFormData[A](filePartHandler: Multipart.PartHandler[FilePart[A]],
-      maxLength: Long = DefaultMaxDiskLength): BodyParser[MultipartFormData[A]] = {
+    def multipartFormData[A](filePartHandler: Multipart.PartHandler[FilePart[A]], maxLength: Long = DefaultMaxDiskLength): BodyParser[MultipartFormData[A]] = {
       BodyParser("multipartFormData") { request =>
-
         import play.api.libs.iteratee.Execution.Implicits.trampoline
 
         val parser = Traversable.takeUpTo[Array[Byte]](maxLength).transform(
@@ -750,7 +755,6 @@ trait BodyParsers {
         }
       }
   }
-
 }
 
 /**
