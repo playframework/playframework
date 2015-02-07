@@ -51,7 +51,7 @@ A few things to notice:
 The default actor system configuration is read from the Play application configuration file. For example, to configure the default dispatcher of the application actor system, add these lines to the `conf/application.conf` file:
 
 ```
-akka.default-dispatcher.fork-join-executor.pool-size-max =64
+akka.default-dispatcher.fork-join-executor.parallelism-max =64
 akka.actor.debug.receive = on
 ```
 
