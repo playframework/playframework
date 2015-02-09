@@ -8,7 +8,7 @@ The standard way to upload files in a web application is to use a form with a sp
 Start by writing an HTML form:
 
 ```
-@form(action = routes.Application.upload, 'enctype -> "multipart/form-data") {
+@helper.form(action = routes.Application.upload, 'enctype -> "multipart/form-data") {
     
     <input type="file" name="picture">
     
