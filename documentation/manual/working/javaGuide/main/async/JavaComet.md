@@ -7,11 +7,7 @@ An useful usage of **Chunked responses** is to create Comet sockets. A Comet soc
     
 Let’s write a first proof-of-concept: create an enumerator generating `<script>` tags calling the browser `console.log` function:
 
-Java
-: @[manual](code/javaguide/async/JavaComet.java)
-
-Java 8
-: @[manual](java8code/java8guide/async/JavaComet.java)
+@[manual](code/javaguide/async/JavaComet.java)
 
 If you run this action from a web browser, you will see the three events logged in the browser console.
 
@@ -23,21 +19,13 @@ We provide a Comet helper to handle these comet chunked streams that does almost
 
 Let’s just rewrite the previous example to use it:
 
-Java
-: @[comet](code/javaguide/async/JavaComet.java)
-
-Java 8
-: @[comet](java8code/java8guide/async/JavaComet.java)
+@[comet](code/javaguide/async/JavaComet.java)
 
 ## The forever iframe technique
 
 The standard technique to write a Comet socket is to load an infinite chunked comet response in an iframe and to specify a callback calling the parent frame:
 
-Java
-: @[forever-iframe](code/javaguide/async/JavaComet.java)
-
-Java 8
-: @[forever-iframe](java8code/java8guide/async/JavaComet.java)
+@[forever-iframe](code/javaguide/async/JavaComet.java)
 
 With an HTML page like:
 

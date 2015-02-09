@@ -8,8 +8,6 @@ import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import org.junit.Test;
 import play.api.libs.iteratee.TestChannel;
-import play.libs.F;
-import play.libs.Json;
 import play.mvc.Results.Chunks;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -19,15 +17,10 @@ public class CometTest {
 
     @Test
     public void testOnReady() throws Exception {
-        final TestChannel<String> testChannel = new TestChannel<String>();
-        final Chunks.Out<String> out = new Chunks.Out<String>(testChannel, new ArrayList<F.Callback0>());
-        final CountDownLatch invoked = new CountDownLatch(1);
-        Comet comet = new Comet("test") {
-            @Override
-            public void onConnected() {
-                invoked.countDown();
-            }
-        };
+        final TestChannel<String> testChannel = new TestChannel<>();
+        final Chunks.Out<String> out = new Chunks.Out<>(testChannel, new ArrayList<>());
+        CountDownLatch invoked = new CountDownLatch(1);
+        Comet comet = Comet.whenConnected("test", c -> invoked.countDown());
         comet.onReady(out);
 
         assertThat(invoked.await(1, SECONDS)).isTrue();
@@ -37,12 +30,9 @@ public class CometTest {
 
     @Test
     public void testMessageSends() {
-        final TestChannel<String> testChannel = new TestChannel<String>();
-        final Chunks.Out<String> out = new Chunks.Out<String>(testChannel, new ArrayList<F.Callback0>());
-        Comet comet = new Comet("test") {
-            @Override
-            public void onConnected() {}
-        };
+        final TestChannel<String> testChannel = new TestChannel<>();
+        final Chunks.Out<String> out = new Chunks.Out<>(testChannel, new ArrayList<>());
+        Comet comet = Comet.whenConnected("test", c -> {});
         comet.onReady(out);
 
         String message = "test";
@@ -60,12 +50,9 @@ public class CometTest {
 
     @Test
     public void testClose() throws Exception {
-        final TestChannel<String> testChannel = new TestChannel<String>();
-        final Chunks.Out<String> out = new Chunks.Out<String>(testChannel, new ArrayList<F.Callback0>());
-        Comet comet = new Comet("test") {
-            @Override
-            public void onConnected() {}
-        };
+        final TestChannel<String> testChannel = new TestChannel<>();
+        final Chunks.Out<String> out = new Chunks.Out<>(testChannel, new ArrayList<>());
+        Comet comet = Comet.whenConnected("test", c -> {});
         comet.onReady(out);
 
         comet.close();
@@ -74,18 +61,5 @@ public class CometTest {
         testChannel.expectEOF();
         testChannel.expectEnd();
         testChannel.expectEmpty();
-    }
-
-    @Test
-    public void testWhenConnectedFactory() throws Exception {
-        final CountDownLatch invoked = new CountDownLatch(1);
-        Comet comet = Comet.whenConnected("test", new F.Callback<Comet>() {
-            @Override
-            public void invoke(Comet c) {
-                invoked.countDown();
-            }
-        });
-        comet.onConnected();
-        assertThat(invoked.await(1, SECONDS)).isTrue();
     }
 }

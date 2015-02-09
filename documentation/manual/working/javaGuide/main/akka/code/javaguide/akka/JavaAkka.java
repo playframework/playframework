@@ -86,11 +86,7 @@ public class JavaAkka extends WithApplication {
         //#schedule-code
         system.scheduler().scheduleOnce(
                 Duration.create(10, TimeUnit.MILLISECONDS),
-                new Runnable() {
-                    public void run() {
-                        file.delete();
-                    }
-                },
+                () -> file.delete(),
                 system.dispatcher()
         );
         //#schedule-code

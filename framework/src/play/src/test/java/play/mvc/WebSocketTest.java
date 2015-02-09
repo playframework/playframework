@@ -19,7 +19,7 @@ public class WebSocketTest {
         final CountDownLatch message = new CountDownLatch(1);
         final CountDownLatch close = new CountDownLatch(1);
 
-        final TestChannel<String> testChannel = new TestChannel<String>();
+        final TestChannel<String> testChannel = new TestChannel<>();
         final WebSocket.Out<String> wsOut = new WebSocket.Out<String>() {
             @Override
             public void write(String frame) {
@@ -31,28 +31,15 @@ public class WebSocketTest {
             }
         };
 
-        final WebSocket.In<String> wsIn = new WebSocket.In<String>();
+        final WebSocket.In<String> wsIn = new WebSocket.In<>();
 
-        WebSocket<String> webSocket = new WebSocket<String>() {
-            @Override
-            public void onReady(WebSocket.In<String> in, WebSocket.Out<String> out) {
-                ready.countDown();
-                in.onMessage(new F.Callback<String>() {
-                    @Override
-                    public void invoke(String m) {
-                        message.countDown();
-                    }
-                });
-                in.onClose(new F.Callback0() {
-                    @Override
-                    public void invoke() {
-                        close.countDown();
-                    }
-                });
-                out.write("message");
-                out.close();
-            }
-        };
+        WebSocket<String> webSocket = WebSocket.whenReady((in, out) -> {
+            ready.countDown();
+            in.onMessage(m -> message.countDown());
+            in.onClose(close::countDown);
+            out.write("message");
+            out.close();
+        });
 
         webSocket.onReady(wsIn, wsOut);
 
@@ -80,12 +67,7 @@ public class WebSocketTest {
     public void testWhenReadyFactory() throws Exception {
         final CountDownLatch ready = new CountDownLatch(1);
 
-        WebSocket<String> webSocket = WebSocket.whenReady(new F.Callback2<WebSocket.In<String>, WebSocket.Out<String>>() {
-            @Override
-            public void invoke(WebSocket.In<String> in, WebSocket.Out<String> out) {
-                ready.countDown();
-            }
-        });
+        WebSocket<String> webSocket = WebSocket.whenReady((in, out) -> ready.countDown());
 
         webSocket.onReady(null, null);
 

@@ -15,12 +15,7 @@ Play provides two different built in mechanisms for handling WebSockets.  The fi
 
 To handle a WebSocket with an actor, we need to give Play a `akka.actor.Props` object that describes the actor that Play should create when it receives the WebSocket connection.  Play will give us an `akka.actor.ActorRef` to send upstream messages to, so we can use that to help create the `Props` object:
 
-Java 8
-: @[imports](java8code/java8guide/async/JavaWebSockets.java)
-@[actor-accept](java8code/java8guide/async/JavaWebSockets.java)
-
-Java
-: @[imports](code/javaguide/async/JavaWebSockets.java)
+@[imports](code/javaguide/async/JavaWebSockets.java)
 @[actor-accept](code/javaguide/async/JavaWebSockets.java)
 
 The actor that we're sending to here in this case looks like this:
@@ -45,11 +40,7 @@ Play will automatically close the WebSocket when your actor that handles the Web
 
 Sometimes you may wish to reject a WebSocket request, for example, if the user must be authenticated to connect to the WebSocket, or if the WebSocket is associated with some resource, whose id is passed in the path, but no resource with that id exists.  Play provides a `reject` WebSocket builder for this purpose:
 
-Java 8
-: @[actor-reject](java8code/java8guide/async/JavaWebSockets.java)
-
-Java
-: @[actor-reject](code/javaguide/async/JavaWebSockets.java)
+@[actor-reject](code/javaguide/async/JavaWebSockets.java)
 
 ### Accepting a WebSocket asynchronously
 
@@ -59,11 +50,7 @@ You may need to do some asynchronous processing before you are ready to create a
 
 So far we have only seen handling `String` frames.  Play also has built in handlers for `byte[]` frames, and `JSONNode` messages parsed from `String` frames.  You can pass these as the type parameters to the WebSocket creation method, for example:
 
-Java 8
-: @[actor-json](java8code/java8guide/async/JavaWebSockets.java)
-
-Java
-: @[actor-json](code/javaguide/async/JavaWebSockets.java)
+@[actor-json](code/javaguide/async/JavaWebSockets.java)
 
 ## Handling WebSockets using callbacks
 
@@ -71,11 +58,7 @@ If you don't want to use actors to handle a WebSocket, you can also handle it us
 
 To handle a WebSocket your method must return a `WebSocket` instead of a `Result`:
 
-Java 8
-: @[websocket](java8code/java8guide/async/JavaWebSockets.java)
-
-Java
-: @[websocket](code/javaguide/async/JavaWebSockets.java)
+@[websocket](code/javaguide/async/JavaWebSockets.java)
 
 A WebSocket has access to the request headers (from the HTTP request that initiates the WebSocket connection) allowing you to retrieve standard headers and session data. But it doesn't have access to any request body, nor to the HTTP response.
 
@@ -87,8 +70,4 @@ It this example, we print each message to console and we send a single **Hello!*
 
 Let’s write another example that totally discards the input data and closes the socket just after sending the **Hello!** message:
 
-Java 8
-: @[discard-input](java8code/java8guide/async/JavaWebSockets.java)
-
-Java
-: @[discard-input](code/javaguide/async/JavaWebSockets.java)
+@[discard-input](code/javaguide/async/JavaWebSockets.java)

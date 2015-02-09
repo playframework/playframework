@@ -24,13 +24,8 @@ public class Application extends Controller {
     }
 
     public Promise<Result> sayHello(String name) {
-        return Promise.wrap(ask(helloActor, new SayHello(name), 1000)).map(
-                new Function<Object, Result>() {
-                    public Result apply(Object response) {
-                        return ok((String) response);
-                    }
-                }
-        );
+        return Promise.wrap(ask(helloActor, new SayHello(name), 1000))
+                .map(response -> ok((String) response));
     }
 }
 //#ask

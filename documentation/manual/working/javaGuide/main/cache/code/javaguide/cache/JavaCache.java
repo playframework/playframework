@@ -55,11 +55,7 @@ public class JavaCache extends WithApplication {
         //#get
         assertThat(news, equalTo(frontPageNews));
         //#get-or-else
-        News maybeCached = cache.getOrElse("item.key", new Callable<News>() {
-            public News call() {
-                return lookUpFrontPageNews();
-            }
-        });
+        News maybeCached = cache.getOrElse("item.key", () -> lookUpFrontPageNews());
         //#get-or-else
         //#remove
         cache.remove("item.key");

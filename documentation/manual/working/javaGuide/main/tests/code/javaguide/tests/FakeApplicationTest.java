@@ -24,16 +24,14 @@ public class FakeApplicationTest {
     String formatted(String s) {
         return s;
     }
-    
+
     //#test-running-fakeapp
     @Test
     public void findById() {
-        running(fakeApplication(inMemoryDatabase("test")), new Runnable() {
-            public void run() {
-                Computer macintosh = Computer.findById(21l);
-                assertEquals("Macintosh", macintosh.name);
-                assertEquals("1984-01-24", formatted(macintosh.introduced));
-            }
+        running(fakeApplication(inMemoryDatabase("test")), () -> {
+            Computer macintosh = Computer.findById(21l);
+            assertEquals("Macintosh", macintosh.name);
+            assertEquals("1984-01-24", formatted(macintosh.introduced));
         });
     }
     //#test-running-fakeapp

@@ -66,8 +66,6 @@ object ApplicationBuild extends Build {
     PlayDocsKeys.javaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "javaGuide" ** codeFilter).get,
     PlayDocsKeys.scalaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "scalaGuide" ** codeFilter).get,
 
-    PlayDocsKeys.javaManualSourceDirectories ++= { if (isJavaAtLeast("1.8")) (baseDirectory.value / "manual" / "javaGuide" ** "java8code").get else Nil },
-
     unmanagedSourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** codeFilter).get,
     unmanagedResourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** codeFilter).get
 

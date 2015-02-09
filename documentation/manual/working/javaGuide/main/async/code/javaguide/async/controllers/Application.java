@@ -14,49 +14,23 @@ import scala.concurrent.ExecutionContext;
 //#async-explicit-ec-imports
 
 public class Application extends Controller {
-    //#async
-    public Promise<Result> index() {
-      Promise<Integer> promiseOfInt = Promise.promise(
-        new Function0<Integer>() {
-          public Integer apply() {
-            return intensiveComputation();
-          }
-        }
-      );
-      return promiseOfInt.map(
-        new Function<Integer, Result>() {
-          public Result apply(Integer i) {
-            return ok("Got result: " + i);
-          } 
-        }
-      );
-    }
-    //#async
+  //#async
+  public Promise<Result> index() {
+    return Promise.promise(() -> intensiveComputation())
+            .map((Integer i) -> ok("Got result: " + i));
+  }
+  //#async
 
-    private ExecutionContext myThreadPool = null;
+  private ExecutionContext myThreadPool = null;
 
-    //#async-explicit-ec
-    public Promise<Result> index2() {
-      // Wrap an existing thread pool, using the context from the current thread
-      ExecutionContext myEc = HttpExecution.fromThread(myThreadPool);
-      Promise<Integer> promiseOfInt = Promise.promise(
-        new Function0<Integer>() {
-          public Integer apply() {
-            return intensiveComputation();
-          }
-        },
-        myEc
-      );
-      return promiseOfInt.map(
-        new Function<Integer, Result>() {
-          public Result apply(Integer i) {
-            return ok("Got result: " + i);
-          } 
-        },
-        myEc
-      );
-    }
-    //#async-explicit-ec
+  //#async-explicit-ec
+  public Promise<Result> index2() {
+    // Wrap an existing thread pool, using the context from the current thread
+    ExecutionContext myEc = HttpExecution.fromThread(myThreadPool);
+    return Promise.promise(() -> intensiveComputation(), myEc)
+            .map((Integer i) -> ok("Got result: " + i), myEc);
+  }
+  //#async-explicit-ec
 
     public int intensiveComputation() { return 2;}
 }

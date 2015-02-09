@@ -66,14 +66,12 @@ object BuildSettings {
     homepage := Some(url("https://playframework.com")),
     licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.html")),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
-    javacOptions ++= makeJavacOptions("1.6"),
-    javacOptions in doc := Seq("-source", "1.6"),
+    javacOptions ++= makeJavacOptions("1.8"),
+    javacOptions in doc := Seq("-source", "1.8"),
     resolvers ++= ResolverSettings.playResolvers,
     resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases", // specs2 depends on scalaz-stream
     fork in Test := true,
     testListeners in (Test,test) := Nil,
-    javacOptions in Test := { if (isJavaAtLeast("1.8")) makeJavacOptions("1.8") else makeJavacOptions("1.6") },
-    unmanagedSourceDirectories in Test ++= { if (isJavaAtLeast("1.8")) Seq((sourceDirectory in Test).value / "java8") else Nil },
     javaOptions in Test += maxMetaspace,
     testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
     testOptions in Test += Tests.Filter(!_.endsWith("Benchmark"))
@@ -143,6 +141,10 @@ object BuildSettings {
     scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature")
   )
 
+  def playScriptedSettings = ScriptedPlugin.scriptedSettings ++ Seq(
+    ScriptedPlugin.scripted <<= ScriptedPlugin.scripted.tag(Tags.Test)
+  )
+
   /**
    * A project that runs in the SBT runtime
    */
@@ -159,7 +161,7 @@ object BuildSettings {
     Project(name, file("src/" + dir))
       .settings(playSbtCommonSettings: _*)
       .settings(PublishSettings.sbtPluginPublishSettings: _*)
-      .settings(ScriptedPlugin.scriptedSettings: _*)
+      .settings(playScriptedSettings: _*)
       .settings(
         sbtPlugin := true,
         sbtVersion in GlobalScope := buildSbtVersion,
@@ -283,7 +285,7 @@ object PlayBuild extends Build {
     .settings(libraryDependencies ++= akkaHttp)
      // Include scripted tests here as well as in the SBT Plugin, because we
      // don't want the SBT Plugin to have a dependency on an experimental module.
-    .settings(scriptedSettings: _*)
+    .settings(playScriptedSettings: _*)
     .settings(
       scriptedLaunchOpts ++= Seq(
         maxMetaspace,

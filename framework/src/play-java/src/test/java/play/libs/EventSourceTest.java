@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import org.junit.Test;
 import play.api.libs.iteratee.TestChannel;
-import play.libs.F;
-import play.libs.Json;
 import play.mvc.Results.Chunks;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -19,8 +17,8 @@ public class EventSourceTest {
 
     @Test
     public void testOnReady() throws Exception {
-        final TestChannel<String> testChannel = new TestChannel<String>();
-        final Chunks.Out<String> out = new Chunks.Out<String>(testChannel, new ArrayList<F.Callback0>());
+        final TestChannel<String> testChannel = new TestChannel<>();
+        final Chunks.Out<String> out = new Chunks.Out<>(testChannel, new ArrayList<>());
         final CountDownLatch invoked = new CountDownLatch(1);
         EventSource eventSource = new EventSource() {
             @Override
@@ -36,8 +34,8 @@ public class EventSourceTest {
 
     @Test
     public void testSends() {
-        final TestChannel<String> testChannel = new TestChannel<String>();
-        final Chunks.Out<String> out = new Chunks.Out<String>(testChannel, new ArrayList<F.Callback0>());
+        final TestChannel<String> testChannel = new TestChannel<>();
+        final Chunks.Out<String> out = new Chunks.Out<>(testChannel, new ArrayList<>());
         EventSource eventSource = new EventSource() {
             @Override
             public void onConnected() {}
@@ -62,8 +60,8 @@ public class EventSourceTest {
 
     @Test
     public void testClose() throws Exception {
-        final TestChannel<String> testChannel = new TestChannel<String>();
-        final Chunks.Out<String> out = new Chunks.Out<String>(testChannel, new ArrayList<F.Callback0>());
+        final TestChannel<String> testChannel = new TestChannel<>();
+        final Chunks.Out<String> out = new Chunks.Out<>(testChannel, new ArrayList<>());
         EventSource eventSource = new EventSource() {
             @Override
             public void onConnected() {}
@@ -80,12 +78,7 @@ public class EventSourceTest {
     @Test
     public void testWhenConnectedFactory() throws Exception {
         final CountDownLatch invoked = new CountDownLatch(1);
-        EventSource eventSource = EventSource.whenConnected(new F.Callback<EventSource>() {
-            @Override
-            public void invoke(EventSource es) {
-                invoked.countDown();
-            }
-        });
+        EventSource eventSource = EventSource.whenConnected(es -> invoked.countDown());
         eventSource.onConnected();
         assertThat(invoked.await(1, SECONDS)).isTrue();
     }

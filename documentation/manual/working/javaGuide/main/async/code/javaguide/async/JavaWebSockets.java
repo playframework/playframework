@@ -19,12 +19,8 @@ public class JavaWebSockets {
     public static class ActorController1 {
 
         //#actor-accept
-        public WebSocket<String> socket() {
-            return WebSocket.withActor(new Function<ActorRef, Props>() {
-                public Props apply(ActorRef out) throws Throwable {
-                    return MyWebSocketActor.props(out);
-                }
-            });
+        public static WebSocket<String> socket() {
+            return WebSocket.withActor(MyWebSocketActor::props);
         }
         //#actor-accept
     }
@@ -61,11 +57,7 @@ public class JavaWebSockets {
         //#actor-reject
         public WebSocket<String> socket() {
             if (session().get("user") != null) {
-                return WebSocket.withActor(new Function<ActorRef, Props>() {
-                    public Props apply(ActorRef out) throws Throwable {
-                        return MyWebSocketActor.props(out);
-                    }
-                });
+                return WebSocket.withActor(MyWebSocketActor::props);
             } else {
                 return WebSocket.reject(forbidden());
             }
@@ -76,11 +68,7 @@ public class JavaWebSockets {
     public static class ActorController4 extends Controller {
         //#actor-json
         public WebSocket<JsonNode> socket() {
-            return WebSocket.withActor(new Function<ActorRef, Props>() {
-                public Props apply(ActorRef out) throws Throwable {
-                    return MyWebSocketActor.props(out);
-                }
-            });
+            return WebSocket.withActor(MyWebSocketActor::props);
         }
         //#actor-json
     }
@@ -90,36 +78,16 @@ public class JavaWebSockets {
     public static class Controller1 {
         //#websocket
         public WebSocket<String> socket() {
-            return new WebSocket<String>() {
+            return WebSocket.whenReady((in, out) -> {
+                // For each event received on the socket,
+                in.onMessage(System.out::println);
 
-                // Called when the Websocket Handshake is done.
-                public void onReady(WebSocket.In<String> in, WebSocket.Out<String> out) {
+                // When the socket is closed.
+                in.onClose(() -> System.out.println("Disconnected"));
 
-                    // For each event received on the socket,
-                    in.onMessage(new Callback<String>() {
-                        public void invoke(String event) {
-
-                            // Log events to the console
-                            System.out.println(event);
-
-                        }
-                    });
-
-                    // When the socket is closed.
-                    in.onClose(new Callback0() {
-                        public void invoke() {
-
-                            System.out.println("Disconnected");
-
-                        }
-                    });
-
-                    // Send a single 'Hello!' message
-                    out.write("Hello!");
-
-                }
-
-            };
+                // Send a single 'Hello!' message
+                out.write("Hello!");
+            });
         }
         //#websocket
     }
@@ -127,14 +95,10 @@ public class JavaWebSockets {
     public static class Controller2 {
         //#discard-input
         public WebSocket<String> socket() {
-            return new WebSocket<String>() {
-
-                public void onReady(WebSocket.In<String> in, WebSocket.Out<String> out) {
-                    out.write("Hello!");
-                    out.close();
-                }
-
-            };
+            return WebSocket.whenReady((in, out) -> {
+                out.write("Hello!");
+                out.close();
+            });
         }
         //#discard-input
     }

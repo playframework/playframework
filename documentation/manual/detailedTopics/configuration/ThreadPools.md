@@ -99,12 +99,7 @@ Java `ThreadLocal`s, along with the correct context `ClassLoader`, are propagate
 In the example below, a user thread pool is wrapped to create a new `ExecutionContext` that propagates thread locals correctly.
 
 @[async-explicit-ec-imports](../../working/javaGuide/main/async/code/javaguide/async/controllers/Application.java)
-
-Java 8
-: @[async-explicit-ec](../../working/javaGuide/main/async/java8code/java8guide/async/controllers/Application.java)
-
-Java
-: @[async-explicit-ec](../../working/javaGuide/main/async/code/javaguide/async/controllers/Application.java)
+@[async-explicit-ec](../../working/javaGuide/main/async/code/javaguide/async/controllers/Application.java)
 
 ## Best practices
 

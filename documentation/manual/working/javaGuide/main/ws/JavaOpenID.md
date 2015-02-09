@@ -41,11 +41,7 @@ If the `Promise` fails, you can define a fallback, which redirects back the user
 
 controller:
 
-Java
-: @[ws-openid-controller](code/javaguide/ws/controllers/OpenIDController.java)
-
-Java 8
-: @[ws-openid-controller](java8code/java8guide/ws/controllers/OpenIDController.java)
+@[ws-openid-controller](code/javaguide/ws/controllers/OpenIDController.java)
 
 
 ## Extended Attributes
