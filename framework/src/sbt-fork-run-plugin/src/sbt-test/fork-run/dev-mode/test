@@ -5,6 +5,9 @@
 # we make a request. The reason for this is that the classpath change detection is based on file modification times,
 # which only have 1 second precision.
 
+# we haven't reloaded anything to start
+> verify-reloads 0
+
 # Write the play version to a file for sbt server
 > write-run-properties
 
@@ -12,52 +15,56 @@
 > backgroundRun
 > wait-for-server
 
+
+> verify-resource-contains / 200 original-fork-run
+# be sure we reloaded exactly once
+> verify-reloads 1
+
 # Check various action types
-> verify-resource-contains / 200 original
 > verify-resource-contains /assets/css/some.css 200 original
 > verify-resource-contains /assets/main.css 200 original
 > verify-reloads 1
 
 # Wait a while and ensure we still haven't reloaded
-$ sleep 1000
+$ sleep 1250
 > verify-resource-contains / 200
 > verify-reloads 1
 
 # Change a scala file
 $ copy-file changes/Application.scala.1 app/controllers/Application.scala
-$ sleep 1000
+$ sleep 1250
 > verify-resource-contains / 200 first
 > verify-reloads 2
 
 # Change a static asset
 $ copy-file changes/some.css.1 public/css/some.css
-$ sleep 1000
+$ sleep 1250
 > verify-resource-contains /assets/css/some.css 200 first
 # No reloads should have happened
 > verify-reloads 2
 
 # Change a compiled asset
 $ copy-file changes/main.less.1 app/assets/main.less
-$ sleep 1000
+$ sleep 1250
 > verify-resource-contains /assets/main.css 200 first
 # No reloads should have happened
 > verify-reloads 2
 
 # Introduce a compile error
 $ copy-file changes/Application.scala.2 app/controllers/Application.scala
-$ sleep 1000
+$ sleep 1250
 > verify-resource-contains / 500
 > verify-reloads 2
 
 # Fix the compile error
 $ copy-file changes/Application.scala.3 app/controllers/Application.scala
-$ sleep 1000
+$ sleep 1250
 > verify-resource-contains / 200 second
 > verify-reloads 3
 
 # Change a resource (also introduces a startup failure)
 $ copy-file changes/application.conf.1 conf/application.conf
-$ sleep 1000
+$ sleep 1250
 > verify-resource-contains / 500
 > verify-reloads 4
 

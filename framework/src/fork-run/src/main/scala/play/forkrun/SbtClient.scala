@@ -35,14 +35,23 @@ class SbtClient(baseDirectory: File, log: Logger, logEvents: Boolean) extends Ac
     connecting()
   }
 
-  def connecting(pending: Seq[SbtRequest] = Seq.empty): Receive = {
-    case SbtConnectionProxy.NewClientResponse.Connected(client) =>
+  def awaitingDaemon(client: ActorRef, pending: Seq[SbtRequest] = Seq.empty): Receive = {
+    case SbtClientProxy.DaemonSet =>
       if (logEvents) {
         val events = context.actorOf(SbtEvents.props(log), "sbt-server-events")
         client ! SbtClientProxy.SubscribeToEvents(sendTo = events)
       }
       pending foreach self.!
       context become active(client)
+    case request: SbtRequest =>
+      context become awaitingDaemon(client, pending :+ request)
+    case Shutdown => shutdown()
+  }
+
+  def connecting(pending: Seq[SbtRequest] = Seq.empty): Receive = {
+    case SbtConnectionProxy.NewClientResponse.Connected(client) =>
+      client ! SbtClientProxy.SetDaemon(true, self)
+      context become awaitingDaemon(client, pending)
     case SbtConnectionProxy.NewClientResponse.Error(recoverable, error) =>
       if (!recoverable) fail(new Exception(error), pending)
     case request: SbtRequest =>
