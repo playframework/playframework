@@ -155,7 +155,7 @@ Using for comprehensions is a good way to chain WS calls in a trusted environmen
 
 ### Using in a controller
 
-When making a request from a controller, you can map the response to a `Future[Result]`.  This can be used in combination with Play's `Action.async` action builder, as described in [[Handling Asynchronous Results|ScalaAsync]].
+When making a request from a controller, you can map the response to a `Future[Result]`. This can be used in combination with Play's `Action.async` action builder, as described in [[Handling Asynchronous Results|ScalaAsync]].
 
 @[async-result](code/ScalaWSSpec.scala)
 
@@ -163,11 +163,11 @@ When making a request from a controller, you can map the response to a `Future[R
 
 WSClient is a wrapper around the underlying AsyncHttpClient.  It is useful for defining multiple clients with different profiles, or using a mock.
 
-You can define a WS client directly from code without having it injected by WS, and then use it implicitly with `WS.clientUrl()`.  Note that you should always use `NingAsyncHttpClientConfigBuilder` when configuring your client, for secure TLS configuration:
+You can define a WS client directly from code without having it injected by WS, and then use it implicitly with `WS.clientUrl()`. Note that you should always use `NingAsyncHttpClientConfigBuilder` when configuring your client, for secure TLS configuration:
 
 @[implicit-client](code/ScalaWSSpec.scala)
 
-> NOTE: if you instantiate a NingWSClient object, it does not use the WS module lifecycle, and so will not be automatically closed in `Application.onStop`. Instead, the client must be manually shutdown using `client.close()` when processing has completed.  This will release the underlying ThreadPoolExecutor used by AsyncHttpClient.  Failure to close the client may result in out of memory exceptions (especially if you are reloading an application frequently in development mode).
+> NOTE: if you instantiate a NingWSClient object, it does not use the WS module lifecycle, and so will not be automatically closed in `Application.onStop`. Instead, the client must be manually shutdown using `client.close()` when processing has completed. This will release the underlying ThreadPoolExecutor used by AsyncHttpClient. Failure to close the client may result in out of memory exceptions (especially if you are reloading an application frequently in development mode).
 
 or directly:
 
