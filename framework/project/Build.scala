@@ -143,6 +143,10 @@ object BuildSettings {
     scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature")
   )
 
+  def playScriptedSettings = ScriptedPlugin.scriptedSettings ++ Seq(
+    ScriptedPlugin.scripted <<= ScriptedPlugin.scripted.tag(Tags.Test)
+  )
+
   /**
    * A project that runs in the SBT runtime
    */
@@ -159,7 +163,7 @@ object BuildSettings {
     Project(name, file("src/" + dir))
       .settings(playSbtCommonSettings: _*)
       .settings(PublishSettings.sbtPluginPublishSettings: _*)
-      .settings(ScriptedPlugin.scriptedSettings: _*)
+      .settings(playScriptedSettings: _*)
       .settings(
         sbtPlugin := true,
         sbtVersion in GlobalScope := buildSbtVersion,
@@ -283,7 +287,7 @@ object PlayBuild extends Build {
     .settings(libraryDependencies ++= akkaHttp)
      // Include scripted tests here as well as in the SBT Plugin, because we
      // don't want the SBT Plugin to have a dependency on an experimental module.
-    .settings(scriptedSettings: _*)
+    .settings(playScriptedSettings: _*)
     .settings(
       scriptedLaunchOpts ++= Seq(
         maxMetaspace,
