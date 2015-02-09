@@ -344,23 +344,19 @@ object PlayBuild extends Build {
         "-Dperformance.log=" + new File(baseDirectory.value, "target/sbt-repcomile-performance.properties"),
         "-Dproject.version=" + version.value
       ),
+      /* The project does not publish all of the artifacts it needs for scripted tests as there is
+       * an assumed order of testing operations.
+       *
+       * From @pvlugter:
+       * The play docs project in particular takes a while to rebuild. The runtests script already
+       * publishes everything locally as a first step (including scala cross build), so this just
+       * lengthens the validation time. So when developing sbt plugins the idea is to publishLocal
+       * everything first and have the scripted test just publishLocal the plugin parts themselves -
+       * basically those parts that will be changing when working on the plugin.
+       */
       scriptedDependencies := {
         val () = publishLocal.value
         val () = (publishLocal in RoutesCompilerProject).value
-        val () = (publishLocal in SbtRunSupportProject).value
-        val () = (publishLocal in SbtForkRunProtocolProject).value
-        val () = (publishLocal in BuildLinkProject).value
-        val () = (publishLocal in PlayExceptionsProject).value
-        val () = (publishLocal in PlayTestProject).value
-        val () = (publishLocal in IterateesProject).value
-        val () = (publishLocal in PlayProject).value
-        val () = (publishLocal in PlayDocsProject).value
-        val () = (publishLocal in ForkRunProject).value
-        val () = (publishLocal in JsonProject).value
-        val () = (publishLocal in FunctionalProject).value
-        val () = (publishLocal in DataCommonsProject).value
-        val () = (publishLocal in ForkRunProtocolProject).value
-        val () = (publishLocal in RunSupportProject).value
       }
     ).dependsOn(RoutesCompilerProject, SbtRunSupportProject)
 
