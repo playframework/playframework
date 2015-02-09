@@ -170,3 +170,7 @@ DB.withTransaction { conn =>
   // do whatever you need with the connection
 }
 ```
+
+## Testing
+
+For information on testing with databases, including how to setup in-memory databases and, see [[Testing With Databases|ScalaTestingWithDatabases]].

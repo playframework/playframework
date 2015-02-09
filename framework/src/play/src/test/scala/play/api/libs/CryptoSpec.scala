@@ -52,7 +52,7 @@ object CryptoSpec extends Specification {
       val Secret = "abcdefghijklmnopqrs"
 
       def parseSecret(mode: Mode.Mode, secret: Option[String] = None) = {
-        new CryptoConfigParser(Environment.simple(mode),
+        new CryptoConfigParser(Environment.simple(mode = mode),
           Configuration.from(
             secret.map("application.secret" -> _).toMap +
               ("play.crypto.aes.transformation" -> "AES")

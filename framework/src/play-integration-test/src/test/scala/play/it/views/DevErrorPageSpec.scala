@@ -23,7 +23,7 @@ object DevErrorPageSpec extends PlaySpecification {
     }
 
     "show prod error page in prod mode" in {
-      val errorHandler = new DefaultHttpErrorHandler(Environment.simple(Mode.Prod), Configuration.empty)
+      val errorHandler = new DefaultHttpErrorHandler(Environment.simple(mode = Mode.Prod), Configuration.empty)
       val result = errorHandler.onServerError(FakeRequest(), testExceptionSource)
       Helpers.contentAsString(result) must contain("Oops, an error occurred")
     }

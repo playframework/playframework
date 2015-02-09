@@ -3,10 +3,9 @@
  */
 package play.api.db.evolutions
 
-import java.sql.ResultSet
+import java.sql.{ SQLException, ResultSet }
 import org.specs2.mutable.{ After, Specification }
-import play.api.Configuration
-import play.api.db.DefaultDBApi
+import play.api.db.Database
 
 // TODO: fuctional test with InvalidDatabaseRevision exception
 
@@ -19,12 +18,12 @@ object EvolutionsSpec extends Specification {
   "Evolutions" should {
 
     "apply up scripts" in new WithEvolutions {
-      val scripts = evolutions.scripts("default", Seq(a1, a2, a3))
+      val scripts = evolutions.scripts(Seq(a1, a2, a3))
 
       scripts must have length (3)
       scripts must_== Seq(UpScript(a1), UpScript(a2), UpScript(a3))
 
-      evolutions.evolve("default", scripts, autocommit = true)
+      evolutions.evolve(scripts, autocommit = true)
 
       val resultSet = executeQuery("select * from test")
       resultSet.next must beTrue
@@ -35,15 +34,15 @@ object EvolutionsSpec extends Specification {
     }
 
     "apply down scripts" in new WithEvolutions {
-      val original = evolutions.scripts("default", Seq(a1, a2, a3))
-      evolutions.evolve("default", original, autocommit = true)
+      val original = evolutions.scripts(Seq(a1, a2, a3))
+      evolutions.evolve(original, autocommit = true)
 
-      val scripts = evolutions.scripts("default", Seq(b1, a2, b3))
+      val scripts = evolutions.scripts(Seq(b1, a2, b3))
 
       scripts must have length (6)
       scripts must_== Seq(DownScript(a3), DownScript(a2), DownScript(a1), UpScript(b1), UpScript(a2), UpScript(b3))
 
-      evolutions.evolve("default", scripts, autocommit = true)
+      evolutions.evolve(scripts, autocommit = true)
 
       val resultSet = executeQuery("select * from test")
       resultSet.next must beTrue
@@ -54,38 +53,60 @@ object EvolutionsSpec extends Specification {
     }
 
     "report inconsistent state and resolve" in new WithEvolutions {
-      val broken = evolutions.scripts("default", Seq(c1, a2, a3))
-      val fixed = evolutions.scripts("default", Seq(a1, a2, a3))
+      val broken = evolutions.scripts(Seq(c1, a2, a3))
+      val fixed = evolutions.scripts(Seq(a1, a2, a3))
 
-      evolutions.evolve("default", broken, autocommit = true) must throwAn[InconsistentDatabase]
+      evolutions.evolve(broken, autocommit = true) must throwAn[InconsistentDatabase]
 
       // inconsistent until resolved
-      evolutions.evolve("default", fixed, autocommit = true) must throwAn[InconsistentDatabase]
+      evolutions.evolve(fixed, autocommit = true) must throwAn[InconsistentDatabase]
 
-      evolutions.resolve("default", 1)
+      evolutions.resolve(1)
 
-      evolutions.evolve("default", fixed, autocommit = true)
+      evolutions.evolve(fixed, autocommit = true)
+    }
+
+    "reset the database" in new WithEvolutions {
+      val scripts = evolutions.scripts(Seq(a1, a2, a3))
+      evolutions.evolve(scripts, autocommit = true)
+      // Check that there's data in the database
+      val resultSet = executeQuery("select * from test")
+      resultSet.next must beTrue
+      resultSet.close()
+
+      val resetScripts = evolutions.resetScripts()
+      evolutions.evolve(resetScripts, autocommit = true)
+
+      // Should be no table because all downs should have been executed
+      executeQuery("select * from test") must throwA[SQLException]
+    }
+
+    "provide a helper for testing" in new WithEvolutions {
+      Evolutions.withEvolutions(database, SimpleEvolutionsReader.forDefault(a1, a2, a3)) {
+        // Check that there's data in the database
+        val resultSet = executeQuery("select * from test")
+        resultSet.next must beTrue
+        resultSet.close()
+      }
+
+      // Check that cleanup was done afterwards
+      executeQuery("select * from test") must throwA[SQLException]
     }
 
   }
 
   trait WithEvolutions extends After {
-    lazy val db = new DefaultDBApi(
-      Configuration.from(Map(
-        "default.driver" -> "org.h2.Driver",
-        "default.url" -> "jdbc:h2:mem:evolutions-test"
-      ))
-    )
+    lazy val database = Database.inMemory("default")
 
-    lazy val evolutions = new DefaultEvolutionsApi(db)
+    lazy val evolutions = new DatabaseEvolutions(database)
 
-    lazy val connection = db.database("default").getConnection()
+    lazy val connection = database.getConnection()
 
     def executeQuery(sql: String): ResultSet = connection.createStatement.executeQuery(sql)
 
     def after = {
       connection.close()
-      db.shutdown()
+      database.shutdown()
     }
   }
 

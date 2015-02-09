@@ -30,7 +30,7 @@ object ScalaErrorHandling extends PlaySpecification with WsTestClient {
       import play.core.Router
       import javax.inject.Provider
       def errorHandler(mode: Mode.Mode) = new default.ErrorHandler(
-        Environment.simple(mode), Configuration.empty, new OptionalSourceMapper(None),
+        Environment.simple(mode = mode), Configuration.empty, new OptionalSourceMapper(None),
         new Provider[Router.Routes] { def get = Router.Null }
       )
       def errorContent(mode: Mode.Mode) =
