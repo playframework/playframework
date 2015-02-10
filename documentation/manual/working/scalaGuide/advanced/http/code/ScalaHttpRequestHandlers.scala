@@ -9,11 +9,11 @@ package simple {
 import javax.inject.Inject
 import play.api.http._
 import play.api.mvc._
-import play.core.Router
+import play.api.routing.Router
 
-class SimpleHttpRequestHandler @Inject() (routes: Router.Routes) extends HttpRequestHandler {
+class SimpleHttpRequestHandler @Inject() (router: Router) extends HttpRequestHandler {
   def handlerForRequest(request: RequestHeader) = {
-    routes.routes.lift(request) match {
+    router.routes.lift(request) match {
       case Some(handler) => (request, handler)
       case None => (request, Action(Results.NotFound))
     }
@@ -24,12 +24,12 @@ class SimpleHttpRequestHandler @Inject() (routes: Router.Routes) extends HttpReq
 
 package virtualhost {
 
-import play.core.Router
+import play.api.routing.Router
 object bar {
-  type Routes = Router.Routes
+  type Routes = Router
 }
 object foo {
-  type Routes = Router.Routes
+  type Routes = Router
 }
 
 //#virtualhost

@@ -16,7 +16,7 @@ import org.jboss.netty.handler.codec.http.websocketx._
 import org.specs2.matcher.Matcher
 import akka.actor.{ ActorRef, PoisonPill, Actor, Props }
 import play.mvc.WebSocket.{ Out, In }
-import play.core.Router.HandlerDef
+import play.core.routing.HandlerDef
 import java.util.concurrent.atomic.AtomicReference
 import org.jboss.netty.buffer.ChannelBuffers
 
@@ -343,8 +343,8 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
 
     "allow handling a WebSocket in java" in {
 
-      import play.core.Router.HandlerInvokerFactory
-      import play.core.Router.HandlerInvokerFactory._
+      import play.core.routing.HandlerInvokerFactory
+      import play.core.routing.HandlerInvokerFactory._
       import play.mvc.{ WebSocket => JWebSocket, Results => JResults }
       import play.libs.F
 

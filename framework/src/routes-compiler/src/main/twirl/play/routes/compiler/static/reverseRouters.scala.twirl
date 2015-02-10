@@ -6,16 +6,12 @@
 // @@SOURCE:@sourceInfo.source
 // @@DATE:@sourceInfo.date
 
-import play.core._
-import play.core.Router._
-import play.core.Router.HandlerInvokerFactory._
-import play.core.j._
+import play.api.routing.JavaScriptReverseRoute
+import play.api.mvc.@ob QueryStringBindable, PathBindable, Call, JavascriptLiteral @cb
+import play.core.routing.@ob HandlerDef, ReverseRouteContext, queryString, dynamicString @cb
 
-import play.api.mvc._
 @for(i <- imports) {
 import @if(!i.startsWith("_root_.")){_root_.}@i}
-
-import Router.queryString
 
 @* Can't put in the root package because Java can't refer to the root package *@
 package @pkg.getOrElse("_routes_") @ob

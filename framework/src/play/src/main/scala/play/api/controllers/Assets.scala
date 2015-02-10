@@ -20,7 +20,7 @@ import java.util.regex.Pattern
 import play.api.libs.iteratee.Execution.Implicits
 import play.api.http.{ LazyHttpErrorHandler, HttpErrorHandler, ContentTypes }
 import scala.collection.concurrent.TrieMap
-import play.core.Router.ReverseRouteContext
+import play.core.routing.ReverseRouteContext
 import scala.io.Source
 import javax.inject.{ Inject, Singleton }
 

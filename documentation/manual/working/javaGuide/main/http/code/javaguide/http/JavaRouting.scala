@@ -4,16 +4,13 @@
 package javaguide.http
 
 import org.specs2.mutable.Specification
-import play.api.mvc.{Result, Handler, EssentialAction, RequestHeader}
-import play.core.Router
+import play.api.mvc.{EssentialAction, RequestHeader}
+import play.api.routing.Router
 import javaguide.http.routing._
 import play.api.test.Helpers._
 import play.api.test.{FakeRequest, FakeApplication}
 import javaguide.testhelpers.MockJavaAction
-import play.core.j.{JavaHandlerComponents, JavaHandler}
 import play.libs.F
-
-import scala.concurrent.Future
 
 object JavaRouting extends Specification {
 
@@ -61,7 +58,7 @@ object JavaRouting extends Specification {
 
   }
 
-  def contentOf(rh: RequestHeader, router: Class[_ <: Router.Routes] = classOf[Routes]) = {
+  def contentOf(rh: RequestHeader, router: Class[_ <: Router] = classOf[Routes]) = {
     val app = FakeApplication(additionalConfiguration = Map("application.router" -> router.getName))
     running(app) {
       contentAsString(app.requestHandler.handlerForRequest(rh)._2 match {

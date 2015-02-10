@@ -7,7 +7,7 @@ import play.*;
 import play.api.OptionalSourceMapper;
 import play.api.UsefulException;
 import play.api.http.HttpErrorHandlerExceptions;
-import play.core.Router;
+import play.api.routing.Router;
 import play.libs.F;
 import play.mvc.Http;
 import play.mvc.Http.*;
@@ -28,11 +28,11 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
     private final Option<String> playEditor;
     private final Environment environment;
     private final OptionalSourceMapper sourceMapper;
-    private final Provider<Router.Routes> routes;
+    private final Provider<Router> routes;
 
     @Inject
     public DefaultHttpErrorHandler(Configuration configuration, Environment environment,
-                                   OptionalSourceMapper sourceMapper, Provider<Router.Routes> routes) {
+                                   OptionalSourceMapper sourceMapper, Provider<Router> routes) {
         this.environment = environment;
         this.sourceMapper = sourceMapper;
         this.routes = routes;

@@ -37,8 +37,8 @@ case class ServerConfig(
 object ServerConfig {
 
   def apply(
-    rootDir: File,
-    port: Option[Int],
+    rootDir: File = new File("."),
+    port: Option[Int] = Some(9000),
     sslPort: Option[Int] = None,
     address: String = "0.0.0.0",
     mode: Mode.Mode = Mode.Prod,

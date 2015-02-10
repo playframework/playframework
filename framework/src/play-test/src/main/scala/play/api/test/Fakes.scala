@@ -9,14 +9,11 @@ import play.api._
 import play.api.http._
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.inject._
-import play.api.libs.{ Crypto, CryptoConfigParser, CryptoConfig }
 import play.api.mvc._
 import play.api.libs.json.JsValue
-import play.core.{ DefaultWebCommands, WebCommands }
-import play.utils.{ Reflect, Threads }
+import play.api.routing.Router
 import scala.concurrent.Future
 import xml.NodeSeq
-import play.core.Router
 import scala.runtime.AbstractPartialFunction
 import play.api.libs.Files.TemporaryFile
 
@@ -216,10 +213,10 @@ case class FakeApplication(
     .configure(additionalConfiguration)
     .bindings(
       bind[FakePluginsConfig] to FakePluginsConfig(additionalPlugins, withoutPlugins),
-      bind[FakeRoutesConfig] to FakeRoutesConfig(withRoutes))
+      bind[FakeRouterConfig] to FakeRouterConfig(withRoutes))
     .overrides(
       bind[Plugins].toProvider[FakePluginsProvider],
-      bind[Router.Routes].toProvider[FakeRoutesProvider])
+      bind[Router].toProvider[FakeRouterProvider])
     .build
 
   override def mode: Mode.Mode = app.mode
@@ -241,8 +238,8 @@ private class FakePluginsProvider @Inject() (config: FakePluginsConfig, environm
   }
 }
 
-private class FakeRoutes(override val errorHandler: HttpErrorHandler,
-    injected: PartialFunction[(String, String), Handler], fallback: Router.Routes) extends Router.Routes {
+private class FakeRoutes(
+    injected: PartialFunction[(String, String), Handler], fallback: Router) extends Router {
   def documentation = fallback.documentation
   // Use withRoutes first, then delegate to the parentRoutes if no route is defined
   val routes = new AbstractPartialFunction[RequestHeader, Handler] {
@@ -255,12 +252,12 @@ private class FakeRoutes(override val errorHandler: HttpErrorHandler,
     def isDefinedAt(x: RequestHeader) = fallback.routes.isDefinedAt(x)
   }
   def withPrefix(prefix: String) = {
-    new FakeRoutes(errorHandler, injected, fallback.withPrefix(prefix))
+    new FakeRoutes(injected, fallback.withPrefix(prefix))
   }
 }
 
-private case class FakeRoutesConfig(withRoutes: PartialFunction[(String, String), Handler])
+private case class FakeRouterConfig(withRoutes: PartialFunction[(String, String), Handler])
 
-private class FakeRoutesProvider @Inject() (config: FakeRoutesConfig, parent: RoutesProvider, errorHandler: HttpErrorHandler) extends Provider[Router.Routes] {
-  lazy val get: Router.Routes = new FakeRoutes(errorHandler, config.withRoutes, parent.get)
+private class FakeRouterProvider @Inject() (config: FakeRouterConfig, parent: RoutesProvider) extends Provider[Router] {
+  lazy val get: Router = new FakeRoutes(config.withRoutes, parent.get)
 }

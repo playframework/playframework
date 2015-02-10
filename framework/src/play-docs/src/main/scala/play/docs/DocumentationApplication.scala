@@ -4,11 +4,10 @@
 package play.docs
 
 import java.io.File
-import play.api.http.{ NotImplementedHttpRequestHandler, DefaultHttpErrorHandler }
-import play.api.inject.{ NewInstanceInjector, DefaultApplicationLifecycle }
 import java.util.concurrent.Callable
 import play.api.mvc._
 import play.api._
+import play.api.routing.Router
 import play.core._
 import scala.util.Success
 
@@ -22,7 +21,7 @@ case class DocumentationApplication(projectPath: File, buildDocHandler: BuildDoc
   private val environment = Environment(projectPath, this.getClass.getClassLoader, Mode.Dev)
   private val context = ApplicationLoader.createContext(environment)
   private val components = new BuiltInComponentsFromContext(context) {
-    lazy val routes = Router.Null
+    lazy val router = Router.empty
   }
 
   def application = components.application

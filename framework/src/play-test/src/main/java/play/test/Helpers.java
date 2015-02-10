@@ -6,6 +6,7 @@ package play.test;
 import org.openqa.selenium.WebDriver;
 import play.*;
 
+import play.api.routing.Router;
 import play.api.test.PlayRunners$;
 import play.core.j.JavaAction;
 import play.core.j.JavaHandler;
@@ -23,7 +24,6 @@ import org.openqa.selenium.htmlunit.*;
 
 import java.util.*;
 
-import static play.core.Router.Routes;
 import static play.mvc.Http.*;
 
 /**
@@ -345,7 +345,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     @SuppressWarnings(value = "unchecked")
     public static Result routeAndCall(FakeRequest fakeRequest, long timeout) {
         try {
-            return routeAndCall((Class<? extends Routes>)FakeRequest.class.getClassLoader().loadClass("Routes"), fakeRequest, timeout);
+            return routeAndCall((Class<? extends Router>)FakeRequest.class.getClassLoader().loadClass("Routes"), fakeRequest, timeout);
         } catch(RuntimeException e) {
             throw e;
         } catch(Throwable t) {
@@ -353,9 +353,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
 
-    public static Result routeAndCall(Class<? extends Routes> router, FakeRequest fakeRequest, long timeout) {
+    public static Result routeAndCall(Class<? extends Router> router, FakeRequest fakeRequest, long timeout) {
         try {
-            Routes routes = (Routes) router.getClassLoader().loadClass(router.getName() + "$").getDeclaredField("MODULE$").get(null);
+            Router routes = (Router) router.getClassLoader().loadClass(router.getName() + "$").getDeclaredField("MODULE$").get(null);
             if(routes.routes().isDefinedAt(fakeRequest.getWrappedRequest())) {
                 return invokeHandler(routes.routes().apply(fakeRequest.getWrappedRequest()), fakeRequest, timeout);
             } else {

@@ -3,6 +3,7 @@
  */
 package play.core.server
 
+import com.typesafe.config.ConfigFactory
 import com.typesafe.netty.http.pipelining.HttpPipeliningHandler
 import java.net.InetSocketAddress
 import java.util.concurrent.Executors
@@ -15,10 +16,13 @@ import org.jboss.netty.handler.logging.LoggingHandler
 import org.jboss.netty.handler.ssl._
 import org.jboss.netty.logging.InternalLogLevel
 import play.api._
+import play.api.mvc.{ RequestHeader, Handler }
+import play.api.routing.Router
 import play.core._
 import play.core.server.netty._
 import play.core.server.ssl.ServerSSLEngine
 import play.server.SSLEngineProvider
+import scala.util.Success
 import scala.util.control.NonFatal
 
 /**
@@ -199,4 +203,47 @@ object NettyServer extends ServerStart {
     def createServer(config: ServerConfig, appProvider: ApplicationProvider) = new NettyServer(config, appProvider)
   }
 
+  /**
+   * Create a Netty server from the given application and server configuration.
+   *
+   * @param application The application.
+   * @param config The server configuration.
+   * @return A started Netty server, serving the application.
+   */
+  def fromApplication(application: Application, config: ServerConfig = ServerConfig()): NettyServer = {
+    new NettyServer(config, new ApplicationProvider {
+      def get = Success(application)
+      def path = config.rootDir
+    })
+  }
+
+  /**
+   * Create a Netty server from the given router and server config.
+   */
+  def fromRouter(config: ServerConfig = ServerConfig())(routes: PartialFunction[RequestHeader, Handler]): NettyServer = {
+    new NettyServerComponents with BuiltInComponents {
+      override lazy val serverConfig = config
+      lazy val router = Router.from(routes)
+    }.server
+  }
 }
+
+/**
+ * Cake for building a simple Netty server.
+ */
+trait NettyServerComponents {
+  lazy val serverConfig: ServerConfig = ServerConfig()
+  lazy val server: NettyServer = {
+    // Start the application first
+    Play.start(application)
+    NettyServer.fromApplication(application, serverConfig)
+  }
+
+  lazy val environment: Environment = Environment.simple(mode = serverConfig.mode)
+  lazy val sourceMapper: Option[SourceMapper] = None
+  lazy val webCommands: WebCommands = new DefaultWebCommands
+  lazy val configuration: Configuration = Configuration(ConfigFactory.load())
+
+  def application: Application
+}
+

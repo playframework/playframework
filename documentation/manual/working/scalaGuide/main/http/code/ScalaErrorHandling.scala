@@ -3,7 +3,6 @@
  */
 package scalaguide.http.errorhandling
 
-import play.api.libs.ws.WSClient
 import play.api.mvc.Action
 import play.api.test._
 
@@ -27,11 +26,11 @@ object ScalaErrorHandling extends PlaySpecification with WsTestClient {
 
     "allow extending the default error handler" in {
       import play.api._
-      import play.core.Router
+      import play.api.routing._
       import javax.inject.Provider
       def errorHandler(mode: Mode.Mode) = new default.ErrorHandler(
         Environment.simple(mode = mode), Configuration.empty, new OptionalSourceMapper(None),
-        new Provider[Router.Routes] { def get = Router.Null }
+        new Provider[Router] { def get = Router.empty }
       )
       def errorContent(mode: Mode.Mode) =
         contentAsString(errorHandler(mode).onServerError(FakeRequest(), new RuntimeException("foo")))
@@ -74,17 +73,17 @@ import javax.inject._
 
 import play.api.http.DefaultHttpErrorHandler
 import play.api._
-import play.core._
 import play.api.mvc._
 import play.api.mvc.Results._
+import play.api.routing.Router
 import scala.concurrent._
 
 class ErrorHandler @Inject() (
     env: Environment,
     config: Configuration,
     sourceMapper: OptionalSourceMapper,
-    routes: Provider[Router.Routes]
-  ) extends DefaultHttpErrorHandler(env, config, sourceMapper, routes) {
+    router: Provider[Router]
+  ) extends DefaultHttpErrorHandler(env, config, sourceMapper, router) {
 
   override def onProdServerError(request: RequestHeader, exception: UsefulException) = {
     Future.successful(

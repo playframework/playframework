@@ -24,7 +24,7 @@ GET   /assets/*file   controllers.Assets.versioned(path = "/public", file: Asset
 The static routes generator will generate a router that very roughly (pseudo code) looks like this:
 
 ```scala
-object Routes extends Router.Routes {
+object Routes extends GeneratedRouter {
   def routes = {
     case ("GET", "/") => controllers.Application.index
     case ("POST", "/save") => controllers.Application.save
@@ -36,7 +36,7 @@ object Routes extends Router.Routes {
 Meanwhile the injected routes generator will generate a router that very roughly looks like this:
 
 ```scala
-class Routes(application: controllers.Application, assets: controllers.Assets) extends Router.Routes {
+class Routes(application: controllers.Application, assets: controllers.Assets) extends GeneratedRouter {
   def routes = {
     case ("GET", "/") => application.index
     case ("POST", "/save") => application.save

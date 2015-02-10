@@ -7,7 +7,7 @@ import org.specs2.mutable.Specification
 import play.api.inject.BindingKey
 import play.api.{ OptionalSourceMapper, Configuration, Mode, Environment }
 import play.api.mvc.{ Results, RequestHeader }
-import play.core.Router
+import play.api.routing._
 import play.core.test.{ FakeRequest, Fakes }
 
 import scala.concurrent.{ Await, Future }
@@ -67,7 +67,7 @@ object HttpErrorHandlerSpec extends Specification {
     val env = Environment.simple(mode = mode)
     Fakes.injectorFromBindings(HttpErrorHandler.bindingsFromConfiguration(env, config)
       ++ Seq(
-        BindingKey(classOf[Router.Routes]).to(Router.Null),
+        BindingKey(classOf[Router]).to(Router.empty),
         BindingKey(classOf[OptionalSourceMapper]).to(new OptionalSourceMapper(None)),
         BindingKey(classOf[Configuration]).to(config),
         BindingKey(classOf[Environment]).to(env)

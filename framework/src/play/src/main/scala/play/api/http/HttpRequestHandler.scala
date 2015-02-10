@@ -10,7 +10,7 @@ import play.api.libs.iteratee.Done
 import play.api.{ Configuration, Environment, GlobalSettings }
 import play.api.http.Status._
 import play.api.mvc._
-import play.core.Router
+import play.api.routing.Router
 import play.core.actions.HeadAction
 import play.core.j.{ JavaHandler, JavaHandlerComponents }
 import play.utils.Reflect
@@ -84,12 +84,12 @@ object NotImplementedHttpRequestHandler extends HttpRequestHandler {
  * of this, so when not providing any custom logic, whether this is used or the global settings http request handler
  * is used is irrelevant.
  */
-class DefaultHttpRequestHandler(routes: Router.Routes, errorHandler: HttpErrorHandler, configuration: HttpConfiguration,
+class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, configuration: HttpConfiguration,
     filters: EssentialFilter*) extends HttpRequestHandler {
 
   @Inject
-  def this(routes: Router.Routes, errorHandler: HttpErrorHandler, configuration: HttpConfiguration, filters: HttpFilters) =
-    this(routes, errorHandler, configuration, filters.filters: _*)
+  def this(router: Router, errorHandler: HttpErrorHandler, configuration: HttpConfiguration, filters: HttpFilters) =
+    this(router, errorHandler, configuration, filters.filters: _*)
 
   private val context = if (configuration.context.endsWith("/")) {
     configuration.context
@@ -156,7 +156,7 @@ class DefaultHttpRequestHandler(routes: Router.Routes, errorHandler: HttpErrorHa
    * @return A handler to handle the request, if one can be found
    */
   def routeRequest(request: RequestHeader): Option[Handler] = {
-    routes.handlerFor(request)
+    router.handlerFor(request)
   }
 
 }
@@ -182,8 +182,8 @@ class GlobalSettingsHttpRequestHandler @Inject() (global: Provider[GlobalSetting
  * If your application routes to Java actions, then you must use this request handler as the base class as is or as
  * the base class for your custom [[HttpRequestHandler]].
  */
-class JavaCompatibleHttpRequestHandler @Inject() (routes: Router.Routes, errorHandler: HttpErrorHandler,
-  configuration: HttpConfiguration, filters: HttpFilters, components: JavaHandlerComponents) extends DefaultHttpRequestHandler(routes,
+class JavaCompatibleHttpRequestHandler @Inject() (router: Router, errorHandler: HttpErrorHandler,
+  configuration: HttpConfiguration, filters: HttpFilters, components: JavaHandlerComponents) extends DefaultHttpRequestHandler(router,
   errorHandler, configuration, filters.filters: _*) {
 
   override def routeRequest(request: RequestHeader): Option[Handler] = {

@@ -7,20 +7,18 @@ import javax.inject.Inject
 
 import com.google.inject.Singleton
 import play.api.http._
+import play.api.routing.Router
 import play.api.inject.{ SimpleInjector, NewInstanceInjector, Injector, DefaultApplicationLifecycle }
 import play.api.libs.{ Crypto, CryptoConfigParser, CryptoConfig }
-import play.core._
+import play.core.{ SourceMapper, WebCommands }
 import play.utils._
-
-import play.api.mvc._
 
 import java.io._
 
 import annotation.implicitNotFound
 
 import reflect.ClassTag
-import scala.util.control.NonFatal
-import scala.concurrent.{ Future, ExecutionException }
+import scala.concurrent.Future
 
 /**
  * A Play application.
@@ -93,16 +91,16 @@ trait Application {
    * the value. We always use the same logic to calculate its value
    * so it will end up consistent across threads anyway.
    */
-  private var cachedRoutes: Router.Routes = null
+  private var cachedRoutes: Router = null
 
   /**
    * The router used by this application.
    */
   @deprecated("Either use HttpRequestHandler, or have the router injected", "2.4.0")
-  def routes: Router.Routes = {
+  def routes: Router = {
     // Use a cached value because the injector might be slow
     if (cachedRoutes != null) cachedRoutes else {
-      cachedRoutes = injector.instanceOf[Router.Routes]
+      cachedRoutes = injector.instanceOf[Router]
       cachedRoutes
     }
   }
@@ -261,14 +259,14 @@ trait BuiltInComponents {
   def webCommands: WebCommands
   def configuration: Configuration
 
-  def routes: Router.Routes
+  def router: Router
 
-  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + routes + crypto + httpConfiguration
+  lazy val injector: Injector = new SimpleInjector(NewInstanceInjector) + router + crypto + httpConfiguration
 
   lazy val httpConfiguration: HttpConfiguration = HttpConfiguration.fromConfiguration(configuration)
-  lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(routes, httpErrorHandler, httpConfiguration)
+  lazy val httpRequestHandler: HttpRequestHandler = new DefaultHttpRequestHandler(router, httpErrorHandler, httpConfiguration)
   lazy val httpErrorHandler: HttpErrorHandler = new DefaultHttpErrorHandler(environment, configuration, sourceMapper,
-    Some(routes))
+    Some(router))
 
   lazy val applicationLifecycle: DefaultApplicationLifecycle = new DefaultApplicationLifecycle
   lazy val application: Application = new DefaultApplication(environment, applicationLifecycle, injector,

@@ -1,49 +1,48 @@
 /*
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
-package play.core.router
+package play.core.routing
 
 import org.specs2.mutable.Specification
-import play.core.{ Router, PathPattern, DynamicPart, StaticPart }
 
 object RouterSpec extends Specification {
 
   "Router dynamic string builder" should {
     "handle empty parts" in {
-      Router.dynamicString("") must_== ""
+      dynamicString("") must_== ""
     }
     "handle simple parts" in {
-      Router.dynamicString("xyz") must_== "xyz"
+      dynamicString("xyz") must_== "xyz"
     }
     "handle parts containing backslashes" in {
-      Router.dynamicString("x/y") must_== "x%2Fy"
+      dynamicString("x/y") must_== "x%2Fy"
     }
     "handle parts containing spaces" in {
-      Router.dynamicString("x y") must_== "x%20y"
+      dynamicString("x y") must_== "x%20y"
     }
     "handle parts containing pluses" in {
-      Router.dynamicString("x+y") must_== "x+y"
+      dynamicString("x+y") must_== "x+y"
     }
     "handle parts with unicode characters" in {
-      Router.dynamicString("ℛat") must_== "%E2%84%9Bat"
+      dynamicString("ℛat") must_== "%E2%84%9Bat"
     }
   }
 
   "Router queryString builder" should {
     "build a query string" in {
-      Router.queryString(List(Some("a"), Some("b"))) must_== "?a&b"
+      queryString(List(Some("a"), Some("b"))) must_== "?a&b"
     }
     "ignore none values" in {
-      Router.queryString(List(Some("a"), None, Some("b"))) must_== "?a&b"
-      Router.queryString(List(None, Some("a"), None)) must_== "?a"
+      queryString(List(Some("a"), None, Some("b"))) must_== "?a&b"
+      queryString(List(None, Some("a"), None)) must_== "?a"
     }
     "ignore empty values" in {
-      Router.queryString(List(Some("a"), Some(""), Some("b"))) must_== "?a&b"
-      Router.queryString(List(Some(""), Some("a"), Some(""))) must_== "?a"
+      queryString(List(Some("a"), Some(""), Some("b"))) must_== "?a&b"
+      queryString(List(Some(""), Some("a"), Some(""))) must_== "?a"
     }
     "produce nothing if no values" in {
-      Router.queryString(List(None, Some(""))) must_== ""
-      Router.queryString(List()) must_== ""
+      queryString(List(None, Some(""))) must_== ""
+      queryString(List()) must_== ""
     }
   }
 

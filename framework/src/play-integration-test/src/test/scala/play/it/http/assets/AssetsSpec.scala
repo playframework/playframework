@@ -13,7 +13,7 @@ import play.api.{ Configuration, Mode }
 import play.api.mvc.{ PathBindable, Handler }
 import play.it._
 import play.utils.{ UriEncoding, Threads }
-import play.core.Router.ReverseRouteContext
+import play.core.routing.ReverseRouteContext
 
 object NettyAssetsSpec extends AssetsSpec with NettyIntegrationSpecification
 object AkkaHttpAssetsSpec extends AssetsSpec with AkkaHttpIntegrationSpecification

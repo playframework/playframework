@@ -10,23 +10,20 @@
 
 @for(p <- pkg) {package @p}
 
-import play.core._
-import play.core.Router._
-import play.core.Router.HandlerInvokerFactory._
+import play.core.routing._
+import play.core.routing.HandlerInvokerFactory._
 import play.core.j._
 
 import play.api.mvc._
 @for(i <- imports) {
 import @if(!i.startsWith("_root_.")){_root_.}@i}
 
-import Router.queryString
-
 class Routes(
   override val errorHandler: play.api.http.HttpErrorHandler, @for(dep <- deps){
   @markLines(dep.rule)
   @dep.ident: @dep.clazz,}
   val prefix: String
-) extends Router.Routes @ob
+) extends GeneratedRouter @ob
 
    @@javax.inject.Inject()
    def this(errorHandler: play.api.http.HttpErrorHandler@for(dep <- deps) {,

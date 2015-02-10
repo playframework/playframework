@@ -3,6 +3,8 @@
  */
 package play.core.server
 
+import java.io.File
+
 import play.api.http.DefaultHttpErrorHandler
 
 import scala.language.postfixOps
