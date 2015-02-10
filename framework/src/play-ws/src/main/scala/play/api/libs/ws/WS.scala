@@ -35,6 +35,9 @@ trait WSClient {
    * @return a WSRequestHolder
    */
   def url(url: String): WSRequestHolder
+
+  /** Closes this client, and releases underlying resources. */
+  def close(): Unit
 }
 
 /**
@@ -75,7 +78,7 @@ trait WSRequestHolderMagnet {
  * """.stripMargin))
  * val parser = new DefaultWSConfigParser(configuration, Play.current.classloader)
  * val builder = new NingAsyncHttpClientConfigBuilder(parser.parse())
- * val secureClient : WSClient = new NingWSClient(builder.build())
+ * val secureClient: WSClient = new NingWSClient(builder.build())
  * val response = secureClient.url("https://secure.com").get()
  * }}}
  *

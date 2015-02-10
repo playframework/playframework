@@ -26,7 +26,7 @@ public class NingWSClient implements WSClient {
         return new NingWSRequestHolder(this, url);
     }
 
-    protected void close() {
+    public void close() {
         this.asyncHttpClient.close();
     }
 }

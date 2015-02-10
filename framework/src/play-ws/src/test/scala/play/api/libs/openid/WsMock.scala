@@ -28,4 +28,6 @@ class WSMock extends Mockito with WSClient {
   }
 
   def underlying[T]: T = this.asInstanceOf[T]
+
+  def close() = ()
 }
