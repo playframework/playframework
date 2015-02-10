@@ -139,7 +139,8 @@ object Dependencies {
 
   val jnotify = "net.contentobjects.jnotify" % "jnotify" % "0.94"
 
-  val sbtRcVersion = "1.0-M1"
+  val sbtRcVersion = "1.0-M4"
+  val sbtCoreNextVersion = "0.1.0-M3"
 
   def forkRunProtocolDependencies(scalaBinaryVersion: String) = Seq(
     sbtRcClient(scalaBinaryVersion)
@@ -165,7 +166,7 @@ object Dependencies {
   }
 
   def sbtForkRunPluginDependencies = Seq(
-    "com.typesafe.sbtrc" % "server-0-13" % sbtRcVersion
+    sbtPluginDep("org.scala-sbt" % "sbt-core-next" % sbtCoreNextVersion)
   )
 
   val typesafeConfig = "com.typesafe" % "config" % "1.2.1"
