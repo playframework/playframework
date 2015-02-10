@@ -144,7 +144,7 @@ object Dependencies {
 
   def forkRunProtocolDependencies(scalaBinaryVersion: String) = Seq(
     sbtRcClient(scalaBinaryVersion)
-  )
+  ) ++ specsBuild.map(_ % "test")
 
   // use partial version so that non-standard scala binary versions from dbuild also work
   def sbtRcClient(scalaBinaryVersion: String): ModuleID = CrossVersion.partialVersion(scalaBinaryVersion) match {
