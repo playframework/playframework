@@ -139,12 +139,12 @@ object Dependencies {
 
   val jnotify = "net.contentobjects.jnotify" % "jnotify" % "0.94"
 
-  val sbtRcVersion = "1.0-M4"
-  val sbtCoreNextVersion = "0.1.0-M3"
+  val sbtRcVersion = "0.3.0"
+  val sbtCoreNextVersion = "0.1.1"
 
   def forkRunProtocolDependencies(scalaBinaryVersion: String) = Seq(
     sbtRcClient(scalaBinaryVersion)
-  )
+  ) ++ specsBuild.map(_ % "test")
 
   // use partial version so that non-standard scala binary versions from dbuild also work
   def sbtRcClient(scalaBinaryVersion: String): ModuleID = CrossVersion.partialVersion(scalaBinaryVersion) match {
