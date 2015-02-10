@@ -83,6 +83,8 @@ object Serializers {
     override def tag: FastTypeTag[PlayException] = implicitly[FastTypeTag[PlayException]]
     private val stringOptUnpickler = implicitly[Unpickler[Option[String]]]
     private val intOptUnpickler = implicitly[Unpickler[Option[Int]]]
+    private val intOptPickler = implicitly[Pickler[Option[Int]]]
+    private val stringOptPickler = implicitly[Pickler[Option[String]]]
     private val throwableOptUnpickler = implicitly[Unpickler[Option[Throwable]]]
 
     override def pickle(picklee: PlayException, builder: PBuilder): Unit = {
@@ -92,10 +94,22 @@ object Serializers {
           intPickler.pickle(value, b)
         })
       }
+      def writeIntOptField(key: String, value: Integer): Unit = {
+        builder.putField(key, { b =>
+          b.hintTag(intOptPickler.tag)
+          intOptPickler.pickle(if (value == null) None else Some(value.intValue), b)
+        })
+      }
       def writeStringField(key: String, value: String): Unit = {
         builder.putField(key, { b =>
           b.hintTag(stringPickler.tag)
           stringPickler.pickle(value, b)
+        })
+      }
+      def writeStringOptField(key: String, value: String): Unit = {
+        builder.putField(key, { b =>
+          b.hintTag(stringOptPickler.tag)
+          stringOptPickler.pickle(Option(value), b)
         })
       }
       def writeThrowableField(key: String, value: Throwable): Unit = {
@@ -115,10 +129,10 @@ object Serializers {
       if (picklee.cause != null) writeThrowableField("cause", picklee.cause)
       picklee match {
         case x: PlayException.ExceptionSource =>
-          writeIntField("line", x.line)
-          writeIntField("position", x.position)
-          writeStringField("input", x.input)
-          writeStringField("sourceName", x.sourceName)
+          writeIntOptField("line", x.line)
+          writeIntOptField("position", x.position)
+          writeStringOptField("input", x.input)
+          writeStringOptField("sourceName", x.sourceName)
         case _ =>
       }
       builder.endEntry()
@@ -146,9 +160,9 @@ object Serializers {
         case Some(l) =>
           new PlayException.ExceptionSource(title, description, cause.orNull) {
             val line: java.lang.Integer = l
-            val position: java.lang.Integer = readIntField("position")
-            val input: String = readStringField("input")
-            val sourceName: String = readStringField("sourceName")
+            val position: java.lang.Integer = readIntOptField("position").map(new Integer(_)).orNull
+            val input: String = readStringOptField("input").orNull
+            val sourceName: String = readStringOptField("sourceName").orNull
           }
         case None => new PlayException(title, description, cause.orNull)
       }
