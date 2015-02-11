@@ -42,10 +42,8 @@ public class FunctionalTest extends WithApplication {
     //#test-server
     @Test
     public void testInServer() {
-        running(testServer(3333), new Runnable() {
-            public void run() {
-                assertEquals(OK, WS.url("http://localhost:3333").get().get(timeout).getStatus());
-            }
+        running(testServer(3333), () -> {
+            assertEquals(OK, WS.url("http://localhost:3333").get().get(timeout).getStatus());
         });
     }
     //#test-server
@@ -53,13 +51,11 @@ public class FunctionalTest extends WithApplication {
     //#with-browser
     @Test
     public void runInBrowser() {
-        running(testServer(), HTMLUNIT, new Callback<TestBrowser>() {
-            public void invoke(TestBrowser browser) {
-                browser.goTo("/");
-                assertEquals("Welcome to Play!", browser.$("#title").getText());
-                browser.$("a").click();
-                assertEquals("/login", browser.url());
-            }
+        running(testServer(), HTMLUNIT, browser -> {
+            browser.goTo("/");
+            assertEquals("Welcome to Play!", browser.$("#title").getText());
+            browser.$("a").click();
+            assertEquals("/login", browser.url());
         });
     }
     //#with-browser

@@ -33,11 +33,7 @@ In a web application however, the _tell_ pattern is often not useful, since HTTP
 
 Below is an example of using our `HelloActor` with the ask pattern:
 
-Java
-: @[ask](code/javaguide/akka/ask/Application.java)
-
-Java 8
-: @[ask](java8code/java8guide/akka/ask/Application.java)
+@[ask](code/javaguide/akka/ask/Application.java)
 
 A few things to notice:
 
@@ -68,11 +64,7 @@ play.modules.akka.actor-system = "custom-name"
 
 A common use case within Akka is to have some computation performed concurrently without needing the extra utility of an Actor. If you find yourself creating a pool of Actors for the sole reason of performing a calculation in parallel, there is an easier (and faster) way:
 
-Java
-: @[async](code/javaguide/akka/async/Application.java)
-
-Java 8
-: @[async](java8code/java8guide/akka/async/Application.java)
+@[async](code/javaguide/akka/async/Application.java)
 
 ## Scheduling asynchronous tasks
 
@@ -84,8 +76,4 @@ For example, to send a message to the `testActor` every 30 minutes:
 
 Alternatively, to run a block of code ten milliseconds from now:
 
-Java
-: @[schedule-code](code/javaguide/akka/JavaAkka.java)
-
-Java 8
-: @[schedule-code](java8code/java8guide/akka/JavaAkka.java)
+@[schedule-code](code/javaguide/akka/JavaAkka.java)

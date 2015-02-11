@@ -100,91 +100,60 @@ public class JavaWS {
 
           String url = "http://example.com";
 
-          // #ws-response-json
-          Promise<JsonNode> jsonPromise = ws.url(url).get().map(
-              new Function<WSResponse, JsonNode>() {
-                  public JsonNode apply(WSResponse response) {
-                      JsonNode json = response.asJson();
-                      return json;
-                  }
-              }
-          );
-          // #ws-response-json
+            // #ws-response-json
+            Promise<JsonNode> jsonPromise = ws.url(url).get().map(response -> {
+                return response.asJson();
+            });
+            // #ws-response-json
 
-          // #ws-response-xml
-          Promise<Document> documentPromise = ws.url(url).get().map(
-              new Function<WSResponse, Document>() {
-                  public Document apply(WSResponse response) {
-                      Document xml = response.asXml();
-                      return xml;
-                  }
-              }
-          );
-          // #ws-response-xml
+            // #ws-response-xml
+            Promise<Document> documentPromise = ws.url(url).get().map(response -> {
+                return response.asXml();
+            });
+            // #ws-response-xml
 
-          // #ws-response-input-stream
-          final Promise<File> filePromise = ws.url(url).get().map(
-              new Function<WSResponse, File>() {
-                  public File apply(WSResponse response) throws Throwable {
+            // #ws-response-input-stream
+            Promise<File> filePromise = ws.url(url).get().map(response -> {
+                InputStream inputStream = null;
+                OutputStream outputStream = null;
+                try {
+                    inputStream = response.getBodyAsStream();
 
-                      InputStream inputStream = null;
-                      OutputStream outputStream = null;
-                      try {
-                          inputStream = response.getBodyAsStream();
+                    // write the inputStream to a File
+                    final File file = new File("/tmp/response.txt");
+                    outputStream = new FileOutputStream(file);
 
-                          // write the inputStream to a File
-                          final File file = new File("/tmp/response.txt");
-                          outputStream = new FileOutputStream(file);
+                    int read = 0;
+                    byte[] buffer = new byte[1024];
 
-                          int read = 0;
-                          byte[] buffer = new byte[1024];
+                    while ((read = inputStream.read(buffer)) != -1) {
+                        outputStream.write(buffer, 0, read);
+                    }
 
-                          while ((read = inputStream.read(buffer)) != -1) {
-                              outputStream.write(buffer, 0, read);
-                          }
-
-                          return file;
-                      } catch (IOException e) {
-                          throw e;
-                      } finally {
-                          if (inputStream != null) {inputStream.close();}
-                          if (outputStream != null) {outputStream.close();}
-                      }
-
-                  }
-              }
-          );
-          // #ws-response-input-stream
+                    return file;
+                } catch (IOException e) {
+                    throw e;
+                } finally {
+                    if (inputStream != null) {inputStream.close();}
+                    if (outputStream != null) {outputStream.close();}
+                }
+            });
+            // #ws-response-input-stream
         }
 
         public void patternExamples() {
             String urlOne = "http://localhost:3333/one";
             // #ws-composition
-            final Promise<WSResponse> responseThreePromise = ws.url(urlOne).get().flatMap(
-                new Function<WSResponse, Promise<WSResponse>>() {
-                    public Promise<WSResponse> apply(WSResponse responseOne) {
-                        String urlTwo = responseOne.getBody();
-                        return ws.url(urlTwo).get().flatMap(
-                            new Function<WSResponse, Promise<WSResponse>>() {
-                                public Promise<WSResponse> apply(WSResponse responseTwo) {
-                                    String urlThree = responseTwo.getBody();
-                                    return ws.url(urlThree).get();
-                                }
-                            }
-                        );
-                    }
-                }
-            );
+            final Promise<WSResponse> responseThreePromise = ws.url(urlOne).get()
+                    .flatMap(responseOne -> ws.url(responseOne.getBody()).get())
+                    .flatMap(responseTwo -> ws.url(responseTwo.getBody()).get());
             // #ws-composition
 
             // #ws-recover
             Promise<WSResponse> responsePromise = ws.url("http://example.com").get();
-            Promise<WSResponse> recoverPromise = responsePromise.recoverWith(new Function<Throwable, Promise<WSResponse>>() {
-                @Override
-                public Promise<WSResponse> apply(Throwable throwable) throws Throwable {
-                    return ws.url("http://backup.example.com").get();
-                }
-            });
+            Promise<WSResponse> recoverPromise = responsePromise.recoverWith(throwable ->
+                            ws.url("http://backup.example.com").get()
+            );
             // #ws-recover
         }
 
@@ -240,14 +209,9 @@ public class JavaWS {
 
         // #ws-action
         public Promise<Result> index() {
-            final Promise<Result> resultPromise = ws.url(feedUrl).get().map(
-                    new Function<WSResponse, Result>() {
-                        public Result apply(WSResponse response) {
-                            return ok("Feed title:" + response.asJson().findPath("title"));
-                        }
-                    }
+            return ws.url(feedUrl).get().map(response ->
+                            ok("Feed title: " + response.asJson().findPath("title").asText())
             );
-            return resultPromise;
         }
         // #ws-action
     }
@@ -259,20 +223,9 @@ public class JavaWS {
 
         // #composed-call
         public Promise<Result> index() {
-            final Promise<Result> resultPromise = ws.url(feedUrl).get().flatMap(
-                    new Function<WSResponse, Promise<Result>>() {
-                        public Promise<Result> apply(WSResponse response) {
-                            return ws.url(response.asJson().findPath("commentsUrl").asText()).get().map(
-                                    new Function<WSResponse, Result>() {
-                                        public Result apply(WSResponse response) {
-                                            return ok("Number of comments: " + response.asJson().findPath("count").asInt());
-                                        }
-                                    }
-                            );
-                        }
-                    }
-            );
-            return resultPromise;
+            return ws.url(feedUrl).get()
+                    .flatMap(response -> ws.url(response.asJson().findPath("commentsUrl").asText()).get())
+                    .map(response -> ok("Number of comments: " + response.asJson().findPath("count").asInt()));
         }
         // #composed-call
     }

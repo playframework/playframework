@@ -86,31 +86,19 @@ Working with the [`WSResponse`](api/java/play/libs/ws/WSResponse.html) is done b
 
 You can process the response as a `JsonNode` by calling `response.asJson()`.
 
-Java
-: @[ws-response-json](code/javaguide/ws/JavaWS.java)
-
-Java 8
-: @[ws-response-json](java8code/java8guide/ws/JavaWS.java)
+@[ws-response-json](code/javaguide/ws/JavaWS.java)
 
 ### Processing a response as XML
 
 Similarly, you can process the response as XML by calling `response.asXml()`.
 
-Java
-: @[ws-response-xml](code/javaguide/ws/JavaWS.java)
-
-Java 8
-: @[ws-response-xml](java8code/java8guide/ws/JavaWS.java)
+@[ws-response-xml](code/javaguide/ws/JavaWS.java)
 
 ### Processing large responses
 
 When you are downloading a large file or document, `WS` allows you to get the response body as an `InputStream` so you can process the data without loading the entire content into memory at once.
 
-Java
-: @[ws-response-input-stream](code/javaguide/ws/JavaWS.java)
-
-Java 8
-: @[ws-response-input-stream](java8code/java8guide/ws/JavaWS.java)
+@[ws-response-input-stream](code/javaguide/ws/JavaWS.java)
 
 This example will read the response body and write it to a file in buffered increments.
 
@@ -120,30 +108,18 @@ This example will read the response body and write it to a file in buffered incr
 
 You can chain WS calls by using `flatMap`.
 
-Java
-: @[ws-composition](code/javaguide/ws/JavaWS.java)
-
-Java 8
-: @[ws-composition](java8code/java8guide/ws/JavaWS.java)
+@[ws-composition](code/javaguide/ws/JavaWS.java)
 
 ### Exception recovery
 If you want to recover from an exception in the call, you can use `recover` or `recoverWith` to substitute a response.
 
-Java
-: @[ws-recover](code/javaguide/ws/JavaWS.java)
-
-Java 8
-: @[ws-recover](java8code/java8guide/ws/JavaWS.java)
+@[ws-recover](code/javaguide/ws/JavaWS.java)
 
 ### Using in a controller
 
 You can map a `Promise<WSResponse>` to a `Promise<Result>` that can be handled directly by the Play server, using the asynchronous action pattern defined in [[Handling Asynchronous Results|JavaAsync]].
 
-Java
-: @[ws-action](code/javaguide/ws/JavaWS.java)
-
-Java 8
-: @[ws-action](java8code/java8guide/ws/JavaWS.java)
+@[ws-action](code/javaguide/ws/JavaWS.java)
 
 ## Using WSClient
 

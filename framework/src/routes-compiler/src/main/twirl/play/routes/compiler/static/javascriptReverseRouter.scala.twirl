@@ -32,12 +32,11 @@ package @(pkg.filter(_ => namespaceReverseRouter).fold(packageName)(_ + "." + pa
       "@(packageName).@(controller).@(method)",
       @tq
         function(@reverseParameters(routes).map(_._1.name).mkString(",")) @ob
-        @for(route <- routes) {
-        @defining(reverseLocalNames(route, reverseParameters(routes))) { localNames =>
-          if (@javascriptParameterConstraints(route, localNames)) @ob
+        @for((route, localNames, constraints) <- javascriptCollectNonDeadRoutes(routes)) {
+          if (@constraints) @ob
             @javascriptCall(route, localNames)
           @cb
-        }}
+        }
         @cb
       @tq
     )

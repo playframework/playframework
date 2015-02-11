@@ -76,7 +76,7 @@ object FileWatchService {
   def defaultWatchService(targetDirectory: File, pollDelayMillis: Int, logger: LoggerProxy): FileWatchService = new FileWatchService {
     lazy val delegate = os match {
       // If Windows or Linux and JDK7, use JDK7 watch service
-      case (Windows | Linux) if Properties.isJavaAtLeast("1.7") => JDK7FileWatchService(logger).get
+      case (Windows | Linux) if Properties.isJavaAtLeast("1.7") => new JDK7FileWatchService(logger)
       // If Windows, Linux or OSX, use JNotify but fall back to SBT
       case (Windows | Linux | OSX) => JNotifyFileWatchService(targetDirectory).recover {
         case e =>
@@ -92,7 +92,7 @@ object FileWatchService {
 
   def jnotify(targetDirectory: File): FileWatchService = optional(JNotifyFileWatchService(targetDirectory))
 
-  def jdk7(logger: LoggerProxy): FileWatchService = optional(JDK7FileWatchService(logger))
+  def jdk7(logger: LoggerProxy): FileWatchService = new JDK7FileWatchService(logger)
 
   def sbt(pollDelayMillis: Int): FileWatchService = new PollingFileWatchService(pollDelayMillis)
 
@@ -247,7 +247,10 @@ private object JNotifyFileWatchService {
   }
 }
 
-private[play] class JDK7FileWatchService(delegate: JDK7FileWatchService.JDK7WatchServiceDelegate, logger: LoggerProxy) extends FileWatchService {
+private[play] class JDK7FileWatchService(logger: LoggerProxy) extends FileWatchService {
+
+  import java.nio.file._
+  import StandardWatchEventKinds._
 
   def watch(filesToWatch: Seq[File], onChange: () => Unit) = {
     val dirsToWatch = filesToWatch.filter { file =>
@@ -262,54 +265,49 @@ private[play] class JDK7FileWatchService(delegate: JDK7FileWatchService.JDK7Watc
       } else false
     }
 
-    // val watcher = FileSystems.getDefault.newWatchService()
-    val watcher = delegate.newWatchService()
+    val watcher = FileSystems.getDefault.newWatchService()
+
+    def watchDir(dir: File) = {
+      dir.toPath.register(watcher, Array[WatchEvent.Kind[_]](ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY),
+        // This custom modifier exists just for polling implementations of the watch service, and means poll every 2 seconds.
+        // For non polling event based watchers, it has no effect.
+        com.sun.nio.file.SensitivityWatchEventModifier.HIGH)
+    }
 
     // Get all sub directories
     val allDirsToWatch = allSubDirectories(dirsToWatch)
-    allDirsToWatch.foreach { dir =>
-      // file.toPath.register(watcher, Array(ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY),
-      //     com.sun.nio.file.SensitivityWatchEventModifier.HIGH)
-      delegate.registerFileWithWatcher(dir, watcher)
-    }
+    allDirsToWatch.foreach(watchDir)
 
     val thread = new Thread(new Runnable {
       def run() = {
         try {
           while (true) {
-            // val watchKey = watcher.take()
-            val watchKey = delegate.takeFromWatcher(watcher)
+            val watchKey = watcher.take()
 
-            val events = delegate.pollEvents(watchKey)
+            val events = watchKey.pollEvents()
 
             import scala.collection.JavaConversions._
             // If a directory has been created, we must watch it and its sub directories
             events.foreach { event =>
 
-              // if (event.kind == ENTRY_CREATE) {
-              if (delegate.isEventKindEntryCreate(event)) {
-                // val file = watchKey.watchable.asInstanceOf[Path].resolve(event.context.asInstanceOf[Path]).toFile
-                val file = delegate.getEventFile(watchKey, event)
+              if (event.kind == ENTRY_CREATE) {
+                val file = watchKey.watchable.asInstanceOf[Path].resolve(event.context.asInstanceOf[Path]).toFile
 
                 if (file.isDirectory) {
-                  allSubDirectories(Seq(file)).foreach { dir =>
-                    delegate.registerFileWithWatcher(dir, watcher)
-                  }
+                  allSubDirectories(Seq(file)).foreach(watchDir)
                 }
               }
             }
 
             onChange()
 
-            // watchKey.reset()
-            delegate.resetKey(watchKey)
+            watchKey.reset()
           }
         } catch {
           case NonFatal(e) => // Do nothing, this means the watch service has been closed, or we've been interrupted.
         } finally {
           // Just in case it wasn't closed.
-          // watcher.close()
-          delegate.closeWatcher(watcher)
+          watcher.close()
         }
       }
     }, "sbt-play-watch-service")
@@ -318,8 +316,7 @@ private[play] class JDK7FileWatchService(delegate: JDK7FileWatchService.JDK7Watc
 
     new FileWatcher {
       def stop() = {
-        // watcher.close()
-        delegate.closeWatcher(watcher)
+        watcher.close()
       }
     }
 
@@ -327,126 +324,6 @@ private[play] class JDK7FileWatchService(delegate: JDK7FileWatchService.JDK7Watc
 
   private def allSubDirectories(dirs: Seq[File]) = {
     (dirs ** (DirectoryFilter -- HiddenFileFilter)).get.distinct
-  }
-}
-
-private object JDK7FileWatchService {
-
-  import java.lang.reflect.Array
-
-  @volatile var watchService: Option[Try[FileWatchService]] = None
-
-  def apply(logger: LoggerProxy): Try[FileWatchService] = {
-    watchService match {
-      case None =>
-        val ws = Try(new JDK7FileWatchService(new JDK7WatchServiceDelegate, logger))
-        watchService = Some(ws)
-        ws
-      case Some(ws) => ws
-    }
-  }
-
-  /**
-   * Captures all the reflection for invoking the JDK7 watch service in one place
-   */
-  class JDK7WatchServiceDelegate() {
-
-    def loadClass(clazz: String): Class[_] = ClassLoader.getSystemClassLoader.loadClass(clazz)
-
-    val fileSystem = loadClass("java.nio.file.FileSystems").getMethod("getDefault").invoke(null)
-
-    val newWatchServiceMethod = loadClass("java.nio.file.FileSystem").getMethod("newWatchService")
-    val toPathMethod = classOf[File].getMethod("toPath")
-
-    val watchServiceClass = loadClass("java.nio.file.WatchService")
-    val takeMethod = watchServiceClass.getMethod("take")
-    val closeMethod = watchServiceClass.getMethod("close")
-
-    val kindClass = loadClass("java.nio.file.WatchEvent$Kind")
-    val kindArrayClass = Array.newInstance(kindClass, 0).getClass
-    val standardWatchEventKindsClass = loadClass("java.nio.file.StandardWatchEventKinds")
-    val entryCreate = standardWatchEventKindsClass.getField("ENTRY_CREATE").get(null)
-    val entryDelete = standardWatchEventKindsClass.getField("ENTRY_DELETE").get(null)
-    val entryModify = standardWatchEventKindsClass.getField("ENTRY_MODIFY").get(null)
-    val dirKinds = {
-      val array = Array.newInstance(kindClass, 3)
-      Array.set(array, 0, entryCreate)
-      Array.set(array, 1, entryDelete)
-      Array.set(array, 2, entryModify)
-      array
-    }
-
-    val modifierClass = loadClass("java.nio.file.WatchEvent$Modifier")
-    val modifierArrayClass = Array.newInstance(modifierClass, 0).getClass
-    val modifiers = {
-      try {
-        // OpenJDK specific.
-        // The default polling interval (sensitivity) for implementations that poll (OSX) is 10 seconds (MEDIUM).
-        // This is controlled by the SensitivityWatchEventModifier modifier.  HIGH is the shortest, at 2 seconds.
-        val sensitivityClass = loadClass("com.sun.nio.file.SensitivityWatchEventModifier")
-        // There are two ways to cast to a recursive type. One way is forSome. The other is a custom asInstanceOf
-        // method that defines the recursive type.
-        import scala.language.existentials
-        val sensitivity = Enum.valueOf(sensitivityClass.asInstanceOf[Class[T] forSome { type T <: Enum[T] }], "HIGH")
-        val array = Array.newInstance(modifierClass, 1)
-        Array.set(array, 0, sensitivity)
-        array
-      } catch {
-        case e: ClassNotFoundException => Array.newInstance(modifierClass, 0)
-      }
-    }
-
-    val pathClass = loadClass("java.nio.file.Path")
-    val registerMethod = pathClass.getMethod("register", watchServiceClass, kindArrayClass, modifierArrayClass)
-    val toFileMethod = pathClass.getMethod("toFile")
-    val resolveMethod = pathClass.getMethod("resolve", pathClass)
-
-    val watchKeyClass = loadClass("java.nio.file.WatchKey")
-    val pollEventsMethod = watchKeyClass.getMethod("pollEvents")
-    val resetMethod = watchKeyClass.getMethod("reset")
-    val watchableMethod = watchKeyClass.getMethod("watchable")
-
-    val watchEventClass = loadClass("java.nio.file.WatchEvent")
-    val kindMethod = watchEventClass.getMethod("kind")
-    val contextMethod = watchEventClass.getMethod("context")
-
-    def newWatchService(): AnyRef = newWatchServiceMethod.invoke(fileSystem)
-
-    def registerFileWithWatcher(file: File, watcher: AnyRef): AnyRef = {
-      val path = toPathMethod.invoke(file)
-      registerMethod.invoke(path, watcher, dirKinds, modifiers)
-    }
-
-    def takeFromWatcher(watcher: AnyRef): AnyRef = {
-      takeMethod.invoke(watcher)
-    }
-
-    def pollEvents(watchKey: AnyRef): java.util.List[AnyRef] = {
-      pollEventsMethod.invoke(watchKey).asInstanceOf[java.util.List[AnyRef]]
-    }
-
-    def getEventKind(watchEvent: AnyRef): AnyRef = {
-      kindMethod.invoke(watchEvent)
-    }
-
-    def isEventKindEntryCreate(watchEvent: AnyRef): Boolean = {
-      kindMethod.invoke(watchEvent) == entryCreate
-    }
-
-    def getEventFile(watchKey: AnyRef, watchEvent: AnyRef): File = {
-      val childPath = contextMethod.invoke(watchEvent)
-      val parentPath = watchableMethod.invoke(watchKey)
-      val path = resolveMethod.invoke(parentPath, childPath)
-      toFileMethod.invoke(path).asInstanceOf[File]
-    }
-
-    def resetKey(watchKey: AnyRef): Boolean = {
-      resetMethod.invoke(watchKey).asInstanceOf[Boolean]
-    }
-
-    def closeWatcher(watcher: AnyRef): Unit = {
-      closeMethod.invoke(watcher)
-    }
   }
 }
 

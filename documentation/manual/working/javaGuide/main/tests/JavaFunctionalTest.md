@@ -22,11 +22,7 @@ To provide an environment for tests, Play provides a [`FakeApplication`](api/jav
 
 To run tests within a `FakeAppliction`, you can do the following:
 
-Java
-: @[test-running-fakeapp](code/javaguide/tests/FakeApplicationTest.java)
-
-Java 8
-: @[test-running-fakeapp](java8code/java8guide/tests/FakeApplicationTest.java)
+@[test-running-fakeapp](code/javaguide/tests/FakeApplicationTest.java)
 
 You can also extend `WithApplication`, this will automatically ensure that a fake application is started and stopped for you:
 
@@ -36,21 +32,13 @@ You can also extend `WithApplication`, this will automatically ensure that a fak
 
 Sometimes you want to test the real HTTP stack from with your test. You can do this by starting a test server:
 
-Java
-: @[test-server](code/javaguide/tests/FunctionalTest.java)
-
-Java 8
-: @[test-server](java8code/java8guide/tests/FunctionalTest.java)
+@[test-server](code/javaguide/tests/FunctionalTest.java)
 
 ## Testing with a browser
 
 If you want to test your application from with a Web browser, you can use [Selenium WebDriver](http://code.google.com/p/selenium/?redir=1). Play will start the WebDriver for you, and wrap it in the convenient API provided by [FluentLenium](https://github.com/FluentLenium/FluentLenium).
 
-Java
-: @[with-browser](code/javaguide/tests/FunctionalTest.java)
-
-Java 8
-: @[with-browser](java8code/java8guide/tests/FunctionalTest.java)
+@[with-browser](code/javaguide/tests/FunctionalTest.java)
 
 ## Testing the router
 

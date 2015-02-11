@@ -80,22 +80,24 @@ public class JavaStream extends WithApplication {
     @Test
     public void chunked() {
         String content = contentAsString(MockJavaActionHelper.call(new Controller4(), fakeRequest()));
-        // Wait until results refactoring is merged, then this will work
-        // assertThat(content, containsString("kikifoobar"));
+        assertThat(content, equalTo(
+                "4\r\n" +
+                        "kiki\r\n" +
+                        "3\r\n" +
+                        "foo\r\n" +
+                        "3\r\n" +
+                        "bar\r\n" +
+                        "0\r\n\r\n"
+        ));
     }
 
     public static class Controller4 extends MockJavaAction {
         //#chunked
         public Result index() {
             // Prepare a chunked text stream
-            Chunks<String> chunks = new StringChunks() {
-
-                // Called when the stream is ready
-                public void onReady(Chunks.Out<String> out) {
-                    registerOutChannelSomewhere(out);
-                }
-
-            };
+            Chunks<String> chunks = StringChunks.whenReady(
+                    JavaStream::registerOutChannelSomewhere
+            );
 
             // Serves this stream with 200 OK
             return ok(chunks);

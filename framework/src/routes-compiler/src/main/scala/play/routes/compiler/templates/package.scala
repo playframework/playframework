@@ -255,14 +255,39 @@ package object templates {
   }
 
   /**
-   * Generate the Javascript code for the parameter constraints
+   * Generate the Javascript code for the parameter constraints.
+   *
+   * This generates the contents of an if statement in JavaScript, and is used for when multiple routes route to the
+   * same action but with different parameters.  If there are no constraints, None will be returned.
    */
-  def javascriptParameterConstraints(route: Route, localNames: Map[String, String]) = {
+  def javascriptParameterConstraints(route: Route, localNames: Map[String, String]): Option[String] = {
     Option(route.call.parameters.getOrElse(Nil).filter { p =>
       localNames.contains(p.name) && p.fixed.isDefined
     }.map { p =>
       p.name + " == \"\"\" + implicitly[JavascriptLiteral[" + p.typeName + "]].to(" + p.fixed.get + ") + \"\"\""
-    }).filterNot(_.isEmpty).map(_.mkString(" && ")).getOrElse("true")
+    }).filterNot(_.isEmpty).map(_.mkString(" && "))
+  }
+
+  /**
+   * Collect all the routes that apply to a single action that are not dead.
+   *
+   * Dead routes occur when two routes route to the same action with the same parameters.  When reverse routing, this
+   * means the one reverse router, depending on the parameters, will return different URLs.  But if they have the same
+   * parameters, or no parameters, then after the first one, the subsequent ones will be dead code, never matching.
+   *
+   * This optimisation not only saves on code generated, but since the body of the JavaScript router is a series of
+   * very long String concatenation, this is hard work on the typer, which can easily stack overflow.
+   */
+  def javascriptCollectNonDeadRoutes(routes: Seq[Route]) = {
+    routes.map { route =>
+      val localNames = reverseLocalNames(route, reverseParameters(routes))
+      val constraints = javascriptParameterConstraints(route, localNames)
+      (route, localNames, constraints)
+    }.foldLeft((Seq.empty[(Route, Map[String, String], String)], false)) {
+      case ((routes, true), dead) => (routes, true)
+      case ((routes, false), (route, localNames, None)) => (routes :+ (route, localNames, "true"), true)
+      case ((routes, false), (route, localNames, Some(constraints))) => (routes :+ (route, localNames, constraints), false)
+    }._1
   }
 
   /**

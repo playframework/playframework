@@ -27,11 +27,8 @@ Sometimes you may have a component that holds some state, such as a cache, or a 
 
 Some components may need to be cleaned up when Play shuts down, for example, to stop thread pools.  Play provides an [ApplicationLifecycle](api/java/play/inject/ApplicationLifecycle.html) component that can be used to register hooks to stop your component when Play shuts down:
 
-Java
-: @[cleanup](code/javaguide/advanced/di/MessageQueueConnection.java)
+@[cleanup](code/javaguide/advanced/di/MessageQueueConnection.java)
 
-Java 8
-: @[cleanup](java8code/java8guide/advanced/di/MessageQueueConnection.java)
 
 The `ApplicationLifecycle` will stop all components in reverse order from when they were created.  This means any components that you depend on can still safely be used in your components stop hook, since because you depend on them, they must have been created before your component was, and therefore won't be stopped until after your component is stopped.
 

@@ -40,11 +40,7 @@ You can retrieve the data later:
 
 You can also supply a `Callable` that generates stores the value if no value is found in the cache:
 
-Java
-: @[get-or-else](code/javaguide/cache/JavaCache.java)
-
-Java 8
-: @[get-or-else](java8code/java8guide/cache/JavaCache.java)
+@[get-or-else](code/javaguide/cache/JavaCache.java)
 
 To remove an item from the cache use the `remove` method:
 
