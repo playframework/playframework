@@ -55,7 +55,7 @@ trait PlayEclipse {
 
     lazy val addScalaLib = new EclipseTransformerFactory[RewriteRule] {
       override def createTransformer(ref: ProjectRef, state: State): Validation[RewriteRule] = {
-        evaluateTask(dependencyClasspath in Runtime, ref, state) map { classpath =>
+        evaluateTask(dependencyClasspath in Compile, ref, state) map { classpath =>
           val scalaLib =
             classpath.find(_.get(moduleID.key).exists(moduleFilter(organization = "org.scala-lang", name = "scala-library"))).map(_.data.getAbsolutePath)
               .getOrElse(throw new RuntimeException("could not find scala-library.jar"))
