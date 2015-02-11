@@ -7,6 +7,7 @@ import sbt._
 import java.io.File
 import java.lang.{ ProcessBuilder => JProcessBuilder, Runtime => JRuntime }
 import java.util.concurrent.CountDownLatch
+import scala.concurrent.duration._
 
 case class PlayForkOptions(
   workingDirectory: File,
@@ -26,14 +27,14 @@ case class PlayForkOptions(
  * forcibly terminating the process with `destroy`.
  */
 object PlayForkProcess {
-  def apply(options: PlayForkOptions, args: Seq[String], log: Logger): Unit = {
+  def apply(options: PlayForkOptions, args: Seq[String], log: Logger, shutdownTimeout: FiniteDuration): Unit = {
     val logProperties = Seq("-Dfork.run.log.level=" + options.logLevel.toString, "-Dfork.run.log.events=" + options.logSbtEvents)
     val jvmOptions = options.jvmOptions ++ logProperties
     val arguments = Seq(options.baseDirectory.getAbsolutePath, options.configKey) ++ args
-    run(options.workingDirectory, jvmOptions, options.classpath, "play.forkrun.ForkRun", arguments, log)
+    run(options.workingDirectory, jvmOptions, options.classpath, "play.forkrun.ForkRun", arguments, log, shutdownTimeout)
   }
 
-  def run(workingDirectory: File, jvmOptions: Seq[String], classpath: Seq[File], mainClass: String, arguments: Seq[String], log: Logger): Unit = {
+  def run(workingDirectory: File, jvmOptions: Seq[String], classpath: Seq[File], mainClass: String, arguments: Seq[String], log: Logger, shutdownTimeout: FiniteDuration): Unit = {
     val java = (file(sys.props("java.home")) / "bin" / "java").absolutePath
     val (classpathEnv, options) = makeOptions(jvmOptions, classpath, mainClass, arguments)
     val command = (java +: options).toArray
@@ -48,7 +49,7 @@ object PlayForkProcess {
     def stop(): Unit = {
       // counting down triggers closing stdinput
       stopLatch.countDown()
-      def timedWaitFor(millis: Int): Option[Int] = try {
+      def timedWaitFor(millis: Long): Option[Int] = try {
         // exitValue throws if process hasn't exited
         Some(process.exitValue())
       } catch {
@@ -60,7 +61,7 @@ object PlayForkProcess {
             None
       }
       // wait a bit for clean exit
-      timedWaitFor(2500) match {
+      timedWaitFor(shutdownTimeout.toMillis) match {
         case None =>
           log.info("Forked Play process did not exit on its own, terminating it")
           // fire-and-forget sigterm, may or may not work

@@ -22,6 +22,7 @@ object Import {
     val playForkOptions = TaskKey[PlayForkOptions]("play-fork-run-options", "Fork run options")
     val playForkLogSbtEvents = SettingKey[Boolean]("Determines whether events from sbt server are logged in fork run")
     val playForkCompileTimeout = SettingKey[Duration]("play-fork-compile-timeout", "Timeout for requested compiles")
+    val playForkShutdownTimeout = SettingKey[FiniteDuration]("play-fork-shutdown-timeout", "Timeout for shutdown of forked process before forcibly shutting down")
     val playForkConfig = TaskKey[ForkConfig]("play-fork-config", "All setup settings for forked run")
     val playForkNotifyStart = InputKey[Unit]("play-fork-notify-start", "For notifying sbt with the play server url")
     val playForkStarted = TaskKey[String => Unit]("play-fork-started", "Callback for play server start")
@@ -57,6 +58,7 @@ object PlayForkRun extends AutoPlugin {
 
     playForkLogSbtEvents := true,
     playForkCompileTimeout := 5.minutes,
+    playForkShutdownTimeout := 10.seconds,
 
     playForkConfig <<= forkConfigTask,
     playForkNotifyStart <<= serverStartedTask,
@@ -93,7 +95,7 @@ object PlayForkRun extends AutoPlugin {
     val jobService = BackgroundJobServiceKeys.jobService.value
     val handle = jobService.runInBackgroundThread(resolvedScoped.value, { (_, uiContext) =>
       // use normal task streams log rather than the background run logger
-      PlayForkProcess(playForkOptions.value, args, streams.value.log)
+      PlayForkProcess(playForkOptions.value, args, streams.value.log,playForkShutdownTimeout.value)
     })
     play.PlayConsoleInteractionMode.waitForCancel()
     jobService.stop(handle)
@@ -103,7 +105,7 @@ object PlayForkRun extends AutoPlugin {
   def backgroundForkRunTask = Def.inputTask[BackgroundJobHandle] {
     val args = Def.spaceDelimited().parsed
     BackgroundJobServiceKeys.jobService.value.runInBackgroundThread(resolvedScoped.value, { (logger, uiContext) =>
-      PlayForkProcess(playForkOptions.value, args, logger)
+      PlayForkProcess(playForkOptions.value, args, logger, playForkShutdownTimeout.value)
     })
   }
 

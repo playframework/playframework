@@ -10,6 +10,7 @@ import sbt.client.{ SbtConnector, TaskKey }
 import sbt.protocol.{ ScopedKey, TaskResult, TaskFailure }
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{ Success, Failure }
+import scala.concurrent.duration._
 
 object SbtClient {
   sealed trait SbtRequest
@@ -18,6 +19,7 @@ object SbtClient {
   case class Response(key: String, result: TaskResult)
   case class Failed(error: Throwable)
   case object Shutdown
+  case object ShutdownTimeout
 
   def props(baseDirectory: File, log: Logger, logEvents: Boolean): Props = Props(new SbtClient(baseDirectory, log, logEvents))
 }
@@ -36,6 +38,7 @@ class SbtClient(baseDirectory: File, log: Logger, logEvents: Boolean) extends Ac
   }
 
   def awaitingDaemon(client: ActorRef, pending: Seq[SbtRequest] = Seq.empty): Receive = {
+    case Terminated(`client`) => shutdownWithClient(client)
     case SbtClientProxy.DaemonSet =>
       if (logEvents) {
         val events = context.actorOf(SbtEvents.props(log), "sbt-server-events")
@@ -45,11 +48,13 @@ class SbtClient(baseDirectory: File, log: Logger, logEvents: Boolean) extends Ac
       context become active(client)
     case request: SbtRequest =>
       context become awaitingDaemon(client, pending :+ request)
-    case Shutdown => shutdown()
+    case Shutdown => shutdownWithClient(client)
   }
 
   def connecting(pending: Seq[SbtRequest] = Seq.empty): Receive = {
     case SbtConnectionProxy.NewClientResponse.Connected(client) =>
+      // The SbtClientProxy will close and terminate if there is a non-recoverable error
+      context.watch(client)
       client ! SbtClientProxy.SetDaemon(true, self)
       context become awaitingDaemon(client, pending)
     case SbtConnectionProxy.NewClientResponse.Error(recoverable, error) =>
@@ -60,13 +65,14 @@ class SbtClient(baseDirectory: File, log: Logger, logEvents: Boolean) extends Ac
   }
 
   def active(client: ActorRef): Receive = {
+    case Terminated(`client`) => shutdownWithClient(client)
     case Execute(input) =>
       client ! SbtClientProxy.RequestExecution.ByCommandOrTask(input, interaction = None, sendTo = self)
     case request @ Request(key, sendTo) =>
       val name = java.net.URLEncoder.encode(key, "utf-8")
       val task = context.child(name) getOrElse context.actorOf(SbtTask.props(key, client), name)
       task ! request
-    case Shutdown => shutdown()
+    case Shutdown => shutdownWithClient(client)
   }
 
   def fail(error: Throwable, requests: Seq[SbtRequest]): Unit = {
@@ -84,13 +90,23 @@ class SbtClient(baseDirectory: File, log: Logger, logEvents: Boolean) extends Ac
     case Shutdown => shutdown()
   }
 
+  def shutdownWithClient(client: ActorRef): Unit = {
+    context.unwatch(client)
+    shutdown()
+  }
+
   def shutdown(): Unit = {
     connection ! SbtConnectionProxy.Close(self)
     context become exiting
   }
 
   def exiting: Receive = {
-    case SbtConnectionProxy.Closed => context.system.shutdown()
+    // can only wait so long - set up race.
+    context.system.scheduler.scheduleOnce(10.seconds, self, ShutdownTimeout)
+
+    {
+      case SbtConnectionProxy.Closed | ShutdownTimeout => context.system.shutdown()
+    }
   }
 }
 
