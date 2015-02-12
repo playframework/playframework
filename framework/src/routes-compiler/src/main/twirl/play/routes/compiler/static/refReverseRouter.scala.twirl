@@ -17,7 +17,7 @@ package @(pkg.filter(_ => namespaceReverseRouter).fold(packageName)(_ + "." + pa
       @refCall(route, useInjector),
       HandlerDef(this.getClass.getClassLoader, "@pkg.getOrElse("")", "@(packageName).@(controller)",
         "@method", Seq(@route.call.parameters.getOrElse(Nil).map("classOf[" + _.typeName + "]").mkString(", ")),
-        "@route.verb", @tq@route.comments.map(_.comment).mkString("\n")@tq, _prefix + @tq@route.path@tq
+        @tq@route.comments.map(_.comment).mkString("\n")@tq
       )
     )
   }

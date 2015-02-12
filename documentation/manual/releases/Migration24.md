@@ -101,6 +101,10 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-play-ebean" % "1.0.0")
 
 Additionally, Ebean has been upgraded to 4.2.0, which pulls in a few of the features that Play previously added itself, including the `Model` class.  Consequently, the Play `Model` class has been deprecated, in favour of using `org.avaje.ebean.Model`.
 
+## Request tags
+
+The verb and path request tags were removed from the tags map. These attributes of the request are better retrieved from the request object in a typesafe manner.
+
 ## Body Parsers
 
 The default body parser is now `play.api.mvc.BodyParsers.parse.default`. It is similar to `anyContent` parser, except that it only parses the bodies of PATCH, POST, and PUT requests. To parse bodies for requests of other methods, explicitly pass the `anyContent` parser to `Action`.

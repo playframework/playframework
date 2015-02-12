@@ -310,7 +310,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
       implicit def toHandler[J <: AnyRef](javaHandler: J)(implicit factory: HandlerInvokerFactory[J]): Handler = {
         val invoker = factory.createInvoker(
           javaHandler,
-          new HandlerDef(javaHandler.getClass.getClassLoader, "package", "controller", "method", Nil, "GET", "", "/stream")
+          new HandlerDef(javaHandler.getClass.getClassLoader, "package", "controller", "method", Nil, "")
         )
         invoker.call(javaHandler)
       }
