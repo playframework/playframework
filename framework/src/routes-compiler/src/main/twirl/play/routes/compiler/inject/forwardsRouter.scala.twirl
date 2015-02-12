@@ -70,9 +70,7 @@ case route @ Route(verb, path, call, comments) => {
       "@(call.packageName).@call.controller",
       "@call.method",
       @call.parameters.filterNot(_.isEmpty).map(params => params.map("classOf[" + _.typeName + "]").mkString(", ")).map("Seq(" + _ + ")").getOrElse("Nil"),
-      "@verb",
-      @tq@comments.map(_.comment).mkString("\n")@tq,
-      this.prefix + @tq@path@tq
+      @tq@comments.map(_.comment).mkString("\n")@tq
     )
   )
 }

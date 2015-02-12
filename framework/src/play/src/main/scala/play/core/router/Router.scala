@@ -166,7 +166,7 @@ object Router {
    * Information about a `Handler`, especially useful for loading the handler
    * with reflection.
    */
-  case class HandlerDef(classLoader: ClassLoader, routerPackage: String, controller: String, method: String, parameterTypes: Seq[Class[_]], verb: String, comments: String, path: String)
+  case class HandlerDef(classLoader: ClassLoader, routerPackage: String, controller: String, method: String, parameterTypes: Seq[Class[_]], comments: String)
 
   def dynamicString(dynamic: String): String = {
     UriEncoding.encodePathSegment(dynamic, "utf-8")
@@ -208,8 +208,6 @@ object Router {
   }
 
   private def handlerTags(handlerDef: HandlerDef): Map[String, String] = Map(
-    play.api.Routes.ROUTE_PATTERN -> handlerDef.path,
-    play.api.Routes.ROUTE_VERB -> handlerDef.verb,
     play.api.Routes.ROUTE_CONTROLLER -> handlerDef.controller,
     play.api.Routes.ROUTE_ACTION_METHOD -> handlerDef.method,
     play.api.Routes.ROUTE_COMMENTS -> handlerDef.comments
