@@ -3,7 +3,7 @@
 
 ## Using the dist task
 
-The simplest way to deploy a Play application is to retrieve the source (typically via a git workflow) on the server and to use either `activator start` or `activator stage` to start it in place.
+The simplest way dto deploy a Play application is to retrieve the source (typically via a git workflow) on the server and to use either `activator start` or `activator stage` to start it in place.
 
 However, you sometimes need to build a binary version of your application and deploy it to the server without any dependency on Play itself. You can do this with the `dist` task.
 
@@ -68,9 +68,9 @@ Please consult the [documentation](http://www.scala-sbt.org/sbt-native-packager)
 The sbt-native-packager plugins provides a `java_server` archetype which enables the following features:
 
 * System V or Upstart startup scripts
-* [Default folders](http://www.scala-sbt.org/sbt-native-packager/GettingStartedServers/MyFirstProject.html#default-mappings)
+* [Default folders](http://www.scala-sbt.org/sbt-native-packager/archetypes/java_server/my-first-project.html#default-mappings)
 
-A full documentation can be found in the [documentation](http://www.scala-sbt.org/sbt-native-packager/GettingStartedServers/index.html).
+A full documentation can be found in the [documentation](http://www.scala-sbt.org/sbt-native-packager/archetypes/java_server/index.html).
 
 The `java_server` archetype is enabled by default, but depending on which package you want to build you have
 to add a few settings. 
