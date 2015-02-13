@@ -13,7 +13,7 @@ package @(pkg.filter(_ => namespaceReverseRouter).fold(packageName)(_ + "." + pa
   class Reverse@(controller.replace(".", "_"))(_prefix: => String) @ob
   @for(((method, _), routes @ Seq(route, _*)) <- groupRoutesByMethod(routes)) {
     @markLines(routes: _*)
-    def @(method)(@refReverseSignature(routes)): play.api.mvc.HandlerRef[_] = new play.api.mvc.HandlerRef(
+    def @(method)(@refReverseSignature(routes)): play.mvc.HandlerRef[_] = new play.mvc.HandlerRef(
       @refCall(route, useInjector),
       HandlerDef(this.getClass.getClassLoader, "@pkg.getOrElse("")", "@(packageName).@(controller)",
         "@method", Seq(@route.call.parameters.getOrElse(Nil).map("classOf[" + _.typeName + "]").mkString(", ")),
