@@ -199,7 +199,7 @@ package play.api.mvc {
      */
     private[play] def acceptHeader(headers: Headers, headerName: String): Seq[(Double, String)] = {
       for {
-        header <- headers.get(headerName).toSeq
+        header <- headers.get(headerName).toList
         value0 <- header.split(',')
         value = value0.trim
       } yield {
