@@ -8,7 +8,9 @@ import akka.pattern.ask
 import akka.util.Timeout
 import com.typesafe.config.{ Config, ConfigFactory }
 import java.io.File
+import java.lang.{ Runtime, Thread }
 import java.net.InetSocketAddress
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.TimeoutException
 import play.forkrun.protocol.{ ForkConfig, Serializers }
 import play.runsupport.Reloader.{ CompileResult, PlayDevServer }
@@ -20,6 +22,8 @@ import scala.util.{ Success, Failure, Properties }
 object ForkRun {
   case object Reload
   case object Close
+
+  private val running = new AtomicBoolean(true)
 
   def main(args: Array[String]): Unit = {
     val baseDirectory = args(0)
@@ -35,13 +39,30 @@ object ForkRun {
     val forkRun = system.actorOf(props(sbt, configKey, runArgs, log), "fork-run")
 
     log.info("Setting up Play fork run ... (use Ctrl+D to cancel)")
-
+    registerShutdownHook(log, system, forkRun)
     waitForStop()
 
-    log.info("Stopping Play fork run ...")
-    forkRun ! Close
-    try system.awaitTermination(30.seconds)
-    catch { case _: TimeoutException => System.exit(1) }
+    doShutdown(log, system, forkRun)
+  }
+
+  def doShutdown(log: Logger, system: ActorSystem, forkRun: ActorRef): Unit = {
+    if (running.compareAndSet(true, false)) {
+      log.info("Stopping Play fork run ...")
+      forkRun ! Close
+      try system.awaitTermination(30.seconds)
+      catch { case _: TimeoutException => System.exit(1) }
+    } else {
+      log.info("Play fork run already stopped ...")
+    }
+  }
+
+  def registerShutdownHook(log: Logger, system: ActorSystem, forkRun: ActorRef): Unit = {
+    Runtime.getRuntime().addShutdownHook(new Thread {
+      override def run(): Unit = {
+        log.info("JVM exiting, shutting down Play fork run ...")
+        doShutdown(log, system, forkRun)
+      }
+    })
   }
 
   def startServer(config: ForkConfig, args: Seq[String], notifyStart: InetSocketAddress => Unit, reloadCompile: () => CompileResult, log: Logger): PlayDevServer = {

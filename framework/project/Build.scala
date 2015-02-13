@@ -346,6 +346,9 @@ object PlayBuild extends Build {
         "-Dproject.version=" + version.value,
         "-Dscala.version=" + buildScalaVersion
       ),
+      // This only publishes the sbt plugin projects on each scripted run.
+      // The runtests script does a full publish before running tests.
+      // When developing the sbt plugins, run a publishLocal in the root project first.
       scriptedDependencies := {
         val () = publishLocal.value
         val () = (publishLocal in RoutesCompilerProject).value
@@ -374,6 +377,9 @@ object PlayBuild extends Build {
         "-XX:MaxPermSize=384M",
         "-Dproject.version=" + version.value
       ),
+      // This only publishes the sbt plugin projects on each scripted run.
+      // The runtests script does a full publish before running tests.
+      // When developing the sbt plugins, run a publishLocal in the root project first.
       scriptedDependencies := {
         val () = publishLocal.value
         val () = (publishLocal in SbtPluginProject).value

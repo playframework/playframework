@@ -3,225 +3,205 @@
  */
 package play.forkrun.protocol
 
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
-import play.api.libs.json.Reads._
-import play.api.{ PlayException, UsefulException }
-import play.forkrun.protocol.ForkConfig.PollingWatchService
+import play.api.PlayException
 import play.runsupport.Reloader.{ Source, CompileSuccess, CompileFailure, CompileResult }
-import sbt.GenericSerializers._
 import sbt.protocol._
+import sbt.serialization._
 
 object Serializers {
 
-  implicit def tuple2Reads[A, B](implicit aReads: Reads[A], bReads: Reads[B]): Reads[(A, B)] = Reads[(A, B)] { i =>
-    i.validate[JsArray].flatMap { arr =>
-      val s = aReads.reads(arr(0))
-      val f = bReads.reads(arr(1))
-      (s, f) match {
-        case (JsSuccess(a, _), JsSuccess(b, _)) => JsSuccess((a, b))
-        case (a @ JsError(_), JsSuccess(_, _)) => a
-        case (JsSuccess(_, _), b @ JsError(_)) => b
-        case (a @ JsError(_), b @ JsError(_)) => a ++ b
+  implicit def tuple2Pickler[A, B](implicit picklerA: Pickler[A], picklerB: Pickler[B],
+    unpicklerA: Unpickler[A], unpicklerB: Unpickler[B],
+    tupleTag: FastTypeTag[Tuple2[A, B]], aTag: FastTypeTag[A], bTag: FastTypeTag[B]): Pickler[Tuple2[A, B]] with Unpickler[Tuple2[A, B]] =
+    new Pickler[Tuple2[A, B]] with Unpickler[Tuple2[A, B]] {
+      override def tag: FastTypeTag[Tuple2[A, B]] = tupleTag
+
+      override def pickle(picklee: Tuple2[A, B], builder: PBuilder): Unit = {
+        builder.pushHints()
+        builder.hintTag(tag)
+        builder.hintStaticallyElidedType()
+        builder.beginEntry(picklee)
+
+        builder.beginCollection(2)
+        builder.hintTag(aTag)
+        builder.putElement(b => picklerA.pickle(picklee._1, b))
+        builder.hintTag(bTag)
+        builder.putElement(b => picklerB.pickle(picklee._2, b))
+        builder.endCollection()
+
+        builder.endEntry()
+        builder.popHints()
+      }
+
+      override def unpickle(tpe: String, reader: PReader): Any = {
+        reader.pushHints()
+        reader.hintStaticallyElidedType()
+        reader.hintTag(tag)
+        reader.hintStaticallyElidedType()
+        reader.beginEntry()
+
+        reader.beginCollection()
+        reader.hintStaticallyElidedType()
+        reader.hintTag(aTag)
+        val a: A = unpicklerA.unpickleEntry(reader.readElement()).asInstanceOf[A]
+        reader.hintTag(bTag)
+        val b: B = unpicklerB.unpickleEntry(reader.readElement()).asInstanceOf[B]
+        reader.endCollection()
+
+        reader.endEntry()
+        reader.popHints()
+        (a, b)
       }
     }
-  }
 
-  implicit def tuple2Writes[A, B](implicit aWrites: Writes[A], bWrites: Writes[B]): Writes[(A, B)] =
-    Writes[(A, B)] { case (s, f) => JsArray(Seq(aWrites.writes(s), bWrites.writes(f))) }
+  implicit val defaultWatchServicePickler: Pickler[ForkConfig.DefaultWatchService.type] = genPickler[ForkConfig.DefaultWatchService.type]
+  implicit val defaultWatchServiceUnpickler: Unpickler[ForkConfig.DefaultWatchService.type] = genUnpickler[ForkConfig.DefaultWatchService.type]
 
-  val sbtWatchServiceReads: Reads[PollingWatchService] = Json.reads[PollingWatchService]
-  val sbtWatchServiceWrites: Writes[PollingWatchService] = Json.writes[PollingWatchService]
-  val sbtWatchServiceFormat: Format[PollingWatchService] = Format[PollingWatchService](sbtWatchServiceReads, sbtWatchServiceWrites)
+  implicit val jDK7WatchServicePickler: Pickler[ForkConfig.JDK7WatchService.type] = genPickler[ForkConfig.JDK7WatchService.type]
+  implicit val jDK7WatchServiceUnpickler: Unpickler[ForkConfig.JDK7WatchService.type] = genUnpickler[ForkConfig.JDK7WatchService.type]
 
-  implicit val watchServiceReads: Reads[ForkConfig.WatchService] = new Reads[ForkConfig.WatchService] {
-    def reads(json: JsValue): JsResult[ForkConfig.WatchService] = json match {
-      case JsObject(Seq(("class", JsString(name)), ("data", data))) =>
-        name match {
-          case "DefaultWatchService" => JsSuccess(ForkConfig.DefaultWatchService)
-          case "JDK7WatchService" => JsSuccess(ForkConfig.JDK7WatchService)
-          case "JNotifyWatchService" => JsSuccess(ForkConfig.JNotifyWatchService)
-          case "PollingWatchService" => Json.fromJson[PollingWatchService](data)(sbtWatchServiceFormat)
-          case _ => JsError(s"Unknown class: '$name'")
-        }
-      case _ => JsError(s"Unexpected JSON value: $json")
-    }
-  }
+  implicit val jNotifyWatchServicePickler: Pickler[ForkConfig.JNotifyWatchService.type] = genPickler[ForkConfig.JNotifyWatchService.type]
+  implicit val jNotifyWatchServiceUnpickler: Unpickler[ForkConfig.JNotifyWatchService.type] = genUnpickler[ForkConfig.JNotifyWatchService.type]
 
-  implicit val watchServiceWrites: Writes[ForkConfig.WatchService] = new Writes[ForkConfig.WatchService] {
-    def writes(watchService: ForkConfig.WatchService): JsValue = {
-      val (product: Product, data) = watchService match {
-        case sbt: ForkConfig.PollingWatchService => (sbt, Json.toJson(sbt)(sbtWatchServiceFormat))
-        case other => (other, JsNull)
+  implicit val pollingWatchServicePickler: Pickler[ForkConfig.PollingWatchService] = genPickler[ForkConfig.PollingWatchService]
+  implicit val pollingWatchServiceUnpickler: Unpickler[ForkConfig.PollingWatchService] = genUnpickler[ForkConfig.PollingWatchService]
+
+  implicit val watchServicePickler: Pickler[ForkConfig.WatchService] = genPickler[ForkConfig.WatchService]
+  implicit val watchServiceUnpickler: Unpickler[ForkConfig.WatchService] = genUnpickler[ForkConfig.WatchService]
+
+  implicit val forkConfigPickler: Pickler[ForkConfig] = genPickler[ForkConfig]
+  implicit val forkConfigUnpickler: Unpickler[ForkConfig] = genUnpickler[ForkConfig]
+
+  implicit val sourceFilePickler: Pickler[Source] = genPickler[Source]
+  implicit val sourceFileUnpickler: Unpickler[Source] = genUnpickler[Source]
+
+  implicit val sourceMapPickler: Pickler[Map[String, Source]] with Unpickler[Map[String, Source]] = stringMapPickler[Source]
+
+  implicit object playExceptionPickler extends Pickler[PlayException] with Unpickler[PlayException] {
+    override def tag: FastTypeTag[PlayException] = implicitly[FastTypeTag[PlayException]]
+    private val stringOptUnpickler = implicitly[Unpickler[Option[String]]]
+    private val intOptUnpickler = implicitly[Unpickler[Option[Int]]]
+    private val intOptPickler = implicitly[Pickler[Option[Int]]]
+    private val stringOptPickler = implicitly[Pickler[Option[String]]]
+    private val throwableOptUnpickler = implicitly[Unpickler[Option[Throwable]]]
+
+    override def pickle(picklee: PlayException, builder: PBuilder): Unit = {
+      def writeIntField(key: String, value: Int): Unit = {
+        builder.putField(key, { b =>
+          b.hintTag(intPickler.tag)
+          intPickler.pickle(value, b)
+        })
       }
-      JsObject(Seq("class" -> JsString(product.productPrefix), "data" -> data))
+      def writeIntOptField(key: String, value: Integer): Unit = {
+        builder.putField(key, { b =>
+          b.hintTag(intOptPickler.tag)
+          intOptPickler.pickle(if (value == null) None else Some(value.intValue), b)
+        })
+      }
+      def writeStringField(key: String, value: String): Unit = {
+        builder.putField(key, { b =>
+          b.hintTag(stringPickler.tag)
+          stringPickler.pickle(value, b)
+        })
+      }
+      def writeStringOptField(key: String, value: String): Unit = {
+        builder.putField(key, { b =>
+          b.hintTag(stringOptPickler.tag)
+          stringOptPickler.pickle(Option(value), b)
+        })
+      }
+      def writeThrowableField(key: String, value: Throwable): Unit = {
+        builder.putField(key, { b =>
+          b.hintTag(throwablePicklerUnpickler.tag)
+          throwablePicklerUnpickler.pickle(value, b)
+        })
+      }
+
+      builder.pushHints()
+      builder.hintTag(tag)
+      builder.hintStaticallyElidedType()
+      builder.beginEntry(picklee)
+      writeStringField("id", picklee.id)
+      writeStringField("title", picklee.title)
+      writeStringField("description", picklee.description)
+      if (picklee.cause != null) writeThrowableField("cause", picklee.cause)
+      picklee match {
+        case x: PlayException.ExceptionSource =>
+          writeIntOptField("line", x.line)
+          writeIntOptField("position", x.position)
+          writeStringOptField("input", x.input)
+          writeStringOptField("sourceName", x.sourceName)
+        case _ =>
+      }
+      builder.endEntry()
+      builder.popHints()
     }
-  }
 
-  implicit val watchServiceFormat: Format[ForkConfig.WatchService] = Format[ForkConfig.WatchService](watchServiceReads, watchServiceWrites)
+    override def unpickle(tpe: String, reader: PReader): Any = {
+      def readIntField(key: String): Int = intPickler.unpickleEntry(reader.readField(key)).asInstanceOf[Int]
+      def readIntOptField(key: String): Option[Int] = intOptUnpickler.unpickleEntry(reader.readField(key)).asInstanceOf[Option[Int]]
+      def readStringField(key: String): String = stringPickler.unpickleEntry(reader.readField(key)).asInstanceOf[String]
+      def readStringOptField(key: String): Option[String] = stringOptUnpickler.unpickleEntry(reader.readField(key)).asInstanceOf[Option[String]]
+      def readThrowableOptField(key: String): Option[Throwable] = throwableOptUnpickler.unpickleEntry(reader.readField(key)).asInstanceOf[Option[Throwable]]
 
-  implicit val forkConfigReads: Reads[ForkConfig] = Json.reads[ForkConfig]
-  implicit val forkConfigWrites: Writes[ForkConfig] = Json.writes[ForkConfig]
-  implicit val forkConfigFormat: Format[ForkConfig] = Format[ForkConfig](forkConfigReads, forkConfigWrites)
-
-  implicit val sourceFileReads: Reads[Source] = Json.reads[Source]
-  implicit val sourceFileWrites: Writes[Source] = Json.writes[Source]
-  implicit val sourceFileFormat: Format[Source] = Format[Source](sourceFileReads, sourceFileWrites)
-
-  implicit val sourceMapReads: Reads[Map[String, Source]] = Reads.mapReads[Source]
-  implicit val sourceMapWrites: Writes[Map[String, Source]] = Writes.mapWrites[Source]
-  implicit val sourceMapFormat: Format[Map[String, Source]] = Format[Map[String, Source]](sourceMapReads, sourceMapWrites)
-
-  val playExceptionReader = {
-    implicit val throwableReads = sbt.GenericSerializers.throwableReads
-    (
-      (__ \ "id").read[String] and
-      (__ \ "title").read[String] and
-      (__ \ "description").read[String] and
-      (__ \ "cause").readNullable[Throwable]
-    )
-  }
-
-  val playExceptionWriter = {
-    implicit val throwableWrites = sbt.GenericSerializers.throwableWrites
-    (
-      (__ \ "id").write[String] and
-      (__ \ "title").write[String] and
-      (__ \ "description").write[String] and
-      (__ \ "cause").writeNullable[Throwable]
-    )
-  }
-
-  val defaultPlayExceptionReads: Reads[PlayException] = {
-    playExceptionReader { (id, title, description, cause) =>
-      val exception = new PlayException(title, description, cause.orNull)
-      exception.id = id
-      exception
-    }
-  }
-
-  val defaultPlayExceptionWrites: Writes[PlayException] = {
-    playExceptionWriter { e => (e.id, e.title, e.description, Option(e.cause)) }
-  }
-
-  val defaultPlayExceptionFormat: Format[PlayException] = Format[PlayException](defaultPlayExceptionReads, defaultPlayExceptionWrites)
-
-  val exceptionSourceReads: Reads[PlayException.ExceptionSource] = {
-    (playExceptionReader and
-      (__ \ "line").read[Int] and
-      (__ \ "position").read[Int] and
-      (__ \ "input").read[String] and
-      (__ \ "sourceName").read[String]) {
-        (id, title, description, cause, _line, _position, _input, _sourceName) =>
-          val exception = new PlayException.ExceptionSource(title, description, cause.orNull) {
-            val line: java.lang.Integer = _line
-            val position: java.lang.Integer = _position
-            val input: String = _input
-            val sourceName: String = _sourceName
+      reader.pushHints()
+      reader.hintStaticallyElidedType()
+      reader.hintTag(tag)
+      reader.hintStaticallyElidedType()
+      reader.beginEntry()
+      val id = readStringField("id")
+      val title = readStringField("title")
+      val description = readStringField("description")
+      val cause = readThrowableOptField("cause")
+      val line = readIntOptField("line")
+      val result = line match {
+        case Some(l) =>
+          new PlayException.ExceptionSource(title, description, cause.orNull) {
+            val line: java.lang.Integer = l
+            val position: java.lang.Integer = readIntOptField("position").map(new Integer(_)).orNull
+            val input: String = readStringOptField("input").orNull
+            val sourceName: String = readStringOptField("sourceName").orNull
           }
-          exception.id = id
-          exception
+        case None => new PlayException(title, description, cause.orNull)
       }
-  }
-
-  val exceptionSourceWrites: Writes[PlayException.ExceptionSource] = {
-    (playExceptionWriter and
-      (__ \ "line").write[Int] and
-      (__ \ "position").write[Int] and
-      (__ \ "input").write[String] and
-      (__ \ "sourceName").write[String]) { e =>
-        (
-          e.id,
-          e.title,
-          e.description,
-          Option(e.cause),
-          e.line,
-          e.position,
-          e.input,
-          e.sourceName
-        )
-      }
-  }
-
-  val exceptionSourceFormat: Format[PlayException.ExceptionSource] = Format[PlayException.ExceptionSource](exceptionSourceReads, exceptionSourceWrites)
-
-  implicit val playExceptionReads: Reads[PlayException] = new Reads[PlayException] {
-    def reads(json: JsValue): JsResult[PlayException] = json match {
-      case JsObject(Seq(("class", JsString(name)), ("data", data))) =>
-        name match {
-          case "ExceptionSource" => Json.fromJson[PlayException.ExceptionSource](data)(exceptionSourceFormat)
-          case "PlayException" => Json.fromJson[PlayException](data)(defaultPlayExceptionFormat)
-          case _ => JsError(s"Unknown class: '$name'")
-        }
-      case _ => JsError(s"Unexpected JSON value: $json")
+      result.id = id
+      reader.endEntry()
+      reader.popHints()
+      result
     }
   }
 
-  implicit val playExceptionWrites: Writes[PlayException] = new Writes[PlayException] {
-    def writes(exception: PlayException): JsValue = {
-      val (name, data) = exception match {
-        case e: PlayException.ExceptionSource => ("ExceptionSource", Json.toJson(e)(exceptionSourceFormat))
-        case e => ("PlayException", Json.toJson(e)(defaultPlayExceptionFormat))
-      }
-      JsObject(Seq("class" -> JsString(name), "data" -> data))
-    }
-  }
+  implicit val compileFailurePickler: Pickler[CompileFailure] = genPickler[CompileFailure]
+  implicit val compileFailureUnpickler: Unpickler[CompileFailure] = genUnpickler[CompileFailure]
 
-  implicit val playExceptionFormat: Format[PlayException] = Format[PlayException](playExceptionReads, playExceptionWrites)
+  implicit val compileSuccessPickler: Pickler[CompileSuccess] = genPickler[CompileSuccess]
+  implicit val compileSuccessUnpickler: Unpickler[CompileSuccess] = genUnpickler[CompileSuccess]
 
-  val compileSuccessReads: Reads[CompileSuccess] = Json.reads[CompileSuccess]
-  val compileSuccessWrites: Writes[CompileSuccess] = Json.writes[CompileSuccess]
-  val compileSuccessFormat: Format[CompileSuccess] = Format[CompileSuccess](compileSuccessReads, compileSuccessWrites)
+  implicit val compileResultPickler: Pickler[CompileResult] = genPickler[CompileResult]
+  implicit val compileResultUnpickler: Unpickler[CompileResult] = genUnpickler[CompileResult]
 
-  val compileFailureReads: Reads[CompileFailure] = Json.reads[CompileFailure]
-  val compileFailureWrites: Writes[CompileFailure] = Json.writes[CompileFailure]
-  val compileFailureFormat: Format[CompileFailure] = Format[CompileFailure](compileFailureReads, compileFailureWrites)
+  implicit val playServerStartedPickler: Pickler[PlayServerStarted] = genPickler[PlayServerStarted]
+  implicit val playServerStartedUnpickler: Unpickler[PlayServerStarted] = genUnpickler[PlayServerStarted]
 
-  implicit val compileResultReads: Reads[CompileResult] = new Reads[CompileResult] {
-    def reads(json: JsValue): JsResult[CompileResult] = json match {
-      case JsObject(Seq(("class", JsString(name)), ("data", data))) =>
-        name match {
-          case "CompileSuccess" => Json.fromJson[CompileSuccess](data)(compileSuccessFormat)
-          case "CompileFailure" => Json.fromJson[CompileFailure](data)(compileFailureFormat)
-          case _ => JsError(s"Unknown class: '$name'")
-        }
-      case _ => JsError(s"Unexpected JSON value: $json")
-    }
-  }
-
-  implicit val compileResultWrites: Writes[CompileResult] = new Writes[CompileResult] {
-    def writes(compileResult: CompileResult): JsValue = {
-      val (product: Product, data) = compileResult match {
-        case c: CompileSuccess => (c, Json.toJson(c)(compileSuccessFormat))
-        case c: CompileFailure => (c, Json.toJson(c)(compileFailureFormat))
-      }
-      JsObject(Seq("class" -> JsString(product.productPrefix), "data" -> data))
-    }
-  }
-
-  implicit val compileResultFormat: Format[CompileResult] = Format[CompileResult](compileResultReads, compileResultWrites)
-
-  implicit val playServerStartedReads: Reads[PlayServerStarted] = Json.reads[PlayServerStarted]
-  implicit val playServerStartedWrites: Writes[PlayServerStarted] = Json.writes[PlayServerStarted]
-  implicit val playServerStartedFormat: Format[PlayServerStarted] = Format[PlayServerStarted](playServerStartedReads, playServerStartedWrites)
-
-  sealed trait LocalRegisteredFormat {
+  sealed trait LocalRegisteredSerializer {
     type T
     def manifest: Manifest[T]
-    def format: Format[T]
+    def serializer: Pickler[T]
+    def unserializer: Unpickler[T]
   }
 
-  object LocalRegisteredFormat {
-    def fromFormat[U](f: Format[U])(implicit mf: Manifest[U]): LocalRegisteredFormat =
-      new LocalRegisteredFormat {
+  object LocalRegisteredSerializer {
+    def fromSbtSerializer[U](_serializer: Pickler[U], _unserializer: Unpickler[U])(implicit mf: Manifest[U]): LocalRegisteredSerializer =
+      new LocalRegisteredSerializer {
         type T = U
         val manifest = mf
-        val format = f
+        val serializer = _serializer
+        val unserializer = _unserializer
       }
   }
 
-  val formats: Seq[LocalRegisteredFormat] = List(
-    LocalRegisteredFormat.fromFormat(forkConfigFormat),
-    LocalRegisteredFormat.fromFormat(compileResultFormat),
-    LocalRegisteredFormat.fromFormat(playServerStartedFormat))
+  val serializers: Seq[LocalRegisteredSerializer] = List(
+    LocalRegisteredSerializer.fromSbtSerializer(forkConfigPickler, forkConfigUnpickler),
+    LocalRegisteredSerializer.fromSbtSerializer(compileResultPickler, compileResultUnpickler),
+    LocalRegisteredSerializer.fromSbtSerializer(playServerStartedPickler, playServerStartedUnpickler))
 }
