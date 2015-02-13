@@ -384,7 +384,7 @@ object MimeTypes {
         pvu=paleovu/x-pv
         pwz=application/vndms-powerpoint
         py=text/x-scriptphyton
-        pyc=applicaiton/x-bytecodepython
+        pyc=application/x-bytecodepython
         qcp=audio/vndqcelp
         qd3=x-world/x-3dmf
         qd3d=x-world/x-3dmf
