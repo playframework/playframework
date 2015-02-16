@@ -34,12 +34,12 @@ else
   echo "[info]"
   # separate compile so that compile and doc do not run simultaneously
   # this will also fail early on compilation errors
-  $BUILD "$@" -Dgenerate.doc=true compile test:compile publish-local
+  $BUILD "$@" -Dgenerate.doc=true Fork-Run-Protocol/compile compile test:compile publish-local
   for v in ${crossbuild//,/ } ; do
     echo "[info]"
     echo "[info] ---- BUILDING PLAY (cross building against Scala $v)"
     echo "[info]"
-    $BUILD "$@" -Dgenerate.doc=true -Dscala.version=$v compile test:compile publish-local
+    $BUILD "$@" -Dgenerate.doc=true -Dscala.version=$v Fork-Run-Protocol/compile compile test:compile publish-local
   done
 fi
 
