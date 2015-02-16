@@ -412,8 +412,8 @@ object MimeTypes {
         rp=image/vndrn-realpix
         rpm=audio/x-pn-realaudio-plugin
         rt=text/vndrn-realtext
-        rtf=text/richtext
-        rtx=text/richtext
+        rtf=application/rtf
+        rtx=application/rtx
         rv=video/vndrn-realvideo
         s=text/x-asm
         s3m=audio/s3m
