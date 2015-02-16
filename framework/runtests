@@ -32,12 +32,14 @@ else
   echo "[info]"
   echo "[info] ---- BUILDING PLAY (with its default version of Scala)"
   echo "[info]"
-  $BUILD "$@" -Dgenerate.doc=true publish-local
+  # separate compile so that compile and doc do not run simultaneously
+  # this will also fail early on compilation errors
+  $BUILD "$@" -Dgenerate.doc=true compile test:compile publish-local
   for v in ${crossbuild//,/ } ; do
     echo "[info]"
     echo "[info] ---- BUILDING PLAY (cross building against Scala $v)"
     echo "[info]"
-    $BUILD "$@" -Dgenerate.doc=true -Dscala.version=$v publish-local
+    $BUILD "$@" -Dgenerate.doc=true -Dscala.version=$v compile test:compile publish-local
   done
 fi
 
