@@ -159,6 +159,8 @@ private[akkahttp] object ModelConversion {
           contentType = convertedHeaders.contentType,
           data = dataSource(enum)
         ))
+      case ServerResultUtils.StreamWithNoBody =>
+        Right(HttpEntity.Empty)
       case ServerResultUtils.StreamWithKnownLength(enum) =>
         Right(HttpEntity.Default(
           contentType = convertedHeaders.contentType,
