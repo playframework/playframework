@@ -10,15 +10,8 @@ import play.libs.F
 import scala.concurrent.Future
 import play.api.libs.iteratee.Execution.trampoline
 
-class EitherToFEither[A, B]() extends play.libs.F.Function[Either[A, B], play.libs.F.Either[A, B]] {
-
-  def apply(e: Either[A, B]): play.libs.F.Either[A, B] = e.fold(play.libs.F.Either.Left(_), play.libs.F.Either.Right(_))
-
-}
-
 /**
- *
- * provides helper methods that manage java to scala Result and scala to java Context
+ * Provides helper methods that manage Java to Scala Result and Scala to Java Context
  * creation
  */
 trait JavaHelpers {
@@ -27,7 +20,7 @@ trait JavaHelpers {
   import play.mvc.Http.RequestBody
 
   /**
-   * creates a scala result from java context and result objects
+   * Creates a scala result from java context and result objects
    * @param javaContext
    * @param javaResult
    */
@@ -54,7 +47,7 @@ trait JavaHelpers {
   }
 
   /**
-   * creates a java request (with an empty body) from a scala RequestHeader
+   * Creates a java request (with an empty body) from a scala RequestHeader
    * @param req incoming requestHeader
    */
   def createJavaRequest(req: RequestHeader): JRequest = {
@@ -114,7 +107,7 @@ trait JavaHelpers {
   }
 
   /**
-   * creates a java context from a scala RequestHeader
+   * Creates a java context from a scala RequestHeader
    * @param req
    */
   def createJavaContext(req: RequestHeader): JContext = {
@@ -129,7 +122,7 @@ trait JavaHelpers {
   }
 
   /**
-   * creates a java context from a scala Request[RequestBody]
+   * Creates a java context from a scala Request[RequestBody]
    * @param req
    */
   def createJavaContext(req: Request[RequestBody]): JContext = {
@@ -204,13 +197,7 @@ trait JavaHelpers {
    * @return The result
    */
   def invokeWithContextOpt(request: RequestHeader, f: JRequest => F.Promise[JResult]): Option[Future[Result]] = {
-    val javaContext = createJavaContext(request)
-    try {
-      JContext.current.set(javaContext)
-      Option(f(javaContext.request())).map(_.wrapped.map(createResult(javaContext, _))(trampoline))
-    } finally {
-      JContext.current.remove()
-    }
+    Option(invokeWithContext(request, f))
   }
 
   /**
@@ -242,14 +229,6 @@ trait JavaHelpers {
       JContext.current.remove()
     }
 
-  }
-
-  /**
-   * Creates a partial function from a Java function
-   */
-  def toPartialFunction[A, B](f: F.Function[A, B]): PartialFunction[A, B] = new PartialFunction[A, B] {
-    def apply(a: A) = f.apply(a)
-    def isDefinedAt(x: A) = true
   }
 
   private def createHeaderMap(headers: Headers): java.util.Map[String, Array[String]] = {
