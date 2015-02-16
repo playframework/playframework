@@ -355,15 +355,22 @@ object PlayBuild extends Build {
       }
     ).dependsOn(RoutesCompilerProject, SbtRunSupportProject)
 
+  val ProtocolCompile = Tags.Tag("protocol-compile")
+
   lazy val ForkRunProtocolProject = PlayDevelopmentProject("Fork-Run-Protocol", "fork-run-protocol")
-    .settings(libraryDependencies ++= forkRunProtocolDependencies(scalaBinaryVersion.value))
+    .settings(
+      libraryDependencies ++= forkRunProtocolDependencies(scalaBinaryVersion.value),
+      compile in Compile <<= (compile in Compile) tag ProtocolCompile,
+      doc in Compile <<= (doc in Compile) tag ProtocolCompile)
     .dependsOn(RunSupportProject)
 
   // extra fork-run-protocol project that is only compiled against sbt scala version
   lazy val SbtForkRunProtocolProject = PlaySbtProject("SBT-Fork-Run-Protocol", "fork-run-protocol")
     .settings(
       target := target.value / "sbt-fork-run-protocol",
-      libraryDependencies ++= forkRunProtocolDependencies(scalaBinaryVersion.value))
+      libraryDependencies ++= forkRunProtocolDependencies(scalaBinaryVersion.value),
+      compile in Compile <<= (compile in Compile) tag ProtocolCompile,
+      doc in Compile <<= (doc in Compile) tag ProtocolCompile)
     .dependsOn(SbtRunSupportProject)
 
   lazy val ForkRunProject = PlayDevelopmentProject("Fork-Run", "fork-run")
@@ -494,6 +501,7 @@ object PlayBuild extends Build {
     .settings(PublishSettings.dontPublishSettings: _*)
     .settings(
       concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
+      concurrentRestrictions in Global += Tags.limit(ProtocolCompile, 1),
       libraryDependencies ++= (runtime ++ jdbcDeps),
       Docs.apiDocsInclude := false,
       Docs.apiDocsIncludeManaged := false,
