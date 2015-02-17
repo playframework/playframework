@@ -98,8 +98,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     public static Result callAction(HandlerRef actionReference, FakeRequest fakeRequest, long timeout) {
-        play.api.mvc.HandlerRef handlerRef = (play.api.mvc.HandlerRef)actionReference;
-        return invokeHandler(handlerRef.handler(), fakeRequest, timeout);
+        return invokeHandler(actionReference.handler(), fakeRequest, timeout);
     }
 
     /**

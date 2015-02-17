@@ -7,5 +7,7 @@ package play.mvc;
  * Reference to an Handler.
  */
 public interface HandlerRef {
+
+  play.api.mvc.Handler handler();
     
 }
