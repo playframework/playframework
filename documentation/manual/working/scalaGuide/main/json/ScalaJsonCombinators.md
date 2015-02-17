@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # JSON Reads/Writes/Format Combinators
 
 [[JSON basics|ScalaJson]] introduced [`Reads`](api/scala/index.html#play.api.libs.json.Reads) and [`Writes`](api/scala/index.html#play.api.libs.json.Writes) converters which are used to convert between [`JsValue`](api/scala/index.html#play.api.libs.json.JsValue) structures and other data types. This page covers in greater detail how to build these converters and how to use validation during conversion.

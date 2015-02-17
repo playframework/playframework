@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Configuring Certificate Validation
 
 In an SSL connection, the identity of the remote server is verified using an X.509 certificate which has been signed by a certificate authority.

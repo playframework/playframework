@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Configuring Trust Stores and Key Stores
 
 Trust stores and key stores contain X.509 certificates.  Those certificates contain public (or private) keys, and are organized and managed under either a TrustManager or a KeyManager, respectively.

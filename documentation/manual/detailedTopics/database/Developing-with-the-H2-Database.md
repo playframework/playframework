@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # H2 database
 
 The H2 in memory database is very convenient for development because your evolutions are run from scratch when play is restarted.  If you are using anorm you probably need it to closely mimic your planned production database.  To tell h2 that you want to mimic a particular database you add a parameter to the database url in your application.conf file, for example:

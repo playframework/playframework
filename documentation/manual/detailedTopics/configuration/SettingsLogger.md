@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Configuring logging
 
 Play uses [Logback](http://logback.qos.ch/) as its logging engine, see the [Logback documentation](http://logback.qos.ch/manual/configuration.html) for details on configuration.

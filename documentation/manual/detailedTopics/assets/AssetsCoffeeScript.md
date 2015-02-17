@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Using CoffeeScript
 
 [CoffeeScript](http://coffeescript.org/) is a small and elegant language that compiles into JavaScript. It provides a nice syntax for writing JavaScript code.

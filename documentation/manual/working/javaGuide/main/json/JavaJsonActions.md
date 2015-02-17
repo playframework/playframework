@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Handling and serving JSON
 
 In Java, Play uses the [Jackson](http://jackson.codehaus.org/) JSON library to convert objects to and from JSON. Play's actions work with the `JsonNode` type and the framework provides utility methods for conversion in the `play.libs.Json` API.

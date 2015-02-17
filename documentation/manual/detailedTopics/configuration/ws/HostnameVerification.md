@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2014 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Configuring Hostname Verification
 
 Hostname verification is a little known part of HTTPS that involves a [server identity check](http://tools.ietf.org/search/rfc2818#section-3.1) to ensure that the client is talking to the correct server and has not been redirected by a man in the middle attack.

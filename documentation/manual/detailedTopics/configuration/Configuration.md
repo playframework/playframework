@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Configuration file syntax and features
 
 > The configuration file used by Play is based on the [Typesafe config library](https://github.com/typesafehub/config).
