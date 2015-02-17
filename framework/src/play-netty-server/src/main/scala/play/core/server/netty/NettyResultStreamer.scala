@@ -51,6 +51,12 @@ object NettyResultStreamer {
           enum |>>> nettyStreamIteratee(createNettyResponse(result.header, true, httpVersion), startSequence, true)
         case ServerResultUtils.StreamWithKnownLength(enum) =>
           enum |>>> nettyStreamIteratee(createNettyResponse(result.header, closeConnection, httpVersion), startSequence, closeConnection)
+        case ServerResultUtils.StreamWithNoBody =>
+          // `StreamWithNoBody` won't add the Content-Length entity-header to the response (if not already present) 
+          val nettyResponse = createNettyResponse(result.header, closeConnection, httpVersion)
+          val future = sendDownstream(startSequence, !closeConnection, nettyResponse).toScala
+          val channelStatus = new ChannelStatus(closeConnection, startSequence)
+          future.map(_ => channelStatus).recover { case _ => channelStatus }
         case ServerResultUtils.StreamWithStrictBody(body) =>
           // We successfully buffered it, so set the content length and send the whole thing as one buffer
           val buffer = if (body.isEmpty) ChannelBuffers.EMPTY_BUFFER else ChannelBuffers.wrappedBuffer(body)

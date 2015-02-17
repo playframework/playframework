@@ -19,6 +19,7 @@ object ServerResultUtils {
   final case class StreamWithClose(enum: Enumerator[Array[Byte]]) extends ResultStreaming
   final case class StreamWithKnownLength(enum: Enumerator[Array[Byte]]) extends ResultStreaming
   final case class StreamWithStrictBody(body: Array[Byte]) extends ResultStreaming
+  final case object StreamWithNoBody extends ResultStreaming
   final case class UseExistingTransferEncoding(transferEncodedEnum: Enumerator[Array[Byte]]) extends ResultStreaming
   final case class PerformChunkedTransferEncoding(enum: Enumerator[Array[Byte]]) extends ResultStreaming
 
@@ -32,13 +33,15 @@ object ServerResultUtils {
    * Result headers.
    */
   def determineResultStreaming(result: Result, isHttp10: Boolean): Future[ResultStreaming] = {
-
+    def mustNotIncludeBody(result: Result): Boolean = result.header.status == 204 || result.header.status == 304
     result match {
       case _ if result.header.headers.exists(_._2 == null) =>
         Future.successful(CannotStream(
           "A header was set to null",
           Results.InternalServerError("")
         ))
+      case _ if mustNotIncludeBody(result) =>
+        Future.successful(StreamWithNoBody)
       case _ if (result.connection == HttpConnection.Close) =>
         Future.successful(StreamWithClose(result.body))
       case _ if (result.header.headers.contains(TRANSFER_ENCODING)) =>

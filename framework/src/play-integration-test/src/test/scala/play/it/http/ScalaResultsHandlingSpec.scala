@@ -283,6 +283,67 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       }
     }
 
+    "not have a message body even when a 204 response with a non-empty body is returned" in withServer(
+      Result(header = ResponseHeader(NO_CONTENT),
+        body = Enumerator("foo") &> Enumeratee.map[String](_.getBytes)(ec),
+        connection = HttpConnection.KeepAlive)
+    ) { port =>
+        val response = BasicHttpClient.makeRequests(port)(
+          BasicRequest("PUT", "/", "HTTP/1.1", Map(), "")
+        )(0)
+        response.body must beLeft("")
+      }
+
+    "not have a message body even when a 304 response with a non-empty body is returned" in withServer(
+      Result(header = ResponseHeader(NOT_MODIFIED),
+        body = Enumerator("foo") &> Enumeratee.map[String](_.getBytes)(ec),
+        connection = HttpConnection.KeepAlive)
+    ) { port =>
+        val response = BasicHttpClient.makeRequests(port)(
+          BasicRequest("PUT", "/", "HTTP/1.1", Map(), "")
+        )(0)
+        response.body must beLeft("")
+      }
+
+    "not have a message body, nor Content-Length, when a 204 response is returned" in withServer(
+      Results.NoContent
+    ) { port =>
+        val response = BasicHttpClient.makeRequests(port)(
+          BasicRequest("PUT", "/", "HTTP/1.1", Map(), "")
+        )(0)
+        response.body must beLeft("")
+        response.headers.get(CONTENT_LENGTH) must beNone
+      }
+
+    "not have a message body, but do have a Content-Length, when a 204 response with an explicit Content-Lenght is returned" in withServer(
+      Results.NoContent.withHeaders("Content-Length" -> "0")
+    ) { port =>
+        val response = BasicHttpClient.makeRequests(port)(
+          BasicRequest("PUT", "/", "HTTP/1.1", Map(), "")
+        )(0)
+        response.body must beLeft("")
+        response.headers.get(CONTENT_LENGTH) must beSome("0")
+      }
+
+    "not have a message body, nor a Content-Length, when a 304 response is returned" in withServer(
+      Results.NotModified
+    ) { port =>
+        val response = BasicHttpClient.makeRequests(port)(
+          BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
+        )(0)
+        response.body must beLeft("")
+        response.headers.get(CONTENT_LENGTH) must beNone
+      }
+
+    "not have a message body, but do have a Content-Length, when a 304 response with an explicit Content-Length is returned" in withServer(
+      Results.NotModified.withHeaders("Content-Length" -> "0")
+    ) { port =>
+        val response = BasicHttpClient.makeRequests(port)(
+          BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
+        )(0)
+        response.body must beLeft("")
+        response.headers.get(CONTENT_LENGTH) must beSome("0")
+      }
   }
 
 }
