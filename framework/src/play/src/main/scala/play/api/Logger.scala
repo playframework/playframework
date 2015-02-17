@@ -257,7 +257,7 @@ object Logger extends LoggerLike {
   /**
    * Reconfigures the underlying logback infrastructure.
    */
-  def configure(properties: Map[String, String], config: Option[URL], levels: Map[String, LogbackLevel]): Unit = {
+  def configure(properties: Map[String, String], config: Option[URL], levels: Map[String, LogbackLevel]): Unit = synchronized {
     // Redirect JUL -> SL4FJ
     {
       import org.slf4j.bridge._
