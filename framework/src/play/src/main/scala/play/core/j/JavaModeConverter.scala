@@ -11,4 +11,9 @@ object JavaModeConverter {
     case play.api.Mode.Test => play.Mode.TEST
     case play.api.Mode.Prod => play.Mode.PROD
   }
+  implicit def asScalaMode(mode: play.Mode): play.api.Mode.Mode = mode match {
+    case play.Mode.DEV => play.api.Mode.Dev
+    case play.Mode.TEST => play.api.Mode.Test
+    case play.Mode.PROD => play.api.Mode.Prod
+  }
 }

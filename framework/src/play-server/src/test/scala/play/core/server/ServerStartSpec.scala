@@ -89,6 +89,8 @@ object ServerStartSpec extends Specification {
       stopCallCount += 1
       super.stop()
     }
+    def httpPort = None
+    def httpsPort = None
   }
 
   class FakeServerProvider extends ServerProvider {

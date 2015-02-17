@@ -45,7 +45,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     // --
     @SuppressWarnings(value = "unchecked")
     private static Result invokeHandler(play.api.mvc.Handler handler, FakeRequest fakeRequest, long timeout) {
-        if (handler instanceof JavaAction) {
+        if (handler instanceof play.api.mvc.Action) {
             play.api.mvc.Action action = (play.api.mvc.Action) handler;
             return wrapScalaResult(action.apply(fakeRequest.getWrappedRequest()), timeout);
         } else if (handler instanceof JavaHandler) {
@@ -358,6 +358,24 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             Router routes = (Router) router.getClassLoader().loadClass(router.getName() + "$").getDeclaredField("MODULE$").get(null);
             if(routes.routes().isDefinedAt(fakeRequest.getWrappedRequest())) {
                 return invokeHandler(routes.routes().apply(fakeRequest.getWrappedRequest()), fakeRequest, timeout);
+            } else {
+                return null;
+            }
+        } catch(RuntimeException e) {
+            throw e;
+        } catch(Throwable t) {
+            throw new RuntimeException(t);
+        }
+    }
+
+    public static Result routeAndCall(Router router, FakeRequest fakeRequest) {
+        return routeAndCall(router, fakeRequest, DEFAULT_TIMEOUT);
+    }
+
+    public static Result routeAndCall(Router router, FakeRequest fakeRequest, long timeout) {
+        try {
+            if(router.routes().isDefinedAt(fakeRequest.getWrappedRequest())) {
+                return invokeHandler(router.routes().apply(fakeRequest.getWrappedRequest()), fakeRequest, timeout);
             } else {
                 return null;
             }

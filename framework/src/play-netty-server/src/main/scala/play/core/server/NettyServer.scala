@@ -28,7 +28,7 @@ import scala.util.control.NonFatal
 /**
  * creates a Server implementation based Netty
  */
-class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extends Server with ServerWithStop {
+class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extends Server {
 
   private val nettyConfig = config.configuration.underlying.getConfig("play.server.netty")
 
@@ -76,7 +76,7 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
     serverBootstrap
   }
 
-  class PlayPipelineFactory(secure: Boolean = false) extends ChannelPipelineFactory {
+  private class PlayPipelineFactory(secure: Boolean = false) extends ChannelPipelineFactory {
 
     private val logger = Logger(classOf[PlayPipelineFactory])
 
@@ -116,13 +116,13 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
   }
 
   // Keep a reference on all opened channels (useful to close everything properly, especially in DEV mode)
-  val allChannels = new DefaultChannelGroup
+  private val allChannels = new DefaultChannelGroup
 
   // Our upStream handler is stateless. Let's use this instance for every new connection
-  val defaultUpStreamHandler = new PlayDefaultUpstreamHandler(this, allChannels)
+  private val defaultUpStreamHandler = new PlayDefaultUpstreamHandler(this, allChannels)
 
   // The HTTP server channel
-  val HTTP = config.port.map { port =>
+  private val httpChannel = config.port.map { port =>
     val bootstrap = newBootstrap
     bootstrap.setPipelineFactory(new PlayPipelineFactory)
     val channel = bootstrap.bind(new InetSocketAddress(config.address, port))
@@ -131,7 +131,7 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
   }
 
   // Maybe the HTTPS server channel
-  val HTTPS = config.sslPort.map { port =>
+  private val httpsChannel = config.sslPort.map { port =>
     val bootstrap = newBootstrap
     bootstrap.setPipelineFactory(new PlayPipelineFactory(secure = true))
     val channel = bootstrap.bind(new InetSocketAddress(config.address, port))
@@ -142,10 +142,10 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
   mode match {
     case Mode.Test =>
     case _ =>
-      HTTP.foreach { http =>
+      httpChannel.foreach { http =>
         logger.info("Listening for HTTP on %s".format(http._2.getLocalAddress))
       }
-      HTTPS.foreach { https =>
+      httpsChannel.foreach { https =>
         logger.info("Listening for HTTPS on port %s".format(https._2.getLocalAddress))
       }
   }
@@ -169,10 +169,10 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
     allChannels.close().awaitUninterruptibly()
 
     // Release the HTTP server
-    HTTP.foreach(_._1.releaseExternalResources())
+    httpChannel.foreach(_._1.releaseExternalResources())
 
     // Release the HTTPS server if needed
-    HTTPS.foreach(_._1.releaseExternalResources())
+    httpsChannel.foreach(_._1.releaseExternalResources())
 
     mode match {
       case Mode.Dev =>
@@ -183,13 +183,19 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
   }
 
   override lazy val mainAddress = {
-    if (HTTP.isDefined) {
-      HTTP.get._2.getLocalAddress.asInstanceOf[InetSocketAddress]
-    } else {
-      HTTPS.get._2.getLocalAddress.asInstanceOf[InetSocketAddress]
-    }
+    (httpChannel orElse httpsChannel).get._2.getLocalAddress.asInstanceOf[InetSocketAddress]
   }
 
+  def httpPort = httpChannel map (_._2.getLocalAddress.asInstanceOf[InetSocketAddress].getPort)
+
+  def httpsPort = httpsChannel map (_._2.getLocalAddress.asInstanceOf[InetSocketAddress].getPort)
+}
+
+/**
+ * The Netty server provider
+ */
+class NettyServerProvider extends ServerProvider {
+  def createServer(config: ServerConfig, appProvider: ApplicationProvider) = new NettyServer(config, appProvider)
 }
 
 /**
@@ -199,9 +205,9 @@ object NettyServer extends ServerStart {
 
   private val logger = Logger(this.getClass)
 
-  val defaultServerProvider = new ServerProvider {
-    def createServer(config: ServerConfig, appProvider: ApplicationProvider) = new NettyServer(config, appProvider)
-  }
+  val defaultServerProvider = new NettyServerProvider
+
+  implicit val provider = defaultServerProvider
 
   /**
    * Create a Netty server from the given application and server configuration.
