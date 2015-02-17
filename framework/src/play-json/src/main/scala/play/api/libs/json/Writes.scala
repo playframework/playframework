@@ -3,6 +3,17 @@
  */
 package play.api.libs.json
 
+import java.time.{
+  Instant,
+  LocalDate,
+  LocalDateTime,
+  ZoneId,
+  ZoneOffset,
+  ZonedDateTime
+}
+import java.time.temporal.Temporal
+import java.time.format.DateTimeFormatter
+
 import scala.annotation.implicitNotFound
 import scala.collection._
 import scala.reflect.ClassTag
@@ -93,6 +104,7 @@ object Writes extends PathWrites with ConstraintWrites with DefaultWrites {
  * Default Serializers.
  */
 trait DefaultWrites {
+  import scala.language.implicitConversions
 
   /**
    * Serializer for Int types.
@@ -211,10 +223,181 @@ trait DefaultWrites {
   }
 
   /**
-   * Default Serializer java.uti.Date -> JsNumber(d.getTime (nb of ms))
+   * Default Serializer java.util.Date -> JsNumber(d.getTime (nb of ms))
    */
   implicit object DefaultDateWrites extends Writes[java.util.Date] {
     def writes(d: java.util.Date): JsValue = JsNumber(d.getTime)
+  }
+
+  /** Typeclass to implement way of formatting of Java8 temporal types. */
+  trait TemporalFormatter[T <: Temporal] {
+    def format(temporal: T): String
+  }
+
+  /** Formatting companion */
+  object TemporalFormatter {
+    implicit def DefaultLocalDateTimeFormatter(formatter: DateTimeFormatter): TemporalFormatter[LocalDateTime] = new TemporalFormatter[LocalDateTime] {
+      def format(temporal: LocalDateTime): String = formatter.format(temporal)
+    }
+
+    implicit def PatternLocalDateTimeFormatter(pattern: String): TemporalFormatter[LocalDateTime] = new TemporalFormatter[LocalDateTime] {
+      def format(temporal: LocalDateTime): String =
+        DateTimeFormatter.ofPattern(pattern).format(temporal)
+    }
+
+    implicit def DefaultZonedDateTimeFormatter(formatter: DateTimeFormatter): TemporalFormatter[ZonedDateTime] = new TemporalFormatter[ZonedDateTime] {
+      def format(temporal: ZonedDateTime): String = formatter.format(temporal)
+    }
+
+    implicit def PatternZonedDateTimeFormatter(pattern: String): TemporalFormatter[ZonedDateTime] = new TemporalFormatter[ZonedDateTime] {
+      def format(temporal: ZonedDateTime): String =
+        DateTimeFormatter.ofPattern(pattern).format(temporal)
+    }
+
+    implicit def DefaultDateFormatter(formatter: DateTimeFormatter): TemporalFormatter[LocalDate] = new TemporalFormatter[LocalDate] {
+      def format(temporal: LocalDate): String = formatter.format(temporal)
+    }
+
+    implicit def PatternDateFormatter(pattern: String): TemporalFormatter[LocalDate] = new TemporalFormatter[LocalDate] {
+      def format(temporal: LocalDate): String =
+        DateTimeFormatter.ofPattern(pattern).format(temporal)
+    }
+
+    implicit def DefaultInstantFormatter(formatter: DateTimeFormatter): TemporalFormatter[Instant] = new TemporalFormatter[Instant] {
+      def format(temporal: Instant): String =
+        formatter format LocalDateTime.ofInstant(temporal, ZoneId.systemDefault)
+    }
+
+    implicit def PatternInstantFormatter(pattern: String): TemporalFormatter[Instant] = new TemporalFormatter[Instant] {
+      def format(temporal: Instant): String =
+        DateTimeFormatter.ofPattern(pattern).
+          format(LocalDateTime.ofInstant(temporal, ZoneId.systemDefault))
+    }
+  }
+
+  /**
+   * Serializer for Java8 temporal types (e.g. `java.time.LocalDateTime`)
+   * to be written as JSON string, using the default time zone.
+   *
+   * @tparam T Type of formatting argument
+   * @param formating an argument to instantiate formatter
+   *
+   * {{{
+   * import java.time.LocalDateTime
+   * import play.api.libs.json.Writes
+   * import play.api.libs.json.Java8Writes
+   *
+   * implicit val Writes: Writes[LocalDateTime] =
+   *   temporalWrites[LocalDateTime, DateTimeFormatter](
+   *     DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+   * }}}
+   */
+  def temporalWrites[A <: Temporal, B](formatting: B)(implicit f: B => TemporalFormatter[A]): Writes[A] = new Writes[A] {
+    def writes(temporal: A): JsValue = JsString(f(formatting) format temporal)
+  }
+
+  /**
+   * The default typeclass to write a `java.time.LocalDateTime`,
+   * using '2011-12-03T10:15:30' format, and default time zone.
+   */
+  implicit val DefaultLocalDateTimeWrites =
+    temporalWrites[LocalDateTime, DateTimeFormatter](
+      DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+
+  /**
+   * The default typeclass to write a `java.time.ZonedDateTime`,
+   * using '2011-12-03T10:15:30' format, and default time zone.
+   */
+  implicit val DefaultZonedDateTimeWrites =
+    temporalWrites[ZonedDateTime, DateTimeFormatter](
+      DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+
+  /**
+   * The default typeclass to write a `java.time.LocalDate`,
+   * using '2011-12-03' format, and default time zone.
+   */
+  implicit val DefaultLocalDateWrites =
+    temporalWrites[LocalDate, DateTimeFormatter](
+      DateTimeFormatter.ISO_LOCAL_DATE)
+
+  /**
+   * The default typeclass to write a `java.time.Instant`,
+   * using '2011-12-03T10:15:30' format, and default time zone.
+   */
+  implicit val DefaultInstantWrites =
+    temporalWrites[Instant, DateTimeFormatter](
+      DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+
+  /**
+   * Serializer for `java.time.LocalDateTime` as JSON number.
+   *
+   * {{{
+   * import java.time.LocalDateTime
+   * import play.api.libs.json.Writes
+   * import play.api.libs.json.Java8Writes
+   *
+   * implicit val Writes = LocalDateTimeNumberWrites[LocalDateTime]
+   * }}}
+   */
+  val LocalDateTimeNumberWrites: Writes[LocalDateTime] =
+    new Writes[LocalDateTime] {
+      lazy val formatter =
+        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+
+      def writes(t: LocalDateTime): JsValue = JsNumber(BigDecimal.valueOf(
+        Instant.parse(formatter format t).toEpochMilli))
+    }
+
+  /**
+   * Serializer for `java.time.ZonedDateTime` as JSON number.
+   *
+   * {{{
+   * import java.time.ZonedDateTime
+   * import play.api.libs.json.Writes
+   * import play.api.libs.json.Java8Writes
+   *
+   * implicit val Writes = ZonedDateTimeNumberWrites[ZonedDateTime]
+   * }}}
+   */
+  val ZonedDateTimeNumberWrites: Writes[ZonedDateTime] =
+    new Writes[ZonedDateTime] {
+      def writes(t: ZonedDateTime): JsValue =
+        JsNumber(BigDecimal valueOf t.toInstant.toEpochMilli)
+    }
+
+  /**
+   * Serializer for `java.time.LocalDate` as JSON number.
+   *
+   * {{{
+   * import java.time.LocalDate
+   * import play.api.libs.json.Writes
+   * import play.api.libs.json.Java8Writes
+   *
+   * implicit val Writes = LocalDateNumberWrites[LocalDate]
+   * }}}
+   */
+  val LocalDateNumberWrites: Writes[LocalDate] = new Writes[LocalDate] {
+    lazy val formatter =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'00:00:00'Z'")
+
+    def writes(t: LocalDate): JsValue = JsNumber(BigDecimal.valueOf(
+      Instant.parse(formatter format t).toEpochMilli))
+  }
+
+  /**
+   * Serializer for `java.time.Instant` as JSON number.
+   *
+   * {{{
+   * import java.time.Instant
+   * import play.api.libs.json.Writes
+   * import play.api.libs.json.Java8Writes
+   *
+   * implicit val Writes = InstantNumberWrites[Instant]
+   * }}}
+   */
+  val InstantNumberWrites: Writes[Instant] = new Writes[Instant] {
+    def writes(t: Instant): JsValue =
+      JsNumber(BigDecimal valueOf t.toEpochMilli)
   }
 
   /**

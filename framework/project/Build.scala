@@ -4,12 +4,16 @@
 import sbt._
 import Keys._
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
-import com.typesafe.tools.mima.plugin.MimaKeys.{previousArtifact, binaryIssueFilters, reportBinaryIssues}
+import com.typesafe.tools.mima.plugin.MimaKeys.{
+  previousArtifact, binaryIssueFilters, reportBinaryIssues
+}
 import com.typesafe.tools.mima.core._
+
 import com.typesafe.sbt.SbtScalariform.scalariformSettings
-import scala.util.Properties.isJavaAtLeast
+
 import play.twirl.sbt.SbtTwirl
 import play.twirl.sbt.Import.TwirlKeys
+
 import interplay.Omnidoc
 import interplay.Omnidoc.Import.OmnidocKeys
 
@@ -43,10 +47,7 @@ object BuildSettings {
   val buildWithDoc = boolProp("generate.doc")
 
   // Argument for setting size of permgen space or meta space for all forked processes
-  val maxMetaspace = {
-    val space = if (isJavaAtLeast("1.8")) "Metaspace" else "Perm"
-    s"-XX:Max${space}Size=384m"
-  }
+  val maxMetaspace = s"-XX:MaxMetaspaceSize=384m"
 
   def propOr(name: String, value: String): String =
     (sys.props get name) orElse
@@ -243,11 +244,7 @@ object PlayBuild extends Build {
     testBinaryCompatibility = true)
 
   lazy val PlayNettyUtilsProject = PlaySharedJavaProject("Play-Netty-Utils", "play-netty-utils")
-    .settings(javacOptions in (Compile,doc) ++= {
-      // References to the rest of Netty don't work in the code that
-      // we've excised. Disable Javadoc lint checking in Java 8+.
-      if (isJavaAtLeast("1.8")) Seq("-Xdoclint:none") else Seq()
-    })
+    .settings(javacOptions in (Compile,doc) += "-Xdoclint:none")
 
   lazy val PlayProject = PlayRuntimeProject("Play", "play")
     .enablePlugins(SbtTwirl)
@@ -265,8 +262,7 @@ object PlayBuild extends Build {
       BuildLinkProject,
       IterateesProject % "test->test;compile->compile",
       JsonProject,
-      PlayNettyUtilsProject
-    )
+      PlayNettyUtilsProject)
 
   lazy val PlayServerProject = PlayRuntimeProject("Play-Server", "play-server")
     .settings(libraryDependencies ++= playServerDependencies)
@@ -435,12 +431,12 @@ object PlayBuild extends Build {
 
   import RepositoryBuilder._
   lazy val RepositoryProject = Project(
-      "Play-Repository", file("repository"))
+    "Play-Repository", file("repository"))
     .settings(PublishSettings.dontPublishSettings: _*)
     .settings(localRepoCreationSettings:_*)
     .settings(mimaDefaultSettings: _*)
     .settings(
-      localRepoProjectsPublished <<= (publishedProjects map (publishLocal in _)).dependOn,
+    localRepoProjectsPublished <<= (publishedProjects map (publishLocal in _)).dependOn,
       addProjectsToRepository(publishedProjects),
       localRepoArtifacts ++= Seq(
         "org.scala-lang" % "scala-compiler" % buildScalaVersion % "master",
@@ -450,13 +446,13 @@ object PlayBuild extends Build {
         "org.scala-sbt" % "sbt" % buildSbtVersion,
         "org.fusesource.jansi" % "jansi" % "1.11" % "master"
       )
-    )
+  )
 
   lazy val PlayDocsSbtPlugin = PlaySbtPluginProject("Play-Docs-SBT-Plugin", "play-docs-sbt-plugin")
     .enablePlugins(SbtTwirl)
     .settings(
       libraryDependencies ++= playDocsSbtPluginDependencies
-    ).dependsOn(SbtPluginProject)
+  ).dependsOn(SbtPluginProject)
 
   lazy val publishedProjects = Seq[ProjectReference](
     PlayProject,
