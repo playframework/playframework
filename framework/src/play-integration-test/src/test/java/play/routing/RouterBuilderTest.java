@@ -6,8 +6,11 @@ package play.routing;
 import org.junit.Test;
 import play.api.routing.Router;
 import play.libs.F;
+import play.mvc.PathBindable;
 import play.mvc.Result;
 import play.mvc.Results;
+
+import java.io.InputStream;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
@@ -219,7 +222,70 @@ public class RouterBuilderTest {
         assertThat(makeRequest(router, "GET", "/path/dollar%24"), equalTo("Path dollar%24"));
         assertThat(makeRequest(router, "GET", "/regex/dollar%24"), equalTo("Regex dollar%24"));
     }
-    
+
+    @Test
+    public void typed() {
+        Router router = new RouterBuilder()
+                .GET("/:a/:b/:c").routeTo((Integer a, Boolean b, String c) ->
+                        Results.ok("int " + a + " boolean " + b + " string " + c))
+                .build();
+
+        assertThat(makeRequest(router, "GET", "/20/true/foo"), equalTo("int 20 boolean true string foo"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void wrongNumberOfParameters() {
+        new RouterBuilder().GET("/:a/:b").routeTo(foo -> Results.ok(foo.toString()));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void badParameterType() {
+        new RouterBuilder().GET("/:a").routeTo((InputStream is) -> Results.ok());
+    }
+
+    @Test
+    public void bindError() {
+        Router router = new RouterBuilder()
+                .GET("/:a").routeTo((Integer a) -> Results.ok("int " + a))
+                .build();
+
+        assertThat(makeRequest(router, "GET", "/foo"),
+                equalTo("Cannot parse parameter a as Int: For input string: \"foo\""));
+    }
+
+    @Test
+    public void customPathBindable() {
+        Router router = new RouterBuilder()
+                .GET("/:a").routeTo((MyString myString) -> Results.ok(myString.value))
+                .build();
+
+        assertThat(makeRequest(router, "GET", "/foo"), equalTo("a:foo"));
+    }
+
+    public static class MyString implements PathBindable<MyString> {
+        final String value;
+
+        public MyString() {
+            this.value = null;
+        }
+
+        public MyString(String value) {
+            this.value = value;
+        }
+
+        public MyString bind(String key, String txt) {
+            return new MyString(key + ":" + txt);
+        }
+
+        public String unbind(String key) {
+            return null;
+        }
+
+        public String javascriptUnbind() {
+            return null;
+        }
+    }
+
     private String makeRequest(Router router, String method, String path) {
         Result result = routeAndCall(router, fakeRequest(method, path));
         if (result == null) {

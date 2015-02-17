@@ -632,7 +632,7 @@ object PathBindable {
   /**
    * Path binder for Java PathBindable
    */
-  implicit def javaPathBindable[T <: play.mvc.PathBindable[T]](implicit ct: ClassTag[T]) = new PathBindable[T] {
+  implicit def javaPathBindable[T <: play.mvc.PathBindable[T]](implicit ct: ClassTag[T]): PathBindable[T] = new PathBindable[T] {
     def bind(key: String, value: String) = {
       try {
         Right(ct.runtimeClass.newInstance.asInstanceOf[T].bind(key, value))
@@ -646,4 +646,21 @@ object PathBindable {
     override def javascriptUnbind = Option(ct.runtimeClass.newInstance.asInstanceOf[T].javascriptUnbind())
       .getOrElse(super.javascriptUnbind)
   }
+
+  /**
+   * This is used by the Java RouterBuilder DSL.
+   */
+  private[play] lazy val pathBindableRegister: Map[Class[_], PathBindable[_]] = {
+    def register[T](implicit pb: PathBindable[T], ct: ClassTag[T]) = ct.runtimeClass -> pb
+    Map(
+      register[String],
+      register[java.lang.Integer],
+      register[java.lang.Long],
+      register[java.lang.Double],
+      register[java.lang.Float],
+      register[java.lang.Boolean],
+      register[UUID]
+    )
+  }
+
 }
