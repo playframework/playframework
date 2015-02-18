@@ -10,7 +10,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 class LoggingFilter extends Filter {
 
-  def apply(nextFilter: (RequestHeader) => Future[Result])
+  def apply(nextFilter: RequestHeader => Future[Result])
            (requestHeader: RequestHeader): Future[Result] = {
 
     val startTime = System.currentTimeMillis
