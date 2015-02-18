@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Javascript Routing
 
 The play router is able to generate Javascript code to handle routing from Javascript running client side back to your application. The Javascript router aids in refactoring your application. If you change the structure of your URLs or parameter names your Javascript gets automatically updated to use that new structure.

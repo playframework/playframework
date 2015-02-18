@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Configuring gzip encoding
 
 Play provides a gzip filter that can be used to gzip responses.  It can be added to the applications filters using the `Global` object. To enable the gzip filter, add the Play filters helpers dependency to your project in `build.sbt`:

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+  ~ Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
   -->
 <xrds:XRDS xmlns:xrds="xri://$xrds" xmlns="xri://$xrd*($v*2.0)">
 <XRD>

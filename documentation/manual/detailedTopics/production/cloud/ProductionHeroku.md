@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Deploying to Heroku
 
 [Heroku](https://www.heroku.com/) is a cloud application platform – a way of building and deploying web apps.

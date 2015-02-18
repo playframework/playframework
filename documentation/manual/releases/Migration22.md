@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Play 2.2 Migration Guide
 
 This is a guide for migrating from Play 2.1 to Play 2.2. If you need to migrate from an earlier version of Play then you must first follow the [[Play 2.1 Migration Guide|Migration21]].

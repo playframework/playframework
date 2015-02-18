@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Play Tutorials
 
 Many Activator templates come with comprehensive tutorials that guide you to creating an application using the technologies featured by that template.

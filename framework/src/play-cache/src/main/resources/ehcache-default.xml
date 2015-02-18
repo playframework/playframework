@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+  ~ Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
   -->
 <ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../config/ehcache.xsd" updateCheck="false">
 

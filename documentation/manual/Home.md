@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Play %PLAY_VERSION% documentation
 
 > Play is a high-productivity Java and Scala web application framework that integrates the components and APIs you need for modern web application development. 

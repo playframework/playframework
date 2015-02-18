@@ -40,7 +40,7 @@ This is the process for a contributor (that is, a non Play core developer) to co
         * Features are forever, always think about whether a new feature really belongs to the core framework or it should be implemented as a plugin
         * Code must conform to standard style guidelines and pass all tests (see [validatePullRequest](https://github.com/playframework/playframework/blob/master/framework/validatePullRequest))
     6. New files must:
-       *  Have a Typesafe copyright header in the style of ``Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>``.
+       *  Have a Typesafe copyright header in the style of ``Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>``.
        * Not use ``@author`` tags since it does not encourage [Collective Code Ownership](http://www.extremeprogramming.org/rules/collective.html).
 3. Submit a pull request.  If an issue already exists for the pull request, then follow [these](http://opensoul.org/blog/archives/2012/11/09/convert-a-github-issue-into-a-pull-request/) instructions for converting an issue into a pull request.
 

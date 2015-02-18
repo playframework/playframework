@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
 package play.api.data
 
@@ -71,7 +71,7 @@ class ObjectMapping$times[R, $aParams](apply: Function$times[$aParams, R], unapp
 val scriptSource = scala.io.Source.fromFile(argv(0)).getLines.mkString("\n")
 
 println(s"""/*
- * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
+ * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
 package play.api.data
 

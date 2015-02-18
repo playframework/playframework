@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
+<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Guidelines for writing Play documentation
 
 The Play documentation is written in Markdown format, with code samples extracted from compiled, run and tested source files.
