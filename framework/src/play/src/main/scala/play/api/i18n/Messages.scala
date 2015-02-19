@@ -32,9 +32,7 @@ case class Lang(language: String, country: String = "") {
   /**
    * Convert to a Java Locale value.
    */
-  def toLocale: java.util.Locale = {
-    Option(country).filterNot(_.isEmpty).map(c => new java.util.Locale(language, c)).getOrElse(new java.util.Locale(language))
-  }
+  lazy val toLocale = Option(country).filterNot(_.isEmpty).map(c => new java.util.Locale(language, c)).getOrElse(new java.util.Locale(language))
 
   /**
    * Whether this lang satisfies the given lang.
