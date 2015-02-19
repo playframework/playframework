@@ -92,7 +92,7 @@ The `play.db` package provides access to the configured data sources:
 ```java
 import play.db.*;
 
-DataSource ds = DB.getDatasource();
+DataSource ds = DB.getDataSource();
 ```
 
 ## Obtaining a JDBC connection
