@@ -19,11 +19,11 @@ import static play.test.Helpers.*;
 /**
  * This class is in the integration tests so that we have the right helper classes to build a request with to test it.
  */
-public class RouterBuilderTest {
+public class RouterDslTest {
 
     @Test
     public void noParameters() {
-        Router router = new RouterBuilder()
+        Router router = new RouterDsl()
                 .GET("/hello/world").routeTo(() -> Results.ok("Hello world"))
                 .build();
 
@@ -33,7 +33,7 @@ public class RouterBuilderTest {
 
     @Test
     public void oneParameter() {
-        Router router = new RouterBuilder()
+        Router router = new RouterDsl()
                 .GET("/hello/:to").routeTo(new F.Function<String, Result>() {
                     public Result apply(String to) {
                         return Results.ok("Hello " + to);
@@ -47,7 +47,7 @@ public class RouterBuilderTest {
 
     @Test
     public void twoParameters() {
-        Router router = new RouterBuilder()
+        Router router = new RouterDsl()
                 .GET("/:say/:to").routeTo((say, to) -> Results.ok(say + " " + to))
                 .build();
 
@@ -57,7 +57,7 @@ public class RouterBuilderTest {
 
     @Test
     public void threeParameters() {
-        Router router = new RouterBuilder()
+        Router router = new RouterDsl()
                 .GET("/:say/:to/:extra").routeTo((say, to, extra) -> Results.ok(say + " " + to + extra))
                 .build();
 
@@ -67,7 +67,7 @@ public class RouterBuilderTest {
 
     @Test
     public void noParametersAsync() {
-        Router router = new RouterBuilder()
+        Router router = new RouterDsl()
                 .GET("/hello/world").routeAsync(() -> F.Promise.pure(Results.ok("Hello world")))
                 .build();
 
@@ -77,7 +77,7 @@ public class RouterBuilderTest {
 
     @Test
     public void oneParameterAsync() {
-        Router router = new RouterBuilder()
+        Router router = new RouterDsl()
                 .GET("/hello/:to").routeAsync(to -> F.Promise.pure(Results.ok("Hello " + to)))
                 .build();
 
@@ -87,7 +87,7 @@ public class RouterBuilderTest {
 
     @Test
     public void twoParametersAsync() {
-        Router router = new RouterBuilder()
+        Router router = new RouterDsl()
                 .GET("/:say/:to").routeAsync((say, to) -> F.Promise.pure(Results.ok(say + " " + to)))
                 .build();
 
@@ -97,7 +97,7 @@ public class RouterBuilderTest {
 
     @Test
     public void threeParametersAsync() {
-        Router router = new RouterBuilder()
+        Router router = new RouterDsl()
                 .GET("/:say/:to/:extra").routeAsync((say, to, extra) -> F.Promise.pure(Results.ok(say + " " + to + extra)))
                 .build();
 
@@ -107,7 +107,7 @@ public class RouterBuilderTest {
 
     @Test
     public void get() {
-        Router router = new RouterBuilder()
+        Router router = new RouterDsl()
                 .GET("/hello/world").routeTo(() -> Results.ok("Hello world"))
                 .build();
 
@@ -117,7 +117,7 @@ public class RouterBuilderTest {
 
     @Test
     public void head() {
-        Router router = new RouterBuilder()
+        Router router = new RouterDsl()
                 .HEAD("/hello/world").routeTo(() -> Results.ok("Hello world"))
                 .build();
 
@@ -127,7 +127,7 @@ public class RouterBuilderTest {
 
     @Test
     public void post() {
-        Router router = new RouterBuilder()
+        Router router = new RouterDsl()
                 .POST("/hello/world").routeTo(() -> Results.ok("Hello world"))
                 .build();
 
@@ -137,7 +137,7 @@ public class RouterBuilderTest {
 
     @Test
     public void put() {
-        Router router = new RouterBuilder()
+        Router router = new RouterDsl()
                 .PUT("/hello/world").routeTo(() -> Results.ok("Hello world"))
                 .build();
 
@@ -147,7 +147,7 @@ public class RouterBuilderTest {
 
     @Test
     public void delete() {
-        Router router = new RouterBuilder()
+        Router router = new RouterDsl()
                 .DELETE("/hello/world").routeTo(() -> Results.ok("Hello world"))
                 .build();
 
@@ -157,7 +157,7 @@ public class RouterBuilderTest {
 
     @Test
     public void patch() {
-        Router router = new RouterBuilder()
+        Router router = new RouterDsl()
                 .PATCH("/hello/world").routeTo(() -> Results.ok("Hello world"))
                 .build();
 
@@ -167,7 +167,7 @@ public class RouterBuilderTest {
 
     @Test
     public void options() {
-        Router router = new RouterBuilder()
+        Router router = new RouterDsl()
                 .OPTIONS("/hello/world").routeTo(() -> Results.ok("Hello world"))
                 .build();
 
@@ -177,7 +177,7 @@ public class RouterBuilderTest {
 
     @Test
     public void starMatcher() {
-        Router router = new RouterBuilder()
+        Router router = new RouterDsl()
                 .GET("/hello/*to").routeTo((to) -> Results.ok("Hello " + to))
                 .build();
 
@@ -187,7 +187,7 @@ public class RouterBuilderTest {
 
     @Test
     public void regexMatcher() {
-        Router router = new RouterBuilder()
+        Router router = new RouterDsl()
                 .GET("/hello/$to<[a-z]+>").routeTo((to) -> Results.ok("Hello " + to))
                 .build();
 
@@ -197,7 +197,7 @@ public class RouterBuilderTest {
     
     @Test
     public void multipleRoutes() {
-        Router router = new RouterBuilder()
+        Router router = new RouterDsl()
                 .GET("/hello/:to").routeTo((to) -> Results.ok("Hello " + to))
                 .GET("/foo/bar").routeTo(() -> Results.ok("foo bar"))
                 .POST("/hello/:to").routeTo((to) -> Results.ok("Post " + to))
@@ -212,7 +212,7 @@ public class RouterBuilderTest {
 
     @Test
     public void encoding() {
-        Router router = new RouterBuilder()
+        Router router = new RouterDsl()
                 .GET("/simple/:to").routeTo((to) -> Results.ok("Simple " + to))
                 .GET("/path/*to").routeTo((to) -> Results.ok("Path " + to))
                 .GET("/regex/$to<.*>").routeTo((to) -> Results.ok("Regex " + to))
@@ -225,7 +225,7 @@ public class RouterBuilderTest {
 
     @Test
     public void typed() {
-        Router router = new RouterBuilder()
+        Router router = new RouterDsl()
                 .GET("/:a/:b/:c").routeTo((Integer a, Boolean b, String c) ->
                         Results.ok("int " + a + " boolean " + b + " string " + c))
                 .build();
@@ -235,17 +235,17 @@ public class RouterBuilderTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void wrongNumberOfParameters() {
-        new RouterBuilder().GET("/:a/:b").routeTo(foo -> Results.ok(foo.toString()));
+        new RouterDsl().GET("/:a/:b").routeTo(foo -> Results.ok(foo.toString()));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void badParameterType() {
-        new RouterBuilder().GET("/:a").routeTo((InputStream is) -> Results.ok());
+        new RouterDsl().GET("/:a").routeTo((InputStream is) -> Results.ok());
     }
 
     @Test
     public void bindError() {
-        Router router = new RouterBuilder()
+        Router router = new RouterDsl()
                 .GET("/:a").routeTo((Integer a) -> Results.ok("int " + a))
                 .build();
 
@@ -255,7 +255,7 @@ public class RouterBuilderTest {
 
     @Test
     public void customPathBindable() {
-        Router router = new RouterBuilder()
+        Router router = new RouterDsl()
                 .GET("/:a").routeTo((MyString myString) -> Results.ok(myString.value))
                 .build();
 

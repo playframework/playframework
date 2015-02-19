@@ -8,14 +8,6 @@ import java.net.{ URL, URI }
 import org.specs2.mutable.Specification
 import play.core.test.FakeRequest
 
-object Id {
-  def unapply(s: String) = try {
-    Some(s.toLong)
-  } catch {
-    case e: NumberFormatException => None
-  }
-}
-
 object PathContextSpec extends Specification {
 
   "path interpolation" should {
@@ -94,12 +86,12 @@ object PathContextSpec extends Specification {
     "match a path with a nested extractor" in {
       "match" in {
         "/foo/1234/bar" must beLike {
-          case p"/foo/${ Id(id) }/bar" => id must_== 1234l
+          case p"/foo/${ int(id) }/bar" => id must_== 1234l
         }
       }
       "no match" in {
         "/foo/testing/bar" must beLike {
-          case p"/foo/${ Id(id) }/bar" => ko
+          case p"/foo/${ int(id) }/bar" => ko
           case _ => ok
         }
       }

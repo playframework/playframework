@@ -22,9 +22,48 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
- * Builder for a router.
+ * A DSL for building a router.
+ *
+ * This DSL matches requests based on method and a path pattern, and is able to extract up to three parameters out of
+ * the path pattern to pass into lambdas.
+ *
+ * The passed in lambdas may optionally declare the types of the input parameters.  If they don't, the JVM will infer
+ * a type of Object, but the parameters themselves are passed in as Strings.  Supported types are java.lang.Integer,
+ * java.lang.Long, java.lang.Float, java.lang.Double, java.lang.Boolean, and any class that extends
+ * play.mvc.PathBindable.  The router will attempt to decode parameters using a PathBindable for each of those types,
+ * if it fails it will return a 400 error.
+ *
+ * Example usage:
+ *
+ * <pre>
+ * import play.mvc.*;
+ * import play.routing.*;
+ * import play.libs.json.*;
+ * import play.api.routing.Router;
+ *
+ * public class MyRouterBuilder extends Controller {
+ *
+ *   public Router getRouter() {
+ *     return new RouterDsl()
+ *
+ *       .GET("/hello/:to").routeTo(to -&gt; ok("Hello " + to))
+ *
+ *       .POST("/api/items/:id").routeAsync((Integer id) -&gt; {
+ *         return Items.save(id,
+ *           Json.fromJson(request().body().asJson(), Item.class)
+ *         ).map(result -&gt; ok("Saved item with id " + id));
+ *       })
+ *
+ *       .build();
+ *   }
+ * }
+ * </pre>
+ *
+ * The path pattern supports three different types of parameters, path segment parameters, prefixed with :, full path
+ * parameters, prefixed with *, and regular expression parameters, prefixed with $ and post fixed with a regular
+ * expression in angled braces.
  */
-public class RouterBuilder {
+public class RouterDsl {
 
     final List<Route> routes = new ArrayList<>();
 
@@ -34,8 +73,8 @@ public class RouterBuilder {
      * @param pathPattern The path pattern.
      * @return A GET route matcher.
      */
-    public RouteMatcher GET(String pathPattern) {
-        return new RouteMatcher("GET", pathPattern);
+    public PathPatternMatcher GET(String pathPattern) {
+        return new PathPatternMatcher("GET", pathPattern);
     }
 
     /**
@@ -44,8 +83,8 @@ public class RouterBuilder {
      * @param pathPattern The path pattern.
      * @return A HEAD route matcher.
      */
-    public RouteMatcher HEAD(String pathPattern) {
-        return new RouteMatcher("HEAD", pathPattern);
+    public PathPatternMatcher HEAD(String pathPattern) {
+        return new PathPatternMatcher("HEAD", pathPattern);
     }
 
     /**
@@ -54,8 +93,8 @@ public class RouterBuilder {
      * @param pathPattern The path pattern.
      * @return A POST route matcher.
      */
-    public RouteMatcher POST(String pathPattern) {
-        return new RouteMatcher("POST", pathPattern);
+    public PathPatternMatcher POST(String pathPattern) {
+        return new PathPatternMatcher("POST", pathPattern);
     }
 
     /**
@@ -64,8 +103,8 @@ public class RouterBuilder {
      * @param pathPattern The path pattern.
      * @return A PUT route matcher.
      */
-    public RouteMatcher PUT(String pathPattern) {
-        return new RouteMatcher("PUT", pathPattern);
+    public PathPatternMatcher PUT(String pathPattern) {
+        return new PathPatternMatcher("PUT", pathPattern);
     }
 
     /**
@@ -74,8 +113,8 @@ public class RouterBuilder {
      * @param pathPattern The path pattern.
      * @return A DELETE route matcher.
      */
-    public RouteMatcher DELETE(String pathPattern) {
-        return new RouteMatcher("DELETE", pathPattern);
+    public PathPatternMatcher DELETE(String pathPattern) {
+        return new PathPatternMatcher("DELETE", pathPattern);
     }
 
     /**
@@ -84,8 +123,8 @@ public class RouterBuilder {
      * @param pathPattern The path pattern.
      * @return A PATCH route matcher.
      */
-    public RouteMatcher PATCH(String pathPattern) {
-        return new RouteMatcher("PATCH", pathPattern);
+    public PathPatternMatcher PATCH(String pathPattern) {
+        return new PathPatternMatcher("PATCH", pathPattern);
     }
 
     /**
@@ -94,8 +133,8 @@ public class RouterBuilder {
      * @param pathPattern The path pattern.
      * @return A OPTIONS route matcher.
      */
-    public RouteMatcher OPTIONS(String pathPattern) {
-        return new RouteMatcher("OPTIONS", pathPattern);
+    public PathPatternMatcher OPTIONS(String pathPattern) {
+        return new PathPatternMatcher("OPTIONS", pathPattern);
     }
 
     /**
@@ -105,8 +144,8 @@ public class RouterBuilder {
      * @param pathPattern The path pattern.
      * @return A route matcher.
      */
-    public RouteMatcher match(String method, String pathPattern) {
-        return new RouteMatcher(method, pathPattern);
+    public PathPatternMatcher match(String method, String pathPattern) {
+        return new PathPatternMatcher(method, pathPattern);
     }
 
     /**
@@ -118,7 +157,7 @@ public class RouterBuilder {
         return RouterBuilderHelper.build(this);
     }
 
-    private RouterBuilder with(String method, String pathPattern, int arity, Object action, Class<?> actionFunction) {
+    private RouterDsl with(String method, String pathPattern, int arity, Object action, Class<?> actionFunction) {
 
         // Parse the pattern
         Matcher matcher = paramExtractor.matcher(pathPattern);
@@ -229,9 +268,9 @@ public class RouterBuilder {
     /**
      * A matcher for routes.
      */
-    public class RouteMatcher {
+    public class PathPatternMatcher {
 
-        public RouteMatcher(String method, String pathPattern) {
+        public PathPatternMatcher(String method, String pathPattern) {
             this.method = method;
             this.pathPattern = pathPattern;
         }
@@ -245,7 +284,7 @@ public class RouterBuilder {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public RouterBuilder routeTo(F.Function0<Result> action) {
+        public RouterDsl routeTo(F.Function0<Result> action) {
             return build(0, action, F.Function0.class);
         }
 
@@ -255,7 +294,7 @@ public class RouterBuilder {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public <A1> RouterBuilder routeTo(F.Function<A1, Result> action) {
+        public <A1> RouterDsl routeTo(F.Function<A1, Result> action) {
             return build(1, action, F.Function.class);
         }
 
@@ -265,7 +304,7 @@ public class RouterBuilder {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public <A1, A2> RouterBuilder routeTo(F.Function2<A1, A2, Result> action) {
+        public <A1, A2> RouterDsl routeTo(F.Function2<A1, A2, Result> action) {
             return build(2, action, F.Function2.class);
         }
 
@@ -275,7 +314,7 @@ public class RouterBuilder {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public <A1, A2, A3> RouterBuilder routeTo(F.Function3<A1, A2, A3, Result> action) {
+        public <A1, A2, A3> RouterDsl routeTo(F.Function3<A1, A2, A3, Result> action) {
             return build(3, action, F.Function3.class);
         }
 
@@ -285,7 +324,7 @@ public class RouterBuilder {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public RouterBuilder routeAsync(F.Function0<F.Promise<Result>> action) {
+        public RouterDsl routeAsync(F.Function0<F.Promise<Result>> action) {
             return build(0, action, F.Function0.class);
         }
 
@@ -295,7 +334,7 @@ public class RouterBuilder {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public <A1> RouterBuilder routeAsync(F.Function<A1, F.Promise<Result>> action) {
+        public <A1> RouterDsl routeAsync(F.Function<A1, F.Promise<Result>> action) {
             return build(1, action, F.Function.class);
         }
 
@@ -305,7 +344,7 @@ public class RouterBuilder {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public <A1, A2> RouterBuilder routeAsync(F.Function2<A1, A2, F.Promise<Result>> action) {
+        public <A1, A2> RouterDsl routeAsync(F.Function2<A1, A2, F.Promise<Result>> action) {
             return build(2, action, F.Function2.class);
         }
 
@@ -315,11 +354,11 @@ public class RouterBuilder {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public <A1, A2, A3> RouterBuilder routeAsync(F.Function3<A1, A2, A3, F.Promise<Result>> action) {
+        public <A1, A2, A3> RouterDsl routeAsync(F.Function3<A1, A2, A3, F.Promise<Result>> action) {
             return build(3, action, F.Function3.class);
         }
 
-        private <T> RouterBuilder build(int arity, Object action, Class<?> actionFunction) {
+        private <T> RouterDsl build(int arity, Object action, Class<?> actionFunction) {
             return with(method, pathPattern, arity, action, actionFunction);
         }
     }

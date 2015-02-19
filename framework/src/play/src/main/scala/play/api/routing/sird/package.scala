@@ -3,76 +3,46 @@
  */
 package play.api.routing
 
-import java.net.{ URL, URI }
-import java.util.regex.Pattern
-
-import play.api.mvc.RequestHeader
-import play.utils.UriEncoding
-
-import scala.collection.concurrent.TrieMap
-import scala.util.matching.Regex
-
 /**
- * The Play "String Interpolating Router DSL", sird for short.
+ * The Play "String Interpolating Routing DSL", sird for short.
+ *
+ * This provides:
+ * - Extractors for requests that extract requests by method, eg GET, POST etc.
+ * - A string interpolating path extractor
+ * - Extractors for binding parameters from paths to various types, eg int, long, double, bool.
+ *
+ * The request method extractors return the original request for further extraction.
+ *
+ * The path extractor supports three kinds of extracted values:
+ * - Path segment values. This is the default, eg `p"/foo/$id"`. The value will be URI decoded, and may not traverse /'s.
+ * - Full path values. This can be indicated by post fixing the value with a *, eg `p"/assets/$path*"`. The value will
+ *   not be URI decoded, as that will make it impossible to distinguish between / and %2F.
+ * - Regex values. This can be indicated by post fixing the value with a regular expression enclosed in angle brackets.
+ *   For example, `p"/foo/$id<[0-9]+>`. The value will not be URI decoded.
+ *
+ * The extractors for primitive types are merely provided for convenience, for example, `p"/foo/${int(id)}"` will
+ * extract `id` as an integer.  If `id` is not an integer, the match will simply fail.
  *
  * Example usage:
  *
  * {{{
- *   import play.api.routing.sird._
+ *  import play.api.routing.sird._
+ *  import play.api.routing._
+ *  import play.api.mvc._
  *
- *
+ *  Router.from {
+ *    case GET(p"/hello/$to") => Action {
+ *      Results.Ok(s"Hello $to")
+ *    }
+ *    case PUT(p"/api/items/${int(id)}") => Action.async { req =>
+ *      Items.save(id, req.body.json.as[Item]).map { _ =>
+ *        Results.Ok(s"Saved item $id")
+ *      }
+ *    }
+ *  }
  * }}}
  */
-package object sird {
-
-  // Memoizes all the routes, so that the route doesn't have to be parsed, and the resulting regex compiled,
-  // on each invocation.
-  // There is a possible memory leak here, especially if RouteContext is instantiated dynamically. But,
-  // under normal usage, there will only be as many entries in this cache as there are usages of this
-  // string interpolator in code - even in a very dynamic classloading environment with many different
-  // strings being interpolated, the chances of this cache every causing an out of memory error are very
-  // low.
-  private val pathContextCache = TrieMap.empty[StringContext, PathExtractor]
-
-  /**
-   * A path part descriptor. Describes whether the path part should be decoded, or left as is.
-   */
-  private object PathPart extends Enumeration {
-    val Decoded, Raw = Value
-  }
-
-  /**
-   * The path extractor.
-   *
-   * Supported data types that can be extracted from:
-   *   - play.api.mvc.RequestHeader
-   *   - String
-   *   - java.net.URI
-   *   - java.net.URL
-   *
-   * @param regex The regex that is used to extract the raw parts.
-   * @param partDescriptors Descriptors saying whether each part should be decoded or not.
-   */
-  class PathExtractor(regex: Regex, partDescriptors: Seq[PathPart.Value]) {
-    def unapplySeq(obj: Any): Option[List[String]] = {
-      obj match {
-        case path: String => extract(path)
-        case request: RequestHeader => extract(request.path)
-        case uri: URI if uri.getRawPath != null => extract(uri.getRawPath)
-        case url: URL if url.getPath != null => extract(url.getPath)
-        case _ => None
-      }
-    }
-
-    private def extract(path: String): Option[List[String]] = {
-      regex.unapplySeq(path).map { parts =>
-        parts.zip(partDescriptors).map {
-          case (part, PathPart.Decoded) => UriEncoding.decodePathSegment(part, "utf-8")
-          case (part, PathPart.Raw) => part
-        }
-      }
-    }
-  }
+package object sird extends RequestMethodExtractors with PathBindableExtractors {
 
   /**
    * String interpolator for extracting parameters out of URL paths.
@@ -83,72 +53,6 @@ package object sird {
    * suffixing the sub value with a regular expression in angled brackets, and these are not decoded.
    */
   implicit class PathContext(sc: StringContext) {
-    val p: PathExtractor = pathContextCache.getOrElseUpdate(sc, {
-
-      // "parse" the path
-      val (regexParts, descs) = sc.parts.tail.map { part =>
-
-        if (part.startsWith("*")) {
-          // It's a .* matcher
-          "(.*)" + Pattern.quote(part.drop(1)) -> PathPart.Raw
-
-        } else if (part.startsWith("<") && part.contains(">")) {
-          // It's a regex matcher
-          val splitted = part.split(">", 2)
-          val regex = splitted(0).drop(1)
-          "(" + regex + ")" + Pattern.quote(splitted(1)) -> PathPart.Raw
-
-        } else {
-          // It's an ordinary path part matcher
-          "([^/]*)" + Pattern.quote(part) -> PathPart.Decoded
-        }
-      }.unzip
-
-      new PathExtractor(regexParts.mkString(Pattern.quote(sc.parts.head), "", "/?").r, descs)
-    })
+    val p: PathExtractor = PathExtractor.cached(sc.parts)
   }
-
-  /**
-   * An extractor that extracts requests by method.
-   */
-  class RequestMethodExtractor private[sird] (method: String) {
-    def unapply(request: RequestHeader): Option[RequestHeader] =
-      Some(request).filter(_.method.equalsIgnoreCase(method))
-  }
-
-  /**
-   * Extracts a GET request.
-   */
-  val GET = new RequestMethodExtractor("GET")
-
-  /**
-   * Extracts a POST request.
-   */
-  val POST = new RequestMethodExtractor("POST")
-
-  /**
-   * Extracts a PUT request.
-   */
-  val PUT = new RequestMethodExtractor("PUT")
-
-  /**
-   * Extracts a DELETE request.
-   */
-  val DELETE = new RequestMethodExtractor("DELETE")
-
-  /**
-   * Extracts a PATCH request.
-   */
-  val PATCH = new RequestMethodExtractor("PATCH")
-
-  /**
-   * Extracts an OPTIONS request.
-   */
-  val OPTIONS = new RequestMethodExtractor("OPTIONS")
-
-  /**
-   * Extracts a HEAD request.
-   */
-  val HEAD = new RequestMethodExtractor("HEAD")
-
 }

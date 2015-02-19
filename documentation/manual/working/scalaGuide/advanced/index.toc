@@ -3,3 +3,4 @@ http:HTTP architecture
 dependencyinjection:Dependency injection
 routing:Reverse routing
 extending:Extending Play
+embedding:Embedding Play
