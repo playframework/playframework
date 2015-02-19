@@ -145,22 +145,14 @@ object JsonValidSpec extends Specification {
 
       // very poor test to do really crappy java date APIs
       // TODO ISO8601 test doesn't work on CI platform...
-      /*val c = java.util.Calendar.getInstance()
+      val c = java.util.Calendar.getInstance()
       c.setTime(new java.util.Date(d.getTime - d.getTime % 1000))
-      val tz = c.getTimeZone().getOffset(c.getTime.getTime).toInt / 3600000
-      val js = JsString(
-        "%04d-%02d-%02dT%02d:%02d:%02d%s%02d:00".format(
-          c.get(java.util.Calendar.YEAR),
-          c.get(java.util.Calendar.MONTH) + 1,
-          c.get(java.util.Calendar.DAY_OF_MONTH),
-          c.get(java.util.Calendar.HOUR_OF_DAY),
-          c.get(java.util.Calendar.MINUTE),
-          c.get(java.util.Calendar.SECOND),
-          if(tz>0) "+" else "-",
-          tz
-        )
-      )
-      js.validate[java.util.Date](Reads.IsoDateReads) must beEqualTo(JsSuccess(c.getTime))*/
+      val js = {
+        val fmt = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+        JsString(fmt format c.getTime)
+      }
+      js.validate[java.util.Date](Reads.IsoDateReads).
+        aka("formatted date") must beEqualTo(JsSuccess(c.getTime))
     }
 
     "validate UUID" in {
