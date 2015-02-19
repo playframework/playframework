@@ -24,6 +24,10 @@ public class MessagesApi {
 
     private final play.api.i18n.MessagesApi messages;
 
+    public play.api.i18n.MessagesApi scalaApi() {
+        return messages;
+    }
+
     @Inject
     public MessagesApi(play.api.i18n.MessagesApi messages) {
         this.messages = messages;

@@ -9,30 +9,30 @@ import scala.collection.JavaConverters._
  */
 package views.html.helper {
 
-  case class FieldElements(id: String, field: play.api.data.Field, input: Html, args: Map[Symbol, Any], lang: play.api.i18n.Lang) {
+  case class FieldElements(id: String, field: play.api.data.Field, input: Html, args: Map[Symbol, Any], messages: play.api.i18n.Messages) {
 
-    def infos(implicit lang: play.api.i18n.Lang): Seq[String] = {
+    def infos: Seq[String] = {
       args.get('_help).map(m => Seq(m.toString)).getOrElse {
         (if (args.get('_showConstraints) match {
           case Some(false) => false
           case _ => true
         }) {
-          field.constraints.map(c => play.api.i18n.Messages(c._1, c._2: _*)) ++
-            field.format.map(f => play.api.i18n.Messages(f._1, f._2: _*))
+          field.constraints.map(c => messages(c._1, c._2: _*)) ++
+            field.format.map(f => messages(f._1, f._2: _*))
         } else Nil)
       }
     }
 
-    def errors(implicit lang: play.api.i18n.Lang): Seq[String] = {
+    def errors: Seq[String] = {
       (args.get('_error) match {
-        case Some(Some(play.api.data.FormError(_, message, args))) => Some(Seq(play.api.i18n.Messages(message, args: _*)))
+        case Some(Some(play.api.data.FormError(_, message, args))) => Some(Seq(messages(message, args: _*)))
         case _ => None
       }).getOrElse {
         (if (args.get('_showErrors) match {
           case Some(false) => false
           case _ => true
         }) {
-          field.errors.map(e => play.api.i18n.Messages(e.message, e.args: _*))
+          field.errors.map(e => messages(e.message, e.args: _*))
         } else Nil)
       }
     }
@@ -41,14 +41,14 @@ package views.html.helper {
       !errors.isEmpty
     }
 
-    def label(implicit lang: play.api.i18n.Lang): Any = {
-      args.get('_label).getOrElse(play.api.i18n.Messages(field.label))
+    def label: Any = {
+      args.get('_label).getOrElse(messages(field.label))
     }
 
     def hasName: Boolean = args.get('_name).isDefined
 
-    def name(implicit lang: play.api.i18n.Lang): Any = {
-      args.get('_name).getOrElse(play.api.i18n.Messages(field.label))
+    def name: Any = {
+      args.get('_name).getOrElse(messages(field.label))
     }
 
   }

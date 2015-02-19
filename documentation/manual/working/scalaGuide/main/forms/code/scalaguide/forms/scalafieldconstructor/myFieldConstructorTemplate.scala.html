@@ -2,11 +2,11 @@
 @(elements: helper.FieldElements)
 
 <div class="@if(elements.hasErrors) {error}">
-    <label for="@elements.id">@elements.label(elements.lang)</label>
+    <label for="@elements.id">@elements.label</label>
     <div class="input">
         @elements.input
-        <span class="errors">@elements.errors(elements.lang).mkString(", ")</span>
-        <span class="help">@elements.infos(elements.lang).mkString(", ")</span>
+        <span class="errors">@elements.errors.mkString(", ")</span>
+        <span class="help">@elements.infos.mkString(", ")</span>
     </div>
 </div>
 @* #form-myfield *@

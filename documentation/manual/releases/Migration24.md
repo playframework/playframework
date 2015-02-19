@@ -316,3 +316,36 @@ libraryDependencies += specs2 % Test
 ## HTTP server configuration
 
 Advanced Netty configuration options, that is, options prefixed with `http.netty.option`, must now use the prefix `play.server.netty.option` instead.
+
+## I18n
+
+### Scala
+
+You now need to have an implicit [`Messages`](api/scala/index.html#play.api.i18n.Messages) value instead of just `Lang` in order to use the i18n API. The `Messages` type aggregates a `Lang` and a [`MessagesApi`](api/scala/index.html#play.api.i18n.MessagesApi).
+
+This means that you should change your templates to take an implicit `Messages` parameter instead of `Lang`:
+
+```scala
+@(form: Form[Login])(implicit messages: Messages)
+...
+```
+
+From you controllers you can get such an implicit `Messages` value by mixing the [`play.api.i18n.I18nSupport`](api/scala/index.html#play.api.i18n.I18nSupport) trait in your controller that gives you an implicit `Messages` value as long as there is a `RequestHeader` value in the implicit scope. The `I18nSupport` trait has an abstract member `def messagesApi: MessagesApi` so your code will typically look like the following:
+
+```scala
+class MyController(val messagesApi: MessagesApi) extends I18nSupport {
+  // ...
+}
+```
+
+A simpler migration path is also supported if you want your controller to be still an `object` instead of a `class` or don’t want to use the `I18nSupport` trait. Just add the following import:
+
+```scala
+import play.api.i18n.Messages.Implicits._
+```
+
+This import brings you an implicit `Messages` value as long as there are a `Lang` and an `Application` in the implicit scope (thankfully controllers already provide the `Lang` and you can get the currently running application by importing `play.api.Play.current`).
+
+### Java
+
+The API should be backward compatible with your code using Play 2.3 so there is no migration step. Nevertheless, note that you have to start your Play application before using the Java i18n API. That should always be the case when you run your project, however your test code may not always start your application. Please refer to the corresponding [[documentation page|JavaTest]] to know how to start your application before running your tests.

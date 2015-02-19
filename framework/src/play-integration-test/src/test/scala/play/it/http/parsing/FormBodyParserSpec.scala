@@ -36,6 +36,7 @@ class FormBodyParserSpec extends PlaySpecification {
     }
 
     "allow users to override the error reporting behaviour" in new WithApplication() {
+      import play.api.i18n.Messages.Implicits.applicationMessages
       parse(Json.obj("age" -> "Alice"), BodyParsers.parse.form(userForm, onErrors = (form: Form[User]) => Results.BadRequest(form.errorsAsJson))) must beLeft.which { result =>
         result.header.status must equalTo(BAD_REQUEST)
         val json = contentAsJson(Future.successful(result))

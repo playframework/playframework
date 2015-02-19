@@ -10,7 +10,7 @@
  * @param args Set of extra attributes.
  * @param handler The field constructor.
  *@
-@(field: play.api.data.Field, args: (Symbol,Any)*)(implicit handler: FieldConstructor, lang: play.api.i18n.Lang)
+@(field: play.api.data.Field, args: (Symbol,Any)*)(implicit handler: FieldConstructor, messages: play.api.i18n.Messages)
 
 @input(field, args:_*) { (id, name, value, htmlArgs) =>
     <textarea id="@id" name="@name" @toHtmlArgs(htmlArgs)>@value</textarea>

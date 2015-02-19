@@ -23,9 +23,6 @@ import java.util.Locale;
 public class Messages {
 
     // All these methods below will be removed once we get rid of the global state
-
-    private static final Messages$ scalaMessages = Messages$.MODULE$;
-
     private static Lang getLang(){
         Lang lang = null;
         if(play.mvc.Http.Context.current.get() != null) {
@@ -35,6 +32,10 @@ public class Messages {
             lang = new Lang(new play.api.i18n.Lang(defaultLocale.getLanguage(), defaultLocale.getCountry()));
         }
         return lang;
+    }
+
+    private static MessagesApi getMessagesApi() {
+        return play.Play.application().injector().instanceOf(MessagesApi.class);
     }
 
     /**
@@ -78,8 +79,7 @@ public class Messages {
     * @return the formatted message or a default rendering if the key wasn't defined
     */
     public static String get(Lang lang, String key, Object... args) {
-        Buffer<Object> scalaArgs = convertArgsToScalaBuffer(args);
-        return scalaMessages.apply(key, scalaArgs, lang);
+        return getMessagesApi().get(lang, key, args);
     }
 
     /**
@@ -93,9 +93,7 @@ public class Messages {
     * @return the formatted message or a default rendering if the key wasn't defined
     */
     public static String get(Lang lang, List<String> keys, Object... args) {
-        Buffer<String> keyArgs = scala.collection.JavaConverters.asScalaBufferConverter(keys).asScala();
-        Buffer<Object> scalaArgs = convertArgsToScalaBuffer(args);
-        return scalaMessages.apply(keyArgs.toSeq(), scalaArgs, lang);
+        return getMessagesApi().get(lang, keys, args);
     }
 
     /**
@@ -108,8 +106,7 @@ public class Messages {
     * @return the formatted message or a default rendering if the key wasn't defined
     */
     public static String get(String key, Object... args) {
-        Buffer<Object> scalaArgs = convertArgsToScalaBuffer(args);
-        return scalaMessages.apply(key, scalaArgs, getLang());
+        return getMessagesApi().get(getLang(), key, args);
     }
 
     /**
@@ -122,9 +119,7 @@ public class Messages {
     * @return the formatted message or a default rendering if the key wasn't defined
     */
     public static String get(List<String> keys, Object... args) {
-        Buffer<String> keyArgs = scala.collection.JavaConverters.asScalaBufferConverter(keys).asScala();
-        Buffer<Object> scalaArgs = convertArgsToScalaBuffer(args);
-        return scalaMessages.apply(keyArgs.toSeq(), scalaArgs, getLang());
+        return getMessagesApi().get(getLang(), keys, args);
     }
 
     /**
@@ -134,7 +129,7 @@ public class Messages {
     * @return a Boolean
     */
     public static Boolean isDefined(Lang lang, String key) {
-        return scalaMessages.isDefinedAt(key, lang);
+        return getMessagesApi().isDefinedAt(lang, key);
     }
 
     /**
@@ -143,7 +138,7 @@ public class Messages {
     * @return a Boolean
     */
     public static Boolean isDefined(String key) {
-        return scalaMessages.isDefinedAt(key, getLang());
+        return getMessagesApi().isDefinedAt(getLang(), key);
     }
 
     // All these methods are the new API
@@ -160,6 +155,13 @@ public class Messages {
      */
     public Lang lang() {
         return lang;
+    }
+
+    /**
+     * @return The underlying API
+     */
+    public MessagesApi messagesApi() {
+        return messages;
     }
 
     /**

@@ -3,8 +3,6 @@
  */
 package play.core.j
 
-import play.api.mvc._
-
 import scala.util.control.NonFatal
 
 /** Defines a magic helper for Play templates in a Java context. */
@@ -59,5 +57,13 @@ object PlayMagicForJava {
   implicit def requestHeader: play.api.mvc.RequestHeader = {
     play.mvc.Http.Context.Implicit.ctx._requestHeader
   }
+
+  implicit def implicitJavaMessages: play.api.i18n.Messages =
+    try {
+      val jmessages = play.mvc.Http.Context.current().messages()
+      play.api.i18n.Messages(jmessages.lang(), jmessages.messagesApi().scalaApi())
+    } catch {
+      case NonFatal(_) => play.api.i18n.Messages(play.api.i18n.Lang.defaultLang, play.api.i18n.Messages.messagesApiCache(play.api.Play.current))
+    }
 
 }

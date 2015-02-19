@@ -3,9 +3,8 @@
  */
 package play.api.mvc
 
-import play.api.http._
-import play.api.i18n.{ Messages, Lang }
-import play.api.Play
+import play.api.http.{ ContentTypes, HeaderNames, HttpProtocol, Status }
+import play.api.i18n.Lang
 
 /**
  * Defines utility methods to generate `Action` and `Results` types.
@@ -46,7 +45,7 @@ trait Controller extends Results with BodyParsers with HttpProtocol with Status 
    * }
    * }}}
    */
-  implicit def request2session(implicit request: RequestHeader) = request.session
+  implicit def request2session(implicit request: RequestHeader): Session = request.session
 
   /**
    * Retrieve the flash scope implicitly from the request.
@@ -59,10 +58,10 @@ trait Controller extends Results with BodyParsers with HttpProtocol with Status 
    * }
    * }}}
    */
-  implicit def request2flash(implicit request: RequestHeader) = request.flash
+  implicit def request2flash(implicit request: RequestHeader): Flash = request.flash
 
-  implicit def request2lang(implicit request: RequestHeader) = {
-    Messages.messagesApi.map(_.preferred(request).lang)
+  implicit def request2lang(implicit request: RequestHeader): Lang = {
+    play.api.Play.maybeApplication.map(app => play.api.i18n.Messages.messagesApiCache(app).preferred(request).lang)
       .getOrElse(request.acceptLanguages.headOption.getOrElse(play.api.i18n.Lang.defaultLang))
   }
 
