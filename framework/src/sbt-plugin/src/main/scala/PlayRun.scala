@@ -237,4 +237,21 @@ trait PlayRun extends PlayInternalKeys {
 
   }
 
+  val playStopCommand = Command.args("stop", "") { (state: State, args: Seq[String]) =>
+
+    val extracted = Project.extract(state)
+
+    val pidFile = extracted.get(stagingDirectory in Universal) / "RUNNING_PID"
+    if (!pidFile.exists) {
+      println("No PID file found. Are you sure the app is running?")
+    } else {
+      val pid = IO.read(pidFile)
+      s"kill $pid".!
+      // PID file will be deleted by a shutdown hook attached on start in ServerStart.scala
+      println(s"Stopped application with process ID $pid")
+    }
+    println()
+
+    state.copy(remainingCommands = Seq.empty)
+  }
 }
