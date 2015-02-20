@@ -3,6 +3,7 @@
  */
 package play.core.server
 
+import com.typesafe.config.ConfigFactory
 import play.api.http.{ Port, DefaultHttpErrorHandler }
 import play.api.routing.Router
 
@@ -146,7 +147,7 @@ private[play] object JavaServerHelper {
     val r = router
     val application = new BuiltInComponentsFromContext(ApplicationLoader.Context(
       Environment.simple(mode = mode),
-      None, new DefaultWebCommands(), Configuration.empty
+      None, new DefaultWebCommands(), Configuration(ConfigFactory.load())
     )) {
       def router = r
     }.application

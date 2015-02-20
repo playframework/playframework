@@ -63,7 +63,7 @@ import java.util.stream.StreamSupport;
  * parameters, prefixed with *, and regular expression parameters, prefixed with $ and post fixed with a regular
  * expression in angled braces.
  */
-public class RouterDsl {
+public class RoutingDsl {
 
     final List<Route> routes = new ArrayList<>();
 
@@ -157,7 +157,7 @@ public class RouterDsl {
         return RouterBuilderHelper.build(this);
     }
 
-    private RouterDsl with(String method, String pathPattern, int arity, Object action, Class<?> actionFunction) {
+    private RoutingDsl with(String method, String pathPattern, int arity, Object action, Class<?> actionFunction) {
 
         // Parse the pattern
         Matcher matcher = paramExtractor.matcher(pathPattern);
@@ -284,7 +284,7 @@ public class RouterDsl {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public RouterDsl routeTo(F.Function0<Result> action) {
+        public RoutingDsl routeTo(F.Function0<Result> action) {
             return build(0, action, F.Function0.class);
         }
 
@@ -294,7 +294,7 @@ public class RouterDsl {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public <A1> RouterDsl routeTo(F.Function<A1, Result> action) {
+        public <A1> RoutingDsl routeTo(F.Function<A1, Result> action) {
             return build(1, action, F.Function.class);
         }
 
@@ -304,7 +304,7 @@ public class RouterDsl {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public <A1, A2> RouterDsl routeTo(F.Function2<A1, A2, Result> action) {
+        public <A1, A2> RoutingDsl routeTo(F.Function2<A1, A2, Result> action) {
             return build(2, action, F.Function2.class);
         }
 
@@ -314,7 +314,7 @@ public class RouterDsl {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public <A1, A2, A3> RouterDsl routeTo(F.Function3<A1, A2, A3, Result> action) {
+        public <A1, A2, A3> RoutingDsl routeTo(F.Function3<A1, A2, A3, Result> action) {
             return build(3, action, F.Function3.class);
         }
 
@@ -324,7 +324,7 @@ public class RouterDsl {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public RouterDsl routeAsync(F.Function0<F.Promise<Result>> action) {
+        public RoutingDsl routeAsync(F.Function0<F.Promise<Result>> action) {
             return build(0, action, F.Function0.class);
         }
 
@@ -334,7 +334,7 @@ public class RouterDsl {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public <A1> RouterDsl routeAsync(F.Function<A1, F.Promise<Result>> action) {
+        public <A1> RoutingDsl routeAsync(F.Function<A1, F.Promise<Result>> action) {
             return build(1, action, F.Function.class);
         }
 
@@ -344,7 +344,7 @@ public class RouterDsl {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public <A1, A2> RouterDsl routeAsync(F.Function2<A1, A2, F.Promise<Result>> action) {
+        public <A1, A2> RoutingDsl routeAsync(F.Function2<A1, A2, F.Promise<Result>> action) {
             return build(2, action, F.Function2.class);
         }
 
@@ -354,11 +354,11 @@ public class RouterDsl {
          * @param action The action to execute.
          * @return This router builder.
          */
-        public <A1, A2, A3> RouterDsl routeAsync(F.Function3<A1, A2, A3, F.Promise<Result>> action) {
+        public <A1, A2, A3> RoutingDsl routeAsync(F.Function3<A1, A2, A3, F.Promise<Result>> action) {
             return build(3, action, F.Function3.class);
         }
 
-        private <T> RouterDsl build(int arity, Object action, Class<?> actionFunction) {
+        private <T> RoutingDsl build(int arity, Object action, Class<?> actionFunction) {
             return with(method, pathPattern, arity, action, actionFunction);
         }
     }

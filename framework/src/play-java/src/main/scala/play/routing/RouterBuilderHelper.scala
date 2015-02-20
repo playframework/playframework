@@ -16,7 +16,7 @@ import play.api.libs.iteratee.Execution.Implicits.trampoline
 import scala.concurrent.Future
 
 private[routing] object RouterBuilderHelper {
-  def build(router: RouterDsl): play.api.routing.Router = {
+  def build(router: RoutingDsl): play.api.routing.Router = {
     val routes = router.routes.toList
 
     // Create the router
