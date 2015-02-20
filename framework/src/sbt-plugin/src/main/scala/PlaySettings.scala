@@ -89,7 +89,7 @@ trait PlaySettings {
       (sources ** "*" --- assets ** "*").get
     },
 
-    commands ++= Seq(shCommand, playStartCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
+    commands ++= Seq(shCommand, playStartCommand, playStopCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
 
     // THE `in Compile` IS IMPORTANT!
     run in Compile <<= playDefaultRunTask,
