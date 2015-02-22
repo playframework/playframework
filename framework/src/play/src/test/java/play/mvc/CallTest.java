@@ -23,7 +23,8 @@ public final class CallTest {
         final TestCall call = new TestCall("/url", "GET");
 
         assertEquals("Absolute URL should have HTTP scheme",
-                     call.absoluteURL(req), "http://playframework.com/url");
+                     "http://playframework.com/url",
+                     call.absoluteURL(req));
     }
 
     @Test
@@ -35,21 +36,17 @@ public final class CallTest {
         final TestCall call = new TestCall("/url", "GET");
 
         assertEquals("Absolute URL should have HTTP scheme",
-                     call.absoluteURL(req, false),
-                     "http://playframework.com/url");
+                     "http://playframework.com/url",
+                     call.absoluteURL(req, false));
     }
 
     @Test
     public void testHttpAbsoluteURL3() throws Throwable {
-        final TestRequest req =
-            new TestRequest("GET", "playframework.com", "/playframework",
-                            true, "127.0.0.1", "/v", "/u");
-
         final TestCall call = new TestCall("/url", "GET");
 
         assertEquals("Absolute URL should have HTTP scheme",
-                     call.absoluteURL(false, "typesafe.com"),
-                     "http://typesafe.com/url");
+                     "http://typesafe.com/url",
+                     call.absoluteURL(false, "typesafe.com"));
     }
 
     @Test
@@ -61,7 +58,8 @@ public final class CallTest {
         final TestCall call = new TestCall("/url", "GET");
 
         assertEquals("Absolute URL should have HTTPS scheme",
-                     call.absoluteURL(req), "https://playframework.com/url");
+                     "https://playframework.com/url",
+                     call.absoluteURL(req));
     }
 
     @Test
@@ -73,21 +71,17 @@ public final class CallTest {
         final TestCall call = new TestCall("/url", "GET");
 
         assertEquals("Absolute URL should have HTTPS scheme",
-                     call.absoluteURL(req, true),
-                     "https://playframework.com/url");
+                     "https://playframework.com/url",
+                     call.absoluteURL(req, true));
     }
 
     @Test
     public void testHttpsAbsoluteURL3() throws Throwable {
-        final TestRequest req =
-            new TestRequest("GET", "playframework.com", "/playframework",
-                            false, "127.0.0.1", "/v", "/u");
-
         final TestCall call = new TestCall("/url", "GET");
 
         assertEquals("Absolute URL should have HTTPS scheme",
-                     call.absoluteURL(true, "typesafe.com"),
-                     "https://typesafe.com/url");
+                     "https://typesafe.com/url",
+                     call.absoluteURL(true, "typesafe.com"));
     }
 
     @Test
@@ -99,7 +93,8 @@ public final class CallTest {
         final TestCall call = new TestCall("/url", "GET");
 
         assertEquals("WebSocket URL should have HTTP scheme",
-                     call.webSocketURL(req), "ws://playframework.com/url");
+                     "ws://playframework.com/url",
+                     call.webSocketURL(req));
     }
 
     @Test
@@ -111,21 +106,17 @@ public final class CallTest {
         final TestCall call = new TestCall("/url", "GET");
 
         assertEquals("WebSocket URL should have HTTP scheme",
-                     call.webSocketURL(req, false),
-                     "ws://playframework.com/url");
+                     "ws://playframework.com/url",
+                     call.webSocketURL(req, false));
     }
 
     @Test
     public void testWebSocketURL3() throws Throwable {
-        final TestRequest req =
-            new TestRequest("GET", "playframework.com", "/playframework",
-                            true, "127.0.0.1", "/v", "/u");
-
         final TestCall call = new TestCall("/url", "GET");
 
         assertEquals("WebSocket URL should have HTTP scheme",
-                     call.webSocketURL(false, "typesafe.com"),
-                     "ws://typesafe.com/url");
+                     "ws://typesafe.com/url",
+                     call.webSocketURL(false, "typesafe.com"));
     }
 
     @Test
@@ -137,7 +128,8 @@ public final class CallTest {
         final TestCall call = new TestCall("/url", "GET");
 
         assertEquals("WebSocket URL should have HTTPS scheme",
-                     call.webSocketURL(req), "wss://playframework.com/url");
+                     "wss://playframework.com/url",
+                     call.webSocketURL(req));
     }
 
     @Test
@@ -149,21 +141,17 @@ public final class CallTest {
         final TestCall call = new TestCall("/url", "GET");
 
         assertEquals("WebSocket URL should have HTTPS scheme",
-                     call.webSocketURL(req, true),
-                     "wss://playframework.com/url");
+                     "wss://playframework.com/url",
+                     call.webSocketURL(req, true));
     }
 
     @Test
     public void testSecureWebSocketURL3() throws Throwable {
-        final TestRequest req =
-            new TestRequest("GET", "playframework.com", "/playframework",
-                            false, "127.0.0.1", "/v", "/u");
-
         final TestCall call = new TestCall("/url", "GET");
 
         assertEquals("WebSocket URL should have HTTPS scheme",
-                     call.webSocketURL(true, "typesafe.com"),
-                     "wss://typesafe.com/url");
+                     "wss://typesafe.com/url",
+                     call.webSocketURL(true, "typesafe.com"));
     }
 
 }
