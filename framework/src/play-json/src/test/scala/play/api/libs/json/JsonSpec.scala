@@ -3,7 +3,7 @@
  */
 package play.api.libs.json
 
-import java.util.{ Calendar, TimeZone }
+import java.util.{ Calendar, Date, TimeZone }
 
 import com.fasterxml.jackson.databind.{ JsonMappingException, JsonNode }
 
@@ -28,7 +28,6 @@ object JsonSpec extends org.specs2.mutable.Specification {
     (__ \ 'models).format[Map[String, String]]
   )(Car, unlift(Car.unapply))
 
-  import java.util.Date
   import java.text.SimpleDateFormat
   val dateFormat = "yyyy-MM-dd'T'HH:mm:ssX" // Iso8601 format (forgot timezone stuff)
   val dateParser = new SimpleDateFormat(dateFormat)
@@ -135,7 +134,13 @@ object JsonSpec extends org.specs2.mutable.Specification {
   }
 
   "Complete JSON should create full Post object" >> {
-    lazy val postDate = dateParser.parse("2011-04-22T13:33:48Z")
+    lazy val postDate: Date = dateParser.parse("2011-04-22T13:33:48Z")
+    def postDateWithTZ(tz: TimeZone): Date = {
+      val cal = Calendar.getInstance
+      cal.setTime(postDate)
+      cal.add(Calendar.MILLISECOND, -1 * tz.getOffset(postDate.getTime))
+      cal.getTime
+    }
 
     "with custom date format" in {
       val postJson =
@@ -190,32 +195,18 @@ object JsonSpec extends org.specs2.mutable.Specification {
     }
 
     "with default/lenient date format with millis" in {
-      val cal = {
-        val tz = TimeZone.getDefault
-        val c = Calendar.getInstance()
-        c.setTime(postDate)
-        c.add(Calendar.MILLISECOND, 0 - tz.getRawOffset - tz.getDSTSavings)
-        c
-      }
       val postJson =
         """{"body": "foobar", "created_at": "2011-04-22T13:33:48.000"}"""
-      val expectedPost = Post("foobar", Some(cal.getTime))
+      val expectedPost = Post("foobar", Some(postDateWithTZ(TimeZone.getDefault)))
 
       Json.parse(postJson).as[Post](LenientPostFormat).
         aka("parsed") must_== expectedPost
     }
 
     "with default/lenient date format without millis or time zone" in {
-      val cal = {
-        val tz = TimeZone.getDefault
-        val c = Calendar.getInstance()
-        c.setTime(postDate)
-        c.add(Calendar.MILLISECOND, 0 - tz.getRawOffset - tz.getDSTSavings)
-        c
-      }
       val postJson =
         """{"body": "foobar", "created_at": "2011-04-22T13:33:48"}"""
-      val expectedPost = Post("foobar", Some(cal.getTime))
+      val expectedPost = Post("foobar", Some(postDateWithTZ(TimeZone.getDefault)))
 
       Json.parse(postJson).as[Post](LenientPostFormat).
         aka("parsed") must_== expectedPost
