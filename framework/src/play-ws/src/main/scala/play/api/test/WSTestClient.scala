@@ -52,13 +52,13 @@ trait WsTestClient {
    * @param port The port
    * @return The result of the block of code
    */
-  def withClient[T](block: WSClient => T)(implicit port: play.api.http.Port) = {
+  def withClient[T](block: WSClient => T)(implicit port: play.api.http.Port = new play.api.http.Port(-1)) = {
     // Don't retry for tests
     val client = NingWSClient(DefaultNingWSClientConfig(maxRequestRetry = Some(0)))
     val wrappedClient = new WSClient {
       def underlying[T] = client.underlying.asInstanceOf[T]
       def url(url: String) = {
-        if (url.startsWith("/")) {
+        if (url.startsWith("/") && port.value != -1) {
           client.url(s"http://localhost:$port$url")
         } else {
           client.url(url)
@@ -75,3 +75,5 @@ trait WsTestClient {
   }
 
 }
+
+object WsTestClient extends WsTestClient

@@ -133,7 +133,7 @@ object Server {
   def withRouter[T](config: ServerConfig = ServerConfig(port = Some(0), mode = Mode.Test))(routes: PartialFunction[RequestHeader, Handler])(block: Port => T)(implicit provider: ServerProvider): T = {
     val application = new BuiltInComponentsFromContext(ApplicationLoader.Context(
       Environment.simple(path = config.rootDir, mode = config.mode),
-      None, new DefaultWebCommands(), Configuration.empty
+      None, new DefaultWebCommands(), Configuration(ConfigFactory.load())
     )) {
       def router = Router.from(routes)
     }.application

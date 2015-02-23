@@ -395,6 +395,27 @@ trait Results {
     }
 
     /**
+     * Send the given resource from the given classloader.
+     *
+     * @param resource The path of the resource to load.
+     * @param classLoader The classloader to load it from, defaults to the classloader for this class.
+     * @param inline Whether it should be served as an inline file, or as an attachment.
+     * @return
+     */
+    def sendResource(resource: String, classLoader: ClassLoader = Results.getClass.getClassLoader,
+      inline: Boolean = true): Result = {
+      val stream = classLoader.getResourceAsStream(resource)
+      val fileName = resource.split('/').last
+      Result(
+        ResponseHeader(status, Map(
+          CONTENT_LENGTH -> stream.available().toString,
+          CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(fileName).getOrElse(ContentTypes.BINARY)
+        ) ++ (if (inline) Map.empty else Map(CONTENT_DISPOSITION -> ("attachment; filename=\"" + fileName + "\"")))),
+        Enumerator.fromStream(stream)(defaultContext)
+      )
+    }
+
+    /**
      * Feed the content as the response, using chunked transfer encoding.
      *
      * Chunked transfer encoding is only supported for HTTP 1.1 clients.  If the client is an HTTP 1.0 client, Play will
