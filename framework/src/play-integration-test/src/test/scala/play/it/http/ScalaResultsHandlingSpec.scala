@@ -10,8 +10,8 @@ import play.api.libs.ws._
 import play.api.libs.iteratee._
 import play.it._
 import scala.util.{ Failure, Success, Try }
-
 import play.api.libs.concurrent.Execution.{ defaultContext => ec }
+import play.api.http.Status
 
 object NettyScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with NettyIntegrationSpecification
 object AkkaHttpScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with AkkaHttpIntegrationSpecification
@@ -344,6 +344,16 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
         response.body must beLeft("")
         response.headers.get(CONTENT_LENGTH) must beSome("0")
       }
-  }
 
+    "return a 500 response if a forbidden character is used in a response's header field" in withServer(
+      // both colon and space characters are not allowed in a header's field name 
+      Results.Ok.withHeaders("BadFieldName: " -> "SomeContent")
+    ) { port =>
+        val response = BasicHttpClient.makeRequests(port)(
+          BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
+        ).apply(0)
+        response.status must_== Status.INTERNAL_SERVER_ERROR
+        (response.headers - (CONTENT_LENGTH)) must be(Map.empty)
+      }
+  }
 }
