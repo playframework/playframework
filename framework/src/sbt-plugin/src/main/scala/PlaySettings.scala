@@ -3,22 +3,25 @@
  */
 package play
 
-import play.runsupport.FileWatchService
-import play.sbtplugin.run._
-import sbt._
-import sbt.Keys._
-import play.PlayImport._
-import PlayKeys._
-import com.typesafe.sbt.SbtNativePackager._
-import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
-import com.typesafe.sbt.packager.Keys._
-import play.sbtplugin.{ PlayPositionMapper, ApplicationSecretGenerator }
-import com.typesafe.sbt.web.SbtWeb.autoImport._
-import WebKeys._
 import scala.collection.JavaConverters._
 import scala.language.postfixOps
-import play.twirl.sbt.Import.TwirlKeys
+
+import sbt._
+import sbt.Keys._
+
+import play.PlayImport._
+import play.PlayImport.PlayKeys._
+import play.runsupport.FileWatchService
+import play.sbtplugin.{ PlayPositionMapper, ApplicationSecretGenerator }
 import play.sbtplugin.routes.RoutesKeys._
+import play.sbtplugin.run._
+import play.twirl.sbt.Import.TwirlKeys
+
+import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
+import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
+import com.typesafe.sbt.packager.Keys._
+import com.typesafe.sbt.web.SbtWeb.autoImport._
+import WebKeys._
 
 trait PlaySettings {
   this: PlayCommands with PlayPositionMapper with PlayRun =>

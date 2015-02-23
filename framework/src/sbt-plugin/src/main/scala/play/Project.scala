@@ -6,7 +6,7 @@ package play
 import sbt._
 import sbt.Keys._
 
-import com.typesafe.sbt.SbtNativePackager.packageArchetype
+import com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging
 import com.typesafe.sbt.jse.SbtJsTask
 import com.typesafe.sbt.webdriver.SbtWebDriver
 import com.typesafe.play.sbt.enhancer.PlayEnhancer
@@ -25,13 +25,12 @@ object Play
     with play.PlaySettings
     with PlayPositionMapper {
 
-  override def requires = SbtTwirl && SbtJsTask && SbtWebDriver && RoutesCompiler
+  override def requires = SbtTwirl && SbtJsTask && SbtWebDriver && RoutesCompiler && JavaServerAppPackaging
 
   val autoImport = play.PlayImport
 
   override def projectSettings =
-    packageArchetype.java_server ++
-      defaultSettings ++
+    defaultSettings ++
       intellijCommandSettings ++
       Seq(
         scalacOptions ++= Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
