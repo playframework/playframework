@@ -3,6 +3,8 @@
  */
 package play.it.http.websocket
 
+import java.nio.charset.Charset
+
 import play.api.test._
 import play.api.Application
 import scala.concurrent.{ Future, Promise }
@@ -44,6 +46,10 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
       })
     }
     await(innerResult.future)
+  }
+
+  def pongFrame(matcher: Matcher[String]): Matcher[WebSocketFrame] = beLike {
+    case t: PongWebSocketFrame => t.getBinaryData.toString(Charset.forName("utf-8")) must matcher
   }
 
   def textFrame(matcher: Matcher[String]): Matcher[WebSocketFrame] = beLike {
@@ -231,6 +237,41 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
         }
         frames must contain(exactly(
           closeFrame(1003)
+        ))
+      }
+    }.pendingUntilAkkaHttpFixed
+
+    "respond to pings" in {
+      withServer(app => WebSocket.using[String] { req =>
+        (Iteratee.head, Enumerator.empty)
+      }) {
+        val frames = runWebSocket { (in, out) =>
+          Enumerator[WebSocketFrame](
+            new PingWebSocketFrame(binaryBuffer("hello")),
+            new CloseWebSocketFrame(1000, "")
+          ) |>> out
+          in |>>> Iteratee.getChunks[WebSocketFrame]
+        }
+        frames must contain(exactly(
+          pongFrame(be_==("hello")),
+          closeFrame()
+        ))
+      }
+    }.pendingUntilAkkaHttpFixed
+
+    "not respond to pongs" in {
+      withServer(app => WebSocket.using[String] { req =>
+        (Iteratee.head, Enumerator.empty)
+      }) {
+        val frames = runWebSocket { (in, out) =>
+          Enumerator[WebSocketFrame](
+            new PongWebSocketFrame(),
+            new CloseWebSocketFrame(1000, "")
+          ) |>> out
+          in |>>> Iteratee.getChunks[WebSocketFrame]
+        }
+        frames must contain(exactly(
+          closeFrame()
         ))
       }
     }.pendingUntilAkkaHttpFixed
