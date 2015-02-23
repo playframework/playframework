@@ -47,7 +47,7 @@ object JavaWebSocket extends JavaHelpers {
           if (jws.isActor) {
 
             WebSocketsExtension(Akka.system).actor !
-              WebSocketsActor.Connect(request.id, in, out, actorRef => jws.actorProps(actorRef))
+              WebSocketsActor.Connect("" + request.hashCode, in, out, actorRef => jws.actorProps(actorRef))
 
           } else {
 

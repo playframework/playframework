@@ -172,7 +172,7 @@ object WebSocket {
         resultOrProps.right.map { props =>
           (enumerator, iteratee) =>
             WebSocketsExtension(Akka.system).actor !
-              WebSocketsActor.Connect(request.id, enumerator, iteratee, props)
+              WebSocketsActor.Connect("" + request.hashCode, enumerator, iteratee, props)
         }
       }
     }

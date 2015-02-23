@@ -33,7 +33,7 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
             ctx.args.put(requestTag, newToken);
 
             // Create a new Scala RequestHeader with the token
-            final RequestHeader newRequest = request.copy(request.id(),
+            final RequestHeader newRequest = request.copy(
                     request.tags().$plus(new Tuple2<String, String>(requestTag, newToken)),
                     request.uri(), request.path(), request.method(), request.version(), request.queryString(),
                     request.headers(), request.remoteAddress(), request.secure());

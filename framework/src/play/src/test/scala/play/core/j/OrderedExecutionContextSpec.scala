@@ -20,10 +20,10 @@ object OrderedExecutionContextSpec extends Specification {
       val actorSystem = ActorSystem("OrderedExecutionContextSpec")
       val oec = new OrderedExecutionContext(actorSystem, 64)
 
-      def run(id: Int): (CountDownLatch, AtomicInteger) = {
+      def run(): (CountDownLatch, AtomicInteger) = {
         val hec = new HttpExecutionContext(
           Thread.currentThread().getContextClassLoader(),
-          new Http.Context(id, null, null, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava),
+          new Http.Context(null, null, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava),
           oec)
         val numTasks = 2000
         val taskCount = new AtomicInteger()
@@ -44,7 +44,7 @@ object OrderedExecutionContextSpec extends Specification {
         })
         (ready, outOfOrderCount)
       }
-      val results = for (i <- 0 until 100) yield run(i)
+      val results = for (i <- 0 until 100) yield run()
       for ((ready, outOfOrderCount) <- results) {
         ready.await(10, SECONDS) must beTrue
         outOfOrderCount.get() must equalTo(0)
