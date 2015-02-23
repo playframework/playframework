@@ -91,6 +91,9 @@ private[server] trait WebSocketHandler {
             case (frame: PingWebSocketFrame, _) =>
               ctx.getChannel.write(new PongWebSocketFrame(frame.getBinaryData))
 
+            // pong!
+            case (frame: PongWebSocketFrame, _) => // ignore
+
             // unacceptable frame
             case (frame: WebSocketFrame, _) =>
               closeWebSocket(ctx, WebSocketUnacceptable, "This WebSocket does not handle frames of that type")
