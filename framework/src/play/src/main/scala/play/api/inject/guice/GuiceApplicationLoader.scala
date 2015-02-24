@@ -25,10 +25,4 @@ class GuiceApplicationLoader(builder: GuiceApplicationBuilder) extends Applicati
       ).build
   }
 
-  // TODO: remove when FakeApplication no longer needs this
-  override def createInjector(env: Environment, conf: Configuration, modules: Seq[Any]): Option[PlayInjector] = {
-    val guiceableModules = modules map GuiceableModule.guiceable
-    Option(new GuiceInjectorBuilder(env, conf, guiceableModules).injector)
-  }
-
 }

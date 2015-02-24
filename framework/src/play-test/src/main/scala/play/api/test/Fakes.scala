@@ -7,7 +7,7 @@ import javax.inject.{ Inject, Provider }
 
 import play.api._
 import play.api.http._
-import play.api.inject.guice.GuiceApplicationLoader
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.inject._
 import play.api.libs.{ Crypto, CryptoConfigParser, CryptoConfig }
 import play.api.mvc._
@@ -210,50 +210,35 @@ case class FakeApplication(
     withGlobal: Option[play.api.GlobalSettings] = None,
     withRoutes: PartialFunction[(String, String), Handler] = PartialFunction.empty) extends Application {
 
-  private val environment = Environment(path, classloader, Mode.Test)
-  private val initialConfiguration = Configuration.load(environment)
-  override val global = withGlobal.getOrElse(GlobalSettings(initialConfiguration, environment))
-  private val config =
-    global.onLoadConfig(initialConfiguration, path, classloader, environment.mode) ++
-      play.api.Configuration.from(additionalConfiguration)
+  private val app: Application = new GuiceApplicationBuilder()
+    .in(Environment(path, classloader, Mode.Test))
+    .global(withGlobal.orNull)
+    .configure(additionalConfiguration)
+    .bindings(
+      bind[FakePluginsConfig] to FakePluginsConfig(additionalPlugins, withoutPlugins),
+      bind[FakeRoutesConfig] to FakeRoutesConfig(withRoutes))
+    .overrides(
+      bind[Plugins].toProvider[FakePluginsProvider],
+      bind[Router.Routes].toProvider[FakeRoutesProvider])
+    .build
 
-  Logger.configure(environment, configuration)
+  override def mode: Mode.Mode = app.mode
+  override def global: GlobalSettings = app.global
+  override def configuration: Configuration = app.configuration
+  override def plugins: Seq[Plugin.Deprecated] = app.plugins
+  override def requestHandler: HttpRequestHandler = app.requestHandler
+  override def errorHandler: HttpErrorHandler = app.errorHandler
+  override def stop(): Future[Unit] = app.stop()
+  override def injector: Injector = app.injector
+}
 
-  val applicationLifecycle = new DefaultApplicationLifecycle
+private case class FakePluginsConfig(additionalPlugins: Seq[String], withoutPlugins: Seq[String])
 
-  override val injector = {
-    // Load all modules, and filter out the built in module
-    val modules = Modules.locate(environment, configuration)
-      .filterNot(_.getClass == classOf[BuiltinModule])
-    val webCommands = new DefaultWebCommands
-
-    val loader = config.getString("play.application.loader").fold[ApplicationLoader](
-      new GuiceApplicationLoader
-    ) { className =>
-        Reflect.createInstance[ApplicationLoader](className, classloader)
-      }
-
-    loader.createInjector(environment, configuration,
-      modules :+ new FakeBuiltinModule(environment, configuration, this, global, applicationLifecycle, webCommands, withRoutes)
-    ).getOrElse(NewInstanceInjector)
+private class FakePluginsProvider @Inject() (config: FakePluginsConfig, environment: Environment, injector: Injector) extends Provider[Plugins] {
+  lazy val get: Plugins = {
+    val pluginClasses = config.additionalPlugins ++ Plugins.loadPluginClassNames(environment).diff(config.withoutPlugins)
+    new Plugins(Plugins.loadPlugins(pluginClasses, environment, injector).toIndexedSeq)
   }
-
-  def configuration = config
-
-  def mode = environment.mode
-
-  def stop() = applicationLifecycle.stop()
-
-  override val errorHandler = injector.instanceOf[HttpErrorHandler]
-
-  override val plugins = {
-    Plugins.loadPlugins(
-      additionalPlugins ++ Plugins.loadPluginClassNames(environment).diff(withoutPlugins),
-      environment, injector
-    )
-  }
-
-  override lazy val requestHandler = injector.instanceOf[HttpRequestHandler]
 }
 
 private class FakeRoutes(override val errorHandler: HttpErrorHandler,
@@ -274,36 +259,8 @@ private class FakeRoutes(override val errorHandler: HttpErrorHandler,
   }
 }
 
-private class FakeBuiltinModule(environment: Environment,
-    configuration: Configuration,
-    app: Application,
-    global: GlobalSettings,
-    appLifecycle: ApplicationLifecycle,
-    webCommands: WebCommands,
-    withRoutes: PartialFunction[(String, String), Handler]) extends Module {
-  def bindings(environment: Environment, configuration: Configuration) = Seq(
-    bind[Environment] to environment,
-    bind[Configuration] to configuration,
-    bind[HttpConfiguration].toProvider[HttpConfiguration.HttpConfigurationProvider],
-    bind[Application] to app,
-    bind[GlobalSettings] to global,
-    bind[ApplicationLifecycle] to appLifecycle,
-    bind[WebCommands] to webCommands,
-    bind[OptionalSourceMapper] to new OptionalSourceMapper(None),
-    bind[play.inject.Injector].to[play.inject.DelegateInjector],
-    bind[CryptoConfig].toProvider[CryptoConfigParser],
-    bind[Crypto].toSelf,
-    bind[Router.Routes].to(new FakeRoutesProvider(withRoutes))
-  ) ++ HttpErrorHandler.bindingsFromConfiguration(environment, configuration) ++
-    HttpFilters.bindingsFromConfiguration(environment, configuration) ++
-    HttpRequestHandler.bindingsFromConfiguration(environment, configuration)
-}
+private case class FakeRoutesConfig(withRoutes: PartialFunction[(String, String), Handler])
 
-private class FakeRoutesProvider(withRoutes: PartialFunction[(String, String), Handler]) extends Provider[Router.Routes] {
-  @Inject
-  var injector: Injector = _
-  lazy val get = {
-    val parent = injector.instanceOf[RoutesProvider].get
-    new FakeRoutes(injector.instanceOf[HttpErrorHandler], withRoutes, parent)
-  }
+private class FakeRoutesProvider @Inject() (config: FakeRoutesConfig, parent: RoutesProvider, errorHandler: HttpErrorHandler) extends Provider[Router.Routes] {
+  lazy val get: Router.Routes = new FakeRoutes(errorHandler, config.withRoutes, parent.get)
 }

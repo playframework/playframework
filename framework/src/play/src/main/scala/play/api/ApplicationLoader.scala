@@ -30,16 +30,6 @@ trait ApplicationLoader {
    */
   def load(context: ApplicationLoader.Context): Application
 
-  // TODO: remove when FakeApplication no longer needs this
-  /**
-   * Create an injector for runtime DI.
-   *
-   * This can be used by runtime DI providers to provide an injector during testing. The injector should contain all
-   * the components specified by the modules, and should also bind itself.
-   *
-   * If this method is not implemented, FakeApplication will use a NewInstanceInjector instead.
-   */
-  def createInjector(environment: Environment, configuration: Configuration, modules: Seq[Any]): Option[Injector] = None
 }
 
 object ApplicationLoader {
