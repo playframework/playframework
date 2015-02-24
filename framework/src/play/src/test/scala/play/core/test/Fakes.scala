@@ -3,8 +3,7 @@
  */
 package play.core.test
 
-import com.google.inject.Guice
-import play.api.inject.guice.{ GuiceInjector, GuiceApplicationLoader }
+import play.api.inject.guice.GuiceInjectorBuilder
 import play.api.inject.{ BindingKey, Binding, Injector }
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.json.JsValue
@@ -25,9 +24,7 @@ object Fakes {
    * @return The injector
    */
   def injectorFromBindings(bindings: Seq[Binding[_]]): Injector = {
-    Guice.createInjector(
-      GuiceApplicationLoader.guiced(bindings :+ BindingKey(classOf[Injector]).to[GuiceInjector])
-    ).getInstance(classOf[Injector])
+    new GuiceInjectorBuilder().bindings(bindings).injector
   }
 
 }

@@ -211,9 +211,7 @@ case class FakeApplication(
     withRoutes: PartialFunction[(String, String), Handler] = PartialFunction.empty) extends Application {
 
   private val environment = Environment(path, classloader, Mode.Test)
-  private val initialConfiguration = Threads.withContextClassLoader(environment.classLoader) {
-    Configuration.load(environment.rootPath, environment.mode)
-  }
+  private val initialConfiguration = Configuration.load(environment)
   override val global = withGlobal.getOrElse(GlobalSettings(initialConfiguration, environment))
   private val config =
     global.onLoadConfig(initialConfiguration, path, classloader, environment.mode) ++

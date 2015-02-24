@@ -6,7 +6,7 @@ package play.api
 import play.api.inject.Injector
 import play.api.inject.guice.GuiceApplicationLoader
 import play.core.{ SourceMapper, WebCommands, DefaultWebCommands }
-import play.utils.{ Threads, Reflect }
+import play.utils.Reflect
 
 /**
  * Loads an application.  This is responsible for instantiating an application given a context.
@@ -30,6 +30,7 @@ trait ApplicationLoader {
    */
   def load(context: ApplicationLoader.Context): Application
 
+  // TODO: remove when FakeApplication no longer needs this
   /**
    * Create an injector for runtime DI.
    *
@@ -80,12 +81,10 @@ object ApplicationLoader {
     initialSettings: Map[String, String] = Map.empty[String, String],
     sourceMapper: Option[SourceMapper] = None,
     webCommands: WebCommands = new DefaultWebCommands) = {
-    val configuration = Threads.withContextClassLoader(environment.classLoader) {
-      Configuration.load(environment.rootPath, environment.mode, initialSettings)
-    }
-
+    val configuration = Configuration.load(environment, initialSettings)
     Context(environment, sourceMapper, webCommands, configuration)
   }
+
 }
 
 /**

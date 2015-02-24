@@ -11,7 +11,7 @@ import com.typesafe.config._
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.{ FiniteDuration, Duration }
 import scala.util.control.NonFatal
-import play.utils.PlayIO
+import play.utils.{ PlayIO, Threads }
 
 /**
  * This object provides a set of operations to create `Configuration` values.
@@ -61,7 +61,7 @@ object Configuration {
    * @param mode Application mode.
    * @return a `Configuration` instance
    */
-  def load(appPath: File, mode: Mode.Mode = Mode.Dev, devSettings: Map[String, String] = Map.empty) = {
+  def load(appPath: File, mode: Mode.Mode = Mode.Dev, devSettings: Map[String, String] = Map.empty): Configuration = {
     try {
       val currentMode = Play.maybeApplication.map(_.mode).getOrElse(mode)
       if (currentMode == Mode.Prod) Configuration(dontAllowMissingConfig) else Configuration(loadDev(appPath, devSettings))
@@ -71,14 +71,28 @@ object Configuration {
   }
 
   /**
+   * Load a new Configuration from the Environment.
+   */
+  def load(environment: Environment, devSettings: Map[String, String]): Configuration = {
+    Threads.withContextClassLoader(environment.classLoader) {
+      load(environment.rootPath, environment.mode, devSettings)
+    }
+  }
+
+  /**
+   * Load a new Configuration from the Environment.
+   */
+  def load(environment: Environment): Configuration = load(environment, Map.empty[String, String])
+
+  /**
    * Returns an empty Configuration object.
    */
   def empty = Configuration(ConfigFactory.empty())
 
   /**
-   * Create a ConfigFactory object from the data passed as a Map.
+   * Create a new Configuration from the data passed as a Map.
    */
-  def from(data: Map[String, Any]) = {
+  def from(data: Map[String, Any]): Configuration = {
 
     def asJavaRecursively[A](data: Map[A, Any]): Map[A, Any] = {
       data.mapValues { value =>
@@ -92,6 +106,11 @@ object Configuration {
 
     Configuration(ConfigFactory.parseMap(asJavaRecursively[String](data).asJava))
   }
+
+  /**
+   * Create a new Configuration from the given key-value pairs.
+   */
+  def apply(data: (String, Any)*): Configuration = from(data.toMap)
 
   private def configError(origin: ConfigOrigin, message: String, e: Option[Throwable] = None): PlayException = {
     new PlayException.ExceptionSource("Configuration error", message, e.orNull) {
