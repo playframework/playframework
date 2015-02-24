@@ -3,132 +3,118 @@
  */
 package play;
 
-import java.io.*;
-import java.util.*;
-import java.net.*;
+import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
 
 import play.inject.Injector;
 import play.libs.Scala;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 /**
  * A Play application.
- * <p>
+ *
  * Application creation is handled by the framework engine.
  */
-@Singleton
-public class Application {
-
-    private final play.api.Application application;
-    private final Configuration configuration;
-    private final Injector injector;
-
-    public play.api.Application getWrappedApplication() {
-      return application;
-    }
+public interface Application {
 
     /**
-     * Creates an application from a Scala Application value.
+     * Get the underlying Scala application.
      */
-    @Inject
-    public Application(play.api.Application application, Configuration configuration, Injector injector) {
-        this.application = application;
-        this.configuration = configuration;
-        this.injector = injector;
-    }
+    play.api.Application getWrappedApplication();
 
     /**
-     * Retrieves the application path.
-     * <p>
-     * @return the application path
+     * Get the application configuration.
      */
-    public File path() {
-        return application.path();
-    }
-
-    /**
-     * Retrieves the application configuration.
-     * <p>
-     * @return the application path
-     */
-    public Configuration configuration() {
-        return configuration;
-    }
-
-    /**
-     * Retrieves the application classloader.
-     * <p>
-     * @return the application classloader
-     */
-    public ClassLoader classloader() {
-        return application.classloader();
-    }
-
-    /**
-     * Retrieves a file relative to the application root path.
-     *
-     * @param relativePath relative path of the file to fetch
-     * @return a file instance - it is not guaranteed that the file exists
-     */
-    public File getFile(String relativePath) {
-        return application.getFile(relativePath);
-    }
-
-    /**
-     * Retrieves a resource from the classpath.
-     *
-     * @param relativePath relative path of the resource to fetch
-     * @return URL to the resource (may be null)
-     */
-    public URL resource(String relativePath) {
-        return Scala.orNull(application.resource(relativePath));
-    }
-
-    /**
-     * Retrieves a resource stream from the classpath.
-     *
-     * @param relativePath relative path of the resource to fetch
-     * @return InputStream to the resource (may be null)
-     */
-    public InputStream resourceAsStream(String relativePath) {
-        return Scala.orNull(application.resourceAsStream(relativePath));
-    }
-
-    /**
-     * Retrieve the plugin instance for the class.
-     */
-    public <T> T plugin(Class<T> pluginClass) {
-        return Scala.orNull(application.plugin(pluginClass));
-    }
-
-    /**
-     * Returns `true` if the application is `DEV` mode.
-     */
-    public boolean isDev() {
-        return play.api.Play.isDev(application);
-    }
-
-    /**
-     * Returns `true` if the application is `PROD` mode.
-     */
-    public boolean isProd() {
-        return play.api.Play.isProd(application);
-    }
-
-    /**
-     * Returns `true` if the application is `TEST` mode.
-     */
-    public boolean isTest() {
-        return play.api.Play.isTest(application);
-    }
+    Configuration configuration();
 
     /**
      * Get the injector for this application.
      */
-    public Injector injector() {
-        return injector;
+    Injector injector();
+
+    /**
+     * Get the application path.
+     *
+     * @return the application path
+     */
+    default File path() {
+        return getWrappedApplication().path();
+    }
+
+    /**
+     * Get the application classloader.
+     *
+     * @return the application classloader
+     */
+    default ClassLoader classloader() {
+        return getWrappedApplication().classloader();
+    }
+
+    /**
+     * Get a file relative to the application root path.
+     *
+     * @param relativePath relative path of the file to fetch
+     * @return a file instance - it is not guaranteed that the file exists
+     */
+    default File getFile(String relativePath) {
+        return getWrappedApplication().getFile(relativePath);
+    }
+
+    /**
+     * Get a resource from the classpath.
+     *
+     * @param relativePath relative path of the resource to fetch
+     * @return URL to the resource (may be null)
+     */
+    default URL resource(String relativePath) {
+        return Scala.orNull(getWrappedApplication().resource(relativePath));
+    }
+
+    /**
+     * Get a resource stream from the classpath.
+     *
+     * @param relativePath relative path of the resource to fetch
+     * @return InputStream to the resource (may be null)
+     */
+    default InputStream resourceAsStream(String relativePath) {
+        return Scala.orNull(getWrappedApplication().resourceAsStream(relativePath));
+    }
+
+    /**
+     * Get the {@link play.Plugin} instance for the given class.
+     *
+     * @param pluginClass the Class of the plugin
+     * @return an instance of the plugin (if found, otherwise null)
+     */
+    default <T> T plugin(Class<T> pluginClass) {
+        return Scala.orNull(getWrappedApplication().plugin(pluginClass));
+    }
+
+    /**
+     * Check whether the application is in {@link Mode#DEV} mode.
+     *
+     * @return true if the application is in DEV mode
+     */
+    default boolean isDev() {
+        return play.api.Play.isDev(getWrappedApplication());
+    }
+
+    /**
+     * Check whether the application is in {@link Mode#PROD} mode.
+     *
+     * @return true if the application is in PROD mode
+     */
+    default boolean isProd() {
+        return play.api.Play.isProd(getWrappedApplication());
+    }
+
+    /**
+     * Check whether the application is in {@link Mode#TEST} mode.
+     *
+     * @return true if the application is in TEST mode
+     */
+    default boolean isTest() {
+        return play.api.Play.isTest(getWrappedApplication());
     }
 
 }
