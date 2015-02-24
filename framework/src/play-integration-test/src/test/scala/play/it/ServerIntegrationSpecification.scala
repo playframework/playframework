@@ -54,7 +54,7 @@ trait ServerIntegrationSpecification extends PendingUntilFixed {
    * Override the standard WithServer class.
    */
   abstract class WithServer(
-    app: play.api.test.FakeApplication = play.api.test.FakeApplication(),
+    app: play.api.Application = play.api.test.FakeApplication(),
     port: Int = play.api.test.Helpers.testServerPort) extends play.api.test.WithServer(app, port, serverProvider = integrationServerProvider)
 
 }

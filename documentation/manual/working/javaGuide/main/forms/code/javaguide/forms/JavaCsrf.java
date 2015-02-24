@@ -10,13 +10,13 @@ import org.junit.Test;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
+import play.Application;
 import play.filters.csrf.AddCSRFToken;
 import play.filters.csrf.CSRFFilter;
 import play.filters.csrf.RequireCSRFCheck;
 import play.libs.Crypto;
 import play.mvc.Result;
 import play.test.WithApplication;
-import play.test.FakeApplication;
 
 import static play.test.Helpers.*;
 
@@ -29,12 +29,12 @@ import java.util.regex.Pattern;
 
 public class JavaCsrf extends WithApplication {
     @Override
-    public FakeApplication provideFakeApplication() {
+    public Application provideApplication() {
         return fakeApplication(ImmutableMap.of("application.secret", "foobar"));
     }
 
     public Crypto crypto() {
-      return app.getWrappedApplication().injector().instanceOf(Crypto.class);
+      return app.injector().instanceOf(Crypto.class);
     }
 
     @Test

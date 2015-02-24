@@ -5,9 +5,9 @@ package javaguide.http;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.*;
+import play.Application;
 import play.libs.Json;
 import play.test.WithApplication;
-import play.test.FakeApplication;
 import javaguide.testhelpers.MockJavaAction;
 
 //#imports
@@ -23,7 +23,7 @@ import static play.test.Helpers.*;
 public class JavaSessionFlash extends WithApplication {
 
     @Override
-    public FakeApplication provideFakeApplication() {
+    public Application provideApplication() {
         return fakeApplication(ImmutableMap.of("application.secret", "pass"));
     }
 
