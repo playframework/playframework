@@ -32,7 +32,7 @@ trait RequestTaggingHandler extends Handler {
  */
 class HandlerRef[T](call: => T, handlerDef: play.core.Router.HandlerDef)(implicit hif: play.core.Router.HandlerInvokerFactory[T]) extends play.mvc.HandlerRef {
 
-  lazy val invoker: HandlerInvoker[T] = hif.createInvoker(call, handlerDef)
+  private lazy val invoker: HandlerInvoker[T] = hif.createInvoker(call, handlerDef)
 
   /**
    * Retrieve a real handler behind this ref.
@@ -44,7 +44,7 @@ class HandlerRef[T](call: => T, handlerDef: play.core.Router.HandlerDef)(implici
   /**
    * String representation of this Handler.
    */
-  lazy val sym = {
+  private lazy val sym = {
     handlerDef.controller + "." + handlerDef.method + "(" + handlerDef.parameterTypes.map(_.getName).mkString(", ") + ")"
   }
 
