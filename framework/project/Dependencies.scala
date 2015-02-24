@@ -50,7 +50,11 @@ object Dependencies {
   )
   val javassist = link
 
+  val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.3.0"
+
   val javaDeps = Seq(
+    scalaJava8Compat,
+
     "org.yaml" % "snakeyaml" % "1.13",
     // 5.1.0 upgrade notes: need to add JEE dependencies, eg EL
     "org.hibernate" % "hibernate-validator" % "5.0.3.Final",

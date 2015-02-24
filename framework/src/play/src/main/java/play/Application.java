@@ -20,8 +20,9 @@ import javax.inject.Singleton;
  */
 @Singleton
 public class Application {
-    
+
     private final play.api.Application application;
+    private final Configuration configuration;
     private final Injector injector;
 
     public play.api.Application getWrappedApplication() {
@@ -32,11 +33,12 @@ public class Application {
      * Creates an application from a Scala Application value.
      */
     @Inject
-    public Application(play.api.Application application, Injector injector) {
+    public Application(play.api.Application application, Configuration configuration, Injector injector) {
         this.application = application;
+        this.configuration = configuration;
         this.injector = injector;
     }
-    
+
     /**
      * Retrieves the application path.
      * <p>
@@ -45,16 +47,16 @@ public class Application {
     public File path() {
         return application.path();
     }
-    
+
     /**
-     * Retrieves the application configuration/
+     * Retrieves the application configuration.
      * <p>
      * @return the application path
      */
     public Configuration configuration() {
-        return new Configuration(application.configuration());
+        return configuration;
     }
-    
+
     /**
      * Retrieves the application classloader.
      * <p>
@@ -63,7 +65,7 @@ public class Application {
     public ClassLoader classloader() {
         return application.classloader();
     }
-    
+
     /**
      * Retrieves a file relative to the application root path.
      *
@@ -73,7 +75,7 @@ public class Application {
     public File getFile(String relativePath) {
         return application.getFile(relativePath);
     }
-    
+
     /**
      * Retrieves a resource from the classpath.
      *
@@ -83,7 +85,7 @@ public class Application {
     public URL resource(String relativePath) {
         return Scala.orNull(application.resource(relativePath));
     }
-    
+
     /**
      * Retrieves a resource stream from the classpath.
      *
@@ -93,28 +95,28 @@ public class Application {
     public InputStream resourceAsStream(String relativePath) {
         return Scala.orNull(application.resourceAsStream(relativePath));
     }
-    
+
     /**
      * Retrieve the plugin instance for the class.
      */
     public <T> T plugin(Class<T> pluginClass) {
         return Scala.orNull(application.plugin(pluginClass));
     }
-    
+
     /**
      * Returns `true` if the application is `DEV` mode.
      */
     public boolean isDev() {
         return play.api.Play.isDev(application);
     }
-    
+
     /**
      * Returns `true` if the application is `PROD` mode.
      */
     public boolean isProd() {
         return play.api.Play.isProd(application);
     }
-    
+
     /**
      * Returns `true` if the application is `TEST` mode.
      */

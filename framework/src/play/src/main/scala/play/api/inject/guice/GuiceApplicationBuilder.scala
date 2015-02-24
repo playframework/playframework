@@ -22,6 +22,9 @@ final class GuiceApplicationBuilder(
   environment, configuration, modules, overrides, disabled
 ) {
 
+  // extra constructor for creating from Java
+  def this() = this(environment = Environment.simple())
+
   /**
    * Set the initial configuration loader.
    * Overrides the default or any previously configured values.

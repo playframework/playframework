@@ -107,7 +107,12 @@ abstract class GuiceBuilder[Self] protected (
   protected final def createInjector(): PlayInjector = {
     import scala.collection.JavaConverters._
     try {
-      val injectorModule = GuiceableModule.guice(Seq(bind[PlayInjector].to[GuiceInjector]))
+      val injectorModule = GuiceableModule.guice(Seq(
+        bind[PlayInjector].to[GuiceInjector],
+        // Java API injector is bound here so that it's available in both
+        // the default application loader and the Java Guice builders
+        bind[play.inject.Injector].to[play.inject.DelegateInjector]
+      ))
       val enabledModules = modules.map(_.disable(disabled))
       val bindingModules = GuiceableModule.guiced(environment, configuration)(enabledModules) :+ injectorModule
       val overrideModules = GuiceableModule.guiced(environment, configuration)(overrides)
@@ -156,6 +161,9 @@ final class GuiceInjectorBuilder(
   disabled: Seq[Class[_]] = Seq.empty) extends GuiceBuilder[GuiceInjectorBuilder](
   environment, configuration, modules, overrides, disabled
 ) {
+
+  // extra constructor for creating from Java
+  def this() = this(environment = Environment.simple())
 
   /**
    * Create a Play Injector backed by Guice using this configured builder.
