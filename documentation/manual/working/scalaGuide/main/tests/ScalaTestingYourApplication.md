@@ -10,4 +10,5 @@ Writing tests for your application can be an involved process. Play offers integ
 
 Play provides a number of helpers for testing specific parts of an application.
 
+* [[Testing using Guice dependency injection|ScalaTestingWithGuice]]
 * [[Testing with databases|ScalaTestingWithDatabases]]
