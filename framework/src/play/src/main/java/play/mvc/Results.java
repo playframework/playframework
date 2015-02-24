@@ -39,8 +39,8 @@ public class Results {
     /**
      * Generates a simple result.
      */
-    public static Status status(int status) {
-        return new Status(play.core.j.JavaResults.Status(status));
+    public static StatusHeader status(int status) {
+        return new StatusHeader(play.core.j.JavaResults.Status(status));
     }
 
     /**
@@ -132,8 +132,8 @@ public class Results {
     /**
      * Generates a 200 OK simple result.
      */
-    public static Status ok() {
-        return new Status(play.core.j.JavaResults.Ok());
+    public static StatusHeader ok() {
+        return new StatusHeader(play.core.j.JavaResults.Ok());
     }
 
     /**
@@ -240,8 +240,8 @@ public class Results {
     /**
      * Generates a 201 CREATED simple result.
      */
-    public static Status created() {
-        return new Status(play.core.j.JavaResults.Created());
+    public static StatusHeader created() {
+        return new StatusHeader(play.core.j.JavaResults.Created());
     }
 
     /**
@@ -349,7 +349,7 @@ public class Results {
      * Generates a 204 NO_CONTENT simple result.
      */
     public static Status noContent() {
-        return new Status(play.core.j.JavaResults.Status(204));
+        return new Status(play.core.j.JavaResults.NoContent());
     }
 
     // -- INTERNAL_SERVER_ERROR
@@ -357,8 +357,8 @@ public class Results {
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR simple result.
      */
-    public static Status internalServerError() {
-        return new Status(play.core.j.JavaResults.InternalServerError());
+    public static StatusHeader internalServerError() {
+        return new StatusHeader(play.core.j.JavaResults.InternalServerError());
     }
 
     /**
@@ -465,8 +465,8 @@ public class Results {
     /**
      * Generates a 404 NOT_FOUND simple result.
      */
-    public static Status notFound() {
-        return new Status(play.core.j.JavaResults.NotFound());
+    public static StatusHeader notFound() {
+        return new StatusHeader(play.core.j.JavaResults.NotFound());
     }
 
     /**
@@ -573,8 +573,8 @@ public class Results {
     /**
      * Generates a 403 FORBIDDEN simple result.
      */
-    public static Status forbidden() {
-        return new Status(play.core.j.JavaResults.Forbidden());
+    public static StatusHeader forbidden() {
+        return new StatusHeader(play.core.j.JavaResults.Forbidden());
     }
 
     /**
@@ -681,8 +681,8 @@ public class Results {
     /**
      * Generates a 401 UNAUTHORIZED simple result.
      */
-    public static Status unauthorized() {
-        return new Status(play.core.j.JavaResults.Unauthorized());
+    public static StatusHeader unauthorized() {
+        return new StatusHeader(play.core.j.JavaResults.Unauthorized());
     }
 
     /**
@@ -789,8 +789,8 @@ public class Results {
     /**
      * Generates a 400 BAD_REQUEST simple result.
      */
-    public static Status badRequest() {
-        return new Status(play.core.j.JavaResults.BadRequest());
+    public static StatusHeader badRequest() {
+        return new StatusHeader(play.core.j.JavaResults.BadRequest());
     }
 
     /**
@@ -1232,17 +1232,74 @@ public class Results {
     }
 
     /**
+     * A status with no body
+     */
+    public static class StatusHeader implements Result {
+
+        private final play.api.mvc.Results.Status wrappedStatus;
+
+        public StatusHeader(play.api.mvc.Results.Status wrappedStatus) {
+            this.wrappedStatus = wrappedStatus;
+        }
+
+        /**
+         * Send the given resource.
+         *
+         * The resource will be loaded from the same classloader that this class comes from.
+         *
+         * @param resourceName The path of the resource to load.
+         */
+        public Status sendResource(String resourceName) {
+            return sendResource(resourceName, true);
+        }
+
+        /**
+         * Send the given resource from the given classloader.
+         *
+         * @param resourceName The path of the resource to load.
+         * @param classLoader The classloader to load it from.
+         */
+        public Status sendResource(String resourceName, ClassLoader classLoader) {
+            return sendResource(resourceName, classLoader, true);
+        }
+
+        /**
+         * Send the given resource.
+         *
+         * The resource will be loaded from the same classloader that this class comes from.
+         *
+         * @param resourceName The path of the resource to load.
+         * @param inline Whether it should be served as an inline file, or as an attachment.
+         */
+        public Status sendResource(String resourceName, boolean inline) {
+            return sendResource(resourceName, this.getClass().getClassLoader(), inline);
+        }
+
+        /**
+         * Send the given resource from the given classloader.
+         *
+         * @param resourceName The path of the resource to load.
+         * @param classLoader The classloader to load it from.
+         * @param inline Whether it should be served as an inline file, or as an attachment.
+         */
+        public Status sendResource(String resourceName, ClassLoader classLoader, boolean inline) {
+            return new Status(wrappedStatus.sendResource(resourceName, classLoader, inline));
+        }
+
+        public play.api.mvc.Result toScala() {
+            return wrappedStatus;
+        }
+    }
+
+    /**
      * A simple result.
      */
     public static class Status implements Result {
 
         private play.api.mvc.Result wrappedResult;
 
-        public Status(play.api.mvc.Results.Status status) {
-            wrappedResult = status.apply(
-                    play.core.j.JavaResults.empty(),
-                    play.core.j.JavaResults.writeEmptyContent()
-                    );
+        Status(play.api.mvc.Result wrappedResult) {
+            this.wrappedResult = wrappedResult;
         }
 
         public Status(play.api.mvc.Results.Status status, String content, Codec codec) {

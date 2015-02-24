@@ -25,23 +25,19 @@ Play provides some helper utilities for mocking a web service in tests, making t
 
 As an example, let's say you've written a GitHub client, and you want to test it.  The client is very simple, it just allows you to look up the names of the public repositories:
 
-@[client](code/webservice/ScalaTestingWebServiceClients.scala)
+@[client](code/javaguide/tests/GitHubClient.java)
 
 Note that it takes the GitHub API base URL as a parameter - we'll override this in our tests so that we can point it to our mock server.
 
-To test this, we want an embedded Play server that will implement this endpoint.  We can do that using the [`Server`](api/scala/index.html#play.core.server.Server) `withRouter` helper in combination with the [[String Interpolating Routing DSL|ScalaSirdRouter]]:
+To test this, we want an embedded Play server that will implement this endpoint.  We can do that by [[Creating an embedded server|JavaEmbeddingPlay]] with the [[Routing DSL|JavaRoutingDsl]]:
 
-@[mock-service](code/webservice/ScalaTestingWebServiceClients.scala)
+@[mock-service](code/javaguide/tests/JavaTestingWebServiceClients.java)
 
-The `withRouter` method takes a block of code that takes as input the port number that the server starts on.  By default, Play starts the server on a random free port - this means that you don't need to worry about resource contention on build servers or assigning ports to tests, but it means that your code does need to be told which port is going to be used.
+Our server is now running on a random port, that we can access through the `httpPort` method.  We could build the base URL to pass to the `GitHubClient` using this, however Play has an even simpler mechanism.  The [`WS`](api/java/play/libs/ws/WS.java) class provides a `newClient` method that takes in a port number.  When requests are made using the client to relative URLs, eg to `/repositories`, this client will send that request to localhost on the passed in port.  This means we can set a base URL on the `GitHubClient` to `""`.  It also means if the client returns resources with URL links to other resources that the client then uses to make further requests, we can just ensure those a relative URLs and use them as is.
 
-Now to test the GitHub client, we need a `WSClient` for it.  Play provides a [`WsTestClient`](api/scala/index.html#play.api.test.WsTestClient$) trait that has some factory methods for creating test clients.  The `withClient` takes an implicit port, this is handy to use in combination with the `Server.withRouter` method.
+So now we can create a server, WS client and `GitHubClient` in a `@Before` annotated method, and shut them down in an `@After` annotated method, and then we can test the client in our tests:
 
-The client that the `WsTestClient.withClient` method creates here is a special client - if you give it a relative URL, then it will default the hostname to `localhost` and the port number to the port number passed in implicitly.  Using this, we can simply set the base url for our GitHub client to be an empty String.
-
-Putting it all together, we have this:
-
-@[full-test](code/webservice/ScalaTestingWebServiceClients.scala)
+@[content](code/javaguide/tests/GitHubClientTest.java)
 
 ### Returning files
 
@@ -87,16 +83,6 @@ You may decide to modify it to suit your testing needs, for example, if your Git
 
 Now, modify the router to serve this resource:
 
-@[send-resource](code/webservice/ScalaTestingWebServiceClients.scala)
+@[send-resource](code/javaguide/tests/JavaTestingWebServiceClients.java)
 
 Note that Play will automatically set a content type of `application/json` due to the filename's extension of `.json`.
-
-### Extracting setup code
-
-The tests implemented so far are fine if you only have one test you want to run, but if you have many methods that you want to test, it may make more sense to extract the mock client setup code out into one helper method.  For example, we could define a `withGitHubClient` method:
-
-@[with-github-client](code/webservice/ScalaTestingWebServiceClients.scala)
-
-And then using it in a test looks like:
-
-@[with-github-test](code/webservice/ScalaTestingWebServiceClients.scala)
