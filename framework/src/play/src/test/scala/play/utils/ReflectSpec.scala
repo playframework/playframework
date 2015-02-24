@@ -5,11 +5,10 @@ package play.utils
 
 import javax.inject.Inject
 
-import com.google.inject.Guice
 import org.specs2.mutable.Specification
-import play.api.{ PlayException, Configuration, Environment }
 import play.api.inject.Binding
-import play.api.inject.guice.GuiceApplicationLoader
+import play.api.inject.guice.GuiceInjectorBuilder
+import play.api.{ PlayException, Configuration, Environment }
 
 import scala.reflect.ClassTag
 
@@ -90,7 +89,7 @@ object ReflectSpec extends Specification {
   class NotADuck
 
   def doQuack(bindings: Seq[Binding[_]]): String = {
-    Guice.createInjector(GuiceApplicationLoader.guiced(bindings)).getInstance(classOf[Duck]).quack
+    new GuiceInjectorBuilder().bindings(bindings).injector.instanceOf[Duck].quack
   }
 
 }

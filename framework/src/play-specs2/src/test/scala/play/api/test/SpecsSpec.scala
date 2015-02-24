@@ -5,7 +5,7 @@ package play.api.test
 
 import com.google.inject.AbstractModule
 import org.specs2.mutable._
-import play.api.inject.guice.GuiceApplicationLoader
+import play.api.inject.guice.{ GuiceApplicationBuilder, GuiceApplicationLoader }
 import play.api.{ Play, Application }
 
 object SpecsSpec extends Specification {
@@ -29,7 +29,8 @@ object SpecsSpec extends Specification {
     val myModule = new AbstractModule {
       def configure() = bind(classOf[Int]).toInstance(42)
     }
-    class WithMyApplicationLoader extends WithApplicationLoader(new GuiceApplicationLoader(myModule))
+    val builder = new GuiceApplicationBuilder().bindings(myModule)
+    class WithMyApplicationLoader extends WithApplicationLoader(new GuiceApplicationLoader(builder))
     "allow adding modules" in new WithMyApplicationLoader {
       app.injector.instanceOf(classOf[Int]) must equalTo(42)
     }

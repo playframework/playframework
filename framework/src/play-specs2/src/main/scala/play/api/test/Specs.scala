@@ -33,7 +33,7 @@ abstract class WithApplicationLoader(applicationLoader: ApplicationLoader = new 
  *
  * @param app The fake application
  */
-abstract class WithApplication(val app: FakeApplication = FakeApplication()) extends Around with Scope {
+abstract class WithApplication(val app: Application = FakeApplication()) extends Around with Scope {
   implicit def implicitApp = app
   override def around[T: AsResult](t: => T): Result = {
     Helpers.running(app)(AsResult.effectively(t))
@@ -49,7 +49,7 @@ abstract class WithApplication(val app: FakeApplication = FakeApplication()) ext
  * server to use. Defaults to providing a Netty server.
  */
 abstract class WithServer(
-    val app: FakeApplication = FakeApplication(),
+    val app: Application = FakeApplication(),
     val port: Int = Helpers.testServerPort,
     val serverProvider: ServerProvider = NettyServer.defaultServerProvider) extends Around with Scope {
   implicit def implicitApp = app

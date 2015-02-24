@@ -18,13 +18,15 @@ To provide an environment for tests, Play provides a [`FakeApplication`](api/jav
 
 @[test-fakeapp](code/javaguide/tests/FakeApplicationTest.java)
 
+If you're using Guice for [[dependency injection|JavaDependencyInjection]] then an `Application` for testing can be [[built directly|JavaTestingWithGuice]], instead of using FakeApplication.
+
 ## Testing with a fake application
 
-To run tests within a `FakeAppliction`, you can do the following:
+To run tests with an `Application`, you can do the following:
 
 @[test-running-fakeapp](code/javaguide/tests/FakeApplicationTest.java)
 
-You can also extend `WithApplication`, this will automatically ensure that a fake application is started and stopped for you:
+You can also extend `WithApplication`, this will automatically ensure that an application is started and stopped for you:
 
 @[test-withapp](code/javaguide/tests/FunctionalTest.java)
 

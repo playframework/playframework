@@ -18,7 +18,8 @@ class BuiltinModule extends Module {
 
     Seq(
       bind[Environment] to env,
-      bind[Configuration] to configuration,
+      bind[ConfigurationProvider].to(new ConfigurationProvider(configuration)),
+      bind[Configuration].toProvider[ConfigurationProvider],
       bind[HttpConfiguration].toProvider[HttpConfiguration.HttpConfigurationProvider],
 
       // Application lifecycle, bound both to the interface, and its implementation, so that Application can access it
@@ -27,8 +28,7 @@ class BuiltinModule extends Module {
       bind[ApplicationLifecycle].to(bind[DefaultApplicationLifecycle]),
 
       bind[Application].to[DefaultApplication],
-      bind[play.inject.Injector].to[play.inject.DelegateInjector],
-      // bind Plugins - eager
+      bind[play.Application].to[play.DefaultApplication],
 
       bind[Router.Routes].toProvider[RoutesProvider],
       bind[Plugins].toProvider[PluginsProvider],
@@ -42,6 +42,10 @@ class BuiltinModule extends Module {
       )
   }
 }
+
+// This allows us to access the original configuration via this
+// provider while overriding the binding for Configuration itself.
+class ConfigurationProvider(val get: Configuration) extends Provider[Configuration]
 
 @Singleton
 class RoutesProvider @Inject() (injector: Injector, environment: Environment, configuration: Configuration, httpConfig: HttpConfiguration) extends Provider[Router.Routes] {

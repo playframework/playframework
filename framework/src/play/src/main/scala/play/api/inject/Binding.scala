@@ -52,6 +52,10 @@ final case class Binding[T](key: BindingKey[T], target: Option[BindingTarget[T]]
   }
 }
 
+object BindingKey {
+  def apply[T](clazz: Class[T]): BindingKey[T] = new BindingKey(clazz)
+}
+
 /**
  * A binding key.
  *
@@ -60,7 +64,9 @@ final case class Binding[T](key: BindingKey[T], target: Option[BindingTarget[T]]
  * @param clazz The class to bind.
  * @param qualifier An optional qualifier.
  */
-final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnotation] = None) {
+final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnotation]) {
+
+  def this(clazz: Class[T]) = this(clazz, None)
 
   /**
    * Qualify this binding key with the given instance of an annotation.

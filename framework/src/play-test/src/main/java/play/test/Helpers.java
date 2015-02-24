@@ -405,7 +405,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Starts a new application.
      */
-    public static void start(FakeApplication fakeApplication) {
+    public static void start(Application fakeApplication) {
 
         play.api.Play.start(fakeApplication.getWrappedApplication());
     }
@@ -413,14 +413,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Stops an application.
      */
-    public static void stop(FakeApplication fakeApplication) {
+    public static void stop(Application fakeApplication) {
         play.api.Play.stop(fakeApplication.getWrappedApplication());
     }
 
     /**
      * Executes a block of code in a running application.
      */
-    public static void running(FakeApplication fakeApplication, final Runnable block) {
+    public static void running(Application fakeApplication, final Runnable block) {
         synchronized (PlayRunners$.MODULE$.mutex()) {
             try {
                 start(fakeApplication);
@@ -442,7 +442,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Creates a new Test server listening on port defined by configuration setting "testserver.port" (defaults to 19001) and using the given FakeApplication.
      */
-    public static TestServer testServer(FakeApplication app) {
+    public static TestServer testServer(Application app) {
         return testServer(play.api.test.Helpers.testServerPort(), app);
     }
 
@@ -456,7 +456,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Creates a new Test server.
      */
-    public static TestServer testServer(int port, FakeApplication app) {
+    public static TestServer testServer(int port, Application app) {
         return new TestServer(port, app);
     }
 

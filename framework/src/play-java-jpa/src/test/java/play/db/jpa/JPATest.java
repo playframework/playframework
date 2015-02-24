@@ -6,7 +6,7 @@ package play.db.jpa;
 import com.google.common.collect.ImmutableMap;
 import java.util.List;
 import org.junit.Test;
-import play.test.FakeApplication;
+import play.Application;
 import play.test.WithApplication;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -16,7 +16,7 @@ import static play.test.Helpers.*;
 public class JPATest extends WithApplication {
 
     @Override
-    protected FakeApplication provideFakeApplication() {
+    protected Application provideApplication() {
         return fakeApplication(ImmutableMap.of(
             "db.default.driver", "org.h2.Driver",
             "db.default.url", "jdbc:h2:mem:play-test-jpa",

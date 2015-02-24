@@ -2,6 +2,7 @@ package javaguide.advanced.extending;
 
 import akka.actor.ActorRef;
 import org.junit.Test;
+import play.Application;
 import play.Play;
 import play.libs.F;
 import play.test.*;
@@ -19,7 +20,7 @@ public class JavaPlugins {
     @Test
     public void pluginsShouldBeAccessible() {
         final AtomicReference<MyComponent> myComponentRef = new AtomicReference<MyComponent>();
-        FakeApplication app = fakeApplication(new HashMap<String, Object>(), Arrays.asList(MyPlugin.class.getName()));
+        Application app = fakeApplication(new HashMap<String, Object>(), Arrays.asList(MyPlugin.class.getName()));
         running(app, new Runnable() {
             public void run() {
                 //#access-plugin
@@ -34,7 +35,7 @@ public class JavaPlugins {
 
     @Test
     public void actorExampleShouldWork() {
-        FakeApplication app = fakeApplication(new HashMap<String, Object>(), Arrays.asList(Actors.class.getName()));
+        Application app = fakeApplication(new HashMap<String, Object>(), Arrays.asList(Actors.class.getName()));
         running(app, new Runnable() {
             public void run() {
                 ActorRef actor = Actors.getMyActor();

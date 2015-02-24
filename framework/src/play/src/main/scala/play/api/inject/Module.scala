@@ -58,12 +58,12 @@ abstract class Module {
   /**
    * Create a binding key for the given class.
    */
-  final def bind[T](clazz: Class[T]): BindingKey[T] = BindingKey(clazz)
+  final def bind[T](clazz: Class[T]): BindingKey[T] = play.api.inject.bind(clazz)
 
   /**
    * Create a binding key for the given class.
    */
-  final def bind[T: ClassTag]: BindingKey[T] = BindingKey(implicitly[ClassTag[T]].runtimeClass.asInstanceOf[Class[T]])
+  final def bind[T: ClassTag]: BindingKey[T] = play.api.inject.bind[T]
 
   /**
    * Create a seq.
@@ -88,10 +88,9 @@ object Modules {
    *         allowing ApplicationLoader implementations to reuse the same mechanism to load modules specific to them.
    */
   def locate(environment: Environment, configuration: Configuration): Seq[Any] = {
-    import scala.collection.JavaConverters._
 
-    val includes = configuration.underlying.getStringList("play.modules.enabled").asScala
-    val excludes = configuration.underlying.getStringList("play.modules.disabled").asScala
+    val includes = configuration.getStringSeq("play.modules.enabled").getOrElse(Seq.empty)
+    val excludes = configuration.getStringSeq("play.modules.disabled").getOrElse(Seq.empty)
 
     val moduleClassNames = includes.toSet -- excludes
 
