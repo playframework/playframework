@@ -7,7 +7,6 @@ import org.jboss.netty.buffer.ChannelBuffers
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.handler.codec.http.HttpHeaders._
-import org.jboss.netty.handler.codec.http.HttpHeaders.Names._
 import org.jboss.netty.handler.codec.http.websocketx.{ WebSocketFrame, TextWebSocketFrame, BinaryWebSocketFrame }
 import org.jboss.netty.handler.codec.frame.TooLongFrameException
 import org.jboss.netty.handler.ssl._
@@ -38,7 +37,17 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
   private lazy val forwardedHeaderHandler = new ForwardedHeaderHandler(
     ForwardedHeaderHandler.ForwardedHeaderHandlerConfig(server.applicationProvider.get.toOption.map(_.configuration)))
 
-  override def exceptionCaught(ctx: ChannelHandlerContext, event: ExceptionEvent) {
+  /**
+   * Sends a simple response with no body, then closes the connection.
+   */
+  private def sendSimpleErrorResponse(ctx: ChannelHandlerContext, status: HttpResponseStatus): Unit = {
+    val response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, status)
+    response.headers().set(Names.CONNECTION, "close")
+    response.headers().set(Names.CONTENT_LENGTH, "0")
+    ctx.getChannel.write(response).addListener(ChannelFutureListener.CLOSE)
+  }
+
+  override def exceptionCaught(ctx: ChannelHandlerContext, event: ExceptionEvent): Unit = {
 
     event.getCause match {
       // IO exceptions happen all the time, it usually just means that the client has closed the connection before fully
@@ -48,15 +57,11 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
         event.getChannel.close()
       case e: TooLongFrameException =>
         logger.warn("Handling TooLongFrameException", e)
-        val response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.REQUEST_URI_TOO_LONG)
-        response.headers().set(Names.CONNECTION, "close")
-        ctx.getChannel.write(response).addListener(ChannelFutureListener.CLOSE)
+        sendSimpleErrorResponse(ctx, HttpResponseStatus.REQUEST_URI_TOO_LONG)
       case e: IllegalArgumentException if Option(e.getMessage).exists(_.contains("Header value contains a prohibited character")) =>
         // https://github.com/netty/netty/blob/netty-3.9.3.Final/src/main/java/org/jboss/netty/handler/codec/http/HttpHeaders.java#L1075-L1080
         logger.debug("Handling Header value error", e)
-        val response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST)
-        response.headers().set(Names.CONNECTION, "close")
-        ctx.getChannel.write(response).addListener(ChannelFutureListener.CLOSE)
+        sendSimpleErrorResponse(ctx, HttpResponseStatus.BAD_REQUEST)
       case e =>
         logger.error("Exception caught in Netty", e)
         event.getChannel.close()
@@ -98,16 +103,18 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
 
         def tryToCreateRequest = {
           val parameters = Map.empty[String, Seq[String]] ++ nettyUri.getParameters.asScala.mapValues(_.asScala)
-          createRequestHeader(parameters)
+          // wrapping into URI to handle absoluteURI
+          val path = new URI(nettyUri.getPath).getRawPath
+          createRequestHeader(path, parameters)
         }
 
-        def createRequestHeader(parameters: Map[String, Seq[String]] = Map.empty[String, Seq[String]]) = {
+        def createRequestHeader(parsedPath: String, parameters: Map[String, Seq[String]] = Map.empty[String, Seq[String]]) = {
           //mapping netty request to Play's
           val untaggedRequestHeader = new RequestHeader {
             val id = requestIDs.incrementAndGet
             val tags = Map.empty[String, String]
             def uri = nettyHttpRequest.getUri
-            def path = new URI(nettyUri.getPath).getRawPath //wrapping into URI to handle absoluteURI
+            def path = parsedPath
             def method = nettyHttpRequest.getMethod.getName
             def version = nettyVersion.getText
             def queryString = parameters
@@ -120,14 +127,10 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
         }
 
         val (requestHeader, handler: Either[Future[Result], (Handler, Application)] @unchecked) = Exception
-          .allCatch[RequestHeader].either {
-            val rh = tryToCreateRequest
-            // Force parsing of uri
-            rh.path
-            rh
-          }.fold(
+          .allCatch[RequestHeader].either(tryToCreateRequest).fold(
             e => {
-              val rh = createRequestHeader()
+              // use unparsed path
+              val rh = createRequestHeader(nettyUri.getPath)
               val result = Future
                 .successful(()) // Create a dummy future
                 .flatMap { _ =>
