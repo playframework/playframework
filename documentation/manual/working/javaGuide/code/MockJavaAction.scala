@@ -7,7 +7,6 @@ import play.api.mvc.{Action, Request}
 import play.core.j.{JavaHandlerComponents, JavaHelpers, JavaActionAnnotations, JavaAction}
 import play.http.DefaultHttpRequestHandler
 import play.mvc.{Controller, Http, Result}
-import play.test.FakeRequest
 import play.api.test.Helpers
 import play.libs.F
 import java.lang.reflect.Method
@@ -38,22 +37,22 @@ abstract class MockJavaAction extends Controller with Action[Http.RequestBody] {
 object MockJavaActionHelper {
   import Helpers.defaultAwaitTimeout
 
-  def call(action: Action[Http.RequestBody], request: FakeRequest): Result = {
-    val result = Helpers.await(action.apply(request.getWrappedRequest))
+  def call(action: Action[Http.RequestBody], requestBuilder: play.mvc.Http.RequestBuilder): Result = {
+    val result = Helpers.await(action.apply(requestBuilder.build()._underlyingRequest))
     new Result {
       def toScala = result
     }
   }
 
-  def callWithStringBody(action: Action[Http.RequestBody], request: FakeRequest, body: String): Result = {
-    val result = Helpers.await(Helpers.call(action, request.getWrappedRequest, body))
+  def callWithStringBody(action: Action[Http.RequestBody], requestBuilder: play.mvc.Http.RequestBuilder, body: String): Result = {
+    val result = Helpers.await(Helpers.call(action, requestBuilder.build()._underlyingRequest, body))
     new Result {
       def toScala = result
     }
   }
 
-  def setContext(request: FakeRequest): Unit = {
-    Http.Context.current.set(JavaHelpers.createJavaContext(request.getWrappedRequest))
+  def setContext(request: play.mvc.Http.RequestBuilder): Unit = {
+    Http.Context.current.set(JavaHelpers.createJavaContext(request.build()._underlyingRequest))
   }
 
   def removeContext: Unit = Http.Context.current.remove()

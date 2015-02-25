@@ -464,6 +464,11 @@ public class Http {
          */
         void setUsername(String username);
 
+        /**
+         * For internal Play-use only
+         */
+        play.api.mvc.Request<RequestBody> _underlyingRequest();
+
     }
 
     /**
@@ -742,27 +747,64 @@ public class Http {
             return this;
         }
 
-        public RequestBuilder cookie(Cookie cookie) {
-          String header = header(HeaderNames.COOKIE);
-          String value = play.api.mvc.Cookies$.MODULE$.merge(header != null ? header : "",
-              play.core.j.JavaHelpers$.MODULE$.cookiesToScalaCookies(Arrays.asList(cookie)));
+        private play.api.mvc.Cookies scalaCookies() {
+          String cookieHeader = header(HeaderNames.COOKIE);
+          scala.Option<String> cookieHeaderOpt = scala.Option.apply(cookieHeader);
+          return play.api.mvc.Cookies$.MODULE$.apply(cookieHeaderOpt);
+        }
+
+        public Cookies cookies() {
+          return play.core.j.JavaHelpers$.MODULE$.cookiesToJavaCookies(scalaCookies());
+        }
+
+        private void cookies(Seq<play.api.mvc.Cookie> cookies) {
+          String cookieHeader = header(HeaderNames.COOKIE);
+          String value = play.api.mvc.Cookies$.MODULE$.merge(cookieHeader != null ? cookieHeader : "", cookies);
           header(HeaderNames.COOKIE, value);
+        }
+
+        public RequestBuilder cookie(Cookie cookie) {
+          cookies(play.core.j.JavaHelpers$.MODULE$.cookiesToScalaCookies(Arrays.asList(cookie)));
+          return this;
+        }
+
+        public Map<String,String> flash() {
+          play.api.mvc.Cookies scalaCookies = scalaCookies();
+          scala.Option<play.api.mvc.Cookie> cookie = scalaCookies.get(play.api.mvc.Flash$.MODULE$.COOKIE_NAME());
+          scala.collection.Map<String,String> data = play.api.mvc.Session$.MODULE$.decodeCookieToMap(cookie);
+          return JavaConversions.mapAsJavaMap(data);
+        }
+
+        public RequestBuilder flash(String key, String value) {
+          Map<String,String> data = new HashMap<>(flash());
+          data.put(key, value);
+          flash(data);
           return this;
         }
 
         public RequestBuilder flash(Map<String,String> data) {
-          String header = header(HeaderNames.COOKIE);
-          play.api.mvc.Session session = new play.api.mvc.Session(mapToScala(data));
-          String value = play.api.mvc.Cookies$.MODULE$.merge(header != null ? header : "",
-              JavaConversions.asScalaBuffer(Arrays.asList(play.api.mvc.Flash$.MODULE$.encodeAsCookie(session))));
+          play.api.mvc.Flash flash = new play.api.mvc.Flash(mapToScala(data));
+          cookies(JavaConversions.asScalaBuffer(Arrays.asList(play.api.mvc.Flash$.MODULE$.encodeAsCookie(flash))));
+          return this;
+        }
+
+        public Map<String,String> session() {
+          play.api.mvc.Cookies scalaCookies = scalaCookies();
+          scala.Option<play.api.mvc.Cookie> cookie = scalaCookies.get(play.api.mvc.Session$.MODULE$.COOKIE_NAME());
+          scala.collection.Map<String,String> data = play.api.mvc.Session$.MODULE$.decodeCookieToMap(cookie);
+          return JavaConversions.mapAsJavaMap(data);
+        }
+
+        public RequestBuilder session(String key, String value) {
+          Map<String,String> data = new HashMap<>(session());
+          data.put(key, value);
+          session(data);
           return this;
         }
 
         public RequestBuilder session(Map<String,String> data) {
-          String header = header(HeaderNames.COOKIE);
           play.api.mvc.Session session = new play.api.mvc.Session(mapToScala(data));
-          String value = play.api.mvc.Cookies$.MODULE$.merge(header != null ? header : "",
-              JavaConversions.asScalaBuffer(Arrays.asList(play.api.mvc.Session$.MODULE$.encodeAsCookie(session))));
+          cookies(JavaConversions.asScalaBuffer(Arrays.asList(play.api.mvc.Session$.MODULE$.encodeAsCookie(session))));
           return this;
         }
 
@@ -824,7 +866,7 @@ public class Http {
             return new play.api.mvc.RequestHeaderImpl(
                 id,
                 mapToScala(tags()),
-                url.toExternalForm(),
+                url.getPath() + "?" + url.getQuery(),
                 url.getPath(),
                 method,
                 version,
