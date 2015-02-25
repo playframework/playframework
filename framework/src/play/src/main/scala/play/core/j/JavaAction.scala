@@ -79,7 +79,7 @@ abstract class JavaAction(components: JavaHandlerComponents) extends Action[play
     }
     val actionFuture: Future[Future[JResult]] = Future { finalAction.call(javaContext).wrapped }(trampolineWithContext)
     val flattenedActionFuture: Future[JResult] = actionFuture.flatMap(identity)(trampoline)
-    val resultFuture: Future[Result] = flattenedActionFuture.map(createResult(javaContext, _))(trampoline)
+    val resultFuture: Future[Result] = flattenedActionFuture.map(createScalaResult(javaContext, _))(trampoline)
     resultFuture
   }
 
