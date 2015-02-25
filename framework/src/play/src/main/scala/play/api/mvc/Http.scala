@@ -257,6 +257,20 @@ package play.api.mvc {
 
   }
 
+  private[play] class RequestImpl[A](
+      val body: A,
+      val id: Long,
+      val tags: Map[String, String],
+      val uri: String,
+      val path: String,
+      val method: String,
+      val version: String,
+      val queryString: Map[String, Seq[String]],
+      val headers: Headers,
+      val remoteAddress: String,
+      val secure: Boolean) extends Request[A] {
+  }
+
   object Request {
 
     def apply[A](rh: RequestHeader, a: A) = new Request[A] {
