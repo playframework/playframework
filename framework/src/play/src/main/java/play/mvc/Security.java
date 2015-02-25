@@ -12,7 +12,7 @@ import java.lang.annotation.*;
  * Defines several security helpers.
  */
 public class Security {
-    
+
     /**
      * Wraps the annotated action in an <code>AuthenticatedAction</code>.
      */
@@ -22,7 +22,7 @@ public class Security {
     public @interface Authenticated {
         Class<? extends Authenticator> value() default Authenticator.class;
     }
-    
+
     /**
      * Wraps another action, allowing only authenticated HTTP requests.
      * <p>
@@ -30,8 +30,8 @@ public class Security {
      * <code>username</code> attribute.
      */
     public static class AuthenticatedAction extends Action<Authenticated> {
-        
-        public F.Promise<Result> call(Context ctx) {
+
+        public F.Promise<Result> call(final Context ctx) {
             try {
                 Authenticator authenticator = configuration.value().newInstance();
                 String username = authenticator.getUsername(ctx);
@@ -41,9 +41,25 @@ public class Security {
                 } else {
                     try {
                         ctx.request().setUsername(username);
-                        return delegate.call(ctx);
-                    } finally {
+                        return delegate.call(ctx).transform(
+                            new F.Function<Result, Result>() {
+                                @Override
+                                public Result apply(Result result) throws Throwable {
+                                    ctx.request().setUsername(null);
+                                    return result;
+                                }
+                            },
+                            new F.Function<Throwable, Throwable>() {
+                                @Override
+                                public Throwable apply(Throwable throwable) throws Throwable {
+                                    ctx.request().setUsername(null);
+                                    return throwable;
+                                }
+                            }
+                        );
+                    } catch(Exception e) {
                         ctx.request().setUsername(null);
+                        throw e;
                     }
                 }
             } catch(RuntimeException e) {
@@ -54,12 +70,12 @@ public class Security {
         }
 
     }
-    
+
     /**
      * Handles authentication.
      */
     public static class Authenticator extends Results {
-        
+
         /**
          * Retrieves the username from the HTTP context; the default is to read from the session cookie.
          *
@@ -68,15 +84,15 @@ public class Security {
         public String getUsername(Context ctx) {
             return ctx.session().get("username");
         }
-        
+
         /**
          * Generates an alternative result if the user is not authenticated; the default a simple '401 Not Authorized' page.
          */
         public Result onUnauthorized(Context ctx) {
             return unauthorized(views.html.defaultpages.unauthorized.render());
         }
-        
+
     }
-    
-    
+
+
 }
