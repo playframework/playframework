@@ -19,6 +19,7 @@ import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
 import play.core.server.Server
 import play.core.server.common.{ ForwardedHeaderHandler, ServerRequestUtils, ServerResultUtils }
+import play.core.system.RequestIdProvider
 import play.core.websocket._
 import scala.collection.JavaConverters._
 import scala.util.control.Exception
@@ -31,8 +32,6 @@ import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame
 private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
 
   import PlayDefaultUpstreamHandler._
-
-  private val requestIDs = new java.util.concurrent.atomic.AtomicLong(0)
 
   private lazy val forwardedHeaderHandler = new ForwardedHeaderHandler(
     ForwardedHeaderHandler.ForwardedHeaderHandlerConfig(server.applicationProvider.get.toOption.map(_.configuration)))
@@ -111,7 +110,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
         def createRequestHeader(parsedPath: String, parameters: Map[String, Seq[String]] = Map.empty[String, Seq[String]]) = {
           //mapping netty request to Play's
           val untaggedRequestHeader = new RequestHeader {
-            val id = requestIDs.incrementAndGet
+            val id = RequestIdProvider.requestIDs.incrementAndGet
             val tags = Map.empty[String, String]
             def uri = nettyHttpRequest.getUri
             def path = parsedPath

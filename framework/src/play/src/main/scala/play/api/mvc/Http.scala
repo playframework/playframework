@@ -211,6 +211,19 @@ package play.api.mvc {
     }
   }
 
+  private[play] class RequestHeaderImpl(
+      val id: Long,
+      val tags: Map[String, String],
+      val uri: String,
+      val path: String,
+      val method: String,
+      val version: String,
+      val queryString: Map[String, Seq[String]],
+      val headers: Headers,
+      val remoteAddress: String,
+      val secure: Boolean) extends RequestHeader {
+  }
+
   /**
    * The complete HTTP request.
    *
@@ -382,6 +395,10 @@ package play.api.mvc {
 
     override def toString = data.toString
 
+  }
+
+  class HeadersImpl(_data: Seq[(String, Seq[String])]) extends Headers {
+    protected val data: Seq[(String, Seq[String])] = _data
   }
 
   /**

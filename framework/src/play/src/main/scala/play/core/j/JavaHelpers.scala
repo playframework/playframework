@@ -3,21 +3,21 @@
  */
 package play.core.j
 
-import play.mvc.{ Result => JResult }
-import play.mvc.Http.{ Context => JContext, Request => JRequest, Cookies => JCookies, Cookie => JCookie }
-
 import play.libs.F
-import scala.concurrent.Future
 import play.api.libs.iteratee.Execution.trampoline
+import play.api.mvc._
+import play.mvc.{ Result => JResult }
+import play.mvc.Http.{ Context => JContext, Request => JRequest, RequestImpl => JRequestImpl, RequestHeader => JRequestHeader, Cookies => JCookies, Cookie => JCookie }
+import play.mvc.Http.RequestBody
+
+import scala.concurrent.Future
+import collection.JavaConverters._
 
 /**
  * Provides helper methods that manage Java to Scala Result and Scala to Java Context
  * creation
  */
 trait JavaHelpers {
-  import collection.JavaConverters._
-  import play.api.mvc._
-  import play.mvc.Http.RequestBody
 
   /**
    * Creates a scala result from java context and result objects
@@ -47,66 +47,6 @@ trait JavaHelpers {
   }
 
   /**
-   * Creates a java request (with an empty body) from a scala RequestHeader
-   * @param req incoming requestHeader
-   */
-  def createJavaRequest(req: RequestHeader): JRequest = {
-    new JRequest {
-
-      def uri = req.uri
-
-      def method = req.method
-
-      def version = req.version
-
-      def remoteAddress = req.remoteAddress
-
-      def secure = req.secure
-
-      def host = req.host
-
-      def path = req.path
-
-      def body = null
-
-      def headers = createHeaderMap(req.headers)
-
-      def acceptLanguages = req.acceptLanguages.map(new play.i18n.Lang(_)).asJava
-
-      def queryString = {
-        req.queryString.mapValues(_.toArray).asJava
-      }
-
-      def acceptedTypes = req.acceptedTypes.asJava
-
-      def accepts(mediaType: String) = req.accepts(mediaType)
-
-      def cookies = new JCookies {
-        def get(name: String): JCookie = {
-          req.cookies.get(name).map(makeJavaCookie).orNull
-        }
-
-        private def makeJavaCookie(cookie: Cookie): JCookie = {
-          new JCookie(cookie.name,
-            cookie.value,
-            cookie.maxAge.map(i => new Integer(i)).orNull,
-            cookie.path,
-            cookie.domain.orNull,
-            cookie.secure,
-            cookie.httpOnly)
-        }
-
-        def iterator: java.util.Iterator[JCookie] = {
-          req.cookies.toIterator.map(makeJavaCookie).asJava
-        }
-      }
-
-      override def toString = req.toString
-
-    }
-  }
-
-  /**
    * Creates a java context from a scala RequestHeader
    * @param req
    */
@@ -114,7 +54,7 @@ trait JavaHelpers {
     new JContext(
       req.id,
       req,
-      createJavaRequest(req),
+      new JRequestImpl(req),
       req.session.data.asJava,
       req.flash.data.asJava,
       req.tags.mapValues(_.asInstanceOf[AnyRef]).asJava
@@ -126,59 +66,10 @@ trait JavaHelpers {
    * @param req
    */
   def createJavaContext(req: Request[RequestBody]): JContext = {
-    new JContext(req.id, req, new JRequest {
-
-      def uri = req.uri
-
-      def method = req.method
-
-      def version = req.version
-
-      def remoteAddress = req.remoteAddress
-
-      def secure = req.secure
-
-      def host = req.host
-
-      def path = req.path
-
-      def body = req.body
-
-      def headers = createHeaderMap(req.headers)
-
-      def acceptLanguages = req.acceptLanguages.map(new play.i18n.Lang(_)).asJava
-
-      def acceptedTypes = req.acceptedTypes.asJava
-
-      def accepts(mediaType: String) = req.accepts(mediaType)
-
-      def queryString = {
-        req.queryString.mapValues(_.toArray).asJava
-      }
-
-      def cookies = new JCookies {
-        def get(name: String): JCookie = {
-          req.cookies.get(name).map(makeJavaCookie).orNull
-        }
-
-        private def makeJavaCookie(cookie: Cookie): JCookie = {
-          new JCookie(cookie.name,
-            cookie.value,
-            cookie.maxAge.map(i => new Integer(i)).orNull,
-            cookie.path,
-            cookie.domain.orNull,
-            cookie.secure,
-            cookie.httpOnly)
-        }
-
-        def iterator: java.util.Iterator[JCookie] = {
-          req.cookies.toIterator.map(makeJavaCookie).asJava
-        }
-      }
-
-      override def toString = req.toString
-
-    },
+    new JContext(
+      req.id,
+      req,
+      new JRequestImpl(req),
       req.session.data.asJava,
       req.flash.data.asJava,
       req.tags.mapValues(_.asInstanceOf[AnyRef]).asJava)
@@ -231,11 +122,81 @@ trait JavaHelpers {
 
   }
 
+}
+
+object JavaHelpers extends JavaHelpers
+
+class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
+
+  def uri = header.uri
+
+  def method = header.method
+
+  def version = header.version
+
+  def remoteAddress = header.remoteAddress
+
+  def secure = header.secure
+
+  def host = header.host
+
+  def path = header.path
+
+  def headers = createHeaderMap(header.headers)
+
+  def acceptLanguages = header.acceptLanguages.map(new play.i18n.Lang(_)).asJava
+
+  def queryString = {
+    header.queryString.mapValues(_.toArray).asJava
+  }
+
+  def acceptedTypes = header.acceptedTypes.asJava
+
+  def accepts(mediaType: String) = header.accepts(mediaType)
+
+  def cookies = new JCookies {
+    def get(name: String): JCookie = {
+      header.cookies.get(name).map(makeJavaCookie).orNull
+    }
+
+    private def makeJavaCookie(cookie: Cookie): JCookie = {
+      new JCookie(cookie.name,
+        cookie.value,
+        cookie.maxAge.map(i => new Integer(i)).orNull,
+        cookie.path,
+        cookie.domain.orNull,
+        cookie.secure,
+        cookie.httpOnly)
+    }
+
+    def iterator: java.util.Iterator[JCookie] = {
+      header.cookies.toIterator.map(makeJavaCookie).asJava
+    }
+  }
+
+  def getQueryString(key: String): String = {
+    if (queryString().containsKey(key) && queryString().get(key).length > 0) queryString().get(key)(0) else null
+  }
+
+  def cookie(name: String): JCookie = {
+    cookies().get(name)
+  }
+
+  def getHeader(headerName: String): String = {
+    val header: Array[String] = headers.get(headerName)
+    if (header == null) null else header(0)
+  }
+
+  def hasHeader(headerName: String): Boolean = {
+    getHeader(headerName) != null
+  }
+
   private def createHeaderMap(headers: Headers): java.util.Map[String, Array[String]] = {
     val map = new java.util.TreeMap[String, Array[String]](play.core.utils.CaseInsensitiveOrdered)
     map.putAll(headers.toMap.mapValues(_.toArray).asJava)
     map
   }
 
+  override def toString = header.toString
+
 }
-object JavaHelpers extends JavaHelpers

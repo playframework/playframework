@@ -4,17 +4,38 @@
 package play.mvc;
 
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLDecoder;
 import java.util.*;
+import java.util.Map.Entry;
+import scala.Predef;
+import scala.Tuple2;
+import scala.collection.JavaConversions;
+import scala.collection.JavaConverters;
+import scala.collection.Seq;
 
 import org.w3c.dom.*;
+import org.xml.sax.InputSource;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import play.api.mvc.AnyContent;
+import play.api.mvc.AnyContentAsFormUrlEncoded;
+import play.api.mvc.AnyContentAsJson;
+import play.api.mvc.AnyContentAsRaw;
+import play.api.mvc.AnyContentAsText;
+import play.api.mvc.AnyContentAsXml;
+import play.api.mvc.Headers;
+import play.api.mvc.HeadersImpl;
+import play.api.mvc.RawBuffer;
 import play.api.mvc.RequestHeader;
+import play.core.system.RequestIdProvider;
 import play.i18n.Lang;
 import play.Play;
 import play.i18n.Langs;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
+import play.libs.Scala;
 
 /**
  * Defines HTTP standard objects.
@@ -293,21 +314,22 @@ public class Http {
         }
     }
 
-    public abstract static class RequestHeader {
+    public static interface RequestHeader {
+
         /**
          * The complete request URI, containing both path and query string.
          */
-        public abstract String uri();
+        String uri();
 
         /**
          * The HTTP Method.
          */
-        public abstract String method();
+        String method();
 
         /**
          * The HTTP version.
          */
-        public abstract String version();
+        String version();
 
         /**
          * The client IP address.
@@ -315,105 +337,137 @@ public class Http {
          * retrieves the last untrusted proxy
          * from the Forwarded-Headers or the X-Forwarded-*-Headers.
          */
-        public abstract String remoteAddress();
+        String remoteAddress();
 
         /**
          * Is the client using SSL?
          *
          */
-        public abstract boolean secure();
+        boolean secure();
 
         /**
          * The request host.
          */
-        public abstract String host();
+        String host();
+
         /**
          * The URI path.
          */
-        public abstract String path();
+        String path();
 
         /**
          * The Request Langs extracted from the Accept-Language header and sorted by preference (preferred first).
          */
-        public abstract List<play.i18n.Lang> acceptLanguages();
+        List<play.i18n.Lang> acceptLanguages();
 
         /**
          * @return The media types set in the request Accept header, sorted by preference (preferred first).
          */
-        public abstract List<play.api.http.MediaRange> acceptedTypes();
+        List<play.api.http.MediaRange> acceptedTypes();
 
         /**
          * Check if this request accepts a given media type.
          * @return true if <code>mimeType</code> is in the Accept header, otherwise false
          */
-        public abstract boolean accepts(String mimeType);
+        boolean accepts(String mimeType);
 
         /**
          * The query string content.
          */
-        public abstract Map<String,String[]> queryString();
+        Map<String,String[]> queryString();
 
         /**
          * Helper method to access a queryString parameter.
          */
-        public String getQueryString(String key) {
-            return queryString().containsKey(key) && queryString().get(key).length > 0 ? queryString().get(key)[0] : null;
-        }
+        String getQueryString(String key);
 
         /**
          * @return the request cookies
          */
-        public abstract Cookies cookies();
+        Cookies cookies();
 
         /**
          * @param name Name of the cookie to retrieve
          * @return the cookie, if found, otherwise null.
          */
-        public Cookie cookie(String name) {
-            return cookies().get(name);
-        }
+        Cookie cookie(String name);
 
         /**
          * Retrieves all headers.
          *
          * @return a map of of header name to headers with case-insensitive keys
          */
-        public abstract Map<String,String[]> headers();
+        Map<String,String[]> headers();
 
         /**
          * Retrieves a single header.
          *
          * @param headerName The name of the header (case-insensitive).
          */
-        public String getHeader(String headerName) {
-            String[] headers = headers().get(headerName);
-            return headers == null ? null : headers[0];
-        }
+        String getHeader(String headerName);
 
         /**
          * Checks if the request has the header.
          *
          * @param headerName The name of the header (case-insensitive).
          */
-        public boolean hasHeader(String headerName){
-            return getHeader(headerName) != null;
-        }
+        boolean hasHeader(String headerName);
 
     }
 
     /**
      * An HTTP request.
      */
-    public abstract static class Request extends RequestHeader {
+    public static interface Request extends RequestHeader {
 
         /**
          * The request body.
          */
-        public abstract RequestBody body();
+        RequestBody body();
 
-        // -- username
+        /**
+         * The user name for this request, if defined.
+         * This is usually set by annotating your Action with <code>@Authenticated</code>.
+         */
+        String username();
 
-        private String username = null;
+        /**
+         * Defines the user name for this request.
+         */
+        void setUsername(String username);
+
+    }
+
+    /**
+     * An HTTP request.
+     */
+    public static class RequestImpl extends play.core.j.RequestHeaderImpl implements Request {
+
+        private final RequestBody body;
+        private String username;
+
+        public RequestImpl(play.api.mvc.RequestHeader header, RequestBody body, String username) {
+            super(header);
+            this.body = body;
+            this.username = username;
+        }
+
+        public RequestImpl(play.api.mvc.RequestHeader header) {
+            super(header);
+            this.body = null;
+        }
+
+        public RequestImpl(play.api.mvc.Request<RequestBody> request) {
+            super(request);
+            this.body = request.body();
+        }
+
+        /**
+         * The request body.
+         */
+        public RequestBody body() {
+            return body;
+        }
 
         /**
          * The user name for this request, if defined.
@@ -428,6 +482,270 @@ public class Http {
          */
         public void setUsername(String username) {
             this.username = username;
+        }
+
+    }
+
+    public static class RequestBuilder {
+
+        protected RequestBody body;
+        protected String username;
+
+        public RequestBuilder() {}
+
+        public RequestBody body() {
+            return body;
+        }
+
+        public String username() {
+            return username;
+        }
+
+        public RequestBuilder username(String username) {
+            this.username = username;
+            return this;
+        }
+
+        /**
+         * Set a AnyContent to this request.
+         * @param anyContent the AnyContent
+         * @param contentType Content-Type header value
+         */
+        protected RequestBuilder body(AnyContent anyContent, String contentType) {
+            header("Content-Type", contentType);
+            body = new play.core.j.JavaParsers.DefaultRequestBody(
+                anyContent.asFormUrlEncoded(),
+                anyContent.asRaw(),
+                anyContent.asText(),
+                anyContent.asJson(),
+                anyContent.asXml(),
+                anyContent.asMultipartFormData());
+            return this;
+        }
+
+       /**
+        * Set a Binary Data to this request.
+        * The <tt>Content-Type</tt> header of the request is set to <tt>application/octet-stream</tt>.
+        * @param data the Binary Data
+        */
+        public RequestBuilder bodyRaw(byte[] data) {
+            play.api.mvc.RawBuffer buffer = new play.api.mvc.RawBuffer(data.length, data);
+            return body(new AnyContentAsRaw(buffer), "application/octet-stream");
+        }
+
+        /**
+         * Set a Form url encoded body to this request.
+         */
+        public RequestBuilder bodyFormArrayValues(Map<String,String[]> data) {
+            Map<String,Seq<String>> seqs = new HashMap<>();
+            for (Entry<String,String[]> entry: data.entrySet()) {
+                seqs.put(entry.getKey(), Predef.genericWrapArray(entry.getValue()));
+            }
+            scala.collection.immutable.Map<String,Seq<String>> map = mapToScala(seqs);
+            return body(new AnyContentAsFormUrlEncoded(map), "application/x-www-form-urlencoded");
+        }
+
+        /**
+         * Set a Form url encoded body to this request.
+         */
+        public RequestBuilder bodyForm(Map<String,String> data) {
+            Map<String,Seq<String>> seqs = new HashMap<>();
+            for (Entry<String,String> entry: data.entrySet()) {
+                List<String> list = new ArrayList<>();
+                list.add(entry.getValue());
+                seqs.put(entry.getKey(), JavaConversions.asScalaBuffer(list));
+            }
+            scala.collection.immutable.Map<String,Seq<String>> map = mapToScala(seqs);
+            return body(new AnyContentAsFormUrlEncoded(map), "application/x-www-form-urlencoded");
+        }
+
+        /**
+         * Set a XML to this request.
+         * The <tt>Content-Type</tt> header of the request is set to <tt>application/xml</tt>.
+         * @param xml the XML
+         */
+        public RequestBuilder bodyXml(InputSource xml) {
+            return body(new AnyContentAsXml(scala.xml.XML.load(xml)), "application/xml");
+        }
+
+        /**
+         * Set a Text to this request.
+         * The <tt>Content-Type</tt> header of the request is set to <tt>text/plain</tt>.
+         * @param text the text
+         */
+        public RequestBuilder bodyText(String text) {
+            return body(new AnyContentAsText(text), "text/plain");
+        }
+
+        public Request build() {
+            return new RequestImpl(buildScalaHeader(), body, username);
+        }
+
+        // -------------------
+        // REQUEST HEADER CODE
+
+        protected Long id = RequestIdProvider.requestIDs().incrementAndGet();
+        protected Map<String, String> tags = new HashMap<>();
+        protected String method = "GET";
+        protected URL url;
+        protected String version = "HTTP/1.1";
+        protected Map<String, String[]> headers = new HashMap<>();
+        protected String remoteAddress;
+
+        public Long id() {
+            return id;
+        }
+
+        public RequestBuilder id(Long id) {
+            this.id = id;
+            return this;
+        }
+
+        public Map<String, String> tags() {
+            return tags;
+        }
+
+        public RequestBuilder tags(Map<String, String> tags) {
+            this.tags = tags;
+            return this;
+        }
+
+        public RequestBuilder tag(String key, String value) {
+            tags.put(key, value);
+            return this;
+        }
+
+        public String url() {
+            return url.toExternalForm();
+        }
+
+        public RequestBuilder url(URL url) {
+            this.url = url;
+            header(HeaderNames.HOST, url.getHost());
+            return this;
+        }
+
+        public RequestBuilder url(String spec) {
+            try {
+                url(new URL(spec));
+            } catch (MalformedURLException e) {
+                throw new IllegalArgumentException("Exception parsing URL", e);
+            }
+            return this;
+        }
+
+        public RequestBuilder url(boolean secure, String host, int port, String file) {
+            try {
+                url(new URL(secure ? "http" : "https", host, port, file));
+            } catch (MalformedURLException e) {
+                throw new IllegalArgumentException("Exception parsing URL", e);
+            }
+            return this;
+        }
+
+        public String method() {
+            return method;
+        }
+
+        public RequestBuilder method(String method) {
+            this.method = method;
+            return this;
+        }
+
+        public String version() {
+            return version;
+        }
+
+        public RequestBuilder version(String version) {
+            this.version = version;
+            return this;
+        }
+
+        public Map<String, String[]> headers() {
+            return headers;
+        }
+
+        public RequestBuilder headers(Map<String, String[]> headers) {
+            this.headers = headers;
+            return this;
+        }
+
+        public RequestBuilder header(String key, String[] values) {
+            headers.put(key, values);
+            return this;
+        }
+
+        public RequestBuilder header(String key, String value) {
+            headers.put(key, new String[] { value });
+            return this;
+        }
+
+        public String remoteAddress() {
+            return remoteAddress;
+        }
+
+        public RequestBuilder remoteAddress(String remoteAddress) {
+            this.remoteAddress = remoteAddress;
+            return this;
+        }
+
+        protected Map<String, List<String>> splitQuery() {
+            try {
+                Map<String, List<String>> query_pairs = new LinkedHashMap<String, List<String>>();
+                String query = url.getQuery();
+                if (query == null) {
+                    return new HashMap<>();
+                }
+                String[] pairs = query.split("&");
+                for (String pair : pairs) {
+                    int idx = pair.indexOf("=");
+                    String key = idx > 0 ? URLDecoder.decode(pair.substring(0, idx), "UTF-8") : pair;
+                    if (!query_pairs.containsKey(key)) {
+                        query_pairs.put(key, new LinkedList<String>());
+                    }
+                    String value = idx > 0 && pair.length() > idx + 1 ? URLDecoder.decode(pair.substring(idx + 1), "UTF-8") : null;
+                    query_pairs.get(key).add(value);
+                }
+                return query_pairs;
+            } catch(UnsupportedEncodingException e) {
+                throw new IllegalStateException("This can never happen", e);
+            }
+        }
+
+        protected static scala.collection.immutable.Map<String,Seq<String>> mapListToScala(Map<String,List<String>> data) {
+            Map<String,Seq<String>> seqs = new HashMap<>();
+            for (String key: data.keySet()) {
+                seqs.put(key, JavaConversions.asScalaBuffer(data.get(key)));
+            }
+            return mapToScala(seqs);
+        }
+
+        protected static <A, B> scala.collection.immutable.Map<A, B> mapToScala(java.util.Map<A, B> m) {
+          return JavaConverters.mapAsScalaMapConverter(m).asScala().toMap(
+            Predef.<Tuple2<A, B>>conforms()
+          );
+        }
+
+        protected Headers buildHeaders() {
+            List<Tuple2<String, Seq<String>>> list = new ArrayList<>();
+            for (Map.Entry<String,String[]> entry : headers().entrySet()) {
+              list.add(new Tuple2(entry.getKey(), JavaConversions.asScalaBuffer(Arrays.asList(entry.getValue()))));
+            }
+            return new HeadersImpl(JavaConversions.asScalaBuffer(list));
+        }
+
+        protected play.api.mvc.RequestHeader buildScalaHeader() {
+            return new play.api.mvc.RequestHeaderImpl(
+                id,
+                mapToScala(tags()),
+                url.toExternalForm(),
+                url.getPath(),
+                method,
+                version,
+                mapListToScala(splitQuery()),
+                buildHeaders(),
+                remoteAddress,
+                url.getProtocol().equals("https"));
         }
 
     }
