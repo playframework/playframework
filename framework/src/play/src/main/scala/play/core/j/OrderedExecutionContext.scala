@@ -10,7 +10,7 @@ import scala.concurrent.ExecutionContext
 
 /**
  * Executes work in a fixed-sized pool of actors. If an Http.Context is associated
- * with the current thread then that id will be used to dispatch work to the same
+ * with the current thread then that hashcode will be used to dispatch work to the same
  * actor every time, resulting in ordered execution of work for that context.
  *
  * The ExecutionContext preserves the execution behaviour of F.Promise from Play.
@@ -20,7 +20,7 @@ class OrderedExecutionContext(actorSystem: ActorSystem, size: Int) extends Execu
 
   def execute(runnable: Runnable) = {
     val httpContext = Http.Context.current.get()
-    val id: Long = if (httpContext == null) 0L else httpContext.id()
+    val id: Long = if (httpContext == null) 0L else httpContext.hashCode()
     val actor = actors((id % size).toInt)
     actor ! runnable
   }

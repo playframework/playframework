@@ -19,7 +19,7 @@ object HttpExecutionContextSpec extends Specification
     "propagate the context ClassLoader and Http.Context" in {
       mustExecute(2) { ec =>
         val classLoader = new ClassLoader() {}
-        val httpContext = new Http.Context(1, null, null, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava)
+        val httpContext = new Http.Context(null, null, Map.empty.asJava, Map.empty.asJava, Map.empty.asJava)
         val hec = new HttpExecutionContext(classLoader, httpContext, ec).prepare
 
         val hecFromThread = new LinkedBlockingQueue[ExecutionContext]()

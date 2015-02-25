@@ -112,7 +112,6 @@ trait JavaHelpers {
    */
   def createJavaContext(req: RequestHeader): JContext = {
     new JContext(
-      req.id,
       req,
       createJavaRequest(req),
       req.session.data.asJava,
@@ -126,7 +125,7 @@ trait JavaHelpers {
    * @param req
    */
   def createJavaContext(req: Request[RequestBody]): JContext = {
-    new JContext(req.id, req, new JRequest {
+    new JContext(req, new JRequest {
 
       def uri = req.uri
 

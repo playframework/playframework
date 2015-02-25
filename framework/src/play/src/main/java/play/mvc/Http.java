@@ -41,7 +41,6 @@ public class Http {
 
         //
 
-        private final Long id;
         private final play.api.mvc.RequestHeader header;
         private final Request request;
         private final Response response;
@@ -58,21 +57,13 @@ public class Http {
          * @param sessionData the session data extracted from the session cookie
          * @param flashData the flash data extracted from the flash cookie
          */
-        public Context(Long id, play.api.mvc.RequestHeader header, Request request, Map<String,String> sessionData, Map<String,String> flashData, Map<String,Object> args) {
-            this.id = id;
+        public Context(play.api.mvc.RequestHeader header, Request request, Map<String,String> sessionData, Map<String,String> flashData, Map<String,Object> args) {
             this.header = header;
             this.request = request;
             this.response = new Response();
             this.session = new Session(sessionData);
             this.flash = new Flash(flashData);
             this.args = new HashMap<String,Object>(args);
-        }
-
-        /**
-         * The context id (unique)
-         */
-        public Long id() {
-            return id;
         }
 
         /**
@@ -237,14 +228,9 @@ public class Http {
         private final Context wrapped;
 
         public WrappedContext(Context wrapped) {
-            super(wrapped.id(), wrapped._requestHeader(), wrapped.request(), wrapped.session(), wrapped.flash(), wrapped.args);
+            super(wrapped._requestHeader(), wrapped.request(), wrapped.session(), wrapped.flash(), wrapped.args);
             this.args = wrapped.args;
             this.wrapped = wrapped;
-        }
-
-        @Override
-        public Long id() {
-            return wrapped.id();
         }
 
         @Override
