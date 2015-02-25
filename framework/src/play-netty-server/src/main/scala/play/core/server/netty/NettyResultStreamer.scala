@@ -7,17 +7,15 @@ import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api._
 import play.core.server.common.ServerResultUtils
-
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names._
 import org.jboss.netty.buffer.ChannelBuffers
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.handler.codec.http.HttpHeaders.Values._
-
 import com.typesafe.netty.http.pipelining.{ OrderedDownstreamChannelEvent, OrderedUpstreamMessageEvent }
-
 import scala.concurrent.Future
 import scala.util.{ Failure, Success }
+import scala.util.control.NonFatal
 
 /**
  * Streams Play results to Netty
@@ -88,7 +86,7 @@ object NettyResultStreamer {
           ctx.sendDownstream(ode)
         }
       case Failure(ex) =>
-        logger.debug(ex.toString)
+        logger.error("Error while sending response.", ex)
         Channels.close(oue.getChannel)
     }
     sentResponse
@@ -116,8 +114,20 @@ object NettyResultStreamer {
     import scala.collection.JavaConverters._
 
     // Set response headers
-    ServerResultUtils.splitHeadersIntoSeq(header.headers).foreach {
-      case (name, value) => nettyResponse.headers().add(name, value)
+    val headers = ServerResultUtils.splitHeadersIntoSeq(header.headers)
+    try {
+      headers.foreach {
+        case (name, value) => nettyResponse.headers().add(name, value)
+      }
+    } catch {
+      case NonFatal(e) =>
+        if (logger.isErrorEnabled) {
+          val prettyHeaders = headers.map { case (name, value) => s"$name -> $value" }.mkString("[", ",", "]")
+          val msg = s"Exception occurred while setting response's headers to $prettyHeaders. Action taken is to set the response's status to ${HttpResponseStatus.INTERNAL_SERVER_ERROR} and discard all headers."
+          logger.error(msg, e)
+        }
+        nettyResponse.setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR)
+        nettyResponse.headers().clear()
     }
 
     // Response header Connection: Keep-Alive is needed for HTTP 1.0
