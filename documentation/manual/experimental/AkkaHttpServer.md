@@ -21,64 +21,22 @@ The experimental Akka HTTP backend is a technical proof of concept. It is not in
 
 ## Usage
 
-To use the Akka HTTP server backend you first need to add the Akka HTTP server module as a dependency of your project.
+To use the Akka HTTP server backend you first need to disable the Netty server and add the Akka HTTP server plugin to your project:
 
 ```scala
-libraryDependencies += "com.typesafe.play" %% "play-akka-http-server-experimental" % "%PLAY_VERSION%"
+lazy val root = (project in file("."))
+  .enablePlugins(PlayScala, PlayAkkaHttpServer)
+  .disablePlugins(PlayNettyServer)
 ```
 
-Next you need to tell Play to use the new server backend. You can do this with a system property or by using a different class to start your application.
+Now Play should automatically select the Akka HTTP server for running in dev mode, prod and in tests.
 
-### Dev mode using a system property
+### Manually selecting the Akka HTTP server
 
-To run dev mode with the Akka HTTP server you need to supply a system property when you call the `run` command.
-
-```
-run -Dserver.provider=play.core.server.akkahttp.AkkaHttpServerProvider
-```
-
-### Functional testing using a system property
-
-You can use the Akka HTTP server when using the `WithServer` class in your [[functional tests|ScalaFunctionalTestingWithSpecs2]]. Supplying a system property will change the server used by all your tests.
-
-To run tests with a system property you need to change your sbt settings to fork the tests and then supply the system property as an argument to Java.
-
-```scala
-fork in Test := true
-
-javaOptions in Test += "-Dserver.provider=play.core.server.akkahttp.AkkaHttpServerProvider"
-```
-
-### Functional testing using a ServerProvider class
-
-Instead of using a system property you can supply a `ServerProvider` instance to the `WithServer` class in your [[functional tests|ScalaFunctionalTestingWithSpecs2]].
-
-```scala
-import play.core.server.akkahttp.AkkaHttpServer
-
-"use the Akka HTTP server in a test" in new WithServer(
-  app = myApp, serverProvider = AkkaHttpServer.defaultServerProvider) {
-  val response = await(WS.url("http://localhost:19001/testpath").get())
-  response.status must equalTo(OK)
-}
-```
-
-### Deployed app with a system property
-
-Once you've deployed your app with `dist` you can tell it to use the Akka HTTP server by [[providing a system property|ProductionConfiguration]] when you run it.
+If for some reason you have both the Akka HTTP server and the Netty HTTP server on your classpath, you'll need to manually select it.  This can be done using the `play.server.provider` system property, for example, in dev mode:
 
 ```
-/path/to/bin/<project-name> -Dserver.provider=play.core.server.akkahttp.AkkaHttpServerProvider
-```
-
-### Deployed app with a different main class
-
-Instead of using Netty, you can choose to use the Akka HTTP server's main class when you deploy your application. That means the application will always start with the Akka HTTP server backend.
-
-Change the main class in your sbt settings.
-
-```scala
-mainClass in Compile := Some("play.core.server.akkahttp.AkkaHttpServer")
+run -Dplay.server.provider=play.core.server.akkahttp.AkkaHttpServerProvider
 ```
 
 ### Verifying that the Akka HTTP server is running

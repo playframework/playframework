@@ -15,7 +15,7 @@ libraryDependencies += specs2 % Test
 
 fork in Test := true
 
-javaOptions in Test += "-Dserver.provider=play.core.server.akkahttp.AkkaHttpServerProvider"
+javaOptions in Test += "-Dplay.server.provider=play.core.server.akkahttp.AkkaHttpServerProvider"
 
 PlayKeys.playInteractionMode := play.StaticPlayNonBlockingInteractionMode
 

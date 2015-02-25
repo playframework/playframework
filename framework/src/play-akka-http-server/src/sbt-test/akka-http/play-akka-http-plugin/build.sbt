@@ -1,4 +1,6 @@
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val root = (project in file("."))
+  .enablePlugins(PlayScala, PlayAkkaHttpServer)
+  .disablePlugins(PlayNettyServer)
 
 name := "compiled-class"
 
@@ -8,13 +10,9 @@ scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.10.4")
 // with the scripted "test" file.
 scalaSource in Test <<= baseDirectory(_ / "tests")
 
-libraryDependencies += "com.typesafe.play" %% "play-akka-http-server-experimental" % sys.props("project.version")
-
 libraryDependencies += ws
 
 libraryDependencies += specs2 % Test
-
-mainClass in Compile := Some("play.core.server.akkahttp.AkkaHttpServer")
 
 PlayKeys.playInteractionMode := play.StaticPlayNonBlockingInteractionMode
 

@@ -96,7 +96,8 @@ object ForkRun {
       projectPath = config.projectDirectory,
       devSettings = config.devSettings,
       args = args,
-      runSbtTask = runSbtTask
+      runSbtTask = runSbtTask,
+      mainClassName = config.mainClass
     )
 
     println()

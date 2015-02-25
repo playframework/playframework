@@ -188,7 +188,7 @@ object ServerStartSpec extends Specification {
       val serverStart = new FakeServerStart(new FakeServerProvider)
       val serverProviderClass = classOf[FakeServerProvider]
       val process = new FakeServerProcess(
-        propertyMap = Map("server.provider" -> serverProviderClass.getName)
+        propertyMap = Map("play.server.provider" -> serverProviderClass.getName)
       )
       val configuration = ServerConfig.loadConfiguration(process.classLoader, process.properties, tempDir)
       serverStart.readServerProviderSetting(process, configuration).getClass must_== serverProviderClass
@@ -196,7 +196,7 @@ object ServerStartSpec extends Specification {
     "fail if the class doesn't exist" in withTempDir { tempDir =>
       val serverStart = new FakeServerStart(new FakeServerProvider)
       val process = new FakeServerProcess(
-        propertyMap = Map("server.provider" -> "garble.barble.Phnarble")
+        propertyMap = Map("play.server.provider" -> "garble.barble.Phnarble")
       )
       val configuration = ServerConfig.loadConfiguration(process.classLoader, process.properties, tempDir)
       startResult(serverStart.readServerProviderSetting(process, configuration)) must_== Left("Couldn't find ServerProvider class 'garble.barble.Phnarble'")
@@ -205,7 +205,7 @@ object ServerStartSpec extends Specification {
       val serverStart = new FakeServerStart(new FakeServerProvider)
       val serverProvider = classOf[String].getName
       val process = new FakeServerProcess(
-        propertyMap = Map("server.provider" -> serverProvider)
+        propertyMap = Map("play.server.provider" -> serverProvider)
       )
       val configuration = ServerConfig.loadConfiguration(process.classLoader, process.properties, tempDir)
       startResult(serverStart.readServerProviderSetting(process, configuration)) must_== Left(s"Class $serverProvider must implement ServerProvider interface")
@@ -214,7 +214,7 @@ object ServerStartSpec extends Specification {
       val serverStart = new FakeServerStart(new FakeServerProvider)
       val serverProvider = classOf[InvalidCtorFakeServerProvider].getName
       val process = new FakeServerProcess(
-        propertyMap = Map("server.provider" -> serverProvider)
+        propertyMap = Map("play.server.provider" -> serverProvider)
       )
       val configuration = ServerConfig.loadConfiguration(process.classLoader, process.properties, tempDir)
       startResult(serverStart.readServerProviderSetting(process, configuration)) must_== Left(s"ServerProvider class $serverProvider must have a public default constructor")
@@ -223,7 +223,7 @@ object ServerStartSpec extends Specification {
       val serverStart = new FakeServerStart(new FakeServerProvider)
       val serverProvider = classOf[PrivateCtorFakeServer].getName
       val process = new FakeServerProcess(
-        propertyMap = Map("server.provider" -> serverProvider)
+        propertyMap = Map("play.server.provider" -> serverProvider)
       )
       val configuration = ServerConfig.loadConfiguration(process.classLoader, process.properties, tempDir)
       startResult(serverStart.readServerProviderSetting(process, configuration)) must_== Left(s"ServerProvider class $serverProvider must have a public default constructor")

@@ -125,7 +125,9 @@ object PlayForkRun extends AutoPlugin {
       pollInterval = pollInterval.value,
       notifyKey = thisProjectRef.value.project + "/" + playForkNotifyStart.key.label,
       reloadKey = thisProjectRef.value.project + "/" + playForkReload.key.label,
-      compileTimeout = playForkCompileTimeout.value.toMillis)
+      compileTimeout = playForkCompileTimeout.value.toMillis,
+      mainClass = (mainClass in (Compile, run)).value.getOrElse("play.core.server.NettyServer")
+    )
   }
 
   def serverStartedTask = Def.inputTask[Unit] {

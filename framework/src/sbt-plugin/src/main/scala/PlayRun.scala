@@ -89,7 +89,8 @@ trait PlayRun extends PlayInternalKeys {
       baseDirectory.value,
       devSettings.value,
       args,
-      runSbtTask
+      runSbtTask,
+      (mainClass in (Compile, run)).value.getOrElse("play.core.server.NettyServer")
     )
 
     interaction match {
