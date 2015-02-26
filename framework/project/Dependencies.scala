@@ -18,10 +18,11 @@ object Dependencies {
   val specsSbt = specsBuild
 
   val jacksons = Seq(
-    "jackson-core",
-    "jackson-annotations",
-    "jackson-databind"
-  ).map("com.fasterxml.jackson.core" % _ % "2.4.4")
+    "com.fasterxml.jackson.core" % "jackson-core",
+    "com.fasterxml.jackson.core" % "jackson-annotations",
+    "com.fasterxml.jackson.core" % "jackson-databind",
+    "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8"
+  ).map(_ % "2.4.4")
 
   val guava = "com.google.guava" % "guava" % "18.0"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "2.0.3" // Needed by guava
