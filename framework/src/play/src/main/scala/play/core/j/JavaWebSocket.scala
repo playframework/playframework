@@ -38,7 +38,7 @@ object JavaWebSocket extends JavaHelpers {
       val reject = Option(jws.rejectWith())
       reject.map { result =>
 
-        Left(createResult(javaContext, result))
+        Left(createScalaResult(javaContext, result))
 
       } getOrElse {
 

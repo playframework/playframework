@@ -31,7 +31,7 @@ trait JavaHelpers {
    * @param javaContext
    * @param javaResult
    */
-  def createResult(javaContext: JContext, javaResult: JResult): Result = {
+  def createScalaResult(javaContext: JContext, javaResult: JResult): Result = {
     val wResult = javaResult.toScala.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
       .withCookies(cookiesToScalaCookies(javaContext.response.cookies): _*)
 
@@ -80,8 +80,8 @@ trait JavaHelpers {
   }
 
   /**
-   * Invoke the given function with the right context set, converting the scala request to a
-   * Java request, and converting the resulting Java result to a Scala result, before returning
+   * Invoke the given function, converting the scala request to a Java request,
+   * and converting the resulting Java result to a Scala result, before returning
    * it.
    *
    * This is intended for use by methods in the JavaGlobalSettingsAdapter, which need to be handled
@@ -91,39 +91,8 @@ trait JavaHelpers {
    * @param f The function to invoke
    * @return The result
    */
-  def invokeWithContextOpt(request: RequestHeader, f: JRequest => F.Promise[JResult]): Option[Future[Result]] = {
-    Option(invokeWithContext(request, f))
-  }
-
-  /**
-   * Invoke the given function with the right context set, converting the scala request to a
-   * Java request, and converting the resulting Java result to a Scala result, before returning
-   * it.
-   *
-   * This is intended for use by callback methods in Java adapters.
-   *
-   * @param request The request
-   * @param f The function to invoke
-   * @return The result
-   */
-  def invokeWithContext(request: RequestHeader, f: JRequest => F.Promise[JResult]): Future[Result] = {
-    withContext(request) { javaContext =>
-      f(javaContext.request()).wrapped.map(createResult(javaContext, _))(trampoline)
-    }
-  }
-
-  /**
-   * Invoke the given block with Java context created from the request header
-   */
-  def withContext[A](request: RequestHeader)(block: JContext => A) = {
-    val javaContext = createJavaContext(request)
-    try {
-      JContext.current.set(javaContext)
-      block(javaContext)
-    } finally {
-      JContext.current.remove()
-    }
-
+  def invokeWithoutContext(request: RequestHeader, f: JRequest => F.Promise[JResult]): Future[Result] = {
+    f(new JRequestImpl(request)).wrapped.map(_.toScala)(trampoline)
   }
 
 }
