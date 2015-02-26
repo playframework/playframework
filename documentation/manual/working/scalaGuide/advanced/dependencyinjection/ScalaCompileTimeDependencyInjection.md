@@ -53,7 +53,7 @@ class Routes(
   bar_Routes_0: bar.Routes,
   Assets_1: controllers.Assets,
   val prefix: String
-) extends Router.Routes {
+) extends GeneratedRouter {
 
   def this(
     errorHandler: play.api.http.HttpErrorHandler,

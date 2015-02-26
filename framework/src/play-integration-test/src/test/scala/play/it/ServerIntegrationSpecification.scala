@@ -19,7 +19,7 @@ import AsResult._
  */
 trait ServerIntegrationSpecification extends PendingUntilFixed {
   parent =>
-  def integrationServerProvider: ServerProvider
+  implicit def integrationServerProvider: ServerProvider
 
   implicit class UntilAkkaHttpFixed[T: AsResult](t: => T) {
     /**

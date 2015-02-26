@@ -78,6 +78,9 @@ object Dependencies {
     ("org.reflections" % "reflections" % "0.9.8" notTransitive ())
       .exclude("javassist", "javassist"),
 
+    // Used by the Java routing DSL
+    "net.jodah" % "typetools" % "0.4.0",
+
     guava,
     findBugs,
 

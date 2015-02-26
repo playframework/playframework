@@ -101,7 +101,7 @@ object Reloader {
     docsClasspath: Classpath, docsJar: Option[File],
     defaultHttpPort: Int, projectPath: File,
     devSettings: Seq[(String, String)], args: Seq[String],
-    runSbtTask: String => AnyRef): PlayDevServer = {
+    runSbtTask: String => AnyRef, mainClassName: String): PlayDevServer = {
 
     val (properties, httpPort, httpsPort) = filterArgs(args, defaultHttpPort = defaultHttpPort)
     val systemProperties = extractSystemProperties(javaOptions)
@@ -192,7 +192,7 @@ object Reloader {
       }
 
       val server = {
-        val mainClass = applicationLoader.loadClass("play.core.server.NettyServer")
+        val mainClass = applicationLoader.loadClass(mainClassName)
         if (httpPort.isDefined) {
           val mainDev = mainClass.getMethod("mainDevHttpMode", classOf[BuildLink], classOf[BuildDocHandler], classOf[Int])
           mainDev.invoke(null, reloader, buildDocHandler, httpPort.get: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]

@@ -7,24 +7,21 @@
 
 @for(p <- pkg) {package @p}
 
-import play.core._
-import play.core.Router._
-import play.core.Router.HandlerInvokerFactory._
+import play.core.routing._
+import play.core.routing.HandlerInvokerFactory._
 import play.core.j._
 
 import play.api.mvc._
 @for(i <- imports) {
 import @if(!i.startsWith("_root_.")){_root_.}@i}
 
-import Router.queryString
-
 object Routes extends Routes
 
-class Routes extends Router.Routes {
+class Routes extends GeneratedRouter {
 
   import ReverseRouteContext.empty
 
-  override val errorHandler = play.api.http.LazyHttpErrorHandler
+  override val errorHandler: play.api.http.HttpErrorHandler = play.api.http.LazyHttpErrorHandler
 
   private var _prefix = "/"
 
@@ -43,7 +40,7 @@ class Routes extends Router.Routes {
     if (this.prefix.endsWith("/")) "" else "/"
   }
 
-  def documentation = List(@for((rule, index) <- rules.zipWithIndex) {
+  def documentation: Seq[(String, String, String)] = List(@for((rule, index) <- rules.zipWithIndex) {
     @rule match {
       case Route(verb, path, call, _) if path.parts.isEmpty => {(@tq@verb@tq, prefix, @tq@call@tq)}
       case Route(verb, path, call, _) => {(@tq@verb@tq, prefix + (if(prefix.endsWith("/")) "" else "/") + @tq@path@tq, @tq@call@tq)}
@@ -58,7 +55,7 @@ class Routes extends Router.Routes {
 @for(rule <- rules.zipWithIndex){@rule match {
 case (route @ Route(verb, path, call, comments), index) => {
   @markLines(route)
-  private[this] lazy val @routeIdentifier(route, index) = Route("@verb.value",
+  private[this] lazy val @routeIdentifier(route, index): Route.ParamsExtractor = Route("@verb.value",
     PathPattern(List(StaticPart(this.prefix)@if(path.parts.nonEmpty) {, StaticPart(this.defaultPrefix), }@path.parts.map(_.toString).mkString(", ")))
   )
   private[this] lazy val @invokerIdentifier(route, index) = createInvoker(

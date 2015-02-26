@@ -21,7 +21,8 @@ case class ForkConfig(
   pollInterval: Int,
   notifyKey: String,
   reloadKey: String,
-  compileTimeout: Long)
+  compileTimeout: Long,
+  mainClass: String)
 
 object ForkConfig {
   import play.runsupport._

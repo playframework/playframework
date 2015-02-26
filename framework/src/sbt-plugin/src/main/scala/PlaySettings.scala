@@ -61,7 +61,7 @@ trait PlaySettings {
         if (isPlugin) {
           "com.typesafe.play" %% "play" % play.core.PlayVersion.current % "provided"
         } else {
-          "com.typesafe.play" %% "play-netty-server" % play.core.PlayVersion.current
+          "com.typesafe.play" %% "play-server" % play.core.PlayVersion.current
         }
     },
     libraryDependencies += "com.typesafe.play" %% "play-test" % play.core.PlayVersion.current % "test",
@@ -106,8 +106,6 @@ trait PlaySettings {
     },
 
     shellPrompt := playPrompt,
-
-    mainClass in (Compile, run) := Some("play.core.server.NettyServer"),
 
     computeDependencies <<= computeDependenciesTask,
 
@@ -186,8 +184,6 @@ trait PlaySettings {
     // Native packaging
 
     sourceDirectory in Universal <<= baseDirectory(_ / "dist"),
-
-    mainClass in Compile := Some("play.core.server.NettyServer"),
 
     mappings in Universal ++= {
       val confDirectoryLen = confDirectory.value.getCanonicalPath.length

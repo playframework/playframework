@@ -78,10 +78,10 @@ trait ServerStart {
     val configuration: Configuration = {
       process.args.headOption match {
         case None =>
-          ServerConfig.loadConfiguration(process.properties)
+          ServerConfig.loadConfiguration(process.classLoader, process.properties)
         case Some(rootDir) =>
           // rootDir will become play.server.dir setting
-          ServerConfig.loadConfiguration(process.properties, new File(rootDir))
+          ServerConfig.loadConfiguration(process.classLoader, process.properties, new File(rootDir))
       }
     }
 

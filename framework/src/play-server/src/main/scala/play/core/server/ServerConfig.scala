@@ -37,8 +37,9 @@ case class ServerConfig(
 object ServerConfig {
 
   def apply(
-    rootDir: File,
-    port: Option[Int],
+    classLoader: ClassLoader = this.getClass.getClassLoader,
+    rootDir: File = new File("."),
+    port: Option[Int] = Some(9000),
     sslPort: Option[Int] = None,
     address: String = "0.0.0.0",
     mode: Mode.Mode = Mode.Prod,
@@ -50,7 +51,7 @@ object ServerConfig {
       address = address,
       mode = mode,
       properties = properties,
-      configuration = loadConfiguration(properties, rootDir)
+      configuration = loadConfiguration(classLoader, properties, rootDir)
     )
   }
 
@@ -61,8 +62,8 @@ object ServerConfig {
    *
    * @param properties The properties to base the configuration on.
    */
-  def loadConfiguration(properties: Properties): Configuration = {
-    Configuration(loadDefaultConfig(properties).resolve())
+  def loadConfiguration(classLoader: ClassLoader, properties: Properties): Configuration = {
+    Configuration(loadDefaultConfig(classLoader, properties).resolve())
   }
 
   /**
@@ -70,22 +71,22 @@ object ServerConfig {
    * sets the given rootDir property as a low-priority configuration option
    * with the key "play.server.dir".
    */
-  def loadConfiguration(properties: Properties, rootDir: File): Configuration = {
+  def loadConfiguration(classLoader: ClassLoader, properties: Properties, rootDir: File): Configuration = {
     val javaMap = new java.util.HashMap[String, String]()
     javaMap.put("play.server.dir", rootDir.getAbsolutePath)
     val rootDirConfig = ConfigFactory.parseMap(javaMap)
-    val config = loadDefaultConfig(properties).withFallback(rootDirConfig).resolve()
+    val config = loadDefaultConfig(classLoader, properties).withFallback(rootDirConfig).resolve()
     Configuration(config)
   }
 
-  private def loadDefaultConfig(properties: Properties): Config = {
+  private def loadDefaultConfig(classLoader: ClassLoader, properties: Properties): Config = {
     val userConfig = {
-      def resourceConfig = Option(properties.getProperty("server.config.resource")) map ConfigFactory.parseResources
+      def resourceConfig = Option(properties.getProperty("server.config.resource")) map (resource => ConfigFactory.parseResources(classLoader, resource))
       def fileConfig = Option(properties.getProperty("server.config.file")) map (new File(_)) map ConfigFactory.parseFile
       resourceConfig orElse fileConfig
     }
 
-    val serverReferenceConfig = ConfigFactory.parseResources(this.getClass.getClassLoader, "server-reference.conf")
+    val serverReferenceConfig = ConfigFactory.parseResources(classLoader, "server-reference.conf")
     val systemPropertyConfig = ConfigFactory.parseProperties(properties)
 
     val configs = Seq(systemPropertyConfig) ++ userConfig ++ Seq(serverReferenceConfig)

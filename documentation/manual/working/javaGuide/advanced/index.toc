@@ -1,2 +1,4 @@
 dependencyinjection:Dependency injection
+routing:Advanced routing
 extending:Extending Play
+embedding:Embedding Play

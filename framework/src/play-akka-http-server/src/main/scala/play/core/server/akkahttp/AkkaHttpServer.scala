@@ -27,7 +27,7 @@ import scala.util.{ Failure, Success, Try }
 /**
  * Starts a Play server using Akka HTTP.
  */
-class AkkaHttpServer(config: ServerConfig, appProvider: ApplicationProvider) extends Server with ServerWithStop {
+class AkkaHttpServer(config: ServerConfig, appProvider: ApplicationProvider) extends Server {
 
   import AkkaHttpServer._
 
@@ -185,9 +185,12 @@ class AkkaHttpServer(config: ServerConfig, appProvider: ApplicationProvider) ext
 
   override lazy val mainAddress = {
     // TODO: Handle HTTPS here, like in NettyServer
-    new InetSocketAddress(config.address, config.port.get)
+    address
   }
 
+  def httpPort = Some(address.getPort)
+
+  def httpsPort = None
 }
 
 object AkkaHttpServer extends ServerStart {
@@ -199,11 +202,12 @@ object AkkaHttpServer extends ServerStart {
    */
   val defaultServerProvider = new AkkaHttpServerProvider
 
+  implicit val provider = defaultServerProvider
 }
 
 /**
  * Knows how to create an AkkaHttpServer.
  */
-private[akkahttp] class AkkaHttpServerProvider extends ServerProvider {
+class AkkaHttpServerProvider extends ServerProvider {
   def createServer(config: ServerConfig, appProvider: ApplicationProvider) = new AkkaHttpServer(config, appProvider)
 }

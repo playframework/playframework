@@ -8,7 +8,7 @@ import javax.inject.{ Singleton, Inject, Provider }
 import play.api._
 import play.api.http._
 import play.api.libs.{ CryptoConfig, Crypto, CryptoConfigParser }
-import play.core.Router
+import play.api.routing.Router
 
 class BuiltinModule extends Module {
   def bindings(env: Environment, configuration: Configuration): Seq[Binding[_]] = {
@@ -30,7 +30,7 @@ class BuiltinModule extends Module {
       bind[Application].to[DefaultApplication],
       bind[play.Application].to[play.DefaultApplication],
 
-      bind[Router.Routes].toProvider[RoutesProvider],
+      bind[Router].toProvider[RoutesProvider],
       bind[Plugins].toProvider[PluginsProvider],
 
       bind[CryptoConfig].toProvider[CryptoConfigParser],
@@ -48,12 +48,12 @@ class BuiltinModule extends Module {
 class ConfigurationProvider(val get: Configuration) extends Provider[Configuration]
 
 @Singleton
-class RoutesProvider @Inject() (injector: Injector, environment: Environment, configuration: Configuration, httpConfig: HttpConfiguration) extends Provider[Router.Routes] {
+class RoutesProvider @Inject() (injector: Injector, environment: Environment, configuration: Configuration, httpConfig: HttpConfiguration) extends Provider[Router] {
   lazy val get = {
     val prefix = httpConfig.context
 
     val router = Router.load(environment, configuration)
-      .fold[Router.Routes](Router.Null)(injector.instanceOf(_))
+      .fold[Router](Router.empty)(injector.instanceOf(_))
     router.withPrefix(prefix)
   }
 }

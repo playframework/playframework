@@ -17,7 +17,7 @@ package @(pkg.filter(_ => namespaceReverseRouter).fold(packageName)(_ + "." + pa
   @for(((method, _), routes) <- groupRoutesByMethod(routes)) {@routes match {
   case Seq(route: Route) => {
     @markLines(route)
-    def @method: JavascriptReverseRoute = JavascriptReverseRoute(
+    def @method: JavaScriptReverseRoute = JavaScriptReverseRoute(
       "@(packageName).@(controller).@(method)",
       @tq
         function(@reverseParameters(routes).map(_._1.name).mkString(",")) @ob
@@ -28,7 +28,7 @@ package @(pkg.filter(_ => namespaceReverseRouter).fold(packageName)(_ + "." + pa
   }
   case _ => {
     @markLines(routes: _*)
-    def @method: JavascriptReverseRoute = JavascriptReverseRoute(
+    def @method: JavaScriptReverseRoute = JavaScriptReverseRoute(
       "@(packageName).@(controller).@(method)",
       @tq
         function(@reverseParameters(routes).map(_._1.name).mkString(",")) @ob

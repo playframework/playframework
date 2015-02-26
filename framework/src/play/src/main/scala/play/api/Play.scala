@@ -191,7 +191,7 @@ object Play {
   /**
    * Returns the current application router.
    */
-  def routes(implicit app: Application): play.core.Router.Routes = app.routes
+  def routes(implicit app: Application): play.api.routing.Router = app.routes
 
   /**
    * Returns the current application global settings.

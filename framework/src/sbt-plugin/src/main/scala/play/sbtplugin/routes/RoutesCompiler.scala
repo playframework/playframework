@@ -3,6 +3,7 @@
  */
 package play.sbtplugin.routes
 
+import play.core.PlayVersion
 import play.routes.compiler.{ RoutesGenerator, RoutesCompilationError }
 import sbt._
 import sbt.Keys._
@@ -71,8 +72,8 @@ object RoutesCompiler extends AutoPlugin {
   def compileRoutes(files: Seq[File], generator: RoutesGenerator, generatedDir: File, additionalImports: Seq[String],
     reverseRouter: Boolean, reverseRefRouter: Boolean, namespaceRouter: Boolean, cacheDirectory: File,
     log: Logger): Seq[File] = {
-    val ops = files.map(f => RoutesCompilerOp(f, generator.id, additionalImports, reverseRouter, reverseRefRouter,
-      namespaceRouter))
+    val ops = files.map(f => RoutesCompilerOp(f, generator.id, PlayVersion.current, additionalImports, reverseRouter,
+      reverseRefRouter, namespaceRouter))
     val (products, errors) = syncIncremental(cacheDirectory, ops) { opsToRun: Seq[RoutesCompilerOp] =>
 
       val results = opsToRun.map { op =>
@@ -119,5 +120,5 @@ object RoutesCompiler extends AutoPlugin {
   }
 }
 
-private case class RoutesCompilerOp(file: File, generatorId: String, additionalImports: Seq[String], reverseRouter: Boolean,
-  reverseRefRouter: Boolean, namespaceReverseRouter: Boolean)
+private case class RoutesCompilerOp(file: File, generatorId: String, playVersion: String,
+  additionalImports: Seq[String], reverseRouter: Boolean, reverseRefRouter: Boolean, namespaceReverseRouter: Boolean)

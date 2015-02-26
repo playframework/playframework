@@ -71,3 +71,34 @@ object PlayScala extends AutoPlugin {
     eclipseCommandSettings(SCALA) ++
       defaultScalaSettings
 }
+
+/**
+ * This plugin enables the Play akka http server
+ */
+object PlayNettyServer extends AutoPlugin {
+  override def requires = Play
+  override def trigger = allRequirements
+
+  override def projectSettings = Seq(
+    libraryDependencies ++= {
+      if (play.PlayImport.PlayKeys.playPlugin.value) {
+        Nil
+      } else {
+        Seq("com.typesafe.play" %% "play-netty-server" % play.core.PlayVersion.current)
+      }
+    },
+    mainClass in Compile := Some("play.core.server.NettyServer")
+  )
+}
+
+/**
+ * This plugin enables the Play akka http server
+ */
+object PlayAkkaHttpServer extends AutoPlugin {
+  override def requires = Play
+
+  override def projectSettings = Seq(
+    libraryDependencies += "com.typesafe.play" %% "play-akka-http-server-experimental" % play.core.PlayVersion.current,
+    mainClass in Compile := Some("play.core.server.akkahttp.AkkaHttpServer")
+  )
+}
