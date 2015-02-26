@@ -19,6 +19,7 @@ import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import play.api.libs.json.JsValue;
 import play.api.mvc.AnyContent;
 import play.api.mvc.AnyContentAsFormUrlEncoded;
 import play.api.mvc.AnyContentAsJson;
@@ -28,7 +29,6 @@ import play.api.mvc.AnyContentAsXml;
 import play.api.mvc.Headers;
 import play.api.mvc.HeadersImpl;
 import play.api.mvc.RawBuffer;
-import play.api.mvc.RequestHeader;
 import play.core.system.RequestIdProvider;
 import play.i18n.Lang;
 import play.Play;
@@ -71,6 +71,30 @@ public class Http {
 
         private Lang lang = null;
 
+        /**
+         * Creates a new HTTP context.
+         *
+         * @param requestBuilder the HTTP request builder
+         */
+        public Context(RequestBuilder requestBuilder) {
+            this(requestBuilder.build());
+        }
+
+        /**
+         * Creates a new HTTP context.
+         *
+         * @param request the HTTP request
+         */
+        public Context(Request request) {
+            this.request = request;
+            this.header = request._underlyingHeader();
+            this.id = header.id();
+            this.response = new Response();
+            this.session = new Session(JavaConversions.mapAsJavaMap(header.session().data()));
+            this.flash = new Flash(JavaConversions.mapAsJavaMap(header.flash().data()));
+            this.args = new HashMap<String,Object>();
+            this.args.putAll(JavaConversions.mapAsJavaMap(header.tags()));
+        }
 
         /**
          * Creates a new HTTP context.
@@ -413,6 +437,10 @@ public class Http {
          */
         boolean hasHeader(String headerName);
 
+        /**
+         * For internal Play-use only
+         */
+        play.api.mvc.RequestHeader _underlyingHeader();
     }
 
     /**
@@ -443,30 +471,24 @@ public class Http {
      */
     public static class RequestImpl extends play.core.j.RequestHeaderImpl implements Request {
 
-        private final RequestBody body;
+        private final play.api.mvc.Request<RequestBody> underlying;
         private String username;
-
-        public RequestImpl(play.api.mvc.RequestHeader header, RequestBody body, String username) {
-            super(header);
-            this.body = body;
-            this.username = username;
-        }
 
         public RequestImpl(play.api.mvc.RequestHeader header) {
             super(header);
-            this.body = null;
+            this.underlying = null;
         }
 
         public RequestImpl(play.api.mvc.Request<RequestBody> request) {
             super(request);
-            this.body = request.body();
+            this.underlying = request;
         }
 
         /**
          * The request body.
          */
         public RequestBody body() {
-            return body;
+            return underlying != null ? underlying.body() : null;
         }
 
         /**
@@ -482,6 +504,10 @@ public class Http {
          */
         public void setUsername(String username) {
             this.username = username;
+        }
+
+        public play.api.mvc.Request<RequestBody> _underlyingRequest() {
+            return underlying;
         }
 
     }
@@ -551,12 +577,28 @@ public class Http {
         public RequestBuilder bodyForm(Map<String,String> data) {
             Map<String,Seq<String>> seqs = new HashMap<>();
             for (Entry<String,String> entry: data.entrySet()) {
-                List<String> list = new ArrayList<>();
-                list.add(entry.getValue());
-                seqs.put(entry.getKey(), JavaConversions.asScalaBuffer(list));
+                seqs.put(entry.getKey(), JavaConversions.asScalaBuffer(Arrays.asList(entry.getValue())));
             }
             scala.collection.immutable.Map<String,Seq<String>> map = mapToScala(seqs);
             return body(new AnyContentAsFormUrlEncoded(map), "application/x-www-form-urlencoded");
+        }
+
+        /**
+         * Set a Json Body to this request.
+         * The <tt>Content-Type</tt> header of the request is set to <tt>application/json</tt>.
+         * @param node the Json Node
+         */
+        public RequestBuilder bodyJson(JsonNode node) {
+            return bodyJson(play.api.libs.json.JacksonJson$.MODULE$.jsonNodeToJsValue(node));
+        }
+
+        /**
+         * Set a Json Body to this request.
+         * The <tt>Content-Type</tt> header of the request is set to <tt>application/json</tt>.
+         * @param json the JsValue
+         */
+        public RequestBuilder bodyJson(JsValue json) {
+            return body(new AnyContentAsJson(json), "application/json");
         }
 
         /**
@@ -577,8 +619,19 @@ public class Http {
             return body(new AnyContentAsText(text), "text/plain");
         }
 
-        public Request build() {
-            return new RequestImpl(buildScalaHeader(), body, username);
+        public RequestImpl build() {
+            return new RequestImpl(new play.api.mvc.RequestImpl(
+                body,
+                id,
+                mapToScala(tags()),
+                url.toExternalForm(),
+                url.getPath(),
+                method,
+                version,
+                mapListToScala(splitQuery()),
+                buildHeaders(),
+                remoteAddress,
+                url.getProtocol().equals("https")));
         }
 
         // -------------------
@@ -661,6 +714,15 @@ public class Http {
             return this;
         }
 
+        public String header(String key) {
+            String[] values = headers.get(key);
+            return values == null || values.length == 0 ? null : values[0];
+        }
+
+        public String[] headers(String key) {
+            return headers.get(key);
+        }
+
         public Map<String, String[]> headers() {
             return headers;
         }
@@ -678,6 +740,30 @@ public class Http {
         public RequestBuilder header(String key, String value) {
             headers.put(key, new String[] { value });
             return this;
+        }
+
+        public RequestBuilder cookie(Cookie cookie) {
+          String header = header(HeaderNames.COOKIE);
+          String value = play.api.mvc.Cookies$.MODULE$.merge(header != null ? header : "",
+              play.core.j.JavaHelpers$.MODULE$.cookiesToScalaCookies(Arrays.asList(cookie)));
+          header(HeaderNames.COOKIE, value);
+          return this;
+        }
+
+        public RequestBuilder flash(Map<String,String> data) {
+          String header = header(HeaderNames.COOKIE);
+          play.api.mvc.Session session = new play.api.mvc.Session(mapToScala(data));
+          String value = play.api.mvc.Cookies$.MODULE$.merge(header != null ? header : "",
+              JavaConversions.asScalaBuffer(Arrays.asList(play.api.mvc.Flash$.MODULE$.encodeAsCookie(session))));
+          return this;
+        }
+
+        public RequestBuilder session(Map<String,String> data) {
+          String header = header(HeaderNames.COOKIE);
+          play.api.mvc.Session session = new play.api.mvc.Session(mapToScala(data));
+          String value = play.api.mvc.Cookies$.MODULE$.merge(header != null ? header : "",
+              JavaConversions.asScalaBuffer(Arrays.asList(play.api.mvc.Session$.MODULE$.encodeAsCookie(session))));
+          return this;
         }
 
         public String remoteAddress() {

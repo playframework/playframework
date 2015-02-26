@@ -19,6 +19,13 @@ import collection.JavaConverters._
  */
 trait JavaHelpers {
 
+  def cookiesToScalaCookies(cookies: java.lang.Iterable[play.mvc.Http.Cookie]): Seq[Cookie] = {
+    cookies.asScala.toSeq map { c =>
+      Cookie(c.name, c.value,
+        if (c.maxAge == null) None else Some(c.maxAge), c.path, Option(c.domain), c.secure, c.httpOnly)
+    }
+  }
+
   /**
    * Creates a scala result from java context and result objects
    * @param javaContext
@@ -26,10 +33,7 @@ trait JavaHelpers {
    */
   def createResult(javaContext: JContext, javaResult: JResult): Result = {
     val wResult = javaResult.toScala.withHeaders(javaContext.response.getHeaders.asScala.toSeq: _*)
-      .withCookies(javaContext.response.cookies.asScala.toSeq map { c =>
-        Cookie(c.name, c.value,
-          if (c.maxAge == null) None else Some(c.maxAge), c.path, Option(c.domain), c.secure, c.httpOnly)
-      }: _*)
+      .withCookies(cookiesToScalaCookies(javaContext.response.cookies): _*)
 
     if (javaContext.session.isDirty && javaContext.flash.isDirty) {
       wResult.withSession(Session(javaContext.session.asScala.toMap)).flashing(Flash(javaContext.flash.asScala.toMap))
@@ -127,6 +131,8 @@ trait JavaHelpers {
 object JavaHelpers extends JavaHelpers
 
 class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
+
+  def _underlyingHeader = header
 
   def uri = header.uri
 
