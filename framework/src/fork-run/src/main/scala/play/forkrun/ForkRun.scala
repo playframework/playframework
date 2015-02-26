@@ -93,6 +93,7 @@ object ForkRun {
       docsClasspath = config.docsClasspath,
       docsJar = config.docsJar,
       defaultHttpPort = config.defaultHttpPort,
+      defaultHttpAddress = config.defaultHttpAddress,
       projectPath = config.projectDirectory,
       devSettings = config.devSettings,
       args = args,
@@ -108,16 +109,17 @@ object ForkRun {
   }
 
   def sendStart(sbt: ActorRef, config: ForkConfig, args: Seq[String]): InetSocketAddress => Unit = { address =>
-    val url = serverUrl(args, config.defaultHttpPort, address)
+    val url = serverUrl(args, config.defaultHttpPort, config.defaultHttpAddress, address)
     sbt ! SbtClient.Execute(s"${config.notifyKey} $url")
   }
 
   // reparse args to support https urls
-  def serverUrl(args: Seq[String], defaultHttpPort: Int, address: InetSocketAddress): String = {
-    val (properties, httpPort, httpsPort) = Reloader.filterArgs(args, defaultHttpPort)
-    if (httpPort.isDefined) s"http://localhost:${httpPort.get}"
-    else if (httpsPort.isDefined) s"https://localhost:${httpsPort.get}"
-    else s"http://localhost:${address.getPort}"
+  def serverUrl(args: Seq[String], defaultHttpPort: Int, defaultHttpAddress: String, address: InetSocketAddress): String = {
+    val (properties, httpPort, httpsPort, httpAddress) = Reloader.filterArgs(args, defaultHttpPort, defaultHttpAddress)
+    val host = if (httpAddress == "0.0.0.0") "localhost" else httpAddress
+    if (httpPort.isDefined) s"http://$host:${httpPort.get}"
+    else if (httpsPort.isDefined) s"https://$host:${httpsPort.get}"
+    else s"http://$host:${address.getPort}"
   }
 
   def askForReload(actor: ActorRef)(implicit timeout: Timeout): () => CompileResult = () => {

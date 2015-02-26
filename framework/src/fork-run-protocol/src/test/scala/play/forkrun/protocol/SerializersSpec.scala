@@ -58,6 +58,7 @@ object SerializersSpec extends Specification with PicklingTestUtils {
         docsJar = Option(file("docs")),
         devSettings = Seq("a" -> "b"),
         defaultHttpPort = 3456,
+        defaultHttpAddress = "1.2.3.4",
         watchService = ForkConfig.JNotifyWatchService,
         monitoredFiles = Seq("c"),
         targetDirectory = file("target"),

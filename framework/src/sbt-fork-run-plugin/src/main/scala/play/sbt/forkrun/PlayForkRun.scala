@@ -119,6 +119,7 @@ object PlayForkRun extends AutoPlugin {
       docsJar = PlayKeys.playDocsJar.value,
       devSettings = PlayKeys.devSettings.value,
       defaultHttpPort = PlayKeys.playDefaultPort.value,
+      defaultHttpAddress = PlayKeys.playDefaultAddress.value,
       watchService = ForkConfig.identifyWatchService(PlayKeys.fileWatchService.value),
       monitoredFiles = PlayKeys.playMonitoredFiles.value,
       targetDirectory = target.value,

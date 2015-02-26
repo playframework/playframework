@@ -87,6 +87,7 @@ trait PlayRun extends PlayInternalKeys {
       (managedClasspath in DocsApplication).value.files,
       playDocsJar.value,
       playDefaultPort.value,
+      playDefaultAddress.value,
       baseDirectory.value,
       devSettings.value,
       args,
@@ -193,7 +194,7 @@ trait PlayRun extends PlayInternalKeys {
 
     val interaction = extracted.get(playInteractionMode)
     // Parse HTTP port argument
-    val (properties, httpPort, httpsPort) = Reloader.filterArgs(args, defaultHttpPort = extracted.get(playDefaultPort))
+    val (properties, httpPort, httpsPort, httpAddress) = Reloader.filterArgs(args, extracted.get(playDefaultPort), extracted.get(playDefaultAddress))
     require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
 
     Project.runTask(stage, state).get._2.toEither match {

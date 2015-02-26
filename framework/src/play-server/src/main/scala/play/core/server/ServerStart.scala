@@ -166,8 +166,9 @@ trait ServerStart {
   def mainDevOnlyHttpsMode(
     buildLink: BuildLink,
     buildDocHandler: BuildDocHandler,
-    httpsPort: Int): ServerWithStop = {
-    mainDev(buildLink, buildDocHandler, None, Some(httpsPort))
+    httpsPort: Int,
+    httpAddress: String): ServerWithStop = {
+    mainDev(buildLink, buildDocHandler, None, Some(httpsPort), httpAddress)
   }
 
   /**
@@ -178,15 +179,18 @@ trait ServerStart {
    */
   def mainDevHttpMode(
     buildLink: BuildLink,
-    buildDocHandler: BuildDocHandler, httpPort: Int): ServerWithStop = {
-    mainDev(buildLink, buildDocHandler, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt(_)))
+    buildDocHandler: BuildDocHandler,
+    httpPort: Int,
+    httpAddress: String): ServerWithStop = {
+    mainDev(buildLink, buildDocHandler, Some(httpPort), Option(System.getProperty("https.port")).map(Integer.parseInt(_)), httpAddress)
   }
 
   private def mainDev(
     buildLink: BuildLink,
     buildDocHandler: BuildDocHandler,
     httpPort: Option[Int],
-    httpsPort: Option[Int]): ServerWithStop = {
+    httpsPort: Option[Int],
+    httpAddress: String): ServerWithStop = {
     Threads.withContextClassLoader(this.getClass.getClassLoader) {
       try {
         val process = new RealServerProcess(args = Seq.empty)
@@ -194,6 +198,7 @@ trait ServerStart {
           rootDir = buildLink.projectPath,
           port = httpPort,
           sslPort = httpsPort,
+          address = httpAddress,
           mode = Mode.Dev,
           properties = process.properties
         )
