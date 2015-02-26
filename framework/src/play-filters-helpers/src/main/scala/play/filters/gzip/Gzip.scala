@@ -300,8 +300,8 @@ object Gzip {
           _ <- if (header.compressionMethod != Deflater.DEFLATED) Error("Unsupported compression method", Input.El(headerBytes)) else done()
           efLength <- if (header.hasExtraField) readShort(crc) else done(0)
           _ <- if (header.hasExtraField) drop(efLength, "Not enough bytes for extra field", crc) else done()
-          _ <- if (header.hasFilename) dropWhile(_ != 0x00, "EOF found in middle of file name", crc) else done()
-          _ <- if (header.hasComment) dropWhile(_ != 0x00, "EOF found in middle of comment", crc) else done()
+          _ <- if (header.hasFilename) dropWhileIncluding(_ != 0x00, "EOF found in middle of file name", crc) else done()
+          _ <- if (header.hasComment) dropWhileIncluding(_ != 0x00, "EOF found in middle of comment", crc) else done()
           headerCrc <- if (header.hasCrc) readShort(new CRC32) else done(0)
           _ <- if (header.hasCrc && (crc.getValue & 0xffff) != headerCrc) Error[Bytes]("Header CRC failed", Input.Empty) else done()
         } yield new State()
@@ -361,18 +361,16 @@ object Gzip {
         }
       }
 
-      def dropWhile(p: Byte => Boolean, error: String, crc: CRC32): Iteratee[Bytes, Unit] = Cont {
+      def dropWhileIncluding(p: Byte => Boolean, error: String, crc: CRC32): Iteratee[Bytes, Unit] = Cont {
         case Input.EOF => Error(error, Input.EOF)
-        case Input.Empty => dropWhile(p, error, crc)
-        case Input.El(b) => {
-          val dropped = b.dropWhile(p)
-          crc.update(b, 0, b.length - dropped.length)
-          dropped match {
-            case all if all.length == b.length => dropWhile(p, error, crc)
-            case left if left.isEmpty => Done(Unit, Input.Empty)
-            case left => Done(Unit, Input.El(left))
+        case Input.Empty => dropWhileIncluding(p, error, crc)
+        case Input.El(b) =>
+          val left = b.dropWhile(p)
+          crc.update(b, 0, b.length - left.length)
+          left match {
+            case none if none.isEmpty => dropWhileIncluding(p, error, crc)
+            case some => Done(Unit, maybeEmpty(some.drop(1)))
           }
-        }
       }
     }
   }

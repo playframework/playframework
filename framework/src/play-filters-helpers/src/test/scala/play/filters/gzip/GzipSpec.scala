@@ -3,13 +3,20 @@
  */
 package play.filters.gzip
 
+import java.io.{ File, ByteArrayOutputStream }
+import java.util.zip.GZIPOutputStream
+
+import org.apache.commons.io.IOUtils
+import org.specs2.time.NoTimeConversions
+
 import concurrent.Await
 import play.api.libs.iteratee.{ Iteratee, Enumeratee, Enumerator }
-import concurrent.duration.Duration
+import concurrent.duration._
 import org.specs2.mutable.Specification
-import scala.concurrent.ExecutionContext.Implicits._
 
-object GzipSpec extends Specification {
+import scala.io.Source
+
+object GzipSpec extends Specification with NoTimeConversions {
 
   "gzip" should {
 
@@ -42,7 +49,7 @@ object GzipSpec extends Specification {
       // Check that it can be unzipped
       val bais = new ByteArrayInputStream(result)
       val is = new GZIPInputStream(bais)
-      val check: Array[Byte] = Await.result(Enumerator.fromStream(is) |>>> Iteratee.consume[Array[Byte]](), Duration.Inf)
+      val check: Array[Byte] = Await.result(Enumerator.fromStream(is) |>>> Iteratee.consume[Array[Byte]](), 10.seconds)
       values.mkString("") must_== new String(check, "utf-8")
     }
 
@@ -77,13 +84,35 @@ object GzipSpec extends Specification {
 
   "gunzip" should {
 
-    /**
-     * Uses the gzip enumeratee to verify correctness.
-     */
-    def test(value: String, gunzip: Enumeratee[Array[Byte], Array[Byte]] = Gzip.gunzip(), gzip: Enumeratee[Array[Byte], Array[Byte]] = Gzip.gzip()) = {
-      val future = Enumerator(value.getBytes("utf-8")) &> gzip &> gunzip |>>> Iteratee.consume[Array[Byte]]()
-      val result = new String(Await.result(future, Duration.Inf), "utf-8")
-      result must_== value
+    def gzip(value: String): Array[Byte] = {
+      val baos = new ByteArrayOutputStream()
+      val gzipStream = new GZIPOutputStream(baos)
+      gzipStream.write(value.getBytes("utf-8"))
+      gzipStream.close()
+      baos.toByteArray
+    }
+
+    def read(resource: String): Array[Byte] = {
+      val is = GzipSpec.getClass.getClassLoader.getResourceAsStream(resource)
+      try {
+        IOUtils.toByteArray(is)
+      } finally {
+        is.close()
+      }
+    }
+
+    def test(value: String, gunzip: Enumeratee[Array[Byte], Array[Byte]] = Gzip.gunzip(), chunkSize: Option[Int] = None) = {
+      testInput(gzip(value), value, gunzip, chunkSize)
+    }
+
+    def testInput(input: Array[Byte], expected: String, gunzip: Enumeratee[Array[Byte], Array[Byte]] = Gzip.gunzip(), chunkSize: Option[Int] = None) = {
+      val gzipEnumerator = chunkSize match {
+        case Some(size) => Enumerator.enumerate(input.grouped(size))
+        case None => Enumerator(input)
+      }
+      val future = gzipEnumerator &> gunzip |>>> Iteratee.consume[Array[Byte]]()
+      val result = new String(Await.result(future, 10.seconds), "utf-8")
+      result must_== expected
     }
 
     "gunzip simple input" in {
@@ -91,7 +120,11 @@ object GzipSpec extends Specification {
     }
 
     "gunzip simple input in small chunks" in {
-      test("Hello world", gzip = Gzip.gzip(5))
+      test("Hello world", chunkSize = Some(5))
+    }
+
+    "gunzip simple input in individual bytes" in {
+      test("Hello world", chunkSize = Some(1))
     }
 
     "gunzip large repeating input" in {
@@ -99,7 +132,7 @@ object GzipSpec extends Specification {
     }
 
     "gunzip large repeating input in small chunks" in {
-      test(Seq.fill(1000)("Hello world").mkString(""), gzip = Gzip.gzip(100))
+      test(Seq.fill(1000)("Hello world").mkString(""), chunkSize = Some(100))
     }
 
     "gunzip large random input" in {
@@ -107,7 +140,16 @@ object GzipSpec extends Specification {
     }
 
     "gunzip large random input in small chunks" in {
-      test(scala.util.Random.nextString(10000), gzip = Gzip.gzip(100))
+      test(scala.util.Random.nextString(10000), chunkSize = Some(100))
     }
+
+    "gunzip a stream with a filename" in {
+      testInput(read("helloWorld.txt.gz"), "Hello world")
+    }
+
+    "gunzip a stream with a filename in individual bytes" in {
+      testInput(read("helloWorld.txt.gz"), "Hello world", chunkSize = Some(1))
+    }
+
   }
 }
