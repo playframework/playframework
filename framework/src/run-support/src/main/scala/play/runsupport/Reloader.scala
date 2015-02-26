@@ -41,20 +41,29 @@ object Reloader {
     }
   }
 
-  def filterArgs(args: Seq[String], defaultHttpPort: Int): (Seq[(String, String)], Option[Int], Option[Int]) = {
-    val (properties, others) = args.span(_.startsWith("-D"))
+  def filterArgs(args: Seq[String], defaultHttpPort: Int, defaultHttpAddress: String): (Seq[(String, String)], Option[Int], Option[Int], String) = {
+    val (propertyArgs, otherArgs) = args.partition(_.startsWith("-D"))
 
-    val javaProperties = properties.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq
+    val properties = propertyArgs.map(_.drop(2).split('=')).map(a => a(0) -> a(1)).toSeq
 
-    // collect arguments plus config file property if present
-    val httpPort = Option(System.getProperty("http.port"))
-    val httpsPort = Option(System.getProperty("https.port"))
+    val props = properties.toMap
+    def prop(key: String): Option[String] = props.get(key) orElse sys.props.get(key)
 
-    //port can be defined as a numeric argument or as disabled, -Dhttp.port argument or a generic sys property
-    val maybePort = others.headOption.orElse(javaProperties.toMap.get("http.port")).orElse(httpPort)
-    val maybeHttpsPort = javaProperties.toMap.get("https.port").orElse(httpsPort).map(parsePort)
-    if (maybePort.exists(_ == "disabled")) (javaProperties, Option.empty[Int], maybeHttpsPort)
-    else (javaProperties, maybePort.map(parsePort).orElse(Some(defaultHttpPort)), maybeHttpsPort)
+    // http port can be defined as the first non-property argument, or a -Dhttp.port argument or system property
+    // the http port can be disabled (set to None) by setting any of the input methods to "disabled"
+    val httpPortString = otherArgs.headOption orElse prop("http.port")
+    val httpPort = {
+      if (httpPortString.exists(_ == "disabled")) None
+      else httpPortString map parsePort orElse Option(defaultHttpPort)
+    }
+
+    // https port can be defined as a -Dhttps.port argument or system property
+    val httpsPort = prop("https.port") map parsePort
+
+    // http address can be defined as a -Dhttp.address argument or system property
+    val httpAddress = prop("http.address") getOrElse defaultHttpAddress
+
+    (properties, httpPort, httpsPort, httpAddress)
   }
 
   def urls(cp: Classpath): Array[URL] = cp.map(_.toURI.toURL).toArray
@@ -99,11 +108,11 @@ object Reloader {
     assetsClassLoader: ClassLoader => ClassLoader, commonClassLoader: ClassLoader,
     monitoredFiles: Seq[String], fileWatchService: FileWatchService,
     docsClasspath: Classpath, docsJar: Option[File],
-    defaultHttpPort: Int, projectPath: File,
+    defaultHttpPort: Int, defaultHttpAddress: String, projectPath: File,
     devSettings: Seq[(String, String)], args: Seq[String],
     runSbtTask: String => AnyRef, mainClassName: String): PlayDevServer = {
 
-    val (properties, httpPort, httpsPort) = filterArgs(args, defaultHttpPort = defaultHttpPort)
+    val (properties, httpPort, httpsPort, httpAddress) = filterArgs(args, defaultHttpPort, defaultHttpAddress)
     val systemProperties = extractSystemProperties(javaOptions)
 
     require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
@@ -194,11 +203,11 @@ object Reloader {
       val server = {
         val mainClass = applicationLoader.loadClass(mainClassName)
         if (httpPort.isDefined) {
-          val mainDev = mainClass.getMethod("mainDevHttpMode", classOf[BuildLink], classOf[BuildDocHandler], classOf[Int])
-          mainDev.invoke(null, reloader, buildDocHandler, httpPort.get: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]
+          val mainDev = mainClass.getMethod("mainDevHttpMode", classOf[BuildLink], classOf[BuildDocHandler], classOf[Int], classOf[String])
+          mainDev.invoke(null, reloader, buildDocHandler, httpPort.get: java.lang.Integer, httpAddress).asInstanceOf[play.core.server.ServerWithStop]
         } else {
-          val mainDev = mainClass.getMethod("mainDevOnlyHttpsMode", classOf[BuildLink], classOf[BuildDocHandler], classOf[Int])
-          mainDev.invoke(null, reloader, buildDocHandler, httpsPort.get: java.lang.Integer).asInstanceOf[play.core.server.ServerWithStop]
+          val mainDev = mainClass.getMethod("mainDevOnlyHttpsMode", classOf[BuildLink], classOf[BuildDocHandler], classOf[Int], classOf[String])
+          mainDev.invoke(null, reloader, buildDocHandler, httpsPort.get: java.lang.Integer, httpAddress).asInstanceOf[play.core.server.ServerWithStop]
         }
       }
 

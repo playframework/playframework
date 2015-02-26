@@ -141,6 +141,7 @@ trait PlaySettings {
     fileWatchService := FileWatchService.defaultWatchService(target.value, pollInterval.value, sLog.value),
 
     playDefaultPort := 9000,
+    playDefaultAddress := "0.0.0.0",
 
     // Default hooks
 

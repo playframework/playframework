@@ -15,6 +15,7 @@ case class ForkConfig(
   docsJar: Option[File],
   devSettings: Seq[(String, String)],
   defaultHttpPort: Int,
+  defaultHttpAddress: String,
   watchService: ForkConfig.WatchService,
   monitoredFiles: Seq[String],
   targetDirectory: File,

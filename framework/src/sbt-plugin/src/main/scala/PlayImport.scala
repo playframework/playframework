@@ -86,6 +86,7 @@ object PlayImport {
 
   object PlayKeys {
     val playDefaultPort = SettingKey[Int]("play-default-port", "The default port that Play runs on")
+    val playDefaultAddress = SettingKey[String]("play-default-address", "The default address that Play runs on")
 
     /** Our means of hooking the run task with additional behavior. */
     val playRunHooks = TaskKey[Seq[play.PlayRunHook]]("play-run-hooks", "Hooks to run additional behaviour before/after the run task")
