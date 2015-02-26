@@ -6,13 +6,22 @@
 First you need to tell play that your project need javaJpa plugin which provide JDBC and JPA api dependencies.
 
 There is no built-in JPA implementation in Play; you can choose any available implementation. For example, to use Hibernate, just add the dependency to your project:
+* For Hibernate 4.x:
+```
+libraryDependencies ++= Seq(
+  javaJpa.exclude("org.hibernate.javax.persistence", "hibernate-jpa-2.0-api"),
+  "org.hibernate" % "hibernate-entitymanager" % "4.3.8.Final" // replace by your jpa implementation
+)
+```
+* For Hibernate 3.6.x:
 
 ```
 libraryDependencies ++= Seq(
   javaJpa,
-  "org.hibernate" % "hibernate-entitymanager" % "4.3.6.Final" // replace by your jpa implementation
+  "org.hibernate" % "hibernate-entitymanager" % "3.6.10.Final" // replace by your jpa implementation
 )
 ```
+
 
 ## Exposing the datasource through JNDI
 
@@ -30,6 +39,24 @@ Next you have to create a proper `persistence.xml` JPA configuration file. Put i
 
 Here is a sample configuration file to use with Hibernate:
 
+* For Hibernate 4.x:
+```
+<persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd"
+             version="2.1">
+
+    <persistence-unit name="defaultPersistenceUnit" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+        <non-jta-data-source>DefaultDS</non-jta-data-source>
+        <properties>
+            <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
+        </properties>
+    </persistence-unit>
+
+</persistence>
+```
+* For Hibernate 3.6.x:
 ```
 <persistence xmlns="http://java.sun.com/xml/ns/persistence"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
