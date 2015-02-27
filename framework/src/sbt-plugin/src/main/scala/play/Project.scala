@@ -87,7 +87,7 @@ object PlayNettyServer extends AutoPlugin {
         Seq("com.typesafe.play" %% "play-netty-server" % play.core.PlayVersion.current)
       }
     },
-    mainClass in Compile := Some("play.core.server.NettyServer")
+    mainClass in (Compile, run) := Some("play.core.server.NettyServer")
   )
 }
 
@@ -99,6 +99,6 @@ object PlayAkkaHttpServer extends AutoPlugin {
 
   override def projectSettings = Seq(
     libraryDependencies += "com.typesafe.play" %% "play-akka-http-server-experimental" % play.core.PlayVersion.current,
-    mainClass in Compile := Some("play.core.server.akkahttp.AkkaHttpServer")
+    mainClass in (Compile, run) := Some("play.core.server.akkahttp.AkkaHttpServer")
   )
 }
