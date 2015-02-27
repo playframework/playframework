@@ -30,7 +30,7 @@ public class JavaBodyParsers extends WithApplication {
                 return ok("Got body: " + body);
             }
             //#request-body
-        }, fakeRequest().withTextBody("foo"))), containsString("foo"));
+        }, fakeRequest().bodyText("foo"))), containsString("foo"));
     }
 
     @Test
@@ -43,7 +43,7 @@ public class JavaBodyParsers extends WithApplication {
                         return ok("Got json: " + body.asJson());
                     }
                     //#particular-body-parser
-                }, fakeRequest().withJsonBody(Json.toJson("foo")))),
+                }, fakeRequest().bodyJson(Json.toJson("foo")))),
                 containsString("\"foo\""));
     }
 
@@ -62,7 +62,7 @@ public class JavaBodyParsers extends WithApplication {
                         }
                     }
                     //#default-parser
-                }, fakeRequest().withJsonBody(Json.toJson("foo")))),
+                }, fakeRequest().bodyJson(Json.toJson("foo")))),
                 equalTo(400));
     }
 

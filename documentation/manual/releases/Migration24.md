@@ -84,6 +84,7 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 | [`Cache`](api/java/play/cache/Cache.html) | [`CacheApi`](api/java/play/cache/CacheApi.html) | You can get a particular cache using the [`@NamedCache`](api/java/play/cache/NamedCache.html) annotation. |
 | [`Akka`](api/java/play/libs/Akka.html) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
 | [`WS`](api/java/play/libs/ws/WS.html) | [`WSClient`](api/java/play/libs/ws/WSClient.html) | |
+| [`FakeRequest`](api/java/play/test/FakeRequest.html) | [`RequestBuilder`](api/java/play/mvc/Http.RequestBuilder.html) | |
 
 ## File watching
 

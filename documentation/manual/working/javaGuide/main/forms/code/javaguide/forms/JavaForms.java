@@ -51,7 +51,7 @@ public class JavaForms extends WithApplication {
     @Test
     public void bindFromRequest() {
         Result result = MockJavaActionHelper.call(new Controller1(),
-                fakeRequest().withFormUrlEncodedBody(ImmutableMap.of("email", "e", "password", "p")));
+                fakeRequest().bodyForm(ImmutableMap.of("email", "e", "password", "p")));
         assertThat(contentAsString(result), equalTo("e"));
     }
 
@@ -170,7 +170,7 @@ public class JavaForms extends WithApplication {
     @Test
     public void dynamicForm() {
         Result result = MockJavaActionHelper.call(new Controller3(),
-                fakeRequest().withFormUrlEncodedBody(ImmutableMap.of("firstname", "a", "lastname", "b")));
+                fakeRequest().bodyForm(ImmutableMap.of("firstname", "a", "lastname", "b")));
         assertThat(contentAsString(result), equalTo("Hello a b"));
     }
 

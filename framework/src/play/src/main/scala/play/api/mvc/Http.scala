@@ -33,6 +33,9 @@ package play.api.mvc {
 
     /**
      * The complete request URI, containing both path and query string.
+     * The URI is what was on the status line after the request method.
+     * E.g. in "GET /foo/bar?q=s HTTP/1.1" the URI should be /foo/bar?q=s.
+     * It could be absolute, some clients send absolute URLs, especially proxies.
      */
     def uri: String
 
@@ -527,6 +530,13 @@ package play.api.mvc {
     /**
      * Decodes the data from a `Cookie`.
      */
+    def decodeCookieToMap(cookie: Option[Cookie]): Map[String, String] = {
+      serialize(decodeFromCookie(cookie))
+    }
+
+    /**
+     * Decodes the data from a `Cookie`.
+     */
     def decodeFromCookie(cookie: Option[Cookie]): T = {
       cookie.filter(_.name == COOKIE_NAME).map(c => deserialize(decode(c.value))).getOrElse(emptyCookie)
     }
@@ -749,7 +759,7 @@ package play.api.mvc {
     /**
      * Extract cookies from the Set-Cookie header.
      */
-    def apply(header: Option[String]) = new Cookies {
+    def apply(header: Option[String]): Cookies = new Cookies {
 
       lazy val cookies: Map[String, Cookie] = header.map(Cookies.decode(_)).getOrElse(Seq.empty).groupBy(_.name).mapValues(_.head)
 

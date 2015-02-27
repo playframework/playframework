@@ -26,6 +26,28 @@ trait JavaHelpers {
     }
   }
 
+  def cookiesToJavaCookies(cookies: Cookies) = {
+    new JCookies {
+      def get(name: String): JCookie = {
+        cookies.get(name).map(makeJavaCookie).orNull
+      }
+
+      private def makeJavaCookie(cookie: Cookie): JCookie = {
+        new JCookie(cookie.name,
+          cookie.value,
+          cookie.maxAge.map(i => new Integer(i)).orNull,
+          cookie.path,
+          cookie.domain.orNull,
+          cookie.secure,
+          cookie.httpOnly)
+      }
+
+      def iterator: java.util.Iterator[JCookie] = {
+        cookies.toIterator.map(makeJavaCookie).asJava
+      }
+    }
+  }
+
   /**
    * Creates a scala result from java context and result objects
    * @param javaContext
@@ -160,25 +182,7 @@ class RequestHeaderImpl(header: RequestHeader) extends JRequestHeader {
 
   def accepts(mediaType: String) = header.accepts(mediaType)
 
-  def cookies = new JCookies {
-    def get(name: String): JCookie = {
-      header.cookies.get(name).map(makeJavaCookie).orNull
-    }
-
-    private def makeJavaCookie(cookie: Cookie): JCookie = {
-      new JCookie(cookie.name,
-        cookie.value,
-        cookie.maxAge.map(i => new Integer(i)).orNull,
-        cookie.path,
-        cookie.domain.orNull,
-        cookie.secure,
-        cookie.httpOnly)
-    }
-
-    def iterator: java.util.Iterator[JCookie] = {
-      header.cookies.toIterator.map(makeJavaCookie).asJava
-    }
-  }
+  def cookies = JavaHelpers.cookiesToJavaCookies(header.cookies)
 
   def getQueryString(key: String): String = {
     if (queryString().containsKey(key) && queryString().get(key).length > 0) queryString().get(key)(0) else null

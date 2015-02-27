@@ -80,14 +80,14 @@ public class JavaJsonActions extends WithApplication {
     @Test
     public void requestAsAnyContentAction() {
         assertThat(contentAsString(
-            call(new JsonRequestAsJsonAction(), fakeRequest().withJsonBody(Json.parse("{\"name\":\"Greg\"}")))
+            call(new JsonRequestAsJsonAction(), fakeRequest().bodyJson(Json.parse("{\"name\":\"Greg\"}")))
         ), equalTo("Hello Greg"));
     }
 
     @Test
     public void requestAsJsonAction() {
         assertThat(contentAsString(
-            call(new JsonRequestAsJsonAction(), fakeRequest().withJsonBody(Json.parse("{\"name\":\"Greg\"}")))
+            call(new JsonRequestAsJsonAction(), fakeRequest().bodyJson(Json.parse("{\"name\":\"Greg\"}")))
         ), equalTo("Hello Greg"));
     }
 

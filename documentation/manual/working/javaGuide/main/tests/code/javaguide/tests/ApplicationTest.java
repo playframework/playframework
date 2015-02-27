@@ -15,7 +15,7 @@ import javaguide.tests.controllers.Application;
 import org.junit.Test;
 
 import play.mvc.Result;
-import play.test.FakeRequest;
+import play.test.Helpers;
 import play.test.WithApplication;
 import play.twirl.api.Content;
 
@@ -39,7 +39,7 @@ public class ApplicationTest extends WithApplication {
     Result result = callAction(
       //###replace:     controllers.routes.ref.Application.index(),
       javaguide.tests.controllers.routes.ref.Application.index(),
-      new FakeRequest(GET, "/")
+      Helpers.fakeRequest()
     );
     assertEquals(OK, status(result));
   }

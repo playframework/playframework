@@ -49,7 +49,7 @@ public class JavaCsrf extends WithApplication {
             public Result index() {
                 return ok(javaguide.forms.html.csrf.render());
             }
-        }, fakeRequest("GET", "/").withSession("csrfToken", token)));
+        }, fakeRequest("GET", "/").session("csrfToken", token)));
 
         Matcher matcher = Pattern.compile("action=\"/items\\?csrfToken=[a-f0-9]+-\\d+-([a-f0-9]+)\"")
                 .matcher(body);
@@ -65,7 +65,7 @@ public class JavaCsrf extends WithApplication {
     @Test
     public void csrfCheck() {
         assertThat(status(MockJavaActionHelper.call(new Controller1(), fakeRequest("POST", "/")
-                .withHeader(CONTENT_TYPE, "application/x-www-form-urlencoded"))), equalTo(FORBIDDEN));
+                .header(CONTENT_TYPE, "application/x-www-form-urlencoded"))), equalTo(FORBIDDEN));
     }
 
     public static class Controller1 extends MockJavaAction {

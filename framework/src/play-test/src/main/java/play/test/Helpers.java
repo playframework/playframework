@@ -44,14 +44,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     // --
     @SuppressWarnings(value = "unchecked")
-    private static Result invokeHandler(play.api.mvc.Handler handler, FakeRequest fakeRequest, long timeout) {
+    private static Result invokeHandler(play.api.mvc.Handler handler, Request requestBuilder, long timeout) {
         if (handler instanceof play.api.mvc.Action) {
             play.api.mvc.Action action = (play.api.mvc.Action) handler;
-            return wrapScalaResult(action.apply(fakeRequest.getWrappedRequest()), timeout);
+            return wrapScalaResult(action.apply(requestBuilder._underlyingRequest()), timeout);
         } else if (handler instanceof JavaHandler) {
             return invokeHandler(
                 ((JavaHandler) handler).withComponents(Play.application().injector().instanceOf(JavaHandlerComponents.class)),
-                fakeRequest, timeout
+                requestBuilder, timeout
             );
         } else {
             throw new RuntimeException("This is not a JavaAction and can't be invoked this way.");
@@ -93,32 +93,35 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Call an action method while decorating it with the right @With interceptors.
      */
-    public static Result callAction(HandlerRef actionReference, FakeRequest fakeRequest) {
-        return callAction(actionReference, fakeRequest, DEFAULT_TIMEOUT);
+    public static Result callAction(HandlerRef actionReference, RequestBuilder requestBuilder) {
+        return callAction(actionReference, requestBuilder, DEFAULT_TIMEOUT);
     }
 
-    public static Result callAction(HandlerRef actionReference, FakeRequest fakeRequest, long timeout) {
-        return invokeHandler(actionReference.handler(), fakeRequest, timeout);
+    public static Result callAction(HandlerRef actionReference, RequestBuilder requestBuilder, long timeout) {
+        return invokeHandler(actionReference.handler(), requestBuilder.build(), timeout);
     }
 
     /**
      * Build a new GET / fake request.
      */
-    public static FakeRequest fakeRequest() {
-        return new FakeRequest();
+    public static RequestBuilder fakeRequest() {
+        return fakeRequest("GET", "/");
     }
 
     /**
      * Build a new fake request.
      */
-    public static FakeRequest fakeRequest(String method, String uri) {
-        return new FakeRequest(method, uri);
+    public static RequestBuilder fakeRequest(String method, String uri) {
+        if (uri.startsWith("/")) {
+          uri = "http://localhost" + uri;
+        }
+        return new RequestBuilder().method(method).url(uri);
     }
 
     /**
      * Build a new fake request corresponding to a given route call
      */
-    public static FakeRequest fakeRequest(Call call) {
+    public static RequestBuilder fakeRequest(Call call) {
         return fakeRequest(call.method(), call.url());
     }
 
@@ -343,9 +346,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     @SuppressWarnings(value = "unchecked")
-    public static Result routeAndCall(FakeRequest fakeRequest, long timeout) {
+    public static Result routeAndCall(RequestBuilder requestBuilder, long timeout) {
         try {
-            return routeAndCall((Class<? extends Router>)FakeRequest.class.getClassLoader().loadClass("Routes"), fakeRequest, timeout);
+            return routeAndCall((Class<? extends Router>) RequestBuilder.class.getClassLoader().loadClass("Routes"), requestBuilder, timeout);
         } catch(RuntimeException e) {
             throw e;
         } catch(Throwable t) {
@@ -353,11 +356,12 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
 
-    public static Result routeAndCall(Class<? extends Router> router, FakeRequest fakeRequest, long timeout) {
+    public static Result routeAndCall(Class<? extends Router> router, RequestBuilder requestBuilder, long timeout) {
         try {
+            Request request = requestBuilder.build();
             Router routes = (Router) router.getClassLoader().loadClass(router.getName() + "$").getDeclaredField("MODULE$").get(null);
-            if(routes.routes().isDefinedAt(fakeRequest.getWrappedRequest())) {
-                return invokeHandler(routes.routes().apply(fakeRequest.getWrappedRequest()), fakeRequest, timeout);
+            if(routes.routes().isDefinedAt(request._underlyingRequest())) {
+                return invokeHandler(routes.routes().apply(request._underlyingRequest()), request, timeout);
             } else {
                 return null;
             }
@@ -368,14 +372,15 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
 
-    public static Result routeAndCall(Router router, FakeRequest fakeRequest) {
-        return routeAndCall(router, fakeRequest, DEFAULT_TIMEOUT);
+    public static Result routeAndCall(Router router, RequestBuilder requestBuilder) {
+        return routeAndCall(router, requestBuilder, DEFAULT_TIMEOUT);
     }
 
-    public static Result routeAndCall(Router router, FakeRequest fakeRequest, long timeout) {
+    public static Result routeAndCall(Router router, RequestBuilder requestBuilder, long timeout) {
         try {
-            if(router.routes().isDefinedAt(fakeRequest.getWrappedRequest())) {
-                return invokeHandler(router.routes().apply(fakeRequest.getWrappedRequest()), fakeRequest, timeout);
+            Request request = requestBuilder.build();
+            if(router.routes().isDefinedAt(request._underlyingRequest())) {
+                return invokeHandler(router.routes().apply(request._underlyingRequest()), request, timeout);
             } else {
                 return null;
             }
@@ -386,38 +391,38 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
 
-    public static Result route(FakeRequest fakeRequest) {
-      return route(fakeRequest, DEFAULT_TIMEOUT);
+    public static Result route(RequestBuilder requestBuilder) {
+      return route(requestBuilder, DEFAULT_TIMEOUT);
     }
 
-    public static Result route(FakeRequest fakeRequest, long timeout) {
-      return route(play.Play.application(), fakeRequest, timeout);
+    public static Result route(RequestBuilder requestBuilder, long timeout) {
+      return route(play.Play.application(), requestBuilder, timeout);
     }
 
-    public static Result route(Application app, FakeRequest fakeRequest) {
-      return route(app, fakeRequest, DEFAULT_TIMEOUT);
+    public static Result route(Application app, RequestBuilder requestBuilder) {
+      return route(app, requestBuilder, DEFAULT_TIMEOUT);
     }
 
     @SuppressWarnings("unchecked")
-    public static Result route(Application app, FakeRequest fakeRequest, long timeout) {
-      final scala.Option<scala.concurrent.Future<play.api.mvc.Result>> opt = play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.fake);
+    public static Result route(Application app, RequestBuilder requestBuilder, long timeout) {
+      final scala.Option<scala.concurrent.Future<play.api.mvc.Result>> opt = play.api.test.Helpers.jRoute(app.getWrappedApplication(), requestBuilder.build()._underlyingRequest());
       return wrapScalaResult(Scala.orNull(opt), timeout);
     }
 
-    public static Result route(Application app, FakeRequest fakeRequest, byte[] body) {
-      return route(app, fakeRequest, body, DEFAULT_TIMEOUT);
+    public static Result route(Application app, RequestBuilder requestBuilder, byte[] body) {
+      return route(app, requestBuilder, body, DEFAULT_TIMEOUT);
     }
 
-    public static Result route(Application app, FakeRequest fakeRequest, byte[] body, long timeout) {
-      return wrapScalaResult(Scala.orNull(play.api.test.Helpers.jRoute(app.getWrappedApplication(), fakeRequest.getWrappedRequest(), body)), timeout);
+    public static Result route(Application app, RequestBuilder requestBuilder, byte[] body, long timeout) {
+      return wrapScalaResult(Scala.orNull(play.api.test.Helpers.jRoute(app.getWrappedApplication(), requestBuilder.build()._underlyingRequest(), body)), timeout);
     }
 
-    public static Result route(FakeRequest fakeRequest, byte[] body) {
-      return route(fakeRequest, body, DEFAULT_TIMEOUT);
+    public static Result route(RequestBuilder requestBuilder, byte[] body) {
+      return route(requestBuilder, body, DEFAULT_TIMEOUT);
     }
 
-    public static Result route(FakeRequest fakeRequest, byte[] body, long timeout) {
-      return route(play.Play.application(), fakeRequest, body, timeout);
+    public static Result route(RequestBuilder requestBuilder, byte[] body, long timeout) {
+      return route(play.Play.application(), requestBuilder, body, timeout);
     }
 
     /**

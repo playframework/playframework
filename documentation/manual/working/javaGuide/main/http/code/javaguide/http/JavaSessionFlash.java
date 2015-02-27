@@ -40,7 +40,7 @@ public class JavaSessionFlash extends WithApplication {
                         }
                     }
                     //#read-session
-                }, fakeRequest().withSession("connected", "foo"))),
+                }, fakeRequest().session("connected", "foo"))),
                 equalTo("Hello foo"));
     }
 
@@ -66,7 +66,7 @@ public class JavaSessionFlash extends WithApplication {
                 return ok("Bye");
             }
             //#remove-from-session
-        }, fakeRequest().withSession("connected", "foo")));
+        }, fakeRequest().session("connected", "foo")));
         assertThat(session.get("connected"), nullValue());
     }
 
@@ -79,7 +79,7 @@ public class JavaSessionFlash extends WithApplication {
                 return ok("Bye");
             }
             //#discard-whole-session
-        }, fakeRequest().withSession("connected", "foo")));
+        }, fakeRequest().session("connected", "foo")));
         assertThat(session.get("connected"), nullValue());
     }
 
@@ -95,7 +95,7 @@ public class JavaSessionFlash extends WithApplication {
                         return ok(message);
                     }
                     //#read-flash
-                }, fakeRequest().withFlash("success", "hi"))),
+                }, fakeRequest().flash("success", "hi"))),
                 equalTo("hi"));
     }
 
@@ -120,6 +120,6 @@ public class JavaSessionFlash extends WithApplication {
             }
         };
         assertThat(contentAsString(call(index, fakeRequest())).trim(), equalTo("Welcome!"));
-        assertThat(contentAsString(call(index, fakeRequest().withFlash("success", "Flashed!"))).trim(), equalTo("Flashed!"));
+        assertThat(contentAsString(call(index, fakeRequest().flash("success", "Flashed!"))).trim(), equalTo("Flashed!"));
     }
 }
