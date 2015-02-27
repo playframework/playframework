@@ -152,7 +152,7 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
 
   override def stop() {
 
-    appProvider.get.foreach(Play.stop)
+    appProvider.current.foreach(Play.stop)
 
     try {
       super.stop()

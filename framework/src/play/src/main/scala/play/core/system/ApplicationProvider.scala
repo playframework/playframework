@@ -33,8 +33,24 @@ trait SourceMapper {
  * Provides information about a Play Application running inside a Play server.
  */
 trait ApplicationProvider {
+  /**
+   * The application root path.
+   */
   def path: File
+
+  /**
+   * Get the application. In dev mode this lazily loads the application.
+   */
   def get: Try[Application]
+
+  /**
+   * Get the currently loaded application. May be empty in dev mode because of compile failure or before first load.
+   */
+  def current: Option[Application] = get.toOption
+
+  /**
+   * Handle a request directly, without using the application.
+   */
   def handleWebCommand(requestHeader: play.api.mvc.RequestHeader): Option[Result] = None
 }
 
@@ -107,7 +123,9 @@ class ReloadableApplication(buildLink: BuildLink, buildDocHandler: BuildDocHandl
   var lastState: Try[Application] = Failure(new PlayException("Not initialized", "?"))
   var currentWebCommands: Option[WebCommands] = None
 
-  def get = {
+  override def current: Option[Application] = lastState.toOption
+
+  def get: Try[Application] = {
 
     synchronized {
 

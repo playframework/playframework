@@ -159,7 +159,7 @@ class AkkaHttpServer(config: ServerConfig, appProvider: ApplicationProvider) ext
 
   override def stop() {
 
-    appProvider.get.foreach(Play.stop)
+    appProvider.current.foreach(Play.stop)
 
     try {
       super.stop()
