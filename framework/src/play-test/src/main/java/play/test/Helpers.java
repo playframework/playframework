@@ -112,10 +112,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Build a new fake request.
      */
     public static RequestBuilder fakeRequest(String method, String uri) {
-        if (uri.startsWith("/")) {
-          uri = "http://localhost" + uri;
-        }
-        return new RequestBuilder().method(method).url(uri);
+        return new RequestBuilder().method(method).uri(uri);
     }
 
     /**
