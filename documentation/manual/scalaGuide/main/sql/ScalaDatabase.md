@@ -76,10 +76,16 @@ logger.com.jolbox=DEBUG // for EBean
 # Orders database
 db.orders.driver=org.h2.Driver
 db.orders.url="jdbc:h2:mem:orders"
+db.orders.enabled=true # default is true
 
 # Customers database
 db.customers.driver=org.h2.Driver
 db.customers.url="jdbc:h2:mem:customers"
+
+# Test database for Test environment, disabled by default
+db.customers.driver=org.h2.Driver
+db.customers.url="jdbc:h2:mem:test"
+db.customers.enabled=false
 ```
 
 ## Configuring the JDBC Driver

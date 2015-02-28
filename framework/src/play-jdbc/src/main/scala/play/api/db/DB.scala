@@ -409,9 +409,14 @@ private[db] class BoneCPApi(
   private def setupDatasources(dbNames: List[String], datasources: List[(DataSource, String)], dsMap: Map[String, DataSource], drivers: Set[Driver]): (List[(DataSource, String)], Map[String, DataSource], Set[Driver]) = dbNames match {
     case dbName :: ns =>
       val extraConfig = configuration.getConfig(dbName).getOrElse(error(dbName, s"Missing configuration [db.$dbName]"))
-      val (ds, driver) = createDataSource(dbName, extraConfig)
-      setupDatasources(ns, datasources :+ (ds -> dbName),
-        dsMap + (dbName -> ds), drivers + driver)
+      if (extraConfig.getBoolean("enabled").getOrElse(true)) {
+        val (ds, driver) = createDataSource(dbName, extraConfig)
+        setupDatasources(ns, datasources :+ (ds -> dbName),
+          dsMap + (dbName -> ds), drivers + driver)
+      } else {
+        Play.logger.info(s"Datasource $dbName is disabled.")
+        setupDatasources(ns, datasources, dsMap, drivers)
+      }
 
     case _ => (datasources, dsMap, drivers)
   }
