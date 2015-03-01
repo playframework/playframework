@@ -45,7 +45,7 @@ object RouterSpec extends PlaySpecification {
     }
     "from a list of numbers and letters" in new WithApplication() {
       val Some(result) = route(FakeRequest(GET, "/take-list?x=1&x=a&x=2"))
-      contentAsString(result) must equalTo("1,2")
+      status(result) must equalTo(BAD_REQUEST)
     }
     "when there is no parameter at all" in new WithApplication() {
       val Some(result) = route(FakeRequest(GET, "/take-list"))

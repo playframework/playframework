@@ -59,4 +59,38 @@ object BindersSpec extends Specification {
     }
   }
 
+  "QueryStringBindable.bindableSeq" should {
+    val seqBinder = implicitly[QueryStringBindable[Seq[String]]]
+    val values = Seq("i", "once", "knew", "a", "man", "from", "nantucket")
+    val params = Map("q" -> values)
+
+    "propagate errors that occur during bind" in {
+      implicit val brokenBinder: QueryStringBindable[String] = {
+        new QueryStringBindable.Parsing[String](
+          { x =>
+            if (x == "i" || x == "nantucket") x else sys.error(s"failed: ${x}")
+          },
+          identity,
+          (key, ex) => s"failed to parse ${key}: ${ex.getMessage}"
+        )
+      }
+      val brokenSeqBinder = implicitly[QueryStringBindable[Seq[String]]]
+      val err = s"""failed to parse q: failed: once
+      |failed to parse q: failed: knew
+      |failed to parse q: failed: a
+      |failed to parse q: failed: man
+      |failed to parse q: failed: from""".stripMargin
+
+      brokenSeqBinder.bind("q", params) must equalTo(Some(Left(err)))
+    }
+
+    "preserve the order of bound parameters" in {
+      seqBinder.bind("q", params) must equalTo(Some(Right(values)))
+    }
+
+    "return the empty list when the key is not found" in {
+      seqBinder.bind("q", Map.empty) must equalTo(Some(Right(Nil)))
+    }
+  }
+
 }
