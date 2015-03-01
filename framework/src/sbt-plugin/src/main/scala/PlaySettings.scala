@@ -186,6 +186,8 @@ trait PlaySettings {
 
     sourceDirectory in Universal <<= baseDirectory(_ / "dist"),
 
+    mainClass in Compile <<= mainClass in (Compile, run),
+
     mappings in Universal ++= {
       val confDirectoryLen = confDirectory.value.getCanonicalPath.length
       val pathFinder = confDirectory.value ** ("*" -- "routes")
