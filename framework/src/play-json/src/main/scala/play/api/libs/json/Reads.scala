@@ -42,7 +42,11 @@ trait Reads[A] {
     Reads[B] { json => self.reads(json).map(f) }
 
   def flatMap[B](f: A => Reads[B]): Reads[B] = Reads[B] { json =>
-    self.reads(json).flatMap(t => f(t).reads(json))
+    // Do not flatMap result to avoid repath
+    self.reads(json) match {
+      case JsSuccess(a, _) => f(a).reads(json)
+      case error: JsError => error
+    }
   }
 
   def filter(f: A => Boolean): Reads[A] =

@@ -336,4 +336,24 @@ object ReadsSpec extends org.specs2.mutable.Specification {
       }
     }
   }
+
+  "Reads flatMap" should {
+    "not repath the second result" >> {
+      val aPath = JsPath \ "a"
+      val readsA: Reads[String] = aPath.read[String]
+      val value = "string"
+      val aJson = aPath.write[String].writes(value)
+
+      "in case of success" in {
+        val flatMappedReads = readsA.flatMap(_ => readsA)
+        aJson.validate(flatMappedReads).aka("read a").must_==(JsSuccess(value, aPath))
+      }
+      "in case of failure" in {
+        val readsAFail = aPath.read[Int]
+        val flatMappedReads = readsA.flatMap(_ => readsAFail)
+        aJson.validate(flatMappedReads).aka("read a")
+          .must_==(JsError(List((aPath, List(ValidationError("error.expected.jsnumber"))))))
+      }
+    }
+  }
 }
