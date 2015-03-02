@@ -4,8 +4,8 @@
 package play.mvc;
 
 import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URISyntaxException;
+import java.net.URI;
 import java.net.URLDecoder;
 import java.util.*;
 import java.util.Map.Entry;
@@ -522,7 +522,13 @@ public class Http {
         protected RequestBody body;
         protected String username;
 
-        public RequestBuilder() {}
+        public RequestBuilder() {
+          method("GET");
+          uri("/");
+          host("localhost");
+          version("HTTP/1.1");
+          remoteAddress("127.0.0.1");
+        }
 
         public RequestBody body() {
             return body;
@@ -629,14 +635,14 @@ public class Http {
                 body,
                 id,
                 mapToScala(tags()),
-                url.toExternalForm(),
-                url.getPath(),
+                uri.toString(),
+                uri.getRawPath(),
                 method,
                 version,
                 mapListToScala(splitQuery()),
                 buildHeaders(),
                 remoteAddress,
-                url.getProtocol().equals("https")));
+                secure));
         }
 
         // -------------------
@@ -644,9 +650,10 @@ public class Http {
 
         protected Long id = RequestIdProvider.requestIDs().incrementAndGet();
         protected Map<String, String> tags = new HashMap<>();
-        protected String method = "GET";
-        protected URL url;
-        protected String version = "HTTP/1.1";
+        protected String method;
+        protected boolean secure;
+        protected URI uri;
+        protected String version;
         protected Map<String, String[]> headers = new HashMap<>();
         protected String remoteAddress;
 
@@ -673,40 +680,68 @@ public class Http {
             return this;
         }
 
-        public String url() {
-            return url.toExternalForm();
-        }
-
-        public RequestBuilder url(URL url) {
-            this.url = url;
-            header(HeaderNames.HOST, url.getHost());
-            return this;
-        }
-
-        public RequestBuilder url(String spec) {
-            try {
-                url(new URL(spec));
-            } catch (MalformedURLException e) {
-                throw new IllegalArgumentException("Exception parsing URL", e);
-            }
-            return this;
-        }
-
-        public RequestBuilder url(boolean secure, String host, int port, String file) {
-            try {
-                url(new URL(secure ? "http" : "https", host, port, file));
-            } catch (MalformedURLException e) {
-                throw new IllegalArgumentException("Exception parsing URL", e);
-            }
-            return this;
-        }
-
         public String method() {
             return method;
         }
 
         public RequestBuilder method(String method) {
             this.method = method;
+            return this;
+        }
+
+        public String uri() {
+            return uri.toString();
+        }
+
+        public RequestBuilder uri(URI uri) {
+            if (uri.getScheme() != null) {
+                if (!uri.getScheme().equals("http") && !uri.getScheme().equals("https")) {
+                    throw new IllegalArgumentException("URI scheme must be http or https");
+                }
+                this.secure = uri.getScheme().equals("https");
+            }
+            this.uri = uri;
+            host(uri.getHost());
+            return this;
+        }
+
+        public RequestBuilder uri(String str) {
+            try {
+                uri(new URI(str));
+            } catch (URISyntaxException e) {
+                throw new IllegalArgumentException("Exception parsing URI", e);
+            }
+            return this;
+        }
+
+        public RequestBuilder secure(boolean secure) {
+           this.secure = secure;
+           return this;
+        }
+
+        public boolean secure() {
+           return secure;
+        }
+
+        public String host() {
+          return header(HeaderNames.HOST);
+        }
+
+        public RequestBuilder host(String host) {
+          header(HeaderNames.HOST, host);
+          return this;
+        }
+
+        public String path() {
+            return uri.getRawPath();
+        }
+
+        public RequestBuilder path(String path) {
+            try {
+                uri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), path, uri.getQuery(), uri.getFragment());
+            } catch (URISyntaxException e) {
+                throw new IllegalArgumentException(e);
+            }
             return this;
         }
 
@@ -771,7 +806,7 @@ public class Http {
         public Map<String,String> flash() {
           play.api.mvc.Cookies scalaCookies = scalaCookies();
           scala.Option<play.api.mvc.Cookie> cookie = scalaCookies.get(play.api.mvc.Flash$.MODULE$.COOKIE_NAME());
-          scala.collection.Map<String,String> data = play.api.mvc.Session$.MODULE$.decodeCookieToMap(cookie);
+          scala.collection.Map<String,String> data = play.api.mvc.Flash$.MODULE$.decodeCookieToMap(cookie);
           return JavaConversions.mapAsJavaMap(data);
         }
 
@@ -820,7 +855,7 @@ public class Http {
         protected Map<String, List<String>> splitQuery() {
             try {
                 Map<String, List<String>> query_pairs = new LinkedHashMap<String, List<String>>();
-                String query = url.getQuery();
+                String query = uri.getQuery();
                 if (query == null) {
                     return new HashMap<>();
                 }
@@ -860,20 +895,6 @@ public class Http {
               list.add(new Tuple2(entry.getKey(), JavaConversions.asScalaBuffer(Arrays.asList(entry.getValue()))));
             }
             return new HeadersImpl(JavaConversions.asScalaBuffer(list));
-        }
-
-        protected play.api.mvc.RequestHeader buildScalaHeader() {
-            return new play.api.mvc.RequestHeaderImpl(
-                id,
-                mapToScala(tags()),
-                url.getPath() + "?" + url.getQuery(),
-                url.getPath(),
-                method,
-                version,
-                mapListToScala(splitQuery()),
-                buildHeaders(),
-                remoteAddress,
-                url.getProtocol().equals("https"));
         }
 
     }
