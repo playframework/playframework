@@ -391,6 +391,22 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
 
+    public static Result route(Call call) {
+      return route(fakeRequest(call));
+    }
+
+    public static Result route(Call call, long timeout) {
+      return route(fakeRequest(call), timeout);
+    }
+
+    public static Result route(Application app, Call call) {
+      return route(app, fakeRequest(call));
+    }
+
+    public static Result route(Application app, Call call, long timeout) {
+      return route(app, fakeRequest(call), timeout);
+    }
+
     public static Result route(RequestBuilder requestBuilder) {
       return route(requestBuilder, DEFAULT_TIMEOUT);
     }
