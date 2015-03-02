@@ -174,8 +174,6 @@ GET /assets/*file           controllers.admin.Assets.at(path="/public", file)
 
 ```
 
-> **Note:** To export compiled routes to other projects disable reverse ref routing generation using generateRefReverseRouter := false sbt settings. Since routes_reverseRouting depends on every controller disabling the ref routing generation will also improve the compilation speed.
-
 ### Assets and controller classes should be all defined in the `controllers.admin` package
 
 `modules/admin/controllers/Assets.scala`:

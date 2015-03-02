@@ -1,6 +1,6 @@
 @import play.routes.compiler._
 @import play.routes.compiler.templates._
-@(sourceInfo: RoutesSourceInfo, pkg: Option[String], packageName: String, controllers: Seq[String], reverseRefRouter: Boolean)
+@(sourceInfo: RoutesSourceInfo, pkg: Option[String], packageName: String, controllers: Seq[String])
 // @@GENERATOR:play-routes-compiler
 // @@SOURCE:@sourceInfo.source
 // @@DATE:@sourceInfo.date
@@ -16,14 +16,6 @@ public class routes @ob
   public static class javascript @ob
     @for(controller <- controllers) {
     public static final @(packageName).javascript.Reverse@controller @controller = new @(packageName).javascript.Reverse@(controller)(RoutesPrefix.byNamePrefix());}
-
   @cb
-  @if(reverseRefRouter) {
-  public static class ref @ob
-    @for(controller <- controllers) {
-    public static final @(packageName).ref.Reverse@controller @controller = new @(packageName).ref.Reverse@(controller)(RoutesPrefix.byNamePrefix());}
-
-  @cb
-  }
 
 @cb

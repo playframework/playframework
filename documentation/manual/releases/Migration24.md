@@ -86,7 +86,11 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 | [`WS`](api/java/play/libs/ws/WS.html) | [`WSClient`](api/java/play/libs/ws/WSClient.html) | |
 | [`FakeRequest`](api/java/play/test/FakeRequest.html) | [`RequestBuilder`](api/java/play/mvc/Http.RequestBuilder.html) | |
 
-## File watching
+## Reverse ref routing
+
+The reverse ref router used in Java tests has been removed. Any call to `Helpers.call` that was passed a ref router can be replaced by a call to `Helpers.route` which takes either a standard reverse router reference or a `RequestBuilder`.
+
+## SBT settings
 
 The SBT setting key `playWatchService` has been renamed to `fileWatchService`.
 

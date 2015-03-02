@@ -110,11 +110,11 @@ object PlayDocsPlugin extends AutoPlugin {
     },
 
     sourceGenerators in Test <+= (javaManualSourceDirectories, javaRoutesSourceManaged, streams) map { (from, to, s) =>
-      RoutesCompiler.compileRoutes((from * "*.routes").get, InjectedRoutesGenerator, to, Seq("play.libs.F"), true, true, true, s.cacheDirectory / "javaroutes", s.log)
+      RoutesCompiler.compileRoutes((from * "*.routes").get, InjectedRoutesGenerator, to, Seq("play.libs.F"), true, true, s.cacheDirectory / "javaroutes", s.log)
     },
 
     sourceGenerators in Test <+= (scalaManualSourceDirectories, scalaRoutesSourceManaged, streams) map { (from, to, s) =>
-      RoutesCompiler.compileRoutes((from * "*.routes").get, InjectedRoutesGenerator, to, Nil, true, true, true, s.cacheDirectory / "scalaroutes", s.log)
+      RoutesCompiler.compileRoutes((from * "*.routes").get, InjectedRoutesGenerator, to, Nil, true, true, s.cacheDirectory / "scalaroutes", s.log)
     },
 
     parallelExecution in Test := false,

@@ -5,22 +5,32 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static play.mvc.Http.Status.OK;
 import static play.test.Helpers.GET;
-import static play.test.Helpers.callAction;
 import static play.test.Helpers.charset;
 import static play.test.Helpers.contentAsString;
 import static play.test.Helpers.contentType;
+import static play.test.Helpers.route;
 import static play.test.Helpers.status;
 import javaguide.tests.controllers.Application;
 
+import java.util.ArrayList;
+
+import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 
 import play.mvc.Result;
+import play.test.FakeApplication;
 import play.test.Helpers;
 import play.test.WithApplication;
 import play.twirl.api.Content;
 
 public class ApplicationTest extends WithApplication {
   
+  @Override
+  protected FakeApplication provideFakeApplication() {
+    return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(),
+        ImmutableMap.of("application.router", "javaguide.tests.Routes"), new ArrayList<String>(), null);
+  }
+
   @Test
   public void testIndex() {
     Result result = new Application().index();
@@ -36,10 +46,9 @@ public class ApplicationTest extends WithApplication {
   //#test-controller-routes
   @Test
   public void testCallIndex() {
-    Result result = callAction(
-      //###replace:     controllers.routes.ref.Application.index(),
-      javaguide.tests.controllers.routes.ref.Application.index(),
-      Helpers.fakeRequest()
+    Result result = route(
+      //###replace:     controllers.routes.Application.index(),
+      javaguide.tests.controllers.routes.Application.index()
     );
     assertEquals(OK, status(result));
   }
