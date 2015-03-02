@@ -150,7 +150,7 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
 
     import Execution.Implicits.trampoline
 
-    def dataSource(enum: Enumerator[Array[Byte]]): Source[ByteString] = {
+    def dataSource(enum: Enumerator[Array[Byte]]): Source[ByteString, Unit] = {
       val dataEnum: Enumerator[ByteString] = enum.map(ByteString(_)) >>> Enumerator.eof
       AkkaStreamsConversion.enumeratorToSource(dataEnum)
     }
