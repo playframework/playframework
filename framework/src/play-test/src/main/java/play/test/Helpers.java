@@ -441,28 +441,27 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Starts a new application.
      */
-    public static void start(Application fakeApplication) {
-
-        play.api.Play.start(fakeApplication.getWrappedApplication());
+    public static void start(Application application) {
+        play.api.Play.start(application.getWrappedApplication());
     }
 
     /**
      * Stops an application.
      */
-    public static void stop(Application fakeApplication) {
-        play.api.Play.stop(fakeApplication.getWrappedApplication());
+    public static void stop(Application application) {
+        play.api.Play.stop(application.getWrappedApplication());
     }
 
     /**
      * Executes a block of code in a running application.
      */
-    public static void running(Application fakeApplication, final Runnable block) {
+    public static void running(Application application, final Runnable block) {
         synchronized (PlayRunners$.MODULE$.mutex()) {
             try {
-                start(fakeApplication);
+                start(application);
                 block.run();
             } finally {
-                stop(fakeApplication);
+                stop(application);
             }
         }
     }
