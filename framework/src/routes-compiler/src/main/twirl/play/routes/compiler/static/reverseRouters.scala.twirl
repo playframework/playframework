@@ -1,7 +1,7 @@
 @import play.routes.compiler._
 @import play.routes.compiler.templates._
 @(sourceInfo: RoutesSourceInfo, pkg: Option[String], imports: Seq[String], routes: Seq[Route],
-  namespaceReverseRouter: Boolean, reverseRefRouter: Boolean, useInjector: Route => Boolean)
+  namespaceReverseRouter: Boolean, useInjector: Route => Boolean)
 // @@GENERATOR:play-routes-compiler
 // @@SOURCE:@sourceInfo.source
 // @@DATE:@sourceInfo.date
@@ -28,7 +28,3 @@ package @pkg.getOrElse("_routes_") @ob
 @reverseRouter(pkg, routes, namespaceReverseRouter)
 
 @javascriptReverseRouter(pkg, routes, namespaceReverseRouter)
-
-@if(reverseRefRouter) {
-@refReverseRouter(pkg, routes, namespaceReverseRouter, useInjector)
-}

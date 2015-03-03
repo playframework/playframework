@@ -19,8 +19,6 @@ object RoutesKeys {
   val routesGenerator = SettingKey[RoutesGenerator]("play-routes-generator", "The routes generator")
   val generateReverseRouter = SettingKey[Boolean]("play-generate-reverse-router",
     "Whether the reverse router should be generated. Setting to false may reduce compile times if it's not needed.")
-  val generateRefReverseRouter = SettingKey[Boolean]("play-generate-ref-reverse-router",
-    "Whether the ref reverse router should be generated along with reverse router. Setting to false will make it easy to export routes to other projects and improve compile time.")
   val namespaceReverseRouter = SettingKey[Boolean]("play-namespace-reverse-router",
     "Whether the reverse router should be namespaced. Useful if you have many routers that use the same actions.")
 
@@ -58,26 +56,23 @@ object RoutesCompiler extends AutoPlugin {
   def defaultSettings = Seq(
     routesImport := Nil,
     generateReverseRouter := true,
-    generateRefReverseRouter := true,
     namespaceReverseRouter := false,
     routesGenerator := StaticRoutesGenerator
   )
 
   private val compileRoutesFiles = Def.task[Seq[File]] {
     compileRoutes(routesFiles.value, routesGenerator.value, (target in routes).value, routesImport.value,
-      generateReverseRouter.value, generateRefReverseRouter.value, namespaceReverseRouter.value,
-      streams.value.cacheDirectory, state.value.log)
+      generateReverseRouter.value, namespaceReverseRouter.value, streams.value.cacheDirectory, state.value.log)
   }
 
   def compileRoutes(files: Seq[File], generator: RoutesGenerator, generatedDir: File, additionalImports: Seq[String],
-    reverseRouter: Boolean, reverseRefRouter: Boolean, namespaceRouter: Boolean, cacheDirectory: File,
-    log: Logger): Seq[File] = {
+    reverseRouter: Boolean, namespaceRouter: Boolean, cacheDirectory: File, log: Logger): Seq[File] = {
     val ops = files.map(f => RoutesCompilerOp(f, generator.id, PlayVersion.current, additionalImports, reverseRouter,
-      reverseRefRouter, namespaceRouter))
+      namespaceRouter))
     val (products, errors) = syncIncremental(cacheDirectory, ops) { opsToRun: Seq[RoutesCompilerOp] =>
 
       val results = opsToRun.map { op =>
-        op -> play.routes.compiler.RoutesCompiler.compile(op.file, generator, generatedDir, op.additionalImports, op.reverseRouter, op.reverseRefRouter,
+        op -> play.routes.compiler.RoutesCompiler.compile(op.file, generator, generatedDir, op.additionalImports, op.reverseRouter,
           op.namespaceReverseRouter)
       }
       val opResults = results.map {
@@ -121,4 +116,4 @@ object RoutesCompiler extends AutoPlugin {
 }
 
 private case class RoutesCompilerOp(file: File, generatorId: String, playVersion: String,
-  additionalImports: Seq[String], reverseRouter: Boolean, reverseRefRouter: Boolean, namespaceReverseRouter: Boolean)
+  additionalImports: Seq[String], reverseRouter: Boolean, namespaceReverseRouter: Boolean)
