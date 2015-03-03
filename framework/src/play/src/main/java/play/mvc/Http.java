@@ -519,7 +519,7 @@ public class Http {
 
     public static class RequestBuilder {
 
-        protected RequestBody body;
+        protected AnyContent body;
         protected String username;
 
         public RequestBuilder() {
@@ -528,9 +528,23 @@ public class Http {
           host("localhost");
           version("HTTP/1.1");
           remoteAddress("127.0.0.1");
+          body(play.api.mvc.AnyContentAsEmpty$.MODULE$);
         }
 
         public RequestBody body() {
+            if (body == null) {
+                return null;
+            }
+            return new play.core.j.JavaParsers.DefaultRequestBody(
+                body.asFormUrlEncoded(),
+                body.asRaw(),
+                body.asText(),
+                body.asJson(),
+                body.asXml(),
+                body.asMultipartFormData());
+        }
+
+        public AnyContent bodyAsAnyContent() {
             return body;
         }
 
@@ -550,21 +564,24 @@ public class Http {
          */
         protected RequestBuilder body(AnyContent anyContent, String contentType) {
             header("Content-Type", contentType);
-            body = new play.core.j.JavaParsers.DefaultRequestBody(
-                anyContent.asFormUrlEncoded(),
-                anyContent.asRaw(),
-                anyContent.asText(),
-                anyContent.asJson(),
-                anyContent.asXml(),
-                anyContent.asMultipartFormData());
+            body(anyContent);
             return this;
         }
 
-       /**
-        * Set a Binary Data to this request.
-        * The <tt>Content-Type</tt> header of the request is set to <tt>application/octet-stream</tt>.
-        * @param data the Binary Data
-        */
+        /**
+         * Set a AnyContent to this request.
+         * @param anyContent the AnyContent
+         */
+        protected RequestBuilder body(AnyContent anyContent) {
+            body = anyContent;
+            return this;
+        }
+
+        /**
+         * Set a Binary Data to this request.
+         * The <tt>Content-Type</tt> header of the request is set to <tt>application/octet-stream</tt>.
+         * @param data the Binary Data
+         */
         public RequestBuilder bodyRaw(byte[] data) {
             play.api.mvc.RawBuffer buffer = new play.api.mvc.RawBuffer(data.length, data);
             return body(new AnyContentAsRaw(buffer), "application/octet-stream");
@@ -632,7 +649,7 @@ public class Http {
 
         public RequestImpl build() {
             return new RequestImpl(new play.api.mvc.RequestImpl(
-                body,
+                body(),
                 id,
                 mapToScala(tags()),
                 uri.toString(),
