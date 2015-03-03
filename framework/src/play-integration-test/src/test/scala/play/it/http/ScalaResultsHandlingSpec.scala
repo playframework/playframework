@@ -343,6 +343,6 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
         ).apply(0)
         response.status must_== Status.INTERNAL_SERVER_ERROR
         (response.headers - (CONTENT_LENGTH)) must be(Map.empty)
-      }
+      }.pendingUntilAkkaHttpFixed // https://github.com/akka/akka/issues/16988
   }
 }
