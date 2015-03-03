@@ -21,7 +21,8 @@ object Dependencies {
     "com.fasterxml.jackson.core" % "jackson-core",
     "com.fasterxml.jackson.core" % "jackson-annotations",
     "com.fasterxml.jackson.core" % "jackson-databind",
-    "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8"
+    "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8",
+    "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
   ).map(_ % "2.4.4")
 
   val guava = "com.google.guava" % "guava" % "18.0"
