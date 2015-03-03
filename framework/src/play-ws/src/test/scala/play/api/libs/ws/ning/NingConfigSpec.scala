@@ -48,6 +48,9 @@ object NingConfigSpec extends Specification with Mockito {
                                |ws.ning.removeQueryParamsOnRedirect = true
                                |ws.ning.requestCompressionLevel = 999
                                |ws.ning.useRawUrl = true
+                               |ws.ning.maximumConnectionLifeTime = 60000
+                               |ws.ning.idleConnectionInPoolTimeout = 30000
+                               |ws.ning.webSocketIdleTimeout = 120000
                              """.stripMargin)
 
       actual.allowPoolingConnection must beSome.which(_ must_== false)
@@ -60,6 +63,9 @@ object NingConfigSpec extends Specification with Mockito {
       actual.removeQueryParamsOnRedirect must beSome.which(_ must_== true)
       actual.requestCompressionLevel must beSome.which(_ must_== 999)
       actual.useRawUrl must beSome.which(_ must_== true)
+      actual.maximumConnectionLifeTime must beSome.which(_ must_== 60000)
+      actual.idleConnectionInPoolTimeout must beSome.which(_ must_== 30000)
+      actual.webSocketIdleTimeout must beSome.which(_ must_== 120000)
     }
 
     "with basic options" should {

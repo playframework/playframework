@@ -45,6 +45,12 @@ trait NingWSClientConfig {
 
   def useRawUrl: Option[Boolean]
 
+  def maximumConnectionLifeTime: Option[Int]
+
+  def idleConnectionInPoolTimeout: Option[Int]
+
+  def webSocketIdleTimeout: Option[Int]
+
 }
 
 /**
@@ -60,7 +66,10 @@ case class DefaultNingWSClientConfig(wsClientConfig: WSClientConfig = DefaultWSC
   maxRequestRetry: Option[Int] = None,
   removeQueryParamsOnRedirect: Option[Boolean] = None,
   requestCompressionLevel: Option[Int] = None,
-  useRawUrl: Option[Boolean] = None) extends NingWSClientConfig
+  useRawUrl: Option[Boolean] = None,
+  maximumConnectionLifeTime: Option[Int] = None,
+  idleConnectionInPoolTimeout: Option[Int] = None,
+  webSocketIdleTimeout: Option[Int] = None) extends NingWSClientConfig
 
 /**
  * This class creates a DefaultWSClientConfig object from the play.api.Configuration.
@@ -83,6 +92,9 @@ class DefaultNingWSClientConfigParser @Inject() (wsClientConfig: WSClientConfig,
     val removeQueryParamsOnRedirect = configuration.getBoolean("ws.ning.removeQueryParamsOnRedirect")
     val requestCompressionLevel = configuration.getInt("ws.ning.requestCompressionLevel")
     val useRawUrl = configuration.getBoolean("ws.ning.useRawUrl")
+    val maximumConnectionLifeTime = configuration.getInt("ws.ning.maximumConnectionLifeTime")
+    val idleConnectionInPoolTimeout = configuration.getInt("ws.ning.idleConnectionInPoolTimeout")
+    val webSocketIdleTimeout = configuration.getInt("ws.ning.webSocketIdleTimeout")
 
     DefaultNingWSClientConfig(
       wsClientConfig,
@@ -95,7 +107,10 @@ class DefaultNingWSClientConfigParser @Inject() (wsClientConfig: WSClientConfig,
       maxRequestRetry,
       removeQueryParamsOnRedirect,
       requestCompressionLevel,
-      useRawUrl
+      useRawUrl,
+      maximumConnectionLifeTime,
+      idleConnectionInPoolTimeout,
+      webSocketIdleTimeout
     )
   }
 }
@@ -191,6 +206,9 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = DefaultN
     ningConfig.removeQueryParamsOnRedirect.foreach(builder.setRemoveQueryParamsOnRedirect)
     ningConfig.requestCompressionLevel.foreach(builder.setRequestCompressionLevel)
     ningConfig.useRawUrl.foreach(builder.setUseRawUrl)
+    ningConfig.maximumConnectionLifeTime.foreach(builder.setMaxConnectionLifeTimeInMs)
+    ningConfig.idleConnectionInPoolTimeout.foreach(builder.setIdleConnectionInPoolTimeoutInMs)
+    ningConfig.webSocketIdleTimeout.foreach(builder.setWebSocketIdleTimeoutInMs)
   }
 
   /**

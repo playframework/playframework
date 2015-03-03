@@ -228,4 +228,7 @@ Please refer to the [AsyncHttpClientConfig Documentation](http://asynchttpclient
 * `ws.ning.removeQueryParamsOnRedirect`
 * `ws.ning.requestCompressionLevel`
 * `ws.ning.useRawUrl`
+* `ws.ning.maximumConnectionLifeTime`
+* `ws.ning.idleConnectionInPoolTimeout`
+* `ws.ning.webSocketIdleTimeout`
 
