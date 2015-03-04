@@ -178,7 +178,7 @@ public class JavaWS {
                     none, // acceptAnyCertificate
                     noneSSLConfig);
 
-            NingWSClientConfig clientConfig = new DefaultNingWSClientConfig(wsClientConfig, none, none, none, none, none, none, none, none, none, none);
+            NingWSClientConfig clientConfig = new DefaultNingWSClientConfig(wsClientConfig, none, none, none, none, none, none, none, none, none, none, none, none, none);
 
             // Build a secure config out of the client config:
             NingAsyncHttpClientConfigBuilder secureBuilder = new NingAsyncHttpClientConfigBuilder(clientConfig);
