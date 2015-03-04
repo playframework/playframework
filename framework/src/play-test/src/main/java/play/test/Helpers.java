@@ -58,7 +58,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
 
-    /** Default Timeout (milliseconds) for fake requests issued by these Helpers.
+    /**
+     * Default Timeout (milliseconds) for fake requests issued by these Helpers.
      * This value is determined from System property <b>test.timeout</b>.
      * The default value is <b>30000</b> (30 seconds).
      */
@@ -78,28 +79,6 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     // --
-
-    /**
-     * Call an action method while decorating it with the right @With interceptors.
-     */
-    public static Result callAction(HandlerRef actionReference) {
-        return callAction(actionReference, DEFAULT_TIMEOUT);
-    }
-
-    public static Result callAction(HandlerRef actionReference, long timeout) {
-        return callAction(actionReference, fakeRequest(), timeout);
-    }
-
-    /**
-     * Call an action method while decorating it with the right @With interceptors.
-     */
-    public static Result callAction(HandlerRef actionReference, RequestBuilder requestBuilder) {
-        return callAction(actionReference, requestBuilder, DEFAULT_TIMEOUT);
-    }
-
-    public static Result callAction(HandlerRef actionReference, RequestBuilder requestBuilder, long timeout) {
-        return invokeHandler(actionReference.handler(), requestBuilder.build(), timeout);
-    }
 
     /**
      * Build a new GET / fake request.

@@ -21,7 +21,8 @@ object Dependencies {
     "com.fasterxml.jackson.core" % "jackson-core",
     "com.fasterxml.jackson.core" % "jackson-annotations",
     "com.fasterxml.jackson.core" % "jackson-databind",
-    "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8"
+    "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8",
+    "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
   ).map(_ % "2.4.4")
 
   val guava = "com.google.guava" % "guava" % "18.0"
@@ -137,7 +138,7 @@ object Dependencies {
   ) ++ specsBuild.map(_ % Test)
 
   val akkaHttp = Seq(
-    "com.typesafe.akka" %% "akka-http-core-experimental" % "1.0-M2"
+    "com.typesafe.akka" %% "akka-http-core-experimental" % "1.0-M4"
   )
 
   val routersCompilerDependencies =  Seq(
@@ -238,7 +239,7 @@ object Dependencies {
   ) ++ specsBuild.map(_ % Test)
 
   val streamsDependencies = Seq(
-    "org.reactivestreams" % "reactive-streams" % "1.0.0.M1"
+    "org.reactivestreams" % "reactive-streams" % "1.0.0.RC1"
   ) ++ specsBuild.map(_ % "test")
 
   val jsonDependencies = Seq(

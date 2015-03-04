@@ -18,7 +18,7 @@ import java.io.IOException
 object NettyWSSpec extends WSSpec with NettyIntegrationSpecification
 object AkkaHttpWSSpec extends WSSpec with AkkaHttpIntegrationSpecification
 
-trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
+trait WSSpec extends PlaySpecification with ServerIntegrationSpecification with WsTestClient {
 
   "Web service client" title
 
@@ -158,12 +158,16 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
         case i if i < 3 => Some((i + 1, "chunk".getBytes("utf-8")))
         case _ => throw new Exception()
       } &> slow(50)).withHeaders("Content-Length" -> "100000")) { port =>
+        // Use specially configured test client that doesn't
+        // retry so we don't spam the console with errors.
+        withClient { ws =>
+          val res = ws.url(s"http://localhost:$port/get").stream()
+          val (_, body) = await(res)
 
-        val res = WS.url(s"http://localhost:$port/get").stream()
-        val (_, body) = await(res)
+          await(body |>>> Iteratee.consume[Array[Byte]]()).
+            aka("streamed response") must throwAn[IOException]
 
-        await(body |>>> Iteratee.consume[Array[Byte]]()).
-          aka("streamed response") must throwAn[IOException]
+        }
       }.skipUntilAkkaHttpFixed
 
     "not throw an exception while signing requests" >> {

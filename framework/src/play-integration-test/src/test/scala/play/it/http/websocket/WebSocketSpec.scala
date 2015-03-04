@@ -139,7 +139,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
         WebSocket.using[String] { req =>
           (getChunks[String](Nil, consumed.success _), Enumerator.empty)
         }
-    }.pendingUntilAkkaHttpFixed
+    }.pendingUntilAkkaHttpFixed // All tests in this class are waiting on https://github.com/akka/akka/issues/16848
 
     "allow sending messages" in allowSendingMessages { _ =>
       messages =>
