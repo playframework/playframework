@@ -77,7 +77,7 @@ class LangSpec extends PlaySpecification {
       }
 
       "preferred language" in {
-        implicit val app: Application = FakeApplication(Map("application.langs" -> "crh-UA,ber,ast-ES"))
+        implicit val app = FakeApplication(additionalConfiguration = Map("application.langs" -> "crh-UA,ber,ast-ES"))
 
         val crhUA = Lang("crh", "UA")
         val crh = Lang("crh")
