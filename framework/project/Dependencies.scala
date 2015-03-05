@@ -102,7 +102,8 @@ object Dependencies {
   val jodatime = "joda-time" % "joda-time" % "2.6"
   val jodaConvert = "org.joda" % "joda-convert" % "1.7"
 
-  val runtime = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.6") ++
+  def runtime(scalaVersion: String) =
+    Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.6") ++
     Seq("logback-core", "logback-classic").map("ch.qos.logback" % _ % "1.1.1") ++
     Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % "2.3.7") ++
     jacksons ++
@@ -127,7 +128,7 @@ object Dependencies {
 
       guava % Test,
 
-      "org.scala-lang" % "scala-reflect" % BuildSettings.buildScalaVersion
+      "org.scala-lang" % "scala-reflect" % scalaVersion
     ) ++
     specsBuild.map(_ % Test) ++
     javaTestDeps
@@ -141,25 +142,25 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-http-core-experimental" % "1.0-M4"
   )
 
-  val routersCompilerDependencies =  Seq(
+  val routesCompilerDependencies =  Seq(
     "commons-io" % "commons-io" % "2.0.1"
   ) ++ specsBuild.map(_ % Test)
 
-  private def sbtPluginDep(moduleId: ModuleID) = {
+  private def sbtPluginDep(sbtVersion: String, scalaVersion: String, moduleId: ModuleID) = {
     moduleId.extra(
-      "sbtVersion" -> BuildSettings.buildSbtVersionBinaryCompatible,
-      "scalaVersion" -> BuildSettings.buildScalaBinaryVersionForSbt
+      "sbtVersion" -> CrossVersion.binarySbtVersion(sbtVersion),
+      "scalaVersion" -> CrossVersion.binaryScalaVersion(scalaVersion)
     )
   }
 
-  def runSupportDependencies(scalaBinaryVersion: String) = Seq(
-    sbtIO(scalaBinaryVersion)
+  def runSupportDependencies(sbtVersion: String, scalaVersion: String) = Seq(
+    sbtIO(sbtVersion, scalaVersion)
   ) ++ specsBuild.map(_ % Test)
 
   // use partial version so that non-standard scala binary versions from dbuild also work
-  def sbtIO(scalaBinaryVersion: String): ModuleID = CrossVersion.partialVersion(scalaBinaryVersion) match {
+  def sbtIO(sbtVersion: String, scalaVersion: String): ModuleID = CrossVersion.partialVersion(scalaVersion) match {
     case Some((2, major)) if major >= 11 => "org.scala-sbt" %% "io" % "0.13.6" % "provided"
-    case _ => "org.scala-sbt" % "io" % BuildSettings.buildSbtVersion % "provided"
+    case _ => "org.scala-sbt" % "io" % sbtVersion % "provided"
   }
 
   val jnotify = "net.contentobjects.jnotify" % "jnotify" % "0.94"
@@ -190,39 +191,43 @@ object Dependencies {
     case _ => sys.error(s"Unsupported scala version: $scalaBinaryVersion")
   }
 
-  def sbtForkRunPluginDependencies = Seq(
-    sbtPluginDep("org.scala-sbt" % "sbt-core-next" % sbtCoreNextVersion)
+  def sbtForkRunPluginDependencies(sbtVersion: String, scalaVersion: String) = Seq(
+    sbtPluginDep(sbtVersion, scalaVersion, "org.scala-sbt" % "sbt-core-next" % sbtCoreNextVersion)
   )
 
   val typesafeConfig = "com.typesafe" % "config" % "1.2.1"
 
-  val sbtDependencies = Seq(
-    "org.scala-lang" % "scala-reflect" % BuildSettings.buildScalaVersionForSbt % "provided",
-    typesafeConfig,
-    "org.mozilla" % "rhino" % "1.7R4",
+  def sbtDependencies(sbtVersion: String, scalaVersion: String) = {
+    def sbtDep(moduleId: ModuleID) = sbtPluginDep(sbtVersion, scalaVersion, moduleId)
 
-    ("com.google.javascript" % "closure-compiler" % "v20140814")
-      .exclude("args4j", "args4j")
-      .exclude("com.google.protobuf", "protobuf-java")
-      .exclude("com.google.code.findbugs", "jsr305"),
+    Seq(
+      "org.scala-lang" % "scala-reflect" % scalaVersion % "provided",
+      typesafeConfig,
+      "org.mozilla" % "rhino" % "1.7R4",
 
-    guava,
+      ("com.google.javascript" % "closure-compiler" % "v20140814")
+        .exclude("args4j", "args4j")
+        .exclude("com.google.protobuf", "protobuf-java")
+        .exclude("com.google.code.findbugs", "jsr305"),
 
-    h2database,
+      guava,
 
-    jnotify,
+      h2database,
 
-    sbtPluginDep("com.typesafe.sbt" % "sbt-twirl" % BuildInfo.sbtTwirlVersion),
-    sbtPluginDep("com.typesafe.sbt" % "sbt-play-enhancer" % "1.0.1"),
+      jnotify,
 
-    sbtPluginDep("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "3.0.0"),
-    sbtPluginDep("com.github.mpeltonen" % "sbt-idea" % "1.6.0"),
-    sbtPluginDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
+      sbtDep("com.typesafe.sbt" % "sbt-twirl" % BuildInfo.sbtTwirlVersion),
+      sbtDep("com.typesafe.sbt" % "sbt-play-enhancer" % "1.0.1"),
 
-    sbtPluginDep("com.typesafe.sbt" % "sbt-web" % "1.1.1"),
-    sbtPluginDep("com.typesafe.sbt" % "sbt-js-engine" % "1.0.2"),
-    sbtPluginDep("com.typesafe.sbt" % "sbt-webdriver" % "1.0.0")
-  ) ++ javassist ++ specsBuild.map(_ % Test)
+      sbtDep("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "3.0.0"),
+      sbtDep("com.github.mpeltonen" % "sbt-idea" % "1.6.0"),
+      sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
+
+      sbtDep("com.typesafe.sbt" % "sbt-web" % "1.1.1"),
+      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.0.2"),
+      sbtDep("com.typesafe.sbt" % "sbt-webdriver" % "1.0.0")
+    ) ++ javassist ++ specsBuild.map(_ % Test)
+  }
 
   val playdocWebjarDependencies = Seq(
     "org.webjars" % "jquery"   % "2.1.3"    % "webjars",
@@ -242,10 +247,10 @@ object Dependencies {
     "org.reactivestreams" % "reactive-streams" % "1.0.0.RC1"
   ) ++ specsBuild.map(_ % "test")
 
-  val jsonDependencies = Seq(
+  def jsonDependencies(scalaVersion: String) = Seq(
     jodatime,
     jodaConvert,
-    "org.scala-lang" % "scala-reflect" % BuildSettings.buildScalaVersion) ++
+    "org.scala-lang" % "scala-reflect" % scalaVersion) ++
   jacksons ++
   specsBuild.map(_ % Test)
 

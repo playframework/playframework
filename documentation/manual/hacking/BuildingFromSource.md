@@ -15,24 +15,24 @@ Then go to the `playframework/framework` directory and launch the `build` script
 ```bash
 $ cd playframework/framework
 $ ./build
-> publish-local
+> publishLocal
 ```
 
-If you want to build Play for Scala 2.11 instead of Scala 2.10, then you must specify the Scala version when launching the build script:
+This will build and publish Play for the default Scala version (currently 2.10.4).  If you want to publish for all versions, you can cross build:
 
 ```bash
-$ cd playframework/framework
-$ ./build -Dscala.version=2.11.0
-> publish-local
+> +publishLocal
 ```
 
-> Note that you don’t need to install sbt yourself: Play embeds its own version.
+Or to publish for a specific Scala version:
 
-If you want to make changes to the code you can use `publish-local` to rebuild the framework.
+```bash
+> +++2.11.5 publishLocal
+```
 
 ## Build the documentation
 
-Documentation is available at playframework/documentation as Markdown files.  To see HTML, run the following:
+Documentation is available at `playframework/documentation` as Markdown files.  To see HTML, run the following:
 
 ```bash
 $ cd playframework/documentation
@@ -51,9 +51,12 @@ You can run basic tests from the sbt console using the `test` task:
 > test
 ```
 
-We are also using several Play applications to test the framework. To run this complete test suite, use the `runtests` script:
+Like with publishing, you can prefix the command with `+` to run the tests against all supported Scala versions.
+
+The Play PR validation runs a few more tests than just the basic tests, including scripted tests, testing the documentation code samples, and testing the Play activator templates.  To run all the tests, run the `framework/runtests` script:
 
 ```
+$ cd playframework/framework
 $ ./runtests
 ```
 
@@ -64,15 +67,15 @@ Compiling and running projects using the Play version you have built from source
 Navigate to your existing Play project and make the following edits in `project/plugins.sbt`:
 
 ```
-// Change the sbt plugin to use the local Play build (2.4-SNAPSHOT)
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.4-SNAPSHOT")
+// Change the sbt plugin to use the local Play build (2.4.0-SNAPSHOT)
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.4.0-SNAPSHOT")
 ```
 
 Once you have done this, you can start the console and interact with your project normally:
 
 ```
-% cd <projectdir>
-% activator
+$ cd <projectdir>
+$ activator
 ```
 
 ## Using Code in Eclipse

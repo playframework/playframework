@@ -29,7 +29,7 @@ object Docs {
     apiDocsClasspath <<= (thisProjectRef, buildStructure) flatMap allClasspaths,
     apiDocsJavaSources <<= (thisProjectRef, buildStructure) flatMap allSources(Compile, ".java"),
     apiDocsUseCache := true,
-    apiDocs <<= (apiDocsScalaSources, apiDocsJavaSources, apiDocsClasspath, baseDirectory in ThisBuild, target, compilers, apiDocsUseCache, streams, scalaVersion) map apiDocsTask,
+    apiDocs <<= apiDocsTask,
     ivyConfigurations += Webjars,
     extractWebjars <<= extractWebjarContents,
     mappings in (Compile, packageBin) <++= (baseDirectory, apiDocs, extractWebjars, version) map { (base, apiBase, webjars, playVersion) =>
@@ -69,53 +69,59 @@ object Docs {
       }
     )
 
-  def apiDocsTask(scalaSources: Seq[File], javaSources: Seq[File], classpath: Seq[File], buildBase: File, target: File,
-                  compilers: Compiler.Compilers, useCache: Boolean, streams: TaskStreams, scalaVersion: String): File = {
+  def apiDocsTask = Def.task {
 
-    val targetDir = new File(target, "scala-" + CrossVersion.binaryScalaVersion(scalaVersion))
-
-    val version = BuildSettings.buildVersion
-    val sourceTree = if (version.endsWith("-SNAPSHOT")) {
-      BuildSettings.sourceCodeBranch
-    } else {
-      version
-    }
-
+    val targetDir = new File(target.value, "scala-" + CrossVersion.binaryScalaVersion(scalaVersion.value))
     val apiTarget = new File(targetDir, "apidocs")
-    val scalaCache = new File(targetDir, "scalaapidocs.cache")
-    val javaCache = new File(targetDir, "javaapidocs.cache")
 
-    val label = "Play " + BuildSettings.buildVersion
+    if ((publishArtifact in packageDoc).value) {
 
-    val options = Seq(
-      // Note, this is used by the doc-source-url feature to determine the relative path of a given source file.
-      // If it's not a prefix of a the absolute path of the source file, the absolute path of that file will be put
-      // into the FILE_SOURCE variable below, which is definitely not what we want.
-      // Hence it needs to be the base directory for the build, not the base directory for the play-docs project.
-      "-sourcepath", buildBase.getAbsolutePath,
-      "-doc-source-url", "https://github.com/playframework/playframework/tree/" + sourceTree + "/framework€{FILE_PATH}.scala")
+      val version = Keys.version.value
+      val sourceTree = if (version.endsWith("-SNAPSHOT")) {
+        BuildSettings.snapshotBranch
+      } else {
+        version
+      }
 
-    val scaladoc = {
-      if (useCache) Doc.scaladoc(label, scalaCache, compilers.scalac)
-      else DocNoCache.scaladoc(label, compilers.scalac)
+      val scalaCache = new File(targetDir, "scalaapidocs.cache")
+      val javaCache = new File(targetDir, "javaapidocs.cache")
+
+      val label = "Play " + version
+
+      val options = Seq(
+        // Note, this is used by the doc-source-url feature to determine the relative path of a given source file.
+        // If it's not a prefix of a the absolute path of the source file, the absolute path of that file will be put
+        // into the FILE_SOURCE variable below, which is definitely not what we want.
+        // Hence it needs to be the base directory for the build, not the base directory for the play-docs project.
+        "-sourcepath", (baseDirectory in ThisBuild).value.getAbsolutePath,
+        "-doc-source-url", "https://github.com/playframework/playframework/tree/" + sourceTree + "/framework€{FILE_PATH}.scala")
+
+      val compilers = Keys.compilers.value
+      val useCache = apiDocsUseCache.value
+      val classpath = apiDocsClasspath.value
+
+      val scaladoc = {
+        if (useCache) Doc.scaladoc(label, scalaCache, compilers.scalac)
+        else DocNoCache.scaladoc(label, compilers.scalac)
+      }
+      // Since there is absolutely no documentation on what the arguments here should be aside from their types, here
+      // are the parameter names of the method that does eventually get called:
+      // (sources, classpath, outputDirectory, options, maxErrors, log)
+      scaladoc(apiDocsScalaSources.value, classpath, apiTarget / "scala", options, 10, streams.value.log)
+
+      val javadocOptions = Seq(
+        "-windowtitle", label,
+        "-notimestamp",
+        "-subpackages", "play",
+        "-exclude", "play.api:play.core"
+      )
+
+      val javadoc = {
+        if (useCache) Doc.javadoc(label, javaCache, compilers.javac)
+        else DocNoCache.javadoc(label, compilers.javac)
+      }
+      javadoc(apiDocsJavaSources.value, classpath, apiTarget / "java", javadocOptions, 10, streams.value.log)
     }
-    // Since there is absolutely no documentation on what the arguments here should be aside from their types, here
-    // are the parameter names of the method that does eventually get called:
-    // (sources, classpath, outputDirectory, options, maxErrors, log)
-    scaladoc(scalaSources, classpath, apiTarget / "scala", options, 10, streams.log)
-
-    val javadocOptions = Seq(
-      "-windowtitle", label,
-      "-notimestamp",
-      "-subpackages", "play",
-      "-exclude", "play.api:play.core"
-    )
-
-    val javadoc = {
-      if (useCache) Doc.javadoc(label, javaCache, compilers.javac)
-      else DocNoCache.javadoc(label, compilers.javac)
-    }
-    javadoc(javaSources, classpath, apiTarget / "java", javadocOptions, 10, streams.log)
 
     apiTarget
   }
