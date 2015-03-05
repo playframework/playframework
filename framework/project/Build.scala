@@ -136,7 +136,7 @@ object BuildSettings {
       "-Xmx768m",
       maxMetaspace,
       "-Dproject.version=" + version.value,
-      "-Dscala.version=" + scalaVersion.value
+      "-Dscala.version=" + (scalaVersion in PlayBuild.PlayProject).value
     )
   )
 
