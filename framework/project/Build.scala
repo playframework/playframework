@@ -118,7 +118,7 @@ object BuildSettings {
 
   def crossBuildSettings: Seq[Setting[_]] = Seq(
     crossScalaVersions := Seq("2.10.4", "2.11.5"),
-    scalaVersion := "2.11.5"
+    scalaVersion := "2.10.4"
   )
 
   def omnidocSettings: Seq[Setting[_]] = Omnidoc.projectSettings ++ Seq(
