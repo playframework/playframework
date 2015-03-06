@@ -173,6 +173,21 @@ private[streams] class EnumeratorSubscription[T, U >: T](
   }
 
   /**
+   * Called when the Iteratee returned by the Enumerator application
+   * enters a failure state. This may indicate that an error occurred
+   * during evaluation of the Enumerator.
+   */
+  private def enumeratorApplicationFailed(): Unit = exclusive {
+    case Requested(_, _) =>
+      subr.onComplete()
+      state = Completed
+    case Cancelled =>
+      ()
+    case Completed =>
+      () // not sure if this can happen
+  }
+
+  /**
    * Called when we want to read an input element from the Enumerator. This
    * method attaches an Iteratee to the end of the Iteratee chain. The
    * Iteratee it attaches will call one of the `*Enumerated` methods when
@@ -197,7 +212,9 @@ private[streams] class EnumeratorSubscription[T, U >: T](
     }
     its match {
       case Unattached =>
-        enum(iteratee)
+        enum(iteratee).onFailure {
+          case _ => enumeratorApplicationFailed()
+        }(Execution.trampoline)
       case Attached(link0) =>
         link0.success(iteratee)
     }
