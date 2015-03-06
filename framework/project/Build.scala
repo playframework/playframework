@@ -102,6 +102,7 @@ object BuildSettings {
     Project(name, file("src/" + dir))
       .settings(playCommonSettings: _*)
       .settings(PublishSettings.publishSettings: _*)
+      .settings(crossBuildSettings: _*)
   }
 
   /**
@@ -111,12 +112,14 @@ object BuildSettings {
     Project(name, file("src/" + dir))
       .settings(playRuntimeSettings: _*)
       .settings(PublishSettings.publishSettings: _*)
+      .settings(crossBuildSettings: _*)
       .settings(omnidocSettings: _*)
-      .settings(
-        crossScalaVersions := Seq("2.10.4", "2.11.5"),
-        scalaVersion := "2.11.5"
-      )
   }
+
+  def crossBuildSettings: Seq[Setting[_]] = Seq(
+    crossScalaVersions := Seq("2.10.4", "2.11.5"),
+    scalaVersion := "2.11.5"
+  )
 
   def omnidocSettings: Seq[Setting[_]] = Omnidoc.projectSettings ++ Seq(
     OmnidocKeys.githubRepo := "playframework/playframework",
@@ -136,7 +139,7 @@ object BuildSettings {
       "-Xmx768m",
       maxMetaspace,
       "-Dproject.version=" + version.value,
-      "-Dscala.version=" + scalaVersion.value
+      "-Dscala.version=" + (scalaVersion in PlayBuild.PlayProject).value
     )
   )
 
