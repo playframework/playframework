@@ -66,7 +66,7 @@ Finally, here are the options themselves.
 If you've read the above and you still want to completely disable certificate verification, set the following;
 
 ```
-ws.acceptAnyCertificate=true
+play.ws.acceptAnyCertificate=true
 ```
 
 With certificate verification completely disabled, you are vulnerable to attack from anyone on the network using a tool such as [mitmproxy](http://mitmproxy.org/). 
@@ -76,7 +76,7 @@ With certificate verification completely disabled, you are vulnerable to attack 
 There are some ciphers which are known to have flaws, and are [disabled](http://sim.ivi.co/2011/08/jsse-oracle-provider-default-disabled.html) in 1.7.  WS will throw an exception if a weak cipher is found in the `ws.ssl.enabledCiphers` list.  If you specifically want a weak cipher, set this flag:
 
 ```
-ws.ssl.loose.allowWeakCiphers=true
+play.ws.ssl.loose.allowWeakCiphers=true
 ```
 
 With weak cipher checking disabled, you are vulnerable to attackers that use forged certificates, such as [Flame](http://arstechnica.com/security/2012/06/flame-crypto-breakthrough/).
@@ -86,7 +86,7 @@ With weak cipher checking disabled, you are vulnerable to attackers that use for
 If you want to disable hostname verification, you can set a loose flag:
 
 ```
-ws.ssl.loose.disableHostnameVerification=true
+play.ws.ssl.loose.disableHostnameVerification=true
 ```
 
 With hostname verification disabled, a DNS proxy such as `dnschef` can [easily intercept communication](http://tersesystems.com/2014/03/31/testing-hostname-verification/).
@@ -98,7 +98,7 @@ WS recognizes "SSLv3", "SSLv2" and "SSLv2Hello" as weak protocols with a number 
 If you specifically want a weak protocol, set the loose flag to disable the check:
 
 ```
-ws.ssl.loose.allowWeakProtocols=true
+play.ws.ssl.loose.allowWeakProtocols=true
 ```
 
 SSLv2 and SSLv2Hello (there is no v1) are obsolete and usage in the field is [down to 25% on the public Internet](https://www.trustworthyinternet.org/ssl-pulse/).  SSLv3 is known to have [security issues](http://www.yaksman.org/~lweith/ssl.pdf) compared to TLS.  The only reason to turn this on is if you are connecting to a legacy server, but doing so does not make you vulnerable per se.

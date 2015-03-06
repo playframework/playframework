@@ -38,7 +38,7 @@ import KeystoreFormats._
  *
  * @see java.security.cert.CertificateFactory
  */
-class StringBasedKeyStoreBuilder(data: String, password: Option[Array[Char]] = None) extends KeyStoreBuilder {
+class StringBasedKeyStoreBuilder(data: String) extends KeyStoreBuilder {
 
   val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 

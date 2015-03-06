@@ -17,8 +17,8 @@ class HowsMySSLSpec extends PlaySpecification {
 
   def createClient(rawConfig: play.api.Configuration): WSClient = {
     val classLoader = Thread.currentThread().getContextClassLoader
-    val parser = new DefaultWSConfigParser(rawConfig, new Environment(new File("."), classLoader, Mode.Test))
-    val clientConfig = new DefaultNingWSClientConfig(parser.parse())
+    val parser = new WSConfigParser(rawConfig, new Environment(new File("."), classLoader, Mode.Test))
+    val clientConfig = new NingWSClientConfig(parser.parse())
     // Debug flags only take effect in JSSE when DebugConfiguration().configure is called.
     //import play.api.libs.ws.ssl.debug.DebugConfiguration
     //clientConfig.ssl.map {
@@ -93,7 +93,7 @@ class HowsMySSLSpec extends PlaySpecification {
       val result = (jsonOutput \ "tls_version").validate[String]
       result must beLike {
         case JsSuccess(value, path) =>
-          value must contain("TLS 1.0")
+          value must_== "TLS 1.0"
       }
     }
   }

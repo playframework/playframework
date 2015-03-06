@@ -432,7 +432,7 @@ class ScalaWSSpec extends PlaySpecification with Results {
       import play.api.libs.ws.ning._
       import com.ning.http.client.AsyncHttpClientConfig
 
-      val clientConfig = new DefaultNingWSClientConfig()
+      val clientConfig = new NingWSClientConfig()
       val secureDefaults: AsyncHttpClientConfig = new NingAsyncHttpClientConfigBuilder(clientConfig).build()
       // You can directly use the builder for specific options once you have secure TLS defaults...
       val builder = new AsyncHttpClientConfig.Builder(secureDefaults)
@@ -485,7 +485,7 @@ class ScalaWSSpec extends PlaySpecification with Results {
       import play.api.libs.ws._
       import play.api.libs.ws.ning._
 
-      val configuration = play.api.Configuration(ConfigFactory.parseString(
+      val configuration = Configuration.reference ++ Configuration(ConfigFactory.parseString(
         """
           |ws.followRedirects = true
         """.stripMargin))
@@ -493,8 +493,8 @@ class ScalaWSSpec extends PlaySpecification with Results {
       // If running in Play, environment should be injected
       val environment = Environment(new File("."), this.getClass.getClassLoader, Mode.Prod)
 
-      val parser = new DefaultWSConfigParser(configuration, environment)
-      val config = new DefaultNingWSClientConfig(wsClientConfig = parser.parse())
+      val parser = new WSConfigParser(configuration, environment)
+      val config = new NingWSClientConfig(wsClientConfig = parser.parse())
       val builder = new NingAsyncHttpClientConfigBuilder(config)
       //#programmatic-config
 

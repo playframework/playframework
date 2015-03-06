@@ -108,7 +108,7 @@ Issuer: CN=exampleCA, OU=Example Org, O=Example Company, L=San Francisco, ST=Cal
 The `exampletrust.jks` store will be used in the TrustManager.
 
 ```
-ws.ssl {
+play.ws.ssl {
   trustManager = {
     stores = [
       { path = "/Users/wsargent/work/ssltest/conf/exampletrust.jks" }
@@ -149,7 +149,7 @@ Issuer: CN=clientCA, OU=Example Org, O=Example Company, L=San Francisco, ST=Cali
 And put `client.jks` in the key manager:
 
 ```
-ws.ssl {
+play.ws.ssl {
   keyManager = {
     stores = [
       { type = "JKS", path = "conf/client.jks", password = $PW }

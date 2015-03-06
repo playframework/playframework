@@ -74,7 +74,7 @@ which can be copied and pasted into a file.  The very last certificate in the ch
 Add the following into `conf/application.conf`, specifying `PEM` format specifically:
 
 ```
-ws.ssl {
+play.ws.ssl {
   trustManager = {
     stores = [
       { type = "PEM", path = "/path/to/cert/globalsign.crt" }

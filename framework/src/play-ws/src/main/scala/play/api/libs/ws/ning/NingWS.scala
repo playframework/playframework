@@ -10,7 +10,6 @@ import com.ning.http.client.cookie.{ Cookie => AHCCookie }
 import com.ning.http.client.Realm.{ RealmBuilder, AuthScheme }
 import com.ning.http.util.AsyncHttpProviderUtils
 import play.api.inject.{ ApplicationLifecycle, Module }
-import play.api.libs.openid.OpenIdClient
 
 import collection.immutable.TreeMap
 
@@ -65,7 +64,7 @@ object NingWSClient {
    *
    * @param config configuration settings
    */
-  def apply(config: NingWSClientConfig = DefaultNingWSClientConfig()): NingWSClient = {
+  def apply(config: NingWSClientConfig = NingWSClientConfig()): NingWSClient = {
     val client = new NingWSClient(new NingAsyncHttpClientConfigBuilder(config).build())
     new SystemConfiguration().configure(config.wsClientConfig)
     client
@@ -517,8 +516,8 @@ class NingWSModule extends Module {
   def bindings(environment: Environment, configuration: Configuration) = {
     Seq(
       bind[WSAPI].to[NingWSAPI],
-      bind[NingWSClientConfig].toProvider[DefaultNingWSClientConfigParser].in[Singleton],
-      bind[WSClientConfig].toProvider[DefaultWSConfigParser].in[Singleton],
+      bind[NingWSClientConfig].toProvider[NingWSClientConfigParser].in[Singleton],
+      bind[WSClientConfig].toProvider[WSConfigParser].in[Singleton],
       bind[WSClient].toProvider[WSClientProvider].in[Singleton]
     )
   }
@@ -534,15 +533,13 @@ class NingWSAPI @Inject() (environment: Environment, clientConfig: NingWSClientC
   private val logger = Logger(classOf[NingWSAPI])
 
   lazy val client = {
-    clientConfig.wsClientConfig.ssl.foreach {
-      _.debug.foreach { debugConfig =>
-        environment.mode match {
-          case Mode.Prod =>
-            logger.warn("NingWSAPI: ws.ssl.debug settings enabled in production mode!")
-          case _ => // do nothing
-        }
-        new DebugConfiguration().configure(debugConfig)
+    if (clientConfig.wsClientConfig.ssl.debug.enabled) {
+      environment.mode match {
+        case Mode.Prod =>
+          logger.warn("NingWSAPI: ws.ssl.debug settings enabled in production mode!")
+        case _ => // do nothing
       }
+      new DebugConfiguration().configure(clientConfig.wsClientConfig.ssl.debug)
     }
 
     val client = NingWSClient(clientConfig)
@@ -711,9 +708,9 @@ trait NingWSComponents {
   def configuration: Configuration
   def applicationLifecycle: ApplicationLifecycle
 
-  lazy val wsClientConfig: WSClientConfig = new DefaultWSConfigParser(configuration, environment).parse()
+  lazy val wsClientConfig: WSClientConfig = new WSConfigParser(configuration, environment).parse()
   lazy val ningWsClientConfig: NingWSClientConfig =
-    new DefaultNingWSClientConfigParser(wsClientConfig, configuration, environment).parse()
+    new NingWSClientConfigParser(wsClientConfig, configuration, environment).parse()
   lazy val wsApi: WSAPI = new NingWSAPI(environment, ningWsClientConfig, applicationLifecycle)
   lazy val wsClient: WSClient = wsApi.client
 }
