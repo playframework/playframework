@@ -15,7 +15,7 @@ trait Router {
   /**
    * The actual routes of the router.
    */
-  def routes: PartialFunction[RequestHeader, Handler]
+  def routes: Router.Routes
 
   /**
    * Documentation for the router.
@@ -43,6 +43,11 @@ trait Router {
  * Utilities for routing.
  */
 object Router {
+
+  /**
+   * The type of the routes partial function
+   */
+  type Routes = PartialFunction[RequestHeader, Handler]
 
   /**
    * Try to load the configured router class.
@@ -84,7 +89,7 @@ object Router {
    * @param routes The routes partial function
    * @return A router that uses that partial function
    */
-  def from(routes: PartialFunction[RequestHeader, Handler]): Router = new SimpleRouter(routes, "/")
+  def from(routes: Router.Routes): Router = SimpleRouter(routes)
 
   /**
    * An empty router.
@@ -99,24 +104,34 @@ object Router {
 }
 
 /**
- * A simple router that is based on a PartialFunction of request headers to handlers.
- *
- * @param suppliedRoutes The partial function that does the routing.
- * @param prefix The prefix for the router.
+ * A simple router that implements the withPrefix and documentation methods for you.
  */
-class SimpleRouter(suppliedRoutes: PartialFunction[RequestHeader, Handler],
-    prefix: String) extends Router {
-  def routes = {
+trait SimpleRouter extends Router { self =>
+  def documentation = Nil
+  def withPrefix(prefix: String): Router = {
     if (prefix == "/") {
-      suppliedRoutes
+      self
     } else {
-      val p = if (prefix.endsWith("/")) prefix else prefix + "/"
-      val prefixed: PartialFunction[RequestHeader, RequestHeader] = {
-        case rh: RequestHeader if rh.path.startsWith(p) => rh.copy(path = rh.path.drop(p.length - 1))
+      new Router {
+        def routes = {
+          val p = if (prefix.endsWith("/")) prefix else prefix + "/"
+          val prefixed: PartialFunction[RequestHeader, RequestHeader] = {
+            case rh: RequestHeader if rh.path.startsWith(p) => rh.copy(path = rh.path.drop(p.length - 1))
+          }
+          Function.unlift(prefixed.lift.andThen(_.flatMap(self.routes.lift)))
+        }
+        def withPrefix(prefix: String) = self.withPrefix(prefix)
+        def documentation = self.documentation
       }
-      Function.unlift(prefixed.lift.andThen(_.flatMap(suppliedRoutes.lift)))
     }
   }
-  def documentation = Nil
-  def withPrefix(prefix: String) = new SimpleRouter(suppliedRoutes, prefix)
+}
+
+object SimpleRouter {
+  private class Impl(val routes: Router.Routes) extends SimpleRouter
+
+  /**
+   * Create a new simple router from the given routes
+   */
+  def apply(routes: Router.Routes): Router = new Impl(routes)
 }
