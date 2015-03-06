@@ -24,8 +24,6 @@ If you want to grab the available source jars (this will take longer and it's po
 > Note if you are using sub-projects with aggregate, you would need to set `skipParents` appropriately in `build.sbt`:
 
 ```
-import com.typesafe.sbteclipse.core.EclipsePlugin.EclipseKeys
-
 EclipseKeys.skipParents in ThisBuild := false
 ```
 
@@ -38,7 +36,7 @@ or from the play console, type:
 > Also, if you did not want to trigger a compilation before running `eclipse`, then just add the following to your settings:
 
 ```
-EclipsePlugin.EclipseKeys.preTasks := Seq()
+EclipseKeys.preTasks := Seq()
 ```
 
 You then need to import the application into your Workspace with the **File/Import/General/Existing project…** menu (compile your project first).
