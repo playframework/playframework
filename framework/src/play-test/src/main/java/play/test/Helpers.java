@@ -187,71 +187,81 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * Extracts the Status code of this Result value.
+     * @deprecated use {@link Result#status()} instead.  
      */
+    @Deprecated
     public static int status(Result result) {
         return result.toScala().header().status();
     }
 
     /**
-     * Extracts the Location header of this Result value if this Result is a Redirect.
+     * @deprecated use {@link Result#redirectLocation()} instead.  
      */
+    @Deprecated
     public static String redirectLocation(Result result) {
         return header(LOCATION, result);
     }
 
     /**
-     * Extracts the Flash values of this Result value.
+     * @deprecated use {@link Result#flash()} instead.  
      */
+    @Deprecated
     public static Flash flash(Result result) {
         return JavaResultExtractor.getFlash(result);
     }
 
     /**
-     * Extracts the Session of this Result value.
+     * @deprecated use {@link Result#session()} instead.  
      */
+    @Deprecated
     public static Session session(Result result) {
         return JavaResultExtractor.getSession(result);
     }
 
     /**
-     * Extracts a Cookie value from this Result value
+     * @deprecated use {@link Result#cookie(String)} instead.  
      */
+    @Deprecated
     public static Cookie cookie(String name, Result result) {
         return JavaResultExtractor.getCookies(result).get(name);
     }
 
     /**
-     * Extracts the Cookies (an iterator) from this result value.
+     * @deprecated use {@link Result#cookies()} instead.  
      */
+    @Deprecated
     public static Cookies cookies(Result result) {
         return play.core.j.JavaResultExtractor.getCookies(result);
     }
 
     /**
-     * Extracts an Header value of this Result value.
+     * @deprecated use {@link Result#header(String)} instead.  
      */
+    @Deprecated
     public static String header(String header, Result result) {
         return JavaResultExtractor.getHeaders(result).get(header);
     }
 
     /**
-     * Extracts all Headers of this Result value.
+     * @deprecated use {@link Result#headers()} instead.  
      */
+    @Deprecated
     public static Map<String, String> headers(Result result) {
         return JavaResultExtractor.getHeaders(result);
     }
 
     /**
-     * Extracts the Content-Type of this Content value.
+     * @deprecated use {@link Result#contentType()} instead.  
      */
+    @Deprecated
     public static String contentType(Content content) {
         return content.contentType();
     }
 
     /**
-     * Extracts the Content-Type of this Result value.
+     * @deprecated use {@link Result#contentType()} instead.  
      */
+    @Deprecated
     public static String contentType(Result result) {
         String h = header(CONTENT_TYPE, result);
         if(h == null) return null;
@@ -263,8 +273,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * Extracts the Charset of this Result value.
+     * @deprecated use {@link Result#charset()} instead.  
      */
+    @Deprecated
     public static String charset(Result result) {
         String h = header(CONTENT_TYPE, result);
         if(h == null) return null;

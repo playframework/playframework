@@ -20,22 +20,22 @@ import static javaguide.testhelpers.MockJavaActionHelper.call;
 public class JavaActions extends WithApplication {
     @Test
     public void simpleAction() {
-        assertThat(status(call(new MockJavaAction() {
+        assertThat(call(new MockJavaAction() {
             //#simple-action
             public Result index() {
                 return ok("Got request " + request() + "!");
             }
             //#simple-action
-        }, fakeRequest())), equalTo(200));
+        }, fakeRequest()).status(), equalTo(200));
     }
 
     @Test
     public void fullController() {
-        assertThat(status(call(new MockJavaAction() {
+        assertThat(call(new MockJavaAction() {
             public Result index() {
                 return new javaguide.http.full.Application().index();
             }
-        }, fakeRequest())), equalTo(200));
+        }, fakeRequest()).status(), equalTo(200));
     }
 
     @Test
@@ -51,19 +51,19 @@ public class JavaActions extends WithApplication {
                 return F.Promise.pure(index("world"));
             }
         }, fakeRequest());
-        assertThat(status(result), equalTo(200));
+        assertThat(result.status(), equalTo(200));
         assertThat(contentAsString(result), equalTo("Hello world"));
     }
 
     @Test
     public void simpleResult() {
-        assertThat(status(call(new MockJavaAction() {
+        assertThat(call(new MockJavaAction() {
             //#simple-result
             public Result index() {
                 return ok("Hello world!");
             }
             //#simple-result
-        }, fakeRequest())), equalTo(200));
+        }, fakeRequest()).status(), equalTo(200));
     }
 
     @Test
@@ -82,7 +82,7 @@ public class JavaActions extends WithApplication {
                 Result anyStatus = status(488, "Strange response type");
                 //#other-results
 
-                assertThat(Helpers.status(anyStatus), equalTo(488));
+                assertThat(anyStatus.status(), equalTo(488));
             }
         }
 
@@ -109,8 +109,8 @@ public class JavaActions extends WithApplication {
             }
             //#redirect-action
         }, fakeRequest());
-        assertThat(status(result), equalTo(SEE_OTHER));
-        assertThat(header(LOCATION, result), equalTo("/user/home"));
+        assertThat(result.status(), equalTo(SEE_OTHER));
+        assertThat(result.header(LOCATION), equalTo("/user/home"));
     }
 
     @Test
@@ -122,8 +122,8 @@ public class JavaActions extends WithApplication {
             }
             //#temporary-redirect-action
         }, fakeRequest());
-        assertThat(status(result), equalTo(TEMPORARY_REDIRECT));
-        assertThat(header(LOCATION, result), equalTo("/user/home"));
+        assertThat(result.status(), equalTo(TEMPORARY_REDIRECT));
+        assertThat(result.header(LOCATION), equalTo("/user/home"));
     }
 
 }
