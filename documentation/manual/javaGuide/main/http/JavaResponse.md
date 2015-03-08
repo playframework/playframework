@@ -45,7 +45,7 @@ To discard a Cookie previously stored on the web browser:
 
 @[discard-cookie](code/javaguide/http/JavaResponse.java)
 
-Make sure, if you set a path or domain when setting the cookie, that you set the same path or domain when discarding the cookie, as the browser will only discard it if the name, path and domain matches.
+If you set a path or domain when setting the cookie, make sure you set the same path or domain when discarding the cookie, as the browser will only discard it if the name, path and domain match.
 
 ## Specifying the character encoding for text results
 
