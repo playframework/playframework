@@ -17,14 +17,14 @@ How does the template engine know which format correspond to a template file? It
 
 In summary, to support your own template format you need to perform the following steps:
 
-* Implement the text integration process for the format ;
+* Implement the text integration process for the format;
 * Associate a file extension to the format.
 
 ## Implement a format
 
 Implement the `play.twirl.api.Format<A>` interface that has the methods `A raw(String text)` and `A escape(String text)` that will be used to integrate static and dynamic template parts, respectively.
 
-The type parameter `A` of the format defines the result type of the template rendering, e.g. `Html` for a HTML template. This type must be a subtype of the `play.twirl.api.Appendable<A>` trait that defines how to concatenates parts together.
+The type parameter `A` of the format defines the result type of the template rendering, e.g. `Html` for a HTML template. This type must be a subtype of the `play.twirl.api.Appendable<A>` trait that defines how to concatenate parts together.
 
 For convenience, Play provides a `play.twirl.api.BufferedContent<A>` abstract class that implements `play.twirl.api.Appendable<A>` using a `StringBuilder` to build its result and that implements the `play.twirl.api.Content` interface so Play knows how to serialize it as an HTTP response body.
 
@@ -49,7 +49,7 @@ public class HtmlFormat implements Format<Html> {
 
 ## Associate a file extension to the format
 
-The templates are compiled into a `.scala` files by the build process just before compiling the whole application sources. The `TwirlKeys.templateFormats` key is a sbt setting of type `Map[String, String]` defining the mapping between file extensions and template formats. For instance, if you want Play to use your own HTML format implementation you have to write the following in your build file to associate the `.scala.html` files to your custom `my.HtmlFormat` format:
+The templates are compiled into `.scala` files by the build process just before compiling the whole application sources. The `TwirlKeys.templateFormats` key is an sbt setting of type `Map[String, String]` defining the mapping between file extensions and template formats. For instance, if you want Play to use your own HTML format implementation you have to write the following in your build file to associate the `.scala.html` files to your custom `my.HtmlFormat` format:
 
 ```scala
 TwirlKeys.templateFormats += ("html" -> "my.HtmlFormat.instance")
