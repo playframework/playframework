@@ -9,7 +9,7 @@ It’s important to understand that Session and Flash data are not stored in the
 
 Cookies are signed with a secret key so the client can’t modify the cookie data (or it will be invalidated). The Play session is not intended to be used as a cache. If you need to cache some data related to a specific session, you can use the Play built-in cache mechanism and use the session to store a unique ID to associate the cached data with a specific user.
 
-> There is no technical timeout for the session, which expires when the user closes the web browser. If you need a functional timeout for a specific application, just store a timestamp into the user Session and use it however your application needs (e.g. for a maximum session duration, maxmimum inactivity duration, etc.).
+> There is no technical timeout for the session, which expires when the user closes the web browser. If you need a functional timeout for a specific application, just store a timestamp into the user Session and use it however your application needs (e.g. for a maximum session duration, maximum inactivity duration, etc.).
 
 ## Storing data into the Session
 
@@ -42,11 +42,11 @@ The Flash scope works exactly like the Session, but with two differences:
 
 > **Important:** The flash scope should only be used to transport success/error messages on simple non-Ajax applications. As the data are just kept for the next request and because there are no guarantees to ensure the request order in a complex Web application, the Flash scope is subject to race conditions.
 
-So for example, after saving an item, you might want to redirect the user back to the index page, and you might want to display an error on the index page saying that the save was successful.  In the save action, you would add the success message to the flash scope:
+So for example, after saving an item, you might want to redirect the user back to the index page and display a message in it informing about the success of the save operation. In the save action, you would add the success message to the flash scope:
 
 @[store-flash](code/javaguide/http/JavaSessionFlash.java)
 
-Then in the index action, you could check if the success message existed in the flash scope, and if so, render it:
+Then in the index action, you could check if the success message exists in the flash scope, and if so, render it:
 
 @[read-flash](code/javaguide/http/JavaSessionFlash.java)
 
