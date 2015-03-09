@@ -128,8 +128,8 @@ Again, there’s nothing special here. You can just call any other template you 
 ```
 
 ## moreScripts and moreStyles equivalents
-> **Next:** [[HTTP form submission and validation | ScalaForms]]
-To define old moreScripts or moreStyles variables equivalents (like on Play! 1.x) on a Scala template, you can define a variable in the main template like this :
+
+To define old moreScripts or moreStyles variables equivalents (like on Play! 1.x) on a Scala template, you can define a variable in the main template like this:
 
 ```html
 @(title: String, scripts: Html = Html(""))(content: Html)
@@ -159,7 +159,7 @@ To define old moreScripts or moreStyles variables equivalents (like on Play! 1.x
 </html>
 ```
 
-And on an extended template that need an extra script : 
+And on an extended template that needs an extra script:
 
 ```html
 @scripts = {
@@ -174,7 +174,7 @@ And on an extended template that need an extra script :
 
 ```
 
-And on an extended template that not need an extra script, just like this :
+And on an extended template that does not need an extra script, just like this:
 
 ```html
 @main("Title"){
