@@ -19,7 +19,7 @@ To create a new vanilla Play Java application, run:
 $ activator new my-first-app play-java
 ```
 
-In either case, you can replace `my-first-app` with whatever name you want your application to use.  Activator will use this as the directory name to create the application in.  You can change this name later if you choose.
+In either case, you can replace `my-first-app` with whatever name you want your application to use.  Activator will use this as the directory name to create the application in.  You can change this name later if you choose so.
 
 [[images/activatorNew.png]]
 
