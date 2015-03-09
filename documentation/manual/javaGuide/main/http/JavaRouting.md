@@ -98,7 +98,7 @@ Then use the same type for the corresponding action method parameter in the cont
 
 @[clients-show-action](code/javaguide/http/routing/controllers/Clients.java)
 
-> **Note:** The parameter types are specified using a suffix syntax. Also The generic types are specified using the `[]` symbols instead of `<>`, as in Java. For example, `List[String]` is the same type as the Java `List<String>`.
+> **Note:** The parameter types are specified using a suffix syntax. Also, the generic types are specified using the `[]` symbols instead of `<>`, as in Java. For example, `List[String]` is the same type as the Java `List<String>`.
 
 ### Parameters with fixed values
 
