@@ -38,7 +38,7 @@ Java
 Java 8
 : @[promise-async](java8code/java8guide/async/JavaAsync.java)
 
-> **Note:** It's important to understand which thread code runs on with promises. Here, the intensive computation will just be run on another thread.
+> **Note:** It's important to understand which thread code runs on which promises. Here, the intensive computation will just be run on another thread.
 >
 > You can't magically turn synchronous IO into asynchronous by wrapping it in a `Promise`. If you can't change the application's architecture to avoid blocking operations, at some point that operation will have to be executed, and that thread is going to block. So in addition to enclosing the operation in a `Promise`, it's necessary to configure it to run in a separate execution context that has been configured with enough threads to deal with the expected concurrency. See [[Understanding Play thread pools|ThreadPools]] for more information.
 >
