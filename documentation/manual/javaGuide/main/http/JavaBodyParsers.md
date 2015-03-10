@@ -7,15 +7,15 @@ An HTTP request (at least for those using the POST and PUT operations) contains 
 
 > **Note:** You can't write `BodyParser` implementation directly using Java. Because a Play `BodyParser` must handle the body content incrementally using an `Iteratee[Array[Byte], A]` it must be implemented in Scala.
 >
-> However Play provides default `BodyParser`s that should fit most use cases (parsing Json, Xml, Text, uploading files). And you can reuse these default parsers to create your own directly in Java; for example you can provide an RDF parsers based on the Text one.
+> However Play provides default `BodyParser`s that should fit most use cases (parsing Json, Xml, Text, uploading files). And you can reuse these default parsers to create your own directly in Java; for example you can provide an RDF parser based on the Text one.
 
 ## The `BodyParser` Java API
 
-When working with request bodies, ensure that have the following imports in your controller:
+When working with request bodies, ensure that you have the following imports in your controller:
 
 @[imports](code/javaguide/http/JavaBodyParsers.java)
 
-In the Java API, all body parsers must generate a `play.mvc.Http.RequestBody` value. This value computed by the body parser can then be retrieved via `request().body()`:
+In the Java API, all body parsers must generate a `play.mvc.Http.RequestBody` value which can be retrieved via `request().body()`:
 
 @[request-body](code/javaguide/http/JavaBodyParsers.java)
 
