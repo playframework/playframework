@@ -23,6 +23,7 @@ import org.openqa.selenium.htmlunit.*;
 
 
 import java.util.*;
+import java.util.concurrent.Callable;
 
 import static play.mvc.Http.*;
 
@@ -79,6 +80,20 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     // --
+
+    /**
+     * Calls a Callable which invokes a Controller or some other method with a Context
+     */
+    public <V> V invokeWithContext(RequestBuilder requestBuilder, Callable<V> callable) {
+      try {
+        Context.current.set(new Context(requestBuilder));
+        return callable.call();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      } finally {
+        Context.current.remove();
+      }
+    }
 
     /**
      * Build a new GET / fake request.
