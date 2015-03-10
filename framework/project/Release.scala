@@ -244,13 +244,13 @@ object Release {
         state.log.info("Not pushing tags because this is a dry run")
       } else {
         val tags = options.version.getOrElse("--tags")
-        if (s"git push $tags".!(errorToOutLogger(state.log)) > 0) {
+        if (s"git push origin $tags".!(errorToOutLogger(state.log)) > 0) {
           error(state, "Error pushing tags")
         }
 
         val currentBranch = "git rev-parse --abbrev-ref HEAD".!!.trim
 
-        if (s"git push $currentBranch".!(errorToOutLogger(state.log)) > 0) {
+        if (s"git push origin $currentBranch".!(errorToOutLogger(state.log)) > 0) {
           error(state, s"Error pushing $currentBranch")
         }
       }
