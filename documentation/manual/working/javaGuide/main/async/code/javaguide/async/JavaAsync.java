@@ -24,7 +24,7 @@ public class JavaAsync {
                         ok("PI value computed: " + pi)
         );
         //#promise-pi
-        assertThat(status(promiseOfResult.get(1000)), equalTo(200));
+        assertThat(promiseOfResult.get(1000).status(), equalTo(200));
     }
 
     @Test

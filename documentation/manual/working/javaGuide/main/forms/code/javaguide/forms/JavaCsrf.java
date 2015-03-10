@@ -64,8 +64,8 @@ public class JavaCsrf extends WithApplication {
 
     @Test
     public void csrfCheck() {
-        assertThat(status(MockJavaActionHelper.call(new Controller1(), fakeRequest("POST", "/")
-                .header(CONTENT_TYPE, "application/x-www-form-urlencoded"))), equalTo(FORBIDDEN));
+        assertThat(MockJavaActionHelper.call(new Controller1(), fakeRequest("POST", "/")
+                .header(CONTENT_TYPE, "application/x-www-form-urlencoded")).status(), equalTo(FORBIDDEN));
     }
 
     public static class Controller1 extends MockJavaAction {
