@@ -186,7 +186,7 @@ trait EssentialActionCaller {
    *
    * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
    */
-  def call[T](action: EssentialAction, req: FakeRequest[T])(implicit w: Writeable[T]): Future[Result] =
+  def call[T](action: EssentialAction, req: Request[T])(implicit w: Writeable[T]): Future[Result] =
     call(action, req, req.body)
 
   /**
@@ -210,11 +210,8 @@ trait RouteInvokers extends EssentialActionCaller {
   self: Writeables =>
 
   // Java compatibility
-  def jRoute(app: Application, rh: RequestHeader): Option[Future[Result]] = route(app, rh, AnyContentAsEmpty)
-  def jRoute(app: Application, rh: RequestHeader, body: Array[Byte]): Option[Future[Result]] = route(app, rh, body)(Writeable.wBytes)
-  def jRoute(rh: RequestHeader, body: Array[Byte]): Option[Future[Result]] = jRoute(Play.current, rh, body)
-  def jRoute[T](app: Application, r: FakeRequest[T]): Option[Future[Result]] = {
-    (r.body: @unchecked) match {
+  def jRoute[T](app: Application, r: RequestHeader, body: T): Option[Future[Result]] = {
+    (body: @unchecked) match {
       case body: AnyContentAsFormUrlEncoded => route(app, r, body)
       case body: AnyContentAsJson => route(app, r, body)
       case body: AnyContentAsXml => route(app, r, body)
