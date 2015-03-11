@@ -329,8 +329,8 @@
 ## Silhouette (Scala)
 
 * **Website:** <http://silhouette.mohiva.com/>
-* **Documentation:** <https://github.com/mohiva/play-silhouette/wiki>
-* **Short description:** An authentication library that supports several authentication methods, including OAuth1, OAuth2, OpenID, Credentials or custom authentication schemes.
+* **Documentation:** <http://silhouette.mohiva.com/docs/>
+* **Short description:** An authentication library that supports several authentication methods, including OAuth1, OAuth2, OpenID, Credentials, Basic Authentication, Two Factor Authentication or custom authentication schemes.
 
 ## Sitemap Generator (Java)
 
