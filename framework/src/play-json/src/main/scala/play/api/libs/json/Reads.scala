@@ -161,7 +161,7 @@ trait DefaultReads {
    */
   implicit object IntReads extends Reads[Int] {
     def reads(json: JsValue) = json match {
-      case JsNumber(n) => JsSuccess(n.toInt)
+      case JsNumber(n) if n.isValidInt => JsSuccess(n.toInt)
       case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber"))))
     }
   }

@@ -30,12 +30,12 @@ object JsonValidSpec extends Specification {
     "invalidate wrong simple type conversion" in {
       JsString("string").validate[Long] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber")))))
       JsNumber(5).validate[String] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsstring")))))
+      JsNumber(5.123).validate[Int] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber")))))
       JsBoolean(false).validate[Double] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber")))))
     }
 
     "validate simple numbered type conversion" in {
       JsNumber(5).validate[Double] must equalTo(JsSuccess(5.0))
-      JsNumber(5.123).validate[Int] must equalTo(JsSuccess(5))
       JsNumber(BigDecimal(5)).validate[Double] must equalTo(JsSuccess(5.0))
       JsNumber(5.123).validate[BigDecimal] must equalTo(JsSuccess(BigDecimal(5.123)))
     }
@@ -74,11 +74,17 @@ object JsonValidSpec extends Specification {
     "validate JsArray to List" in {
       Json.arr("alpha", "beta", "delta").validate[List[String]] must equalTo(JsSuccess(List("alpha", "beta", "delta")))
       Json.arr(123, 567, 890).validate[List[Int]] must equalTo(JsSuccess(List(123, 567, 890)))
-      Json.arr(123.456, 567.123, 890.654).validate[List[Int]] must equalTo(JsSuccess(List(123, 567, 890)))
       Json.arr(123.456, 567.123, 890.654).validate[List[Double]] must equalTo(JsSuccess(List(123.456, 567.123, 890.654)))
     }
 
     "invalidate JsArray to List with wrong type conversion" in {
+      Json.arr(123.456, 567.123, 890.654).validate[List[Int]] must equalTo(
+        JsError(Seq(
+          JsPath(0) -> Seq(ValidationError("error.expected.jsnumber")),
+          JsPath(1) -> Seq(ValidationError("error.expected.jsnumber")),
+          JsPath(2) -> Seq(ValidationError("error.expected.jsnumber"))
+        ))
+      )
       Json.arr("alpha", "beta", "delta").validate[List[Int]] must equalTo(
         JsError(Seq(
           JsPath(0) -> Seq(ValidationError("error.expected.jsnumber")),
