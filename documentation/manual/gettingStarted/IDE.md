@@ -120,10 +120,10 @@ Start Play:
 $ activator
 ```
 
-Enter 'ensime generate' at the play console. The plugin should generate a .ensime file in the root of your Play project.
+Enter 'gen-ensime' at the play console. The plugin should generate a .ensime file in the root of your Play project.
 
 ```
-$ [MYPROJECT] ensime generate
+$ [MYPROJECT] gen-ensime
 [info] Gathering project information...
 [info] Processing project: ProjectRef(file:/Users/aemon/projects/www/MYPROJECT/,MYPROJECT)...
 [info]  Reading setting: name...
@@ -158,7 +158,7 @@ $ [MYPROJECT] ensime generate
 
 From Emacs, execute M-x ensime and follow the on-screen instructions.
 
-That's all there is to it. You should now get type-checking, completion, etc. for your Play project. Note, if you add new library dependencies to your play project, you'll need to re-run "ensime generate" and re-launch ENSIME.
+That's all there is to it. You should now get type-checking, completion, etc. for your Play project. Note, if you add new library dependencies to your play project, you'll need to re-run "gen-ensime" and re-launch ENSIME.
 
 ### More Information
 
