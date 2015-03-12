@@ -4,6 +4,8 @@
 package scalaguide.async.scalaasync
 
 import scala.concurrent.Future
+import scala.concurrent.blocking
+
 import play.api.mvc._
 
 import play.api.test._
@@ -75,7 +77,7 @@ object ScalaAsyncSamples extends Controller {
   }
 
   def timeout(t: Long) = {
-    def intensiveComputation() = {
+    def intensiveComputation() = blocking {
       Thread.sleep(t)
       10
     }
