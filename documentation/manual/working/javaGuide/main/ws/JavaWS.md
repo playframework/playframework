@@ -159,9 +159,9 @@ Use the following properties in `application.conf` to configure the WS client:
 
 There are 3 different timeouts in WS. Reaching a timeout causes the WS request to interrupt.
 
-* `ws.timeout.connection`: The maximum time to wait when connecting to the remote host *(default is **120 seconds**)*.
+* `ws.timeout.connection`: The maximum time to wait when establishing a connection to the remote host *(default is **120 seconds**)*.
 * `ws.timeout.idle`: The maximum time the request can stay idle (connection is established but waiting for more data) *(default is **120 seconds**)*.
-* `ws.timeout.request`: The total time you accept a request to take (it will be interrupted even if the remote host is still sending data) *(default is **none**, to allow stream consuming)*.
+* `ws.timeout.request`: The total time you accept a request to take (it will be interrupted even if the remote host is still sending data) *(default is **120 seconds**)*.
 
 The request timeout can be overridden for a specific connection with `setTimeout()` (see "Making a Request" section).
 
