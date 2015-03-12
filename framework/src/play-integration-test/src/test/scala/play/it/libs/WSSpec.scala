@@ -168,7 +168,7 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification with 
             aka("streamed response") must throwAn[IOException]
 
         }
-      }.pendingUntilAkkaHttpFixed // Waiting for Akka HTTP to support closing connections after results with known Content-Length
+      }
 
     "not throw an exception while signing requests" >> {
       object CustomSigner extends WSSignatureCalculator {
