@@ -22,12 +22,6 @@ import sbt.compiler.AggressiveCompile
 
 trait PlayCommands extends PlayEclipse with PlayInternalKeys {
 
-  //- mainly scala, mainly java or none
-
-  val JAVA = "java"
-  val SCALA = "scala"
-  val NONE = "none"
-
   val playReloadTask = Def.task(playCompileEverything.value.reduceLeft(_ ++ _))
 
   def intellijCommandSettings = {
