@@ -82,9 +82,7 @@ object ValidationSpec extends Specification {
 
   "Email constraint" should {
     val valid = Seq(
-      """"Fred Bloggs"@example.com""",
-      """"Joe\\Blow"@example.com""",
-      """"Abc@def"@example.com""",
+      """simple@example.com""",
       """customer/department=shipping@example.com""",
       """$A12345@example.com""",
       """!def!xyz%abc@example.com""",
@@ -106,10 +104,6 @@ object ValidationSpec extends Specification {
       "\"\"test\blah\"\"@example.com",
       "\"test\rblah\"@example.com",
       "\"\"test\"\"blah\"\"@example.com",
-      ".wooly@example.com",
-      "wo..oly@example.com",
-      "pootietang.@example.com",
-      ".@example.com",
       "Ima Fool@example.com"
     )
     "invalidate invalid addresses" in {
