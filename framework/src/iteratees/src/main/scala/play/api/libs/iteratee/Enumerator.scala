@@ -253,7 +253,7 @@ object Enumerator {
               }(dec)
               Iteratee.flatten(nextI)
             case Input.EOF => {
-              if (attending.single.transformAndGet { _.map(f) }.forall(_ == false)) {
+              if (attending.single.transformAndGet { _.map(f) }.forall(_.forall(_ == false))) {
                 p.complete(Try(Iteratee.flatten(i.feed(Input.EOF))))
               } else {
                 p.success(i)
