@@ -38,7 +38,6 @@ trait Database {
    *
    * Don't forget to release the connection at some point by calling close().
    *
-   * @param autocommit determines whether to autocommit the connection
    * @return a JDBC connection
    */
   def getConnection(): Connection
@@ -267,7 +266,7 @@ abstract class DefaultDatabase(val name: String, configuration: Configuration, c
 class PooledDatabase(name: String, configuration: Configuration, classLoader: ClassLoader, pool: ConnectionPool)
     extends DefaultDatabase(name, configuration, classLoader) {
 
-  def this(name: String, configuration: Configuration) = this(name, configuration, classOf[PooledDatabase].getClassLoader, new BoneConnectionPool)
+  def this(name: String, configuration: Configuration) = this(name, configuration, classOf[PooledDatabase].getClassLoader, new HikariCPConnectionPool)
 
   def createDataSource(): DataSource = pool.create(name, configuration, classLoader)
 
