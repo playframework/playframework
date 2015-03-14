@@ -61,3 +61,7 @@ A new `RequestBuilder` replaces `FakeRequest` and `RequestBuilder` will build a 
 - New conversions for Joda `Instant` or `DateTime`, from `Long`, `Date` or `Timestamp` column.
 - Added conversions to support `List[T]`, `Set[T]`, `SortedSet[T]`, `Stream[T]` and `Vector[T]` as multi-value parameter.
 - New conversion to parse text column as UUID (e.g. `SQL("SELECT uuid_as_text").as(scalar[java.util.UUID].single)`).
+
+## HikariCP
+
+[HikariCP](http://brettwooldridge.github.io/HikariCP/) is now the default JDBC connection pool. It's properties can be directly configured using `.conf` files and you should rename the configuration properties to match what is expected by HikariCP.

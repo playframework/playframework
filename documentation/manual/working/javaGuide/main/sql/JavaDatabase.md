@@ -78,13 +78,6 @@ db.default.user=playdbuser
 db.default.password="a strong password"
 ```
 
-## How to see SQL Statement in the console?
-
-```properties
-db.default.logStatements=true
-logger.com.jolbox=DEBUG // for EBean
-```
-
 ## Accessing the JDBC datasource
 
 The `play.db` package provides access to the configured data sources:
