@@ -1298,7 +1298,7 @@ public class Results {
 
         private play.api.mvc.Result wrappedResult;
 
-        Status(play.api.mvc.Result wrappedResult) {
+        public Status(play.api.mvc.Result wrappedResult) {
             this.wrappedResult = wrappedResult;
         }
 

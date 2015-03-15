@@ -4,10 +4,8 @@
 package play.filters.csrf
 
 import play.api.mvc.Session
-import play.filters.csrf.CSRFConf._
-import play.mvc.Http.Context
-import play.api.inject.NewInstanceInjector
-import play.http.DefaultHttpRequestHandler
+import play.libs.F.Promise
+import play.mvc.Http.{ RequestHeader, Context }
 
 import scala.concurrent.Future
 import play.api.libs.ws._
@@ -20,7 +18,7 @@ import play.libs.F
  */
 object JavaCSRFActionSpec extends CSRFCommonSpecs {
 
-  val javaHandlerComponents = new JavaHandlerComponents(NewInstanceInjector, new DefaultHttpRequestHandler())
+  def javaHandlerComponents = play.api.Play.current.injector.instanceOf[JavaHandlerComponents]
 
   def buildCsrfCheckRequest(sendUnauthorizedResult: Boolean, configuration: (String, String)*) = new CsrfTester {
     def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
@@ -115,8 +113,8 @@ object JavaCSRFActionSpec extends CSRFCommonSpecs {
   }
 
   class CustomErrorHandler extends CSRFErrorHandler {
-    def handle(msg: String) = {
-      Results.unauthorized(msg)
+    def handle(req: RequestHeader, msg: String) = {
+      Promise.pure(Results.unauthorized(msg))
     }
   }
 }

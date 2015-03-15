@@ -103,6 +103,7 @@ Additionally, Play has now better namespaced a large number of its configuration
 | `application.langs`       | `play.i18n.langs`                  |
 | `application.lang.cookie` | `play.i18n.langCookieName`         |
 | `parsers.text.maxLength`  | `play.http.parser.maxMemoryBuffer` |
+| `csrf`                    | `play.filters.csrf`                |
 
 ## SBT plugin
 

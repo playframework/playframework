@@ -4,7 +4,6 @@
 package javaguide.forms;
 
 import com.google.common.collect.ImmutableMap;
-import javaguide.forms.csrf.Global;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -31,11 +30,6 @@ public class JavaCsrf extends WithApplication {
 
     public Crypto crypto() {
       return app.injector().instanceOf(Crypto.class);
-    }
-
-    @Test
-    public void global() {
-        assertThat(new Global().filters()[0], equalTo((Class) CSRFFilter.class));
     }
 
     @Test

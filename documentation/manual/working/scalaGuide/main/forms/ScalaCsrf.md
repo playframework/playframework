@@ -36,9 +36,9 @@ Play provides a global CSRF filter that can be applied to all requests.  This is
 libraryDependencies += filters
 ```
 
-Now add the filter to your `Global` object:
+Now add them to your `Filters` class as described in [[HTTP filters|ScalaHttpFilters]]:
 
-@[global](code/ScalaCsrf.scala)
+@[http-filters](code/ScalaCsrf.scala)
 
 ### Getting the current token
 
@@ -101,10 +101,10 @@ Then you can minimise the boiler plate code necessary to write actions:
 
 ## CSRF configuration options
 
-The following options can be configured in `application.conf`:
+The full range of CSRF configuration options can be found in the filters [reference.conf](resources/confs/filters-helpers/reference.conf).  Some examples include:
 
-* `csrf.token.name` - The name of the token to use both in the session and in the request body/query string. Defaults to `csrfToken`.
-* `csrf.cookie.name` - If configured, Play will store the CSRF token in a cookie with the given name, instead of in the session.
-* `csrf.cookie.secure` - If `csrf.cookie.name` is set, whether the CSRF cookie should have the secure flag set.  Defaults to the same value as `session.secure`.
-* `csrf.body.bufferSize` - In order to read tokens out of the body, Play must first buffer the body and potentially parse it.  This sets the maximum buffer size that will be used to buffer the body.  Defaults to 100k.
-* `csrf.sign.tokens` - Whether Play should use signed CSRF tokens.  Signed CSRF tokens ensure that the token value is randomised per request, thus defeating BREACH style attacks.
+* `play.filters.csrf.token.name` - The name of the token to use both in the session and in the request body/query string. Defaults to `csrfToken`.
+* `play.filters.csrf.cookie.name` - If configured, Play will store the CSRF token in a cookie with the given name, instead of in the session.
+* `play.filters.csrf.cookie.secure` - If `play.filters.csrf.cookie.name` is set, whether the CSRF cookie should have the secure flag set.  Defaults to the same value as `play.http.session.secure`.
+* `play.filters.csrf.body.bufferSize` - In order to read tokens out of the body, Play must first buffer the body and potentially parse it.  This sets the maximum buffer size that will be used to buffer the body.  Defaults to 100k.
+* `play.filters.csrf.token.sign` - Whether Play should use signed CSRF tokens.  Signed CSRF tokens ensure that the token value is randomised per request, thus defeating BREACH style attacks.
