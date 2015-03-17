@@ -71,7 +71,7 @@ sbt-web will automatically extract WebJars into a lib folder relative to your as
 @import "lib/bootstrap/less/bootstrap.less";
 
 h1 {
-  color: @font-size-h1;
+  color: @gray-darker;
 }
 ```
 
