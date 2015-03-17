@@ -114,7 +114,7 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
         case HttpVerbs.HEAD =>
           val headAction = routeRequest(request.copy(method = HttpVerbs.GET)) match {
             case Some(action: EssentialAction) => action
-            case None => notFoundHandler
+            case _ => notFoundHandler
           }
           new HeadAction(headAction)
         case _ =>

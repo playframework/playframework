@@ -461,14 +461,20 @@ public class Http {
 
         /**
          * Defines the user name for this request.
+         * @deprecated As of release 2.4, use {@link #withUsername}.
          */
-        void setUsername(String username);
+        @Deprecated void setUsername(String username);
+
+        /**
+         * Returns a request updated with specified user name
+         * @param username the new user name
+         */
+        Request withUsername(String username);
 
         /**
          * For internal Play-use only
          */
         play.api.mvc.Request<RequestBody> _underlyingRequest();
-
     }
 
     /**
@@ -477,7 +483,7 @@ public class Http {
     public static class RequestImpl extends play.core.j.RequestHeaderImpl implements Request {
 
         private final play.api.mvc.Request<RequestBody> underlying;
-        private String username;
+        private String username; // Keep it non-final until setUsername is removed
 
         public RequestImpl(play.api.mvc.RequestHeader header) {
             super(header);
@@ -489,26 +495,29 @@ public class Http {
             this.underlying = request;
         }
 
-        /**
-         * The request body.
-         */
+        private RequestImpl(play.api.mvc.Request<RequestBody> request,
+                            String username) {
+            
+            super(request);
+            
+            this.underlying = request;
+            this.username = username;
+        }        
+
         public RequestBody body() {
             return underlying != null ? underlying.body() : null;
         }
 
-        /**
-         * The user name for this request, if defined.
-         * This is usually set by annotating your Action with <code>@Authenticated</code>.
-         */
         public String username() {
             return username;
         }
 
-        /**
-         * Defines the user name for this request.
-         */
         public void setUsername(String username) {
             this.username = username;
+        }
+
+        public Request withUsername(String username) {
+            return new RequestImpl(this.underlying, username);
         }
 
         public play.api.mvc.Request<RequestBody> _underlyingRequest() {
