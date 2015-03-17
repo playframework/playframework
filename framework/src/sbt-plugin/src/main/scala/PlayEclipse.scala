@@ -6,6 +6,7 @@ package play
 import sbt._
 import sbt.Keys._
 import Keys._
+import play.twirl.sbt.Import.TwirlKeys
 
 trait PlayEclipse {
   this: PlayCommands =>
@@ -70,14 +71,19 @@ trait PlayEclipse {
       }
     }
 
-    lazy val addSourcesManaged = new EclipseTransformerFactory[RewriteRule] {
+    lazy val addSourcesManaged = addSourceDirectory(sourceManaged in Compile)
+
+    lazy val addTwirlSources = addSourceDirectory(target in (Compile, TwirlKeys.compileTemplates))
+
+    def addSourceDirectory(key: SettingKey[File]) = new EclipseTransformerFactory[RewriteRule] {
       override def createTransformer(ref: ProjectRef, state: State): Validation[RewriteRule] = {
-        setting(crossTarget in ref, state) map { ct =>
+        import scalaz.syntax.apply._
+        (setting(baseDirectory in ref, state) |@| setting(key in ref, state)) { (base, src) =>
           new RewriteRule {
             override def transform(node: Node): Seq[Node] = node match {
-              case elem if (elem.label == "classpath" && (ct / "src_managed" / "main").exists) =>
-                val newChild = elem.child ++
-                  <classpathentry path={ "target" + `/` + ct.getName + `/` + "src_managed" + `/` + "main" } kind="src"></classpathentry>
+              case elem if (elem.label == "classpath" && src.exists) =>
+                val srcPath = IO.relativize(base, src).getOrElse(src.getAbsolutePath)
+                val newChild = elem.child ++ <classpathentry path={ srcPath } kind="src"></classpathentry>
                 Elem(elem.prefix, "classpath", elem.attributes, elem.scope, false, newChild: _*)
               case other =>
                 other
@@ -92,7 +98,7 @@ trait PlayEclipse {
         EclipsePlugin.eclipseSettings ++ Seq(
           EclipseKeys.projectFlavor := EclipseProjectFlavor.Scala,
           EclipseKeys.preTasks := Seq(compile in Compile),
-          EclipseKeys.classpathTransformerFactories := Seq(addSourcesManaged)
+          EclipseKeys.classpathTransformerFactories := Seq(addSourcesManaged, addTwirlSources)
         )
       case JAVA =>
         generateJavaPrefFile()
