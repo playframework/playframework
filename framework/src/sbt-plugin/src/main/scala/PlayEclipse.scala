@@ -72,36 +72,12 @@ trait PlayEclipse {
       }
     }
 
-    lazy val addSourcesManaged = addSourceDirectory(sourceManaged in Compile)
-
-    lazy val addRoutesSources = addSourceDirectory(target in (Compile, RoutesKeys.routes))
-
-    lazy val addTwirlSources = addSourceDirectory(target in (Compile, TwirlKeys.compileTemplates))
-
-    def addSourceDirectory(key: SettingKey[File]) = new EclipseTransformerFactory[RewriteRule] {
-      override def createTransformer(ref: ProjectRef, state: State): Validation[RewriteRule] = {
-        import scalaz.syntax.apply._
-        (setting(baseDirectory in ref, state) |@| setting(key in ref, state)) { (base, src) =>
-          new RewriteRule {
-            override def transform(node: Node): Seq[Node] = node match {
-              case elem if (elem.label == "classpath" && src.exists) =>
-                val srcPath = IO.relativize(base, src).getOrElse(src.getAbsolutePath)
-                val newChild = elem.child ++ <classpathentry path={ srcPath } kind="src"></classpathentry>
-                Elem(elem.prefix, "classpath", elem.attributes, elem.scope, false, newChild: _*)
-              case other =>
-                other
-            }
-          }
-        }
-      }
-    }
-
     mainLang match {
       case SCALA =>
         EclipsePlugin.eclipseSettings ++ Seq(
           EclipseKeys.projectFlavor := EclipseProjectFlavor.Scala,
           EclipseKeys.preTasks := Seq(compile in Compile),
-          EclipseKeys.classpathTransformerFactories := Seq(addSourcesManaged, addRoutesSources, addTwirlSources)
+          EclipseKeys.createSrc := EclipseCreateSrc.All
         )
       case JAVA =>
         generateJavaPrefFile()
