@@ -65,7 +65,7 @@ Now in our actor, we will receive messages of type `InEvent`, and we can send me
 
 ## Handling WebSockets with iteratees
 
-While actors are a better abstraction for handling discreet messages, iteratees are often a better  abstraction for handling streams.
+While actors are a better abstraction for handling discrete messages, iteratees are often a better  abstraction for handling streams.
 
 To handle a WebSocket request, use a `WebSocket` instead of an `Action`:
 
