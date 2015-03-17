@@ -84,11 +84,10 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
       case nettyHttpRequest: HttpRequest =>
 
         logger.trace("Http request received by netty: " + nettyHttpRequest)
-        val keepAlive = isKeepAlive(nettyHttpRequest)
         val websocketableRequest = websocketable(nettyHttpRequest)
         var nettyVersion = nettyHttpRequest.getProtocolVersion
         val nettyUri = new QueryStringDecoder(nettyHttpRequest.getUri)
-        val rHeaders = getHeaders(nettyHttpRequest)
+        val rHeaders: Headers = getHeaders(nettyHttpRequest)
 
         def rRemoteAddress = ServerRequestUtils.findRemoteAddress(
           forwardedHeaderHandler,
@@ -277,7 +276,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
           }.flatMap {
             case (result, sequence) =>
               val cleanedResult = ServerResultUtils.cleanFlashCookie(requestHeader, result)
-              NettyResultStreamer.sendResult(cleanedResult, !keepAlive, nettyVersion, sequence)
+              NettyResultStreamer.sendResult(requestHeader, cleanedResult, nettyVersion, sequence)
           }
 
         }
