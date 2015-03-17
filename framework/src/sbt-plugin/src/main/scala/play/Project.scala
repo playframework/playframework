@@ -6,10 +6,11 @@ package play
 import sbt._
 import sbt.Keys._
 
+import com.typesafe.play.sbt.enhancer.PlayEnhancer
 import com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging
 import com.typesafe.sbt.jse.SbtJsTask
 import com.typesafe.sbt.webdriver.SbtWebDriver
-import com.typesafe.play.sbt.enhancer.PlayEnhancer
+import com.typesafe.sbteclipse.core.EclipsePlugin.EclipseProjectFlavor
 import play.twirl.sbt.SbtTwirl
 import play.sbtplugin.PlayPositionMapper
 import play.sbtplugin.routes.RoutesCompiler
@@ -51,7 +52,7 @@ object PlayJava extends AutoPlugin {
   import Play._
   import Play.autoImport._
   override def projectSettings =
-    eclipseCommandSettings(JAVA) ++
+    eclipseCommandSettings(EclipseProjectFlavor.Java) ++
       defaultJavaSettings ++
       Seq(libraryDependencies += javaCore)
 }
@@ -68,7 +69,7 @@ object PlayScala extends AutoPlugin {
 
   import Play._
   override def projectSettings =
-    eclipseCommandSettings(SCALA) ++
+    eclipseCommandSettings(EclipseProjectFlavor.Scala) ++
       defaultScalaSettings
 }
 
