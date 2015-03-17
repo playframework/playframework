@@ -70,29 +70,12 @@ trait PlayEclipse {
       }
     }
 
-    lazy val addSourcesManaged = new EclipseTransformerFactory[RewriteRule] {
-      override def createTransformer(ref: ProjectRef, state: State): Validation[RewriteRule] = {
-        setting(crossTarget in ref, state) map { ct =>
-          new RewriteRule {
-            override def transform(node: Node): Seq[Node] = node match {
-              case elem if (elem.label == "classpath" && (ct / "src_managed" / "main").exists) =>
-                val newChild = elem.child ++
-                  <classpathentry path={ "target" + `/` + ct.getName + `/` + "src_managed" + `/` + "main" } kind="src"></classpathentry>
-                Elem(elem.prefix, "classpath", elem.attributes, elem.scope, false, newChild: _*)
-              case other =>
-                other
-            }
-          }
-        }
-      }
-    }
-
     mainLang match {
       case SCALA =>
         EclipsePlugin.eclipseSettings ++ Seq(
           EclipseKeys.projectFlavor := EclipseProjectFlavor.Scala,
           EclipseKeys.preTasks := Seq(compile in Compile),
-          EclipseKeys.classpathTransformerFactories := Seq(addSourcesManaged)
+          EclipseKeys.createSrc := EclipseCreateSrc.All
         )
       case JAVA =>
         generateJavaPrefFile()
