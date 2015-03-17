@@ -57,15 +57,6 @@ object GuiceApplicationBuilderSpec extends Specification {
       app.configuration.getInt("a") must beSome(1)
     }
 
-    "set initial configuration" in {
-      val app = new GuiceApplicationBuilder()
-        .loadConfig(Configuration.empty)
-        .bindings(new BuiltinModule)
-        .build
-
-      app.configuration.keys must beEmpty
-    }
-
     "set global settings" in {
       val global = new GlobalSettings {
         override def configuration = Configuration("a" -> 1)

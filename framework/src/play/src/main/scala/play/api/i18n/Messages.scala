@@ -109,7 +109,7 @@ object Lang {
    * Retrieve Lang availables from the application configuration.
    *
    * {{{
-   * application.langs="fr,en,de"
+   * play.i18n.langs = ["fr", "en", "de"]
    * }}}
    */
   def availables(implicit app: Application): Seq[Lang] = {
@@ -153,19 +153,22 @@ trait Langs {
 @Singleton
 class DefaultLangs @Inject() (configuration: Configuration) extends Langs {
 
-  val availables = configuration.getString("play.modules.i18n.langs").orElse {
-    configuration.getString("application.langs").map { path =>
-      Logger.warn("application.langs is deprecated, use play.modules.i18n.langs instead")
-      path
+  private val config = PlayConfig(configuration)
+  val availables = {
+    val langs = configuration.getString("application.langs") map { langsStr =>
+      Logger.warn("application.langs is deprecated, use play.i18n.langs instead")
+      langsStr.split(",").map(_.trim).toSeq
+    } getOrElse {
+      config.get[Seq[String]]("play.i18n.langs")
     }
-  }.map { langs =>
-    langs.split(",").map(_.trim).map { lang =>
+
+    langs.map { lang =>
       try { Lang(lang) } catch {
         case NonFatal(e) => throw configuration.reportError("play.modules.i18n.langs",
           "Invalid language code [" + lang + "]", Some(e))
       }
-    }.toSeq
-  }.getOrElse(Nil)
+    }
+  }
 
   def preferred(candidates: Seq[Lang]) = candidates.collectFirst(Function.unlift { lang =>
     availables.find(_.satisfies(lang))
@@ -461,10 +464,12 @@ trait MessagesApi {
 @Singleton
 class DefaultMessagesApi @Inject() (environment: Environment, configuration: Configuration, langs: Langs) extends MessagesApi {
 
+  private val config = PlayConfig(configuration)
+
   import java.text._
 
   protected val messagesPrefix =
-    configuration.getDeprecatedStringOpt("play.modules.i18n.path", "messages.path")
+    config.getOptionalDeprecated[String]("play.i18n.path", "messages.path")
   val messages: Map[String, Map[String, String]] = loadAllMessages
 
   def preferred(candidates: Seq[Lang]) = Messages(langs.preferred(candidates), this)
@@ -543,9 +548,7 @@ class DefaultMessagesApi @Inject() (environment: Environment, configuration: Con
   }
 
   lazy val langCookieName =
-    configuration
-      .getDeprecatedStringOpt("play.modules.i18n.langCookieName", "application.lang.cookie")
-      .getOrElse("PLAY_LANG")
+    config.getDeprecated[String]("play.i18n.langCookieName", "application.lang.cookie")
 
 }
 

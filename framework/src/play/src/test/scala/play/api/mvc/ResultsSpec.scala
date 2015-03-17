@@ -112,7 +112,7 @@ object ResultsSpec extends Specification {
     }
 
     "support clearing a language cookie using clearingLang" in {
-      implicit val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.empty, new DefaultLangs(Configuration.empty))
+      implicit val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.reference, new DefaultLangs(Configuration.reference))
       val cookie = Cookies.decode(Ok.clearingLang.header.headers("Set-Cookie")).head
       cookie.name must_== Play.langCookieName
       cookie.value must_== ""

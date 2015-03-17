@@ -22,7 +22,7 @@ object MessagesSpec extends Specification {
     "fr-CH" -> Map(
       "title" -> "Titre suisse"))
   val api = new DefaultMessagesApi(new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev),
-    Configuration.from(Map("play.modules.i18n.langCookieName" -> "PLAY_LANG")), new Langs() {
+    Configuration.reference, new Langs() {
       def availables = Nil
       def preferred(candidates: Seq[Lang]) = Lang.defaultLang
     }

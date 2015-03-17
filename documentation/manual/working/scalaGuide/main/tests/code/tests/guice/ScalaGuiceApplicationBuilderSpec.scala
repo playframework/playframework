@@ -30,7 +30,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
       // #set-environment
       val application = new GuiceApplicationBuilder()
         .load(new play.api.inject.BuiltinModule) // ###skip
-        .loadConfig(Configuration.empty) // ###skip
+        .loadConfig(Configuration.reference) // ###skip
         .in(Environment(new File("path/to/app"), classLoader, Mode.Test))
         .build
       // #set-environment
@@ -45,7 +45,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
       // #set-environment-values
       val application = new GuiceApplicationBuilder()
         .load(new play.api.inject.BuiltinModule) // ###skip
-        .loadConfig(Configuration.empty) // ###skip
+        .loadConfig(Configuration.reference) // ###skip
         .in(new File("path/to/app"))
         .in(Mode.Test)
         .in(classLoader)
@@ -97,7 +97,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
     "override bindings" in {
       // #override-bindings
       val application = new GuiceApplicationBuilder()
-        .configure("application.router" -> classOf[Routes].getName) // ###skip
+        .configure("play.http.router" -> classOf[Routes].getName) // ###skip
         .bindings(new ComponentModule) // ###skip
         .overrides(bind[Component].to[MockComponent])
         .build

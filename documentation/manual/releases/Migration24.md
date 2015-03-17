@@ -86,6 +86,23 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 | [`WS`](api/java/play/libs/ws/WS.html) | [`WSClient`](api/java/play/libs/ws/WSClient.html) | |
 | [`FakeRequest`](api/java/play/test/FakeRequest.html) | [`RequestBuilder`](api/java/play/mvc/Http.RequestBuilder.html) | |
 
+## Configuration changes
+
+Play 2.4 now uses `reference.conf` to document and specify defaults for all properties.  You can easily find these by going [here](https://github.com/playframework/playframework/find/master) and searching for files called `reference.conf`.
+
+Additionally, Play has now better namespaced a large number of its configuration properties.  The old configuration paths will generally still work, but a deprecation warning will be output at runtime if you use them.  Here is a summary of the changed keys:
+
+| Old key                   | New key                            |
+| ------------------------- | ---------------------------------- |
+| `application.secret`      | `play.crypto.secret`               |
+| `application.context`     | `play.http.context`                |
+| `session.*`               | `play.http.session.*`              |
+| `flash.*`                 | `play.http.flash.*`                |
+| `application.router`      | `play.http.router`                 |
+| `application.langs`       | `play.i18n.langs`                  |
+| `application.lang.cookie` | `play.i18n.langCookieName`         |
+| `parsers.text.maxLength`  | `play.http.parser.maxMemoryBuffer` |
+
 ## Reverse ref routing
 
 The reverse ref router used in Java tests has been removed. Any call to `Helpers.call` that was passed a ref router can be replaced by a call to `Helpers.route` which takes either a standard reverse router reference or a `RequestBuilder`.
@@ -120,9 +137,9 @@ def foo = Action(play.api.mvc.BodyParsers.parse.anyContent) { request =>
 
 For both Scala and Java, there have been some small but important changes to the way the configured maximum body lengths are handled and applied.
 
-A new property, `parsers.disk.maxLength`, specifies the maximum length of any body that is parsed by a parser that may buffer to disk.  This includes the raw body parser and the `multipart/form-data` parser.  By default this is 10MB.
+A new property, `play.http.parser.maxDiskBuffer`, specifies the maximum length of any body that is parsed by a parser that may buffer to disk.  This includes the raw body parser and the `multipart/form-data` parser.  By default this is 10MB.
 
-In the case of the `multipart/form-data` parser, the aggregate length of all of the text data parts is limited by the configured `parsers.text.maxLength` value, which defaults to 100KB.
+In the case of the `multipart/form-data` parser, the aggregate length of all of the text data parts is limited by the configured `play.http.parser.maxMemoryBuffer` value, which defaults to 100KB.
 
 In all cases, when one of the max length parsing properties is exceeded, a 413 response is returned.  This includes Java actions who have explicitly overridden the `maxLength` property on the `BodyParser.Of` annotation - previously it was up to the Java action to check the `RequestBody.isMaxSizeExceeded` flag if a custom max length was configured, this flag has now been deprecated.
 

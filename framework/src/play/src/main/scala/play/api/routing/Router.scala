@@ -3,7 +3,7 @@
  */
 package play.api.routing
 
-import play.api.{ Configuration, Environment }
+import play.api.{ PlayConfig, Configuration, Environment }
 import play.api.mvc.{ RequestHeader, Handler }
 import play.utils.Reflect
 
@@ -50,7 +50,7 @@ object Router {
    * @return The router class if configured or if a default one in the root package was detected.
    */
   def load(env: Environment, configuration: Configuration): Option[Class[_ <: Router]] = {
-    val className = configuration.getString("application.router")
+    val className = PlayConfig(configuration).getOptionalDeprecated[String]("play.http.router", "application.router")
 
     try {
       Some(Reflect.getClass[Router](className.getOrElse("Routes"), env.classLoader))

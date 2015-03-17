@@ -8,7 +8,7 @@ To specify your application’s languages, you need a valid language code, speci
 To start, you need to specify the languages that your application supports in its `conf/application.conf` file:
 
 ```
-application.langs="en,en-US,fr"
+play.i18n.langs = [ "en", "en-US", "fr" ]
 ```
 
 ## Externalizing messages

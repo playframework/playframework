@@ -7,7 +7,7 @@ import javax.inject.{ Provider, Inject }
 
 import play.api.inject.{ BindingKey, Binding }
 import play.api.libs.iteratee.Done
-import play.api.{ Configuration, Environment, GlobalSettings }
+import play.api.{ PlayConfig, Configuration, Environment, GlobalSettings }
 import play.api.http.Status._
 import play.api.mvc._
 import play.api.routing.Router
@@ -44,7 +44,7 @@ object HttpRequestHandler {
     val javaComponentsBinding = BindingKey(classOf[play.core.j.JavaHandlerComponents]).toSelf
 
     Reflect.configuredClass[HttpRequestHandler, play.http.HttpRequestHandler, GlobalSettingsHttpRequestHandler](environment,
-      configuration, "play.http.requestHandler", "RequestHandler") match {
+      PlayConfig(configuration), "play.http.requestHandler", "RequestHandler") match {
         case None => Nil
         case Some(Left(scalaImpl)) =>
           Seq(

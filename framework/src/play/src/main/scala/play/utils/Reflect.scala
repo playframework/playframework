@@ -3,7 +3,7 @@
  */
 package play.utils
 
-import play.api.{ Environment, Configuration, PlayException }
+import play.api.{ PlayConfig, Environment, PlayException }
 import play.api.inject.{ BindingKey, Binding }
 import scala.reflect.ClassTag
 
@@ -38,7 +38,7 @@ object Reflect {
    * @return Zero or more bindings to provide `ScalaTrait`
    */
   def bindingsFromConfiguration[ScalaTrait, JavaInterface, JavaAdapter <: ScalaTrait, Default <: ScalaTrait](
-    environment: Environment, config: Configuration, key: String, defaultClassName: String)(implicit scalaTrait: SubClassOf[ScalaTrait],
+    environment: Environment, config: PlayConfig, key: String, defaultClassName: String)(implicit scalaTrait: SubClassOf[ScalaTrait],
       javaInterface: SubClassOf[JavaInterface], javaAdapter: ClassTag[JavaAdapter], default: ClassTag[Default]): Seq[Binding[_]] = {
 
     def bind[T: SubClassOf]: BindingKey[T] = BindingKey(implicitly[SubClassOf[T]].runtimeClass)
@@ -85,7 +85,7 @@ object Reflect {
    * @tparam Default The default implementation of `ScalaTrait` if no user implementation has been provided
    */
   def configuredClass[ScalaTrait, JavaInterface, Default <: ScalaTrait](
-    environment: Environment, config: Configuration, key: String, defaultClassName: String)(implicit scalaTrait: SubClassOf[ScalaTrait],
+    environment: Environment, config: PlayConfig, key: String, defaultClassName: String)(implicit scalaTrait: SubClassOf[ScalaTrait],
       javaInterface: SubClassOf[JavaInterface], default: ClassTag[Default]): Option[Either[Class[_ <: ScalaTrait], Class[_ <: JavaInterface]]] = {
 
     def loadClass(className: String, notFoundFatal: Boolean): Option[Class[_]] = {
@@ -100,11 +100,11 @@ object Reflect {
       }
     }
 
-    val maybeClass = config.getString(key) match {
+    val maybeClass = config.getOptional[String](key) match {
       // If provided, don't bind anything
       case Some("provided") => None
       // If empty, use the default
-      case None | Some("") =>
+      case None =>
         // If no value, load the default class name, but if it's not found, then fallback to the default class
         loadClass(defaultClassName, notFoundFatal = false)
           .orElse(Some(default.runtimeClass))

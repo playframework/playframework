@@ -10,6 +10,8 @@ import com.typesafe.config._
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.{ FiniteDuration, Duration }
+import scala.io.Source
+import scala.util.Try
 import scala.util.control.NonFatal
 import play.utils.{ PlayIO, Threads }
 
@@ -88,6 +90,11 @@ object Configuration {
    * Returns an empty Configuration object.
    */
   def empty = Configuration(ConfigFactory.empty())
+
+  /**
+   * Returns the reference configuration object.
+   */
+  def reference = Configuration(ConfigFactory.defaultReference())
 
   /**
    * Create a new Configuration from the data passed as a Map.
@@ -839,4 +846,217 @@ case class Configuration(underlying: Config) {
     }
   }
 
+}
+
+/**
+ * A Play configuration wrapper.
+ *
+ * Eventually, maybe this will replace Configuration.
+ *
+ * The story behind this:
+ *
+ * In the early days, Play's Configuration object conveniently wrapped Typesafe config, returning an options, and
+ * converting Seq types.
+ *
+ * The problem with returning Options is that that's not idiomatic Typesafe config usage - configuration should not
+ * be optional, defaults should be specified in reference.conf.  Another problem is that if you want to add new
+ * functionality, you have to do so for every permutation of getType method.
+ *
+ * So, this new implementation does not return options, and uses type classes to handle the permutation issue.
+ *
+ * It also provides a number of additional features, including:
+ *
+ * - Prototyped config objects
+ * - Optional values signified by null in reference.conf
+ * - Deprecated config that outputs a warning if defined
+ * - Deprecated objects, merging values with the new value
+ *
+ * @param underlying The underlying Typesafe config object
+ */
+private[play] class PlayConfig(underlying: Config) {
+
+  /**
+   * Get the config at the given path.
+   */
+  def get[A](path: String)(implicit loader: ConfigLoader[A]): A = {
+    loader.load(underlying, path)
+  }
+
+  /**
+   * Get an optional configuration item.
+   *
+   * If the value of the item is null, this will return None, otherwise returns Some.
+   */
+  def getOptional[A: ConfigLoader](path: String): Option[A] = {
+    try {
+      // If the value is null, typesafe config will throw an exception. This is the only way that typesafe config allows
+      // discovering null values
+      Some(get[A](path))
+    } catch {
+      case e: ConfigException.Null => None
+    }
+  }
+
+  /**
+   * Get a prototyped sequence of objects.
+   *
+   * Each object in the sequence will fallback to the object loaded from prototype.$path.
+   */
+  def getPrototypedSeq(path: String): Seq[PlayConfig] = {
+    val prototype = underlying.getConfig("prototype").getConfig(path)
+    get[Seq[Config]](path).map { config =>
+      new PlayConfig(config.withFallback(prototype))
+    }
+  }
+
+  /**
+   * Get a prototyped map of objects.
+   *
+   * Each value in the map will fallback to the object loaded from prototype.$path.
+   */
+  def getPrototypedMap(path: String): Map[String, PlayConfig] = {
+    val prototype = underlying.getConfig("prototype").getConfig(path)
+    get[Map[String, Config]](path).map {
+      case (key, config) => key -> new PlayConfig(config.withFallback(prototype))
+    }.toMap
+  }
+
+  /**
+   * Get an optional deprecated configuration item.
+   *
+   * If the deprecated configuration item is defined, it will be returned, and a warning will be logged.
+   *
+   * Otherwise, the configuration from path will be looked up.
+   *
+   * If the value of the item is null, this will return None, otherwise returns Some.
+   */
+  def getOptionalDeprecated[A: ConfigLoader](path: String, deprecated: String): Option[A] = {
+    if (underlying.hasPath(deprecated)) {
+      reportDeprecation(path, deprecated)
+      getOptional[A](deprecated)
+    } else {
+      getOptional[A](path)
+    }
+  }
+
+  /**
+   * Get a deprecated configuration item.
+   *
+   * If the deprecated configuration item is defined, it will be returned, and a warning will be logged.
+   *
+   * Otherwise, the configuration from path will be looked up.
+   */
+  def getDeprecated[A: ConfigLoader](path: String, deprecated: String): A = {
+    if (underlying.hasPath(deprecated)) {
+      reportDeprecation(path, deprecated)
+      get[A](deprecated)
+    } else {
+      get[A](path)
+    }
+  }
+
+  /**
+   * Get a deprecated configuration.
+   *
+   * If the deprecated configuration is defined, it will be returned, falling back to the new configuration, and a
+   * warning will be logged.
+   *
+   * Otherwise, the configuration from path will be looked up and used as is.
+   */
+  def getDeprecatedWithFallback(path: String, deprecated: String, parent: String = ""): PlayConfig = {
+    val config = get[Config](path)
+    val merged = if (underlying.hasPath(deprecated)) {
+      reportDeprecation(path, deprecated)
+      get[Config](deprecated).withFallback(config)
+    } else config
+    new PlayConfig(merged)
+  }
+
+  private def reportDeprecation(path: String, deprecated: String): Unit = {
+    val origin = underlying.getValue(deprecated).origin
+    Logger.warn(s"${origin.description}: $deprecated is deprecated, use $path instead:")
+    Try {
+      if (origin.url != null && origin.lineNumber() > 0) {
+        val is = origin.url.openStream()
+        try {
+          Source.fromInputStream(is).getLines()
+            .drop(origin.lineNumber() - 1)
+            .toStream.headOption
+            .map { line =>
+              Logger.warn(line)
+            }
+        } finally {
+          is.close()
+        }
+      }
+
+    }
+
+  }
+}
+
+private[play] object PlayConfig {
+  def apply(underlying: Config) = new PlayConfig(underlying)
+  def apply(configuration: Configuration) = new PlayConfig(configuration.underlying)
+}
+
+/**
+ * A config loader
+ */
+private[play] trait ConfigLoader[+A] { self =>
+  def load(config: Config, path: String): A
+  def map[B](f: A => B): ConfigLoader[B] = new ConfigLoader[B] {
+    def load(config: Config, path: String): B = {
+      f(self.load(config, path))
+    }
+  }
+}
+
+private[play] object ConfigLoader {
+  def apply[A](f: Config => String => A): ConfigLoader[A] = new ConfigLoader[A] {
+    def load(config: Config, path: String): A = f(config)(path)
+  }
+
+  import scala.collection.JavaConverters._
+
+  private def toScala[A](as: java.util.List[A]): Seq[A] = as.asScala
+
+  implicit val stringLoader = ConfigLoader(_.getString)
+  implicit val seqStringLoader = ConfigLoader(_.getStringList).map(toScala)
+
+  implicit val intLoader = ConfigLoader(_.getInt)
+  implicit val seqIntLoader = ConfigLoader(_.getIntList).map(toScala(_).map(_.toInt))
+
+  implicit val booleanLoader = ConfigLoader(_.getBoolean)
+  implicit val seqBooleanLoader = ConfigLoader(_.getBooleanList).map(toScala(_).map(_.booleanValue()))
+
+  implicit val durationLoader = ConfigLoader(config => config.getDuration(_, TimeUnit.MILLISECONDS))
+    .map(millis => FiniteDuration(millis, TimeUnit.MILLISECONDS))
+  implicit val seqDurationLoader = ConfigLoader(config => config.getDurationList(_, TimeUnit.MILLISECONDS))
+    .map(toScala(_).map(millis => FiniteDuration(millis, TimeUnit.MILLISECONDS)))
+
+  implicit val doubleLoader = ConfigLoader(_.getDouble)
+  implicit val seqDoubleLoader = ConfigLoader(_.getDoubleList).map(toScala)
+
+  implicit val longLoader = ConfigLoader(_.getLong)
+  implicit val seqLongLoader = ConfigLoader(_.getLongList).map(toScala)
+
+  implicit val bytesLoader = ConfigLoader(_.getMemorySize)
+  implicit val seqBytesLoader = ConfigLoader(_.getMemorySizeList).map(toScala)
+
+  implicit val configLoader: ConfigLoader[Config] = ConfigLoader(_.getConfig)
+  implicit val seqConfigLoader: ConfigLoader[Seq[Config]] = ConfigLoader(_.getConfigList).map(_.asScala)
+
+  implicit val playConfigLoader = configLoader.map(new PlayConfig(_))
+  implicit val seqPlayConfigLoader = seqConfigLoader.map(_.map(new PlayConfig(_)))
+
+  implicit def mapLoader[A](implicit valueLoader: ConfigLoader[A]): ConfigLoader[Map[String, A]] = new ConfigLoader[Map[String, A]] {
+    def load(config: Config, path: String): Map[String, A] = {
+      val obj = config.getObject(path)
+      val conf = obj.toConfig
+      obj.keySet().asScala.map { key =>
+        key -> valueLoader.load(conf, key)
+      }.toMap
+    }
+  }
 }

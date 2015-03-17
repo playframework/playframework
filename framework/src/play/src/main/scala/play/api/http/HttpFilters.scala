@@ -5,7 +5,7 @@ package play.api.http
 
 import javax.inject.Inject
 
-import play.api.{ Configuration, Environment }
+import play.api.{ PlayConfig, Configuration, Environment }
 import play.api.mvc.EssentialFilter
 import play.utils.Reflect
 
@@ -24,7 +24,7 @@ object HttpFilters {
 
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration) = {
     Reflect.bindingsFromConfiguration[HttpFilters, play.http.HttpFilters, JavaHttpFiltersAdapter, NoHttpFilters](environment,
-      configuration, "play.http.filters", "Filters")
+      PlayConfig(configuration), "play.http.filters", "Filters")
   }
 }
 

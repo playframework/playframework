@@ -22,11 +22,6 @@ import static play.test.Helpers.*;
 
 public class JavaSessionFlash extends WithApplication {
 
-    @Override
-    public Application provideApplication() {
-        return fakeApplication(ImmutableMap.of("application.secret", "pass"));
-    }
-
     @Test
     public void readSession() {
         assertThat(contentAsString(call(new MockJavaAction() {
