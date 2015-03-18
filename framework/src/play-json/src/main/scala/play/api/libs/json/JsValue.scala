@@ -174,7 +174,7 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
    * @param fieldName the name of the property to lookup
    * @return the resulting JsValue. If the current node is not a JsObject or doesn't have the property, a JsUndefined will be returned.
    */
-  override def \(fieldName: String): JsValue = value.get(fieldName).getOrElse(super.\(fieldName))
+  override def \(fieldName: String): JsValue = value.getOrElse(fieldName, super.\(fieldName))
 
   /**
    * Lookup for fieldName in the current object and all descendants.
@@ -472,7 +472,8 @@ private[play] object JacksonJson {
     val gen = stringJsonGenerator(sw).setPrettyPrinter(
       new com.fasterxml.jackson.core.util.DefaultPrettyPrinter()
     )
-    mapper.writerWithDefaultPrettyPrinter().writeValue(gen, jsValue)
+    val writer: ObjectWriter = mapper.writerWithDefaultPrettyPrinter()
+    writer.writeValue(gen, jsValue)
     sw.flush()
     sw.getBuffer.toString
   }

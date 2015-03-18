@@ -8,7 +8,6 @@ import java.time.{
   LocalDate,
   LocalDateTime,
   ZoneId,
-  ZoneOffset,
   ZonedDateTime
 }
 import java.time.temporal.Temporal
@@ -19,7 +18,6 @@ import scala.collection._
 import scala.reflect.ClassTag
 
 import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.{ ArrayNode, ObjectNode }
 
 import Json._
 
