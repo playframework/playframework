@@ -9,7 +9,7 @@ object ApplicationBuild extends Build {
   val appName = "secret-sample"
   val appVersion = "1.0-SNAPSHOT"
 
-  val Secret = """(?s).*application.secret="(.*)".*""".r
+  val Secret = """(?s).*play.crypto.secret="(.*)".*""".r
 
   val main = Project(appName, file(".")).enablePlugins(play.PlayScala).settings(
     version := appVersion,

@@ -75,7 +75,7 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
     }
 
     val notBufferedFakeApp = FakeApplication(
-      additionalConfiguration = Map("application.secret" -> "foobar", "csrf.body.bufferSize" -> "200"),
+      additionalConfiguration = Map("play.crypto.secret" -> "foobar", "csrf.body.bufferSize" -> "200"),
       withRoutes = {
         case _ => CSRFFilter()(Action(
           _.body.asFormUrlEncoded

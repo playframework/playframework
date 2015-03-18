@@ -25,7 +25,7 @@ public class ApplicationTest extends WithApplication {
   @Override
   protected FakeApplication provideFakeApplication() {
     return new FakeApplication(new java.io.File("."), Helpers.class.getClassLoader(),
-        ImmutableMap.of("application.router", "javaguide.tests.Routes"), new ArrayList<String>(), null);
+        ImmutableMap.of("play.http.router", "javaguide.tests.Routes"), new ArrayList<String>(), null);
   }
 
   @Test

@@ -59,7 +59,7 @@ object JavaRouting extends Specification {
   }
 
   def contentOf(rh: RequestHeader, router: Class[_ <: Router] = classOf[Routes]) = {
-    val app = FakeApplication(additionalConfiguration = Map("application.router" -> router.getName))
+    val app = FakeApplication(additionalConfiguration = Map("play.http.router" -> router.getName))
     running(app) {
       contentAsString(app.requestHandler.handlerForRequest(rh)._2 match {
         case e: EssentialAction => e(rh).run

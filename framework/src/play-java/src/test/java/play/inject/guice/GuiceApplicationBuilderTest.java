@@ -87,16 +87,6 @@ public class GuiceApplicationBuilderTest {
     }
 
     @Test
-    public void setInitialConfiguration() {
-        Application app = new GuiceApplicationBuilder()
-            .loadConfig(Configuration.empty())
-            .bindings(new play.api.inject.BuiltinModule(), new play.inject.BuiltInModule())
-            .build();
-
-        assertThat(app.configuration().keys().size(), is(0));
-    }
-
-    @Test
     public void setGlobal() {
         GlobalSettings global = new GlobalSettings() {
             @Override

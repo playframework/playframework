@@ -18,7 +18,7 @@ import play.api.libs.Files.TemporaryFile
 import MultipartFormData._
 import java.util.Locale
 import scala.util.control.NonFatal
-import play.api.http.HttpVerbs
+import play.api.http.{ ParserConfiguration, HttpConfiguration, HttpVerbs }
 import play.utils.PlayIO
 import play.api.http.Status._
 
@@ -283,22 +283,21 @@ trait BodyParsers {
 
     private val ApplicationXmlMatcher = """application/.*\+xml.*""".r
 
+    private def config = Play.maybeApplication.map(app => hcCache(app).parser)
+      .getOrElse(ParserConfiguration())
+
     /**
      * Default max length allowed for text based body.
      *
      * You can configure it in application.conf:
      *
      * {{{
-     * parsers.text.maxLength = 512k
+     * play.http.parser.maxMemoryBuffer = 512k
      * }}}
      */
-    def DefaultMaxTextLength: Int = Play.maybeApplication.flatMap { app =>
-      app.configuration.getBytes("parsers.text.maxLength").map(_.toInt)
-    }.getOrElse(1024 * 100)
+    def DefaultMaxTextLength: Int = config.maxMemoryBuffer
 
-    def DefaultMaxDiskLength: Long = Play.maybeApplication.flatMap { app =>
-      app.configuration.getBytes("parsers.disk.maxLength")
-    }.getOrElse(10 * 1024 * 1024)
+    def DefaultMaxDiskLength: Long = config.maxDiskBuffer
 
     // -- Text parser
 
@@ -436,7 +435,7 @@ trait BodyParsers {
      * }}}
      *
      * @param form Form model
-     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response. If `None`, the default `parsers.text.maxLength` configuration value is used.
+     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response. If `None`, the default `play.http.parser.maxMemoryBuffer` configuration value is used.
      * @param onErrors The result to reply in case of errors during the form binding process
      */
     def form[A](form: Form[A], maxLength: Option[Long] = None, onErrors: Form[A] => Result = (formErrors: Form[A]) => Results.BadRequest): BodyParser[A] =
@@ -758,6 +757,8 @@ trait BodyParsers {
  */
 object BodyParsers extends BodyParsers {
   private val logger = Logger(this.getClass)
+
+  private val hcCache = Application.instanceCache[HttpConfiguration]
 }
 
 /**

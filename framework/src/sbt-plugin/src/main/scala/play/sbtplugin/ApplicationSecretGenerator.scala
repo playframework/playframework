@@ -26,14 +26,14 @@ object ApplicationSecretGenerator {
     secret
   }
 
-  private val ApplicationSecret = """\s*application\.secret\s*[=:].*""".r
+  private val ApplicationSecret = """\s*(?:(?:application\.secret)|(?:play\.crypto\.secret))\s*[=:].*""".r
 
   def updateSecretTask = Def.task[File] {
     val secret: String = play.PlayImport.PlayKeys.generateSecret.value
     val baseDir: File = Keys.baseDirectory.value
     val log = Keys.streams.value.log
 
-    val secretConfig = s"""application.secret="$secret""""
+    val secretConfig = s"""play.crypto.secret="$secret""""
 
     val appConfFile = Option(System.getProperty("config.file")) match {
       case Some(applicationConf) => new File(baseDir, applicationConf)

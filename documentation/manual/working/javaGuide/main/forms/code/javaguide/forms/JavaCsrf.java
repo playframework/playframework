@@ -28,10 +28,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JavaCsrf extends WithApplication {
-    @Override
-    public Application provideApplication() {
-        return fakeApplication(ImmutableMap.of("application.secret", "foobar"));
-    }
 
     public Crypto crypto() {
       return app.injector().instanceOf(Crypto.class);

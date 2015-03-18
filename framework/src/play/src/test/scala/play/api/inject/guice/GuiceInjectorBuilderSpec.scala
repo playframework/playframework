@@ -46,7 +46,7 @@ object GuiceInjectorBuilderSpec extends Specification {
         .bindings(new ConfigurationModule)
         .injector.instanceOf[Configuration]
 
-      conf.subKeys must contain(exactly("a", "b", "c", "d"))
+      conf.subKeys must contain(allOf("a", "b", "c", "d"))
       conf.getInt("a") must beSome(1)
       conf.getInt("b") must beSome(2)
       conf.getInt("c") must beSome(3)

@@ -234,7 +234,7 @@ trait CSRFCommonSpecs extends Specification with PlaySpecification {
   implicit def simpleFormContentType: ContentTypeOf[Map[String, String]] = ContentTypeOf[Map[String, String]](Some(ContentTypes.FORM))
 
   def withServer[T](config: Seq[(String, String)])(router: PartialFunction[(String, String), Handler])(block: => T) = running(TestServer(testServerPort, FakeApplication(
-    additionalConfiguration = Map(config: _*) ++ Map("application.secret" -> "foobar"),
+    additionalConfiguration = Map(config: _*) ++ Map("play.crypto.secret" -> "foobar"),
     withRoutes = router
   )))(block)
 }
