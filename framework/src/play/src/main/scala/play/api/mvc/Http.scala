@@ -3,6 +3,8 @@
  */
 package play.api.mvc {
 
+  import java.util.Locale
+
   import play.api._
   import play.api.http.{ HttpConfiguration, MediaType, MediaRange, HeaderNames }
   import play.api.i18n.Lang
@@ -379,6 +381,11 @@ package play.api.mvc {
      */
     def apply(key: String): String = get(key).getOrElse(scala.sys.error("Header doesn't exist"))
 
+    override def equals(other: Any) = {
+      other.isInstanceOf[Headers] &&
+        toMap == other.asInstanceOf[Headers].toMap
+    }
+
     /**
      * Optionally returns the first header value associated with a key.
      */
@@ -388,6 +395,13 @@ package play.api.mvc {
      * Retrieve all header values associated with the given key.
      */
     def getAll(key: String): Seq[String] = toMap.getOrElse(key, Nil)
+
+    override def hashCode = {
+      toMap.map {
+        case (name, value) =>
+          name.toLowerCase(Locale.ENGLISH) -> value
+      }.hashCode()
+    }
 
     /**
      * Retrieve all header keys

@@ -55,6 +55,22 @@ object HttpSpec extends Specification {
     "replace headers by case insensitive" in {
       headers.replace("a" -> "a3", "A" -> "a4").getAll("a") must_== Seq("a3", "a4")
     }
+
+    "equal other Headers by case insensitive" in {
+      val other = Headers("A" -> "a1", "a" -> "a2", "b" -> "b1", "b" -> "b2", "B" -> "b3")
+      (headers must_== other) and
+        (headers.## must_== other.##)
+    }
+
+    "equal other Headers with same relative order" in {
+      val other = Headers("A" -> "a1", "b" -> "b1", "a" -> "a2", "b" -> "b2", "B" -> "b3")
+      (headers must_== other) and
+        (headers.## must_== other.##)
+    }
+
+    "not equal other Headers with different relative order" in {
+      headers must_!= Headers("a" -> "a2", "A" -> "a1", "b" -> "b1", "b" -> "b2", "B" -> "b3")
+    }
   }
 
   "Cookies" should {
