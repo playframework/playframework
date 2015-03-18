@@ -9,7 +9,7 @@ import org.reflections.*;
 import org.reflections.util.*;
 import org.reflections.scanners.*;
 
-import java.util.*;
+import java.util.Set;
 
 public class Classpath {
 
@@ -25,7 +25,7 @@ public class Classpath {
      * @return a set of types names satisfying the condition
      */
     public static Set<String> getTypes(Application app, String packageName) {
-        return getReflections(app, packageName).getStore().get(TypesScanner.class).keySet();
+        return getReflections(app, packageName).getStore().get(TypeElementsScanner.class.getSimpleName()).keySet();
     }
 
     /**
@@ -40,8 +40,8 @@ public class Classpath {
      * @param annotation annotation class
      * @return a set of types names statifying the condition
      */
-    public static Set<String> getTypesAnnotatedWith(Application app, String packageName, Class<? extends java.lang.annotation.Annotation> annotation) {
-        return getReflections(app, packageName).getStore().getTypesAnnotatedWith(annotation.getName());
+    public static Set<Class<?>> getTypesAnnotatedWith(Application app, String packageName, Class<? extends java.lang.annotation.Annotation> annotation) {
+        return getReflections(app, packageName).getTypesAnnotatedWith(annotation);
     }
 
     private static Reflections getReflections(Application app, String packageName) {
@@ -52,7 +52,7 @@ public class Classpath {
                 new ConfigurationBuilder()
                     .addUrls(ClasspathHelper.forPackage(packageName, app.classloader()))
                     .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(packageName + ".")))
-                    .setScanners(new TypesScanner(), new TypeAnnotationsScanner()));
+                    .setScanners(new TypeElementsScanner(), new TypeAnnotationsScanner()));
         }
     }
 
@@ -68,7 +68,7 @@ public class Classpath {
      * @return a set of types names satisfying the condition
      */
     public static Set<String> getTypes(Environment env, String packageName) {
-        return getReflections(env, packageName).getStore().get(TypesScanner.class).keySet();
+        return getReflections(env, packageName).getStore().get(TypeElementsScanner.class.getSimpleName()).keySet();
     }
 
     /**
@@ -83,8 +83,8 @@ public class Classpath {
      * @param annotation annotation class
      * @return a set of types names statifying the condition
      */
-    public static Set<String> getTypesAnnotatedWith(Environment env, String packageName, Class<? extends java.lang.annotation.Annotation> annotation) {
-        return getReflections(env, packageName).getStore().getTypesAnnotatedWith(annotation.getName());
+    public static Set<Class<?>> getTypesAnnotatedWith(Environment env, String packageName, Class<? extends java.lang.annotation.Annotation> annotation) {
+        return getReflections(env, packageName).getTypesAnnotatedWith(annotation);
     }
 
     private static Reflections getReflections(Environment env, String packageName) {
@@ -95,7 +95,7 @@ public class Classpath {
                 new ConfigurationBuilder()
                     .addUrls(ClasspathHelper.forPackage(packageName, env.classLoader()))
                     .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(packageName + ".")))
-                    .setScanners(new TypesScanner(), new TypeAnnotationsScanner()));
+                    .setScanners(new TypeElementsScanner(), new TypeAnnotationsScanner()));
         }
     }
 

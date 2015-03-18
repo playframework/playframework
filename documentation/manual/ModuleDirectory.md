@@ -295,7 +295,7 @@
 * **Short description:** Helps you expose a [Swagger](http://swagger.wordnik.com/) specification of a JSON REST API built with Play in a clean way.
 
 ## Emailer Plugin  (Java and Scala)
-* **Website (docs, sample):** <https://github.com/typesafehub/play-plugins>
+* **Website (docs, sample):** <https://github.com/playframework/play-mailer>
 * **Short description:** provides an emailer based on apache commons-email
 
 ## Roy Compiled Asset Plugin (Ray)

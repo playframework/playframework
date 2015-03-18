@@ -77,7 +77,7 @@ object Dependencies {
     ("org.springframework" % "spring-beans" % "4.1.1.RELEASE" notTransitive ())
       .exclude("org.springframework", "spring-core"),
 
-    ("org.reflections" % "reflections" % "0.9.8" notTransitive ())
+    ("org.reflections" % "reflections" % "0.9.9" notTransitive ())
       .exclude("javassist", "javassist"),
 
     // Used by the Java routing DSL

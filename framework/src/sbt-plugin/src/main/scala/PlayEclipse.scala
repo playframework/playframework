@@ -9,6 +9,8 @@ import Keys._
 import play.sbtplugin.routes.RoutesKeys
 import play.twirl.sbt.Import.TwirlKeys
 
+import com.typesafe.sbteclipse.core.EclipsePlugin._
+
 trait PlayEclipse {
   this: PlayCommands =>
 
@@ -25,11 +27,10 @@ trait PlayEclipse {
 
   /**
    * provides Settings for the eclipse project
-   * @param mainLang mainly scala or java?
+   * @param scalaIDE whether the Scala IDE is being used
    */
-  def eclipseCommandSettings(mainLang: String): Seq[Setting[_]] = {
+  def eclipseCommandSettings(scalaIDE: EclipseProjectFlavor.Value): Seq[Setting[_]] = {
     import com.typesafe.sbteclipse.core._
-    import com.typesafe.sbteclipse.core.EclipsePlugin._
     import com.typesafe.sbteclipse.core.Validation
     import scala.xml._
     import scala.xml.transform.RewriteRule
@@ -53,62 +54,21 @@ trait PlayEclipse {
       }
     }
 
-    lazy val addScalaLib = new EclipseTransformerFactory[RewriteRule] {
-      override def createTransformer(ref: ProjectRef, state: State): Validation[RewriteRule] = {
-        evaluateTask(dependencyClasspath in Compile, ref, state) map { classpath =>
-          val scalaLib =
-            classpath.find(_.get(moduleID.key).exists(moduleFilter(organization = "org.scala-lang", name = "scala-library"))).map(_.data.getAbsolutePath)
-              .getOrElse(throw new RuntimeException("could not find scala-library.jar"))
-          new RewriteRule {
-            override def transform(node: Node): Seq[Node] = node match {
-              case elem if (elem.label == "classpath") =>
-                val newChild = elem.child ++ <classpathentry path={ scalaLib } kind="lib"></classpathentry>
-                Elem(elem.prefix, "classpath", elem.attributes, elem.scope, false, newChild: _*)
-              case other =>
-                other
-            }
-          }
-        }
-      }
-    }
-
-    lazy val addSourcesManaged = addSourceDirectory(sourceManaged in Compile)
-
-    lazy val addRoutesSources = addSourceDirectory(target in (Compile, RoutesKeys.routes))
-
-    lazy val addTwirlSources = addSourceDirectory(target in (Compile, TwirlKeys.compileTemplates))
-
-    def addSourceDirectory(key: SettingKey[File]) = new EclipseTransformerFactory[RewriteRule] {
-      override def createTransformer(ref: ProjectRef, state: State): Validation[RewriteRule] = {
-        import scalaz.syntax.apply._
-        (setting(baseDirectory in ref, state) |@| setting(key in ref, state)) { (base, src) =>
-          new RewriteRule {
-            override def transform(node: Node): Seq[Node] = node match {
-              case elem if (elem.label == "classpath" && src.exists) =>
-                val srcPath = IO.relativize(base, src).getOrElse(src.getAbsolutePath)
-                val newChild = elem.child ++ <classpathentry path={ srcPath } kind="src"></classpathentry>
-                Elem(elem.prefix, "classpath", elem.attributes, elem.scope, false, newChild: _*)
-              case other =>
-                other
-            }
-          }
-        }
-      }
-    }
-
-    mainLang match {
-      case SCALA =>
+    scalaIDE match {
+      case EclipseProjectFlavor.Scala =>
         EclipsePlugin.eclipseSettings ++ Seq(
           EclipseKeys.projectFlavor := EclipseProjectFlavor.Scala,
+          EclipseKeys.withBundledScalaContainers := true,
           EclipseKeys.preTasks := Seq(compile in Compile),
-          EclipseKeys.classpathTransformerFactories := Seq(addSourcesManaged, addRoutesSources, addTwirlSources)
+          EclipseKeys.createSrc := EclipseCreateSrc.All
         )
-      case JAVA =>
+      case EclipseProjectFlavor.Java =>
         generateJavaPrefFile()
         EclipsePlugin.eclipseSettings ++ Seq(
           EclipseKeys.projectFlavor := EclipseProjectFlavor.Java,
+          EclipseKeys.withBundledScalaContainers := false,
           EclipseKeys.preTasks := Seq(compile in Compile),
-          EclipseKeys.classpathTransformerFactories := Seq(addClassesManaged, addScalaLib)
+          EclipseKeys.classpathTransformerFactories := Seq(addClassesManaged)
         )
     }
   }

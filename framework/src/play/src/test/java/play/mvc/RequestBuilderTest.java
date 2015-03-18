@@ -46,4 +46,13 @@ public class RequestBuilderTest {
     assertEquals("2", ctx.session().get("b"));
   }
 
+    @Test
+    public void testUsername() {
+        final Request req1 =
+            new RequestBuilder().uri("http://playframework.com/").build();
+        final Request req2 = req1.withUsername("user2");
+
+        assertNull(req1.username());
+        assertEquals("user2", req2.username());
+    }
 }
