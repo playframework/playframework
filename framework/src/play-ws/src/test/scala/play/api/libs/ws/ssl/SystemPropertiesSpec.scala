@@ -5,13 +5,16 @@
  */
 package play.api.libs.ws.ssl
 
-import org.specs2.mutable._
+import org.specs2.mutable.Specification
+import org.specs2.specification.After
 import play.api.libs.ws.DefaultWSClientConfig
 import java.security.Security
 
-object SystemPropertiesSpec extends Specification {
+object SystemPropertiesSpec extends Specification with After {
 
   sequential
+
+  def after = sp.clearProperties()
 
   val sp = new SystemConfiguration()
 
@@ -26,8 +29,6 @@ object SystemPropertiesSpec extends Specification {
       Security.getProperty("ocsp.enable") must beNull
       System.getProperty("com.sun.security.enableCRLDP") must beNull
       System.getProperty("com.sun.net.ssl.checkRevocation") must beNull
-    }.after {
-      sp.clearProperties()
     }
 
     "disableCheckRevocation is set explicitly" in {
@@ -39,8 +40,6 @@ object SystemPropertiesSpec extends Specification {
       Security.getProperty("ocsp.enable") must be("true")
       System.getProperty("com.sun.security.enableCRLDP") must be("true")
       System.getProperty("com.sun.net.ssl.checkRevocation") must be("true")
-    }.after {
-      sp.clearProperties()
     }
 
     // @see http://www.oracle.com/technetwork/java/javase/documentation/tlsreadme2-176330.html
@@ -50,8 +49,6 @@ object SystemPropertiesSpec extends Specification {
       sp.configure(config)
 
       System.getProperty("sun.security.ssl.allowLegacyHelloMessages") must beNull
-    }.after {
-      sp.clearProperties()
     }
 
     // @see http://www.oracle.com/technetwork/java/javase/documentation/tlsreadme2-176330.html
@@ -61,8 +58,6 @@ object SystemPropertiesSpec extends Specification {
       sp.configure(config)
 
       System.getProperty("sun.security.ssl.allowLegacyHelloMessages") must be("true")
-    }.after {
-      sp.clearProperties()
     }
 
     // @see http://www.oracle.com/technetwork/java/javase/documentation/tlsreadme2-176330.html
@@ -72,8 +67,6 @@ object SystemPropertiesSpec extends Specification {
       sp.configure(config)
 
       System.getProperty("sun.security.ssl.allowUnsafeRenegotiation") must beNull
-    }.after {
-      sp.clearProperties()
     }
 
     // @see http://www.oracle.com/technetwork/java/javase/documentation/tlsreadme2-176330.html
@@ -83,8 +76,6 @@ object SystemPropertiesSpec extends Specification {
       sp.configure(config)
 
       System.getProperty("sun.security.ssl.allowUnsafeRenegotiation") must be("true")
-    }.after {
-      sp.clearProperties()
     }
 
   }

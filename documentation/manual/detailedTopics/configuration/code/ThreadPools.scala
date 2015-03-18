@@ -11,12 +11,11 @@ import com.typesafe.config.ConfigFactory
 import akka.actor.ActorSystem
 import play.api.libs.concurrent.Akka
 import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.ExecutionContext.Implicits.global
 import java.io.File
 import org.specs2.execute.AsResult
 
 object ThreadPoolsSpec extends PlaySpecification {
-
-  override val concurrentExecutionContext = scala.concurrent.ExecutionContext.global
 
   "Play's thread pools" should {
 

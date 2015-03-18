@@ -6,7 +6,7 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val specsVersion = "2.4.9"
+  val specsVersion = "3.1"
   val specsBuild = Seq(
     "specs2-core",
     "specs2-junit",
@@ -90,7 +90,7 @@ object Dependencies {
   ) ++ javassist ++ specsBuild.map(_ % Test)
 
   val junitInterface = "com.novocode" % "junit-interface" % "0.11"
-  val junit = "junit" % "junit" % "4.11"
+  val junit = "junit" % "junit" % "4.12"
 
   val javaTestDeps = Seq(
     junit,
@@ -256,7 +256,7 @@ object Dependencies {
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specsVersion % Test,
-    "org.scalacheck" %% "scalacheck"        % "1.11.3"     % Test
+    "org.scalacheck" %% "scalacheck"        % "1.12.2"     % Test
   )
 
   val playServerDependencies = Seq(

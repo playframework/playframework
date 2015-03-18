@@ -8,6 +8,8 @@ import org.specs2.mutable.Specification
 import scala.concurrent.{ Await, Future, Promise }
 import scala.concurrent.duration._
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 object ClosableLazySpec extends Specification {
 
   "ClosableLazy" should {

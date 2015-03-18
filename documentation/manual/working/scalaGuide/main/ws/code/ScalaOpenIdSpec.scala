@@ -5,6 +5,7 @@ import play.api.test._
 //#dependency
 import javax.inject.Inject
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import play.api._
 import play.api.mvc._

@@ -13,6 +13,7 @@ import org.specs2.runner.JUnitRunner
 //#dependency
 import javax.inject.Inject
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import play.api.mvc._
 import play.api.libs.ws._
@@ -34,8 +35,6 @@ case class Person(name: String, age: Int)
 @RunWith(classOf[JUnitRunner])
 class ScalaWSSpec extends PlaySpecification with Results {
 
-  override val concurrentExecutionContext = scala.concurrent.ExecutionContext.global
-  
   val url = s"http://localhost:$testServerPort/"
 
   // #scalaws-context

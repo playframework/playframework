@@ -4,6 +4,8 @@ import org.specs2.mutable._
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 object CharEncodingSpec extends Specification {
 
   "CharEncodingSpec.decode()" should {

@@ -9,6 +9,8 @@ import play.api.libs.iteratee.{ Concurrent, Enumerator, Input }
 import scala.concurrent.{ Await, Future, Promise }
 import scala.concurrent.duration._
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 class EnumeratorPublisherSpec extends Specification {
 
   case object OnSubscribe
