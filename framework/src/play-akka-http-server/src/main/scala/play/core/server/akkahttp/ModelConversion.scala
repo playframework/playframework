@@ -94,9 +94,7 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
         Seq((CONTENT_TYPE, contentType.value))
     }
     val normalHeaders: Seq[(String, String)] = request.headers.map((rh: HttpHeader) => (rh.name, rh.value))
-    new Headers {
-      val data: Seq[(String, Seq[String])] = (entityHeaders ++ normalHeaders).groupBy(_._1).mapValues(_.map(_._2)).to[Seq]
-    }
+    new Headers(entityHeaders ++ normalHeaders)
   }
 
   /**

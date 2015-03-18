@@ -319,8 +319,8 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
   }
 
   def getHeaders(nettyRequest: HttpRequest): Headers = {
-    val pairs = nettyRequest.headers().entries().asScala.groupBy(_.getKey).mapValues(_.map(_.getValue))
-    new Headers { val data = pairs.toSeq }
+    val pairs = nettyRequest.headers().entries().asScala.map(h => h.getKey -> h.getValue)
+    new Headers(pairs)
   }
 
   def sendDownstream(subSequence: Int, last: Boolean, message: Object)(implicit ctx: ChannelHandlerContext, oue: OrderedUpstreamMessageEvent) = {
