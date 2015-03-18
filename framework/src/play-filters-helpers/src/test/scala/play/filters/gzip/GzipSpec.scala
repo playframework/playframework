@@ -3,7 +3,7 @@
  */
 package play.filters.gzip
 
-import java.io.{ File, ByteArrayOutputStream }
+import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream
 
 import org.apache.commons.io.IOUtils
@@ -14,7 +14,7 @@ import play.api.libs.iteratee.{ Iteratee, Enumeratee, Enumerator }
 import concurrent.duration._
 import org.specs2.mutable.Specification
 
-import scala.io.Source
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object GzipSpec extends Specification with NoTimeConversions {
 

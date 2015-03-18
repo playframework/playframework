@@ -3,11 +3,11 @@
  */
 package play.api.libs.streams.impl
 
-import org.reactivestreams._
 import org.specs2.mutable.Specification
 import play.api.libs.iteratee._
 import scala.concurrent.duration.{ FiniteDuration => ScalaFiniteDuration, SECONDS }
-import scala.concurrent.{ Await, Future, Promise }
+import scala.concurrent.{ Await, Promise }
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{ Failure, Success, Try }
 
 class IterateeSubscriberSpec extends Specification {
