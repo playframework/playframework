@@ -29,13 +29,14 @@ object Dependencies {
   val findBugs = "com.google.code.findbugs" % "jsr305" % "2.0.3" // Needed by guava
   val mockitoAll = "org.mockito" % "mockito-all" % "1.10.8"
 
-  val h2database = "com.h2database" % "h2" % "1.4.182"
+  val h2database = "com.h2database" % "h2" % "1.4.186"
 
-  val acolyteVersion = "1.0.30"
+  val acolyteVersion = "1.0.32"
   val acolyte = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
+    "com.zaxxer" % "HikariCP" % "2.3.3",
     h2database,
     acolyte % Test,
     "tyrex" % "tyrex" % "1.0.1") ++ specsBuild.map(_ % Test)
@@ -235,7 +236,7 @@ object Dependencies {
   )
 
   val playDocsDependencies = Seq(
-    "com.typesafe.play" %% "play-doc" % "1.2.1"
+    "com.typesafe.play" %% "play-doc" % "1.2.2"
   ) ++ playdocWebjarDependencies
 
   val iterateesDependencies = Seq(
@@ -282,7 +283,7 @@ object Dependencies {
   mockitoAll % Test
 
   val playDocsSbtPluginDependencies = Seq(
-    "com.typesafe.play" %% "play-doc" % "1.2.0"
+    "com.typesafe.play" %% "play-doc" % "1.2.2"
   )
 
 }

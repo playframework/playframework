@@ -206,7 +206,7 @@ public class DatabaseTest {
         db.getConnection().close();
         db.shutdown();
         exception.expect(SQLException.class);
-        exception.expectMessage(startsWith("Attempting to obtain a connection from a pool that has already been shutdown"));
+        exception.expectMessage(startsWith("Pool has been shutdown"));
         db.getConnection().close();
     }
 }

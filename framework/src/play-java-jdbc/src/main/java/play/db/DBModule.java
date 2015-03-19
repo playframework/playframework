@@ -26,8 +26,8 @@ public class DBModule extends Module {
 
     @Override
     public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
-        String dbKey = configuration.underlying().getString("play.modules.db.config");
-        String defaultDb = configuration.underlying().getString("play.modules.db.default");
+        String dbKey = configuration.underlying().getString("play.db.config");
+        String defaultDb = configuration.underlying().getString("play.db.default");
 
         ImmutableList.Builder<Binding<?>> list = new ImmutableList.Builder<Binding<?>>();
 

@@ -123,6 +123,18 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-play-ebean" % "1.0.0")
 
 Additionally, Ebean has been upgraded to 4.2.0, which pulls in a few of the features that Play previously added itself, including the `Model` class.  Consequently, the Play `Model` class has been deprecated, in favour of using `org.avaje.ebean.Model`.
 
+## JDBC connection pool
+
+The default JDBC connection pool is now provided by [HikariCP](http://brettwooldridge.github.io/HikariCP/), instead of BoneCP.
+
+To switch back to BoneCP, you can set the `play.db.pool` property in `application.conf`:
+
+```
+play.db.pool = bonecp
+```
+
+The full range of configuration options available to the Play connection pools can be found in the Play JDBC [`reference.conf`](resources/confs/play-jdbc/reference.conf).
+
 ## Body Parsers
 
 The default body parser is now `play.api.mvc.BodyParsers.parse.default`. It is similar to `anyContent` parser, except that it only parses the bodies of PATCH, POST, and PUT requests. To parse bodies for requests of other methods, explicitly pass the `anyContent` parser to `Action`.
