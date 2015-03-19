@@ -3,8 +3,6 @@
  */
 package play.api.db
 
-import javax.inject.{ Inject, Provider, Singleton }
-
 import scala.util.control.NonFatal
 
 import play.api.{ Configuration, Logger }
@@ -38,7 +36,7 @@ trait DBApi {
  */
 class DefaultDBApi(
     configuration: Configuration,
-    connectionPool: ConnectionPool = new BoneConnectionPool,
+    connectionPool: ConnectionPool = new HikariCPConnectionPool,
     classLoader: ClassLoader = classOf[DefaultDBApi].getClassLoader) extends DBApi {
 
   import DefaultDBApi._
@@ -57,9 +55,7 @@ class DefaultDBApi(
   }
 
   def database(name: String): Database = {
-    databaseByName.get(name).getOrElse {
-      throw configuration.globalError(s"Could not find database for $name")
-    }
+    databaseByName.getOrElse(name, throw configuration.globalError(s"Could not find database for $name"))
   }
 
   /**
@@ -68,7 +64,7 @@ class DefaultDBApi(
   def connect(logConnection: Boolean = false): Unit = {
     databases foreach { db =>
       try {
-        db.getConnection().close()
+        db.getConnection.close()
         if (logConnection) logger.info(s"Database [${db.name}] connected at ${db.url}")
       } catch {
         case NonFatal(e) =>
