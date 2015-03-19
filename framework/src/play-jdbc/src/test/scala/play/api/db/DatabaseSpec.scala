@@ -128,7 +128,7 @@ object DatabaseSpec extends Specification {
 
   trait WithDatabase extends After {
     def db: Database
-    def after = db.shutdown()
+    def after = () //db.shutdown()
   }
 
 }

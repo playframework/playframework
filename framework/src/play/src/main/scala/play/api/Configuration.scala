@@ -119,7 +119,7 @@ object Configuration {
    */
   def apply(data: (String, Any)*): Configuration = from(data.toMap)
 
-  private def configError(origin: ConfigOrigin, message: String, e: Option[Throwable] = None): PlayException = {
+  private[api] def configError(origin: ConfigOrigin, message: String, e: Option[Throwable] = None): PlayException = {
     new PlayException.ExceptionSource("Configuration error", message, e.orNull) {
       def line = Option(origin.lineNumber: java.lang.Integer).orNull
       def position = null
@@ -873,7 +873,7 @@ case class Configuration(underlying: Config) {
  *
  * @param underlying The underlying Typesafe config object
  */
-private[play] class PlayConfig(underlying: Config) {
+private[play] class PlayConfig(val underlying: Config) {
 
   /**
    * Get the config at the given path.
@@ -886,6 +886,9 @@ private[play] class PlayConfig(underlying: Config) {
    * Get an optional configuration item.
    *
    * If the value of the item is null, this will return None, otherwise returns Some.
+   *
+   * @throws com.typesafe.config.ConfigException.Missing If the value is undefined (as opposed to null) this will still
+   *         throw an exception.
    */
   def getOptional[A: ConfigLoader](path: String): Option[A] = {
     try {
@@ -902,8 +905,8 @@ private[play] class PlayConfig(underlying: Config) {
    *
    * Each object in the sequence will fallback to the object loaded from prototype.$path.
    */
-  def getPrototypedSeq(path: String): Seq[PlayConfig] = {
-    val prototype = underlying.getConfig("prototype").getConfig(path)
+  def getPrototypedSeq(path: String, prototypePath: String = "prototype.$path"): Seq[PlayConfig] = {
+    val prototype = underlying.getConfig(prototypePath.replace("$path", path)).getConfig(path)
     get[Seq[Config]](path).map { config =>
       new PlayConfig(config.withFallback(prototype))
     }
@@ -914,8 +917,8 @@ private[play] class PlayConfig(underlying: Config) {
    *
    * Each value in the map will fallback to the object loaded from prototype.$path.
    */
-  def getPrototypedMap(path: String): Map[String, PlayConfig] = {
-    val prototype = underlying.getConfig("prototype").getConfig(path)
+  def getPrototypedMap(path: String, prototypePath: String = "prototype.$path"): Map[String, PlayConfig] = {
+    val prototype = underlying.getConfig(prototypePath.replace("$path", path))
     get[Map[String, Config]](path).map {
       case (key, config) => key -> new PlayConfig(config.withFallback(prototype))
     }.toMap
@@ -970,6 +973,24 @@ private[play] class PlayConfig(underlying: Config) {
       get[Config](deprecated).withFallback(config)
     } else config
     new PlayConfig(merged)
+  }
+
+  /**
+   * Creates a configuration error for a specific configuration key.
+   *
+   * For example:
+   * {{{
+   * val configuration = Configuration.load()
+   * throw configuration.reportError("engine.connectionUrl", "Cannot connect!")
+   * }}}
+   *
+   * @param path the configuration key, related to this error
+   * @param message the error message
+   * @param e the related exception
+   * @return a configuration exception
+   */
+  def reportError(path: String, message: String, e: Option[Throwable] = None): PlayException = {
+    Configuration.configError(if (underlying.hasPath(path)) underlying.getValue(path).origin else underlying.root.origin, message, e)
   }
 
   private def reportDeprecation(path: String, deprecated: String): Unit = {

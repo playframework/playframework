@@ -76,7 +76,7 @@ public class NamedDatabaseTest {
     @Test
     public void allowDefaultDatabaseNameToBeConfigured() {
         Map<String, String> config = ImmutableMap.of(
-            "play.modules.db.default", "other",
+            "play.db.default", "other",
             "db.other.driver", "org.h2.Driver",
             "db.other.url", "jdbc:h2:mem:other"
         );
@@ -94,7 +94,7 @@ public class NamedDatabaseTest {
     @Test
     public void allowDbConfigKeyToBeConfigured() {
         Map<String, String> config = ImmutableMap.of(
-            "play.modules.db.config", "databases",
+            "play.db.config", "databases",
             "databases.default.driver", "org.h2.Driver",
             "databases.default.url", "jdbc:h2:mem:default"
         );

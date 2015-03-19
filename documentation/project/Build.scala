@@ -58,9 +58,7 @@ object ApplicationBuild extends Build {
       "org.mockito" % "mockito-core" % "1.9.5" % "test"
     ),
 
-    PlayDocsKeys.fallbackToJar := false,
-
-    PlayDocsKeys.docsJarFile := Option((packageBin in (playDocs, Compile)).value),
+    PlayDocsKeys.docsJarFile := Some((packageBin in (playDocs, Compile)).value),
 
     PlayDocsKeys.javaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "javaGuide" ** codeFilter).get,
     PlayDocsKeys.scalaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "scalaGuide" ** codeFilter).get,
