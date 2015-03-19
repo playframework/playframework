@@ -3,11 +3,6 @@
  */
 package play.libs.ws.ning;
 
-import com.ning.http.client.AsyncHttpClientConfig;
-import play.Application;
-import play.Environment;
-import play.api.libs.ws.DefaultWSConfigParser;
-import play.api.libs.ws.WSClientConfig;
 import play.api.libs.ws.ning.NingAsyncHttpClientConfigBuilder;
 import play.api.libs.ws.ning.NingWSClientConfig;
 import play.inject.ApplicationLifecycle;
@@ -15,13 +10,10 @@ import play.libs.F;
 import play.libs.ws.WSAPI;
 import play.libs.ws.WSClient;
 import play.libs.ws.WSRequestHolder;
-import scala.Unit;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  *

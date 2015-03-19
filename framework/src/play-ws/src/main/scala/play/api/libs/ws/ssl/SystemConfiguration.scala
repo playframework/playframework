@@ -6,7 +6,7 @@
 package play.api.libs.ws.ssl
 
 import play.api.libs.ws.WSClientConfig
-import java.security.{ Security, PrivilegedExceptionAction }
+import java.security.Security
 
 /**
  * Configures global system properties on the JSSE implementation, if defined.
@@ -22,15 +22,9 @@ class SystemConfiguration {
 
   def configure(config: WSClientConfig) {
 
-    config.ssl.map {
-      ssl =>
-        ssl.loose.map {
-          loose =>
-            loose.allowUnsafeRenegotiation.map(configureUnsafeRenegotiation)
-            loose.allowLegacyHelloMessages.map(configureAllowLegacyHelloMessages)
-        }
-        ssl.checkRevocation.map(configureCheckRevocation)
-    }
+    config.ssl.loose.allowUnsafeRenegotiation.map(configureUnsafeRenegotiation)
+    config.ssl.loose.allowLegacyHelloMessages.map(configureAllowLegacyHelloMessages)
+    config.ssl.checkRevocation.map(configureCheckRevocation)
   }
 
   def configureUnsafeRenegotiation(allowUnsafeRenegotiation: Boolean) {

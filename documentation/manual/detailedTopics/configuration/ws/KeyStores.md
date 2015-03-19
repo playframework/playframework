@@ -14,7 +14,7 @@ If you do not configure it at all, WS uses the default trust manager, which poin
 If you wish to use the default trust store and add another store containing certificates, you can define multiple stores in your trust manager.  The [CompositeX509TrustManager](api/scala/index.html#play.api.libs.ws.ssl.CompositeX509TrustManager) will try each in order until it finds a match:
 
 ```
-ws.ssl {
+play.ws.ssl {
   trustManager = {
       stores = [
         { path: ${store.directory}/truststore.jks, type: "JKS" }  # Added trust store
@@ -34,7 +34,7 @@ A [key manager](http://docs.oracle.com/javase/7/docs/technotes/guides/security/j
 The [CompositeX509KeyManager](api/scala/index.html#play.api.libs.ws.ssl.CompositeX509KeyManager) may contain multiple stores in the same manner as the trust manager.
 
 ```
-ws.ssl {
+play.ws.ssl {
     keyManager = {
       stores = [
         {
@@ -82,7 +82,11 @@ The `data` attribute must contain a string of PEM encoded certificates.
 To debug the key manager / trust manager, set the following flags:
 
 ```
-ws.ssl.debug = [ "ssl", "trustmanager", "keymanager" ]
+play.ws.ssl.debug = {
+  ssl = true
+  trustmanager = true
+  keymanager = true
+}
 ```
 
 ## Further Reading

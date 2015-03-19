@@ -7,77 +7,52 @@ package play.api.libs.ws
 
 import javax.inject.{ Singleton, Inject, Provider }
 
-import play.api.libs.ws.ssl.{ DefaultSSLConfigParser, SSLConfig }
-import play.api.{ Environment, Configuration }
+import play.api.libs.ws.ssl.{ SSLConfigParser, SSLConfig }
+import play.api.{ PlayConfig, Environment, Configuration }
+
+import scala.concurrent.duration._
 
 /**
- * A WSConfiguration trait.  This provides bindings that can be passed into any implementation of WSClient.
+ * WS client config
  */
-trait WSClientConfig {
-
-  def connectionTimeout: Option[Long]
-
-  def idleTimeout: Option[Long]
-
-  def requestTimeout: Option[Long]
-
-  def followRedirects: Option[Boolean]
-
-  def useProxyProperties: Option[Boolean]
-
-  def userAgent: Option[String]
-
-  def compressionEnabled: Option[Boolean]
-
-  def acceptAnyCertificate: Option[Boolean]
-
-  def ssl: Option[SSLConfig]
-}
-
-/**
- * Default client config option.
- */
-case class DefaultWSClientConfig(connectionTimeout: Option[Long] = None,
-  idleTimeout: Option[Long] = None,
-  requestTimeout: Option[Long] = None,
-  followRedirects: Option[Boolean] = None,
-  useProxyProperties: Option[Boolean] = None,
+case class WSClientConfig(connectionTimeout: Duration = 2.minutes,
+  idleTimeout: Duration = 2.minutes,
+  requestTimeout: Duration = 2.minutes,
+  followRedirects: Boolean = true,
+  useProxyProperties: Boolean = true,
   userAgent: Option[String] = None,
-  compressionEnabled: Option[Boolean] = None,
-  acceptAnyCertificate: Option[Boolean] = None,
-  ssl: Option[SSLConfig] = None) extends WSClientConfig
+  compressionEnabled: Boolean = false,
+  acceptAnyCertificate: Boolean = false,
+  ssl: SSLConfig = SSLConfig())
 
 /**
  * This class creates a DefaultWSClientConfig object from the play.api.Configuration.
  */
 @Singleton
-class DefaultWSConfigParser @Inject() (configuration: Configuration, environment: Environment) extends Provider[WSClientConfig] {
+class WSConfigParser @Inject() (configuration: Configuration, environment: Environment) extends Provider[WSClientConfig] {
 
   def get = parse()
 
   def parse(): WSClientConfig = {
-    val connectionTimeout = configuration.getMilliseconds("ws.timeout.connection")
-    val idleTimeout = configuration.getMilliseconds("ws.timeout.idle")
-    val requestTimeout = configuration.getMilliseconds("ws.timeout.request")
 
-    // default: true
-    val followRedirects = configuration.getBoolean("ws.followRedirects")
+    val config = PlayConfig(configuration).getDeprecatedWithFallback("play.ws", "ws")
 
-    // default: true
-    val useProxyProperties = configuration.getBoolean("ws.useProxyProperties")
+    val connectionTimeout = config.get[Duration]("timeout.connection")
+    val idleTimeout = config.get[Duration]("timeout.idle")
+    val requestTimeout = config.get[Duration]("timeout.request")
 
-    val userAgent = configuration.getString("ws.useragent")
+    val followRedirects = config.get[Boolean]("followRedirects")
+    val useProxyProperties = config.get[Boolean]("useProxyProperties")
 
-    val compressionEnabled = configuration.getBoolean("ws.compressionEnabled")
+    val userAgent = config.getOptional[String]("useragent")
 
-    val acceptAnyCertificate = configuration.getBoolean("ws.acceptAnyCertificate")
+    val compressionEnabled = config.get[Boolean]("compressionEnabled")
 
-    val sslConfig = configuration.getConfig("ws.ssl").map { sslConfig =>
-      val sslContextParser = new DefaultSSLConfigParser(sslConfig, environment.classLoader)
-      sslContextParser.parse()
-    }
+    val acceptAnyCertificate = config.get[Boolean]("acceptAnyCertificate")
 
-    DefaultWSClientConfig(
+    val sslConfig = new SSLConfigParser(config.get[PlayConfig]("ssl"), environment.classLoader).parse()
+
+    WSClientConfig(
       connectionTimeout = connectionTimeout,
       idleTimeout = idleTimeout,
       requestTimeout = requestTimeout,

@@ -197,7 +197,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
             }
           }
         },
-        additionalConfiguration = Map("ws.compressionEnabled" -> true)
+        additionalConfiguration = Map("play.ws.compressionEnabled" -> true)
       )
     }
 
@@ -304,9 +304,9 @@ object NingWSSpec extends PlaySpecification with Mockito {
       }.build()
       ahcConfig.isCompressionEnabled must beTrue
       ahcConfig.isRedirectEnabled must beFalse
-      ahcConfig.getConnectionTimeoutInMs must_== Defaults.connectionTimeout
-      ahcConfig.getRequestTimeoutInMs must_== Defaults.requestTimeout
-      ahcConfig.getIdleConnectionTimeoutInMs must_== Defaults.idleTimeout
+      ahcConfig.getConnectionTimeoutInMs must_== 120000
+      ahcConfig.getRequestTimeoutInMs must_== 120000
+      ahcConfig.getIdleConnectionTimeoutInMs must_== 120000
     }
   }
 

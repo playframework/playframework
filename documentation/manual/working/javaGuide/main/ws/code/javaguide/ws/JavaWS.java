@@ -17,6 +17,8 @@ import play.libs.Json;
 // #json-imports
 
 import java.io.*;
+import java.util.concurrent.TimeUnit;
+
 import org.w3c.dom.Document;
 import play.mvc.Result;
 
@@ -25,11 +27,11 @@ import javax.inject.Inject;
 // #ws-custom-client-imports
 import com.ning.http.client.*;
 import play.api.libs.ws.WSClientConfig;
-import play.api.libs.ws.DefaultWSClientConfig;
 import play.api.libs.ws.ning.NingWSClientConfig;
-import play.api.libs.ws.ning.DefaultNingWSClientConfig;
-import play.api.libs.ws.ssl.SSLConfig;
+import play.api.libs.ws.ning.NingWSClientConfigFactory;
+import play.api.libs.ws.ssl.SSLConfigFactory;
 import play.api.libs.ws.ning.NingAsyncHttpClientConfigBuilder;
+import scala.concurrent.duration.Duration;
 // #ws-custom-client-imports
 
 public class JavaWS {
@@ -164,28 +166,26 @@ public class JavaWS {
 
             // #ws-custom-client
             // Set up the client config (you can also use a parser here):
-            scala.Option<Object> none = scala.None$.empty();
             scala.Option<String> noneString = scala.None$.empty();
-            scala.Option<SSLConfig> noneSSLConfig = scala.None$.empty();
-            WSClientConfig wsClientConfig = new DefaultWSClientConfig(
-                    none, // connectionTimeout
-                    none, // idleTimeout
-                    none, // requestTimeout
-                    none, // followRedirects
-                    none, // useProxyProperties
+            WSClientConfig wsClientConfig = new WSClientConfig(
+                    Duration.apply(120, TimeUnit.SECONDS), // connectionTimeout
+                    Duration.apply(120, TimeUnit.SECONDS), // idleTimeout
+                    Duration.apply(120, TimeUnit.SECONDS), // requestTimeout
+                    true, // followRedirects
+                    true, // useProxyProperties
                     noneString, // userAgent
-                    none, // compressionEnabled
-                    none, // acceptAnyCertificate
-                    noneSSLConfig);
+                    true, // compressionEnabled
+                    false, // acceptAnyCertificate
+                    SSLConfigFactory.defaultConfig());
 
-            NingWSClientConfig clientConfig = new DefaultNingWSClientConfig(wsClientConfig, none, none, none, none, none, none, none, none, none, none);
+            NingWSClientConfig clientConfig = NingWSClientConfigFactory.forClientConfig(wsClientConfig);
 
             // Build a secure config out of the client config:
             NingAsyncHttpClientConfigBuilder secureBuilder = new NingAsyncHttpClientConfigBuilder(clientConfig);
             AsyncHttpClientConfig secureDefaults = secureBuilder.build();
 
             // You can directly use the builder for specific options once you have secure TLS defaults...
-           AsyncHttpClientConfig customConfig = new AsyncHttpClientConfig.Builder(secureDefaults)
+            AsyncHttpClientConfig customConfig = new AsyncHttpClientConfig.Builder(secureDefaults)
                             .setProxyServer(new com.ning.http.client.ProxyServer("127.0.0.1", 38080))
                             .setCompressionEnabled(true)
                             .build();
