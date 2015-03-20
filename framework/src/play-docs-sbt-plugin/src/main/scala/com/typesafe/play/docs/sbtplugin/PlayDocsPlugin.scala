@@ -9,11 +9,12 @@ import java.util.jar.JarFile
 import com.typesafe.play.docs.sbtplugin.PlayDocsValidation.{ CodeSamplesReport, MarkdownRefReport }
 import play.core.BuildDocHandler
 import play.core.server.ServerWithStop
-import play.PlayImport._
+import play.sbt.{ PlayImport, Colors }
+import PlayImport._
 import play.TemplateImports
 import play.routes.compiler.InjectedRoutesGenerator
-import play.sbtplugin.Colors
-import play.sbtplugin.routes.RoutesCompiler
+import play.sbt.Colors
+import play.sbt.routes.RoutesCompiler
 import sbt._
 import sbt.Keys._
 import sbt.plugins.JvmPlugin

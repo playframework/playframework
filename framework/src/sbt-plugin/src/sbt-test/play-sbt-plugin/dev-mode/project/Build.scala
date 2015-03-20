@@ -2,7 +2,7 @@
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
 import play.runsupport.FileWatchService
-import play.sbtplugin.run.toLoggerProxy
+import play.sbt.run.toLoggerProxy
 import sbt._
 
 import scala.annotation.tailrec

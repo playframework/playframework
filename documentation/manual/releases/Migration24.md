@@ -102,9 +102,11 @@ Additionally, Play has now better namespaced a large number of its configuration
 | `application.lang.cookie` | `play.i18n.langCookieName`         |
 | `parsers.text.maxLength`  | `play.http.parser.maxMemoryBuffer` |
 
-## SBT settings
+## SBT plugin
 
 The SBT setting key `playWatchService` has been renamed to `fileWatchService`.
+
+All classes in the SBT plugin are now in the package `play.sbt`.
 
 ## Ebean
 
@@ -384,3 +386,7 @@ This import brings you an implicit `Messages` value as long as there are a `Lang
 ### Java
 
 The API should be backward compatible with your code using Play 2.3 so there is no migration step. Nevertheless, note that you have to start your Play application before using the Java i18n API. That should always be the case when you run your project, however your test code may not always start your application. Please refer to the corresponding [[documentation page|JavaTest]] to know how to start your application before running your tests.
+
+## IntelliJ IDEA
+
+Play no longer includes the sbt idea plugin.  IntelliJ is now able to import sbt projects natively, so we recommend using that instead.  Alternatively, the sbt idea plugin can be manually installed and used, instructions can be found [here](https://github.com/mpeltonen/sbt-idea).

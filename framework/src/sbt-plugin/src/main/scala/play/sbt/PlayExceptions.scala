@@ -1,14 +1,14 @@
 /*
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
-package play
+package play.sbt
 
-import sbt._
 import play.api._
+import sbt._
 
-trait PlayExceptions {
+object PlayExceptions {
 
-  def filterAnnoyingErrorMessages(message: String): String = {
+  private def filterAnnoyingErrorMessages(message: String): String = {
     val overloaded = """(?s)overloaded method value (.*) with alternatives:(.*)cannot be applied to(.*)""".r
     message match {
       case overloaded(method, _, signature) => "Overloaded method value [" + method + "] cannot be applied to " + signature
@@ -32,14 +32,4 @@ trait PlayExceptions {
     def sourceName = problem.position.sourceFile.map(_.getAbsolutePath).orNull
   }
 
-  case class RoutesCompilationException(source: File, message: String, atLine: Option[Int], column: Option[Int]) extends PlayException.ExceptionSource(
-    "Compilation error", message) with FeedbackProvidedException {
-    def line = atLine.map(_.asInstanceOf[java.lang.Integer]).orNull
-    def position = column.map(_.asInstanceOf[java.lang.Integer]).orNull
-    def input = IO.read(source)
-    def sourceName = source.getAbsolutePath
-  }
-
 }
-
-object PlayExceptions extends PlayExceptions

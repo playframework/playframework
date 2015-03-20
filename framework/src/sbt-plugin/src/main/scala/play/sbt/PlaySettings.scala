@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
-package play
+package play.sbt
 
 import scala.collection.JavaConverters._
 import scala.language.postfixOps
@@ -9,12 +9,13 @@ import scala.language.postfixOps
 import sbt._
 import sbt.Keys._
 
-import play.PlayImport._
-import play.PlayImport.PlayKeys._
+import play.TemplateImports
 import play.runsupport.FileWatchService
-import play.sbtplugin.{ PlayPositionMapper, ApplicationSecretGenerator }
-import play.sbtplugin.routes.RoutesKeys._
-import play.sbtplugin.run._
+import play.sbt.PlayImport.PlayKeys._
+import play.sbt.PlayInternalKeys._
+import play.sbt.routes.RoutesKeys._
+import play.sbt.run._
+import play.sbt.run.PlayRun.DocsApplication
 import play.twirl.sbt.Import.TwirlKeys
 
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
@@ -23,8 +24,7 @@ import com.typesafe.sbt.packager.Keys._
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 import WebKeys._
 
-trait PlaySettings {
-  this: PlayCommands with PlayPositionMapper with PlayRun =>
+object PlaySettings {
 
   lazy val defaultJavaSettings = Seq[Setting[_]](
 
@@ -92,12 +92,16 @@ trait PlaySettings {
       (sources ** "*" --- assets ** "*").get
     },
 
-    commands ++= Seq(shCommand, playStartCommand, playStopCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand),
+    commands ++= {
+      import PlayCommands._
+      import PlayRun._
+      Seq(playStartCommand, playStopCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand)
+    },
 
     // THE `in Compile` IS IMPORTANT!
-    run in Compile <<= playDefaultRunTask,
+    Keys.run in Compile <<= PlayRun.playDefaultRunTask,
 
-    playStop := {
+    PlayInternalKeys.playStop := {
       playInteractionMode.value match {
         case nonBlocking: PlayNonBlockingInteractionMode =>
           nonBlocking.stop()
@@ -105,9 +109,9 @@ trait PlaySettings {
       }
     },
 
-    shellPrompt := playPrompt,
+    shellPrompt := PlayCommands.playPrompt,
 
-    computeDependencies <<= computeDependenciesTask,
+    computeDependencies <<= PlayCommands.computeDependenciesTask,
 
     // all dependencies from outside the project (all dependency jars)
     playDependencyClasspath <<= externalDependencyClasspath in Runtime,
@@ -118,17 +122,15 @@ trait PlaySettings {
     // filter out asset directories from the classpath (supports sbt-web 1.0 and 1.1)
     playReloaderClasspath ~= { _.filter(_.get(WebKeys.webModulesLib.key).isEmpty) },
 
-    playCommonClassloader <<= playCommonClassloaderTask,
+    playCommonClassloader <<= PlayCommands.playCommonClassloaderTask,
 
-    playDependencyClassLoader := createURLClassLoader,
+    playDependencyClassLoader := PlayRun.createURLClassLoader,
 
-    playReloaderClassLoader := createDelegatedResourcesClassLoader,
+    playReloaderClassLoader := PlayRun.createDelegatedResourcesClassLoader,
 
-    playCompileEverything <<= playCompileEverythingTask,
+    playCompileEverything <<= PlayCommands.playCompileEverythingTask,
 
-    playReload <<= playReloadTask,
-
-    sourcePositionMappers += playPositionMapper,
+    playReload <<= PlayCommands.playReloadTask,
 
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
 
@@ -136,7 +138,7 @@ trait PlaySettings {
 
     routesFiles in Compile ++= ((confDirectory.value * "routes").get ++ (confDirectory.value * "*.routes").get),
 
-    playMonitoredFiles <<= playMonitoredFilesTask,
+    playMonitoredFiles <<= PlayCommands.playMonitoredFilesTask,
 
     fileWatchService := FileWatchService.defaultWatchService(target.value, pollInterval.value, sLog.value),
 
@@ -147,7 +149,7 @@ trait PlaySettings {
 
     playRunHooks := Nil,
 
-    playInteractionMode := play.PlayConsoleInteractionMode,
+    playInteractionMode := PlayConsoleInteractionMode,
 
     // sbt-web
     jsFilter in Assets := new PatternFilter("""[^_].*\.js""".r.pattern),
@@ -160,9 +162,9 @@ trait PlaySettings {
     },
 
     // Assets for run mode
-    playPrefixAndAssetsSetting,
-    playAllAssetsSetting,
-    playAssetsClassLoaderSetting,
+    PlayRun.playPrefixAndAssetsSetting,
+    PlayRun.playAllAssetsSetting,
+    PlayRun.playAssetsClassLoaderSetting,
     assetsPrefix := "public/",
 
     // Assets for distribution
@@ -186,7 +188,7 @@ trait PlaySettings {
 
     sourceDirectory in Universal <<= baseDirectory(_ / "dist"),
 
-    mainClass in Compile <<= mainClass in (Compile, run),
+    mainClass in Compile <<= mainClass in (Compile, Keys.run),
 
     mappings in Universal ++= {
       val confDirectoryLen = confDirectory.value.getCanonicalPath.length

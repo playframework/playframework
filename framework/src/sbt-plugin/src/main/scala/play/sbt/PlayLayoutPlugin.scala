@@ -1,8 +1,7 @@
-package play.sbtplugin
+package play.sbt
 
 import sbt._
 import Keys._
-import play.Play
 import play.twirl.sbt.Import.TwirlKeys
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 

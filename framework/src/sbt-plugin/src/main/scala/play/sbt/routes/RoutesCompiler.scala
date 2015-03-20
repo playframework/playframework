@@ -1,16 +1,17 @@
 /*
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
-package play.sbtplugin.routes
+package play.sbt.routes
 
 import play.core.PlayVersion
 import play.routes.compiler.{ RoutesGenerator, RoutesCompilationError }
+import play.routes.compiler.RoutesCompiler.GeneratedSource
 import sbt._
 import sbt.Keys._
-import play.PlayExceptions.RoutesCompilationException
 import com.typesafe.sbt.web.incremental._
 import play.api.PlayException
 import sbt.plugins.JvmPlugin
+import xsbti.Position
 
 object RoutesKeys {
   val routesFiles = TaskKey[Seq[File]]("play-routes-files", "The routes files to compile")
@@ -57,7 +58,8 @@ object RoutesCompiler extends AutoPlugin {
     routesImport := Nil,
     generateReverseRouter := true,
     namespaceReverseRouter := false,
-    routesGenerator := StaticRoutesGenerator
+    routesGenerator := StaticRoutesGenerator,
+    sourcePositionMappers += routesPositionMapper
   )
 
   private val compileRoutesFiles = Def.task[Seq[File]] {
@@ -113,7 +115,39 @@ object RoutesCompiler extends AutoPlugin {
     }
     error
   }
+
+  val routesPositionMapper: Position => Option[Position] = position => {
+    position.sourceFile collect {
+      case GeneratedSource(generatedSource) => {
+        new xsbti.Position {
+          lazy val line = {
+            position.line.flatMap(l => generatedSource.mapLine(l.asInstanceOf[Int])).map(l => xsbti.Maybe.just(l.asInstanceOf[java.lang.Integer])).getOrElse(xsbti.Maybe.nothing[java.lang.Integer])
+          }
+          lazy val lineContent = {
+            line flatMap { lineNo =>
+              sourceFile.flatMap { file =>
+                IO.read(file).split('\n').lift(lineNo - 1)
+              }
+            } getOrElse ""
+          }
+          val offset = xsbti.Maybe.nothing[java.lang.Integer]
+          val pointer = xsbti.Maybe.nothing[java.lang.Integer]
+          val pointerSpace = xsbti.Maybe.nothing[String]
+          val sourceFile = xsbti.Maybe.just(generatedSource.source.get)
+          val sourcePath = xsbti.Maybe.just(sourceFile.get.getCanonicalPath)
+        }
+      }
+    }
+  }
 }
 
 private case class RoutesCompilerOp(file: File, generatorId: String, playVersion: String,
   additionalImports: Seq[String], reverseRouter: Boolean, namespaceReverseRouter: Boolean)
+
+case class RoutesCompilationException(source: File, message: String, atLine: Option[Int], column: Option[Int]) extends PlayException.ExceptionSource(
+  "Compilation error", message) with FeedbackProvidedException {
+  def line = atLine.map(_.asInstanceOf[java.lang.Integer]).orNull
+  def position = column.map(_.asInstanceOf[java.lang.Integer]).orNull
+  def input = IO.read(source)
+  def sourceName = source.getAbsolutePath
+}

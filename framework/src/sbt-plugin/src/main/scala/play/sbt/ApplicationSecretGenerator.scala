@@ -1,9 +1,9 @@
 /*
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
-package play.sbtplugin
+package play.sbt
 
-import play.PlayImport.PlayKeys._
+import PlayImport.PlayKeys._
 import java.security.SecureRandom
 import sbt._
 
@@ -29,7 +29,7 @@ object ApplicationSecretGenerator {
   private val ApplicationSecret = """\s*(?:(?:application\.secret)|(?:play\.crypto\.secret))\s*[=:].*""".r
 
   def updateSecretTask = Def.task[File] {
-    val secret: String = play.PlayImport.PlayKeys.generateSecret.value
+    val secret: String = play.sbt.PlayImport.PlayKeys.generateSecret.value
     val baseDir: File = Keys.baseDirectory.value
     val log = Keys.streams.value.log
 

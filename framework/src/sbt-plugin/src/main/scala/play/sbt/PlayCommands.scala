@@ -1,56 +1,19 @@
 /*
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
-package play
+package play.sbt
 
 import sbt._
 import sbt.Keys._
-import play.PlayImport._
-import PlayKeys._
+
+import play.sbt.PlayImport.PlayKeys._
+import play.sbt.PlayInternalKeys._
 
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 
-import play.sbtplugin.Colors
-
-import Keys._
-import java.lang.{ ProcessBuilder => JProcessBuilder }
-import sbt.complete.Parsers._
-
-import scala.util.control.NonFatal
-import sbt.inc.{ Analysis, Stamp, Exists, Hash, LastModified }
-import sbt.compiler.AggressiveCompile
-
-trait PlayCommands extends PlayEclipse with PlayInternalKeys {
+object PlayCommands {
 
   val playReloadTask = Def.task(playCompileEverything.value.reduceLeft(_ ++ _))
-
-  def intellijCommandSettings = {
-    import org.sbtidea.SbtIdeaPlugin
-
-    // This stuff is all private in the IDEA plugin, so let's copy it here
-    val WithSources = "with-sources=yes"
-    val NoSources = "no-sources"
-    val NoClassifiers = "no-classifiers"
-    val SbtClassifiers = "sbt-classifiers"
-    val NoFsc = "no-fsc"
-    val NoTypeHighlighting = "no-type-highlighting"
-    val NoSbtBuildModule = "no-sbt-build-module"
-
-    val args = (Space ~> NoClassifiers | Space ~> SbtClassifiers | Space ~> NoFsc | Space ~> NoTypeHighlighting | Space ~> NoSbtBuildModule | Space ~> WithSources | Space ~> NoSources).*
-
-    SbtIdeaPlugin.settings ++ Seq(
-      commands += Command("idea")(_ => args) { (state, args) =>
-        // Firstly, attempt to compile the project, but ignore the result
-        Project.runTask(compile in Compile, state)
-
-        SbtIdeaPlugin.doCommand(state, if (!args.contains(WithSources) && !(args.contains(NoSources) || args.contains(NoClassifiers))) {
-          args :+ NoClassifiers
-        } else {
-          args
-        })
-      }
-    )
-  }
 
   // ----- Play prompt
 
@@ -66,19 +29,6 @@ trait PlayCommands extends PlayEclipse with PlayInternalKeys {
   }
 
   // ----- Play commands
-
-  private def fork(args: Seq[String]) = {
-    val builder = new JProcessBuilder(args: _*)
-    Process(builder).run(JvmIO(new JvmLogger(), false))
-  }
-
-  val shCommand = Command.args("sh", "<shell command>") { (state: State, args: Seq[String]) =>
-    if (args.isEmpty)
-      println("sh <command to run>")
-    else
-      fork(args)
-    state
-  }
 
   // -- Utility methods for 0.10-> 0.11 migration
   def inAllDeps[T](base: ProjectRef, deps: ProjectRef => Seq[ProjectRef], key: SettingKey[T], data: Settings[Scope]): Seq[T] =
@@ -193,7 +143,6 @@ trait PlayCommands extends PlayEclipse with PlayInternalKeys {
     }.map(_.getCanonicalPath).distinct
   }
 
-  val computeDependencies = TaskKey[Seq[Map[Symbol, Any]]]("ivy-dependencies")
   val computeDependenciesTask = (deliverLocal, ivySbt, streams, organizationName, moduleName, version, scalaBinaryVersion, crossPaths) map { (_, ivySbt, s, org, id, version, scalaVersion, crossPathsValue) =>
 
     import scala.xml._

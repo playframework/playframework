@@ -1,6 +1,8 @@
 /*
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
+
+import play.sbt.PlayScala
 import sbt._
 import Keys._
 
@@ -11,7 +13,7 @@ object ApplicationBuild extends Build {
 
   val Secret = """(?s).*play.crypto.secret="(.*)".*""".r
 
-  val main = Project(appName, file(".")).enablePlugins(play.PlayScala).settings(
+  val main = Project(appName, file(".")).enablePlugins(PlayScala).settings(
     version := appVersion,
     TaskKey[Unit]("check-secret") := {
       val file = IO.read(baseDirectory.value / "conf/application.conf")
