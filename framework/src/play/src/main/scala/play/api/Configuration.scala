@@ -101,17 +101,13 @@ object Configuration {
    */
   def from(data: Map[String, Any]): Configuration = {
 
-    def asJavaRecursively[A](data: Map[A, Any]): Map[A, Any] = {
-      data.mapValues { value =>
-        value match {
-          case v: Map[_, _] => asJavaRecursively(v).asJava
-          case v: Iterable[_] => v.asJava
-          case v => v
-        }
-      }
+    def toJava(data: Any): Any = data match {
+      case map: Map[_, _] => map.mapValues(toJava).asJava
+      case iterable: Iterable[_] => iterable.map(toJava).asJava
+      case v => v
     }
 
-    Configuration(ConfigFactory.parseMap(asJavaRecursively[String](data).asJava))
+    Configuration(ConfigFactory.parseMap(toJava(data).asInstanceOf[java.util.Map[String, AnyRef]]))
   }
 
   /**
@@ -906,7 +902,7 @@ private[play] class PlayConfig(val underlying: Config) {
    * Each object in the sequence will fallback to the object loaded from prototype.$path.
    */
   def getPrototypedSeq(path: String, prototypePath: String = "prototype.$path"): Seq[PlayConfig] = {
-    val prototype = underlying.getConfig(prototypePath.replace("$path", path)).getConfig(path)
+    val prototype = underlying.getConfig(prototypePath.replace("$path", path))
     get[Seq[Config]](path).map { config =>
       new PlayConfig(config.withFallback(prototype))
     }

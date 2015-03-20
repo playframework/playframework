@@ -69,6 +69,25 @@ object PlayConfigSpec extends Specification {
         config().getOptional[String]("foo.bar") must throwA[ConfigException.Missing]
       }
     }
+    "support getting prototyped seqs" in {
+      val seq = config(
+        "bars" -> Seq(Map("a" -> "different a")),
+        "prototype.bars" -> Map("a" -> "some a", "b" -> "some b")
+      ).getPrototypedSeq("bars")
+      seq must haveSize(1)
+      seq.head.get[String]("a") must_== "different a"
+      seq.head.get[String]("b") must_== "some b"
+    }
+    "support getting prototyped maps" in {
+      val map = config(
+        "bars" -> Map("foo" -> Map("a" -> "different a")),
+        "prototype.bars" -> Map("a" -> "some a", "b" -> "some b")
+      ).getPrototypedMap("bars")
+      map must haveSize(1)
+      val foo = map("foo")
+      foo.get[String]("a") must_== "different a"
+      foo.get[String]("b") must_== "some b"
+    }
   }
 
 }
