@@ -105,7 +105,7 @@ trait GlobalSettings {
    */
   def onRequestReceived(request: RequestHeader): (RequestHeader, Handler) = {
     def notFoundHandler = Action.async(BodyParsers.parse.empty)(req =>
-      configuredErrorHandler.onClientError(request, NOT_FOUND)
+      configuredErrorHandler.onClientError(req, NOT_FOUND)
     )
 
     val (routedRequest, handler) = onRouteRequest(request) map {
