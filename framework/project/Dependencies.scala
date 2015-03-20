@@ -125,7 +125,7 @@ object Dependencies {
       // This solves issues later where cglib depends on an older version of asm,
       // and other libraries (pegdown) depend on a newer version with a different groupId,
       // and this causes binary issues.
-      "com.google.inject" % "guice" % "3.0" exclude("org.sonatype.sisu.inject", "cglib"),
+      "com.google.inject" % "guice" % "3.0" classifier "no_aop",
 
       guava % Test,
 
