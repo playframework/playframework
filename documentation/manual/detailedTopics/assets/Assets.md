@@ -118,8 +118,10 @@ In essence asset fingerprinting permits your static assets to be served with agg
 The above declaration of `pipelineStages` and the requisite `addSbtPlugin` declarations in your `plugins.sbt` for the plugins you require are your start point. You must then declare to Play what assets are to be versioned. The following routes file entry declares that all assets are to be versioned:
 
 ```scala
-GET    /assets/*file    controllers.Assets.versioned(path="/public", file: Asset)
+GET  /assets/*file  controllers.Assets.versioned(path="/public", file: Asset)
 ```
+
+> Make sure you indicate that `file` is an asset by writing `file: Asset`.
 
 You then use the reverse router, for example within a `scala.html` view:
 
