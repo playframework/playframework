@@ -53,7 +53,7 @@ object Router {
     val className = PlayConfig(configuration).getOptionalDeprecated[String]("play.http.router", "application.router")
 
     try {
-      Some(Reflect.getClass[Router](className.getOrElse("Routes"), env.classLoader))
+      Some(Reflect.getClass[Router](className.getOrElse("router.Routes"), env.classLoader))
     } catch {
       case e: ClassNotFoundException =>
         // Only throw an exception if a router was explicitly configured, but not found.

@@ -72,6 +72,7 @@ object RoutesCompiler {
     namespaceReverseRouter: Boolean = false): Either[Seq[RoutesCompilationError], Seq[File]] = {
 
     val namespace = Option(file.getName).filter(_.endsWith(".routes")).map(_.dropRight(".routes".size))
+      .orElse(Some("router"))
 
     val routeFile = file.getAbsoluteFile
 
