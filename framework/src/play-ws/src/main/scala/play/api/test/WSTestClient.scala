@@ -20,7 +20,7 @@ trait WsTestClient {
    * }
    * }}}
    */
-  def wsCall(call: Call)(implicit port: Port, client: WSClient = WS.client(play.api.Play.current)): WSRequestHolder = wsUrl(call.url)
+  def wsCall(call: Call)(implicit port: Port, client: WSClient = WS.client(play.api.Play.current)): WSRequest = wsUrl(call.url)
 
   /**
    * Constructs a WS request holder for the given relative URL.  Optionally takes a port and WSClient.  Note that the WS client used

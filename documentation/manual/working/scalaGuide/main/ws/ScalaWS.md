@@ -194,10 +194,10 @@ This is important in a couple of cases.  WS has a couple of limitations that req
 
 Use the following properties in `application.conf` to configure the WS client:
 
-* `ws.followRedirects`: Configures the client to follow 301 and 302 redirects *(default is **true**)*.
-* `ws.useProxyProperties`: To use the system http proxy settings(http.proxyHost, http.proxyPort) *(default is **true**)*. 
-* `ws.useragent`: To configure the User-Agent header field.
-* `ws.compressionEnabled`: Set it to true to use gzip/deflater encoding *(default is **false**)*.
+* `play.ws.followRedirects`: Configures the client to follow 301 and 302 redirects *(default is **true**)*.
+* `play.ws.useProxyProperties`: To use the system http proxy settings(http.proxyHost, http.proxyPort) *(default is **true**)*.
+* `play.ws.useragent`: To configure the User-Agent header field.
+* `play.ws.compressionEnabled`: Set it to true to use gzip/deflater encoding *(default is **false**)*.
 
 ### Configuring WS with SSL
 
@@ -225,6 +225,4 @@ Please refer to the [AsyncHttpClientConfig Documentation](http://asynchttpclient
 * `play.ws.ning.maxConnectionsTotal`
 * `play.ws.ning.maxNumberOfRedirects`
 * `play.ws.ning.maxRequestRetry`
-* `play.ws.ning.removeQueryParamsOnRedirect`
-* `play.ws.ning.useRawUrl`
-
+* `play.ws.ning.disableUrlEncoding`

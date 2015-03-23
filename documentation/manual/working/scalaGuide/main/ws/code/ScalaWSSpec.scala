@@ -13,7 +13,6 @@ import org.specs2.runner.JUnitRunner
 //#dependency
 import javax.inject.Inject
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
 
 import play.api.mvc._
 import play.api.libs.ws._
@@ -35,6 +34,8 @@ case class Person(name: String, age: Int)
 @RunWith(classOf[JUnitRunner])
 class ScalaWSSpec extends PlaySpecification with Results {
 
+  import scala.concurrent.ExecutionContext.global
+
   val url = s"http://localhost:$testServerPort/"
 
   // #scalaws-context
@@ -51,7 +52,7 @@ class ScalaWSSpec extends PlaySpecification with Results {
     })
     running(TestServer(testServerPort, app))(block(app.injector.instanceOf[WSClient]))
   }
-  
+
   /**
    * An enumerator that produces a large result.
    *
@@ -70,18 +71,18 @@ class ScalaWSSpec extends PlaySpecification with Results {
 
     "allow making a request" in withSimpleServer { ws =>
       //#simple-holder
-      val holder: WSRequestHolder = ws.url(url)
+      val request: WSRequest = ws.url(url)
       //#simple-holder
 
       //#complex-holder
-      val complexHolder: WSRequestHolder =
-        holder.withHeaders("Accept" -> "application/json")
+      val complexRequest: WSRequest =
+        request.withHeaders("Accept" -> "application/json")
           .withRequestTimeout(10000)
           .withQueryString("search" -> "play")
       //#complex-holder
 
       //#holder-get
-      val futureResponse: Future[WSResponse] = complexHolder.get()
+      val futureResponse: Future[WSResponse] = complexRequest.get()
       //#holder-get
 
       await(futureResponse).status must_== 200
@@ -436,7 +437,7 @@ class ScalaWSSpec extends PlaySpecification with Results {
       val secureDefaults: AsyncHttpClientConfig = new NingAsyncHttpClientConfigBuilder(clientConfig).build()
       // You can directly use the builder for specific options once you have secure TLS defaults...
       val builder = new AsyncHttpClientConfig.Builder(secureDefaults)
-      builder.setCompressionEnabled(true)
+      builder.setCompressionEnforced(true)
       val secureDefaultsWithSpecificOptions: AsyncHttpClientConfig = builder.build()
       implicit val sslClient = new NingWSClient(secureDefaultsWithSpecificOptions)
 
@@ -459,8 +460,8 @@ class ScalaWSSpec extends PlaySpecification with Results {
       //#pair-magnet
       object PairMagnet {
         implicit def fromPair(pair: (WSClient, java.net.URL)) =
-          new WSRequestHolderMagnet {
-            def apply(): WSRequestHolder = {
+          new WSRequestMagnet {
+            def apply(): WSRequest = {
               val (client, netUrl) = pair
               client.url(netUrl.toString)
             }

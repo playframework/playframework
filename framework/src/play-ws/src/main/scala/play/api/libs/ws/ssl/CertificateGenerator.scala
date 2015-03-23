@@ -32,7 +32,7 @@ object CertificateGenerator {
     val keyGen = KeyPairGenerator.getInstance("RSA")
     keyGen.initialize(keySize, new SecureRandom())
     val pair = keyGen.generateKeyPair()
-    generateCertificate(dn, pair, from.toDate, to.toDate, "SHA256WithRSA", AlgorithmId.sha256WithRSAEncryption_oid)
+    generateCertificate(dn, pair, from.toDate, to.toDate, "SHA256withRSA", AlgorithmId.sha256WithRSAEncryption_oid)
   }
 
   def toPEM(certificate: X509Certificate) = {

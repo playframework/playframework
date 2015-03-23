@@ -112,7 +112,7 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
       def csrfCheckRequest = buildCsrfCheckRequestWithJavaHandler()
       def csrfAddToken = buildCsrfAddToken("csrf.cookie.name" -> "csrf")
       def generate = Crypto.generateSignedToken
-      def addToken(req: WSRequestHolder, token: String) = req.withCookies("csrf" -> token)
+      def addToken(req: WSRequest, token: String) = req.withCookies("csrf" -> token)
       def getToken(response: WSResponse) = response.cookies.find(_.name.exists(_ == "csrf")).flatMap(_.value)
       def compareTokens(a: String, b: String) = Crypto.compareSignedTokens(a, b) must beTrue
 
@@ -141,7 +141,7 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
   }
 
   def buildCsrfCheckRequest(sendUnauthorizedResult: Boolean, configuration: (String, String)*) = new CsrfTester {
-    def apply[T](makeRequest: (WSRequestHolder) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
+    def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
       case _ => if (sendUnauthorizedResult) {
         CSRFFilter(errorHandler = new CustomErrorHandler())(Action(Results.Ok))
       } else {
@@ -154,7 +154,7 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
   }
 
   def buildCsrfCheckRequestWithJavaHandler() = new CsrfTester {
-    def apply[T](makeRequest: (WSRequestHolder) => Future[WSResponse])(handleResponse: (WSResponse) => T) = {
+    def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = {
       withServer(Seq(
         "csrf.cookie.name" -> "csrf",
         "csrf.error.handler" -> "play.filters.csrf.JavaErrorHandler"
@@ -168,7 +168,7 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
   }
 
   def buildCsrfAddToken(configuration: (String, String)*) = new CsrfTester {
-    def apply[T](makeRequest: (WSRequestHolder) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
+    def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(configuration) {
       case _ => CSRFFilter()(Action { implicit req =>
         CSRF.getToken(req).map { token =>
           Results.Ok(token.value)
@@ -181,7 +181,7 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
   }
 
   def buildCsrfAddResponseHeaders(responseHeaders: (String, String)*) = new CsrfTester {
-    def apply[T](makeRequest: (WSRequestHolder) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(Seq.empty) {
+    def apply[T](makeRequest: (WSRequest) => Future[WSResponse])(handleResponse: (WSResponse) => T) = withServer(Seq.empty) {
       case _ => CSRFFilter()(Action(Results.Ok.withHeaders(responseHeaders: _*)))
     } {
       import play.api.Play.current

@@ -14,15 +14,19 @@ import play.api.Environment
 import play.api.libs.ws.WSClientConfig
 import play.api.libs.ws.ssl._
 
-import javax.net.ssl.SSLContext
+import javax.net.ssl.{ HostnameVerifier, SSLSession, SSLContext }
 import com.ning.http.client.ProxyServerSelector
-import com.ning.http.util.{ ProxyUtils, AllowAllHostnameVerifier }
+import com.ning.http.util.ProxyUtils
 import play.api.libs.ws.ssl.DefaultHostnameVerifier
 import org.slf4j.LoggerFactory
 
 import play.api.test.WithApplication
 
 import scala.concurrent.duration._
+
+class TestHostnameVerifier extends HostnameVerifier {
+  override def verify(s: String, sslSession: SSLSession): Boolean = true
+}
 
 object NingConfigSpec extends Specification with Mockito with NoTimeConversions {
 
@@ -47,9 +51,7 @@ object NingConfigSpec extends Specification with Mockito with NoTimeConversions 
                                |play.ws.ning.maxConnectionsTotal = 6
                                |play.ws.ning.maxNumberOfRedirects = 0
                                |play.ws.ning.maxRequestRetry = 99
-                               |play.ws.ning.removeQueryParamsOnRedirect = true
-                               |play.ws.ning.requestCompressionLevel = 999
-                               |play.ws.ning.useRawUrl = true
+                               |play.ws.ning.disableUrlEncoding = true
                              """.stripMargin)
 
       actual.allowPoolingConnection must beFalse
@@ -59,8 +61,7 @@ object NingConfigSpec extends Specification with Mockito with NoTimeConversions 
       actual.maxConnectionsTotal must_== 6
       actual.maxNumberOfRedirects must_== 0
       actual.maxRequestRetry must_== 99
-      actual.removeQueryParamsOnRedirect must beTrue
-      actual.useRawUrl must beTrue
+      actual.disableUrlEncoding must beTrue
     }
 
     "with basic options" should {
@@ -70,14 +71,13 @@ object NingConfigSpec extends Specification with Mockito with NoTimeConversions 
         val builder = new NingAsyncHttpClientConfigBuilder(config)
         val actual = builder.build()
 
-        actual.getIdleConnectionTimeoutInMs must_== defaultWsConfig.idleTimeout.toMillis
-        actual.getRequestTimeoutInMs must_== defaultWsConfig.requestTimeout.toMillis
-        actual.getConnectionTimeoutInMs must_== defaultWsConfig.connectionTimeout.toMillis
-        actual.isRedirectEnabled must_== defaultWsConfig.followRedirects
+        actual.getReadTimeout must_== defaultWsConfig.idleTimeout.toMillis
+        actual.getRequestTimeout must_== defaultWsConfig.requestTimeout.toMillis
+        actual.getConnectTimeout must_== defaultWsConfig.connectionTimeout.toMillis
+        actual.isFollowRedirect must_== defaultWsConfig.followRedirects
 
-        val sslEngine = actual.getSSLEngineFactory.newSSLEngine()
-        sslEngine.getEnabledCipherSuites.toSeq must not contain Ciphers.deprecatedCiphers
-        sslEngine.getEnabledProtocols.toSeq must not contain Protocols.deprecatedProtocols
+        actual.getEnabledCipherSuites.toSeq must not contain Ciphers.deprecatedCiphers
+        actual.getEnabledProtocols.toSeq must not contain Protocols.deprecatedProtocols
 
         actual.getHostnameVerifier must beAnInstanceOf[DefaultHostnameVerifier]
       }
@@ -88,7 +88,7 @@ object NingConfigSpec extends Specification with Mockito with NoTimeConversions 
         val builder = new NingAsyncHttpClientConfigBuilder(config)
 
         val actual = builder.build()
-        actual.getIdleConnectionTimeoutInMs must_== 42L
+        actual.getReadTimeout must_== 42L
       }
 
       "use an explicit request timeout" in {
@@ -97,7 +97,7 @@ object NingConfigSpec extends Specification with Mockito with NoTimeConversions 
         val builder = new NingAsyncHttpClientConfigBuilder(config)
 
         val actual = builder.build()
-        actual.getRequestTimeoutInMs must_== 47L
+        actual.getRequestTimeout must_== 47L
       }
 
       "use an explicit connection timeout" in {
@@ -106,16 +106,16 @@ object NingConfigSpec extends Specification with Mockito with NoTimeConversions 
         val builder = new NingAsyncHttpClientConfigBuilder(config)
 
         val actual = builder.build()
-        actual.getConnectionTimeoutInMs must_== 99L
+        actual.getConnectTimeout must_== 99L
       }
 
       "use an explicit followRedirects option" in {
-        val wsConfig = defaultWsConfig.copy(followRedirects = false)
+        val wsConfig = defaultWsConfig.copy(followRedirects = true)
         val config = defaultConfig.copy(wsClientConfig = wsConfig)
         val builder = new NingAsyncHttpClientConfigBuilder(config)
 
         val actual = builder.build()
-        actual.isRedirectEnabled must_== false
+        actual.isFollowRedirect must_== true
       }
 
       "use an explicit proxy if useProxyProperties is true and there are system defined proxy settings" in {
@@ -146,14 +146,14 @@ object NingConfigSpec extends Specification with Mockito with NoTimeConversions 
         val config = defaultConfig.copy(allowPoolingConnection = false)
         val builder = new NingAsyncHttpClientConfigBuilder(config)
         val actual = builder.build()
-        actual.getAllowPoolingConnection must_== false
+        actual.isAllowPoolingConnections() must_== false
       }
 
       "allow setting ning allowSslConnectionPool" in {
         val config = defaultConfig.copy(allowSslConnectionPool = false)
         val builder = new NingAsyncHttpClientConfigBuilder(config)
         val actual = builder.build()
-        actual.isSslConnectionPoolEnabled must_== false
+        actual.isAllowPoolingSslConnections must_== false
       }
 
       "allow setting ning ioThreadMultiplier" in {
@@ -167,14 +167,14 @@ object NingConfigSpec extends Specification with Mockito with NoTimeConversions 
         val config = defaultConfig.copy(maxConnectionsPerHost = 3)
         val builder = new NingAsyncHttpClientConfigBuilder(config)
         val actual = builder.build()
-        actual.getMaxConnectionPerHost must_== 3
+        actual.getMaxConnectionsPerHost must_== 3
       }
 
       "allow setting ning maximumConnectionsTotal" in {
-        val config = defaultConfig.copy(maxConnectionsPerHost = 6)
+        val config = defaultConfig.copy(maxConnectionsTotal = 6)
         val builder = new NingAsyncHttpClientConfigBuilder(config)
         val actual = builder.build()
-        actual.getMaxConnectionPerHost must_== 6
+        actual.getMaxConnections must_== 6
       }
 
       "allow setting ning maximumConnectionsTotal" in {
@@ -191,18 +191,11 @@ object NingConfigSpec extends Specification with Mockito with NoTimeConversions 
         actual.getMaxRequestRetry must_== 99
       }
 
-      "allow setting ning removeQueryParamsOnRedirect" in {
-        val config = defaultConfig.copy(removeQueryParamsOnRedirect = true)
-        val builder = new NingAsyncHttpClientConfigBuilder(config)
-        val actual = builder.build()
-        actual.isRemoveQueryParamOnRedirect must_== true
-      }
-
       "allow setting ning useRawUrl" in {
-        val config = defaultConfig.copy(useRawUrl = true)
+        val config = defaultConfig.copy(disableUrlEncoding = true)
         val builder = new NingAsyncHttpClientConfigBuilder(config)
         val actual = builder.build()
-        actual.isUseRawUrl must_== true
+        actual.isDisableUrlEncodingForBoundedRequests must_== true
       }
     }
 
@@ -280,13 +273,13 @@ object NingConfigSpec extends Specification with Mockito with NoTimeConversions 
         }
 
         "use an explicit hostname verifier" in {
-          val sslConfig = SSLConfig(hostnameVerifierClass = classOf[AllowAllHostnameVerifier])
+          val sslConfig = SSLConfig(hostnameVerifierClass = classOf[TestHostnameVerifier])
           val wsConfig = defaultWsConfig.copy(ssl = sslConfig)
           val config = defaultConfig.copy(wsClientConfig = wsConfig)
           val builder = new NingAsyncHttpClientConfigBuilder(config)
 
           val asyncConfig = builder.build()
-          asyncConfig.getHostnameVerifier must beAnInstanceOf[AllowAllHostnameVerifier]
+          asyncConfig.getHostnameVerifier must beAnInstanceOf[TestHostnameVerifier]
         }
 
         "should disable the hostname verifier if loose.disableHostnameVerification is defined" in {
@@ -296,7 +289,7 @@ object NingConfigSpec extends Specification with Mockito with NoTimeConversions 
           val builder = new NingAsyncHttpClientConfigBuilder(config)
 
           val asyncConfig = builder.build()
-          asyncConfig.getHostnameVerifier must beAnInstanceOf[AllowAllHostnameVerifier]
+          asyncConfig.getHostnameVerifier must beAnInstanceOf[play.api.libs.ws.ssl.DisabledComplainingHostnameVerifier]
         }
       }
 
