@@ -61,6 +61,7 @@ First, import `anorm._`, and then simply use the `SQL` object to create queries.
 ```scala
 import anorm._ 
 import play.api.db.DB
+import play.api.Play.current
 
 DB.withConnection { implicit c =>
   val result: Boolean = SQL("Select 1").execute()    
