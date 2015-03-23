@@ -60,6 +60,7 @@ object SSLConfigParserSpec extends Specification {
                                 | allowWeakCiphers = true
                                 | allowWeakProtocols = true
                                 | disableHostnameVerification = true
+                                | acceptAnyCertificate = true
                                 |}
                               """.stripMargin)
       actual.loose.allowLegacyHelloMessages must beSome(true)
@@ -67,6 +68,7 @@ object SSLConfigParserSpec extends Specification {
       actual.loose.allowWeakCiphers must beTrue
       actual.loose.allowWeakProtocols must beTrue
       actual.loose.disableHostnameVerification must beTrue
+      actual.loose.acceptAnyCertificate must beTrue
     }
 
     "say debug is disabled if all debug is disabled" in new WithApplication() {

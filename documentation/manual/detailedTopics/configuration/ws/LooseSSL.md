@@ -16,7 +16,7 @@ The information security community is very well aware of how insecure most inter
 
 The average company can expect to have seven or eight [Man in the Middle](https://sites.google.com/site/cse825maninthemiddle/) attacks a year.  In some cases, up to 300,000 users can be compromised [over several months](https://security.stackexchange.com/questions/12041/are-man-in-the-middle-attacks-extremely-rare).
 
-### Attackers have a suite of tools that automatically exploit flaws 
+### Attackers have a suite of tools that automatically exploit flaws
 
 The days of the expert hacker are over.  Most security professionals use automated linux environments such as Kali Linux to do penetration testing, packed with hundreds of tools to check for exploits.  A video of [Cain & Abel](https://www.youtube.com/watch?v=pfHsRscy540) shows passwords being compromised in less than 20 seconds.
 
@@ -26,7 +26,7 @@ Hackers won't bother to see whether something will "look encrypted" or not.  Ins
 
 More and more information flows through computers every day.  The public and the media are taking increasing notice of the possibility that their private communications can be intercepted.  Google, Facebook, Yahoo, and other leading companies have made secure communication a priority and have devoted millions to ensuring that [data cannot be read](https://www.eff.org/deeplinks/2013/11/encrypt-web-report-whos-doing-what).
 
-### Ethernet / Password protected WiFi does not provide a meaningful level of security. 
+### Ethernet / Password protected WiFi does not provide a meaningful level of security.
 
 A networking auditing tool such as a [Wifi Pineapple](https://wifipineapple.com/) costs around $100, picks up all traffic sent over a wifi network, and is so good at intercepting traffic that people have turned it on and started [intercepting traffic accidentally](http://www.troyhunt.com/2013/04/the-beginners-guide-to-breaking-website.html).
 
@@ -66,10 +66,10 @@ Finally, here are the options themselves.
 If you've read the above and you still want to completely disable certificate verification, set the following;
 
 ```
-play.ws.acceptAnyCertificate=true
+play.ws.ssl.loose.acceptAnyCertificate=true
 ```
 
-With certificate verification completely disabled, you are vulnerable to attack from anyone on the network using a tool such as [mitmproxy](http://mitmproxy.org/). 
+With certificate verification completely disabled, you are vulnerable to attack from anyone on the network using a tool such as [mitmproxy](http://mitmproxy.org/).
 
 ### Disabling Weak Ciphers Checking
 

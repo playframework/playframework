@@ -174,8 +174,7 @@ public class JavaWS {
                     true, // followRedirects
                     true, // useProxyProperties
                     noneString, // userAgent
-                    true, // compressionEnabled
-                    false, // acceptAnyCertificate
+                    true, // compressionEnabled / enforced
                     SSLConfigFactory.defaultConfig());
 
             NingWSClientConfig clientConfig = NingWSClientConfigFactory.forClientConfig(wsClientConfig);

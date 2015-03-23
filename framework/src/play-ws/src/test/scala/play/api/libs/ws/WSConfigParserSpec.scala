@@ -29,7 +29,6 @@ object WSConfigParserSpec extends Specification with NoTimeConversions {
                                 |play.ws.followRedirects = false
                                 |play.ws.useProxyProperties = false
                                 |play.ws.useragent = "FakeUserAgent"
-                                |play.ws.acceptAnyCertificate = true
                               """.stripMargin)
 
       actual.connectionTimeout must_== 9999.millis
@@ -43,9 +42,6 @@ object WSConfigParserSpec extends Specification with NoTimeConversions {
       actual.useProxyProperties must beFalse
 
       actual.userAgent must beSome.which(_ must_== "FakeUserAgent")
-
-      actual.acceptAnyCertificate must beTrue
-
     }
   }
 }

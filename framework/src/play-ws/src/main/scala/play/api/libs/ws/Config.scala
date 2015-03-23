@@ -22,7 +22,6 @@ case class WSClientConfig(connectionTimeout: Duration = 2.minutes,
   useProxyProperties: Boolean = true,
   userAgent: Option[String] = None,
   compressionEnabled: Boolean = false,
-  acceptAnyCertificate: Boolean = false,
   ssl: SSLConfig = SSLConfig())
 
 /**
@@ -48,8 +47,6 @@ class WSConfigParser @Inject() (configuration: Configuration, environment: Envir
 
     val compressionEnabled = config.get[Boolean]("compressionEnabled")
 
-    val acceptAnyCertificate = config.get[Boolean]("acceptAnyCertificate")
-
     val sslConfig = new SSLConfigParser(config.get[PlayConfig]("ssl"), environment.classLoader).parse()
 
     WSClientConfig(
@@ -60,7 +57,6 @@ class WSConfigParser @Inject() (configuration: Configuration, environment: Envir
       useProxyProperties = useProxyProperties,
       userAgent = userAgent,
       compressionEnabled = compressionEnabled,
-      acceptAnyCertificate = acceptAnyCertificate,
       ssl = sslConfig)
   }
 }

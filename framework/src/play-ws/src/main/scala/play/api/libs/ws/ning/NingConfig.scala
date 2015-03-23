@@ -120,10 +120,6 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
 
     configureWS(ningConfig)
 
-    // acceptAnyCertificate is technically a "NingConfig" setting for SSL, but
-    // was added before the refactor.
-    builder.setAcceptAnyCertificate(config.acceptAnyCertificate)
-
     configureSSL(config.ssl)
 
     addCustomSettings(builder)
@@ -261,6 +257,8 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
     val cipherSuites = configureCipherSuites(defaultCiphers, sslConfig)
     defaultParams.setCipherSuites(cipherSuites)
     builder.setEnabledCipherSuites(cipherSuites)
+
+    builder.setAcceptAnyCertificate(sslConfig.loose.acceptAnyCertificate)
 
     // Hostname Processing
     if (!sslConfig.loose.disableHostnameVerification) {
