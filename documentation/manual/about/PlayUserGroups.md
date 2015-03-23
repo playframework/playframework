@@ -23,3 +23,9 @@ http://www.play-be.org
 ## Japan
 http://www.playframework-ja.org/
 https://groups.google.com/forum/?fromgroups#!forum/play_ja
+
+## Republic of Korea 
+#### Korea Play! User Group
+* [Facebook](https://www.facebook.com/groups/playuser)
+* [Github](https://github.com/kpug)
+* [Slack](http://kpug.slack.com)
