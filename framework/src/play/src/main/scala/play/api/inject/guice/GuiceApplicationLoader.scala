@@ -16,13 +16,20 @@ class GuiceApplicationLoader(builder: GuiceApplicationBuilder) extends Applicati
   def this() = this(new GuiceApplicationBuilder)
 
   def load(context: ApplicationLoader.Context): Application = {
+    builder(context).build
+  }
+
+  def builder(context: ApplicationLoader.Context): GuiceApplicationBuilder = {
     builder
       .in(context.environment)
       .loadConfig(context.initialConfiguration)
-      .overrides(
-        bind[OptionalSourceMapper] to new OptionalSourceMapper(context.sourceMapper),
-        bind[WebCommands] to context.webCommands
-      ).build
+      .overrides(overrides(context): _*)
+  }
+
+  def overrides(context: ApplicationLoader.Context): Seq[GuiceableModule] = {
+    Seq(
+      bind[OptionalSourceMapper] to new OptionalSourceMapper(context.sourceMapper),
+      bind[WebCommands] to context.webCommands)
   }
 
 }
