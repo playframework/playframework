@@ -11,7 +11,7 @@ import java.io._
 import java.net.{ URL, URLConnection, JarURLConnection }
 import org.joda.time.format.{ DateTimeFormatter, DateTimeFormat }
 import org.joda.time.DateTimeZone
-import play.utils.{ InvalidUriEncodingException, UriEncoding }
+import play.utils.{ Resources, InvalidUriEncodingException, UriEncoding }
 import scala.concurrent.{ ExecutionContext, Promise, Future, blocking }
 import scala.util.control.NonFatal
 import scala.util.{ Success, Failure }
@@ -170,7 +170,7 @@ private[controllers] class AssetInfo(
           try {
             f(urlConnection)
           } finally {
-            urlConnection.getInputStream.close()
+            Resources.closeUrlConnection(urlConnection)
           }
       }.filterNot(_ == -1).map(dateFormat.print)
     }
@@ -443,20 +443,29 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
       assetInfoForRequest(request, name)
     } getOrElse Future.successful(None)
 
+    def notFound = errorHandler.onClientError(request, NOT_FOUND, "Resource not found by Assets controller")
+
     val pendingResult: Future[Result] = assetInfoFuture.flatMap {
       case Some((assetInfo, gzipRequested)) =>
-        val stream = assetInfo.url(gzipRequested).openStream()
-        val length = stream.available
-        val resourceData = Enumerator.fromStream(stream)(Implicits.defaultExecutionContext)
+        val connection = assetInfo.url(gzipRequested).openConnection()
+        // Make sure it's not a directory
+        if (Resources.isUrlConnectionADirectory(connection)) {
+          Resources.closeUrlConnection(connection)
+          notFound
+        } else {
+          val stream = connection.getInputStream
+          val length = stream.available
+          val resourceData = Enumerator.fromStream(stream)(Implicits.defaultExecutionContext)
 
-        Future.successful(maybeNotModified(request, assetInfo, aggressiveCaching).getOrElse {
-          cacheableResult(
-            assetInfo,
-            aggressiveCaching,
-            result(file, length, assetInfo.mimeType, resourceData, gzipRequested, assetInfo.gzipUrl.isDefined)
-          )
-        })
-      case None => errorHandler.onClientError(request, NOT_FOUND, "Resource not found by Assets controller")
+          Future.successful(maybeNotModified(request, assetInfo, aggressiveCaching).getOrElse {
+            cacheableResult(
+              assetInfo,
+              aggressiveCaching,
+              result(file, length, assetInfo.mimeType, resourceData, gzipRequested, assetInfo.gzipUrl.isDefined)
+            )
+          })
+        }
+      case None => notFound
     }
 
     pendingResult.recoverWith {
