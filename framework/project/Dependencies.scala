@@ -55,27 +55,29 @@ object Dependencies {
 
   val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.3.0"
 
+  val springFrameworkVersion = "4.1.5.RELEASE"
+
   val javaDeps = Seq(
     scalaJava8Compat,
 
-    "org.yaml" % "snakeyaml" % "1.13",
+    "org.yaml" % "snakeyaml" % "1.15",
     // 5.1.0 upgrade notes: need to add JEE dependencies, eg EL
     "org.hibernate" % "hibernate-validator" % "5.0.3.Final",
     // This is depended on by hibernate validator, we upgrade to 3.2.0 to avoid LGPL license of 3.1.x
-    "org.jboss.logging" % "jboss-logging" % "3.2.0.Final",
+    "org.jboss.logging" % "jboss-logging" % "3.2.1.Final",
 
-    ("org.springframework" % "spring-context" % "4.1.1.RELEASE" notTransitive ())
+    ("org.springframework" % "spring-context" % springFrameworkVersion notTransitive ())
       .exclude("org.springframework", "spring-aop")
       .exclude("org.springframework", "spring-beans")
       .exclude("org.springframework", "spring-core")
       .exclude("org.springframework", "spring-expression")
       .exclude("org.springframework", "spring-asm"),
 
-    ("org.springframework" % "spring-core" % "4.1.1.RELEASE" notTransitive ())
+    ("org.springframework" % "spring-core" % springFrameworkVersion notTransitive ())
       .exclude("org.springframework", "spring-asm")
       .exclude("commons-logging", "commons-logging"),
 
-    ("org.springframework" % "spring-beans" % "4.1.1.RELEASE" notTransitive ())
+    ("org.springframework" % "spring-beans" % springFrameworkVersion notTransitive ())
       .exclude("org.springframework", "spring-core"),
 
     ("org.reflections" % "reflections" % "0.9.9" notTransitive ())
@@ -87,7 +89,7 @@ object Dependencies {
     guava,
     findBugs,
 
-    "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.14"
+    "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.20"
   ) ++ javassist ++ specsBuild.map(_ % Test)
 
   val junitInterface = "com.novocode" % "junit-interface" % "0.11"
@@ -100,17 +102,17 @@ object Dependencies {
     mockitoAll
   ).map(_ % Test)
 
-  val jodatime = "joda-time" % "joda-time" % "2.6"
+  val jodatime = "joda-time" % "joda-time" % "2.7"
   val jodaConvert = "org.joda" % "joda-convert" % "1.7"
 
   def runtime(scalaVersion: String) =
-    Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.6") ++
-    Seq("logback-core", "logback-classic").map("ch.qos.logback" % _ % "1.1.1") ++
+    Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.10") ++
+    Seq("logback-core", "logback-classic").map("ch.qos.logback" % _ % "1.1.2") ++
     Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % "2.3.7") ++
     jacksons ++
     Seq(
       "org.scala-stm" %% "scala-stm" % "0.7",
-      "commons-codec" % "commons-codec" % "1.9",
+      "commons-codec" % "commons-codec" % "1.10",
 
       jodatime,
       jodaConvert,
@@ -144,7 +146,7 @@ object Dependencies {
   )
 
   val routesCompilerDependencies =  Seq(
-    "commons-io" % "commons-io" % "2.0.1"
+    "commons-io" % "commons-io" % "2.4"
   ) ++ specsBuild.map(_ % Test)
 
   private def sbtPluginDep(sbtVersion: String, scalaVersion: String, moduleId: ModuleID) = {
@@ -272,7 +274,7 @@ object Dependencies {
       .exclude("org.jboss.netty", "netty")
   )
 
-  val playCacheDeps = "net.sf.ehcache" % "ehcache-core" % "2.6.9" +:
+  val playCacheDeps = "net.sf.ehcache" % "ehcache-core" % "2.6.10" +:
     specsBuild.map(_ % Test)
 
   val playWsDeps = Seq(
