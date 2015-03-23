@@ -84,7 +84,6 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 | [`Cache`](api/java/play/cache/Cache.html) | [`CacheApi`](api/java/play/cache/CacheApi.html) | You can get a particular cache using the [`@NamedCache`](api/java/play/cache/NamedCache.html) annotation. |
 | [`Akka`](api/java/play/libs/Akka.html) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
 | [`WS`](api/java/play/libs/ws/WS.html) | [`WSClient`](api/java/play/libs/ws/WSClient.html) | |
-| [`FakeRequest`](api/java/play/test/FakeRequest.html) | [`RequestBuilder`](api/java/play/mvc/Http.RequestBuilder.html) | |
 
 ## Configuration changes
 
@@ -102,10 +101,6 @@ Additionally, Play has now better namespaced a large number of its configuration
 | `application.langs`       | `play.i18n.langs`                  |
 | `application.lang.cookie` | `play.i18n.langCookieName`         |
 | `parsers.text.maxLength`  | `play.http.parser.maxMemoryBuffer` |
-
-## Reverse ref routing
-
-The reverse ref router used in Java tests has been removed. Any call to `Helpers.call` that was passed a ref router can be replaced by a call to `Helpers.route` which takes either a standard reverse router reference or a `RequestBuilder`.
 
 ## SBT settings
 
@@ -144,6 +139,12 @@ def foo = Action(play.api.mvc.BodyParsers.parse.anyContent) { request =>
   Ok(request.body.asText)
 }
 ```
+
+## Testing changes
+
+[`FakeRequest`](api/java/play/test/FakeRequest.html) has been replaced by [`RequestBuilder`](api/java/play/mvc/Http.RequestBuilder.html).
+
+The reverse ref router used in Java tests has been removed. Any call to `Helpers.call` that was passed a ref router can be replaced by a call to `Helpers.route` which takes either a standard reverse router reference or a `RequestBuilder`.
 
 ### Maximum body length
 
