@@ -94,7 +94,7 @@ object PlayImport {
     /** A hook to configure how play blocks on user input while running. */
     val playInteractionMode = SettingKey[PlayInteractionMode]("play-interaction-mode", "Hook to configure how Play blocks when running")
 
-    val confDirectory = SettingKey[File]("play-conf", "Where the Play conf directory lives")
+    val externalizeResources = SettingKey[Boolean]("playExternalizeResources", "Whether resources should be externalized into the conf directory when Play is packaged as a distribution.")
 
     val playOmnidoc = SettingKey[Boolean]("play-omnidoc", "Determines whether to use the aggregated Play documentation")
     val playDocsName = SettingKey[String]("play-docs-name", "Artifact name of the Play documentation")
