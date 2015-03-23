@@ -139,7 +139,7 @@ object BuildSettings {
       "-Xmx768m",
       maxMetaspace,
       "-Dproject.version=" + version.value,
-      "-Dscala.version=" + (scalaVersion in PlayBuild.PlayProject).value
+      "-Dscala.version=" + sys.props.get("scripted.scala.version").getOrElse((scalaVersion in PlayBuild.PlayProject).value)
     )
   )
 

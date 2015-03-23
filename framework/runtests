@@ -34,6 +34,11 @@ echo "[info]"
 
 $BUILD "$@" scripted
 
+if [ -n "$CROSSBUILD" ]
+then
+    $BUILD "$@" "set scalaVersion in PlayBuild.PlayProject := \"2.11.5\"" scripted
+fi
+
 rm -rf ./logs
 
 cd $CURRENT
