@@ -8,7 +8,7 @@ import java.net.{ URL, URI }
 import org.specs2.mutable.Specification
 import play.core.test.FakeRequest
 
-object PathContextSpec extends Specification {
+object UrlContextSpec extends Specification {
 
   "path interpolation" should {
 
@@ -114,6 +114,58 @@ object PathContextSpec extends Specification {
         case p"/foo/$id/bar" => id must_== "testing"
       }
     }
+  }
+
+  "query string interpolation" should {
+    def qs(params: (String, String)*) = {
+      params.groupBy(_._1).mapValues(_.map(_._2))
+    }
+
+    "allow required parameter extraction" in {
+      "match" in {
+        qs("foo" -> "bar") must beLike {
+          case q"foo=$foo" => foo must_== "bar"
+        }
+      }
+      "no match" in {
+        qs("foo" -> "bar") must beLike {
+          case q"notfoo=$foo" => ko
+          case _ => ok
+        }
+      }
+    }
+
+    "allow optional parameter extraction" in {
+      "existing" in {
+        qs("foo" -> "bar") must beLike {
+          case q_o"foo=$foo" => foo must beSome("bar")
+        }
+      }
+      "not existing" in {
+        qs("foo" -> "bar") must beLike {
+          case q_o"notfoo=$foo" => foo must beNone
+        }
+      }
+    }
+
+    "allow seq parameter extraction" in {
+      "none" in {
+        qs() must beLike {
+          case q_s"foo=$foo" => foo must beEmpty
+        }
+      }
+      "one" in {
+        qs("foo" -> "bar") must beLike {
+          case q_s"foo=$foo" => Seq("bar") must_== Seq("bar")
+        }
+      }
+      "many" in {
+        qs("foo" -> "bar1", "foo" -> "bar2", "foo" -> "bar3") must beLike {
+          case q_s"foo=$foos" => foos must_== Seq("bar1", "bar2", "bar3")
+        }
+      }
+    }
+
   }
 
 }
