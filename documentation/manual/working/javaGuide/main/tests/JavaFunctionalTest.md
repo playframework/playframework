@@ -32,7 +32,7 @@ You can also extend `WithApplication`, this will automatically ensure that an ap
 
 ## Testing with a server
 
-Sometimes you want to test the real HTTP stack from with your test. You can do this by starting a test server:
+Sometimes you want to test the real HTTP stack from within your test. You can do this by starting a test server:
 
 @[test-server](code/javaguide/tests/FunctionalTest.java)
 
@@ -47,3 +47,4 @@ If you want to test your application from with a Web browser, you can use [Selen
 Instead of calling the `Action` yourself, you can let the `Router` do it:
 
 @[bad-route](code/javaguide/tests/FunctionalTest.java)
+
