@@ -55,8 +55,7 @@ object BuildSettings {
     resolvers ++= ResolverSettings.playResolvers,
     resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases", // specs2 depends on scalaz-stream
 
-    javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-encoding", "UTF-8", "-Xlint:-options", "-J-Xmx512m"),
-    javacOptions in doc := Seq("-source", "1.8"),
+    javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:-options", "-J-Xmx512m"),
 
     scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
 
@@ -81,6 +80,11 @@ object BuildSettings {
     Docs.apiDocsInclude := true
   )
 
+  def javaVersionSettings(version: String): Seq[Setting[_]] = Seq(
+    javacOptions ++= Seq("-source", version, "-target", version),
+    javacOptions in doc := Seq("-source", version)
+  )
+
   /**
    * A project that is shared between the SBT runtime and the Play runtime
    */
@@ -89,6 +93,7 @@ object BuildSettings {
       .settings(playRuntimeSettings: _*)
       .settings(PublishSettings.publishSettings: _*)
       .settings(omnidocSettings: _*)
+      .settings(javaVersionSettings("1.6"): _*)
       .settings(
         autoScalaLibrary := false,
         crossPaths := false
@@ -103,6 +108,7 @@ object BuildSettings {
       .settings(playCommonSettings: _*)
       .settings(PublishSettings.publishSettings: _*)
       .settings(crossBuildSettings: _*)
+      .settings(javaVersionSettings("1.6"): _*)
   }
 
   /**
@@ -114,6 +120,7 @@ object BuildSettings {
       .settings(PublishSettings.publishSettings: _*)
       .settings(crossBuildSettings: _*)
       .settings(omnidocSettings: _*)
+      .settings(javaVersionSettings("1.8"): _*)
   }
 
   def crossBuildSettings: Seq[Setting[_]] = Seq(
