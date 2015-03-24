@@ -1,0 +1,70 @@
+#
+# Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+#
+
+GET         /                       controllers.Application.index
+POST        /post                   controllers.Application.post
+GET         /with/:param            controllers.Application.withParam(param)
+
+GET         /instance               @controllers.InstanceController.index
+
+GET         /escapes/$i<\d+>        controllers.Application.takeInt(i: Int)
+
+GET         /take-bool              controllers.Application.takeBool(b: Boolean)
+GET         /take-bool-2/:b         controllers.Application.takeBool2(b: Boolean)
+GET         /take-list              controllers.Application.takeList(x: List[Int])
+GET         /take-java-list         controllers.Application.takeJavaList(x: java.util.List[java.lang.Integer])
+
+GET         /urlcoding/:d/*s        controllers.Application.urlcoding(d, s, q)
+
+GET         /ident/:è27             controllers.πø$7ß.ôü65$t(è27: Int)
+
+GET         /hello                  controllers.Application.hello
+GET         /hello2                 controllers.Application.hello
+
+->          /module                 module.Routes
+
+GET         /routes                 controllers.Application.route(abstract)
+GET         /routes                 controllers.Application.route(case)
+GET         /routes                 controllers.Application.route(catch)
+GET         /routes                 controllers.Application.route(class)
+GET         /routes                 controllers.Application.route(def)
+GET         /routes                 controllers.Application.route(do)
+GET         /routes                 controllers.Application.route(else)
+GET         /routes                 controllers.Application.route(extends)
+GET         /routes                 controllers.Application.route(false)
+GET         /routes                 controllers.Application.route(final)
+GET         /routes                 controllers.Application.route(finally)
+GET         /routes                 controllers.Application.route(for)
+GET         /routes                 controllers.Application.route(forSome)
+GET         /routes                 controllers.Application.route(if)
+GET         /routes                 controllers.Application.route(implicit)
+GET         /routes                 controllers.Application.route(import)
+GET         /routes                 controllers.Application.route(lazy)
+GET         /routes                 controllers.Application.route(match)
+GET         /routes                 controllers.Application.route(new)
+GET         /routes                 controllers.Application.route(null)
+GET         /routes                 controllers.Application.route(object)
+GET         /routes                 controllers.Application.route(override)
+GET         /routes                 controllers.Application.route(package)
+GET         /routes                 controllers.Application.route(private)
+GET         /routes                 controllers.Application.route(protected)
+GET         /routes                 controllers.Application.route(return)
+GET         /routes                 controllers.Application.route(sealed)
+GET         /routes                 controllers.Application.route(super)
+GET         /routes                 controllers.Application.route(this)
+GET         /routes                 controllers.Application.route(throw)
+GET         /routes                 controllers.Application.route(trait)
+GET         /routes                 controllers.Application.route(try)
+GET         /routes                 controllers.Application.route(true)
+GET         /routes                 controllers.Application.route(type)
+GET         /routes                 controllers.Application.route(val)
+GET         /routes                 controllers.Application.route(var)
+GET         /routes                 controllers.Application.route(while)
+GET         /routestest             controllers.Application.routetest(with)
+GET         /routestest             controllers.Application.routetest(yield)
+
+# Test for default values for scala keywords
+GET         /routesdefault          controllers.Application.routedefault(type ?= "x")
+
+GET         /public/*file           controllers.Assets.versioned(path="/public", file: Asset)
