@@ -25,7 +25,7 @@ public class JavaCache extends WithApplication {
 
     @Override
     protected Application provideApplication() {
-        return fakeApplication(ImmutableMap.of("play.modules.cache.bindCaches", Arrays.asList("session-cache")));
+        return fakeApplication(ImmutableMap.of("play.cache.bindCaches", Arrays.asList("session-cache")));
     }
 
     public class News {}

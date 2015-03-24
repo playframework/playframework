@@ -76,7 +76,7 @@ class ScalaCacheSpec extends PlaySpecification with Controller {
     }
 
     "bind multiple" in {
-      val app = FakeApplication(additionalConfiguration = Map("play.modules.cache.bindCaches" -> Seq("session-cache")))
+      val app = FakeApplication(additionalConfiguration = Map("play.cache.bindCaches" -> Seq("session-cache")))
       running(app) {
         app.injector.instanceOf[qualified.Application]
         ok
