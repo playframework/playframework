@@ -110,7 +110,6 @@ object Server {
   def withApplication[T](application: Application, config: ServerConfig = ServerConfig(port = Some(0), mode = Mode.Test))(block: Port => T)(implicit provider: ServerProvider): T = {
     val server = provider.createServer(config, new TestApplication(application))
     try {
-      Play.start(application)
       block(new Port((server.httpPort orElse server.httpsPort).get))
     } finally {
       server.stop()
