@@ -52,7 +52,7 @@ object PlaySettings {
       "Typesafe Releases Repository" at "https://repo.typesafe.com/typesafe/releases/"
     ),
 
-    confDirectory <<= resourceDirectory in Compile,
+    externalizeResources := true,
 
     javacOptions in (Compile, doc) := List("-encoding", "utf8"),
 
@@ -81,11 +81,6 @@ object PlaySettings {
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true", "junitxml", "console"),
 
     testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "--ignore-runners=org.specs2.runner.JUnitRunner"),
-
-    // Adds config directory's source files to continuous hot reloading
-    watchSources <+= confDirectory map {
-      all => all
-    },
 
     // Adds app directory's source files to continuous hot reloading
     watchSources <++= (sourceDirectory in Compile, sourceDirectory in Assets) map { (sources, assets) =>
@@ -136,7 +131,10 @@ object PlaySettings {
 
     routesImport ++= Seq("controllers.Assets.Asset"),
 
-    routesFiles in Compile ++= ((confDirectory.value * "routes").get ++ (confDirectory.value * "*.routes").get),
+    routesFiles in Compile ++= {
+      val dirs = (unmanagedResourceDirectories in Compile).value
+      (dirs * "routes").get ++ (dirs * "*.routes").get
+    },
 
     playMonitoredFiles <<= PlayCommands.playMonitoredFilesTask,
 
@@ -190,13 +188,20 @@ object PlaySettings {
 
     mainClass in Compile <<= mainClass in (Compile, Keys.run),
 
+    // Support for externalising resources
     mappings in Universal ++= {
-      val confDirectoryLen = confDirectory.value.getCanonicalPath.length
-      val pathFinder = confDirectory.value ** ("*" -- "routes")
-      pathFinder.get map {
-        confFile: File =>
-          confFile -> ("conf/" + confFile.getCanonicalPath.substring(confDirectoryLen))
-      }
+      if (externalizeResources.value) {
+        val rdirs = (unmanagedResourceDirectories in Compile).value
+        val resourceMappings = ((unmanagedResources in Compile).value --- rdirs) pair (relativeTo(rdirs) | flat)
+        resourceMappings.map {
+          case (resource, path) => resource -> ("conf/" + path)
+        }
+      } else Nil
+    },
+    scriptClasspath := {
+      if (externalizeResources.value) {
+        "../conf" +: scriptClasspath.value
+      } else scriptClasspath.value
     },
 
     mappings in Universal ++= {

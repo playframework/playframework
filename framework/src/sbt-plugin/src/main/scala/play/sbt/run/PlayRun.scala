@@ -190,8 +190,13 @@ object PlayRun {
     val extracted = Project.extract(state)
 
     val interaction = extracted.get(playInteractionMode)
+    val noExitSbt = args.contains("--no-exit-sbt")
+
+    val filter = Set("--no-exit-sbt")
+    val filtered = args.filterNot(filter)
+
     // Parse HTTP port argument
-    val (properties, httpPort, httpsPort, httpAddress) = Reloader.filterArgs(args, extracted.get(playDefaultPort), extracted.get(playDefaultAddress))
+    val (properties, httpPort, httpsPort, httpAddress) = Reloader.filterArgs(filtered, extracted.get(playDefaultPort), extracted.get(playDefaultAddress))
     require(httpPort.isDefined || httpsPort.isDefined, "You have to specify https.port when http.port is disabled")
 
     Project.runTask(stage, state).get._2.toEither match {
@@ -220,7 +225,11 @@ object PlayRun {
         val builder = new java.lang.ProcessBuilder(args.asJava)
         new Thread {
           override def run() {
-            System.exit(Process(builder).!)
+            if (noExitSbt) {
+              Process(builder).!
+            } else {
+              System.exit(Process(builder).!)
+            }
           }
         }.start()
 
@@ -233,7 +242,11 @@ object PlayRun {
 
         println()
 
-        state.copy(remainingCommands = Seq.empty)
+        if (noExitSbt) {
+          state
+        } else {
+          state.copy(remainingCommands = Seq.empty)
+        }
     }
 
   }
@@ -253,6 +266,10 @@ object PlayRun {
     }
     println()
 
-    state.copy(remainingCommands = Seq.empty)
+    if (args.contains("--no-exit-sbt")) {
+      state
+    } else {
+      state.copy(remainingCommands = Seq.empty)
+    }
   }
 }

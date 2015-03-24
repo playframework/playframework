@@ -37,7 +37,7 @@ object ApplicationSecretGenerator {
 
     val appConfFile = Option(System.getProperty("config.file")) match {
       case Some(applicationConf) => new File(baseDir, applicationConf)
-      case None => confDirectory.value / "application.conf"
+      case None => (Keys.resourceDirectory in Compile).value / "application.conf"
     }
 
     if (appConfFile.exists()) {

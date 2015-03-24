@@ -1,12 +1,27 @@
 # Build the distribution and ensure that the files we expect are indeed there
-> dist-and-unzip
-$ exists target/dist/README
-$ exists target/dist/SomeFile.txt
-$ exists target/dist/SomeFolder/SomeOtherFile.txt
+> stage
+$ exists target/universal/stage/README
+$ exists target/universal/stage/SomeFile.txt
+$ exists target/universal/stage/SomeFolder/SomeOtherFile.txt
 
 > check-start-script
-$ exists target/dist/conf/application.conf
--$ exists target/dist/conf/routes
-$ exists target/dist/lib
-$ exists target/dist/share/doc/api
+$ exists target/universal/stage/conf/application.conf
+$ exists target/universal/stage/lib
+$ exists target/universal/stage/share/doc/api
 
+# Run it to make sure everything works
+> start --no-exit-sbt
+> check-config foo
+> stop --no-exit-sbt
+
+# Change the configuration in the conf directory, make sure it takes effect
+$ copy-file conf/alternate.conf target/universal/stage/conf/application.conf
+> start --no-exit-sbt
+> check-config bar
+> stop --no-exit-sbt
+
+# Turn off externalize resources, rebuild, make sure the conf directory is not created or on the classpath
+> set PlayKeys.externalizeResources := false
+> stage
+-$ exists target/dist/conf/application.conf
+> check-start-script no-conf
