@@ -38,11 +38,6 @@ You can alternatively [define your own base classes](http://scalatest.org/user_g
 
 You can run your tests with Play itself, or in IntelliJ IDEA (using the [Scala plugin](http://blog.jetbrains.com/scala/)) or in Eclipse (using the [Scala IDE](http://scala-ide.org/) and the [ScalaTest Eclipse plugin](http://scalatest.org/user_guide/using_scalatest_with_eclipse)).  Please see the [[IDE page|IDE]] for more details.
 
-Note that in IntelliJ, when creating a new Run Configuration for your unit tests,
-if you select "All in package," choosing "In whole project" for the "Search for tests"
-option, may cause `MethodNotFoundError` exceptions: if that's the case, use "Across module
-dependencies" instead.
-
 ### Matchers
 
 `PlaySpec` mixes in ScalaTest's [`MustMatchers`](http://doc.scalatest.org/2.1.5/index.html#org.scalatest.MustMatchers), so you can write assertions using ScalaTest's matchers DSL:

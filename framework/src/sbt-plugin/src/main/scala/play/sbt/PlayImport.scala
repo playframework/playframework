@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
-package play
+package play.sbt
+
+import sbt.Keys._
+import sbt._
 
 import play.runsupport.FileWatchService
-import play.sbtplugin.run._
-import sbt._
-import Keys._
 
 /**
  * Declares the default imports for Play plugins.
@@ -60,7 +60,7 @@ object PlayImport {
    */
   lazy val emojiLogs = logManager ~= { lm =>
     new LogManager {
-      def apply(data: sbt.Settings[Scope], state: State, task: Def.ScopedKey[_], writer: java.io.PrintWriter) = {
+      def apply(data: Settings[Scope], state: State, task: Def.ScopedKey[_], writer: java.io.PrintWriter) = {
         val l = lm.apply(data, state, task, writer)
         val FailuresErrors = "(?s).*(\\d+) failures?, (\\d+) errors?.*".r
         new Logger {
@@ -89,10 +89,10 @@ object PlayImport {
     val playDefaultAddress = SettingKey[String]("play-default-address", "The default address that Play runs on")
 
     /** Our means of hooking the run task with additional behavior. */
-    val playRunHooks = TaskKey[Seq[play.PlayRunHook]]("play-run-hooks", "Hooks to run additional behaviour before/after the run task")
+    val playRunHooks = TaskKey[Seq[PlayRunHook]]("play-run-hooks", "Hooks to run additional behaviour before/after the run task")
 
     /** A hook to configure how play blocks on user input while running. */
-    val playInteractionMode = SettingKey[play.PlayInteractionMode]("play-interaction-mode", "Hook to configure how Play blocks when running")
+    val playInteractionMode = SettingKey[PlayInteractionMode]("play-interaction-mode", "Hook to configure how Play blocks when running")
 
     val confDirectory = SettingKey[File]("play-conf", "Where the Play conf directory lives")
 
@@ -115,5 +115,7 @@ object PlayImport {
 
     val playMonitoredFiles = TaskKey[Seq[String]]("play-monitored-files")
     val fileWatchService = SettingKey[FileWatchService]("file-watch-service", "The watch service Play uses to watch for file changes")
+
+    val computeDependencies = TaskKey[Seq[Map[Symbol, Any]]]("ivy-dependencies")
   }
 }

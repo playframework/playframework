@@ -18,7 +18,7 @@ TaskKey[Unit]("unzip-assets-jar") := {
 
 InputKey[Unit]("check-on-classpath") := {
   val args = Def.spaceDelimited("<resource>*").parsed
-  val creator: ClassLoader => ClassLoader = play.Play.playAssetsClassLoader.value
+  val creator: ClassLoader => ClassLoader = play.sbt.PlayInternalKeys.playAssetsClassLoader.value
   val classloader = creator(null)
   args.foreach { resource =>
     if (classloader.getResource(resource) == null) {

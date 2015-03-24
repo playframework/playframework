@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
-package play
+package play.sbt
 
 import sbt._
 import sbt.Keys._
@@ -12,27 +12,22 @@ import com.typesafe.sbt.jse.SbtJsTask
 import com.typesafe.sbt.webdriver.SbtWebDriver
 import com.typesafe.sbteclipse.core.EclipsePlugin.EclipseProjectFlavor
 import play.twirl.sbt.SbtTwirl
-import play.sbtplugin.PlayPositionMapper
-import play.sbtplugin.routes.RoutesCompiler
+
+import play.sbt.routes.RoutesCompiler
+import play.sbt.eclipse.PlayEclipse
+import play.sbt.PlayImport.PlayKeys
 
 /**
  * Base plugin for Play projects. Declares common settings for both Java and Scala based Play projects.
  */
-object Play
-    extends AutoPlugin
-    with PlayExceptions
-    with PlayCommands
-    with PlayRun
-    with play.PlaySettings
-    with PlayPositionMapper {
+object Play extends AutoPlugin {
 
   override def requires = SbtTwirl && SbtJsTask && SbtWebDriver && RoutesCompiler && JavaServerAppPackaging
 
-  val autoImport = play.PlayImport
+  val autoImport = PlayImport
 
   override def projectSettings =
-    defaultSettings ++
-      intellijCommandSettings ++
+    PlaySettings.defaultSettings ++
       Seq(
         scalacOptions ++= Seq("-deprecation", "-unchecked", "-encoding", "utf8"),
         javacOptions in Compile ++= Seq("-encoding", "utf8", "-g")
@@ -48,13 +43,10 @@ object Play
  */
 object PlayJava extends AutoPlugin {
   override def requires = Play && PlayEnhancer
-
-  import Play._
-  import Play.autoImport._
   override def projectSettings =
-    eclipseCommandSettings(EclipseProjectFlavor.Java) ++
-      defaultJavaSettings ++
-      Seq(libraryDependencies += javaCore)
+    PlayEclipse.eclipseCommandSettings(EclipseProjectFlavor.Java) ++
+      PlaySettings.defaultJavaSettings ++
+      Seq(libraryDependencies += PlayImport.javaCore)
 }
 
 /**
@@ -66,11 +58,9 @@ object PlayJava extends AutoPlugin {
  */
 object PlayScala extends AutoPlugin {
   override def requires = Play
-
-  import Play._
   override def projectSettings =
-    eclipseCommandSettings(EclipseProjectFlavor.Scala) ++
-      defaultScalaSettings
+    PlayEclipse.eclipseCommandSettings(EclipseProjectFlavor.Scala) ++
+      PlaySettings.defaultScalaSettings
 }
 
 /**
@@ -82,13 +72,13 @@ object PlayNettyServer extends AutoPlugin {
 
   override def projectSettings = Seq(
     libraryDependencies ++= {
-      if (play.PlayImport.PlayKeys.playPlugin.value) {
+      if (PlayKeys.playPlugin.value) {
         Nil
       } else {
         Seq("com.typesafe.play" %% "play-netty-server" % play.core.PlayVersion.current)
       }
     },
-    mainClass in (Compile, run) := Some("play.core.server.NettyServer")
+    mainClass in (Compile, Keys.run) := Some("play.core.server.NettyServer")
   )
 }
 
@@ -100,6 +90,6 @@ object PlayAkkaHttpServer extends AutoPlugin {
 
   override def projectSettings = Seq(
     libraryDependencies += "com.typesafe.play" %% "play-akka-http-server-experimental" % play.core.PlayVersion.current,
-    mainClass in (Compile, run) := Some("play.core.server.akkahttp.AkkaHttpServer")
+    mainClass in (Compile, Keys.run) := Some("play.core.server.akkahttp.AkkaHttpServer")
   )
 }

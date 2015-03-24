@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
-package play.sbtplugin
+package play.sbt
 import sbt._
 import play.runsupport.LoggerProxy
 

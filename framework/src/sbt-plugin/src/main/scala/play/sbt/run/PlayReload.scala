@@ -1,13 +1,13 @@
 /*
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
-package play
+package play.sbt.run
 
 import sbt._
 import sbt.Keys._
 
 import play.api.PlayException
-import play.PlayExceptions._
+import play.sbt.PlayExceptions._
 import play.runsupport.Reloader.{ CompileResult, CompileSuccess, CompileFailure, Source, SourceMap }
 
 object PlayReload {
@@ -60,7 +60,7 @@ object PlayReload {
   }
 
   def getProblems(incomplete: Incomplete, streams: Option[Streams]): Seq[xsbti.Problem] = {
-    (allProblems(incomplete) ++ {
+    allProblems(incomplete) ++ {
       Incomplete.linearize(incomplete).flatMap(getScopedKey).flatMap { scopedKey =>
         val JavacError = """\[error\]\s*(.*[.]java):(\d+):\s*(.*)""".r
         val JavacErrorInfo = """\[error\]\s*([a-z ]+):(.*)""".r
@@ -99,7 +99,7 @@ object PlayReload {
         }
 
       }
-    }).map(remapProblemForGeneratedSources)
+    }
   }
 
   def allProblems(inc: Incomplete): Seq[xsbti.Problem] = {
@@ -115,18 +115,6 @@ object PlayReload {
       case cf: xsbti.CompileFailed => cf.problems
       case _ => Nil
     }
-  }
-
-  def remapProblemForGeneratedSources(problem: xsbti.Problem) = {
-    val mappedPosition = play.Play.playPositionMapper(problem.position)
-    mappedPosition.map { pos =>
-      new xsbti.Problem {
-        def message = problem.message
-        def category = ""
-        def position = pos
-        def severity = problem.severity
-      }
-    } getOrElse problem
   }
 
 }

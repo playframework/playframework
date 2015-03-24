@@ -2,7 +2,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.10.4")
 
-PlayKeys.playInteractionMode := play.StaticPlayNonBlockingInteractionMode
+PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode
 
 // Start by using the sbt watcher
 PlayKeys.fileWatchService := play.runsupport.FileWatchService.sbt(pollInterval.value)

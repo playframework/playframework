@@ -1,33 +1,30 @@
 /*
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
-package play
+package play.sbt.run
 
 import annotation.tailrec
 import collection.JavaConverters._
-import java.io.Closeable
-import java.net.URLClassLoader
-import java.util.jar.JarFile
 
 import sbt._
 import Keys._
 
-import play.PlayImport._
-import play.PlayImport.PlayKeys._
-import play.sbtplugin.Colors
+import play.sbt._
+import play.sbt.PlayImport._
+import play.sbt.PlayImport.PlayKeys._
+import play.sbt.PlayInternalKeys._
+import play.sbt.Colors
 import play.core.{ Build, BuildLink, BuildDocHandler }
 import play.runsupport.classloader._
 import play.runsupport.{ AssetsClassLoader, FileWatchService, Reloader }
-import play.sbtplugin.run._
 
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
-import com.typesafe.sbt.web.SbtWeb
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 
 /**
  * Provides mechanisms for running a Play application in SBT
  */
-trait PlayRun extends PlayInternalKeys {
+object PlayRun {
 
   /**
    * Configuration for the Play docs application's dependencies. Used to build a classloader for
@@ -92,7 +89,7 @@ trait PlayRun extends PlayInternalKeys {
       devSettings.value,
       args,
       runSbtTask,
-      (mainClass in (Compile, run)).value.getOrElse("play.core.server.NettyServer")
+      (mainClass in (Compile, Keys.run)).value.getOrElse("play.core.server.NettyServer")
     )
 
     interaction match {

@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
-package play
+package play.sbt
 
 import sbt._
 import sbt.Keys._
 
-trait PlayInternalKeys {
+object PlayInternalKeys {
   type ClassLoaderCreator = play.runsupport.Reloader.ClassLoaderCreator
 
   val playDependencyClasspath = TaskKey[Classpath]("play-dependency-classpath")

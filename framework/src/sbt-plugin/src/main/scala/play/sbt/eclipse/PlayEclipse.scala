@@ -1,18 +1,13 @@
 /*
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
-package play
-
-import sbt._
-import sbt.Keys._
-import Keys._
-import play.sbtplugin.routes.RoutesKeys
-import play.twirl.sbt.Import.TwirlKeys
+package play.sbt.eclipse
 
 import com.typesafe.sbteclipse.core.EclipsePlugin._
+import sbt.Keys._
+import sbt._
 
-trait PlayEclipse {
-  this: PlayCommands =>
+object PlayEclipse {
 
   private def generateJavaPrefFile(): Unit = {
     val coreSettings = file(".settings") / "org.eclipse.core.resources.prefs"
@@ -30,8 +25,8 @@ trait PlayEclipse {
    * @param scalaIDE whether the Scala IDE is being used
    */
   def eclipseCommandSettings(scalaIDE: EclipseProjectFlavor.Value): Seq[Setting[_]] = {
-    import com.typesafe.sbteclipse.core._
-    import com.typesafe.sbteclipse.core.Validation
+    import com.typesafe.sbteclipse.core.{ Validation, _ }
+
     import scala.xml._
     import scala.xml.transform.RewriteRule
 
