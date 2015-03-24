@@ -1,0 +1,5 @@
+# Stage it, so it's easier to debug
+> managedSources
+> compile
+> test:compile
+> test
