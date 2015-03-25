@@ -5,7 +5,7 @@ Caching data is a typical optimization in modern applications, and so Play provi
 
 For any data stored in the cache, a regeneration strategy needs to be put in place in case the data goes missing. This philosophy is one of the fundamentals behind Play, and is different from Java EE, where the session is expected to retain values throughout its lifetime. 
 
-The default implementation of the cache API uses [EHCache](http://www.ehcache.org/) and it's can be enabled by adding `cache` in  `libraryDependencies` of your `build.sbt` file . You can also provide your own implementation via a plugin. 
+The default implementation of the cache API uses [EHCache](http://www.ehcache.org/) and it can be enabled by adding `cache` in  `libraryDependencies` of your `build.sbt` file . You can also provide your own implementation via a plugin. 
 
 ## Importing the Cache API
 

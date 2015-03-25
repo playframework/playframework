@@ -34,7 +34,7 @@ You can also extend `WithApplication`, this will automatically ensure that a fak
 
 ## Testing with a server
 
-Sometimes you want to test the real HTTP stack from with your test. You can do this by starting a test server:
+Sometimes you want to test the real HTTP stack from within your test. You can do this by starting a test server:
 
 Java
 : @[test-server](code/javaguide/tests/FunctionalTest.java)
