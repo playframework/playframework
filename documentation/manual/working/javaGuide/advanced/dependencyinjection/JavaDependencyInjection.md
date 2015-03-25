@@ -65,7 +65,7 @@ You can also provide your own application loader:
 
 You then need to specifiy it in `play.application.loader`:
 
-    play.modules.enabled := "modules.CustomApplicationLoader"
+    play.application.loader := "modules.CustomApplicationLoader"
 
 ### Play libraries
 
