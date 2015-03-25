@@ -162,7 +162,8 @@ trait DefaultReads {
   implicit object IntReads extends Reads[Int] {
     def reads(json: JsValue) = json match {
       case JsNumber(n) if n.isValidInt => JsSuccess(n.toInt)
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber"))))
+      case JsNumber(n) => JsError("error.expected.int")
+      case _ => JsError("error.expected.jsnumber")
     }
   }
 
@@ -171,8 +172,9 @@ trait DefaultReads {
    */
   implicit object ShortReads extends Reads[Short] {
     def reads(json: JsValue) = json match {
-      case JsNumber(n) => JsSuccess(n.toShort)
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber"))))
+      case JsNumber(n) if n.isValidShort => JsSuccess(n.toShort)
+      case JsNumber(n) => JsError("error.expected.short")
+      case _ => JsError("error.expected.jsnumber")
     }
   }
 
@@ -181,8 +183,9 @@ trait DefaultReads {
    */
   implicit object ByteReads extends Reads[Byte] {
     def reads(json: JsValue) = json match {
-      case JsNumber(n) => JsSuccess(n.toByte)
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber"))))
+      case JsNumber(n) if n.isValidByte => JsSuccess(n.toByte)
+      case JsNumber(n) => JsError("error.expected.byte")
+      case _ => JsError("error.expected.jsnumber")
     }
   }
 
@@ -191,8 +194,9 @@ trait DefaultReads {
    */
   implicit object LongReads extends Reads[Long] {
     def reads(json: JsValue) = json match {
-      case JsNumber(n) => JsSuccess(n.toLong)
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber"))))
+      case JsNumber(n) if n.isValidLong => JsSuccess(n.toLong)
+      case JsNumber(n) => JsError("error.expected.long")
+      case _ => JsError("error.expected.jsnumber")
     }
   }
 
@@ -202,7 +206,7 @@ trait DefaultReads {
   implicit object FloatReads extends Reads[Float] {
     def reads(json: JsValue) = json match {
       case JsNumber(n) => JsSuccess(n.toFloat)
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber"))))
+      case _ => JsError("error.expected.jsnumber")
     }
   }
 
@@ -212,7 +216,7 @@ trait DefaultReads {
   implicit object DoubleReads extends Reads[Double] {
     def reads(json: JsValue) = json match {
       case JsNumber(n) => JsSuccess(n.toDouble)
-      case _ => JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber"))))
+      case _ => JsError("error.expected.jsnumber")
     }
   }
 

@@ -30,7 +30,9 @@ object JsonValidSpec extends Specification {
     "invalidate wrong simple type conversion" in {
       JsString("string").validate[Long] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber")))))
       JsNumber(5).validate[String] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsstring")))))
-      JsNumber(5.123).validate[Int] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber")))))
+      JsNumber(5.123).validate[Int] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.int")))))
+      JsNumber(300).validate[Byte] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.byte")))))
+      JsNumber(Long.MaxValue).validate[Int] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.int")))))
       JsBoolean(false).validate[Double] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber")))))
     }
 
@@ -80,9 +82,9 @@ object JsonValidSpec extends Specification {
     "invalidate JsArray to List with wrong type conversion" in {
       Json.arr(123.456, 567.123, 890.654).validate[List[Int]] must equalTo(
         JsError(Seq(
-          JsPath(0) -> Seq(ValidationError("error.expected.jsnumber")),
-          JsPath(1) -> Seq(ValidationError("error.expected.jsnumber")),
-          JsPath(2) -> Seq(ValidationError("error.expected.jsnumber"))
+          JsPath(0) -> Seq(ValidationError("error.expected.int")),
+          JsPath(1) -> Seq(ValidationError("error.expected.int")),
+          JsPath(2) -> Seq(ValidationError("error.expected.int"))
         ))
       )
       Json.arr("alpha", "beta", "delta").validate[List[Int]] must equalTo(
