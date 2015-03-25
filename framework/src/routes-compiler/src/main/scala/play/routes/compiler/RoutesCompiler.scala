@@ -59,26 +59,33 @@ object RoutesCompiler {
   }
 
   /**
+   * A routes compiler task.
+   *
+   * @param file The routes file to compile.
+   * @param additionalImports The additional imports.
+   * @param forwardsRouter Whether a forwards router should be generated.
+   * @param reverseRouter Whether a reverse router should be generated.
+   * @param namespaceReverseRouter Whether the reverse router should be namespaced.
+   */
+  case class RoutesCompilerTask(file: File, additionalImports: Seq[String], forwardsRouter: Boolean, reverseRouter: Boolean, namespaceReverseRouter: Boolean)
+
+  /**
    * Compile the given routes file
    *
-   * @param file The routes file to compile
+   * @param task The routes compilation task
+   * @param generator The routes generator
    * @param generatedDir The directory to place the generated source code in
-   * @param additionalImports Additional imports to add to the output files
-   * @param generateReverseRouter Whether the reverse router should be generated
-   * @param namespaceReverseRouter Whether the reverse router should be namespaced
    * @return Either the list of files that were generated (right) or the routes compilation errors (left)
    */
-  def compile(file: File, generator: RoutesGenerator, generatedDir: File, additionalImports: Seq[String], generateReverseRouter: Boolean = true,
-    namespaceReverseRouter: Boolean = false): Either[Seq[RoutesCompilationError], Seq[File]] = {
+  def compile(task: RoutesCompilerTask, generator: RoutesGenerator, generatedDir: File): Either[Seq[RoutesCompilationError], Seq[File]] = {
 
-    val namespace = Option(file.getName).filter(_.endsWith(".routes")).map(_.dropRight(".routes".size))
+    val namespace = Option(task.file.getName).filter(_.endsWith(".routes")).map(_.dropRight(".routes".size))
       .orElse(Some("router"))
 
-    val routeFile = file.getAbsoluteFile
+    val routeFile = task.file.getAbsoluteFile
 
     RoutesFileParser.parse(routeFile).right.map { rules =>
-      val generated = generator.generate(routeFile, namespace, rules, additionalImports, generateReverseRouter,
-        namespaceReverseRouter)
+      val generated = generator.generate(task, namespace, rules)
       generated.map {
         case (filename, content) =>
           val file = new File(generatedDir, filename)

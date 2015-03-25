@@ -5,20 +5,18 @@ package play.routes.compiler
 
 import java.io.File
 
+import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
+
 trait RoutesGenerator {
   /**
    * Generate a router
    *
-   * @param file The routes file that it's being generated for
+   * @param task The routes compile task
    * @param namespace The namespace of the router
    * @param rules The routing rules
-   * @param additionalImports Any additional imports
-   * @param reverseRouter Whether a reverse router should be generated
-   * @param namespaceReverseRouter Whether the reverse router should be namespaced
    * @return A sequence of output filenames to file contents
    */
-  def generate(file: File, namespace: Option[String], rules: List[Rule], additionalImports: Seq[String],
-    reverseRouter: Boolean, namespaceReverseRouter: Boolean): Seq[(String, String)]
+  def generate(task: RoutesCompilerTask, namespace: Option[String], rules: List[Rule]): Seq[(String, String)]
 
   /**
    * An identifier for this routes generator.
@@ -38,21 +36,28 @@ object StaticRoutesGenerator extends RoutesGenerator {
 
   val id = "static"
 
-  def generate(file: File, namespace: Option[String], rules: List[Rule], additionalImports: Seq[String],
-    reverseRouter: Boolean, namespaceReverseRouter: Boolean): Seq[(String, String)] = {
+  def generate(task: RoutesCompilerTask, namespace: Option[String], rules: List[Rule]): Seq[(String, String)] = {
 
     val filePrefix = namespace.map(_.replace('.', '/') + "/").getOrElse("") + "/routes"
 
-    val sourceInfo = RoutesSourceInfo(file.getCanonicalPath.replace(File.separator, "/"), new java.util.Date().toString)
+    val sourceInfo = RoutesSourceInfo(task.file.getCanonicalPath.replace(File.separator, "/"), new java.util.Date().toString)
     val routes = rules.collect { case r: Route => r }
 
-    val files = Seq(filePrefix + "_routing.scala" -> generateRouter(sourceInfo, namespace, additionalImports, rules))
-    if (reverseRouter) {
-      (files :+ filePrefix + "_reverseRouting.scala" -> generateReverseRouter(sourceInfo, namespace, additionalImports, routes, namespaceReverseRouter)) ++
-        generateJavaWrappers(sourceInfo, namespace, rules, namespaceReverseRouter)
+    val forwardsRoutesFiles = if (task.forwardsRouter) {
+      Seq(filePrefix + "_routing.scala" -> generateRouter(sourceInfo, namespace, task.additionalImports, rules))
     } else {
-      files
+      Nil
     }
+
+    val reverseRoutesFiles = if (task.reverseRouter) {
+      Seq(filePrefix + "_reverseRouting.scala" -> generateReverseRouter(sourceInfo, namespace, task.additionalImports,
+        routes, task.namespaceReverseRouter)) ++
+        generateJavaWrappers(sourceInfo, namespace, rules, task.namespaceReverseRouter)
+    } else {
+      Nil
+    }
+
+    forwardsRoutesFiles ++ reverseRoutesFiles
   }
 
   private def generateRouter(sourceInfo: RoutesSourceInfo, namespace: Option[String], additionalImports: Seq[String], rules: List[Rule]) =
@@ -94,21 +99,26 @@ object InjectedRoutesGenerator extends RoutesGenerator {
 
   case class Dependency[+T <: Rule](ident: String, clazz: String, rule: T)
 
-  def generate(file: File, namespace: Option[String], rules: List[Rule], additionalImports: Seq[String],
-    reverseRouter: Boolean, namespaceReverseRouter: Boolean): Seq[(String, String)] = {
+  def generate(task: RoutesCompilerTask, namespace: Option[String], rules: List[Rule]): Seq[(String, String)] = {
 
     val filePrefix = namespace.map(_.replace('.', '/') + "/").getOrElse("") + "/routes"
 
-    val sourceInfo = RoutesSourceInfo(file.getCanonicalPath.replace(File.separator, "/"), new java.util.Date().toString)
+    val sourceInfo = RoutesSourceInfo(task.file.getCanonicalPath.replace(File.separator, "/"), new java.util.Date().toString)
     val routes = rules.collect { case r: Route => r }
 
-    val files = Seq(filePrefix + "_routing.scala" -> generateRouter(sourceInfo, namespace, additionalImports, rules))
-    if (reverseRouter) {
-      (files :+ filePrefix + "_reverseRouting.scala" -> generateReverseRouter(sourceInfo, namespace, additionalImports, routes, namespaceReverseRouter)) ++
-        generateJavaWrappers(sourceInfo, namespace, rules, namespaceReverseRouter)
+    val forwardsRoutesFiles = if (task.forwardsRouter) {
+      Seq(filePrefix + "_routing.scala" -> generateRouter(sourceInfo, namespace, task.additionalImports, rules))
+    } else Nil
+
+    val reverseRoutesFiles = if (task.reverseRouter) {
+      Seq(filePrefix + "_reverseRouting.scala" -> generateReverseRouter(sourceInfo, namespace, task.additionalImports,
+        routes, task.namespaceReverseRouter)) ++
+        generateJavaWrappers(sourceInfo, namespace, rules, task.namespaceReverseRouter)
     } else {
-      files
+      Nil
     }
+
+    forwardsRoutesFiles ++ reverseRoutesFiles
   }
 
   private def generateRouter(sourceInfo: RoutesSourceInfo, namespace: Option[String], additionalImports: Seq[String], rules: List[Rule]) = {

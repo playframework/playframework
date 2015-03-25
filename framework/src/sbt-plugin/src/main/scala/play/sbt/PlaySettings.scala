@@ -13,7 +13,7 @@ import play.TemplateImports
 import play.runsupport.FileWatchService
 import play.sbt.PlayImport.PlayKeys._
 import play.sbt.PlayInternalKeys._
-import play.sbt.routes.RoutesKeys._
+import play.sbt.routes.RoutesKeys
 import play.sbt.run._
 import play.sbt.run.PlayRun.DocsApplication
 import play.twirl.sbt.Import.TwirlKeys
@@ -30,7 +30,7 @@ object PlaySettings {
 
     TwirlKeys.templateImports ++= TemplateImports.defaultJavaTemplateImports.asScala,
 
-    routesImport ++= Seq(
+    RoutesKeys.routesImport ++= Seq(
       "play.libs.F"
     )
   )
@@ -129,9 +129,9 @@ object PlaySettings {
 
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
 
-    routesImport ++= Seq("controllers.Assets.Asset"),
+    RoutesKeys.routesImport ++= Seq("controllers.Assets.Asset"),
 
-    routesFiles in Compile ++= {
+    sources in (Compile, RoutesKeys.routes) ++= {
       val dirs = (unmanagedResourceDirectories in Compile).value
       (dirs * "routes").get ++ (dirs * "*.routes").get
     },

@@ -1,0 +1,22 @@
+# Generate the reverse routers
+> playRoutes
+
+# Ensure the right files are and aren't generated
+$ exists common/target/routes/main/a/routes_reverseRouting.scala
+$ exists common/target/routes/main/b/routes_reverseRouting.scala
+$ exists common/target/routes/main/c/routes_reverseRouting.scala
+-$ exists common/target/routes/main/a/routes_routing.scala
+-$ exists common/target/routes/main/b/routes_routing.scala
+-$ exists common/target/routes/main/c/routes_routing.scala
+
+-$ exists a/target/routes/main/a/routes_reverseRouting.scala
+$ exists a/target/routes/main/a/routes_routing.scala
+
+-$ exists b/target/routes/main/b/routes_reverseRouting.scala
+$ exists b/target/routes/main/b/routes_routing.scala
+
+-$ exists c/target/routes/main/c/routes_reverseRouting.scala
+$ exists c/target/routes/main/c/routes_routing.scala
+
+# Now ensure that everything compiles
+> compile
