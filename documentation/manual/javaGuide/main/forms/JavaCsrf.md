@@ -1,11 +1,11 @@
 <!--- Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com> -->
 # Protecting against Cross Site Request Forgery
 
-Cross Site Request Forgery (CSRF) is a security exploit where an attacker tricks a victims browser into making a request using the victims session.  Since the session token is sent with every request, if an attacker can coerce the victims browser to make a request on their behalf, the attacker can make requests on the users behalf.
+Cross Site Request Forgery (CSRF) is a security exploit where an attacker tricks a victim's browser into making a request using the victim's session.  Since the session token is sent with every request, if an attacker can coerce the victim's browser to make a request on their behalf, the attacker can make requests on the user's behalf.
 
 It is recommended that you familiarise yourself with CSRF, what the attack vectors are, and what the attack vectors are not.  We recommend starting with [this information from OWASP](https://www.owasp.org/index.php/Cross-Site_Request_Forgery_%28CSRF%29).
 
-Simply put, an attacker can coerce a victims browser to make the following types of requests:
+Simply put, an attacker can coerce a victim's browser to make the following types of requests:
 
 * All `GET` requests
 * `POST` requests with bodies of type `application/x-www-form-urlencoded`, `multipart/form-data` and `text/plain`
@@ -21,7 +21,7 @@ Since `GET` requests are not meant to be mutative, there is no danger to an appl
 
 ### Play's CSRF protection
 
-Play supports multiple methods for verifying that a request is not a CSRF request.  The primary mechanism is a CSRF token.  This token gets placed either in the query string or body of every form submitted, and also gets placed in the users session.  Play then verifies that both tokens are present and match.
+Play supports multiple methods for verifying that a request is not a CSRF request.  The primary mechanism is a CSRF token.  This token gets placed either in the query string or body of every form submitted, and also gets placed in the user's session.  Play then verifies that both tokens are present and match.
 
 To allow simple protection for non browser requests, such as requests made through AJAX, Play also supports the following:
 
@@ -77,11 +77,11 @@ Sometimes global CSRF filtering may not be appropriate, for example in situation
 
 In these cases, Play provides two actions that can be composed with your applications actions.
 
-The first action is the `play.filters.csrf.RequireCSRFCheck` action, and it performs the check.  It should be added to all actions that accept session authenticated POST form submissions:
+The first action is the `play.filters.csrf.RequireCSRFCheck` action which performs the CSRF check. It should be added to all actions that accept session authenticated POST form submissions:
 
 @[csrf-check](code/javaguide/forms/JavaCsrf.java)
 
-The second action is the `play.filters.csrf.AddCSRFToken` action, it generates a CSRF token if not already present on the incoming request.  It should be added to all actions that render forms:
+The second action is the `play.filters.csrf.AddCSRFToken` action, it generates a CSRF token if not already present on the incoming request. It should be added to all actions that render forms:
 
 @[csrf-add-token](code/javaguide/forms/JavaCsrf.java)
 
