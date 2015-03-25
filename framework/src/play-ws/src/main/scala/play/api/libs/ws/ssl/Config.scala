@@ -144,13 +144,15 @@ case class SSLDebugRecordOptions(plaintext: Boolean = false, packet: Boolean = f
  * @param allowUnsafeRenegotiation Whether unsafe renegotiation should be allowed or not. If None, uses the platform
  *                                 default.
  * @param disableHostnameVerification Whether hostname verification should be disabled.
+ * @param acceptAnyCertificate Whether any X.509 certificate should be accepted or not.
  */
 case class SSLLooseConfig(
   allowWeakCiphers: Boolean = false,
   allowWeakProtocols: Boolean = false,
   allowLegacyHelloMessages: Option[Boolean] = None,
   allowUnsafeRenegotiation: Option[Boolean] = None,
-  disableHostnameVerification: Boolean = false)
+  disableHostnameVerification: Boolean = false,
+  acceptAnyCertificate: Boolean = false)
 
 /**
  * The SSL configuration.
@@ -254,13 +256,15 @@ class SSLConfigParser(c: PlayConfig, classLoader: ClassLoader) {
     val allowMessages = config.getOptional[Boolean]("allowLegacyHelloMessages")
     val allowUnsafeRenegotiation = config.getOptional[Boolean]("allowUnsafeRenegotiation")
     val disableHostnameVerification = config.get[Boolean]("disableHostnameVerification")
+    val acceptAnyCertificate = config.get[Boolean]("acceptAnyCertificate")
 
     SSLLooseConfig(
       allowWeakCiphers = allowWeakCiphers,
       allowWeakProtocols = allowWeakProtocols,
       allowLegacyHelloMessages = allowMessages,
       allowUnsafeRenegotiation = allowUnsafeRenegotiation,
-      disableHostnameVerification = disableHostnameVerification
+      disableHostnameVerification = disableHostnameVerification,
+      acceptAnyCertificate = acceptAnyCertificate
     )
   }
 
