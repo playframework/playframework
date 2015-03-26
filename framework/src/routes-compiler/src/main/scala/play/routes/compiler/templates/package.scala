@@ -84,24 +84,35 @@ package object templates {
    */
   def routeBinding(route: Route): String = {
     route.call.parameters.filterNot(_.isEmpty).map { params =>
-      params.map { p =>
+      val ps = params.map { p =>
         p.fixed.map { v =>
           """Param[""" + p.typeName + """]("""" + p.name + """", Right(""" + v + """))"""
         }.getOrElse {
           """params.""" + (if (route.path.has(p.name)) "fromPath" else "fromQuery") + """[""" + p.typeName + """]("""" + p.name + """", """ + p.default.map("Some(" + _ + ")").getOrElse("None") + """)"""
         }
-      }.mkString(", ")
+      }
+      if (ps.size < 22) ps.mkString(", ") else ps
     }.map("(" + _ + ")").getOrElse("")
   }
 
   /**
+   * Extract the local names out from the route, as tuple. See PR#4244
+   */
+  def tupleNames(route: Route) = route.call.parameters.filterNot(_.isEmpty).map { params =>
+    params.map(x => safeKeyword(x.name)).mkString(", ")
+  }.map("(" + _ + ") =>").getOrElse("")
+
+  /**
+   * Extract the local names out from the route, as List. See PR#4244
+   */
+  def listNames(route: Route) = route.call.parameters.filterNot(_.isEmpty).map { params =>
+    params.map(x => "(" + safeKeyword(x.name) + ": " + x.typeName + ")").mkString(":: ")
+  }.map("case " + _ + " :: Nil =>").getOrElse("")
+
+  /**
    * Extract the local names out from the route
    */
-  def localNames(route: Route) = {
-    route.call.parameters.filterNot(_.isEmpty).map { params =>
-      params.map(x => safeKeyword(x.name)).mkString(", ")
-    }.map("(" + _ + ") =>").getOrElse("")
-  }
+  def localNames(route: Route) = if (route.call.parameters.map(_.size).getOrElse(0) < 22) tupleNames(route) else listNames(route)
 
   /**
    * The code to statically get the Play injector
@@ -342,7 +353,9 @@ package object templates {
    */
   def refCall(route: Route, useInjector: Route => Boolean): String = {
     val controllerRef = s"${route.call.packageName}.${route.call.controller}"
-    val methodCall = s"${route.call.method}(${route.call.parameters.getOrElse(Nil).map(x => safeKeyword(x.name)).mkString(", ")})"
+    val methodCall = s"${route.call.method}(${
+      route.call.parameters.getOrElse(Nil).map(x => safeKeyword(x.name)).mkString(", ")
+    })"
     if (useInjector(route)) {
       s"$Injector.instanceOf(classOf[$controllerRef]).$methodCall"
     } else {
