@@ -198,7 +198,7 @@ trait EssentialActionCaller {
     import play.api.http.HeaderNames._
     val newContentType = rh.headers.get(CONTENT_TYPE).fold(w.contentType)(_ => None)
     val rhWithCt = newContentType.map { ct =>
-      rh.copy(headers = FakeHeaders((rh.headers.toMap + (CONTENT_TYPE -> Seq(ct))).toSeq))
+      rh.copy(headers = rh.headers.replace(CONTENT_TYPE -> ct))
     }.getOrElse(rh)
 
     val requestBody = Enumerator(body) &> w.toEnumeratee

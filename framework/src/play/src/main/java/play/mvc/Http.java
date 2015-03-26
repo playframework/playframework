@@ -27,7 +27,6 @@ import play.api.mvc.AnyContentAsRaw;
 import play.api.mvc.AnyContentAsText;
 import play.api.mvc.AnyContentAsXml;
 import play.api.mvc.Headers;
-import play.api.mvc.HeadersImpl;
 import play.api.mvc.RawBuffer;
 import play.core.system.RequestIdProvider;
 import play.i18n.Lang;
@@ -916,11 +915,13 @@ public class Http {
         }
 
         protected Headers buildHeaders() {
-            List<Tuple2<String, Seq<String>>> list = new ArrayList<>();
+            List<Tuple2<String, String>> list = new ArrayList<>();
             for (Map.Entry<String,String[]> entry : headers().entrySet()) {
-              list.add(new Tuple2(entry.getKey(), JavaConversions.asScalaBuffer(Arrays.asList(entry.getValue()))));
+                for (String value : entry.getValue()) {
+                    list.add(new Tuple2<>(entry.getKey(), value));
+                }
             }
-            return new HeadersImpl(JavaConversions.asScalaBuffer(list));
+            return new Headers(JavaConversions.asScalaBuffer(list));
         }
 
     }
