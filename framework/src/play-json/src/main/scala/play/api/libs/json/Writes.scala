@@ -467,4 +467,20 @@ trait DefaultWrites {
     def writes(value: E#Value): JsValue = JsString(value.toString)
   }
 
+  /**
+   * Serializer for Any, used for the args of ValidationErrors.
+   */
+  private[json] object anyWrites extends Writes[Any] {
+    def writes(a: Any): JsValue = a match {
+      case s: String => JsString(s)
+      case nb: Int => JsNumber(nb)
+      case nb: Short => JsNumber(nb)
+      case nb: Long => JsNumber(nb)
+      case nb: Double => JsNumber(nb)
+      case nb: Float => JsNumber(nb)
+      case b: Boolean => JsBoolean(b)
+      case js: JsValue => js
+      case x => JsString(x.toString)
+    }
+  }
 }
