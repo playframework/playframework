@@ -477,17 +477,11 @@ class DefaultMessagesApi @Inject() (environment: Environment, configuration: Con
   def preferred(request: RequestHeader) = {
     val maybeLangFromCookie = request.cookies.get(langCookieName)
       .flatMap(c => Lang.get(c.value))
-    val lang = maybeLangFromCookie.getOrElse(langs.preferred(request.acceptLanguages))
+    val lang = langs.preferred(maybeLangFromCookie.toSeq ++ request.acceptLanguages)
     Messages(lang, this)
   }
 
-  def preferred(request: Http.RequestHeader) = {
-    val maybeLangFromCookie = Option(request.cookies.get(langCookieName))
-      .flatMap(c => Lang.get(c.value))
-    import scala.collection.JavaConversions._
-    val lang = maybeLangFromCookie.getOrElse(langs.preferred(request.acceptLanguages))
-    Messages(lang, this)
-  }
+  def preferred(request: Http.RequestHeader) = preferred(request._underlyingHeader())
 
   def setLang(result: Result, lang: Lang) = result.withCookies(Cookie(langCookieName, lang.code))
 
