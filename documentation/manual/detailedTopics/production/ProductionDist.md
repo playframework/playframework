@@ -180,7 +180,7 @@ libraryDependencies ~= { _ map {
 
 // Take the first ServerWithStop because it's packaged into two jars
 assemblyMergeStrategy in assembly := {
-  case "play/core/server/ServerWithStop.class" => MergeStrategy.first
+  case PathList("play", "core", "server", "ServerWithStop.class") => MergeStrategy.first
   case other => (assemblyMergeStrategy in assembly).value(other)
 }
 ```
