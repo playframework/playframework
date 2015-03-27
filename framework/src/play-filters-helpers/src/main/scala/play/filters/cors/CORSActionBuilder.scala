@@ -3,10 +3,11 @@
  */
 package play.filters.cors
 
+import com.typesafe.config.Config
+
 import scala.concurrent.Future
 
-import play.api.{ Configuration, Play }
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.{ PlayConfig, Logger, Configuration, Play }
 import play.api.mvc.{ ActionBuilder, Request, Result }
 
 /**
@@ -17,7 +18,7 @@ import play.api.mvc.{ ActionBuilder, Request, Result }
  */
 trait CORSActionBuilder extends ActionBuilder[Request] with AbstractCORSPolicy {
 
-  override protected val logger = Play.logger
+  override protected val logger = Logger.apply(classOf[CORSActionBuilder])
 
   override def invokeBlock[A](request: Request[A], block: Request[A] => Future[Result]): Future[Result] = {
     filterRequest(() => block(request), request)
@@ -62,11 +63,22 @@ object CORSActionBuilder extends CORSActionBuilder {
    *
    * @param  configPath  The path to the subtree of the application configuration.
    */
-  def apply(configPath: String): CORSActionBuilder = new CORSActionBuilder {
-    override protected def corsConfig =
-      CORSConfig.fromConfiguration(
-        Play.maybeApplication.flatMap(
-          _.configuration.getConfig(configPath)).getOrElse(Configuration.empty))
+  def apply(configPath: String): CORSActionBuilder =
+    apply(Play.maybeApplication.map(_.configuration).getOrElse(Configuration.reference), configPath)
+
+  /**
+   * Construct an action builder that uses a subtree of the application configuration.
+   *
+   * @param  configuration  The configuration to load the config from
+   * @param  configPath  The path to the subtree of the application configuration.
+   */
+  def apply(configuration: Configuration, configPath: String): CORSActionBuilder = new CORSActionBuilder {
+    override protected def corsConfig = {
+      val config = PlayConfig(configuration)
+      val prototype = config.get[Config]("play.filters.cors")
+      val corsConfig = PlayConfig(config.get[Config](configPath).withFallback(prototype))
+      CORSConfig.fromUnprefixedConfiguration(corsConfig)
+    }
   }
 
   /**

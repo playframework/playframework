@@ -3,7 +3,9 @@
  */
 package play.filters.cors
 
-import play.api.Configuration
+import play.api.{ PlayConfig, Configuration }
+
+import scala.concurrent.duration._
 
 /**
  * Configuration for [[AbstractCORSPolicy]]
@@ -34,7 +36,7 @@ case class CORSConfig(
   isHttpHeaderAllowed: String => Boolean,
   exposedHeaders: Seq[String],
   supportsCredentials: Boolean,
-  preflightMaxAge: Int)
+  preflightMaxAge: Duration)
 
 /**
  * Helpers to build CORS policy configurations
@@ -53,7 +55,7 @@ object CORSConfig {
       isHttpHeaderAllowed = _ => true,
       exposedHeaders = Seq.empty,
       supportsCredentials = true,
-      preflightMaxAge = 3600)
+      preflightMaxAge = 1.hour)
 
   /**
    *
@@ -66,49 +68,51 @@ object CORSConfig {
       isHttpHeaderAllowed = _ => false,
       exposedHeaders = Seq.empty,
       supportsCredentials = true,
-      preflightMaxAge = 0)
+      preflightMaxAge = 0.seconds)
 
   /**
    * Build a from a [[Configuration]]
    *
    * @example The configuration is as follows:
    * {{{
-   * cors {
-   *     path.prefixes = ["/myresource", ...]  # If left undefined, all paths are filtered
-   *     allowed {
-   *         origins = ["http://...", ...]  # If left undefined, all origins are allowed
-   *         http {
-   *             methods = ["PATCH", ...]  # If left undefined, all methods are allowed
-   *             headers = ["Custom-Header", ...]  # If left undefined, all headers are allowed
-   *         }
-   *     }
-   *     exposed.headers = [...]  # empty by default
-   *     supports.credentials = true  # true by default
-   *     preflight.maxage = 3600  # 3600 by default
+   * play.filters.cors {
+   *     pathPrefixes = ["/myresource", ...]  # ["/"] by default
+   *     allowedOrigins = ["http://...", ...]  # If null, all origins are allowed
+   *     allowedHttpMethods = ["PATCH", ...]  # If null, all methods are allowed
+   *     allowedHttpHeaders = ["Custom-Header", ...]  # If null, all headers are allowed
+   *     exposedHeaders = [...]  # empty by default
+   *     supportsCredentials = true  # true by default
+   *     preflightMaxAge = 1 hour  # 1 hour by default
    * }
    *
    * }}}
    */
   def fromConfiguration(conf: Configuration): CORSConfig = {
-    val origins = conf.getStringSeq("cors.allowed.origins")
+    val config = PlayConfig(conf).get[PlayConfig]("play.filters.cors")
+    fromUnprefixedConfiguration(config)
+  }
+
+  private[cors] def fromUnprefixedConfiguration(config: PlayConfig): CORSConfig = {
+    val origins = config.getOptional[Seq[String]]("allowedOrigins")
     CORSConfig(
       anyOriginAllowed = origins.isEmpty,
       allowedOrigins = origins.map(_.toSet).getOrElse(Set.empty),
       isHttpMethodAllowed =
-        conf.getStringSeq("cors.allowed.http.methods").map { methods =>
+        config.getOptional[Seq[String]]("allowedHttpMethods").map { methods =>
           val s = methods.toSet
           s.contains _
         }.getOrElse(_ => true),
       isHttpHeaderAllowed =
-        conf.getStringSeq("cors.allowed.http.headers").map { headers =>
+        config.getOptional[Seq[String]]("allowedHttpHeaders").map { headers =>
           val s = headers.map(_.toLowerCase).toSet
           s.contains _
         }.getOrElse(_ => true),
       exposedHeaders =
-        conf.getStringSeq("cors.exposed.headers").getOrElse(Seq.empty),
+        config.get[Seq[String]]("exposedHeaders"),
       supportsCredentials =
-        conf.getBoolean("cors.support.credentials").getOrElse(true),
+        config.get[Boolean]("supportsCredentials"),
       preflightMaxAge =
-        conf.getInt("cors.preflight.maxage").getOrElse(3600))
+        config.get[Duration]("preflightMaxAge")
+    )
   }
 }

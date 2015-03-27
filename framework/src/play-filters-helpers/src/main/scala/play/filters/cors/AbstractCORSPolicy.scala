@@ -3,19 +3,19 @@
  */
 package play.filters.cors
 
-import scala.collection
 import scala.collection.immutable
 import scala.concurrent.Future
 
 import java.net.{ URI, URISyntaxException }
 
 import play.api.LoggerLike
-import play.api.http.{ HeaderNames, HttpVerbs, MimeTypes }
+import play.api.http.{ HeaderNames, HttpVerbs }
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc.{ RequestHeader, Results, Result }
 
 /**
- * An abstraction for providing [[Action]]s and [[Filter]]s that support Cross-Origin Resource Sharing (CORS)
+ * An abstraction for providing [[play.api.mvc.Action]]s and [[play.api.mvc.Filter]]s that support Cross-Origin
+ * Resource Sharing (CORS)
  *
  * @see [[http://www.w3.org/TR/cors/ CORS specification]]
  */
@@ -248,8 +248,8 @@ trait AbstractCORSPolicy {
                * Optionally add a single Access-Control-Max-Age header with as value the amount
                * of seconds the user agent is allowed to cache the result of the request.
                */
-              if (corsConfig.preflightMaxAge > 0) {
-                headerBuilder += HeaderNames.ACCESS_CONTROL_MAX_AGE -> corsConfig.preflightMaxAge.toString
+              if (corsConfig.preflightMaxAge.toSeconds > 0) {
+                headerBuilder += HeaderNames.ACCESS_CONTROL_MAX_AGE -> corsConfig.preflightMaxAge.toSeconds.toString
               }
 
               /* http://www.w3.org/TR/cors/#resource-preflight-requests

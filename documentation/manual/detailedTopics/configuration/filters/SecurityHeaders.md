@@ -1,19 +1,24 @@
 <!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Configuring Security Headers
 
-Play provides a security headers filter that can be used to configure some default headers in the HTTP response to mitigate security issues and provide an extra level of defense for new applications..  It can be added to the applications filters using the `Global` object. To enable the security headers filter, add the Play filters helpers dependency to your project in `build.sbt`:
+Play provides a security headers filter that can be used to configure some default headers in the HTTP response to mitigate security issues and provide an extra level of defense for new applications.
 
-```scala
-libraryDependencies += filters
-```
+## Enabling the security headers filter
 
-## Enabling security headers in Scala
+To enable the security headers filter, add the Play filters project to your `libraryDependencies` in `build.sbt`:
+
+@[](filters.sbt)
+
+Now add the security headers filter to your filters, which is typically done by creating a `Filters` class in the root of your project:
+
+Scala
+: @[filters](code/SecurityHeaders.scala)
+Java
+: @[filters](code/detailedtopics/configuration/headers/Filters.java)
+
+## Configuring the security headers
 
 Scaladoc is available in the [play.filters.headers](api/scala/index.html#play.filters.headers.package) package.
-
-The simplest way to enable the `SecurityHeaders` filter in a Scala project is to use the `WithFilters` helper:
-
-@[global](code/SecurityHeaders.scala)
 
 The filter will set headers in the HTTP response automatically.  The settings can can be configured through the following settings in `application.conf`
 
@@ -25,12 +30,6 @@ The filter will set headers in the HTTP response automatically.  The settings ca
 
 > NOTE: Because these are security headers, they are "secure by default."  If the filter is applied, but these fields are NOT defined in Configuration, the defaults on the filter are NOT omitted, but are instead set to the strictest possible value.
 
-The filter can also be configured on a custom basis in code:
+The filter can also be configured on a custom basis in code in Scala:
 
 @[custom-config](code/SecurityHeaders.scala)
-
-## Enabling security headers in Java
-
-To enable security headers in Java, add it to the list of filters in the `Global` object:
-
-@[global](code/detailedtopics/configuration/headers/Global.java)

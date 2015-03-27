@@ -24,7 +24,7 @@ class CORSFilter(
     override protected val corsConfig: CORSConfig,
     private val pathPrefixes: Seq[String]) extends Filter with AbstractCORSPolicy {
 
-  override protected val logger = Logger("play.filters")
+  override protected val logger = Logger(classOf[CORSFilter])
 
   override def apply(f: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
     if (pathPrefixes.exists(request.path startsWith _)) {
@@ -50,18 +50,14 @@ class CORSFilter(
  *
  * @example The configuration is as follows:
  * {{{
- * cors {
- *     path.prefixes = ["/myresource", ...]  # If left undefined, all paths are filtered
- *     allowed {
- *         origins = ["http://...", ...]  # If left undefined, all origins are allowed
- *         http {
- *             methods = ["PATCH", ...]  # If left undefined, all methods are allowed
- *             headers = ["Custom-Header", ...]  # If left undefined, all headers are allowed
- *         }
- *     }
- *     exposed.headers = [...]  # empty by default
- *     supports.credentials = true  # true by default
- *     preflight.maxage = 3600  # 3600 by default
+ * play.filters.cors {
+ *     pathPrefixes = ["/myresource", ...]  # ["/"] by default
+ *     allowedOrigins = ["http://...", ...]  # If null, all origins are allowed
+ *     allowedHttpMethods = ["PATCH", ...]  # If null, all methods are allowed
+ *     allowedHttpHeaders = ["Custom-Header", ...]  # If null, all headers are allowed
+ *     exposedHeaders = [...]  # empty by default
+ *     supportsCredentials = true  # true by default
+ *     preflightMaxAge = 1 hour  # 1 hour by default
  * }
  *
  * }}}
@@ -80,7 +76,7 @@ object CORSFilter extends Filter with AbstractCORSPolicy {
     CORSConfig.fromConfiguration(globalConf)
 
   private def pathPrefixes: Seq[String] =
-    globalConf.getStringSeq("cors.path.prefixes").getOrElse(Seq("/"))
+    globalConf.getStringSeq("play.filters.cors.pathPrefixes").getOrElse(Seq("/"))
 
   override def apply(f: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
     if (pathPrefixes.exists(request.path startsWith _)) {
