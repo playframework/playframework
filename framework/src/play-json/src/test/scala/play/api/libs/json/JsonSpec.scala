@@ -374,11 +374,6 @@ object JsonSpec extends org.specs2.mutable.Specification {
       val stream = new java.io.ByteArrayInputStream(js.toString.getBytes("UTF-8"))
       Json.parse(stream) must beEqualTo(js)
     }
-
-    "throw an exception when stringifying JsUndefined" in {
-      stringify(JsUndefined("test")) must throwA[JsonMappingException]
-      stringify(Json.obj("foo" -> JsUndefined("bar"))) must throwA[JsonMappingException]
-    }
   }
 
   "JSON Writes" should {

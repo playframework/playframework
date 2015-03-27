@@ -21,89 +21,21 @@ case class JsResultException(errors: Seq[(JsPath, Seq[ValidationError])]) extend
 /**
  * Generic json value
  */
-sealed trait JsValue {
-
-  /**
-   * Return the property corresponding to the fieldName, supposing we have a JsObject.
-   *
-   * @param fieldName the name of the property to lookup
-   * @return the resulting JsValue. If the current node is not a JsObject or doesn't have the property, a JsUndefined will be returned.
-   */
-  def \(fieldName: String): JsValue = JsUndefined("'" + fieldName + "'" + " is undefined on object: " + this)
-
-  /**
-   * Return the element at a given index, supposing we have a JsArray.
-   *
-   * @param idx the index to lookup
-   * @return the resulting JsValue. If the current node is not a JsArray or the index is out of bounds, a JsUndefined will be returned.
-   */
-  def apply(idx: Int): JsValue = JsUndefined(this.toString + " is not an array")
-
-  /**
-   * Lookup for fieldName in the current object and all descendants.
-   *
-   * @return the list of matching nodes
-   */
-  def \\(fieldName: String): Seq[JsValue] = Nil
-
-  /**
-   * Tries to convert the node into a T. An implicit Reads[T] must be defined.
-   * Any error is mapped to None
-   *
-   * @return Some[T] if it succeeds, None if it fails.
-   */
-  def asOpt[T](implicit fjs: Reads[T]): Option[T] = fjs.reads(this).fold(
-    invalid = _ => None,
-    valid = v => Some(v)
-  ).filter {
-      case JsUndefined() => false
-      case _ => true
-    }
-
-  /**
-   * Tries to convert the node into a T, throwing an exception if it can't. An implicit Reads[T] must be defined.
-   */
-  def as[T](implicit fjs: Reads[T]): T = fjs.reads(this).fold(
-    valid = identity,
-    invalid = e => throw new JsResultException(e)
-  )
-
-  /**
-   * Tries to convert the node into a JsResult[T] (Success or Error). An implicit Reads[T] must be defined.
-   */
-  def validate[T](implicit rds: Reads[T]): JsResult[T] = rds.reads(this)
-
-  /**
-   * Transforms a JsValue into another JsValue using provided Json transformer Reads[JsValue]
-   */
-  def transform[A <: JsValue](rds: Reads[A]): JsResult[A] = rds.reads(this)
-
+sealed trait JsValue extends JsReadable {
   override def toString = Json.stringify(this)
 
-  /**
-   * Prune the Json AST according to the provided JsPath
-   */
-  //def prune(path: JsPath): JsValue = path.prune(this)
+  def validate[A](implicit rds: Reads[A]) = rds.reads(this)
+}
 
+object JsValue {
+  import scala.language.implicitConversions
+  implicit def jsValueToJsLookup(value: JsValue): JsLookup = JsLookup(JsDefined(value))
 }
 
 /**
  * Represents a Json null value.
  */
 case object JsNull extends JsValue
-
-/**
- * Represent a missing Json value.
- */
-class JsUndefined(err: => String) extends JsValue {
-  def error = err
-  override def toString = "JsUndefined(" + err + ")"
-}
-
-object JsUndefined {
-  def apply(err: => String) = new JsUndefined(err)
-  def unapply(o: Object): Boolean = o.isInstanceOf[JsUndefined]
-}
 
 /**
  * Represent a Json boolean value.
@@ -124,22 +56,6 @@ case class JsString(value: String) extends JsValue
  * Represent a Json array value.
  */
 case class JsArray(value: Seq[JsValue] = List()) extends JsValue {
-
-  /**
-   * Access a value of this array.
-   *
-   * @param index Element index.
-   */
-  override def apply(index: Int): JsValue = {
-    value.lift(index).getOrElse(JsUndefined("Array index out of bounds in " + this))
-  }
-
-  /**
-   * Lookup for fieldName in the current object and all descendants.
-   *
-   * @return the list of matching nodes
-   */
-  override def \\(fieldName: String): Seq[JsValue] = value.flatMap(_ \\ fieldName)
 
   /**
    * Concatenates this array with the elements of an other array.
@@ -167,26 +83,6 @@ case class JsArray(value: Seq[JsValue] = List()) extends JsValue {
 case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
 
   lazy val value: Map[String, JsValue] = fields.toMap
-
-  /**
-   * Return the property corresponding to the fieldName, supposing we have a JsObject.
-   *
-   * @param fieldName the name of the property to lookup
-   * @return the resulting JsValue. If the current node is not a JsObject or doesn't have the property, a JsUndefined will be returned.
-   */
-  override def \(fieldName: String): JsValue = value.getOrElse(fieldName, super.\(fieldName))
-
-  /**
-   * Lookup for fieldName in the current object and all descendants.
-   *
-   * @return the list of matching nodes
-   */
-  override def \\(fieldName: String): Seq[JsValue] = {
-    value.foldLeft(Seq[JsValue]())((o, pair) => pair match {
-      case (key, value) if key == fieldName => o ++ (value +: (value \\ fieldName))
-      case (_, value) => o ++ (value \\ fieldName)
-    })
-  }
 
   /**
    * Return all keys
@@ -285,8 +181,6 @@ private[json] class JsValueSerializer extends JsonSerializer[JsValue] {
         json.writeEndObject()
       }
       case JsNull => json.writeNull()
-      case jsu @ JsUndefined() =>
-        throw new JsonMappingException(s"Cannot serialize $jsu")
     }
   }
 }
