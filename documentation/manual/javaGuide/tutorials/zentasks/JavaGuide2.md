@@ -317,6 +317,7 @@ Now we create a test case that loads this data and runs some assertions over it:
 ```
 
 > You may find it more convenient to load the test data in your `@Before` method, so that the test data is available for every test.
+> Don't forget to do "import com.avaje.ebean.*; import play.libs.*;"
 
 ## Save your work
 
