@@ -148,7 +148,7 @@ trait FiltersSpec extends PlaySpecification with WsTestClient with ServerIntegra
           next(request.copy(headers = addCustomHeader(request.headers)))
         }
         def addCustomHeader(originalHeaders: Headers): Headers = {
-          FakeHeaders(originalHeaders.toMap.toSeq :+ (filterAddedHeaderKey -> Seq(filterAddedHeaderVal)))
+          FakeHeaders(originalHeaders.headers :+ (filterAddedHeaderKey -> filterAddedHeaderVal))
         }
       }) {
         override def onHandlerNotFound(request: RequestHeader) = {
