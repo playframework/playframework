@@ -3,9 +3,12 @@
  */
 package play.filters.headers
 
+import javax.inject.{ Singleton, Inject, Provider }
+
+import play.api.inject.Module
 import play.api.mvc._
 import scala.concurrent.Future
-import play.api.Configuration
+import play.api.{ Environment, PlayConfig, Configuration }
 
 /**
  * This class sets a number of common security headers on the HTTP request.
@@ -35,20 +38,14 @@ object SecurityHeadersFilter {
   val X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER = "X-Permitted-Cross-Domain-Policies"
   val CONTENT_SECURITY_POLICY_HEADER = "Content-Security-Policy"
 
-  val DEFAULT_FRAME_OPTIONS = "DENY"
-  val DEFAULT_XSS_PROTECTION = "1; mode=block"
-  val DEFAULT_CONTENT_TYPE_OPTIONS = "nosniff"
-  val DEFAULT_PERMITTED_CROSS_DOMAIN_POLICIES = "master-only"
-  val DEFAULT_CONTENT_SECURITY_POLICY = "default-src 'self'"
-
   /**
    * Convenience method for creating a SecurityHeadersFilter that reads settings from application.conf.  Generally speaking,
    * you'll want to use this or the apply(SecurityHeadersConfig) method.
    *
    * @return a configured SecurityHeadersFilter.
    */
-  def apply(): SecurityHeadersFilter = {
-    new SecurityHeadersFilter()
+  def apply(config: SecurityHeadersConfig = SecurityHeadersConfig()): SecurityHeadersFilter = {
+    new SecurityHeadersFilter(config)
   }
 
   /**
@@ -58,35 +55,8 @@ object SecurityHeadersFilter {
    * @return a configured SecurityHeadersFilter.
    */
   def apply(config: Configuration): SecurityHeadersFilter = {
-    apply(new SecurityHeadersParser().parse(config))
+    new SecurityHeadersFilter(SecurityHeadersConfig.fromConfiguration(config))
   }
-
-  /**
-   * Convenience method for creating a filter using SecurityHeadersConfig case class.  Use this if you have settings
-   * that you want to specifically turn off by setting to None.
-   *
-   * @param securityHeaderConfig
-   * @return
-   */
-  def apply(securityHeaderConfig: => SecurityHeadersConfig): SecurityHeadersFilter = {
-    new SecurityHeadersFilter(securityHeaderConfig)
-  }
-}
-
-/**
- * SecurityHeaders trait.  The default case class doesn't use it, but if you create a class which may return
- * different values based off the header and the result, this is where to start.
- */
-trait SecurityHeadersConfig {
-  def frameOptions: Option[String]
-
-  def xssProtection: Option[String]
-
-  def contentTypeOptions: Option[String]
-
-  def permittedCrossDomainPolicies: Option[String]
-
-  def contentSecurityPolicy: Option[String]
 }
 
 /**
@@ -98,38 +68,26 @@ trait SecurityHeadersConfig {
  * @param permittedCrossDomainPolicies "X-Permitted-Cross-Domain-Policies".
  * @param contentSecurityPolicy "Content-Security-Policy"
  */
-case class DefaultSecurityHeadersConfig(frameOptions: Option[String],
-  xssProtection: Option[String],
-  contentTypeOptions: Option[String],
-  permittedCrossDomainPolicies: Option[String],
-  contentSecurityPolicy: Option[String]) extends SecurityHeadersConfig
+case class SecurityHeadersConfig(frameOptions: Option[String] = Some("DENY"),
+  xssProtection: Option[String] = Some("1; mode=block"),
+  contentTypeOptions: Option[String] = Some("nosniff"),
+  permittedCrossDomainPolicies: Option[String] = Some("master-only"),
+  contentSecurityPolicy: Option[String] = Some("default-src 'self'"))
 
 /**
  * Parses out a SecurityHeadersConfig from play.api.Configuration (usually this means application.conf).
  */
-class SecurityHeadersParser {
+object SecurityHeadersConfig {
 
-  val FRAME_OPTIONS_CONFIG_PATH: String = "play.filters.headers.frameOptions"
-  val XSS_PROTECTION_CONFIG_PATH: String = "play.filters.headers.xssProtection"
-  val CONTENT_TYPE_OPTIONS_CONFIG_PATH: String = "play.filters.headers.contentTypeOptions"
-  val PERMITTED_CROSS_DOMAIN_POLICIES_CONFIG_PATH: String = "play.filters.headers.permittedCrossDomainPolicies"
-  val CONTENT_SECURITY_POLICY_CONFIG_PATH: String = "play.filters.headers.contentSecurityPolicy"
+  def fromConfiguration(conf: Configuration): SecurityHeadersConfig = {
+    val config = PlayConfig(conf).get[PlayConfig]("play.filters.headers")
 
-  def parse(config: Configuration): SecurityHeadersConfig = {
-    import SecurityHeadersFilter._
-
-    val frameOptions: String = config.getString(FRAME_OPTIONS_CONFIG_PATH).getOrElse(DEFAULT_FRAME_OPTIONS)
-    val xssProtection: String = config.getString(XSS_PROTECTION_CONFIG_PATH).getOrElse(DEFAULT_XSS_PROTECTION)
-    val contentTypeOptions: String = config.getString(CONTENT_TYPE_OPTIONS_CONFIG_PATH).getOrElse(DEFAULT_CONTENT_TYPE_OPTIONS)
-    val permittedCrossDomainPolicies: String = config.getString(PERMITTED_CROSS_DOMAIN_POLICIES_CONFIG_PATH).getOrElse(DEFAULT_PERMITTED_CROSS_DOMAIN_POLICIES)
-    val contentSecurityPolicy: String = config.getString(CONTENT_SECURITY_POLICY_CONFIG_PATH).getOrElse(DEFAULT_CONTENT_SECURITY_POLICY)
-
-    DefaultSecurityHeadersConfig(
-      frameOptions = Option(frameOptions),
-      xssProtection = Option(xssProtection),
-      contentTypeOptions = Option(contentTypeOptions),
-      permittedCrossDomainPolicies = Option(permittedCrossDomainPolicies),
-      contentSecurityPolicy = Option(contentSecurityPolicy))
+    SecurityHeadersConfig(
+      frameOptions = config.getOptional[String]("frameOptions"),
+      xssProtection = config.getOptional[String]("xssProtection"),
+      contentTypeOptions = config.getOptional[String]("contentTypeOptions"),
+      permittedCrossDomainPolicies = config.getOptional[String]("permittedCrossDomainPolicies"),
+      contentSecurityPolicy = config.getOptional[String]("contentSecurityPolicy"))
   }
 }
 
@@ -137,40 +95,51 @@ class SecurityHeadersParser {
  * The case class that implements the filter.  This gives you the most control, but you may want to use the apply()
  * method on the companion singleton for convenience.
  */
-class SecurityHeadersFilter(config: => SecurityHeadersConfig) extends Filter {
+@Singleton
+class SecurityHeadersFilter @Inject() (config: SecurityHeadersConfig) extends EssentialFilter {
+  import SecurityHeadersFilter._
 
-  private lazy val securityHeadersConfig: SecurityHeadersConfig = config
-
-  /**
-   * Zero argument constructor.  This allows the Java GlobalSettings class to call this class and load configured
-   * options from application.conf.
-   *
-   * @return a new configured instance of SecurityHeadersFilter.
-   */
-  def this() = this(new SecurityHeadersParser().parse(play.api.Play.current.configuration))
+  private val headers: Seq[(String, String)] = Seq(
+    config.frameOptions.map(X_FRAME_OPTIONS_HEADER -> _),
+    config.xssProtection.map(X_XSS_PROTECTION_HEADER -> _),
+    config.contentTypeOptions.map(X_CONTENT_TYPE_OPTIONS_HEADER -> _),
+    config.permittedCrossDomainPolicies.map(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER -> _),
+    config.contentSecurityPolicy.map(CONTENT_SECURITY_POLICY_HEADER -> _)
+  ).flatten
 
   /**
    * Applies the filter to an action, appending the headers to the result so it shows in the HTTP response.
-   *
-   * @param f the rawest form of Action.
-   * @param rh the request header.
-   * @return a result with the security headers included, using r.withHeaders.
    */
-  def apply(f: (RequestHeader) => Future[Result])(rh: RequestHeader): Future[Result] = {
+  def apply(next: EssentialAction) = EssentialAction { req =>
     import play.api.libs.concurrent.Execution.Implicits.defaultContext
-    import SecurityHeadersFilter._
-
-    val result = f(rh)
-    result.map {
-      r =>
-        val headers: Seq[(String, String)] = Seq(
-          securityHeadersConfig.frameOptions.map(X_FRAME_OPTIONS_HEADER -> _),
-          securityHeadersConfig.xssProtection.map(X_XSS_PROTECTION_HEADER -> _),
-          securityHeadersConfig.contentTypeOptions.map(X_CONTENT_TYPE_OPTIONS_HEADER -> _),
-          securityHeadersConfig.permittedCrossDomainPolicies.map(X_PERMITTED_CROSS_DOMAIN_POLICIES_HEADER -> _),
-          securityHeadersConfig.contentSecurityPolicy.map(CONTENT_SECURITY_POLICY_HEADER -> _)
-        ).flatten
-        r.withHeaders(headers: _*)
-    }
+    next(req).map(_.withHeaders(headers: _*))
   }
+}
+
+/**
+ * Provider for security headers configuration.
+ */
+@Singleton
+class SecurityHeadersConfigProvider @Inject() (configuration: Configuration) extends Provider[SecurityHeadersConfig] {
+  lazy val get = SecurityHeadersConfig.fromConfiguration(configuration)
+}
+
+/**
+ * The security headers module.
+ */
+class SecurityHeadersModule extends Module {
+  def bindings(environment: Environment, configuration: Configuration) = Seq(
+    bind[SecurityHeadersConfig].toProvider[SecurityHeadersConfigProvider],
+    bind[SecurityHeadersFilter].toSelf
+  )
+}
+
+/**
+ * The security headers components.
+ */
+trait SecurityHeadersComponents {
+  def configuration: Configuration
+
+  lazy val securityHeadersConfig: SecurityHeadersConfig = SecurityHeadersConfig.fromConfiguration(configuration)
+  lazy val securityHeadersFilter: SecurityHeadersFilter = SecurityHeadersFilter(securityHeadersConfig)
 }

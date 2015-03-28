@@ -7,14 +7,19 @@ Play provides a gzip filter that can be used to gzip responses.
 
 To enable the gzip filter, add the Play filters project to your `libraryDependencies` in `build.sbt`:
 
-@[](filters.sbt)
+@[content](code/filters.sbt)
 
 Now add the gzip filter to your filters, which is typically done by creating a `Filters` class in the root of your project:
 
 Scala
 : @[filters](code/GzipEncoding.scala)
+
 Java
 : @[filters](code/detailedtopics/configuration/gzipencoding/Filters.java)
+
+## Configuring the gzip filter
+
+The gzip filter supports a small number of tuning configuration options, which can be configured from `application.conf`.  To see the available configuration options, see the Play filters [`reference.conf`](resources/confs/filters-helpers/reference.conf).
 
 ## Controlling which responses are gzipped
 

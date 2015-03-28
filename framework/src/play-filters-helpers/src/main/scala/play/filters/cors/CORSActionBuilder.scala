@@ -39,9 +39,9 @@ trait CORSActionBuilder extends ActionBuilder[Request] with AbstractCORSPolicy {
  *
  * @example
  * {{{
- * CORSActionBuilder { Ok } // an action that uses the application configuration
+ * CORSActionBuilder(configuration) { Ok } // an action that uses the application configuration
  *
- * CORSActionBuilder("my-conf-path") { Ok } // an action that uses a subtree of the application configuration
+ * CORSActionBuilder(configuration, "my-conf-path") { Ok } // an action that uses a subtree of the application configuration
  *
  * val corsConfig: CORSConfig = ...
  * CORSActionBuilder(conf) { Ok } // an action that uses a locally defined configuration
@@ -50,21 +50,7 @@ trait CORSActionBuilder extends ActionBuilder[Request] with AbstractCORSPolicy {
  * @see [[CORSFilter]]
  * @see [[http://www.w3.org/TR/cors/ CORS specification]]
  */
-object CORSActionBuilder extends CORSActionBuilder {
-
-  private def globalConf =
-    Play.maybeApplication.map(_.configuration).getOrElse(Configuration.empty)
-
-  override protected def corsConfig =
-    CORSConfig.fromConfiguration(globalConf)
-
-  /**
-   * Construct an action builder that uses a subtree of the application configuration.
-   *
-   * @param  configPath  The path to the subtree of the application configuration.
-   */
-  def apply(configPath: String): CORSActionBuilder =
-    apply(Play.maybeApplication.map(_.configuration).getOrElse(Configuration.reference), configPath)
+object CORSActionBuilder {
 
   /**
    * Construct an action builder that uses a subtree of the application configuration.
@@ -72,7 +58,7 @@ object CORSActionBuilder extends CORSActionBuilder {
    * @param  configuration  The configuration to load the config from
    * @param  configPath  The path to the subtree of the application configuration.
    */
-  def apply(configuration: Configuration, configPath: String): CORSActionBuilder = new CORSActionBuilder {
+  def apply(configuration: Configuration, configPath: String = "play.filters.cors"): CORSActionBuilder = new CORSActionBuilder {
     override protected def corsConfig = {
       val config = PlayConfig(configuration)
       val prototype = config.get[Config]("play.filters.cors")

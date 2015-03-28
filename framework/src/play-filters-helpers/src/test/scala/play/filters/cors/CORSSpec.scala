@@ -3,21 +3,34 @@
  */
 package play.filters.cors
 
+import javax.inject.Inject
+
+import play.api.http.HttpFilters
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.routing.Router
+
 import scala.concurrent.Future
 
 import play.api.Configuration
 import play.api.mvc.{ Action, Result, Results }
-import play.api.test.{ WithApplication, FakeRequest, FakeApplication, PlaySpecification }
+import play.api.test.{ FakeRequest, FakeApplication, PlaySpecification }
+import play.api.inject.bind
 
 object CORSFilterSpec extends CORSCommonSpec {
 
+  class Filters @Inject() (corsFilter: CORSFilter) extends HttpFilters {
+    def filters = Seq(corsFilter)
+  }
+
   def withApplication[T](conf: Map[String, _ <: Any] = Map.empty)(block: => T): T = {
-    running(FakeApplication(
-      additionalConfiguration = conf,
-      withRoutes = {
-        case _ => CORSFilter.apply(Action(Results.Ok))
-      }
-    ))(block)
+    running(new GuiceApplicationBuilder()
+      .configure(conf)
+      .overrides(
+        bind[Router].to(Router.from {
+          case _ => Action(Results.Ok)
+        }),
+        bind[HttpFilters].to[Filters]
+      ).build())(block)
   }
 
   "The CORSFilter" should {
@@ -39,17 +52,8 @@ object CORSActionBuilderSpec extends CORSCommonSpec {
 
   def withApplication[T](conf: Map[String, _ <: Any] = Map.empty)(block: => T): T = {
     running(FakeApplication(
-      additionalConfiguration = conf,
       withRoutes = {
-        case _ => CORSActionBuilder(Results.Ok)
-      }
-    ))(block)
-  }
-
-  def withApplicationWithLocallyConfiguredAction[T](conf: Map[String, _ <: Any] = Map.empty)(block: => T): T = {
-    running(FakeApplication(
-      withRoutes = {
-        case _ => CORSActionBuilder(CORSConfig.fromConfiguration(Configuration.reference ++ Configuration.from(conf)))(Results.Ok)
+        case _ => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf))(Results.Ok)
       }
     ))(block)
   }
@@ -58,27 +62,12 @@ object CORSActionBuilderSpec extends CORSCommonSpec {
     running(FakeApplication(
       additionalConfiguration = conf,
       withRoutes = {
-        case _ => CORSActionBuilder(configPath)(Results.Ok)
+        case _ => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf), configPath)(Results.Ok)
       }
     ))(block)
   }
 
   "The CORSActionBuilder with" should {
-
-    val restrictOriginsLocalConf = Map("play.filters.cors.allowedOrigins" -> Seq("http://example.org", "http://localhost:9000"))
-
-    "handle a cors request with a local configuration" in withApplicationWithLocallyConfiguredAction(conf = restrictOriginsLocalConf) {
-      val result = route(FakeRequest().withHeaders(ORIGIN -> "http://localhost:9000")).get
-
-      status(result) must_== OK
-      header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beSome("true")
-      header(ACCESS_CONTROL_ALLOW_HEADERS, result) must beNone
-      header(ACCESS_CONTROL_ALLOW_METHODS, result) must beNone
-      header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://localhost:9000")
-      header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beNone
-      header(ACCESS_CONTROL_MAX_AGE, result) must beNone
-      header(VARY, result) must beSome(ORIGIN)
-    }
 
     val restrictOriginsPathConf = Map("myaction.allowedOrigins" -> Seq("http://example.org", "http://localhost:9000"))
 

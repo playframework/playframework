@@ -18,7 +18,6 @@ object GzipEncoding extends PlaySpecification {
   }
   //#filters
 
-
   "gzip filter" should {
 
     "allow custom strategies for when to gzip" in {

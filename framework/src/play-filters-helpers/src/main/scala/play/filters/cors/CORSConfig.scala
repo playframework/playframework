@@ -30,32 +30,18 @@ import scala.concurrent.duration._
  *
  */
 case class CORSConfig(
-  anyOriginAllowed: Boolean,
-  allowedOrigins: Set[String],
-  isHttpMethodAllowed: String => Boolean,
-  isHttpHeaderAllowed: String => Boolean,
-  exposedHeaders: Seq[String],
-  supportsCredentials: Boolean,
-  preflightMaxAge: Duration)
+  anyOriginAllowed: Boolean = true,
+  allowedOrigins: Set[String] = Set.empty,
+  isHttpMethodAllowed: String => Boolean = _ => true,
+  isHttpHeaderAllowed: String => Boolean = _ => true,
+  exposedHeaders: Seq[String] = Seq.empty,
+  supportsCredentials: Boolean = true,
+  preflightMaxAge: Duration = 1.hour)
 
 /**
  * Helpers to build CORS policy configurations
  */
 object CORSConfig {
-
-  /**
-   * A permissive default
-   *
-   */
-  val default: CORSConfig =
-    CORSConfig(
-      anyOriginAllowed = true,
-      allowedOrigins = Set.empty,
-      isHttpMethodAllowed = _ => true,
-      isHttpHeaderAllowed = _ => true,
-      exposedHeaders = Seq.empty,
-      supportsCredentials = true,
-      preflightMaxAge = 1.hour)
 
   /**
    *

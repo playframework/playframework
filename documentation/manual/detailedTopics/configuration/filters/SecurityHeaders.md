@@ -7,12 +7,13 @@ Play provides a security headers filter that can be used to configure some defau
 
 To enable the security headers filter, add the Play filters project to your `libraryDependencies` in `build.sbt`:
 
-@[](filters.sbt)
+@[content](code/filters.sbt)
 
 Now add the security headers filter to your filters, which is typically done by creating a `Filters` class in the root of your project:
 
 Scala
 : @[filters](code/SecurityHeaders.scala)
+
 Java
 : @[filters](code/detailedtopics/configuration/headers/Filters.java)
 
@@ -28,8 +29,8 @@ The filter will set headers in the HTTP response automatically.  The settings ca
 * `play.filters.headers.permittedCrossDomainPolicies` - sets <a href="http://www.adobe.com/devnet/articles/crossdomain_policy_file_spec.html">X-Permitted-Cross-Domain-Policies</a>, "master-only" by default.
 * `play.filters.headers.contentSecurityPolicy` - sets <a href="http://www.html5rocks.com/en/tutorials/security/content-security-policy/">Content-Security-Policy</a>, "default-src 'self'" by default.
 
-> NOTE: Because these are security headers, they are "secure by default."  If the filter is applied, but these fields are NOT defined in Configuration, the defaults on the filter are NOT omitted, but are instead set to the strictest possible value.
+Any of the headers can be disabled by setting a configuration value of `null`, for example:
 
-The filter can also be configured on a custom basis in code in Scala:
+    play.filters.headers.frameOptions = null
 
-@[custom-config](code/SecurityHeaders.scala)
+For a full listing of configuration options, see the Play filters [`reference.conf`](resources/confs/filters-helpers/reference.conf).

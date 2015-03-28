@@ -8,12 +8,13 @@ CORS is a protocol that allows web applications to make requests from the browse
 
 To enable the CORS filter, add the Play filters project to your `libraryDependencies` in `build.sbt`:
 
-@[](filters.sbt)
+@[content](code/filters.sbt)
 
 Now add the CORS filter to your filters, which is typically done by creating a `Filters` class in the root of your project:
 
 Scala
 : @[filters](code/CorsFilter.scala)
+
 Java
 : @[filters](code/detailedtopics/configuration/cors/Filters.java)
 
