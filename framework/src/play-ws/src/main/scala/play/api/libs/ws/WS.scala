@@ -5,6 +5,7 @@ package play.api.libs.ws
 
 import java.net.URI
 
+import scala.concurrent.duration.Duration
 import scala.concurrent.{ Future, ExecutionContext }
 
 import java.io.File
