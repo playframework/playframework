@@ -23,11 +23,31 @@ Regular expressions are also supported, by postfixing the parameter with a regul
 
 @[regexp](code/ScalaSirdRouter.scala)
 
+Query parameters can also be extracted, using the `?` operator to do further extractions on the request, and using the `q` extractor:
+
+@[required](code/ScalaSirdRouter.scala)
+
+While `q` extracts a required query parameter as a `String`, `q_?` or `q_o` if using Scala 2.10 extracts an optional query parameter as `Option[String]`:
+
+@[optional](code/ScalaSirdRouter.scala)
+
+Likewise, `q_*` or `q_s` can be used to extract a sequence of multi valued query parameters:
+
+@[many](code/ScalaSirdRouter.scala)
+
+Multiple query parameters can be extracted using the `&` operator:
+
+@[multiple](code/ScalaSirdRouter.scala)
+
 Since sird is just a regular extractor object (built by string interpolation), it can be combined with any other extractor object, including extracting its sub parameters even further.  Sird provides some useful extractors for some of the most common types out of the box, namely `int`, `long`, `float`, `double` and `bool`:
 
 @[int](code/ScalaSirdRouter.scala)
 
 In the above, `id` is of type `Int`.  If the `int` extractor failed to match, then of course, the whole pattern will fail to match.
+
+Similarly, the same extractors can be used with query string parameters, including multi value and optional query parameters.  In the case of optional or multi value query parameters, the match will fail if any of the values present can't be bound to the type, but no parameters present doesn't cause the match to fail:
+
+@[query-int](code/ScalaSirdRouter.scala)
 
 To further the point that these are just regular extractor objects, you can see here that you can use all other features of a `case` statement, including `@` syntax and if statements:
 

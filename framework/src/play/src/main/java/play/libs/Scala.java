@@ -115,7 +115,7 @@ public class Scala {
      * None
      */
     public static <T> scala.Option<T> None() {
-        return scala.Option.apply(null);
+        return (scala.Option<T>) scala.None$.MODULE$;
     }
 
     /**

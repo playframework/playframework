@@ -194,10 +194,10 @@ This is important in a couple of cases.  WS has a couple of limitations that req
 
 Use the following properties in `application.conf` to configure the WS client:
 
-* `ws.followRedirects`: Configures the client to follow 301 and 302 redirects *(default is **true**)*.
-* `ws.useProxyProperties`: To use the system http proxy settings(http.proxyHost, http.proxyPort) *(default is **true**)*. 
-* `ws.useragent`: To configure the User-Agent header field.
-* `ws.compressionEnabled`: Set it to true to use gzip/deflater encoding *(default is **false**)*.
+* `play.ws.followRedirects`: Configures the client to follow 301 and 302 redirects *(default is **true**)*.
+* `play.ws.useProxyProperties`: To use the system http proxy settings(http.proxyHost, http.proxyPort) *(default is **true**)*.
+* `play.ws.useragent`: To configure the User-Agent header field.
+* `play.ws.compressionEnabled`: Set it to true to use gzip/deflater encoding *(default is **false**)*.
 
 ### Configuring WS with SSL
 
@@ -207,9 +207,9 @@ To configure WS for use with HTTP over SSL/TLS (HTTPS), please see [[Configuring
 
 There are 3 different timeouts in WS. Reaching a timeout causes the WS request to interrupt.
 
-* `ws.timeout.connection`: The maximum time to wait when connecting to the remote host *(default is **120 seconds**)*.
-* `ws.timeout.idle`: The maximum time the request can stay idle (connection is established but waiting for more data) *(default is **120 seconds**)*.
-* `ws.timeout.request`: The total time you accept a request to take (it will be interrupted even if the remote host is still sending data) *(default is **none**, to allow stream consuming)*.
+* `play.ws.timeout.connection`: The maximum time to wait when connecting to the remote host *(default is **120 seconds**)*.
+* `play.ws.timeout.idle`: The maximum time the request can stay idle (connection is established but waiting for more data) *(default is **120 seconds**)*.
+* `play.ws.timeout.request`: The total time you accept a request to take (it will be interrupted even if the remote host is still sending data) *(default is **120 seconds**)*.
 
 The request timeout can be overridden for a specific connection with `withRequestTimeout()` (see "Making a Request" section).
 
@@ -218,14 +218,11 @@ The request timeout can be overridden for a specific connection with `withReques
 The following advanced settings can be configured on the underlying AsyncHttpClientConfig.
 Please refer to the [AsyncHttpClientConfig Documentation](http://asynchttpclient.github.io/async-http-client/apidocs/com/ning/http/client/AsyncHttpClientConfig.Builder.html) for more information.
 
-* `ws.ning.allowPoolingConnection`
-* `ws.ning.allowSslConnectionPool`
-* `ws.ning.ioThreadMultiplier`
-* `ws.ning.maximumConnectionsPerHost`
-* `ws.ning.maximumConnectionsTotal`
-* `ws.ning.maximumNumberOfRedirects`
-* `ws.ning.maxRequestRetry`
-* `ws.ning.removeQueryParamsOnRedirect`
-* `ws.ning.requestCompressionLevel`
-* `ws.ning.useRawUrl`
-
+* `play.ws.ning.allowPoolingConnection`
+* `play.ws.ning.allowSslConnectionPool`
+* `play.ws.ning.ioThreadMultiplier`
+* `play.ws.ning.maxConnectionsPerHost`
+* `play.ws.ning.maxConnectionsTotal`
+* `play.ws.ning.maxNumberOfRedirects`
+* `play.ws.ning.maxRequestRetry`
+* `play.ws.ning.disableUrlEncoding`

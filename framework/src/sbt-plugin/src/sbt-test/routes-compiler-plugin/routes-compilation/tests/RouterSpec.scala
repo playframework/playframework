@@ -45,7 +45,7 @@ object RouterSpec extends PlaySpecification {
     }
     "from a list of numbers and letters" in new WithApplication() {
       val Some(result) = route(FakeRequest(GET, "/take-list?x=1&x=a&x=2"))
-      contentAsString(result) must equalTo("1,2")
+      status(result) must equalTo(BAD_REQUEST)
     }
     "when there is no parameter at all" in new WithApplication() {
       val Some(result) = route(FakeRequest(GET, "/take-list"))
@@ -101,14 +101,14 @@ object RouterSpec extends PlaySpecification {
 
   "allow reverse routing of routes includes" in new WithApplication() {
     // Force the router to bootstrap the prefix
-    app.routes
+    app.injector.instanceOf[play.api.routing.Router]
     controllers.module.routes.ModuleController.index().url must_== "/module/index"
   }
 
   "document the router" in new WithApplication() {
     // The purpose of this test is to alert anyone that changes the format of the router documentation that
     // it is being used by Swagger. So if you do change it, please let Tony Tam know at tony at wordnik dot com.
-    val someRoute = app.routes.documentation.find(r => r._1 == "GET" && r._2.startsWith("/with/"))
+    val someRoute = app.injector.instanceOf[play.api.routing.Router].documentation.find(r => r._1 == "GET" && r._2.startsWith("/with/"))
     someRoute must beSome[(String, String, String)]
     val route = someRoute.get
     route._2 must_== "/with/$param<[^/]+>"

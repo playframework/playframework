@@ -182,7 +182,7 @@ object FormSpec extends Specification {
 
   def dummyRequest(data: Map[String, Array[String]]): Request = {
     new RequestBuilder()
-      .url("http://localhost/test")
+      .uri("http://localhost/test")
       .bodyFormArrayValues(data.asJava)
       .build()
   }

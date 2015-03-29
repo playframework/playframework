@@ -23,6 +23,7 @@ import org.openqa.selenium.htmlunit.*;
 
 
 import java.util.*;
+import java.util.concurrent.Callable;
 
 import static play.mvc.Http.*;
 
@@ -58,7 +59,8 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
 
-    /** Default Timeout (milliseconds) for fake requests issued by these Helpers.
+    /**
+     * Default Timeout (milliseconds) for fake requests issued by these Helpers.
      * This value is determined from System property <b>test.timeout</b>.
      * The default value is <b>30000</b> (30 seconds).
      */
@@ -80,25 +82,17 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     // --
 
     /**
-     * Call an action method while decorating it with the right @With interceptors.
+     * Calls a Callable which invokes a Controller or some other method with a Context
      */
-    public static Result callAction(HandlerRef actionReference) {
-        return callAction(actionReference, DEFAULT_TIMEOUT);
-    }
-
-    public static Result callAction(HandlerRef actionReference, long timeout) {
-        return callAction(actionReference, fakeRequest(), timeout);
-    }
-
-    /**
-     * Call an action method while decorating it with the right @With interceptors.
-     */
-    public static Result callAction(HandlerRef actionReference, RequestBuilder requestBuilder) {
-        return callAction(actionReference, requestBuilder, DEFAULT_TIMEOUT);
-    }
-
-    public static Result callAction(HandlerRef actionReference, RequestBuilder requestBuilder, long timeout) {
-        return invokeHandler(actionReference.handler(), requestBuilder.build(), timeout);
+    public <V> V invokeWithContext(RequestBuilder requestBuilder, Callable<V> callable) {
+      try {
+        Context.current.set(new Context(requestBuilder));
+        return callable.call();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      } finally {
+        Context.current.remove();
+      }
     }
 
     /**
@@ -112,10 +106,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
      * Build a new fake request.
      */
     public static RequestBuilder fakeRequest(String method, String uri) {
-        if (uri.startsWith("/")) {
-          uri = "http://localhost" + uri;
-        }
-        return new RequestBuilder().method(method).url(uri);
+        return new RequestBuilder().method(method).uri(uri);
     }
 
     /**
@@ -211,71 +202,81 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * Extracts the Status code of this Result value.
+     * @deprecated use {@link Result#status()} instead.  
      */
+    @Deprecated
     public static int status(Result result) {
         return result.toScala().header().status();
     }
 
     /**
-     * Extracts the Location header of this Result value if this Result is a Redirect.
+     * @deprecated use {@link Result#redirectLocation()} instead.  
      */
+    @Deprecated
     public static String redirectLocation(Result result) {
         return header(LOCATION, result);
     }
 
     /**
-     * Extracts the Flash values of this Result value.
+     * @deprecated use {@link Result#flash()} instead.  
      */
+    @Deprecated
     public static Flash flash(Result result) {
         return JavaResultExtractor.getFlash(result);
     }
 
     /**
-     * Extracts the Session of this Result value.
+     * @deprecated use {@link Result#session()} instead.  
      */
+    @Deprecated
     public static Session session(Result result) {
         return JavaResultExtractor.getSession(result);
     }
 
     /**
-     * Extracts a Cookie value from this Result value
+     * @deprecated use {@link Result#cookie(String)} instead.  
      */
+    @Deprecated
     public static Cookie cookie(String name, Result result) {
         return JavaResultExtractor.getCookies(result).get(name);
     }
 
     /**
-     * Extracts the Cookies (an iterator) from this result value.
+     * @deprecated use {@link Result#cookies()} instead.  
      */
+    @Deprecated
     public static Cookies cookies(Result result) {
         return play.core.j.JavaResultExtractor.getCookies(result);
     }
 
     /**
-     * Extracts an Header value of this Result value.
+     * @deprecated use {@link Result#header(String)} instead.  
      */
+    @Deprecated
     public static String header(String header, Result result) {
         return JavaResultExtractor.getHeaders(result).get(header);
     }
 
     /**
-     * Extracts all Headers of this Result value.
+     * @deprecated use {@link Result#headers()} instead.  
      */
+    @Deprecated
     public static Map<String, String> headers(Result result) {
         return JavaResultExtractor.getHeaders(result);
     }
 
     /**
-     * Extracts the Content-Type of this Content value.
+     * @deprecated use {@link Result#contentType()} instead.  
      */
+    @Deprecated
     public static String contentType(Content content) {
         return content.contentType();
     }
 
     /**
-     * Extracts the Content-Type of this Result value.
+     * @deprecated use {@link Result#contentType()} instead.  
      */
+    @Deprecated
     public static String contentType(Result result) {
         String h = header(CONTENT_TYPE, result);
         if(h == null) return null;
@@ -287,8 +288,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * Extracts the Charset of this Result value.
+     * @deprecated use {@link Result#charset()} instead.  
      */
+    @Deprecated
     public static String charset(Result result) {
         String h = header(CONTENT_TYPE, result);
         if(h == null) return null;
@@ -391,6 +393,22 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
         }
     }
 
+    public static Result route(Call call) {
+      return route(fakeRequest(call));
+    }
+
+    public static Result route(Call call, long timeout) {
+      return route(fakeRequest(call), timeout);
+    }
+
+    public static Result route(Application app, Call call) {
+      return route(app, fakeRequest(call));
+    }
+
+    public static Result route(Application app, Call call, long timeout) {
+      return route(app, fakeRequest(call), timeout);
+    }
+
     public static Result route(RequestBuilder requestBuilder) {
       return route(requestBuilder, DEFAULT_TIMEOUT);
     }
@@ -405,22 +423,27 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
 
     @SuppressWarnings("unchecked")
     public static Result route(Application app, RequestBuilder requestBuilder, long timeout) {
-      final scala.Option<scala.concurrent.Future<play.api.mvc.Result>> opt = play.api.test.Helpers.jRoute(app.getWrappedApplication(), requestBuilder.build()._underlyingRequest());
+      final scala.Option<scala.concurrent.Future<play.api.mvc.Result>> opt = play.api.test.Helpers.jRoute(
+          app.getWrappedApplication(), requestBuilder.build()._underlyingRequest(), requestBuilder.bodyAsAnyContent());
       return wrapScalaResult(Scala.orNull(opt), timeout);
     }
 
+    @Deprecated
     public static Result route(Application app, RequestBuilder requestBuilder, byte[] body) {
       return route(app, requestBuilder, body, DEFAULT_TIMEOUT);
     }
 
+    @Deprecated
     public static Result route(Application app, RequestBuilder requestBuilder, byte[] body, long timeout) {
       return wrapScalaResult(Scala.orNull(play.api.test.Helpers.jRoute(app.getWrappedApplication(), requestBuilder.build()._underlyingRequest(), body)), timeout);
     }
 
+    @Deprecated
     public static Result route(RequestBuilder requestBuilder, byte[] body) {
       return route(requestBuilder, body, DEFAULT_TIMEOUT);
     }
 
+    @Deprecated
     public static Result route(RequestBuilder requestBuilder, byte[] body, long timeout) {
       return route(play.Play.application(), requestBuilder, body, timeout);
     }
@@ -428,28 +451,27 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Starts a new application.
      */
-    public static void start(Application fakeApplication) {
-
-        play.api.Play.start(fakeApplication.getWrappedApplication());
+    public static void start(Application application) {
+        play.api.Play.start(application.getWrappedApplication());
     }
 
     /**
      * Stops an application.
      */
-    public static void stop(Application fakeApplication) {
-        play.api.Play.stop(fakeApplication.getWrappedApplication());
+    public static void stop(Application application) {
+        play.api.Play.stop(application.getWrappedApplication());
     }
 
     /**
      * Executes a block of code in a running application.
      */
-    public static void running(Application fakeApplication, final Runnable block) {
+    public static void running(Application application, final Runnable block) {
         synchronized (PlayRunners$.MODULE$.mutex()) {
             try {
-                start(fakeApplication);
+                start(application);
                 block.run();
             } finally {
-                stop(fakeApplication);
+                stop(application);
             }
         }
     }

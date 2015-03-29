@@ -9,7 +9,7 @@ import play.api.i18n.{DefaultLangs, DefaultMessagesApi, Messages}
 
 object ScalaFieldConstructorSpec extends Specification {
 
-  val conf = Configuration.empty
+  val conf = Configuration.reference
   implicit val messages: Messages = new DefaultMessagesApi(Environment.simple(), conf, new DefaultLangs(conf)).preferred(Seq.empty)
 
   "field constructors" should {

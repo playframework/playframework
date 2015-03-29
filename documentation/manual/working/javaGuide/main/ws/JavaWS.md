@@ -2,7 +2,7 @@
 
 Sometimes we would like to call other HTTP services from within a Play application. Play supports this via its [WS library](api/java/play/libs/ws/package-summary.html), which provides a way to make asynchronous HTTP calls.
 
-There are two important parts to using the WS API: making a request, and processing the response.  We'll discuss how to make both GET and POST HTTP requests first, and then show how to process the response from WS.  Finally, we'll discuss some common use cases.
+There are two important parts to using the WS API: making a request, and processing the response. We'll discuss how to make both GET and POST HTTP requests first, and then show how to process the response from the WS. Finally, we'll discuss some common use cases.
 
 ## Making a Request
 
@@ -150,21 +150,37 @@ This is important in a couple of cases.  WS has a couple of limitations that req
 
 Use the following properties in `application.conf` to configure the WS client:
 
-* `ws.followRedirects`: Configures the client to follow 301 and 302 redirects *(default is **true**)*.
-* `ws.useProxyProperties`: To use the system http proxy settings(http.proxyHost, http.proxyPort) *(default is **true**)*. 
-* `ws.useragent`: To configure the User-Agent header field.
-* `ws.compressionEnabled`: Set it to true to use gzip/deflater encoding *(default is **false**)*.
+* `play.ws.followRedirects`: Configures the client to follow 301 and 302 redirects *(default is **true**)*.
+* `play.ws.useProxyProperties`: To use the system http proxy settings(http.proxyHost, http.proxyPort) *(default is **true**)*.
+* `play.ws.useragent`: To configure the User-Agent header field.
+* `play.ws.compressionEnabled`: Set it to true to use gzip/deflater encoding *(default is **false**)*.
 
 ### Timeouts
 
 There are 3 different timeouts in WS. Reaching a timeout causes the WS request to interrupt.
 
-* `ws.timeout.connection`: The maximum time to wait when connecting to the remote host *(default is **120 seconds**)*.
-* `ws.timeout.idle`: The maximum time the request can stay idle (connection is established but waiting for more data) *(default is **120 seconds**)*.
-* `ws.timeout.request`: The total time you accept a request to take (it will be interrupted even if the remote host is still sending data) *(default is **none**, to allow stream consuming)*.
+* `play.ws.timeout.connection`: The maximum time to wait when connecting to the remote host *(default is **120 seconds**)*.
+* `play.ws.timeout.idle`: The maximum time the request can stay idle (connection is established but waiting for more data) *(default is **120 seconds**)*.
+* `play.ws.timeout.request`: The total time you accept a request to take (it will be interrupted even if the remote host is still sending data) *(default is **120 seconds**)*.
 
 The request timeout can be overridden for a specific connection with `setTimeout()` (see "Making a Request" section).
 
 ## Configuring WS with SSL
 
 To configure WS for use with HTTP over SSL/TLS (HTTPS), please see [[Configuring WS SSL|WsSSL]].
+
+### Configuring AsyncClientConfig
+
+The following advanced settings can be configured on the underlying AsyncHttpClientConfig.
+Please refer to the [AsyncHttpClientConfig Documentation](http://asynchttpclient.github.io/async-http-client/apidocs/com/ning/http/client/AsyncHttpClientConfig.Builder.html) for more information.
+
+* `play.ws.ning.allowPoolingConnection`
+* `play.ws.ning.allowSslConnectionPool`
+* `play.ws.ning.ioThreadMultiplier`
+* `play.ws.ning.maxConnectionsPerHost`
+* `play.ws.ning.maxConnectionsTotal`
+* `play.ws.ning.maxNumberOfRedirects`
+* `play.ws.ning.maxRequestRetry`
+* `play.ws.ning.removeQueryParamsOnRedirect`
+* `play.ws.ning.useRawUrl`
+

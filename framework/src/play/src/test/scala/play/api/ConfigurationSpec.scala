@@ -3,6 +3,7 @@
  */
 package play.api
 
+import com.typesafe.config.ConfigException
 import org.specs2.mutable.Specification
 
 object ConfigurationSpec extends Specification {
@@ -28,15 +29,16 @@ object ConfigurationSpec extends Specification {
 
     "be accessible as an entry set" in {
       val map = Map(exampleConfig.entrySet.toList: _*)
-      map.keySet must contain(exactly("foo.bar1", "foo.bar2", "blah.\"0\"", "blah.\"1\"", "blah.\"2\"", "blah.\"3\"", "blah.\"4\"", "blah2.blah3.blah4"))
+      map.keySet must contain(allOf("foo.bar1", "foo.bar2", "blah.0", "blah.1", "blah.2", "blah.3", "blah.4", "blah2.blah3.blah4"))
     }
 
     "make all paths accessible" in {
-      exampleConfig.keys must contain(exactly("foo.bar1", "foo.bar2", "blah.\"0\"", "blah.\"1\"", "blah.\"2\"", "blah.\"3\"", "blah.\"4\"", "blah2.blah3.blah4"))
+      exampleConfig.keys must contain(allOf("foo.bar1", "foo.bar2", "blah.0", "blah.1", "blah.2", "blah.3", "blah.4", "blah2.blah3.blah4"))
     }
 
     "make all sub keys accessible" in {
-      exampleConfig.subKeys must contain(exactly("foo", "blah", "blah2"))
+      exampleConfig.subKeys must contain(allOf("foo", "blah", "blah2"))
+      exampleConfig.subKeys must not(contain(anyOf("foo.bar1", "foo.bar2", "blah.0", "blah.1", "blah.2", "blah.3", "blah.4", "blah2.blah3.blah4")))
     }
 
     "make all get accessible using scala" in {
@@ -47,6 +49,45 @@ object ConfigurationSpec extends Specification {
       exampleConfig.getStringSeq("blah.4").get must contain(exactly("one", "two", "three"))
     }
 
+  }
+
+}
+
+object PlayConfigSpec extends Specification {
+
+  def config(data: (String, Any)*) = PlayConfig(Configuration.from(data.toMap))
+
+  "PlayConfig" should {
+    "support getting optional values" in {
+      "when null" in {
+        config("foo.bar" -> null).getOptional[String]("foo.bar") must beNone
+      }
+      "when set" in {
+        config("foo.bar" -> "bar").getOptional[String]("foo.bar") must beSome("bar")
+      }
+      "when undefined" in {
+        config().getOptional[String]("foo.bar") must throwA[ConfigException.Missing]
+      }
+    }
+    "support getting prototyped seqs" in {
+      val seq = config(
+        "bars" -> Seq(Map("a" -> "different a")),
+        "prototype.bars" -> Map("a" -> "some a", "b" -> "some b")
+      ).getPrototypedSeq("bars")
+      seq must haveSize(1)
+      seq.head.get[String]("a") must_== "different a"
+      seq.head.get[String]("b") must_== "some b"
+    }
+    "support getting prototyped maps" in {
+      val map = config(
+        "bars" -> Map("foo" -> Map("a" -> "different a")),
+        "prototype.bars" -> Map("a" -> "some a", "b" -> "some b")
+      ).getPrototypedMap("bars")
+      map must haveSize(1)
+      val foo = map("foo")
+      foo.get[String]("a") must_== "different a"
+      foo.get[String]("b") must_== "some b"
+    }
   }
 
 }

@@ -3,7 +3,6 @@
  */
 package play.api.libs
 
-import java.nio.{ ByteOrder, ByteBuffer }
 import java.security.{ MessageDigest, SecureRandom }
 import javax.crypto._
 import javax.crypto.spec.{ IvParameterSpec, SecretKeySpec }
@@ -203,6 +202,8 @@ class CryptoConfigParser @Inject() (environment: Environment, configuration: Con
 
   lazy val get = {
 
+    val config = PlayConfig(configuration)
+
     /*
      * The Play secret.
      *
@@ -228,7 +229,7 @@ class CryptoConfigParser @Inject() (environment: Environment, configuration: Con
      *
      * To achieve 4, using the location of application.conf to generate the secret should ensure this.
      */
-    val secret = configuration.getString("application.secret") match {
+    val secret = config.getOptionalDeprecated[String]("play.crypto.secret", "application.secret") match {
       case (Some("changeme") | Some(Blank()) | None) if environment.mode == Mode.Prod =>
         logger.error("The application secret has not been set, and we are in prod mode. Your application is not secure.")
         logger.error("To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret")
@@ -246,8 +247,8 @@ class CryptoConfigParser @Inject() (environment: Environment, configuration: Con
       case Some(s) => s
     }
 
-    val provider = configuration.getString("play.crypto.provider")
-    val transformation = configuration.underlying.getString("play.crypto.aes.transformation")
+    val provider = config.getOptional[String]("play.crypto.provider")
+    val transformation = config.get[String]("play.crypto.aes.transformation")
 
     CryptoConfig(secret, provider, transformation)
   }

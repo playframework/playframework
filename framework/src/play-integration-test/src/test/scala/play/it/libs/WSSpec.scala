@@ -3,6 +3,8 @@
  */
 package play.it.libs
 
+import com.ning.http.client.{ RequestBuilderBase, SignatureCalculator }
+import play.api.libs.oauth._
 import play.it.tools.HttpBinApplication
 
 import play.api.test._
@@ -16,9 +18,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import java.io.IOException
 
 object NettyWSSpec extends WSSpec with NettyIntegrationSpecification
+
 object AkkaHttpWSSpec extends WSSpec with AkkaHttpIntegrationSpecification
 
-trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
+trait WSSpec extends PlaySpecification with ServerIntegrationSpecification with WsTestClient {
 
   "Web service client" title
 
@@ -28,18 +31,22 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
 
   def withServer[T](block: Port => T) = {
     val port = testServerPort
-    running(TestServer(port, app)) { block(port) }
+    running(TestServer(port, app)) {
+      block(port)
+    }
   }
 
   def withResult[T](result: Result)(block: Port => T) = {
     val port = testServerPort
     running(TestServer(port, FakeApplication(withRoutes = {
       case _ => Action(result)
-    }))) { block(port) }
+    }))) {
+      block(port)
+    }
   }
 
   "WS@java" should {
-    import play.libs.ws.{ WS, WSRequest, WSSignatureCalculator }
+    import play.libs.ws.{ WS, WSSignatureCalculator }
 
     "make GET Requests" in withServer { port =>
       val req = WS.url(s"http://localhost:$port/get").get
@@ -91,20 +98,29 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
         bar.asJson.path("args").path("foo").textValue() must_== "bar")
     }
 
-    "not throw an exception while signing requests" in withServer { _ =>
-      object CustomSigner extends WSSignatureCalculator {
-        override def sign(request: WSRequest): Unit = {
-          val url = request.getUrl
-        }
+    class CustomSigner extends WSSignatureCalculator with com.ning.http.client.SignatureCalculator {
+      def calculateAndAddSignature(request: com.ning.http.client.Request, requestBuilder: com.ning.http.client.RequestBuilderBase[_]) = {
+        // do nothing
       }
+    }
 
-      WS.url("http://localhost").sign(CustomSigner).
+    "not throw an exception while signing requests" in withServer { _ =>
+      val key = "12234"
+      val secret = "asbcdef"
+      val token = "token"
+      val tokenSecret = "tokenSecret"
+      (ConsumerKey(key, secret), RequestToken(token, tokenSecret))
+
+      val calc: WSSignatureCalculator = new CustomSigner
+
+      WS.url("http://localhost").sign(calc).
         aka("signed request") must not(throwA[Exception])
     }
   }
 
   "WS@scala" should {
-    import play.api.libs.ws.{ WS, WSSignatureCalculator, WSRequest }
+    import play.api.libs.ws.WS
+    import play.api.libs.ws.WSSignatureCalculator
     import play.api.Play.current
 
     "make GET Requests" in withServer { port =>
@@ -158,29 +174,35 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification {
         case i if i < 3 => Some((i + 1, "chunk".getBytes("utf-8")))
         case _ => throw new Exception()
       } &> slow(50)).withHeaders("Content-Length" -> "100000")) { port =>
+        // Use specially configured test client that doesn't
+        // retry so we don't spam the console with errors.
+        withClient { ws =>
+          val res = ws.url(s"http://localhost:$port/get").stream()
+          val (_, body) = await(res)
 
-        val res = WS.url(s"http://localhost:$port/get").stream()
-        val (_, body) = await(res)
+          await(body |>>> Iteratee.consume[Array[Byte]]()).
+            aka("streamed response") must throwAn[IOException]
 
-        await(body |>>> Iteratee.consume[Array[Byte]]()).
-          aka("streamed response") must throwAn[IOException]
-      }.skipUntilAkkaHttpFixed
-
-    "not throw an exception while signing requests" >> {
-      object CustomSigner extends WSSignatureCalculator {
-        override def sign(request: WSRequest): Unit = {
-          val queryString = request.queryString
         }
       }
 
+    class CustomSigner extends WSSignatureCalculator with SignatureCalculator {
+      def calculateAndAddSignature(request: com.ning.http.client.Request, requestBuilder: RequestBuilderBase[_]) = {
+        // do nothing
+      }
+    }
+
+    "not throw an exception while signing requests" >> {
+      val calc = new CustomSigner
+
       "without query string" in withServer { port =>
-        WS.url("http://localhost:" + port).sign(CustomSigner).get().
+        WS.url("http://localhost:" + port).sign(calc).get().
           aka("signed request") must not(throwA[NullPointerException])
       }
 
       "with query string" in withServer { port =>
         WS.url("http://localhost:" + port).withQueryString("lorem" -> "ipsum").
-          sign(CustomSigner) aka "signed request" must not(throwA[Exception])
+          sign(calc) aka "signed request" must not(throwA[Exception])
       }
     }
   }

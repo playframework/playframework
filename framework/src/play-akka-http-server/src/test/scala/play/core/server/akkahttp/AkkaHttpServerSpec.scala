@@ -21,11 +21,11 @@ object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
 
   def requestFromServer[T](
     path: String)(
-      exec: WSRequestHolder => Future[WSResponse])(
+      exec: WSRequest => Future[WSResponse])(
         routes: PartialFunction[(String, String), Handler])(
           check: WSResponse => T)(
             implicit awaitTimeout: Timeout): T = {
-    running(TestServer(testServerPort, FakeApplication(withRoutes = routes), serverProvider = AkkaHttpServer.defaultServerProvider)) {
+    running(TestServer(testServerPort, FakeApplication(withRoutes = routes), serverProvider = Some(AkkaHttpServer.defaultServerProvider))) {
       val plainRequest = wsUrl(path)(testServerPort)
       val responseFuture = exec(plainRequest)
       val response = await(responseFuture)(awaitTimeout)
@@ -149,7 +149,7 @@ object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
 
     "support WithServer form" in new WithServer(
       app = FakeApplication(withRoutes = httpServerTagRoutes),
-      serverProvider = AkkaHttpServer.defaultServerProvider) {
+      serverProvider = Some(AkkaHttpServer.defaultServerProvider)) {
       val response = await(wsUrl("/httpServerTag").get())
       response.status must equalTo(OK)
       response.body must_== "Some(akka-http)"
@@ -162,7 +162,7 @@ object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
           val app = FakeApplication(withRoutes = {
             case ("GET", "/") => Action(Ok(resultString))
           })
-          val server = TestServer(testServerPort, app, serverProvider = AkkaHttpServer.defaultServerProvider)
+          val server = TestServer(testServerPort, app, serverProvider = Some(AkkaHttpServer.defaultServerProvider))
           server.start()
           try {
             val response = await(wsUrl("/")(testServerPort).get())

@@ -27,15 +27,12 @@ import java.util.TreeSet;
  * the HTTP cookie version 0, 1, and 2.
  *
  * <pre>
- * {@link HttpRequest} req = ...;
+ * HttpRequest req = ...;
  * String value = req.getHeader("Cookie");
  * Set&lt;{@link Cookie}&gt; cookies = new {@link CookieDecoder}().decode(value);
  * </pre>
  *
  * @see CookieEncoder
- *
- * @apiviz.stereotype utility
- * @apiviz.has        org.jboss.netty.handler.codec.http.Cookie oneway - - decodes
  */
 public class CookieDecoder {
 

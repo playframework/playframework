@@ -49,7 +49,7 @@ object HttpErrorHandler {
    * Get the bindings for the error handler from the configuration
    */
   def bindingsFromConfiguration(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
-    Reflect.bindingsFromConfiguration[HttpErrorHandler, play.http.HttpErrorHandler, JavaHttpErrorHandlerAdapter, GlobalSettingsHttpErrorHandler](environment, configuration, "play.http.errorHandler", "ErrorHandler")
+    Reflect.bindingsFromConfiguration[HttpErrorHandler, play.http.HttpErrorHandler, JavaHttpErrorHandlerAdapter, GlobalSettingsHttpErrorHandler](environment, PlayConfig(configuration), "play.http.errorHandler", "ErrorHandler")
   }
 }
 

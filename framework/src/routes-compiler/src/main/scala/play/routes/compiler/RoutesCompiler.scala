@@ -65,20 +65,20 @@ object RoutesCompiler {
    * @param generatedDir The directory to place the generated source code in
    * @param additionalImports Additional imports to add to the output files
    * @param generateReverseRouter Whether the reverse router should be generated
-   * @param generateRefReverseRouter Whether the ref router should be generated
    * @param namespaceReverseRouter Whether the reverse router should be namespaced
    * @return Either the list of files that were generated (right) or the routes compilation errors (left)
    */
   def compile(file: File, generator: RoutesGenerator, generatedDir: File, additionalImports: Seq[String], generateReverseRouter: Boolean = true,
-    generateRefReverseRouter: Boolean = true, namespaceReverseRouter: Boolean = false): Either[Seq[RoutesCompilationError], Seq[File]] = {
+    namespaceReverseRouter: Boolean = false): Either[Seq[RoutesCompilationError], Seq[File]] = {
 
     val namespace = Option(file.getName).filter(_.endsWith(".routes")).map(_.dropRight(".routes".size))
+      .orElse(Some("router"))
 
     val routeFile = file.getAbsoluteFile
 
     RoutesFileParser.parse(routeFile).right.map { rules =>
       val generated = generator.generate(routeFile, namespace, rules, additionalImports, generateReverseRouter,
-        generateRefReverseRouter, namespaceReverseRouter)
+        namespaceReverseRouter)
       generated.map {
         case (filename, content) =>
           val file = new File(generatedDir, filename)

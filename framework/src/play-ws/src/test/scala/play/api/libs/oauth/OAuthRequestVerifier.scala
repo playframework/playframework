@@ -11,7 +11,7 @@ import javax.crypto.Mac
 import org.apache.commons.codec.binary.Base64
 import org.specs2.matcher.MustExpectations._
 import org.specs2.matcher.Matchers._
-import _root_.oauth.signpost.{ OAuth => SPOAuth }
+
 import org.specs2.matcher.MatchResult
 
 /**
@@ -19,7 +19,24 @@ import org.specs2.matcher.MatchResult
  */
 object OAuthRequestVerifier {
 
-  import SPOAuth.{ percentEncode, percentDecode }
+  def percentDecode(input: String): String = {
+    if (input == null) {
+      ""
+    } else {
+      java.net.URLDecoder.decode(input, "UTF-8")
+    }
+  }
+
+  def percentEncode(input: String): String = {
+    if (input == null) {
+      ""
+    } else {
+      java.net.URLEncoder.encode(input, "UTF-8")
+        .replace("+", "%20")
+        .replace("*", "%2A")
+        .replace("%7E", "~")
+    }
+  }
 
   /**
    * Verify that the given request is a valid OAuth request given the consumer key and request token
@@ -66,7 +83,7 @@ object OAuthRequestVerifier {
         // If the body is form URL encoded, must include body parameters
         val collectedParamsWithBody = request.contentType match {
           case Some(formUrlEncoded) if formUrlEncoded.startsWith("application/x-www-form-urlencoded") =>
-            val form = FormUrlEncodedParser.parse(new String(body, "US-ASCII")).toSeq.flatMap {
+            val form = FormUrlEncodedParser.parse(new String(body, "UTF-8")).toSeq.flatMap {
               case (key, values) => values.map(value => key -> value)
             }
             collectedParams ++ form
@@ -81,7 +98,7 @@ object OAuthRequestVerifier {
 
   }
 
-  def signParams(method: String, baseUrl: String, params: Seq[(String, String)], consumerSecret: String, tokenSecret: String) = {
+  def signParams(method: String, baseUrl: String, params: Seq[(String, String)], consumerSecret: String, tokenSecret: String): String = {
     // See https://dev.twitter.com/docs/auth/creating-signature
 
     // Params must be percent encoded before they are sorted

@@ -4,8 +4,8 @@
 package play.mvc;
 
 import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URISyntaxException;
+import java.net.URI;
 import java.net.URLDecoder;
 import java.util.*;
 import java.util.Map.Entry;
@@ -27,7 +27,6 @@ import play.api.mvc.AnyContentAsRaw;
 import play.api.mvc.AnyContentAsText;
 import play.api.mvc.AnyContentAsXml;
 import play.api.mvc.Headers;
-import play.api.mvc.HeadersImpl;
 import play.api.mvc.RawBuffer;
 import play.core.system.RequestIdProvider;
 import play.i18n.Lang;
@@ -461,14 +460,20 @@ public class Http {
 
         /**
          * Defines the user name for this request.
+         * @deprecated As of release 2.4, use {@link #withUsername}.
          */
-        void setUsername(String username);
+        @Deprecated void setUsername(String username);
+
+        /**
+         * Returns a request updated with specified user name
+         * @param username the new user name
+         */
+        Request withUsername(String username);
 
         /**
          * For internal Play-use only
          */
         play.api.mvc.Request<RequestBody> _underlyingRequest();
-
     }
 
     /**
@@ -477,7 +482,7 @@ public class Http {
     public static class RequestImpl extends play.core.j.RequestHeaderImpl implements Request {
 
         private final play.api.mvc.Request<RequestBody> underlying;
-        private String username;
+        private String username; // Keep it non-final until setUsername is removed
 
         public RequestImpl(play.api.mvc.RequestHeader header) {
             super(header);
@@ -489,26 +494,29 @@ public class Http {
             this.underlying = request;
         }
 
-        /**
-         * The request body.
-         */
+        private RequestImpl(play.api.mvc.Request<RequestBody> request,
+                            String username) {
+            
+            super(request);
+            
+            this.underlying = request;
+            this.username = username;
+        }        
+
         public RequestBody body() {
             return underlying != null ? underlying.body() : null;
         }
 
-        /**
-         * The user name for this request, if defined.
-         * This is usually set by annotating your Action with <code>@Authenticated</code>.
-         */
         public String username() {
             return username;
         }
 
-        /**
-         * Defines the user name for this request.
-         */
         public void setUsername(String username) {
             this.username = username;
+        }
+
+        public Request withUsername(String username) {
+            return new RequestImpl(this.underlying, username);
         }
 
         public play.api.mvc.Request<RequestBody> _underlyingRequest() {
@@ -519,12 +527,32 @@ public class Http {
 
     public static class RequestBuilder {
 
-        protected RequestBody body;
+        protected AnyContent body;
         protected String username;
 
-        public RequestBuilder() {}
+        public RequestBuilder() {
+          method("GET");
+          uri("/");
+          host("localhost");
+          version("HTTP/1.1");
+          remoteAddress("127.0.0.1");
+          body(play.api.mvc.AnyContentAsEmpty$.MODULE$);
+        }
 
         public RequestBody body() {
+            if (body == null) {
+                return null;
+            }
+            return new play.core.j.JavaParsers.DefaultRequestBody(
+                body.asFormUrlEncoded(),
+                body.asRaw(),
+                body.asText(),
+                body.asJson(),
+                body.asXml(),
+                body.asMultipartFormData());
+        }
+
+        public AnyContent bodyAsAnyContent() {
             return body;
         }
 
@@ -544,21 +572,24 @@ public class Http {
          */
         protected RequestBuilder body(AnyContent anyContent, String contentType) {
             header("Content-Type", contentType);
-            body = new play.core.j.JavaParsers.DefaultRequestBody(
-                anyContent.asFormUrlEncoded(),
-                anyContent.asRaw(),
-                anyContent.asText(),
-                anyContent.asJson(),
-                anyContent.asXml(),
-                anyContent.asMultipartFormData());
+            body(anyContent);
             return this;
         }
 
-       /**
-        * Set a Binary Data to this request.
-        * The <tt>Content-Type</tt> header of the request is set to <tt>application/octet-stream</tt>.
-        * @param data the Binary Data
-        */
+        /**
+         * Set a AnyContent to this request.
+         * @param anyContent the AnyContent
+         */
+        protected RequestBuilder body(AnyContent anyContent) {
+            body = anyContent;
+            return this;
+        }
+
+        /**
+         * Set a Binary Data to this request.
+         * The <tt>Content-Type</tt> header of the request is set to <tt>application/octet-stream</tt>.
+         * @param data the Binary Data
+         */
         public RequestBuilder bodyRaw(byte[] data) {
             play.api.mvc.RawBuffer buffer = new play.api.mvc.RawBuffer(data.length, data);
             return body(new AnyContentAsRaw(buffer), "application/octet-stream");
@@ -626,17 +657,17 @@ public class Http {
 
         public RequestImpl build() {
             return new RequestImpl(new play.api.mvc.RequestImpl(
-                body,
+                body(),
                 id,
                 mapToScala(tags()),
-                url.toExternalForm(),
-                url.getPath(),
+                uri.toString(),
+                uri.getRawPath(),
                 method,
                 version,
                 mapListToScala(splitQuery()),
                 buildHeaders(),
                 remoteAddress,
-                url.getProtocol().equals("https")));
+                secure));
         }
 
         // -------------------
@@ -644,9 +675,10 @@ public class Http {
 
         protected Long id = RequestIdProvider.requestIDs().incrementAndGet();
         protected Map<String, String> tags = new HashMap<>();
-        protected String method = "GET";
-        protected URL url;
-        protected String version = "HTTP/1.1";
+        protected String method;
+        protected boolean secure;
+        protected URI uri;
+        protected String version;
         protected Map<String, String[]> headers = new HashMap<>();
         protected String remoteAddress;
 
@@ -673,40 +705,68 @@ public class Http {
             return this;
         }
 
-        public String url() {
-            return url.toExternalForm();
-        }
-
-        public RequestBuilder url(URL url) {
-            this.url = url;
-            header(HeaderNames.HOST, url.getHost());
-            return this;
-        }
-
-        public RequestBuilder url(String spec) {
-            try {
-                url(new URL(spec));
-            } catch (MalformedURLException e) {
-                throw new IllegalArgumentException("Exception parsing URL", e);
-            }
-            return this;
-        }
-
-        public RequestBuilder url(boolean secure, String host, int port, String file) {
-            try {
-                url(new URL(secure ? "http" : "https", host, port, file));
-            } catch (MalformedURLException e) {
-                throw new IllegalArgumentException("Exception parsing URL", e);
-            }
-            return this;
-        }
-
         public String method() {
             return method;
         }
 
         public RequestBuilder method(String method) {
             this.method = method;
+            return this;
+        }
+
+        public String uri() {
+            return uri.toString();
+        }
+
+        public RequestBuilder uri(URI uri) {
+            if (uri.getScheme() != null) {
+                if (!uri.getScheme().equals("http") && !uri.getScheme().equals("https")) {
+                    throw new IllegalArgumentException("URI scheme must be http or https");
+                }
+                this.secure = uri.getScheme().equals("https");
+            }
+            this.uri = uri;
+            host(uri.getHost());
+            return this;
+        }
+
+        public RequestBuilder uri(String str) {
+            try {
+                uri(new URI(str));
+            } catch (URISyntaxException e) {
+                throw new IllegalArgumentException("Exception parsing URI", e);
+            }
+            return this;
+        }
+
+        public RequestBuilder secure(boolean secure) {
+           this.secure = secure;
+           return this;
+        }
+
+        public boolean secure() {
+           return secure;
+        }
+
+        public String host() {
+          return header(HeaderNames.HOST);
+        }
+
+        public RequestBuilder host(String host) {
+          header(HeaderNames.HOST, host);
+          return this;
+        }
+
+        public String path() {
+            return uri.getRawPath();
+        }
+
+        public RequestBuilder path(String path) {
+            try {
+                uri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), path, uri.getQuery(), uri.getFragment());
+            } catch (URISyntaxException e) {
+                throw new IllegalArgumentException(e);
+            }
             return this;
         }
 
@@ -771,7 +831,7 @@ public class Http {
         public Map<String,String> flash() {
           play.api.mvc.Cookies scalaCookies = scalaCookies();
           scala.Option<play.api.mvc.Cookie> cookie = scalaCookies.get(play.api.mvc.Flash$.MODULE$.COOKIE_NAME());
-          scala.collection.Map<String,String> data = play.api.mvc.Session$.MODULE$.decodeCookieToMap(cookie);
+          scala.collection.Map<String,String> data = play.api.mvc.Flash$.MODULE$.decodeCookieToMap(cookie);
           return JavaConversions.mapAsJavaMap(data);
         }
 
@@ -820,7 +880,7 @@ public class Http {
         protected Map<String, List<String>> splitQuery() {
             try {
                 Map<String, List<String>> query_pairs = new LinkedHashMap<String, List<String>>();
-                String query = url.getQuery();
+                String query = uri.getQuery();
                 if (query == null) {
                     return new HashMap<>();
                 }
@@ -855,25 +915,13 @@ public class Http {
         }
 
         protected Headers buildHeaders() {
-            List<Tuple2<String, Seq<String>>> list = new ArrayList<>();
+            List<Tuple2<String, String>> list = new ArrayList<>();
             for (Map.Entry<String,String[]> entry : headers().entrySet()) {
-              list.add(new Tuple2(entry.getKey(), JavaConversions.asScalaBuffer(Arrays.asList(entry.getValue()))));
+                for (String value : entry.getValue()) {
+                    list.add(new Tuple2<>(entry.getKey(), value));
+                }
             }
-            return new HeadersImpl(JavaConversions.asScalaBuffer(list));
-        }
-
-        protected play.api.mvc.RequestHeader buildScalaHeader() {
-            return new play.api.mvc.RequestHeaderImpl(
-                id,
-                mapToScala(tags()),
-                url.getPath() + "?" + url.getQuery(),
-                url.getPath(),
-                method,
-                version,
-                mapListToScala(splitQuery()),
-                buildHeaders(),
-                remoteAddress,
-                url.getProtocol().equals("https"));
+            return new Headers(JavaConversions.asScalaBuffer(list));
         }
 
     }

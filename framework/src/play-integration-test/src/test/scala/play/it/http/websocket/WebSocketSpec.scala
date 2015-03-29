@@ -20,6 +20,8 @@ import play.core.routing.HandlerDef
 import java.util.concurrent.atomic.AtomicReference
 import org.jboss.netty.buffer.ChannelBuffers
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 object NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
 object AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification
 
@@ -139,7 +141,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
         WebSocket.using[String] { req =>
           (getChunks[String](Nil, consumed.success _), Enumerator.empty)
         }
-    }.pendingUntilAkkaHttpFixed
+    }.pendingUntilAkkaHttpFixed // All tests in this class are waiting on https://github.com/akka/akka/issues/16848
 
     "allow sending messages" in allowSendingMessages { _ =>
       messages =>

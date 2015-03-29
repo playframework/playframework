@@ -247,14 +247,12 @@ object AlgorithmConstraintsParser extends RegexParsers {
 
   import scala.language.postfixOps
 
-  def apply(input: String): List[AlgorithmConstraint] = parseAll(line, input) match {
+  def apply(input: String): AlgorithmConstraint = parseAll(expression, input) match {
     case Success(result, _) =>
       result
     case NoSuccess(message, _) =>
       throw new IllegalArgumentException(s"Cannot parse string $input: $message")
   }
-
-  def line: Parser[List[AlgorithmConstraint]] = repsep(expression, ",")
 
   def expression: Parser[AlgorithmConstraint] = algorithm ~ (keySizeConstraint ?) ^^ {
     case algorithm ~ Some(constraint) =>

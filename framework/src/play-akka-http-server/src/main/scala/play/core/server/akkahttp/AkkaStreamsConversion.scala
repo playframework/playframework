@@ -14,17 +14,12 @@ import play.api.libs.streams.Streams
  * Streams API is in flux at the moment so this isn't worth doing yet.
  */
 object AkkaStreamsConversion {
-  def sourceToEnumerator[A](source: Source[A])(implicit fm: FlowMaterializer): Enumerator[A] = {
-    val pubrSink = Sink.publisher[A]
-    val materializedMap = FlowGraph { implicit b ⇒
-      import FlowGraphImplicits._
-      source ~> pubrSink
-    }.run()
-    val pubr = materializedMap.get(pubrSink)
+  def sourceToEnumerator[Out, Mat](source: Source[Out, Mat])(implicit fm: FlowMaterializer): Enumerator[Out] = {
+    val pubr: Publisher[Out] = source.runWith(Sink.publisher[Out])
     Streams.publisherToEnumerator(pubr)
   }
-  def enumeratorToSource[T](enum: Enumerator[T], emptyElement: Option[T] = None): Source[T] = {
-    val pubr = Streams.enumeratorToPublisher(enum, emptyElement)
+  def enumeratorToSource[Out](enum: Enumerator[Out], emptyElement: Option[Out] = None): Source[Out, Unit] = {
+    val pubr: Publisher[Out] = Streams.enumeratorToPublisher(enum, emptyElement)
     Source(pubr)
   }
 

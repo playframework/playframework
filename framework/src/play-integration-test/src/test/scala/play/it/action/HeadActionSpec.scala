@@ -9,7 +9,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import play.it._
 import play.it.tools.HttpBinApplication._
 import play.api.libs.ws.WSResponse
-import com.ning.http.client.providers.netty.NettyResponse
+import com.ning.http.client.providers.netty.response.NettyResponse
 import play.api.mvc._
 import play.api.http.HeaderNames
 import play.api.libs.iteratee.Enumerator
@@ -86,7 +86,8 @@ trait HeadActionSpec extends PlaySpecification
       val headHeaders = responses(0).underlying[NettyResponse].getHeaders
       val getHeaders = responses(1).underlying[NettyResponse].getHeaders
 
-      headHeaders must_== getHeaders
+      // Exclude `Date` header because it can vary between requests
+      (headHeaders.delete(DATE)) must_== (getHeaders.delete(DATE))
     }
 
     "return 404 in response to a URL without an associated GET handler" in withServer {

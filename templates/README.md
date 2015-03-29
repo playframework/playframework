@@ -34,11 +34,6 @@ You can publish templates by running
 
     ./build publish-templates
 
-You can publish specific templates by passing them as a comma separated list to the
-templates system property:
+You can publish specific templates by using the templates command:
 
-    ./build -Dtemplates=play-scala publish-templates
-
-The above will usually be more useful if you publish it for a specific version of Play:
-
-    ./build -Dtemplates=play-scala -Dplay.version=2.3-M1 clean publish-templates
+    ./build templates play-scala publish-templates

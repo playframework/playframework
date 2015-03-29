@@ -83,7 +83,7 @@ object ScalaResultsSpec extends PlaySpecification {
   }
 
   def withApplication[T](config: (String, Any)*)(block: => T): T = running(
-    FakeApplication(additionalConfiguration = Map(config: _*) + ("application.secret" -> "foo"))
+    FakeApplication(additionalConfiguration = Map(config: _*) + ("play.crypto.secret" -> "foo"))
   )(block)
 
   def withFooPath[T](block: => T) = withApplication("application.context" -> "/foo")(block)

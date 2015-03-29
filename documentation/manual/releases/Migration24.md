@@ -57,6 +57,8 @@ By default Play will automatically handle the wiring of this router for you usin
 
 The injected routes generator also supports the `@` operator on routes, but it has a slightly different meaning (since everything is injected), if you prefix a controller with `@`, instead of that controller being directly injected, a JSR 330 `Provider` for that controller will be injected.  This can be used, for example, to eliminate circular dependency issues, or if you want a new action instantiated per request.
 
+In addition, Play now, by default, generates the router in the `router` package, instead of at the root package.  This is to aid with dependency injection, so if needed it can be manually created or bound, since classes in the root package can't usually be referenced.
+
 ### Dependency Injected Components
 
 While Play 2.4 won't force you to use the dependency injected versions of components, we do encourage you to start switching to them.  The following tables show old static APIs that use global state and new injected APIs that you should be switching to:
@@ -84,11 +86,29 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 | [`Cache`](api/java/play/cache/Cache.html) | [`CacheApi`](api/java/play/cache/CacheApi.html) | You can get a particular cache using the [`@NamedCache`](api/java/play/cache/NamedCache.html) annotation. |
 | [`Akka`](api/java/play/libs/Akka.html) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
 | [`WS`](api/java/play/libs/ws/WS.html) | [`WSClient`](api/java/play/libs/ws/WSClient.html) | |
-| [`FakeRequest`](api/java/play/test/FakeRequest.html) | [`RequestBuilder`](api/java/play/mvc/Http.RequestBuilder.html) | |
 
-## File watching
+## Configuration changes
+
+Play 2.4 now uses `reference.conf` to document and specify defaults for all properties.  You can easily find these by going [here](https://github.com/playframework/playframework/find/master) and searching for files called `reference.conf`.
+
+Additionally, Play has now better namespaced a large number of its configuration properties.  The old configuration paths will generally still work, but a deprecation warning will be output at runtime if you use them.  Here is a summary of the changed keys:
+
+| Old key                   | New key                            |
+| ------------------------- | ---------------------------------- |
+| `application.secret`      | `play.crypto.secret`               |
+| `application.context`     | `play.http.context`                |
+| `session.*`               | `play.http.session.*`              |
+| `flash.*`                 | `play.http.flash.*`                |
+| `application.router`      | `play.http.router`                 |
+| `application.langs`       | `play.i18n.langs`                  |
+| `application.lang.cookie` | `play.i18n.langCookieName`         |
+| `parsers.text.maxLength`  | `play.http.parser.maxMemoryBuffer` |
+
+## SBT plugin
 
 The SBT setting key `playWatchService` has been renamed to `fileWatchService`.
+
+All classes in the SBT plugin are now in the package `play.sbt`.
 
 ## Ebean
 
@@ -102,6 +122,18 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-play-ebean" % "1.0.0")
 
 Additionally, Ebean has been upgraded to 4.2.0, which pulls in a few of the features that Play previously added itself, including the `Model` class.  Consequently, the Play `Model` class has been deprecated, in favour of using `org.avaje.ebean.Model`.
 
+## JDBC connection pool
+
+The default JDBC connection pool is now provided by [HikariCP](http://brettwooldridge.github.io/HikariCP/), instead of BoneCP.
+
+To switch back to BoneCP, you can set the `play.db.pool` property in `application.conf`:
+
+```
+play.db.pool = bonecp
+```
+
+The full range of configuration options available to the Play connection pools can be found in the Play JDBC [`reference.conf`](resources/confs/play-jdbc/reference.conf).
+
 ## Body Parsers
 
 The default body parser is now `play.api.mvc.BodyParsers.parse.default`. It is similar to `anyContent` parser, except that it only parses the bodies of PATCH, POST, and PUT requests. To parse bodies for requests of other methods, explicitly pass the `anyContent` parser to `Action`.
@@ -112,13 +144,19 @@ def foo = Action(play.api.mvc.BodyParsers.parse.anyContent) { request =>
 }
 ```
 
+## Testing changes
+
+[`FakeRequest`](api/java/play/test/FakeRequest.html) has been replaced by [`RequestBuilder`](api/java/play/mvc/Http.RequestBuilder.html).
+
+The reverse ref router used in Java tests has been removed. Any call to `Helpers.call` that was passed a ref router can be replaced by a call to `Helpers.route` which takes either a standard reverse router reference or a `RequestBuilder`.
+
 ### Maximum body length
 
 For both Scala and Java, there have been some small but important changes to the way the configured maximum body lengths are handled and applied.
 
-A new property, `parsers.disk.maxLength`, specifies the maximum length of any body that is parsed by a parser that may buffer to disk.  This includes the raw body parser and the `multipart/form-data` parser.  By default this is 10MB.
+A new property, `play.http.parser.maxDiskBuffer`, specifies the maximum length of any body that is parsed by a parser that may buffer to disk.  This includes the raw body parser and the `multipart/form-data` parser.  By default this is 10MB.
 
-In the case of the `multipart/form-data` parser, the aggregate length of all of the text data parts is limited by the configured `parsers.text.maxLength` value, which defaults to 100KB.
+In the case of the `multipart/form-data` parser, the aggregate length of all of the text data parts is limited by the configured `play.http.parser.maxMemoryBuffer` value, which defaults to 100KB.
 
 In all cases, when one of the max length parsing properties is exceeded, a 413 response is returned.  This includes Java actions who have explicitly overridden the `maxLength` property on the `BodyParser.Of` annotation - previously it was up to the Java action to check the `RequestBody.isMaxSizeExceeded` flag if a custom max length was configured, this flag has now been deprecated.
 
@@ -350,3 +388,14 @@ This import brings you an implicit `Messages` value as long as there are a `Lang
 ### Java
 
 The API should be backward compatible with your code using Play 2.3 so there is no migration step. Nevertheless, note that you have to start your Play application before using the Java i18n API. That should always be the case when you run your project, however your test code may not always start your application. Please refer to the corresponding [[documentation page|JavaTest]] to know how to start your application before running your tests.
+
+## IntelliJ IDEA
+
+Play no longer includes the sbt idea plugin.  IntelliJ is now able to import sbt projects natively, so we recommend using that instead.  Alternatively, the sbt idea plugin can be manually installed and used, instructions can be found [here](https://github.com/mpeltonen/sbt-idea).
+
+## Distribution
+
+Previously, Play added all the resources to the the `conf` directory in the distribution, but didn't add the `conf` directory to the classpath.  Now Play adds the `conf` directory to the classpath by default.
+
+This can be turned off by setting `PlayKeys.externalizeResources := false`, which will cause no `conf` directory to be created in the distribution, and it will not be on the classpath.  The contents of the applications `conf` directory will still be on the classpath by virtue of the fact that it's included in the applications jar file.
+

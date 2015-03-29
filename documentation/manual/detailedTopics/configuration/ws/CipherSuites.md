@@ -25,7 +25,7 @@ In 1.6, the out of the box list is [out of order](http://op-co.de/blog/posts/and
 The list of cipher suites can be configured manually using the `ws.ssl.enabledCiphers` setting:
 
 ```
-ws.ssl.enabledCiphers = [
+play.ws.ssl.enabledCiphers = [
   "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256"
 ]
 ```
@@ -43,7 +43,7 @@ If you have JDK 1.8, setting the system property `-Djdk.tls.ephemeralDHKeySize=2
 As per the [Recommendations for Secure Use of TLS and DTLS](https://datatracker.ietf.org/doc/draft-ietf-uta-tls-bcp/), the following cipher suites are recommended:
 
 ```
-ws.ssl.enabledCiphers = [
+play.ws.ssl.enabledCiphers = [
   "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
   "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
   "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",
@@ -80,12 +80,12 @@ java -Djava.security.properties=disabledAlgorithms.properties
 To debug ciphers and weak keys, turn on the following debug settings:
 
 ```
-ws.ssl.debug = [
- "ssl",
- "handshake",
-   "verbose",
-   "data",
-]
+play.ws.ssl.debug = {
+ ssl = true
+ handshake = true
+ verbose = true
+ data = true
+}
 ```
 
 > **Next**: [[Configuring Certificate Validation|CertificateValidation]]

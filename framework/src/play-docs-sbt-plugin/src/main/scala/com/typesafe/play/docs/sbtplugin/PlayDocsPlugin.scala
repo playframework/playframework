@@ -9,11 +9,12 @@ import java.util.jar.JarFile
 import com.typesafe.play.docs.sbtplugin.PlayDocsValidation.{ CodeSamplesReport, MarkdownRefReport }
 import play.core.BuildDocHandler
 import play.core.server.ServerWithStop
-import play.PlayImport._
+import play.sbt.{ PlayImport, Colors }
+import PlayImport._
 import play.TemplateImports
 import play.routes.compiler.InjectedRoutesGenerator
-import play.sbtplugin.Colors
-import play.sbtplugin.routes.RoutesCompiler
+import play.sbt.Colors
+import play.sbt.routes.RoutesCompiler
 import sbt._
 import sbt.Keys._
 import sbt.plugins.JvmPlugin
@@ -110,11 +111,11 @@ object PlayDocsPlugin extends AutoPlugin {
     },
 
     sourceGenerators in Test <+= (javaManualSourceDirectories, javaRoutesSourceManaged, streams) map { (from, to, s) =>
-      RoutesCompiler.compileRoutes((from * "*.routes").get, InjectedRoutesGenerator, to, Seq("play.libs.F"), true, true, true, s.cacheDirectory / "javaroutes", s.log)
+      RoutesCompiler.compileRoutes((from * "*.routes").get, InjectedRoutesGenerator, to, Seq("play.libs.F"), true, true, s.cacheDirectory / "javaroutes", s.log)
     },
 
     sourceGenerators in Test <+= (scalaManualSourceDirectories, scalaRoutesSourceManaged, streams) map { (from, to, s) =>
-      RoutesCompiler.compileRoutes((from * "*.routes").get, InjectedRoutesGenerator, to, Nil, true, true, true, s.cacheDirectory / "scalaroutes", s.log)
+      RoutesCompiler.compileRoutes((from * "*.routes").get, InjectedRoutesGenerator, to, Nil, true, true, s.cacheDirectory / "scalaroutes", s.log)
     },
 
     parallelExecution in Test := false,

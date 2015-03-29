@@ -50,7 +50,8 @@ public class JavaGuiceApplicationBuilderTest {
         ClassLoader classLoader = new URLClassLoader(new URL[0]);
         // #set-environment
         Application application = new GuiceApplicationBuilder()
-            .bindings(new play.api.inject.BuiltinModule(), new play.inject.BuiltInModule()) // ###skip
+            .load(new play.api.inject.BuiltinModule(), new play.inject.BuiltInModule()) // ###skip
+            .loadConfig(Configuration.reference()) // ###skip
             .in(new Environment(new File("path/to/app"), classLoader, Mode.TEST))
             .build();
         // #set-environment
@@ -65,7 +66,8 @@ public class JavaGuiceApplicationBuilderTest {
         ClassLoader classLoader = new URLClassLoader(new URL[0]);
         // #set-environment-values
         Application application = new GuiceApplicationBuilder()
-            .bindings(new play.api.inject.BuiltinModule(), new play.inject.BuiltInModule()) // ###skip
+            .load(new play.api.inject.BuiltinModule(), new play.inject.BuiltInModule()) // ###skip
+            .loadConfig(Configuration.reference()) // ###skip
             .in(new File("path/to/app"))
             .in(Mode.TEST)
             .in(classLoader)
@@ -121,7 +123,7 @@ public class JavaGuiceApplicationBuilderTest {
     public void overrideBindings() {
         // #override-bindings
         Application application = new GuiceApplicationBuilder()
-            .configure("application.router", Routes.class.getName()) // ###skip
+            .configure("play.http.router", Routes.class.getName()) // ###skip
             .bindings(new ComponentModule()) // ###skip
             .overrides(bind(Component.class).to(MockComponent.class))
             .build();

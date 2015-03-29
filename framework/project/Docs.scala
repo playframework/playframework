@@ -21,6 +21,7 @@ object Docs {
   val apiDocsUseCache = SettingKey[Boolean]("api-docs-use-cache", "Whether to cache the doc inputs (can hit cache limit with dbuild)")
   val apiDocs = TaskKey[File]("api-docs", "Generate the API docs")
   val extractWebjars = TaskKey[File]("extract-webjars", "Extract webjar contents")
+  val allReferenceConfs = TaskKey[Seq[(String, File)]]("all-reference-confs", "Gather all reference confs")
 
   lazy val settings = Seq(
     apiDocsInclude := false,
@@ -29,10 +30,11 @@ object Docs {
     apiDocsClasspath <<= (thisProjectRef, buildStructure) flatMap allClasspaths,
     apiDocsJavaSources <<= (thisProjectRef, buildStructure) flatMap allSources(Compile, ".java"),
     apiDocsUseCache := true,
-    apiDocs <<= (apiDocsScalaSources, apiDocsJavaSources, apiDocsClasspath, baseDirectory in ThisBuild, target, compilers, apiDocsUseCache, streams, scalaVersion) map apiDocsTask,
+    apiDocs <<= apiDocsTask,
     ivyConfigurations += Webjars,
     extractWebjars <<= extractWebjarContents,
-    mappings in (Compile, packageBin) <++= (baseDirectory, apiDocs, extractWebjars, version) map { (base, apiBase, webjars, playVersion) =>
+    allReferenceConfs in Global <<= (thisProjectRef, buildStructure) flatMap allReferenceConfsTask,
+    mappings in (Compile, packageBin) <++= (baseDirectory, apiDocs, extractWebjars, version, allReferenceConfs) map { (base, apiBase, webjars, playVersion, referenceConfs) =>
       // Include documentation and API docs in main binary JAR
       val docBase = base / "../../../documentation"
       val raw = (docBase \ "manual" ** "*") +++ (docBase \ "style" ** "*")
@@ -44,7 +46,12 @@ object Docs {
       // The play version is added so that resource paths are versioned
       val webjarMappings = webjars.*** pair rebase(webjars, "play/docs/content/webjars/" + playVersion)
 
-      docMappings ++ apiDocMappings ++ webjarMappings
+      // Gather all the reference.conf files into the project
+      val referenceConfMappings = referenceConfs.map {
+        case (projectName, referenceConf) => referenceConf -> s"play/docs/content/confs/$projectName/reference.conf"
+      }
+
+      docMappings ++ apiDocMappings ++ webjarMappings ++ referenceConfMappings
     }
   )
 
@@ -65,59 +72,91 @@ object Docs {
         val playVersion = version.value
         val webjarMappings = webjars.*** pair rebase(webjars, "webjars/" + playVersion)
 
-        docMappings ++ webjarMappings
+        // Gather all the reference.conf files into the project
+        val referenceConfs = allReferenceConfs.value.map {
+          case (projectName, referenceConf) => referenceConf -> s"confs/$projectName/reference.conf"
+        }
+
+        docMappings ++ webjarMappings ++ referenceConfs
       }
     )
 
-  def apiDocsTask(scalaSources: Seq[File], javaSources: Seq[File], classpath: Seq[File], buildBase: File, target: File,
-                  compilers: Compiler.Compilers, useCache: Boolean, streams: TaskStreams, scalaVersion: String): File = {
+  def apiDocsTask = Def.task {
 
-    val targetDir = new File(target, "scala-" + CrossVersion.binaryScalaVersion(scalaVersion))
-
-    val version = BuildSettings.buildVersion
-    val sourceTree = if (version.endsWith("-SNAPSHOT")) {
-      BuildSettings.sourceCodeBranch
-    } else {
-      version
-    }
-
+    val targetDir = new File(target.value, "scala-" + CrossVersion.binaryScalaVersion(scalaVersion.value))
     val apiTarget = new File(targetDir, "apidocs")
-    val scalaCache = new File(targetDir, "scalaapidocs.cache")
-    val javaCache = new File(targetDir, "javaapidocs.cache")
 
-    val label = "Play " + BuildSettings.buildVersion
+    if ((publishArtifact in packageDoc).value) {
 
-    val options = Seq(
-      // Note, this is used by the doc-source-url feature to determine the relative path of a given source file.
-      // If it's not a prefix of a the absolute path of the source file, the absolute path of that file will be put
-      // into the FILE_SOURCE variable below, which is definitely not what we want.
-      // Hence it needs to be the base directory for the build, not the base directory for the play-docs project.
-      "-sourcepath", buildBase.getAbsolutePath,
-      "-doc-source-url", "https://github.com/playframework/playframework/tree/" + sourceTree + "/framework€{FILE_PATH}.scala")
+      val version = Keys.version.value
+      val sourceTree = if (version.endsWith("-SNAPSHOT")) {
+        BuildSettings.snapshotBranch
+      } else {
+        version
+      }
 
-    val scaladoc = {
-      if (useCache) Doc.scaladoc(label, scalaCache, compilers.scalac)
-      else DocNoCache.scaladoc(label, compilers.scalac)
+      val scalaCache = new File(targetDir, "scalaapidocs.cache")
+      val javaCache = new File(targetDir, "javaapidocs.cache")
+
+      val label = "Play " + version
+
+      val options = Seq(
+        // Note, this is used by the doc-source-url feature to determine the relative path of a given source file.
+        // If it's not a prefix of a the absolute path of the source file, the absolute path of that file will be put
+        // into the FILE_SOURCE variable below, which is definitely not what we want.
+        // Hence it needs to be the base directory for the build, not the base directory for the play-docs project.
+        "-sourcepath", (baseDirectory in ThisBuild).value.getAbsolutePath,
+        "-doc-source-url", "https://github.com/playframework/playframework/tree/" + sourceTree + "/framework€{FILE_PATH}.scala")
+
+      val compilers = Keys.compilers.value
+      val useCache = apiDocsUseCache.value
+      val classpath = apiDocsClasspath.value
+
+      val scaladoc = {
+        if (useCache) Doc.scaladoc(label, scalaCache, compilers.scalac)
+        else DocNoCache.scaladoc(label, compilers.scalac)
+      }
+      // Since there is absolutely no documentation on what the arguments here should be aside from their types, here
+      // are the parameter names of the method that does eventually get called:
+      // (sources, classpath, outputDirectory, options, maxErrors, log)
+      scaladoc(apiDocsScalaSources.value, classpath, apiTarget / "scala", options, 10, streams.value.log)
+
+      val javadocOptions = Seq(
+        "-windowtitle", label,
+        "-notimestamp",
+        "-subpackages", "play",
+        "-exclude", "play.api:play.core"
+      )
+
+      val javadoc = {
+        if (useCache) Doc.javadoc(label, javaCache, compilers.javac)
+        else DocNoCache.javadoc(label, compilers.javac)
+      }
+      javadoc(apiDocsJavaSources.value, classpath, apiTarget / "java", javadocOptions, 10, streams.value.log)
     }
-    // Since there is absolutely no documentation on what the arguments here should be aside from their types, here
-    // are the parameter names of the method that does eventually get called:
-    // (sources, classpath, outputDirectory, options, maxErrors, log)
-    scaladoc(scalaSources, classpath, apiTarget / "scala", options, 10, streams.log)
-
-    val javadocOptions = Seq(
-      "-windowtitle", label,
-      "-notimestamp",
-      "-subpackages", "play",
-      "-exclude", "play.api:play.core"
-    )
-
-    val javadoc = {
-      if (useCache) Doc.javadoc(label, javaCache, compilers.javac)
-      else DocNoCache.javadoc(label, compilers.javac)
-    }
-    javadoc(javaSources, classpath, apiTarget / "java", javadocOptions, 10, streams.log)
 
     apiTarget
+  }
+
+  def allReferenceConfsTask(projectRef: ProjectRef, structure: BuildStructure): Task[Seq[(String, File)]] = {
+    val projects = allApiProjects(projectRef.build, structure)
+    val unmanagedResourcesTasks = projects map { ref =>
+      def taskFromProject[T](task: TaskKey[T]) = task in Compile in ref get structure.data
+
+      val projectId = moduleName in ref get structure.data
+
+      val referenceConfs = (unmanagedResources in Compile in ref get structure.data).map(_.map { resources =>
+        (for {
+          referenceConf <- resources.find(_.name == "reference.conf")
+          id <- projectId
+        } yield id -> referenceConf).toSeq
+      })
+
+      // Join them
+      val tasks = referenceConfs.toSeq
+      tasks.join.map(_.flatten)
+    }
+    unmanagedResourcesTasks.join.map(_.flatten)
   }
 
   def allSources(conf: Configuration, extension: String)(projectRef: ProjectRef, structure: BuildStructure): Task[Seq[File]] = {

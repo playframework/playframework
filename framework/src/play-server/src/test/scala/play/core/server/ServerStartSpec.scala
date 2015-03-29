@@ -177,12 +177,11 @@ object ServerStartSpec extends Specification {
 
   "serverStart.readServerProviderSetting" should {
 
-    "return default by default" in withTempDir { tempDir =>
-      val defaultServerProvider = new FakeServerProvider
-      val serverStart = new FakeServerStart(defaultServerProvider)
+    "return None if no configuration provided" in withTempDir { tempDir =>
+      val serverStart = new FakeServerStart(new FakeServerProvider)
       val process = new FakeServerProcess()
       val configuration = ServerConfig.loadConfiguration(process.classLoader, process.properties, tempDir)
-      serverStart.readServerProviderSetting(process, configuration) must be(defaultServerProvider)
+      serverStart.readServerProviderSetting(process, configuration) must beNone
     }
     "create a custom provider when the server.provider property is supplied" in withTempDir { tempDir =>
       val serverStart = new FakeServerStart(new FakeServerProvider)
@@ -191,9 +190,9 @@ object ServerStartSpec extends Specification {
         propertyMap = Map("play.server.provider" -> serverProviderClass.getName)
       )
       val configuration = ServerConfig.loadConfiguration(process.classLoader, process.properties, tempDir)
-      serverStart.readServerProviderSetting(process, configuration).getClass must_== serverProviderClass
+      serverStart.readServerProviderSetting(process, configuration).map(_.getClass) must beSome(serverProviderClass)
     }
-    "fail if the class doesn't exist" in withTempDir { tempDir =>
+    "fail if the configured class doesn't exist" in withTempDir { tempDir =>
       val serverStart = new FakeServerStart(new FakeServerProvider)
       val process = new FakeServerProcess(
         propertyMap = Map("play.server.provider" -> "garble.barble.Phnarble")
@@ -201,7 +200,7 @@ object ServerStartSpec extends Specification {
       val configuration = ServerConfig.loadConfiguration(process.classLoader, process.properties, tempDir)
       startResult(serverStart.readServerProviderSetting(process, configuration)) must_== Left("Couldn't find ServerProvider class 'garble.barble.Phnarble'")
     }
-    "fail if the class doesn't implement ServerProvider" in withTempDir { tempDir =>
+    "fail if the configured class doesn't implement ServerProvider" in withTempDir { tempDir =>
       val serverStart = new FakeServerStart(new FakeServerProvider)
       val serverProvider = classOf[String].getName
       val process = new FakeServerProcess(

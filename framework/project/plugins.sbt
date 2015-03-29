@@ -36,3 +36,7 @@ libraryDependencies ++= Seq(
 resolvers += Resolver.typesafeRepo("maven-releases")
 
 libraryDependencies += "org.scalariform" %% "scalariform" % "0.1.5-20140822-69e2e30"
+
+addSbtPlugin("com.eed3si9n" % "sbt-doge" % "0.1.5")
+
+addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.0.0")

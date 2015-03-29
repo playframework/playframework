@@ -51,7 +51,7 @@ abstract class WithApplication(val app: Application = FakeApplication()) extends
 abstract class WithServer(
     val app: Application = FakeApplication(),
     val port: Int = Helpers.testServerPort,
-    val serverProvider: ServerProvider = NettyServer.defaultServerProvider) extends Around with Scope {
+    val serverProvider: Option[ServerProvider] = None) extends Around with Scope {
   implicit def implicitApp = app
   implicit def implicitPort: Port = port
 

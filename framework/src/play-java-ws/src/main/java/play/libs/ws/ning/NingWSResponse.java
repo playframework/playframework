@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -114,7 +116,7 @@ public class NingWSResponse implements WSResponse {
             if (charset != null) {
                 return ahcResponse.getResponseBody(charset);
             } else if (contentType.startsWith("text/")) {
-                return ahcResponse.getResponseBody(AsyncHttpProviderUtils.DEFAULT_CHARSET);
+                return ahcResponse.getResponseBody(AsyncHttpProviderUtils.DEFAULT_CHARSET.toString());
             } else {
                 return ahcResponse.getResponseBody("utf-8");
             }
@@ -185,8 +187,8 @@ public class NingWSResponse implements WSResponse {
     @Override
     public URI getUri() {
         try {
-            return ahcResponse.getUri();
-        } catch (MalformedURLException e) {
+            return ahcResponse.getUri().toJavaNetURI();
+        } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }

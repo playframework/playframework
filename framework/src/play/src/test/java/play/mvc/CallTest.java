@@ -19,7 +19,7 @@ public final class CallTest {
     @Test
     public void testHttpAbsoluteURL1() throws Throwable {
         final Request req = new RequestBuilder()
-            .url("http://playframework.com/playframework").build();
+            .uri("http://playframework.com/playframework").build();
 
         final TestCall call = new TestCall("/url", "GET");
 
@@ -31,7 +31,7 @@ public final class CallTest {
     @Test
     public void testHttpAbsoluteURL2() throws Throwable {
         final Request req = new RequestBuilder()
-            .url("https://playframework.com/playframework").build();
+            .uri("https://playframework.com/playframework").build();
 
         final TestCall call = new TestCall("/url", "GET");
 
@@ -52,7 +52,7 @@ public final class CallTest {
     @Test
     public void testHttpsAbsoluteURL1() throws Throwable {
         final Request req = new RequestBuilder()
-            .url("https://playframework.com/playframework").build();
+            .uri("https://playframework.com/playframework").build();
 
         final TestCall call = new TestCall("/url", "GET");
 
@@ -64,7 +64,7 @@ public final class CallTest {
     @Test
     public void testHttpsAbsoluteURL2() throws Throwable {
         final Request req = new RequestBuilder()
-            .url("http://playframework.com/playframework").build();
+            .uri("http://playframework.com/playframework").build();
 
         final TestCall call = new TestCall("/url", "GET");
 
@@ -85,7 +85,7 @@ public final class CallTest {
     @Test
     public void testWebSocketURL1() throws Throwable {
         final Request req = new RequestBuilder()
-            .url("http://playframework.com/playframework").build();
+            .uri("http://playframework.com/playframework").build();
 
         final TestCall call = new TestCall("/url", "GET");
 
@@ -97,7 +97,7 @@ public final class CallTest {
     @Test
     public void testWebSocketURL2() throws Throwable {
         final Request req = new RequestBuilder()
-            .url("https://playframework.com/playframework").build();
+            .uri("https://playframework.com/playframework").build();
 
         final TestCall call = new TestCall("/url", "GET");
 
@@ -118,7 +118,7 @@ public final class CallTest {
     @Test
     public void testSecureWebSocketURL1() throws Throwable {
         final Request req = new RequestBuilder()
-            .url("https://playframework.com/playframework").build();
+            .uri("https://playframework.com/playframework").build();
 
         final TestCall call = new TestCall("/url", "GET");
 
@@ -130,7 +130,7 @@ public final class CallTest {
     @Test
     public void testSecureWebSocketURL2() throws Throwable {
         final Request req = new RequestBuilder()
-            .url("http://playframework.com/playframework").build();
+            .uri("http://playframework.com/playframework").build();
 
         final TestCall call = new TestCall("/url", "GET");
 

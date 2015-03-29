@@ -304,14 +304,14 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
         response.headers.get(CONTENT_LENGTH) must beNone
       }
 
-    "not have a message body, but do have a Content-Length, when a 204 response with an explicit Content-Lenght is returned" in withServer(
+    "not have a message body, but may have a Content-Length, when a 204 response with an explicit Content-Length is returned" in withServer(
       Results.NoContent.withHeaders("Content-Length" -> "0")
     ) { port =>
         val response = BasicHttpClient.makeRequests(port)(
           BasicRequest("PUT", "/", "HTTP/1.1", Map(), "")
         )(0)
         response.body must beLeft("")
-        response.headers.get(CONTENT_LENGTH) must beSome("0")
+        response.headers.get(CONTENT_LENGTH) must beOneOf(None, Some("0")) // Both header values are valid
       }
 
     "not have a message body, nor a Content-Length, when a 304 response is returned" in withServer(
@@ -324,14 +324,14 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
         response.headers.get(CONTENT_LENGTH) must beNone
       }
 
-    "not have a message body, but do have a Content-Length, when a 304 response with an explicit Content-Length is returned" in withServer(
+    "not have a message body, but may have a Content-Length, when a 304 response with an explicit Content-Length is returned" in withServer(
       Results.NotModified.withHeaders("Content-Length" -> "0")
     ) { port =>
         val response = BasicHttpClient.makeRequests(port)(
           BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
         )(0)
         response.body must beLeft("")
-        response.headers.get(CONTENT_LENGTH) must beSome("0")
+        response.headers.get(CONTENT_LENGTH) must beOneOf(None, Some("0")) // Both header values are valid
       }
 
     "return a 500 response if a forbidden character is used in a response's header field" in withServer(
@@ -343,6 +343,6 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
         ).apply(0)
         response.status must_== Status.INTERNAL_SERVER_ERROR
         (response.headers - (CONTENT_LENGTH)) must be(Map.empty)
-      }
+      }.pendingUntilAkkaHttpFixed // https://github.com/akka/akka/issues/16988
   }
 }

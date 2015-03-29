@@ -460,7 +460,7 @@ object QueryStringBindable {
    * QueryString binder for Seq
    */
   implicit def bindableSeq[T: QueryStringBindable]: QueryStringBindable[Seq[T]] = new QueryStringBindable[Seq[T]] {
-    def bind(key: String, params: Map[String, Seq[String]]) = Some(Right(bindSeq[T](key, params)))
+    def bind(key: String, params: Map[String, Seq[String]]) = bindSeq[T](key, params)
     def unbind(key: String, values: Seq[T]) = unbindSeq(key, values)
     override def javascriptUnbind = javascriptUnbindSeq(implicitly[QueryStringBindable[T]].javascriptUnbind)
   }
@@ -475,18 +475,41 @@ object QueryStringBindable {
    * QueryString binder for java.util.List
    */
   implicit def bindableJavaList[T: QueryStringBindable]: QueryStringBindable[java.util.List[T]] = new QueryStringBindable[java.util.List[T]] {
-    def bind(key: String, params: Map[String, Seq[String]]) = Some(Right(bindSeq[T](key, params).asJava))
+    def bind(key: String, params: Map[String, Seq[String]]) = bindSeq[T](key, params).map(_.right.map(_.asJava))
     def unbind(key: String, values: java.util.List[T]) = unbindSeq(key, values.asScala)
     override def javascriptUnbind = javascriptUnbindSeq(implicitly[QueryStringBindable[T]].javascriptUnbind)
   }
 
-  private def bindSeq[T: QueryStringBindable](key: String, params: Map[String, Seq[String]]): Seq[T] = {
-    for {
-      values <- params.get(key).toList
-      rawValue <- values
-      bound <- implicitly[QueryStringBindable[T]].bind(key, Map(key -> Seq(rawValue)))
-      value <- bound.right.toOption
-    } yield value
+  private def bindSeq[T: QueryStringBindable](key: String, params: Map[String, Seq[String]]): Option[Either[String, Seq[T]]] = {
+    @tailrec
+    def collectResults(values: List[String], results: List[T]): Either[String, Seq[T]] = {
+      values match {
+        case Nil => Right(results.reverse) // to preserve the original order
+        case head :: rest =>
+          implicitly[QueryStringBindable[T]].bind(key, Map(key -> Seq(head))) match {
+            case None => collectResults(rest, results)
+            case Some(Right(result)) => collectResults(rest, result :: results)
+            case Some(Left(err)) => collectErrs(rest, err :: Nil)
+          }
+      }
+    }
+
+    @tailrec
+    def collectErrs(values: List[String], errs: List[String]): Left[String, Seq[T]] = {
+      values match {
+        case Nil => Left(errs.reverse.mkString("\n"))
+        case head :: rest =>
+          implicitly[QueryStringBindable[T]].bind(key, Map(key -> Seq(head))) match {
+            case Some(Left(err)) => collectErrs(rest, err :: errs)
+            case Some(Right(_)) | None => collectErrs(rest, errs)
+          }
+      }
+    }
+
+    params.get(key) match {
+      case None => Some(Right(Nil))
+      case Some(values) => Some(collectResults(values.toList, Nil))
+    }
   }
 
   private def unbindSeq[T: QueryStringBindable](key: String, values: Iterable[T]): String = {

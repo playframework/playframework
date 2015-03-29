@@ -30,12 +30,14 @@ object JsonValidSpec extends Specification {
     "invalidate wrong simple type conversion" in {
       JsString("string").validate[Long] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber")))))
       JsNumber(5).validate[String] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsstring")))))
+      JsNumber(5.123).validate[Int] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.int")))))
+      JsNumber(300).validate[Byte] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.byte")))))
+      JsNumber(Long.MaxValue).validate[Int] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.int")))))
       JsBoolean(false).validate[Double] must equalTo(JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.jsnumber")))))
     }
 
     "validate simple numbered type conversion" in {
       JsNumber(5).validate[Double] must equalTo(JsSuccess(5.0))
-      JsNumber(5.123).validate[Int] must equalTo(JsSuccess(5))
       JsNumber(BigDecimal(5)).validate[Double] must equalTo(JsSuccess(5.0))
       JsNumber(5.123).validate[BigDecimal] must equalTo(JsSuccess(BigDecimal(5.123)))
     }
@@ -74,11 +76,17 @@ object JsonValidSpec extends Specification {
     "validate JsArray to List" in {
       Json.arr("alpha", "beta", "delta").validate[List[String]] must equalTo(JsSuccess(List("alpha", "beta", "delta")))
       Json.arr(123, 567, 890).validate[List[Int]] must equalTo(JsSuccess(List(123, 567, 890)))
-      Json.arr(123.456, 567.123, 890.654).validate[List[Int]] must equalTo(JsSuccess(List(123, 567, 890)))
       Json.arr(123.456, 567.123, 890.654).validate[List[Double]] must equalTo(JsSuccess(List(123.456, 567.123, 890.654)))
     }
 
     "invalidate JsArray to List with wrong type conversion" in {
+      Json.arr(123.456, 567.123, 890.654).validate[List[Int]] must equalTo(
+        JsError(Seq(
+          JsPath(0) -> Seq(ValidationError("error.expected.int")),
+          JsPath(1) -> Seq(ValidationError("error.expected.int")),
+          JsPath(2) -> Seq(ValidationError("error.expected.int"))
+        ))
+      )
       Json.arr("alpha", "beta", "delta").validate[List[Int]] must equalTo(
         JsError(Seq(
           JsPath(0) -> Seq(ValidationError("error.expected.jsnumber")),
@@ -753,10 +761,10 @@ object JsonValidSpec extends Specification {
       js0.validate(myReads) must beEqualTo(JsError(__ \ 'field2, "error.path.missing") ++ JsError(__ \ 'field3, "error.path.missing"))
     }
 
-    "serialize JsError to flat json" in {
+    "serialize JsError to json" in {
       val jserr = JsError(Seq(
         (__ \ 'field1 \ 'field11) -> Seq(
-          ValidationError("msg1.msg11", "arg11", 123L, 123.456F),
+          ValidationError(Seq("msg1.msg11", "msg1.msg12"), "arg11", 123L, 123.456F),
           ValidationError("msg2.msg21.msg22", 456, 123.456, true, 123)
         ),
         (__ \ 'field2 \ 'field21) -> Seq(
@@ -765,30 +773,30 @@ object JsonValidSpec extends Specification {
         )
       ))
 
-      val flatJson = Json.obj(
+      val json = Json.obj(
         "obj.field1.field11" -> Json.arr(
           Json.obj(
-            "msg" -> "msg1.msg11",
+            "msg" -> Json.arr("msg1.msg11", "msg1.msg12"),
             "args" -> Json.arr("arg11", 123, 123.456F)
           ),
           Json.obj(
-            "msg" -> "msg2.msg21.msg22",
+            "msg" -> Json.arr("msg2.msg21.msg22"),
             "args" -> Json.arr(456, 123.456, true, 123)
           )
         ),
         "obj.field2.field21" -> Json.arr(
           Json.obj(
-            "msg" -> "msg1.msg21",
+            "msg" -> Json.arr("msg1.msg21"),
             "args" -> Json.arr("arg1", Json.obj("test" -> "test2"))
           ),
           Json.obj(
-            "msg" -> "msg2",
+            "msg" -> Json.arr("msg2"),
             "args" -> Json.arr("arg1", "arg2")
           )
         )
       )
 
-      JsError.toFlatJson(jserr) should beEqualTo(flatJson)
+      JsError.toJson(jserr) should beEqualTo(json)
     }
 
     "prune json" in {

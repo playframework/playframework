@@ -1,9 +1,12 @@
 package play.libs
 
-import org.specs2.mutable.Specification
-import org.specs2.specification.Scope
+import java.time.Instant
+import java.util.Optional
 
 import com.fasterxml.jackson.databind.ObjectMapper
+
+import org.specs2.mutable.Specification
+import org.specs2.specification.Scope
 
 class JavaJsonSpec extends Specification {
   sequential
@@ -13,6 +16,8 @@ class JavaJsonSpec extends Specification {
       """{
         |  "foo" : "bar",
         |  "bar" : "baz",
+        |  "instant" : 1425435861,
+        |  "optLong" : 55555,
         |  "a" : 2.5,
         |  "copyright" : "\u00a9",
         |  "baz" : [ 1, 2, 3 ]
@@ -22,9 +27,11 @@ class JavaJsonSpec extends Specification {
     testJson
       .put("foo", "bar")
       .put("bar", "baz")
+      .put("instant", 1425435861l)
+      .put("optLong", 55555l)
       .put("a", 2.5)
       .put("copyright", "\u00a9") // copyright symbol
-      .put("baz", mapper.createArrayNode().add(1).add(2).add(3))
+      .set("baz", mapper.createArrayNode().add(1).add(2).add(3))
 
     Json.setObjectMapper(mapper)
   }
@@ -57,6 +64,8 @@ class JavaJsonSpec extends Specification {
       val javaPOJO = Json.fromJson(testJson, classOf[JavaPOJO])
       javaPOJO.getBar must_== "baz"
       javaPOJO.getFoo must_== "bar"
+      javaPOJO.getInstant must_== Instant.ofEpochSecond(1425435861l)
+      javaPOJO.getOptLong must_== Optional.of(55555l)
     }
   }
 }

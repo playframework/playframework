@@ -153,7 +153,7 @@ project
   └ plugins.sbt
 ```
 
-> **Note:** Configuration and route file names must be unique in the whole project structure. Particularly, there must be only one `application.conf` file and only one `routes` file. To define additional routes or configuration in sub-projects, use sub-project-specific names. For instance, the route file in `admin` is called `admin.routes`. To use a specific set of settings in development mode for a sub project, it would be even better to put these settings into the build file, e.g. `Keys.devSettings += ("application.router", "admin.Routes")`.
+> **Note:** Configuration and route file names must be unique in the whole project structure. Particularly, there must be only one `application.conf` file and only one `routes` file. To define additional routes or configuration in sub-projects, use sub-project-specific names. For instance, the route file in `admin` is called `admin.routes`. To use a specific set of settings in development mode for a sub project, it would be even better to put these settings into the build file, e.g. `Keys.devSettings += ("play.http.router", "admin.Routes")`.
 
 `conf/routes`:
 
@@ -173,8 +173,6 @@ GET /index                  controllers.admin.Application.index()
 GET /assets/*file           controllers.admin.Assets.at(path="/public", file)
 
 ```
-
-> **Note:** To export compiled routes to other projects disable reverse ref routing generation using generateRefReverseRouter := false sbt settings. Since routes_reverseRouting depends on every controller disabling the ref routing generation will also improve the compilation speed.
 
 ### Assets and controller classes should be all defined in the `controllers.admin` package
 

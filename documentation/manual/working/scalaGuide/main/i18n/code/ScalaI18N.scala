@@ -34,7 +34,7 @@ class ScalaI18nSpec extends PlaySpecification with Controller {
     }
   }
 
-  val conf = Configuration.from(Map("messages.path" -> "scalaguide/i18n"))
+  val conf = Configuration.reference ++ Configuration.from(Map("play.i18n.path" -> "scalaguide/i18n"))
   val messagesApi = new DefaultMessagesApi(Environment.simple(), conf, new DefaultLangs(conf))
 
   new MyController(messagesApi)

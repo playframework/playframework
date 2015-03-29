@@ -2,7 +2,7 @@
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
 import play.runsupport.FileWatchService
-import play.sbtplugin.run.toLoggerProxy
+import play.sbt.run.toLoggerProxy
 import sbt._
 
 import scala.annotation.tailrec
@@ -26,6 +26,8 @@ object DevModeBuild {
 
   val MaxAttempts = 10
   val WaitTime = 500l
+  val ConnectTimeout = 10000
+  val ReadTimeout = 10000
 
   @tailrec
   def verifyResourceContains(path: String, status: Int, assertions: Seq[String], attempts: Int): Unit = {
@@ -34,6 +36,8 @@ object DevModeBuild {
     try {
       val url = new java.net.URL("http://localhost:9000" + path)
       val conn = url.openConnection().asInstanceOf[java.net.HttpURLConnection]
+      conn.setConnectTimeout(ConnectTimeout)
+      conn.setReadTimeout(ReadTimeout)      
 
       if (status == conn.getResponseCode) {
         messages += s"Resource at $path returned $status as expected"
@@ -66,6 +70,7 @@ object DevModeBuild {
       messages.foreach(println)
     } catch {
       case e: Exception =>
+        println(s"Got exception: $e")
         if (attempts < MaxAttempts) {
           Thread.sleep(WaitTime)
           verifyResourceContains(path, status, assertions, attempts + 1)

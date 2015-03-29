@@ -9,6 +9,8 @@ import play.api.libs.iteratee.{ Concurrent, Enumerator, Input }
 import scala.concurrent.{ Await, Future, Promise }
 import scala.concurrent.duration._
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 class EnumeratorPublisherSpec extends Specification {
 
   case object OnSubscribe
@@ -153,6 +155,18 @@ class EnumeratorPublisherSpec extends Specification {
       testEnv.request(1)
       testEnv.next must_== RequestMore(1)
       testEnv.next must_== OnNext(-1)
+      testEnv.request(1)
+      testEnv.next must_== RequestMore(1)
+      testEnv.next must_== OnComplete
+      testEnv.isEmptyAfterDelay() must beTrue
+    }
+    "handle errors when enumerating" in {
+      val testEnv = new TestEnv[Int]
+      val lotsOfItems = 0 until 25
+      val enum = Enumerator.flatten(Future.failed(new Exception("x")))
+      val pubr = new EnumeratorPublisher[Nothing](enum)
+      pubr.subscribe(testEnv.subscriber)
+      testEnv.next must_== OnSubscribe
       testEnv.request(1)
       testEnv.next must_== RequestMore(1)
       testEnv.next must_== OnComplete

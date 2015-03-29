@@ -14,13 +14,13 @@ import scala.util.control.NonFatal
  * @param application The Application to load in this server.
  * @param sslPort HTTPS port to bind on.
  * @param serverProvider *Experimental API; subject to change* The type of
- * server to use. Defaults to providing a Netty server.
+ * server to use. If not provided, uses Play's default provider.
  */
 case class TestServer(
     port: Int,
     application: Application = FakeApplication(),
     sslPort: Option[Int] = None,
-    serverProvider: ServerProvider = NettyServer.defaultServerProvider) {
+    serverProvider: Option[ServerProvider] = None) {
 
   private var testServerProcess: TestServerProcess = _
 
@@ -66,16 +66,20 @@ object TestServer {
    * call `shutdown` on the returned TestServerProcess.
    */
   private[play] def start(
-    testServerProvider: ServerProvider,
+    testServerProvider: Option[ServerProvider],
     config: ServerConfig,
     application: Application): TestServerProcess = {
     val process = new TestServerProcess
     val serverStart: ServerStart = new ServerStart {
-      def defaultServerProvider = testServerProvider
+      def defaultServerProvider = ??? // Won't be called because we're not using any ServerStart methods to create the server.
     }
-    val configuredServerProvider = serverStart.readServerProviderSetting(process, config.configuration)
+    val serverProvider: ServerProvider = {
+      testServerProvider
+    } orElse {
+      serverStart.readServerProviderSetting(process, config.configuration)
+    } getOrElse NettyServer.defaultServerProvider
     val appProvider = new play.core.TestApplication(application)
-    val server = configuredServerProvider.createServer(config, appProvider)
+    val server = serverProvider.createServer(config, appProvider)
     process.addShutdownHook { server.stop() }
     process
   }

@@ -78,13 +78,6 @@ db.default.user=playdbuser
 db.default.password="a strong password"
 ```
 
-## How to see SQL Statement in the console?
-
-```properties
-db.default.logStatements=true
-logger.com.jolbox=DEBUG // for EBean
-```
-
 ## Accessing the JDBC datasource
 
 The `play.db` package provides access to the configured data sources:
@@ -123,6 +116,16 @@ For example, if you use MySQL5, you need to add a [[dependency| SBTDependencies]
 ```
 libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.18"
 ```
+
+## Selecting and configuring the connection pool
+
+Out of the box, Play provides two database connection pool implementations, [HikariCP](https://github.com/brettwooldridge/HikariCP) and [BoneCP](http://jolbox.com/).  The default is HikariCP, but this can be changed by setting the `play.db.pool` property:
+
+```
+play.db.pool=bonecp
+```
+
+The full range of configuration options for connection pools can be found by inspecting the `play.db.prototype` property in Play's JDBC [`reference.conf`](resources/confs/play-jdbc/reference.conf).
 
 ## Testing
 

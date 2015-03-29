@@ -2,6 +2,7 @@
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
 package play.api.routing
+import scala.language.experimental.macros
 
 /**
  * The Play "String Interpolating Routing DSL", sird for short.
@@ -44,15 +45,74 @@ package play.api.routing
  */
 package object sird extends RequestMethodExtractors with PathBindableExtractors {
 
-  /**
-   * String interpolator for extracting parameters out of URL paths.
-   *
-   * By default, any sub value extracted out by the interpolator will match a path segment, that is, any
-   * String not containing a /, and its value will be decoded.  If however the sub value is suffixed with *,
-   * then it will match any part of a path, and not be decoded.  Regular expressions are also supported, by
-   * suffixing the sub value with a regular expression in angled brackets, and these are not decoded.
-   */
-  implicit class PathContext(sc: StringContext) {
+  implicit class UrlContext(sc: StringContext) {
+    /**
+     * String interpolator for extracting parameters out of URL paths.
+     *
+     * By default, any sub value extracted out by the interpolator will match a path segment, that is, any
+     * String not containing a /, and its value will be decoded.  If however the sub value is suffixed with *,
+     * then it will match any part of a path, and not be decoded.  Regular expressions are also supported, by
+     * suffixing the sub value with a regular expression in angled brackets, and these are not decoded.
+     */
     val p: PathExtractor = PathExtractor.cached(sc.parts)
+
+    /**
+     * String interpolator for required query parameters out of query strings.
+     *
+     * The format must match `q"paramName=${param}"`.
+     */
+    def q: RequiredQueryStringParameter = macro QueryStringParameterMacros.required
+
+    /**
+     * String interpolator for optional query parameters out of query strings.
+     *
+     * The format must match `q_?"paramName=${param}"`.
+     */
+    def q_? : OptionalQueryStringParameter = macro QueryStringParameterMacros.optional
+
+    /**
+     * String interpolator for multi valued query parameters out of query strings.
+     *
+     * The format must match `q_*"paramName=${params}"`.
+     */
+    def q_* : SeqQueryStringParameter = macro QueryStringParameterMacros.seq
+
+    /**
+     * String interpolator for optional query parameters out of query strings.
+     *
+     * The format must match `qo"paramName=${param}"`.
+     *
+     * The `q_?` interpolator is preferred, however Scala 2.10 does not support operator characters in String
+     * interpolator methods.
+     */
+    def q_o: OptionalQueryStringParameter = macro QueryStringParameterMacros.optional
+
+    /**
+     * String interpolator for multi valued query parameters out of query strings.
+     *
+     * The format must match `qs"paramName=${params}"`.
+     *
+     * The `q_*` interpolator is preferred, however Scala 2.10 does not support operator characters in String
+     * interpolator methods.
+     */
+    def q_s: SeqQueryStringParameter = macro QueryStringParameterMacros.seq
   }
+
+  /**
+   * Allow multiple parameters to be extracted
+   */
+  object & {
+    def unapply[A](a: A): Option[(A, A)] =
+      Some((a, a))
+  }
+
+  /**
+   * Same as &, but for convenience to make the dsl look nicer when extracting query strings
+   */
+  val ? = &
+
+  /**
+   * The query string type
+   */
+  type QueryString = Map[String, Seq[String]]
 }

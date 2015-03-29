@@ -54,20 +54,22 @@ object ApplicationBuild extends Build {
   lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsPlugin).settings(
     resolvers += Resolver.sonatypeRepo("releases"), // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
     version := PlayVersion.current,
-    scalaVersion := sys.props.get("scala.version").getOrElse(PlayVersion.scalaVersion),
     libraryDependencies ++= Seq(
       "org.mockito" % "mockito-core" % "1.9.5" % "test"
     ),
 
-    PlayDocsKeys.fallbackToJar := false,
-
-    PlayDocsKeys.docsJarFile := Option((packageBin in (playDocs, Compile)).value),
+    PlayDocsKeys.docsJarFile := Some((packageBin in (playDocs, Compile)).value),
 
     PlayDocsKeys.javaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "javaGuide" ** codeFilter).get,
     PlayDocsKeys.scalaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "scalaGuide" ** codeFilter).get,
 
     unmanagedSourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** codeFilter).get,
-    unmanagedResourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** codeFilter).get
+    unmanagedResourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** codeFilter).get,
+
+    crossScalaVersions := Seq("2.10.4", "2.11.5"),
+    scalaVersion := PlayVersion.scalaVersion,
+
+    fork in Test := true
 
   ).settings(externalPlayModuleSettings:_*)
    .dependsOn(

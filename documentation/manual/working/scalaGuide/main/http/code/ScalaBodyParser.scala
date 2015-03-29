@@ -100,7 +100,7 @@ import play.api.mvc._
     }
 
     def assertAction[A: Writeable, T: AsResult](action: EssentialAction, request: => FakeRequest[A], expectedResponse: Int = OK)(assertions: Future[Result] => T) = {
-      running(FakeApplication(additionalConfiguration = Map("application.secret" -> "pass"))) {
+      running(FakeApplication()) {
         val result = call(action, request)
         status(result) must_== expectedResponse
         assertions(result)

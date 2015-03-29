@@ -59,6 +59,14 @@ To register this module with Play, append it's fully qualified class name to the
 
     play.modules.enabled += "modules.HelloModule"
 
+You can also provide your own application loader:
+
+@[guice-app-loader](code/javaguide/advanced/di/guice/CustomApplicationLoader.java)
+
+You then need to specifiy it in `play.application.loader`:
+
+    play.application.loader := "modules.CustomApplicationLoader"
+
 ### Play libraries
 
 If you're implementing a library for Play, then you probably want it to be DI framework agnostic, so that your library will work out of the box regardless of which DI framework is being used in an application.  For this reason, Play provides a lightweight binding API for providing bindings in a DI framework agnostic way.

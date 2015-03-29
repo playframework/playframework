@@ -34,19 +34,19 @@ trait WSClient {
    * @param url The base URL to make HTTP requests to.
    * @return a WSRequestHolder
    */
-  def url(url: String): WSRequestHolder
+  def url(url: String): WSRequest
 
   /** Closes this client, and releases underlying resources. */
   def close(): Unit
 }
 
 /**
- * WSRequestHolderMagnet magnet.  Please see the companion object for implicit definitions.
+ * WSRequestMagnet magnet.  Please see the companion object for implicit definitions.
  *
  * @see <a href="http://spray.io/blog/2012-12-13-the-magnet-pattern/">The magnet pattern</a>
  */
-trait WSRequestHolderMagnet {
-  def apply(): WSRequestHolder
+trait WSRequestMagnet {
+  def apply(): WSRequest
 }
 
 /**
@@ -83,21 +83,12 @@ trait WSRequestHolderMagnet {
  * }}}
  *
  * Note that the resolution of URL is done through the magnet pattern defined in
- * `WSRequestHolderMagnet`.
+ * `WSRequestMagnet`.
  *
  * The value returned is a {@code Future[WSResponse]}, and you should use Play's asynchronous mechanisms to
  * use this response.
  */
 object WS {
-
-  @deprecated("Please use play.api.libs.ws.WSRequest", "2.3.0")
-  type WSRequest = play.api.libs.ws.WSRequest
-
-  @deprecated("Please use play.api.libs.ws.WSResponse", "2.3.0")
-  type Response = play.api.libs.ws.WSResponse
-
-  @deprecated("Please use play.api.libs.ws.WSRequestHolder", "2.3.0")
-  type WSRequestHolder = play.api.libs.ws.WSRequestHolder
 
   private val wsapiCache = Application.instanceCache[WSAPI]
   protected[play] def wsapi(implicit app: Application): WSAPI = wsapiCache(app)
@@ -127,7 +118,7 @@ object WS {
    * @param url the URL to request
    * @param app the implicit application to use.
    */
-  def url(url: String)(implicit app: Application): play.api.libs.ws.WSRequestHolder = wsapi(app).url(url)
+  def url(url: String)(implicit app: Application): play.api.libs.ws.WSRequest = wsapi(app).url(url)
 
   /**
    * Prepares a new request using a provided magnet.  This method gives you the ability to create your own
@@ -152,7 +143,7 @@ object WS {
    * @param magnet a magnet pattern.
    * @see <a href="http://spray.io/blog/2012-12-13-the-magnet-pattern/">The magnet pattern</a>
    */
-  def url(magnet: WSRequestHolderMagnet): play.api.libs.ws.WSRequestHolder = magnet()
+  def url(magnet: WSRequestMagnet): play.api.libs.ws.WSRequest = magnet()
 
   /**
    * Prepares a new request using an implicit client.  The client must be in scope and configured, i.e.
@@ -165,7 +156,7 @@ object WS {
    * @param url the URL to request
    * @param client the client to use to make the request.
    */
-  def clientUrl(url: String)(implicit client: WSClient): play.api.libs.ws.WSRequestHolder = client.url(url)
+  def clientUrl(url: String)(implicit client: WSClient): play.api.libs.ws.WSRequest = client.url(url)
 }
 
 /**
@@ -175,81 +166,7 @@ trait WSAPI {
 
   def client: WSClient
 
-  def url(url: String): WSRequestHolder
-}
-
-/**
- * WSRequest is used internally.  Please use WSRequestHolder.
- */
-trait WSRequest {
-
-  /**
-   * Return the current headers of the request being constructed
-   */
-  def allHeaders: Map[String, Seq[String]]
-
-  /**
-   * Return the current query string parameters
-   */
-  def queryString: Map[String, Seq[String]]
-
-  /**
-   * Retrieve an HTTP header.
-   */
-  def header(name: String): Option[String]
-
-  /**
-   * The HTTP method.
-   */
-  def method: String
-
-  /**
-   * The URL
-   */
-  def url: String
-
-  /**
-   * Get the body.
-   *
-   * Will only return the body if the body exists in memory, will not return it if it's a stream.
-   */
-  def getBody: Option[Array[Byte]]
-
-  /**
-   * Set an HTTP header.
-   */
-  @scala.deprecated("Use WSRequestHolder", "2.3.0")
-  def setHeader(name: String, value: String): WSRequest
-
-  /**
-   * Add an HTTP header (used for headers with multiple values).
-   */
-  @scala.deprecated("Use WSRequestHolder", "2.3.0")
-  def addHeader(name: String, value: String): WSRequest
-
-  //@scala.deprecated
-  //override def setHeaders(hdrs: FluentCaseInsensitiveStringsMap)
-
-  /**
-   * Defines the request headers.
-   */
-  @scala.deprecated("Use WSRequestHolder", "2.3.0")
-  def setHeaders(hdrs: java.util.Map[String, java.util.Collection[String]]): WSRequest
-
-  /**
-   * Defines the request headers.
-   */
-  @scala.deprecated("Use WSRequestHolder", "2.3.0")
-  def setHeaders(hdrs: Map[String, Seq[String]]): WSRequest
-
-  /**
-   * Defines the query string.
-   */
-  @scala.deprecated("Use WSRequestHolder", "2.3.0")
-  def setQueryString(queryString: Map[String, Seq[String]]): WSRequest
-
-  @scala.deprecated("Use WSRequestHolder", "2.3.0")
-  def setUrl(url: String): WSRequest
+  def url(url: String): WSRequest
 }
 
 /**
@@ -347,7 +264,7 @@ case object EmptyBody extends WSBody
 /**
  * A WS Request builder.
  */
-trait WSRequestHolder {
+trait WSRequest {
 
   /**
    * The base URL for this request
@@ -422,54 +339,54 @@ trait WSRequestHolder {
    * sets the signature calculator for the request
    * @param calc
    */
-  def sign(calc: WSSignatureCalculator): WSRequestHolder
+  def sign(calc: WSSignatureCalculator): WSRequest
 
   /**
    * sets the authentication realm
    */
-  def withAuth(username: String, password: String, scheme: WSAuthScheme): WSRequestHolder
+  def withAuth(username: String, password: String, scheme: WSAuthScheme): WSRequest
 
   /**
    * adds any number of HTTP headers
    * @param hdrs
    */
-  def withHeaders(hdrs: (String, String)*): WSRequestHolder
+  def withHeaders(hdrs: (String, String)*): WSRequest
 
   /**
    * adds any number of query string parameters to the
    */
-  def withQueryString(parameters: (String, String)*): WSRequestHolder
+  def withQueryString(parameters: (String, String)*): WSRequest
 
   /**
    * Sets whether redirects (301, 302) should be followed automatically
    */
-  def withFollowRedirects(follow: Boolean): WSRequestHolder
+  def withFollowRedirects(follow: Boolean): WSRequest
 
   /**
    * Sets the maximum time in milliseconds you expect the request to take.
    * Warning: a stream consumption will be interrupted when this time is reached.
    */
-  def withRequestTimeout(timeout: Long): WSRequestHolder
+  def withRequestTimeout(timeout: Long): WSRequest
 
   /**
    * Sets the virtual host to use in this request
    */
-  def withVirtualHost(vh: String): WSRequestHolder
+  def withVirtualHost(vh: String): WSRequest
 
   /**
    * Sets the proxy server to use in this request
    */
-  def withProxyServer(proxyServer: WSProxyServer): WSRequestHolder
+  def withProxyServer(proxyServer: WSProxyServer): WSRequest
 
   /**
    * Sets the body for this request
    */
-  def withBody(body: WSBody): WSRequestHolder
+  def withBody(body: WSBody): WSRequest
 
   /**
    * Sets the body for this request
    */
-  def withBody[T](body: T)(implicit wrt: Writeable[T]): WSRequestHolder = {
+  def withBody[T](body: T)(implicit wrt: Writeable[T]): WSRequest = {
     val wsBody = InMemoryBody(wrt.transform(body))
     if (headers.contains("Content-Type")) {
       withBody(wsBody)
@@ -483,7 +400,7 @@ trait WSRequestHolder {
   /**
    * Sets the method for this request
    */
-  def withMethod(method: String): WSRequestHolder
+  def withMethod(method: String): WSRequest
 
   /**
    * performs a get
@@ -738,13 +655,6 @@ trait WSResponseHeaders {
 case class DefaultWSResponseHeaders(status: Int, headers: Map[String, Seq[String]]) extends WSResponseHeaders
 
 /**
- * Sign a WS call.
+ * Sign a WS call with OAuth.
  */
-trait WSSignatureCalculator {
-
-  /**
-   * Sign it.
-   */
-  def sign(request: WSRequest)
-}
-
+trait WSSignatureCalculator

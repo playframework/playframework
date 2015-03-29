@@ -7,6 +7,7 @@ import play.api.mvc._
 import play.api.libs.iteratee.{Enumeratee, Iteratee, Enumerator}
 import play.api.test._
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.libs.Comet
 
 object ScalaCometSpec extends PlaySpecification with Controller {
