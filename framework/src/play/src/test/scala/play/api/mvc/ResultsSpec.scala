@@ -27,6 +27,11 @@ object ResultsSpec extends Specification {
       status must be_==(200)
     }
 
+    "have Content-Length header for Writeable content" in {
+      val Result(ResponseHeader(_, headers), _, _) = Ok("hello")
+      headers must havePair("Content-Length" -> "5")
+    }
+
     "support Content-Type overriding" in {
       val Result(ResponseHeader(_, headers), _, _) = Ok("hello").as("text/html")
       headers must havePair("Content-Type" -> "text/html")
@@ -36,7 +41,8 @@ object ResultsSpec extends Specification {
       val Result(ResponseHeader(_, headers), _, _) =
         Ok("hello").as("text/html").withHeaders("Set-Cookie" -> "yes", "X-YOP" -> "1", "X-Yop" -> "2")
 
-      headers.size must be_==(3)
+      headers.size must be_==(4)
+      headers must havePair("Content-Length" -> "5")
       headers must havePair("Content-Type" -> "text/html")
       headers must havePair("Set-Cookie" -> "yes")
       headers must not havePair ("X-YOP" -> "1")
