@@ -69,8 +69,8 @@ class ActorSystemProvider @Inject() (environment: Environment, configuration: Co
       logger.info(s"Shutdown application default Akka system: $name")
       system.shutdown()
 
-      config.getOptional[Duration]("play.akka.shutdown-timeout") match {
-        case Some(timeout) =>
+      config.get[Duration]("play.akka.shutdown-timeout") match {
+        case timeout: FiniteDuration =>
           try {
             system.awaitTermination(timeout)
           } catch {
@@ -78,7 +78,7 @@ class ActorSystemProvider @Inject() (environment: Environment, configuration: Co
               // oh well.  We tried to be nice.
               logger.info(s"Could not shutdown the Akka system in $timeout milliseconds.  Giving up.")
           }
-        case None =>
+        case _ =>
           // wait until it is shutdown
           system.awaitTermination()
       }

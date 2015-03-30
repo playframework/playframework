@@ -9,15 +9,16 @@ import java.security.KeyStore
 import java.security.cert.CertPathValidatorException
 import javax.inject.{ Singleton, Inject, Provider }
 
-import com.ning.http.client.providers.netty.NettyAsyncHttpProviderConfig
 import org.slf4j.LoggerFactory
 
-import com.ning.http.client.{ AsyncHttpClientConfig, SSLEngineFactory }
+import com.ning.http.client.AsyncHttpClientConfig
 
 import javax.net.ssl._
 import play.api.{ PlayConfig, Environment, Configuration }
 import play.api.libs.ws.ssl._
 import play.api.libs.ws.WSClientConfig
+
+import scala.concurrent.duration._
 
 /**
  * Ning client config.
@@ -28,6 +29,9 @@ import play.api.libs.ws.WSClientConfig
  * @param ioThreadMultiplier The multiplier to use for the number of IO threads.
  * @param maxConnectionsPerHost The maximum number of connections to make per host. -1 means no maximum.
  * @param maxConnectionsTotal The maximum total number of connections. -1 means no maximum.
+ * @param maxConnectionLifetime The maximum time that a connection should live for in the pool.
+ * @param idleConnectionInPoolTimeout The time after which a connection that has been idle in the pool should be closed.
+ * @param webSocketIdleTimeout The time after which a websocket connection should be closed.
  * @param maxNumberOfRedirects The maximum number of redirects.
  * @param maxRequestRetry The maximum number of times to retry a request if it fails.
  * @param disableUrlEncoding Whether the raw URL should be used.
@@ -38,6 +42,9 @@ case class NingWSClientConfig(wsClientConfig: WSClientConfig = WSClientConfig(),
   ioThreadMultiplier: Int = 2,
   maxConnectionsPerHost: Int = -1,
   maxConnectionsTotal: Int = -1,
+  maxConnectionLifetime: Duration = Duration.Inf,
+  idleConnectionInPoolTimeout: Duration = 1.minute,
+  webSocketIdleTimeout: Duration = 15.minutes,
   maxNumberOfRedirects: Int = 5,
   maxRequestRetry: Int = 5,
   disableUrlEncoding: Boolean = false)
@@ -69,6 +76,9 @@ class NingWSClientConfigParser @Inject() (wsClientConfig: WSClientConfig,
     val ioThreadMultiplier = config.get[Int]("ioThreadMultiplier")
     val maximumConnectionsPerHost = config.get[Int]("maxConnectionsPerHost")
     val maximumConnectionsTotal = config.get[Int]("maxConnectionsTotal")
+    val maxConnectionLifetime = config.get[Duration]("maxConnectionLifetime")
+    val idleConnectionInPoolTimeout = config.get[Duration]("idleConnectionInPoolTimeout")
+    val webSocketIdleTimeout = config.get[Duration]("webSocketIdleTimeout")
     val maximumNumberOfRedirects = config.get[Int]("maxNumberOfRedirects")
     val maxRequestRetry = config.get[Int]("maxRequestRetry")
     val disableUrlEncoding = config.get[Boolean]("disableUrlEncoding")
@@ -80,6 +90,9 @@ class NingWSClientConfigParser @Inject() (wsClientConfig: WSClientConfig,
       ioThreadMultiplier = ioThreadMultiplier,
       maxConnectionsPerHost = maximumConnectionsPerHost,
       maxConnectionsTotal = maximumConnectionsTotal,
+      maxConnectionLifetime = maxConnectionLifetime,
+      idleConnectionInPoolTimeout = idleConnectionInPoolTimeout,
+      webSocketIdleTimeout = webSocketIdleTimeout,
       maxNumberOfRedirects = maximumNumberOfRedirects,
       maxRequestRetry = maxRequestRetry,
       disableUrlEncoding = disableUrlEncoding
@@ -153,9 +166,14 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
   def configureWS(ningConfig: NingWSClientConfig): Unit = {
     val config = ningConfig.wsClientConfig
 
-    builder.setConnectTimeout(config.connectionTimeout.toMillis.toInt)
-      .setReadTimeout(config.idleTimeout.toMillis.toInt)
-      .setRequestTimeout(config.requestTimeout.toMillis.toInt)
+    def toMillis(duration: Duration): Int = {
+      if (duration.isFinite()) duration.toMillis.toInt
+      else -1
+    }
+
+    builder.setConnectTimeout(toMillis(config.connectionTimeout))
+      .setReadTimeout(toMillis(config.idleTimeout))
+      .setRequestTimeout(toMillis(config.requestTimeout))
       .setFollowRedirect(config.followRedirects)
       .setUseProxyProperties(config.useProxyProperties)
       .setCompressionEnforced(config.compressionEnabled)
@@ -167,13 +185,11 @@ class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSCl
     builder.setIOThreadMultiplier(ningConfig.ioThreadMultiplier)
     builder.setMaxConnectionsPerHost(ningConfig.maxConnectionsPerHost)
     builder.setMaxConnections(ningConfig.maxConnectionsTotal)
+    builder.setConnectionTTL(toMillis(ningConfig.maxConnectionLifetime))
+    builder.setPooledConnectionIdleTimeout(toMillis(ningConfig.idleConnectionInPoolTimeout))
+    builder.setWebSocketTimeout(toMillis(ningConfig.webSocketIdleTimeout))
     builder.setMaxRedirects(ningConfig.maxNumberOfRedirects)
     builder.setMaxRequestRetry(ningConfig.maxRequestRetry)
-
-    // 'removeQueryParamsOnRedirect' was dropped in https://github.com/AsyncHttpClient/async-http-client/issues/811
-    // builder.setRemoveQueryParamsOnRedirect(ningConfig.removeQueryParamsOnRedirect)
-
-    // 'useRawUrl` becomes `disableUrlEncodingForBoundedRequests`, as it's only honored by bound requests
     builder.setDisableUrlEncodingForBoundedRequests(ningConfig.disableUrlEncoding)
   }
 

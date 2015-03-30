@@ -179,6 +179,9 @@ Please refer to the [AsyncHttpClientConfig Documentation](http://asynchttpclient
 * `play.ws.ning.ioThreadMultiplier`
 * `play.ws.ning.maxConnectionsPerHost`
 * `play.ws.ning.maxConnectionsTotal`
+* `play.ws.ning.maxConnectionLifeTime`
+* `play.ws.ning.idleConnectionInPoolTimeout`
+* `ws.ning.webSocketIdleTimeout`
 * `play.ws.ning.maxNumberOfRedirects`
 * `play.ws.ning.maxRequestRetry`
 * `play.ws.ning.removeQueryParamsOnRedirect`
