@@ -11,7 +11,7 @@ import play.api.libs.JNDI
 import play.api.inject.Module
 import play.api._
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{ FiniteDuration, Duration }
 import scala.util.{ Success, Try, Failure }
 
 import com.zaxxer.hikari.{ HikariDataSource, HikariConfig }
@@ -114,11 +114,16 @@ class HikariCPConfig(dbConfig: DatabaseConfig, configuration: PlayConfig) {
       hikariConfig.addDataSourceProperty(key, dataSourceConfig.get[String](key))
     }
 
+    def toMillis(duration: Duration) = {
+      if (duration.isFinite()) duration.toMillis
+      else 0l
+    }
+
     // Frequently used
     hikariConfig.setAutoCommit(config.get[Boolean]("autoCommit"))
-    hikariConfig.setConnectionTimeout(config.get[Duration]("connectionTimeout").toMillis)
-    hikariConfig.setIdleTimeout(config.get[Duration]("idleTimeout").toMillis)
-    hikariConfig.setMaxLifetime(config.get[Duration]("maxLifetime").toMillis)
+    hikariConfig.setConnectionTimeout(toMillis(config.get[Duration]("connectionTimeout")))
+    hikariConfig.setIdleTimeout(toMillis(config.get[Duration]("idleTimeout")))
+    hikariConfig.setMaxLifetime(toMillis(config.get[Duration]("maxLifetime")))
     config.getOptional[String]("connectionTestQuery").foreach(hikariConfig.setConnectionTestQuery)
     config.getOptional[Int]("minimumIdle").foreach(hikariConfig.setMinimumIdle)
     hikariConfig.setMaximumPoolSize(config.get[Int]("maximumPoolSize"))
@@ -132,8 +137,8 @@ class HikariCPConfig(dbConfig: DatabaseConfig, configuration: PlayConfig) {
     hikariConfig.setRegisterMbeans(config.get[Boolean]("registerMbeans"))
     config.getOptional[String]("catalog").foreach(hikariConfig.setCatalog)
     config.getOptional[String]("transactionIsolation").foreach(hikariConfig.setTransactionIsolation)
-    hikariConfig.setValidationTimeout(config.get[Duration]("validationTimeout").toMillis)
-    config.getOptional[Duration]("leakDetectionThreshold").foreach(d => hikariConfig.setLeakDetectionThreshold(d.toMillis))
+    hikariConfig.setValidationTimeout(config.get[FiniteDuration]("validationTimeout").toMillis)
+    hikariConfig.setLeakDetectionThreshold(toMillis(config.get[Duration]("leakDetectionThreshold")))
 
     hikariConfig.validate()
     hikariConfig

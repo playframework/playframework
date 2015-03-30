@@ -15,7 +15,7 @@ import play.api.libs.JNDI
 import com.jolbox.bonecp._
 import com.jolbox.bonecp.hooks._
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{ FiniteDuration, Duration }
 
 /**
  * BoneCP runtime inject module.
@@ -107,15 +107,15 @@ class BoneConnectionPool @Inject() (environment: Environment) extends Connection
     datasource.setMinConnectionsPerPartition(config.getDeprecated[Int]("bonecp.minConnectionsPerPartition", "minConnectionsPerPartition"))
     datasource.setAcquireIncrement(config.getDeprecated[Int]("bonecp.acquireIncrement", "acquireIncrement"))
     datasource.setAcquireRetryAttempts(config.getDeprecated[Int]("bonecp.acquireRetryAttempts", "acquireRetryAttempts"))
-    datasource.setAcquireRetryDelayInMs(config.getDeprecated[Duration]("bonecp.acquireRetryDelay", "acquireRetryDelay").toMillis)
-    datasource.setConnectionTimeoutInMs(config.getDeprecated[Duration]("bonecp.connectionTimeout", "connectionTimeout").toMillis)
-    datasource.setIdleMaxAgeInSeconds(config.getDeprecated[Duration]("bonecp.idleMaxAge", "idleMaxAge").toSeconds)
-    datasource.setMaxConnectionAgeInSeconds(config.getDeprecated[Duration]("bonecp.maxConnectionAge", "maxConnectionAge").toSeconds)
+    datasource.setAcquireRetryDelayInMs(config.getDeprecated[FiniteDuration]("bonecp.acquireRetryDelay", "acquireRetryDelay").toMillis)
+    datasource.setConnectionTimeoutInMs(config.getDeprecated[FiniteDuration]("bonecp.connectionTimeout", "connectionTimeout").toMillis)
+    datasource.setIdleMaxAgeInSeconds(config.getDeprecated[FiniteDuration]("bonecp.idleMaxAge", "idleMaxAge").toSeconds)
+    datasource.setMaxConnectionAgeInSeconds(config.getDeprecated[FiniteDuration]("bonecp.maxConnectionAge", "maxConnectionAge").toSeconds)
     datasource.setDisableJMX(config.getDeprecated[Boolean]("bonecp.disableJMX", "disableJMX"))
     datasource.setStatisticsEnabled(config.getDeprecated[Boolean]("bonecp.statisticsEnabled", "statisticsEnabled"))
-    datasource.setIdleConnectionTestPeriodInSeconds(config.getDeprecated[Duration]("bonecp.idleConnectionTestPeriod", "idleConnectionTestPeriod").toSeconds)
+    datasource.setIdleConnectionTestPeriodInSeconds(config.getDeprecated[FiniteDuration]("bonecp.idleConnectionTestPeriod", "idleConnectionTestPeriod").toSeconds)
     datasource.setDisableConnectionTracking(config.getDeprecated[Boolean]("bonecp.disableConnectionTracking", "disableConnectionTracking"))
-    datasource.setQueryExecuteTimeLimitInMs(config.getDeprecated[Duration]("bonecp.queryExecuteTimeLimit", "queryExecuteTimeLimit").toMillis)
+    datasource.setQueryExecuteTimeLimitInMs(config.getDeprecated[FiniteDuration]("bonecp.queryExecuteTimeLimit", "queryExecuteTimeLimit").toMillis)
     datasource.setResetConnectionOnClose(config.getDeprecated[Boolean]("bonecp.resetConnectionOnClose", "resetConnectionOnClose"))
     datasource.setDetectUnresolvedTransactions(config.getDeprecated[Boolean]("bonecp.detectUnresolvedTransactions", "detectUnresolvedTransactions"))
     datasource.setLogStatementsEnabled(config.getDeprecated[Boolean]("bonecp.logStatements", "logStatements"))

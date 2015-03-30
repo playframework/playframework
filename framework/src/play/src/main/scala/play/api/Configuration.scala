@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 import com.typesafe.config._
 
 import scala.collection.JavaConverters._
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.io.Source
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -1027,7 +1027,7 @@ private[play] object PlayConfig {
 /**
  * A config loader
  */
-private[play] trait ConfigLoader[+A] { self =>
+private[play] trait ConfigLoader[A] { self =>
   def load(config: Config, path: String): A
   def map[B](f: A => B): ConfigLoader[B] = new ConfigLoader[B] {
     def load(config: Config, path: String): B = {
@@ -1037,6 +1037,7 @@ private[play] trait ConfigLoader[+A] { self =>
 }
 
 private[play] object ConfigLoader {
+
   def apply[A](f: Config => String => A): ConfigLoader[A] = new ConfigLoader[A] {
     def load(config: Config, path: String): A = f(config)(path)
   }
@@ -1054,9 +1055,17 @@ private[play] object ConfigLoader {
   implicit val booleanLoader = ConfigLoader(_.getBoolean)
   implicit val seqBooleanLoader = ConfigLoader(_.getBooleanList).map(toScala(_).map(_.booleanValue()))
 
-  implicit val durationLoader = ConfigLoader(config => config.getDuration(_, TimeUnit.MILLISECONDS))
+  implicit val durationLoader: ConfigLoader[Duration] = ConfigLoader(config => path =>
+    try {
+      FiniteDuration(config.getDuration(path, TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS)
+    } catch {
+      case e: ConfigException.Null => Duration.Inf
+    }
+  )
+
+  implicit val finiteDurationLoader: ConfigLoader[FiniteDuration] = ConfigLoader(config => config.getDuration(_, TimeUnit.MILLISECONDS))
     .map(millis => FiniteDuration(millis, TimeUnit.MILLISECONDS))
-  implicit val seqDurationLoader = ConfigLoader(config => config.getDurationList(_, TimeUnit.MILLISECONDS))
+  implicit val seqFiniteDurationLoader: ConfigLoader[Seq[FiniteDuration]] = ConfigLoader(config => config.getDurationList(_, TimeUnit.MILLISECONDS))
     .map(toScala(_).map(millis => FiniteDuration(millis, TimeUnit.MILLISECONDS)))
 
   implicit val doubleLoader = ConfigLoader(_.getDouble)

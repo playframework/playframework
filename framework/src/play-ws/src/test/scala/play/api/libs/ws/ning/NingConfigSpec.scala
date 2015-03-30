@@ -42,6 +42,10 @@ object NingConfigSpec extends Specification with Mockito with NoTimeConversions 
       parser.parse()
     }
 
+    "case class defaults must match reference.conf defaults" in new WithApplication {
+      NingWSClientConfig() must_== parseThis("")
+    }
+
     "parse ws ning section" in new WithApplication {
       val actual = parseThis("""
                                |play.ws.ning.allowPoolingConnection = false
@@ -49,6 +53,9 @@ object NingConfigSpec extends Specification with Mockito with NoTimeConversions 
                                |play.ws.ning.ioThreadMultiplier = 5
                                |play.ws.ning.maxConnectionsPerHost = 3
                                |play.ws.ning.maxConnectionsTotal = 6
+                               |play.ws.ning.maxConnectionLifetime = 1 minute
+                               |play.ws.ning.idleConnectionInPoolTimeout = 30 seconds
+                               |play.ws.ning.webSocketIdleTimeout = 2 minutes
                                |play.ws.ning.maxNumberOfRedirects = 0
                                |play.ws.ning.maxRequestRetry = 99
                                |play.ws.ning.disableUrlEncoding = true
@@ -59,6 +66,9 @@ object NingConfigSpec extends Specification with Mockito with NoTimeConversions 
       actual.ioThreadMultiplier must_== 5
       actual.maxConnectionsPerHost must_== 3
       actual.maxConnectionsTotal must_== 6
+      actual.maxConnectionLifetime must_== 1.minute
+      actual.idleConnectionInPoolTimeout must_== 30.seconds
+      actual.webSocketIdleTimeout must_== 2.minutes
       actual.maxNumberOfRedirects must_== 0
       actual.maxRequestRetry must_== 99
       actual.disableUrlEncoding must beTrue
