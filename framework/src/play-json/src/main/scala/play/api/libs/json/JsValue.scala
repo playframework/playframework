@@ -88,12 +88,12 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
   /**
    * Return all keys
    */
-  def keys: Set[String] = fields.map(_._1).toSet
+  def keys: Set[String] = fields.map(_._1)(collection.breakOut)
 
   /**
    * Return all values
    */
-  def values: Set[JsValue] = fields.map(_._2).toSet
+  def values: Set[JsValue] = fields.map(_._2)(collection.breakOut)
 
   def fieldSet: Set[(String, JsValue)] = fields.toSet
 
