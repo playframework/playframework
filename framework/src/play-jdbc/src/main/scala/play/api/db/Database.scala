@@ -6,9 +6,11 @@ package play.api.db
 import java.sql.{ Connection, Driver, DriverManager }
 import javax.sql.DataSource
 
+import com.typesafe.config.Config
+
 import scala.util.control.{ NonFatal, ControlThrowable }
 
-import play.api.Configuration
+import play.api.{ Environment, PlayConfig, Configuration }
 import play.utils.{ ProxyDriver, Reflect }
 
 /**
@@ -38,7 +40,6 @@ trait Database {
    *
    * Don't forget to release the connection at some point by calling close().
    *
-   * @param autocommit determines whether to autocommit the connection
    * @return a JDBC connection
    */
   def getConnection(): Connection
@@ -104,7 +105,8 @@ object Database {
    * @return a configured database
    */
   def apply(driver: String, url: String, name: String = "default", config: Map[String, _ <: Any] = Map.empty): Database = {
-    val dbConfig = Configuration.from(Map("driver" -> driver, "url" -> url) ++ config)
+    val dbConfig = Configuration.reference.getConfig("play.db.prototype").get ++
+      Configuration.from(Map("driver" -> driver, "url" -> url) ++ config)
     new PooledDatabase(name, dbConfig)
   }
 
@@ -167,7 +169,10 @@ object Database {
  * Default implementation of the database API.
  * Provides driver registration and connection methods.
  */
-abstract class DefaultDatabase(val name: String, configuration: Configuration, classLoader: ClassLoader) extends Database {
+abstract class DefaultDatabase(val name: String, configuration: Config, environment: Environment) extends Database {
+
+  private val config = PlayConfig(configuration)
+  val databaseConfig = DatabaseConfig.fromConfig(config, environment)
 
   // abstract methods to be implemented
 
@@ -177,16 +182,15 @@ abstract class DefaultDatabase(val name: String, configuration: Configuration, c
 
   // driver registration
 
-  lazy val driver: Driver = {
-    val driverClass = configuration.getString("driver").getOrElse {
-      throw configuration.reportError(name, s"Missing configuration [db.$name.driver]")
-    }
-    try {
-      val proxyDriver = new ProxyDriver(Reflect.createInstance[Driver](driverClass, classLoader))
-      DriverManager.registerDriver(proxyDriver)
-      proxyDriver
-    } catch {
-      case NonFatal(e) => throw configuration.reportError("driver", s"Driver not found: [$driverClass]", Some(e))
+  lazy val driver: Option[Driver] = {
+    databaseConfig.driver.map { driverClassName =>
+      try {
+        val proxyDriver = new ProxyDriver(Reflect.createInstance[Driver](driverClassName, environment.classLoader))
+        DriverManager.registerDriver(proxyDriver)
+        proxyDriver
+      } catch {
+        case NonFatal(e) => throw config.reportError("driver", s"Driver not found: [$driverClassName}]", Some(e))
+      }
     }
   }
 
@@ -256,7 +260,7 @@ abstract class DefaultDatabase(val name: String, configuration: Configuration, c
   }
 
   def deregisterDriver(): Unit = {
-    DriverManager.deregisterDriver(driver)
+    driver.foreach(DriverManager.deregisterDriver)
   }
 
 }
@@ -264,12 +268,12 @@ abstract class DefaultDatabase(val name: String, configuration: Configuration, c
 /**
  * Default implementation of the database API using a connection pool.
  */
-class PooledDatabase(name: String, configuration: Configuration, classLoader: ClassLoader, pool: ConnectionPool)
-    extends DefaultDatabase(name, configuration, classLoader) {
+class PooledDatabase(name: String, configuration: Config, environment: Environment, pool: ConnectionPool)
+    extends DefaultDatabase(name, configuration, environment) {
 
-  def this(name: String, configuration: Configuration) = this(name, configuration, classOf[PooledDatabase].getClassLoader, new BoneConnectionPool)
+  def this(name: String, configuration: Configuration) = this(name, configuration.underlying, Environment.simple(), new HikariCPConnectionPool(Environment.simple()))
 
-  def createDataSource(): DataSource = pool.create(name, configuration, classLoader)
+  def createDataSource(): DataSource = pool.create(name, databaseConfig, configuration)
 
   def closeDataSource(dataSource: DataSource): Unit = pool.close(dataSource)
 

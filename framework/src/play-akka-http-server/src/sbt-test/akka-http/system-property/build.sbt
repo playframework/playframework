@@ -17,7 +17,7 @@ fork in Test := true
 
 javaOptions in Test += "-Dplay.server.provider=play.core.server.akkahttp.AkkaHttpServerProvider"
 
-PlayKeys.playInteractionMode := play.StaticPlayNonBlockingInteractionMode
+PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode
 
 InputKey[Unit]("verify-resource-contains") := {
   val args = Def.spaceDelimited("<path> <status> <words> ...").parsed

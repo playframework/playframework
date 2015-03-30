@@ -4,7 +4,6 @@
 package play.libs;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.apache.commons.lang3.StringEscapeUtils;
 import play.mvc.Results.*;
 
 /**

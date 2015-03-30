@@ -21,7 +21,7 @@ public class FunctionalTest extends WithApplication {
     @Test
     public void testBadRoute() {
         Result result = route(fakeRequest(GET, "/xx/Kiki"));
-        assertEquals(NOT_FOUND, status(result));
+        assertEquals(NOT_FOUND, result.status());
     }
     //#bad-route
 
@@ -29,13 +29,13 @@ public class FunctionalTest extends WithApplication {
 
     private TestServer testServer() {
         Map<String, String> config = new HashMap<String, String>();
-        config.put("application.router", "javaguide.tests.Routes");
+        config.put("play.http.router", "javaguide.tests.Routes");
         return Helpers.testServer(fakeApplication(config));
     }
 
     private TestServer testServer(int port) {
         Map<String, String> config = new HashMap<String, String>();
-        config.put("application.router", "javaguide.tests.Routes");
+        config.put("play.http.router", "javaguide.tests.Routes");
         return Helpers.testServer(port, fakeApplication(config));
     }
 

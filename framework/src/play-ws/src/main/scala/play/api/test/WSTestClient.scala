@@ -1,7 +1,7 @@
 package play.api.test
 
 import play.api.libs.ws._
-import play.api.libs.ws.ning.{ DefaultNingWSClientConfig, NingWSClient }
+import play.api.libs.ws.ning.{ NingWSClientConfig, NingWSClient }
 
 import play.api.mvc.Call
 
@@ -20,7 +20,7 @@ trait WsTestClient {
    * }
    * }}}
    */
-  def wsCall(call: Call)(implicit port: Port, client: WSClient = WS.client(play.api.Play.current)): WSRequestHolder = wsUrl(call.url)
+  def wsCall(call: Call)(implicit port: Port, client: WSClient = WS.client(play.api.Play.current)): WSRequest = wsUrl(call.url)
 
   /**
    * Constructs a WS request holder for the given relative URL.  Optionally takes a port and WSClient.  Note that the WS client used
@@ -54,7 +54,7 @@ trait WsTestClient {
    */
   def withClient[T](block: WSClient => T)(implicit port: play.api.http.Port = new play.api.http.Port(-1)) = {
     // Don't retry for tests
-    val client = NingWSClient(DefaultNingWSClientConfig(maxRequestRetry = Some(0)))
+    val client = NingWSClient(NingWSClientConfig(maxRequestRetry = 0))
     val wrappedClient = new WSClient {
       def underlying[T] = client.underlying.asInstanceOf[T]
       def url(url: String) = {

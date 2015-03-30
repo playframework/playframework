@@ -3,11 +3,12 @@
  */
 package play.api.db
 
-import javax.inject.{ Inject, Provider, Singleton }
+import com.typesafe.config.Config
+import play.api.inject.{ NewInstanceInjector, Injector }
 
 import scala.util.control.NonFatal
 
-import play.api.{ Configuration, Logger }
+import play.api.{ Environment, Configuration, Logger }
 
 /**
  * DB API for managing application databases.
@@ -37,19 +38,19 @@ trait DBApi {
  * Default implementation of the DB API.
  */
 class DefaultDBApi(
-    configuration: Configuration,
-    connectionPool: ConnectionPool = new BoneConnectionPool,
-    classLoader: ClassLoader = classOf[DefaultDBApi].getClassLoader) extends DBApi {
+    configuration: Map[String, Config],
+    defaultConnectionPool: ConnectionPool = new HikariCPConnectionPool(Environment.simple()),
+    environment: Environment = Environment.simple(),
+    injector: Injector = NewInstanceInjector) extends DBApi {
 
   import DefaultDBApi._
 
   lazy val databases: Seq[Database] = {
-    configuration.subKeys.toList map { name =>
-      val conf = configuration.getConfig(name).getOrElse {
-        throw configuration.globalError(s"Missing configuration [db.$name]")
-      }
-      new PooledDatabase(name, conf, classLoader, connectionPool)
-    }
+    configuration.map {
+      case (name, config) =>
+        val pool = ConnectionPool.fromConfig(config.getString("pool"), injector, environment, defaultConnectionPool)
+        new PooledDatabase(name, config, environment, pool)
+    }.toSeq
   }
 
   private lazy val databaseByName: Map[String, Database] = {
@@ -57,9 +58,7 @@ class DefaultDBApi(
   }
 
   def database(name: String): Database = {
-    databaseByName.get(name).getOrElse {
-      throw configuration.globalError(s"Could not find database for $name")
-    }
+    databaseByName.getOrElse(name, throw new IllegalArgumentException(s"Could not find database for $name"))
   }
 
   /**
@@ -68,11 +67,11 @@ class DefaultDBApi(
   def connect(logConnection: Boolean = false): Unit = {
     databases foreach { db =>
       try {
-        db.getConnection().close()
+        db.getConnection.close()
         if (logConnection) logger.info(s"Database [${db.name}] connected at ${db.url}")
       } catch {
         case NonFatal(e) =>
-          throw configuration.reportError(s"${db.name}.url", s"Cannot connect to database [${db.name}]", Some(e))
+          throw Configuration(configuration(db.name)).reportError("url", s"Cannot connect to database [${db.name}]", Some(e))
       }
     }
   }

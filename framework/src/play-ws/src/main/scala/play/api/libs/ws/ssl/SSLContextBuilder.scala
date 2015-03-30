@@ -97,29 +97,23 @@ class ConfigSSLContextBuilder(info: SSLConfig,
   protected val logger = org.slf4j.LoggerFactory.getLogger(getClass)
 
   def build: SSLContext = {
-    val protocol = info.protocol.getOrElse(Protocols.recommendedProtocol)
-
-    val checkRevocation = info.checkRevocation.getOrElse(false)
 
     val revocationLists = certificateRevocationList(info)
+    val signatureConstraints = info.disabledSignatureAlgorithms.map(AlgorithmConstraintsParser.apply).toSet
 
-    val disabledSignatureAlgorithms = info.disabledSignatureAlgorithms.getOrElse(Algorithms.disabledSignatureAlgorithms)
-    val signatureConstraints = AlgorithmConstraintsParser(disabledSignatureAlgorithms).toSet
-
-    val disabledKeyAlgorithms = info.disabledKeyAlgorithms.getOrElse(Algorithms.disabledKeyAlgorithms)
-    val keySizeConstraints = AlgorithmConstraintsParser(disabledKeyAlgorithms).toSet
+    val keySizeConstraints = info.disabledKeyAlgorithms.map(AlgorithmConstraintsParser.apply).toSet
 
     val algorithmChecker = new AlgorithmChecker(signatureConstraints, keySizeConstraints)
 
-    val keyManagers: Seq[KeyManager] = info.keyManagerConfig.map {
-      kmc => Seq(buildCompositeKeyManager(kmc, algorithmChecker))
-    }.getOrElse(Nil)
+    val keyManagers: Seq[KeyManager] = if (info.keyManagerConfig.keyStoreConfigs.nonEmpty) {
+      Seq(buildCompositeKeyManager(info.keyManagerConfig, algorithmChecker))
+    } else Nil
 
-    val trustManagers: Seq[TrustManager] = info.trustManagerConfig.map {
-      tmc => Seq(buildCompositeTrustManager(tmc, checkRevocation, revocationLists, algorithmChecker))
-    }.getOrElse(Nil)
+    val trustManagers: Seq[TrustManager] = if (info.trustManagerConfig.trustStoreConfigs.nonEmpty) {
+      Seq(buildCompositeTrustManager(info.trustManagerConfig, info.checkRevocation.getOrElse(false), revocationLists, algorithmChecker))
+    } else Nil
 
-    buildSSLContext(protocol, keyManagers, trustManagers, info.secureRandom)
+    buildSSLContext(info.protocol, keyManagers, trustManagers, info.secureRandom)
   }
 
   def buildSSLContext(protocol: String,
@@ -151,25 +145,21 @@ class ConfigSSLContextBuilder(info: SSLConfig,
 
   // Get either a string or file based keystore builder from config.
   def keyStoreBuilder(ksc: KeyStoreConfig): KeyStoreBuilder = {
-    val storeType = ksc.storeType.getOrElse(KeyStore.getDefaultType)
     val password = ksc.password.map(_.toCharArray)
-    ksc.filePath.map {
-      f =>
-        fileBuilder(storeType, f, password)
+    ksc.filePath.map { f =>
+      fileBuilder(ksc.storeType, f, password)
     }.getOrElse {
       val data = ksc.data.getOrElse(throw new IllegalStateException("No keystore builder found!"))
-      stringBuilder(data, password)
+      stringBuilder(data)
     }
   }
 
   def trustStoreBuilder(tsc: TrustStoreConfig): KeyStoreBuilder = {
-    val storeType = tsc.storeType.getOrElse(KeyStore.getDefaultType)
-    tsc.filePath.map {
-      f =>
-        fileBuilder(storeType, f, None)
+    tsc.filePath.map { f =>
+      fileBuilder(tsc.storeType, f, None)
     }.getOrElse {
       val data = tsc.data.getOrElse(throw new IllegalStateException("No truststore builder found!"))
-      stringBuilder(data, None)
+      stringBuilder(data)
     }
   }
 
@@ -177,20 +167,15 @@ class ConfigSSLContextBuilder(info: SSLConfig,
     new FileBasedKeyStoreBuilder(storeType, filePath, password)
   }
 
-  def stringBuilder(data: String, password: Option[Array[Char]]): KeyStoreBuilder = {
-    new StringBasedKeyStoreBuilder(data, password)
+  def stringBuilder(data: String): KeyStoreBuilder = {
+    new StringBasedKeyStoreBuilder(data)
   }
 
   /**
    * Returns true if the keystore should throw an exception as a result of the JSSE bug 6879539, false otherwise.
    */
   def warnOnPKCS12EmptyPasswordBug(ksc: KeyStoreConfig): Boolean = {
-    ksc.storeType.map(_.toLowerCase) match {
-      case Some("pkcs12") =>
-        !ksc.password.exists(!_.isEmpty)
-      case _ =>
-        false
-    }
+    ksc.storeType.equalsIgnoreCase("pkcs12") && !ksc.password.exists(!_.isEmpty)
   }
 
   /**

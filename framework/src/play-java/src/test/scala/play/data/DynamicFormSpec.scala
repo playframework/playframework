@@ -3,6 +3,7 @@
  */
 package play.data
 
+import com.typesafe.config.ConfigFactory
 import org.specs2.mutable.Specification
 import play.api.{ Configuration, Environment }
 import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
@@ -15,7 +16,7 @@ import scala.collection.JavaConversions._
  * Specs for Java dynamic forms
  */
 object DynamicFormSpec extends Specification {
-  val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.empty, new DefaultLangs(Configuration.empty))
+  val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.reference, new DefaultLangs(Configuration.reference))
   implicit val messages = messagesApi.preferred(Seq.empty)
 
   "a dynamic form" should {

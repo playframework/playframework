@@ -3,7 +3,6 @@
  */
 package play.api
 
-import play.api.inject.Injector
 import play.api.inject.guice.GuiceApplicationLoader
 import play.core.{ SourceMapper, WebCommands, DefaultWebCommands }
 import play.utils.Reflect

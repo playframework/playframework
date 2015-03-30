@@ -9,7 +9,7 @@ If you are using WS to communicate with a single internal web service which is c
 Generate a self signed certificate from the [[generating certificates|CertificateGeneration]] section, and tell the client to trust the CA's public certificate.
 
 ```
-ws.ssl {
+play.ws.ssl {
   trustManager = {
     stores = [
       { type = "JKS", path = "exampletrust.jks" }
@@ -23,7 +23,7 @@ ws.ssl {
 If you are using client authentication, then you need to include a keyStore to the key manager that contains a PrivateKeyEntry, which consists of a private key and the X.509 certificate containing the corresponding public key.  See the "Configure Client Authentication" section in [[generating certificates|CertificateGeneration]].
 
 ```
-ws.ssl {
+play.ws.ssl {
   keyManager = {
     stores = [
       { type = "JKS", path = "client.jks", password = "changeit1" }
@@ -42,7 +42,7 @@ ws.ssl {
 If you are communicating with several external web services, then you may find it more convenient to configure one client with several stores:
 
 ```
-ws.ssl {
+play.ws.ssl {
   trustManager = {
     stores = [
       { type = "PEM", path = "service1.pem" }
@@ -56,7 +56,7 @@ ws.ssl {
 If client authentication is required, then you can also set up the key manager with several stores:
 
 ```
-ws.ssl {
+play.ws.ssl {
     keyManager = {
     stores = [
       { type: "PKCS12", path: "keys/service1-client.p12", password: "changeit1" },
@@ -72,7 +72,7 @@ ws.ssl {
 If you are using WS to access both private and public servers on the same profile, then you will want to include the default JSSE trust store as well:
 
 ```
-ws.ssl {
+play.ws.ssl {
   trustManager = {
     stores = [
       { path: exampletrust.jks }     # Added trust store

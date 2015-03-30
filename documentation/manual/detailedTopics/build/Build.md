@@ -22,19 +22,7 @@ For now, we are going to concern ourselves with the `/build.sbt` file and the `/
 
 When you use the `activator new foo` command, the build description file, `/build.sbt`, will be generated like this:
 
-```scala
-name := "foo"
-
-version := "1.0-SNAPSHOT"
-
-libraryDependencies ++= Seq(
-  jdbc,
-  anorm,
-  cache
-)
-
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
-```
+@[default](code/build.sbt)
 
 The `name` line defines the name of your application and it will be the same as the name of your application's root directory, `/`, which is derived from the argument that you gave to the `activator new` command. 
 

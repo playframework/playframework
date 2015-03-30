@@ -140,9 +140,7 @@ object ScalaCsrf extends PlaySpecification {
     }
   }
 
-  def withApplication[T](block: => T) = running(FakeApplication(
-    additionalConfiguration = Map("application.secret" -> "foobar")
-  )) {
+  def withApplication[T](block: => T) = running(FakeApplication()) {
     block
   }
 

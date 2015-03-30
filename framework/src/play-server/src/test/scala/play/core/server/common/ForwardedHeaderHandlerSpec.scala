@@ -101,10 +101,7 @@ class ForwardedHeaderHandlerSpec extends Specification {
         case _ => None
       }
 
-      new Headers {
-        override protected val data: Seq[(String, Seq[String])] = s.split("\n")
-          .flatMap { split(_, ":\\s*") }.groupBy(_._1).mapValues(_.map(_._2).toSeq).toSeq
-      }
+      new Headers(s.split("\n").flatMap(split(_, ":\\s*")))
     }
   }
 }

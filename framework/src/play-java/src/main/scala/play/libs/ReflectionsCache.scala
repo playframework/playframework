@@ -35,7 +35,7 @@ object ReflectionsCache {
       val reflections = new Reflections(new util.ConfigurationBuilder()
         .addUrls(util.ClasspathHelper.forPackage(pkg, classLoader))
         .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(pkg + ".")))
-        .setScanners(new scanners.TypeAnnotationsScanner, new scanners.TypesScanner))
+        .setScanners(new scanners.TypeAnnotationsScanner, new scanners.TypeElementsScanner))
 
       reflectionsMap.putIfAbsent(pkg, reflections).getOrElse(reflections)
     }

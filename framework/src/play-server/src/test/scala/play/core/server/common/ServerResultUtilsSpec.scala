@@ -23,9 +23,7 @@ object ServerResultUtilsSpec extends Specification with IterateeSpecification {
     def queryString = Map()
     def remoteAddress = ""
     def secure = false
-    val headers = new Headers {
-      val data = cookie.map { case (name, value) => ("Cookie", Seq(s"$name=$value")) }.toSeq
-    }
+    val headers = new Headers(cookie.map { case (name, value) => "Cookie" -> s"$name=$value" }.toSeq)
   }
 
   "ServerResultUtils.cleanFlashCookie" should {

@@ -1,6 +1,8 @@
 /*
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
+
+import play.sbt.PlayScala
 import sbt._
 import Keys._
 
@@ -46,7 +48,7 @@ object ApplicationBuild extends Build {
     Project.runTask(compile in Compile, state)
   }
 
-  val main = Project(appName, file(".")).enablePlugins(play.PlayScala).settings(
+  val main = Project(appName, file(".")).enablePlugins(PlayScala).settings(
     version := appVersion,
     extraLoggers ~= { currentFunction =>
       (key: ScopedKey[_]) => {

@@ -67,7 +67,7 @@ package scalaguide.upload.fileupload {
     }
 
     def testAction[A](action: Action[A], request: => Request[A] = FakeRequest(), expectedResponse: Int = OK) = {
-      running(FakeApplication(additionalConfiguration = Map("application.secret" -> "pass"))) {
+      running(FakeApplication()) {
 
         val result = action(request)
 

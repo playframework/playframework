@@ -35,7 +35,7 @@ class CachedSpec extends PlaySpecification {
     }
 
     "cache values using named injected CachedApi" in new WithApplication(FakeApplication(
-      additionalConfiguration = Map("play.modules.cache.bindCaches" -> Seq("custom"))
+      additionalConfiguration = Map("play.cache.bindCaches" -> Seq("custom"))
     )) {
       val controller = app.injector.instanceOf[NamedCachedController]
       val result1 = controller.action(FakeRequest()).run
@@ -241,7 +241,7 @@ class CachedSpec extends PlaySpecification {
 
   "EhCacheModule" should {
     "support binding multiple different caches" in new WithApplication(FakeApplication(
-      additionalConfiguration = Map("play.modules.cache.bindCaches" -> Seq("custom"))
+      additionalConfiguration = Map("play.cache.bindCaches" -> Seq("custom"))
     )) {
       val component = app.injector.instanceOf[SomeComponent]
       val defaultCache = app.injector.instanceOf[CacheApi]

@@ -5,133 +5,68 @@
  */
 package play.api.libs.ws.ssl
 
-import play.api.Configuration
-import scala.collection.JavaConverters
-import java.security.SecureRandom
+import play.api.PlayConfig
+import java.security.{ KeyStore, SecureRandom }
 import java.net.URL
-import javax.net.ssl.HostnameVerifier
+import javax.net.ssl.{ TrustManagerFactory, KeyManagerFactory, HostnameVerifier }
 
 /**
- * Contains configuration information for a key store.
+ * Configuration for a keystore.
+ *
+ * A key store must either provide a file path, or a data String.
+ *
+ * @param storeType The store type. Defaults to the platform default store type (ie, JKS).
+ * @param filePath The path of the key store file.
+ * @param data The data to load the key store file from.
+ * @param password The password to use to load the key store file, if the file is password protected.
  */
-trait KeyStoreConfig {
+case class KeyStoreConfig(storeType: String = KeyStore.getDefaultType,
+    filePath: Option[String] = None,
+    data: Option[String] = None,
+    password: Option[String] = None) {
 
-  def storeType: Option[String]
-
-  def filePath: Option[String]
-
-  def data: Option[String]
-
-  def password: Option[String]
-}
-
-/**
- * Contains configuration information for a trust store.
- */
-trait TrustStoreConfig {
-
-  def storeType: Option[String]
-
-  def filePath: Option[String]
-
-  def data: Option[String]
+  assert(filePath.isDefined ^ data.isDefined, "Either key store path or data must be defined, but not both.")
 }
 
 /**
- * Contains configuration information for a key manager.
+ * Configuration for a trust store.
+ *
+ * A trust store must either provide a file path, or a data String.
+ *
+ * @param storeType The store type. Defaults to the platform default store type (ie, JKS).
+ * @param filePath The path of the key store file.
+ * @param data The data to load the key store file from.
  */
-trait KeyManagerConfig {
+case class TrustStoreConfig(storeType: String = KeyStore.getDefaultType,
+    filePath: Option[String],
+    data: Option[String]) {
 
-  def algorithm: Option[String]
-
-  def keyStoreConfigs: Seq[KeyStoreConfig]
-
-  def password: Option[String]
+  assert(filePath.isDefined ^ data.isDefined, "Either trust store path or data must be defined, but not both.")
 }
 
 /**
- * Contains configuration information for a trust manager.
+ * The key manager config.
+ *
+ * @param algorithm The algoritm to use.
+ * @param keyStoreConfigs The key stores to use.
  */
-trait TrustManagerConfig {
-
-  def algorithm: Option[String]
-
-  def trustStoreConfigs: Seq[TrustStoreConfig]
-}
+case class KeyManagerConfig(
+  algorithm: String = KeyManagerFactory.getDefaultAlgorithm,
+  keyStoreConfigs: Seq[KeyStoreConfig] = Nil)
 
 /**
- * Contains information for configuring a JSSE SSL context.
+ * The trust manager config.
+ *
+ * @param algorithm The algorithm to use.
+ * @param trustStoreConfigs The trust stores to use.
  */
-trait SSLConfig {
+case class TrustManagerConfig(
+  algorithm: String = TrustManagerFactory.getDefaultAlgorithm,
+  trustStoreConfigs: Seq[TrustStoreConfig] = Nil)
 
-  def default: Option[Boolean]
-
-  def protocol: Option[String]
-
-  def checkRevocation: Option[Boolean]
-
-  def revocationLists: Option[Seq[URL]]
-
-  def secureRandom: Option[SecureRandom]
-
-  def hostnameVerifierClass: Option[Class[HostnameVerifier]]
-
-  def enabledCipherSuites: Option[Seq[String]]
-
-  def enabledProtocols: Option[Seq[String]]
-
-  def disabledSignatureAlgorithms: Option[String]
-
-  def disabledKeyAlgorithms: Option[String]
-
-  def keyManagerConfig: Option[KeyManagerConfig]
-
-  def trustManagerConfig: Option[TrustManagerConfig]
-
-  def debug: Option[SSLDebugConfig]
-
-  def loose: Option[SSLLooseConfig]
-}
-
-trait SSLLooseConfig {
-
-  // @see http://www.oracle.com/technetwork/java/javase/documentation/tlsreadme2-176330.html
-  def allowLegacyHelloMessages: Option[Boolean]
-
-  // @see http://www.oracle.com/technetwork/java/javase/documentation/tlsreadme2-176330.html
-  def allowUnsafeRenegotiation: Option[Boolean]
-
-  def allowWeakCiphers: Option[Boolean]
-
-  def allowWeakProtocols: Option[Boolean]
-
-  def disableHostnameVerification: Option[Boolean]
-
-}
-
-// Key Store implementation
-
-case class DefaultKeyStoreConfig(storeType: Option[String],
-  filePath: Option[String],
-  data: Option[String],
-  password: Option[String]) extends KeyStoreConfig
-
-// Trust Store implementation
-
-case class DefaultTrustStoreConfig(storeType: Option[String],
-  filePath: Option[String],
-  data: Option[String]) extends TrustStoreConfig
-
-// Managers and context
-
-case class DefaultKeyManagerConfig(algorithm: Option[String] = None,
-  keyStoreConfigs: Seq[KeyStoreConfig] = Nil,
-  password: Option[String] = None) extends KeyManagerConfig
-
-case class DefaultTrustManagerConfig(
-  algorithm: Option[String] = None,
-  trustStoreConfigs: Seq[TrustStoreConfig] = Nil) extends TrustManagerConfig
-
+/**
+ * SSL debug configuration.
+ */
 case class SSLDebugConfig(
     all: Boolean = false,
     ssl: Boolean = false,
@@ -147,6 +82,13 @@ case class SSLDebugConfig(
     keymanager: Boolean = false,
     trustmanager: Boolean = false,
     pluggability: Boolean = false) {
+
+  /**
+   * Whether any debug options are enabled.
+   */
+  def enabled = all || ssl || certpath || ocsp || record.isDefined || handshake.isDefined ||
+    keygen || session || defaultctx || sslctx || sessioncache || keymanager || trustmanager ||
+    pluggability
 
   def withAll = this.copy(all = true)
 
@@ -182,90 +124,112 @@ case class SSLDebugConfig(
 
 }
 
+/**
+ * SSL handshake debugging options.
+ */
 case class SSLDebugHandshakeOptions(data: Boolean = false, verbose: Boolean = false)
 
+/**
+ * SSL record debugging options.
+ */
 case class SSLDebugRecordOptions(plaintext: Boolean = false, packet: Boolean = false)
 
-case class DefaultSSLLooseConfig(
-  allowWeakCiphers: Option[Boolean] = None,
-  allowWeakProtocols: Option[Boolean] = None,
+/**
+ * Configuration for specifying loose (potentially dangerous) ssl config.
+ *
+ * @param allowWeakCiphers Whether weak ciphers should be allowed or not.
+ * @param allowWeakProtocols Whether weak protocols should be allowed or not.
+ * @param allowLegacyHelloMessages Whether legacy hello messages should be allowed or not.  If None, uses the platform
+ *                                 default.
+ * @param allowUnsafeRenegotiation Whether unsafe renegotiation should be allowed or not. If None, uses the platform
+ *                                 default.
+ * @param disableHostnameVerification Whether hostname verification should be disabled.
+ * @param acceptAnyCertificate Whether any X.509 certificate should be accepted or not.
+ */
+case class SSLLooseConfig(
+  allowWeakCiphers: Boolean = false,
+  allowWeakProtocols: Boolean = false,
   allowLegacyHelloMessages: Option[Boolean] = None,
   allowUnsafeRenegotiation: Option[Boolean] = None,
-  disableHostnameVerification: Option[Boolean] = None) extends SSLLooseConfig
+  disableHostnameVerification: Boolean = false,
+  acceptAnyCertificate: Boolean = false)
 
-case class DefaultSSLConfig(
-  default: Option[Boolean] = None,
-  protocol: Option[String] = None,
+/**
+ * The SSL configuration.
+ *
+ * @param default Whether we should use the default JVM SSL configuration or not.
+ * @param protocol The SSL protocol to use. Defaults to TLSv1.2.
+ * @param checkRevocation Whether revocation lists should be checked, if None, defaults to platform default setting.
+ * @param revocationLists The revocation lists to check.
+ * @param enabledCipherSuites If defined, override the platform default cipher suites.
+ * @param enabledProtocols If defined, override the platform default protocols.
+ * @param disabledSignatureAlgorithms The disabled signature algorithms.
+ * @param disabledKeyAlgorithms The disabled key algorithms.
+ * @param keyManagerConfig The key manager configuration.
+ * @param trustManagerConfig The trust manager configuration.
+ * @param hostnameVerifierClass The hostname verifier class.
+ * @param secureRandom The SecureRandom instance to use. Let the platform choose if None.
+ * @param debug The debug config.
+ * @param loose Loose configuratino parameters
+ */
+case class SSLConfig(
+  default: Boolean = false,
+  protocol: String = "TLSv1.2",
   checkRevocation: Option[Boolean] = None,
   revocationLists: Option[Seq[URL]] = None,
   enabledCipherSuites: Option[Seq[String]] = None,
-  enabledProtocols: Option[Seq[String]] = None,
-  disabledSignatureAlgorithms: Option[String] = None,
-  disabledKeyAlgorithms: Option[String] = None,
-  keyManagerConfig: Option[KeyManagerConfig] = None,
-  trustManagerConfig: Option[TrustManagerConfig] = None,
-  hostnameVerifierClass: Option[Class[HostnameVerifier]] = None,
+  enabledProtocols: Option[Seq[String]] = Some(Seq("TLSv1.2", "TLSv1.1", "TLSv1")),
+  disabledSignatureAlgorithms: Seq[String] = Seq("MD2", "MD4", "MD5"),
+  disabledKeyAlgorithms: Seq[String] = Seq("RSA keySize < 2048", "DSA keySize < 2048", "EC keySize < 224"),
+  keyManagerConfig: KeyManagerConfig = KeyManagerConfig(),
+  trustManagerConfig: TrustManagerConfig = TrustManagerConfig(),
+  hostnameVerifierClass: Class[_ <: HostnameVerifier] = classOf[DefaultHostnameVerifier],
   secureRandom: Option[SecureRandom] = None,
-  debug: Option[SSLDebugConfig] = None,
-  loose: Option[SSLLooseConfig] = None) extends SSLConfig
+  debug: SSLDebugConfig = SSLDebugConfig(),
+  loose: SSLLooseConfig = SSLLooseConfig())
 
-trait SSLConfigParser {
-  def parse(): SSLConfig
+/**
+ * Factory for creating SSL config (for use from Java).
+ */
+object SSLConfigFactory {
+
+  /**
+   * Create an instance of the default config
+   * @return
+   */
+  def defaultConfig = SSLConfig()
 }
 
-class DefaultSSLConfigParser(c: Configuration, classLoader: ClassLoader) {
+class SSLConfigParser(c: PlayConfig, classLoader: ClassLoader) {
 
   def parse(): SSLConfig = {
 
-    val default = c.getBoolean("default")
+    val default = c.get[Boolean]("default")
+    val protocol = c.get[String]("protocol")
+    val checkRevocation = c.getOptional[Boolean]("checkRevocation")
+    val revocationLists: Option[Seq[URL]] = Some(
+      c.get[Seq[String]]("revocationLists").map(new URL(_))
+    ).filter(_.nonEmpty)
 
-    val protocol = c.getString("protocol")
+    val debug = parseDebug(c.get[PlayConfig]("debug"))
+    val looseOptions = parseLooseOptions(c.get[PlayConfig]("loose"))
 
-    val checkRevocation = c.getBoolean("checkRevocation")
+    val ciphers = Some(c.get[Seq[String]]("enabledCipherSuites")).filter(_.nonEmpty)
+    val protocols = Some(c.get[Seq[String]]("enabledProtocols")).filter(_.nonEmpty)
 
-    val revocationLists: Option[Seq[URL]] = c.getStringSeq("revocationLists").map {
-      urls =>
-        for {
-          revocationURL <- urls
-        } yield {
-          new URL(revocationURL)
-        }
+    val hostnameVerifierClass = c.getOptional[String]("hostnameVerifierClass") match {
+      case None => classOf[DefaultHostnameVerifier]
+      case Some(fqcn) => classLoader.loadClass(fqcn).asSubclass(classOf[HostnameVerifier])
     }
 
-    val debug = c.getStringSeq("debug").map {
-      debugConfig =>
-        parseDebug(debugConfig)
-    }
+    val disabledSignatureAlgorithms = c.get[Seq[String]]("disabledSignatureAlgorithms")
+    val disabledKeyAlgorithms = c.get[Seq[String]]("disabledKeyAlgorithms")
 
-    val looseOptions = c.getConfig("loose").map {
-      looseConfig => parseLooseOptions(looseConfig)
-    }
+    val keyManagers = parseKeyManager(c.get[PlayConfig]("keyManager"))
 
-    val ciphers = c.getStringSeq("enabledCipherSuites")
+    val trustManagers = parseTrustManager(c.get[PlayConfig]("trustManager"))
 
-    val protocols = c.getStringSeq("enabledProtocols")
-
-    val hostnameVerifierClass = {
-      c.getString("hostnameVerifierClass").map { className =>
-        classLoader.loadClass(className).asInstanceOf[Class[HostnameVerifier]]
-      }
-    }
-
-    val disabledSignatureAlgorithms = c.getString("disabledSignatureAlgorithms")
-
-    val disabledKeyAlgorithms = c.getString("disabledKeyAlgorithms")
-
-    val keyManagers: Option[KeyManagerConfig] = c.getConfig("keyManager").map {
-      keyManagerConfig =>
-        parseKeyManager(keyManagerConfig)
-    }
-
-    val trustManagers: Option[TrustManagerConfig] = c.getConfig("trustManager").map {
-      trustStoreConfig =>
-        parseTrustManager(trustStoreConfig)
-    }
-
-    DefaultSSLConfig(
+    SSLConfig(
       default = default,
       protocol = protocol,
       checkRevocation = checkRevocation,
@@ -285,67 +249,58 @@ class DefaultSSLConfigParser(c: Configuration, classLoader: ClassLoader) {
   /**
    * Parses "ws.ssl.loose" section.
    */
-  def parseLooseOptions(looseOptions: Configuration): SSLLooseConfig = {
+  def parseLooseOptions(config: PlayConfig): SSLLooseConfig = {
 
-    val allowMessages: Option[Boolean] = looseOptions.getBoolean("allowLegacyHelloMessages")
+    val allowWeakProtocols = config.get[Boolean]("allowWeakProtocols")
+    val allowWeakCiphers = config.get[Boolean]("allowWeakCiphers")
+    val allowMessages = config.getOptional[Boolean]("allowLegacyHelloMessages")
+    val allowUnsafeRenegotiation = config.getOptional[Boolean]("allowUnsafeRenegotiation")
+    val disableHostnameVerification = config.get[Boolean]("disableHostnameVerification")
+    val acceptAnyCertificate = config.get[Boolean]("acceptAnyCertificate")
 
-    val allowWeakProtocols = looseOptions.getBoolean("allowWeakProtocols")
-
-    val allowWeakCiphers = looseOptions.getBoolean("allowWeakCiphers")
-
-    val allowUnsafeRenegotiation = looseOptions.getBoolean("allowUnsafeRenegotiation")
-
-    val disableHostnameVerification = looseOptions.getBoolean("disableHostnameVerification")
-
-    DefaultSSLLooseConfig(
+    SSLLooseConfig(
       allowWeakCiphers = allowWeakCiphers,
       allowWeakProtocols = allowWeakProtocols,
       allowLegacyHelloMessages = allowMessages,
       allowUnsafeRenegotiation = allowUnsafeRenegotiation,
-      disableHostnameVerification = disableHostnameVerification
+      disableHostnameVerification = disableHostnameVerification,
+      acceptAnyCertificate = acceptAnyCertificate
     )
   }
 
   /**
    * Parses the "ws.ssl.debug" section.
    */
-  def parseDebug(list: Seq[String]): SSLDebugConfig = {
-    val certpath = list.contains("certpath")
+  def parseDebug(config: PlayConfig): SSLDebugConfig = {
+    val certpath = config.get[Boolean]("certpath")
 
-    if (list.contains("all")) {
+    if (config.get[Boolean]("all")) {
       SSLDebugConfig(all = true, certpath = certpath)
     } else {
-      val record: Option[SSLDebugRecordOptions] = list.find(_ == "record").map {
-        r =>
-          val plaintext: Boolean = list.contains("plaintext")
-          val packet: Boolean = list.contains("packet")
-          SSLDebugRecordOptions(plaintext = plaintext, packet = packet)
+
+      val record: Option[SSLDebugRecordOptions] = if (config.get[Boolean]("record")) {
+        val plaintext = config.get[Boolean]("plaintext")
+        val packet = config.get[Boolean]("packet")
+        Some(SSLDebugRecordOptions(plaintext = plaintext, packet = packet))
+      } else None
+
+      val handshake = if (config.get[Boolean]("handshake")) {
+        val data = config.get[Boolean]("data")
+        val verbose = config.get[Boolean]("verbose")
+        Some(SSLDebugHandshakeOptions(data = data, verbose = verbose))
+      } else {
+        None
       }
 
-      val handshake = list.find(_ == "handshake").map {
-        ho =>
-          val data = list.contains("data")
-          val verbose = list.contains("verbose")
-          SSLDebugHandshakeOptions(data = data, verbose = verbose)
-      }
-
-      val keygen = list.contains("keygen")
-
-      val session = list.contains("session")
-
-      val defaultctx = list.contains("defaultctx")
-
-      val sslctx = list.contains("sslctx")
-
-      val sessioncache = list.contains("sessioncache")
-
-      val keymanager = list.contains("keymanager")
-
-      val trustmanager = list.contains("trustmanager")
-
-      val pluggability = list.contains("pluggability")
-
-      val ssl = list.contains("ssl")
+      val keygen = config.get[Boolean]("keygen")
+      val session = config.get[Boolean]("session")
+      val defaultctx = config.get[Boolean]("defaultctx")
+      val sslctx = config.get[Boolean]("sslctx")
+      val sessioncache = config.get[Boolean]("sessioncache")
+      val keymanager = config.get[Boolean]("keymanager")
+      val trustmanager = config.get[Boolean]("trustmanager")
+      val pluggability = config.get[Boolean]("pluggability")
+      val ssl = config.get[Boolean]("ssl")
 
       SSLDebugConfig(
         ssl = ssl,
@@ -366,77 +321,57 @@ class DefaultSSLConfigParser(c: Configuration, classLoader: ClassLoader) {
   /**
    * Parses the "ws.ssl.keyManager { stores = [ ... ]" section of configuration.
    */
-  def parseKeyStoreInfo(config: Configuration): KeyStoreConfig = {
-    val storeType = config.getString("type")
-    val path = config.getString("path")
-    val password = config.getString("password")
-    val data = config.getString("data")
+  def parseKeyStoreInfo(config: PlayConfig): KeyStoreConfig = {
+    val storeType = config.getOptional[String]("type").getOrElse(KeyStore.getDefaultType)
+    val path = config.getOptional[String]("path")
+    val data = config.getOptional[String]("data")
+    val password = config.getOptional[String]("password")
 
-    if (data.isEmpty && path.isEmpty) {
-      throw new IllegalStateException("You must specify either 'path' or 'data' in ws.ssl.keyManager.stores list!")
-    }
-
-    DefaultKeyStoreConfig(filePath = path, storeType = storeType, data = data, password = password)
+    KeyStoreConfig(filePath = path, storeType = storeType, data = data, password = password)
   }
 
   /**
    * Parses the "ws.ssl.trustManager { stores = [ ... ]" section of configuration.
    */
-  def parseTrustStoreInfo(config: Configuration): TrustStoreConfig = {
-    val storeType = config.getString("type")
-    val path = config.getString("path")
-    val data = config.getString("data")
+  def parseTrustStoreInfo(config: PlayConfig): TrustStoreConfig = {
+    val storeType = config.getOptional[String]("type").getOrElse(KeyStore.getDefaultType)
+    val path = config.getOptional[String]("path")
+    val data = config.getOptional[String]("data")
 
-    if (data.isEmpty && path.isEmpty) {
-      throw new IllegalStateException("You must specify either 'path' or 'data' in ws.ssl.trustManagers.stores list!")
-    }
-
-    DefaultTrustStoreConfig(filePath = path, storeType = storeType, data = data)
+    TrustStoreConfig(filePath = path, storeType = storeType, data = data)
   }
 
   /**
    * Parses the "ws.ssl.keyManager" section of the configuration.
    */
-  def parseKeyManager(config: Configuration): KeyManagerConfig = {
+  def parseKeyManager(config: PlayConfig): KeyManagerConfig = {
 
-    val algorithm = config.getString("algorithm")
+    val algorithm = config.getOptional[String]("algorithm") match {
+      case None => KeyManagerFactory.getDefaultAlgorithm
+      case Some(other) => other
+    }
 
-    val password = config.getString("password")
+    val keyStoreInfos = config.getPrototypedSeq("stores").map { store =>
+      parseKeyStoreInfo(store)
+    }
 
-    val keyStoreInfos = config.getObjectList("stores").map {
-      storeList =>
-        // storeList is a java.util.List, not a scala.List
-        import JavaConverters._
-        for {
-          store <- storeList.asScala
-        } yield {
-          val storeConfig = Configuration(store.toConfig)
-          parseKeyStoreInfo(storeConfig)
-        }
-    }.getOrElse(Nil)
-
-    DefaultKeyManagerConfig(algorithm, keyStoreInfos, password)
+    KeyManagerConfig(algorithm, keyStoreInfos)
   }
 
   /**
    * Parses the "ws.ssl.trustManager" section of configuration.
    */
 
-  def parseTrustManager(config: Configuration): TrustManagerConfig = {
-    val algorithm: Option[String] = config.getString("algorithm")
+  def parseTrustManager(config: PlayConfig): TrustManagerConfig = {
+    val algorithm = config.getOptional[String]("algorithm") match {
+      case None => TrustManagerFactory.getDefaultAlgorithm
+      case Some(other) => other
+    }
 
-    val trustStoreInfos = config.getObjectList("stores").map {
-      storeList =>
-        // storeList is a java.util.List, not a scala.List
-        import JavaConverters._
-        for {
-          store <- storeList.asScala
-        } yield {
-          val storeConfig = Configuration(store.toConfig)
-          parseTrustStoreInfo(storeConfig)
-        }
-    }.getOrElse(Nil)
+    val trustStoreInfos = config.getPrototypedSeq("stores").map { store =>
+      parseTrustStoreInfo(store)
+    }
 
-    DefaultTrustManagerConfig(algorithm, trustStoreInfos)
+    TrustManagerConfig(algorithm, trustStoreInfos)
   }
 }

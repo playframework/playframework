@@ -30,10 +30,6 @@ object ResolverSettings {
 object PublishSettings {
 
   private def commonPublishSettings: Seq[Setting[_]] = Seq(
-    publishArtifact in (Compile, packageDoc) := BuildSettings.buildWithDoc,
-    publishArtifact in (Test, packageDoc) := false,
-    publishArtifact in (Compile, packageSrc) := true,
-    publishArtifact in (Test, packageSrc) := false,
     pomIncludeRepository := { _ => false },
     pomExtra := pomExtraXml
 
@@ -55,7 +51,7 @@ object PublishSettings {
    */
   def publishSettings: Seq[Setting[_]] = commonPublishSettings ++ Seq(
     publishTo := {
-      Some(if (isSnapshot(version.value)) {
+      Some(if (isSnapshot.value) {
         ResolverSettings.publishSonatypeSnapshots
       } else {
         ResolverSettings.publishSonatypeReleases
@@ -65,39 +61,19 @@ object PublishSettings {
   )
 
   /**
-   * Publish settings for sub projects that don't get cross built - they should only be published when Play is being
-   * cross built.
-   */
-  def nonCrossBuildPublishSettings: Seq[Setting[_]] = {
-    if (BuildSettings.thisBuildIsCrossBuild) {
-      dontPublishSettings
-    } else {
-      publishSettings
-    }
-  }
-
-  /**
    * Publish settings for SBT plugins
    */
   def sbtPluginPublishSettings: Seq[Setting[_]] = {
-    if (BuildSettings.thisBuildIsCrossBuild) {
-      dontPublishSettings
-    } else {
-      commonPublishSettings ++ Seq(
-        publishTo := {
-          Some(if (isSnapshot(version.value)) {
-            ResolverSettings.publishTypesafeIvySnapshots
-          } else {
-            ResolverSettings.publishTypesafeIvyReleases
-          })
-        },
-        publishMavenStyle := false
-      )
-    }
-  }
-
-  private def isSnapshot(version: String) = {
-    version.endsWith("SNAPSHOT")
+    commonPublishSettings ++ Seq(
+      publishTo := {
+        Some(if (isSnapshot.value) {
+          ResolverSettings.publishTypesafeIvySnapshots
+        } else {
+          ResolverSettings.publishTypesafeIvyReleases
+        })
+      },
+      publishMavenStyle := false
+    )
   }
 
   private val pomExtraXml =

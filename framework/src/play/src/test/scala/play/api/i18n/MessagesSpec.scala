@@ -6,9 +6,10 @@ package play.api.i18n
 import java.io.File
 
 import org.specs2.mutable._
-import play.api.mvc.{ Cookies, Results }
+import play.api.mvc.{ Cookie, Cookies, Results }
 import play.api.{ Mode, Environment, Configuration }
 import play.api.i18n.Messages.MessageSource
+import play.core.test.FakeRequest
 
 object MessagesSpec extends Specification {
   val testMessages = Map(
@@ -22,12 +23,8 @@ object MessagesSpec extends Specification {
     "fr-CH" -> Map(
       "title" -> "Titre suisse"))
   val api = new DefaultMessagesApi(new Environment(new File("."), this.getClass.getClassLoader, Mode.Dev),
-    Configuration.from(Map("play.modules.i18n.langCookieName" -> "PLAY_LANG")), new Langs() {
-      def availables = Nil
-      def preferred(candidates: Seq[Lang]) = Lang.defaultLang
-    }
+    Configuration.reference, new DefaultLangs(Configuration.reference ++ Configuration.from(Map("play.i18n.langs" -> Seq("en", "fr", "fr-CH"))))
   ) {
-
     override protected def loadAllMessages = testMessages
   }
 
@@ -68,6 +65,26 @@ object MessagesSpec extends Specification {
       val cookie = Cookies.decode(api.setLang(Results.Ok, Lang("en-AU")).header.headers("Set-Cookie")).head
       cookie.name must_== "PLAY_LANG"
       cookie.value must_== "en-AU"
+    }
+
+    "support getting a preferred lang from a Scala request" in {
+      "when an accepted lang is available" in {
+        api.preferred(FakeRequest().withHeaders("Accept-Language" -> "fr")).lang must_== Lang("fr")
+      }
+      "when an accepted lang is not available" in {
+        api.preferred(FakeRequest().withHeaders("Accept-Language" -> "de")).lang must_== Lang("en")
+      }
+      "when the lang cookie available" in {
+        api.preferred(FakeRequest().withCookies(Cookie("PLAY_LANG", "fr"))).lang must_== Lang("fr")
+      }
+      "when the lang cookie is not available" in {
+        api.preferred(FakeRequest().withCookies(Cookie("PLAY_LANG", "de"))).lang must_== Lang("en")
+      }
+      "when a cookie and an acceptable lang are available" in {
+        api.preferred(FakeRequest().withCookies(Cookie("PLAY_LANG", "fr"))
+          .withHeaders("Accept-Language" -> "en")).lang must_== Lang("fr")
+      }
+
     }
   }
 

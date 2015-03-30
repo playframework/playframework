@@ -4,11 +4,10 @@
 package play.api.cache
 
 import play.api.test._
-import play.api.mvc.{ Action, HttpConnection, Result, Results }
-import play.api.http
+import play.api.mvc.{ HttpConnection, Result, Results }
 import play.api.libs.iteratee.{ Enumerator, Iteratee }
 
-import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class SerializableResultSpec extends PlaySpecification {
 

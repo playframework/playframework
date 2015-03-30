@@ -28,10 +28,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JavaCsrf extends WithApplication {
-    @Override
-    public Application provideApplication() {
-        return fakeApplication(ImmutableMap.of("application.secret", "foobar"));
-    }
 
     public Crypto crypto() {
       return app.injector().instanceOf(Crypto.class);
@@ -64,8 +60,8 @@ public class JavaCsrf extends WithApplication {
 
     @Test
     public void csrfCheck() {
-        assertThat(status(MockJavaActionHelper.call(new Controller1(), fakeRequest("POST", "/")
-                .header(CONTENT_TYPE, "application/x-www-form-urlencoded"))), equalTo(FORBIDDEN));
+        assertThat(MockJavaActionHelper.call(new Controller1(), fakeRequest("POST", "/")
+                .header(CONTENT_TYPE, "application/x-www-form-urlencoded")).status(), equalTo(FORBIDDEN));
     }
 
     public static class Controller1 extends MockJavaAction {

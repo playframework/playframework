@@ -1,66 +1,46 @@
 import play.sbt.activator.Templates._
+import play.core.PlayVersion
 
 templateSettings
 
-val playSbtVersion = propOrElse("sbt.version", "0.13.7")
+scalaVersion := "2.10.4"
 
-val coffeescriptVersion = propOrElse("coffeescript.version", "1.0.0")
-
-val lessVersion = propOrElse("less.version", "1.0.6")
-
-val jshintVersion = propOrElse("jshint.version", "1.0.3")
-
-val digestVersion = propOrElse("digest.version", "1.1.0")
-
-val rjsVersion = propOrElse("rjs.version", "1.0.7")
-
-val mochaVersion = propOrElse("mocha.version", "1.0.2")
+crossScalaVersions := Seq("2.10.4", "2.11.5")
 
 templates := {
   val dir = baseDirectory.value
-  sys.props.get("templates").map(_.split(",").toSeq).getOrElse(Seq(
+  Seq(
     "play-scala",
     "play-java",
 // Disabled since it seems to be causing unexplainable errors :(
 //    "play-scala-intro",
     "play-java-intro"
-  )).map(template => dir / template)
+  ).map(template => dir / template)
 }
 
-val playVersion = propOrElse("play.version", {
-  println("[\033[31merror\033[0m] No play.version system property specified.\n[\033[31merror\033[0m] Just use the build script to launch SBT and life will be much easier.")
-  System.exit(1)
-  throw new RuntimeException("No play version")
-})
-
-// The Play templates should default to using the latest compatible version of Scala
-val playScalaVersion = propOrElse("scala.version", "2.11.1")
-
-val playDocsUrl = propOrElse("play.docs.url", {
+lazy val playDocsUrl = {
   // Use a version like 2.4.x for the documentation
-  val docVersion = playVersion.replaceAll("""(\d+)\.(\d+)\D(.*)""", "$1.$2.x")
-  s"http://www.playframework.com/documentation/${docVersion}"}
-)
+  val docVersion = PlayVersion.current.replaceAll("""(\d+)\.(\d+)\D(.*)""", "$1.$2.x")
+  s"http://www.playframework.com/documentation/${docVersion}"
+}
 
 // Use different names for release and milestone templates
-val (templateNameSuffix, templateTitleSuffix) = {
-  val officialRelease = playVersion.matches("[0-9.]+") // Match final versions but not *-SNAPSHOT or *-RC1
+lazy val templateNameAndTitle = {
+  val officialRelease = PlayVersion.current.matches("[0-9.]+") // Match final versions but not *-SNAPSHOT or *-RC1
   if (officialRelease) ("", "") else ("-preview", " (Preview)")
 }
 
-def propOrElse(prop: String, default: => String): String = sys.props.get(prop).getOrElse(default)
-
 templateParameters := Map(
-  "PLAY_VERSION" -> playVersion,
-  "SCALA_VERSION" -> playScalaVersion,
+  "PLAY_VERSION" -> PlayVersion.current,
+  "SCALA_VERSION" -> scalaVersion.value,
   "PLAY_DOCS_URL" -> playDocsUrl,
-  "SBT_VERSION" -> playSbtVersion,
-  "COFFEESCRIPT_VERSION" -> coffeescriptVersion,
-  "LESS_VERSION" -> lessVersion,
-  "JSHINT_VERSION" -> jshintVersion,
-  "DIGEST_VERSION" -> digestVersion,
-  "RJS_VERSION" -> rjsVersion,
-  "MOCHA_VERSION" -> mochaVersion,
-  "TEMPLATE_NAME_SUFFIX" -> templateNameSuffix,
-  "TEMPLATE_TITLE_SUFFIX" -> templateTitleSuffix
+  "SBT_VERSION" -> "0.13.7",
+  "COFFEESCRIPT_VERSION" -> "1.0.0",
+  "LESS_VERSION" -> "1.0.6",
+  "JSHINT_VERSION" -> "1.0.3",
+  "DIGEST_VERSION" -> "1.1.0",
+  "RJS_VERSION" -> "1.0.7",
+  "MOCHA_VERSION" -> "1.0.2",
+  "TEMPLATE_NAME_SUFFIX" -> templateNameAndTitle._1,
+  "TEMPLATE_TITLE_SUFFIX" -> templateNameAndTitle._2
 )

@@ -85,11 +85,15 @@ package routers {
 
 import scalaguide.advanced.dependencyinjection.controllers
 import scalaguide.advanced.dependencyinjection.bar
-import scalaguide.advanced.dependencyinjection.Routes
+
+object router {
+  type Routes = scalaguide.advanced.dependencyinjection.Routes
+}
 
 //#routers
 import play.api._
 import play.api.ApplicationLoader.Context
+import router.Routes
 
 class MyApplicationLoader extends ApplicationLoader {
   def load(context: Context) = {
