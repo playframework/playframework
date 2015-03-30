@@ -70,7 +70,6 @@ object ApplicationBuild extends Build {
     scalaVersion := PlayVersion.scalaVersion,
 
     fork in Test := true
-
   ).settings(externalPlayModuleSettings:_*)
    .dependsOn(
       playDocs,

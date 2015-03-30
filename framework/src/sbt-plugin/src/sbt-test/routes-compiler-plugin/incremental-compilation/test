@@ -1,6 +1,6 @@
 # Ordinary run
 
-> play-routes
+> playRoutes
 
 $ exists target/routes/main/a/routes_routing.scala
 $ exists target/routes/main/a/routes_reverseRouting.scala
@@ -14,7 +14,7 @@ $ exists target/routes/main/controllers/b/routes.java
 $ touch target/change1
 $ sleep 1100
 
-> play-routes
+> playRoutes
 
 -> newer target/routes/main/a/routes_routing.scala target/change1
 -> newer target/routes/main/b/routes_routing.scala target/change1
@@ -25,7 +25,7 @@ $ touch target/change2
 $ copy-file a.routes.1 a.routes
 $ sleep 1100
 
-> play-routes
+> playRoutes
 
 > newer target/routes/main/a/routes_routing.scala target/change2
 -> newer target/routes/main/b/routes_routing.scala target/change2
@@ -34,7 +34,7 @@ $ sleep 1100
 
 $ copy-file b.routes.1 b.routes
 
-> play-routes
+> playRoutes
 
 $ exists target/routes/main/a/routes_routing.scala
 $ exists target/routes/main/a/routes_reverseRouting.scala
@@ -50,7 +50,7 @@ $ exists target/routes/main/controllers/c/routes.java
 $ touch target/change3
 $ sleep 1100
 
-> play-routes
+> playRoutes
 
 > newer target/routes/main/a/routes_routing.scala target/change3
 > newer target/routes/main/b/routes_routing.scala target/change3

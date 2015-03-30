@@ -7,7 +7,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := sys.props.get("scala.version").getOrElse("2.10.4")
 
-routesFiles in Compile := Seq(baseDirectory.value / "routes")
+sources in (Compile, routes) := Seq(baseDirectory.value / "routes")
 
 InputKey[Unit]("all-problems-are-from") := {
   val args = Def.spaceDelimited("<source> <line>").parsed
