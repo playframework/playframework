@@ -27,6 +27,7 @@ import javax.inject.{ Singleton, Provider, Inject }
  * @param tokenName The name of the token.
  * @param cookieName If defined, the name of the cookie to read the token from/write the token to.
  * @param secureCookie If using a cookie, whether it should be secure.
+ * @param httpOnlyCookie If using a cookie, whether it should have the HTTP only flag.
  * @param postBodyBuffer How much of the POST body should be buffered if checking the body for a token.
  * @param signTokens Whether tokens should be signed.
  * @param checkMethod Returns true if a request for that method should be checked.
@@ -37,6 +38,7 @@ import javax.inject.{ Singleton, Provider, Inject }
 case class CSRFConfig(tokenName: String = "csrfToken",
   cookieName: Option[String] = None,
   secureCookie: Boolean = false,
+  httpOnlyCookie: Boolean = false,
   createIfNotFound: (RequestHeader) => Boolean = CSRFConfig.defaultCreateIfNotFound,
   postBodyBuffer: Long = 102400,
   signTokens: Boolean = true,
@@ -85,6 +87,7 @@ object CSRFConfig {
       tokenName = config.get[String]("token.name"),
       cookieName = config.getOptional[String]("cookie.name"),
       secureCookie = config.get[Boolean]("cookie.secure"),
+      httpOnlyCookie = config.get[Boolean]("cookie.httpOnly"),
       postBodyBuffer = config.get[ConfigMemorySize]("body.bufferSize").toBytes,
       signTokens = config.get[Boolean]("token.sign"),
       checkMethod = checkMethod,
