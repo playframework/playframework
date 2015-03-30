@@ -370,10 +370,10 @@ trait Results {
      * @param content The content to send.
      */
     def apply[C](content: C)(implicit writeable: Writeable[C]): Result = {
-      Result(
-        ResponseHeader(status, writeable.contentType.map(ct => Map(CONTENT_TYPE -> ct)).getOrElse(Map.empty)),
-        Enumerator(writeable.transform(content))
-      )
+      val body: Array[Byte] = writeable.transform(content)
+      val contentTypeHeader: Option[(String, String)] = writeable.contentType.map(CONTENT_TYPE -> _)
+      val headers: Map[String, String] = Map(CONTENT_LENGTH -> body.length.toString) ++ contentTypeHeader
+      Result(ResponseHeader(status, headers), Enumerator(body))
     }
 
     /**
