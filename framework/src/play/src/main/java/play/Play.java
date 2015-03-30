@@ -48,4 +48,12 @@ public class Play {
     public static String langCookieName() {
         return play.api.i18n.Messages.Implicits$.MODULE$.applicationMessagesApi(play.api.Play.current()).langCookieName();
     }
+
+    public static boolean langCookieSecure() {
+        return play.api.i18n.Messages.Implicits$.MODULE$.applicationMessagesApi(play.api.Play.current()).langCookieSecure();
+    }
+
+    public static boolean langCookieHttpOnly() {
+        return play.api.i18n.Messages.Implicits$.MODULE$.applicationMessagesApi(play.api.Play.current()).langCookieHttpOnly();
+    }
 }

@@ -223,4 +223,16 @@ object Play {
    */
   def langCookieName(implicit messagesApi: MessagesApi): String =
     messagesApi.langCookieName
+
+  /**
+   * Returns whether the language cookie should have the secure flag set.
+   */
+  def langCookieSecure(implicit messagesApi: MessagesApi): Boolean =
+    messagesApi.langCookieSecure
+
+  /**
+   * Returns whether the language cookie should have the HTTP only flag set.
+   */
+  def langCookieHttpOnly(implicit messagesApi: MessagesApi): Boolean =
+    messagesApi.langCookieHttpOnly
 }

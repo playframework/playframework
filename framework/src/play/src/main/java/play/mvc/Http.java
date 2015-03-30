@@ -190,7 +190,9 @@ public class Http {
         public boolean changeLang(Lang lang) {
             if (Lang.availables().contains(lang)) {
                 this.lang = lang;
-                response.setCookie(Play.langCookieName(), lang.code());
+                scala.Option<String> domain = play.api.mvc.Session.domain();
+                response.setCookie(Play.langCookieName(), lang.code(), null, play.api.mvc.Session.path(),
+                    domain.isDefined() ? domain.get() : null, Play.langCookieSecure(), Play.langCookieHttpOnly());
                 return true;
             } else {
                 return false;
@@ -202,7 +204,9 @@ public class Http {
          */
         public void clearLang() {
             this.lang = null;
-            response.discardCookie(Play.langCookieName());
+            scala.Option<String> domain = play.api.mvc.Session.domain();
+            response.discardCookie(Play.langCookieName(), play.api.mvc.Session.path(),
+                domain.isDefined() ? domain.get() : null, Play.langCookieSecure());
         }
 
         /**
