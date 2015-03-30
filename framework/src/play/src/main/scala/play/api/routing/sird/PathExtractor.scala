@@ -25,15 +25,10 @@ import scala.util.matching.Regex
  * @param partDescriptors Descriptors saying whether each part should be decoded or not.
  */
 class PathExtractor(regex: Regex, partDescriptors: Seq[PathPart.Value]) {
-  def unapplySeq(obj: Any): Option[List[String]] = {
-    obj match {
-      case path: String => extract(path)
-      case request: RequestHeader => extract(request.path)
-      case uri: URI if uri.getRawPath != null => extract(uri.getRawPath)
-      case url: URL if url.getPath != null => extract(url.getPath)
-      case _ => None
-    }
-  }
+  def unapplySeq(path: String): Option[List[String]] = extract(path)
+  def unapplySeq(request: RequestHeader): Option[List[String]] = extract(request.path)
+  def unapplySeq(url: URL): Option[List[String]] = Option(url.getPath).flatMap(extract)
+  def unapplySeq(uri: URI): Option[List[String]] = Option(uri.getRawPath).flatMap(extract)
 
   private def extract(path: String): Option[List[String]] = {
     regex.unapplySeq(path).map { parts =>

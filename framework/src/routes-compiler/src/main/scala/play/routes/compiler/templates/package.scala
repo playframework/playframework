@@ -285,8 +285,8 @@ package object templates {
       (route, localNames, constraints)
     }.foldLeft((Seq.empty[(Route, Map[String, String], String)], false)) {
       case ((routes, true), dead) => (routes, true)
-      case ((routes, false), (route, localNames, None)) => (routes :+ (route, localNames, "true"), true)
-      case ((routes, false), (route, localNames, Some(constraints))) => (routes :+ (route, localNames, constraints), false)
+      case ((routes, false), (route, localNames, None)) => (routes :+ ((route, localNames, "true")), true)
+      case ((routes, false), (route, localNames, Some(constraints))) => (routes :+ ((route, localNames, constraints)), false)
     }._1
   }
 

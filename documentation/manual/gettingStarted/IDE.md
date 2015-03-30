@@ -24,8 +24,6 @@ If you want to grab the available source jars (this will take longer and it's po
 > Note if you are using sub-projects with aggregate, you would need to set `skipParents` appropriately in `build.sbt`:
 
 ```
-import com.typesafe.sbteclipse.core.EclipsePlugin.EclipseKeys
-
 EclipseKeys.skipParents in ThisBuild := false
 ```
 
@@ -38,7 +36,7 @@ or from the play console, type:
 > Also, if you did not want to trigger a compilation before running `eclipse`, then just add the following to your settings:
 
 ```
-EclipsePlugin.EclipseKeys.preTasks := Seq()
+EclipseKeys.preTasks := Seq()
 ```
 
 You then need to import the application into your Workspace with the **File/Import/General/Existing project…** menu (compile your project first).
@@ -84,13 +82,19 @@ You can run the created application and view the result in the default browser `
 
 To run a Play application:
 -	In the project tree, right-click the application.
--	From the list in the context menu, select ***Run Pla2 App***.
+-	From the list in the context menu, select ***Run Play2 App***.
 
 You can easily start a debugger session for a Play application using default Run/Debug Configuration settings.
 
 For more detailed information, see the Play Framework 2.x tutorial at the following URL:
 
 <http://confluence.jetbrains.com/display/IntelliJIDEA/Play+Framework+2.0> 
+
+### Navigate from an error page to the source code
+Using the `play.editor` configuration option, you can set up Play to add hyperlinks to an error page. Since then, you can easily navigate from error pages to IntelliJ, directly into the source code (you need to install the Remote Call <https://github.com/Zolotov/RemoteCall> IntelliJ plugin first).
+
+Just install the Remote Call plugin and run your app with the following options:
+`-Dplay.editor=http://localhost:8091/?message=%s:%s -Dapplication.mode=dev`
 
 
 ## Netbeans

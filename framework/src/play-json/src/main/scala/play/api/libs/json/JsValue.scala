@@ -10,6 +10,7 @@ import scala.collection.mutable.ListBuffer
 
 import com.fasterxml.jackson.core.{ JsonTokenId, JsonGenerator, JsonParser }
 import com.fasterxml.jackson.databind._
+import com.fasterxml.jackson.databind.util.TokenBuffer
 import com.fasterxml.jackson.databind.`type`.TypeFactory
 import com.fasterxml.jackson.databind.deser.Deserializers
 import com.fasterxml.jackson.databind.ser.Serializers
@@ -21,89 +22,21 @@ case class JsResultException(errors: Seq[(JsPath, Seq[ValidationError])]) extend
 /**
  * Generic json value
  */
-sealed trait JsValue {
-
-  /**
-   * Return the property corresponding to the fieldName, supposing we have a JsObject.
-   *
-   * @param fieldName the name of the property to lookup
-   * @return the resulting JsValue. If the current node is not a JsObject or doesn't have the property, a JsUndefined will be returned.
-   */
-  def \(fieldName: String): JsValue = JsUndefined("'" + fieldName + "'" + " is undefined on object: " + this)
-
-  /**
-   * Return the element at a given index, supposing we have a JsArray.
-   *
-   * @param idx the index to lookup
-   * @return the resulting JsValue. If the current node is not a JsArray or the index is out of bounds, a JsUndefined will be returned.
-   */
-  def apply(idx: Int): JsValue = JsUndefined(this.toString + " is not an array")
-
-  /**
-   * Lookup for fieldName in the current object and all descendants.
-   *
-   * @return the list of matching nodes
-   */
-  def \\(fieldName: String): Seq[JsValue] = Nil
-
-  /**
-   * Tries to convert the node into a T. An implicit Reads[T] must be defined.
-   * Any error is mapped to None
-   *
-   * @return Some[T] if it succeeds, None if it fails.
-   */
-  def asOpt[T](implicit fjs: Reads[T]): Option[T] = fjs.reads(this).fold(
-    invalid = _ => None,
-    valid = v => Some(v)
-  ).filter {
-      case JsUndefined() => false
-      case _ => true
-    }
-
-  /**
-   * Tries to convert the node into a T, throwing an exception if it can't. An implicit Reads[T] must be defined.
-   */
-  def as[T](implicit fjs: Reads[T]): T = fjs.reads(this).fold(
-    valid = identity,
-    invalid = e => throw new JsResultException(e)
-  )
-
-  /**
-   * Tries to convert the node into a JsResult[T] (Success or Error). An implicit Reads[T] must be defined.
-   */
-  def validate[T](implicit rds: Reads[T]): JsResult[T] = rds.reads(this)
-
-  /**
-   * Transforms a JsValue into another JsValue using provided Json transformer Reads[JsValue]
-   */
-  def transform[A <: JsValue](rds: Reads[A]): JsResult[A] = rds.reads(this)
-
+sealed trait JsValue extends JsReadable {
   override def toString = Json.stringify(this)
 
-  /**
-   * Prune the Json AST according to the provided JsPath
-   */
-  //def prune(path: JsPath): JsValue = path.prune(this)
+  def validate[A](implicit rds: Reads[A]) = rds.reads(this)
+}
 
+object JsValue {
+  import scala.language.implicitConversions
+  implicit def jsValueToJsLookup(value: JsValue): JsLookup = JsLookup(JsDefined(value))
 }
 
 /**
  * Represents a Json null value.
  */
 case object JsNull extends JsValue
-
-/**
- * Represent a missing Json value.
- */
-class JsUndefined(err: => String) extends JsValue {
-  def error = err
-  override def toString = "JsUndefined(" + err + ")"
-}
-
-object JsUndefined {
-  def apply(err: => String) = new JsUndefined(err)
-  def unapply(o: Object): Boolean = o.isInstanceOf[JsUndefined]
-}
 
 /**
  * Represent a Json boolean value.
@@ -124,22 +57,6 @@ case class JsString(value: String) extends JsValue
  * Represent a Json array value.
  */
 case class JsArray(value: Seq[JsValue] = List()) extends JsValue {
-
-  /**
-   * Access a value of this array.
-   *
-   * @param index Element index.
-   */
-  override def apply(index: Int): JsValue = {
-    value.lift(index).getOrElse(JsUndefined("Array index out of bounds in " + this))
-  }
-
-  /**
-   * Lookup for fieldName in the current object and all descendants.
-   *
-   * @return the list of matching nodes
-   */
-  override def \\(fieldName: String): Seq[JsValue] = value.flatMap(_ \\ fieldName)
 
   /**
    * Concatenates this array with the elements of an other array.
@@ -169,34 +86,14 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
   lazy val value: Map[String, JsValue] = fields.toMap
 
   /**
-   * Return the property corresponding to the fieldName, supposing we have a JsObject.
-   *
-   * @param fieldName the name of the property to lookup
-   * @return the resulting JsValue. If the current node is not a JsObject or doesn't have the property, a JsUndefined will be returned.
-   */
-  override def \(fieldName: String): JsValue = value.get(fieldName).getOrElse(super.\(fieldName))
-
-  /**
-   * Lookup for fieldName in the current object and all descendants.
-   *
-   * @return the list of matching nodes
-   */
-  override def \\(fieldName: String): Seq[JsValue] = {
-    value.foldLeft(Seq[JsValue]())((o, pair) => pair match {
-      case (key, value) if key == fieldName => o ++ (value +: (value \\ fieldName))
-      case (_, value) => o ++ (value \\ fieldName)
-    })
-  }
-
-  /**
    * Return all keys
    */
-  def keys: Set[String] = fields.map(_._1).toSet
+  def keys: Set[String] = fields.map(_._1)(collection.breakOut)
 
   /**
    * Return all values
    */
-  def values: Set[JsValue] = fields.map(_._2).toSet
+  def values: Set[JsValue] = fields.map(_._2)(collection.breakOut)
 
   def fieldSet: Set[(String, JsValue)] = fields.toSet
 
@@ -244,15 +141,10 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
     deepMerge(this, other)
   }
 
-  override def equals(other: Any): Boolean =
-    other match {
-
-      case that: JsObject =>
-        (that canEqual this) &&
-          fieldSet == that.fieldSet
-
-      case _ => false
-    }
+  override def equals(other: Any): Boolean = other match {
+    case that: JsObject => (that canEqual this) && fieldSet == that.fieldSet
+    case _ => false
+  }
 
   def canEqual(other: Any): Boolean = other.isInstanceOf[JsObject]
 
@@ -262,11 +154,21 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
 
 // -- Serializers.
 
-private[json] class JsValueSerializer extends JsonSerializer[JsValue] {
+private[json] object JsValueSerializer extends JsonSerializer[JsValue] {
+  import java.math.{ BigDecimal => JBigDec, BigInteger }
+  import com.fasterxml.jackson.databind.node.{ BigIntegerNode, DecimalNode }
 
   override def serialize(value: JsValue, json: JsonGenerator, provider: SerializerProvider) {
     value match {
-      case JsNumber(v) => json.writeNumber(v.bigDecimal)
+      case JsNumber(v) => {
+        // Workaround #3784: Same behaviour as if JsonGenerator were
+        // configured with WRITE_BIGDECIMAL_AS_PLAIN, but forced as this
+        // configuration is ignored when called from ObjectMapper.valueToTree
+        val raw = v.bigDecimal.stripTrailingZeros.toPlainString
+
+        if (raw contains ".") json.writeTree(new DecimalNode(new JBigDec(raw)))
+        else json.writeTree(new BigIntegerNode(new BigInteger(raw)))
+      }
       case JsString(v) => json.writeString(v)
       case JsBoolean(v) => json.writeBoolean(v)
       case JsArray(elements) => {
@@ -285,8 +187,6 @@ private[json] class JsValueSerializer extends JsonSerializer[JsValue] {
         json.writeEndObject()
       }
       case JsNull => json.writeNull()
-      case jsu @ JsUndefined() =>
-        throw new JsonMappingException(s"Cannot serialize $jsu")
     }
   }
 }
@@ -407,7 +307,7 @@ private[json] class PlayDeserializers(classLoader: ClassLoader) extends Deserial
 private[json] class PlaySerializers extends Serializers.Base {
   override def findSerializer(config: SerializationConfig, javaType: JavaType, beanDesc: BeanDescription) = {
     val ser: Object = if (classOf[JsValue].isAssignableFrom(beanDesc.getBeanClass)) {
-      new JsValueSerializer
+      JsValueSerializer
     } else {
       null
     }
@@ -416,7 +316,6 @@ private[json] class PlaySerializers extends Serializers.Base {
 }
 
 private[play] object JacksonJson {
-
   import com.fasterxml.jackson.core.Version
   import com.fasterxml.jackson.databind.module.SimpleModule
   import com.fasterxml.jackson.databind.Module.SetupContext
@@ -434,34 +333,38 @@ private[play] object JacksonJson {
     }
   }
 
-  private[this] lazy val jsonFactory = new com.fasterxml.jackson.core.JsonFactory(mapper)
+  private[this] lazy val jsonFactory =
+    new com.fasterxml.jackson.core.JsonFactory(mapper)
 
-  private[this] def stringJsonGenerator(out: java.io.StringWriter) = jsonFactory.createGenerator(out)
+  private[this] def stringJsonGenerator(out: java.io.StringWriter) =
+    jsonFactory.createGenerator(out)
 
-  private[this] def jsonParser(c: String): JsonParser = jsonFactory.createParser(c)
+  private[this] def jsonParser(c: String): JsonParser =
+    jsonFactory.createParser(c)
 
-  private[this] def jsonParser(data: Array[Byte]): JsonParser = jsonFactory.createParser(data)
+  private[this] def jsonParser(data: Array[Byte]): JsonParser =
+    jsonFactory.createParser(data)
 
-  private[this] def jsonParser(stream: InputStream): JsonParser = jsonFactory.createParser(stream)
+  private[this] def jsonParser(stream: InputStream): JsonParser =
+    jsonFactory.createParser(stream)
 
-  def parseJsValue(data: Array[Byte]): JsValue = {
+  def parseJsValue(data: Array[Byte]): JsValue =
     mapper.readValue(jsonParser(data), classOf[JsValue])
-  }
 
-  def parseJsValue(input: String): JsValue = {
+  def parseJsValue(input: String): JsValue =
     mapper.readValue(jsonParser(input), classOf[JsValue])
-  }
 
-  def parseJsValue(stream: InputStream): JsValue = {
+  def parseJsValue(stream: InputStream): JsValue =
     mapper.readValue(jsonParser(stream), classOf[JsValue])
-  }
 
   def generateFromJsValue(jsValue: JsValue, escapeNonASCII: Boolean = false): String = {
     val sw = new java.io.StringWriter
     val gen = stringJsonGenerator(sw)
+
     if (escapeNonASCII) {
       gen.enable(JsonGenerator.Feature.ESCAPE_NON_ASCII)
     }
+
     mapper.writeValue(gen, jsValue)
     sw.flush()
     sw.getBuffer.toString
@@ -472,17 +375,16 @@ private[play] object JacksonJson {
     val gen = stringJsonGenerator(sw).setPrettyPrinter(
       new com.fasterxml.jackson.core.util.DefaultPrettyPrinter()
     )
-    mapper.writerWithDefaultPrettyPrinter().writeValue(gen, jsValue)
+    val writer: ObjectWriter = mapper.writerWithDefaultPrettyPrinter()
+    writer.writeValue(gen, jsValue)
     sw.flush()
     sw.getBuffer.toString
   }
 
-  def jsValueToJsonNode(jsValue: JsValue): JsonNode = {
+  def jsValueToJsonNode(jsValue: JsValue): JsonNode =
     mapper.valueToTree(jsValue)
-  }
 
-  def jsonNodeToJsValue(jsonNode: JsonNode): JsValue = {
+  def jsonNodeToJsValue(jsonNode: JsonNode): JsValue =
     mapper.treeToValue(jsonNode, classOf[JsValue])
-  }
 
 }

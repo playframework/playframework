@@ -3,7 +3,7 @@
  */
 package play.api.libs.concurrent
 
-import java.util.concurrent.{ TimeUnit, TimeoutException }
+import java.util.concurrent.TimeoutException
 import javax.inject.{ Provider, Inject, Singleton }
 import play.api._
 import play.api.inject.{ ApplicationLifecycle, Module }
@@ -60,25 +60,25 @@ class ActorSystemProvider @Inject() (environment: Environment, configuration: Co
   private val logger = Logger(classOf[ActorSystemProvider])
 
   lazy val get: ActorSystem = {
-    val config = configuration.underlying
-    val name = configuration.getString("play.modules.akka.actor-system").getOrElse("application")
-    val system = ActorSystem(name, config, environment.classLoader)
+    val config = PlayConfig(configuration)
+    val name = config.get[String]("play.akka.actor-system")
+    val system = ActorSystem(name, configuration.underlying, environment.classLoader)
     logger.info(s"Starting application default Akka system: $name")
 
     applicationLifecycle.addStopHook { () =>
       logger.info(s"Shutdown application default Akka system: $name")
       system.shutdown()
 
-      configuration.getMilliseconds("play.akka.shutdown-timeout") match {
-        case Some(timeout) =>
+      config.get[Duration]("play.akka.shutdown-timeout") match {
+        case timeout: FiniteDuration =>
           try {
-            system.awaitTermination(Duration(timeout, TimeUnit.MILLISECONDS))
+            system.awaitTermination(timeout)
           } catch {
             case te: TimeoutException =>
               // oh well.  We tried to be nice.
               logger.info(s"Could not shutdown the Akka system in $timeout milliseconds.  Giving up.")
           }
-        case None =>
+        case _ =>
           // wait until it is shutdown
           system.awaitTermination()
       }

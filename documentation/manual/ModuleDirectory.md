@@ -295,7 +295,7 @@
 * **Short description:** Helps you expose a [Swagger](http://swagger.wordnik.com/) specification of a JSON REST API built with Play in a clean way.
 
 ## Emailer Plugin  (Java and Scala)
-* **Website (docs, sample):** <https://github.com/typesafehub/play-plugins>
+* **Website (docs, sample):** <https://github.com/playframework/play-mailer>
 * **Short description:** provides an emailer based on apache commons-email
 
 ## Roy Compiled Asset Plugin (Ray)
@@ -320,8 +320,8 @@
 ## Silhouette (Scala)
 
 * **Website:** <http://silhouette.mohiva.com/>
-* **Documentation:** <https://github.com/mohiva/play-silhouette/wiki>
-* **Short description:** An authentication library that supports several authentication methods, including OAuth1, OAuth2, OpenID, Credentials or custom authentication schemes.
+* **Documentation:** <http://silhouette.mohiva.com/docs/>
+* **Short description:** An authentication library that supports several authentication methods, including OAuth1, OAuth2, OpenID, Credentials, Basic Authentication, Two Factor Authentication or custom authentication schemes.
 
 ## Sitemap Generator (Java)
 

@@ -27,7 +27,7 @@ import play.api.data.validation.Constraints._
 @RunWith(classOf[JUnitRunner])
 class ScalaFormsSpec extends Specification with Controller {
 
-  val conf = Configuration.empty
+  val conf = Configuration.reference
   implicit val messages: Messages = new DefaultMessagesApi(Environment.simple(), conf, new DefaultLangs(conf)).preferred(Seq.empty)
 
   "A scala forms" should {

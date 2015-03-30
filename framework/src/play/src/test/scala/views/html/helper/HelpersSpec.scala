@@ -13,7 +13,7 @@ import scala.beans.BeanProperty
 
 object HelpersSpec extends Specification {
   import FieldConstructor.defaultField
-  val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.empty, new DefaultLangs(Configuration.empty))
+  val messagesApi = new DefaultMessagesApi(Environment.simple(), Configuration.reference, new DefaultLangs(Configuration.reference))
   implicit val messages = messagesApi.preferred(Seq.empty)
 
   "@inputText" should {

@@ -14,46 +14,31 @@ object AlgorithmCheckerSpec extends Specification {
 
   "AlgorithmChecker" should {
 
-    "pass a good key algorithm (RSA > 1024)" in {
-      val disabledSignatureAlgorithms = parseAll(line, "").get.toSet
-      val disabledKeyAlgorithms = parseAll(line, "RSA keySize < 1024").get.toSet
-      val checker = new AlgorithmChecker(disabledSignatureAlgorithms, disabledKeyAlgorithms)
-      val certificate: Certificate = CertificateGenerator.generateRSAWithSHA256(2048)
+    def checker(sigs: Seq[String], keys: Seq[String]) = {
+      new AlgorithmChecker(sigs.map(s => parseAll(expression, s).get).toSet,
+        keys.map(s => parseAll(expression, s).get).toSet)
+    }
 
-      checker.check(certificate, emptySet())
+    "pass a good key algorithm (RSA > 1024)" in {
+      val certificate: Certificate = CertificateGenerator.generateRSAWithSHA256(2048)
+      checker(Nil, Seq("RSA keySize < 1024")).check(certificate, emptySet())
       success
     }
 
     "fail a weak key algorithm (RSA < 512)" in {
-      val disabledSignatureAlgorithms = parseAll(line, "").get.toSet
-      val disabledKeyAlgorithms = parseAll(line, "RSA keySize < 1024").get.toSet
-      val checker = new AlgorithmChecker(disabledSignatureAlgorithms, disabledKeyAlgorithms)
-
       val certificate: Certificate = CertificateGenerator.generateRSAWithSHA256(512)
-
-      checker.check(certificate, emptySet()).must(throwA[CertPathValidatorException])
+      checker(Nil, Seq("RSA keySize < 1024")).check(certificate, emptySet()).must(throwA[CertPathValidatorException])
     }
 
     "pass a good signature algorithm (SHA256)" in {
-      val disabledSignatureAlgorithms = parseAll(line, "MD5").get.toSet
-      val disabledKeyAlgorithms = parseAll(line, "").get.toSet
-      val checker = new AlgorithmChecker(disabledSignatureAlgorithms, disabledKeyAlgorithms)
-
       val certificate: Certificate = CertificateGenerator.generateRSAWithSHA256(512)
-
-      checker.check(certificate, emptySet())
+      checker(Seq("MD5"), Nil).check(certificate, emptySet())
       success
     }
 
     "fail a bad signature algorithm (MD5)" in {
-      val disabledSignatureAlgorithms = parseAll(line, "MD5").get.toSet
-      val disabledKeyAlgorithms = parseAll(line, "").get.toSet
-      val checker = new AlgorithmChecker(disabledSignatureAlgorithms, disabledKeyAlgorithms)
-
       val intermediateCert: Certificate = CertificateGenerator.generateRSAWithMD5(2048)
-      //val eeCert:Certificate = CertificateGenerator.generateRSAWithSHA256(2048)
-
-      checker.check(intermediateCert, emptySet()).must(throwA[CertPathValidatorException])
+      checker(Seq("MD5"), Nil).check(intermediateCert, emptySet()).must(throwA[CertPathValidatorException])
     }
   }
 }

@@ -4,10 +4,13 @@
 package play.api.libs.ws.ning
 
 import akka.util.Timeout
+import com.ning.http.client
+import com.ning.http.client.cookie.{ Cookie => AHCCookie }
+import com.ning.http.client.{ AsyncHttpClient, FluentCaseInsensitiveStringsMap, Param, Response => AHCResponse }
 import org.specs2.mock.Mockito
 
-import com.ning.http.client.{ Response => AHCResponse, RequestBuilder, FluentCaseInsensitiveStringsMap, AsyncHttpClient }
-import com.ning.http.client.cookie.{ Cookie => AHCCookie }
+import play.api.libs.oauth.{ OAuthCalculator, ConsumerKey, RequestToken }
+import play.api.libs.ws._
 
 import play.api.mvc._
 
@@ -22,9 +25,9 @@ object NingWSSpec extends PlaySpecification with Mockito {
   "Ning WS" should {
 
     object PairMagnet {
-      implicit def fromPair(pair: Pair[WSClient, java.net.URL]) =
-        new WSRequestHolderMagnet {
-          def apply(): WSRequestHolder = {
+      implicit def fromPair(pair: Pair[WSClient, java.net.URL]): WSRequestMagnet =
+        new WSRequestMagnet {
+          def apply(): WSRequest = {
             val (client, netUrl) = pair
             client.url(netUrl.toString)
           }
@@ -37,13 +40,13 @@ object NingWSSpec extends PlaySpecification with Mockito {
 
       val client = WS.client
       val exampleURL = new java.net.URL("http://example.com")
-      WS.url(client -> exampleURL) must beAnInstanceOf[WSRequestHolder]
+      WS.url(client -> exampleURL) must beAnInstanceOf[WSRequest]
     }
 
     "support direct client instantiation" in new WithApplication {
       val sslBuilder = new com.ning.http.client.AsyncHttpClientConfig.Builder()
       implicit val sslClient = new play.api.libs.ws.ning.NingWSClient(sslBuilder.build())
-      WS.clientUrl("http://example.com/feed") must beAnInstanceOf[WSRequestHolder]
+      WS.clientUrl("http://example.com/feed") must beAnInstanceOf[WSRequest]
     }
 
     "NingWSClient.underlying" in new WithApplication {
@@ -59,15 +62,18 @@ object NingWSSpec extends PlaySpecification with Mockito {
       val thisCookie = cookie.underlying[Cookie]
     }
 
-    "NingWSRequest.setHeaders using a builder with fluent map" in new WithApplication {
-      val request = new NingWSRequest(mock[NingWSClient], "GET", None, None, Map.empty, EmptyBody, new RequestBuilder("GET"))
-      val headerMap: java.util.Map[String, java.util.Collection[String]] = new java.util.HashMap()
-      headerMap.put("key", java.util.Arrays.asList("value"))
+    "support several query string values for a parameter" in new WithApplication {
+      val req: client.Request = WS.url("http://playframework.com/")
+        .withQueryString("foo" -> "foo1", "foo" -> "foo2").asInstanceOf[NingWSRequest].buildRequest()
 
-      val ningRequest = request.setHeaders(new FluentCaseInsensitiveStringsMap(headerMap)).build
-      ningRequest.getHeaders.containsKey("key") must beTrue
+      import scala.collection.JavaConverters._
+      val paramsList: Seq[Param] = req.getQueryParams.asScala.toSeq
+      paramsList.exists(p => (p.getName == "foo") && (p.getValue == "foo1")) must beTrue
+      paramsList.exists(p => (p.getName == "foo") && (p.getValue == "foo2")) must beTrue
+      paramsList.filter(p => p.getName == "foo").size must beEqualTo(2)
     }
 
+    /*
     "NingWSRequest.setHeaders using a builder with direct map" in new WithApplication {
       val request = new NingWSRequest(mock[NingWSClient], "GET", None, None, Map.empty, EmptyBody, new RequestBuilder("GET"))
       val headerMap: Map[String, Seq[String]] = Map("key" -> Seq("value"))
@@ -90,43 +96,76 @@ object NingWSSpec extends PlaySpecification with Mockito {
       req.getQueryParams.get("foo").contains("foo2") must beTrue
       req.getQueryParams.get("foo").size must equalTo(2)
     }
+    */
 
     "support http headers" in new WithApplication {
-      val req = WS.url("http://playframework.com/")
-        .withHeaders("key" -> "value1", "key" -> "value2").asInstanceOf[NingWSRequestHolder]
-        .prepare().build
+      val req: client.Request = WS.url("http://playframework.com/")
+        .withHeaders("key" -> "value1", "key" -> "value2").asInstanceOf[NingWSRequest]
+        .buildRequest()
       req.getHeaders.get("key").contains("value1") must beTrue
       req.getHeaders.get("key").contains("value2") must beTrue
       req.getHeaders.get("key").size must equalTo(2)
     }
 
     "not make Content-Type header if there is Content-Type in headers already" in new WithApplication {
-      val req = WS.url("http://playframework.com/")
-        .withHeaders("Content-Type" -> "text/plain").withBody(<aaa>value1</aaa>).asInstanceOf[NingWSRequestHolder]
-        .prepare().build
-      req.getHeaders.get("Content-Type").contains("text/plain") must beTrue
-      req.getHeaders.get("Content-Type").size must equalTo(1)
+      import scala.collection.JavaConverters._
+      val req: client.Request = WS.url("http://playframework.com/")
+        .withHeaders("Content-Type" -> "fake/contenttype; charset=utf-8").withBody(<aaa>value1</aaa>).asInstanceOf[NingWSRequest]
+        .buildRequest()
+      req.getHeaders.get("Content-Type").asScala must containTheSameElementsAs(Seq("fake/contenttype; charset=utf-8"))
+    }
+
+    // Commented out until further discussion about charsets.
+    "Add charset=utf-8 to the Content-Type header if it's manually adding but lacking charset" in new WithApplication {
+      //      import scala.collection.JavaConverters._
+      //      val req: client.Request = WS.url("http://playframework.com/")
+      //        .withHeaders("Content-Type" -> "text/plain").withBody(<aaa>value1</aaa>).asInstanceOf[NingWSRequest]
+      //        .buildRequest()
+      //      req.getHeaders.get("Content-Type").asScala must containTheSameElementsAs(Seq("text/plain"))
+      pending("disabled until discussion about charset handling")
+    }
+
+    "Have form params on POST of content type application/x-www-form-urlencoded" in new WithApplication {
+      import scala.collection.JavaConverters._
+      val req: client.Request = WS.url("http://playframework.com/").withBody(Map("param1" -> Seq("value1"))).asInstanceOf[NingWSRequest]
+        .buildRequest()
+      req.getFormParams.asScala must containTheSameElementsAs(List(new com.ning.http.client.Param("param1", "value1")))
+    }
+
+    "Have form body on POST of content type text/plain" in new WithApplication {
+      import scala.collection.JavaConverters._
+      val formEncoding = java.net.URLEncoder.encode("param1=value1", "UTF-8")
+      val req: client.Request = WS.url("http://playframework.com/").withHeaders("Content-Type" -> "text/plain").withBody("HELLO WORLD").asInstanceOf[NingWSRequest]
+        .buildRequest()
+      req.getStringData must be_==("HELLO WORLD")
+    }
+
+    "Keep the charset if it has been set manually with a charset" in new WithApplication {
+      import scala.collection.JavaConverters._
+      val req: client.Request = WS.url("http://playframework.com/").withHeaders("Content-Type" -> "text/plain; charset=US-ASCII").withBody("HELLO WORLD").asInstanceOf[NingWSRequest]
+        .buildRequest()
+      req.getHeaders.get("Content-Type").asScala must containTheSameElementsAs(Seq("text/plain; charset=US-ASCII"))
     }
 
     "support a virtual host" in new WithApplication {
-      val req = WS.url("http://playframework.com/")
-        .withVirtualHost("192.168.1.1").asInstanceOf[NingWSRequestHolder]
-        .prepare().build
+      val req: client.Request = WS.url("http://playframework.com/")
+        .withVirtualHost("192.168.1.1").asInstanceOf[NingWSRequest]
+        .buildRequest()
       req.getVirtualHost must be equalTo "192.168.1.1"
     }
 
     "support follow redirects" in new WithApplication {
-      val req = WS.url("http://playframework.com/")
-        .withFollowRedirects(true).asInstanceOf[NingWSRequestHolder]
-        .prepare().build
-      req.isRedirectEnabled must beTrue
+      val req: client.Request = WS.url("http://playframework.com/")
+        .withFollowRedirects(true).asInstanceOf[NingWSRequest]
+        .buildRequest()
+      req.getFollowRedirect must beEqualTo(true)
     }
 
     "support timeout" in new WithApplication {
-      val req = WS.url("http://playframework.com/")
-        .withRequestTimeout(1000).asInstanceOf[NingWSRequestHolder]
-        .prepare().build
-      req.getPerRequestConfig.getRequestTimeoutInMs must be equalTo 1000
+      val req: client.Request = WS.url("http://playframework.com/")
+        .withRequestTimeout(1000).asInstanceOf[NingWSRequest]
+        .buildRequest()
+      req.getRequestTimeout must be equalTo 1000
     }
 
     "not support invalid timeout" in new WithApplication {
@@ -135,10 +174,10 @@ object NingWSSpec extends PlaySpecification with Mockito {
 
     "support a proxy server" in new WithApplication {
       val proxy = DefaultWSProxyServer(protocol = Some("https"), host = "localhost", port = 8080, principal = Some("principal"), password = Some("password"))
-      val req = WS.url("http://playframework.com/").withProxyServer(proxy).asInstanceOf[NingWSRequestHolder].prepare().build
+      val req: client.Request = WS.url("http://playframework.com/").withProxyServer(proxy).asInstanceOf[NingWSRequest].buildRequest()
       val actual = req.getProxyServer
 
-      actual.getProtocolAsString must be equalTo "https"
+      actual.getProtocol.getProtocol must be equalTo "https"
       actual.getHost must be equalTo "localhost"
       actual.getPort must be equalTo 8080
       actual.getPrincipal must be equalTo "principal"
@@ -147,10 +186,10 @@ object NingWSSpec extends PlaySpecification with Mockito {
 
     "support a proxy server" in new WithApplication {
       val proxy = DefaultWSProxyServer(host = "localhost", port = 8080)
-      val req = WS.url("http://playframework.com/").withProxyServer(proxy).asInstanceOf[NingWSRequestHolder].prepare().build
+      val req: client.Request = WS.url("http://playframework.com/").withProxyServer(proxy).asInstanceOf[NingWSRequest].buildRequest()
       val actual = req.getProxyServer
 
-      actual.getProtocolAsString must be equalTo "http"
+      actual.getProtocol.getProtocol must be equalTo "http"
       actual.getHost must be equalTo "localhost"
       actual.getPort must be equalTo 8080
       actual.getPrincipal must beNull
@@ -169,11 +208,11 @@ object NingWSSpec extends PlaySpecification with Mockito {
 
     "support patch method" in new WithServer(patchFakeApp) {
       // NOTE: if you are using a client proxy like Privoxy or Polipo, your proxy may not support PATCH & return 400.
-      val req = WS.url("http://localhost:" + port + "/").patch("body")
+      val futureResponse = WS.url("http://localhost:" + port + "/").patch("body")
 
       // This test experiences CI timeouts. Give it more time.
       val reallyLongTimeout = Timeout(defaultAwaitTimeout.duration * 3)
-      val rep = await(req)(reallyLongTimeout)
+      val rep = await(futureResponse)(reallyLongTimeout)
 
       rep.status must ===(200)
       (rep.json \ "data").asOpt[String] must beSome("body")
@@ -197,7 +236,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
             }
           }
         },
-        additionalConfiguration = Map("ws.compressionEnabled" -> true)
+        additionalConfiguration = Map("play.ws.compressionEnabled" -> true)
       )
     }
 
@@ -299,14 +338,14 @@ object NingWSSpec extends PlaySpecification with Mockito {
   "Ning WS Config" should {
     "support overriding secure default values" in {
       val ahcConfig = new NingAsyncHttpClientConfigBuilder().modifyUnderlying { builder =>
-        builder.setCompressionEnabled(true)
-        builder.setFollowRedirects(false)
+        builder.setCompressionEnforced(false)
+        builder.setFollowRedirect(false)
       }.build()
-      ahcConfig.isCompressionEnabled must beTrue
-      ahcConfig.isRedirectEnabled must beFalse
-      ahcConfig.getConnectionTimeoutInMs must_== Defaults.connectionTimeout
-      ahcConfig.getRequestTimeoutInMs must_== Defaults.requestTimeout
-      ahcConfig.getIdleConnectionTimeoutInMs must_== Defaults.idleTimeout
+      ahcConfig.isCompressionEnforced must beFalse
+      ahcConfig.isFollowRedirect must beFalse
+      ahcConfig.getConnectTimeout must_== 120000
+      ahcConfig.getRequestTimeout must_== 120000
+      ahcConfig.getReadTimeout must_== 120000
     }
   }
 

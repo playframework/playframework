@@ -34,9 +34,9 @@ object Fakes {
  *
  * @param data Headers data.
  */
-case class FakeHeaders(override val data: Seq[(String, Seq[String])] = Seq.empty) extends Headers
+case class FakeHeaders(data: Seq[(String, String)] = Seq.empty) extends Headers(data)
 
-case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, body: A, remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1", id: Long = 666, tags: Map[String, String] = Map.empty[String, String], secure: Boolean = false) extends Request[A] {
+case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A, remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1", id: Long = 666, tags: Map[String, String] = Map.empty[String, String], secure: Boolean = false) extends Request[A] {
 
   private def _copy[B](
     id: Long = this.id,
@@ -45,7 +45,7 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
     path: String = this.path,
     method: String = this.method,
     version: String = this.version,
-    headers: FakeHeaders = this.headers,
+    headers: Headers = this.headers,
     remoteAddress: String = this.remoteAddress,
     secure: Boolean = this.secure,
     body: B = this.body): FakeRequest[B] = {
@@ -69,12 +69,7 @@ case class FakeRequest[A](method: String, uri: String, headers: FakeHeaders, bod
    * Constructs a new request with additional headers. Any existing headers of the same name will be replaced.
    */
   def withHeaders(newHeaders: (String, String)*): FakeRequest[A] = {
-    _copy(headers = FakeHeaders({
-      val newData = newHeaders.map {
-        case (k, v) => (k, Seq(v))
-      }
-      (Map() ++ (headers.data ++ newData)).toSeq
-    }))
+    _copy(headers = headers.replace(newHeaders: _*))
   }
 
   /**

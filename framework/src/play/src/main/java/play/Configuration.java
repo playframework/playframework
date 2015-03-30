@@ -47,6 +47,13 @@ public class Configuration {
         return new Configuration(ConfigFactory.empty());
     }
 
+    /**
+     * A new reference configuration.
+     */
+    public static Configuration reference() {
+        return new Configuration(ConfigFactory.defaultReference());
+    }
+
     // --
 
     private final play.api.Configuration conf;

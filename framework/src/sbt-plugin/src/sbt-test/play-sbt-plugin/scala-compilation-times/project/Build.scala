@@ -1,9 +1,11 @@
 /*
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
+
+import play.sbt.{PlayScala, Play}
 import sbt._
 import Keys._
-import play.Play.autoImport._
+import Play.autoImport._
 import java.io.Closeable
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -51,7 +53,7 @@ object ApplicationBuild extends Build {
     }
   }
 
-  val main = Project(appName, file(".")).enablePlugins(play.PlayScala).settings(
+  val main = Project(appName, file(".")).enablePlugins(PlayScala).settings(
     version := appVersion,
     libraryDependencies ++= appDependencies,
     commands += timedCompile

@@ -5,11 +5,12 @@ package play.api.db
 
 import javax.inject.{ Inject, Provider, Singleton }
 
-import scala.concurrent.Future
-import scala.util.control.NonFatal
+import com.typesafe.config.Config
 
-import play.api.inject.{ ApplicationLifecycle, Binding, BindingKey, Module }
-import play.api.{ Application, Configuration, Environment, Logger, Mode, Play }
+import scala.concurrent.Future
+
+import play.api.inject._
+import play.api._
 import play.db.NamedDatabaseImpl
 
 /**
@@ -17,8 +18,8 @@ import play.db.NamedDatabaseImpl
  */
 class DBModule extends Module {
   def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
-    val dbKey = configuration.underlying.getString("play.modules.db.config")
-    val default = configuration.underlying.getString("play.modules.db.default")
+    val dbKey = configuration.underlying.getString("play.db.config")
+    val default = configuration.underlying.getString("play.db.default")
     val dbs = configuration.getConfig(dbKey).getOrElse(Configuration.empty).subKeys
     Seq(
       bind[DBApi].toProvider[DBApiProvider]
@@ -54,11 +55,19 @@ trait DBComponents {
  * Inject provider for DB implementation of DB API.
  */
 @Singleton
-class DBApiProvider @Inject() (environment: Environment, configuration: Configuration, connectionPool: ConnectionPool, lifecycle: ApplicationLifecycle) extends Provider[DBApi] {
+class DBApiProvider @Inject() (environment: Environment, configuration: Configuration,
+    defaultConnectionPool: ConnectionPool, lifecycle: ApplicationLifecycle,
+    injector: Injector = NewInstanceInjector) extends Provider[DBApi] {
+
   lazy val get: DBApi = {
-    val dbKey = configuration.underlying.getString("play.modules.db.config")
-    val config = configuration.getConfig(dbKey).getOrElse(Configuration.empty)
-    val db = new DefaultDBApi(config, connectionPool, environment.classLoader)
+    val config = configuration.underlying
+    val dbKey = config.getString("play.db.config")
+    val pool = ConnectionPool.fromConfig(config.getString("play.db.pool"), injector,
+      environment, defaultConnectionPool)
+    val configs = if (config.hasPath(dbKey)) {
+      PlayConfig(config).getPrototypedMap(dbKey, "play.db.prototype").mapValues(_.underlying)
+    } else Map.empty[String, Config]
+    val db = new DefaultDBApi(configs, pool, environment)
     lifecycle.addStopHook { () => Future.successful(db.shutdown()) }
     db.connect(logConnection = environment.mode != Mode.Test)
     db

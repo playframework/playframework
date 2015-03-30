@@ -47,41 +47,29 @@ object JavaParsers extends BodyParsers {
       }.orNull
     }
 
-    override def asText = {
-      text.orNull
-    }
+    override def asText = text.orNull
 
-    override lazy val asJson = {
-      json.map(Json.fromJson[JsonNode](_).get).orNull
-    }
+    override lazy val asJson = json.map(Json.fromJson[JsonNode](_).get).orNull
 
-    override lazy val asXml = {
-      xml.map { xml =>
-        play.libs.XML.fromString(xml.toString)
-      }.orNull
-    }
+    override lazy val asXml = xml.map { xml =>
+      play.libs.XML.fromString(xml.toString)
+    }.orNull
 
-    override lazy val asMultipartFormData = {
-      multipart.map { multipart =>
+    override lazy val asMultipartFormData = multipart.map { multipart =>
+      new play.mvc.Http.MultipartFormData {
 
-        new play.mvc.Http.MultipartFormData {
-
-          lazy val asFormUrlEncoded = {
-            multipart.asFormUrlEncoded.mapValues(_.toArray).asJava
-          }
-
-          lazy val getFiles = {
-            multipart.files.map { file =>
-              new play.mvc.Http.MultipartFormData.FilePart(
-                file.key, file.filename, file.contentType.orNull, file.ref.file)
-            }.asJava
-          }
-
+        lazy val asFormUrlEncoded = {
+          multipart.asFormUrlEncoded.mapValues(_.toArray).asJava
         }
 
-      }.orNull
-    }
-
+        lazy val getFiles = {
+          multipart.files.map { file =>
+            new play.mvc.Http.MultipartFormData.FilePart(
+              file.key, file.filename, file.contentType.orNull, file.ref.file)
+          }.asJava
+        }
+      }
+    }.orNull
   }
 
   def default_(maxLength: Long): BodyParser[RequestBody] = anyContent(parse.default(Some(maxLength).filter(_ >= 0)))

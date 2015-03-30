@@ -9,15 +9,15 @@ import java.util.jar.JarFile
 import com.typesafe.play.docs.sbtplugin.PlayDocsValidation.{ CodeSamplesReport, MarkdownRefReport }
 import play.core.BuildDocHandler
 import play.core.server.ServerWithStop
-import play.PlayImport._
+import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
 import play.TemplateImports
-import play.routes.compiler.InjectedRoutesGenerator
-import play.sbtplugin.Colors
-import play.sbtplugin.routes.RoutesCompiler
+import play.sbt.Colors
+import play.sbt.routes.RoutesCompiler
+import play.sbt.routes.RoutesKeys._
 import sbt._
 import sbt.Keys._
-import sbt.plugins.JvmPlugin
 import scala.collection.JavaConverters._
+import scala.util.control.NonFatal
 
 object Imports {
   object PlayDocsKeys {
@@ -39,10 +39,10 @@ object Imports {
 
     val javaManualSourceDirectories = SettingKey[Seq[File]]("java-manual-source-directories")
     val scalaManualSourceDirectories = SettingKey[Seq[File]]("scala-manual-source-directories")
-    val javaRoutesSourceManaged = SettingKey[File]("java-routes-source-managed")
-    val scalaRoutesSourceManaged = SettingKey[File]("scala-routes-source-managed")
     val javaTwirlSourceManaged = SettingKey[File]("java-routes-source-managed")
     val scalaTwirlSourceManaged = SettingKey[File]("scala-routes-source-managed")
+
+    val evaluateSbtFiles = TaskKey[Unit]("evaluateSbtFiles", "Evaluate all the sbt files in the project")
   }
 }
 
@@ -54,7 +54,7 @@ object PlayDocsPlugin extends AutoPlugin {
 
   override def trigger = NoTrigger
 
-  override def requires = JvmPlugin
+  override def requires = RoutesCompiler
 
   override def projectSettings = docsRunSettings ++ docsReportSettings ++ docsTestSettings
 
@@ -89,13 +89,9 @@ object PlayDocsPlugin extends AutoPlugin {
     unmanagedSourceDirectories in Test ++= javaManualSourceDirectories.value ++ scalaManualSourceDirectories.value,
     unmanagedResourceDirectories in Test ++= javaManualSourceDirectories.value ++ scalaManualSourceDirectories.value,
 
-    javaRoutesSourceManaged := target.value / "routes" / "java",
-    scalaRoutesSourceManaged := target.value / "routes" / "scala",
     javaTwirlSourceManaged := target.value / "twirl" / "java",
     scalaTwirlSourceManaged := target.value / "twirl" / "scala",
     managedSourceDirectories in Test ++= Seq(
-      javaRoutesSourceManaged.value,
-      scalaRoutesSourceManaged.value,
       javaTwirlSourceManaged.value,
       scalaTwirlSourceManaged.value
     ),
@@ -109,12 +105,39 @@ object PlayDocsPlugin extends AutoPlugin {
       compileTemplates(from, to, TemplateImports.defaultScalaTemplateImports.asScala, s.log)
     },
 
-    sourceGenerators in Test <+= (javaManualSourceDirectories, javaRoutesSourceManaged, streams) map { (from, to, s) =>
-      RoutesCompiler.compileRoutes((from * "*.routes").get, InjectedRoutesGenerator, to, Seq("play.libs.F"), true, true, s.cacheDirectory / "javaroutes", s.log)
+    routesCompilerTasks in Test := {
+      val javaRoutes = (javaManualSourceDirectories.value * "*.routes").get
+      val scalaRoutes = (scalaManualSourceDirectories.value * "*.routes").get
+      (javaRoutes.map(_ -> Seq("play.libs.F")) ++ scalaRoutes.map(_ -> Nil)).map {
+        case (file, imports) => RoutesCompilerTask(file, imports, true, true, true)
+      }
     },
 
-    sourceGenerators in Test <+= (scalaManualSourceDirectories, scalaRoutesSourceManaged, streams) map { (from, to, s) =>
-      RoutesCompiler.compileRoutes((from * "*.routes").get, InjectedRoutesGenerator, to, Nil, true, true, s.cacheDirectory / "scalaroutes", s.log)
+    routesGenerator := InjectedRoutesGenerator,
+
+    evaluateSbtFiles := {
+      val unit = loadedBuild.value.units(thisProjectRef.value.build)
+      val (eval, structure) = Load.defaultLoad(state.value, unit.localBase, state.value.log)
+      val sbtFiles = ((unmanagedSourceDirectories in Test).value * "*.sbt").get
+      val log = state.value.log
+      if (sbtFiles.nonEmpty) {
+        log.info("Testing .sbt files...")
+      }
+      val result = sbtFiles.map { sbtFile =>
+        val relativeFile = relativeTo(baseDirectory.value)(sbtFile).getOrElse(sbtFile.getAbsolutePath)
+        try {
+          EvaluateConfigurations.evaluateConfiguration(eval(), sbtFile, unit.imports)(unit.loader)
+          log.info(s"  ${Colors.green("+")} $relativeFile")
+          true
+        } catch {
+          case NonFatal(_) =>
+            log.error(s" ${Colors.yellow("x")} $relativeFile")
+            false
+        }
+      }
+      if (result.contains(false)) {
+        throw new TestsFailedException
+      }
     },
 
     parallelExecution in Test := false,

@@ -7,6 +7,7 @@ import akka.actor.ActorSystem
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import play.api.test._
 import java.io.File

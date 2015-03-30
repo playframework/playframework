@@ -2,22 +2,6 @@
 
 # Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
 
-unset no_publish
-
-# comma-separated list of scala versions to cross build against
-declare crossbuild="2.11.1"
-
-# process arguments
-declare -a args
-while [[ $# -gt 0 ]] ; do
-  case "$1" in
-    --no-publish) no_publish=1; shift ;;
-    -c|--crossbuild) crossbuild=$2; shift 2;;
-    *) args=("${args[@]}" "$1"); shift ;;
-  esac
-done
-set -- "${args[@]}" # reset "$@"
-
 set -e
 export CURRENT=`pwd`
 export SCRIPT=`dirname "$0"`
@@ -25,45 +9,35 @@ export SCRIPT=`dirname "$0"`
 cd "$SCRIPT"
 export BUILD=`pwd`/build
 
-if [ -n "$no_publish" ] ; then
-  echo "[info] Not publishing locally"
-else
-  echo "[info] Play will build with its default version of Scala and also cross build against these versions: <${crossbuild}>"
-  echo "[info]"
-  echo "[info] ---- BUILDING PLAY (with its default version of Scala)"
-  echo "[info]"
-  $BUILD "$@" -Dgenerate.doc=true publish-local
-  for v in ${crossbuild//,/ } ; do
-    echo "[info]"
-    echo "[info] ---- BUILDING PLAY (cross building against Scala $v)"
-    echo "[info]"
-    $BUILD "$@" -Dgenerate.doc=true -Dscala.version=$v publish-local
-  done
+CROSSBUILD=
+
+if [ "$1" == + ]
+then
+    CROSSBUILD=+
+    shift
 fi
+
+echo "[info]"
+echo "[info] ---- BUILDING PLAY "
+echo "[info]"
+$BUILD "$@" ${CROSSBUILD}publishLocal
 
 echo "[info]"
 echo "[info] ---- PLAYFRAMEWORK CORE TEST RUNNER"
 echo "[info]"
 
-$BUILD "$@" test:test
+$BUILD "$@" ${CROSSBUILD}test
 
 echo "[info]"
-echo "[info] ---- SBT PLUGIN SCRIPTED TESTS"
+echo "[info] ---- SCRIPTED TESTS"
 echo "[info]"
 
-$BUILD "$@" SBT-Plugin/scripted
+$BUILD "$@" scripted
 
-echo "[info]"
-echo "[info] ---- SBT FORK RUN PLUGIN TESTS"
-echo "[info]"
-
-$BUILD "$@" SBT-Fork-Run-Plugin/scripted
-
-echo "[info]"
-echo "[info] ---- AKKA HTTP SERVER SCRIPTED TESTS"
-echo "[info]"
-
-$BUILD "$@" Play-Akka-Http-Server-Experimental/scripted
+if [ -n "$CROSSBUILD" ]
+then
+    $BUILD "$@" "set scalaVersion in PlayBuild.PlayProject := \"2.11.5\"" scripted
+fi
 
 rm -rf ./logs
 
@@ -74,7 +48,7 @@ echo "[info] ---- RUNNING DOCUMENTATION TESTS"
 echo "[info]"
 
 cd ../documentation
-$BUILD "$@" clean test validate-docs
+$BUILD "$@" clean ${CROSSBUILD}test evaluateSbtFiles validate-docs
 cd $CURRENT
 
 echo "[info]"
@@ -82,7 +56,7 @@ echo "[info] ---- TESTING TEMPLATES"
 echo "[info]"
 
 cd ../templates
-$BUILD "$@" testTemplates
+$BUILD "$@" ${CROSSBUILD}testTemplates
 cd $CURRENT
 
 echo "[info]"

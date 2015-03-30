@@ -8,7 +8,7 @@ A valid language code is specified by a valid **ISO 639-2 language code**, optio
 To start you need to specify the languages supported by your application in the `conf/application.conf` file:
 
 ```
-application.langs="en,en-US,fr"
+play.i18n.langs = [ "en", "en-US", "fr" ]
 ```
 
 ## Externalizing messages

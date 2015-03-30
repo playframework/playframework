@@ -22,11 +22,6 @@ import static play.test.Helpers.*;
 
 public class JavaSessionFlash extends WithApplication {
 
-    @Override
-    public Application provideApplication() {
-        return fakeApplication(ImmutableMap.of("application.secret", "pass"));
-    }
-
     @Test
     public void readSession() {
         assertThat(contentAsString(call(new MockJavaAction() {
@@ -46,40 +41,40 @@ public class JavaSessionFlash extends WithApplication {
 
     @Test
     public void storeSession() {
-        Session session = session(call(new MockJavaAction() {
+        Session session = call(new MockJavaAction() {
             //#store-session
             public Result login() {
                 session("connected", "user@gmail.com");
                 return ok("Welcome!");
             }
             //#store-session
-        }, fakeRequest()));
+        }, fakeRequest()).session();
         assertThat(session.get("connected"), equalTo("user@gmail.com"));
     }
 
     @Test
     public void removeFromSession() {
-        Session session = session(call(new MockJavaAction() {
+        Session session = call(new MockJavaAction() {
             //#remove-from-session
             public Result logout() {
                 session().remove("connected");
                 return ok("Bye");
             }
             //#remove-from-session
-        }, fakeRequest().session("connected", "foo")));
+        }, fakeRequest().session("connected", "foo")).session();
         assertThat(session.get("connected"), nullValue());
     }
 
     @Test
     public void discardWholeSession() {
-        Session session = session(call(new MockJavaAction() {
+        Session session = call(new MockJavaAction() {
             //#discard-whole-session
             public Result logout() {
                 session().clear();
                 return ok("Bye");
             }
             //#discard-whole-session
-        }, fakeRequest().session("connected", "foo")));
+        }, fakeRequest().session("connected", "foo")).session();
         assertThat(session.get("connected"), nullValue());
     }
 
@@ -101,14 +96,14 @@ public class JavaSessionFlash extends WithApplication {
 
     @Test
     public void storeFlash() {
-        Flash flash = flash(call(new MockJavaAction() {
+        Flash flash = call(new MockJavaAction() {
             //#store-flash
             public Result save() {
                 flash("success", "The item has been created");
                 return redirect("/home");
             }
             //#store-flash
-        }, fakeRequest()));
+        }, fakeRequest()).flash();
         assertThat(flash.get("success"), equalTo("The item has been created"));
     }
 

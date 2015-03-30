@@ -7,6 +7,7 @@ package play.core.server.ssl
 
 import java.util.Properties
 
+import org.specs2.matcher.MustThrownExpectations
 import org.specs2.mutable.{ After, Specification }
 import org.specs2.mock.Mockito
 import org.specs2.specification.Scope
@@ -37,7 +38,7 @@ class ServerSSLEngineSpec extends Specification with Mockito {
 
   sequential
 
-  trait ApplicationContext extends Mockito with Scope {
+  trait ApplicationContext extends Mockito with Scope with MustThrownExpectations {
   }
 
   trait TempConfDir extends After {
@@ -72,23 +73,23 @@ class ServerSSLEngineSpec extends Specification with Mockito {
   "ServerSSLContext" should {
 
     "default create a SSL engine suitable for development" in new ApplicationContext with TempConfDir {
-      createEngine(None, Some(tempDir)) should beAnInstanceOf[SSLEngine]
+      createEngine(None, Some(tempDir)) must beAnInstanceOf[SSLEngine]
     }
 
     "fail to load a non existing SSLEngineProvider" in new ApplicationContext {
-      createEngine(Some("bla bla")) should throwA[ClassNotFoundException]
+      createEngine(Some("bla bla")) must throwA[ClassNotFoundException]
     }
 
     "fail to load an existing SSLEngineProvider with the wrong type" in new ApplicationContext {
-      createEngine(Some(classOf[WrongSSLEngineProvider].getName)) should throwA[ClassCastException]
+      createEngine(Some(classOf[WrongSSLEngineProvider].getName)) must throwA[ClassCastException]
     }
 
     "load a custom SSLContext from a SSLEngineProvider" in new ApplicationContext {
-      createEngine(Some(classOf[RightSSLEngineProvider].getName)) should beAnInstanceOf[SSLEngine]
+      createEngine(Some(classOf[RightSSLEngineProvider].getName)) must beAnInstanceOf[SSLEngine]
     }
 
     "load a custom SSLContext from a java SSLEngineProvider" in new ApplicationContext {
-      createEngine(Some(classOf[JavaSSLEngineProvider].getName)) should beAnInstanceOf[SSLEngine]
+      createEngine(Some(classOf[JavaSSLEngineProvider].getName)) must beAnInstanceOf[SSLEngine]
     }
   }
 

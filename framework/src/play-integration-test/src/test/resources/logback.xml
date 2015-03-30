@@ -1,0 +1,17 @@
+<!--
+  ~ Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
+  -->
+<!-- The default logback configuration that Play uses if no other configuration is provided -->
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%level %logger{15} - %message%n%xException</pattern>
+        </encoder>
+    </appender>
+
+    <root level="WARN">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+</configuration>

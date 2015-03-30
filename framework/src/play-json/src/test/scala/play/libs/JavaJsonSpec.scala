@@ -1,7 +1,7 @@
 package play.libs
 
-import java.time.Instant;
-import java.util.Optional;
+import java.time.Instant
+import java.util.Optional
 
 import com.fasterxml.jackson.databind.ObjectMapper
 
@@ -31,7 +31,7 @@ class JavaJsonSpec extends Specification {
       .put("optLong", 55555l)
       .put("a", 2.5)
       .put("copyright", "\u00a9") // copyright symbol
-      .put("baz", mapper.createArrayNode().add(1).add(2).add(3))
+      .set("baz", mapper.createArrayNode().add(1).add(2).add(3))
 
     Json.setObjectMapper(mapper)
   }
