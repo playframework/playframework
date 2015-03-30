@@ -11,6 +11,15 @@ To start, you need to specify the languages that your application supports in it
 application.langs="en,en-US,fr"
 ```
 
+## Changing language
+
+To permanently change the user language, use the changeLang() method:
+
+```
+Controller.changeLang("cs");
+```
+The new value will be saved to the user’s language cookie.
+
 ## Externalizing messages
 
 You can externalize messages in the `conf/messages.xxx` files. 
