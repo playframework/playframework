@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 import com.typesafe.config._
 
 import scala.collection.JavaConverters._
-import scala.concurrent.duration.{ FiniteDuration, Duration }
+import scala.concurrent.duration.FiniteDuration
 import scala.io.Source
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -116,11 +116,18 @@ object Configuration {
   def apply(data: (String, Any)*): Configuration = from(data.toMap)
 
   private[api] def configError(origin: ConfigOrigin, message: String, e: Option[Throwable] = None): PlayException = {
+    /*
+      The stable values here help us from putting a reference to a ConfigOrigin inside the anonymous ExceptionSource.
+      This is necessary to keep the Exception serialisable, because ConfigOrigin is not serialisable.
+     */
+    val originLine = Option(origin.lineNumber: java.lang.Integer).orNull
+    val originUrl = Option(origin.url)
+    val originSourceName = Option(origin.filename).orNull
     new PlayException.ExceptionSource("Configuration error", message, e.orNull) {
-      def line = Option(origin.lineNumber: java.lang.Integer).orNull
+      def line = originLine
       def position = null
-      def input = Option(origin.url).map(PlayIO.readUrlAsString).orNull
-      def sourceName = Option(origin.filename).orNull
+      def input = originUrl.map(PlayIO.readUrlAsString).orNull
+      def sourceName = originSourceName
       override def toString = "Configuration error: " + getMessage
     }
   }

@@ -3,8 +3,12 @@
  */
 package play.api
 
+import java.io._
+
 import com.typesafe.config.ConfigException
 import org.specs2.mutable.Specification
+
+import scala.util.control.NonFatal
 
 object ConfigurationSpec extends Specification {
 
@@ -47,6 +51,31 @@ object ConfigurationSpec extends Specification {
       exampleConfig.getDoubleSeq("blah.2").get must ===(Seq(1.1, 2.2, 3.3))
       exampleConfig.getLongSeq("blah.3").get must ===(Seq(1L, 2L, 3L))
       exampleConfig.getStringSeq("blah.4").get must contain(exactly("one", "two", "three"))
+    }
+
+    "throw serialisable exceptions" in {
+      // from Typesafe Config
+      def copyViaSerialize(o: java.io.Serializable): AnyRef = {
+        val byteStream = new ByteArrayOutputStream()
+        val objectStream = new ObjectOutputStream(byteStream)
+        objectStream.writeObject(o)
+        objectStream.close()
+        val inStream = new ByteArrayInputStream(byteStream.toByteArray())
+        val inObjectStream = new ObjectInputStream(inStream)
+        val copy = inObjectStream.readObject()
+        inObjectStream.close()
+        copy
+      }
+      val conf = Configuration.from(
+        Map("item" -> "uhoh, it's gonna blow")
+      );
+      {
+        try {
+          conf.getStringList("item")
+        } catch {
+          case NonFatal(e) => copyViaSerialize(e)
+        }
+      } must not(throwA[Exception])
     }
 
   }
