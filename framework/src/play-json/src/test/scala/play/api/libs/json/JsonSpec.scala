@@ -264,24 +264,25 @@ object JsonSpec extends org.specs2.mutable.Specification {
     "Not lose precision when parsing big integers" in {
       // By big integers, we just mean integers that overflow long, since Jackson has different code paths for them
       // from decimals
-      val i = BigDecimal("123456789012345678901234567890")
-      val json = toJson(i)
+      val json = toJson(BigDecimal("123456789012345678901234567890"))
       parse(stringify(json)) must equalTo(json)
     }
 
     "Serialize and deserialize Lists" in {
       val xs: List[Int] = (1 to 5).toList
       val json = arr(1, 2, 3, 4, 5)
-      toJson(xs) must equalTo(json)
-      fromJson[List[Int]](json) must equalTo(JsSuccess(xs))
+
+      toJson(xs) must_== json and (
+        fromJson[List[Int]](json) must_== JsSuccess(xs))
     }
 
     "Serialize and deserialize Jackson ObjectNodes" in {
       val on = JacksonJson.mapper.createObjectNode()
         .put("foo", 1).put("bar", "two")
       val json = Json.obj("foo" -> 1, "bar" -> "two")
-      toJson(on) must equalTo(json)
-      fromJson[JsonNode](json).map(_.toString) must_== JsSuccess(on.toString)
+
+      toJson(on) must_== json and (
+        fromJson[JsonNode](json).map(_.toString) must_== JsSuccess(on.toString))
     }
 
     "Serialize and deserialize Jackson ArrayNodes" in {
@@ -292,8 +293,18 @@ object JsonSpec extends org.specs2.mutable.Specification {
         fromJson[JsonNode](json).map(_.toString) must_== JsSuccess(an.toString))
     }
 
+    "Deserialize integer JsNumber as Jackson number node" in {
+      val jsNum = JsNumber(new java.math.BigDecimal("50"))
+      fromJson[JsonNode](jsNum).map(_.toString) must_== JsSuccess("50")
+    }
+
+    "Deserialize float JsNumber as Jackson number node" in {
+      val jsNum = JsNumber(new java.math.BigDecimal("12.345"))
+      fromJson[JsonNode](jsNum).map(_.toString) must_== JsSuccess("12.345")
+    }
+
     "Map[String,String] should be turned into JsValue" in {
-      toJson(Map("k" -> "v")).toString must equalTo("{\"k\":\"v\"}")
+      toJson(Map("k" -> "v")).toString must_== """{"k":"v"}"""
     }
 
     "Can parse recursive object" in {

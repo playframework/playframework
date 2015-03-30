@@ -10,6 +10,7 @@ import scala.collection.mutable.ListBuffer
 
 import com.fasterxml.jackson.core.{ JsonTokenId, JsonGenerator, JsonParser }
 import com.fasterxml.jackson.databind._
+import com.fasterxml.jackson.databind.util.TokenBuffer
 import com.fasterxml.jackson.databind.`type`.TypeFactory
 import com.fasterxml.jackson.databind.deser.Deserializers
 import com.fasterxml.jackson.databind.ser.Serializers
@@ -140,15 +141,10 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
     deepMerge(this, other)
   }
 
-  override def equals(other: Any): Boolean =
-    other match {
-
-      case that: JsObject =>
-        (that canEqual this) &&
-          fieldSet == that.fieldSet
-
-      case _ => false
-    }
+  override def equals(other: Any): Boolean = other match {
+    case that: JsObject => (that canEqual this) && fieldSet == that.fieldSet
+    case _ => false
+  }
 
   def canEqual(other: Any): Boolean = other.isInstanceOf[JsObject]
 
@@ -158,11 +154,21 @@ case class JsObject(fields: Seq[(String, JsValue)]) extends JsValue {
 
 // -- Serializers.
 
-private[json] class JsValueSerializer extends JsonSerializer[JsValue] {
+private[json] object JsValueSerializer extends JsonSerializer[JsValue] {
+  import java.math.{ BigDecimal => JBigDec, BigInteger }
+  import com.fasterxml.jackson.databind.node.{ BigIntegerNode, DecimalNode }
 
   override def serialize(value: JsValue, json: JsonGenerator, provider: SerializerProvider) {
     value match {
-      case JsNumber(v) => json.writeNumber(v.bigDecimal)
+      case JsNumber(v) => {
+        // Workaround #3784: Same behaviour as if JsonGenerator were
+        // configured with WRITE_BIGDECIMAL_AS_PLAIN, but forced as this
+        // configuration is ignored when called from ObjectMapper.valueToTree
+        val raw = v.bigDecimal.stripTrailingZeros.toPlainString
+
+        if (raw contains ".") json.writeTree(new DecimalNode(new JBigDec(raw)))
+        else json.writeTree(new BigIntegerNode(new BigInteger(raw)))
+      }
       case JsString(v) => json.writeString(v)
       case JsBoolean(v) => json.writeBoolean(v)
       case JsArray(elements) => {
@@ -301,7 +307,7 @@ private[json] class PlayDeserializers(classLoader: ClassLoader) extends Deserial
 private[json] class PlaySerializers extends Serializers.Base {
   override def findSerializer(config: SerializationConfig, javaType: JavaType, beanDesc: BeanDescription) = {
     val ser: Object = if (classOf[JsValue].isAssignableFrom(beanDesc.getBeanClass)) {
-      new JsValueSerializer
+      JsValueSerializer
     } else {
       null
     }
@@ -310,7 +316,6 @@ private[json] class PlaySerializers extends Serializers.Base {
 }
 
 private[play] object JacksonJson {
-
   import com.fasterxml.jackson.core.Version
   import com.fasterxml.jackson.databind.module.SimpleModule
   import com.fasterxml.jackson.databind.Module.SetupContext
@@ -328,34 +333,38 @@ private[play] object JacksonJson {
     }
   }
 
-  private[this] lazy val jsonFactory = new com.fasterxml.jackson.core.JsonFactory(mapper)
+  private[this] lazy val jsonFactory =
+    new com.fasterxml.jackson.core.JsonFactory(mapper)
 
-  private[this] def stringJsonGenerator(out: java.io.StringWriter) = jsonFactory.createGenerator(out)
+  private[this] def stringJsonGenerator(out: java.io.StringWriter) =
+    jsonFactory.createGenerator(out)
 
-  private[this] def jsonParser(c: String): JsonParser = jsonFactory.createParser(c)
+  private[this] def jsonParser(c: String): JsonParser =
+    jsonFactory.createParser(c)
 
-  private[this] def jsonParser(data: Array[Byte]): JsonParser = jsonFactory.createParser(data)
+  private[this] def jsonParser(data: Array[Byte]): JsonParser =
+    jsonFactory.createParser(data)
 
-  private[this] def jsonParser(stream: InputStream): JsonParser = jsonFactory.createParser(stream)
+  private[this] def jsonParser(stream: InputStream): JsonParser =
+    jsonFactory.createParser(stream)
 
-  def parseJsValue(data: Array[Byte]): JsValue = {
+  def parseJsValue(data: Array[Byte]): JsValue =
     mapper.readValue(jsonParser(data), classOf[JsValue])
-  }
 
-  def parseJsValue(input: String): JsValue = {
+  def parseJsValue(input: String): JsValue =
     mapper.readValue(jsonParser(input), classOf[JsValue])
-  }
 
-  def parseJsValue(stream: InputStream): JsValue = {
+  def parseJsValue(stream: InputStream): JsValue =
     mapper.readValue(jsonParser(stream), classOf[JsValue])
-  }
 
   def generateFromJsValue(jsValue: JsValue, escapeNonASCII: Boolean = false): String = {
     val sw = new java.io.StringWriter
     val gen = stringJsonGenerator(sw)
+
     if (escapeNonASCII) {
       gen.enable(JsonGenerator.Feature.ESCAPE_NON_ASCII)
     }
+
     mapper.writeValue(gen, jsValue)
     sw.flush()
     sw.getBuffer.toString
@@ -372,12 +381,10 @@ private[play] object JacksonJson {
     sw.getBuffer.toString
   }
 
-  def jsValueToJsonNode(jsValue: JsValue): JsonNode = {
+  def jsValueToJsonNode(jsValue: JsValue): JsonNode =
     mapper.valueToTree(jsValue)
-  }
 
-  def jsonNodeToJsValue(jsonNode: JsonNode): JsValue = {
+  def jsonNodeToJsValue(jsonNode: JsonNode): JsValue =
     mapper.treeToValue(jsonNode, classOf[JsValue])
-  }
 
 }
