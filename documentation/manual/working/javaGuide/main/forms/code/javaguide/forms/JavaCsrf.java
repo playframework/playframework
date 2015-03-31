@@ -13,6 +13,7 @@ import play.Application;
 import play.filters.csrf.AddCSRFToken;
 import play.filters.csrf.CSRFFilter;
 import play.filters.csrf.RequireCSRFCheck;
+import play.filters.csrf.CSRF;
 import play.libs.Crypto;
 import play.mvc.Result;
 import play.test.WithApplication;
@@ -25,11 +26,27 @@ import javaguide.forms.html.form;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Optional;
 
 public class JavaCsrf extends WithApplication {
 
     public Crypto crypto() {
       return app.injector().instanceOf(Crypto.class);
+    }
+
+    @Test
+    public void getToken() {
+        String token = crypto().generateSignedToken();
+        String body = contentAsString(MockJavaActionHelper.call(new MockJavaAction() {
+            public Result index() {
+                //#get-token
+                Optional<CSRF.Token> token = CSRF.getToken(request());
+                //#get-token
+                return ok(token.map(CSRF.Token::value).orElse(""));
+            }
+        }, fakeRequest("GET", "/").session("csrfToken", token)));
+
+        assertTrue(crypto().compareSignedTokens(body, token));
     }
 
     @Test

@@ -42,6 +42,10 @@ Now add them to your `Filters` class:
 
 ### Getting the current token
 
+The current CSRF token can be accessed using the `CSRF.getToken` method.  It takes a `RequestHeader`, which can be obtained by calling `Controllers.request()`:
+
+@[get-token](code/javaguide/forms/JavaCsrf.java)
+
 To help in adding CSRF tokens to forms, Play provides some template helpers.  The first one adds it to the query string of the action URL:
 
 @[csrf-call](code/javaguide/forms/csrf.scala.html)

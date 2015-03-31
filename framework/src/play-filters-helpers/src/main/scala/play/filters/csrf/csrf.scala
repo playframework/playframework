@@ -3,8 +3,11 @@
  */
 package play.filters.csrf
 
+import java.util.Optional
+
 import com.typesafe.config.ConfigMemorySize
 import play.filters.csrf.CSRF.{ CSRFHttpErrorHandler, ErrorHandler }
+import play.mvc.Http
 import play.utils.Reflect
 
 import scala.concurrent.Future
@@ -133,6 +136,16 @@ object CSRF {
     } else {
       token.map(Token.apply)
     }
+  }
+
+  /**
+   * Extract token from current Java request
+   *
+   * @param request The request to extract the token from
+   * @return The token, if found.
+   */
+  def getToken(request: play.mvc.Http.Request): Optional[Token] = {
+    Optional.ofNullable(getToken(request._underlyingHeader()).orNull)
   }
 
   /**
