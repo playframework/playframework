@@ -6,7 +6,7 @@ package play.api.i18n
 import javax.inject.{ Inject, Singleton }
 
 import play.api.inject.Module
-import play.api.mvc.{ DiscardingCookie, Cookie, Result, RequestHeader }
+import play.api.mvc.{ DiscardingCookie, Cookie, Result, RequestHeader, Session }
 import play.mvc.Http
 
 import scala.language.postfixOps
@@ -456,6 +456,10 @@ trait MessagesApi {
 
   def langCookieName: String
 
+  def langCookieSecure: Boolean
+
+  def langCookieHttpOnly: Boolean
+
 }
 
 /**
@@ -483,9 +487,11 @@ class DefaultMessagesApi @Inject() (environment: Environment, configuration: Con
 
   def preferred(request: Http.RequestHeader) = preferred(request._underlyingHeader())
 
-  def setLang(result: Result, lang: Lang) = result.withCookies(Cookie(langCookieName, lang.code))
+  def setLang(result: Result, lang: Lang) = result.withCookies(Cookie(langCookieName, lang.code, path = Session.path, domain = Session.domain,
+    secure = langCookieSecure, httpOnly = langCookieHttpOnly))
 
-  def clearLang(result: Result) = result.discardingCookies(DiscardingCookie(langCookieName))
+  def clearLang(result: Result) = result.discardingCookies(DiscardingCookie(langCookieName, path = Session.path, domain = Session.domain,
+    secure = langCookieSecure))
 
   def apply(key: String, args: Any*)(implicit lang: Lang): String = {
     translate(key, args).getOrElse(noMatch(key, args))
@@ -543,6 +549,12 @@ class DefaultMessagesApi @Inject() (environment: Environment, configuration: Con
 
   lazy val langCookieName =
     config.getDeprecated[String]("play.i18n.langCookieName", "application.lang.cookie")
+
+  lazy val langCookieSecure =
+    config.get[Boolean]("play.i18n.langCookieSecure")
+
+  lazy val langCookieHttpOnly =
+    config.get[Boolean]("play.i18n.langCookieHttpOnly")
 
 }
 

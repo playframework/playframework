@@ -188,7 +188,7 @@ object CSRFAction {
         // cookie
         name =>
           result.withCookies(Cookie(name, newToken, path = Session.path, domain = Session.domain,
-            secure = config.secureCookie))
+            secure = config.secureCookie, httpOnly = config.httpOnlyCookie))
       } getOrElse {
 
         val newSession = result.session(request) + (config.tokenName -> newToken)

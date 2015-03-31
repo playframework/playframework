@@ -723,6 +723,8 @@ package play.api.mvc {
     val COOKIE_NAME = HttpConfiguration.current.flash.cookieName
     override def path = HttpConfiguration.current.context
     override def secure = HttpConfiguration.current.flash.secure
+    override def httpOnly = HttpConfiguration.current.flash.httpOnly
+    override def domain = HttpConfiguration.current.session.domain
 
     val emptyCookie = new Flash
 

@@ -41,8 +41,10 @@ case class SessionConfiguration(cookieName: String = "PLAY_SESSION", secure: Boo
  * The flash configuration
  *
  * @param cookieName The name of the cookie used to store the session
+ * @param secure Whether the flash cookie should set the secure flag or not
+ * @param httpOnly Whether the HTTP only attribute of the cookie should be set
  */
-case class FlashConfiguration(cookieName: String = "PLAY_FLASH", secure: Boolean = false)
+case class FlashConfiguration(cookieName: String = "PLAY_FLASH", secure: Boolean = false, httpOnly: Boolean = true)
 
 /**
  * Configuration for body parsers.
@@ -88,7 +90,8 @@ object HttpConfiguration {
       ),
       flash = FlashConfiguration(
         cookieName = config.getDeprecated[String]("play.http.flash.cookieName", "flash.cookieName"),
-        secure = config.get[Boolean]("play.http.flash.secure")
+        secure = config.get[Boolean]("play.http.flash.secure"),
+        httpOnly = config.get[Boolean]("play.http.flash.httpOnly")
       )
     )
   }
