@@ -153,12 +153,15 @@ public final class CallTest {
 final class TestCall extends Call {
     private final String u;
     private final String m;
+    private final String f;
 
     TestCall(String u, String m) {
         this.u = u;
         this.m = m;
+        this.f = null;
     }
 
     public String url() { return this.u; }
     public String method() { return this.m; }
+    public String fragment() { return this.f; }
 }

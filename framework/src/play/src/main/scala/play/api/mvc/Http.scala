@@ -321,7 +321,7 @@ package play.api.mvc {
    * @param method the request HTTP method
    * @param url the request URL
    */
-  case class Call(method: String, url: String) extends play.mvc.Call {
+  case class Call(method: String, url: String, fragment: String = null) extends play.mvc.Call {
 
     /**
      * Transform this call to an absolute URL.
@@ -341,7 +341,7 @@ package play.api.mvc {
      * Transform this call to an absolute URL.
      */
     def absoluteURL(secure: Boolean)(implicit request: RequestHeader): String =
-      "http" + (if (secure) "s" else "") + "://" + request.host + this.url
+      "http" + (if (secure) "s" else "") + "://" + request.host + this.url + this.appendFragment
 
     /**
      * Transform this call to an WebSocket URL.
@@ -362,7 +362,7 @@ package play.api.mvc {
      */
     def webSocketURL(secure: Boolean)(implicit request: RequestHeader): String = "ws" + (if (secure) "s" else "") + "://" + request.host + this.url
 
-    override def toString = url
+    override def toString = this.url + this.appendFragment
 
   }
 
