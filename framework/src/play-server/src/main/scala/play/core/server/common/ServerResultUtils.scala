@@ -273,16 +273,22 @@ object ServerResultUtils {
    * handle combined headers. (Also RFC6265 says multiple headers shouldn't
    * be folded together, which Play's API unfortunately  does.)
    */
-  def splitHeadersIntoSeq(headers: Map[String, String]): Seq[(String, String)] = {
-    headers.to[Seq].flatMap {
-      case (SET_COOKIE, value) => {
-        val cookieParts: Seq[Cookie] = Cookies.decode(value)
-        cookieParts.map { cookiePart =>
-          (SET_COOKIE, Cookies.encode(Seq(cookiePart)))
+  def splitSetCookieHeaders(headers: Map[String, String]): Iterable[(String, String)] = {
+    if (headers.contains(SET_COOKIE)) {
+      // Rewrite the headers with Set-Cookie split into separate headers
+      headers.to[Seq].flatMap {
+        case (SET_COOKIE, value) => {
+          val cookieParts: Seq[Cookie] = Cookies.decode(value)
+          cookieParts.map { cookiePart =>
+            (SET_COOKIE, Cookies.encode(Seq(cookiePart)))
+          }
         }
+        case (name, value) =>
+          Seq((name, value))
       }
-      case (name, value) =>
-        Seq((name, value))
+    } else {
+      // No Set-Cookie header so we can just use the headers as they are
+      headers
     }
   }
 
