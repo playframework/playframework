@@ -66,6 +66,9 @@ object ApplicationBuild extends Build {
     unmanagedSourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** codeFilter).get,
     unmanagedResourceDirectories in Test ++= (baseDirectory.value / "manual" / "detailedTopics" ** codeFilter).get,
 
+    // Don't include sbt files in the resources
+    excludeFilter in (Test, unmanagedResources) := (excludeFilter in (Test, unmanagedResources)).value || "*.sbt",
+
     crossScalaVersions := Seq("2.10.4", "2.11.5"),
     scalaVersion := PlayVersion.scalaVersion,
 

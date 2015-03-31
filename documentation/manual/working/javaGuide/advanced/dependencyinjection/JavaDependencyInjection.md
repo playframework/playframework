@@ -17,6 +17,28 @@ To use constructor injection:
 
 Each of these have their own benefits, and which is best is a matter of hot debate.  For brevity, in the Play documentation, we use field injection, but in Play itself, we use constructor injection.
 
+## Dependency injecting controllers
+
+There are two ways to make Play use dependency injected controllers.
+
+### Injected routes generator
+
+By default, Play will generate a static router, that assumes that all actions are static methods.  By configuring Play to use the injected routes generator, you can get Play to generate a router that will declare all the controllers that it routes to as dependencies, allowing your controllers to be dependency injected themselves.
+
+We recommend always using the injected routes generator, the static routes generator exists primarily as a tool to aid migration so that existing projects don't have to make all their controllers non static at once.
+
+To enable the injected routes generator, add the following to your build settings in `build.sbt`:
+
+@[content](code/injected.sbt)
+
+When using the injected routes generator, prefixing the action with an `@` symbol takes on a special meaning, it means instead of the controller being injected directly, a `Provider` of the controller will be injected.  This allows, for example, prototype controllers, as well as an option for breaking cyclic dependencies.
+
+### Injected actions
+
+If using the static routes generator, you can indicate that an action has an injected controller by prefixing the action with `@`, like so:
+
+@[content](code/javaguide.advanced.di.routes)
+
 ## Singletons
 
 Sometimes you may have a component that holds some state, such as a cache, or a connection to an external resource.  In this case it may be important that there only be one of that component.  This can be achieved using the [@Singleton](http://docs.oracle.com/javaee/6/api/javax/inject/Singleton.html) annotation:
@@ -73,7 +95,7 @@ If you're implementing a library for Play, then you probably want it to be DI fr
 
 To provide bindings, implement a [Module](api/scala/index.html#play.api.inject.Module) to return a sequence of the bindings that you want to provide.  The `Module` trait also provides a DSL for building bindings:
 
-@[play-module](code/javaguide/advanced/di/play/HelloModule.java)
+@[play-module](code/javaguide/advanced/di/playlib/HelloModule.java)
 
 This module can be registered with Play automatically by appending it to the `play.modules.enabled` list in `reference.conf`:
 

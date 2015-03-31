@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
-package javaguide.advanced.di.play;
+package javaguide.advanced.di.playlib;
 
 import javaguide.advanced.di.*;
 
