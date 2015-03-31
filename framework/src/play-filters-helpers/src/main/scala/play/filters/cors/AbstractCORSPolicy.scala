@@ -44,8 +44,12 @@ trait AbstractCORSPolicy {
       case Some(originHeader) =>
         if (originHeader.isEmpty || !isValidOrigin(originHeader)) {
           handleInvalidCORSRequest(request)
-        } else if (request.headers.get(HeaderNames.HOST).map(originHeader.endsWith _).getOrElse(false)) {
-          // HOST and ORIGIN match, so this is a same-origin request
+        } else if ({
+          val originUri = new URI(originHeader)
+          val hostUri = new URI("//" + request.host)
+          originUri.getHost == hostUri.getHost && originUri.getPort == hostUri.getPort
+        }) {
+          // HOST and ORIGIN match, so this is a same-origin request, pass through.
           f()
         } else {
           val method = request.method
