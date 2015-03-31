@@ -122,7 +122,7 @@ activator rpm:packageBin
 #### Play PID Configuration 
 
 Play manages its own PID, which is described in the [[Production configuration|ProductionConfiguration]].
-In order to tell the startup script where to place the PID file put a file `etc-default` inside `src/templates/`
+In order to tell the startup script where to place the PID file put a file `application.ini` inside `src/universal/conf/`
 folder and add the following content
 
 ```bash
@@ -130,7 +130,8 @@ folder and add the following content
 # Add all other startup settings here, too
 ```
 
-For a full list of replacements take a closer look at the [documentation](http://www.scala-sbt.org/sbt-native-packager/GettingStartedServers/AddingConfiguration.html).
+For a full list of replacements take a closer look at the [customize java server documentation](http://www.scala-sbt.org/sbt-native-packager/archetypes/java_server/customize.html)
+and [customize java app documentation](http://www.scala-sbt.org/sbt-native-packager/archetypes/java_app/customize.html).
 
 
 ## Publishing to a Maven (or Ivy) repository

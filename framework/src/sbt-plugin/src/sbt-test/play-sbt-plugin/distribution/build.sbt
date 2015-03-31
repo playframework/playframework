@@ -17,15 +17,18 @@ checkStartScript := {
     sys.error(msg)
   }
   val contents = IO.read(startScript)
+  val lines = IO.readLines(startScript)
   if (!contents.contains( """app_mainclass="play.core.server.NettyServer"""")) {
     startScriptError(contents, "Cannot find the declaration of the main class in the script")
   }
+  val appClasspath = lines.find(_ startsWith "declare -r app_classpath")
+      .getOrElse( startScriptError(contents, "Start script doesn't declare app_classpath"))
   if (args.contains("no-conf")) {
-    if (contents.contains("../conf")) {
+    if (appClasspath.contains("../conf")) {
       startScriptError(contents, "Start script is adding conf directory to the classpath when it shouldn't be")
     }
   } else {
-    if (!contents.contains("../conf")) {
+    if (!appClasspath.contains("../conf")) {
       startScriptError(contents, "Start script is not adding conf directory to the classpath when it should be")
     }
   }
