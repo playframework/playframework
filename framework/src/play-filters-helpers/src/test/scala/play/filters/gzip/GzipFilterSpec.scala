@@ -3,6 +3,12 @@
  */
 package play.filters.gzip
 
+import javax.inject.Inject
+
+import play.api.http.HttpFilters
+import play.api.inject._
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.routing.Router
 import play.api.test._
 import play.api.mvc.{ HttpConnection, Action, Result }
 import play.api.mvc.Results._
@@ -135,10 +141,22 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
     }
   }
 
-  def withApplication[T](result: Result, buffer: Int = 1024)(block: => T): T = {
-    running(FakeApplication(withRoutes = {
-      case _ => new GzipFilter(gzip = Gzip.gzip(512), chunkedThreshold = buffer).apply(Action(result))
-    }))(block)
+  class Filters @Inject() (gzipFilter: GzipFilter) extends HttpFilters {
+    def filters = Seq(gzipFilter)
+  }
+
+  def withApplication[T](result: Result, chunkedThreshold: Int = 1024)(block: => T): T = {
+    running(new GuiceApplicationBuilder()
+      .configure(
+        "play.filters.gzip.chunkedThreshold" -> chunkedThreshold,
+        "play.filters.gzip.bufferSize" -> 512
+      ).overrides(
+          bind[Router].to(Router.from {
+            case _ => Action(result)
+          }),
+          bind[HttpFilters].to[Filters]
+        ).build()
+    )(block)
   }
 
   def gzipRequest = FakeRequest().withHeaders(ACCEPT_ENCODING -> "gzip")
