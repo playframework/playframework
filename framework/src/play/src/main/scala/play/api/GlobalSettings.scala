@@ -138,7 +138,12 @@ trait GlobalSettings {
   def doFilter(next: RequestHeader => Handler): (RequestHeader => Handler) = {
     (request: RequestHeader) =>
       val context = Play.maybeApplication.fold("/") { app =>
-        httpConfigurationCache(app).context.replaceAll("/$", "") + "/"
+        val configuration = httpConfigurationCache(app)
+        if (configuration.context.endsWith("/")) {
+          configuration.context
+        } else {
+          configuration.context + "/"
+        }
       }
       next(request) match {
         case action: EssentialAction if request.path startsWith context => doFilter(action)
