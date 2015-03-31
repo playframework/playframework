@@ -14,18 +14,16 @@ object ScalaCsrf extends PlaySpecification {
 
   "Play's CSRF protection" should {
     "allow global configuration" in withApplication {
-      //#global
-      import play.api._
-      import play.api.mvc._
-      import play.filters.csrf._
+      //#http-filters
+      import play.api.http.HttpFilters
+      import play.filters.csrf.CSRFFilter
+      import javax.inject.Inject
 
-      object Global extends WithFilters(CSRFFilter()) with GlobalSettings {
-        // ... onStart, onStop etc
+      class Filters @Inject() (csrfFilter: CSRFFilter) extends HttpFilters {
+        def filters = Seq(csrfFilter)
       }
-      //#global
-
-      await(Enumerator("foo=bar".getBytes("US-ASCII")) |>>> Global.doFilter(Action(Results.Ok))(FakeRequest("POST", "/")
-        .withHeaders(CONTENT_TYPE -> "application/x-www-form-urlencoded"))).header.status must_== FORBIDDEN
+      //#http-filters
+      ok
     }
 
     "allow getting the token" in withApplication {
