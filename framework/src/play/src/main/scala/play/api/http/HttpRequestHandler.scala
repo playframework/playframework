@@ -3,6 +3,7 @@
  */
 package play.api.http
 
+import java.util.regex.Pattern
 import javax.inject.{ Provider, Inject }
 
 import play.api.inject.{ BindingKey, Binding }
@@ -91,16 +92,27 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
   def this(router: Router, errorHandler: HttpErrorHandler, configuration: HttpConfiguration, filters: HttpFilters) =
     this(router, errorHandler, configuration, filters.filters: _*)
 
-  private val context = if (configuration.context.endsWith("/")) {
-    configuration.context
-  } else {
-    configuration.context + "/"
+  private val context = configuration.context.stripSuffix("/")
+
+  private def inContext(path: String): Boolean = {
+    // Assume context is a string without a trailing '/'.
+    // Handle four cases:
+    // * context.isEmpty
+    //   - There is no context, everything is in context, short circuit all other checks
+    // * !path.startsWith(context)
+    //   - Either path is shorter than context or starts with a different prefix.
+    // * path.startsWith(context) && path.length == context.length
+    //   - Path is equal to context.
+    // * path.startsWith(context) && path.charAt(context.length) == '/')
+    //   - Path starts with context followed by a '/' character.
+    context.isEmpty ||
+      (path.startsWith(context) && (path.length == context.length || path.charAt(context.length) == '/'))
   }
 
   def handlerForRequest(request: RequestHeader) = {
 
     def notFoundHandler = Action.async(BodyParsers.parse.empty)(req =>
-      errorHandler.onClientError(request, NOT_FOUND)
+      errorHandler.onClientError(req, NOT_FOUND)
     )
 
     val (routedRequest, handler) = routeRequest(request) map {
@@ -132,7 +144,7 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
   protected def filterHandler(next: RequestHeader => Handler): (RequestHeader => Handler) = {
     (request: RequestHeader) =>
       next(request) match {
-        case action: EssentialAction if request.path startsWith context => filterAction(action)
+        case action: EssentialAction if inContext(request.path) => filterAction(action)
         case handler => handler
       }
   }
