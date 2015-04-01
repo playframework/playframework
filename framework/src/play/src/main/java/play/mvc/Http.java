@@ -270,6 +270,9 @@ public class Http {
 
         }
 
+        /**
+         * @return Returns a String representation.
+         */
         public String toString() {
             return "Context attached to (" + request() + ")";
         }
@@ -284,6 +287,10 @@ public class Http {
     public static abstract class WrappedContext extends Context {
         private final Context wrapped;
 
+        /**
+         *
+         * @param wrapped
+         */
         public WrappedContext(Context wrapped) {
             super(wrapped.id(), wrapped._requestHeader(), wrapped.request(), wrapped.session(), wrapped.flash(), wrapped.args);
             this.args = wrapped.args;
@@ -488,16 +495,29 @@ public class Http {
         private final play.api.mvc.Request<RequestBody> underlying;
         private String username; // Keep it non-final until setUsername is removed
 
+        /**
+         * Constructor only based on a header.
+         * @param header the header from a request.
+         */
         public RequestImpl(play.api.mvc.RequestHeader header) {
             super(header);
             this.underlying = null;
         }
 
+        /**
+         * Constructor with a requestbody.
+         * @param request the body of the request.
+         */
         public RequestImpl(play.api.mvc.Request<RequestBody> request) {
             super(request);
             this.underlying = request;
         }
 
+        /**
+         * Constructor with a request and a username.
+         * @param request he body of the request.
+         * @param username the user which is making the request.
+         */
         private RequestImpl(play.api.mvc.Request<RequestBody> request,
                             String username) {
             
@@ -505,35 +525,59 @@ public class Http {
             
             this.underlying = request;
             this.username = username;
-        }        
+        }
 
+        /**
+         * @return returns the underlying body, if present otherwise null.
+         */
         public RequestBody body() {
             return underlying != null ? underlying.body() : null;
         }
 
+        /**
+         * @return returns the username.
+         */
         public String username() {
             return username;
         }
 
+        /**
+         * Sets the username.
+         * @param username the username of the requester.
+         */
         public void setUsername(String username) {
             this.username = username;
         }
 
+        /**
+         * This method returns a new request, based on the current underlying with a giving username.
+         * @param username the new user name
+         * @return a new request with a request body based on the current request.
+         */
         public Request withUsername(String username) {
             return new RequestImpl(this.underlying, username);
         }
 
+        /**
+         * @return returns the underlying body of the request.
+         */
         public play.api.mvc.Request<RequestBody> _underlyingRequest() {
             return underlying;
         }
 
     }
 
+    /**
+     * The builder for building a request.
+     */
     public static class RequestBuilder {
 
         protected AnyContent body;
         protected String username;
 
+        /**
+         * Returns a simple request builder, based on get and local address.
+         */
         public RequestBuilder() {
           method("GET");
           uri("/");
@@ -543,6 +587,9 @@ public class Http {
           body(play.api.mvc.AnyContentAsEmpty$.MODULE$);
         }
 
+        /**
+         * @return returns the request body, if a previously the body has been set.
+         */
         public RequestBody body() {
             if (body == null) {
                 return null;
@@ -556,14 +603,24 @@ public class Http {
                 body.asMultipartFormData());
         }
 
+        /**
+         * @return the body of the request.
+         */
         public AnyContent bodyAsAnyContent() {
             return body;
         }
 
+        /**
+         * @return returns the username.
+         */
         public String username() {
             return username;
         }
 
+        /**
+         * @param username the username for the request.
+         * @return returns the builder.
+         */
         public RequestBuilder username(String username) {
             this.username = username;
             return this;
@@ -659,6 +716,10 @@ public class Http {
             return body(new AnyContentAsText(text), "text/plain");
         }
 
+        /**
+         * Builds the request.
+         * @return returns a build of the given parameters.
+         */
         public RequestImpl build() {
             return new RequestImpl(new play.api.mvc.RequestImpl(
                 body(),
@@ -686,38 +747,68 @@ public class Http {
         protected Map<String, String[]> headers = new HashMap<>();
         protected String remoteAddress;
 
+        /**
+         * @return returns the id of the request.
+         */
         public Long id() {
             return id;
         }
 
+        /**
+         * @param id the id to be used.
+         * @return returns the builder instance.
+         */
         public RequestBuilder id(Long id) {
             this.id = id;
             return this;
         }
 
+        /**
+         * @return returns the tags for the request.
+         */
         public Map<String, String> tags() {
             return tags;
         }
 
+        /**
+         * @param tags overwrites the tags for this request.
+         * @return returns the builder instance.
+         */
         public RequestBuilder tags(Map<String, String> tags) {
             this.tags = tags;
             return this;
         }
 
+        /**
+         * Puts an extra tag.
+         * @param key the key for the tag.
+         * @param value the value for the tag.
+         * @return the builder.
+         */
         public RequestBuilder tag(String key, String value) {
             tags.put(key, value);
             return this;
         }
 
+        /**
+         * @return returns the builder instance.
+         */
         public String method() {
             return method;
         }
 
+        /**
+         * @param method sets the method.
+         * @return returns the builder instance.
+         */
         public RequestBuilder method(String method) {
             this.method = method;
             return this;
         }
 
+        /**
+         * @return gives the uri of the request.
+         */
         public String uri() {
             return uri.toString();
         }
@@ -734,6 +825,11 @@ public class Http {
             return this;
         }
 
+        /**
+         * Sets the uri.
+         * @param str the uri.
+         * @return returns the builder instance.
+         */
         public RequestBuilder uri(String str) {
             try {
                 uri(new URI(str));
@@ -743,28 +839,50 @@ public class Http {
             return this;
         }
 
+        /**
+         * @param secure true if the request is secure.
+         * @return returns the builder instance.
+         */
         public RequestBuilder secure(boolean secure) {
            this.secure = secure;
            return this;
         }
 
+        /**
+         * @return the status if the request is secure.
+         */
         public boolean secure() {
            return secure;
         }
 
+        /**
+         * @return returns the host name from the header.
+         */
         public String host() {
           return header(HeaderNames.HOST);
         }
 
+        /**
+         * @param host sets the host in the header.
+         * @return returns the builder instance.
+         */
         public RequestBuilder host(String host) {
           header(HeaderNames.HOST, host);
           return this;
         }
 
+        /**
+         * @return returns the raw path of the uri.
+         */
         public String path() {
             return uri.getRawPath();
         }
 
+        /**
+         * This method sets the path of the uri.
+         * @param path the path after the port and for the query in a uri.
+         * @return returns the builder instance.
+         */
         public RequestBuilder path(String path) {
             try {
                 uri = new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), path, uri.getQuery(), uri.getFragment());
@@ -774,64 +892,114 @@ public class Http {
             return this;
         }
 
+        /**
+         * @return returns the version.
+         */
         public String version() {
             return version;
         }
 
+        /**
+         * @param version the version.
+         * @return returns the builder instance.
+         */
         public RequestBuilder version(String version) {
             this.version = version;
             return this;
         }
 
+        /**
+         * @param key the key to be used in the header.
+         * @return the value associated with the key, if multiple, the first, if none returns null.
+         */
         public String header(String key) {
             String[] values = headers.get(key);
             return values == null || values.length == 0 ? null : values[0];
         }
 
+        /**
+         * @param key the key to be used in the header.
+         * @return returns all values (could be 0) associated with the key.
+         */
         public String[] headers(String key) {
             return headers.get(key);
         }
 
+        /**
+         * @return returns the headers.
+         */
         public Map<String, String[]> headers() {
             return headers;
         }
 
+        /**
+         * @param headers the headers to be replaced.
+         * @return returns the builder instance.
+         */
         public RequestBuilder headers(Map<String, String[]> headers) {
             this.headers = headers;
             return this;
         }
 
+        /**
+         * @param key the key for in the header.
+         * @param values the values associated with the key.
+         * @return returns the builder instance.
+         */
         public RequestBuilder header(String key, String[] values) {
             headers.put(key, values);
             return this;
         }
 
+        /**
+         * @param key the key for in the header.
+         * @param value the value (one) associated with the key.
+         * @return returns the builder instance.
+         */
         public RequestBuilder header(String key, String value) {
             headers.put(key, new String[] { value });
             return this;
         }
 
+        /**
+         * @return returns the cookies in Scala instances.
+         */
         private play.api.mvc.Cookies scalaCookies() {
           String cookieHeader = header(HeaderNames.COOKIE);
           scala.Option<String> cookieHeaderOpt = scala.Option.apply(cookieHeader);
           return play.api.mvc.Cookies$.MODULE$.apply(cookieHeaderOpt);
         }
 
+        /**
+         * @return returns the cookies in Java instances
+         */
         public Cookies cookies() {
           return play.core.j.JavaHelpers$.MODULE$.cookiesToJavaCookies(scalaCookies());
         }
 
+        /**
+         * Sets the cookies in the header.
+         * @param cookies the cookies in a Scala sequence.
+         */
         private void cookies(Seq<play.api.mvc.Cookie> cookies) {
           String cookieHeader = header(HeaderNames.COOKIE);
           String value = play.api.mvc.Cookies$.MODULE$.merge(cookieHeader != null ? cookieHeader : "", cookies);
           header(HeaderNames.COOKIE, value);
         }
 
+        /**
+         * Sets one cookie.
+         * @param cookie the cookie to be set.
+         * @return
+         */
         public RequestBuilder cookie(Cookie cookie) {
           cookies(play.core.j.JavaHelpers$.MODULE$.cookiesToScalaCookies(Arrays.asList(cookie)));
           return this;
         }
 
+        /**
+         * @return returns the cookies in a Java map.
+         */
         public Map<String,String> flash() {
           play.api.mvc.Cookies scalaCookies = scalaCookies();
           scala.Option<play.api.mvc.Cookie> cookie = scalaCookies.get(play.api.mvc.Flash$.MODULE$.COOKIE_NAME());
@@ -839,6 +1007,12 @@ public class Http {
           return JavaConversions.mapAsJavaMap(data);
         }
 
+        /**
+         * Sets a cookie in the request.
+         * @param key the key for the cookie.
+         * @param value the value for the cookie.
+         * @return returns the builder instance.
+         */
         public RequestBuilder flash(String key, String value) {
           Map<String,String> data = new HashMap<>(flash());
           data.put(key, value);
@@ -846,12 +1020,20 @@ public class Http {
           return this;
         }
 
+        /**
+         * Sets cookies in a request.
+         * @param data a key value mapping of cookies.
+         * @return returns the builder instance.
+         */
         public RequestBuilder flash(Map<String,String> data) {
           play.api.mvc.Flash flash = new play.api.mvc.Flash(mapToScala(data));
           cookies(JavaConversions.asScalaBuffer(Arrays.asList(play.api.mvc.Flash$.MODULE$.encodeAsCookie(flash))));
           return this;
         }
 
+        /**
+         * @return returns the sessions in the request.
+         */
         public Map<String,String> session() {
           play.api.mvc.Cookies scalaCookies = scalaCookies();
           scala.Option<play.api.mvc.Cookie> cookie = scalaCookies.get(play.api.mvc.Session$.MODULE$.COOKIE_NAME());
@@ -859,6 +1041,12 @@ public class Http {
           return JavaConversions.mapAsJavaMap(data);
         }
 
+        /**
+         * Sets a session.
+         * @param key the key for the session.
+         * @param value the value associated with the key for the session.
+         * @return returns the builder instance.
+         */
         public RequestBuilder session(String key, String value) {
           Map<String,String> data = new HashMap<>(session());
           data.put(key, value);
@@ -866,16 +1054,28 @@ public class Http {
           return this;
         }
 
+        /**
+         * Sets all parameters for the session.
+         * @param data a key value mapping of the session data.
+         * @return returns the builder instance.
+         */
         public RequestBuilder session(Map<String,String> data) {
           play.api.mvc.Session session = new play.api.mvc.Session(mapToScala(data));
           cookies(JavaConversions.asScalaBuffer(Arrays.asList(play.api.mvc.Session$.MODULE$.encodeAsCookie(session))));
           return this;
         }
 
+        /**
+         * @return returns the remote address.
+         */
         public String remoteAddress() {
             return remoteAddress;
         }
 
+        /**
+         * @param remoteAddress sets the remote address
+         * @return returns the builder instance.
+         */
         public RequestBuilder remoteAddress(String remoteAddress) {
             this.remoteAddress = remoteAddress;
             return this;
