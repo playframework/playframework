@@ -34,9 +34,7 @@ To configure Play to use this application loader, configure the `play.applicatio
 
 By default Play will generate a static router that requires all of your actions to be objects.  Play however also supports generating a router than can be dependency injected, this can be enabled by adding the following configuration to your `build.sbt`:
 
-```scala
-routesGenerator := InjectedRoutesGenerator
-```
+@[content](code/injected.sbt)
 
 When you do this, Play will generate a router with a constructor that accepts each of the controllers and included routers from your routes file, in the order they appear in your routes file.  The routers constructor will also, as its first argument, accept an [`HttpErrorHandler`](api/scala/index.html#play.api.http.HttpErrorHandler), which is used to handle parameter binding errors.  The primary constructor will also accept a prefix String as the last argument, but an overloaded constructor that defaults this to `"/"` will also be provided.
 

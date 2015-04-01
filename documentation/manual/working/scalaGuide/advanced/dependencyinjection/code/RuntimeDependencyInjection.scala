@@ -138,3 +138,10 @@ class HelloModule extends Module {
 }
 //#play-module
 }
+
+package injected.controllers {
+  import play.api.mvc._
+  class Application {
+    def index = Action(Results.Ok)
+  }
+}
