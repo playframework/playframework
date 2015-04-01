@@ -567,8 +567,11 @@ package play.api.mvc {
     /**
      * Decodes the data from a `Cookie`.
      */
-    def decodeFromCookie(cookie: Option[Cookie]): T = {
-      cookie.filter(_.name == COOKIE_NAME).map(c => deserialize(decode(c.value))).getOrElse(emptyCookie)
+    def decodeFromCookie(cookie: Option[Cookie]): T = if (cookie.isEmpty) emptyCookie else {
+      val extractedCookie: Cookie = cookie.get
+      if (extractedCookie.name != COOKIE_NAME) emptyCookie /* can this happen? */ else {
+        deserialize(decode(extractedCookie.value))
+      }
     }
 
     def discard = DiscardingCookie(COOKIE_NAME, path, domain, secure)
@@ -793,7 +796,10 @@ package play.api.mvc {
      */
     def apply(header: Option[String]): Cookies = new Cookies {
 
-      lazy val cookies: Map[String, Cookie] = header.map(Cookies.decode(_)).getOrElse(Seq.empty).groupBy(_.name).mapValues(_.head)
+      // This method is frequently called so it needs to be fast
+      private val cookies: Map[String, Cookie] = if (header.isDefined) {
+        Cookies.decode(header.get).groupBy(_.name).mapValues(_.head)
+      } else Map.empty
 
       def get(name: String) = cookies.get(name)
       override def toString = cookies.toString
