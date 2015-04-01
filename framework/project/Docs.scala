@@ -21,7 +21,7 @@ object Docs {
   val apiDocsUseCache = SettingKey[Boolean]("api-docs-use-cache", "Whether to cache the doc inputs (can hit cache limit with dbuild)")
   val apiDocs = TaskKey[File]("api-docs", "Generate the API docs")
   val extractWebjars = TaskKey[File]("extract-webjars", "Extract webjar contents")
-  val allReferenceConfs = TaskKey[Seq[(String, File)]]("all-reference-confs", "Gather all reference confs")
+  val allConfs = TaskKey[Seq[(String, File)]]("all-confs", "Gather all configuration files")
 
   lazy val settings = Seq(
     apiDocsInclude := false,
@@ -33,8 +33,8 @@ object Docs {
     apiDocs <<= apiDocsTask,
     ivyConfigurations += Webjars,
     extractWebjars <<= extractWebjarContents,
-    allReferenceConfs in Global <<= (thisProjectRef, buildStructure) flatMap allReferenceConfsTask,
-    mappings in (Compile, packageBin) <++= (baseDirectory, apiDocs, extractWebjars, version, allReferenceConfs) map { (base, apiBase, webjars, playVersion, referenceConfs) =>
+    allConfs in Global <<= (thisProjectRef, buildStructure) flatMap allConfsTask,
+    mappings in (Compile, packageBin) <++= (baseDirectory, apiDocs, extractWebjars, version, allConfs) map { (base, apiBase, webjars, playVersion, confs) =>
       // Include documentation and API docs in main binary JAR
       val docBase = base / "../../../documentation"
       val raw = (docBase \ "manual" ** "*") +++ (docBase \ "style" ** "*")
@@ -46,9 +46,9 @@ object Docs {
       // The play version is added so that resource paths are versioned
       val webjarMappings = webjars.*** pair rebase(webjars, "play/docs/content/webjars/" + playVersion)
 
-      // Gather all the reference.conf files into the project
-      val referenceConfMappings = referenceConfs.map {
-        case (projectName, referenceConf) => referenceConf -> s"play/docs/content/confs/$projectName/reference.conf"
+      // Gather all the conf files into the project
+      val referenceConfMappings = confs.map {
+        case (projectName, conf) => conf -> s"play/docs/content/confs/$projectName/${conf.getName}"
       }
 
       docMappings ++ apiDocMappings ++ webjarMappings ++ referenceConfMappings
@@ -72,9 +72,9 @@ object Docs {
         val playVersion = version.value
         val webjarMappings = webjars.*** pair rebase(webjars, "webjars/" + playVersion)
 
-        // Gather all the reference.conf files into the project
-        val referenceConfs = allReferenceConfs.value.map {
-          case (projectName, referenceConf) => referenceConf -> s"confs/$projectName/reference.conf"
+        // Gather all the conf files into the project
+        val referenceConfs = allConfs.value.map {
+          case (projectName, conf) => conf -> s"confs/$projectName/${conf.getName}"
         }
 
         docMappings ++ webjarMappings ++ referenceConfs
@@ -138,22 +138,22 @@ object Docs {
     apiTarget
   }
 
-  def allReferenceConfsTask(projectRef: ProjectRef, structure: BuildStructure): Task[Seq[(String, File)]] = {
+  def allConfsTask(projectRef: ProjectRef, structure: BuildStructure): Task[Seq[(String, File)]] = {
     val projects = allApiProjects(projectRef.build, structure)
     val unmanagedResourcesTasks = projects map { ref =>
       def taskFromProject[T](task: TaskKey[T]) = task in Compile in ref get structure.data
 
       val projectId = moduleName in ref get structure.data
 
-      val referenceConfs = (unmanagedResources in Compile in ref get structure.data).map(_.map { resources =>
+      val confs = (unmanagedResources in Compile in ref get structure.data).map(_.map { resources =>
         (for {
-          referenceConf <- resources.find(_.name == "reference.conf")
-          id <- projectId
-        } yield id -> referenceConf).toSeq
+          conf <- resources.filter(resource => resource.name == "reference.conf" || resource.name.endsWith(".xml"))
+          id <- projectId.toSeq
+        } yield id -> conf).distinct
       })
 
       // Join them
-      val tasks = referenceConfs.toSeq
+      val tasks = confs.toSeq
       tasks.join.map(_.flatten)
     }
     unmanagedResourcesTasks.join.map(_.flatten)

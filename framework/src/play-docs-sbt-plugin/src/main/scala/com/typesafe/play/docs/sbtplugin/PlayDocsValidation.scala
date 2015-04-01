@@ -389,18 +389,22 @@ object PlayDocsValidation {
       "Could not find source file")
 
     def segmentExists(sample: CodeSampleRef) = {
-      // Find the code segment
-      val sourceCode = {
-        val file = new File(base, sample.source)
-        if (file.exists()) {
-          IO.readLines(new File(base, sample.source))
-        } else {
-          docsJarRepo.loadFile(sample.source)(is => IO.readLines(new BufferedReader(new InputStreamReader(is)))).get
+      if (sample.segment.nonEmpty) {
+        // Find the code segment
+        val sourceCode = {
+          val file = new File(base, sample.source)
+          if (file.exists()) {
+            IO.readLines(new File(base, sample.source))
+          } else {
+            docsJarRepo.loadFile(sample.source)(is => IO.readLines(new BufferedReader(new InputStreamReader(is)))).get
+          }
         }
+        val notLabel = (s: String) => !s.contains("#" + sample.segment)
+        val segment = sourceCode dropWhile (notLabel) drop (1) takeWhile (notLabel)
+        !segment.isEmpty
+      } else {
+        true
       }
-      val notLabel = (s: String) => !s.contains("#" + sample.segment)
-      val segment = sourceCode dropWhile (notLabel) drop (1) takeWhile (notLabel)
-      !segment.isEmpty
     }
 
     assertLinksNotMissing("Missing source segments test", existing.collect {
