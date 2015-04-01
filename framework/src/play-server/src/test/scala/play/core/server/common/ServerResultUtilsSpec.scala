@@ -37,7 +37,12 @@ object ServerResultUtilsSpec extends Specification with IterateeSpecification {
       flashCookieResult(None, None) must beNone
     }
     "send flash if new" in {
-      flashCookieResult(None, Some("a" -> "b")) must beSome
+      flashCookieResult(None, Some("a" -> "b")) must beSome { cookies: Seq[Cookie] =>
+        cookies.length must_== 1
+        val cookie = cookies(0)
+        cookie.name must_== "PLAY_FLASH"
+        cookie.value must_== "a=b"
+      }
     }
     "clear flash when received" in {
       flashCookieResult(Some("PLAY_FLASH" -> "\"a=b\"; Path=/"), None) must beSome { cookies: Seq[Cookie] =>
