@@ -264,7 +264,7 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
    */
   private def convertResponseHeaders(
     playHeaders: Map[String, String]): AkkaHttpHeaders = {
-    val rawHeaders = ServerResultUtils.splitHeadersIntoSeq(playHeaders).map {
+    val rawHeaders = ServerResultUtils.splitSetCookieHeaders(playHeaders).map {
       case (name, value) => RawHeader(name, value)
     }
     val convertedHeaders: List[HttpHeader] = HeaderParser.parseHeaders(rawHeaders.to[List]) match {

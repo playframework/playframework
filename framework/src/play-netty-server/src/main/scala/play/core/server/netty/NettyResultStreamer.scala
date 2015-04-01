@@ -130,7 +130,7 @@ object NettyResultStreamer {
     import scala.collection.JavaConverters._
 
     // Set response headers
-    val headers = ServerResultUtils.splitHeadersIntoSeq(header.headers)
+    val headers = ServerResultUtils.splitSetCookieHeaders(header.headers)
     try {
       headers.foreach {
         case (name, value) => nettyResponse.headers().add(name, value)
