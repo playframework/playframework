@@ -12,13 +12,13 @@ However, using a modern Java or Scala IDE provides cool productivity features li
 Play provides a command to simplify Eclipse configuration. To transform a Play application into a working Eclipse project, use the `eclipse` command:
 
 ```
-[my-first-app] $ eclipse
+[my-first-app] $  activator eclipse
 ```
 
 If you want to grab the available source jars (this will take longer and it's possible a few sources might be missing):
 
 ```
-[my-first-app] $ eclipse with-source=true
+[my-first-app] $ activator eclipse with-source=true
 ```
 
 > Note if you are using sub-projects with aggregate, you would need to set `skipParents` appropriately in `build.sbt`:
@@ -32,7 +32,7 @@ EclipseKeys.skipParents in ThisBuild := false
 or from the play console, type:
 
 ``` 
-[my-first-app] $ eclipse skip-parents=false
+[my-first-app] $ activator eclipse skip-parents=false
 ```
 
 > Also, if you did not want to trigger a compilation before running `eclipse`, then just add the following to your settings:
