@@ -1,7 +1,6 @@
 package play.api.db
 
 import com.zaxxer.hikari.HikariConfig
-import org.specs2.time.NoTimeConversions
 import play.api.{ PlayConfig, Configuration }
 
 import org.specs2.specification.Scope
