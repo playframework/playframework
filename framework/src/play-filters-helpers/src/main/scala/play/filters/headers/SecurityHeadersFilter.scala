@@ -99,7 +99,11 @@ object SecurityHeadersConfig {
 class SecurityHeadersFilter @Inject() (config: SecurityHeadersConfig) extends EssentialFilter {
   import SecurityHeadersFilter._
 
-  private val headers: Seq[(String, String)] = Seq(
+  /**
+   * Returns the security headers for a request.
+   * All security headers applied to all requests by default. Override to alter that behavior.
+   */
+  protected def headers(request: RequestHeader): Seq[(String, String)] = Seq(
     config.frameOptions.map(X_FRAME_OPTIONS_HEADER -> _),
     config.xssProtection.map(X_XSS_PROTECTION_HEADER -> _),
     config.contentTypeOptions.map(X_CONTENT_TYPE_OPTIONS_HEADER -> _),
@@ -112,7 +116,7 @@ class SecurityHeadersFilter @Inject() (config: SecurityHeadersConfig) extends Es
    */
   def apply(next: EssentialAction) = EssentialAction { req =>
     import play.api.libs.concurrent.Execution.Implicits.defaultContext
-    next(req).map(_.withHeaders(headers: _*))
+    next(req).map(_.withHeaders(headers(req): _*))
   }
 }
 
