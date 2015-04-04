@@ -194,7 +194,7 @@ libraryDependencies += "com.typesafe.play" %% "anorm" % "2.4.0"
 The new Anorm version includes various fixes and improvements.
 
 Following [BatchSQL #3016](https://github.com/playframework/playframework/commit/722cd55a3a5369f911f5d11f7c93ba4bf100ca23), `SqlQuery` case class is refactored as a trait with companion object. 
-Consequently, `BatchSql` is now created by passed a raw statement which is validated internally.
+Consequently, `BatchSql` is now created by passing a raw statement which is validated internally.
 
 ```scala
 import anorm.BatchSql
