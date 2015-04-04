@@ -17,27 +17,29 @@ import scala.collection.immutable.TreeMap
 /**
  * A simple HTTP response header, used for standard responses.
  *
- * @param status the response status, e.g. ‘200 OK’
+ * @param status the response status, e.g. 200
  * @param _headers the HTTP headers
+ * @param reasonPhrase the human-readable description of status, e.g. "Ok";
+ *   if None, the default phrase for the status will be used
  */
-final class ResponseHeader(val status: Int, _headers: Map[String, String] = Map.empty) {
+final class ResponseHeader(val status: Int, _headers: Map[String, String] = Map.empty, val reasonPhrase: Option[String] = None) {
   val headers: Map[String, String] = TreeMap[String, String]()(CaseInsensitiveOrdered) ++ _headers
 
-  def copy(status: Int = status, headers: Map[String, String] = headers): ResponseHeader =
-    new ResponseHeader(status, headers)
+  def copy(status: Int = status, headers: Map[String, String] = headers, reasonPhrase: Option[String] = reasonPhrase): ResponseHeader =
+    new ResponseHeader(status, headers, reasonPhrase)
 
   override def toString = s"$status, $headers"
   override def hashCode = (status, headers).hashCode
   override def equals(o: Any) = o match {
-    case ResponseHeader(s, h) => (s, h).equals((status, headers))
+    case ResponseHeader(s, h, r) => (s, h, r).equals((status, headers, reasonPhrase))
     case _ => false
   }
 }
 object ResponseHeader {
-  def apply(status: Int, headers: Map[String, String] = Map.empty): ResponseHeader =
+  def apply(status: Int, headers: Map[String, String] = Map.empty, reasonPhrase: Option[String] = None): ResponseHeader =
     new ResponseHeader(status, headers)
-  def unapply(rh: ResponseHeader): Option[(Int, Map[String, String])] =
-    if (rh eq null) None else Some((rh.status, rh.headers))
+  def unapply(rh: ResponseHeader): Option[(Int, Map[String, String], Option[String])] =
+    if (rh eq null) None else Some((rh.status, rh.headers, rh.reasonPhrase))
 }
 
 /**

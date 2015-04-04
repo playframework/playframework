@@ -341,11 +341,11 @@ trait ResultExtractors {
    * Extracts the Location header of this Result value if this Result is a Redirect.
    */
   def redirectLocation(of: Future[Result])(implicit timeout: Timeout): Option[String] = Await.result(of, timeout.duration).header match {
-    case ResponseHeader(FOUND, headers) => headers.get(LOCATION)
-    case ResponseHeader(SEE_OTHER, headers) => headers.get(LOCATION)
-    case ResponseHeader(TEMPORARY_REDIRECT, headers) => headers.get(LOCATION)
-    case ResponseHeader(MOVED_PERMANENTLY, headers) => headers.get(LOCATION)
-    case ResponseHeader(_, _) => None
+    case ResponseHeader(FOUND, headers, _) => headers.get(LOCATION)
+    case ResponseHeader(SEE_OTHER, headers, _) => headers.get(LOCATION)
+    case ResponseHeader(TEMPORARY_REDIRECT, headers, _) => headers.get(LOCATION)
+    case ResponseHeader(MOVED_PERMANENTLY, headers, _) => headers.get(LOCATION)
+    case ResponseHeader(_, _, _) => None
   }
 
   /**
