@@ -7,7 +7,7 @@ import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream
 
 import org.apache.commons.io.IOUtils
-import org.specs2.time.NoTimeConversions
+import scala.concurrent.duration._
 
 import concurrent.Await
 import play.api.libs.iteratee.{ Iteratee, Enumeratee, Enumerator }
@@ -16,7 +16,7 @@ import org.specs2.mutable.Specification
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object GzipSpec extends Specification with NoTimeConversions {
+object GzipSpec extends Specification {
 
   "gzip" should {
 

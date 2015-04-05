@@ -5,13 +5,12 @@ package play.api.libs.ws
 
 import org.specs2.mutable._
 import com.typesafe.config.ConfigFactory
-import org.specs2.time.NoTimeConversions
 import play.api.Environment
 import play.api.test.WithApplication
 
 import scala.concurrent.duration._
 
-object WSConfigParserSpec extends Specification with NoTimeConversions {
+object WSConfigParserSpec extends Specification {
 
   "WSConfigParser" should {
 

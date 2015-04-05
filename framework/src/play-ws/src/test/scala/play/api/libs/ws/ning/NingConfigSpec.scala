@@ -8,7 +8,6 @@ package play.api.libs.ws.ning
 import com.typesafe.config.ConfigFactory
 import org.specs2.mutable._
 import org.specs2.mock._
-import org.specs2.time.NoTimeConversions
 import play.api.Environment
 
 import play.api.libs.ws.WSClientConfig
@@ -28,7 +27,7 @@ class TestHostnameVerifier extends HostnameVerifier {
   override def verify(s: String, sslSession: SSLSession): Boolean = true
 }
 
-object NingConfigSpec extends Specification with Mockito with NoTimeConversions {
+object NingConfigSpec extends Specification with Mockito {
 
   val defaultWsConfig = new WSClientConfig()
   val defaultConfig = new NingWSClientConfig(defaultWsConfig)
