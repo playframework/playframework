@@ -125,7 +125,12 @@ object NettyResultStreamer {
   }
 
   def createNettyResponse(header: ResponseHeader, connectionHeader: ServerResultUtils.ConnectionHeader, httpVersion: HttpVersion) = {
-    val nettyResponse = new DefaultHttpResponse(httpVersion, HttpResponseStatus.valueOf(header.status))
+    val responseStatus = header.reasonPhrase.fold {
+      HttpResponseStatus.valueOf(header.status)
+    } {
+      phrase => new HttpResponseStatus(header.status, phrase)
+    }
+    val nettyResponse = new DefaultHttpResponse(httpVersion, responseStatus)
 
     import scala.collection.JavaConverters._
 
