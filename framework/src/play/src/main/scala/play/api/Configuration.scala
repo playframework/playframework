@@ -153,16 +153,18 @@ case class Configuration(underlying: Config) {
   }
 
   /**
-   * Read a value from the underlying implementation,
-   * catching Errors and wrapping it in an Option value.
+   * Reads a value from the underlying implementation.
+   * If the value is not set this will return None, otherwise returns Some.
+   *
+   * Does not check neither for incorrect type nor null value, but catches and wraps the error.
    */
   private def readValue[T](path: String, v: => T): Option[T] = {
     try {
-      Option(v)
+      if (underlying.hasPathOrNull(path)) Some(v) else None
     } catch {
-      case e: ConfigException.Missing => None
       case NonFatal(e) => throw reportError(path, e.getMessage, Some(e))
     }
+
   }
 
   /**
@@ -890,17 +892,11 @@ private[play] class PlayConfig(val underlying: Config) {
    *
    * If the value of the item is null, this will return None, otherwise returns Some.
    *
-   * @throws com.typesafe.config.ConfigException.Missing If the value is undefined (as opposed to null) this will still
+   * @throws com.typesafe.config.ConfigException.Missing if the value is undefined (as opposed to null) this will still
    *         throw an exception.
    */
   def getOptional[A: ConfigLoader](path: String): Option[A] = {
-    try {
-      // If the value is null, typesafe config will throw an exception. This is the only way that typesafe config allows
-      // discovering null values
-      Some(get[A](path))
-    } catch {
-      case e: ConfigException.Null => None
-    }
+    if (!underlying.getIsNull(path)) Some(get[A](path)) else None
   }
 
   /**
@@ -1056,11 +1052,7 @@ private[play] object ConfigLoader {
   implicit val seqBooleanLoader = ConfigLoader(_.getBooleanList).map(toScala(_).map(_.booleanValue()))
 
   implicit val durationLoader: ConfigLoader[Duration] = ConfigLoader(config => path =>
-    try {
-      FiniteDuration(config.getDuration(path, TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS)
-    } catch {
-      case e: ConfigException.Null => Duration.Inf
-    }
+    if (!config.getIsNull(path)) FiniteDuration(config.getDuration(path, TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS) else Duration.Inf
   )
 
   implicit val finiteDurationLoader: ConfigLoader[FiniteDuration] = ConfigLoader(config => config.getDuration(_, TimeUnit.MILLISECONDS))

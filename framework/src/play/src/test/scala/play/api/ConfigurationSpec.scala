@@ -8,6 +8,7 @@ import java.io._
 import com.typesafe.config.ConfigException
 import org.specs2.mutable.Specification
 
+import scala.None
 import scala.util.control.NonFatal
 
 object ConfigurationSpec extends Specification {
@@ -16,6 +17,7 @@ object ConfigurationSpec extends Specification {
     Map(
       "foo.bar1" -> "value1",
       "foo.bar2" -> "value2",
+      "foo.bar3" -> null,
       "blah.0" -> List(true, false, true),
       "blah.1" -> List(1, 2, 3),
       "blah.2" -> List(1.1, 2.2, 3.3),
@@ -51,6 +53,11 @@ object ConfigurationSpec extends Specification {
       exampleConfig.getDoubleSeq("blah.2").get must ===(Seq(1.1, 2.2, 3.3))
       exampleConfig.getLongSeq("blah.3").get must ===(Seq(1L, 2L, 3L))
       exampleConfig.getStringSeq("blah.4").get must contain(exactly("one", "two", "three"))
+    }
+
+    "handle invalid and null configuration values" in {
+      exampleConfig.getBooleanSeq("foo.bar1").get must throwA[PlayException]
+      exampleConfig.getBoolean("foo.bar3") must throwA[PlayException]
     }
 
     "throw serialisable exceptions" in {
