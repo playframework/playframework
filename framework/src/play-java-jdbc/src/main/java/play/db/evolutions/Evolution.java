@@ -14,9 +14,9 @@ public final class Evolution {
     /**
      * Create the evolution.
      *
-     * @param revision The revision of the evolution to create.
-     * @param sqlUp The SQL script for bringing the evolution up.
-     * @param sqlDown The SQL script for tearing the evolution down.
+     * @param revision The revision of the evolution to create
+     * @param sqlUp The SQL script for bringing the evolution up
+     * @param sqlDown The SQL script for tearing the evolution down
      */
     public Evolution(int revision, String sqlUp, String sqlDown) {
         this.revision = revision;

@@ -19,7 +19,7 @@ public interface Injector {
      * Get an instance of the given class from the injector.
      *
      * @param clazz The class to get the instance of
-     * @return The instance
+     * @return the instance
      */
     <T> T instanceOf(Class<T> clazz);
 }

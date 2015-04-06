@@ -42,8 +42,8 @@ public class WS {
      * with /), then this client will make the request on localhost using the supplied port.  This is particularly
      * useful in test situations.
      *
-     * @param port The port to use on localhost when relative URLs are requested.
-     * @return A running WS client.
+     * @param port The port to use on localhost when relative URLs are requested
+     * @return a running WS client
      */
     public static WSClient newClient(int port) {
         WSClient client = new NingWSClient(new AsyncHttpClientConfig.Builder()

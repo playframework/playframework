@@ -36,7 +36,7 @@ public class Constraints {
         /**
          * Returns <code>true</code> if this value is valid for the given constraint.
          *
-         * @param constraintContext The JSR-303 validation context.
+         * @param constraintContext The JSR-303 validation context
          */
         public boolean isValid(T object, ConstraintValidatorContext constraintContext) {
             return isValid(object);

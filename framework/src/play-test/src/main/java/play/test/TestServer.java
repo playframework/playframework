@@ -15,8 +15,8 @@ public class TestServer extends play.api.test.TestServer {
     /**
      * A test Netty web server.
      *
-     * @param port HTTP port to bind on.
-     * @param application The Application to load in this server.
+     * @param port HTTP port to bind on
+     * @param application The Application to load in this server
      */
     public TestServer(int port, Application application) {
         super(port, application.getWrappedApplication(), play.libs.Scala.<Object>None(), play.libs.Scala.<ServerProvider>None());

@@ -10,7 +10,7 @@ case class JsLookup(result: JsLookupResult) extends AnyVal {
   /**
    * Access a value of this array.
    *
-   * @param index Element index.
+   * @param index Element index
    */
   def apply(index: Int): JsLookupResult = result match {
     case JsDefined(arr: JsArray) =>

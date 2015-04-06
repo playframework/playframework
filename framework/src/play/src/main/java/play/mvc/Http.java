@@ -156,7 +156,7 @@ public class Http {
         }
 
         /**
-         * @return the current lang.
+         * @return the current lang
          */
         public Lang lang() {
             if (lang != null) {
@@ -167,7 +167,7 @@ public class Http {
         }
 
         /**
-         * @return the messages for the current lang.
+         * @return the messages for the current lang
          */
         public Messages messages() {
             return Play.application().injector().instanceOf(MessagesApi.class).preferred(request());
@@ -176,7 +176,7 @@ public class Http {
         /**
          * Change durably the lang for the current user.
          * @param code New lang code to use (e.g. "fr", "en-US", etc.)
-         * @return true if the requested lang was supported by the application, otherwise false.
+         * @return true if the requested lang was supported by the application, otherwise false
          */
         public boolean changeLang(String code) {
             return changeLang(Lang.forCode(code));
@@ -184,8 +184,8 @@ public class Http {
 
         /**
          * Change durably the lang for the current user.
-         * @param lang New Lang object to use.
-         * @return true if the requested lang was supported by the application, otherwise false.
+         * @param lang New Lang object to use
+         * @return true if the requested lang was supported by the application, otherwise false
          */
         public boolean changeLang(Lang lang) {
             if (Lang.availables().contains(lang)) {
@@ -255,7 +255,7 @@ public class Http {
             }
 
             /**
-             * @return the messages for the current lang.
+             * @return the messages for the current lang
              */
             public static Messages messages() {
                 return Context.current().messages();
@@ -388,7 +388,7 @@ public class Http {
         List<play.i18n.Lang> acceptLanguages();
 
         /**
-         * @return The media types set in the request Accept header, sorted by preference (preferred first).
+         * @return the media types set in the request Accept header, sorted by preference (preferred first)
          */
         List<play.api.http.MediaRange> acceptedTypes();
 
@@ -415,7 +415,7 @@ public class Http {
 
         /**
          * @param name Name of the cookie to retrieve
-         * @return the cookie, if found, otherwise null.
+         * @return the cookie, if found, otherwise null
          */
         Cookie cookie(String name);
 
@@ -429,14 +429,14 @@ public class Http {
         /**
          * Retrieves a single header.
          *
-         * @param headerName The name of the header (case-insensitive).
+         * @param headerName The name of the header (case-insensitive)
          */
         String getHeader(String headerName);
 
         /**
          * Checks if the request has the header.
          *
-         * @param headerName The name of the header (case-insensitive).
+         * @param headerName The name of the header (case-insensitive)
          */
         boolean hasHeader(String headerName);
 
@@ -943,8 +943,8 @@ public class Http {
         /**
          * Returns the buffer content as a bytes array.
          *
-         * @param maxLength The max length allowed to be stored in memory.
-         * @return null if the content is too big to fit in memory.
+         * @param maxLength The max length allowed to be stored in memory
+         * @return null if the content is too big to fit in memory
          */
         public abstract byte[] asBytes(int maxLength);
 
@@ -1121,8 +1121,8 @@ public class Http {
         /**
          * Adds a new header to the response.
          *
-         * @param name The name of the header. Must not be null.
-         * @param value The value of the header. Must not be null.
+         * @param name The name of the header. Must not be null
+         * @param value The value of the header. Must not be null
          */
         public void setHeader(String name, String value) {
             this.headers.put(name, value);
@@ -1138,7 +1138,7 @@ public class Http {
         /**
          * Sets the content-type of the response.
          *
-         * @param contentType The content type.  Must not be null.
+         * @param contentType The content type.  Must not be null
          */
         public void setContentType(String contentType) {
             setHeader(CONTENT_TYPE, contentType);
@@ -1150,8 +1150,8 @@ public class Http {
          * <pre>
          * response().setCookie("theme", "blue");
          * </pre>
-         * @param name Cookie name.  Must not be null.
-         * @param value Cookie value.
+         * @param name Cookie name.  Must not be null
+         * @param value Cookie value
          */
         public void setCookie(String name, String value) {
             setCookie(name, value, null);
@@ -1159,9 +1159,9 @@ public class Http {
 
         /**
          * Set a new cookie with path "/"
-         * @param name Cookie name.  Must not be null.
-         * @param value Cookie value.
-         * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now).
+         * @param name Cookie name.  Must not be null
+         * @param value Cookie value
+         * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
          */
         public void setCookie(String name, String value, Integer maxAge) {
             setCookie(name, value, maxAge, "/");
@@ -1169,7 +1169,7 @@ public class Http {
 
         /**
          * Set a new cookie
-         * @param name Cookie name.  Must not be null.
+         * @param name Cookie name.  Must not be null
          * @param value Cookie value
          * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
          * @param path Cookie path
@@ -1180,7 +1180,7 @@ public class Http {
 
         /**
          * Set a new cookie
-         * @param name Cookie name.  Must not be null.
+         * @param name Cookie name.  Must not be null
          * @param value Cookie value
          * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
          * @param path Cookie path
@@ -1192,7 +1192,7 @@ public class Http {
 
         /**
          * Set a new cookie
-         * @param name Cookie name.  Must not be null.
+         * @param name Cookie name.  Must not be null
          * @param value Cookie value
          * @param maxAge Cookie duration (null for a transient cookie and 0 or less for a cookie that expires now)
          * @param path Cookie path
@@ -1207,7 +1207,7 @@ public class Http {
         /**
          * Discard a cookie on the default path ("/") with no domain and that's not secure
          *
-         * @param name The name of the cookie to discard.  Must not be null.
+         * @param name The name of the cookie to discard.  Must not be null
          */
         public void discardCookie(String name) {
             discardCookie(name, "/", null, false);
@@ -1216,7 +1216,7 @@ public class Http {
         /**
          * Discard a cookie on the given path with no domain and not that's secure
          *
-         * @param name The name of the cookie to discard.  Must not be null.
+         * @param name The name of the cookie to discard.  Must not be null
          * @param path The path of the cookie te discard, may be null
          */
         public void discardCookie(String name, String path) {
@@ -1226,7 +1226,7 @@ public class Http {
         /**
          * Discard a cookie on the given path and domain that's not secure
          *
-         * @param name The name of the cookie to discard.  Must not be null.
+         * @param name The name of the cookie to discard.  Must not be null
          * @param path The path of the cookie te discard, may be null
          * @param domain The domain of the cookie to discard, may be null
          */
@@ -1237,7 +1237,7 @@ public class Http {
         /**
          * Discard a cookie in this result
          *
-         * @param name The name of the cookie to discard.  Must not be null.
+         * @param name The name of the cookie to discard.  Must not be null
          * @param path The path of the cookie te discard, may be null
          * @param domain The domain of the cookie to discard, may be null
          * @param secure Whether the cookie to discard is secure

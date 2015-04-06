@@ -100,7 +100,7 @@ object Reloader {
   /**
    * Start the Play server in dev mode
    *
-   * @return A closeable that can be closed to stop the server
+   * @return a closeable that can be closed to stop the server
    */
   def startDevMode(runHooks: Seq[RunHook], javaOptions: Seq[String],
     dependencyClasspath: Classpath, dependencyClassLoader: ClassLoaderCreator,
@@ -287,7 +287,7 @@ class Reloader(
    * Since this communicates across classloaders, it must return only simple objects.
    *
    *
-   * @return Either
+   * @return either
    * - Throwable - If something went wrong (eg, a compile error).
    * - ClassLoader - If the classloader has changed, and the application should be reloaded.
    * - null - If nothing changed.

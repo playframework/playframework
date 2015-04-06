@@ -21,10 +21,10 @@ private[server] trait RequestBodyHandler {
    * Creates a new upstream handler for the purposes of receiving chunked requests. Requests are buffered as an
    * optimization.
    *
-   * @param bodyHandler the iteratee used to handle the body.
-   * @param replaceHandler a function to handle the registration of a new handler. A handler is passed as a param.
-   * @param handlerFinished a function to handle the de-registration of the handler i.e. when the chunked request is complete.
-   * @return a future of an iteratee that will return the result.
+   * @param bodyHandler the iteratee used to handle the body
+   * @param replaceHandler a function to handle the registration of a new handler. A handler is passed as a param
+   * @param handlerFinished a function to handle the de-registration of the handler i.e. when the chunked request is complete
+   * @return a future of an iteratee that will return the result
    */
   def newRequestBodyUpstreamHandler[A](bodyHandler: Iteratee[Array[Byte], A],
     replaceHandler: ChannelUpstreamHandler => Unit,

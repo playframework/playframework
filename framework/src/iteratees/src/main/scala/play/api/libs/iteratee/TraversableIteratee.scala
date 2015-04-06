@@ -7,7 +7,7 @@ import play.api.libs.iteratee.Execution.Implicits.{ defaultExecutionContext => d
 import scala.concurrent.{ ExecutionContext, Future }
 
 /**
- * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used.
+ * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used
  */
 object Traversable {
 
@@ -92,7 +92,7 @@ object Traversable {
    * Splits a stream of traversable input elements on a predicate. Yields all input up until
    * the predicate matches within an input element. The input following a match is unprocessed.
    *
-   * @param p The predicate to split input on.
+   * @param p The predicate to split input on
    * $paramEcSingle
    */
   def splitOnceAt[M, E](p: E => Boolean)(implicit traversableLike: M => scala.collection.TraversableLike[E, M], ec: ExecutionContext): Enumeratee[M, M] = new CheckDone[M, M] {

@@ -20,7 +20,7 @@ trait Router {
   /**
    * Documentation for the router.
    *
-   * @return A list of method, path pattern and controller/method invocations for each route.
+   * @return a list of method, path pattern and controller/method invocations for each route
    */
   def documentation: Seq[(String, String, String)]
 
@@ -52,7 +52,7 @@ object Router {
   /**
    * Try to load the configured router class.
    *
-   * @return The router class if configured or if a default one in the root package was detected.
+   * @return the router class if configured or if a default one in the root package was detected
    */
   def load(env: Environment, configuration: Configuration): Option[Class[_ <: Router]] = {
     val className = PlayConfig(configuration).getOptionalDeprecated[String]("play.http.router", "application.router")
@@ -87,7 +87,7 @@ object Router {
    * Create a new router from the given partial function
    *
    * @param routes The routes partial function
-   * @return A router that uses that partial function
+   * @return a router that uses that partial function
    */
   def from(routes: Router.Routes): Router = SimpleRouter(routes)
 

@@ -24,16 +24,16 @@ import javax.inject.{ Singleton, Provider, Inject }
 /**
  * CSRF configuration.
  *
- * @param tokenName The name of the token.
- * @param cookieName If defined, the name of the cookie to read the token from/write the token to.
- * @param secureCookie If using a cookie, whether it should be secure.
- * @param httpOnlyCookie If using a cookie, whether it should have the HTTP only flag.
- * @param postBodyBuffer How much of the POST body should be buffered if checking the body for a token.
- * @param signTokens Whether tokens should be signed.
- * @param checkMethod Returns true if a request for that method should be checked.
- * @param checkContentType Returns true if a request for that content type should be checked.
- * @param headerName The name of the HTTP header to check for tokens from.
- * @param headerBypass Whether CSRF check can be bypassed by the presence of certain headers, such as X-Requested-By.
+ * @param tokenName The name of the token
+ * @param cookieName If defined, the name of the cookie to read the token from/write the token to
+ * @param secureCookie If using a cookie, whether it should be secure
+ * @param httpOnlyCookie If using a cookie, whether it should have the HTTP only flag
+ * @param postBodyBuffer How much of the POST body should be buffered if checking the body for a token
+ * @param signTokens Whether tokens should be signed
+ * @param checkMethod Returns true if a request for that method should be checked
+ * @param checkContentType Returns true if a request for that content type should be checked
+ * @param headerName The name of the HTTP header to check for tokens from
+ * @param headerBypass Whether CSRF check can be bypassed by the presence of certain headers, such as X-Requested-By
  */
 case class CSRFConfig(tokenName: String = "csrfToken",
   cookieName: Option[String] = None,
@@ -145,7 +145,7 @@ object CSRF {
    * Extract token from current Java request
    *
    * @param request The request to extract the token from
-   * @return The token, if found.
+   * @return the token, if found
    */
   def getToken(request: play.mvc.Http.Request): Optional[Token] = {
     Optional.ofNullable(getToken(request._underlyingHeader()).orNull)

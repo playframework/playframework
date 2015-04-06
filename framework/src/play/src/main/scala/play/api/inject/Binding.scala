@@ -22,11 +22,11 @@ import com.google.inject.name.Names
  * binding may declare itself to be eagerly instantiated.  In which case, it should be eagerly instantiated when Play
  * starts up.
  *
- * @param key The binding key.
- * @param target The binding target.
- * @param scope The JSR-330 scope.
- * @param eager Whether the binding should be eagerly instantiated.
- * @param source Where this object was bound. Used in error reporting.
+ * @param key The binding key
+ * @param target The binding target
+ * @param scope The JSR-330 scope
+ * @param eager Whether the binding should be eagerly instantiated
+ * @param source Where this object was bound. Used in error reporting
  */
 final case class Binding[T](key: BindingKey[T], target: Option[BindingTarget[T]], scope: Option[Class[_ <: Annotation]], eager: Boolean, source: Object) {
 
@@ -61,8 +61,8 @@ object BindingKey {
  *
  * A binding key consists of a class and zero or more JSR-330 qualifiers.
  *
- * @param clazz The class to bind.
- * @param qualifier An optional qualifier.
+ * @param clazz The class to bind
+ * @param qualifier An optional qualifier
  */
 final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnotation]) {
 

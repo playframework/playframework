@@ -8,8 +8,8 @@ import play.api.mvc.WebSocket.FrameFormatter
 /**
  * A FrameFormatter that produces BasicFrames.
  *
- * @param toFrame Function to convert to a BasicFrame.
- * @param fromFrame PartialFunction to convert from a BasicFrame.
+ * @param toFrame Function to convert to a BasicFrame
+ * @param fromFrame PartialFunction to convert from a BasicFrame
  * @param handlesFromFrameClass Function to check if fromFrame would
  * handle a given BasicFrame class. Can be used instead of calling
  * fromFrame.isDefinedAt. The benefit of calling this function is that

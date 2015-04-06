@@ -23,18 +23,18 @@ import scala.concurrent.duration._
 /**
  * Ning client config.
  *
- * @param wsClientConfig The general WS client config.
- * @param allowPoolingConnection Whether connection pooling should be allowed.
- * @param allowSslConnectionPool Whether connection pooling should be allowed for SSL connections.
- * @param ioThreadMultiplier The multiplier to use for the number of IO threads.
- * @param maxConnectionsPerHost The maximum number of connections to make per host. -1 means no maximum.
- * @param maxConnectionsTotal The maximum total number of connections. -1 means no maximum.
- * @param maxConnectionLifetime The maximum time that a connection should live for in the pool.
- * @param idleConnectionInPoolTimeout The time after which a connection that has been idle in the pool should be closed.
- * @param webSocketIdleTimeout The time after which a websocket connection should be closed.
- * @param maxNumberOfRedirects The maximum number of redirects.
- * @param maxRequestRetry The maximum number of times to retry a request if it fails.
- * @param disableUrlEncoding Whether the raw URL should be used.
+ * @param wsClientConfig The general WS client config
+ * @param allowPoolingConnection Whether connection pooling should be allowed
+ * @param allowSslConnectionPool Whether connection pooling should be allowed for SSL connections
+ * @param ioThreadMultiplier The multiplier to use for the number of IO threads
+ * @param maxConnectionsPerHost The maximum number of connections to make per host. -1 means no maximum
+ * @param maxConnectionsTotal The maximum total number of connections. -1 means no maximum
+ * @param maxConnectionLifetime The maximum time that a connection should live for in the pool
+ * @param idleConnectionInPoolTimeout The time after which a connection that has been idle in the pool should be closed
+ * @param webSocketIdleTimeout The time after which a websocket connection should be closed
+ * @param maxNumberOfRedirects The maximum number of redirects
+ * @param maxRequestRetry The maximum number of times to retry a request if it fails
+ * @param disableUrlEncoding Whether the raw URL should be used
  */
 case class NingWSClientConfig(wsClientConfig: WSClientConfig = WSClientConfig(),
   allowPoolingConnection: Boolean = true,
@@ -103,7 +103,7 @@ class NingWSClientConfigParser @Inject() (wsClientConfig: WSClientConfig,
 /**
  * Builds a valid AsyncHttpClientConfig object from config.
  *
- * @param ningConfig the ning client configuration.
+ * @param ningConfig the ning client configuration
  */
 class NingAsyncHttpClientConfigBuilder(ningConfig: NingWSClientConfig = NingWSClientConfig()) {
 

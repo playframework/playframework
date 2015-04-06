@@ -154,7 +154,7 @@ public class NingWSResponse implements WSResponse {
 
     /**
      * Get the response body as a stream
-     * @return The stream to read the response body from
+     * @return the stream to read the response body from
      */
     @Override
     public InputStream getBodyAsStream() {
@@ -167,7 +167,7 @@ public class NingWSResponse implements WSResponse {
 
     /**
      * Get the response body as a byte array
-     * @return The byte array
+     * @return the byte array
      */
     @Override
     public byte[] asByteArray() {
@@ -182,7 +182,7 @@ public class NingWSResponse implements WSResponse {
      * Return the request {@link java.net.URI}. Note that if the request got redirected, the value of the
      * {@link java.net.URI} will be the last valid redirect url.
      *
-     * @return the request {@link java.net.URI}.
+     * @return the request {@link java.net.URI}
      */
     @Override
     public URI getUri() {

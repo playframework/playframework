@@ -271,8 +271,8 @@ object Forms {
    * Form("username" -> nonEmptyText(minLength=3))
    * }}}
    *
-   * @param minLength Text min length.
-   * @param maxLength Text max length.
+   * @param minLength Text min length
+   * @param maxLength Text max length
    */
   def nonEmptyText(minLength: Int = 0, maxLength: Int = Int.MaxValue): Mapping[String] = text(minLength, maxLength) verifying Constraints.nonEmpty
 
@@ -436,7 +436,7 @@ object Forms {
    * Define a fixed value in a mapping.
    * This mapping will not participate to the binding.
    *
-   * @param value As we ignore this parameter in binding/unbinding we have to provide a default value.
+   * @param value As we ignore this parameter in binding/unbinding we have to provide a default value
    */
   def ignored[A](value: A): Mapping[A] = of(ignoredFormat(value))
 
@@ -449,7 +449,7 @@ object Forms {
    * )
    * }}}
    *
-   * @param mapping The mapping to make optional.
+   * @param mapping The mapping to make optional
    */
   def optional[A](mapping: Mapping[A]): Mapping[Option[A]] = OptionalMapping(mapping)
 
@@ -462,8 +462,8 @@ object Forms {
    * )
    * }}}
    *
-   * @param mapping The mapping to make optional.
-   * @param value The default value when mapping and the field is not present.
+   * @param mapping The mapping to make optional
+   * @param value The default value when mapping and the field is not present
    */
   def default[A](mapping: Mapping[A], value: A): Mapping[A] = OptionalMapping(mapping).transform(_.getOrElse(value), Some(_))
 
@@ -475,7 +475,7 @@ object Forms {
    * )
    * }}}
    *
-   * @param mapping The mapping to make repeated.
+   * @param mapping The mapping to make repeated
    */
   def list[A](mapping: Mapping[A]): Mapping[List[A]] = RepeatedMapping(mapping)
 
@@ -487,7 +487,7 @@ object Forms {
    * )
    * }}}
    *
-   * @param mapping The mapping to make repeated.
+   * @param mapping The mapping to make repeated
    */
   def seq[A](mapping: Mapping[A]): Mapping[Seq[A]] = RepeatedMapping(mapping).transform(_.toSeq, _.toList)
 
@@ -499,7 +499,7 @@ object Forms {
    * )
    * }}}
    *
-   * @param mapping The mapping to make repeated.
+   * @param mapping The mapping to make repeated
    */
   def set[A](mapping: Mapping[A]): Mapping[Set[A]] = RepeatedMapping(mapping).transform(_.toSet, _.toList)
 

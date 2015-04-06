@@ -23,7 +23,7 @@ public class WithServer {
      *
      * By default this will call the old {@link #provideFakeApplication() provideFakeApplication} method.
      *
-     * @return The application used by the server
+     * @return the application used by the server
      */
     protected Application provideApplication() {
         return provideFakeApplication();
@@ -34,7 +34,7 @@ public class WithServer {
      *
      * Override this method to setup the fake application to use.
      *
-     * @return The fake application used by the server
+     * @return the fake application used by the server
      */
     protected FakeApplication provideFakeApplication() {
         return Helpers.fakeApplication();
@@ -43,7 +43,7 @@ public class WithServer {
     /**
      * Override this method to setup the port to use.
      *
-     * @return The TCP port used by the server
+     * @return the TCP port used by the server
      */
     protected int providePort() {
         return play.api.test.Helpers.testServerPort();

@@ -13,7 +13,7 @@ object FormUrlEncodedParser {
    * pairs, both of which are URL encoded.
    * @param data The body content of the request, or whatever needs to be so parsed
    * @param encoding The character encoding of data
-   * @return A ListMap of keys to the sequence of values for that key
+   * @return a ListMap of keys to the sequence of values for that key
    */
   def parseNotPreservingOrder(data: String, encoding: String = "utf-8"): Map[String, Seq[String]] = {
     // Generate the pairs of values from the string.
@@ -26,7 +26,7 @@ object FormUrlEncodedParser {
    * keys by using OrderPreserving.groupBy as some applications depend on the original browser ordering.
    * @param data The body content of the request, or whatever needs to be so parsed
    * @param encoding The character encoding of data
-   * @return A ListMap of keys to the sequence of values for that key
+   * @return a ListMap of keys to the sequence of values for that key
    */
   def parse(data: String, encoding: String = "utf-8"): Map[String, Seq[String]] = {
 
@@ -55,7 +55,7 @@ object FormUrlEncodedParser {
    * Do the basic parsing into a sequence of key/value pairs
    * @param data The data to parse
    * @param encoding The encoding to use for interpreting the data
-   * @return The sequence of key/value pairs
+   * @return the sequence of key/value pairs
    */
   private def parseToPairs(data: String, encoding: String): Seq[(String, String)] = {
 

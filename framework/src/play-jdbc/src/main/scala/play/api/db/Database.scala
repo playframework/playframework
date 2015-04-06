@@ -133,7 +133,7 @@ object Database {
    * @param name the database name
    * @param config a map of extra database configuration
    * @param block The block of code to run
-   * @return The result of the block
+   * @return the result of the block
    */
   def withDatabase[T](driver: String, url: String, name: String = "default",
     config: Map[String, _ <: Any] = Map.empty)(block: Database => T): T = {
@@ -152,7 +152,7 @@ object Database {
    * @param urlOptions a map of extra url options
    * @param config a map of extra database configuration
    * @param block The block of code to run
-   * @return The result of the block
+   * @return the result of the block
    */
   def withInMemory[T](name: String = "default", urlOptions: Map[String, String] = Map.empty,
     config: Map[String, _ <: Any] = Map.empty)(block: Database => T): T = {

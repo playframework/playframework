@@ -8,7 +8,7 @@ trait JsReadable extends Any {
    * Tries to convert the node into a T. An implicit Reads[T] must be defined.
    * Any error is mapped to None
    *
-   * @return Some[T] if it succeeds, None if it fails.
+   * @return some[T] if it succeeds, None if it fails
    */
   def asOpt[T](implicit fjs: Reads[T]): Option[T] = validate(fjs).asOpt
 

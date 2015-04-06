@@ -371,7 +371,7 @@ abstract class ResourceEvolutionsReader extends EvolutionsReader {
   /**
    * Load the evolutions resource for the given database and revision.
    *
-   * @return An InputStream to consume the resource, if such a resource exists.
+   * @return an InputStream to consume the resource, if such a resource exists
    */
   def loadResource(db: String, revision: Int): Option[InputStream]
 
@@ -438,7 +438,7 @@ class EnvironmentEvolutionsReader @Inject() (environment: Environment) extends R
 /**
  * Evolutions reader that reads evolution files from a class loader.
  *
- * @param classLoader The classloader to read from, defaults to the classloader for this class.
+ * @param classLoader The classloader to read from, defaults to the classloader for this class
  * @param prefix A prefix that gets added to the resource file names, for example, this could be used to namespace
  *               evolutions in different environments to work with different databases.
  */
@@ -479,14 +479,14 @@ object SimpleEvolutionsReader {
   /**
    * Create a simple evolutions reader from the given data.
    *
-   * @param data A map of database name to a sequence of evolutions.
+   * @param data A map of database name to a sequence of evolutions
    */
   def from(data: (String, Seq[Evolution])*) = new SimpleEvolutionsReader(data.toMap)
 
   /**
    * Create a simple evolutions reader from the given evolutions for the default database.
    *
-   * @param evolutions The evolutions.
+   * @param evolutions The evolutions
    */
   def forDefault(evolutions: Evolution*) = new SimpleEvolutionsReader(Map("default" -> evolutions))
 }

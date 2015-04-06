@@ -42,7 +42,7 @@ object SecurityHeadersFilter {
    * Convenience method for creating a SecurityHeadersFilter that reads settings from application.conf.  Generally speaking,
    * you'll want to use this or the apply(SecurityHeadersConfig) method.
    *
-   * @return a configured SecurityHeadersFilter.
+   * @return a configured SecurityHeadersFilter
    */
   def apply(config: SecurityHeadersConfig = SecurityHeadersConfig()): SecurityHeadersFilter = {
     new SecurityHeadersFilter(config)
@@ -51,8 +51,8 @@ object SecurityHeadersFilter {
   /**
    * Convenience method for creating a filter using play.api.Configuration.  Good for testing.
    *
-   * @param config a configuration object that may contain string settings.
-   * @return a configured SecurityHeadersFilter.
+   * @param config a configuration object that may contain string settings
+   * @return a configured SecurityHeadersFilter
    */
   def apply(config: Configuration): SecurityHeadersFilter = {
     new SecurityHeadersFilter(SecurityHeadersConfig.fromConfiguration(config))
@@ -65,7 +65,7 @@ object SecurityHeadersFilter {
  * @param frameOptions "X-Frame-Options":
  * @param xssProtection "X-XSS-Protection":
  * @param contentTypeOptions "X-Content-Type-Options"
- * @param permittedCrossDomainPolicies "X-Permitted-Cross-Domain-Policies".
+ * @param permittedCrossDomainPolicies "X-Permitted-Cross-Domain-Policies"
  * @param contentSecurityPolicy "Content-Security-Policy"
  */
 case class SecurityHeadersConfig(frameOptions: Option[String] = Some("DENY"),

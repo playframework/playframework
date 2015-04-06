@@ -49,8 +49,8 @@ case class FlashConfiguration(cookieName: String = "PLAY_FLASH", secure: Boolean
 /**
  * Configuration for body parsers.
  *
- * @param maxMemoryBuffer The maximum size that a request body that should be buffered in memory.
- * @param maxDiskBuffer The maximum size that a request body should be buffered on disk.
+ * @param maxMemoryBuffer The maximum size that a request body that should be buffered in memory
+ * @param maxDiskBuffer The maximum size that a request body should be buffered on disk
  */
 case class ParserConfiguration(
   maxMemoryBuffer: Int = 102400,

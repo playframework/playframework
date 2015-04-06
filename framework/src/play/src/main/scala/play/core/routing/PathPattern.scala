@@ -15,9 +15,9 @@ trait PathPart
 /**
  * A dynamically extracted part of the path.
  *
- * @param name The name of the part.
- * @param constraint The constraint - that is, the type.
- * @param encodeable Whether the path should be encoded/decoded.
+ * @param name The name of the part
+ * @param constraint The constraint - that is, the type
+ * @param encodeable Whether the path should be encoded/decoded
  */
 case class DynamicPart(name: String, constraint: String, encodeable: Boolean) extends PathPart {
   override def toString = """DynamicPart("""" + name + "\", \"\"\"" + constraint + "\"\"\")" // "
@@ -65,8 +65,8 @@ case class PathPattern(parts: Seq[PathPart]) {
   /**
    * Apply the path pattern to a given candidate path to see if it matches.
    *
-   * @param path The path to match against.
-   * @return The map of extracted parameters, or none if the path didn't match.
+   * @param path The path to match against
+   * @return the map of extracted parameters, or none if the path didn't match
    */
   def apply(path: String): Option[Map[String, Either[Throwable, String]]] = {
     val matcher = regex.matcher(path)

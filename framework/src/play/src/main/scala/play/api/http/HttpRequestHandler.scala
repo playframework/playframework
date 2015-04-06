@@ -32,7 +32,7 @@ trait HttpRequestHandler {
    * filters, and they will get the tagged/modified request.
    *
    * @param request The request to handle
-   * @return The possibly modified/tagged request, and a handler to handle it
+   * @return the possibly modified/tagged request, and a handler to handle it
    */
   def handlerForRequest(request: RequestHeader): (RequestHeader, Handler)
 }
@@ -153,7 +153,7 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
    * routers based on various request parameters.
    *
    * @param request The request
-   * @return A handler to handle the request, if one can be found
+   * @return a handler to handle the request, if one can be found
    */
   def routeRequest(request: RequestHeader): Option[Handler] = {
     router.handlerFor(request)

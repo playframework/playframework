@@ -450,8 +450,8 @@ public class Form<T> {
     /**
      * Convert the error arguments.
      *
-     * @param arguments The arguments to convert.
-     * @return The converted arguments.
+     * @param arguments The arguments to convert
+     * @return the converted arguments
      */
     private List<Object> convertErrorArguments(Object[] arguments) {
         List<Object> converted = new ArrayList<Object>(arguments.length);
@@ -512,7 +512,7 @@ public class Form<T> {
     /**
      * Retrieve all global errors - errors without a key.
      *
-     * @return All global errors.
+     * @return all global errors
      */
     public List<ValidationError> globalErrors() {
         List<ValidationError> e = errors.get("");
@@ -525,7 +525,7 @@ public class Form<T> {
     /**
      * Retrieves the first global error (an error without any key), if it exists.
      *
-     * @return An error or <code>null</code>.
+     * @return an error or <code>null</code>
      */
     public ValidationError globalError() {
         List<ValidationError> errors = globalErrors();
@@ -539,7 +539,7 @@ public class Form<T> {
     /**
      * Returns all errors.
      *
-     * @return All errors associated with this form.
+     * @return all errors associated with this form
      */
     public Map<String,List<ValidationError>> errors() {
         return errors;
@@ -597,7 +597,7 @@ public class Form<T> {
     /**
      * Adds an error to this form.
      *
-     * @param error the <code>ValidationError</code> to add.
+     * @param error the <code>ValidationError</code> to add
      */
     public void reject(ValidationError error) {
         if(!errors.containsKey(error.key())) {
@@ -640,7 +640,7 @@ public class Form<T> {
     /**
      * Add a global error to this form.
      *
-     * @param error the error message.
+     * @param error the error message
      */    
     public void reject(String error) {
         reject("", error, new ArrayList<Object>());
@@ -784,7 +784,7 @@ public class Form<T> {
         /**
          * Returns the field name.
          *
-         * @return The field name.
+         * @return the field name
          */
         public String name() {
             return name;
@@ -793,7 +793,7 @@ public class Form<T> {
         /**
          * Returns the field value, if defined.
          *
-         * @return The field value, if defined.
+         * @return the field value, if defined
          */
         public String value() {
             return value;
@@ -809,7 +809,7 @@ public class Form<T> {
         /**
          * Returns all the errors associated with this field.
          *
-         * @return The errors associated with this field.
+         * @return the errors associated with this field
          */
         public List<ValidationError> errors() {
             return errors;
@@ -818,7 +818,7 @@ public class Form<T> {
         /**
          * Returns all the constraints associated with this field.
          *
-         * @return The constraints associated with this field.
+         * @return the constraints associated with this field
          */
         public List<Tuple<String,List<Object>>> constraints() {
             return constraints;
@@ -827,7 +827,7 @@ public class Form<T> {
         /**
          * Returns the expected format for this field.
          * 
-         * @return The expected format for this field.
+         * @return the expected format for this field
          */
         public Tuple<String,List<Object>> format() {
             return format;

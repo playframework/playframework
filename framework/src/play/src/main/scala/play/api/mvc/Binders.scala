@@ -84,7 +84,7 @@ trait QueryStringBindable[A] {
    * Unbind a query string parameter.
    *
    * @param key Parameter key
-   * @param value Parameter value.
+   * @param value Parameter value
    * @return a query string fragment containing the key and its value. E.g. "foo=42"
    */
   def unbind(key: String, value: A): String
@@ -169,7 +169,7 @@ trait PathBindable[A] {
    * Unbind a URL path  parameter.
    *
    * @param key Parameter key
-   * @param value Parameter value.
+   * @param value Parameter value
    */
   def unbind(key: String, value: A): String
 

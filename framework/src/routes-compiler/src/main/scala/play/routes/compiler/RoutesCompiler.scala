@@ -61,11 +61,11 @@ object RoutesCompiler {
   /**
    * A routes compiler task.
    *
-   * @param file The routes file to compile.
-   * @param additionalImports The additional imports.
-   * @param forwardsRouter Whether a forwards router should be generated.
-   * @param reverseRouter Whether a reverse router should be generated.
-   * @param namespaceReverseRouter Whether the reverse router should be namespaced.
+   * @param file The routes file to compile
+   * @param additionalImports The additional imports
+   * @param forwardsRouter Whether a forwards router should be generated
+   * @param reverseRouter Whether a reverse router should be generated
+   * @param namespaceReverseRouter Whether the reverse router should be namespaced
    */
   case class RoutesCompilerTask(file: File, additionalImports: Seq[String], forwardsRouter: Boolean, reverseRouter: Boolean, namespaceReverseRouter: Boolean)
 
@@ -75,7 +75,7 @@ object RoutesCompiler {
    * @param task The routes compilation task
    * @param generator The routes generator
    * @param generatedDir The directory to place the generated source code in
-   * @return Either the list of files that were generated (right) or the routes compilation errors (left)
+   * @return either the list of files that were generated (right) or the routes compilation errors (left)
    */
   def compile(task: RoutesCompilerTask, generator: RoutesGenerator, generatedDir: File): Either[Seq[RoutesCompilationError], Seq[File]] = {
 

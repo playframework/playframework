@@ -58,7 +58,7 @@ class DefaultApplicationLifecycle extends ApplicationLifecycle {
   /**
    * Call to shutdown the application.
    *
-   * @return A future that will be redeemed once all hooks have executed.
+   * @return a future that will be redeemed once all hooks have executed
    */
   def stop(): Future[Unit] = {
 

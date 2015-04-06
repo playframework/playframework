@@ -159,9 +159,9 @@ object Evolutions {
   /**
    * Apply evolutions for the given database.
    *
-   * @param database The database to apply the evolutions to.
-   * @param evolutionsReader The reader to read the evolutions.
-   * @param autocommit Whether to use autocommit or not, evolutions will be manually committed if false.
+   * @param database The database to apply the evolutions to
+   * @param evolutionsReader The reader to read the evolutions
+   * @param autocommit Whether to use autocommit or not, evolutions will be manually committed if false
    */
   def applyEvolutions(database: Database, evolutionsReader: EvolutionsReader = ThisClassLoaderEvolutionsReader,
     autocommit: Boolean = true): Unit = {
@@ -176,8 +176,8 @@ object Evolutions {
    * This will leave the database in the original state it was before evolutions were applied, by running the down
    * scripts for all the evolutions that have been previously applied to the database.
    *
-   * @param database The database to clean the evolutions for.
-   * @param autocommit Whether to use atocommit or not, evolutions will be manually committed if false.
+   * @param database The database to clean the evolutions for
+   * @param autocommit Whether to use atocommit or not, evolutions will be manually committed if false
    */
   def cleanupEvolutions(database: Database, autocommit: Boolean = true): Unit = {
     val dbEvolutions = new DatabaseEvolutions(database)
@@ -189,8 +189,8 @@ object Evolutions {
    * Execute the following code block with the evolutions for the database, cleaning up afterwards by running the downs.
    *
    * @param database The database to execute the evolutions on
-   * @param evolutionsReader The evolutions reader to use.  Defaults to reading evolutions from the evolution readers own classloader.
-   * @param autocommit Whether to use autocommit or not, evolutions will be manually committed if false.
+   * @param evolutionsReader The evolutions reader to use.  Defaults to reading evolutions from the evolution readers own classloader
+   * @param autocommit Whether to use autocommit or not, evolutions will be manually committed if false
    * @param block The block to execute
    */
   def withEvolutions[T](database: Database, evolutionsReader: EvolutionsReader = ThisClassLoaderEvolutionsReader,

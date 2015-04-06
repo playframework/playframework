@@ -53,7 +53,7 @@ public interface PathBindable<T extends PathBindable<T>> {
      *
      * @param key Parameter key
      * @param txt The value as String (extracted from the URL path)
-     * @return The object, may be this object
+     * @return the object, may be this object
      * @throws RuntimeException if this object could not be bound
      */
     public T bind(String key, String txt);
@@ -68,7 +68,7 @@ public interface PathBindable<T extends PathBindable<T>> {
     /**
      * Javascript function to unbind in the Javascript router.
      *
-     * @return The javascript function, or null if you want to use the default implementation.
+     * @return the javascript function, or null if you want to use the default implementation
      */
     public String javascriptUnbind();
 

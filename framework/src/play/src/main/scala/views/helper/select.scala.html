@@ -6,10 +6,10 @@
  * @select(field = myForm("isDone"), options = options(List("Yes","No")))
  * }}}
  *
- * @param field The form field.
- * @param options Sequence of options as pairs of value and HTML.
- * @param args Set of extra attributes ('''_default''' is a special argument).
- * @param handler The field constructor.
+ * @param field The form field
+ * @param options Sequence of options as pairs of value and HTML
+ * @param args Set of extra attributes ('''_default''' is a special argument)
+ * @param handler The field constructor
  *@
 @(field: play.api.data.Field, options: Seq[(String,String)], args: (Symbol,Any)*)(implicit handler: FieldConstructor, messages: play.api.i18n.Messages)
 

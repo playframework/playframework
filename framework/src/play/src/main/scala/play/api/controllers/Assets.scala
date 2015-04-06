@@ -305,7 +305,7 @@ object Assets extends AssetsBuilder(LazyHttpErrorHandler) {
   /**
    * An asset.
    *
-   * @param name The name of the asset.
+   * @param name The name of the asset
    */
   case class Asset(name: String)
 
@@ -428,9 +428,9 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
   /**
    * Generates an `Action` that serves a static resource.
    *
-   * @param path the root folder for searching the static resource files, such as `"/public"`. Not URL encoded.
-   * @param file the file part extracted from the URL. May be URL encoded (note that %2F decodes to literal /).
-   * @param aggressiveCaching if true then an aggressive set of caching directives will be used. Defaults to false.
+   * @param path the root folder for searching the static resource files, such as `"/public"`. Not URL encoded
+   * @param file the file part extracted from the URL. May be URL encoded (note that %2F decodes to literal /)
+   * @param aggressiveCaching if true then an aggressive set of caching directives will be used. Defaults to false
    */
   def at(path: String, file: String, aggressiveCaching: Boolean = false): Action[AnyContent] = Action.async { implicit request =>
     assetAt(path, file, aggressiveCaching)
@@ -480,8 +480,8 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
   /**
    * Get the name of the resource for a static resource. Used by `at`.
    *
-   * @param path the root folder for searching the static resource files, such as `"/public"`. Not URL encoded.
-   * @param file the file part extracted from the URL. May be URL encoded (note that %2F decodes to literal /).
+   * @param path the root folder for searching the static resource files, such as `"/public"`. Not URL encoded
+   * @param file the file part extracted from the URL. May be URL encoded (note that %2F decodes to literal /)
    */
   private[controllers] def resourceNameAt(path: String, file: String): Option[String] = {
     val decodedFile = UriEncoding.decodePath(file, "utf-8")

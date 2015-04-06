@@ -12,8 +12,8 @@ import scala.language.reflectiveCalls
 /**
  * A producer which pushes input to an [[play.api.libs.iteratee.Iteratee]].
  *
- * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used.
- * @define paramEcMultiple @param ec The context to execute the supplied functions with. The context is prepared on the calling thread before being used.
+ * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used
+ * @define paramEcMultiple @param ec The context to execute the supplied functions with. The context is prepared on the calling thread before being used
  */
 trait Enumerator[E] {
   parent =>
@@ -140,7 +140,7 @@ trait Enumerator[E] {
   /**
    * Creates an Enumerator, based on this one, with each input transformed by the given function.
    *
-   * @param f Used to transform the input.
+   * @param f Used to transform the input
    * $paramEcSingle
    */
   def mapInput[U](f: Input[E] => Input[U])(implicit ec: ExecutionContext): Enumerator[U] = parent &> Enumeratee.mapInput[E](f)(ec)
@@ -173,8 +173,8 @@ trait Enumerator[E] {
  * Enumerator is the source that pushes input into a given iteratee.
  * It enumerates some input into the iteratee and eventually returns the new state of that iteratee.
  *
- * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used.
- * @define paramEcMultiple @param ec The context to execute the supplied functions with. The context is prepared on the calling thread before being used.
+ * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used
+ * @define paramEcMultiple @param ec The context to execute the supplied functions with. The context is prepared on the calling thread before being used
  */
 object Enumerator {
 
@@ -402,7 +402,7 @@ object Enumerator {
   /**
    * Repeat the given input function indefinitely.
    *
-   * @param e The input function.
+   * @param e The input function
    * $paramEcSingle
    */
   def repeat[E](e: => E)(implicit ec: ExecutionContext): Enumerator[E] = checkContinue0(new TreatCont0[E] {
@@ -487,7 +487,7 @@ object Enumerator {
    *
    * @param retriever The input function.  Returns a future eventually redeemed with Some value if there is input to pass, or a
    *          future eventually redeemed with None if the end of the stream has been reached.
-   * @param onComplete Called when the end of the stream is reached.
+   * @param onComplete Called when the end of the stream is reached
    * @param onError Called when an error occurs in the iteratee
    * $paramEcMultiple
    */
@@ -550,8 +550,8 @@ object Enumerator {
    * ExecutionContext is appropriately configured to handle the blocking.
    *
    * @param input The input stream
-   * @param chunkSize The size of chunks to read from the stream.
-   * @param ec The ExecutionContext to execute blocking code.
+   * @param chunkSize The size of chunks to read from the stream
+   * @param ec The ExecutionContext to execute blocking code
    */
   def fromStream(input: java.io.InputStream, chunkSize: Int = 1024 * 8)(implicit ec: ExecutionContext): Enumerator[Array[Byte]] = {
     implicit val pec = ec.prepare()
@@ -575,8 +575,8 @@ object Enumerator {
    *
    * Note that this enumerator will block when it reads from the file.
    *
-   * @param file The file to create the enumerator from.
-   * @param chunkSize The size of chunks to read from the file.
+   * @param file The file to create the enumerator from
+   * @param chunkSize The size of chunks to read from the file
    */
   def fromFile(file: java.io.File, chunkSize: Int = 1024 * 8)(implicit ec: ExecutionContext): Enumerator[Array[Byte]] = {
     fromStream(new java.io.FileInputStream(file), chunkSize)(ec)
@@ -589,7 +589,7 @@ object Enumerator {
    * OutputStream will not push back.  This means it should not be used with large streams since there is a risk of
    * running out of memory.
    *
-   * @param a A callback that provides the output stream when this enumerator is written to an iteratee.
+   * @param a A callback that provides the output stream when this enumerator is written to an iteratee
    * $paramEcSingle
    */
   def outputStream(a: java.io.OutputStream => Unit)(implicit ec: ExecutionContext): Enumerator[Array[Byte]] = {

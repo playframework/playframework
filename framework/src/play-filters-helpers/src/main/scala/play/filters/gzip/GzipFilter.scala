@@ -191,8 +191,8 @@ object GzipFilter {
 /**
  * Configuration for the gzip filter
  *
- * @param gzip The gzip enumeratee to use.
- * @param chunkedThreshold The content length threshold, after which the filter will switch to chunking the result.
+ * @param gzip The gzip enumeratee to use
+ * @param chunkedThreshold The content length threshold, after which the filter will switch to chunking the result
  * @param shouldGzip Whether the given request/result should be gzipped.  This can be used, for example, to implement
  *                   black/white lists for gzipping by content type.
  */

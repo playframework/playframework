@@ -54,9 +54,9 @@ object Files {
      * val tempFile = TemporaryFile(prefix = "uploaded")
      * }}}
      *
-     * @param prefix The prefix used for the temporary file name.
-     * @param suffix The suffix used for the temporary file name.
-     * @return A temporary file instance.
+     * @param prefix The prefix used for the temporary file name
+     * @param suffix The suffix used for the temporary file name
+     * @return a temporary file instance
      */
     def apply(prefix: String = "", suffix: String = ""): TemporaryFile = {
       new TemporaryFile(File.createTempFile(prefix, suffix))
@@ -108,7 +108,7 @@ object Files {
   /**
    * Reads a file’s contents into a String.
    *
-   * @param path the file to read.
+   * @param path the file to read
    * @return the file contents
    */
   @deprecated("Use Java 7 Files API instead", "2.3")

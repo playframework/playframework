@@ -82,7 +82,7 @@ trait Application {
    * }}}
    *
    * @tparam T the plugin type
-   * @return The plugin instance used by this application.
+   * @return the plugin instance used by this application
    * @throws Error if no plugins of type T are loaded by this application.
    */
   def plugin[T](implicit ct: ClassTag[T]): Option[T] = plugin(ct.runtimeClass).asInstanceOf[Option[T]]
@@ -199,7 +199,7 @@ trait Application {
   /**
    * Get the injector for this application.
    *
-   * @return The injector.
+   * @return the injector
    */
   def injector: Injector = NewInstanceInjector
 }

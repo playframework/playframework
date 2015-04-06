@@ -35,7 +35,7 @@ object Reflect {
    * @tparam JavaInterface The Java interface for Java versions of the implementation
    * @tparam JavaAdapter An adapter class that depends on `JavaInterface` and provides `ScalaTrait`
    * @tparam Default The default implementation of `ScalaTrait` if no user implementation has been provided
-   * @return Zero or more bindings to provide `ScalaTrait`
+   * @return zero or more bindings to provide `ScalaTrait`
    */
   def bindingsFromConfiguration[ScalaTrait, JavaInterface, JavaAdapter <: ScalaTrait, Default <: ScalaTrait](
     environment: Environment, config: PlayConfig, key: String, defaultClassName: String)(implicit scalaTrait: SubClassOf[ScalaTrait],

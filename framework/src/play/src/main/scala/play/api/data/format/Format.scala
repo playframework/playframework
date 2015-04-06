@@ -27,7 +27,7 @@ trait Formatter[T] {
    *
    * @param key the field key
    * @param data the submitted data
-   * @return Either a concrete value of type T or a set of error if the binding failed.
+   * @return either a concrete value of type T or a set of error if the binding failed
    */
   def bind(key: String, data: Map[String, String]): Either[Seq[FormError], T]
 
@@ -47,7 +47,7 @@ object Formats {
   /**
    * Formatter for ignored values.
    *
-   * @param value As we ignore this parameter in binding/unbinding we have to provide a default value.
+   * @param value As we ignore this parameter in binding/unbinding we have to provide a default value
    */
   def ignoredFormat[A](value: A): Formatter[A] = new Formatter[A] {
     def bind(key: String, data: Map[String, String]) = Right(value)
@@ -178,7 +178,7 @@ object Formats {
   /**
    * Formatter for the `java.util.Date` type.
    *
-   * @param pattern a date pattern, as specified in `org.joda.time.format.DateTimeFormat`.
+   * @param pattern a date pattern, as specified in `org.joda.time.format.DateTimeFormat`
    * @param timeZone the `java.util.TimeZone` to use for parsing and formatting
    */
   def dateFormat(pattern: String, timeZone: TimeZone = TimeZone.getDefault): Formatter[Date] = new Formatter[Date] {
@@ -202,7 +202,7 @@ object Formats {
   /**
    * Formatter for the `java.sql.Date` type.
    *
-   * @param pattern a date pattern as specified in `org.joda.time.format.DateTimeFormat`.
+   * @param pattern a date pattern as specified in `org.joda.time.format.DateTimeFormat`
    * @param timeZone the `java.util.TimeZone` to use for parsing and formatting
    */
   def sqlDateFormat(pattern: String, timeZone: TimeZone = TimeZone.getDefault): Formatter[java.sql.Date] = new Formatter[java.sql.Date] {
@@ -226,7 +226,7 @@ object Formats {
   /**
    * Formatter for the `org.joda.time.DateTime` type.
    *
-   * @param pattern a date pattern as specified in `org.joda.time.format.DateTimeFormat`.
+   * @param pattern a date pattern as specified in `org.joda.time.format.DateTimeFormat`
    * @param timeZone the `org.joda.time.DateTimeZone` to use for parsing and formatting
    */
   def jodaDateTimeFormat(pattern: String, timeZone: org.joda.time.DateTimeZone = org.joda.time.DateTimeZone.getDefault): Formatter[org.joda.time.DateTime] = new Formatter[org.joda.time.DateTime] {
@@ -243,14 +243,14 @@ object Formats {
   /**
    * Default formatter for `org.joda.time.DateTime` type with pattern `yyyy-MM-dd`.
    *
-   * @param pattern a date pattern as specified in `org.joda.time.format.DateTimeFormat`.
+   * @param pattern a date pattern as specified in `org.joda.time.format.DateTimeFormat`
    */
   implicit val jodaDateTimeFormat: Formatter[org.joda.time.DateTime] = jodaDateTimeFormat("yyyy-MM-dd")
 
   /**
    * Formatter for the `org.joda.time.LocalDate` type.
    *
-   * @param pattern a date pattern as specified in `org.joda.time.format.DateTimeFormat`.
+   * @param pattern a date pattern as specified in `org.joda.time.format.DateTimeFormat`
    */
   def jodaLocalDateFormat(pattern: String): Formatter[org.joda.time.LocalDate] = new Formatter[org.joda.time.LocalDate] {
 

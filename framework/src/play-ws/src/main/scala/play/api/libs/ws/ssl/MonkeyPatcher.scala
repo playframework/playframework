@@ -23,7 +23,7 @@ trait MonkeyPatcher {
    * Monkeypatches any given field.
    *
    * @param field the field to change
-   * @param newObject the new object to place in the field.
+   * @param newObject the new object to place in the field
    */
   def monkeyPatchField(field: Field, newObject: AnyRef) {
     val base = unsafe.staticFieldBase(field)

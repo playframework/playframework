@@ -308,7 +308,7 @@ class EvolutionsWebCommands @Inject() (evolutions: EvolutionsApi, reader: Evolut
  * Exception thrown when the database is not up to date.
  *
  * @param db the database name
- * @param script the script to be run to resolve the conflict.
+ * @param script the script to be run to resolve the conflict
  */
 case class InvalidDatabaseRevision(db: String, script: String) extends PlayException.RichDescription(
   "Database '" + db + "' needs evolution!",

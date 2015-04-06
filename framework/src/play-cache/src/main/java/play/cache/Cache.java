@@ -26,9 +26,9 @@ public class Cache {
     /**
      * Retrieve a value from the cache, or set it from a default Callable function.
      *
-     * @param key        Item key.
+     * @param key        Item key
      * @param block      block returning value to set if key does not exist
-     * @param expiration expiration period in seconds.
+     * @param expiration expiration period in seconds
      * @return value
      */
     @SuppressWarnings("unchecked")

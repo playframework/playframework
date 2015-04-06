@@ -158,7 +158,7 @@ public class Messages {
     }
 
     /**
-     * @return The underlying API
+     * @return the underlying API
      */
     public MessagesApi messagesApi() {
         return messages;

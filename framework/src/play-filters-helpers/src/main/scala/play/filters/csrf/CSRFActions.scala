@@ -14,10 +14,10 @@ import scala.concurrent.Future
 /**
  * An action that provides CSRF protection.
  *
- * @param config The CSRF configuration.
- * @param tokenProvider A token provider to use.
- * @param next The composed action that is being protected.
- * @param errorHandler handling failed token error.
+ * @param config The CSRF configuration
+ * @param tokenProvider A token provider to use
+ * @param next The composed action that is being protected
+ * @param errorHandler handling failed token error
  */
 class CSRFAction(next: EssentialAction,
     config: CSRFConfig = CSRFConfig(),

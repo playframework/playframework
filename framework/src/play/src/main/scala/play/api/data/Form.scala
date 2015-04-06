@@ -133,7 +133,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
    * @tparam R common result type
    * @param hasErrors a function to handle forms with errors
    * @param success a function to handle form submission success
-   * @return a result `R`.
+   * @return a result `R`
    */
   def fold[R](hasErrors: Form[T] => R, success: T => R): R = value match {
     case Some(v) if errors.isEmpty => success(v)
@@ -197,14 +197,14 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
   /**
    * Retrieve the first error for this key.
    *
-   * @param key field name.
+   * @param key field name
    */
   def error(key: String): Option[FormError] = errors.find(_.key == key)
 
   /**
    * Retrieve all errors for this key.
    *
-   * @param key field name.
+   * @param key field name
    */
   def errors(key: String): Seq[FormError] = errors.filter(_.key == key)
 
@@ -297,7 +297,7 @@ case class Field(private val form: Form[_], name: String, constraints: Seq[(Stri
   /**
    * Retrieve a field from the same form, using a key relative to this field key.
    *
-   * @param key Relative key.
+   * @param key Relative key
    */
   def apply(key: String): Field = {
     form(Option(name).filterNot(_.isEmpty).map(_ + (if (key(0) == '[') "" else ".")).getOrElse("") + key)
@@ -393,9 +393,9 @@ private[data] object FormUtils {
 /**
  * A form error.
  *
- * @param key The error key (should be associated with a field using the same key).
- * @param message The form message (often a simple message key needing to be translated).
- * @param args Arguments used to format the message.
+ * @param key The error key (should be associated with a field using the same key)
+ * @param message The form message (often a simple message key needing to be translated)
+ * @param args Arguments used to format the message
  */
 case class FormError(key: String, messages: Seq[String], args: Seq[Any] = Nil) {
 
@@ -408,7 +408,7 @@ case class FormError(key: String, messages: Seq[String], args: Seq[Any] = Nil) {
   /**
    * Copy this error with a new Message.
    *
-   * @param message The new message.
+   * @param message The new message
    */
   def withMessage(message: String): FormError = FormError(key, message)
 }
@@ -833,7 +833,7 @@ case class OptionalMapping[T](wrapped: Mapping[T], val constraints: Seq[Constrai
  * A mapping for a single field.
  *
  * @param key the field key
- * @param constraints the constraints associated with this field.
+ * @param constraints the constraints associated with this field
  */
 case class FieldMapping[T](val key: String = "", val constraints: Seq[Constraint[T]] = Nil)(implicit val binder: Formatter[T]) extends Mapping[T] {
 

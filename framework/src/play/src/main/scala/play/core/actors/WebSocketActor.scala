@@ -93,12 +93,12 @@ private[play] object WebSocketActor {
     /**
      * Connect an actor to the WebSocket on the end of the given enumerator/iteratee.
      *
-     * @param requestId The requestId. Used to name the actor.
-     * @param enumerator The enumerator to send messages to.
-     * @param iteratee The iteratee to consume messages from.
+     * @param requestId The requestId. Used to name the actor
+     * @param enumerator The enumerator to send messages to
+     * @param iteratee The iteratee to consume messages from
      * @param createHandler A function that creates a handler to handle the WebSocket, given an actor to send messages
      *                      to.
-     * @param messageType The type of message this WebSocket deals with.
+     * @param messageType The type of message this WebSocket deals with
      */
     case class Connect[In, Out](requestId: Long, enumerator: Enumerator[In], iteratee: Iteratee[Out, Unit],
       createHandler: ActorRef => Props)(implicit val messageType: ClassTag[Out])

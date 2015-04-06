@@ -19,9 +19,9 @@ public interface CacheApi {
     /**
      * Retrieve a value from the cache, or set it from a default Callable function.
      *
-     * @param key Item key.
+     * @param key Item key
      * @param block block returning value to set if key does not exist
-     * @param expiration expiration period in seconds.
+     * @param expiration expiration period in seconds
      * @return value
      */
     public <T> T getOrElse(String key, Callable<T> block, int expiration);
@@ -31,7 +31,7 @@ public interface CacheApi {
      *
      * The value has no expiration.
      *
-     * @param key Item key.
+     * @param key Item key
      * @param block block returning value to set if key does not exist
      * @return value
      */
@@ -40,8 +40,8 @@ public interface CacheApi {
     /**
      * Sets a value with expiration.
      *
-     * @param key Item key.
-     * @param value The value to set.
+     * @param key Item key
+     * @param value The value to set
      * @param expiration expiration in seconds
      */
     public void set(String key, Object value, int expiration);
@@ -49,15 +49,15 @@ public interface CacheApi {
     /**
      * Sets a value without expiration.
      *
-     * @param key Item key.
-     * @param value The value to set.
+     * @param key Item key
+     * @param value The value to set
      */
     public void set(String key, Object value);
 
     /**
      * Removes a value from the cache.
      *
-     * @param key The key to remove the value for.
+     * @param key The key to remove the value for
      */
     public void remove(String key);
 }

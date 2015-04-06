@@ -20,8 +20,8 @@ public interface HttpRequestHandler {
      * an instance of Action that invokes the injected action delegate.
      *
      * @param request The HTTP Request
-     * @param actionMethod The action method containing the user code for this Action.
-     * @return The default implementation returns a raw Action calling the method.
+     * @param actionMethod The action method containing the user code for this Action
+     * @return the default implementation returns a raw Action calling the method
      */
     Action createAction(Request request, Method actionMethod);
 
@@ -31,8 +31,8 @@ public interface HttpRequestHandler {
      * This method is passed a fully composed action, allowing a last final global interceptor to be added to the
      * action if required.
      *
-     * @param action The action to wrap.
-     * @return A wrapped action.
+     * @param action The action to wrap
+     * @return a wrapped action
      */
     Action wrapAction(Action action);
 }

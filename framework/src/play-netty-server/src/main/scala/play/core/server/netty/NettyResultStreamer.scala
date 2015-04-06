@@ -32,7 +32,7 @@ object NettyResultStreamer {
   /**
    * Send the result to netty
    *
-   * @return A Future that will be redeemed when the result is completely sent
+   * @return a Future that will be redeemed when the result is completely sent
    */
   def sendResult(requestHeader: RequestHeader, result: Result, httpVersion: HttpVersion, startSequence: Int)(implicit ctx: ChannelHandlerContext, oue: OrderedUpstreamMessageEvent): Future[_] = {
     import play.api.libs.iteratee.Execution.Implicits.trampoline

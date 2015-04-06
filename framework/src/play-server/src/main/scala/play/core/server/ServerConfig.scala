@@ -13,10 +13,10 @@ import play.api.{ Configuration, Mode }
  *
  * @param rootDir The root directory of the server. Used to find default locations of
  * files, log directories, etc.
- * @param port The HTTP port to use.
- * @param sslPort The HTTPS port to use.
- * @param address The socket address to bind to.
- * @param mode The run mode: dev, test or prod.
+ * @param port The HTTP port to use
+ * @param sslPort The HTTPS port to use
+ * @param address The socket address to bind to
+ * @param mode The run mode: dev, test or prod
  * @param configuration: The configuration to use for loading the server. This is not
  * the same as application configuration. This configuration is usually loaded from a
  * server.conf file, whereas the application configuration is usually loaded from an
@@ -60,7 +60,7 @@ object ServerConfig {
    * given some Properties. At this moment this just reads from server-reference.conf
    * and from the given properties.
    *
-   * @param properties The properties to base the configuration on.
+   * @param properties The properties to base the configuration on
    */
   def loadConfiguration(classLoader: ClassLoader, properties: Properties): Configuration = {
     Configuration(loadDefaultConfig(classLoader, properties).resolve())

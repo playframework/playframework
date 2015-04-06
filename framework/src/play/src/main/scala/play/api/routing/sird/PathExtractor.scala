@@ -21,8 +21,8 @@ import scala.util.matching.Regex
  *   - java.net.URI
  *   - java.net.URL
  *
- * @param regex The regex that is used to extract the raw parts.
- * @param partDescriptors Descriptors saying whether each part should be decoded or not.
+ * @param regex The regex that is used to extract the raw parts
+ * @param partDescriptors Descriptors saying whether each part should be decoded or not
  */
 class PathExtractor(regex: Regex, partDescriptors: Seq[PathPart.Value]) {
   def unapplySeq(path: String): Option[List[String]] = extract(path)

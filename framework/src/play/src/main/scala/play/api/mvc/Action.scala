@@ -112,7 +112,7 @@ trait Action[A] extends EssentialAction {
   /**
    * The execution context to run this action in
    *
-   * @return The execution context to run the action in
+   * @return the execution context to run the action in
    */
   def executionContext: ExecutionContext = play.api.libs.concurrent.Execution.defaultContext
 
@@ -142,7 +142,7 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
    * when the request body has been parsed.
    *
    * @param f a function for transforming the computed result
-   * @param ec The context to execute the supplied function with.
+   * @param ec The context to execute the supplied function with
    *        The context is prepared on the calling thread.
    * @return the transformed body parser
    * @see [[play.api.libs.iteratee.Iteratee#map]]
@@ -161,7 +161,7 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
    * Like map but allows the map function to execute asynchronously.
    *
    * @param f the async function to map the result of the body parser
-   * @param ec The context to execute the supplied function with.
+   * @param ec The context to execute the supplied function with
    *        The context prepared on the calling thread.
    * @return the transformed body parser
    * @see [[map]]
@@ -192,7 +192,7 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
    * input.
    *
    * @param f the function to produce a new body parser from the result of this body parser
-   * @param ec The context to execute the supplied function with.
+   * @param ec The context to execute the supplied function with
    *        The context is prepared on the calling thread.
    * @return the transformed body parser
    * @see [[play.api.libs.iteratee.Iteratee#flatMap]]
@@ -213,7 +213,7 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
    * Like flatMap but allows the flatMap function to execute asynchronously.
    *
    * @param f the async function to produce a new body parser from the result of this body parser
-   * @param ec The context to execute the supplied function with.
+   * @param ec The context to execute the supplied function with
    *        The context is prepared on the calling thread.
    * @return the transformed body parser
    * @see [[flatMap]]
@@ -250,7 +250,7 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
    * }}}
    *
    * @param f the function to validate the computed result of this body parser
-   * @param ec The context to execute the supplied function with.
+   * @param ec The context to execute the supplied function with
    *        The context is prepared on the calling thread.
    * @return the transformed body parser
    */
@@ -270,7 +270,7 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
    * Like validate but allows the validate function to execute asynchronously.
    *
    * @param f the async function to validate the computed result of this body parser
-   * @param ec The context to execute the supplied function with.
+   * @param ec The context to execute the supplied function with
    *        The context is prepared on the calling thread.
    * @return the transformed body parser
    * @see [[validate]]
@@ -347,14 +347,14 @@ trait ActionFunction[-R[_], +P[_]] {
    *
    * @param request The request
    * @param block The block of code to invoke
-   * @return A future of the result
+   * @return a future of the result
    */
   def invokeBlock[A](request: R[A], block: P[A] => Future[Result]): Future[Result]
 
   /**
    * Get the execution context to run the request in.  Override this if you want a custom execution context
    *
-   * @return The execution context
+   * @return the execution context
    */
   protected def executionContext: ExecutionContext = play.api.libs.concurrent.Execution.defaultContext
 
@@ -362,7 +362,7 @@ trait ActionFunction[-R[_], +P[_]] {
    * Compose this ActionFunction with another, with this one applied first.
    *
    * @param other ActionFunction with which to compose
-   * @return The new ActionFunction
+   * @return the new ActionFunction
    */
   def andThen[Q[_]](other: ActionFunction[P, Q]): ActionFunction[R, Q] = new ActionFunction[R, Q] {
     def invokeBlock[A](request: R[A], block: Q[A] => Future[Result]) =
@@ -373,7 +373,7 @@ trait ActionFunction[-R[_], +P[_]] {
    * Compose another ActionFunction with this one, with this one applied last.
    *
    * @param other ActionFunction with which to compose
-   * @return The new ActionFunction
+   * @return the new ActionFunction
    */
   def compose[Q[_]](other: ActionFunction[Q, R]): ActionFunction[Q, P] =
     other.andThen(this)
@@ -504,7 +504,7 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
    * Compose the parser.  This allows the action builder to potentially intercept requests before they are parsed.
    *
    * @param bodyParser The body parser to compose
-   * @return The composed body parser
+   * @return the composed body parser
    */
   protected def composeParser[A](bodyParser: BodyParser[A]): BodyParser[A] = bodyParser
 
@@ -512,7 +512,7 @@ trait ActionBuilder[+R[_]] extends ActionFunction[Request, R] {
    * Compose the action with other actions.  This allows mixing in of various actions together.
    *
    * @param action The action to compose
-   * @return The composed action
+   * @return the composed action
    */
   protected def composeAction[A](action: Action[A]): Action[A] = action
 
@@ -548,7 +548,7 @@ trait ActionRefiner[-R[_], +P[_]] extends ActionFunction[R, P] {
    * It can decide to immediately intercept the request and return a Result (Left), or continue processing with a new parameter of type P (Right).
    *
    * @param request the input request
-   * @return Either a result or a new parameter to pass to the Action block
+   * @return either a result or a new parameter to pass to the Action block
    */
   protected def refine[A](request: R[A]): Future[Either[Result, P[A]]]
 
@@ -566,7 +566,7 @@ trait ActionTransformer[-R[_], +P[_]] extends ActionRefiner[R, P] {
    * Augment or transform an existing request.  This is the main method that an ActionTransformer has to implement.
    *
    * @param request the input request
-   * @return The new parameter to pass to the Action block
+   * @return the new parameter to pass to the Action block
    */
   protected def transform[A](request: R[A]): Future[P[A]]
 
@@ -586,7 +586,7 @@ trait ActionFilter[R[_]] extends ActionRefiner[R, R] {
    * It can decide to immediately intercept the request and return a Result (Some), or continue processing (None).
    *
    * @param request the input request
-   * @return An optional Result with which to abort the request
+   * @return an optional Result with which to abort the request
    */
   protected def filter[A](request: R[A]): Future[Option[Result]]
 

@@ -15,8 +15,8 @@ import play.filters.csrf.CSRF._
  * and hence depend on a started application, they must be by name.
  *
  * @param config A csrf configuration object
- * @param tokenProvider A token provider to use.
- * @param errorHandler handling failed token error.
+ * @param tokenProvider A token provider to use
+ * @param errorHandler handling failed token error
  */
 class CSRFFilter(
     config: => CSRFConfig,

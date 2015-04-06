@@ -48,7 +48,7 @@ object Comet {
    * Create a Comet Enumeratee.
    *
    * @tparam E Type of messages handled by this comet stream.
-   * @param callback Javascript function to call on the browser for each message.
+   * @param callback Javascript function to call on the browser for each message
    * @param initialChunk Initial chunk of data to send for browser compatibility (default to send 5Kb of blank data)
    */
   def apply[E](callback: String, initialChunk: Html = Html(Array.fill[Char](5 * 1024)(' ').mkString + "<html><body>"))(implicit encoder: CometMessage[E]) = new Enumeratee[E, Html] {

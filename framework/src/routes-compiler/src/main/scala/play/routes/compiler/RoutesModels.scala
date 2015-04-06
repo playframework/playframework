@@ -40,11 +40,11 @@ case class HttpVerb(value: String) {
 /**
  * A call to the handler.
  *
- * @param packageName The handlers package.
- * @param controller The controllers class name.
- * @param instantiate Whether the controller needs to be instantiated dynamically.
- * @param method The method to invoke on the controller.
- * @param parameters The parameters to pass to the method.
+ * @param packageName The handlers package
+ * @param controller The controllers class name
+ * @param instantiate Whether the controller needs to be instantiated dynamically
+ * @param method The method to invoke on the controller
+ * @param parameters The parameters to pass to the method
  */
 case class HandlerCall(packageName: String, controller: String, instantiate: Boolean, method: String, parameters: Option[Seq[Parameter]]) extends Positional {
   val dynamic = if (instantiate) "@" else ""
@@ -56,10 +56,10 @@ case class HandlerCall(packageName: String, controller: String, instantiate: Boo
 /**
  * A parameter for a controller method.
  *
- * @param name The name of the parameter.
- * @param typeName The type of the parameter.
- * @param fixed The fixed value for the parameter, if defined.
- * @param default A default value for the parameter, if defined.
+ * @param name The name of the parameter
+ * @param typeName The type of the parameter
+ * @param fixed The fixed value for the parameter, if defined
+ * @param default A default value for the parameter, if defined
  */
 case class Parameter(name: String, typeName: String, fixed: Option[String], default: Option[String]) extends Positional {
   override def toString = name + ":" + typeName + fixed.map(" = " + _).getOrElse("") + default.map(" ?= " + _).getOrElse("")
@@ -78,9 +78,9 @@ trait PathPart
 /**
  * A dynamic part, which gets extracted into a parameter.
  *
- * @param name The name of the parameter that this part of the path gets extracted into.
- * @param constraint The regular expression used to match this part.
- * @param encode Whether this part should be encoded or not.
+ * @param name The name of the parameter that this part of the path gets extracted into
+ * @param constraint The regular expression used to match this part
+ * @param encode Whether this part should be encoded or not
  */
 case class DynamicPart(name: String, constraint: String, encode: Boolean) extends PathPart with Positional {
   override def toString = """DynamicPart("""" + name + "\", \"\"\"" + constraint + "\"\"\"," + encode + ")" //"

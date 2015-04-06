@@ -39,7 +39,7 @@ public class Langs {
      * play.modules.i18n.langs="fr,en,de"
      * </pre>
      *
-     * @return The available languages.
+     * @return the available languages
      */
     public List<Lang> availables() {
         return availables;
@@ -52,7 +52,7 @@ public class Langs {
      * none of the candidates are available.
      *
      * @param candidates The candidate languages
-     * @return The preferred language
+     * @return the preferred language
      */
     public Lang preferred(Collection<Lang> candidates) {
         return new Lang(langs.preferred((scala.collection.Seq) JavaConversions.collectionAsScalaIterable(candidates).toSeq()));

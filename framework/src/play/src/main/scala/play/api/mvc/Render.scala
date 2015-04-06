@@ -26,7 +26,7 @@ trait Rendering {
      * }}}
      *
      * @param f A partial function returning a `Result` for a given request media range
-     * @return A result provided by `f`, if it is defined for the current request media ranges, otherwise NotAcceptable
+     * @return a result provided by `f`, if it is defined for the current request media ranges, otherwise NotAcceptable
      */
     def apply(f: PartialFunction[MediaRange, Result])(implicit request: RequestHeader): Result = {
       def _render(ms: Seq[MediaRange]): Result = ms match {
@@ -57,7 +57,7 @@ trait Rendering {
      * }}}
      *
      * @param f A partial function returning a `Future[Result]` for a given request media range
-     * @return A result provided by `f`, if it is defined for the current request media ranges, otherwise NotAcceptable
+     * @return a result provided by `f`, if it is defined for the current request media ranges, otherwise NotAcceptable
      */
     def async(f: PartialFunction[MediaRange, Future[Result]])(implicit request: RequestHeader): Future[Result] = {
       def _render(ms: Seq[MediaRange]): Future[Result] = ms match {

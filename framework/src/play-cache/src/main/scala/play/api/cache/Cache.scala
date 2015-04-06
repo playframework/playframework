@@ -23,9 +23,9 @@ trait CacheApi {
   /**
    * Set a value into the cache.
    *
-   * @param key Item key.
-   * @param value Item value.
-   * @param expiration Expiration time.
+   * @param key Item key
+   * @param value Item value
+   * @param expiration Expiration time
    */
   def set(key: String, value: Any, expiration: Duration = Duration.Inf)
 
@@ -37,16 +37,16 @@ trait CacheApi {
   /**
    * Retrieve a value from the cache, or set it from a default function.
    *
-   * @param key Item key.
-   * @param expiration expiration period in seconds.
-   * @param orElse The default function to invoke if the value was not found in cache.
+   * @param key Item key
+   * @param expiration expiration period in seconds
+   * @param orElse The default function to invoke if the value was not found in cache
    */
   def getOrElse[A: ClassTag](key: String, expiration: Duration = Duration.Inf)(orElse: => A): A
 
   /**
    * Retrieve a value from the cache for the given type
    *
-   * @param key Item key.
+   * @param key Item key
    * @return result as Option[T]
    */
   def get[T: ClassTag](key: String): Option[T]
@@ -67,9 +67,9 @@ object Cache {
   /**
    * Set a value into the cache.
    *
-   * @param key Item key.
-   * @param value Item value.
-   * @param expiration Expiration time as a [[scala.concurrent.duration.Duration]].
+   * @param key Item key
+   * @param value Item value
+   * @param expiration Expiration time as a [[scala.concurrent.duration.Duration]]
    */
   def set(key: String, value: Any, expiration: Duration = Duration.Inf)(implicit app: Application): Unit = {
     cacheApi.set(key, value, expiration)
@@ -78,9 +78,9 @@ object Cache {
   /**
    * Set a value into the cache.
    *
-   * @param key Item key.
-   * @param value Item value.
-   * @param expiration Expiration time in seconds (0 second means eternity).
+   * @param key Item key
+   * @param value Item value
+   * @param expiration Expiration time in seconds (0 second means eternity)
    */
   def set(key: String, value: Any, expiration: Int)(implicit app: Application): Unit = {
     set(key, value, intToDuration(expiration))
@@ -89,7 +89,7 @@ object Cache {
   /**
    * Retrieve a value from the cache.
    *
-   * @param key Item key.
+   * @param key Item key
    */
   def get(key: String)(implicit app: Application): Option[Any] = {
     cacheApi.get[Any](key)
@@ -98,9 +98,9 @@ object Cache {
   /**
    * Retrieve a value from the cache, or set it from a default function.
    *
-   * @param key Item key.
-   * @param expiration expiration period as a [[scala.concurrent.duration.Duration]].
-   * @param orElse The default function to invoke if the value was not found in cache.
+   * @param key Item key
+   * @param expiration expiration period as a [[scala.concurrent.duration.Duration]]
+   * @param orElse The default function to invoke if the value was not found in cache
    */
   def getOrElse[A](key: String, expiration: Duration = Duration.Inf)(orElse: => A)(implicit app: Application, ct: ClassTag[A]): A = {
     cacheApi.getOrElse(key, expiration)(orElse)
@@ -109,9 +109,9 @@ object Cache {
   /**
    * Retrieve a value from the cache, or set it from a default function.
    *
-   * @param key Item key.
-   * @param expiration expiration period in seconds.
-   * @param orElse The default function to invoke if the value was not found in cache.
+   * @param key Item key
+   * @param expiration expiration period in seconds
+   * @param orElse The default function to invoke if the value was not found in cache
    */
   def getOrElse[A](key: String, expiration: Int)(orElse: => A)(implicit app: Application, ct: ClassTag[A]): A = {
     getOrElse(key, intToDuration(expiration))(orElse)
@@ -120,7 +120,7 @@ object Cache {
   /**
    * Retrieve a value from the cache for the given type
    *
-   * @param key Item key.
+   * @param key Item key
    * @return result as Option[T]
    */
   def getAs[T](key: String)(implicit app: Application, ct: ClassTag[T]): Option[T] = {
