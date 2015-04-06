@@ -153,8 +153,8 @@ private object RunQueue {
   /**
    * A reified operation to be executed.
    *
-   * @param thunk The logic to execute.
-   * @param ec The ExecutionContext to use for execution. Already prepared.
+   * @param thunk The logic to execute
+   * @param ec The ExecutionContext to use for execution. Already prepared
    */
   final case class Op(thunk: () => Future[Unit], ec: ExecutionContext)
 

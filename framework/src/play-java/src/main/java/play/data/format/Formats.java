@@ -28,7 +28,7 @@ public class Formats {
         /**
          * Creates a date formatter.
          *
-         * @param pattern date pattern, as specified for {@link SimpleDateFormat}.
+         * @param pattern date pattern, as specified for {@link SimpleDateFormat}
          */
         public DateFormatter(String pattern) {
             this.pattern = pattern;

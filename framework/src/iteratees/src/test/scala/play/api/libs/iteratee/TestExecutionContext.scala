@@ -17,7 +17,7 @@ object TestExecutionContext {
 /**
  * An `ExecutionContext` that counts its executions.
  *
- * @param delegate The underlying `ExecutionContext` to delegate execution to.
+ * @param delegate The underlying `ExecutionContext` to delegate execution to
  */
 class TestExecutionContext(delegate: ExecutionContext) extends ExecutionContext {
   top =>

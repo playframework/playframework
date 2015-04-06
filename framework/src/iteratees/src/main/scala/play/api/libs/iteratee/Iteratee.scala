@@ -11,8 +11,8 @@ import play.api.libs.iteratee.internal.{ eagerFuture, executeFuture, executeIter
 /**
  * Various helper methods to construct, compose and traverse Iteratees.
  *
- * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used.
- * @define paramEcMultiple @param ec The context to execute the supplied functions with. The context is prepared on the calling thread before being used.
+ * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used
+ * @define paramEcMultiple @param ec The context to execute the supplied functions with. The context is prepared on the calling thread before being used
  */
 object Iteratee {
 
@@ -205,7 +205,7 @@ object Iteratee {
      * @param eofValue Value if the input is [[play.api.libs.iteratee.Input.EOF]]
      * @tparam A Type of `eofValue`
      * @tparam B Type of `otherwise`
-     * @return An `Iteratee[E, Either[B, A]]` that consumes one input and produces a `Right(eofValue)` if this input is [[play.api.libs.iteratee.Input.EOF]] otherwise it produces a `Left(otherwise)`
+     * @return an `Iteratee[E, Either[B, A]]` that consumes one input and produces a `Right(eofValue)` if this input is [[play.api.libs.iteratee.Input.EOF]] otherwise it produces a `Left(otherwise)`
      */
     def apply[A, B](otherwise: B)(eofValue: A): Iteratee[E, Either[B, A]]
   }
@@ -229,7 +229,7 @@ object Iteratee {
   def ignore[E]: Iteratee[E, Unit] = fold[E, Unit](())((_, _) => ())(dec)
 
   /**
-   * @return an [[play.api.libs.iteratee.Iteratee]] which executes a provided function for every chunk. Returns Done on EOF.
+   * @return an [[play.api.libs.iteratee.Iteratee]] which executes a provided function for every chunk. Returns Done on EOF
    *
    * Example:
    * {{{
@@ -327,7 +327,7 @@ object Step {
   /**
    * A continuing state of an iteratee.
    *
-   * @param k A function that can receive input for the iteratee to process.
+   * @param k A function that can receive input for the iteratee to process
    */
   case class Cont[E, +A](k: Input[E] => Iteratee[E, A]) extends Step[E, A]
 
@@ -370,8 +370,8 @@ object Step {
  * @tparam E Input type
  * @tparam A Result type of this Iteratee
  *
- * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread.
- * @define paramEcMultiple @param ec The context to execute the supplied functions with. The context is prepared on the calling thread.
+ * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread
+ * @define paramEcMultiple @param ec The context to execute the supplied functions with. The context is prepared on the calling thread
  */
 trait Iteratee[E, +A] {
   self =>

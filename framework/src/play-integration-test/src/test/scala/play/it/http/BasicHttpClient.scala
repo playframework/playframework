@@ -19,7 +19,7 @@ object BasicHttpClient {
    * @param checkClosed Whether to check if the channel is closed after receiving the responses
    * @param trickleFeed A timeout to use between sending request body chunks
    * @param requests The requests to make
-   * @return The parsed number of responses.  This may be more than the number of requests, if continue headers are sent.
+   * @return the parsed number of responses.  This may be more than the number of requests, if continue headers are sent
    */
   def makeRequests(port: Int, checkClosed: Boolean = false, trickleFeed: Option[Long] = None)(requests: BasicRequest*): Seq[BasicResponse] = {
     val client = new BasicHttpClient(port)
@@ -76,7 +76,7 @@ class BasicHttpClient(port: Int) {
    * @param waitForResponses Whether we should wait for responses
    * @param trickleFeed Whether bodies should be trickle fed.  Trickle feeding will simulate a more realistic network
    *                    environment.
-   * @return The responses (may be more than one if Expect: 100-continue header is present) if requested to wait for
+   * @return the responses (may be more than one if Expect: 100-continue header is present) if requested to wait for
    *         them
    */
   def sendRequest(request: BasicRequest, requestDesc: String, waitForResponses: Boolean = true,
@@ -128,7 +128,7 @@ class BasicHttpClient(port: Int) {
    * Read a response
    *
    * @param responseDesc Description of the response, for error reporting
-   * @return The response
+   * @return the response
    */
   def readResponse(responseDesc: String) = {
     try {

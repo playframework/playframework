@@ -212,9 +212,9 @@ object NettyServer extends ServerStart {
   /**
    * Create a Netty server from the given application and server configuration.
    *
-   * @param application The application.
-   * @param config The server configuration.
-   * @return A started Netty server, serving the application.
+   * @param application The application
+   * @param config The server configuration
+   * @return a started Netty server, serving the application
    */
   def fromApplication(application: Application, config: ServerConfig = ServerConfig()): NettyServer = {
     new NettyServer(config, new ApplicationProvider {

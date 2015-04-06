@@ -34,9 +34,9 @@ public class Crypto {
      * By default this uses the platform default JSSE provider.  This can be overridden by defining
      * <code>application.crypto.provider</code> in <code>application.conf</code>.
      *
-     * @param message The message to sign.
-     * @param key     The private key to sign with.
-     * @return A hexadecimal encoded signature.
+     * @param message The message to sign
+     * @param key     The private key to sign with
+     * @return a hexadecimal encoded signature
      */
     public String sign(String message, byte[] key) {
         return crypto.sign(message, key);
@@ -48,8 +48,8 @@ public class Crypto {
      * By default this uses the platform default JSSE provider.  This can be overridden by defining
      * <code>application.crypto.provider</code> in <code>application.conf</code>.
      *
-     * @param message The message to sign.
-     * @return A hexadecimal encoded signature.
+     * @param message The message to sign
+     * @return a hexadecimal encoded signature
      */
     public String sign(String message) {
         return crypto.sign(message);
@@ -62,7 +62,7 @@ public class Crypto {
      * request, without actually changing the value.
      *
      * @param token The token to sign
-     * @return The signed token
+     * @return the signed token
      */
     public String signToken(String token) {
         return crypto.signToken(token);
@@ -71,8 +71,8 @@ public class Crypto {
     /**
      * Extract a signed token that was signed by {@link #signToken(String)}.
      *
-     * @param token The signed token to extract.
-     * @return The verified raw token, or null if the token isn't valid.
+     * @param token The signed token to extract
+     * @return the verified raw token, or null if the token isn't valid
      */
     public String extractSignedToken(String token) {
         scala.Option<String> extracted = crypto.extractSignedToken(token);
@@ -129,8 +129,8 @@ public class Crypto {
      * <code>application.conf</code>.  Although any cipher transformation algorithm can be selected here, the secret key
      * spec used is always AES, so only AES transformation algorithms will work.
      *
-     * @param value The String to encrypt.
-     * @return An hexadecimal encrypted string.
+     * @param value The String to encrypt
+     * @return an hexadecimal encrypted string
      */
     public String encryptAES(String value) {
         return crypto.encryptAES(value);
@@ -153,9 +153,9 @@ public class Crypto {
      * <code>application.conf</code>.  Although any cipher transformation algorithm can be selected here, the secret key
      * spec used is always AES, so only AES transformation algorithms will work.
      *
-     * @param value      The String to encrypt.
-     * @param privateKey The key used to encrypt.
-     * @return An hexadecimal encrypted string.
+     * @param value      The String to encrypt
+     * @param privateKey The key used to encrypt
+     * @return an hexadecimal encrypted string
      */
     public String encryptAES(String value, String privateKey) {
         return crypto.encryptAES(value, privateKey);
@@ -172,8 +172,8 @@ public class Crypto {
      * transformation algorithm can be selected here, the secret key spec used is always AES, so only AES transformation
      * algorithms will work.
      *
-     * @param value An hexadecimal encrypted string.
-     * @return The decrypted String.
+     * @param value An hexadecimal encrypted string
+     * @return the decrypted String
      */
     public String decryptAES(String value) {
         return crypto.decryptAES(value);
@@ -192,9 +192,9 @@ public class Crypto {
      * transformation algorithm can be selected here, the secret key spec used is always AES, so only AES transformation
      * algorithms will work.
      *
-     * @param value      An hexadecimal encrypted string.
-     * @param privateKey The key used to encrypt.
-     * @return The decrypted String.
+     * @param value      An hexadecimal encrypted string
+     * @param privateKey The key used to encrypt
+     * @return the decrypted String
      */
     public String decryptAES(String value, String privateKey) {
         return crypto.decryptAES(value, privateKey);

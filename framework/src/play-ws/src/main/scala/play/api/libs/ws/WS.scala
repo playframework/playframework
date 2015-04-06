@@ -24,14 +24,14 @@ trait WSClient {
   /**
    * The underlying implementation of the client, if any.  You must cast explicitly to the type you want.
    * @tparam T the type you are expecting (i.e. isInstanceOf)
-   * @return the backing class.
+   * @return the backing class
    */
   def underlying[T]: T
 
   /**
    * Generates a request holder which can be used to build requests.
    *
-   * @param url The base URL to make HTTP requests to.
+   * @param url The base URL to make HTTP requests to
    * @return a WSRequestHolder
    */
   def url(url: String): WSRequest
@@ -116,7 +116,7 @@ object WS {
    * }}}
    *
    * @param url the URL to request
-   * @param app the implicit application to use.
+   * @param app the implicit application to use
    */
   def url(url: String)(implicit app: Application): play.api.libs.ws.WSRequest = wsapi(app).url(url)
 
@@ -140,7 +140,7 @@ object WS {
    * WS.url(client -> exampleURL).get()
    * }}}
    *
-   * @param magnet a magnet pattern.
+   * @param magnet a magnet pattern
    * @see <a href="http://spray.io/blog/2012-12-13-the-magnet-pattern/">The magnet pattern</a>
    */
   def url(magnet: WSRequestMagnet): play.api.libs.ws.WSRequest = magnet()
@@ -154,7 +154,7 @@ object WS {
    * }}}
    *
    * @param url the URL to request
-   * @param client the client to use to make the request.
+   * @param client the client to use to make the request
    */
   def clientUrl(url: String)(implicit client: WSClient): play.api.libs.ws.WSRequest = client.url(url)
 }

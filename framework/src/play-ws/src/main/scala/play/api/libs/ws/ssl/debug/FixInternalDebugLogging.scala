@@ -34,8 +34,8 @@ object FixInternalDebugLogging {
     /**
      * Returns true if this class has an instance of the class returned by debugClassName, false otherwise.
      *
-     * @param className the name of the class.
-     * @return true if this class should be returned in the set of findClasses, false otherwise.
+     * @param className the name of the class
+     * @return true if this class should be returned in the set of findClasses, false otherwise
      */
     def isValidClass(className: String): Boolean = {
       if (className.startsWith("com.sun.net.ssl.internal.ssl")) return true

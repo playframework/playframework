@@ -78,8 +78,8 @@ trait Enumeratee[From, To] {
 }
 
 /**
- * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used.
- * @define paramEcMultiple @param ec The context to execute the supplied functions with. The context is prepared on the calling thread before being used.
+ * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used
+ * @define paramEcMultiple @param ec The context to execute the supplied functions with. The context is prepared on the calling thread before being used
  */
 object Enumeratee {
 
@@ -123,9 +123,9 @@ object Enumeratee {
    * Create an Enumeratee that zips two Iteratees together, using the passed in zipper function to combine the results
    * of the two.
    *
-   * @param inner1 The first Iteratee to combine.
-   * @param inner2 The second Iteratee to combine.
-   * @param zipper Used to combine the results of each Iteratee.
+   * @param inner1 The first Iteratee to combine
+   * @param inner2 The second Iteratee to combine
+   * @param zipper Used to combine the results of each Iteratee
    * $paramEcSingle
    */
   def zipWith[E, A, B, C](inner1: Iteratee[E, A], inner2: Iteratee[E, B])(zipper: (A, B) => C)(implicit ec: ExecutionContext): Iteratee[E, C] = {
@@ -185,7 +185,7 @@ object Enumeratee {
    */
   trait MapInput[From] {
     /**
-     * @param f Used to transform each input element.
+     * @param f Used to transform each input element
      * $paramEcSingle
      */
     def apply[To](f: Input[From] => Input[To])(implicit ec: ExecutionContext): Enumeratee[From, To]
@@ -218,7 +218,7 @@ object Enumeratee {
    */
   trait MapConcatInput[From] {
     /**
-     * @param f Used to transform each input element into a sequence of inputs.
+     * @param f Used to transform each input element into a sequence of inputs
      * $paramEcSingle
      */
     def apply[To](f: From => Seq[Input[To]])(implicit ec: ExecutionContext): Enumeratee[From, To]
@@ -236,7 +236,7 @@ object Enumeratee {
    */
   trait MapConcat[From] {
     /**
-     * @param f Used to transform each input element into a sequence of input elements.
+     * @param f Used to transform each input element into a sequence of input elements
      * $paramEcSingle
      */
     def apply[To](f: From => Seq[To])(implicit ec: ExecutionContext): Enumeratee[From, To]
@@ -254,7 +254,7 @@ object Enumeratee {
    */
   trait MapFlatten[From] {
     /**
-     * @param f Used to transform each input element into an Enumerator.
+     * @param f Used to transform each input element into an Enumerator
      * $paramEcSingle
      */
     def apply[To](f: From => Enumerator[To])(implicit ec: ExecutionContext): Enumeratee[From, To]
@@ -286,7 +286,7 @@ object Enumeratee {
    */
   trait MapInputFlatten[From] {
     /**
-     * @param f Used to transform each input into an Enumerator.
+     * @param f Used to transform each input into an Enumerator
      * $paramEcSingle
      */
     def apply[To](f: Input[From] => Enumerator[To])(implicit ec: ExecutionContext): Enumeratee[From, To]
@@ -313,7 +313,7 @@ object Enumeratee {
    */
   trait MapInputM[From] {
     /**
-     * @param f Used to transform each input.
+     * @param f Used to transform each input
      * $paramEcSingle
      */
     def apply[To](f: Input[From] => Future[Input[To]])(implicit ec: ExecutionContext): Enumeratee[From, To]
@@ -342,7 +342,7 @@ object Enumeratee {
    */
   trait MapM[E] {
     /**
-     * @param f Used to transform each input element.
+     * @param f Used to transform each input element
      * $paramEcSingle
      */
     def apply[NE](f: E => Future[NE])(implicit ec: ExecutionContext): Enumeratee[E, NE]
@@ -364,7 +364,7 @@ object Enumeratee {
    */
   trait Map[E] {
     /**
-     * @param f A function to transform input elements.
+     * @param f A function to transform input elements
      * $paramEcSingle
      */
     def apply[NE](f: E => NE)(implicit ec: ExecutionContext): Enumeratee[E, NE]
@@ -489,7 +489,7 @@ object Enumeratee {
   /**
    * Create an Enumeratee that filters the inputs using the given predicate
    *
-   * @param predicate A function to filter the input elements.
+   * @param predicate A function to filter the input elements
    * $paramEcSingle
    */
   def filter[E](predicate: E => Boolean)(implicit ec: ExecutionContext): Enumeratee[E, E] = new CheckDone[E, E] {
@@ -515,7 +515,7 @@ object Enumeratee {
   /**
    * Create an Enumeratee that filters the inputs using the negation of the given predicate
    *
-   * @param predicate A function to filter the input elements.
+   * @param predicate A function to filter the input elements
    * $paramEcSingle
    */
   def filterNot[E](predicate: E => Boolean)(implicit ec: ExecutionContext): Enumeratee[E, E] = filter[E](e => !predicate(e))(ec)
@@ -525,7 +525,7 @@ object Enumeratee {
    */
   trait Collect[From] {
     /**
-     * @param transformer A function to transform and filter the input elements with.
+     * @param transformer A function to transform and filter the input elements with
      * $paramSingleEc
      */
     def apply[To](transformer: PartialFunction[From, To])(implicit ec: ExecutionContext): Enumeratee[From, To]
@@ -584,7 +584,7 @@ object Enumeratee {
   /**
    * Create an Enumeratee that drops input until a predicate is satisfied.
    *
-   * @param f A predicate to test the input with.
+   * @param f A predicate to test the input with
    * $paramEcSingle
    */
   def dropWhile[E](p: E => Boolean)(implicit ec: ExecutionContext): Enumeratee[E, E] = {
@@ -612,7 +612,7 @@ object Enumeratee {
    * Create an Enumeratee that passes input through while a predicate is satisfied. Once the predicate
    * fails, no more input is passed through.
    *
-   * @param f A predicate to test the input with.
+   * @param f A predicate to test the input with
    * $paramEcSingle
    */
   def takeWhile[E](p: E => Boolean)(implicit ec: ExecutionContext): Enumeratee[E, E] = {
@@ -640,7 +640,7 @@ object Enumeratee {
    * Create an Enumeratee that passes input through until a predicate is satisfied. Once the predicate
    * is satisfied, no more input is passed through.
    *
-   * @param f A predicate to test the input with.
+   * @param f A predicate to test the input with
    * $paramEcSingle
    */
   def breakE[E](p: E => Boolean)(implicit ec: ExecutionContext) = new Enumeratee[E, E] {
@@ -700,7 +700,7 @@ object Enumeratee {
   /**
    * Create an Enumeratee that performs an action when its Iteratee is done.
    *
-   * @param action The action to perform.
+   * @param action The action to perform
    * $paramEcSingle
    */
   def onIterateeDone[E](action: () => Unit)(implicit ec: ExecutionContext): Enumeratee[E, E] = new Enumeratee[E, E] {
@@ -713,7 +713,7 @@ object Enumeratee {
   /**
    * Create an Enumeratee that performs an action on EOF.
    *
-   * @param action The action to perform.
+   * @param action The action to perform
    * $paramEcSingle
    */
   def onEOF[E](action: () => Unit)(implicit ec: ExecutionContext): Enumeratee[E, E] = new CheckDone[E, E] {
@@ -746,7 +746,7 @@ object Enumeratee {
    *  } |>>> Iteratee.getChunks // => List(4, 2)
    * }}}
    *
-   * @param f Called when an error occurs with the cause of the error and the input associated with the error.
+   * @param f Called when an error occurs with the cause of the error and the input associated with the error
    * $paramEcSingle
    */
   def recover[E](f: (Throwable, Input[E]) => Unit = (_: Throwable, _: Input[E]) => ())(implicit ec: ExecutionContext): Enumeratee[E, E] = {

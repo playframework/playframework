@@ -28,7 +28,7 @@ class SimpleSSLContextBuilder(protocol: String,
 
   /**
    * Builds the appropriate SSL context manager.
-   * @return a configured SSL context.
+   * @return a configured SSL context
    */
   def build(): SSLContext = {
 

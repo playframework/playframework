@@ -39,7 +39,7 @@ private[streams] object EnumeratorSubscription {
   sealed trait State[+T]
   /**
    * An active Subscription with n outstanding requested elements.
-   * @param n Elements that have been requested by the Subscriber. May be 0.
+   * @param n Elements that have been requested by the Subscriber. May be 0
    * @param attached The attached Iteratee we're using to read from the
    * Enumerator. Will be Unattached until the first element is requested.
    */

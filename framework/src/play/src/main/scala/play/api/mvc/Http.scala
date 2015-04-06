@@ -109,7 +109,7 @@ package play.api.mvc {
     }
 
     /**
-     * @return The media types list of the request’s Accept header, sorted by preference (preferred first).
+     * @return the media types list of the request’s Accept header, sorted by preference (preferred first)
      */
     lazy val acceptedTypes: Seq[play.api.http.MediaRange] = {
       headers.get(HeaderNames.ACCEPT).toSeq.flatMap(MediaRange.parse.apply)
@@ -202,7 +202,7 @@ package play.api.mvc {
     val qPattern = ";\\s*q=([0-9.]+)".r
 
     /**
-     * @return The items of an Accept* header, with their q-value.
+     * @return the items of an Accept* header, with their q-value
      */
     private[play] def acceptHeader(headers: Headers, headerName: String): Seq[(Double, String)] = {
       for {

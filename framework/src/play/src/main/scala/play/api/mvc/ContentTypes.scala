@@ -167,7 +167,7 @@ object MultipartFormData {
 /**
  * Handle the request body a raw bytes data.
  *
- * @param memoryThreshold If the content size is bigger than this limit, the content is stored as file.
+ * @param memoryThreshold If the content size is bigger than this limit, the content is stored as file
  */
 case class RawBuffer(memoryThreshold: Int, initialData: Array[Byte] = Array.empty[Byte]) {
 
@@ -224,7 +224,7 @@ case class RawBuffer(memoryThreshold: Int, initialData: Array[Byte] = Array.empt
    *
    * @param maxLength The max length allowed to be stored in memory.  If this is smaller than memoryThreshold, and the
    *                  buffer is already in memory then None will still be returned.
-   * @return None if the content is greater than maxLength, otherwise, the data as bytes.
+   * @return None if the content is greater than maxLength, otherwise, the data as bytes
    */
   def asBytes(maxLength: Long = memoryThreshold): Option[Array[Byte]] = {
     if (size <= maxLength) {
@@ -309,7 +309,7 @@ trait BodyParsers {
     /**
      * Parse the body as text without checking the Content-Type.
      *
-     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
+     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response
      */
     def tolerantText(maxLength: Long): BodyParser[String] = BodyParser("text, maxLength=" + maxLength) { request =>
       // Encoding notes: RFC-2616 section 3.7.1 mandates ISO-8859-1 as the default charset if none is specified.
@@ -328,7 +328,7 @@ trait BodyParsers {
     /**
      * Parse the body as text if the Content-Type is text/plain.
      *
-     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
+     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response
      */
     def text(maxLength: Int): BodyParser[String] = when(
       _.contentType.exists(_.equalsIgnoreCase("text/plain")),
@@ -346,7 +346,7 @@ trait BodyParsers {
     /**
      * Store the body content in a RawBuffer.
      *
-     * @param memoryThreshold If the content size is bigger than this limit, the content is stored as file.
+     * @param memoryThreshold If the content size is bigger than this limit, the content is stored as file
      */
     def raw(memoryThreshold: Int = DefaultMaxTextLength, maxLength: Long = DefaultMaxDiskLength): BodyParser[RawBuffer] =
       BodyParser("raw, memoryThreshold=" + memoryThreshold) { request =>
@@ -370,7 +370,7 @@ trait BodyParsers {
     /**
      * Parse the body as Json without checking the Content-Type.
      *
-     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
+     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response
      */
     def tolerantJson(maxLength: Int): BodyParser[JsValue] =
       tolerantBodyParser[JsValue]("json", maxLength, "Invalid Json") { (request, bytes) =>
@@ -388,7 +388,7 @@ trait BodyParsers {
     /**
      * Parse the body as Json if the Content-Type is text/json or application/json.
      *
-     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
+     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response
      */
     def json(maxLength: Int): BodyParser[JsValue] = when(
       _.contentType.exists(m => m.equalsIgnoreCase("text/json") || m.equalsIgnoreCase("application/json")),
@@ -406,7 +406,7 @@ trait BodyParsers {
      * validating the result with the Json reader.
      *
      * @tparam A the type to read and validate from the body.
-     * @param reader a Json reader for type A.
+     * @param reader a Json reader for type A
      */
     def json[A](implicit reader: Reads[A]): BodyParser[A] =
       BodyParser("json reader") { request =>
@@ -440,7 +440,7 @@ trait BodyParsers {
      * }}}
      *
      * @param form Form model
-     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response. If `None`, the default `play.http.parser.maxMemoryBuffer` configuration value is used.
+     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response. If `None`, the default `play.http.parser.maxMemoryBuffer` configuration value is used
      * @param onErrors The result to reply in case of errors during the form binding process
      */
     def form[A](form: Form[A], maxLength: Option[Long] = None, onErrors: Form[A] => Result = (formErrors: Form[A]) => Results.BadRequest): BodyParser[A] =
@@ -471,7 +471,7 @@ trait BodyParsers {
     /**
      * Parse the body as Xml without checking the Content-Type.
      *
-     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
+     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response
      */
     def tolerantXml(maxLength: Int): BodyParser[NodeSeq] =
       tolerantBodyParser[NodeSeq]("xml", maxLength, "Invalid XML") { (request, bytes) =>
@@ -506,7 +506,7 @@ trait BodyParsers {
     /**
      * Parse the body as Xml if the Content-Type is application/xml, text/xml or application/XXX+xml.
      *
-     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
+     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response
      */
     def xml(maxLength: Int): BodyParser[NodeSeq] = when(
       _.contentType.exists { t =>
@@ -527,7 +527,7 @@ trait BodyParsers {
     /**
      * Store the body content into a file.
      *
-     * @param to The file used to store the content.
+     * @param to The file used to store the content
      */
     def file(to: File): BodyParser[File] = BodyParser("file, to=" + to) { request =>
       import play.core.Execution.Implicits.internalContext
@@ -555,7 +555,7 @@ trait BodyParsers {
     /**
      * Parse the body as Form url encoded without checking the Content-Type.
      *
-     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
+     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response
      */
     def tolerantFormUrlEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] =
       tolerantBodyParser("urlFormEncoded", maxLength, "Error parsing application/x-www-form-urlencoded") { (request, bytes) =>
@@ -573,7 +573,7 @@ trait BodyParsers {
     /**
      * Parse the body as form url encoded if the Content-Type is application/x-www-form-urlencoded.
      *
-     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
+     * @param maxLength Max length allowed or returns EntityTooLarge HTTP response
      */
     def urlFormEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] = when(
       _.contentType.exists(_.equalsIgnoreCase("application/x-www-form-urlencoded")),
@@ -659,7 +659,7 @@ trait BodyParsers {
     /**
      * Parse the content as multipart/form-data
      *
-     * @param filePartHandler Handles file parts.
+     * @param filePartHandler Handles file parts
      */
     def multipartFormData[A](filePartHandler: Multipart.PartHandler[FilePart[A]], maxLength: Long = DefaultMaxDiskLength): BodyParser[MultipartFormData[A]] = {
       BodyParser("multipartFormData") { request =>

@@ -113,7 +113,7 @@ public class Environment {
      * Retrieves a resource stream from the classpath.
      *
      * @param relativePath relative path of the resource to fetch
-     * @return InputStream to the resource (may be null)
+     * @return inputStream to the resource (may be null)
      */
     public InputStream resourceAsStream(String relativePath) {
         return Scala.orNull(env.resourceAsStream(relativePath));

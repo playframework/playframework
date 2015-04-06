@@ -69,7 +69,7 @@ public class Json {
     /**
      * Convert an object to JsonNode.
      *
-     * @param data Value to convert in Json.
+     * @param data Value to convert in Json
      */
     public static JsonNode toJson(final Object data) {
         try {
@@ -82,8 +82,8 @@ public class Json {
     /**
      * Convert a JsonNode to a Java value
      *
-     * @param json Json value to convert.
-     * @param clazz Expected Java value type.
+     * @param json Json value to convert
+     * @param clazz Expected Java value type
      */
     public static <A> A fromJson(JsonNode json, Class<A> clazz) {
         try {

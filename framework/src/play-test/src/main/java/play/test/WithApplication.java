@@ -21,7 +21,7 @@ public class WithApplication {
      *
      * By default this will call the old {@link #provideFakeApplication() provideFakeApplication} method.
      *
-     * @return The application to use
+     * @return the application to use
      */
     protected Application provideApplication() {
         return provideFakeApplication();
@@ -32,7 +32,7 @@ public class WithApplication {
      *
      * Override this method to setup the fake application to use.
      *
-     * @return The fake application to use
+     * @return the fake application to use
      */
     protected FakeApplication provideFakeApplication() {
         return Helpers.fakeApplication();

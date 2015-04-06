@@ -30,7 +30,7 @@ public class BuildDocHandlerFactory {
      * Create an BuildDocHandler that serves documentation from a given directory by
      * wrapping a FilesystemRepository.
      *
-     * @param directory The directory to serve the documentation from.
+     * @param directory The directory to serve the documentation from
      */
     public static BuildDocHandler fromDirectory(File directory) {
         FileRepository repo = new FilesystemRepository(directory);
@@ -42,8 +42,8 @@ public class BuildDocHandlerFactory {
      * wrapping a FilesystemRepository, and the API docs from a given JAR file by
      * wrapping a JarRepository
      *
-     * @param directory The directory to serve the documentation from.
-     * @param jarFile The JAR file to server the documentation from.
+     * @param directory The directory to serve the documentation from
+     * @param jarFile The JAR file to server the documentation from
      * @param base    The directory within the JAR file to serve the documentation from, or null if the
      *                documentation should be served from the root of the JAR.
      */
@@ -56,11 +56,11 @@ public class BuildDocHandlerFactory {
      * wrapping a FilesystemRepository, and the API docs from a given JAR file by
      * wrapping a JarRepository.
      *
-     * @param directory The directory to serve the documentation from.
-     * @param jarFile The JAR file to server the documentation from.
+     * @param directory The directory to serve the documentation from
+     * @param jarFile The JAR file to server the documentation from
      * @param base    The directory within the JAR file to serve the documentation from, or null if the
      *                documentation should be served from the root of the JAR.
-     * @param fallbackToJar Whether the doc handler should fall back to the jar repo for docs.
+     * @param fallbackToJar Whether the doc handler should fall back to the jar repo for docs
      */
     public static BuildDocHandler fromDirectoryAndJar(File directory, JarFile jarFile, String base, boolean fallbackToJar) {
         FileRepository fileRepo = new FilesystemRepository(directory);
@@ -79,7 +79,7 @@ public class BuildDocHandlerFactory {
      * Create an BuildDocHandler that serves documentation from a given JAR file by
      * wrapping a JarRepository.
      *
-     * @param jarFile The JAR file to server the documentation from.
+     * @param jarFile The JAR file to server the documentation from
      * @param base    The directory within the JAR file to serve the documentation from, or null if the
      *                documentation should be served from the root of the JAR.
      */

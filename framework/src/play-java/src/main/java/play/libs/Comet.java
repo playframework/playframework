@@ -22,7 +22,7 @@ public abstract class Comet extends Chunks<String> {
     /**
      * Create a new Comet socket
      *
-     * @param callbackMethod The Javascript callback method to call on each message.
+     * @param callbackMethod The Javascript callback method to call on each message
      */
     public Comet(String callbackMethod) {
         super(play.core.j.JavaResults.writeString("text/html", play.api.mvc.Codec.javaSupported("utf-8")));

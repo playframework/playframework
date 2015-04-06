@@ -29,7 +29,7 @@ trait WebSocketClient {
   /**
    * Connect to the given URI.
    *
-   * @return A future that will be redeemed when the connection is closed.
+   * @return a future that will be redeemed when the connection is closed
    */
   def connect(url: URI, version: WebSocketVersion = WebSocketVersion.V13)(onConnect: Handler): Future[Unit]
 

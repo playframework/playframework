@@ -60,7 +60,7 @@ object Configuration {
    *
    * Defaults to Mode.Dev
    *
-   * @param mode Application mode.
+   * @param mode Application mode
    * @return a `Configuration` instance
    */
   def load(appPath: File, mode: Mode.Mode = Mode.Dev, devSettings: Map[String, String] = Map.empty): Configuration = {

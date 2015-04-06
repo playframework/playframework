@@ -14,7 +14,7 @@ trait RoutesGenerator {
    * @param task The routes compile task
    * @param namespace The namespace of the router
    * @param rules The routing rules
-   * @return A sequence of output filenames to file contents
+   * @return a sequence of output filenames to file contents
    */
   def generate(task: RoutesCompilerTask, namespace: Option[String], rules: List[Rule]): Seq[(String, String)]
 

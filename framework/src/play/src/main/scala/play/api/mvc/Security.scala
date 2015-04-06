@@ -125,8 +125,8 @@ object Security {
    * }
    * }}}
    *
-   * @param userinfo The function that looks up the user info.
-   * @param onUnauthorized The function to get the result for when no authenticated user can be found.
+   * @param userinfo The function that looks up the user info
+   * @param onUnauthorized The function to get the result for when no authenticated user can be found
    */
   class AuthenticatedBuilder[U](userinfo: RequestHeader => Option[U],
     onUnauthorized: RequestHeader => Result = _ => Unauthorized(views.html.defaultpages.unauthorized()))
@@ -185,8 +185,8 @@ object Security {
     /**
      * Create an authenticated builder
      *
-     * @param userinfo The function that looks up the user info.
-     * @param onUnauthorized The function to get the result for when no authenticated user can be found.
+     * @param userinfo The function that looks up the user info
+     * @param onUnauthorized The function to get the result for when no authenticated user can be found
      */
     def apply[U](userinfo: RequestHeader => Option[U],
       onUnauthorized: RequestHeader => Result = _ => Unauthorized(views.html.defaultpages.unauthorized())): AuthenticatedBuilder[U] = new AuthenticatedBuilder(userinfo, onUnauthorized)

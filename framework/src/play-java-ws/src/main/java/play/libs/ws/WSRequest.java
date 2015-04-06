@@ -250,8 +250,8 @@ public interface WSRequest {
     /**
      * Sets the request timeout in milliseconds.
      *
-     * @param timeout the request timeout in milliseconds.
-     * @return the modified WSRequest.
+     * @param timeout the request timeout in milliseconds
+     * @return the modified WSRequest
      */
     WSRequest setRequestTimeout(long timeout);
 
@@ -268,22 +268,22 @@ public interface WSRequest {
     //-------------------------------------------------------------------------
 
     /**
-     * @return the URL of the request.  This has not passed through an internal request builder and so will not be signed.
+     * @return the URL of the request.  This has not passed through an internal request builder and so will not be signed
      */
     String getUrl();
 
     /**
-     * @return the headers (a copy to prevent side-effects). This has not passed through an internal request builder and so will not be signed.
+     * @return the headers (a copy to prevent side-effects). This has not passed through an internal request builder and so will not be signed
      */
     Map<String, Collection<String>> getHeaders();
 
     /**
-     * @return the query parameters (a copy to prevent side-effects). This has not passed through an internal request builder and so will not be signed.
+     * @return the query parameters (a copy to prevent side-effects). This has not passed through an internal request builder and so will not be signed
      */
     Map<String, Collection<String>> getQueryParameters();
 
     /**
-     * @return the auth username, null if not an authenticated request.
+     * @return the auth username, null if not an authenticated request
      */
     String getUsername();
 
@@ -293,12 +293,12 @@ public interface WSRequest {
     String getPassword();
 
     /**
-     * @return the auth scheme, null if not an authenticated request.
+     * @return the auth scheme, null if not an authenticated request
      */
     WSAuthScheme getScheme();
 
     /**
-     * @return the signature calculator (example: OAuth), null if none is set.
+     * @return the signature calculator (example: OAuth), null if none is set
      */
     WSSignatureCalculator getCalculator();
 
@@ -309,7 +309,7 @@ public interface WSRequest {
     long getRequestTimeout();
 
     /**
-     * @return true if the request is configure to follow redirect, false if it is configure not to, null if nothing is configured and the global client preference should be used instead.
+     * @return true if the request is configure to follow redirect, false if it is configure not to, null if nothing is configured and the global client preference should be used instead
      */
     Boolean getFollowRedirects();
 

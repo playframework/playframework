@@ -62,7 +62,7 @@ public interface QueryStringBindable<T extends QueryStringBindable<T>> {
      *
      * @param key Parameter key
      * @param data The query string data
-     * @return An instance of this class (it could be this class) if the query string data can be bound to this type,
+     * @return an instance of this class (it could be this class) if the query string data can be bound to this type,
      *      or None if it couldn't.
      */
     public Option<T> bind(String key, Map<String,String[]> data);

@@ -110,7 +110,7 @@ public abstract class EventSource extends Chunks<String> {
 
         /**
          * @param name Event name
-         * @return A copy of this event, with name {@code name}
+         * @return a copy of this event, with name {@code name}
          */
         public Event withName(String name) {
             return new Event(this.data, this.id, name);
@@ -118,14 +118,14 @@ public abstract class EventSource extends Chunks<String> {
 
         /**
          * @param id Event id
-         * @return A copy of this event, with id {@code id}.
+         * @return a copy of this event, with id {@code id}
          */
         public Event withId(String id) {
             return new Event(this.data, id, this.name);
         }
 
         /**
-         * @return This event formatted according to the EventSource protocol.
+         * @return this event formatted according to the EventSource protocol
          */
         public String formatted() {
             return new play.api.libs.EventSource.Event(data, Scala.Option(id), Scala.Option(name)).formatted();
@@ -133,7 +133,7 @@ public abstract class EventSource extends Chunks<String> {
 
         /**
          * @param data Event content
-         * @return An event with {@code data} as content
+         * @return an event with {@code data} as content
          */
         public static Event event(String data) {
             return new Event(data, null, null);
@@ -141,7 +141,7 @@ public abstract class EventSource extends Chunks<String> {
 
         /**
          * @param json Json value to use
-         * @return An event with a string representation of {@code json} as content
+         * @return an event with a string representation of {@code json} as content
          */
         public static Event event(JsonNode json) {
             return new Event(Json.stringify(json), null, null);

@@ -21,7 +21,7 @@ object Fakes {
    * Create an injector from the given bindings.
    *
    * @param bindings The bindings
-   * @return The injector
+   * @return the injector
    */
   def injectorFromBindings(bindings: Seq[Binding[_]]): Injector = {
     new GuiceInjectorBuilder().bindings(bindings).injector
@@ -32,7 +32,7 @@ object Fakes {
 /**
  * Fake HTTP headers implementation.
  *
- * @param data Headers data.
+ * @param data Headers data
  */
 case class FakeHeaders(data: Seq[(String, String)] = Seq.empty) extends Headers(data)
 

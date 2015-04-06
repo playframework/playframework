@@ -56,7 +56,7 @@ object CORSActionBuilder {
    * Construct an action builder that uses a subtree of the application configuration.
    *
    * @param  configuration  The configuration to load the config from
-   * @param  configPath  The path to the subtree of the application configuration.
+   * @param  configPath  The path to the subtree of the application configuration
    */
   def apply(configuration: Configuration, configPath: String = "play.filters.cors"): CORSActionBuilder = new CORSActionBuilder {
     override protected def corsConfig = {
@@ -70,7 +70,7 @@ object CORSActionBuilder {
   /**
    * Construct an action builder that uses locally defined configuration.
    *
-   * @param  config  The local configuration to use in place of the global configuration.
+   * @param  config  The local configuration to use in place of the global configuration
    * @see [[CORSConfig]]
    */
   def apply(config: CORSConfig): CORSActionBuilder = new CORSActionBuilder {

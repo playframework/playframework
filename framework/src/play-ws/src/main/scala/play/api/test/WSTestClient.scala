@@ -50,7 +50,7 @@ trait WsTestClient {
    *
    * @param block The block of code to run
    * @param port The port
-   * @return The result of the block of code
+   * @return the result of the block of code
    */
   def withClient[T](block: WSClient => T)(implicit port: play.api.http.Port = new play.api.http.Port(-1)) = {
     // Don't retry for tests

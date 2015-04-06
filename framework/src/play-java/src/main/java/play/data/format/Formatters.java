@@ -77,7 +77,7 @@ public class Formatters {
     /**
      * Computes the display string for any value, for a specific type.
      *
-     * @param desc the field descriptor - custom formatters are extracted from this descriptor.
+     * @param desc the field descriptor - custom formatters are extracted from this descriptor
      * @param t the value to print
      * @return the formatted string
      */
@@ -151,7 +151,7 @@ public class Formatters {
         /**
          * Unbind this field (ie. transform a concrete value to plain string)
          *
-         * @param annotation the annotation that trigerred this formatter.
+         * @param annotation the annotation that trigerred this formatter
          * @param value the value to unbind
          * @param locale the current <code>Locale</code>
          * @return printable version of the value

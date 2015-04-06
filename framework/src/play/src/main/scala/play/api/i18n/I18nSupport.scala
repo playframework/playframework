@@ -21,7 +21,7 @@ trait I18nSupport extends I18NSupportLowPriorityImplicits {
   def messagesApi: MessagesApi
 
   /**
-   * @return The preferred [[Messages]] according to the given [[RequestHeader]]
+   * @return the preferred [[Messages]] according to the given [[RequestHeader]]
    */
   implicit def request2Messages(implicit request: RequestHeader): Messages = messagesApi.preferred(request)
 
@@ -65,7 +65,7 @@ trait I18nSupport extends I18NSupportLowPriorityImplicits {
 trait I18NSupportLowPriorityImplicits { this: I18nSupport =>
 
   /**
-   * @return A [[Messages]] value that uses the [[Lang]] found in the implicit scope
+   * @return a [[Messages]] value that uses the [[Lang]] found in the implicit scope
    */
   implicit def lang2Messages(implicit lang: Lang): Messages = Messages(lang, messagesApi)
 

@@ -22,8 +22,8 @@ object Collections {
    *
    * @tparam A Type of the final List elements.
    * @tparam B Seed type
-   * @param seed Initial value.
-   * @param f Function producing the List elements.
+   * @param seed Initial value
+   * @param f Function producing the List elements
    */
   def unfoldLeft[A, B](seed: B)(f: B => Option[(B, A)]): Seq[A] = {
     def loop(seed: B)(ls: List[A]): List[A] = f(seed) match {

@@ -16,7 +16,7 @@ public interface ServerWithStop {
   /**
    * Get the address of the server.
    *
-   * @return The address of the server.
+   * @return the address of the server
    */
   public java.net.InetSocketAddress mainAddress(); 
 

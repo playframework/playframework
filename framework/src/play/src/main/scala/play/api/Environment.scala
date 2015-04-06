@@ -10,9 +10,9 @@ import java.io.{ InputStream, File }
  *
  * Captures concerns relating to the classloader and the filesystem for the application.
  *
- * @param rootPath The root path that the application is deployed at.
- * @param classLoader The classloader that all application classes and resources can be loaded from.
- * @param mode The mode of the application.
+ * @param rootPath The root path that the application is deployed at
+ * @param classLoader The classloader that all application classes and resources can be loaded from
+ * @param mode The mode of the application
  */
 case class Environment(
     rootPath: File,

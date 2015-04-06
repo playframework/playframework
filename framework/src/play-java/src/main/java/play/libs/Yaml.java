@@ -27,7 +27,7 @@ public class Yaml {
     /** 
      * Load the specified InputStream as Yaml.
      *
-     * @param classloader The classloader to use to instantiate Java objects.
+     * @param classloader The classloader to use to instantiate Java objects
      */
     public static Object load(InputStream is, ClassLoader classloader) {
         org.yaml.snakeyaml.Yaml yaml = new org.yaml.snakeyaml.Yaml(new CustomClassLoaderConstructor(classloader));

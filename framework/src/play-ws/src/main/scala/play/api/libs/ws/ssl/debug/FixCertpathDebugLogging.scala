@@ -32,8 +32,8 @@ object FixCertpathDebugLogging {
     /**
      * Returns true if this class has an instance of {{Debug.getInstance("certpath")}}, false otherwise.
      *
-     * @param className the name of the class.
-     * @return true if this class should be returned in the set of findClasses, false otherwise.
+     * @param className the name of the class
+     * @return true if this class should be returned in the set of findClasses, false otherwise
      */
     def isValidClass(className: String): Boolean = {
       if (className.startsWith("java.security.cert")) return true
@@ -84,7 +84,7 @@ object FixCertpathDebugLogging {
   /**
    * Extends {{sun.security.util.Debug}} to delegate println to a logger.
    *
-   * @param logger the logger which will receive debug calls.
+   * @param logger the logger which will receive debug calls
    */
   class SunSecurityUtilDebugLogger(logger: org.slf4j.Logger) extends sun.security.util.Debug {
     override def println(message: String) {

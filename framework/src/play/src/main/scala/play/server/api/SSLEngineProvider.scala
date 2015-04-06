@@ -15,7 +15,7 @@ import play.core.ApplicationProvider
 trait SSLEngineProvider extends play.server.SSLEngineProvider {
 
   /**
-   * @return the SSL engine to be used for HTTPS connection.
+   * @return the SSL engine to be used for HTTPS connection
    */
   def createSSLEngine: SSLEngine
 

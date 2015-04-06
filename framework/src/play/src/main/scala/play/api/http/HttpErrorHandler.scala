@@ -28,17 +28,17 @@ trait HttpErrorHandler {
   /**
    * Invoked when a client error occurs, that is, an error in the 4xx series.
    *
-   * @param request The request that caused the client error.
-   * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500.
-   * @param message The error message.
+   * @param request The request that caused the client error
+   * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500
+   * @param message The error message
    */
   def onClientError(request: RequestHeader, statusCode: Int, message: String = ""): Future[Result]
 
   /**
    * Invoked when a server error occurs.
    *
-   * @param request The request that triggered the server error.
-   * @param exception The server error.
+   * @param request The request that triggered the server error
+   * @param exception The server error
    */
   def onServerError(request: RequestHeader, exception: Throwable): Future[Result]
 }
@@ -68,9 +68,9 @@ private[play] class GlobalSettingsHttpErrorHandler @Inject() (global: Provider[G
   /**
    * Invoked when a client error occurs, that is, an error in the 4xx series.
    *
-   * @param request The request that caused the client error.
-   * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500.
-   * @param message The error message.
+   * @param request The request that caused the client error
+   * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500
+   * @param message The error message
    */
   def onClientError(request: RequestHeader, statusCode: Int, message: String) = {
     statusCode match {
@@ -87,8 +87,8 @@ private[play] class GlobalSettingsHttpErrorHandler @Inject() (global: Provider[G
   /**
    * Invoked when a server error occurs.
    *
-   * @param request The request that triggered the server error.
-   * @param exception The server error.
+   * @param request The request that triggered the server error
+   * @param exception The server error
    */
   def onServerError(request: RequestHeader, exception: Throwable) =
     global.get.onError(request, exception)
@@ -100,7 +100,7 @@ private[play] class GlobalSettingsHttpErrorHandler @Inject() (global: Provider[G
  * This class is intended to be extended, allowing users to reuse some of the functionality provided here.
  *
  * @param environment The environment
- * @param router An optional router.
+ * @param router An optional router
  *               If provided, in dev mode, will be used to display more debug information when a handler can't be found.
  *               This is a lazy parameter, to avoid circular dependency issues, since the router may well depend on
  *               this.
@@ -120,9 +120,9 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
   /**
    * Invoked when a client error occurs, that is, an error in the 4xx series.
    *
-   * @param request The request that caused the client error.
-   * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500.
-   * @param message The error message.
+   * @param request The request that caused the client error
+   * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500
+   * @param message The error message
    */
   def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = statusCode match {
     case BAD_REQUEST => onBadRequest(request, message)
@@ -137,8 +137,8 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
   /**
    * Invoked when a client makes a bad request.
    *
-   * @param request The request that was bad.
-   * @param message The error message.
+   * @param request The request that was bad
+   * @param message The error message
    */
   protected def onBadRequest(request: RequestHeader, message: String): Future[Result] =
     Future.successful(BadRequest(views.html.defaultpages.badRequest(request.method, request.uri, message)))
@@ -146,8 +146,8 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
   /**
    * Invoked when a client makes a request that was forbidden.
    *
-   * @param request The forbidden request.
-   * @param message The error message.
+   * @param request The forbidden request
+   * @param message The error message
    */
   protected def onForbidden(request: RequestHeader, message: String): Future[Result] =
     Future.successful(Forbidden(views.html.defaultpages.unauthorized()))
@@ -155,8 +155,8 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
   /**
    * Invoked when a handler or resource is not found.
    *
-   * @param request The request that no handler was found to handle.
-   * @param message A message.
+   * @param request The request that no handler was found to handle
+   * @param message A message
    */
   protected def onNotFound(request: RequestHeader, message: String): Future[Result] = {
     Future.successful(NotFound(environment.mode match {
@@ -172,8 +172,8 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
    * [[onDevServerError()]] in dev mode.  It is recommended, if you want Play's debug info on the error page in dev
    * mode, that you override [[onProdServerError()]] instead of this method.
    *
-   * @param request The request that triggered the server error.
-   * @param exception The server error.
+   * @param request The request that triggered the server error
+   * @param exception The server error
    */
   def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
     try {
@@ -198,8 +198,8 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
    *
    * This can be overridden to add additional logging information, eg. the id of the authenticated user.
    *
-   * @param request The request that triggered the server error.
-   * @param usefulException The server error.
+   * @param request The request that triggered the server error
+   * @param usefulException The server error
    */
   protected def logServerError(request: RequestHeader, usefulException: UsefulException) {
     Logger.error("""
@@ -213,8 +213,8 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
   /**
    * Invoked in dev mode when a server error occurs.
    *
-   * @param request The request that triggered the error.
-   * @param exception The exception.
+   * @param request The request that triggered the error
+   * @param exception The exception
    */
   protected def onDevServerError(request: RequestHeader, exception: UsefulException): Future[Result] =
     Future.successful(InternalServerError(views.html.defaultpages.devError(playEditor, exception)))
@@ -225,8 +225,8 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
    * Override this rather than [[onServerError()]] if you don't want to change Play's debug output when logging errors
    * in dev mode.
    *
-   * @param request The request that triggered the error.
-   * @param exception The exception.
+   * @param request The request that triggered the error
+   * @param exception The exception
    */
   protected def onProdServerError(request: RequestHeader, exception: UsefulException): Future[Result] =
     Future.successful(InternalServerError(views.html.defaultpages.error(exception)))

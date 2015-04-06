@@ -95,7 +95,7 @@ public class JPA {
     /**
      * Run a block of code in a JPA transaction.
      *
-     * @param block Block of code to execute.
+     * @param block Block of code to execute
      */
     public static <T> T withTransaction(play.libs.F.Function0<T> block) throws Throwable {
         return jpaApi().withTransaction(block);
@@ -104,7 +104,7 @@ public class JPA {
     /**
      * Run a block of asynchronous code in a JPA transaction.
      *
-     * @param block Block of code to execute.
+     * @param block Block of code to execute
      *
      * @deprecated This may cause deadlocks
      */
@@ -116,7 +116,7 @@ public class JPA {
     /**
      * Run a block of code in a JPA transaction.
      *
-     * @param block Block of code to execute.
+     * @param block Block of code to execute
      */
     public static void withTransaction(final play.libs.F.Callback0 block) {
         jpaApi().withTransaction(block);
@@ -127,7 +127,7 @@ public class JPA {
      *
      * @param name The persistence unit name
      * @param readOnly Is the transaction read-only?
-     * @param block Block of code to execute.
+     * @param block Block of code to execute
      */
     public static <T> T withTransaction(String name, boolean readOnly, play.libs.F.Function0<T> block) throws Throwable {
         return jpaApi().withTransaction(name, readOnly, block);
@@ -138,7 +138,7 @@ public class JPA {
      *
      * @param name The persistence unit name
      * @param readOnly Is the transaction read-only?
-     * @param block Block of code to execute.
+     * @param block Block of code to execute
      *
      * @deprecated This may cause deadlocks
      */

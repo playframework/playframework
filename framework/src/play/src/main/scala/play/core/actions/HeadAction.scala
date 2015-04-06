@@ -15,7 +15,7 @@ import HeaderNames._
 /**
  * RFC2616-compatible HEAD implementation: provides a full header set and empty body for a given GET resource
  *
- * @param action Action for the relevant GET path.
+ * @param action Action for the relevant GET path
  */
 class HeadAction(action: EssentialAction) extends EssentialAction with DefaultWriteables with HttpProtocol {
 

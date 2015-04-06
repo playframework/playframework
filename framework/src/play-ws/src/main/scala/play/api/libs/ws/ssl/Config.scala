@@ -15,10 +15,10 @@ import javax.net.ssl.{ TrustManagerFactory, KeyManagerFactory, HostnameVerifier 
  *
  * A key store must either provide a file path, or a data String.
  *
- * @param storeType The store type. Defaults to the platform default store type (ie, JKS).
- * @param filePath The path of the key store file.
- * @param data The data to load the key store file from.
- * @param password The password to use to load the key store file, if the file is password protected.
+ * @param storeType The store type. Defaults to the platform default store type (ie, JKS)
+ * @param filePath The path of the key store file
+ * @param data The data to load the key store file from
+ * @param password The password to use to load the key store file, if the file is password protected
  */
 case class KeyStoreConfig(storeType: String = KeyStore.getDefaultType,
     filePath: Option[String] = None,
@@ -33,9 +33,9 @@ case class KeyStoreConfig(storeType: String = KeyStore.getDefaultType,
  *
  * A trust store must either provide a file path, or a data String.
  *
- * @param storeType The store type. Defaults to the platform default store type (ie, JKS).
- * @param filePath The path of the key store file.
- * @param data The data to load the key store file from.
+ * @param storeType The store type. Defaults to the platform default store type (ie, JKS)
+ * @param filePath The path of the key store file
+ * @param data The data to load the key store file from
  */
 case class TrustStoreConfig(storeType: String = KeyStore.getDefaultType,
     filePath: Option[String],
@@ -47,8 +47,8 @@ case class TrustStoreConfig(storeType: String = KeyStore.getDefaultType,
 /**
  * The key manager config.
  *
- * @param algorithm The algoritm to use.
- * @param keyStoreConfigs The key stores to use.
+ * @param algorithm The algoritm to use
+ * @param keyStoreConfigs The key stores to use
  */
 case class KeyManagerConfig(
   algorithm: String = KeyManagerFactory.getDefaultAlgorithm,
@@ -57,8 +57,8 @@ case class KeyManagerConfig(
 /**
  * The trust manager config.
  *
- * @param algorithm The algorithm to use.
- * @param trustStoreConfigs The trust stores to use.
+ * @param algorithm The algorithm to use
+ * @param trustStoreConfigs The trust stores to use
  */
 case class TrustManagerConfig(
   algorithm: String = TrustManagerFactory.getDefaultAlgorithm,
@@ -137,14 +137,14 @@ case class SSLDebugRecordOptions(plaintext: Boolean = false, packet: Boolean = f
 /**
  * Configuration for specifying loose (potentially dangerous) ssl config.
  *
- * @param allowWeakCiphers Whether weak ciphers should be allowed or not.
- * @param allowWeakProtocols Whether weak protocols should be allowed or not.
+ * @param allowWeakCiphers Whether weak ciphers should be allowed or not
+ * @param allowWeakProtocols Whether weak protocols should be allowed or not
  * @param allowLegacyHelloMessages Whether legacy hello messages should be allowed or not.  If None, uses the platform
  *                                 default.
  * @param allowUnsafeRenegotiation Whether unsafe renegotiation should be allowed or not. If None, uses the platform
  *                                 default.
- * @param disableHostnameVerification Whether hostname verification should be disabled.
- * @param acceptAnyCertificate Whether any X.509 certificate should be accepted or not.
+ * @param disableHostnameVerification Whether hostname verification should be disabled
+ * @param acceptAnyCertificate Whether any X.509 certificate should be accepted or not
  */
 case class SSLLooseConfig(
   allowWeakCiphers: Boolean = false,
@@ -157,19 +157,19 @@ case class SSLLooseConfig(
 /**
  * The SSL configuration.
  *
- * @param default Whether we should use the default JVM SSL configuration or not.
- * @param protocol The SSL protocol to use. Defaults to TLSv1.2.
- * @param checkRevocation Whether revocation lists should be checked, if None, defaults to platform default setting.
- * @param revocationLists The revocation lists to check.
- * @param enabledCipherSuites If defined, override the platform default cipher suites.
- * @param enabledProtocols If defined, override the platform default protocols.
- * @param disabledSignatureAlgorithms The disabled signature algorithms.
- * @param disabledKeyAlgorithms The disabled key algorithms.
- * @param keyManagerConfig The key manager configuration.
- * @param trustManagerConfig The trust manager configuration.
- * @param hostnameVerifierClass The hostname verifier class.
- * @param secureRandom The SecureRandom instance to use. Let the platform choose if None.
- * @param debug The debug config.
+ * @param default Whether we should use the default JVM SSL configuration or not
+ * @param protocol The SSL protocol to use. Defaults to TLSv1.2
+ * @param checkRevocation Whether revocation lists should be checked, if None, defaults to platform default setting
+ * @param revocationLists The revocation lists to check
+ * @param enabledCipherSuites If defined, override the platform default cipher suites
+ * @param enabledProtocols If defined, override the platform default protocols
+ * @param disabledSignatureAlgorithms The disabled signature algorithms
+ * @param disabledKeyAlgorithms The disabled key algorithms
+ * @param keyManagerConfig The key manager configuration
+ * @param trustManagerConfig The trust manager configuration
+ * @param hostnameVerifierClass The hostname verifier class
+ * @param secureRandom The SecureRandom instance to use. Let the platform choose if None
+ * @param debug The debug config
  * @param loose Loose configuratino parameters
  */
 case class SSLConfig(

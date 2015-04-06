@@ -77,7 +77,7 @@ object Json {
    * }}}
    *
    * @param json the JsValue to convert
-   * @return a String with the json representation with all non-ascii characters escaped.
+   * @return a String with the json representation with all non-ascii characters escaped
    */
   def asciiStringify(json: JsValue): String = JacksonJson.generateFromJsValue(json, true)
 
@@ -112,14 +112,14 @@ object Json {
   /**
    * Provided a Writes implicit for its type is available, convert any object into a JsValue.
    *
-   * @param o Value to convert in Json.
+   * @param o Value to convert in Json
    */
   def toJson[T](o: T)(implicit tjs: Writes[T]): JsValue = tjs.writes(o)
 
   /**
    * Provided a Reads implicit for that type is available, convert a JsValue to any type.
    *
-   * @param json Json value to transform as an instance of T.
+   * @param json Json value to transform as an instance of T
    */
   def fromJson[T](json: JsValue)(implicit fjs: Reads[T]): JsResult[T] = fjs.reads(json)
 

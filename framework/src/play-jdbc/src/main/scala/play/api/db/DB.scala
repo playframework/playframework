@@ -44,9 +44,9 @@ object DB {
    * Execute a block of code, providing a JDBC connection. The connection is
    * automatically released.
    *
-   * @param name The datasource name.
+   * @param name The datasource name
    * @param autocommit when `true`, sets this connection to auto-commit
-   * @param block Code block to execute.
+   * @param block Code block to execute
    */
   def withConnection[A](name: String = "default", autocommit: Boolean = true)(block: Connection => A)(implicit app: Application): A =
     db.database(name).withConnection(autocommit)(block)
@@ -55,7 +55,7 @@ object DB {
    * Execute a block of code, providing a JDBC connection. The connection and all created statements are
    * automatically released.
    *
-   * @param block Code block to execute.
+   * @param block Code block to execute
    */
   def withConnection[A](block: Connection => A)(implicit app: Application): A =
     db.database("default").withConnection(block)
@@ -65,8 +65,8 @@ object DB {
    * The connection and all created statements are automatically released.
    * The transaction is automatically committed, unless an exception occurs.
    *
-   * @param name The datasource name.
-   * @param block Code block to execute.
+   * @param name The datasource name
+   * @param block Code block to execute
    */
   def withTransaction[A](name: String = "default")(block: Connection => A)(implicit app: Application): A =
     db.database(name).withTransaction(block)
@@ -76,7 +76,7 @@ object DB {
    * The connection and all created statements are automatically released.
    * The transaction is automatically committed, unless an exception occurs.
    *
-   * @param block Code block to execute.
+   * @param block Code block to execute
    */
   def withTransaction[A](block: Connection => A)(implicit app: Application): A =
     db.database("default").withTransaction(block)

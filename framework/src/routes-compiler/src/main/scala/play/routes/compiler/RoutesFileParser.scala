@@ -18,7 +18,7 @@ object RoutesFileParser {
    * Parse the given routes file
    *
    * @param routesFile The routes file to parse
-   * @return Either the list of compilation errors encountered, or a list of routing rules
+   * @return either the list of compilation errors encountered, or a list of routing rules
    */
   def parse(routesFile: File): Either[Seq[RoutesCompilationError], List[Rule]] = {
 
@@ -32,7 +32,7 @@ object RoutesFileParser {
    *
    * @param routesContent The content of the routes file
    * @param routesFile The routes file (used for error reporting)
-   * @return Either the list of compilation errors encountered, or a list of routing rules
+   * @return either the list of compilation errors encountered, or a list of routing rules
    */
   def parseContent(routesContent: String, routesFile: File): Either[Seq[RoutesCompilationError], List[Rule]] = {
     val parser = new RoutesFileParser()

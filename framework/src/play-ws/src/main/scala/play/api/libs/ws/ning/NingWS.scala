@@ -560,7 +560,7 @@ case class NingWSResponse(ahcResponse: AHCResponse) extends WSResponse {
   }
 
   /**
-   * @return The underlying response object.
+   * @return the underlying response object
    */
   def underlying[T] = ahcResponse.asInstanceOf[T]
 

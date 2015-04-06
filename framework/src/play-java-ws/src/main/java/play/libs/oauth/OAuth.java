@@ -49,7 +49,7 @@ public class OAuth {
      * Request the request token and secret.
      *
      * @param callbackURL the URL where the provider should redirect to (usually a URL on the current app)
-     * @return A Right(RequestToken) in case of success, Left(OAuthException) otherwise
+     * @return a Right(RequestToken) in case of success, Left(OAuthException) otherwise
      */
     public RequestToken retrieveRequestToken(String callbackURL) {
         OAuthConsumer consumer = new DefaultOAuthConsumer(info.key.key, info.key.secret);
@@ -66,7 +66,7 @@ public class OAuth {
      *
      * @param token the token/secret pair obtained from a previous call
      * @param verifier a string you got through your user, with redirection
-     * @return A Right(RequestToken) in case of success, Left(OAuthException) otherwise
+     * @return a Right(RequestToken) in case of success, Left(OAuthException) otherwise
      */
     public RequestToken retrieveAccessToken(RequestToken token, String verifier) {
         OAuthConsumer consumer = new DefaultOAuthConsumer(info.key.key, info.key.secret);

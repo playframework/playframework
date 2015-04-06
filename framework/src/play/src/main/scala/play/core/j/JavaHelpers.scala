@@ -111,7 +111,7 @@ trait JavaHelpers {
    *
    * @param request The request
    * @param f The function to invoke
-   * @return The result
+   * @return the result
    */
   def invokeWithContextOpt(request: RequestHeader, f: JRequest => F.Promise[JResult]): Option[Future[Result]] = {
     Option(invokeWithContext(request, f))
@@ -126,7 +126,7 @@ trait JavaHelpers {
    *
    * @param request The request
    * @param f The function to invoke
-   * @return The result
+   * @return the result
    */
   def invokeWithContext(request: RequestHeader, f: JRequest => F.Promise[JResult]): Future[Result] = {
     withContext(request) { javaContext =>

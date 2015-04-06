@@ -20,7 +20,7 @@ import play.api.libs.Files.TemporaryFile
 /**
  * Fake HTTP headers implementation.
  *
- * @param data Headers data.
+ * @param data Headers data
  */
 case class FakeHeaders(data: Seq[(String, String)] = Seq.empty) extends Headers(data)
 
@@ -28,11 +28,11 @@ case class FakeHeaders(data: Seq[(String, String)] = Seq.empty) extends Headers(
  * Fake HTTP request implementation.
  *
  * @tparam A The body type.
- * @param method The request HTTP method.
- * @param uri The request uri.
- * @param headers The request HTTP headers.
- * @param body The request body.
- * @param remoteAddress The client IP.
+ * @param method The request HTTP method
+ * @param uri The request uri
+ * @param headers The request HTTP headers
+ * @param body The request body
+ * @param remoteAddress The client IP
  */
 case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A, remoteAddress: String = "127.0.0.1", version: String = "HTTP/1.1", id: Long = 666, tags: Map[String, String] = Map.empty[String, String], secure: Boolean = false) extends Request[A] {
 

@@ -25,7 +25,7 @@ public class Evolutions {
     /**
      * Create an evolutions reader that reads evolution files from a classloader.
      *
-     * @param classLoader The classloader to read from.
+     * @param classLoader The classloader to read from
      */
     public static play.api.db.evolutions.EvolutionsReader fromClassLoader(ClassLoader classLoader) {
         return fromClassLoader(classLoader, "");
@@ -34,7 +34,7 @@ public class Evolutions {
     /**
      * Create an evolutions reader that reads evolution files from a classloader.
      *
-     * @param classLoader The classloader to read from.
+     * @param classLoader The classloader to read from
      * @param prefix A prefix that gets added to the resource file names, for example, this could be used to namespace
      *               evolutions in different environments to work with different databases.
      */
@@ -45,7 +45,7 @@ public class Evolutions {
     /**
      * Create an evolutions reader based on a simple map of database names to evolutions.
      *
-     * @param evolutions The map of database names to evolutions.
+     * @param evolutions The map of database names to evolutions
      */
     public static play.api.db.evolutions.EvolutionsReader fromMap(Map<String, List<Evolution>> evolutions) {
         return new SimpleEvolutionsReader(evolutions);
@@ -54,7 +54,7 @@ public class Evolutions {
     /**
      * Create an evolutions reader for the default database from a list of evolutions.
      *
-     * @param evolutions The list of evolutions.
+     * @param evolutions The list of evolutions
      */
     public static play.api.db.evolutions.EvolutionsReader forDefault(Evolution... evolutions) {
         Map<String, List<Evolution>> map = new HashMap<String, List<Evolution>>();
@@ -65,9 +65,9 @@ public class Evolutions {
     /**
      * Apply evolutions for the given database.
      *
-     * @param database The database to apply the evolutions to.
-     * @param reader The reader to read the evolutions.
-     * @param autocommit Whether autocommit should be used.
+     * @param database The database to apply the evolutions to
+     * @param reader The reader to read the evolutions
+     * @param autocommit Whether autocommit should be used
      */
     public static void applyEvolutions(Database database, play.api.db.evolutions.EvolutionsReader reader, boolean autocommit) {
         DatabaseEvolutions evolutions = new DatabaseEvolutions(Database.toScala(database));
@@ -77,8 +77,8 @@ public class Evolutions {
     /**
      * Apply evolutions for the given database.
      *
-     * @param database The database to apply the evolutions to.
-     * @param reader The reader to read the evolutions.
+     * @param database The database to apply the evolutions to
+     * @param reader The reader to read the evolutions
      */
     public static void applyEvolutions(Database database, play.api.db.evolutions.EvolutionsReader reader) {
         applyEvolutions(database, reader, true);
@@ -87,7 +87,7 @@ public class Evolutions {
     /**
      * Apply evolutions for the given database.
      *
-     * @param database The database to apply the evolutions to.
+     * @param database The database to apply the evolutions to
      */
     public static void applyEvolutions(Database database) {
         applyEvolutions(database, fromClassLoader());
@@ -98,8 +98,8 @@ public class Evolutions {
      *
      * This will run the down scripts for all the applied evolutions.
      *
-     * @param database The database to apply the evolutions to.
-     * @param autocommit Whether autocommit should be used.
+     * @param database The database to apply the evolutions to
+     * @param autocommit Whether autocommit should be used
      */
     public static void cleanupEvolutions(Database database, boolean autocommit) {
         DatabaseEvolutions evolutions = new DatabaseEvolutions(Database.toScala(database));
@@ -111,7 +111,7 @@ public class Evolutions {
      *
      * This will run the down scripts for all the applied evolutions.
      *
-     * @param database The database to apply the evolutions to.
+     * @param database The database to apply the evolutions to
      */
     public static void cleanupEvolutions(Database database) {
         cleanupEvolutions(database, true);

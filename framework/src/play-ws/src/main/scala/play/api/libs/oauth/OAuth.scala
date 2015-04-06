@@ -13,7 +13,7 @@ import play.api.libs.ws.WSSignatureCalculator
 /**
  * Library to access resources protected by OAuth 1.0a.
  *  @param info the service information, including the required URLs and the application id and secret
- *  @param use10a whether the service should use the 1.0 version of the spec, or the 1.0a version fixing a security issue.
+ *  @param use10a whether the service should use the 1.0 version of the spec, or the 1.0a version fixing a security issue
  *  You must use the version corresponding to the
  */
 case class OAuth(info: ServiceInfo, use10a: Boolean = true) {
@@ -28,7 +28,7 @@ case class OAuth(info: ServiceInfo, use10a: Boolean = true) {
    * Request the request token and secret.
    *
    * @param callbackURL the URL where the provider should redirect to (usually a URL on the current app)
-   * @return A Right(RequestToken) in case of success, Left(OAuthException) otherwise
+   * @return a Right(RequestToken) in case of success, Left(OAuthException) otherwise
    */
   def retrieveRequestToken(callbackURL: String): Either[OAuthException, RequestToken] = {
     val consumer = new DefaultOAuthConsumer(info.key.key, info.key.secret)
@@ -45,7 +45,7 @@ case class OAuth(info: ServiceInfo, use10a: Boolean = true) {
    *
    * @param token the token/secret pair obtained from a previous call
    * @param verifier a string you got through your user, with redirection
-   * @return A Right(RequestToken) in case of success, Left(OAuthException) otherwise
+   * @return a Right(RequestToken) in case of success, Left(OAuthException) otherwise
    */
   def retrieveAccessToken(token: RequestToken, verifier: String): Either[OAuthException, RequestToken] = {
     val consumer = new DefaultOAuthConsumer(info.key.key, info.key.secret)

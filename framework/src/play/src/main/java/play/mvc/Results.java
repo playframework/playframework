@@ -202,7 +202,7 @@ public class Results {
     /**
      * Generates a 200 OK file result as an attachment.
      *
-     * @param content The file to send.
+     * @param content The file to send
      */
     public static Status ok(File content) {
         return new Status(play.core.j.JavaResults.Ok(), content);
@@ -211,8 +211,8 @@ public class Results {
     /**
      * Generates a 200 OK file result.
      *
-     * @param content The file to send.
-     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param content The file to send
+     * @param inline Whether the file should be sent inline, or as an attachment
      */
     public static Status ok(File content, boolean inline) {
         return new Status(JavaResults.Ok(), content, inline);
@@ -221,8 +221,8 @@ public class Results {
     /**
      * Generates a 200 OK file result as an attachment.
      *
-     * @param content The file to send.
-     * @param filename The name to send the file as.
+     * @param content The file to send
+     * @param filename The name to send the file as
      */
     public static Status ok(File content, String filename) {
         return new Status(JavaResults.Ok(), content, true, filename);
@@ -310,7 +310,7 @@ public class Results {
     /**
      * Generates a 201 CREATED file result as an attachment.
      *
-     * @param content The file to send.
+     * @param content The file to send
      */
     public static Status created(File content) {
         return new Status(play.core.j.JavaResults.Created(), content);
@@ -319,8 +319,8 @@ public class Results {
     /**
      * Generates a 201 CREATED file result.
      *
-     * @param content The file to send.
-     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param content The file to send
+     * @param inline Whether the file should be sent inline, or as an attachment
      */
     public static Status created(File content, boolean inline) {
         return new Status(JavaResults.Created(), content, inline);
@@ -329,8 +329,8 @@ public class Results {
     /**
      * Generates a 201 CREATED file result as an attachment.
      *
-     * @param content The file to send.
-     * @param filename The name to send the file as.
+     * @param content The file to send
+     * @param filename The name to send the file as
      */
     public static Status created(File content, String filename) {
         return new Status(JavaResults.Created(), content, true, filename);
@@ -427,7 +427,7 @@ public class Results {
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR file result as an attachment.
      *
-     * @param content The file to send.
+     * @param content The file to send
      */
     public static Status internalServerError(File content) {
         return new Status(play.core.j.JavaResults.InternalServerError(), content);
@@ -436,8 +436,8 @@ public class Results {
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR file result.
      *
-     * @param content The file to send.
-     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param content The file to send
+     * @param inline Whether the file should be sent inline, or as an attachment
      */
     public static Status internalServerError(File content, boolean inline) {
         return new Status(JavaResults.InternalServerError(), content, inline);
@@ -446,8 +446,8 @@ public class Results {
     /**
      * Generates a 500 INTERNAL_SERVER_ERROR file result as an attachment.
      *
-     * @param content The file to send.
-     * @param filename The name to send the file as.
+     * @param content The file to send
+     * @param filename The name to send the file as
      */
     public static Status internalServerError(File content, String filename) {
         return new Status(JavaResults.InternalServerError(), content, true, filename);
@@ -535,7 +535,7 @@ public class Results {
     /**
      * Generates a 404 NOT_FOUND file result as an attachment.
      *
-     * @param content The file to send.
+     * @param content The file to send
      */
     public static Status notFound(File content) {
         return new Status(play.core.j.JavaResults.NotFound(), content);
@@ -544,8 +544,8 @@ public class Results {
     /**
      * Generates a 404 NOT_FOUND file result.
      *
-     * @param content The file to send.
-     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param content The file to send
+     * @param inline Whether the file should be sent inline, or as an attachment
      */
     public static Status notFound(File content, boolean inline) {
         return new Status(JavaResults.NotFound(), content, inline);
@@ -554,8 +554,8 @@ public class Results {
     /**
      * Generates a 404 NOT_FOUND file result as an attachment.
      *
-     * @param content The file to send.
-     * @param filename The name to send the file as.
+     * @param content The file to send
+     * @param filename The name to send the file as
      */
     public static Status notFound(File content, String filename) {
         return new Status(JavaResults.NotFound(), content, true, filename);
@@ -643,7 +643,7 @@ public class Results {
     /**
      * Generates a 403 FORBIDDEN file result as an attachment.
      *
-     * @param content The file to send.
+     * @param content The file to send
      */
     public static Status forbidden(File content) {
         return new Status(play.core.j.JavaResults.Forbidden(), content);
@@ -652,8 +652,8 @@ public class Results {
     /**
      * Generates a 403 FORBIDDEN file result.
      *
-     * @param content The file to send.
-     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param content The file to send
+     * @param inline Whether the file should be sent inline, or as an attachment
      */
     public static Status forbidden(File content, boolean inline) {
         return new Status(JavaResults.Forbidden(), content, inline);
@@ -662,8 +662,8 @@ public class Results {
     /**
      * Generates a 403 FORBIDDEN file result as an attachment.
      *
-     * @param content The file to send.
-     * @param filename The name to send the file as.
+     * @param content The file to send
+     * @param filename The name to send the file as
      */
     public static Status forbidden(File content, String filename) {
         return new Status(JavaResults.Forbidden(), content, true, filename);
@@ -751,7 +751,7 @@ public class Results {
     /**
      * Generates a 401 UNAUTHORIZED file result as an attachment.
      *
-     * @param content The file to send.
+     * @param content The file to send
      */
     public static Status unauthorized(File content) {
         return new Status(play.core.j.JavaResults.Unauthorized(), content);
@@ -760,8 +760,8 @@ public class Results {
     /**
      * Generates a 401 UNAUTHORIZED file result.
      *
-     * @param content The file to send.
-     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param content The file to send
+     * @param inline Whether the file should be sent inline, or as an attachment
      */
     public static Status unauthorized(File content, boolean inline) {
         return new Status(JavaResults.Unauthorized(), content, inline);
@@ -770,8 +770,8 @@ public class Results {
     /**
      * Generates a 401 UNAUTHORIZED file result as an attachment.
      *
-     * @param content The file to send.
-     * @param filename The name to send the file as.
+     * @param content The file to send
+     * @param filename The name to send the file as
      */
     public static Status unauthorized(File content, String filename) {
         return new Status(JavaResults.Unauthorized(), content, true, filename);
@@ -859,7 +859,7 @@ public class Results {
     /**
      * Generates a 400 BAD_REQUEST file result as an attachment.
      *
-     * @param content The file to send.
+     * @param content The file to send
      */
     public static Status badRequest(File content) {
         return new Status(play.core.j.JavaResults.BadRequest(), content);
@@ -868,8 +868,8 @@ public class Results {
     /**
      * Generates a 400 BAD_REQUEST file result.
      *
-     * @param content The file to send.
-     * @param inline Whether the file should be sent inline, or as an attachment.
+     * @param content The file to send
+     * @param inline Whether the file should be sent inline, or as an attachment
      */
     public static Status badRequest(File content, boolean inline) {
         return new Status(JavaResults.BadRequest(), content, inline);
@@ -878,8 +878,8 @@ public class Results {
     /**
      * Generates a 400 BAD_REQUEST file result as an attachment.
      *
-     * @param content The file to send.
-     * @param filename The name to send the file as.
+     * @param content The file to send
+     * @param filename The name to send the file as
      */
     public static Status badRequest(File content, String filename) {
         return new Status(JavaResults.BadRequest(), content, true, filename);
@@ -897,7 +897,7 @@ public class Results {
     /**
      * Generates a 303 SEE_OTHER simple result.
      *
-     * @param url The url to redirect.
+     * @param url The url to redirect
      */
     public static Result redirect(String url) {
         return new Redirect(303, url);
@@ -906,7 +906,7 @@ public class Results {
     /**
      * Generates a 303 SEE_OTHER simple result.
      *
-     * @param call Call defining the url to redirect (typically comes from reverse router).
+     * @param call Call defining the url to redirect (typically comes from reverse router)
      */
     public static Result redirect(Call call) {
         return new Redirect(303, call.url());
@@ -917,7 +917,7 @@ public class Results {
     /**
      * Generates a 302 FOUND simple result.
      *
-     * @param url The url to redirect.
+     * @param url The url to redirect
      */
     public static Result found(String url) {
         return new Redirect(302, url);
@@ -926,7 +926,7 @@ public class Results {
     /**
      * Generates a 302 FOUND simple result.
      *
-     * @param call Call defining the url to redirect (typically comes from reverse router).
+     * @param call Call defining the url to redirect (typically comes from reverse router)
      */
     public static Result found(Call call) {
         return new Redirect(302, call.url());
@@ -937,7 +937,7 @@ public class Results {
     /**
      * Generates a 301 MOVED_PERMANENTLY simple result.
      *
-     * @param url The url to redirect.
+     * @param url The url to redirect
      */
     public static Result movedPermanently(String url) {
         return new Redirect(301, url);
@@ -946,7 +946,7 @@ public class Results {
     /**
      * Generates a 301 MOVED_PERMANENTLY simple result.
      *
-     * @param call Call defining the url to redirect (typically comes from reverse router).
+     * @param call Call defining the url to redirect (typically comes from reverse router)
      */
     public static Result movedPermanently(Call call) {
         return new Redirect(301, call.url());
@@ -957,7 +957,7 @@ public class Results {
     /**
      * Generates a 303 SEE_OTHER simple result.
      *
-     * @param url The url to redirect.
+     * @param url The url to redirect
      */
     public static Result seeOther(String url) {
         return new Redirect(303, url);
@@ -966,7 +966,7 @@ public class Results {
     /**
      * Generates a 303 SEE_OTHER simple result.
      *
-     * @param call Call defining the url to redirect (typically comes from reverse router).
+     * @param call Call defining the url to redirect (typically comes from reverse router)
      */
     public static Result seeOther(Call call) {
         return new Redirect(303, call.url());
@@ -977,7 +977,7 @@ public class Results {
     /**
      * Generates a 307 TEMPORARY_REDIRECT simple result.
      *
-     * @param url The url to redirect.
+     * @param url The url to redirect
      */
     public static Result temporaryRedirect(String url) {
         return new Redirect(307, url);
@@ -986,7 +986,7 @@ public class Results {
     /**
      * Generates a 307 TEMPORARY_REDIRECT simple result.
      *
-     * @param call Call defining the url to redirect (typically comes from reverse router).
+     * @param call Call defining the url to redirect (typically comes from reverse router)
      */
     public static Result temporaryRedirect(Call call) {
         return new Redirect(307, call.url());
@@ -1023,7 +1023,7 @@ public class Results {
         /**
          * Called when the Chunked stream is ready.
          *
-         * @param out The out stream.
+         * @param out The out stream
          */
         public abstract void onReady(Chunks.Out<A> out);
 
@@ -1247,7 +1247,7 @@ public class Results {
          *
          * The resource will be loaded from the same classloader that this class comes from.
          *
-         * @param resourceName The path of the resource to load.
+         * @param resourceName The path of the resource to load
          */
         public Status sendResource(String resourceName) {
             return sendResource(resourceName, true);
@@ -1256,8 +1256,8 @@ public class Results {
         /**
          * Send the given resource from the given classloader.
          *
-         * @param resourceName The path of the resource to load.
-         * @param classLoader The classloader to load it from.
+         * @param resourceName The path of the resource to load
+         * @param classLoader The classloader to load it from
          */
         public Status sendResource(String resourceName, ClassLoader classLoader) {
             return sendResource(resourceName, classLoader, true);
@@ -1268,8 +1268,8 @@ public class Results {
          *
          * The resource will be loaded from the same classloader that this class comes from.
          *
-         * @param resourceName The path of the resource to load.
-         * @param inline Whether it should be served as an inline file, or as an attachment.
+         * @param resourceName The path of the resource to load
+         * @param inline Whether it should be served as an inline file, or as an attachment
          */
         public Status sendResource(String resourceName, boolean inline) {
             return sendResource(resourceName, this.getClass().getClassLoader(), inline);
@@ -1278,9 +1278,9 @@ public class Results {
         /**
          * Send the given resource from the given classloader.
          *
-         * @param resourceName The path of the resource to load.
-         * @param classLoader The classloader to load it from.
-         * @param inline Whether it should be served as an inline file, or as an attachment.
+         * @param resourceName The path of the resource to load
+         * @param classLoader The classloader to load it from
+         * @param inline Whether it should be served as an inline file, or as an attachment
          */
         public Status sendResource(String resourceName, ClassLoader classLoader, boolean inline) {
             return new Status(wrappedStatus.sendResource(resourceName, classLoader, inline));

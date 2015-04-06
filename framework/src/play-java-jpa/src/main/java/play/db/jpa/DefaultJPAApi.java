@@ -171,7 +171,7 @@ public class DefaultJPAApi implements JPAApi {
      *
      * @param name The persistence unit name
      * @param readOnly Is the transaction read-only?
-     * @param block Block of code to execute.
+     * @param block Block of code to execute
      *
      * @deprecated This may cause deadlocks
      */

@@ -94,7 +94,7 @@ case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * Ok("Hello world").withHeaders(ETAG -> "0")
    * }}}
    *
-   * @param headers the headers to add to this result.
+   * @param headers the headers to add to this result
    * @return the new result
    */
   def withHeaders(headers: (String, String)*): Result = {
@@ -213,14 +213,14 @@ case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * Ok("<text>Hello world</text>").as("application/xml")
    * }}}
    *
-   * @param contentType the new content type.
+   * @param contentType the new content type
    * @return the new result
    */
   def as(contentType: String): Result = withHeaders(CONTENT_TYPE -> contentType)
 
   /**
    * @param request Current request
-   * @return The session carried by this result. Reads the request’s session if this result does not modify the session.
+   * @return the session carried by this result. Reads the request’s session if this result does not modify the session
    */
   def session(implicit request: RequestHeader): Session =
     Cookies(header.headers.get(SET_COOKIE)).get(Session.COOKIE_NAME) match {
@@ -235,7 +235,7 @@ case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * }}}
    * @param values (key -> value) pairs to add to this result’s session
    * @param request Current request
-   * @return A copy of this result with `values` added to its session scope.
+   * @return a copy of this result with `values` added to its session scope
    */
   def addingToSession(values: (String, String)*)(implicit request: RequestHeader): Result =
     withSession(new Session(session.data ++ values.toMap))
@@ -247,7 +247,7 @@ case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * }}}
    * @param keys Keys to remove from session
    * @param request Current request
-   * @return A copy of this result with `keys` removed from its session scope.
+   * @return a copy of this result with `keys` removed from its session scope
    */
   def removingFromSession(keys: String*)(implicit request: RequestHeader): Result =
     withSession(new Session(session.data -- keys))
@@ -277,8 +277,8 @@ case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
 /**
  * A Codec handle the conversion of String to Byte arrays.
  *
- * @param charset The charset to be sent to the client.
- * @param encode The transformation function.
+ * @param charset The charset to be sent to the client
+ * @param encode The transformation function
  */
 case class Codec(val charset: String)(val encode: String => Array[Byte], val decode: Array[Byte] => String)
 
@@ -369,7 +369,7 @@ trait Results {
     /**
      * Set the result's content.
      *
-     * @param content The content to send.
+     * @param content The content to send
      */
     def apply[C](content: C)(implicit writeable: Writeable[C]): Result = {
       Result(
@@ -381,9 +381,9 @@ trait Results {
     /**
      * Send a file.
      *
-     * @param content The file to send.
-     * @param inline Use Content-Disposition inline or attachment.
-     * @param fileName function to retrieve the file name (only used for Content-Disposition attachment).
+     * @param content The file to send
+     * @param inline Use Content-Disposition inline or attachment
+     * @param fileName function to retrieve the file name (only used for Content-Disposition attachment)
      */
     def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ()): Result = {
       val name = fileName(content)
@@ -399,9 +399,9 @@ trait Results {
     /**
      * Send the given resource from the given classloader.
      *
-     * @param resource The path of the resource to load.
-     * @param classLoader The classloader to load it from, defaults to the classloader for this class.
-     * @param inline Whether it should be served as an inline file, or as an attachment.
+     * @param resource The path of the resource to load
+     * @param classLoader The classloader to load it from, defaults to the classloader for this class
+     * @param inline Whether it should be served as an inline file, or as an attachment
      * @return
      */
     def sendResource(resource: String, classLoader: ClassLoader = Results.getClass.getClassLoader,
@@ -426,7 +426,7 @@ trait Results {
      * Chunked encoding allows the server to send a response where the content length is not known, or for potentially
      * infinite streams, while still allowing the connection to be kept alive and reused for the next request.
      *
-     * @param content Enumerator providing the content to stream.
+     * @param content Enumerator providing the content to stream
      */
     def chunked[C](content: Enumerator[C])(implicit writeable: Writeable[C]): Result = {
       Result(header = ResponseHeader(status,
@@ -447,7 +447,7 @@ trait Results {
      * The connection will be closed after the response is sent, regardless of whether there is a content length or
      * transfer encoding defined.
      *
-     * @param content Enumerator providing the content to stream.
+     * @param content Enumerator providing the content to stream
      */
     def feed[C](content: Enumerator[C])(implicit writeable: Writeable[C]): Result = {
       Result(
@@ -463,7 +463,7 @@ trait Results {
      * If a content length is set, this will send the body as is, otherwise it may chunk or may not chunk depending on
      * whether HTTP/1.1 is used or not.
      *
-     * @param content Enumerator providing the content to stream.
+     * @param content Enumerator providing the content to stream
      */
     def stream[C](content: Enumerator[C])(implicit writeable: Writeable[C]): Result = {
       Result(

@@ -18,8 +18,8 @@ public abstract class WebSocket<A> {
     /**
      * Called when the WebSocket is ready
      *
-     * @param in The Socket in.
-     * @param out The Socket out.
+     * @param in The Socket in
+     * @param out The Socket out
      */
     public abstract void onReady(In<A> in, Out<A> out);
 
@@ -28,7 +28,7 @@ public abstract class WebSocket<A> {
      *
      * This method will be invoked before onReady.
      *
-     * @return The result to reject the WebSocket with, or null if the WebSocket shouldn't be rejected.
+     * @return the result to reject the WebSocket with, or null if the WebSocket shouldn't be rejected
      */
     public Result rejectWith() {
         return null;
@@ -45,8 +45,8 @@ public abstract class WebSocket<A> {
     /**
      * The props to create the actor to handle this WebSocket.
      *
-     * @param out The actor to send upstream messages to.
-     * @return The props of the actor to handle the WebSocket.  If isActor returns true, must not return null.
+     * @param out The actor to send upstream messages to
+     * @return the props of the actor to handle the WebSocket.  If isActor returns true, must not return null
      */
     public Props actorProps(ActorRef out) {
         return null;
@@ -114,8 +114,8 @@ public abstract class WebSocket<A> {
     /**
      * Rejects a WebSocket.
      *
-     * @param result The result that will be returned.
-     * @return A rejected WebSocket.
+     * @param result The result that will be returned
+     * @return a rejected WebSocket
      */
     public static <A> WebSocket<A> reject(final Result result) {
         return new WebSocket<A>() {
@@ -130,8 +130,8 @@ public abstract class WebSocket<A> {
     /**
      * Handles a WebSocket with an actor.
      *
-     * @param props The function used to create the props for the actor.  The passed in argument is the upstream actor.
-     * @return An actor WebSocket.
+     * @param props The function used to create the props for the actor.  The passed in argument is the upstream actor
+     * @return an actor WebSocket
      */
     public static <A> WebSocket<A> withActor(final Function<ActorRef, Props> props) {
         return new WebSocket<A>() {

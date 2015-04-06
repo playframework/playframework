@@ -19,23 +19,23 @@ private[streams] object IterateeSubscriber {
    * Iteratee hasn't resolved to a Step yet. This is the initial state of the
    * Subscriber.
    *
-   * @param result A Promise of the eventual result of this Subscriber.
+   * @param result A Promise of the eventual result of this Subscriber
    */
   case class NotSubscribedNoStep[T, R](result: Promise[Iteratee[T, R]]) extends State[T, R]
   /**
    * A Subscriber that has had onSubscribe called on it but
    * doesn't yet know the current Step of its Iteratee.
    *
-   * @param subs The Subscription the Subscriber is subscribed to.
-   * @param result A Promise of the eventual result of this Subscriber.
+   * @param subs The Subscription the Subscriber is subscribed to
+   * @param result A Promise of the eventual result of this Subscriber
    */
   case class SubscribedNoStep[T, R](subs: Subscription, result: Promise[Iteratee[T, R]]) extends State[T, R]
   /**
    * A Subscriber that hasn't had onSubscribe called on it yet, but whose
    * Iteratee is known to have a Step of Cont.
    *
-   * @param cont The current Step of the Iteratee.
-   * @param result A Promise of the eventual result of this Subscriber.
+   * @param cont The current Step of the Iteratee
+   * @param result A Promise of the eventual result of this Subscriber
    */
   case class NotSubscribedWithCont[T, R](cont: Step.Cont[T, R], result: Promise[Iteratee[T, R]]) extends State[T, R]
   /**
@@ -43,9 +43,9 @@ private[streams] object IterateeSubscriber {
    * a Step of Cont and is currently waiting for an element that it has
    * requested from the Subscription.
    *
-   * @param subs The Subscription the Subscriber is subscribed to.
-   * @param cont The current Step of the Iteratee.
-   * @param result A Promise of the eventual result of this Subscriber.
+   * @param subs The Subscription the Subscriber is subscribed to
+   * @param cont The current Step of the Iteratee
+   * @param result A Promise of the eventual result of this Subscriber
    */
   case class SubscribedWithCont[T, R](subs: Subscription, cont: Step.Cont[T, R], result: Promise[Iteratee[T, R]]) extends State[T, R]
   /**
@@ -53,14 +53,14 @@ private[streams] object IterateeSubscriber {
    * hasn't resolved ot a Step yet. If the Iteratee resolves to Cont then it
    * Input.EOF will be fed to it.
    *
-   * @param result A Promise of the eventual result of this Subscriber.
+   * @param result A Promise of the eventual result of this Subscriber
    */
   case class CompletedNoStep[T, R](result: Promise[Iteratee[T, R]]) extends State[T, R]
   /**
    * A Subscriber that is finished. We don't track the precise reason for
    * being finished.
    *
-   * @param result The result of this Subscriber.
+   * @param result The result of this Subscriber
    */
   case class Finished[T, R](resultIteratee: Iteratee[T, R]) extends State[T, R]
 }

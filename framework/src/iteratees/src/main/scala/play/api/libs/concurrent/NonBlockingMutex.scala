@@ -45,7 +45,7 @@ private[play] final class NonBlockingMutex {
    * run very quickly. If any expensive work needs to be done then it the operation
    * should schedule the work to run asynchronously.
    *
-   * @param body The body of the operation to run.
+   * @param body The body of the operation to run
    */
   def exclusive(body: => Unit): Unit = {
     schedule(() => body)

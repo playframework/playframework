@@ -43,9 +43,9 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
     /**
      * Invoked when a client error occurs, that is, an error in the 4xx series.
      *
-     * @param request The request that caused the client error.
-     * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500.
-     * @param message The error message.
+     * @param request The request that caused the client error
+     * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500
+     * @param message The error message
      */
     @Override
     public F.Promise<Result> onClientError(RequestHeader request, int statusCode, String message) {
@@ -67,8 +67,8 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
     /**
      * Invoked when a client makes a bad request.
      *
-     * @param request The request that was bad.
-     * @param message The error message.
+     * @param request The request that was bad
+     * @param message The error message
      */
     protected F.Promise<Result> onBadRequest(RequestHeader request, String message) {
         return F.Promise.<Result>pure(Results.badRequest(views.html.defaultpages.badRequest.render(
@@ -79,8 +79,8 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
     /**
      * Invoked when a client makes a request that was forbidden.
      *
-     * @param request The forbidden request.
-     * @param message The error message.
+     * @param request The forbidden request
+     * @param message The error message
      */
     protected F.Promise<Result> onForbidden(RequestHeader request, String message) {
         return F.Promise.<Result>pure(Results.forbidden(views.html.defaultpages.unauthorized.render()));
@@ -89,8 +89,8 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
     /**
      * Invoked when a handler or resource is not found.
      *
-     * @param request The request that no handler was found to handle.
-     * @param message A message.
+     * @param request The request that no handler was found to handle
+     * @param message A message
      */
     protected F.Promise<Result> onNotFound(RequestHeader request, String message){
         if (environment.isProd()) {
@@ -110,8 +110,8 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
      * [[onDevServerError()]] in dev mode.  It is recommended, if you want Play's debug info on the error page in dev
      * mode, that you override [[onProdServerError()]] instead of this method.
      *
-     * @param request The request that triggered the server error.
-     * @param exception The server error.
+     * @param request The request that triggered the server error
+     * @param exception The server error
      */
     @Override
     public F.Promise<Result> onServerError(RequestHeader request, Throwable exception) {
@@ -137,8 +137,8 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
      *
      * This can be overridden to add additional logging information, eg. the id of the authenticated user.
      *
-     * @param request The request that triggered the server error.
-     * @param usefulException The server error.
+     * @param request The request that triggered the server error
+     * @param usefulException The server error
      */
     protected void logServerError(RequestHeader request, UsefulException usefulException) {
         Logger.error(String.format("\n\n! @%s - Internal server error, for (%s) [%s] ->\n",
@@ -160,8 +160,8 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
     /**
      * Invoked in dev mode when a server error occurs.
      *
-     * @param request The request that triggered the error.
-     * @param exception The exception.
+     * @param request The request that triggered the error
+     * @param exception The exception
      */
     protected F.Promise<Result> onDevServerError(RequestHeader request, UsefulException exception) {
         return F.Promise.<Result>pure(Results.internalServerError(views.html.defaultpages.devError.render(playEditor, exception)));
@@ -173,8 +173,8 @@ public class DefaultHttpErrorHandler implements HttpErrorHandler {
      * Override this rather than [[onServerError()]] if you don't want to change Play's debug output when logging errors
      * in dev mode.
      *
-     * @param request The request that triggered the error.
-     * @param exception The exception.
+     * @param request The request that triggered the error
+     * @param exception The exception
      */
     protected F.Promise<Result> onProdServerError(RequestHeader request, UsefulException exception) {
         return F.Promise.<Result>pure(Results.internalServerError(views.html.defaultpages.error.render(exception)));

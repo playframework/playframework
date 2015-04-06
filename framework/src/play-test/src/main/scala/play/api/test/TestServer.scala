@@ -10,9 +10,9 @@ import scala.util.control.NonFatal
 /**
  * A test web server.
  *
- * @param port HTTP port to bind on.
- * @param application The Application to load in this server.
- * @param sslPort HTTPS port to bind on.
+ * @param port HTTP port to bind on
+ * @param application The Application to load in this server
+ * @param sslPort HTTPS port to bind on
  * @param serverProvider *Experimental API; subject to change* The type of
  * server to use. If not provided, uses Play's default provider.
  */

@@ -76,7 +76,7 @@ public class Security {
         /**
          * Retrieves the username from the HTTP context; the default is to read from the session cookie.
          *
-         * @return null if the user is not authenticated.
+         * @return null if the user is not authenticated
          */
         public String getUsername(Context ctx) {
             return ctx.session().get("username");

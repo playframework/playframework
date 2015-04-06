@@ -27,7 +27,7 @@ trait ClassFinder {
    * found classes are loaded into the current thread's classloader, even they are not returned.
    *
    * @param className
-   * @return true if this class should be returned in the set of findClasses, false otherwise.
+   * @return true if this class should be returned in the set of findClasses, false otherwise
    */
   def isValidClass(className: String): Boolean
 

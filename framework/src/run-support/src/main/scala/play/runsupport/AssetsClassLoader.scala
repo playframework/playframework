@@ -12,7 +12,7 @@ import Path._
  *
  * Serves assets from the given directories, at the given prefix.
  *
- * @param assets A list of assets directories, paired with the prefix they should be served from.
+ * @param assets A list of assets directories, paired with the prefix they should be served from
  */
 class AssetsClassLoader(parent: ClassLoader, assets: Seq[(String, File)]) extends ClassLoader(parent) {
   override def findResource(name: String) = {

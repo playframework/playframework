@@ -24,8 +24,8 @@ import scala.io.Codec
 /**
  * A Lang supported by the application.
  *
- * @param language a valid ISO Language Code.
- * @param country a valid ISO Country Code.
+ * @param language a valid ISO Language Code
+ * @param country a valid ISO Country Code
  */
 case class Lang(language: String, country: String = "") {
 

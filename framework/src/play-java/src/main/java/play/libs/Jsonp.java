@@ -51,7 +51,7 @@ public class Jsonp implements Content {
     /**
      * @param padding Name of the callback
      * @param json Json content
-     * @return A JSONP Content using padding and json.
+     * @return a JSONP Content using padding and json
      */
     public static Jsonp jsonp(String padding, JsonNode json) {
         return new Jsonp(padding, json);

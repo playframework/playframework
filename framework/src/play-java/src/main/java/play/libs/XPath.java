@@ -89,7 +89,7 @@ public class XPath {
     /**
      * Return the text of a node, or the value of an attribute
      * @param path the XPath to execute
-     * @param node the node, node-set or Context object for evaluation. This value can be null.
+     * @param node the node, node-set or Context object for evaluation. This value can be null
      */
     public static String selectText(String path, Object node, Map<String, String> namespaces) {
         try {
@@ -111,7 +111,7 @@ public class XPath {
     /**
      * Return the text of a node, or the value of an attribute
      * @param path the XPath to execute
-     * @param node the node, node-set or Context object for evaluation. This value can be null.
+     * @param node the node, node-set or Context object for evaluation. This value can be null
      */
     public static String selectText(String path, Object node) {
         return selectText(path, node, null);

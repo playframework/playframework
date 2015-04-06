@@ -251,7 +251,7 @@ trait DefaultReads {
   /**
    * Reads for the `java.util.Date` type.
    *
-   * @param pattern a date pattern, as specified in `java.text.SimpleDateFormat`.
+   * @param pattern a date pattern, as specified in `java.text.SimpleDateFormat`
    * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks
    */
   def dateReads(pattern: String, corrector: String => String = identity): Reads[java.util.Date] = new Reads[java.util.Date] {
@@ -397,7 +397,7 @@ trait DefaultReads {
    *
    * @tparam T Type of argument to instantiate date/time parser
    * @param parsing Argument to instantiate date/time parser. Actually either a pattern (string) or a formatter (`java.time.format.DateTimeFormatter`)
-   * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks. Function `identity` can be passed if no correction is needed.
+   * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks. Function `identity` can be passed if no correction is needed
    * @param p Typeclass instance based on `parsing`
    * @see [[TemporalFormatter]]
    *
@@ -441,7 +441,7 @@ trait DefaultReads {
    *
    * @tparam T Type of argument to instantiate date/time parser
    * @param parsing Argument to instantiate date/time parser. Actually either a pattern (string) or a formatter (`java.time.format.DateTimeFormatter`)
-   * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks. Function `identity` can be passed if no correction is needed.
+   * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks. Function `identity` can be passed if no correction is needed
    * @param p Typeclass instance based on `parsing`
    * @see [[TemporalFormatter]]
    *
@@ -485,7 +485,7 @@ trait DefaultReads {
    *
    * @tparam T Type of argument to instantiate date parser
    * @param parsing Argument to instantiate date parser. Actually either a pattern (string) or a formatter (`java.time.format.DateTimeFormatter`)
-   * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks. Function `identity` can be passed if no correction is needed.
+   * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks. Function `identity` can be passed if no correction is needed
    * @param p Typeclass instance based on `parsing`
    * @see [[TemporalFormatter]]
    *
@@ -528,7 +528,7 @@ trait DefaultReads {
    *
    * @tparam T Type of argument to instantiate date parser
    * @param parsing Argument to instantiate date parser. Actually either a pattern (string) or a formatter (`java.time.format.DateTimeFormatter`)
-   * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks. Function `identity` can be passed if no correction is needed.
+   * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks. Function `identity` can be passed if no correction is needed
    * @param p Typeclass instance based on `parsing`
    * @see [[TemporalFormatter]]
    *
@@ -596,7 +596,7 @@ trait DefaultReads {
   /**
    * Reads for the `org.joda.time.DateTime` type.
    *
-   * @param pattern a date pattern, as specified in `java.text.SimpleDateFormat`.
+   * @param pattern a date pattern, as specified in `java.text.SimpleDateFormat`
    * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks
    */
   def jodaDateReads(pattern: String, corrector: String => String = identity): Reads[org.joda.time.DateTime] = new Reads[org.joda.time.DateTime] {
@@ -626,7 +626,7 @@ trait DefaultReads {
   /**
    * Reads for the `org.joda.time.LocalDate` type.
    *
-   * @param pattern a date pattern, as specified in `org.joda.time.format.DateTimeFormat`.
+   * @param pattern a date pattern, as specified in `org.joda.time.format.DateTimeFormat`
    * @param corrector string transformation function (See jodaDateReads)
    */
   def jodaLocalDateReads(pattern: String, corrector: String => String = identity): Reads[org.joda.time.LocalDate] = new Reads[org.joda.time.LocalDate] {
@@ -656,7 +656,7 @@ trait DefaultReads {
   /**
    * Reads for the `org.joda.time.LocalTime` type.
    *
-   * @param pattern a date pattern, as specified in `org.joda.time.format.DateTimeFormat`.
+   * @param pattern a date pattern, as specified in `org.joda.time.format.DateTimeFormat`
    * @param corrector string transformation function (See jodaTimeReads)
    */
   def jodaLocalTimeReads(pattern: String, corrector: String => String = identity): Reads[org.joda.time.LocalTime] = new Reads[org.joda.time.LocalTime] {
@@ -687,7 +687,7 @@ trait DefaultReads {
   /**
    * Reads for the `java.sql.Date` type.
    *
-   * @param pattern a date pattern, as specified in `java.text.SimpleDateFormat`.
+   * @param pattern a date pattern, as specified in `java.text.SimpleDateFormat`
    * @param corrector a simple string transformation function that can be used to transform input String before parsing. Useful when standards are not exactly respected and require a few tweaks
    */
   def sqlDateReads(pattern: String, corrector: String => String = identity): Reads[java.sql.Date] =
@@ -701,7 +701,7 @@ trait DefaultReads {
   /**
    * Reads for `scala.Enumeration` types using the name.
    *
-   * @param enum a `scala.Enumeration`.
+   * @param enum a `scala.Enumeration`
    */
   def enumNameReads[E <: Enumeration](enum: E): Reads[E#Value] = new Reads[E#Value] {
     def reads(json: JsValue) = json match {

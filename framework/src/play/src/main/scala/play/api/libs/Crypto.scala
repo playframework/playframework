@@ -29,8 +29,8 @@ object Crypto {
 
   /**
    * Exception thrown by the Crypto APIs.
-   * @param message The error message.
-   * @param throwable The Throwable associated with the exception.
+   * @param message The error message
+   * @param throwable The Throwable associated with the exception
    */
   class CryptoException(val message: String = null, val throwable: Throwable = null) extends RuntimeException(message, throwable)
 
@@ -49,9 +49,9 @@ object Crypto {
    * By default this uses the platform default JSSE provider.  This can be overridden by defining
    * `play.crypto.provider` in `application.conf`.
    *
-   * @param message The message to sign.
-   * @param key The private key to sign with.
-   * @return A hexadecimal encoded signature.
+   * @param message The message to sign
+   * @param key The private key to sign with
+   * @return a hexadecimal encoded signature
    */
   def sign(message: String, key: Array[Byte]): String = crypto.sign(message, key)
 
@@ -61,8 +61,8 @@ object Crypto {
    * By default this uses the platform default JSSE provider.  This can be overridden by defining
    * `play.crypto.provider` in `application.conf`.
    *
-   * @param message The message to sign.
-   * @return A hexadecimal encoded signature.
+   * @param message The message to sign
+   * @return a hexadecimal encoded signature
    */
   def sign(message: String): String = crypto.sign(message)
 
@@ -73,15 +73,15 @@ object Crypto {
    * request, without actually changing the value.
    *
    * @param token The token to sign
-   * @return The signed token
+   * @return the signed token
    */
   def signToken(token: String): String = crypto.signToken(token)
 
   /**
    * Extract a signed token that was signed by [[play.api.libs.Crypto.signToken]].
    *
-   * @param token The signed token to extract.
-   * @return The verified raw token, or None if the token isn't valid.
+   * @param token The signed token to extract
+   * @return the verified raw token, or None if the token isn't valid
    */
   def extractSignedToken(token: String): Option[String] = crypto.extractSignedToken(token)
 
@@ -133,8 +133,8 @@ object Crypto {
    * `application.conf`.  Although any cipher transformation algorithm can be selected here, the secret key spec used
    * is always AES, so only AES transformation algorithms will work.
    *
-   * @param value The String to encrypt.
-   * @return An hexadecimal encrypted string.
+   * @param value The String to encrypt
+   * @return an hexadecimal encrypted string
    */
   def encryptAES(value: String): String = crypto.encryptAES(value)
 
@@ -153,9 +153,9 @@ object Crypto {
    * `application.conf`.  Although any cipher transformation algorithm can be selected here, the secret key spec used
    * is always AES, so only AES transformation algorithms will work.
    *
-   * @param value The String to encrypt.
-   * @param privateKey The key used to encrypt.
-   * @return An hexadecimal encrypted string.
+   * @param value The String to encrypt
+   * @param privateKey The key used to encrypt
+   * @return an hexadecimal encrypted string
    */
   def encryptAES(value: String, privateKey: String): String = crypto.encryptAES(value, privateKey)
 
@@ -169,8 +169,8 @@ object Crypto {
    * `play.crypto.aes.transformation` in `application.conf`.  Although any cipher transformation algorithm can
    * be selected here, the secret key spec used is always AES, so only AES transformation algorithms will work.
    *
-   * @param value An hexadecimal encrypted string.
-   * @return The decrypted String.
+   * @param value An hexadecimal encrypted string
+   * @return the decrypted String
    */
   def decryptAES(value: String): String = crypto.decryptAES(value)
 
@@ -186,9 +186,9 @@ object Crypto {
    * `play.crypto.aes.transformation` in `application.conf`.  Although any cipher transformation algorithm can
    * be selected here, the secret key spec used is always AES, so only AES transformation algorithms will work.
    *
-   * @param value An hexadecimal encrypted string.
-   * @param privateKey The key used to encrypt.
-   * @return The decrypted String.
+   * @param value An hexadecimal encrypted string
+   * @param privateKey The key used to encrypt
+   * @return the decrypted String
    */
   def decryptAES(value: String, privateKey: String): String = crypto.decryptAES(value, privateKey)
 }
@@ -289,9 +289,9 @@ class Crypto @Inject() (config: CryptoConfig) {
    * By default this uses the platform default JSSE provider.  This can be overridden by defining
    * `play.crypto.provider` in `application.conf`.
    *
-   * @param message The message to sign.
-   * @param key The private key to sign with.
-   * @return A hexadecimal encoded signature.
+   * @param message The message to sign
+   * @param key The private key to sign with
+   * @return a hexadecimal encoded signature
    */
   def sign(message: String, key: Array[Byte]): String = {
     val mac = config.provider.fold(Mac.getInstance("HmacSHA1"))(p => Mac.getInstance("HmacSHA1", p))
@@ -305,8 +305,8 @@ class Crypto @Inject() (config: CryptoConfig) {
    * By default this uses the platform default JSSE provider.  This can be overridden by defining
    * `play.crypto.provider` in `application.conf`.
    *
-   * @param message The message to sign.
-   * @return A hexadecimal encoded signature.
+   * @param message The message to sign
+   * @return a hexadecimal encoded signature
    */
   def sign(message: String): String = {
     sign(message, config.secret.getBytes("utf-8"))
@@ -319,7 +319,7 @@ class Crypto @Inject() (config: CryptoConfig) {
    * request, without actually changing the value.
    *
    * @param token The token to sign
-   * @return The signed token
+   * @return the signed token
    */
   def signToken(token: String): String = {
     val nonce = System.currentTimeMillis()
@@ -330,8 +330,8 @@ class Crypto @Inject() (config: CryptoConfig) {
   /**
    * Extract a signed token that was signed by [[play.api.libs.Crypto.signToken]].
    *
-   * @param token The signed token to extract.
-   * @return The verified raw token, or None if the token isn't valid.
+   * @param token The signed token to extract
+   * @return the verified raw token, or None if the token isn't valid
    */
   def extractSignedToken(token: String): Option[String] = {
     token.split("-", 3) match {
@@ -397,8 +397,8 @@ class Crypto @Inject() (config: CryptoConfig) {
    * `application.conf`.  Although any cipher transformation algorithm can be selected here, the secret key spec used
    * is always AES, so only AES transformation algorithms will work.
    *
-   * @param value The String to encrypt.
-   * @return An hexadecimal encrypted string.
+   * @param value The String to encrypt
+   * @return an hexadecimal encrypted string
    */
   def encryptAES(value: String): String = {
     encryptAES(value, config.secret)
@@ -420,9 +420,9 @@ class Crypto @Inject() (config: CryptoConfig) {
    * `application.conf`.  Although any cipher transformation algorithm can be selected here, the secret key spec used
    * is always AES, so only AES transformation algorithms will work.
    *
-   * @param value The String to encrypt.
-   * @param privateKey The key used to encrypt.
-   * @return A Base64 encrypted string.
+   * @param value The String to encrypt
+   * @param privateKey The key used to encrypt
+   * @return a Base64 encrypted string
    */
   def encryptAES(value: String, privateKey: String): String = {
     val skeySpec = secretKeyWithSha256(privateKey, "AES")
@@ -469,8 +469,8 @@ class Crypto @Inject() (config: CryptoConfig) {
    * `play.crypto.aes.transformation` in `application.conf`.  Although any cipher transformation algorithm can
    * be selected here, the secret key spec used is always AES, so only AES transformation algorithms will work.
    *
-   * @param value An hexadecimal encrypted string.
-   * @return The decrypted String.
+   * @param value An hexadecimal encrypted string
+   * @return the decrypted String
    */
   def decryptAES(value: String): String = {
     decryptAES(value, config.secret)
@@ -488,9 +488,9 @@ class Crypto @Inject() (config: CryptoConfig) {
    * `play.crypto.aes.transformation` in `application.conf`.  Although any cipher transformation algorithm can
    * be selected here, the secret key spec used is always AES, so only AES transformation algorithms will work.
    *
-   * @param value An hexadecimal encrypted string.
-   * @param privateKey The key used to encrypt.
-   * @return The decrypted String.
+   * @param value An hexadecimal encrypted string
+   * @param privateKey The key used to encrypt
+   * @return the decrypted String
    */
   def decryptAES(value: String, privateKey: String): String = {
     val seperator = "-"

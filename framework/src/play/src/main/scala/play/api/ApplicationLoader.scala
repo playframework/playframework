@@ -59,12 +59,12 @@ object ApplicationLoader {
    *
    * Locates and loads the necessary configuration files for the application.
    *
-   * @param environment The application environment.
+   * @param environment The application environment
    * @param initialSettings The initial settings. These settings are merged with the settings from the loaded
    *                        configuration files, and together form the initialConfiguration provided by the context.  It
    *                        is intended for use in dev mode, to allow the build system to pass additional configuration
    *                        into the application.
-   * @param sourceMapper An optional source mapper.
+   * @param sourceMapper An optional source mapper
    */
   def createContext(environment: Environment,
     initialSettings: Map[String, String] = Map.empty[String, String],

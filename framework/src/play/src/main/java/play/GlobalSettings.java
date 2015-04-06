@@ -57,8 +57,8 @@ public class GlobalSettings {
      * The request and actionMethod values are passed for information.
      *
      * @param request The HTTP Request
-     * @param actionMethod The action method containing the user code for this Action.
-     * @return The default implementation returns a raw Action calling the method.
+     * @param actionMethod The action method containing the user code for this Action
+     * @return the default implementation returns a raw Action calling the method
      */
     @SuppressWarnings("rawtypes")
     public Action onRequest(Request request, Method actionMethod) {
@@ -93,7 +93,7 @@ public class GlobalSettings {
      * By overriding this method one can provide an alternative 404 page.
      *
      * @param request the HTTP request
-     * @return null in the default implementation, you can return your own custom Result in your Global class.
+     * @return null in the default implementation, you can return your own custom Result in your Global class
      */
     public F.Promise<Result> onHandlerNotFound(RequestHeader request) {
         return null;
@@ -108,7 +108,7 @@ public class GlobalSettings {
      * By overriding this method one can provide an alternative 400 page.
      *
      * @param request the HTTP request
-     * @return null in the default implementation, you can return your own custom Result in your Global class.
+     * @return null in the default implementation, you can return your own custom Result in your Global class
      */
     public F.Promise<Result> onBadRequest(RequestHeader request, String error) {
         return null;
@@ -120,7 +120,7 @@ public class GlobalSettings {
      * @param config the loaded configuration
      * @param path the application path
      * @param classloader The applications classloader
-     * @return The configuration that the application should use
+     * @return the configuration that the application should use
      */
     public Configuration onLoadConfig(Configuration config, File path, ClassLoader classloader) {
         return null;
@@ -133,7 +133,7 @@ public class GlobalSettings {
      * @param path the application path
      * @param classloader The applications classloader
      * @param mode The mode of the application
-     * @return The configuration that the application should use
+     * @return the configuration that the application should use
      */
     public Configuration onLoadConfig(Configuration config, File path, ClassLoader classloader, Mode mode) {
         return onLoadConfig(config, path, classloader);

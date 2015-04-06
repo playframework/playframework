@@ -12,8 +12,8 @@ import play.api.libs.iteratee.Execution.Implicits.{ defaultExecutionContext => d
 /**
  * Utilities for concurrent usage of iteratees, enumerators and enumeratees.
  *
- * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used.
- * @define paramEcMultiple @param ec The context to execute the supplied functions with. The context is prepared on the calling thread before being used.
+ * @define paramEcSingle @param ec The context to execute the supplied function with. The context is prepared on the calling thread before being used
+ * @define paramEcMultiple @param ec The context to execute the supplied functions with. The context is prepared on the calling thread before being used
  */
 object Concurrent {
 
@@ -58,7 +58,7 @@ object Concurrent {
      * invocation, that is, subsequent calls to end will change the behaviour of attaching new iteratees to the
      * broadcast enumerator.
      *
-     * @param e The failure.
+     * @param e The failure
      */
     def end(e: Throwable)
 
@@ -282,7 +282,7 @@ object Concurrent {
    * for example if the enumerator is a database result set that holds a transaction open, but the result set is being
    * serialised and fed directly to an HTTP response.
    *
-   * @param maxBuffer The maximum size to buffer.  The size is computed using the given `length` function.
+   * @param maxBuffer The maximum size to buffer.  The size is computed using the given `length` function
    * @param length A function that computes the length of an input item
    * $paramEcSingle
    */
@@ -437,8 +437,8 @@ object Concurrent {
    *
    * @param onStart Called when an enumerator is applied to an iteratee, providing the channel to feed input into that
    *                iteratee.
-   * @param onComplete Called when an iteratee is done.
-   * @param onError Called when an iteratee encounters an error, supplying the error and the input that caused the error.
+   * @param onComplete Called when an iteratee is done
+   * @param onError Called when an iteratee encounters an error, supplying the error and the input that caused the error
    * $paramEcMultiple
    */
   def unicast[E](
@@ -522,9 +522,9 @@ object Concurrent {
    * attached to the broadcasting enumerator.
    *
    * @param e The enumerator to broadcast
-   * @param interestIsDownToZero Function that is invoked when all iteratees are done.  May be invoked multiple times.
+   * @param interestIsDownToZero Function that is invoked when all iteratees are done.  May be invoked multiple times
    * $paramEcSingle
-   * @return A tuple of the broadcasting enumerator, that can be applied to each iteratee that wants to receive the
+   * @return a tuple of the broadcasting enumerator, that can be applied to each iteratee that wants to receive the
    *         input, and the broadcaster.
    */
   def broadcast[E](e: Enumerator[E], interestIsDownToZero: Broadcaster => Unit = _ => ())(implicit ec: ExecutionContext): (Enumerator[E], Broadcaster) = {
@@ -686,7 +686,7 @@ object Concurrent {
     /**
      * Patch in the given enumerator into the iteratee.
      *
-     * @return Whether the enumerator was successfully patched in.  Will return false if the patch panel is closed.
+     * @return whether the enumerator was successfully patched in.  Will return false if the patch panel is closed
      */
     def patchIn(e: Enumerator[E]): Boolean
 
@@ -702,7 +702,7 @@ object Concurrent {
   /**
    * An enumerator that allows patching in enumerators to supply it with input.
    *
-   * @param patcher A function that passes a patch panel whenever the enumerator is applied to an iteratee.
+   * @param patcher A function that passes a patch panel whenever the enumerator is applied to an iteratee
    * $paramEcSingle
    */
   def patchPanel[E](patcher: PatchPanel[E] => Unit)(implicit ec: ExecutionContext): Enumerator[E] = new Enumerator[E] {

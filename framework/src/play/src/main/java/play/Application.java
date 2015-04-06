@@ -74,7 +74,7 @@ public interface Application {
      * Get a resource stream from the classpath.
      *
      * @param relativePath relative path of the resource to fetch
-     * @return InputStream to the resource (may be null)
+     * @return inputStream to the resource (may be null)
      */
     default InputStream resourceAsStream(String relativePath) {
         return Scala.orNull(getWrappedApplication().resourceAsStream(relativePath));

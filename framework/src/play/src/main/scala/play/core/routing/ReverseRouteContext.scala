@@ -11,7 +11,7 @@ package play.core.routing
  *
  * An empty reverse router context is made available implicitly to the router and JavaScript router.
  *
- * @param fixedParams The fixed params that this route passes to the action.
+ * @param fixedParams The fixed params that this route passes to the action
  */
 case class ReverseRouteContext(fixedParams: Map[String, Any])
 

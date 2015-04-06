@@ -85,8 +85,8 @@ public class Configuration {
     /**
      * Retrieves a sub-configuration, which is a configuration instance containing all keys that start with the given prefix.
      *
-     * @param key The root prefix for this sub configuration.
-     * @return Maybe a new configuration
+     * @param key The root prefix for this sub configuration
+     * @return maybe a new configuration
      */
     public Configuration getConfig(String key) {
         scala.Option<play.api.Configuration> nConf = conf.getConfig(key);
@@ -306,7 +306,7 @@ public class Configuration {
     /**
      * Returns the config as a map of plain old Java maps, lists and values.
      *
-     * @return The config map
+     * @return the config map
      */
     public Map<String, Object> asMap() {
         return conf.underlying().root().unwrapped();
@@ -315,7 +315,7 @@ public class Configuration {
     /**
      * Returns the underlying Typesafe config object.
      *
-     * @return The config
+     * @return the config
      */
     public Config underlying() {
         return conf.underlying();
@@ -326,7 +326,7 @@ public class Configuration {
      * different to {@link asMap()} in that it returns {@link com.typesafe.config.ConfigValue}
      * objects, and keys are recursively expanded to be pull path keys.
      *
-     * @return The config as an entry set
+     * @return the config as an entry set
      */
     public Set<Map.Entry<String, ConfigValue>> entrySet() {
         return conf.underlying().entrySet();

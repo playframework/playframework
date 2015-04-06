@@ -19,8 +19,8 @@ public interface CSRFErrorHandler {
      * Handle the CSRF error.
      *
      * @param req The request
-     * @param msg message is passed by framework.
-     * @return Client gets this result.
+     * @param msg message is passed by framework
+     * @return client gets this result
      */
     F.Promise<Result> handle(Http.RequestHeader req, String msg);
 
