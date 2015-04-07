@@ -9,7 +9,7 @@ package play.core.utils
  * use a much faster length comparison before we even start looking
  * at the content of the strings.
  */
-object CaseInsensitiveOrdered extends Ordering[String] {
+private[play] object CaseInsensitiveOrdered extends Ordering[String] {
   def compare(x: String, y: String): Int = {
     val xl = x.length
     val yl = y.length
