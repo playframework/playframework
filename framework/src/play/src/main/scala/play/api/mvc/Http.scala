@@ -174,9 +174,9 @@ package play.api.mvc {
       version: String = this.version,
       queryString: Map[String, Seq[String]] = this.queryString,
       headers: Headers = this.headers,
-      remoteAddress: String = this.remoteAddress,
-      secure: Boolean = this.secure): RequestHeader = {
-      val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress, _secure) = (id, tags, uri, path, method, version, queryString, headers, remoteAddress, secure)
+      remoteAddress: => String = this.remoteAddress,
+      secure: => Boolean = this.secure): RequestHeader = {
+      val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress, _secure) = (id, tags, uri, path, method, version, queryString, headers, () => remoteAddress, () => secure)
       new RequestHeader {
         val id = _id
         val tags = _tags
@@ -186,8 +186,8 @@ package play.api.mvc {
         val version = _version
         val queryString = _queryString
         val headers = _headers
-        val remoteAddress = _remoteAddress
-        val secure = _secure
+        lazy val remoteAddress = _remoteAddress()
+        lazy val secure = _secure()
       }
     }
 
@@ -264,6 +264,7 @@ package play.api.mvc {
 
   }
 
+  /** Used by Java wrapper */
   private[play] class RequestImpl[A](
       val body: A,
       val id: Long,

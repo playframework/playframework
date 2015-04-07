@@ -3,9 +3,11 @@
  */
 package play.filters.csrf;
 
+import java.util.concurrent.Callable;
 import play.api.mvc.RequestHeader;
 import play.api.mvc.Session;
 import play.libs.F;
+import play.libs.Scala;
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -43,7 +45,8 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
             final RequestHeader newRequest = request.copy(request.id(),
                     request.tags().$plus(new Tuple2<String, String>(requestTag, newToken)),
                     request.uri(), request.path(), request.method(), request.version(), request.queryString(),
-                    request.headers(), request.remoteAddress(), request.secure());
+                    request.headers(), Scala.asScala((Callable<String>) () -> request.remoteAddress()),
+                    Scala.asScala((Callable<Object>) () -> request.secure()));
 
             // Create a new context that will have the new RequestHeader.  This ensures that the CSRF.getToken call
             // used in templates will find the token.
