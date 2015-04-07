@@ -3,6 +3,8 @@
  */
 package play.api.libs.iteratee
 
+import java.nio.file.Files
+
 import play.api.libs.iteratee.Execution.Implicits.{ defaultExecutionContext => dec }
 import play.api.libs.iteratee.internal.{ eagerFuture, executeFuture }
 import scala.concurrent.{ ExecutionContext, Future, Promise, blocking }
@@ -580,6 +582,18 @@ object Enumerator {
    */
   def fromFile(file: java.io.File, chunkSize: Int = 1024 * 8)(implicit ec: ExecutionContext): Enumerator[Array[Byte]] = {
     fromStream(new java.io.FileInputStream(file), chunkSize)(ec)
+  }
+
+  /**
+   * Create an enumerator from the given input stream.
+   *
+   * Note that this enumerator will block when it reads from the file.
+   *
+   * @param path The file path to create the enumerator from.
+   * @param chunkSize The size of chunks to read from the file.
+   */
+  def fromPath(path: java.nio.file.Path, chunkSize: Int = 1024 * 8)(implicit ec: ExecutionContext): Enumerator[Array[Byte]] = {
+    fromStream(Files.newInputStream(path), chunkSize)(ec)
   }
 
   /**

@@ -3,6 +3,8 @@
  */
 package play.api.libs.iteratee
 
+import java.nio.file.Files
+
 import org.specs2.mutable._
 import java.io.{ ByteArrayInputStream, File, FileOutputStream, OutputStream }
 import java.util.concurrent.{ CountDownLatch, TimeUnit }
@@ -302,6 +304,24 @@ object EnumeratorsSpec extends Specification
           mustEnumerateTo(s)(enumerator)
         } finally {
           f.delete()
+        }
+      }
+    }
+  }
+
+  "Enumerator.fromPath" should {
+    "read bytes from a path" in {
+      mustExecute(3) { fromPathEC =>
+        val f = Files.createTempFile("EnumeratorSpec", "fromPath")
+        try {
+          val s = "hello"
+          val out = Files.newOutputStream(f)
+          out.write(s.getBytes)
+          out.close()
+          val enumerator = Enumerator.fromPath(f)(fromPathEC).map(new String(_))
+          mustEnumerateTo(s)(enumerator)
+        } finally {
+          Files.delete(f)
         }
       }
     }

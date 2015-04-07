@@ -14,6 +14,8 @@ import play.libs.F.*;
 import play.twirl.api.Content;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -1286,6 +1288,55 @@ public class Results {
             return new Status(wrappedStatus.sendResource(resourceName, classLoader, inline));
         }
 
+        /**
+         * Sends the given path.
+         *
+         * @param path The path to send.
+         */
+        public Status sendPath(Path path) {
+            return sendPath(path, false);
+        }
+
+        /**
+         * Sends the given path.
+         *
+         * @param path The path to send.
+         * @param inline Whether it should be served as an inline file, or as an attachment.
+         */
+        public Status sendPath(Path path, boolean inline) {
+            return sendPath(path, inline, path.getFileName().toString());
+        }
+
+        /**
+         * Sends the given path.
+         *
+         * @param path The path to send.
+         * @param inline Whether it should be served as an inline file, or as an attachment.
+         * @param filename The file name of the path.
+         */
+        public Status sendPath(Path path, boolean inline, String filename) {
+            if (path == null) {
+                throw new NullPointerException("null content");
+            }
+            return new Status(play.core.j.JavaResults.sendPath(wrappedStatus, path, inline, filename));
+        }
+
+        /**
+         * Sends the given path using chunked transfer encoding.
+         *
+         * @param path The path to send.
+         * @param chunkSize Length of chunk.
+         */
+        public Status sendPath(Path path, int chunkSize) {
+            if (path == null) {
+                throw new NullPointerException("null content");
+            }
+            return new Status(wrappedStatus.chunked(
+                    play.core.j.JavaResults.chunked(path, chunkSize),
+                    play.core.j.JavaResults.writeBytes(Scala.orNull(play.api.libs.MimeTypes.forFileName(path.getFileName().toString())))
+            ));
+        }
+
         public play.api.mvc.Result toScala() {
             return wrappedStatus;
         }
@@ -1346,7 +1397,7 @@ public class Results {
             wrappedResult = status.apply(
                     content,
                     play.core.j.JavaResults.writeBytes()
-                    );
+            );
         }
 
         public Status(play.api.mvc.Results.Status status, File content) {
@@ -1371,7 +1422,7 @@ public class Results {
             wrappedResult = status.chunked(
                     play.core.j.JavaResults.chunked(content, chunkSize),
                     play.core.j.JavaResults.writeBytes(Scala.orNull(play.api.libs.MimeTypes.forFileName(content.getName())))
-                    );
+            );
         }
 
         public Status(play.api.mvc.Results.Status status, InputStream content, int chunkSize) {
