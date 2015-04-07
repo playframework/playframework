@@ -10,15 +10,15 @@ $ exists target/universal/stage/lib
 $ exists target/universal/stage/share/doc/api
 
 # Run it to make sure everything works
-> start --no-exit-sbt
+> testProd --no-exit-sbt
 > check-config foo
-> stop --no-exit-sbt
+> stopProd --no-exit-sbt
 
 # Change the configuration in the conf directory, make sure it takes effect
 $ copy-file conf/alternate.conf target/universal/stage/conf/application.conf
-> start --no-exit-sbt
+> testProd --no-exit-sbt
 > check-config bar
-> stop --no-exit-sbt
+> stopProd --no-exit-sbt
 
 # Turn off externalize resources, rebuild, make sure the conf directory is not created or on the classpath
 > set PlayKeys.externalizeResources := false

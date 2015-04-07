@@ -7,7 +7,7 @@ import annotation.tailrec
 import collection.JavaConverters._
 
 import sbt._
-import Keys._
+import sbt.Keys._
 
 import play.sbt._
 import play.sbt.PlayImport._
@@ -185,7 +185,17 @@ object PlayRun {
     new AssetsClassLoader(parent, playAllAssets.value)
   }
 
+  val playTestProdCommand = Command.args("testProd", "<port>")(testProd)
+
   val playStartCommand = Command.args("start", "<port>") { (state: State, args: Seq[String]) =>
+    state.log.warn("The start command is deprecated, and will be removed in a future version of Play.")
+    state.log.warn("To run Play in production mode, run 'stage' instead, and then execute the generated start script in target/universal/stage/bin.")
+    state.log.warn("To test your application using production mode, run 'testProd' instead.")
+
+    testProd(state, args)
+  }
+
+  private def testProd(state: State, args: Seq[String]): State = {
 
     val extracted = Project.extract(state)
 
@@ -251,7 +261,7 @@ object PlayRun {
 
   }
 
-  val playStopCommand = Command.args("stop", "") { (state: State, args: Seq[String]) =>
+  val playStopProdCommand = Command.args("stopProd", "") { (state: State, args: Seq[String]) =>
 
     val extracted = Project.extract(state)
 
