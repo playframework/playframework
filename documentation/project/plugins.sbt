@@ -9,3 +9,6 @@ resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releas
 lazy val plugins = (project in file(".")).dependsOn(playDocsPlugin)
 
 lazy val playDocsPlugin = ProjectRef(Path.fileProperty("user.dir").getParentFile / "framework", "Play-Docs-SBT-Plugin")
+
+// Required for Production.md
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.11.2")

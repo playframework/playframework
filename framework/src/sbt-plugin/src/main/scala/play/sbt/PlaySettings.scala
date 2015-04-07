@@ -90,7 +90,7 @@ object PlaySettings {
     commands ++= {
       import PlayCommands._
       import PlayRun._
-      Seq(playStartCommand, playStopCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand)
+      Seq(playStartCommand, playTestProdCommand, playStopProdCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand)
     },
 
     // THE `in Compile` IS IMPORTANT!
