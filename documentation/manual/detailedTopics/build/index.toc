@@ -5,3 +5,4 @@ SBTSubProjects:Working with sub-projects
 AggregatingReverseRouters:Aggregating reverse routers
 CompilationSpeed:Improving Compilation Times
 SBTCookbook:Cookbook
+SBTDebugging:Debugging your build

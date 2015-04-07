@@ -115,7 +115,5 @@ object PlayImport {
 
     val playMonitoredFiles = TaskKey[Seq[String]]("play-monitored-files")
     val fileWatchService = SettingKey[FileWatchService]("file-watch-service", "The watch service Play uses to watch for file changes")
-
-    val computeDependencies = TaskKey[Seq[Map[Symbol, Any]]]("ivy-dependencies")
   }
 }

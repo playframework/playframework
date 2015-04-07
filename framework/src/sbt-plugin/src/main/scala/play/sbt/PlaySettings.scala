@@ -90,7 +90,7 @@ object PlaySettings {
     commands ++= {
       import PlayCommands._
       import PlayRun._
-      Seq(playStartCommand, playTestProdCommand, playStopProdCommand, h2Command, classpathCommand, licenseCommand, computeDependenciesCommand)
+      Seq(playStartCommand, playTestProdCommand, playStopProdCommand, h2Command)
     },
 
     // THE `in Compile` IS IMPORTANT!
@@ -105,8 +105,6 @@ object PlaySettings {
     },
 
     shellPrompt := PlayCommands.playPrompt,
-
-    computeDependencies <<= PlayCommands.computeDependenciesTask,
 
     // all dependencies from outside the project (all dependency jars)
     playDependencyClasspath <<= externalDependencyClasspath in Runtime,
