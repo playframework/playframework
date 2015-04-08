@@ -9,7 +9,7 @@ scalaVersion := sys.props.get("scala.version").getOrElse("2.10.4")
 
 sources in (Compile, routes) := Seq(baseDirectory.value / "routes")
 
-InputKey[Unit]("all-problems-are-from") := {
+InputKey[Unit]("allProblemsAreFrom") := {
   val args = Def.spaceDelimited("<source> <line>").parsed
   val base: File = baseDirectory.value
   val source = base / args(0)

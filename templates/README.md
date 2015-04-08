@@ -12,7 +12,7 @@ However, there is a sync-templates command that will sync them to a working dire
 where you can develop them.  The most convenvient way to use this is to use triggered
 execution:
 
-    ./build ~sync-templates
+    ./build ~syncTemplates
 
 Then in another window, you can test/run the template, for example, to run the
 play-scala template:
@@ -32,8 +32,8 @@ Publishing
 
 You can publish templates by running
 
-    ./build publish-templates
+    ./build publishTemplates
 
 You can publish specific templates by using the templates command:
 
-    ./build templates play-scala publish-templates
+    ./build templates play-scala publishTemplates

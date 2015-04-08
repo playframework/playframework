@@ -15,7 +15,7 @@ object ApplicationBuild extends Build {
 
   val main = Project(appName, file(".")).enablePlugins(PlayScala).settings(
     version := appVersion,
-    TaskKey[Unit]("check-secret") := {
+    TaskKey[Unit]("checkSecret") := {
       val file = IO.read(baseDirectory.value / "conf/application.conf")
       file match {
         case Secret("changeme") => throw new RuntimeException("secret not changed!!\n" + file)

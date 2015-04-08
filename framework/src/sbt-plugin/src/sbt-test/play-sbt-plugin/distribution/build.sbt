@@ -6,7 +6,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.10.4")
 
-val checkStartScript = InputKey[Unit]("check-start-script")
+val checkStartScript = InputKey[Unit]("checkStartScript")
 
 checkStartScript := {
   val args = Def.spaceDelimited().parsed
@@ -48,7 +48,7 @@ def retry[B](max: Int = 10, sleep: Long = 500, current: Int = 1)(block: => B): B
   }
 }
 
-InputKey[Unit]("check-config") := {
+InputKey[Unit]("checkConfig") := {
   val expected = Def.spaceDelimited().parsed.head
   import java.net.URL
   val config = retry() {

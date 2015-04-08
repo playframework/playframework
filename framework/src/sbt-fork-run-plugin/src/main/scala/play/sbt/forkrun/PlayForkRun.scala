@@ -17,16 +17,16 @@ import scala.concurrent.duration._
 
 object Import {
   object PlayForkRunKeys {
-    val playRun = InputKey[Unit]("play-run", "Play in-process reloading run")
-    val playForkRun = InputKey[Unit]("play-fork-run", "Play forked reloading run")
-    val playForkOptions = TaskKey[PlayForkOptions]("play-fork-run-options", "Fork run options")
-    val playForkLogSbtEvents = SettingKey[Boolean]("Determines whether events from sbt server are logged in fork run")
-    val playForkCompileTimeout = SettingKey[Duration]("play-fork-compile-timeout", "Timeout for requested compiles")
-    val playForkShutdownTimeout = SettingKey[FiniteDuration]("play-fork-shutdown-timeout", "Timeout for shutdown of forked process before forcibly shutting down")
-    val playForkConfig = TaskKey[ForkConfig]("play-fork-config", "All setup settings for forked run")
-    val playForkNotifyStart = InputKey[Unit]("play-fork-notify-start", "For notifying sbt with the play server url")
-    val playForkStarted = TaskKey[String => Unit]("play-fork-started", "Callback for play server start")
-    val playForkReload = TaskKey[CompileResult]("play-fork-reload", "Information needed for forked reloads")
+    val playRun = InputKey[Unit]("playRun", "Play in-process reloading run")
+    val playForkRun = InputKey[Unit]("playForkRun", "Play forked reloading run")
+    val playForkOptions = TaskKey[PlayForkOptions]("playForkRunOptions", "Fork run options")
+    val playForkLogSbtEvents = SettingKey[Boolean]("playForkLogSbtEvents", "Determines whether events from sbt server are logged in fork run")
+    val playForkCompileTimeout = SettingKey[Duration]("playForkCompileTimeout", "Timeout for requested compiles")
+    val playForkShutdownTimeout = SettingKey[FiniteDuration]("playForkShutdownTimeout", "Timeout for shutdown of forked process before forcibly shutting down")
+    val playForkConfig = TaskKey[ForkConfig]("playForkConfig", "All setup settings for forked run")
+    val playForkNotifyStart = InputKey[Unit]("playForkNotifyStart", "For notifying sbt with the play server url")
+    val playForkStarted = TaskKey[String => Unit]("playForkStarted", "Callback for play server start")
+    val playForkReload = TaskKey[CompileResult]("playForkReload", "Information needed for forked reloads")
   }
 }
 

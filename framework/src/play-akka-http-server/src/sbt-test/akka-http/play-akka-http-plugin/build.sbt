@@ -16,7 +16,7 @@ libraryDependencies += specs2 % Test
 
 PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode
 
-InputKey[Unit]("verify-resource-contains") := {
+InputKey[Unit]("verifyResourceContains") := {
   val args = Def.spaceDelimited("<path> <status> <words> ...").parsed
   val path = args.head
   val status = args.tail.head.toInt

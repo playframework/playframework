@@ -41,10 +41,10 @@ object ApplicationBuild extends Build {
     true
   }
 
-  val checkLogContainsTask = InputKey[Boolean]("check-log-contains") <<=
+  val checkLogContainsTask = InputKey[Boolean]("checkLogContains") <<=
     InputTask.separate[String, Boolean](simpleParser _)(state(s => checkLogContains))
 
-  val compileIgnoreErrorsTask = TaskKey[Unit]("compile-ignore-errors") <<= state.map { state =>
+  val compileIgnoreErrorsTask = TaskKey[Unit]("compileIgnoreErrors") <<= state.map { state =>
     Project.runTask(compile in Compile, state)
   }
 

@@ -21,26 +21,26 @@ import scala.util.control.NonFatal
 
 object Imports {
   object PlayDocsKeys {
-    val fallbackToJar = SettingKey[Boolean]("play-docs-fallback-to-jar", "Whether the docs should fallback to loading things from the jar", KeyRanks.CSetting)
-    val manualPath = SettingKey[File]("play-docs-manual-path", "The location of the manual", KeyRanks.CSetting)
-    val docsVersion = SettingKey[String]("play-docs-version", "The version of the documentation to fallback to.", KeyRanks.ASetting)
-    val docsName = SettingKey[String]("play-docs-name", "The name of the documentation artifact", KeyRanks.BSetting)
-    val docsJarFile = TaskKey[Option[File]]("play-docs-jar-file", "Optional play docs jar file", KeyRanks.CTask)
-    val docsJarScalaBinaryVersion = SettingKey[String]("play-docs-scala-version", "The binary scala version of the documentation", KeyRanks.BSetting)
-    val validateDocs = TaskKey[Unit]("validate-docs", "Validates the play docs to ensure they compile and that all links resolve.", KeyRanks.APlusTask)
-    val validateExternalLinks = TaskKey[Seq[String]]("validate-external-links", "Validates that all the external links are valid, by checking that they return 200.", KeyRanks.APlusTask)
+    val fallbackToJar = SettingKey[Boolean]("playDocsFallbackToJar", "Whether the docs should fallback to loading things from the jar", KeyRanks.CSetting)
+    val manualPath = SettingKey[File]("playDocsManualPath", "The location of the manual", KeyRanks.CSetting)
+    val docsVersion = SettingKey[String]("playDocsVersion", "The version of the documentation to fallback to.", KeyRanks.ASetting)
+    val docsName = SettingKey[String]("playDocsName", "The name of the documentation artifact", KeyRanks.BSetting)
+    val docsJarFile = TaskKey[Option[File]]("playDocsJarFile", "Optional play docs jar file", KeyRanks.CTask)
+    val docsJarScalaBinaryVersion = SettingKey[String]("playDocsScalaVersion", "The binary scala version of the documentation", KeyRanks.BSetting)
+    val validateDocs = TaskKey[Unit]("validateDocs", "Validates the play docs to ensure they compile and that all links resolve.", KeyRanks.APlusTask)
+    val validateExternalLinks = TaskKey[Seq[String]]("validateExternalLinks", "Validates that all the external links are valid, by checking that they return 200.", KeyRanks.APlusTask)
 
-    val generateMarkdownRefReport = TaskKey[MarkdownRefReport]("generate-markdown-ref-report", "Parses all markdown files and generates a report of references", KeyRanks.CTask)
-    val generateMarkdownCodeSamplesReport = TaskKey[CodeSamplesReport]("generate-markdown-code-samples-report", "Parses all markdown files and generates a report of code samples used", KeyRanks.CTask)
-    val generateUpstreamCodeSamplesReport = TaskKey[CodeSamplesReport]("generate-upstream-code-samples-report", "Parses all markdown files from the upstream translation and generates a report of code samples used", KeyRanks.CTask)
-    val translationCodeSamplesReportFile = SettingKey[File]("translation-code-samples-report-filename", "The filename of the translation code samples report", KeyRanks.CTask)
-    val translationCodeSamplesReport = TaskKey[File]("translation-code-samples-report", "Generates a report on the translation code samples", KeyRanks.CTask)
+    val generateMarkdownRefReport = TaskKey[MarkdownRefReport]("generateMarkdownRefReport", "Parses all markdown files and generates a report of references", KeyRanks.CTask)
+    val generateMarkdownCodeSamplesReport = TaskKey[CodeSamplesReport]("generateMarkdownCodeSamplesReport", "Parses all markdown files and generates a report of code samples used", KeyRanks.CTask)
+    val generateUpstreamCodeSamplesReport = TaskKey[CodeSamplesReport]("generateUpstreamCodeSamplesReport", "Parses all markdown files from the upstream translation and generates a report of code samples used", KeyRanks.CTask)
+    val translationCodeSamplesReportFile = SettingKey[File]("translationCodeSamplesReportFilename", "The filename of the translation code samples report", KeyRanks.CTask)
+    val translationCodeSamplesReport = TaskKey[File]("translationCodeSamplesReport", "Generates a report on the translation code samples", KeyRanks.CTask)
     val cachedTranslationCodeSamplesReport = TaskKey[File]("cached-translation-code-samples-report", "Generates a report on the translation code samples if not already generated", KeyRanks.CTask)
 
-    val javaManualSourceDirectories = SettingKey[Seq[File]]("java-manual-source-directories")
-    val scalaManualSourceDirectories = SettingKey[Seq[File]]("scala-manual-source-directories")
-    val javaTwirlSourceManaged = SettingKey[File]("java-routes-source-managed")
-    val scalaTwirlSourceManaged = SettingKey[File]("scala-routes-source-managed")
+    val javaManualSourceDirectories = SettingKey[Seq[File]]("javaManualSourceDirectories")
+    val scalaManualSourceDirectories = SettingKey[Seq[File]]("scalaManualSourceDirectories")
+    val javaTwirlSourceManaged = SettingKey[File]("javaRoutesSourceManaged")
+    val scalaTwirlSourceManaged = SettingKey[File]("scalaRoutesSourceManaged")
 
     val evaluateSbtFiles = TaskKey[Unit]("evaluateSbtFiles", "Evaluate all the sbt files in the project")
   }

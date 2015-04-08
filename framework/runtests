@@ -48,7 +48,7 @@ echo "[info] ---- RUNNING DOCUMENTATION TESTS"
 echo "[info]"
 
 cd ../documentation
-$BUILD "$@" clean ${CROSSBUILD}test evaluateSbtFiles validate-docs
+$BUILD "$@" clean ${CROSSBUILD}test evaluateSbtFiles validateDocs
 cd $CURRENT
 
 echo "[info]"

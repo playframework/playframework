@@ -7,20 +7,20 @@ import sbt.complete.{Parsers, Parser}
 
 object Templates {
 
-  val templates = SettingKey[Seq[File]]("activator-templates")
-  val templateParameters = SettingKey[Map[String, String]]("template-parameters")
-  val gitHash = TaskKey[String]("git-hash")
+  val templates = SettingKey[Seq[File]]("activatorTemplates")
+  val templateParameters = SettingKey[Map[String, String]]("templateParameters")
+  val gitHash = TaskKey[String]("gitHash")
   val nonce = TaskKey[Long]("nonce")
 
-  val syncTemplateDir = SettingKey[File]("sync-template-dir")
-  val syncTemplates = TaskKey[Seq[File]]("sync-templates")
+  val syncTemplateDir = SettingKey[File]("syncTemplateDir")
+  val syncTemplates = TaskKey[Seq[File]]("syncTemplates")
 
-  val prepareTemplates = TaskKey[Seq[File]]("prepare-templates")
-  val testTemplates = TaskKey[Unit]("test-templates")
-  val zipTemplates = TaskKey[Seq[File]]("zip-templates")
-  val publishTemplatesTo = SettingKey[String]("publish-templates-to")
-  val doPublishTemplates = TaskKey[Boolean]("do-publish-templates")
-  val publishTemplates = TaskKey[Unit]("publish-templates")
+  val prepareTemplates = TaskKey[Seq[File]]("prepareTemplates")
+  val testTemplates = TaskKey[Unit]("testTemplates")
+  val zipTemplates = TaskKey[Seq[File]]("zipTemplates")
+  val publishTemplatesTo = SettingKey[String]("publishTemplatesTo")
+  val doPublishTemplates = TaskKey[Boolean]("doPublishTemplates")
+  val publishTemplates = TaskKey[Unit]("publishTemplates")
 
   val templateSettings: Seq[Setting[_]] = s3Settings ++ Seq(
     templates := Nil,
