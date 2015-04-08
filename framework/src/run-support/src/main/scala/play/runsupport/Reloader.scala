@@ -106,7 +106,7 @@ object Reloader {
     dependencyClasspath: Classpath, dependencyClassLoader: ClassLoaderCreator,
     reloadCompile: () => CompileResult, reloaderClassLoader: ClassLoaderCreator,
     assetsClassLoader: ClassLoader => ClassLoader, commonClassLoader: ClassLoader,
-    monitoredFiles: Seq[String], fileWatchService: FileWatchService,
+    monitoredFiles: Seq[File], fileWatchService: FileWatchService,
     docsClasspath: Classpath, docsJar: Option[File],
     defaultHttpPort: Int, defaultHttpAddress: String, projectPath: File,
     devSettings: Seq[(String, String)], args: Seq[String],
@@ -256,7 +256,7 @@ class Reloader(
     baseLoader: ClassLoader,
     val projectPath: File,
     devSettings: Seq[(String, String)],
-    monitoredFiles: Seq[String],
+    monitoredFiles: Seq[File],
     fileWatchService: FileWatchService,
     runSbtTask: String => AnyRef) extends BuildLink {
 
@@ -275,7 +275,7 @@ class Reloader(
   @volatile private var watchState: WatchState = WatchState.empty
 
   // Create the watcher, updates the changed boolean when a file has changed.
-  private val watcher = fileWatchService.watch(monitoredFiles.map(new File(_)), () => {
+  private val watcher = fileWatchService.watch(monitoredFiles, () => {
     changed = true
   })
   private val classLoaderVersion = new java.util.concurrent.atomic.AtomicInteger(0)

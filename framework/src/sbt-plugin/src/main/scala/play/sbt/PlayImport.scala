@@ -113,7 +113,7 @@ object PlayImport {
     val playAggregateAssets = SettingKey[Boolean]("play-aggregate-assets", "Determines whether assets from project dependencies are included.")
     val playPackageAssets = TaskKey[File]("play-package-assets")
 
-    val playMonitoredFiles = TaskKey[Seq[String]]("play-monitored-files")
+    val playMonitoredFiles = TaskKey[Seq[File]]("play-monitored-files")
     val fileWatchService = SettingKey[FileWatchService]("file-watch-service", "The watch service Play uses to watch for file changes")
   }
 }

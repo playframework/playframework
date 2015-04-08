@@ -1,0 +1,5 @@
+# Check that the monitored files are right
+> checkPlayMonitoredFiles
+
+# Check that compile everything works
+> checkPlayCompileEverything

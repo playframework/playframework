@@ -60,7 +60,7 @@ object SerializersSpec extends Specification with PicklingTestUtils {
         defaultHttpPort = 3456,
         defaultHttpAddress = "1.2.3.4",
         watchService = ForkConfig.JNotifyWatchService,
-        monitoredFiles = Seq("c"),
+        monitoredFiles = Seq(file("c")),
         targetDirectory = file("target"),
         pollInterval = 100,
         notifyKey = "abcdefg",
