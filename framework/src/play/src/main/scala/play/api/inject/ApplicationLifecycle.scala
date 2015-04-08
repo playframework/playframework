@@ -5,7 +5,7 @@ package play.api.inject
 
 import java.util.concurrent.Callable
 
-import com.google.inject.Singleton
+import javax.inject.Singleton
 import play.api.Logger
 import play.libs.F
 
