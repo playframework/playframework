@@ -13,7 +13,7 @@ You need to have `activator` or `sbt` installed.  It will also be very useful to
 If you're translating an unreleased version of the Play documentation, then you'll need to build that version of Play and publish it locally on your machine first.  This can be done by running:
 
 ```
-./build publish-local
+./build publishLocal
 ```
 
 in the `framework` directory of the Play project.
@@ -95,13 +95,13 @@ In some situations, it may make sense to override them.  You can either do this 
 The Play docs sbt plugin provides a documentation validation task that runs some simple tests over the documentation, to ensure the integrity of links and code sample references.  You can run this by running:
 
 ```
-sbt validate-docs
+sbt validateDocs
 ```
 
 You can also validate the links to external sites in Play's documentation.  This is a separate task because it's dependent on many sites on the internet that Play's documentation links to, and the validation task in fact actually triggers DDoS filters on some sites.  To run it, run:
 
 ```
-sbt validate-external-links
+sbt validateExternalLinks
 ```
 
 ## Translation report

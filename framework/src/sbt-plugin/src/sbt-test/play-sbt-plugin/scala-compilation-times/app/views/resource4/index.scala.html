@@ -1,9 +1,0 @@
-@(ids: Seq[Long])
-
-<ul>
-@for(id <- ids) {
-<li><a href="@routes.Resource4.get(id)">@id</a></li>
-}
-</ul>
-
-<a href="@routes.Resource4.create()">Create</a>

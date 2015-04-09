@@ -13,15 +13,15 @@ object Docs {
 
   val Webjars = config("webjars").hide
 
-  val apiDocsInclude = SettingKey[Boolean]("api-docs-include", "Whether this sub project should be included in the API docs")
-  val apiDocsIncludeManaged = SettingKey[Boolean]("api-docs-include-managed", "Whether managed sources from this project should be included in the API docs")
-  val apiDocsScalaSources = TaskKey[Seq[File]]("api-docs-scala-sources", "All the scala sources for all projects")
-  val apiDocsJavaSources = TaskKey[Seq[File]]("api-docs-java-sources", "All the Java sources for all projects")
-  val apiDocsClasspath = TaskKey[Seq[File]]("api-docs-classpath", "The classpath for API docs generation")
-  val apiDocsUseCache = SettingKey[Boolean]("api-docs-use-cache", "Whether to cache the doc inputs (can hit cache limit with dbuild)")
-  val apiDocs = TaskKey[File]("api-docs", "Generate the API docs")
-  val extractWebjars = TaskKey[File]("extract-webjars", "Extract webjar contents")
-  val allConfs = TaskKey[Seq[(String, File)]]("all-confs", "Gather all configuration files")
+  val apiDocsInclude = SettingKey[Boolean]("apiDocsInclude", "Whether this sub project should be included in the API docs")
+  val apiDocsIncludeManaged = SettingKey[Boolean]("apiDocsIncludeManaged", "Whether managed sources from this project should be included in the API docs")
+  val apiDocsScalaSources = TaskKey[Seq[File]]("apiDocsScalaSources", "All the scala sources for all projects")
+  val apiDocsJavaSources = TaskKey[Seq[File]]("apiDocsJavaSources", "All the Java sources for all projects")
+  val apiDocsClasspath = TaskKey[Seq[File]]("apiDocsClasspath", "The classpath for API docs generation")
+  val apiDocsUseCache = SettingKey[Boolean]("apiDocsUseCache", "Whether to cache the doc inputs (can hit cache limit with dbuild)")
+  val apiDocs = TaskKey[File]("apiDocs", "Generate the API docs")
+  val extractWebjars = TaskKey[File]("extractWebjars", "Extract webjar contents")
+  val allConfs = TaskKey[Seq[(String, File)]]("allConfs", "Gather all configuration files")
 
   lazy val settings = Seq(
     apiDocsInclude := false,

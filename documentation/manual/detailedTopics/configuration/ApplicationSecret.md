@@ -53,7 +53,7 @@ Then you can start Play with:
 Play provides a utility that you can use to generate a new secret.  Run `play-generate-secret` in the Play console.  This will generate a new secret that you can use in your application.  For example:
 
 ```
-[my-first-app] $ play-generate-secret
+[my-first-app] $ playGenerateSecret
 [info] Generated new secret: QCYtAnfkaZiwrNwnxIlR6CTfG3gf90Latabg5241ABR5W1uDFNIkn
 [success] Total time: 0 s, completed 28/03/2014 2:26:09 PM
 ```
@@ -65,7 +65,7 @@ Play also provides a convenient utility for updating the secret in `application.
 To update the secret in `application.conf`, run `play-update-secret` in the Play console:
 
 ```
-[my-first-app] $ play-update-secret
+[my-first-app] $ playUpdateSecret
 [info] Generated new secret: B4FvQWnTp718vr6AHyvdGlrHBGNcvuM4y3jUeRCgXxIwBZIbt
 [info] Updating application secret in /Users/jroper/tmp/my-first-app/conf/application.conf
 [info] Replacing old application secret: play.crypto.secret="changeme"

@@ -12,11 +12,11 @@ import scala.util.Properties
 object DevModeBuild {
 
   object DevModeKeys {
-    val writeRunProperties = TaskKey[Unit]("write-run-properties")
-    val waitForServer = TaskKey[Unit]("wait-for-server")
-    val resetReloads = TaskKey[Unit]("reset-reloads")
-    val verifyReloads = InputKey[Unit]("verify-reloads")
-    val verifyResourceContains = InputKey[Unit]("verify-resource-contains")
+    val writeRunProperties = TaskKey[Unit]("writeRunProperties")
+    val waitForServer = TaskKey[Unit]("waitForServer")
+    val resetReloads = TaskKey[Unit]("resetReloads")
+    val verifyReloads = InputKey[Unit]("verifyReloads")
+    val verifyResourceContains = InputKey[Unit]("verifyResourceContains")
   }
 
   def settings: Seq[Setting[_]] = Seq(

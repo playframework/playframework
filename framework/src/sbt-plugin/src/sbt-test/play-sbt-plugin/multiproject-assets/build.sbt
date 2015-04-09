@@ -12,11 +12,11 @@ lazy val module = (project in file("module")).enablePlugins(PlayScala)
 
 scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.10.4")
 
-TaskKey[Unit]("unzip-assets-jar") := {
+TaskKey[Unit]("unzipAssetsJar") := {
   IO.unzip(target.value / "universal" / "stage" / "lib" / s"${organization.value}.${normalizedName.value}-${version.value}-assets.jar", target.value / "assetsJar")
 }
 
-InputKey[Unit]("check-on-classpath") := {
+InputKey[Unit]("checkOnClasspath") := {
   val args = Def.spaceDelimited("<resource>*").parsed
   val creator: ClassLoader => ClassLoader = play.sbt.PlayInternalKeys.playAssetsClassLoader.value
   val classloader = creator(null)
@@ -29,7 +29,7 @@ InputKey[Unit]("check-on-classpath") := {
   }
 }
 
-InputKey[Unit]("check-on-test-classpath") := {
+InputKey[Unit]("checkOnTestClasspath") := {
   val args = Def.spaceDelimited("<resource>*").parsed
   val classpath: Classpath = (fullClasspath in Test).value
   val classloader = new URLClassLoader(classpath.map(_.data.toURI.toURL).toArray)
