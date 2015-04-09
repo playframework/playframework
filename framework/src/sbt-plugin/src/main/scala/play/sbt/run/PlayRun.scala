@@ -89,7 +89,7 @@ object PlayRun {
       devSettings.value,
       args,
       runSbtTask,
-      (mainClass in (Compile, Keys.run)).value.getOrElse("play.core.server.NettyServer")
+      (mainClass in (Compile, Keys.run)).value.get
     )
 
     interaction match {

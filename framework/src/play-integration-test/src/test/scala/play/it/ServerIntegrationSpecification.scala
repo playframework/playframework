@@ -60,12 +60,12 @@ trait ServerIntegrationSpecification extends PendingUntilFixed {
 
 }
 trait NettyIntegrationSpecification extends ServerIntegrationSpecification {
-  override def integrationServerProvider: ServerProvider = NettyServer.defaultServerProvider
+  override def integrationServerProvider: ServerProvider = NettyServer.provider
 }
 trait AkkaHttpIntegrationSpecification extends ServerIntegrationSpecification {
   self: Specification =>
   // Disable Akka HTTP tests by default until issues in Continuous Integration are resolved
   private val runTests: Boolean = (System.getProperty("run.akka.http.tests", "false") == "true")
   skipAllIf(!runTests)
-  override def integrationServerProvider: ServerProvider = AkkaHttpServer.defaultServerProvider
+  override def integrationServerProvider: ServerProvider = AkkaHttpServer.provider
 }

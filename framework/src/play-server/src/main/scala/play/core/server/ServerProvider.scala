@@ -3,7 +3,7 @@
  */
 package play.core.server
 
-import play.api.Configuration
+import play.api.{ Application, Configuration }
 import play.core.ApplicationProvider
 
 /**
@@ -14,6 +14,7 @@ import play.core.ApplicationProvider
  */
 trait ServerProvider {
   def createServer(config: ServerConfig, appProvider: ApplicationProvider): Server
+  final def createServer(config: ServerConfig, app: Application): Server = createServer(config, ApplicationProvider(app))
 }
 
 object ServerProvider {
@@ -24,21 +25,11 @@ object ServerProvider {
    * @param classLoader The ClassLoader to load the class from.
    * @param configuration The configuration to look the server provider up from.
    * @return The server provider, if one was configured.
+   * @throws ServerStartException If the ServerProvider couldn't be created.
    */
-  def maybeServerProvider(classLoader: ClassLoader, configuration: Configuration): Option[ServerProvider] = {
-    configuration.getString("play.server.provider").map(instantiateServerProvider(classLoader))
-  }
-
-  /**
-   * Load the default server provider.
-   */
-  implicit lazy val defaultServerProvider: ServerProvider = {
-    val classLoader = this.getClass.getClassLoader
-    val config = ServerConfig.loadConfiguration(classLoader, System.getProperties)
-    instantiateServerProvider(classLoader)(config.underlying.getString("play.server.provider"))
-  }
-
-  private def instantiateServerProvider(classLoader: ClassLoader)(className: String): ServerProvider = {
+  def fromConfiguration(classLoader: ClassLoader, configuration: Configuration): ServerProvider = {
+    val ClassNameConfigKey = "play.server.provider"
+    val className: String = configuration.getString(ClassNameConfigKey).getOrElse(throw new ServerStartException(s"No ServerProvider configured with key '$ClassNameConfigKey'"))
     val clazz = try classLoader.loadClass(className) catch {
       case _: ClassNotFoundException => throw ServerStartException(s"Couldn't find ServerProvider class '$className'")
     }
@@ -47,6 +38,15 @@ object ServerProvider {
       case _: NoSuchMethodException => throw ServerStartException(s"ServerProvider class ${clazz.getName} must have a public default constructor")
     }
     ctor.newInstance().asInstanceOf[ServerProvider]
+  }
+
+  /**
+   * Load the default server provider.
+   */
+  implicit lazy val defaultServerProvider: ServerProvider = {
+    val classLoader = this.getClass.getClassLoader
+    val config = ServerConfig.loadConfiguration(classLoader, System.getProperties)
+    fromConfiguration(classLoader, config)
   }
 
 }

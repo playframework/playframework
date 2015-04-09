@@ -4,6 +4,7 @@
 package play.api.test
 
 import play.api._
+import play.core.ApplicationProvider
 import play.core.server._
 import scala.util.control.NonFatal
 
@@ -70,16 +71,13 @@ object TestServer {
     config: ServerConfig,
     application: Application): TestServerProcess = {
     val process = new TestServerProcess
-    val serverStart: ServerStart = new ServerStart {
-      def defaultServerProvider = ??? // Won't be called because we're not using any ServerStart methods to create the server.
-    }
     val serverProvider: ServerProvider = {
       testServerProvider
-    } orElse {
-      serverStart.readServerProviderSetting(process, config.configuration)
-    } getOrElse NettyServer.defaultServerProvider
-    val appProvider = new play.core.TestApplication(application)
-    val server = serverProvider.createServer(config, appProvider)
+    } getOrElse {
+      ServerProvider.fromConfiguration(process.classLoader, config.configuration)
+    }
+    Play.start(application)
+    val server = serverProvider.createServer(config, ApplicationProvider(application))
     process.addShutdownHook { server.stop() }
     process
   }

@@ -196,16 +196,15 @@ class AkkaHttpServer(config: ServerConfig, appProvider: ApplicationProvider) ext
   def httpsPort = None
 }
 
-object AkkaHttpServer extends ServerStart {
+object AkkaHttpServer {
 
   private val logger = Logger(classOf[AkkaHttpServer])
 
   /**
    * A ServerProvider for creating an AkkaHttpServer.
    */
-  val defaultServerProvider = new AkkaHttpServerProvider
+  implicit val provider = new AkkaHttpServerProvider
 
-  implicit val provider = defaultServerProvider
 }
 
 /**

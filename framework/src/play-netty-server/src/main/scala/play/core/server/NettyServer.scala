@@ -201,13 +201,16 @@ class NettyServerProvider extends ServerProvider {
 /**
  * Bootstraps Play application with a NettyServer backend.
  */
-object NettyServer extends ServerStart {
+object NettyServer {
 
   private val logger = Logger(this.getClass)
 
-  val defaultServerProvider = new NettyServerProvider
+  implicit val provider = new NettyServerProvider
 
-  implicit val provider = defaultServerProvider
+  def main(args: Array[String]) {
+    System.err.println("NettyServer.main is deprecated. Please start your Play server with the ${ProdServerStart.getClass.getName}.main.")
+    ProdServerStart.main(args)
+  }
 
   /**
    * Create a Netty server from the given application and server configuration.
@@ -219,7 +222,6 @@ object NettyServer extends ServerStart {
   def fromApplication(application: Application, config: ServerConfig = ServerConfig()): NettyServer = {
     new NettyServer(config, new ApplicationProvider {
       def get = Success(application)
-      def path = config.rootDir
     })
   }
 
