@@ -16,38 +16,9 @@ A few things to note about this configuration:
 * Play uses ANSI color codes by default in level messages.
 * Play puts both the console and the file logger behind the logback [AsyncAppender](http://logback.qos.ch/manual/appenders.html#AsyncAppender).  For details on the performance implications on this, see this [blog post](http://blog.takipi.com/how-to-instantly-improve-your-java-logging-with-7-logback-tweaks/).
 
-## Configuring log levels in application.conf
-
-You can override log levels in application.conf as follows:
-
-```properties
-# Root logger:
-logger.root=ERROR
-
-# Logger used by the framework:
-logger.play=INFO
-
-# Logger provided to your application:
-logger.application=DEBUG
-
-# Logger for a third party library
-logger.org.springframework=INFO
-```
-
-> Note: To configure log levels for both parent and child paths, like `a.b` and `a.b.c`, you'll need to quote the paths. For example:
->
-> ```
-> logger {
->   "a.b" = WARN
->   "a.b.c" = DEBUG
-> }
-> ```
-
 ## Custom configuration
 
-For any custom configuration beyond log levels, you will need to specify your own Logback configuration file.
-
-> Note: Log level configuration in `application.conf` will also override custom configuration. It is best to remove these properties when using a Logback configuration file to avoid confusion.
+For any custom configuration, you will need to specify your own Logback configuration file.
 
 ### Using a configuration file from project source
 

@@ -165,6 +165,10 @@ Additionally, Play has now better namespaced a large number of its configuration
 | `parsers.text.maxLength`  | `play.http.parser.maxMemoryBuffer` |
 | `csrf`                    | `play.filters.csrf`                |
 
+### Logging
+
+Logging is now configure solely via [logback configuration files](http://logback.qos.ch/manual/configuration.html).
+
 ## JDBC connection pool
 
 The default JDBC connection pool is now provided by [HikariCP](http://brettwooldridge.github.io/HikariCP/), instead of BoneCP.
@@ -424,4 +428,3 @@ The API should be backward compatible with your code using Play 2.3 so there is 
 Previously, Play added all the resources to the the `conf` directory in the distribution, but didn't add the `conf` directory to the classpath.  Now Play adds the `conf` directory to the classpath by default.
 
 This can be turned off by setting `PlayKeys.externalizeResources := false`, which will cause no `conf` directory to be created in the distribution, and it will not be on the classpath.  The contents of the applications `conf` directory will still be on the classpath by virtue of the fact that it's included in the applications jar file.
-

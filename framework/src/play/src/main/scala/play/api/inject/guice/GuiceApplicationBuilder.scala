@@ -70,7 +70,11 @@ final class GuiceApplicationBuilder(
 
     // TODO: Logger should be application specific, and available via dependency injection.
     //       Creating multiple applications will stomp on the global logger configuration.
-    Logger.configure(environment, appConfiguration)
+    Logger.configure(environment)
+
+    if (appConfiguration.underlying.hasPath("logger")) {
+      Logger.warn("Logger configuration in conf files is deprecated and has no effect. Use a logback configuration file instead.")
+    }
 
     val loadedModules = loadModules(environment, appConfiguration)
 
