@@ -32,7 +32,7 @@ trait CORSActionBuilder extends ActionBuilder[Request] with AbstractCORSPolicy {
  *
  *  - allow only requests with origins from a whitelist (by default all origins are allowed)
  *  - allow only HTTP methods from a whitelist for preflight requests (by default all methods are allowed)
- *  - allow only HTTP headers from a whitelist for preflight requests (by default all methods are allowed)
+ *  - allow only HTTP headers from a whitelist for preflight requests (by default all headers are allowed)
  *  - set custom HTTP headers to be exposed in the response (by default no headers are exposed)
  *  - disable/enable support for credentials (by default credentials support is enabled)
  *  - set how long (in seconds) the results of a preflight request can be cached in a preflight result cache (by default 3600 seconds, 1 hour)
