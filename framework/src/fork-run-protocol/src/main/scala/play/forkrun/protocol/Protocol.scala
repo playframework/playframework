@@ -17,7 +17,7 @@ case class ForkConfig(
   defaultHttpPort: Int,
   defaultHttpAddress: String,
   watchService: ForkConfig.WatchService,
-  monitoredFiles: Seq[String],
+  monitoredFiles: Seq[File],
   targetDirectory: File,
   pollInterval: Int,
   notifyKey: String,
