@@ -177,15 +177,15 @@ object Multipart {
 
   private[play] object FileInfoMatcher {
 
-    private def split(str: String) = {
-      var buffer = new StringBuffer
+    private def split(str: String): List[String] = {
+      var buffer = new java.lang.StringBuilder
       var escape: Boolean = false
       var quote: Boolean = false
       val result = new ListBuffer[String]
 
       def addPart() = {
         result += buffer.toString.trim
-        buffer = new StringBuffer
+        buffer = new java.lang.StringBuilder
       }
 
       str foreach {
