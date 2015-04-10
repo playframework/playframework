@@ -3,16 +3,29 @@
 
 There are a number of different types of configuration that you can configure in production.  The three mains types are:
 
-* [Application configuration](#Application-configuration)
-* [Server configuration](#Server-configuration)
+* [General configuration](#General-configuration)
 * [Logging configuration](#Logging-configuration)
 * [JVM configuration](#JVM-configuration)
 
 Each of these types have different methods to configure them.
 
-## Application configuration
+## General configuration
 
-By default, when a Play server starts up, it reads application configuration from the `application.conf` file.  This is where most of Play's configuration is stored, including database connection urls, the application secret, and so on.
+Play has a number of configurable settings. You can configure database connection URLs, the application secret, the HTTP port, SSL configuration, and so on.
+
+Most of Play's configuration is defined in various `.conf` files, which use the [HOCON format](https://github.com/typesafehub/config/blob/master/HOCON.md). The main configuration file that you'll use is the `application.conf` file. You can find this file at `conf/application.conf` within your project. The `application.conf` file is loaded from the classpath at runtime (or you can override where it is loaded from). There can only be one `application.conf` per project.
+
+Other `.conf` files are loaded too. Libraries define default settings in `reference.conf` files. These files are stored in the libraries' JARs—one `reference.conf` per JAR—and aggregated together at runtime. The `reference.conf` files provide defaults; they are overridden by any settings defined in the `application.conf` file.
+
+Play's configuration can also be defined using system properties and environment variables. This can be handy when settings change between environments; you can use the `application.conf` for common settings, but use system properties and environment variables to change settings when you run the application in different environments.
+
+System properties override settings in `application.conf`, and `application.conf` overrides the default settings in the various `reference.conf` files.
+
+You can override runtime configuration in several ways. This can be handy when settings vary between environments; you can changing the configuration dynamically for each environment. Here are your choices for runtime configuration:
+
+* Using an alternate `application.conf` file.
+* Overriding individual settings using system properties.
+* Injecting configuration values using environment variables.
 
 ### Specifying an alternate configuration file
 
@@ -34,14 +47,6 @@ You can also specify another local configuration file not packaged into the appl
 $ /path/to/bin/<project-name> -Dconfig.file=/opt/conf/prod.conf
 ```
 
-#### Using `-Dconfig.url`
-
-You can also specify a configuration file to be loaded from any URL:
-
-```
-$ /path/to/bin/<project-name> -Dconfig.url=http://conf.mycompany.com/conf/prod.conf
-```
-
 > Note that you can always reference the original configuration file in a new `prod.conf` file using the `include` directive, such as:
 >
 > ```
@@ -50,7 +55,7 @@ $ /path/to/bin/<project-name> -Dconfig.url=http://conf.mycompany.com/conf/prod.c
 > key.to.override=blah
 > ```
 
-### Overriding specific configuration keys
+### Overriding configuration with system properties
 
 Sometimes you don't want to specify another complete configuration file, but just override a bunch of specific keys. You can do that by specifying then as Java System properties:
 
@@ -58,24 +63,7 @@ Sometimes you don't want to specify another complete configuration file, but jus
 $ /path/to/bin/<project-name> -Dplay.crypto.secret=abcdefghijk -Ddb.default.password=toto
 ```
 
-### Using environment variables
-
-You can also reference environment variables from your `application.conf` file:
-
-```
-my.key = defaultvalue
-my.key = ${?MY_KEY_ENV}
-```
-
-Here, the override field `my.key = ${?MY_KEY_ENV}` simply vanishes if there's no value for `MY_KEY_ENV`, but if you set an environment variable `MY_KEY_ENV` for example, it would be used.
-
-## Server configuration
-
-Server configuration relates to any configuration of the HTTP server that is considered beyond the scope of application configuration.  What generally fits in this category is configuration that, if multiple Play applications were being served by one Play server, would be shared between those two applications.  This includes HTTP port configuration, SSL configuration, and low level HTTP and TCP configuration parameters.
-
-Like application configuration, server configuration can also be loaded from a file, and may also be overridden by system properties on the command line.
-
-### Specifying the HTTP server address and port using system properties
+#### Specifying the HTTP server address and port using system properties
 
 You can provide both HTTP port and address easily using system properties. The default is to listen on port `9000` at the `0.0.0.0` address (all addresses).
 
@@ -83,7 +71,7 @@ You can provide both HTTP port and address easily using system properties. The d
 $ /path/to/bin/<project-name> -Dhttp.port=1234 -Dhttp.address=127.0.0.1
 ```
 
-### Changing the path of RUNNING_PID
+#### Changing the path of RUNNING_PID
 
 It is possible to change the path to the file that contains the process id of the started application. Normally this file is placed in the root directory of your play project, however it is advised that you put it somewhere where it will be automatically cleared on restart, such as `/var/run`:
 
@@ -99,25 +87,16 @@ Using this file, you can stop your application using the `kill` command, for exa
 $ kill $(cat /var/run/play.pid)
 ```
 
-### Specifying a server configuration file
+### Using environment variables
 
-If you want to put your server configuration in a file, there are a few ways that you can do that.
-
-#### Using `-Dserver.config.resource`
-
-This will search for an alternative configuration file in the application classpath (you usually provide these alternative configuration files into your application `conf/` directory before packaging). Play will look into `conf/` so you don't have to add `conf/`.
+You can also reference environment variables from your `application.conf` file:
 
 ```
-$ /path/to/bin/<project-name> -Dserver.config.resource=server.conf
+my.key = defaultvalue
+my.key = ${?MY_KEY_ENV}
 ```
 
-#### Using `-Dserver.config.file`
-
-You can also specify another local configuration file not packaged into the application artifacts:
-
-```
-$ /path/to/bin/<project-name> -Dserver.config.file=/opt/conf/server.conf
-```
+Here, the override field `my.key = ${?MY_KEY_ENV}` simply vanishes if there's no value for `MY_KEY_ENV`, but if you set an environment variable `MY_KEY_ENV` for example, it would be used.
 
 ### Server configuration options
 
@@ -239,6 +218,12 @@ play {
         # backlog = 100
       }
     }
+  }
+
+  # Configuration specific to Play's experimental Akka HTTP backend
+  akka {
+    # How long to wait when binding to the listening socket
+    http-bind-timeout = 5 seconds
   }
 }
 ```

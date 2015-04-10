@@ -76,13 +76,9 @@ object ProdServerStart {
    */
   def readServerConfigSettings(process: ServerProcess): ServerConfig = {
     val configuration: Configuration = {
-      process.args.headOption match {
-        case None =>
-          ServerConfig.loadConfiguration(process.classLoader, process.properties)
-        case Some(rootDir) =>
-          // rootDir will become play.server.dir setting
-          ServerConfig.loadConfiguration(process.classLoader, process.properties, new File(rootDir))
-      }
+      val rootDirArg: Option[File] = process.args.headOption.map(new File(_))
+      val rootDirConfig = rootDirArg.fold(Map.empty[String, String])(dir => ServerConfig.rootDirConfig(dir))
+      Configuration.load(process.classLoader, process.properties, rootDirConfig, true)
     }
 
     val rootDir: File = {

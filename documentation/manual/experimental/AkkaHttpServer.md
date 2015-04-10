@@ -58,32 +58,10 @@ The Akka HTTP server is configured with Typesafe Config, like the rest of Play. 
 play {
 
   # Configuration for Play's AkkaHttpServer
-  akka-http-server {
-
-    # The name of the ActorSystem
-    actor-system = "play-akka-http-server"
+  akka {
 
     # How long to wait when binding to the listening socket
     http-bind-timeout = 5 seconds
-
-    akka {
-      loggers = ["akka.event.Logging$DefaultLogger", "akka.event.slf4j.Slf4jLogger"]
-      loglevel = WARNING
-
-      # Turn off dead letters until server is stable
-      log-dead-letters = off
-
-      actor {
-        default-dispatcher = {
-          fork-join-executor {
-            parallelism-factor = 1.0
-            parallelism-max = 24
-          }
-        }
-
-      }
-
-    }
 
   }
 

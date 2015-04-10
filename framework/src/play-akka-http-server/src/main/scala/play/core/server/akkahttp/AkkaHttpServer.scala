@@ -56,7 +56,7 @@ class AkkaHttpServer(config: ServerConfig, appProvider: ApplicationProvider) ext
 
     val bindingFuture: Future[Http.ServerBinding] = serverSource.to(connectionSink).run()
 
-    val bindTimeout = Duration(userConfig.getDuration("http-bind-timeout", MILLISECONDS), MILLISECONDS)
+    val bindTimeout = PlayConfig(config.configuration).get[Duration]("play.akka.http-bind-timeout")
     Await.result(bindingFuture, bindTimeout).localAddress
   }
 

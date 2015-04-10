@@ -9,6 +9,7 @@ import play.api._
 import play.api.mvc._
 import play.core._
 import play.utils.Threads
+import scala.collection.JavaConverters._
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
@@ -59,13 +60,17 @@ object DevServerStart {
       try {
         val process = new RealServerProcess(args = Seq.empty)
         val path: File = buildLink.projectPath
+
+        val dirAndDevSettings: Map[String, String] = ServerConfig.rootDirConfig(path) ++ buildLink.settings.asScala.toMap
+
         val config = ServerConfig(
           rootDir = path,
           port = httpPort,
           sslPort = httpsPort,
           address = httpAddress,
           mode = Mode.Dev,
-          properties = process.properties
+          properties = process.properties,
+          configuration = Configuration.load(classLoader, System.getProperties, dirAndDevSettings, allowMissingApplicationConf = true)
         )
 
         // Use plain Java call here in case of scala classloader mess
@@ -136,8 +141,6 @@ object DevServerStart {
                       // First, stop the old application if it exists
                       lastState.foreach(Play.stop)
 
-                      import scala.collection.JavaConverters._
-
                       // Create the new environment
                       val environment = Environment(path, projectClassloader, Mode.Dev)
                       val sourceMapper = new SourceMapper {
@@ -154,7 +157,7 @@ object DevServerStart {
                       currentWebCommands = Some(webCommands)
 
                       val newApplication = Threads.withContextClassLoader(projectClassloader) {
-                        val context = ApplicationLoader.createContext(environment, buildLink.settings.asScala.toMap, Some(sourceMapper), webCommands)
+                        val context = ApplicationLoader.createContext(environment, dirAndDevSettings, Some(sourceMapper), webCommands)
                         val loader = ApplicationLoader(context)
                         loader.load(context)
                       }
