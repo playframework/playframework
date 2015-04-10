@@ -156,6 +156,26 @@ object ResultsSpec extends Specification {
         (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beNone)
     }
 
+    "support sending a file with PaymentRequired status" in {
+      val file = new java.io.File("test.tmp")
+      file.createNewFile()
+      val rh = PaymentRequired.sendFile(file).header
+      file.delete()
+
+      (rh.status aka "status" must_== PAYMENT_REQUIRED) and
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome("""attachment; filename="test.tmp""""))
+    }
+
+    "support sending a file inline with PaymentRequired status" in {
+      val file = new java.io.File("test.tmp")
+      file.createNewFile()
+      val rh = PaymentRequired.sendFile(file, inline = true).header
+      file.delete()
+
+      (rh.status aka "status" must_== PAYMENT_REQUIRED) and
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beNone)
+    }
+
     "support redirects for reverse routed calls" in {
       Results.Redirect(Call("GET", "/path")).header must_== Status(303).withHeaders(LOCATION -> "/path").header
     }

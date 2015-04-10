@@ -702,6 +702,9 @@ trait Results {
   /** Generates a ‘401 UNAUTHORIZED’ result. */
   val Unauthorized = new Status(UNAUTHORIZED)
 
+  /** Generates a ‘402 PAYMENT_REQUIRED’ result. */
+  val PaymentRequired = new Status(PAYMENT_REQUIRED)
+
   /** Generates a ‘403 FORBIDDEN’ result. */
   val Forbidden = new Status(FORBIDDEN)
 
