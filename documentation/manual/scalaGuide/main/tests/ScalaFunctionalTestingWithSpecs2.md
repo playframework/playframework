@@ -22,7 +22,7 @@ To provide an environment for tests, Play provides a [`FakeApplication`](api/sca
 
 To pass in an application to an example, use [`WithApplication`](api/scala/index.html#play.api.test.WithApplication).  An explicit [`FakeApplication`](api/scala/index.html#play.api.test.FakeApplication) can be passed in, but a default [`FakeApplication`](api/scala/index.html#play.api.test.FakeApplication) is provided for convenience.
 
-Because [`WithApplication`](api/scala/index.html#play.api.test.WithApplication) is a built in [`Around`](http://etorreborre.github.io/specs2/guide/org.specs2.guide.Structure.html#Around) block, you can override it to provide your own data population:
+Because [`WithApplication`](api/scala/index.html#play.api.test.WithApplication) is a built in [`Around`](https://etorreborre.github.io/specs2/guide/SPECS2-3.4/org.specs2.guide.Contexts.html#aroundeach) block, you can override it to provide your own data population:
 
 @[scalafunctionaltest-withdbdata](code/specs2/WithDbDataSpec.scala)
 
