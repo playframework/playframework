@@ -207,12 +207,6 @@ object Dependencies {
     Seq(
       "org.scala-lang" % "scala-reflect" % scalaVersion % "provided",
       typesafeConfig,
-      "org.mozilla" % "rhino" % "1.7R4",
-
-      ("com.google.javascript" % "closure-compiler" % "v20140814")
-        .exclude("args4j", "args4j")
-        .exclude("com.google.protobuf", "protobuf-java")
-        .exclude("com.google.code.findbugs", "jsr305"),
 
       guava,
 
