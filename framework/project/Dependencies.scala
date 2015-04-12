@@ -29,7 +29,7 @@ object Dependencies {
   val findBugs = "com.google.code.findbugs" % "jsr305" % "2.0.3" // Needed by guava
   val mockitoAll = "org.mockito" % "mockito-all" % "1.10.8"
 
-  val h2database = "com.h2database" % "h2" % "1.4.186"
+  val h2database = "com.h2database" % "h2" % "1.4.187"
 
   val acolyteVersion = "1.0.32"
   val acolyte = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
@@ -55,7 +55,7 @@ object Dependencies {
 
   val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.3.0"
 
-  val springFrameworkVersion = "4.1.5.RELEASE"
+  val springFrameworkVersion = "4.1.6.RELEASE"
 
   val javaDeps = Seq(
     scalaJava8Compat,
@@ -89,7 +89,7 @@ object Dependencies {
     guava,
     findBugs,
 
-    "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.20"
+    "org.apache.tomcat" % "tomcat-servlet-api" % "8.0.21"
   ) ++ javassist ++ specsBuild.map(_ % Test)
 
   val junitInterface = "com.novocode" % "junit-interface" % "0.11"
@@ -106,7 +106,7 @@ object Dependencies {
   val jodaConvert = "org.joda" % "joda-convert" % "1.7"
 
   def runtime(scalaVersion: String) =
-    Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.10") ++
+    Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.12") ++
     Seq("logback-core", "logback-classic").map("ch.qos.logback" % _ % "1.1.3") ++
     Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % "2.3.7") ++
     jacksons ++
@@ -117,7 +117,7 @@ object Dependencies {
       jodatime,
       jodaConvert,
 
-      "org.apache.commons" % "commons-lang3" % "3.3.2",
+      "org.apache.commons" % "commons-lang3" % "3.4",
 
       "xerces" % "xercesImpl" % "2.11.0",
 
