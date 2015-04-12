@@ -88,11 +88,11 @@ case class JsObject(private val underlying: Map[String, JsValue]) extends JsValu
   lazy val fields: Seq[(String, JsValue)] = underlying.toSeq
 
   /**
-   * The value of this JsObject as a Map. If the underlying map is a ListMap, we convert the map for faster access.
+   * The value of this JsObject as an immutable map.
    */
   lazy val value: Map[String, JsValue] = underlying match {
-    case _: immutable.ListMap[String, JsValue] => Map(fields: _*)
-    case map => map
+    case m: immutable.Map[String, JsValue] => m
+    case m => m.toMap
   }
 
   /**
@@ -103,12 +103,12 @@ case class JsObject(private val underlying: Map[String, JsValue]) extends JsValu
   /**
    * Return all keys
    */
-  def keys: Set[String] = value.keySet
+  def keys: Set[String] = underlying.keySet
 
   /**
    * Return all values
    */
-  def values: Iterable[JsValue] = value.values
+  def values: Iterable[JsValue] = underlying.values
 
   /**
    * Merge this object with another one. Values from other override value of the current object.
@@ -132,7 +132,7 @@ case class JsObject(private val underlying: Map[String, JsValue]) extends JsValu
     def merge(existingObject: JsObject, otherObject: JsObject): JsObject = {
       val result = existingObject.underlying ++ otherObject.underlying.map {
         case (otherKey, otherValue) =>
-          val maybeExistingValue = existingObject.value.get(otherKey)
+          val maybeExistingValue = existingObject.underlying.get(otherKey)
 
           val newValue = (maybeExistingValue, otherValue) match {
             case (Some(e: JsObject), o: JsObject) => merge(e, o)
@@ -160,7 +160,7 @@ object JsObject {
   /**
    * Construct a new JsObject, with the order of fields in the Seq.
    */
-  def apply(fields: Seq[(String, JsValue)]): JsObject = new JsObject(immutable.ListMap(fields: _*))
+  def apply(fields: Seq[(String, JsValue)]): JsObject = new JsObject(mutable.LinkedHashMap(fields: _*))
 }
 
 // -- Serializers.
