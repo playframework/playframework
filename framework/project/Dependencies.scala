@@ -217,7 +217,6 @@ object Dependencies {
       sbtDep("com.typesafe.sbt" % "sbt-twirl" % BuildInfo.sbtTwirlVersion),
       sbtDep("com.typesafe.sbt" % "sbt-play-enhancer" % "1.1.0-RC1"),
 
-      sbtDep("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "3.0.0"),
       sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
 
       sbtDep("com.typesafe.sbt" % "sbt-web" % "1.1.1"),
