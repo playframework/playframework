@@ -22,6 +22,8 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static play.test.Helpers.*;
 
+import static javaguide.tests.FakeApplicationTest.Computer;
+
 // #builder-imports
 import play.Application;
 import play.inject.guice.GuiceApplicationBuilder;
@@ -181,4 +183,23 @@ public class JavaGuiceApplicationBuilderTest {
         assertThat(component, instanceOf(MockComponent.class));
     }
 
+    //#test-guiceapp
+    @Test
+    public void findById() {
+        ClassLoader classLoader = classLoader();
+        Application application = new GuiceApplicationBuilder()
+            .in(new Environment(new File("path/to/app"), classLoader, Mode.TEST))
+            .build();
+
+        running(application, () -> {
+            Computer macintosh = Computer.findById(21l);
+            assertEquals("Macintosh", macintosh.name);
+            assertEquals("1984-01-24", macintosh.introduced);
+        });
+    }
+    //#test-guiceapp
+
+    private ClassLoader classLoader() {
+        return new URLClassLoader(new URL[0]);
+    }
 }
