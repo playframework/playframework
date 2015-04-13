@@ -10,6 +10,7 @@ import play.api.mvc._
 import play.api.routing.Router
 import play.core._
 import play.core.server._
+import scala.concurrent.Future
 import scala.util.Success
 
 /**
@@ -19,15 +20,6 @@ class DocServerStart {
 
   def start(projectPath: File, buildDocHandler: BuildDocHandler, translationReport: Callable[File],
     forceTranslationReport: Callable[File], port: java.lang.Integer): ServerWithStop = {
-
-    val config = ServerConfig(
-      rootDir = projectPath,
-      port = Some(port),
-      mode = Mode.Dev,
-      properties = System.getProperties
-    )
-
-    val serverProvider: ServerProvider = ServerProvider.fromConfiguration(getClass.getClassLoader, config.configuration)
 
     val application: Application = {
       val environment = Environment(projectPath, this.getClass.getClassLoader, Mode.Dev)
@@ -58,7 +50,20 @@ class DocServerStart {
           )
     }
 
-    serverProvider.createServer(config, applicationProvider)
+    val config = ServerConfig(
+      rootDir = projectPath,
+      port = Some(port),
+      mode = Mode.Dev,
+      properties = System.getProperties
+    )
+    val serverProvider: ServerProvider = ServerProvider.fromConfiguration(getClass.getClassLoader, config.configuration)
+    val context = ServerProvider.Context(
+      config,
+      applicationProvider,
+      application.actorSystem,
+      stopHook = () => Future.successful(())
+    )
+    serverProvider.createServer(context)
 
   }
 

@@ -22,19 +22,23 @@ import play.core._
 import play.core.server.netty._
 import play.core.server.ssl.ServerSSLEngine
 import play.server.SSLEngineProvider
+import scala.concurrent.{ Await, Future }
+import scala.concurrent.duration.Duration
 import scala.util.Success
 import scala.util.control.NonFatal
 
 /**
  * creates a Server implementation based Netty
  */
-class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extends Server {
+class NettyServer(
+    config: ServerConfig,
+    val applicationProvider: ApplicationProvider,
+    stopHook: () => Future[Unit]) extends Server {
 
   private val nettyConfig = config.configuration.underlying.getConfig("play.server.netty")
 
   import NettyServer._
 
-  def applicationProvider = appProvider
   def mode = config.mode
 
   private def newBootstrap: ServerBootstrap = {
@@ -152,7 +156,7 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
 
   override def stop() {
 
-    appProvider.current.foreach(Play.stop)
+    applicationProvider.current.foreach(Play.stop)
 
     try {
       super.stop()
@@ -180,6 +184,11 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
         Execution.lazyContext.close()
       case _ => ()
     }
+
+    // Call provided hook
+    // Do this last because the hooks were created before the server,
+    // so the server might need them to run until the last moment.
+    Await.result(stopHook(), Duration.Inf)
   }
 
   override lazy val mainAddress = {
@@ -195,7 +204,10 @@ class NettyServer(config: ServerConfig, appProvider: ApplicationProvider) extend
  * The Netty server provider
  */
 class NettyServerProvider extends ServerProvider {
-  def createServer(config: ServerConfig, appProvider: ApplicationProvider) = new NettyServer(config, appProvider)
+  def createServer(context: ServerProvider.Context) = new NettyServer(
+    context.config,
+    context.appProvider,
+    context.stopHook)
 }
 
 /**
@@ -220,9 +232,7 @@ object NettyServer {
    * @return A started Netty server, serving the application.
    */
   def fromApplication(application: Application, config: ServerConfig = ServerConfig()): NettyServer = {
-    new NettyServer(config, new ApplicationProvider {
-      def get = Success(application)
-    })
+    new NettyServer(config, ApplicationProvider(application), () => Future.successful(()))
   }
 
   /**
@@ -244,7 +254,7 @@ trait NettyServerComponents {
   lazy val server: NettyServer = {
     // Start the application first
     Play.start(application)
-    NettyServer.fromApplication(application, serverConfig)
+    new NettyServer(serverConfig, ApplicationProvider(application), serverStopHook)
   }
 
   lazy val environment: Environment = Environment.simple(mode = serverConfig.mode)
@@ -253,5 +263,10 @@ trait NettyServerComponents {
   lazy val configuration: Configuration = Configuration(ConfigFactory.load())
 
   def application: Application
+
+  /**
+   * Called when Server.stop is called.
+   */
+  def serverStopHook: () => Future[Unit] = () => Future.successful(())
 }
 

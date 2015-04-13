@@ -77,7 +77,7 @@ object TestServer {
       ServerProvider.fromConfiguration(process.classLoader, config.configuration)
     }
     Play.start(application)
-    val server = serverProvider.createServer(config, ApplicationProvider(application))
+    val server = serverProvider.createServer(config, application)
     process.addShutdownHook { server.stop() }
     process
   }

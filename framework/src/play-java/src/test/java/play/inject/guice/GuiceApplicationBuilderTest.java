@@ -69,11 +69,11 @@ public class GuiceApplicationBuilderTest {
     @Test
     public void disableLoadedModules() {
         Application app = new GuiceApplicationBuilder()
-            .disable(play.api.libs.concurrent.AkkaModule.class)
+            .disable(play.api.i18n.I18nModule.class)
             .build();
 
         exception.expect(com.google.inject.ConfigurationException.class);
-        app.injector().instanceOf(akka.actor.ActorSystem.class);
+        app.injector().instanceOf(play.api.i18n.Langs.class);
     }
 
     @Test

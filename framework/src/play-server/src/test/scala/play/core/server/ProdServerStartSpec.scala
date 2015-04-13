@@ -63,8 +63,9 @@ object ProdServerStartSpec extends Specification {
 
   // A family of fake servers for us to test
 
-  class FakeServer(val config: ServerConfig, appProvider: ApplicationProvider) extends Server with ServerWithStop {
-    def applicationProvider = appProvider
+  class FakeServer(context: ServerProvider.Context) extends Server with ServerWithStop {
+    def config = context.config
+    def applicationProvider = context.appProvider
     def mode = config.mode
     def mainAddress = ???
     @volatile var stopCallCount = 0
@@ -77,7 +78,7 @@ object ProdServerStartSpec extends Specification {
   }
 
   class FakeServerProvider extends ServerProvider {
-    override def createServer(config: ServerConfig, appProvider: ApplicationProvider) = new FakeServer(config, appProvider)
+    override def createServer(context: ServerProvider.Context) = new FakeServer(context)
   }
 
   "ProdServerStartSpec.start" should {

@@ -3,8 +3,10 @@
  */
 package play.core.server
 
+import akka.actor.ActorSystem
 import play.api.{ Application, Configuration }
 import play.core.ApplicationProvider
+import scala.concurrent.Future
 
 /**
  * An object that knows how to obtain a server. Instantiating a
@@ -13,11 +15,31 @@ import play.core.ApplicationProvider
  * until the `createServer` method is called.
  */
 trait ServerProvider {
-  def createServer(config: ServerConfig, appProvider: ApplicationProvider): Server
-  final def createServer(config: ServerConfig, app: Application): Server = createServer(config, ApplicationProvider(app))
+  def createServer(context: ServerProvider.Context): Server
+
+  /**
+   * Create a server for a given application.
+   */
+  final def createServer(config: ServerConfig, app: Application): Server =
+    createServer(ServerProvider.Context(config, ApplicationProvider(app), app.actorSystem, () => Future.successful(())))
 }
 
 object ServerProvider {
+
+  /**
+   * The context for creating a server. Passed to the `createServer` method.
+   *
+   * @param config Basic server configuration values.
+   * @param appProvider An object which can be queried to get an Application.
+   * @param actorSystem An ActorSystem that the server can use.
+   * @param stopHook A function that should be called by the server when it stops.
+   * This function can be used to close resources that are provided to the server.
+   */
+  final case class Context(
+    config: ServerConfig,
+    appProvider: ApplicationProvider,
+    actorSystem: ActorSystem,
+    stopHook: () => Future[Unit])
 
   /**
    * Load a server provider from the configuration and classloader.

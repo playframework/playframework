@@ -7,6 +7,7 @@ import java.io._
 import java.util.Properties
 import play.api._
 import play.api.mvc._
+import play.api.libs.concurrent.ActorSystemProvider
 import play.core._
 import play.utils.Threads
 import scala.collection.JavaConverters._
@@ -62,16 +63,6 @@ object DevServerStart {
         val path: File = buildLink.projectPath
 
         val dirAndDevSettings: Map[String, String] = ServerConfig.rootDirConfig(path) ++ buildLink.settings.asScala.toMap
-
-        val config = ServerConfig(
-          rootDir = path,
-          port = httpPort,
-          sslPort = httpsPort,
-          address = httpAddress,
-          mode = Mode.Dev,
-          properties = process.properties,
-          configuration = Configuration.load(classLoader, System.getProperties, dirAndDevSettings, allowMissingApplicationConf = true)
-        )
 
         // Use plain Java call here in case of scala classloader mess
         {
@@ -202,8 +193,19 @@ object DevServerStart {
         }
 
         // Start server with the application
-        val serverProvider = ServerProvider.fromConfiguration(classLoader, config.configuration)
-        serverProvider.createServer(config, appProvider)
+        val serverConfig = ServerConfig(
+          rootDir = path,
+          port = httpPort,
+          sslPort = httpsPort,
+          address = httpAddress,
+          mode = Mode.Dev,
+          properties = process.properties,
+          configuration = Configuration.load(classLoader, System.getProperties, dirAndDevSettings, allowMissingApplicationConf = true)
+        )
+        val (actorSystem, actorSystemStopHook) = ActorSystemProvider.start(classLoader, serverConfig.configuration)
+        val serverContext = ServerProvider.Context(serverConfig, appProvider, actorSystem, actorSystemStopHook)
+        val serverProvider = ServerProvider.fromConfiguration(classLoader, serverConfig.configuration)
+        serverProvider.createServer(serverContext)
       } catch {
         case e: ExceptionInInitializerError => throw e.getCause
       }
