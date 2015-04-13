@@ -48,10 +48,6 @@ object PlaySettings {
 
     playPlugin := false,
 
-    resolvers ++= Seq(
-      "Typesafe Releases Repository" at "https://repo.typesafe.com/typesafe/releases/"
-    ),
-
     externalizeResources := true,
 
     javacOptions in (Compile, doc) := List("-encoding", "utf8"),
