@@ -40,6 +40,10 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       }
     }
 
+    "add Date header" in makeRequest(Results.Ok("Hello world")) { response =>
+      response.header(DATE) must beSome
+    }
+
     "add Content-Length when enumerator contains a single item" in makeRequest(Results.Ok("Hello world")) { response =>
       response.header(CONTENT_LENGTH) must beSome("11")
       response.body must_== "Hello world"
@@ -335,7 +339,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
       }
 
     "return a 500 response if a forbidden character is used in a response's header field" in withServer(
-      // both colon and space characters are not allowed in a header's field name 
+      // both colon and space characters are not allowed in a header's field name
       Results.Ok.withHeaders("BadFieldName: " -> "SomeContent")
     ) { port =>
         val response = BasicHttpClient.makeRequests(port)(
