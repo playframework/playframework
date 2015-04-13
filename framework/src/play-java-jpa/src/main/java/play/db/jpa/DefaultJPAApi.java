@@ -131,7 +131,7 @@ public class DefaultJPAApi implements JPAApi {
                 throw new RuntimeException("No JPA entity manager defined for '" + name + "'");
             }
 
-            JPA.bindForCurrentThread(em);
+            JPA.bindForSync(em);
 
             if (!readOnly) {
                 tx = em.getTransaction();
@@ -156,7 +156,7 @@ public class DefaultJPAApi implements JPAApi {
             }
             throw t;
         } finally {
-            JPA.bindForCurrentThread(null);
+            JPA.bindForSync(null);
             if (em != null) {
                 em.close();
             }
@@ -176,7 +176,7 @@ public class DefaultJPAApi implements JPAApi {
         try {
 
             em = em(name);
-            JPA.bindForCurrentThread(em);
+            JPA.bindForAsync(em);
 
             if (!readOnly) {
                 tx = em.getTransaction();
@@ -211,7 +211,7 @@ public class DefaultJPAApi implements JPAApi {
                     try {
                         fem.close();
                     } finally {
-                        JPA.bindForCurrentThread(null);
+                        JPA.bindForAsync(null);
                     }
                 }
             });
@@ -221,7 +221,7 @@ public class DefaultJPAApi implements JPAApi {
                     try {
                         fem.close();
                     } finally {
-                        JPA.bindForCurrentThread(null);
+                        JPA.bindForAsync(null);
                     }
                 }
             });
@@ -236,7 +236,7 @@ public class DefaultJPAApi implements JPAApi {
                 try {
                     em.close();
                 } finally {
-                    JPA.bindForCurrentThread(null);
+                    JPA.bindForAsync(null);
                 }
             }
             throw t;
