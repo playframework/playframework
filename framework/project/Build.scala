@@ -55,7 +55,7 @@ object BuildSettings {
     resolvers ++= ResolverSettings.playResolvers,
     resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases", // specs2 depends on scalaz-stream
 
-    javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:-options", "-J-Xmx512m"),
+    javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:-options"),
 
     scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked", "-feature"),
 
@@ -137,7 +137,7 @@ object BuildSettings {
 
   def playSbtCommonSettings: Seq[Setting[_]] = playCommonSettings ++ scalariformSettings ++ Seq(
     scalaVersion := "2.10.4",
-    sbtVersion in GlobalScope := "0.13.5"
+    sbtVersion in GlobalScope := "0.13.8"
   )
 
   def playScriptedSettings = ScriptedPlugin.scriptedSettings ++ Seq(

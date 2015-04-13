@@ -163,7 +163,7 @@ object Dependencies {
 
   // use partial version so that non-standard scala binary versions from dbuild also work
   def sbtIO(sbtVersion: String, scalaVersion: String): ModuleID = CrossVersion.partialVersion(scalaVersion) match {
-    case Some((2, major)) if major >= 11 => "org.scala-sbt" %% "io" % "0.13.6" % "provided"
+    case Some((2, major)) if major >= 11 => "org.scala-sbt" %% "io" % "0.13.8" % "provided"
     case _ => "org.scala-sbt" % "io" % sbtVersion % "provided"
   }
 
@@ -221,7 +221,7 @@ object Dependencies {
       jnotify,
 
       sbtDep("com.typesafe.sbt" % "sbt-twirl" % BuildInfo.sbtTwirlVersion),
-      sbtDep("com.typesafe.sbt" % "sbt-play-enhancer" % "1.0.1"),
+      sbtDep("com.typesafe.sbt" % "sbt-play-enhancer" % "1.1.0-RC1"),
 
       sbtDep("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "3.0.0"),
       sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
