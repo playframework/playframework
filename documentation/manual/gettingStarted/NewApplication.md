@@ -70,7 +70,7 @@ resolvers += "Typesafe Snapshots" at "https://repo.typesafe.com/typesafe/snapsho
 To ensure the proper sbt version is used, make sure you have the following in `project/build.properties`:
 
 ```
-sbt.version=0.13.5
+sbt.version=0.13.8
 ```
 
 In `build.sbt` for Java projects:

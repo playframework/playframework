@@ -3,6 +3,66 @@
 
 This is a guide for migrating from Play 2.3 to Play 2.4. If you need to migrate from an earlier version of Play then you must first follow the [[Play 2.3 Migration Guide|Migration23]].
 
+## Build changes
+
+The following steps need to be taken to update your sbt build before you can load/run a Play project in sbt.
+
+### Play upgrade
+
+Update the Play version number in `project/plugins.sbt` to upgrade Play:
+
+```scala
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.4.0")
+```
+
+### sbt upgrade
+
+Play 2.4 now requires a minimum of sbt 0.13.8.  Update your `project/build.properties` so that it reads:
+
+```
+sbt.version=0.13.8
+```
+
+### Specs2 support in a separate module
+
+If you were previously using Play's specs2 support, you now need to explicitly add a dependency on that to your project:
+
+```scala
+libraryDependencies += specs2 % Test
+```
+
+### IntelliJ IDEA
+
+Play no longer includes the sbt idea plugin.  IntelliJ is now able to import sbt projects natively, so we recommend using that instead.  Alternatively, the sbt idea plugin can be manually installed and used, instructions can be found [here](https://github.com/mpeltonen/sbt-idea).
+
+### Play SBT plugin API
+
+The SBT setting key `playWatchService` has been renamed to `fileWatchService`.
+
+All classes in the SBT plugin are now in the package `play.sbt`, this is particularly pertinent if using `.scala` files to configure your build..
+
+### Ebean dependency
+
+Ebean has been pulled out into an external project, to allow it to have a lifecycle independent of Play's own lifecycle.  The ebean bytecode enhancement functionality has also been extracted out of the Play sbt plugin into its own plugin.
+
+To migrate an existing Play project that uses ebean to use the new external ebean plugin, remove `javaEbean` from your `libraryDependencies` in `build.sbt`, and add the following to `project/plugins.sbt`:
+
+```scala
+addSbtPlugin("com.typesafe.sbt" % "sbt-play-ebean" % "1.0.0")
+```
+
+Additionally, Ebean has been upgraded to 4.2.0, which pulls in a few of the features that Play previously added itself, including the `Model` class.  Consequently, the Play `Model` class has been deprecated, in favour of using `org.avaje.ebean.Model`.
+
+### Anorm dependency
+
+Anorm has been pulled out of the core of Play into a separately managed project that can have its own lifecycle.  To add a dependency on it, use:
+
+```scala
+libraryDependencies += "com.typesafe.play" %% "anorm" % "2.4.0"
+```
+
+For more details about what's changed in Anorm, see [[here|Migration24#Anorm].
+
 ## Dependency Injection
 
 Play now, out of the box, uses dependency injection provided by Guice.  This is part of a long term strategy to remove global state out of Play, which we hope to complete in the Play 3.0 release.  Moving any application from depending on global state to being entirely global state free is a big task, one that can be very disruptive if it is done all at once.  For this reason, the approach we've taken in Play is to spread the change over a number of releases, allowing end users to gradually migrate their code so that it doesn't depend on global state, rather than forcing it all at once.
@@ -105,24 +165,6 @@ Additionally, Play has now better namespaced a large number of its configuration
 | `parsers.text.maxLength`  | `play.http.parser.maxMemoryBuffer` |
 | `csrf`                    | `play.filters.csrf`                |
 
-## SBT plugin
-
-The SBT setting key `playWatchService` has been renamed to `fileWatchService`.
-
-All classes in the SBT plugin are now in the package `play.sbt`.
-
-## Ebean
-
-Ebean has been pulled out into an external project, to allow it to have a lifecycle independent of Play's own lifecycle.  The ebean bytecode enhancement functionality has also been extracted out of the Play sbt plugin into its own plugin.
-
-To migrate an existing Play project that uses ebean to use the new external ebean plugin, remove `javaEbean` from your `libraryDependencies` in `build.sbt`, and add the following to `project/plugins.sbt`:
-
-```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-play-ebean" % "1.0.0")
-```
-
-Additionally, Ebean has been upgraded to 4.2.0, which pulls in a few of the features that Play previously added itself, including the `Model` class.  Consequently, the Play `Model` class has been deprecated, in favour of using `org.avaje.ebean.Model`.
-
 ## JDBC connection pool
 
 The default JDBC connection pool is now provided by [HikariCP](http://brettwooldridge.github.io/HikariCP/), instead of BoneCP.
@@ -145,12 +187,6 @@ def foo = Action(play.api.mvc.BodyParsers.parse.anyContent) { request =>
 }
 ```
 
-## Testing changes
-
-[`FakeRequest`](api/java/play/test/FakeRequest.html) has been replaced by [`RequestBuilder`](api/java/play/mvc/Http.RequestBuilder.html).
-
-The reverse ref router used in Java tests has been removed. Any call to `Helpers.call` that was passed a ref router can be replaced by a call to `Helpers.route` which takes either a standard reverse router reference or a `RequestBuilder`.
-
 ### Maximum body length
 
 For both Scala and Java, there have been some small but important changes to the way the configured maximum body lengths are handled and applied.
@@ -163,7 +199,13 @@ In all cases, when one of the max length parsing properties is exceeded, a 413 r
 
 Additionally, Java actions may now declare a `BodyParser.Of.maxLength` value that is greater than the configured max length.
 
-### Java TimeoutExceptions
+## Testing changes
+
+[`FakeRequest`](api/java/play/test/FakeRequest.html) has been replaced by [`RequestBuilder`](api/java/play/mvc/Http.RequestBuilder.html).
+
+The reverse ref router used in Java tests has been removed. Any call to `Helpers.call` that was passed a ref router can be replaced by a call to `Helpers.route` which takes either a standard reverse router reference or a `RequestBuilder`.
+
+## Java TimeoutExceptions
 
 If you use the Java API, the [`F.Promise`](api/java/play/libs/F.Promise.html) class now throws unchecked [`F.PromiseTimeoutException`s](api/java/play/libs/F.PromiseTimeoutException.html) instead of Java's checked [`TimeoutException`s](http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/TimeoutException.html). The `TimeoutExceptions`s which were previously used were not properly declared with the `throws` keyword. Rather than changing the API to use the `throws` keyword, which would mean users would have to declare `throws` on their methods, the exception was changed to a new unchecked type instead. See [#1227](https://github.com/playframework/playframework/pull/1227) for more information.
 
@@ -171,7 +213,7 @@ If you use the Java API, the [`F.Promise`](api/java/play/libs/F.Promise.html) cl
 | ------- | --------| -------- |
 | [`TimeoutException`](http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/TimeoutException.html) | [`F.PromiseTimeoutException`](api/java/play/libs/F.PromiseTimeoutException.html) | |
 
-### Crypto APIs
+## Crypto APIs
 
 Play's Crypto API improves security by supporting encryption methods that use initialization vectors and by changing the default encryption transformation to `AES/CTR/NoPadding`. To add this support, the Play 2.4 encryption format has changed slightly. This means that cookies and other data encrypted in Play 2.4 will not be readable by older versions of Play. However, Play 2.4 can read cookies and other data encrypted in both the old and new format.
 
@@ -184,12 +226,6 @@ When you call `Crypto.decryptAES` it will decode both the old and new formats. T
 If you wish to continue using the older format of encryption decryption, here is the [link] (https://github.com/playframework/playframework/blob/2.3.6/framework/src/play/src/main/scala/play/api/libs/Crypto.scala#L187-L277) that provides all the necessary information.
 
 ## Anorm
-
-Anorm has been pulled out of the core of Play into a separately managed project that can have its own lifecycle.  To add a dependency on it, use:
-
-```scala
-libraryDependencies += "com.typesafe.play" %% "anorm" % "2.4.0"
-```
 
 The new Anorm version includes various fixes and improvements.
 
@@ -345,13 +381,6 @@ Short              | BigDecimal
 - Parses text column as `UUID` value: `SQL("SELECT uuid_as_text").as(scalar[UUID].single)`.
 - Passing `None` for a nullable parameter is deprecated, and typesafe `Option.empty[T]` must be use instead.
 
-## Specs 2 support
-
-Play's support for specs2 has been pulled out of `play-test`.  Now if you want to use Play's specs2 support, you have to explicitly add a dependency on `play-specs2`, which can be done using the convenient alias provided by the Play sbt plugin:
-
-```scala
-libraryDependencies += specs2 % Test
-```
 
 ## HTTP server configuration
 
@@ -389,10 +418,6 @@ This import brings you an implicit `Messages` value as long as there are a `Lang
 ### Java
 
 The API should be backward compatible with your code using Play 2.3 so there is no migration step. Nevertheless, note that you have to start your Play application before using the Java i18n API. That should always be the case when you run your project, however your test code may not always start your application. Please refer to the corresponding [[documentation page|JavaTest]] to know how to start your application before running your tests.
-
-## IntelliJ IDEA
-
-Play no longer includes the sbt idea plugin.  IntelliJ is now able to import sbt projects natively, so we recommend using that instead.  Alternatively, the sbt idea plugin can be manually installed and used, instructions can be found [here](https://github.com/mpeltonen/sbt-idea).
 
 ## Distribution
 
