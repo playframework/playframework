@@ -3,8 +3,10 @@
  */
 package play.core.server
 
-import play.api.Configuration
+import akka.actor.ActorSystem
+import play.api.{ Application, Configuration }
 import play.core.ApplicationProvider
+import scala.concurrent.Future
 
 /**
  * An object that knows how to obtain a server. Instantiating a
@@ -13,10 +15,31 @@ import play.core.ApplicationProvider
  * until the `createServer` method is called.
  */
 trait ServerProvider {
-  def createServer(config: ServerConfig, appProvider: ApplicationProvider): Server
+  def createServer(context: ServerProvider.Context): Server
+
+  /**
+   * Create a server for a given application.
+   */
+  final def createServer(config: ServerConfig, app: Application): Server =
+    createServer(ServerProvider.Context(config, ApplicationProvider(app), app.actorSystem, () => Future.successful(())))
 }
 
 object ServerProvider {
+
+  /**
+   * The context for creating a server. Passed to the `createServer` method.
+   *
+   * @param config Basic server configuration values.
+   * @param appProvider An object which can be queried to get an Application.
+   * @param actorSystem An ActorSystem that the server can use.
+   * @param stopHook A function that should be called by the server when it stops.
+   * This function can be used to close resources that are provided to the server.
+   */
+  final case class Context(
+    config: ServerConfig,
+    appProvider: ApplicationProvider,
+    actorSystem: ActorSystem,
+    stopHook: () => Future[Unit])
 
   /**
    * Load a server provider from the configuration and classloader.
@@ -24,21 +47,11 @@ object ServerProvider {
    * @param classLoader The ClassLoader to load the class from.
    * @param configuration The configuration to look the server provider up from.
    * @return The server provider, if one was configured.
+   * @throws ServerStartException If the ServerProvider couldn't be created.
    */
-  def maybeServerProvider(classLoader: ClassLoader, configuration: Configuration): Option[ServerProvider] = {
-    configuration.getString("play.server.provider").map(instantiateServerProvider(classLoader))
-  }
-
-  /**
-   * Load the default server provider.
-   */
-  implicit lazy val defaultServerProvider: ServerProvider = {
-    val classLoader = this.getClass.getClassLoader
-    val config = ServerConfig.loadConfiguration(classLoader, System.getProperties)
-    instantiateServerProvider(classLoader)(config.underlying.getString("play.server.provider"))
-  }
-
-  private def instantiateServerProvider(classLoader: ClassLoader)(className: String): ServerProvider = {
+  def fromConfiguration(classLoader: ClassLoader, configuration: Configuration): ServerProvider = {
+    val ClassNameConfigKey = "play.server.provider"
+    val className: String = configuration.getString(ClassNameConfigKey).getOrElse(throw new ServerStartException(s"No ServerProvider configured with key '$ClassNameConfigKey'"))
     val clazz = try classLoader.loadClass(className) catch {
       case _: ClassNotFoundException => throw ServerStartException(s"Couldn't find ServerProvider class '$className'")
     }
@@ -47,6 +60,15 @@ object ServerProvider {
       case _: NoSuchMethodException => throw ServerStartException(s"ServerProvider class ${clazz.getName} must have a public default constructor")
     }
     ctor.newInstance().asInstanceOf[ServerProvider]
+  }
+
+  /**
+   * Load the default server provider.
+   */
+  implicit lazy val defaultServerProvider: ServerProvider = {
+    val classLoader = this.getClass.getClassLoader
+    val config = Configuration.load(classLoader, System.getProperties, Map.empty, true)
+    fromConfiguration(classLoader, config)
   }
 
 }

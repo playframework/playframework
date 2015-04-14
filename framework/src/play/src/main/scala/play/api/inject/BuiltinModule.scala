@@ -3,11 +3,12 @@
  */
 package play.api.inject
 
+import akka.actor.ActorSystem
 import javax.inject.{ Singleton, Inject, Provider }
-
 import play.api._
 import play.api.http._
 import play.api.libs.{ CryptoConfig, Crypto, CryptoConfigParser }
+import play.api.libs.concurrent.ActorSystemProvider
 import play.api.routing.Router
 
 class BuiltinModule extends Module {
@@ -31,6 +32,7 @@ class BuiltinModule extends Module {
       bind[play.Application].to[play.DefaultApplication],
 
       bind[Router].toProvider[RoutesProvider],
+      bind[ActorSystem].toProvider[ActorSystemProvider],
       bind[Plugins].toProvider[PluginsProvider],
 
       bind[CryptoConfig].toProvider[CryptoConfigParser],

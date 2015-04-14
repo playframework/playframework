@@ -27,9 +27,9 @@ package play.core
  * also returns a function that will be called when `close()` is called. This allows
  * any resources associated with the value to be closed.
  */
-private[play] abstract class ClosableLazy[T >: Null <: AnyRef] {
+private[play] abstract class ClosableLazy[T >: Null <: AnyRef, C] {
 
-  protected type CloseFunction = (() => Unit)
+  protected type CloseFunction = (() => C)
 
   @volatile
   private var value: T = null
@@ -65,7 +65,7 @@ private[play] abstract class ClosableLazy[T >: Null <: AnyRef] {
    * Close the value. Calling this method is safe, but does nothing, if the value
    * has not been initialized.
    */
-  final def close(): Unit = {
+  final def close(): C = {
     val optionalClose: Option[CloseFunction] = synchronized {
       if (hasBeenClosed) {
         // Already closed
@@ -86,7 +86,7 @@ private[play] abstract class ClosableLazy[T >: Null <: AnyRef] {
     // Perform actual close outside the synchronized block,
     // just in case the close function calls get or close
     // from another thread.
-    optionalClose.foreach(_.apply())
+    optionalClose.fold(closeNotNeeded)(_.apply())
   }
 
   /**
@@ -94,4 +94,11 @@ private[play] abstract class ClosableLazy[T >: Null <: AnyRef] {
    * a function to close the value when `close` is called.
    */
   protected def create(): (T, CloseFunction)
+
+  /**
+   * Called when `close` is called but no closing actually needs to
+   * happen. Used to return a valid value of `C` when this happens.
+   * In common usage this method will return `()` or `Future.successful(())`.
+   */
+  protected def closeNotNeeded: C
 }

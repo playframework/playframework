@@ -7,7 +7,7 @@ Play can be configured to serve HTTPS.  To enable this, simply tell Play which p
 
 ## Providing configuration
 
-HTTPS configuration can either be supplied using system properties or using server configuration files via the `server.config.file` or `server.config.resource` properties.  For more deatils on server configuration files, see [[Server configuration|ProductionConfiguration#Server-configuration]].
+HTTPS configuration can either be supplied using system properties or in `application.conf`. For more details see the [[configuration|Configuration]] and [[production configuration|ProductionConfiguration]] pages.
 
 ## SSL Certificates
 

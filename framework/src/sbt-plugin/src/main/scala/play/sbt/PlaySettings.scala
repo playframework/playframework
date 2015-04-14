@@ -91,6 +91,7 @@ object PlaySettings {
 
     // THE `in Compile` IS IMPORTANT!
     Keys.run in Compile <<= PlayRun.playDefaultRunTask,
+    mainClass in (Compile, Keys.run) := Some("play.core.server.DevServerStart"),
 
     PlayInternalKeys.playStop := {
       playInteractionMode.value match {
@@ -179,8 +180,7 @@ object PlaySettings {
     // Native packaging
 
     sourceDirectory in Universal <<= baseDirectory(_ / "dist"),
-
-    mainClass in Compile <<= mainClass in (Compile, Keys.run),
+    mainClass in Compile := Some("play.core.server.ProdServerStart"),
 
     // Support for externalising resources
     mappings in Universal ++= {

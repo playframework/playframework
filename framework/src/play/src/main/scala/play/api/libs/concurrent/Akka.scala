@@ -7,6 +7,7 @@ import java.util.concurrent.TimeoutException
 import javax.inject.{ Provider, Inject, Singleton }
 import play.api._
 import play.api.inject.{ ApplicationLifecycle, Module }
+import play.core.ClosableLazy
 import akka.actor.ActorSystem
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -43,15 +44,6 @@ trait AkkaComponents {
 }
 
 /**
- * The Akka module.
- */
-class AkkaModule extends Module {
-  def bindings(environment: Environment, configuration: Configuration) = Seq(
-    bind[ActorSystem].toProvider[ActorSystemProvider]
-  )
-}
-
-/**
  * Provider for the actor system
  */
 @Singleton
@@ -60,12 +52,30 @@ class ActorSystemProvider @Inject() (environment: Environment, configuration: Co
   private val logger = Logger(classOf[ActorSystemProvider])
 
   lazy val get: ActorSystem = {
+    val (system, stopHook) = ActorSystemProvider.start(environment.classLoader, configuration)
+    applicationLifecycle.addStopHook(stopHook)
+    system
+  }
+
+}
+
+object ActorSystemProvider {
+
+  type StopHook = () => Future[Unit]
+
+  private val logger = Logger(classOf[ActorSystemProvider])
+
+  /**
+   * Start an ActorSystem, using the given configuration and ClassLoader.
+   * @return The ActorSystem and a function that can be used to stop it.
+   */
+  def start(classLoader: ClassLoader, configuration: Configuration): (ActorSystem, StopHook) = {
     val config = PlayConfig(configuration)
     val name = config.get[String]("play.akka.actor-system")
-    val system = ActorSystem(name, configuration.underlying, environment.classLoader)
+    val system = ActorSystem(name, configuration.underlying, classLoader)
     logger.info(s"Starting application default Akka system: $name")
 
-    applicationLifecycle.addStopHook { () =>
+    val stopHook = { () =>
       logger.info(s"Shutdown application default Akka system: $name")
       system.shutdown()
 
@@ -86,7 +96,18 @@ class ActorSystemProvider @Inject() (environment: Environment, configuration: Co
       Future.successful(())
     }
 
-    system
+    (system, stopHook)
+  }
+
+  /**
+   * A lazy wrapper around `start`. Useful when the `ActorSystem` may
+   * not be needed.
+   */
+  def lazyStart(classLoader: => ClassLoader, configuration: => Configuration): ClosableLazy[ActorSystem, Future[Unit]] = {
+    new ClosableLazy[ActorSystem, Future[Unit]] {
+      protected def create() = start(classLoader, configuration)
+      protected def closeNotNeeded = Future.successful(())
+    }
   }
 
 }

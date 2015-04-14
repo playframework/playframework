@@ -13,7 +13,7 @@ import scala.concurrent.ExecutionContext
  */
 private[play] object Invoker {
 
-  val lazySystem = new ClosableLazy[ActorSystem] {
+  val lazySystem = new ClosableLazy[ActorSystem, Unit] {
 
     private val logger = Logger(this.getClass)
 
@@ -32,6 +32,8 @@ private[play] object Invoker {
 
       (system, close)
     }
+
+    protected def closeNotNeeded = ()
 
     private def loadActorConfig(config: Config): Config = {
       try {

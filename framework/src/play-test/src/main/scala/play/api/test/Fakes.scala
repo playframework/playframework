@@ -5,6 +5,7 @@ package play.api.test
 
 import javax.inject.{ Inject, Provider }
 
+import akka.actor.ActorSystem
 import play.api._
 import play.api.http._
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -217,6 +218,7 @@ case class FakeApplication(
   override def mode: Mode.Mode = app.mode
   override def global: GlobalSettings = app.global
   override def configuration: Configuration = app.configuration
+  override def actorSystem: ActorSystem = app.actorSystem
   override def plugins: Seq[Plugin.Deprecated] = app.plugins
   override def requestHandler: HttpRequestHandler = app.requestHandler
   override def errorHandler: HttpErrorHandler = app.errorHandler

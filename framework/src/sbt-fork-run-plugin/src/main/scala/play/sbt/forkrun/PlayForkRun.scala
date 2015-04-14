@@ -127,7 +127,7 @@ object PlayForkRun extends AutoPlugin {
       notifyKey = thisProjectRef.value.project + "/" + playForkNotifyStart.key.label,
       reloadKey = thisProjectRef.value.project + "/" + playForkReload.key.label,
       compileTimeout = playForkCompileTimeout.value.toMillis,
-      mainClass = (mainClass in (Compile, run)).value.getOrElse("play.core.server.NettyServer")
+      mainClass = (mainClass in (Compile, run)).value.get
     )
   }
 

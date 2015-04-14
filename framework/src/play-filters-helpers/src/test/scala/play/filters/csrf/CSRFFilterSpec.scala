@@ -126,11 +126,12 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
   }
 
   "The CSRF module" should {
+    val environment = Environment(new java.io.File("."), getClass.getClassLoader, Mode.Test)
     def fakeContext = Context(
-      Environment(new java.io.File("."), getClass.getClassLoader, Mode.Test),
+      environment,
       None,
       new DefaultWebCommands,
-      Configuration.load(new java.io.File("."), Mode.Test)
+      Configuration.load(environment)
     )
     def loader = new GuiceApplicationLoader
     "allow injecting CSRF filters" in {

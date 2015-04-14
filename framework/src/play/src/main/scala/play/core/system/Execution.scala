@@ -20,7 +20,7 @@ private[play] object Execution {
 
   }
 
-  val lazyContext = new ClosableLazy[ExecutionContext] {
+  val lazyContext = new ClosableLazy[ExecutionContext, Unit] {
 
     protected def create() = {
       class NamedFjpThread(fjp: ForkJoinPool) extends ForkJoinWorkerThread(fjp)
@@ -53,6 +53,8 @@ private[play] object Execution {
 
       (context, close)
     }
+
+    protected def closeNotNeeded = ()
 
   }
 

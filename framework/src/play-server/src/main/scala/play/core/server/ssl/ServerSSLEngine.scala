@@ -59,7 +59,7 @@ object ServerSSLEngine {
 
     def javaAppProvider = {
       val javaApplication = applicationProvider.get.map(a => a.injector.instanceOf[play.Application]).getOrElse(null)
-      new play.server.ApplicationProvider(javaApplication, applicationProvider.path)
+      new play.server.ApplicationProvider(javaApplication)
     }
 
     if (serverConfigProviderArgsConstructor != null) {

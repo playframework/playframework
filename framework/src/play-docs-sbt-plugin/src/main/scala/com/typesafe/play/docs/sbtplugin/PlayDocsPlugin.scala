@@ -192,8 +192,9 @@ object PlayDocsPlugin extends AutoPlugin {
         fromDirectoryMethod.invoke(null, manualPath.value)
     }
 
-    val clazz = classloader.loadClass("play.docs.DocumentationServer")
-    val constructor = clazz.getConstructor(classOf[File], classOf[BuildDocHandler], classOf[Callable[_]],
+    val clazz = classloader.loadClass("play.docs.DocServerStart")
+    val constructor = clazz.getConstructor()
+    val startMethod = clazz.getMethod("start", classOf[File], classOf[BuildDocHandler], classOf[Callable[_]],
       classOf[Callable[_]], classOf[java.lang.Integer])
 
     val translationReport = new Callable[File] {
@@ -202,7 +203,8 @@ object PlayDocsPlugin extends AutoPlugin {
     val forceTranslationReport = new Callable[File] {
       def call() = Project.runTask(translationCodeSamplesReport, state.value).get._2.toEither.right.get
     }
-    val server = constructor.newInstance(manualPath.value, buildDocHandler, translationReport, forceTranslationReport,
+    val docServerStart = constructor.newInstance()
+    val server: ServerWithStop = startMethod.invoke(docServerStart, manualPath.value, buildDocHandler, translationReport, forceTranslationReport,
       new java.lang.Integer(port)).asInstanceOf[ServerWithStop]
 
     println()

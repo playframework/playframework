@@ -11,7 +11,7 @@ import scala.language.postfixOps
 
 import play.api._
 import play.api.mvc._
-import play.core.{ TestApplication, DefaultWebCommands, ApplicationProvider }
+import play.core.{ DefaultWebCommands, ApplicationProvider }
 
 import scala.util.{ Try, Success, Failure }
 import scala.concurrent.Future
@@ -108,7 +108,8 @@ object Server {
    * @return The result of the block of code.
    */
   def withApplication[T](application: Application, config: ServerConfig = ServerConfig(port = Some(0), mode = Mode.Test))(block: Port => T)(implicit provider: ServerProvider): T = {
-    val server = provider.createServer(config, new TestApplication(application))
+    Play.start(application)
+    val server = provider.createServer(config, application)
     try {
       block(new Port((server.httpPort orElse server.httpsPort).get))
     } finally {
@@ -151,6 +152,6 @@ private[play] object JavaServerHelper {
       def router = r
     }.application
     Play.start(application)
-    implicitly[ServerProvider].createServer(ServerConfig(mode = mode, port = Some(port)), new TestApplication(application))
+    implicitly[ServerProvider].createServer(ServerConfig(mode = mode, port = Some(port)), application)
   }
 }

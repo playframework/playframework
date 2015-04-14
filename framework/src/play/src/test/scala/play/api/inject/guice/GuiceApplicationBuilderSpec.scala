@@ -40,11 +40,11 @@ object GuiceApplicationBuilderSpec extends Specification {
     "disable modules" in {
       val app = new GuiceApplicationBuilder()
         .bindings(new AModule)
-        .disable[play.api.libs.concurrent.AkkaModule]
+        .disable[play.api.i18n.I18nModule]
         .disable(classOf[AModule])
         .build
 
-      app.injector.instanceOf[ActorSystem] must throwA[com.google.inject.ConfigurationException]
+      app.injector.instanceOf[play.api.i18n.Langs] must throwA[com.google.inject.ConfigurationException]
       app.injector.instanceOf[A] must throwA[com.google.inject.ConfigurationException]
     }
 

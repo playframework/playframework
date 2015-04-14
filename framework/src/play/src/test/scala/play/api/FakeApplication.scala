@@ -4,6 +4,7 @@
 package play.api
 
 import play.api.http.{ NotImplementedHttpRequestHandler, DefaultHttpErrorHandler }
+import play.api.libs.concurrent.ActorSystemProvider
 import play.core.Router
 import java.io.File
 
@@ -20,7 +21,9 @@ case class FakeApplication(config: Map[String, Any] = Map(),
     plugins: Seq[Plugin.Deprecated] = Nil) extends Application {
   val classloader = Thread.currentThread.getContextClassLoader
   lazy val configuration = Configuration.from(config)
-  def stop() = Future.successful(())
+  private val lazyActorSystem = ActorSystemProvider.lazyStart(classloader, configuration)
+  def actorSystem = lazyActorSystem.get()
+  def stop() = lazyActorSystem.close()
   val errorHandler = DefaultHttpErrorHandler
   val requestHandler = NotImplementedHttpRequestHandler
 }

@@ -4,6 +4,7 @@
 package play.api
 
 import java.io._
+import java.util.Properties
 import java.util.concurrent.TimeUnit
 
 import com.typesafe.config._
@@ -32,20 +33,51 @@ object Configuration {
 
   private[this] lazy val dontAllowMissingConfig = ConfigFactory.load(dontAllowMissingConfigOptions)
 
-  /**
-   * loads `Configuration` from config.resource or config.file. If not found default to 'conf/application.conf' in Dev mode
-   * @return configuration to be used
-   */
-  private[play] def loadDev(appPath: File, devSettings: Map[String, String]): Config = {
-    try {
-      lazy val file: Option[String] = {
-        devSettings.get("config.file").orElse(Option(System.getProperty("config.file")))
-      }
-      val config: Config = file.map(f => ConfigFactory.parseFileAnySyntax(new File(f)))
-        .getOrElse(ConfigFactory.parseResources(
-          Option(System.getProperty("config.resource")).getOrElse("application.conf")))
+  private[play] def load(
+    classLoader: ClassLoader,
+    properties: Properties,
+    directSettings: Map[String, String],
+    allowMissingApplicationConf: Boolean): Configuration = {
 
-      ConfigFactory.parseMap(devSettings.asJava).withFallback(ConfigFactory.load(config))
+    try {
+      // Get configuration from the system properties.
+      val systemPropertyConfig = ConfigFactory.parseProperties(properties)
+
+      // Inject our direct settings into the config.
+      val directConfig: Config = ConfigFactory.parseMap(directSettings.asJava)
+
+      // Resolve application.conf ourselves because:
+      // - we may want to load configuration when application.conf is missing.
+      // - We also want to delay binding and resolving reference.conf, which
+      //   is usually part of the default application.conf loading behavior.
+      // - We want to read config.file and config.resource settings from our
+      //   own properties and directConfig rather than system properties.
+      val applicationConfig: Config = {
+        def setting(key: String): Option[String] =
+          directSettings.get(key).orElse(Option(properties.getProperty(key)))
+
+        {
+          setting("config.resource").map(resource => ConfigFactory.parseResources(classLoader, resource))
+        } orElse {
+          setting("config.file").map(fileName => ConfigFactory.parseFileAnySyntax(new File(fileName)))
+        } getOrElse {
+          val parseOptions = ConfigParseOptions.defaults.setClassLoader(classLoader).setAllowMissing(true)
+          ConfigFactory.defaultApplication(parseOptions)
+        }
+      }
+
+      // Resolve reference.conf ourselves because ConfigFactory.defaultReference resolves
+      // values, and we won't have a value for `play.server.dir` until all our config is combined.
+      val referenceConfig: Config = ConfigFactory.parseResources(classLoader, "reference.conf")
+
+      // Combine all the config together into one big config
+      val combinedConfig: Config = Seq(systemPropertyConfig, directConfig, applicationConfig, referenceConfig).reduceLeft(_ withFallback _)
+
+      // Resolve settings. Among other things, the `play.server.dir` setting defined in dynamicConfig will
+      // be substituted into the default settings in referenceConfig.
+      val resolvedConfig = combinedConfig.resolve
+
+      Configuration(resolvedConfig)
     } catch {
       case e: ConfigException => throw configError(e.origin, e.getMessage, Some(e))
     }
@@ -63,12 +95,13 @@ object Configuration {
    * @param mode Application mode.
    * @return a `Configuration` instance
    */
+  @deprecated("Use load(Environment, Map[String,String]) instead", "2.4.0")
   def load(appPath: File, mode: Mode.Mode = Mode.Dev, devSettings: Map[String, String] = Map.empty): Configuration = {
-    try {
-      val currentMode = Play.maybeApplication.map(_.mode).getOrElse(mode)
-      if (currentMode == Mode.Prod) Configuration(dontAllowMissingConfig) else Configuration(loadDev(appPath, devSettings))
-    } catch {
-      case e: ConfigException => throw configError(e.origin, e.getMessage, Some(e))
+    val currentMode = Play.maybeApplication.map(_.mode).getOrElse(mode)
+    if (currentMode == Mode.Prod) {
+      load(Thread.currentThread.getContextClassLoader, System.getProperties, Map.empty, allowMissingApplicationConf = false)
+    } else {
+      load(Thread.currentThread.getContextClassLoader, System.getProperties, devSettings, allowMissingApplicationConf = true)
     }
   }
 
@@ -76,9 +109,7 @@ object Configuration {
    * Load a new Configuration from the Environment.
    */
   def load(environment: Environment, devSettings: Map[String, String]): Configuration = {
-    Threads.withContextClassLoader(environment.classLoader) {
-      load(environment.rootPath, environment.mode, devSettings)
-    }
+    load(environment.classLoader, System.getProperties, devSettings, allowMissingApplicationConf = false)
   }
 
   /**

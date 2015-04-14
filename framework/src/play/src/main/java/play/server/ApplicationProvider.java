@@ -10,18 +10,13 @@ import java.io.File;
 public class ApplicationProvider {
 
     private final Application application;
-    private final File path;
 
-    public ApplicationProvider(Application application, File path) {
+    public ApplicationProvider(Application application) {
         this.application = application;
-        this.path = path;
     }
 
     public Application getApplication() {
         return application;
     }
 
-    public File getPath() {
-        return path;
-    }
 }
