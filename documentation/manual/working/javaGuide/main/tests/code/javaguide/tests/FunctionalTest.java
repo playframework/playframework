@@ -13,6 +13,10 @@ import play.libs.ws.*;
 import static play.test.Helpers.*;
 import static org.junit.Assert.*;
 
+//#bad-route-import
+import play.mvc.Http.RequestBuilder;
+//#bad-route-import
+
 //#test-withapp
 public class FunctionalTest extends WithApplication {
 //#test-withapp
@@ -20,7 +24,11 @@ public class FunctionalTest extends WithApplication {
     //#bad-route
     @Test
     public void testBadRoute() {
-        Result result = route(fakeRequest(GET, "/xx/Kiki"));
+        RequestBuilder request = new RequestBuilder()
+            .method(GET)
+            .uri("/xx/Kiwi");
+
+        Result result = route(request);
         assertEquals(NOT_FOUND, result.status());
     }
     //#bad-route
@@ -48,7 +56,7 @@ public class FunctionalTest extends WithApplication {
     }
     //#test-server
 
-    //#with-browser
+    //#test-browser
     @Test
     public void runInBrowser() {
         running(testServer(), HTMLUNIT, browser -> {
@@ -58,5 +66,5 @@ public class FunctionalTest extends WithApplication {
             assertEquals("/login", browser.url());
         });
     }
-    //#with-browser
+    //#test-browser
 }

@@ -12,11 +12,11 @@ import play.test.Helpers;
 
 public class FakeApplicationTest {
 
-    static class Computer {
-        String name = "Macintosh";
-        String introduced = "1984-01-24";
+    public static class Computer {
+        public String name = "Macintosh";
+        public String introduced = "1984-01-24";
 
-        static Computer findById(long id) {
+        public static Computer findById(long id) {
             return new Computer();
         }
     }
