@@ -116,10 +116,13 @@ public class DefaultJPAApi implements JPAApi {
      * @param block Block of code to execute
      */
     public <T> T withTransaction(String name, boolean readOnly, play.libs.F.Function0<T> block) throws Throwable {
+        EntityManager em0 = null;
         EntityManager em = null;
         EntityTransaction tx = null;
 
         try {
+
+            try { em0 = JPA.em(); } catch (RuntimeException e) { }
             em = em(name);
 
             if (em == null) {
@@ -152,8 +155,11 @@ public class DefaultJPAApi implements JPAApi {
             throw t;
         } finally {
             JPA.bindForCurrentThread(null);
-            if (em != null) {
+            if(em != null && em.isOpen()) {
                 em.close();
+            }
+            if (em0 != null && em0.isOpen()) {
+                JPA.bindForCurrentThread(em0);
             }
         }
     }
