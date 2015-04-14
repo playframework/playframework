@@ -4,7 +4,6 @@
 package play.db;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Map;
 import javax.sql.DataSource;
 
@@ -285,22 +284,12 @@ public abstract class Database {
 
                 @Override
                 public <A> A withConnection(boolean autocommit, final scala.Function1<Connection, A> block) {
-                    return database.withConnection(autocommit, new ConnectionCallable<A>() {
-                        @Override
-                        public A call(Connection connection) throws SQLException {
-                            return block.apply(connection);
-                        }
-                    });
+                    return database.withConnection(autocommit, block::apply);
                 }
 
                 @Override
                 public <A> A withConnection(final scala.Function1<Connection, A> block) {
-                    return database.withConnection(new ConnectionCallable<A>() {
-                        @Override
-                        public A call(Connection connection) throws SQLException {
-                            return block.apply(connection);
-                        }
-                    });
+                    return database.withConnection(block::apply);
                 }
 
                 @Override
@@ -319,12 +308,7 @@ public abstract class Database {
                 }
 
                 public <A> A withTransaction(final scala.Function1<Connection, A> block) {
-                    return database.withTransaction(new ConnectionCallable<A>() {
-                        @Override
-                        public A call(Connection connection) throws SQLException {
-                            return block.apply(connection);
-                        }
-                    });
+                    return database.withTransaction(block::apply);
                 }
 
             };

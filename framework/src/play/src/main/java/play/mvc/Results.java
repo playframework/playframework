@@ -1006,18 +1006,16 @@ public class Results {
             final Chunks<A> self = this;
             this.writable = writable;
             final RedeemablePromise<Object> disconnected = RedeemablePromise.<Object>empty();
-            this.enumerator = play.core.j.JavaResults.chunked(new Callback<Concurrent.Channel<A>>() {
-                @Override
-                public void invoke(Concurrent.Channel<A> channel) {
-                    Chunks.Out<A> chunked = new Chunks.Out<A>(channel, disconnected);
-                    self.onReady(chunked);
-                }
-            }, new Callback0() {
-                @Override
-                public void invoke() throws Throwable {
-                    disconnected.success(null);
-                }
-            });
+            this.enumerator = play.core.j.JavaResults.chunked(
+                new Callback<Concurrent.Channel<A>>() {
+                    @Override
+                    public void invoke(Concurrent.Channel<A> channel) {
+                        Chunks.Out<A> chunked = new Chunks.Out<A>(channel, disconnected);
+                        self.onReady(chunked);
+                    }
+                },
+                () -> disconnected.success(null)
+            );
         }
 
         /**
@@ -1060,11 +1058,7 @@ public class Results {
              * Attach a callback to be called when the socket is disconnected.
              */
             public void onDisconnected(final Callback0 callback) {
-                disconnected.onRedeem(new Callback<Object>() {
-                    public void invoke(Object ignored) throws Throwable {
-                        callback.invoke();
-                    }
-                });
+                disconnected.onRedeem(ignored -> callback.invoke());
             }
 
             /**

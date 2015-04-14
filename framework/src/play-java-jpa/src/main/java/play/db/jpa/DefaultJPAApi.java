@@ -3,14 +3,11 @@
  */
 package play.db.jpa;
 
-import play.*;
 import play.db.DBApi;
 import play.inject.ApplicationLifecycle;
 import play.libs.F;
 
-import java.io.*;
 import java.util.*;
-import java.util.concurrent.Callable;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -38,13 +35,10 @@ public class DefaultJPAApi implements JPAApi {
         public JPAApiProvider(JPAConfig jpaConfig, DBApi dbApi, ApplicationLifecycle lifecycle) {
             // dependency on db api ensures that the databases are initialised
             jpaApi = new DefaultJPAApi(jpaConfig);
-            lifecycle.addStopHook(new Callable<F.Promise<Void>>() {
-                @Override
-                    public F.Promise<Void> call() throws Exception {
-                        jpaApi.shutdown();
-                        return F.Promise.pure(null);
-                    }
-                });
+            lifecycle.addStopHook(() -> {
+                jpaApi.shutdown();
+                return F.Promise.pure(null);
+            });
             jpaApi.start();
         }
 
@@ -105,11 +99,9 @@ public class DefaultJPAApi implements JPAApi {
      */
     public void withTransaction(final play.libs.F.Callback0 block) {
         try {
-            withTransaction("default", false, new play.libs.F.Function0<Void>() {
-                public Void apply() throws Throwable {
-                    block.invoke();
-                    return null;
-                }
+            withTransaction("default", false, () -> {
+                block.invoke();
+                return null;
             });
         } catch (Throwable t) {
             throw new RuntimeException("JPA transaction failed", t);
@@ -212,14 +204,11 @@ public class DefaultJPAApi implements JPAApi {
                 }
             });
 
-            committedResult.onFailure(new F.Callback<Throwable>() {
-                @Override
-                public void invoke(Throwable t) {
-                    if (ftx != null) {
-                        try { if (ftx.isActive()) ftx.rollback(); } catch (Throwable e) {}
-                    }
-                    fem.close();
+            committedResult.onFailure(t -> {
+                if (ftx != null) {
+                    try { if (ftx.isActive()) ftx.rollback(); } catch (Throwable e) {}
                 }
+                fem.close();
             });
 
             return committedResult;
