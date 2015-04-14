@@ -78,14 +78,11 @@ public class SecurityTest {
             action.delegate = new Action<Object>() {
                 @Override
                 public F.Promise<Result> call(Http.Context ctx) throws Throwable {
-                    return F.Promise.promise(new F.Function0<Result>() {
-                        @Override
-                        public Result apply() throws Throwable {
-                            if (shouldRaiseException) {
-                                throw exception;
-                            } else {
-                                return ok;
-                            }
+                    return F.Promise.promise(() -> {
+                        if (shouldRaiseException) {
+                            throw exception;
+                        } else {
+                            return ok;
                         }
                     });
                 }

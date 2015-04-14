@@ -8,7 +8,6 @@ import play.*;
 
 import play.api.routing.Router;
 import play.api.test.PlayRunners$;
-import play.core.j.JavaAction;
 import play.core.j.JavaHandler;
 import play.core.j.JavaHandlerComponents;
 import play.core.j.JavaResultExtractor;
@@ -71,11 +70,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
             return null;
         } else {
             final play.api.mvc.Result scalaResult = Promise.wrap(result).get(timeout);
-            return new Result() {
-                public play.api.mvc.Result toScala() {
-                    return scalaResult;
-                }
-            };
+            return () -> scalaResult;
         }
     }
 
@@ -202,7 +197,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * @deprecated use {@link Result#status()} instead.  
+     * @deprecated use {@link Result#status()} instead.
      */
     @Deprecated
     public static int status(Result result) {
@@ -210,7 +205,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * @deprecated use {@link Result#redirectLocation()} instead.  
+     * @deprecated use {@link Result#redirectLocation()} instead.
      */
     @Deprecated
     public static String redirectLocation(Result result) {
@@ -218,7 +213,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * @deprecated use {@link Result#flash()} instead.  
+     * @deprecated use {@link Result#flash()} instead.
      */
     @Deprecated
     public static Flash flash(Result result) {
@@ -226,7 +221,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * @deprecated use {@link Result#session()} instead.  
+     * @deprecated use {@link Result#session()} instead.
      */
     @Deprecated
     public static Session session(Result result) {
@@ -234,7 +229,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * @deprecated use {@link Result#cookie(String)} instead.  
+     * @deprecated use {@link Result#cookie(String)} instead.
      */
     @Deprecated
     public static Cookie cookie(String name, Result result) {
@@ -242,7 +237,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * @deprecated use {@link Result#cookies()} instead.  
+     * @deprecated use {@link Result#cookies()} instead.
      */
     @Deprecated
     public static Cookies cookies(Result result) {
@@ -250,7 +245,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * @deprecated use {@link Result#header(String)} instead.  
+     * @deprecated use {@link Result#header(String)} instead.
      */
     @Deprecated
     public static String header(String header, Result result) {
@@ -258,7 +253,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * @deprecated use {@link Result#headers()} instead.  
+     * @deprecated use {@link Result#headers()} instead.
      */
     @Deprecated
     public static Map<String, String> headers(Result result) {
@@ -266,7 +261,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * @deprecated use {@link Result#contentType()} instead.  
+     * @deprecated use {@link Result#contentType()} instead.
      */
     @Deprecated
     public static String contentType(Content content) {
@@ -274,7 +269,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * @deprecated use {@link Result#contentType()} instead.  
+     * @deprecated use {@link Result#contentType()} instead.
      */
     @Deprecated
     public static String contentType(Result result) {
@@ -288,7 +283,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     }
 
     /**
-     * @deprecated use {@link Result#charset()} instead.  
+     * @deprecated use {@link Result#charset()} instead.
      */
     @Deprecated
     public static String charset(Result result) {

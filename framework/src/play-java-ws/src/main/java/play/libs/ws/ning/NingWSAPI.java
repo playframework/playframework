@@ -13,7 +13,6 @@ import play.libs.ws.WSRequest;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.concurrent.Callable;
 
 /**
  *
@@ -28,12 +27,9 @@ public class NingWSAPI implements WSAPI {
         client = new NingWSClient(
                 new NingAsyncHttpClientConfigBuilder(clientConfig).build()
         );
-        lifecycle.addStopHook(new Callable<F.Promise<Void>>() {
-            @Override
-            public F.Promise<Void> call() throws Exception {
-                client.close();
-                return F.Promise.pure(null);
-            }
+        lifecycle.addStopHook(() -> {
+            client.close();
+            return F.Promise.pure(null);
         });
     }
 

@@ -27,35 +27,27 @@ public class JPATest extends WithApplication {
 
     @Test
     public void insertAndFindEntities() {
-        JPA.withTransaction(new play.libs.F.Callback0() {
-            public void invoke() {
-                TestEntity entity = TestEntity.find(1L);
-                assertThat(entity.name, equalTo("test1"));
-            }
+        JPA.withTransaction(() -> {
+            TestEntity entity = TestEntity.find(1L);
+            assertThat(entity.name, equalTo("test1"));
         });
 
-        JPA.withTransaction(new play.libs.F.Callback0() {
-            public void invoke() {
-                TestEntity entity = new TestEntity();
-                entity.id = 2L;
-                entity.name = "test2";
-                entity.save();
-            }
+        JPA.withTransaction(() -> {
+            TestEntity entity = new TestEntity();
+            entity.id = 2L;
+            entity.name = "test2";
+            entity.save();
         });
 
-        JPA.withTransaction(new play.libs.F.Callback0() {
-            public void invoke() {
-                TestEntity entity = TestEntity.find(2L);
-                assertThat(entity.name, equalTo("test2"));
-            }
+        JPA.withTransaction(() -> {
+            TestEntity entity = TestEntity.find(2L);
+            assertThat(entity.name, equalTo("test2"));
         });
 
-        JPA.withTransaction(new play.libs.F.Callback0() {
-            public void invoke() {
-                List<String> names = TestEntity.allNames();
-                assertThat(names.size(), equalTo(2));
-                assertThat(names, hasItems("test1", "test2"));
-            }
+        JPA.withTransaction(() -> {
+            List<String> names = TestEntity.allNames();
+            assertThat(names.size(), equalTo(2));
+            assertThat(names, hasItems("test1", "test2"));
         });
     }
 }

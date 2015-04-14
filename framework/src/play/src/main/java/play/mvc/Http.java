@@ -27,14 +27,11 @@ import play.api.mvc.AnyContentAsRaw;
 import play.api.mvc.AnyContentAsText;
 import play.api.mvc.AnyContentAsXml;
 import play.api.mvc.Headers;
-import play.api.mvc.RawBuffer;
 import play.core.system.RequestIdProvider;
 import play.i18n.Lang;
 import play.Play;
-import play.i18n.Langs;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
-import play.libs.Scala;
 
 /**
  * Defines HTTP standard objects.
@@ -518,9 +515,9 @@ public class Http {
          */
         private RequestImpl(play.api.mvc.Request<RequestBody> request,
                             String username) {
-            
+
             super(request);
-            
+
             this.underlying = request;
             this.username = username;
         }
@@ -1309,12 +1306,8 @@ public class Http {
      */
     public static class Response implements HeaderNames {
 
-        private final Map<String, String> headers = new TreeMap<String, String>(new Comparator<String>() {
-                @Override public int compare(String s1, String s2) {
-                    return s1.compareToIgnoreCase(s2);
-                }
-            });
-        private final List<Cookie> cookies = new ArrayList<Cookie>();
+        private final Map<String, String> headers = new TreeMap<>((Comparator<String>) String::compareToIgnoreCase);
+        private final List<Cookie> cookies = new ArrayList<>();
 
         /**
          * Adds a new header to the response.

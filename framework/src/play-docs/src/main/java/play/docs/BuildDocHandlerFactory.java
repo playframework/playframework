@@ -6,7 +6,6 @@ package play.docs;
 import java.io.File;
 import java.util.jar.JarFile;
 
-import play.api.mvc.RequestHeader;
 import play.core.BuildDocHandler;
 import play.doc.FileRepository;
 import play.doc.FilesystemRepository;
@@ -93,12 +92,7 @@ public class BuildDocHandlerFactory {
      * Used when the documentation jar file is not available.
      */
     public static BuildDocHandler empty() {
-        return new BuildDocHandler() {
-            @Override
-            public Object maybeHandleDocRequest(Object request) {
-                return Option.apply(null);
-            }
-        };
+        return request -> Option.apply(null);
     }
 
 }

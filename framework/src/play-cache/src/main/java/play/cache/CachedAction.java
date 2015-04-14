@@ -11,7 +11,7 @@ import play.mvc.Http.*;
  * Cache another action.
  */
 public class CachedAction extends Action<Cached> {
-    
+
     public F.Promise<Result> call(Context ctx) {
         try {
             final String key = configuration.key();
@@ -20,12 +20,7 @@ public class CachedAction extends Action<Cached> {
             F.Promise<Result> promise;
             if(result == null) {
                 promise = delegate.call(ctx);
-                promise.onRedeem(new F.Callback<Result>() {
-                    @Override
-                    public void invoke(Result result) throws Throwable {
-                        Cache.set(key, result, duration);
-                    }
-                });
+                promise.onRedeem(result1 -> Cache.set(key, result1, duration));
             } else {
                 promise = F.Promise.pure(result);
             }
