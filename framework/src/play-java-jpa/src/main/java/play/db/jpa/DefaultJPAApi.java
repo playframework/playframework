@@ -126,7 +126,7 @@ public class DefaultJPAApi implements JPAApi {
                 throw new RuntimeException("No JPA entity manager defined for '" + name + "'");
             }
 
-            JPA.bindForCurrentThread(em);
+            JPA.bindForSync(em);
 
             if (!readOnly) {
                 tx = em.getTransaction();
@@ -151,7 +151,7 @@ public class DefaultJPAApi implements JPAApi {
             }
             throw t;
         } finally {
-            JPA.bindForCurrentThread(null);
+            JPA.bindForSync(null);
             if (em != null) {
                 em.close();
             }
@@ -174,7 +174,7 @@ public class DefaultJPAApi implements JPAApi {
         try {
 
             em = em(name);
-            JPA.bindForCurrentThread(em);
+            JPA.bindForAsync(em);
 
             if (!readOnly) {
                 tx = em.getTransaction();
@@ -189,16 +189,12 @@ public class DefaultJPAApi implements JPAApi {
             F.Promise<T> committedResult = result.map(new F.Function<T, T>() {
                 @Override
                 public T apply(T t) throws Throwable {
-                    try {
-                        if (ftx != null) {
-                            if (ftx.getRollbackOnly()) {
-                                ftx.rollback();
-                            } else {
-                                ftx.commit();
-                            }
+                    if (ftx != null) {
+                        if (ftx.getRollbackOnly()) {
+                            ftx.rollback();
+                        } else {
+                            ftx.commit();
                         }
-                    } finally {
-                        fem.close();
                     }
                     return t;
                 }
@@ -206,9 +202,20 @@ public class DefaultJPAApi implements JPAApi {
 
             committedResult.onFailure(t -> {
                 if (ftx != null) {
-                    try { if (ftx.isActive()) ftx.rollback(); } catch (Throwable e) {}
+                    try { if (ftx.isActive()) { ftx.rollback(); } } catch (Throwable e) {}
                 }
-                fem.close();
+                try {
+                    fem.close();
+                } finally {
+                    JPA.bindForAsync(null);
+                }
+            });
+            committedResult.onRedeem(t -> {
+                try {
+                    fem.close();
+                } finally {
+                    JPA.bindForAsync(null);
+                }
             });
 
             return committedResult;
@@ -218,11 +225,13 @@ public class DefaultJPAApi implements JPAApi {
                 try { tx.rollback(); } catch (Throwable e) {}
             }
             if (em != null) {
-                em.close();
+                try {
+                    em.close();
+                } finally {
+                    JPA.bindForAsync(null);
+                }
             }
             throw t;
-        } finally {
-            JPA.bindForCurrentThread(null);
         }
     }
 
