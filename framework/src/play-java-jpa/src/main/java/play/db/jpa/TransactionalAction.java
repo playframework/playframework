@@ -15,7 +15,7 @@ import javax.persistence.*;
 public class TransactionalAction extends Action<Transactional> {
     
     public F.Promise<Result> call(final Context ctx) throws Throwable {
-        return JPA.withTransaction(
+        return JPA.withTransactionAsync(
             configuration.value(),
             configuration.readOnly(),
             new play.libs.F.Function0<F.Promise<Result>>() {
