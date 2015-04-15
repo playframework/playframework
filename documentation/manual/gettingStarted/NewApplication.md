@@ -23,14 +23,14 @@ In either case, you can replace `my-first-app` with whatever name you want your 
 
 [[images/activatorNew.png]]
 
+> If you wish to use other Activator templates, you can do this by running `activator new`. This will prompt you for an application name, and then give you a chance to browse and select an appropriate template.
+
 Once the application has been created you can use the `activator` command again to enter the [[Play console|PlayConsole]].
 
 ```bash
 $ cd my-first-app
 $ activator
 ```
-
-> If you wish to use other Activator templates, you can do this by running `activator new`.  This will prompt you for an application name, and then give you a chance to browse and select an appropriate template.
 
 ## Create a new application with the Activator UI
 

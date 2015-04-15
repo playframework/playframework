@@ -9,9 +9,9 @@ However, using a modern Java or Scala IDE provides cool productivity features li
 
 ### Generate configuration
 
-Play provides a command to simplify Eclipse configuration. To transform a Play application into a working Eclipse project, use the `eclipse` command:
+Play provides a command to simplify [Eclipse](http://eclipse.org/) configuration. To transform a Play application into a working Eclipse project, use the `eclipse` command:
 
-```
+```bash
 [my-first-app] $ eclipse
 ```
 
@@ -55,34 +55,32 @@ The generated configuration files contain absolute references to your framework 
 
 ## IntelliJ
 
-Intellij IDEA lets you quickly create a Play application without using a command prompt. You don't need to configure anything outside of the IDE, the SBT build tool takes care of downloading appropriate libraries, resolving dependencies and building the project.
+[Intellij IDEA](http://www.jetbrains.com/idea/) lets you quickly create a Play application without using a command prompt. You don't need to configure anything outside of the IDE, the SBT build tool takes care of downloading appropriate libraries, resolving dependencies and building the project.
 
-Before you start creating a Play application in IntelliJ IDEA, make sure that the latest Scala (if you develop with Scala) and 
-Play 2 plugins are enabled in IntelliJ IDEA.
+Before you start creating a Play application in IntelliJ IDEA, make sure that the latest [Scala Plugin](http://www.jetbrains.com/idea/features/scala.html) is installed and enabled in IntelliJ IDEA. Even if you don't develop in Scala, it will help with the template engine and also resolving dependencies.
 
 To create a Play application:
 
-- Open ***New Project*** wizard, select ***Play 2.x*** under ***Scala*** section and click ***Next***.
-- Enter your project's information and click ***Finish***.
+1. Open ***New Project*** wizard, select ***Play 2.x*** under ***Scala*** section and click ***Next***.
+2. Enter your project's information and click ***Finish***.
 
 IntelliJ IDEA creates an empty application using SBT.
 
 You can also import an existing Play project.
 
 To import a Play project:
-- Open Project wizard, select ***Import Project***.
-- In the window that opens, select a project you want to import and click ***OK***.
-- On the next page of the wizard, select ***Import project from external model*** option, choose ***SBT project*** and click ***Next***. 
-- On the next page of the wizard, select additional import options and click ***Finish***. 
 
-Check the project's structure, make sure all necessary dependencies are downloaded.
-You can use code assistance, navigation and on-the-fly code analysis features.
+1. Open Project wizard, select ***Import Project***.
+2. In the window that opens, select a project you want to import and click ***OK***.
+3. On the next page of the wizard, select ***Import project from external model*** option, choose ***SBT project*** and click ***Next***. 
+4. On the next page of the wizard, select additional import options and click ***Finish***. 
 
-You can run the created application and view the result in the default browser `http://localhost:9000`. 
+Check the project's structure, make sure all necessary dependencies are downloaded. You can use code assistance, navigation and on-the-fly code analysis features.
 
-To run a Play application:
--	In the project tree, right-click the application.
--	From the list in the context menu, select ***Run Play2 App***.
+You can run the created application and view the result in the default browser `http://localhost:9000`. To run a Play application:
+
+1. In the project tree, right-click the application.
+2. From the list in the context menu, select ***Run Play2 App***.
 
 You can easily start a debugger session for a Play application using default Run/Debug Configuration settings.
 
@@ -91,6 +89,7 @@ For more detailed information, see the Play Framework 2.x tutorial at the follow
 <http://confluence.jetbrains.com/display/IntelliJIDEA/Play+Framework+2.0> 
 
 ### Navigate from an error page to the source code
+
 Using the `play.editor` configuration option, you can set up Play to add hyperlinks to an error page. Since then, you can easily navigate from error pages to IntelliJ, directly into the source code (you need to install the Remote Call <https://github.com/Zolotov/RemoteCall> IntelliJ plugin first).
 
 Just install the Remote Call plugin and run your app with the following options:
@@ -101,8 +100,13 @@ Just install the Remote Call plugin and run your app with the following options:
 
 ### Generate Configuration
 
-Play does not have native Netbeans project generation support at this time.
+Play does not have native Netbeans project generation support at this time, but there is a Scala plugin for NetBeans which can help with both Scala language and SBT:
 
+<https://github.com/dcaoyuan/nbscala>
+
+There is also a SBT plugin to create Netbeans project definition:
+
+<https://github.com/dcaoyuan/nbsbt>
 
 ## ENSIME
 
@@ -174,12 +178,12 @@ If you have questions, post them in the ensime group at <https://groups.google.c
 
 Scala is a newer programming language, so the functionality is provided in plugins rather than in the core IDE.
 
-- Eclipse Scala IDE: <http://scala-ide.org/>
-- NetBeans Scala Plugin: <https://java.net/projects/nbscala>
-- IntelliJ IDEA Scala Plugin: <http://confluence.jetbrains.net/display/SCA/Scala+Plugin+for+IntelliJ+IDEA>
-- IntelliJ IDEA's plugin is under active development, and so using the nightly build may give you additional functionality at the cost of some minor hiccups.
-- Nika (11.x) Plugin Repository: <http://www.jetbrains.com/idea/plugins/scala-nightly-nika.xml>
-- Leda (12.x) Plugin Repository: <http://www.jetbrains.com/idea/plugins/scala-nightly-leda.xml>
-- IntelliJ IDEA Play plugin (available only for Leda 12.x): <http://plugins.intellij.net/plugin/?idea&pluginId=7080>
-- ENSIME - Scala IDE Mode for Emacs: <https://github.com/aemoncannon/ensime>
+1. Eclipse Scala IDE: <http://scala-ide.org/>
+2. NetBeans Scala Plugin: <https://github.com/dcaoyuan/nbscala>
+3. IntelliJ IDEA Scala Plugin: <http://confluence.jetbrains.net/display/SCA/Scala+Plugin+for+IntelliJ+IDEA>
+4. IntelliJ IDEA's plugin is under active development, and so using the nightly build may give you additional functionality at the cost of some minor hiccups.
+5. Nika (11.x) Plugin Repository: <http://www.jetbrains.com/idea/plugins/scala-nightly-nika.xml>
+6. Leda (12.x) Plugin Repository: <http://www.jetbrains.com/idea/plugins/scala-nightly-leda.xml>
+7. IntelliJ IDEA Play plugin (available only for Leda 12.x): <http://plugins.intellij.net/plugin/?idea&pluginId=7080>
+8. ENSIME - Scala IDE Mode for Emacs: <https://github.com/aemoncannon/ensime>
 (see below for ENSIME/Play instructions)

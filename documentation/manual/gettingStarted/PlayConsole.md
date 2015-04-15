@@ -50,6 +50,14 @@ In Play you can also compile your application without running the server. Just u
 
 [[images/consoleCompile.png]]
 
+## Running the tests
+
+Like the commands above, you can run your tests without running the server. Just use the `test` command:
+
+```bash
+[my-first-app] $ test
+```
+
 ## Launch the interactive console
 
 Type `console` to enter the interactive Scala console, which allows you to test your code interactively:
@@ -121,4 +129,8 @@ $ activator run
 (Server started, use Ctrl+D to stop and go back to the console...)
 ```
 
-The application starts directly. When you quit the server using `Ctrl+D`, you will come back to your OS prompt.
+The application starts directly. When you quit the server using `Ctrl+D`, you will come back to your OS prompt. Of course, the **triggered execution** is available here as well:
+
+```bash
+$ activator ~run
+```
