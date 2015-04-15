@@ -33,9 +33,13 @@ libraryDependencies += specs2 % Test
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
 ```
 
-### IntelliJ IDEA
+### IDEs: Eclipse and IntelliJ IDEA
 
-Play no longer includes the sbt idea plugin.  IntelliJ is now able to import sbt projects natively, so we recommend using that instead.  Alternatively, the sbt idea plugin can be manually installed and used, instructions can be found [here](https://github.com/mpeltonen/sbt-idea).
+Play no longer includes the sbteclipse or sbt-idea plugins, which enables users to upgrade IDE support independently of Play.
+
+Eclipse support can be setup with as little as one extra line to import the plugin. See the [[documentation|IDE]] for details.
+
+IntelliJ is now able to import sbt projects natively, so we recommend using that instead.  Alternatively, the sbt-idea plugin can be manually installed and used, instructions can be found [here](https://github.com/mpeltonen/sbt-idea).
 
 ### Play SBT plugin API
 

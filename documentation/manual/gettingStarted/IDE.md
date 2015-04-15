@@ -7,6 +7,24 @@ However, using a modern Java or Scala IDE provides cool productivity features li
 
 ## Eclipse
 
+### Setup sbteclipse
+
+Play requires sbteclipse 4.0.0 or newer.
+
+```
+addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "4.0.0")
+```
+
+If you have Scala sources in your project, you will need to install [Scala IDE](http://scala-ide.org/).
+
+If you do not want to install Scala IDE and have only Java sources in your project, then you can set the following:
+
+```
+EclipseKeys.projectFlavor := EclipseProjectFlavor.Java,                # Java project. Don't expect Scala IDE
+EclipseKeys.createSrc := ValueSet(ManagedClasses, ManagedResources),   # Use .class files instead of generated .scala files for views and routes 
+EclipseKeys.preTasks := Seq(compile in Compile)                        # Compile the project before generating Eclipse files, so that .class files for views and routes are present
+```
+
 ### Generate configuration
 
 Play provides a command to simplify [Eclipse](http://eclipse.org/) configuration. To transform a Play application into a working Eclipse project, use the `eclipse` command:
@@ -31,12 +49,6 @@ or from the play console, type:
 
 ``` 
 [my-first-app] $ eclipse skip-parents=false
-```
-
-> Also, if you did not want to trigger a compilation before running `eclipse`, then just add the following to your settings:
-
-```
-EclipseKeys.preTasks := Seq()
 ```
 
 You then need to import the application into your Workspace with the **File/Import/General/Existing project…** menu (compile your project first).
