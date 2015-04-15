@@ -116,20 +116,20 @@ public class DefaultJPAApi implements JPAApi {
      * @param block Block of code to execute
      */
     public <T> T withTransaction(String name, boolean readOnly, play.libs.F.Function0<T> block) throws Throwable {
-        EntityManager em = null;
+        EntityManager entityManager = null;
         EntityTransaction tx = null;
 
         try {
-            em = em(name);
+            entityManager = em(name);
 
-            if (em == null) {
+            if (entityManager == null) {
                 throw new RuntimeException("No JPA entity manager defined for '" + name + "'");
             }
 
-            JPA.bindForSync(em);
+            JPA.bindForSync(entityManager);
 
             if (!readOnly) {
-                tx = em.getTransaction();
+                tx = entityManager.getTransaction();
                 tx.begin();
             }
 
@@ -152,8 +152,8 @@ public class DefaultJPAApi implements JPAApi {
             throw t;
         } finally {
             JPA.bindForSync(null);
-            if (em != null) {
-                em.close();
+            if (entityManager != null) {
+                entityManager.close();
             }
         }
     }
@@ -169,35 +169,35 @@ public class DefaultJPAApi implements JPAApi {
      */
     @Deprecated
     public <T> F.Promise<T> withTransactionAsync(String name, boolean readOnly, play.libs.F.Function0<F.Promise<T>> block) throws Throwable {
-        EntityManager em = null;
+        EntityManager entityManager = null;
         EntityTransaction tx = null;
-        try {
 
-            em = em(name);
-            JPA.bindForAsync(em);
+        try {
+            entityManager = em(name);
+
+            if (entityManager == null) {
+                throw new RuntimeException("No JPA entity manager defined for '" + name + "'");
+            }
+
+            JPA.bindForAsync(entityManager);
 
             if (!readOnly) {
-                tx = em.getTransaction();
+                tx = entityManager.getTransaction();
                 tx.begin();
             }
 
             F.Promise<T> result = block.apply();
 
-            final EntityManager fem = em;
+            final EntityManager fem = entityManager;
             final EntityTransaction ftx = tx;
 
-            F.Promise<T> committedResult = result.map(new F.Function<T, T>() {
-                @Override
-                public T apply(T t) throws Throwable {
-                    if (ftx != null) {
-                        if (ftx.getRollbackOnly()) {
-                            ftx.rollback();
-                        } else {
-                            ftx.commit();
-                        }
-                    }
-                    return t;
+            F.Promise<T> committedResult = (ftx == null) ? result : result.map(t -> {
+                if (ftx.getRollbackOnly()) {
+                    ftx.rollback();
+                } else {
+                    ftx.commit();
                 }
+                return t;
             });
 
             committedResult.onFailure(t -> {
@@ -224,9 +224,9 @@ public class DefaultJPAApi implements JPAApi {
             if (tx != null) {
                 try { tx.rollback(); } catch (Throwable e) {}
             }
-            if (em != null) {
+            if (entityManager != null) {
                 try {
-                    em.close();
+                    entityManager.close();
                 } finally {
                     JPA.bindForAsync(null);
                 }
