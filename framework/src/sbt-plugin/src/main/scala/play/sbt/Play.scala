@@ -8,7 +8,6 @@ import sbt.Keys._
 
 import com.typesafe.sbt.packager.archetypes.JavaServerAppPackaging
 import com.typesafe.sbt.jse.SbtJsTask
-import com.typesafe.sbt.webdriver.SbtWebDriver
 import play.twirl.sbt.SbtTwirl
 
 import play.sbt.routes.RoutesCompiler
@@ -19,7 +18,7 @@ import play.sbt.PlayImport.PlayKeys
  */
 object Play extends AutoPlugin {
 
-  override def requires = SbtTwirl && SbtJsTask && SbtWebDriver && RoutesCompiler && JavaServerAppPackaging
+  override def requires = SbtTwirl && SbtJsTask && RoutesCompiler && JavaServerAppPackaging
 
   val autoImport = PlayImport
 

@@ -169,7 +169,7 @@ object Dependencies {
     case _ => "org.scala-sbt" % "io" % sbtVersion % "provided"
   }
 
-  val jnotify = "net.contentobjects.jnotify" % "jnotify" % "0.94"
+  val jnotify = "net.contentobjects.jnotify" % "jnotify" % "0.94-play-1"
 
   val sbtRcVersion = "0.3.1"
   val sbtCoreNextVersion = "0.1.1"
@@ -220,9 +220,8 @@ object Dependencies {
 
       sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
 
-      sbtDep("com.typesafe.sbt" % "sbt-web" % "1.1.1"),
-      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.0.2"),
-      sbtDep("com.typesafe.sbt" % "sbt-webdriver" % "1.0.0")
+      sbtDep("com.typesafe.sbt" % "sbt-web" % "1.2.0"),
+      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.1.1")
     ) ++ javassist ++ specsBuild.map(_ % Test)
   }
 

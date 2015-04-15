@@ -34,8 +34,6 @@ libraryDependencies ++= Seq(
 
 // override scalariform version to get some fixes
 
-resolvers += Resolver.typesafeRepo("maven-releases")
-
 libraryDependencies += "org.scalariform" %% "scalariform" % "0.1.5-20140822-69e2e30"
 
 addSbtPlugin("com.eed3si9n" % "sbt-doge" % "0.1.5")

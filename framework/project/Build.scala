@@ -380,7 +380,11 @@ object PlayBuild extends Build {
     .dependsOn(SbtRunSupportProject)
 
   lazy val ForkRunProject = PlayDevelopmentProject("Fork-Run", "fork-run")
-    .settings(libraryDependencies ++= forkRunDependencies(scalaBinaryVersion.value))
+    .settings(
+      libraryDependencies ++= forkRunDependencies(scalaBinaryVersion.value),
+      // Needed to get the jnotify dependency
+      resolvers += Classpaths.sbtPluginReleases
+    )
     .dependsOn(ForkRunProtocolProject)
 
   lazy val SbtForkRunPluginProject = PlaySbtPluginProject("SBT-Fork-Run-Plugin", "sbt-fork-run-plugin")

@@ -40,7 +40,7 @@ templateParameters := Map(
   "JSHINT_VERSION" -> "1.0.3",
   "DIGEST_VERSION" -> "1.1.0",
   "RJS_VERSION" -> "1.0.7",
-  "MOCHA_VERSION" -> "1.0.2",
+  "MOCHA_VERSION" -> "1.1.0",
   "ENHANCER_VERSION" -> "1.1.0-RC2",
   "EBEAN_VERSION" -> "1.0.0-RC1",
   "TEMPLATE_NAME_SUFFIX" -> templateNameAndTitle._1,
