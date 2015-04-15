@@ -46,7 +46,7 @@ object PathExtractor {
   // There is a possible memory leak here, especially if RouteContext is instantiated dynamically. But,
   // under normal usage, there will only be as many entries in this cache as there are usages of this
   // string interpolator in code - even in a very dynamic classloading environment with many different
-  // strings being interpolated, the chances of this cache every causing an out of memory error are very
+  // strings being interpolated, the chances of this cache ever causing an out of memory error are very
   // low.
   private val cache = TrieMap.empty[Seq[String], PathExtractor]
 
