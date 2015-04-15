@@ -15,7 +15,7 @@ import play.api.http.{ HttpRequestHandler, DefaultHttpErrorHandler, HeaderNames,
 import play.api.libs.iteratee._
 import play.api.libs.streams.Streams
 import play.api.mvc._
-import play.core.{ ApplicationProvider, Execution, Invoker }
+import play.core.ApplicationProvider
 import play.core.server._
 import play.core.server.common.{ ForwardedHeaderHandler, ServerResultUtils }
 import scala.concurrent.duration._
@@ -178,13 +178,6 @@ class AkkaHttpServer(
 
     // TODO: Orderly shutdown
     system.shutdown()
-
-    mode match {
-      case Mode.Dev =>
-        Invoker.lazySystem.close()
-        Execution.lazyContext.close()
-      case _ => ()
-    }
 
     // Call provided hook
     // Do this last because the hooks were created before the server,

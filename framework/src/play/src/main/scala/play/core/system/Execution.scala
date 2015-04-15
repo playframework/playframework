@@ -3,16 +3,22 @@
  */
 package play.core
 
+import java.util.concurrent.ForkJoinPool
+import play.api.{ Application, Play }
 import scala.concurrent.ExecutionContext
-import scala.concurrent.forkjoin.{ ForkJoinWorkerThread, ForkJoinPool }
-import java.util.concurrent.Executors
-import java.util.concurrent.atomic.AtomicInteger
-import scala.concurrent.forkjoin.ForkJoinPool.ForkJoinWorkerThreadFactory
-import java.util.concurrent.ExecutorService
 
+/**
+ * Provides access to Play's internal ExecutionContext.
+ */
 private[play] object Execution {
 
-  def internalContext: ExecutionContext = lazyContext.get()
+  def internalContext: ExecutionContext = {
+    val appOrNull: Application = Play._currentApp
+    appOrNull match {
+      case null => common
+      case app: Application => app.actorSystem.dispatcher
+    }
+  }
 
   object Implicits {
 
@@ -20,42 +26,12 @@ private[play] object Execution {
 
   }
 
-  val lazyContext = new ClosableLazy[ExecutionContext, Unit] {
-
-    protected def create() = {
-      class NamedFjpThread(fjp: ForkJoinPool) extends ForkJoinWorkerThread(fjp)
-
-      /**
-       * A named thread factory for the scala fjp as distinct from the Java one.
-       */
-      case class NamedFjpThreadFactory(name: String) extends ForkJoinWorkerThreadFactory {
-        val threadNo = new AtomicInteger()
-        val backingThreadFactory = Executors.defaultThreadFactory()
-
-        def newThread(fjp: ForkJoinPool) = {
-          val thread = new NamedFjpThread(fjp)
-          thread.setName(name + "-" + threadNo.incrementAndGet())
-          thread
-        }
-      }
-
-      val numberOfThreads = play.api.Play.maybeApplication.map(_.configuration.getInt("internal-threadpool-size")).flatten
-        .getOrElse(Runtime.getRuntime.availableProcessors)
-
-      val service = new ForkJoinPool(
-        numberOfThreads,
-        NamedFjpThreadFactory("play-internal-execution-context"),
-        null,
-        true)
-      val context = ExecutionContext.fromExecutorService(service)
-
-      val close: CloseFunction = () => service.shutdown()
-
-      (context, close)
-    }
-
-    protected def closeNotNeeded = ()
-
-  }
+  /**
+   * Use this as a fallback when the application is unavailable.
+   * The ForkJoinPool implementation promises to create threads on-demand
+   * and clean them up when not in use (standard is when idle for 2
+   * seconds).
+   */
+  private val common = ExecutionContext.fromExecutor(new ForkJoinPool())
 
 }

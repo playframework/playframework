@@ -3,16 +3,16 @@
  */
 package play.api.libs.concurrent
 
-import play.core.Invoker
+import play.core.{ Execution => CoreExecution }
 import scala.concurrent.ExecutionContext
 
 object Execution {
 
   object Implicits {
-    implicit def defaultContext: ExecutionContext = Execution.defaultContext
+    implicit def defaultContext: ExecutionContext = CoreExecution.internalContext
   }
 
-  def defaultContext: ExecutionContext = Invoker.executionContext
+  def defaultContext: ExecutionContext = CoreExecution.internalContext
 
 }
 

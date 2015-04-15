@@ -66,14 +66,25 @@ object Configuration {
         }
       }
 
+      // Resolve another .conf file so that we can override values in Akka's
+      // reference.conf, but still make it possible for users to override
+      // Play's values in their application.conf.
+      val playOverridesConfig: Config = ConfigFactory.parseResources(classLoader, "play/reference-overrides.conf")
+
       // Resolve reference.conf ourselves because ConfigFactory.defaultReference resolves
       // values, and we won't have a value for `play.server.dir` until all our config is combined.
       val referenceConfig: Config = ConfigFactory.parseResources(classLoader, "reference.conf")
 
       // Combine all the config together into one big config
-      val combinedConfig: Config = Seq(systemPropertyConfig, directConfig, applicationConfig, referenceConfig).reduceLeft(_ withFallback _)
+      val combinedConfig: Config = Seq(
+        systemPropertyConfig,
+        directConfig,
+        applicationConfig,
+        playOverridesConfig,
+        referenceConfig
+      ).reduceLeft(_ withFallback _)
 
-      // Resolve settings. Among other things, the `play.server.dir` setting defined in dynamicConfig will
+      // Resolve settings. Among other things, the `play.server.dir` setting defined in directConfig will
       // be substituted into the default settings in referenceConfig.
       val resolvedConfig = combinedConfig.resolve
 

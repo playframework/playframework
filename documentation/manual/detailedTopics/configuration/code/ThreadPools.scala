@@ -25,23 +25,21 @@ object ThreadPoolsSpec extends PlaySpecification {
 
     "have a global configuration" in {
       val config = """#default-config
-        play {
-          akka {
-            akka.loggers = ["akka.event.Logging$DefaultLogger", "akka.event.slf4j.Slf4jLogger"]
-            loglevel = WARNING
-            actor {
-              default-dispatcher = {
-                fork-join-executor {
-                  parallelism-factor = 1.0
-                  parallelism-max = 24
-                }
+        akka {
+          akka.loggers = ["akka.event.Logging$DefaultLogger", "akka.event.slf4j.Slf4jLogger"]
+          loglevel = WARNING
+          actor {
+            default-dispatcher = {
+              fork-join-executor {
+                parallelism-factor = 1.0
+                parallelism-max = 24
               }
             }
           }
         }
       #default-config """
       val parsed = ConfigFactory.parseString(config)
-      val actorSystem = ActorSystem("test", parsed.getConfig("play"))
+      val actorSystem = ActorSystem("test", parsed.getConfig("akka"))
       actorSystem.shutdown()
       success
     }
@@ -90,23 +88,21 @@ object ThreadPoolsSpec extends PlaySpecification {
 
     "allow changing the default thread pool" in {
       val config = ConfigFactory.parseString("""#highly-synchronous
-      play {
-        akka {
-          akka.loggers = ["akka.event.slf4j.Slf4jLogger"]
-          loglevel = WARNING
-          actor {
-            default-dispatcher = {
-              fork-join-executor {
-                parallelism-min = 300
-                parallelism-max = 300
-              }
+      akka {
+        akka.loggers = ["akka.event.slf4j.Slf4jLogger"]
+        loglevel = WARNING
+        actor {
+          default-dispatcher = {
+            fork-join-executor {
+              parallelism-min = 300
+              parallelism-max = 300
             }
           }
         }
       }
       #highly-synchronous """)
 
-      val actorSystem = ActorSystem("test", config.getConfig("play"))
+      val actorSystem = ActorSystem("test", config.getConfig("akka"))
       actorSystem.shutdown()
       success
     }

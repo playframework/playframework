@@ -178,13 +178,6 @@ class NettyServer(
     // Release the HTTPS server if needed
     httpsChannel.foreach(_._1.releaseExternalResources())
 
-    mode match {
-      case Mode.Dev =>
-        Invoker.lazySystem.close()
-        Execution.lazyContext.close()
-      case _ => ()
-    }
-
     // Call provided hook
     // Do this last because the hooks were created before the server,
     // so the server might need them to run until the last moment.

@@ -3,6 +3,7 @@
  */
 package play.api.libs.concurrent
 
+import com.typesafe.config.Config
 import java.util.concurrent.TimeoutException
 import javax.inject.{ Provider, Inject, Singleton }
 import play.api._
@@ -71,8 +72,15 @@ object ActorSystemProvider {
    */
   def start(classLoader: ClassLoader, configuration: Configuration): (ActorSystem, StopHook) = {
     val config = PlayConfig(configuration)
+
+    val akkaConfig: Config = {
+      val akkaConfigRoot = config.get[String]("play.akka.config")
+      // Need to fallback to root config so we can lookup dispatchers defined outside the main namespace
+      config.get[Config](akkaConfigRoot).withFallback(config.underlying)
+    }
+
     val name = config.get[String]("play.akka.actor-system")
-    val system = ActorSystem(name, configuration.underlying, classLoader)
+    val system = ActorSystem(name, akkaConfig, classLoader)
     logger.info(s"Starting application default Akka system: $name")
 
     val stopHook = { () =>
