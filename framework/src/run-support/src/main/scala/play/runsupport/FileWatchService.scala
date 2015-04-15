@@ -7,8 +7,7 @@ import java.net.URLClassLoader
 import java.util.List
 import java.util.Locale
 
-import sbt.{ SourceModificationWatch, WatchState }
-import sbt.{ IO, DirectoryFilter, HiddenFileFilter }
+import sbt._
 import sbt.Path._
 
 import scala.collection.JavaConversions
@@ -108,6 +107,11 @@ private[play] trait DefaultFileWatchService extends FileWatchService {
  */
 private[play] class PollingFileWatchService(val pollDelayMillis: Int) extends FileWatchService {
 
+  // Work around for https://github.com/sbt/sbt/issues/1973
+  def distinctPathFinder(pathFinder: PathFinder) = PathFinder {
+    pathFinder.get.map(p => (p.asFile.getAbsolutePath, p)).toMap.values
+  }
+
   def watch(filesToWatch: Seq[File], onChange: () => Unit) = {
 
     @volatile var stopped = false
@@ -116,7 +120,7 @@ private[play] class PollingFileWatchService(val pollDelayMillis: Int) extends Fi
       def run() = {
         var state = WatchState.empty
         while (!stopped) {
-          val (triggered, newState) = SourceModificationWatch.watch(filesToWatch.***.distinct, pollDelayMillis,
+          val (triggered, newState) = SourceModificationWatch.watch(distinctPathFinder(filesToWatch.***), pollDelayMillis,
             state)(stopped)
           if (triggered) onChange()
           state = newState
