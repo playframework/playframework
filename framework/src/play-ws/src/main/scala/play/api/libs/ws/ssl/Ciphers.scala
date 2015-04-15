@@ -7,6 +7,14 @@ package play.api.libs.ws.ssl
 
 import javax.net.ssl.SSLContext
 
+/**
+ * This class contains sets of recommended and deprecated TLS cipher suites.
+ *
+ * The JSSE list of cipher suites is different from the RFC defined list, with some cipher suites prefixed with "SSL_"
+ * instead of "TLS_".  A full list is available from the <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SupportedCipherSuites">SunJSSE provider list</a>
+ *
+ * Please see https://www.playframework.com/documentation/current/CipherSuites for more details.
+ */
 object Ciphers {
 
   // We want to prioritize ECC and perfect forward security.
@@ -18,7 +26,9 @@ object Ciphers {
     run16 = java16RecommendedCiphers,
     runHigher = java17RecommendedCiphers)
 
-  val java17RecommendedCiphers: Seq[String] = SSLContext.getDefault.getDefaultSSLParameters.getCipherSuites
+  lazy val java17RecommendedCiphers: Seq[String] = {
+    SSLContext.getDefault.getDefaultSSLParameters.getCipherSuites
+  }.filterNot(deprecatedCiphers.contains(_))
 
   val java16RecommendedCiphers: Seq[String] = Seq(
     "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
@@ -27,8 +37,6 @@ object Ciphers {
     "TLS_RSA_WITH_AES_256_CBC_SHA",
     "TLS_RSA_WITH_AES_128_CBC_SHA",
     "SSL_RSA_WITH_3DES_EDE_CBC_SHA",
-    "SSL_RSA_WITH_RC4_128_SHA",
-    "SSL_RSA_WITH_RC4_128_MD5",
     "TLS_EMPTY_RENEGOTIATION_INFO_SCSV" // per RFC 5746
   )
 
@@ -63,13 +71,9 @@ object Ciphers {
     "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
     "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
     "TLS_DHE_DSS_WITH_AES_128_CBC_SHA",
-    "TLS_ECDHE_RSA_WITH_RC4_128_SHA",
-    "TLS_ECDHE_ECDSA_WITH_RC4_128_SHA",
     "TLS_RSA_WITH_AES_128_CBC_SHA",
     "TLS_RSA_WITH_AES_256_CBC_SHA",
-    "SSL_RSA_WITH_3DES_EDE_CBC_SHA",
-    "SSL_RSA_WITH_RC4_128_SHA",
-    "SSL_RSA_WITH_RC4_128_MD5"
+    "SSL_RSA_WITH_3DES_EDE_CBC_SHA"
   )
 
   val exportCiphers = """SSL_RSA_EXPORT_WITH_RC4_40_MD5
@@ -119,12 +123,10 @@ object Ciphers {
                    """.stripMargin.split("\n").toSet
 
   val md5Ciphers = """SSL_RSA_WITH_RC4_128_MD5
-                     |TLS_RSA_WITH_NULL_MD5
-                     |TLS_RSA_EXPORT_WITH_RC4_40_MD5
-                     |TLS_RSA_WITH_RC4_128_MD5
-                     |TLS_RSA_EXPORT_WITH_RC2_CBC_40_MD5
-                     |TLS_DH_anon_EXPORT_WITH_RC4_40_MD5
-                     |TLS_DH_anon_WITH_RC4_128_MD5
+                     |SSL_RSA_WITH_NULL_MD5
+                     |SSL_RSA_EXPORT_WITH_RC4_40_MD5
+                     |SSL_DH_anon_EXPORT_WITH_RC4_40_MD5
+                     |SSL_DH_anon_WITH_RC4_128_MD5
                      |TLS_KRB5_WITH_DES_CBC_MD5
                      |TLS_KRB5_WITH_3DES_EDE_CBC_MD5
                      |TLS_KRB5_WITH_RC4_128_MD5
@@ -132,55 +134,49 @@ object Ciphers {
                      |TLS_KRB5_EXPORT_WITH_DES_CBC_40_MD5
                      |TLS_KRB5_EXPORT_WITH_RC2_CBC_40_MD5
                      |TLS_KRB5_EXPORT_WITH_RC4_40_MD5
-                     |TLS_RSA_EXPORT_WITH_RC4_40_MD5
-                     |TLS_RSA_EXPORT_WITH_RC2_CBC_40_MD5
                    """.stripMargin.split("\n").toSet
 
-  val rc4Ciphers = """
+  val rc4Ciphers = """SSL_DH_anon_EXPORT_WITH_RC4_40_MD5
+                     |SSL_DH_anon_WITH_RC4_128_MD5
+                     |SSL_RSA_EXPORT_WITH_RC4_40_MD5
                      |SSL_RSA_WITH_RC4_128_MD5
                      |SSL_RSA_WITH_RC4_128_SHA
-                     |SSL_RSA_EXPORT_WITH_RC4_40_MD5
-                     |SSL_DH_anon_WITH_RC4_128_MD5
-                     |SSL_DH_anon_EXPORT_WITH_RC4_40_MD5
-                     |TLS_KRB5_WITH_RC4_128_SHA
-                     |TLS_KRB5_WITH_RC4_128_MD5
-                     |TLS_KRB5_EXPORT_WITH_RC4_40_SHA
-                     |TLS_KRB5_EXPORT_WITH_RC4_40_MD5
+                     |TLS_DHE_PSK_WITH_RC4_128_SHA
                      |TLS_ECDHE_ECDSA_WITH_RC4_128_SHA
+                     |TLS_ECDHE_PSK_WITH_RC4_128_SHA
                      |TLS_ECDHE_RSA_WITH_RC4_128_SHA
-                     |SSL_RSA_WITH_RC4_128_SHA
+                     |TLS_ECDH_anon_WITH_RC4_128_SHA
                      |TLS_ECDH_ECDSA_WITH_RC4_128_SHA
                      |TLS_ECDH_RSA_WITH_RC4_128_SHA
-                     |SSL_RSA_WITH_RC4_128_MD5
-                     |TLS_ECDH_anon_WITH_RC4_128_SHA
-                     |SSL_DH_anon_WITH_RC4_128_MD5
-                     |SSL_RSA_EXPORT_WITH_RC4_40_MD5
-                     |SSL_DH_anon_EXPORT_WITH_RC4_40_MD5
-                     |TLS_KRB5_WITH_RC4_128_SHA
-                     |TLS_KRB5_WITH_RC4_128_MD5
-                     |TLS_KRB5_EXPORT_WITH_RC4_40_SHA
                      |TLS_KRB5_EXPORT_WITH_RC4_40_MD5
+                     |TLS_KRB5_EXPORT_WITH_RC4_40_SHA
+                     |TLS_KRB5_WITH_RC4_128_MD5
+                     |TLS_KRB5_WITH_RC4_128_SHA
+                     |TLS_PSK_WITH_RC4_128_SHA
+                     |TLS_RSA_PSK_WITH_RC4_128_SHA
                    """.stripMargin.split("\n").toSet
 
-  val sha1Ciphers = """TLS_RSA_EXPORT_WITH_DES40_CBC_SHA
+  val sha1Ciphers = """SSL_RSA_WITH_RC4_128_SHA
+                      |TLS_RSA_EXPORT_WITH_DES40_CBC_SHA
                       |TLS_ECDH_ECDSA_WITH_RC4_128_SHA
                       |TLS_ECDH_RSA_WITH_RC4_128_SHA
                       |TLS_ECDHE_ECDSA_WITH_RC4_128_SHA
                       |TLS_ECDHE_RSA_WITH_RC4_128_SHA
                       |TLS_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA
                       |TLS_DHE_DSS_WITH_DES_CBC_SHA
-                      |TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA
-                      |TLS_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA
-                      |TLS_DHE_RSA_WITH_DES_CBC_SHA
-                      |TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA
-                      |TLS_DHE_DSS_WITH_AES_128_CBC_SHA
-                      |TLS_DHE_RSA_WITH_AES_128_CBC_SHA
                       |TLS_DHE_DSS_WITH_AES_256_CBC_SHA
+                      |TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA
+                      |TLS_DHE_DSS_WITH_AES_128_CBC_SHA
+                      |TLS_DHE_RSA_WITH_DES_CBC_SHA
+                      |TLS_DHE_RSA_WITH_AES_128_CBC_SHA
                       |TLS_DHE_RSA_WITH_AES_256_CBC_SHA
+                      |TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA
+                      |TLS_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA
                       |TLS_DH_anon_WITH_AES_256_CBC_SHA
-                      |SSL_RSA_WITH_RC4_128_SHA
                     """.stripMargin.split("\n").toSet
 
-  val deprecatedCiphers = desCiphers ++ nullCiphers ++ anonCiphers ++ exportCiphers
+  // See RFC 4346, RFC 5246, and RFC 5469
+  // rc4 added to deprecated ciphers as of https://tools.ietf.org/html/rfc7465
+  val deprecatedCiphers = desCiphers ++ nullCiphers ++ anonCiphers ++ exportCiphers ++ rc4Ciphers
 
 }
