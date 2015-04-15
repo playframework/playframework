@@ -676,6 +676,114 @@ public class Results {
         return new Status(play.core.j.JavaResults.Forbidden(), chunks);
     }
 
+    // -- PAYMENT_REQUIRED
+
+    /**
+     * Generates a 402 PAYMENT_REQUIRED simple result.
+     */
+    public static StatusHeader paymentRequired() {
+        return new StatusHeader(play.core.j.JavaResults.PaymentRequired());
+    }
+
+    /**
+     * Generates a 402 PAYMENT_REQUIRED simple result.
+     */
+    public static Status paymentRequired(Content content) {
+        return new Status(play.core.j.JavaResults.PaymentRequired(), content, utf8);
+    }
+
+    /**
+     * Generates a 402 PAYMENT_REQUIRED simple result.
+     */
+    public static Status paymentRequired(Content content, String charset) {
+        return new Status(play.core.j.JavaResults.PaymentRequired(), content, Codec.javaSupported(charset));
+    }
+
+    /**
+     * Generates a 402 PAYMENT_REQUIRED simple result.
+     */
+    public static Status paymentRequired(String content) {
+        return new Status(play.core.j.JavaResults.PaymentRequired(), content, utf8);
+    }
+
+    /**
+     * Generates a 402 PAYMENT_REQUIRED simple result.
+     */
+    public static Status paymentRequired(String content, String charset) {
+        return new Status(play.core.j.JavaResults.PaymentRequired(), content, Codec.javaSupported(charset));
+    }
+
+    /**
+     * Generates a 402 PAYMENT_REQUIRED simple result.
+     */
+    public static Status paymentRequired(JsonNode content) {
+     return new Status(play.core.j.JavaResults.PaymentRequired(), content, utf8);
+    }
+
+    /**
+     * Generates a 402 PAYMENT_REQUIRED simple result.
+     */
+    public static Status paymentRequired(JsonNode content, String charset) {
+        return new Status(play.core.j.JavaResults.PaymentRequired(), content, Codec.javaSupported(charset));
+    }
+
+    /**
+     * Generates a 402 PAYMENT_REQUIRED simple result.
+     */
+    public static Status paymentRequired(byte[] content) {
+        return new Status(play.core.j.JavaResults.PaymentRequired(), content);
+    }
+
+    /**
+     * Generates a 402 PAYMENT_REQUIRED chunked result.
+     */
+    public static Status paymentRequired(InputStream content) {
+        return paymentRequired(content, defaultChunkSize);
+    }
+
+    /**
+     * Generates a 402 PAYMENT_REQUIRED chunked result.
+     */
+    public static Status paymentRequired(InputStream content, int chunkSize) {
+        return new Status(play.core.j.JavaResults.PaymentRequired(), content, chunkSize);
+    }
+
+    /**
+     * Generates a 402 PAYMENT_REQUIRED file result as an attachment.
+     *
+     * @param content The file to send.
+     */
+    public static Status paymentRequired(File content) {
+        return new Status(play.core.j.JavaResults.PaymentRequired(), content);
+    }
+
+    /**
+     * Generates a 402 PAYMENT_REQUIRED file result.
+     *
+     * @param content The file to send.
+     * @param inline Whether the file should be sent inline, or as an attachment.
+     */
+    public static Status paymentRequired(File content, boolean inline) {
+        return new Status(JavaResults.PaymentRequired(), content, inline);
+    }
+
+    /**
+     * Generates a 402 PAYMENT_REQUIRED file result as an attachment.
+     *
+     * @param content The file to send.
+     * @param filename The name to send the file as.
+     */
+    public static Status paymentRequired(File content, String filename) {
+        return new Status(JavaResults.PaymentRequired(), content, true, filename);
+    }
+
+    /**
+     * Generates a 402 PAYMENT_REQUIRED chunked result.
+     */
+    public static Status paymentRequired(Chunks<?> chunks) {
+        return new Status(play.core.j.JavaResults.PaymentRequired(), chunks);
+    }
+
     // -- UNAUTHORIZED
 
     /**
