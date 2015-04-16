@@ -18,7 +18,7 @@ $ ./build
 > publishLocal
 ```
 
-This will build and publish Play for the default Scala version (currently 2.10.4).  If you want to publish for all versions, you can cross build:
+This will build and publish Play for the default Scala version (currently 2.10.4). If you want to publish for all versions, you can cross build:
 
 ```bash
 > +publishLocal
@@ -32,7 +32,7 @@ Or to publish for a specific Scala version:
 
 ## Build the documentation
 
-Documentation is available at `playframework/documentation` as Markdown files.  To see HTML, run the following:
+Documentation is available at `playframework/documentation` as Markdown files. To see HTML, run the following:
 
 ```bash
 $ cd playframework/documentation
