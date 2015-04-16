@@ -51,6 +51,7 @@ $ copy-file changes/some.css.0 public/css/some.css
 $ copy-file changes/some.txt.0 public/a/some.txt
 $ copy-file changes/some.txt.0 public/b/some.txt
 $ delete public/new
+> clean
 
 # JDK7 watcher
 # - - - - - -
@@ -91,6 +92,7 @@ $ copy-file changes/some.css.0 public/css/some.css
 $ copy-file changes/some.txt.0 public/a/some.txt
 $ copy-file changes/some.txt.0 public/b/some.txt
 $ delete public/new
+> clean
 
 # JNotify watch service
 # - - - - - - - - - - -
@@ -131,6 +133,7 @@ $ copy-file changes/some.css.0 public/css/some.css
 $ copy-file changes/some.txt.0 public/a/some.txt
 $ copy-file changes/some.txt.0 public/b/some.txt
 $ delete public/new
+> clean
 
 # Reloader tests
 # --------------
