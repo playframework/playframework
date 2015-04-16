@@ -317,7 +317,6 @@ case class NingWSRequest(client: NingWSClient,
   private[libs] def executeStream(request: Request): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = {
 
     import com.ning.http.client.AsyncHandler
-    import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
     val result = Promise[(WSResponseHeaders, Enumerator[Array[Byte]])]()
 
@@ -346,6 +345,8 @@ case class NingWSRequest(client: NingWSClient,
           def apply[A](i: Iteratee[Array[Byte], A]) = {
 
             val doneIteratee = Promise[Iteratee[Array[Byte], A]]()
+
+            import play.api.libs.iteratee.Execution.Implicits.trampoline
 
             // Map it so that we can complete the iteratee when it returns
             val mapped = i.map {
@@ -377,6 +378,7 @@ case class NingWSRequest(client: NingWSClient,
 
       override def onBodyPartReceived(bodyPart: HttpResponseBodyPart) = {
         if (!doneOrError) {
+          import play.api.libs.concurrent.Execution.Implicits.defaultContext
           current = current.pureFlatFold {
             case Step.Done(a, e) =>
               doneOrError = true

@@ -10,7 +10,6 @@ import java.net.{ URI, URISyntaxException }
 
 import play.api.LoggerLike
 import play.api.http.{ HeaderNames, HttpVerbs }
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc.{ RequestHeader, Results, Result }
 
 /**
@@ -142,6 +141,7 @@ trait AbstractCORSPolicy {
         headerBuilder += HeaderNames.ACCESS_CONTROL_EXPOSE_HEADERS -> corsConfig.exposedHeaders.mkString(",")
       }
 
+      import play.api.libs.iteratee.Execution.Implicits.trampoline
       f().map(_.withHeaders(headerBuilder.result(): _*))
     }
   }
