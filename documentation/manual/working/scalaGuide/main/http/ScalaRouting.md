@@ -76,6 +76,10 @@ You can also define your own regular expression for the dynamic part, using the 
     
 @[regex-path](code/scalaguide.http.routing.routes)
 
+And you can use regular expressions without capturing the value of the match, using the `<regex>` syntax. For example, `/user<s?>` will match both `/user` and `/users`.
+
+Note: If you use regular expressions in a route, make sure they do not contain capturing groups, as these can interfere with the extraction of values.
+
 ## Call to the Action generator method
 
 The last part of a route definition is the call. This part must define a valid call to a method returning a `play.api.mvc.Action` value, which will typically be a controller action method.

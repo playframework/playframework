@@ -10,7 +10,7 @@ object RouterSpec extends PlaySpecification {
       controllers.routes.Application.takeBool(true).url must equalTo ("/take-bool?b=true")
       controllers.routes.Application.takeBool(false).url must equalTo ("/take-bool?b=false")
     }
-    "in the  path" in {
+    "in the path" in {
       controllers.routes.Application.takeBool2(true).url must equalTo ("/take-bool-2/true")
       controllers.routes.Application.takeBool2(false).url must equalTo ("/take-bool-2/false")
     }
@@ -35,6 +35,11 @@ object RouterSpec extends PlaySpecification {
       contentAsString(route(FakeRequest(GET, "/take-bool-2/1")).get) must equalTo ("true")
       contentAsString(route(FakeRequest(GET, "/take-bool-2/0")).get) must equalTo ("false")
     }
+  }
+
+  "accept regular expressions not bound to parameters" in new WithApplication() {
+    val Some(result) = route(FakeRequest(GET, "/regexes"))
+    contentAsString(result) must equalTo ("Regexes")
   }
 
   "bind int parameters from the query string as a list" in {

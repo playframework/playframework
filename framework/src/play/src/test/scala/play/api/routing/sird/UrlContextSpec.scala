@@ -45,6 +45,25 @@ object UrlContextSpec extends Specification {
       }
     }
 
+    "support unmatched regexes" in {
+      "by themselves" in {
+        "/foobar/123" must beLike {
+          case p"/fooba<[rz]>/123" => ok
+        }
+      }
+      "after a matcher" in {
+        "/foo/123/bar" must beLike {
+          case p"/foo/$id/ba<[rz]>" => id must_== "123"
+        }
+      }
+      "no match" in {
+        "/foobar" must beLike {
+          case p"/fooba<[sz]>" => ko
+          case _ => ok
+        }
+      }
+    }
+
     "match a regex path" in {
       "match" in {
         "/foo/1234/bar" must beLike {

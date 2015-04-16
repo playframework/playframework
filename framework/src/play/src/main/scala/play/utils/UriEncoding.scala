@@ -119,7 +119,7 @@ object UriEncoding {
   }
 
   /**
-   * Decode the path path of a URI. Each path segment will be decoded
+   * Decode the path of a URI. Each path segment will be decoded
    * using the same rules as ``decodePathSegment``. No normalization is performed:
    * leading, trailing and duplicated slashes, if present are left as they are and
    * if absent remain absent; dot-segments (".." and ".") are ignored.

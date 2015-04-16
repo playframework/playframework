@@ -23,6 +23,10 @@ Regular expressions are also supported, by postfixing the parameter with a regul
 
 @[regexp](code/ScalaSirdRouter.scala)
 
+And you can use regular expressions without capturing the value of the match, using the `<regex>` syntax. For example, `/user<s?>` will match both `/user` and `/users`.
+
+Note: If you use regular expressions in a route, make sure they do not contain capturing groups, as these can interfere with the extraction of values.
+
 Query parameters can also be extracted, using the `?` operator to do further extractions on the request, and using the `q` extractor:
 
 @[required](code/ScalaSirdRouter.scala)

@@ -4,10 +4,9 @@
 package play.api.routing.sird
 
 import java.net.{ URL, URI }
-import java.util.regex.Pattern
 
 import play.api.mvc.RequestHeader
-import play.utils.UriEncoding
+import play.utils.{ Routing, UriEncoding }
 
 import scala.collection.concurrent.TrieMap
 import scala.util.matching.Regex
@@ -61,21 +60,19 @@ object PathExtractor {
 
         if (part.startsWith("*")) {
           // It's a .* matcher
-          "(.*)" + Pattern.quote(part.drop(1)) -> PathPart.Raw
+          "(.*)" + Routing.prepareString(part.drop(1)) -> PathPart.Raw
 
         } else if (part.startsWith("<") && part.contains(">")) {
           // It's a regex matcher
-          val splitted = part.split(">", 2)
-          val regex = splitted(0).drop(1)
-          "(" + regex + ")" + Pattern.quote(splitted(1)) -> PathPart.Raw
+          Routing.prepareString(part, captureFirstRegex = true) -> PathPart.Raw
 
         } else {
           // It's an ordinary path part matcher
-          "([^/]*)" + Pattern.quote(part) -> PathPart.Decoded
+          "([^/]*)" + Routing.prepareString(part) -> PathPart.Decoded
         }
       }.unzip
 
-      new PathExtractor(regexParts.mkString(Pattern.quote(parts.head), "", "/?").r, descs)
+      new PathExtractor(regexParts.mkString(Routing.prepareString(parts.head), "", "/?").r, descs)
     })
   }
 }

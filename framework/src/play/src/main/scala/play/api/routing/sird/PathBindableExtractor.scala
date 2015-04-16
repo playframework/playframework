@@ -30,7 +30,7 @@ class PathBindableExtractor[T](implicit pb: PathBindable[T]) {
   }
 
   /**
-   * Extract Seq[T] only if ever element of s can be bound, otherwise don't match.
+   * Extract Seq[T] only if every element of s can be bound, otherwise don't match.
    */
   def unapply(s: Seq[String]): Option[Seq[T]] = {
     val bound = s.collect {

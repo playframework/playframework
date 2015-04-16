@@ -9,6 +9,7 @@ import play.api.mvc.PathBindable$;
 import play.libs.F;
 import play.libs.Scala;
 import play.mvc.Result;
+import play.utils.Routing;
 import scala.reflect.ClassTag;
 import scala.reflect.ClassTag$;
 
@@ -164,7 +165,11 @@ public class RoutingDsl {
         List<MatchResult> matches = StreamSupport.stream(new Spliterators.AbstractSpliterator<MatchResult>(arity, 0) {
             public boolean tryAdvance(Consumer<? super MatchResult> action) {
                 if (matcher.find()) {
-                    action.accept(matcher.toMatchResult());
+                    // We filter out matches preceded by '?' (possible in non-matching groups in regexes)
+                    int groupStart = matcher.start(1);
+                    if (groupStart == 0 || pathPattern.charAt(groupStart - 1) != '?') {
+                        action.accept(matcher.toMatchResult());
+                    }
                     return true;
                 } else {
                     return false;
@@ -184,7 +189,7 @@ public class RoutingDsl {
 
         int start = 0;
         for (MatchResult result : matches) {
-            sb.append(Pattern.quote(pathPattern.substring(start, result.start())));
+            sb.append(Routing.prepareString(pathPattern.substring(start, result.start()), false));
             String type = result.group(1);
             String name = result.group(2);
             PathBindable<?> pathBindable = pathBindableFor(argumentTypes.next());
@@ -204,7 +209,7 @@ public class RoutingDsl {
             }
             start = result.end();
         }
-        sb.append(Pattern.quote(pathPattern.substring(start, pathPattern.length())));
+        sb.append(Routing.prepareString(pathPattern.substring(start, pathPattern.length()), false));
 
         Pattern regex = Pattern.compile(sb.toString());
 

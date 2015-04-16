@@ -78,6 +78,10 @@ You can also define your own regular expression for a dynamic part, using the `$
     
 @[regex-path](code/javaguide.http.routing.routes)
 
+And you can use regular expressions without capturing the value of the match, using the `<regex>` syntax. For example, `/user<s?>` will match both `/user` and `/users`.
+
+Note: If you use regular expressions in a route, make sure they do not contain capturing groups, as these can interfere with the extraction of values.
+
 ## Call to action generator method
 
 The last part of a route definition is the call. This part must define a valid call to an action method.
