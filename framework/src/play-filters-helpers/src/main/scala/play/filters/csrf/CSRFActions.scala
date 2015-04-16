@@ -8,7 +8,6 @@ import play.api.http.HeaderNames._
 import play.filters.csrf.CSRF._
 import play.api.libs.iteratee._
 import play.api.mvc.BodyParsers.parse._
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import scala.concurrent.Future
 
 /**
@@ -25,6 +24,7 @@ class CSRFAction(next: EssentialAction,
     errorHandler: => ErrorHandler = CSRF.DefaultErrorHandler) extends EssentialAction {
 
   import CSRFAction._
+  import play.api.libs.iteratee.Execution.Implicits.trampoline
 
   // An iteratee that returns a forbidden result saying the CSRF check failed
   private def checkFailed(req: RequestHeader, msg: String): Iteratee[Array[Byte], Result] =
@@ -202,6 +202,7 @@ object CSRFAction {
     result.header.headers.get(CACHE_CONTROL).fold(false)(!_.contains("no-cache"))
 
   private[csrf] def clearTokenIfInvalid(request: RequestHeader, config: CSRFConfig, errorHandler: ErrorHandler, msg: String): Future[Result] = {
+    import play.api.libs.iteratee.Execution.Implicits.trampoline
 
     errorHandler.handle(request, msg) map { result =>
       CSRF.getToken(request).fold(
@@ -287,6 +288,7 @@ object CSRFAddToken {
         }
 
         // Once done, add it to the result
+        import play.api.libs.iteratee.Execution.Implicits.trampoline
         wrapped(requestWithNewToken).map(result =>
           CSRFAction.addTokenToResponse(config, newToken, request, result))
       } else {

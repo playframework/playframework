@@ -5,12 +5,9 @@ package play.api.http
 
 import play.api.mvc._
 import play.api.libs.json._
-
-import scala.annotation._
 import play.api.libs.iteratee.Enumeratee
-import play.api.libs.concurrent.Execution
-
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import scala.annotation._
+import scala.concurrent.ExecutionContext
 
 /**
  * Transform a value of type A to a Byte Array.
@@ -20,7 +17,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 @implicitNotFound(
   "Cannot write an instance of ${A} to HTTP response. Try to define a Writeable[${A}]"
 )
-case class Writeable[-A](transform: (A => Array[Byte]), contentType: Option[String]) {
+class Writeable[-A](val transform: (A => Array[Byte]), val contentType: Option[String])(implicit ec: ExecutionContext) {
   def map[B](f: B => A): Writeable[B] = Writeable(b => transform(f(b)), contentType)
   def toEnumeratee[E <: A]: Enumeratee[E, Array[Byte]] = Enumeratee.map[E](transform)
 }
@@ -30,11 +27,15 @@ case class Writeable[-A](transform: (A => Array[Byte]), contentType: Option[Stri
  */
 object Writeable extends DefaultWriteables {
 
+  def apply[A](transform: (A => Array[Byte]), contentType: Option[String])(implicit ec: ExecutionContext): Writeable[A] =
+    new Writeable(transform, contentType)
+
   /**
    * Creates a `Writeable[A]` using a content type for `A` available in the implicit scope
    * @param transform Serializing function
    */
-  def apply[A](transform: A => Array[Byte])(implicit ct: ContentTypeOf[A]): Writeable[A] = Writeable(transform, ct.mimeType)
+  def apply[A](transform: A => Array[Byte])(implicit ct: ContentTypeOf[A], ec: ExecutionContext): Writeable[A] =
+    new Writeable(transform, ct.mimeType)
 
 }
 
@@ -42,6 +43,8 @@ object Writeable extends DefaultWriteables {
  * Default Writeable with lowwe priority.
  */
 trait LowPriorityWriteables {
+
+  import play.api.libs.iteratee.Execution.Implicits.trampoline
 
   /**
    * `Writeable` for `play.twirl.api.Content` values.
@@ -56,6 +59,8 @@ trait LowPriorityWriteables {
  * Default Writeable.
  */
 trait DefaultWriteables extends LowPriorityWriteables {
+
+  import play.api.libs.iteratee.Execution.Implicits.trampoline
 
   /**
    * `Writeable` for `play.twirl.api.Xml` values. Trims surrounding whitespace.

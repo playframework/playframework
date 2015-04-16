@@ -114,6 +114,7 @@ object PlayRunners {
 }
 
 trait Writeables {
+  import play.api.libs.iteratee.Execution.Implicits.trampoline
   implicit def writeableOf_AnyContentAsJson(implicit codec: Codec): Writeable[AnyContentAsJson] =
     Writeable.writeableOf_JsValue.map(c => c.json)
 
