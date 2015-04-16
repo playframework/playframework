@@ -17,6 +17,7 @@ build.sbt                → Application build script
 conf                     → Configurations files and other non-compiled resources (on classpath)
  └ application.conf      → Main configuration file
  └ routes                → Routes definition
+dist                     → Arbitrary files to be included in your projects distribution
 public                   → Public assets
  └ stylesheets           → CSS files
  └ javascripts           → Javascript files
@@ -140,6 +141,7 @@ src                        → Application sources
     └ java                 → Java source folder for unit or functional tests
     └ scala                → Scala source folder for unit or functional tests
     └ resources            → Resource folder for unit or functional tests
+ └ universal               → Arbitrary files to be included in your projects distribution
 project                    → sbt configuration files
  └ build.properties        → Marker for sbt project
  └ plugins.sbt             → sbt plugins including the declaration for Play itself
