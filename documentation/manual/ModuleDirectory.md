@@ -385,3 +385,9 @@
 * **Website:** http://literalice.github.com/play-xwiki-rendering/
 * **Documentation:** https://github.com/literalice/play-xwiki-rendering/
 * **Short description:** XWiki Rendering Framework integration for Play
+
+## Thymeleaf module (Scala)
+* **Website:**  https://github.com/dmitraver/scala-play-thymeleaf-plugin
+* **Documentation:** https://github.com/dmitraver/scala-play-thymeleaf-plugin/blob/master/README.md
+* **Short description:** Allows to use [Thymeleaf](http://www.thymeleaf.org/) template engine as an alternative
+to Twirl
