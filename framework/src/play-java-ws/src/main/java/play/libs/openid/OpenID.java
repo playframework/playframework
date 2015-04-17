@@ -15,8 +15,6 @@ import play.libs.F;
 import play.mvc.Http;
 import play.mvc.Http.Request;
 
-import play.core.Invoker;
-
 /**
  * provides support for OpenID
  */

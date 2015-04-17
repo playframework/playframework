@@ -9,7 +9,7 @@ Akka can work with several containers called actor systems. An actor system mana
 
 A Play application defines a special actor system to be used by the application. This actor system follows the application life-cycle and restarts automatically when the application restarts.
 
-> **Note:** Nothing prevents you from using another actor system from within a Play application. The provided default is convenient if you only need to start a few actors without bothering to set-up your own actor system.
+> **Note:** Play includes a built in actor system, but you can start your own actor systems if you want. The provided actor system should be suitable for most users.
 
 ### Writing actors
 
@@ -48,14 +48,29 @@ The default actor system configuration is read from the Play application configu
 
 @[conf](code/javaguide/akka/akka.conf)
 
-> **Note:** You can also configure any other actor system from the same file, just provide a top configuration key.
-
 For Akka logging configuration, see [[configuring logging|SettingsLogger]].
 
-By default the name of the `ActorSystem` is `application`. You can change this via an entry in the `conf/application.conf`:
+### Changing configuration prefix
+
+In case you want to use the `akka.*` settings for another Akka actor system, you can tell Play to load its Akka settings from another location.
 
 ```
-play.modules.akka.actor-system = "custom-name"
+play.akka.config = "my-akka"
+```
+
+Now settings will be read from the `my-akka` prefix instead of the `akka` prefix.
+
+```
+my-akka.actor.default-dispatcher.fork-join-executor.pool-size-max = 64
+my-akka.actor.debug.receive = on
+```
+
+### Built-in actor system name
+
+By default the name of the Play actor system is `application`. You can change this via an entry in the `conf/application.conf`:
+
+```
+play.akka.actor-system = "custom-name"
 ```
 
 > **Note:** This feature is useful if you want to put your play application ActorSystem in an akka cluster.

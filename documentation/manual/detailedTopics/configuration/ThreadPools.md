@@ -31,10 +31,9 @@ In contrast, the following types of IO do not block:
 Play uses a number of different thread pools for different purposes:
 
 * **Netty boss/worker thread pools** - These are used internally by Netty for handling Netty IO.  An applications code should never be executed by a thread in these thread pools.
-* **Play Internal Thread Pool** - This is used internally by Play.  No application code should ever be executed by a thread in this thread pool, and no blocking should ever be done in this thread pool.  Its size can be configured by setting `internal-threadpool-size` in `application.conf`, and it defaults to the number of available processors.
-* **Play default thread pool** - This is the default thread pool in which all of your application code in Play Framework is executed.  It is an Akka dispatcher, and can be configured by configuring Akka, described below. By default, it has one thread per processor.
-* **Akka thread pool** - This is used by the Play Akka plugin, and can be configured the same way that you would configure Akka.
+* **Play default thread pool** - This is the thread pool in which all of your application code in Play Framework is executed.  It is an Akka dispatcher, and is used by the Application `ActorSystem`. It can be configured by configuring Akka, described below. By default, it has one thread per processor.
 
+> Note that in Play 2.4 several thread pools were combined together into the Play default thread pool.
 
 ## Using the default thread pool
 
@@ -46,13 +45,13 @@ In most situations, the appropriate execution context to use will be the **Play 
 
 ### Configuring the Play default thread pool
 
-The default thread pool can be configured using standard Akka configuration in `application.conf` under the `play` namespace.  Here is the default configuration:
+The default thread pool can be configured using standard Akka configuration in `application.conf` under the `akka` namespace.  Here is the default configuration:
 
 @[default-config](code/ThreadPools.scala)
 
-This configuration instructs Akka to create one thread per available processor, with a maximum of 24 threads in the pool.  The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/2.2.0/general/configuration.html#Listing_of_the_Reference_Configuration).
+This configuration instructs Akka to create one thread per available processor, with a maximum of 24 threads in the pool.  The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/2.3.0/general/configuration.html#Listing_of_the_Reference_Configuration).
 
-> Note that this configuration is separate from the configuration that the Play Akka plugin uses.  The Play Akka plugin is configured separately, by configuring Akka in the root namespace (without the play { } surrounding it).
+> Note that this configuration is the same configuration that the Play Akka plugin uses. Before Play 2.4 the Play Akka plugin had different configuration options.
 
 ## Using other thread pools
 
