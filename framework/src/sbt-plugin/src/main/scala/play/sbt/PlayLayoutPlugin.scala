@@ -1,9 +1,10 @@
 package play.sbt
 
 import sbt._
-import Keys._
+import sbt.Keys._
 import play.twirl.sbt.Import.TwirlKeys
 import com.typesafe.sbt.web.SbtWeb.autoImport._
+import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
 
 object PlayLayoutPlugin extends AutoPlugin {
 
@@ -31,7 +32,10 @@ object PlayLayoutPlugin extends AutoPlugin {
     // sbt-web
     sourceDirectory in Assets := (sourceDirectory in Compile).value / "assets",
     sourceDirectory in TestAssets := (sourceDirectory in Test).value / "assets",
-    resourceDirectory in Assets := baseDirectory.value / "public"
+    resourceDirectory in Assets := baseDirectory.value / "public",
+
+    // Native packager
+    sourceDirectory in Universal := baseDirectory.value / "dist"
   )
 
 }

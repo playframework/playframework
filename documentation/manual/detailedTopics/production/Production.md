@@ -110,9 +110,13 @@ Then build your package with:
 
 > There will be some error logging. This is because rpm logs to stderr instead of stdout.
 
+### Including additional files in your distribution
+
+Anything included in your project's `dist` directory will be included in the distribution built by the native packager.  Note that in Play, the `dist` directory is equivalent to the `src/universal` directory mentioned in the native packager's own documentation.
+
 ## Play PID Configuration
 
-Play manages its own PID, which is described in the [[Production configuration|ProductionConfiguration]].  In order to tell the startup script where to place the PID file put a file `application.ini` inside `src/universal/conf/` folder and add the following content
+Play manages its own PID, which is described in the [[Production configuration|ProductionConfiguration]].  In order to tell the startup script where to place the PID file put a file `application.ini` inside the `dist/conf` folder and add the following content:
 
 ```bash
 -Dpidfile.path=/var/run/${{app_name}}/play.pid
@@ -139,7 +143,7 @@ Then in the Play console, use the `publish` task:
 
 ## Running a production server in place
 
-In some circumstances, you may not want to create a full distribution, you may in fact want to run your application from your projects source directory.  This requires an sbt or activator installation on the server, and can be done using the `stage` task.
+In some circumstances, you may not want to create a full distribution, you may in fact want to run your application from your project's source directory.  This requires an sbt or activator installation on the server, and can be done using the `stage` task.
 
 ```bash
 $ activator clean stage

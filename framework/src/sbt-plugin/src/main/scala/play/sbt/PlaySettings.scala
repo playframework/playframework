@@ -178,8 +178,6 @@ object PlaySettings {
     devSettings := Nil,
 
     // Native packaging
-
-    sourceDirectory in Universal <<= baseDirectory(_ / "dist"),
     mainClass in Compile := Some("play.core.server.ProdServerStart"),
 
     // Support for externalising resources
