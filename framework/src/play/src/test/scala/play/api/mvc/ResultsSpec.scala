@@ -3,14 +3,16 @@
  */
 package play.api.mvc
 
+import java.nio.file.{ Files, Paths }
+
 import org.specs2.mutable._
 import play.api.libs.iteratee.{ Iteratee, Enumerator }
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import java.util.concurrent.TimeUnit
 import scala.concurrent.ExecutionContext.Implicits._
-import play.api.i18n.{ DefaultLangs, DefaultMessagesApi, Lang }
-import play.api.{ Configuration, Environment, FakeApplication, Play }
+import play.api.i18n.{ DefaultLangs, DefaultMessagesApi }
+import play.api.{ Configuration, Environment, Play }
 import play.api.http.HeaderNames._
 import play.api.http.Status._
 
@@ -136,6 +138,7 @@ object ResultsSpec extends Specification {
       (rh.status aka "status" must_== OK) and
         (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome("""attachment; filename="test.tmp""""))
     }
+
     "support sending a file with Unauthorized status" in {
       val file = new java.io.File("test.tmp")
       file.createNewFile()
@@ -173,6 +176,36 @@ object ResultsSpec extends Specification {
       file.delete()
 
       (rh.status aka "status" must_== PAYMENT_REQUIRED) and
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beNone)
+    }
+
+    "support sending a path with Ok status" in {
+      val file = Paths.get("test.tmp")
+      Files.createFile(file)
+      val rh = Ok.sendPath(file).header
+      Files.delete(file)
+
+      (rh.status aka "status" must_== OK) and
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome("""attachment; filename="test.tmp""""))
+    }
+
+    "support sending a path with Unauthorized status" in {
+      val file = Paths.get("test.tmp")
+      Files.createFile(file)
+      val rh = Unauthorized.sendPath(file).header
+      Files.delete(file)
+
+      (rh.status aka "status" must_== UNAUTHORIZED) and
+        (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beSome("""attachment; filename="test.tmp""""))
+    }
+
+    "support sending a path inline with Unauthorized status" in {
+      val file = Paths.get("test.tmp")
+      Files.createFile(file)
+      val rh = Unauthorized.sendPath(file, inline = true).header
+      Files.delete(file)
+
+      (rh.status aka "status" must_== UNAUTHORIZED) and
         (rh.headers.get(CONTENT_DISPOSITION) aka "disposition" must beNone)
     }
 

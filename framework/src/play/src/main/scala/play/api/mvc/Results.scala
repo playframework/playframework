@@ -3,6 +3,8 @@
  */
 package play.api.mvc
 
+import java.nio.file.{ Files, Path }
+
 import play.api.i18n.{ MessagesApi, Lang }
 import play.api.libs.iteratee._
 import play.api.http._
@@ -383,7 +385,7 @@ trait Results {
      *
      * @param content The file to send.
      * @param inline Use Content-Disposition inline or attachment.
-     * @param fileName function to retrieve the file name (only used for Content-Disposition attachment).
+     * @param fileName Function to retrieve the file name (only used for Content-Disposition attachment).
      */
     def sendFile(content: java.io.File, inline: Boolean = false, fileName: java.io.File => String = _.getName, onClose: () => Unit = () => ()): Result = {
       val name = fileName(content)
@@ -397,12 +399,29 @@ trait Results {
     }
 
     /**
+     * Send a file.
+     *
+     * @param content The file to send.
+     * @param inline Use Content-Disposition inline or attachment.
+     * @param fileName Function to retrieve the file name (only used for Content-Disposition attachment).
+     */
+    def sendPath(content: Path, inline: Boolean = false, fileName: Path => String = _.getFileName.toString, onClose: () => Unit = () => ()): Result = {
+      val name = fileName(content)
+      Result(
+        ResponseHeader(status, Map(
+          CONTENT_LENGTH -> Files.size(content).toString,
+          CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(name).getOrElse(play.api.http.ContentTypes.BINARY)
+        ) ++ (if (inline) Map.empty else Map(CONTENT_DISPOSITION -> ("attachment; filename=\"" + name + "\"")))),
+        Enumerator.fromPath(content) &> Enumeratee.onIterateeDone(onClose)(defaultContext)
+      )
+    }
+
+    /**
      * Send the given resource from the given classloader.
      *
      * @param resource The path of the resource to load.
      * @param classLoader The classloader to load it from, defaults to the classloader for this class.
      * @param inline Whether it should be served as an inline file, or as an attachment.
-     * @return
      */
     def sendResource(resource: String, classLoader: ClassLoader = Results.getClass.getClassLoader,
       inline: Boolean = true): Result = {
