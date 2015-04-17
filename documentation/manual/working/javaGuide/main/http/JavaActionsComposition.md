@@ -1,4 +1,4 @@
-<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
+﻿<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Action composition
 
 This chapter introduces several ways to define generic action functionality.
@@ -32,6 +32,8 @@ You also mix several actions by using custom action annotations:
 @[authenticated-cached-index](code/javaguide/http/JavaActionsComposition.java)
 
 > **Note:**  ```play.mvc.Security.Authenticated``` and ```play.cache.Cached``` annotations and the corresponding predefined Actions are shipped with Play. See the relevant API documentation for more information.
+
+> **Note:**  Every request must be served by a distinct instance of your `play.mvc.Action`. If a singleton pattern is used, requests will be routed incorrectly during multiple request scenarios.
 
 ## Defining custom action annotations
 
