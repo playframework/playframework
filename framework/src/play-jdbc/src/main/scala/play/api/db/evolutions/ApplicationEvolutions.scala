@@ -224,12 +224,13 @@ class DefaultEvolutionsConfigParser @Inject() (configuration: Configuration) ext
     }
 
     // Load defaults
+    val enabled = loadBoolean("enabled", None, true)
     val autocommit = loadBoolean("autocommit", Some("evolutions.autocommit"), true)
     val useLocks = loadBoolean("useLocks", Some("evolutions.use.locks"), false)
     val autoApply = loadBoolean("autoApply", None, false)
     val autoApplyDowns = loadBoolean("autoApplyDowns", None, false)
 
-    val defaultConfig = new DefaultEvolutionsDatasourceConfig(true, autocommit, useLocks, autoApply,
+    val defaultConfig = new DefaultEvolutionsDatasourceConfig(enabled, autocommit, useLocks, autoApply,
       autoApplyDowns)
 
     // Load config specific to datasources
@@ -238,7 +239,7 @@ class DefaultEvolutionsConfigParser @Inject() (configuration: Configuration) ext
         def loadDsBoolean(key: String, oldKey: Option[String], default: Boolean) = {
           loadBoolean(s"db.$datasource.$key", oldKey.map(_ + "." + datasource), default)
         }
-        val enabled = loadDsBoolean("enabled", None, true)
+        val enabled = loadDsBoolean("enabled", None, defaultConfig.enabled)
         val autocommit = loadDsBoolean("autocommit", None, defaultConfig.autocommit)
         val useLocks = loadDsBoolean("useLocks", None, defaultConfig.useLocks)
         val autoApply = loadDsBoolean("autoApply", Some("applyEvolutions"), defaultConfig.autoApply)
