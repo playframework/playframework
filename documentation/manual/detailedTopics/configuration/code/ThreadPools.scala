@@ -26,15 +26,17 @@ object ThreadPoolsSpec extends PlaySpecification {
     "have a global configuration" in {
       val config = """#default-config
         akka {
-          akka.loggers = ["akka.event.Logging$DefaultLogger", "akka.event.slf4j.Slf4jLogger"]
-          loglevel = WARNING
-          actor {
-            default-dispatcher = {
-              fork-join-executor {
-                parallelism-factor = 1.0
-                parallelism-max = 24
-              }
-            }
+          fork-join-executor {
+            # The parallelism factor is used to determine thread pool size using the
+            # following formula: ceil(available processors * factor). Resulting size
+            # is then bounded by the parallelism-min and parallelism-max values.
+            parallelism-factor = 3.0
+     
+            # Min number of threads to cap factor-based parallelism number to
+            parallelism-min = 8
+
+            # Max number of threads to cap factor-based parallelism number to
+            parallelism-max = 64
           }
         }
       #default-config """
