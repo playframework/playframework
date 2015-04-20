@@ -8,6 +8,26 @@ import play.api.data.validation.ValidationError
 case class JsLookup(result: JsLookupResult) extends AnyVal {
 
   /**
+   * Access the head of this array.
+   */
+  def head: JsLookupResult = result match {
+    case JsDefined(JsArray(head +: tail)) => JsDefined(head)
+    case JsDefined(arr: JsArray) => JsUndefined("Cannot get head of " + arr)
+    case JsDefined(o) => JsUndefined(o + " is not an array")
+    case undef => undef
+  }
+
+  /**
+   * Access the tail of this array.
+   */
+  def tail: JsLookupResult = result match {
+    case JsDefined(JsArray(head +: tail)) => JsDefined(JsArray(tail))
+    case JsDefined(arr: JsArray) => JsUndefined("Cannot get tail of " + arr)
+    case JsDefined(o) => JsUndefined(o + " is not an array")
+    case undef => undef
+  }
+
+  /**
    * Access a value of this array.
    *
    * @param index Element index.

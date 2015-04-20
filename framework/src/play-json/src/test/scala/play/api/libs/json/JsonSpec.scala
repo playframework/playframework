@@ -116,6 +116,18 @@ object JsonSpec extends org.specs2.mutable.Specification {
         )
     }
 
+    "support basic array operations" in {
+      val names = Json.arr("Luigi", "Kinopio", "Yoshi", "Mario")
+      names.head.asOpt[String] must beSome("Luigi")
+      names(0).asOpt[String] must beSome("Luigi")
+      names(3).asOpt[String] must beSome("Mario")
+      names.tail.toOption must beSome(Json.arr("Kinopio", "Yoshi", "Mario"))
+
+      val empty = Json.arr()
+      empty.head.toOption must beNone
+      empty.tail.toOption must beNone
+    }
+
     "serialize and deserialize maps properly" in {
       val c = Car(1, Map("ford" -> "1954 model"))
       val jsonCar = toJson(c)
