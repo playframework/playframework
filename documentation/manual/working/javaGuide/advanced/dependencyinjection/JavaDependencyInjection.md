@@ -77,7 +77,11 @@ In some more complex situations, you may want to provide more complex bindings, 
 
 @[guice-module](code/javaguide/advanced/di/guice/HelloModule.java)
 
-To register this module with Play, append it's fully qualified class name to the `play.modules.enabled` list in `application.conf`:
+In even more complex situations you might want to access the Play configuration or ClassLoader when you configure Guice bindings. You can get access to these objects by adding them to your module's constructor.
+
+@[dynamic-guice-module](code/javaguide/advanced/di/guice/dynamic/HelloModule.java)
+
+To register either of these HelloWorld modules with Play, append the fully qualified class name to the `play.modules.enabled` list in `application.conf`:
 
     play.modules.enabled += "modules.HelloModule"
 
