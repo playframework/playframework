@@ -39,6 +39,9 @@ object DefaultEvolutionsConfigParserSpec extends Specification {
       }
     }
     "parse global configuration" in {
+      "enabled" in {
+        testN("enabled")(_.enabled)
+      }
       "autocommit" in {
         testN("autocommit")(_.autocommit)
       }
