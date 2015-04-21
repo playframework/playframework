@@ -129,6 +129,9 @@ object Dependencies {
       // and this causes binary issues.
       "com.google.inject" % "guice" % "3.0" classifier "no_aop"
         exclude("org.sonatype.sisu.inject", "cglib") exclude("aopalliance", "aopalliance"),
+      // It's odd, but need to exclude Guice, otherwise sbt overrides the classifier above
+      "com.google.inject.extensions" % "guice-assistedinject" % "3.0"
+        exclude("com.google.inject", "guice"),
 
       guava % Test,
 

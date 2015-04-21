@@ -3,6 +3,8 @@
  */
 package play.inject;
 
+import play.api.inject.BindingKey;
+
 /**
  * An injector, capable of providing components.
  *
@@ -22,4 +24,12 @@ public interface Injector {
      * @return The instance
      */
     <T> T instanceOf(Class<T> clazz);
+
+    /**
+     * Get an instance of the given class from the injector.
+     *
+     * @param key The key of the binding
+     * @return The instance
+     */
+    <T> T instanceOf(BindingKey<T> key);
 }
