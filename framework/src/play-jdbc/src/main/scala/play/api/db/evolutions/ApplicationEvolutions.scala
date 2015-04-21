@@ -5,12 +5,11 @@ package play.api.db.evolutions
 
 import java.sql.{ Statement, Connection, SQLException }
 import javax.inject.{ Inject, Provider, Singleton }
-import javax.sql.DataSource
 
 import scala.util.control.Exception.ignoring
 
 import play.api.db.{ Database, DBApi }
-import play.api.{ Configuration, Environment, Mode, Logger, PlayException }
+import play.api._
 import play.core.{ HandleWebCommandSupport, WebCommands }
 
 /**
@@ -205,47 +204,55 @@ class DefaultEvolutionsConfigParser @Inject() (configuration: Configuration) ext
   def get = parse()
 
   def parse(): EvolutionsConfig = {
-    val config = configuration.getConfig("play.modules.evolutions")
+    val rootConfig = PlayConfig(configuration)
+    val config = rootConfig.get[PlayConfig]("play.evolutions")
 
-    // Find all the defined datasources, both using the old format, and the new format
-    def datasourcesAt(c: Option[Configuration], key: String) = c.flatMap(_.getConfig(key)).fold(Set.empty[String])(_.subKeys)
-    val datasources = datasourcesAt(config, "db") ++
-      datasourcesAt(Some(configuration), "applyEvolutions") ++
-      datasourcesAt(Some(configuration), "applyDownEvolutions")
-
-    // Note: When removing the deprecated config options, make sure you move the defaults to reference.conf
-    def loadBoolean(key: String, oldKey: Option[String], default: Boolean): Boolean = {
-      config.flatMap(_.getBoolean(key))
-        .orElse(oldKey.flatMap(okey => configuration.getBoolean(okey).map { value =>
-          logger.warn(s"Configuration option $okey is deprecated, use play.modules.evolutions.$key instead")
-          value
-        }))
-        .getOrElse(default)
+    // Since the evolutions config was completely inverted and has changed massively, we have our own deprecated
+    // implementation that reads deprecated keys from the root config, otherwise reads from the passed in config
+    def getDeprecated[A: ConfigLoader](config: PlayConfig, baseKey: => String, path: String, deprecated: String): A = {
+      if (rootConfig.underlying.hasPath(deprecated)) {
+        rootConfig.reportDeprecation(s"$baseKey.$path", deprecated)
+        rootConfig.get[A](deprecated)
+      } else {
+        config.get[A](path)
+      }
     }
 
+    // Find all the defined datasources, both using the old format, and the new format
+    def loadDatasources(path: String) = {
+      if (rootConfig.underlying.hasPath(path)) {
+        rootConfig.get[PlayConfig](path).subKeys
+      } else {
+        Set.empty[String]
+      }
+    }
+    val datasources = config.get[PlayConfig]("db").subKeys ++
+      loadDatasources("applyEvolutions") ++
+      loadDatasources("applyDownEvolutions")
+
     // Load defaults
-    val enabled = loadBoolean("enabled", None, true)
-    val autocommit = loadBoolean("autocommit", Some("evolutions.autocommit"), true)
-    val useLocks = loadBoolean("useLocks", Some("evolutions.use.locks"), false)
-    val autoApply = loadBoolean("autoApply", None, false)
-    val autoApplyDowns = loadBoolean("autoApplyDowns", None, false)
+    val enabled = config.get[Boolean]("enabled")
+    val autocommit = getDeprecated[Boolean](config, "play.evolutions", "autocommit", "evolutions.autocommit")
+    val useLocks = getDeprecated[Boolean](config, "play.evolutions", "useLocks", "evolutions.use.locks")
+    val autoApply = config.get[Boolean]("autoApply")
+    val autoApplyDowns = config.get[Boolean]("autoApplyDowns")
 
     val defaultConfig = new DefaultEvolutionsDatasourceConfig(enabled, autocommit, useLocks, autoApply,
       autoApplyDowns)
 
     // Load config specific to datasources
-    val datasourceConfig = datasources.map { datasource =>
-      datasource -> {
-        def loadDsBoolean(key: String, oldKey: Option[String], default: Boolean) = {
-          loadBoolean(s"db.$datasource.$key", oldKey.map(_ + "." + datasource), default)
-        }
-        val enabled = loadDsBoolean("enabled", None, defaultConfig.enabled)
-        val autocommit = loadDsBoolean("autocommit", None, defaultConfig.autocommit)
-        val useLocks = loadDsBoolean("useLocks", None, defaultConfig.useLocks)
-        val autoApply = loadDsBoolean("autoApply", Some("applyEvolutions"), defaultConfig.autoApply)
-        val autoApplyDowns = loadDsBoolean("autoApplyDowns", Some("applyDownEvolutions"), defaultConfig.autoApplyDowns)
-        new DefaultEvolutionsDatasourceConfig(enabled, autocommit, useLocks, autoApply, autoApplyDowns)
-      }
+    // Since not all the datasources will necessarily appear in the db map, because some will come from deprecated
+    // configuration, we create a map of them to the default config, and then override any of them with the ones
+    // from db.
+    val datasourceConfigMap = datasources.map(_ -> config).toMap ++ config.getPrototypedMap("db", "")
+    val datasourceConfig = datasourceConfigMap.map {
+      case (datasource, dsConfig) =>
+        val enabled = dsConfig.get[Boolean]("enabled")
+        val autocommit = dsConfig.get[Boolean]("autocommit")
+        val useLocks = dsConfig.get[Boolean]("useLocks")
+        val autoApply = getDeprecated[Boolean](dsConfig, s"play.evolutions.db.$datasource", "autoApply", s"applyEvolutions.$datasource")
+        val autoApplyDowns = getDeprecated[Boolean](dsConfig, s"play.evolutions.db.$datasource", "autoApplyDowns", s"applyDownEvolutions.$datasource")
+        datasource -> new DefaultEvolutionsDatasourceConfig(enabled, autocommit, useLocks, autoApply, autoApplyDowns)
     }.toMap
 
     new DefaultEvolutionsConfig(defaultConfig, datasourceConfig)

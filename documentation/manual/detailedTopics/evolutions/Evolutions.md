@@ -43,7 +43,7 @@ As you see you have to delimit the both Ups and Downs section by using comments 
 
 > Play splits your `.sql` files into a series of semicolon-delimited statements before executing them one-by-one against the database. So if you need to use a semicolon *within* a statement, escape it by entering `;;` instead of `;`. For example, `INSERT INTO punctuation(name, character) VALUES ('semicolon', ';;');`.
 
-Evolutions are automatically activated if a database is configured in `application.conf` and evolution scripts are present. You can disable them by setting `play.modules.evolutions.enabled=false`. For example when tests set up their own database you can disable evolutions for the test environment.
+Evolutions are automatically activated if a database is configured in `application.conf` and evolution scripts are present. You can disable them by setting `play.evolutions.enabled=false`. For example when tests set up their own database you can disable evolutions for the test environment.
 
 When evolutions are activated, Play will check your database schema state before each request in DEV mode, or before starting the application in PROD mode. In DEV mode, if your database schema is not up to date, an error page will suggest that you synchronise your database schema by running the appropriate SQL script.
 
@@ -53,7 +53,7 @@ If you agree with the SQL script, you can apply it directly by clicking on the â
 
 ## Evolutions configuration
 
-Evolutions can be configured both globally and per datasource.  For global configuration, keys should be prefixed with `play.modules.evolutions`.  For per datasource configuration, keys should be prefixed with `play.modules.evolutions.db.<datasourcename>`, for example `play.modules.evolutions.db.default`.  The following configuration options are supported:
+Evolutions can be configured both globally and per datasource.  For global configuration, keys should be prefixed with `play.evolutions`.  For per datasource configuration, keys should be prefixed with `play.evolutions.db.<datasourcename>`, for example `play.evolutions.db.default`.  The following configuration options are supported:
 
 * `enabled` - Whether evolutions are enabled.  If configured globally to be false, it disables the evolutions module altogether.  Defaults to true.
 * `autocommit` - Whether autocommit should be used.  If false, evolutions will be applied in a single transaction.  Defaults to true.
@@ -61,7 +61,7 @@ Evolutions can be configured both globally and per datasource.  For global confi
 * `autoApply` - Whether evolutions should be automatically applied.  In dev mode, this will cause both ups and downs evolutions to be automatically applied.  In prod mode, it will cause only ups evolutions to be automatically applied.  Defaults to false.
 * `autoApplyDowns` - Whether down evolutions should be automatically applied.  In prod mode, this will cause down evolutions to be automatically applied.  Has no effect in dev mode.  Defaults to false.
 
-For example, to enable `autoApply` for all evolutions, you might set `play.modules.evolutions.autoApply=true` in `application.conf` or in a system property.  To disable autocommit for a datasource named `default`, you set `play.modules.evolutions.db.default.autocommit=false`.
+For example, to enable `autoApply` for all evolutions, you might set `play.evolutions.autoApply=true` in `application.conf` or in a system property.  To disable autocommit for a datasource named `default`, you set `play.evolutions.db.default.autocommit=false`.
 
 ## Synchronizing concurrent changes
 

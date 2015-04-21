@@ -9,7 +9,7 @@ import play.api.Configuration
 object DefaultEvolutionsConfigParserSpec extends Specification {
 
   def parse(config: (String, Any)*): EvolutionsConfig = {
-    new DefaultEvolutionsConfigParser(Configuration.from(config.toMap)).get
+    new DefaultEvolutionsConfigParser(Configuration.reference ++ Configuration.from(config.toMap)).get
   }
 
   def test(key: String)(read: EvolutionsDatasourceConfig => Boolean) = {
@@ -18,7 +18,10 @@ object DefaultEvolutionsConfigParserSpec extends Specification {
   }
 
   def testN(key: String)(read: EvolutionsDatasourceConfig => Boolean) = {
-    test("play.modules.evolutions." + key)(read)
+    // This ensures that the config for default is detected, ensuring that a configuration based fallback is used
+    val fooConfig = "play.evolutions.db.default.foo" -> "foo"
+    read(parse(s"play.evolutions.$key" -> true, fooConfig).forDatasource("default")) must_== true
+    read(parse(s"play.evolutions.$key" -> false, fooConfig).forDatasource("default")) must_== false
   }
 
   val default = parse().forDatasource("default")
@@ -38,7 +41,7 @@ object DefaultEvolutionsConfigParserSpec extends Specification {
         test("applyDownEvolutions.default")(_.autoApplyDowns)
       }
     }
-    "parse global configuration" in {
+    "fallback to global configuration if not configured" in {
       "enabled" in {
         testN("enabled")(_.enabled)
       }
