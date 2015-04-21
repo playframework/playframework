@@ -5,28 +5,20 @@
 
 You need to have a JDK 1.8 (or later) installed on your machine (see [General Installation Tasks](#jdk-installation)).
 
-## Install Activator
+## Quick Start
 
 1. **Download** the latest [Typesafe Activator](http://typesafe.com/get-started).
 2. **Extract** the archive on a location where you have write access.
-3. **Open** a command window and enter.
-
-```bash
-cd activator*
-activator ui
-```
-
-[http://localhost:8888](http://localhost:8888) - here you can access your local Play installation.
+3. **Change** dir with cmd `cd activator*` (or with the file-manager)
+4. **Start** it with cmd `activator ui` (or with the file-manager)
+5. **Access** it at [http://localhost:8888](http://localhost:8888)
 
 You'll find documentation and a list of application samples which get you going immediately. For a simple start, try the **play-java** sample.
 
-> If you don' want to download the complete Activator distribution, there is a minimal package with no bundled dependencies. This mini-package has around 1MB and will download all the required dependencies at the first run.
 
 ### Command Line
 
-To use play from any location on your file-system:
-
-* Add the **activator** directory to your path (see [General Installation Tasks](#add-executables-to-path)).
+To use play from any location on your file-system, add the **activator** directory to your path (see [General Installation Tasks](#add-executables-to-path)).
 
 Creating `my-first-app` based on the `play-java` template is as simple as:
 
@@ -64,15 +56,9 @@ If you don't have the JDK, you have to install it:
 
 For convenience, you should add the Activator installation directory to your system `PATH`.
 
-**Unix**
+On **Unix**, use `export PATH=/path/to/activator:$PATH`
 
-```bash
-export PATH=/path/to/activator:$PATH
-```
-
-**Windows**
-
-Add `;C:\path\to\activator` to your `PATH` environment variable. Don't use a path with spaces.
+On **Windows**, add `;C:\path\to\activator` to your `PATH` environment variable. Do not use a path with spaces.
 
 ### File Permissions
 
