@@ -959,7 +959,11 @@ private[play] class PlayConfig(val underlying: Config) {
    * Each value in the map will fallback to the object loaded from prototype.$path.
    */
   def getPrototypedMap(path: String, prototypePath: String = "prototype.$path"): Map[String, PlayConfig] = {
-    val prototype = underlying.getConfig(prototypePath.replace("$path", path))
+    val prototype = if (prototypePath.isEmpty) {
+      underlying
+    } else {
+      underlying.getConfig(prototypePath.replace("$path", path))
+    }
     get[Map[String, Config]](path).map {
       case (key, config) => key -> new PlayConfig(config.withFallback(prototype))
     }.toMap
@@ -1034,7 +1038,12 @@ private[play] class PlayConfig(val underlying: Config) {
     Configuration.configError(if (underlying.hasPath(path)) underlying.getValue(path).origin else underlying.root.origin, message, e)
   }
 
-  private def reportDeprecation(path: String, deprecated: String): Unit = {
+  /**
+   * Get the immediate subkeys of this configuration.
+   */
+  def subKeys: Set[String] = underlying.root().keySet().asScala.toSet
+
+  private[play] def reportDeprecation(path: String, deprecated: String): Unit = {
     val origin = underlying.getValue(deprecated).origin
     Logger.warn(s"${origin.description}: $deprecated is deprecated, use $path instead:")
     Try {
