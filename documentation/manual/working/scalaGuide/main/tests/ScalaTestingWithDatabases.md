@@ -55,7 +55,7 @@ As with the generic database factory, ensure you always shut the in-memory datab
 
 @[in-memory-shutdown](code/database/ScalaTestingWithDatabases.scala)
 
-If you're not using a test frameworks before/after capabilities, you may want Play to manage the in-memory database lifecycle for you, this is straight forward using `withInMemory`:
+If you're not using a test frameworks before/after capabilities, you may want Play to manage the in-memory database lifecycle for you, this is straightforward using `withInMemory`:
 
 @[with-in-memory](code/database/ScalaTestingWithDatabases.scala)
 

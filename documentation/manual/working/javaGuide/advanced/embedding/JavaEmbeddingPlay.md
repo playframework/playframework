@@ -3,7 +3,7 @@
 
 While Play apps are most commonly used as their own container, you can also embed a Play server into your own existing application.  This can be used in conjunction with the Twirl template compiler and Play routes compiler, but these are of course not necessary, a common use case for embedding a Play application will be because you only have a few very simple routes.
 
-The simplest way to start an embedded Play server is to use the [`Server`](api/java/play/server/Server.html) factory methods.  If all you need to do is provide some straight forward routes, you may decide to use the [[Routing DSL|JavaRoutingDsl]], so you will need the following imports:
+The simplest way to start an embedded Play server is to use the [`Server`](api/java/play/server/Server.html) factory methods.  If all you need to do is provide some straightforward routes, you may decide to use the [[Routing DSL|JavaRoutingDsl]], so you will need the following imports:
 
 @[imports](code/javaguide/advanced/embedding/JavaEmbeddingPlay.java)
 
