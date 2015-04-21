@@ -69,6 +69,14 @@ libraryDependencies += "com.typesafe.play" %% "anorm" % "2.4.0"
 
 For more details about what's changed in Anorm, see [[here|Migration24#Anorm].
 
+### Bytecode enhancement
+
+[Play's bytecode enhancement](https://github.com/playframework/play-enhancer), which generates getters and setters for Java properties, has been pulled out of the core of Play into a separately managed project that can have its own lifecycle. To enable it:
+
+```scala
+enablePlugins(PlayJava, PlayEnhancer)
+```
+
 ## Dependency Injection
 
 Play now, out of the box, uses dependency injection provided by Guice.  This is part of a long term strategy to remove global state out of Play, which we hope to complete in the Play 3.0 release.  Moving any application from depending on global state to being entirely global state free is a big task, one that can be very disruptive if it is done all at once.  For this reason, the approach we've taken in Play is to spread the change over a number of releases, allowing end users to gradually migrate their code so that it doesn't depend on global state, rather than forcing it all at once.

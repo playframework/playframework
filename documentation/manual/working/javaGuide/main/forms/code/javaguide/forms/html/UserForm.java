@@ -7,8 +7,26 @@ import java.util.List;
 
 //#code
 public class UserForm {
-    public String name;
-    public List<String> emails;
+
+    private String name;
+    private List<String> emails;
+
+    public void setName(String name) {
+    	this.name = name;
+    }
+
+    public String getName() {
+    	return name;
+    }
+
+    public void setEmails(List<String> emails) {
+    	this.emails = emails;
+    }
+
+    public List<String> getEmails() {
+    	return emails;
+    }
+
 }
 //#code
 

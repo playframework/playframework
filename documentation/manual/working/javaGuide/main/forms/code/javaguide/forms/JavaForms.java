@@ -44,8 +44,8 @@ public class JavaForms extends WithApplication {
         User user = userForm.bind(anyData).get();
         //#bind
 
-        assertThat(user.email, equalTo("bob@gmail.com"));
-        assertThat(user.password, equalTo("secret"));
+        assertThat(user.getEmail(), equalTo("bob@gmail.com"));
+        assertThat(user.getPassword(), equalTo("secret"));
     }
 
     @Test
@@ -62,7 +62,7 @@ public class JavaForms extends WithApplication {
             User user = userForm.bindFromRequest().get();
             //#bind-from-request
 
-            return ok(user.email);
+            return ok(user.getEmail());
         }
     }
 
@@ -104,7 +104,15 @@ public class JavaForms extends WithApplication {
             }
         }
 
-        public String email;
+        private String email;
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getEmail() {
+            return email;
+        }
 
         //#list-validate
         public List<ValidationError> validate() {
