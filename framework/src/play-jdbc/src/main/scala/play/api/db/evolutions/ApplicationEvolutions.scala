@@ -12,6 +12,8 @@ import play.api.db.{ Database, DBApi }
 import play.api._
 import play.core.{ HandleWebCommandSupport, WebCommands }
 
+import play.api.db.evolutions.DatabaseUrlPatterns._
+
 /**
  * Run evolutions on application startup. Automatically runs on construction.
  */
@@ -139,7 +141,6 @@ class ApplicationEvolutions @Inject() (
 }
 
 private object ApplicationEvolutions {
-  val OracleJdbcUrl = "^jdbc:oracle:.*".r
 
   val CreatePlayEvolutionsLockSql =
     """
@@ -285,7 +286,7 @@ class EvolutionsWebCommands @Inject() (evolutions: EvolutionsApi, reader: Evolut
     val applyEvolutions = """/@evolutions/apply/([a-zA-Z0-9_]+)""".r
     val resolveEvolutions = """/@evolutions/resolve/([a-zA-Z0-9_]+)/([0-9]+)""".r
 
-    lazy val redirectUrl = request.queryString.get("redirect").filterNot(_.isEmpty).map(_(0)).getOrElse("/")
+    lazy val redirectUrl = request.queryString.get("redirect").filterNot(_.isEmpty).map(_.head).getOrElse("/")
 
     request.path match {
 

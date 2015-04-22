@@ -3,7 +3,7 @@
  */
 package play.api.db.evolutions
 
-import java.io.{ InputStream, File, FileInputStream }
+import java.io.{ InputStream, FileInputStream }
 import java.sql.{ Connection, Date, PreparedStatement, ResultSet, SQLException }
 import javax.inject.{ Inject, Singleton }
 
@@ -19,6 +19,7 @@ import play.utils.PlayIO
  * Evolutions API.
  */
 trait EvolutionsApi {
+
   /**
    * Create evolution scripts.
    *
@@ -88,6 +89,7 @@ class DefaultEvolutionsApi @Inject() (dbApi: DBApi) extends EvolutionsApi {
 class DatabaseEvolutions(database: Database) {
 
   import DefaultEvolutionsApi._
+  import DatabaseUrlPatterns._
 
   def scripts(evolutions: Seq[Evolution]): Seq[Script] = {
     if (evolutions.nonEmpty) {
@@ -99,7 +101,7 @@ class DatabaseEvolutions(database: Database) {
 
       val (conflictingDowns, conflictingUps) = Evolutions.conflictings(dRest, uRest)
 
-      val ups = (nonConflictingUps ++ conflictingUps).reverse.map(e => UpScript(e))
+      val ups = (nonConflictingUps ++ conflictingUps).reverseMap(e => UpScript(e))
       val downs = (nonConflictingDowns ++ conflictingDowns).map(e => DownScript(e))
 
       downs ++ ups
@@ -227,7 +229,7 @@ class DatabaseEvolutions(database: Database) {
   /**
    * Checks the evolutions state in the database.
    *
-   * @throws an error if the database is in an inconsistent state
+   * @throws NonFatal error if the database is in an inconsistent state
    */
   private def checkEvolutionsState(): Unit = {
     def createPlayEvolutionsTable()(implicit conn: Connection): Unit = {
@@ -235,6 +237,7 @@ class DatabaseEvolutions(database: Database) {
         val createScript = database.url match {
           case SqlServerJdbcUrl() => CreatePlayEvolutionsSqlServerSql
           case OracleJdbcUrl() => CreatePlayEvolutionsOracleSql
+          case MysqlJdbcUrl(_) => CreatePlayEvolutionsMySql
           case _ => CreatePlayEvolutionsSql
         }
 
@@ -282,7 +285,7 @@ class DatabaseEvolutions(database: Database) {
   def resolve(revision: Int): Unit = {
     implicit val connection = database.getConnection(autocommit = true)
     try {
-      execute("update play_evolutions set state = 'applied' where state = 'applying_up' and id = " + revision);
+      execute("update play_evolutions set state = 'applied' where state = 'applying_up' and id = " + revision)
       execute("delete from play_evolutions where state = 'applying_down' and id = " + revision);
     } finally {
       connection.close()
@@ -308,9 +311,6 @@ class DatabaseEvolutions(database: Database) {
 private object DefaultEvolutionsApi {
 
   val logger = Logger(classOf[DefaultEvolutionsApi])
-
-  val SqlServerJdbcUrl = "^jdbc:sqlserver:.*".r
-  val OracleJdbcUrl = "^jdbc:oracle:.*".r
 
   val CreatePlayEvolutionsSql =
     """
@@ -349,6 +349,19 @@ private object DefaultEvolutionsApi {
           state Varchar2(255),
           last_problem clob,
           CONSTRAINT play_evolutions_pk PRIMARY KEY (id)
+      )
+    """
+
+  val CreatePlayEvolutionsMySql =
+    """
+      CREATE TABLE play_evolutions (
+          id int not null primary key,
+          hash varchar(255) not null,
+          applied_at timestamp not null,
+          apply_script mediumtext,
+          revert_script mediumtext,
+          state varchar(255),
+          last_problem mediumtext
       )
     """
 }
@@ -414,8 +427,8 @@ abstract class ResourceEvolutionsReader extends EvolutionsReader {
 
         Evolution(
           revision,
-          parsed.get(UPS).getOrElse(""),
-          parsed.get(DOWNS).getOrElse(""))
+          parsed.getOrElse(UPS, ""),
+          parsed.getOrElse(DOWNS, ""))
       }
     }
 
@@ -469,7 +482,7 @@ object ThisClassLoaderEvolutionsReader extends ClassLoaderEvolutionsReader(class
  * Simple map based implementation of the evolutions reader.
  */
 class SimpleEvolutionsReader(evolutionsMap: Map[String, Seq[Evolution]]) extends EvolutionsReader {
-  def evolutions(db: String) = evolutionsMap.get(db).getOrElse(Nil)
+  def evolutions(db: String) = evolutionsMap.getOrElse(db, Nil)
 }
 
 /**
