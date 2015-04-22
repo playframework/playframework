@@ -46,7 +46,7 @@ You can read about these new APIs here:
 
 ## Embedding Play
 
-It is now straight forward to embed a Play application.  Play 2.4 provides both APIs to start and stop a Play server, as well as routing DSLs for Java and Scala so that routes can be embedded directly in code.
+It is now straightforward to embed a Play application.  Play 2.4 provides both APIs to start and stop a Play server, as well as routing DSLs for Java and Scala so that routes can be embedded directly in code.
 
 In Java, see [[Embedding Play|JavaEmbeddingPlay]] as well as information about the [[Routing DSL|JavaRoutingDSL]].
 
@@ -113,7 +113,7 @@ play-ebean now supports Ebean 4.x.
 
 ## HikariCP
 
-[HikariCP](http://brettwooldridge.github.io/HikariCP/) is now the default JDBC connection pool. It's properties can be directly configured using `.conf` files and you should rename the configuration properties to match what is expected by HikariCP.
+[HikariCP](http://brettwooldridge.github.io/HikariCP/) is now the default JDBC connection pool. Its properties can be directly configured using `.conf` files and you should rename the configuration properties to match what is expected by HikariCP.
 
 ## Experimental Features
 
