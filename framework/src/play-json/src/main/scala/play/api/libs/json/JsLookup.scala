@@ -28,6 +28,16 @@ case class JsLookup(result: JsLookupResult) extends AnyVal {
   }
 
   /**
+   * Access the last element of this array.
+   */
+  def last: JsLookupResult = result match {
+    case JsDefined(JsArray(values)) if values.nonEmpty => JsDefined(values.last)
+    case JsDefined(arr: JsArray) => JsUndefined("Cannot get last element of " + arr)
+    case JsDefined(o) => JsUndefined(o + " is not an array")
+    case undef => undef
+  }
+
+  /**
    * Access a value of this array.
    *
    * @param index Element index.

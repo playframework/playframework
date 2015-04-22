@@ -121,6 +121,7 @@ object JsonSpec extends org.specs2.mutable.Specification {
       names.head.asOpt[String] must beSome("Luigi")
       names(0).asOpt[String] must beSome("Luigi")
       names(3).asOpt[String] must beSome("Mario")
+      names.last.asOpt[String] must beSome("Mario")
       names.tail.toOption must beSome(Json.arr("Kinopio", "Yoshi", "Mario"))
 
       val empty = Json.arr()
