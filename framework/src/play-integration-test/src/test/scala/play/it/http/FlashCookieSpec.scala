@@ -1,11 +1,9 @@
 package play.it.http
 
 import play.api.test._
-import play.api.test.Helpers._
 import play.api.mvc.{ Flash, Action }
 import play.api.mvc.Results._
 import play.api.libs.ws.{ WSCookie, WSResponse, WS }
-import play.api.Logger
 import play.it._
 
 object NettyFlashCookieSpec extends FlashCookieSpec with NettyIntegrationSpecification
@@ -36,7 +34,7 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
 
   "the flash cookie" should {
     "can be set for one request" in new WithServer(app = appWithRedirect, port = 3333) {
-      val response = await(WS.url("http://localhost:3333/flash").withFollowRedirects(false).get())
+      val response = await(WS.url("http://localhost:3333/flash").withFollowRedirects(follow = false).get())
       response.status must equalTo(SEE_OTHER)
       val flashCookie = readFlashCookie(response)
       flashCookie must beSome.like {
