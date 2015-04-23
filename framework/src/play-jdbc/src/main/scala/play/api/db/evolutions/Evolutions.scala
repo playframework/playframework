@@ -75,6 +75,15 @@ case class DownScript(evolution: Evolution) extends Script {
 }
 
 /**
+ * Defines database url patterns.
+ */
+private[evolutions] object DatabaseUrlPatterns {
+  lazy val SqlServerJdbcUrl = "^jdbc:sqlserver:.*".r
+  lazy val OracleJdbcUrl = "^jdbc:oracle:.*".r
+  lazy val MysqlJdbcUrl = "^(jdbc:)?mysql:.*".r
+}
+
+/**
  * Defines Evolutions utilities functions.
  */
 object Evolutions {
@@ -111,8 +120,8 @@ object Evolutions {
 
     val environment = application.injector.instanceOf[Environment]
 
-    val evolutions = environment.getFile(fileName(db, revision));
-    Files.Deprecated.createDirectory(environment.getFile(directoryName(db)));
+    val evolutions = environment.getFile(fileName(db, revision))
+    Files.Deprecated.createDirectory(environment.getFile(directoryName(db)))
     Files.Deprecated.writeFileIfChanged(evolutions,
       """|# --- %s
          |
@@ -122,7 +131,7 @@ object Evolutions {
          |# --- !Downs
          |%s
          |
-         |""".stripMargin.format(comment, ups, downs));
+         |""".stripMargin.format(comment, ups, downs))
   }
 
   /**
