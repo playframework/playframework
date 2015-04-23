@@ -194,7 +194,18 @@ public class RoutingDslTest {
         assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
         assertNull(makeRequest(router, "GET", "/hello/10"));
     }
-    
+
+    @Test
+    public void unboundRegex() {
+        Router router = new RoutingDsl()
+                .GET("/<(?:hello|hi)>/:to").routeTo((to) -> Results.ok("Hello " + to))
+                .build();
+
+        assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));
+        assertThat(makeRequest(router, "GET", "/hi/world"), equalTo("Hello world"));
+        assertNull(makeRequest(router, "GET", "/foo/bar"));
+    }
+
     @Test
     public void multipleRoutes() {
         Router router = new RoutingDsl()

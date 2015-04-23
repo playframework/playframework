@@ -22,6 +22,8 @@ GET         /ident/:è27             controllers.πø$7ß.ôü65$t(è27: Int)
 GET         /hello                  controllers.Application.hello
 GET         /hello2                 controllers.Application.hello
 
+GET         /regex<?es>             controllers.Application.regexes
+
 ->          /module                 module.Routes
 
 GET         /routes                 controllers.Application.route(abstract)

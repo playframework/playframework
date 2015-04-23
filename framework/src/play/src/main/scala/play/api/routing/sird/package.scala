@@ -21,6 +21,12 @@ import scala.language.experimental.macros
  * - Regex values. This can be indicated by post fixing the value with a regular expression enclosed in angle brackets.
  *   For example, `p"/foo/$id<[0-9]+>`. The value will not be URI decoded.
  *
+ * It also supports matching with regular expressions outside of path segment values.  For example, `p"/foo/ba<[rz]>"`
+ * will match both `"/foo/bar"` and `"/foo/baz"`.
+ *
+ * Regular expressions inside routes must not contain capturing groups, as these can interfere with the extraction of
+ * values.
+ *
  * The extractors for primitive types are merely provided for convenience, for example, `p"/foo/${int(id)}"` will
  * extract `id` as an integer.  If `id` is not an integer, the match will simply fail.
  *

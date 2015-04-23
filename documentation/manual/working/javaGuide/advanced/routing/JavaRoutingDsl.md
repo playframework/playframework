@@ -29,6 +29,10 @@ In the above examples, the type of the parameters in the lambdas is undeclared, 
 
 Supported types include `Integer`, `Long`, `Float`, `Double`, `Boolean`, and any type that extends [`PathBindable`](api/java/play/mvc/PathBindable.html).
 
+And you can use regular expressions without capturing the value of the match, using the `<regex>` syntax. For example, `/user<s?>` will match both `/user` and `/users`.
+
+Note: If you use regular expressions in a route, make sure they do not contain capturing groups, as these can interfere with the extraction of values.
+
 Asynchronous actions are of course also supported, using the `routeAsync` method:
 
 @[async](code/javaguide/advanced/routing/JavaRoutingDsl.java)

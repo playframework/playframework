@@ -62,6 +62,15 @@ object RouterSpec extends Specification {
     "Bind Path with incorrectly encoded string as string" in {
       pathPattern(pathNonEncodedString2).get("foo") must beEqualTo(Right("bar: baz"))
     }
+    "Bind Path string with regex in static part" in {
+      val pathPattern = PathPattern(Seq(StaticPart("/path<s?>/<(?:to|for)>/"), DynamicPart("foo", "[^/]+", true)))
+      val pathString1 = "/path/to/file"
+      val pathString2 = "/paths/to/file"
+      val pathString3 = "/paths/for/file"
+      pathPattern(pathString1).get("foo") must beEqualTo(Right("file"))
+      pathPattern(pathString2).get("foo") must beEqualTo(Right("file"))
+      pathPattern(pathString3).get("foo") must beEqualTo(Right("file"))
+    }
     "Fail on unparseable Path string" in {
       val Left(e) = pathPattern(pathStringInvalid).get("foo")
       e.getMessage must beEqualTo("Malformed escape pair at index 9: /invalide%2")
