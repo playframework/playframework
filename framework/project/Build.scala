@@ -332,7 +332,7 @@ object PlayBuild extends Build {
   lazy val ForkRunProtocolProject = PlayDevelopmentProject("Fork-Run-Protocol", "fork-run-protocol")
     .settings(
       libraryDependencies ++= forkRunProtocolDependencies(scalaBinaryVersion.value),
-      compile in Compile <<= (compile in Compile) tag ProtocolCompile,
+      compileIncremental in Compile <<= (compileIncremental in Compile) tag ProtocolCompile,
       doc in Compile <<= (doc in Compile) tag ProtocolCompile)
     .dependsOn(RunSupportProject)
 
@@ -341,7 +341,7 @@ object PlayBuild extends Build {
     .settings(
       target := target.value / "sbt-fork-run-protocol",
       libraryDependencies ++= forkRunProtocolDependencies(scalaBinaryVersion.value),
-      compile in Compile <<= (compile in Compile) tag ProtocolCompile,
+      compileIncremental in Compile <<= (compileIncremental in Compile) tag ProtocolCompile,
       doc in Compile <<= (doc in Compile) tag ProtocolCompile)
     .dependsOn(SbtRunSupportProject)
 
