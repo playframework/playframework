@@ -139,6 +139,12 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
       checkGzipped(result)
       header(VARY, result) must beSome.which(header => header contains "original,")
     }
+
+    "preserve original Vary header values and not duplicate case-insensitive ACCEPT-ENCODING" in withApplication(Ok("hello").withHeaders(VARY -> "original,ACCEPT-encoding")) {
+      val result = makeGzipRequest
+      checkGzipped(result)
+      header(VARY, result) must beSome.which(header => header.split(",").filter(_.toLowerCase == ACCEPT_ENCODING.toLowerCase()).size == 1)
+    }
   }
 
   class Filters @Inject() (gzipFilter: GzipFilter) extends HttpFilters {
