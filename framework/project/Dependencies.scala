@@ -36,7 +36,7 @@ object Dependencies {
 
   val jdbcDeps = Seq(
     "com.jolbox" % "bonecp" % "0.8.0.RELEASE",
-    "com.zaxxer" % "HikariCP" % "2.3.5",
+    "com.zaxxer" % "HikariCP" % "2.3.7",
     h2database,
     acolyte % Test,
     "tyrex" % "tyrex" % "1.0.1") ++ specsBuild.map(_ % Test)

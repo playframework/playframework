@@ -96,10 +96,7 @@ class HikariCPConfig(dbConfig: DatabaseConfig, configuration: PlayConfig) {
     val config = configuration.get[PlayConfig]("hikaricp")
 
     // Essentials configurations
-    config.getOptional[String]("dataSourceClassName") match {
-      case Some(className) => hikariConfig.setDataSourceClassName(className)
-      case None => Logger.debug("`dataSourceClassName` not present. Will use `url` instead.")
-    }
+    config.getOptional[String]("dataSourceClassName").foreach(hikariConfig.setDataSourceClassName)
 
     dbConfig.url.foreach(hikariConfig.setJdbcUrl)
     dbConfig.driver.foreach(hikariConfig.setDriverClassName)
