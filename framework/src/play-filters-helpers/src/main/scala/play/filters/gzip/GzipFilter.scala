@@ -178,6 +178,7 @@ class GzipFilter @Inject() (config: GzipFilterConfig) extends EssentialFilter {
   private def addToVaryHeader(existingHeaders: Map[String, String], headerName: String, headerValue: String): (String, String) = {
     existingHeaders.get(headerName) match {
       case None => (headerName, headerValue)
+      case Some(existing) if (existing.split(",").exists(_.trim.equalsIgnoreCase(headerValue))) => (headerName, existing)
       case Some(existing) => (headerName, s"$existing,$headerValue")
     }
   }
