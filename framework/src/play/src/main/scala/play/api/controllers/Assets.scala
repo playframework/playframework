@@ -91,9 +91,8 @@ private[controllers] object AssetInfo {
 
   lazy val digestAlgorithm = config(_.getString("assets.digest.algorithm")).getOrElse("md5")
 
-  private val basicDateFormatPattern = "EEE, dd MMM yyyy HH:mm:ss"
-  val dateFormat: DateTimeFormatter =
-    DateTimeFormat.forPattern(basicDateFormatPattern + " 'GMT'").withLocale(java.util.Locale.ENGLISH).withZone(DateTimeZone.UTC)
+  import ResponseHeader.basicDateFormatPattern
+
   val standardDateParserWithoutTZ: DateTimeFormatter =
     DateTimeFormat.forPattern(basicDateFormatPattern).withLocale(java.util.Locale.ENGLISH).withZone(DateTimeZone.UTC)
   val alternativeDateFormatWithTZOffset: DateTimeFormatter =
@@ -147,6 +146,7 @@ private[controllers] class AssetInfo(
     val digest: Option[String]) {
 
   import AssetInfo._
+  import ResponseHeader._
 
   def addCharsetIfNeeded(mimeType: String): String =
     if (MimeTypes.isText(mimeType)) s"$mimeType; charset=$defaultCharSet" else mimeType
@@ -172,11 +172,11 @@ private[controllers] class AssetInfo(
           } finally {
             Resources.closeUrlConnection(urlConnection)
           }
-      }.filterNot(_ == -1).map(dateFormat.print)
+      }.filterNot(_ == -1).map(httpDateFormat.print)
     }
 
     url.getProtocol match {
-      case "file" => Some(dateFormat.print(new File(url.toURI).lastModified))
+      case "file" => Some(httpDateFormat.print(new File(url.toURI).lastModified))
       case "jar" => getLastModified[JarURLConnection](c => c.getJarEntry.getTime)
       case "bundle" => getLastModified[URLConnection](c => c.getLastModified)
       case _ => None
@@ -345,8 +345,7 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
 
   import Assets._
   import AssetInfo._
-
-  private def currentTimeFormatted: String = dateFormat.print((new Date).getTime)
+  import ResponseHeader._
 
   private def maybeNotModified(request: RequestHeader, assetInfo: AssetInfo, aggressiveCaching: Boolean): Option[Result] = {
     // First check etag. Important, if there is an If-None-Match header, we MUST not check the
@@ -362,7 +361,7 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
           lastModified <- assetInfo.parsedLastModified
           if !lastModified.after(ifModifiedSince)
         } yield {
-          NotModified.withHeaders(DATE -> currentTimeFormatted)
+          NotModified
         }
     }
   }
@@ -391,8 +390,7 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
         OK,
         Map(
           CONTENT_LENGTH -> length.toString,
-          CONTENT_TYPE -> mimeType,
-          DATE -> currentTimeFormatted
+          CONTENT_TYPE -> mimeType
         )
       ),
       resourceData)

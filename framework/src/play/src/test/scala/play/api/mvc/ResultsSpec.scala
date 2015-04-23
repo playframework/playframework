@@ -5,6 +5,7 @@ package play.api.mvc
 
 import java.nio.file.{ Files, Paths }
 
+import org.joda.time.{ DateTimeZone, DateTime }
 import org.specs2.mutable._
 import play.api.libs.iteratee.{ Iteratee, Enumerator }
 import scala.concurrent.Await
@@ -38,11 +39,18 @@ object ResultsSpec extends Specification {
       val Result(ResponseHeader(_, headers, _), _, _) =
         Ok("hello").as("text/html").withHeaders("Set-Cookie" -> "yes", "X-YOP" -> "1", "X-Yop" -> "2")
 
-      headers.size must be_==(3)
+      headers.size must_== 3
       headers must havePair("Content-Type" -> "text/html")
       headers must havePair("Set-Cookie" -> "yes")
       headers must not havePair ("X-YOP" -> "1")
       headers must havePair("X-Yop" -> "2")
+    }
+
+    "support date headers manipulation" in {
+      val Result(ResponseHeader(_, headers, _), _, _) =
+        Ok("hello").as("text/html").withDateHeaders(DATE ->
+          new DateTime(2015, 4, 1, 0, 0).withZoneRetainFields(DateTimeZone.UTC))
+      headers must havePair(DATE -> "Wed, 01 Apr 2015 00:00:00 GMT")
     }
 
     "support cookies helper" in {

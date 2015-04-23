@@ -140,9 +140,10 @@ trait GlobalSettings {
       val context = Play.maybeApplication.fold("") { app =>
         httpConfigurationCache(app).context.stripSuffix("/")
       }
+      val inContext = context.isEmpty || request.path == context || request.path.startsWith(context + "/")
       next(request) match {
-        case action: EssentialAction if context.isEmpty || request.path == context || request.path.startsWith(context + "/") =>
-          doFilter(action)
+        case action: EssentialAction =>
+          HttpRequestHandler.defaultFilter(if (inContext) doFilter(action) else action)
         case handler => handler
       }
   }
