@@ -107,7 +107,7 @@ case class NingWSRequest(client: NingWSClient,
 
   def withQueryString(parameters: (String, String)*): WSRequest =
     copy(queryString = parameters.foldLeft(this.queryString) {
-      case (m, (k, v)) => m + (k -> (v +: m.get(k).getOrElse(Nil)))
+      case (m, (k, v)) => m + (k -> (v +: m.getOrElse(k, Nil)))
     })
 
   def withFollowRedirects(follow: Boolean): WSRequest = copy(followRedirects = Some(follow))
@@ -236,7 +236,7 @@ case class NingWSRequest(client: NingWSClient,
     requestTimeout.foreach(builder.setRequestTimeout)
 
     // Set the body.
-    var possiblyModifiedHeaders = this.headers
+    val possiblyModifiedHeaders = this.headers
     val builderWithBody = body match {
       case EmptyBody => builder
       case FileBody(file) =>
@@ -524,12 +524,12 @@ private class NingWSCookie(ahcCookie: AHCCookie) extends WSCookie {
   /**
    * The expiry date.
    */
-  def expires: Option[Long] = if (ahcCookie.getExpires == -1) None else Some(ahcCookie.getExpires)
+  def expires: Option[Long] = if (ahcCookie.getExpires <= -1) None else Some(ahcCookie.getExpires)
 
   /**
    * The maximum age.
    */
-  def maxAge: Option[Int] = if (ahcCookie.getMaxAge == -1) None else Some(ahcCookie.getMaxAge)
+  def maxAge: Option[Int] = if (ahcCookie.getMaxAge <= -1) None else Some(ahcCookie.getMaxAge)
 
   /**
    * If the cookie is secure.

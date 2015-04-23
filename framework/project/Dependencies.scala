@@ -275,7 +275,7 @@ object Dependencies {
 
   val playWsDeps = Seq(
     guava,
-    "com.ning" % "async-http-client" % "1.9.18"
+    "com.ning" % "async-http-client" % "1.9.20"
   ) ++ Seq("signpost-core", "signpost-commonshttp4").map("oauth.signpost" % _  % "1.2.1.2") ++
   (specsBuild :+ specsMatcherExtra).map(_ % Test) :+
   mockitoAll % Test
