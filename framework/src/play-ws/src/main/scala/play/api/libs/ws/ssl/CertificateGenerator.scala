@@ -19,7 +19,7 @@ import scala.util.Properties.isJavaAtLeast
  */
 object CertificateGenerator {
 
-  // http://docs.oracle.com/javase/6/docs/technotes/guides/security/StandardNames.html#KeyPairGenerator
+  // http://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#KeyPairGenerator
   // http://www.keylength.com/en/4/
 
   /**

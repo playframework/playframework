@@ -38,7 +38,7 @@ class SystemConfiguration {
   }
 
   def configureCheckRevocation(checkRevocation: Boolean) {
-    // http://docs.oracle.com/javase/6/docs/technotes/guides/security/certpath/CertPathProgGuide.html#AppC
+    // http://docs.oracle.com/javase/8/docs/technotes/guides/security/certpath/CertPathProgGuide.html#AppC
     // https://blogs.oracle.com/xuelei/entry/enable_ocsp_checking
 
     // 1.7: PXIXCertPathValidator.populateVariables, it is dynamic so no override needed.

@@ -7,7 +7,7 @@ Certificate Revocation can be very useful in situations where a server's private
 
 Certificate Revocation is disabled by default in JSSE.  It is defined in two places:
 
-* [PKI Programmer's Guide, Appendix C](http://docs.oracle.com/javase/6/docs/technotes/guides/security/certpath/CertPathProgGuide.html#AppC)
+* [PKI Programmer's Guide, Appendix C](http://docs.oracle.com/javase/8/docs/technotes/guides/security/certpath/CertPathProgGuide.html#AppC)
 * [Enable OCSP Checking](https://blogs.oracle.com/xuelei/entry/enable_ocsp_checking)
 
 To enable OCSP, you must set the following system properties on the command line:

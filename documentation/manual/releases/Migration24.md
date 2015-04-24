@@ -227,11 +227,11 @@ The reverse ref router used in Java tests has been removed. Any call to `Helpers
 
 ## Java TimeoutExceptions
 
-If you use the Java API, the [`F.Promise`](api/java/play/libs/F.Promise.html) class now throws unchecked [`F.PromiseTimeoutException`s](api/java/play/libs/F.PromiseTimeoutException.html) instead of Java's checked [`TimeoutException`s](http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/TimeoutException.html). The `TimeoutExceptions`s which were previously used were not properly declared with the `throws` keyword. Rather than changing the API to use the `throws` keyword, which would mean users would have to declare `throws` on their methods, the exception was changed to a new unchecked type instead. See [#1227](https://github.com/playframework/playframework/pull/1227) for more information.
+If you use the Java API, the [`F.Promise`](api/java/play/libs/F.Promise.html) class now throws unchecked [`F.PromiseTimeoutException`s](api/java/play/libs/F.PromiseTimeoutException.html) instead of Java's checked [`TimeoutException`s](http://docs.oracle.com/javase/8/docs/api/java/util/concurrent/TimeoutException.html). The `TimeoutExceptions`s which were previously used were not properly declared with the `throws` keyword. Rather than changing the API to use the `throws` keyword, which would mean users would have to declare `throws` on their methods, the exception was changed to a new unchecked type instead. See [#1227](https://github.com/playframework/playframework/pull/1227) for more information.
 
 | Old API | New API | Comments |
 | ------- | --------| -------- |
-| [`TimeoutException`](http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/TimeoutException.html) | [`F.PromiseTimeoutException`](api/java/play/libs/F.PromiseTimeoutException.html) | |
+| [`TimeoutException`](http://docs.oracle.com/javase/8/docs/api/java/util/concurrent/TimeoutException.html) | [`F.PromiseTimeoutException`](api/java/play/libs/F.PromiseTimeoutException.html) | |
 
 ## Crypto APIs
 
@@ -249,7 +249,7 @@ If you wish to continue using the older format of encryption decryption, here is
 
 The new Anorm version includes various fixes and improvements.
 
-Following [BatchSQL #3016](https://github.com/playframework/playframework/commit/722cd55a3a5369f911f5d11f7c93ba4bf100ca23), `SqlQuery` case class is refactored as a trait with companion object. 
+Following [BatchSQL #3016](https://github.com/playframework/playframework/commit/722cd55a3a5369f911f5d11f7c93ba4bf100ca23), `SqlQuery` case class is refactored as a trait with companion object.
 Consequently, `BatchSql` is now created by passing a raw statement which is validated internally.
 
 ```scala
@@ -284,11 +284,11 @@ val res: (String, Int) = SQL"SELECT text, count AS i".map(row =>
 New `fold` and `foldWhile` functions to work with result stream.
 
 ```scala
-val countryCount: Either[List[Throwable], Long] = 
+val countryCount: Either[List[Throwable], Long] =
   SQL"Select count(*) as c from Country".fold(0l) { (c, _) => c + 1 }
 
 val books: Either[List[Throwable], List[String]] =
- SQL("Select name from Books").foldWhile(List[String]()) { (list, row) => 
+ SQL("Select name from Books").foldWhile(List[String]()) { (list, row) =>
   foldWhile(List[String]()) { (list, row) =>
     if (list.size == 100) (list -> false) // stop with `list`
     else (list := row[String]("name")) -> true // continue with one more name

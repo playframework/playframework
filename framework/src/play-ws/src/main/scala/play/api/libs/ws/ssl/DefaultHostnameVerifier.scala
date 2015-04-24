@@ -24,7 +24,7 @@ class DefaultHostnameVerifier extends HostnameVerifier {
   // AsyncHttpClient issue #197: "SSL host name verification disabled by default"
   // https://github.com/AsyncHttpClient/async-http-client/issues/197
   //
-  // From http://docs.oracle.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html#HostnameVerifier
+  // From http://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#HostnameVerifier
   //
   // "When using raw SSLSockets/SSLEngines you should always check the peer's credentials before sending any data.
   // The SSLSocket and SSLEngine classes do not automatically verify that the hostname in a URL matches the
