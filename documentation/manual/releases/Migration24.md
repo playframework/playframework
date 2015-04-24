@@ -30,7 +30,7 @@ If you were previously using Play's specs2 support, you now need to explicitly a
 ```scala
 libraryDependencies += specs2 % Test
 
-resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
+resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 ```
 
 ### IDEs: Eclipse and IntelliJ IDEA
