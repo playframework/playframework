@@ -6,7 +6,7 @@ package play.api.db
 import java.sql.{ DriverManager, SQLException }
 import com.typesafe.config.ConfigFactory
 import org.specs2.mutable.Specification
-import play.api.{ Configuration }
+import play.api.Configuration
 import scala.util.Try
 
 object DriverRegistrationSpec extends Specification {

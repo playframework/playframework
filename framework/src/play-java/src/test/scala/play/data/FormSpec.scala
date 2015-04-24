@@ -4,7 +4,6 @@
 package play.data
 
 import org.specs2.mutable.Specification
-import play.mvc._
 import play.mvc.Http.{ Context, Request, RequestBuilder }
 import scala.collection.JavaConverters._
 import scala.beans.BeanProperty
@@ -96,7 +95,7 @@ object FormSpec extends Specification {
       val userEmail = Form.form(classOf[UserEmail])
       userEmail.bind(Map("email" -> "john@example.com").asJava).errors().asScala must beEmpty
       userEmail.bind(Map("email" -> "o'flynn@example.com").asJava).errors().asScala must beEmpty
-      userEmail.bind(Map("email" -> "john@ex'ample.com").asJava).errors().asScala must not beEmpty
+      userEmail.bind(Map("email" -> "john@ex'ample.com").asJava).errors().asScala must not(beEmpty)
     }
 
     "support custom validators" in {
@@ -105,7 +104,7 @@ object FormSpec extends Specification {
         val bound = form.bind(Map("name" -> "blue").asJava)
         bound.hasErrors must_== true
         bound.hasGlobalErrors must_== true
-        bound.globalErrors().asScala must not beEmpty
+        bound.globalErrors().asScala must not(beEmpty)
       }
 
       "that returns customized message when validator fails" in {

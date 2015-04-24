@@ -1,9 +1,10 @@
-package play.db;
+package play.db
 
 import play.api.test.FakeApplication
 
 object DBSpec extends org.specs2.mutable.Specification {
-  "Java DB utility" title
+
+  title("Java DB utility")
 
   "DB" should {
     "execute block with default connection" in {

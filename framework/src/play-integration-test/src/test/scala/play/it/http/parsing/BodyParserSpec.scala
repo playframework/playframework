@@ -6,7 +6,7 @@ package play.it.http.parsing
 import scala.concurrent.Future
 
 import play.api.libs.iteratee.{ Done, Enumerator, ExecutionSpecification, Input }
-import play.api.mvc.{ BodyParser, BodyParsers, Results, Result }
+import play.api.mvc.{ BodyParser, Results, Result }
 import play.api.test.{ FakeRequest, PlaySpecification }
 
 import org.specs2.ScalaCheck

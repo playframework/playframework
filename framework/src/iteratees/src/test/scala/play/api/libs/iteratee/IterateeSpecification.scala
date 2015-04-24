@@ -6,7 +6,6 @@ package play.api.libs.iteratee
 import play.api.libs.iteratee.internal.executeFuture
 import scala.concurrent.{ Await, ExecutionContext, Future, Promise }
 import scala.concurrent.duration.{ Duration, SECONDS, MILLISECONDS }
-import org.specs2.mutable.SpecificationLike
 import scala.util.Try
 
 /**
