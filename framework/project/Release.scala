@@ -36,6 +36,7 @@ object Release {
    * - test - runs the tests
    * - publish - publishes the changes
    * - bump - bumps the version for the next development iteration
+   * - promote - promotes both the bintray and sonatype releases
    * - push - pushes the tag and change
    *
    * To start the release, run
@@ -237,6 +238,18 @@ object Release {
     }
   }
 
+  object PromoteRelease extends ReleaseStage {
+    val name: String = "promote"
+    def execute(state: State, options: ReleaseOptions) = {
+      if (options.dryRun) {
+        Nil
+      } else {
+        state.log.info("Pushing bintray release and sonatype release")
+        Seq("bintrayRelease", "sonatypeRelease")
+      }
+    }
+  }
+
   object PushRelease extends ReleaseStage {
     val name = "push"
     def execute(state: State, options: ReleaseOptions) = {
@@ -280,6 +293,7 @@ object Release {
     TestRelease,
     PublishRelease,
     BumpRelease,
+    PromoteRelease,
     PushRelease
   )
 

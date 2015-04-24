@@ -19,6 +19,7 @@ import play.twirl.sbt.Import.TwirlKeys
 import interplay.Omnidoc
 import interplay.Omnidoc.Import.OmnidocKeys
 import sbtdoge.CrossPerProjectPlugin
+import bintray.BintrayPlugin
 
 import scala.util.control.NonFatal
 
@@ -52,8 +53,10 @@ object BuildSettings {
     licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.html")),
 
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
-    resolvers ++= ResolverSettings.playResolvers,
-    resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases", // specs2 depends on scalaz-stream
+    resolvers ++= Seq(
+      Resolver.typesafeRepo("releases"),
+      "Scalaz Bintray Repo" at "https://dl.bintray.com/scalaz/releases"
+    ),
 
     javacOptions ++= Seq("-encoding", "UTF-8", "-Xlint:-options"),
 
@@ -90,6 +93,7 @@ object BuildSettings {
    */
   def PlayNonCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
+      .disablePlugins(BintrayPlugin)
       .settings(playRuntimeSettings: _*)
       .settings(PublishSettings.publishSettings: _*)
       .settings(omnidocSettings: _*)
@@ -105,6 +109,7 @@ object BuildSettings {
    */
   def PlayDevelopmentProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
+      .disablePlugins(BintrayPlugin)
       .settings(playCommonSettings: _*)
       .settings(PublishSettings.publishSettings: _*)
       .settings(crossBuildSettings: _*)
@@ -116,6 +121,7 @@ object BuildSettings {
    */
   def PlayCrossBuiltProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
+      .disablePlugins(BintrayPlugin)
       .settings(playRuntimeSettings: _*)
       .settings(PublishSettings.publishSettings: _*)
       .settings(crossBuildSettings: _*)
@@ -155,6 +161,7 @@ object BuildSettings {
    */
   def PlaySbtProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
+      .disablePlugins(BintrayPlugin)
       .settings(playSbtCommonSettings: _*)
       .settings(PublishSettings.publishSettings: _*)
   }
@@ -459,4 +466,5 @@ object PlayBuild extends Build {
     ).settings(Release.settings: _*)
     .aggregate(publishedProjects: _*)
     .enablePlugins(CrossPerProjectPlugin)
+
 }
