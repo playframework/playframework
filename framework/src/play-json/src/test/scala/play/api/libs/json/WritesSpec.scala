@@ -10,7 +10,8 @@ import java.time.{
 import java.time.format.DateTimeFormatter
 
 object WritesSpec extends org.specs2.mutable.Specification {
-  "JSON Writes" title
+
+  title("JSON Writes")
 
   val testZone = ZoneId.of("UTC")
 

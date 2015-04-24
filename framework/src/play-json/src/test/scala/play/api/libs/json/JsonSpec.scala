@@ -11,7 +11,8 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.Json._
 
 object JsonSpec extends org.specs2.mutable.Specification {
-  "JSON" title
+
+  title("JSON")
 
   case class User(id: Long, name: String, friends: List[User])
 

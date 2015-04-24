@@ -34,7 +34,7 @@ object DebugConfigurationSpec extends Specification with After {
       //setLoggerDebug(certpathDebugLogger)
 
       Option(System.getProperty("java.security.debug")) must beLike {
-        case Some(value) => value must be empty
+        case Some(value) => value must beEmpty
         case None => ok
       }
 
@@ -59,7 +59,7 @@ object DebugConfigurationSpec extends Specification with After {
       //setLoggerDebug(internalDebugLogger)
 
       Option(System.getProperty("javax.net.debug")) must beLike {
-        case Some(value) => value must be empty
+        case Some(value) => value must beEmpty
         case None => ok
       }
 

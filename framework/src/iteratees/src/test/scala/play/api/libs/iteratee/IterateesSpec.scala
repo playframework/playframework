@@ -4,10 +4,8 @@
 package play.api.libs.iteratee
 
 import org.specs2.mutable._
-import java.io.OutputStream
-import java.util.concurrent.{ CountDownLatch, TimeUnit }
-import scala.concurrent.{ ExecutionContext, Promise, Future, Await }
-import scala.util.{ Failure, Success, Try }
+import scala.concurrent.{ Future, ExecutionContext }
+import scala.util.{ Failure, Try }
 
 object IterateesSpec extends Specification
     with IterateeSpecification with ExecutionSpecification {

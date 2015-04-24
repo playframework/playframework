@@ -139,7 +139,7 @@ object NingConfigSpec extends Specification with Mockito {
 
           val proxyServerSelector = actual.getProxyServerSelector
 
-          proxyServerSelector must not beNull
+          proxyServerSelector must not(beNull)
 
           proxyServerSelector must not be_== ProxyServerSelector.NO_PROXY_SELECTOR
         } finally {
@@ -232,7 +232,7 @@ object NingConfigSpec extends Specification with Mockito {
           org.mockito.Mockito.verify(sslConfig)
 
           // ...and return a result so specs2 is happy.
-          asyncClientConfig.getSSLContext must not beNull
+          asyncClientConfig.getSSLContext must not(beNull)
         }
 
         "use the default with a current certificate" in {

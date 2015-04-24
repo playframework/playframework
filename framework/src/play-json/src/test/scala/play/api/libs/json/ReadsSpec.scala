@@ -13,7 +13,8 @@ import java.time.format.DateTimeFormatter
 import play.api.data.validation.ValidationError
 
 object ReadsSpec extends org.specs2.mutable.Specification {
-  "JSON Reads" title
+
+  title("JSON Reads")
 
   "Local date/time" should {
     val DefaultReads = implicitly[Reads[LocalDateTime]]
