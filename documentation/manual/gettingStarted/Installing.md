@@ -7,7 +7,7 @@ You need to have a JDK 1.8 (or later) installed on your machine (see [General In
 
 ## Quick Start
 
-1. **Download** the latest [Typesafe Activator](http://typesafe.com/get-started).
+1. **Download** the latest [Typesafe Activator](http://downloads.typesafe.com/typesafe-activator/1.3.2/typesafe-activator-1.3.2-minimal.zip).
 2. **Extract** the archive on a location where you have write access.
 3. **Change** dir with cmd `cd activator*` (or with the file-manager)
 4. **Start** it with cmd `activator ui` (or with the file-manager)
