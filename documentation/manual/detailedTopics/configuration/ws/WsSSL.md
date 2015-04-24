@@ -32,19 +32,3 @@ JDK 1.8:
 * [SunJSSE Providers](http://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider)
 * [PKI Programmer's Guide](http://docs.oracle.com/javase/8/docs/technotes/guides/security/certpath/CertPathProgGuide.html)
 * [keytool](http://docs.oracle.com/javase/8/docs/technotes/tools/unix/keytool.html)
-
-JDK 1.7:
-
-* [JSSE Reference Guide](http://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html)
-* [JSSE Crypto Spec](http://docs.oracle.com/javase/7/docs/technotes/guides/security/crypto/CryptoSpec.html#SSLTLS)
-* [SunJSSE Providers](http://docs.oracle.com/javase/7/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider)
-* [PKI Programmer's Guide](http://docs.oracle.com/javase/7/docs/technotes/guides/security/certpath/CertPathProgGuide.html)
-* [keytool](http://docs.oracle.com/javase/7/docs/technotes/tools/solaris/keytool.html)
-
-JDK 1.6:
-
-* [JSSE Reference Guide](http://docs.oracle.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html)
-* [JSSE Crypto Spec](http://docs.oracle.com/javase/6/docs/technotes/guides/security/crypto/CryptoSpec.html#SSLTLS)
-* [SunJSSE Providers](http://docs.oracle.com/javase/6/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider)
-* [PKI Programmer's Guide](http://docs.oracle.com/javase/6/docs/technotes/guides/security/certpath/CertPathProgGuide.html)
-* [keytool](http://docs.oracle.com/javase/6/docs/technotes/tools/solaris/keytool.html)

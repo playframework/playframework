@@ -6,7 +6,7 @@
 package play.api.libs.ws.ssl
 
 /**
- * @see http://docs.oracle.com/javase/6/docs/technotes/guides/security/certpath/CertPathProgGuide.html
+ * @see http://docs.oracle.com/javase/8/docs/technotes/guides/security/certpath/CertPathProgGuide.html
  */
 class JavaSecurityDebugBuilder(c: SSLDebugConfig) {
 
@@ -30,8 +30,8 @@ class JavaSecurityDebugBuilder(c: SSLDebugConfig) {
  * A builder for setting the system property options in "javax.net.debug" and in "java.security.debug' (in
  * the case of "certpath").
  *
- * @see http://docs.oracle.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html#Debug
- * @see http://docs.oracle.com/javase/6/docs/technotes/guides/security/jsse/ReadDebug.html
+ * @see http://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#Debug
+ * @see http://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/ReadDebug.html
  */
 class JavaxNetDebugBuilder(c: SSLDebugConfig) {
 
