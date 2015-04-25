@@ -348,20 +348,20 @@ SQL"UPDATE Test SET langs = $arr".execute()
 New conversions are available to pass `List[T]`, `Set[T]`, `SortedSet[T]`, `Stream[T]` and `Vector[T]` as multi-value parameter.
 
 ```scala
-SQL("SELECT * FROM Test WHERE cat IN ({categories})").
- on('categories -> List(1, 3, 4)
+SQL("SELECT * FROM Test WHERE cat IN ({categories})")
+ .on('categories -> List(1, 3, 4))
 
-SQL("SELECT * FROM Test WHERE cat IN ({categories})").
- on('categories -> Set(1, 3, 4)
+SQL("SELECT * FROM Test WHERE cat IN ({categories})")
+ .on('categories -> Set(1, 3, 4))
 
-SQL("SELECT * FROM Test WHERE cat IN ({categories})").
- on('categories -> SortedSet("a", "b", "c")
+SQL("SELECT * FROM Test WHERE cat IN ({categories})")
+ .on('categories -> SortedSet("a", "b", "c"))
 
-SQL("SELECT * FROM Test WHERE cat IN ({categories})").
- on('categories -> Stream(1, 3, 4)
+SQL("SELECT * FROM Test WHERE cat IN ({categories})")
+ .on('categories -> Stream(1, 3, 4))
 
-SQL("SELECT * FROM Test WHERE cat IN ({categories})").
- on('categories -> Vector("a", "b", "c")
+SQL("SELECT * FROM Test WHERE cat IN ({categories})")
+ .on('categories -> Vector("a", "b", "c"))
 ```
 
 **Numeric and boolean types**
