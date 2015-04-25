@@ -88,7 +88,7 @@ class ApplicationEvolutions @Inject() (
       c.setAutoCommit(false)
       val s = c.createStatement()
       createLockTableIfNecessary(url, c, s)
-      lock(c, s)
+      lock(url, c, s)
       try {
         block
       } finally {
@@ -101,24 +101,33 @@ class ApplicationEvolutions @Inject() (
 
   private def createLockTableIfNecessary(url: String, c: Connection, s: Statement): Unit = {
     import ApplicationEvolutions._
+    val (selectScript, createScript, insertScript) = url match {
+      case OracleJdbcUrl() =>
+        (SelectPlayEvolutionsLockSql, CreatePlayEvolutionsLockOracleSql, InsertIntoPlayEvolutionsLockSql)
+      case MysqlJdbcUrl(_) =>
+        (SelectPlayEvolutionsLockMysqlSql, CreatePlayEvolutionsLockMysqlSql, InsertIntoPlayEvolutionsLockMysqlSql)
+      case _ =>
+        (SelectPlayEvolutionsLockSql, CreatePlayEvolutionsLockSql, InsertIntoPlayEvolutionsLockSql)
+    }
     try {
-      val r = s.executeQuery("select lock from play_evolutions_lock")
+      val r = s.executeQuery(selectScript)
       r.close()
     } catch {
       case e: SQLException =>
         c.rollback()
-        val createScript = url match {
-          case OracleJdbcUrl() => CreatePlayEvolutionsLockOracleSql
-          case _ => CreatePlayEvolutionsLockSql
-        }
         s.execute(createScript)
-        s.executeUpdate("insert into play_evolutions_lock (lock) values (1)")
+        s.executeUpdate(insertScript)
     }
   }
 
-  private def lock(c: Connection, s: Statement, attempts: Int = 5): Unit = {
+  private def lock(url: String, c: Connection, s: Statement, attempts: Int = 5): Unit = {
+    import ApplicationEvolutions._
+    val lockScripts = url match {
+      case MysqlJdbcUrl(_) => lockPlayEvolutionsLockMysqlSqls
+      case _ => lockPlayEvolutionsLockSqls
+    }
     try {
-      s.executeQuery("select lock from play_evolutions_lock where lock = 1 for update nowait")
+      for (script <- lockScripts) s.executeQuery(script)
     } catch {
       case e: SQLException =>
         if (attempts == 0) throw e
@@ -126,7 +135,7 @@ class ApplicationEvolutions @Inject() (
           logger.warn("Exception while attempting to lock evolutions (other node probably has lock), sleeping for 1 sec")
           c.rollback()
           Thread.sleep(1000)
-          lock(c, s, attempts - 1)
+          lock(url, c, s, attempts - 1)
         }
     }
   }
@@ -142,10 +151,27 @@ class ApplicationEvolutions @Inject() (
 
 private object ApplicationEvolutions {
 
+  val SelectPlayEvolutionsLockSql =
+    """
+      select lock from play_evolutions_lock
+    """
+
+  val SelectPlayEvolutionsLockMysqlSql =
+    """
+      select `lock` from play_evolutions_lock
+    """
+
   val CreatePlayEvolutionsLockSql =
     """
       create table play_evolutions_lock (
         lock int not null primary key
+      )
+    """
+
+  val CreatePlayEvolutionsLockMysqlSql =
+    """
+      create table play_evolutions_lock (
+        `lock` int not null primary key
       )
     """
 
@@ -156,6 +182,33 @@ private object ApplicationEvolutions {
         CONSTRAINT play_evolutions_lock_pk PRIMARY KEY (lock)
       )
     """
+
+  val InsertIntoPlayEvolutionsLockSql =
+    """
+      insert into play_evolutions_lock (lock) values (1)
+    """
+
+  val InsertIntoPlayEvolutionsLockMysqlSql =
+    """
+      insert into play_evolutions_lock (`lock`) values (1)
+    """
+
+  val lockPlayEvolutionsLockSqls =
+    List(
+      """
+        select lock from play_evolutions_lock where lock = 1 for update nowait
+      """
+    )
+
+  val lockPlayEvolutionsLockMysqlSqls =
+    List(
+      """
+        set innodb_lock_wait_timeout = 1
+      """,
+      """
+        select `lock` from play_evolutions_lock where `lock` = 1 for update
+      """
+    )
 }
 
 /**
