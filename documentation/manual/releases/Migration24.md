@@ -183,7 +183,7 @@ See the [[Java|JavaAkka]] or [[Scala|ScalaAkka]] Akka page for more information.
 
 ### Logging
 
-Logging is now configure solely via [logback configuration files](http://logback.qos.ch/manual/configuration.html).
+Logging is now configured solely via [logback configuration files](http://logback.qos.ch/manual/configuration.html).
 
 ## JDBC connection pool
 
@@ -265,7 +265,7 @@ BatchSql("SQL")
 
 ### Parsing
 
-It's now possible to get value from `Row` using column index.
+It's now possible to get values from `Row` using the column index.
 
 ```scala
 val res: (String, String) = SQL("SELECT * FROM Test").map(row =>
