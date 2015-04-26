@@ -17,7 +17,6 @@ final class GuiceApplicationBuilder(
   overrides: Seq[GuiceableModule] = Seq.empty,
   disabled: Seq[Class[_]] = Seq.empty,
   loadConfiguration: Environment => Configuration = Configuration.load,
-  global: Option[GlobalSettings] = None,
   loadModules: (Environment, Configuration) => Seq[GuiceableModule] = GuiceableModule.loadModules) extends GuiceBuilder[GuiceApplicationBuilder](
   environment, configuration, modules, overrides, disabled
 ) {
@@ -40,13 +39,6 @@ final class GuiceApplicationBuilder(
     loadConfig(env => conf)
 
   /**
-   * Set the global settings object.
-   * Overrides the default or any previously configured values.
-   */
-  def global(globalSettings: GlobalSettings): GuiceApplicationBuilder =
-    copy(global = Option(globalSettings))
-
-  /**
    * Set the module loader.
    * Overrides the default or any previously configured values.
    */
@@ -64,7 +56,7 @@ final class GuiceApplicationBuilder(
    */
   override def injector(): PlayInjector = {
     val initialConfiguration = loadConfiguration(environment)
-    val globalSettings = global.getOrElse(GlobalSettings(initialConfiguration, environment))
+    val globalSettings = GlobalSettings(initialConfiguration, environment)
     val appConfiguration = initialConfiguration ++ configuration
 
     // TODO: Logger should be application specific, and available via dependency injection.
@@ -101,9 +93,8 @@ final class GuiceApplicationBuilder(
     overrides: Seq[GuiceableModule] = overrides,
     disabled: Seq[Class[_]] = disabled,
     loadConfiguration: Environment => Configuration = loadConfiguration,
-    global: Option[GlobalSettings] = global,
     loadModules: (Environment, Configuration) => Seq[GuiceableModule] = loadModules): GuiceApplicationBuilder =
-    new GuiceApplicationBuilder(environment, configuration, modules, overrides, disabled, loadConfiguration, global, loadModules)
+    new GuiceApplicationBuilder(environment, configuration, modules, overrides, disabled, loadConfiguration, loadModules)
 
   /**
    * Implementation of Self creation for GuiceBuilder.

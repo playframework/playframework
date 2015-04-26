@@ -41,13 +41,6 @@ public class FakeApplicationTest {
       //#test-fakeapp
       Application fakeApp = Helpers.fakeApplication();
 
-      Application fakeAppWithGlobal = fakeApplication(new GlobalSettings() {
-        @Override
-        public void onStart(Application app) {
-          System.out.println("Starting FakeApplication");
-        }
-      });
-
       Application fakeAppWithMemoryDb = fakeApplication(inMemoryDatabase("test"));
       //#test-fakeapp
     }

@@ -9,9 +9,7 @@ import java.util.List;
 import play.api.inject.guice.GuiceableModule;
 import play.Application;
 import play.Configuration;
-import play.core.j.JavaGlobalSettingsAdapter;
 import play.Environment;
-import play.GlobalSettings;
 import play.libs.Scala;
 
 import static scala.compat.java8.JFunction.func;
@@ -40,14 +38,6 @@ public final class GuiceApplicationBuilder extends GuiceBuilder<GuiceApplication
      */
     public GuiceApplicationBuilder loadConfig(Configuration conf) {
         return loadConfig(env -> conf);
-    }
-
-    /**
-     * Set the global settings object.
-     * Overrides the default or any previously configured values.
-     */
-    public GuiceApplicationBuilder global(GlobalSettings global) {
-        return newBuilder(delegate.global(new JavaGlobalSettingsAdapter(global)));
     }
 
     /**

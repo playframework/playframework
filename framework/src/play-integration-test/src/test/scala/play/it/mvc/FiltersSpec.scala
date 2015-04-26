@@ -18,7 +18,6 @@ import scala.concurrent._
 import play.api.libs.concurrent.Execution.{ defaultContext => ec }
 
 object NettyDefaultFiltersSpec extends DefaultFiltersSpec with NettyIntegrationSpecification
-object NettyGlobalFiltersSpec extends GlobalFiltersSpec with NettyIntegrationSpecification
 object AkkaDefaultHttpFiltersSpec extends DefaultFiltersSpec with AkkaHttpIntegrationSpecification
 
 trait DefaultFiltersSpec extends FiltersSpec {
@@ -39,28 +38,6 @@ trait DefaultFiltersSpec extends FiltersSpec {
       WsTestClient.withClient(block)
     }
 
-  }
-}
-
-trait GlobalFiltersSpec extends FiltersSpec {
-  def withServer[T](settings: Map[String, String] = Map.empty, errorHandler: Option[HttpErrorHandler] = None)(filters: EssentialFilter*)(block: WSClient => T) = {
-
-    import play.api.inject.bind
-
-    val appBuilder = new GuiceApplicationBuilder()
-      .configure(settings)
-      .overrides(bind[Router].toInstance(testRouter))
-      .global(
-        new WithFilters(filters: _*) {
-          override def onHandlerNotFound(request: RequestHeader) = {
-            errorHandler.fold(super.onHandlerNotFound(request))(_.onClientError(request, 404, ""))
-          }
-        }
-      )
-
-    Server.withApplication(appBuilder.build()) { implicit port =>
-      WsTestClient.withClient(block)
-    }
   }
 }
 
