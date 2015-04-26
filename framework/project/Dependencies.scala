@@ -31,7 +31,7 @@ object Dependencies {
 
   val h2database = "com.h2database" % "h2" % "1.4.187"
 
-  val acolyteVersion = "1.0.32"
+  val acolyteVersion = "1.0.33-j7p"
   val acolyte = "org.eu.acolyte" % "jdbc-driver" % acolyteVersion
 
   val jdbcDeps = Seq(
