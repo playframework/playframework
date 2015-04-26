@@ -72,12 +72,11 @@ You can reattach to the application and detaching again using `Ctrl+A+D`:
 $ screen -r my-first-app
 ```
 
-A simple script in /etc/init.d/ makes it possible start and stop the server and to start the application at boot time:
+A simple script in /etc/init.d/ makes it possible start and stop the server and to start the application at boot time (referring to https://www.debian-administration.org/article/28/Making_scripts_run_at_boot_time_with_Debian):
 
 ```bash
 #! /bin/sh
 # /etc/init.d/my-first-app
-# Source: https://www.debian-administration.org/article/28/Making_scripts_run_at_boot_time_with_Debian
 
 cd /path/to/my-first-app/target/universal/stage/
 
