@@ -65,8 +65,7 @@ final class GuiceApplicationBuilder(
   override def injector(): PlayInjector = {
     val initialConfiguration = loadConfiguration(environment)
     val globalSettings = global.getOrElse(GlobalSettings(initialConfiguration, environment))
-    val loadedConfiguration = globalSettings.onLoadConfig(initialConfiguration, environment.rootPath, environment.classLoader, environment.mode)
-    val appConfiguration = loadedConfiguration ++ configuration
+    val appConfiguration = initialConfiguration ++ configuration
 
     // TODO: Logger should be application specific, and available via dependency injection.
     //       Creating multiple applications will stomp on the global logger configuration.

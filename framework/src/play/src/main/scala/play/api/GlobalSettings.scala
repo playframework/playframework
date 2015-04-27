@@ -82,20 +82,19 @@ trait GlobalSettings {
   }
 
   /**
-   * Additional configuration provided by the application.  This is invoked by the default implementation of
-   * onLoadConfig, so if you override that, this won't be invoked.
+   * @deprecated This method does not do anything.
+   * Instead, specify configuration in your config file
+   * or make your own ApplicationLoader (see GuiceApplicationBuilder.loadConfig).
    */
+  @Deprecated
   def configuration: Configuration = Configuration.empty
 
   /**
-   * Called just after configuration has been loaded, to give the application an opportunity to modify it.
-   *
-   * @param config the loaded configuration
-   * @param path the application path
-   * @param classloader The applications classloader
-   * @param mode The mode the application is running in
-   * @return The configuration that the application should use
+   * @deprecated This method does not do anything.
+   * Instead, specify configuration in your config file
+   * or make your own ApplicationLoader (see GuiceApplicationBuilder.loadConfig).
    */
+  @Deprecated
   def onLoadConfig(config: Configuration, path: File, classloader: ClassLoader, mode: Mode.Mode): Configuration =
     config ++ configuration
 

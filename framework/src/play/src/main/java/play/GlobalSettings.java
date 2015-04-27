@@ -115,26 +115,21 @@ public class GlobalSettings {
     }
 
     /**
-     * Called just after configuration has been loaded, to give the application an opportunity to modify it.
-     *
-     * @param config the loaded configuration
-     * @param path the application path
-     * @param classloader The applications classloader
-     * @return The configuration that the application should use
+     * @deprecated This method does not do anything.
+     * Instead, specify configuration in your config file
+     * or make your own ApplicationLoader (see GuiceApplicationBuilder.loadConfig).
      */
+    @Deprecated
     public Configuration onLoadConfig(Configuration config, File path, ClassLoader classloader) {
         return null;
     }
 
     /**
-     * Called just after configuration has been loaded, to give the application an opportunity to modify it.
-     *
-     * @param config the loaded configuration
-     * @param path the application path
-     * @param classloader The applications classloader
-     * @param mode The mode of the application
-     * @return The configuration that the application should use
+     * @deprecated This method does not do anything.
+     * Instead, specify configuration in your config file
+     * or make your own ApplicationLoader (see GuiceApplicationBuilder.loadConfig).
      */
+    @Deprecated
     public Configuration onLoadConfig(Configuration config, File path, ClassLoader classloader, Mode mode) {
         return onLoadConfig(config, path, classloader);
     }
