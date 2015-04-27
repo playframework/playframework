@@ -28,9 +28,7 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
   "Scala Functional Test" should {
 
     // #scalafunctionaltest-fakeApplication
-    val fakeApplicationWithGlobal = FakeApplication(withGlobal = Some(new GlobalSettings() {
-      override def onStart(app: Application) { println("Hello world!") }
-    }))
+    val fakeApp = FakeApplication()
     // #scalafunctionaltest-fakeApplication
 
     val fakeApplication = FakeApplication(withRoutes = {

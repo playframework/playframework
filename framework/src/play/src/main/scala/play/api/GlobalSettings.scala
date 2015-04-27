@@ -82,24 +82,6 @@ trait GlobalSettings {
   }
 
   /**
-   * Additional configuration provided by the application.  This is invoked by the default implementation of
-   * onLoadConfig, so if you override that, this won't be invoked.
-   */
-  def configuration: Configuration = Configuration.empty
-
-  /**
-   * Called just after configuration has been loaded, to give the application an opportunity to modify it.
-   *
-   * @param config the loaded configuration
-   * @param path the application path
-   * @param classloader The applications classloader
-   * @param mode The mode the application is running in
-   * @return The configuration that the application should use
-   */
-  def onLoadConfig(config: Configuration, path: File, classloader: ClassLoader, mode: Mode.Mode): Configuration =
-    config ++ configuration
-
-  /**
    * Retrieve the (RequestHeader,Handler) to use to serve this request.
    * Default is: route, tag request, then apply filters
    */

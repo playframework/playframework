@@ -87,23 +87,6 @@ public class GuiceApplicationBuilderTest {
     }
 
     @Test
-    public void setGlobal() {
-        GlobalSettings global = new GlobalSettings() {
-            @Override
-            public Configuration onLoadConfig(Configuration config, File path, ClassLoader classloader) {
-                Configuration extra = new Configuration(ImmutableMap.of("a", 1));
-                return extra.withFallback(config);
-            }
-        };
-
-        Application app = new GuiceApplicationBuilder()
-            .global(global)
-            .build();
-
-        assertThat(app.configuration().getInt("a"), is(1));
-    }
-
-    @Test
     public void setModuleLoader() {
         Application app = new GuiceApplicationBuilder()
             .load((env, conf) -> ImmutableList.of(

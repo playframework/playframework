@@ -115,31 +115,6 @@ public class GlobalSettings {
     }
 
     /**
-     * Called just after configuration has been loaded, to give the application an opportunity to modify it.
-     *
-     * @param config the loaded configuration
-     * @param path the application path
-     * @param classloader The applications classloader
-     * @return The configuration that the application should use
-     */
-    public Configuration onLoadConfig(Configuration config, File path, ClassLoader classloader) {
-        return null;
-    }
-
-    /**
-     * Called just after configuration has been loaded, to give the application an opportunity to modify it.
-     *
-     * @param config the loaded configuration
-     * @param path the application path
-     * @param classloader The applications classloader
-     * @param mode The mode of the application
-     * @return The configuration that the application should use
-     */
-    public Configuration onLoadConfig(Configuration config, File path, ClassLoader classloader, Mode mode) {
-        return onLoadConfig(config, path, classloader);
-    }
-
-    /**
      * Get the filters that should be used to handle each request.
      */
     public <T extends play.api.mvc.EssentialFilter> Class<T>[] filters() {

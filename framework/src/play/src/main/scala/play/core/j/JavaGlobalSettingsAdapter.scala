@@ -46,12 +46,6 @@ class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends Glo
       .getOrElse(super.onBadRequest(request, error))
   }
 
-  override def onLoadConfig(config: Configuration, path: File, classloader: ClassLoader, mode: Mode.Mode) = {
-    import JavaModeConverter.asJavaMode
-    Option(underlying.onLoadConfig(new play.Configuration(config), path, classloader, mode))
-      .map(_.getWrappedConfiguration).getOrElse(super.onLoadConfig(config, path, classloader, mode))
-  }
-
   override def doFilter(a: EssentialAction): EssentialAction = {
     try {
       Filters(super.doFilter(a), underlying.filters.map(_.newInstance: play.api.mvc.EssentialFilter): _*)

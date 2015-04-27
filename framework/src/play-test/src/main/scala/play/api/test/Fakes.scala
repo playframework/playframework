@@ -200,12 +200,10 @@ case class FakeApplication(
     additionalPlugins: Seq[String] = Nil,
     withoutPlugins: Seq[String] = Nil,
     additionalConfiguration: Map[String, _ <: Any] = Map.empty,
-    withGlobal: Option[play.api.GlobalSettings] = None,
     withRoutes: PartialFunction[(String, String), Handler] = PartialFunction.empty) extends Application {
 
   private val app: Application = new GuiceApplicationBuilder()
     .in(Environment(path, classloader, Mode.Test))
-    .global(withGlobal.orNull)
     .configure(additionalConfiguration)
     .bindings(
       bind[FakePluginsConfig] to FakePluginsConfig(additionalPlugins, withoutPlugins),
@@ -216,7 +214,6 @@ case class FakeApplication(
     .build
 
   override def mode: Mode.Mode = app.mode
-  override def global: GlobalSettings = app.global
   override def configuration: Configuration = app.configuration
   override def actorSystem: ActorSystem = app.actorSystem
   override def plugins: Seq[Plugin.Deprecated] = app.plugins
