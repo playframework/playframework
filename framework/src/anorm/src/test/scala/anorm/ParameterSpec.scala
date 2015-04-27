@@ -31,10 +31,11 @@ object ParameterSpec extends org.specs2.mutable.Specification {
   val Jbd1 = new JBigDec(1.234d)
   val Sbd1 = BigDecimal(Jbd1)
   val sbi1 = BigInt(jbi1)
-  val Date1 = new Date()
+  val now = System.currentTimeMillis()
+  val Date1 = new Date(now)
   val Timestamp1 = { val ts = new Timestamp(123l); ts.setNanos(123456789); ts }
-  val dateTime1 = DateTime.now()
-  val instant1 = Instant.now()
+  val dateTime1 = new DateTime(now)
+  val instant1 = new Instant(now)
   val uuid1 = java.util.UUID.randomUUID; val Uuid1str = uuid1.toString
   val SqlStr = ParameterMetaData.Str
   val SqlBool = ParameterMetaData.Bool
