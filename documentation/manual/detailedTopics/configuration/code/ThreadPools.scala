@@ -155,12 +155,8 @@ object ThreadPoolsSpec extends PlaySpecification {
   }
 
   def runningWithConfig[T: AsResult](config: String )(block: Application => T) = {
-    val parsed = ConfigFactory.parseString(config)
-    val app = FakeApplication(withGlobal = Some(new GlobalSettings {
-      override def onLoadConfig(config: Configuration, path: File, classloader: ClassLoader, mode: Mode.Mode) = {
-        config ++ Configuration(parsed)
-      }
-    }))
+    val parsed: java.util.Map[String,Object] = ConfigFactory.parseString(config).root.unwrapped
+    val app = FakeApplication(additionalConfiguration = collection.JavaConversions.mapAsScalaMap(parsed).toMap)
     running(app)(block(app))
   }
 }
