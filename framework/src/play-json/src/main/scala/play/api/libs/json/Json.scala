@@ -242,4 +242,30 @@ object Json {
    */
   def format[A] = macro JsMacroImpl.formatImpl[A]
 
+  /**
+   * Creates a Writes[T] by resolving getters & required implicits at COMPILE-time
+   *
+   * If any missing implicit is discovered, compiler will break with corresponding error.
+   * {{{
+   *   import play.api.libs.json.Json
+   *
+   *   case class UserWithFields(age: Int, name: String) {
+   *    val ageWithName: String = s"$age $name"
+   *    var ageWithNameVar: String = s"$age $name"
+   *    def test(x: Int): Int = x + 999 // This should be ignored
+   *   }
+   *
+   *   implicit val userWithWrites = writesGetters[UserWithFields]
+   *   // macro-compiler replaces Json.writes[User] by injecting into compile chain
+   *   // the exact code you would write yourself. This is strictly equivalent to:
+   *   implicit val userWrites = (
+   *    (__ \ 'age).write[Int] and
+   *    (__ \ 'name).write[String] and
+   *    (__ \ 'ageWithName).write[String] and
+   *    (__ \ 'ageWithNameVar).write[String]
+   *   )(o: UserWithFields => (o.age, o.name, o.ageWithName, o.ageWithNameVar))
+   * }}}
+   */
+  def writesGetters[A] = macro JsMacroImpl.writesGettersImpl[A]
+
 }
