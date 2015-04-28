@@ -167,6 +167,7 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 | [`Cached` object](api/scala/index.html#play.api.cache.Cached$) | [`Cached` instance](api/scala/index.html#play.api.cache.Cached) | Use an injected instance instead of the companion object. You can use the `@NamedCache` annotation. |
 | [`Akka`](api/scala/index.html#play.api.libs.concurrent.Akka$) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
 | [`WS`](api/scala/index.html#play.api.libs.ws.WS$) | [`WSClient`](api/scala/index.html#play.api.libs.ws.WSClient) | |
+| [`Crypto`](api/scala/index.html#play.api.libs.Crypto$) | [`Crypto`](api/scala/index.html#play.api.libs.Crypto) | |
 
 #### Java
 
@@ -179,6 +180,7 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 | [`Cache`](api/java/play/cache/Cache.html) | [`CacheApi`](api/java/play/cache/CacheApi.html) | You can get a particular cache using the [`@NamedCache`](api/java/play/cache/NamedCache.html) annotation. |
 | [`Akka`](api/java/play/libs/Akka.html) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
 | [`WS`](api/java/play/libs/ws/WS.html) | [`WSClient`](api/java/play/libs/ws/WSClient.html) | |
+| [`Crypto`](api/java/play/libs/Crypto.html) | [`Crypto`](api/java/play/libs/Crypto.html) | The old static methods have been removed, an instance can statically be accessed using `play.Play.application().injector().instanceOf(Crypto.class)` |
 
 ## Configuration changes
 
