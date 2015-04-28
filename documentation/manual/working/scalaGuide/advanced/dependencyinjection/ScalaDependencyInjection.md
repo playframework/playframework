@@ -37,9 +37,17 @@ If using the static routes generator, you can indicate that an action has an inj
 
 @[injected](code/scalaguide.advanced.dependencyinjection.injected.routes)
 
+## Component lifecycle
+
+The dependency injection system manages the lifecycle of injected components, creating them as needed and injecting them into other components. Here's how component lifecycle works:
+
+* **New instances are created every time a component is needed**. If a component is used more than once, then, by default, multiple instances of the component will be created. If you only want a single instance of a component then you need to mark it as a [singleton](#Singletons).
+* **Instances are created lazily when they are needed**. If a component is never used by another component, then it won't be created at all. This is usually what you want. For most components there's no point creating them until they're needed. However, in some cases you want components to be started up straight away or even if they're not used by another component. For example, you might want to send a message to a remote system or warm up a cache when the application starts. You can force a component to be created eagerly by using an [eager binding](#Eager-bindings).
+* **Instances are _not_ automatically cleaned up**, beyond normal garbage collection. Components will be garbage collected when they're no longer referenced, but the framework won't do anything special to shut down the component, like calling a `close` method. However, Play provides a special type of component, called the `ApplicationLifecycle` which lets you register components to [shut down when the application stops](#Stopping/cleaning-up).
+
 ## Singletons
 
-Sometimes you may have a component that holds some state, such as a cache, or a connection to an external resource.  In this case it may be important that there only be one of that component.  This can be achieved using the [@Singleton](http://docs.oracle.com/javaee/6/api/javax/inject/Singleton.html) annotation:
+Sometimes you may have a component that holds some state, such as a cache, or a connection to an external resource, or a component might be expensive to create. In these cases it may be important that there is only be one instance of that component. This can be achieved using the [@Singleton](http://docs.oracle.com/javaee/6/api/javax/inject/Singleton.html) annotation:
 
 @[singleton](code/RuntimeDependencyInjection.scala)
 
@@ -65,21 +73,39 @@ We recommend that Play applications use whatever mechanism is provided by the DI
 
 Since Play provides support for Guice out of the box, the examples below show how to provide bindings for Guice.
 
+#### Binding annotations
+
 The simplest way to bind an implementation to an interface is to use the Guice [@ImplementedBy](http://google.github.io/guice/api-docs/latest/javadoc/index.html?com/google/inject/ImplementedBy.html) annotation.  For example:
 
 @[implemented-by](code/RuntimeDependencyInjection.scala)
+
+#### Programmatic bindings
 
 In some more complex situations, you may want to provide more complex bindings, such as when you have multiple implementations of the one trait, which are qualified by [@Named](http://docs.oracle.com/javaee/6/api/javax/inject/Named.html) annotations.  In these cases, you can implement a custom Guice [Module](http://google.github.io/guice/api-docs/latest/javadoc/index.html?com/google/inject/Module.html):
 
 @[guice-module](code/RuntimeDependencyInjection.scala)
 
-In even more complex situations you might want to access the Play configuration or ClassLoader when you configure Guice bindings. You can get access to these objects by adding them to your module's constructor.
+To register this module with Play, append it's fully qualified class name to the `play.modules.enabled` list in `application.conf`:
+
+    play.modules.enabled += "modules.HelloModule"
+
+#### Configurable bindings
+
+Sometimes you might want to read the Play `Configuration` or use a `ClassLoader` when you configure Guice bindings. You can get access to these objects by adding them to your module's constructor.
+
+In the example below, the `Hello` binding for each language is read from a configuration file. This allows new `Hello` bindings to be added by adding new settings in your `application.conf` file.
 
 @[dynamic-guice-module](code/RuntimeDependencyInjection.scala)
 
-To register either of these HelloWorld modules with Play, append the fully qualified class name to the `play.modules.enabled` list in `application.conf`:
+> **Note:** In most cases, if you need to access `Configuration` when you create a component, you should inject the `Configuration` object into the component itself or into the component's `Provider`. Then you can read the `Configuration` when you create the component. You usually don't need to read `Configuration` when you create the bindings for the component.
 
-    play.modules.enabled += "modules.HelloModule"
+#### Eager bindings
+
+In the code above, new `EnglishHello` and `GermanHello` objects will be created each time they are used. If you only want to create these objects once, perhaps because they're expensive to create, then you should use the `@Singleton` annotation as [described above](#Singletons). If you want to create them once and also create them _eagerly_ when the application starts up, rather than lazily when they are needed, then you can [Guice's eager singleton binding](https://github.com/google/guice/wiki/Scopes#eager-singletons).
+
+@[eager-guice-module](code/RuntimeDependencyInjection.scala)
+
+Eager singletons can be used to start up a service when an application starts. They are often combined with a [shutdown hook](#Stopping/cleaning-up) so that the service can clean up its resources when the application stops.
 
 ### Play libraries
 
@@ -93,12 +119,15 @@ This module can be registered with Play automatically by appending it to the `pl
 
     play.modules.enabled += "com.example.HelloModule"
 
+* The `Module` `bindings` method takes a Play `Environment` and `Configuration`. You can access these if you want to [configure the bindings dynamically](#Configurable-bindings).
+* Module bindings support [eager bindings](#Eager-bindings). To declare an eager binding, add `.eagerly` at the end of your `Binding`.
+
 In order to maximise cross framework compatibility, keep in mind the following things:
 
 * Not all DI frameworks support just in time bindings. Make sure all components that your library provides are explicitly bound.
 * Try to keep binding keys simple - different runtime DI frameworks have very different views on what a key is and how it should be unique or not.
 
-## Excluding modules
+### Excluding modules
 
 If there is a module that you don't want to be loaded, you can exclude it by appending it to the `play.modules.disabled` property in `application.conf`:
 
