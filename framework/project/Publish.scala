@@ -4,35 +4,23 @@
 
 import sbt.Keys._
 import sbt._
-
-/**
- * Any resolvers that we may be interested in
- */
-object ResolverSettings {
-  val typesafeReleases = "Typesafe Releases Repository" at "https://repo.typesafe.com/typesafe/releases/"
-  val typesafeSnapshots = "Typesafe Snapshots Repository" at "https://repo.typesafe.com/typesafe/snapshots/"
-  val typesafeIvyReleases = Resolver.url("Typesafe Ivy Releases Repository", url("https://repo.typesafe.com/typesafe/ivy-releases"))(Resolver.ivyStylePatterns)
-  val typesafeIvySnapshots = Resolver.url("Typesafe Ivy Snapshots Repository", url("https://repo.typesafe.com/typesafe/ivy-snapshots"))(Resolver.ivyStylePatterns)
-  val publishTypesafeMavenReleases = "Typesafe Maven Releases Repository for publishing" at "https://private-repo.typesafe.com/typesafe/maven-releases/"
-  val publishTypesafeMavenSnapshots = "Typesafe Maven Snapshots Repository for publishing" at "https://private-repo.typesafe.com/typesafe/maven-snapshots/"
-  val publishTypesafeIvyReleases = Resolver.url("Typesafe Ivy Releases Repository for publishing", url("https://private-repo.typesafe.com/typesafe/ivy-releases/"))(Resolver.ivyStylePatterns)
-  val publishTypesafeIvySnapshots = Resolver.url("Typesafe Ivy Snapshots Repository for publishing", url("https://private-repo.typesafe.com/typesafe/ivy-snapshots/"))(Resolver.ivyStylePatterns)
-
-  val publishSonatypeReleases = "Sonatype Maven Repository for publishing" at "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-  val publishSonatypeSnapshots = "Sonatype Maven Snapshots Repository for publishing" at "https://oss.sonatype.org/content/repositories/snapshots"
-
-  val sonatypeSnapshots = "Sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
-  val sbtPluginSnapshots = Resolver.url("sbt plugin snapshots", url("http://repo.scala-sbt.org/scalasbt/sbt-plugin-snapshots"))(Resolver.ivyStylePatterns)
-
-  val playResolvers = Seq(typesafeReleases, typesafeIvyReleases)
-}
+import bintray.BintrayKeys._
+import xerial.sbt.Sonatype
+import xerial.sbt.Sonatype.SonatypeKeys._
 
 object PublishSettings {
 
   private def commonPublishSettings: Seq[Setting[_]] = Seq(
     pomIncludeRepository := { _ => false },
-    pomExtra := pomExtraXml
-
+    pomExtra := pomExtraXml,
+    bintrayRepository := "sbt-plugin-releases",
+    bintrayOrganization := Option("playframework"),
+    bintrayPackage := "play-sbt-plugin",
+    bintrayReleaseOnPublish := false,
+    profileName := "com.typesafe",
+    // Do not aggregate the release commands
+    aggregate in bintrayRelease := false,
+    aggregate in sonatypeRelease := false
   )
 
   /**
@@ -42,37 +30,34 @@ object PublishSettings {
    *
    * So, to disable publishing for the 2.11 build, we simply publish to a dummy repo instead of to the real thing.
    */
-  def dontPublishSettings: Seq[Setting[_]] = Seq(
+  def dontPublishSettings: Seq[Setting[_]] = Sonatype.sonatypeSettings ++ commonPublishSettings ++ Seq(
     publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo")))
   )
 
   /**
    * Default publish settings
    */
-  def publishSettings: Seq[Setting[_]] = commonPublishSettings ++ Seq(
-    publishTo := {
-      Some(if (isSnapshot.value) {
-        ResolverSettings.publishSonatypeSnapshots
-      } else {
-        ResolverSettings.publishSonatypeReleases
-      })
-    },
-    publishMavenStyle := true
-  )
+  def publishSettings: Seq[Setting[_]] = Sonatype.sonatypeSettings ++ commonPublishSettings
 
   /**
-   * Publish settings for SBT plugins
+   * Publish settings for SBT plugins.
+   *
+   * SBT plugins get published to bintray for releases, or sonatype for snapshots.  This is because sonatype doesn't
+   * handle sbt plugins well, primarily due to it's indexing, but that's not a problem for snapshots, meanwhile bintray
+   * doesn't allow publishing snapshots.
+   *
+   * Also note, bintray settings are
    */
   def sbtPluginPublishSettings: Seq[Setting[_]] = {
     commonPublishSettings ++ Seq(
       publishTo := {
-        Some(if (isSnapshot.value) {
-          ResolverSettings.publishTypesafeIvySnapshots
+        if (isSnapshot.value) {
+          Some(Opts.resolver.sonatypeSnapshots)
         } else {
-          ResolverSettings.publishTypesafeIvyReleases
-        })
+          publishTo.value
+        }
       },
-      publishMavenStyle := false
+      publishMavenStyle := !isSnapshot.value
     )
   }
 
