@@ -40,7 +40,7 @@ object SecurityHeadersFilterSpec extends PlaySpecification {
           case _ => Action(result)
         }),
         bind[HttpFilters].to[Filters]
-      ).build()
+      ).build
     )(block)
   }
 

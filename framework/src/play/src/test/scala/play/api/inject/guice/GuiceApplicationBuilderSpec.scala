@@ -15,14 +15,14 @@ object GuiceApplicationBuilderSpec extends Specification {
   "GuiceApplicationBuilder" should {
 
     "add bindings" in {
-      val app = new GuiceApplicationBuilder()
+      val injector = new GuiceApplicationBuilder()
         .bindings(
           new AModule,
           bind[B].to[B1])
-        .build
+        .injector
 
-      app.injector.instanceOf[A] must beAnInstanceOf[A1]
-      app.injector.instanceOf[B] must beAnInstanceOf[B1]
+      injector.instanceOf[A] must beAnInstanceOf[A1]
+      injector.instanceOf[B] must beAnInstanceOf[B1]
     }
 
     "override bindings" in {
@@ -38,14 +38,14 @@ object GuiceApplicationBuilderSpec extends Specification {
     }
 
     "disable modules" in {
-      val app = new GuiceApplicationBuilder()
+      val injector = new GuiceApplicationBuilder()
         .bindings(new AModule)
         .disable[play.api.i18n.I18nModule]
         .disable(classOf[AModule])
-        .build
+        .injector
 
-      app.injector.instanceOf[play.api.i18n.Langs] must throwA[com.google.inject.ConfigurationException]
-      app.injector.instanceOf[A] must throwA[com.google.inject.ConfigurationException]
+      injector.instanceOf[play.api.i18n.Langs] must throwA[com.google.inject.ConfigurationException]
+      injector.instanceOf[A] must throwA[com.google.inject.ConfigurationException]
     }
 
     "set initial configuration loader" in {
@@ -58,19 +58,19 @@ object GuiceApplicationBuilderSpec extends Specification {
     }
 
     "set module loader" in {
-      val app = new GuiceApplicationBuilder()
+      val injector = new GuiceApplicationBuilder()
         .load((env, conf) => Seq(new BuiltinModule, bind[A].to[A1]))
-        .build
+        .injector
 
-      app.injector.instanceOf[A] must beAnInstanceOf[A1]
+      injector.instanceOf[A] must beAnInstanceOf[A1]
     }
 
     "set loaded modules directly" in {
-      val app = new GuiceApplicationBuilder()
+      val injector = new GuiceApplicationBuilder()
         .load(new BuiltinModule, bind[A].to[A1])
-        .build
+        .injector
 
-      app.injector.instanceOf[A] must beAnInstanceOf[A1]
+      injector.instanceOf[A] must beAnInstanceOf[A1]
     }
 
   }

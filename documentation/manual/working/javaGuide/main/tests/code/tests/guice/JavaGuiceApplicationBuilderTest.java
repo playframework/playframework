@@ -175,7 +175,7 @@ public class JavaGuiceApplicationBuilderTest {
             .configure("key", "value")
             .bindings(new ComponentModule())
             .overrides(bind(Component.class).to(MockComponent.class))
-            .build();
+            .injector();
 
         Component component = injector.instanceOf(Component.class);
         // #injector-builder

@@ -161,7 +161,7 @@ object GzipFilterSpec extends PlaySpecification with DataTables {
             case _ => Action(result)
           }),
           bind[HttpFilters].to[Filters]
-        ).build()
+        ).build
     )(block)
   }
 
