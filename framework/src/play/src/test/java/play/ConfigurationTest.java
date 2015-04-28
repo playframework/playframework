@@ -49,9 +49,15 @@ public class ConfigurationTest {
         Assert.assertEquals(underlying, config.underlying());
     }
 
+    @Test
+    public void stringConstructor() {
+        Configuration config = new Configuration("a = 1");
+        assertThat(config.getInt("a")).isEqualTo(1);
+    }
+
     public Configuration exampleConfig() {
-        return new Configuration(ConfigFactory.parseMap(ImmutableMap.of("foo.bar1", "value1",
+        return new Configuration(ImmutableMap.of("foo.bar1", "value1",
                 "foo.bar2", "value2",
-                "blah", "value3")));
+                "blah", "value3"));
     }
 }

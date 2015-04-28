@@ -5,6 +5,7 @@ package play.libs;
 
 import scala.runtime.AbstractFunction0;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.Callable;
 
@@ -81,6 +82,15 @@ public class Scala {
      */
     public static <T> java.util.List<T> asJava(scala.collection.Seq<T> scalaList) {
         return scala.collection.JavaConverters.seqAsJavaListConverter(scalaList).asJava();
+    }
+
+    /**
+     * Converts a Scala List to an Array.
+     */
+    public static <T> T[] asArray(Class<T> clazz, scala.collection.Seq<T> scalaList) {
+        T[] arr = (T[]) Array.newInstance(clazz, scalaList.length());
+        scalaList.copyToArray(arr);
+        return arr;
     }
 
     /**
