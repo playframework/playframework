@@ -13,6 +13,12 @@ import play.api.routing.Router
 
 import scala.concurrent.ExecutionContext
 
+/**
+ * The Play BuiltinModule.
+ *
+ * Provides all the core components of a Play application. This is typically automatically enabled by Play for an
+ * application.
+ */
 class BuiltinModule extends Module {
   def bindings(env: Environment, configuration: Configuration): Seq[Binding[_]] = {
     def dynamicBindings(factories: ((Environment, Configuration) => Seq[Binding[_]])*) = {

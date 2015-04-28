@@ -422,12 +422,17 @@ This means that you should change your templates to take an implicit `Messages` 
 From you controllers you can get such an implicit `Messages` value by mixing the [`play.api.i18n.I18nSupport`](api/scala/index.html#play.api.i18n.I18nSupport) trait in your controller that gives you an implicit `Messages` value as long as there is a `RequestHeader` value in the implicit scope. The `I18nSupport` trait has an abstract member `def messagesApi: MessagesApi` so your code will typically look like the following:
 
 ```scala
-class MyController(val messagesApi: MessagesApi) extends I18nSupport {
-  // ...
+import javax.inject.Inject
+import play.api.i18n.{MessagesApi, I18nSupport}
+import play.api.mvc.Controller
+
+class MyController @Inject() (val messagesApi: MessagesApi) 
+  extends Controller with I18nSupport {
+
 }
 ```
 
-A simpler migration path is also supported if you want your controller to be still an `object` instead of a `class` or don’t want to use the `I18nSupport` trait. Just add the following import:
+A simpler migration path is also supported if you want your controller to be still use static controller objects rather than injected classes with the `I18nSupport` trait. After modifying your templates to take an implicit `Messages` parameter, as described above, add the following import to your controllers:
 
 ```scala
 import play.api.i18n.Messages.Implicits._

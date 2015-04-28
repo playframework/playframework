@@ -14,12 +14,37 @@ import scala.concurrent.Future
 /**
  * Application lifecycle register.
  *
- * This is used to hook into Play lifecycle events, specifically, when Play is stopped.
+ * This is used to hook into Play lifecycle events, specifically, when Play is stopped. The reason Play only provides
+ * lifecycle callbacks for stopping is that constructors are considered the application start callback.  This has
+ * several advantages:
  *
- * Stop hooks are executed when the application is shutdown, in reverse from when they were registered.
+ * - It simplifies implementation, if you want to start something, just do it in the constructor.
+ * - It simplifies state, there's no transitional state where an object has been created but not started yet. Hence,
+ *   as long as you have a reference to something, it's safe to use it.
+ * - It solves startup dependencies in a type safe manner - the order that components must be started is enforced by the
+ *   order that they must be instantiated due to the component graph.
+ *
+ * Stop hooks are executed when the application is shutdown, in reverse from when they were registered. Due to this
+ * reverse ordering, a component can know that it is safe to use the components it depends on as long as it hasn't
+ * received a shutdown event.
  *
  * To use this, declare a dependency on ApplicationLifecycle, and then register the stop hook when the component is
- * started.
+ * started. For example:
+ *
+ * {{{
+ *   import play.api.inject.ApplicationLifecycle
+ *   import javax.inject.Inject
+ *
+ *   class SomeDatabase @Inject() (applicationLifecycle: ApplicationLifecycle) {
+ *
+ *     private val connectionPool = new SomeConnectionPool()
+ *     applicationLifecycle.addStopHook { () =>
+ *       connectionPool.shutdown()
+ *     }
+ *
+ *     ...
+ *   }
+ * }}}
  */
 trait ApplicationLifecycle {
 

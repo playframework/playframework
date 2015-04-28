@@ -27,6 +27,7 @@ import com.google.inject.name.Names
  * @param scope The JSR-330 scope.
  * @param eager Whether the binding should be eagerly instantiated.
  * @param source Where this object was bound. Used in error reporting.
+ * @see The [[Module]] class for information on how to provide bindings.
  */
 final case class Binding[T](key: BindingKey[T], target: Option[BindingTarget[T]], scope: Option[Class[_ <: Annotation]], eager: Boolean, source: Object) {
 
@@ -52,6 +53,11 @@ final case class Binding[T](key: BindingKey[T], target: Option[BindingTarget[T]]
   }
 }
 
+/**
+ * Constructor for a binding Key that doesn't have a qualifier.
+ *
+ * @see The [[Module]] class for information on how to provide bindings.
+ */
 object BindingKey {
   def apply[T](clazz: Class[T]): BindingKey[T] = new BindingKey(clazz)
 }
@@ -63,6 +69,7 @@ object BindingKey {
  *
  * @param clazz The class to bind.
  * @param qualifier An optional qualifier.
+ * @see The [[Module]] class for information on how to provide bindings.
  */
 final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnotation]) {
 
@@ -229,21 +236,29 @@ final case class BindingKey[T](clazz: Class[T], qualifier: Option[QualifierAnnot
  * A binding target.
  *
  * This trait captures the four possible types of targets.
+ *
+ * @see The [[Module]] class for information on how to provide bindings.
  */
 sealed trait BindingTarget[T]
 
 /**
  * A binding target that is provided by a provider instance.
+ *
+ * @see The [[Module]] class for information on how to provide bindings.
  */
 final case class ProviderTarget[T](provider: Provider[_ <: T]) extends BindingTarget[T]
 
 /**
  * A binding target that is provided by a provider class.
+ *
+ * @see The [[Module]] class for information on how to provide bindings.
  */
 final case class ProviderConstructionTarget[T](provider: Class[_ <: Provider[T]]) extends BindingTarget[T]
 
 /**
  * A binding target that is provided by a class.
+ *
+ * @see The [[play.api.inject.Module]] class for information on how to provide bindings.
  */
 final case class ConstructionTarget[T](implementation: Class[_ <: T]) extends BindingTarget[T]
 
@@ -257,16 +272,22 @@ final case class BindingKeyTarget[T](key: BindingKey[_ <: T]) extends BindingTar
  *
  * Since bindings may specify either annotations, or instances of annotations, this abstraction captures either of
  * those two possibilities.
+ *
+ * @see The [[Module]] class for information on how to provide bindings.
  */
 sealed trait QualifierAnnotation
 
 /**
  * A qualifier annotation instance.
+ *
+ * @see The [[Module]] class for information on how to provide bindings.
  */
 final case class QualifierInstance[T <: Annotation](instance: T) extends QualifierAnnotation
 
 /**
  * A qualifier annotation class.
+ *
+ * @see The [[Module]] class for information on how to provide bindings.
  */
 final case class QualifierClass[T <: Annotation](clazz: Class[T]) extends QualifierAnnotation
 
