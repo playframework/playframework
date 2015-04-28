@@ -250,7 +250,19 @@ object PlayBuild extends Build {
 
       sourceDirectories in (Compile, TwirlKeys.compileTemplates) := (unmanagedSourceDirectories in Compile).value,
       TwirlKeys.templateImports += "play.api.templates.PlayMagic._",
-      mappings in (Compile, packageSrc) <++= scalaTemplateSourceMappings,
+      mappings in (Compile, packageSrc) ++= {
+        // Add both the templates, useful for end users to read, and the Scala sources that they get compiled to,
+        // so omnidoc can compile and produce scaladocs for them.
+        val twirlSources = (sources in (Compile, TwirlKeys.compileTemplates)).value pair
+          relativeTo((sourceDirectories in (Compile, TwirlKeys.compileTemplates)).value)
+
+        val twirlTarget = (target in (Compile, TwirlKeys.compileTemplates)).value
+        // The pair with errorIfNone being false both creates the mappings, and filters non twirl outputs out of
+        // managed sources
+        val twirlCompiledSources = (managedSources in Compile).value.pair(relativeTo(twirlTarget), errorIfNone = false)
+
+        twirlSources ++ twirlCompiledSources
+      },
       Docs.apiDocsIncludeManaged := true
     ).settings(Docs.playdocSettings: _*)
      .dependsOn(
