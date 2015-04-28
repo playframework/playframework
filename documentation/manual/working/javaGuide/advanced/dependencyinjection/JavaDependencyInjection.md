@@ -134,3 +134,16 @@ In order to maximise cross framework compatibility, keep in mind the following t
 If there is a module that you don't want to be loaded, you can exclude it by appending it to the `play.modules.disabled` property in `application.conf`:
 
     play.modules.disabled += "play.api.db.evolutions.EvolutionsModule"
+
+## Advanced: Extending the GuiceApplicationLoader
+
+Play's runtime dependency injection is bootstrapped by the [`GuiceApplicationLoader`](api/java/play/inject/guice/GuiceApplicationLoader.html) class. This class loads all the modules, feeds the modules into Guice, then uses Guice to create the application. If you want to control how Guice initializes the application then you can extend the `GuiceApplicationLoader` class.
+
+There are several methods you can override, but you'll usually want to override the `builder` method. This method reads the [`ApplicationLoader.Context`](api/java/play/ApplicationLoader.Context.html) and creates a [`GuiceApplicationBuilder`](api/java/play/inject/guice/GuiceApplicationBuilder.html
+). Below you can see the standard implementation for `builder`, which you can change in any way you like. You can find out how to use the `GuiceApplicationBuilder` in the section about [[testing with Guice|JavaTestingWithGuice]].
+
+@[custom-application-loader](code/javaguide/advanced/di/guice/CustomApplicationLoader.java)
+
+When you override the [`ApplicationLoader`](api/java/play/ApplicationLoader.html) you need to tell Play. Add the following setting to your `application.conf`:
+
+    play.application.loader := "modules.CustomApplicationLoader"

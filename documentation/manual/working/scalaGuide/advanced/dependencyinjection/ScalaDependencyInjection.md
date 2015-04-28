@@ -132,3 +132,17 @@ In order to maximise cross framework compatibility, keep in mind the following t
 If there is a module that you don't want to be loaded, you can exclude it by appending it to the `play.modules.disabled` property in `application.conf`:
 
     play.modules.disabled += "play.api.db.evolutions.EvolutionsModule"
+
+## Advanced: Extending the GuiceApplicationLoader
+
+Play's runtime dependency injection is bootstrapped by the [`GuiceApplicationLoader`](api/scala/play/api/inject/guice/GuiceApplicationLoader.html) class. This class loads all the modules, feeds the modules into Guice, then uses Guice to create the application. If you want to control how Guice initializes the application then you can extend the `GuiceApplicationLoader` class.
+
+There are several methods you can override, but you'll usually want to override the `builder` method. This method reads the [`ApplicationLoader.Context`](api/scala/play/api/ApplicationLoader$$Context.html) and creates a [`GuiceApplicationBuilder`](api/scala/play/api/inject/guice/GuiceApplicationBuilder.html). Below you can see the standard implementation for `builder`, which you can change in any way you like. You can find out how to use the `GuiceApplicationBuilder` in the section about [[testing with Guice|ScalaTestingWithGuice]].
+
+@[custom-application-loader](code/RuntimeDependencyInjection.scala)
+
+When you override the [`ApplicationLoader`](http://localhost:9000/@documentation/api/scala/play/api/ApplicationLoader.html) you need to tell Play. Add the following setting to your `application.conf`:
+
+    play.application.loader := "modules.CustomApplicationLoader"
+
+You're not limited to using Guice for dependency injection. By overriding the `ApplicationLoader` you can take control of how the application is initialized. Find out more in the [[next section|ScalaCompileTimeDependencyInjection]].

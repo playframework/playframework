@@ -119,6 +119,20 @@ public class Environment {
         return Scala.orNull(env.resourceAsStream(relativePath));
     }
 
+    /**
+     * A simple environment.
+     *
+     * Uses the same classloader that the environment classloader is defined in,
+     * the current working directory as the path and test mode.
+     */
+    public static Environment simple() {
+        return new Environment(new File("."), Environment.class.getClassLoader(), Mode.TEST);
+    }
+
+    /**
+     * The underlying Scala API Environment object that this Environment
+     * wraps.
+     */
     public play.api.Environment underlying() {
         return env;
     }
