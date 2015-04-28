@@ -85,13 +85,13 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
 
     "add bindings" in {
       // #add-bindings
-      val application = new GuiceApplicationBuilder()
+      val injector = new GuiceApplicationBuilder()
         .bindings(new ComponentModule)
         .bindings(bind[Component].to[DefaultComponent])
-        .build
+        .injector
       // #add-bindings
 
-      application.injector.instanceOf[Component] must beAnInstanceOf[DefaultComponent]
+      injector.instanceOf[Component] must beAnInstanceOf[DefaultComponent]
     }
 
     "override bindings" in {
@@ -111,25 +111,25 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
 
     "load modules" in {
       // #load-modules
-      val application = new GuiceApplicationBuilder()
+      val injector = new GuiceApplicationBuilder()
         .load(
           new play.api.inject.BuiltinModule,
           bind[Component].to[DefaultComponent]
-        ).build
+        ).injector
       // #load-modules
 
-      application.injector.instanceOf[Component] must beAnInstanceOf[DefaultComponent]
+      injector.instanceOf[Component] must beAnInstanceOf[DefaultComponent]
     }
 
     "disable modules" in {
       // #disable-modules
-      val application = new GuiceApplicationBuilder()
+      val injector = new GuiceApplicationBuilder()
         .bindings(new ComponentModule) // ###skip
         .disable[ComponentModule]
-        .build
+        .injector
       // #disable-modules
 
-      application.injector.instanceOf[Component] must throwA[com.google.inject.ConfigurationException]
+      injector.instanceOf[Component] must throwA[com.google.inject.ConfigurationException]
     }
 
     "injector builder" in {
@@ -138,7 +138,7 @@ class ScalaGuiceApplicationBuilderSpec extends PlaySpecification {
         .configure("key" -> "value")
         .bindings(new ComponentModule)
         .overrides(bind[Component].to[MockComponent])
-        .build
+        .injector
 
       val component = injector.instanceOf[Component]
       // #injector-builder
