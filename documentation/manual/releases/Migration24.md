@@ -197,6 +197,18 @@ play.db.pool = bonecp
 
 The full range of configuration options available to the Play connection pools can be found in the Play JDBC [`reference.conf`](resources/confs/play-jdbc/reference.conf).
 
+You may run into the following exception:
+
+```
+Caused by: java.sql.SQLException: JDBC4 Connection.isValid() method not supported, connection test query must be configured
+```
+This occurs if your JDBC-Drivers do not support Connection.isValid(). The fastest and recommended fix is to make sure you use the latest version of your JDBC-Driver. If upgrading to the latest version does not help, you may specify the `connectionTestQuery` in your application.conf like this
+```
+#specify a connectionTestQuery. Only do this if upgrading the JDBC-Driver does not help
+db.default.hikaricp.connectionTestQuery="SELECT TRUE"
+```
+More information on this can be found on the [HikariCP Github Page](https://github.com/brettwooldridge/HikariCP/)
+
 ## Body Parsers
 
 The default body parser is now `play.api.mvc.BodyParsers.parse.default`. It is similar to `anyContent` parser, except that it only parses the bodies of PATCH, POST, and PUT requests. To parse bodies for requests of other methods, explicitly pass the `anyContent` parser to `Action`.
