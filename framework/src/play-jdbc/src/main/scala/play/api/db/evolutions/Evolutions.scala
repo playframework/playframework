@@ -4,12 +4,15 @@
 package play.api.db.evolutions
 
 import java.io.File
+import java.nio.file._
+import java.nio.charset.Charset
 
 import play.api.{ Application, Configuration, Environment, Logger, Mode, Play }
 import play.api.db.{ Database, BoneCPComponents, DBComponents }
 import play.api.inject.DefaultApplicationLifecycle
 import play.api.libs.Codecs.sha1
 import play.core.DefaultWebCommands
+import play.utils.PlayIO
 
 /**
  * An SQL evolution - database changes associated with a software version.
@@ -116,13 +119,11 @@ object Evolutions {
    * Updates a local (file-based) evolution script.
    */
   def updateEvolutionScript(db: String = "default", revision: Int = 1, comment: String = "Generated", ups: String, downs: String)(implicit application: Application) {
-    import play.api.libs._
-
     val environment = application.injector.instanceOf[Environment]
 
     val evolutions = environment.getFile(fileName(db, revision))
-    Files.Deprecated.createDirectory(environment.getFile(directoryName(db)))
-    Files.Deprecated.writeFileIfChanged(evolutions,
+    Files.createDirectory(environment.getFile(directoryName(db)).toPath)
+    writeFileIfChanged(evolutions,
       """|# --- %s
          |
          |# --- !Ups
@@ -133,6 +134,18 @@ object Evolutions {
          |
          |""".stripMargin.format(comment, ups, downs))
   }
+
+  private def writeFileIfChanged(path: File, content: String): Unit = {
+    if (content != PlayIO.readFileAsString(path)) {
+      writeFile(path, content)
+    }
+  }
+
+  private def writeFile(destination: File, content: String): Unit = {
+    Files.write(destination.toPath, content.getBytes(utf8))
+  }
+
+  private lazy val utf8 = Charset.forName("UTF8")
 
   /**
    * Translates evolution scripts into something human-readable.

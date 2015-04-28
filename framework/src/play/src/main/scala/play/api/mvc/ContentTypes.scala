@@ -3,7 +3,7 @@
  */
 package play.api.mvc
 
-import play.api.data.{ FormUtils, Form }
+import play.api.data.Form
 import play.core.parsers.Multipart
 
 import scala.language.reflectiveCalls
@@ -172,7 +172,6 @@ object MultipartFormData {
 case class RawBuffer(memoryThreshold: Int, initialData: Array[Byte] = Array.empty[Byte]) {
 
   import play.api.libs.Files._
-  import scala.collection.mutable._
 
   @volatile private var inMemory: List[Array[Byte]] = if (initialData.length == 0) Nil else List(initialData)
   @volatile private var inMemorySize = initialData.length
