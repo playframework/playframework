@@ -40,6 +40,12 @@ Now add them to your `Filters` class:
 
 @[filters](code/javaguide/forms/csrf/Filters.java)
 
+The `Filters` class can either be in the root package, or if it has another name or is in another package, needs to be configured using `play.http.filters` in `application.conf`:
+
+```
+play.http.filters = "filters.MyFilters"
+```
+
 ### Getting the current token
 
 The current CSRF token can be accessed using the `CSRF.getToken` method.  It takes a `RequestHeader`, which can be obtained by calling `Controllers.request()`:

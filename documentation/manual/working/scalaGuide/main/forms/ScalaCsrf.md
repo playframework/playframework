@@ -40,6 +40,12 @@ Now add them to your `Filters` class as described in [[HTTP filters|ScalaHttpFil
 
 @[http-filters](code/ScalaCsrf.scala)
 
+The `Filters` class can either be in the root package, or if it has another name or is in another package, needs to be configured using `play.http.filters` in `application.conf`:
+
+```
+play.http.filters = "filters.MyFilters"
+```
+
 ### Getting the current token
 
 The current CSRF token can be accessed using the `getToken` method.  It takes an implicit `RequestHeader`, so ensure that one is in scope.
