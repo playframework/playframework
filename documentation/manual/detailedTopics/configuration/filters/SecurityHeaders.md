@@ -17,6 +17,12 @@ Scala
 Java
 : @[filters](code/detailedtopics/configuration/headers/Filters.java)
 
+The `Filters` class can either be in the root package, or if it has another name or is in another package, needs to be configured using `play.http.filters` in `application.conf`:
+
+```
+play.http.filters = "filters.MyFilters"
+```
+
 ## Configuring the security headers
 
 Scaladoc is available in the [play.filters.headers](api/scala/index.html#play.filters.headers.package) package.

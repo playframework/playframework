@@ -17,6 +17,12 @@ Scala
 Java
 : @[filters](code/detailedtopics/configuration/gzipencoding/Filters.java)
 
+The `Filters` class can either be in the root package, or if it has another name or is in another package, needs to be configured using `play.http.filters` in `application.conf`:
+
+```
+play.http.filters = "filters.MyFilters"
+```
+
 ## Configuring the gzip filter
 
 The gzip filter supports a small number of tuning configuration options, which can be configured from `application.conf`.  To see the available configuration options, see the Play filters [`reference.conf`](resources/confs/filters-helpers/reference.conf).
