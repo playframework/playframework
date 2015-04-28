@@ -10,6 +10,7 @@ import play.api.db.{ Database, BoneCPComponents, DBComponents }
 import play.api.inject.DefaultApplicationLifecycle
 import play.api.libs.Codecs.sha1
 import play.core.DefaultWebCommands
+import com.typesafe.config.ConfigFactory
 
 /**
  * An SQL evolution - database changes associated with a software version.
@@ -88,10 +89,13 @@ private[evolutions] object DatabaseUrlPatterns {
  */
 object Evolutions {
 
+  val conf = ConfigFactory.load();
+  val evolutionsBasePath = conf.getString("evolutions.basePath", "evolutions")
+
   /**
    * Default evolutions directory location.
    */
-  def directoryName(db: String): String = s"conf/evolutions/${db}"
+  def directoryName(db: String): String = s"conf/$evolutionsBasePath/${db}"
 
   /**
    * Default evolution file location.
@@ -101,7 +105,7 @@ object Evolutions {
   /**
    * Default evolution resource name.
    */
-  def resourceName(db: String, revision: Int): String = s"evolutions/${db}/${revision}.sql"
+  def resourceName(db: String, revision: Int): String = s"$evolutionsBasePath/${db}/${revision}.sql"
 
   /**
    * Apply pending evolutions for the given DB.
