@@ -87,7 +87,7 @@ trait GlobalSettings {
    * or make your own ApplicationLoader (see GuiceApplicationBuilder.loadConfig).
    */
   @Deprecated
-  def configuration: Configuration = Configuration.empty
+  final def configuration: Configuration = Configuration.empty
 
   /**
    * @deprecated This method does not do anything.
@@ -95,7 +95,7 @@ trait GlobalSettings {
    * or make your own ApplicationLoader (see GuiceApplicationBuilder.loadConfig).
    */
   @Deprecated
-  def onLoadConfig(config: Configuration, path: File, classloader: ClassLoader, mode: Mode.Mode): Configuration =
+  final def onLoadConfig(config: Configuration, path: File, classloader: ClassLoader, mode: Mode.Mode): Configuration =
     config ++ configuration
 
   /**
