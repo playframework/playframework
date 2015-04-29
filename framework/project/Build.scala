@@ -349,20 +349,26 @@ object PlayBuild extends Build {
 
   val ProtocolCompile = Tags.Tag("protocol-compile")
 
+  val tagProtocolCompileSettings: Seq[Setting[_]] = {
+    val settings: Seq[Setting[_]] = Seq(
+      compileIncremental <<= compileIncremental tag ProtocolCompile,
+      doc <<= doc tag ProtocolCompile
+    )
+    inConfig(Compile)(settings) ++ inConfig(Test)(settings)
+  }
+
   lazy val ForkRunProtocolProject = PlayDevelopmentProject("Fork-Run-Protocol", "fork-run-protocol")
     .settings(
-      libraryDependencies ++= forkRunProtocolDependencies(scalaBinaryVersion.value),
-      compileIncremental in Compile <<= (compileIncremental in Compile) tag ProtocolCompile,
-      doc in Compile <<= (doc in Compile) tag ProtocolCompile)
+      libraryDependencies ++= forkRunProtocolDependencies(scalaBinaryVersion.value)
+    ).settings(tagProtocolCompileSettings: _*)
     .dependsOn(RunSupportProject)
 
   // extra fork-run-protocol project that is only compiled against sbt scala version
   lazy val SbtForkRunProtocolProject = PlaySbtProject("SBT-Fork-Run-Protocol", "fork-run-protocol")
     .settings(
       target := target.value / "sbt-fork-run-protocol",
-      libraryDependencies ++= forkRunProtocolDependencies(scalaBinaryVersion.value),
-      compileIncremental in Compile <<= (compileIncremental in Compile) tag ProtocolCompile,
-      doc in Compile <<= (doc in Compile) tag ProtocolCompile)
+      libraryDependencies ++= forkRunProtocolDependencies(scalaBinaryVersion.value)
+    ).settings(tagProtocolCompileSettings: _*)
     .dependsOn(SbtRunSupportProject)
 
   lazy val ForkRunProject = PlayDevelopmentProject("Fork-Run", "fork-run")
