@@ -22,7 +22,7 @@ As the Session is just a Cookie, it is also just an HTTP header. You can manipul
 @[store-session](code/ScalaSessionFlash.scala)
 
 
-Note that this will replace the whole session. If you need to add an element to an existing Session, just add an element to the incoming session, and specify that as new session:
+Note that this will replace the whole session. If you need to add an element to an existing Session, just use the `addingToSession` method:
 
 @[add-session](code/ScalaSessionFlash.scala)
 
