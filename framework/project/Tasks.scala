@@ -28,15 +28,6 @@ object Generators {
   }
 }
 
-object Tasks {
-
-  def scalaTemplateSourceMappings = (excludeFilter in unmanagedSources, unmanagedSourceDirectories in Compile, baseDirectory) map {
-    (excludes, sdirs, base) =>
-      val scalaTemplateSources = sdirs.descendantsExcept("*.scala.html", excludes)
-      ((scalaTemplateSources --- sdirs --- base) pair (relativeTo(sdirs) | relativeTo(base) | flat)).toSeq
-  }
-}
-
 object Commands {
   val quickPublish = Command("quickPublish", Help.more("quickPublish", "Toggles quick publish mode, disabling/enabling build of documentation/source jars"))(_ => Parsers.EOF) { (state, _) =>
     val x = Project.extract(state)
