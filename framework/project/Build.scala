@@ -55,6 +55,7 @@ object BuildSettings {
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
     resolvers ++= Seq(
       Resolver.typesafeRepo("releases"),
+      Resolver.typesafeIvyRepo("releases"),
       "Scalaz Bintray Repo" at "https://dl.bintray.com/scalaz/releases"
     ),
 

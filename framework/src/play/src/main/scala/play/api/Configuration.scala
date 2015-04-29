@@ -8,6 +8,7 @@ import java.util.Properties
 import java.util.concurrent.TimeUnit
 
 import com.typesafe.config._
+import com.typesafe.config.impl.ConfigImpl
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.{ Duration, FiniteDuration }
@@ -41,7 +42,14 @@ object Configuration {
 
     try {
       // Get configuration from the system properties.
-      val systemPropertyConfig = ConfigFactory.parseProperties(properties)
+      // Iterating through the system properties is prone to ConcurrentModificationExceptions (especially in our tests)
+      // Typesafe config maintains a cache for this purpose.  So, if the passed in properties *are* the system
+      // properties, use the Typesafe config cache, otherwise it should be safe to parse it ourselves.
+      val systemPropertyConfig = if (properties eq System.getProperties) {
+        ConfigImpl.systemPropertiesAsConfig()
+      } else {
+        ConfigFactory.parseProperties(properties)
+      }
 
       // Inject our direct settings into the config.
       val directConfig: Config = ConfigFactory.parseMap(directSettings.asJava)
