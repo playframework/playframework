@@ -29,13 +29,13 @@ public class GuiceApplicationBuilderTest {
 
     @Test
     public void addBindings() {
-        Application app = new GuiceApplicationBuilder()
+        Injector injector = new GuiceApplicationBuilder()
             .bindings(new AModule())
             .bindings(bind(B.class).to(B1.class))
-            .build();
+            .injector();
 
-        assertThat(app.injector().instanceOf(A.class), instanceOf(A1.class));
-        assertThat(app.injector().instanceOf(B.class), instanceOf(B1.class));
+        assertThat(injector.instanceOf(A.class), instanceOf(A1.class));
+        assertThat(injector.instanceOf(B.class), instanceOf(B1.class));
     }
 
     @Test
@@ -48,7 +48,8 @@ public class GuiceApplicationBuilderTest {
                 // also override the java api configuration
                 bind(Configuration.class).to(new ExtendConfiguration(new Configuration(ImmutableMap.of("b", 2)))),
                 bind(A.class).to(A2.class))
-            .build();
+            .injector()
+            .instanceOf(Application.class);
 
         assertThat(app.configuration().getInt("a"), is(1));
         assertThat(app.configuration().getInt("b"), is(2));
@@ -57,23 +58,23 @@ public class GuiceApplicationBuilderTest {
 
     @Test
     public void disableModules() {
-        Application app = new GuiceApplicationBuilder()
+        Injector injector = new GuiceApplicationBuilder()
             .bindings(new AModule())
             .disable(AModule.class)
-            .build();
+            .injector();
 
         exception.expect(com.google.inject.ConfigurationException.class);
-        app.injector().instanceOf(A.class);
+        injector.instanceOf(A.class);
     }
 
     @Test
     public void disableLoadedModules() {
-        Application app = new GuiceApplicationBuilder()
+        Injector injector = new GuiceApplicationBuilder()
             .disable(play.api.i18n.I18nModule.class)
-            .build();
+            .injector();
 
         exception.expect(com.google.inject.ConfigurationException.class);
-        app.injector().instanceOf(play.api.i18n.Langs.class);
+        injector.instanceOf(play.api.i18n.Langs.class);
     }
 
     @Test
@@ -88,24 +89,24 @@ public class GuiceApplicationBuilderTest {
 
     @Test
     public void setModuleLoader() {
-        Application app = new GuiceApplicationBuilder()
+        Injector injector = new GuiceApplicationBuilder()
             .load((env, conf) -> ImmutableList.of(
                 Guiceable.modules(new play.api.inject.BuiltinModule(), new play.inject.BuiltInModule()),
                 Guiceable.bindings(bind(A.class).to(A1.class))))
-            .build();
+            .injector();
 
-        assertThat(app.injector().instanceOf(A.class), instanceOf(A1.class));
+        assertThat(injector.instanceOf(A.class), instanceOf(A1.class));
     }
 
     @Test
     public void setLoadedModulesDirectly() {
-        Application app = new GuiceApplicationBuilder()
+        Injector injector = new GuiceApplicationBuilder()
             .load(
                 Guiceable.modules(new play.api.inject.BuiltinModule(), new play.inject.BuiltInModule()),
                 Guiceable.bindings(bind(A.class).to(A1.class)))
-            .build();
+            .injector();
 
-        assertThat(app.injector().instanceOf(A.class), instanceOf(A1.class));
+        assertThat(injector.instanceOf(A.class), instanceOf(A1.class));
     }
 
     public static interface A {}
