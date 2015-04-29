@@ -204,7 +204,6 @@ object PlayBuild extends Build {
   import Dependencies._
   import BuildSettings._
   import Generators._
-  import Tasks._
 
   lazy val BuildLinkProject = PlayNonCrossBuiltProject("Build-Link", "build-link")
     .settings(libraryDependencies ++= link)
