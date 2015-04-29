@@ -120,7 +120,7 @@ public class GlobalSettings {
      * or make your own ApplicationLoader (see GuiceApplicationBuilder.loadConfig).
      */
     @Deprecated
-    public Configuration onLoadConfig(Configuration config, File path, ClassLoader classloader) {
+    public final Configuration onLoadConfig(Configuration config, File path, ClassLoader classloader) {
         return null;
     }
 
@@ -130,7 +130,7 @@ public class GlobalSettings {
      * or make your own ApplicationLoader (see GuiceApplicationBuilder.loadConfig).
      */
     @Deprecated
-    public Configuration onLoadConfig(Configuration config, File path, ClassLoader classloader, Mode mode) {
+    public final Configuration onLoadConfig(Configuration config, File path, ClassLoader classloader, Mode mode) {
         return onLoadConfig(config, path, classloader);
     }
 
