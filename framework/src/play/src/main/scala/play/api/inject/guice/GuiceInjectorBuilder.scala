@@ -98,25 +98,32 @@ abstract class GuiceBuilder[Self] protected (
   /**
    * Create a Play Injector backed by Guice using this configured builder.
    */
-  def injector(): PlayInjector = createInjector
+  def applicationModule(): GuiceModule = createModule
 
   /**
-   * Internal creation of the injector.
-   * Separate method in case builders need to add extra configuration to injector before building.
+   * Creation of the Guice Module used by the injector.
+   * Libraries like Guiceberry and Jukito that want to handle injector creation may find this helpful.
    */
-  protected final def createInjector(): PlayInjector = {
+  def createModule(): GuiceModule = {
     import scala.collection.JavaConverters._
+    val injectorModule = GuiceableModule.guice(Seq(
+      bind[PlayInjector].to[GuiceInjector],
+      // Java API injector is bound here so that it's available in both
+      // the default application loader and the Java Guice builders
+      bind[play.inject.Injector].to[play.inject.DelegateInjector]
+    ))
+    val enabledModules = modules.map(_.disable(disabled))
+    val bindingModules = GuiceableModule.guiced(environment, configuration)(enabledModules) :+ injectorModule
+    val overrideModules = GuiceableModule.guiced(environment, configuration)(overrides)
+    GuiceModules.`override`(bindingModules.asJava).`with`(overrideModules.asJava)
+  }
+
+  /**
+   * Create a Play Injector backed by Guice using this configured builder.
+   */
+  def injector(): PlayInjector = {
     try {
-      val injectorModule = GuiceableModule.guice(Seq(
-        bind[PlayInjector].to[GuiceInjector],
-        // Java API injector is bound here so that it's available in both
-        // the default application loader and the Java Guice builders
-        bind[play.inject.Injector].to[play.inject.DelegateInjector]
-      ))
-      val enabledModules = modules.map(_.disable(disabled))
-      val bindingModules = GuiceableModule.guiced(environment, configuration)(enabledModules) :+ injectorModule
-      val overrideModules = GuiceableModule.guiced(environment, configuration)(overrides)
-      val guiceInjector = Guice.createInjector(GuiceModules.`override`(bindingModules.asJava).`with`(overrideModules.asJava))
+      val guiceInjector = Guice.createInjector(applicationModule())
       guiceInjector.getInstance(classOf[PlayInjector])
     } catch {
       case e: CreationException => e.getCause match {
