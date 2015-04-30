@@ -49,15 +49,29 @@ All classes in the SBT plugin are now in the package `play.sbt`, this is particu
 
 ### Ebean dependency
 
-Ebean has been pulled out into an external project, to allow it to have a lifecycle independent of Play's own lifecycle.  The ebean bytecode enhancement functionality has also been extracted out of the Play sbt plugin into its own plugin.
+Ebean has been pulled out into an external project, to allow it to have a lifecycle independent of Play's own lifecycle.  The Ebean bytecode enhancement functionality has also been extracted out of the Play sbt plugin into its own plugin.
 
-To migrate an existing Play project that uses ebean to use the new external ebean plugin, remove `javaEbean` from your `libraryDependencies` in `build.sbt`, and add the following to `project/plugins.sbt`:
+To migrate an existing Play project that uses Ebean to use the new external Ebean plugin, remove `javaEbean` from your `libraryDependencies` in `build.sbt`, and add the following to `project/plugins.sbt`:
 
 ```scala
 addSbtPlugin("com.typesafe.sbt" % "sbt-play-ebean" % "1.0.0")
 ```
 
-Additionally, Ebean has been upgraded to 4.2.0, which pulls in a few of the features that Play previously added itself, including the `Model` class.  Consequently, the Play `Model` class has been deprecated, in favour of using `org.avaje.ebean.Model`.
+After that, enable Ebean plugin for your project:
+
+```scala
+lazy val myProject = (project in file("."))
+  .enablePlugins(PlayJava, SbtEbean)
+```
+
+And finally, configure Ebean mapped classes as a list instead of a comma separated string (which is still supported but was deprecated):
+
+```
+ebean.default = ["models.*"]
+ebean.orders = ["models.Order", "models.OrderItem"]
+```
+
+Additionally, Ebean has been upgraded to 4.5.x, which pulls in a few of the features that Play previously added itself, including the `Model` class.  Consequently, the Play `Model` class has been deprecated, in favour of using `org.avaje.ebean.Model`.
 
 ### Anorm dependency
 
