@@ -57,7 +57,7 @@ object PublishSettings {
           publishTo.value
         }
       },
-      publishMavenStyle := !isSnapshot.value
+      publishMavenStyle := isSnapshot.value
     )
   }
 
