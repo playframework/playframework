@@ -246,6 +246,41 @@ In all cases, when one of the max length parsing properties is exceeded, a 413 r
 
 Additionally, Java actions may now declare a `BodyParser.Of.maxLength` value that is greater than the configured max length.
 
+## JSON API changes
+
+The semantics of JSON lookups have changed slightly. `JsUndefined` has been removed from the `JsValue` type hierarchy and all lookups of the form `jsv \ foo` or `jsv(bar)` have been moved to [`JsLookup`](api/java/play/api/libs/json/JsLookup.html). They now return a [`JsLookupResult`](api/java/play/api/libs/json/JsLookupResult.html) instead of a `JsValue`.
+
+If you have code of the form
+
+```scala
+val v: JsValue = json \ "foo" \ "bar"
+```
+
+the following code is equivalent, if you know the property exists:
+
+```scala
+val v: JsValue = (json \ "foo" \ "bar").get
+```
+
+If you don't know the property exists, we recommend using pattern matching or the methods on [`JsLookupResult`](api/java/play/api/libs/json/JsLookupResult.html) to safely handle the `JsUndefined` case, e.g.
+
+```scala
+val vOpt = Option[JsValue] = (json \ "foo" \ "bar").toOption
+```
+
+### JsLookup
+
+All JSON traversal methods have been moved to the [`JsLookup`](api/java/play/api/libs/json/JsLookup.html) class, which is implicitly applied to all values of type `JsValue` or `JsLookupResult`. In addition to the `apply`, `\`, and `\\` methods, the `head`, `tail`, and `last` methods have been added for JSON arrays. All methods except `\\` return a [`JsLookupResult`](api/java/play/api/libs/json/JsLookupResult.html), a wrapper for `JsValue` that helps with handling undefined values.
+
+The methods `as[A]`, `asOpt[A]`, `validate[A]` also exist on `JsLookup`, so code like the below should require no source changes:
+
+```scala
+val foo: Option[FooBar] = (json \ "foo" \ "bar").asOpt[FooBar]
+val bar: JsResult[Baz] = (json \ "baz").validate[Baz]
+```
+
+As a result of these changes, your code can now assume that all values of type `JsValue` are serializable to JSON.
+
 ## Testing changes
 
 [`FakeRequest`](api/java/play/test/FakeRequest.html) has been replaced by [`RequestBuilder`](api/java/play/mvc/Http.RequestBuilder.html).
@@ -453,7 +488,7 @@ import javax.inject.Inject
 import play.api.i18n.{MessagesApi, I18nSupport}
 import play.api.mvc.Controller
 
-class MyController @Inject() (val messagesApi: MessagesApi) 
+class MyController @Inject() (val messagesApi: MessagesApi)
   extends Controller with I18nSupport {
 
 }
