@@ -44,8 +44,8 @@ package scalaguide.http.scalasessionflash {
       "add data in the Session" in {
         def addSession = Action { implicit request =>
           //#add-session
-          Ok("Hello World!").withSession(
-            request.session + ("saidHello" -> "yes"))
+          Ok("Hello World!").addingToSession(
+            "saidHello" -> "yes")
           //#add-session
         }
 
