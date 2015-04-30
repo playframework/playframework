@@ -1,6 +1,6 @@
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.10.4")
+scalaVersion := Option(System.getProperty("scala.version")).getOrElse("2.10.5")
 
 PlayKeys.playInteractionMode := play.sbt.StaticPlayNonBlockingInteractionMode
 
