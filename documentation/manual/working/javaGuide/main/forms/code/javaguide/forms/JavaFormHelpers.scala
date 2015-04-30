@@ -14,8 +14,8 @@ object JavaFormHelpers extends PlaySpecification {
     {
       val form = Form.form(classOf[User])
       val u = new UserForm
-      u.name = "foo"
-      u.emails = util.Arrays.asList("a@a", "b@b")
+      u.setName("foo")
+      u.setEmails(util.Arrays.asList("a@a", "b@b"))
       val userForm = Form.form(classOf[UserForm]).fill(u)
       def segment(name: String) = {
         val body = html.helpers(form, userForm).body
