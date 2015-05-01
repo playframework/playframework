@@ -103,6 +103,10 @@ In the example below, the `Hello` binding for each language is read from a confi
 
 > **Note:** In most cases, if you need to access `Configuration` when you create a component, you should inject the `Configuration` object into the component itself or into the component's `Provider`. Then you can read the `Configuration` when you create the component. You usually don't need to read `Configuration` when you create the bindings for the component.
 
+You can also provide your own application loader:
+
+    play.application.loader="modules.CustomApplicationLoader"
+
 #### Eager bindings
 
 In the code above, new `EnglishHello` and `GermanHello` objects will be created each time they are used. If you only want to create these objects once, perhaps because they're expensive to create, then you should use the `@Singleton` annotation as [described above](#Singletons). If you want to create them once and also create them _eagerly_ when the application starts up, rather than lazily when they are needed, then you can use [Guice's eager singleton binding](https://github.com/google/guice/wiki/Scopes#eager-singletons).

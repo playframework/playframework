@@ -3,8 +3,9 @@
  */
 package play.api.inject.guice
 
+import com.google.inject.Module
 import play.api.{ Application, ApplicationLoader, Configuration, Environment, OptionalSourceMapper }
-import play.api.inject.{ bind, Injector => PlayInjector }
+import play.api.inject.{ bind, Injector => PlayInjector, Module => PlayModule }
 import play.core.WebCommands
 
 /**
@@ -16,18 +17,36 @@ class GuiceApplicationLoader(builder: GuiceApplicationBuilder) extends Applicati
   def this() = this(new GuiceApplicationBuilder)
 
   def load(context: ApplicationLoader.Context): Application = {
-    builder(context).build
-  }
-
-  def builder(context: ApplicationLoader.Context): GuiceApplicationBuilder = {
     builder
       .in(context.environment)
       .loadConfig(context.initialConfiguration)
-      .overrides(overrides(context): _*)
+      .bindings(modules(context: ApplicationLoader.Context): _*)
+      .overrides(overrides(context): _*).build
   }
 
-  def overrides(context: ApplicationLoader.Context): Seq[GuiceableModule] = {
-    Seq(
+  def modules(context: ApplicationLoader.Context): Array[GuiceableModule] = {
+    playModules(context: ApplicationLoader.Context).map(GuiceableModule.guiceable(_)) ++ guiceModules(context: ApplicationLoader.Context).map(GuiceableModule.guiceable(_))
+  }
+
+  /**
+   * Override to provide your own Guice modules
+   */
+  def guiceModules(context: ApplicationLoader.Context): Array[Module] = {
+    Array[Module]()
+  }
+
+  /**
+   * Override to provide your own Play modules
+   */
+  def playModules(context: ApplicationLoader.Context): Array[PlayModule] = {
+    Array[PlayModule]()
+  }
+
+  /**
+   * Override to provide your own override modules
+   */
+  def overrides(context: ApplicationLoader.Context): Array[GuiceableModule] = {
+    Array[GuiceableModule](
       bind[OptionalSourceMapper] to new OptionalSourceMapper(context.sourceMapper),
       bind[WebCommands] to context.webCommands)
   }
