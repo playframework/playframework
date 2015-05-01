@@ -207,11 +207,11 @@ object Iteratee {
      * @tparam B Type of `otherwise`
      * @return An `Iteratee[E, Either[B, A]]` that consumes one input and produces a `Right(eofValue)` if this input is [[play.api.libs.iteratee.Input.EOF]] otherwise it produces a `Left(otherwise)`
      */
-    def apply[A, B](otherwise: B)(eofValue: A): Iteratee[E, Either[B, A]]
+    def apply[A, B](otherwise: => B)(eofValue: A): Iteratee[E, Either[B, A]]
   }
 
   def eofOrElse[E] = new EofOrElse[E] {
-    def apply[A, B](otherwise: B)(eofValue: A): Iteratee[E, Either[B, A]] = {
+    def apply[A, B](otherwise: => B)(eofValue: A): Iteratee[E, Either[B, A]] = {
       def cont: Iteratee[E, Either[B, A]] = Cont((in: Input[E]) => {
         in match {
           case Input.El(e) => Done(Left(otherwise), in)
