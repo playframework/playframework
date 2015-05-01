@@ -4,6 +4,7 @@
 package play.inject.guice;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.inject.Module;
 import java.io.File;
 import java.util.Map;
 import play.api.inject.guice.GuiceableModule;
@@ -135,6 +136,13 @@ public abstract class GuiceBuilder<Self, Delegate extends play.api.inject.guice.
      */
     public final Self disable(Class<?>... moduleClasses) {
         return newBuilder(delegate.disable(Scala.toSeq(moduleClasses)));
+    }
+
+    /**
+     * Create a Guice module that can be used to inject an Application.
+     */
+    public Module applicationModule() {
+        return delegate.applicationModule();
     }
 
     /**
