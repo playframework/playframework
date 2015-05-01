@@ -3,6 +3,7 @@
  */
 package play.api.inject.guice
 
+import com.google.inject.{ Module => GuiceModule }
 import play.api.{ Application, Configuration, Environment, GlobalSettings, Logger, OptionalSourceMapper }
 import play.api.inject.{ bind, Injector => PlayInjector }
 import play.core.{ DefaultWebCommands, WebCommands }
@@ -60,9 +61,9 @@ final class GuiceApplicationBuilder(
     load((env, conf) => modules)
 
   /**
-   * Create a new Play Injector for an Application using this configured builder.
+   * Create a new Play application Module for an Application using this configured builder.
    */
-  override def injector(): PlayInjector = {
+  override def applicationModule(): GuiceModule = {
     val initialConfiguration = loadConfiguration(environment)
     val globalSettings = global.getOrElse(GlobalSettings(initialConfiguration, environment))
     val appConfiguration = initialConfiguration ++ configuration
@@ -83,7 +84,7 @@ final class GuiceApplicationBuilder(
         bind[GlobalSettings] to globalSettings,
         bind[OptionalSourceMapper] to new OptionalSourceMapper(None),
         bind[WebCommands] to new DefaultWebCommands
-      ).createInjector
+      ).createModule
   }
 
   /**
