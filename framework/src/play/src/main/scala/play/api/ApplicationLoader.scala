@@ -17,10 +17,11 @@ import play.utils.Reflect
  * During dev mode, an ApplicationLoader will be instantiated once, and called once, each time the application is
  * reloaded. In prod mode, the ApplicationLoader will be instantiated and called once when the application is started.
  *
- * Out of the box Play provides one default implementation, the [[play.api.inject.guice.GuiceApplicationLoader]].
+ * Out of the box Play provides a Java and Scala default implementation based on Guice. The Scala implementation is the
+ * [[play.api.inject.guice.GuiceApplicationLoader]].
  *
  * A custom application loader can be configured using the `application.loader` configuration property.
- * Implementations must define a noarg constructor.
+ * Implementations must define a no-arg constructor.
  */
 trait ApplicationLoader {
 
@@ -49,9 +50,26 @@ object ApplicationLoader {
    * Locate and instantiate the ApplicationLoader.
    */
   def apply(context: Context): ApplicationLoader = {
-    context.initialConfiguration.getString("play.application.loader").fold[ApplicationLoader](new GuiceApplicationLoader) { loaderClass =>
-      Reflect.createInstance[ApplicationLoader](loaderClass, context.environment.classLoader)
-    }
+    Reflect.configuredClass[ApplicationLoader, play.ApplicationLoader, GuiceApplicationLoader](
+      context.environment, PlayConfig(context.initialConfiguration), "play.application.loader", classOf[GuiceApplicationLoader].getName
+    ) match {
+        case None =>
+          new GuiceApplicationLoader
+        case Some(Left(scalaClass)) =>
+          scalaClass.newInstance
+        case Some(Right(javaClass)) =>
+          val javaApplicationLoader: play.ApplicationLoader = javaClass.newInstance
+          // Create an adapter from a Java to a Scala ApplicationLoader. This class is
+          // effectively anonymous, but let's give it a name to make debugging easier.
+          class JavaApplicationLoaderAdapter extends ApplicationLoader {
+            override def load(context: ApplicationLoader.Context): Application = {
+              val javaContext = new play.ApplicationLoader.Context(context)
+              val javaApplication = javaApplicationLoader.load(javaContext)
+              javaApplication.getWrappedApplication
+            }
+          }
+          new JavaApplicationLoaderAdapter
+      }
   }
 
   /**

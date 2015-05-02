@@ -73,6 +73,13 @@ public class Configuration {
     }
 
     /**
+     * Creates a new configuration by parsing a string in HOCON format.
+     */
+    public Configuration(String s) {
+        this(ConfigFactory.parseString(s));
+    }
+
+    /**
      * Creates a new configuration from a Scala-based configuration.
      */
     @Inject
