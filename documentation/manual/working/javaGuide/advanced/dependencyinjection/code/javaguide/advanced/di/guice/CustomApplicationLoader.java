@@ -3,18 +3,25 @@
  */
 package javaguide.advanced.di.guice;
 
-//#guice-app-loader
-import play.api.Application;
-import play.api.ApplicationLoader;
-import play.api.inject.guice.GuiceApplicationLoader;
+//#custom-application-loader
+import play.Application;
+import play.ApplicationLoader;
+import play.Configuration;
+import play.inject.guice.GuiceApplicationBuilder;
+import play.inject.guice.GuiceApplicationLoader;
+import play.libs.Scala;
 
 public class CustomApplicationLoader extends GuiceApplicationLoader {
 
-  @Override
-  public Application load(ApplicationLoader.Context context) {
-    // TODO: document how to create a Guice Module for the builder which relies on configuration settings
-    return builder(context).build();
-  }
+    @Override
+    protected GuiceApplicationBuilder builder(
+            ApplicationLoader.Context context) {
+        Configuration extra = new Configuration("a = 1");
+        return initialBuilder
+            .in(context.environment())
+            .loadConfig(extra.withFallback(context.initialConfiguration()))
+            .overrides(overrides(context));
+    }
 
 }
-//#guice-app-loader
+//#custom-application-loader
