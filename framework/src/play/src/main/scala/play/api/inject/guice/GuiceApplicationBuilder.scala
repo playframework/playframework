@@ -4,14 +4,14 @@
 package play.api.inject.guice
 
 import com.google.inject.{ Module => GuiceModule }
-import play.api.{ Application, Configuration, Environment, GlobalSettings, Logger, OptionalSourceMapper }
+import play.api.{ Application, ApplicationLoader, Configuration, Environment, GlobalSettings, Logger, OptionalSourceMapper }
 import play.api.inject.{ bind, Injector => PlayInjector }
 import play.core.{ DefaultWebCommands, WebCommands }
 
 /**
  * A builder for creating Applications using Guice.
  */
-final class GuiceApplicationBuilder(
+class GuiceApplicationBuilder(
   environment: Environment = Environment.simple(),
   configuration: Configuration = Configuration.empty,
   modules: Seq[GuiceableModule] = Seq.empty,
@@ -19,12 +19,27 @@ final class GuiceApplicationBuilder(
   disabled: Seq[Class[_]] = Seq.empty,
   loadConfiguration: Environment => Configuration = Configuration.load,
   global: Option[GlobalSettings] = None,
-  loadModules: (Environment, Configuration) => Seq[GuiceableModule] = GuiceableModule.loadModules) extends GuiceBuilder[GuiceApplicationBuilder](
-  environment, configuration, modules, overrides, disabled
-) {
+  loadModules: (Environment, Configuration) => Seq[GuiceableModule] = GuiceableModule.loadModules)
+    extends GuiceBuilder[GuiceApplicationBuilder](environment, configuration, modules, overrides, disabled) with ApplicationLoader {
 
   // extra constructor for creating from Java
   def this() = this(environment = Environment.simple())
+
+  def load(context: ApplicationLoader.Context): Application = {
+    defaultBuilder(context).build
+  }
+
+  def defaultBuilder(context: ApplicationLoader.Context): GuiceApplicationBuilder = {
+    in(context.environment)
+      .loadConfig(context.initialConfiguration)
+      .overrides(defaultOverrides(context): _*)
+  }
+
+  def defaultOverrides(context: ApplicationLoader.Context): Seq[GuiceableModule] = {
+    Seq(
+      bind[OptionalSourceMapper] to new OptionalSourceMapper(context.sourceMapper),
+      bind[WebCommands] to context.webCommands)
+  }
 
   /**
    * Set the initial configuration loader.
