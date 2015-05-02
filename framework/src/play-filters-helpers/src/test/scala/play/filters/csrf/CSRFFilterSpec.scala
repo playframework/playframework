@@ -16,7 +16,7 @@ import play.api.libs.json.Json
 import play.api.test._
 import scala.util.Random
 import play.api.libs.Crypto
-import play.api.inject.guice.GuiceApplicationLoader
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.{ Mode, Configuration, Environment }
 import play.api.ApplicationLoader.Context
 import play.core.DefaultWebCommands
@@ -133,7 +133,7 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
       new DefaultWebCommands,
       Configuration.load(environment)
     )
-    def loader = new GuiceApplicationLoader
+    def loader = new GuiceApplicationBuilder
     "allow injecting CSRF filters" in {
       val app = loader.load(fakeContext)
       app.injector.instanceOf[CSRFFilter] must beAnInstanceOf[CSRFFilter]
