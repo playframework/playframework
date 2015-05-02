@@ -3,6 +3,7 @@
  */
 package play.api.inject.guice
 
+import com.google.inject.Module
 import play.api.{ Application, ApplicationLoader, Configuration, Environment, OptionalSourceMapper }
 import play.api.inject.{ bind, Injector => PlayInjector }
 import play.core.WebCommands
@@ -17,6 +18,10 @@ class GuiceApplicationLoader(builder: GuiceApplicationBuilder) extends Applicati
 
   def load(context: ApplicationLoader.Context): Application = {
     builder(context).build
+  }
+
+  def applicationModule(context: ApplicationLoader.Context): Module = {
+    builder(context).applicationModule
   }
 
   def builder(context: ApplicationLoader.Context): GuiceApplicationBuilder = {
