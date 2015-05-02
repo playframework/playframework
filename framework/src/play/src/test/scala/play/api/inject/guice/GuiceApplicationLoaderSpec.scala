@@ -18,33 +18,31 @@ class GuiceApplicationLoaderSpec extends Specification {
           bind(classOf[Bar]) to classOf[MarsBar]
         }
       }
-      val builder = new GuiceApplicationBuilder().bindings(module)
-      val loader = new GuiceApplicationLoader(builder)
+      val loader = new GuiceApplicationBuilder().bindings(module)
       val app = loader.load(fakeContext)
       app.injector.instanceOf[Bar] must beAnInstanceOf[MarsBar]
     }
 
     "allow replacing automatically loaded modules" in {
-      val builder = new GuiceApplicationBuilder().load(new BuiltinModule, new ManualTestModule)
-      val loader = new GuiceApplicationLoader(builder)
+      val loader = new GuiceApplicationBuilder().load(new BuiltinModule, new ManualTestModule)
       val app = loader.load(fakeContext)
       app.injector.instanceOf[Foo] must beAnInstanceOf[ManualFoo]
     }
 
     "load static Guice modules from configuration" in {
-      val loader = new GuiceApplicationLoader()
+      val loader = new GuiceApplicationBuilder()
       val app = loader.load(fakeContextWithModule(classOf[StaticTestModule]))
       app.injector.instanceOf[Foo] must beAnInstanceOf[StaticFoo]
     }
 
     "load dynamic Scala Guice modules from configuration" in {
-      val loader = new GuiceApplicationLoader()
+      val loader = new GuiceApplicationBuilder()
       val app = loader.load(fakeContextWithModule(classOf[ScalaConfiguredModule]))
       app.injector.instanceOf[Foo] must beAnInstanceOf[ScalaConfiguredFoo]
     }
 
     "load dynamic Java Guice modules from configuration" in {
-      val loader = new GuiceApplicationLoader()
+      val loader = new GuiceApplicationBuilder()
       val app = loader.load(fakeContextWithModule(classOf[JavaConfiguredModule]))
       app.injector.instanceOf[Foo] must beAnInstanceOf[JavaConfiguredFoo]
     }
