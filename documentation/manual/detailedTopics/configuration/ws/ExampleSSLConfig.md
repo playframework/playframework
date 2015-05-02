@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Example Configurations
 
 TLS can be very confusing.  Here are some settings that can help.

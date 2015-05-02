@@ -77,13 +77,13 @@ scala> new play.core.StaticApplication(new java.io.File("."))
 
 You can ask Play to start a **JPDA** debug port when starting the console. You can then connect using Java debugger. Use the `activator -jvm-debug <port>` command to do that:
 
-```
+```bash
 $ activator -jvm-debug 9999
 ```
 
 When a JPDA port is available, the JVM will log this line during boot:
 
-```
+```bash
 Listening for transport dt_socket at address: 9999
 ```
 
@@ -91,7 +91,7 @@ Listening for transport dt_socket at address: 9999
 
 The Play console is just a normal sbt console, so you can use sbt features such as **triggered execution**. 
 
-For example, using `~ compile`
+For example, using `~ compile`:
 
 ```bash
 [my-first-app] $ ~ compile
@@ -99,7 +99,7 @@ For example, using `~ compile`
 
 The compilation will be triggered each time you change a source file.
 
-If you are using `~ run`
+If you are using `~ run`:
 
 ```bash
 [my-first-app] $ ~ run

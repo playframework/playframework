@@ -47,7 +47,7 @@ For more details on developing the Play documentation, see the [[Documentation G
 
 You can run basic tests from the sbt console using the `test` task:
 
-```
+```bash
 > test
 ```
 
@@ -55,7 +55,7 @@ Like with publishing, you can prefix the command with `+` to run the tests again
 
 The Play PR validation runs a few more tests than just the basic tests, including scripted tests, testing the documentation code samples, and testing the Play activator templates.  To run all the tests, run the `framework/runtests` script:
 
-```
+```bash
 $ cd playframework/framework
 $ ./runtests
 ```
@@ -66,14 +66,14 @@ Compiling and running projects using the Play version you have built from source
 
 Navigate to your existing Play project and make the following edits in `project/plugins.sbt`:
 
-```
+```scala
 // Change the sbt plugin to use the local Play build (2.4.0-SNAPSHOT)
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.4.0-SNAPSHOT")
 ```
 
 Once you have done this, you can start the console and interact with your project normally:
 
-```
+```bash
 $ cd <projectdir>
 $ activator
 ```

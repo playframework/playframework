@@ -16,7 +16,7 @@ JavaScript code is compiled during the `assets` command as well as when the brow
 JSHint processing is enabled by simply adding the plugin to your plugins.sbt file when using the `PlayJava` or `PlayScala` plugins:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-jshint" % "1.0.0")
+addSbtPlugin("com.typesafe.sbt" % "sbt-jshint" % "1.0.3")
 ```
 
 The plugin's default configuration is normally sufficient. However please refer to the [plugin's documentation](https://github.com/sbt/sbt-jshint#sbt-jshint) for information on how it may be configured.

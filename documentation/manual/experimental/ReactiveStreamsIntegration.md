@@ -9,7 +9,7 @@ Play 2.4 provides an **experimental** Reactive Streams integration module that a
 
 ## Known issues
 
-* The implementations haven't been fully updated to verson 0.4 of the Reactive Streams specification. For example, `Publisher`s and `Subscriber`s may send or accept an `onComplete` event without a preceding `onSubscribe` event. This was allowed in 0.3 but is not permitted in 0.4.
+* The implementations haven't been fully updated to version 0.4 of the Reactive Streams specification. For example, `Publisher`s and `Subscriber`s may send or accept an `onComplete` event without a preceding `onSubscribe` event. This was allowed in 0.3 but is not permitted in 0.4.
 * May need to lift `Input` events into the stream to ensure that `Input.EOF` events cannot be lost and to provide proper support for `Input.Empty`. At the moment there is the potential for event loss when adapting iteratees and enumerators.
 * No performance tuning has been done.
 * Needs support for two-way conversion between all the main stream and iteratee types.

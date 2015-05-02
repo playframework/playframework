@@ -23,10 +23,10 @@ If you follow this structure it will be simpler to get started, but nothing stop
 [WebJars](http://www.webjars.org/) provide a convenient and conventional packaging mechanism that is a part of Activator and sbt. For example you can declare that you will be using the popular [Bootstrap library](http://getbootstrap.com/) simply by adding the following dependency in your build file:
 
 ```scala
-libraryDependencies += "org.webjars" % "bootstrap" % "3.2.0"
+libraryDependencies += "org.webjars" % "bootstrap" % "3.3.4"
 ```
 
-WebJars are automatically extracted into a `lib` folder relative to your public assets for convenience. For example if you declared a dependency on [RequireJs](http://requirejs.org/) then you can reference it from a view using a line like:
+WebJars are automatically extracted into a `lib` folder relative to your public assets for convenience. For example, if you declared a dependency on [RequireJs](http://requirejs.org/) then you can reference it from a view using a line like:
 
 ```html
 <script data-main="@routes.Assets.at("javascripts/main.js")" type="text/javascript" src="@routes.Assets.at("lib/requirejs/require.js")"></script>
@@ -72,7 +72,6 @@ controllers.Assets.at("/public", "javascripts/jquery.js")
 
 This action will look-up and serve the file and if it exists.
 
-
 ## Reverse routing for public assets
 
 As for any controller mapped in the routes file, a reverse controller is created in `controllers.routes.Assets`. You use this to reverse the URL needed to fetch a public resource. For example, from a template:
@@ -105,7 +104,7 @@ You will then need to specify both parameters when using the reverse router:
 
 ## Reverse routing and fingerprinting for public assets
 
-sbt-web brings the notion of a highly configurable asset pipeline to Play e.g. in your build file:
+[sbt-web](https://github.com/sbt/sbt-web) brings the notion of a highly configurable asset pipeline to Play e.g. in your build file:
 
 ```scala
 pipelineStages := Seq(rjs, digest, gzip)

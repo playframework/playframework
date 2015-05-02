@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Working with Git
 
 This guide is designed to help new contributors get started with Play.  Some of the things mentioned here are conventions that we think are good and make contributing to Play easier, but they are certainly not prescriptive, you should use what works best for you.

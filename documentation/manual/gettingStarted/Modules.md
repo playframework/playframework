@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Play Modules
 
 At its core, Play is a very lightweight HTTP server, providing mechanisms for serving HTTP requests, but not much else. Additional functionality in Play is provided through the use of Play modules.

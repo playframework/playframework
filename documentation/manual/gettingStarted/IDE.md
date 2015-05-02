@@ -9,9 +9,9 @@ However, using a modern Java or Scala IDE provides cool productivity features li
 
 ### Setup sbteclipse
 
-Play requires sbteclipse 4.0.0 or newer.
+Play requires [sbteclipse](https://github.com/typesafehub/sbteclipse) 4.0.0 or newer.
 
-```
+```scala
 addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "4.0.0")
 ```
 
@@ -19,7 +19,7 @@ If you have Scala sources in your project, you will need to install [Scala IDE](
 
 If you do not want to install Scala IDE and have only Java sources in your project, then you can set the following:
 
-```
+```scala
 EclipseKeys.projectFlavor := EclipseProjectFlavor.Java           // Java project. Don't expect Scala IDE
 EclipseKeys.createSrc := EclipseCreateSrc.ValueSet(EclipseCreateSrc.ManagedClasses, EclipseCreateSrc.ManagedResources)  // Use .class files instead of generated .scala files for views and routes 
 EclipseKeys.preTasks := Seq(compile in Compile)                  // Compile the project before generating Eclipse files, so that .class files for views and routes are present
@@ -35,19 +35,19 @@ Play provides a command to simplify [Eclipse](http://eclipse.org/) configuration
 
 If you want to grab the available source jars (this will take longer and it's possible a few sources might be missing):
 
-```
+```bash
 [my-first-app] $ eclipse with-source=true
 ```
 
 > Note if you are using sub-projects with aggregate, you would need to set `skipParents` appropriately in `build.sbt`:
 
-```
+```scala
 EclipseKeys.skipParents in ThisBuild := false
 ```
 
 or from the play console, type:
 
-``` 
+```bash
 [my-first-app] $ eclipse skip-parents=false
 ```
 
@@ -112,7 +112,7 @@ Just install the Remote Call plugin and run your app with the following options:
 
 ### Generate Configuration
 
-Play does not have native Netbeans project generation support at this time, but there is a Scala plugin for NetBeans which can help with both Scala language and SBT:
+Play does not have native [Netbeans](https://netbeans.org/) project generation support at this time, but there is a Scala plugin for NetBeans which can help with both Scala language and SBT:
 
 <https://github.com/dcaoyuan/nbscala>
 
@@ -124,25 +124,25 @@ There is also a SBT plugin to create Netbeans project definition:
 
 ### Install ENSIME
 
-Follow the installation instructions at <https://github.com/ensime/ensime-emacs>
+Follow the installation instructions at <https://github.com/ensime/ensime-emacs>.
 
 ### Generate configuration
 
 Edit your project/plugins.sbt file, and add the following line (you should first check <https://github.com/ensime/ensime-sbt> for the latest version of the plugin):
 
-```
+```scala
 addSbtPlugin("org.ensime" % "ensime-sbt" % "0.1.5-SNAPSHOT")
 ```
 
 Start Play:
 
-```
+```bash
 $ activator
 ```
 
 Enter 'ensime generate' at the play console. The plugin should generate a .ensime file in the root of your Play project.
 
-```
+```bash
 $ [MYPROJECT] ensime generate
 [info] Gathering project information...
 [info] Processing project: ProjectRef(file:/Users/aemon/projects/www/MYPROJECT/,MYPROJECT)...
@@ -182,9 +182,7 @@ That's all there is to it. You should now get type-checking, completion, etc. fo
 
 ### More Information
 
-Check out the ENSIME README at <https://github.com/ensime/ensime-emacs>.
-If you have questions, post them in the ensime group at <https://groups.google.com/forum/?fromgroups=#!forum/ensime>.
-
+Check out the ENSIME README at <https://github.com/ensime/ensime-emacs>. If you have questions, post them in the ensime group at <https://groups.google.com/forum/?fromgroups=#!forum/ensime>.
 
 ## All Scala Plugins if needed
 

@@ -107,7 +107,7 @@ New features in anorm include:
 
 ## Ebean
 
-Play's Ebean support has been extracted into a separate project with its own lifecycle, allowing ebean support to move at its own pace, not bound to Play.  The play-ebean project can be found [here](https://github.com/playframework/play-ebean).
+Play's Ebean support has been extracted into a separate project with its own lifecycle, allowing Ebean support to move at its own pace, not bound to Play.  The play-ebean project can be found [here](https://github.com/playframework/play-ebean).
 
 play-ebean now supports Ebean 4.x.
 

@@ -9,7 +9,7 @@ All Play artifacts are published to the Typesafe repository at <https://repo.typ
 
 To enable it in your sbt build, you must add a proper resolver (typically in `plugins.sbt`):
 
-```
+```scala
 // The Typesafe repository
 resolvers += "Typesafe Releases" at "https://repo.typesafe.com/typesafe/releases/"
 ```
@@ -20,7 +20,7 @@ Snapshots are published daily from our [[Continuous Integration Server|ThirdPart
 
 > **Note:** it's an ivy style repository.
 
-```
+```scala
 // The Typesafe snapshots repository
 resolvers += Resolver.url("Typesafe Ivy Snapshots Repository", url("https://repo.typesafe.com/typesafe/ivy-snapshots"))(Resolver.ivyStylePatterns)
 ```
