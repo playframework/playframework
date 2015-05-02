@@ -76,7 +76,7 @@ ebean.default = ["models.*"]
 ebean.orders = ["models.Order", "models.OrderItem"]
 ```
 
-Additionally, Ebean has been upgraded to 4.5.x, which pulls in a few of the features that Play previously added itself, including the `Model` class.  Consequently, the Play `Model` class has been deprecated, in favour of using `org.avaje.ebean.Model`.
+Additionally, Ebean has been upgraded to 4.5.x, which pulls in a few of the features that Play previously added itself, including the `Model` class.  Consequently, the Play `Model` class has been deprecated, in favour of using `com.avaje.ebean.Model`.
 
 ### Anorm dependency
 
