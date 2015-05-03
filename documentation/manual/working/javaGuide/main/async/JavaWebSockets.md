@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # WebSockets
 
-[WebSockets](http://en.wikipedia.org/wiki/WebSocket) are sockets that can be used from a web browser based on a protocol that allows two way full duplex communication.  The client can send messages and the server can receive messages at any time, as long as there is an active WebSocket connection between the server and the client.
+[WebSockets](https://en.wikipedia.org/wiki/WebSocket) are sockets that can be used from a web browser based on a protocol that allows two way full duplex communication.  The client can send messages and the server can receive messages at any time, as long as there is an active WebSocket connection between the server and the client.
 
 Modern HTML5 compliant web browsers natively support WebSockets via a JavaScript WebSocket API.  However WebSockets are not limited in just being used by WebBrowsers, there are many WebSocket client libraries available, allowing for example servers to talk to each other, and also native mobile apps to use WebSockets.  Using WebSockets in these contexts has the advantage of being able to reuse the existing TCP port that a Play server uses.
 
@@ -66,7 +66,7 @@ When the `WebSocket` is ready, you get both `in` and `out` channels.
 
 It this example, we print each message to console and we send a single **Hello!** message.
 
-> **Tip:** You can test your WebSocket controller on <http://websocket.org/echo.html>. Just set the location to `ws://localhost:9000`.
+> **Tip:** You can test your WebSocket controller on <https://www.websocket.org/echo.html>. Just set the location to `ws://localhost:9000`.
 
 Let’s write another example that totally discards the input data and closes the socket just after sending the **Hello!** message:
 

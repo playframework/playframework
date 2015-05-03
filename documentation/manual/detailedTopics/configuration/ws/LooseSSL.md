@@ -32,11 +32,11 @@ A networking auditing tool such as a [Wifi Pineapple](https://wifipineapple.com/
 
 ### Companies have been sued for inadequate security
 
-PCI compliance is not the only thing that companies have to worry about.  The FTC sued [Fandango and Credit Karma](http://www.ftc.gov/news-events/press-releases/2014/03/fandango-credit-karma-settle-ftc-charges-they-deceived-consumers) on charges that they failed to securely transmit information, including credit card information.
+PCI compliance is not the only thing that companies have to worry about.  The FTC sued [Fandango and Credit Karma](https://www.ftc.gov/news-events/press-releases/2014/03/fandango-credit-karma-settle-ftc-charges-they-deceived-consumers) on charges that they failed to securely transmit information, including credit card information.
 
 ### Correctly configured HTTPS clients are important
 
-Sensitive, company confidential information goes over web services.  A paper discussing insecurities in WS clients was titled [The Most Dangerous Code in the World: Validating SSL Certificates in Non-Browser Software](http://www.cs.utexas.edu/~shmat/shmat_ccs12.pdf), and lists poor default configuration and explicit disabling of security options as the primary reason for exposure.  The WS client has been configured as much as possible to be secure by default, and there are example configurations provided for your benefit.
+Sensitive, company confidential information goes over web services.  A paper discussing insecurities in WS clients was titled [The Most Dangerous Code in the World: Validating SSL Certificates in Non-Browser Software](https://www.cs.utexas.edu/~shmat/shmat_ccs12.pdf), and lists poor default configuration and explicit disabling of security options as the primary reason for exposure.  The WS client has been configured as much as possible to be secure by default, and there are example configurations provided for your benefit.
 
 ## Mitigation
 
@@ -69,7 +69,7 @@ If you've read the above and you still want to completely disable certificate ve
 play.ws.ssl.loose.acceptAnyCertificate=true
 ```
 
-With certificate verification completely disabled, you are vulnerable to attack from anyone on the network using a tool such as [mitmproxy](http://mitmproxy.org/).
+With certificate verification completely disabled, you are vulnerable to attack from anyone on the network using a tool such as [mitmproxy](https://mitmproxy.org/).
 
 ### Disabling Weak Ciphers Checking
 
@@ -89,7 +89,7 @@ If you want to disable hostname verification, you can set a loose flag:
 play.ws.ssl.loose.disableHostnameVerification=true
 ```
 
-With hostname verification disabled, a DNS proxy such as `dnschef` can [easily intercept communication](http://tersesystems.com/2014/03/31/testing-hostname-verification/).
+With hostname verification disabled, a DNS proxy such as `dnschef` can [easily intercept communication](https://tersesystems.com/2014/03/31/testing-hostname-verification/).
 
 ### Disabled Protocols
 

@@ -27,7 +27,7 @@ EclipseKeys.preTasks := Seq(compile in Compile)                  // Compile the 
 
 ### Generate configuration
 
-Play provides a command to simplify [Eclipse](http://eclipse.org/) configuration. To transform a Play application into a working Eclipse project, use the `eclipse` command:
+Play provides a command to simplify [Eclipse](https://eclipse.org/) configuration. To transform a Play application into a working Eclipse project, use the `eclipse` command:
 
 ```bash
 [my-first-app] $ eclipse
@@ -67,7 +67,7 @@ The generated configuration files contain absolute references to your framework 
 
 ## IntelliJ
 
-[Intellij IDEA](http://www.jetbrains.com/idea/) lets you quickly create a Play application without using a command prompt. You don't need to configure anything outside of the IDE, the SBT build tool takes care of downloading appropriate libraries, resolving dependencies and building the project.
+[Intellij IDEA](https://www.jetbrains.com/idea/) lets you quickly create a Play application without using a command prompt. You don't need to configure anything outside of the IDE, the SBT build tool takes care of downloading appropriate libraries, resolving dependencies and building the project.
 
 Before you start creating a Play application in IntelliJ IDEA, make sure that the latest [Scala Plugin](http://www.jetbrains.com/idea/features/scala.html) is installed and enabled in IntelliJ IDEA. Even if you don't develop in Scala, it will help with the template engine and also resolving dependencies.
 
@@ -98,7 +98,7 @@ You can easily start a debugger session for a Play application using default Run
 
 For more detailed information, see the Play Framework 2.x tutorial at the following URL:
 
-<http://confluence.jetbrains.com/display/IntelliJIDEA/Play+Framework+2.0> 
+<https://confluence.jetbrains.com/display/IntelliJIDEA/Play+Framework+2.0> 
 
 ### Navigate from an error page to the source code
 
@@ -194,8 +194,8 @@ Scala is a newer programming language, so the functionality is provided in plugi
 2. NetBeans Scala Plugin: <https://github.com/dcaoyuan/nbscala>
 3. IntelliJ IDEA Scala Plugin: <http://confluence.jetbrains.net/display/SCA/Scala+Plugin+for+IntelliJ+IDEA>
 4. IntelliJ IDEA's plugin is under active development, and so using the nightly build may give you additional functionality at the cost of some minor hiccups.
-5. Nika (11.x) Plugin Repository: <http://www.jetbrains.com/idea/plugins/scala-nightly-nika.xml>
-6. Leda (12.x) Plugin Repository: <http://www.jetbrains.com/idea/plugins/scala-nightly-leda.xml>
+5. Nika (11.x) Plugin Repository: <https://www.jetbrains.com/idea/plugins/scala-nightly-nika.xml>
+6. Leda (12.x) Plugin Repository: <https://www.jetbrains.com/idea/plugins/scala-nightly-leda.xml>
 7. IntelliJ IDEA Play plugin (available only for Leda 12.x): <http://plugins.intellij.net/plugin/?idea&pluginId=7080>
 8. ENSIME - Scala IDE Mode for Emacs: <https://github.com/aemoncannon/ensime>
 (see below for ENSIME/Play instructions)

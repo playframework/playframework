@@ -7,7 +7,7 @@ If you need to generate X.509 certificates, please see [[Certificate Generation|
 
 ## Configuring a Trust Manager
 
-A [trust manager](http://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html#TrustManager) is used to keep trust anchors: these are root certificates which have been issued by certificate authorities.   It determines whether the remote authentication credentials (and thus the connection) should be trusted.  As an HTTPS client, the vast majority of requests will use only a trust manager.  
+A [trust manager](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#TrustManager) is used to keep trust anchors: these are root certificates which have been issued by certificate authorities.   It determines whether the remote authentication credentials (and thus the connection) should be trusted.  As an HTTPS client, the vast majority of requests will use only a trust manager.  
 
 If you do not configure it at all, WS uses the default trust manager, which points to the `cacerts` key store in `${java.home}/lib/security/cacerts`.  If you configure a trust manager explicitly, it will override the default settings and the `cacerts` store will not be included.
 
@@ -25,11 +25,11 @@ play.ws.ssl {
 ```
 
 
-> **NOTE**: Trust stores should only contain CA certificates with public keys, usually JKS or PEM.  PKCS12 format is supported, but PKCS12 should not contain private keys in a trust store, as noted in the [reference guide](http://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html#SunJSSE).
+> **NOTE**: Trust stores should only contain CA certificates with public keys, usually JKS or PEM.  PKCS12 format is supported, but PKCS12 should not contain private keys in a trust store, as noted in the [reference guide](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#SunJSSE).
 
 ## Configuring a Key Manager
 
-A [key manager](http://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html#KeyManager) is used to present keys for a remote host.  Key managers are typically only used for client authentication (also known as mutual TLS).
+A [key manager](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#KeyManager) is used to present keys for a remote host.  Key managers are typically only used for client authentication (also known as mutual TLS).
 
 The [CompositeX509KeyManager](api/scala/index.html#play.api.libs.ws.ssl.CompositeX509KeyManager) may contain multiple stores in the same manner as the trust manager.
 
@@ -47,11 +47,11 @@ play.ws.ssl {
 }
 ```
 
-> **NOTE**: A key store that holds private keys should use PKCS12 format, as indicated in the [reference guide](http://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html#SunJSSE).
+> **NOTE**: A key store that holds private keys should use PKCS12 format, as indicated in the [reference guide](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#SunJSSE).
 
 ## Configuring a Store
 
-A store corresponds to a [KeyStore](http://docs.oracle.com/javase/7/docs/api/java/security/KeyStore.html) object, which is used for both trust stores and key stores.  Stores may have a [type](http://docs.oracle.com/javase/7/docs/technotes/guides/security/StandardNames.html#KeyStore) -- `PKCS12`, [`JKS`](http://docs.oracle.com/javase/7/docs/technotes/guides/security/crypto/CryptoSpec.html#KeystoreImplementation) or `PEM` (aka Base64 encoded DER certificate) -- and may have an associated password.
+A store corresponds to a [KeyStore](https://docs.oracle.com/javase/8/docs/api/java/security/KeyStore.html) object, which is used for both trust stores and key stores.  Stores may have a [type](https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#KeyStore) -- `PKCS12`, [`JKS`](https://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html#KeystoreImplementation) or `PEM` (aka Base64 encoded DER certificate) -- and may have an associated password.
 
 Stores must have either a `path` or a `data` attribute.  The `path` attribute must be a file system path.
 
@@ -93,6 +93,6 @@ play.ws.ssl.debug = {
 
 In most cases, you will not need to do extensive configuration once the certificates are installed.  If you are having difficulty with configuration, the following blog posts may be useful:
 
-* [Key Management](http://docs.oracle.com/javase/7/docs/technotes/guides/security/crypto/CryptoSpec.html#KeyManagement)
+* [Key Management](https://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html#KeyManagement)
 * [Java 2-way TLS/SSL (Client Certificates) and PKCS12 vs JKS KeyStores](http://blog.palominolabs.com/2011/10/18/java-2-way-tlsssl-client-certificates-and-pkcs12-vs-jks-keystores/)
 * [HTTPS with Client Certificates on Android](http://chariotsolutions.com/blog/post/https-with-client-certificates-on/)

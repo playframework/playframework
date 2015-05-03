@@ -3,7 +3,7 @@
 
 In an SSL connection, the identity of the remote server is verified using an X.509 certificate which has been signed by a certificate authority.
 
-The JSSE implementation of X.509 certificates is defined in the [PKI Programmer's Guide](http://docs.oracle.com/javase/7/docs/technotes/guides/security/certpath/CertPathProgGuide.html).
+The JSSE implementation of X.509 certificates is defined in the [PKI Programmer's Guide](https://docs.oracle.com/javase/8/docs/technotes/guides/security/certpath/CertPathProgGuide.html).
 
 Some X.509 certificates that are used by servers are old, and are using signatures that can be forged by an attacker.  Because of this, it may not be possible to verify the identity of the server if that signature algorithm is being used.  Fortunately, this is rare -- over 95% of trusted leaf certificates and 95% of trusted signing certificates use [NIST recommended key sizes](http://csrc.nist.gov/publications/nistpubs/800-131A/sp800-131A.pdf).
 
@@ -11,7 +11,7 @@ WS automatically disables weak signature algorithms and weak keys for you, accor
 
 This feature is similar to [jdk.certpath.disabledAlgorithms](http://sim.ivi.co/2013/11/harness-ssl-and-jsse-key-size-control.html), but is specific to the WS client and can be set dynamically, whereas jdk.certpath.disabledAlgorithms is global across the JVM, must be set via a security property, and is only available in JDK 1.7 and later.
 
-You can override this to your tastes, but it is recommended to be at least as strict as the defaults.  The appropriate signature names can be looked up in the [Providers Documentation](http://docs.oracle.com/javase/7/docs/technotes/guides/security/SunProviders.html).
+You can override this to your tastes, but it is recommended to be at least as strict as the defaults.  The appropriate signature names can be looked up in the [Providers Documentation](https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html).
 
 ## Disabling Certificates with Weak Signature Algorithms
 
@@ -21,7 +21,7 @@ The default list of disabled signature algorithms is defined below:
 play.ws.ssl.disabledSignatureAlgorithms = "MD2, MD4, MD5"
 ```
 
-MD5 is disabled, based on the proven [collision attack](http://www.win.tue.nl/hashclash/rogue-ca/) and the Mozilla recommendations:
+MD5 is disabled, based on the proven [collision attack](https://www.win.tue.nl/hashclash/rogue-ca/) and the Mozilla recommendations:
 
 > MD5 certificates may be compromised when attackers can create a fake cert that hashes to the same value as one with a legitimate signature, and is hence trusted. Mozilla can mitigate this potential vulnerability by turning off support for MD5-based signatures. The MD5 root certificates don't necessarily need to be removed from NSS, because the signatures of root certificates are not validated (roots are self-signed). Disabling MD5 will impact intermediate and end entity certificates, where the signatures are validated.
 >
@@ -66,4 +66,4 @@ The undocumented setting `-Djava.security.debug=x509` may also be helpful.
 ## Further Reading
 
 * [Dates for Phasing out MD5-based signatures and 1024-bit moduli](https://wiki.mozilla.org/CA:MD5and1024)
-* [Fixing X.509 Certificates](http://tersesystems.com/2014/03/20/fixing-x509-certificates/)
+* [Fixing X.509 Certificates](https://tersesystems.com/2014/03/20/fixing-x509-certificates/)

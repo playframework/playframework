@@ -15,4 +15,4 @@ Our continuous integration runs on [Cloudbees](http://www.cloudbees.com/). We no
 
 ![YourKit logo](images/yourkit.png)
 
-We are using [YourKit](http://www.yourkit.com/overview/index.jsp) for profiling our Java and Scala code. YourKit really helps us keep Play's resource usage to the minimum that you'd expect.
+We are using [YourKit](https://www.yourkit.com/overview/index.jsp) for profiling our Java and Scala code. YourKit really helps us keep Play's resource usage to the minimum that you'd expect.

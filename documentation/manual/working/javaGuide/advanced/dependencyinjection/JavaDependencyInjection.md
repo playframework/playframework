@@ -7,7 +7,7 @@ Out of the box, Play provides dependency injection support based on [JSR 330](ht
 
 ## Declaring dependencies
 
-If you have a component, such as a controller, and it requires some other components as dependencies, then this can be declared using the [@Inject](http://docs.oracle.com/javaee/6/api/javax/inject/Inject.html) annotation.  The `@Inject` annotation can be used on fields or on constructors, which you decide to use is up to you.  For example, to use field injection:
+If you have a component, such as a controller, and it requires some other components as dependencies, then this can be declared using the [@Inject](https://docs.oracle.com/javaee/7/api/javax/inject/Inject.html) annotation.  The `@Inject` annotation can be used on fields or on constructors, which you decide to use is up to you.  For example, to use field injection:
 
 @[field](code/javaguide/advanced/di/field/MyComponent.java)
 
@@ -49,7 +49,7 @@ The dependency injection system manages the lifecycle of injected components, cr
 
 ## Singletons
 
-Sometimes you may have a component that holds some state, such as a cache, or a connection to an external resource, or a component might be expensive to create. In these cases it may be important that there is only one instance of that component. This can be achieved using the [@Singleton](http://docs.oracle.com/javaee/6/api/javax/inject/Singleton.html) annotation:
+Sometimes you may have a component that holds some state, such as a cache, or a connection to an external resource, or a component might be expensive to create. In these cases it may be important that there is only one instance of that component. This can be achieved using the [@Singleton](https://docs.oracle.com/javaee/7/api/javax/inject/Singleton.html) annotation:
 
 @[singleton](code/javaguide/advanced/di/CurrentSharePrice.java)
 
@@ -78,14 +78,14 @@ Since Play provides support for Guice out of the box, the examples below show ho
 
 #### Binding annotations
 
-The simplest way to bind an implementation to an interface is to use the Guice [@ImplementedBy](http://google.github.io/guice/api-docs/latest/javadoc/index.html?com/google/inject/ImplementedBy.html) annotation.  For example:
+The simplest way to bind an implementation to an interface is to use the Guice [@ImplementedBy](https://google.github.io/guice/api-docs/latest/javadoc/index.html?com/google/inject/ImplementedBy.html) annotation.  For example:
 
 @[implemented-by](code/javaguide/advanced/di/Hello.java)
 @[implemented-by](code/javaguide/advanced/di/EnglishHello.java)
 
 #### Programmatic bindings
 
-In some more complex situations, you may want to provide more complex bindings, such as when you have multiple implementations of the one trait, which are qualified by [@Named](http://docs.oracle.com/javaee/6/api/javax/inject/Named.html) annotations.  In these cases, you can implement a custom Guice [Module](http://google.github.io/guice/api-docs/latest/javadoc/index.html?com/google/inject/Module.html):
+In some more complex situations, you may want to provide more complex bindings, such as when you have multiple implementations of the one trait, which are qualified by [@Named](https://docs.oracle.com/javaee/7/api/javax/inject/Named.html) annotations.  In these cases, you can implement a custom Guice [Module](https://google.github.io/guice/api-docs/latest/javadoc/index.html?com/google/inject/Module.html):
 
 @[guice-module](code/javaguide/advanced/di/guice/HelloModule.java)
 

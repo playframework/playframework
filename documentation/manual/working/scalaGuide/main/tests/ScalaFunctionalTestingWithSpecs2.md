@@ -40,7 +40,7 @@ A [`FakeApplication`](api/scala/index.html#play.api.test.FakeApplication) can al
 
 ## WithBrowser
 
-If you want to test your application using a browser, you can use [Selenium WebDriver](http://code.google.com/p/selenium/?redir=1). Play will start the WebDriver for you, and wrap it in the convenient API provided by [FluentLenium](https://github.com/FluentLenium/FluentLenium) using [`WithBrowser`](api/scala/index.html#play.api.test.WithBrowser).  Like [`WithServer`](api/scala/index.html#play.api.test.WithServer), you can change the port, [`Application`](api/scala/index.html#play.api.Application), and you can also select the web browser to use:
+If you want to test your application using a browser, you can use [Selenium WebDriver](https://github.com/seleniumhq/selenium). Play will start the WebDriver for you, and wrap it in the convenient API provided by [FluentLenium](https://github.com/FluentLenium/FluentLenium) using [`WithBrowser`](api/scala/index.html#play.api.test.WithBrowser).  Like [`WithServer`](api/scala/index.html#play.api.test.WithServer), you can change the port, [`Application`](api/scala/index.html#play.api.Application), and you can also select the web browser to use:
 
 @[scalafunctionaltest-testwithbrowser](code/specs2/ScalaFunctionalTestSpec.scala)
 

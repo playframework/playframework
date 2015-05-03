@@ -118,7 +118,7 @@ The Heroku sbt plugin utilizes an API to provide direct deployment of prepackage
 To include the plugin in your project, add the following to your `project/plugins.sbt` file:
 
 ```scala
-resolvers += Resolver.url("heroku-sbt-plugin-releases", url("http://dl.bintray.com/heroku/sbt-plugins/"))(Resolver.ivyStylePatterns)
+resolvers += Resolver.url("heroku-sbt-plugin-releases", url("https://dl.bintray.com/heroku/sbt-plugins/"))(Resolver.ivyStylePatterns)
 
 addSbtPlugin("com.heroku" % "sbt-heroku" % "0.3.0")
 ```
@@ -199,7 +199,7 @@ Note that the creation of a Procfile is not actually required by Heroku, as Hero
 * [Using WebSockets on Heroku with Java and the Play Framework](https://devcenter.heroku.com/articles/play-java-websockets)
 * [Seed Project for Play and Heroku](https://github.com/jkutner/play-heroku-seed)
 * [Play Tutorial for Java](https://github.com/jamesward/play2torial/blob/master/JAVA.md)
-* [Getting Started with Play, Scala, and Squeryl](http://www.artima.com/articles/play2_scala_squeryl.html)
+* [Getting Started with Play, Scala, and Squeryl](https://www.artima.com/articles/play2_scala_squeryl.html)
 * [Edge Caching With Play, Heroku, and CloudFront](http://www.jamesward.com/2012/08/08/edge-caching-with-play2-heroku-cloudfront)
 * [Optimizing Play for Database-Driven Apps](http://www.jamesward.com/2012/06/25/optimizing-play-2-for-database-driven-apps)
 * [Play App with a Scheduled Job on Heroku](https://github.com/jamesward/play2-scheduled-job-demo)

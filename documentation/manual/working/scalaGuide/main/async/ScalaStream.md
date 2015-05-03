@@ -121,7 +121,7 @@ For this kind of response we have to use **Chunked transfer encoding**.
 > 
 > The size of each chunk is sent right before the chunk itself, so that a client can tell when it has finished receiving data for that chunk. Data transfer is terminated by a final chunk of length zero.
 >
-> <http://en.wikipedia.org/wiki/Chunked_transfer_encoding>
+> <https://en.wikipedia.org/wiki/Chunked_transfer_encoding>
 
 The advantage is that we can serve the data **live**, meaning that we send chunks of data as soon as they are available. The drawback is that since the web browser doesn’t know the content size, it is not able to display a proper download progress bar.
 
