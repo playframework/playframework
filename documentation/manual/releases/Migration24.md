@@ -3,6 +3,16 @@
 
 This is a guide for migrating from Play 2.3 to Play 2.4. If you need to migrate from an earlier version of Play then you must first follow the [[Play 2.3 Migration Guide|Migration23]].
 
+## Java 8 support
+
+The support for Java 6 and Java 7 was dropped and Play 2.4 now requires Java 8. This decision was made based on the fact that [Java 7 reached its End-of-Life in April 2015](https://www.java.com/en/download/faq/java_7.xml). Also, Java 8 enables clean APIs and has better support for functional programming style. If you try to use Play 2.4 with Java 6/7, you will get an error like below:
+
+```
+java.lang.UnsupportedClassVersionError: play/runsupport/classloader/ApplicationClassLoaderProvider : Unsupported major.minor version 52.0
+```
+
+A [java.lang.UnsupportedClassVersionError](https://docs.oracle.com/javase/8/docs/api/java/lang/UnsupportedClassVersionError.html) means that reading a Java class file with an older version of Java than the class file was compiled with is unsupported.
+
 ## Build changes
 
 The following steps need to be taken to update your sbt build before you can load/run a Play project in sbt.
