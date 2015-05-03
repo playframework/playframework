@@ -3,6 +3,8 @@
  */
 package play.mvc;
 
+import static play.libs.Scala.asScala;
+
 import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URI;
@@ -28,8 +30,8 @@ import play.api.mvc.AnyContentAsText;
 import play.api.mvc.AnyContentAsXml;
 import play.api.mvc.Headers;
 import play.core.system.RequestIdProvider;
-import play.i18n.Lang;
 import play.Play;
+import play.i18n.Lang;
 import play.i18n.Messages;
 import play.i18n.MessagesApi;
 
@@ -659,7 +661,7 @@ public class Http {
             for (Entry<String,String[]> entry: data.entrySet()) {
                 seqs.put(entry.getKey(), Predef.genericWrapArray(entry.getValue()));
             }
-            scala.collection.immutable.Map<String,Seq<String>> map = mapToScala(seqs);
+            scala.collection.immutable.Map<String,Seq<String>> map = asScala(seqs);
             return body(new AnyContentAsFormUrlEncoded(map), "application/x-www-form-urlencoded");
         }
 
@@ -671,7 +673,7 @@ public class Http {
             for (Entry<String,String> entry: data.entrySet()) {
                 seqs.put(entry.getKey(), JavaConversions.asScalaBuffer(Arrays.asList(entry.getValue())));
             }
-            scala.collection.immutable.Map<String,Seq<String>> map = mapToScala(seqs);
+            scala.collection.immutable.Map<String,Seq<String>> map = asScala(seqs);
             return body(new AnyContentAsFormUrlEncoded(map), "application/x-www-form-urlencoded");
         }
 
@@ -719,7 +721,7 @@ public class Http {
             return new RequestImpl(new play.api.mvc.RequestImpl(
                 body(),
                 id,
-                mapToScala(tags()),
+                asScala(tags()),
                 uri.toString(),
                 uri.getRawPath(),
                 method,
@@ -1021,7 +1023,7 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder flash(Map<String,String> data) {
-          play.api.mvc.Flash flash = new play.api.mvc.Flash(mapToScala(data));
+          play.api.mvc.Flash flash = new play.api.mvc.Flash(asScala(data));
           cookies(JavaConversions.asScalaBuffer(Arrays.asList(play.api.mvc.Flash$.MODULE$.encodeAsCookie(flash))));
           return this;
         }
@@ -1055,7 +1057,7 @@ public class Http {
          * @return the builder instance
          */
         public RequestBuilder session(Map<String,String> data) {
-          play.api.mvc.Session session = new play.api.mvc.Session(mapToScala(data));
+          play.api.mvc.Session session = new play.api.mvc.Session(asScala(data));
           cookies(JavaConversions.asScalaBuffer(Arrays.asList(play.api.mvc.Session$.MODULE$.encodeAsCookie(session))));
           return this;
         }
@@ -1104,13 +1106,7 @@ public class Http {
             for (String key: data.keySet()) {
                 seqs.put(key, JavaConversions.asScalaBuffer(data.get(key)));
             }
-            return mapToScala(seqs);
-        }
-
-        protected static <A, B> scala.collection.immutable.Map<A, B> mapToScala(java.util.Map<A, B> m) {
-          return JavaConverters.mapAsScalaMapConverter(m).asScala().toMap(
-            Predef.<Tuple2<A, B>>conforms()
-          );
+            return asScala(seqs);
         }
 
         protected Headers buildHeaders() {
