@@ -4,6 +4,7 @@
 package play;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import play.core.SourceMapper;
 import play.core.DefaultWebCommands;
@@ -36,9 +37,8 @@ public interface ApplicationLoader {
    * The context for loading an application.
    */
   final static class Context {
+
     private final play.api.ApplicationLoader.Context underlying;
-    private final Configuration initialConfiguration;
-    private final Environment environment;
 
   /**
    * The context for loading an application.
@@ -47,8 +47,32 @@ public interface ApplicationLoader {
    */
     public Context(play.api.ApplicationLoader.Context underlying) {
         this.underlying = underlying;
-        this.environment = new Environment(underlying.environment());
-        this.initialConfiguration = new Configuration(underlying.initialConfiguration());
+    }
+
+  /**
+   * The context for loading an application.
+   *
+   * @param environment the application environment
+   */
+    public Context(Environment environment) {
+        this(environment, new HashMap<>());
+    }
+
+  /**
+   * The context for loading an application.
+   *
+   * @param environment the application environment
+   * @param initialSettings the initial settings. These settings are merged with the settings from the loaded
+   *                        configuration files, and together form the initialConfiguration provided by the context.  It
+   *                        is intended for use in dev mode, to allow the build system to pass additional configuration
+   *                        into the application.
+   */
+    public Context(Environment environment, Map<String,String> initialSettings) {
+        this.underlying = new play.api.ApplicationLoader.Context(
+           environment.underlying(),
+           scala.Option.empty(),
+           new play.core.DefaultWebCommands(),
+           play.api.Configuration.load(environment.underlying(), play.libs.Scala.asScala(initialSettings)));
     }
 
     /**
@@ -62,7 +86,7 @@ public interface ApplicationLoader {
      * Get the environment from the context.
      */
     public Environment environment() {
-        return environment;
+        return new Environment(underlying.environment());
     }
 
     /**
@@ -71,7 +95,7 @@ public interface ApplicationLoader {
      * mechanisms, modify it or completely ignore it.
      */
     public Configuration initialConfiguration() {
-        return initialConfiguration;
+        return new Configuration(underlying.initialConfiguration());
     }
 
     /**
