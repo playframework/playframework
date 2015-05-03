@@ -84,7 +84,7 @@ object Dependencies {
       .exclude("javassist", "javassist"),
 
     // Used by the Java routing DSL
-    "net.jodah" % "typetools" % "0.4.0",
+    "net.jodah" % "typetools" % "0.4.1",
 
     guava,
     findBugs,
@@ -108,7 +108,7 @@ object Dependencies {
   def runtime(scalaVersion: String) =
     Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.12") ++
     Seq("logback-core", "logback-classic").map("ch.qos.logback" % _ % "1.1.3") ++
-    Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % "2.3.7") ++
+    Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % "2.3.10") ++
     jacksons ++
     Seq(
       "org.scala-stm" %% "scala-stm" % "0.7",
@@ -222,7 +222,7 @@ object Dependencies {
   }
 
   val playdocWebjarDependencies = Seq(
-    "org.webjars" % "jquery"   % "2.1.3"    % "webjars",
+    "org.webjars" % "jquery"   % "2.1.4"    % "webjars",
     "org.webjars" % "prettify" % "4-Mar-2013" % "webjars"
   )
 
@@ -263,7 +263,7 @@ object Dependencies {
       .exclude("org.jboss.netty", "netty")
   )
 
-  val playCacheDeps = "net.sf.ehcache" % "ehcache-core" % "2.6.10" +:
+  val playCacheDeps = "net.sf.ehcache" % "ehcache-core" % "2.6.11" +:
     specsBuild.map(_ % Test)
 
   val playWsDeps = Seq(
