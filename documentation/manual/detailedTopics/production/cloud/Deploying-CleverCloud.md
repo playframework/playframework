@@ -69,4 +69,4 @@ db.default.password={yourcleverpass}
 ```
 
 ## Further information
-If you need further information, just check our complete [documentation](http://doc.clever-cloud.com/java/play-framework-2/).
+If you need further information, just check our complete [documentation](https://www.clever-cloud.com/doc/java/play-framework-2/).

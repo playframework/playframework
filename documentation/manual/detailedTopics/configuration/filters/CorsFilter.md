@@ -3,7 +3,7 @@
 
 Play provides a filter that implements Cross-Origin Resource Sharing (CORS).
 
-CORS is a protocol that allows web applications to make requests from the browser across different domains.  A full specification can be found [here|http://www.w3.org/TR/cors/].
+CORS is a protocol that allows web applications to make requests from the browser across different domains.  A full specification can be found [here](http://www.w3.org/TR/cors/).
 
 ## Enabling the CORS filter
 

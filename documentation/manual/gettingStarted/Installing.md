@@ -7,7 +7,7 @@ You need to have a JDK 1.8 (or later) installed on your machine (see [General In
 
 ## Quick Start
 
-1. **Download** the latest [Typesafe Activator](http://typesafe.com/get-started).
+1. **Download** the latest [Typesafe Activator](https://typesafe.com/get-started).
 2. **Extract** the archive on a location where you have write access.
 3. **Change** dir with cmd `cd activator*` (or with the file-manager)
 4. **Start** it with cmd `activator ui` (or with the file-manager)
@@ -47,7 +47,7 @@ javac -version
 
 If you don't have the JDK, you have to install it:
 
-1. **MacOS**, Java is built-in, but you may have to [Update to the latest](https://www.java.com/en/download/help/mac_install.xml)
+1. **MacOS**, Java is built-in, but you may have to [Update to the latest](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 2. **Linux**, use either the latest Oracle JDK or OpenJDK (do not use not gcj). 
 3. **Windows** just download and install the [latest JDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html) package.
 

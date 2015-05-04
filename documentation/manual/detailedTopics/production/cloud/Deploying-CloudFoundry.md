@@ -3,11 +3,11 @@
 
 ## CloudFoundry vs. AppFog
 
-Deploying to [AppFog](https://www.appfog.com/) can be accomplished by following the [Cloud Foundry](http://cloudfoundry.com) instructions below except run `af` instead of `vmc`. Also, with AppFog you need to follow an [extra step of adding an extra jar to the deployment zip file](https://docs.appfog.com/languages/java/play).
+Deploying to [AppFog](https://www.appfog.com/) can be accomplished by following the [Cloud Foundry](https://pivotal.io/platform-as-a-service/pivotal-cloud-foundry) instructions below except run `af` instead of `vmc`. Also, with AppFog you need to follow an [extra step of adding an extra jar to the deployment zip file](https://docs.appfog.com/languages/java/play).
 
 ## Prerequisites
 
-Sign up for a free [Cloud Foundry](http://cloudfoundry.com) account and install or update the Cloud Foundry command line tool, VMC, to the latest version (0.3.18 or higher) by using the following command:
+Sign up for a free [Cloud Foundry](https://pivotal.io/platform-as-a-service/pivotal-cloud-foundry) account and install or update the Cloud Foundry command line tool, VMC, to the latest version (0.3.18 or higher) by using the following command:
 
 ```bash
 gem install vmc

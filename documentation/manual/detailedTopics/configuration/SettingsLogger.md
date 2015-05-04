@@ -14,7 +14,7 @@ A few things to note about this configuration:
 * This specifies a file appender that writes to `logs/application.log`.
 * The file logger logs full exception stack traces, while the console logger only logs 10 lines of an exception stack trace.
 * Play uses ANSI color codes by default in level messages.
-* Play puts both the console and the file logger behind the logback [AsyncAppender](http://logback.qos.ch/manual/appenders.html#AsyncAppender).  For details on the performance implications on this, see this [blog post](http://blog.takipi.com/how-to-instantly-improve-your-java-logging-with-7-logback-tweaks/).
+* Play puts both the console and the file logger behind the logback [AsyncAppender](http://logback.qos.ch/manual/appenders.html#AsyncAppender).  For details on the performance implications on this, see this [blog post](https://blog.takipi.com/how-to-instantly-improve-your-java-logging-with-7-logback-tweaks/).
 
 ## Custom configuration
 

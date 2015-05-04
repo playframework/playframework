@@ -3,7 +3,7 @@
 
 In the event that an HTTPS connection does not go through, debugging JSSE can be a hassle.
 
-WS SSL provides configuration options that will turn on JSSE debug options defined in the [Debugging Utilities](http://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html#Debug) and  [Troubleshooting Security](http://docs.oracle.com/javase/7/docs/technotes/guides/security/troubleshooting-security.html) pages.
+WS SSL provides configuration options that will turn on JSSE debug options defined in the [Debugging Utilities](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#Debug) and  [Troubleshooting Security](https://docs.oracle.com/javase/8/docs/technotes/guides/security/troubleshooting-security.html) pages.
 
 To configure, set the `play.ws.ssl.debug` property in `application.conf`:
 
@@ -70,6 +70,6 @@ val debugConfig = SSLDebugConfig().withKeyManager().withHandshake(data = true, v
 
 Oracle has a number of sections on debugging JSSE issues:
 
-* [Debugging SSL/TLS connections](http://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/ReadDebug.html)
+* [Debugging SSL/TLS connections](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/ReadDebug.html)
 * [JSSE Debug Logging With Timestamp](https://blogs.oracle.com/xuelei/entry/jsse_debug_logging_with_timestamp)
 * [How to Analyze Java SSL Errors](http://www.smartjava.org/content/how-analyze-java-ssl-errors)

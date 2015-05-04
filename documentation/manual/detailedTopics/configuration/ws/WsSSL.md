@@ -3,7 +3,7 @@
 
 [[Play WS|ScalaWS]] allows you to set up HTTPS completely from a configuration file, without the need to write code.  It does this by layering the Java Secure Socket Extension (JSSE) with a configuration layer and with reasonable defaults.
 
-JDK 1.8 contains an implementation of JSSE which is [significantly more advanced](http://docs.oracle.com/javase/8/docs/technotes/guides/security/enhancements-8.html) than previous versions, and should be used if security is a priority.
+JDK 1.8 contains an implementation of JSSE which is [significantly more advanced](https://docs.oracle.com/javase/8/docs/technotes/guides/security/enhancements-8.html) than previous versions, and should be used if security is a priority.
 
 ## Table of Contents
 
@@ -27,8 +27,8 @@ JSSE is a complex product.  For convenience, the JSSE materials are provided her
 
 JDK 1.8:
 
-* [JSSE Reference Guide](http://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html)
-* [JSSE Crypto Spec](http://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html#SSLTLS)
-* [SunJSSE Providers](http://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider)
-* [PKI Programmer's Guide](http://docs.oracle.com/javase/8/docs/technotes/guides/security/certpath/CertPathProgGuide.html)
-* [keytool](http://docs.oracle.com/javase/8/docs/technotes/tools/unix/keytool.html)
+* [JSSE Reference Guide](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html)
+* [JSSE Crypto Spec](https://docs.oracle.com/javase/8/docs/technotes/guides/security/crypto/CryptoSpec.html#SSLTLS)
+* [SunJSSE Providers](https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider)
+* [PKI Programmer's Guide](https://docs.oracle.com/javase/8/docs/technotes/guides/security/certpath/CertPathProgGuide.html)
+* [keytool](https://docs.oracle.com/javase/8/docs/technotes/tools/unix/keytool.html)

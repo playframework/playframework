@@ -13,7 +13,7 @@ Basically, Play2 is an API that abstractly have the following type:
 RequestHeader -> Array[Byte] -> Result 
 ```
 
-The above [computation](http://www.haskell.org/arrows/) takes the request header `RequestHeader`, then takes the request body as `Array[Byte]` and produces a `Result`.
+The above [computation](https://www.haskell.org/arrows/) takes the request header `RequestHeader`, then takes the request body as `Array[Byte]` and produces a `Result`.
 
 Now this type presumes putting request body entirely into memory (or disk), even if you only want to compute a value out of it, or better forward it to a storage service like Amazon S3.
 
@@ -21,7 +21,7 @@ We rather want to receive request body chunks as a stream and be able to process
 
 What we need to change is the second arrow to make it receive its input in chunks and eventually produce a result. There is a type that does exactly this, it is called `Iteratee` and takes two type parameters.
 
-`Iteratee[E,R]` is a type of [arrow](http://www.haskell.org/arrows/) that will take its input in chunks of type `E` and eventually return `R`. For our API we need an Iteratee that takes chunks of `Array[Byte]` and eventually return a `Result`. So we slightly modify the type to be:
+`Iteratee[E,R]` is a type of [arrow](https://www.haskell.org/arrows/) that will take its input in chunks of type `E` and eventually return `R`. For our API we need an Iteratee that takes chunks of `Array[Byte]` and eventually return a `Result`. So we slightly modify the type to be:
 
 ```scala
 RequestHeader -> Iteratee[Array[Byte],Result]

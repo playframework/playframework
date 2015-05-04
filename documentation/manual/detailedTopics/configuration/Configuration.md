@@ -45,7 +45,7 @@ In `run` mode the HTTP server part of Play starts before the application has bee
 
 ## HOCON Syntax
 
-HOCON has similarites to JSON; you can find the JSON spec at http://json.org/ of course.
+HOCON has similarites to JSON; you can find the JSON spec at <http://json.org/> of course.
 
 ### Unchanged from JSON
 

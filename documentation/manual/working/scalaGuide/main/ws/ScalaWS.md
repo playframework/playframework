@@ -181,13 +181,13 @@ By default, configuration happens in `application.conf`, but you can also set up
 
 @[programmatic-config](code/ScalaWSSpec.scala)
 
-You can also get access to the underlying [async client](http://sonatype.github.io/async-http-client/apidocs/reference/com/ning/http/client/AsyncHttpClient.html).
+You can also get access to the underlying [async client](https://static.javadoc.io/com.ning/async-http-client/1.9.20/com/ning/http/client/AsyncHttpClient.html).
 
 @[underlying](code/ScalaWSSpec.scala)
 
 This is important in a couple of cases.  WS has a couple of limitations that require access to the client:
 
-* `WS` does not support multi part form upload directly.  You can use the underlying client with [RequestBuilder.addBodyPart](http://asynchttpclient.github.io/async-http-client/apidocs/com/ning/http/client/RequestBuilder.html).
+* `WS` does not support multi part form upload directly.  You can use the underlying client with [RequestBuilder.addBodyPart](https://static.javadoc.io/com.ning/async-http-client/1.9.20/com/ning/http/client/RequestBuilder.html#addBodyPart\(com.ning.http.client.multipart.Part\)).
 * `WS` does not support streaming body upload.  In this case, you should use the `FeedableBodyGenerator` provided by AsyncHttpClient.
 
 ## Configuring WS

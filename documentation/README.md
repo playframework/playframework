@@ -5,11 +5,11 @@ project instead.
 
 ## Dependencies
 
-This project depends on [play-doc](http://github.com/playframework/play-doc).  If you want to tweak the format or change the includes, you should do so there.
+This project depends on [play-doc](https://github.com/playframework/play-doc).  If you want to tweak the format or change the includes, you should do so there.
 
 ## Existing Docs
 
-All the documentation is under the /manual folder, and is in [Markdown](http://daringfireball.net/projects/markdown/syntax) format with an extension that looks like this
+All the documentation is under the /manual folder, and is in [Markdown](https://daringfireball.net/projects/markdown/syntax) format with an extension that looks like this
 
     @[label](some/relative/path)
 
@@ -81,7 +81,7 @@ cd $PLAY_HOME/framework
 ./build compile doc package
 ```
 
-All Play projects can see documentation embedded by going to [http://localhost:9000/@documentation](http://localhost:9000/@documentation).  Internally, the @documentation route goes to `DocumentationServer` in the play-docs subproject, which relies on [play-doc](http://github.com/playframework/play-s] for generating HTML from the raw Markdown.  
+All Play projects can see documentation embedded by going to [http://localhost:9000/@documentation](http://localhost:9000/@documentation).  Internally, the @documentation route goes to `DocumentationServer` in the play-docs subproject, which relies on [play-doc](https://github.com/playframework/play-doc] for generating HTML from the raw Markdown.  
 
 ## Running
 

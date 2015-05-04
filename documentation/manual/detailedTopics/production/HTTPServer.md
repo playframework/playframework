@@ -107,7 +107,7 @@ http {
 
 ## Set up with Apache
 
-The example below shows a simple set up with [Apache httpd server](http://httpd.apache.org/) running in front of a standard Play configuration.
+The example below shows a simple set up with [Apache httpd server](https://httpd.apache.org/) running in front of a standard Play configuration.
 
 ```
 LoadModule proxy_module modules/mod_proxy.so
@@ -215,4 +215,4 @@ There exists two possibilities how proxies are set in the HTTP-headers:
 The type of header to parse is set via `play.http.forwarded.version`. Valid values are `x-forwarded` or `rfc7239`.
 The default is `x-forwarded`.
 
-For more information, please read the [RFC 7239](http://tools.ietf.org/html/rfc7239).
+For more information, please read the [RFC 7239](https://tools.ietf.org/html/rfc7239).

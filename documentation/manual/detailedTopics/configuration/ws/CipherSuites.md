@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Configuring Cipher Suites
 
-A [cipher suite](https://en.wikipedia.org/wiki/Cipher_suite) is really four different ciphers in one, describing the key exchange, bulk encryption, message authentication and random number function.  There is [no official naming convention](http://utcc.utoronto.ca/~cks/space/blog/tech/SSLCipherNames) of cipher suites, but most cipher suites are described in order -- for example, "TLS_DHE_RSA_WITH_AES_256_CBC_SHA" uses DHE for key exchange, RSA for server certificate authentication, 256-bit key AES in CBC mode for the stream cipher, and SHA for the message authentication.
+A [cipher suite](https://en.wikipedia.org/wiki/Cipher_suite) is really four different ciphers in one, describing the key exchange, bulk encryption, message authentication and random number function.  There is [no official naming convention](https://utcc.utoronto.ca/~cks/space/blog/tech/SSLCipherNames) of cipher suites, but most cipher suites are described in order -- for example, "TLS_DHE_RSA_WITH_AES_256_CBC_SHA" uses DHE for key exchange, RSA for server certificate authentication, 256-bit key AES in CBC mode for the stream cipher, and SHA for the message authentication.
 
 ## Configuring Enabled Ciphers
 
@@ -57,9 +57,9 @@ Some of these ciphers are only available in JDK 1.8.
 
 The `jdk.tls.disabledAlgorithms` can be used to prevent weak ciphers, and can also be used to prevent [small key sizes](http://sim.ivi.co/2011/07/java-se-7-release-security-enhancements.html) from being used in a handshake.  This is a [useful feature](http://sim.ivi.co/2013/11/harness-ssl-and-jsse-key-size-control.html) that is only available in Oracle JDK 1.7 and later.
 
-The official documentation for disabled algorithms is in the [JSSE Reference Guide](http://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html#DisabledAlgorithms).
+The official documentation for disabled algorithms is in the [JSSE Reference Guide](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#DisabledAlgorithms).
 
-For TLS, the code will match the first part of the cipher suite after the protocol, i.e. TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384 has ECDHE as the relevant cipher.  The parameter names to use for the disabled algorithms are not obvious, but are listed in the [Providers documentation](http://docs.oracle.com/javase/7/docs/technotes/guides/security/SunProviders.html) and can be seen in the [source code](http://grepcode.com/file/repository.grepcode.com/java/root/jdk/openjdk/7u40-b43/sun/security/ssl/SSLAlgorithmConstraints.java#265).
+For TLS, the code will match the first part of the cipher suite after the protocol, i.e. TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384 has ECDHE as the relevant cipher.  The parameter names to use for the disabled algorithms are not obvious, but are listed in the [Providers documentation](https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html) and can be seen in the [source code](http://grepcode.com/file/repository.grepcode.com/java/root/jdk/openjdk/8-b132/sun/security/ssl/SSLAlgorithmConstraints.java/#271).
 
 To enable `jdk.tls.disabledAlgorithms` or `jdk.certpath.disabledAlgorithms` (which looks at signature algorithms and weak keys in X.509 certificates) you must create a properties file:
 

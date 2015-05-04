@@ -27,7 +27,7 @@ In the Scala ecosystem, the approach to dependency injection is not generally ag
 
 Play's philosophy in providing a dependency injection solution is to be unopinionated in what approaches we allow, but to be opinionated to the approach that we document and provide out of the box.  For this reason, we have provided the following:
 
-* An implementation that uses [Guice](https://code.google.com/p/google-guice/) out of the box
+* An implementation that uses [Guice](https://github.com/google/guice) out of the box
 * An abstraction that allows other JSR 330 implementations to be plugged in
 * All Play components can be instantiated using plain constructors or factory methods
 * Traits that instantiate Play components that can be mixed together in a cake pattern like style to assist with compile time dependency injection

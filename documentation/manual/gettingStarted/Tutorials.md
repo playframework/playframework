@@ -22,4 +22,4 @@ Some tutorials we recommend:
 
 * [Play Java Intro](https://typesafe.com/activator/template/play-java-intro-reactive-platform-15v01): Introduction to create a simple CRUD application with Play Java.
 * [Reactive Maps in Java](https://typesafe.com/activator/template/reactive-maps-java): This template and tutorial shows how the Typesafe Reactive Platform can be used to implement scalable, resilient, responsive event driven apps.
-* [Play with Spring Data JPA](https://typesafe.com/activator/template/play-spring-data-jpa): This is a Play example that uses [Spring Data JPA](http://www.springsource.org/spring-data/jpa).
+* [Play with Spring Data JPA](https://typesafe.com/activator/template/play-spring-data-jpa): This is a Play example that uses [Spring Data JPA](https://projects.spring.io/spring-data-jpa/).

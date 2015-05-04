@@ -6,11 +6,11 @@ By default, WS SSL will use the most secure version of the TLS protocol availabl
 * On JDK 1.7 and later, the default protocol is "TLSv1.2".
 * On JDK 1.6, the default protocol is "TLSv1".
 
-The full protocol list in JSSE is available in the [Standard Algorithm Name Documentation](http://docs.oracle.com/javase/7/docs/technotes/guides/security/StandardNames.html#jssenames).
+The full protocol list in JSSE is available in the [Standard Algorithm Name Documentation](https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#jssenames).
 
 ## Defining the default protocol
 
-If you want to define a different [default protocol](http://docs.oracle.com/javase/7/docs/api/javax/net/ssl/SSLContext.html#getInstance\(java.lang.String\)), you can set it specifically in the client:
+If you want to define a different [default protocol](https://docs.oracle.com/javase/8/docs/api/javax/net/ssl/SSLContext.html#getInstance\(java.lang.String\)), you can set it specifically in the client:
 
 ```
 # Passed into SSLContext.getInstance()

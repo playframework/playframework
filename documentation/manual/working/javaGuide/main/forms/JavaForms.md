@@ -9,7 +9,7 @@ The `play.data` package contains several helpers to handle HTTP form data submis
 
 @[create](code/javaguide/forms/JavaForms.java)
 
-> **Note:** The underlying binding is done using [Spring data binder](http://static.springsource.org/spring/docs/3.0.x/reference/validation.html).
+> **Note:** The underlying binding is done using [Spring data binder](https://docs.spring.io/spring/docs/3.0.x/reference/validation.html).
 
 This form can generate a `User` result value from `HashMap<String,String>` data:
 
