@@ -7,7 +7,7 @@ A big THANK YOU! to these sponsors for their support of open source projects.
 
 ![CloudBees logo](images/cloudbees.png)
 
-Our continuous integration runs on [Cloudbees](http://www.cloudbees.com/). We not only run CI on major release and master branches, but we also perform github pull request validation using CloudBees functionality.
+Our continuous integration runs on [Cloudbees](https://www.cloudbees.com/). We not only run CI on major release and master branches, but we also perform github pull request validation using CloudBees functionality.
 
 <https://playframework2.ci.cloudbees.com/>
 

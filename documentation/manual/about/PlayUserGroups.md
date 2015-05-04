@@ -16,7 +16,7 @@ http://www.meetup.com/Play-Berlin-Brandenburg/
 
 *(We also talk and do presentations about Play)*
 
-[Xing](http://xing.to/scala) / [Twitter](https://twitter.com/scalacgn)
+[Xing](https://www.xing.com/communities/groups/scala-user-group-koeln-bonn-1035441) / [Twitter](https://twitter.com/scalacgn)
 
 ## Buenos Aires
 
@@ -41,4 +41,4 @@ http://www.play-be.org
 
 * [Facebook](https://www.facebook.com/groups/playuser)
 * [Github](https://github.com/kpug)
-* [Slack](http://kpug.slack.com)
+* [Slack](https://kpug.slack.com)

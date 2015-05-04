@@ -446,7 +446,10 @@ object PlayDocsValidation {
     val log = streams.value.log
     val report = generateMarkdownRefReport.value
 
-    val grouped = report.externalLinks.groupBy(_.link).filterNot(_._1.startsWith("http://localhost:9000")).toSeq.sortBy(_._1)
+    val grouped = report.externalLinks
+      .groupBy { _.link }
+      .filterNot { e => e._1.startsWith("http://localhost:") || e._1.contains("example.com") }
+      .toSeq.sortBy { _._1 }
 
     implicit val ec = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(50))
 
@@ -455,6 +458,7 @@ object PlayDocsValidation {
         val (url, refs) = entry
         val connection = new URL(url).openConnection().asInstanceOf[HttpURLConnection]
         try {
+          connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:37.0) Gecko/20100101 Firefox/37.0")
           connection.connect()
           connection.getResponseCode match {
             // A few people use GitHub.com repositories, which will return 403 errors for directory listings
