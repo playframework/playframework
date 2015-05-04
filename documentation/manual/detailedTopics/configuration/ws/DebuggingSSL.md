@@ -48,7 +48,7 @@ play.ws.ssl.debug = {
 }
 ```
 
-> NOTE: This feature changes the setting of the `java.net.debug` system property which is global on the JVM.  In addition, this feature [changes static properties at runtime](http://tersesystems.com/2014/03/02/monkeypatching-java-classes/), and is only intended for use in development environments.
+> NOTE: This feature changes the setting of the `java.net.debug` system property which is global on the JVM.  In addition, this feature [changes static properties at runtime](https://tersesystems.com/2014/03/02/monkeypatching-java-classes/), and is only intended for use in development environments.
 
 ## Verbose Debugging
 

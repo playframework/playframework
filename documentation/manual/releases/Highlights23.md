@@ -25,7 +25,7 @@ All the features that were available with the `play` command are still available
 
 ### Activator distribution
 
-Play is distributed as an Activator distribution that contains all Play's dependencies. You can download this distribution from the [Play download](http://www.playframework.com/download) page.
+Play is distributed as an Activator distribution that contains all Play's dependencies. You can download this distribution from the [Play download](https://www.playframework.com/download) page.
 
 If you prefer, you can also download a minimal (1MB) version of Activator from the [Activator site](https://typesafe.com/activator). Look for the "mini" distribution on the download page. The minimal version of Activator will only download dependencies when they're needed.
 
@@ -85,7 +85,7 @@ We've worked on Java performance. Compared to Play 2.2, throughput of simple Jav
 
 Some of these changes also improved Scala performance, but Java had the biggest performance gains and was the main focus of our work.
 
-Thankyou to [YourKit](http://yourkit.com) for supplying the Play team with licenses to make this work possible.
+Thankyou to [YourKit](https://www.yourkit.com/) for supplying the Play team with licenses to make this work possible.
 
 ## Scala 2.11
 

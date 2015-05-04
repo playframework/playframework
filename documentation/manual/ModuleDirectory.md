@@ -7,7 +7,7 @@
 
 ## Airbrake.io notifier
 
-* **Website:** <https://teamon.github.com/play-airbrake/>
+* **Website:** <http://teamon.eu/play-airbrake/>
 * **Documentation:** <https://github.com/teamon/play-airbrake/blob/master/README.md>
 * **Short description:** Send exception notifications to airbrake.io
 
@@ -212,7 +212,7 @@
 
 ## Mountable routing
 
-* **Website:** <https://teamon.github.io/play-navigator/>
+* **Website:** <http://teamon.eu/play-navigator/>
 * **Documentation:** <https://github.com/teamon/play-navigator/blob/master/README.md>
 * **Description:** <http://codetunes.com/2012/05/09/scala-dsl-tutorial-writing-web-framework-router>
 
