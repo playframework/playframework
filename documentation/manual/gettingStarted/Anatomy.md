@@ -29,12 +29,14 @@ lib                      → Unmanaged libraries dependencies
 logs                     → Logs folder
  └ application.log       → Default log file
 target                   → Generated stuff
- └ scala-2.10.0            
-    └ cache              
+ └ resolution-cache      → Info about dependencies
+ └ scala-2.10
+    └ api                → Generated API docs
     └ classes            → Compiled class files
-    └ classes_managed    → Managed class files (templates, ...)
-    └ resource_managed   → Managed resources (less, ...)
-    └ src_managed        → Generated sources (templates, ...)
+    └ routes             → Sources generated from routes
+    └ twirl              → Sources generated from templates
+ └ universal             → Application packaging
+ └ web                   → Compiled web assets
 test                     → source folder for unit or functional tests
 ```
 
