@@ -83,18 +83,7 @@ class CacheFuture[T](handler: AsyncHandler[T]) extends AbstractListenableFuture[
   }
 
   override def touch(): Unit = {
-
   }
-
-  //  override def getAndSetWriteBody(writeBody: Boolean): Boolean = {
-  //    true
-  //  }
-  //
-  //  override def content(v: T): Unit = {}
-  //
-  //  override def getAndSetWriteHeaders(writeHeader: Boolean): Boolean = {
-  //    true
-  //  }
 
   override def abort(t: Throwable): Unit = {
     innerFuture.cancel(true)

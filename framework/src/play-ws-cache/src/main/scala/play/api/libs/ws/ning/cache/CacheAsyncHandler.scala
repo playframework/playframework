@@ -32,9 +32,7 @@ class CacheAsyncHandler[T](request: Request,
 
   private val timeout = scala.concurrent.duration.Duration(1, "second")
 
-  private val timeoutResponse = generateTimeoutResponse(request, cache.config)
-
-  private val invalidator = new CacheInvalidator(cache)
+  private lazy val timeoutResponse = generateTimeoutResponse(request, cache.config)
 
   /**
    * Invoked if something wrong happened inside the previous methods or when an I/O exception occurs.
@@ -111,7 +109,7 @@ class CacheAsyncHandler[T](request: Request,
 
     // We got a response.  First, invalidate if unsafe according to
     // https://tools.ietf.org/html/rfc7234#section-4.4
-    invalidator.invalidateIfUnsafe(request, response)
+    cache.invalidateIfUnsafe(request, response)
 
     // "Handling a Validation Response"
     // https://tools.ietf.org/html/rfc7234#section-4.3.3

@@ -40,17 +40,9 @@ trait AsyncHandlerMethods extends NingDebug {
     logger.debug(s"cacheResponse: caching response ${debug(response)}")
 
     val nominated = calculateSecondaryKeys(request, response)
-    val ttl = timeToLive(request, response)
+    val ttl = cache.calculateTimeToLive(request, response.status, response.headers)
     val entry = new CacheEntry(response, request.getMethod, nominated, ttl)
     cache.put(CacheKey(request), entry)
-  }
-
-  /**
-   * Calculates when the cache will remove the time to live of the cache.  Note that this is different
-   * from the expiration date or the freshness lifetime.
-   */
-  def timeToLive(request: Request, response: CacheableResponse): Option[DateTime] = {
-    cache.calculateTimeToLive(request, response.status, response.headers)
   }
 
   def isUncachedResponse(any: Any): Boolean = {

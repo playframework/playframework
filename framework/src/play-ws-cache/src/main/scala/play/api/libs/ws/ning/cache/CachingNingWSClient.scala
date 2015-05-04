@@ -28,7 +28,7 @@ class CachingNingWSClient(config: AsyncHttpClientConfig, c: NingWSCache) extends
 
 object CachingNingWSClient {
   /**
-   * Convenient factory method that uses a [[WSClientConfig]] value for configuration instead of an [[AsyncHttpClientConfig]].
+   * Convenient factory method that uses a [[play.api.libs.ws.WSClientConfig]] value for configuration instead of an [[AsyncHttpClientConfig]].
    *
    * Typical usage:
    *

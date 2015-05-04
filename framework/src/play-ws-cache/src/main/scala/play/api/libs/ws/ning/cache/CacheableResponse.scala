@@ -81,6 +81,16 @@ case class CacheableResponse(status: CacheableHttpResponseStatus,
 
   def ahcbodyParts: util.List[HttpResponseBodyPart] = bodyParts.asInstanceOf[util.List[HttpResponseBodyPart]]
 
+  def withHeaders(tuple: (String, String)*): CacheableResponse = {
+    val headerMap = new FluentCaseInsensitiveStringsMap(this.headers.headers)
+    tuple.foreach {
+      case (k, v) =>
+        headerMap.add(k, v)
+    }
+    val newHeaders = new CacheableHttpResponseHeaders(this.headers.trailingHeaders, headerMap)
+    this.copy(headers = newHeaders)
+  }
+
   def getStatusCode: Int = {
     status.getStatusCode
   }
@@ -202,6 +212,16 @@ case class CacheableHttpResponseHeaders(trailingHeaders: Boolean, headers: Fluen
 
 object CacheableResponse {
   private val logger = LoggerFactory.getLogger("play.api.libs.ws.ning.cache.CacheableResponse")
+
+  def apply(code: Int, urlString: String)(implicit cache: NingWSCache): CacheableResponse = {
+    val uri: Uri = Uri.create(urlString)
+    val status = new CacheableHttpResponseStatus(uri, cache.config, code, "", "")
+    val headers = new FluentCaseInsensitiveStringsMap()
+    val responseHeaders = CacheableHttpResponseHeaders(trailingHeaders = false, headers = headers)
+    val bodyParts = util.Collections.emptyList[CacheableHttpResponseBodyPart]
+
+    CacheableResponse(status = status, headers = responseHeaders, bodyParts = bodyParts)
+  }
 }
 
 class CacheableHttpResponseStatus(uri: Uri,
