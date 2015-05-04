@@ -21,6 +21,13 @@ fi
 
 JAVA_VERSION=$("$JAVA" -version 2>&1 | awk -F '"' '/version/ {print $2}')
 
+if [ -z "$SBT_SCALA_VERSION" ]; then
+  # This value should be kept the same as Play's value so that
+  # we only need to download a single version of Play when we
+  # compile Play during continuous integration.
+  SBT_SCALA_VERSION=2.10.5
+fi
+
 DIR=`dirname "$0"`
 
-"$JAVA" ${DEBUG_PARAM} -Xms512M -Xmx4G -Xss2M -XX:ReservedCodeCacheSize=192m -XX:+CMSClassUnloadingEnabled ${JAVA_OPTS} -Dfile.encoding=UTF-8 -jar "$DIR/sbt/sbt-launch.jar" "$@"
+"$JAVA" ${DEBUG_PARAM} -Xms512M -Xmx4G -Xss2M -XX:ReservedCodeCacheSize=192m -XX:+CMSClassUnloadingEnabled ${JAVA_OPTS} -Dfile.encoding=UTF-8 -Dsbt.scala.version=${SBT_SCALA_VERSION} -jar "$DIR/sbt/sbt-launch.jar" "$@"

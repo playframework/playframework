@@ -3,9 +3,9 @@ import play.core.PlayVersion
 
 templateSettings
 
-scalaVersion := "2.10.4"
+scalaVersion := "2.10.5"
 
-crossScalaVersions := Seq("2.10.4", "2.11.5")
+crossScalaVersions := Seq("2.10.5", "2.11.6")
 
 templates := {
   val dir = baseDirectory.value

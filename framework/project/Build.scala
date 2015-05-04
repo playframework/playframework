@@ -131,8 +131,13 @@ object BuildSettings {
   }
 
   def crossBuildSettings: Seq[Setting[_]] = Seq(
-    crossScalaVersions := Seq("2.10.4", "2.11.5"),
-    scalaVersion := "2.10.4"
+    crossScalaVersions := Seq("2.10.5", "2.11.6"),
+    // When you update this version, remember to update the SBT_SCALA_VERSION
+    // set in the `build` script. You'll probably also want to set the Scala
+    // version in the documentation and templates. We don't want to download
+    // too many versions of Play when in our continuous integration
+    // environment.
+    scalaVersion := "2.10.5"
   )
 
   def omnidocSettings: Seq[Setting[_]] = Omnidoc.projectSettings ++ Seq(
@@ -143,7 +148,7 @@ object BuildSettings {
   )
 
   def playSbtCommonSettings: Seq[Setting[_]] = playCommonSettings ++ scalariformSettings ++ Seq(
-    scalaVersion := "2.10.4",
+    scalaVersion := "2.10.5",
     sbtVersion in GlobalScope := "0.13.8"
   )
 
