@@ -211,6 +211,7 @@ Additionally, Play has now better namespaced a large number of its configuration
 | `csrf`                    | `play.filters.csrf`                |
 | `evolutions.*`            | `play.evolutions.*`                |
 | `applyEvolutions.<db>`    | `play.evolutions.db.<db>.autoApply`|
+| `ws`                      | `play.ws`                          |
 
 ### Akka configuration
 
@@ -306,6 +307,12 @@ If you use the Java API, the [`F.Promise`](api/java/play/libs/F.Promise.html) cl
 | Old API | New API | Comments |
 | ------- | --------| -------- |
 | [`TimeoutException`](http://docs.oracle.com/javase/8/docs/api/java/util/concurrent/TimeoutException.html) | [`F.PromiseTimeoutException`](api/java/play/libs/F.PromiseTimeoutException.html) | |
+
+## WS client
+
+`WSRequestHolder` has been renamed to `WSRequest` in [Scala](api/scala/index.html#play.api.libs.ws.WSRequest) and [Java](api/java/play/libs/ws/WSRequest.html).
+
+Play has upgraded from AsyncHttpClient 1.8 to 1.9, which includes a number of breaking changes if using or configuring that library directly.  Please see the [AsyncHttpClient Migration Guide](https://github.com/AsyncHttpClient/async-http-client/blob/master/MIGRATION.md) for more details.
 
 ## Crypto APIs
 
