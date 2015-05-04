@@ -281,6 +281,57 @@ object JsonExtensionSpec extends Specification {
 
     }
 
+    "create a writes[UserWithFields]" in {
+      import play.api.libs.json.Json
+
+      case class UserWithFields(age: Int, name: String) {
+        val ageWithName: String = s"$age $name"
+        var ageWithNameVar: String = s"$age $name"
+        def test(x: Int): Int = x + 999 // This should be ignored
+      }
+
+      // The following shouldn't crash the compiler
+      implicit val user1Writes = writesGetters[User1]
+      implicit val catWrites = writesGetters[Cat]
+      implicit val recUserWrites = writesGetters[RecUser]
+      implicit val userWithFieldWrites = writesGetters[UserWithFields]
+      implicit val userMapFieldWrites = writesGetters[UserMap]
+
+      val userWithField = UserWithFields(age = 10, name = "Billy")
+      val userMap = UserMap("toto", Map("tutu" -> UserMap("tutu")))
+
+      (Json.obj(
+        "age" -> 10,
+        "ageWithNameVar" -> "10 Billy",
+        "ageWithName" -> "10 Billy",
+        "name" -> "Billy")
+      ) must beEqualTo(
+          Json.toJson(userWithField)
+        )
+
+      (
+        Json.obj("name" -> "toto", "friends" -> Json.obj("tutu" -> Json.obj("name" -> "tutu", "friends" -> Json.obj())))
+      ) must beEqualTo(
+          Json.toJson(userMap)
+        )
+
+      Json.toJson(
+        RecUser(
+          "bob",
+          Some(Cat("minou")),
+          List("bobsleig", "manhunting"),
+          List(RecUser("tom"))
+        )
+      ) must beEqualTo(
+          Json.obj(
+            "name" -> "bob",
+            "cat" -> Json.obj("name" -> "minou"),
+            "hobbies" -> Json.arr("bobsleig", "manhunting"),
+            "friends" -> Json.arr(Json.obj("name" -> "tom", "hobbies" -> Json.arr(), "friends" -> Json.arr()))
+          )
+        )
+    }
+
     "create a format[User1]" in {
       import play.api.libs.json.Json
 

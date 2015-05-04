@@ -22,14 +22,14 @@ implicit val personReads = (
 )(Person)
 ```
 
-So you write 4 lines for this case class.  
-You know what?  
-We have had a few complaints from some people who think it's not cool to write a `Reads[TheirClass]` because usually Java JSON frameworks like Jackson or Gson do it behind the curtain without writing anything.  
+So you write 4 lines for this case class.
+You know what?
+We have had a few complaints from some people who think it's not cool to write a `Reads[TheirClass]` because usually Java JSON frameworks like Jackson or Gson do it behind the curtain without writing anything.
 We argued that Play2.1 JSON serializers/deserializers are:
 
-- completely typesafe, 
+- completely typesafe,
 - fully compiled,
-- nothing was performed using introspection/reflection at runtime.  
+- nothing was performed using introspection/reflection at runtime.
 
 But for some, this didn’t justify the extra lines of code for case classes.
 
@@ -53,7 +53,7 @@ case class Person(name: String, age: Int, lovesChocolate: Boolean)
 implicit val personReads = Json.reads[Person]
 ```
 
-1 line only.  
+1 line only.
 Questions you may ask immediately:
 
 > Does it use runtime bytecode enhancement? -> NO
@@ -86,7 +86,7 @@ implicit val personReads = (
   (__ \ 'age).read[Int] and
   (__ \ 'lovesChocolate).read[Boolean]
 )(Person)
-```	
+```
 
 ## <a name="json-incept">Inception equation</a>
 
@@ -100,7 +100,7 @@ Here is the equation describing the windy _Inception_ concept:
 ####Case Class Inspection
 As you may deduce by yourself, in order to ensure preceding code equivalence, we need :
 
-- to inspect `Person` case class, 
+- to inspect `Person` case class,
 - to extract the 3 fields `name`, `age`, `lovesChocolate` and their types,
 - to resolve typeclasses implicits,
 - to find `Person.apply`.
@@ -108,12 +108,12 @@ As you may deduce by yourself, in order to ensure preceding code equivalence, we
 
 <br/>
 ####INJECTION?
-No I stop you immediately…  
+No I stop you immediately…
 
->**Code injection is not dependency injection…**  
->No Spring behind inception… No IOC, No DI… No No No ;)  
-  
-I used this term on purpose because I know that injection is now linked immediately to IOC and Spring. But I'd like to re-establish this word with its real meaning.  
+>**Code injection is not dependency injection…**
+>No Spring behind inception… No IOC, No DI… No No No ;)
+
+I used this term on purpose because I know that injection is now linked immediately to IOC and Spring. But I'd like to re-establish this word with its real meaning.
 Here code injection just means that **we inject code at compile-time into the compiled scala AST** (Abstract Syntax Tree).
 
 So `Json.reads[Person]` is compiled and replaced in the compile AST by:
@@ -130,9 +130,9 @@ Nothing less, nothing more…
 
 <br/>
 ####COMPILE-TIME
-Yes everything is performed at compile-time.  
-No runtime bytecode enhancement.  
-No runtime introspection.  
+Yes everything is performed at compile-time.
+No runtime bytecode enhancement.
+No runtime introspection.
 
 > As everything is resolved at compile-time, you will have a compile error if you did not import the required implicits for all the types of the fields.
 
@@ -145,11 +145,11 @@ We needed a Scala feature enabling:
 - compile-time class/implicits inspection
 - compile-time code injection
 
-This is enabled by a new experimental feature introduced in Scala 2.10: [Scala Macros](http://scalamacros.org/)  
+This is enabled by a new experimental feature introduced in Scala 2.10: [Scala Macros](http://scalamacros.org/)
 
 Scala macros is a new feature (still experimental) with a huge potential. You can :
 
-- introspect code at compile-time based on Scala reflection API, 
+- introspect code at compile-time based on Scala reflection API,
 - access all imports, implicits in the current compile context
 - create new code expressions, generate compiling errors and inject them into compile chain.
 
@@ -161,19 +161,19 @@ Please note that:
 - **It doesn't add, hide unexpected code behind the curtain.**
 - **We follow the *no-surprise* principle**
 
-As you may discover, writing a macro is not a trivial process since your macro code executes in the compiler runtime (or universe).  
+As you may discover, writing a macro is not a trivial process since your macro code executes in the compiler runtime (or universe).
 
-    So you write macro code 
-      that is compiled and executed 
-      in a runtime that manipulates your code 
-         to be compiled and executed 
-         in a future runtime…           
+    So you write macro code
+      that is compiled and executed
+      in a runtime that manipulates your code
+         to be compiled and executed
+         in a future runtime…
 **That's also certainly why I called it *Inception* ;)**
 
 So it requires some mental exercises to follow exactly what you do. The API is also quite complex and not fully documented yet. Therefore, you must persevere when you begin using macros.
 
-I'll certainly write other articles about Scala macros because there are lots of things to say.  
-This article is also meant **to begin the reflection about the right way to use Scala Macros**.  
+I'll certainly write other articles about Scala macros because there are lots of things to say.
+This article is also meant **to begin the reflection about the right way to use Scala Macros**.
 Great power means greater responsability so it's better to discuss all together and establish a few good manners…
 
 <br/>
@@ -187,8 +187,13 @@ Naturally, you can also _incept_ `Writes[T]` and `Format[T]`.
 
 ```
 import play.api.libs.json._
- 
+
 implicit val personWrites = Json.writes[Person]
+
+/* If you want a writer that will write `val` fields as well as constructor arguments
+
+ ` implicit val personWritesWithGetters = Json.writesGetters[Person]`
+*/
 ```
 
 ## <a name="format">Format[T]</a>
