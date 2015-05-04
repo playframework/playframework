@@ -198,7 +198,10 @@ public class RoutingDsl {
                     params.add(new RouteParam(name, false, pathBindable));
                     break;
                 default:
-                    sb.append("(").append(result.group(3)).append(")");
+                    Optional<String> suppliedRegex = Optional.ofNullable(result.group(3));
+                    Optional<String> bindableRegex = Scala.asOptional(pathBindable.regex()).map(r -> r.toString());
+                    String paramRegex = suppliedRegex.orElseGet(bindableRegex::get);
+                    sb.append("(").append(paramRegex).append(")");
                     params.add(new RouteParam(name, false, pathBindable));
                     break;
             }

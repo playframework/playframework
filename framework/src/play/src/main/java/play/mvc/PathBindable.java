@@ -3,6 +3,9 @@
  */
 package play.mvc;
 
+import java.util.Optional;
+import java.util.regex.Pattern;
+
 /**
  * Binder for path parameters.
  *
@@ -72,4 +75,13 @@ public interface PathBindable<T extends PathBindable<T>> {
      */
     public String javascriptUnbind();
 
+    /**
+     * An optional custom regular expression (eg <code>([^/]+)/([^/]+)</code>) for matching the
+     * <code>T</code> type against a dynamic path part. If specified, the regex can be omitted
+     * from the routes file, defined as simply <code>/$thing</code> rather than
+     * <code>/$thing&lt;([^/]+)/([^/]+)&gt;</code>.
+     */
+    default Optional<Pattern> regex() {
+        return Optional.empty();
+    }
 }

@@ -25,6 +25,16 @@ public class Scala {
     }
 
     /**
+     * Convert a Scala Option to a Java 8 Optional.
+     */
+    public static <T> Optional<T> asOptional(scala.Option<T> opt) {
+        if(opt.isDefined()) {
+            return Optional.of(opt.get());
+        }
+        return Optional.empty();
+    }
+
+    /**
      * Wrap a Scala Option, handling None by returning a defaultValue
      */
     public static <T> T orElse(scala.Option<T> opt, T defaultValue) {

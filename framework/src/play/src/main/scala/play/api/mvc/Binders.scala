@@ -15,6 +15,7 @@ import scala.annotation._
 
 import scala.collection.JavaConverters._
 import reflect.ClassTag
+import scala.util.matching.Regex
 
 /**
  * Binder for query string parameters.
@@ -184,7 +185,15 @@ trait PathBindable[A] {
   def transform[B](toB: A => B, toA: B => A) = new PathBindable[B] {
     def bind(key: String, value: String): Either[String, B] = self.bind(key, value).right.map(toB)
     def unbind(key: String, value: B): String = self.unbind(key, toA(value))
+    override val regex = self.regex
   }
+
+  /**
+   * An optional custom regular expression (eg `([^/]+)/([^/]+)`) for matching the `A` type
+   * against a dynamic path part. If specified, the regex can be omitted from the routes file,
+   * defined as simply `/$thing` rather than `/$thing<([^/]+)/([^/]+)>`.
+   */
+  val regex: Option[Regex] = None
 }
 
 /**
@@ -668,6 +677,7 @@ object PathBindable {
     }
     override def javascriptUnbind = Option(ct.runtimeClass.newInstance.asInstanceOf[T].javascriptUnbind())
       .getOrElse(super.javascriptUnbind)
+    override val regex = Option(ct.runtimeClass.newInstance.asInstanceOf[T].regex().orElse(null)).map(_.pattern.r)
   }
 
   /**
