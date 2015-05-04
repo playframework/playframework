@@ -1,5 +1,6 @@
 package play.api.inject
 
+import org.specs2.matcher.BeEqualTypedValueCheck
 import org.specs2.mutable.Specification
 
 import com.google.inject.AbstractModule
@@ -16,9 +17,12 @@ class ModulesSpec extends Specification {
       val conf = Configuration("play.modules.enabled" -> Seq(
         classOf[PlainGuiceModule].getName
       ))
-      val located: Seq[Any] = Modules.locate(env, conf)
+
+      val located: Seq[AnyRef] = Modules.locate(env, conf)
       located.size must_== 1
-      located(0) must haveClass[PlainGuiceModule]
+
+      val head = located.head.asInstanceOf[BeEqualTypedValueCheck[AnyRef]]
+      head.expected must beAnInstanceOf[PlainGuiceModule]
     }
 
     "load Guice modules that take a Scala Environment and Configuration" in {
@@ -28,7 +32,7 @@ class ModulesSpec extends Specification {
       ))
       val located: Seq[Any] = Modules.locate(env, conf)
       located.size must_== 1
-      located(0) must beLike {
+      located.head must beLike {
         case mod: ScalaGuiceModule =>
           mod.environment must_== env
           mod.configuration must_== conf
@@ -42,7 +46,7 @@ class ModulesSpec extends Specification {
       ))
       val located: Seq[Any] = Modules.locate(env, conf)
       located.size must_== 1
-      located(0) must beLike {
+      located.head must beLike {
         case mod: JavaGuiceModule =>
           mod.environment.underlying must_== env
           mod.configuration.underlying must_== conf.underlying
