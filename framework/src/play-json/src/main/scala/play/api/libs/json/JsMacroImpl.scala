@@ -241,14 +241,6 @@ object JsMacroImpl {
       //println("block:"+block)
       c.Expr[M[A]](block)
     } else {
-      val helper = newTermName("helper")
-      val helperVal = ValDef(
-        Modifiers(),
-        helper,
-        Ident(weakTypeOf[play.api.libs.json.util.LazyHelper[M, A]].typeSymbol),
-        Apply(Ident(newTermName("LazyHelper")), List(finalTree))
-      )
-
       val block = Select(
         Block(
           List(

@@ -533,6 +533,8 @@ object JsonExtensionSpec extends Specification {
 
     "test hygiene" in {
       val play = ""
+      type LazyHelper = Any; val LazyHelper = ()
+
       implicit val toto2Reads = Json.reads[Toto2]
       implicit val toto2Writes = Json.writes[Toto2]
       implicit val toto2Format = Json.format[Toto2]
