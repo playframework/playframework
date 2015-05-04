@@ -531,6 +531,14 @@ object JsonExtensionSpec extends Specification {
       Json.fromJson[Person2](Json.toJson(Person2(List("bob", "bobby")))).get must beEqualTo(Person2(List("bob", "bobby")))
     }
 
+    "test hygiene" in {
+      val play = ""
+      implicit val toto2Reads = Json.reads[Toto2]
+      implicit val toto2Writes = Json.writes[Toto2]
+      implicit val toto2Format = Json.format[Toto2]
+      success
+    }
+
   }
 
 }

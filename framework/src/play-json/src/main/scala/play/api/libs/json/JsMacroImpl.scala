@@ -34,15 +34,21 @@ object JsMacroImpl {
     val companionSymbol = companioned.companionSymbol
     val companionType = companionSymbol.typeSignature
 
-    val libsPkg = Select(Select(Ident(newTermName("play")), newTermName("api")), newTermName("libs"))
-    val jsonPkg = Select(libsPkg, newTermName("json"))
-    val functionalSyntaxPkg = Select(Select(libsPkg, newTermName("functional")), newTermName("syntax"))
-    val utilPkg = Select(jsonPkg, newTermName("util"))
+    def selectTerm(qual: Tree, names: String*) =
+      names.foldLeft(qual)((z, b) => Select(z, newTermName(b)))
 
-    val jsPathSelect = Select(jsonPkg, newTermName("JsPath"))
-    val readsSelect = Select(jsonPkg, newTermName("Reads"))
-    val writesSelect = Select(jsonPkg, newTermName("Writes"))
-    val unliftIdent = Select(functionalSyntaxPkg, newTermName("unlift"))
+    def selectFromRoot(names: String*) =
+      selectTerm(Ident(rootMirror.RootPackage), names: _*)
+
+    val libsPkg = selectFromRoot("play", "api", "libs")
+    val jsonPkg = selectTerm(libsPkg, "json")
+    val functionalSyntaxPkg = selectTerm(libsPkg, "functional", "syntax")
+    val utilPkg = selectTerm(jsonPkg, "util")
+
+    val jsPathSelect = selectTerm(jsonPkg, "JsPath")
+    val readsSelect = selectTerm(jsonPkg, "Reads")
+    val writesSelect = selectTerm(jsonPkg, "Writes")
+    val unliftIdent = selectTerm(functionalSyntaxPkg, "unlift")
     val lazyHelperSelect = Select(utilPkg, newTypeName("LazyHelper"))
 
     val unapply = companionType.declaration(stringToTermName("unapply"))
