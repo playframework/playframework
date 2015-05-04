@@ -62,7 +62,7 @@ On **Windows**, add `;C:\path\to\activator` to your `PATH` environment variable.
 
 ### File Permissions
 
-**Unix**
+#### Unix
 
 Running `activator` writes some files to directories within the distribution, so don't install to `/opt`, `/usr/local` or anywhere else you’d need special permission to write to.
 

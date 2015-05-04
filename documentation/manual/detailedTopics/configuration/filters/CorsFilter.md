@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Cross-Origin Resource Sharing
 
 Play provides a filter that implements Cross-Origin Resource Sharing (CORS).

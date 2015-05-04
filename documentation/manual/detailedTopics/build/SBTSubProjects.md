@@ -122,7 +122,7 @@ lazy val main = (project in file("."))
 name := "myadmin"
 
 libraryDependencies ++= Seq(
-  "mysql" % "mysql-connector-java" % "5.1.18",
+  "mysql" % "mysql-connector-java" % "5.1.35",
   jdbc,
   anorm
 )

@@ -66,7 +66,7 @@ The resulting CSS file will be compiled as `public/stylesheets/main.css` and you
 To use Bootstrap you can use its [WebJar](http://www.webjars.org/) by adding it to your library dependencies. For example, within a `build.sbt` file:
 
 ```scala
-libraryDependencies += "org.webjars" % "bootstrap" % "3.2.0"
+libraryDependencies += "org.webjars" % "bootstrap" % "3.3.4"
 ```
 
 sbt-web will automatically extract WebJars into a lib folder relative to your asset's target folder. Therefore to use Bootstrap you can import relatively e.g.:
@@ -84,7 +84,7 @@ h1 {
 LESS compilation is enabled by simply adding the plugin to your plugins.sbt file when using the `PlayJava` or `PlayScala` plugins:
 
 ```scala
-addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.0.0")
+addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.0.6")
 ```
 
 The plugin's default configuration is normally sufficient. However please refer to the [plugin's documentation](https://github.com/sbt/sbt-less#sbt-less) for information on how it may be configured.

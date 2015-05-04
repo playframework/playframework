@@ -18,21 +18,21 @@ Most of the time you can simply list your dependencies in the `build.sbt` file.
 Declaring a dependency looks like this (defining `group`, `artifact` and `revision`):
 
 ```scala
-libraryDependencies += "org.apache.derby" % "derby" % "10.4.1.3"
+libraryDependencies += "org.apache.derby" % "derby" % "10.11.1.1"
 ```
 
 or like this, with an optional `configuration`:
 
 ```scala
-libraryDependencies += "org.apache.derby" % "derby" % "10.4.1.3" % "test"
+libraryDependencies += "org.apache.derby" % "derby" % "10.11.1.1" % "test"
 ```
 
 Multiple dependencies can be added either by multiple declarations like the above, or you can provide a Scala sequence:
 
 ```scala
 libraryDependencies ++= Seq(
-  "org.apache.derby" % "derby" % "10.4.1.3",
-  "org.hibernate" % "hibernate-entitymanager" % "3.6.9.Final"
+  "org.apache.derby" % "derby" % "10.11.1.1",
+  "org.hibernate" % "hibernate-entitymanager" % "4.3.9.Final"
 )
 ```
 

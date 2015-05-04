@@ -1,3 +1,4 @@
+<!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Using the Default SSLContext
 
 If you don't want to use the SSLContext that WS provides for you, and want to use `SSLContext.getDefault`, please set:
