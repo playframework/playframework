@@ -5,7 +5,6 @@ package play.api.http
 
 import javax.inject.{ Provider, Inject }
 
-import org.joda.time.DateTime
 import play.api.inject.{ BindingKey, Binding }
 import play.api.libs.iteratee.Done
 import play.api.{ PlayConfig, Configuration, Environment, GlobalSettings }
@@ -61,20 +60,6 @@ object HttpRequestHandler {
             javaComponentsBinding
           )
       }
-  }
-
-  // This filter, applied to all requests, can be used to make sure required headers are present
-  private[play] val defaultFilter: EssentialFilter = new EssentialFilter {
-    import play.api.libs.concurrent.Execution.Implicits._
-    def apply(next: EssentialAction) = new EssentialAction {
-      def apply(rh: RequestHeader) = next(rh) map { result =>
-        if (result.header.headers.get(HeaderNames.DATE).isDefined) {
-          result
-        } else {
-          result.withDateHeaders(HeaderNames.DATE -> DateTime.now())
-        }
-      }
-    }
   }
 }
 
@@ -158,8 +143,7 @@ class DefaultHttpRequestHandler(router: Router, errorHandler: HttpErrorHandler, 
   protected def filterHandler(next: RequestHeader => Handler): (RequestHeader => Handler) = {
     (request: RequestHeader) =>
       next(request) match {
-        case action: EssentialAction =>
-          HttpRequestHandler.defaultFilter(if (inContext(request.path)) filterAction(action) else action)
+        case action: EssentialAction if inContext(request.path) => filterAction(action)
         case handler => handler
       }
   }

@@ -141,8 +141,7 @@ trait GlobalSettings {
       }
       val inContext = context.isEmpty || request.path == context || request.path.startsWith(context + "/")
       next(request) match {
-        case action: EssentialAction =>
-          HttpRequestHandler.defaultFilter(if (inContext) doFilter(action) else action)
+        case action: EssentialAction if inContext => doFilter(action)
         case handler => handler
       }
   }
