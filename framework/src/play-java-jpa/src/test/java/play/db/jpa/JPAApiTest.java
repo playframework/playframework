@@ -4,6 +4,7 @@
 package play.db.jpa;
 
 import play.db.Database;
+import play.db.Databases;
 
 import org.junit.Test;
 
@@ -36,7 +37,7 @@ public class JPAApiTest {
         final JPAApi jpa;
 
         public TestDatabase() {
-            database = Database.inMemoryWith("jndiName", "DefaultDS");
+            database = Databases.inMemoryWith("jndiName", "DefaultDS");
             execute("create table TestEntity (id bigint not null, name varchar(255));");
             jpa = JPA.createFor("defaultPersistenceUnit");
         }

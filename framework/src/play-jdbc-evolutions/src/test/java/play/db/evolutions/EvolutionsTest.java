@@ -5,6 +5,7 @@ package play.db.evolutions;
 
 import org.junit.*;
 import play.db.Database;
+import play.db.Databases;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -41,7 +42,7 @@ public class EvolutionsTest {
 
     @Before
     public void createDatabase() {
-        database = Database.inMemory();
+        database = Databases.inMemory();
         connection = database.getConnection();
     }
 

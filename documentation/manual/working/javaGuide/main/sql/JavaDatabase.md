@@ -131,3 +131,6 @@ The full range of configuration options for connection pools can be found by ins
 
 For information on testing with databases, including how to setup in-memory databases and, see [[Testing With Databases|JavaTestingWithDatabases]].
 
+## Enabling Play database evolutions
+
+Read [[Evolutions]] to find out what Play database evolutions are useful for, and follow the instructions for using it.

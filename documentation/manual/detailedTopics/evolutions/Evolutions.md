@@ -7,6 +7,14 @@ When you use a relational database, you need a way to track and organize your da
 - When you deploy on a production server, you need to have a robust way to upgrade your database schema.
 - If you work on several machines, you need to keep all database schemas synchronized.
 
+## Enable evolutions
+
+Add `evolutions` into your dependencies list. For example, in `build.sbt`:
+
+```scala
+libraryDependencies += evolutions
+```
+
 ## Evolutions scripts
 
 Play tracks your database evolutions using several evolutions script. These scripts are written in plain old SQL and should be located in the `conf/evolutions/{database name}` directory of your application. If the evolutions apply to your default database, this path is `conf/evolutions/default`.

@@ -5,6 +5,7 @@ package javaguide.tests;
 
 //#database-test
 import play.db.Database;
+import play.db.Databases;
 import play.db.evolutions.*;
 import java.sql.Connection;
 
@@ -17,7 +18,7 @@ public class DatabaseTest {
 
     @Before
     public void setupDatabase() {
-        database = Database.inMemory();
+        database = Databases.inMemory();
         Evolutions.applyEvolutions(database, Evolutions.forDefault(new Evolution(
             1,
             "create table test (id bigint not null, name varchar(255));",

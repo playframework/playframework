@@ -177,3 +177,7 @@ The full range of configuration options for connection pools can be found by ins
 ## Testing
 
 For information on testing with databases, including how to setup in-memory databases and, see [[Testing With Databases|ScalaTestingWithDatabases]].
+
+## Enabling Play database evolutions
+
+Read [[Evolutions]] to find out what Play database evolutions are useful for, and follow the setup instructions for using it.

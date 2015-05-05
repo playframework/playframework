@@ -14,7 +14,7 @@ import com.typesafe.config.ConfigFactory;
 /**
  * Default delegating implementation of the database API.
  */
-public class DefaultDatabase extends Database {
+public class DefaultDatabase implements Database {
 
     private final play.api.db.Database db;
 
@@ -102,7 +102,8 @@ public class DefaultDatabase extends Database {
         db.shutdown();
     }
 
-    play.api.db.Database toScala() {
+    @Override
+    public play.api.db.Database toScala() {
         return db;
     }
 }

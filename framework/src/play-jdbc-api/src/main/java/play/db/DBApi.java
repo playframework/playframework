@@ -4,7 +4,6 @@
 package play.db;
 
 import java.util.List;
-import javax.sql.DataSource;
 
 /**
  * DB API for managing application databases.

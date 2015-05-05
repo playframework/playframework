@@ -308,17 +308,30 @@ object PlayBuild extends Build {
     .dependsOn(PlayServerProject, StreamsProject)
     .dependsOn(PlaySpecs2Project % "test", PlayWsProject % "test")
 
-  lazy val PlayJdbcProject = PlayCrossBuiltProject("Play-JDBC", "play-jdbc")
-    .settings(libraryDependencies ++= jdbcDeps)
-    .dependsOn(PlayProject).dependsOn(PlaySpecs2Project % "test")
+  lazy val PlayJdbcApiProject = PlayCrossBuiltProject("Play-JDBC-Api", "play-jdbc-api")
+    .dependsOn(PlayProject)
 
-  lazy val PlayJavaJdbcProject = PlayCrossBuiltProject("Play-Java-JDBC", "play-java-jdbc").settings(libraryDependencies ++= javaJdbcDeps)
+  lazy val PlayJdbcProject: Project = PlayCrossBuiltProject("Play-JDBC", "play-jdbc")
+    .settings(libraryDependencies ++= jdbcDeps)
+    .dependsOn(PlayJdbcApiProject)
+    .dependsOn(PlaySpecs2Project % "test")
+
+  lazy val PlayJdbcEvolutionsProject = PlayCrossBuiltProject("Play-JDBC-Evolutions", "play-jdbc-evolutions")
+    .dependsOn(PlayJdbcApiProject)
+    .dependsOn(PlaySpecs2Project % "test")
+    .dependsOn(PlayJdbcProject % "test")
+    .dependsOn(PlayJavaJdbcProject % "test")
+
+  lazy val PlayJavaJdbcProject = PlayCrossBuiltProject("Play-Java-JDBC", "play-java-jdbc")
+    .settings(libraryDependencies ++= javaJdbcDeps)
     .dependsOn(PlayJdbcProject, PlayJavaProject)
     .dependsOn(PlaySpecs2Project % "test")
 
   lazy val PlayJpaProject = PlayCrossBuiltProject("Play-Java-JPA", "play-java-jpa")
     .settings(libraryDependencies ++= jpaDeps)
-    .dependsOn(PlayJavaJdbcProject % "compile;test->test")
+    .dependsOn(PlayJavaJdbcProject)
+    .dependsOn(PlayJdbcEvolutionsProject % "test")
+    .dependsOn(PlaySpecs2Project % "test")
 
   lazy val PlayTestProject = PlayCrossBuiltProject("Play-Test", "play-test")
     .settings(
@@ -455,7 +468,9 @@ object PlayBuild extends Build {
     RoutesCompilerProject,
     PlayAkkaHttpServerProject,
     PlayCacheProject,
+    PlayJdbcApiProject,
     PlayJdbcProject,
+    PlayJdbcEvolutionsProject,
     PlayJavaProject,
     PlayJavaJdbcProject,
     PlayJpaProject,

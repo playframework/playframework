@@ -8,7 +8,7 @@ import java.nio.file._
 import java.nio.charset.Charset
 
 import play.api.{ Application, Configuration, Environment, Logger, Mode, Play }
-import play.api.db.{ Database, BoneCPComponents, DBComponents }
+import play.api.db.{ DBApi, Database }
 import play.api.inject.DefaultApplicationLifecycle
 import play.api.libs.Codecs.sha1
 import play.core.DefaultWebCommands
@@ -240,12 +240,14 @@ object OfflineEvolutions {
 
   private def isTest: Boolean = Play.maybeApplication.exists(_.mode == Mode.Test)
 
-  private def getEvolutions(appPath: File, classloader: ClassLoader): EvolutionsComponents = {
-    new EvolutionsComponents with DBComponents with BoneCPComponents {
+  private def getEvolutions(appPath: File, classloader: ClassLoader, dbApi: DBApi): EvolutionsComponents = {
+    val _dbApi = dbApi
+    new EvolutionsComponents {
       lazy val environment = Environment(appPath, classloader, Mode.Dev)
       lazy val configuration = Configuration.load(appPath)
       lazy val applicationLifecycle = new DefaultApplicationLifecycle
       lazy val dynamicEvolutions = new DynamicEvolutions
+      lazy val dbApi: DBApi = _dbApi
       lazy val webCommands = new DefaultWebCommands
     }
   }
@@ -256,9 +258,10 @@ object OfflineEvolutions {
    * @param appPath the application path
    * @param classloader the classloader used to load the driver
    * @param dbName the database name
+   * @param dbApi the database api for managing application databases
    */
-  def applyScript(appPath: File, classloader: ClassLoader, dbName: String, autocommit: Boolean = true): Unit = {
-    val evolutions = getEvolutions(appPath, classloader)
+  def applyScript(appPath: File, classloader: ClassLoader, dbApi: DBApi, dbName: String, autocommit: Boolean = true): Unit = {
+    val evolutions = getEvolutions(appPath, classloader, dbApi)
     val scripts = evolutions.evolutionsApi.scripts(dbName, evolutions.evolutionsReader)
     if (!isTest) {
       logger.warn("Applying evolution scripts for database '" + dbName + "':\n\n" + Evolutions.toHumanReadableScript(scripts))
@@ -271,11 +274,12 @@ object OfflineEvolutions {
    *
    * @param appPath the application path
    * @param classloader the classloader used to load the driver
+   * @param dbApi the database api for managing application databases
    * @param dbName the database name
    * @param revision the revision
    */
-  def resolve(appPath: File, classloader: ClassLoader, dbName: String, revision: Int): Unit = {
-    val evolutions = getEvolutions(appPath, classloader)
+  def resolve(appPath: File, classloader: ClassLoader, dbApi: DBApi, dbName: String, revision: Int): Unit = {
+    val evolutions = getEvolutions(appPath, classloader, dbApi)
     if (!isTest) {
       logger.warn("Resolving evolution [" + revision + "] for database '" + dbName + "'")
     }
