@@ -209,6 +209,46 @@ public class Http {
         }
 
         /**
+         * Set the language for the current request, but don't
+         * change the language cookie. This means the language
+         * will be set for this request, but will not change for
+         * future requests.
+         *
+         * @throws IllegalArgumentException If the given language
+         * is not supported by the application.
+         */
+        public void setTransientLang(String code) {
+            setTransientLang(Lang.forCode(code));
+        }
+
+        /**
+         * Set the language for the current request, but don't
+         * change the language cookie. This means the language
+         * will be set for this request, but will not change for
+         * future requests.
+         *
+         * @throws IllegalArgumentException If the given language
+         * is not supported by the application.
+         */
+        public void setTransientLang(Lang lang) {
+            if (Lang.availables().contains(lang)) {
+                this.lang = lang;
+            } else {
+                throw new IllegalArgumentException("Language not supported in this application: " + lang + " not in Lang.availables()");
+            }
+        }
+
+        /**
+         * Clear the language for the current request, but don't
+         * change the language cookie. This means the language
+         * will be cleared for this request (so a default will be
+         * used), but will not change for future requests.
+         */
+        public void clearTransientLang() {
+            this.lang = null;
+        }
+
+        /**
          * Free space to store your request specific data.
          */
         public Map<String, Object> args;
