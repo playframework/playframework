@@ -416,7 +416,7 @@ object PlayDocsValidation {
     if (!fallbackToJar.value && pageIndex.isEmpty) {
       // A bit hard to do this without parsing all files, so only do it if we're not falling back to the jar file
       val orphanPages = pages.filterNot(page => allLinks.contains(page._1)).filterNot { page =>
-        page._1.startsWith("_") || page._1 == "Home" || page._1.startsWith("Book")
+        page._1.startsWith("_") || page._1 == "Home"
       }
       doAssertion("Orphan pages test", orphanPages.toSeq) {
         orphanPages.foreach { page =>
