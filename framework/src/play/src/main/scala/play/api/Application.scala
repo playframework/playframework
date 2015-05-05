@@ -154,7 +154,7 @@ trait Application {
    * @param relativePath the relative path of the file to fetch
    * @return an existing file
    */
-  def getExistingFile(relativePath: String): Option[File] = Option(getFile(relativePath)).filter(_.exists)
+  def getExistingFile(relativePath: String): Option[File] = Some(getFile(relativePath)).filter(_.exists)
 
   /**
    * Scans the application classloader to retrieve a resource.
@@ -171,10 +171,8 @@ trait Application {
    * @return the resource URL, if found
    */
   def resource(name: String): Option[java.net.URL] = {
-    Option(classloader.getResource(Option(name).map {
-      case s if s.startsWith("/") => s.drop(1)
-      case s => s
-    }.get))
+    val n = name.stripPrefix("/")
+    Option(classloader.getResource(n))
   }
 
   /**
@@ -192,10 +190,8 @@ trait Application {
    * @return a stream, if found
    */
   def resourceAsStream(name: String): Option[InputStream] = {
-    Option(classloader.getResourceAsStream(Option(name).map {
-      case s if s.startsWith("/") => s.drop(1)
-      case s => s
-    }.get))
+    val n = name.stripPrefix("/")
+    Option(classloader.getResourceAsStream(n))
   }
 
   /**
