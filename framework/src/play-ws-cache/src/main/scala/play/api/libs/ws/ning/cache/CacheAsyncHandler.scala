@@ -18,11 +18,10 @@ class CacheAsyncHandler[T](request: Request,
   val cache: NingWSCache,
   maybeAction: Option[ResponseServeAction])
     extends AsyncHandler[T]
-    with AsyncHandlerMethods
     with TimeoutResponse
     with NingDebug {
 
-  private implicit val logger = CacheAsyncHandler.logger
+  private val logger = CacheAsyncHandler.logger
 
   private val builder = new CacheableResponseBuilder()
 
@@ -139,9 +138,9 @@ class CacheAsyncHandler[T](request: Request,
     val result = Await.result(cache.get(key), timeout)
     val finalResponse = result match {
       case Some(entry) =>
-        addRevalidationFailed {
-          addDisconnectHeader {
-            generateCachedResponse(request, requestTime, entry)
+        cache.addRevalidationFailed {
+          cache.addDisconnectHeader {
+            cache.generateCachedResponse(request, requestTime, entry)
           }
         }
 
@@ -158,8 +157,8 @@ class CacheAsyncHandler[T](request: Request,
     val result = Await.result(cache.get(key), timeout)
     val finalResponse = result match {
       case Some(entry) =>
-        addRevalidationFailed {
-          generateCachedResponse(request, requestTime, entry)
+        cache.addRevalidationFailed {
+          cache.generateCachedResponse(request, requestTime, entry)
         }
 
       case None =>
@@ -177,8 +176,8 @@ class CacheAsyncHandler[T](request: Request,
         logger.debug(s"onCompleted: DO NOT CACHE, because $reason")
       case DoCacheResponse(reason) =>
         logger.debug(s"isCacheable: DO CACHE, because $reason")
-        val massagedResponse = stripHeaders(request, fullResponse)
-        cacheResponse(request, massagedResponse)
+        val massagedResponse = cache.stripHeaders(request, fullResponse)
+        cache.cacheResponse(request, massagedResponse)
     }
     handler.onCompleted(fullResponse)
   }
@@ -193,9 +192,9 @@ class CacheAsyncHandler[T](request: Request,
     val fullResponse = result match {
       case Some(entry) =>
         val newHeaders = notModifiedResponse.getHeaders
-        val freshResponse = freshenResponse(newHeaders, entry.response)
-        val massagedResponse = stripHeaders(request, freshResponse)
-        cacheResponse(request, massagedResponse)
+        val freshResponse = cache.freshenResponse(newHeaders, entry.response)
+        val massagedResponse = cache.stripHeaders(request, freshResponse)
+        cache.cacheResponse(request, massagedResponse)
         massagedResponse
       case None =>
         // XXX FIXME what do we do if we have a 304 and there's nothing in the cache for it?

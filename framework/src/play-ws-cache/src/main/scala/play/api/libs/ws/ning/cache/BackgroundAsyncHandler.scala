@@ -12,7 +12,6 @@ import scala.concurrent.Await
  */
 class BackgroundAsyncHandler[T](request: Request, val cache: NingWSCache)
     extends AsyncHandler[T]
-    with AsyncHandlerMethods
     with NingDebug {
 
   private implicit val logger: Logger = BackgroundAsyncHandler.logger
@@ -68,8 +67,8 @@ class BackgroundAsyncHandler[T](request: Request, val cache: NingWSCache)
         logger.debug(s"onCompleted: DO NOT CACHE, because $reason")
       case DoCacheResponse(reason) =>
         logger.debug(s"isCacheable: DO CACHE, because $reason")
-        val massagedResponse = stripHeaders(request, fullResponse)
-        cacheResponse(request, massagedResponse)
+        val massagedResponse = cache.stripHeaders(request, fullResponse)
+        cache.cacheResponse(request, massagedResponse)
     }
   }
 
@@ -83,9 +82,9 @@ class BackgroundAsyncHandler[T](request: Request, val cache: NingWSCache)
     result match {
       case Some(entry) =>
         val newHeaders = notModifiedResponse.getHeaders
-        val freshResponse = freshenResponse(newHeaders, entry.response)
-        val massagedResponse = stripHeaders(request, freshResponse)
-        cacheResponse(request, massagedResponse)
+        val freshResponse = cache.freshenResponse(newHeaders, entry.response)
+        val massagedResponse = cache.stripHeaders(request, freshResponse)
+        cache.cacheResponse(request, massagedResponse)
       case None =>
       // XXX FIXME what do we do if we have a 304 and there's nothing in the cache for it?
       // If we make another call and it sends us another 304 back, we can get stuck in an
