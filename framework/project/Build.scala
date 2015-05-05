@@ -398,7 +398,7 @@ object PlayBuild extends Build {
 
   lazy val PlayWsCacheProject = PlayCrossBuiltProject("Play-WS-Cache", "play-ws-cache")
     .settings(
-      libraryDependencies ++= playWsDeps,
+      libraryDependencies ++= playWsCacheDeps,
       parallelExecution in Test := false,
       // quieten deprecation warnings in tests
       scalacOptions in Test := (scalacOptions in Test).value diff Seq("-deprecation")
