@@ -174,7 +174,7 @@ trait Application {
     Option(classloader.getResource(Option(name).map {
       case s if s.startsWith("/") => s.drop(1)
       case s => s
-    }.get))
+    }.orNull))
   }
 
   /**
@@ -195,7 +195,7 @@ trait Application {
     Option(classloader.getResourceAsStream(Option(name).map {
       case s if s.startsWith("/") => s.drop(1)
       case s => s
-    }.get))
+    }.orNull))
   }
 
   /**
