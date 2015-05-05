@@ -96,7 +96,7 @@ Anorm has been pulled out of the core of Play into a separately managed project 
 libraryDependencies += "com.typesafe.play" %% "anorm" % "2.4.0"
 ```
 
-For more details about what's changed in Anorm, see [[here|Migration24#Anorm].
+For more details about what's changed in Anorm, see [[here|Migration24#Anorm]].
 
 ### Bytecode enhancement
 
@@ -451,29 +451,29 @@ Column conversions for basic types like numeric and boolean ones have been impro
 
 Some invalid conversions are removed:
 
-Column (JDBC type) | (as) JVM/Scala type
--------------------|---------------------
-Double             | Boolean
-Int                | Boolean
+| Column (JDBC type) | (as) JVM/Scala type  |
+| -------------------|--------------------- |
+| `Double`           | `Boolean`            |
+| `Int`              | `Boolean`            |
 
 There are new conversions extending column support.
 
-Column (JDBC type) | (as) JVM/Scala type
--------------------|---------------------
-BigDecimal         | BigInteger
-BigDecimal         | Int
-BigDecimal         | Long
-BigInteger         | BigDecimal
-BigInteger         | Int
-BigInteger         | Long
-Boolean            | Int
-Boolean            | Long
-Boolean            | Short
-Byte               | BigDecimal
-Float              | BigDecimal
-Int                | BigDecimal
-Long               | Int
-Short              | BigDecimal
+| Column (JDBC type) | (as) JVM/Scala type  |
+| -------------------|--------------------- |
+| `BigDecimal`       | `BigInteger`         |
+| `BigDecimal`       | `Int`                |
+| `BigDecimal`       | `Long`               |
+| `BigInteger`       | `BigDecimal`         |
+| `BigInteger`       | `Int`                |
+| `BigInteger`       | `Long`               |
+| `Boolean`          | `Int`                |
+| `Boolean`          | `Long`               |
+| `Boolean`          | `Short`              |
+| `Byte`             | `BigDecimal`         |
+| `Float`            | `BigDecimal`         |
+| `Int`              | `BigDecimal`         |
+| `Long`             | `Int`                |
+| `Short`            | `BigDecimal`         |
 
 **Misc**
 
