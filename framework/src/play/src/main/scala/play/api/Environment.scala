@@ -50,7 +50,7 @@ case class Environment(
    * @param relativePath the relative path of the file to fetch
    * @return an existing file
    */
-  def getExistingFile(relativePath: String): Option[File] = Option(getFile(relativePath)).filter(_.exists)
+  def getExistingFile(relativePath: String): Option[File] = Some(getFile(relativePath)).filter(_.exists)
 
   /**
    * Scans the application classloader to retrieve a resource.
@@ -67,10 +67,8 @@ case class Environment(
    * @return the resource URL, if found
    */
   def resource(name: String): Option[java.net.URL] = {
-    Option(classLoader.getResource(Option(name).map {
-      case s if s.startsWith("/") => s.drop(1)
-      case s => s
-    }.get))
+    val n = name.stripPrefix("/")
+    Option(classLoader.getResource(n))
   }
 
   /**
@@ -88,10 +86,8 @@ case class Environment(
    * @return a stream, if found
    */
   def resourceAsStream(name: String): Option[InputStream] = {
-    Option(classLoader.getResourceAsStream(Option(name).map {
-      case s if s.startsWith("/") => s.drop(1)
-      case s => s
-    }.get))
+    val n = name.stripPrefix("/")
+    Option(classLoader.getResourceAsStream(n))
   }
 
 }
