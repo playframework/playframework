@@ -108,7 +108,7 @@ object Dependencies {
   def runtime(scalaVersion: String) =
     Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.12") ++
     Seq("logback-core", "logback-classic").map("ch.qos.logback" % _ % "1.1.3") ++
-    Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % "2.3.10") ++
+    Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % "2.3.9") ++
     jacksons ++
     Seq(
       "org.scala-stm" %% "scala-stm" % "0.7",
