@@ -69,7 +69,9 @@ object Configuration {
         } orElse {
           setting("config.file").map(fileName => ConfigFactory.parseFileAnySyntax(new File(fileName)))
         } getOrElse {
-          val parseOptions = ConfigParseOptions.defaults.setClassLoader(classLoader).setAllowMissing(true)
+          val parseOptions = ConfigParseOptions.defaults
+            .setClassLoader(classLoader)
+            .setAllowMissing(allowMissingApplicationConf)
           ConfigFactory.defaultApplication(parseOptions)
         }
       }
@@ -128,7 +130,7 @@ object Configuration {
    * Load a new Configuration from the Environment.
    */
   def load(environment: Environment, devSettings: Map[String, String]): Configuration = {
-    load(environment.classLoader, System.getProperties, devSettings, allowMissingApplicationConf = false)
+    load(environment.classLoader, System.getProperties, devSettings, allowMissingApplicationConf = environment.mode == Mode.Test)
   }
 
   /**
