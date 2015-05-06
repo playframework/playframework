@@ -111,9 +111,9 @@ object NettyResultStreamer {
       case Success(cs: ChannelStatus) =>
         if (cs.closeConnection) {
           // Close in an orderely fashion.
-          val channel = oue.getChannel;
+          val channel = oue.getChannel
           val closeEvent = new DownstreamChannelStateEvent(
-            channel, channel.getCloseFuture, ChannelState.OPEN, java.lang.Boolean.FALSE);
+            channel, channel.getCloseFuture, ChannelState.OPEN, java.lang.Boolean.FALSE)
           val ode = new OrderedDownstreamChannelEvent(oue, cs.lastSubsequence + 1, true, closeEvent)
           ctx.sendDownstream(ode)
         }
@@ -141,10 +141,9 @@ object NettyResultStreamer {
   }
 
   def createNettyResponse(header: ResponseHeader, connectionHeader: ServerResultUtils.ConnectionHeader, httpVersion: HttpVersion) = {
-    val responseStatus = header.reasonPhrase.fold {
-      HttpResponseStatus.valueOf(header.status)
-    } {
-      phrase => new HttpResponseStatus(header.status, phrase)
+    val responseStatus = header.reasonPhrase match {
+      case Some(phrase) => new HttpResponseStatus(header.status, phrase)
+      case None => HttpResponseStatus.valueOf(header.status)
     }
     val nettyResponse = new DefaultHttpResponse(httpVersion, responseStatus)
     val nettyHeaders = nettyResponse.headers()
@@ -153,11 +152,7 @@ object NettyResultStreamer {
     val headers = ServerResultUtils.splitSetCookieHeaders(header.headers)
     try {
       headers foreach {
-        case (name, value) => nettyResponse.headers().add(name, value)
-      }
-      if (!nettyHeaders.contains(DATE)) {
-        // Netty doesn't add the required Date header for us, so let's do it here
-        nettyHeaders.add(DATE, dateHeader)
+        case (name, value) => nettyHeaders.add(name, value)
       }
     } catch {
       case NonFatal(e) =>
@@ -172,6 +167,11 @@ object NettyResultStreamer {
 
     connectionHeader.header foreach { headerValue =>
       nettyHeaders.set(CONNECTION, headerValue)
+    }
+
+    // Netty doesn't add the required Date header for us, so make sure there is one here
+    if (!nettyHeaders.contains(DATE)) {
+      nettyHeaders.add(DATE, dateHeader)
     }
 
     nettyResponse
