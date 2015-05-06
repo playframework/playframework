@@ -100,10 +100,10 @@ For more details about what's changed in Anorm, see [[here|Migration24#Anorm]].
 
 ### Bytecode enhancement
 
-[Play's bytecode enhancement](https://github.com/playframework/play-enhancer), which generates getters and setters for Java properties, has been pulled out of the core of Play into a separately managed project that can have its own lifecycle. To enable it:
+[[Play's bytecode enhancement|PlayEnhancer]], which generates getters and setters for Java properties, has been pulled out of the core of Play into a separately managed project that can have its own lifecycle. To enable it, add the following to your `project/plugins.sbt` file:
 
 ```scala
-enablePlugins(PlayJava, PlayEnhancer)
+addSbtPlugin("com.typesafe.sbt" % "sbt-play-enhancer" % "1.1.0")
 ```
 
 ## Dependency Injection

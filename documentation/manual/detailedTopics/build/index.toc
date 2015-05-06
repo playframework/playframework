@@ -2,6 +2,7 @@ Build:The Build System
 SBTSettings:About sbt settings
 SBTDependencies:Manage application dependencies
 SBTSubProjects:Working with sub-projects
+PlayEnhancer:Play enhancer
 AggregatingReverseRouters:Aggregating reverse routers
 CompilationSpeed:Improving Compilation Times
 SBTCookbook:Cookbook

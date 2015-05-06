@@ -41,6 +41,8 @@ templateParameters := Map(
   "DIGEST_VERSION" -> "1.1.0",
   "RJS_VERSION" -> "1.0.7",
   "MOCHA_VERSION" -> "1.0.2",
+  "ENHANCER_VERSION" -> "1.1.0-RC2",
+  "EBEAN_VERSION" -> "1.0.0-RC1",
   "TEMPLATE_NAME_SUFFIX" -> templateNameAndTitle._1,
   "TEMPLATE_TITLE_SUFFIX" -> templateNameAndTitle._2
 )

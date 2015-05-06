@@ -221,12 +221,20 @@ public class JavaForms extends WithApplication {
 
         Form<WithLocalTime> form = Form.form(WithLocalTime.class);
         WithLocalTime obj = form.bind(ImmutableMap.of("time", "23:45")).get();
-        assertThat(obj.time, equalTo(new LocalTime(23, 45)));
+        assertThat(obj.getTime(), equalTo(new LocalTime(23, 45)));
         assertThat(form.fill(obj).field("time").value(), equalTo("23:45"));
     }
 
     public static class WithLocalTime {
-        public LocalTime time;
+        private LocalTime time;
+
+        public LocalTime getTime() {
+            return time;
+        }
+
+        public void setTime(LocalTime time) {
+            this.time = time;
+        }
     }
 
 }
