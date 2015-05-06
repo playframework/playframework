@@ -107,14 +107,21 @@ trait JavaHelpers {
    * it.
    *
    * This is intended for use by methods in the JavaGlobalSettingsAdapter, which need to be handled
-   * like Java actions, but are not Java actions.
+   * like Java actions, but are not Java actions. In this case, f may return null, so we wrap its
+   * result in an Option. E.g. see the default behavior of GlobalSettings.onError.
    *
    * @param request The request
    * @param f The function to invoke
    * @return The result
    */
   def invokeWithContextOpt(request: RequestHeader, f: JRequest => F.Promise[JResult]): Option[Future[Result]] = {
-    Option(invokeWithContext(request, f))
+    val javaContext = createJavaContext(request)
+    try {
+      JContext.current.set(javaContext)
+      Option(f(javaContext.request())).map(_.wrapped.map(createResult(javaContext, _))(trampoline))
+    } finally {
+      JContext.current.remove()
+    }
   }
 
   /**
