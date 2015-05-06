@@ -346,7 +346,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
           BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
         ).apply(0)
         response.status must_== Status.INTERNAL_SERVER_ERROR
-        (response.headers - (CONTENT_LENGTH)) must be(Map.empty)
+        (response.headers -- Set(CONTENT_LENGTH, DATE)) must be(Map.empty)
       }.pendingUntilAkkaHttpFixed // https://github.com/akka/akka/issues/16988
   }
 }
