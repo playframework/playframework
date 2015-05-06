@@ -85,6 +85,21 @@ object ConfigurationSpec extends Specification {
       } must not(throwA[Exception])
     }
 
+    "fail if application.conf is not found" in {
+      def load(mode: Mode.Mode) = {
+        // system classloader should not have an application.conf
+        Configuration.load(Environment(new File("."), ClassLoader.getSystemClassLoader, mode))
+      }
+      "in dev mode" in {
+        load(Mode.Dev) must throwA[PlayException]
+      }
+      "in prod mode" in {
+        load(Mode.Prod) must throwA[PlayException]
+      }
+      "but not in test mode" in {
+        load(Mode.Test) must not(throwA[PlayException])
+      }
+    }
   }
 
 }
