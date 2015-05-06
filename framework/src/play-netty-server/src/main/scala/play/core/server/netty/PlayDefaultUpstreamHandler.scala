@@ -269,7 +269,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
 
           val sent = eventuallyResultWithSequence.recoverWith {
             case error =>
-              logger.error("Cannot invoke the action, eventually got an error: " + error)
+              logger.error("Cannot invoke the action", error)
               e.getChannel.setReadable(true)
               errorHandler(app).onServerError(requestHeader, error)
                 .map((_, 0))
