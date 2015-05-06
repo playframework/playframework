@@ -13,8 +13,8 @@ import scala.concurrent.duration._
 import akka.util.Timeout
 
 object AkkaHttpServerSpec extends PlaySpecification with WsTestClient {
-  // Disable Akka HTTP tests by default until issues in Continuous Integration are resolved
-  private val runTests: Boolean = (System.getProperty("run.akka.http.tests", "false") == "true")
+  // Provide a flag to disable Akka HTTP tests
+  private val runTests: Boolean = (System.getProperty("run.akka.http.tests", "true") == "true")
   skipAllIf(!runTests)
 
   sequential

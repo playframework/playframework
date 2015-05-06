@@ -64,8 +64,8 @@ trait NettyIntegrationSpecification extends ServerIntegrationSpecification {
 }
 trait AkkaHttpIntegrationSpecification extends ServerIntegrationSpecification {
   self: Specification =>
-  // Disable Akka HTTP tests by default until issues in Continuous Integration are resolved
-  private val runTests: Boolean = (System.getProperty("run.akka.http.tests", "false") == "true")
+  // Provide a flag to disable Akka HTTP tests
+  private val runTests: Boolean = (System.getProperty("run.akka.http.tests", "true") == "true")
   skipAllIf(!runTests)
   override def integrationServerProvider: ServerProvider = AkkaHttpServer.provider
 }
