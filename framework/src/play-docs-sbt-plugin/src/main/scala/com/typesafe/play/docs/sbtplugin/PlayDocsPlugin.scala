@@ -141,7 +141,6 @@ object PlayDocsPlugin extends AutoPlugin {
     },
 
     parallelExecution in Test := false,
-    (compile in Test) <<= Enhancement.enhanceJavaClasses,
     javacOptions in Test ++= Seq("-g", "-Xlint:deprecation"),
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "sequential", "true", "junitxml", "console"),
     testOptions in Test += Tests.Argument(TestFrameworks.JUnit, "-v", "--ignore-runners=org.specs2.runner.JUnitRunner")

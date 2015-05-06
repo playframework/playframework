@@ -1,6 +1,8 @@
 /*
  * Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com>
  */
+
+import com.typesafe.play.sbt.enhancer.PlayEnhancer
 import sbt._
 import sbt.Keys._
 import play.Play.autoImport._
@@ -51,7 +53,8 @@ object ApplicationBuild extends Build {
         enabled.foldLeft[FileFilter](new ExactFilter("code")) { (filter, e) => filter || new ExactFilter("code-" + e) })
   }
 
-  lazy val main = Project("Play-Documentation", file(".")).enablePlugins(PlayDocsPlugin).settings(
+  lazy val main = Project("Play-Documentation", file("."))
+    .enablePlugins(PlayDocsPlugin).disablePlugins(PlayEnhancer).settings(
     resolvers += Resolver.sonatypeRepo("releases"), // TODO: Delete this eventually, just needed for lag between deploying to sonatype and getting on maven central
     version := PlayVersion.current,
     libraryDependencies ++= Seq(
