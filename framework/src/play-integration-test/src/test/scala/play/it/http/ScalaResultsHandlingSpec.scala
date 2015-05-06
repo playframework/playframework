@@ -65,7 +65,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
           response.body must_== "Hello"
         case Failure(t) =>
           t must haveClass[IOException]
-          t.getMessage must_== "Remotely Closed"
+          t.getMessage.toLowerCase must_== "remotely closed"
       }
     }
 
