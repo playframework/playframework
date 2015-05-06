@@ -32,24 +32,27 @@ object Execution {
 
     /*
      * A ThreadLocal value is used to track the state of the trampoline in the current
-     * thread. When a Runnable is added to the trampoline it uses the ThreadLocal to looks
-     * to see if the trampoline is already running in the thread. If so, it starts the
+     * thread. When a Runnable is added to the trampoline it uses the ThreadLocal to
+     * see if the trampoline is already running in the thread. If so, it starts the
      * trampoline. When it finishes, it checks the ThreadLocal to see if any Runnables
      * have subsequently been scheduled for execution. It runs all the Runnables until
-     * there are no more to exit, then stops running.
+     * there are no more to exit, then it clears the ThreadLocal and stops running.
      *
      * ThreadLocal states:
      * - null =>
      *       - no Runnable running: trampoline is inactive in the current thread
      * - Empty =>
      *       - a Runnable is running and trampoline is active
-     *       - no more Runnables are enqueued for execution
+     *       - no more Runnables are enqueued for execution after the current Runnable
+     *         completes
      * - next: Runnable => 
      *       - a Runnable is running and trampoline is active
-     *       - one more Runnable is enqueued for execution
+     *       - one Runnable is scheduled for execution after the current Runnable
+     *         completes
      * - queue: ArrayDeque[Runnable] =>
      *       - a Runnable is running and trampoline is active
-     *       - one more Runnable is enqueued for execution
+     *       - two or more Runnables are scheduled for execution after the current
+     *         Runnable completes
      */
     private val local = new ThreadLocal[AnyRef]
 
