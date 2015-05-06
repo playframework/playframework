@@ -37,7 +37,7 @@ object Configuration {
   private[play] def load(
     classLoader: ClassLoader,
     properties: Properties,
-    directSettings: Map[String, String],
+    directSettings: Map[String, AnyRef],
     allowMissingApplicationConf: Boolean): Configuration = {
 
     try {
@@ -61,13 +61,13 @@ object Configuration {
       // - We want to read config.file and config.resource settings from our
       //   own properties and directConfig rather than system properties.
       val applicationConfig: Config = {
-        def setting(key: String): Option[String] =
+        def setting(key: String): Option[AnyRef] =
           directSettings.get(key).orElse(Option(properties.getProperty(key)))
 
         {
-          setting("config.resource").map(resource => ConfigFactory.parseResources(classLoader, resource))
+          setting("config.resource").map(resource => ConfigFactory.parseResources(classLoader, resource.toString))
         } orElse {
-          setting("config.file").map(fileName => ConfigFactory.parseFileAnySyntax(new File(fileName)))
+          setting("config.file").map(fileName => ConfigFactory.parseFileAnySyntax(new File(fileName.toString)))
         } getOrElse {
           val parseOptions = ConfigParseOptions.defaults
             .setClassLoader(classLoader)
@@ -116,8 +116,8 @@ object Configuration {
    * @param mode Application mode.
    * @return a `Configuration` instance
    */
-  @deprecated("Use load(Environment, Map[String,String]) instead", "2.4.0")
-  def load(appPath: File, mode: Mode.Mode = Mode.Dev, devSettings: Map[String, String] = Map.empty): Configuration = {
+  @deprecated("Use load(Environment, Map[String,AnyRef]) instead", "2.4.0")
+  def load(appPath: File, mode: Mode.Mode = Mode.Dev, devSettings: Map[String, AnyRef] = Map.empty): Configuration = {
     val currentMode = Play.maybeApplication.map(_.mode).getOrElse(mode)
     if (currentMode == Mode.Prod) {
       load(Thread.currentThread.getContextClassLoader, System.getProperties, Map.empty, allowMissingApplicationConf = false)
@@ -129,7 +129,7 @@ object Configuration {
   /**
    * Load a new Configuration from the Environment.
    */
-  def load(environment: Environment, devSettings: Map[String, String]): Configuration = {
+  def load(environment: Environment, devSettings: Map[String, AnyRef]): Configuration = {
     load(environment.classLoader, System.getProperties, devSettings, allowMissingApplicationConf = environment.mode == Mode.Test)
   }
 
