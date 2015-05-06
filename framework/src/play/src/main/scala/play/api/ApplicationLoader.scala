@@ -85,7 +85,7 @@ object ApplicationLoader {
    * @param sourceMapper An optional source mapper.
    */
   def createContext(environment: Environment,
-    initialSettings: Map[String, String] = Map.empty[String, String],
+    initialSettings: Map[String, AnyRef] = Map.empty[String, AnyRef],
     sourceMapper: Option[SourceMapper] = None,
     webCommands: WebCommands = new DefaultWebCommands) = {
     val configuration = Configuration.load(environment, initialSettings)

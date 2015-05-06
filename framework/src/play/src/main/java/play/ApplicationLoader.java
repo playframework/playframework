@@ -67,7 +67,7 @@ public interface ApplicationLoader {
    *                        is intended for use in dev mode, to allow the build system to pass additional configuration
    *                        into the application.
    */
-    public Context(Environment environment, Map<String,String> initialSettings) {
+    public Context(Environment environment, Map<String,Object> initialSettings) {
         this.underlying = new play.api.ApplicationLoader.Context(
            environment.underlying(),
            scala.Option.empty(),
@@ -138,7 +138,7 @@ public interface ApplicationLoader {
      *                        is intended for use in dev mode, to allow the build system to pass additional configuration
      *                        into the application.
      */
-    public static Context create(Environment environment, Map<String, String> initialSettings) {
+    public static Context create(Environment environment, Map<String, Object> initialSettings) {
         play.api.ApplicationLoader.Context scalaContext = play.api.ApplicationLoader$.MODULE$.createContext(
             environment.underlying(),
             Scala.asScala(initialSettings),
