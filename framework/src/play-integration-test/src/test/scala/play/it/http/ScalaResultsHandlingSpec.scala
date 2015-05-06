@@ -107,7 +107,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
           BasicRequest("GET", "/", "HTTP/1.0", Map("Connection" -> "keep-alive"), "")
         )(0)
         response.status must_== 200
-        response.headers.get(CONNECTION) must beNone
+        response.headers.get(CONNECTION).map(_.toLowerCase) must beOneOf(None, Some("close"))
       }
 
     "close the connection when the connection close header is present" in withServer(
@@ -346,7 +346,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
           BasicRequest("GET", "/", "HTTP/1.1", Map(), "")
         ).apply(0)
         response.status must_== Status.INTERNAL_SERVER_ERROR
-        (response.headers -- Set(CONTENT_LENGTH, DATE)) must be(Map.empty)
-      }.pendingUntilAkkaHttpFixed // https://github.com/akka/akka/issues/16988
+        (response.headers -- Set(CONNECTION, CONTENT_LENGTH, DATE, SERVER)) must be(Map.empty)
+      }
   }
 }

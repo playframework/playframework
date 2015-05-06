@@ -105,10 +105,12 @@ object Dependencies {
   val jodatime = "joda-time" % "joda-time" % "2.7"
   val jodaConvert = "org.joda" % "joda-convert" % "1.7"
 
+  private val akkaCoreDeps = Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % "2.3.9")
+
   def runtime(scalaVersion: String) =
     Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.12") ++
     Seq("logback-core", "logback-classic").map("ch.qos.logback" % _ % "1.1.3") ++
-    Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % "2.3.9") ++
+    akkaCoreDeps ++
     jacksons ++
     Seq(
       "org.scala-stm" %% "scala-stm" % "0.7",
@@ -139,8 +141,12 @@ object Dependencies {
   ) ++ specsBuild.map(_ % Test)
 
   val akkaHttp = Seq(
-    "com.typesafe.akka" %% "akka-http-core-experimental" % "1.0-M4"
+    "com.typesafe.akka" %% "akka-http-core-experimental" % "1.0-RC2"
   )
+
+  // FIXME: These overrides are no longer needed once
+  // Akka fixes: https://github.com/akka/akka/pull/17390
+  val akkaHttpOverrides = akkaCoreDeps
 
   val routesCompilerDependencies =  Seq(
     "commons-io" % "commons-io" % "2.4"
@@ -235,7 +241,7 @@ object Dependencies {
   ) ++ specsBuild.map(_ % Test)
 
   val streamsDependencies = Seq(
-    "org.reactivestreams" % "reactive-streams" % "1.0.0.RC1"
+    "org.reactivestreams" % "reactive-streams" % "1.0.0"
   ) ++ specsBuild.map(_ % "test")
 
   def jsonDependencies(scalaVersion: String) = Seq(

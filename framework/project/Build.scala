@@ -297,7 +297,11 @@ object PlayBuild extends Build {
   import ScriptedPlugin._
 
   lazy val PlayAkkaHttpServerProject = PlayCrossBuiltProject("Play-Akka-Http-Server-Experimental", "play-akka-http-server")
-    .settings(libraryDependencies ++= akkaHttp)
+    .settings(
+      libraryDependencies ++= akkaHttp,
+      // FIXME: These overrides are no longer needed once
+      // Akka fixes: https://github.com/akka/akka/pull/17390
+      dependencyOverrides := dependencyOverrides.value ++ akkaHttpOverrides)
      // Include scripted tests here as well as in the SBT Plugin, because we
      // don't want the SBT Plugin to have a dependency on an experimental module.
     .settings(playScriptedSettings: _*)
