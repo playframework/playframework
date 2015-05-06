@@ -30,31 +30,94 @@ object Execution {
    */
   object trampoline extends ExecutionContext {
 
-    private val local = new ThreadLocal[Deque[Runnable]]
+    /*
+     * A ThreadLocal value is used to track the state of the trampoline in the current
+     * thread. When a Runnable is added to the trampoline it uses the ThreadLocal to looks
+     * to see if the trampoline is already running in the thread. If so, it starts the
+     * trampoline. When it finishes, it checks the ThreadLocal to see if any Runnables
+     * have subsequently been scheduled for execution. It runs all the Runnables until
+     * there are no more to exit, then stops running.
+     *
+     * ThreadLocal states:
+     * - null =>
+     *       - no Runnable running: trampoline is inactive in the current thread
+     * - Empty =>
+     *       - a Runnable is running and trampoline is active
+     *       - no more Runnables are enqueued for execution
+     * - next: Runnable => 
+     *       - a Runnable is running and trampoline is active
+     *       - one more Runnable is enqueued for execution
+     * - queue: ArrayDeque[Runnable] =>
+     *       - a Runnable is running and trampoline is active
+     *       - one more Runnable is enqueued for execution
+     */
+    private val local = new ThreadLocal[AnyRef]
+
+    /** Marks an empty queue (see docs for `local`). */
+    private object Empty
 
     def execute(runnable: Runnable): Unit = {
       local.get match {
         case null =>
-          // Since there is no local queue, we need to install one and
-          // start our trampolining loop.
+          // Trampoline is inactive in this thread so start it up!
           try {
-            val installedQueue = new ArrayDeque[Runnable](4)
-            installedQueue.addLast(runnable)
-            local.set(installedQueue)
-            while (!installedQueue.isEmpty) {
-              val runnable = installedQueue.removeFirst()
-              runnable.run()
-            }
+            // The queue of Runnables to run after this one
+            // is initially empty.
+            local.set(Empty)
+            runnable.run()
+            executeScheduled()
           } finally {
-            // We've emptied the queue, so tidy up.
+            // We've run all the Runnables, so show that the 
+            // trampoline has been shut down.
             local.set(null)
           }
-        case existingQueue =>
-          // There's already a local queue that is being executed.
-          // Just stick our runnable on the end of that queue. The
-          // runnable will eventually be run by the call to
-          // `execute` that installed the queue.
-          existingQueue.addLast(runnable)
+        case Empty =>
+          // Add this Runnable to our empty queue
+          local.set(runnable)
+        case next: Runnable =>
+          // Convert the single queued Runnable into an ArrayDeque
+          // so we can schedule 2+ Runnables
+          val runnables = new ArrayDeque[Runnable](4)
+          runnables.addLast(next)
+          runnables.addLast(runnable)
+          local.set(runnables)
+        case arrayDeque: ArrayDeque[_] =>
+          // Add this Runnable to the end of the existing ArrayDeque
+          val runnables = arrayDeque.asInstanceOf[ArrayDeque[Runnable]]
+          runnables.addLast(runnable)
+        case illegal =>
+          throw new IllegalStateException(s"Unsupported trampoline ThreadLocal value: $illegal")
+      }
+    }
+
+    /**
+     * Run all tasks that have been scheduled in the ThreadLocal.
+     */
+    @tailrec
+    private def executeScheduled(): Unit = {
+      local.get match {
+        case Empty =>
+          // Nothing to run
+          ()
+        case next: Runnable =>
+          // Mark the queue of Runnables after this one as empty
+          local.set(Empty)
+          // Run the only scheduled Runnable
+          next.run()
+          // Recurse in case more Runnables were added
+          executeScheduled()
+        case arrayDeque: ArrayDeque[_] =>
+          val runnables = arrayDeque.asInstanceOf[ArrayDeque[Runnable]]
+          // Rather than recursing, we can use a more efficient
+          // while loop. The value of the ThreadLocal will stay as
+          // an ArrayDeque until all the scheduled Runnables have been
+          // run.
+          while (!runnables.isEmpty) {
+            val runnable = runnables.removeFirst()
+            runnable.run()
+          }
+        case illegal =>
+          throw new IllegalStateException(s"Unsupported trampoline ThreadLocal value: $illegal")
       }
     }
 
