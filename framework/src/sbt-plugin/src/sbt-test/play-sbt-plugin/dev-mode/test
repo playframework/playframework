@@ -41,10 +41,11 @@ $ delete public/new/new.css
 # Two files with the same name change detection
 > verifyResourceContains /assets/a/some.txt 200 original
 > verifyResourceContains /assets/b/some.txt 200 original
-# This sleep doesn't seem necessary, but adding it to see if it impacts CI stability
+# These sleeps are necessary to ensure a full second has ticked by since the last modified timestamp was captured
 $ sleep 1000
 $ copy-file changes/some.txt.1 public/a/some.txt
 > verifyResourceContains /assets/a/some.txt 200 changed
+$ sleep 1000
 $ copy-file changes/some.txt.1 public/b/some.txt
 > verifyResourceContains /assets/b/some.txt 200 changed
 
