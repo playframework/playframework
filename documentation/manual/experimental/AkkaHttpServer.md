@@ -1,23 +1,24 @@
 <!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
-# Akka HTTP server backend (experimental)
+# Akka HTTP server backend _(experimental)_
 
 > **Play experimental libraries are not ready for production use**. APIs may change. Features may not work properly.
 
-The Play 2 APIs are built on top of an HTTP server backend. The default HTTP server backend uses the [Netty](http://netty.io/) library. In Play 2.4 another **experimental** backend, based on [Akka HTTP](http://doc.akka.io/docs/akka-stream-and-http-experimental/current/), is also available. The Akka HTTP backend aims to provide the same Play API as the Netty HTTP backend. At the moment the Akka HTTP backend is missing quite a few features.
+Play 2's main server is built on top of [Netty](http://netty.io/). In Play 2.4 we started experimenting with an experimental server based on [Akka HTTP](http://doc.akka.io/docs/akka-stream-and-http-experimental/current/). Akka HTTP is an HTTP library built on to of Akka. It is written by the authors of [Spray](http://spray.io/).
 
-The experimental Akka HTTP backend is a technical proof of concept. It is not intended for production use and it doesn't implement the full Play API. The purpose of the new backend is to trial Akka HTTP as a possible backend for a future version of Play. The backend also serves as a valuable test case for our friends on the Akka project.
+The purpose of this backend is:
+
+* to check that the Akka HTTP API provides all the features that Play needs
+* to gain knowledge about Akka HTTP in case we want to use it in Play in the future.
+
+In future versions of Play we may implement a production quality Akka HTTP backend, but in Play 2.4 the Akka HTTP server is mostly a proof of concept. We do **not** recommend that you use it for anything other than learning about Play or Akka HTTP server code. In Play 2.4 you should always use the default Netty-based server for production code.
 
 ## Known issues
 
-* WebSockets are not supported. This will be fixed once Akka HTTP gains WebSocket support.
-* No HTTPS support.
-* If a `Content-Length` header is not supplied, the Akka HTTP server always uses chunked encoding. This is different from the Netty backend which will automatically buffer some requests to get a `Content-Length`.
-* No `X-Forwarded-For` support.
-* No `RequestHeader.username` support.
-* Server shutdown is a bit rough now. HTTP server actors are just killed.
-* No attempt has been made to tune performance. Performance will to be slower than Netty. For example, currently there is a lot of extra copying between Play's `Array[Byte]` and Akka's `ByteString`. This could be optimized.
-* The implementation contains a lot of code duplicated from Netty.
-* There are no proper documentation tests for the code written on this page.
+* Slow. There is a lot more copying in the Akka HTTP backend because the Play and Akka HTTP APIs are not naturally compatible. A lot of extra copying is needed to translate the objects.
+* WebSockets are not supported, due to missing support in Akka HTTP.
+* No HTTPS support, again due to missing support in Akka HTTP.
+* Server shutdown is a bit rough. HTTP server actors are just killed.
+* The implementation contains code duplicated from the Netty backend.
 
 ## Usage
 
@@ -52,18 +53,27 @@ Action { request =>
 
 ### Configuring the Akka HTTP server
 
-The Akka HTTP server is configured with Typesafe Config, like the rest of Play. Note: when running Play in development mode, the current project's resources may not be available on the server's classpath. Configuration may need to be provided in system properties or via resources in a JAR file.
+The Akka HTTP server is configured with Typesafe Config, like the rest of Play. This is the default configuration for the Akka HTTP backend. The `log-dead-letters` setting is set to `off` because the Akka HTTP server can send a lot of letters. If you want this on then you'll need to enable it in your `application.conf`.
 
 ```
 play {
 
-  # Configuration for Play's AkkaHttpServer
-  akka {
+  # The server provider class name
+  server.provider = "play.core.server.akkahttp.AkkaHttpServerProvider"
 
+  akka {
     # How long to wait when binding to the listening socket
     http-bind-timeout = 5 seconds
-
   }
 
 }
+
+akka {
+
+  # Turn off dead letters until Akka HTTP server is stable
+  log-dead-letters = off
+
+}
 ```
+
+> **Note:** In dev mode, when you use the `run` command, your `application.conf` settings will not be picked up by the server. This is because in dev mode the server starts before the application classpath is available. There are several [[other options|Configuration#Using-with-the-run-command]] you'll need to use instead.

@@ -3,18 +3,25 @@
 
 > **Play experimental libraries are not ready for production use**. APIs may change. Features may not work properly.
 
-[Reactive Streams](http://www.reactive-streams.org/) is a specification and SPI that is currently under development. Reactive Streams provides a common standard that allows different stream implementations to be connected together. The SPI is quite small, with just a few simple interfaces such as `Publisher` and `Subscriber`.
+[Reactive Streams](http://www.reactive-streams.org/) is a new standard that gives a common API for asynchronous streams. Play 2.4 introduces some wrappers to convert Play's [[Iteratees and Enumerators|Iteratees]] into Reactive Streams objects. This means that Play can integrate with other software that supports Reactive Streams, e.g. [Akka Streams](http://doc.akka.io/docs/akka-stream-and-http-experimental/current/), [RxJava](https://github.com/ReactiveX/RxJavaReactiveStreams) and [others](http://www.reactive-streams.org/announce-1.0.0#implementations).
 
-Play 2.4 provides an **experimental** Reactive Streams integration module that adapts `Future`s, `Promise`s, `Enumerator`s and `Iteratee`s into Reactive Streams' `Publisher`s and `Subscriber`s.
+The purpose of the API is:
+
+* to check that the Reactive Streams API is powerful enough to express Play iteratees and enumerators
+* to test integration between Play and Akka Streams
+* to provide stream conversions needed by the experimental [[Akka HTTP server backend|AkkaHttpServer]]
+* to test out an API.
+
+This API is **highly experimental**. It should be reasonably free of bugs, but its methods and classes and concepts are very likely to change in the future.
 
 ## Known issues
 
-* The implementations haven't been fully updated to version 0.4 of the Reactive Streams specification. For example, `Publisher`s and `Subscriber`s may send or accept an `onComplete` event without a preceding `onSubscribe` event. This was allowed in 0.3 but is not permitted in 0.4.
+* No Java API. This shouldn't be hard to implement, but it hasn't been done yet.
+* The implementation hasn't been tested against the Reactive Streams test suite so there may be some conformance issues.
 * May need to lift `Input` events into the stream to ensure that `Input.EOF` events cannot be lost and to provide proper support for `Input.Empty`. At the moment there is the potential for event loss when adapting iteratees and enumerators.
 * No performance tuning has been done.
 * Needs support for two-way conversion between all the main stream and iteratee types.
 * Documentation is limited.
-* Test that the module works from Java.
 
 ## Usage
 
@@ -34,3 +41,11 @@ val pubr: Publisher[Int] = Streams.futureToPublisher(fut)
 ```
 
 See the `Streams` object's [API documentation](api/scala/index.html#play.play.api.libs.streams.Streams) for more information.
+
+For more examples you can look at the code used by the experimental [[Akka HTTP server backend|AkkaHttpServer]]. Here are the main files where you can find examples:
+
+<!-- FIXME: Update links once a 2.4.x branch is available. -->
+
+* [ModelConversion](https://github.com/playframework/playframework/blob/2.4.0-RC1/framework/src/play-akka-http-server/src/main/scala/play/core/server/akkahttp/ModelConversion.scala)
+* [AkkaStreamsConversion](https://github.com/playframework/playframework/blob/2.4.0-RC1/framework/src/play-akka-http-server/src/main/scala/play/core/server/akkahttp/AkkaStreamsConversion.scala)
+* [AkkaHttpServer](https://github.com/playframework/playframework/blob/2.4.0-RC1/framework/src/play-akka-http-server/src/main/scala/play/core/server/akkahttp/AkkaHttpServer.scala)
