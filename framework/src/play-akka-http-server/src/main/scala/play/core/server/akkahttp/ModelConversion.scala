@@ -1,9 +1,8 @@
 package play.core.server.akkahttp
 
-import akka.http.model._
-import akka.http.model.ContentType
-import akka.http.model.headers._
-import akka.http.model.parser.HeaderParser
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.ContentType
+import akka.http.scaladsl.model.headers._
 import akka.stream.FlowMaterializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
@@ -221,22 +220,28 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
     }
   }
 
+  private def convertHeaders(headers: Iterable[(String, String)]): immutable.Seq[HttpHeader] = {
+    headers.map {
+      case (name, value) =>
+        HttpHeader.parse(name, value) match {
+          case HttpHeader.ParsingResult.Ok(header, errors /* errors are ignored if Ok */ ) =>
+            header
+          case HttpHeader.ParsingResult.Error(error) =>
+            sys.error(s"Error parsing header: $error")
+        }
+    }.to[immutable.Seq]
+  }
+
   /**
    * Given a chunk encoded stream, decode it and reencode it in Akka's chunk format.
    */
   private def dechunkAndRechunk(chunkEncodedEnum: Enumerator[Array[Byte]]): Source[HttpEntity.ChunkStreamPart, Unit] = {
     import Execution.Implicits.trampoline
     val rechunkEnee = Results.dechunkWithTrailers ><> Enumeratee.map[Either[Array[Byte], Seq[(String, String)]]][HttpEntity.ChunkStreamPart] {
-      case Left(bytes) => HttpEntity.ChunkStreamPart(bytes)
+      case Left(bytes) =>
+        HttpEntity.ChunkStreamPart(bytes)
       case Right(rawHeaderStrings) =>
-        val rawHeaders = rawHeaderStrings.map {
-          case (name, value) => RawHeader(name, value)
-        }
-        val convertedHeaders: List[HttpHeader] = HeaderParser.parseHeaders(rawHeaders.to[List]) match {
-          case (Nil, headers) => headers
-          case (errors, _) => sys.error(s"Error parsing trailers: $errors")
-        }
-        HttpEntity.LastChunk(trailer = convertedHeaders)
+        HttpEntity.LastChunk(trailer = convertHeaders(rawHeaderStrings))
     }
     val akkaChunksEnum: Enumerator[HttpEntity.ChunkStreamPart] = (chunkEncodedEnum &> rechunkEnee) >>> Enumerator.eof
     AkkaStreamsConversion.enumeratorToSource(akkaChunksEnum)
@@ -264,13 +269,8 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
    */
   private def convertResponseHeaders(
     playHeaders: Map[String, String]): AkkaHttpHeaders = {
-    val rawHeaders = ServerResultUtils.splitSetCookieHeaders(playHeaders).map {
-      case (name, value) => RawHeader(name, value)
-    }
-    val convertedHeaders: List[HttpHeader] = HeaderParser.parseHeaders(rawHeaders.to[List]) match {
-      case (Nil, headers) => headers
-      case (errors, _) => sys.error(s"Error parsing response headers: $errors")
-    }
+    val rawHeaders: Iterable[(String, String)] = ServerResultUtils.splitSetCookieHeaders(playHeaders)
+    val convertedHeaders: Seq[HttpHeader] = convertHeaders(rawHeaders)
     val emptyHeaders = AkkaHttpHeaders(immutable.Seq.empty, ContentTypes.`application/octet-stream`, None, None)
     convertedHeaders.foldLeft(emptyHeaders) {
       case (accum, ct: `Content-Type`) =>

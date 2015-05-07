@@ -1,9 +1,9 @@
 package play.core.server.akkahttp
 
 import akka.actor.ActorSystem
-import akka.http.Http
-import akka.http.model._
-import akka.http.model.headers.{ `Content-Length`, `Content-Type` }
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.headers.{ `Content-Length`, `Content-Type` }
 import akka.pattern.ask
 import akka.stream.ActorFlowMaterializer
 import akka.stream.scaladsl._
