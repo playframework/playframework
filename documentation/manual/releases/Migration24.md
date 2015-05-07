@@ -489,6 +489,12 @@ Advanced Netty configuration options, that is, options prefixed with `http.netty
 
 ## I18n
 
+The configuration key to specify the languages that your application supports changed from `application.langs` to `play.i18n.langs`. Also, it is now a list instead of a comma separated string. Per instance:
+
+```
+play.i18n.langs = [ "en", "en-US", "fr" ]
+```
+
 ### Scala
 
 You now need to have an implicit [`Messages`](api/scala/index.html#play.api.i18n.Messages) value instead of just `Lang` in order to use the i18n API. The `Messages` type aggregates a `Lang` and a [`MessagesApi`](api/scala/index.html#play.api.i18n.MessagesApi).
