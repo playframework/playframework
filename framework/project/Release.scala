@@ -292,8 +292,8 @@ object Release {
     TagRelease,
     TestRelease,
     PublishRelease,
-    BumpRelease,
     PromoteRelease,
+    BumpRelease,
     PushRelease
   )
 
