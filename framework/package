@@ -113,6 +113,13 @@ do
     fi
 done
 
+if [ $PUBLISH -eq 0 ]
+then
+    echo
+    echo "Promoting sonatype and bintray releases"
+    "$DIR/build" SBT-Plugin/bintrayRelease Play/sonatypeRelease
+fi
+
 if [ $TAG -eq 0 ]
 then
     echo "Tagging..."
