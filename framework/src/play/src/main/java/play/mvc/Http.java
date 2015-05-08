@@ -1473,9 +1473,12 @@ public class Http {
             cookies.add(new Cookie(name, "", -86400, path, domain, secure, false));
         }
 
-        // FIXME return a more convenient type? e.g. Map<String, Cookie>
-        public Iterable<Cookie> cookies() {
+        public Collection<Cookie> cookies() {
             return cookies;
+        }
+
+        public Optional<Cookie> cookie(String name) {
+            return cookies.stream().filter(x -> { return x.name().equals(name); }).findFirst();
         }
 
     }
