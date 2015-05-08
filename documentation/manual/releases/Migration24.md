@@ -475,9 +475,38 @@ There are new conversions extending column support.
 | `Long`             | `Int`                |
 | `Short`            | `BigDecimal`         |
 
+**Binary and large data**
+
+New column conversions are provided for binary columns (bytes, stream, blob), to be parsed as `Array[Byte]` or `InputStream`.
+
+| ↓JDBC / JVM➞            | Array[Byte] | InputStream<sup>1</sup> |
+| ----------------------- | ----------- | ----------------------- |
+| Array[Byte]             | Yes         | Yes                     |
+| Blob<sup>2</sup>        | Yes         | Yes                     |
+| Clob<sup>3</sup>        | No          | No                      |
+| InputStream<sup>4</sup> | Yes         | Yes                     |
+| Reader<sup>5</sup>      | No          | No                      |
+
+- 1. Type `java.io.InputStream`.
+- 2. Type `java.sql.Blob`.
+- 3. Type `java.sql.Clob`.
+- 4. Type `java.io.Reader`.
+
+Binary and large data can also be used as parameters:
+
+| JVM                     | JDBC           |
+| ------------------------|--------------- |
+| Array[Byte]             | Long varbinary |
+| Blob<sup>1</sup>        | Blob           |
+| InputStream<sup>2</sup> | Long varbinary |
+| Reader<sup>3</sup>      | Long varchar   |
+
+- 1. Type `java.sql.Blob`
+- 2. Type `java.io.InputStream`
+- 3. Type `java.io.Reader`
+
 **Misc**
 
-- **Binary data**: New column conversions for binary columns (bytes, stream, blob), to be parsed as `Array[Byte]` or `InputStream`.
 - **Joda Time**: New conversions for Joda `Instant` or `DateTime`, from `Long`, `Date` or `Timestamp` column.
 - Parses text column as `UUID` value: `SQL("SELECT uuid_as_text").as(scalar[UUID].single)`.
 - Passing `None` for a nullable parameter is deprecated, and typesafe `Option.empty[T]` must be use instead.
