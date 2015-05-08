@@ -48,7 +48,8 @@ object FlashCookieSpec extends PlaySpecification {
           cookie.expires must beSome.like {
             case expires => expires must be lessThan System.currentTimeMillis()
           }
-          cookie.maxAge must beNone
+          // Netty sends a negative max age, async-http-client treats that as 0
+          cookie.maxAge must beSome(0)
       }
     }
   }
