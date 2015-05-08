@@ -730,7 +730,7 @@ package play.api.mvc {
       val newCookies = cookies.map { c =>
         encoder.addCookie {
           val nc = new DefaultCookie(c.name, c.value)
-          nc.setMaxAge(c.maxAge.getOrElse(Integer.MIN_VALUE))
+          nc.setMaxAge(c.maxAge.getOrElse(Int.MinValue))
           nc.setPath(c.path)
           c.domain.map(nc.setDomain(_))
           nc.setSecure(c.secure)
@@ -753,7 +753,7 @@ package play.api.mvc {
     def decode(cookieHeader: String): Seq[Cookie] = {
       Try {
         decoder.decode(cookieHeader).asScala.map { c =>
-          Cookie(c.getName, c.getValue, if (c.getMaxAge == Integer.MIN_VALUE) None else Some(c.getMaxAge), Option(c.getPath).getOrElse("/"), Option(c.getDomain), c.isSecure, c.isHttpOnly)
+          Cookie(c.getName, c.getValue, if (c.getMaxAge == Int.MinValue) None else Some(c.getMaxAge), Option(c.getPath).getOrElse("/"), Option(c.getDomain), c.isSecure, c.isHttpOnly)
         }.toSeq
       }.getOrElse {
         Play.logger.debug(s"Couldn't decode the Cookie header containing: $cookieHeader")
