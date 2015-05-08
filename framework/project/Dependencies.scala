@@ -136,7 +136,7 @@ object Dependencies {
     javaTestDeps
 
   val netty = Seq(
-    "io.netty"           % "netty"                 % "3.10.1.Final",
+    "io.netty"           % "netty"                 % "3.10.2.Final",
     "com.typesafe.netty" % "netty-http-pipelining" % "1.1.4"
   ) ++ specsBuild.map(_ % Test)
 
