@@ -1,12 +1,18 @@
 /*
  * Copyright (C) 2009-2013 Typesafe Inc. <http://www.typesafe.com>
  */
+
+import bintray.BintrayPlugin
+import bintray.BintrayPlugin.autoImport._
 import sbt._
 import Keys._
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
 import com.typesafe.tools.mima.plugin.MimaKeys.{previousArtifact, binaryIssueFilters, reportBinaryIssues}
 import com.typesafe.tools.mima.core._
 import com.typesafe.sbt.SbtScalariform.defaultScalariformSettings
+import com.typesafe.sbt.pgp.PgpKeys
+import xerial.sbt.Sonatype
+import xerial.sbt.Sonatype.autoImport._
 import scala.util.Properties.isJavaAtLeast
 import play.twirl.sbt.SbtTwirl
 import play.twirl.sbt.Import.TwirlKeys
@@ -66,7 +72,21 @@ object BuildSettings {
     testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
     testOptions in Test += Tests.Filter(!_.endsWith("Benchmark")),
     testOptions in PerformanceTest ~= (_.filterNot(_.isInstanceOf[Tests.Filter]) :+ Tests.Filter(_.endsWith("Benchmark"))),
-    parallelExecution in PerformanceTest := false
+    parallelExecution in PerformanceTest := false,
+    pomExtra := {
+      <scm>
+        <url>https://github.com/playframework/playframework</url>
+        <connection>scm:git:git@github.com:playframework/playframework.git</connection>
+      </scm>
+        <developers>
+          <developer>
+            <id>playframework</id>
+            <name>Play Framework Team</name>
+            <url>https://github.com/playframework</url>
+          </developer>
+        </developers>
+    },
+    pomIncludeRepository := { _ => false }
   )
 
   def makeJavacOptions(version: String) = Seq("-source", version, "-target", version, "-encoding", "UTF-8", "-Xlint:-options")
@@ -79,12 +99,15 @@ object BuildSettings {
      *
      * So, to disable publishing for the 2.11 build, we simply publish to a dummy repo instead of to the real thing.
      */
-    publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo")))
+    publishTo := Some(Resolver.file("Unused transient repository", file("target/unusedrepo"))),
+    publish := (),
+    publishLocal := (),
+    PgpKeys.publishSigned := ()
   )
-  val publishSettings = Seq(
+  val sonatypePublishSettings = Seq(
     publishArtifact in packageDoc := buildWithDoc,
     publishArtifact in (Compile, packageSrc) := true,
-    publishTo := Some(publishingMavenRepository)
+    sonatypeProfileName := "com.typesafe"
   )
 
   def PlaySharedJavaProject(name: String, dir: String, testBinaryCompatibility: Boolean = false): Project = {
@@ -92,10 +115,11 @@ object BuildSettings {
       Seq(previousArtifact := Some(buildOrganization % moduleName.value % previousVersion))
     } else Nil)
     Project(name, file("src/" + dir))
+      .disablePlugins(BintrayPlugin)
       .configs(PerformanceTest)
       .settings(inConfig(PerformanceTest)(Defaults.testTasks) : _*)
       .settings(playCommonSettings: _*)
-      .settings((if (publishNonCoreScalaLibraries) publishSettings else dontPublishSettings): _*)
+      .settings((if (publishNonCoreScalaLibraries) sonatypePublishSettings else dontPublishSettings): _*)
       .settings(bcSettings: _*)
       .settings(
         scalaVersion := defaultScalaVersion,
@@ -110,9 +134,10 @@ object BuildSettings {
    */
   def PlayDevelopmentProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
+      .disablePlugins(BintrayPlugin)
       .settings(playCommonSettings: _*)
       .settings(defaultScalariformSettings: _*)
-      .settings(publishSettings: _*)
+      .settings(sonatypePublishSettings: _*)
       .settings(mimaDefaultSettings: _*)
   }
 
@@ -121,10 +146,11 @@ object BuildSettings {
    */
   def PlayRuntimeProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
+      .disablePlugins(BintrayPlugin)
       .configs(PerformanceTest)
       .settings(inConfig(PerformanceTest)(Defaults.testTasks) : _*)
       .settings(playCommonSettings: _*)
-      .settings(publishSettings: _*)
+      .settings(sonatypePublishSettings: _*)
       .settings(mimaDefaultSettings: _*)
       .settings(defaultScalariformSettings: _*)
       .settings(playRuntimeSettings: _*)
@@ -138,10 +164,27 @@ object BuildSettings {
 
   def PlaySbtProject(name: String, dir: String): Project = {
     Project(name, file("src/" + dir))
+      .disablePlugins(BintrayPlugin)
       .settings(playCommonSettings: _*)
-      .settings((if (publishNonCoreScalaLibraries) publishSettings else dontPublishSettings): _*)
+      .settings((if (publishNonCoreScalaLibraries) sonatypePublishSettings else dontPublishSettings): _*)
       .settings(defaultScalariformSettings: _*)
       .settings(
+        scalaVersion := buildScalaVersionForSbt,
+        scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
+        scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked"))
+  }
+
+  def PlaySbtPluginProject(name: String, dir: String): Project = {
+    Project(name, file("src/" + dir))
+      .disablePlugins(Sonatype)
+      .settings(playCommonSettings: _*)
+      .settings((if (publishNonCoreScalaLibraries) Nil else dontPublishSettings): _*)
+      .settings(defaultScalariformSettings: _*)
+      .settings(
+        bintrayOrganization := Some("playframework"),
+        bintrayRepository := "sbt-plugin-releases",
+        bintrayPackage := "play-sbt-plugin",
+        bintrayReleaseOnPublish := false,
         scalaVersion := buildScalaVersionForSbt,
         scalaBinaryVersion := CrossVersion.binaryScalaVersion(buildScalaVersionForSbt),
         scalacOptions ++= Seq("-encoding", "UTF-8", "-Xlint", "-deprecation", "-unchecked"))
@@ -316,7 +359,7 @@ object PlayBuild extends Build {
 
   import ScriptedPlugin._
 
-  lazy val SbtPluginProject = PlaySbtProject("SBT-Plugin", "sbt-plugin")
+  lazy val SbtPluginProject = PlaySbtPluginProject("SBT-Plugin", "sbt-plugin")
     .settings(
       sbtPlugin := true,
       publishMavenStyle := false,
@@ -332,7 +375,6 @@ object PlayBuild extends Build {
           d.organization + ":" + d.name + ":" + d.revision
         }.sorted.foreach(println)
       },
-      publishTo := Some(publishingIvyRepository),
       // Must be false, because due to the way SBT integrates with test libraries, and the way SBT uses Java object
       // serialisation to communicate with forked processes, and because this plugin will have SBT 0.13 on the forked
       // processes classpath while it's actually being run by SBT 0.12... if it forks you get serialVersionUID errors.
@@ -375,12 +417,11 @@ object PlayBuild extends Build {
     .settings(libraryDependencies ++= forkRunDependencies(scalaBinaryVersion.value))
     .dependsOn(ForkRunProtocolProject)
 
-  lazy val SbtForkRunPluginProject = PlaySbtProject("SBT-Fork-Run-Plugin", "sbt-fork-run-plugin")
+  lazy val SbtForkRunPluginProject = PlaySbtPluginProject("SBT-Fork-Run-Plugin", "sbt-fork-run-plugin")
     .settings(
       sbtPlugin := true,
       publishMavenStyle := false,
-      libraryDependencies ++= sbtForkRunPluginDependencies,
-      publishTo := Some(publishingIvyRepository))
+      libraryDependencies ++= sbtForkRunPluginDependencies)
     .settings(scriptedSettings: _*)
     .settings(
       scriptedLaunchOpts ++= Seq(
@@ -440,6 +481,7 @@ object PlayBuild extends Build {
   import RepositoryBuilder._
   lazy val RepositoryProject = Project(
       "Play-Repository", file("repository"))
+    .disablePlugins(Sonatype, BintrayPlugin)
     .settings(dontPublishSettings:_*)
     .settings(localRepoCreationSettings:_*)
     .settings(mimaDefaultSettings: _*)
@@ -456,7 +498,7 @@ object PlayBuild extends Build {
       )
     )
 
-  lazy val PlayDocsSbtPlugin = PlaySbtProject("Play-Docs-SBT-Plugin", "play-docs-sbt-plugin")
+  lazy val PlayDocsSbtPlugin = PlaySbtPluginProject("Play-Docs-SBT-Plugin", "play-docs-sbt-plugin")
     .settings(
       sbtPlugin := true,
       publishMavenStyle := false,
@@ -466,7 +508,6 @@ object PlayBuild extends Build {
       sbtDependency <<= sbtDependency { dep =>
         dep.copy(revision = buildSbtVersion)
       },
-      publishTo := Some(publishingIvyRepository),
       // Must be false, because due to the way SBT integrates with test libraries, and the way SBT uses Java object
       // serialisation to communicate with forked processes, and because this plugin will have SBT 0.13 on the forked
       // processes classpath while it's actually being run by SBT 0.12... if it forks you get serialVersionUID errors.
@@ -508,6 +549,7 @@ object PlayBuild extends Build {
   lazy val Root = Project(
     "Root",
     file("."))
+    .disablePlugins(Sonatype, BintrayPlugin)
     .settings(playCommonSettings: _*)
     .settings(dontPublishSettings:_*)
     .settings(
