@@ -409,6 +409,15 @@ object PlayBuild extends Build {
     ).dependsOn(PlayProject)
     .dependsOn(PlaySpecs2Project % "test")
 
+  lazy val PlayWsCacheProject = PlayCrossBuiltProject("Play-WS-Cache", "play-ws-cache")
+    .settings(
+      libraryDependencies ++= playWsCacheDeps,
+      parallelExecution in Test := false,
+      // quieten deprecation warnings in tests
+      scalacOptions in Test := (scalacOptions in Test).value diff Seq("-deprecation")
+    ).dependsOn(PlayWsProject)
+    .dependsOn(PlayWsProject % "test->test;compile->compile")
+
   lazy val PlayWsJavaProject = PlayCrossBuiltProject("Play-Java-WS", "play-java-ws")
       .settings(
         libraryDependencies ++= playWsDeps,
@@ -463,6 +472,7 @@ object PlayBuild extends Build {
     PlayNettyServerProject,
     PlayServerProject,
     PlayWsProject,
+    PlayWsCacheProject,
     PlayWsJavaProject,
     SbtRunSupportProject,
     RunSupportProject,

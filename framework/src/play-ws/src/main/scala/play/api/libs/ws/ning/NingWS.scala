@@ -4,32 +4,27 @@
 package play.api.libs.ws.ning
 
 import java.io.UnsupportedEncodingException
-import java.nio.charset.{ Charset, StandardCharsets }
+import java.nio.charset.Charset
 import javax.inject.{ Inject, Provider, Singleton }
 
-import com.ning.http.client.{ Response => AHCResponse, ProxyServer => AHCProxyServer, _ }
+import com.ning.http.client.Realm.{ AuthScheme, RealmBuilder }
 import com.ning.http.client.cookie.{ Cookie => AHCCookie }
-import com.ning.http.client.Realm.{ RealmBuilder, AuthScheme }
+import com.ning.http.client.{ ProxyServer => AHCProxyServer, Response => AHCResponse, _ }
 import com.ning.http.util.AsyncHttpProviderUtils
 import org.jboss.netty.handler.codec.http.HttpHeaders
-import play.api.inject.{ ApplicationLifecycle, Module }
-import play.core.parsers.FormUrlEncodedParser
-
-import collection.immutable.TreeMap
-
-import scala.concurrent.{ Future, Promise }
-
-import play.api.libs.ws._
-import play.api.libs.ws.ssl._
-
-import play.api.libs.iteratee._
 import play.api._
-import play.core.utils.CaseInsensitiveOrdered
-import play.api.libs.ws.DefaultWSResponseHeaders
+import play.api.inject.{ ApplicationLifecycle, Module }
 import play.api.libs.iteratee.Input.El
+import play.api.libs.iteratee._
+import play.api.libs.ws.{ DefaultWSResponseHeaders, _ }
+import play.api.libs.ws.ssl._
 import play.api.libs.ws.ssl.debug._
+import play.core.parsers.FormUrlEncodedParser
+import play.core.utils.CaseInsensitiveOrdered
 
 import scala.collection.JavaConverters._
+import scala.collection.immutable.TreeMap
+import scala.concurrent.{ Future, Promise }
 
 /**
  * A WS client backed by a Ning AsyncHttpClient.
@@ -38,9 +33,11 @@ import scala.collection.JavaConverters._
  *
  * @param config a client configuration object
  */
-case class NingWSClient(config: AsyncHttpClientConfig) extends WSClient {
+class NingWSClient(config: AsyncHttpClientConfig) extends WSClient {
 
-  private val asyncHttpClient = new AsyncHttpClient(config)
+  private lazy val asyncHttpClient: AsyncHttpClient = {
+    new AsyncHttpClient(config)
+  }
 
   def underlying[T] = asyncHttpClient.asInstanceOf[T]
 
@@ -597,16 +594,8 @@ case class NingWSResponse(ahcResponse: AHCResponse) extends WSResponse {
    * The response body as String.
    */
   lazy val body: String = {
-    // RFC-2616#3.7.1 states that any text/* mime type should default to ISO-8859-1 charset if not
-    // explicitly set, while Plays default encoding is UTF-8.  So, use UTF-8 if charset is not explicitly
-    // set and content type is not text/*, otherwise default to ISO-8859-1
-    val contentType = Option(ahcResponse.getContentType).getOrElse("application/octet-stream")
-    val charset: String = Option(AsyncHttpProviderUtils.parseCharset(contentType)).getOrElse {
-      if (contentType.startsWith("text/"))
-        AsyncHttpProviderUtils.DEFAULT_CHARSET.toString
-      else
-        StandardCharsets.UTF_8.toString
-    }
+    val contentTypeHeader = Option(ahcResponse.getContentType)
+    val charset = ContentTypeDecider.decideCharsetFromContentType(contentTypeHeader)
     ahcResponse.getResponseBody(charset)
   }
 
@@ -644,4 +633,32 @@ trait NingWSComponents {
     new NingWSClientConfigParser(wsClientConfig, configuration, environment).parse()
   lazy val wsApi: WSAPI = new NingWSAPI(environment, ningWsClientConfig, applicationLifecycle)
   lazy val wsClient: WSClient = wsApi.client
+}
+
+trait NingUtilities {
+
+  def ningHeadersToMap(headers: java.util.Map[String, java.util.Collection[String]]): Map[String, Seq[String]] =
+    mapAsScalaMapConverter(headers).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
+
+  def ningHeadersToMap(headers: FluentCaseInsensitiveStringsMap): Map[String, Seq[String]] = {
+    val res = mapAsScalaMapConverter(headers).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
+    //todo: wrap the case insensitive ning map instead of creating a new one (unless perhaps immutabilty is important)
+    TreeMap(res.toSeq: _*)(CaseInsensitiveOrdered)
+  }
+}
+
+object ContentTypeDecider {
+  def decideCharsetFromContentType(contentTypeHeader: Option[String]): String = {
+    // RFC-2616#3.7.1 states that any text/* mime type should default to ISO-8859-1 charset if not
+    // explicitly set, while Plays default encoding is UTF-8.  So, use UTF-8 if charset is not explicitly
+    // set and content type is not text/*, otherwise default to ISO-8859-1
+    val contentType = contentTypeHeader.getOrElse("application/octet-stream")
+    val charset = Option(AsyncHttpProviderUtils.parseCharset(contentType)).getOrElse {
+      if (contentType.startsWith("text/"))
+        AsyncHttpProviderUtils.DEFAULT_CHARSET.toString
+      else
+        "utf-8"
+    }
+    charset
+  }
 }

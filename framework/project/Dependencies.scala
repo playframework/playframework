@@ -271,11 +271,17 @@ object Dependencies {
     specsBuild.map(_ % Test)
 
   val playWsDeps = Seq(
-    guava,
     "com.ning" % "async-http-client" % "1.9.20"
   ) ++ Seq("signpost-core", "signpost-commonshttp4").map("oauth.signpost" % _  % "1.2.1.2") ++
   (specsBuild :+ specsMatcherExtra).map(_ % Test) :+
   mockitoAll % Test
+
+  val playWsCacheDeps = Seq(
+    guava,
+    "com.google.code.findbugs" % "jsr305" % "3.0.0", // required to suppress @NotNull compiler errors
+    "com.typesafe" %% "cachecontrol" % "1.0.0-SNAPSHOT") ++
+    (specsBuild :+ specsMatcherExtra).map(_ % Test) :+
+    mockitoAll % Test
 
   val playDocsSbtPluginDependencies = Seq(
     "com.typesafe.play" %% "play-doc" % "1.2.2"
