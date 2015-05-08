@@ -54,28 +54,27 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
     val remoteAddressArg = remoteAddress
 
     new RequestHeader {
-      val id = requestId
+      override val id = requestId
       // Send a tag so our tests can tell which kind of server we're using.
       // We could get NettyServer to send a similar tag, but for the moment
       // let's not, just in case it slows NettyServer down a bit.
-      val tags = Map("HTTP_SERVER" -> "akka-http")
-      def uri = request.uri.toString
-      def path = request.uri.path.toString
-      def method = request.method.name
-      def version = request.protocol.value
-      def queryString = request.uri.query.toMultiMap
-      val headers = convertRequestHeaders(request)
-      def remoteAddress: String = ServerRequestUtils.findRemoteAddress(
+      override val tags = Map("HTTP_SERVER" -> "akka-http")
+      override def uri = request.uri.toString
+      override def path = request.uri.path.toString
+      override def method = request.method.name
+      override def version = request.protocol.value
+      override def queryString = request.uri.query.toMultiMap
+      override val headers = convertRequestHeaders(request)
+      override def remoteAddress: String = ServerRequestUtils.findRemoteAddress(
         forwardedHeaderHandler,
         headers,
         remoteAddressArg
       )
-      def secure: Boolean = ServerRequestUtils.findSecureProtocol(
+      override def secure: Boolean = ServerRequestUtils.findSecureProtocol(
         forwardedHeaderHandler,
         headers,
         secureProtocol
       )
-      def username = ??? // FIXME: Stub
     }
   }
 

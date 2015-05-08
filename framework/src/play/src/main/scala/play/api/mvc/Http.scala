@@ -178,16 +178,16 @@ package play.api.mvc {
       secure: => Boolean = this.secure): RequestHeader = {
       val (_id, _tags, _uri, _path, _method, _version, _queryString, _headers, _remoteAddress, _secure) = (id, tags, uri, path, method, version, queryString, headers, () => remoteAddress, () => secure)
       new RequestHeader {
-        val id = _id
-        val tags = _tags
-        val uri = _uri
-        val path = _path
-        val method = _method
-        val version = _version
-        val queryString = _queryString
-        val headers = _headers
-        lazy val remoteAddress = _remoteAddress()
-        lazy val secure = _secure()
+        override val id = _id
+        override val tags = _tags
+        override val uri = _uri
+        override val path = _path
+        override val method = _method
+        override val version = _version
+        override val queryString = _queryString
+        override val headers = _headers
+        override lazy val remoteAddress = _remoteAddress()
+        override lazy val secure = _secure()
       }
     }
 
@@ -219,16 +219,16 @@ package play.api.mvc {
   }
 
   private[play] class RequestHeaderImpl(
-      val id: Long,
-      val tags: Map[String, String],
-      val uri: String,
-      val path: String,
-      val method: String,
-      val version: String,
-      val queryString: Map[String, Seq[String]],
-      val headers: Headers,
-      val remoteAddress: String,
-      val secure: Boolean) extends RequestHeader {
+      override val id: Long,
+      override val tags: Map[String, String],
+      override val uri: String,
+      override val path: String,
+      override val method: String,
+      override val version: String,
+      override val queryString: Map[String, Seq[String]],
+      override val headers: Headers,
+      override val remoteAddress: String,
+      override val secure: Boolean) extends RequestHeader {
   }
 
   /**
@@ -249,51 +249,50 @@ package play.api.mvc {
      * Transform the request body.
      */
     def map[B](f: A => B): Request[B] = new Request[B] {
-      def id = self.id
-      def tags = self.tags
-      def uri = self.uri
-      def path = self.path
-      def method = self.method
-      def version = self.version
-      def queryString = self.queryString
-      def headers = self.headers
-      def remoteAddress = self.remoteAddress
-      def secure = self.secure
-      lazy val body = f(self.body)
+      override def id = self.id
+      override def tags = self.tags
+      override def uri = self.uri
+      override def path = self.path
+      override def method = self.method
+      override def version = self.version
+      override def queryString = self.queryString
+      override def headers = self.headers
+      override def remoteAddress = self.remoteAddress
+      override def secure = self.secure
+      override lazy val body = f(self.body)
     }
 
   }
 
   /** Used by Java wrapper */
   private[play] class RequestImpl[A](
-      val body: A,
-      val id: Long,
-      val tags: Map[String, String],
-      val uri: String,
-      val path: String,
-      val method: String,
-      val version: String,
-      val queryString: Map[String, Seq[String]],
-      val headers: Headers,
-      val remoteAddress: String,
-      val secure: Boolean) extends Request[A] {
+      override val body: A,
+      override val id: Long,
+      override val tags: Map[String, String],
+      override val uri: String,
+      override val path: String,
+      override val method: String,
+      override val version: String,
+      override val queryString: Map[String, Seq[String]],
+      override val headers: Headers,
+      override val remoteAddress: String,
+      override val secure: Boolean) extends Request[A] {
   }
 
   object Request {
 
     def apply[A](rh: RequestHeader, a: A) = new Request[A] {
-      def id = rh.id
-      def tags = rh.tags
-      def uri = rh.uri
-      def path = rh.path
-      def method = rh.method
-      def version = rh.version
-      def queryString = rh.queryString
-      def headers = rh.headers
-      lazy val remoteAddress = rh.remoteAddress
-      lazy val secure = rh.secure
-      def username = None
-      val body = a
+      override def id = rh.id
+      override def tags = rh.tags
+      override def uri = rh.uri
+      override def path = rh.path
+      override def method = rh.method
+      override def version = rh.version
+      override def queryString = rh.queryString
+      override def headers = rh.headers
+      override lazy val remoteAddress = rh.remoteAddress
+      override lazy val secure = rh.secure
+      override val body = a
     }
   }
 
@@ -301,17 +300,17 @@ package play.api.mvc {
    * Wrap an existing request. Useful to extend a request.
    */
   class WrappedRequest[+A](request: Request[A]) extends Request[A] {
-    def id = request.id
-    def tags = request.tags
-    def body = request.body
-    def headers = request.headers
-    def queryString = request.queryString
-    def path = request.path
-    def uri = request.uri
-    def method = request.method
-    def version = request.version
-    def remoteAddress = request.remoteAddress
-    def secure = request.secure
+    override def id = request.id
+    override def tags = request.tags
+    override def body = request.body
+    override def headers = request.headers
+    override def queryString = request.queryString
+    override def path = request.path
+    override def uri = request.uri
+    override def method = request.method
+    override def version = request.version
+    override def remoteAddress = request.remoteAddress
+    override def secure = request.secure
   }
 
   /**

@@ -109,17 +109,16 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
         def createRequestHeader(parsedPath: String, parameters: Map[String, Seq[String]] = Map.empty[String, Seq[String]]) = {
           //mapping netty request to Play's
           val untaggedRequestHeader = new RequestHeader {
-            val id = RequestIdProvider.requestIDs.incrementAndGet
-            val tags = Map.empty[String, String]
-            def uri = nettyHttpRequest.getUri
-            def path = parsedPath
-            def method = nettyHttpRequest.getMethod.getName
-            def version = nettyVersion.getText
-            def queryString = parameters
-            def headers = rHeaders
-            lazy val remoteAddress = rRemoteAddress
-            lazy val secure = rSecure
-            def username = None
+            override val id = RequestIdProvider.requestIDs.incrementAndGet
+            override val tags = Map.empty[String, String]
+            override def uri = nettyHttpRequest.getUri
+            override def path = parsedPath
+            override def method = nettyHttpRequest.getMethod.getName
+            override def version = nettyVersion.getText
+            override def queryString = parameters
+            override def headers = rHeaders
+            override lazy val remoteAddress = rRemoteAddress
+            override lazy val secure = rSecure
           }
           untaggedRequestHeader
         }
