@@ -146,6 +146,6 @@ There are several methods you can override, but you'll usually want to override 
 
 When you override the [`ApplicationLoader`](api/java/play/ApplicationLoader.html) you need to tell Play. Add the following setting to your `application.conf`:
 
-    play.application.loader := "modules.CustomApplicationLoader"
+    play.application.loader = "modules.CustomApplicationLoader"
 
 You're not limited to using Guice for dependency injection. By overriding the `ApplicationLoader` you can take control of how the application is initialized.
