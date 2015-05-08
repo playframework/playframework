@@ -102,14 +102,14 @@ then
     "$DIR/build" clean
 fi
 
-"$DIR/build" $PUBLISHCMD
+"$DIR/build" -Dgenerate.doc=true $PUBLISHCMD
 
 for v in $(echo $CROSSBUILD | sed "s/,/ /")
 do
     if [ -n "$v" ]
     then
         echo "Cross building Play against Scala $v"
-        "$DIR/build" -Dscala.version=$v $PUBLISHCMD
+        "$DIR/build" -Dgenerate.doc=true -Dscala.version=$v $PUBLISHCMD
     fi
 done
 
