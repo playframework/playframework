@@ -24,6 +24,8 @@ import play.core.routing.ReverseRouteContext
 import scala.io.Source
 import javax.inject.{ Inject, Singleton }
 
+import sun.net.www.protocol.file.FileURLConnection
+
 /*
  * A map designed to prevent the "thundering herds" issue.
  *
@@ -378,8 +380,8 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
     r2.withHeaders(CACHE_CONTROL -> assetInfo.cacheControl(aggressiveCaching))
   }
 
-  private def result(file: String,
-    length: Int,
+  private def resultWithContentLength(file: String,
+    length: Long,
     mimeType: String,
     resourceData: Enumerator[Array[Byte]],
     gzipRequested: Boolean,
@@ -394,6 +396,22 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
         )
       ),
       resourceData)
+    resultWithCompressionHeaders(gzipRequested, gzipAvailable, response)
+  }
+
+  private def result(file: String,
+    mimeType: String,
+    resourceData: Enumerator[Array[Byte]],
+    gzipRequested: Boolean,
+    gzipAvailable: Boolean): Result = {
+
+    val response = Ok.chunked(resourceData)
+    response.withHeaders(CONTENT_TYPE -> mimeType)
+
+    resultWithCompressionHeaders(gzipRequested, gzipAvailable, response)
+  }
+
+  private def resultWithCompressionHeaders(gzipRequested: Boolean, gzipAvailable: Boolean, response: Result): Result = {
     if (gzipRequested && gzipAvailable) {
       response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> "gzip")
     } else if (gzipAvailable) {
@@ -451,15 +469,11 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
           Resources.closeUrlConnection(connection)
           notFound
         } else {
-          val stream = connection.getInputStream
-          val length = stream.available
-          val resourceData = Enumerator.fromStream(stream)(Implicits.defaultExecutionContext)
-
           Future.successful(maybeNotModified(request, assetInfo, aggressiveCaching).getOrElse {
             cacheableResult(
               assetInfo,
               aggressiveCaching,
-              result(file, length, assetInfo.mimeType, resourceData, gzipRequested, assetInfo.gzipUrl.isDefined)
+              createResult(file, assetInfo, connection, gzipRequested)
             )
           })
         }
@@ -472,6 +486,18 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
       case NonFatal(e) =>
         // Add a bit more information to the exception for better error reporting later
         errorHandler.onServerError(request, new RuntimeException(s"Unexpected error while serving $file at $path: " + e.getMessage, e))
+    }
+  }
+
+  private def createResult(file: String, assetInfo: AssetInfo, connection: URLConnection, gzipRequested: Boolean): Result = {
+    val resourceData = Enumerator.fromStream(connection.getInputStream)(Implicits.defaultExecutionContext)
+    connection match {
+      case jarUrlConnection: JarURLConnection =>
+        resultWithContentLength(file, jarUrlConnection.getJarEntry().getSize, assetInfo.mimeType, resourceData, gzipRequested, assetInfo.gzipUrl.isDefined)
+      case fileUrlConnection: FileURLConnection =>
+        resultWithContentLength(file, fileUrlConnection.getContentLengthLong(), assetInfo.mimeType, resourceData, gzipRequested, assetInfo.gzipUrl.isDefined)
+      case _ =>
+        result(file, assetInfo.mimeType, resourceData, gzipRequested, assetInfo.gzipUrl.isDefined)
     }
   }
 
