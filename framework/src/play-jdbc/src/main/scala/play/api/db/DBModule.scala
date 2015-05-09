@@ -16,7 +16,7 @@ import play.db.NamedDatabaseImpl
 /**
  * DB runtime inject module.
  */
-class DBModule extends Module {
+final class DBModule extends Module {
   def bindings(environment: Environment, configuration: Configuration): Seq[Binding[_]] = {
     val dbKey = configuration.underlying.getString("play.db.config")
     val default = configuration.underlying.getString("play.db.default")
@@ -26,15 +26,15 @@ class DBModule extends Module {
     ) ++ namedDatabaseBindings(dbs) ++ defaultDatabaseBinding(default, dbs)
   }
 
-  def bindNamed(name: String): BindingKey[Database] = {
+  private def bindNamed(name: String): BindingKey[Database] = {
     bind[Database].qualifiedWith(new NamedDatabaseImpl(name))
   }
 
-  def namedDatabaseBindings(dbs: Set[String]): Seq[Binding[_]] = dbs.toSeq.map { db =>
+  private def namedDatabaseBindings(dbs: Set[String]): Seq[Binding[_]] = dbs.toSeq.map { db =>
     bindNamed(db).to(new NamedDatabaseProvider(db))
   }
 
-  def defaultDatabaseBinding(default: String, dbs: Set[String]): Seq[Binding[_]] = {
+  private def defaultDatabaseBinding(default: String, dbs: Set[String]): Seq[Binding[_]] = {
     if (dbs.contains(default)) Seq(bind[Database].to(bindNamed(default))) else Nil
   }
 }

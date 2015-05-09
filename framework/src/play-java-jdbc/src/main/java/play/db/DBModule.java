@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * Injection module with default DB components.
  */
-public class DBModule extends Module {
+public final class DBModule extends Module {
 
     @Override
     public Seq<Binding<?>> bindings(Environment environment, Configuration configuration) {
