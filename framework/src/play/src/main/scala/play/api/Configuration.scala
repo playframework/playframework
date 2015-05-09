@@ -1055,24 +1055,7 @@ private[play] class PlayConfig(val underlying: Config) {
 
   private[play] def reportDeprecation(path: String, deprecated: String): Unit = {
     val origin = underlying.getValue(deprecated).origin
-    Logger.warn(s"${origin.description}: $deprecated is deprecated, use $path instead:")
-    Try {
-      if (origin.url != null && origin.lineNumber() > 0) {
-        val is = origin.url.openStream()
-        try {
-          Source.fromInputStream(is).getLines()
-            .drop(origin.lineNumber() - 1)
-            .toStream.headOption
-            .map { line =>
-              Logger.warn(line)
-            }
-        } finally {
-          is.close()
-        }
-      }
-
-    }
-
+    Logger.warn(s"${origin.description}: $deprecated is deprecated, use $path instead")
   }
 }
 
