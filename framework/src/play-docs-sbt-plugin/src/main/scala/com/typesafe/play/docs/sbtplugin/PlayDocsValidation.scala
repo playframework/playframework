@@ -365,7 +365,7 @@ object PlayDocsValidation {
 
     def relativeLinkOk(link: LinkRef) = {
       link match {
-        case scalaApi if scalaApi.link.startsWith("api/scala/index.html#") => true
+        case scalaApi if scalaApi.link.startsWith("api/scala/") => true
         case javaApi if javaApi.link.startsWith("api/java/") => true
         case resource if resource.link.startsWith("resources/") =>
           fileExists(resource.link.stripPrefix("resources/"))
