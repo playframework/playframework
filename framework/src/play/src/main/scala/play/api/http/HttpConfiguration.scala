@@ -100,5 +100,5 @@ object HttpConfiguration {
   /**
    * Don't use this - only exists for transition from global state
    */
-  def current = Play.maybeApplication.fold(HttpConfiguration())(httpConfigurationCache)
+  private[play] def current = Play.maybeApplication.fold(HttpConfiguration())(httpConfigurationCache)
 }
