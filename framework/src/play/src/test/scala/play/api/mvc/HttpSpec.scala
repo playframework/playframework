@@ -5,6 +5,8 @@ package play.api.mvc
 
 import org.specs2.mutable._
 
+import play.core.test._
+
 object HttpSpec extends Specification {
   "HTTP" title
 
@@ -74,14 +76,14 @@ object HttpSpec extends Specification {
   }
 
   "Cookies" should {
-    "merge two cookies" in {
+    "merge two cookies" in withApplication {
       val cookies = Seq(
         Cookie("foo", "bar"),
         Cookie("bar", "qux"))
 
-      Cookies.merge("", cookies) must ===("foo=bar; Path=/; HTTPOnly; bar=qux; Path=/; HTTPOnly")
+      Cookies.mergeSetCookieHeader("", cookies) must ===("foo=bar; Path=/; HTTPOnly;;bar=qux; Path=/; HTTPOnly")
     }
-    "merge and remove duplicates" in {
+    "merge and remove duplicates" in withApplication {
       val cookies = Seq(
         Cookie("foo", "bar"),
         Cookie("foo", "baz"),
@@ -92,9 +94,9 @@ object HttpSpec extends Specification {
         Cookie("foo", "bar", path = "/blah"),
         Cookie("foo", "baz", path = "/blah"))
 
-      Cookies.merge("", cookies) must ===(
-        "foo=baz; Path=/; Domain=FoO; HTTPOnly" + "; " + // Cookie("foo", "baz", domain=Some("FoO"))
-          "foo=baz; Path=/" + "; " + // Cookie("foo", "baz", httpOnly=false)
+      Cookies.mergeSetCookieHeader("", cookies) must ===(
+        "foo=baz; Path=/; Domain=FoO; HTTPOnly" + ";;" + // Cookie("foo", "baz", domain=Some("FoO"))
+          "foo=baz; Path=/" + ";;" + // Cookie("foo", "baz", httpOnly=false)
           "foo=baz; Path=/blah; HTTPOnly" // Cookie("foo", "baz", path="/blah")
       )
     }

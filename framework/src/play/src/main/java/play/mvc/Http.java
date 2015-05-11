@@ -1004,7 +1004,7 @@ public class Http {
         private play.api.mvc.Cookies scalaCookies() {
           String cookieHeader = header(HeaderNames.COOKIE);
           scala.Option<String> cookieHeaderOpt = scala.Option.apply(cookieHeader);
-          return play.api.mvc.Cookies$.MODULE$.apply(cookieHeaderOpt);
+          return play.api.mvc.Cookies$.MODULE$.fromCookieHeader(cookieHeaderOpt);
         }
 
         /**
@@ -1020,7 +1020,7 @@ public class Http {
          */
         private void cookies(Seq<play.api.mvc.Cookie> cookies) {
           String cookieHeader = header(HeaderNames.COOKIE);
-          String value = play.api.mvc.Cookies$.MODULE$.merge(cookieHeader != null ? cookieHeader : "", cookies);
+          String value = play.api.mvc.Cookies$.MODULE$.mergeCookieHeader(cookieHeader != null ? cookieHeader : "", cookies);
           header(HeaderNames.COOKIE, value);
         }
 

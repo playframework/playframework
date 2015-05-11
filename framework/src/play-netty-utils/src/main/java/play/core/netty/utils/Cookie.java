@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 The Netty Project
+ * Copyright 2015 The Netty Project
  *
  * The Netty Project licenses this file to you under the Apache License,
  * version 2.0 (the "License"); you may not use this file except in compliance
@@ -15,137 +15,127 @@
  */
 package play.core.netty.utils;
 
-import java.util.Set;
-
 /**
- * An HTTP <a href="http://en.wikipedia.org/wiki/HTTP_cookie">Cookie</a>.
+ * An interface defining an
+ * <a href="http://en.wikipedia.org/wiki/HTTP_cookie">HTTP cookie</a>.
  */
 public interface Cookie extends Comparable<Cookie> {
 
     /**
-     * Returns the name of this cookie.
+     * Returns the name of this {@link Cookie}.
+     *
+     * @return The name of this {@link Cookie}
      */
-    String getName();
+    String name();
 
     /**
-     * Returns the value of this cookie.
+     * Returns the value of this {@link Cookie}.
+     *
+     * @return The value of this {@link Cookie}
      */
-    String getValue();
+    String value();
 
     /**
-     * Sets the value of this cookie.
+     * Sets the value of this {@link Cookie}.
+     *
+     * @param value The value to set
      */
     void setValue(String value);
 
     /**
-     * Returns the domain of this cookie.
+     * Returns true if the raw value of this {@link Cookie},
+     * was wrapped with double quotes in original Set-Cookie header.
+     *
+     * @return If the value of this {@link Cookie} is to be wrapped
      */
-    String getDomain();
+    boolean wrap();
 
     /**
-     * Sets the domain of this cookie.
+     * Sets true if the value of this {@link Cookie}
+     * is to be wrapped with double quotes.
+     *
+     * @param wrap true if wrap
+     */
+    void setWrap(boolean wrap);
+
+    /**
+     * Returns the domain of this {@link Cookie}.
+     *
+     * @return The domain of this {@link Cookie}
+     */
+    String domain();
+
+    /**
+     * Sets the domain of this {@link Cookie}.
+     *
+     * @param domain The domain to use
      */
     void setDomain(String domain);
 
     /**
-     * Returns the path of this cookie.
+     * Returns the path of this {@link Cookie}.
+     *
+     * @return The {@link Cookie}'s path
      */
-    String getPath();
+    String path();
 
     /**
-     * Sets the path of this cookie.
+     * Sets the path of this {@link Cookie}.
+     *
+     * @param path The path to use for this {@link Cookie}
      */
     void setPath(String path);
 
     /**
-     * Returns the comment of this cookie.
+     * Returns the maximum age of this {@link Cookie} in seconds or {@link Integer#MIN_VALUE} if unspecified
+     *
+     * @return The maximum age of this {@link Cookie}
      */
-    String getComment();
+    int maxAge();
 
     /**
-     * Sets the comment of this cookie.
-     */
-    void setComment(String comment);
-
-    /**
-     * Returns the max age of this cookie in seconds.
-     */
-    int getMaxAge();
-
-    /**
-     * Sets the max age of this cookie in seconds.  If {@code 0} is specified,
-     * this cookie will be removed by browser because it will be expired
-     * immediately.  If {@link Integer#MIN_VALUE} is specified, this cookie will be removed
-     * when a user terminates browser.
+     * Sets the maximum age of this {@link Cookie} in seconds.
+     * If an age of {@code 0} is specified, this {@link Cookie} will be
+     * automatically removed by browser because it will expire immediately.
+     * If {@link Integer#MIN_VALUE} is specified, this {@link Cookie} will be removed when the
+     * browser is closed.
+     *
+     * @param maxAge The maximum age of this {@link Cookie} in seconds
      */
     void setMaxAge(int maxAge);
 
     /**
-     * Returns the version of this cookie.
-     */
-    int getVersion();
-
-    /**
-     * Sets the version of this cookie.
-     */
-    void setVersion(int version);
-
-    /**
-     * Returns the secure flag of this cookie.
+     * Checks to see if this {@link Cookie} is secure
+     *
+     * @return True if this {@link Cookie} is secure, otherwise false
      */
     boolean isSecure();
 
     /**
-     * Sets the secure flag of this cookie.
+     * Sets the security getStatus of this {@link Cookie}
+     *
+     * @param secure True if this {@link Cookie} is to be secure, otherwise false
      */
     void setSecure(boolean secure);
 
     /**
-     * Returns if this cookie cannot be accessed through client side script.
-     * This flag works only if the browser supports it.  For more information,
-     * see <a href="http://www.owasp.org/index.php/HTTPOnly">here</a>.
+     * Checks to see if this {@link Cookie} can only be accessed via HTTP.
+     * If this returns true, the {@link Cookie} cannot be accessed through
+     * client side script - But only if the browser supports it.
+     * For more information, please look <a href="http://www.owasp.org/index.php/HTTPOnly">here</a>
+     *
+     * @return True if this {@link Cookie} is HTTP-only or false if it isn't
      */
     boolean isHttpOnly();
 
     /**
-     * Sets if this cookie cannot be accessed through client side script.
-     * This flag works only if the browser supports it.  For more information,
-     * see <a href="http://www.owasp.org/index.php/HTTPOnly">here</a>.
+     * Determines if this {@link Cookie} is HTTP only.
+     * If set to true, this {@link Cookie} cannot be accessed by a client
+     * side script. However, this works only if the browser supports it.
+     * For for information, please look
+     * <a href="http://www.owasp.org/index.php/HTTPOnly">here</a>.
+     *
+     * @param httpOnly True if the {@link Cookie} is HTTP only, otherwise false.
      */
     void setHttpOnly(boolean httpOnly);
-
-    /**
-     * Returns the comment URL of this cookie.
-     */
-    String getCommentUrl();
-
-    /**
-     * Sets the comment URL of this cookie.
-     */
-    void setCommentUrl(String commentUrl);
-
-    /**
-     * Returns the discard flag of this cookie.
-     */
-    boolean isDiscard();
-
-    /**
-     * Sets the discard flag of this cookie.
-     */
-    void setDiscard(boolean discard);
-
-    /**
-     * Returns the ports of this cookie.
-     */
-    Set<Integer> getPorts();
-
-    /**
-     * Sets the ports of this cookie.
-     */
-    void setPorts(int... ports);
-
-    /**
-     * Sets the ports of this cookie.
-     */
-    void setPorts(Iterable<Integer> ports);
 }

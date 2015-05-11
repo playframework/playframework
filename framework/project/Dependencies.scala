@@ -25,6 +25,7 @@ object Dependencies {
     "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310"
   ).map(_ % "2.5.3")
 
+  val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.12")
   val guava = "com.google.guava" % "guava" % "18.0"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "2.0.3" // Needed by guava
   val mockitoAll = "org.mockito" % "mockito-all" % "1.10.8"
@@ -108,7 +109,7 @@ object Dependencies {
   private val akkaCoreDeps = Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % "2.3.9")
 
   def runtime(scalaVersion: String) =
-    Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.12") ++
+    slf4j ++
     Seq("logback-core", "logback-classic").map("ch.qos.logback" % _ % "1.1.3") ++
     akkaCoreDeps ++
     jacksons ++
@@ -136,9 +137,11 @@ object Dependencies {
     javaTestDeps
 
   val netty = Seq(
-    "io.netty"           % "netty"                 % "3.10.2.Final",
+    "io.netty"           % "netty"                 % "3.10.3.Final",
     "com.typesafe.netty" % "netty-http-pipelining" % "1.1.4"
   ) ++ specsBuild.map(_ % Test)
+
+  val nettyUtilsDependencies = slf4j
 
   val akkaHttp = Seq(
     "com.typesafe.akka" %% "akka-http-core-experimental" % "1.0-RC2"

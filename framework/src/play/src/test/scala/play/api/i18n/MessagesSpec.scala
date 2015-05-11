@@ -62,7 +62,7 @@ object MessagesSpec extends Specification {
     }
 
     "support setting the language on a result" in {
-      val cookie = Cookies.decode(api.setLang(Results.Ok, Lang("en-AU")).header.headers("Set-Cookie")).head
+      val cookie = Cookies.decodeSetCookieHeader(api.setLang(Results.Ok, Lang("en-AU")).header.headers("Set-Cookie")).head
       cookie.name must_== "PLAY_LANG"
       cookie.value must_== "en-AU"
     }

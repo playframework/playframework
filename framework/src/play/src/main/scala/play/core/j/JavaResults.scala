@@ -54,7 +54,7 @@ object JavaResultExtractor {
 
   def getCookies(result: JResult): JCookies =
     new JCookies {
-      private val cookies = Cookies(headers(result).get(HeaderNames.SET_COOKIE))
+      private val cookies = Cookies.fromSetCookieHeader(headers(result).get(HeaderNames.SET_COOKIE))
 
       def get(name: String): JCookie = {
         cookies.get(name).map(makeJavaCookie).orNull
@@ -77,11 +77,11 @@ object JavaResultExtractor {
 
   def getSession(result: JResult): JSession =
     new JSession(Session.decodeFromCookie(
-      Cookies(headers(result).get(HeaderNames.SET_COOKIE)).get(Session.COOKIE_NAME)
+      Cookies.fromSetCookieHeader(headers(result).get(HeaderNames.SET_COOKIE)).get(Session.COOKIE_NAME)
     ).data.asJava)
 
   def getFlash(result: JResult): JFlash = new JFlash(Flash.decodeFromCookie(
-    Cookies(headers(result).get(HeaderNames.SET_COOKIE)).get(Flash.COOKIE_NAME)
+    Cookies.fromSetCookieHeader(headers(result).get(HeaderNames.SET_COOKIE)).get(Flash.COOKIE_NAME)
   ).data.asJava)
 
   def getHeaders(result: JResult): java.util.Map[String, String] = headers(result).asJava

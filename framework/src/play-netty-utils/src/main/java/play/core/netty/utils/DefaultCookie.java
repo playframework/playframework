@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 The Netty Project
+ * Copyright 2015 The Netty Project
  *
  * The Netty Project licenses this file to you under the Apache License,
  * version 2.0 (the "License"); you may not use this file except in compliance
@@ -15,12 +15,6 @@
  */
 package play.core.netty.utils;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.TreeSet;
-
-
-
 /**
  * The default {@link Cookie} implementation.
  */
@@ -28,15 +22,10 @@ public class DefaultCookie implements Cookie {
 
     private final String name;
     private String value;
+    private boolean wrap;
     private String domain;
     private String path;
-    private String comment;
-    private String commentUrl;
-    private boolean discard;
-    private Set<Integer> ports = Collections.emptySet();
-    private Set<Integer> unmodifiablePorts = ports;
     private int maxAge = Integer.MIN_VALUE;
-    private int version;
     private boolean secure;
     private boolean httpOnly;
 
@@ -77,11 +66,11 @@ public class DefaultCookie implements Cookie {
         setValue(value);
     }
 
-    public String getName() {
+    public String name() {
         return name;
     }
 
-    public String getValue() {
+    public String value() {
         return value;
     }
 
@@ -92,7 +81,15 @@ public class DefaultCookie implements Cookie {
         this.value = value;
     }
 
-    public String getDomain() {
+    public boolean wrap() {
+        return wrap;
+    }
+
+    public void setWrap(boolean wrap) {
+        this.wrap = wrap;
+    }
+
+    public String domain() {
         return domain;
     }
 
@@ -100,7 +97,7 @@ public class DefaultCookie implements Cookie {
         this.domain = validateValue("domain", domain);
     }
 
-    public String getPath() {
+    public String path() {
         return path;
     }
 
@@ -108,88 +105,12 @@ public class DefaultCookie implements Cookie {
         this.path = validateValue("path", path);
     }
 
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = validateValue("comment", comment);
-    }
-
-    public String getCommentUrl() {
-        return commentUrl;
-    }
-
-    public void setCommentUrl(String commentUrl) {
-        this.commentUrl = validateValue("commentUrl", commentUrl);
-    }
-
-    public boolean isDiscard() {
-        return discard;
-    }
-
-    public void setDiscard(boolean discard) {
-        this.discard = discard;
-    }
-
-    public Set<Integer> getPorts() {
-        if (unmodifiablePorts == null) {
-            unmodifiablePorts = Collections.unmodifiableSet(ports);
-        }
-        return unmodifiablePorts;
-    }
-
-    public void setPorts(int... ports) {
-        if (ports == null) {
-            throw new NullPointerException("ports");
-        }
-
-        int[] portsCopy = ports.clone();
-        if (portsCopy.length == 0) {
-            unmodifiablePorts = this.ports = Collections.emptySet();
-        } else {
-            Set<Integer> newPorts = new TreeSet<Integer>();
-            for (int p: portsCopy) {
-                if (p <= 0 || p > 65535) {
-                    throw new IllegalArgumentException("port out of range: " + p);
-                }
-                newPorts.add(p);
-            }
-            this.ports = newPorts;
-            unmodifiablePorts = null;
-        }
-    }
-
-    public void setPorts(Iterable<Integer> ports) {
-        Set<Integer> newPorts = new TreeSet<Integer>();
-        for (int p: ports) {
-            if (p <= 0 || p > 65535) {
-                throw new IllegalArgumentException("port out of range: " + p);
-            }
-            newPorts.add(p);
-        }
-        if (newPorts.isEmpty()) {
-            unmodifiablePorts = this.ports = Collections.emptySet();
-        } else {
-            this.ports = newPorts;
-            unmodifiablePorts = null;
-        }
-    }
-
-    public int getMaxAge() {
+    public int maxAge() {
         return maxAge;
     }
 
     public void setMaxAge(int maxAge) {
         this.maxAge = maxAge;
-    }
-
-    public int getVersion() {
-        return version;
-    }
-
-    public void setVersion(int version) {
-        this.version = version;
     }
 
     public boolean isSecure() {
@@ -210,99 +131,97 @@ public class DefaultCookie implements Cookie {
 
     @Override
     public int hashCode() {
-        return getName().hashCode();
+        return name().hashCode();
     }
 
     @Override
     public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
         if (!(o instanceof Cookie)) {
             return false;
         }
 
         Cookie that = (Cookie) o;
-        if (!getName().equalsIgnoreCase(that.getName())) {
+        if (!name().equalsIgnoreCase(that.name())) {
             return false;
         }
 
-        if (getPath() == null) {
-            if (that.getPath() != null) {
+        if (path() == null) {
+            if (that.path() != null) {
                 return false;
             }
-        } else if (that.getPath() == null) {
+        } else if (that.path() == null) {
             return false;
-        } else if (!getPath().equals(that.getPath())) {
+        } else if (!path().equals(that.path())) {
             return false;
         }
 
-        if (getDomain() == null) {
-            if (that.getDomain() != null) {
+        if (domain() == null) {
+            if (that.domain() != null) {
                 return false;
             }
-        } else if (that.getDomain() == null) {
+        } else if (that.domain() == null) {
             return false;
         } else {
-            return getDomain().equalsIgnoreCase(that.getDomain());
+            return domain().equalsIgnoreCase(that.domain());
         }
 
         return true;
     }
 
     public int compareTo(Cookie c) {
-        int v;
-        v = getName().compareToIgnoreCase(c.getName());
+        int v = name().compareToIgnoreCase(c.name());
         if (v != 0) {
             return v;
         }
 
-        if (getPath() == null) {
-            if (c.getPath() != null) {
+        if (path() == null) {
+            if (c.path() != null) {
                 return -1;
             }
-        } else if (c.getPath() == null) {
+        } else if (c.path() == null) {
             return 1;
         } else {
-            v = getPath().compareTo(c.getPath());
+            v = path().compareTo(c.path());
             if (v != 0) {
                 return v;
             }
         }
 
-        if (getDomain() == null) {
-            if (c.getDomain() != null) {
+        if (domain() == null) {
+            if (c.domain() != null) {
                 return -1;
             }
-        } else if (c.getDomain() == null) {
+        } else if (c.domain() == null) {
             return 1;
         } else {
-            v = getDomain().compareToIgnoreCase(c.getDomain());
+            v = domain().compareToIgnoreCase(c.domain());
             return v;
         }
 
         return 0;
     }
 
-    @Override
     public String toString() {
-        StringBuilder buf = new StringBuilder();
-        buf.append(getName());
-        buf.append('=');
-        buf.append(getValue());
-        if (getDomain() != null) {
-            buf.append(", domain=");
-            buf.append(getDomain());
+        StringBuilder buf = new StringBuilder()
+            .append(name())
+            .append('=')
+            .append(value());
+        if (domain() != null) {
+            buf.append(", domain=")
+               .append(domain());
         }
-        if (getPath() != null) {
-            buf.append(", path=");
-            buf.append(getPath());
+        if (path() != null) {
+            buf.append(", path=")
+               .append(path());
         }
-        if (getComment() != null) {
-            buf.append(", comment=");
-            buf.append(getComment());
-        }
-        if (getMaxAge() >= 0) {
-            buf.append(", maxAge=");
-            buf.append(getMaxAge());
-            buf.append('s');
+        if (maxAge() >= 0) {
+            buf.append(", maxAge=")
+               .append(maxAge())
+               .append('s');
         }
         if (isSecure()) {
             buf.append(", secure");
@@ -313,7 +232,7 @@ public class DefaultCookie implements Cookie {
         return buf.toString();
     }
 
-    private static String validateValue(String name, String value) {
+    protected String validateValue(String name, String value) {
         if (value == null) {
             return null;
         }

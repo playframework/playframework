@@ -8,7 +8,6 @@ package play.api.mvc {
   import play.api._
   import play.api.http.{ HttpConfiguration, MediaType, MediaRange, HeaderNames }
   import play.api.i18n.Lang
-  import play.api.libs.iteratee._
   import play.api.libs.Crypto
   import play.core.utils.CaseInsensitiveOrdered
 
@@ -17,7 +16,6 @@ package play.api.mvc {
   import scala.util.control.NonFatal
   import scala.util.Try
   import java.net.{ URLDecoder, URLEncoder }
-  import scala.concurrent.duration._
 
   /**
    * The HTTP request header. Note that it doesn’t contain the request body yet.
@@ -126,7 +124,7 @@ package play.api.mvc {
     /**
      * The HTTP cookies.
      */
-    lazy val cookies: Cookies = Cookies(headers.get(play.api.http.HeaderNames.COOKIE))
+    lazy val cookies: Cookies = Cookies.fromCookieHeader(headers.get(play.api.http.HeaderNames.COOKIE))
 
     /**
      * Parses the `Session` cookie and returns the `Session` data.
@@ -784,23 +782,44 @@ package play.api.mvc {
    */
   object Cookies {
 
+    /**
+     * Play doesn't support multiple values per header, so has to compress cookies into one header. The problem is,
+     * Set-Cookie doesn't support being compressed into one header, the reason being that the separator character for
+     * header values, comma, is used in the dates in the Expires attribute of a cookie value. So we synthesise our own
+     * separator, that we use here, and before we send the cookie back to the client.
+     */
+    val SetCookieHeaderSeparator = ";;"
+    val SetCookieHeaderSeparatorRegex = SetCookieHeaderSeparator.r
+
     import scala.collection.JavaConverters._
 
     // We use netty here but just as an API to handle cookies encoding
-    import play.core.netty.utils.{ CookieEncoder, CookieDecoder, DefaultCookie }
+    import play.core.netty.utils.DefaultCookie
 
     private val logger = Logger(this.getClass)
 
-    /**
-     * Extract cookies from the Set-Cookie header.
-     */
-    def apply(header: Option[String]): Cookies = new Cookies {
+    def fromSetCookieHeader(header: Option[String]): Cookies = header match {
+      case Some(headerValue) => fromMap(
+        decodeSetCookieHeader(headerValue)
+          .groupBy(_.name)
+          .mapValues(_.head)
+      )
+      case None => fromMap(Map.empty)
+    }
 
-      // This method is frequently called so it needs to be fast
-      private val cookies: Map[String, Cookie] = if (header.isDefined) {
-        Cookies.decode(header.get).groupBy(_.name).mapValues(_.head)
-      } else Map.empty
+    def fromCookieHeader(header: Option[String]): Cookies = header match {
+      case Some(headerValue) => fromMap(
+        decodeCookieHeader(headerValue)
+          .groupBy(_.name)
+          .mapValues(_.head)
+      )
+      case None => fromMap(Map.empty)
+    }
 
+    @deprecated("Use fromSetCookieHeader or fromCookieHeader instead", "2.4.0")
+    def apply(header: Option[String]) = fromSetCookieHeader(header)
+
+    private def fromMap(cookies: Map[String, Cookie]): Cookies = new Cookies {
       def get(name: String) = cookies.get(name)
       override def toString = cookies.toString
 
@@ -810,27 +829,40 @@ package play.api.mvc {
     }
 
     /**
-     * Encodes cookies as a proper HTTP header.
+     * Encodes cookies as a Set-Cookie HTTP header.
      *
      * @param cookies the Cookies to encode
      * @return a valid Set-Cookie header value
      */
-    def encode(cookies: Seq[Cookie]): String = {
-      val encoder = new CookieEncoder(true)
+    def encodeSetCookieHeader(cookies: Seq[Cookie]): String = {
+      val encoder = HttpConfiguration.current.cookies.serverEncoder
       val newCookies = cookies.map { c =>
-        encoder.addCookie {
-          val nc = new DefaultCookie(c.name, c.value)
-          nc.setMaxAge(c.maxAge.getOrElse(Integer.MIN_VALUE))
-          nc.setPath(c.path)
-          c.domain.map(nc.setDomain(_))
-          nc.setSecure(c.secure)
-          nc.setHttpOnly(c.httpOnly)
-          nc
-        }
-        encoder.encode()
+        val nc = new DefaultCookie(c.name, c.value)
+        nc.setMaxAge(c.maxAge.getOrElse(Integer.MIN_VALUE))
+        nc.setPath(c.path)
+        c.domain.foreach(nc.setDomain)
+        nc.setSecure(c.secure)
+        nc.setHttpOnly(c.httpOnly)
+        encoder.encode(nc)
       }
-      newCookies.mkString("; ")
+      newCookies.mkString(SetCookieHeaderSeparator)
     }
+
+    /**
+     * Encodes cookies as a Set-Cookie HTTP header.
+     *
+     * @param cookies the Cookies to encode
+     * @return a valid Set-Cookie header value
+     */
+    def encodeCookieHeader(cookies: Seq[Cookie]): String = {
+      val encoder = HttpConfiguration.current.cookies.clientEncoder
+      encoder.encode(cookies.map { cookie =>
+        new DefaultCookie(cookie.name, cookie.value)
+      }.asJava)
+    }
+
+    @deprecated("Use encodeSetCookieHeader or encodeCookieHeader instead", "2.4.0")
+    def encode(cookies: Seq[Cookie]): String = encodeSetCookieHeader(cookies)
 
     /**
      * Decodes a Set-Cookie header value as a proper cookie set.
@@ -838,18 +870,49 @@ package play.api.mvc {
      * @param cookieHeader the Set-Cookie header value
      * @return decoded cookies
      */
-
-    private lazy val decoder = new CookieDecoder()
-    def decode(cookieHeader: String): Seq[Cookie] = {
+    def decodeSetCookieHeader(cookieHeader: String): Seq[Cookie] = {
       Try {
-        decoder.decode(cookieHeader).asScala.map { c =>
-          Cookie(c.getName, c.getValue, if (c.getMaxAge == Integer.MIN_VALUE) None else Some(c.getMaxAge), Option(c.getPath).getOrElse("/"), Option(c.getDomain), c.isSecure, c.isHttpOnly)
+        val decoder = HttpConfiguration.current.cookies.clientDecoder
+        SetCookieHeaderSeparatorRegex.split(cookieHeader).toSeq.map { cookieString =>
+          val cookie = decoder.decode(cookieString.trim)
+          Cookie(
+            cookie.name,
+            cookie.value,
+            if (cookie.maxAge == Integer.MIN_VALUE) None else Some(cookie.maxAge),
+            Option(cookie.path).getOrElse("/"),
+            Option(cookie.domain),
+            cookie.isSecure,
+            cookie.isHttpOnly
+          )
+        }
+      }.getOrElse {
+        logger.debug(s"Couldn't decode the Cookie header containing: $cookieHeader")
+        Nil
+      }
+    }
+
+    /**
+     * Decodes a Cookie header value as a proper cookie set.
+     *
+     * @param cookieHeader the Cookie header value
+     * @return decoded cookies
+     */
+    def decodeCookieHeader(cookieHeader: String): Seq[Cookie] = {
+      Try {
+        HttpConfiguration.current.cookies.serverDecoder.decode(cookieHeader).asScala.map { cookie =>
+          Cookie(
+            cookie.name,
+            cookie.value
+          )
         }.toSeq
       }.getOrElse {
         logger.debug(s"Couldn't decode the Cookie header containing: $cookieHeader")
         Nil
       }
     }
+
+    @deprecated("Use decodeSetCookieHeader or decodeCookieHeader instead", "2.4.0")
+    def decode(cookieHeader: String): Seq[Cookie] = decodeSetCookieHeader(cookieHeader)
 
     /**
      * Merges an existing Set-Cookie header with new cookie values
@@ -858,19 +921,35 @@ package play.api.mvc {
      * @param cookies the new cookies to encode
      * @return a valid Set-Cookie header value
      */
-    def merge(cookieHeader: String, cookies: Seq[Cookie]): String = {
-      val tupledCookies = (decode(cookieHeader) ++ cookies).map { c =>
+    def mergeSetCookieHeader(cookieHeader: String, cookies: Seq[Cookie]): String = {
+      val tupledCookies = (decodeSetCookieHeader(cookieHeader) ++ cookies).map { c =>
         // See rfc6265#section-4.1.2
         // Secure and http-only attributes are not considered when testing if
         // two cookies are overlapping.
-        (c.name, c.path, c.domain.map(_.toLowerCase)) -> c
+        (c.name, c.path, c.domain.map(_.toLowerCase(Locale.ENGLISH))) -> c
       }
       // Put cookies in a map
       // Note: Seq.toMap do not preserve order
       val uniqCookies = scala.collection.immutable.ListMap(tupledCookies: _*)
-      encode(uniqCookies.values.toSeq)
+      encodeSetCookieHeader(uniqCookies.values.toSeq)
     }
 
-  }
+    /**
+     * Merges an existing Cookie header with new cookie values
+     *
+     * @param cookieHeader the existing Cookie header value
+     * @param cookies the new cookies to encode
+     * @return a valid Cookie header value
+     */
+    def mergeCookieHeader(cookieHeader: String, cookies: Seq[Cookie]): String = {
+      val tupledCookies = (decodeCookieHeader(cookieHeader) ++ cookies).map(cookie => cookie.path -> cookie)
+      // Put cookies in a map
+      // Note: Seq.toMap do not preserve order
+      val uniqCookies = scala.collection.immutable.ListMap(tupledCookies: _*)
+      encodeCookieHeader(uniqCookies.values.toSeq)
+    }
 
+    @deprecated("Use mergeSetCookieHeader or mergeCookieHeader instead", "2.4.0")
+    def merge(cookieHeader: String, cookies: Seq[Cookie]): String = mergeSetCookieHeader(cookieHeader, cookies)
+  }
 }
