@@ -42,3 +42,8 @@ http://www.play-be.org
 * [Facebook](https://www.facebook.com/groups/playuser)
 * [Github](https://github.com/kpug)
 * [Slack](https://kpug.slack.com)
+ 
+## New Delhi - INDIA
+
+http://www.meetup.com/Reactive-Application-Programmers-in-Delhi-NCR/
+
