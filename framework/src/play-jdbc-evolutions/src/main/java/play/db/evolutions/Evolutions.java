@@ -70,7 +70,7 @@ public class Evolutions {
      * @param autocommit Whether autocommit should be used.
      */
     public static void applyEvolutions(Database database, play.api.db.evolutions.EvolutionsReader reader, boolean autocommit) {
-        DatabaseEvolutions evolutions = new DatabaseEvolutions(Database.toScala(database));
+        DatabaseEvolutions evolutions = new DatabaseEvolutions(database.toScala());
         evolutions.evolve(evolutions.scripts(reader), autocommit);
     }
 
@@ -102,7 +102,7 @@ public class Evolutions {
      * @param autocommit Whether autocommit should be used.
      */
     public static void cleanupEvolutions(Database database, boolean autocommit) {
-        DatabaseEvolutions evolutions = new DatabaseEvolutions(Database.toScala(database));
+        DatabaseEvolutions evolutions = new DatabaseEvolutions(database.toScala());
         evolutions.evolve(evolutions.resetScripts(), autocommit);
     }
 

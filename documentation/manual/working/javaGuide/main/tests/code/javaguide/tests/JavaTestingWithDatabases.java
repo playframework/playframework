@@ -3,6 +3,7 @@ package javaguide.tests;
 import com.google.common.collect.ImmutableMap;
 
 import play.db.Database;
+import play.db.Databases;
 
 import play.db.evolutions.*;
 import org.junit.*;
@@ -18,7 +19,7 @@ public class JavaTestingWithDatabases {
     public static class NotTested {
         {
             //#database
-            Database database = Database.createFrom(
+            Database database = Databases.createFrom(
                     "com.mysql.jdbc.Driver",
                     "jdbc:mysql://localhost/test"
             );
@@ -27,7 +28,7 @@ public class JavaTestingWithDatabases {
 
         {
             //#full-config
-            Database database = Database.createFrom(
+            Database database = Databases.createFrom(
                     "mydatabase",
                     "com.mysql.jdbc.Driver",
                     "jdbc:mysql://localhost/test",
@@ -50,7 +51,7 @@ public class JavaTestingWithDatabases {
 
             @Before
             public void createDatabase() {
-                database = Database.createFrom(
+                database = Databases.createFrom(
                         "com.mysql.jdbc.Driver",
                         "jdbc:mysql://localhost/test"
                 );
@@ -68,7 +69,7 @@ public class JavaTestingWithDatabases {
     @Test
     public void inMemory() throws Exception {
         //#in-memory
-        Database database = Database.inMemory();
+        Database database = Databases.inMemory();
         //#in-memory
 
         try {
@@ -81,7 +82,7 @@ public class JavaTestingWithDatabases {
     @Test
     public void inMemoryFullConfig() throws Exception {
         //#in-memory-full-config
-        Database database = Database.inMemory(
+        Database database = Databases.inMemory(
                 "mydatabase",
                 ImmutableMap.of(
                         "MODE", "MYSQL"
@@ -103,7 +104,7 @@ public class JavaTestingWithDatabases {
 
     @Test
     public void evolutions() throws Exception {
-        Database database = Database.inMemory();
+        Database database = Databases.inMemory();
         try {
             //#apply-evolutions
             Evolutions.applyEvolutions(database);
@@ -119,7 +120,7 @@ public class JavaTestingWithDatabases {
 
     @Test
     public void staticEvolutions() throws Exception {
-        Database database = Database.inMemory();
+        Database database = Databases.inMemory();
         try {
             //#apply-evolutions-simple
             Evolutions.applyEvolutions(database, Evolutions.forDefault(
@@ -151,7 +152,7 @@ public class JavaTestingWithDatabases {
 
     @Test
     public void customPathEvolutions() throws Exception {
-        Database database = Database.inMemory();
+        Database database = Databases.inMemory();
         try {
             //#apply-evolutions-custom-path
             Evolutions.applyEvolutions(database,

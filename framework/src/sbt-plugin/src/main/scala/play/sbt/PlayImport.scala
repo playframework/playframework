@@ -23,6 +23,8 @@ object PlayImport {
     throw new ComponentExternalisedException
   }
 
+  val evolutions = component("play-jdbc-evolutions")
+
   val jdbc = component("play-jdbc")
 
   def anorm = movedExternal(

@@ -7,42 +7,42 @@ import java.sql.SQLException
 import com.zaxxer.hikari.HikariDataSource
 import org.specs2.mutable.{ After, Specification }
 
-object DatabaseSpec extends Specification {
+object DatabasesSpec extends Specification {
 
-  "Database" should {
+  "Databases" should {
 
     "create database" in new WithDatabase {
-      val db = Database(name = "test", driver = "org.h2.Driver", url = "jdbc:h2:mem:test")
+      val db = Databases(name = "test", driver = "org.h2.Driver", url = "jdbc:h2:mem:test")
       db.name must_== "test"
       db.url must_== "jdbc:h2:mem:test"
     }
 
     "create database with named arguments" in new WithDatabase {
-      val db = Database(name = "test", driver = "org.h2.Driver", url = "jdbc:h2:mem:test")
+      val db = Databases(name = "test", driver = "org.h2.Driver", url = "jdbc:h2:mem:test")
       db.name must_== "test"
       db.url must_== "jdbc:h2:mem:test"
     }
 
     "create default database" in new WithDatabase {
-      val db = Database(driver = "org.h2.Driver", url = "jdbc:h2:mem:default")
+      val db = Databases(driver = "org.h2.Driver", url = "jdbc:h2:mem:default")
       db.name must_== "default"
       db.url must_== "jdbc:h2:mem:default"
     }
 
     "create default in-memory database" in new WithDatabase {
-      val db = Database.inMemory()
+      val db = Databases.inMemory()
       db.name must_== "default"
       db.url must_== "jdbc:h2:mem:default"
     }
 
     "create named in-memory database" in new WithDatabase {
-      val db = Database.inMemory(name = "test")
+      val db = Databases.inMemory(name = "test")
       db.name must_== "test"
       db.url must_== "jdbc:h2:mem:test"
     }
 
     "create in-memory database with url options" in new WithDatabase {
-      val db = Database.inMemory(urlOptions = Map("MODE" -> "MySQL"))
+      val db = Databases.inMemory(urlOptions = Map("MODE" -> "MySQL"))
       db.name must_== "default"
       db.url must_== "jdbc:h2:mem:default"
       db.dataSource match {
@@ -52,14 +52,14 @@ object DatabaseSpec extends Specification {
     }
 
     "supply connections" in new WithDatabase {
-      val db = Database.inMemory(name = "test-connection")
+      val db = Databases.inMemory(name = "test-connection")
       val connection = db.getConnection
       connection.createStatement.execute("create table test (id bigint not null, name varchar(255))")
       connection.close()
     }
 
     "enable autocommit on connections by default" in new WithDatabase {
-      val db = Database.inMemory(name = "test-autocommit")
+      val db = Databases.inMemory(name = "test-autocommit")
 
       val c1 = db.getConnection
       val c2 = db.getConnection
@@ -77,7 +77,7 @@ object DatabaseSpec extends Specification {
     }
 
     "provide connection helper" in new WithDatabase {
-      val db = Database.inMemory(name = "test-withConnection")
+      val db = Databases.inMemory(name = "test-withConnection")
 
       db.withConnection { c =>
         c.createStatement.execute("create table test (id bigint not null, name varchar(255))")
@@ -89,7 +89,7 @@ object DatabaseSpec extends Specification {
     }
 
     "provide transaction helper" in new WithDatabase {
-      val db = Database.inMemory(name = "test-withTransaction")
+      val db = Databases.inMemory(name = "test-withTransaction")
 
       db.withTransaction { c =>
         c.createStatement.execute("create table test (id bigint not null, name varchar(255))")
@@ -116,7 +116,7 @@ object DatabaseSpec extends Specification {
     }
 
     "not supply connections after shutdown" in {
-      val db = Database.inMemory(name = "test-shutdown")
+      val db = Databases.inMemory(name = "test-shutdown")
       db.getConnection.close()
       db.shutdown()
       db.getConnection.close() must throwA[SQLException].like {

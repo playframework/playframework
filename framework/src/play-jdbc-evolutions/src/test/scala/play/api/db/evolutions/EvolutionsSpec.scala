@@ -5,7 +5,7 @@ package play.api.db.evolutions
 
 import java.sql.{ SQLException, ResultSet }
 import org.specs2.mutable.{ After, Specification }
-import play.api.db.Database
+import play.api.db.Databases
 
 // TODO: fuctional test with InvalidDatabaseRevision exception
 
@@ -96,7 +96,7 @@ object EvolutionsSpec extends Specification {
   }
 
   trait WithEvolutions extends After {
-    lazy val database = Database.inMemory("default")
+    lazy val database = Databases.inMemory("default")
 
     lazy val evolutions = new DatabaseEvolutions(database)
 

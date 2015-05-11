@@ -6,94 +6,17 @@ package play.api.db
 import java.sql.{ Connection, Driver, DriverManager }
 import javax.sql.DataSource
 
-import com.typesafe.config.Config
-
-import scala.util.control.{ NonFatal, ControlThrowable }
-
-import play.api.{ Environment, PlayConfig, Configuration }
 import play.utils.{ ProxyDriver, Reflect }
 
-/**
- * Database API.
- */
-trait Database {
-
-  /**
-   * The configuration name for this database.
-   */
-  def name: String
-
-  /**
-   * The underlying JDBC data source for this database.
-   */
-  def dataSource: DataSource
-
-  /**
-   * The JDBC connection URL this database, i.e. `jdbc:...`
-   * Normally retrieved via a connection.
-   */
-  def url: String
-
-  /**
-   * Get a JDBC connection from the underlying data source.
-   * Autocommit is enabled by default.
-   *
-   * Don't forget to release the connection at some point by calling close().
-   *
-   * @return a JDBC connection
-   */
-  def getConnection(): Connection
-
-  /**
-   * Get a JDBC connection from the underlying data source.
-   *
-   * Don't forget to release the connection at some point by calling close().
-   *
-   * @param autocommit determines whether to autocommit the connection
-   * @return a JDBC connection
-   */
-  def getConnection(autocommit: Boolean): Connection
-
-  /**
-   * Execute a block of code, providing a JDBC connection.
-   * The connection and all created statements are automatically released.
-   *
-   * @param block code to execute
-   * @return the result of the code block
-   */
-  def withConnection[A](block: Connection => A): A
-
-  /**
-   * Execute a block of code, providing a JDBC connection.
-   * The connection and all created statements are automatically released.
-   *
-   * @param autocommit determines whether to autocommit the connection
-   * @param block code to execute
-   * @return the result of the code block
-   */
-  def withConnection[A](autocommit: Boolean)(block: Connection => A): A
-
-  /**
-   * Execute a block of code in the scope of a JDBC transaction.
-   * The connection and all created statements are automatically released.
-   * The transaction is automatically committed, unless an exception occurs.
-   *
-   * @param block code to execute
-   * @return the result of the code block
-   */
-  def withTransaction[A](block: Connection => A): A
-
-  /**
-   * Shutdown this database, closing the underlying data source.
-   */
-  def shutdown(): Unit
-
-}
+import com.typesafe.config.Config
+import play.api.inject.{ NewInstanceInjector, Injector }
+import scala.util.control.{ NonFatal, ControlThrowable }
+import play.api.{ Environment, Configuration, Logger, PlayConfig }
 
 /**
  * Creation helpers for manually instantiating databases.
  */
-object Database {
+object Databases {
 
   /**
    * Create a pooled database named "default" with the given driver and url.
@@ -122,7 +45,7 @@ object Database {
     val driver = "org.h2.Driver"
     val urlExtra = urlOptions.map { case (k, v) => k + "=" + v }.mkString(";", ";", "")
     val url = "jdbc:h2:mem:" + name + urlExtra
-    Database(driver, url, name, config)
+    Databases(driver, url, name, config)
   }
 
   /**
@@ -137,7 +60,7 @@ object Database {
    */
   def withDatabase[T](driver: String, url: String, name: String = "default",
     config: Map[String, _ <: Any] = Map.empty)(block: Database => T): T = {
-    val database = Database(driver, url, name, config)
+    val database = Databases(driver, url, name, config)
     try {
       block(database)
     } finally {

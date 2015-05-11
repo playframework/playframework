@@ -82,3 +82,7 @@ public static Company findById(Long id) {
   return JPA.em().find(Company.class, id);
 }
 ```
+
+## Enabling Play database evolutions
+
+Read [[Evolutions]] to find out what Play database evolutions are useful for, and follow the setup instructions for using it.

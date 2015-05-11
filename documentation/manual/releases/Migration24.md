@@ -43,6 +43,16 @@ libraryDependencies += specs2 % Test
 resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 ```
 
+### Database evolutions support in a separate module
+
+Support for [[database evolutions|Evolutions]] used to be included with both Play JDBC and JPA support. That's no longer the case. Therefore, if you are using evolutions, you now need to add an explicit dependency to `evolutions` in your project's build:
+
+```scala
+libraryDependencies += evolutions
+```
+
+While, if you are not using evolutions, you can now safely remove `evolutionplugin=disabled` from your `application.conf`.
+
 ### IDEs: Eclipse and IntelliJ IDEA
 
 Play no longer includes the sbteclipse or sbt-idea plugins, which enables users to upgrade IDE support independently of Play.

@@ -10,9 +10,9 @@ object ScalaTestingWithDatabases extends Specification {
   class NotTested {
     {
       //#database
-      import play.api.db.Database
+      import play.api.db.Databases
 
-      val database = Database(
+      val database = Databases(
         driver = "com.mysql.jdbc.Driver",
         url = "jdbc:mysql://localhost/test"
       )
@@ -21,9 +21,9 @@ object ScalaTestingWithDatabases extends Specification {
 
     {
       //#full-config
-      import play.api.db.Database
+      import play.api.db.Databases
 
-      val database = Database(
+      val database = Databases(
         driver = "com.mysql.jdbc.Driver",
         url = "jdbc:mysql://localhost/test",
         name = "mydatabase",
@@ -41,9 +41,9 @@ object ScalaTestingWithDatabases extends Specification {
 
     {
       //#with-database
-      import play.api.db.Database
+      import play.api.db.Databases
 
-      Database.withDatabase(
+      Databases.withDatabase(
         driver = "com.mysql.jdbc.Driver",
         url = "jdbc:mysql://localhost/test"
       ) { database =>
@@ -55,10 +55,10 @@ object ScalaTestingWithDatabases extends Specification {
 
     {
       //#custom-with-database
-      import play.api.db.Database
+      import play.api.db.{Database, Databases}
 
       def withMyDatabase[T](block: Database => T) = {
-        Database.withDatabase(
+        Databases.withDatabase(
           driver = "com.mysql.jdbc.Driver",
           url = "jdbc:mysql://localhost/test",
           name = "mydatabase",
@@ -83,9 +83,9 @@ object ScalaTestingWithDatabases extends Specification {
   "database helpers" should {
     "allow connecting to an in memory database" in {
       //#in-memory
-      import play.api.db.Database
+      import play.api.db.Databases
 
-      val database = Database.inMemory()
+      val database = Databases.inMemory()
       //#in-memory
 
       try {
@@ -97,9 +97,9 @@ object ScalaTestingWithDatabases extends Specification {
 
     "allow connecting to an in memory database with more options" in {
       //#in-memory-full-config
-      import play.api.db.Database
+      import play.api.db.Databases
 
-      val database = Database.inMemory(
+      val database = Databases.inMemory(
         name = "mydatabase",
         urlOptions = Map(
           "MODE" -> "MYSQL"
@@ -121,9 +121,9 @@ object ScalaTestingWithDatabases extends Specification {
     
     "manage an in memory database for the user" in {
       //#with-in-memory
-      import play.api.db.Database
+      import play.api.db.Databases
 
-      Database.withInMemory() { database =>
+      Databases.withInMemory() { database =>
         val connection = database.getConnection()
         
         // ...
@@ -134,10 +134,10 @@ object ScalaTestingWithDatabases extends Specification {
 
     "manage an in memory database for the user with custom config" in {
       //#with-in-memory-custom
-      import play.api.db.Database
+      import play.api.db.{Database, Databases}
 
       def withMyDatabase[T](block: Database => T) = {
-        Database.withInMemory(
+        Databases.withInMemory(
           name = "mydatabase",
           urlOptions = Map(
             "MODE" -> "MYSQL"
@@ -152,7 +152,7 @@ object ScalaTestingWithDatabases extends Specification {
       withMyDatabase(_.getConnection().getMetaData.getDatabaseProductName must_== "H2")
     }
 
-    "allow running evolutions" in play.api.db.Database.withInMemory() { database =>
+    "allow running evolutions" in play.api.db.Databases.withInMemory() { database =>
       //#apply-evolutions
       import play.api.db.evolutions._
 
@@ -165,7 +165,7 @@ object ScalaTestingWithDatabases extends Specification {
       ok
     }
 
-    "allow running static evolutions" in play.api.db.Database.withInMemory() { database =>
+    "allow running static evolutions" in play.api.db.Databases.withInMemory() { database =>
       //#apply-evolutions-simple
       import play.api.db.evolutions._
 
@@ -188,7 +188,7 @@ object ScalaTestingWithDatabases extends Specification {
       connection.prepareStatement("select * from test").executeQuery() must throwAn[SQLException]
     }
     
-    "allow running evolutions from a custom path" in play.api.db.Database.withInMemory() { database =>
+    "allow running evolutions from a custom path" in play.api.db.Databases.withInMemory() { database =>
       //#apply-evolutions-custom-path
       import play.api.db.evolutions._
 
@@ -197,7 +197,7 @@ object ScalaTestingWithDatabases extends Specification {
       ok
     }
 
-    "allow play to manage evolutions for you" in play.api.db.Database.withInMemory() { database =>
+    "allow play to manage evolutions for you" in play.api.db.Databases.withInMemory() { database =>
       //#with-evolutions
       import play.api.db.evolutions._
 
@@ -212,12 +212,12 @@ object ScalaTestingWithDatabases extends Specification {
 
     "allow simple composition of with database and with evolutions" in {
       //#with-evolutions-custom
-      import play.api.db.Database
+      import play.api.db.{Database, Databases}
       import play.api.db.evolutions._
 
       def withMyDatabase[T](block: Database => T) = {
 
-        Database.withInMemory(
+        Databases.withInMemory(
           urlOptions = Map(
             "MODE" -> "MYSQL"
           ),

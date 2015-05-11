@@ -28,7 +28,7 @@ public class DatabaseTest {
 
     @Test
     public void createDatabase() throws Exception {
-        Database db = Database.createFrom("test", "org.h2.Driver", "jdbc:h2:mem:test");
+        Database db = Databases.createFrom("test", "org.h2.Driver", "jdbc:h2:mem:test");
         assertThat(db.getName(), equalTo("test"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:test"));
         db.shutdown();
@@ -36,7 +36,7 @@ public class DatabaseTest {
 
     @Test
     public void createDefaultDatabase() throws Exception {
-        Database db = Database.createFrom("org.h2.Driver", "jdbc:h2:mem:default");
+        Database db = Databases.createFrom("org.h2.Driver", "jdbc:h2:mem:default");
         assertThat(db.getName(), equalTo("default"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:default"));
         db.shutdown();
@@ -45,7 +45,7 @@ public class DatabaseTest {
     @Test
     public void createConfiguredDatabase() throws Exception {
         Map<String, String> config = ImmutableMap.of("jndiName", "DefaultDS");
-        Database db = Database.createFrom("test", "org.h2.Driver", "jdbc:h2:mem:test", config);
+        Database db = Databases.createFrom("test", "org.h2.Driver", "jdbc:h2:mem:test", config);
         assertThat(db.getName(), equalTo("test"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:test"));
         assertThat((DataSource) JNDI.initialContext().lookup("DefaultDS"), equalTo(db.getDataSource()));
@@ -54,7 +54,7 @@ public class DatabaseTest {
 
     @Test
     public void createDefaultInMemoryDatabase() throws Exception {
-        Database db = Database.inMemory();
+        Database db = Databases.inMemory();
         assertThat(db.getName(), equalTo("default"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:default"));
         db.shutdown();
@@ -62,7 +62,7 @@ public class DatabaseTest {
 
     @Test
     public void createNamedInMemoryDatabase() throws Exception {
-        Database db = Database.inMemory("test");
+        Database db = Databases.inMemory("test");
         assertThat(db.getName(), equalTo("test"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:test"));
         db.shutdown();
@@ -72,7 +72,7 @@ public class DatabaseTest {
     public void createInMemoryDatabaseWithUrlOptions() throws Exception {
         Map<String, String> options = ImmutableMap.of("MODE", "MySQL");
         Map<String, Object> config = ImmutableMap.<String, Object>of();
-        Database db = Database.inMemory("test", options, config);
+        Database db = Databases.inMemory("test", options, config);
 
         assertThat(db.getName(), equalTo("test"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:test"));
@@ -88,7 +88,7 @@ public class DatabaseTest {
 
     @Test
     public void createConfiguredInMemoryDatabase() throws Exception {
-        Database db = Database.inMemoryWith("jndiName", "DefaultDS");
+        Database db = Databases.inMemoryWith("jndiName", "DefaultDS");
         assertThat(db.getName(), equalTo("default"));
         assertThat(db.getUrl(), equalTo("jdbc:h2:mem:default"));
         assertThat((DataSource) JNDI.initialContext().lookup("DefaultDS"), equalTo(db.getDataSource()));
@@ -97,7 +97,7 @@ public class DatabaseTest {
 
     @Test
     public void supplyConnections() throws Exception {
-        Database db = Database.inMemory("test-connection");
+        Database db = Databases.inMemory("test-connection");
 
         Connection connection = db.getConnection();
 
@@ -112,7 +112,7 @@ public class DatabaseTest {
 
     @Test
     public void enableAutocommitByDefault() throws Exception {
-        Database db = Database.inMemory("test-autocommit");
+        Database db = Databases.inMemory("test-autocommit");
 
         Connection c1 = db.getConnection();
         Connection c2 = db.getConnection();
@@ -133,7 +133,7 @@ public class DatabaseTest {
 
     @Test
     public void provideConnectionHelpers() throws Exception {
-        Database db = Database.inMemory("test-withConnection");
+        Database db = Databases.inMemory("test-withConnection");
 
         db.withConnection(c -> {
             c.createStatement().execute("create table test (id bigint not null, name varchar(255))");
@@ -154,7 +154,7 @@ public class DatabaseTest {
 
     @Test
     public void provideTransactionHelper() throws Exception {
-        Database db = Database.inMemory("test-withTransaction");
+        Database db = Databases.inMemory("test-withTransaction");
 
         boolean created = db.withTransaction(c -> {
             c.createStatement().execute("create table test (id bigint not null, name varchar(255))");
@@ -190,7 +190,7 @@ public class DatabaseTest {
 
     @Test
     public void notSupplyConnectionsAfterShutdown() throws Exception {
-        Database db = Database.inMemory("test-shutdown");
+        Database db = Databases.inMemory("test-shutdown");
         db.getConnection().close();
         db.shutdown();
         exception.expect(SQLException.class);
