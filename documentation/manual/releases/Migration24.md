@@ -338,15 +338,37 @@ Play has upgraded from AsyncHttpClient 1.8 to 1.9, which includes a number of br
 
 ## Crypto APIs
 
-Play's Crypto API improves security by supporting encryption methods that use initialization vectors and by changing the default encryption transformation to `AES/CTR/NoPadding`. To add this support, the Play 2.4 encryption format has changed slightly. This means that cookies and other data encrypted in Play 2.4 will not be readable by older versions of Play. However, Play 2.4 can read cookies and other data encrypted in both the old and new format.
+Play 2.4's AES encryption now uses [initialization vectors](http://en.wikipedia.org/wiki/Initialization_vector) to randomize each encryption. The Play encryption format has been changed to add support for initialization vectors.
 
-The crypto transformation is configured in `play.crypto.aes.transformation` and the default value has changed from `AES` to `AES/CTR/NoPadding`, which is more secure.
+The full name of the new AES transformation used by Play 2.4 is `AES/CTR/NoPadding`. The old transformation was `AES/ECB/PKCS5Padding`. The [`CTR`](http://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Counter_.28CTR.29) mode is much more secure than the `ECB` mode. As before, you can override Play's encryption transformation by setting the `play.crypto.aes.transformation` configuration option. In Play 2.4, any [transformation supported by your JRE](http://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#Cipher) can be used, including transformations that use an initialization vector.
 
-When you call `Crypto.encryptAES` in Play 2.4 it will use the configured transformation (default `AES/CTR/NoPadding`) to encrypt the data and then encode the result in the new format that supports initialization vectors.
+Play 2.4 uses a new encryption format, but it can read data encrypted by earlier versions of Play. However, earlier versions of Play **will not** be able to read data encrypted by Play 2.4. If your Play 2.4 application needs to produce data in the old format then you may want to copy the algorithm from the [Play 2.3 Crypto code](https://github.com/playframework/playframework/blob/2.3.6/framework/src/play/src/main/scala/play/api/libs/Crypto.scala#L187-L277).
 
-When you call `Crypto.decryptAES` it will decode both the old and new formats. The old format is always decoded using the AES transformation. The new format is decoded using the configured transformation (default `AES/CTR/NoPadding`).
+The table below shows the encryption formats supported by different versions of Play. _Old format_ is used by older versions of Play. _New format I_ is used by Play 2.4 if the configured cipher doesn't use an initialization vector. _New format II_ is used when an initialization vector is needed.
 
-If you wish to continue using the older format of encryption decryption, here is the [link] (https://github.com/playframework/playframework/blob/2.3.6/framework/src/play/src/main/scala/play/api/libs/Crypto.scala#L187-L277) that provides all the necessary information.
+Format | Encoding | Play 2.3 || Play 2.4 ||
+  ---- | ----
+Old format | _hex(cipher(plaintext))_ | writes | reads | | reads
+New format I | "1-" + _base64(cipher(plaintext))_ | | | writes | reads
+New format II | "2-" + _base64(iv + cipher(plaintext, iv))_ | | | writes | reads
+
+Usage of the [Java Crypto API](api/java/play/libs/Crypto.html) remains the same even though the output is different:
+
+```java
+import play.libs.Crypto;
+
+String enc = Crypto.encryptAES(orig);
+String dec = Crypto.decryptAES(enc);
+```
+
+Usage of the [Scala Crypto API](api/scala/index.html#play.api.libs.Crypto) is also the same:
+
+```scala
+import play.api.libs.Crypto
+
+val enc = Crypto.encryptAES(orig)
+val dec = Crypto.decryptAES(enc)
+```
 
 ## Anorm
 
@@ -593,4 +615,4 @@ This can be turned off by setting `PlayKeys.externalizeResources := false`, whic
 
 ### No more OrderedExecutionContext
 
-The mysterious `OrderedExecutionContext` had been retained in Play for several versions in order to support legacy applications. It was rarely used and has now been removed. If you still need the `OrderedExecutionContext` for some reason, you can create your own implementation based on the [Play 2.3 source](https://github.com/playframework/playframework/blob/2.3.x/framework/src/play/src/main/scala/play/core/j/OrderedExecutionContext.scala). If you haven't heard of this class, then there's nothing you need to do.
+The mysterious `OrderedExecutionContext` had [[been retained|Migration22#Concurrent-F.Promise-execution]] in Play for several versions in order to support legacy applications. It was rarely used and has now been removed. If you still need the `OrderedExecutionContext` for some reason, you can create your own implementation based on the [Play 2.3 source](https://github.com/playframework/playframework/blob/2.3.x/framework/src/play/src/main/scala/play/core/j/OrderedExecutionContext.scala). If you haven't heard of this class, then there's nothing you need to do.
