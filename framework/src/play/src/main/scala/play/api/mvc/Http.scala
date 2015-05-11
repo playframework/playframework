@@ -651,7 +651,7 @@ package play.api.mvc {
    * Helper utilities to manage the Session cookie.
    */
   object Session extends CookieBaker[Session] {
-    val COOKIE_NAME = HttpConfiguration.current.session.cookieName
+    def COOKIE_NAME = HttpConfiguration.current.session.cookieName
     val emptyCookie = new Session
     override val isSigned = true
     override def secure = HttpConfiguration.current.session.secure
@@ -723,7 +723,7 @@ package play.api.mvc {
    */
   object Flash extends CookieBaker[Flash] {
 
-    val COOKIE_NAME = HttpConfiguration.current.flash.cookieName
+    def COOKIE_NAME = HttpConfiguration.current.flash.cookieName
     override def path = HttpConfiguration.current.context
     override def secure = HttpConfiguration.current.flash.secure
     override def httpOnly = HttpConfiguration.current.flash.httpOnly
