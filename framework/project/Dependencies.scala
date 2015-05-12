@@ -106,12 +106,10 @@ object Dependencies {
   val jodatime = "joda-time" % "joda-time" % "2.7"
   val jodaConvert = "org.joda" % "joda-convert" % "1.7"
 
-  private val akkaCoreDeps = Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % "2.3.9")
-
   def runtime(scalaVersion: String) =
     slf4j ++
     Seq("logback-core", "logback-classic").map("ch.qos.logback" % _ % "1.1.3") ++
-    akkaCoreDeps ++
+    Seq("akka-actor", "akka-slf4j").map("com.typesafe.akka" %% _ % "2.3.11") ++
     jacksons ++
     Seq(
       "org.scala-stm" %% "scala-stm" % "0.7",
@@ -146,10 +144,6 @@ object Dependencies {
   val akkaHttp = Seq(
     "com.typesafe.akka" %% "akka-http-core-experimental" % "1.0-RC2"
   )
-
-  // FIXME: These overrides are no longer needed once
-  // Akka fixes: https://github.com/akka/akka/pull/17390
-  val akkaHttpOverrides = akkaCoreDeps
 
   val routesCompilerDependencies =  Seq(
     "commons-io" % "commons-io" % "2.4"
