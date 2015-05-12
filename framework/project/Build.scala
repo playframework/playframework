@@ -250,7 +250,10 @@ object PlayBuild extends Build {
   lazy val PlayExceptionsProject = PlayNonCrossBuiltProject("Play-Exceptions", "play-exceptions")
 
   lazy val PlayNettyUtilsProject = PlayNonCrossBuiltProject("Play-Netty-Utils", "play-netty-utils")
-    .settings(javacOptions in (Compile,doc) += "-Xdoclint:none")
+    .settings(
+      javacOptions in (Compile,doc) += "-Xdoclint:none",
+      libraryDependencies ++= nettyUtilsDependencies
+    )
 
   lazy val PlayProject = PlayCrossBuiltProject("Play", "play")
     .enablePlugins(SbtTwirl)

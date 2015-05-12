@@ -325,7 +325,7 @@ trait ResultExtractors {
   /**
    * Extracts the Cookies of this Result value.
    */
-  def cookies(of: Future[Result])(implicit timeout: Timeout): Cookies = Cookies(header(SET_COOKIE, of))
+  def cookies(of: Future[Result])(implicit timeout: Timeout): Cookies = Cookies.fromSetCookieHeader(header(SET_COOKIE, of))
 
   /**
    * Extracts the Flash values of this Result value.

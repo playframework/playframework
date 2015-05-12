@@ -136,7 +136,7 @@ case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
    */
   def withCookies(cookies: Cookie*): Result = {
     if (cookies.isEmpty) this else {
-      withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), cookies))
+      withHeaders(SET_COOKIE -> Cookies.mergeSetCookieHeader(header.headers.get(SET_COOKIE).getOrElse(""), cookies))
     }
   }
 
@@ -152,7 +152,7 @@ case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * @return the new result
    */
   def discardingCookies(cookies: DiscardingCookie*): Result = {
-    withHeaders(SET_COOKIE -> Cookies.merge(header.headers.get(SET_COOKIE).getOrElse(""), cookies.map(_.toCookie)))
+    withHeaders(SET_COOKIE -> Cookies.mergeSetCookieHeader(header.headers.get(SET_COOKIE).getOrElse(""), cookies.map(_.toCookie)))
   }
 
   /**
@@ -244,7 +244,7 @@ case class Result(header: ResponseHeader, body: Enumerator[Array[Byte]],
    * @return The session carried by this result. Reads the request’s session if this result does not modify the session.
    */
   def session(implicit request: RequestHeader): Session =
-    Cookies(header.headers.get(SET_COOKIE)).get(Session.COOKIE_NAME) match {
+    Cookies.fromCookieHeader(header.headers.get(SET_COOKIE)).get(Session.COOKIE_NAME) match {
       case Some(cookie) => Session.decodeFromCookie(Some(cookie))
       case None => request.session
     }

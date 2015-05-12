@@ -53,7 +53,7 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
           cookie.expires must beSome.like {
             case expires => expires must be lessThan System.currentTimeMillis()
           }
-          cookie.maxAge must beNone
+          cookie.maxAge must beSome(0)
       }
     }
 

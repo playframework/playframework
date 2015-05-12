@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 The Netty Project
+ * Copyright 2015 The Netty Project
  *
  * The Netty Project licenses this file to you under the Apache License,
  * version 2.0 (the "License"); you may not use this file except in compliance
@@ -13,22 +13,8 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package play.core.netty.utils;
-
-import java.text.SimpleDateFormat;
-import java.util.Locale;
-import java.util.TimeZone;
 
 /**
- * @deprecated use {@link HttpHeaderDateFormat}
+ * This package contains Cookie related classes.
  */
-@Deprecated
-final class CookieDateFormat extends SimpleDateFormat {
-
-    private static final long serialVersionUID = 1789486337887402640L;
-
-    CookieDateFormat() {
-        super("E, d-MMM-y HH:mm:ss z", Locale.ENGLISH);
-        setTimeZone(TimeZone.getTimeZone("GMT"));
-    }
-}
+package play.core.netty.utils;

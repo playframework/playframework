@@ -3,7 +3,6 @@
  */
 package play.core.server.common
 
-import play.api._
 import play.api.mvc._
 import play.api.http.HttpProtocol
 import play.api.http.HeaderNames._
@@ -253,7 +252,7 @@ object ServerResultUtils {
    */
   def cleanFlashCookie(requestHeader: RequestHeader, result: Result): Result = {
     val optResultFlashCookies: Option[_] = result.header.headers.get(SET_COOKIE).flatMap { setCookieValue: String =>
-      Cookies.decode(setCookieValue).find(_.name == Flash.COOKIE_NAME)
+      Cookies.decodeSetCookieHeader(setCookieValue).find(_.name == Flash.COOKIE_NAME)
     }
 
     if (optResultFlashCookies.isDefined) {
@@ -268,7 +267,7 @@ object ServerResultUtils {
       } else {
         // We got incoming flash cookies, but there are no outgoing flash cookies,
         // so we need to clear the cookies for the next request
-        result.withHeaders(SET_COOKIE -> Cookies.encode(Seq(Flash.discard.toCookie)))
+        result.withHeaders(SET_COOKIE -> Cookies.encodeSetCookieHeader(Seq(Flash.discard.toCookie)))
       }
     }
   }
@@ -285,12 +284,11 @@ object ServerResultUtils {
     if (headers.contains(SET_COOKIE)) {
       // Rewrite the headers with Set-Cookie split into separate headers
       headers.to[Seq].flatMap {
-        case (SET_COOKIE, value) => {
-          val cookieParts: Seq[Cookie] = Cookies.decode(value)
+        case (SET_COOKIE, value) =>
+          val cookieParts = Cookies.SetCookieHeaderSeparatorRegex.split(value)
           cookieParts.map { cookiePart =>
-            (SET_COOKIE, Cookies.encode(Seq(cookiePart)))
+            SET_COOKIE -> cookiePart
           }
-        }
         case (name, value) =>
           Seq((name, value))
       }
@@ -299,5 +297,4 @@ object ServerResultUtils {
       headers
     }
   }
-
 }
