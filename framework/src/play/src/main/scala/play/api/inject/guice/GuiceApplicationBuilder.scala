@@ -65,8 +65,8 @@ final class GuiceApplicationBuilder(
    */
   override def applicationModule(): GuiceModule = {
     val initialConfiguration = loadConfiguration(environment)
-    val globalSettings = global.getOrElse(GlobalSettings(initialConfiguration, environment))
     val appConfiguration = initialConfiguration ++ configuration
+    val globalSettings = global.getOrElse(GlobalSettings(appConfiguration, environment))
 
     // TODO: Logger should be application specific, and available via dependency injection.
     //       Creating multiple applications will stomp on the global logger configuration.
