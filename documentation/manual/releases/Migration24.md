@@ -86,7 +86,7 @@ After that, enable Ebean plugin for your project:
 
 ```scala
 lazy val myProject = (project in file("."))
-  .enablePlugins(PlayJava, SbtEbean)
+  .enablePlugins(PlayJava, PlayEbean)
 ```
 
 And finally, configure Ebean mapped classes as a list instead of a comma separated string (which is still supported but was deprecated):
