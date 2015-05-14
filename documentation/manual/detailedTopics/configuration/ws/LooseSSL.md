@@ -103,5 +103,3 @@ play.ws.ssl.loose.allowWeakProtocols=true
 ```
 
 SSLv2 and SSLv2Hello (there is no v1) are obsolete and usage in the field is [down to 25% on the public Internet](https://www.trustworthyinternet.org/ssl-pulse/).  SSLv3 is known to have [security issues](http://www.yaksman.org/~lweith/ssl.pdf) compared to TLS.  The only reason to turn this on is if you are connecting to a legacy server, but doing so does not make you vulnerable per se.
-
-> **Next**:  [[Testing SSL|TestingSSL]]

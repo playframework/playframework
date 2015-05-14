@@ -163,7 +163,7 @@ When making a request from a controller, you can map the response to a `Future[R
 
 WSClient is a wrapper around the underlying AsyncHttpClient.  It is useful for defining multiple clients with different profiles, or using a mock.
 
-You can define a WS client directly from code without having it injected by WS, and then use it implicitly with `WS.clientUrl()`. Note that you should always use `NingAsyncHttpClientConfigBuilder` when configuring your client, for secure TLS configuration:
+You can define a WS client directly from code without having it injected by WS, and then use it implicitly with `WS.clientUrl()`:
 
 @[implicit-client](code/ScalaWSSpec.scala)
 
@@ -213,7 +213,7 @@ There are 3 different timeouts in WS. Reaching a timeout causes the WS request t
 
 The request timeout can be overridden for a specific connection with `withRequestTimeout()` (see "Making a Request" section).
 
-### Configuring AsyncClientConfig
+### Configuring AsyncHttpClientConfig
 
 The following advanced settings can be configured on the underlying AsyncHttpClientConfig.
 Please refer to the [AsyncHttpClientConfig Documentation](http://asynchttpclient.github.io/async-http-client/apidocs/com/ning/http/client/AsyncHttpClientConfig.Builder.html) for more information.
@@ -225,7 +225,7 @@ Please refer to the [AsyncHttpClientConfig Documentation](http://asynchttpclient
 * `play.ws.ning.maxConnectionsTotal`
 * `play.ws.ning.maxConnectionLifeTime`
 * `play.ws.ning.idleConnectionInPoolTimeout`
-* `ws.ning.webSocketIdleTimeout`
+* `play.ws.ning.webSocketIdleTimeout`
 * `play.ws.ning.maxNumberOfRedirects`
 * `play.ws.ning.maxRequestRetry`
 * `play.ws.ning.disableUrlEncoding`
