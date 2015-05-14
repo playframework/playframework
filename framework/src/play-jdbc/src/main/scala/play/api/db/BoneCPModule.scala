@@ -64,7 +64,7 @@ class BoneConnectionPool @Inject() (environment: Environment) extends Connection
       case unknown => throw config.reportError("bonecp.isolation",
         s"Unknown isolation level [$unknown]")
     }
-    val catalog = config.getOptionalDeprecated[String]("defaultCatalog", "bonecp.defaultCatalog")
+    val catalog = config.getOptionalDeprecated[String]("bonecp.defaultCatalog", "defaultCatalog")
     val readOnly = config.getDeprecated[Boolean]("bonecp.readOnly", "readOnly")
 
     datasource.setClassLoader(environment.classLoader)
