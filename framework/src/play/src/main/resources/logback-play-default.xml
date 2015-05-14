@@ -24,7 +24,7 @@
   </appender>
 
   <appender name="ASYNCSTDOUT" class="ch.qos.logback.classic.AsyncAppender">
-    <appender-ref ref="FILE" />
+    <appender-ref ref="STDOUT" />
   </appender>
 
   <logger name="play" level="INFO" />
