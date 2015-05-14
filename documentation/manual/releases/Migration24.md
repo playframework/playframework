@@ -648,6 +648,19 @@ Previously, Play added all the resources to the the `conf` directory in the dist
 
 This can be turned off by setting `PlayKeys.externalizeResources := false`, which will cause no `conf` directory to be created in the distribution, and it will not be on the classpath.  The contents of the applications `conf` directory will still be on the classpath by virtue of the fact that it's included in the applications jar file.
 
+### Changes in Debian Package creation
+
+The [sbt-native-packager](https://github.com/sbt/sbt-native-packager) has been upgraded. Due to this, the following adjustments might be necessary:
+ * The syntax of the `/etc/default/$appname` file has changed from being a simple list of command line parameters to being a shell script that gets sourced by the start/stop scripts, allowing you to set environment variables.
+ * The equivalent to the old syntax of the default file is an `application.ini` file in your archive's `conf` folder.
+ * The default-file gets sourced by `SystemV` Init scripts only - Upstart ignores this file right now. To change your build to create `SystemV` compatible packages, add this to your build.sbt: 
+```
+import com.typesafe.sbt.packager.archetypes.ServerLoader.{SystemV, Upstart}
+
+serverLoading in Debian := SystemV
+```
+ * Other changes that might be necessary can be found in the [sbt-native-packager release notes](https://github.com/sbt/sbt-native-packager/releases). 
+
 
 ## Miscellaneous
 
