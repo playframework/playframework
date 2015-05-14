@@ -22,6 +22,7 @@ import org.xml.sax.InputSource;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import play.api.libs.json.JsValue;
+import play.api.libs.json.jackson.JacksonJson;
 import play.api.mvc.AnyContent;
 import play.api.mvc.AnyContentAsFormUrlEncoded;
 import play.api.mvc.AnyContentAsJson;
@@ -723,7 +724,7 @@ public class Http {
          * @param node the Json Node
          */
         public RequestBuilder bodyJson(JsonNode node) {
-            return bodyJson(play.api.libs.json.JacksonJson$.MODULE$.jsonNodeToJsValue(node));
+            return bodyJson(JacksonJson.jsonNodeToJsValue(node));
         }
 
         /**

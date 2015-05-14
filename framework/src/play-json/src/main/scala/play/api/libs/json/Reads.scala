@@ -14,6 +14,8 @@ import java.time.{
 import java.time.format.{ DateTimeFormatter, DateTimeParseException }
 import java.time.temporal.UnsupportedTemporalTypeException
 
+import play.api.libs.json.jackson.JacksonJson
+
 import scala.annotation.implicitNotFound
 import scala.collection._
 import scala.language.higherKinds

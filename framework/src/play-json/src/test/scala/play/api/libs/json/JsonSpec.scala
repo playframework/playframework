@@ -5,7 +5,7 @@ package play.api.libs.json
 
 import java.util.{ Calendar, Date, TimeZone }
 
-import com.fasterxml.jackson.databind.{ JsonMappingException, JsonNode }
+import com.fasterxml.jackson.databind.{ ObjectMapper, JsonMappingException, JsonNode }
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Json._
@@ -54,6 +54,8 @@ object JsonSpec extends org.specs2.mutable.Specification {
       )
     )
   )(Post, unlift(Post.unapply))
+
+  val mapper = new ObjectMapper()
 
   "JSON" should {
     "equals JsObject independently of field order" in {
@@ -291,7 +293,7 @@ object JsonSpec extends org.specs2.mutable.Specification {
     }
 
     "Serialize and deserialize Jackson ObjectNodes" in {
-      val on = JacksonJson.mapper.createObjectNode()
+      val on = mapper.createObjectNode()
         .put("foo", 1).put("bar", "two")
       val json = Json.obj("foo" -> 1, "bar" -> "two")
 
@@ -300,7 +302,7 @@ object JsonSpec extends org.specs2.mutable.Specification {
     }
 
     "Serialize and deserialize Jackson ArrayNodes" in {
-      val an = JacksonJson.mapper.createArrayNode()
+      val an = mapper.createArrayNode()
         .add("one").add(2)
       val json = Json.arr("one", 2)
       toJson(an) must equalTo(json) and (
