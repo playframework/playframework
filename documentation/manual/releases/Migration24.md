@@ -231,6 +231,44 @@ If you want to change how the actor system is configured, you can set `play.akka
 
 See the [[Java|JavaAkka]] or [[Scala|ScalaAkka]] Akka page for more information.
 
+#### Thread pool configuration
+
+Previously the two actor systems had slightly different thread pool configuration. Now that there is only one actor system, the configuration has been merged. We've also added a LIFO (stack-based) scheduling rule which should improve performance in most Play applications.
+
+The following settings are the new defaults in Play 2.4. They've been shown to have good performance in our testing, but every application is different so you may need to tweak them or rever them to the Play 2.3 settings. You can do that by overriding any of these values in your `application.conf`. Here are the new settings:
+
+```
+akka {
+  actor {
+    default-dispatcher {
+      fork-join-executor {
+        parallelism-factor = 1.0
+        parallelism-max = 24
+        task-peeking-mode = LIFO
+      }
+    }
+  }
+}
+```
+
+In particular, you might want to try the [default Akka settings](http://doc.akka.io/docs/akka/2.3.11/general/configuration.html#listing-of-the-reference-configuration):
+
+```
+akka {
+  actor {
+    default-dispatcher {
+      fork-join-executor {
+        parallelism-factor = 3.0
+        parallelism-max = 64
+        task-peeking-mode = FIFO
+      }
+    }
+  }
+}
+```
+
+See the [[thread pool configuration section|ThreadPools#Configuring-the-Play-default-thread-pool]] for more information.
+
 ### Logging
 
 Logging is now configured solely via [logback configuration files](http://logback.qos.ch/manual/configuration.html).
