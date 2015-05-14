@@ -55,17 +55,17 @@ When you use an example, you must return an example result. Usually, you will se
 "Hello world" must endWith("world")
 ```
 
-The expression that follows the `must` keyword are known as [`matchers`](http://etorreborre.github.io/specs2/guide/org.specs2.guide.Matchers.html). Matchers return an example result, typically Success or Failure.  The example will not compile if it does not return a result.
+The expression that follows the `must` keyword are known as [`matchers`](http://etorreborre.github.io/specs2/guide/SPECS2-2.3.9/org.specs2.guide.Matchers.html#Matchers). Matchers return an example result, typically Success or Failure.  The example will not compile if it does not return a result.
 
-The most useful matchers are the [match results](http://etorreborre.github.io/specs2/guide/org.specs2.guide.Matchers.html#Match+results).  These are used to check for equality, determine the result of Option and Either, and even check if exceptions are thrown.
+The most useful matchers are the [match results](http://etorreborre.github.io/specs2/guide/SPECS2-2.3.9/org.specs2.guide.Matchers.html#Match+results). These are used to check for equality, determine the result of Option and Either, and even check if exceptions are thrown.
 
-There are also [optional matchers](http://etorreborre.github.io/specs2/guide/org.specs2.guide.Matchers.html#Optional) that allow for XML and JSON matching in tests.
+There are also [optional matchers](http://etorreborre.github.io/specs2/guide/SPECS2-2.3.9/org.specs2.guide.Matchers.html#Optional) that allow for XML and JSON matching in tests.
 
 ### Mockito
 
 Mocks are used to isolate unit tests against external dependencies.  For example, if your class depends on an external `DataService` class, you can feed appropriate data to your class without instantiating a `DataService` object.
 
-[Mockito](https://code.google.com/p/mockito/) is integrated into specs2 as the default [mocking library](http://etorreborre.github.io/specs2/guide/org.specs2.guide.Matchers.html#Mock+expectations).
+[Mockito](https://code.google.com/p/mockito/) is integrated into specs2 as the default [mocking library](http://etorreborre.github.io/specs2/guide/SPECS2-2.3.9/org.specs2.guide.Matchers.html#Mock+expectations).
 
 To use Mockito, add the following import:
 
