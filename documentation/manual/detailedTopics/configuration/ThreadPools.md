@@ -49,9 +49,7 @@ The default thread pool can be configured using standard Akka configuration in `
 
 @[default-config](code/ThreadPools.scala)
 
-This configuration instructs Akka to create 3 threads per available processor, with a minimum of 8 and a maximum of 64 threads in the pool.  The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/2.3.0/general/configuration.html#Listing_of_the_Reference_Configuration).
-
-> Note that this configuration is the same configuration that the Play Akka plugin uses. Before Play 2.4 the Play Akka plugin had different configuration options.
+This configuration instructs Akka to create 3 threads per available processor, with a minimum of 8 and a maximum of 64 threads in the pool.  The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/2.3.11/general/configuration.html#Listing_of_the_Reference_Configuration).
 
 ## Using other thread pools
 
