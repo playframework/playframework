@@ -431,17 +431,11 @@ class ScalaWSSpec extends PlaySpecification with Results {
 
       //#implicit-client
       import play.api.libs.ws.ning._
-      import com.ning.http.client.AsyncHttpClientConfig
 
-      val clientConfig = new NingWSClientConfig()
-      val secureDefaults: AsyncHttpClientConfig = new NingAsyncHttpClientConfigBuilder(clientConfig).build()
-      // You can directly use the builder for specific options once you have secure TLS defaults...
-      val builder = new AsyncHttpClientConfig.Builder(secureDefaults)
-      builder.setCompressionEnforced(true)
-      val secureDefaultsWithSpecificOptions: AsyncHttpClientConfig = builder.build()
-      implicit val sslClient = new NingWSClient(secureDefaultsWithSpecificOptions)
-
+      implicit val sslClient = NingWSClient()
+      // close with sslClient.close() when finished with client
       val response = WS.clientUrl(url).get()
+
       //#implicit-client
       await(response).status must_== OK
 
@@ -514,5 +508,3 @@ class ScalaWSSpec extends PlaySpecification with Results {
 
   }
 }
-
-
