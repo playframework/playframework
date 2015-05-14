@@ -22,6 +22,7 @@ import scala.concurrent.duration.FiniteDuration
 case class HttpConfiguration(
   context: String = "/",
   parser: ParserConfiguration = ParserConfiguration(),
+  actionComposition: ActionCompositionConfiguration = ActionCompositionConfiguration(),
   cookies: CookiesConfiguration = CookiesConfiguration(),
   session: SessionConfiguration = SessionConfiguration(),
   flash: FlashConfiguration = FlashConfiguration())
@@ -84,6 +85,14 @@ case class ParserConfiguration(
   maxMemoryBuffer: Int = 102400,
   maxDiskBuffer: Long = 10485760)
 
+/**
+ * Configuration for action composition.
+ *
+ * @param controllerAnnotationsFirst If annotations put on controllers should be executed before the ones put on actions.
+ */
+case class ActionCompositionConfiguration(
+  controllerAnnotationsFirst: Boolean = false)
+
 object HttpConfiguration {
 
   @Singleton
@@ -108,6 +117,9 @@ object HttpConfiguration {
         maxMemoryBuffer = config.getDeprecated[ConfigMemorySize]("play.http.parser.maxMemoryBuffer", "parsers.text.maxLength")
           .toBytes.toInt,
         maxDiskBuffer = config.get[ConfigMemorySize]("play.http.parser.maxDiskBuffer").toBytes
+      ),
+      actionComposition = ActionCompositionConfiguration(
+        controllerAnnotationsFirst = config.get[Boolean]("play.http.actionComposition.controllerAnnotationsFirst")
       ),
       cookies = CookiesConfiguration(
         strict = config.get[Boolean]("play.http.cookies.strict")
