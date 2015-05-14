@@ -115,6 +115,10 @@ play-ebean now supports Ebean 4.x.
 
 [HikariCP](http://brettwooldridge.github.io/HikariCP/) is now the default JDBC connection pool. Its properties can be directly configured using `.conf` files and you should rename the configuration properties to match what is expected by HikariCP.
 
+## WS
+
+WS now supports Server Name Indication (SNI) in HTTPS -- this solves a number of problems with HTTPS based CDNs such as Cloudflare which depend heavily on SNI.
+
 ## Experimental Features
 
 Play provides two new experimental features.  These are labelled as experimental because the APIs for them have not yet been finalised, and may change from one release to the next.  Binary compatibility is not guaranteed on these APIs.
