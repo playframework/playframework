@@ -5,6 +5,7 @@ package play.api.libs.json
 
 import java.io.InputStream
 import play.api.libs.iteratee.Execution.Implicits.defaultExecutionContext
+import play.api.libs.json.jackson.JacksonJson
 
 /**
  * Helper functions to handle JsValues.

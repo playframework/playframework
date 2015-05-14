@@ -13,6 +13,8 @@ import java.time.{
 import java.time.temporal.Temporal
 import java.time.format.DateTimeFormatter
 
+import play.api.libs.json.jackson.JacksonJson
+
 import scala.annotation.implicitNotFound
 import scala.collection._
 import scala.reflect.ClassTag
