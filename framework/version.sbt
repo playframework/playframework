@@ -1,1 +1,1 @@
-Release.branchVersion in ThisBuild := "2.4.0-SNAPSHOT"
+Release.branchVersion in ThisBuild := "3.0.0-SNAPSHOT"
