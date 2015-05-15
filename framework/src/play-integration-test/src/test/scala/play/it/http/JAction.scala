@@ -26,7 +26,7 @@ import play.libs.F.Promise
  */
 object JAction {
   def apply(app: Application, c: AbstractMockController): EssentialAction = {
-    new JavaAction(new JavaHandlerComponents(app.injector, new DefaultHttpRequestHandler())) {
+    new JavaAction(app.injector.instanceOf[JavaHandlerComponents]) {
       val annotations = new JavaActionAnnotations(c.getClass, c.getClass.getMethod("action"))
       val parser = annotations.parser
       def invocation = c.invocation
