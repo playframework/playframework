@@ -14,8 +14,7 @@ import play.libs.Scala;
 public class CustomApplicationLoader extends GuiceApplicationLoader {
 
     @Override
-    protected GuiceApplicationBuilder builder(
-            ApplicationLoader.Context context) {
+    public GuiceApplicationBuilder builder(ApplicationLoader.Context context) {
         Configuration extra = new Configuration("a = 1");
         return initialBuilder
             .in(context.environment())
