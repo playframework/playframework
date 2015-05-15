@@ -37,7 +37,7 @@ public class GuiceApplicationLoader implements ApplicationLoader {
     /**
      * Construct a builder to use for loading the given context.
      */
-    protected GuiceApplicationBuilder builder(ApplicationLoader.Context context) {
+    public GuiceApplicationBuilder builder(ApplicationLoader.Context context) {
         return initialBuilder
             .in(context.environment())
             .loadConfig(context.initialConfiguration())
