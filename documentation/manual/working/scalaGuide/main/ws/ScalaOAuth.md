@@ -3,7 +3,7 @@
 
 [OAuth](http://oauth.net/) is a simple way to publish and interact with protected data. It's also a safer and more secure way for people to give you access. For example, it can be used to access your users' data on [Twitter](https://dev.twitter.com/docs/auth/using-oauth).
 
-There are 2 very different versions of OAuth: [OAuth 1.0](http://tools.ietf.org/html/rfc5849) and [OAuth 2.0](http://oauth.net/2/). Version 2 is simple enough to be implemented easily without library or helpers, so Play only provides support for OAuth 1.0.
+There are two very different versions of OAuth: [OAuth 1.0](http://tools.ietf.org/html/rfc5849) and [OAuth 2.0](http://oauth.net/2/). Version 2 is simple enough to be implemented easily without library or helpers, so Play only provides support for OAuth 1.0.  
 
 ## Usage
 
@@ -38,64 +38,16 @@ Most of the flow will be done by the Play library.
 
 Now the /access token/ can be passed to any call to access protected data.
 
+More details on OAuth's process flow are available at [The OAuth Bible](http://oauthbible.com/).
+
 ## Example
 
-```scala
-object Twitter extends Controller {
+To implement the flow in a controller, define the key and the consumer secret and retrieve the token and secret:
 
-  val KEY = ConsumerKey("xxxxx", "xxxxx")
+@[flow](code/ScalaOAuthSpec.scala)
 
-  val TWITTER = OAuth(ServiceInfo(
-    "https://api.twitter.com/oauth/request_token",
-    "https://api.twitter.com/oauth/access_token",
-    "https://api.twitter.com/oauth/authorize", KEY),
-    true)
+After implementing the flow, the timeline is available by signing requests through WS:
 
-  def authenticate = Action { request =>
-    request.getQueryString("oauth_verifier").map { verifier =>
-      val tokenPair = sessionTokenPair(request).get
-      // We got the verifier; now get the access token, store it and back to index
-      TWITTER.retrieveAccessToken(tokenPair, verifier) match {
-        case Right(t) => {
-          // We received the authorized tokens in the OAuth object - store it before we proceed
-          Redirect(routes.Application.index).withSession("token" -> t.token, "secret" -> t.secret)
-        }
-        case Left(e) => throw e
-      }
-    }.getOrElse(
-      TWITTER.retrieveRequestToken("http://localhost:9000/auth") match {
-        case Right(t) => {
-          // We received the unauthorized tokens in the OAuth object - store it before we proceed
-          Redirect(TWITTER.redirectUrl(t.token)).withSession("token" -> t.token, "secret" -> t.secret)
-        }
-        case Left(e) => throw e
-      })
-  }
+@[extended](code/ScalaOAuthSpec.scala)
 
-  def sessionTokenPair(implicit request: RequestHeader): Option[RequestToken] = {
-    for {
-      token <- request.session.get("token")
-      secret <- request.session.get("secret")
-    } yield {
-      RequestToken(token, secret)
-    }
-  }
-}
-```
-
-```scala
-object Application extends Controller {
-
-  def timeline = Action.async { implicit request =>
-    Twitter.sessionTokenPair match {
-      case Some(credentials) => {
-        WS.url("https://api.twitter.com/1.1/statuses/home_timeline.json")
-          .sign(OAuthCalculator(Twitter.KEY, credentials))
-          .get
-          .map(result => Ok(result.json))
-      }
-      case _ => Future.successful(Redirect(routes.Twitter.authenticate))
-    }
-  }
-}
-```
+> **NOTE**: OAuth does not provide any protection against MITM attacks.  This example shows the OAuth token and secret stored in a session cookie -- for the best security, always use HTTPS with `play.http.session.cookie.secure=true` defined.

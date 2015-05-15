@@ -3,7 +3,7 @@
 
 [OAuth](http://oauth.net/) is a simple way to publish and interact with protected data. It's also a safer and more secure way for people to give you access. For example, it can be used to access your users' data on [Twitter](https://dev.twitter.com/docs/auth/using-oauth).
 
-There are 2 very different versions of OAuth: [OAuth 1.0](https://tools.ietf.org/html/rfc5849) and [OAuth 2.0](http://oauth.net/2/). Version 2 is simple enough to be implemented easily without library or helpers, so Play only provides support for OAuth 1.0.
+There are two very different versions of OAuth: [OAuth 1.0](https://tools.ietf.org/html/rfc5849) and [OAuth 2.0](http://oauth.net/2/). Version 2 is simple enough to be implemented easily without library or helpers, so Play only provides support for OAuth 1.0.
 
 ## Usage
 
@@ -38,6 +38,8 @@ Most of the flow will be done by the Play library.
 
 Now the /access token/ can be passed to any call to access protected data.
 
+More details on OAuth's process flow are available at [The OAuth Bible](http://oauthbible.com/).
+
 ## Example
 
 `conf/routes`:
@@ -47,3 +49,5 @@ Now the /access token/ can be passed to any call to access protected data.
 controller:
 
 @[ws-oauth-controller](code/javaguide/ws/controllers/Twitter.java)
+
+> **NOTE**: OAuth does not provide any protection against MITM attacks.  This example shows the OAuth token and secret stored in a session cookie -- for the best security, always use HTTPS with `play.http.session.cookie.secure=true` defined.
