@@ -942,7 +942,7 @@ package play.api.mvc {
      * @return a valid Cookie header value
      */
     def mergeCookieHeader(cookieHeader: String, cookies: Seq[Cookie]): String = {
-      val tupledCookies = (decodeCookieHeader(cookieHeader) ++ cookies).map(cookie => cookie.path -> cookie)
+      val tupledCookies = (decodeCookieHeader(cookieHeader) ++ cookies).map(cookie => cookie.name -> cookie)
       // Put cookies in a map
       // Note: Seq.toMap do not preserve order
       val uniqCookies = scala.collection.immutable.ListMap(tupledCookies: _*)
