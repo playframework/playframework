@@ -81,7 +81,7 @@
 
 * **Website:** <https://github.com/cleverage/play2-elasticsearch>
 * **Documentation:** <https://github.com/cleverage/play2-elasticsearch/blob/master/README.md>
-* **Repository:** <http://cleverage.github.io/play2-elasticsearch/releases/>
+* **Repository:** <https://cleverage.github.io/play2-elasticsearch/releases/>
 * **Short description** Indexing/Requesting Object in Embedded ElasticSearch Server or remote(s) Node(s). 
 
 ## Ember.js
