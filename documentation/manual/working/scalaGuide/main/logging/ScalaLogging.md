@@ -1,14 +1,14 @@
 <!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # The Logging API
 
-Using logging in your application can be useful for monitoring, debugging, error tracking, and business intelligence. Play provides an API for logging which is accessed through the [`Logger`](api/scala/index.html#play.api.Logger$) object and uses [Logback](http://logback.qos.ch/) as the logging engine.
+Using logging in your application can be useful for monitoring, debugging, error tracking, and business intelligence. Play provides an API for logging which is accessed through the [`Logger`](api/scala/play/api/Logger$.html) object and uses [Logback](http://logback.qos.ch/) as the logging engine.
 
 ## Logging architecture
 
 The logging API uses a set of components that help you to implement an effective logging strategy.
 
 #### Logger
-Your application can define [`Logger`](api/scala/index.html#play.api.Logger) instances to send log message requests. Each `Logger` has a name which will appear in log messages and is used for configuration.  
+Your application can define [`Logger`](api/scala/play/api/Logger.html) instances to send log message requests. Each `Logger` has a name which will appear in log messages and is used for configuration.  
 
 Loggers follow a hierarchical inheritance structure based on their naming. A logger is said to be an ancestor of another logger if its name followed by a dot is the prefix of descendant logger name. For example, a logger named "com.foo" is the ancestor of a logger named "com.foo.bar.Baz." All loggers inherit from a root logger. Logger inheritance allows you to configure a set of loggers by configuring a common ancestor.
 

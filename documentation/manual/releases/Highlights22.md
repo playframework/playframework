@@ -20,13 +20,13 @@ def index = Action.async {
 
 ## Better control over buffering and keep alive
 
-How and when Play buffers results is now better expressed in the Scala API, [`SimpleResult`](api/scala/index.html#play.api.mvc.SimpleResult) has a new property called `connection`, which is of type [`HttpConnection`](api/scala/index.html#play.api.mvc.HttpConnection$).
+How and when Play buffers results is now better expressed in the Scala API, `SimpleResult` has a new property called `connection`, which is of type [`HttpConnection`](api/scala/play/api/mvc/HttpConnection$.html).
 
 If set to `Close`, the response will be closed once the body is sent, and no buffering will be attempted.  If set to `KeepAlive`, Play will make a best effort attempt to keep the connection alive, in accordance to the HTTP spec, buffering the response if only no transfer encoding or content length is specified.
 
 ## New action composition and action builder methods
 
-We now provide an [`ActionBuilder`](api/scala/index.html#play.api.mvc.ActionBuilder) trait for Scala applications that allows more powerful building of action stacks.  For example:
+We now provide an [`ActionBuilder`](api/scala/play/api/mvc/ActionBuilder.html) trait for Scala applications that allows more powerful building of action stacks.  For example:
 
 ```scala
 object MyAction extends ActionBuilder[AuthenticatedRequest] {

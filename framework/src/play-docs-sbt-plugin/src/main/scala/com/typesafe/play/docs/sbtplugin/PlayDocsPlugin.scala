@@ -6,7 +6,7 @@ package com.typesafe.play.docs.sbtplugin
 import java.util.concurrent.Callable
 import java.util.jar.JarFile
 
-import com.typesafe.play.docs.sbtplugin.PlayDocsValidation.{ CodeSamplesReport, MarkdownRefReport }
+import com.typesafe.play.docs.sbtplugin.PlayDocsValidation.{ ValidationConfig, CodeSamplesReport, MarkdownRefReport }
 import play.core.BuildDocHandler
 import play.core.server.ServerWithStop
 import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
@@ -21,7 +21,6 @@ import scala.util.control.NonFatal
 
 object Imports {
   object PlayDocsKeys {
-    val fallbackToJar = SettingKey[Boolean]("playDocsFallbackToJar", "Whether the docs should fallback to loading things from the jar", KeyRanks.CSetting)
     val manualPath = SettingKey[File]("playDocsManualPath", "The location of the manual", KeyRanks.CSetting)
     val docsVersion = SettingKey[String]("playDocsVersion", "The version of the documentation to fallback to.", KeyRanks.ASetting)
     val docsName = SettingKey[String]("playDocsName", "The name of the documentation artifact", KeyRanks.BSetting)
@@ -36,6 +35,7 @@ object Imports {
     val translationCodeSamplesReportFile = SettingKey[File]("translationCodeSamplesReportFilename", "The filename of the translation code samples report", KeyRanks.CTask)
     val translationCodeSamplesReport = TaskKey[File]("translationCodeSamplesReport", "Generates a report on the translation code samples", KeyRanks.CTask)
     val cachedTranslationCodeSamplesReport = TaskKey[File]("cached-translation-code-samples-report", "Generates a report on the translation code samples if not already generated", KeyRanks.CTask)
+    val playDocsValidationConfig = settingKey[ValidationConfig]("Configuration for docs validation")
 
     val javaManualSourceDirectories = SettingKey[Seq[File]]("javaManualSourceDirectories")
     val scalaManualSourceDirectories = SettingKey[Seq[File]]("scalaManualSourceDirectories")
@@ -59,7 +59,7 @@ object PlayDocsPlugin extends AutoPlugin {
   override def projectSettings = docsRunSettings ++ docsReportSettings ++ docsTestSettings
 
   def docsRunSettings = Seq(
-    fallbackToJar := true,
+    playDocsValidationConfig := ValidationConfig(),
     manualPath := baseDirectory.value,
     run <<= docsRunSetting,
     generateMarkdownRefReport <<= PlayDocsValidation.generateMarkdownRefReportTask,
@@ -185,7 +185,7 @@ object PlayDocsPlugin extends AutoPlugin {
     val buildDocHandler = maybeDocsJar match {
       case Some(docsJar) =>
         val fromDirectoryAndJarMethod = docHandlerFactoryClass.getMethod("fromDirectoryAndJar", classOf[java.io.File], classOf[JarFile], classOf[String], classOf[Boolean])
-        fromDirectoryAndJarMethod.invoke(null, manualPath.value, docsJar, "play/docs/content", fallbackToJar.value: java.lang.Boolean)
+        fromDirectoryAndJarMethod.invoke(null, manualPath.value, docsJar, "play/docs/content", true: java.lang.Boolean)
       case None =>
         val fromDirectoryMethod = docHandlerFactoryClass.getMethod("fromDirectory", classOf[java.io.File])
         fromDirectoryMethod.invoke(null, manualPath.value)

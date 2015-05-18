@@ -180,14 +180,14 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 
 | Old API | New API | Comments |
 | ------- | --------| -------- |
-| [`Lang`](api/scala/index.html#play.api.i18n.Lang$) | [`Langs`](api/scala/index.html#play.api.i18n.Langs) | |
-| [`Messages`](api/scala/index.html#play.api.i18n.Messages$) | [`MessagesApi`](api/scala/index.html#play.api.i18n.MessagesApi) | Using one of the `preferred` methods, you can get a [`Messages`](api/scala/index.html#play.api.i18n.Messages) instance. |
-| [`DB`](api/scala/index.html#play.api.db.DB$) | [`DBApi`](api/scala/index.html#play.api.db.DBApi) or better, [`Database`](api/scala/index.html#play.api.db.Database) | You can get a particular database using the `@NamedDatabase` annotation. |
-| [`Cache`](api/scala/index.html#play.api.cache.Cache$) | [`CacheApi`](api/scala/index.html#play.api.cache.CacheApi) or better | You can get a particular cache using the `@NamedCache` annotation. |
-| [`Cached` object](api/scala/index.html#play.api.cache.Cached$) | [`Cached` instance](api/scala/index.html#play.api.cache.Cached) | Use an injected instance instead of the companion object. You can use the `@NamedCache` annotation. |
-| [`Akka`](api/scala/index.html#play.api.libs.concurrent.Akka$) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
-| [`WS`](api/scala/index.html#play.api.libs.ws.WS$) | [`WSClient`](api/scala/index.html#play.api.libs.ws.WSClient) | |
-| [`Crypto`](api/scala/index.html#play.api.libs.Crypto$) | [`Crypto`](api/scala/index.html#play.api.libs.Crypto) | |
+| [`Lang`](api/scala/play/api/i18n/Lang$.html) | [`Langs`](api/scala/play/api/i18n/Langs.html) | |
+| [`Messages`](api/scala/play/api/i18n/Messages$.html) | [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html) | Using one of the `preferred` methods, you can get a [`Messages`](api/scala/play/api/i18n/Messages.html) instance. |
+| [`DB`](api/scala/play/api/db/DB$.html) | [`DBApi`](api/scala/play/api/db/DBApi.html) or better, [`Database`](api/scala/play/api/db/Database.html) | You can get a particular database using the `@NamedDatabase` annotation. |
+| [`Cache`](api/scala/play/api/cache/Cache$.html) | [`CacheApi`](api/scala/play/api/cache/CacheApi.html) or better | You can get a particular cache using the `@NamedCache` annotation. |
+| [`Cached` object](api/scala/play/api/cache/Cached$.html) | [`Cached` instance](api/scala/play/api/cache/Cached.html) | Use an injected instance instead of the companion object. You can use the `@NamedCache` annotation. |
+| [`Akka`](api/scala/play/api/libs/concurrent/Akka$.html) | N/A | No longer needed, just declare a dependency on `ActorSystem` |
+| [`WS`](api/scala/play/api/libs/ws/WS$.html) | [`WSClient`](api/scala/play/api/libs/ws/WSClient.html) | |
+| [`Crypto`](api/scala/play/api/libs/Crypto$.html) | [`Crypto`](api/scala/play/api/libs/Crypto.html) | |
 
 #### Java
 
@@ -321,7 +321,7 @@ Additionally, Java actions may now declare a `BodyParser.Of.maxLength` value tha
 
 ## JSON API changes
 
-The semantics of JSON lookups have changed slightly. `JsUndefined` has been removed from the `JsValue` type hierarchy and all lookups of the form `jsv \ foo` or `jsv(bar)` have been moved to [`JsLookup`](api/java/play/api/libs/json/JsLookup.html). They now return a [`JsLookupResult`](api/java/play/api/libs/json/JsLookupResult.html) instead of a `JsValue`.
+The semantics of JSON lookups have changed slightly. `JsUndefined` has been removed from the `JsValue` type hierarchy and all lookups of the form `jsv \ foo` or `jsv(bar)` have been moved to [`JsLookup`](api/scala/play/api/libs/json/JsLookup.html). They now return a [`JsLookupResult`](api/scala/play/api/libs/json/JsLookupResult.html) instead of a `JsValue`.
 
 If you have code of the form
 
@@ -335,7 +335,7 @@ the following code is equivalent, if you know the property exists:
 val v: JsValue = (json \ "foo" \ "bar").get
 ```
 
-If you don't know the property exists, we recommend using pattern matching or the methods on [`JsLookupResult`](api/java/play/api/libs/json/JsLookupResult.html) to safely handle the `JsUndefined` case, e.g.
+If you don't know the property exists, we recommend using pattern matching or the methods on [`JsLookupResult`](api/scala/play/api/libs/json/JsLookupResult.html) to safely handle the `JsUndefined` case, e.g.
 
 ```scala
 val vOpt = Option[JsValue] = (json \ "foo" \ "bar").toOption
@@ -343,7 +343,7 @@ val vOpt = Option[JsValue] = (json \ "foo" \ "bar").toOption
 
 ### JsLookup
 
-All JSON traversal methods have been moved to the [`JsLookup`](api/java/play/api/libs/json/JsLookup.html) class, which is implicitly applied to all values of type `JsValue` or `JsLookupResult`. In addition to the `apply`, `\`, and `\\` methods, the `head`, `tail`, and `last` methods have been added for JSON arrays. All methods except `\\` return a [`JsLookupResult`](api/java/play/api/libs/json/JsLookupResult.html), a wrapper for `JsValue` that helps with handling undefined values.
+All JSON traversal methods have been moved to the [`JsLookup`](api/scala/play/api/libs/json/JsLookup.html) class, which is implicitly applied to all values of type `JsValue` or `JsLookupResult`. In addition to the `apply`, `\`, and `\\` methods, the `head`, `tail`, and `last` methods have been added for JSON arrays. All methods except `\\` return a [`JsLookupResult`](api/scala/play/api/libs/json/JsLookupResult.html), a wrapper for `JsValue` that helps with handling undefined values.
 
 The methods `as[A]`, `asOpt[A]`, `validate[A]` also exist on `JsLookup`, so code like the below should require no source changes:
 
@@ -370,7 +370,7 @@ If you use the Java API, the [`F.Promise`](api/java/play/libs/F.Promise.html) cl
 
 ## WS client
 
-`WSRequestHolder` has been renamed to `WSRequest` in [Scala](api/scala/index.html#play.api.libs.ws.WSRequest) and [Java](api/java/play/libs/ws/WSRequest.html).  The previous `WSRequest` class has been removed out as it was only used internally to WS for OAuth functionality.
+`WSRequestHolder` has been renamed to `WSRequest` in [Scala](api/scala/play/api/libs/ws/WSRequest.html) and [Java](api/java/play/libs/ws/WSRequest.html).  The previous `WSRequest` class has been removed out as it was only used internally to WS for OAuth functionality.
 
 WS has upgraded from AsyncHttpClient 1.8.x to 1.9.x, which includes a number of breaking changes if using or configuring that library directly.  Please see the [AsyncHttpClient Migration Guide](https://github.com/AsyncHttpClient/async-http-client/blob/master/MIGRATION.md) for more details.  The upgrade to AsyncHttpClient 1.9.x enables Server Name Indication (SNI) in HTTPS -- this solves a number of problems with HTTPS based CDNs such as Cloudflare which depend heavily on SNI.
 
@@ -424,7 +424,7 @@ String enc = Crypto.encryptAES(orig);
 String dec = Crypto.decryptAES(enc);
 ```
 
-Usage of the [Scala Crypto API](api/scala/index.html#play.api.libs.Crypto) is also the same:
+Usage of the [Scala Crypto API](api/scala/play/api/libs/Crypto.html) is also the same:
 
 ```scala
 import play.api.libs.Crypto
@@ -633,7 +633,7 @@ play.i18n.langs = [ "en", "en-US", "fr" ]
 
 ### Scala
 
-You now need to have an implicit [`Messages`](api/scala/index.html#play.api.i18n.Messages) value instead of just `Lang` in order to use the i18n API. The `Messages` type aggregates a `Lang` and a [`MessagesApi`](api/scala/index.html#play.api.i18n.MessagesApi).
+You now need to have an implicit [`Messages`](api/scala/play/api/i18n/Messages.html) value instead of just `Lang` in order to use the i18n API. The `Messages` type aggregates a `Lang` and a [`MessagesApi`](api/scala/play/api/i18n/MessagesApi.html).
 
 This means that you should change your templates to take an implicit `Messages` parameter instead of `Lang`:
 
@@ -642,7 +642,7 @@ This means that you should change your templates to take an implicit `Messages` 
 ...
 ```
 
-From you controllers you can get such an implicit `Messages` value by mixing the [`play.api.i18n.I18nSupport`](api/scala/index.html#play.api.i18n.I18nSupport) trait in your controller that gives you an implicit `Messages` value as long as there is a `RequestHeader` value in the implicit scope. The `I18nSupport` trait has an abstract member `def messagesApi: MessagesApi` so your code will typically look like the following:
+From you controllers you can get such an implicit `Messages` value by mixing the [`play.api.i18n.I18nSupport`](api/scala/play/api/i18n/I18nSupport.html) trait in your controller that gives you an implicit `Messages` value as long as there is a `RequestHeader` value in the implicit scope. The `I18nSupport` trait has an abstract member `def messagesApi: MessagesApi` so your code will typically look like the following:
 
 ```scala
 import javax.inject.Inject

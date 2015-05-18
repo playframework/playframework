@@ -9,7 +9,7 @@ Modern HTML5 compliant web browsers natively support WebSockets via a JavaScript
 
 Until now, we were using `Action` instances to handle standard HTTP requests and send back standard HTTP responses. WebSockets are a totally different beast and can’t be handled via standard `Action`.
 
-Play provides two different built in mechanisms for handling WebSockets.  The first is using actors, the second is using iteratees.  Both of these mechanisms can be accessed using the builders provided on [WebSocket](api/scala/index.html#play.api.mvc.WebSocket$).
+Play provides two different built in mechanisms for handling WebSockets.  The first is using actors, the second is using iteratees.  Both of these mechanisms can be accessed using the builders provided on [WebSocket](api/scala/play/api/mvc/WebSocket$.html).
 
 ## Handling WebSockets with actors
 

@@ -52,7 +52,7 @@ For example, if you wanted to have an actor that depended on the Play configurat
 
 @[injected](code/ScalaAkka.scala)
 
-Play provides some helpers to help providing actor bindings.  These allow the actor itself to be dependency injected, and allows the actor ref for the actor to be injected into other components.  To bind an actor using these helpers, create a module as described in the [[dependency injection documentation|ScalaDependencyInjection#Play-applications]], then mix in the [`AkkaGuiceSupport`](api/scala/index.html#play.api.libs.concurrent.AkkaGuiceSupport) trait and use the `bindActor` method to bind the actor:
+Play provides some helpers to help providing actor bindings.  These allow the actor itself to be dependency injected, and allows the actor ref for the actor to be injected into other components.  To bind an actor using these helpers, create a module as described in the [[dependency injection documentation|ScalaDependencyInjection#Play-applications]], then mix in the [`AkkaGuiceSupport`](api/scala/play/api/libs/concurrent/AkkaGuiceSupport.html) trait and use the `bindActor` method to bind the actor:
 
 @[binding](code/ScalaAkka.scala)
 
@@ -74,7 +74,7 @@ Note that the `key` parameter is declared to be `@Assisted`, this tells that it'
 
 We've also defined a `Factory` trait, this takes the `key`, and returns an `Actor`.  We won't implement this, Guice will do that for us, providing an implementation that not only passes our `key` parameter, but also locates the `Configuration` dependency and injects that.  Since the trait just returns an `Actor`, when testing this actor we can inject a factor that returns any actor, for example this allows us to inject a mocked child actor, instead of the actual one.
 
-Now, the actor that depends on this can extend [`InjectedActorSupport`](api/scala/index.html#play.api.libs.concurrent.InjectedActorSupport), and it can depend on the factory we created:
+Now, the actor that depends on this can extend [`InjectedActorSupport`](api/scala/play/api/libs/concurrent/InjectedActorSupport.html), and it can depend on the factory we created:
 
 @[injectedparent](code/ScalaAkka.scala)
 
@@ -141,5 +141,5 @@ Similarly, to run a block of code 10 milliseconds from now:
 While we recommend you use the built in actor system, as it sets up everything such as the correct classloader, lifecycle hooks, etc, there is nothing stopping you from using your own actor system.  It is important however to ensure you do the following:
 
 * Register a [[stop hook|ScalaDependencyInjection#Stopping/cleaning-up]] to shut the actor system down when Play shuts down
-* Pass in the correct classloader from the Play [Environment](api/scala/index.html#play.api.Application) otherwise Akka won't be able to find your applications classes
+* Pass in the correct classloader from the Play [Environment](api/scala/play/api/Application.html) otherwise Akka won't be able to find your applications classes
 * Ensure that either you change the location that Play reads it's akka configuration from using `play.akka.config`, or that you don't read your akka configuration from the default `akka` config, as this will cause problems such as when the systems try to bind to the same remote ports
