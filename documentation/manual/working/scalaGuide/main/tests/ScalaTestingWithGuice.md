@@ -5,11 +5,11 @@ If you're using Guice for [[dependency injection|ScalaDependencyInjection]] then
 
 ## GuiceApplicationBuilder
 
-[GuiceApplicationBuilder](api/scala/index.html#play.api.inject.guice.GuiceApplicationBuilder) provides a builder API for configuring the dependency injection and creation of an [Application](api/scala/index.html#play.api.Application).
+[GuiceApplicationBuilder](api/scala/play/api/inject/guice/GuiceApplicationBuilder.html) provides a builder API for configuring the dependency injection and creation of an [Application](api/scala/play/api/Application.html).
 
 ### Environment
 
-The [Environment](api/scala/index.html#play.api.Environment), or parts of the environment such as the root path, mode, or class loader for an application, can be specified. The configured environment will be used for loading the application configuration, it will be used when loading modules and passed when deriving bindings from Play modules, and it will be injectable into other components.
+The [Environment](api/scala/play/api/Environment.html), or parts of the environment such as the root path, mode, or class loader for an application, can be specified. The configured environment will be used for loading the application configuration, it will be used when loading modules and passed when deriving bindings from Play modules, and it will be injectable into other components.
 
 @[builder-imports](code/tests/guice/ScalaGuiceApplicationBuilderSpec.scala)
 @[set-environment](code/tests/guice/ScalaGuiceApplicationBuilderSpec.scala)
@@ -57,7 +57,7 @@ Modules are automatically loaded from the classpath based on the `play.modules.e
 
 ## GuiceInjectorBuilder
 
-[GuiceInjectorBuilder](api/scala/index.html#play.api.inject.guice.GuiceInjectorBuilder) provides a builder API for configuring Guice dependency injection more generally. This builder does not load configuration or modules automatically from the environment like `GuiceApplicationBuilder`, but provides a completely clean state for adding configuration and bindings. The common interface for both builders can be found in [GuiceBuilder](api/scala/index.html#play.api.inject.guice.GuiceBuilder). A Play [Injector](api/scala/index.html#play.api.inject.Injector) is created. Here's an example of instantiating a component using the injector builder:
+[GuiceInjectorBuilder](api/scala/play/api/inject/guice/GuiceInjectorBuilder.html) provides a builder API for configuring Guice dependency injection more generally. This builder does not load configuration or modules automatically from the environment like `GuiceApplicationBuilder`, but provides a completely clean state for adding configuration and bindings. The common interface for both builders can be found in [GuiceBuilder](api/scala/play/api/inject/guice/GuiceBuilder.html). A Play [Injector](api/scala/play/api/inject/Injector.html) is created. Here's an example of instantiating a component using the injector builder:
 
 @[injector-imports](code/tests/guice/ScalaGuiceApplicationBuilderSpec.scala)
 @[bind-imports](code/tests/guice/ScalaGuiceApplicationBuilderSpec.scala)

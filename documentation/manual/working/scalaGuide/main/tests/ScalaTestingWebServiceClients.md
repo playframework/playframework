@@ -29,13 +29,13 @@ As an example, let's say you've written a GitHub client, and you want to test it
 
 Note that it takes the GitHub API base URL as a parameter - we'll override this in our tests so that we can point it to our mock server.
 
-To test this, we want an embedded Play server that will implement this endpoint.  We can do that using the [`Server`](api/scala/index.html#play.core.server.Server) `withRouter` helper in combination with the [[String Interpolating Routing DSL|ScalaSirdRouter]]:
+To test this, we want an embedded Play server that will implement this endpoint.  We can do that using the [`Server`](api/scala/play/core/server/Server.html) `withRouter` helper in combination with the [[String Interpolating Routing DSL|ScalaSirdRouter]]:
 
 @[mock-service](code/webservice/ScalaTestingWebServiceClients.scala)
 
 The `withRouter` method takes a block of code that takes as input the port number that the server starts on.  By default, Play starts the server on a random free port - this means that you don't need to worry about resource contention on build servers or assigning ports to tests, but it means that your code does need to be told which port is going to be used.
 
-Now to test the GitHub client, we need a `WSClient` for it.  Play provides a [`WsTestClient`](api/scala/index.html#play.api.test.WsTestClient$) trait that has some factory methods for creating test clients.  The `withClient` takes an implicit port, this is handy to use in combination with the `Server.withRouter` method.
+Now to test the GitHub client, we need a `WSClient` for it.  Play provides a [`WsTestClient`](api/scala/play/api/test/WsTestClient$.html) trait that has some factory methods for creating test clients.  The `withClient` takes an implicit port, this is handy to use in combination with the `Server.withRouter` method.
 
 The client that the `WsTestClient.withClient` method creates here is a special client - if you give it a relative URL, then it will default the hostname to `localhost` and the port number to the port number passed in implicitly.  Using this, we can simply set the base url for our GitHub client to be an empty String.
 

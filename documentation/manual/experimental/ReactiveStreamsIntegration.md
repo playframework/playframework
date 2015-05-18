@@ -31,7 +31,7 @@ Include the Reactive Streams integration library into your project.
 libraryDependencies += "com.typesafe.play" %% "play-streams-experimental" % "%PLAY_VERSION%"
 ```
 
-All access to the module is through the [`Streams`](api/scala/index.html#play.play.api.libs.streams.Streams) object.
+All access to the module is through the [`Streams`](api/scala/play/api/libs/streams/Streams$.html) object.
 
 Here is an example that adapts a `Future` into a single-element `Publisher`.
 
@@ -40,7 +40,7 @@ val fut: Future[Int] = Future { ... }
 val pubr: Publisher[Int] = Streams.futureToPublisher(fut)
 ```
 
-See the `Streams` object's [API documentation](api/scala/index.html#play.play.api.libs.streams.Streams) for more information.
+See the `Streams` object's [API documentation](api/scala/play/api/libs/streams/Streams$.html) for more information.
 
 For more examples you can look at the code used by the experimental [[Akka HTTP server backend|AkkaHttpServer]]. Here are the main files where you can find examples:
 

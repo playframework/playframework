@@ -113,7 +113,7 @@ In the code above, new `EnglishHello` and `GermanHello` objects will be created 
 
 If you're implementing a library for Play, then you probably want it to be DI framework agnostic, so that your library will work out of the box regardless of which DI framework is being used in an application.  For this reason, Play provides a lightweight binding API for providing bindings in a DI framework agnostic way.
 
-To provide bindings, implement a [Module](api/scala/index.html#play.api.inject.Module) to return a sequence of the bindings that you want to provide.  The `Module` trait also provides a DSL for building bindings:
+To provide bindings, implement a [Module](api/scala/play/api/inject/Module.html) to return a sequence of the bindings that you want to provide.  The `Module` trait also provides a DSL for building bindings:
 
 @[play-module](code/javaguide/advanced/di/playlib/HelloModule.java)
 

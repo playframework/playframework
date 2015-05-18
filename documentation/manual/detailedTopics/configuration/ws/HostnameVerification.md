@@ -5,7 +5,7 @@ Hostname verification is a little known part of HTTPS that involves a [server id
 
 The check involves looking at the certificate sent by the server, and verifying that the `dnsName` in the `subjectAltName` field of the certificate matches the host portion of the URL used to make the request.
 
-WS SSL does hostname verification automatically, using the [DefaultHostnameVerifier](api/scala/index.html#play.api.libs.ws.ssl.DefaultHostnameVerifier) to implement the [hostname verifier](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#HostnameVerifier) fallback interface.
+WS SSL does hostname verification automatically, using the [DefaultHostnameVerifier](api/scala/play/api/libs/ws/ssl/DefaultHostnameVerifier.html) to implement the [hostname verifier](https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html#HostnameVerifier) fallback interface.
 
 ## Modifying the Hostname Verifier
 

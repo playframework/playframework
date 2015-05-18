@@ -53,7 +53,7 @@ Sometimes you may have a component that holds some state, such as a cache, or a 
 
 ## Stopping/cleaning up
 
-Some components may need to be cleaned up when Play shuts down, for example, to stop thread pools.  Play provides an [ApplicationLifecycle](api/scala/index.html#play.api.inject.ApplicationLifecycle) component that can be used to register hooks to stop your component when Play shuts down:
+Some components may need to be cleaned up when Play shuts down, for example, to stop thread pools.  Play provides an [ApplicationLifecycle](api/scala/play/api/inject/ApplicationLifecycle.html) component that can be used to register hooks to stop your component when Play shuts down:
 
 @[cleanup](code/RuntimeDependencyInjection.scala)
 
@@ -111,7 +111,7 @@ Eager singletons can be used to start up a service when an application starts. T
 
 If you're implementing a library for Play, then you probably want it to be DI framework agnostic, so that your library will work out of the box regardless of which DI framework is being used in an application.  For this reason, Play provides a lightweight binding API for providing bindings in a DI framework agnostic way.
 
-To provide bindings, implement a [Module](api/scala/index.html#play.api.inject.Module) to return a sequence of the bindings that you want to provide.  The `Module` trait also provides a DSL for building bindings:
+To provide bindings, implement a [Module](api/scala/play/api/inject/Module.html) to return a sequence of the bindings that you want to provide.  The `Module` trait also provides a DSL for building bindings:
 
 @[play-module](code/RuntimeDependencyInjection.scala)
 
@@ -135,13 +135,13 @@ If there is a module that you don't want to be loaded, you can exclude it by app
 
 ## Advanced: Extending the GuiceApplicationLoader
 
-Play's runtime dependency injection is bootstrapped by the [`GuiceApplicationLoader`](api/scala/index.html#play.api.inject.guice.GuiceApplicationLoader) class. This class loads all the modules, feeds the modules into Guice, then uses Guice to create the application. If you want to control how Guice initializes the application then you can extend the `GuiceApplicationLoader` class.
+Play's runtime dependency injection is bootstrapped by the [`GuiceApplicationLoader`](api/scala/play/api/inject/guice/GuiceApplicationLoader.html) class. This class loads all the modules, feeds the modules into Guice, then uses Guice to create the application. If you want to control how Guice initializes the application then you can extend the `GuiceApplicationLoader` class.
 
-There are several methods you can override, but you'll usually want to override the `builder` method. This method reads the [`ApplicationLoader.Context`](api/scala/index.html#play.api.ApplicationLoader$$Context) and creates a [`GuiceApplicationBuilder`](api/scala/index.html#play.api.inject.guice.GuiceApplicationBuilder). Below you can see the standard implementation for `builder`, which you can change in any way you like. You can find out how to use the `GuiceApplicationBuilder` in the section about [[testing with Guice|ScalaTestingWithGuice]].
+There are several methods you can override, but you'll usually want to override the `builder` method. This method reads the [`ApplicationLoader.Context`](api/scala/play/api/ApplicationLoader$$Context.html) and creates a [`GuiceApplicationBuilder`](api/scala/play/api/inject/guice/GuiceApplicationBuilder.html). Below you can see the standard implementation for `builder`, which you can change in any way you like. You can find out how to use the `GuiceApplicationBuilder` in the section about [[testing with Guice|ScalaTestingWithGuice]].
 
 @[custom-application-loader](code/RuntimeDependencyInjection.scala)
 
-When you override the [`ApplicationLoader`](api/scala/index.html#play.api.ApplicationLoader) you need to tell Play. Add the following setting to your `application.conf`:
+When you override the [`ApplicationLoader`](api/scala/play/api/ApplicationLoader.html) you need to tell Play. Add the following setting to your `application.conf`:
 
     play.application.loader = "modules.CustomApplicationLoader"
 

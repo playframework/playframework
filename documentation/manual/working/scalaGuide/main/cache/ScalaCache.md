@@ -20,7 +20,7 @@ libraryDependencies ++= Seq(
 
 ## Accessing the Cache API
 
-The cache API is provided by the [CacheApi](api/scala/index.html#play.api.cache.CacheApi) object, and can be injected into your component like any other dependency.  For example:
+The cache API is provided by the [CacheApi](api/scala/play/api/cache/CacheApi.html) object, and can be injected into your component like any other dependency.  For example:
 
 @[inject](code/ScalaCache.scala)
 
@@ -64,7 +64,7 @@ You can easily create smart cached actions using standard Action composition.
 
 > **Note:** Play HTTP `Result` instances are safe to cache and reuse later.
 
-The [Cached](api/scala/index.html#play.api.cache.Cached) class helps you build cached actions.
+The [Cached](api/scala/play/api/cache/Cached.html) class helps you build cached actions.
 
 @[cached-action-app](code/ScalaCache.scala)
 
@@ -90,7 +90,7 @@ Or cache 404 Not Found only for a couple of minutes
 
 ## Custom implementations
 
-It is possible to provide a custom implementation of the [CacheApi](api/scala/index.html#play.api.cache.CacheApi) that either replaces, or sits along side the default implementation.
+It is possible to provide a custom implementation of the [CacheApi](api/scala/play/api/cache/CacheApi.html) that either replaces, or sits along side the default implementation.
 
 To replace the default implementation, you'll need to disable the default implementation by setting the following in `application.conf`:
 
