@@ -1,10 +1,19 @@
 @import play.routes.compiler._
 @import play.routes.compiler.templates._
-@(pkg: Option[String], routes: Seq[Route], namespaceReverseRouter: Boolean)
+@(sourceInfo: RoutesSourceInfo, pkg: Option[String], imports: Seq[String], packageName: String, routes: Seq[Route], namespaceReverseRouter: Boolean, useInjector: Route => Boolean)
+// @@GENERATOR:play-routes-compiler
+// @@SOURCE:@sourceInfo.source
+// @@DATE:@sourceInfo.date
 
-@for((packageName, routes) <- groupRoutesByPackage(routes)) {
+import play.api.routing.JavaScriptReverseRoute
+import play.api.mvc.@ob QueryStringBindable, PathBindable, Call, JavascriptLiteral @cb
+import play.core.routing.@ob HandlerDef, ReverseRouteContext, queryString, dynamicString @cb
+
+@for(i <- imports) {
+import @if(!i.startsWith("_root_.")){_root_.}@i}
+
 @markLines(routes: _*)
-package @(pkg.filter(_ => namespaceReverseRouter).fold(packageName)(_ + "." + packageName)).javascript @ob
+package @(packageName).javascript @ob
   import ReverseRouteContext.empty
 @for((controller, routes) <- groupRoutesByController(routes)) {
   @markLines(routes: _*)
@@ -45,4 +54,3 @@ package @(pkg.filter(_ => namespaceReverseRouter).fold(packageName)(_ + "." + pa
 }
 
 @cb
-}
