@@ -567,14 +567,14 @@ package play.api.mvc {
    * Helper utilities to manage the Session cookie.
    */
   object Session extends CookieBaker[Session] {
-    def COOKIE_NAME = Play.maybeApplication.flatMap(_.configuration.getString("session.cookieName")).getOrElse("PLAY_SESSION")
+    val COOKIE_NAME = Play.maybeApplication.flatMap(_.configuration.getString("session.cookieName")).getOrElse("PLAY_SESSION")
     val emptyCookie = new Session
     override val isSigned = true
     override def secure = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.secure")).getOrElse(false)
-    override def maxAge = Play.maybeApplication
+    override val maxAge = Play.maybeApplication
       .flatMap(_.configuration.getMilliseconds("session.maxAge")
         .map(Duration(_, MILLISECONDS).toSeconds.toInt))
-    override def httpOnly = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.httpOnly")).getOrElse(true)
+    override val httpOnly = Play.maybeApplication.flatMap(_.configuration.getBoolean("session.httpOnly")).getOrElse(true)
     override def path = Play.maybeApplication.flatMap(_.configuration.getString("application.context")).getOrElse("/")
     override def domain = Play.maybeApplication.flatMap(_.configuration.getString("session.domain"))
 
