@@ -137,7 +137,7 @@ trait ConstraintReads {
     })
 
   def email(implicit reads: Reads[String]): Reads[String] =
-    pattern("""\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,5}\b""".r, "error.email")
+    pattern("""^[a-zA-Z0-9\.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$""".r, "error.email")
 
   def verifying[A](cond: A => Boolean)(implicit rds: Reads[A]) =
     filter[A](ValidationError("error.invalid"))(cond)(rds)
