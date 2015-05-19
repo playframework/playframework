@@ -371,11 +371,11 @@ As a result of these changes, your code can now assume that all values of type `
 
 ### Reading Options
 
-`OptionReads` is no longer available by default in 2.4. If you have code of the form `jsv.validate[Option[A]]`, you'll need to either rewrite it or add an additional import:
+`OptionReads` is no longer available by default in 2.4. If you have code of the form `jsv.validate[Option[A]]`, you'll need to rewrite it:
 
 * To get the same result as in 2.3, you can use `JsSuccess(jsv.asOpt[A])`. This will map all validation errors to `None`.
-* To map `JsNull` to `None` and validate the value if it exists, use `jsv.validate(optionWithNull[A])`.
-* To map both `JsNull` and an undefined lookup result to `None`, use `jsLookupResult.getOrElse(JsNull).validate(optionWithNull[A])` or similar.
+* To map both `JsNull` and an undefined lookup result to `None`, use `jsv.validateOpt[A]`.
+* To map `JsNull` to `None` and validate the value if it exists, use `jsv.validate(Reads.optionWithNull[A])`. If the value does not exist the result will be a `JsError`.
 
 ## Testing changes
 

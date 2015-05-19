@@ -102,6 +102,15 @@ sealed trait JsLookupResult extends Any with JsReadable {
     case JsDefined(v) => v.validate[A]
     case undef: JsUndefined => JsError(undef.validationError)
   }
+
+  /**
+   * If this result contains `JsNull` or is undefined, returns `JsSuccess(None)`.
+   * Otherwise returns the result of validating as an `A` and wrapping the result in a `Some`.
+   */
+  def validateOpt[A](implicit rds: Reads[A]): JsResult[Option[A]] = this match {
+    case JsUndefined() => JsSuccess(None)
+    case JsDefined(a) => Reads.optionWithNull(rds).reads(a)
+  }
 }
 object JsLookupResult {
   import scala.language.implicitConversions
