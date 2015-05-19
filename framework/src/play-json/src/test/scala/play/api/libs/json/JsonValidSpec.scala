@@ -198,6 +198,15 @@ object JsonValidSpec extends Specification {
       val resultPost = json.validate((__ \ "field").read(Reads.optionWithNull[String]))
       resultPost.get must equalTo(None)
     }
+
+    "Validate options using validateOpt" in {
+      val json = Json.obj("foo" -> JsNull, "bar" -> "bar")
+
+      (json \ "foo").validateOpt[String] must_== JsSuccess(None)
+      (json \ "bar").validateOpt[Int] must_== JsError("error.expected.jsnumber")
+      (json \ "bar").validateOpt[String] must_== JsSuccess(Some("bar"))
+      (json \ "baz").validateOpt[String] must_== JsSuccess(None)
+    }
   }
 
   "JSON JsResult" should {
