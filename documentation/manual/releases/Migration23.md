@@ -492,7 +492,7 @@ The WS API has changed slightly, and `WS.client` now returns an instance of `WSC
 
 There are various changes included for Anorm in this new release.
 
-For improved type safety, type of query parameter must be visible, so that it [can be properly converted](https://github.com/playframework/playframework/blob/master/documentation/manual/scalaGuide/main/sql/ScalaAnorm.md#edge-cases). Now using `Any` as parameter value, explicitly or due to erasure, leads to compilation error `No implicit view available from Any => anorm.ParameterValue`.
+For improved type safety, type of query parameter must be visible, so that it [[can be properly converted|ScalaAnorm#edge-cases]]. Now using `Any` as parameter value, explicitly or due to erasure, leads to compilation error `No implicit view available from Any => anorm.ParameterValue`.
 
 ```scala
 // Wrong

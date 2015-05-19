@@ -37,7 +37,7 @@ WS defines the default list of weak key sizes as follows:
 play.ws.ssl.disabledKeyAlgorithms = "DHE keySize < 2048, ECDH keySize < 2048, ECDHE keySize < 2048, RSA keySize < 2048, DSA keySize < 2048, EC keySize < 224"
 ```
 
-These settings are based in part on [keylength.com](https://keylength.com), and in part on the Mozilla recommendations:
+These settings are based in part on [keylength.com](http://www.keylength.com/), and in part on the Mozilla recommendations:
 
 > The NIST recommendation is to discontinue 1024-bit RSA certificates by December 31, 2010. Therefore, CAs have been advised that they should not sign any more certificates under their 1024-bit roots by the end of this year.
 >
