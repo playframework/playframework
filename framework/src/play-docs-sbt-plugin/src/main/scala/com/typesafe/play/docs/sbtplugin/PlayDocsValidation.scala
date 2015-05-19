@@ -69,6 +69,14 @@ object PlayDocsValidation {
     introducedCodeSamples: Seq[CodeSample],
     totalCodeSamples: Int)
 
+  /**
+   * Configuration for validation.
+   *
+   * @param downstreamWikiPages Wiki pages from downstream projects - so that the documentation can link to them.
+   * @param downstreamApiPaths The downstream API paths
+   */
+  case class ValidationConfig(downstreamWikiPages: Set[String] = Set.empty[String], downstreamApiPaths: Seq[String] = Nil)
+
   val generateMarkdownRefReportTask = Def.task {
 
     val base = manualPath.value
@@ -304,8 +312,9 @@ object PlayDocsValidation {
     val report = generateMarkdownRefReport.value
     val log = streams.value.log
     val base = manualPath.value
+    val validationConfig = playDocsValidationConfig.value
 
-    val docsJarRepo: play.doc.FileRepository with Closeable = if (fallbackToJar.value && docsJarFile.value.isDefined) {
+    val docsJarRepo: play.doc.FileRepository with Closeable = if (docsJarFile.value.isDefined) {
       val jar = new JarFile(docsJarFile.value.get)
       new JarRepository(jar, Some("play/docs/content")) with Closeable
     } else {
@@ -360,13 +369,19 @@ object PlayDocsValidation {
     }
 
     assertLinksNotMissing("Missing wiki links test", report.wikiLinks.filterNot { link =>
-      pages.contains(link.link) || docsJarRepo.findFileWithName(link.link + ".md").nonEmpty
+      pages.contains(link.link) || validationConfig.downstreamWikiPages(link.link) || docsJarRepo.findFileWithName(link.link + ".md").nonEmpty
     }, "Could not find link")
 
     def relativeLinkOk(link: LinkRef) = {
       link match {
-        case scalaApi if scalaApi.link.startsWith("api/scala/") => true
-        case javaApi if javaApi.link.startsWith("api/java/") => true
+        case badScalaApi if badScalaApi.link.startsWith("api/scala/index.html#") =>
+          println("Don't use segment links from the index.html page to scaladocs, use path links, ie:")
+          println("  api/scala/index.html#play.api.Application@requestHandler")
+          println("should become:")
+          println("  api/scala/play/api/Application.html#requestHandler")
+          false
+        case scalaApi if scalaApi.link.startsWith("api/scala/") => fileExists(scalaApi.link.split('#').head)
+        case javaApi if javaApi.link.startsWith("api/java/") => fileExists(javaApi.link.split('#').head)
         case resource if resource.link.startsWith("resources/") =>
           fileExists(resource.link.stripPrefix("resources/"))
         case bad => false
@@ -412,18 +427,6 @@ object PlayDocsValidation {
     }, "Could not find source segment")
 
     val allLinks = report.wikiLinks.map(_.link).toSet
-
-    if (!fallbackToJar.value && pageIndex.isEmpty) {
-      // A bit hard to do this without parsing all files, so only do it if we're not falling back to the jar file
-      val orphanPages = pages.filterNot(page => allLinks.contains(page._1)).filterNot { page =>
-        page._1.startsWith("_") || page._1 == "Home"
-      }
-      doAssertion("Orphan pages test", orphanPages.toSeq) {
-        orphanPages.foreach { page =>
-          log.error("Page " + page._2 + " is not referenced by any links")
-        }
-      }
-    }
 
     pageIndex.foreach { idx =>
       // Make sure all pages are in the page index

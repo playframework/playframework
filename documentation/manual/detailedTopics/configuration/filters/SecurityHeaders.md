@@ -25,7 +25,7 @@ play.http.filters = "filters.MyFilters"
 
 ## Configuring the security headers
 
-Scaladoc is available in the [play.filters.headers](api/scala/index.html#play.filters.headers.package) package.
+Scaladoc is available in the [play.filters.headers](api/scala/play/filters/headers/package.html) package.
 
 The filter will set headers in the HTTP response automatically.  The settings can can be configured through the following settings in `application.conf`
 

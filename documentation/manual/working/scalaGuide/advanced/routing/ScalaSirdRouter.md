@@ -5,7 +5,7 @@ Play provides a DSL for defining embedded routers called the *String Interpolati
 
 Sird is based on a string interpolated extractor object.  Just as Scala supports interpolating parameters into strings for building strings (and any object for that matter), such as `s"Hello $to"`, the same mechanism can also be used to extract parameters out of strings, for example in case statements.
 
-The DSL lives in the [`play.api.routing.sird`](api/scala/index.html#play.api.routing.sird.package) package. Typically, you will want to import this package, as well as a few other packages:
+The DSL lives in the [`play.api.routing.sird`](api/scala/play/api/routing/sird/package.html) package. Typically, you will want to import this package, as well as a few other packages:
 
 @[imports](code/ScalaSirdRouter.scala)
 

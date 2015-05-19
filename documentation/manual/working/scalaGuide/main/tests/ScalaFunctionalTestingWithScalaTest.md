@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Writing functional tests with ScalaTest
 
-Play provides a number of classes and convenience methods that assist with functional testing.  Most of these can be found either in the [`play.api.test`](api/scala/index.html#play.api.test.package) package or in the [`Helpers`](api/scala/index.html#play.api.test.Helpers$) object. The [_ScalaTest + Play_](http://doc.scalatest.org/plus-play/1.0.0/index.html#org.scalatestplus.play.package) integration library builds on this testing support for ScalaTest.
+Play provides a number of classes and convenience methods that assist with functional testing.  Most of these can be found either in the [`play.api.test`](api/scala/play/api/test/package.html) package or in the [`Helpers`](api/scala/play/api/test/Helpers$.html) object. The [_ScalaTest + Play_](http://doc.scalatest.org/plus-play/1.0.0/index.html#org.scalatestplus.play.package) integration library builds on this testing support for ScalaTest.
 
 You can access all of Play's built-in test support and _ScalaTest + Play_ with the following imports:
 
@@ -14,9 +14,9 @@ import org.scalatestplus.play._
 
 ## FakeApplication
 
-Play frequently requires a running [`Application`](api/scala/index.html#play.api.Application) as context: it is usually provided from [`play.api.Play.current`](api/scala/index.html#play.api.Play$).
+Play frequently requires a running [`Application`](api/scala/play/api/Application.html) as context: it is usually provided from [`play.api.Play.current`](api/scala/play/api/Play$.html).
 
-To provide an environment for tests, Play provides a [`FakeApplication`](api/scala/index.html#play.api.test.FakeApplication) class which can be configured with a different `Global` object, additional configuration, or even additional plugins.
+To provide an environment for tests, Play provides a [`FakeApplication`](api/scala/play/api/test/FakeApplication.html) class which can be configured with a different `Global` object, additional configuration, or even additional plugins.
 
 @[scalafunctionaltest-fakeApplication](code-scalatestplus-play/ScalaFunctionalTestSpec.scala)
 
@@ -42,7 +42,7 @@ If all tests in your test class require separate server instance, use [`OneServe
 
 The `OneServerPerSuite` and `OneServerPerTest` traits provide the port number on which the server is running as the `port` field.  By default this is 19001, however you can change this either overriding `port` or by setting the system property `testserver.port`.  This can be useful for integrating with continuous integration servers, so that ports can be dynamically reserved for each build.
 
-You can also customize the [`FakeApplication`](api/scala/index.html#play.api.test.FakeApplication) by overriding `app`, as demonstrated in the previous examples.
+You can also customize the [`FakeApplication`](api/scala/play/api/test/FakeApplication.html) by overriding `app`, as demonstrated in the previous examples.
 
 Lastly, if allowing multiple test classes to share the same server will give you better performance than either the `OneServerPerSuite` or `OneServerPerTest` approaches, you can define a master suite that mixes in [`OneServerPerSuite`](http://doc.scalatest.org/plus-play/1.0.0/index.html#org.scalatestplus.play.OneServerPerSuite) and nested suites that mix in [`ConfiguredServer`](http://doc.scalatest.org/plus-play/1.0.0/index.html#org.scalatestplus.play.ConfiguredServer), as shown in the example in the [documentation for `ConfiguredServer`](http://doc.scalatest.org/plus-play/1.0.0/index.html#org.scalatestplus.play.ConfiguredServer).
 
@@ -106,11 +106,11 @@ Since a template is a standard Scala function, you can execute it from your test
 
 ## Testing a controller
 
-You can call any `Action` code by providing a [`FakeRequest`](api/scala/index.html#play.api.test.FakeRequest):
+You can call any `Action` code by providing a [`FakeRequest`](api/scala/play/api/test/FakeRequest.html):
 
 @[scalatest-examplecontrollerspec](code-scalatestplus-play/ExampleControllerSpec.scala)
 
-Technically, you don't need [`WithApplication`](api/scala/index.html#play.api.test.WithApplication) here, although it wouldn't hurt anything to have it.
+Technically, you don't need [`WithApplication`](api/scala/play/api/test/WithApplication.html) here, although it wouldn't hurt anything to have it.
 
 ## Testing the router
 
@@ -126,7 +126,7 @@ If you are using an SQL database, you can replace the database connection with a
 
 ## Testing WS calls
 
-If you are calling a web service, you can use [`WSTestClient`](api/scala/index.html#play.api.test.WsTestClient).  There are two calls available, `wsCall` and `wsUrl` that will take a Call or a string, respectively.  Note that they expect to be called in the context of `WithApplication`.
+If you are calling a web service, you can use [`WSTestClient`](api/scala/play/api/test/WsTestClient.html).  There are two calls available, `wsCall` and `wsUrl` that will take a Call or a string, respectively.  Note that they expect to be called in the context of `WithApplication`.
 
 ```
 wsCall(controllers.routes.Application.index()).get()

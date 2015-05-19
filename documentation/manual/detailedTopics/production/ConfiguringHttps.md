@@ -32,7 +32,7 @@ Another alternative to configure the SSL certificates is to provide a custom [SS
 
 @[javaexample](code/java/CustomSSLEngineProvider.java)
 
-#### in Scala, an implementation must be provided for [`play.server.api.SSLEngineProvider`](api/scala/index.html#play.server.api.SSLEngineProvider)
+#### in Scala, an implementation must be provided for [`play.server.api.SSLEngineProvider`](api/scala/play/server/api/SSLEngineProvider.html)
 
 @[scalaexample](code/scala/CustomSSLEngineProvider.scala)
 

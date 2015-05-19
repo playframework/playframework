@@ -7,7 +7,7 @@ Play provides a number of utilities for helping to test database access code tha
 
 ## Using a database
 
-To connect to a database, at a minimum, you just need database driver name and the url of the database, using the [`Database`](api/scala/index.html#play.api.db.Database$) companion object.  For example, to connect to MySQL, you might use the following:
+To connect to a database, at a minimum, you just need database driver name and the url of the database, using the [`Databases`](api/scala/play/api/db/Databases$.html) companion object.  For example, to connect to MySQL, you might use the following:
 
 @[database](code/database/ScalaTestingWithDatabases.scala)
 
@@ -67,7 +67,7 @@ Like `withDatabase`, it is recommended that to reduce boilerplate code, you crea
 
 When running tests, you will typically want your database schema managed for your database.  If you're already using evolutions, it will often make sense to reuse the same evolutions that you use in development and production in your tests.  You may also want to create custom evolutions just for testing.  Play provides some convenient helpers to apply and manage evolutions without having to run a whole Play application.
 
-To apply evolutions, you can use `applyEvolutions` from the [`Evolutions`](api/scala/index.html#play.api.db.evolutions.Evolutions$) companion object:
+To apply evolutions, you can use `applyEvolutions` from the [`Evolutions`](api/scala/play/api/db/evolutions/Evolutions$.html) companion object:
 
 @[apply-evolutions](code/database/ScalaTestingWithDatabases.scala)
 
@@ -79,7 +79,7 @@ After a test has run, you may want to reset the database to its original state. 
 
 ### Custom evolutions
 
-In some situations you may want to run some custom evolutions in your tests.  Custom evolutions can be used by using a custom [`EvolutionsReader`](api/scala/index.html#play.api.db.evolutions.EvolutionsReader).  The simplest of these is the [`SimpleEvolutionsReader`](api/scala/index.html#play.api.db.evolutions.SimpleEvolutionsReader), which is an evolutions reader that takes a preconfigured map of database names to sequences of [`Evolution`](api/scala/index.html#play.api.db.evolutions.Evolution) scripts, and can be constructed using the convenient methods on the [`SimpleEvolutionsReader`](api/scala/index.html#play.api.db.evolutions.SimpleEvolutionsReader$) companion object.  For example:
+In some situations you may want to run some custom evolutions in your tests.  Custom evolutions can be used by using a custom [`EvolutionsReader`](api/scala/play/api/db/evolutions/EvolutionsReader.html).  The simplest of these is the [`SimpleEvolutionsReader`](api/scala/play/api/db/evolutions/SimpleEvolutionsReader.html), which is an evolutions reader that takes a preconfigured map of database names to sequences of [`Evolution`](api/scala/play/api/db/evolutions/Evolution.html) scripts, and can be constructed using the convenient methods on the [`SimpleEvolutionsReader`](api/scala/play/api/db/evolutions/SimpleEvolutionsReader$.html) companion object.  For example:
 
 @[apply-evolutions-simple](code/database/ScalaTestingWithDatabases.scala)
 
@@ -89,7 +89,7 @@ Cleaning up custom evolutions is done in the same way as cleaning up regular evo
 
 Note though that you don't need to pass the custom evolutions reader here, this is because the state of the evolutions is stored in the database, including the down scripts which will be used to tear down the database.
 
-Sometimes it will be impractical to put your custom evolution scripts in code.  If this is the case, you can put them in the test resources directory, under a custom path using the [`ClassLoaderEvolutionsReader`](api/scala/index.html#play.api.db.evolutions.ClassLoaderEvolutionsReader).  For example:
+Sometimes it will be impractical to put your custom evolution scripts in code.  If this is the case, you can put them in the test resources directory, under a custom path using the [`ClassLoaderEvolutionsReader`](api/scala/play/api/db/evolutions/ClassLoaderEvolutionsReader.html).  For example:
 
 @[apply-evolutions-custom-path](code/database/ScalaTestingWithDatabases.scala)
 
