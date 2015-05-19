@@ -11,7 +11,7 @@ import java.security._
 import java.math.BigInteger
 import java.util.Date
 import sun.security.util.ObjectIdentifier
-import org.joda.time.Instant
+import org.joda.time.{ Duration, Days, Instant }
 import scala.util.Properties.isJavaAtLeast
 
 /**
@@ -25,7 +25,7 @@ object CertificateGenerator {
   /**
    * Generates a certificate using RSA (which is available in 1.6).
    */
-  def generateRSAWithSHA256(keySize: Int = 2048, from: Instant = Instant.now, duration: Int = 5000000): X509Certificate = {
+  def generateRSAWithSHA256(keySize: Int = 2048, from: Instant = Instant.now, duration: Duration = Days.days(365).toStandardDuration): X509Certificate = {
     val dn = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
     val to = from.plus(duration)
 
@@ -33,6 +33,16 @@ object CertificateGenerator {
     keyGen.initialize(keySize, new SecureRandom())
     val pair = keyGen.generateKeyPair()
     generateCertificate(dn, pair, from.toDate, to.toDate, "SHA256withRSA", AlgorithmId.sha256WithRSAEncryption_oid)
+  }
+
+  def generateRSAWithSHA1(keySize: Int = 2048, from: Instant = Instant.now, duration: Duration = Days.days(365).toStandardDuration): X509Certificate = {
+    val dn = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
+    val to = from.plus(duration)
+
+    val keyGen = KeyPairGenerator.getInstance("RSA")
+    keyGen.initialize(keySize, new SecureRandom())
+    val pair = keyGen.generateKeyPair()
+    generateCertificate(dn, pair, from.toDate, to.toDate, "SHA1withRSA", AlgorithmId.sha256WithRSAEncryption_oid)
   }
 
   def toPEM(certificate: X509Certificate) = {
@@ -47,7 +57,7 @@ object CertificateGenerator {
     pemCert
   }
 
-  def generateRSAWithMD5(keySize: Int = 2048, from: Instant = Instant.now, duration: Int = 5000000): X509Certificate = {
+  def generateRSAWithMD5(keySize: Int = 2048, from: Instant = Instant.now, duration: Duration = Days.days(365).toStandardDuration): X509Certificate = {
     val dn = "CN=localhost, OU=Unit Testing, O=Mavericks, L=Moon Base 1, ST=Cyberspace, C=CY"
     val to = from.plus(duration)
 
