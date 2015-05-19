@@ -63,14 +63,16 @@ IntelliJ is now able to import sbt projects natively, so we recommend using that
 
 ### Play SBT plugin API
 
+All classes in the SBT plugin are now in the package `play.sbt`, this is particularly pertinent if using `.scala` files to configure your build.
+
+#### `playWatchService` renamed
+
 The SBT setting key `playWatchService` has been renamed to `fileWatchService`.
 
 Also the corresponding class has changed. To set the FileWatchService to poll every two seconds, use it like this:
 ```scala
 PlayKeys.fileWatchService := play.runsupport.FileWatchService.sbt(2000)
 ```
-
-All classes in the SBT plugin are now in the package `play.sbt`, this is particularly pertinent if using `.scala` files to configure your build..
 
 ### Ebean dependency
 
