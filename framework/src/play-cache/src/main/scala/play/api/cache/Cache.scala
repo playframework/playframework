@@ -4,16 +4,15 @@
 package play.api.cache
 
 import javax.inject._
-
 import play.api._
 import play.api.inject.{ BindingKey, Injector, ApplicationLifecycle, Module }
-
 import scala.concurrent.Future
 import scala.reflect.ClassTag
-
 import scala.concurrent.duration._
-
 import play.cache.{ CacheApi => JavaCacheApi, DefaultCacheApi => DefaultJavaCacheApi, NamedCacheImpl }
+
+import net.sf.ehcache._
+import com.google.common.primitives.Primitives
 
 /**
  * The cache API
@@ -131,8 +130,6 @@ object Cache {
     cacheApi.remove(key)
   }
 }
-
-import net.sf.ehcache._
 
 /**
  * EhCache components for compile time injection
@@ -254,11 +251,11 @@ class EhCacheApi @Inject() (cache: Ehcache) extends CacheApi {
     cache.put(element)
   }
 
-  def get[T](key: String)(implicit ct: ClassTag[T]) = {
-    Option(cache.get(key)).map(_.getObjectValue).collect {
-      case tValue if ct.runtimeClass.isInstance(tValue) => tValue.asInstanceOf[T]
-      case tValue if ct == ClassTag.Nothing => tValue.asInstanceOf[T]
-    }
+  def get[T](key: String)(implicit ct: ClassTag[T]): Option[T] = {
+    Option(cache.get(key)).map(_.getObjectValue).filter { v =>
+      Primitives.wrap(ct.runtimeClass).isInstance(v) ||
+        ct == ClassTag.Nothing || (ct == ClassTag.Unit && v == ((): Unit))
+    }.asInstanceOf[Option[T]]
   }
 
   def getOrElse[A: ClassTag](key: String, expiration: Duration)(orElse: => A) = {
