@@ -354,6 +354,14 @@ val bar: JsResult[Baz] = (json \ "baz").validate[Baz]
 
 As a result of these changes, your code can now assume that all values of type `JsValue` are serializable to JSON.
 
+### Reading Options
+
+`OptionReads` is no longer available by default in 2.4. If you have code of the form `jsv.validate[Option[A]]`, you'll need to either rewrite it or add an additional import:
+
+* To get the same result as in 2.3, you can use `JsSuccess(jsv.asOpt[A])`. This will map all validation errors to `None`.
+* To map `JsNull` to `None` and validate the value if it exists, use `jsv.validate(optionWithNull[A])`.
+* To map both `JsNull` and an undefined lookup result to `None`, use `jsLookupResult.getOrElse(JsNull).validate(optionWithNull[A])` or similar.
+
 ## Testing changes
 
 [`FakeRequest`](api/java/play/test/FakeRequest.html) has been replaced by [`RequestBuilder`](api/java/play/mvc/Http.RequestBuilder.html).
@@ -678,13 +686,13 @@ This can be turned off by setting `PlayKeys.externalizeResources := false`, whic
 The [sbt-native-packager](https://github.com/sbt/sbt-native-packager) has been upgraded. Due to this, the following adjustments might be necessary:
  * The syntax of the `/etc/default/$appname` file has changed from being a simple list of command line parameters to being a shell script that gets sourced by the start/stop scripts, allowing you to set environment variables.
  * The equivalent to the old syntax of the default file is an `application.ini` file in your archive's `conf` folder.
- * The default-file gets sourced by `SystemV` Init scripts only - Upstart ignores this file right now. To change your build to create `SystemV` compatible packages, add this to your build.sbt: 
+ * The default-file gets sourced by `SystemV` Init scripts only - Upstart ignores this file right now. To change your build to create `SystemV` compatible packages, add this to your build.sbt:
 ```
 import com.typesafe.sbt.packager.archetypes.ServerLoader.{SystemV, Upstart}
 
 serverLoading in Debian := SystemV
 ```
- * Other changes that might be necessary can be found in the [sbt-native-packager release notes](https://github.com/sbt/sbt-native-packager/releases). 
+ * Other changes that might be necessary can be found in the [sbt-native-packager release notes](https://github.com/sbt/sbt-native-packager/releases).
 
 
 ## Miscellaneous
