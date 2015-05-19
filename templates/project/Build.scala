@@ -134,7 +134,7 @@ object Templates {
       }
     },
 
-    publishTemplatesTo := "typesafe.com",
+    publishTemplatesTo := "api.typesafe.com",
     doPublishTemplates := {
       val host = publishTemplatesTo.value
       val creds = Credentials.forHost(credentials.value, host).getOrElse {

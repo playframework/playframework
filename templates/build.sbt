@@ -2,21 +2,21 @@ import play.sbt.activator.Templates._
 
 templateSettings
 
-val playSbtVersion = propOrElse("sbt.version", "0.13.5")
+val playSbtVersion = propOrElse("sbt.version", "0.13.8")
 
 val coffeescriptVersion = propOrElse("coffeescript.version", "1.0.0")
 
-val lessVersion = propOrElse("less.version", "1.0.0")
+val lessVersion = propOrElse("less.version", "1.0.6")
 
-val jshintVersion = propOrElse("jshint.version", "1.0.1")
+val jshintVersion = propOrElse("jshint.version", "1.0.3")
 
 val digestVersion = propOrElse("digest.version", "1.0.0")
 
-val rjsVersion = propOrElse("rjs.version", "1.0.1")
+val rjsVersion = propOrElse("rjs.version", "1.0.7")
 
 val gzipVersion = propOrElse("gzip.version", "1.0.0")
 
-val mochaVersion = propOrElse("mocha.version", "1.0.0")
+val mochaVersion = propOrElse("mocha.version", "1.0.2")
 
 templates := {
   val dir = baseDirectory.value
@@ -36,7 +36,7 @@ val playVersion = propOrElse("play.version", {
 })
 
 // The Play templates should default to using the latest compatible version of Scala
-val playScalaVersion = propOrElse("scala.version", "2.11.1")
+val playScalaVersion = propOrElse("scala.version", "2.11.6")
 
 val playDocsUrl = propOrElse("play.docs.url", s"http://www.playframework.com/documentation/${playVersion}")
 
