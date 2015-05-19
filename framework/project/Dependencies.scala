@@ -146,7 +146,8 @@ object Dependencies {
   )
 
   val routesCompilerDependencies =  Seq(
-    "commons-io" % "commons-io" % "2.4"
+    "commons-io" % "commons-io" % "2.4",
+    specsMatcherExtra % Test
   ) ++ specsBuild.map(_ % Test)
 
   private def sbtPluginDep(sbtVersion: String, scalaVersion: String, moduleId: ModuleID) = {

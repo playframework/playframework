@@ -1,0 +1,18 @@
+@import play.routes.compiler._
+@import play.routes.compiler.templates._
+@(sourceInfo: RoutesSourceInfo, pkg: Option[String], useInjector: Route => Boolean)
+// @@GENERATOR:play-routes-compiler
+// @@SOURCE:@sourceInfo.source
+// @@DATE:@sourceInfo.date
+
+@* Can't put in the root package because Java can't refer to the root package *@
+package @pkg.getOrElse("_routes_") @ob
+  object RoutesPrefix @ob
+    private var _prefix: String = "/"
+    def setPrefix(p: String): Unit = @ob
+      _prefix = p
+    @cb
+    def prefix: String = _prefix
+    val byNamePrefix: Function0[String] = @ob () => prefix @cb
+  @cb
+@cb
