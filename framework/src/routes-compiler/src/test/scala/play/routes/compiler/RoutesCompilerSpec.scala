@@ -6,9 +6,10 @@ package play.routes.compiler
 import java.io.File
 
 import org.specs2.mutable.Specification
+import org.specs2.matcher.FileMatchers
 import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
 
-object RoutesCompilerSpec extends Specification {
+object RoutesCompilerSpec extends Specification with FileMatchers {
 
   sequential
 
@@ -35,11 +36,11 @@ object RoutesCompilerSpec extends Specification {
       val file = new File(this.getClass.getClassLoader.getResource("generating.routes").toURI)
       RoutesCompiler.compile(RoutesCompilerTask(file, Seq.empty, true, true, false), StaticRoutesGenerator, tmp)
 
-      val generatedRoutes = new File(tmp, "generating/routes_routing.scala")
-      generatedRoutes.exists() must beTrue
-
-      val generatedReverseRoutes = new File(tmp, "generating/routes_reverseRouting.scala")
-      generatedReverseRoutes.exists() must beTrue
+      new File(tmp, "generating/Routes.scala") must exist
+      new File(tmp, "generating/RoutesPrefix.scala") must exist
+      new File(tmp, "controllers/ReverseRoutes.scala") must exist
+      new File(tmp, "controllers/javascript/JavaScriptReverseRoutes.scala") must exist
+      new File(tmp, "controllers/routes.java") must exist
     }
 
     "check if there are no routes using overloaded handler methods" in withTempDir { tmp =>
