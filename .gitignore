@@ -8,3 +8,11 @@ target
 RUNNING_PID
 generated.keystore
 generated.truststore
+
+# Scala-IDE specific
+.scala_dependencies
+.project
+.settings
+.cache-main
+.cache-tests
+bin
