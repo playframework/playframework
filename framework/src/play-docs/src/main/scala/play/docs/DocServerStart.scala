@@ -53,7 +53,7 @@ class DocServerStart {
     val config = ServerConfig(
       rootDir = projectPath,
       port = Some(port),
-      mode = Mode.Dev,
+      mode = Mode.Test,
       properties = System.getProperties
     )
     val serverProvider: ServerProvider = ServerProvider.fromConfiguration(getClass.getClassLoader, config.configuration)
