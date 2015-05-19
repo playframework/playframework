@@ -161,6 +161,7 @@ object Templates {
       try {
 
         def clientCall(path: String): WSRequestHolder = client.url(s"https://$host$path")
+          .withFollowRedirects(true)
           .withAuth(creds.userName, creds.passwd, WSAuthScheme.BASIC)
 
         def timeout(duration: FiniteDuration): Future[Unit] = {
