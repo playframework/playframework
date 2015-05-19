@@ -62,6 +62,8 @@ public class Admin extends Controller {
 }
 ```
 
+> **Note:** If you want the action composition annotation(s) put on a ```Controller``` class to be executed before the one(s) put on action methods set ```play.http.actionComposition.controllerAnnotationsFirst = true``` in ```application.conf```. However, be aware that if you use a third party module in your project it may rely on a certain execution order of its annotations.
+
 ## Passing objects from action to controller
 
 You can pass an object from an action to a controller by utilizing the context args map.

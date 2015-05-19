@@ -5,7 +5,7 @@ package play.core.j
 
 import javax.inject.Inject
 
-import play.api.http.HttpRequestHandler
+import play.api.http.{ HttpConfiguration, HttpRequestHandler }
 import play.api.inject.{ Injector, NewInstanceInjector }
 
 import scala.language.existentials
@@ -36,7 +36,12 @@ class JavaActionAnnotations(val controller: Class[_], val method: java.lang.refl
   }.flatten
 
   val actionMixins = {
-    (method.getDeclaredAnnotations ++ controllerAnnotations).collect {
+    val allDeclaredAnnotations: Seq[java.lang.annotation.Annotation] = if (HttpConfiguration.current.actionComposition.controllerAnnotationsFirst) {
+        (controllerAnnotations ++ method.getDeclaredAnnotations)
+    } else {
+        (method.getDeclaredAnnotations ++ controllerAnnotations)
+    }
+    allDeclaredAnnotations.collect {
       case a: play.mvc.With => a.value.map(c => (a, c)).toSeq
       case a if a.annotationType.isAnnotationPresent(classOf[play.mvc.With]) =>
         a.annotationType.getAnnotation(classOf[play.mvc.With]).value.map(c => (a, c)).toSeq
