@@ -25,9 +25,11 @@ One use case for a custom request handler may be that you want to delegate to a 
 
 ## Configuring the http request handler
 
-To tell Play to use your custom http request handler, simply configure `play.http.requestHandler` in `application.conf` to point to the fully qualified class name of your handler:
+A custom http handler can be supplied by creating a class in the root package called `RequestHandler` that implements `HttpRequestHandler`.
 
-    play.http.requestHandler = "com.example.MyHttpRequestHandler"
+If you don’t want to place your request handler in the root package, or if you want to be able to configure different request handlers for different environments, you can do this by configuring the `play.http.requestHandler` configuration property in `application.conf`:
+
+    play.http.requestHandler = "com.example.RequestHandler"
     
 ### Performance notes
 
