@@ -5,10 +5,10 @@
  */
 package play.api.libs.ws.ssl
 
-import java.security.cert._
+import java.security.cert.{ CertPathValidatorException, Certificate, X509Certificate }
 import java.util.Collections._
 
-import org.joda.time._
+import org.joda.time.{ DateTime, Days, Instant }
 import org.specs2.mutable._
 import play.api.libs.ws.ssl.AlgorithmConstraintsParser._
 
