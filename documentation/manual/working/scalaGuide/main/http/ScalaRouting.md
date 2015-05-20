@@ -8,7 +8,7 @@ The router is the component in charge of translating each incoming HTTP request 
 An HTTP request is seen as an event by the MVC framework. This event contains two major pieces of information:
 
 - the request path (e.g. `/clients/1542`, `/photos/list`), including the query string
-- the HTTP method (e.g. GET, POST, …).
+- the HTTP method (e.g. `GET`, `POST`, …).
 
 Routes are defined in the `conf/routes` file, which is compiled. This means that you’ll see route errors directly in your browser:
 
@@ -62,7 +62,7 @@ If you want to define a route that retrieves a client by ID, you’ll need to ad
 
 The default matching strategy for a dynamic part is defined by the regular expression `[^/]+`, meaning that any dynamic part defined as `:id` will match exactly one URI part.
 
-### Dynamic parts spanning several /
+### Dynamic parts spanning several `/`
 
 If you want a dynamic part to capture more than one URI path segment, separated by forward slashes, you can define a dynamic part using the `*id` syntax, which uses the `.+` regular expression:
 

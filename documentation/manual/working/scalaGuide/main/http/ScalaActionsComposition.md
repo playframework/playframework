@@ -7,7 +7,7 @@ This chapter introduces several ways of defining generic action functionality.
 
 We saw [[previously|ScalaActions]] that there are multiple ways to declare an action - with a request parameter, without a request parameter, with a body parser etc.  In fact there are more than this, as we'll see in the chapter on [[asynchronous programming|ScalaAsync]].
 
-These methods for building actions are actually all defined by a trait called [`ActionBuilder`](api/scala/play/api/mvc/ActionBuilder.html), and the [`Action`](api/scala/play/api/mvc/Action$.html) object that we use to declare our actions is just an instance of this trait.  By implementing your own `ActionBuilder`, you can declare reusable action stacks, that can then be used to build actions.
+These methods for building actions are actually all defined by a trait called [`ActionBuilder`](api/scala/play/api/mvc/ActionBuilder.html) and the [`Action`](api/scala/play/api/mvc/Action$.html) object that we use to declare our actions is just an instance of this trait.  By implementing your own `ActionBuilder`, you can declare reusable action stacks, that can then be used to build actions.
 
 Let’s start with the simple example of a logging decorator, we want to log each call to this action.
 
@@ -22,7 +22,6 @@ Now we can use it the same way we use `Action`:
 Since `ActionBuilder` provides all the different methods of building actions, this also works with, for example, declaring a custom body parser:
 
 @[basic-logging-parse](code/ScalaActionsComposition.scala)
-
 
 ### Composing actions
 
@@ -54,7 +53,7 @@ So far we've only shown actions that don't impact the request at all.  Of course
 
 @[modify-request](code/ScalaActionsComposition.scala)
 
-> **Note:** Play already has built in support for X-Forwarded-For headers.
+> **Note:** Play already has built in support for `X-Forwarded-For` headers.
 
 We could block the request:
 

@@ -1,7 +1,9 @@
 <!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # The Play cache API
 
-Caching data is a typical optimization in modern applications, and so Play provides a global cache. An important point about the cache is that it behaves just like a cache should: the data you just stored may just go missing.
+Caching data is a typical optimization in modern applications, and so Play provides a global cache.
+
+> An important point about the cache is that it behaves just like a cache should: the data you just stored may just go missing.
 
 For any data stored in the cache, a regeneration strategy needs to be put in place in case the data goes missing. This philosophy is one of the fundamentals behind Play, and is different from Java EE, where the session is expected to retain values throughout its lifetime. 
 
@@ -98,6 +100,6 @@ To replace the default implementation, you'll need to disable the default implem
 play.modules.disabled += "play.api.cache.EhCacheModule"
 ```
 
-Then simply implement CacheApi and bind it in the DI container.
+Then simply implement `CacheApi` and bind it in the [[DI container|ScalaDependencyInjection]].
 
 To provide an implementation of the cache API in addition to the default implementation, you can either create a custom qualifier, or reuse the `NamedCache` qualifier to bind the implementation.

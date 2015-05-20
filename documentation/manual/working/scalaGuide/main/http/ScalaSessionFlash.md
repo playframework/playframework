@@ -3,7 +3,7 @@
 
 ## How it is different in Play
 
-If you have to keep data across multiple HTTP requests, you can save them in the Session or Flash scopes. Data stored in the Session are available during the whole user Session, and data stored in the Flash scope are available to the next request only.
+If you have to keep data across multiple HTTP requests, you can save them in the Session or Flash scopes. Data stored in the Session are available during the whole user Session, and data stored in the Flash scope are available to the next request **only**.
 
 It’s important to understand that Session and Flash data are not stored by the server but are added to each subsequent HTTP request, using the cookie mechanism. This means that the data size is very limited (up to 4 KB) and that you can only store string values. The default name for the cookie is `PLAY_SESSION`. This can be changed by configuring the key `session.cookieName` in application.conf.
 
@@ -13,7 +13,7 @@ Of course, cookie values are signed with a secret key so the client can’t modi
 
 The Play Session is not intended to be used as a cache. If you need to cache some data related to a specific Session, you can use the Play built-in cache mechanism and store a unique ID in the user Session to keep them related to a specific user.
 
-> By default, there is no technical timeout for the Session. It expires when the user closes the web browser. If you need a functional timeout for a specific application, just store a timestamp into the user Session and use it however your application needs (e.g. for a maximum session duration, maximum inactivity duration, etc.). You can also set the maximum age of the session cookie by configuring the key `session.maxAge` (in milliseconds) in application.conf.
+> By default, there is no technical timeout for the Session. It expires when the user closes the web browser. If you need a functional timeout for a specific application, just store a timestamp into the user Session and use it however your application needs (e.g. for a maximum session duration, maximum inactivity duration, etc.). You can also set the maximum age of the session cookie by configuring the key `session.maxAge` (in milliseconds) in `application.conf`.
 
 ## Storing data in the Session
 
@@ -21,11 +21,9 @@ As the Session is just a Cookie, it is also just an HTTP header. You can manipul
 
 @[store-session](code/ScalaSessionFlash.scala)
 
-
 Note that this will replace the whole session. If you need to add an element to an existing Session, just add an element to the incoming session, and specify that as new session:
 
 @[add-session](code/ScalaSessionFlash.scala)
-
 
 You can remove any value from the incoming session the same way:
 
