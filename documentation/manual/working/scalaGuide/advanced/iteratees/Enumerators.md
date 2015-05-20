@@ -68,7 +68,7 @@ val eventuallyResult: Future[String] = {
 }
 ```
 
-Since an `Enumerator` pushes some input into an iteratee and eventually return a new state of the iteratee, we can go on pushing more input into the returned iteratee using another `Enumerator`. This can be done either by using the `flatMap` function on `Future`s or more simply by combining `Enumerator` instancess using the `andThen` method, as follows:
+Since an `Enumerator` pushes some input into an iteratee and eventually return a new state of the iteratee, we can go on pushing more input into the returned iteratee using another `Enumerator`. This can be done either by using the `flatMap` function on `Future`s or more simply by combining `Enumerator` instances using the `andThen` method, as follows:
 
 ```scala
 val colors = Enumerator("Red","Blue","Green")
@@ -118,7 +118,7 @@ Enumerator.generateM {
 }
 ```
 
-In the same manner we can construct an `Enumerator` that would fetch a url every some time using the `WS` api which returns, not suprisingly a `Future`
+In the same manner we can construct an `Enumerator` that would fetch a url every some time using the `WS` api which returns, not surprisingly a `Future`
 
 Combining this, callback Enumerator, with an imperative `Iteratee.foreach` we can println a stream of time values periodically:
 
