@@ -426,7 +426,7 @@ val v: JsValue = (json \ "foo" \ "bar").get
 If you don't know the property exists, we recommend using pattern matching or the methods on [`JsLookupResult`](api/scala/play/api/libs/json/JsLookupResult.html) to safely handle the `JsUndefined` case, e.g.
 
 ```scala
-val vOpt = Option[JsValue] = (json \ "foo" \ "bar").toOption
+val vOpt: Option[JsValue] = (json \ "foo" \ "bar").toOption
 ```
 
 ### JsLookup
