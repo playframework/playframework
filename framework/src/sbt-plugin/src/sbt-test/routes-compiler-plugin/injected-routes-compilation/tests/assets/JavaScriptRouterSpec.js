@@ -3,6 +3,7 @@
  */
 var assert = require("assert");
 var jsRoutes = require("./jsRoutes");
+var jsRoutesBadHost = require("./jsRoutesBadHost");
 
 describe("The JavaScript router", function() {
     it("should generate a url", function() {
@@ -24,5 +25,9 @@ describe("The JavaScript router", function() {
     it("should add parameters to the query string", function() {
         var data = jsRoutes.controllers.Application.takeBool(true);
         assert.equal("/take-bool?b=true", data.url);
+    });
+    it("should properly escape the host", function() {
+        var data = jsRoutesBadHost.controllers.Application.index();
+        assert(data.absoluteURL().indexOf("'}}};alert(1);a={a:{a:{a:'") >= 0)
     });
 });
