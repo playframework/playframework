@@ -35,7 +35,7 @@ javaOptions in Test ++= Seq("-Dcom.sun.security.enableCRLDP=true", "-Dcom.sun.ne
 
 There are several points of where a connection can be attacked.  Writing these tests is fairly easy, and running these adversarial tests against unsuspecting programmers can be extremely satisfying.  
 
-> **NOTE**:This should not be taken as a complete list, but as a guide.  In situations where security is paramount, a review should be done by professsional info-sec consultants.
+> **NOTE**:This should not be taken as a complete list, but as a guide.  In situations where security is paramount, a review should be done by professional info-sec consultants.
 
 ### Testing Certificate Verification
 

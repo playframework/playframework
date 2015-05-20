@@ -7,7 +7,7 @@ The Play build system uses [sbt](http://www.scala-sbt.org/), a high-performance 
 
 sbt functions quite differently to the way many traditional build tasks.  Fundamentally, sbt is a task engine.  Your build is represented as a tree of task dependencies that need to be executed, for example, the `compile` task depends on the `sources` task, which depends on the `sourceDirectories` task and the `sourceGenerators` task, and so on.
 
-sbt breaks typical build executions up into very fine grained tasks, and any task at any point in the tree can be arbitrarily redefined in your build.  This makes sbt very powerful, but also requires a shift in thinking if you've come from other build tools that break your build up into very coursely grained tasks.
+sbt breaks typical build executions up into very fine grained tasks, and any task at any point in the tree can be arbitrarily redefined in your build.  This makes sbt very powerful, but also requires a shift in thinking if you've come from other build tools that break your build up into very coarsely grained tasks.
 
 The documentation here describes Play's usage of sbt at a very high level.  As you start to use sbt more in your project, it is recommended that you follow the [sbt tutorial](http://www.scala-sbt.org/0.13/tutorial/index.html) to get an understanding for how sbt fits together.  Another resource that many people have found useful is [this series of blog posts](https://jazzy.id.au/2015/03/03/sbt-task-engine.html).
 

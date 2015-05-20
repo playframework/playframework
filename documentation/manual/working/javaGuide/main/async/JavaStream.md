@@ -37,7 +37,7 @@ For this kind of response we have to use **Chunked transfer encoding**.
 >
 > <https://en.wikipedia.org/wiki/Chunked_transfer_encoding>
 
-The advantage is that we can serve data **live**, meaning that we send chunks of data as soon as they are available. The drawback is that since the web browser doesn’t know the content size, it is not able to display a proper download progress bar.
+The advantage is that we can serve data **live**, meaning that we send chunks of data as soon as they are available. The drawback is that since the web browser doesn't know the content size, it is not able to display a proper download progress bar.
 
 Let’s say that we have a service somewhere that provides a dynamic `InputStream` that computes some data. We can ask Play to stream this content directly using a chunked response:
 

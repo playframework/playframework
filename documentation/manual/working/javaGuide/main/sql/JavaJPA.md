@@ -64,7 +64,7 @@ public static Result index() {
 }
 ```
 
-If your action perfoms only queries, you can set the `readOnly` attribute to `true`:
+If your action runs only queries, you can set the `readOnly` attribute to `true`:
 
 ```
 @Transactional(readOnly=true)
