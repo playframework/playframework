@@ -81,6 +81,17 @@ class ScalaFormsSpec extends Specification with Controller {
       controllers.Application.userFormTupleName === "bob"
     }
 
+    "handling form with errors" in {
+      val userFormConstraints2 = controllers.Application.userFormConstraints2
+
+      implicit val request = FakeRequest().withFormUrlEncodedBody("name" -> "", "age" -> "25")
+
+      //#userForm-constraints-2-with-errors
+      val boundForm = userFormConstraints2.bind(Map("bob" -> "", "age" -> "25"))
+      boundForm.hasErrors must beTrue
+      //#userForm-constraints-2-with-errors
+    }
+
     "handling binding failure" in {
       val userForm = controllers.Application.userFormConstraints
 
@@ -89,7 +100,7 @@ class ScalaFormsSpec extends Specification with Controller {
       val boundForm = userForm.bindFromRequest
       boundForm.hasErrors must beTrue
     }
-    
+
     "display global errors user template" in {
       val userForm = controllers.Application.userFormConstraintsAdHoc
       
@@ -101,7 +112,21 @@ class ScalaFormsSpec extends Specification with Controller {
       val html = views.html.user(boundForm)
       html.body must contain("Failed form constraints!")
     }
-    
+
+    "map single values" in {
+
+      //#form-single-value
+      val singleForm = Form(
+        single(
+          "email" -> email
+        )
+      )
+
+      val emailValue = singleForm.bind(Map("email" -> "bob@example.com")).get
+      //#form-single-value
+      emailValue must beEqualTo("bob@example.com")
+    }
+
   }
 }
 

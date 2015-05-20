@@ -5,7 +5,7 @@ A field rendering is not only composed of the `<input>` tag, but it also needs a
 
 All input helpers take an implicit [`FieldConstructor`](api/scala/views/html/helper/FieldConstructor.html) that handles this part. The [default one](api/scala/views/html/helper/defaultFieldConstructor$.html) (used if there are no other field constructors available in the scope), generates HTML like:
 
-```
+```html
 <dl class="error" id="username_field">
     <dt><label for="username">Username:</label></dt>
     <dd><input type="text" name="username" id="username" value=""></dd>

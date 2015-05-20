@@ -79,7 +79,7 @@ The default is to use a `303 SEE_OTHER` response type, but you can also set a mo
 
 @[moved-permanently-action](code/ScalaActions.scala)
 
-## "TODO" dummy page
+## `TODO` dummy page
 
 You can use an empty `Action` implementation defined as `TODO`: the result is a standard ‘Not implemented yet’ result page:
 

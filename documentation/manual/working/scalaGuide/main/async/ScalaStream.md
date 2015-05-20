@@ -1,7 +1,7 @@
 <!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Streaming HTTP responses
 
-## Standard responses and Content-Length header
+## Standard responses and `Content-Length` header
 
 Since HTTP 1.1, to keep a single connection open to serve several HTTP requests and responses, the server must send the appropriate `Content-Length` HTTP header along with the response. 
 

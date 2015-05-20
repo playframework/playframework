@@ -86,6 +86,6 @@ Let’s write another example that discards the input data and closes the socket
 
 @[iteratee2](code/ScalaWebSockets.scala)
 
-Here is another example in which the input data is logged to standard out and broadcast by to the client utilizing 'Concurrent.broadcast'.
+Here is another example in which the input data is logged to standard out and broadcast to the client utilizing `Concurrent.broadcast`.
 
 @[iteratee3](code/ScalaWebSockets.scala)

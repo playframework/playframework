@@ -1,14 +1,13 @@
 <!--- Copyright (C) 2009-2015 Typesafe Inc. <http://www.typesafe.com> -->
 # Manipulating Results
 
-## Changing the default Content-Type
+## Changing the default `Content-Type`
 
 The result content type is automatically inferred from the Scala value that you specify as the response body.
 
 For example:
 
 @[content-type_text](code/ScalaResults.scala)
-
 
 Will automatically set the `Content-Type` header to `text/plain`, while:
 
@@ -26,7 +25,7 @@ or even better, using:
 
 @[content-type_defined_html](code/ScalaResults.scala)
 
-> **Note:** The benefit of using `HTML` instead of the `"text/html"` is that the charset will be automatically handled for you and the actual Content-Type header will be set to `text/html; charset=utf-8`. We will see that in a bit.
+> **Note:** The benefit of using `HTML` instead of the `"text/html"` is that the charset will be automatically handled for you and the actual Content-Type header will be set to `text/html; charset=utf-8`. We will [[see that in a bit|ScalaResults#Changing-the-charset-for-text-based-HTTP-responses]].
 
 ## Manipulating HTTP headers
 
@@ -52,9 +51,9 @@ You can also set and remove cookies as part of the same response:
 
 @[setting-discarding-cookies](code/ScalaResults.scala)
 
-## Changing the charset for text based HTTP responses.
+## Changing the charset for text based HTTP responses
 
-For text based HTTP response it is very important to handle the charset correctly. Play handles that for you and uses `utf-8` by default.
+For text based HTTP response it is very important to handle the charset correctly. Play handles that for you and uses `utf-8` by default (see [why to use utf-8](http://www.w3.org/International/questions/qa-choosing-encodings#useunicode)).
 
 The charset is used to both convert the text response to the corresponding bytes to send over the network socket, and to update the `Content-Type` header with the proper `;charset=xxx` extension.
 
