@@ -1,12 +1,14 @@
 package utils
 
-import java.io._
+import java.nio.file.{Paths, Files}
 
 object JavaScriptRouterGenerator extends App {
 
   import controllers.routes.javascript._
 
-  val jsFile = play.api.routing.JavaScriptReverseRouter("jsRoutes", None, "localhost",
+  val host = if (args.length > 1) args(1) else "localhost"
+
+  val jsFile = play.api.routing.JavaScriptReverseRouter("jsRoutes", None, host,
     Application.index,
     Application.post,
     Application.withParam,
@@ -16,14 +18,11 @@ object JavaScriptRouterGenerator extends App {
   // Add module exports for node
   val jsModule = jsFile +
     """
-      |
       |module.exports = jsRoutes
     """.stripMargin
-
-  val file = new File(args(0))
-  file.getParentFile.mkdirs()
-  val writer = new FileWriter(file)
-  writer.write(jsModule)
-  writer.close()
+  
+  val path = Paths.get(args(0))
+  Files.createDirectories(path.getParent)
+  Files.write(path, jsModule.getBytes("UTF-8"))
 
 }
