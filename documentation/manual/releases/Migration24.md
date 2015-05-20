@@ -108,6 +108,8 @@ Anorm has been pulled out of the core of Play into a separately managed project 
 libraryDependencies += "com.typesafe.play" %% "anorm" % "2.4.0"
 ```
 
+> The release 2.4.0 of Anorm requires Java 8. The last version compatible with a JDK 1.6 or 1.7 is Anorm 2.3.9.
+
 For more details about what's changed in Anorm, see [[here|Migration24#Anorm]].
 
 ### Bytecode enhancement
