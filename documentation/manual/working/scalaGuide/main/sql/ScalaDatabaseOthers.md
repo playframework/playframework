@@ -40,7 +40,7 @@ object Task extends Table[(Long, String, Date, Boolean)]("tasks") {
 
 Some libraries expect to retrieve the `Datasource` reference from JNDI. You can expose any Play managed datasource via JNDI by adding this configuration in `conf/application.conf`:
 
-```
+```properties
 db.default.driver=org.h2.Driver
 db.default.url="jdbc:h2:mem:play"
 db.default.jndiName=DefaultDS

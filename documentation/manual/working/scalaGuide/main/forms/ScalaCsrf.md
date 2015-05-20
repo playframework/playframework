@@ -97,7 +97,7 @@ The second action is the `CSRFAddToken` action, it generates a CSRF token if not
 
 @[csrf-add-token](code/ScalaCsrf.scala)
 
-A more convenient way to apply these actions is to use them in combination with Play's `ActionBuilder`:
+A more convenient way to apply these actions is to use them in combination with Play's [[action composition|ScalaActionsComposition]]:
 
 @[csrf-action-builder](code/ScalaCsrf.scala)
 

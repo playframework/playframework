@@ -27,8 +27,8 @@ JSON is a lightweight data-interchange format and looks like this:
 > To learn more about JSON, see [json.org](http://json.org/).
 
 ## The Play JSON library
-The [`play.api.libs.json`](api/scala/play/api/libs/json/package.html) package contains data structures for representing JSON data
-and utilities for converting between these data structures and other data representations. Types of interest are:
+
+The [`play.api.libs.json`](api/scala/play/api/libs/json/package.html) package contains data structures for representing JSON data and utilities for converting between these data structures and other data representations. Types of interest are:
 
 ### [`JsValue`](api/scala/play/api/libs/json/JsValue.html)
 
@@ -41,15 +41,17 @@ This is a trait representing any JSON value. The JSON library has a case class e
 - [`JsArray`](api/scala/play/api/libs/json/JsArray.html)
 - [`JsNull`](api/scala/play/api/libs/json/JsNull$.html)
 
-Using the various JSValue types, you can construct a representation of any JSON structure.
+Using the various `JsValue` types, you can construct a representation of any JSON structure.
 
 ### [`Json`](api/scala/play/api/libs/json/Json$.html)
-The Json object provides utilities, primarily for conversion to and from JsValue structures.
+
+The `Json` object provides utilities, primarily for conversion to and from `JsValue` structures.
 
 ### [`JsPath`](api/scala/play/api/libs/json/JsPath.html)
-Represents a path into a JSValue structure, analogous to XPath for XML. This is used for traversing JsValue structures and in patterns for implicit converters.
 
-## Converting to a JsValue
+Represents a path into a `JsValue` structure, analogous to XPath for XML. This is used for traversing `JsValue` structures and in patterns for implicit converters.
+
+## Converting to a `JsValue`
 
 ### Using string parsing
 
@@ -64,13 +66,14 @@ Represents a path into a JSValue structure, analogous to XPath for XML. This is 
 @[convert-from-factory](code/ScalaJsonSpec.scala)
 
 ### Using Writes converters
-Scala to JsValue conversion is performed by the utility method `Json.toJson[T](T)(implicit writes: Writes[T])`. This functionality depends on a converter of type [`Writes[T]`](api/scala/play/api/libs/json/Writes.html) which can convert a `T` to a `JsValue`. 
+
+Scala to `JsValue` conversion is performed by the utility method `Json.toJson[T](T)(implicit writes: Writes[T])`. This functionality depends on a converter of type [`Writes[T]`](api/scala/play/api/libs/json/Writes.html) which can convert a `T` to a `JsValue`. 
 
 The Play JSON API provides implicit `Writes` for most basic types, such as `Int`, `Double`, `String`, and `Boolean`. It also supports `Writes` for collections of any type `T` that a `Writes[T]` exists. 
 
 @[convert-from-simple](code/ScalaJsonSpec.scala)
 
-To convert your own models to JsValues, you must define implicit `Writes` converters and provide them in scope.
+To convert your own models to `JsValue`s, you must define implicit `Writes` converters and provide them in scope.
 
 @[sample-model](code/ScalaJsonSpec.scala)
 
@@ -89,16 +92,19 @@ You can traverse a `JsValue` structure and extract specific values. The syntax a
 > Note: The following examples are applied to the JsValue structure created in previous examples.
 
 ### Simple path `\`
-Applying the `\` operator to a `JsValue` will return the property corresponding to the field argument, supposing this is a JsObject. 
+
+Applying the `\` operator to a `JsValue` will return the property corresponding to the field argument, supposing this is a `JsObject`. 
 
 @[traverse-simple-path](code/ScalaJsonSpec.scala)
 
 ### Recursive path `\\`
+
 Applying the `\\` operator will do a lookup for the field in the current object and all descendants.
 
 @[traverse-recursive-path](code/ScalaJsonSpec.scala)
 
 ### Index lookup (for JsArrays)
+
 You can retrieve a value in a `JsArray` using an apply operator with the index number.
 
 @[traverse-array-index](code/ScalaJsonSpec.scala)
@@ -106,18 +112,20 @@ You can retrieve a value in a `JsArray` using an apply operator with the index n
 ## Converting from a JsValue
 
 ### Using String utilities
+
 Minified:
 
 @[convert-to-string](code/ScalaJsonSpec.scala)
 
-```
+```json
 {"name":"Watership Down","location":{"lat":51.235685,"long":-1.309197},"residents":[{"name":"Fiver","age":4,"role":null},{"name":"Bigwig","age":6,"role":"Owsla"}]}
 ```
+
 Readable:
 
 @[convert-to-string-pretty](code/ScalaJsonSpec.scala)
 
-```
+```json
 {
   "name" : "Watership Down",
   "location" : {
@@ -149,10 +157,11 @@ The `as` method will throw a `JsResultException` if the path is not found or the
 Although the `asOpt` method is safer, any error information is lost.
 
 ### Using validation
+
 The preferred way to convert from a `JsValue` to another type is by using its `validate` method (which takes an argument of type `Reads`). This performs both validation and conversion, returning a type of [`JsResult`](api/scala/play/api/libs/json/JsResult.html). `JsResult` is implemented by two classes:
 
-- [`JsSuccess`](api/scala/play/api/libs/json/JsSuccess.html) - Represents a successful validation/conversion and wraps the result.
-- [`JsError`](api/scala/play/api/libs/json/JsError.html) - Represents unsuccessful validation/conversion and contains a list of validation errors.
+- [`JsSuccess`](api/scala/play/api/libs/json/JsSuccess.html): Represents a successful validation/conversion and wraps the result.
+- [`JsError`](api/scala/play/api/libs/json/JsError.html): Represents unsuccessful validation/conversion and contains a list of validation errors.
 
 You can apply various patterns for handling a validation result:
 

@@ -3,26 +3,25 @@
 
 ## Uploading files in a form using multipart/form-data
 
-The standard way to upload files in a web application is to use a form with a special `multipart/form-data` encoding, which lets you mix standard form data with file attachment data. Please note: the HTTP method used to submit the form must be POST (not GET). 
+The standard way to upload files in a web application is to use a form with a special `multipart/form-data` encoding, which lets you mix standard form data with file attachment data. 
+
+> **Note**: The HTTP method used to submit the form must be `POST` (not `GET`). 
 
 Start by writing an HTML form:
 
 @[file-upload-form](code/scalaguide/templates/views/uploadForm.scala.html)
 
-
 Now define the `upload` action using a `multipartFormData` body parser:
 
 @[upload-file-action](code/ScalaFileUpload.scala)
-
 
 The `ref` attribute give you a reference to a `TemporaryFile`. This is the default way the `mutipartFormData` parser handles file upload.
 
 > **Note:** As always, you can also use the `anyContent` body parser and retrieve it as `request.body.asMultipartFormData`.
 
-At last, add a POST router
+At last, add a `POST` router
 
 @[application-upload-routes](code/scalaguide.upload.fileupload.routes)
-
 
 ## Direct file upload
 

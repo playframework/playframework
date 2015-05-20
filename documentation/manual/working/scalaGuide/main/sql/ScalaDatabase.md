@@ -5,7 +5,6 @@
 
 Play provides a plug-in for managing JDBC connection pools. You can configure as many databases as you need.
 
-
 To enable the database plug-in, add jdbc in your build dependencies :
 
 ```scala
@@ -22,11 +21,15 @@ If something isn’t properly configured you will be notified directly in your b
 
 ### H2 database engine connection properties
 
+In memory database:
+
 ```properties
 # Default database configuration using H2 database engine in an in-memory mode
 db.default.driver=org.h2.Driver
 db.default.url="jdbc:h2:mem:play"
 ```
+
+File based database:
 
 ```properties
 # Default database configuration using H2 database engine in a persistent mode
@@ -79,7 +82,7 @@ db.customers.url="jdbc:h2:mem:customers"
 
 Play is bundled only with an [H2](http://www.h2database.com) database driver. Consequently, to deploy in production you will need to add your database driver as a dependency.
 
-For example, if you use MySQL5, you need to add a [[dependency | SBTDependencies]] for the connector:
+For example, if you use MySQL5, you need to add a [[dependency|SBTDependencies]] for the connector:
 
 ```scala
 libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.34"
@@ -133,7 +136,6 @@ object Application extends Controller {
 }
 ```
 
-
 But of course you need to call `close()` at some point on the opened connection to return it to the connection pool. Another way is to let Play manage closing the connection for you:
 
 ```scala
@@ -166,7 +168,7 @@ DB.withTransaction { conn =>
 
 ## Selecting and configuring the connection pool
 
-Out of the box, Play provides two database connection pool implementations, [HikariCP](https://github.com/brettwooldridge/HikariCP) and [BoneCP](http://jolbox.com/).  The default is HikariCP, but this can be changed by setting the `play.db.pool` property:
+Out of the box, Play provides two database connection pool implementations, [HikariCP](https://github.com/brettwooldridge/HikariCP) and [BoneCP](http://jolbox.com/). **The default is HikariCP**, but this can be changed by setting the `play.db.pool` property:
 
 ```
 play.db.pool=bonecp

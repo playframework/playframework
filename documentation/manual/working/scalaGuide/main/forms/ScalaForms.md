@@ -31,20 +31,19 @@ The end result will look something like this:
 
 ### Defining a form
 
-First, define a case class which contains the elements you want in the form.  Here we want to capture the name and age of a user, so we create a UserData object:
+First, define a case class which contains the elements you want in the form.  Here we want to capture the name and age of a user, so we create a `UserData` object:
 
 @[userData-define](code/ScalaForms.scala)
 
-Now that we have a case class, the next step is to define a [`Form`](api/scala/play/api/data/Form.html) structure.
-The function of a Form is to transform form data into a bound instance of a case class, and we define it like follows:
+Now that we have a case class, the next step is to define a [`Form`](api/scala/play/api/data/Form.html) structure. The function of a `Form is to transform form data into a bound instance of a case class, and we define it like follows:
 
 @[userForm-define](code/ScalaForms.scala)
 
-The [Forms](api/scala/play/api/data/Forms$.html) object defines the [`mapping`](api/scala/play/api/data/Forms$.html#mapping%5BR%2CA1%5D\(\(String%2CMapping%5BA1%5D\)\)\(\(A1\)%E2%87%92R\)\(\(R\)%E2%87%92Option%5BA1%5D\)%3AMapping%5BR%5D) method. This method takes the names and constraints of the form, and also takes two functions: an `apply` function and an `unapply` function.  Because UserData is a case class, we can plug its apply and unapply methods directly into the mapping method.
+The [Forms](api/scala/play/api/data/Forms$.html) object defines the [`mapping`](api/scala/play/api/data/Forms$.html#mapping%5BR%2CA1%5D\(\(String%2CMapping%5BA1%5D\)\)\(\(A1\)%E2%87%92R\)\(\(R\)%E2%87%92Option%5BA1%5D\)%3AMapping%5BR%5D) method. This method takes the names and constraints of the form, and also takes two functions: an `apply` function and an `unapply` function.  Because UserData is a case class, we can plug its `apply` and `unapply` methods directly into the mapping method.
 
 > **Note:** Maximum number of fields for a single tuple or mapping is 22 due to the way form handling is implemented. If you have more than 22 fields in your form, you should break down your forms using lists or nested values.
 
-A form will create UserData instance with the bound values when given a Map:
+A form will create `UserData` instance with the bound values when given a Map:
 
 @[userForm-generate-map](code/ScalaForms.scala)
 
@@ -56,8 +55,8 @@ But most of the time you'll use forms from within an Action, with data provided 
 
 You are not limited to using case classes in your form mapping.  As long as the apply and unapply methods are properly mapped, you can pass in anything you like, such as tuples using the [`Forms.tuple`](api/scala/play/api/data/Forms$.html) mapping or model case classes.  However, there are several advantages to defining a case class specifically for a form:
 
-* **Form specific case classes are convenient.**  Case classes are designed to be simple containers of data, and provide out of the box features that are a natural match with Form functionality.
-* **Form specific case classes are powerful.**  Tuples are convenient to use, but do not allow for custom apply or unapply methods, and can only reference contained data by arity (_1, _2, etc.)
+* **Form specific case classes are convenient.**  Case classes are designed to be simple containers of data, and provide out of the box features that are a natural match with `Form` functionality.
+* **Form specific case classes are powerful.**  Tuples are convenient to use, but do not allow for custom apply or unapply methods, and can only reference contained data by arity (`_1`, `_2`, etc.)
 * **Form specific case classes are targeted specifically to the Form.**  Reusing model case classes can be convenient, but often models will contain additional domain logic and even persistence details that can lead to tight coupling.  In addition, if there is not a direct 1:1 mapping between the form and the model, then sensitive fields must be explicitly ignored to prevent a [parameter tampering](https://www.owasp.org/index.php/Web_Parameter_Tampering) attack.
 
 ### Defining constraints on the form
@@ -68,10 +67,7 @@ The `text` constraint considers empty strings to be valid.  This means that `nam
 
 Using this form will result in a form with errors if the input to the form does not match the constraints:
 
-```scala
-val boundForm = userFormConstraints2.bind(Map("bob" -> "", "age" -> "25"))
-boundForm.hasErrors must beTrue
-```
+@[userForm-constraints-2-with-errors](code/ScalaForms.scala)
 
 The out of the box constraints are defined on the [Forms object](api/scala/play/api/data/Forms$.html):
 
@@ -201,17 +197,7 @@ Using a tuple can be more convenient than defining a case class, especially for 
 
 Tuples are only possible when there are multiple values.  If there is only one field in the form, use `Forms.single` to map to a single value without the overhead of a case class or tuple:
 
-```scala
-val singleForm = Form(
-  single(
-    "email" -> email
-  )
-)
-```
-
-```scala
-val email = singleForm.bind(Map("email", "bob@example.com")).get
-```
+@[form-single-value](code/ScalaForms.scala)
 
 ### Fill values
 
@@ -269,9 +255,7 @@ This maps to an `Option[A]` in output, which is `None` if no form value is found
 
 You can populate a form with initial values using [`Form#fill`](api/scala/play/api/data/Form.html):
 
-```
-val filledForm = userForm.fill(User("Bob", 18))
-```
+@[userForm-filled](code/ScalaForms.scala)
 
 Or you can define a default mapping on the number using [`Forms.default`](api/scala/play/api/data/Forms$.html):
 

@@ -3,7 +3,7 @@
 
 ## Prerequisites
 
-You need to have a JDK 1.8 (or later) installed on your machine (see [General Installation Tasks](#jdk-installation)).
+You need to have a JDK 1.8 (or later) installed on your machine (see [General Installation Tasks](#JDK-installation)).
 
 ## Quick Start
 
@@ -18,7 +18,7 @@ You'll find documentation and a list of application samples which get you going 
 
 ### Command Line
 
-To use play from any location on your file-system, add the **activator** directory to your path (see [General Installation Tasks](#add-executables-to-path)).
+To use play from any location on your file-system, add the **activator** directory to your path (see [General Installation Tasks](#Add-Executables-to-Path)).
 
 Creating `my-first-app` based on the `play-java` template is as simple as:
 
