@@ -45,11 +45,17 @@ In most situations, the appropriate execution context to use will be the **Play 
 
 ### Configuring the Play default thread pool
 
-The default thread pool can be configured using standard Akka configuration in `application.conf` under the `akka` namespace. Play uses Akka's default configuration:
+The default thread pool can be configured using standard Akka configuration in `application.conf` under the `akka` namespace. Here is default configuration for Play's thread pool:
 
 @[default-config](code/ThreadPools.scala)
 
-This configuration instructs Akka to create 3 threads per available processor, with a minimum of 8 and a maximum of 64 threads in the pool.  The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/2.3.11/general/configuration.html#Listing_of_the_Reference_Configuration).
+This configuration instructs Akka to create 1 thread per available processor, with a maximum of 24 threads in the pool.
+
+You can also try the default Akka configuration:
+
+@[akka-default-config](code/ThreadPools.scala)
+
+The full configuration options available to you can be found [here](http://doc.akka.io/docs/akka/2.3.11/general/configuration.html#Listing_of_the_Reference_Configuration).
 
 ## Using other thread pools
 
