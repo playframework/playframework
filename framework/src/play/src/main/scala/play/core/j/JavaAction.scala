@@ -37,9 +37,9 @@ class JavaActionAnnotations(val controller: Class[_], val method: java.lang.refl
 
   val actionMixins = {
     val allDeclaredAnnotations: Seq[java.lang.annotation.Annotation] = if (HttpConfiguration.current.actionComposition.controllerAnnotationsFirst) {
-        (controllerAnnotations ++ method.getDeclaredAnnotations)
+      (controllerAnnotations ++ method.getDeclaredAnnotations)
     } else {
-        (method.getDeclaredAnnotations ++ controllerAnnotations)
+      (method.getDeclaredAnnotations ++ controllerAnnotations)
     }
     allDeclaredAnnotations.collect {
       case a: play.mvc.With => a.value.map(c => (a, c)).toSeq

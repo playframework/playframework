@@ -8,6 +8,7 @@ import javax.inject.Inject
 import play.api.http.HttpFilters
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.routing.Router
+import play.api.routing.sird._
 
 import scala.concurrent.Future
 
@@ -27,6 +28,7 @@ object CORSFilterSpec extends CORSCommonSpec {
       .configure(conf)
       .overrides(
         bind[Router].to(Router.from {
+          case p"/error" => Action { req => throw sys.error("error") }
           case _ => Action(Results.Ok)
         }),
         bind[HttpFilters].to[Filters]
@@ -53,6 +55,9 @@ object CORSActionBuilderSpec extends CORSCommonSpec {
   def withApplication[T](conf: Map[String, _ <: Any] = Map.empty)(block: => T): T = {
     running(FakeApplication(
       withRoutes = {
+        case (_, "/error") => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf)) { req =>
+          throw sys.error("error")
+        }
         case _ => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf))(Results.Ok)
       }
     ))(block)
@@ -62,7 +67,10 @@ object CORSActionBuilderSpec extends CORSCommonSpec {
     running(FakeApplication(
       additionalConfiguration = conf,
       withRoutes = {
-        case _ => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf), configPath)(Results.Ok)
+        case (_, "/error") => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf), configPath = configPath) { req =>
+          throw sys.error("error")
+        }
+        case _ => CORSActionBuilder(Configuration.reference ++ Configuration.from(conf), configPath = configPath)(Results.Ok)
       }
     ))(block)
   }
@@ -189,6 +197,19 @@ trait CORSCommonSpec extends PlaySpecification {
       val result = route(fakeRequest("GET", "/").withHeaders(ORIGIN -> "http://localhost")).get
 
       status(result) must_== OK
+      header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beSome("true")
+      header(ACCESS_CONTROL_ALLOW_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_METHODS, result) must beNone
+      header(ACCESS_CONTROL_ALLOW_ORIGIN, result) must beSome("http://localhost")
+      header(ACCESS_CONTROL_EXPOSE_HEADERS, result) must beNone
+      header(ACCESS_CONTROL_MAX_AGE, result) must beNone
+      header(VARY, result) must beSome(ORIGIN)
+    }
+
+    "handle simple cross-origin request when the action throws an error" in withApplication() {
+      val result = route(fakeRequest("GET", "/error").withHeaders(ORIGIN -> "http://localhost")).get
+
+      status(result) must_== INTERNAL_SERVER_ERROR
       header(ACCESS_CONTROL_ALLOW_CREDENTIALS, result) must beSome("true")
       header(ACCESS_CONTROL_ALLOW_HEADERS, result) must beNone
       header(ACCESS_CONTROL_ALLOW_METHODS, result) must beNone
