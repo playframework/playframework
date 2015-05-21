@@ -53,6 +53,8 @@ libraryDependencies += evolutions
 
 While, if you are not using evolutions, you can now safely remove `evolutionplugin=disabled` from your `application.conf`.
 
+If you are using Play Slick module (with or without evolutions), things have changed quite a bit, so make sure to read the [[Play Slick migration guide|PlaySlickMigrationGuide]].
+
 ### IDEs: Eclipse and IntelliJ IDEA
 
 Play no longer includes the sbteclipse or sbt-idea plugins, which enables users to upgrade IDE support independently of Play.
@@ -73,6 +75,10 @@ Also the corresponding class has changed. To set the FileWatchService to poll ev
 ```scala
 PlayKeys.fileWatchService := play.runsupport.FileWatchService.sbt(2000)
 ```
+
+### Play Slick dependency
+
+Play Slick module has gone through a major restyle to support Slick 3.0. For a smooth upgrade, read the [[Play Slick migration guide|PlaySlickMigrationGuide]].
 
 ### Ebean dependency
 

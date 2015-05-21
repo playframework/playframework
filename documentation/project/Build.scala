@@ -62,7 +62,7 @@ object ApplicationBuild extends Build {
     ),
 
     PlayDocsKeys.docsJarFile := Some((packageBin in (playDocs, Compile)).value),
-    PlayDocsKeys.playDocsValidationConfig := PlayDocsValidation.ValidationConfig(downstreamWikiPages = Set("ScalaAnorm")),
+    PlayDocsKeys.playDocsValidationConfig := PlayDocsValidation.ValidationConfig(downstreamWikiPages = Set("ScalaAnorm","PlaySlickMigrationGuide")),
 
     PlayDocsKeys.javaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "javaGuide" ** codeFilter).get,
     PlayDocsKeys.scalaManualSourceDirectories := (baseDirectory.value / "manual" / "working" / "scalaGuide" ** codeFilter).get,
