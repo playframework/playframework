@@ -788,8 +788,12 @@ trait Results {
   /** Generates a ‘424 FAILED_DEPENDENCY’ result. */
   val FailedDependency = new Status(FAILED_DEPENDENCY)
 
+  /** Generates a ‘429 TOO_MANY_REQUESTS’ result. */
+  val TooManyRequests = new Status(TOO_MANY_REQUESTS)
+
   /** Generates a ‘429 TOO_MANY_REQUEST’ result. */
-  val TooManyRequest = new Status(TOO_MANY_REQUEST)
+  @deprecated("Use TooManyRequests instead", "3.0.0")
+  val TooManyRequest = TooManyRequests
 
   /** Generates a ‘500 INTERNAL_SERVER_ERROR’ result. */
   val InternalServerError = new Status(INTERNAL_SERVER_ERROR)
