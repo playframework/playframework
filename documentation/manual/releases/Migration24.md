@@ -230,7 +230,7 @@ Next follows a method-by-method guide for refactoring your code. Because the API
 
 * `GlobalSettings.onError`: Create a class that inherits from [`HttpErrorHandler`](api/scala/play/api/http/HttpErrorHandler.html), and move the implementation of your `GlobalSettings.onError` inside the `HttpErrorHandler.onServerError` method. Read [[Error Handling|ScalaErrorHandling]] for more information.
 
-* `GlobalSettings.onRequestReceived`:  Create a class that inherits from [`HttpRequestHandler`](api/scala/play/api/http/HttpRequestHandler.html), and move the implementation of your `GlobalSettings.onRequestReceived` inside the `HttpRequestHandler.handlerForRequest` method.  Read [[Request Handlers|ScalaHttpRequestHandlers]] for more information. 
+* `GlobalSettings.onRequestReceived`:  Create a class that inherits from [`HttpRequestHandler`](api/scala/play/api/http/HttpRequestHandler.html), and move the implementation of your `GlobalSettings.onRequestReceived` inside the `HttpRequestHandler.handlerForRequest` method.  Read [[Request Handlers|ScalaHttpRequestHandlers]] for more information.
 Be aware that if in your `GlobalSettings.onRequestReceived` implementation you are calling `super.onRequestReceived`, then you should inherits from [`DefaultHttpRequestHandler`](api/scala/play/api/http/DefaultHttpRequestHandler.html) instead of `HttpRequestHandler`, and replace all calls to `super.onRequestReceived` with `super.handlerForRequest`.
 
 * `GlobalSettings.onRouteRequest`: Create a class that inherits from [`DefaultHttpRequestHandler`](api/scala/play/api/http/DefaultHttpRequestHandler.html), and move the implementation of your `GlobalSettings.onRouteRequest` method inside the `DefaultHttpRequestHandler.routeRequest` method. Read [[Request Handlers|ScalaHttpRequestHandlers]] for more information.
@@ -362,6 +362,14 @@ akka {
 ```
 
 See the [[thread pool configuration section|ThreadPools#Configuring-the-Play-default-thread-pool]] for more information.
+
+### HttpRequestHandler
+
+The HttpRequestHandler that Play uses by default delegates to the legacy `GlobalSettings` methods. If you're not using `GlobalSettings` in your application then you can increase performance slightly by changing the handler. You can do that by adding the following to your settings:
+
+```
+play.http.requestHandler = "play.http.DefaultHttpRequestHandler"
+```
 
 ### Logging
 
