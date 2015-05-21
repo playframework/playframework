@@ -58,3 +58,14 @@ InputKey[Unit]("checkConfig") := {
     sys.error(s"Expected config $expected but got $config")
   }
 }
+
+InputKey[Unit]("countApplicationConf") := {
+  val expected = Def.spaceDelimited().parsed.head
+  import java.net.URL
+  val count = retry() {
+    IO.readLinesURL(new URL("http://localhost:9000/countApplicationConf")).mkString("\n")
+  }
+  if (expected != count) {
+    sys.error(s"Expected application.conf to be $expected times on classpath, but it was there $count times")
+  }
+}

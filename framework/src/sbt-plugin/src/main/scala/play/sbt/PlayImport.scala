@@ -97,6 +97,8 @@ object PlayImport {
     val playInteractionMode = SettingKey[PlayInteractionMode]("playInteractionMode", "Hook to configure how Play blocks when running")
 
     val externalizeResources = SettingKey[Boolean]("playExternalizeResources", "Whether resources should be externalized into the conf directory when Play is packaged as a distribution.")
+    val playExternalizedResources = TaskKey[Seq[(File, String)]]("playExternalizedResources", "The resources to externalize")
+    val playJarSansExternalized = TaskKey[File]("playJarSansExternalized", "Creates a jar file that has all the externalized resources excluded")
 
     val playOmnidoc = SettingKey[Boolean]("playOmnidoc", "Determines whether to use the aggregated Play documentation")
     val playDocsName = SettingKey[String]("playDocsName", "Artifact name of the Play documentation")
