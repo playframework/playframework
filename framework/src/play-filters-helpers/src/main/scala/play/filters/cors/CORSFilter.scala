@@ -3,6 +3,8 @@
  */
 package play.filters.cors
 
+import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
+
 import scala.concurrent.Future
 
 import play.api.Logger
@@ -31,6 +33,7 @@ import play.api.mvc.{ Filter, RequestHeader, Result }
  */
 class CORSFilter(
     override protected val corsConfig: CORSConfig = CORSConfig(),
+    override protected val errorHandler: HttpErrorHandler = DefaultHttpErrorHandler,
     private val pathPrefixes: Seq[String] = Seq("/")) extends Filter with AbstractCORSPolicy {
 
   override protected val logger = Logger(classOf[CORSFilter])
@@ -46,7 +49,8 @@ class CORSFilter(
 
 object CORSFilter {
 
-  def apply(corsConfig: CORSConfig = CORSConfig(), pathPrefixes: Seq[String] = Seq("/")) =
-    new CORSFilter(corsConfig, pathPrefixes)
+  def apply(corsConfig: CORSConfig = CORSConfig(), errorHandler: HttpErrorHandler = DefaultHttpErrorHandler,
+    pathPrefixes: Seq[String] = Seq("/")) =
+    new CORSFilter(corsConfig, errorHandler, pathPrefixes)
 
 }
