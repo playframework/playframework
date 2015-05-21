@@ -339,6 +339,17 @@ object QueryStringBindable {
   }
 
   /**
+   * QueryString binder for Char.
+   */
+  implicit object bindableChar extends QueryStringBindable[Char]{
+    def bind(key: String, params: Map[String, Seq[String]]) = params.get(key).flatMap(_.headOption).map { value =>
+      if(value.length != 1) Left(s"Cannot parse parameter $key with value '$value' as Char: $key must be exactly one digit in length.")
+      else Right( value.charAt(0) )
+    }
+    def unbind(key: String, value: Char) = key + "=" + value.toString
+  }
+
+  /**
    * QueryString binder for Int.
    */
   implicit object bindableInt extends Parsing[Int](
@@ -569,6 +580,17 @@ object PathBindable {
   implicit object bindableString extends Parsing[String](
     (s: String) => s, (s: String) => s, (key: String, e: Exception) => "Cannot parse parameter %s as String: %s".format(key, e.getMessage)
   )
+
+  /**
+   * Path binder for Char.
+   */
+  implicit object bindableChar extends PathBindable[Char]{
+    def bind(key: String, value: String) = {
+      if(value.length != 1) Left(s"Cannot parse parameter $key with value '$value' as Char: $key must be exactly one digit in length.")
+      else Right( value.charAt(0) )
+    }
+    def unbind(key: String, value: Char) = value.toString
+  }
 
   /**
    * Path binder for Int.
