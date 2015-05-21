@@ -101,8 +101,7 @@ object HttpConfiguration {
   }
 
   def fromConfiguration(configuration: Configuration) = {
-    val config = PlayConfig(configuration
-    )
+    val config = PlayConfig(configuration)
     val context = {
       val ctx = config.getDeprecated[String]("play.http.context", "application.context")
       if (!ctx.startsWith("/")) {

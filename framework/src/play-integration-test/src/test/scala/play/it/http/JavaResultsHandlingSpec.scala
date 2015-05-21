@@ -162,9 +162,9 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       )
 
       running(TestServer(port, app)) {
-        val response = BasicHttpClient.makeRequests(testServerPort, true)(
+        val response = BasicHttpClient.makeRequests(testServerPort, checkClosed = true)(
           BasicRequest("GET", "/", "HTTP/1.0", Map(), "")
-        )(0)
+        ).head
         response.headers.get(CONTENT_LENGTH) must beNone
         response.headers.get(TRANSFER_ENCODING) must beNone
         response.body must beLeft("hello")
