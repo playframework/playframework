@@ -183,8 +183,7 @@ object PlaySettings {
     // Support for externalising resources
     mappings in Universal ++= {
       if (externalizeResources.value) {
-        val rdirs = (unmanagedResourceDirectories in Compile).value
-        val resourceMappings = ((unmanagedResources in Compile).value --- rdirs) pair (relativeTo(rdirs) | flat)
+        val resourceMappings = (playExternalizedResources in Compile).value
         resourceMappings.map {
           case (resource, path) => resource -> ("conf/" + path)
         }
@@ -194,6 +193,27 @@ object PlaySettings {
       if (externalizeResources.value) {
         "../conf" +: scriptClasspath.value
       } else scriptClasspath.value
+    },
+    // taskDyn ensures we only build the sans externalised jar if we need to
+    scriptClasspathOrdering <<= Def.taskDyn {
+      val oldValue = scriptClasspathOrdering.value
+      if (externalizeResources.value) {
+        Def.task {
+          // Filter out the regular jar
+          val jar = (packageBin in Runtime).value
+          val jarSansExternalized = (playJarSansExternalized in Runtime).value
+          oldValue.map {
+            case (packageBinJar, _) if jar == packageBinJar =>
+              val id = projectID.value
+              val art = (artifact in Compile in playJarSansExternalized).value
+              val jarName = JavaAppPackaging.makeJarName(id.organization, id.name, id.revision, art.name, art.classifier)
+              jarSansExternalized -> ("lib/" + jarName)
+            case other => other
+          }
+        }
+      } else {
+        Def.task(oldValue)
+      }
     },
 
     mappings in Universal ++= {
@@ -220,6 +240,32 @@ object PlaySettings {
     generateSecret <<= ApplicationSecretGenerator.generateSecretTask,
     updateSecret <<= ApplicationSecretGenerator.updateSecretTask
 
-  )
+  ) ++ inConfig(Compile)(externalizedSettings)
+
+  /**
+   * Settings for creating a jar that excludes externalized resources
+   */
+  private def externalizedSettings: Seq[Setting[_]] =
+    Defaults.packageTaskSettings(playJarSansExternalized, mappings in playJarSansExternalized) ++ Seq(
+      playExternalizedResources := {
+        val rdirs = unmanagedResourceDirectories.value
+        (unmanagedResources.value --- rdirs) pair (relativeTo(rdirs) | flat)
+      },
+      mappings in playJarSansExternalized := {
+        // packageBin mappings have all the copied resources from the classes directory
+        // so we need to get the copied resources, and map the source files to the destination files,
+        // so we can then exclude the destination files
+        val packageBinMappings = (mappings in packageBin).value
+        val externalized = playExternalizedResources.value.map(_._1).toSet
+        val copied = copyResources.value
+        val toExclude = copied.collect {
+          case (source, dest) if externalized(source) => dest
+        }.toSet
+        packageBinMappings.filterNot {
+          case (file, _) => toExclude(file)
+        }
+      },
+      artifactClassifier in playJarSansExternalized := Option("sans-externalized")
+    )
 
 }
