@@ -7,7 +7,7 @@ import sbt.File
 import java.net.URLClassLoader
 import org.webjars.{ FileSystemCache, WebJarExtractor }
 import interplay.Playdoc
-import interplay.Playdoc.Import.PlaydocKeys
+import interplay.Playdoc.autoImport._
 
 object Docs {
 
@@ -60,7 +60,7 @@ object Docs {
       ivyConfigurations += Webjars,
       extractWebjars <<= extractWebjarContents,
       libraryDependencies ++= Dependencies.playdocWebjarDependencies,
-      mappings in PlaydocKeys.packagePlaydoc := {
+      mappings in playdocPackage := {
         val base = (baseDirectory in ThisBuild).value
         val docBase = base.getParentFile / "documentation"
         val raw = (docBase / "manual").*** +++ (docBase / "style").***
