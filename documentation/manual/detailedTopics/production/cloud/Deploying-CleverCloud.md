@@ -51,7 +51,7 @@ The file must contain the following fields:
 
 That field can contain additional configuration like:
 
-`"-Dconfig.resource=clevercloud.conf"`, `"-Dplay.version=2.0.4"` or `"-Dplay.modules.evolutions.autoApply=true"`.
+`"-Dconfig.resource=clevercloud.conf"`, `"-Dplay.version=2.0.4"` or `"-Dplay.evolutions.autoApply=true"`.
 
 ## Connecting to a database
 
