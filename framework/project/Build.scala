@@ -53,7 +53,9 @@ object BuildSettings {
     homepage := Some(url("https://playframework.com")),
     ivyLoggingLevel := UpdateLogging.DownloadOnly,
     resolvers ++= Seq(
-      "Scalaz Bintray Repo" at "https://dl.bintray.com/scalaz/releases"
+      "Scalaz Bintray Repo" at "https://dl.bintray.com/scalaz/releases",
+      Resolver.typesafeRepo("releases"),
+      Resolver.typesafeIvyRepo("releases")
     ),
     fork in Test := true,
     parallelExecution in Test := false,
