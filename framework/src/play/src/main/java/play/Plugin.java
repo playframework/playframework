@@ -20,7 +20,7 @@ package play;
  * }
  * </pre>
  *
- * @deprecated Use modules instead
+ * @deprecated Use modules instead. See {@link play.api.inject.Module}.
  */
 @Deprecated
 public class Plugin implements play.api.Plugin {
