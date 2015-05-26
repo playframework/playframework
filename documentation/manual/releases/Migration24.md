@@ -13,6 +13,8 @@ java.lang.UnsupportedClassVersionError: play/runsupport/classloader/ApplicationC
 
 A [java.lang.UnsupportedClassVersionError](https://docs.oracle.com/javase/8/docs/api/java/lang/UnsupportedClassVersionError.html) means that reading a Java class file with an older version of Java than the class file was compiled with is unsupported.
 
+> **Note:** Scala 2.10 does not have full support to all Java 8 language features, like static methods on interfaces. If your project has Java code using these new features present in Java 8, upgrade to use Scala 2.11.6+. See [sbt docs](http://www.scala-sbt.org/0.13/docs/Howto-Scala.html) to learn how to set `scalaVersion` to your project.
+
 ## Build changes
 
 The following steps need to be taken to update your sbt build before you can load/run a Play project in sbt.
