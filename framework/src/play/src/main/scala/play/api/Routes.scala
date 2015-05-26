@@ -12,13 +12,13 @@ object Routes {
 
   @deprecated("Use play.api.routing.Router.Tags.RouteVerb instead", "2.4.0")
   val ROUTE_VERB = Router.Tags.RouteVerb
-  @deprecated("Use play.api.routing.Router.Tags.RouteVerb instead", "2.4.0")
+  @deprecated("Use play.api.routing.Router.Tags.RoutePattern instead", "2.4.0")
   val ROUTE_PATTERN = Router.Tags.RoutePattern
-  @deprecated("Use play.api.routing.Router.Tags.RouteVerb instead", "2.4.0")
+  @deprecated("Use play.api.routing.Router.Tags.RouteController instead", "2.4.0")
   val ROUTE_CONTROLLER = Router.Tags.RouteController
-  @deprecated("Use play.api.routing.Router.Tags.RouteVerb instead", "2.4.0")
+  @deprecated("Use play.api.routing.Router.Tags.RouteActionMethod instead", "2.4.0")
   val ROUTE_ACTION_METHOD = Router.Tags.RouteActionMethod
-  @deprecated("Use play.api.routing.Router.Tags.RouteVerb instead", "2.4.0")
+  @deprecated("Use play.api.routing.Router.Tags.RouteComments instead", "2.4.0")
   val ROUTE_COMMENTS = Router.Tags.RouteComments
 
   @deprecated("Use play.api.routing.JavaScriptReverseRouter instead", "2.4.0")
