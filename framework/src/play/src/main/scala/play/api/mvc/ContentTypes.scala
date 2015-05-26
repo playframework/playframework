@@ -293,12 +293,12 @@ trait BodyParsers {
     def DefaultMaxTextLength: Int = config.maxMemoryBuffer
 
     /**
-     * Default max length allowed for text based body.
+     * Default max length allowed for disk based body.
      *
      * You can configure it in application.conf:
      *
      * {{{
-     * parsers.disk.maxLength = 512k
+     * play.http.parser.maxDiskBuffer = 512k
      * }}}
      */
     def DefaultMaxDiskLength: Long = config.maxDiskBuffer
