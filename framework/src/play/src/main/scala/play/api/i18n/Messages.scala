@@ -237,7 +237,7 @@ object Messages {
    * Parse all messages of a given input.
    */
   def parse(messageSource: MessageSource, messageSourceName: String): Either[PlayException.ExceptionSource, Map[String, String]] = {
-    new Messages.MessagesParser(messageSource, "").parse.right.map { messages =>
+    new Messages.MessagesParser(messageSource, messageSourceName).parse.right.map { messages =>
       messages.map { message => message.key -> message.pattern }.toMap
     }
   }
