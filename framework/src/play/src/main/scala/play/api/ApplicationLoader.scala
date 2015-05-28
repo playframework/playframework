@@ -101,6 +101,6 @@ abstract class BuiltInComponentsFromContext(context: ApplicationLoader.Context) 
   lazy val environment = context.environment
   lazy val sourceMapper = context.sourceMapper
   lazy val webCommands = context.webCommands
-  lazy val configuration = context.initialConfiguration
+  lazy val configuration = context.initialConfiguration ++ Configuration.load(environment)
 }
 
