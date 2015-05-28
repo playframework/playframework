@@ -5,6 +5,20 @@ import sbt.Keys._
 import com.typesafe.sbt.S3Plugin._
 import sbt.complete.{Parsers, Parser}
 
+/**
+ * This must be here, and not in build.sbt, since Project.setSbtFiles only works from a .scala file
+ */
+object TemplatesBuild extends Build {
+  lazy val root = (project in file("."))
+    .setSbtFiles(
+      // Load the version from Play's version.sbt
+      // Order is important, load the version first, then load build.sbt which may modify it with the play.version
+      // system property.
+      file("../framework/version.sbt"),
+      file("./build.sbt")
+    )
+}
+
 object Templates {
 
   val templates = SettingKey[Seq[File]]("activatorTemplates")
@@ -134,7 +148,7 @@ object Templates {
       }
     },
 
-    publishTemplatesTo := "typesafe.com",
+    publishTemplatesTo := "api.typesafe.com",
     doPublishTemplates := {
       val host = publishTemplatesTo.value
       val creds = Credentials.forHost(credentials.value, host).getOrElse {
@@ -314,4 +328,6 @@ object Templates {
     .map(_.trim)
     .filterNot(_.isEmpty)
     .map(_.replaceAll("<p>", "").replaceAll("</p>", ""))
+
+  play.api.Logger.configure(play.api.Environment.simple())
 }
