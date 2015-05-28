@@ -48,7 +48,7 @@ You can read about these new APIs here:
 
 It is now straightforward to embed a Play application.  Play 2.4 provides both APIs to start and stop a Play server, as well as routing DSLs for Java and Scala so that routes can be embedded directly in code.
 
-In Java, see [[Embedding Play|JavaEmbeddingPlay]] as well as information about the [[Routing DSL|JavaRoutingDSL]].
+In Java, see [[Embedding Play|JavaEmbeddingPlay]] as well as information about the [[Routing DSL|JavaRoutingDsl]].
 
 In Scala, see [[Embedding Play|ScalaEmbeddingPlay]] as well as information about the [[String Interpolating Routing DSL|ScalaSirdRouter]].
 
