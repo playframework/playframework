@@ -56,6 +56,15 @@ class MyComponents(context: Context) extends BuiltInComponentsFromContext(contex
 }
 //#basic
 
+//#basicextended
+class MyApplicationLoaderWithInitialization extends ApplicationLoader {
+  def load(context: Context) = {
+    Logger.configure(context.environment)
+    new MyComponents(context).application
+  }
+}
+//#basicextended
+
 }
 
 package messages {
