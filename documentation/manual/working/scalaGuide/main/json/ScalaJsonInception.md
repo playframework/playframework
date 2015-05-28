@@ -229,7 +229,7 @@ object Person{
 
 ## <a name="limitations">Known limitations</a>
 
-- **Don't override apply function in companion object** because then the Macro will have several apply functions and won't choose.
+- **Don't overload apply function in companion object** because then the Macro will have several apply functions and won't choose.
 - **Json Macros only work when apply and  unapply have corresponding input/output types**: This is naturally the case for case classes. But if you want to the same with a trait, you must implement the same apply/unapply you would have in a case class.
 - **Json Macros are known to accept Option/Seq/List/Set & Map[String, \_]**. For other generic types, test and if not working, use traditional way of writing Reads/Writes manually.
 
