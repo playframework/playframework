@@ -30,7 +30,12 @@ The simplest implementation of this can be provided by extending the Play [Built
 To configure Play to use this application loader, configure the `play.application.loader` property to point to the fully qualified class name in the `application.conf` file:
 
     play.application.loader=MyApplicationLoader
-    
+
+Note that some initialization is done per default in the [GuiceApplicationBuilder](api/scala/play/api/inject/guice/GuiceApplicationBuilder.html) that is not provided by [BuiltInComponentsFromContext](api/scala/play/api/BuiltInComponentsFromContext.html) so that the loading can be fully customized.
+This initialization may be added in the application loader:
+
+@[basicextended](code/CompileTimeDependencyInjection.scala)
+
 ## Providing a router
 
 By default Play will generate a static router that requires all of your actions to be objects.  Play however also supports generating a router than can be dependency injected, this can be enabled by adding the following configuration to your `build.sbt`:
