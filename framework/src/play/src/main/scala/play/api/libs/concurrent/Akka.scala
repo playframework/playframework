@@ -289,7 +289,7 @@ object ActorSystemProvider {
 
     val name = config.get[String]("play.akka.actor-system")
     val system = ActorSystem(name, akkaConfig, classLoader)
-    logger.info(s"Starting application default Akka system: $name")
+    logger.debug(s"Starting application default Akka system: $name")
 
     val stopHook = { () =>
       logger.info(s"Shutdown application default Akka system: $name")
