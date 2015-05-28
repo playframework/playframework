@@ -6,10 +6,11 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := "%SCALA_VERSION%"
 
-resolvers += "sorm Scala 2.11 fork" at "http://markusjura.github.io/sorm"
+resolvers += "Scalaz Bintray Repo" at "https://dl.bintray.com/scalaz/releases"
 
-libraryDependencies ++= Seq(  
-  "org.sorm-framework" % "sorm" % "0.4.1",
+libraryDependencies ++= Seq(
+  "com.typesafe.play" %% "play-slick" % "%PLAY_SLICK_VERSION%",
+  "com.typesafe.play" %% "play-slick-evolutions" % "%PLAY_SLICK_VERSION%",
   "com.h2database" % "h2" % "1.4.177",
   specs2 % Test
 )     

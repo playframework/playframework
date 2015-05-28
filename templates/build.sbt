@@ -19,8 +19,7 @@ templates := {
   Seq(
     "play-scala",
     "play-java",
-// Disabled since it seems to be causing unexplainable errors :(
-//    "play-scala-intro",
+    "play-scala-intro",
     "play-java-intro"
   ).map(template => dir / template)
 }
@@ -52,6 +51,7 @@ templateParameters := Map(
   "MOCHA_VERSION" -> "1.1.0",
   "ENHANCER_VERSION" -> "1.1.0",
   "EBEAN_VERSION" -> "1.0.0",
+  "PLAY_SLICK_VERSION" -> "1.0.0",
   "TEMPLATE_NAME_SUFFIX" -> templateNameAndTitle(version.value)._1,
   "TEMPLATE_TITLE_SUFFIX" -> templateNameAndTitle(version.value)._2
 )
