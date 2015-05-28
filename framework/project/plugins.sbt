@@ -18,7 +18,7 @@ scalacOptions ++= Seq("-deprecation", "-language:_")
 
 addSbtPlugin("com.typesafe.play" % "interplay" % sys.props.getOrElse("interplay.version", "1.0.2"))
 addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % sbtTwirlVersion)
-addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.1.6")
+addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.1.7")
 addSbtPlugin("com.typesafe.sbt" % "sbt-scalariform" % "1.3.0")
 
 libraryDependencies ++= Seq(
