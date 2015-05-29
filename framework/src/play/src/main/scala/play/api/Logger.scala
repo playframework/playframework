@@ -190,7 +190,7 @@ object Logger extends LoggerLike {
    * @param clazz a class whose name will be used as logger name
    * @return a logger
    */
-  def apply[T](clazz: Class[T]): Logger = new Logger(LoggerFactory.getLogger(clazz))
+  def apply[T](clazz: Class[T]): Logger = new Logger(LoggerFactory.getLogger(clazz.getName.stripSuffix("$")))
 
   /**
    * Initialize the Logger when there's no application ClassLoader available.
@@ -333,4 +333,3 @@ object Logger extends LoggerLike {
   }
 
 }
-
