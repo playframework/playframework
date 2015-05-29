@@ -15,7 +15,7 @@ package play.api.mvc {
   import scala.collection.immutable.{ TreeMap, TreeSet }
   import scala.util.control.NonFatal
   import scala.util.Try
-  import java.net.{ URLDecoder, URLEncoder }
+  import java.net.{ URI, URLDecoder, URLEncoder }
 
   /**
    * The HTTP request header. Note that it doesn’t contain the request body yet.
@@ -91,7 +91,14 @@ package play.api.mvc {
     /**
      * The HTTP host (domain, optionally port)
      */
-    lazy val host: String = headers.get(HeaderNames.HOST).getOrElse("")
+    lazy val host: String = {
+      val u = new URI(uri)
+      (u.getHost, u.getPort) match {
+        case (h, p) if h != null && p > 0 => s"$h:$p"
+        case (h, _) if h != null => h
+        case _ => headers.get(HeaderNames.HOST).getOrElse("")
+      }
+    }
 
     /**
      * The HTTP domain
