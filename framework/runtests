@@ -23,6 +23,12 @@ echo "[info]"
 $BUILD "$@" ${CROSSBUILD}publishLocal
 
 echo "[info]"
+echo "[info] ---- CHECKING BINARY COMPATIBILITY"
+echo "[info]"
+
+./build "$@" mimaReportBinaryIssues
+
+echo "[info]"
 echo "[info] ---- PLAYFRAMEWORK CORE TEST RUNNER"
 echo "[info]"
 
