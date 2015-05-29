@@ -59,8 +59,16 @@ object CORSActionBuilder {
    * @param  configuration  The configuration to load the config from
    * @param  configPath  The path to the subtree of the application configuration.
    */
-  def apply(configuration: Configuration, errorHandler: HttpErrorHandler = DefaultHttpErrorHandler,
-    configPath: String = "play.filters.cors"): CORSActionBuilder = {
+  def apply(configuration: Configuration, configPath: String = "play.filters.cors"): CORSActionBuilder =
+    apply(configuration, DefaultHttpErrorHandler, configPath)
+
+  /**
+   * Construct an action builder that uses a subtree of the application configuration.
+   *
+   * @param  configuration  The configuration to load the config from
+   * @param  configPath  The path to the subtree of the application configuration.
+   */
+  def apply(configuration: Configuration, errorHandler: HttpErrorHandler, configPath: String): CORSActionBuilder = {
     val eh = errorHandler
     new CORSActionBuilder {
       override protected def corsConfig = {
@@ -72,6 +80,14 @@ object CORSActionBuilder {
       override protected val errorHandler = eh
     }
   }
+
+  /**
+   * Construct an action builder that uses locally defined configuration.
+   *
+   * @param  config  The local configuration to use in place of the global configuration.
+   * @see [[CORSConfig]]
+   */
+  def apply(config: CORSConfig): CORSActionBuilder = apply(config, DefaultHttpErrorHandler)
 
   /**
    * Construct an action builder that uses locally defined configuration.

@@ -5,7 +5,7 @@ package play.filters.cors
 
 import javax.inject.{ Inject, Provider }
 
-import play.api.http.HttpErrorHandler
+import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
 import play.api.{ Environment, PlayConfig, Configuration }
 import play.api.inject.Module
 
@@ -20,6 +20,9 @@ class CORSConfigProvider @Inject() (configuration: Configuration) extends Provid
  * Provider for CORSFilter.
  */
 class CORSFilterProvider @Inject() (configuration: Configuration, errorHandler: HttpErrorHandler, corsConfig: CORSConfig) extends Provider[CORSFilter] {
+
+  def this(configuration: Configuration, corsConfig: CORSConfig) = this(configuration, DefaultHttpErrorHandler, corsConfig)
+
   lazy val get = {
     val pathPrefixes = PlayConfig(configuration).get[Seq[String]]("play.filters.cors.pathPrefixes")
     new CORSFilter(corsConfig, errorHandler, pathPrefixes)
