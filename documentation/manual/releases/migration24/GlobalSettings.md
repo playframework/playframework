@@ -40,7 +40,7 @@ if(statusCode == play.api.http.Status.BAD_REQUEST) {
 }
 ```
 
-* `GlobalSettings.configure` and `GlobalSettings.onLoadConfig`: Specify all configuration in your config file or create your own ApplicationLoader (see [[GuiceApplicationBuilder.loadConfig|ScalaDependencyInjection#advanced-extending-the-guiceapplicationloader]]).
+* `GlobalSettings.configure` and `GlobalSettings.onLoadConfig`: Specify all configuration in your config file or create your own ApplicationLoader (see [[GuiceApplicationBuilder.loadConfig|ScalaDependencyInjection#Advanced:-Extending-the-GuiceApplicationLoader]]).
 
 * `GlobalSettings.doFilter`: Create a class that inherits from [`HttpFilters`](api/scala/play/api/http/HttpFilters.html), and provide an implementation for `HttpFilter.filters`. Read [[Http Filters|ScalaHttpFilters]] for more information.
 
@@ -77,6 +77,6 @@ if(statusCode == play.mvc.Http.Status.BAD_REQUEST) {
 }
 ```
 
-* `GlobalSettings.onLoadConfig`: Specify all configuration in your config file or create your own ApplicationLoader (see [[GuiceApplicationBuilder.loadConfig|JavaDependencyInjection#advanced-extending-the-guiceapplicationloader]]).
+* `GlobalSettings.onLoadConfig`: Specify all configuration in your config file or create your own ApplicationLoader (see [[GuiceApplicationBuilder.loadConfig|JavaDependencyInjection#Advanced:-Extending-the-GuiceApplicationLoader]]).
 
 * `GlobalSettings.filters`: Create a class that inherits from [`HttpFilters`](api/java/play/http/HttpFilters.html), and provide an implementation for `HttpFilter.filters`. Read [[Http Filters|JavaHttpFilters]] for more information.
