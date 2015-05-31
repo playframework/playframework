@@ -103,7 +103,7 @@ object Dependencies {
     mockitoAll
   ).map(_ % Test)
 
-  val jodatime = "joda-time" % "joda-time" % "2.7"
+  val jodatime = "joda-time" % "joda-time" % "2.8"
   val jodaConvert = "org.joda" % "joda-convert" % "1.7"
 
   def runtime(scalaVersion: String) =
