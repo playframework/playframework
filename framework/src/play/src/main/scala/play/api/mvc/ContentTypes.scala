@@ -666,7 +666,10 @@ trait BodyParsers {
 
         val parser = Traversable.takeUpTo[Array[Byte]](maxLength).transform(
           Multipart.multipartParser(DefaultMaxTextLength, filePartHandler)(request)
-        ).flatMap(Iteratee.eofOrElse(Results.EntityTooLarge))
+        ).flatMap {
+            case d @ Left(r) => Iteratee.eofOrElse(r)(d)
+            case d => Iteratee.eofOrElse(Results.EntityTooLarge)(d)
+          }
 
         parser.map {
           case Left(tooLarge) => Left(tooLarge)

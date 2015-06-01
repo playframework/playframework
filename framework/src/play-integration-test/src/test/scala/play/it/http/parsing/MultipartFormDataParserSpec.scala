@@ -69,6 +69,18 @@ object MultipartFormDataParserSpec extends PlaySpecification {
       checkResult(result)
     }
 
+    "return bad request for invalid body" in new WithApplication() {
+      val parser = parse.multipartFormData.apply(FakeRequest().withHeaders(
+        CONTENT_TYPE -> "multipart/form-data" // no boundary
+      ))
+
+      val result = await(Enumerator(body.getBytes("utf-8")).run(parser))
+
+      result must beLeft.like {
+        case error => error.header.status must_== BAD_REQUEST
+      }
+    }
+
     "validate the full length of the body" in new WithApplication(FakeApplication(
       additionalConfiguration = Map("play.http.parser.maxDiskBuffer" -> "100")
     )) {
