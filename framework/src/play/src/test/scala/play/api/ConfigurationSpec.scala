@@ -111,13 +111,13 @@ object PlayConfigSpec extends Specification {
   "PlayConfig" should {
     "support getting optional values" in {
       "when null" in {
-        config("foo.bar" -> null).getOptional[String]("foo.bar") must beNone
+        config("foo.bar" -> null).get[Option[String]]("foo.bar") must beNone
       }
       "when set" in {
-        config("foo.bar" -> "bar").getOptional[String]("foo.bar") must beSome("bar")
+        config("foo.bar" -> "bar").get[Option[String]]("foo.bar") must beSome("bar")
       }
       "when undefined" in {
-        config().getOptional[String]("foo.bar") must throwA[ConfigException.Missing]
+        config().get[Option[String]]("foo.bar") must throwA[ConfigException.Missing]
       }
     }
     "support getting prototyped seqs" in {

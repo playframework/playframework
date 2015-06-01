@@ -85,7 +85,7 @@ object CSRFConfig {
 
     CSRFConfig(
       tokenName = config.get[String]("token.name"),
-      cookieName = config.getOptional[String]("cookie.name"),
+      cookieName = config.get[Option[String]]("cookie.name"),
       secureCookie = config.get[Boolean]("cookie.secure"),
       httpOnlyCookie = config.get[Boolean]("cookie.httpOnly"),
       postBodyBuffer = config.get[ConfigMemorySize]("body.bufferSize").toBytes,

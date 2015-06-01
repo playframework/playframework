@@ -83,11 +83,11 @@ object SecurityHeadersConfig {
     val config = PlayConfig(conf).get[PlayConfig]("play.filters.headers")
 
     SecurityHeadersConfig(
-      frameOptions = config.getOptional[String]("frameOptions"),
-      xssProtection = config.getOptional[String]("xssProtection"),
-      contentTypeOptions = config.getOptional[String]("contentTypeOptions"),
-      permittedCrossDomainPolicies = config.getOptional[String]("permittedCrossDomainPolicies"),
-      contentSecurityPolicy = config.getOptional[String]("contentSecurityPolicy"))
+      frameOptions = config.get[Option[String]]("frameOptions"),
+      xssProtection = config.get[Option[String]]("xssProtection"),
+      contentTypeOptions = config.get[Option[String]]("contentTypeOptions"),
+      permittedCrossDomainPolicies = config.get[Option[String]]("permittedCrossDomainPolicies"),
+      contentSecurityPolicy = config.get[Option[String]]("contentSecurityPolicy"))
   }
 }
 
