@@ -229,7 +229,7 @@ class CryptoConfigParser @Inject() (environment: Environment, configuration: Con
      *
      * To achieve 4, using the location of application.conf to generate the secret should ensure this.
      */
-    val secret = config.getOptionalDeprecated[String]("play.crypto.secret", "application.secret") match {
+    val secret = config.getDeprecated[Option[String]]("play.crypto.secret", "application.secret") match {
       case (Some("changeme") | Some(Blank()) | None) if environment.mode == Mode.Prod =>
         logger.error("The application secret has not been set, and we are in prod mode. Your application is not secure.")
         logger.error("To set the application secret, please read http://playframework.com/documentation/latest/ApplicationSecret")
@@ -247,7 +247,7 @@ class CryptoConfigParser @Inject() (environment: Environment, configuration: Con
       case Some(s) => s
     }
 
-    val provider = config.getOptional[String]("play.crypto.provider")
+    val provider = config.get[Option[String]]("play.crypto.provider")
     val transformation = config.get[String]("play.crypto.aes.transformation")
 
     CryptoConfig(secret, provider, transformation)

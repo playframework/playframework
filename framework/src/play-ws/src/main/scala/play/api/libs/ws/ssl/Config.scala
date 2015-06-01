@@ -206,7 +206,7 @@ class SSLConfigParser(c: PlayConfig, classLoader: ClassLoader) {
 
     val default = c.get[Boolean]("default")
     val protocol = c.get[String]("protocol")
-    val checkRevocation = c.getOptional[Boolean]("checkRevocation")
+    val checkRevocation = c.get[Option[Boolean]]("checkRevocation")
     val revocationLists: Option[Seq[URL]] = Some(
       c.get[Seq[String]]("revocationLists").map(new URL(_))
     ).filter(_.nonEmpty)
@@ -217,7 +217,7 @@ class SSLConfigParser(c: PlayConfig, classLoader: ClassLoader) {
     val ciphers = Some(c.get[Seq[String]]("enabledCipherSuites")).filter(_.nonEmpty)
     val protocols = Some(c.get[Seq[String]]("enabledProtocols")).filter(_.nonEmpty)
 
-    val hostnameVerifierClass = c.getOptional[String]("hostnameVerifierClass") match {
+    val hostnameVerifierClass = c.get[Option[String]]("hostnameVerifierClass") match {
       case None => classOf[DefaultHostnameVerifier]
       case Some(fqcn) => classLoader.loadClass(fqcn).asSubclass(classOf[HostnameVerifier])
     }
@@ -253,8 +253,8 @@ class SSLConfigParser(c: PlayConfig, classLoader: ClassLoader) {
 
     val allowWeakProtocols = config.get[Boolean]("allowWeakProtocols")
     val allowWeakCiphers = config.get[Boolean]("allowWeakCiphers")
-    val allowMessages = config.getOptional[Boolean]("allowLegacyHelloMessages")
-    val allowUnsafeRenegotiation = config.getOptional[Boolean]("allowUnsafeRenegotiation")
+    val allowMessages = config.get[Option[Boolean]]("allowLegacyHelloMessages")
+    val allowUnsafeRenegotiation = config.get[Option[Boolean]]("allowUnsafeRenegotiation")
     val disableHostnameVerification = config.get[Boolean]("disableHostnameVerification")
     val acceptAnyCertificate = config.get[Boolean]("acceptAnyCertificate")
 
@@ -322,10 +322,10 @@ class SSLConfigParser(c: PlayConfig, classLoader: ClassLoader) {
    * Parses the "ws.ssl.keyManager { stores = [ ... ]" section of configuration.
    */
   def parseKeyStoreInfo(config: PlayConfig): KeyStoreConfig = {
-    val storeType = config.getOptional[String]("type").getOrElse(KeyStore.getDefaultType)
-    val path = config.getOptional[String]("path")
-    val data = config.getOptional[String]("data")
-    val password = config.getOptional[String]("password")
+    val storeType = config.get[Option[String]]("type").getOrElse(KeyStore.getDefaultType)
+    val path = config.get[Option[String]]("path")
+    val data = config.get[Option[String]]("data")
+    val password = config.get[Option[String]]("password")
 
     KeyStoreConfig(filePath = path, storeType = storeType, data = data, password = password)
   }
@@ -334,9 +334,9 @@ class SSLConfigParser(c: PlayConfig, classLoader: ClassLoader) {
    * Parses the "ws.ssl.trustManager { stores = [ ... ]" section of configuration.
    */
   def parseTrustStoreInfo(config: PlayConfig): TrustStoreConfig = {
-    val storeType = config.getOptional[String]("type").getOrElse(KeyStore.getDefaultType)
-    val path = config.getOptional[String]("path")
-    val data = config.getOptional[String]("data")
+    val storeType = config.get[Option[String]]("type").getOrElse(KeyStore.getDefaultType)
+    val path = config.get[Option[String]]("path")
+    val data = config.get[Option[String]]("data")
 
     TrustStoreConfig(filePath = path, storeType = storeType, data = data)
   }
@@ -346,7 +346,7 @@ class SSLConfigParser(c: PlayConfig, classLoader: ClassLoader) {
    */
   def parseKeyManager(config: PlayConfig): KeyManagerConfig = {
 
-    val algorithm = config.getOptional[String]("algorithm") match {
+    val algorithm = config.get[Option[String]]("algorithm") match {
       case None => KeyManagerFactory.getDefaultAlgorithm
       case Some(other) => other
     }
@@ -363,7 +363,7 @@ class SSLConfigParser(c: PlayConfig, classLoader: ClassLoader) {
    */
 
   def parseTrustManager(config: PlayConfig): TrustManagerConfig = {
-    val algorithm = config.getOptional[String]("algorithm") match {
+    val algorithm = config.get[Option[String]]("algorithm") match {
       case None => TrustManagerFactory.getDefaultAlgorithm
       case Some(other) => other
     }

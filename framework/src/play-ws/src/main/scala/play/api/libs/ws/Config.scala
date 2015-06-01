@@ -43,7 +43,7 @@ class WSConfigParser @Inject() (configuration: Configuration, environment: Envir
     val followRedirects = config.get[Boolean]("followRedirects")
     val useProxyProperties = config.get[Boolean]("useProxyProperties")
 
-    val userAgent = config.getOptional[String]("useragent")
+    val userAgent = config.get[Option[String]]("useragent")
 
     val compressionEnabled = config.get[Boolean]("compressionEnabled")
 

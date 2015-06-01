@@ -126,9 +126,9 @@ object HttpConfiguration {
       session = SessionConfiguration(
         cookieName = config.getDeprecated[String]("play.http.session.cookieName", "session.cookieName"),
         secure = config.getDeprecated[Boolean]("play.http.session.secure", "session.secure"),
-        maxAge = config.getOptionalDeprecated[FiniteDuration]("play.http.session.maxAge", "session.maxAge"),
+        maxAge = config.getDeprecated[Option[FiniteDuration]]("play.http.session.maxAge", "session.maxAge"),
         httpOnly = config.getDeprecated[Boolean]("play.http.session.httpOnly", "session.httpOnly"),
-        domain = config.getOptionalDeprecated[String]("play.http.session.domain", "session.domain")
+        domain = config.getDeprecated[Option[String]]("play.http.session.domain", "session.domain")
       ),
       flash = FlashConfiguration(
         cookieName = config.getDeprecated[String]("play.http.flash.cookieName", "flash.cookieName"),

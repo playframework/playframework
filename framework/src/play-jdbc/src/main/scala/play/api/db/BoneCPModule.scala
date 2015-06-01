@@ -55,7 +55,7 @@ class BoneConnectionPool @Inject() (environment: Environment) extends Connection
     val datasource = new BoneCPDataSource
 
     val autocommit = config.getDeprecated[Boolean]("bonecp.autoCommit", "autocommit")
-    val isolation = config.getOptionalDeprecated[String]("bonecp.isolation", "isolation").map {
+    val isolation = config.getDeprecated[Option[String]]("bonecp.isolation", "isolation").map {
       case "NONE" => Connection.TRANSACTION_NONE
       case "READ_COMMITTED" => Connection.TRANSACTION_READ_COMMITTED
       case "READ_UNCOMMITTED" => Connection.TRANSACTION_READ_UNCOMMITTED
@@ -64,7 +64,7 @@ class BoneConnectionPool @Inject() (environment: Environment) extends Connection
       case unknown => throw config.reportError("bonecp.isolation",
         s"Unknown isolation level [$unknown]")
     }
-    val catalog = config.getOptionalDeprecated[String]("bonecp.defaultCatalog", "defaultCatalog")
+    val catalog = config.getDeprecated[Option[String]]("bonecp.defaultCatalog", "defaultCatalog")
     val readOnly = config.getDeprecated[Boolean]("bonecp.readOnly", "readOnly")
 
     datasource.setClassLoader(environment.classLoader)
@@ -120,8 +120,8 @@ class BoneConnectionPool @Inject() (environment: Environment) extends Connection
     datasource.setDetectUnresolvedTransactions(config.getDeprecated[Boolean]("bonecp.detectUnresolvedTransactions", "detectUnresolvedTransactions"))
     datasource.setLogStatementsEnabled(config.getDeprecated[Boolean]("bonecp.logStatements", "logStatements"))
 
-    config.getOptionalDeprecated[String]("bonecp.initSQL", "initSQL").foreach(datasource.setInitSQL)
-    config.getOptionalDeprecated[String]("bonecp.connectionTestStatement", "connectionTestStatement").foreach(datasource.setConnectionTestStatement)
+    config.getDeprecated[Option[String]]("bonecp.initSQL", "initSQL").foreach(datasource.setInitSQL)
+    config.getDeprecated[Option[String]]("bonecp.connectionTestStatement", "connectionTestStatement").foreach(datasource.setConnectionTestStatement)
 
     // Bind in JNDI
     dbConfig.jndiName foreach { name =>

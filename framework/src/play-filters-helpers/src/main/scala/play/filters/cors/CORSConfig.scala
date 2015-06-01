@@ -79,17 +79,17 @@ object CORSConfig {
   }
 
   private[cors] def fromUnprefixedConfiguration(config: PlayConfig): CORSConfig = {
-    val origins = config.getOptional[Seq[String]]("allowedOrigins")
+    val origins = config.get[Option[Seq[String]]]("allowedOrigins")
     CORSConfig(
       anyOriginAllowed = origins.isEmpty,
       allowedOrigins = origins.map(_.toSet).getOrElse(Set.empty),
       isHttpMethodAllowed =
-        config.getOptional[Seq[String]]("allowedHttpMethods").map { methods =>
+        config.get[Option[Seq[String]]]("allowedHttpMethods").map { methods =>
           val s = methods.toSet
           s.contains _
         }.getOrElse(_ => true),
       isHttpHeaderAllowed =
-        config.getOptional[Seq[String]]("allowedHttpHeaders").map { headers =>
+        config.get[Option[Seq[String]]]("allowedHttpHeaders").map { headers =>
           val s = headers.map(_.toLowerCase).toSet
           s.contains _
         }.getOrElse(_ => true),

@@ -100,7 +100,7 @@ object Reflect {
       }
     }
 
-    val maybeClass = config.getOptional[String](key) match {
+    val maybeClass = config.get[Option[String]](key) match {
       // If provided, don't bind anything
       case Some("provided") => None
       // If empty, use the default

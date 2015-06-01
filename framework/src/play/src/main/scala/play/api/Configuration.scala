@@ -940,18 +940,6 @@ private[play] class PlayConfig(val underlying: Config) {
   }
 
   /**
-   * Get an optional configuration item.
-   *
-   * If the value of the item is null, this will return None, otherwise returns Some.
-   *
-   * @throws com.typesafe.config.ConfigException.Missing if the value is undefined (as opposed to null) this will still
-   *         throw an exception.
-   */
-  def getOptional[A: ConfigLoader](path: String): Option[A] = {
-    if (!underlying.getIsNull(path)) Some(get[A](path)) else None
-  }
-
-  /**
    * Get a prototyped sequence of objects.
    *
    * Each object in the sequence will fallback to the object loaded from prototype.$path.
@@ -977,24 +965,6 @@ private[play] class PlayConfig(val underlying: Config) {
     get[Map[String, Config]](path).map {
       case (key, config) => key -> new PlayConfig(config.withFallback(prototype))
     }.toMap
-  }
-
-  /**
-   * Get an optional deprecated configuration item.
-   *
-   * If the deprecated configuration item is defined, it will be returned, and a warning will be logged.
-   *
-   * Otherwise, the configuration from path will be looked up.
-   *
-   * If the value of the item is null, this will return None, otherwise returns Some.
-   */
-  def getOptionalDeprecated[A: ConfigLoader](path: String, deprecated: String): Option[A] = {
-    if (underlying.hasPath(deprecated)) {
-      reportDeprecation(path, deprecated)
-      getOptional[A](deprecated)
-    } else {
-      getOptional[A](path)
-    }
   }
 
   /**
@@ -1118,6 +1088,18 @@ private[play] object ConfigLoader {
 
   implicit val playConfigLoader = configLoader.map(new PlayConfig(_))
   implicit val seqPlayConfigLoader = seqConfigLoader.map(_.map(new PlayConfig(_)))
+
+  /**
+   * Loads a value, interpreting a null value as None and any other value as Some(value).
+   */
+  implicit def optionLoader[A](implicit valueLoader: ConfigLoader[A]): ConfigLoader[Option[A]] = new ConfigLoader[Option[A]] {
+    def load(config: Config, path: String): Option[A] = {
+      if (config.getIsNull(path)) None else {
+        val value = valueLoader.load(config, path)
+        Some(value)
+      }
+    }
+  }
 
   implicit def mapLoader[A](implicit valueLoader: ConfigLoader[A]): ConfigLoader[Map[String, A]] = new ConfigLoader[Map[String, A]] {
     def load(config: Config, path: String): Map[String, A] = {
