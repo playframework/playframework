@@ -44,6 +44,7 @@ libraryDependencies += specs2 % Test
 
 resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 ```
+If you are using a .scala build file, you will need to add the following import `import play.sbt.PlayImport._`
 
 ### Database evolutions support in a separate module
 
@@ -67,7 +68,7 @@ IntelliJ is now able to import sbt projects natively, so we recommend using that
 
 ### Play SBT plugin API
 
-All classes in the SBT plugin are now in the package `play.sbt`, this is particularly pertinent if using `.scala` files to configure your build.
+All classes in the SBT plugin are now in the package `play.sbt`, this is particularly pertinent if using `.scala` files to configure your build. You will need to import identifiers from `play.sbt.PlayImport` to use play provided configuration elements.
 
 #### `playWatchService` renamed
 
