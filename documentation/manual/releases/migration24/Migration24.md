@@ -242,7 +242,7 @@ See the [[Java|JavaAkka]] or [[Scala|ScalaAkka]] Akka page for more information.
 
 Previously the two actor systems had slightly different thread pool configuration. Now that there is only one actor system, the configuration has been merged. We've also added a LIFO (stack-based) scheduling rule which should improve performance in most Play applications.
 
-The following settings are the new defaults in Play 2.4. They've been shown to have good performance in our testing, but every application is different so you may need to tweak them or rever them to the Play 2.3 settings. You can do that by overriding any of these values in your `application.conf`. Here are the new settings:
+The following settings are the new defaults in Play 2.4. They've been shown to have good performance in our testing, but every application is different so you may need to tweak them or revert them to the Play 2.3 settings. You can do that by overriding any of these values in your `application.conf`. Here are the new settings:
 
 ```
 akka {
