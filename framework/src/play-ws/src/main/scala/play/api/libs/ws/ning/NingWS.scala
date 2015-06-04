@@ -244,30 +244,32 @@ case class NingWSRequest(client: NingWSClient,
         val bodyGenerator = new FileBodyGenerator(file)
         builder.setBody(bodyGenerator)
       case InMemoryBody(bytes) =>
-        // extract the content type and the charset
         val ct: String = contentType.getOrElse("text/plain")
-        val charset = Charset.forName(
-          Option(AsyncHttpProviderUtils.parseCharset(ct)).getOrElse {
-            // NingWSRequest modifies headers to include the charset, but this fails tests in Scala.
-            //val contentTypeList = Seq(ct + "; charset=utf-8")
-            //possiblyModifiedHeaders = this.headers.updated(HttpHeaders.Names.CONTENT_TYPE, contentTypeList)
-            "utf-8"
-          }
-        )
 
         try {
-          // Get the string body given the given charset...
-          val stringBody = new String(bytes, charset)
-          // The Ning signature calculator uses request.getFormParams() for calculation,
-          // so we have to parse it out and add it rather than using setBody.
           if (ct.contains(HttpHeaders.Values.APPLICATION_X_WWW_FORM_URLENCODED)) {
+            // extract the content type and the charset
+            val charset = Charset.forName(
+              Option(AsyncHttpProviderUtils.parseCharset(ct)).getOrElse {
+                // NingWSRequest modifies headers to include the charset, but this fails tests in Scala.
+                //val contentTypeList = Seq(ct + "; charset=utf-8")
+                //possiblyModifiedHeaders = this.headers.updated(HttpHeaders.Names.CONTENT_TYPE, contentTypeList)
+                "utf-8"
+              }
+            )
+
+            // Get the string body given the given charset...
+            val stringBody = new String(bytes, charset)
+            // The Ning signature calculator uses request.getFormParams() for calculation,
+            // so we have to parse it out and add it rather than using setBody.
+
             val params = for {
               (key, values) <- FormUrlEncodedParser.parse(stringBody).toSeq
               value <- values
             } yield new Param(key, value)
             builder.setFormParams(params.asJava)
           } else {
-            builder.setBody(stringBody)
+            builder.setBody(bytes)
           }
         } catch {
           case e: UnsupportedEncodingException =>
