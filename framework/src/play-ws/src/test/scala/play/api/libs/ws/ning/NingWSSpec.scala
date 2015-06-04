@@ -133,7 +133,7 @@ object NingWSSpec extends PlaySpecification with Mockito {
       val formEncoding = java.net.URLEncoder.encode("param1=value1", "UTF-8")
       val req: client.Request = WS.url("http://playframework.com/").withHeaders("Content-Type" -> "text/plain").withBody("HELLO WORLD").asInstanceOf[NingWSRequest]
         .buildRequest()
-      req.getStringData must be_==("HELLO WORLD")
+      (new String(req.getByteData, "UTF-8")) must be_==("HELLO WORLD")
     }
 
     "Keep the charset if it has been set manually with a charset" in new WithApplication {
@@ -141,6 +141,14 @@ object NingWSSpec extends PlaySpecification with Mockito {
       val req: client.Request = WS.url("http://playframework.com/").withHeaders("Content-Type" -> "text/plain; charset=US-ASCII").withBody("HELLO WORLD").asInstanceOf[NingWSRequest]
         .buildRequest()
       req.getHeaders.get("Content-Type").asScala must containTheSameElementsAs(Seq("text/plain; charset=US-ASCII"))
+    }
+
+    "POST binary data as is" in new WithApplication {
+      val binData: Array[Byte] = (0 to 511).map(_.toByte).toArray
+      val req: client.Request = WS.url("http://playframework.com/").withHeaders("Content-Type" -> "application/x-custom-bin-data").withBody(binData).asInstanceOf[NingWSRequest]
+        .buildRequest()
+
+      req.getByteData must beTheSameAs(binData)
     }
 
     "support a virtual host" in new WithApplication {
