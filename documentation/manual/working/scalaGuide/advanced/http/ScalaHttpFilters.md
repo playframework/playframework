@@ -11,7 +11,7 @@ The filter API is intended for cross cutting concerns that are applied indiscrim
 * [[GZIP encoding|GzipEncoding]]
 * [[Security headers|SecurityHeaders]]
 
-In contrast, [[action composition|ScalaActionsComposition]] is intended for route specific concerns, such as authentication and authorisation, caching and so on.  If your filter is not one that you want applied to every route, consider using action composition instead, it is far more powerful.  And don't forget that you can create your own action builders that compose your own custom defined sets of actions to each route, to minimise boilerplate.
+In contrast, [[action composition|ScalaActionsComposition]] is intended for route specific concerns, such as authentication and authorization, caching and so on.  If your filter is not one that you want applied to every route, consider using action composition instead, it is far more powerful.  And don't forget that you can create your own action builders that compose your own custom defined sets of actions to each route, to minimise boilerplate.
 
 ## A simple logging filter
 
@@ -37,13 +37,13 @@ If you want to have different filters in different environments, or would prefer
 
 ## Where do filters fit in?
 
-Filters wrap the action after the action has been looked up by the router.  This means you cannot use a filter to transform a path, method or query parameter to impact the router.  However you can direct the request to a different action by invoking that action directly from the filter, though be aware that this will bypass the rest of the filter chain.  If you do need to modify the request before the router is invoked, a better way to do this would be to place your logic in `Global.onRouteRequest` instead.
+Filters wrap the action after the action has been looked up by the router.  This means you cannot use a filter to transform a path, method or query parameter to impact the router.  However you can direct the request to a different action by invoking that action directly from the filter, though be aware that this will bypass the rest of the filter chain.  If you do need to modify the request before the router is invoked, a better way to do this would be to place your logic in [[`HttpRequestHandler`|ScalaHttpRequestHandlers]] instead.
 
 Since filters are applied after routing is done, it is possible to access routing information from the request, via the `tags` map on the `RequestHeader`.  For example, you might want to log the time against the action method.  In that case, you might update the `logTime` method to look like this:
 
 @[routing-info-access](code/FiltersRouting.scala)
 
-> Routing tags are a feature of the Play router.  If you use a custom router, or return a custom action in `Global.onRouteRequest`, these parameters may not be available.
+> Routing tags are a feature of the Play router.  If you use a custom router, or return a custom action through a custom request handler, these parameters may not be available.
 
 ## More powerful filters
 
