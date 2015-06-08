@@ -38,6 +38,8 @@ public class InjectionTest {
           .builder(new Context(Environment.simple()))
           .overrides(testModule);
       Guice.createInjector(builder.applicationModule()).injectMembers(this);      
+      
+      Helpers.start(application);
     }
 
     @After
