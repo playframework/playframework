@@ -262,4 +262,3 @@ trait NettyServerComponents {
    */
   def serverStopHook: () => Future[Unit] = () => Future.successful(())
 }
-
