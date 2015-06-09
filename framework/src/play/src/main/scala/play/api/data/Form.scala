@@ -216,7 +216,7 @@ case class Form[T](mapping: Mapping[T], data: Map[String, String], errors: Seq[F
   /**
    * Returns the concrete value, if the submission was a success.
    *
-   * Note that this method fails with an Exception if this form as errors.
+   * Note that this method fails with an Exception if this form has errors.
    */
   def get: T = value.get
 
