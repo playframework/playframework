@@ -136,7 +136,7 @@ trait Langs {
    * These can be configured in `application.conf`, like so:
    *
    * {{{
-   * play.modules.i18n.langs="fr,en,de"
+   * play.i18n.langs = ["fr", "en", "de"]
    * }}}
    */
   def availables: Seq[Lang]
