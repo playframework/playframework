@@ -11,6 +11,9 @@ import play.mvc.Result;
 import play.mvc.Results;
 
 import java.io.InputStream;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
@@ -283,6 +286,54 @@ public class RoutingDslTest {
 
         public String javascriptUnbind() {
             return null;
+        }
+    }
+
+    @Test
+    public void customRegexPathBindable() {
+        Router router = new RoutingDsl()
+                .GET("/$issue").routeTo((MyIssueId issueId) -> Results.ok(issueId.toString()))
+                .build();
+
+        assertThat(makeRequest(router, "GET", "/guardian/frontend/issues/34"), equalTo("guardian/frontend #34"));
+    }
+
+    public static class MyIssueId implements PathBindable<MyIssueId> {
+        final static Pattern pattern = Pattern.compile("([^/]+)/([^/]+)/issues/([\\d]+)");
+
+        final String repoOwner, repoName;
+        final int num;
+
+        public MyIssueId() {
+            this(null, null, 0);
+        }
+
+        public MyIssueId(String repoOwner, String repoName, int num) {
+            this.repoOwner = repoOwner;
+            this.repoName = repoName;
+            this.num = num;
+        }
+
+        public MyIssueId bind(String key, String txt) {
+            Matcher m = pattern.matcher(txt);
+            m.find();
+            return new MyIssueId(m.group(1), m.group(2), Integer.parseInt(m.group(3)));
+        }
+
+        public String unbind(String key) {
+            return repoOwner+"/"+repoName+"/issues/"+num;
+        }
+
+        public String toString() {
+            return repoOwner+"/"+repoName+" #"+num;
+        }
+
+        public String javascriptUnbind() {
+            return null;
+        }
+
+        public Optional<Pattern> regex() {
+            return Optional.of(pattern);
         }
     }
 
