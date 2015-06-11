@@ -112,9 +112,9 @@ object JsMacroImpl {
 
     //println("apply found:" + apply)
 
-    final case class Implicit(paramName: Name, paramType: Type, neededImplicit: Tree, isRecursive: Boolean, tpe: Type)
+    final case class Implicit(paramName: Name, paramType: Type, neededImplicit: Tree, isRecursive: Boolean, tpe: Type, defaultValue: Option[Tree])
 
-    val createImplicit = { (name: Name, implType: c.universe.type#Type) =>
+    def createImplicit(name: Name, implType: c.universe.type#Type, idx: Option[Int]) = {
       val (isRecursive, tpe) = implType match {
         case TypeRef(_, t, args) =>
           val isRec = args.exists(_.typeSymbol == companioned)
@@ -129,17 +129,27 @@ object JsMacroImpl {
       val neededImplicitType = appliedType(matag.tpe.typeConstructor, tpe :: Nil)
       // infers implicit
       val neededImplicit = c.inferImplicitValue(neededImplicitType)
-      Implicit(name, implType, neededImplicit, isRecursive, tpe)
+
+      val defaultValue = idx.map { idx =>
+        val defaultMethod = companionType.declaration(stringToTermName("apply$default$" + idx))
+        Select(Ident(companionSymbol), defaultMethod)
+      }
+      Implicit(name, implType, neededImplicit, isRecursive, tpe, defaultValue)
     }
 
-    val applyParamImplicits = params.map { param => createImplicit(param.name, param.typeSignature) }
+    val applyParamImplicits = params.zipWithIndex.map {
+      case (param, idx) if param.asTerm.isParamWithDefault =>
+        createImplicit(param.name, param.typeSignature, Some(idx + 1))
+      case (param, _) =>
+        createImplicit(param.name, param.typeSignature, None)
+    }
     val effectiveInferredImplicits = if (hasVarArgs) {
-      val varArgsImplicit = createImplicit(applyParamImplicits.last.paramName, unapplyReturnTypes.get.last)
+      val varArgsImplicit = createImplicit(applyParamImplicits.last.paramName, unapplyReturnTypes.get.last, None)
       applyParamImplicits.init :+ varArgsImplicit
     } else applyParamImplicits
 
     // if any implicit is missing, abort
-    val missingImplicits = effectiveInferredImplicits.collect { case Implicit(_, t, impl, rec, _) if (impl == EmptyTree && !rec) => t }
+    val missingImplicits = effectiveInferredImplicits.collect { case Implicit(_, t, impl, rec, _, _) if (impl == EmptyTree && !rec) => t }
     if (missingImplicits.nonEmpty)
       c.abort(c.enclosingPosition, s"No implicit format for ${missingImplicits.mkString(", ")} available.")
 
@@ -153,7 +163,7 @@ object JsMacroImpl {
 
     // combines all reads into CanBuildX
     val canBuild = effectiveInferredImplicits.map {
-      case Implicit(name, t, impl, rec, tpe) =>
+      case Implicit(name, t, impl, rec, tpe, dft) =>
         // inception of (__ \ name).read(impl)
         val jspathTree = Apply(
           Select(jsPathSelect, newTermName(scala.reflect.NameTransformer.encode("\\"))),
@@ -161,11 +171,34 @@ object JsMacroImpl {
         )
 
         if (!rec) {
-          val callMethod = if (t.typeConstructor <:< typeOf[Option[_]].typeConstructor) nullableMethodName else methodName
-          Apply(
+          val isOptionType = t.typeConstructor <:< typeOf[Option[_]].typeConstructor
+          val callMethod = if (isOptionType || dft.isDefined) nullableMethodName else methodName
+          val baseCall = Apply(
             Select(jspathTree, newTermName(callMethod)),
             List(impl)
           )
+          dft.foldLeft(baseCall) {
+            case (call, defaultValue) =>
+              // (opt: Option[T]) => opt.getOrElse(<defaultValue>)
+              // (opt: Option[T]) => opt.orElse(<defaultValue>)
+              val mapFunc = Function(
+                List(ValDef(Modifiers(PARAM), newTermName("opt"), TypeTree(appliedType(typeOf[Option[_]], List(tpe))), EmptyTree)),
+                Apply(
+                  Select(Ident(newTermName("opt")), newTermName(if (isOptionType) "orElse" else "getOrElse")),
+                  List(defaultValue))
+              )
+              // (value: T) => Some(value)
+              // (value: T) => value
+              val contramapFunc = Function(
+                List(ValDef(Modifiers(PARAM), newTermName("value"), TypeTree(t), EmptyTree)),
+                if (isOptionType) Ident(newTermName("value"))
+                else Apply(Ident(newTermName("Some")), List(Ident(newTermName("value"))))
+              )
+              Apply(
+                Select(call, newTermName(mapLikeMethod)),
+                conditionalList(mapFunc, contramapFunc)
+              )
+          }
         } else {
           hasRec = true
           if (t.typeConstructor <:< typeOf[Option[_]].typeConstructor)
