@@ -399,7 +399,7 @@ WS has upgraded from AsyncHttpClient 1.8.x to 1.9.x, which includes a number of 
 
 Configuration settings for WS have changed:
 
-* `ws.acceptAnyCertificate` has been moved under the loose settings as `play.ws.loose.acceptAnyCertificate` to better indicate the insecure nature of blindly accepting any X.509 certificate without validation.
+* `ws.acceptAnyCertificate` has been moved under the loose settings as `play.ws.ssl.loose.acceptAnyCertificate` to better indicate the insecure nature of blindly accepting any X.509 certificate without validation.
 * `ws.ssl.debug` settings have been redefined as booleans, e.g. `play.ws.ssl.debug.all=true`.  Please see [Debugging SSL](https://www.playframework.com/documentation/2.4.x/DebuggingSSL) for details.
 * `ws.ssl.disabledSignatureAlgorithms` and `ws.ssl.disabledKeyAlgorithms` have been redefined as arrays of strings, e.g `play.ws.ssl.disabledSignatureAlgorithms = ["MD2", "MD4", "MD5"]`.
 
