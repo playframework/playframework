@@ -46,8 +46,4 @@ class ExecutionTest {
     _mustExecute(expectedCount1)(ec1 => _mustExecute(expectedCount2)(ec2 => c.invoke(ec1, ec2)))
   }
 
-  def mustExecute(expectedCount1: Int, expectedCount2: Int, expectedCount3: Int, c: F.Callback3[ExecutionContext, ExecutionContext, ExecutionContext]): Unit = {
-    _mustExecute(expectedCount1)(ec1 => _mustExecute(expectedCount2)(ec2 => _mustExecute(expectedCount3)(ec3 => c.invoke(ec1, ec2, ec3))))
-  }
-
 }
