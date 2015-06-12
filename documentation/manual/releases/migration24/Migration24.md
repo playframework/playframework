@@ -209,6 +209,10 @@ While Play 2.4 won't force you to use the dependency injected versions of compon
 
 If you are keen to use dependency injection, we are recommending that you move out of your `GlobalSettings` implementation class as much code as possible. Read the [[`GlobalSettings` migration documentation|GlobalSettings]] for the glory details.
 
+## `Plugin` deprecated
+
+Both Java [`play.Plugin`](api/java/play/Plugin.html) and Scala [`play.api.Plugin`](api/scala/play/api/Plugin.html) types have been deprecated. Read [[migrating Plugin to Module|PluginsToModules]] to update your code to use [`play.api.inject.Module`](api/scala/play/api/inject/Module.html).
+
 ## Configuration changes
 
 Play 2.4 now uses `reference.conf` to document and specify defaults for all properties.  You can easily find these by going [here](https://github.com/playframework/playframework/find/master) and searching for files called `reference.conf`.
