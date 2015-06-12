@@ -4,6 +4,8 @@
 package play.mvc;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Consumer;
+
 import org.junit.Test;
 import play.api.libs.iteratee.TestChannel;
 import play.libs.F;
@@ -45,14 +47,14 @@ public class WebSocketTest {
 
         assertTrue("WebSocket.onReady callback was not invoked", ready.await(1, SECONDS));
 
-        for (F.Callback<String> callback : wsIn.callbacks) {
-            callback.invoke("message");
+        for (Consumer<String> callback : wsIn.callbacks) {
+            callback.accept("message");
         }
 
         assertTrue("WebSocket.In.onMessage callback was not invoked", message.await(1, SECONDS));
 
-        for (F.Callback0 callback : wsIn.closeCallbacks) {
-            callback.invoke();
+        for (Runnable callback : wsIn.closeCallbacks) {
+            callback.run();
         }
 
         assertTrue("WebSocket.In.onClose callback was not invoked", close.await(1, SECONDS));

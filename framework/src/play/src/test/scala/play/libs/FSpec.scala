@@ -10,6 +10,7 @@ import org.specs2.mutable._
 import play.api.libs.iteratee.ExecutionSpecification
 import scala.collection.JavaConverters
 import scala.concurrent.{ Future, Promise }
+import java.util.function.Consumer
 
 object FSpec extends Specification
     with ExecutionSpecification {
@@ -68,8 +69,8 @@ object FSpec extends Specification
       val p = Promise[Int]()
       val fp = F.Promise.wrap(p.future)
       val invocations = new LinkedBlockingQueue[Int]()
-      fp.onRedeem(new F.Callback[Int] {
-        def invoke(x: Int) { invocations.offer(x) }
+      fp.onRedeem(new Consumer[Int] {
+        def accept(x: Int) { invocations.offer(x) }
       })
       p.success(99)
       invocations.poll(5, SECONDS) must equalTo(99)
@@ -80,8 +81,8 @@ object FSpec extends Specification
       val fp = F.Promise.wrap(p.future)
       mustExecute(1) { ec =>
         val invocations = new LinkedBlockingQueue[Int]()
-        fp.onRedeem(new F.Callback[Int] {
-          def invoke(x: Int) { invocations.offer(x) }
+        fp.onRedeem(new Consumer[Int] {
+          def accept(x: Int) { invocations.offer(x) }
         }, ec)
         p.success(99)
         invocations.poll(5, SECONDS) must equalTo(99)

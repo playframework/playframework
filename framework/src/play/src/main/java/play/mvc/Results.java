@@ -17,6 +17,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Consumer;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -1117,14 +1118,11 @@ public class Results {
             this.writable = writable;
             final RedeemablePromise<Object> disconnected = RedeemablePromise.<Object>empty();
             this.enumerator = play.core.j.JavaResults.chunked(
-                new Callback<Concurrent.Channel<A>>() {
-                    @Override
-                    public void invoke(Concurrent.Channel<A> channel) {
-                        Chunks.Out<A> chunked = new Chunks.Out<A>(channel, disconnected);
-                        self.onReady(chunked);
-                    }
-                },
-                () -> disconnected.success(null)
+              (channel) -> {
+                Chunks.Out<A> chunked = new Chunks.Out<A>(channel, disconnected);
+                self.onReady(chunked);
+              },
+              () -> disconnected.success(null)
             );
         }
 
@@ -1149,10 +1147,10 @@ public class Results {
                 this.disconnected = disconnected;
             }
 
-            public Out(play.api.libs.iteratee.Concurrent.Channel<A> channel, List<Callback0> disconnectedCallbacks) {
+            public Out(play.api.libs.iteratee.Concurrent.Channel<A> channel, List<Runnable> disconnectedCallbacks) {
                 this.channel = channel;
                 this.disconnected = RedeemablePromise.<Object>empty();
-                for(Callback0 callback: disconnectedCallbacks) {
+                for(Runnable callback: disconnectedCallbacks) {
                     onDisconnected(callback);
                 }
             }
@@ -1167,8 +1165,8 @@ public class Results {
             /**
              * Attach a callback to be called when the socket is disconnected.
              */
-            public void onDisconnected(final Callback0 callback) {
-                disconnected.onRedeem(ignored -> callback.invoke());
+            public void onDisconnected(final Runnable callback) {
+                disconnected.onRedeem(ignored -> callback.run());
             }
 
             /**
@@ -1211,7 +1209,7 @@ public class Results {
          * @return a new StringChunks
          * @throws NullPointerException if the specified callback is null
          */
-        public static StringChunks whenReady(Callback<Chunks.Out<String>> callback) {
+        public static StringChunks whenReady(Consumer<Chunks.Out<String>> callback) {
             return whenReady(utf8, callback);
         }
 
@@ -1224,7 +1222,7 @@ public class Results {
          * @return a new StringChunks
          * @throws NullPointerException if the specified callback is null
          */
-        public static StringChunks whenReady(String codec, Callback<Chunks.Out<String>> callback) {
+        public static StringChunks whenReady(String codec, Consumer<Chunks.Out<String>> callback) {
             return whenReady(Codec.javaSupported(codec), callback);
         }
 
@@ -1237,7 +1235,7 @@ public class Results {
          * @return a new StringChunks
          * @throws NullPointerException if the specified callback is null
          */
-        public static StringChunks whenReady(Codec codec, Callback<Chunks.Out<String>> callback) {
+        public static StringChunks whenReady(Codec codec, Consumer<Chunks.Out<String>> callback) {
             return new WhenReadyStringChunks(codec, callback);
         }
 
@@ -1247,9 +1245,9 @@ public class Results {
          */
         static final class WhenReadyStringChunks extends StringChunks {
 
-            private final Callback<Chunks.Out<String>> callback;
+            private final Consumer<Chunks.Out<String>> callback;
 
-            WhenReadyStringChunks(Codec codec, Callback<Chunks.Out<String>> callback) {
+            WhenReadyStringChunks(Codec codec, Consumer<Chunks.Out<String>> callback) {
                 super(codec);
                 if (callback == null) throw new NullPointerException("StringChunks onReady callback cannot be null");
                 this.callback = callback;
@@ -1258,7 +1256,7 @@ public class Results {
             @Override
             public void onReady(Chunks.Out<String> out) {
                 try {
-                    callback.invoke(out);
+                    callback.accept(out);
                 } catch (Throwable e) {
                     logger.error("Exception in StringChunks.onReady", e);
                 }
@@ -1284,7 +1282,7 @@ public class Results {
          * @return a new ByteChunks
          * @throws NullPointerException if the specified callback is null
          */
-        public static ByteChunks whenReady(Callback<Chunks.Out<byte[]>> callback) {
+        public static ByteChunks whenReady(Consumer<Chunks.Out<byte[]>> callback) {
             return new WhenReadyByteChunks(callback);
         }
 
@@ -1296,9 +1294,9 @@ public class Results {
 
             private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WhenReadyByteChunks.class);
 
-            private final Callback<Chunks.Out<byte[]>> callback;
+            private final Consumer<Chunks.Out<byte[]>> callback;
 
-            WhenReadyByteChunks(Callback<Chunks.Out<byte[]>> callback) {
+            WhenReadyByteChunks(Consumer<Chunks.Out<byte[]>> callback) {
                 super();
                 if (callback == null) throw new NullPointerException("ByteChunks onReady callback cannot be null");
                 this.callback = callback;
@@ -1307,7 +1305,7 @@ public class Results {
             @Override
             public void onReady(Chunks.Out<byte[]> out) {
                 try {
-                    callback.invoke(out);
+                    callback.accept(out);
                 } catch (Throwable e) {
                     logger.error("Exception in ByteChunks.onReady", e);
                 }

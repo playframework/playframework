@@ -144,7 +144,7 @@ public class JPA {
      *
      * @param block Block of code to execute.
      */
-    public static void withTransaction(final play.libs.F.Callback0 block) {
+    public static void withTransaction(final Runnable block) {
         jpaApi().withTransaction(block);
     }
 

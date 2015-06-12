@@ -71,8 +71,8 @@ object JavaWebSocket extends JavaHelpers {
             jws.onReady(socketIn, socketOut)
 
             in |>> {
-              Iteratee.foreach[A](msg => socketIn.callbacks.asScala.foreach(_.invoke(msg))).map { _ =>
-                socketIn.closeCallbacks.asScala.foreach(_.invoke())
+              Iteratee.foreach[A](msg => socketIn.callbacks.asScala.foreach(_.accept(msg))).map { _ =>
+                socketIn.closeCallbacks.asScala.foreach(_.run())
               }
             }
           }

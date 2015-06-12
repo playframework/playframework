@@ -5,6 +5,8 @@ package play.api.libs.iteratee
 
 import play.libs.F
 import scala.concurrent.ExecutionContext
+import java.util.function.Consumer
+import java.util.function.BiConsumer
 
 /**
  * Common functionality for Java tests that use execution contexts.
@@ -38,12 +40,12 @@ class ExecutionTest {
     }
   }
 
-  def mustExecute(expectedCount: Int, c: F.Callback[ExecutionContext]): Unit = {
-    _mustExecute(expectedCount)(c.invoke)
+  def mustExecute(expectedCount: Int, c: Consumer[ExecutionContext]): Unit = {
+    _mustExecute(expectedCount)(c.accept)
   }
 
-  def mustExecute(expectedCount1: Int, expectedCount2: Int, c: F.Callback2[ExecutionContext, ExecutionContext]): Unit = {
-    _mustExecute(expectedCount1)(ec1 => _mustExecute(expectedCount2)(ec2 => c.invoke(ec1, ec2)))
+  def mustExecute(expectedCount1: Int, expectedCount2: Int, c: BiConsumer[ExecutionContext, ExecutionContext]): Unit = {
+    _mustExecute(expectedCount1)(ec1 => _mustExecute(expectedCount2)(ec2 => c.accept(ec1, ec2)))
   }
 
 }
