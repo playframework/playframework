@@ -141,7 +141,7 @@ ivyLoggingLevel := UpdateLogging.Quiet
 
 ## Fork and parallel execution in test
 
-By default parallel execution is disable and fork is enable. You can change this behavior by setting `parallelExecution in Test` and/or `fork in Test`:
+By default parallel execution is disabled and fork is enabled. You can change this behavior by setting `parallelExecution in Test` and/or `fork in Test`:
 
 ```scala
 parallelExecution in Test := true
