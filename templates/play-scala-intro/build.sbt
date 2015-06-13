@@ -8,6 +8,8 @@ scalaVersion := "%SCALA_VERSION%"
 
 resolvers += "sorm Scala 2.11 fork" at "http://markusjura.github.io/sorm"
 
+resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
+
 libraryDependencies ++= Seq(  
   "org.sorm-framework" % "sorm" % "0.4.1",
   "com.h2database" % "h2" % "1.4.177",
