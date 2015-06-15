@@ -11,6 +11,7 @@ import play.api.libs.iteratee.ExecutionSpecification
 import scala.collection.JavaConverters
 import scala.concurrent.{ Future, Promise }
 import java.util.function.Consumer
+import java.util.function.Predicate
 
 object FSpec extends Specification
     with ExecutionSpecification {
@@ -198,7 +199,7 @@ object FSpec extends Specification
     "filter its value (with default ExecutionContext)" in {
       val p = Promise[Int]()
       val fp = F.Promise.wrap(p.future)
-      val filtered = fp.filter(new F.Predicate[Int] {
+      val filtered = fp.filter(new Predicate[Int] {
         def test(x: Int) = x > 0
       })
       p.success(1)
@@ -209,7 +210,7 @@ object FSpec extends Specification
       val p = Promise[Int]()
       val fp = F.Promise.wrap(p.future)
       mustExecute(1) { ec =>
-        val filtered = fp.filter(new F.Predicate[Int] {
+        val filtered = fp.filter(new Predicate[Int] {
           def test(x: Int) = x > 0
         }, ec)
         p.success(1)
@@ -220,7 +221,7 @@ object FSpec extends Specification
     "filter to failure (with default ExecutionContext)" in {
       val p = Promise[Int]()
       val fp = F.Promise.wrap(p.future)
-      val filtered = fp.filter(new F.Predicate[Int] {
+      val filtered = fp.filter(new Predicate[Int] {
         def test(x: Int) = x > 0
       })
       p.success(-1)
@@ -231,7 +232,7 @@ object FSpec extends Specification
       val p = Promise[Int]()
       val fp = F.Promise.wrap(p.future)
       mustExecute(1) { ec =>
-        val filtered = fp.filter(new F.Predicate[Int] {
+        val filtered = fp.filter(new Predicate[Int] {
           def test(x: Int) = x > 0
         }, ec)
         p.success(-1)
