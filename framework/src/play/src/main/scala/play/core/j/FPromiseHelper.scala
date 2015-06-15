@@ -15,6 +15,7 @@ import scala.concurrent.duration.{ Duration, MILLISECONDS }
 import scala.util.{ Failure, Success, Try }
 import play.core.Execution.internalContext
 import java.util.function.Consumer
+import java.util.function.Predicate
 
 /**
  * Support code for the play.libs.F.Promise class. All public methods of this
@@ -105,7 +106,7 @@ private[play] object FPromiseHelper {
   def flatMap[A, B, T >: A](promise: F.Promise[A], function: F.Function[T, F.Promise[B]], ec: ExecutionContext): F.Promise[B] =
     F.Promise.wrap[B](promise.wrapped().flatMap((a: A) => function.apply(a).wrapped())(ec.prepare()))
 
-  def filter[A, T >: A](promise: F.Promise[A], predicate: F.Predicate[T], ec: ExecutionContext): F.Promise[A] =
+  def filter[A, T >: A](promise: F.Promise[A], predicate: Predicate[T], ec: ExecutionContext): F.Promise[A] =
     F.Promise.wrap[A](promise.wrapped().filter(predicate.test)(ec.prepare()))
 
   def recover[A](promise: F.Promise[A], function: F.Function[Throwable, A], ec: ExecutionContext): F.Promise[A] =

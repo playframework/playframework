@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.Arrays;
 
 import play.core.j.FPromiseHelper;
@@ -47,13 +48,6 @@ public class F {
      */
     public static interface Function3<A,B,C,R> {
         public R apply(A a, B b, C c) throws Throwable;
-    }
-
-    /**
-     * A Predicate (boolean-valued function) with a single argument.
-     */
-    public static interface Predicate<A> {
-        public boolean test(A a) throws Throwable;
     }
 
     /**
