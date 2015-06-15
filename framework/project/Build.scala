@@ -29,7 +29,7 @@ import scala.util.control.NonFatal
 object BuildSettings {
 
   // Binary compatibility is tested against this version
-  val previousVersion = "3.0.0"
+  val previousVersion = "2.5.0"
 
   // Argument for setting size of permgen space or meta space for all forked processes
   val maxMetaspace = s"-XX:MaxMetaspaceSize=384m"
