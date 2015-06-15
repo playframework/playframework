@@ -412,8 +412,8 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
     // otherwise we can't.
     val requestedDigest = f.getName.takeWhile(_ != '-')
     if (!requestedDigest.isEmpty) {
-      val bareFile = new File(f.getParent, f.getName.drop(requestedDigest.size + 1)).getPath
-      val bareFullPath = new File(path + File.separator + bareFile).getPath
+      val bareFile = new File(f.getParent, f.getName.drop(requestedDigest.size + 1)).getPath.replace('\\', '/')
+      val bareFullPath = path + "/" + bareFile
       blocking(digest(bareFullPath)) match {
         case Some(`requestedDigest`) => assetAt(path, bareFile, aggressiveCaching = true)
         case _ => assetAt(path, file.name, false)
