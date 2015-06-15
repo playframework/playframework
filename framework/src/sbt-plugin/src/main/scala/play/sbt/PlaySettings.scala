@@ -235,7 +235,7 @@ object PlaySettings {
     },
 
     // Adds the Play application directory to the command line args passed to Play
-    bashScriptExtraDefines += "addJava \"-Duser.dir=$(cd \"${app_home}/..\"; pwd -P)\"\n",
+    bashScriptExtraDefines += "addJava \"-Duser.dir=$(realpath \"$(cd \"${app_home}/..\"; pwd -P)\"  $(is_cygwin && echo \"fix\"))\"\n",
 
     generateSecret <<= ApplicationSecretGenerator.generateSecretTask,
     updateSecret <<= ApplicationSecretGenerator.updateSecretTask
