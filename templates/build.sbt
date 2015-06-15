@@ -21,11 +21,8 @@ val mochaVersion = propOrElse("mocha.version", "1.0.2")
 templates := {
   val dir = baseDirectory.value
   sys.props.get("templates").map(_.split(",").toSeq).getOrElse(Seq(
-    "play-scala",
-    "play-java",
-    "play-2.3-highlights",
-    "play-scala-intro",
-    "play-java-intro"
+    "play-scala-2.3",
+    "play-java-2.3"
   )).map(template => dir / template)
 }
 
