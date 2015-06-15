@@ -31,13 +31,11 @@ public abstract class Call {
      * Append a unique identifier to the URL.
      */
     public Call unique() {
-        String url = this.url();
-        if(url.indexOf('?') == -1) {
-            url = url + "?" + rand.nextLong();
-        } else {
-            url = url + "&" + rand.nextLong();
-        }
-        return new play.api.mvc.Call(method(), url, fragment());
+        return new play.api.mvc.Call(method(), this.uniquify(this.url()), fragment());
+    }
+
+    protected final String uniquify(String url) {
+        return url + ((url.indexOf('?') == -1) ? "?" : "&") + rand.nextLong();
     }
 
     /**
@@ -98,6 +96,15 @@ public abstract class Call {
      */
     public String webSocketURL(boolean secure, String host) {
       return "ws" + (secure ? "s" : "") + "://" + host + this.url();
+    }
+
+    public String path() {
+        return this.url() + this.appendFragment();
+    }
+
+    @Override
+    public String toString() {
+        return this.path();
     }
 
 }

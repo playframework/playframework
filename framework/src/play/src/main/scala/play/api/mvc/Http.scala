@@ -328,6 +328,10 @@ package play.api.mvc {
    */
   case class Call(method: String, url: String, fragment: String = null) extends play.mvc.Call {
 
+    override def unique(): Call = copy(url = uniquify(url))
+
+    override def withFragment(fragment: String): Call = copy(fragment = fragment)
+
     /**
      * Transform this call to an absolute URL.
      *
@@ -366,8 +370,6 @@ package play.api.mvc {
      * Transform this call to an WebSocket URL.
      */
     def webSocketURL(secure: Boolean)(implicit request: RequestHeader): String = "ws" + (if (secure) "s" else "") + "://" + request.host + this.url
-
-    override def toString = this.url + this.appendFragment
 
   }
 
