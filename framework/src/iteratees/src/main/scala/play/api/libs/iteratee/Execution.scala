@@ -3,7 +3,7 @@
  */
 package play.api.libs.iteratee
 
-import java.util.{ ArrayDeque, Deque }
+import java.util.ArrayDeque
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
 

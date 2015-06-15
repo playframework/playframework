@@ -9,7 +9,7 @@ import org.specs2.mutable.SpecificationLike
 /**
  * Common functionality for iteratee tests.
  */
-trait ExecutionSpecification extends NoConcurrentExecutionContext {
+trait ExecutionSpecification {
   self: SpecificationLike =>
 
   def testExecution[A](f: TestExecutionContext => A): A = {
