@@ -17,6 +17,24 @@ import static org.junit.Assert.assertEquals;
 public final class CallTest {
 
     @Test
+    public void testHttpURL1() throws Throwable {
+        final TestCall call = new TestCall("/myurl", "GET");
+
+        assertEquals("Call should return correct url in path()",
+                     "/myurl",
+                     call.path());
+    }
+
+    @Test
+    public void testHttpURL2() throws Throwable {
+        final Call call = new TestCall("/myurl", "GET").withFragment("myfragment");
+
+        assertEquals("Call should return correct url and fragment in path()",
+                     "/myurl#myfragment",
+                     call.path());
+    }
+
+    @Test
     public void testHttpAbsoluteURL1() throws Throwable {
         final Request req = new RequestBuilder()
             .uri("http://playframework.com/playframework").build();
