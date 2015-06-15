@@ -9,7 +9,7 @@ import scala.concurrent.Future
 import java.net.{ URI, URISyntaxException }
 
 import play.api.LoggerLike
-import play.api.http.{ HeaderNames, HttpVerbs }
+import play.api.http.{ HttpErrorHandler, HeaderNames, HttpVerbs }
 import play.api.mvc.{ RequestHeader, Results, Result }
 
 /**
@@ -18,11 +18,13 @@ import play.api.mvc.{ RequestHeader, Results, Result }
  *
  * @see [[http://www.w3.org/TR/cors/ CORS specification]]
  */
-trait AbstractCORSPolicy {
+private[cors] trait AbstractCORSPolicy {
 
   protected val logger: LoggerLike
 
   protected def corsConfig: CORSConfig
+
+  protected def errorHandler: HttpErrorHandler
 
   /**
    * HTTP Methods support by Play
@@ -142,7 +144,16 @@ trait AbstractCORSPolicy {
       }
 
       import play.api.libs.iteratee.Execution.Implicits.trampoline
-      f().map(_.withHeaders(headerBuilder.result(): _*))
+
+      // We must recover any errors so that we can add the headers to them to allow clients to see the result
+      val result = try {
+        f().recoverWith {
+          case e: Throwable => errorHandler.onServerError(request, e)
+        }
+      } catch {
+        case e: Throwable => errorHandler.onServerError(request, e)
+      }
+      result.map(_.withHeaders(headerBuilder.result(): _*))
     }
   }
 

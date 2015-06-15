@@ -403,7 +403,16 @@ object PlayBuild extends Build {
 
   lazy val PlayFiltersHelpersProject = PlayCrossBuiltProject("Filters-Helpers", "play-filters-helpers")
     .settings(
-      parallelExecution in Test := false
+      parallelExecution in Test := false,
+      binaryIssueFilters := Seq(
+        // AbstractCORSPolicy was never intended to be extended by anything other than Play. It has been made private
+        // to reinforce this. The chance that a third party library will have provided an extension to it is very low.
+        ProblemFilters.exclude[MissingMethodProblem]("play.filters.cors.AbstractCORSPolicy.errorHandler"),
+        // As *Components classes are generally only implemented by end applications, this shouldn't cause a problem.
+        // Also, most existing implementations will already have an implementation of this by virtue of the fact that
+        // they must implement it for other common *Components interfaces.
+        ProblemFilters.exclude[MissingMethodProblem]("play.filters.cors.CORSComponents.httpErrorHandler")
+      )
     ).dependsOn(PlayProject, PlaySpecs2Project % "test", PlayJavaProject % "test", PlayWsProject % "test")
 
   // This project is just for testing Play, not really a public artifact

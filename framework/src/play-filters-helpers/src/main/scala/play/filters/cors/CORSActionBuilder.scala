@@ -4,6 +4,7 @@
 package play.filters.cors
 
 import com.typesafe.config.Config
+import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
 
 import scala.concurrent.Future
 
@@ -58,12 +59,25 @@ object CORSActionBuilder {
    * @param  configuration  The configuration to load the config from
    * @param  configPath  The path to the subtree of the application configuration.
    */
-  def apply(configuration: Configuration, configPath: String = "play.filters.cors"): CORSActionBuilder = new CORSActionBuilder {
-    override protected def corsConfig = {
-      val config = PlayConfig(configuration)
-      val prototype = config.get[Config]("play.filters.cors")
-      val corsConfig = PlayConfig(config.get[Config](configPath).withFallback(prototype))
-      CORSConfig.fromUnprefixedConfiguration(corsConfig)
+  def apply(configuration: Configuration, configPath: String = "play.filters.cors"): CORSActionBuilder =
+    apply(configuration, DefaultHttpErrorHandler, configPath)
+
+  /**
+   * Construct an action builder that uses a subtree of the application configuration.
+   *
+   * @param  configuration  The configuration to load the config from
+   * @param  configPath  The path to the subtree of the application configuration.
+   */
+  def apply(configuration: Configuration, errorHandler: HttpErrorHandler, configPath: String): CORSActionBuilder = {
+    val eh = errorHandler
+    new CORSActionBuilder {
+      override protected def corsConfig = {
+        val config = PlayConfig(configuration)
+        val prototype = config.get[Config]("play.filters.cors")
+        val corsConfig = PlayConfig(config.get[Config](configPath).withFallback(prototype))
+        CORSConfig.fromUnprefixedConfiguration(corsConfig)
+      }
+      override protected val errorHandler = eh
     }
   }
 
@@ -73,7 +87,19 @@ object CORSActionBuilder {
    * @param  config  The local configuration to use in place of the global configuration.
    * @see [[CORSConfig]]
    */
-  def apply(config: CORSConfig): CORSActionBuilder = new CORSActionBuilder {
-    override protected val corsConfig = config
+  def apply(config: CORSConfig): CORSActionBuilder = apply(config, DefaultHttpErrorHandler)
+
+  /**
+   * Construct an action builder that uses locally defined configuration.
+   *
+   * @param  config  The local configuration to use in place of the global configuration.
+   * @see [[CORSConfig]]
+   */
+  def apply(config: CORSConfig, errorHandler: HttpErrorHandler): CORSActionBuilder = {
+    val eh = errorHandler
+    new CORSActionBuilder {
+      override protected val corsConfig = config
+      override protected val errorHandler = eh
+    }
   }
 }
