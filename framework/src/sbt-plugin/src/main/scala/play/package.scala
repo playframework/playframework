@@ -8,7 +8,7 @@ package object play {
   val Play = sbt.Play
   @deprecated("Use play.sbt.Play instead", "2.4.0")
   val PlayJava = sbt.PlayJava
-  @deprecated("Use play.sbt.Play instead", "2.4.0")
+  @deprecated("Use play.sbt.PlayScala instead", "2.4.0")
   val PlayScala = sbt.PlayScala
 
   @deprecated("Use play.sbt.PlayInteractionMode instead", "2.4.0")
