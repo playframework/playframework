@@ -4,7 +4,6 @@
 package play.it.http.websocket
 
 import java.nio.charset.Charset
-
 import play.api.test._
 import play.api.Application
 import scala.concurrent.{ Future, Promise }
@@ -19,8 +18,8 @@ import play.mvc.WebSocket.{ Out, In }
 import play.core.routing.HandlerDef
 import java.util.concurrent.atomic.AtomicReference
 import org.jboss.netty.buffer.ChannelBuffers
-
 import scala.concurrent.ExecutionContext.Implicits.global
+import java.util.function.Consumer
 
 object NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
 object AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification
@@ -363,11 +362,11 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
           new JWebSocket[String] {
             @volatile var messages = List.empty[String]
             def onReady(in: In[String], out: Out[String]) = {
-              in.onMessage(new F.Callback[String] {
-                def invoke(msg: String) = messages = msg :: messages
+              in.onMessage(new Consumer[String] {
+                def accept(msg: String) = messages = msg :: messages
               })
-              in.onClose(new F.Callback0 {
-                def invoke() = consumed.success(messages.reverse)
+              in.onClose(new Runnable {
+                def run() = consumed.success(messages.reverse)
               })
             }
           }
@@ -389,8 +388,8 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
         cleanedUp =>
           new JWebSocket[String] {
             def onReady(in: In[String], out: Out[String]) = {
-              in.onClose(new F.Callback0 {
-                def invoke() = cleanedUp.success(true)
+              in.onClose(new Runnable {
+                def run() = cleanedUp.success(true)
               })
             }
           }
@@ -413,7 +412,8 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
                 def receive = PartialFunction.empty
               })
             }
-          })
+          }
+          )
       }.pendingUntilAkkaHttpFixed
     }
   }

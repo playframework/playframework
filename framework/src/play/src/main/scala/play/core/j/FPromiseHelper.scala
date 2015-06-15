@@ -13,8 +13,8 @@ import scala.collection.JavaConverters
 import scala.concurrent.{ Await, ExecutionContext, Future, Promise }
 import scala.concurrent.duration.{ Duration, MILLISECONDS }
 import scala.util.{ Failure, Success, Try }
-
 import play.core.Execution.internalContext
+import java.util.function.Consumer
 
 /**
  * Support code for the play.libs.F.Promise class. All public methods of this
@@ -96,8 +96,8 @@ private[play] object FPromiseHelper {
   def timeout[A](delay: Long, unit: TimeUnit): F.Promise[A] =
     timeoutWith(Failure(new F.PromiseTimeoutException("Timeout in promise")), delay, unit)
 
-  def onRedeem[A](promise: F.Promise[A], action: F.Callback[A], ec: ExecutionContext): Unit =
-    promise.wrapped().onSuccess { case a => action.invoke(a) }(ec.prepare())
+  def onRedeem[A](promise: F.Promise[A], action: Consumer[A], ec: ExecutionContext): Unit =
+    promise.wrapped().onSuccess { case a => action.accept(a) }(ec.prepare())
 
   def map[A, B, T >: A](promise: F.Promise[A], function: F.Function[T, B], ec: ExecutionContext): F.Promise[B] =
     F.Promise.wrap[B](promise.wrapped().map((a: A) => function.apply(a))(ec.prepare()))
@@ -117,8 +117,8 @@ private[play] object FPromiseHelper {
   def fallbackTo[A](promise: F.Promise[A], fallback: F.Promise[A]): F.Promise[A] =
     F.Promise.wrap[A](promise.wrapped.fallbackTo(fallback.wrapped))
 
-  def onFailure[A](promise: F.Promise[A], action: F.Callback[Throwable], ec: ExecutionContext) {
-    promise.wrapped().onFailure { case t => action.invoke(t) }(ec.prepare())
+  def onFailure[A](promise: F.Promise[A], action: Consumer[Throwable], ec: ExecutionContext) {
+    promise.wrapped().onFailure { case t => action.accept(t) }(ec.prepare())
   }
 
   def transform[A, B, T >: A](promise: F.Promise[A], s: F.Function[T, B], f: F.Function[Throwable, Throwable], ec: ExecutionContext): F.Promise[B] =

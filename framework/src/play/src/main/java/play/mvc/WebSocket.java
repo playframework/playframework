@@ -5,6 +5,8 @@ package play.mvc;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import akka.actor.ActorRef;
 import akka.actor.Props;
@@ -76,24 +78,24 @@ public abstract class WebSocket<A> {
         /**
          * Callbacks to invoke at each frame.
          */
-        public final List<Callback<A>> callbacks = new CopyOnWriteArrayList<Callback<A>>();
+        public final List<Consumer<A>> callbacks = new CopyOnWriteArrayList<Consumer<A>>();
 
         /**
          * Callbacks to invoke on close.
          */
-        public final List<Callback0> closeCallbacks = new CopyOnWriteArrayList<Callback0>();
+        public final List<Runnable> closeCallbacks = new CopyOnWriteArrayList<Runnable>();
 
         /**
          * Registers a message callback.
          */
-        public void onMessage(Callback<A> callback) {
+        public void onMessage(Consumer<A> callback) {
             callbacks.add(callback);
         }
 
         /**
          * Registers a close callback.
          */
-        public void onClose(Callback0 callback) {
+        public void onClose(Runnable callback) {
             closeCallbacks.add(callback);
         }
 
@@ -107,7 +109,7 @@ public abstract class WebSocket<A> {
      * @return a new WebSocket
      * @throws NullPointerException if the specified callback is null
      */
-    public static <A> WebSocket<A> whenReady(Callback2<In<A>, Out<A>> callback) {
+    public static <A> WebSocket<A> whenReady(BiConsumer<In<A>, Out<A>> callback) {
         return new WhenReadyWebSocket<A>(callback);
     }
 
@@ -162,9 +164,9 @@ public abstract class WebSocket<A> {
 
         private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WhenReadyWebSocket.class);
 
-        private final Callback2<In<A>, Out<A>> callback;
+        private final BiConsumer<In<A>, Out<A>> callback;
 
-        WhenReadyWebSocket(Callback2<In<A>, Out<A>> callback) {
+        WhenReadyWebSocket(BiConsumer<In<A>, Out<A>> callback) {
             if (callback == null) throw new NullPointerException("WebSocket onReady callback cannot be null");
             this.callback = callback;
         }
@@ -172,7 +174,7 @@ public abstract class WebSocket<A> {
         @Override
         public void onReady(In<A> in, Out<A> out) {
             try {
-                callback.invoke(in, out);
+                callback.accept(in, out);
             } catch (Throwable e) {
                 logger.error("Exception in WebSocket.onReady", e);
             }

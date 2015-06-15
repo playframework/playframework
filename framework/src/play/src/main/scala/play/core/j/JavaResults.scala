@@ -4,7 +4,6 @@
 package play.core.j
 
 import scala.language.reflectiveCalls
-
 import com.fasterxml.jackson.databind.JsonNode
 import play.api.mvc._
 import play.api.http._
@@ -18,6 +17,7 @@ import play.twirl.api.Content
 import scala.collection.JavaConverters._
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import java.util.function.Consumer
 
 /**
  * Java compatible Results
@@ -35,11 +35,11 @@ object JavaResults extends Results with DefaultWriteables with DefaultContentTyp
   def contentTypeOfBytes(mimeType: String): ContentTypeOf[Array[Byte]] = ContentTypeOf(Option(mimeType).orElse(Some("application/octet-stream")))
   def emptyHeaders = Map.empty[String, String]
   def empty = Results.EmptyContent()
-  def chunked[A](onConnected: play.libs.F.Callback[Channel[A]], onDisconnected: play.libs.F.Callback0): Enumerator[A] = {
+  def chunked[A](onConnected: Consumer[Channel[A]], onDisconnected: Runnable): Enumerator[A] = {
     Concurrent.unicast[A](
-      onStart = (channel: Channel[A]) => onConnected.invoke(channel),
-      onComplete = onDisconnected.invoke(),
-      onError = (_: String, _: Input[A]) => onDisconnected.invoke()
+      onStart = (channel: Channel[A]) => onConnected.accept(channel),
+      onComplete = onDisconnected.run(),
+      onError = (_: String, _: Input[A]) => onDisconnected.run()
     )(internalContext)
   }
   //play.api.libs.iteratee.Enumerator.imperative[A](onComplete = onDisconnected)

@@ -206,13 +206,14 @@ public class PromiseTest extends ExecutionTest {
     }
 
     @Test
-    public void testRedeemValueWithEC() throws Exception {
+    public void testRedeemValueWithEC() {
         mustExecute(1, ec -> {
             F.RedeemablePromise<Integer> p = F.RedeemablePromise.empty();
             LinkedBlockingQueue<Integer> invocations = new LinkedBlockingQueue<>();
             p.onRedeem(invocations::offer, ec);
             p.success(99);
-            assertThat(invocations.poll(5, SECONDS)).isEqualTo(99);
+            try { assertThat(invocations.poll(5, SECONDS)).isEqualTo(99); }
+            catch(InterruptedException e) { throw new RuntimeException(e); }
         });
     }
 

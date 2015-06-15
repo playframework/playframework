@@ -23,6 +23,7 @@ import org.openqa.selenium.htmlunit.*;
 
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 
 import static play.mvc.Http.*;
 
@@ -531,14 +532,14 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Executes a block of code in a running server, with a test browser.
      */
-    public static void running(TestServer server, Class<? extends WebDriver> webDriver, final Callback<TestBrowser> block) {
+    public static void running(TestServer server, Class<? extends WebDriver> webDriver, final Consumer<TestBrowser> block) {
         running(server, play.api.test.WebDriverFactory.apply(webDriver), block);
     }
 
     /**
      * Executes a block of code in a running server, with a test browser.
      */
-    public static void running(TestServer server, WebDriver webDriver, final Callback<TestBrowser> block) {
+    public static void running(TestServer server, WebDriver webDriver, final Consumer<TestBrowser> block) {
         synchronized (PlayRunners$.MODULE$.mutex()) {
             TestBrowser browser = null;
             TestServer startedServer = null;
@@ -546,14 +547,9 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
                 start(server);
                 startedServer = server;
                 browser = testBrowser(webDriver);
-                block.invoke(browser);
-            } catch (Error e) {
-                throw e;
-            } catch (RuntimeException re) {
-                throw re;
-            } catch (Throwable t) {
-                throw new RuntimeException(t);
-            } finally {
+                block.accept(browser);
+            } 
+            finally {
                 if (browser != null) {
                     browser.quit();
                 }
@@ -611,5 +607,4 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     public static TestBrowser testBrowser(WebDriver of) {
         return testBrowser(of, Helpers$.MODULE$.testServerPort());
     }
-
 }

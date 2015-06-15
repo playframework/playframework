@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 import java.util.Arrays;
 
 import play.core.j.FPromiseHelper;
@@ -19,34 +20,6 @@ import scala.concurrent.Future;
  * Defines a set of functional programming style helpers.
  */
 public class F {
-
-    /**
-     * A Callback with no arguments.
-     */
-    public static interface Callback0 {
-        public void invoke() throws Throwable;
-    }
-
-    /**
-     * A Callback with a single argument.
-     */
-    public static interface Callback<A> {
-        public void invoke(A a) throws Throwable;
-    }
-
-    /**
-     * A Callback with 2 arguments.
-     */
-    public static interface Callback2<A,B> {
-        public void invoke(A a, B b) throws Throwable;
-    }
-
-    /**
-     * A Callback with 3 arguments.
-     */
-    public static interface Callback3<A,B,C> {
-        public void invoke(A a, B b, C c) throws Throwable;
-    }
 
     /**
      * A Function with no arguments.
@@ -309,7 +282,7 @@ public class F {
          *
          * @param action The action to perform.
          */
-        public void onRedeem(final Callback<A> action) {
+        public void onRedeem(final Consumer<A> action) {
             FPromiseHelper.onRedeem(this, action, HttpExecution.defaultContext());
         }
 
@@ -319,7 +292,7 @@ public class F {
          * @param action The action to perform.
          * @param ec The ExecutionContext to execute the action in.
          */
-        public void onRedeem(final Callback<A> action, ExecutionContext ec) {
+        public void onRedeem(final Consumer<A> action, ExecutionContext ec) {
             FPromiseHelper.onRedeem(this, action, ec);
         }
 
@@ -417,7 +390,7 @@ public class F {
          *
          * @param action The action to perform.
          */
-        public void onFailure(final Callback<Throwable> action) {
+        public void onFailure(final Consumer<Throwable> action) {
             FPromiseHelper.onFailure(this, action, HttpExecution.defaultContext());
         }
 
@@ -427,7 +400,7 @@ public class F {
          * @param action The action to perform.
          * @param ec The ExecutionContext to execute the callback in.
          */
-        public void onFailure(final Callback<Throwable> action, ExecutionContext ec) {
+        public void onFailure(final Consumer<Throwable> action, ExecutionContext ec) {
             FPromiseHelper.onFailure(this, action, ec);
         }
 

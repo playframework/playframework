@@ -45,7 +45,7 @@ public interface JPAApi {
      *
      * @param block Block of code to execute
      */
-    public void withTransaction(final play.libs.F.Callback0 block);
+    public void withTransaction(final Runnable block);
 
     /**
      * Run a block of code in a JPA transaction.

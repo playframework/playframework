@@ -10,6 +10,7 @@ import play.libs.F.*;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * A Chunked stream sending Comet messages.
@@ -66,7 +67,7 @@ public abstract class Comet extends Chunks<String> {
     /**
      * Add a callback to be notified when the client has disconnected.
      */
-    public void onDisconnected(Callback0 callback) {
+    public void onDisconnected(Runnable callback) {
         out.onDisconnected(callback);
     }
 
@@ -87,7 +88,7 @@ public abstract class Comet extends Chunks<String> {
      * @return a new Comet
      * @throws NullPointerException if the specified callback is null
      */
-    public static Comet whenConnected(String jsMethod, Callback<Comet> callback) {
+    public static Comet whenConnected(String jsMethod, Consumer<Comet> callback) {
         return new WhenConnectedComet(jsMethod, callback);
     }
 
@@ -99,9 +100,9 @@ public abstract class Comet extends Chunks<String> {
 
         private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(Comet.class);
 
-        private final Callback<Comet> callback;
+        private final Consumer<Comet> callback;
 
-        WhenConnectedComet(String jsMethod, Callback<Comet> callback) {
+        WhenConnectedComet(String jsMethod, Consumer<Comet> callback) {
             super(jsMethod);
             if (callback == null) throw new NullPointerException("Comet onConnected callback cannot be null");
             this.callback = callback;
@@ -110,7 +111,7 @@ public abstract class Comet extends Chunks<String> {
         @Override
         public void onConnected() {
             try {
-                callback.invoke(this);
+                callback.accept(this);
             } catch (Throwable e) {
                 logger.error("Exception in Comet.onConnected", e);
             }
