@@ -22,7 +22,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
 
     implicit val port: Port = testServerPort
 
-    def withServer[T](block: => T): T = {
+    def withServer[T](path: String = "/testassets")(block: => T): T = {
       import Asset._
       val routes: PartialFunction[(String, String), Handler] = {
         case (_, path) => Assets.versioned("/testassets", path)
@@ -37,7 +37,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       }))(block)
     }
 
-    "serve an asset" in withServer {
+    "serve an asset" in withServer() {
       val result = await(wsUrl("/bar.txt").get())
 
       result.status must_== OK
@@ -50,7 +50,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       result.header(CACHE_CONTROL) must_== defaultCacheControl
     }
 
-    "serve an asset in a subdirectory" in withServer {
+    "serve an asset in a subdirectory" in withServer() {
       val result = await(wsUrl("/subdir/baz.txt").get())
 
       result.status must_== OK
@@ -63,7 +63,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       result.header(CACHE_CONTROL) must_== defaultCacheControl
     }
 
-    "serve an asset with spaces in the name" in withServer {
+    "serve an asset with spaces in the name" in withServer() {
       val result = await(wsUrl("/foo%20bar.txt").get())
 
       result.status must_== OK
@@ -76,7 +76,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       result.header(CACHE_CONTROL) must_== defaultCacheControl
     }
 
-    "serve a non gzipped asset when gzip is available but not requested" in withServer {
+    "serve a non gzipped asset when gzip is available but not requested" in withServer() {
       val result = await(wsUrl("/foo.txt").get())
 
       result.body must_== "This is a test asset."
@@ -84,7 +84,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       result.header(CONTENT_ENCODING) must beNone
     }
 
-    "serve a gzipped asset" in withServer {
+    "serve a gzipped asset" in withServer() {
       val result = await(wsUrl("/foo.txt")
         .withHeaders(ACCEPT_ENCODING -> "gzip")
         .get())
@@ -99,7 +99,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       success
     }
 
-    "return not modified when etag matches" in withServer {
+    "return not modified when etag matches" in withServer() {
       val Some(etag) = await(wsUrl("/foo.txt").get()).header(ETAG)
       val result = await(wsUrl("/foo.txt")
         .withHeaders(IF_NONE_MATCH -> etag)
@@ -112,7 +112,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       result.header(LAST_MODIFIED) must beSome
     }
 
-    "return not modified when multiple etags supply and one matches" in withServer {
+    "return not modified when multiple etags supply and one matches" in withServer() {
       val Some(etag) = await(wsUrl("/foo.txt").get()).header(ETAG)
       val result = await(wsUrl("/foo.txt")
         .withHeaders(IF_NONE_MATCH -> ("\"foo\", " + etag + ", \"bar\""))
@@ -122,7 +122,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       result.body must beEmpty
     }
 
-    "return asset when etag doesn't match" in withServer {
+    "return asset when etag doesn't match" in withServer() {
       val result = await(wsUrl("/foo.txt")
         .withHeaders(IF_NONE_MATCH -> "foobar")
         .get())
@@ -131,7 +131,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       result.body must_== "This is a test asset."
     }
 
-    "return not modified when not modified since" in withServer {
+    "return not modified when not modified since" in withServer() {
       val Some(timestamp) = await(wsUrl("/foo.txt").get()).header(LAST_MODIFIED)
       val result = await(wsUrl("/foo.txt")
         .withHeaders(IF_MODIFIED_SINCE -> timestamp)
@@ -146,7 +146,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       result.header(CACHE_CONTROL) must beNone
     }
 
-    "return asset when modified since" in withServer {
+    "return asset when modified since" in withServer() {
       val result = await(wsUrl("/foo.txt")
         .withHeaders(IF_MODIFIED_SINCE -> "Tue, 13 Mar 2012 13:08:36 GMT")
         .get())
@@ -155,7 +155,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       result.body must_== "This is a test asset."
     }
 
-    "ignore if modified since header if if none match header is set" in withServer {
+    "ignore if modified since header if if none match header is set" in withServer() {
       val result = await(wsUrl("/foo.txt")
         .withHeaders(
         IF_NONE_MATCH -> "foobar",
@@ -166,7 +166,7 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       result.body must_== "This is a test asset."
     }
 
-    "return the asset if the if modified since header can't be parsed" in withServer {
+    "return the asset if the if modified since header can't be parsed" in withServer() {
       val result = await(wsUrl("/foo.txt")
         .withHeaders(IF_MODIFIED_SINCE -> "Not a date")
         .get())
@@ -175,21 +175,21 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       result.body must_== "This is a test asset."
     }
 
-    "return 200 if the asset is empty" in withServer {
+    "return 200 if the asset is empty" in withServer() {
       val result = await(wsUrl("/empty.txt").get())
 
       result.status must_== OK
       result.body must beEmpty
     }
 
-    "return 404 for files that don't exist" in withServer {
+    "return 404 for files that don't exist" in withServer() {
       val result = await(wsUrl("/nosuchfile.txt").get())
 
       result.status must_== NOT_FOUND
       result.body must beEmpty
     }
 
-    "serve a versioned asset" in withServer {
+    "serve a versioned asset" in withServer() {
       val result = await(wsUrl("/versioned/sub/12345678901234567890123456789012-foo.txt").get())
 
       result.status must_== OK
@@ -201,5 +201,16 @@ object AssetsSpec extends PlaySpecification with WsTestClient {
       result.header(CONTENT_ENCODING) must beNone
       result.header(CACHE_CONTROL) must_== aggressiveCacheControl
     }
+
+
+    "return not found when the path is a directory" in {
+      "if the directory is on the file system" in withServer() {
+        await(wsUrl("/subdir").get()).status must_== NOT_FOUND
+      }
+      "if the directory is a jar entry" in withServer("/scala") {
+          await(wsUrl("/collection").get()).status must_== NOT_FOUND
+      }
+    }
+
   }
 }
