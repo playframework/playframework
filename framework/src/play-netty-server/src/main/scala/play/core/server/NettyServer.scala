@@ -213,7 +213,7 @@ object NettyServer {
   implicit val provider = new NettyServerProvider
 
   def main(args: Array[String]) {
-    System.err.println("NettyServer.main is deprecated. Please start your Play server with the ${ProdServerStart.getClass.getName}.main.")
+    System.err.println(s"NettyServer.main is deprecated. Please start your Play server with the ${ProdServerStart.getClass.getName}.main.")
     ProdServerStart.main(args)
   }
 
