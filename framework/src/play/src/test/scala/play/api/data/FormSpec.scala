@@ -174,6 +174,11 @@ object FormSpec extends Specification {
       f4.errors must beEmpty
     }
 
+    "apply constraints on char fields" in {
+      val f = ScalaForms.charForm.fillAndValidate('M')
+      f.errors must beEmpty
+    }
+
     "not even attempt to validate on fill" in {
       val failingValidatorForm = Form(
         "foo" -> Forms.text.verifying("isEmpty", s =>
@@ -361,4 +366,6 @@ object ScalaForms {
   val shortNumberForm = Form("shortNumber" -> shortNumber(10, 42))
 
   val byteNumberForm = Form("byteNumber" -> shortNumber(10, 42))
+
+  val charForm = Form("gender" -> char)
 }

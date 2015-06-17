@@ -233,6 +233,16 @@ object Forms {
   val text: Mapping[String] = of[String]
 
   /**
+   * Constructs a simple mapping for a char field.
+   *
+   * For example:
+   * {{{
+   * Form("gender" -> char)
+   * }}}
+   */
+  val char: Mapping[Char] = of[Char]
+
+  /**
    * Constructs a simple mapping for required text field.
    *
    * Note that all field are always required to be present in the form unless
