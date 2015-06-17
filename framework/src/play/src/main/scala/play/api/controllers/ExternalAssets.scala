@@ -3,14 +3,16 @@
  */
 package controllers
 
+import javax.inject.Inject
+
 import play.api._
 import play.api.mvc._
-import play.api.libs._
-import play.api.libs.iteratee._
 
 import Play.current
 
 import java.io._
+
+object ExternalAssets extends ExternalAssets
 
 /**
  * Controller that serves static resources from an external folder.
@@ -29,14 +31,14 @@ import java.io._
  * }}}
  *
  */
-object ExternalAssets extends Controller {
+class ExternalAssets @Inject() () extends Controller {
 
   val AbsolutePath = """^(/|[a-zA-Z]:\\).*""".r
 
   /**
    * Generates an `Action` that serves a static resource from an external folder
    *
-   * @param absoluteRootPath the root folder for searching the static resource files such as `"/home/peter/public"`, `C:\external` or `relativeToYourApp`
+   * @param rootPath the root folder for searching the static resource files such as `"/home/peter/public"`, `C:\external` or `relativeToYourApp`
    * @param file the file part extracted from the URL
    */
   def at(rootPath: String, file: String): Action[AnyContent] = Action { request =>
