@@ -58,10 +58,9 @@ class HikariCPConnectionPool @Inject() (environment: Environment) extends Connec
       val datasource = new HikariDataSource(hikariConfig)
 
       // Bind in JNDI
-      dbConfig.jndiName.foreach { name =>
-        JNDI.initialContext.rebind(name, datasource)
-        val visibleUrl = datasource.getJdbcUrl
-        logger.info(s"""datasource [$visibleUrl] bound to JNDI as $name""")
+      dbConfig.jndiName.foreach { jndiName =>
+        JNDI.initialContext.rebind(jndiName, datasource)
+        logger.info(s"datasource [$name] bound to JNDI as $jndiName")
       }
 
       datasource
