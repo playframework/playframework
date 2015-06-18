@@ -178,6 +178,18 @@ class IterateeSubscriberSpec extends Specification {
       testEnv.isEmptyAfterDelay() must beTrue
     }
 
+    "finish when iteratee is done after subscribe, cancel subscription (on-subscribe/done-step)" in {
+      val testEnv = new TestEnv[Int]
+
+      testEnv.onSubscribe()
+      testEnv.isEmptyAfterDelay() must beTrue
+
+      testEnv.doneStep(333, Input.El(99))
+      testEnv.next must_== Cancel
+      testEnv.next must_== Result(Success(Done(333, Input.El(99))))
+      testEnv.isEmptyAfterDelay() must beTrue
+    }
+
     "finish when iteratee is done immediately, ignore complete (done-step/on-complete)" in {
       val testEnv = new TestEnv[Int]
 
@@ -209,6 +221,18 @@ class IterateeSubscriberSpec extends Specification {
 
       testEnv.onSubscribe()
       testEnv.next must_== Cancel
+      testEnv.isEmptyAfterDelay() must beTrue
+    }
+
+    "finish when iteratee errors after subscribe, cancel subscription (on-subscribe/done-step)" in {
+      val testEnv = new TestEnv[Int]
+
+      testEnv.onSubscribe()
+      testEnv.isEmptyAfterDelay() must beTrue
+
+      testEnv.errorStep("iteratee error", Input.El(99))
+      testEnv.next must_== Cancel
+      testEnv.next must_== Result(Success(Error("iteratee error", Input.El(99))))
       testEnv.isEmptyAfterDelay() must beTrue
     }
 
