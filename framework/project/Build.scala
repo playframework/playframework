@@ -210,7 +210,7 @@ object PlayBuild extends Build {
   lazy val IterateesProject = PlayCrossBuiltProject("Play-Iteratees", "iteratees")
     .settings(libraryDependencies ++= iterateesDependencies)
 
-  lazy val StreamsProject = PlayCrossBuiltProject("Play-Streams-Experimental", "play-streams")
+  lazy val StreamsProject = PlayCrossBuiltProject("Play-Streams", "play-streams")
     .settings(libraryDependencies ++= streamsDependencies)
     .dependsOn(IterateesProject)
 
@@ -259,7 +259,9 @@ object PlayBuild extends Build {
       BuildLinkProject,
       IterateesProject % "test->test;compile->compile",
       JsonProject,
-      PlayNettyUtilsProject)
+      PlayNettyUtilsProject,
+      StreamsProject
+    )
 
   lazy val PlayServerProject = PlayCrossBuiltProject("Play-Server", "play-server")
     .settings(libraryDependencies ++= playServerDependencies)

@@ -51,7 +51,7 @@ class GzipFilter @Inject() (config: GzipFilterConfig) extends EssentialFilter {
   def apply(next: EssentialAction) = new EssentialAction {
     def apply(request: RequestHeader) = {
       if (mayCompress(request)) {
-        next(request).mapM(result => handleResult(request, result))
+        next(request).mapFuture(result => handleResult(request, result))
       } else {
         next(request)
       }

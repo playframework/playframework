@@ -3,10 +3,10 @@
  */
 package play.it.http
 
+import play.api.libs.streams.Accumulator
 import play.it._
 import play.api.mvc._
 import play.api.test._
-import play.api.test.TestServer
 import play.api.libs.iteratee._
 
 object NettyExpect100ContinueSpec extends Expect100ContinueSpec with NettyIntegrationSpecification
@@ -37,7 +37,7 @@ trait Expect100ContinueSpec extends PlaySpecification with ServerIntegrationSpec
     }
 
     "not read body when expecting 100 continue but action iteratee is done" in withServer(
-      EssentialAction(_ => Done(Results.Ok))
+      EssentialAction(_ => Accumulator.done(Results.Ok))
     ) { port =>
         val responses = BasicHttpClient.makeRequests(port)(
           BasicRequest("POST", "/", "HTTP/1.1", Map("Expect" -> "100-continue", "Content-Length" -> "100000"), "foo")
@@ -54,7 +54,7 @@ trait Expect100ContinueSpec extends PlaySpecification with ServerIntegrationSpec
     //
     // See https://issues.jboss.org/browse/NETTY-390 for more details.
     "close the connection after rejecting a Expect: 100-continue body" in withServer(
-      EssentialAction(_ => Done(Results.Ok))
+      EssentialAction(_ => Accumulator.done(Results.Ok))
     ) { port =>
         val responses = BasicHttpClient.makeRequests(port, checkClosed = true)(
           BasicRequest("POST", "/", "HTTP/1.1", Map("Expect" -> "100-continue", "Content-Length" -> "100000"), "foo")

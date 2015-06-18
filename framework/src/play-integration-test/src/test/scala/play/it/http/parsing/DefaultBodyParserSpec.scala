@@ -3,17 +3,18 @@
  */
 package play.it.http.parsing
 
+import akka.stream.FlowMaterializer
+import akka.stream.scaladsl.Source
 import play.api.mvc._
-import play.api.libs.iteratee.Enumerator
 import play.api.test._
 
 object DefaultBodyParserSpec extends PlaySpecification {
 
   "The default body parser" should {
 
-    def parse(method: String, contentType: Option[String], body: Array[Byte]) = {
+    def parse(method: String, contentType: Option[String], body: Array[Byte])(implicit mat: FlowMaterializer) = {
       val request = FakeRequest(method, "/x").withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*)
-      await(Enumerator(body) |>>> BodyParsers.parse.default(request))
+      await(BodyParsers.parse.default(request).run(Source.single(body)))
     }
 
     "ignore text bodies for DELETE requests" in new WithApplication() {

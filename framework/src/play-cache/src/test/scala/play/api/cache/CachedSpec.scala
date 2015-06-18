@@ -22,10 +22,10 @@ class CachedSpec extends PlaySpecification {
   "the cached action" should {
     "cache values using injected CachedApi" in new WithApplication() {
       val controller = app.injector.instanceOf[CachedController]
-      val result1 = controller.action(FakeRequest()).run
+      val result1 = controller.action(FakeRequest()).run()
       contentAsString(result1) must_== "1"
       controller.invoked.get() must_== 1
-      val result2 = controller.action(FakeRequest()).run
+      val result2 = controller.action(FakeRequest()).run()
       contentAsString(result2) must_== "1"
       controller.invoked.get() must_== 1
 
@@ -38,10 +38,10 @@ class CachedSpec extends PlaySpecification {
       additionalConfiguration = Map("play.cache.bindCaches" -> Seq("custom"))
     )) {
       val controller = app.injector.instanceOf[NamedCachedController]
-      val result1 = controller.action(FakeRequest()).run
+      val result1 = controller.action(FakeRequest()).run()
       contentAsString(result1) must_== "1"
       controller.invoked.get() must_== 1
-      val result2 = controller.action(FakeRequest()).run
+      val result2 = controller.action(FakeRequest()).run()
       contentAsString(result2) must_== "1"
       controller.invoked.get() must_== 1
 
@@ -75,10 +75,10 @@ class CachedSpec extends PlaySpecification {
       val diskCached = new Cached(diskCache)
       val invoked = new AtomicInteger()
       val action = diskCached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
-      val result1 = action(FakeRequest()).run
+      val result1 = action(FakeRequest()).run()
       contentAsString(result1) must_== "1"
       invoked.get() must_== 1
-      val result2 = action(FakeRequest()).run
+      val result2 = action(FakeRequest()).run()
       contentAsString(result2) must_== "1"
 
       // Test that the same headers are added
@@ -91,10 +91,10 @@ class CachedSpec extends PlaySpecification {
     "cache values using Application's Cached" in new WithApplication() {
       val invoked = new AtomicInteger()
       val action = Cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
-      val result1 = action(FakeRequest()).run
+      val result1 = action(FakeRequest()).run()
       contentAsString(result1) must_== "1"
       invoked.get() must_== 1
-      val result2 = action(FakeRequest()).run
+      val result2 = action(FakeRequest()).run()
       contentAsString(result2) must_== "1"
 
       // Test that the same headers are added
@@ -107,12 +107,12 @@ class CachedSpec extends PlaySpecification {
     "use etags for values" in new WithApplication() {
       val invoked = new AtomicInteger()
       val action = Cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
-      val result1 = action(FakeRequest()).run
+      val result1 = action(FakeRequest()).run()
       status(result1) must_== 200
       invoked.get() must_== 1
       val etag = header(ETAG, result1)
       etag must beSome(matching("""([wW]/)?"([^"]|\\")*"""")) //"""
-      val result2 = action(FakeRequest().withHeaders(IF_NONE_MATCH -> etag.get)).run
+      val result2 = action(FakeRequest().withHeaders(IF_NONE_MATCH -> etag.get)).run()
       status(result2) must_== NOT_MODIFIED
       invoked.get() must_== 1
     }
@@ -120,17 +120,17 @@ class CachedSpec extends PlaySpecification {
     "support wildcard etags" in new WithApplication() {
       val invoked = new AtomicInteger()
       val action = Cached(_ => "foo")(Action(Results.Ok("" + invoked.incrementAndGet())))
-      val result1 = action(FakeRequest()).run
+      val result1 = action(FakeRequest()).run()
       status(result1) must_== 200
       invoked.get() must_== 1
-      val result2 = action(FakeRequest().withHeaders(IF_NONE_MATCH -> "*")).run
+      val result2 = action(FakeRequest().withHeaders(IF_NONE_MATCH -> "*")).run()
       status(result2) must_== NOT_MODIFIED
       invoked.get() must_== 1
     }
 
     "work with etag cache misses" in new WithApplication() {
       val action = Cached(_.uri)(Action(Results.Ok))
-      val resultA = action(FakeRequest("GET", "/a")).run
+      val resultA = action(FakeRequest("GET", "/a")).run()
       status(resultA) must_== 200
       status(action(FakeRequest("GET", "/a").withHeaders(IF_NONE_MATCH -> "foo")).run) must_== 200
       status(action(FakeRequest("GET", "/b").withHeaders(IF_NONE_MATCH -> header(ETAG, resultA).get)).run) must_== 200
@@ -157,15 +157,15 @@ class CachedSpec extends PlaySpecification {
       val actionOk = cacheOk.build(dummyAction)
       val actionNotFound = cacheOk.build(notFoundAction)
 
-      val res0 = contentAsString(actionOk(FakeRequest("GET", "/a")).run)
-      val res1 = contentAsString(actionOk(FakeRequest("GET", "/a")).run)
+      val res0 = contentAsString(actionOk(FakeRequest("GET", "/a")).run())
+      val res1 = contentAsString(actionOk(FakeRequest("GET", "/a")).run())
 
       // println(("res0", header(EXPIRES, actionOk(FakeRequest("GET", "/a")).run)))
 
       res0 must equalTo(res1)
 
-      val res2 = contentAsString(actionNotFound(FakeRequest("GET", "/b")).run)
-      val res3 = contentAsString(actionNotFound(FakeRequest("GET", "/b")).run)
+      val res2 = contentAsString(actionNotFound(FakeRequest("GET", "/b")).run())
+      val res3 = contentAsString(actionNotFound(FakeRequest("GET", "/b")).run())
 
       res2 must not equalTo (res3)
     }
@@ -178,13 +178,13 @@ class CachedSpec extends PlaySpecification {
       val actionOk = cache.build(dummyAction)
       val actionNotFound = cache.build(notFoundAction)
 
-      val res0 = contentAsString(actionOk(FakeRequest("GET", "/a")).run)
+      val res0 = contentAsString(actionOk(FakeRequest("GET", "/a")).run())
       val res1 = contentAsString(actionOk(FakeRequest("GET", "/a")).run)
 
       res0 must equalTo(res1)
 
-      val res2 = contentAsString(actionNotFound(FakeRequest("GET", "/b")).run)
-      val res3 = contentAsString(actionNotFound(FakeRequest("GET", "/b")).run)
+      val res2 = contentAsString(actionNotFound(FakeRequest("GET", "/b")).run())
+      val res3 = contentAsString(actionNotFound(FakeRequest("GET", "/b")).run())
 
       res2 must equalTo(res3)
     }
@@ -195,8 +195,8 @@ class CachedSpec extends PlaySpecification {
       val actionOk = cache.build(dummyAction)
       val actionNotFound = cache.build(notFoundAction)
 
-      val res0 = header(EXPIRES, actionOk(FakeRequest("GET", "/a")).run)
-      val res1 = header(EXPIRES, actionNotFound(FakeRequest("GET", "/b")).run)
+      val res0 = header(EXPIRES, actionOk(FakeRequest("GET", "/a")).run())
+      val res1 = header(EXPIRES, actionNotFound(FakeRequest("GET", "/b")).run())
 
       def toDuration(header: String) = {
         val now = DateTime.now().getMillis

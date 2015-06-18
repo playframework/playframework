@@ -3,7 +3,9 @@
  */
 package play.api.mvc
 
+import akka.stream.FlowMaterializer
 import play.api.data.Form
+import play.api.libs.streams.{ Streams, Accumulator }
 import play.core.parsers.Multipart
 
 import scala.language.reflectiveCalls
@@ -310,7 +312,7 @@ trait BodyParsers {
      *
      * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
      */
-    def tolerantText(maxLength: Long): BodyParser[String] = BodyParser("text, maxLength=" + maxLength) { request =>
+    def tolerantText(maxLength: Long): BodyParser[String] = BodyParser.iteratee("text, maxLength=" + maxLength) { request =>
       // Encoding notes: RFC-2616 section 3.7.1 mandates ISO-8859-1 as the default charset if none is specified.
 
       import Execution.Implicits.trampoline
@@ -348,7 +350,7 @@ trait BodyParsers {
      * @param memoryThreshold If the content size is bigger than this limit, the content is stored as file.
      */
     def raw(memoryThreshold: Int = DefaultMaxTextLength, maxLength: Long = DefaultMaxDiskLength): BodyParser[RawBuffer] =
-      BodyParser("raw, memoryThreshold=" + memoryThreshold) { request =>
+      BodyParser.iteratee("raw, memoryThreshold=" + memoryThreshold) { request =>
         import play.core.Execution.Implicits.internalContext // Cannot run on same thread as may need to write to a file
         val buffer = RawBuffer(memoryThreshold)
         Traversable.takeUpTo[Array[Byte]](maxLength).transform(
@@ -410,7 +412,7 @@ trait BodyParsers {
     def json[A](implicit reader: Reads[A]): BodyParser[A] =
       BodyParser("json reader") { request =>
         import play.api.libs.iteratee.Execution.Implicits.trampoline
-        json(request) mapM {
+        json(request) mapFuture {
           case Left(simpleResult) =>
             Future.successful(Left(simpleResult))
           case Right(jsValue) =>
@@ -461,7 +463,7 @@ trait BodyParsers {
      */
     def empty: BodyParser[Unit] = ignore(Unit)
 
-    def ignore[A](body: A): BodyParser[A] = BodyParser("ignore") { request =>
+    def ignore[A](body: A): BodyParser[A] = BodyParser.iteratee("ignore") { request =>
       Done(Right(body), Empty)
     }
 
@@ -528,7 +530,7 @@ trait BodyParsers {
      *
      * @param to The file used to store the content.
      */
-    def file(to: File): BodyParser[File] = BodyParser("file, to=" + to) { request =>
+    def file(to: File): BodyParser[File] = BodyParser.iteratee("file, to=" + to) { request =>
       import play.core.Execution.Implicits.internalContext
       Iteratee.fold[Array[Byte], FileOutputStream](new FileOutputStream(to)) { (os, data) =>
         os.write(data)
@@ -543,10 +545,8 @@ trait BodyParsers {
      * Store the body content into a temporary file.
      */
     def temporaryFile: BodyParser[TemporaryFile] = BodyParser("temporaryFile") { request =>
-      Iteratee.flatten(Future {
-        val tempFile = TemporaryFile("requestBody", "asTemporaryFile")
-        file(tempFile.file)(request).map(_ => Right(tempFile))(play.api.libs.iteratee.Execution.trampoline)
-      }(play.core.Execution.internalContext))
+      val tempFile = TemporaryFile("requestBody", "asTemporaryFile")
+      file(tempFile.file)(request).map(_ => Right(tempFile))(play.api.libs.iteratee.Execution.trampoline)
     }
 
     // -- FormUrlEncoded
@@ -661,7 +661,7 @@ trait BodyParsers {
      * @param filePartHandler Handles file parts.
      */
     def multipartFormData[A](filePartHandler: Multipart.PartHandler[FilePart[A]], maxLength: Long = DefaultMaxDiskLength): BodyParser[MultipartFormData[A]] = {
-      BodyParser("multipartFormData") { request =>
+      BodyParser.iteratee("multipartFormData") { request =>
         import play.api.libs.iteratee.Execution.Implicits.trampoline
 
         val parser = Traversable.takeUpTo[Array[Byte]](maxLength).transform(
@@ -687,9 +687,9 @@ trait BodyParsers {
      * @param maxLength The max length allowed
      * @param parser The BodyParser to wrap
      */
-    def maxLength[A](maxLength: Long, parser: BodyParser[A]): BodyParser[Either[MaxSizeExceeded, A]] = BodyParser("maxLength=" + maxLength + ", wrapping=" + parser.toString) { request =>
+    def maxLength[A](maxLength: Long, parser: BodyParser[A])(implicit mat: FlowMaterializer): BodyParser[Either[MaxSizeExceeded, A]] = BodyParser.iteratee("maxLength=" + maxLength + ", wrapping=" + parser.toString) { request =>
       import play.api.libs.iteratee.Execution.Implicits.trampoline
-      Traversable.takeUpTo[Array[Byte]](maxLength).transform(parser(request)).flatMap(Iteratee.eofOrElse(MaxSizeExceeded(maxLength))).map {
+      Traversable.takeUpTo[Array[Byte]](maxLength).transform(Streams.accumulatorToIteratee(parser(request))).flatMap(Iteratee.eofOrElse(MaxSizeExceeded(maxLength))).map {
         case Right(Right(result)) => Right(Right(result))
         case Right(Left(badRequest)) => Left(badRequest)
         case Left(maxSizeExceeded) => Right(Left(maxSizeExceeded))
@@ -699,7 +699,7 @@ trait BodyParsers {
     /**
      * A body parser that always returns an error.
      */
-    def error[A](result: Future[Result]): BodyParser[A] = BodyParser("error") { request =>
+    def error[A](result: Future[Result]): BodyParser[A] = BodyParser.iteratee("error") { request =>
       import play.api.libs.iteratee.Execution.Implicits.trampoline
       Iteratee.flatten(result.map(r => Done(Left(r), Empty)))
     }
@@ -720,7 +720,7 @@ trait BodyParsers {
           parser(request)
         } else {
           import play.api.libs.iteratee.Execution.Implicits.trampoline
-          Iteratee.flatten(badResult(request).map(result => Done(Left(result), Empty)))
+          Accumulator.done(badResult(request).map(Left.apply))
         }
       }
     }
@@ -731,7 +731,7 @@ trait BodyParsers {
     }
 
     private def tolerantBodyParser[A](name: String, maxLength: Long, errorMessage: String)(parser: (RequestHeader, Array[Byte]) => A): BodyParser[A] =
-      BodyParser(name + ", maxLength=" + maxLength) { request =>
+      BodyParser.iteratee(name + ", maxLength=" + maxLength) { request =>
         import play.api.libs.iteratee.Execution.Implicits.trampoline
         import scala.util.control.Exception._
 

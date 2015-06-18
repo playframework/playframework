@@ -3,17 +3,14 @@ package play.core.server.akkahttp
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.{ `Content-Length`, `Content-Type` }
-import akka.pattern.ask
+import akka.http.scaladsl.model.headers.Expect
 import akka.stream.ActorFlowMaterializer
 import akka.stream.scaladsl._
-import akka.util.{ ByteString, Timeout }
 import java.net.InetSocketAddress
-import org.reactivestreams._
+import org.reactivestreams.{ Subscription, Subscriber, Publisher }
 import play.api._
-import play.api.http.{ HttpRequestHandler, DefaultHttpErrorHandler, HeaderNames, MediaType }
-import play.api.libs.iteratee._
-import play.api.libs.streams.Streams
+import play.api.http.DefaultHttpErrorHandler
+import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.core.ApplicationProvider
 import play.core.server._
@@ -75,7 +72,7 @@ class AkkaHttpServer(
 
   private def handleRequest(remoteAddress: InetSocketAddress, request: HttpRequest): Future[HttpResponse] = {
     val requestId = requestIDs.incrementAndGet()
-    val (convertedRequestHeader, requestBodyEnumerator) = modelConversion.convertRequest(
+    val (convertedRequestHeader, requestBodySource) = modelConversion.convertRequest(
       requestId = requestId,
       remoteAddress = remoteAddress,
       secureProtocol = false, // TODO: Change value once HTTPS connections are supported
@@ -85,19 +82,18 @@ class AkkaHttpServer(
       newTryApp,
       request,
       taggedRequestHeader,
-      requestBodyEnumerator,
+      requestBodySource,
       handler
     )
     responseFuture
   }
 
   private def getHandler(requestHeader: RequestHeader): (RequestHeader, Handler, Try[Application]) = {
-    import play.api.libs.iteratee.Execution.Implicits.trampoline
     getHandlerFor(requestHeader) match {
       case Left(futureResult) =>
         (
           requestHeader,
-          EssentialAction(_ => Iteratee.flatten(futureResult.map(result => Done(result, Input.Empty)))),
+          EssentialAction(_ => Accumulator.done(futureResult)),
           Failure(new Exception("getHandler returned Result, but not Application"))
         )
       case Right((newRequestHeader, handler, newApp)) =>
@@ -113,20 +109,17 @@ class AkkaHttpServer(
     tryApp: Try[Application],
     request: HttpRequest,
     taggedRequestHeader: RequestHeader,
-    requestBodyEnumerator: Enumerator[Array[Byte]],
+    requestBodySource: Source[Array[Byte], _],
     handler: Handler): Future[HttpResponse] = handler match {
     //execute normal action
     case action: EssentialAction =>
       val actionWithErrorHandling = EssentialAction { rh =>
         import play.api.libs.iteratee.Execution.Implicits.trampoline
-        Iteratee.flatten(action(rh).unflatten.map(_.it).recover {
-          case error =>
-            Iteratee.flatten(
-              handleHandlerError(tryApp, taggedRequestHeader, error).map(result => Done(result, Input.Empty))
-            ): Iteratee[Array[Byte], Result]
-        })
+        action(rh).recoverWith {
+          case error => handleHandlerError(tryApp, taggedRequestHeader, error)
+        }
       }
-      executeAction(tryApp, request, taggedRequestHeader, requestBodyEnumerator, actionWithErrorHandling)
+      executeAction(tryApp, request, taggedRequestHeader, requestBodySource, actionWithErrorHandling)
     case unhandled => sys.error(s"AkkaHttpServer doesn't handle Handlers of this type: $unhandled")
   }
 
@@ -142,12 +135,23 @@ class AkkaHttpServer(
     tryApp: Try[Application],
     request: HttpRequest,
     taggedRequestHeader: RequestHeader,
-    requestBodyEnumerator: Enumerator[Array[Byte]],
+    requestBodySource: Source[Array[Byte], _],
     action: EssentialAction): Future[HttpResponse] = {
 
     import play.api.libs.iteratee.Execution.Implicits.trampoline
-    val actionIteratee: Iteratee[Array[Byte], Result] = action(taggedRequestHeader)
-    val resultFuture: Future[Result] = requestBodyEnumerator |>>> actionIteratee
+    val actionAccumulator: Accumulator[Array[Byte], Result] = action(taggedRequestHeader)
+
+    val source = if (request.header[Expect].exists(_ == Expect.`100-continue`)) {
+      // If we expect 100 continue, then we must not feed the source into the accumulator until the accumulator
+      // requests demand.  This is due to a semantic mismatch between Play and Akka-HTTP, Play signals to continue
+      // by requesting demand, Akka-HTTP signals to continue by attaching a sink to the source. See
+      // https://github.com/akka/akka/issues/17782 for more details.
+      Source(new MaterialiseOnDemandPublisher(requestBodySource))
+    } else {
+      requestBodySource
+    }
+
+    val resultFuture: Future[Result] = actionAccumulator.run(source)
     val responseFuture: Future[HttpResponse] = resultFuture.flatMap { result =>
       val cleanedResult: Result = ServerResultUtils.cleanFlashCookie(taggedRequestHeader, result)
       modelConversion.convertResult(taggedRequestHeader, cleanedResult, request.protocol)

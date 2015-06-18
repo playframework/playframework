@@ -3,6 +3,7 @@
  */
 package play.core.server
 
+import akka.actor.ActorSystem
 import com.typesafe.config.ConfigFactory
 import com.typesafe.netty.http.pipelining.HttpPipeliningHandler
 import java.net.InetSocketAddress
@@ -33,7 +34,8 @@ import scala.util.control.NonFatal
 class NettyServer(
     config: ServerConfig,
     val applicationProvider: ApplicationProvider,
-    stopHook: () => Future[Unit]) extends Server {
+    stopHook: () => Future[Unit],
+    val actorSystem: ActorSystem) extends Server {
 
   private val nettyConfig = config.configuration.underlying.getConfig("play.server.netty")
 
@@ -200,7 +202,9 @@ class NettyServerProvider extends ServerProvider {
   def createServer(context: ServerProvider.Context) = new NettyServer(
     context.config,
     context.appProvider,
-    context.stopHook)
+    context.stopHook,
+    context.actorSystem
+  )
 }
 
 /**
@@ -225,7 +229,7 @@ object NettyServer {
    * @return A started Netty server, serving the application.
    */
   def fromApplication(application: Application, config: ServerConfig = ServerConfig()): NettyServer = {
-    new NettyServer(config, ApplicationProvider(application), () => Future.successful(()))
+    new NettyServer(config, ApplicationProvider(application), () => Future.successful(()), application.actorSystem)
   }
 
   /**
@@ -247,7 +251,7 @@ trait NettyServerComponents {
   lazy val server: NettyServer = {
     // Start the application first
     Play.start(application)
-    new NettyServer(serverConfig, ApplicationProvider(application), serverStopHook)
+    new NettyServer(serverConfig, ApplicationProvider(application), serverStopHook, application.actorSystem)
   }
 
   lazy val environment: Environment = Environment.simple(mode = serverConfig.mode)

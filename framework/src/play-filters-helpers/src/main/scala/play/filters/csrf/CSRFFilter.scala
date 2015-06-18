@@ -4,6 +4,7 @@
 package play.filters.csrf
 
 import javax.inject.{ Provider, Inject }
+import akka.stream.FlowMaterializer
 import play.api.mvc._
 import play.filters.csrf.CSRF._
 
@@ -21,17 +22,17 @@ import play.filters.csrf.CSRF._
 class CSRFFilter(
     config: => CSRFConfig,
     val tokenProvider: TokenProvider = SignedTokenProvider,
-    val errorHandler: ErrorHandler = CSRF.DefaultErrorHandler) extends EssentialFilter {
+    val errorHandler: ErrorHandler = CSRF.DefaultErrorHandler)(implicit mat: FlowMaterializer) extends EssentialFilter {
 
   @Inject
-  def this(config: Provider[CSRFConfig], tokenProvider: TokenProvider, errorHandler: ErrorHandler) = {
-    this(config.get, tokenProvider, errorHandler)
+  def this(config: Provider[CSRFConfig], tokenProvider: TokenProvider, errorHandler: ErrorHandler, mat: FlowMaterializer) = {
+    this(config.get, tokenProvider, errorHandler)(mat)
   }
 
   /**
    * Default constructor, useful from Java
    */
-  def this() = this(CSRFConfig.global, new ConfigTokenProvider(CSRFConfig.global), DefaultErrorHandler)
+  def this()(implicit mat: FlowMaterializer) = this(CSRFConfig.global, new ConfigTokenProvider(CSRFConfig.global), DefaultErrorHandler)
 
   def apply(next: EssentialAction): EssentialAction = new CSRFAction(next, config, tokenProvider, errorHandler)
 }
@@ -40,7 +41,7 @@ object CSRFFilter {
   def apply(
     config: => CSRFConfig = CSRFConfig.global,
     tokenProvider: TokenProvider = new ConfigTokenProvider(CSRFConfig.global),
-    errorHandler: ErrorHandler = DefaultErrorHandler): CSRFFilter = {
+    errorHandler: ErrorHandler = DefaultErrorHandler)(implicit mat: FlowMaterializer): CSRFFilter = {
     new CSRFFilter(config, tokenProvider, errorHandler)
   }
 }

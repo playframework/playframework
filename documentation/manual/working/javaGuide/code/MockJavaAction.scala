@@ -3,6 +3,7 @@
  */
 package javaguide.testhelpers
 
+import akka.stream.FlowMaterializer
 import play.api.mvc.{Action, Request}
 import play.core.j.{JavaHandlerComponents, JavaHelpers, JavaActionAnnotations, JavaAction}
 import play.http.DefaultHttpRequestHandler
@@ -44,7 +45,7 @@ object MockJavaActionHelper {
     }
   }
 
-  def callWithStringBody(action: Action[Http.RequestBody], requestBuilder: play.mvc.Http.RequestBuilder, body: String): Result = {
+  def callWithStringBody(action: Action[Http.RequestBody], requestBuilder: play.mvc.Http.RequestBuilder, body: String)(implicit mat: FlowMaterializer): Result = {
     val result = Helpers.await(Helpers.call(action, requestBuilder.build()._underlyingRequest, body))
     new Result {
       def toScala = result

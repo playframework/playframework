@@ -3,6 +3,7 @@
  */
 package play.core.server.netty
 
+import akka.stream.ActorFlowMaterializer
 import org.jboss.netty.buffer.ChannelBuffers
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
@@ -14,10 +15,11 @@ import org.jboss.netty.handler.ssl._
 import org.jboss.netty.channel.group._
 import play.api._
 import play.api.http.{ HttpErrorHandler, DefaultHttpErrorHandler }
+import play.api.libs.streams.{ Streams, Accumulator }
 import play.api.mvc._
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Input._
-import play.core.server.Server
+import play.core.server.{ NettyServer, Server }
 import play.core.server.common.{ ForwardedHeaderHandler, ServerRequestUtils, ServerResultUtils }
 import play.core.system.RequestIdProvider
 import play.core.websocket._
@@ -29,7 +31,7 @@ import java.net.{ InetSocketAddress, URI }
 import java.io.IOException
 import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame
 
-private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
+private[play] class PlayDefaultUpstreamHandler(server: NettyServer, allChannels: DefaultChannelGroup) extends SimpleChannelUpstreamHandler with WebSocketHandler with RequestBodyHandler {
 
   import PlayDefaultUpstreamHandler._
 
@@ -152,12 +154,9 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
           case Right((action: EssentialAction, app)) =>
             val a = EssentialAction { rh =>
               import play.api.libs.iteratee.Execution.Implicits.trampoline
-              Iteratee.flatten(action(rh).unflatten.map(_.it).recover {
-                case error =>
-                  Iteratee.flatten(
-                    app.errorHandler.onServerError(requestHeader, error).map(result => Done(result, Input.Empty))
-                  ): Iteratee[Array[Byte], Result]
-              })
+              action(rh).recoverWith {
+                case error => app.errorHandler.onServerError(requestHeader, error)
+              }
             }
             handleAction(a, Some(app))
 
@@ -170,7 +169,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
             executed.flatMap(identity).map {
               case Left(result) =>
                 // WebSocket was rejected, send result
-                val a = EssentialAction(_ => Done(result, Input.Empty))
+                val a = EssentialAction(_ => Accumulator.done(result))
                 handleAction(a, Some(app))
               case Right(socket) =>
                 val bufferLimit = app.configuration.getBytes("play.websocket.buffer.limit").getOrElse(65536L)
@@ -180,7 +179,7 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
             }.recover {
               case error =>
                 app.errorHandler.onServerError(requestHeader, error).map { result =>
-                  val a = EssentialAction(_ => Done(result, Input.Empty))
+                  val a = EssentialAction(_ => Accumulator.done(result))
                   handleAction(a, Some(app))
                 }
             }
@@ -188,13 +187,12 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
           //handle bad websocket request
           case Right((WebSocket(_), app)) =>
             logger.trace("Bad websocket request")
-            val a = EssentialAction(_ => Done(Results.BadRequest, Input.Empty))
+            val a = EssentialAction(_ => Accumulator.done(Results.BadRequest))
             handleAction(a, Some(app))
 
           case Left(e) =>
             logger.trace("No handler, got direct result: " + e)
-            import play.api.libs.iteratee.Execution.Implicits.trampoline
-            val a = EssentialAction(_ => Iteratee.flatten(e.map(result => Done(result, Input.Empty))))
+            val a = EssentialAction(_ => Accumulator.done(e))
             handleAction(a, None)
 
         }
@@ -202,8 +200,10 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
         def handleAction(action: EssentialAction, app: Option[Application]) {
           logger.trace("Serving this request with: " + action)
 
+          val actorSystem = app.fold(server.actorSystem)(_.actorSystem)
+          implicit val mat = ActorFlowMaterializer()(actorSystem)
           val bodyParser = Iteratee.flatten(
-            scala.concurrent.Future(action(requestHeader))(play.api.libs.concurrent.Execution.defaultContext)
+            Future(Streams.accumulatorToIteratee(action(requestHeader)))(actorSystem.dispatcher)
           )
 
           import play.api.libs.iteratee.Execution.Implicits.trampoline
@@ -214,10 +214,15 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
           // Netty thread, so that the handler is replaced in this thread, so that if the client does start sending
           // body chunks (which it might according to the HTTP spec if we're slow to respond), we can handle them.
 
+          // We also need to ensure that we only invoke fold on the iteratee once, since a stateful iteratee may have
+          // problems with a second invocation of fold. Later on we need to know if the iteratee is in Cont or Done,
+          // so we unflatten, which invokes fold, and then work on that.
+          val bodyParserState = bodyParser.unflatten
+
           val eventuallyResult: Future[Result] = if (nettyHttpRequest.isChunked) {
 
             val pipeline = ctx.getChannel.getPipeline
-            val result = newRequestBodyUpstreamHandler(bodyParser, { handler =>
+            val result = newRequestBodyUpstreamHandler(Iteratee.flatten(bodyParserState.map(_.it)), { handler =>
               pipeline.replace("handler", "handler", handler)
             }, {
               pipeline.replace("handler", "handler", this)
@@ -227,25 +232,31 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
 
           } else {
 
-            val bodyEnumerator = {
-              val body = {
-                val cBuffer = nettyHttpRequest.getContent
-                val bytes = new Array[Byte](cBuffer.readableBytes())
-                cBuffer.readBytes(bytes)
-                bytes
-              }
-              Enumerator(body).andThen(Enumerator.enumInput(EOF))
+            bodyParserState.flatMap {
+              case cont: Step.Cont[_, _] =>
+                val bodyEnumerator = {
+                  val body = {
+                    val cBuffer = nettyHttpRequest.getContent
+                    val bytes = new Array[Byte](cBuffer.readableBytes())
+                    cBuffer.readBytes(bytes)
+                    bytes
+                  }
+                  Enumerator(body).andThen(Enumerator.enumInput(EOF))
+                }
+                bodyEnumerator |>>> cont.it
+              case Step.Done(result, _) =>
+                Future.successful(result)
+              case Step.Error(msg, _) =>
+                Future.failed(new RuntimeException(msg))
             }
-
-            bodyEnumerator |>>> bodyParser
           }
 
           // An iteratee containing the result and the sequence number.
           // Sequence number will be 1 if a 100 continue response has been sent, otherwise 0.
           val eventuallyResultWithSequence: Future[(Result, Int)] = expectContinue match {
-            case Some(_) => {
-              bodyParser.unflatten.flatMap {
-                case Step.Cont(k) =>
+            case Some(_) =>
+              bodyParserState.flatMap {
+                case Step.Cont(_) =>
                   sendDownstream(0, false, new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE))
                   eventuallyResult.map((_, 1))
                 case Step.Done(result, _) => {
@@ -262,7 +273,6 @@ private[play] class PlayDefaultUpstreamHandler(server: Server, allChannels: Defa
                   result.map(r => (r.copy(connection = HttpConnection.Close), 0))
                 }
               }
-            }
             case None => eventuallyResult.map((_, 0))
           }
 

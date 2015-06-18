@@ -1,7 +1,10 @@
 package play.api.libs.streams
 
+import akka.stream.FlowMaterializer
+import akka.stream.scaladsl.{ Keep, Source, Flow, Sink }
 import org.reactivestreams._
 import play.api.libs.iteratee._
+import play.api.libs.streams.impl.SubscriberIteratee
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 
 /**
@@ -66,6 +69,26 @@ object Streams {
     val subr = new impl.IterateeSubscriber(iter)
     val resultIter = subr.result
     (subr, resultIter)
+  }
+
+  /**
+   * Adapt a Subscriber to an Iteratee.
+   *
+   * The Iteratee will attempt to give the Subscriber as many elements as
+   * demanded.  When the subscriber cancels, the iteratee enters the done
+   * state.
+   *
+   * Feeding EOF into the iteratee will cause the Subscriber to be fed a
+   * completion event, and the iteratee will go into the done state.
+   *
+   * The iteratee will not enter the Cont state until demand is requested
+   * by the subscriber.
+   *
+   * This Iteratee will never enter the error state, unless the subscriber
+   * deviates from the reactive streams spec.
+   */
+  def subscriberToIteratee[T](subscriber: Subscriber[T]): Iteratee[T, Unit] = {
+    new SubscriberIteratee[T](subscriber)
   }
 
   /**
@@ -135,4 +158,39 @@ object Streams {
    */
   def join[T, U](subr: Subscriber[T], pubr: Publisher[U]): Processor[T, U] =
     new impl.SubscriberPublisherProcessor(subr, pubr)
+
+  /**
+   * Adapt an Iteratee to an Accumulator.
+   *
+   * This is done by adapting the iteratee to a subscriber, and then creating
+   * an Akka streams Sink from that, which is mapped to the result of running
+   * the adapted iteratee subscriber result.
+   */
+  def iterateeToAccumulator[T, U](iter: Iteratee[T, U]): Accumulator[T, U] = {
+    val (subr, resultIter) = iterateeToSubscriber(iter)
+    val result = resultIter.run
+    val sink = Sink(subr).mapMaterializedValue(_ => result)
+    Accumulator(sink)
+  }
+
+  /**
+   * Adapt an Accumulator to an Iteratee.
+   *
+   * This is done by creating an Akka streams Subscriber based Source, and
+   * adapting that to an Iteratee, before running the Akka streams source.
+   *
+   * This method for adaptation requires a FlowMaterializer to materialize
+   * the subscriber, however it does not materialize the subscriber until the
+   * iteratees fold method has been invoked.
+   */
+  def accumulatorToIteratee[T, U](accumulator: Accumulator[T, U])(implicit mat: FlowMaterializer): Iteratee[T, U] = {
+    new Iteratee[T, U] {
+      def fold[B](folder: (Step[T, U]) => Future[B])(implicit ec: ExecutionContext) = {
+        Source.subscriber.toMat(accumulator.toSink) { (subscriber, result) =>
+          import play.api.libs.iteratee.Execution.Implicits.trampoline
+          subscriberToIteratee(subscriber).mapM(_ => result)(trampoline)
+        }.run().fold(folder)
+      }
+    }
+  }
 }

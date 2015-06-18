@@ -28,7 +28,7 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
   "Scala Functional Test" should {
 
     // #scalafunctionaltest-fakeApplication
-    val fakeApplicationWithGlobal = FakeApplication(withGlobal = Some(new GlobalSettings() {
+    def fakeApplicationWithGlobal = FakeApplication(withGlobal = Some(new GlobalSettings() {
       override def onStart(app: Application) { println("Hello world!") }
     }))
     // #scalafunctionaltest-fakeApplication
@@ -60,7 +60,7 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
     // #scalafunctionaltest-testview
 
     // #scalafunctionaltest-testmodel
-    val appWithMemoryDatabase = FakeApplication(additionalConfiguration = inMemoryDatabase("test"))
+    def appWithMemoryDatabase = FakeApplication(additionalConfiguration = inMemoryDatabase("test"))
     "run an application" in new WithApplication(appWithMemoryDatabase) {
 
       val Some(macintosh) = Computer.findById(21)
@@ -71,7 +71,7 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
     // #scalafunctionaltest-testmodel
 
     // #scalafunctionaltest-testwithbrowser
-    val fakeApplicationWithBrowser = FakeApplication(withRoutes = {
+    def fakeApplicationWithBrowser = FakeApplication(withRoutes = {
       case ("GET", "/") =>
         Action {
           Ok(
@@ -126,7 +126,7 @@ class ScalaFunctionalTestSpec extends PlaySpecification with Results {
     // #scalafunctionaltest-testpaymentgateway
 
     // #scalafunctionaltest-testws
-    val appWithRoutes = FakeApplication(withRoutes = {
+    def appWithRoutes = FakeApplication(withRoutes = {
       case ("GET", "/") =>
         Action {
           Ok("ok")

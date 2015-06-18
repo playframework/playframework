@@ -4,10 +4,9 @@
 package play.core.j
 
 import play.api._
+import play.api.libs.streams.Accumulator
 import play.api.mvc._
-import java.io.File
 import scala.concurrent.Future
-import play.api.libs.iteratee._
 import scala.util.control.NonFatal
 
 /** Adapter that holds the Java `GlobalSettings` and acts as a Scala `GlobalSettings` for the framework. */
@@ -51,8 +50,7 @@ class JavaGlobalSettingsAdapter(val underlying: play.GlobalSettings) extends Glo
       Filters(super.doFilter(a), underlying.filters.map(_.newInstance: play.api.mvc.EssentialFilter): _*)
     } catch {
       case NonFatal(e) => {
-        import play.api.libs.iteratee.Execution.Implicits.trampoline
-        EssentialAction(req => Iteratee.flatten(onError(req, e).map(result => Done(result, Input.Empty))))
+        EssentialAction(req => Accumulator.done(onError(req, e)))
       }
     }
   }

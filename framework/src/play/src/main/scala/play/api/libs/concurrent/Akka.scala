@@ -5,6 +5,7 @@ package play.api.libs.concurrent
 
 import java.lang.reflect.Method
 
+import akka.stream.{ ActorFlowMaterializer, FlowMaterializer }
 import com.google.inject.util.Types
 import com.google.inject.{ Binder, Key, AbstractModule }
 import com.google.inject.assistedinject.FactoryModuleBuilder
@@ -258,6 +259,14 @@ class ActorSystemProvider @Inject() (environment: Environment, configuration: Co
     system
   }
 
+}
+
+/**
+ * Provider for the default flow materializer
+ */
+@Singleton
+class FlowMaterializerProvider @Inject() (actorSystem: ActorSystem) extends Provider[FlowMaterializer] {
+  lazy val get: FlowMaterializer = ActorFlowMaterializer()(actorSystem)
 }
 
 /**

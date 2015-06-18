@@ -16,13 +16,13 @@ class EventRecorder(
     nextTimeout: FiniteDuration = FiniteDuration(20, SECONDS),
     isEmptyDelay: FiniteDuration = FiniteDuration(200, MILLISECONDS)) {
 
-  private val events = new LinkedBlockingQueue[Any]
+  private val events = new LinkedBlockingQueue[AnyRef]
 
   /** Record an event. */
-  def record(e: Any) = events.add(e)
+  def record(e: AnyRef) = events.add(e)
 
   /** Pull the next event, waiting up to `nextTimeout`. */
-  def next(): Any = {
+  def next(): AnyRef = {
     events.poll(nextTimeout.length, nextTimeout.unit)
   }
 

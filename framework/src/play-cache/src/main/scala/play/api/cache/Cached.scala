@@ -5,9 +5,9 @@ package play.api.cache
 
 import javax.inject.Inject
 import play.api._
+import play.api.libs.streams.Accumulator
 import play.api.mvc._
 import play.api.libs.Codecs
-import play.api.libs.iteratee.{ Iteratee, Done }
 import play.api.http.HeaderNames.{ IF_NONE_MATCH, ETAG, EXPIRES }
 import play.api.mvc.Results.NotModified
 
@@ -190,19 +190,19 @@ final class CachedBuilder(
       requestEtag <- request.headers.get(IF_NONE_MATCH)
       etag <- cache.get[String](etagKey)
       if requestEtag == "*" || etag == requestEtag
-    } yield Done[Array[Byte], Result](NotModified)
+    } yield Accumulator.done(NotModified)
 
     notModified.orElse {
       // Otherwise try to serve the resource from the cache, if it has not yet expired
       cache.get[SerializableResult](resultKey).map { sr: SerializableResult =>
-        Done[Array[Byte], Result](sr.result)
+        Accumulator.done(sr.result)
       }
     }.getOrElse {
       // The resource was not in the cache, we have to run the underlying action
-      val iterateeResult = action(request)
+      val accumulatorResult = action(request)
 
       // Add cache information to the response, so clients can cache its content
-      iterateeResult.map(handleResult(_, etagKey, resultKey))
+      accumulatorResult.map(handleResult(_, etagKey, resultKey))
     }
   }
 

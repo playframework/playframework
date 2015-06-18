@@ -5,8 +5,9 @@ package play.api.http
 
 import javax.inject.{ Provider, Inject }
 
+import akka.stream.FlowMaterializer
 import play.api.inject.{ BindingKey, Binding }
-import play.api.libs.iteratee.Done
+import play.api.libs.streams.Accumulator
 import play.api.{ PlayConfig, Configuration, Environment, GlobalSettings }
 import play.api.http.Status._
 import play.api.mvc._
@@ -67,7 +68,7 @@ object HttpRequestHandler {
  * Implementation of a [HttpRequestHandler] that always returns NotImplemented results
  */
 object NotImplementedHttpRequestHandler extends HttpRequestHandler {
-  def handlerForRequest(request: RequestHeader) = request -> EssentialAction(_ => Done(Results.NotImplemented))
+  def handlerForRequest(request: RequestHeader) = request -> EssentialAction(_ => Accumulator.done(Results.NotImplemented))
 }
 
 /**

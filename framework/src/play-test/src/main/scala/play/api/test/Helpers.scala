@@ -3,6 +3,9 @@
  */
 package play.api.test
 
+import akka.stream.{ ActorFlowMaterializer, FlowMaterializer }
+import akka.stream.scaladsl.Source
+
 import scala.language.reflectiveCalls
 
 import play.api._
@@ -187,7 +190,7 @@ trait EssentialActionCaller {
    *
    * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
    */
-  def call[T](action: EssentialAction, req: Request[T])(implicit w: Writeable[T]): Future[Result] =
+  def call[T](action: EssentialAction, req: Request[T])(implicit w: Writeable[T], mat: FlowMaterializer): Future[Result] =
     call(action, req, req.body)
 
   /**
@@ -195,15 +198,15 @@ trait EssentialActionCaller {
    *
    * The body is serialised using the implicit writable, so that the action body parser can deserialise it.
    */
-  def call[T](action: EssentialAction, rh: RequestHeader, body: T)(implicit w: Writeable[T]): Future[Result] = {
+  def call[T](action: EssentialAction, rh: RequestHeader, body: T)(implicit w: Writeable[T], mat: FlowMaterializer): Future[Result] = {
     import play.api.http.HeaderNames._
     val newContentType = rh.headers.get(CONTENT_TYPE).fold(w.contentType)(_ => None)
     val rhWithCt = newContentType.map { ct =>
       rh.copy(headers = rh.headers.replace(CONTENT_TYPE -> ct))
     }.getOrElse(rh)
 
-    val requestBody = Enumerator(body) &> w.toEnumeratee
-    requestBody |>>> action(rhWithCt)
+    val requestBody = Source.single(w.transform(body))
+    action(rhWithCt).run(requestBody)
   }
 }
 
@@ -230,6 +233,7 @@ trait RouteInvokers extends EssentialActionCaller {
    */
   def route[T](app: Application, rh: RequestHeader, body: T)(implicit w: Writeable[T]): Option[Future[Result]] = {
     val (taggedRh, handler) = app.requestHandler.handlerForRequest(rh)
+    implicit val mat = ActorFlowMaterializer()(app.actorSystem)
     handler match {
       case a: EssentialAction =>
         Some(call(a, taggedRh, body))

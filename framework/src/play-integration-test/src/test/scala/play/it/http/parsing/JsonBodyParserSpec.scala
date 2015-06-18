@@ -3,7 +3,8 @@
  */
 package play.it.http.parsing
 
-import play.api.libs.iteratee.Enumerator
+import akka.stream.FlowMaterializer
+import akka.stream.scaladsl.Source
 import play.api.libs.json.{ Json, JsError }
 import play.api.mvc.Results.BadRequest
 import play.api.mvc.{ BodyParser, BodyParsers }
@@ -16,9 +17,11 @@ object JsonBodyParserSpec extends PlaySpecification {
 
   "The JSON body parser" should {
 
-    def parse[A](json: String, contentType: Option[String], encoding: String, bodyParser: BodyParser[A] = BodyParsers.parse.tolerantJson) = {
-      await(Enumerator(json.getBytes(encoding)) |>>>
-        bodyParser(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*)))
+    def parse[A](json: String, contentType: Option[String], encoding: String, bodyParser: BodyParser[A] = BodyParsers.parse.tolerantJson)(implicit mat: FlowMaterializer) = {
+      await(
+        bodyParser(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*))
+          .run(Source.single(json.getBytes(encoding)))
+      )
     }
 
     "parse JSON bodies" in new WithApplication() {

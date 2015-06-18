@@ -7,8 +7,6 @@ import org.junit.runner.RunWith
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import play.api.data.validation.ValidationError
-import play.api.LoggerLike
 
 @RunWith(classOf[JUnitRunner])
 class ScalaLoggingSpec extends Specification with Mockito {
@@ -127,13 +125,15 @@ class ScalaLoggingSpec extends Specification with Mockito {
     
     "allow for use in filters" in {
       //#logging-pattern-filter
+      import javax.inject.Inject
+      import akka.stream.FlowMaterializer
       import scala.concurrent.ExecutionContext.Implicits.global
       import scala.concurrent.Future
       import play.api.Logger
       import play.api.mvc._
       import play.api._
       
-      object AccessLoggingFilter extends Filter {
+      class AccessLoggingFilter @Inject() (implicit val mat: FlowMaterializer) extends Filter {
         
         val accessLogger = Logger("access")
         
@@ -149,20 +149,9 @@ class ScalaLoggingSpec extends Specification with Mockito {
           resultFuture
         }
       }
-
-      object Global extends WithFilters(AccessLoggingFilter) {
-        
-        override def onStart(app: Application) {
-          Logger.info("Application has started")
-        }
-
-        override def onStop(app: Application) {
-          Logger.info("Application has stopped")
-        }
-      }
       //#logging-pattern-filter
       
-      AccessLoggingFilter.accessLogger.underlyingLogger.getName must equalTo("access")
+      ok
     }
     
   }

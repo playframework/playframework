@@ -3,6 +3,7 @@
  */
 package play.it.http
 
+import play.api.libs.streams.Accumulator
 import play.api.mvc.{ Results, EssentialAction }
 import play.api.test._
 import play.api.test.TestServer
@@ -34,9 +35,9 @@ trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecifi
 
     "wait for the first response to return before returning the second" in withServer(EssentialAction { req =>
       req.path match {
-        case "/long" => Iteratee.flatten(Promise.timeout(Done(Results.Ok("long")), 100, TimeUnit.MILLISECONDS))
-        case "/short" => Done(Results.Ok("short"))
-        case _ => Done(Results.NotFound)
+        case "/long" => Accumulator.done(Promise.timeout(Results.Ok("long"), 100, TimeUnit.MILLISECONDS))
+        case "/short" => Accumulator.done(Results.Ok("short"))
+        case _ => Accumulator.done(Results.NotFound)
       }
     }) { port =>
       val responses = BasicHttpClient.pipelineRequests(port,
@@ -51,7 +52,7 @@ trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecifi
 
     "wait for the first response body to return before returning the second" in withServer(EssentialAction { req =>
       req.path match {
-        case "/long" => Done(
+        case "/long" => Accumulator.done(
           Results.Ok.chunked(Enumerator.unfoldM[Int, String](0) { chunk =>
             if (chunk < 3) {
               Promise.timeout(Some((chunk + 1, chunk.toString)), 50, TimeUnit.MILLISECONDS)
@@ -60,8 +61,8 @@ trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecifi
             }
           })
         )
-        case "/short" => Done(Results.Ok("short"))
-        case _ => Done(Results.NotFound)
+        case "/short" => Accumulator.done(Results.Ok("short"))
+        case _ => Accumulator.done(Results.NotFound)
       }
     }) { port =>
       val responses = BasicHttpClient.pipelineRequests(port,
