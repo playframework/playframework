@@ -23,7 +23,7 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-scalariform" % "1.3.0")
 
 libraryDependencies ++= Seq(
   "org.scala-sbt" % "scripted-plugin" % sbtVersion.value,
-  "org.webjars" % "webjars-locator" % "0.19"
+  "org.webjars" % "webjars-locator-core" % "0.24"
 )
 
 // override scalariform version to get some fixes
