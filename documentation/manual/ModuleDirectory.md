@@ -178,6 +178,12 @@
 * **Documentation:** <https://github.com/jmparsons/play-lessc/blob/master/README.md>
 * **Short description:** Allows [Less](http://lesscss.org/) command line compilation through Node
 
+## Liquibase Module
+
+* **Website:** <https://github.com/Ticketfly/play-liquibase>
+* **Documentation:** <https://github.com/Ticketfly/play-liquibase/blob/master/README.md>
+* **Short description:** Runs [Liquibase](http://www.liquibase.org/) database schema migrations on app startup
+
 ## Manual Dependency Injection Plugin (Java and Scala)
 * **Website (docs, sample):** <https://github.com/typesafehub/play-plugins>
 * **Short description:** Provides DI via manual injection
