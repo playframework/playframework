@@ -317,6 +317,17 @@ public class Http {
             return "Context attached to (" + request() + ")";
         }
 
+        /**
+         * Create a new context with the given request.
+         *
+         * The id, Scala RequestHeader, session, flash and args remain unchanged.
+         *
+         * @param request The request to create the new header from.
+         * @return The new context.
+         */
+        public Context withRequest(Request request) {
+            return new Context(id, header, request, session, flash, args);
+        }
     }
 
     /**
