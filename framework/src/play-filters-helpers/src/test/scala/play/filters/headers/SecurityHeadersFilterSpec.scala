@@ -46,12 +46,12 @@ object SecurityHeadersFilterSpec extends PlaySpecification {
 
   "security headers" should {
 
-    "work with default singleton apply method with all default options" in new WithApplication {
+    "work with default singleton apply method with all default options" in new WithApplication() {
       val filter = SecurityHeadersFilter()
       // Play.current is set at this point...
       val rh = FakeRequest()
       val action = Action(Ok("success"))
-      val result = filter(action)(rh).run
+      val result = filter(action)(rh).run()
 
       header(X_FRAME_OPTIONS_HEADER, result) must beSome("DENY")
       header(X_XSS_PROTECTION_HEADER, result) must beSome("1; mode=block")
@@ -60,11 +60,11 @@ object SecurityHeadersFilterSpec extends PlaySpecification {
       header(CONTENT_SECURITY_POLICY_HEADER, result) must beSome("default-src 'self'")
     }
 
-    "work with singleton apply method using configuration" in {
+    "work with singleton apply method using configuration" in new WithApplication() {
       val filter = SecurityHeadersFilter(Configuration.reference)
       val rh = FakeRequest()
       val action = Action(Ok("success"))
-      val result = filter(action)(rh).run
+      val result = filter(action)(rh).run()
 
       header(X_FRAME_OPTIONS_HEADER, result) must beSome("DENY")
       header(X_XSS_PROTECTION_HEADER, result) must beSome("1; mode=block")

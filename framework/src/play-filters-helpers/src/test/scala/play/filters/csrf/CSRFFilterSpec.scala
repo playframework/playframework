@@ -63,13 +63,15 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
 
     // other
     "feed the body once a check has been done and passes" in {
-      withServer(Nil) {
-        case _ => CSRFFilter()(Action(
+      withServer(Seq(
+        "play.http.filters" -> classOf[CsrfFilters].getName
+      )) {
+        case _ => Action(
           _.body.asFormUrlEncoded
             .flatMap(_.get("foo"))
             .flatMap(_.headOption)
             .map(Results.Ok(_))
-            .getOrElse(Results.NotFound)))
+            .getOrElse(Results.NotFound))
       } {
         val token = Crypto.generateSignedToken
         import play.api.Play.current
@@ -79,14 +81,18 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
     }
 
     val notBufferedFakeApp = FakeApplication(
-      additionalConfiguration = Map("play.crypto.secret" -> "foobar", "play.filters.csrf.body.bufferSize" -> "200"),
+      additionalConfiguration = Map(
+        "play.crypto.secret" -> "foobar",
+        "play.filters.csrf.body.bufferSize" -> "200",
+        "play.http.filters" -> classOf[CsrfFilters].getName
+      ),
       withRoutes = {
-        case _ => CSRFFilter()(Action(
+        case _ => Action(
           _.body.asFormUrlEncoded
             .flatMap(_.get("foo"))
             .flatMap(_.headOption)
             .map(Results.Ok(_))
-            .getOrElse(Results.NotFound)))
+            .getOrElse(Results.NotFound))
       }
     )
 
@@ -106,10 +112,6 @@ object CSRFFilterSpec extends CSRFCommonSpecs {
       )
       response.status must_== OK
       response.body must_== "bar"
-    }
-
-    "be possible to instantiate when there is no running application" in {
-      CSRFFilter() must beAnInstanceOf[AnyRef]
     }
 
     "work with a Java error handler" in {

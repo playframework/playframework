@@ -1,5 +1,7 @@
 package play.it.http.parsing
 
+import akka.stream.FlowMaterializer
+import akka.stream.scaladsl.Source
 import play.api.data.Form
 import play.api.data.Forms.{ mapping, nonEmptyText, number }
 import play.api.http.Writeable
@@ -14,16 +16,18 @@ class FormBodyParserSpec extends PlaySpecification {
 
   "The form body parser" should {
 
-    def parse[A, B](body: B, bodyParser: BodyParser[A])(implicit W: Writeable[B]): Either[Result, A] = {
-      await(Enumerator(W.transform(body)) |>>>
-        bodyParser(FakeRequest().withHeaders(W.contentType.map(CONTENT_TYPE -> _).toSeq: _*)))
+    def parse[A, B](body: B, bodyParser: BodyParser[A])(implicit W: Writeable[B], mat: FlowMaterializer): Either[Result, A] = {
+      await(
+        bodyParser(FakeRequest().withHeaders(W.contentType.map(CONTENT_TYPE -> _).toSeq: _*))
+          .run(Source.single(W.transform(body)))
+      )
     }
 
     case class User(name: String, age: Int)
 
     val userForm = Form(mapping("name" -> nonEmptyText, "age" -> number)(User.apply)(User.unapply))
 
-    "bind JSON requests" in new WithApplication {
+    "bind JSON requests" in new WithApplication() {
       parse(Json.obj("name" -> "Alice", "age" -> 42), BodyParsers.parse.form(userForm)) must beRight(User("Alice", 42))
     }
 

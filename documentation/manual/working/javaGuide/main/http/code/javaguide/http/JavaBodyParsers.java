@@ -3,6 +3,7 @@
  */
 package javaguide.http;
 
+import akka.stream.FlowMaterializer;
 import org.junit.Before;
 import org.junit.Test;
 import play.libs.Json;
@@ -72,6 +73,7 @@ public class JavaBodyParsers extends WithApplication {
         for (int i = 0; i < 1100; i++) {
             body.append("1234567890");
         }
+        FlowMaterializer mat = app.injector().instanceOf(FlowMaterializer.class);
         assertThat(callWithStringBody(new MockJavaAction() {
                     //#max-length
                     // Accept only 10KB of data.
@@ -80,7 +82,7 @@ public class JavaBodyParsers extends WithApplication {
                         return ok("Got body: " + request().body().asText());
                     }
                     //#max-length
-                }, fakeRequest(), body.toString()).status(),
+                }, fakeRequest(), body.toString(), mat).status(),
                 equalTo(413));
     }
 

@@ -4,7 +4,8 @@
  */
 package scalaguide.http.scalaactionscomposition {
 
-  import play.api.test._
+import akka.stream.ActorFlowMaterializer
+import play.api.test._
   import play.api.test.Helpers._
   import org.specs2.mutable.Specification
   import org.junit.runner.RunWith
@@ -248,8 +249,10 @@ package scalaguide.http.scalaactionscomposition {
     }
 
     def assertAction[A, T: AsResult](action: EssentialAction, request: => Request[A] = FakeRequest(), expectedResponse: Int = OK)(assertions: Future[Result] => T) = {
-      running(FakeApplication()) {
-        val result = action(request).run
+      val app = FakeApplication()
+      running(app) {
+        implicit val mat = ActorFlowMaterializer()(app.actorSystem)
+        val result = action(request).run()
         status(result) must_== expectedResponse
         assertions(result)
       }

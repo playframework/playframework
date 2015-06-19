@@ -3,9 +3,14 @@
  */
 package play.it.http.parsing
 
+import akka.actor.ActorSystem
+import akka.stream.{ ActorFlowMaterializer, FlowMaterializer }
+import akka.stream.scaladsl.Source
+import play.api.libs.streams.Accumulator
+
 import scala.concurrent.Future
 
-import play.api.libs.iteratee.{ Done, Enumerator, ExecutionSpecification, Input }
+import play.api.libs.iteratee.ExecutionSpecification
 import play.api.mvc.{ BodyParser, Results, Result }
 import play.api.test.{ FakeRequest, PlaySpecification }
 
@@ -16,23 +21,29 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
 
   def run[A](bodyParser: BodyParser[A]) = {
     import scala.concurrent.ExecutionContext.Implicits.global
-    await {
-      Future {
-        bodyParser(FakeRequest())
-      }.flatMap {
-        Enumerator.empty |>>> _
+    val system = ActorSystem()
+    implicit val mat = ActorFlowMaterializer()(system)
+    try {
+      await {
+        Future {
+          bodyParser(FakeRequest())
+        }.flatMap {
+          _.run(Source.empty)
+        }
       }
+    } finally {
+      system.shutdown()
     }
   }
 
   def constant[A](a: A): BodyParser[A] =
     BodyParser("constant") { request =>
-      Done(Right(a), Input.Empty)
+      Accumulator.done(Right(a))
     }
 
   def simpleResult(s: Result): BodyParser[Any] =
     BodyParser("simple result") { request =>
-      Done(Left(s), Input.Empty)
+      Accumulator.done(Left(s))
     }
 
   implicit val arbResult: Arbitrary[Result] =
@@ -122,112 +133,6 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
       mustExecute(1) { implicit ec => // one execution from `mapM`
         run {
           simpleResult(s).mapM(Future.successful)
-        } must beLeft(s)
-      }
-    }
-  }
-
-  "BodyParser.flatMap" should {
-
-    "satisfy monad law 1" in prop { (x: Int) =>
-      val inc = (i: Int) => constant(i + 1)
-      mustExecute(1) { implicit ec => // one execution from `flatMap`
-        run {
-          constant(x).flatMap(inc)
-        } must_== run {
-          inc(x)
-        }
-      }
-    }
-
-    "satisfy monad law 2" in prop { (x: Int) =>
-      mustExecute(1) { implicit ec => // one execution from `flatMap`
-        run {
-          constant(x).flatMap(constant)
-        } must_== run {
-          constant(x)
-        }
-      }
-    }
-
-    "satisfy monad law 3" in prop { (x: Int) =>
-      val inc = (i: Int) => constant(i + 1)
-      val dbl = (i: Int) => constant(i * 2)
-      mustExecute(3, 1) { (outerEC, innerEC) => // four executions from `flatMap`
-        val innerPEC = innerEC.prepare()
-        run {
-          constant(x).flatMap(inc)(outerEC)
-            .flatMap(dbl)(outerEC)
-        } must_== run {
-          constant(x).flatMap { y =>
-            inc(y).flatMap(dbl)(innerPEC)
-          }(outerEC)
-        }
-      }
-    }
-
-    "pass through simple result" in prop { (s: Result) =>
-      mustExecute(1) { implicit ec => // one execution from `flatMap`
-        run {
-          simpleResult(s).flatMap(constant)
-        } must beLeft(s)
-      }
-    }
-  }
-
-  "BodyParser.flatMapM" should {
-
-    "satisfy lifted monad law 1" in prop { (x: Int) =>
-      val inc = (i: Int) => constant(i + 1)
-      mustExecute(2) { implicit ec =>
-        /* one invocation of `flatMapM`
-         * giving two internal executions
-         */
-        run {
-          constant(x).flatMapM(inc andThen Future.successful)
-        } must_== run {
-          inc(x)
-        }
-      }
-    }
-
-    "satisfy lifted monad law 2" in prop { (x: Int) =>
-      mustExecute(2) { implicit ec => // two executions from `flatMapM`
-        run {
-          constant(x).flatMapM { y => Future.successful(constant(y)) }
-        } must_== run {
-          constant(x)
-        }
-      }
-    }
-
-    "satisfy lifted monad law 3" in prop { (x: Int) =>
-      val inc = (i: Int) => Future.successful(constant(i + 1))
-      val dbl = (i: Int) => Future.successful(constant(i * 2))
-      mustExecute(6, 2, 1) { (flatMapMEC, innerFlatMapMEC, innerMapEC) =>
-        val innerFlatMapMPEC = innerFlatMapMEC.prepare()
-        val innerMapPEC = innerMapEC.prepare()
-        /* four invocations of `flatMapM`
-         * giving eight internal executions
-         * and one from `Future.map`
-         */
-        run {
-          constant(x).flatMapM(inc)(flatMapMEC)
-            .flatMapM(dbl)(flatMapMEC)
-        } must_== run {
-          constant(x).flatMapM { y =>
-            inc(y).map { z =>
-              z.flatMapM(dbl)(innerFlatMapMPEC)
-            }(innerMapPEC)
-          }(flatMapMEC)
-        }
-      }
-    }
-
-    "pass through simple result" in prop { (s: Result) =>
-      mustExecute(1) { implicit ec => // one execution from `flatMapM`
-        run {
-          simpleResult(s).flatMapM { x => Future.successful(constant(x)) }
         } must beLeft(s)
       }
     }

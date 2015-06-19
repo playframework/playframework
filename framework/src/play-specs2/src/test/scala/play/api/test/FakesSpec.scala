@@ -5,6 +5,7 @@ package play.api.test
 
 import java.util.concurrent.TimeUnit
 
+import akka.stream.FlowMaterializer
 import play.api.mvc._
 
 import play.api.test.Helpers._
@@ -42,7 +43,7 @@ object FakesSpec extends PlaySpecification {
   }
 
   "FakeRequest" should {
-    val app = new FakeApplication(
+    def app = new FakeApplication(
       withRoutes = {
         case (PUT, "/process") => Action { req =>
           Results.Ok(req.headers.get(CONTENT_TYPE) getOrElse "")
@@ -83,13 +84,13 @@ object FakesSpec extends PlaySpecification {
       }
     }
 
-    "set a Content-Type header when one is unspecified and required" in new FakeRequestCallScope {
+    "set a Content-Type header when one is unspecified and required" in new WithApplication() {
       val request = FakeRequest(GET, "/testCall")
         .withJsonBody(Json.obj("foo" -> "bar"))
 
       contentTypeForFakeRequest(request) must contain("application/json")
     }
-    "not overwrite the Content-Type header when specified" in new FakeRequestCallScope {
+    "not overwrite the Content-Type header when specified" in new WithApplication() {
       val request = FakeRequest(GET, "/testCall")
         .withJsonBody(Json.obj("foo" -> "bar"))
         .withHeaders(CONTENT_TYPE -> "application/test+json")
@@ -97,10 +98,8 @@ object FakesSpec extends PlaySpecification {
       contentTypeForFakeRequest(request) must contain("application/test+json")
     }
   }
-}
 
-trait FakeRequestCallScope extends Scope {
-  def contentTypeForFakeRequest[T](request: FakeRequest[AnyContentAsJson]): String = {
+  def contentTypeForFakeRequest[T](request: FakeRequest[AnyContentAsJson])(implicit mat: FlowMaterializer): String = {
     var testContentType: Option[String] = None
     val action = Action { request => testContentType = request.headers.get(CONTENT_TYPE); Ok }
     val headers = new WrappedRequest(request)
@@ -108,6 +107,7 @@ trait FakeRequestCallScope extends Scope {
     Await.result(execution, Duration(3, TimeUnit.SECONDS))
     testContentType.getOrElse("No Content-Type found")
   }
+
 }
 
 class TestActionCaller extends EssentialActionCaller with Writeables

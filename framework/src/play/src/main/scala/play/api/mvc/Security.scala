@@ -4,9 +4,9 @@
 package play.api.mvc
 
 import play.api._
+import play.api.libs.streams.Accumulator
 import play.api.mvc.Results._
 
-import play.api.libs.iteratee._
 import scala.concurrent.Future
 
 /**
@@ -48,7 +48,7 @@ object Security {
       userinfo(request).map { user =>
         action(user)(request)
       }.getOrElse {
-        Done(onUnauthorized(request), Input.Empty)
+        Accumulator.done(onUnauthorized(request))
       }
     }
 

@@ -64,11 +64,11 @@ trait GlobalSettingsSpec extends PlaySpecification with WsTestClient with Server
 }
 
 /** Inserts an X-Foo header with a custom value. */
-class FooFilter(headerValue: String) extends Filter {
+class FooFilter(headerValue: String) extends EssentialFilter {
   def this() = this("filter-default-constructor")
-  override def apply(f: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = {
-    val fooBarHeaders = rh.copy(headers = rh.headers.add("X-Foo" -> headerValue))
-    f(fooBarHeaders)
+  def apply(next: EssentialAction) = EssentialAction { request =>
+    val fooBarHeaders = request.copy(headers = request.headers.add("X-Foo" -> headerValue))
+    next(fooBarHeaders)
   }
 
 }

@@ -25,7 +25,7 @@ object Multipart {
 
   def multipartParser[A](
     maxDataLength: Int,
-    filePartHandler: PartHandler[FilePart[A]]): BodyParser[MultipartFormData[A]] = BodyParser("multipartFormData") { request =>
+    filePartHandler: PartHandler[FilePart[A]]): RequestHeader => Iteratee[Array[Byte], Either[Result, MultipartFormData[A]]] = { request =>
 
     val maybeBoundary = for {
       mt <- request.mediaType

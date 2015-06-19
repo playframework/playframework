@@ -32,7 +32,7 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
     requestId: Long,
     remoteAddress: InetSocketAddress,
     secureProtocol: Boolean,
-    request: HttpRequest)(implicit fm: FlowMaterializer): (RequestHeader, Enumerator[Array[Byte]]) = {
+    request: HttpRequest)(implicit fm: FlowMaterializer): (RequestHeader, Source[Array[Byte], Any]) = {
     (
       convertRequestHeader(requestId, remoteAddress, secureProtocol, request),
       convertRequestBody(request)
@@ -99,22 +99,22 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
    * Convert an Akka `HttpRequest` to an `Enumerator` of the request body.
    */
   private def convertRequestBody(
-    request: HttpRequest)(implicit fm: FlowMaterializer): Enumerator[Array[Byte]] = {
+    request: HttpRequest)(implicit fm: FlowMaterializer): Source[Array[Byte], Any] = {
     import play.api.libs.iteratee.Execution.Implicits.trampoline
     request.entity match {
       case HttpEntity.Strict(_, data) if data.isEmpty =>
-        Enumerator.eof
+        Source.empty
       case HttpEntity.Strict(_, data) =>
-        Enumerator.apply[Array[Byte]](data.toArray) >>> Enumerator.eof
+        Source.single(data.toArray)
       case HttpEntity.Default(_, 0, _) =>
-        Enumerator.eof
+        Source.empty
       case HttpEntity.Default(contentType, contentLength, pubr) =>
         // FIXME: should do something with the content-length?
-        AkkaStreamsConversion.sourceToEnumerator(pubr) &> Enumeratee.map((data: ByteString) => data.toArray)
+        pubr.map(_.toArray)
       case HttpEntity.Chunked(contentType, chunks) =>
         // FIXME: Don't enumerate LastChunk?
         // FIXME: do something with trailing headers?
-        AkkaStreamsConversion.sourceToEnumerator(chunks) &> Enumeratee.map((chunk: HttpEntity.ChunkStreamPart) => chunk.data.toArray)
+        chunks.map(_.data().toArray)
     }
   }
 

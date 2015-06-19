@@ -3,12 +3,15 @@
  */
 package play.it.http
 
+import akka.stream.scaladsl.Sink
+import play.api.libs.streams.{ Streams, Accumulator }
 import play.api.mvc._
 import play.api.test._
 import play.api.test.TestServer
 import play.api.libs.iteratee._
 import play.it._
 import scala.concurrent.ExecutionContext.Implicits._
+import scala.concurrent.Future
 import scala.util.Random
 
 object NettyRequestBodyHandlingSpec extends RequestBodyHandlingSpec with NettyIntegrationSpecification
@@ -30,7 +33,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
     }
 
     "handle large bodies" in withServer(EssentialAction { rh =>
-      Iteratee.ignore[Array[Byte]].map(_ => Results.Ok)
+      Accumulator(Sink.ignore.mapMaterializedValue(_ => Future.successful(Results.Ok)))
     }) { port =>
       val body = new String(Random.alphanumeric.take(50 * 1024).toArray)
       val responses = BasicHttpClient.makeRequests(port, trickleFeed = Some(100L))(
@@ -44,7 +47,9 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
     }
 
     "gracefully handle early body parser termination" in withServer(EssentialAction { rh =>
-      Traversable.takeUpTo[Array[Byte]](20 * 1024) &>> Iteratee.ignore[Array[Byte]].map(_ => Results.Ok)
+      Streams.iterateeToAccumulator(
+        Traversable.takeUpTo[Array[Byte]](20 * 1024) &>> Iteratee.ignore[Array[Byte]].map(_ => Results.Ok)
+      )
     }) { port =>
       val body = new String(Random.alphanumeric.take(50 * 1024).toArray)
       // Trickle feed is important, otherwise it won't switch to ignoring the body.

@@ -5,7 +5,7 @@ package play.api.mvc
 
 import play.api.libs.iteratee._
 import play.api._
-import play.core.routing.{ HandlerInvoker, HandlerInvokerFactory, HandlerDef }
+import play.api.libs.streams.{ Streams, Accumulator }
 import scala.concurrent._
 import scala.language.higherKinds
 
@@ -35,7 +35,7 @@ trait RequestTaggingHandler extends Handler {
  * An `EssentialAction` is a `Handler`, which means it is one of the objects
  * that Play uses to handle requests.
  */
-trait EssentialAction extends (RequestHeader => Iteratee[Array[Byte], Result]) with Handler {
+trait EssentialAction extends (RequestHeader => Accumulator[Array[Byte], Result]) with Handler {
 
   /**
    * Returns itself, for better support in the routes file.
@@ -51,7 +51,7 @@ trait EssentialAction extends (RequestHeader => Iteratee[Array[Byte], Result]) w
  */
 object EssentialAction {
 
-  def apply(f: RequestHeader => Iteratee[Array[Byte], Result]): EssentialAction = new EssentialAction {
+  def apply(f: RequestHeader => Accumulator[Array[Byte], Result]): EssentialAction = new EssentialAction {
     def apply(rh: RequestHeader) = f(rh)
   }
 }
@@ -93,7 +93,7 @@ trait Action[A] extends EssentialAction {
    */
   def apply(request: Request[A]): Future[Result]
 
-  def apply(rh: RequestHeader): Iteratee[Array[Byte], Result] = parser(rh).mapM {
+  def apply(rh: RequestHeader): Accumulator[Array[Byte], Result] = parser(rh).mapFuture {
     case Left(r) =>
       logger.trace("Got direct result from the BodyParser: " + r)
       Future.successful(r)
@@ -134,7 +134,7 @@ trait Action[A] extends EssentialAction {
  *
  * @tparam A the body content type
  */
-trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Either[Result, A]]] {
+trait BodyParser[+A] extends Function1[RequestHeader, Accumulator[Array[Byte], Either[Result, A]]] {
   self =>
 
   /**
@@ -171,65 +171,12 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
     // prepare execution context as body parser object may cross thread boundary
     implicit val pec = ec.prepare()
     new BodyParser[B] {
-      def apply(request: RequestHeader) = self(request).mapM {
+      def apply(request: RequestHeader) = self(request).mapFuture {
         case Right(a) =>
           // safe to execute `Right.apply` in same thread
           f(a).map(Right.apply)(Execution.trampoline)
         case left =>
           Future.successful(left.asInstanceOf[Either[Result, B]])
-      }(pec)
-      override def toString = self.toString
-    }
-  }
-
-  /**
-   * Uses the provided function to transform the BodyParser’s computed result
-   * into another BodyParser to continue with.
-   *
-   * On Done of the Iteratee produced by this BodyParser, the result is passed
-   * to the provided function, and the resulting BodyParser is given the same
-   * RequestHeader and the Iteratee produced is used to continue consuming
-   * input.
-   *
-   * @param f the function to produce a new body parser from the result of this body parser
-   * @param ec The context to execute the supplied function with.
-   *        The context is prepared on the calling thread.
-   * @return the transformed body parser
-   * @see [[play.api.libs.iteratee.Iteratee#flatMap]]
-   */
-  def flatMap[B](f: A => BodyParser[B])(implicit ec: ExecutionContext): BodyParser[B] = {
-    // prepare execution context as body parser object may cross thread boundary
-    implicit val pec = ec.prepare()
-    new BodyParser[B] {
-      def apply(request: RequestHeader) = self(request).flatMap {
-        case Left(e) => Done(Left(e))
-        case Right(a) => f(a)(request)
-      }(pec)
-      override def toString = self.toString
-    }
-  }
-
-  /**
-   * Like flatMap but allows the flatMap function to execute asynchronously.
-   *
-   * @param f the async function to produce a new body parser from the result of this body parser
-   * @param ec The context to execute the supplied function with.
-   *        The context is prepared on the calling thread.
-   * @return the transformed body parser
-   * @see [[flatMap]]
-   * @see [[play.api.libs.iteratee.Iteratee#flatMapM]]
-   */
-  def flatMapM[B](f: A => Future[BodyParser[B]])(implicit ec: ExecutionContext): BodyParser[B] = {
-    // prepare execution context as body parser object may cross thread boundary
-    implicit val pec = ec.prepare()
-    new BodyParser[B] {
-      def apply(request: RequestHeader) = self(request).flatMapM {
-        case Right(a) =>
-          f(a).map { _.apply(request) }(pec)
-        case left =>
-          Future.successful {
-            Done[Array[Byte], Either[Result, B]](left.asInstanceOf[Either[Result, B]])
-          }
       }(pec)
       override def toString = self.toString
     }
@@ -258,9 +205,9 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
     // prepare execution context as body parser object may cross thread boundary
     implicit val pec = ec.prepare()
     new BodyParser[B] {
-      def apply(request: RequestHeader) = self(request).flatMap {
-        case Left(e) => Done(Left(e), Input.Empty)
-        case Right(a) => Done(f(a), Input.Empty)
+      def apply(request: RequestHeader) = self(request).map {
+        case Left(e) => Left(e)
+        case Right(a) => f(a)
       }(pec)
       override def toString = self.toString
     }
@@ -279,14 +226,12 @@ trait BodyParser[+A] extends Function1[RequestHeader, Iteratee[Array[Byte], Eith
     // prepare execution context as body parser object may cross thread boundary
     implicit val pec = ec.prepare()
     new BodyParser[B] {
-      def apply(request: RequestHeader) = self(request).flatMapM {
+      def apply(request: RequestHeader) = self(request).mapFuture {
         case Right(a) =>
           // safe to execute `Done.apply` in same thread
-          f(a).map(Done.apply[Array[Byte], Either[Result, B]](_))(Execution.trampoline)
-        case left =>
-          Future.successful {
-            Done[Array[Byte], Either[Result, B]](left.asInstanceOf[Either[Result, B]])
-          }
+          f(a)
+        case Left(e) =>
+          Future.successful(Left(e))
       }(pec)
       override def toString = self.toString
     }
@@ -308,7 +253,7 @@ object BodyParser {
    * }
    * }}}
    */
-  def apply[T](f: RequestHeader => Iteratee[Array[Byte], Either[Result, T]]): BodyParser[T] = {
+  def apply[T](f: RequestHeader => Accumulator[Array[Byte], Either[Result, T]]): BodyParser[T] = {
     apply("(no name)")(f)
   }
 
@@ -322,8 +267,19 @@ object BodyParser {
    * }
    * }}}
    */
-  def apply[T](debugName: String)(f: RequestHeader => Iteratee[Array[Byte], Either[Result, T]]): BodyParser[T] = new BodyParser[T] {
+  def apply[T](debugName: String)(f: RequestHeader => Accumulator[Array[Byte], Either[Result, T]]): BodyParser[T] = new BodyParser[T] {
     def apply(rh: RequestHeader) = f(rh)
+    override def toString = "BodyParser(" + debugName + ")"
+  }
+
+  @deprecated("Use Akka streams instead", "2.5.0")
+  def iteratee[T](f: RequestHeader => Iteratee[Array[Byte], Either[Result, T]]): BodyParser[T] = {
+    iteratee("(no name)")(f)
+  }
+
+  @deprecated("Use Akka streams instead", "2.5.0")
+  def iteratee[T](debugName: String)(f: RequestHeader => Iteratee[Array[Byte], Either[Result, T]]): BodyParser[T] = new BodyParser[T] {
+    def apply(rh: RequestHeader) = Streams.iterateeToAccumulator(f(rh))
     override def toString = "BodyParser(" + debugName + ")"
   }
 

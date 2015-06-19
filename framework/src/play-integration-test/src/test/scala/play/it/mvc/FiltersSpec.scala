@@ -6,6 +6,7 @@ package play.it.mvc
 import org.specs2.mutable.Specification
 import play.api.http.{ DefaultHttpErrorHandler, HttpErrorHandler }
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.streams.Accumulator
 import play.api.libs.ws.WSClient
 import play.api.routing.Router
 import play.api.{ Environment, ApplicationLoader, BuiltInComponentsFromContext }
@@ -143,8 +144,8 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
     val filterAddedHeaderKey = "CUSTOM_HEADER"
     val filterAddedHeaderVal = "custom header val"
 
-    object CustomHeaderFilter extends Filter {
-      def apply(next: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
+    object CustomHeaderFilter extends EssentialFilter {
+      def apply(next: EssentialAction) = EssentialAction { request =>
         next(request.copy(headers = addCustomHeader(request.headers)))
       }
       def addCustomHeader(originalHeaders: Headers): Headers = {
@@ -166,40 +167,40 @@ trait FiltersSpec extends Specification with ServerIntegrationSpecification {
     }
   }
 
-  object ErrorHandlingFilter extends Filter {
-    def apply(next: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
+  object ErrorHandlingFilter extends EssentialFilter {
+    def apply(next: EssentialAction) = EssentialAction { request =>
       try {
         next(request).recover {
           case t: Throwable =>
             Results.InternalServerError(t.getMessage)
         }(play.api.libs.concurrent.Execution.Implicits.defaultContext)
       } catch {
-        case t: Throwable => Future.successful(Results.InternalServerError(t.getMessage))
+        case t: Throwable => Accumulator.done(Results.InternalServerError(t.getMessage))
       }
     }
   }
 
-  object SkipNextFilter extends Filter {
+  object SkipNextFilter extends EssentialFilter {
     val expectedText = "This filter does not call next"
 
-    def apply(next: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
-      Future.successful(Results.Ok(expectedText))
+    def apply(next: EssentialAction) = EssentialAction { request =>
+      Accumulator.done(Results.Ok(expectedText))
     }
   }
 
-  object SkipNextWithErrorFilter extends Filter {
+  object SkipNextWithErrorFilter extends EssentialFilter {
     val expectedText = "This filter does not call next and throws an exception"
 
-    def apply(next: RequestHeader => Future[Result])(request: RequestHeader): Future[Result] = {
-      Future.failed(new RuntimeException(expectedText))
+    def apply(next: EssentialAction) = EssentialAction { request =>
+      Accumulator.done(Future.failed(new RuntimeException(expectedText)))
     }
   }
 
-  object ThrowExceptionFilter extends Filter {
+  object ThrowExceptionFilter extends EssentialFilter {
     val expectedText = "This filter calls next and throws an exception afterwords"
 
-    override def apply(next: (RequestHeader) => Future[Result])(rh: RequestHeader): Future[Result] = {
-      next(rh).map { _ =>
+    def apply(next: EssentialAction) = EssentialAction { request =>
+      next(request).map { _ =>
         throw new RuntimeException(expectedText)
       }(ec)
     }

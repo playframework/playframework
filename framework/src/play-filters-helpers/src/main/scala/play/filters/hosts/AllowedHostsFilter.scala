@@ -2,9 +2,11 @@ package play.filters.hosts
 
 import javax.inject.{ Inject, Provider, Singleton }
 
+import akka.stream.scaladsl.Sink
 import play.api.http.{ HttpErrorHandler, Status }
 import play.api.inject.Module
 import play.api.libs.iteratee.Iteratee
+import play.api.libs.streams.Accumulator
 import play.api.mvc.{ EssentialAction, EssentialFilter }
 import play.api.{ Configuration, Environment, PlayConfig }
 
@@ -20,10 +22,7 @@ case class AllowedHostsFilter @Inject() (config: AllowedHostsConfig, errorHandle
     if (hostMatchers.exists(_(req.host))) {
       next(req)
     } else {
-      import play.api.libs.iteratee.Execution.Implicits.trampoline
-      Iteratee.ignore[Array[Byte]].mapM { _ =>
-        errorHandler.onClientError(req, Status.BAD_REQUEST, s"Host not allowed: ${req.host}")
-      }
+      Accumulator.done(errorHandler.onClientError(req, Status.BAD_REQUEST, s"Host not allowed: ${req.host}"))
     }
   }
 }

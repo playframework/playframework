@@ -3,17 +3,20 @@
  */
 package play.it.http.parsing
 
+import akka.stream.FlowMaterializer
+import akka.stream.scaladsl.Source
 import play.api.test._
 import play.api.mvc.BodyParsers
-import play.api.libs.iteratee.Enumerator
 
 object IgnoreBodyParserSpec extends PlaySpecification {
 
   "The ignore body parser" should {
 
-    def parse[A](value: A, bytes: Seq[Byte], contentType: Option[String], encoding: String) = {
-      await(Enumerator(bytes.to[Array]) |>>>
-        BodyParsers.parse.ignore(value)(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*)))
+    def parse[A](value: A, bytes: Seq[Byte], contentType: Option[String], encoding: String)(implicit mat: FlowMaterializer) = {
+      await(
+        BodyParsers.parse.ignore(value)(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*))
+          .run(Source.single(bytes.to[Array]))
+      )
     }
 
     "ignore empty bodies" in new WithApplication() {
