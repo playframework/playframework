@@ -128,7 +128,7 @@ class CSRFAction(next: EssentialAction,
           Iteratee.flatten(Enumerator(bytes) |>> next(request))
         } else {
           filterLogger.trace("[CSRF] Check failed because no or invalid token found in body")
-          checkFailed(request, "Invalid token found in form body")
+          checkFailed(request, "Invalid CSRF token found in form body")
         }
       })
     }
