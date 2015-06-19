@@ -43,4 +43,18 @@ public class ActionCompositionOrderTest {
             });
         }
     }
+
+    @With(WithUsernameAction.class)
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    @interface WithUsername {
+        String value();
+    }
+
+    static class WithUsernameAction extends Action<WithUsername> {
+        @Override
+        public F.Promise<Result> call(Http.Context ctx) throws Throwable {
+            return delegate.call(ctx.withRequest(ctx.request().withUsername(configuration.value())));
+        }
+    }
 }

@@ -62,7 +62,16 @@ abstract class JavaAction(components: JavaHandlerComponents) extends Action[play
     val javaContext: JContext = createJavaContext(req)
 
     val rootAction = new JAction[Any] {
-      def call(ctx: JContext): JPromise[JResult] = invocation
+      def call(ctx: JContext): JPromise[JResult] = {
+        // The context may have changed, set it again
+        val oldContext = JContext.current.get()
+        try {
+          JContext.current.set(ctx)
+          invocation
+        } finally {
+          JContext.current.set(oldContext)
+        }
+      }
     }
 
     val baseAction = components.requestHandler.createAction(javaContext.request, annotations.method)

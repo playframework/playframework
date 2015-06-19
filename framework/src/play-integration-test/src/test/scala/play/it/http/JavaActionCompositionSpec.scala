@@ -3,7 +3,7 @@ package play.it.http
 import play.api.Application
 import play.api.libs.ws.WSResponse
 import play.api.test.{ WsTestClient, TestServer, FakeApplication, PlaySpecification }
-import play.it.http.ActionCompositionOrderTest.{ ActionAnnotation, ControllerAnnotation }
+import play.it.http.ActionCompositionOrderTest.{ WithUsername, ActionAnnotation, ControllerAnnotation }
 import play.mvc.{ Results, Result }
 
 object JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
@@ -58,6 +58,15 @@ object JavaActionCompositionSpec extends PlaySpecification with WsTestClient {
       override def action: Result = Results.ok()
     }) { response =>
       response.body must beEqualTo("actioncontroller")
+    }
+  }
+
+  "Java action composition" should {
+    "ensure the right request is set when the context is modified down the chain" in makeRequest(new MockController {
+      @WithUsername("foo")
+      def action = Results.ok(request.username())
+    }) { response =>
+      response.body must_== "foo"
     }
   }
 
