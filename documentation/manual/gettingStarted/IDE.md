@@ -15,6 +15,13 @@ Play requires [sbteclipse](https://github.com/typesafehub/sbteclipse) 4.0.0 or n
 addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "4.0.0")
 ```
 
+You must `compile` your project before running the `eclipse` command. You can force compilation to happen when the `eclipse` command is run by adding the following setting:
+
+```scala
+// Compile the project before generating Eclipse files, so that generated .scala or .class files for views and routes are present
+EclipseKeys.preTasks := Seq(compile in Compile)
+```
+
 If you have Scala sources in your project, you will need to install [Scala IDE](http://scala-ide.org/).
 
 If you do not want to install Scala IDE and have only Java sources in your project, then you can set the following:
@@ -22,7 +29,6 @@ If you do not want to install Scala IDE and have only Java sources in your proje
 ```scala
 EclipseKeys.projectFlavor := EclipseProjectFlavor.Java           // Java project. Don't expect Scala IDE
 EclipseKeys.createSrc := EclipseCreateSrc.ValueSet(EclipseCreateSrc.ManagedClasses, EclipseCreateSrc.ManagedResources)  // Use .class files instead of generated .scala files for views and routes 
-EclipseKeys.preTasks := Seq(compile in Compile)                  // Compile the project before generating Eclipse files, so that .class files for views and routes are present
 ```
 
 ### Generate configuration
