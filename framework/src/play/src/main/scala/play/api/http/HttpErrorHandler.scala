@@ -128,8 +128,7 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
     case BAD_REQUEST => onBadRequest(request, message)
     case FORBIDDEN => onForbidden(request, message)
     case NOT_FOUND => onNotFound(request, message)
-    case clientError if statusCode >= 400 && statusCode < 500 =>
-      Future.successful(Results.Status(clientError)(views.html.defaultpages.badRequest(request.method, request.uri, message)))
+    case clientError if statusCode >= 400 && statusCode < 500 => onOtherClientError(request, statusCode, message)
     case nonClientError =>
       throw new IllegalArgumentException(s"onClientError invoked with non client error status code $statusCode: $message")
   }
@@ -163,6 +162,18 @@ class DefaultHttpErrorHandler(environment: Environment, configuration: Configura
       case Mode.Prod => views.html.defaultpages.notFound(request.method, request.uri)
       case _ => views.html.defaultpages.devNotFound(request.method, request.uri, router)
     }))
+  }
+
+  /**
+   * Invoked when a client error occurs, that is, an error in the 4xx series, which is not handled by any of
+   * the other methods in this class already.
+   *
+   * @param request The request that caused the client error.
+   * @param statusCode The error status code.  Must be greater or equal to 400, and less than 500.
+   * @param message The error message.
+   */
+  protected def onOtherClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
+    Future.successful(Results.Status(statusCode)(views.html.defaultpages.badRequest(request.method, request.uri, message)))
   }
 
   /**
