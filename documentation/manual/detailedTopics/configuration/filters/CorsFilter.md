@@ -26,10 +26,10 @@ The filter can be configured from `application.conf`.  For a full listing of con
 The available options include:
 
 * `play.filters.cors.pathPrefixes` - filter paths by a whitelist of path prefixes
-* `play.filters.cors.allowOrigins` - allow only requests with origins from a whitelist (by default all origins are allowed)
-* `play.filters.cors.allowHttpMethods` - allow only HTTP methods from a whitelist for preflight requests (by default all methods are allowed)
-* `play.filters.cors.allowHttpHeaders` - allow only HTTP headers from a whitelist for preflight requests (by default all headers are allowed)
-* `play.filters.cors.exposeHeaders` - set custom HTTP headers to be exposed in the response (by default no headers are exposed)
+* `play.filters.cors.allowedOrigins` - allow only requests with origins from a whitelist (by default all origins are allowed)
+* `play.filters.cors.allowedHttpMethods` - allow only HTTP methods from a whitelist for preflight requests (by default all methods are allowed)
+* `play.filters.cors.allowedHttpHeaders` - allow only HTTP headers from a whitelist for preflight requests (by default all headers are allowed)
+* `play.filters.cors.exposedHeaders` - set custom HTTP headers to be exposed in the response (by default no headers are exposed)
 * `play.filters.cors.supportsCredentials` - disable/enable support for credentials (by default credentials support is enabled)
 * `play.filters.cors.preflightMaxAge` - set how long the results of a preflight request can be cached in a preflight result cache (by default 1 hour)
 
@@ -38,9 +38,9 @@ For example:
 ```
 play.filters.cors {
   pathPrefixes = ["/some/path", ...]
-  allowOrigins = ["http://www.example.com", ...]
-  allowHttpMethods = ["GET", "POST"]
-  allowHttpHeaders = ["Accept"]
+  allowedOrigins = ["http://www.example.com", ...]
+  allowedHttpMethods = ["GET", "POST"]
+  allowedHttpHeaders = ["Accept"]
   preflightMaxAge = 3 days
 }
 ```
