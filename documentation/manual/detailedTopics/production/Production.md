@@ -77,12 +77,12 @@ Please consult the [documentation](http://www.scala-sbt.org/sbt-native-packager)
 
 ### Build a server distribution
 
-The sbt-native-packager plugins provides a number archetypes.  The one that Play uses by default is called the Java server archetype, which enables the following features:
+The sbt-native-packager plugins provides a number of archetypes.  The one that Play uses by default is called the Java server archetype, which enables the following features:
 
 * System V or Upstart startup scripts
 * [Default folders](http://www.scala-sbt.org/sbt-native-packager/archetypes/java_server/my-first-project.html#default-mappings)
 
-A full documentation can be found in the [documentation](http://www.scala-sbt.org/sbt-native-packager/archetypes/java_server/index.html).
+The full documentation can be found in [documentation](http://www.scala-sbt.org/sbt-native-packager/archetypes/java_server/index.html).
 
 #### Minimal Debian settings
 
