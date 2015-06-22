@@ -336,9 +336,11 @@ trait ResultExtractors {
   /**
    * Extracts the Charset of this Result value.
    */
-  def charset(of: Future[Result])(implicit timeout: Timeout): Option[String] = header(CONTENT_TYPE, of) match {
-    case Some(s) if s.contains("charset=") => Some(s.split("; charset=").drop(1).mkString.trim)
-    case _ => None
+  def charset(of: Future[Result])(implicit timeout: Timeout): Option[String] = {
+    val matcher = ".*;\\s*charset=(.+)$".r
+    header(CONTENT_TYPE, of) collect {
+      case matcher(charsetValue) => charsetValue
+    }
   }
 
   /**

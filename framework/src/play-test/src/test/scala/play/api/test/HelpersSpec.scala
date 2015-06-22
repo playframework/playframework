@@ -33,6 +33,22 @@ class HelpersSpec extends Specification {
       }
     }
   }
+  
+  "charset" should {
+  
+    "extract a charset without whitespace from a Result as Some[String]" in {
+      charset(Future.successful(Ok.withHeaders(CONTENT_TYPE -> "text/html;charset=utf-8"))) must beSome("utf-8")
+    }
+  
+    "extract a charset with whitespace from a Result as Some[String]" in {
+      charset(Future.successful(Ok.withHeaders(CONTENT_TYPE -> "text/html;\t charset=utf-8"))) must beSome("utf-8")
+    }
+  
+    "extract a missing charset from a Result as None" in {
+      charset(Future.successful(Ok.withHeaders(CONTENT_TYPE -> "text/html"))) must beNone
+    }
+  
+  }
 
   "contentAsString" should {
 
