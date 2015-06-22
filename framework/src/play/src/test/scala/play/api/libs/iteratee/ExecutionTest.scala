@@ -7,6 +7,8 @@ import play.libs.F
 import scala.concurrent.ExecutionContext
 import java.util.function.Consumer
 import java.util.function.BiConsumer
+import java.util.function.Function
+import java.util.function.BiFunction
 
 /**
  * Common functionality for Java tests that use execution contexts.
@@ -20,11 +22,11 @@ class ExecutionTest {
     result
   }
 
-  def testExecution[A](f: F.Function[TestExecutionContext, A]): A = {
+  def testExecution[A](f: Function[TestExecutionContext, A]): A = {
     _testExecution(f.apply)
   }
 
-  def testExecution[A](f: F.Function2[TestExecutionContext, TestExecutionContext, A]): A = {
+  def testExecution[A](f: BiFunction[TestExecutionContext, TestExecutionContext, A]): A = {
     _testExecution(ec1 => _testExecution(ec2 => f(ec1, ec2)))
   }
 

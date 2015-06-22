@@ -7,6 +7,8 @@ import play.*;
 import play.libs.F;
 import play.mvc.Http;
 
+import java.util.function.Supplier;
+
 import javax.persistence.*;
 
 /**
@@ -123,7 +125,7 @@ public class JPA {
      *
      * @param block Block of code to execute.
      */
-    public static <T> T withTransaction(play.libs.F.Function0<T> block) throws Throwable {
+    public static <T> T withTransaction(Supplier<T> block) {
         return jpaApi().withTransaction(block);
     }
 
@@ -135,7 +137,7 @@ public class JPA {
      * @deprecated This may cause deadlocks
      */
     @Deprecated
-    public static <T> F.Promise<T> withTransactionAsync(play.libs.F.Function0<F.Promise<T>> block) throws Throwable {
+    public static <T> F.Promise<T> withTransactionAsync(Supplier<F.Promise<T>> block) {
         return jpaApi().withTransactionAsync(block);
     }
 
@@ -155,7 +157,7 @@ public class JPA {
      * @param readOnly Is the transaction read-only?
      * @param block Block of code to execute.
      */
-    public static <T> T withTransaction(String name, boolean readOnly, play.libs.F.Function0<T> block) throws Throwable {
+    public static <T> T withTransaction(String name, boolean readOnly, Supplier<T> block) {
         return jpaApi().withTransaction(name, readOnly, block);
     }
 
@@ -169,7 +171,7 @@ public class JPA {
      * @deprecated This may cause deadlocks
      */
     @Deprecated
-    public static <T> F.Promise<T> withTransactionAsync(String name, boolean readOnly, play.libs.F.Function0<F.Promise<T>> block) throws Throwable {
+    public static <T> F.Promise<T> withTransactionAsync(String name, boolean readOnly, Supplier<F.Promise<T>> block) {
         return jpaApi().withTransactionAsync(name, readOnly, block);
     }
 }

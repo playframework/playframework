@@ -63,7 +63,7 @@ public class GlobalSettings {
     @SuppressWarnings("rawtypes")
     public Action onRequest(Request request, Method actionMethod) {
         return new Action.Simple() {
-            public F.Promise<Result> call(Context ctx) throws Throwable {
+            public F.Promise<Result> call(Context ctx) {
                 return delegate.call(ctx);
             }
         };

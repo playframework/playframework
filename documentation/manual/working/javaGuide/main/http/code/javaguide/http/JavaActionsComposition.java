@@ -18,7 +18,7 @@ public class JavaActionsComposition extends Controller {
 
     // #verbose-action
     public class VerboseAction extends play.mvc.Action.Simple {
-        public F.Promise<Result> call(Http.Context ctx) throws Throwable {
+        public F.Promise<Result> call(Http.Context ctx) {
             Logger.info("Calling action for " + ctx);
             return delegate.call(ctx);
         }
@@ -58,7 +58,7 @@ public class JavaActionsComposition extends Controller {
 
     // #verbose-annotation-action
     public class VerboseAnnotationAction extends Action<VerboseAnnotation> {
-        public F.Promise<Result> call(Http.Context ctx) throws Throwable {
+        public F.Promise<Result> call(Http.Context ctx) {
             if (configuration.value()) {
                 Logger.info("Calling action for " + ctx);
             }
@@ -73,7 +73,7 @@ public class JavaActionsComposition extends Controller {
 
     // #pass-arg-action
     public class PassArgAction extends play.mvc.Action.Simple {
-        public F.Promise<Result> call(Http.Context ctx) throws Throwable {
+        public F.Promise<Result> call(Http.Context ctx) {
             ctx.args.put("user", User.findById(1234));
             return delegate.call(ctx);
         }

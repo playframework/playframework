@@ -7,7 +7,6 @@ import javaguide.testhelpers.MockJavaAction;
 
 // #ws-imports
 import play.libs.ws.*;
-import play.libs.F.Function;
 import play.libs.F.Promise;
 // #ws-imports
 
@@ -116,15 +115,13 @@ public class JavaWS {
 
             // #ws-response-input-stream
             Promise<File> filePromise = ws.url(url).get().map(response -> {
-                InputStream inputStream = null;
-                OutputStream outputStream = null;
-                try {
-                    inputStream = response.getBodyAsStream();
+                // write the inputStream to a File
+                File file = new File("/tmp/response.txt");
 
-                    // write the inputStream to a File
-                    final File file = new File("/tmp/response.txt");
-                    outputStream = new FileOutputStream(file);
-
+                try(
+                    InputStream inputStream = response.getBodyAsStream();
+                    OutputStream outputStream = new FileOutputStream(file)
+                ) {
                     int read = 0;
                     byte[] buffer = new byte[1024];
 
@@ -133,11 +130,8 @@ public class JavaWS {
                     }
 
                     return file;
-                } catch (IOException e) {
-                    throw e;
-                } finally {
-                    if (inputStream != null) {inputStream.close();}
-                    if (outputStream != null) {outputStream.close();}
+                } catch(IOException e) {
+                    throw new RuntimeException(e);
                 }
             });
             // #ws-response-input-stream

@@ -36,7 +36,7 @@ class AccessLoggingAction extends Action.Simple {
   
   private ALogger accessLogger = Logger.of("access");
   
-  public F.Promise<Result> call(Http.Context ctx) throws Throwable {
+  public F.Promise<Result> call(Http.Context ctx) {
     final Request request = ctx.request();
     accessLogger.info("method=" + request.method() + " uri=" + request.uri() + " remote-address=" + request.remoteAddress());
     

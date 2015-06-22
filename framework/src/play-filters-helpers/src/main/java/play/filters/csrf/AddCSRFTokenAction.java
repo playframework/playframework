@@ -31,7 +31,7 @@ public class AddCSRFTokenAction extends Action<AddCSRFToken> {
     private final CSRFAction$ CSRFAction = CSRFAction$.MODULE$;
 
     @Override
-    public F.Promise<Result> call(Http.Context ctx) throws Throwable {
+    public F.Promise<Result> call(Http.Context ctx) {
         RequestHeader request = ctx._requestHeader();
 
         if (CSRFAction.getTokenFromHeader(request, config).isEmpty()) {

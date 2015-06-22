@@ -30,7 +30,7 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
     private final CSRFAction$ CSRFAction = CSRFAction$.MODULE$;
 
     @Override
-    public F.Promise<Result> call(Http.Context ctx) throws Throwable {
+    public F.Promise<Result> call(Http.Context ctx) {
         RequestHeader request = ctx._requestHeader();
         // Check for bypass
         if (CSRFAction.checkCsrfBypass(request, config)) {
@@ -76,7 +76,7 @@ public class RequireCSRFCheckAction extends Action<RequireCSRFCheck> {
         }
     }
 
-    private F.Promise<Result> handleTokenError(Http.Context ctx, RequestHeader request, String msg) throws Exception {
+    private F.Promise<Result> handleTokenError(Http.Context ctx, RequestHeader request, String msg) {
 
         if (CSRF.getToken(request).isEmpty()) {
             if (config.cookieName().isDefined()) {

@@ -34,11 +34,7 @@ public class RoutingDslTest {
     @Test
     public void oneParameter() {
         Router router = new RoutingDsl()
-                .GET("/hello/:to").routeTo(new F.Function<String, Result>() {
-                    public Result apply(String to) {
-                        return Results.ok("Hello " + to);
-                    }
-                })
+                .GET("/hello/:to").routeTo(to -> Results.ok("Hello " + to))
                 .build();
 
         assertThat(makeRequest(router, "GET", "/hello/world"), equalTo("Hello world"));

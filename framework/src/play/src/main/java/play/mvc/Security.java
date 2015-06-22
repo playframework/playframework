@@ -42,17 +42,14 @@ public class Security {
                     try {
                         ctx.request().setUsername(username);
                         return delegate.call(ctx).transform(
-                            new F.Function<Result, Result>() {
-                                @Override
-                                public Result apply(Result result) throws Throwable {
-                                    ctx.request().setUsername(null);
-                                    return result;
-                                }
+                            result -> {
+                                ctx.request().setUsername(null);
+                                return result;
                             },
-                                throwable -> {
-                                    ctx.request().setUsername(null);
-                                    return throwable;
-                                }
+                            throwable -> {
+                                ctx.request().setUsername(null);
+                                return throwable;
+                            }
                         );
                     } catch(Exception e) {
                         ctx.request().setUsername(null);

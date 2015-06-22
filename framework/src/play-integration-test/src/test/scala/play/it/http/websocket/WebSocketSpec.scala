@@ -19,7 +19,7 @@ import play.core.routing.HandlerDef
 import java.util.concurrent.atomic.AtomicReference
 import org.jboss.netty.buffer.ChannelBuffers
 import scala.concurrent.ExecutionContext.Implicits.global
-import java.util.function.Consumer
+import java.util.function.{ Consumer, Function }
 
 object NettyWebSocketSpec extends WebSocketSpec with NettyIntegrationSpecification
 object AkkaHttpWebSocketSpec extends WebSocketSpec with AkkaHttpIntegrationSpecification
@@ -402,7 +402,7 @@ trait WebSocketSpec extends PlaySpecification with WsTestClient with ServerInteg
 
       "allow handling a websocket with an actor" in allowSendingMessages { _ =>
         messages =>
-          JWebSocket.withActor[String](new F.Function[ActorRef, Props]() {
+          JWebSocket.withActor[String](new Function[ActorRef, Props]() {
             def apply(out: ActorRef) = {
               Props(new Actor() {
                 messages.foreach { msg =>
