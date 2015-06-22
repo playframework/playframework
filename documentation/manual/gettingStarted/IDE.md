@@ -97,8 +97,12 @@ Check the project's structure, make sure all necessary dependencies are download
 
 You can run the created application and view the result in the default browser `http://localhost:9000`. To run a Play application:
 
-1. In the project tree, right-click the application.
-2. From the list in the context menu, select ***Run Play2 App***.
+1. Create a new Run Configuration -- From the main menu, select Run -> Edit Configurations
+2. Click on the + to add a new configuration
+3. From the list of configurations, choose "SBT Task"
+4. In the "tasks" input box, simply put "run"
+5. Apply changes and select OK.
+6. Now you can choose "Run" from the main Run menu and run your application
 
 You can easily start a debugger session for a Play application using default Run/Debug Configuration settings.
 
