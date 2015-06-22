@@ -218,8 +218,8 @@ object Dependencies {
 
       sbtDep("com.typesafe.sbt" % "sbt-native-packager" % BuildInfo.sbtNativePackagerVersion),
 
-      sbtDep("com.typesafe.sbt" % "sbt-web" % "1.2.0"),
-      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.1.2")
+      sbtDep("com.typesafe.sbt" % "sbt-web" % "1.2.1"),
+      sbtDep("com.typesafe.sbt" % "sbt-js-engine" % "1.1.3")
     ) ++ javassist ++ specsBuild.map(_ % Test)
   }
 
