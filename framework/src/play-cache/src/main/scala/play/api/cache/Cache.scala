@@ -145,8 +145,7 @@ trait EhCacheComponents {
    * Use this to create with the given name.
    */
   def cacheApi(name: String): CacheApi = {
-    ehCacheManager.addCache(name)
-    new EhCacheApi(ehCacheManager.getEhcache(name))
+    new EhCacheApi(NamedEhCacheProvider.getNamedCache(name, ehCacheManager))
   }
 
   lazy val defaultCacheApi: CacheApi = cacheApi("play")
@@ -204,9 +203,20 @@ class CacheManagerProvider @Inject() (env: Environment, config: Configuration, l
 
 private[play] class NamedEhCacheProvider(name: String) extends Provider[Ehcache] {
   @Inject private var manager: CacheManager = _
-  lazy val get: Ehcache = {
+  lazy val get: Ehcache = NamedEhCacheProvider.getNamedCache(name, manager)
+}
+
+private[play] object NamedEhCacheProvider {
+  def getNamedCache(name: String, manager: CacheManager) = try {
     manager.addCache(name)
     manager.getEhcache(name)
+  } catch {
+    case e: ObjectExistsException =>
+      throw new EhCacheExistsException(
+        s"""An EhCache instance with name '$name' already exists.
+           |
+           |This usually indicates that multiple instances of a dependent component (e.g. a Play application) have been started at the same time.
+         """.stripMargin, e)
   }
 }
 
@@ -230,6 +240,8 @@ private[play] class NamedCachedProvider(key: BindingKey[CacheApi]) extends Provi
     new Cached(injector.instanceOf(key))
   }
 }
+
+private[play] case class EhCacheExistsException(msg: String, cause: Throwable) extends RuntimeException(msg, cause)
 
 @Singleton
 class EhCacheApi @Inject() (cache: Ehcache) extends CacheApi {
