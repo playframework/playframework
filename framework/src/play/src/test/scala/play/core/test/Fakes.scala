@@ -3,6 +3,7 @@
  */
 package play.core.test
 
+import akka.util.ByteString
 import play.api.inject.guice.GuiceInjectorBuilder
 import play.api.inject.{ BindingKey, Binding, Injector }
 import play.api.libs.Files.TemporaryFile
@@ -136,8 +137,8 @@ case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A
   /**
    * Adds a raw body to the request
    */
-  def withRawBody(bytes: Array[Byte]): FakeRequest[AnyContentAsRaw] = {
-    _copy(body = AnyContentAsRaw(RawBuffer(bytes.length, bytes)))
+  def withRawBody(bytes: ByteString): FakeRequest[AnyContentAsRaw] = {
+    _copy(body = AnyContentAsRaw(RawBuffer(bytes.size, bytes)))
   }
 
   /**

@@ -3,6 +3,7 @@
  */
 package play.core.server.netty
 
+import akka.util.ByteString
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
 
@@ -26,7 +27,7 @@ private[server] trait RequestBodyHandler {
    * @param handlerFinished a function to handle the de-registration of the handler i.e. when the chunked request is complete.
    * @return a future of an iteratee that will return the result.
    */
-  def newRequestBodyUpstreamHandler[A](bodyHandler: Iteratee[Array[Byte], A],
+  def newRequestBodyUpstreamHandler[A](bodyHandler: Iteratee[ByteString, A],
     replaceHandler: ChannelUpstreamHandler => Unit,
     handlerFinished: => Unit): Future[A] = {
 
@@ -34,7 +35,7 @@ private[server] trait RequestBodyHandler {
     import scala.concurrent.stm._
 
     // A promise for the result of the body handler.  This will be returned to the caller immediately.
-    val bodyHandlerResult = Promise[Iteratee[Array[Byte], A]]()
+    val bodyHandlerResult = Promise[Iteratee[ByteString, A]]()
 
     // Constants for how many messages we're prepared to allow to be in flight.
     val MaxMessages = 10
@@ -47,9 +48,9 @@ private[server] trait RequestBodyHandler {
     // I don't think STM is needed here, since Netty won't give us two chunks at once.
     // But I don't want to remove it, in case I've misunderstood.
     // TODO: Work out whether STM is needed.
-    val iteratee: Ref[Iteratee[Array[Byte], A]] = Ref(bodyHandler)
+    val iteratee: Ref[Iteratee[ByteString, A]] = Ref(bodyHandler)
 
-    def pushChunk(ctx: ChannelHandlerContext, chunk: Input[Array[Byte]]) {
+    def pushChunk(ctx: ChannelHandlerContext, chunk: Input[ByteString]) {
 
       // If we have more messages in flight than the maximum, ensure that we have told upstream that
       // we don't want to received more.  But only if the channel is still open and we haven't finished handling it.
@@ -57,7 +58,7 @@ private[server] trait RequestBodyHandler {
         ctx.getChannel.setReadable(false)
 
       // Promise for the next iteratee
-      val itPromise = Promise[Iteratee[Array[Byte], A]]()
+      val itPromise = Promise[Iteratee[ByteString, A]]()
 
       // Update our body handler iteratee to be the next iteratee, and get the current one atomically
       val current = atomic { implicit txn =>
@@ -85,7 +86,7 @@ private[server] trait RequestBodyHandler {
         }
       }
 
-      def continue(it: Iteratee[Array[Byte], A]) {
+      def continue(it: Iteratee[ByteString, A]) {
         // If we have less messages in flight than the minimum, ensure that we have told upstream that
         // we are ready to receive more.
         if (counter.single.transformAndGet { _ - 1 } <= MinMessages && ctx.getChannel.isOpen)
@@ -93,7 +94,7 @@ private[server] trait RequestBodyHandler {
         itPromise.success(it)
       }
 
-      def finish(result: Try[Iteratee[Array[Byte], A]]) {
+      def finish(result: Try[Iteratee[ByteString, A]]) {
         // Redeem the body handler result
         if (!bodyHandlerResult.tryComplete(result)) {
           if (ctx.getChannel.isOpen) ctx.getChannel.setReadable(true)
@@ -108,9 +109,7 @@ private[server] trait RequestBodyHandler {
 
           case chunk: HttpChunk if !chunk.isLast =>
             val cBuffer = chunk.getContent
-            val bytes = new Array[Byte](cBuffer.readableBytes())
-            cBuffer.readBytes(bytes)
-            pushChunk(ctx, El(bytes))
+            pushChunk(ctx, El(ByteString(cBuffer.toByteBuffer)))
 
           case chunk: HttpChunk if chunk.isLast => {
             pushChunk(ctx, EOF)

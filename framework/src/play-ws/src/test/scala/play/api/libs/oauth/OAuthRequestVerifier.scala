@@ -3,6 +3,7 @@
  */
 package play.api.libs.oauth
 
+import akka.util.ByteString
 import play.api.mvc.RequestHeader
 import play.core.parsers.FormUrlEncodedParser
 import java.util.Locale
@@ -41,7 +42,7 @@ object OAuthRequestVerifier {
   /**
    * Verify that the given request is a valid OAuth request given the consumer key and request token
    */
-  def verifyRequest(request: RequestHeader, body: Array[Byte], hostUrl: String, consumerKey: ConsumerKey,
+  def verifyRequest(request: RequestHeader, body: ByteString, hostUrl: String, consumerKey: ConsumerKey,
     requestToken: RequestToken): MatchResult[_] = {
     val method = request.method
     val baseUrl = hostUrl + request.path
@@ -83,7 +84,7 @@ object OAuthRequestVerifier {
         // If the body is form URL encoded, must include body parameters
         val collectedParamsWithBody = request.contentType match {
           case Some(formUrlEncoded) if formUrlEncoded.startsWith("application/x-www-form-urlencoded") =>
-            val form = FormUrlEncodedParser.parse(new String(body, "UTF-8")).toSeq.flatMap {
+            val form = FormUrlEncodedParser.parse(body.utf8String).toSeq.flatMap {
               case (key, values) => values.map(value => key -> value)
             }
             collectedParams ++ form

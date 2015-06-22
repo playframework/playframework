@@ -5,6 +5,7 @@ package play.it.http.parsing
 
 import akka.stream.FlowMaterializer
 import akka.stream.scaladsl.Source
+import akka.util.ByteString
 import play.api.test._
 import play.api.mvc.{ BodyParser, BodyParsers }
 import scala.xml.NodeSeq
@@ -18,7 +19,7 @@ object XmlBodyParserSpec extends PlaySpecification {
     def parse(xml: String, contentType: Option[String], encoding: String, bodyParser: BodyParser[NodeSeq] = BodyParsers.parse.tolerantXml(1048576))(implicit mat: FlowMaterializer) = {
       await(
         bodyParser(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*))
-          .run(Source.single(xml.getBytes(encoding)))
+          .run(Source.single(ByteString(xml, encoding)))
       )
     }
 

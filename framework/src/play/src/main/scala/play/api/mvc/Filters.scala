@@ -4,6 +4,7 @@
 package play.api.mvc
 
 import akka.stream.FlowMaterializer
+import akka.util.ByteString
 import play.api._
 import play.api.libs.iteratee._
 import play.api.libs.streams.Accumulator
@@ -44,12 +45,12 @@ trait Filter extends EssentialFilter {
     new EssentialAction {
       import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-      def apply(rh: RequestHeader): Accumulator[Array[Byte], Result] = {
+      def apply(rh: RequestHeader): Accumulator[ByteString, Result] = {
 
         // Promised result returned to this filter when it invokes the delegate function (the next filter in the chain)
         val promisedResult = Promise[Result]()
         // Promised accumulator returned to the framework
-        val bodyAccumulator = Promise[Accumulator[Array[Byte], Result]]()
+        val bodyAccumulator = Promise[Accumulator[ByteString, Result]]()
 
         // Invoke the filter
         val result = self.apply({ (rh: RequestHeader) =>
@@ -115,7 +116,7 @@ class WithFilters(filters: EssentialFilter*) extends GlobalSettings {
 
 object FilterChain {
   def apply[A](action: EssentialAction, filters: List[EssentialFilter]): EssentialAction = new EssentialAction {
-    def apply(rh: RequestHeader): Accumulator[Array[Byte], Result] = {
+    def apply(rh: RequestHeader): Accumulator[ByteString, Result] = {
       val chain = filters.reverse.foldLeft(action) { (a, i) => i(a) }
       chain(rh)
     }

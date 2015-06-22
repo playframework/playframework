@@ -3,6 +3,7 @@
  */
 package play.libs.oauth
 
+import akka.util.ByteString
 import play.api.mvc._
 import play.api.test._
 
@@ -45,12 +46,12 @@ class OAuthSpec extends PlaySpecification {
     }
   }
 
-  def receiveRequest(makeRequest: String => F.Promise[_]): (RequestHeader, Array[Byte], String) = {
+  def receiveRequest(makeRequest: String => F.Promise[_]): (RequestHeader, ByteString, String) = {
     val hostUrl = "http://localhost:" + testServerPort
-    val promise = Promise[(RequestHeader, Array[Byte])]()
+    val promise = Promise[(RequestHeader, ByteString)]()
     val app = FakeApplication(withRoutes = {
       case _ => Action(BodyParsers.parse.raw) { request =>
-        promise.success((request, request.body.asBytes().getOrElse(Array.empty[Byte])))
+        promise.success((request, request.body.asBytes().getOrElse(ByteString.empty)))
         Results.Ok
       }
     })

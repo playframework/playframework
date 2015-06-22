@@ -3,6 +3,7 @@
  */
 package play.api.mvc
 
+import akka.util.ByteString
 import play.api.libs.iteratee._
 import play.api._
 import play.api.libs.streams.{ Streams, Accumulator }
@@ -29,13 +30,13 @@ trait RequestTaggingHandler extends Handler {
 
 /**
  * An `EssentialAction` underlies every `Action`. Given a `RequestHeader`, an
- * `EssentialAction` consumes the request body (an `Array[Byte]`) and returns
+ * `EssentialAction` consumes the request body (an `ByteString`) and returns
  * a `Result`.
  *
  * An `EssentialAction` is a `Handler`, which means it is one of the objects
  * that Play uses to handle requests.
  */
-trait EssentialAction extends (RequestHeader => Accumulator[Array[Byte], Result]) with Handler {
+trait EssentialAction extends (RequestHeader => Accumulator[ByteString, Result]) with Handler {
 
   /**
    * Returns itself, for better support in the routes file.
@@ -51,7 +52,7 @@ trait EssentialAction extends (RequestHeader => Accumulator[Array[Byte], Result]
  */
 object EssentialAction {
 
-  def apply(f: RequestHeader => Accumulator[Array[Byte], Result]): EssentialAction = new EssentialAction {
+  def apply(f: RequestHeader => Accumulator[ByteString, Result]): EssentialAction = new EssentialAction {
     def apply(rh: RequestHeader) = f(rh)
   }
 }
@@ -93,7 +94,7 @@ trait Action[A] extends EssentialAction {
    */
   def apply(request: Request[A]): Future[Result]
 
-  def apply(rh: RequestHeader): Accumulator[Array[Byte], Result] = parser(rh).mapFuture {
+  def apply(rh: RequestHeader): Accumulator[ByteString, Result] = parser(rh).mapFuture {
     case Left(r) =>
       logger.trace("Got direct result from the BodyParser: " + r)
       Future.successful(r)
@@ -134,7 +135,7 @@ trait Action[A] extends EssentialAction {
  *
  * @tparam A the body content type
  */
-trait BodyParser[+A] extends Function1[RequestHeader, Accumulator[Array[Byte], Either[Result, A]]] {
+trait BodyParser[+A] extends Function1[RequestHeader, Accumulator[ByteString, Either[Result, A]]] {
   self =>
 
   /**
@@ -253,7 +254,7 @@ object BodyParser {
    * }
    * }}}
    */
-  def apply[T](f: RequestHeader => Accumulator[Array[Byte], Either[Result, T]]): BodyParser[T] = {
+  def apply[T](f: RequestHeader => Accumulator[ByteString, Either[Result, T]]): BodyParser[T] = {
     apply("(no name)")(f)
   }
 
@@ -267,18 +268,18 @@ object BodyParser {
    * }
    * }}}
    */
-  def apply[T](debugName: String)(f: RequestHeader => Accumulator[Array[Byte], Either[Result, T]]): BodyParser[T] = new BodyParser[T] {
+  def apply[T](debugName: String)(f: RequestHeader => Accumulator[ByteString, Either[Result, T]]): BodyParser[T] = new BodyParser[T] {
     def apply(rh: RequestHeader) = f(rh)
     override def toString = "BodyParser(" + debugName + ")"
   }
 
   @deprecated("Use Akka streams instead", "2.5.0")
-  def iteratee[T](f: RequestHeader => Iteratee[Array[Byte], Either[Result, T]]): BodyParser[T] = {
+  def iteratee[T](f: RequestHeader => Iteratee[ByteString, Either[Result, T]]): BodyParser[T] = {
     iteratee("(no name)")(f)
   }
 
   @deprecated("Use Akka streams instead", "2.5.0")
-  def iteratee[T](debugName: String)(f: RequestHeader => Iteratee[Array[Byte], Either[Result, T]]): BodyParser[T] = new BodyParser[T] {
+  def iteratee[T](debugName: String)(f: RequestHeader => Iteratee[ByteString, Either[Result, T]]): BodyParser[T] = new BodyParser[T] {
     def apply(rh: RequestHeader) = Streams.iterateeToAccumulator(f(rh))
     override def toString = "BodyParser(" + debugName + ")"
   }

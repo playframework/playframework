@@ -25,7 +25,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import scala.concurrent.Future
-import akka.util.Timeout
+import akka.util.{ ByteString, Timeout }
 
 /**
  * Helper functions to run tests.
@@ -128,7 +128,7 @@ trait Writeables {
     Writeable.writeableOf_urlEncodedForm.map(c => c.data)
 
   implicit def writeableOf_AnyContentAsRaw: Writeable[AnyContentAsRaw] =
-    Writeable.wBytes.map(c => c.raw.initialData)
+    Writeable.wBytes.map(c => c.raw.initialData.toArray)
 
   implicit def writeableOf_AnyContentAsText(implicit code: Codec): Writeable[AnyContentAsText] =
     Writeable.wString.map(c => c.txt)
@@ -205,7 +205,7 @@ trait EssentialActionCaller {
       rh.copy(headers = rh.headers.replace(CONTENT_TYPE -> ct))
     }.getOrElse(rh)
 
-    val requestBody = Source.single(w.transform(body))
+    val requestBody = Source.single(w.transform(body)).map(ByteString.apply)
     action(rhWithCt).run(requestBody)
   }
 }

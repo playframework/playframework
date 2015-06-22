@@ -6,6 +6,7 @@ package play.api.test
 import javax.inject.{ Inject, Provider }
 
 import akka.actor.ActorSystem
+import akka.util.ByteString
 import play.api._
 import play.api.http._
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -135,8 +136,8 @@ case class FakeRequest[A](method: String, uri: String, headers: Headers, body: A
   /**
    * Adds a raw body to the request
    */
-  def withRawBody(bytes: Array[Byte]): FakeRequest[AnyContentAsRaw] = {
-    _copy(body = AnyContentAsRaw(RawBuffer(bytes.length, bytes)))
+  def withRawBody(bytes: ByteString): FakeRequest[AnyContentAsRaw] = {
+    _copy(body = AnyContentAsRaw(RawBuffer(bytes.size, bytes)))
   }
 
   /**

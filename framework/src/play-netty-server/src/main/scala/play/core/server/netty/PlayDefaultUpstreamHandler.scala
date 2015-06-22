@@ -4,6 +4,7 @@
 package play.core.server.netty
 
 import akka.stream.ActorFlowMaterializer
+import akka.util.ByteString
 import org.jboss.netty.buffer.ChannelBuffers
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
@@ -237,9 +238,7 @@ private[play] class PlayDefaultUpstreamHandler(server: NettyServer, allChannels:
                 val bodyEnumerator = {
                   val body = {
                     val cBuffer = nettyHttpRequest.getContent
-                    val bytes = new Array[Byte](cBuffer.readableBytes())
-                    cBuffer.readBytes(bytes)
-                    bytes
+                    ByteString(cBuffer.toByteBuffer)
                   }
                   Enumerator(body).andThen(Enumerator.enumInput(EOF))
                 }

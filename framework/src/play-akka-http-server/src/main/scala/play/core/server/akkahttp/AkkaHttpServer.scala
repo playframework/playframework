@@ -7,6 +7,7 @@ import akka.http.scaladsl.model.headers.Expect
 import akka.stream.ActorFlowMaterializer
 import akka.stream.scaladsl._
 import java.net.InetSocketAddress
+import akka.util.ByteString
 import org.reactivestreams.{ Subscription, Subscriber, Publisher }
 import play.api._
 import play.api.http.DefaultHttpErrorHandler
@@ -109,7 +110,7 @@ class AkkaHttpServer(
     tryApp: Try[Application],
     request: HttpRequest,
     taggedRequestHeader: RequestHeader,
-    requestBodySource: Source[Array[Byte], _],
+    requestBodySource: Source[ByteString, _],
     handler: Handler): Future[HttpResponse] = handler match {
     //execute normal action
     case action: EssentialAction =>
@@ -135,11 +136,11 @@ class AkkaHttpServer(
     tryApp: Try[Application],
     request: HttpRequest,
     taggedRequestHeader: RequestHeader,
-    requestBodySource: Source[Array[Byte], _],
+    requestBodySource: Source[ByteString, _],
     action: EssentialAction): Future[HttpResponse] = {
 
     import play.api.libs.iteratee.Execution.Implicits.trampoline
-    val actionAccumulator: Accumulator[Array[Byte], Result] = action(taggedRequestHeader)
+    val actionAccumulator: Accumulator[ByteString, Result] = action(taggedRequestHeader)
 
     val source = if (request.header[Expect].exists(_ == Expect.`100-continue`)) {
       // If we expect 100 continue, then we must not feed the source into the accumulator until the accumulator

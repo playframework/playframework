@@ -11,6 +11,10 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.util.*;
 import java.util.Map.Entry;
+
+import akka.util.ByteString;
+import akka.util.ByteString$;
+import akka.util.CompactByteString;
 import scala.Predef;
 import scala.Tuple2;
 import scala.collection.JavaConversions;
@@ -700,9 +704,18 @@ public class Http {
          * The <tt>Content-Type</tt> header of the request is set to <tt>application/octet-stream</tt>.
          * @param data the Binary Data
          */
-        public RequestBuilder bodyRaw(byte[] data) {
-            play.api.mvc.RawBuffer buffer = new play.api.mvc.RawBuffer(data.length, data);
+        public RequestBuilder bodyRaw(ByteString data) {
+            play.api.mvc.RawBuffer buffer = new play.api.mvc.RawBuffer(data.size(), data);
             return body(new AnyContentAsRaw(buffer), "application/octet-stream");
+        }
+
+        /**
+         * Set a Binary Data to this request.
+         * The <tt>Content-Type</tt> header of the request is set to <tt>application/octet-stream</tt>.
+         * @param data the Binary Data
+         */
+        public RequestBuilder bodyRaw(byte[] data) {
+            return bodyRaw(ByteString.fromArray(data));
         }
 
         /**
@@ -1189,12 +1202,12 @@ public class Http {
          * @param maxLength The max length allowed to be stored in memory
          * @return null if the content is too big to fit in memory
          */
-        public abstract byte[] asBytes(int maxLength);
+        public abstract ByteString asBytes(int maxLength);
 
         /**
          * Returns the buffer content as a bytes array
          */
-        public abstract byte[] asBytes();
+        public abstract ByteString asBytes();
 
         /**
          * Returns the buffer content as File
