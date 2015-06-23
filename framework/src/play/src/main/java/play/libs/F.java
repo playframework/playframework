@@ -12,6 +12,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.Arrays;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import play.core.j.FPromiseHelper;
 import scala.concurrent.ExecutionContext;
@@ -21,27 +23,6 @@ import scala.concurrent.Future;
  * Defines a set of functional programming style helpers.
  */
 public class F {
-
-    /**
-     * A Function with no arguments.
-     */
-    public static interface Function0<R> {
-        public R apply() throws Throwable;
-    }
-
-    /**
-     * A Function with a single argument.
-     */
-    public static interface Function<A,R> {
-        public R apply(A a) throws Throwable;
-    }
-
-    /**
-     * A Function with 2 arguments.
-     */
-    public static interface Function2<A,B,R> {
-        public R apply(A a, B b) throws Throwable;
-    }
 
     /**
      * A Function with 3 arguments.
@@ -194,7 +175,7 @@ public class F {
          *
          * @param function Used to fulfill the Promise.
          */
-        public static <A> Promise<A> promise(Function0<A> function) {
+        public static <A> Promise<A> promise(Supplier<A> function) {
             return FPromiseHelper.promise(function, HttpExecution.defaultContext());
         }
 
@@ -204,7 +185,7 @@ public class F {
          * @param function Used to fulfill the Promise.
          * @param ec The ExecutionContext to run the function in.
          */
-        public static <A> Promise<A> promise(Function0<A> function, ExecutionContext ec) {
+        public static <A> Promise<A> promise(Supplier<A> function, ExecutionContext ec) {
             return FPromiseHelper.promise(function, ec);
         }
 
@@ -218,7 +199,7 @@ public class F {
          * @param delay The time to wait.
          * @param unit The units to use for the delay.
          */
-        public static <A> Promise<A> delayed(Function0<A> function, long delay, TimeUnit unit) {
+        public static <A> Promise<A> delayed(Supplier<A> function, long delay, TimeUnit unit) {
             return FPromiseHelper.delayed(function, delay, unit, HttpExecution.defaultContext());
         }
 
@@ -231,7 +212,7 @@ public class F {
          * @param unit The units to use for the delay.
          * @param ec The ExecutionContext to run the Function0 in.
          */
-        public static <A> Promise<A> delayed(Function0<A> function, long delay, TimeUnit unit, ExecutionContext ec) {
+        public static <A> Promise<A> delayed(Supplier<A> function, long delay, TimeUnit unit, ExecutionContext ec) {
             return FPromiseHelper.delayed(function, delay, unit, ec);
         }
 

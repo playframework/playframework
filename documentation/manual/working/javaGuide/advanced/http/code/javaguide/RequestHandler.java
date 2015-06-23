@@ -17,7 +17,7 @@ public class RequestHandler implements HttpRequestHandler {
     public Action createAction(Http.Request request, Method actionMethod) {
         return new Action.Simple() {
             @Override
-            public F.Promise<Result> call(Http.Context ctx) throws Throwable {
+            public F.Promise<Result> call(Http.Context ctx) {
                 return delegate.call(ctx);
             }
         };

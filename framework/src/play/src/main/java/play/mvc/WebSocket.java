@@ -7,10 +7,10 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import akka.actor.ActorRef;
 import akka.actor.Props;
-import play.libs.F.*;
 
 /**
  * A WebSocket result.

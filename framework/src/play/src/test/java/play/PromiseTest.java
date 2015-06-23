@@ -9,6 +9,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
+import java.util.function.Function;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,11 +35,7 @@ public class PromiseTest extends ExecutionTest {
     public void testEmptyPromise() {
         F.RedeemablePromise<Integer> a = F.RedeemablePromise.empty();
 
-        F.Promise<String> b = a.map(new F.Function<Integer, String>() {
-          public String apply(Integer i) {
-            return i.toString();
-          }
-        });
+        F.Promise<String> b = a.map(Object::toString);
 
         a.success(1);
 
@@ -236,7 +233,7 @@ public class PromiseTest extends ExecutionTest {
     @Test
     public void testSupertypeMap() {
         F.Promise<Integer> a = F.Promise.pure(1);
-        F.Function<Object, String> f = Object::toString;
+        Function<Object, String> f = Object::toString;
         F.Promise<String> b = a.map(f);
         assertThat(b.get(t)).isEqualTo("1");
     }
@@ -260,7 +257,7 @@ public class PromiseTest extends ExecutionTest {
     @Test
     public void testSupertypeFlatMap() {
         F.Promise<Integer> a = F.Promise.pure(1);
-        F.Function<Object, F.Promise<String>> f = o -> F.Promise.pure(o.toString());
+        Function<Object, F.Promise<String>> f = o -> F.Promise.pure(o.toString());
         F.Promise<String> b = a.flatMap(f);
         assertThat(b.get(t)).isEqualTo("1");
     }

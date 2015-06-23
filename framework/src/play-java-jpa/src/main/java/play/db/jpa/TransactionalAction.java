@@ -12,7 +12,7 @@ import play.mvc.Http.*;
  */
 public class TransactionalAction extends Action<Transactional> {
 
-    public F.Promise<Result> call(final Context ctx) throws Throwable {
+    public F.Promise<Result> call(final Context ctx) {
         return JPA.withTransaction(
             configuration.value(),
             configuration.readOnly(),

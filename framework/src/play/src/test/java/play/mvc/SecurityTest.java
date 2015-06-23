@@ -18,7 +18,7 @@ public class SecurityTest {
         Http.Request req;
         Security.AuthenticatedAction action;
 
-        Exception exception = new Exception("test exception");
+        RuntimeException exception = new RuntimeException("test exception");
         final Result ok = Results.ok();
 
         @Before
@@ -59,7 +59,7 @@ public class SecurityTest {
         public void testSetUsernameToNullWhenExceptionRaised() {
             action.delegate = new Action<Object>() {
                 @Override
-                public F.Promise<Result> call(Http.Context ctx) throws Throwable {
+                public F.Promise<Result> call(Http.Context ctx) {
                     throw exception;
                 }
             };
@@ -67,7 +67,7 @@ public class SecurityTest {
             try {
                 action.call(ctx);
             } catch (RuntimeException e) {
-                Assert.assertEquals(exception, e.getCause());
+                Assert.assertEquals(exception, e);
             }
 
             verify(req).setUsername("test_user");
@@ -77,7 +77,7 @@ public class SecurityTest {
         private void runSetUsernameToNullInCallback(final boolean shouldRaiseException) {
             action.delegate = new Action<Object>() {
                 @Override
-                public F.Promise<Result> call(Http.Context ctx) throws Throwable {
+                public F.Promise<Result> call(Http.Context ctx) {
                     return F.Promise.promise(() -> {
                         if (shouldRaiseException) {
                             throw exception;

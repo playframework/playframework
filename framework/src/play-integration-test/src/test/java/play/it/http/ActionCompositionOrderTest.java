@@ -21,7 +21,7 @@ public class ActionCompositionOrderTest {
 
     static class ControllerComposition extends Action<ControllerAnnotation> {
         @Override
-        public F.Promise<Result> call(Http.Context ctx) throws Throwable {
+        public F.Promise<Result> call(Http.Context ctx) {
             return delegate.call(ctx).map(result -> {
                 String newContent = "controller" + Helpers.contentAsString(result);
                 return Results.ok(newContent);
@@ -36,7 +36,7 @@ public class ActionCompositionOrderTest {
 
     static class ActionComposition extends Action<ControllerAnnotation> {
         @Override
-        public F.Promise<Result> call(Http.Context ctx) throws Throwable {
+        public F.Promise<Result> call(Http.Context ctx) {
             return delegate.call(ctx).map(result -> {
                 String newContent = "action" + Helpers.contentAsString(result);
                 return Results.ok(newContent);
@@ -53,7 +53,7 @@ public class ActionCompositionOrderTest {
 
     static class WithUsernameAction extends Action<WithUsername> {
         @Override
-        public F.Promise<Result> call(Http.Context ctx) throws Throwable {
+        public F.Promise<Result> call(Http.Context ctx) {
             return delegate.call(ctx.withRequest(ctx.request().withUsername(configuration.value())));
         }
     }

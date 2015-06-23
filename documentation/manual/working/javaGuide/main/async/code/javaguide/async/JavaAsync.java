@@ -4,8 +4,6 @@
 package javaguide.async;
 
 import org.junit.Test;
-import play.libs.F.Function;
-import play.libs.F.Function0;
 import play.libs.F.Promise;
 import play.mvc.Result;
 

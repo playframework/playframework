@@ -3,6 +3,8 @@
  */
 package play.db.jpa;
 
+import java.util.function.Supplier;
+
 import javax.persistence.EntityManager;
 import play.libs.F;
 
@@ -28,7 +30,7 @@ public interface JPAApi {
      *
      * @param block Block of code to execute
      */
-    public <T> T withTransaction(play.libs.F.Function0<T> block) throws Throwable;
+    public <T> T withTransaction(Supplier<T> block);
 
     /**
      * Run a block of asynchronous code in a JPA transaction.
@@ -38,7 +40,7 @@ public interface JPAApi {
      * @deprecated This may cause deadlocks
      */
     @Deprecated
-    public <T> F.Promise<T> withTransactionAsync(play.libs.F.Function0<F.Promise<T>> block) throws Throwable;
+    public <T> F.Promise<T> withTransactionAsync(Supplier<F.Promise<T>> block);
 
     /**
      * Run a block of code in a JPA transaction.
@@ -54,7 +56,7 @@ public interface JPAApi {
      * @param readOnly Is the transaction read-only?
      * @param block Block of code to execute
      */
-    public <T> T withTransaction(String name, boolean readOnly, play.libs.F.Function0<T> block) throws Throwable;
+    public <T> T withTransaction(String name, boolean readOnly, Supplier<T> block);
 
     /**
      * Run a block of asynchronous code in a JPA transaction.
@@ -66,7 +68,7 @@ public interface JPAApi {
      * @deprecated This may cause deadlocks
      */
     @Deprecated
-    public <T> F.Promise<T> withTransactionAsync(String name, boolean readOnly, play.libs.F.Function0<F.Promise<T>> block) throws Throwable;
+    public <T> F.Promise<T> withTransactionAsync(String name, boolean readOnly, Supplier<F.Promise<T>> block);
 
     /**
      * Close all entity manager factories.

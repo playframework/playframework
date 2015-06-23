@@ -6,6 +6,7 @@ package play.core.j
 import java.lang.{ Iterable => JIterable }
 import java.util.{ List => JList, Timer, TimerTask }
 import java.util.concurrent.{ Callable, TimeoutException, TimeUnit }
+import java.util.function.{ Consumer, Function => JFunction, Predicate, Supplier }
 import play.api.libs.concurrent.{ Promise => DeprecatedPlayPromise }
 import play.api.libs.iteratee.Execution
 import play.libs.F
@@ -14,8 +15,6 @@ import scala.concurrent.{ Await, ExecutionContext, Future, Promise }
 import scala.concurrent.duration.{ Duration, MILLISECONDS }
 import scala.util.{ Failure, Success, Try }
 import play.core.Execution.internalContext
-import java.util.function.Consumer
-import java.util.function.Predicate
 
 /**
  * Support code for the play.libs.F.Promise class. All public methods of this
@@ -33,8 +32,8 @@ private[play] object FPromiseHelper {
   def promise[A](callable: Callable[A], ec: ExecutionContext): F.Promise[A] =
     F.Promise.wrap(Future(callable.call())(ec.prepare()))
 
-  def promise[A](function: F.Function0[A], ec: ExecutionContext): F.Promise[A] =
-    F.Promise.wrap(Future(function.apply())(ec.prepare()))
+  def promise[A](function: Supplier[A], ec: ExecutionContext): F.Promise[A] =
+    F.Promise.wrap(Future(function.get())(ec.prepare()))
 
   private def delayedWith[A](f: => A, delay: Long, unit: TimeUnit, ec: ExecutionContext): F.Promise[A] = {
     val pec = ec.prepare()
@@ -48,8 +47,8 @@ private[play] object FPromiseHelper {
   def delayed[A](callable: Callable[A], duration: Long, unit: TimeUnit, ec: ExecutionContext): F.Promise[A] =
     delayedWith(callable.call(), duration, unit, ec)
 
-  def delayed[A](function: F.Function0[A], duration: Long, unit: TimeUnit, ec: ExecutionContext): F.Promise[A] =
-    delayedWith(function.apply(), duration, unit, ec)
+  def delayed[A](function: Supplier[A], duration: Long, unit: TimeUnit, ec: ExecutionContext): F.Promise[A] =
+    delayedWith(function.get(), duration, unit, ec)
 
   def get[A](promise: F.Promise[A], timeout: Long, unit: TimeUnit): A = {
     try {
@@ -100,19 +99,19 @@ private[play] object FPromiseHelper {
   def onRedeem[A](promise: F.Promise[A], action: Consumer[A], ec: ExecutionContext): Unit =
     promise.wrapped().onSuccess { case a => action.accept(a) }(ec.prepare())
 
-  def map[A, B, T >: A](promise: F.Promise[A], function: F.Function[T, B], ec: ExecutionContext): F.Promise[B] =
+  def map[A, B, T >: A](promise: F.Promise[A], function: JFunction[T, B], ec: ExecutionContext): F.Promise[B] =
     F.Promise.wrap[B](promise.wrapped().map((a: A) => function.apply(a))(ec.prepare()))
 
-  def flatMap[A, B, T >: A](promise: F.Promise[A], function: F.Function[T, F.Promise[B]], ec: ExecutionContext): F.Promise[B] =
+  def flatMap[A, B, T >: A](promise: F.Promise[A], function: JFunction[T, F.Promise[B]], ec: ExecutionContext): F.Promise[B] =
     F.Promise.wrap[B](promise.wrapped().flatMap((a: A) => function.apply(a).wrapped())(ec.prepare()))
 
   def filter[A, T >: A](promise: F.Promise[A], predicate: Predicate[T], ec: ExecutionContext): F.Promise[A] =
     F.Promise.wrap[A](promise.wrapped().filter(predicate.test)(ec.prepare()))
 
-  def recover[A](promise: F.Promise[A], function: F.Function[Throwable, A], ec: ExecutionContext): F.Promise[A] =
+  def recover[A](promise: F.Promise[A], function: JFunction[Throwable, A], ec: ExecutionContext): F.Promise[A] =
     F.Promise.wrap[A](promise.wrapped().recover { case t => function.apply(t) }(ec.prepare()))
 
-  def recoverWith[A](promise: F.Promise[A], function: F.Function[Throwable, F.Promise[A]], ec: ExecutionContext): F.Promise[A] =
+  def recoverWith[A](promise: F.Promise[A], function: JFunction[Throwable, F.Promise[A]], ec: ExecutionContext): F.Promise[A] =
     F.Promise.wrap[A](promise.wrapped().recoverWith { case t => function.apply(t).wrapped() }(ec.prepare()))
 
   def fallbackTo[A](promise: F.Promise[A], fallback: F.Promise[A]): F.Promise[A] =
@@ -122,7 +121,7 @@ private[play] object FPromiseHelper {
     promise.wrapped().onFailure { case t => action.accept(t) }(ec.prepare())
   }
 
-  def transform[A, B, T >: A](promise: F.Promise[A], s: F.Function[T, B], f: F.Function[Throwable, Throwable], ec: ExecutionContext): F.Promise[B] =
+  def transform[A, B, T >: A](promise: F.Promise[A], s: JFunction[T, B], f: JFunction[Throwable, Throwable], ec: ExecutionContext): F.Promise[B] =
     F.Promise.wrap[B](promise.wrapped.transform(s.apply, f.apply)(ec.prepare()))
 
   def empty[A]() = {

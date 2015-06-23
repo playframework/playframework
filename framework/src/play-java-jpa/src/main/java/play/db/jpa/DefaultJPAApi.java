@@ -8,6 +8,7 @@ import play.inject.ApplicationLifecycle;
 import play.libs.F;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -76,7 +77,7 @@ public class DefaultJPAApi implements JPAApi {
      *
      * @param block Block of code to execute
      */
-    public <T> T withTransaction(play.libs.F.Function0<T> block) throws Throwable {
+    public <T> T withTransaction(Supplier<T> block) {
         return withTransaction("default", false, block);
     }
 
@@ -88,7 +89,7 @@ public class DefaultJPAApi implements JPAApi {
      * @deprecated This may cause deadlocks
      */
     @Deprecated
-    public <T> F.Promise<T> withTransactionAsync(play.libs.F.Function0<F.Promise<T>> block) throws Throwable {
+    public <T> F.Promise<T> withTransactionAsync(Supplier<F.Promise<T>> block) {
         return withTransactionAsync("default", false, block);
     }
 
@@ -115,7 +116,7 @@ public class DefaultJPAApi implements JPAApi {
      * @param readOnly Is the transaction read-only?
      * @param block Block of code to execute
      */
-    public <T> T withTransaction(String name, boolean readOnly, play.libs.F.Function0<T> block) throws Throwable {
+    public <T> T withTransaction(String name, boolean readOnly, Supplier<T> block) {
         EntityManager entityManager = null;
         EntityTransaction tx = null;
 
@@ -133,7 +134,7 @@ public class DefaultJPAApi implements JPAApi {
                 tx.begin();
             }
 
-            T result = block.apply();
+            T result = block.get();
 
             if (tx != null) {
                 if(tx.getRollbackOnly()) {
@@ -168,7 +169,7 @@ public class DefaultJPAApi implements JPAApi {
      * @deprecated This may cause deadlocks
      */
     @Deprecated
-    public <T> F.Promise<T> withTransactionAsync(String name, boolean readOnly, play.libs.F.Function0<F.Promise<T>> block) throws Throwable {
+    public <T> F.Promise<T> withTransactionAsync(String name, boolean readOnly, Supplier<F.Promise<T>> block) {
         EntityManager entityManager = null;
         EntityTransaction tx = null;
 
@@ -186,7 +187,7 @@ public class DefaultJPAApi implements JPAApi {
                 tx.begin();
             }
 
-            F.Promise<T> result = block.apply();
+            F.Promise<T> result = block.get();
 
             final EntityManager fem = entityManager;
             final EntityTransaction ftx = tx;

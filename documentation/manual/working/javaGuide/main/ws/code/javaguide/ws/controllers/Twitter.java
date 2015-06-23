@@ -1,7 +1,6 @@
 package javaguide.ws.controllers;
 
 //#ws-oauth-controller
-import play.libs.F.Function;
 import play.libs.F.Option;
 import play.libs.F.Promise;
 import play.libs.oauth.OAuth;
@@ -41,12 +40,7 @@ public class Twitter extends Controller {
       return ws.url("https://api.twitter.com/1.1/statuses/home_timeline.json")
           .sign(new OAuthCalculator(Twitter.KEY, sessionTokenPair.get()))
           .get()
-          .map(new Function<WSResponse, Result>(){
-            @Override
-            public Result apply(WSResponse result) throws Throwable {
-              return ok(result.asJson());
-            }
-       });
+          .map(result -> ok(result.asJson()));
     }
     return Promise.pure(redirect(routes.Twitter.auth()));
   }
