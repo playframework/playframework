@@ -8,6 +8,7 @@ import java.util.jar.JarFile
 
 import com.typesafe.play.docs.sbtplugin.PlayDocsValidation.{ ValidationConfig, CodeSamplesReport, MarkdownRefReport }
 import play.core.BuildDocHandler
+import play.core.PlayVersion
 import play.core.server.ServerWithStop
 import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
 import play.TemplateImports
@@ -65,12 +66,12 @@ object PlayDocsPlugin extends AutoPlugin {
     generateMarkdownRefReport <<= PlayDocsValidation.generateMarkdownRefReportTask,
     validateDocs <<= PlayDocsValidation.validateDocsTask,
     validateExternalLinks <<= PlayDocsValidation.validateExternalLinksTask,
-    docsVersion := play.core.PlayVersion.current,
+    docsVersion := PlayVersion.current,
     docsName := "play-docs",
     docsJarFile <<= docsJarFileSetting,
     docsJarScalaBinaryVersion <<= scalaBinaryVersion,
     libraryDependencies ++= Seq(
-      "com.typesafe.play" %% docsName.value % play.core.PlayVersion.current,
+      "com.typesafe.play" %% docsName.value % PlayVersion.current,
       "com.typesafe.play" % s"${docsName.value}_${docsJarScalaBinaryVersion.value}" % docsVersion.value % "docs" notTransitive ()
     )
   )
@@ -83,9 +84,17 @@ object PlayDocsPlugin extends AutoPlugin {
     cachedTranslationCodeSamplesReport <<= PlayDocsValidation.cachedTranslationCodeSamplesReportTask
   )
 
+  private val migrationManualSources = SettingKey[Seq[File]]("migrationManualSources")
+  migrationManualSources := {
+    val playVersion = PlayVersion.current
+    val Version(era, major, _, _) = Version.from(playVersion)
+    val shortVersion = s"${era}${major}"
+    (baseDirectory.value / "manual" / "releases" / s"migration${shortVersion}" / s"code${shortVersion}").get
+  }
+
   def docsTestSettings = Seq(
-    javaManualSourceDirectories := Seq.empty,
-    scalaManualSourceDirectories := Seq.empty,
+    javaManualSourceDirectories := migrationManualSources.value,
+    scalaManualSourceDirectories := migrationManualSources.value,
     unmanagedSourceDirectories in Test ++= javaManualSourceDirectories.value ++ scalaManualSourceDirectories.value,
     unmanagedResourceDirectories in Test ++= javaManualSourceDirectories.value ++ scalaManualSourceDirectories.value,
 

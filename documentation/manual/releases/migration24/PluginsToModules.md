@@ -15,11 +15,11 @@ Start by creating a class that inherits from `play.api.inject.Module`, and provi
 
 In Java
 
-@[module-decl](code/MyModule.java)
+@[module-decl](code24/MyModule.java)
 
 In Scala
 
-@[module-decl](code/MyModule.scala)
+@[module-decl](code24/MyModule.scala)
 
 
 Note that if a component you are defining requires another component, you should simply add the required component as a constructor's dependency, prepending the constructor with the `@javax.inject.Inject` annotation. The DI framework will then take care of the rest.
@@ -30,11 +30,11 @@ Next follows an example of a component named `MyComponentImpl` requiring the `Ap
 
 In Java
 
-@[components-decl](code/MyComponent.java)
+@[components-decl](code24/MyComponent.java)
 
 In Scala
 
-@[components-decl](code/MyComponent.scala)
+@[components-decl](code24/MyComponent.scala)
 
 ## Wire it up
 
@@ -52,7 +52,7 @@ If you are working on a library that will be used by other projects (including s
 
 By defining a `Module` class, you have made your component usable with runtime DI frameworks such a Google Guice or Spring. An alternative that is popular in Scala is [[compile-time DI|ScalaCompileTimeDependencyInjection#Compile-Time-Dependency-Injection]]. To make your component usable also with compile-time DI provide a Scala `trait` that declares the component's dependencies. Here is how you would do it for the running example:
 
-@[components-decl](code/MyModule.scala)
+@[components-decl](code24/MyModule.scala)
 
 ## Delete your `Plugin` class and `play.plugins` file
 
