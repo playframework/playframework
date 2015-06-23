@@ -1,7 +1,6 @@
 package javaguide.ws.controllers;
 
 //#ws-oauth-controller
-import play.libs.F.Option;
 import play.libs.F.Promise;
 import play.libs.oauth.OAuth;
 import play.libs.oauth.OAuth.ConsumerKey;
@@ -16,6 +15,7 @@ import play.mvc.Result;
 import com.google.common.base.Strings;
 
 import javax.inject.Inject;
+import java.util.Optional;
 
 public class Twitter extends Controller {
   static final ConsumerKey KEY = new ConsumerKey("...", "...");
@@ -35,8 +35,8 @@ public class Twitter extends Controller {
   }
 
   public Promise<Result> homeTimeline() {
-    Option<RequestToken> sessionTokenPair = getSessionTokenPair();
-    if (sessionTokenPair.isDefined()) {
+    Optional<RequestToken> sessionTokenPair = getSessionTokenPair();
+    if (sessionTokenPair.isPresent()) {
       return ws.url("https://api.twitter.com/1.1/statuses/home_timeline.json")
           .sign(new OAuthCalculator(Twitter.KEY, sessionTokenPair.get()))
           .get()
@@ -65,11 +65,11 @@ public class Twitter extends Controller {
     session("secret", requestToken.secret);
   }
 
-  private Option<RequestToken> getSessionTokenPair() {
+  private Optional<RequestToken> getSessionTokenPair() {
     if (session().containsKey("token")) {
-      return Option.Some(new RequestToken(session("token"), session("secret")));
+      return Optional.ofNullable(new RequestToken(session("token"), session("secret")));
     }
-    return Option.None();
+    return Optional.empty();
   }
   
 }

@@ -234,7 +234,7 @@ object PlayBuild extends Build {
     .enablePlugins(SbtTwirl)
     .settings(
       addScalaModules(scalaParserCombinators),
-      libraryDependencies ++= runtime(scalaVersion.value) ++ scalacheckDependencies,
+      libraryDependencies ++= runtime(scalaVersion.value) ++ scalacheckDependencies ++ Seq(scalaJava8Compat),
 
       sourceGenerators in Compile <+= (version, scalaVersion, sbtVersion, sourceManaged in Compile) map PlayVersion,
 
