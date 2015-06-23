@@ -3,6 +3,7 @@
  */
 package play.core.j
 
+import java.util.Optional
 import scala.util.control.NonFatal
 
 /** Defines a magic helper for Play templates in a Java context. */
@@ -10,12 +11,10 @@ object PlayMagicForJava {
 
   import scala.collection.JavaConverters._
   import scala.language.implicitConversions
+  import scala.compat.java8.OptionConverters._
 
-  /** Transforms a Play Java `Option` to a proper Scala `Option`. */
-  implicit def javaOptionToScala[T](x: play.libs.F.Option[T]): Option[T] = x match {
-    case x: play.libs.F.Some[_] => Some(x.get)
-    case x: play.libs.F.None[_] => None
-  }
+  /** Transforms a Play Java `Optional` to a proper Scala `Option`. */
+  implicit def javaOptionToScala[T](x: Optional[T]): Option[T] = x.asScala
 
   implicit def implicitJavaLang: play.api.i18n.Lang = {
     try {

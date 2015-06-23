@@ -13,7 +13,10 @@ import java.util.regex.Pattern;
 import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.*;
 
+import play.i18n.Messages;
 import play.mvc.Http;
+
+import static java.util.stream.Collectors.toList;
 import static play.libs.F.*;
 
 import play.libs.F.Tuple;
@@ -44,28 +47,28 @@ public class Form<T> {
      * Instantiates a new form that wraps the specified class.
      */
     public static <T> Form<T> form(Class<T> clazz) {
-        return new Form<T>(clazz);
+        return new Form<>(clazz);
     }
     
     /**
      * Instantiates a new form that wraps the specified class.
      */
     public static <T> Form<T> form(String name, Class<T> clazz) {
-        return new Form<T>(name, clazz);
+        return new Form<>(name, clazz);
     }
     
     /**
      * Instantiates a new form that wraps the specified class.
      */
     public static <T> Form<T> form(String name, Class<T> clazz, Class<?> group) {
-        return new Form<T>(name, clazz, group);
+        return new Form<>(name, clazz, group);
     }
 
     /**
      * Instantiates a new form that wraps the specified class.
      */
     public static <T> Form<T> form(Class<T> clazz, Class<?> group) {
-        return new Form<T>(null, clazz, group);
+        return new Form<>(null, clazz, group);
     }
 
     // ---
@@ -75,7 +78,7 @@ public class Form<T> {
      */
     @Retention(RUNTIME)
     @Target({ANNOTATION_TYPE})
-    public static @interface Display {
+    public @interface Display {
         String name();
         String[] attributes() default {};
     }
@@ -86,7 +89,7 @@ public class Form<T> {
     private final Class<T> backedType;
     private final Map<String,String> data;
     private final Map<String,List<ValidationError>> errors;
-    private final Option<T> value;
+    private final Optional<T> value;
     private final Class<?> groups;
 
     private T blankInstance() {
@@ -108,15 +111,15 @@ public class Form<T> {
 
     @SuppressWarnings("unchecked")
     public Form(String name, Class<T> clazz) {
-        this(name, clazz, new HashMap<String,String>(), new HashMap<String,List<ValidationError>>(), None(),  null);
+        this(name, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(),  null);
     }
 
     @SuppressWarnings("unchecked")
     public Form(String name, Class<T> clazz, Class<?> groups) {
-        this(name, clazz, new HashMap<String,String>(), new HashMap<String,List<ValidationError>>(), None(), groups);
+        this(name, clazz, new HashMap<>(), new HashMap<>(), Optional.empty(), groups);
     }
 
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Option<T> value) {
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value) {
         this(rootName, clazz, data, errors, value, null);
     }
 
@@ -128,7 +131,7 @@ public class Form<T> {
      * @param errors the collection of errors associated with this form
      * @param value optional concrete value of type <code>T</code> if the form submission was successful
      */
-    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Option<T> value, Class<?> groups) {
+    public Form(String rootName, Class<T> clazz, Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<T> value, Class<?> groups) {
         this.rootName = rootName;
         this.backedType = clazz;
         this.data = data;
@@ -139,17 +142,17 @@ public class Form<T> {
 
     protected Map<String,String> requestData(Http.Request request) {
 
-        Map<String,String[]> urlFormEncoded = new HashMap<String,String[]>();
+        Map<String,String[]> urlFormEncoded = new HashMap<>();
         if(request.body().asFormUrlEncoded() != null) {
             urlFormEncoded = request.body().asFormUrlEncoded();
         }
 
-        Map<String,String[]> multipartFormData = new HashMap<String,String[]>();
+        Map<String,String[]> multipartFormData = new HashMap<>();
         if(request.body().asMultipartFormData() != null) {
             multipartFormData = request.body().asMultipartFormData().asFormUrlEncoded();
         }
 
-        Map<String,String> jsonData = new HashMap<String,String>();
+        Map<String,String> jsonData = new HashMap<>();
         if(request.body().asJson() != null) {
             jsonData = play.libs.Scala.asJava(
                 play.api.data.FormUtils.fromJson("", 
@@ -162,7 +165,7 @@ public class Form<T> {
 
         Map<String,String[]> queryString = request.queryString();
 
-        Map<String,String> data = new HashMap<String,String>();
+        Map<String,String> data = new HashMap<>();
 
         for(String key: urlFormEncoded.keySet()) {
             String[] values = urlFormEncoded.get(key);
@@ -237,7 +240,7 @@ public class Form<T> {
      * @return a copy of this form filled with the new data
      */
     public Form<T> bindFromRequest(Map<String,String[]> requestData, String... allowedFields) {
-        Map<String,String> data = new HashMap<String,String>();
+        Map<String,String> data = new HashMap<>();
         for(String key: requestData.keySet()) {
             String[] values = requestData.get(key);
             if(key.endsWith("[]")) {
@@ -273,7 +276,7 @@ public class Form<T> {
         );
     }
 
-    private static final Set<String> internalAnnotationAttributes = new HashSet<String>(3);
+    private static final Set<String> internalAnnotationAttributes = new HashSet<>(3);
     static {
         internalAnnotationAttributes.add("message");
         internalAnnotationAttributes.add("groups");
@@ -281,11 +284,11 @@ public class Form<T> {
     }
 
     protected Object[] getArgumentsForConstraint(String objectName, String field, ConstraintDescriptor<?> descriptor) {
-        List<Object> arguments = new LinkedList<Object>();
+        List<Object> arguments = new LinkedList<>();
         String[] codes = new String[] {objectName + Errors.NESTED_PATH_SEPARATOR + field, field};
         arguments.add(new DefaultMessageSourceResolvable(codes, field));
         // Using a TreeMap for alphabetical ordering of attribute names
-        Map<String, Object> attributesToExpose = new TreeMap<String, Object>();
+        Map<String, Object> attributesToExpose = new TreeMap<>();
         for (Map.Entry<String, Object> entry : descriptor.getAttributes().entrySet()) {
             String attributeName = entry.getKey();
             Object attributeValue = entry.getValue();
@@ -328,13 +331,13 @@ public class Form<T> {
     @SuppressWarnings("unchecked")
     public Form<T> bind(Map<String,String> data, String... allowedFields) {
 
-        DataBinder dataBinder = null;
+        DataBinder dataBinder;
         Map<String, String> objectData = data;
         if (rootName == null) {
             dataBinder = new DataBinder(blankInstance());
         } else {
             dataBinder = new DataBinder(blankInstance(), rootName);
-            objectData = new HashMap<String,String>();
+            objectData = new HashMap<>();
             for (String key: data.keySet()) {
                 if (key.startsWith(rootName + ".")) {
                     objectData.put(key.substring(rootName.length() + 1), data.get(key));
@@ -377,17 +380,17 @@ public class Form<T> {
         }
 
         if (result.hasErrors() || result.getGlobalErrorCount() > 0) {
-            Map<String,List<ValidationError>> errors = new HashMap<String,List<ValidationError>>();
+            Map<String,List<ValidationError>> errors = new HashMap<>();
             for (FieldError error: result.getFieldErrors()) {
                 String key = error.getObjectName() + "." + error.getField();
                 if (key.startsWith("target.") && rootName == null) {
                     key = key.substring(7);
                 }
                 if (!errors.containsKey(key)) {
-                   errors.put(key, new ArrayList<ValidationError>());
+                   errors.put(key, new ArrayList<>());
                 }
 
-                ValidationError validationError = null;
+                ValidationError validationError;
                 if (error.isBindingFailure()) {
                     ImmutableList.Builder<String> builder = ImmutableList.builder();
                     for (String code: error.getCodes()) {
@@ -402,7 +405,7 @@ public class Form<T> {
                 errors.get(key).add(validationError);
             }
 
-            List<ValidationError> globalErrors = new ArrayList<ValidationError>();
+            List<ValidationError> globalErrors = new ArrayList<>();
 
             for (ObjectError error: result.getGlobalErrors()) {
                 globalErrors.add(new ValidationError("", error.getDefaultMessage(),
@@ -413,7 +416,7 @@ public class Form<T> {
                 errors.put("", globalErrors);
             }
 
-            return new Form(rootName, backedType, data, errors, None(), groups);
+            return new Form(rootName, backedType, data, errors, Optional.empty(), groups);
         } else {
             Object globalError = null;
             if (result.getTarget() != null) {
@@ -421,29 +424,30 @@ public class Form<T> {
                     java.lang.reflect.Method v = result.getTarget().getClass().getMethod("validate");
                     globalError = v.invoke(result.getTarget());
                 } catch (NoSuchMethodException e) {
+                    // do nothing
                 } catch (Throwable e) {
                     throw new RuntimeException(e);
                 }
             }
             if (globalError != null) {
-                Map<String,List<ValidationError>> errors = new HashMap<String,List<ValidationError>>();
+                Map<String,List<ValidationError>> errors = new HashMap<>();
                 if (globalError instanceof String) {
-                    errors.put("", new ArrayList<ValidationError>());
+                    errors.put("", new ArrayList<>());
                     errors.get("").add(new ValidationError("", (String)globalError, new ArrayList()));
                 } else if (globalError instanceof List) {
                     for (ValidationError error : (List<ValidationError>) globalError) {
                       List<ValidationError> errorsForKey = errors.get(error.key());
                       if (errorsForKey == null) {
-                        errors.put(error.key(), errorsForKey = new ArrayList<ValidationError>());
+                        errors.put(error.key(), errorsForKey = new ArrayList<>());
                       }
                       errorsForKey.add(error);
                     }
                 } else if (globalError instanceof Map) {
                     errors = (Map<String,List<ValidationError>>)globalError;
                 }
-                return new Form(rootName, backedType, data, errors, None(), groups);
+                return new Form(rootName, backedType, data, errors, Optional.empty(), groups);
             }
-            return new Form(rootName, backedType, new HashMap<String,String>(data), new HashMap<String,List<ValidationError>>(errors), Some((T)result.getTarget()), groups);
+            return new Form(rootName, backedType, new HashMap<>(data), new HashMap<>(errors), Optional.ofNullable((T)result.getTarget()), groups);
         }
     }
 
@@ -454,7 +458,7 @@ public class Form<T> {
      * @return The converted arguments.
      */
     private List<Object> convertErrorArguments(Object[] arguments) {
-        List<Object> converted = new ArrayList<Object>(arguments.length);
+        List<Object> converted = new ArrayList<>(arguments.length);
         for(Object arg: arguments) {
             if(!(arg instanceof org.springframework.context.support.DefaultMessageSourceResolvable)) {
                 converted.add(arg);
@@ -477,7 +481,7 @@ public class Form<T> {
     /**
      * Retrieves the actual form value.
      */
-    public Option<T> value() {
+    public Optional<T> value() {
         return value;
     }
 
@@ -492,7 +496,14 @@ public class Form<T> {
         if(value == null) {
             throw new RuntimeException("Cannot fill a form with a null value");
         }
-        return new Form(rootName, backedType, new HashMap<String,String>(), new HashMap<String,ValidationError>(), Some(value), groups);
+        return new Form(
+                rootName,
+                backedType,
+                new HashMap<>(),
+                new HashMap<String,ValidationError>(),
+                Optional.ofNullable(value),
+                groups
+        );
     }
 
     /**
@@ -517,7 +528,7 @@ public class Form<T> {
     public List<ValidationError> globalErrors() {
         List<ValidationError> e = errors.get("");
         if(e == null) {
-            e = new ArrayList<ValidationError>();
+            e = new ArrayList<>();
         }
         return e;
     }
@@ -568,7 +579,7 @@ public class Form<T> {
      * Returns the form errors serialized as Json using the given Lang.
      */
     public com.fasterxml.jackson.databind.JsonNode errorsAsJson(play.i18n.Lang lang) {
-        Map<String, List<String>> allMessages = new HashMap<String, List<String>>();
+        Map<String, List<String>> allMessages = new HashMap<>();
         for (String key : errors.keySet()) {
             List<ValidationError> errs = errors.get(key);
             if (errs != null && !errs.isEmpty()) {
@@ -601,7 +612,7 @@ public class Form<T> {
      */
     public void reject(ValidationError error) {
         if(!errors.containsKey(error.key())) {
-           errors.put(error.key(), new ArrayList<ValidationError>()); 
+           errors.put(error.key(), new ArrayList<>());
         }
         errors.get(error.key()).add(error);
     }
@@ -624,7 +635,7 @@ public class Form<T> {
      * @param error the error message
      */    
     public void reject(String key, String error) {
-        reject(key, error, new ArrayList<Object>());
+        reject(key, error, new ArrayList<>());
     }
 
     /**
@@ -643,7 +654,7 @@ public class Form<T> {
      * @param error the error message.
      */    
     public void reject(String error) {
-        reject("", error, new ArrayList<Object>());
+        reject("", error, new ArrayList<>());
     }
 
     /**
@@ -676,7 +687,7 @@ public class Form<T> {
         if(data.containsKey(key)) {
             fieldValue = data.get(key);
         } else {
-            if(value.isDefined()) {
+            if(value.isPresent()) {
                 BeanWrapper beanWrapper = new BeanWrapperImpl(value.get());
                 beanWrapper.setAutoGrowNestedPaths(true);
                 String objectKey = key;
@@ -695,7 +706,7 @@ public class Form<T> {
         // Error
         List<ValidationError> fieldErrors = errors.get(key);
         if(fieldErrors == null) {
-            fieldErrors = new ArrayList<ValidationError>();
+            fieldErrors = new ArrayList<>();
         }
 
         // Format
@@ -708,22 +719,26 @@ public class Form<T> {
                 if(annotationType.isAnnotationPresent(play.data.Form.Display.class)) {
                     play.data.Form.Display d = annotationType.getAnnotation(play.data.Form.Display.class);
                     if(d.name().startsWith("format.")) {
-                        List<Object> attributes = new ArrayList<Object>();
+                        List<Object> attributes = new ArrayList<>();
                         for(String attr: d.attributes()) {
                             Object attrValue = null;
                             try {
                                 attrValue = a.getClass().getDeclaredMethod(attr).invoke(a);
-                            } catch(Exception e) {}
+                            } catch(Exception e) {
+                                // do nothing
+                            }
                             attributes.add(attrValue);
                         }
                         format = Tuple(d.name(), attributes);
                     }
                 }
             }
-        } catch(NullPointerException e) {}
+        } catch(NullPointerException e) {
+            // do nothing
+        }
 
         // Constraints
-        List<Tuple<String,List<Object>>> constraints = new ArrayList<Tuple<String,List<Object>>>();
+        List<Tuple<String,List<Object>>> constraints = new ArrayList<>();
         Class<?> classType = backedType;
         String leafKey = key;
         if(rootName != null && leafKey.startsWith(rootName + ".")) {
@@ -838,7 +853,7 @@ public class Form<T> {
          */
         @SuppressWarnings("rawtypes")
         public List<Integer> indexes() {
-            if(form.value().isDefined()) {
+            if(form.value().isPresent()) {
                 BeanWrapper beanWrapper = new BeanWrapperImpl(form.value().get());
                 beanWrapper.setAutoGrowNestedPaths(true);
                 String objectKey = name;
@@ -846,7 +861,7 @@ public class Form<T> {
                     objectKey = name.substring(form.name().length() + 1);
                 }
 
-                List<Integer> result = new ArrayList<Integer>();
+                List<Integer> result = new ArrayList<>();
                 if(beanWrapper.isReadableProperty(objectKey)) {
                     Object value = beanWrapper.getPropertyValue(objectKey);
                     if(value instanceof Collection) {
@@ -859,7 +874,7 @@ public class Form<T> {
                 return result;
 
             } else {
-                Set<Integer> result = new HashSet<Integer>();
+                Set<Integer> result = new HashSet<>();
                 Pattern pattern = Pattern.compile("^" + Pattern.quote(name) + "\\[(\\d+)\\].*$");
 
                 for(String key: form.data().keySet()) {
@@ -869,7 +884,7 @@ public class Form<T> {
                     }
                 }
 
-                List<Integer> sortedResult = new ArrayList<Integer>(result);
+                List<Integer> sortedResult = new ArrayList<>(result);
                 Collections.sort(sortedResult);
                 return sortedResult;
             }
@@ -879,7 +894,7 @@ public class Form<T> {
          * Get a sub-field, with a key relative to the current field.
          */
         public Field sub(String key) {
-            String subKey = null;
+            String subKey;
             if(key.startsWith("[")) {
                 subKey = name + key;
             } else {

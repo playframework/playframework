@@ -504,7 +504,7 @@ public class PromiseTest extends ExecutionTest {
         left.success(1);
         F.Either<Integer, String> result = either.get(t);
         assertThat(result.left.get()).isEqualTo(1);
-        assertThat(result.right.isDefined()).isFalse();
+        assertThat(result.right.isPresent()).isFalse();
     }
 
     @Test
@@ -514,7 +514,7 @@ public class PromiseTest extends ExecutionTest {
         F.Promise<F.Either<Integer, String>> either = left.or(right);
         right.success("2");
         F.Either<Integer, String> result = either.get(t);
-        assertThat(result.left.isDefined()).isFalse();
+        assertThat(result.left.isPresent()).isFalse();
         assertThat(result.right.get()).isEqualTo("2");
     }
 

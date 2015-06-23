@@ -3,17 +3,15 @@
  */
 package play.api.mvc
 
-import scala.annotation._
-
-import play.api.mvc._
-
 import controllers.Assets.Asset
 
-import java.net.{ URI, URLEncoder }
-import java.util.UUID
+import java.net.URLEncoder
+import java.util.{ Optional, UUID }
 import scala.annotation._
 
 import scala.collection.JavaConverters._
+import scala.compat.java8.OptionConverters._
+
 import reflect.ClassTag
 
 /**
@@ -284,16 +282,10 @@ object JavascriptLiteral {
   }
 
   /**
-   * Convert a Java Option to Javascript literal (use null for None)
+   * Convert a Java Optional to Javascript literal (use "null" for an empty Optional)
    */
-  implicit def literalJavaOption[T](implicit jsl: JavascriptLiteral[T]): JavascriptLiteral[play.libs.F.Option[T]] = new JavascriptLiteral[play.libs.F.Option[T]] {
-    def to(value: play.libs.F.Option[T]) = {
-      if (value.isDefined) {
-        jsl.to(value.get)
-      } else {
-        "null"
-      }
-    }
+  implicit def literalJavaOption[T](implicit jsl: JavascriptLiteral[T]): JavascriptLiteral[Optional[T]] = new JavascriptLiteral[Optional[T]] {
+    def to(value: Optional[T]) = value.asScala.map(jsl.to(_)).getOrElse("null")
   }
 
   /**
@@ -446,21 +438,17 @@ object QueryStringBindable {
   }
 
   /**
-   * QueryString binder for Java Option.
+   * QueryString binder for Java Optional.
    */
-  implicit def bindableJavaOption[T: QueryStringBindable]: QueryStringBindable[play.libs.F.Option[T]] = new QueryStringBindable[play.libs.F.Option[T]] {
+  implicit def bindableJavaOption[T: QueryStringBindable]: QueryStringBindable[Optional[T]] = new QueryStringBindable[Optional[T]] {
     def bind(key: String, params: Map[String, Seq[String]]) = {
       Some(
         implicitly[QueryStringBindable[T]].bind(key, params)
-          .map(_.right.map(play.libs.F.Option.Some(_)))
-          .getOrElse(Right(play.libs.F.Option.None.asInstanceOf[play.libs.F.Option[T]])))
+          .map(_.right.map(Optional.ofNullable[T]))
+          .getOrElse(Right(Optional.empty[T])))
     }
-    def unbind(key: String, value: play.libs.F.Option[T]) = {
-      if (value.isDefined) {
-        implicitly[QueryStringBindable[T]].unbind(key, value.get)
-      } else {
-        ""
-      }
+    def unbind(key: String, value: Optional[T]) = {
+      value.asScala.map(implicitly[QueryStringBindable[T]].unbind(key, _)).getOrElse("")
     }
     override def javascriptUnbind = javascriptUnbindOption(implicitly[QueryStringBindable[T]].javascriptUnbind)
   }
@@ -538,7 +526,7 @@ object QueryStringBindable {
     def bind(key: String, params: Map[String, Seq[String]]) = {
       try {
         val o = ct.runtimeClass.newInstance.asInstanceOf[T].bind(key, params.mapValues(_.toArray).asJava)
-        if (o.isDefined) {
+        if (o.isPresent) {
           Some(Right(o.get))
         } else {
           None

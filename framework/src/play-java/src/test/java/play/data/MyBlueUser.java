@@ -3,7 +3,6 @@
  */
 package play.data;
 
-import play.libs.F.Option;
 import play.data.validation.Constraints.ValidateWith;
 
 public class MyBlueUser {

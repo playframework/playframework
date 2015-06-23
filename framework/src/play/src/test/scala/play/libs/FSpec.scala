@@ -343,7 +343,7 @@ object FSpec extends Specification
       pl.success(1)
       val result = por.get(1, SECONDS)
       result.left.get must equalTo(1)
-      result.right.isDefined must beFalse
+      result.right.isPresent must beFalse
     }
 
     "combine with another promise with 'or'" in {
@@ -351,7 +351,7 @@ object FSpec extends Specification
       por.wrapped.isCompleted must beFalse
       pr.success("x")
       val result = por.get(1, SECONDS)
-      result.left.isDefined must beFalse
+      result.left.isPresent must beFalse
       result.right.get must equalTo("x")
     }
 

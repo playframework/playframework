@@ -5,8 +5,6 @@ package play.data;
 
 import java.util.*;
 
-import static play.libs.F.*;
-
 import play.data.validation.*;
 
 /**
@@ -21,7 +19,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      */
     public DynamicForm() {
         super(DynamicForm.Dynamic.class);
-        rawData = new HashMap<String, String>();
+        rawData = new HashMap<>();
     }
     
     /**
@@ -31,9 +29,9 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
      * @param errors the collection of errors associated with this form
      * @param value optional concrete value if the form submission was successful
      */
-    public DynamicForm(Map<String,String> data, Map<String,List<ValidationError>> errors, Option<Dynamic> value) {
+    public DynamicForm(Map<String,String> data, Map<String,List<ValidationError>> errors, Optional<Dynamic> value) {
         super(null, DynamicForm.Dynamic.class, data, errors, value);
-        rawData = new HashMap<String, String>();
+        rawData = new HashMap<>();
         for (Map.Entry<String, String> e : data.entrySet()) {
             rawData.put(asNormalKey(e.getKey()), e.getValue());
         }
@@ -93,7 +91,7 @@ public class DynamicForm extends Form<DynamicForm.Dynamic> {
     @Override
     public DynamicForm bind(Map<String,String> data, String... allowedFields) {
         {
-            Map<String,String> newData = new HashMap<String,String>();
+            Map<String,String> newData = new HashMap<>();
             for(Map.Entry<String, String> e: data.entrySet()) {
                 newData.put(asDynamicKey(e.getKey()), e.getValue());
             }
