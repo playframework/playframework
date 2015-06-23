@@ -8,6 +8,7 @@ import akka.stream.{ ActorFlowMaterializer, FlowMaterializer }
 import org.reactivestreams.{ Subscription, Subscriber, Publisher }
 import org.specs2.mutable.Specification
 
+import scala.compat.java8.FutureConverters
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -98,6 +99,16 @@ object AccumulatorSpec extends Specification {
 
       "for a failed stream" in withMaterializer { implicit m =>
         await(Accumulator.flatten(Future(sum)).run(errorSource)) must throwA[RuntimeException]("error")
+      }
+    }
+
+    "be compatible with Java accumulator" in {
+      "Java asScala" in withMaterializer { implicit m =>
+        await(play.libs.streams.Accumulator.fromSink(sum.toSink.asJava).asScala().run(source)) must_== 6
+      }
+
+      "Scala asJava" in withMaterializer { implicit m =>
+        await(FutureConverters.toScala(sum.asJava.run(source.asJava, m))) must_== 6
       }
     }
 

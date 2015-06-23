@@ -54,7 +54,7 @@ object Dependencies {
   )
   val javassist = link
 
-  val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.3.0"
+  val scalaJava8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % "0.5.0"
 
   val springFrameworkVersion = "4.1.6.RELEASE"
 
@@ -239,8 +239,9 @@ object Dependencies {
 
   val streamsDependencies = Seq(
     "org.reactivestreams" % "reactive-streams" % "1.0.0",
-    "com.typesafe.akka" %% "akka-stream-experimental" % "1.0-RC3"
-  ) ++ specsBuild.map(_ % "test")
+    "com.typesafe.akka" %% "akka-stream-experimental" % "1.0-RC3",
+    scalaJava8Compat
+  ) ++ specsBuild.map(_ % "test") ++ javaTestDeps
 
   def jsonDependencies(scalaVersion: String) = Seq(
     jodatime,
