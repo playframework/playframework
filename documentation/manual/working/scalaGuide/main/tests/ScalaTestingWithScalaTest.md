@@ -24,7 +24,7 @@ To use _ScalaTest + Play_, you'll need to add it to your build, by changing `bui
 ```scala
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "2.2.1" % "test",
-  "org.scalatestplus" %% "play" % "1.2.0" % "test",
+  "org.scalatestplus" %% "play" % "1.4.0-M3" % "test",
 )
 ```
 
