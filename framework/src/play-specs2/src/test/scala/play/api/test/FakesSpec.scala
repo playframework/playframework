@@ -6,6 +6,7 @@ package play.api.test
 import java.util.concurrent.TimeUnit
 
 import akka.stream.FlowMaterializer
+import akka.util.ByteString
 import play.api.mvc._
 
 import play.api.test.Helpers._
@@ -58,7 +59,7 @@ object FakesSpec extends PlaySpecification {
             baz
           </bar>
         </foo>
-      val bytes = xml.toString.getBytes("utf-16le")
+      val bytes = ByteString(xml.toString, "utf-16le")
       val req = FakeRequest(PUT, "/process")
         .withRawBody(bytes)
       route(req) aka "response" must beSome.which { resp =>
@@ -73,7 +74,7 @@ object FakesSpec extends PlaySpecification {
             baz
           </bar>
         </foo>
-      val bytes = xml.toString.getBytes("utf-16le")
+      val bytes = ByteString(xml.toString, "utf-16le")
       val req = FakeRequest(PUT, "/process")
         .withRawBody(bytes)
         .withHeaders(

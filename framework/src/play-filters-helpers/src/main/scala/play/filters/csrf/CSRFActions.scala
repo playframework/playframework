@@ -4,6 +4,7 @@
 package play.filters.csrf
 
 import akka.stream.FlowMaterializer
+import akka.util.ByteString
 import play.api.libs.streams.{ Streams, Accumulator }
 import play.api.mvc._
 import play.api.http.HeaderNames._
@@ -29,10 +30,10 @@ class CSRFAction(next: EssentialAction,
   import play.api.libs.iteratee.Execution.Implicits.trampoline
 
   // An iteratee that returns a forbidden result saying the CSRF check failed
-  private def checkFailedIteratee(req: RequestHeader, msg: String): Iteratee[Array[Byte], Result] =
+  private def checkFailedIteratee(req: RequestHeader, msg: String): Iteratee[ByteString, Result] =
     Iteratee.flatten(clearTokenIfInvalid(req, config, errorHandler, msg).map(r => Done(r)))
 
-  private def checkFailed(req: RequestHeader, msg: String): Accumulator[Array[Byte], Result] =
+  private def checkFailed(req: RequestHeader, msg: String): Accumulator[ByteString, Result] =
     Accumulator.done(clearTokenIfInvalid(req, config, errorHandler, msg))
 
   def apply(request: RequestHeader) = {
@@ -108,15 +109,15 @@ class CSRFAction(next: EssentialAction,
 
   private def checkFormBody = checkBody[Map[String, Seq[String]]](tolerantFormUrlEncoded, identity) _
   private def checkMultipartBody = checkBody[MultipartFormData[Unit]](multipartFormData[Unit]({
-    case _ => Iteratee.ignore[Array[Byte]].map(_ => MultipartFormData.FilePart("", "", None, ()))
+    case _ => Iteratee.ignore[ByteString].map(_ => MultipartFormData.FilePart("", "", None, ()))
   }), _.dataParts) _
 
   private def checkBody[T](parser: BodyParser[T], extractor: (T => Map[String, Seq[String]]))(request: RequestHeader, tokenFromHeader: String, tokenName: String, next: EssentialAction) = {
     // Take up to 100kb of the body
-    val firstPartOfBody: Iteratee[Array[Byte], Array[Byte]] =
-      Traversable.take[Array[Byte]](config.postBodyBuffer.asInstanceOf[Int]) &>> Iteratee.consume[Array[Byte]]()
+    val firstPartOfBody: Iteratee[ByteString, ByteString] =
+      Traversable.take[ByteString](config.postBodyBuffer.asInstanceOf[Int]) &>> Iteratee.consume[ByteString]()
 
-    firstPartOfBody.flatMap { bytes: Array[Byte] =>
+    firstPartOfBody.flatMap { bytes: ByteString =>
       // Parse the first 100kb
       val parsedBody = Enumerator(bytes) |>>> Streams.accumulatorToIteratee(parser(request))
 

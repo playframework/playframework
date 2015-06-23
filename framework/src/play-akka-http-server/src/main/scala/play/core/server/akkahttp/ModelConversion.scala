@@ -32,7 +32,7 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
     requestId: Long,
     remoteAddress: InetSocketAddress,
     secureProtocol: Boolean,
-    request: HttpRequest)(implicit fm: FlowMaterializer): (RequestHeader, Source[Array[Byte], Any]) = {
+    request: HttpRequest)(implicit fm: FlowMaterializer): (RequestHeader, Source[ByteString, Any]) = {
     (
       convertRequestHeader(requestId, remoteAddress, secureProtocol, request),
       convertRequestBody(request)
@@ -99,22 +99,22 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
    * Convert an Akka `HttpRequest` to an `Enumerator` of the request body.
    */
   private def convertRequestBody(
-    request: HttpRequest)(implicit fm: FlowMaterializer): Source[Array[Byte], Any] = {
+    request: HttpRequest)(implicit fm: FlowMaterializer): Source[ByteString, Any] = {
     import play.api.libs.iteratee.Execution.Implicits.trampoline
     request.entity match {
       case HttpEntity.Strict(_, data) if data.isEmpty =>
         Source.empty
       case HttpEntity.Strict(_, data) =>
-        Source.single(data.toArray)
+        Source.single(data)
       case HttpEntity.Default(_, 0, _) =>
         Source.empty
       case HttpEntity.Default(contentType, contentLength, pubr) =>
         // FIXME: should do something with the content-length?
-        pubr.map(_.toArray)
+        pubr
       case HttpEntity.Chunked(contentType, chunks) =>
         // FIXME: Don't enumerate LastChunk?
         // FIXME: do something with trailing headers?
-        chunks.map(_.data().toArray)
+        chunks.map(_.data())
     }
   }
 

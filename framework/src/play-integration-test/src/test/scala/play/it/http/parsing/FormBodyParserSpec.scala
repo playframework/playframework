@@ -2,6 +2,7 @@ package play.it.http.parsing
 
 import akka.stream.FlowMaterializer
 import akka.stream.scaladsl.Source
+import akka.util.ByteString
 import play.api.data.Form
 import play.api.data.Forms.{ mapping, nonEmptyText, number }
 import play.api.http.Writeable
@@ -19,7 +20,7 @@ class FormBodyParserSpec extends PlaySpecification {
     def parse[A, B](body: B, bodyParser: BodyParser[A])(implicit W: Writeable[B], mat: FlowMaterializer): Either[Result, A] = {
       await(
         bodyParser(FakeRequest().withHeaders(W.contentType.map(CONTENT_TYPE -> _).toSeq: _*))
-          .run(Source.single(W.transform(body)))
+          .run(Source.single(ByteString(W.transform(body))))
       )
     }
 

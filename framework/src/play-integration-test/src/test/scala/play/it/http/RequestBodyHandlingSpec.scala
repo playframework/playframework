@@ -4,6 +4,7 @@
 package play.it.http
 
 import akka.stream.scaladsl.Sink
+import akka.util.ByteString
 import play.api.libs.streams.{ Streams, Accumulator }
 import play.api.mvc._
 import play.api.test._
@@ -48,7 +49,7 @@ trait RequestBodyHandlingSpec extends PlaySpecification with ServerIntegrationSp
 
     "gracefully handle early body parser termination" in withServer(EssentialAction { rh =>
       Streams.iterateeToAccumulator(
-        Traversable.takeUpTo[Array[Byte]](20 * 1024) &>> Iteratee.ignore[Array[Byte]].map(_ => Results.Ok)
+        Traversable.takeUpTo[ByteString](20 * 1024) &>> Iteratee.ignore[ByteString].map(_ => Results.Ok)
       )
     }) { port =>
       val body = new String(Random.alphanumeric.take(50 * 1024).toArray)

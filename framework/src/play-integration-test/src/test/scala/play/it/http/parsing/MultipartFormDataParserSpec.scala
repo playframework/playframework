@@ -4,6 +4,7 @@
 package play.it.http.parsing
 
 import akka.stream.scaladsl.Source
+import akka.util.ByteString
 import play.api.libs.Files.TemporaryFile
 import play.api.mvc.{ Result, MultipartFormData, BodyParsers }
 import play.api.test._
@@ -64,7 +65,7 @@ object MultipartFormDataParserSpec extends PlaySpecification {
         CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
       ))
 
-      val result = await(parser.run(Source.single(body.getBytes("utf-8"))))
+      val result = await(parser.run(Source.single(ByteString(body))))
 
       checkResult(result)
     }
@@ -74,7 +75,7 @@ object MultipartFormDataParserSpec extends PlaySpecification {
         CONTENT_TYPE -> "multipart/form-data" // no boundary
       ))
 
-      val result = await(parser.run(Source.single(body.getBytes("utf-8"))))
+      val result = await(parser.run(Source.single(ByteString(body))))
 
       result must beLeft.like {
         case error => error.header.status must_== BAD_REQUEST
@@ -88,7 +89,7 @@ object MultipartFormDataParserSpec extends PlaySpecification {
         CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
       ))
 
-      val result = await(parser.run(Source.single(body.getBytes("utf-8"))))
+      val result = await(parser.run(Source.single(ByteString(body))))
 
       result must beLeft.like {
         case error => error.header.status must_== REQUEST_ENTITY_TOO_LARGE
@@ -102,7 +103,7 @@ object MultipartFormDataParserSpec extends PlaySpecification {
         CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
       ))
 
-      val result = await(parser.run(Source.single(body.getBytes("utf-8"))))
+      val result = await(parser.run(Source.single(ByteString(body))))
 
       result must beLeft.like {
         case error => error.header.status must_== REQUEST_ENTITY_TOO_LARGE
@@ -114,7 +115,7 @@ object MultipartFormDataParserSpec extends PlaySpecification {
         CONTENT_TYPE -> "multipart/form-data; boundary=aabbccddee"
       ))
 
-      val result = await(parser.run(Source.single(body.getBytes("utf-8"))))
+      val result = await(parser.run(Source.single(ByteString(body))))
 
       checkResult(result)
     }

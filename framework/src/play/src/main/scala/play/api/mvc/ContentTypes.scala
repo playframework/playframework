@@ -4,6 +4,7 @@
 package play.api.mvc
 
 import akka.stream.FlowMaterializer
+import akka.util.ByteString
 import play.api.data.Form
 import play.api.libs.streams.{ Streams, Accumulator }
 import play.core.parsers.Multipart
@@ -171,26 +172,24 @@ object MultipartFormData {
  *
  * @param memoryThreshold If the content size is bigger than this limit, the content is stored as file.
  */
-case class RawBuffer(memoryThreshold: Int, initialData: Array[Byte] = Array.empty[Byte]) {
+case class RawBuffer(memoryThreshold: Int, initialData: ByteString = ByteString.empty) {
 
   import play.api.libs.Files._
 
-  @volatile private var inMemory: List[Array[Byte]] = if (initialData.length == 0) Nil else List(initialData)
-  @volatile private var inMemorySize = initialData.length
+  @volatile private var inMemory: ByteString = initialData
   @volatile private var backedByTemporaryFile: TemporaryFile = _
   @volatile private var outStream: OutputStream = _
 
-  private[play] def push(chunk: Array[Byte]) {
+  private[play] def push(chunk: ByteString) {
     if (inMemory != null) {
-      if (chunk.length + inMemorySize > memoryThreshold) {
+      if (chunk.length + inMemory.size > memoryThreshold) {
         backToTemporaryFile()
-        outStream.write(chunk)
+        outStream.write(chunk.toArray)
       } else {
-        inMemory = chunk :: inMemory
-        inMemorySize += chunk.length
+        inMemory = inMemory ++ chunk
       }
     } else {
-      outStream.write(chunk)
+      outStream.write(chunk.toArray)
     }
   }
 
@@ -203,9 +202,7 @@ case class RawBuffer(memoryThreshold: Int, initialData: Array[Byte] = Array.empt
   private[play] def backToTemporaryFile() {
     backedByTemporaryFile = TemporaryFile("requestBody", "asRaw")
     outStream = new FileOutputStream(backedByTemporaryFile.file)
-    inMemory.reverse.foreach { chunk =>
-      outStream.write(chunk)
-    }
+    outStream.write(inMemory.toArray)
     inMemory = null
   }
 
@@ -213,7 +210,7 @@ case class RawBuffer(memoryThreshold: Int, initialData: Array[Byte] = Array.empt
    * Buffer size.
    */
   def size: Long = {
-    if (inMemory != null) inMemorySize else backedByTemporaryFile.file.length
+    if (inMemory != null) inMemory.size else backedByTemporaryFile.file.length
   }
 
   /**
@@ -227,18 +224,13 @@ case class RawBuffer(memoryThreshold: Int, initialData: Array[Byte] = Array.empt
    *                  buffer is already in memory then None will still be returned.
    * @return None if the content is greater than maxLength, otherwise, the data as bytes.
    */
-  def asBytes(maxLength: Long = memoryThreshold): Option[Array[Byte]] = {
+  def asBytes(maxLength: Long = memoryThreshold): Option[ByteString] = {
     if (size <= maxLength) {
-      if (inMemory != null) {
-        val buffer = new Array[Byte](inMemorySize)
-        inMemory.reverse.foldLeft(0) { (position, chunk) =>
-          System.arraycopy(chunk, 0, buffer, position, Math.min(chunk.length, buffer.length - position))
-          chunk.length + position
-        }
-        Some(buffer)
+      Some(if (inMemory != null) {
+        inMemory
       } else {
-        Some(PlayIO.readFile(backedByTemporaryFile.file))
-      }
+        ByteString(PlayIO.readFile(backedByTemporaryFile.file))
+      })
     } else {
       None
     }
@@ -316,8 +308,8 @@ trait BodyParsers {
       // Encoding notes: RFC-2616 section 3.7.1 mandates ISO-8859-1 as the default charset if none is specified.
 
       import Execution.Implicits.trampoline
-      Traversable.takeUpTo[Array[Byte]](maxLength)
-        .transform(Iteratee.consume[Array[Byte]]().map(c => new String(c, request.charset.getOrElse("ISO-8859-1"))))
+      Traversable.takeUpTo[ByteString](maxLength)
+        .transform(Iteratee.consume[ByteString]().map(bs => bs.decodeString(request.charset.getOrElse("ISO-8859-1"))))
         .flatMap(checkForEof(request))
     }
 
@@ -353,8 +345,8 @@ trait BodyParsers {
       BodyParser.iteratee("raw, memoryThreshold=" + memoryThreshold) { request =>
         import play.core.Execution.Implicits.internalContext // Cannot run on same thread as may need to write to a file
         val buffer = RawBuffer(memoryThreshold)
-        Traversable.takeUpTo[Array[Byte]](maxLength).transform(
-          Iteratee.foreach[Array[Byte]](bytes => buffer.push(bytes)).map { _ =>
+        Traversable.takeUpTo[ByteString](maxLength).transform(
+          Iteratee.foreach[ByteString](bytes => buffer.push(bytes)).map { _ =>
             buffer.close()
             buffer
           }
@@ -378,7 +370,7 @@ trait BodyParsers {
         // Encoding notes: RFC 4627 requires that JSON be encoded in Unicode, and states that whether that's
         // UTF-8, UTF-16 or UTF-32 can be auto detected by reading the first two bytes. So we ignore the declared
         // charset and don't decode, we passing the byte array as is because Jackson supports auto detection.
-        Json.parse(bytes)
+        Json.parse(bytes.iterator.asInputStream)
       }
 
     /**
@@ -476,7 +468,7 @@ trait BodyParsers {
      */
     def tolerantXml(maxLength: Int): BodyParser[NodeSeq] =
       tolerantBodyParser[NodeSeq]("xml", maxLength, "Invalid XML") { (request, bytes) =>
-        val inputSource = new InputSource(new ByteArrayInputStream(bytes))
+        val inputSource = new InputSource(bytes.iterator.asInputStream)
 
         // Encoding notes: RFC 3023 is the RFC for XML content types.  Comments below reflect what it says.
 
@@ -532,8 +524,8 @@ trait BodyParsers {
      */
     def file(to: File): BodyParser[File] = BodyParser.iteratee("file, to=" + to) { request =>
       import play.core.Execution.Implicits.internalContext
-      Iteratee.fold[Array[Byte], FileOutputStream](new FileOutputStream(to)) { (os, data) =>
-        os.write(data)
+      Iteratee.fold[ByteString, FileOutputStream](new FileOutputStream(to)) { (os, data) =>
+        os.write(data.toArray)
         os
       }.map { os =>
         os.close()
@@ -559,7 +551,7 @@ trait BodyParsers {
     def tolerantFormUrlEncoded(maxLength: Int): BodyParser[Map[String, Seq[String]]] =
       tolerantBodyParser("urlFormEncoded", maxLength, "Error parsing application/x-www-form-urlencoded") { (request, bytes) =>
         import play.core.parsers._
-        FormUrlEncodedParser.parse(new String(bytes, request.charset.getOrElse("utf-8")),
+        FormUrlEncodedParser.parse(bytes.decodeString(request.charset.getOrElse("utf-8")),
           request.charset.getOrElse("utf-8"))
       }
 
@@ -664,7 +656,7 @@ trait BodyParsers {
       BodyParser.iteratee("multipartFormData") { request =>
         import play.api.libs.iteratee.Execution.Implicits.trampoline
 
-        val parser = Traversable.takeUpTo[Array[Byte]](maxLength).transform(
+        val parser = Traversable.takeUpTo[ByteString](maxLength).transform(
           Multipart.multipartParser(DefaultMaxTextLength, filePartHandler)(request)
         ).flatMap {
             case d @ Left(r) => Iteratee.eofOrElse(r)(d)
@@ -689,7 +681,7 @@ trait BodyParsers {
      */
     def maxLength[A](maxLength: Long, parser: BodyParser[A])(implicit mat: FlowMaterializer): BodyParser[Either[MaxSizeExceeded, A]] = BodyParser.iteratee("maxLength=" + maxLength + ", wrapping=" + parser.toString) { request =>
       import play.api.libs.iteratee.Execution.Implicits.trampoline
-      Traversable.takeUpTo[Array[Byte]](maxLength).transform(Streams.accumulatorToIteratee(parser(request))).flatMap(Iteratee.eofOrElse(MaxSizeExceeded(maxLength))).map {
+      Traversable.takeUpTo[ByteString](maxLength).transform(Streams.accumulatorToIteratee(parser(request))).flatMap(Iteratee.eofOrElse(MaxSizeExceeded(maxLength))).map {
         case Right(Right(result)) => Right(Right(result))
         case Right(Left(badRequest)) => Left(badRequest)
         case Left(maxSizeExceeded) => Right(Left(maxSizeExceeded))
@@ -733,9 +725,9 @@ trait BodyParsers {
      * Check that the input is finished. If it is finished, the iteratee returns `eofValue`.
      * If the input is not finished then it returns a REQUEST_ENTITY_TOO_LARGE result.
      */
-    private def checkForEof[A](request: RequestHeader): A => Iteratee[Array[Byte], Either[Result, A]] = { eofValue: A =>
+    private def checkForEof[A](request: RequestHeader): A => Iteratee[ByteString, Either[Result, A]] = { eofValue: A =>
       import play.api.libs.iteratee.Execution.Implicits.trampoline
-      def cont: Iteratee[Array[Byte], Either[Result, A]] = Cont {
+      def cont: Iteratee[ByteString, Either[Result, A]] = Cont {
         case in @ Input.El(e) =>
           val badResult: Future[Result] = createBadResult("Request Entity Too Large", REQUEST_ENTITY_TOO_LARGE)(request)
           Iteratee.flatten(badResult.map(r => Done(Left(r), in)))
@@ -747,14 +739,14 @@ trait BodyParsers {
       cont
     }
 
-    private def tolerantBodyParser[A](name: String, maxLength: Long, errorMessage: String)(parser: (RequestHeader, Array[Byte]) => A): BodyParser[A] =
+    private def tolerantBodyParser[A](name: String, maxLength: Long, errorMessage: String)(parser: (RequestHeader, ByteString) => A): BodyParser[A] =
       BodyParser.iteratee(name + ", maxLength=" + maxLength) { request =>
         import play.api.libs.iteratee.Execution.Implicits.trampoline
         import scala.util.control.Exception._
 
-        val bodyParser: Iteratee[Array[Byte], Either[Result, Either[Future[Result], A]]] =
-          Traversable.takeUpTo[Array[Byte]](maxLength).transform(
-            Iteratee.consume[Array[Byte]]().map { bytes =>
+        val bodyParser: Iteratee[ByteString, Either[Result, Either[Future[Result], A]]] =
+          Traversable.takeUpTo[ByteString](maxLength).transform(
+            Iteratee.consume[ByteString]().map { bytes =>
               allCatch[A].either {
                 parser(request, bytes)
               }.left.map {

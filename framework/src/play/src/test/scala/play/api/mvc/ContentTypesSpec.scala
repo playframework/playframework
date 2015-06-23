@@ -3,13 +3,14 @@
  */
 package play.api.mvc
 
+import akka.util.ByteString
 import org.specs2.mutable.Specification
 import play.utils.PlayIO
 
 object ContentTypesSpec extends Specification {
 
   "RawBuffer" should {
-    implicit def stringToBytes(s: String): Array[Byte] = s.getBytes("utf-8")
+    implicit def stringToBytes(s: String): ByteString = ByteString(s, "utf-8")
 
     "work in memory" in {
       val buffer = RawBuffer(100)
@@ -19,7 +20,7 @@ object ContentTypesSpec extends Specification {
       buffer.push("world")
       buffer.size must_== 11
       buffer.asBytes() must beSome.like {
-        case bytes => new String(bytes) must_== "hello world"
+        case bytes => bytes.utf8String must_== "hello world"
       }
     }
 
@@ -32,7 +33,7 @@ object ContentTypesSpec extends Specification {
       buffer.close()
       buffer.asBytes() must beNone
       buffer.asBytes(11) must beSome.like {
-        case bytes => new String(bytes) must_== "hello world"
+        case bytes => bytes.utf8String must_== "hello world"
       }
     }
 
@@ -49,7 +50,7 @@ object ContentTypesSpec extends Specification {
       buffer.push(small)
       buffer.size must_== 8400
       buffer.asBytes() must beSome.like {
-        case bytes => new String(bytes) must_== (big + small)
+        case bytes => bytes.utf8String must_== (big + small)
       }
     }
 
@@ -61,7 +62,7 @@ object ContentTypesSpec extends Specification {
       buffer.push(big)
       buffer.size must_== 16000
       buffer.asBytes() must beSome.like {
-        case bytes => new String(bytes) must_== (big + big)
+        case bytes => bytes.utf8String must_== (big + big)
       }
     }
 
