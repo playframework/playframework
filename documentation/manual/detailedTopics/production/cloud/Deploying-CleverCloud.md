@@ -64,7 +64,7 @@ As in every Play! 2 application, the only file you have to modify is your `conf/
 ```
 db.default.url="jdbc:mysql://{yourcleverdbhost}/{dbname}"
 db.default.driver=com.mysql.jdbc.Driver
-db.default.user={yourcleveruser}
+db.default.username={yourcleveruser}
 db.default.password={yourcleverpass}
 ```
 
