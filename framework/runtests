@@ -36,7 +36,7 @@ $BUILD "$@" scripted
 
 if [ -n "$CROSSBUILD" ]
 then
-    $BUILD "$@" "set scalaVersion in PlayBuild.PlayProject := \"2.11.6\"" scripted
+    $BUILD "$@" "set scalaVersion in PlayBuild.PlayProject := \"2.11.7\"" scripted
 fi
 
 rm -rf ./logs
