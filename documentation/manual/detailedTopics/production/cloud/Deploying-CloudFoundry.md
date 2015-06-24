@@ -62,7 +62,7 @@ As always, Cloud Foundry provides all of your service connection information to 
 db.default.driver=${?cloud.services.tasks-db.connection.driver}
 db.default.url=${?cloud.services.tasks-db.connection.url}
 db.default.password=${?cloud.services.tasks-db.connection.password}
-db.default.user=${?cloud.services.tasks-db.connection.username}
+db.default.username=${?cloud.services.tasks-db.connection.username}
 ```
 
 This information is available for all types of services, including NoSQL and messaging services. Also, if there is only a single service of a type (e.g. postgresql), you can refer to that service only by type instead of specifically by name, as exemplified below:
@@ -71,7 +71,7 @@ This information is available for all types of services, including NoSQL and mes
 db.default.driver=${?cloud.services.postgresql.connection.driver}
 db.default.url=${?cloud.services.postgresql.connection.url}
 db.default.password=${?cloud.services.postgresql.connection.password}
-db.default.user=${?cloud.services.postgresql.connection.username}
+db.default.username=${?cloud.services.postgresql.connection.username}
 ```
 We recommend keeping these properties in a separate file (for example `cloud.conf`) and then including them only when building a distribution for Cloud Foundry. You can specify an alternative config file to `play dist` by using `-Dconfig.file`.
 
