@@ -50,4 +50,4 @@ controller:
 
 @[ws-oauth-controller](code/javaguide/ws/controllers/Twitter.java)
 
-> **NOTE**: OAuth does not provide any protection against [MITM attacks](http://en.wikipedia.org/wiki/Man-in-the-middle_attack).  This example shows the OAuth token and secret stored in a session cookie -- for the best security, always use HTTPS with `play.http.session.cookie.secure=true` defined.
+> **NOTE**: OAuth does not provide any protection against [MITM attacks](http://en.wikipedia.org/wiki/Man-in-the-middle_attack).  This example shows the OAuth token and secret stored in a session cookie -- for the best security, always use HTTPS with `play.http.session.secure=true` defined.
