@@ -5,7 +5,7 @@ import play.api.Logger
 import play.api.mvc._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-object LoggingFilter extends EssentialFilter {
+class LoggingFilter extends EssentialFilter {
   def apply(nextFilter: EssentialAction) = new EssentialAction {
     def apply(requestHeader: RequestHeader) = {
 
