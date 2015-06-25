@@ -239,8 +239,9 @@ object Dependencies {
 
   val streamsDependencies = Seq(
     "org.reactivestreams" % "reactive-streams" % "1.0.0",
-    "com.typesafe.akka" %% "akka-stream-experimental" % "1.0-RC3"
-  ) ++ specsBuild.map(_ % "test")
+    "com.typesafe.akka" %% "akka-stream-experimental" % "1.0-RC3",
+    scalaJava8Compat
+  ) ++ specsBuild.map(_ % "test") ++ javaTestDeps
 
   def jsonDependencies(scalaVersion: String) = Seq(
     jodatime,

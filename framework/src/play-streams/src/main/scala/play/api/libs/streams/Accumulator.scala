@@ -89,6 +89,15 @@ final class Accumulator[-E, +A](sink: Sink[E, Future[A]]) {
    * Convert this accumulator to a Sink that gets materialised to a Future.
    */
   def toSink: Sink[E, Future[A]] = sink
+
+  /**
+   * Convert this accumulator to a Java Accumulator.
+   *
+   * @return The Java accumulator.
+   */
+  def asJava: play.libs.streams.Accumulator[_ >: E, _ <: A] = {
+    play.libs.streams.Accumulator.fromSink(sink.asJava)
+  }
 }
 
 object Accumulator {
