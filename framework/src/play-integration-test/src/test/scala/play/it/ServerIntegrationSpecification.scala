@@ -2,9 +2,9 @@ package play.it
 
 import org.specs2.execute._
 import org.specs2.mutable.Specification
+import play.api.http.Port
 import play.api.{ Application, FakeApplication }
-import play.core.server.NettyServer
-import play.core.server.ServerProvider
+import play.core.server.{ Server, NettyServer, ServerProvider }
 import play.core.server.akkahttp.AkkaHttpServer
 import AsResult._
 
