@@ -37,11 +37,8 @@ public class JavaStream extends WithApplication {
     public void serveFile() throws Exception {
         File file = new File("/tmp/fileToServe.pdf");
         file.deleteOnExit();
-        OutputStream os = new FileOutputStream(file);
-        try {
+        try (OutputStream os = new FileOutputStream(file)) {
             IOUtils.write("hi", os);
-        } finally {
-            os.close();
         }
         Result result = MockJavaActionHelper.call(new Controller2(), fakeRequest());
         assertThat(contentAsString(result), equalTo("hi"));
