@@ -70,11 +70,11 @@ class HowsMySSLSpec extends PlaySpecification {
         """.stripMargin
 
       val configString = """
-         |//ws.ssl.debug=["certpath", "ssl", "trustmanager"]
-         |ws.ssl.protocol="TLSv1"
-         |ws.ssl.enabledProtocols=["TLSv1"]
+         |//play.ws.ssl.debug=["certpath", "ssl", "trustmanager"]
+         |play.ws.ssl.protocol="TLSv1"
+         |play.ws.ssl.enabledProtocols=["TLSv1"]
          |
-         |ws.ssl.trustManager = {
+         |play.ws.ssl.trustManager = {
          |  stores = [
          |    { type: "PEM", data = ${geotrust.pem} }
          |  ]

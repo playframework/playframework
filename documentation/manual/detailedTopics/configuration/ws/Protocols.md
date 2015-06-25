@@ -30,7 +30,7 @@ play.ws.ssl.enabledProtocols = [
 
 If you are on JDK 1.8, you can also set the `jdk.tls.client.protocols` system property to enable client protocols globally.
 
-WS recognizes "SSLv3", "SSLv2" and "SSLv2Hello" as weak protocols with a number of [security issues](https://www.schneier.com/paper-ssl.pdf), and will throw an exception if they are in the `ws.ssl.enabledProtocols` list.  Virtually all servers support `TLSv1`, so there is no advantage in using these older protocols.
+WS recognizes "SSLv3", "SSLv2" and "SSLv2Hello" as weak protocols with a number of [security issues](https://www.schneier.com/paper-ssl.pdf), and will throw an exception if they are in the `play.ws.ssl.enabledProtocols` list.  Virtually all servers support `TLSv1`, so there is no advantage in using these older protocols.
 
 ## Debugging
 

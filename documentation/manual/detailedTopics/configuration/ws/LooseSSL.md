@@ -47,7 +47,7 @@ If you must turn on loose options, there are a couple of things you can do to mi
 
 **Environment Scoping**: You can define [environment variables in HOCON](https://github.com/typesafehub/config/blob/master/HOCON.md#substitution-fallback-to-environment-variables) to ensure that any loose options are not hardcoded in configuration files, and therefore cannot escape an development environment.
 
-**Runtime / Deployment Checks**: You can add code to your deployment scripts or program that checks that `ws.ssl.loose` options are not enabled in a production environment.  The runtime mode can be found in the [`Application.mode`](api/scala/play/api/Application.html) method.
+**Runtime / Deployment Checks**: You can add code to your deployment scripts or program that checks that `play.ws.ssl.loose` options are not enabled in a production environment.  The runtime mode can be found in the [`Application.mode`](api/scala/play/api/Application.html) method.
 
 ## Loose Options
 
