@@ -50,7 +50,7 @@ object Dependencies {
   )
 
   val link = Seq(
-    "org.javassist" % "javassist" % "3.19.0-GA"
+    "org.javassist" % "javassist" % "3.20.0-GA"
   )
   val javassist = link
 
