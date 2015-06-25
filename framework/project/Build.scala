@@ -219,7 +219,17 @@ object PlayBuild extends Build {
   lazy val DataCommonsProject = PlayCrossBuiltProject("Play-DataCommons", "play-datacommons")
 
   lazy val JsonProject = PlayCrossBuiltProject("Play-Json", "play-json")
-    .settings(libraryDependencies ++= jsonDependencies(scalaVersion.value))
+    .settings(
+      libraryDependencies ++= jsonDependencies(scalaVersion.value),
+      binaryIssueFilters := Seq(
+        // These added methods are on sealed traits, so although from a byte code perspective they are binary
+        // incompatible, it will only cause issues if someone created a Java class that extends these, because a Scala
+        // class wouldn't compile. It's unlikely that anyone created a Java class that extends JsValue or
+        // JsLookupResult, if they did, they deserve binary compatibility issues :)
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.libs.json.JsLookupResult.validateOpt"),
+        ProblemFilters.exclude[MissingMethodProblem]("play.api.libs.json.JsValue.validateOpt")
+      )
+    )
     .dependsOn(IterateesProject, FunctionalProject, DataCommonsProject)
 
   lazy val PlayExceptionsProject = PlayNonCrossBuiltProject("Play-Exceptions", "play-exceptions")
