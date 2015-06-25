@@ -20,7 +20,7 @@ class ExampleControllerSpec extends PlaySpec with Results {
   "Example Page#index" should {
     "should be valid" in {
       val controller = new TestController()
-      val result: Future[SimpleResult] = controller.index().apply(FakeRequest())
+      val result: Future[Result] = controller.index().apply(FakeRequest())
       val bodyText: String = contentAsString(result)
       bodyText mustBe "ok"
     }
