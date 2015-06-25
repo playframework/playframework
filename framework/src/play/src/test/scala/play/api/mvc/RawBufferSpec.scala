@@ -7,7 +7,7 @@ import akka.util.ByteString
 import org.specs2.mutable.Specification
 import play.utils.PlayIO
 
-object ContentTypesSpec extends Specification {
+object RawBufferSpec extends Specification {
 
   "RawBuffer" should {
     implicit def stringToBytes(s: String): ByteString = ByteString(s, "utf-8")
@@ -77,4 +77,3 @@ object ContentTypesSpec extends Specification {
     }
   }
 }
-
