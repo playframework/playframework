@@ -305,13 +305,17 @@ trait BodyParsers {
      *
      * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
      */
-    def tolerantText(maxLength: Long): BodyParser[String] = BodyParser.iteratee("text, maxLength=" + maxLength) { request =>
+    def tolerantText(maxLength: Long): BodyParser[String] = BodyParser("text, maxLength=" + maxLength) { request =>
       // Encoding notes: RFC-2616 section 3.7.1 mandates ISO-8859-1 as the default charset if none is specified.
-
-      import Execution.Implicits.trampoline
-      Traversable.takeUpTo[ByteString](maxLength)
-        .transform(Iteratee.consume[ByteString]().map(bs => bs.decodeString(request.charset.getOrElse("ISO-8859-1"))))
-        .flatMap(checkForEof(request))
+      Accumulator {
+        val takeUpToFlow = Flow[ByteString].transform { () => new BodyParsers.TakeUpTo(maxLength) }
+        val foldingSink = Sink.fold[ByteString, ByteString](ByteString.empty)((state, bs) => state ++ bs)
+        val sink = takeUpToFlow.toMat(foldingSink)(Keep.right)
+        sink.mapMaterializedValue { f: Future[ByteString] =>
+          import play.core.Execution.Implicits.internalContext
+          checkForMaxLengthAttained(request, f.map(bs => bs.decodeString(request.charset.getOrElse("ISO-8859-1"))))
+        }
+      }
     }
 
     /**
