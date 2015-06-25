@@ -1,15 +1,16 @@
 package play.it.http
 
 import play.api.test._
-import play.api.mvc.{ Flash, Action }
+import play.api.mvc.{ Cookie, Flash, Action }
 import play.api.mvc.Results._
-import play.api.libs.ws.{ WSCookie, WSResponse, WS }
+import play.api.libs.ws.{ WSClient, WSCookie, WSResponse, WS }
+import play.core.server.Server
 import play.it._
 
 object NettyFlashCookieSpec extends FlashCookieSpec with NettyIntegrationSpecification
 object AkkaHttpFlashCookieSpec extends FlashCookieSpec with AkkaHttpIntegrationSpecification
 
-trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecification {
+trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecification with WsTestClient {
 
   sequential
 
@@ -20,21 +21,28 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
           "success" -> "found"
         )
       }
+    case ("GET", "/set-cookie") =>
+      Action {
+        Ok.withCookies(Cookie("some-cookie", "some-value"))
+      }
     case ("GET", "/landing") =>
       Action {
         Ok("ok")
       }
   })
 
-  def appWithSecureCookie(secure: Boolean = false) =
-    FakeApplication(additionalConfiguration = Map("play.http.flash.secure" -> secure))
+  def withClientAndServer[T](block: WSClient => T) = {
+    Server.withApplication(appWithRedirect) { implicit port =>
+      withClient(block)
+    }
+  }
 
   def readFlashCookie(response: WSResponse): Option[WSCookie] =
     response.cookies.find(_.name.exists(_ == Flash.COOKIE_NAME))
 
   "the flash cookie" should {
-    "can be set for one request" in new WithServer(app = appWithRedirect, port = 3333) {
-      val response = await(WS.url("http://localhost:3333/flash").withFollowRedirects(follow = false).get())
+    "can be set for one request" in withClientAndServer { ws =>
+      val response = await(ws.url("/flash").withFollowRedirects(follow = false).get())
       response.status must equalTo(SEE_OTHER)
       val flashCookie = readFlashCookie(response)
       flashCookie must beSome.like {
@@ -44,12 +52,13 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
       }
     }
 
-    "be removed after a redirect" in new WithServer(app = appWithRedirect, port = 3333) {
-      val response = await(WS.url("http://localhost:3333/flash").get())
+    "be removed after a redirect" in withClientAndServer { ws =>
+      val response = await(ws.url("/flash").get())
       response.status must equalTo(OK)
       val flashCookie = readFlashCookie(response)
       flashCookie must beSome.like {
         case cookie =>
+          cookie.value must beNone
           cookie.expires must beSome.like {
             case expires => expires must be lessThan System.currentTimeMillis()
           }
@@ -57,9 +66,28 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
       }
     }
 
-    "honor configuration for flash.secure" in new WithApplication(appWithSecureCookie(secure = true)) {
-      Flash.encodeAsCookie(Flash()).secure must beTrue
+    "allow the setting of additional cookies when cleaned up" in withClientAndServer { ws =>
+      val response = await(ws.url("/flash").withFollowRedirects(false).get())
+      val Some(flashCookie) = readFlashCookie(response)
+      val response2 = await(ws.url("/set-cookie")
+        .withHeaders("Cookie" -> s"${flashCookie.name.get}=${flashCookie.value.get}")
+        .get())
+
+      readFlashCookie(response2) must beSome.like {
+        case cookie => cookie.value must beNone
+      }
+      response2.cookie("some-cookie") must beSome.like {
+        case cookie =>
+          cookie.value must beSome("some-value")
+      }
+
     }
+
+    "honor configuration for flash.secure" in Helpers.running(
+      FakeApplication(additionalConfiguration = Map("play.http.flash.secure" -> true))
+    ) {
+        Flash.encodeAsCookie(Flash()).secure must beTrue
+      }
   }
 
 }
