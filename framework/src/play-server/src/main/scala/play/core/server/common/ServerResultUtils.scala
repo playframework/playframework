@@ -267,7 +267,7 @@ object ServerResultUtils {
       } else {
         // We got incoming flash cookies, but there are no outgoing flash cookies,
         // so we need to clear the cookies for the next request
-        result.withHeaders(SET_COOKIE -> Cookies.encodeSetCookieHeader(Seq(Flash.discard.toCookie)))
+        result.discardingCookies(Flash.discard)
       }
     }
   }
