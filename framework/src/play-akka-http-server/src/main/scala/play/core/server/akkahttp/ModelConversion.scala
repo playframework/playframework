@@ -3,7 +3,7 @@ package play.core.server.akkahttp
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.ContentType
 import akka.http.scaladsl.model.headers._
-import akka.stream.FlowMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import java.net.InetSocketAddress
@@ -32,7 +32,7 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
     requestId: Long,
     remoteAddress: InetSocketAddress,
     secureProtocol: Boolean,
-    request: HttpRequest)(implicit fm: FlowMaterializer): (RequestHeader, Enumerator[Array[Byte]]) = {
+    request: HttpRequest)(implicit fm: Materializer): (RequestHeader, Enumerator[Array[Byte]]) = {
     (
       convertRequestHeader(requestId, remoteAddress, secureProtocol, request),
       convertRequestBody(request)
@@ -99,7 +99,7 @@ private[akkahttp] class ModelConversion(forwardedHeaderHandler: ForwardedHeaderH
    * Convert an Akka `HttpRequest` to an `Enumerator` of the request body.
    */
   private def convertRequestBody(
-    request: HttpRequest)(implicit fm: FlowMaterializer): Enumerator[Array[Byte]] = {
+    request: HttpRequest)(implicit fm: Materializer): Enumerator[Array[Byte]] = {
     import play.api.libs.iteratee.Execution.Implicits.trampoline
     request.entity match {
       case HttpEntity.Strict(_, data) if data.isEmpty =>
