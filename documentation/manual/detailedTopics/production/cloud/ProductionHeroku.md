@@ -177,16 +177,16 @@ $ heroku logs -a obscure-sierra-7788
 Heroku provides a number of relational and NoSQL databases through [Heroku Add-ons](https://addons.heroku.com).  Play applications on Heroku are automatically provisioned a [Heroku Postgres](https://addons.heroku.com/heroku-postgresql) database.  To configure your Play application to use the Heroku Postgres database, first add the PostgreSQL JDBC driver to your application dependencies (`build.sbt`):
 
 ```scala
-libraryDependencies += "postgresql" % "postgresql" % "9.1-901-1.jdbc4"
+libraryDependencies += "org.postgresql" % "postgresql" % "9.4-1201-jdbc41"
 ```
 
 Then create a new file in your project's root directory named `Procfile` (with a capital "P") that contains the following (substituting the `myapp` with your project's name):
 
 ```txt
-web: target/universal/stage/bin/myapp -Dhttp.port=${PORT} -DapplyEvolutions.default=true -Ddb.default.driver=org.postgresql.Driver -Ddb.default.url=${DATABASE_URL}
+web: target/universal/stage/bin/myapp -Dhttp.port=${PORT} -Dplay.evolutions.db.default.autoApply=true -Ddb.default.driver=org.postgresql.Driver -Ddb.default.url=${DATABASE_URL}
 ```
 
-This instructs Heroku that for the process named `web` it will run Play and override the `applyEvolutions.default`, `db.default.driver`, and `db.default.url` configuration parameters.  Note that the `Procfile` command can be maximum 255 characters long.  Alternatively, use the `-Dconfig.resource=` or `-Dconfig.file=` mentioned in [[production configuration|ProductionConfiguration]] page.
+This instructs Heroku that for the process named `web` it will run Play and override the `play.evolutions.db.default.autoApply`, `db.default.driver`, and `db.default.url` configuration parameters.  Note that the `Procfile` command can be maximum 255 characters long.  Alternatively, use the `-Dconfig.resource=` or `-Dconfig.file=` mentioned in [[production configuration|ProductionConfiguration]] page.
 Note that the creation of a Procfile is not actually required by Heroku, as Heroku will look in your play application's conf directory for an application.conf file in order to determine that it is a play application.
 
 ## Further learning resources
