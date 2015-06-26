@@ -22,7 +22,7 @@ In 1.6, the out of the box list is [out of order](http://op-co.de/blog/posts/and
   "TLS_EMPTY_RENEGOTIATION_INFO_SCSV" // per RFC 5746
 ```
 
-The list of cipher suites can be configured manually using the `ws.ssl.enabledCiphers` setting:
+The list of cipher suites can be configured manually using the `play.ws.ssl.enabledCiphers` setting:
 
 ```
 play.ws.ssl.enabledCiphers = [
