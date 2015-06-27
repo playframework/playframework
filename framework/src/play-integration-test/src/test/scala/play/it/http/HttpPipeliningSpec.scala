@@ -12,6 +12,8 @@ import play.api.libs.iteratee._
 import play.it._
 import java.util.concurrent.TimeUnit
 import scala.concurrent.Future
+import scala.concurrent.duration.DurationInt
+import akka.pattern.after
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -19,6 +21,8 @@ object NettyHttpPipeliningSpec extends HttpPipeliningSpec with NettyIntegrationS
 object AkkaHttpHttpPipeliningSpec extends HttpPipeliningSpec with AkkaHttpIntegrationSpecification
 
 trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecification {
+
+  val actorSystem = akka.actor.ActorSystem()
 
   "Play's http pipelining support" should {
 
@@ -35,7 +39,7 @@ trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecifi
 
     "wait for the first response to return before returning the second" in withServer(EssentialAction { req =>
       req.path match {
-        case "/long" => Accumulator.done(Promise.timeout(Results.Ok("long"), 100, TimeUnit.MILLISECONDS))
+        case "/long" => Accumulator.done(after(100.milliseconds, actorSystem.scheduler)(Future(Results.Ok("long"))))
         case "/short" => Accumulator.done(Results.Ok("short"))
         case _ => Accumulator.done(Results.NotFound)
       }
@@ -55,7 +59,7 @@ trait HttpPipeliningSpec extends PlaySpecification with ServerIntegrationSpecifi
         case "/long" => Accumulator.done(
           Results.Ok.chunked(Enumerator.unfoldM[Int, String](0) { chunk =>
             if (chunk < 3) {
-              Promise.timeout(Some((chunk + 1, chunk.toString)), 50, TimeUnit.MILLISECONDS)
+              after(50.milliseconds, actorSystem.scheduler)(Future(Some((chunk + 1, chunk.toString))))
             } else {
               Future.successful(None)
             }

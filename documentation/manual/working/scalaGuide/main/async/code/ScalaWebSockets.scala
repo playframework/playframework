@@ -4,7 +4,7 @@
 package scalaguide.async.websockets
 
 import play.api.test._
-import scala.concurrent.Promise
+import scala.concurrent.{Promise, Future}
 
 object ScalaWebSockets extends PlaySpecification {
 
@@ -12,6 +12,7 @@ object ScalaWebSockets extends PlaySpecification {
   import play.api.libs.iteratee._
   import play.api.mvc.{Result, WebSocket}
   import play.api.libs.json.{Json, JsValue}
+  import play.api.Application
 
   "Scala WebSockets" should {
 
@@ -102,7 +103,7 @@ object ScalaWebSockets extends PlaySpecification {
 
     "support iteratees" in {
 
-      def runWebSocket[In, Out](webSocket: WebSocket[In, Out], in: Enumerator[In]): Either[Result, List[Out]] = {
+      def runWebSocket[In, Out](app: Application, webSocket: WebSocket[In, Out], in: Enumerator[In]): Either[Result, List[Out]] = {
         await(webSocket.f(FakeRequest())).right.map { f =>
           val consumed = Promise[List[Out]]()
           @volatile var chunks = List.empty[Out]
@@ -118,28 +119,26 @@ object ScalaWebSockets extends PlaySpecification {
           import scala.concurrent.duration._
           f(in.onDoneEnumerating {
             // Yeah, ugly, but it makes a race condition unlikely.
-            play.api.libs.concurrent.Promise.timeout((), 100.milliseconds).onSuccess {
-              case _ => consumed.trySuccess(chunks)
-            }
+            akka.pattern.after(100.milliseconds, app.actorSystem.scheduler)(Future(consumed.trySuccess(chunks)))
           }, getChunks)
           await(consumed.future)
         }
       }
 
       "iteratee1" in new WithApplication() {
-        runWebSocket(Samples.Controller6.socket, Enumerator.eof) must beRight.which { out =>
+        runWebSocket(app, Samples.Controller6.socket, Enumerator.eof) must beRight.which { out =>
           out must_== List("Hello!")
         }
       }
 
       "iteratee2" in new WithApplication() {
-        runWebSocket(Samples.Controller7.socket, Enumerator.empty) must beRight.which { out =>
+        runWebSocket(app, Samples.Controller7.socket, Enumerator.empty) must beRight.which { out =>
           out must_== List("Hello!")
         }
       }
 
       "iteratee3" in new WithApplication() {
-        runWebSocket(Samples.Controller8.socket, Enumerator("foo") >>> Enumerator.eof) must beRight.which { out =>
+        runWebSocket(app, Samples.Controller8.socket, Enumerator("foo") >>> Enumerator.eof) must beRight.which { out =>
           out must_== List("I received your message: foo")
         }
       }
