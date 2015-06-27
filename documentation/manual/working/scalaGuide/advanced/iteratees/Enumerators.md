@@ -113,8 +113,9 @@ This method defined on the `Enumerator` object is one of the most important meth
 It can be easily used to create an `Enumerator` that represents a stream of time values every 100 millisecond using the opportunity that we can return a promise, like the following:
 
 ```scala
+import akka.pattern.after
 Enumerator.generateM {
-  Promise.timeout(Some(new Date), 100 milliseconds)
+  after(100.milliseconds, actorSystem.scheduler)(Future(Some(new Date)))
 }
 ```
 
@@ -124,7 +125,7 @@ Combining this, callback Enumerator, with an imperative `Iteratee.foreach` we ca
 
 ```scala
 val timeStream = Enumerator.generateM {
-  Promise.timeout(Some(new Date), 100 milliseconds)
+  after(100.milliseconds, actorSystem.scheduler)(Future(Some(new Date)))
 }
 
 val printlnSink = Iteratee.foreach[Date](date => println(date))

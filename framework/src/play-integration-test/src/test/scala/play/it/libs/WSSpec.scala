@@ -10,12 +10,13 @@ import play.it.tools.HttpBinApplication
 import play.api.test._
 import play.api.mvc._
 import play.it._
-import scala.concurrent.Await
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 import play.api.libs.iteratee._
 import play.api.libs.concurrent.Promise
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.io.IOException
+import akka.pattern.after
 
 object NettyWSSpec extends WSSpec with NettyIntegrationSpecification
 
@@ -146,7 +147,7 @@ trait WSSpec extends PlaySpecification with ServerIntegrationSpecification with 
       }
 
     def slow[E](ms: Long): Enumeratee[E, E] =
-      Enumeratee.mapM { i => Promise.timeout(i, ms) }
+      Enumeratee.mapM { i => after(ms.milliseconds, app.actorSystem.scheduler)(Future.successful(i)) }
 
     "get a streamed response when the server is slow" in withResult(
       Results.Ok.chunked(Enumerator("a", "b", "c") &> slow(50))) { port =>
