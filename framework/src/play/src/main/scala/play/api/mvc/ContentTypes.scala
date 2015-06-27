@@ -3,12 +3,10 @@
  */
 package play.api.mvc
 
-import akka.stream.FlowMaterializer
 import akka.util.ByteString
 import play.api.data.Form
 import play.api.libs.streams.{ Streams, Accumulator }
 import play.core.parsers.Multipart
-
 import scala.language.reflectiveCalls
 import java.io._
 import scala.concurrent.Future
@@ -24,6 +22,9 @@ import scala.util.control.NonFatal
 import play.api.http.{ LazyHttpErrorHandler, ParserConfiguration, HttpConfiguration, HttpVerbs }
 import play.utils.PlayIO
 import play.api.http.Status._
+import akka.stream.FlowMaterializer
+import akka.stream.scaladsl.{ Keep, Flow, Sink }
+import akka.stream.stage.{ Context, PushStage, SyncDirective, TerminationDirective }
 
 /**
  * A request body that adapts automatically according the request Content-Type.
@@ -304,13 +305,17 @@ trait BodyParsers {
      *
      * @param maxLength Max length allowed or returns EntityTooLarge HTTP response.
      */
-    def tolerantText(maxLength: Long): BodyParser[String] = BodyParser.iteratee("text, maxLength=" + maxLength) { request =>
+    def tolerantText(maxLength: Long): BodyParser[String] = BodyParser("text, maxLength=" + maxLength) { request =>
       // Encoding notes: RFC-2616 section 3.7.1 mandates ISO-8859-1 as the default charset if none is specified.
-
-      import Execution.Implicits.trampoline
-      Traversable.takeUpTo[ByteString](maxLength)
-        .transform(Iteratee.consume[ByteString]().map(bs => bs.decodeString(request.charset.getOrElse("ISO-8859-1"))))
-        .flatMap(checkForEof(request))
+      Accumulator {
+        val takeUpToFlow = Flow[ByteString].transform { () => new BodyParsers.TakeUpTo(maxLength) }
+        val foldingSink = Sink.fold[ByteString, ByteString](ByteString.empty)((state, bs) => state ++ bs)
+        val sink = takeUpToFlow.toMat(foldingSink)(Keep.right)
+        sink.mapMaterializedValue { f: Future[ByteString] =>
+          import play.core.Execution.Implicits.internalContext
+          checkForMaxLengthAttained(request, f.map(bs => bs.decodeString(request.charset.getOrElse("ISO-8859-1"))))
+        }
+      }
     }
 
     /**
@@ -342,15 +347,18 @@ trait BodyParsers {
      * @param memoryThreshold If the content size is bigger than this limit, the content is stored as file.
      */
     def raw(memoryThreshold: Int = DefaultMaxTextLength, maxLength: Long = DefaultMaxDiskLength): BodyParser[RawBuffer] =
-      BodyParser.iteratee("raw, memoryThreshold=" + memoryThreshold) { request =>
-        import play.core.Execution.Implicits.internalContext // Cannot run on same thread as may need to write to a file
-        val buffer = RawBuffer(memoryThreshold)
-        Traversable.takeUpTo[ByteString](maxLength).transform(
-          Iteratee.foreach[ByteString](bytes => buffer.push(bytes)).map { _ =>
-            buffer.close()
-            buffer
+      BodyParser("raw, memoryThreshold=" + memoryThreshold) { request =>
+        Accumulator {
+          val buffer = RawBuffer(memoryThreshold)
+          val takeUpToFlow = Flow[ByteString].transform { () => new BodyParsers.TakeUpTo(maxLength) }
+          val sink: Sink[ByteString, Future[RawBuffer]] = takeUpToFlow.toMat(
+            Sink.fold(buffer) { (bf, bs) => bf.push(bs); bf }
+          )(Keep.right)
+          sink.mapMaterializedValue { f: Future[RawBuffer] =>
+            import play.core.Execution.Implicits.internalContext
+            checkForMaxLengthAttained(request, f andThen { case b => buffer.close() })
           }
-        ).flatMap(checkForEof(request))
+        }
       }
 
     /**
@@ -739,6 +747,15 @@ trait BodyParsers {
       cont
     }
 
+    private def checkForMaxLengthAttained[A](request: RequestHeader, materializationRes: Future[A]): Future[Either[Result, A]] = {
+      import play.core.Execution.Implicits.internalContext
+      materializationRes.map(Right(_)).recoverWith {
+        case _: BodyParsers.MaxLengthLimitAttained =>
+          val badResult = createBadResult("Request Entity Too Large", REQUEST_ENTITY_TOO_LARGE)(request)
+          badResult.map(Left(_))
+      }
+    }
+
     private def tolerantBodyParser[A](name: String, maxLength: Long, errorMessage: String)(parser: (RequestHeader, ByteString) => A): BodyParser[A] =
       BodyParser.iteratee(name + ", maxLength=" + maxLength) { request =>
         import play.api.libs.iteratee.Execution.Implicits.trampoline
@@ -774,6 +791,18 @@ object BodyParsers extends BodyParsers {
   private val logger = Logger(this.getClass)
 
   private val hcCache = Application.instanceCache[HttpConfiguration]
+
+  private class TakeUpTo(maxLength: Long) extends PushStage[ByteString, ByteString] {
+    private var pushedBytes: Long = 0
+
+    override def onPush(chunk: ByteString, ctx: Context[ByteString]): SyncDirective = {
+      pushedBytes += chunk.size
+      if (pushedBytes > maxLength) ctx.fail(new MaxLengthLimitAttained)
+      else ctx.push(chunk)
+    }
+  }
+
+  private class MaxLengthLimitAttained extends RuntimeException(null, null, false, false)
 }
 
 /**
