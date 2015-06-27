@@ -3,7 +3,7 @@
  */
 package play.it.http.parsing
 
-import akka.stream.FlowMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.test._
@@ -13,7 +13,7 @@ object IgnoreBodyParserSpec extends PlaySpecification {
 
   "The ignore body parser" should {
 
-    def parse[A](value: A, bytes: ByteString, contentType: Option[String], encoding: String)(implicit mat: FlowMaterializer) = {
+    def parse[A](value: A, bytes: ByteString, contentType: Option[String], encoding: String)(implicit mat: Materializer) = {
       await(
         BodyParsers.parse.ignore(value)(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*))
           .run(Source.single(bytes))

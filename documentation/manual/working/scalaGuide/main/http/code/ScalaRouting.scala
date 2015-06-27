@@ -3,7 +3,7 @@
  */
 package scalaguide.http.routing
 
-import akka.stream.ActorFlowMaterializer
+import akka.stream.ActorMaterializer
 import org.specs2.mutable.Specification
 import play.api.test.FakeRequest
 import play.api.mvc._
@@ -142,7 +142,7 @@ object ScalaRoutingSpec extends Specification {
   def contentOf(rh: RequestHeader, router: Class[_ <: Router] = classOf[Routes]) = {
     val app = FakeApplication()
     running(app) {
-      implicit val mat = ActorFlowMaterializer()(app.actorSystem)
+      implicit val mat = ActorMaterializer()(app.actorSystem)
       contentAsString(app.injector.instanceOf(router).routes(rh) match {
         case e: EssentialAction => e(rh).run()
       })

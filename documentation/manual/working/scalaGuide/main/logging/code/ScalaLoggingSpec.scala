@@ -126,14 +126,14 @@ class ScalaLoggingSpec extends Specification with Mockito {
     "allow for use in filters" in {
       //#logging-pattern-filter
       import javax.inject.Inject
-      import akka.stream.FlowMaterializer
+      import akka.stream.Materializer
       import scala.concurrent.ExecutionContext.Implicits.global
       import scala.concurrent.Future
       import play.api.Logger
       import play.api.mvc._
       import play.api._
       
-      class AccessLoggingFilter @Inject() (implicit val mat: FlowMaterializer) extends Filter {
+      class AccessLoggingFilter @Inject() (implicit val mat: Materializer) extends Filter {
         
         val accessLogger = Logger("access")
         

@@ -5,7 +5,7 @@ package play.api.test
 
 import java.util.concurrent.TimeUnit
 
-import akka.stream.FlowMaterializer
+import akka.stream.Materializer
 import akka.util.ByteString
 import play.api.mvc._
 
@@ -100,7 +100,7 @@ object FakesSpec extends PlaySpecification {
     }
   }
 
-  def contentTypeForFakeRequest[T](request: FakeRequest[AnyContentAsJson])(implicit mat: FlowMaterializer): String = {
+  def contentTypeForFakeRequest[T](request: FakeRequest[AnyContentAsJson])(implicit mat: Materializer): String = {
     var testContentType: Option[String] = None
     val action = Action { request => testContentType = request.headers.get(CONTENT_TYPE); Ok }
     val headers = new WrappedRequest(request)

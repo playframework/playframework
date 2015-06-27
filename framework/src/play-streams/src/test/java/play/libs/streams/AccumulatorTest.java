@@ -1,8 +1,8 @@
 package play.libs.streams;
 
 import akka.actor.ActorSystem;
-import akka.stream.ActorFlowMaterializer;
-import akka.stream.FlowMaterializer;
+import akka.stream.ActorMaterializer;
+import akka.stream.Materializer;
 import akka.stream.javadsl.Flow;
 import akka.stream.javadsl.Sink;
 import akka.stream.javadsl.Source;
@@ -18,7 +18,7 @@ import java.util.function.Function;
 
 public class AccumulatorTest {
 
-    private FlowMaterializer mat;
+    private Materializer mat;
     private ActorSystem system;
     private Executor ec;
 
@@ -101,7 +101,7 @@ public class AccumulatorTest {
     @Before
     public void setUp() {
         system = ActorSystem.create();
-        mat = ActorFlowMaterializer.create(system);
+        mat = ActorMaterializer.create(system);
         ec = system.dispatcher();
     }
 

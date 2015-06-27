@@ -5,7 +5,6 @@ package play.api.http
 
 import javax.inject.{ Provider, Inject }
 
-import akka.stream.FlowMaterializer
 import play.api.inject.{ BindingKey, Binding }
 import play.api.libs.streams.Accumulator
 import play.api.{ PlayConfig, Configuration, Environment, GlobalSettings }

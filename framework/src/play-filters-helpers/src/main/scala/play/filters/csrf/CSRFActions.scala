@@ -3,7 +3,7 @@
  */
 package play.filters.csrf
 
-import akka.stream.FlowMaterializer
+import akka.stream.Materializer
 import akka.util.ByteString
 import play.api.libs.streams.{ Streams, Accumulator }
 import play.api.mvc._
@@ -24,7 +24,7 @@ import scala.concurrent.Future
 class CSRFAction(next: EssentialAction,
     config: CSRFConfig = CSRFConfig(),
     tokenProvider: TokenProvider = SignedTokenProvider,
-    errorHandler: => ErrorHandler = CSRF.DefaultErrorHandler)(implicit mat: FlowMaterializer) extends EssentialAction {
+    errorHandler: => ErrorHandler = CSRF.DefaultErrorHandler)(implicit mat: Materializer) extends EssentialAction {
 
   import CSRFAction._
   import play.api.libs.iteratee.Execution.Implicits.trampoline

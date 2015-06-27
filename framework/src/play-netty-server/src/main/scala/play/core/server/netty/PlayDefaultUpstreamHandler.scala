@@ -3,7 +3,7 @@
  */
 package play.core.server.netty
 
-import akka.stream.ActorFlowMaterializer
+import akka.stream.ActorMaterializer
 import akka.util.ByteString
 import org.jboss.netty.buffer.ChannelBuffers
 import org.jboss.netty.channel._
@@ -202,7 +202,7 @@ private[play] class PlayDefaultUpstreamHandler(server: NettyServer, allChannels:
           logger.trace("Serving this request with: " + action)
 
           val actorSystem = app.fold(server.actorSystem)(_.actorSystem)
-          implicit val mat = ActorFlowMaterializer()(actorSystem)
+          implicit val mat = ActorMaterializer()(actorSystem)
           val bodyParser = Iteratee.flatten(
             Future(Streams.accumulatorToIteratee(action(requestHeader)))(actorSystem.dispatcher)
           )

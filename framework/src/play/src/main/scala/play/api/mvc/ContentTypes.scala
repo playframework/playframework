@@ -22,7 +22,7 @@ import scala.util.control.NonFatal
 import play.api.http.{ LazyHttpErrorHandler, ParserConfiguration, HttpConfiguration, HttpVerbs }
 import play.utils.PlayIO
 import play.api.http.Status._
-import akka.stream.FlowMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.{ Keep, Flow, Sink }
 import akka.stream.stage.{ Context, PushStage, SyncDirective, TerminationDirective }
 
@@ -687,7 +687,7 @@ trait BodyParsers {
      * @param maxLength The max length allowed
      * @param parser The BodyParser to wrap
      */
-    def maxLength[A](maxLength: Long, parser: BodyParser[A])(implicit mat: FlowMaterializer): BodyParser[Either[MaxSizeExceeded, A]] = BodyParser.iteratee("maxLength=" + maxLength + ", wrapping=" + parser.toString) { request =>
+    def maxLength[A](maxLength: Long, parser: BodyParser[A])(implicit mat: Materializer): BodyParser[Either[MaxSizeExceeded, A]] = BodyParser.iteratee("maxLength=" + maxLength + ", wrapping=" + parser.toString) { request =>
       import play.api.libs.iteratee.Execution.Implicits.trampoline
       Traversable.takeUpTo[ByteString](maxLength).transform(Streams.accumulatorToIteratee(parser(request))).flatMap(Iteratee.eofOrElse(MaxSizeExceeded(maxLength))).map {
         case Right(Right(result)) => Right(Right(result))

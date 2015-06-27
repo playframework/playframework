@@ -1,6 +1,6 @@
 package play.libs.streams;
 
-import akka.stream.FlowMaterializer;
+import akka.stream.Materializer;
 import akka.stream.javadsl.Flow;
 import akka.stream.javadsl.Keep;
 import akka.stream.javadsl.Sink;
@@ -108,7 +108,10 @@ public final class Accumulator<E, A> {
      * @return A new accumulator with the given flow in its graph.
      */
     public <D> Accumulator<D, A> through(Flow<D, E, ?> flow) {
-        return new Accumulator<>(flow.to(sink, Keep.right()));
+    	// This should be written: new Accumulator<>(flow.to(sink, Keep.right()));
+    	// However, that doesn't compile anymore, and it seems there is an issue with the `Flow.to` (overloaded) method.
+    	// The solution I used here is to inline the implementation of `Flow.to` until the overloading issue is fixed.
+        return new Accumulator<>(new Sink(flow.asScala().toMat(sink, akka.stream.javadsl.package$.MODULE$.combinerToScala(Keep.right()))));
     }
 
     /**
@@ -117,7 +120,7 @@ public final class Accumulator<E, A> {
      * @param mat The flow materializer.
      * @return A future that will be redeemed when the accumulator is done.
      */
-    public CompletionStage<A> run(FlowMaterializer mat) {
+    public CompletionStage<A> run(Materializer mat) {
         return Source.<E>empty().runWith(sink, mat);
     }
 
@@ -128,7 +131,7 @@ public final class Accumulator<E, A> {
      * @param mat The flow materializer.
      * @return A fuwure that will be redeemed when the accumulator is done.
      */
-    public CompletionStage<A> run(Source<E, ?> source, FlowMaterializer mat) {
+    public CompletionStage<A> run(Source<E, ?> source, Materializer mat) {
         return source.runWith(sink, mat);
     }
 

@@ -5,11 +5,11 @@ package play.api.inject
 
 import akka.actor.ActorSystem
 import javax.inject.{ Singleton, Inject, Provider }
-import akka.stream.FlowMaterializer
+import akka.stream.Materializer
 import play.api._
 import play.api.http._
 import play.api.libs.{ CryptoConfig, Crypto, CryptoConfigParser }
-import play.api.libs.concurrent.{ FlowMaterializerProvider, ExecutionContextProvider, ActorSystemProvider }
+import play.api.libs.concurrent.{ MaterializerProvider, ExecutionContextProvider, ActorSystemProvider }
 import play.api.routing.Router
 
 import scala.concurrent.ExecutionContext
@@ -42,7 +42,7 @@ class BuiltinModule extends Module {
 
       bind[Router].toProvider[RoutesProvider],
       bind[ActorSystem].toProvider[ActorSystemProvider],
-      bind[FlowMaterializer].toProvider[FlowMaterializerProvider],
+      bind[Materializer].toProvider[MaterializerProvider],
       bind[ExecutionContext].toProvider[ExecutionContextProvider],
       bind[Plugins].toProvider[PluginsProvider],
 

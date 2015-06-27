@@ -3,7 +3,7 @@
  */
 package scalaguide.http.scalabodyparsers {
 
-import akka.stream.ActorFlowMaterializer
+import akka.stream.ActorMaterializer
 import play.api.http.Writeable
 import play.api.mvc._
   import play.api.test._
@@ -86,7 +86,7 @@ import play.api.mvc._
       "body parser limit file" in {
         val app = FakeApplication()
         running(app) {
-          implicit val mat = ActorFlowMaterializer()(app.actorSystem)
+          implicit val mat = ActorMaterializer()(app.actorSystem)
           val storeInUserFile = scalaguide.http.scalabodyparsers.full.Application.storeInUserFile
           //#body-parser-limit-file
           // Accept only 10KB of data.
@@ -108,7 +108,7 @@ import play.api.mvc._
     def assertAction[A: Writeable, T: AsResult](action: EssentialAction, request: => FakeRequest[A], expectedResponse: Int = OK)(assertions: Future[Result] => T) = {
       val app = FakeApplication()
       running(app) {
-        implicit val mat = ActorFlowMaterializer()(app.actorSystem)
+        implicit val mat = ActorMaterializer()(app.actorSystem)
         val result = call(action, request)
         status(result) must_== expectedResponse
         assertions(result)

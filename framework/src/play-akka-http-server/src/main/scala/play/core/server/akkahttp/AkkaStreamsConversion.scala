@@ -1,6 +1,6 @@
 package play.core.server.akkahttp
 
-import akka.stream.FlowMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl._
 import org.reactivestreams._
 import play.api.libs.iteratee._
@@ -14,7 +14,7 @@ import play.api.libs.streams.Streams
  * Streams API is in flux at the moment so this isn't worth doing yet.
  */
 object AkkaStreamsConversion {
-  def sourceToEnumerator[Out, Mat](source: Source[Out, Mat])(implicit fm: FlowMaterializer): Enumerator[Out] = {
+  def sourceToEnumerator[Out, Mat](source: Source[Out, Mat])(implicit fm: Materializer): Enumerator[Out] = {
     val pubr: Publisher[Out] = source.runWith(Sink.publisher[Out])
     Streams.publisherToEnumerator(pubr)
   }

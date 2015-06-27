@@ -1,6 +1,6 @@
 package play.api.libs.streams
 
-import akka.stream.FlowMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.{ Keep, Source, Flow, Sink }
 import org.reactivestreams._
 import play.api.libs.iteratee._
@@ -183,7 +183,7 @@ object Streams {
    * the subscriber, however it does not materialize the subscriber until the
    * iteratees fold method has been invoked.
    */
-  def accumulatorToIteratee[T, U](accumulator: Accumulator[T, U])(implicit mat: FlowMaterializer): Iteratee[T, U] = {
+  def accumulatorToIteratee[T, U](accumulator: Accumulator[T, U])(implicit mat: Materializer): Iteratee[T, U] = {
     new Iteratee[T, U] {
       def fold[B](folder: (Step[T, U]) => Future[B])(implicit ec: ExecutionContext) = {
         Source.subscriber.toMat(accumulator.toSink) { (subscriber, result) =>

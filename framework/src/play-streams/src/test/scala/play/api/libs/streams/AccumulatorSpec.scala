@@ -4,7 +4,7 @@ import java.lang
 
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{ Flow, Source, Sink }
-import akka.stream.{ ActorFlowMaterializer, FlowMaterializer }
+import akka.stream.{ ActorMaterializer, Materializer }
 import org.reactivestreams.{ Subscription, Subscriber, Publisher }
 import org.specs2.mutable.Specification
 
@@ -15,10 +15,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object AccumulatorSpec extends Specification {
 
-  def withMaterializer[T](block: FlowMaterializer => T) = {
+  def withMaterializer[T](block: Materializer => T) = {
     val system = ActorSystem("test")
     try {
-      block(ActorFlowMaterializer()(system))
+      block(ActorMaterializer()(system))
     } finally {
       system.shutdown()
       system.awaitTermination()

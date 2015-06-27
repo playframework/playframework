@@ -3,7 +3,7 @@
  */
 package play.it.http.parsing
 
-import akka.stream.FlowMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import play.api.test._
@@ -13,7 +13,7 @@ object EmptyBodyParserSpec extends PlaySpecification {
 
   "The empty body parser" should {
 
-    def parse(bytes: ByteString, contentType: Option[String], encoding: String)(implicit mat: FlowMaterializer) = {
+    def parse(bytes: ByteString, contentType: Option[String], encoding: String)(implicit mat: Materializer) = {
       await(
         BodyParsers.parse.empty(FakeRequest().withHeaders(contentType.map(CONTENT_TYPE -> _).toSeq: _*))
           .run(Source.single(bytes))
