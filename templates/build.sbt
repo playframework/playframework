@@ -44,7 +44,7 @@ templateParameters := Map(
   "PLAY_DOCS_URL" -> playDocsUrl(version.value),
   "SBT_VERSION" -> "0.13.8",
   "COFFEESCRIPT_VERSION" -> "1.0.0",
-  "LESS_VERSION" -> "1.0.6",
+  "LESS_VERSION" -> "1.1.0",
   "JSHINT_VERSION" -> "1.0.3",
   "DIGEST_VERSION" -> "1.1.0",
   "RJS_VERSION" -> "1.0.7",
