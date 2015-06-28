@@ -132,6 +132,20 @@ object JsonSpec extends org.specs2.mutable.Specification {
       empty.tail.toOption must beNone
     }
 
+    "support adding and removing keys to JsObjects" in {
+      val obj = Json.obj("foo" -> 1, "bar" -> 2, "baz" -> 3)
+      obj - "foo" must_== Json.obj("bar" -> 2, "baz" -> 3)
+      obj + ("foo" -> "one") must_== Json.obj("foo" -> "one", "bar" -> 2, "baz" -> 3)
+      obj + ("foo" -> "one", "qux" -> "four") - ("bar", "baz") must_==
+        Json.obj("foo" -> "one", "qux" -> "four")
+    }
+
+    "support adding to JsArrays" in {
+      val arr = Json.arr("foo", "bar", "baz")
+      arr :+ "qux" must_== Json.arr("foo", "bar", "baz", "qux")
+      "qux" +: arr must_== Json.arr("qux", "foo", "bar", "baz")
+    }
+
     "serialize and deserialize maps properly" in {
       val c = Car(1, Map("ford" -> "1954 model"))
       val jsonCar = toJson(c)

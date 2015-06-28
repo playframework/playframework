@@ -144,16 +144,18 @@ object Json {
    * Something to note due to `JsValueWrapper` extending `NotNull` :
    * `null` or `None` will end into compiling error : use JsNull instead.
    */
-  sealed trait JsValueWrapper extends NotNull
+  sealed trait JsValueWrapper extends Any with NotNull {
+    def value: JsValue
+  }
 
-  private case class JsValueWrapperImpl(field: JsValue) extends JsValueWrapper
+  private case class JsValueWrapperImpl(value: JsValue) extends AnyVal with JsValueWrapper
 
   import scala.language.implicitConversions
 
   implicit def toJsFieldJsValueWrapper[T](field: T)(implicit w: Writes[T]): JsValueWrapper = JsValueWrapperImpl(w.writes(field))
 
-  def obj(fields: (String, JsValueWrapper)*): JsObject = JsObject(fields.map(f => (f._1, f._2.asInstanceOf[JsValueWrapperImpl].field)))
-  def arr(fields: JsValueWrapper*): JsArray = JsArray(fields.map(_.asInstanceOf[JsValueWrapperImpl].field))
+  def obj(fields: (String, JsValueWrapper)*): JsObject = JsObject(fields.map { case (k, v) => k -> v.value })
+  def arr(fields: JsValueWrapper*): JsArray = JsArray(fields.map(_.value))
 
   import play.api.libs.iteratee.Enumeratee
 
