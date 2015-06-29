@@ -210,6 +210,10 @@
 * **Website (docs, sample):** <https://github.com/leon/play-salat>
 * **Short description:** Provides managed MongoDB access and object mapping using Salat and Casbah 
 
+## MongoDB ReactiveMongo Plugin (Scala)
+* **Website (docs, sample):** <http://reactivemongo.org/releases/0.11.0/documentation/tutorial/play2.html>
+* **Short description:** Provides a Play 2.x module for ReactiveMongo, asynchronous and reactive driver for MongoDB.
+
 ## Mountable routing
 
 * **Website:** <http://teamon.eu/play-navigator/>
