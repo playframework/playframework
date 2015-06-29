@@ -145,6 +145,24 @@ Another common destination for response bodies is to stream them through to a re
 
 @[stream-put](code/ScalaWSSpec.scala)
 
+### Converting a Response to a Result
+
+In some cases it is useful to convert a [Response](api/scala/play/api/libs/ws/WSResponse.html) to a [Result](api/scala/play/api/mvc/Result.html). This can easily done by adding the following implicit conversion:
+
+```scala
+implicit def Response2Result(response: Future[WSResponse]): Future[Result] = {
+  response map {
+    response =>
+      val headers = response.allHeaders map {
+        h => (h._1, h._2.head)
+      }
+      Result(ResponseHeader(response.status, headers), Enumerator(response.body.getBytes))
+  }
+}
+```
+
+@[response-to-result](code/ScalaWSSpec.scala)
+
 ## Common Patterns and Use Cases
 
 ### Chaining WS calls
