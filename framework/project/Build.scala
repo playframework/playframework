@@ -27,7 +27,6 @@ import interplay.PlayBuildBase.autoImport._
 import scala.util.control.NonFatal
 
 object BuildSettings {
-
   // Binary compatibility is tested against this version
   val previousVersion = "2.5.0"
 

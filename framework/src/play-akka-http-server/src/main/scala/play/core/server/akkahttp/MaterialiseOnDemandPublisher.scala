@@ -1,6 +1,6 @@
 package play.core.server.akkahttp
 
-import akka.stream.FlowMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.{ Sink, Source }
 import org.reactivestreams.{ Subscriber, Publisher, Subscription }
 import play.api.libs.concurrent.StateMachine
@@ -41,7 +41,7 @@ import MaterialiseOnDemandPublisher._
  *
  * This is used to work around https://github.com/akka/akka/issues/17782.
  */
-private[akkahttp] class MaterialiseOnDemandPublisher[T](source: Source[T, _])(implicit mat: FlowMaterializer) extends StateMachine[State](AwaitingDemand) with Publisher[T] {
+private[akkahttp] class MaterialiseOnDemandPublisher[T](source: Source[T, _])(implicit mat: Materializer) extends StateMachine[State](AwaitingDemand) with Publisher[T] {
 
   def subscribe(subscriber: Subscriber[_ >: T]) = {
     subscriber.onSubscribe(new ForwardingSubscription(subscriber))

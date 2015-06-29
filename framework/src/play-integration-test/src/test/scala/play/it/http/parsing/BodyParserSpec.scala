@@ -4,7 +4,7 @@
 package play.it.http.parsing
 
 import akka.actor.ActorSystem
-import akka.stream.{ ActorFlowMaterializer, FlowMaterializer }
+import akka.stream.{ ActorMaterializer, Materializer }
 import akka.stream.scaladsl.Source
 import play.api.libs.streams.Accumulator
 
@@ -22,7 +22,7 @@ object BodyParserSpec extends PlaySpecification with ExecutionSpecification with
   def run[A](bodyParser: BodyParser[A]) = {
     import scala.concurrent.ExecutionContext.Implicits.global
     val system = ActorSystem()
-    implicit val mat = ActorFlowMaterializer()(system)
+    implicit val mat = ActorMaterializer()(system)
     try {
       await {
         Future {

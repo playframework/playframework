@@ -3,7 +3,7 @@
  */
 package play.api.mvc
 
-import akka.stream.FlowMaterializer
+import akka.stream.Materializer
 import akka.util.ByteString
 import play.api._
 import play.api.libs.iteratee._
@@ -28,7 +28,7 @@ trait EssentialFilter {
 trait Filter extends EssentialFilter {
   self =>
 
-  implicit def mat: FlowMaterializer
+  implicit def mat: Materializer
 
   /**
    * Apply the filter, given the request header and a function to call the next
@@ -88,7 +88,7 @@ trait Filter extends EssentialFilter {
 }
 
 object Filter {
-  def apply(filter: (RequestHeader => Future[Result], RequestHeader) => Future[Result])(implicit m: FlowMaterializer): Filter = new Filter {
+  def apply(filter: (RequestHeader => Future[Result], RequestHeader) => Future[Result])(implicit m: Materializer): Filter = new Filter {
     implicit def mat = m
     def apply(f: RequestHeader => Future[Result])(rh: RequestHeader): Future[Result] = filter(f, rh)
   }

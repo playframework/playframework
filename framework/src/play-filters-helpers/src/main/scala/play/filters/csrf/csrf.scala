@@ -5,7 +5,7 @@ package play.filters.csrf
 
 import java.util.Optional
 
-import akka.stream.FlowMaterializer
+import akka.stream.Materializer
 import com.typesafe.config.ConfigMemorySize
 import play.filters.csrf.CSRF.{ CSRFHttpErrorHandler, ErrorHandler }
 import play.mvc.Http
@@ -236,7 +236,7 @@ class CSRFModule extends Module {
 trait CSRFComponents {
   def configuration: Configuration
   def httpErrorHandler: HttpErrorHandler
-  implicit def flowMaterializer: FlowMaterializer
+  implicit def flowMaterializer: Materializer
 
   lazy val csrfConfig: CSRFConfig = CSRFConfig.fromConfiguration(configuration)
   lazy val csrfTokenProvider: CSRF.TokenProvider = new CSRF.TokenProviderProvider(csrfConfig).get

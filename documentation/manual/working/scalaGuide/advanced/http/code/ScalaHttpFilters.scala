@@ -4,13 +4,13 @@ package simple {
 
 // #simple-filter
 import javax.inject.Inject
-import akka.stream.FlowMaterializer
+import akka.stream.Materializer
 import play.api.Logger
 import play.api.mvc._
 import scala.concurrent.Future
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-class LoggingFilter @Inject() (implicit val mat: FlowMaterializer) extends Filter {
+class LoggingFilter @Inject() (implicit val mat: Materializer) extends Filter {
 
   def apply(nextFilter: RequestHeader => Future[Result])
            (requestHeader: RequestHeader): Future[Result] = {

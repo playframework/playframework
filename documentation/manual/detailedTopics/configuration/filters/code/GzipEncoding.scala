@@ -3,7 +3,7 @@
  */
 package detailedtopics.configuration.gzipencoding
 
-import akka.stream.ActorFlowMaterializer
+import akka.stream.ActorMaterializer
 import play.api.test._
 
 object GzipEncoding extends PlaySpecification {
@@ -31,7 +31,7 @@ object GzipEncoding extends PlaySpecification {
       import play.api.mvc._
       val app = FakeApplication()
       running(app) {
-        implicit val mat = ActorFlowMaterializer()(app.actorSystem)
+        implicit val mat = ActorMaterializer()(app.actorSystem)
         header(CONTENT_ENCODING,
           filter(Action(Results.Ok("foo")))(gzipRequest).run()
         ) must beNone

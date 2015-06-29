@@ -1,6 +1,6 @@
 package play.api.libs.streams
 
-import akka.stream.FlowMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.{ Source, Keep, Flow, Sink }
 import org.reactivestreams.{ Publisher, Subscription, Subscriber }
 
@@ -61,14 +61,14 @@ final class Accumulator[-E, +A](sink: Sink[E, Future[A]]) {
   /**
    * Run this accumulator by feeding in the given source.
    */
-  def run(source: Source[E, _])(implicit materializer: FlowMaterializer): Future[A] = {
+  def run(source: Source[E, _])(implicit materializer: Materializer): Future[A] = {
     source.toMat(sink)(Keep.right).run()
   }
 
   /**
    * Run this accumulator by feeding a completed source into it.
    */
-  def run()(implicit materializer: FlowMaterializer): Future[A] = {
+  def run()(implicit materializer: Materializer): Future[A] = {
     run(Source.empty)
   }
 
@@ -83,7 +83,7 @@ final class Accumulator[-E, +A](sink: Sink[E, Future[A]]) {
    *   val intFuture = source ~>: intAccumulator
    * }}}
    */
-  def ~>:(source: Source[E, _])(implicit materializer: FlowMaterializer): Future[A] = run(source)
+  def ~>:(source: Source[E, _])(implicit materializer: Materializer): Future[A] = run(source)
 
   /**
    * Convert this accumulator to a Sink that gets materialised to a Future.
@@ -126,7 +126,7 @@ object Accumulator {
   /**
    * Flatten a future of an accumulator to an accumulator.
    */
-  def flatten[E, A](future: Future[Accumulator[E, A]])(implicit materializer: FlowMaterializer): Accumulator[E, A] = {
+  def flatten[E, A](future: Future[Accumulator[E, A]])(implicit materializer: Materializer): Accumulator[E, A] = {
     import play.api.libs.iteratee.Execution.Implicits.trampoline
 
     // Ideally, we'd use the following code, except due to akka streams bugs...
