@@ -11,7 +11,7 @@ The template engine builds its result by appending static and dynamic content pa
 foo @bar baz
 ```
 
-It consists in two static parts (`foo ` and ` baz`) around one dynamic part (`bar`). The template engine concatenates these parts together to build its result. Actually, in order to prevent cross-site scripting attacks, the value of `bar` can be escaped before being concatenated to the rest of the result. This escaping process is specific to each format: e.g. in the case of HTML you want to transform “<” into “&amp;lt;”.
+It consists in two static parts (`foo ` and ` baz`) around one dynamic part (`bar`). The template engine concatenates these parts together to build its result. Actually, in order to prevent cross-site scripting attacks, the value of `bar` can be escaped before being concatenated to the rest of the result. This escaping process is specific to each format: e.g. in the case of HTML you want to transform `“<”` into `“&amp;lt;”`.
 
 How does the template engine know which format correspond to a template file? It looks at its extension: e.g. if it ends with `.scala.html` it associates the HTML format to the file.
 
@@ -19,8 +19,8 @@ Finally, you usually want your template files to be used as the body of your HTT
 
 In summary, to support your own template format you need to perform the following steps:
 
-* Implement the text integration process for the format ;
-* Associate a file extension to the format ;
+* Implement the text integration process for the format;
+* Associate a file extension to the format;
 * Eventually tell Play how to send the result of a template rendering as an HTTP response body.
 
 ## Implement a format
@@ -31,10 +31,11 @@ The type parameter `A` of the format defines the result type of the template ren
 
 For convenience, Play provides a `play.twirl.api.BufferedContent[A]` abstract class that implements `play.twirl.api.Appendable[A]` using a `StringBuilder` to build its result and that implements the `play.twirl.api.Content` trait so Play knows how to serialize it as an HTTP response body (see the last section of this page for details).
 
-In short, you need to write to classes: one defining the result (implementing `play.twirl.api.Appendable[A]`) and one defining the text integration process (implementing `play.twirl.api.Format[A]`). For instance, here is how the HTML format is defined:
+In short, you need to write two classes: one defining the result (implementing `play.twirl.api.Appendable[A]`) and one defining the text integration process (implementing `play.twirl.api.Format[A]`). For instance, here is how the HTML format is defined:
 
 ```scala
-// The `Html` result type. We extend `BufferedContent[Html]` rather than just `Appendable[Html]` so
+// The `Html` result type. We extend `BufferedContent[Html]` 
+// rather than just `Appendable[Html]` so
 // Play knows how to make an HTTP result from a `Html` value
 class Html(buffer: StringBuilder) extends BufferedContent[Html](buffer) {
   val contentType = MimeTypes.HTML
@@ -48,7 +49,7 @@ object HtmlFormat extends Format[Html] {
 
 ## Associate a file extension to the format
 
-The templates are compiled into a `.scala` files by the build process just before compiling the whole application sources. The `TwirlKeys.templateFormats` key is a sbt setting of type `Map[String, String]` defining the mapping between file extensions and template formats. For instance, if HTML was not supported out of the box by Play, you would have to write the following in your build file to associate the `.scala.html` files to the `play.twirl.api.HtmlFormat` format:
+The templates are compiled into a `.scala` files by the build process just before compiling the whole application's sources. The `TwirlKeys.templateFormats` key is a sbt setting of type `Map[String, String]` defining the mapping between file extensions and template formats. For instance, if HTML was not supported out of the box by Play, you would have to write the following in your build file to associate the `.scala.html` files to the `play.twirl.api.HtmlFormat` format:
 
 ```scala
 TwirlKeys.templateFormats += ("html" -> "my.HtmlFormat.instance")
