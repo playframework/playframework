@@ -4,11 +4,10 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.Expect
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl._
 import java.net.InetSocketAddress
 import akka.util.ByteString
-import org.reactivestreams.{ Subscription, Subscriber, Publisher }
 import play.api._
 import play.api.http.DefaultHttpErrorHandler
 import play.api.libs.streams.Accumulator
@@ -28,6 +27,7 @@ class AkkaHttpServer(
     config: ServerConfig,
     val applicationProvider: ApplicationProvider,
     actorSystem: ActorSystem,
+    materializer: Materializer,
     stopHook: () => Future[Unit]) extends Server {
 
   import AkkaHttpServer._
@@ -40,7 +40,7 @@ class AkkaHttpServer(
   // Remember that some user config may not be available in development mode due to
   // its unusual ClassLoader.
   implicit val system = actorSystem
-  implicit val materializer = ActorMaterializer()
+  implicit val mat = materializer
 
   val address: InetSocketAddress = {
     // Listen for incoming connections and handle them with the `handleRequest` method.
@@ -216,5 +216,6 @@ object AkkaHttpServer {
  */
 class AkkaHttpServerProvider extends ServerProvider {
   def createServer(context: ServerProvider.Context) =
-    new AkkaHttpServer(context.config, context.appProvider, context.actorSystem, context.stopHook)
+    new AkkaHttpServer(context.config, context.appProvider, context.actorSystem, context.materializer,
+      context.stopHook)
 }

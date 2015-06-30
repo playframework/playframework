@@ -3,7 +3,7 @@
  */
 package play.api.test
 
-import akka.stream.{ ActorMaterializer, Materializer }
+import akka.stream.Materializer
 import akka.stream.scaladsl.Source
 
 import scala.language.reflectiveCalls
@@ -233,7 +233,7 @@ trait RouteInvokers extends EssentialActionCaller {
    */
   def route[T](app: Application, rh: RequestHeader, body: T)(implicit w: Writeable[T]): Option[Future[Result]] = {
     val (taggedRh, handler) = app.requestHandler.handlerForRequest(rh)
-    implicit val mat = ActorMaterializer()(app.actorSystem)
+    import app.materializer
     handler match {
       case a: EssentialAction =>
         Some(call(a, taggedRh, body))

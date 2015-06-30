@@ -61,6 +61,7 @@ class DocServerStart {
       config,
       applicationProvider,
       application.actorSystem,
+      application.materializer,
       stopHook = () => Future.successful(())
     )
     serverProvider.createServer(context)

@@ -4,6 +4,7 @@
 package play.core.server
 
 import akka.actor.ActorSystem
+import akka.stream.Materializer
 import com.typesafe.config.ConfigFactory
 import com.typesafe.netty.http.pipelining.HttpPipeliningHandler
 import java.net.InetSocketAddress
@@ -25,7 +26,6 @@ import play.core.server.ssl.ServerSSLEngine
 import play.server.SSLEngineProvider
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration.Duration
-import scala.util.Success
 import scala.util.control.NonFatal
 
 /**
@@ -35,7 +35,8 @@ class NettyServer(
     config: ServerConfig,
     val applicationProvider: ApplicationProvider,
     stopHook: () => Future[Unit],
-    val actorSystem: ActorSystem) extends Server {
+    val actorSystem: ActorSystem,
+    val materializer: Materializer) extends Server {
 
   private val nettyConfig = config.configuration.underlying.getConfig("play.server.netty")
 
@@ -203,7 +204,8 @@ class NettyServerProvider extends ServerProvider {
     context.config,
     context.appProvider,
     context.stopHook,
-    context.actorSystem
+    context.actorSystem,
+    context.materializer
   )
 }
 
@@ -229,7 +231,8 @@ object NettyServer {
    * @return A started Netty server, serving the application.
    */
   def fromApplication(application: Application, config: ServerConfig = ServerConfig()): NettyServer = {
-    new NettyServer(config, ApplicationProvider(application), () => Future.successful(()), application.actorSystem)
+    new NettyServer(config, ApplicationProvider(application), () => Future.successful(()), application.actorSystem,
+      application.materializer)
   }
 
   /**
@@ -251,7 +254,8 @@ trait NettyServerComponents {
   lazy val server: NettyServer = {
     // Start the application first
     Play.start(application)
-    new NettyServer(serverConfig, ApplicationProvider(application), serverStopHook, application.actorSystem)
+    new NettyServer(serverConfig, ApplicationProvider(application), serverStopHook, application.actorSystem,
+      application.materializer)
   }
 
   lazy val environment: Environment = Environment.simple(mode = serverConfig.mode)
