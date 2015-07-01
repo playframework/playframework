@@ -22,9 +22,13 @@ import scala.concurrent.duration.Duration
 
 object RawBodyParserSpec extends Specification with AfterAll {
 
-  implicit val materializer = ActorMaterializer()(ActorSystem("content-types-spec"))
+  implicit val system = ActorSystem("content-types-spec")
+  implicit val materializer = ActorMaterializer()(system)
 
-  def afterAll(): Unit = materializer.shutdown()
+  def afterAll(): Unit = {
+    materializer.shutdown()
+    system.shutdown()
+  }
 
   val config = ParserConfiguration()
 

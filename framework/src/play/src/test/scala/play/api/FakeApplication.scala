@@ -3,12 +3,10 @@
  */
 package play.api
 
+import akka.stream.ActorMaterializer
 import play.api.http.{ NotImplementedHttpRequestHandler, DefaultHttpErrorHandler }
 import play.api.libs.concurrent.ActorSystemProvider
-import play.core.Router
 import java.io.File
-
-import scala.concurrent.Future
 
 /**
  * Fake application as used by Play core tests.  This is needed since Play core can't depend on the Play test API.
@@ -23,6 +21,7 @@ case class FakeApplication(config: Map[String, Any] = Map(),
   lazy val configuration = Configuration.from(config)
   private val lazyActorSystem = ActorSystemProvider.lazyStart(classloader, configuration)
   def actorSystem = lazyActorSystem.get()
+  lazy val materializer = ActorMaterializer()(actorSystem)
   def stop() = lazyActorSystem.close()
   val errorHandler = DefaultHttpErrorHandler
   val requestHandler = NotImplementedHttpRequestHandler

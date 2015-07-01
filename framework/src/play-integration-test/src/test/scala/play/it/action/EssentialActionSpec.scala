@@ -3,7 +3,6 @@
  */
 package play.it.action
 
-import akka.stream.ActorMaterializer
 import play.api.mvc.{ Action, EssentialAction }
 import play.api.mvc.Results._
 import play.api.test.{ FakeApplication, PlaySpecification, FakeRequest }
@@ -24,7 +23,7 @@ object EssentialActionSpec extends PlaySpecification {
       // start fake application with its own classloader
       val applicationClassLoader = new ClassLoader() {}
       val fakeApplication = FakeApplication(classloader = applicationClassLoader)
-      implicit val mat = ActorMaterializer()(fakeApplication.actorSystem)
+      import fakeApplication.materializer
 
       running(fakeApplication) {
         // run the test with the classloader of the current thread

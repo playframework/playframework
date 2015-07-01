@@ -6,6 +6,7 @@ package play.api.test
 import javax.inject.{ Inject, Provider }
 
 import akka.actor.ActorSystem
+import akka.stream.Materializer
 import akka.util.ByteString
 import play.api._
 import play.api.http._
@@ -220,6 +221,7 @@ case class FakeApplication(
   override def global: GlobalSettings = app.global
   override def configuration: Configuration = app.configuration
   override def actorSystem: ActorSystem = app.actorSystem
+  override implicit def materializer: Materializer = app.materializer
   override def plugins: Seq[Plugin.Deprecated] = app.plugins
   override def requestHandler: HttpRequestHandler = app.requestHandler
   override def errorHandler: HttpErrorHandler = app.errorHandler

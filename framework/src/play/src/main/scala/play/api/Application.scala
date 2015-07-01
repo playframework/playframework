@@ -6,6 +6,7 @@ package play.api
 import javax.inject.Inject
 
 import akka.actor.ActorSystem
+import akka.stream.{ ActorMaterializer, Materializer }
 import com.google.inject.Singleton
 import play.api.http._
 import play.api.mvc.EssentialFilter
@@ -93,6 +94,11 @@ trait Application {
    * The default ActorSystem used by the application.
    */
   def actorSystem: ActorSystem
+
+  /**
+   * The default Materializer used by the application.
+   */
+  implicit def materializer: Materializer
 
   /**
    * Cached value of `routes`. For performance, don't synchronize
@@ -244,6 +250,7 @@ class DefaultApplication @Inject() (environment: Environment,
     override val requestHandler: HttpRequestHandler,
     override val errorHandler: HttpErrorHandler,
     override val actorSystem: ActorSystem,
+    override val materializer: Materializer,
     override val plugins: Plugins) extends Application {
 
   def path = environment.rootPath
@@ -276,9 +283,10 @@ trait BuiltInComponents {
 
   lazy val applicationLifecycle: DefaultApplicationLifecycle = new DefaultApplicationLifecycle
   lazy val application: Application = new DefaultApplication(environment, applicationLifecycle, injector,
-    configuration, httpRequestHandler, httpErrorHandler, actorSystem, Plugins.empty)
+    configuration, httpRequestHandler, httpErrorHandler, actorSystem, materializer, Plugins.empty)
 
   lazy val actorSystem: ActorSystem = new ActorSystemProvider(environment, configuration, applicationLifecycle).get
+  lazy val materializer: Materializer = ActorMaterializer()(actorSystem)
 
   lazy val cryptoConfig: CryptoConfig = new CryptoConfigParser(environment, configuration).get
   lazy val crypto: Crypto = new Crypto(cryptoConfig)
