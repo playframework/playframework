@@ -39,6 +39,7 @@ article abbr{text-transform:none;}
 article img{max-width:100%;}
 article pre{margin:10px 0;border:1px solid #ddd;padding:10px;background:#fafafa;color:#666;overflow:auto;border-radius:5px;}
 article code{background:#fafafa;color:#666;font-family:inconsolata, monospace;border:1px solid #ddd;border-radius:3px;height:4px;padding:0;}
+article a code{color:#80c846;}article a code:hover{color:#6dae38;}
 article pre code{border:0;background:inherit;border-radius:0;line-height:inherit;font-size:14px;}
 article pre.prettyprint{border:1px solid #ddd;padding:10px;}
 article blockquote,article blockquote p,article p.note{line-height:20px;color:#4c4742;}
