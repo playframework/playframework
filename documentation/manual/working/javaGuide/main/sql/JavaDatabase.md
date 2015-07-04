@@ -114,7 +114,7 @@ Other than for the h2 in-memory database, useful mostly in development mode, Pla
 For example, if you use MySQL5, you need to add a [[dependency| SBTDependencies]] for the connector:
 
 ```
-libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.18"
+libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.36"
 ```
 
 ## Selecting and configuring the connection pool
