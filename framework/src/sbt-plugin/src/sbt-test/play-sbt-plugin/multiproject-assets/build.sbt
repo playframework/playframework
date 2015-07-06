@@ -1,4 +1,5 @@
 import java.net.URLClassLoader
+import com.typesafe.sbt.packager.Keys.executableScriptName
 
 name := "assets-sample"
 
@@ -43,7 +44,7 @@ InputKey[Unit]("checkOnTestClasspath") := {
 }
 
 TaskKey[Unit]("check-assets-jar-on-classpath") := {
-  val startScript = IO.read(target.value / "universal" / "stage" / "bin" / normalizedName.value)
+  val startScript = IO.read(target.value / "universal" / "stage" / "bin" / executableScriptName.value)
   val assetsJar = s"${organization.value}.${normalizedName.value}-${version.value}-assets.jar"
   if (startScript.contains(assetsJar)) {
     println("Found reference to " + assetsJar + " in start script")
