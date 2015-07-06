@@ -19,6 +19,7 @@ import play.runsupport.classloader._
 import play.runsupport.{ AssetsClassLoader, FileWatchService, Reloader }
 
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
+import com.typesafe.sbt.packager.Keys.executableScriptName
 import com.typesafe.sbt.web.SbtWeb.autoImport._
 
 /**
@@ -216,7 +217,7 @@ object PlayRun {
         println()
         state.fail
       case Right(_) =>
-        val stagingBin = Some(extracted.get(stagingDirectory in Universal) / "bin" / extracted.get(normalizedName in Universal)).map {
+        val stagingBin = Some(extracted.get(stagingDirectory in Universal) / "bin" / extracted.get(executableScriptName)).map {
           f =>
             if (System.getProperty("os.name").toLowerCase.contains("win")) f.getAbsolutePath + ".bat" else f.getAbsolutePath
         }.get
