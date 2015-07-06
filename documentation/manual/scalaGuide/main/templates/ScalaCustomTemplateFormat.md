@@ -25,11 +25,16 @@ In summary, to support your own template format you need to perform the followin
 
 ## Implement a format
 
-Implement the `play.twirl.api.Format[A]` trait that has the methods `raw(text: String): A` and `escape(text: String): A` that will be used to integrate static and dynamic template parts, respectively.
+Implement the `play.twirl.api.Format[A]` trait that has the members:
+ - `raw(text: String): A`
+ - `escape(text: String): A`
+ - `val empty: Html`
+ - `def fill(elements: immutable.Seq[Html]): Html`
+ that will be used to integrate static and dynamic template parts, respectively.
 
-The type parameter `A` of the format defines the result type of the template rendering, e.g. `Html` for a HTML template. This type must be a subtype of the `play.twirl.api.Appendable[A]` trait that defines how to concatenates parts together.
+The type parameter `A` of the format defines the result type of the template rendering, e.g. `Html` for a HTML template. This type must be a subtype of the `play.twirl.api.Appendable[A]` trait that defines how to concatenate parts together.
 
-For convenience, Play provides a `play.twirl.api.BufferedContent[A]` abstract class that implements `play.twirl.api.Appendable[A]` using a `StringBuilder` to build its result and that implements the `play.twirl.api.Content` trait so Play knows how to serialize it as an HTTP response body (see the last section of this page for details).
+For convenience, Play provides a `play.twirl.api.BufferedContent[A]` abstract class that implements `play.twirl.api.Appendable[A]` using a list of `A` together with a `StringBuilder` to build its result and that implements the `play.twirl.api.Content` trait so Play knows how to serialize it as an HTTP response body (see the last section of this page for details).
 
 In short, you need to write two classes: one defining the result (implementing `play.twirl.api.Appendable[A]`) and one defining the text integration process (implementing `play.twirl.api.Format[A]`). For instance, here is how the HTML format is defined:
 
@@ -37,13 +42,15 @@ In short, you need to write two classes: one defining the result (implementing `
 // The `Html` result type. We extend `BufferedContent[Html]` 
 // rather than just `Appendable[Html]` so
 // Play knows how to make an HTTP result from a `Html` value
-class Html(buffer: StringBuilder) extends BufferedContent[Html](buffer) {
+class Html(elements: immutable.Seq[Html], text: String) extends BufferedContent[Html](elements, text) {
   val contentType = MimeTypes.HTML
 }
 
 object HtmlFormat extends Format[Html] {
   def raw(text: String): Html = …
   def escape(text: String): Html = …
+  val empty: Html = …
+  def fill(elements: immutable.Seq[Html]): Html = …
 }
 ```
 
