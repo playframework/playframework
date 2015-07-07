@@ -219,7 +219,7 @@ object PlayRun {
       case Right(_) =>
         val stagingBin = Some(extracted.get(stagingDirectory in Universal) / "bin" / extracted.get(executableScriptName)).map {
           f =>
-            if (System.getProperty("os.name").toLowerCase.contains("win")) f.getAbsolutePath + ".bat" else f.getAbsolutePath
+            if (System.getProperty("os.name").toLowerCase(java.util.Locale.ENGLISH).contains("win")) f.getAbsolutePath + ".bat" else f.getAbsolutePath
         }.get
         val javaProductionOptions = Project.runTask(javaOptions in Production, state).get._2.toEither.right.getOrElse(Seq[String]())
 

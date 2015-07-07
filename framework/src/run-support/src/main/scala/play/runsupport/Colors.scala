@@ -10,7 +10,7 @@ object Colors {
   lazy val isANSISupported = {
     Option(System.getProperty("sbt.log.noformat")).map(_ != "true").orElse {
       Option(System.getProperty("os.name"))
-        .map(_.toLowerCase)
+        .map(_.toLowerCase(java.util.Locale.ENGLISH))
         .filter(_.contains("windows"))
         .map(_ => false)
     }.getOrElse(true)

@@ -137,7 +137,7 @@ object Multipart {
       } else {
         val headers = headerString.lines.map { header =>
           val key :: value = header.trim.split(":").toList
-          (key.trim.toLowerCase, value.mkString(":").trim)
+          (key.trim.toLowerCase(java.util.Locale.ENGLISH), value.mkString(":").trim)
         }.toMap
 
         val left = rest.drop(CRLFCRLF.length)

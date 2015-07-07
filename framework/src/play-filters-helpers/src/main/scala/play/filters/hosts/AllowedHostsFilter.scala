@@ -49,7 +49,7 @@ private[hosts] case class HostMatcher(pattern: String) {
       case Array(h, _) => (h, Some(-1))
       case Array(h, _*) => (h, None)
     }
-    (h.toLowerCase.stripSuffix("."), p)
+    (h.toLowerCase(java.util.Locale.ENGLISH).stripSuffix("."), p)
   }
 }
 

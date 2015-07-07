@@ -109,7 +109,7 @@ trait JavaResultsHandlingSpec extends PlaySpecification with WsTestClient with S
       }
     }) { response =>
       response.header(CONTENT_TYPE) must beSome.like {
-        case value => value.toLowerCase must_== "text/event-stream; charset=utf-8"
+        case value => value.toLowerCase(java.util.Locale.ENGLISH) must_== "text/event-stream; charset=utf-8"
       }
       response.header(TRANSFER_ENCODING) must beSome("chunked")
       response.header(CONTENT_LENGTH) must beNone
