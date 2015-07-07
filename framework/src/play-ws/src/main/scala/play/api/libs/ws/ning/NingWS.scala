@@ -524,14 +524,9 @@ private class NingWSCookie(ahcCookie: AHCCookie) extends WSCookie {
   def path: String = ahcCookie.getPath
 
   /**
-   * The expiry date.
-   */
-  def expires: Option[Long] = if (ahcCookie.getExpires <= -1) None else Some(ahcCookie.getExpires)
-
-  /**
    * The maximum age.
    */
-  def maxAge: Option[Int] = if (ahcCookie.getMaxAge <= -1) None else Some(ahcCookie.getMaxAge)
+  def maxAge: Option[Long] = if (ahcCookie.getMaxAge <= -1) None else Some(ahcCookie.getMaxAge)
 
   /**
    * If the cookie is secure.
