@@ -302,6 +302,8 @@ object Logger extends LoggerLike {
 
     val ctx = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
     ctx.stop()
+
+    org.slf4j.bridge.SLF4JBridgeHandler.uninstall()
   }
 
   import ch.qos.logback.classic._
