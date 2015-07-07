@@ -51,7 +51,7 @@ Then you can start Play with:
 
 ## Generating an application secret
 
-Play provides a utility that you can use to generate a new secret.  Run `play-generate-secret` in the Play console.  This will generate a new secret that you can use in your application.  For example:
+Play provides a utility that you can use to generate a new secret.  Run `playGenerateSecret` in the Play console.  This will generate a new secret that you can use in your application.  For example:
 
 ```
 [my-first-app] $ playGenerateSecret
@@ -63,7 +63,7 @@ Play provides a utility that you can use to generate a new secret.  Run `play-ge
 
 Play also provides a convenient utility for updating the secret in `application.conf`, should you want to have a particular secret configured for development or test servers.  This is often useful when you have encrypted data using the application secret, and you want to ensure that the same secret is used every time the application is run in dev mode.
 
-To update the secret in `application.conf`, run `play-update-secret` in the Play console:
+To update the secret in `application.conf`, run `playUpdateSecret` in the Play console:
 
 ```
 [my-first-app] $ playUpdateSecret
