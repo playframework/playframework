@@ -62,7 +62,7 @@ db.default.url="jdbc:postgresql://database.example.com/playdb"
 # Connect to playdb as playdbuser
 db.default.driver=com.mysql.jdbc.Driver
 db.default.url="jdbc:mysql://localhost/playdb"
-db.default.username=playdbuser
+db.default.user=playdbuser
 db.default.password="a strong password"
 ```
 
