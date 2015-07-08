@@ -630,6 +630,8 @@ trait DefaultReads extends LowPriorityDefaultReads {
         case (p, None) => JsError(Seq(JsPath() ->
           Seq(ValidationError("error.expected.date.isoformat", p))))
       }
+      case _ =>
+        JsError(Seq(JsPath() -> Seq(ValidationError("error.expected.date.isoformat"))))
     }
   }
 
