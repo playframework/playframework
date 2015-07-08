@@ -244,18 +244,28 @@ trait BodyParser[+A] extends Function1[RequestHeader, Accumulator[ByteString, Ei
  */
 object BodyParser {
 
+  def apply[T](f: RequestHeader => Accumulator[ByteString, Either[Result, T]]): BodyParser[T] = {
+    apply("(no name)")(f)
+  }
+
+  def apply[T](debugName: String)(f: RequestHeader => Accumulator[ByteString, Either[Result, T]]): BodyParser[T] = new BodyParser[T] {
+    def apply(rh: RequestHeader) = f(rh)
+    override def toString = "BodyParser(" + debugName + ")"
+  }
+
   /**
    * Create an anonymous BodyParser
    *
    * Example:
    * {{{
-   * val bodySize = BodyParser { request =>
+   * val bodySize = BodyParser.iteratee { request =>
    *   Iteratee.fold(0) { (state, chunk) => state + chunk.size } map(size => Right(size))
    * }
    * }}}
    */
-  def apply[T](f: RequestHeader => Accumulator[ByteString, Either[Result, T]]): BodyParser[T] = {
-    apply("(no name)")(f)
+  @deprecated("Use Akka streams instead", "2.5.0")
+  def iteratee[T](f: RequestHeader => Iteratee[ByteString, Either[Result, T]]): BodyParser[T] = {
+    iteratee("(no name)")(f)
   }
 
   /**
@@ -263,21 +273,11 @@ object BodyParser {
    *
    * Example:
    * {{{
-   * val bodySize = BodyParser("Body size") { request =>
+   * val bodySize = BodyParser.iteratee("Body size") { request =>
    *   Iteratee.fold(0) { (state, chunk) => state + chunk.size } map(size => Right(size))
    * }
    * }}}
    */
-  def apply[T](debugName: String)(f: RequestHeader => Accumulator[ByteString, Either[Result, T]]): BodyParser[T] = new BodyParser[T] {
-    def apply(rh: RequestHeader) = f(rh)
-    override def toString = "BodyParser(" + debugName + ")"
-  }
-
-  @deprecated("Use Akka streams instead", "2.5.0")
-  def iteratee[T](f: RequestHeader => Iteratee[ByteString, Either[Result, T]]): BodyParser[T] = {
-    iteratee("(no name)")(f)
-  }
-
   @deprecated("Use Akka streams instead", "2.5.0")
   def iteratee[T](debugName: String)(f: RequestHeader => Iteratee[ByteString, Either[Result, T]]): BodyParser[T] = new BodyParser[T] {
     def apply(rh: RequestHeader) = Streams.iterateeToAccumulator(f(rh))
