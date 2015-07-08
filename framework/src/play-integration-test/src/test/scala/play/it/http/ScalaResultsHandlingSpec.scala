@@ -4,6 +4,7 @@
 package play.it.http
 
 import java.io.IOException
+import java.util.Locale.ENGLISH
 import play.api.mvc._
 import play.api.test._
 import play.api.libs.ws._
@@ -67,7 +68,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
           response.body must_== "Hello"
         case Failure(t) =>
           t must haveClass[IOException]
-          t.getMessage.toLowerCase must_== "remotely closed"
+          t.getMessage.toLowerCase(ENGLISH) must_== "remotely closed"
       }
     }
 
@@ -109,7 +110,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
           BasicRequest("GET", "/", "HTTP/1.0", Map("Connection" -> "keep-alive"), "")
         )(0)
         response.status must_== 200
-        response.headers.get(CONNECTION).map(_.toLowerCase) must beOneOf(None, Some("close"))
+        response.headers.get(CONNECTION).map(_.toLowerCase(ENGLISH)) must beOneOf(None, Some("close"))
       }
 
     "close the connection when the connection close header is present" in withServer(
@@ -137,7 +138,7 @@ trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with 
         )
         responses(0).status must_== 200
         responses(0).headers.get(CONNECTION) must beSome.like {
-          case s => s.toLowerCase must_== "keep-alive"
+          case s => s.toLowerCase(ENGLISH) must_== "keep-alive"
         }
         responses(1).status must_== 200
       }

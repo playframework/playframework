@@ -228,7 +228,7 @@ class WsDiscovery @Inject() (ws: WSClient) extends Discovery {
       def path(path: String) = if (null == path || path.isEmpty) "/" else path
 
       val uri = (if (url.matches("^(http|HTTP)(s|S)?:.*")) new URI(url) else new URI("http://" + url)).normalize()
-      new URI(scheme(uri), uri.getUserInfo, uri.getHost.toLowerCase, port(uri.getPort), path(uri.getPath), uri.getQuery, null).toURL.toExternalForm
+      new URI(scheme(uri), uri.getUserInfo, uri.getHost.toLowerCase(java.util.Locale.ENGLISH), port(uri.getPort), path(uri.getPath), uri.getQuery, null).toURL.toExternalForm
     }
   }
 

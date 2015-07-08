@@ -79,7 +79,7 @@ private[server] object ForwardedHeaderHandler {
         fh <- fhs.split(",\\s*")
       } yield fh).map(_.split(";").map(s => {
         val splitted = s.split("=", 2)
-        splitted(0).toLowerCase -> splitted(1)
+        splitted(0).toLowerCase(java.util.Locale.ENGLISH) -> splitted(1)
       }).toMap)
     }
 
