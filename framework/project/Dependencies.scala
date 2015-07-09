@@ -6,7 +6,7 @@ import buildinfo.BuildInfo
 
 object Dependencies {
 
-  val specsVersion = "3.6"
+  val specsVersion = "3.6.2"
   val specsBuild = Seq(
     "specs2-core",
     "specs2-junit",
@@ -28,7 +28,7 @@ object Dependencies {
   val slf4j = Seq("slf4j-api", "jul-to-slf4j", "jcl-over-slf4j").map("org.slf4j" % _ % "1.7.12")
   val guava = "com.google.guava" % "guava" % "18.0"
   val findBugs = "com.google.code.findbugs" % "jsr305" % "2.0.3" // Needed by guava
-  val mockitoAll = "org.mockito" % "mockito-all" % "1.10.8"
+  val mockitoAll = "org.mockito" % "mockito-all" % "1.10.19"
 
   val h2database = "com.h2database" % "h2" % "1.4.187"
 
@@ -252,7 +252,7 @@ object Dependencies {
 
   val scalacheckDependencies = Seq(
     "org.specs2"     %% "specs2-scalacheck" % specsVersion % Test,
-    "org.scalacheck" %% "scalacheck"        % "1.12.2"     % Test
+    "org.scalacheck" %% "scalacheck"        % "1.12.4"     % Test
   )
 
   val playServerDependencies = Seq(
