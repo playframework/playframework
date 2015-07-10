@@ -82,7 +82,7 @@ package scalaguide.http.scalaresults {
     }
 
     def testContentType(results: Result, contentType: String) = {
-      testHeader(results, HeaderNames.CONTENT_TYPE, contentType)
+      results.body.contentType must beSome.which { _ must contain(contentType) }
     }
 
     def testHeader(results: Result, key: String, value: String) = {

@@ -3,9 +3,12 @@
  */
 package play.docs
 
+import akka.stream.scaladsl.Source
+import akka.util.ByteString
+import play.api.libs.MimeTypes
+import play.api.libs.streams.Streams
 import play.api.mvc._
-import play.api.http.Status
-import play.api.http.HeaderNames
+import play.api.http.{ ContentTypes, HttpEntity, Status, HeaderNames }
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.iteratee.Enumeratee
 import play.core.{ PlayVersion, BuildDocHandler }
@@ -52,7 +55,12 @@ class DocumentationHandler(repo: FileRepository, apiRepo: FileRepository) extend
             HeaderNames.CONTENT_LENGTH -> handle.size.toString,
             HeaderNames.CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(handle.name).getOrElse(play.api.http.ContentTypes.BINARY)
           )),
-          Enumerator.fromStream(handle.is) &> Enumeratee.onIterateeDone(handle.close)
+          HttpEntity.Streamed(
+            Source(Streams.enumeratorToPublisher(Enumerator.fromStream(handle.is) &> Enumeratee.onIterateeDone(handle.close)))
+              .map(ByteString.apply),
+            Some(handle.size),
+            MimeTypes.forFileName(handle.name).orElse(Some(ContentTypes.BINARY))
+          )
         )
       }
     }

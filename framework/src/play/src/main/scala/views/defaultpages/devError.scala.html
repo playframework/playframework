@@ -156,12 +156,12 @@
                                 @interesting.focus.zipWithIndex.map {
 
                                     case (line,index) if index == interesting.errorLine => {
-                                        <pre class="error" data-file="@name" data-line="@(interesting.firstLine+index)" @Option(source.position).map { c => data-column="@c" }><span class="line">@(interesting.firstLine+index)</span><span class="code">@(Option(source.position).map(pos => (line+" ").zipWithIndex.map{ case (c,i) if i == pos => Html("""<span class="marker">""" + c + """</span>"""); case (c,_) => c}).getOrElse(line))</span></pre>
+                                        <pre class="error" chunks-file="@name" chunks-line="@(interesting.firstLine+index)" @Option(source.position).map { c => chunks-column="@c" }><span class="line">@(interesting.firstLine+index)</span><span class="code">@(Option(source.position).map(pos => (line+" ").zipWithIndex.map{ case (c,i) if i == pos => Html("""<span class="marker">""" + c + """</span>"""); case (c,_) => c}).getOrElse(line))</span></pre>
 
                                     }
 
                                     case (line, index) => {
-                                        <pre data-file="@name" data-line="@(interesting.firstLine+index)"><span class="line">@(interesting.firstLine+index)</span><span class="code">@line</span></pre>
+                                        <pre chunks-file="@name" chunks-line="@(interesting.firstLine+index)"><span class="line">@(interesting.firstLine+index)</span><span class="code">@line</span></pre>
                                     }
 
                                 }

@@ -3,6 +3,8 @@
  */
 package javaguide.http;
 
+import java.util.Optional;
+
 import org.junit.Test;
 import play.libs.F;
 import play.mvc.Controller;
@@ -110,7 +112,7 @@ public class JavaActions extends WithApplication {
             //#redirect-action
         }, fakeRequest());
         assertThat(result.status(), equalTo(SEE_OTHER));
-        assertThat(result.header(LOCATION), equalTo("/user/home"));
+        assertThat(result.header(LOCATION), equalTo(Optional.of("/user/home")));
     }
 
     @Test
@@ -123,7 +125,7 @@ public class JavaActions extends WithApplication {
             //#temporary-redirect-action
         }, fakeRequest());
         assertThat(result.status(), equalTo(TEMPORARY_REDIRECT));
-        assertThat(result.header(LOCATION), equalTo("/user/home"));
+        assertThat(result.header(LOCATION), equalTo(Optional.of("/user/home")));
     }
 
 }

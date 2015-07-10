@@ -3,7 +3,7 @@
  */
 package play.api.libs.ws.ning
 
-import akka.util.Timeout
+import akka.util.{ ByteString, Timeout }
 import com.ning.http.client
 import com.ning.http.client.cookie.{ Cookie => AHCCookie }
 import com.ning.http.client.{ AsyncHttpClient, FluentCaseInsensitiveStringsMap, Param, Response => AHCResponse }
@@ -145,11 +145,11 @@ object NingWSSpec extends PlaySpecification with Mockito {
     }
 
     "POST binary data as is" in new WithApplication {
-      val binData: Array[Byte] = (0 to 511).map(_.toByte).toArray
+      val binData = ByteString((0 to 511).map(_.toByte).toArray)
       val req: client.Request = WS.url("http://playframework.com/").withHeaders("Content-Type" -> "application/x-custom-bin-data").withBody(binData).asInstanceOf[NingWSRequest]
         .buildRequest()
 
-      req.getByteData must beTheSameAs(binData)
+      ByteString(req.getByteData) must_== binData
     }
 
     "support a virtual host" in new WithApplication {

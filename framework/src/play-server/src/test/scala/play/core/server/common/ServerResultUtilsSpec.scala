@@ -71,23 +71,4 @@ object ServerResultUtilsSpec extends Specification with IterateeSpecification {
       }
     }
   }
-
-  "ServerResultUtils.readAheadOne" should {
-
-    "capture a 0-length stream" in {
-      await(ServerResultUtils.readAheadOne(Enumerator() >>> Enumerator.eof)) must_== Left(None)
-    }
-
-    "capture a 1-length stream" in {
-      await(ServerResultUtils.readAheadOne(Enumerator(1) >>> Enumerator.eof)) must_== Left(Option(1))
-    }
-
-    "not capture 2 0-length stream" in {
-      await(ServerResultUtils.readAheadOne(Enumerator(1, 2) >>> Enumerator.eof)) must beRight { enum: Enumerator[Int] =>
-        await(enum |>>> Iteratee.getChunks[Int]) must_== Seq(1, 2)
-      }
-    }
-
-  }
-
 }

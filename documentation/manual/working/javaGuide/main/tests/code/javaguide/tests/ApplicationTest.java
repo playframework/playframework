@@ -32,8 +32,8 @@ public class ApplicationTest extends WithApplication {
   public void testIndex() {
     Result result = new Application().index();
     assertEquals(OK, result.status());
-    assertEquals("text/html", result.contentType());
-    assertEquals("utf-8", result.charset());
+    assertEquals("text/html", result.contentType().get());
+    assertEquals("utf-8", result.charset().get());
     assertTrue(contentAsString(result).contains("Welcome"));
   }
 

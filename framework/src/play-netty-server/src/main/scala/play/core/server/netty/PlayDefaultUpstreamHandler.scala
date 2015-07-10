@@ -263,13 +263,13 @@ private[play] class PlayDefaultUpstreamHandler(server: NettyServer, allChannels:
                   // Connection must be set to close because whatever comes next in the stream is either the request
                   // body, because the client waited too long for our response, or the next request, and there's no way
                   // for us to know which.  See RFC2616 Section 8.2.3.
-                  Future.successful((result.copy(connection = HttpConnection.Close), 0))
+                  Future.successful((result.withHeaders(Names.CONNECTION -> "close"), 0))
                 }
                 case Step.Error(msg, _) => {
                   e.getChannel.setReadable(true)
                   val error = new RuntimeException("Body parser iteratee in error: " + msg)
                   val result = errorHandler(app).onServerError(requestHeader, error)
-                  result.map(r => (r.copy(connection = HttpConnection.Close), 0))
+                  result.map(r => (r, 0))
                 }
               }
             case None => eventuallyResult.map((_, 0))

@@ -3,6 +3,7 @@
  */
 package play.test;
 
+import akka.stream.Materializer;
 import org.junit.After;
 import org.junit.Before;
 import play.Application;
@@ -15,6 +16,11 @@ import play.Application;
 public class WithApplication {
 
     protected Application app;
+
+    /**
+     * The application's Akka streams Materializer.
+     */
+    protected Materializer mat;
 
     /**
      * Override this method to setup the application to use.
@@ -42,6 +48,7 @@ public class WithApplication {
     public void startPlay() {
         app = provideApplication();
         Helpers.start(app);
+        mat = app.getWrappedApplication().materializer();
     }
 
     @After

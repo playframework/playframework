@@ -3,7 +3,9 @@
  */
 package controllers
 
+import akka.util.ByteString
 import play.api._
+import play.api.libs.streams.Streams
 import play.api.mvc._
 import play.api.libs._
 import play.api.libs.iteratee._
@@ -18,7 +20,7 @@ import scala.util.{ Success, Failure }
 import java.util.Date
 import java.util.regex.Pattern
 import play.api.libs.iteratee.Execution.Implicits
-import play.api.http.{ LazyHttpErrorHandler, HttpErrorHandler, ContentTypes }
+import play.api.http.{ HttpEntity, LazyHttpErrorHandler, HttpErrorHandler, ContentTypes }
 import scala.collection.concurrent.TrieMap
 import play.core.routing.ReverseRouteContext
 import scala.io.Source
@@ -379,21 +381,21 @@ class AssetsBuilder(errorHandler: HttpErrorHandler) extends Controller {
   }
 
   private def result(file: String,
-    length: Int,
+    length: Long,
     mimeType: String,
     resourceData: Enumerator[Array[Byte]],
     gzipRequested: Boolean,
     gzipAvailable: Boolean): Result = {
 
-    val response = Result(
-      ResponseHeader(
-        OK,
-        Map(
-          CONTENT_LENGTH -> length.toString,
-          CONTENT_TYPE -> mimeType
-        )
-      ),
-      resourceData)
+    val response = if (length > 0) {
+      Ok.sendEntity(HttpEntity.Streamed(
+        akka.stream.scaladsl.Source(Streams.enumeratorToPublisher(resourceData)).map(ByteString.apply),
+        Some(length),
+        Some(mimeType)
+      ))
+    } else {
+      Ok.sendEntity(HttpEntity.Strict(ByteString.empty, Some(mimeType)))
+    }
     if (gzipRequested && gzipAvailable) {
       response.withHeaders(VARY -> ACCEPT_ENCODING, CONTENT_ENCODING -> "gzip")
     } else if (gzipAvailable) {

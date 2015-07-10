@@ -64,8 +64,8 @@ private[routing] object RouterBuilderHelper {
                   try {
                     Context.current.set(ctx)
                     route.actionMethod.invoke(route.action, params: _*) match {
-                      case result: Result => Future.successful(result.toScala)
-                      case promise: F.Promise[Result] => promise.wrapped.map(_.toScala)
+                      case result: Result => Future.successful(result.asScala)
+                      case promise: F.Promise[Result] => promise.wrapped.map(_.asScala)
                     }
                   } finally {
                     Context.current.remove()
