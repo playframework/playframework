@@ -40,11 +40,7 @@ public class NingWSCookie implements WSCookie {
         return ahcCookie.getPath();
     }
 
-    public Long getExpires() {
-        return ahcCookie.getExpires();
-    }
-
-    public Integer getMaxAge() {
+    public Long getMaxAge() {
         return ahcCookie.getMaxAge();
     }
 

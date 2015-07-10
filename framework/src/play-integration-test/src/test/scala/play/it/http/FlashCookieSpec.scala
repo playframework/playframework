@@ -3,7 +3,7 @@ package play.it.http
 import play.api.test._
 import play.api.mvc.{ Cookie, Flash, Action }
 import play.api.mvc.Results._
-import play.api.libs.ws.{ WSClient, WSCookie, WSResponse, WS }
+import play.api.libs.ws.{ WSClient, WSCookie, WSResponse }
 import play.core.server.Server
 import play.it._
 
@@ -47,7 +47,6 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
       val flashCookie = readFlashCookie(response)
       flashCookie must beSome.like {
         case cookie =>
-          cookie.expires must beNone
           cookie.maxAge must beNone
       }
     }
@@ -59,10 +58,7 @@ trait FlashCookieSpec extends PlaySpecification with ServerIntegrationSpecificat
       flashCookie must beSome.like {
         case cookie =>
           cookie.value must beNone
-          cookie.expires must beSome.like {
-            case expires => expires must be lessThan System.currentTimeMillis()
-          }
-          cookie.maxAge must beSome(0)
+          cookie.maxAge must beSome(0L)
       }
     }
 

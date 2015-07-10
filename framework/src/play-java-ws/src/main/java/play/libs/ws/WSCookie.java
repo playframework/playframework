@@ -22,9 +22,7 @@ public interface WSCookie {
 
     public String getPath();
 
-    public Long getExpires();
-
-    public Integer getMaxAge();
+    public Long getMaxAge();
 
     public Boolean isSecure();
 
