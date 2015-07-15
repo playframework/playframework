@@ -6,12 +6,12 @@ package play.api.db
 import java.sql.{ Connection, Driver, DriverManager }
 import javax.sql.DataSource
 
+import org.jdbcdslog.LogSqlDataSource
 import play.utils.{ ProxyDriver, Reflect }
 
 import com.typesafe.config.Config
-import play.api.inject.{ NewInstanceInjector, Injector }
 import scala.util.control.{ NonFatal, ControlThrowable }
-import play.api.{ Environment, Configuration, Logger, PlayConfig }
+import play.api.{ Environment, Configuration, PlayConfig }
 
 /**
  * Creation helpers for manually instantiating databases.
@@ -121,7 +121,7 @@ abstract class DefaultDatabase(val name: String, configuration: Config, environm
 
   lazy val dataSource: DataSource = {
     driver // trigger driver registration
-    createDataSource
+    createDataSource()
   }
 
   lazy val url: String = {
@@ -196,8 +196,22 @@ class PooledDatabase(name: String, configuration: Config, environment: Environme
 
   def this(name: String, configuration: Configuration) = this(name, configuration.underlying, Environment.simple(), new HikariCPConnectionPool(Environment.simple()))
 
-  def createDataSource(): DataSource = pool.create(name, databaseConfig, configuration)
+  def createDataSource(): DataSource = {
+    val datasource: DataSource = pool.create(name, databaseConfig, configuration)
+    if (configuration.getBoolean("logSql")) {
+      val proxyDatasource = new LogSqlDataSource()
+      proxyDatasource.setTargetDSDirect(datasource)
+      proxyDatasource
+    } else {
+      datasource
+    }
+  }
 
-  def closeDataSource(dataSource: DataSource): Unit = pool.close(dataSource)
+  def closeDataSource(dataSource: DataSource): Unit = {
+    dataSource match {
+      case ds: LogSqlDataSource => pool.close(ds.getTargetDatasource)
+      case _ => pool.close(dataSource)
+    }
+  }
 
 }
