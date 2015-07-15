@@ -32,10 +32,7 @@ object ReflectionsCache {
     }
     reflectionsMap.get(pkg).getOrElse {
 
-      val reflections = new Reflections(new util.ConfigurationBuilder()
-        .addUrls(util.ClasspathHelper.forPackage(pkg, classLoader))
-        .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(pkg + ".")))
-        .setScanners(new scanners.TypeAnnotationsScanner, new scanners.TypeElementsScanner))
+      val reflections = new Reflections(Classpath.getReflectionsConfiguration(pkg, classLoader))
 
       reflectionsMap.putIfAbsent(pkg, reflections).getOrElse(reflections)
     }

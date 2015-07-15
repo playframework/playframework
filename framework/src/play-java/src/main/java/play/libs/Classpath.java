@@ -48,11 +48,7 @@ public class Classpath {
         if (app.isTest()) {
             return ReflectionsCache$.MODULE$.getReflections(app.classloader(), packageName);
         } else {
-            return new Reflections(
-                new ConfigurationBuilder()
-                    .addUrls(ClasspathHelper.forPackage(packageName, app.classloader()))
-                    .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(packageName + ".")))
-                    .setScanners(new TypeElementsScanner(), new TypeAnnotationsScanner()));
+            return new Reflections(getReflectionsConfiguration(packageName, app.classloader()));
         }
     }
 
@@ -91,12 +87,22 @@ public class Classpath {
         if (env.isTest()) {
             return ReflectionsCache$.MODULE$.getReflections(env.classLoader(), packageName);
         } else {
-            return new Reflections(
-                new ConfigurationBuilder()
-                    .addUrls(ClasspathHelper.forPackage(packageName, env.classLoader()))
-                    .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(packageName + ".")))
-                    .setScanners(new TypeElementsScanner(), new TypeAnnotationsScanner()));
+            return new Reflections(getReflectionsConfiguration(packageName, env.classLoader()));
         }
+    }
+
+    /**
+     * Create {@link org.reflections.Configuration} object for given package name and class loader.
+     *
+     * @param packageName the root package to scan
+     * @param classLoader class loader to be used in reflections
+     * @return
+     */
+    public static ConfigurationBuilder getReflectionsConfiguration(String packageName, ClassLoader classLoader) {
+        return new ConfigurationBuilder()
+            .addUrls(ClasspathHelper.forPackage(packageName, classLoader))
+            .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(packageName + ".")))
+            .setScanners(new TypeElementsScanner(), new TypeAnnotationsScanner(), new SubTypesScanner());
     }
 
 }
