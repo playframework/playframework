@@ -59,9 +59,9 @@ For example, if you are sending plain text in a particular format, you may want 
 
 @[ws-header-content-type](code/javaguide/ws/JavaWS.java)
 
-### Request with time out
+### Request with timeout
 
-If you wish to specify a request timeout, you can use `setTimeout` to set a value in milliseconds.
+If you wish to specify a request timeout, you can use `setRequestTimeout` to set a value in milliseconds. A value of `-1` can be used to set an infinite timeout. 
 
 @[ws-timeout](code/javaguide/ws/JavaWS.java)
 

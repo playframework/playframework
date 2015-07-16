@@ -6,6 +6,7 @@ package play.api.libs.ws
 import java.net.URI
 
 import scala.concurrent.{ Future, ExecutionContext }
+import scala.concurrent.duration.Duration
 
 import java.io.File
 
@@ -363,10 +364,11 @@ trait WSRequest {
   def withFollowRedirects(follow: Boolean): WSRequest
 
   /**
-   * Sets the maximum time in milliseconds you expect the request to take.
-   * Warning: a stream consumption will be interrupted when this time is reached.
+   * Sets the maximum time you expect the request to take.
+   * Use Duration.Inf to set an infinite request timeout.
+   * Warning: a stream consumption will be interrupted when this time is reached unless Duration.Inf is set.
    */
-  def withRequestTimeout(timeout: Long): WSRequest
+  def withRequestTimeout(timeout: Duration): WSRequest
 
   /**
    * Sets the virtual host to use in this request
