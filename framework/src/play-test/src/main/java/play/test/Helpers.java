@@ -80,7 +80,7 @@ public class Helpers implements play.mvc.Http.Status, play.mvc.Http.HeaderNames 
     /**
      * Calls a Callable which invokes a Controller or some other method with a Context
      */
-    public <V> V invokeWithContext(RequestBuilder requestBuilder, Callable<V> callable) {
+    public static <V> V invokeWithContext(RequestBuilder requestBuilder, Callable<V> callable) {
       try {
         Context.current.set(new Context(requestBuilder));
         return callable.call();
