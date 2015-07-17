@@ -11,6 +11,6 @@ public class WithBrowserTest extends WithBrowser {
     public void withBrowserShouldProvideABrowser() {
         assertNotNull(browser);
         browser.goTo("/");
-        assertThat(browser.pageSource(), containsString("Action not found"));
+        assertThat(browser.pageSource(), containsString("Action Not Found"));
     }
 }
