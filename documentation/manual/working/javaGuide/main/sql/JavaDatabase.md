@@ -80,21 +80,22 @@ db.default.password="a strong password"
 
 ## Accessing the JDBC datasource
 
-The `play.db` package provides access to the configured data sources:
+The `play.db` package provides access to the default datasource.
 
-```java
-import play.db.*;
+@[](code/JavaApplicationDatabase.java)
 
-DataSource ds = DB.getDatasource();
-```
+For a database other than the default:
+
+@[](code/JavaNamedDatabase.java)
 
 ## Obtaining a JDBC connection
 
 You can retrieve a JDBC connection the same way:
 
-```
+```java
 Connection connection = DB.getConnection();
 ```
+
 It is important to note that resulting Connections are not automatically disposed at the end of the request cycle. In other words, you are responsible for calling their close() method somewhere in your code so that they can be immediately returned to the pool.
 
 ## Exposing the datasource through JNDI
