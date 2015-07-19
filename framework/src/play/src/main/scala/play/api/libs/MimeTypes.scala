@@ -521,6 +521,7 @@ object MimeTypes {
         wb1=application/x-qpro
         wbmp=image/vnd.wap.wbmp
         web=application/vndxara
+        webm=video/webm
         wiz=application/msword
         wk1=application/x-123
         wmf=windows/metafile
