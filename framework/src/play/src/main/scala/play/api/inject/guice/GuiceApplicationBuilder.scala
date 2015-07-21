@@ -17,10 +17,11 @@ final class GuiceApplicationBuilder(
   modules: Seq[GuiceableModule] = Seq.empty,
   overrides: Seq[GuiceableModule] = Seq.empty,
   disabled: Seq[Class[_]] = Seq.empty,
+  eagerly: Boolean = false,
   loadConfiguration: Environment => Configuration = Configuration.load,
   global: Option[GlobalSettings] = None,
   loadModules: (Environment, Configuration) => Seq[GuiceableModule] = GuiceableModule.loadModules) extends GuiceBuilder[GuiceApplicationBuilder](
-  environment, configuration, modules, overrides, disabled
+  environment, configuration, modules, overrides, disabled, eagerly
 ) {
 
   // extra constructor for creating from Java
@@ -101,10 +102,11 @@ final class GuiceApplicationBuilder(
     modules: Seq[GuiceableModule] = modules,
     overrides: Seq[GuiceableModule] = overrides,
     disabled: Seq[Class[_]] = disabled,
+    eagerly: Boolean = eagerly,
     loadConfiguration: Environment => Configuration = loadConfiguration,
     global: Option[GlobalSettings] = global,
     loadModules: (Environment, Configuration) => Seq[GuiceableModule] = loadModules): GuiceApplicationBuilder =
-    new GuiceApplicationBuilder(environment, configuration, modules, overrides, disabled, loadConfiguration, global, loadModules)
+    new GuiceApplicationBuilder(environment, configuration, modules, overrides, disabled, eagerly, loadConfiguration, global, loadModules)
 
   /**
    * Implementation of Self creation for GuiceBuilder.
@@ -114,6 +116,7 @@ final class GuiceApplicationBuilder(
     configuration: Configuration,
     modules: Seq[GuiceableModule],
     overrides: Seq[GuiceableModule],
-    disabled: Seq[Class[_]]): GuiceApplicationBuilder =
-    copy(environment, configuration, modules, overrides, disabled)
+    disabled: Seq[Class[_]],
+    eagerly: Boolean): GuiceApplicationBuilder =
+    copy(environment, configuration, modules, overrides, disabled, eagerly)
 }
