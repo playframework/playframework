@@ -8,6 +8,7 @@ import com.ning.http.client
 import com.ning.http.client.cookie.{ Cookie => AHCCookie }
 import com.ning.http.client.{ AsyncHttpClient, FluentCaseInsensitiveStringsMap, Param, Response => AHCResponse }
 import org.specs2.mock.Mockito
+import scala.concurrent.duration._
 
 import play.api.mvc._
 
@@ -165,15 +166,26 @@ object NingWSSpec extends PlaySpecification with Mockito {
       req.getFollowRedirect must beEqualTo(true)
     }
 
-    "support timeout" in new WithApplication {
+    "support finite timeout" in new WithApplication {
       val req: client.Request = WS.url("http://playframework.com/")
-        .withRequestTimeout(1000).asInstanceOf[NingWSRequest]
+        .withRequestTimeout(1000.millis).asInstanceOf[NingWSRequest]
         .buildRequest()
       req.getRequestTimeout must be equalTo 1000
     }
 
-    "not support invalid timeout" in new WithApplication {
-      WS.url("http://playframework.com/").withRequestTimeout(-1) should throwAn[IllegalArgumentException]
+    "support infinite timeout" in new WithApplication {
+      val req: client.Request = WS.url("http://playframework.com/")
+        .withRequestTimeout(Duration.Inf).asInstanceOf[NingWSRequest]
+        .buildRequest()
+      req.getRequestTimeout must be equalTo -1
+    }
+
+    "not support negative timeout" in new WithApplication {
+      WS.url("http://playframework.com/").withRequestTimeout(-1.millis) should throwAn[IllegalArgumentException]
+    }
+
+    "not support a timeout greater than Int.MaxValue" in new WithApplication {
+      WS.url("http://playframework.com/").withRequestTimeout((Int.MaxValue.toLong + 1).millis) should throwAn[IllegalArgumentException]
     }
 
     "support a proxy server" in new WithApplication {

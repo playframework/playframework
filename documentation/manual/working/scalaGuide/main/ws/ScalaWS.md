@@ -71,7 +71,7 @@ A virtual host can be specified as a string.
 
 ### Request with timeout
 
-If you wish to specify a request timeout, you can use `withRequestTimeout` to set a value in milliseconds.
+If you wish to specify a request timeout, you can use `withRequestTimeout` to set a value. An infinite timeout can be set by passing `Duration.Inf`.
 
 @[request-timeout](code/ScalaWSSpec.scala)
 

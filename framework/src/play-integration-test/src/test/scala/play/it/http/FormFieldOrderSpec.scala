@@ -3,6 +3,8 @@
  */
 package play.it.http
 
+import scala.concurrent.duration._
+
 import play.api.mvc._
 import play.api.test._
 import play.api.libs.ws._
@@ -47,7 +49,7 @@ trait FormFieldOrderSpec extends PlaySpecification with ServerIntegrationSpecifi
 
       val future: Future[WSResponse] = WS.url("http://localhost:" + port + "/").
         withHeaders("Content-Type" -> contentType).
-        withRequestTimeout(10000).post(urlEncoded)
+        withRequestTimeout(10000.millis).post(urlEncoded)
 
       val response = await(future)
       response.status must equalTo(OK)

@@ -18,6 +18,7 @@ import play.core.parsers.FormUrlEncodedParser
 import collection.immutable.TreeMap
 
 import scala.concurrent.{ Future, Promise }
+import scala.concurrent.duration.Duration
 
 import play.api.libs.ws._
 import play.api.libs.ws.ssl._
@@ -112,9 +113,16 @@ case class NingWSRequest(client: NingWSClient,
 
   def withFollowRedirects(follow: Boolean): WSRequest = copy(followRedirects = Some(follow))
 
-  def withRequestTimeout(timeout: Long): WSRequest = {
-    require(timeout >= 0 && timeout <= Int.MaxValue, s"Request timeout must be between 0 and ${Int.MaxValue}")
-    copy(requestTimeout = Some(timeout.toInt))
+  def withRequestTimeout(timeout: Duration): WSRequest = {
+    timeout match {
+      case Duration.Inf =>
+        copy(requestTimeout = Some(-1))
+      case d => {
+        val millis = d.toMillis
+        require(millis >= 0 && millis <= Int.MaxValue, s"Request timeout must be between 0 and ${Int.MaxValue} milliseconds")
+        copy(requestTimeout = Some(millis.toInt))
+      }
+    }
   }
 
   def withVirtualHost(vh: String): WSRequest = copy(virtualHost = Some(vh))

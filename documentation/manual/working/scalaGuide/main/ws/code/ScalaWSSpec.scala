@@ -13,6 +13,7 @@ import org.specs2.runner.JUnitRunner
 //#dependency
 import javax.inject.Inject
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
 import play.api.mvc._
 import play.api.libs.ws._
@@ -77,7 +78,7 @@ class ScalaWSSpec extends PlaySpecification with Results {
       //#complex-holder
       val complexRequest: WSRequest =
         request.withHeaders("Accept" -> "application/json")
-          .withRequestTimeout(10000)
+          .withRequestTimeout(10000.millis)
           .withQueryString("search" -> "play")
       //#complex-holder
 
@@ -149,7 +150,7 @@ class ScalaWSSpec extends PlaySpecification with Results {
     "allow setting the request timeout" in withSimpleServer { ws =>
       val response =
         //#request-timeout
-        ws.url(url).withRequestTimeout(5000).get()
+        ws.url(url).withRequestTimeout(5000.millis).get()
         //#request-timeout
 
       await(response).status must_== 200
