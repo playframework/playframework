@@ -34,9 +34,7 @@ You can change the `Context`'s `lang` field by calling `changeLang` or `setTrans
 
 If you don't want to use the current language you can specify a message's language explicitly:
 
-```
-String title = Messages.get(new Lang(Lang.forCode("fr")), "home.title")
-```
+@[specify-lang-render](code/javaguide/i18n/JavaI18N.java)
 
 ## Use in templates
 
