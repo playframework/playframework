@@ -51,6 +51,13 @@ case class JsLookup(result: JsLookupResult) extends AnyVal {
   }
 
   /**
+   * Access a value of this array.
+   *
+   * @param index Element index
+   */
+  def \(index: Int): JsLookupResult = apply(index)
+
+  /**
    * Return the property corresponding to the fieldName, supposing we have a JsObject.
    *
    * @param fieldName the name of the property to look up
