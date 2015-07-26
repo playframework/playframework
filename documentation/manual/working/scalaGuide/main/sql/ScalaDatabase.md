@@ -125,54 +125,15 @@ val ds = DB.getDataSource()
 
 ## Obtaining a JDBC connection
 
-There are several ways to retrieve a JDBC connection. The simplest way is:
+There are several ways to retrieve a JDBC connection. The following code show you a JDBC example very simple, working with MySQL 5.*:
 
-```scala
-val connection = DB.getConnection()
-```
-
-Following code show you a JDBC example very simple, working with MySQL 5.*:
-
-```scala
-package controllers
-import play.api.Play.current
-import play.api.mvc._
-import play.api.db._
-
-object Application extends Controller {
-
-  def index = Action {
-    var outString = "Number is "
-    val conn = DB.getConnection()
-    try {
-      val stmt = conn.createStatement
-      val rs = stmt.executeQuery("SELECT 9 as testkey ")
-      while (rs.next()) {
-        outString += rs.getString("testkey")
-      }
-    } finally {
-      conn.close()
-    }
-    Ok(outString)
-  }
-
-}
-```
+@[](code/ScalaControllerInject.scala)
 
 But of course you need to call `close()` at some point on the opened connection to return it to the connection pool. Another way is to let Play manage closing the connection for you:
 
 ```scala
 // access "default" database
-DB.withConnection { conn =>
-  // do whatever you need with the connection
-}
-```
-
-For a database other than the default:
-
-```scala
-// access "orders" database instead of "default"
-DB.withConnection("orders") { conn =>
+db.withConnection { conn =>
   // do whatever you need with the connection
 }
 ```
@@ -188,6 +149,10 @@ DB.withTransaction { conn =>
   // do whatever you need with the connection
 }
 ```
+
+For a database other than the default:
+
+@[](code/ScalaInjectNamed.scala)
 
 ## Selecting and configuring the connection pool
 
