@@ -282,11 +282,23 @@ object PlayBuild extends Build {
     .settings(libraryDependencies ++= netty)
     .dependsOn(PlayServerProject)
 
+  // ignored binary incompatibilities for PlayAkkaHttpServerProject since it's an experimental project
+  val ignoredABIProblemsPlayAkkaHttpServerProject = {
+    import com.typesafe.tools.mima.core._
+    import com.typesafe.tools.mima.core.ProblemFilters._
+    Seq(
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.core.server.akkahttp.ModelConversion.convertRequest"),
+      ProblemFilters.exclude[IncompatibleResultTypeProblem]("play.core.server.akkahttp.AkkaHttpServer.materializer"),
+      ProblemFilters.exclude[IncompatibleMethTypeProblem]("play.core.server.akkahttp.AkkaStreamsConversion.sourceToEnumerator")
+    )
+  }
+
   lazy val PlayAkkaHttpServerProject = PlayCrossBuiltProject("Play-Akka-Http-Server-Experimental", "play-akka-http-server")
     .settings(libraryDependencies ++= akkaHttp)
      // Include scripted tests here as well as in the SBT Plugin, because we
      // don't want the SBT Plugin to have a dependency on an experimental module.
     .settings(playFullScriptedSettings: _*)
+    .settings(binaryIssueFilters ++= ignoredABIProblemsPlayAkkaHttpServerProject)
     .dependsOn(PlayServerProject, StreamsProject)
     .dependsOn(PlaySpecs2Project % "test", PlayWsProject % "test")
 

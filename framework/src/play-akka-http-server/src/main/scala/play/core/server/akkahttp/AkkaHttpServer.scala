@@ -5,7 +5,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.{ `Content-Length`, `Content-Type` }
 import akka.pattern.ask
-import akka.stream.ActorFlowMaterializer
+import akka.stream.ActorMaterializer
 import akka.stream.scaladsl._
 import akka.util.{ ByteString, Timeout }
 import java.net.InetSocketAddress
@@ -42,7 +42,7 @@ class AkkaHttpServer(
   // Remember that some user config may not be available in development mode due to
   // its unusual ClassLoader.
   implicit val system = actorSystem
-  implicit val materializer = ActorFlowMaterializer()
+  implicit val materializer = ActorMaterializer()
 
   val address: InetSocketAddress = {
     // Listen for incoming connections and handle them with the `handleRequest` method.

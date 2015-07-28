@@ -18,6 +18,8 @@ object AkkaHttpScalaResultsHandlingSpec extends ScalaResultsHandlingSpec with Ak
 
 trait ScalaResultsHandlingSpec extends PlaySpecification with WsTestClient with ServerIntegrationSpecification {
 
+  sequential
+
   "scala body handling" should {
 
     def tryRequest[T](result: Result)(block: Try[WSResponse] => T) = withServer(result) { implicit port =>
