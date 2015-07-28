@@ -4,6 +4,8 @@
 
 package play.it.action
 
+import play.api.routing.Router
+import play.api.routing.Router.Tags._
 import play.api.test._
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.it._
@@ -11,10 +13,9 @@ import play.it.tools.HttpBinApplication._
 import play.api.libs.ws.WSResponse
 import com.ning.http.client.providers.netty.response.NettyResponse
 import play.api.mvc._
-import play.api.http.HeaderNames
+import play.api.http.{ HttpVerbs, HeaderNames }
 import play.api.libs.iteratee.Enumerator
 import java.util.concurrent.atomic.AtomicBoolean
-import play.api.test.TestServer
 import play.api.test.FakeApplication
 
 object NettyHeadActionSpec extends HeadActionSpec with NettyIntegrationSpecification
@@ -23,7 +24,7 @@ object AkkaHttpHeadActionSpec extends HeadActionSpec with AkkaHttpIntegrationSpe
 trait HeadActionSpec extends PlaySpecification
     with WsTestClient with Results with HeaderNames with ServerIntegrationSpecification {
 
-  def route(verb: String, path: String)(handler: EssentialAction): PartialFunction[(String, String), Handler] = {
+  private def route(verb: String, path: String)(handler: EssentialAction): PartialFunction[(String, String), Handler] = {
     case (v, p) if v == verb && p == path => handler
   }
 
@@ -56,11 +57,16 @@ trait HeadActionSpec extends PlaySpecification
       running(TestServer(port, FakeApplication(withRoutes = routes)))(block)
     }
 
-    def serverWithAction[T](action: EssentialAction)(block: => T): T = {
+    def serverWithAction[T](action: EssentialAction)(block: => T): T = serverWithRoutes({
+      case _ => action
+    })(block)
+
+    def serverWithRoutes[T](routes: PartialFunction[(String, String), Handler],
+      additionalConfiguration: Map[String, String] = Map.empty)(block: => T): T = {
       running(TestServer(port, FakeApplication(
-        withRoutes = {
-          case _ => action
-        })))(block)
+        additionalConfiguration = additionalConfiguration,
+        withRoutes = routes))
+      )(block)
     }
 
     "return 200 in response to a URL with a GET handler" in withServer {
@@ -115,6 +121,39 @@ trait HeadActionSpec extends PlaySpecification
       }
     }
 
+    "tag request with GlobalSettings" in {
+      testTaggedRequest()
+    }
+
+    "tag request with DefaultHttpRequestHandler" in {
+      testTaggedRequest(Map("play.http.requestHandler" -> "play.api.http.DefaultHttpRequestHandler"))
+    }
+
+    def testTaggedRequest(additionalConfiguration: Map[String, String] = Map.empty) = {
+      var requestTags = Map.empty[String, String]
+
+      val action = Action { request =>
+        requestTags = request.tags
+        Ok
+      }
+
+      def tags(rh: RequestHeader): Map[String, String] = Map(RoutePattern -> "/get", RouteVerb -> rh.method)
+
+      val taggingAction = new EssentialAction with RequestTaggingHandler {
+        override def apply(rh: RequestHeader) = action(rh)
+        override def tagRequest(rh: RequestHeader) = rh.copy(tags = rh.tags ++ tags(rh))
+      }
+
+      val routes = route(HttpVerbs.GET, "/get")(taggingAction)
+
+      serverWithRoutes(routes, additionalConfiguration) {
+        await(wsUrl("/get").head()).status must_== OK
+        requestTags must not be empty
+        requestTags.get(Router.Tags.RoutePattern) must beSome("/get")
+        requestTags.get(Router.Tags.RouteVerb) must beSome(HttpVerbs.HEAD)
+      }.pendingUntilAkkaHttpFixed // waiting for https://github.com/playframework/playframework/issues/4907
+    }
+
     "respect deliberately set Content-Length headers" in withServer {
       val result = await(wsUrl("/manualContentSize").head())
 
@@ -129,4 +168,5 @@ trait HeadActionSpec extends PlaySpecification
     }
 
   }
+
 }
