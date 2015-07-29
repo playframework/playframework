@@ -6,7 +6,6 @@ package play.api.libs.ws.ning
 import java.io.UnsupportedEncodingException
 import java.nio.charset.{ Charset, StandardCharsets }
 import javax.inject.{ Inject, Provider, Singleton }
-
 import com.ning.http.client.{ Response => AHCResponse, ProxyServer => AHCProxyServer, _ }
 import com.ning.http.client.cookie.{ Cookie => AHCCookie }
 import com.ning.http.client.Realm.{ RealmBuilder, AuthScheme }
@@ -14,23 +13,19 @@ import com.ning.http.util.AsyncHttpProviderUtils
 import org.jboss.netty.handler.codec.http.HttpHeaders
 import play.api.inject.{ ApplicationLifecycle, Module }
 import play.core.parsers.FormUrlEncodedParser
-
 import collection.immutable.TreeMap
-
 import scala.concurrent.{ Future, Promise }
 import scala.concurrent.duration.Duration
-
 import play.api.libs.ws._
 import play.api.libs.ws.ssl._
-
 import play.api.libs.iteratee._
 import play.api._
 import play.core.utils.CaseInsensitiveOrdered
 import play.api.libs.ws.DefaultWSResponseHeaders
 import play.api.libs.iteratee.Input.El
 import play.api.libs.ws.ssl.debug._
-
 import scala.collection.JavaConverters._
+import akka.stream.scaladsl.Source
 
 /**
  * A WS client backed by a Ning AsyncHttpClient.
@@ -135,7 +130,7 @@ case class NingWSRequest(client: NingWSClient,
 
   def execute(): Future[WSResponse] = execute(buildRequest())
 
-  def stream(): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = executeStream(buildRequest())
+  def stream(): Future[(WSResponseHeaders, Source[Array[Byte], Unit])] = executeStream(buildRequest())
 
   /**
    * Returns the current headers of the request, using the request builder.  This may be signed,
@@ -324,7 +319,7 @@ case class NingWSRequest(client: NingWSClient,
     result.future
   }
 
-  private[libs] def executeStream(request: Request): Future[(WSResponseHeaders, Enumerator[Array[Byte]])] = {
+  private[libs] def executeStream(request: Request): Future[(WSResponseHeaders, Source[Array[Byte], Unit])] = {
 
     import com.ning.http.client.AsyncHandler
 
@@ -342,12 +337,14 @@ case class NingWSRequest(client: NingWSClient,
 
       import com.ning.http.client.AsyncHandler.STATE
 
-      override def onStatusReceived(status: HttpResponseStatus) = {
+      @throws(classOf[Exception])
+      override def onStatusReceived(status: HttpResponseStatus): STATE = {
         statusCode = status.getStatusCode
         STATE.CONTINUE
       }
 
-      override def onHeadersReceived(h: HttpResponseHeaders) = {
+      @throws(classOf[Exception])
+      override def onHeadersReceived(h: HttpResponseHeaders): STATE = {
         val headers = h.getHeaders
 
         val responseHeader = DefaultWSResponseHeaders(statusCode, ningHeadersToMap(headers))
@@ -386,7 +383,8 @@ case class NingWSRequest(client: NingWSClient,
         STATE.CONTINUE
       }
 
-      override def onBodyPartReceived(bodyPart: HttpResponseBodyPart) = {
+      @throws(classOf[Exception])
+      override def onBodyPartReceived(bodyPart: HttpResponseBodyPart): STATE = {
         if (!doneOrError) {
           import play.api.libs.concurrent.Execution.Implicits.defaultContext
           current = current.pureFlatFold {
@@ -411,16 +409,23 @@ case class NingWSRequest(client: NingWSClient,
         }
       }
 
-      override def onCompleted() = {
+      @throws(classOf[Exception])
+      override def onCompleted(): Unit = {
         Option(current).foreach(_.run)
       }
 
-      override def onThrowable(t: Throwable) = {
+      override def onThrowable(t: Throwable): Unit = {
         result.tryFailure(t)
         errorInStream.tryFailure(t)
       }
     })
-    result.future
+    import play.core.Execution.Implicits.internalContext
+    result.future.map {
+      case (response, enumerator) =>
+        import play.api.libs.streams.Streams
+        val publisher = Streams.enumeratorToPublisher(enumerator)
+        (response, Source(publisher))
+    }
   }
 
   private[libs] def createProxy(wsProxyServer: WSProxyServer): AHCProxyServer = {
