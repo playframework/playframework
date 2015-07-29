@@ -163,13 +163,14 @@ class EnumeratorPublisherSpec extends Specification {
     "handle errors when enumerating" in {
       val testEnv = new TestEnv[Int]
       val lotsOfItems = 0 until 25
-      val enum = Enumerator.flatten(Future.failed(new Exception("x")))
+      lazy val exception = new Exception("x")
+      val enum = Enumerator.flatten(Future.failed(exception))
       val pubr = new EnumeratorPublisher[Nothing](enum)
       pubr.subscribe(testEnv.subscriber)
       testEnv.next must_== OnSubscribe
       testEnv.request(1)
       testEnv.next must_== RequestMore(1)
-      testEnv.next must_== OnComplete
+      testEnv.next must_== OnError(exception)
       testEnv.isEmptyAfterDelay() must beTrue
     }
     "enumerate 25 items" in {

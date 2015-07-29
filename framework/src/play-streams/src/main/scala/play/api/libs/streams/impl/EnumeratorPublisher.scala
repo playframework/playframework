@@ -177,9 +177,9 @@ private[streams] class EnumeratorSubscription[T, U >: T](
    * enters a failure state. This may indicate that an error occurred
    * during evaluation of the Enumerator.
    */
-  private def enumeratorApplicationFailed(): Unit = exclusive {
+  private def enumeratorApplicationFailed(t: Throwable): Unit = exclusive {
     case Requested(_, _) =>
-      subr.onComplete()
+      subr.onError(t)
       state = Completed
     case Cancelled =>
       ()
@@ -213,7 +213,7 @@ private[streams] class EnumeratorSubscription[T, U >: T](
     its match {
       case Unattached =>
         enum(iteratee).onFailure {
-          case _ => enumeratorApplicationFailed()
+          case t => enumeratorApplicationFailed(t)
         }(Execution.trampoline)
       case Attached(link0) =>
         link0.success(iteratee)
