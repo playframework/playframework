@@ -4,14 +4,13 @@
 package play.api.libs
 
 import java.io._
-import java.nio.file.{ FileAlreadyExistsException, StandardCopyOption, SimpleFileVisitor, Path, FileVisitResult }
 import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file.{ FileAlreadyExistsException, FileVisitResult, Files => JFiles, Path, SimpleFileVisitor, StandardCopyOption }
+import javax.inject.{ Inject, Singleton }
 
-import javax.inject.{ Inject, Singleton };
-
-import play.api.{ Application, Play };
-import play.api.inject.ApplicationLifecycle;
-import java.nio.file.{ Files => JFiles }
+import com.google.inject.ImplementedBy
+import play.api.inject.ApplicationLifecycle
+import play.api.{ Application, Play }
 
 import scala.concurrent.Future
 
@@ -25,6 +24,7 @@ object Files {
    * file themselves, but this TemporaryFileCreator implementation may also
    * try to clean up any leaked files, e.g. when the Application or JVM stops.
    */
+  @ImplementedBy(classOf[DefaultTemporaryFileCreator])
   trait TemporaryFileCreator {
     def create(prefix: String, suffix: String): File
   }
@@ -115,7 +115,7 @@ object Files {
     /**
      * Cache the current Application's TemporaryFileCreator
      */
-    private val creatorCache = Application.instanceCache[DefaultTemporaryFileCreator]
+    private val creatorCache = Application.instanceCache[TemporaryFileCreator]
 
     /**
      * Get the current TemporaryFileCreator - either the injected
