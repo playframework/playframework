@@ -1,3 +1,20 @@
-@(contactForm: Form[Contact])
+@(contactForm: Form[Contact])(implicit messages: Messages)
 
+@import scalaguide.forms.scalaforms.controllers.routes
 
+@helper.form(action = routes.Application.saveContact) {
+
+    @helper.inputText(contactForm("firstname"))
+    @helper.inputText(contactForm("lastname"))
+    @helper.inputText(contactForm("company"))
+
+    @helper.repeat(contactForm("informations")) { info =>
+        @helper.inputText(info("label"))
+        @helper.inputText(info("email"))
+        @helper.repeat(info("phones")) { phone =>
+            @helper.inputText(phone)
+        }
+    }
+
+    <input type="submit" id="submit" value="@routes.Application.saveContact">
+}
