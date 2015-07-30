@@ -7,6 +7,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
+
+import play.inject.Injector;
 import play.libs.F;
 
 import static org.mockito.Mockito.*;
@@ -16,6 +18,7 @@ public class SecurityTest {
     public static class AuthenticatedActionTest {
         Http.Context ctx;
         Http.Request req;
+        Injector injector;
         Security.AuthenticatedAction action;
 
         Exception exception = new Exception("test exception");
@@ -25,13 +28,15 @@ public class SecurityTest {
         public void setUp() {
             ctx = mock(Http.Context.class);
             req = mock(Http.Request.class);
+            injector = mock(Injector.class);
 
             when(ctx.session()).thenReturn(new Http.Session(ImmutableMap.of("username", "test_user")));
             when(ctx.request()).thenReturn(req);
             doNothing().when(req).setUsername(anyString());
             doNothing().when(req).setUsername(null);
+            when(injector.instanceOf(Security.Authenticator.class)).thenReturn(new Security.Authenticator());
 
-            action = new Security.AuthenticatedAction();
+            action = new Security.AuthenticatedAction(injector);
             action.configuration = new Security.Authenticated() {
                 @Override
                 public Class<? extends Security.Authenticator> value() {
