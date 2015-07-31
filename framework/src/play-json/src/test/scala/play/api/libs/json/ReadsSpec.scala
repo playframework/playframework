@@ -261,10 +261,9 @@ object ReadsSpec extends org.specs2.mutable.Specification {
 
     val CustomReads1 = Reads.instantReads("dd/MM/yyyy, HH:mm:ss")
 
-    @inline def instant(input: String): Instant = {
-      val time = LocalDateTime.parse(input, DateTimeFormatter.ISO_DATE_TIME)
-      Instant.parse(s"${time}Z")
-    }
+    @inline def instant(input: String): Instant =
+      LocalDateTime.parse(input, DateTimeFormatter.ISO_DATE_TIME).
+        atZone(ZoneId.of("Z")).toInstant
 
     lazy val correctedReads = Reads.instantReads(
       DateTimeFormatter.ISO_DATE_TIME, _.drop(1))
@@ -285,9 +284,19 @@ object ReadsSpec extends org.specs2.mutable.Specification {
     }
 
     "be successfully read with default implicit" >> {
+      "from '2015-05-01T13:00:00' (with zeros)" in {
+        reads(JsString("2015-05-01T00:00:00")).
+          aka("read data") must_== JsSuccess(instant("2015-05-01T00:00:00"))
+      }
+
       "from '2011-12-03T10:15:30'" in {
         reads(JsString("2011-12-03T10:15:30")).
           aka("read date") must_== JsSuccess(instant("2011-12-03T10:15:30"))
+      }
+
+      "from '2015-05-01T13:00:00+02:00' (with TZ offset and zeros)" in {
+        reads(JsString("2015-05-01T13:00:00+02:00")) must_== JsSuccess(
+          instant("2015-05-01T13:00:00+02:00"))
       }
 
       "from '2011-12-03T10:15:30+01:00' (with TZ offset)" in {
@@ -299,6 +308,12 @@ object ReadsSpec extends org.specs2.mutable.Specification {
         reads(JsString("2011-12-03T10:15:30+01:00[Europe/Paris]")).
           aka("read date") must_== (
             JsSuccess(instant("2011-12-03T10:15:30+01:00[Europe/Paris]")))
+      }
+
+      "from '2011-12-03T00:00:00+01:00[Europe/Paris]' (with time zone)" in {
+        reads(JsString("2011-12-03T00:00:00+01:00[Europe/Paris]")).
+          aka("read date") must_== (
+            JsSuccess(instant("2011-12-03T00:00:00+01:00[Europe/Paris]")))
       }
     }
 

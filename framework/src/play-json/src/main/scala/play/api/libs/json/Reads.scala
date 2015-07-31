@@ -9,6 +9,7 @@ import java.time.{
   LocalDate,
   LocalDateTime,
   ZoneId,
+  ZoneOffset,
   ZonedDateTime
 }
 import java.time.format.{ DateTimeFormatter, DateTimeParseException }
@@ -375,9 +376,9 @@ trait DefaultReads extends LowPriorityDefaultReads {
     implicit def InstantPatternParser(pattern: String): TemporalParser[Instant] = new TemporalParser[Instant] {
       def parse(input: String): Option[Instant] = try {
         val time = LocalDateTime.parse(
-          input, DateTimeFormatter.ofPattern(pattern))
+          input, DateTimeFormatter.ofPattern(pattern)).atZone(ZoneId.of("Z"))
 
-        Some(Instant parse s"${time.toString}Z")
+        Some(time.toInstant)
       } catch {
         case _: DateTimeParseException => None
         case _: UnsupportedTemporalTypeException => None
@@ -387,8 +388,9 @@ trait DefaultReads extends LowPriorityDefaultReads {
     /** Instance of instant parser based on formatter. */
     implicit def InstantFormatterParser(formatter: DateTimeFormatter): TemporalParser[Instant] = new TemporalParser[Instant] {
       def parse(input: String): Option[Instant] = try {
-        val time = LocalDateTime.parse(input, formatter)
-        Some(Instant parse s"${time.toString}Z")
+        val time = LocalDateTime.parse(input, formatter).atZone(ZoneId.of("Z"))
+        
+        Some(time.toInstant)
       } catch {
         case _: DateTimeParseException => None
         case _: UnsupportedTemporalTypeException => None
@@ -451,7 +453,6 @@ trait DefaultReads extends LowPriorityDefaultReads {
    * }}}
    */
   def localDateTimeReads[T](parsing: T, corrector: String => String = identity)(implicit p: T => TemporalParser[LocalDateTime]): Reads[LocalDateTime] = new Reads[LocalDateTime] {
-
     def reads(json: JsValue): JsResult[LocalDateTime] = json match {
       case JsNumber(d) => JsSuccess(epoch(d.toLong))
       case JsString(s) => p(parsing).parse(corrector(s)) match {
@@ -495,7 +496,6 @@ trait DefaultReads extends LowPriorityDefaultReads {
    * }}}
    */
   def zonedDateTimeReads[T](parsing: T, corrector: String => String = identity)(implicit p: T => TemporalParser[ZonedDateTime]): Reads[ZonedDateTime] = new Reads[ZonedDateTime] {
-
     def reads(json: JsValue): JsResult[ZonedDateTime] = json match {
       case JsNumber(d) => JsSuccess(epoch(d.toLong))
       case JsString(s) => p(parsing).parse(corrector(s)) match {
