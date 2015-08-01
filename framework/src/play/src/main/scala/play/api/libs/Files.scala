@@ -9,6 +9,7 @@ import java.nio.file.attribute.BasicFileAttributes
 
 import javax.inject.{ Inject, Singleton };
 
+import com.google.inject.ImplementedBy
 import play.api.{ Application, Play };
 import play.api.inject.ApplicationLifecycle;
 import java.nio.file.{ Files => JFiles }
@@ -25,6 +26,7 @@ object Files {
    * file themselves, but this TemporaryFileCreator implementation may also
    * try to clean up any leaked files, e.g. when the Application or JVM stops.
    */
+  @ImplementedBy(classOf[DefaultTemporaryFileCreator])
   trait TemporaryFileCreator {
     def create(prefix: String, suffix: String): File
   }
@@ -115,7 +117,7 @@ object Files {
     /**
      * Cache the current Application's TemporaryFileCreator
      */
-    private val creatorCache = Application.instanceCache[DefaultTemporaryFileCreator]
+    private val creatorCache = Application.instanceCache[TemporaryFileCreator]
 
     /**
      * Get the current TemporaryFileCreator - either the injected
