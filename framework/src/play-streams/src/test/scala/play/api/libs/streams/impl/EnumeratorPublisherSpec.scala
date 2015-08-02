@@ -115,12 +115,12 @@ class EnumeratorPublisherSpec extends Specification {
       testEnv.next must_== RequestMore(4)
       testEnv.isEmptyAfterDelay() must beTrue
       testEnv.cancel()
+      testEnv.next must_== Cancel
       // Element push occurs after cancel, so will not generate an event.
       // However it is necessary to have an event so that the publisher's
       // Cont is satisfied. We want to advance the iteratee to pick up the
       // Done iteratee caused by the cancel.
       channel.push(0)
-      testEnv.next must_== Cancel
       testEnv.isEmptyAfterDelay() must beTrue
       Await.result(enumDone.future, Duration(5, SECONDS)) must beTrue
     }
