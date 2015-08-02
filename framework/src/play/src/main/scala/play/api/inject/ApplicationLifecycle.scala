@@ -39,7 +39,7 @@ import scala.concurrent.Future
  *
  *     private val connectionPool = new SomeConnectionPool()
  *     applicationLifecycle.addStopHook { () =>
- *       connectionPool.shutdown()
+ *       Future.successful(connectionPool.shutdown())
  *     }
  *
  *     ...
