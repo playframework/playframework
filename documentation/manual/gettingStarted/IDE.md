@@ -9,13 +9,13 @@ However, using a modern Java or Scala IDE provides cool productivity features li
 
 ### Setup sbteclipse
 
-Play requires [sbteclipse](https://github.com/typesafehub/sbteclipse) 4.0.0 or newer.
+Play requires [sbteclipse](https://github.com/typesafehub/sbteclipse) 4.0.0 or newer.  Append the following to project/plugins.sbt:
 
 ```scala
 addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "4.0.0")
 ```
 
-You must `compile` your project before running the `eclipse` command. You can force compilation to happen when the `eclipse` command is run by adding the following setting:
+You must `compile` your project before running the `eclipse` command. You can force compilation to happen when the `eclipse` command is run by adding the following setting to build.sbt:
 
 ```scala
 // Compile the project before generating Eclipse files, so that generated .scala or .class files for views and routes are present
