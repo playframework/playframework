@@ -180,7 +180,7 @@ trait DefaultWrites {
    * Serializer for Array[T] types.
    */
   implicit def arrayWrites[T: ClassTag](implicit fmt: Writes[T]): Writes[Array[T]] = new Writes[Array[T]] {
-    def writes(ts: Array[T]) = JsArray((ts.map(t => toJson(t)(fmt))).toList)
+    def writes(ts: Array[T]) = JsArray(ts.map(t => toJson(t)(fmt)).toList)
   }
 
   /**
@@ -279,15 +279,16 @@ trait DefaultWrites {
    * Serializer for Java8 temporal types (e.g. `java.time.LocalDateTime`)
    * to be written as JSON string, using the default time zone.
    *
-   * @tparam T Type of formatting argument
-   * @param formating an argument to instantiate formatter
+   * @tparam A the Java8 temporal type to be considered: LocalDateTime, ZonedDateTime, Instant
+   * @tparam B Type of formatting argument
+   *
+   * @param formatting an argument to instantiate formatter
    *
    * {{{
    * import java.time.LocalDateTime
    * import play.api.libs.json.Writes
-   * import play.api.libs.json.Java8Writes
    *
-   * implicit val Writes: Writes[LocalDateTime] =
+   * implicit val temporalWrites: Writes[LocalDateTime] =
    *   temporalWrites[LocalDateTime, DateTimeFormatter](
    *     DateTimeFormatter.ISO_LOCAL_DATE_TIME)
    * }}}
@@ -334,9 +335,8 @@ trait DefaultWrites {
    * {{{
    * import java.time.LocalDateTime
    * import play.api.libs.json.Writes
-   * import play.api.libs.json.Java8Writes
    *
-   * implicit val Writes = LocalDateTimeNumberWrites[LocalDateTime]
+   * implicit val ldtnWrites = Writes.LocalDateTimeNumberWrites
    * }}}
    */
   val LocalDateTimeNumberWrites: Writes[LocalDateTime] =
@@ -354,9 +354,8 @@ trait DefaultWrites {
    * {{{
    * import java.time.ZonedDateTime
    * import play.api.libs.json.Writes
-   * import play.api.libs.json.Java8Writes
    *
-   * implicit val Writes = ZonedDateTimeNumberWrites[ZonedDateTime]
+   * implicit val zdtnWrites = Writes.ZonedDateTimeNumberWrites
    * }}}
    */
   val ZonedDateTimeNumberWrites: Writes[ZonedDateTime] =
@@ -371,9 +370,8 @@ trait DefaultWrites {
    * {{{
    * import java.time.LocalDate
    * import play.api.libs.json.Writes
-   * import play.api.libs.json.Java8Writes
    *
-   * implicit val Writes = LocalDateNumberWrites[LocalDate]
+   * implicit val ldnWrites = Writes.LocalDateNumberWrites
    * }}}
    */
   val LocalDateNumberWrites: Writes[LocalDate] = new Writes[LocalDate] {
@@ -390,9 +388,8 @@ trait DefaultWrites {
    * {{{
    * import java.time.Instant
    * import play.api.libs.json.Writes
-   * import play.api.libs.json.Java8Writes
    *
-   * implicit val Writes = InstantNumberWrites[Instant]
+   * implicit val inWrites = Writes.InstantNumberWrites
    * }}}
    */
   val InstantNumberWrites: Writes[Instant] = new Writes[Instant] {
@@ -459,7 +456,7 @@ trait DefaultWrites {
    * Serializer for java.util.UUID
    */
   implicit object UuidWrites extends Writes[java.util.UUID] {
-    def writes(u: java.util.UUID) = JsString(u.toString())
+    def writes(u: java.util.UUID) = JsString(u.toString)
   }
 
   /**
